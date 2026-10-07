@@ -26,7 +26,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "9293-test-secret";
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const { mergeModelCompatOverride, getModelIsHidden } = await import("../../src/lib/localDb.ts");
+const { mergeModelCompatOverride, getModelIsHidden } = await import("@/lib/db/models");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {

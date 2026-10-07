@@ -7,8 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getCachedProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
+import { updateProviderConnection } from "@/lib/db/providers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { clampLoginTimeoutMs } from "@/lib/api/loginTimeout";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const ADOBE_FIREFLY_SLUGS = new Set(["adobe-firefly", "firefly"]);
@@ -155,6 +157,133 @@ async function loginAdobeFirefly(
   }
 }
 
+// --- MaxAI: browserless email device-pair login -----------------------------
+
+/**
+ * MaxAI email login is a two-step, browserless device-pair flow (no browser /
+ * camoufox / Google): step "request" emails a 6-digit code; step "verify"
+ * exchanges the code for the full credential (access + ~1-year refresh token).
+ *
+ * The signature is bound to a client-minted device id, so we mint it in the
+ * request step and persist it to the connection immediately, then read it back
+ * in the verify step (the route itself is stateless across the two calls).
+ */
+async function loginMaxaiEmail(
+  connectionId: string,
+  connection: Record<string, unknown>,
+  body: { step?: unknown; email?: unknown; code?: unknown }
+): Promise<NextResponse> {
+  const { randomUUID } = await import("node:crypto");
+  const { requestMaxaiEmailCode, verifyMaxaiEmailCode } = await import(
+    "@omniroute/open-sse/executors/maxai/emailLogin.ts"
+  );
+
+  const psd = (connection.providerSpecificData ?? {}) as Record<string, unknown>;
+  const step = String(body.step || "request");
+
+  if (step === "request") {
+    const email = String(body.email || "").trim();
+    if (!email) {
+      return NextResponse.json(
+        { success: false, error: "An email address is required." },
+        { status: 400 }
+      );
+    }
+    // Mint (or reuse) the client identity and persist it BEFORE the request so
+    // the verify step signs with the same device id.
+    const deviceId = String(psd.maxaiDeviceId || psd.deviceId || randomUUID());
+    const clientUserId = String(psd.maxaiClientUserId || psd.clientUserId || randomUUID());
+    try {
+      await updateProviderConnection(connectionId, {
+        providerSpecificData: {
+          ...psd,
+          maxaiDeviceId: deviceId,
+          maxaiClientUserId: clientUserId,
+          maxaiLoginEmail: email,
+        },
+      });
+    } catch {
+      /* non-fatal: fall through and still attempt the request */
+    }
+
+    const result = await requestMaxaiEmailCode({ email, deviceId });
+    if (!result.ok) {
+      return NextResponse.json(
+        { success: false, error: result.error || "Failed to send the sign-in code." },
+        { status: result.status && result.status >= 400 ? result.status : 400 }
+      );
+    }
+    return NextResponse.json({
+      success: true,
+      step: "request",
+      message: `A sign-in code was emailed to ${email}. Enter it to finish connecting.`,
+      email,
+    });
+  }
+
+  if (step === "verify") {
+    const code = String(body.code || "").trim();
+    const email = String(body.email || psd.maxaiLoginEmail || "").trim();
+    const deviceId = String(psd.maxaiDeviceId || psd.deviceId || "");
+    const clientUserId = String(psd.maxaiClientUserId || psd.clientUserId || "");
+    if (!code || !email || !deviceId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: !deviceId
+            ? "No pending sign-in. Request a code first."
+            : "The email and the code are both required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const result = await verifyMaxaiEmailCode({ email, code, deviceId, clientUserId });
+    if (!result.ok || !result.credential) {
+      return NextResponse.json(
+        { success: false, error: result.error || "Code verification failed." },
+        { status: result.status && result.status >= 400 ? result.status : 400 }
+      );
+    }
+
+    const cred = result.credential;
+    try {
+      await updateProviderConnection(connectionId, {
+        // The access token is replayed as `Authorization: Bearer` by the executor.
+        apiKey: cred.accessToken,
+        providerSpecificData: {
+          ...psd,
+          maxaiAccessToken: cred.accessToken,
+          maxaiRefreshToken: cred.refreshToken,
+          maxaiDeviceId: cred.deviceId,
+          maxaiUserId: cred.userId,
+          maxaiClientUserId: cred.clientUserId,
+          maxaiLoginEmail: cred.email,
+          signedInAt: Date.now(),
+        },
+      });
+    } catch (err) {
+      const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
+      return NextResponse.json(
+        { success: false, error: `Signed in but failed to persist: ${msg}` },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({
+      success: true,
+      step: "verify",
+      persisted: true,
+      account: cred.email,
+      message: `Connected as ${cred.email}.`,
+    });
+  }
+
+  return NextResponse.json(
+    { success: false, error: `Unknown login step: ${step}` },
+    { status: 400 }
+  );
+}
+
 // --- POST: Start login flow -------------------------------------------------
 
 export async function POST(
@@ -176,6 +305,24 @@ export async function POST(
   };
   const providerSlug = resolveProviderSlug(provider as Record<string, unknown>);
 
+  // MaxAI: browserless email device-pair login (no browser). Two-step:
+  // {step:"request",email} emails a code; {step:"verify",code} mints + persists.
+  if (providerSlug === "maxai" || providerSlug === "mx") {
+    try {
+      return await loginMaxaiEmail(id, provider as Record<string, unknown>, body as {
+        step?: unknown;
+        email?: unknown;
+        code?: unknown;
+      });
+    } catch (err) {
+      const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
+      return NextResponse.json(
+        { success: false, error: `MaxAI sign-in error: ${msg}` },
+        { status: 500 }
+      );
+    }
+  }
+
   // Adobe Firefly: dedicated JWT capture (never cookies/localStorage alone).
   if (isAdobeFireflyProvider(provider as { provider?: unknown }, providerSlug)) {
     try {
@@ -194,9 +341,8 @@ export async function POST(
   // persistence (same shape as the other web-cookie providers).
   if (providerSlug === "conol-web" || providerSlug === "cnl") {
     try {
-      const { startConolBrowserLogin } = await import(
-        "@omniroute/open-sse/services/conolBrowserLogin.ts"
-      );
+      const { startConolBrowserLogin } =
+        await import("@omniroute/open-sse/services/conolBrowserLogin.ts");
       const result = await startConolBrowserLogin(
         typeof body.timeout === "number" ? body.timeout : undefined
       );
@@ -237,7 +383,7 @@ export async function POST(
     const { inAppLoginService } = await import("@omniroute/open-sse/services/inAppLoginService.ts");
 
     const result = await inAppLoginService.startLogin(providerSlug || id, {
-      timeout: typeof body.timeout === "number" ? body.timeout : undefined,
+      timeout: clampLoginTimeoutMs(body.timeout),
     });
 
     // Persist credentials if extraction succeeded

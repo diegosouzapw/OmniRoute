@@ -13,9 +13,8 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-caveman-test-"))
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { writeCavemanOutputAnalytics } = await import(
-  "../../open-sse/handlers/chatCore/cavemanOutputAnalytics.ts"
-);
+const { writeCavemanOutputAnalytics } =
+  await import("../../open-sse/handlers/chatCore/cavemanOutputAnalytics.ts");
 
 function rowFor(requestId: string): Record<string, unknown> | undefined {
   return coreDb

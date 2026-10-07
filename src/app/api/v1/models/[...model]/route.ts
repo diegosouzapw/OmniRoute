@@ -25,12 +25,9 @@ export async function HEAD() {
  * GET /v1/models/{model} — OpenAI-compatible single-model retrieval (#4674).
  *
  * Catch-all (`[...model]`) so provider-prefixed ids that contain a slash
- * (e.g. `cgpt-web/gpt-5.5`, `claude/claude-sonnet-4-6`) are captured intact.
+ * (e.g. `openai/gpt-5.4`, `claude/claude-sonnet-4-6`) are captured intact.
  */
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ model: string[] }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ model: string[] }> }) {
   const { model } = await params;
   const segments = Array.isArray(model) ? model : [model];
   const requestedId = decodeURIComponent(segments.join("/"));

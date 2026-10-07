@@ -24,6 +24,19 @@ const CHAIN_COLORS = [
   "#14b8a6",
 ];
 
+async function fetchChainsData() {
+  try {
+    const res = await fetch("/api/fallback/chains");
+    if (res.ok) {
+      const data = await res.json();
+      return data.chains || data || {};
+    }
+  } catch {
+    // silent
+  }
+  return null;
+}
+
 export default function FallbackChainsEditor() {
   const [chains, setChains] = useState({});
   const [loading, setLoading] = useState(true);
@@ -35,23 +48,25 @@ export default function FallbackChainsEditor() {
   const t = useTranslations("settings");
   const tc = useTranslations("common");
 
-  const fetchChains = useCallback(async () => {
-    try {
-      const res = await fetch("/api/fallback/chains");
-      if (res.ok) {
-        const data = await res.json();
-        setChains(data.chains || data || {});
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
+  const applyChains = useCallback((data) => {
+    if (data) setChains(data);
+    setLoading(false);
   }, []);
 
+  const fetchChains = useCallback(async () => {
+    applyChains(await fetchChainsData());
+  }, [applyChains]);
+
   useEffect(() => {
-    fetchChains();
-  }, [fetchChains]);
+    let cancelled = false;
+    void (async () => {
+      const data = await fetchChainsData();
+      if (!cancelled) applyChains(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyChains]);
 
   const handleCreate = async () => {
     if (!newModel.trim() || !newProviders.trim()) {

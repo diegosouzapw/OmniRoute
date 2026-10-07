@@ -100,7 +100,11 @@ test("insertBullets appends at the END of each living section", () => {
   assert.ok(maintIdx > maintHeadIdx && maintIdx < lines.indexOf("## [3.8.46] - 2026-07-04"));
   // Only the FIRST (living) occurrence of a heading is touched — the shipped 3.8.46
   // section is byte-identical.
-  assert.ok(out.includes("## [3.8.46] - 2026-07-04\n\n### ✨ New Features\n\n- **old feature**: shipped (#0)"));
+  assert.ok(
+    out.includes(
+      "## [3.8.46] - 2026-07-04\n\n### ✨ New Features\n\n- **old feature**: shipped (#0)"
+    )
+  );
   // No existing bullet lost.
   for (const existing of ["#1 — thanks @a", "existing fix (#2", "existing maintenance (#3"]) {
     assert.ok(out.includes(existing));
@@ -108,7 +112,10 @@ test("insertBullets appends at the END of each living section", () => {
 });
 
 test("insertBullets throws when a needed heading is missing", () => {
-  const noMaint = CHANGELOG_FIXTURE.replace("### 📝 Maintenance\n\n- chore: existing maintenance (#3)\n", "");
+  const noMaint = CHANGELOG_FIXTURE.replace(
+    "### 📝 Maintenance\n\n- chore: existing maintenance (#3)\n",
+    ""
+  );
   assert.throws(
     () => insertBullets(noMaint, { maintenance: [{ text: "- x" }] }),
     /📝 Maintenance.*not found/s
@@ -181,4 +188,64 @@ test("SECTIONS maps every dir to a real living-section heading in the fixture", 
   for (const heading of Object.values(SECTIONS)) {
     assert.ok(CHANGELOG_FIXTURE.includes(heading), `fixture must contain ${heading}`);
   }
+});
+
+test("insertBullets with a version anchors on THAT section even when [Unreleased] has the same heading", () => {
+  const withUnreleasedHeading = `# Changelog
+
+## [Unreleased]
+
+### ✨ New Features
+
+- **unreleased**: leftover from an older cycle (#9)
+
+## [3.8.47] — TBD
+
+### ✨ New Features
+
+- **existing feature**: already here (#1 — thanks @a)
+
+### 🐛 Bug Fixes
+
+- **fix(x):** existing fix (#2 — thanks @b)
+
+## [3.8.46] - 2026-07-04
+
+### ✨ New Features
+
+- **old feature**: shipped (#0)
+`;
+  const out = insertBullets(
+    withUnreleasedHeading,
+    { features: [{ text: "- **new**: landed (#4)" }] },
+    "3.8.47"
+  );
+  const unreleased = out.slice(out.indexOf("## [Unreleased]"), out.indexOf("## [3.8.47]"));
+  const living = out.slice(out.indexOf("## [3.8.47]"), out.indexOf("## [3.8.46]"));
+  assert.ok(!unreleased.includes("landed (#4)"), "must not land under [Unreleased]");
+  assert.ok(
+    living.includes("- **existing feature**: already here (#1 — thanks @a)\n- **new**: landed (#4)")
+  );
+  assert.throws(
+    () => insertBullets(withUnreleasedHeading, { features: [{ text: "- x" }] }, "9.9.9"),
+    /section "## \[9\.9\.9\]" not found/
+  );
+});
+
+test("aggregate reads the living version from package.json and lands fragments under it", () => {
+  const root = makeRoot({
+    fragments: { "features/9-new.md": "- **new**: from a fragment (#9)\n" },
+  });
+  writeFileSync(join(root, "package.json"), JSON.stringify({ version: "3.8.47" }));
+  const before = readFileSync(join(root, "CHANGELOG.md"), "utf8");
+  const withHeading = before.replace(
+    "## [Unreleased]\n",
+    "## [Unreleased]\n\n### ✨ New Features\n\n- stale (#8)\n"
+  );
+  writeFileSync(join(root, "CHANGELOG.md"), withHeading);
+  aggregate({ root });
+  const after = readFileSync(join(root, "CHANGELOG.md"), "utf8");
+  const unreleased = after.slice(after.indexOf("## [Unreleased]"), after.indexOf("## [3.8.47]"));
+  assert.ok(!unreleased.includes("from a fragment (#9)"));
+  assert.ok(after.slice(after.indexOf("## [3.8.47]")).includes("from a fragment (#9)"));
 });

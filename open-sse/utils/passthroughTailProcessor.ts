@@ -9,6 +9,7 @@ import {
   stripResponsesLifecycleEcho,
 } from "./responsesStreamHelpers.ts";
 import { getAnyReasoningValue } from "./reasoningFields.ts";
+import { projectStreamFailureEvent, type StreamFailurePayload } from "./streamErrorFormat.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -47,6 +48,7 @@ export type PassthroughTailProcessorContext = {
   hasPassthroughToolCalls: () => boolean;
   toResponsesCompletedWithToolCalls: (parsed: JsonRecord) => JsonRecord;
   restoreOpenAIToolNames: (parsed: JsonRecord) => boolean;
+  abortFailure: (failure: StreamFailurePayload, publicMessage: string) => void;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -284,7 +286,13 @@ export function processBufferedPassthroughLine(
       context.updateClaudeEmptyResponseLifecycle(parsedPassthroughData);
     }
 
-    const parsed = parsedPassthroughData as JsonRecord;
+    const projectedFailure = projectStreamFailureEvent(parsedPassthroughData);
+    const parsed = projectedFailure
+      ? projectedFailure.publicPayload
+      : (parsedPassthroughData as JsonRecord);
+    if (projectedFailure) {
+      output = `data: ${JSON.stringify(parsed)}\n\n`;
+    }
     if (context.sanitizeUsagePayload(parsed)) {
       output = `data: ${JSON.stringify(parsed)}\n\n`;
     }
@@ -301,6 +309,14 @@ export function processBufferedPassthroughLine(
     }
 
     context.pushClientPayload(parsed);
+
+    output = context.passthroughEventPrefix.prefixData(output, line);
+    context.emitConvertedOutput(output);
+    if (projectedFailure) {
+      context.abortFailure(projectedFailure.internalFailure, projectedFailure.publicMessage);
+      return true;
+    }
+    return false;
   }
 
   output = context.passthroughEventPrefix.prefixData(output, line);

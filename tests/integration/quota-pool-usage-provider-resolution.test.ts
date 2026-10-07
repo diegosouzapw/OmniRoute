@@ -27,8 +27,8 @@ process.env.API_KEY_SECRET = "test-quota-usage-provider-secret";
 process.env.QUOTA_STORE_DRIVER = "sqlite";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
-const { createPool, upsertAllocations, createProviderConnection } = localDb;
+const { createPool, upsertAllocations } = await import("@/lib/db/quotaPools");
+const { createProviderConnection } = await import("@/lib/db/providers");
 const { resetQuotaStoreSingleton } = await import("../../src/lib/quota/QuotaStore.ts");
 const usageRoute = await import("../../src/app/api/quota/pools/[id]/usage/route.ts");
 

@@ -1,28 +1,38 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { classifyIpScope } from "@/lib/ipUtils";
 import { getCachedSettings } from "@/lib/db/settings";
-import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
+  isKnownInsecureManagementPassword,
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { loginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
+import {
+  beginLoginAttempt,
+  clearLoginAttempts,
+  endLoginAttempt,
+  recordLoginFailure,
+} from "@/server/auth/loginGuard";
 import { AUTHZ_HEADER_TRUSTED_PEER_IP } from "@/server/authz/headers";
+import {
+  getDashboardJwtSecret,
+  mintDashboardSessionToken,
+} from "@/shared/utils/dashboardSessionToken";
+import {
+  getLoginLockoutKey,
+  getLoginSourceScope,
+  isHostOperatorRequest,
+} from "@/server/auth/loginPeer";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 
 // SECURITY: No hardcoded fallback — JWT_SECRET must be configured.
 if (!process.env.JWT_SECRET) {
   console.error("[SECURITY] FATAL: JWT_SECRET is not set. Login authentication is disabled.");
-}
-
-function getJwtSecret(): Uint8Array {
-  return new TextEncoder().encode(process.env.JWT_SECRET || "");
 }
 
 // Test seam for cookie store injection without affecting runtime behavior.
@@ -32,6 +42,9 @@ export const authRouteInternals = {
 
 export async function POST(request: NextRequest) {
   const auditContext = getAuditRequestContext(request);
+  // Slot reserved by the guard while the password is verified; released on every exit.
+  let heldSlotKey: string | null | undefined;
+  let holdsSlot = false;
 
   try {
     // Fail-fast if JWT_SECRET is not configured
@@ -81,6 +94,7 @@ export async function POST(request: NextRequest) {
       ? request.headers.get(AUTHZ_HEADER_TRUSTED_PEER_IP)
       : null;
     const clientIp = trustedPeerIp || auditContext.ipAddress || null;
+    const lockoutKey = getLoginLockoutKey(request, auditContext.ipAddress);
     const oidcDisabledPassword =
       settings.oidcEnabled === true &&
       (settings.oidcDisablePasswordLogin === true ||
@@ -107,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     const bruteForceEnabled = settings.bruteForceProtection !== false;
 
-    const guardCheck = checkLoginGuard(clientIp, { enabled: bruteForceEnabled });
+    const guardCheck = beginLoginAttempt(lockoutKey, { enabled: bruteForceEnabled });
     if (!guardCheck.allowed) {
       logAuditEvent({
         action: "auth.login.locked",
@@ -127,6 +141,9 @@ export async function POST(request: NextRequest) {
         }
       );
     }
+
+    holdsSlot = true;
+    heldSlotKey = lockoutKey;
 
     const passwordState = await ensurePersistentManagementPasswordHash({
       settings,
@@ -153,6 +170,46 @@ export async function POST(request: NextRequest) {
 
     const isValid = await verifyManagementPassword(password, storedHash);
 
+    // #8336: tag the origin scope so the audit view can distinguish a mistyped
+    // password from the host itself / the LAN (loopback / private) from a
+    // genuinely external attempt, instead of every failure reading as intrusion.
+    const sourceScope = getLoginSourceScope(request, auditContext.ipAddress);
+
+    // #13679 (PR D, item #5): the well-known INITIAL_PASSWORD placeholder shipped
+    // in .env.example / contrib/podman/omniroute.container / docker deploy
+    // manifests is a public, guessable credential. Anyone who knows it (i.e.
+    // everyone) can otherwise sign in from anywhere the dashboard is reachable.
+    // `ensurePersistentManagementPasswordHash()` already warns loudly on boot,
+    // but that is a log line, not a control — refuse the login here instead
+    // whenever it matches AND the request is not loopback, forcing the operator
+    // to rotate the password from a trusted local console first. Locality comes
+    // from the socket peer the authz pipeline stamped, not from forwarding
+    // headers: a remote caller can send `X-Forwarded-For: 127.0.0.1` at will.
+    if (isValid && isKnownInsecureManagementPassword(password) && !isHostOperatorRequest(request)) {
+      logAuditEvent({
+        action: "auth.login.insecure_default_blocked",
+        actor: "anonymous",
+        target: "dashboard-auth",
+        resourceType: "auth_session",
+        status: "failed",
+        ipAddress: auditContext.ipAddress || undefined,
+        requestId: auditContext.requestId,
+        metadata: {
+          reason: "well_known_default_password_non_loopback",
+          sourceScope,
+          peerLocality: getRequestPeerLocality(request),
+        },
+      });
+      return NextResponse.json(
+        {
+          error:
+            "The management password is still set to the well-known default. " +
+            "Log in from localhost and change it before signing in remotely.",
+        },
+        { status: 403 }
+      );
+    }
+
     if (isValid) {
       const forceSecureCookie = process.env.AUTH_COOKIE_SECURE === "true";
       const forwardedProtoHeader = request.headers.get("x-forwarded-proto") || "";
@@ -160,10 +217,7 @@ export async function POST(request: NextRequest) {
       const isHttpsRequest = forwardedProto === "https" || request.nextUrl?.protocol === "https:";
       const useSecureCookie = forceSecureCookie || isHttpsRequest;
 
-      const token = await new SignJWT({ authenticated: true })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("30d")
-        .sign(getJwtSecret());
+      const token = await mintDashboardSessionToken(getDashboardJwtSecret()!);
 
       const cookieStore = await authRouteInternals.getCookieStore();
       cookieStore.set("auth_token", token, {
@@ -191,16 +245,11 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      clearLoginAttempts(clientIp);
+      clearLoginAttempts(lockoutKey);
       return NextResponse.json({ success: true });
     }
 
-    const failureDecision = recordLoginFailure(clientIp, { enabled: bruteForceEnabled });
-
-    // #8336: tag the origin scope so the audit view can distinguish a mistyped
-    // password from the host itself / the LAN (loopback / private) from a
-    // genuinely external attempt, instead of every failure reading as intrusion.
-    const sourceScope = classifyIpScope(auditContext.ipAddress);
+    const failureDecision = recordLoginFailure(lockoutKey, { enabled: bruteForceEnabled });
 
     logAuditEvent({
       action: "auth.login.failed",
@@ -244,5 +293,7 @@ export async function POST(request: NextRequest) {
       },
     });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } finally {
+    if (holdsSlot) endLoginAttempt(heldSlotKey);
   }
 }

@@ -1,7 +1,15 @@
 name: DAST smoke (PR)
+# PRs into main only since #11946. The job's "Build CLI bundle" step is a backend-only
+# `next build`; on the hosted 7 GB runner it fits main's tree (~5.5 min) but dies on
+# release/v3.8.51 (VM shutdown ~7 min in, before the server even starts), and because the
+# job is continue-on-error the result was a permanently red advisory check on every
+# release PR — noise, not signal. DAST coverage for release/** lives on the nightly rail
+# (nightly-schemathesis.yml, nightly-llm-security.yml); dispatch this workflow by hand
+# to smoke a release branch on demand.
 on:
+  workflow_dispatch:
   pull_request:
-    branches: ["main", "release/**"]
+    branches: ["main"]
     # Runner-cost guard (#8084): the CLI-bundle build alone is 6-11min; a docs-only PR
     # cannot change DAST behavior, so skip the whole workflow for pure docs/markdown
     # changes. Any code path in the diff still runs the full smoke.

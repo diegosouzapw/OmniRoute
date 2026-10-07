@@ -10,7 +10,9 @@ import {
 import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 
 let initPromise = null;
-const injectionGuard = createInjectionGuard();
+// `logger: null` — the guardrail registry re-evaluates this request inside
+// handleChat with the pino logger (#11936 dedupe).
+const injectionGuard = createInjectionGuard({ logger: null });
 
 function ensureInitialized() {
   if (!initPromise) {

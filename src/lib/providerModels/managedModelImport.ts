@@ -23,9 +23,13 @@ import {
   isDiscoverableAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
-import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
+import {
+  declaresOnlyNonChatEndpoints,
+  filterChatSelectableModels,
+} from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
+import type { VertexModelMetadataProvenance } from "@/lib/providerModels/vertexModelMetadata";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -42,7 +46,9 @@ export type ManagedImportedModel = {
   supportedThinkingEfforts?: string[];
   defaultThinkingEffort?: string;
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
+  metadataProvenance?: VertexModelMetadataProvenance;
   description?: string;
   supportsThinking?: boolean;
   alwaysThinking?: boolean;
@@ -77,8 +83,12 @@ function copyImportedModelMetadata(target: ManagedImportedModel, model: JsonReco
     target.defaultThinkingEffort = model.defaultThinkingEffort as string;
   }
   if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.contextWindow === "number") target.contextWindow = model.contextWindow;
   if (typeof model.outputTokenLimit === "number") {
     target.outputTokenLimit = model.outputTokenLimit;
+  }
+  if (model.metadataProvenance && typeof model.metadataProvenance === "object") {
+    target.metadataProvenance = model.metadataProvenance as VertexModelMetadataProvenance;
   }
   if (typeof model.description === "string") target.description = model.description;
   if (typeof model.supportsThinking === "boolean") {
@@ -124,6 +134,7 @@ function copyComparableModelMetadata(target: JsonRecord, model: JsonRecord): voi
     target.defaultThinkingEffort = model.defaultThinkingEffort;
   }
   if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.contextWindow === "number") target.contextWindow = model.contextWindow;
   if (typeof model.outputTokenLimit === "number") {
     target.outputTokenLimit = model.outputTokenLimit;
   }
@@ -280,6 +291,7 @@ export async function importManagedModels({
 
   const nextModelsMap = new Map<string, JsonRecord>();
   const removedCustomModels: JsonRecord[] = [];
+  const selfHosted = isSelfHostedChatProvider(providerId);
 
   for (const model of previousModels) {
     const modelId = getModelId(model);
@@ -287,7 +299,15 @@ export async function importManagedModels({
     // A manually configured row is the provider's user-owned metadata overlay.
     // It may share an id with an upstream model, in which case list and runtime
     // resolution merge it over the synced base. Only replace prior import rows.
-    if (isImportedSource(model.source)) {
+    //
+    // Discovery above is chat-filtered for every provider but self-hosted ones,
+    // so it never brings back a row that declares only speech / transcription /
+    // image / … endpoints. Replacing those rows deleted every model a media-only
+    // provider (Soniox, ElevenLabs, …) had imported from its local catalog on the
+    // next sync cycle. Rows stored with the synthetic ["chat"] default are still
+    // replaced as before.
+    const replacedBySync = selfHosted || !declaresOnlyNonChatEndpoints(model.supportedEndpoints);
+    if (isImportedSource(model.source) && replacedBySync) {
       removedCustomModels.push(model);
       continue;
     }
@@ -307,7 +327,9 @@ export async function importManagedModels({
       supportedThinkingEfforts?: string[];
       defaultThinkingEffort?: string;
       inputTokenLimit?: number;
+      contextWindow?: number;
       outputTokenLimit?: number;
+      metadataProvenance?: VertexModelMetadataProvenance;
       description?: string;
       supportsThinking?: boolean;
       alwaysThinking?: boolean;
@@ -384,6 +406,24 @@ export async function importManagedModels({
       const resolvedId = resolveTransitively(alias);
       if (syncedIds.has(resolvedId)) {
         mappings[alias] = `antigravity/${resolvedId}`;
+      }
+    }
+
+    // #11824/#11651: `syncedIds` is a UNION across every connection of this provider
+    // (getSyncedAvailableModels), so an identity mapping derived above can route a
+    // display id to the literal tier-suffixed upstream id (e.g. "gemini-3.7-flash-high")
+    // just because ONE connected account's own discovery happens to list it directly.
+    // Google's Cloud Code Assist backend only allows those tier-suffixed ids on
+    // accounts/projects it specifically provisioned for them — every other account can
+    // only call the shared "-tiered" endpoint id. Since this mitmAlias table is global
+    // (not scoped per connection) and consulted first/authoritatively by
+    // cleanModelName(), letting one account's discovery win here silently 404s every
+    // sibling account. Force every display id that the static ANTIGRAVITY_MODEL_ALIASES
+    // table already knows only has a safe "-tiered" target to always resolve there,
+    // regardless of what any single connection's discovery reported.
+    for (const [displayId, safeTarget] of Object.entries(ANTIGRAVITY_MODEL_ALIASES)) {
+      if (safeTarget === "gemini-3.7-flash-tiered") {
+        mappings[displayId] = `antigravity/${safeTarget}`;
       }
     }
 

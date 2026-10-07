@@ -3,14 +3,15 @@
  *
  * Inspired by ClawRouter commit 14c83c258 "refactor: extract routing into pluggable RouterStrategy system".
  * Provides a RouterStrategy interface and built-in implementations:
- *   - RulesStrategy (default): wraps the existing 6-factor scoring engine
+ *   - RulesStrategy (default): wraps the existing 16-factor scoring engine
+ *   - ScoreStrategy: highest configured weighted score, with explicit exploration
  *   - CostStrategy: always picks cheapest available model
  *   - LatencyStrategy: prioritizes low p95 latency with reliability weighting
  *   - SLAStrategy: prefers candidates that satisfy latency/error/cost SLOs
  *   - LKGPStrategy: tries last known good provider first
  */
 
-import type { ProviderCandidate, ScoredProvider } from "./scoring.ts";
+import type { ProviderCandidate, ScoredProvider, ScoringWeights } from "./scoring.ts";
 import { scorePool } from "./scoring.ts";
 import { getTaskFitness } from "./taskFitness.ts";
 import { clamp01 } from "../../utils/number.ts";
@@ -32,6 +33,8 @@ export interface RoutingContext {
   lastKnownGoodProvider?: string;
   lkgpEnabled?: boolean;
   sla?: SlaRoutingPolicy;
+  weights?: ScoringWeights;
+  explorationRate?: number;
 }
 
 export interface RoutingDecision {
@@ -50,7 +53,7 @@ export interface RouterStrategy {
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision;
 }
 
-// ── RulesStrategy: wraps 6-factor scoring engine ────────────────────────────
+// ── RulesStrategy: wraps 16-factor scoring engine ───────────────────────────
 
 function toSpeedCandidate(c: ProviderCandidate): SpeedCandidate {
   return {
@@ -84,8 +87,7 @@ function toSpeedCandidate(c: ProviderCandidate): SpeedCandidate {
 
 class RulesStrategyImpl implements RouterStrategy {
   readonly name = "rules";
-  readonly description =
-    "6-factor weighted scoring: quota, health, cost, latency, taskFit, stability";
+  readonly description = "16-factor weighted scoring (see DEFAULT_WEIGHTS)";
 
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
     const eligible = pool.filter((c) => c.circuitBreakerState !== "OPEN");
@@ -109,13 +111,45 @@ class RulesStrategyImpl implements RouterStrategy {
   }
 }
 
+// ── ScoreStrategy: configured score wins, with explicit exploration ──────────
+
+class ScoreStrategyImpl implements RouterStrategy {
+  readonly name = "score";
+  readonly description = "Selects the highest configured weighted score, with explicit exploration";
+
+  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+    const eligible = pool.filter((candidate) => candidate.circuitBreakerState !== "OPEN");
+    const ranked = scorePool(
+      eligible.length > 0 ? eligible : pool,
+      context.taskType,
+      context.weights,
+      getTaskFitness
+    );
+    if (ranked.length === 0) throw new Error("[ScoreStrategy] No candidates to score");
+
+    const explorationRate = Math.min(1, Math.max(0, context.explorationRate ?? 0));
+    const isExploration = Math.random() < explorationRate && ranked.length > 1;
+    const selected = isExploration ? ranked[Math.floor(Math.random() * ranked.length)] : ranked[0];
+
+    return {
+      provider: selected.provider,
+      model: selected.model,
+      strategy: this.name,
+      reason: `ScoreStrategy: score=${selected.score.toFixed(3)}${isExploration ? " (exploration)" : ""}`,
+      candidatesConsidered: ranked.length,
+      finalScore: selected.score,
+      connectionId: selected.connectionId,
+    };
+  }
+}
+
 // ── CostStrategy: always picks cheapest healthy provider ─────────────────────
 
 class CostStrategyImpl implements RouterStrategy {
   readonly name = "cost";
   readonly description = "Always selects cheapest available provider (by costPer1MTokens)";
 
-  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+  select(pool: ProviderCandidate[], _context: RoutingContext): RoutingDecision {
     const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
     const candidates = healthy.length > 0 ? healthy : pool;
     const sorted = [...candidates].sort((a, b) => a.costPer1MTokens - b.costPer1MTokens);
@@ -128,6 +162,7 @@ class CostStrategyImpl implements RouterStrategy {
       reason: `CostStrategy: cheapest at $${best.costPer1MTokens.toFixed(3)}/1M tokens`,
       candidatesConsidered: candidates.length,
       finalScore: best.costPer1MTokens === 0 ? 1.0 : 1 / best.costPer1MTokens,
+      connectionId: best.connectionId,
     };
   }
 }
@@ -139,7 +174,7 @@ class LatencyStrategyImpl implements RouterStrategy {
   readonly description =
     "Prioritizes the fastest reliable provider-model pair using TTFT, TPS, E2E latency, health, fail rate, and stability";
 
-  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+  select(pool: ProviderCandidate[], _context: RoutingContext): RoutingDecision {
     const ranked = rankBySpeed(pool.map(toSpeedCandidate));
     const winner = ranked[0];
     if (!winner) {
@@ -153,6 +188,7 @@ class LatencyStrategyImpl implements RouterStrategy {
       reason: latencyDecisionReason(winner),
       candidatesConsidered: ranked.length,
       finalScore: winner.score,
+      connectionId: winner.connectionId,
     };
   }
 }
@@ -292,6 +328,7 @@ class SLAStrategyImpl implements RouterStrategy {
       reason: `SLAStrategy: p95=${best.candidate.p95LatencyMs}ms/${policy.targetP95Ms}ms, errorRate=${(best.candidate.errorRate * 100).toFixed(2)}%/${(policy.maxErrorRate * 100).toFixed(2)}%, cost=$${best.candidate.costPer1MTokens.toFixed(3)}/1M${fallbackNote}`,
       candidatesConsidered: candidates.length,
       finalScore: best.score,
+      connectionId: best.candidate.connectionId,
     };
   }
 }
@@ -320,6 +357,7 @@ class LKGPStrategyImpl implements RouterStrategy {
           reason: `LKGP: using last known good provider ${best.provider}`,
           candidatesConsidered: 1,
           finalScore: 1.0,
+          connectionId: best.connectionId,
         };
       }
     }
@@ -334,12 +372,14 @@ class LKGPStrategyImpl implements RouterStrategy {
 const strategyRegistry = new Map<string, RouterStrategy>();
 
 const rulesStrategy = new RulesStrategyImpl();
+const scoreStrategy = new ScoreStrategyImpl();
 const costStrategy = new CostStrategyImpl();
 const latencyStrategy = new LatencyStrategyImpl();
 const slaStrategy = new SLAStrategyImpl();
 const lkgpStrategy = new LKGPStrategyImpl();
 
 strategyRegistry.set("rules", rulesStrategy);
+strategyRegistry.set("score", scoreStrategy);
 strategyRegistry.set("cost", costStrategy);
 strategyRegistry.set("eco", costStrategy); // alias
 strategyRegistry.set("latency", latencyStrategy);

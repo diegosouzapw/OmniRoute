@@ -2,7 +2,7 @@
 //
 // #5088 — When the inline credential "Check" fails, the modal showed only a bare
 // "invalid" badge and threw away the detailed reason returned by
-// /api/providers/validate. For claude-web/chatgpt-web the real cause is often an
+// /api/providers/validate. For browser-session providers the real cause is often an
 // environment error (e.g. "TLS impersonation client failed to start: EACCES …"),
 // which the backend already surfaces in `data.error` — but the UI hid it, so the
 // reporter had to dig it out via a separate Provider Test. The detailed message
@@ -18,10 +18,9 @@ vi.mock("next-intl", () => ({
 const { default: AddApiKeyModal } =
   await import("../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal");
 
-const TLS_EACCES_ERROR =
-  "TLS impersonation client failed to start: EACCES: permission denied, mkdir " +
-  "'/usr/lib/node_modules/omniroute/dist/node_modules/tls-client-node/bin'. " +
-  "Verify tls-client-node is installed and its native binary downloaded. " +
+const TLS_BINDING_ERROR =
+  "TLS impersonation client failed to start: wreq-js 3.2.x is not installed or unsupported " +
+  "on this platform. Verify the matching @wreq-js native binding is packaged. " +
   "(claude-web requires this — without it, Cloudflare blocks every request)";
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
@@ -32,7 +31,12 @@ function render(props: Record<string, unknown>) {
   const root = createRoot(el);
   act(() => {
     root.render(
-      <AddApiKeyModal isOpen onSave={async () => undefined} onClose={() => {}} {...(props as any)} />
+      <AddApiKeyModal
+        isOpen
+        onSave={async () => undefined}
+        onClose={() => {}}
+        {...(props as any)}
+      />
     );
   });
   containers.push({ root, el });
@@ -57,7 +61,7 @@ async function waitFor(fn: () => boolean, timeoutMs = 2000) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // /api/providers/validate fails with the detailed TLS/EACCES reason; any other
+  // /api/providers/validate fails with the detailed TLS/binding reason; any other
   // call (e.g. model lookups) succeeds.
   vi.stubGlobal(
     "fetch",
@@ -65,10 +69,13 @@ beforeEach(() => {
       if (String(url).includes("/api/providers/validate")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ valid: false, error: TLS_EACCES_ERROR }),
+          json: () => Promise.resolve({ valid: false, error: TLS_BINDING_ERROR }),
         } as Response);
       }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ valid: true }) } as Response);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ valid: true }),
+      } as Response);
     })
   );
 });
@@ -92,8 +99,7 @@ describe("AddApiKeyModal — surfaces the detailed validation error (#5088)", ()
     // The validate ("check") button is the first button that follows the
     // credential input in DOM order (it sits right next to it).
     const checkBtn = Array.from(el.querySelectorAll("button")).find(
-      (b) =>
-        (apiKeyInput.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+      (b) => (apiKeyInput.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
     )!;
     expect(checkBtn).toBeTruthy();
     act(() => {
@@ -101,7 +107,7 @@ describe("AddApiKeyModal — surfaces the detailed validation error (#5088)", ()
     });
 
     // The full reason must reach the DOM — a bare "invalid" badge is not enough.
-    await waitFor(() => el.textContent?.includes("EACCES: permission denied") ?? false);
+    await waitFor(() => el.textContent?.includes("wreq-js 3.2.x") ?? false);
     expect(el.textContent).toContain("TLS impersonation client failed to start");
   });
 });

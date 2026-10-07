@@ -40,7 +40,7 @@ async function captureBody(body: Record<string, unknown>): Promise<FetchCall> {
     calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
     return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
   };
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },

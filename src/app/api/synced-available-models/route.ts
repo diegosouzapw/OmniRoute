@@ -1,4 +1,5 @@
-import { getSyncedAvailableModels, getAllSyncedAvailableModels } from "@/lib/db/models";
+import { getAllSyncedAvailableModels } from "@/lib/db/models";
+import { enrichCursorCatalog, getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -18,8 +19,13 @@ export async function GET(request: Request) {
     const provider = searchParams.get("provider");
 
     if (provider) {
-      const models = await getSyncedAvailableModels(provider);
-      return Response.json({ models });
+      // The dashboard merges operator-owned custom rows separately. Do not let
+      // legacy imports act as evidence that a model still exists upstream.
+      const catalog = await getActiveSyncedCatalog(provider, false);
+      return Response.json({
+        ...catalog,
+        models: enrichCursorCatalog(provider, catalog.models),
+      });
     }
 
     const allModels = await getAllSyncedAvailableModels();

@@ -27,7 +27,7 @@ describe("omniroute_db_health_check MCP tool", () => {
   beforeEach(async () => {
     mockFetch.mockReset();
     mockRunManagedDbHealthCheck.mockReset();
-    mockRunManagedDbHealthCheck.mockReturnValue({
+    mockRunManagedDbHealthCheck.mockResolvedValue({
       isHealthy: false,
       issues: [{ type: "broken_reference", table: "combos", description: "broken", count: 1 }],
       repairedCount: 1,

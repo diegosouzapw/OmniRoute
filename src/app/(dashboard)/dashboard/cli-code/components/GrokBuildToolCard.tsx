@@ -135,9 +135,10 @@ export default function GrokBuildToolCard({
   const [showBackups, setShowBackups] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!selectedKeyId && apiKeys[0]?.id) setSelectedKeyId(apiKeys[0].id);
-  }, [apiKeys, selectedKeyId]);
+  // Default to the first available key while the user hasn't picked one —
+  // derived during render instead of synced through an effect
+  // (react-hooks/set-state-in-effect).
+  const effectiveKeyId = selectedKeyId || apiKeys[0]?.id || "";
 
   const hydrateStatus = useCallback((next: GrokStatus) => {
     setStatus(next);
@@ -219,7 +220,11 @@ export default function GrokBuildToolCard({
 
   useEffect(() => {
     if (!isExpanded) return;
-    void Promise.all([refreshStatus(), refreshEndpoints(), refreshBackups()]);
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([refreshStatus(), refreshEndpoints(), refreshBackups()]);
+    })();
   }, [isExpanded, refreshBackups, refreshEndpoints, refreshStatus]);
 
   const baseUrl = useMemo(() => {
@@ -277,7 +282,7 @@ export default function GrokBuildToolCard({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           baseUrl,
-          keyId: selectedKeyId || null,
+          keyId: effectiveKeyId || null,
           model,
           contextWindow: selectedContext(model),
           subagentModels: Object.fromEntries(
@@ -468,7 +473,7 @@ export default function GrokBuildToolCard({
             <select
               id="grok-build-api-key"
               className={inputClass}
-              value={selectedKeyId}
+              value={effectiveKeyId}
               onChange={(event) => setSelectedKeyId(event.target.value)}
             >
               <option value="">Use the OmniRoute default key</option>

@@ -1,9 +1,8 @@
 // Repro probe for issue #7676:
 // gemini-web executor never reads back the live Playwright cookie jar after a
 // successful run, so rotated __Secure-1PSIDTS / __Secure-1PSIDCC values are
-// never persisted via onCredentialsRefreshed — unlike chatgpt-web.ts, which
-// already forwards its rotated cookie through the same callback
-// (open-sse/executors/chatgpt-web.ts:2843).
+// never persisted via onCredentialsRefreshed, despite the shared rotating-session
+// callback contract used by web-session executors.
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -28,7 +27,10 @@ test("#7676: GeminiWebExecutor persists rotated __Secure-1PSIDTS/__Secure-1PSIDC
         addCookies: async () => {},
         cookies: async () => rotatedJarCookies,
         newPage: async () => ({
-          on: (event: string, handler: (resp: { url: () => string; text: () => Promise<string> }) => void) => {
+          on: (
+            event: string,
+            handler: (resp: { url: () => string; text: () => Promise<string> }) => void
+          ) => {
             if (event === "response") {
               const body =
                 ")]}'\n" +
@@ -51,7 +53,7 @@ test("#7676: GeminiWebExecutor persists rotated __Secure-1PSIDTS/__Secure-1PSIDC
           goto: async () => {},
           waitForTimeout: async () => {},
           waitForSelector: async () => ({ click: async () => {} }),
-          keyboard: { type: async () => {}, press: async () => {} },
+          keyboard: { type: async () => {}, insertText: async () => {}, press: async () => {} },
         }),
       }),
       close: async () => {},

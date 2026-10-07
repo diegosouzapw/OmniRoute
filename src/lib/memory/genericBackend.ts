@@ -118,6 +118,7 @@ export interface GenericBackendConfig {
     maxTokens?: string; // default: "maxTokens"
     type?: string; // default: "type"
     sessionId?: string; // default: "sessionId"
+    category?: string; // default: "category"
     orderBy?: string; // default: "orderBy"
     orderDir?: string; // default: "orderDir"
     options?: string; // default: "options"
@@ -181,6 +182,7 @@ export class GenericMemoryBackend implements MemoryBackend {
       maxTokens: this.config.queryParams?.maxTokens ?? "maxTokens",
       type: this.config.queryParams?.type ?? "type",
       sessionId: this.config.queryParams?.sessionId ?? "sessionId",
+      category: this.config.queryParams?.category ?? "category",
       orderBy: this.config.queryParams?.orderBy ?? "orderBy",
       orderDir: this.config.queryParams?.orderDir ?? "orderDir",
       options: this.config.queryParams?.options ?? "options",
@@ -222,6 +224,7 @@ export class GenericMemoryBackend implements MemoryBackend {
     if (filter.apiKeyId) out[qp.apiKeyId] = filter.apiKeyId;
     if (filter.type) out[qp.type] = filter.type;
     if (filter.sessionId) out[qp.sessionId] = filter.sessionId;
+    if (filter.category) out[qp.category] = filter.category;
     if (filter.limit !== undefined) out[qp.limit] = String(filter.limit);
     if (filter.offset !== undefined) out[qp.offset] = String(filter.offset);
     if (filter.orderBy) out[qp.orderBy] = filter.orderBy;

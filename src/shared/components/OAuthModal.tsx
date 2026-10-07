@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { isCallbackStateAcceptable } from "./oauthCallbackState";
 import { useTranslations } from "next-intl";
 
 import Modal from "./Modal";
@@ -23,6 +24,7 @@ import OAuthErrorStep from "@/shared/components/oauthModal/OAuthErrorStep";
 import OAuthWaitingStep from "@/shared/components/oauthModal/OAuthWaitingStep";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
 import { buildGoogleLoopbackHint } from "@/lib/oauth/utils/googleLoopbackHint";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 import {
   buildPkceLoopbackMismatchHint,
   type PkceLoopbackMismatchHint,
@@ -49,6 +51,7 @@ const DEVICE_CODE_PROVIDERS = new Set([
   "codebuddy-cn",
   "ghe-copilot",
   "grok-cli",
+  "muse-code",
 ]);
 
 const TOKEN_PASTE_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli"]);
@@ -109,7 +112,10 @@ async function pollDeviceCodeOnce(
     if (data.success) return { status: "success" };
     if (data.error === "slow_down") return { status: "slow_down" };
     if (data.error && !data.pending) {
-      return { status: "error", message: String(data.errorDescription || data.error) };
+      return {
+        status: "error",
+        message: String(data.errorDescription || errorMessageFromBody(data, fallbackErrorMessage)),
+      };
     }
     return { status: "pending" };
   } catch (error) {
@@ -144,7 +150,9 @@ export default function OAuthModal({
   const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
   const [deviceCodeExpiresAt, setDeviceCodeExpiresAt] = useState<number | null>(null);
-  const [deviceCodeSecondsRemaining, setDeviceCodeSecondsRemaining] = useState<number | null>(null);
+  // Wall-clock tick driving the device-code countdown; ticked by the interval
+  // effect below and re-anchored whenever a device flow (re)starts.
+  const [now, setNow] = useState(() => Date.now());
   // API-key paste mode for direct-token providers.
   const [showPasteToken, setShowPasteToken] = useState(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
   const [pasteToken, setPasteToken] = useState("");
@@ -204,7 +212,6 @@ export default function OAuthModal({
     deviceFlowRunRef.current += 1;
     setPolling(false);
     setDeviceCodeExpiresAt(null);
-    setDeviceCodeSecondsRemaining(null);
   }, []);
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
@@ -323,6 +330,7 @@ export default function OAuthModal({
 
       setPolling(true);
       setDeviceCodeExpiresAt(deadline);
+      setNow(Date.now());
 
       while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
@@ -372,11 +380,10 @@ export default function OAuthModal({
     [provider, onSuccess, reauthConnection, t]
   );
 
-  // Start OAuth flow. `opts.grokBrowser` lets the grok-cli method tabs force a
-  // specific branch synchronously (avoids reading a just-set state value through
-  // a stale closure); when omitted, falls back to the grokBrowserMode state.
+  // Start OAuth flow. Options let method buttons select a branch synchronously
+  // instead of reading a just-set state value through a stale closure.
   const startOAuthFlow = useCallback(
-    async (opts?: { grokBrowser?: boolean }) => {
+    async (opts?: { grokBrowser?: boolean; manualLoopback?: boolean }) => {
       if (!provider) return;
       try {
         setError(null);
@@ -517,7 +524,10 @@ export default function OAuthModal({
                 }
 
                 if (pollData.error && !pollData.pending) {
-                  throw new Error(pollData.errorDescription || pollData.error);
+                  throw new Error(
+                    pollData.errorDescription ||
+                      errorMessageFromBody(pollData, t("errorAuthorizationFailed"))
+                  );
                 }
               }
 
@@ -531,7 +541,7 @@ export default function OAuthModal({
               setPolling(false);
               forceManual = true;
             }
-          } else if (isLocalhost) {
+          } else if (isLocalhost && !opts?.manualLoopback) {
             setLoopbackHint(buildPkceLoopbackMismatchHint(provider, loopbackLocation));
             setStep("loopback-mismatch");
             return;
@@ -592,7 +602,7 @@ export default function OAuthModal({
         }
 
         if (!data.authUrl) {
-          throw new Error(data.error || t("errorBrowserUnavailable"));
+          throw new Error(errorMessageFromBody(data, t("errorBrowserUnavailable")));
         }
 
         setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
@@ -633,33 +643,50 @@ export default function OAuthModal({
   );
 
   useEffect(() => {
-    if (!deviceCodeExpiresAt) {
-      setDeviceCodeSecondsRemaining(null);
-      return;
-    }
-
-    const updateRemaining = () => {
-      setDeviceCodeSecondsRemaining(
-        Math.max(0, Math.ceil((deviceCodeExpiresAt - Date.now()) / 1000))
-      );
-    };
-    updateRemaining();
-    const timer = window.setInterval(updateRemaining, 1000);
+    if (!deviceCodeExpiresAt) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [deviceCodeExpiresAt]);
 
-  useEffect(() => {
-    invalidateDeviceFlow();
-    flowStartedRef.current = false;
+  // Derived countdown (replaces the old mirrored deviceCodeSecondsRemaining
+  // state): `now` is re-anchored when the device flow starts and ticked by the
+  // interval effect above.
+  const deviceCodeSecondsRemaining =
+    deviceCodeExpiresAt == null ? null : Math.max(0, Math.ceil((deviceCodeExpiresAt - now) / 1000));
+
+  // When the provider changes, reset the flow state during render (react.dev
+  // "You Might Not Need an Effect") and invalidate any in-flight device flow
+  // in a ref-only effect (refs must not be written during render).
+  const [prevProvider, setPrevProvider] = useState(provider);
+  if (provider !== prevProvider) {
+    setPrevProvider(provider);
+    setPolling(false);
+    setDeviceCodeExpiresAt(null);
     setGrokBrowserMode(false);
-  }, [provider, invalidateDeviceFlow]);
+  }
+
+  useEffect(() => {
+    deviceFlowRunRef.current += 1;
+    flowStartedRef.current = false;
+  }, [provider]);
+
+  // Same split when the modal closes: state reset during render, ref
+  // invalidation in a ref-only effect.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setPolling(false);
+      setDeviceCodeExpiresAt(null);
+    }
+  }
 
   useEffect(() => {
     if (!isOpen) {
-      invalidateDeviceFlow();
+      deviceFlowRunRef.current += 1;
       flowStartedRef.current = false;
     }
-  }, [isOpen, invalidateDeviceFlow]);
+  }, [isOpen]);
 
   useEffect(
     () => () => {
@@ -668,26 +695,43 @@ export default function OAuthModal({
     []
   );
 
-  // Reset state and start OAuth when modal opens
+  // Reset state and start OAuth when modal opens. The synchronous state resets
+  // moved from the old effect into this render-time adjustment (react.dev
+  // "You Might Not Need an Effect"); the flow itself starts in the effect below.
+  const [prevStartKey, setPrevStartKey] = useState<string | null>(null);
+  const startKey = isOpen && provider ? String(provider) : null;
+  if (startKey !== prevStartKey) {
+    setPrevStartKey(startKey);
+    if (startKey) {
+      setShowPasteToken(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
+      setGrokBrowserMode(false);
+      setAuthData(null);
+      setCallbackUrl("");
+      setError(null);
+      setIsDeviceCode(false);
+      setDeviceData(null);
+      setPolling(false);
+      // #8688: show GitLab Duo OAuth app / env setup before authorize error.
+      if (provider === "gitlab-duo") {
+        setStep("gitlab-duo-setup");
+      }
+    }
+  }
+
   useEffect(() => {
     if (!isOpen || !provider || flowStartedRef.current) return;
-    flowStartedRef.current = true;
     const startsInPasteMode = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
-    // #8688: show GitLab Duo OAuth app / env setup before authorize error.
     const startsInGitlabDuoSetup = provider === "gitlab-duo";
-    setShowPasteToken(startsInPasteMode);
-    setGrokBrowserMode(false);
-    setAuthData(null);
-    setCallbackUrl("");
-    setError(null);
-    setIsDeviceCode(false);
-    setDeviceData(null);
-    setPolling(false);
     if (startsInGitlabDuoSetup) {
-      setStep("gitlab-duo-setup");
+      // Auto-start is skipped — setStep("gitlab-duo-setup") already happened
+      // in the render-time adjustment above (#8688).
       return;
     }
-    if (!startsInPasteMode) startOAuthFlow();
+    flowStartedRef.current = true;
+    const run = async () => {
+      if (!startsInPasteMode) startOAuthFlow();
+    };
+    run();
   }, [isOpen, provider, startOAuthFlow]);
 
   // Listen for OAuth callback via multiple methods
@@ -701,7 +745,7 @@ export default function OAuthModal({
 
       const { code, state, error: callbackError, errorDescription } = data;
 
-      if (authData?.state && state && state !== authData.state) {
+      if (!isCallbackStateAcceptable(authData?.state, state)) {
         callbackProcessedRef.current = true;
         setError(t("errorStateMismatch"));
         setStep("error");
@@ -1124,6 +1168,7 @@ export default function OAuthModal({
           <OAuthLoopbackMismatchPanel
             providerName={providerInfo.name}
             hint={loopbackHint}
+            onManualInput={() => void startOAuthFlow({ manualLoopback: true })}
             onClose={handleClose}
           />
         )}

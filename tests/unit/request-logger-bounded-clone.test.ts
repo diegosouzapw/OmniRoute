@@ -21,12 +21,13 @@ test("cloneBoundedForLog: tools array is exempt from truncation (debug-critical)
 });
 
 test("cloneBoundedForLog: other large arrays still truncated to MAX_LOG_ARRAY_ITEMS", () => {
-  const messages = Array.from({ length: 45 }, (_, i) => ({ role: "user", content: `msg ${i}` }));
+  const total = MAX_LOG_ARRAY_ITEMS + 10;
+  const messages = Array.from({ length: total }, (_, i) => ({ role: "user", content: `msg ${i}` }));
   const result = cloneBoundedForLog({ messages }) as { messages: Array<Record<string, unknown>> };
   assert.equal(result.messages.length, MAX_LOG_ARRAY_ITEMS + 1, "1 marker + tail items");
   const marker = result.messages[0];
   assert.equal(marker._omniroute_truncated_array, true);
-  assert.equal(marker.originalLength, 45);
+  assert.equal(marker.originalLength, total);
   assert.equal(marker.retainedTailItems, MAX_LOG_ARRAY_ITEMS);
 });
 
@@ -73,7 +74,7 @@ test("cloneBoundedForLog: tool_calls[].function survives at its natural depth (w
 });
 
 test("cloneBoundedForLog: top-level array without key context still truncated", () => {
-  const arr = Array.from({ length: 45 }, (_, i) => i);
+  const arr = Array.from({ length: MAX_LOG_ARRAY_ITEMS + 10 }, (_, i) => i);
   const result = cloneBoundedForLog(arr) as unknown[];
   assert.equal(result.length, MAX_LOG_ARRAY_ITEMS + 1);
 });

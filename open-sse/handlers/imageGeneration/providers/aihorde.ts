@@ -17,7 +17,11 @@ import {
 } from "./aihordeMapRequest.ts";
 
 const GENERATE_TIMEOUT_MS = 600_000;
-const POLL_INTERVAL_MS = 1_000;
+// Опрос начинается частым и разряжается по мере ожидания: короткая очередь
+// отдаёт картинку за секунды, а длинная иначе стоила бы Horde сотен запросов
+// по общему анонимному ключу (600 опросов на один кадр при полном бюджете).
+const POLL_INTERVAL_MIN_MS = 1_000;
+const POLL_INTERVAL_MAX_MS = 8_000;
 // Per-call bound for the Horde API's own submit/check/status/cancel calls
 // (a fixed, trusted host — no SSRF guard needed, just a hard timeout so a
 // hung upstream cannot stall a request indefinitely). Individual calls are
@@ -119,6 +123,11 @@ async function fetchHordeImageBytes(
   return value;
 }
 
+/** Числовое поле ответа Horde: отсутствующее или нечисловое читается как «неизвестно». */
+function numericField(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 export async function handleAiHordeImageGeneration({
   model,
   provider,
@@ -212,19 +221,23 @@ export async function handleAiHordeImageGeneration({
     }
 
     let completed = false;
+    let pollDelayMs = POLL_INTERVAL_MIN_MS;
     try {
       while (true) {
         if (signal?.aborted) throw new Error("Horde image generation cancelled");
         if (Date.now() >= deadline) {
           throw Object.assign(new Error("Horde image generation timed out"), { status: 504 });
         }
-        await sleep(POLL_INTERVAL_MS);
-        const checkRes = await safeOutboundFetch(`${AI_HORDE_API_BASE}/v2/generate/check/${jobId}`, {
-          headers: hordeHeaders(apiKey),
-          signal: signal ?? undefined,
-          guard: "none",
-          timeoutMs: boundedTimeoutMs(deadline, HORDE_API_CALL_TIMEOUT_MS),
-        });
+        await sleep(pollDelayMs);
+        const checkRes = await safeOutboundFetch(
+          `${AI_HORDE_API_BASE}/v2/generate/check/${jobId}`,
+          {
+            headers: hordeHeaders(apiKey),
+            signal: signal ?? undefined,
+            guard: "none",
+            timeoutMs: boundedTimeoutMs(deadline, HORDE_API_CALL_TIMEOUT_MS),
+          }
+        );
         const check = await safeJson(checkRes);
         if (!checkRes.ok || !check || typeof check !== "object") {
           throw Object.assign(
@@ -239,14 +252,55 @@ export async function handleAiHordeImageGeneration({
             status: 503,
           });
         }
-        if (!checkObj.done) continue;
+        if (!checkObj.done) {
+          // Horde сообщает оценку ожидания в первом же ответе. Если она не
+          // помещается в остаток бюджета, ждать нечего: запрос всё равно
+          // упал бы по таймауту, только молча и десятью минутами позже.
+          // Отказ называет очередь и число воркеров — по ним видно, что
+          // выручает не терпение, а модель с большим числом воркеров.
+          const waitSeconds = numericField(checkObj.wait_time);
+          const remainingMs = deadline - Date.now();
+          if (waitSeconds !== null && waitSeconds * 1_000 > remainingMs) {
+            const queuePosition = numericField(checkObj.queue_position);
+            const workers = numericField(checkObj.eligible_workers);
+            const details = [
+              `queue wait ~${Math.round(waitSeconds)}s`,
+              queuePosition !== null ? `position ${queuePosition}` : null,
+              workers !== null ? `${workers} eligible worker(s)` : null,
+              `budget ${Math.round(remainingMs / 1_000)}s left`,
+            ]
+              .filter(Boolean)
+              .join(", ");
+            throw Object.assign(
+              new Error(
+                `Horde queue is longer than the request budget (${details}). ` +
+                  `Pick a model with more workers or raise the timeout.`
+              ),
+              { status: 504 }
+            );
+          }
+          // Разрядка опроса: десятая доля оставшегося ожидания, в рамках
+          // минимума и максимума. Короткая очередь по-прежнему опрашивается
+          // раз в секунду.
+          pollDelayMs =
+            waitSeconds === null
+              ? POLL_INTERVAL_MIN_MS
+              : Math.min(
+                  POLL_INTERVAL_MAX_MS,
+                  Math.max(POLL_INTERVAL_MIN_MS, Math.round((waitSeconds * 1_000) / 10))
+                );
+          continue;
+        }
 
-        const statusRes = await safeOutboundFetch(`${AI_HORDE_API_BASE}/v2/generate/status/${jobId}`, {
-          headers: hordeHeaders(apiKey),
-          signal: signal ?? undefined,
-          guard: "none",
-          timeoutMs: boundedTimeoutMs(deadline, HORDE_API_CALL_TIMEOUT_MS),
-        });
+        const statusRes = await safeOutboundFetch(
+          `${AI_HORDE_API_BASE}/v2/generate/status/${jobId}`,
+          {
+            headers: hordeHeaders(apiKey),
+            signal: signal ?? undefined,
+            guard: "none",
+            timeoutMs: boundedTimeoutMs(deadline, HORDE_API_CALL_TIMEOUT_MS),
+          }
+        );
         const status = await safeJson(statusRes);
         if (!statusRes.ok || !status || typeof status !== "object") {
           throw Object.assign(

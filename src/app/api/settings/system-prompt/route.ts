@@ -3,7 +3,7 @@ import {
   setSystemPromptConfig,
   getSystemPromptConfig,
 } from "@omniroute/open-sse/services/systemPrompt.ts";
-import { updateSettings } from "@/lib/localDb";
+import { updateSettings } from "@/lib/db/settings";
 import { updateSystemPromptSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";

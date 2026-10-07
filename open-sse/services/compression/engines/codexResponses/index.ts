@@ -11,13 +11,34 @@ import type {
   EngineValidationResult,
 } from "../types.ts";
 import { CODEX_RESPONSE_ITEM_META } from "../../bodyAdapter.ts";
-import { countTextTokens } from "../../../../../src/shared/utils/tiktokenCounter.ts";
+import {
+  countTextTokens,
+  MAX_EXACT_TOKEN_COUNT_CHARS,
+} from "../../../../../src/shared/utils/tiktokenCounter.ts";
+import { jsonLength, jsonLengthStrippingBase64DataUris } from "../../../../utils/jsonSize.ts";
 
 const ENGINE_ID = "codex-responses";
 
 function countCodexTokens(text: string): number {
   if (!text) return 0;
   return countTextTokens(text, { provider: "codex" });
+}
+
+/** Codex-context token count for a whole body, skipping JSON.stringify on oversized
+ * bodies: countTextTokens falls back to a char heuristic above MAX_EXACT_TOKEN_COUNT_CHARS,
+ * so materializing a multi-MB string for the count is a pure OOM-class transient (#7847). */
+function countCodexTokensForBody(body: unknown): number {
+  if (body === null || body === undefined) return 0;
+  if (typeof body === "string") return countCodexTokens(body);
+  if (jsonLength(body) > MAX_EXACT_TOKEN_COUNT_CHARS) {
+    // Oversized bodies skip countTextTokens (which falls back to a char heuristic above
+    // MAX_EXACT_TOKEN_COUNT_CHARS) to avoid materializing a multi-MB string (#7847). But the
+    // exact path it replaces also stripped base64 data URIs first; the heuristic must too,
+    // otherwise embedded screenshots inflate the reported token count and distort
+    // savingsPercent. (The compression DECISION is unaffected either way.)
+    return Math.ceil(jsonLengthStrippingBase64DataUris(body) / 4);
+  }
+  return countCodexTokens(JSON.stringify(body));
 }
 const SUPPORTED_TYPES = new Set([
   "function_call_output",
@@ -274,8 +295,8 @@ export const codexResponsesEngine: CompressionEngine = {
     if (!changed) return { body, compressed: false, stats: null };
     const nextBody = { ...body, messages };
     const stats = createCompressionStats(body, nextBody, "codex-responses", [ENGINE_ID]);
-    const originalTokens = countCodexTokens(JSON.stringify(body));
-    const compressedTokens = countCodexTokens(JSON.stringify(nextBody));
+    const originalTokens = countCodexTokensForBody(body);
+    const compressedTokens = countCodexTokensForBody(nextBody);
     stats.originalTokens = originalTokens;
     stats.compressedTokens = compressedTokens;
     stats.savingsPercent =

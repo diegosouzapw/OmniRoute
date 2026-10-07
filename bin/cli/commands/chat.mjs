@@ -79,7 +79,8 @@ export async function runChatCommand(promptArg, opts, cmd) {
   const data = await response.json();
   const text = extractText(data, opts.responsesApi);
 
-  if (!opts.noHistory) {
+  // Commander stores `--no-history` as `history === false`, never as `noHistory`.
+  if (opts.history !== false && opts.noHistory !== true) {
     appendHistory({ prompt, model: opts.model, latencyMs, usage: data.usage, response: text });
   }
 

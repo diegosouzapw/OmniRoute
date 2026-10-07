@@ -1,269 +1,338 @@
 # OmniRoute — Dashboard Features Gallery (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇪🇹 [am](../../../am/docs/guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇧🇦 [bs](../../../bs/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇳🇬 [ha](../../../ha/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇦🇲 [hy](../../../hy/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇳🇬 [ig](../../../ig/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇬🇪 [ka](../../../ka/docs/guides/FEATURES.md) · 🇰🇭 [km](../../../km/docs/guides/FEATURES.md) · 🇮🇳 [kn](../../../kn/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [ml](../../../ml/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇲🇲 [my](../../../my/docs/guides/FEATURES.md) · 🇳🇵 [ne](../../../ne/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇮🇳 [or](../../../or/docs/guides/FEATURES.md) · 🇮🇳 [pa](../../../pa/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇱🇰 [si](../../../si/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇺🇿 [uz](../../../uz/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇳🇬 [yo](../../../yo/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+
+Vizuális útmutató az OmniRoute irányítópult minden szakaszához.
+
+> 📅 **Legutóbb frissítve:** 2026-06-28 — **v3.8.40**
 
 ---
 
-## 🔌 Providers
+## ✨ A v3.8.0 főbb újdonságai
 
+A v3.7.x → v3.8.0 fejlesztési ciklus konfigurációmentes automatikus útválasztást, új szolgáltatókat, OAuth-folyamatokat, fokozott hibatűrést és jóval gazdagabb CLI-élményt hozott. A legfontosabb funkciók alább láthatók — a teljes részletek a dokumentum további részében és a hivatkozott specifikációkban találhatók.
 
-![Providers Dashboard](screenshots/01-providers.png)
+- 🤖 **Auto Combo / Konfigurációmentes automatikus útválasztás** — használja az `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos` előtagokat. Egy 16 tényezős pontozómotor és 6 gondosan összeállított **módcsomag** támogatja (gyors kiadás, költségtakarékos, minőségközpontú, offline-barát, megbízhatóság-központú, káoszmód)
+- 🆕 **Command Code szolgáltató** (#2199) — teljes körű regisztráció modellkatalógussal és kvótakövetéssel
+- 🆕 **Z.AI szolgáltató** — új, ingyenes csomagot kínáló szolgáltató kvótacímkékkel
+- 🎬 **KIE médiabővítés** — kibővített katalógus, beleértve a videógeneráló modelleket
+- 🔐 **Devin-hitelesítés** — a Desktop importál egy meglévő Devin API-kulcsot; a CLI a helyi `devin auth login` hitelesítő adatokat használja
+- 🆓 **8 új ingyenes szolgáltató** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Jegyzéktudatos W1–W4 szintű útválasztás** — a szolgáltatói jegyzékek vezérlik a súlyozott szintkiválasztást
+- 🎨 **A Cursor teljes OpenAI-kompatibilitása** — eszközhívások, adatfolyam-kezelés és teljes körű munkamenet-kezelés
+- 📊 **A Cursor Pro csomag használata** — a kvóta- és ciklusadatok megjelennek a szolgáltatói korlátok irányítópultján
+- ⚡ **Szolgáltatási szintek szerinti bontás / Codex gyors szintű analitika** — szintenkénti fogyasztási adatok
+- 📌 **Munkamenetenként rögzített útválasztás** — a Codex-munkamenetek a fordulók között ugyanahhoz a fiókhoz maradnak rögzítve
+- 🔊 **Inworld TTS-fejlesztések** — hangkatalógusok, adatfolyam-kezelés és késleltetési fejlesztések
+- 🔑 **Kiro böngésző nélküli hitelesítés** — bejelentkezés a helyi `kiro-cli` SQLite-tárolóján keresztül, böngésző használata nélkül
+- 📉 **DeepSeek-kvóta- és korlátfigyelés** — a napi/havi használat megjelenik az irányítópulton
+- 🔄 **Visszaállítást figyelembe vevő útválasztási stratégia** — a kombinációk most előnyben részesítik azokat a fiókokat, amelyek kvótaidőszaka a leghamarabb áll vissza
+- ⏱️ **`fallbackDelayMs`** és **dinamikus eszközkorlát-észlelés** — finomabban szabályozható tartalékra váltási időzítés és szolgáltatónkénti eszközszámkorlátok
+- 🔧 **A háttérmód fokozatos visszaminősítése (Responses API)** — strukturált figyelmeztetés mellett szinkron módra vált vissza, ha egy felsőbb szintű szolgáltatás nem támogatja a háttérbeli lekérdezést
+- 🚦 **Szolgáltatónkénti 429-besorolás** + `useUpstream429BreakerHints` kapcsoló — finomabban szabályozható megszakítóműködés a felsőbb szintű szolgáltatás sebességkorlátozási jelzései alapján
+- 🩺 **Modelllehűlési irányítópult** — modellenkénti zárolások megfigyelése és manuális újbóli engedélyezés a felhasználói felületről
+- 🔒 **Dinamikus MITM Linux-tanúsítványészlelés** — működik Debian/Ubuntu, Fedora/RHEL, Arch és más disztribúciókon
+- 💻 **CLI-fejlesztési csomag** — több mint 20 parancs, köztük az `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Qdrant beágyazási modell felderítése** — a vektortároló modelljének automatikus vizsgálata
+- 🔑 **API-kulcsok / `manage` hatókörű Bearer-kulcsok** — adminisztrátori műveletek programozott végrehajtása API-n keresztül
+- 🏥 **Kombinációs célpontok állapotelemzése** + **strukturált kombináció-összeállító** — célpontonkénti állapotadatok és felhasználói felület a `(provider, model, connection)` lépések összeállításához
+- 🤝 **GitLab Duo OAuth-szolgáltató** — bejelentkezés GitLab hitelesítő adatokkal
+- 🧠 **Reasoning Replay Cache** — az érvelési nyomvonalak hibrid, memóriában és SQLite-ban történő megőrzése
 
----
-
-## 🎨 Combos
-
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-Recent combo improvements:
-
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
-
-![Combos Dashboard](screenshots/02-combos.png)
-
----
-
-## 📊 Analytics
-
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
-
----
-
-## 🏥 System Health
-
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
-
-![Health Dashboard](screenshots/04-health.png)
+📚 **Kapcsolódó dokumentáció:** [Készségkeretrendszer](../frameworks/SKILLS.md) · [Memóriarendszer](../frameworks/MEMORY.md) · [Felhőügynökök](../frameworks/CLOUD_AGENT.md) · [Webhookok](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔧 Translator Playground
+## 🔌 Szolgáltatók
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+AI-szolgáltatói kapcsolatok kezelése: OAuth-szolgáltatók (Claude Code, Codex), API-kulcsot használó szolgáltatók (Groq, DeepSeek, OpenRouter), valamint ingyenes szolgáltatók (Qoder, Kiro). A Kiro-fiókoknál a kreditegyenleg is nyomon követhető — a fennmaradó kreditek, a teljes keret és a megújítás dátuma az Irányítópult → Használat oldalon látható.
 
-![Translator Playground](screenshots/05-translator.png)
+Az OpenRouter-kapcsolatok kapcsolatonként egy `preset` értéket tárolhatnak a Speciális beállításokban. Ha be van állítva, az OmniRoute az OpenRouter-kérés felső szintű mezőjeként küldi el, például `"preset": "email-copywriter"`, kivéve, ha az ügyfél kérése már megadta a saját `preset` értékét.
 
----
-
-## 🎮 Model Playground _(v2.0.9+)_
-
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+![Szolgáltatói irányítópult](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## 🎨 Kombinációk
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Hozzon létre modellútválasztási kombinációkat 19 nyilvános stratégiával: priority, weighted, round-robin, context-relay, fill-first, p2c (kettő közül a jobb választása), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (utolsó ismert működő szolgáltató), context-optimized, cache-optimized, **fusion** (a kérés párhuzamos kiküldése egy modellpanelnek, majd egyetlen válasz szintetizálása egy bíráló segítségével), valamint **pipeline**. Minden kombináció több modellt fűz össze automatikus tartalékra váltással, továbbá gyorssablonokat és készenléti ellenőrzéseket is tartalmaz.
 
----
+A kombinációk legújabb fejlesztései:
 
-## ⚙️ Settings
+- **Strukturált kombinációkészítő** — minden lépés létrehozása a szolgáltató, a modell és a pontos fiók/kapcsolat kiválasztásával
+- **Ismétlődő szolgáltatók támogatása** — ugyanaz a szolgáltató többször is felhasználható egy kombinációban, amennyiben a `(provider, model, connection)` tuple egyedi
+- **Kombinációs célpontok állapota** — az analitikai és állapotfelületek mostantól megkülönböztetik az egyes kombinációs célpontokat/lépéseket ahelyett, hogy mindent modellkarakterláncokba vonnának össze
+- **Összetett szintek sorrendje** — a `defaultTier -> fallbackTier` mostantól befolyásolja a legfelső szintű kombinációs lépések futásidejű végrehajtási/tartalékra váltási sorrendjét
+- **Rendszerprompt-sablonok** — a kombináció `system_message` mezője támogatja a szerveroldali
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` és `{{FINGERPRINT}}`
+  helyőrzőket, amelyek értékét a ténylegesen kiválasztott célpont alapján, közvetlenül a kiküldés előtt helyettesíti a rendszer.
+  Csak engedélyezett helyőrzők használhatók, rekurzió nélkül; az ismeretlen helyőrzők változatlanul maradnak; az üres értékek
+  üresre cserélődnek; az ügyfél rendszerpromptjait a rendszer soha nem írja át. A `{{FINGERPRINT}}`
+  csak az ujjlenyomat-alapú ingyenes szolgáltatóknál oldódik fel rögzített vagy
+  automatikusan rotált ujjlenyomat esetén — máshol üresre cserélődik (például
+  egyetlen ujjlenyomatot használó kapcsolatoknál vagy nem ujjlenyomat-alapú szolgáltatóknál). A helyettesítés kiterjed a
+  szabványos kiküldési ciklusra, a round-robin működésre és a rögzített kontextus-gyorsítótáras munkamenetekre;
+  a fusion, chaos, pipeline és nested-execute stratégiák még nem helyettesítik a
+  helyőrzőket.
 
-Comprehensive settings panel with tabs:
-
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
-
----
-
-## 🔧 CLI Tools
-
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![Kombinációk irányítópultja](../screenshots/02-combos.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## 📊 Analitika
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Átfogó használati analitika tokenfogyasztással, költségbecslésekkel, aktivitási hőtérképekkel, heti eloszlási diagramokkal és szolgáltatónkénti bontásokkal.
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+![Analitikai irányítópult](../screenshots/03-analytics.png)
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## 🏥 Rendszerállapot
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Valós idejű monitorozás: rendelkezésre állási idő, memória, verzió, késleltetési percentilisek (p50/p95/p99), gyorsítótár-statisztikák, a szolgáltatói megszakítók állapotai, aktív kvótafigyelt munkamenetek és a kombinációs célpontok állapota.
 
-Configurable via combo-level or global settings:
-
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
-
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+![Rendszerállapot-irányítópult](../screenshots/04-health.png)
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## 🔧 Fordítói játszótér
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Négy mód az API-fordítások hibakereséséhez: **Játszótér** (formátumkonvertáló), **Csevegéstesztelő** (élő kérések), **Tesztpad** (kötegelt tesztek) és **Élő monitor** (valós idejű adatfolyam).
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+![Fordítói játszótér](../screenshots/05-translator.png)
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## 🎮 Modelljátszótér _(v2.0.9+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
-
----
-
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
-
-The provider page model list now includes:
-
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+Teszteljen bármilyen modellt közvetlenül az irányítópultról. Válassza ki a szolgáltatót, a modellt és a végpontot, írja meg a promptokat a Monaco Editor segítségével, kövesse valós időben a válaszfolyamot, szakítsa meg azt menet közben, és tekintse meg az időzítési mérőszámokat.
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## 🎨 Témák _(v2.0.5+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
-
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+Testreszabható színtémák a teljes irányítópulthoz. Válasszon 7 előre beállított szín közül (korall, kék, piros, zöld, ibolya, narancs, cián), vagy hozzon létre egyéni témát tetszőleges hexadecimális szín kiválasztásával. Támogatja a világos, a sötét és a rendszerhez igazodó módot.
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## ⚙️ Beállítások
 
-Clean removal scripts for all installation methods:
+Átfogó beállítási panel **7 lappal**:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+- **Általános** — Rendszertárolás, biztonsági mentések kezelése (adatbázis exportálása/importálása)
+- **Megjelenés** — Témaválasztó (sötét/világos/rendszerhez igazodó), előre beállított színtémák és egyéni színek, az állapotnapló láthatósága, az oldalsáv elemeinek és csoportelválasztóinak láthatósági beállításai, valamint a végponti alagút láthatósági beállításai
+- **MI** — MI-asszisztensi funkciók, alapértelmezett útválasztási készletek (automatikus kombináció: `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), következtetés-visszajátszási gyorsítótár, valamint a készségek és a memória kapcsolói
+- **Biztonság** — API-végpontok védelme, egyéni szolgáltatók blokkolása, IP-szűrés, munkamenet-információk
+- **Útválasztás** — Modellálnevek, háttérfeladatok visszaminősítése, jegyzékérzékeny szintalapú útválasztás (W1–W4), `fallbackDelayMs`, munkamenetenkénti rögzített útválasztás
+- **Hibatűrés** — Sebességkorlátozások állapotának megőrzése, megszakító finomhangolása, kitiltott fiókok automatikus letiltása, szolgáltatói lejáratok figyelése, a **Context Relay** átadási küszöbértékének és összegzőmodelljének konfigurálása, szolgáltatónkénti 429-es besorolás és a `useUpstream429BreakerHints` kapcsoló, modell-várakozási idők
+- **Speciális** — Konfigurációs felülbírálások, konfigurációs auditnapló, tartalék visszaminősítési mód, háttérmódú visszaminősítés a Responses API számára
 
----
-
-## 🖼️ Media _(v2.0.3+)_
-
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
-
-## 📝 Request Logs
-
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+![Beállítások irányítópultja](../screenshots/06-settings.png)
 
 ---
 
-## 🌐 API Endpoint
+## 🔧 CLI-eszközök
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+MI-alapú kódolási eszközök egykattintásos konfigurálása: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor és Factory Droid. A funkciók közé tartozik a konfiguráció automatikus alkalmazása és visszaállítása, a kapcsolati profilok és a modellleképezés.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
-
----
-
-## 🔑 API Key Management
-
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+![CLI-eszközök irányítópultja](../screenshots/07-cli-tools.png)
 
 ---
 
-## 📋 Audit Log
+## 🤖 CLI-ügynökök _(v2.0.11+)_
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Irányítópult CLI-ügynökök felfedezéséhez és kezeléséhez. A 16 beépített ügynök (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) rácsos nézetét jeleníti meg a következőkkel:
 
----
-
-## 🖥️ Desktop Application
-
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
-
-Key features:
-
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
-
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+- **Telepítési állapot** — Telepítve / Nem található, verzióészleléssel
+- **Protokolljelvények** — stdio, HTTP stb.
+- **Egyéni ügynökök** — Bármilyen CLI-eszköz regisztrálása űrlapon keresztül (név, bináris fájl, verzióparancs, indítási argumentumok)
+- **CLI-ujjlenyomatok egyeztetése** — Szolgáltatónkénti kapcsoló a natív CLI-kérések aláírásainak egyeztetéséhez, amely csökkenti a kitiltás kockázatát, miközben megőrzi a proxy IP-címét
+- **Helyi Devin-hitelesítés** — A Devin CLI a `devin auth login` parancsot használja; nincs szükség böngészőalapú OAuth-folyamatra
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## 🔗 Kontextusátadás _(v3.5.5+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+Kombinált stratégia, amely megőrzi a munkamenet folytonosságát, amikor egy beszélgetés közben fiókváltás történik. Mielőtt az aktív fiók kvótája kimerülne, az OmniRoute a háttérben strukturált átadási összefoglalót készít. Miután a következő kérés egy másik fiókhoz kerül, az összefoglalót rendszerüzenetként illeszti be, így az új fiók a teljes kontextus birtokában folytathatja a munkát.
 
-Key behaviours:
+Kombinációszintű vagy globális beállításokkal konfigurálható:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- **Átadási küszöbérték** — Az a kvótahasználati százalék, amely kiváltja az összefoglaló létrehozását (alapértelmezés: 85%)
+- **Összefoglalandó üzenetek maximális száma** — Meghatározza, hogy a közelmúltbeli előzmények mekkora részét kell tömöríteni
+- **Összefoglaló modellje** — Az átadási összefoglaló létrehozásához használható opcionális felülbíráló modell
 
----
-
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
-
-Multi-device and external operator access is now possible via **scoped sync tokens**:
-
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
-
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+Jelenleg a Codex-fiókok rotációját támogatja. Lásd a [kontextusátadás dokumentációját](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## 🗜️ Prompttömörítés _(v3.7.9+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+A Kontextus és gyorsítótár mostantól külön oldalakat biztosít a Caveman, az RTK és a tömörítési kombinációk számára:
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+- **Caveman** — nyelvérzékeny szabálycsomagok, előnézet, kimeneti mód vezérlői és analitika
+- **RTK** — parancsérzékeny tömörítés shell-, git-, tesztelési, buildelési, csomagkezelési, Docker-, infrastruktúra-, JSON- és veremkivonat-kimenetekhez
+- **Tömörítési kombinációk** — elnevezett feldolgozási láncok, például `rtk -> caveman`, amelyek útválasztási kombinációkhoz rendelhetők; az alapértelmezett halmozott számítás mindkét motor alkalmazásakor átlagosan `~89%`, a tömöríthető kontextus esetében pedig `78-95%` megtakarítást ér el
+- **Nyers kimenet helyreállítása** — opcionális, anonimizált RTK nyerskimenet-hivatkozások a tömörített hibák hibakereséséhez
 
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+Lásd a [Tömörítési útmutatót](../compression/COMPRESSION_GUIDE.md), az [RTK-tömörítést](../compression/RTK_COMPRESSION.md) és
+a [Tömörítési motorokat](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Proxy megerősítése _(v3.5.5+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+A proxykonfiguráció átfogó érvényesítése a teljes kérésfeldolgozási folyamatban:
+
+- **Token állapotellenőrzése** — A háttérben végzett OAuth-frissítés mostantól kapcsolatonként oldja fel a proxykonfigurációt, megelőzve ezzel a hibákat a proxyt igénylő környezetekben
+- **API-kulcs ellenőrzése** — A szolgáltatói kulcsok ellenőrzése (`POST /api/providers/validate`) a `runWithProxyContext` használatával történik, figyelembe véve a szolgáltatói szintű és a globális proxybeállításokat
+- **undici-diszpécser javítása** — A proxydiszpécserek a Node beépített fetch implementációja helyett az undici saját fetch implementációját használják, megszüntetve az `invalid onRequestStart method` hibákat Node.js 22 alatt
+- **Node.js-verzió észlelése** — A bejelentkezési oldal proaktívan észleli a nem kompatibilis Node.js-verziókat (24+), és figyelmeztető szalagot jelenít meg a Node 22 LTS használatára vonatkozó utasításokkal
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## 📧 E-mail-címek adatvédelmi maszkolása _(v3.5.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Az OAuth-fiókok e-mail-címei alapértelmezés szerint maszkolva jelennek meg (például `di*****@g****.com`), hogy képernyőképek megosztásakor vagy bemutatók rögzítésekor elkerülhető legyen a véletlen közzétételük. A Beállítások → Megjelenés → Fiók e-mail-címének láthatósága menüpontban globálisan megjelenítheti vagy maszkolhatja a fiókok teljes e-mail-címét a szolgáltatói, kombinációs, napló-, kvóta- és játszótér-képernyőkön.
+
+---
+
+## 👁️ Modellláthatósági kapcsoló _(v3.5.6+)_
+
+A szolgáltatói oldal modelllistája mostantól a következőket tartalmazza:
+
+- **Valós idejű kereső-/szűrősáv** — Adott modellek gyors megkeresése
+- **Modellenkénti láthatósági kapcsoló** (👁 ikon) — A rejtett modellek szürkén jelennek meg, és kimaradnak a `/v1/models` katalógusból
+- **Aktív darabszámot jelző jelvény** (`N/M aktív`) — Egy pillantással megmutatja, hogy az összes modellből hány van engedélyezve
+
+---
+
+## 🔧 OAuth környezeti változók javítása _(v3.6.1+)_
+
+Egykattintásos „Környezeti változók javítása” művelet OAuth-szolgáltatókhoz, amely visszaállítja a hiányzó környezeti változókat, és kijavítja a hibás hitelesítési állapotot. Elérhető itt: `Vezérlőpult → Szolgáltatók → [OAuth-szolgáltató] → Környezeti változók javítása`. Automatikusan észleli és javítja a következőket:
+
+- Hiányzó OAuth-klienshitelesítő adatok
+- Sérült bejegyzések a környezeti változókat tartalmazó fájlban
+- Biztonsági mentési útvonalak biztonságossá tétele
+
+---
+
+## 🗑️ Eltávolítás / Teljes eltávolítás _(v3.6.2+)_
+
+Tiszta eltávolítási szkriptek minden telepítési módhoz:
+
+| Parancs                  | Művelet                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Eltávolítja a rendszeralkalmazást, de **megtartja az adatbázist és a konfigurációkat** a `~/.omniroute` könyvtárban. |
+| `npm run uninstall:full` | Eltávolítja az alkalmazást, ÉS véglegesen **törli az összes konfigurációt, kulcsot és adatbázist**.                  |
+
+---
+
+## 🖼️ Média _(v2.0.3+)_
+
+Képeket, videókat és zenéket hozhat létre a vezérlőpultról. Támogatja az OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open és MusicGen szolgáltatásokat.
+
+---
+
+## 📝 Kérelemnaplók
+
+Valós idejű kérelemnaplózás szolgáltató, modell, fiók és API-kulcs szerinti szűréssel. Megjeleníti az állapotkódokat, a tokenhasználatot, a késleltetést és a válasz részleteit.
+
+![Használati naplók](../screenshots/08-usage.png)
+
+---
+
+## 🌐 API-végpont
+
+Egységes API-végpont képességek szerinti bontással: csevegési kiegészítések, Responses API, beágyazások, képgenerálás, újrarangsorolás, hangátírás, szövegfelolvasás, moderálás és regisztrált API-kulcsok. Távoli hozzáféréshez Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel és felhőproxy-támogatás áll rendelkezésre.
+
+![Végpont vezérlőpultja](../screenshots/09-endpoint.png)
+
+---
+
+## 🔑 API-kulcsok kezelése
+
+API-kulcsok létrehozása, hatókörük beállítása és visszavonása. Minden kulcs korlátozható meghatározott modellekre/szolgáltatókra teljes hozzáférési vagy csak olvasási jogosultságokkal. Vizuális kulcskezelés használatkövetéssel.
+
+---
+
+## 📋 Auditnapló
+
+Adminisztratív műveletek nyomon követése művelettípus, végrehajtó, cél, IP-cím és időbélyeg szerinti szűréssel. Teljes biztonsági eseménytörténet.
+
+---
+
+## 🖥️ Asztali alkalmazás
+
+Natív Electron asztali alkalmazás Windows, macOS és Linux rendszerekhez. Az OmniRoute önálló alkalmazásként futtatható rendszertálca-integrációval, offline támogatással, automatikus frissítéssel és egykattintásos telepítéssel.
+
+Főbb funkciók:
+
+- A szerver készenléti állapotának lekérdezése (nincs üres képernyő hidegindításkor)
+- Rendszertálca portkezeléssel
+- Tartalombiztonsági szabályzat
+- Egyetlen példányra vonatkozó zárolás
+- Automatikus frissítés újraindításkor
+- Platformfüggő felhasználói felület (macOS-jelzőlámpák, Windows/Linux alapértelmezett címsáv)
+- Megerősített Electron-buildcsomagolás — a rendszer észleli és elutasítja az önálló csomagban található szimbolikusan hivatkozott `node_modules` könyvtárat a csomagolás előtt, megelőzve a buildgéptől való futásidejű függést (v2.5.5+)
+- **Szabályos leállítás** — az Electron `before-quit` szabályosan leállítja a Next.js rendszert, megelőzve az SQLite WAL-adatbázis zárolását (v3.6.2+)
+
+📖 A teljes dokumentációért lásd az [`electron/README.md`](../../electron/README.md) fájlt.
+
+---
+
+## 🌐 V1 WebSocket-híd _(v3.6.6+)_
+
+Az OmniRoute mostantól támogatja az **OpenAI-kompatibilis WebSocket-klienseket** a `/v1/ws` frissítési végponton keresztül. Az egyedi `scripts/dev/v1-ws-bridge.mjs` szerver körülveszi a Next.js rendszert, és a WS-kapcsolatokat teljes, kétirányú streamelési munkamenetekké frissíti. A hitelesítés ugyanazt az API-kulcsot vagy munkamenet-sütit használja, mint a HTTP-kérelmek.
+
+Főbb működési jellemzők:
+
+- A WS-frissítést a `src/lib/ws/handshake.ts` ellenőrzi a kapcsolat létrejötte előtt
+- A streamek szabályosan lezárulnak a munkamenet bezárásakor vagy felsőbb szintű hiba esetén
+- Egyidejűleg működik a meglévő HTTP+SSE streamelési útvonallal
+
+---
+
+## 🔑 Szinkronizálási tokenek és konfigurációs csomag _(v3.6.6+)_
+
+A többeszközös és külső operátori hozzáférés mostantól **hatókörrel rendelkező szinkronizálási tokeneken** keresztül lehetséges:
+
+- **`POST /api/sync/tokens`** — Új szinkronizálási token kibocsátása (meghatározott hatókörrel és opcionális lejárattal)
+- **`DELETE /api/sync/tokens/:id`** — Token visszavonása
+- **`GET /api/sync/bundle`** — Az összes nem érzékeny beállítás verziózott, ETag-kulcsú JSON-pillanatképének letöltése (a jelszavak kitakarásával)
+
+A konfigurációs csomagot a `src/lib/sync/bundle.ts` állítja elő. A felhasználó rendszerek az `ETag` válaszfejléc összehasonlításával észlelhetik a változásokat a teljes tartalom újbóli letöltése nélkül.
+
+---
+
+## 🧠 GLM Thinking előbeállítás _(v3.6.6+)_
+
+A **GLM Thinking (`glmt`)** mostantól regisztrált, teljes értékű szolgáltató: legfeljebb 65 536 kimeneti token, 24 576 tokenes gondolkodási keret, 900 s alapértelmezett időtúllépés, Claude-kompatibilis API-formátum, valamint a GLM-családdal megosztott használati adatok szinkronizálása.
+
+A **hibrid tokenszámlálás** szintén a v3.6.6 verzióban érkezik: amikor egy Claude-kompatibilis szolgáltató elérhetővé teszi a `/messages/count_tokens` végpontot, az OmniRoute nagy kérések előtt meghívja azt, és sikertelenség esetén zökkenőmentesen becslésre vált.
+
+---
+
+## 🛡️ Biztonságos kimenő lekérés és SSRF-védelem _(v3.6.6+)_
+
+Mostantól minden szolgáltató-ellenőrzési és modellfelderítési hívás egy kétrétegű kimenő forgalmi védelmen halad át:
+
+1. **URL-védelem** (`src/shared/network/outboundUrlGuard.ts`) — A socket megnyitása előtt blokkolja a privát, visszacsatolási és helyi kapcsolati IP-tartományokat.
+2. **Biztonságos lekérési burkoló** (`src/shared/network/safeOutboundFetch.ts`) — Alkalmazza az URL-védelmet, egységesíti az időtúllépéseket, és exponenciális késleltetéssel újrapróbálkozik átmeneti hibák esetén.
+
+A védelem megsértése HTTP 422 (`URL_GUARD_BLOCKED`) hibaként jelenik meg, és a `providerAudit.ts` segítségével bekerül a megfelelőségi auditnaplóba.
+
+---
+
+## 🔄 Lehűlési időt figyelembe vevő újrapróbálkozások _(v3.6.6+)_
+
+A csevegési kérések mostantól **automatikusan újrapróbálkoznak**, amikor egy upstream szolgáltató modellszintű lehűlési időt jelez. A működés a `REQUEST_RETRY` (alapértelmezés: 2) és a `MAX_RETRY_INTERVAL_SEC` (alapértelmezés: 30 s) segítségével konfigurálható. A sebességkorlátozási fejlécek értelmezése javult az `x-ratelimit-reset-requests`, az `x-ratelimit-reset-tokens` és a `Retry-After` esetében — a modellenkénti lehűlési állapot a Reziliencia irányítópulton látható.
+
+---
+
+## 📋 Megfelelőségi audit v2 _(v3.6.6+)_
+
+Az auditnapló kurzoralapú lapozással, kibővített kérési kontextussal (kérésazonosító, felhasználói ügynök, IP-cím), strukturált hitelesítési eseményekkel, különbségi kontextust tartalmazó szolgáltatói CRUD-eseményekkel, valamint az SSRF-védelem által blokkolt ellenőrzések naplózásával bővült. Az új eseményeket a `src/lib/compliance/providerAudit.ts` bocsátja ki.

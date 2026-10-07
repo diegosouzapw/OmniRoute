@@ -26,9 +26,16 @@ export interface ScoringFactors {
   /**
    * Feedback-driven quality signal [0,1] from the routing-event quality tracker
    * (open-sse/services/routing/quality.ts). Optional so cold candidates with no
-   * observed events default to neutral (1.0) and are never penalized.
+   * observed events default to neutral (0.5) and are never penalized.
    */
   quality?: number;
+  /**
+   * Observed success share over the routing window: 1 - failure rate. Optional
+   * so a candidate nobody has called yet reads as 1 rather than 0 -- it has not
+   * failed anything. That differs from `quality` on purpose: a score with no
+   * observations is neutral at 0.5, a failure rate with no observations is 0.
+   */
+  reliability?: number;
 }
 
 export interface ScoringWeights {
@@ -48,6 +55,8 @@ export interface ScoringWeights {
   connectionDensity: number;
   /** Weight for the feedback-driven quality factor (#feedback-foundation). */
   quality?: number;
+  /** Weight for the observed failure-rate factor. 0 by default. */
+  reliability?: number;
 }
 
 export const DEFAULT_WEIGHTS: ScoringWeights = {
@@ -69,6 +78,13 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   // the new quality signal (observed output quality over time) gets a real,
   // if smaller, vote. Sum remains exactly 1.0.
   quality: 0.03,
+  // Declared but silent in DEFAULT (like `cacheAffinity`/`resetWindowAffinity`):
+  // every candidate already carries a measured failure rate (24h of usage
+  // history behind a ten-sample floor, real-time metrics otherwise) and the
+  // scorer had no way to read it. Which weight it deserves is a product call
+  // backed by measurement, so DEFAULT ships at 0 and leaves the ranking as
+  // it was; `reliability-first` ships at 0.04 and generic packs at 0.03.
+  reliability: 0,
 };
 
 /** Normalize independently configured UI weights into a scoring distribution. */
@@ -122,7 +138,7 @@ export interface ProviderCandidate {
   /**
    * Feedback-driven quality score [0..1] for this provider/model from the
    * routing-event quality tracker (open-sse/services/routing). Omitted/undefined
-   * candidates default to a neutral 1.0 in calculateFactors.
+   * candidates default to a neutral 0.5 in calculateFactors.
    */
   quality?: number;
   connectionPoolSize?: number;
@@ -162,7 +178,10 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
       (weights.connectionDensity ?? 0) * factors.connectionDensity +
       // Missing quality factor → neutral 0.5: a cold candidate is neither boosted
       // (which would let optimistic initialization dominate) nor penalized.
-      (weights.quality ?? 0) * (factors.quality ?? 0.5)
+      (weights.quality ?? 0) * (factors.quality ?? 0.5) +
+      // Missing reliability factor -> neutral 1, not 0.5: a candidate with no
+      // observations has not failed anything. See the field doc on ScoringFactors.
+      (weights.reliability ?? 0) * (factors.reliability ?? 1)
   );
 }
 
@@ -187,6 +206,19 @@ export function calculateTierScore(
       : 0;
 
   return Math.min(1, baseScore * 0.8 + resetBonus * 0.2);
+}
+
+/**
+ * Project the account tier from a provider connection row.
+ * Tier whitelist in ONE place: test and combo.ts import this, never mirror it.
+ */
+export function projectAccountTier(
+  row: Record<string, unknown> | undefined
+): "ultra" | "pro" | "standard" | "free" | undefined {
+  const psd = row?.providerSpecificData as Record<string, unknown> | undefined;
+  const raw = row?.accountTier ?? psd?.accountTier;
+  const v = typeof raw === "string" ? raw.toLowerCase() : undefined;
+  return v === "ultra" || v === "pro" || v === "standard" || v === "free" ? v : undefined;
 }
 
 function calculateTierAffinity(
@@ -255,6 +287,25 @@ export function computePoolMaxima(pool: ProviderCandidate[]): PoolMaxima {
   return { maxCost, maxLatency, maxStdDev };
 }
 
+/**
+ * Bound an observed failure rate to [0,1], treating anything missing or
+ * non-finite as 0 (nothing observed has failed). Mirrors `toBoundedRate` in
+ * `speedRanking.ts` so both consumers of the same signal agree, including on
+ * garbage input.
+ */
+/** Reliability factor from an observed failure (else error) rate; absent reads fully reliable. */
+export function reliabilityFactor(candidate: {
+  failureRate?: number | null;
+  errorRate?: number | null;
+}): number {
+  return clamp01(1 - boundedRate(candidate.failureRate ?? candidate.errorRate));
+}
+
+function boundedRate(value: number | null | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return 0;
+  return Math.min(1, value);
+}
+
 export function calculateFactors(
   candidate: ProviderCandidate,
   pool: ProviderCandidate[],
@@ -292,6 +343,13 @@ export function calculateFactors(
     // Feedback quality signal; neutral 0.5 when the tracker has no data yet
     // (cold providers are neither boosted nor unfairly penalized).
     quality: clamp01(candidate.quality ?? 0.5),
+    // Same formula and same precedence as `speedRanking.ts` uses for its own
+    // reliability factor: an explicit failure rate wins over the coarser error
+    // rate, and an unobserved candidate reads as fully reliable. The rate is
+    // bounded BEFORE the subtraction, exactly as `toBoundedRate` does there --
+    // `clamp01(1 - NaN)` would be 0, i.e. "fails every call", which is the
+    // opposite of what corrupt telemetry should mean.
+    reliability: reliabilityFactor(candidate),
   };
 }
 

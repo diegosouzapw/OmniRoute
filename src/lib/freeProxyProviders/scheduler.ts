@@ -22,7 +22,7 @@
  */
 
 import { getEnabledProviders } from "@/lib/freeProxyProviders";
-import { getFreeProxyStats } from "@/lib/localDb";
+import { getFreeProxyStats } from "@/lib/db/freeProxies";
 import { runFreeProxySyncCycle, type FreeProxySyncCycleResult } from "./syncCycle";
 
 const STARTUP_DELAY_MS = 5_000;

@@ -43,7 +43,9 @@ export function useToolBatchStatuses(): UseToolBatchStatusesResult {
   }, [fetchStatuses]);
 
   useEffect(() => {
-    void fetchStatuses();
+    void (async () => {
+      await fetchStatuses();
+    })();
 
     function handleFocus() {
       void fetchStatuses();

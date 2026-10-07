@@ -30,6 +30,8 @@ test("next config exposes standalone build settings and canonical rewrites", asy
 
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
+  // #67 / #11783: React Compiler is an explicit Next 16 opt-in (peer babel plugin).
+  assert.equal(nextConfig.reactCompiler, true);
   assert.equal(nextConfig.images.unoptimized, true);
   assert.deepEqual(nextConfig.transpilePackages, [
     "@omniroute/open-sse",
@@ -75,8 +77,14 @@ test("next config exposes standalone build settings and canonical rewrites", asy
 test("next config declares Turbopack aliases, runtime assets and server externals", async () => {
   const { default: nextConfig } = await loadNextConfig("runtime-assets");
   const serverExternalPackages = new Set(nextConfig.serverExternalPackages);
-  const tracingIncludes = nextConfig.outputFileTracingIncludes["/*"];
-  const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
+  const tracingIncludes =
+    nextConfig.outputFileTracingIncludes?.["/*"] ||
+    nextConfig.outputFileTracingIncludes?.["**/*"] ||
+    [];
+  const tracingExcludes =
+    nextConfig.outputFileTracingExcludes?.["**/*"] ||
+    nextConfig.outputFileTracingExcludes?.["/*"] ||
+    [];
 
   assert.equal(nextConfig.turbopack.root, process.cwd());
   // #6344: the @/mitm/manager stub alias is OPT-IN (OMNIROUTE_MITM_STUB=1, Docker only).
@@ -100,8 +108,18 @@ test("next config declares Turbopack aliases, runtime assets and server external
     tracingIncludes.includes("./node_modules/sql.js/dist/sql-wasm.wasm"),
     "sql-wasm.wasm must be trace-included so the sql.js fallback works in standalone builds"
   );
-  assert.ok(tracingExcludes.includes("./_tasks/**/*"));
-  assert.ok(tracingExcludes.includes("./tests/**/*"));
+  assert.ok(
+    tracingExcludes.some((p) => p.includes("_tasks")),
+    "outputFileTracingExcludes should exclude _tasks"
+  );
+  assert.ok(
+    tracingExcludes.some((p) => p.includes("tests")),
+    "outputFileTracingExcludes should exclude tests"
+  );
+  assert.ok(
+    tracingExcludes.some((p) => p.includes(".claude")),
+    "outputFileTracingExcludes should exclude .claude worktrees"
+  );
 
   for (const packageName of [
     "thread-stream",
@@ -241,8 +259,14 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
 
 test("next-intl webpack hook preserves caller config and filters known extractor warnings", async () => {
   const { default: nextConfig } = await loadNextConfig("webpack-pass-through");
+  const infrastructureWarnings: unknown[][] = [];
+  const infrastructureConsole = Object.create(console) as Console;
+  infrastructureConsole.warn = (...args: unknown[]) => {
+    infrastructureWarnings.push(args);
+  };
   const config: any = {
     context: process.cwd(),
+    infrastructureLogging: { console: infrastructureConsole },
     plugins: [],
     externals: [],
     ignoreWarnings: [],
@@ -297,6 +321,22 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     config.ignoreWarnings[0]({ message: "Critical dependency: request is expression" }),
     false
   );
+  config.infrastructureLogging.console.warn(
+    "[webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Parsing of " +
+      "/repo/node_modules/fumadocs-mdx/dist/load-from-file-test.js for build dependencies " +
+      "failed at 'import(url.href)'.\nBuild dependencies behind this expression are ignored " +
+      "and might cause incorrect cache invalidation."
+  );
+  config.infrastructureLogging.console.warn(
+    "[webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Parsing of " +
+      "/repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build " +
+      "dependencies failed at 'import(t)'.\nBuild dependencies behind this expression are ignored " +
+      "and might cause incorrect cache invalidation."
+  );
+  assert.deepEqual(infrastructureWarnings, []);
+
+  config.infrastructureLogging.console.warn("unrelated infrastructure warning");
+  assert.deepEqual(infrastructureWarnings, [["unrelated infrastructure warning"]]);
 });
 
 test("turbopack.ignoreIssue suppresses the agentSkills over-bundling warning (#6582)", async () => {

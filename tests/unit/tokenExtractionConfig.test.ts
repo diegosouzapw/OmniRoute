@@ -92,12 +92,19 @@ describe("tokenExtractionConfig", () => {
   });
 
   it("getExtractionConfig returns config for known providers", () => {
-    const providers = ["claude-web", "chatgpt-web", "gemini-web", "grok-web", "deepseek-web"];
+    const providers = ["claude-web", "perplexity-web", "gemini-web", "grok-web", "deepseek-web"];
     for (const id of providers) {
       const cfg = getExtractionConfig(id);
       assert.ok(cfg !== undefined, `getExtractionConfig("${id}") returned undefined`);
       assert.equal(cfg?.providerId, id);
     }
+  });
+
+  it("does not reduce ChatGPT Web storage-state auth to token extraction", () => {
+    // Clean-room ChatGPT Web requires a complete Playwright storage state, not
+    // a token extracted from localStorage or a raw Cookie header.
+    assert.equal(getExtractionConfig("chatgpt-web"), undefined);
+    assert.equal(getExtractionConfig("cgpt-web"), undefined);
   });
 
   it("captures Copilot's bearer authorization header instead of an unrelated cookie", () => {

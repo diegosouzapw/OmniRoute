@@ -15,9 +15,7 @@ import {
 const IS_ROOT = typeof process.getuid === "function" && process.getuid() === 0;
 const IS_WINDOWS = process.platform === "win32";
 
-async function withTempEnv(
-  fn: (paths: { root: string; home: string }) => void | Promise<void>
-) {
+async function withTempEnv(fn: (paths: { root: string; home: string }) => void | Promise<void>) {
   const originalEnv = { ...process.env };
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "omni-datadir-"));
   const home = path.join(root, "home");
@@ -60,26 +58,30 @@ test("resolveWritableDataDir returns the configured DATA_DIR when it is writable
   });
 });
 
-test("resolveWritableDataDir falls back to the default dir when DATA_DIR is not writable (EACCES/EPERM)", { skip: IS_ROOT || IS_WINDOWS }, async () => {
-  await withTempEnv(({ root, home }) => {
-    // A read-only parent makes mkdir of the child fail with EACCES/EPERM.
-    const lockedParent = path.join(root, "locked");
-    fs.mkdirSync(lockedParent, { recursive: true });
-    fs.chmodSync(lockedParent, 0o555);
+test(
+  "resolveWritableDataDir falls back to the default dir when DATA_DIR is not writable (EACCES/EPERM)",
+  { skip: IS_ROOT || IS_WINDOWS },
+  async () => {
+    await withTempEnv(({ root, home }) => {
+      // A read-only parent makes mkdir of the child fail with EACCES/EPERM.
+      const lockedParent = path.join(root, "locked");
+      fs.mkdirSync(lockedParent, { recursive: true });
+      fs.chmodSync(lockedParent, 0o555);
 
-    const configured = path.join(lockedParent, "data");
-    process.env.DATA_DIR = configured;
+      const configured = path.join(lockedParent, "data");
+      process.env.DATA_DIR = configured;
 
-    const resolved = resolveWritableDataDir();
-    const expectedFallback = getDefaultDataDir();
+      const resolved = resolveWritableDataDir();
+      const expectedFallback = getDefaultDataDir();
 
-    // It must NOT return the unwritable configured dir...
-    assert.notEqual(resolved, path.resolve(configured));
-    // ...and instead fall back to the default user dir (~/.omniroute under HOME).
-    assert.equal(resolved, expectedFallback);
-    assert.ok(resolved.startsWith(path.resolve(home)));
-  });
-});
+      // It must NOT return the unwritable configured dir...
+      assert.notEqual(resolved, path.resolve(configured));
+      // ...and instead fall back to the default user dir (~/.omniroute under HOME).
+      assert.equal(resolved, expectedFallback);
+      assert.ok(resolved.startsWith(path.resolve(home)));
+    });
+  }
+);
 
 test("resolveWritableDataDir returns the default dir (no probe) when DATA_DIR is unset", async () => {
   await withTempEnv(() => {
@@ -105,9 +107,12 @@ test("resolveWritableDataDir rethrows non-permission errors", { skip: IS_WINDOWS
     const configured = path.join(fileParent, "data");
     process.env.DATA_DIR = configured;
 
-    assert.throws(() => resolveWritableDataDir(), (err: NodeJS.ErrnoException) => {
-      return err.code !== "EACCES" && err.code !== "EPERM";
-    });
+    assert.throws(
+      () => resolveWritableDataDir(),
+      (err: NodeJS.ErrnoException) => {
+        return err.code !== "EACCES" && err.code !== "EPERM";
+      }
+    );
   });
 });
 

@@ -35,8 +35,11 @@
  * Built-in/no-compatible catalog entries are always eligible.
  */
 
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getProviderNodes } from "@/lib/db/providers/nodes";
+import {
+  getReservedProviderPrefixes,
+  isReservedProviderPrefix,
+} from "@/shared/constants/reservedProviderPrefixes";
 
 export type ProviderPrefixStatus = "unique" | "ambiguous" | "reserved";
 
@@ -66,12 +69,11 @@ export interface ProviderPrefixIndex {
  * prefixes can never shadow a built-in provider.
  */
 export function buildReservedPrefixes(): Set<string> {
-  const reserved = new Set<string>();
-  for (const entry of Object.values(REGISTRY)) {
-    if (entry?.id) reserved.add(entry.id);
-    if (entry?.alias) reserved.add(entry.alias);
-  }
-  return reserved;
+  return new Set(getReservedProviderPrefixes());
+}
+
+export function isProviderNodePrefixReserved(value: unknown): boolean {
+  return isReservedProviderPrefix(value);
 }
 
 export interface CompatibleNodeLike {
@@ -97,7 +99,6 @@ export function selectCompatibleNodeForPrefix(
 }
 
 export async function getProviderPrefixIndex(): Promise<ProviderPrefixIndex> {
-  const reserved = buildReservedPrefixes();
   const nodes = (await getProviderNodes()) as CompatibleNodeLike[];
   const compatible = nodes.filter(
     (n) => n.type === "openai-compatible" || n.type === "anthropic-compatible"
@@ -123,8 +124,9 @@ export async function getProviderPrefixIndex(): Promise<ProviderPrefixIndex> {
   const eligibleNodeIds = new Set<string>();
 
   for (const [prefix, prefixNodes] of byPrefix) {
-    if (reserved.has(prefix)) {
-      // Built-in registry id/alias — never a compatible public target.
+    if (isProviderNodePrefixReserved(prefix)) {
+      // Built-in registry id/alias or case-insensitive retired id — never a
+      // compatible public target.
       entries.set(prefix, { prefix, status: "reserved" });
       continue;
     }

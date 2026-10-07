@@ -23,7 +23,20 @@ import { isVisionModelId } from "@/shared/constants/visionModels";
 import { isVisionBridgeForcedModel } from "@/shared/constants/visionBridgeDefaults";
 
 export type AutoCategory = "coding" | "reasoning" | "vision" | "chat" | "multimodal";
-export type AutoTier = "fast" | "cheap" | "floor" | "free" | "reliable" | "pro";
+export type AutoTier =
+  | "fast"
+  | "cheap"
+  | "floor"
+  | "free"
+  | "reliable"
+  | "pro"
+  // Subscription-first routing. Unlike every tier above, these two narrow by
+  // the CONNECTION's billing class, not the model's price — so they are
+  // applied in `virtualFactory.ts` against live connection state rather than
+  // by `buildAutoCandidateFilter` below, which only sees (provider, model).
+  // See `subscriptionLadder.ts` and `docs/routing/SUBSCRIPTION_LADDER.md`.
+  | "subscription"
+  | "thrifty";
 
 export const AUTO_CATEGORIES: readonly AutoCategory[] = [
   "coding",
@@ -39,6 +52,8 @@ export const AUTO_TIERS: readonly AutoTier[] = [
   "free",
   "reliable",
   "pro",
+  "subscription",
+  "thrifty",
 ];
 
 const CATEGORY_SET = new Set<string>(AUTO_CATEGORIES);
@@ -84,6 +99,9 @@ export function tierToWeightVariant(tier?: AutoTier): AutoVariant | "reliability
       return "fast";
     case "cheap":
     case "floor":
+    // The ladder already orders plan-included rungs first; within a rung it
+    // should still lean cheap rather than reach for the most expensive model.
+    case "thrifty":
       return "cheap";
     case "reliable":
       return "reliability";
@@ -114,14 +132,18 @@ export function buildAutoCandidateFilter(
   if (category === "vision" || category === "multimodal") {
     checks.push((c) => {
       if (c.resolvedSupportsVision !== undefined) {
-        return c.resolvedSupportsVision || isVisionModelId(c.model);
+        // #vision-pool: same bridge exclusion as the on-demand path below —
+        // registry entries whose catalog overstates vision support are forced
+        // through the vision bridge and must never be picked as vision-capable.
+        const capable = c.resolvedSupportsVision || isVisionModelId(c.model);
+        if (!capable) return false;
+        return !isVisionBridgeForcedModel(`${c.provider}/${c.model}`);
       }
       try {
         const caps = getResolvedModelCapabilities({ provider: c.provider, model: c.model });
-        const capable =
-          caps.supportsVision === true || isVisionModelId(c.model);
+        const capable = caps.supportsVision === true || isVisionModelId(c.model);
         if (!capable) return false;
-        // #vison-pool: registry entries whose catalog OVERSTATES vision support
+        // #vision-pool: registry entries whose catalog OVERSTATES vision support
         // (opencode-go/opencode-zen/tokenrouter — the backend models are text-only)
         // are forced through the vision bridge by isVisionBridgeForcedModel.
         // They must never be selected as the vision-capable candidate itself.

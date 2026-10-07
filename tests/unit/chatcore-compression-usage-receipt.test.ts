@@ -13,12 +13,10 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-compression-rece
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { insertCompressionAnalyticsRow, getCompressionAnalyticsSummary } = await import(
-  "../../src/lib/db/compressionAnalytics.ts"
-);
-const { attachCompressionUsageReceiptAfterAnalytics } = await import(
-  "../../open-sse/handlers/chatCore/compressionUsageReceipt.ts"
-);
+const { insertCompressionAnalyticsRow, getCompressionAnalyticsSummary } =
+  await import("../../src/lib/db/compressionAnalytics.ts");
+const { attachCompressionUsageReceiptAfterAnalytics } =
+  await import("../../open-sse/handlers/chatCore/compressionUsageReceipt.ts");
 
 const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -66,11 +64,10 @@ test("attaches the usage receipt only after pendingWrite resolves", async () => 
 
 test("swallows the no-matching-row case without throwing or recording a receipt", async () => {
   assert.doesNotThrow(() =>
-    attachCompressionUsageReceiptAfterAnalytics(
-      { prompt_tokens: 1, total_tokens: 1 },
-      "provider",
-      { pendingWrite: null, skillRequestId: "does-not-exist" }
-    )
+    attachCompressionUsageReceiptAfterAnalytics({ prompt_tokens: 1, total_tokens: 1 }, "provider", {
+      pendingWrite: null,
+      skillRequestId: "does-not-exist",
+    })
   );
   await tick(40);
   const summary = getCompressionAnalyticsSummary();

@@ -18,7 +18,7 @@ import {
 import { attachOmniRouteMetaToResponse } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
-import { getClientIpFromRequest } from "@/lib/ipUtils";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Handle CORS preflight
@@ -64,7 +64,7 @@ async function postHandler(request, context) {
     const combo = await getComboByName(body.model);
     if (combo) {
       const { executeSpeechCombo } = await import("@omniroute/open-sse/services/speechCombo");
-      return executeSpeechCombo(body.model, body, { request, policy }, startTime);
+      return executeSpeechCombo(body.model, body, startTime);
     }
   }
 
@@ -102,8 +102,13 @@ async function postHandler(request, context) {
     credentials,
     resolvedProvider: providerConfig,
     resolvedModel,
-    clientIp: getClientIpFromRequest(request),
   });
+
+  const connectionId = (credentials as { connectionId?: string } | null)?.connectionId || undefined;
+  const logModel = `${provider}/${resolvedModel || body.model}`;
+  const apiKeyId = policy.apiKeyInfo?.id || undefined;
+  const apiKeyName = policy.apiKeyInfo?.name || undefined;
+
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
     // TTS is billed per input character; attach cost telemetry without
@@ -119,6 +124,34 @@ async function postHandler(request, context) {
       latencyMs: Date.now() - startTime,
       requestId: generateRequestId(),
     });
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/speech",
+      status: 200,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      apiKeyId,
+      apiKeyName,
+    }).catch(() => {});
+  } else if (response) {
+    const errorText = await response
+      .clone()
+      .text()
+      .catch(() => "");
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/speech",
+      status: response.status,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      error: errorText.slice(0, 500),
+      apiKeyId,
+      apiKeyName,
+    }).catch(() => {});
   }
   return response;
 }

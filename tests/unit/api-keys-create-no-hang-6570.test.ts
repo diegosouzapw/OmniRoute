@@ -27,7 +27,8 @@ process.env.CLOUD_URL = "http://cloud.example";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings, getSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings, getSettings };
 const listRoute = await import("../../src/app/api/keys/route.ts");
 
 async function resetStorage() {

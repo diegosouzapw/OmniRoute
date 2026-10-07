@@ -1,13 +1,11 @@
 // Issue #8200: perplexity-web must persist Set-Cookie session-token rotations
-// via onCredentialsRefreshed — chatgpt-web parity (mergeRefreshedCookie +
+// via onCredentialsRefreshed using the shared mergeRefreshedCookie +
 // buildSessionCookieHeader in open-sse/utils/nextAuthCookie.ts).
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  mergeRefreshedCookie,
-  buildSessionCookieHeader,
-} = await import("../../open-sse/utils/nextAuthCookie.ts");
+const { mergeRefreshedCookie, buildSessionCookieHeader } =
+  await import("../../open-sse/utils/nextAuthCookie.ts");
 const { PerplexityWebExecutor } = await import("../../open-sse/executors/perplexity-web.ts");
 const { __setTlsFetchOverrideForTesting } =
   await import("../../open-sse/services/perplexityTlsClient.ts");
@@ -37,10 +35,7 @@ test("nextAuthCookie: buildSessionCookieHeader passes full DevTools cookie blob 
   const blob =
     "__Secure-next-auth.session-token.0=partA; __Secure-next-auth.session-token.1=partB; cf_clearance=CF";
   assert.equal(buildSessionCookieHeader(blob), blob);
-  assert.equal(
-    buildSessionCookieHeader(`Cookie: ${blob}`),
-    blob
-  );
+  assert.equal(buildSessionCookieHeader(`Cookie: ${blob}`), blob);
 });
 
 test("nextAuthCookie: buildSessionCookieHeader wraps bare session-token value", () => {
@@ -72,8 +67,7 @@ test("#8200: PerplexityWebExecutor persists rotated session-token via onCredenti
     captured.headers = opts.headers as Record<string, string>;
     const headers = new Headers({
       "Content-Type": "text/event-stream",
-      "set-cookie":
-        "__Secure-next-auth.session-token=ROTATED-VALUE; Path=/; HttpOnly; Secure",
+      "set-cookie": "__Secure-next-auth.session-token=ROTATED-VALUE; Path=/; HttpOnly; Secure",
     });
     return {
       status: 200,
@@ -103,7 +97,10 @@ test("#8200: PerplexityWebExecutor persists rotated session-token via onCredenti
       "__Secure-next-auth.session-token=old-cookie-value",
       "bare apiKey must be normalized for the upstream Cookie header"
     );
-    assert.ok(persisted, "onCredentialsRefreshed must fire when Set-Cookie rotates the session token");
+    assert.ok(
+      persisted,
+      "onCredentialsRefreshed must fire when Set-Cookie rotates the session token"
+    );
     assert.equal(
       persisted.apiKey,
       "__Secure-next-auth.session-token=ROTATED-VALUE",
@@ -139,8 +136,7 @@ test("#8200: PerplexityWebExecutor preserves cf_clearance when session-token rot
       body: { messages: [{ role: "user", content: "hi" }], stream: false },
       stream: false,
       credentials: {
-        apiKey:
-          "__Secure-next-auth.session-token=UNCHUNKED_OLD; cf_clearance=CFCLEAR",
+        apiKey: "__Secure-next-auth.session-token=UNCHUNKED_OLD; cf_clearance=CFCLEAR",
       },
       signal: AbortSignal.timeout(10_000),
       log: null,

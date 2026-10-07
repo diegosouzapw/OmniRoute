@@ -180,12 +180,17 @@ function applyDrr(targets: ResolvedComboTarget[], comboName: string): ResolvedCo
   if (targets.length <= 1) return targets.slice();
 
   const deficits = getDrrDeficits(comboName);
-  const totalWeight = targets.reduce((sum, t) => sum + normalizeWeight(t.weight), 0);
-  if (totalWeight <= 0) return targets.slice();
+  const weights = targets.map((t) => normalizeWeight(t.weight));
+  const weightedTotal = weights.reduce((sum, w) => sum + w, 0);
+  // A 0 disables a target only relative to weighted siblings. The combo resolver turns an
+  // unset step weight into 0, so an all-zero set is an unweighted combo, not an all-disabled
+  // one: share evenly instead of returning definition order, which pinned the first target.
+  const unweighted = weightedTotal <= 0;
+  const totalWeight = unweighted ? targets.length : weightedTotal;
 
   // Add each target's quantum (weight share) to its deficit.
-  for (const target of targets) {
-    const quantum = normalizeWeight(target.weight) / totalWeight;
+  for (const [index, target] of targets.entries()) {
+    const quantum = (unweighted ? 1 : weights[index]) / totalWeight;
     deficits.set(target.executionKey, (deficits.get(target.executionKey) ?? 0) + quantum);
   }
 

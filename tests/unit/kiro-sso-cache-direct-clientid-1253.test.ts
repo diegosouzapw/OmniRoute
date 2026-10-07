@@ -142,7 +142,11 @@ test("auto-import: resolves clientId/clientSecret from a direct `clientId` field
       assert.equal(parsed.clientId, "correct-client-id");
       assert.equal(parsed.clientSecret, "correct-secret");
       return new Response(
-        JSON.stringify({ accessToken: "access-refreshed", refreshToken: "aorAAAAAGrefreshed", expiresIn: 3600 }),
+        JSON.stringify({
+          accessToken: "access-refreshed",
+          refreshToken: "aorAAAAAGrefreshed",
+          expiresIn: 3600,
+        }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -185,7 +189,11 @@ test("KiroService.validateImportToken: prefers the client registration matching 
       fetchedBodies.push(parsed);
       if (parsed.clientId === "correct-client-id" && parsed.clientSecret === "correct-secret") {
         return new Response(
-          JSON.stringify({ accessToken: "ok-access", refreshToken: "aorAAAAAGok", expiresIn: 3600 }),
+          JSON.stringify({
+            accessToken: "ok-access",
+            refreshToken: "aorAAAAAGok",
+            expiresIn: 3600,
+          }),
           { status: 200, headers: { "Content-Type": "application/json" } }
         );
       }

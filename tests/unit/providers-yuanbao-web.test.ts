@@ -39,11 +39,11 @@ test("yuanbao-web appears in the web-cookie catalog with a cookie authHint", () 
   assert.match(String(entry.website), /yuanbao\.tencent\.com/);
 });
 
-test("YuanbaoWebExecutor is wired under id and alias", () => {
+test("YuanbaoWebExecutor is wired under id and alias", async () => {
   assert.ok(hasSpecializedExecutor("yuanbao-web"));
   assert.ok(hasSpecializedExecutor("ybw"));
-  assert.ok(getExecutor("yuanbao-web") instanceof YuanbaoWebExecutor);
-  assert.ok(getExecutor("ybw") instanceof YuanbaoWebExecutor);
+  assert.ok(await getExecutor("yuanbao-web") instanceof YuanbaoWebExecutor);
+  assert.ok(await getExecutor("ybw") instanceof YuanbaoWebExecutor);
 });
 
 // ── Behavioral: SSE → OpenAI translation (mocked upstream) ─────────────────────

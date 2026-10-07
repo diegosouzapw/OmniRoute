@@ -1,3 +1,4 @@
+import { classify429 } from "@omniroute/open-sse/services/antigravity429Engine.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 import { getProviderCredentialsWithQuotaPreflight } from "./auth";
@@ -9,13 +10,13 @@ interface ImageGenerationResult {
   status?: number;
   error?: unknown;
   data?: unknown;
-  // #10494: opt-in signal a provider handler can set (via
+  // #8307: opt-in signal a provider handler can set (via
   // saveImageErrorResult's `retryable` option) when a non-401 failure is
-  // still account/session-specific — e.g. an expired or blocked Gemini Web
-  // session, which the underlying browser-automation executor surfaces as
-  // 400/500 rather than 401. Only honored together with a connectionId, same
-  // as the existing 401 path, so providers that never set it keep the
-  // original 401-only fallback behavior unchanged.
+  // still account-specific — e.g. a ChatGPT account that can run Codex but
+  // lacks access to the requested image model and returns a specific 400.
+  // Only honored together with a connectionId, same as the existing 401 path,
+  // so providers that never set it keep the original 401-only fallback
+  // behavior unchanged.
   retryable?: boolean;
 }
 
@@ -48,6 +49,29 @@ function connectionIdOf(credentials: any): string | null {
 
 function isCredentialSentinel(credentials: any): boolean {
   return Boolean(credentials?.allRateLimited || credentials?.allExpired);
+}
+
+/**
+ * Image generation is non-idempotent, so account rotation stays deliberately
+ * narrower than chat failover. Antigravity's explicit exhausted-quota signal
+ * is safe to retry on another account; an ordinary 429 is not evidence that a
+ * different account helps and must not cause account rotation.
+ */
+export function isAntigravityImageQuotaExhausted(
+  provider: string,
+  result: ImageGenerationResult
+): boolean {
+  if (provider !== "antigravity" || Number(result.status) !== 429) return false;
+
+  let errorText = "";
+  try {
+    errorText =
+      typeof result.error === "string" ? result.error : JSON.stringify(result.error ?? "");
+  } catch {
+    return false;
+  }
+
+  return classify429(errorText) === "quota_exhausted";
 }
 
 async function defaultSelectNextCredentials(
@@ -110,8 +134,11 @@ export async function executeImageWithCredentialFallback({
 
     lastCredentials = currentCredentials;
     lastResult = await execute(currentCredentials);
-    const isAuthFailure = Number(lastResult.status) === 401 || lastResult.retryable === true;
-    if (lastResult.success || !isAuthFailure || !connectionId) {
+    const shouldTryAnotherAccount =
+      Number(lastResult.status) === 401 ||
+      lastResult.retryable === true ||
+      isAntigravityImageQuotaExhausted(provider, lastResult);
+    if (lastResult.success || !shouldTryAnotherAccount || !connectionId) {
       return { credentials: lastCredentials, result: lastResult };
     }
 

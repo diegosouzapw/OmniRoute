@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Card } from "@/shared/components";
 import { shouldAutoSyncOnOpen } from "@/lib/radar/autoSync";
 import { isValidSupporterKeyFormat } from "@/lib/radar/supporterKey";
+import { RadarAccessExplainer } from "./RadarAccessExplainer";
 import { RadarCatalogTable, type RadarMergedEntry } from "./RadarCatalogTable";
 
 // ---------------------------------------------------------------------------
@@ -201,7 +202,9 @@ export default function RadarPage() {
   }, [fetchCatalog, fetchReferrals]);
 
   useEffect(() => {
-    fetchSettings();
+    void (async () => {
+      await fetchSettings();
+    })();
   }, [fetchSettings]);
 
   // Sync (defined before handleActivate which depends on it)
@@ -242,7 +245,9 @@ export default function RadarPage() {
     if (loading || syncing || optIn !== true || autoSyncFiredRef.current) return;
     if (!shouldAutoSyncOnOpen(meta?.fetchedAt ?? null, Date.now())) return;
     autoSyncFiredRef.current = true;
-    void handleSync();
+    void (async () => {
+      await handleSync();
+    })();
   }, [loading, syncing, optIn, meta, handleSync]);
 
   // Activate opt-in
@@ -386,24 +391,45 @@ export default function RadarPage() {
           {/* Opt-in pending */}
           {pageState === "optin_pending" && (
             <Card>
-              <div className="flex flex-col items-center gap-6 py-8 text-center max-w-lg mx-auto">
-                <div className="text-4xl">📡</div>
+              <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 py-8 text-center">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-4xl text-violet-400"
+                >
+                  radar
+                </span>
                 <h2 className="text-xl font-semibold">{t("activateTitle")}</h2>
-                <p className="text-text-muted">{t("activateDescription")}</p>
-                <div className="flex flex-col gap-2 text-sm text-text-muted text-left w-full">
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-400 mt-0.5">✓</span>
-                    <span>{t("privacyNoUpload")}</span>
+                <p className="max-w-2xl text-text-muted">{t("activateDescription")}</p>
+
+                <RadarAccessExplainer />
+
+                {/* F4/T7 — ways to obtain a supporter key. These conditions
+                    intentionally precede both activation actions (D32). */}
+                {contributorClaimUrl && supporterPlansUrl && (
+                  <div className="flex w-full flex-col gap-3 rounded-xl border border-border p-4">
+                    <p className="text-sm font-medium">{t("claimSectionTitle")}</p>
+                    <div className="flex w-full flex-col gap-3 sm:flex-row">
+                      <a
+                        href={contributorClaimUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 rounded-lg border border-violet-500 px-4 py-2 text-center text-sm font-medium text-violet-400 transition-colors hover:bg-violet-500/10"
+                      >
+                        {t("contributorButton")}
+                      </a>
+                      <a
+                        href={supporterPlansUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 rounded-lg border border-violet-500 px-4 py-2 text-center text-sm font-medium text-violet-400 transition-colors hover:bg-violet-500/10"
+                      >
+                        {t("supporterButton")}
+                      </a>
+                    </div>
+                    <p className="text-left text-xs text-text-muted">{t("contributorHint")}</p>
+                    <p className="text-left text-xs text-text-muted">{t("supporterHint")}</p>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-400 mt-0.5">✓</span>
-                    <span>{t("privacyOnlySigned")}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-green-400 mt-0.5">✓</span>
-                    <span>{t("privacyLocalOnly")}</span>
-                  </div>
-                </div>
+                )}
 
                 {/* Paste-key activation — primary path: pasting an already-obtained
                     supporter key both sets it AND opts in (unlocks this screen).
@@ -456,35 +482,6 @@ export default function RadarPage() {
                 >
                   {activating ? t("activating") : t("activateButton")}
                 </button>
-
-                {/* F4/T7 — "get a supporter key" outbound links. Both open in a
-                    new tab; neither one carries a price/value (D14 — the
-                    only place pricing lives is the destination page). */}
-                {contributorClaimUrl && supporterPlansUrl && (
-                  <div className="w-full pt-6 mt-2 border-t border-border flex flex-col gap-3">
-                    <p className="text-sm font-medium">{t("claimSectionTitle")}</p>
-                    <div className="flex flex-col sm:flex-row gap-3 w-full">
-                      <a
-                        href={contributorClaimUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 px-4 py-2 text-sm font-medium text-center rounded-lg border border-violet-500 text-violet-400 hover:bg-violet-500/10 transition-colors"
-                      >
-                        {t("contributorButton")}
-                      </a>
-                      <a
-                        href={supporterPlansUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 px-4 py-2 text-sm font-medium text-center rounded-lg border border-violet-500 text-violet-400 hover:bg-violet-500/10 transition-colors"
-                      >
-                        {t("supporterButton")}
-                      </a>
-                    </div>
-                    <p className="text-xs text-text-muted text-left">{t("contributorHint")}</p>
-                    <p className="text-xs text-text-muted text-left">{t("supporterHint")}</p>
-                  </div>
-                )}
               </div>
             </Card>
           )}

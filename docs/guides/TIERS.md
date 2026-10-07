@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute Tiers — User Guide
 
-OmniRoute organizes the 207+ supported providers into 3 economic tiers. Each
+OmniRoute organizes the 352 supported providers into 3 economic tiers. Each
 request travels through them in order until one returns successfully — you
 get the cheapest viable response without ever writing fallback code.
 
@@ -24,8 +24,11 @@ it expires.
 | Antigravity / Devin Desktop         | Built-in quotas                              |
 
 **Strategy**: route here first for every request that fits the model's
-strengths. Quota tracker monitors approaching reset; combo strategies
-`reset-aware` and `subscription` prioritize accordingly.
+strengths. The quota tracker monitors approaching resets, and the `reset-aware`
+combo strategy prioritizes accordingly. To route Tier 1 first and only step out
+to paid tiers as quota runs out, use the `auto/thrifty` id — or `auto/subscription`
+to stay on plan-included capacity and fail closed instead. See
+[Subscription-first routing](../routing/SUBSCRIPTION_LADDER.md).
 
 ## Tier 2 — Cheap
 
@@ -66,7 +69,7 @@ rate limits — circuit breaker recovers them on backoff.
 Dashboard → **Tiers** → assign your providers. Defaults (from `tierDefaults.json`) are
 sensible; edit when you have specific subscriptions to prioritize or providers to exclude.
 
-Auto-Combo's 13-factor scoring also considers tier. See
+Auto-Combo's 16-factor scoring also considers tier. See
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
 ## Telemetry

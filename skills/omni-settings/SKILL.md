@@ -14,375 +14,136 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 
 ## Endpoints
 
-### GET /api/settings/memory
-
-Get memory settings
-
-Returns the extended memory settings including 7 new fields added in plan 21 (embeddingSource, embeddingProviderModel, transformersEnabled, staticEnabled, rerankEnabled, rerankProviderModel, vectorStore).
-
-```bash
-curl https://localhost:20128/api/settings/memory \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/memory
-
-Update memory settings
-
-Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/memory \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/qdrant
-
-Get Qdrant settings
-
-Returns current Qdrant configuration. The `apiKey` field is never returned raw — use `hasApiKey` / `apiKeyMasked` instead.
-
-```bash
-curl https://localhost:20128/api/settings/qdrant \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/qdrant
-
-Update Qdrant settings
-
-Update Qdrant configuration. Pass `apiKey: ""` to remove the stored key. Schema: `QdrantSettingsUpdateSchema`.
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/qdrant \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/qdrant/health
-
-Qdrant health probe
-
-Performs a liveness check against the configured Qdrant instance. Returns latency and any connection error (sanitized — no stack traces).
-
-```bash
-curl https://localhost:20128/api/settings/qdrant/health \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/settings/qdrant/search
-
-Qdrant semantic search test
-
-Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.
-
-```bash
-curl -X POST https://localhost:20128/api/settings/qdrant/search \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/settings/qdrant/cleanup
-
-Clean up expired Qdrant points
-
-Removes Qdrant points for memories that have expired or exceeded the configured retention window.
-
-```bash
-curl -X POST https://localhost:20128/api/settings/qdrant/cleanup \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/qdrant/embedding-models
-
-List Qdrant embedding models
-
-Returns the list of embedding models available for use with Qdrant.
-
-```bash
-curl https://localhost:20128/api/settings/qdrant/embedding-models \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/settings
-
-Get application settings
-
-```bash
-curl https://localhost:20128/api/settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PATCH /api/settings
-
-Update settings
-
-```bash
-curl -X PATCH https://localhost:20128/api/settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/settings/purge-request-history
-
-Clear request log history
-
-Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
-
-```bash
-curl -X POST https://localhost:20128/api/settings/purge-request-history \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/compression
-
-Get global compression settings
-
-```bash
-curl https://localhost:20128/api/settings/compression \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/compression
-
-Update global compression settings
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/compression \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/compression/mcp-accessibility
-
-Get the MCP tool-output accessibility (trimming) config
-
-```bash
-curl https://localhost:20128/api/settings/compression/mcp-accessibility \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/compression/mcp-accessibility
-
-Update the MCP tool-output accessibility (trimming) config
-
-Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail reserve) are folded back to the safe defaults server-side, so the response reflects the effective config.
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/compression/mcp-accessibility \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/payload-rules
-
-Get payload rules configuration
-
-Returns the current payload rules used to mutate outgoing request payloads before they
-are sent upstream.
-
-Requires a dashboard management session cookie when management auth is enabled.
-
-
-```bash
-curl https://localhost:20128/api/settings/payload-rules \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/payload-rules
-
-Update payload rules configuration
-
-Persists and hot reloads payload rules. The legacy input field `default-raw` is accepted
-on writes and normalized to `defaultRaw` in responses/runtime state.
-
-Requires a dashboard management session cookie when management auth is enabled.
-
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/payload-rules \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/combo-defaults
-
-Get combo default settings
-
-```bash
-curl https://localhost:20128/api/settings/combo-defaults \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/settings/proxy
-
-Get proxy settings
-
-```bash
-curl https://localhost:20128/api/settings/proxy \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PATCH /api/settings/proxy
-
-Update proxy settings
-
-```bash
-curl -X PATCH https://localhost:20128/api/settings/proxy \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/settings/proxy/test
-
-Test proxy connection
-
-```bash
-curl -X POST https://localhost:20128/api/settings/proxy/test \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/settings/require-login
-
-Toggle login requirement
-
-```bash
-curl -X POST https://localhost:20128/api/settings/require-login \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/ip-filter
-
-Get IP filter configuration
-
-Returns the current IP filter settings including blacklist, whitelist, and temp bans.
-
-```bash
-curl https://localhost:20128/api/settings/ip-filter \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/ip-filter
-
-Update IP filter configuration
-
-Configure IP filtering with blacklist/whitelist modes, add/remove individual IPs, and manage temp bans.
-
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/ip-filter \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/system-prompt
-
-Get system prompt configuration
-
-Returns the current system prompt injection settings.
-
-```bash
-curl https://localhost:20128/api/settings/system-prompt \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/system-prompt
-
-Update system prompt configuration
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/system-prompt \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/settings/thinking-budget
-
-Get thinking budget configuration
-
-Returns the current thinking/reasoning budget settings for AI models.
-
-```bash
-curl https://localhost:20128/api/settings/thinking-budget \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/thinking-budget
-
-Update thinking budget configuration
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/thinking-budget \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### GET /api/tags
-
-List Ollama-compatible model tags
-
-Returns models in Ollama /api/tags format for Ollama client compatibility
-
-```bash
-curl https://localhost:20128/api/tags \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### GET /api/settings/quota-store
-
-Get current quota store driver settings
-
-Redis URL is masked in the response (shows only scheme+host).
-
-```bash
-curl https://localhost:20128/api/settings/quota-store \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### PUT /api/settings/quota-store
-
-Update quota store driver settings
-
-```bash
-curl -X PUT https://localhost:20128/api/settings/quota-store \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### POST /api/settings/purge-usage-history
-
-Purge usage history
-
-Dashboard-only. Purges stored usage-history records.
-
-```bash
-curl -X POST https://localhost:20128/api/settings/purge-usage-history \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
+- [`GET /api/settings/memory`](references/endpoints.md#get-apisettingsmemory)
+- [`PUT /api/settings/memory`](references/endpoints.md#put-apisettingsmemory)
+- [`GET /api/settings/qdrant`](references/endpoints.md#get-apisettingsqdrant)
+- [`PUT /api/settings/qdrant`](references/endpoints.md#put-apisettingsqdrant)
+- [`GET /api/settings/qdrant/health`](references/endpoints.md#get-apisettingsqdranthealth)
+- [`POST /api/settings/qdrant/search`](references/endpoints.md#post-apisettingsqdrantsearch)
+- [`POST /api/settings/qdrant/cleanup`](references/endpoints.md#post-apisettingsqdrantcleanup)
+- [`GET /api/settings/qdrant/embedding-models`](references/endpoints.md#get-apisettingsqdrantembedding-models)
+- [`GET /api/settings`](references/endpoints.md#get-apisettings)
+- [`PATCH /api/settings`](references/endpoints.md#patch-apisettings)
+- [`POST /api/settings/purge-request-history`](references/endpoints.md#post-apisettingspurge-request-history)
+- [`GET /api/settings/compression`](references/endpoints.md#get-apisettingscompression)
+- [`PUT /api/settings/compression`](references/endpoints.md#put-apisettingscompression)
+- [`GET /api/settings/compression/mcp-accessibility`](references/endpoints.md#get-apisettingscompressionmcp-accessibility)
+- [`PUT /api/settings/compression/mcp-accessibility`](references/endpoints.md#put-apisettingscompressionmcp-accessibility)
+- [`GET /api/settings/payload-rules`](references/endpoints.md#get-apisettingspayload-rules)
+- [`PUT /api/settings/payload-rules`](references/endpoints.md#put-apisettingspayload-rules)
+- [`GET /api/settings/combo-defaults`](references/endpoints.md#get-apisettingscombo-defaults)
+- [`GET /api/settings/proxy`](references/endpoints.md#get-apisettingsproxy)
+- [`PATCH /api/settings/proxy`](references/endpoints.md#patch-apisettingsproxy)
+- [`POST /api/settings/proxy/test`](references/endpoints.md#post-apisettingsproxytest)
+- [`POST /api/settings/require-login`](references/endpoints.md#post-apisettingsrequire-login)
+- [`GET /api/settings/ip-filter`](references/endpoints.md#get-apisettingsip-filter)
+- [`PUT /api/settings/ip-filter`](references/endpoints.md#put-apisettingsip-filter)
+- [`GET /api/settings/system-prompt`](references/endpoints.md#get-apisettingssystem-prompt)
+- [`PUT /api/settings/system-prompt`](references/endpoints.md#put-apisettingssystem-prompt)
+- [`GET /api/settings/thinking-budget`](references/endpoints.md#get-apisettingsthinking-budget)
+- [`PUT /api/settings/thinking-budget`](references/endpoints.md#put-apisettingsthinking-budget)
+- [`GET /api/tags`](references/endpoints.md#get-apitags)
+- [`GET /api/settings/quota-store`](references/endpoints.md#get-apisettingsquota-store)
+- [`PUT /api/settings/quota-store`](references/endpoints.md#put-apisettingsquota-store)
+- [`POST /api/settings/purge-usage-history`](references/endpoints.md#post-apisettingspurge-usage-history)
+- [`GET /api/settings/authz-inventory`](references/endpoints.md#get-apisettingsauthz-inventory)
+- [`GET /api/settings/auto-disable-accounts`](references/endpoints.md#get-apisettingsauto-disable-accounts)
+- [`PUT /api/settings/auto-disable-accounts`](references/endpoints.md#put-apisettingsauto-disable-accounts)
+- [`GET /api/settings/background-degradation`](references/endpoints.md#get-apisettingsbackground-degradation)
+- [`POST /api/settings/background-degradation`](references/endpoints.md#post-apisettingsbackground-degradation)
+- [`PUT /api/settings/background-degradation`](references/endpoints.md#put-apisettingsbackground-degradation)
+- [`GET /api/settings/cache-config`](references/endpoints.md#get-apisettingscache-config)
+- [`PUT /api/settings/cache-config`](references/endpoints.md#put-apisettingscache-config)
+- [`GET /api/settings/cache-metrics`](references/endpoints.md#get-apisettingscache-metrics)
+- [`DELETE /api/settings/cache-metrics`](references/endpoints.md#delete-apisettingscache-metrics)
+- [`GET /api/settings/cc-discovery-metrics`](references/endpoints.md#get-apisettingscc-discovery-metrics)
+- [`GET /api/settings/compression/rules`](references/endpoints.md#get-apisettingscompressionrules)
+- [`GET /api/settings/compression/run-telemetry`](references/endpoints.md#get-apisettingscompressionrun-telemetry)
+- [`GET /api/settings/database`](references/endpoints.md#get-apisettingsdatabase)
+- [`PUT /api/settings/database`](references/endpoints.md#put-apisettingsdatabase)
+- [`PATCH /api/settings/database`](references/endpoints.md#patch-apisettingsdatabase)
+- [`POST /api/settings/database/refresh-stats`](references/endpoints.md#post-apisettingsdatabaserefresh-stats)
+- [`GET /api/settings/database/vacuum`](references/endpoints.md#get-apisettingsdatabasevacuum)
+- [`POST /api/settings/database/vacuum`](references/endpoints.md#post-apisettingsdatabasevacuum)
+- [`GET /api/settings/export-json`](references/endpoints.md#get-apisettingsexport-json)
+- [`GET /api/settings/favicon`](references/endpoints.md#get-apisettingsfavicon)
+- [`GET /api/settings/feature-flags`](references/endpoints.md#get-apisettingsfeature-flags)
+- [`PUT /api/settings/feature-flags`](references/endpoints.md#put-apisettingsfeature-flags)
+- [`DELETE /api/settings/feature-flags`](references/endpoints.md#delete-apisettingsfeature-flags)
+- [`GET /api/settings/free-proxies`](references/endpoints.md#get-apisettingsfree-proxies)
+- [`DELETE /api/settings/free-proxies`](references/endpoints.md#delete-apisettingsfree-proxies)
+- [`POST /api/settings/free-proxies/{id}/add-to-pool`](references/endpoints.md#post-apisettingsfree-proxiesidadd-to-pool)
+- [`POST /api/settings/free-proxies/bulk-add-to-pool`](references/endpoints.md#post-apisettingsfree-proxiesbulk-add-to-pool)
+- [`GET /api/settings/free-proxies/stats`](references/endpoints.md#get-apisettingsfree-proxiesstats)
+- [`POST /api/settings/free-proxies/sync`](references/endpoints.md#post-apisettingsfree-proxiessync)
+- [`POST /api/settings/import-json`](references/endpoints.md#post-apisettingsimport-json)
+- [`DELETE /api/settings/lkgp-cache`](references/endpoints.md#delete-apisettingslkgp-cache)
+- [`GET /api/settings/local-corpus`](references/endpoints.md#get-apisettingslocal-corpus)
+- [`POST /api/settings/local-corpus`](references/endpoints.md#post-apisettingslocal-corpus)
+- [`DELETE /api/settings/local-corpus`](references/endpoints.md#delete-apisettingslocal-corpus)
+- [`GET /api/settings/mitm`](references/endpoints.md#get-apisettingsmitm)
+- [`POST /api/settings/mitm`](references/endpoints.md#post-apisettingsmitm)
+- [`PUT /api/settings/mitm`](references/endpoints.md#put-apisettingsmitm)
+- [`GET /api/settings/model-aliases`](references/endpoints.md#get-apisettingsmodel-aliases)
+- [`POST /api/settings/model-aliases`](references/endpoints.md#post-apisettingsmodel-aliases)
+- [`PUT /api/settings/model-aliases`](references/endpoints.md#put-apisettingsmodel-aliases)
+- [`DELETE /api/settings/model-aliases`](references/endpoints.md#delete-apisettingsmodel-aliases)
+- [`GET /api/settings/models-dev`](references/endpoints.md#get-apisettingsmodels-dev)
+- [`POST /api/settings/models-dev`](references/endpoints.md#post-apisettingsmodels-dev)
+- [`GET /api/settings/notion`](references/endpoints.md#get-apisettingsnotion)
+- [`POST /api/settings/notion`](references/endpoints.md#post-apisettingsnotion)
+- [`DELETE /api/settings/notion`](references/endpoints.md#delete-apisettingsnotion)
+- [`GET /api/settings/obsidian`](references/endpoints.md#get-apisettingsobsidian)
+- [`POST /api/settings/obsidian`](references/endpoints.md#post-apisettingsobsidian)
+- [`DELETE /api/settings/obsidian`](references/endpoints.md#delete-apisettingsobsidian)
+- [`GET /api/settings/obsidian/webdav`](references/endpoints.md#get-apisettingsobsidianwebdav)
+- [`POST /api/settings/obsidian/webdav`](references/endpoints.md#post-apisettingsobsidianwebdav)
+- [`DELETE /api/settings/obsidian/webdav`](references/endpoints.md#delete-apisettingsobsidianwebdav)
+- [`GET /api/settings/oneproxy`](references/endpoints.md#get-apisettingsoneproxy)
+- [`POST /api/settings/oneproxy`](references/endpoints.md#post-apisettingsoneproxy)
+- [`DELETE /api/settings/oneproxy`](references/endpoints.md#delete-apisettingsoneproxy)
+- [`POST /api/settings/oneproxy/rotate`](references/endpoints.md#post-apisettingsoneproxyrotate)
+- [`GET /api/settings/proxies`](references/endpoints.md#get-apisettingsproxies)
+- [`POST /api/settings/proxies`](references/endpoints.md#post-apisettingsproxies)
+- [`PATCH /api/settings/proxies`](references/endpoints.md#patch-apisettingsproxies)
+- [`DELETE /api/settings/proxies`](references/endpoints.md#delete-apisettingsproxies)
+- [`POST /api/settings/proxies/{id}/repair-relay`](references/endpoints.md#post-apisettingsproxiesidrepair-relay)
+- [`GET /api/settings/proxies/assignments`](references/endpoints.md#get-apisettingsproxiesassignments)
+- [`PUT /api/settings/proxies/assignments`](references/endpoints.md#put-apisettingsproxiesassignments)
+- [`POST /api/settings/proxies/auto-test`](references/endpoints.md#post-apisettingsproxiesauto-test)
+- [`POST /api/settings/proxies/batch-activate`](references/endpoints.md#post-apisettingsproxiesbatch-activate)
+- [`POST /api/settings/proxies/batch-delete`](references/endpoints.md#post-apisettingsproxiesbatch-delete)
+- [`PUT /api/settings/proxies/bulk-assign`](references/endpoints.md#put-apisettingsproxiesbulk-assign)
+- [`POST /api/settings/proxies/bulk-import`](references/endpoints.md#post-apisettingsproxiesbulk-import)
+- [`GET /api/settings/proxies/egress`](references/endpoints.md#get-apisettingsproxiesegress)
+- [`POST /api/settings/proxies/egress`](references/endpoints.md#post-apisettingsproxiesegress)
+- [`GET /api/settings/proxies/health`](references/endpoints.md#get-apisettingsproxieshealth)
+- [`POST /api/settings/proxies/migrate`](references/endpoints.md#post-apisettingsproxiesmigrate)
+- [`GET /api/settings/proxies/pool`](references/endpoints.md#get-apisettingsproxiespool)
+- [`PUT /api/settings/proxies/pool`](references/endpoints.md#put-apisettingsproxiespool)
+- [`PATCH /api/settings/proxies/pool`](references/endpoints.md#patch-apisettingsproxiespool)
+- [`DELETE /api/settings/proxies/pool`](references/endpoints.md#delete-apisettingsproxiespool)
+- [`GET /api/settings/proxies/pool/egress-observation`](references/endpoints.md#get-apisettingsproxiespoolegress-observation)
+- [`POST /api/settings/proxy/cloudflare-deploy`](references/endpoints.md#post-apisettingsproxycloudflare-deploy)
+- [`POST /api/settings/proxy/deno-deploy`](references/endpoints.md#post-apisettingsproxydeno-deploy)
+- [`POST /api/settings/proxy/vercel-deploy`](references/endpoints.md#post-apisettingsproxyvercel-deploy)
+- [`POST /api/settings/purge-call-logs`](references/endpoints.md#post-apisettingspurge-call-logs)
+- [`POST /api/settings/purge-detailed-logs`](references/endpoints.md#post-apisettingspurge-detailed-logs)
+- [`POST /api/settings/purge-logs`](references/endpoints.md#post-apisettingspurge-logs)
+- [`POST /api/settings/purge-quota-snapshots`](references/endpoints.md#post-apisettingspurge-quota-snapshots)
+- [`GET /api/settings/quota/state`](references/endpoints.md#get-apisettingsquotastate)
+- [`POST /api/settings/quota/state`](references/endpoints.md#post-apisettingsquotastate)
+- [`GET /api/settings/reasoning-routing-rules`](references/endpoints.md#get-apisettingsreasoning-routing-rules)
+- [`POST /api/settings/reasoning-routing-rules`](references/endpoints.md#post-apisettingsreasoning-routing-rules)
+- [`GET /api/settings/reasoning-routing-rules/{id}`](references/endpoints.md#get-apisettingsreasoning-routing-rulesid)
+- [`PATCH /api/settings/reasoning-routing-rules/{id}`](references/endpoints.md#patch-apisettingsreasoning-routing-rulesid)
+- [`DELETE /api/settings/reasoning-routing-rules/{id}`](references/endpoints.md#delete-apisettingsreasoning-routing-rulesid)
+- [`POST /api/settings/reasoning-routing-rules/simulate`](references/endpoints.md#post-apisettingsreasoning-routing-rulessimulate)
+- [`GET /api/settings/task-routing`](references/endpoints.md#get-apisettingstask-routing)
+- [`POST /api/settings/task-routing`](references/endpoints.md#post-apisettingstask-routing)
+- [`PUT /api/settings/task-routing`](references/endpoints.md#put-apisettingstask-routing)
+- [`GET /api/settings/tier-config`](references/endpoints.md#get-apisettingstier-config)
+- [`PUT /api/settings/tier-config`](references/endpoints.md#put-apisettingstier-config)
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

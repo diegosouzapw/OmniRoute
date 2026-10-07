@@ -16,7 +16,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { TinyCmsExecutor } from "../../open-sse/executors/index.ts";
+import { TinyCmsExecutor } from "../../open-sse/executors/tinycms.ts";
 import { setupDomMocks, type DomMockRestore } from "../../open-sse/executors/tinycmsSigner.ts";
 
 let restoreDomMocks: DomMockRestore;

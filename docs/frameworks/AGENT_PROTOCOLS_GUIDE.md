@@ -78,7 +78,11 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for transport details, agent card structure
 
 ACP is OmniRoute's **local CLI agent inventory**. It detects which coding CLIs are installed on the host (Cursor, Cline, Claude Code, Codex CLI, Continue, etc.), resolves their versions, and surfaces them to the dashboard so the user can wire each CLI to point at OmniRoute.
 
-This is NOT an external protocol — it's an internal registry that powers the "CLI Tools" UI and the CLI fingerprint tracking (see [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+The HTTP surface is an internal inventory that powers the "CLI Tools" UI and
+CLI fingerprint tracking (see [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Separately,
+the internal process manager supports native Agent Client Protocol for the
+registered Gemini launcher and legacy stdio adapters for other contracts.
+See [ACP registry and launchers](./ACP.md) for those distinct modes and limits.
 
 ### What it does
 
@@ -118,7 +122,10 @@ Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts
 
 ### When NOT to use ACP
 
-- ACP doesn't _run_ tasks. It only detects + configures CLIs. To actually invoke a CLI, you launch it yourself with the env vars OmniRoute provides (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, etc.).
+- The HTTP registry does not accept tasks or expose process spawning. The internal
+  manager can launch a registered CLI, but is not wired as an automatic provider
+  fallback. For ordinary interactive use, launch the configured CLI yourself or
+  use `omniroute run`.
 
 ## 3. Cloud Agents
 
@@ -129,7 +136,7 @@ Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts
 
 A uniform interface over third-party cloud coding agents. You submit a prompt + repo URL, OmniRoute dispatches to the right cloud agent, polls status, returns results.
 
-### Supported agents (3, all confirmed in `src/lib/cloudAgent/agents/`)
+### Supported agents (4, all confirmed in `src/lib/cloudAgent/agents/`)
 
 - `codex-cloud` — OpenAI Codex Cloud
 - `devin` — Cognition Devin
@@ -195,7 +202,7 @@ curl -X POST http://localhost:20128/a2a \
     "method": "message/send",
     "params": {
       "messages": [{"role": "user", "content": "Route this prompt"}],
-      "skillId": "smart-routing"
+      "skill": "smart-routing"
     },
     "id": 1
   }'
@@ -231,10 +238,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{
-    "agentId": "devin",
+    "providerId": "devin",
     "prompt": "Implement feature X in repo Y",
-    "repo": "https://github.com/user/repo",
-    "branch": "main"
+    "source": {
+      "repoName": "user/repo",
+      "repoUrl": "https://github.com/user/repo",
+      "branch": "main"
+    }
   }'
 ```
 
@@ -269,7 +279,7 @@ curl http://localhost:20128/api/v1/agents/tasks/<task-id> \
         ↓                 ↓            └────────────┘
    External peer    Local CLI               │
    agents that      binaries on             ↓
-   speak A2A v0.3   the host           Codex Cloud,
+   speak A2A v0.3   the host           Codex Cloud, Cursor,
                                         Devin, Jules
 ```
 

@@ -20,9 +20,9 @@ const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const egress = await import("../../src/lib/proxyEgress.ts");
 const { validateProxyPool, _setEgressProbeForTests, clearEgressCache } = egress as unknown as {
-  validateProxyPool: (deps?: unknown) => Promise<
-    Array<{ proxyId: string; alive: boolean; newStatus: string }>
-  >;
+  validateProxyPool: (
+    deps?: unknown
+  ) => Promise<Array<{ proxyId: string; alive: boolean; newStatus: string }>>;
   _setEgressProbeForTests: (fn: unknown) => void;
   clearEgressCache: () => void;
 };

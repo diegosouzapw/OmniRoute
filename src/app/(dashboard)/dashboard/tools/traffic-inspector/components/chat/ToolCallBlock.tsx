@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { JsonViewer } from "../shared/JsonViewer";
+import { shortCallId } from "@/shared/utils/formatting";
 
 interface ToolCallBlockProps {
   id: string;
@@ -23,7 +24,9 @@ export function ToolCallBlock({ id, name, input }: ToolCallBlockProps) {
           {expanded ? "expand_less" : "expand_more"}
         </span>
         <span className="text-amber-300 font-mono font-medium">{name}</span>
-        <span className="text-text-muted text-xs font-mono ml-auto">{id.slice(0, 8)}</span>
+        <span className="text-text-muted text-xs font-mono ml-auto" title={id}>
+          {shortCallId(id)}
+        </span>
       </button>
       {expanded && (
         <div className="mt-2 border-t border-amber-500/20 pt-2">

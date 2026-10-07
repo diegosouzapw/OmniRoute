@@ -93,6 +93,44 @@ curl -X POST https://localhost:20128/api/sync/initialize \
   -d '{}'
 ```
 
+### GET /api/sync/bundle
+
+GET sync › bundle
+
+```bash
+curl https://localhost:20128/api/sync/bundle \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/sync/tokens
+
+GET sync › tokens
+
+```bash
+curl https://localhost:20128/api/sync/tokens \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/sync/tokens
+
+POST sync › tokens
+
+```bash
+curl -X POST https://localhost:20128/api/sync/tokens \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/sync/tokens/{id}
+
+DELETE sync › tokens › <id>
+
+```bash
+curl -X DELETE https://localhost:20128/api/sync/tokens/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

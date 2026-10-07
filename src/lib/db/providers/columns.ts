@@ -80,7 +80,7 @@ export type SanitizeResult = {
 export function sanitizeRateLimitOverrides(value: unknown): SanitizeResult {
   if (value === null || value === undefined) return { sanitized: null, rejected: [] };
   if (typeof value !== "object" || Array.isArray(value)) return { sanitized: null, rejected: [] };
-  const allowedKeys = new Set(["rpm", "tpm", "tpd", "minTime", "maxConcurrent", "maxWaitMs"]);
+  const allowedKeys = new Set(["rpm", "rpd", "tpm", "tpd", "minTime", "maxConcurrent", "maxWaitMs"]);
   const rejected: string[] = [];
   const map: Record<string, number> = {};
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {

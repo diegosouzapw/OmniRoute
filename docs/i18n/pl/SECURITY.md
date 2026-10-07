@@ -1,4 +1,8 @@
-# Polityka bezpieczeństwa
+# Security Policy (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+
+---
 
 ## Zgłaszanie luk bezpieczeństwa
 
@@ -42,7 +46,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Uwierzytelnianie hasłem z tokenami JWT (ciasteczka HttpOnly)                                                                                        |
 | **API Key Auth**      | Klucze podpisane HMAC z walidacją CRC                                                                                                               |
-| **OAuth 2.0 + PKCE** | Przepływy OAuth w przeglądarce/na urządzeniu używają PKCE, gdy dostawca je obsługuje; importowane poświadczenia Devin są obsługiwane osobno. |
+| **OAuth 2.0 + PKCE**  | Przepływy OAuth w przeglądarce/na urządzeniu używają PKCE, gdy dostawca je obsługuje; importowane poświadczenia Devin są obsługiwane osobno.        |
 | **Token Refresh**     | Automatyczne odświeżanie tokenów OAuth przed wygaśnięciem                                                                                           |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` dla środowisk HTTPS                                                                                                       |
 | **Authz Pipeline**    | Klasyfikacja tras (PUBLIC / CLIENT_API / MANAGEMENT) — zob. `docs/architecture/AUTHZ_GUIDE.md`                                                      |
@@ -216,28 +220,37 @@ Te reguły są egzekwowane przez narzędzia i recenzentów:
 10. **Wartości runtime `exec()` / `spawn()` przez opcję `env`** — nigdy nie interpoluj zewnętrznych ścieżek ani niezaufanych wartości w skryptach przekazywanych do powłoki. Odniesienie: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Preferuj biblioteki secure-by-default** — zob. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sięgaj po nie, zanim napiszesz własne.
 
-## Ustalenia skanerów łańcucha dostaw (Socket.dev / Snyk / podobne)
+## Wyniki skanowania łańcucha dostaw (Socket.dev / Snyk / podobne narzędzia)
 
-Opublikowany artefakt npm `omniroute` bundluje build Next.js `output: "standalone"`,
-co oznacza, że każdy route handler — w tym udokumentowane uprzywilejowane
-funkcje (MITM, Zed import, Cloud Sync, embedded service supervisor) — trafia
-do zminifikowanych chunków `.next/server/*.js`. Heurystyczne skanery łańcucha dostaw
-często dopasowują te chunki do sygnatur malware.
+> **Uwaga dotycząca zakresu:** plik `socket.yml` w katalogu głównym repozytorium konfiguruje wyłącznie `projectIgnorePaths` dla wykonywanego przez Socket.dev po publikacji skanowania opublikowanego artefaktu npm po stronie rejestru — nie stanowi wymuszanej bramy scalania w CI/PR. Żaden przepływ pracy w `.github/workflows`, żaden skrypt w `package.json` ani żaden cel w `Makefile` nie uruchamia Socket.dev.
 
-Dla każdej kategorii ustaleń utrzymujemy poświadczenie maintainerów per ustalenie:
+Opublikowany artefakt npm `omniroute` zawiera kompilację Next.js z opcją `output: "standalone"`,
+co oznacza, że każdy program obsługi trasy — w tym udokumentowane funkcje uprzywilejowane
+(MITM, import Zed, Cloud Sync, wbudowany nadzorca usług) — trafia
+do zminimalizowanych fragmentów `.next/server/*.js`. Heurystyczne skanery łańcucha dostaw
+często dopasowują wzorce z tych fragmentów do sygnatur złośliwego oprogramowania.
+
+Używana przez nas konfiguracja skanera znajduje się w pliku [`socket.yml`](socket.yml) w
+katalogu głównym repozytorium (format v2 aplikacji GitHub Socket.dev — zobacz
+<https://docs.socket.dev/docs/socket-yml>). Jawnie wyklucza ona
+katalogi, które nie są dystrybuowane (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` itd.), dzięki czemu skaner zgłasza wyłącznie ścieżki kodu, które
+faktycznie trafiają do użytkowników opublikowanego pakietu — samo skanowanie jest inicjowane przez aplikację
+GitHub Socket, która odczytuje ten plik, a nie przez przepływ pracy w tym repozytorium.
+
+Dla każdej kategorii wyników utrzymujemy poświadczenie opiekuna dotyczące każdego wyniku:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa per ustalenie: plik źródłowy ↔ oflagowany chunk ↔ zachowanie ↔ mitygacja
-  zastosowana w v3.8.6.
-- Bloki `SECURITY-AUDITOR-NOTE:` w źródle przy każdej oflagowanej funkcji odsyłają
-  do tego samego dokumentu.
+  mapa poszczególnych wyników: plik źródłowy ↔ oznaczony fragment ↔ zachowanie ↔ środki zaradcze
+  zastosowane w v3.8.6.
+- Bloki `SECURITY-AUDITOR-NOTE:` w kodzie źródłowym przy każdej oznaczonej funkcji
+  odsyłają do tego samego dokumentu.
 
-Dla użytkowników, których pipeline nie może poluzować alertu: buduj z
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To zastępuje cztery
-wrażliwe moduły stubami zwracającymi HTTP 503 `feature-disabled` w
-runtime, więc uprzywilejowane ścieżki kodu są fizycznie nieobecne w bundlu.
-Zob. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-dla receptury publikacji.
+Użytkownicy, których potok nie pozwala złagodzić tego alertu, mogą wykonać kompilację za pomocą
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Powoduje to zastąpienie czterech
+wrażliwych modułów atrapami, które w czasie wykonywania zwracają HTTP 503 `feature-disabled`,
+dzięki czemu uprzywilejowane ścieżki kodu są fizycznie nieobecne w pakiecie wynikowym.
+Instrukcję publikowania zawiera [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Odniesienia
 

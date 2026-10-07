@@ -77,9 +77,7 @@ function makeResultTwoPkgs() {
         packages: [
           {
             package: { name: "pkg-b", version: "2.0.0", ecosystem: "npm" },
-            vulnerabilities: [
-              { id: "GHSA-bbb-1", aliases: [], affected: [] },
-            ],
+            vulnerabilities: [{ id: "GHSA-bbb-1", aliases: [], affected: [] }],
           },
         ],
       },
@@ -183,7 +181,9 @@ test("parseOsvJson: results vazio retorna vulnCount=0", () => {
 });
 
 test("parseOsvJson: result sem packages retorna vulnCount=0", () => {
-  const result = parseOsvJson({ results: [{ other: "data" }] } as unknown as { results: { packages: never[] }[] });
+  const result = parseOsvJson({ results: [{ other: "data" }] } as unknown as {
+    results: { packages: never[] }[];
+  });
   assert.equal(result.vulnCount, 0);
 });
 

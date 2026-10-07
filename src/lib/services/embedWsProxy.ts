@@ -27,6 +27,10 @@ import type { IncomingMessage } from "node:http";
 
 import { getSupervisor } from "./registry";
 import { getOrCreateApiKey } from "./apiKey";
+import {
+  attachRequestStreamGuards,
+  installProcessCrashGuard,
+} from "@/shared/utils/httpClientAbortGuard.mjs";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 20131;
@@ -242,12 +246,21 @@ export function resolveEmbedWsHost(): string {
  * Idempotent — safe to call multiple times.
  */
 export function initEmbedWsProxy(): void {
+  // Safety net: a client aborting a connection can emit `Error: aborted`/
+  // ECONNRESET on the request stream; without this the single missed listener
+  // becomes an uncaughtException that kills the server. Benign aborts are
+  // swallowed; genuine errors still crash loudly (#fix-dev-server-aborted).
+  installProcessCrashGuard();
   if (globalThis.__omnirouteEmbedWsStarted) return;
 
   const host = resolveEmbedWsHost();
   const port = parseInt(process.env.EMBED_WS_PROXY_PORT ?? String(DEFAULT_PORT), 10);
 
   const server = http.createServer((_req, res) => {
+    // Absorb client-abort errors (browser closes the socket during navigation/
+    // HMR/bfcache) on the request/response streams so they never surface as an
+    // uncaughtException that kills the server (#fix-dev-server-aborted).
+    attachRequestStreamGuards(_req, res);
     res.writeHead(426, "Upgrade Required", { "content-type": "application/json" });
     res.end(JSON.stringify({ error: "upgrade_required", message: "Use WebSocket." }));
   });

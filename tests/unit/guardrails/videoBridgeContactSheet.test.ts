@@ -97,6 +97,29 @@ test("contact sheet falls back to individual frames when decoding fails", async 
   assert.deepEqual(result.frames, frames);
 });
 
+test("contact sheet falls back to individual frames when a frame exceeds the per-frame byte cap", async () => {
+  const validJpegBytes = await sharp({
+    create: { background: "red", channels: 3, height: 24, width: 32 },
+  })
+    .jpeg()
+    .toBuffer();
+  // A technically-decodable JPEG prefix followed by zero-filled padding past
+  // VIDEO_FRAME_MAX_BYTES (4 MiB): without a pre-decode size guard, sharp decodes the
+  // leading valid JPEG and ignores the trailing bytes after EOI, so an oversized frame
+  // would otherwise sail through the contact-sheet path undetected (used: true).
+  const oversizedBytes = Buffer.concat([validJpegBytes, Buffer.alloc(5 * 1024 * 1024, 0)]);
+  const frames = [
+    {
+      dataUri: `data:image/jpeg;base64,${oversizedBytes.toString("base64")}`,
+      timestampSeconds: 2,
+    },
+  ];
+  const result = await buildVideoContactSheet(frames);
+  assert.equal(result.used, false);
+  assert.equal(result.fallbackReason, "CONTACT_SHEET_UNAVAILABLE");
+  assert.deepEqual(result.frames, frames);
+});
+
 test("contact sheet respects the parent abort signal", async () => {
   const controller = new AbortController();
   controller.abort();

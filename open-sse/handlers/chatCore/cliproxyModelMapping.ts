@@ -14,12 +14,12 @@
 type ExecutorInput = {
   model: string;
   body: unknown;
-  [key: string]: unknown;
 };
 
+// No index signature: executors (BaseExecutor subclasses) must satisfy this
+// structurally, and class instances don't carry index signatures.
 type ExecutorLike = {
   execute: (input: ExecutorInput) => Promise<unknown>;
-  [key: string]: unknown;
 };
 
 export type CliproxyapiModelMapping = Record<string, unknown> | null | undefined;

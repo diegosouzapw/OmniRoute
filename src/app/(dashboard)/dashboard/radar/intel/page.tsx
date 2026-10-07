@@ -67,9 +67,15 @@ export default function RadarIntelPage() {
   }, [load, t]);
 
   useEffect(() => {
-    load()
-      .catch(() => setError(t("loadFailed")))
-      .finally(() => setLoading(false));
+    void (async () => {
+      try {
+        await load();
+      } catch {
+        setError(t("loadFailed"));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [load, t]);
 
   if (flagOff) notFound();

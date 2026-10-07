@@ -16,10 +16,90 @@ const contextOverrides = await import("../../src/lib/db/modelContextOverrides.ts
 const capabilityOverrides = await import("../../src/lib/db/modelCapabilityOverrides.ts");
 const overrideRoute = await import("../../src/app/api/model-capability-overrides/route.ts");
 const catalog = await import("../../src/app/api/v1/models/catalog.ts");
+const { getComboBuilderOptions } = await import("../../src/lib/combos/builderOptions.ts");
+const { buildGlobalModelList, buildManualComboModelStep } =
+  await import("../../src/lib/combos/builderDraft.ts");
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("builder-saved provider-node combos preserve metadata with a public model prefix", async () => {
+  const nodeId = "openai-compatible-chat-builder-metadata";
+  const prefix = "builder-metadata";
+  const modelId = "gpt-5.6-luna";
+  await providersDb.createProviderNode({
+    id: nodeId,
+    type: "openai-compatible",
+    prefix,
+    name: "Builder Metadata",
+    apiType: "chat",
+    baseUrl: "https://example.com/v1",
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: nodeId,
+    authType: "api_key",
+    name: "builder-metadata-connection",
+    apiKey: "sk-test",
+    isActive: true,
+    testStatus: "active",
+  });
+  await modelsDb.replaceSyncedAvailableModelsForConnection(nodeId, connection.id, [
+    { id: modelId, name: "Builder Model" },
+  ]);
+  capabilityOverrides.setModelCapabilityOverride(
+    `${nodeId}/${modelId}`,
+    "reasoning_efforts",
+    "low,high"
+  );
+
+  const options = await getComboBuilderOptions();
+  const globalStep = buildGlobalModelList(options.providers).find(
+    (entry) => entry.providerId === nodeId && entry.modelId === modelId
+  )?.step;
+  const manualStep = buildManualComboModelStep({
+    value: `${prefix}/${modelId}`,
+    providers: options.providers,
+  });
+  assert.ok(globalStep);
+  assert.ok(manualStep);
+  for (const step of [globalStep, manualStep]) {
+    assert.equal(step.providerId, nodeId, "connection identity stays keyed to the node");
+    assert.equal(step.model, `${prefix}/${modelId}`);
+  }
+
+  for (const [suffix, step] of [
+    ["global", globalStep],
+    ["manual", manualStep],
+    ["legacy", { kind: "model", providerId: nodeId, model: `${nodeId}/${modelId}` }],
+    ["foreign", { kind: "model", providerId: nodeId, model: `other-node/${modelId}` }],
+  ] as const) {
+    await combosDb.createCombo({
+      name: `builder-metadata-${suffix}-combo`,
+      strategy: "priority",
+      models: [step],
+    });
+  }
+  const response = await catalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<Record<string, unknown>> };
+  const direct = body.data.find((item) => item.id === `${prefix}/${modelId}`);
+  assert.equal(response.status, 200);
+  assert.ok(direct);
+  assert.ok(Number(direct.max_output_tokens) > 0);
+  for (const suffix of ["global", "manual", "legacy"]) {
+    const combo = body.data.find((item) => item.id === `builder-metadata-${suffix}-combo`);
+    assert.ok(combo);
+    for (const field of ["context_length", "max_output_tokens", "input_modalities"]) {
+      assert.deepEqual(combo[field], direct[field], `${suffix}: ${field}`);
+    }
+    assert.deepEqual((combo.capabilities as Record<string, unknown>).effort_tiers, ["low", "high"]);
+  }
+  const foreign = body.data.find((item) => item.id === "builder-metadata-foreign-combo");
+  assert.ok(foreign);
+  assert.equal((foreign.capabilities as Record<string, unknown>).effort_tiers, undefined);
 });
 
 test("single-target combo preserves its direct model metadata", async () => {
@@ -627,4 +707,74 @@ test("Ollama Cloud projects native efforts for base, tagged, and combo models", 
   for (const modelId of [`ollamacloud/${narrowModel}`, "ollama-cloud-narrow-efforts-combo"]) {
     assert.deepEqual(capabilitiesFor(modelId).effort_tiers, narrowEfforts, modelId);
   }
+});
+
+// #12798: an operator-flagged vision head (the dashboard "Vision capable"
+// toggle, #9195) with a synced capability row that carries limits but NO
+// modality data merged to `capabilities.vision: true` with an empty modality
+// set, so models.dev-shaped clients keying off `input_modalities` still saw a
+// text-only combo. The combo must derive its modalities from the vision
+// verdict it already advertises.
+test("vision-flagged combo derives input modalities from the merged vision verdict", async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai-compatible",
+    authType: "api_key",
+    name: "vision-head-provider-12798",
+    apiKey: "vision-head-test-key",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: { baseUrl: "http://127.0.0.1:9/v1" },
+  });
+  await modelsDb.addCustomModel(
+    "vision-head-provider-12798",
+    "custom-vision-head",
+    "Custom Vision Head",
+    "manual",
+    "chat-completions",
+    ["chat"],
+    undefined,
+    {},
+    true
+  );
+  const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
+  saveModelsDevCapabilities({
+    "vision-head-provider-12798": {
+      "custom-vision-head": {
+        tool_call: true,
+        reasoning: false,
+        attachment: null,
+        structured_output: true,
+        temperature: true,
+        modalities_input: null,
+        modalities_output: null,
+        knowledge_cutoff: null,
+        release_date: null,
+        last_updated: null,
+        status: null,
+        family: null,
+        open_weights: false,
+        limit_context: 200000,
+        limit_input: 200000,
+        limit_output: 8192,
+        interleaved_field: null,
+      },
+    },
+  });
+  await combosDb.createCombo({
+    name: "custom-vision-head-combo",
+    strategy: "auto",
+    models: ["vision-head-provider-12798/custom-vision-head"],
+  });
+
+  const response = await catalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<Record<string, unknown>> };
+  const combo = body.data.find((item) => item.id === "custom-vision-head-combo");
+
+  assert.ok(combo, "combo entry missing from /v1/models");
+  const comboCapabilities = combo.capabilities as Record<string, unknown>;
+  assert.equal(comboCapabilities.vision, true, "merged vision verdict must be advertised");
+  assert.deepEqual(combo.input_modalities, ["text", "image"]);
+  assert.deepEqual(combo.output_modalities, ["text"]);
 });

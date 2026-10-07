@@ -51,10 +51,7 @@ test("createBackup resolves bin/ from a foreign cwd and copies cli/ recursively 
     const cliBackup = path.join(backupDir, "cli");
     assert.ok(existsSync(cliBackup), "cli/ directory copied");
     assert.ok(statSync(cliBackup).isDirectory(), "cli/ backup is a directory");
-    assert.ok(
-      existsSync(path.join(cliBackup, "commands")),
-      "cli/ contents copied recursively"
-    );
+    assert.ok(existsSync(path.join(cliBackup, "commands")), "cli/ contents copied recursively");
   } finally {
     process.chdir(originalCwd);
     if (originalHome === undefined) delete process.env.HOME;

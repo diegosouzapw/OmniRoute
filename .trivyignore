@@ -18,13 +18,3 @@
 #
 # Keep this list SHORT and reviewed every release. Prefer fixing (rebuild on a
 # patched base / bump the dep) over suppressing. Stale entries are debt.
-#
-# CVE-2025-68121 — Go stdlib crypto/tls (session-resumption certificate validation)
-#   inside the PREBUILT bogdanfinn/tls-client v1.15.1 .so that tls-client-node's
-#   postinstall downloads (built with go 1.24.1; fixed in 1.24.13). No upstream
-#   rebuild exists (v1.15.1 is still the latest release) and nothing in this repo
-#   can bump it. The binary is only loaded by the browser-TLS web-provider
-#   executors (claude-web / grok-web / lmarena / perplexity-web / notion-web),
-#   whose handshakes go through utls. Tracking issue: #12084. Revisit at the next
-#   tls-client release or base-image bump and BEFORE the v3.8.51 tag (2026-09-15).
-CVE-2025-68121

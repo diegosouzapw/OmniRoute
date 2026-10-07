@@ -1,7 +1,7 @@
 /**
  * Optional-sharp image normalization.
  *
- * Rationale (migrated from freellmapi `server/src/lib/image-normalize.ts:40-58`):
+ * Rationale:
  * OpenAI resizes images to a long-edge cap of 2048px server-side, Anthropic applies
  * a similar cap. Downscaling client-side before upload reduces tokens/latency without
  * changing model behavior. `sharp` is loaded via dynamic import so that a platform

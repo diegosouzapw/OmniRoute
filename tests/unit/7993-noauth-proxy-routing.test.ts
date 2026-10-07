@@ -27,6 +27,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 const { createProviderConnection } = await import("../../src/lib/db/providers.ts");
+const { createProxy } = await import("../../src/lib/db/proxies.ts");
 const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts");
 const { resolveProxyForRequest } = await import("../../open-sse/utils/proxyFetch.ts");
 
@@ -47,10 +48,17 @@ function listen(server: net.Server): Promise<number> {
 test.before(async () => {
   proxyServer = net.createServer((s) => s.destroy());
   proxyPort = await listen(proxyServer);
+  const proxy = await createProxy({
+    name: "opencode-noauth-test-proxy",
+    type: "http",
+    host: "127.0.0.1",
+    port: proxyPort,
+  });
+  assert.ok(proxy?.id, "test proxy must be persisted in the registry");
 
   // Mirror exactly what the NoAuthAccountCard UI writes: a `provider_connections`
   // row filed under the no-auth id "opencode" (NOT "opencode-zen"), carrying the
-  // configured account proxy.
+  // configured account proxy as a Proxy Pool reference.
   await createProviderConnection({
     provider: "opencode",
     authType: "no-auth",
@@ -61,7 +69,7 @@ test.before(async () => {
       accountProxies: [
         {
           fingerprint: FINGERPRINT,
-          proxy: { type: "http", host: "127.0.0.1", port: proxyPort },
+          proxyId: proxy.id,
         },
       ],
     },
@@ -95,6 +103,17 @@ test("#7993 getProviderCredentials('opencode-zen') hydrates the proxy saved unde
     Array.isArray(psd.accountProxies) && psd.accountProxies.length === 1,
     `expected the sibling opencode connection's accountProxies to be hydrated, got ${JSON.stringify(psd)}`
   );
+  const accountProxy = (psd.accountProxies as Array<Record<string, unknown>>)[0];
+  assert.equal(
+    accountProxy.proxyId,
+    undefined,
+    "request credentials must not retain a raw proxyId"
+  );
+  assert.deepEqual(accountProxy.proxy, {
+    type: "http",
+    host: "127.0.0.1",
+    port: proxyPort,
+  });
 });
 
 test("#7993 a canonical 'opencode/<model>' resolved combo/catalog target egresses through the assigned proxy, not direct", async () => {

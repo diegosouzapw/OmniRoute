@@ -33,11 +33,13 @@ test.after(() => {
 function readConnectionRow(connId: string) {
   const db = core.getDbInstance() as unknown as {
     prepare: (sql: string) => {
-      get: (id: string) => {
-        test_status: unknown;
-        rate_limited_until: unknown;
-        last_error_type: unknown;
-      } | undefined;
+      get: (id: string) =>
+        | {
+            test_status: unknown;
+            rate_limited_until: unknown;
+            last_error_type: unknown;
+          }
+        | undefined;
     };
   };
   return db

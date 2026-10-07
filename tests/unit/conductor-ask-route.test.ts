@@ -31,7 +31,10 @@ test.after(async () => {
 });
 
 test("fonte: auth antes do proxy; token nunca manuseado na rota", () => {
-  const src = fs.readFileSync(path.join(process.cwd(), "src/app/api/conductor/ask/route.ts"), "utf8");
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/conductor/ask/route.ts"),
+    "utf8"
+  );
   const authAt = src.indexOf("requireManagementAuth(");
   assert.ok(authAt > 0);
   assert.match(src, /if \(authError\) return authError;/);

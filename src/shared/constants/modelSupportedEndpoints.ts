@@ -52,3 +52,32 @@ export function classifyModelSupportedEndpoints(endpoints: readonly string[]): {
   }
   return { type: "audio" };
 }
+
+/**
+ * Default `supportedEndpoints` for a model row discovered from (or added to) an
+ * OpenAI-compatible provider node, derived from the node's `apiType`.
+ *
+ * A node typed `embeddings` or `rerank` (or an audio/image type) serves exactly that
+ * modality, so a row with no explicit endpoint metadata — the common case, since local
+ * `/v1/models` listings rarely carry any — should inherit the node's modality rather
+ * than the historical `["chat"]` default, which misrepresented e.g. `bge-m3` as a chat
+ * model in `/v1/models`. Chat/Responses nodes (and unknown types) keep `["chat"]`.
+ */
+export function defaultEndpointsForProviderNodeApiType(
+  apiType: string | null | undefined
+): ModelSupportedEndpoint[] {
+  switch ((apiType || "").trim().toLowerCase()) {
+    case "embeddings":
+      return ["embeddings"];
+    case "rerank":
+      return ["rerank"];
+    case "audio-speech":
+      return ["audio-speech"];
+    case "audio-transcriptions":
+      return ["audio-transcriptions"];
+    case "images-generations":
+      return ["images"];
+    default:
+      return ["chat"];
+  }
+}

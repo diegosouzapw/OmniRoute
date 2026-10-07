@@ -54,6 +54,46 @@ curl https://localhost:20128/api/models/catalog \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/models/openrouter-catalog
+
+GET models › openrouter catalog
+
+```bash
+curl https://localhost:20128/api/models/openrouter-catalog \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/models/test
+
+POST models › test
+
+```bash
+curl -X POST https://localhost:20128/api/models/test \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/models/test-all
+
+POST models › test all
+
+```bash
+curl -X POST https://localhost:20128/api/models/test-all \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/v1/models/{model}
+
+GET models › <model>
+
+```bash
+curl https://localhost:20128/api/v1/models/{model} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

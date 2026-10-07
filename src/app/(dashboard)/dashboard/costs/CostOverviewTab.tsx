@@ -122,6 +122,10 @@ interface UsageAnalyticsPayload {
   weeklyPattern: Array<{ day: string; avgTokens: number; totalTokens: number }>;
   activityMap: Record<string, number>;
   presetSummaries?: Record<string, { totalCost: number }>;
+  // The API reports whether the returned cost figures include token-price
+  // equivalents for flat-rate subscriptions (route.ts). Billed-cost mode omits
+  // it, so treat anything but an explicit `true` as billed money.
+  includesFlatRateEstimates?: boolean;
 }
 
 const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
@@ -208,16 +212,30 @@ function csvCell(value: string | number): string {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+// The exports are consumed outside the app, where no i18n runtime is available
+// and the header/summary keys are already English literals, so the estimate
+// disclosure ships as an English marker alongside them.
+const FLAT_RATE_ESTIMATE_CSV_NOTE =
+  "Includes token-price estimates for flat-rate subscriptions; not billed cost.";
+
 function generateCSV(analytics: UsageAnalyticsPayload, locale: string): string {
   const currencyFormatter = createCurrencyFormatter(locale);
   const lines: string[] = [];
+  // Only an explicit `true` means estimate mode; omitted/false/malformed stays
+  // billed-cost, which is what the API itself does with the query parameter.
+  const includesEstimates = analytics.includesFlatRateEstimates === true;
 
   lines.push("# OmniRoute Cost Report");
   lines.push(`# Generated: ${new Date().toISOString()}`);
+  if (includesEstimates) {
+    lines.push(`# ${FLAT_RATE_ESTIMATE_CSV_NOTE}`);
+  }
   lines.push("");
   lines.push("## Summary");
   lines.push("Metric,Value");
-  lines.push(`Total Cost,${csvCell(currencyFormatter.format(analytics.summary.totalCost))}`);
+  lines.push(
+    `${csvCell(includesEstimates ? "Total Cost (includes flat-rate estimates)" : "Total Cost")},${csvCell(currencyFormatter.format(analytics.summary.totalCost))}`
+  );
   lines.push(`Total Requests,${analytics.summary.totalRequests}`);
   lines.push(`Unique Models,${analytics.summary.uniqueModels}`);
   lines.push(`Unique Accounts,${analytics.summary.uniqueAccounts}`);
@@ -275,6 +293,7 @@ function generateJSON(analytics: UsageAnalyticsPayload): string {
   return JSON.stringify(
     {
       generatedAt: new Date().toISOString(),
+      includesFlatRateEstimates: analytics.includesFlatRateEstimates === true,
       summary: analytics.summary,
       dailyTrend: analytics.dailyTrend,
       weeklyPattern: analytics.weeklyPattern,
@@ -344,6 +363,7 @@ export default function CostOverviewTab() {
         const params = new URLSearchParams({
           range,
           presets: "1d,7d,30d",
+          includeFlatRateEstimates: "true",
         });
         if (apiKeyFilter) params.set("apiKeyIds", apiKeyFilter);
         const response = await fetch(`/api/usage/analytics?${params.toString()}`);
@@ -397,6 +417,12 @@ export default function CostOverviewTab() {
     streak: 0,
   };
   const hasCostData = summary.totalCost > 0;
+  // The API opts this page into token-price equivalents for flat-rate
+  // subscriptions (includeFlatRateEstimates=true above) and reports back whether
+  // the figures actually carry them. Only an explicit `true` switches the page
+  // to estimate wording — omitted, false, malformed or unknown values keep the
+  // billed-cost presentation, matching the API's own default.
+  const includesFlatRateEstimates = analytics?.includesFlatRateEstimates === true;
 
   const providersByCost = [...(analytics?.byProvider || [])]
     .filter((provider) => (hasCostData ? provider.cost > 0 : provider.requests > 0))
@@ -570,6 +596,13 @@ export default function CostOverviewTab() {
         />
       </div>
 
+      {includesFlatRateEstimates && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+          <span className="material-symbols-outlined text-amber-400 text-base leading-5">info</span>
+          <p className="text-xs text-amber-300/90">{t("flatRateEstimateNotice")}</p>
+        </div>
+      )}
+
       {selectedApiKeyId && (
         <ApiKeyUsageLimitCard
           payload={apiKeyUsageLimits}
@@ -738,6 +771,9 @@ export default function CostOverviewTab() {
               <span>/</span>
               <span>{t("daysRemaining", { days: daysRemainingInMonth })}</span>
             </div>
+            {includesFlatRateEstimates && (
+              <p className="mt-2 text-xs text-amber-300/90">{t("flatRateEstimateForecast")}</p>
+            )}
           </Card>
 
           <Card className="p-5">

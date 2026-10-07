@@ -50,10 +50,13 @@ export async function POST(request: Request) {
         deletedProxyLogs: result.deletedProxyLogs,
         deletedRelayLogs: result.deletedRelayLogs,
         deletedCompressionAnalytics: result.deletedCompressionAnalytics,
+        deletedCompressionEngineBreakdown: result.deletedCompressionEngineBreakdown,
         deletedCompressionRunTelemetry: result.deletedCompressionRunTelemetry,
         deletedRoutingDecisions: result.deletedRoutingDecisions,
         deletedQuotaConsumption: result.deletedQuotaConsumption,
         deletedTokenLedger: result.deletedTokenLedger,
+        deletedConversationTurnNodes: result.deletedConversationTurnNodes,
+        deletedAgenticConversations: result.deletedAgenticConversations,
         errors: result.errors,
       },
       { status: result.errors > 0 ? 500 : 200 }

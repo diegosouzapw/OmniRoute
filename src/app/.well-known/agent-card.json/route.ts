@@ -23,7 +23,7 @@ const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
  *
  * Returns the OmniRoute Agent Card (A2A v1.0).
  */
-export async function GET(request: NextRequest) {
+export async function GET(request?: NextRequest) {
   const fleetSkills = await getFleetSkills();
   const baseUrl = getBaseUrl(request);
 
@@ -79,12 +79,16 @@ export async function GET(request: NextRequest) {
         description:
           "Discovers providers that can handle a requested capability (chat, images, audio, search, embeddings, rerank, video).",
         tags: ["providers", "discovery", "capabilities", "health"],
-        examples: ["Which providers can handle image generation?", "Find healthy providers for embeddings"],
+        examples: [
+          "Which providers can handle image generation?",
+          "Find healthy providers for embeddings",
+        ],
       },
       {
         id: "cost-analysis",
         name: "Cost Analysis",
-        description: "Analyzes usage costs by provider and model and returns cost-saving opportunities.",
+        description:
+          "Analyzes usage costs by provider and model and returns cost-saving opportunities.",
         tags: ["cost", "usage", "analytics", "optimization"],
         examples: ["How much did we spend this week?", "Which provider costs the most?"],
       },

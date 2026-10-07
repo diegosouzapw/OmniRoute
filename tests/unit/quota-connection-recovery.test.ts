@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   CREDITS_EXHAUSTED_STATUS,
   isCreditsExhaustedReprobeCandidate,
+  isExpiredReprobeCandidate,
   isRecoverableCooldownConnection,
   selectRecoverableConnections,
   runConnectionRecoveryTick,
@@ -214,5 +215,38 @@ describe("connectionRecovery — mixed timestamp encodings", () => {
       lastErrorAt: String(nowMs - 10_000), // 10s ago — inside the grace window
     };
     assert.equal(isRecoverableCooldownConnection(conn, nowMs), false);
+  });
+});
+
+describe("connectionRecovery — expired reprobe", () => {
+  const nowMs = 1_700_000_000_000;
+  const thirtyMinMs = 30 * 60 * 1000;
+
+  it("should reprobe expired after 30m unless lastErrorType is a real deactivation", () => {
+    const old = {
+      id: "e-1",
+      testStatus: "expired",
+      lastErrorAt: new Date(nowMs - thirtyMinMs - 1000).toISOString(),
+      lastErrorType: "unauthorized",
+    };
+    assert.equal(isExpiredReprobeCandidate(old, nowMs), true);
+    assert.equal(
+      isExpiredReprobeCandidate({ ...old, lastErrorType: "invalid_grant" }, nowMs),
+      false
+    );
+  });
+
+  it("selectRecoverableConnections includes stale expired rows", () => {
+    const selected = selectRecoverableConnections(
+      [
+        {
+          id: "e-1",
+          testStatus: "expired",
+          lastErrorAt: new Date(nowMs - thirtyMinMs - 1000).toISOString(),
+        },
+      ],
+      nowMs
+    );
+    assert.deepEqual(selected.map((c) => c.id), ["e-1"]);
   });
 });

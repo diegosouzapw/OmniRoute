@@ -22,21 +22,6 @@ const core = await import("@/lib/db/core.ts");
 const { createCombo } = await import("@/lib/db/combos");
 const { executeSpeechCombo } = await import("@omniroute/open-sse/services/speechCombo");
 
-function createRequest(model: string): Request {
-  return new Request("http://localhost:20128/v1/audio/speech", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model, input: "hello there" }),
-  });
-}
-
-function createMockAuth() {
-  return {
-    request: createRequest("test-combo"),
-    policy: { apiKeyInfo: { id: "test-key", name: "test-key" } },
-  };
-}
-
 async function cleanupTestDataDir() {
   let lastError: unknown;
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -66,7 +51,6 @@ test("returns 400 when combo is not found", async () => {
   const response = await executeSpeechCombo(
     "nonexistent-combo",
     { model: "nonexistent-combo", input: "hello there" },
-    createMockAuth(),
     Date.now()
   );
   assert.equal(response.status, 400);
@@ -84,12 +68,30 @@ test("returns 400 when combo has no speech-capable targets", async () => {
   const response = await executeSpeechCombo(
     "chat-only-combo",
     { model: "chat-only-combo", input: "hello there" },
-    createMockAuth(),
     Date.now()
   );
   assert.equal(response.status, 400);
   const bodyStr = JSON.stringify(await response.json());
   assert.ok(bodyStr.includes("No speech-capable targets"), "Tells user no speech targets");
+  assert.ok(!bodyStr.includes("at "), "Error response does not leak stack traces");
+});
+
+test("does not select retired EdgeTTS targets as speech-capable", async () => {
+  await createCombo({
+    name: "retired-edgetts-combo",
+    strategy: "priority",
+    models: ["edgetts/en-US-AriaNeural"],
+  });
+
+  const response = await executeSpeechCombo(
+    "retired-edgetts-combo",
+    { model: "retired-edgetts-combo", input: " " },
+    Date.now()
+  );
+  const bodyStr = JSON.stringify(await response.json());
+
+  assert.equal(response.status, 400);
+  assert.ok(bodyStr.includes("No speech-capable targets"));
   assert.ok(!bodyStr.includes("at "), "Error response does not leak stack traces");
 });
 
@@ -99,7 +101,6 @@ test("returns 400 when combo has no usable targets", async () => {
   const response = await executeSpeechCombo(
     "empty-combo",
     { model: "empty-combo", input: "hello there" },
-    createMockAuth(),
     Date.now()
   );
   assert.equal(response.status, 400);
@@ -115,7 +116,6 @@ test("fails cleanly when speech targets exist but no provider connection does", 
   const response = await executeSpeechCombo(
     "spc-no-conn",
     { model: "spc-no-conn", input: "hello there" },
-    createMockAuth(),
     Date.now()
   );
   assert.ok(response.status >= 400, "Surfaces a failure rather than a fake success");

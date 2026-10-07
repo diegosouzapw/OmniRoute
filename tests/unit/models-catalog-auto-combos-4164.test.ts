@@ -113,7 +113,11 @@ test("#4189 every auto/* entry exposes token limits + baseline capabilities", as
       `${entry.id} must expose a numeric context_length`
     );
     assert.ok((entry.context_length ?? 0) > 0, `${entry.id} context_length must be positive`);
-    assert.equal(typeof entry.max_input_tokens, "number", `${entry.id} must expose max_input_tokens`);
+    assert.equal(
+      typeof entry.max_input_tokens,
+      "number",
+      `${entry.id} must expose max_input_tokens`
+    );
     assert.equal(
       typeof entry.max_output_tokens,
       "number",

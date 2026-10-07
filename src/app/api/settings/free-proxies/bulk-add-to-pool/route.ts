@@ -3,7 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxyBulkAddSchema } from "@/shared/validation/freeProxySchemas";
-import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/db/freeProxies";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,

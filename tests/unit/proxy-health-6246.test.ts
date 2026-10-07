@@ -27,15 +27,12 @@ delete process.env.PROXY_HEALTH_AUTO_DEACTIVATE;
 
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { resolveHealthCheckStatusWrite, isProxyHealthAutoDeactivateEnabled } = await import(
-  "../../src/lib/proxyHealth/statusPolicy.ts"
-);
-const { POST: autoTestPost } = await import(
-  "../../src/app/api/settings/proxies/auto-test/route.ts"
-);
-const { POST: batchActivatePost } = await import(
-  "../../src/app/api/settings/proxies/batch-activate/route.ts"
-);
+const { resolveHealthCheckStatusWrite, isProxyHealthAutoDeactivateEnabled } =
+  await import("../../src/lib/proxyHealth/statusPolicy.ts");
+const { POST: autoTestPost } =
+  await import("../../src/app/api/settings/proxies/auto-test/route.ts");
+const { POST: batchActivatePost } =
+  await import("../../src/app/api/settings/proxies/batch-activate/route.ts");
 
 function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -146,7 +143,10 @@ test("batch-activate can bulk-disable with status=inactive", async () => {
   });
   const res = await batchActivatePost(req);
   assert.equal(res.status, 200);
-  assert.equal((await proxiesDb.getProxyById(a!.id, { includeSecrets: false }))?.status, "inactive");
+  assert.equal(
+    (await proxiesDb.getProxyById(a!.id, { includeSecrets: false }))?.status,
+    "inactive"
+  );
 });
 
 test("batch-activate rejects an empty ids array with 400", async () => {

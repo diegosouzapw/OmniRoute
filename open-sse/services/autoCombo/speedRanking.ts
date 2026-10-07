@@ -60,6 +60,7 @@ export interface SpeedFactors {
 export interface SpeedRankedCandidate {
   provider: string;
   model: string;
+  connectionId?: string;
   /** Final composite score in [0..1]; higher is faster+more-reliable. */
   score: number;
   factors: SpeedFactors;
@@ -309,6 +310,7 @@ export function rankBySpeed(
     return {
       provider: candidate.provider,
       model: candidate.model,
+      connectionId: candidate.connectionId,
       score,
       factors,
       metrics,

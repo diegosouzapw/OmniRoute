@@ -63,6 +63,19 @@ function formatDate(value: string | null) {
   }
 }
 
+type MitmStatusResult = { data: MitmStatus } | { errorMessage: string | null };
+
+async function fetchMitmStatusResult(): Promise<MitmStatusResult> {
+  try {
+    const response = await fetch("/api/settings/mitm");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) return { errorMessage: data.error ? String(data.error) : null };
+    return { data: data as MitmStatus };
+  } catch (error) {
+    return { errorMessage: error instanceof Error ? error.message : null };
+  }
+}
+
 export default function MitmProxyTab() {
   const t = useTranslations("mitm");
   const [status, setStatus] = useState<MitmStatus>(emptyStatus);
@@ -75,28 +88,38 @@ export default function MitmProxyTab() {
     null
   );
 
+  const applyStatusResult = useCallback(
+    (result: MitmStatusResult) => {
+      if ("data" in result) {
+        setStatus(result.data);
+        setPort(String(TRANSPARENT_MITM_PORT));
+        setFeedback(null);
+      } else {
+        setFeedback({
+          type: "error",
+          message: result.errorMessage ?? t("loadFailed"),
+        });
+      }
+      setLoading(false);
+    },
+    [t]
+  );
+
   const loadStatus = useCallback(async () => {
     setLoading(true);
-    try {
-      const response = await fetch("/api/settings/mitm");
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || t("loadFailed"));
-      setStatus(data);
-      setPort(String(TRANSPARENT_MITM_PORT));
-      setFeedback(null);
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : t("loadFailed"),
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+    applyStatusResult(await fetchMitmStatusResult());
+  }, [applyStatusResult]);
 
   useEffect(() => {
-    void loadStatus();
-  }, [loadStatus]);
+    let cancelled = false;
+    void (async () => {
+      const result = await fetchMitmStatusResult();
+      if (!cancelled) applyStatusResult(result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyStatusResult]);
 
   const updateMitm = async (payload: Record<string, unknown>, successMessage: string) => {
     setSaving(true);

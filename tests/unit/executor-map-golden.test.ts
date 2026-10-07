@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 // R0.3 GOLDEN LOCK (characterization BEFORE the ExecutorRegistry refactor):
 // freeze the full provider-id → executor mapping of open-sse/executors/index.ts —
@@ -17,15 +19,14 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-executor-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // Dynamic imports AFTER DATA_DIR is set so db/core.ts picks up the temp path.
-const { getExecutor, hasSpecializedExecutor, DefaultExecutor } = await import(
-  "../../open-sse/executors/index.ts"
-);
+const { getExecutor, hasSpecializedExecutor, DefaultExecutor } =
+  await import("../../open-sse/executors/index.ts");
 const { PROVIDERS } = await import("../../open-sse/config/constants.ts");
 const { SEARCH_PROVIDERS } = await import("../../open-sse/config/searchRegistry.ts");
 const { goldenSnapshot } = await import("../helpers/goldenSnapshot.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 // The specialized keys are not exported; enumerate them through the public
@@ -34,14 +35,14 @@ test.after(() => {
 // to (or removed from) the hard-coded map cannot hide from the snapshot.
 function readSpecializedKeys(): string[] {
   const src = fs.readFileSync(
-    path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../open-sse/executors/index.ts"),
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../open-sse/executors/index.ts"),
     "utf8"
   );
-  const mapMatch = src.match(/const executors = \{([\s\S]*?)\n\};/);
-  assert.ok(mapMatch, "executors map literal not found in open-sse/executors/index.ts");
+  const mapMatch = src.match(/const lazyExecutors[^\n]*= \{([\s\S]*?)\n\};/);
+  assert.ok(mapMatch, "lazyExecutors map literal not found in open-sse/executors/index.ts");
   const keys: string[] = [];
   for (const line of mapMatch[1].split("\n")) {
-    const m = line.match(/^\s*(?:"([^"]+)"|([A-Za-z0-9_$-]+)):\s*new /);
+    const m = line.match(/^\s*(?:"([^"]+)"|([A-Za-z0-9_$-]+)):\s*(?:async )?\(\)\s*=>/);
     if (m) keys.push(m[1] ?? m[2]);
   }
   return keys;
@@ -67,14 +68,13 @@ function describeExecutor(instance: unknown): {
   return {
     className: inst.constructor.name,
     provider: typeof inst.provider === "string" ? inst.provider : null,
-    configSource:
-      cfg == null ? null : (providerConfigKeyByRef.get(cfg) ?? "<custom-config>"),
+    configSource: cfg == null ? null : (providerConfigKeyByRef.get(cfg) ?? "<custom-config>"),
   };
 }
 
 const specializedKeys = readSpecializedKeys();
 
-test("golden: specialized executor map — key → class + provider identity + config source", () => {
+test("golden: specialized executor map — key → class + provider identity + config source", async () => {
   assert.ok(specializedKeys.length >= 100, `suspiciously few keys: ${specializedKeys.length}`);
 
   const entries: Record<
@@ -85,7 +85,7 @@ test("golden: specialized executor map — key → class + provider identity + c
 
   for (const key of [...specializedKeys].sort()) {
     assert.equal(hasSpecializedExecutor(key), true, `hasSpecializedExecutor(${key})`);
-    const instance = getExecutor(key);
+    const instance = await getExecutor(key);
     entries[key] = describeExecutor(instance);
     const group = byInstance.get(instance) ?? [];
     group.push(key);
@@ -106,18 +106,18 @@ test("golden: specialized executor map — key → class + provider identity + c
   });
 });
 
-test("golden: getExecutor dispatch rules — fallback, cache and 400-guards", () => {
+test("golden: getExecutor dispatch rules — fallback, cache and 400-guards", async () => {
   // 1. Unknown provider → DefaultExecutor for that provider, memoized.
   const unknown = "golden-test-unknown-provider";
   assert.equal(hasSpecializedExecutor(unknown), false);
-  const fallback = getExecutor(unknown);
+  const fallback = await getExecutor(unknown);
   assert.ok(fallback instanceof DefaultExecutor, "fallback must be DefaultExecutor");
-  assert.equal(getExecutor(unknown), fallback, "DefaultExecutor fallback must be cached");
+  assert.equal(await getExecutor(unknown), fallback, "DefaultExecutor fallback must be cached");
 
   // 2. Cloud-agent guard (#6699) and search guard (#10274) → status-400 throw.
-  const guardOutcome = (provider: string) => {
+  const guardOutcome = async (provider: string) => {
     try {
-      getExecutor(provider);
+      await getExecutor(provider);
       return { throws: false as const };
     } catch (err) {
       const e = err as Error & { status?: number };
@@ -128,7 +128,9 @@ test("golden: getExecutor dispatch rules — fallback, cache and 400-guards", ()
   const searchProviders = Object.keys(SEARCH_PROVIDERS).sort();
   goldenSnapshot("executors/dispatch-rules", {
     fallback: describeExecutor(fallback),
-    cloudAgentGuard: { jules: guardOutcome("jules") },
-    searchGuard: Object.fromEntries(searchProviders.map((p) => [p, guardOutcome(p)])),
+    cloudAgentGuard: { jules: await guardOutcome("jules") },
+    searchGuard: Object.fromEntries(
+      await Promise.all(searchProviders.map(async (p) => [p, await guardOutcome(p)]))
+    ),
   });
 });

@@ -1,4 +1,9 @@
+# CORS Configuration & Security (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../security/CORS.md) · 🇪🇹 [am](../../../am/docs/security/CORS.md) · 🇸🇦 [ar](../../../ar/docs/security/CORS.md) · 🇦🇿 [az](../../../az/docs/security/CORS.md) · 🇧🇬 [bg](../../../bg/docs/security/CORS.md) · 🇧🇩 [bn](../../../bn/docs/security/CORS.md) · 🇧🇦 [bs](../../../bs/docs/security/CORS.md) · 🇨🇿 [cs](../../../cs/docs/security/CORS.md) · 🇩🇰 [da](../../../da/docs/security/CORS.md) · 🇩🇪 [de](../../../de/docs/security/CORS.md) · 🇬🇷 [el](../../../el/docs/security/CORS.md) · 🇪🇸 [es](../../../es/docs/security/CORS.md) · 🇪🇪 [et](../../../et/docs/security/CORS.md) · 🇮🇷 [fa](../../../fa/docs/security/CORS.md) · 🇫🇮 [fi](../../../fi/docs/security/CORS.md) · 🇫🇷 [fr](../../../fr/docs/security/CORS.md) · 🇮🇪 [ga](../../../ga/docs/security/CORS.md) · 🇮🇳 [gu](../../../gu/docs/security/CORS.md) · 🇳🇬 [ha](../../../ha/docs/security/CORS.md) · 🇮🇱 [he](../../../he/docs/security/CORS.md) · 🇮🇳 [hi](../../../hi/docs/security/CORS.md) · 🇭🇷 [hr](../../../hr/docs/security/CORS.md) · 🇭🇺 [hu](../../../hu/docs/security/CORS.md) · 🇦🇲 [hy](../../../hy/docs/security/CORS.md) · 🇮🇩 [id](../../../id/docs/security/CORS.md) · 🇳🇬 [ig](../../../ig/docs/security/CORS.md) · 🇮🇹 [it](../../../it/docs/security/CORS.md) · 🇯🇵 [ja](../../../ja/docs/security/CORS.md) · 🇬🇪 [ka](../../../ka/docs/security/CORS.md) · 🇰🇭 [km](../../../km/docs/security/CORS.md) · 🇮🇳 [kn](../../../kn/docs/security/CORS.md) · 🇰🇷 [ko](../../../ko/docs/security/CORS.md) · 🇱🇹 [lt](../../../lt/docs/security/CORS.md) · 🇱🇻 [lv](../../../lv/docs/security/CORS.md) · 🇮🇳 [ml](../../../ml/docs/security/CORS.md) · 🇮🇳 [mr](../../../mr/docs/security/CORS.md) · 🇲🇾 [ms](../../../ms/docs/security/CORS.md) · 🇲🇹 [mt](../../../mt/docs/security/CORS.md) · 🇲🇲 [my](../../../my/docs/security/CORS.md) · 🇳🇵 [ne](../../../ne/docs/security/CORS.md) · 🇳🇱 [nl](../../../nl/docs/security/CORS.md) · 🇳🇴 [no](../../../no/docs/security/CORS.md) · 🇮🇳 [or](../../../or/docs/security/CORS.md) · 🇮🇳 [pa](../../../pa/docs/security/CORS.md) · 🇵🇭 [phi](../../../phi/docs/security/CORS.md) · 🇵🇹 [pt](../../../pt/docs/security/CORS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/CORS.md) · 🇷🇴 [ro](../../../ro/docs/security/CORS.md) · 🇷🇺 [ru](../../../ru/docs/security/CORS.md) · 🇱🇰 [si](../../../si/docs/security/CORS.md) · 🇸🇰 [sk](../../../sk/docs/security/CORS.md) · 🇸🇮 [sl](../../../sl/docs/security/CORS.md) · 🇷🇸 [sr](../../../sr/docs/security/CORS.md) · 🇸🇪 [sv](../../../sv/docs/security/CORS.md) · 🇰🇪 [sw](../../../sw/docs/security/CORS.md) · 🇮🇳 [ta](../../../ta/docs/security/CORS.md) · 🇮🇳 [te](../../../te/docs/security/CORS.md) · 🇹🇭 [th](../../../th/docs/security/CORS.md) · 🇹🇷 [tr](../../../tr/docs/security/CORS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/CORS.md) · 🇵🇰 [ur](../../../ur/docs/security/CORS.md) · 🇺🇿 [uz](../../../uz/docs/security/CORS.md) · 🇻🇳 [vi](../../../vi/docs/security/CORS.md) · 🇳🇬 [yo](../../../yo/docs/security/CORS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/CORS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/CORS.md)
+
 ---
+
 title: Konfiguracja CORS i bezpieczeństwo
 ---
 
@@ -127,36 +132,40 @@ restartu.
   originy management/dashboard poza jakąkolwiek permisywną konfiguracją; muszą pozostać ściśle
   fail-closed.
 
-## Przykład: reverse proxy przed OmniRoute
+## Przykład: odwrotne proxy przed OmniRoute
 
-CORS jest egzekwowany przez samo OmniRoute, więc proxy generalnie **nie powinno** dodawać ani
-przepisywać nagłówków `Access-Control-*` (podwójne nagłówki psują przeglądarki). Terminuj TLS
-i forwarduj — niech OmniRoute odpowiada na preflight:
+CORS jest egzekwowany przez samo OmniRoute, dlatego proxy zasadniczo **nie powinno** dodawać ani
+modyfikować nagłówków `Access-Control-*` (podwójne nagłówki powodują problemy w przeglądarkach). Zakończ TLS
+i przekazuj ruch dalej — pozwól OmniRoute odpowiadać na żądania preflight:
 
 ```nginx
-# nginx — forward to OmniRoute; do NOT inject Access-Control-* here
+# nginx — przekazuj ruch do OmniRoute; NIE wstrzykuj tutaj nagłówków Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Do NOT set X-Forwarded-For to 127.0.0.1 — it defeats the loopback route guard.
+    # Zachowaj nagłówki przekazywania: proxy na tym samym hoście łączy się z adresu pętli zwrotnej i to one
+    # informują OmniRoute, że wywołujący nie jest lokalnym operatorem. Proxy, które nie dodaje żadnego z nich,
+    # sprawia, że każdy zdalny wywołujący wygląda jak lokalny. Nigdy też nie ustawiaj X-Forwarded-For na 127.0.0.1.
 }
 ```
 
-Ustaw dozwolone originy przeglądarki w OmniRoute (`CORS_ALLOWED_ORIGINS` lub
-zakładka Security), nie w proxy.
+Dozwolone źródła przeglądarkowe ustaw w OmniRoute (`CORS_ALLOWED_ORIGINS` lub na karcie
+Security), a nie w proxy.
 
 ## Pliki źródłowe
 
-| Concern                                         | File                                                                 |
-| ----------------------------------------------- | -------------------------------------------------------------------- |
-| Allowlist resolution + `getCorsStatus()`        | `src/server/cors/origins.ts`                                         |
-| Middleware application (single source of truth) | `src/server/authz/pipeline.ts`                                       |
-| Settings → runtime origin injection             | `src/lib/config/runtimeSettings.ts`                                  |
-| Runtime status for the dashboard                | `src/app/api/settings/authz-inventory/route.ts`                      |
-| Dashboard warning banner                        | `src/app/(dashboard)/dashboard/settings/components/AuthzSection.tsx` |
-| CORS Allowed Origins field                      | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx`  |
-| Cloud-Agent per-route CORS (the exception)      | `src/lib/cloudAgent/api.ts`                                          |
+| Obszar                                                     | Plik                                                                 |
+| ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| Rozpoznawanie listy dozwolonych źródeł + `getCorsStatus()` | `src/server/cors/origins.ts`                                         |
+| Stosowanie middleware (jedno źródło prawdy)                | `src/server/authz/pipeline.ts`                                       |
+| Ustawienia → wstrzykiwanie źródeł w czasie wykonywania     | `src/lib/config/runtimeSettings.ts`                                  |
+| Stan środowiska uruchomieniowego dla panelu                | `src/app/api/settings/authz-inventory/route.ts`                      |
+| Baner ostrzegawczy w panelu                                | `src/app/(dashboard)/dashboard/settings/components/AuthzSection.tsx` |
+| Pole dozwolonych źródeł CORS                               | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx`  |
+| CORS dla poszczególnych tras Cloud-Agent (wyjątek)         | `src/lib/cloudAgent/api.ts`                                          |
 
 ## Zobacz też
 

@@ -72,14 +72,21 @@ test("parseGeminiModelsList maps generateContent image models to the chat endpoi
   assert.deepEqual(proImage!.supportedEndpoints, ["chat"]);
 });
 
-test("parseGeminiModelsList maps embedContent and bidiGenerateContent", () => {
+test("parseGeminiModelsList maps embeddings without advertising unsupported Gemini Live", () => {
   const models = parseGeminiModelsList(SAMPLE);
   assert.deepEqual(models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints, [
     "embeddings",
   ]);
-  assert.deepEqual(models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints, [
-    "audio",
-  ]);
+  assert.equal(models.some((m) => m.id === "gemini-live-2.5-flash"), false);
+  const [hybrid] = parseGeminiModelsList({
+    models: [
+      {
+        name: "models/gemini-live-hybrid",
+        supportedGenerationMethods: ["generateContent", "bidiGenerateContent"],
+      },
+    ],
+  });
+  assert.deepEqual(hybrid.supportedEndpoints, ["chat"]);
 });
 
 test("parseGeminiModelsList maps Veo predictLongRunning models to the videos endpoint", () => {

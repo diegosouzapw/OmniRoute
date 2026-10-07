@@ -25,9 +25,7 @@ import os from "node:os";
 import path from "node:path";
 
 // ── test isolation: dedicated DATA_DIR ────────────────────────────────────────
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-mitm-upstream-ca-wiring-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mitm-upstream-ca-wiring-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // Ensure the mitm subdir exists for CA path file writes.
@@ -55,7 +53,11 @@ function readStoredCaPath(): string | null {
 }
 
 function clearStoredCaPath(): void {
-  try { fs.unlinkSync(CA_PATH_FILE); } catch { /* ignore */ }
+  try {
+    fs.unlinkSync(CA_PATH_FILE);
+  } catch {
+    /* ignore */
+  }
 }
 
 // ── path-selection logic tests ────────────────────────────────────────────────
@@ -113,11 +115,15 @@ test("startMitm CA wiring — configureUpstreamCa called with bad path does not 
   // The function throws — startMitm wraps this in try/catch, so boot continues.
   assert.ok(threw, "configureUpstreamCa should throw for non-existent path");
   assert.ok(!caughtMsg.includes("\n    at "), "error message must not include stack trace lines");
-  assert.ok(caughtMsg.includes("AGENTBRIDGE_UPSTREAM_CA_CERT"), "error message should include env var label");
+  assert.ok(
+    caughtMsg.includes("AGENTBRIDGE_UPSTREAM_CA_CERT"),
+    "error message should include env var label"
+  );
 });
 
 test("startMitm CA wiring — configureUpstreamCa no-op for undefined path", async () => {
-  const { configureUpstreamCa: configureUpstreamCaNoop } = await import("../../src/mitm/upstreamTrust.ts");
+  const { configureUpstreamCa: configureUpstreamCaNoop } =
+    await import("../../src/mitm/upstreamTrust.ts");
   // undefined / empty should never load undici — safe to call in tests.
   assert.doesNotThrow(() => configureUpstreamCaNoop(undefined));
   assert.doesNotThrow(() => configureUpstreamCaNoop(""));
@@ -126,9 +132,7 @@ test("startMitm CA wiring — configureUpstreamCa no-op for undefined path", asy
 // ── POST route wiring tests ───────────────────────────────────────────────────
 
 test("POST upstream-ca route — returns 400 when file does not exist", async () => {
-  const { POST } = await import(
-    "../../src/app/api/tools/agent-bridge/upstream-ca/route.ts"
-  );
+  const { POST } = await import("../../src/app/api/tools/agent-bridge/upstream-ca/route.ts");
 
   const badPath = "/definitely/does/not/exist/ca.pem";
   const req = new Request("http://localhost/api/tools/agent-bridge/upstream-ca", {
@@ -159,9 +163,7 @@ test("POST upstream-ca route — persists path to upstream-ca.path file on valid
   // was attempted, by checking the CA_PATH_FILE exists after the response.
 
   clearStoredCaPath();
-  const { POST } = await import(
-    "../../src/app/api/tools/agent-bridge/upstream-ca/route.ts"
-  );
+  const { POST } = await import("../../src/app/api/tools/agent-bridge/upstream-ca/route.ts");
 
   const req = new Request("http://localhost/api/tools/agent-bridge/upstream-ca", {
     method: "POST",
@@ -172,19 +174,17 @@ test("POST upstream-ca route — persists path to upstream-ca.path file on valid
   const res = await POST(req);
 
   // Either 200 (undici loaded ok) or 400 (undici fails in this test env).
-  assert.ok(
-    res.status === 200 || res.status === 400,
-    `expected 200 or 400 but got ${res.status}`
-  );
+  assert.ok(res.status === 200 || res.status === 400, `expected 200 or 400 but got ${res.status}`);
   // The file should have been written (persistence step happened).
-  assert.ok(fs.existsSync(CA_PATH_FILE), "upstream-ca.path should be written before configureUpstreamCa");
+  assert.ok(
+    fs.existsSync(CA_PATH_FILE),
+    "upstream-ca.path should be written before configureUpstreamCa"
+  );
   assert.equal(fs.readFileSync(CA_PATH_FILE, "utf8").trim(), REAL_PEM);
 });
 
 test("POST upstream-ca route — error response does not leak stack trace when configureUpstreamCa throws", async () => {
-  const { POST } = await import(
-    "../../src/app/api/tools/agent-bridge/upstream-ca/route.ts"
-  );
+  const { POST } = await import("../../src/app/api/tools/agent-bridge/upstream-ca/route.ts");
 
   const badPath = "/nonexistent/for/configureUpstreamCa/ca.pem";
   const req = new Request("http://localhost/api/tools/agent-bridge/upstream-ca", {

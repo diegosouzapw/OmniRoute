@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTailscaleTunnelStatus, installTailscale } from "@/lib/tailscaleTunnel";
+import { toPublicSafeTunnelError } from "@/lib/api/publicSafeTunnelError";
 import { parseOptionalJsonBody, requireTailscaleAuth, tailscaleSudoSchema } from "../routeUtils";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,11 @@ export async function POST(request: Request) {
           });
         } catch (error) {
           pushEvent("error", {
-            error: error instanceof Error ? error.message : "Failed to install Tailscale",
+            ...toPublicSafeTunnelError(
+              error,
+              "Failed to install Tailscale.",
+              "tunnels/tailscale/install POST"
+            ),
           });
         } finally {
           controller.close();

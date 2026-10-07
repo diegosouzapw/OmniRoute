@@ -18,9 +18,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.INSPECTOR_BUFFER_SIZE = "100";
 
 const { TrafficBuffer } = await import("../../src/mitm/inspector/buffer.ts");
-const wsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/ws/route.ts"
-);
+const wsRoute = await import("../../src/app/api/tools/traffic-inspector/ws/route.ts");
 
 function makeRequest(upgrade = "websocket", clientKey = "dGhlIHNhbXBsZSBub25jZQ=="): Request {
   return new Request("http://localhost/api/tools/traffic-inspector/ws", {
@@ -40,7 +38,7 @@ test("ws/route: rejects non-WebSocket GET with 426", async () => {
   const req = new Request("http://localhost/api/tools/traffic-inspector/ws");
   const res = await wsRoute.GET(req);
   assert.equal(res.status, 426);
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   assert.ok(body.error.message.includes("Upgrade"), "should mention upgrade");
 });
 
@@ -57,7 +55,7 @@ test("ws/route: rejects when no raw socket available with 500", async () => {
   // No `.socket` property injected — Next.js standalone would attach it
   const res = await wsRoute.GET(req);
   assert.equal(res.status, 500);
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   assert.ok(!body.error.message.includes("at /"), "must not leak stack trace");
 });
 

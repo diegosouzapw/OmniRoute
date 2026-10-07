@@ -26,6 +26,17 @@ let resolvedCached = null;
 export async function loadSqliteRuntime() {
   if (resolvedCached) return resolvedCached;
 
+  if (process.versions.bun) {
+    try {
+      const bunSqlite = await import("bun:sqlite");
+      resolvedCached = {
+        driver: { kind: "bun-sqlite", Database: bunSqlite.Database },
+        source: "bun-sqlite",
+      };
+      return resolvedCached;
+    } catch {}
+  }
+
   const bundled = await tryLoadBundled();
   if (bundled) {
     resolvedCached = { driver: bundled, source: "bundled" };

@@ -59,8 +59,8 @@ export default function MemoryEngineStatus({ status, onConfigure }: Props) {
   const rows: Array<{ label: string; chip: ChipColor; reason: string; cta?: React.ReactNode }> = [
     {
       label: t("engine.keywordLabel"),
-      chip: "green",
-      reason: t("engine.keywordReason"),
+      chip: status.keyword.available ? "green" : "red",
+      reason: status.keyword.reason || t("engine.keywordReason"),
     },
     {
       label: t("engine.embeddingLabel"),
@@ -77,12 +77,11 @@ export default function MemoryEngineStatus({ status, onConfigure }: Props) {
     },
     {
       label: t("engine.vectorStoreLabel"),
-      chip:
-        status.vectorStore.available
-          ? "green"
-          : status.vectorStore.backend === "none"
-            ? "gray"
-            : "red",
+      chip: status.vectorStore.available
+        ? "green"
+        : status.vectorStore.backend === "none"
+          ? "gray"
+          : "red",
       reason: status.vectorStore.reason,
       cta:
         status.vectorStore.backend === "none" ? (

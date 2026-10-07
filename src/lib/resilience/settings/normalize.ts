@@ -14,13 +14,16 @@ import type {
   RequestQueueSettings,
   ConnectionCooldownProfileSettings,
   ProviderBreakerProfileSettings,
+  TokenRefreshBreakerSettings,
   WaitForCooldownSettings,
   ComboCooldownWaitSettings,
   QuotaShareConcurrencyLimitSettings,
+  StreamStallCooldownSettings,
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
   ProviderQuotaOverrideSettings,
+  CredentialHealthCheckSettings,
 } from "./types";
 
 export function asRecord(value: unknown): JsonRecord {
@@ -124,7 +127,21 @@ export function normalizeRequestQueueSettings(
     min: 1,
     max: 10_000,
   });
+  const globalConcurrentRequests = toInteger(
+    record.globalConcurrentRequests,
+    fallback.globalConcurrentRequests,
+    { min: 0, max: 100_000 }
+  );
+  // limiter-managed execution deadline off for long-running models (GLM-5.2 with
+  // reasoning.effort=max can spend minutes before the first token, exceeding any
+  // practical maxWaitMs). The TTB safety net is FETCH_TIMEOUT_MS (default 600s).
+  // Issue #4165 follow-up: min:1 silently rewrote 0 → 1, which made an operator's
+  // "disable" intent worse — a 1ms expiration killed every long job instantly.
   const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, {
+    min: 0,
+    max: 24 * 60 * 60 * 1000,
+  });
+  const executionMaxWaitMs = toInteger(record.executionMaxWaitMs, fallback.executionMaxWaitMs, {
     min: 1,
     max: 24 * 60 * 60 * 1000,
   });
@@ -141,7 +158,9 @@ export function normalizeRequestQueueSettings(
     requestsPerMinute,
     minTimeBetweenRequestsMs,
     concurrentRequests,
+    globalConcurrentRequests,
     maxWaitMs,
+    executionMaxWaitMs,
     maxQueueDepth,
   };
 }
@@ -214,6 +233,26 @@ export function normalizeLegacyConnectionCooldownProfile(
     maxBackoffSteps: toInteger(record.maxBackoffLevel, fallback.maxBackoffSteps, {
       min: 0,
       max: 32,
+    }),
+  };
+}
+
+export function normalizeTokenRefreshBreakerSettings(
+  next: unknown,
+  fallback: TokenRefreshBreakerSettings
+): TokenRefreshBreakerSettings {
+  const record = asRecord(next);
+  const scope: TokenRefreshBreakerSettings["scope"] =
+    record.scope === "connection" ? "connection" : "provider";
+  return {
+    scope,
+    failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
+      min: 1,
+      max: 100,
+    }),
+    cooldownMs: toInteger(record.cooldownMs, fallback.cooldownMs, {
+      min: 60_000,
+      max: 24 * 60 * 60 * 1000,
     }),
   };
 }
@@ -369,6 +408,14 @@ export function normalizeQuotaShareConcurrencyLimitSettings(
   return { enabled: toBoolean(record.enabled, fallback.enabled) };
 }
 
+export function normalizeStreamStallCooldownSettings(
+  next: unknown,
+  fallback: StreamStallCooldownSettings
+): StreamStallCooldownSettings {
+  const record = asRecord(next);
+  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
 export function normalizeProviderCooldownSettings(
   next: unknown,
   fallback: ProviderCooldownSettings
@@ -431,8 +478,16 @@ function normalizeProviderQuotaOverrideEntry(raw: unknown): ProviderQuotaOverrid
   const out: ProviderQuotaOverrideSettings = {};
   const rpm = typeof record.rpm === "number" ? record.rpm : Number(record.rpm);
   if (Number.isFinite(rpm) && rpm > 0) out.rpm = Math.trunc(rpm);
-  const concurrency = typeof record.concurrency === "number" ? record.concurrency : Number(record.concurrency);
+  const concurrency =
+    typeof record.concurrency === "number" ? record.concurrency : Number(record.concurrency);
   if (Number.isFinite(concurrency) && concurrency > 0) out.concurrency = Math.trunc(concurrency);
+  const providerConcurrency =
+    typeof record.providerConcurrency === "number"
+      ? record.providerConcurrency
+      : Number(record.providerConcurrency);
+  if (Number.isFinite(providerConcurrency) && providerConcurrency >= 0) {
+    out.providerConcurrency = Math.trunc(providerConcurrency);
+  }
   return Object.keys(out).length > 0 ? out : null;
 }
 
@@ -453,4 +508,17 @@ export function normalizeProviderQuotaOverrides(
     if (normalized) out[provider] = normalized;
   }
   return out;
+}
+
+export function normalizeCredentialHealthCheckSettings(
+  next: unknown,
+  fallback: CredentialHealthCheckSettings
+): CredentialHealthCheckSettings {
+  const record = asRecord(next);
+  return {
+    intervalMinutes: toInteger(record.intervalMinutes, fallback.intervalMinutes, {
+      min: 0,
+      max: 1440,
+    }),
+  };
 }

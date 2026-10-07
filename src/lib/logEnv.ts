@@ -147,18 +147,24 @@ export function getChatLogTextLimit(): number {
 }
 
 /**
- * Was a hardcoded/default 24 — real agentic CLIs with many MCP servers
- * routinely declare 40-50+ tools in a single `tools[]` array (a live
- * OpenClaw session logged 47), so the tail-24 default silently dropped the
- * array's earlier entries behind an `_omniroute_truncated_array` marker —
- * including, in one traced case, the tool actually being called
- * (`apply_patch`), making its declared shape unrecoverable from the call
- * log even though the call itself succeeded. Bumped to comfortably cover
- * real large tool lists with headroom; same configurable-override pattern
- * as the sibling CHAT_LOG_TEXT_LIMIT/CHAT_LOG_MAX_BODY_KB vars.
+ * Was a hardcoded/default 24, then 128 — a real agentic tool-calling turn
+ * routinely logs well over a hundred input items (reasoning/function_call/
+ * function_call_output triples per round), and `resolvePreviousResponseState`
+ * (responsesContinuationStore.ts) reads this same bounded artifact back to
+ * reconstruct `previous_response_id` history server-side: once a stored
+ * conversation's input/output array crossed the cap, that reconstruction hit
+ * the `_omniroute_truncated_array` sentinel and failed the call outright
+ * (see the sentinel-detection guard in responsesContinuationStore.ts), not
+ * just a diagnosability gap. Retention already bounds total on-disk size
+ * (CALL_LOG_RETENTION_DAYS, default 7 days) independent of this per-item cap,
+ * so raising it doesn't change the storage ceiling — it only changes how much
+ * of a single long-running conversation stays reconstructable within that
+ * window. Bumped well above realistic conversation lengths; same
+ * configurable-override pattern as the sibling CHAT_LOG_TEXT_LIMIT/
+ * CHAT_LOG_MAX_BODY_KB vars.
  */
 export function getChatLogArrayTailItems(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 128);
+  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 1000);
 }
 
 /**

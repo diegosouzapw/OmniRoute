@@ -4,6 +4,7 @@
 // ConnectionRow (and its local helpers CooldownTimer, inferErrorType,
 // getStatusPresentation) moved out of ProviderDetailPageClient.tsx.
 
+import { readCookieExpiresAt } from "@/shared/utils/webCookieExpiry";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Badge, Button, Toggle } from "@/shared/components";
@@ -412,16 +413,21 @@ export default function ConnectionRow({
   // T12: token expiry status — lazy init avoids calling Date.now() during render;
   // updates every 30s via interval only (no sync setState in effect body).
   // Prefer tokenExpiresAt (updated on each refresh) over expiresAt (original grant date).
-  const effectiveExpiresAt = connection.tokenExpiresAt || connection.expiresAt;
+  // #11497: cookie rows with a decodable JWT credential carry a persisted
+  // cookieExpiresAt — feed it into the same countdown badge OAuth rows use.
+  const cookieExpiresAt = readCookieExpiresAt(connection.providerSpecificData);
+  const effectiveExpiresAt =
+    connection.tokenExpiresAt || connection.expiresAt || cookieExpiresAt;
+  const hasExpirySource = isOAuth || Boolean(cookieExpiresAt);
   const getTokenMinsLeft = () => {
-    if (!isOAuth || !effectiveExpiresAt) return null;
+    if (!hasExpirySource || !effectiveExpiresAt) return null;
     const expiresMs = new Date(effectiveExpiresAt).getTime();
     return Math.floor((expiresMs - Date.now()) / 60000);
   };
   const [tokenMinsLeft, setTokenMinsLeft] = useState<number | null>(getTokenMinsLeft);
 
   useEffect(() => {
-    if (!isOAuth || !effectiveExpiresAt) return;
+    if (!hasExpirySource || !effectiveExpiresAt) return;
     const update = () => {
       const expiresMs = new Date(effectiveExpiresAt).getTime();
       setTokenMinsLeft(Math.floor((expiresMs - Date.now()) / 60000));
@@ -429,7 +435,7 @@ export default function ConnectionRow({
     update();
     const iv = setInterval(update, 30000);
     return () => clearInterval(iv);
-  }, [isOAuth, effectiveExpiresAt]);
+  }, [hasExpirySource, effectiveExpiresAt]);
 
   useEffect(() => {
     const checkCooldown = () => {

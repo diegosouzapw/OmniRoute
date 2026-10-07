@@ -21,11 +21,21 @@ const SCOPE_VARIANT: Record<string, "info" | "warning" | "error" | "default"> = 
   admin: "error",
 };
 
+async function fetchTokens(): Promise<AccessTokenRow[]> {
+  const res = await fetch("/api/cli/tokens");
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data.tokens) ? data.tokens : [];
+}
+
 export default function AccessTokensTab() {
   const t = useTranslations("settings");
   // Graceful fallback so the tab renders in every locale before keys are translated.
-  const L = (key: string, fallback: string) =>
-    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+  const L = useCallback(
+    (key: string, fallback: string) =>
+      typeof t.has === "function" && t.has(key) ? t(key) : fallback,
+    [t]
+  );
 
   const [tokens, setTokens] = useState<AccessTokenRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,20 +54,30 @@ export default function AccessTokensTab() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/cli/tokens");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setTokens(Array.isArray(data.tokens) ? data.tokens : []);
+      setTokens(await fetchTokens());
     } catch {
       setError(L("accessTokensLoadError", "Could not load access tokens."));
     } finally {
       setLoading(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [L]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const tokens = await fetchTokens();
+        if (!cancelled) setTokens(tokens);
+      } catch {
+        if (!cancelled) setError(L("accessTokensLoadError", "Could not load access tokens."));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [L]);
 
   const createToken = async () => {
     if (!name.trim()) return;
@@ -83,7 +103,9 @@ export default function AccessTokensTab() {
       setScope("read");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : L("accessTokensCreateError", "Could not create token."));
+      setError(
+        e instanceof Error ? e.message : L("accessTokensCreateError", "Could not create token.")
+      );
     } finally {
       setCreating(false);
     }
@@ -161,7 +183,9 @@ export default function AccessTokensTab() {
               onChange={(e) => setExpires(e.target.value)}
             />
             <Button onClick={createToken} disabled={creating || !name.trim()}>
-              {creating ? L("accessTokensCreating", "Creating…") : L("accessTokensCreate", "Create")}
+              {creating
+                ? L("accessTokensCreating", "Creating…")
+                : L("accessTokensCreate", "Create")}
             </Button>
           </div>
 
@@ -213,10 +237,18 @@ export default function AccessTokensTab() {
                   <tr className="border-b border-border text-left text-text-muted">
                     <th className="py-2 pr-4 font-medium">{L("accessTokensColName", "Name")}</th>
                     <th className="py-2 pr-4 font-medium">{L("accessTokensColScope", "Scope")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColPrefix", "Prefix")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColStatus", "Status")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColLastUsed", "Last used")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColExpires", "Expires")}</th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColPrefix", "Prefix")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColStatus", "Status")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColLastUsed", "Last used")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColExpires", "Expires")}
+                    </th>
                     <th className="py-2 font-medium" />
                   </tr>
                 </thead>

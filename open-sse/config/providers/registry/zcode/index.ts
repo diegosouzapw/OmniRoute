@@ -4,6 +4,9 @@ import { GLM_SHARED_MODELS } from "../../../glmProvider.ts";
 const GLM_EXECUTOR_EFFORT_ALIASES = new Set([
   "glm-5.3-high",
   "glm-5.3-low",
+  "glm-5.3-flash-high",
+  "glm-5.3-flash-low",
+  "glm-5.3-flash-max",
   "glm-5.2-high",
   "glm-5.2-max",
 ]);

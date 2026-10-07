@@ -10,7 +10,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "acp-agents-route-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const routeModule = await import("../../src/app/api/acp/agents/route.ts");
 
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;

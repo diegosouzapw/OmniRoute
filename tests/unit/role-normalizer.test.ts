@@ -110,9 +110,7 @@ test("normalizeSystemRole still strips the system role for pre-5.1 GLM and bare 
     { role: "system", content: "policy" },
     { role: "user", content: "ok" },
   ];
-  const merged = [
-    { role: "user", content: "[System Instructions]\npolicy\n\n[User Message]\nok" },
-  ];
+  const merged = [{ role: "user", content: "[System Instructions]\npolicy\n\n[User Message]\nok" }];
   for (const model of ["glm", "glm-4.7", "glm-5", "glm-5-turbo", "glm-5.0", "glm-5.0-turbo"]) {
     assert.deepEqual(
       normalizeSystemRole(messages, "openai", model),
@@ -184,6 +182,44 @@ test("normalizeRoles composes model, developer and system normalization in order
     },
     { role: "", content: "empty role should survive" },
   ]);
+});
+
+test("normalizeSystemRole folds system/developer into the first user message for DuckDuckGo duck.ai providers (#ddgw)", () => {
+  // duckchat/v1/chat accepts only user/assistant — a system/developer message
+  // yields 400 ERR_BAD_REQUEST. Both the registry id and its alias must fold.
+  const messages = [
+    { role: "system", content: "You are a helpful assistant." },
+    { role: "user", content: "Reply with OK" },
+  ];
+  for (const provider of ["duckduckgo-web", "ddgw"]) {
+    const result = normalizeSystemRole(messages, provider, "gpt-5.4-nano");
+    assert.deepEqual(
+      result,
+      [
+        {
+          role: "user",
+          content:
+            "[System Instructions]\nYou are a helpful assistant.\n\n[User Message]\nReply with OK",
+        },
+      ],
+      `expected system folded for provider ${provider}`
+    );
+  }
+});
+
+test("normalizeRoles keeps folding for every current duck.ai wire model via the ddgw alias (#ddgw)", () => {
+  const messages = [
+    { role: "developer", content: "policy" },
+    { role: "user", content: "hello" },
+  ];
+  for (const model of ["gpt-5.4-mini", "gpt-5.4-nano", "claude-haiku-4-5", "mistral-small-2603"]) {
+    const result = normalizeRoles(messages, "ddgw", model, "openai");
+    assert.deepEqual(
+      result,
+      [{ role: "user", content: "[System Instructions]\npolicy\n\n[User Message]\nhello" }],
+      `expected developer folded for ${model}`
+    );
+  }
 });
 
 test("role normalization returns non-arrays unchanged", () => {

@@ -90,13 +90,13 @@ The generator preserves content between `<!-- skill:custom-start -->` and `<!-- 
 
 ## REST API Discovery
 
-| Endpoint                     | Method | Description                                              | Auth       |
-| :--------------------------- | :----- | :------------------------------------------------------- | :--------- |
+| Endpoint                     | Method | Description                                                      | Auth       |
+| :--------------------------- | :----- | :--------------------------------------------------------------- | :--------- |
 | `/api/agent-skills`          | GET    | List catalog (optional `?category=api\|cli\|config&area=<area>`) | none       |
-| `/api/agent-skills/{id}`     | GET    | Get single skill metadata                                | none       |
-| `/api/agent-skills/{id}/raw` | GET    | Fetch SKILL.md as `text/markdown`                        | none       |
-| `/api/agent-skills/coverage` | GET    | Coverage stats (how many SKILL.md files exist)           | none       |
-| `/api/agent-skills/generate` | POST   | Trigger generator (dryRun/prune/onlyIds)                 | management |
+| `/api/agent-skills/{id}`     | GET    | Get single skill metadata                                        | none       |
+| `/api/agent-skills/{id}/raw` | GET    | Fetch SKILL.md as `text/markdown`                                | none       |
+| `/api/agent-skills/coverage` | GET    | Coverage stats (how many SKILL.md files exist)                   | none       |
+| `/api/agent-skills/generate` | POST   | Trigger generator (dryRun/prune/onlyIds)                         | management |
 
 Example — list all API skills:
 
@@ -150,61 +150,61 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 
 ### API Skills (23)
 
-| ID                     | Area            | Entry Point                         |
-| :--------------------- | :-------------- | :---------------------------------- |
-| `omni-auth`            | auth            | Auth + session management           |
-| `omni-providers`       | providers       | Provider connection management      |
-| `omni-models`          | models          | Model catalog and capabilities      |
-| `omni-combos-routing`  | combos-routing  | Combo routing strategies            |
-| `omni-api-keys`        | api-keys        | API key management                  |
-| `omni-usage-logs`      | usage-logs      | Usage and cost logs                 |
-| `omni-budget`          | budget          | Budget guards                       |
-| `omni-settings`        | settings        | Global settings                     |
-| `omni-proxies`         | proxies         | Proxy pool management               |
-| `omni-cache`           | cache           | Semantic + prompt cache             |
-| `omni-compression`     | compression     | Context compression engines         |
-| `omni-context-rtk`     | context-rtk     | RTK compression                     |
-| `omni-resilience`      | resilience      | Circuit breakers + cooldowns        |
-| `omni-cli-tools`       | cli-tools       | CLI tools REST proxy                |
-| `omni-tunnels`         | tunnels         | Tunnel management                   |
-| `omni-sync-cloud`      | sync-cloud      | Cloud sync                          |
-| `omni-db-backups`      | db-backups      | Database backups                    |
-| `omni-webhooks`        | webhooks        | Webhook event dispatcher            |
-| `omni-mcp`             | mcp             | MCP server (107 tools, 3 transports) |
-| `omni-agents-a2a`      | agents-a2a      | A2A agent protocol                  |
-| `omni-version-manager` | version-manager | Version and update management       |
-| `omni-inference`       | inference       | Direct inference / completions      |
+| ID                     | Area            | Entry Point                          |
+| :--------------------- | :-------------- | :----------------------------------- |
+| `omni-auth`            | auth            | Auth + session management            |
+| `omni-providers`       | providers       | Provider connection management       |
+| `omni-models`          | models          | Model catalog and capabilities       |
+| `omni-combos-routing`  | combos-routing  | Combo routing strategies             |
+| `omni-api-keys`        | api-keys        | API key management                   |
+| `omni-usage-logs`      | usage-logs      | Usage and cost logs                  |
+| `omni-budget`          | budget          | Budget guards                        |
+| `omni-settings`        | settings        | Global settings                      |
+| `omni-proxies`         | proxies         | Proxy pool management                |
+| `omni-cache`           | cache           | Semantic + prompt cache              |
+| `omni-compression`     | compression     | Context compression engines          |
+| `omni-context-rtk`     | context-rtk     | RTK compression                      |
+| `omni-resilience`      | resilience      | Circuit breakers + cooldowns         |
+| `omni-cli-tools`       | cli-tools       | CLI tools REST proxy                 |
+| `omni-tunnels`         | tunnels         | Tunnel management                    |
+| `omni-sync-cloud`      | sync-cloud      | Cloud sync                           |
+| `omni-db-backups`      | db-backups      | Database backups                     |
+| `omni-webhooks`        | webhooks        | Webhook event dispatcher             |
+| `omni-mcp`             | mcp             | MCP server (110 tools, 3 transports) |
+| `omni-agents-a2a`      | agents-a2a      | A2A agent protocol                   |
+| `omni-version-manager` | version-manager | Version and update management        |
+| `omni-inference`       | inference       | Direct inference / completions       |
 
 ### CLI Skills (21)
 
-| ID                   | Area               | CLI Command Root        |
-| :------------------- | :----------------- | :---------------------- |
-| `cli-serve`          | cli-serve          | `omniroute serve`       |
-| `cli-health`         | cli-health         | `omniroute health`      |
-| `cli-providers`      | cli-providers      | `omniroute providers`   |
-| `cli-keys`           | cli-keys           | `omniroute keys`        |
-| `cli-models`         | cli-models         | `omniroute models`      |
-| `cli-chat`           | cli-chat           | `omniroute chat`        |
-| `cli-routing`        | cli-routing        | `omniroute routing`     |
-| `cli-resilience`     | cli-resilience     | `omniroute resilience`  |
-| `cli-compression`    | cli-compression    | `omniroute compression` |
-| `cli-contexts`       | cli-contexts       | `omniroute contexts`    |
-| `cli-cost-usage`     | cli-cost-usage     | `omniroute cost`        |
-| `cli-mcp`            | cli-mcp            | `omniroute mcp`         |
-| `cli-a2a`            | cli-a2a            | `omniroute a2a`         |
-| `cli-tunnel`         | cli-tunnel         | `omniroute tunnel`      |
-| `cli-backup-sync`    | cli-backup-sync    | `omniroute backup`      |
-| `cli-policy-audit`   | cli-policy-audit   | `omniroute policy`      |
-| `cli-batches`        | cli-batches        | `omniroute batch`       |
-| `cli-eval`           | cli-eval           | `omniroute eval`        |
-| `cli-plugins-skills` | cli-plugins-skills | `omniroute plugins`     |
-| `cli-setup`          | cli-setup          | `omniroute setup`       |
+| ID                    | Area               | CLI Command Root        |
+| :-------------------- | :----------------- | :---------------------- |
+| `cli-serve`           | cli-serve          | `omniroute serve`       |
+| `cli-health`          | cli-health         | `omniroute health`      |
+| `cli-providers`       | cli-providers      | `omniroute providers`   |
+| `cli-keys`            | cli-keys           | `omniroute keys`        |
+| `cli-models`          | cli-models         | `omniroute models`      |
+| `cli-chat`            | cli-chat           | `omniroute chat`        |
+| `cli-routing`         | cli-routing        | `omniroute routing`     |
+| `cli-resilience`      | cli-resilience     | `omniroute resilience`  |
+| `cli-compression`     | cli-compression    | `omniroute compression` |
+| `cli-contexts`        | cli-contexts       | `omniroute contexts`    |
+| `cli-cost-usage`      | cli-cost-usage     | `omniroute cost`        |
+| `cli-mcp`             | cli-mcp            | `omniroute mcp`         |
+| `cli-a2a`             | cli-a2a            | `omniroute a2a`         |
+| `cli-tunnel`          | cli-tunnel         | `omniroute tunnel`      |
+| `cli-backup-sync`     | cli-backup-sync    | `omniroute backup`      |
+| `cli-policy-audit`    | cli-policy-audit   | `omniroute policy`      |
+| `cli-batches`         | cli-batches        | `omniroute batch`       |
+| `cli-eval`            | cli-eval           | `omniroute eval`        |
+| `cli-plugins-skills`  | cli-plugins-skills | `omniroute plugins`     |
+| `cli-setup`           | cli-setup          | `omniroute setup`       |
 | `cli-skill-collector` | cli-setup          | `omniroute skills`      |
 
 ### Configuration workflow (1)
 
-| ID                | Area             | Entry Point                      |
-| :---------------- | :--------------- | :------------------------------- |
+| ID                 | Area             | Entry Point                      |
+| :----------------- | :--------------- | :------------------------------- |
 | `config-codex-cli` | config-codex-cli | Codex CLI configuration workflow |
 
 ---

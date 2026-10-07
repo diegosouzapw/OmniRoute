@@ -84,20 +84,22 @@ function insertMemoryWithFts(
   db: ReturnType<typeof core.getDbInstance>,
   id: string,
   apiKeyId: string,
-  content: string,
+  content: string
 ) {
+  const { nextId } = db
+    .prepare("SELECT COALESCE(MAX(rowid), 0) + 1 AS nextId FROM memories")
+    .get() as { nextId: number };
   // Insert into memories — the trigger memory_fts_ai fires automatically if the DB has it.
   // In a fresh test DB the trigger exists (created by migration 023).
   db.prepare(
-    `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`,
-  ).run(id, apiKeyId, `key-${id}`, content);
+    `INSERT INTO memories (rowid, memory_id, id, api_key_id, type, key, content, created_at)
+     VALUES (?, ?, ?, ?, 'factual', ?, ?, datetime('now'))`
+  ).run(nextId, nextId, id, apiKeyId, `key-${id}`, content);
   // The migration 023 trigger inserts into memory_fts using memory_id (= rowid).
   // If the trigger didn't fire (e.g. test DB without triggers), manually sync FTS.
   try {
     const row = db.prepare("SELECT rowid, memory_id FROM memories WHERE id = ?").get(id) as
-      | { rowid: number; memory_id: number | null }
-      | undefined;
+      { rowid: number; memory_id: number | null } | undefined;
     if (row) {
       const ftsRowid = row.memory_id ?? row.rowid;
       const ftsCount = db
@@ -107,7 +109,7 @@ function insertMemoryWithFts(
         db.prepare("INSERT INTO memory_fts(rowid, content, key) VALUES(?, ?, ?)").run(
           ftsRowid,
           content,
-          `key-${id}`,
+          `key-${id}`
         );
       }
     }
@@ -117,6 +119,26 @@ function insertMemoryWithFts(
 }
 
 // ──────────────── RRF tests ────────────────
+
+test("searchHybrid: long prompts retain a scoped FTS-only hit", async (t) => {
+  const store = getStoreOrSkip(t);
+  if (!store) return;
+  const { sanitizeFts5Query } = await import("../../src/lib/memory/retrieval/scoring.ts");
+  const words = Array.from({ length: 10_000 }, (_, i) => `term${i}`);
+  const query = words.join(" ");
+  assert.equal(sanitizeFts5Query(query).split(" ").length, 32);
+  await setupTable(store);
+  const db = core.getDbInstance();
+  const content = words.slice(0, 32).join(" ");
+  insertMemoryWithFts(db, "long-fts-only", "long-key", content);
+  insertMemoryWithFts(db, "long-other-key", "other-key", content);
+  const hits = await store.searchHybrid(makeVec(1, 0, 0, 0), query, 10, "long-key");
+  const match = hits.find((hit) => hit.memoryId === "long-fts-only");
+  assert.ok(match);
+  assert.ok(match.ftsRank !== null);
+  assert.equal(match.vecRank, null);
+  assert.ok(hits.every((hit) => hit.memoryId !== "long-other-key"));
+});
 
 test("searchHybrid: results ordered DESC by rrfScore", async (t) => {
   const store = getStoreOrSkip(t);
@@ -153,7 +175,7 @@ test("searchHybrid: results ordered DESC by rrfScore", async (t) => {
   for (let i = 0; i < hits.length - 1; i++) {
     assert.ok(
       hits[i].rrfScore >= hits[i + 1].rrfScore,
-      `results must be ordered DESC by rrfScore: ${hits[i].rrfScore} >= ${hits[i + 1].rrfScore}`,
+      `results must be ordered DESC by rrfScore: ${hits[i].rrfScore} >= ${hits[i + 1].rrfScore}`
     );
   }
 });
@@ -183,7 +205,7 @@ test("searchHybrid: doc in both FTS and vec → highest rrfScore (sum of both co
     const minRrf = 1 / (RRF_K + 1);
     assert.ok(
       bothHit.rrfScore >= minRrf,
-      `mem-both rrfScore ${bothHit.rrfScore} should be >= ${minRrf}`,
+      `mem-both rrfScore ${bothHit.rrfScore} should be >= ${minRrf}`
     );
   }
 });
@@ -210,7 +232,7 @@ test("searchHybrid: FTS-only hit has vecRank=null", async (t) => {
       // Score should be approximately the FTS contribution.
       assert.ok(
         Math.abs(ftsOnlyHit.rrfScore - expectedContrib) < 0.01,
-        `FTS-only rrfScore ${ftsOnlyHit.rrfScore} should ≈ ${expectedContrib}`,
+        `FTS-only rrfScore ${ftsOnlyHit.rrfScore} should ≈ ${expectedContrib}`
       );
     }
   }
@@ -236,7 +258,7 @@ test("searchHybrid: apiKeyId filters both vec and FTS results", async (t) => {
   // At least one of each should appear (FTS and/or vec).
   assert.ok(
     allIds.includes("mem-key1") || allIds.includes("mem-key2"),
-    "without filter should include at least one hit",
+    "without filter should include at least one hit"
   );
 
   // With filter for key1 only.
@@ -250,4 +272,24 @@ test("searchHybrid: apiKeyId filters both vec and FTS results", async (t) => {
   for (const h of key2Hits) {
     assert.notEqual(h.memoryId, "mem-key1", "key1 should not appear when filtering for key2");
   }
+});
+
+test("searchHybrid: handles control symbols and system reminder tags without FTS5 syntax errors", async (t) => {
+  const store = getStoreOrSkip(t);
+  if (!store) return;
+
+  const db = core.getDbInstance();
+  await setupTable(store);
+
+  insertMemoryWithFts(db, "mem-tag-1", "key1", "CRITICAL test query memory");
+  await store.upsertVector("mem-tag-1", makeVec(1.0, 0.0, 0.0, 0.0));
+
+  await assert.doesNotReject(async () => {
+    const hits = await store.searchHybrid(
+      makeVec(1.0, 0.0, 0.0, 0.0),
+      "<system-reminder> CRITICAL: test query! </system-reminder>",
+      10
+    );
+    assert.ok(Array.isArray(hits));
+  }, "should not throw FTS5 syntax error on control symbols or XML-like tags");
 });

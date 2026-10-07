@@ -1,0 +1,126 @@
+{
+  "language": "hu",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "redundant_phrasing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:győződj meg róla, hogy|biztosítsd azt, hogy|ügyelj arra, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Remove redundant certainty framing around direct instructions."
+    },
+    {
+      "name": "redundant_because",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:azért van, mert|ennek az oka az, hogy|annak az oka, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "mert ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Shorten verbose Hungarian causal phrases."
+    },
+    {
+      "name": "redundant_directive",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:fontos, hogy|ne felejtsd el, hogy|érdemes megjegyezni, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Remove directive framing when the following instruction carries the meaning."
+    },
+    {
+      "name": "list_conjunction",
+      "pattern": "(?<![\\p{L}\\p{N}_]),?\\s*(?:és továbbá|valamint még|és ezenkívül)\\s+",
+      "flags": "giu",
+      "replacement": ", ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Collapse redundant list conjunctions."
+    },
+    {
+      "name": "redundant_quantifiers",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:mindegyik és minden|minden egyes)(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "minden",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Collapse redundant Hungarian quantifier phrases."
+    },
+    {
+      "name": "all_quantifier",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:mind az összes|az összes és minden)(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "összes",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Collapse duplicated totality markers."
+    },
+    {
+      "name": "verbose_connectors",
+      "pattern": "^(?:továbbá,?\\s*|ezenkívül,?\\s*|ráadásul,?\\s*)",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite",
+      "description": "Remove low-information transition words at the start of a paragraph."
+    },
+    {
+      "name": "emphasis_removal",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:nagyon|rendkívül|igazán|különösen|teljesen)\\s+(?=[\\p{L}])",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite",
+      "description": "Remove common intensifiers when the modified word remains meaningful."
+    },
+    {
+      "name": "task_framing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a feladata az, hogy|az a feladata, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "Feladat: ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Convert verbose task-framing prose into a compact label."
+    },
+    {
+      "name": "existence_framing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:arra van lehetőség, hogy|lehetőség van arra, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "lehet ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Shorten common possibility framing."
+    },
+    {
+      "name": "conditional_framing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:abban az esetben, ha)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "ha ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite",
+      "description": "Shorten verbose conditional framing."
+    },
+    {
+      "name": "manner_framing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:olyan módon, hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "úgy, hogy ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full",
+      "description": "Shorten verbose manner framing while preserving the conjunction."
+    }
+  ]
+}

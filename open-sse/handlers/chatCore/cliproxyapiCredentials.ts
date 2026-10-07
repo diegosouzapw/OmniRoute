@@ -19,23 +19,25 @@ import type { ProviderCredentials } from "../../executors/base.ts";
 
 type ExecutorInput = {
   credentials: ProviderCredentials;
-  [key: string]: unknown;
 };
 
+// No index signature: executors (BaseExecutor subclasses) must satisfy this
+// structurally, and class instances don't carry index signatures.
 type ExecutorLike = {
   execute: (input: ExecutorInput) => Promise<unknown>;
-  [key: string]: unknown;
 };
 
 /**
- * Reads the dedicated CLIProxyAPI key out of a settings blob (as returned by
- * `getCachedSettings()`), trimmed and normalized to `null` when absent/blank.
+ * Reads the dedicated CLIProxyAPI key from settings, then falls back to the
+ * environment. Values are trimmed and normalized to `null` when absent/blank.
  */
 export function resolveDedicatedCliproxyapiApiKey(
   settings: Record<string, unknown> | null | undefined
 ): string | null {
   const raw = settings?.cliproxyapi_api_key;
-  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  const envKey = process.env.CLIPROXYAPI_API_KEY;
+  return typeof envKey === "string" && envKey.trim() ? envKey.trim() : null;
 }
 
 /**

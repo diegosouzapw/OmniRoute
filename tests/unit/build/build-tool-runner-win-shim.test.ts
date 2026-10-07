@@ -206,3 +206,28 @@ test("colocate-standalone.mjs never spawns the node_modules/.bin shim again", ()
     "esbuild is spawned through the shared cross-platform runner"
   );
 });
+
+test("prepublish.ts bundles the ChatGPT Web Codex MCP bridge through runBuildTool (#11704)", () => {
+  // Node >= 20 on Windows refuses to spawn npx.cmd without a shell (EINVAL,
+  // CVE-2024-27980). The ChatGPT Web MCP esbuild step was the last raw
+  // execFileSync(NPX_BIN, ...) in prepublish.ts and crashed npm run build:cli.
+  const source = readFileSync(
+    new URL("../../../scripts/build/prepublish.ts", import.meta.url),
+    "utf8"
+  );
+  const mcpPath = "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.ts";
+  const idx = source.indexOf(mcpPath);
+  assert.notEqual(idx, -1, "ChatGPT Web Codex MCP source path is still bundled");
+
+  const window = source.slice(Math.max(0, idx - 400), idx);
+  assert.match(
+    window,
+    /runBuildTool\s*\(\s*"esbuild"\s*,\s*"esbuild"/,
+    "must spawn esbuild via runBuildTool() — raw npx.cmd is EINVAL on Node >= 20/Windows"
+  );
+  assert.doesNotMatch(
+    window,
+    /execFileSync\s*\(\s*NPX_BIN/,
+    "must not spawn NPX_BIN (npx.cmd) to bundle the ChatGPT Web MCP bridge"
+  );
+});

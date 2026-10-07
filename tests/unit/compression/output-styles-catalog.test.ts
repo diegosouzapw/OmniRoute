@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   OUTPUT_STYLE_CATALOG,
   OUTPUT_STYLE_IDS,
+  outputStyleLanguages,
   outputStyleMeta,
   type OutputStyle,
 } from "../../../open-sse/services/compression/outputStyles/catalog.ts";
@@ -48,4 +49,13 @@ test("every level instruction is deterministic (no Date/Math.random tokens)", ()
       assert.doesNotMatch(meta.levels[level], /Date\.now|Math\.random|\$\{/);
     }
   }
+});
+
+test("outputStyleLanguages returns the sorted union of i18n keys, locales and en", () => {
+  const langs = outputStyleLanguages();
+  assert.ok(langs.includes("en"));
+  assert.ok(langs.includes("vi"));
+  assert.ok(langs.includes("zh"));
+  assert.deepEqual(langs, [...langs].sort());
+  assert.equal(new Set(langs).size, langs.length);
 });

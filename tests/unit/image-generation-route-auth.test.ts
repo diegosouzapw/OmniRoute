@@ -203,7 +203,7 @@ test("v1 image generation POST accepts a dashboard session when REQUIRE_API_KEY 
 
   try {
     const { SignJWT } = await import("jose");
-    const token = await new SignJWT({ sub: "dashboard" })
+    const token = await new SignJWT({ authenticated: true, sub: "dashboard" })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("1h")
       .sign(new TextEncoder().encode(process.env.JWT_SECRET));

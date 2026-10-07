@@ -19,6 +19,81 @@ import {
   countComplexityViolations,
   getComplexityEslintReport,
 } from "./complexityEslintReport.mjs";
+import {
+  baseRefArg,
+  diffNewCode,
+  listChangedFiles,
+  perFileRuleCounts,
+  resolveMergeBase,
+  withBaseWorktree,
+} from "./newCodeMode.mjs";
+import { runComplexityEslintOn } from "./complexityEslintReport.mjs";
+
+const BASE_REF = baseRefArg();
+const NEW_CODE_SCOPE = {
+  dirs: ["src", "open-sse", "electron", "bin"],
+  exts: [".ts", ".tsx", ".js", ".mjs"],
+  // Authorship ratchets must not force local rewrites of byte-faithful third-party source.
+  // The release-wide full walk still measures vendor complexity against the frozen baseline.
+  excludePrefixes: ["open-sse/vendor/"],
+};
+const CYCLOMATIC_RULES = new Set(["complexity", "max-lines-per-function"]);
+const COGNITIVE_RULES = new Set(["sonarjs/cognitive-complexity"]);
+
+/**
+ * New-code mode (PR events, `--base-ref <sha>`): blocking only on violations the PR added in
+ * the files it touched; the global totals are NOT measured here (the release reconciliation
+ * and the nightly headroom job run the full walk). See newCodeMode.mjs.
+ */
+function mainNewCode() {
+  const mergeBase = resolveMergeBase(BASE_REF);
+  const changed = listChangedFiles(mergeBase, NEW_CODE_SCOPE);
+  console.log(
+    `[complexity-ratchets] new-code mode: merge-base ${mergeBase.slice(0, 12)}, ${changed.length} changed file(s) in scope`
+  );
+  if (changed.length === 0) {
+    console.log("[complexity-ratchets] OK — no source files changed; nothing to compare.");
+    return;
+  }
+  const headReport = runComplexityEslintOn(changed, ROOT);
+  const headCounts = {
+    complexity: perFileRuleCounts(headReport, CYCLOMATIC_RULES, ROOT),
+    cognitive: perFileRuleCounts(headReport, COGNITIVE_RULES, ROOT),
+  };
+  // Base paths are absolute inside the throwaway worktree → relativize while it exists.
+  const baseCounts = withBaseWorktree(mergeBase, (dir) => {
+    const report = runComplexityEslintOn(changed, dir);
+    return {
+      complexity: perFileRuleCounts(report, CYCLOMATIC_RULES, dir),
+      cognitive: perFileRuleCounts(report, COGNITIVE_RULES, dir),
+    };
+  });
+  let failed = false;
+  for (const [label, key, metric] of [
+    ["complexity", "complexity", "complexityNewCode"],
+    ["cognitive-complexity", "cognitive", "cognitiveComplexityNewCode"],
+  ]) {
+    const { regressions, head, base, delta } = diffNewCode(
+      headCounts[key],
+      baseCounts[key],
+      changed
+    );
+    console.log(`${metric}=${delta}`);
+    if (regressions.length) {
+      console.error(
+        `[${label}] REGRESSÃO (código novo) — ${head} violações nos arquivos tocados vs ${base} na base (+${delta}):\n` +
+          regressions.map((r) => `  ✗ ${r.file}: ${r.base} → ${r.head}`).join("\n") +
+          "\n  → quebre a função em helpers menores; o total global do repo NÃO conta aqui, só o que esta PR adicionou."
+      );
+      failed = true;
+    } else {
+      console.log(
+        `[${label}] OK (código novo) — ${head} violações nos arquivos tocados (base ${base})`
+      );
+    }
+  }
+  if (failed) process.exit(1);
+}
 
 const ROOT = process.cwd();
 const UPDATE = process.argv.includes("--update");
@@ -31,6 +106,7 @@ const COMPLEXITY_BASELINE = path.resolve(
 const QUALITY_BASELINE = path.join(ROOT, "config/quality/quality-baseline.json");
 
 function main() {
+  if (BASE_REF) return mainNewCode();
   if (!fs.existsSync(COMPLEXITY_BASELINE)) {
     console.error(`[complexity-ratchets] FAIL — complexity-baseline.json ausente.`);
     process.exit(2);

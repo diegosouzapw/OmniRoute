@@ -74,6 +74,8 @@ export type GitHubCopilotModel = {
   id: string;
   name: string;
   owned_by: string;
+  supportedEndpoints?: string[];
+  targetFormat?: "openai-responses";
 };
 
 type RawRecord = Record<string, unknown>;
@@ -88,12 +90,61 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function getSupportedEndpoints(item: RawRecord): string[] {
+  const capabilities = asRecord(item.capabilities);
+  const endpoints = Array.isArray(item.supported_endpoints)
+    ? item.supported_endpoints
+    : Array.isArray(capabilities.supported_endpoints)
+      ? capabilities.supported_endpoints
+      : [];
+  return Array.from(
+    new Set(endpoints.map(toNonEmptyString).filter((e): e is string => !!e))
+  ).sort();
+}
+
+function getEndpointMetadata(item: RawRecord, modelId: string): Partial<GitHubCopilotModel> {
+  const paths = getSupportedEndpoints(item).map((endpoint) =>
+    endpoint.toLowerCase().replace(/^\/+/, "").replace(/^v1\//, "").replace(/\/$/, "")
+  );
+  // The public catalog uses endpoint kinds rather than upstream URL paths.
+  const supportedEndpoints = Array.from(
+    new Set(
+      paths
+        .map((path) =>
+          path === "chat/completions" || path === "chat-completions" || path === "messages"
+            ? "chat"
+            : path
+        )
+        .filter(Boolean)
+    )
+  ).sort();
+  if (supportedEndpoints.length === 0) return {};
+  // Copilot's endpoint contract, not the model's version, determines the wire format.
+  // Keep chat-capable models on their existing route and mirror the executor's
+  // defensive exclusion of Claude/Gemini from the Responses endpoint.
+  const responsesOnly =
+    supportedEndpoints.includes("responses") &&
+    !supportedEndpoints.includes("chat") &&
+    !/claude|gemini/i.test(modelId);
+  return {
+    supportedEndpoints,
+    ...(responsesOnly ? { targetFormat: "openai-responses" as const } : {}),
+  };
+}
+
 // Decide whether a live /models row is a routable chat model. Capability-driven
 // (rename-robust) rather than an id allowlist: any model the account is entitled
 // to whose capabilities.type is "chat" (or that carries a chat-shaped
 // supported_endpoints) is kept, so a newly-entitled model shows up with no code
-// change. Only explicitly non-chat rows (embeddings / completion) are dropped.
+// change. Also filters out rows when policy.state is set and != "enabled", or
+// when model_picker_enabled=false. Explicitly non-chat rows (embeddings /
+// completion) are dropped as well.
 function isRoutableChatModel(item: RawRecord): boolean {
+  const policy = asRecord(item.policy);
+  const policyState = toNonEmptyString(policy.state);
+  if (policyState && policyState !== "enabled") return false;
+  if (item.model_picker_enabled === false) return false;
+
   const capabilities = asRecord(item.capabilities);
   const capType = toNonEmptyString(capabilities.type);
   if (capType) return capType === "chat";
@@ -148,7 +199,7 @@ export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
     if (!isRoutableChatModel(item)) continue;
     seen.add(id);
     const name = toNonEmptyString(item.name) || toNonEmptyString(item.display_name) || id;
-    models.push({ id, name, owned_by: "github" });
+    models.push({ id, name, owned_by: "github", ...getEndpointMetadata(item, id) });
   }
 
   return models;

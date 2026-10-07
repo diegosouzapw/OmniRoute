@@ -71,20 +71,13 @@ test("connection verification skips an ACTIVE exclusive lease before any probe o
   assert.equal(row.last_error, null);
 });
 
-test("model discovery, quota refresh, and reset-credit paths reject ACTIVE leased connections", async () => {
+test("model discovery and reset-credit paths reject ACTIVE leased connections", async () => {
   const response = await providerModels.GET(
     new Request("http://omniroute.local/api/providers/leased-test-connection/models"),
     { params: { id: "leased-test-connection" } }
   );
   assert.equal(response.status, 409);
 
-  await assert.rejects(
-    providerLimits.fetchLiveProviderLimits("leased-test-connection"),
-    (error: unknown) =>
-      error instanceof Error &&
-      (error as Error & { status?: number }).status === 409 &&
-      /exclusive lease/i.test(error.message)
-  );
   await assert.rejects(
     codexResetCredits.listCodexResetCredits("leased-test-connection"),
     (error: unknown) =>
@@ -93,4 +86,60 @@ test("model discovery, quota refresh, and reset-credit paths reject ACTIVE lease
       /exclusive lease/i.test(error.message)
   );
   assert.equal(externalCalls, 0);
+});
+
+test("quota refresh proceeds on an ACTIVE leased usage-supported connection", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO provider_connections
+     (id, provider, auth_type, name, api_key, is_active, test_status, created_at, updated_at)
+     VALUES (?, ?, 'apikey', ?, ?, 1, 'active', ?, ?)`
+  ).run(
+    "leased-quota-connection",
+    "deepseek",
+    "leased quota connection",
+    "synthetic-deepseek-key",
+    new Date().toISOString(),
+    new Date().toISOString()
+  );
+  const acquired = leases.acquireExclusiveConnectionLease({
+    leaseOwnerId: "vlo_QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",
+    apiKeyId: "managed-quota-key",
+    provider: "deepseek",
+    connectionId: "leased-quota-connection",
+  });
+  assert.equal(acquired.kind, "ACQUIRED");
+
+  externalCalls = 0;
+  globalThis.fetch = async (input: RequestInfo | URL) => {
+    externalCalls += 1;
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    if (url === "https://api.deepseek.com/user/balance") {
+      return new Response(
+        JSON.stringify({
+          is_available: true,
+          balance_infos: [
+            {
+              currency: "USD",
+              total_balance: "10.00",
+              granted_balance: "0.00",
+              topped_up_balance: "10.00",
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+    throw new Error(`unexpected fetch call: ${url}`);
+  };
+
+  const result = await providerLimits.fetchLiveProviderLimits("leased-quota-connection");
+  assert.equal(result.connection.id, "leased-quota-connection");
+  const quotas = result.usage.quotas as { credits_usd?: { remaining?: number } };
+  assert.equal(quotas?.credits_usd?.remaining, 10);
+  assert.equal(externalCalls, 1);
 });

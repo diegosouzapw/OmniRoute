@@ -116,9 +116,17 @@ test("source guard: auth.ts skips model lockout for per-model-quota providers on
     path.join(process.cwd(), "src", "sse", "services", "auth.ts"),
     "utf-8"
   );
-  // The fix adds an early return for status >= 500 that skips recordModelLockoutFailure
+  // #13548 moved the model-scoped status predicate (404 / 429 / `status >= 500`) out of
+  // auth.ts into modelScopedQuotaFailure.ts::isModelScopedFailure(); auth.ts must still
+  // route through it and keep the no-lockout early return for server errors.
+  const helperSrc = fs.readFileSync(
+    path.join(process.cwd(), "src", "sse", "services", "modelScopedQuotaFailure.ts"),
+    "utf-8"
+  );
   assert.ok(
-    src.includes("status >= 500") && src.includes("no model lockout"),
+    helperSrc.includes("status >= 500") &&
+      src.includes("isModelScopedFailure(status") &&
+      src.includes("no model lockout"),
     "auth.ts must have a guard that skips model lockout for 500+ server errors on per-model-quota providers"
   );
   // Verify the early return sends cooldownMs: 0 (no cooldown for sibling models)
@@ -128,13 +136,32 @@ test("source guard: auth.ts skips model lockout for per-model-quota providers on
   );
 });
 
+function comboSourceFiles(): string[] {
+  const servicesDir = path.join(process.cwd(), "open-sse", "services");
+  const comboDir = path.join(servicesDir, "combo");
+  const nested = fs
+    .readdirSync(comboDir, { recursive: true, encoding: "utf-8" })
+    .filter((entry) => entry.endsWith(".ts"))
+    .map((entry) => path.join(comboDir, entry));
+  return [path.join(servicesDir, "combo.ts"), ...nested];
+}
+
 test("source guard: combo.ts skips provider cooldown for per-model-quota on 500", () => {
-  const src = fs.readFileSync(
-    path.join(process.cwd(), "open-sse", "services", "combo.ts"),
-    "utf-8"
-  );
-  assert.ok(
-    src.includes("hasPerModelQuota(provider, rawModel)") && src.includes("recordProviderCooldown"),
-    "combo.ts must skip provider cooldown recording for per-model-quota providers on 500"
-  );
+  const guardedCalls: string[] = [];
+  for (const file of comboSourceFiles()) {
+    const src = fs.readFileSync(file, "utf-8");
+    const rel = path.relative(process.cwd(), file);
+    let at = src.indexOf("recordProviderCooldown(");
+    while (at >= 0) {
+      const condition = src.slice(src.lastIndexOf("if (", at), at);
+      assert.match(
+        condition,
+        /!\s*\(\s*\(result\.status === 500[^)]*\)\s*&&\s*hasPerModelQuota\(provider,/,
+        `${rel} must skip provider cooldown recording on 500 for per-model-quota providers`
+      );
+      guardedCalls.push(rel);
+      at = src.indexOf("recordProviderCooldown(", at + 1);
+    }
+  }
+  assert.ok(guardedCalls.length > 0, "combo routing must still record provider cooldowns");
 });

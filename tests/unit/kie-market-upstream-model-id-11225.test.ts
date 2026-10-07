@@ -103,13 +103,21 @@ function resolveLiveKieMarketCatalog() {
   }));
 }
 
-test("KIE Market resolver changes exactly the 4 google-imagen ids in the live market catalog", () => {
+test("KIE Market resolver changes exactly the documented mismatched ids in the live market catalog", () => {
   const roundTrips = resolveLiveKieMarketCatalog();
   const changed = roundTrips.filter(({ publicModelId, upstreamModelId }) => {
     return upstreamModelId !== publicModelId;
   });
 
   assert.deepEqual(changed, [
+    {
+      publicModelId: "seedream/5.0-lite-text-to-image",
+      upstreamModelId: "seedream/5-lite-text-to-image",
+    },
+    {
+      publicModelId: "seedream/5.0-lite-image-to-image",
+      upstreamModelId: "seedream/5-lite-image-to-image",
+    },
     {
       publicModelId: "google-imagen/nano-banana-2",
       upstreamModelId: "nano-banana-2",
@@ -126,19 +134,71 @@ test("KIE Market resolver changes exactly the 4 google-imagen ids in the live ma
       publicModelId: "google-imagen/nano-banana-edit",
       upstreamModelId: "google/nano-banana-edit",
     },
+    {
+      publicModelId: "flux/2-pro-image-to-image",
+      upstreamModelId: "flux-2/pro-image-to-image",
+    },
+    {
+      publicModelId: "flux/2-pro-text-to-image",
+      upstreamModelId: "flux-2/pro-text-to-image",
+    },
+    {
+      publicModelId: "flux/2-image-to-image",
+      upstreamModelId: "flux-2/flex-image-to-image",
+    },
+    {
+      publicModelId: "flux/2-text-to-image",
+      upstreamModelId: "flux-2/flex-text-to-image",
+    },
+    {
+      publicModelId: "gpt/gpt-image-1.5-text-to-image",
+      upstreamModelId: "gpt-image/1.5-text-to-image",
+    },
+    {
+      publicModelId: "gpt/gpt-image-1.5-image-to-image",
+      upstreamModelId: "gpt-image/1.5-image-to-image",
+    },
+    {
+      publicModelId: "gpt/gpt-image-2-text-to-image",
+      upstreamModelId: "gpt-image-2-text-to-image",
+    },
+    {
+      publicModelId: "gpt/gpt-image-2-image-to-image",
+      upstreamModelId: "gpt-image-2-image-to-image",
+    },
+    {
+      publicModelId: "wan/2.7-image",
+      upstreamModelId: "wan/2-7-image",
+    },
+    {
+      publicModelId: "wan/2.7-image-pro",
+      upstreamModelId: "wan/2-7-image-pro",
+    },
   ]);
 });
 
-const REWRITTEN_GOOGLE_IMAGEN_MARKET_IDS = new Set([
+const REWRITTEN_MARKET_IDS = new Set([
   "google-imagen/nano-banana",
   "google-imagen/nano-banana-2",
   "google-imagen/nano-banana-pro",
   "google-imagen/nano-banana-edit",
+  "gpt/gpt-image-2-text-to-image",
+  "gpt/gpt-image-2-image-to-image",
+  "gpt/gpt-image-1.5-text-to-image",
+  "gpt/gpt-image-1.5-image-to-image",
+  "seedream/5.0-lite-text-to-image",
+  "seedream/5.0-lite-image-to-image",
+  "flux/2-pro-text-to-image",
+  "flux/2-pro-image-to-image",
+  "flux/2-text-to-image",
+  "flux/2-image-to-image",
+  "wan/2.7-image",
+  "wan/2.7-image-pro",
 ]);
 
 test("KIE Market resolver preserves every other live market catalog id byte-identically", () => {
   for (const { publicModelId, upstreamModelId } of resolveLiveKieMarketCatalog()) {
-    if (!REWRITTEN_GOOGLE_IMAGEN_MARKET_IDS.has(publicModelId)) {
+    if (!REWRITTEN_MARKET_IDS.has(publicModelId)) {
       assert.equal(
         upstreamModelId,
         publicModelId,
@@ -148,8 +208,8 @@ test("KIE Market resolver preserves every other live market catalog id byte-iden
   }
 });
 
-test("KIE Market resolver keeps exactly the explicit google-imagen upstream id mappings (#11296)", () => {
-  assert.equal(KIE_MARKET_UPSTREAM_MODEL_IDS.size, 4);
+test("KIE Market resolver keeps exactly the explicit upstream id mappings (#11296)", () => {
+  assert.equal(KIE_MARKET_UPSTREAM_MODEL_IDS.size, 16);
 });
 
 test("KIE Market resolver passes an unknown namespaced id through byte-identically", () => {
@@ -207,6 +267,78 @@ test("KIE Market createTask sends the KIE upstream id for Nano Banana Edit (#112
     "google/nano-banana-edit",
     "KIE Market createTask must send the KIE-documented google/nano-banana-edit upstream id"
   );
+});
+
+test("KIE Market createTask sends the unprefixed upstream id for GPT Image 2 T2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/gpt/gpt-image-2-text-to-image");
+
+  assert.equal(captured.create.body.model, "gpt-image-2-text-to-image");
+});
+
+test("KIE Market createTask sends the unprefixed upstream id for GPT Image 2 I2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/gpt/gpt-image-2-image-to-image");
+
+  assert.equal(captured.create.body.model, "gpt-image-2-image-to-image");
+});
+
+test("KIE Market createTask sends the 'gpt-image/' namespace for GPT Image 1.5 T2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/gpt/gpt-image-1.5-text-to-image");
+
+  assert.equal(captured.create.body.model, "gpt-image/1.5-text-to-image");
+});
+
+test("KIE Market createTask sends the 'gpt-image/' namespace for GPT Image 1.5 I2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/gpt/gpt-image-1.5-image-to-image");
+
+  assert.equal(captured.create.body.model, "gpt-image/1.5-image-to-image");
+});
+
+test("KIE Market createTask drops the '.0' for Seedream 5.0 Lite T2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/seedream/5.0-lite-text-to-image");
+
+  assert.equal(captured.create.body.model, "seedream/5-lite-text-to-image");
+});
+
+test("KIE Market createTask drops the '.0' for Seedream 5.0 Lite I2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/seedream/5.0-lite-image-to-image");
+
+  assert.equal(captured.create.body.model, "seedream/5-lite-image-to-image");
+});
+
+test("KIE Market createTask sends the 'flux-2/' namespace for Flux 2 Pro T2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/flux/2-pro-text-to-image");
+
+  assert.equal(captured.create.body.model, "flux-2/pro-text-to-image");
+});
+
+test("KIE Market createTask sends the 'flux-2/' namespace for Flux 2 Pro I2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/flux/2-pro-image-to-image");
+
+  assert.equal(captured.create.body.model, "flux-2/pro-image-to-image");
+});
+
+test("KIE Market createTask sends the 'flux-2/flex-' name for Flux 2 T2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/flux/2-text-to-image");
+
+  assert.equal(captured.create.body.model, "flux-2/flex-text-to-image");
+});
+
+test("KIE Market createTask sends the 'flux-2/flex-' name for Flux 2 I2I (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/flux/2-image-to-image");
+
+  assert.equal(captured.create.body.model, "flux-2/flex-image-to-image");
+});
+
+test("KIE Market createTask sends the dash-separated id for Wan 2.7 Image (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/wan/2.7-image");
+
+  assert.equal(captured.create.body.model, "wan/2-7-image");
+});
+
+test("KIE Market createTask sends the dash-separated id for Wan 2.7 Image Pro (#11296)", async () => {
+  const captured = await runKieMarketGeneration("kie/wan/2.7-image-pro");
+
+  assert.equal(captured.create.body.model, "wan/2-7-image-pro");
 });
 
 test("KIE Market createTask leaves genuinely namespaced upstream ids untouched (#11225 control)", async () => {
@@ -277,4 +409,138 @@ test("KIE direct image routing keeps the gpt4o-image endpoint and payload shape"
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+// #11296 — flux/kontext is catalogued with `isMarket: true`, but KIE does not
+// expose it through the Market catalog: it lives under a dedicated API tree
+// (POST /api/v1/flux/kontext/generate, GET /api/v1/flux/kontext/record-info).
+// Sending it through the Market createTask flow gets rejected with "model
+// name not supported" -- these tests lock in the dedicated-endpoint reroute
+// and guard against a future regression back to the Market flow.
+
+test("KIE flux/kontext routes to the dedicated Flux Kontext endpoint, never the Market createTask endpoint (#11296)", async () => {
+  const originalFetch = globalThis.fetch;
+  let createUrl = "";
+  let createBody: Record<string, unknown> | undefined;
+  let pollUrl = "";
+
+  globalThis.fetch = (async (url: unknown, options: { body?: unknown } = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.kie.ai/api/v1/flux/kontext/generate") {
+      createUrl = stringUrl;
+      createBody = JSON.parse(String(options.body ?? "{}")) as Record<string, unknown>;
+      return new Response(JSON.stringify({ code: 200, data: { taskId: "kie-flux-kontext-1" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl.startsWith("https://api.kie.ai/api/v1/flux/kontext/record-info")) {
+      pollUrl = stringUrl;
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          data: {
+            state: "success",
+            resultJson: JSON.stringify({
+              resultUrls: ["https://example.com/kie-flux-kontext-image.png"],
+            }),
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    // Any other URL (in particular the Market createTask/recordInfo endpoints)
+    // is the regression this test guards against.
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  }) as typeof globalThis.fetch;
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "kie/flux/kontext",
+        prompt: "a calm harbour at sunrise",
+        size: "1024x1024",
+        n: 1,
+      },
+      credentials: { apiKey: "test-kie-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true, "KIE flux/kontext generation should succeed");
+    assert.equal(createUrl, "https://api.kie.ai/api/v1/flux/kontext/generate");
+    assert.deepEqual(createBody, {
+      prompt: "a calm harbour at sunrise",
+      aspectRatio: "1:1",
+      model: "flux-kontext-pro",
+    });
+    assert.equal(new URL(pollUrl).searchParams.get("taskId"), "kie-flux-kontext-1");
+    assert.ok("data" in result, "successful KIE generation must return image data");
+    assert.equal(result.data.data[0].url, "https://example.com/kie-flux-kontext-image.png");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("KIE flux/kontext forwards an input image as 'inputImage' for edit calls (#11296)", async () => {
+  const originalFetch = globalThis.fetch;
+  let createBody: Record<string, unknown> | undefined;
+
+  globalThis.fetch = (async (url: unknown, options: { body?: unknown } = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.kie.ai/api/v1/flux/kontext/generate") {
+      createBody = JSON.parse(String(options.body ?? "{}")) as Record<string, unknown>;
+      return new Response(JSON.stringify({ code: 200, data: { taskId: "kie-flux-kontext-2" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl.startsWith("https://api.kie.ai/api/v1/flux/kontext/record-info")) {
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          data: {
+            state: "success",
+            resultJson: JSON.stringify({
+              resultUrls: ["https://example.com/kie-flux-kontext-edit.png"],
+            }),
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  }) as typeof globalThis.fetch;
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "kie/flux/kontext",
+        prompt: "add a lighthouse",
+        size: "1024x1024",
+        n: 1,
+        image: "https://example.com/source.png",
+      },
+      credentials: { apiKey: "test-kie-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(createBody?.inputImage, "https://example.com/source.png");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("flux/kontext is not part of the KIE Market upstream id map (#11296)", () => {
+  assert.equal(
+    KIE_MARKET_UPSTREAM_MODEL_IDS.has("flux/kontext"),
+    false,
+    "flux/kontext is rerouted to a dedicated endpoint, not id-rewritten through the Market map"
+  );
 });

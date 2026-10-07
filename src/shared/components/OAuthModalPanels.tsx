@@ -89,6 +89,7 @@ export function OAuthDeviceCodePanel({
 type OAuthLoopbackMismatchPanelProps = {
   providerName: string;
   hint: PkceLoopbackMismatchHint;
+  onManualInput: () => void;
   onClose: () => void;
 };
 
@@ -103,6 +104,7 @@ type OAuthLoopbackMismatchPanelProps = {
 export function OAuthLoopbackMismatchPanel({
   providerName,
   hint,
+  onManualInput,
   onClose,
 }: OAuthLoopbackMismatchPanelProps) {
   const t = useTranslations("oauthModal");
@@ -194,6 +196,9 @@ export function OAuthLoopbackMismatchPanel({
         <p className="text-xs text-text-muted">{t("loopbackMismatchAlternative")}</p>
       </div>
       <div className="flex gap-2">
+        <Button onClick={onManualInput} fullWidth>
+          {t("popupBlocked")}
+        </Button>
         <Button onClick={onClose} variant="secondary" fullWidth>
           {t("cancel")}
         </Button>

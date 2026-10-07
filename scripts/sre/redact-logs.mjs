@@ -50,17 +50,9 @@ import process from "node:process";
 
 export const REDACT_PATTERNS = Object.freeze([
   // 1. Anthropic keys: sk-ant-api03-... / sk-ant-... (must beat the generic sk-)
-  [
-    "ANTHROPIC_KEY",
-    /\bsk-ant-[A-Za-z0-9_\-]{20,}\b/g,
-    "[REDACTED_API_KEY]",
-  ],
+  ["ANTHROPIC_KEY", /\bsk-ant-[A-Za-z0-9_\-]{20,}\b/g, "[REDACTED_API_KEY]"],
   // 2. Google API keys: AIza... (39 chars total)
-  [
-    "GOOGLE_KEY",
-    /\bAIza[A-Za-z0-9_\-]{35}\b/g,
-    "[REDACTED_API_KEY]",
-  ],
+  ["GOOGLE_KEY", /\bAIza[A-Za-z0-9_\-]{35}\b/g, "[REDACTED_API_KEY]"],
   // 3. GitHub tokens (classic + fine-grained + PAT prefixes)
   [
     "GITHUB_TOKEN",
@@ -74,11 +66,7 @@ export const REDACT_PATTERNS = Object.freeze([
     "[REDACTED_API_KEY]",
   ],
   // 5. AWS access keys — AKIA / ASIA prefixes, 20 chars total
-  [
-    "AWS_KEY",
-    /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g,
-    "[REDACTED_AWS_KEY]",
-  ],
+  ["AWS_KEY", /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g, "[REDACTED_AWS_KEY]"],
   // 6. Bearer tokens — Authorization: Bearer xxxx (16+ chars)
   [
     "BEARER",
@@ -86,11 +74,7 @@ export const REDACT_PATTERNS = Object.freeze([
     "[REDACTED_BEARER]",
   ],
   // 7. Email — RFC 5322-ish; rejects obvious junk but stays compact.
-  [
-    "EMAIL",
-    /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}\b/g,
-    "[REDACTED_EMAIL]",
-  ],
+  ["EMAIL", /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}\b/g, "[REDACTED_EMAIL]"],
   // 8. Generic api_key / apiKey / password= value pairs (12+ char secret)
   [
     "GENERIC_KEY",
@@ -173,14 +157,37 @@ export function redact(line) {
 export class RedactTransform extends TransformStream {
   constructor() {
     const counts = {};
+    const decoder = new TextDecoder("utf-8");
+    const encoder = new TextEncoder();
+    let pendingLine = "";
+
+    const emitRedacted = (text, controller) => {
+      if (text.length === 0) return;
+
+      const { output, counts: localCounts } = redactString(text);
+      for (const [name, n] of Object.entries(localCounts)) {
+        counts[name] = (counts[name] ?? 0) + n;
+      }
+      controller.enqueue(encoder.encode(output));
+    };
+
     super({
       transform(chunk, controller) {
-        const text = typeof chunk === "string" ? chunk : new TextDecoder("utf-8").decode(chunk);
-        const { output, counts: localCounts } = redactString(text);
-        for (const [name, n] of Object.entries(localCounts)) {
-          counts[name] = (counts[name] ?? 0) + n;
+        const text =
+          typeof chunk === "string"
+            ? decoder.decode() + chunk
+            : decoder.decode(chunk, { stream: true });
+        pendingLine += text;
+
+        const lastNewline = pendingLine.lastIndexOf("\n");
+        if (lastNewline >= 0) {
+          emitRedacted(pendingLine.slice(0, lastNewline + 1), controller);
+          pendingLine = pendingLine.slice(lastNewline + 1);
         }
-        controller.enqueue(new TextEncoder().encode(output));
+      },
+      flush(controller) {
+        pendingLine += decoder.decode();
+        emitRedacted(pendingLine, controller);
       },
     });
     // Attach counts as an enumerable own property so tests can read it.
@@ -250,9 +257,7 @@ async function main() {
     const webDecoded = webSrc.pipeThrough(new TextDecoderStream("utf-8"));
     const webEncoded = webDecoded.pipeThrough(transform);
 
-    const sink = args.output
-      ? createWriteStream(args.output, "utf8")
-      : process.stdout;
+    const sink = args.output ? createWriteStream(args.output, "utf8") : process.stdout;
     const webSink = WritableStreamWeb.toWeb(sink);
 
     try {

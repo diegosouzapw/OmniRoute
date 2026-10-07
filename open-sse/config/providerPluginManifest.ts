@@ -1,7 +1,18 @@
 import type { RegistryEntry, RegistryModel } from "./providers/shared.ts";
+import { USAGE_FETCHER_PROVIDERS } from "../services/usage/fetcherProviders.ts";
+import { USAGE_SUPPORTED_PROVIDERS } from "../services/usage/supportedProviders.ts";
+import { hasFreeTierProvider } from "./freeTierProviders.ts";
 
 export type ProviderPluginCapability =
-  "apikey" | "custom-executor" | "oauth" | "passthrough-models" | "responses" | "sidecar-candidate";
+  | "apikey"
+  | "custom-executor"
+  | "free-tier"
+  | "oauth"
+  | "passthrough-models"
+  | "responses"
+  | "sidecar-candidate"
+  | "usage-fetch"
+  | "usage-supported";
 
 export interface ProviderPluginModel {
   id: string;
@@ -51,6 +62,22 @@ export interface ProviderPluginManifest {
 }
 
 const SIDECAR_COMPATIBLE_EXECUTORS = new Set(["default"]);
+
+/**
+ * Providers with a wired `getUsageForProvider` implementation (#11722). The list mixes
+ * canonical ids ("hyperagent") with aliases ("ha") because it is keyed by the strings the
+ * usage dispatcher accepts, so `capabilitiesFor` resolves an entry on both.
+ */
+const USAGE_FETCHER_PROVIDER_SET = new Set<string>(USAGE_FETCHER_PROVIDERS);
+
+/**
+ * Providers whose usage API is accepted by dashboard/server routes (#10078).
+ * Unlike USAGE_FETCHER_PROVIDERS this gate is checked with a plain
+ * `USAGE_SUPPORTED_PROVIDERS.includes(providerId)` — no alias resolution —
+ * so the manifest must emit on the identifier alone to stay faithful to the
+ * runtime guard.
+ */
+const USAGE_SUPPORTED_PROVIDER_SET = new Set<string>(USAGE_SUPPORTED_PROVIDERS);
 
 function compactObject<T extends Record<string, unknown>>(value: T): Partial<T> {
   return Object.fromEntries(
@@ -121,6 +148,18 @@ function capabilitiesFor(entry: RegistryEntry, eligible: boolean): ProviderPlugi
   }
   if (eligible) {
     capabilities.add("sidecar-candidate");
+  }
+  if (
+    USAGE_FETCHER_PROVIDER_SET.has(entry.id) ||
+    (entry.alias !== undefined && USAGE_FETCHER_PROVIDER_SET.has(entry.alias))
+  ) {
+    capabilities.add("usage-fetch");
+  }
+  if (USAGE_SUPPORTED_PROVIDER_SET.has(entry.id)) {
+    capabilities.add("usage-supported");
+  }
+  if ([entry.id, entry.alias].some(hasFreeTierProvider)) {
+    capabilities.add("free-tier");
   }
 
   return [...capabilities].sort();

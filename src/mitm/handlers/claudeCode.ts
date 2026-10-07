@@ -8,7 +8,7 @@
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentId } from "../types";
-import { MitmHandlerBase } from "./base";
+import { MitmHandlerBase, createBoundedCollector } from "./base";
 
 export class ClaudeCodeHandler extends MitmHandlerBase {
   readonly agentId: AgentId = "claude-code";
@@ -51,17 +51,17 @@ export class ClaudeCodeHandler extends MitmHandlerBase {
         throw new Error(`OmniRoute ${upstream.status}: ${errText}`);
       }
 
-      let collected = "";
+      const sink = createBoundedCollector();
       await this.pipeSSE(upstream, res, (chunk) => {
-        collected += chunk.toString();
+        sink.push(chunk.toString());
       });
 
       const total = this.now() - startedAt;
       this.hookBufferUpdate(intercepted, {
         status: upstream.status,
         responseHeaders: Object.fromEntries(upstream.headers.entries()),
-        responseBody: collected,
-        responseSize: Buffer.byteLength(collected),
+        responseBody: sink.text,
+        responseSize: sink.totalBytes,
         proxyLatencyMs: upstreamStart - startedAt,
         upstreamLatencyMs: total - (upstreamStart - startedAt),
       });

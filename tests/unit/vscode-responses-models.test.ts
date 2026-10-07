@@ -86,9 +86,7 @@ test("vscode model metadata routes keep Responses text-generation models", async
   ]);
   const rawBody = (await rawResponse.json()) as { data?: MetadataModel[] };
   const groupedBody = (await groupedResponse.json()) as { data?: MetadataModel[] };
-  const rawModel = (rawBody.data || []).find(
-    (entry) => entry.id === "cx/future-codex-responses"
-  );
+  const rawModel = (rawBody.data || []).find((entry) => entry.id === "cx/future-codex-responses");
   const groupedModel = (groupedBody.data || []).find(
     (entry) => entry.root === "future-codex-responses"
   );

@@ -15,6 +15,11 @@ export const QUOTA_AUTOPING_FAILURE_COOLDOWN_MS = 15 * 60 * 1000;
 // within this window of it (Codex resetAt slides constantly while idle, so we
 // still poll every tick, but this bounds how eagerly we ping right after a slide).
 export const QUOTA_AUTOPING_REFRESH_AHEAD_MS = 5 * 60 * 1000;
+// #13601: never ping to warm a window whose reset is further out than this.
+// The Codex session window rolls every ~5h; a reset days away means the
+// account is long-term exhausted/disabled and the ping can only fail —
+// previously one such account produced 146 futile `ping failed` warns.
+export const QUOTA_AUTOPING_FAR_RESET_SKIP_MS = 24 * 60 * 60 * 1000;
 
 export type QuotaAutoPingProviderConfig = {
   settingsKey: string;
@@ -27,7 +32,11 @@ export type QuotaAutoPingProviderConfig = {
   minPingIntervalMs: number;
   /** Skip the ping when a non-session quota (e.g. weekly) is already exhausted. */
   skipWhenBlockingQuotaExhausted: true;
-  pingModel: string;
+  // The ping model is deliberately NOT part of this config (#11905): a pinned id
+  // outlives its vendor lifecycle (`gpt-5.1-codex-mini` was shut down 2026-07-23
+  // while still hardcoded here). It is resolved per tick from the live provider
+  // catalog + lifecycle registry — see resolveQuotaAutoPingModel in
+  // src/lib/services/quotaAutoPing.ts.
   pingText: string;
   pingInstructions: string;
   pingReasoningEffort: string;
@@ -41,7 +50,6 @@ export const QUOTA_AUTOPING_PROVIDERS: Record<"codex", QuotaAutoPingProviderConf
     resetAtDriftMs: 30_000,
     minPingIntervalMs: 10 * 60 * 1000,
     skipWhenBlockingQuotaExhausted: true,
-    pingModel: "gpt-5.1-codex-mini",
     pingText: "hi",
     pingInstructions: "Reply with OK.",
     pingReasoningEffort: "none",

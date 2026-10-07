@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAllKeyGroups, createKeyGroup, getKeyGroup } from "@/lib/localDb";
+import { getAllKeyGroups, createKeyGroup, getKeyGroup } from "@/lib/db/apiKeyGroups";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const createKeyGroupSchema = z.object({

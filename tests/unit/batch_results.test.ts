@@ -8,14 +8,10 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-res
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-123";
 
-const {
-  createFile,
-  createBatch,
-  getBatch,
-  getFileContent,
-  createProviderConnection,
-  createApiKey,
-} = await import("../../src/lib/localDb.ts");
+const { createFile, getFileContent } = await import("@/lib/db/files");
+const { createBatch, getBatch } = await import("@/lib/db/batches");
+const { createProviderConnection } = await import("@/lib/db/providers");
+const { createApiKey } = await import("@/lib/db/apiKeys");
 const { initBatchProcessor, stopBatchProcessor, waitForAllBatches, processPendingBatches } =
   await import("../../open-sse/services/batchProcessor.ts");
 
@@ -127,7 +123,7 @@ test("Batch processor produces output file for successful items", async () => {
       assert.ok(obj.response && typeof obj.response.status_code === "number");
 
       // Output file should have an expiration timestamp set (30 days default)
-      const { getFile } = await import("../../src/lib/localDb.ts");
+      const { getFile } = await import("@/lib/db/files");
       const fileRow = getFile(currentBatch.outputFileId!);
       assert.ok(fileRow?.expiresAt && typeof fileRow.expiresAt === "number");
     }

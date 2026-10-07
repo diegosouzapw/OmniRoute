@@ -20,9 +20,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "omni-xiaomi-"));
 process.env.DATA_DIR = TMP;
 
 const core = await import("../../src/lib/db/core.ts");
-const { getMonthlyProviderTokensForConnection } = await import(
-  "../../src/lib/usage/usageStats.ts"
-);
+const { getMonthlyProviderTokensForConnection } = await import("../../src/lib/usage/usageStats.ts");
 const { __testing } = await import("../../open-sse/services/usage.ts");
 const { getXiaomiMimoUsage } = __testing;
 
@@ -82,7 +80,16 @@ describe("xiaomi-mimo self-tracked quota", () => {
   it("getXiaomiMimoUsage returns a monthly quota against the 4.1B limit", async () => {
     const r = (await getXiaomiMimoUsage("conn-x")) as {
       plan?: string;
-      quotas?: Record<string, { used: number; total: number; remaining?: number; remainingPercentage?: number; resetAt: string | null }>;
+      quotas?: Record<
+        string,
+        {
+          used: number;
+          total: number;
+          remaining?: number;
+          remainingPercentage?: number;
+          resetAt: string | null;
+        }
+      >;
       message?: string;
     };
     assert.ok(r.quotas, `expected quotas, got message: ${r.message}`);

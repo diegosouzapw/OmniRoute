@@ -53,6 +53,29 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   "src/app/api/cli-tools/forge-settings", // GET calls getCliRuntimeStatus() to detect the `forge` CLI install (Hard Rules #15 + #17, #7263)
   "src/app/api/cli-tools/jcode-settings", // GET calls getCliRuntimeStatus() to detect the `jcode` CLI install (Hard Rules #15 + #17, #7263)
   "src/app/api/cli-tools/qwen-settings", // GET calls getCliRuntimeStatus("qwen") and writes local ~/.qwen config files (Hard Rules #15 + #17)
+  // GHSA-35fw-cv32-2373: the 14 cli-tools routes that reach the same spawn as the siblings
+  // above via getCliRuntimeStatus() (13) or detectAllTools() -> execFile (detect).
+  "src/app/api/cli-tools/all-statuses", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/claude-settings", // GET calls getCliRuntimeStatus() to detect the `claude` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/cline-settings", // GET calls getCliRuntimeStatus() to detect the `cline` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/codewhale-settings", // GET calls getCliRuntimeStatus() to detect the `codewhale` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/codex-settings", // GET calls getCliRuntimeStatus() to detect the `codex` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/crush-settings", // GET calls getCliRuntimeStatus() to detect the `crush` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/deepseek-tui-settings", // GET calls getCliRuntimeStatus() to detect the `deepseek-tui` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/detect", // GET calls detectAllTools() -> execFile(binary, --version) + execFile("which") per tool via src/lib/cli-helper/tool-detector.ts (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/droid-settings", // GET calls getCliRuntimeStatus() to detect the `droid` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/kilo-settings", // GET calls getCliRuntimeStatus() to detect the `kilo` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/openclaw-settings", // GET calls getCliRuntimeStatus() to detect the `openclaw` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/pi-settings", // GET calls getCliRuntimeStatus() to detect the `pi` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/smelt-settings", // GET calls getCliRuntimeStatus() to detect the `smelt` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  "src/app/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
+  // GHSA-jx89-f37j-pq89: skills install + execute reach childProcess.spawn transitively
+  // (executor.ts -> builtins.ts -> sandbox.ts) — invisible to the source-scan subcheck.
+  "src/app/api/skills/install", // POST stores handlerCode verbatim; a built-in name aliases execute_command / eval_code (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
+  "src/app/api/skills/executions", // POST runs skillExecutor.execute() -> sandbox container spawn (Hard Rules #15 + #17, GHSA-jx89-f37j-pq89)
+  // install / start / restart / stop reach the CLIProxyAPI download + ServiceSupervisor spawn
+  // transitively, which the source-scan subcheck cannot see.
+  "src/app/api/version-manager", // downloads, unpacks and runs the CLIProxyAPI binary (Hard Rules #15 + #17)
 ];
 
 // Frozen pre-existing exceptions: spawn-capable routes NOT yet classified
@@ -156,6 +179,36 @@ export function findSpawnCapableRoutes(repoRoot: string): string[] {
  * Adding an entry here requires a justification + follow-up issue.
  */
 export const KNOWN_UNCLASSIFIED_SOURCE_SPAWN: Record<string, string> = {
+  // S-01 (audit #15159, 2026-09-30): NOT unclassified security debt — the spawn IS
+  // classified, just not at the path level, so this freeze records a deliberate
+  // design decision rather than an open gap.
+  //
+  // `src/app/api/providers/[id]/models/route.ts` transitively spawns via
+  // fetchCursorAgentModels() -> runCursorAgent() -> spawn() at
+  // src/lib/providerModels/cursorAgent.ts:17, but ONLY on the `provider === "cursor"`
+  // branch. `{id}` is a CONNECTION id, never a provider name, so NO path pattern can
+  // separate the Cursor spawn from the ~50 other providers' pure-HTTP discovery in
+  // this same route. Gating `/api/providers/[^/]+/models` as a LOCAL_ONLY pattern
+  // would lock remote model discovery for every non-Cursor provider — precisely the
+  // over-broadening the `/api/providers/[^/]+/login` precedent exists to avoid.
+  //
+  // Enforced instead at the spawn call site: the route requires
+  // `x-omniroute-peer-locality === "loopback"` (stamped by the authz pipeline from the
+  // real TCP peer, never the spoofable Host header) before calling
+  // fetchCursorAgentModels(), and fails closed to the cached/local catalog otherwise —
+  // the same pattern as handleCursorAgentImageGeneration in
+  // open-sse/handlers/imageGeneration/providers/cursorAgentImage.ts.
+  // Regression guard: tests/unit/authz/route-guard-providers-spawn-local-only.test.ts
+  // (asserts the guard exists, precedes the spawn, and fails closed).
+  //
+  // Follow-up: G-09 (same audit) — the gate matches `spawn(`/`exec(` only INSIDE
+  // route.ts, so it cannot follow this transitive/conditional chain. Fixing G-09
+  // (import-graph walk) would let this entry be removed.
+  "src/app/api/providers/[id]/models/route.ts":
+    'S-01 #15159: cursor-agent spawn is provider-conditional (provider === "cursor") and `{id}` is a connection id, ' +
+    "so it cannot be path-classified without locking every other provider's remote model discovery. " +
+    "Gated at the call site on the trusted x-omniroute-peer-locality loopback stamp instead (fail-closed). " +
+    "Tracked by G-09 (gate cannot follow transitive spawns).",
   // RESOLVED (6A.8 P1, 2026-06-13): /api/system/version and /api/db-backups/exportAll
   // are now classified in LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth).
   // The stale-enforcement guard requires this set to stay empty until a NEW

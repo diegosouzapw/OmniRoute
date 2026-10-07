@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import CliStatusBadge from "./CliStatusBadge";
@@ -14,6 +14,41 @@ import {
 } from "@/shared/services/claudeCliConfig";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+
+// (#523) Default to the first available key while the user hasn't picked one.
+const defaultKeyId = (selectedId, apiKeys) =>
+  selectedId || (apiKeys?.length > 0 ? apiKeys[0].id : "");
+
+/**
+ * One-time form initialization from ~/.claude/settings.json, applied right
+ * after a status fetch resolves: mirror the env model mappings into the form
+ * and re-select the API key whose masked value matches the stored token.
+ */
+function initClaudeFormFromSettings(
+  data,
+  apiKeys,
+  defaultModels,
+  onModelMappingChange,
+  onSelectKey
+) {
+  const env = data.settings?.env || {};
+
+  defaultModels.forEach((model) => {
+    if (!model.envKey) return;
+    const value = env[model.envKey] || model.defaultValue || "";
+    // Only sync initial values from file once
+    if (value) onModelMappingChange(model.alias, value);
+  });
+
+  // Restore selected key from file: match token stored in file against known keys
+  const tokenFromFile = getStoredClaudeAuthValue(env);
+  if (!tokenFromFile) return;
+  // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
+  // Mask the token from file to compare against the masked list.
+  const maskedToken = tokenFromFile.slice(0, 8) + "****" + tokenFromFile.slice(-4);
+  const matchedKey = apiKeys?.find((k) => k.key === maskedToken);
+  if (matchedKey) onSelectKey(matchedKey.id);
+}
 
 export default function ClaudeToolCard({
   tool,
@@ -64,23 +99,13 @@ export default function ClaudeToolCard({
   // Use batch status as fallback when card hasn't been expanded yet
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
-  useEffect(() => {
-    // (#523) Store the key *id* (not the masked string) so the backend can
-    // resolve the real secret from DB before writing to settings.json.
-    if (apiKeys?.length > 0 && !selectedApiKey) {
-      setSelectedApiKey(apiKeys[0].id);
-    }
-  }, [apiKeys, selectedApiKey]);
+  // (#523) Store the key *id* (not the masked string) so the backend can
+  // resolve the real secret from DB before writing to settings.json. Derived
+  // during render instead of synced through an effect
+  // (react-hooks/set-state-in-effect).
+  const effectiveApiKey = defaultKeyId(selectedApiKey, apiKeys);
 
-  useEffect(() => {
-    if (isExpanded && !claudeStatus) {
-      checkClaudeStatus();
-      fetchModelAliases();
-      fetchBackups();
-    }
-  }, [isExpanded, claudeStatus]);
-
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       const data = await res.json();
@@ -88,46 +113,53 @@ export default function ClaudeToolCard({
     } catch (error) {
       console.log("Error fetching model aliases:", error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    if (claudeStatus?.installed && !hasInitializedModels.current) {
-      hasInitializedModels.current = true;
-      const env = claudeStatus.settings?.env || {};
-
-      tool.defaultModels.forEach((model) => {
-        if (model.envKey) {
-          const value = env[model.envKey] || model.defaultValue || "";
-          // Only sync initial values from file once
-          if (value) {
-            onModelMappingChange(model.alias, value);
-          }
-        }
-      });
-      // Restore selected key from file: match token stored in file against known keys
-      const tokenFromFile = getStoredClaudeAuthValue(env);
-      if (tokenFromFile) {
-        // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
-        // Mask the token from file to compare against the masked list.
-        const maskedToken = tokenFromFile.slice(0, 8) + "****" + tokenFromFile.slice(-4);
-        const matchedKey = apiKeys?.find((k) => k.key === maskedToken);
-        if (matchedKey) setSelectedApiKey(matchedKey.id);
-      }
+  // ── Backups ──
+  const fetchBackups = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cli-tools/backups?tool=claude");
+      const data = await res.json();
+      if (res.ok) setBackups(data.backups || []);
+    } catch (error) {
+      console.log("Error fetching backups:", error);
     }
-  }, [claudeStatus, apiKeys, tool.defaultModels, onModelMappingChange]);
+  }, []);
 
-  const checkClaudeStatus = async () => {
+  const checkClaudeStatus = useCallback(async () => {
     setCheckingClaude(true);
     try {
       const res = await fetch("/api/cli-tools/claude-settings");
       const data = await res.json();
       setClaudeStatus(data);
+      // One-time form initialization from the settings file, right after the
+      // fetch resolves (was a separate claudeStatus effect — moved here so no
+      // setState runs synchronously inside an effect body).
+      if (data?.installed && !hasInitializedModels.current) {
+        hasInitializedModels.current = true;
+        initClaudeFormFromSettings(
+          data,
+          apiKeys,
+          tool.defaultModels,
+          onModelMappingChange,
+          setSelectedApiKey
+        );
+      }
     } catch (error) {
       setClaudeStatus({ installed: false, error: error.message });
     } finally {
       setCheckingClaude(false);
     }
-  };
+  }, [apiKeys, tool.defaultModels, onModelMappingChange]);
+
+  useEffect(() => {
+    if (!(isExpanded && !claudeStatus)) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([checkClaudeStatus(), fetchModelAliases(), fetchBackups()]);
+    })();
+  }, [isExpanded, claudeStatus, checkClaudeStatus, fetchModelAliases, fetchBackups]);
 
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || baseUrl;
@@ -148,7 +180,7 @@ export default function ClaudeToolCard({
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       // If no key is selected, leave auth unset so local installs can rely on
       // anonymous access instead of persisting a fake placeholder token.
-      const selectedKeyId = selectedApiKey?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+      const selectedKeyId = effectiveApiKey?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
       tool.defaultModels.forEach((model) => {
         const targetModel = modelMappings[model.alias] || model.defaultValue || "";
@@ -225,7 +257,7 @@ export default function ClaudeToolCard({
   // Generate settings.json content for manual copy
   const getManualConfigs = () => {
     const env = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
-    if (selectedApiKey && selectedApiKey.trim()) {
+    if (effectiveApiKey && effectiveApiKey.trim()) {
       env.ANTHROPIC_AUTH_TOKEN = "<API_KEY_FROM_DASHBOARD>";
     } else if (cloudEnabled) {
       env.ANTHROPIC_AUTH_TOKEN = "<API_KEY_FROM_DASHBOARD>";
@@ -242,17 +274,6 @@ export default function ClaudeToolCard({
         content: JSON.stringify({ env }, null, 2),
       },
     ];
-  };
-
-  // ── Backups ──
-  const fetchBackups = async () => {
-    try {
-      const res = await fetch("/api/cli-tools/backups?tool=claude");
-      const data = await res.json();
-      if (res.ok) setBackups(data.backups || []);
-    } catch (error) {
-      console.log("Error fetching backups:", error);
-    }
   };
 
   const handleRestoreBackup = async (backupId) => {
@@ -436,7 +457,7 @@ export default function ClaudeToolCard({
                   </span>
                   {apiKeys.length > 0 ? (
                     <select
-                      value={selectedApiKey}
+                      value={effectiveApiKey}
                       onChange={(e) => setSelectedApiKey(e.target.value)}
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >

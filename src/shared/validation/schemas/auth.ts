@@ -183,14 +183,11 @@ export const traeImportSchema = z.object({
   scope: z.string().trim().optional(),
   tenant: z.string().trim().optional(),
   region: z.string().trim().optional(),
-});
-
-export const raycastImportSchema = z.object({
-  accessToken: z.string().trim().min(1, "Raycast bearer token is required"),
-  deviceId: z.string().trim().min(1, "Raycast device ID is required"),
-  aid: z.string().trim().optional(),
-  signatureJwt: z.string().trim().optional(),
-  sigSecret: z.string().trim().optional(),
+  // Real account region (e.g. "SG") sent as the x-user-region header — the
+  // "US" default only works for US accounts and produces a 401 for others
+  // (#12190). Optional so existing imports keep behaving as before.
+  userRegion: z.string().trim().optional(),
+  userTimezone: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({

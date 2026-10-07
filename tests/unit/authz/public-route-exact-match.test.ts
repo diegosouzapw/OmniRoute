@@ -102,11 +102,7 @@ test("CORS relaxation reason set is unchanged", () => {
 });
 
 test("LOCAL_ONLY oauth auto-import exclusions still win over the /api/oauth/ subtree", () => {
-  for (const route of [
-    "/api/oauth/cursor/auto-import",
-    "/api/oauth/kiro/auto-import",
-    "/api/oauth/raycast/auto-import",
-  ]) {
+  for (const route of ["/api/oauth/cursor/auto-import", "/api/oauth/kiro/auto-import"]) {
     assert.equal(isPublicApiRoute(route, "POST"), false, route);
     assert.equal(classifyRoute(route, "POST").routeClass, "MANAGEMENT", route);
   }

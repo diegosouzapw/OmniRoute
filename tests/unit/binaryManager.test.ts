@@ -11,13 +11,15 @@ process.env.DATA_DIR = tmpDir;
 afterEach(() => {
   const binDir = path.join(tmpDir, "bin");
   try {
-    if (fs.existsSync(binDir)) fs.rmSync(binDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    if (fs.existsSync(binDir))
+      fs.rmSync(binDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 
 after(() => {
   process.env.DATA_DIR = originalDataDir;
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (fs.existsSync(tmpDir))
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("binaryManager", () => {
@@ -170,8 +172,8 @@ describe("binaryManager", () => {
       fs.mkdirSync(fakePowerShellDir, { recursive: true });
       fs.writeFileSync(
         path.join(fakePowerShellDir, "powershell"),
-        "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$OMNI_TEST_COMMAND_LOG\"\n"
-          + "mkdir -p \"$OMNI_TEST_EXTRACT_DIR\"\nprintf 'installed-binary' > \"$OMNI_TEST_EXTRACT_DIR/cli-proxy-api\"\n"
+        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$OMNI_TEST_COMMAND_LOG"\n' +
+          'mkdir -p "$OMNI_TEST_EXTRACT_DIR"\nprintf \'installed-binary\' > "$OMNI_TEST_EXTRACT_DIR/cli-proxy-api"\n'
       );
       fs.chmodSync(path.join(fakePowerShellDir, "powershell"), 0o755);
       process.env.PATH = `${fakePowerShellDir}:${originalPath || ""}`;
@@ -276,8 +278,8 @@ describe("binaryManager", () => {
       fs.mkdirSync(fakePowerShellDir, { recursive: true });
       fs.writeFileSync(
         path.join(fakePowerShellDir, "powershell"),
-        "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$OMNI_TEST_COMMAND_LOG_PT\"\n"
-          + "mkdir -p \"$OMNI_TEST_EXTRACT_DIR_PT\"\nprintf 'installed-binary' > \"$OMNI_TEST_EXTRACT_DIR_PT/cli-proxy-api\"\n"
+        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$OMNI_TEST_COMMAND_LOG_PT"\n' +
+          'mkdir -p "$OMNI_TEST_EXTRACT_DIR_PT"\nprintf \'installed-binary\' > "$OMNI_TEST_EXTRACT_DIR_PT/cli-proxy-api"\n'
       );
       fs.chmodSync(path.join(fakePowerShellDir, "powershell"), 0o755);
       process.env.PATH = `${fakePowerShellDir}:${originalPath || ""}`;

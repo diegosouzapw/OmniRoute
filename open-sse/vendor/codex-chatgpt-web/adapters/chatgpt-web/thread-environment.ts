@@ -1,4 +1,4 @@
-/* Adapted from miuuyy/codex-chatgpt-web commit 55592fca0ba19a27f1b769cec8fff61ff340a785 (MIT). */
+/* Adapted from miuuyy/codex-chatgpt-web commit 09877fa21ffdbf20979623ef501046fc02a750d7 (MIT). */
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 import { atomicWriteFile } from "../../config";
@@ -6,6 +6,7 @@ import type { CodexParsedRequest } from "../../types";
 import {
   extractChatGptTurnEnvironment,
   extractChatGptTurnIdentity,
+  extractChatGptThreadSpawnLineage,
   MissingTrustedCodexEnvironmentError,
   type ChatGptSandboxPolicy,
   type ChatGptTurnEnvironment,
@@ -33,8 +34,13 @@ function record(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
+function pathIdentity(value: string): string {
+  const normalized = resolve(value);
+  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+}
+
 function contains(root: string, path: string): boolean {
-  const rel = relative(root, path);
+  const rel = relative(pathIdentity(root), pathIdentity(path));
   return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
@@ -46,7 +52,11 @@ function absolutePaths(value: unknown, field: string): string[] {
   ) {
     throw new Error(`Invalid persisted ChatGPT thread ${field}`);
   }
-  return [...new Set(value.map((path) => resolve(path as string)))];
+  const unique = new Map<string, string>();
+  for (const path of value.map((path) => resolve(path as string))) {
+    if (!unique.has(pathIdentity(path))) unique.set(pathIdentity(path), path);
+  }
+  return [...unique.values()];
 }
 
 function sandboxPolicy(
@@ -56,9 +66,10 @@ function sandboxPolicy(
 ): ChatGptSandboxPolicy {
   const parsed = record(value);
   if (parsed?.type === "dangerFullAccess") {
+    const rootIdentities = new Set(roots.map(pathIdentity));
     if (
       writableRoots.length !== roots.length ||
-      writableRoots.some((path) => !roots.includes(path))
+      writableRoots.some((path) => !rootIdentities.has(pathIdentity(path)))
     ) {
       throw new Error("Invalid persisted ChatGPT danger-full-access roots");
     }
@@ -145,15 +156,54 @@ export class ChatGptThreadEnvironmentStore {
     } catch (error) {
       if (!(error instanceof MissingTrustedCodexEnvironmentError) || !identity.threadId)
         throw error;
-      const stored = this.get(identity.threadId);
-      if (!stored) throw error;
-      return {
-        cwd: stored.cwd,
-        roots: stored.roots,
-        writableRoots: stored.writableRoots,
-        sandboxPolicy: stored.sandboxPolicy,
+      const sameThread = this.get(identity.threadId);
+      if (sameThread)
+        return {
+          cwd: sameThread.cwd,
+          roots: sameThread.roots,
+          writableRoots: sameThread.writableRoots,
+          sandboxPolicy: sameThread.sandboxPolicy,
+          tools: parsed.context.tools ?? [],
+        };
+
+      const lineage = extractChatGptThreadSpawnLineage(parsed);
+      if (!lineage) throw error;
+      const parent = this.get(lineage.parentThreadId);
+      if (!parent) throw error;
+      if (lineage.sandboxType !== parent.sandboxPolicy.type) {
+        throw new Error(
+          "ChatGPT Web subagent sandbox metadata conflicts with its trusted parent thread"
+        );
+      }
+      if (
+        lineage.workspaceRoots.length > 0 &&
+        !lineage.workspaceRoots.some((root) => contains(root, parent.cwd))
+      ) {
+        throw new Error(
+          "ChatGPT Web subagent workspace metadata does not contain its trusted parent cwd"
+        );
+      }
+      if (
+        lineage.workspaceRoots.some(
+          (root) =>
+            !parent.roots.some(
+              (parentRoot) => contains(parentRoot, root) || contains(root, parentRoot)
+            )
+        )
+      ) {
+        throw new Error(
+          "ChatGPT Web subagent workspace metadata conflicts with its trusted parent roots"
+        );
+      }
+      const inherited: ChatGptTurnEnvironment = {
+        cwd: parent.cwd,
+        roots: parent.roots,
+        writableRoots: parent.writableRoots,
+        sandboxPolicy: parent.sandboxPolicy,
         tools: parsed.context.tools ?? [],
       };
+      this.set(lineage.threadId, inherited);
+      return inherited;
     }
   }
 

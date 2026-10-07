@@ -17,7 +17,9 @@ interface EvalsRoutePayload {
 }
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { resetApiKeyState, createApiKey } = await import("@/lib/db/apiKeys");
+const { saveCustomEvalSuite, saveEvalRun } = await import("@/lib/db/evals");
+const localDb = { resetApiKeyState, createApiKey, saveCustomEvalSuite, saveEvalRun };
 const evalsRoute = await import("../../src/app/api/evals/route.ts");
 const evalSuitesRoute = await import("../../src/app/api/evals/suites/route.ts");
 const evalSuiteByIdRoute = await import("../../src/app/api/evals/suites/[suiteId]/route.ts");

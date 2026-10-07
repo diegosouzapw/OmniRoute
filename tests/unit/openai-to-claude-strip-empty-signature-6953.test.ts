@@ -90,10 +90,11 @@ test("#6953: thinking block with valid signature is preserved verbatim", () => {
   assert.equal(thinkingBlocks[0].signature, realSig, "valid signature must be preserved verbatim");
 });
 
-test("#6953: thinking block with undefined signature (Claude-format) is preserved with fallback", () => {
-  // Claude-format messages may have thinking blocks without a signature field at all.
-  // These are legitimate and must NOT be stripped — only signature:"" (empty string)
-  // indicates a non-Anthropic synthesized block.
+test("#6953/#12105: thinking block with undefined signature is stripped like the empty-string case", () => {
+  // A thinking block without a signature field is what the response translator emits for
+  // cross-provider reasoning_content (#12105). It carries no replayable signature either, so
+  // it must be dropped rather than stamped with the fabricated default — Anthropic rejects
+  // that fabricated signature with HTTP 400 exactly like the empty-string case.
   const result = openaiToClaudeRequest(
     "claude-opus-4-8",
     {
@@ -118,11 +119,11 @@ test("#6953: thinking block with undefined signature (Claude-format) is preserve
   const thinkingBlocks = assistant.content.filter((b) => b && b.type === "thinking");
   assert.equal(
     thinkingBlocks.length,
-    1,
-    "thinking block with undefined signature must be preserved"
+    0,
+    "thinking block with undefined signature must be stripped, not fabricated"
   );
-  assert.equal(thinkingBlocks[0].thinking, "I already have this", "thinking content must match");
-  assert.ok(thinkingBlocks[0].signature, "fallback signature must be applied");
+  const textBlocks = assistant.content.filter((b) => b && b.type === "text");
+  assert.equal(textBlocks.length, 1, "text block must be preserved");
 });
 
 test("#6953: redacted_thinking with empty data is stripped", () => {

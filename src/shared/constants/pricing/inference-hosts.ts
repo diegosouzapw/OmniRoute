@@ -340,26 +340,29 @@ export const DEFAULT_PRICING_INFERENCE = {
       cache_creation: 0,
     },
   },
+  // #11773: Developer-tier $/1M from cerebras.ai/pricing (2026-09-03).
+  // Signup is a one-time $5 credit, not a $0 token grant — keep paid rates
+  // so classifyTier cannot treat Cerebras as the free routing tier.
   cerebras: {
-    "gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
-    "gemma-4-31b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
-    "zai-glm-4.7": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
-    "llama-3.3-70b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
+    "gpt-oss-120b": { input: 0.35, output: 0.75, cached: 0, reasoning: 0, cache_creation: 0 },
+    "gemma-4-31b": { input: 0.4, output: 0.8, cached: 0, reasoning: 0, cache_creation: 0 },
+    "zai-glm-4.7": { input: 2.25, output: 2.75, cached: 0, reasoning: 0, cache_creation: 0 },
+    "llama-3.3-70b": { input: 0.85, output: 1.2, cached: 0, reasoning: 0, cache_creation: 0 },
     "llama-4-scout-17b-16e-instruct": {
-      input: 0,
-      output: 0,
+      input: 0.2,
+      output: 0.2,
       cached: 0,
       reasoning: 0,
       cache_creation: 0,
     },
     "qwen-3-235b-a22b-instruct-2507": {
-      input: 0,
-      output: 0,
+      input: 0.6,
+      output: 1.2,
       cached: 0,
       reasoning: 0,
       cache_creation: 0,
     },
-    "qwen-3-32b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
+    "qwen-3-32b": { input: 0.4, output: 0.8, cached: 0, reasoning: 0, cache_creation: 0 },
   },
   nvidia: {
     "nvidia/gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },

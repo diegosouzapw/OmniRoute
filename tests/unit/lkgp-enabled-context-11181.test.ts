@@ -127,7 +127,7 @@ test("#11181 — a persisted lkgpEnabled:false makes the lkgp strategy delegate 
     lkgpEnabled: false,
   });
 
-  // The whole point of the toggle: the LKGP pin must be ignored and the 6-factor
+  // The whole point of the toggle: the LKGP pin must be ignored and the 16-factor
   // rules scorer must pick the winner instead.
   assert.doesNotMatch(
     selection,

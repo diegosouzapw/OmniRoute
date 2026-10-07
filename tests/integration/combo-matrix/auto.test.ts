@@ -9,7 +9,7 @@
 //   - combo.ts fetches getLKGP(combo.name, combo.id) = getLKGP("auto", "auto") → key "auto:auto".
 //   - LKGPStrategy: if a LKGP record exists for that provider AND the provider is in the
 //     candidate pool, it pins that provider deterministically (no randomness).
-//   - Without a LKGP record, falls back to "rules" 9-factor scorer.
+//   - Without a LKGP record, falls back to "rules" 16-factor scorer.
 //
 // Test 1 strategy: single-request, deterministic.
 //   We seed a LKGP record pointing to "openai" via settingsDb.setLKGP("auto","auto","openai").
@@ -44,15 +44,7 @@ function body(model: string) {
 // connections each test seeds, which is what these assertions are actually
 // about (LKGP pinning and variant pool resolution) — rather than weakening the
 // assertions to accept whatever the open pool happens to pick.
-const NO_AUTH_PROVIDER_IDS = [
-  "opencode",
-  "duckduckgo-web",
-  "felo-web",
-  "theoldllm",
-  "chipotle",
-  "veoaifree-web",
-  "auggie",
-];
+const NO_AUTH_PROVIDER_IDS = ["opencode", "duckduckgo-web", "veoaifree-web", "auggie"];
 
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;

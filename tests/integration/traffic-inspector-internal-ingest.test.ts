@@ -23,9 +23,8 @@ const VALID_TOKEN = "test-ingest-token-abc123xyz789-longer-than-16";
 process.env.INSPECTOR_INTERNAL_INGEST_TOKEN = VALID_TOKEN;
 
 const { globalTrafficBuffer } = await import("../../src/mitm/inspector/buffer.ts");
-const ingestRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/internal/ingest/route.ts"
-);
+const ingestRoute =
+  await import("../../src/app/api/tools/traffic-inspector/internal/ingest/route.ts");
 
 function makeIngestRequest(token: string | null, body: unknown): Request {
   const headers: Record<string, string> = {
@@ -34,14 +33,11 @@ function makeIngestRequest(token: string | null, body: unknown): Request {
   if (token !== null) {
     headers["authorization"] = `Bearer ${token}`;
   }
-  return new Request(
-    "http://localhost/api/tools/traffic-inspector/internal/ingest",
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    }
-  );
+  return new Request("http://localhost/api/tools/traffic-inspector/internal/ingest", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
 }
 
 function minimalEntry(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -73,7 +69,7 @@ test("ingest: POST without Authorization header → 403", async () => {
   const req = makeIngestRequest(null, minimalEntry());
   const res = await ingestRoute.POST(req);
   assert.equal(res.status, 403);
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   assert.ok(!body.error.message.includes("at /"), "must not leak stack trace");
 });
 
@@ -94,7 +90,7 @@ test("ingest: POST with valid token + valid body → 200 + buffer push", async (
   const req = makeIngestRequest(VALID_TOKEN, minimalEntry({ id }));
   const res = await ingestRoute.POST(req);
   assert.equal(res.status, 200);
-  const body = await res.json() as { ok: boolean; id: string };
+  const body = (await res.json()) as { ok: boolean; id: string };
   assert.equal(body.ok, true);
   assert.equal(body.id, id);
 
@@ -113,23 +109,20 @@ test("ingest: valid token + missing required field → 400", async () => {
   });
   const res = await ingestRoute.POST(req);
   assert.equal(res.status, 400);
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   assert.ok(!body.error.message.includes("at /"), "must not leak stack trace");
 });
 
 test("ingest: valid token + invalid JSON → 400", async () => {
   const headers: Record<string, string> = {
     "content-type": "application/json",
-    "authorization": `Bearer ${VALID_TOKEN}`,
+    authorization: `Bearer ${VALID_TOKEN}`,
   };
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/internal/ingest",
-    {
-      method: "POST",
-      headers,
-      body: "not valid json",
-    }
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/internal/ingest", {
+    method: "POST",
+    headers,
+    body: "not valid json",
+  });
   const res = await ingestRoute.POST(req);
   assert.equal(res.status, 400);
 });

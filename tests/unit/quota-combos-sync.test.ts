@@ -22,12 +22,10 @@ const core = await import("../../src/lib/db/core.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
-const { syncQuotaCombos, removeQuotaCombosForPool } = await import(
-  "../../src/lib/quota/quotaCombos.ts"
-);
-const { quotaModelName, isQuotaModelName, parseQuotaModelName, quotaPoolSlug } = await import(
-  "../../src/lib/quota/quotaModelNaming.ts"
-);
+const { syncQuotaCombos, removeQuotaCombosForPool } =
+  await import("../../src/lib/quota/quotaCombos.ts");
+const { quotaModelName, isQuotaModelName, parseQuotaModelName, quotaPoolSlug } =
+  await import("../../src/lib/quota/quotaModelNaming.ts");
 const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
 // ---------------------------------------------------------------------------
@@ -312,7 +310,11 @@ test("syncQuotaCombos: does not affect quota combos for a different provider in 
   });
 
   assert.equal(remainingForA.length, 0, "PoolAlpha (glm) combos should all be removed");
-  assert.equal(remainingForB.length, forB.length, "PoolBeta (openrouter) combos should be untouched");
+  assert.equal(
+    remainingForB.length,
+    forB.length,
+    "PoolBeta (openrouter) combos should be untouched"
+  );
 });
 
 test("syncQuotaCombos: unknown pool id — no throw, prunes nothing (no combos exist)", async () => {

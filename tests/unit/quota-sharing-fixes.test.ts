@@ -146,9 +146,8 @@ test("upsertAllocations: preserves non-zero weights", async () => {
 // ─── Fix 4: storeRateLimitHeaders + Anthropic saturation ─────────────────────
 
 test("storeRateLimitHeaders: stores headers and getSaturation reads them", async () => {
-  const { storeRateLimitHeaders, _clearSaturationCache } = await import(
-    "../../src/lib/quota/saturationSignals.ts"
-  );
+  const { storeRateLimitHeaders, _clearSaturationCache } =
+    await import("../../src/lib/quota/saturationSignals.ts");
 
   _clearSaturationCache();
 
@@ -170,9 +169,8 @@ test("storeRateLimitHeaders: stores headers and getSaturation reads them", async
 });
 
 test("storeRateLimitHeaders: ignores non-Anthropic headers gracefully", async () => {
-  const { storeRateLimitHeaders, _clearSaturationCache, getSaturation } = await import(
-    "../../src/lib/quota/saturationSignals.ts"
-  );
+  const { storeRateLimitHeaders, _clearSaturationCache, getSaturation } =
+    await import("../../src/lib/quota/saturationSignals.ts");
 
   _clearSaturationCache();
 
@@ -199,9 +197,7 @@ test("poolUsageWithDimensions: returns non-null burn rate for token dimensions",
   const pool = poolsDb.createPool({
     connectionId: "conn-burn-rate",
     name: "Burn Rate Pool",
-    allocations: [
-      { apiKeyId: "key-br-1", weight: 100, policy: "hard" },
-    ],
+    allocations: [{ apiKeyId: "key-br-1", weight: 100, policy: "hard" }],
   });
 
   const dim = { poolId: pool.id, unit: "tokens" as const, window: "hourly" as const };
@@ -229,9 +225,7 @@ test("poolUsageWithDimensions: no burn rate when consumedTotal is 0", async () =
   const pool = poolsDb.createPool({
     connectionId: "conn-no-burn",
     name: "No Burn Pool",
-    allocations: [
-      { apiKeyId: "key-nb-1", weight: 100, policy: "hard" },
-    ],
+    allocations: [{ apiKeyId: "key-nb-1", weight: 100, policy: "hard" }],
   });
 
   const snapshot = await store.poolUsageWithDimensions(pool.id, [
@@ -248,7 +242,11 @@ test("QuotaStore interface: poolUsageWithDimensions is on the interface", async 
   // We verify at runtime that both implementations have it.
   const { SqliteQuotaStore } = await import("../../src/lib/quota/sqliteQuotaStore.ts");
   const sqlite = new SqliteQuotaStore();
-  assert.equal(typeof sqlite.poolUsageWithDimensions, "function", "SqliteQuotaStore must have poolUsageWithDimensions");
+  assert.equal(
+    typeof sqlite.poolUsageWithDimensions,
+    "function",
+    "SqliteQuotaStore must have poolUsageWithDimensions"
+  );
 
   // Redis store (just check the prototype)
   const { RedisQuotaStore } = await import("../../src/lib/quota/redisQuotaStore.ts");

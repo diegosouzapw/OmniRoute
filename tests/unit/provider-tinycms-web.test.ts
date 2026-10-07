@@ -16,7 +16,8 @@ import assert from "node:assert/strict";
 
 import { WEB_COOKIE_PROVIDERS } from "../../src/shared/constants/providers/web-cookie.ts";
 import { REGISTRY } from "../../open-sse/config/providers/index.ts";
-import { getExecutor, TinyCmsExecutor } from "../../open-sse/executors/index.ts";
+import { getExecutor } from "../../open-sse/executors/index.ts";
+import { TinyCmsExecutor } from "../../open-sse/executors/tinycms.ts";
 import { setupDomMocks, type DomMockRestore } from "../../open-sse/executors/tinycmsSigner.ts";
 
 // tinycmsSigner.ts intentionally does NOT install its window/document/canvas
@@ -123,13 +124,13 @@ test("supportsReasoning is set on gpt-5.3-thinking-free", () => {
 
 // ── Executor ──────────────────────────────────────────────────────────────────
 
-test("getExecutor returns TinyCmsExecutor for 'tinycms-web'", () => {
-  const e = getExecutor("tinycms-web");
+test("getExecutor returns TinyCmsExecutor for 'tinycms-web'", async () => {
+  const e = await getExecutor("tinycms-web");
   assert.ok(e instanceof TinyCmsExecutor, "executor must be TinyCmsExecutor");
 });
 
-test("getExecutor returns TinyCmsExecutor for 'tcw' alias", () => {
-  const e = getExecutor("tcw");
+test("getExecutor returns TinyCmsExecutor for 'tcw' alias", async () => {
+  const e = await getExecutor("tcw");
   assert.ok(e instanceof TinyCmsExecutor, "alias 'tcw' must resolve to TinyCmsExecutor");
 });
 
@@ -150,7 +151,7 @@ test("TinyCmsExecutor returns 401 when UUID is missing", async () => {
     credentials: {},
     signal: AbortSignal.timeout(5000),
   });
-  assert.ok(result.response, "response must be present");
+  assert.ok("response" in result, "response must be present");
   assert.equal(result.response.status, 401);
   const body = await result.response.json();
   const errMsg = body?.error?.message || "";
@@ -168,7 +169,7 @@ test("TinyCmsExecutor returns 401 when UUID does not start with 'R'", async () =
     credentials: { apiKey: "abc123" }, // does not start with 'R'
     signal: AbortSignal.timeout(5000),
   });
-  assert.ok(result.response, "response must be present");
+  assert.ok("response" in result, "response must be present");
   assert.equal(result.response.status, 401);
   const body = await result.response.json();
   const errMsg = body?.error?.message || "";
@@ -256,7 +257,7 @@ test("TinyCmsExecutor sanitizes errors (no stack traces in error response)", asy
     signal: AbortSignal.timeout(5000),
   });
 
-  assert.ok(result.response, "response must be present");
+  assert.ok("response" in result, "response must be present");
   const body = await result.response.json();
   const errMsg = body?.error?.message || "";
   assert.ok(errMsg.includes("Invalid or missing device UUID"), "error must mention missing UUID");

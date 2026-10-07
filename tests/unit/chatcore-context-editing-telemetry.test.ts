@@ -13,9 +13,8 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-ctxedit-test-"))
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { recordContextEditingTelemetryHook } = await import(
-  "../../open-sse/handlers/chatCore/contextEditingTelemetry.ts"
-);
+const { recordContextEditingTelemetryHook } =
+  await import("../../open-sse/handlers/chatCore/contextEditingTelemetry.ts");
 
 function makeLog() {
   const debug: string[] = [];

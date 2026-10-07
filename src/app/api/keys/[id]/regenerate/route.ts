@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { regenerateApiKey } from "@/lib/localDb";
+import { regenerateApiKey } from "@/lib/db/apiKeys";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
 

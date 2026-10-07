@@ -2,6 +2,7 @@
 // copilot-web, t3-web, jules, devin (cloud-agent), inner-ai. Extracted from validation.ts (god-file
 // decomposition) — top-level functions with no dispatcher-state captures; behavior is byte-identical
 // to the inline defs.
+import { spawn } from "child_process";
 import { applyCustomUserAgent } from "./headers";
 import {
   isSecurityBlockError,
@@ -11,6 +12,7 @@ import {
 } from "./transport";
 import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { normalizeGeminiCookieInput } from "@omniroute/open-sse/utils/geminiCookies.ts";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
   META_AI_ASBD_ID,
@@ -213,11 +215,8 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
       return { valid: false, error: "Paste your __Secure-1PSID cookie from gemini.google.com" };
     }
 
-    // Accept full cookie blob or bare value
-    let cookieHeader = raw;
-    if (!raw.includes("=")) {
-      cookieHeader = `__Secure-1PSID=${raw}`;
-    }
+    // Accept full cookie blob, bare value, or browser-export JSON.
+    const cookieHeader = normalizeGeminiCookieInput(raw);
 
     const response = await validationRead("https://gemini.google.com/app", {
       headers: applyCustomUserAgent(
@@ -517,11 +516,50 @@ export async function validateJulesProvider({ apiKey }: { apiKey: string }) {
 }
 
 /**
+ * #devin-cli-key: fallback validator for CLI-format Devin keys.
+ *
+ * The devin provider's actual routing path (open-sse/executors/devin-cli.ts)
+ * shells out to the Devin CLI binary and passes the connection's apiKey as
+ * WINDSURF_API_KEY — never touching api.devin.ai. CLI keys (apk_user_…) are
+ * rejected by the HTTP API, so a 401 from the HTTP probe is NOT evidence the
+ * connection is broken. This runs the same probe the executor uses:
+ * `devin acp --agent-type summarizer` with the key in the environment
+ * (`devin models list` does NOT honor WINDSURF_API_KEY). Exit 0 = key works.
+ */
+async function validateDevinCliKeyFallback(
+  apiKey: unknown
+): Promise<{ valid: boolean; error: string | null }> {
+  const bin = process.env.CLI_DEVIN_BIN?.trim() || "devin";
+  return new Promise((resolve) => {
+    try {
+      const child = spawn(bin, ["acp", "--agent-type", "summarizer"], {
+        env: { ...process.env, WINDSURF_API_KEY: String(apiKey || "") },
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 30_000,
+      });
+      child.on("error", () =>
+        resolve({ valid: false, error: "Devin CLI not available for fallback validation" })
+      );
+      child.on("close", (code) => {
+        if (code === 0) resolve({ valid: true, error: null });
+        else resolve({ valid: false, error: `Devin CLI key check failed (exit ${code})` });
+      });
+    } catch {
+      resolve({ valid: false, error: "Devin CLI fallback spawn failed" });
+    }
+  });
+}
+
+/**
  * Devin cloud-agent (Cognition) — GET /v1/sessions with Bearer auth
  * (see docs.devin.ai/api-reference/sessions/list-sessions). Distinct from the
  * "devin-cli" LLM provider (ACP), which is already wired via providerRegistry.
  */
-export async function validateDevinCloudAgentProvider({ apiKey }: { apiKey: string }) {
+export async function validateDevinCloudAgentProvider({
+  apiKey,
+}: {
+  apiKey: string;
+}): Promise<{ valid: boolean; error: string | null; warning?: string }> {
   try {
     const response = await validationWrite("https://api.devin.ai/v1/sessions?limit=1", {
       method: "GET",
@@ -531,6 +569,18 @@ export async function validateDevinCloudAgentProvider({ apiKey }: { apiKey: stri
     });
 
     if (response.status === 401 || response.status === 403) {
+      // #devin-cli-key: CLI-format keys (apk_user_…) are rejected by the HTTP API
+      // but are exactly what the devin-cli executor authenticates with (via
+      // WINDSURF_API_KEY). Fall back to probing the CLI itself — the real
+      // routing path — before declaring the key invalid.
+      const cliCheck = await validateDevinCliKeyFallback(apiKey);
+      if (cliCheck.valid) {
+        return {
+          valid: true,
+          error: null,
+          warning: "HTTP API rejected this key; validated via Devin CLI instead",
+        };
+      }
       return { valid: false, error: "Invalid API key" };
     }
 
@@ -599,7 +649,7 @@ export async function validateNotionWebProvider({ apiKey, providerSpecificData =
   }
 }
 
-export async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: any) {
+export async function validateInnerAiProvider({ apiKey }: any) {
   try {
     const raw = typeof apiKey === "string" ? apiKey.trim() : "";
     if (!raw) {

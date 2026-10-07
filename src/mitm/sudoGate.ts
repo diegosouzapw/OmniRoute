@@ -1,3 +1,4 @@
+import os from "os";
 import { isSudoPasswordRequired } from "./dns/dnsConfig.ts";
 import { isRoot } from "./systemCommands.ts";
 
@@ -23,7 +24,7 @@ export function resolveMitmSudoPassword(
  * without sudo on PATH.
  */
 export function isMitmSudoPasswordRequired(sudoPassword: string): boolean {
-  if (process.platform === "win32") return false;
+  if (os.platform() === "win32") return false;
   if (isRoot()) return false;
   if (normalizeMitmSudoPasswordInput(sudoPassword)) return false;
   return isSudoPasswordRequired();

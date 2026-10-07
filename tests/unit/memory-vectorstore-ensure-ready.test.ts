@@ -126,7 +126,7 @@ test("ensureReady: signature change triggers reset + marks memories needs_reinde
   for (let i = 0; i < 3; i++) {
     db.prepare(
       `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-       VALUES (?, 'key1', 'factual', ?, ?, datetime('now'))`,
+       VALUES (?, 'key1', 'factual', ?, ?, datetime('now'))`
     ).run(`mem-${i}`, `key-${i}`, `content-${i}`);
   }
 
@@ -154,7 +154,11 @@ test("ensureReady: signature change triggers reset + marks memories needs_reinde
   const needsRows = db
     .prepare("SELECT COUNT(*) AS cnt FROM memories WHERE needs_reindex = 1")
     .get() as { cnt: number };
-  assert.equal(needsRows.cnt, 3, "all memories should be marked needs_reindex=1 after signature change");
+  assert.equal(
+    needsRows.cnt,
+    3,
+    "all memories should be marked needs_reindex=1 after signature change"
+  );
 });
 
 test("ensureReady: returns {ready: false} when dimensions are null (no probe done yet)", async (t) => {
@@ -176,7 +180,7 @@ test("ensureReady: returns {ready: false} when dimensions are null (no probe don
   // Either ready (if signature already matches a loaded table) or not ready.
   assert.ok(
     typeof result.ready === "boolean",
-    "ensureReady must return {ready: boolean, reason: string}",
+    "ensureReady must return {ready: boolean, reason: string}"
   );
   assert.ok(typeof result.reason === "string");
 });

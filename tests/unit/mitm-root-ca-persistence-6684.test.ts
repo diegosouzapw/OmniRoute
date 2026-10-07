@@ -41,16 +41,20 @@ test("loadOrCreateMitmCa: a second call loads the same CA instead of regeneratin
   }
 });
 
-test("loadOrCreateMitmCa: the written CA private key file mode is 0o600", { skip: process.platform === "win32" }, async () => {
-  const certDir = tmpCertDir();
-  try {
-    const ca = await loadOrCreateMitmCa(certDir);
-    const mode = fs.statSync(ca.keyPath).mode & 0o777;
-    assert.equal(mode, 0o600);
-  } finally {
-    fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test(
+  "loadOrCreateMitmCa: the written CA private key file mode is 0o600",
+  { skip: process.platform === "win32" },
+  async () => {
+    const certDir = tmpCertDir();
+    try {
+      const ca = await loadOrCreateMitmCa(certDir);
+      const mode = fs.statSync(ca.keyPath).mode & 0o777;
+      assert.equal(mode, 0o600);
+    } finally {
+      fs.rmSync(certDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
   }
-});
+);
 
 test("loadOrCreateMitmCa: the CA cert carries CA basicConstraints (matches generateMitmCa)", async () => {
   const certDir = tmpCertDir();

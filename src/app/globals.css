@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 /* Self-hosted Material Symbols icon font (#3695): the Google Fonts CDN
@@ -8,16 +8,18 @@
    The bundled @font-face uses family "Material Symbols Outlined", matching the
    .material-symbols-outlined rule defined later in this file. */
 @import "material-symbols/outlined.css";
+/* react18-json-view (request/response JSON tree in RequestLoggerDetail) — imported here
+   instead of in the component so node:test / esbuild never see a .css import. */
+@import "react18-json-view/src/style.css";
+@import "react18-json-view/src/dark.css";
 @source "../../node_modules/fumadocs-ui/css/generated/*.css";
 
-/* Tailwind v4 auto-detection cannot scan directories with parentheses
-   (e.g. Next.js route groups like "(dashboard)"). Explicit @source
-   directives ensure all utility classes in route groups are included. */
-@source "../app/(dashboard)";
+/* Keep Tailwind v4 from scanning the entire repository. The UI lives in the
+   App Router and shared component trees; third-party Fumadocs sources remain
+   explicit because node_modules is ignored by automatic detection. */
+@source "../app";
+@source "../shared";
 @source "../../node_modules/fumadocs-ui/dist/**/*.js";
-@source not "../../*.sqlite*";
-@source not "../../.claude*";
-@source not "../../.claude-memory";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -45,6 +47,13 @@
   --color-error: #ef4444;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
+
+  /* Orchestration status tokens — light values (AA sobre fundo claro) */
+  --orch-status-success: #15803d;
+  --orch-status-warning: #b45309;
+  --orch-status-error: #b91c1c;
+  --orch-status-muted: #6b7280;
+  --orch-status-approval: #6d28d9;
 
   /* Traffic lights */
   --color-traffic-red: #ff5f56;
@@ -127,6 +136,13 @@
   --color-text-main: #e6e6ef;
   --color-text-primary: #e6e6ef;
   --color-text-muted: #a1a1aa;
+
+  /* Orchestration status tokens — dark values (previous STATUS_HEX constants) */
+  --orch-status-success: #22c55e;
+  --orch-status-warning: #f59e0b;
+  --orch-status-error: #ef4444;
+  --orch-status-muted: #6b7280;
+  --orch-status-approval: #8b5cf6;
 
   /* Fumadocs theme mapping */
   --color-fd-background: #0b0e14;
@@ -278,6 +294,16 @@ body.electron-macos {
   --desktop-safe-bottom: 8px;
 }
 
+/* iOS standalone PWA safe-area — keeps dashboard below the status bar */
+@media (display-mode: standalone) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    :root {
+      --ios-safe-top: env(safe-area-inset-top);
+      --ios-safe-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
 /* Selection — with fallback for browsers that don't support color-mix() */
 ::selection {
   background-color: rgba(229, 77, 94, 0.22);
@@ -378,6 +404,20 @@ button .material-symbols-outlined,
     "wght" 400,
     "GRAD" 0,
     "opsz" 24;
+}
+
+/* react18-json-view fold control: the SVG chevron itself is ~14px, too small
+   a touch target on mobile. Padding + a matching negative margin grows the
+   hit area without shifting sibling layout -- unlike the row-level icon this
+   replaces (see the reverted react-json-view-lite alignment attempt), this
+   click target is a trailing decoration appended after the object/array's
+   opening brace, not a leading element sibling keys align against, so
+   padding it here cannot reproduce that regression. */
+.jv-size-chevron {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 4px;
+  margin: -10px -4px;
 }
 
 /* Animations */
@@ -508,83 +548,309 @@ select option {
 /* ═══════════════════════════════════════════════════════════════
    RTL (Right-to-Left) Compatibility — fixes #7680
    ═══════════════════════════════════════════════════════════════ */
-html[dir="rtl"] .text-left { text-align: start; }
-html[dir="rtl"] .text-right { text-align: end; }
-html[dir="rtl"] .ml-0 { --rtl-ms: 0; }
-html[dir="rtl"] .ml-0\.5 { --rtl-ms: 0.5; }
-html[dir="rtl"] .ml-1 { --rtl-ms: 1; }
-html[dir="rtl"] .ml-1\.5 { --rtl-ms: 1.5; }
-html[dir="rtl"] .ml-2 { --rtl-ms: 2; }
-html[dir="rtl"] .ml-3 { --rtl-ms: 3; }
-html[dir="rtl"] .ml-4 { --rtl-ms: 4; }
-html[dir="rtl"] .ml-5 { --rtl-ms: 5; }
-html[dir="rtl"] .ml-6 { --rtl-ms: 6; }
-html[dir="rtl"] .ml-7 { --rtl-ms: 7; }
-html[dir="rtl"] :is(.ml-0, .ml-0\.5, .ml-1, .ml-1\.5, .ml-2, .ml-3, .ml-4, .ml-5, .ml-6, .ml-7) { margin-left: 0; margin-inline-start: calc(var(--spacing) * var(--rtl-ms)); }
-html[dir="rtl"] .ml-auto { margin-left: 0; margin-inline-start: auto; }
-html[dir="rtl"] .mr-0\.5 { --rtl-me: 0.5; }
-html[dir="rtl"] .mr-1 { --rtl-me: 1; }
-html[dir="rtl"] .mr-2 { --rtl-me: 2; }
-html[dir="rtl"] .mr-3 { --rtl-me: 3; }
-html[dir="rtl"] :is(.mr-0\.5, .mr-1, .mr-2, .mr-3) { margin-right: 0; margin-inline-end: calc(var(--spacing) * var(--rtl-me)); }
-html[dir="rtl"] .mr-auto { margin-right: 0; margin-inline-end: auto; }
-html[dir="rtl"] .pl-1 { --rtl-ps: 1; }
-html[dir="rtl"] .pl-2 { --rtl-ps: 2; }
-html[dir="rtl"] .pl-3 { --rtl-ps: 3; }
-html[dir="rtl"] .pl-4 { --rtl-ps: 4; }
-html[dir="rtl"] .pl-5 { --rtl-ps: 5; }
-html[dir="rtl"] .pl-6 { --rtl-ps: 6; }
-html[dir="rtl"] .pl-7 { --rtl-ps: 7; }
-html[dir="rtl"] .pl-8 { --rtl-ps: 8; }
-html[dir="rtl"] .pl-9 { --rtl-ps: 9; }
-html[dir="rtl"] .pl-10 { --rtl-ps: 10; }
-html[dir="rtl"] .pl-12 { --rtl-ps: 12; }
-html[dir="rtl"] :is(.pl-1, .pl-2, .pl-3, .pl-4, .pl-5, .pl-6, .pl-7, .pl-8, .pl-9, .pl-10, .pl-12) { padding-left: 0; padding-inline-start: calc(var(--spacing) * var(--rtl-ps)); }
-html[dir="rtl"] .pr-1 { --rtl-pe: 1; }
-html[dir="rtl"] .pr-2 { --rtl-pe: 2; }
-html[dir="rtl"] .pr-2\.5 { --rtl-pe: 2.5; }
-html[dir="rtl"] .pr-3 { --rtl-pe: 3; }
-html[dir="rtl"] .pr-4 { --rtl-pe: 4; }
-html[dir="rtl"] .pr-9 { --rtl-pe: 9; }
-html[dir="rtl"] .pr-10 { --rtl-pe: 10; }
-html[dir="rtl"] :is(.pr-1, .pr-2, .pr-2\.5, .pr-3, .pr-4, .pr-9, .pr-10) { padding-right: 0; padding-inline-end: calc(var(--spacing) * var(--rtl-pe)); }
-html[dir="rtl"] .left-0 { --rtl-is: 0; }
-html[dir="rtl"] .left-0\.5 { --rtl-is: calc(var(--spacing) * 0.5); }
-html[dir="rtl"] .left-1 { --rtl-is: calc(var(--spacing) * 1); }
-html[dir="rtl"] .left-1\.5 { --rtl-is: calc(var(--spacing) * 1.5); }
-html[dir="rtl"] .left-2 { --rtl-is: calc(var(--spacing) * 2); }
-html[dir="rtl"] .left-2\.5 { --rtl-is: calc(var(--spacing) * 2.5); }
-html[dir="rtl"] .left-3 { --rtl-is: calc(var(--spacing) * 3); }
-html[dir="rtl"] .left-5 { --rtl-is: calc(var(--spacing) * 5); }
-html[dir="rtl"] .left-1\/4 { --rtl-is: 25%; }
-html[dir="rtl"] .left-1\/2 { --rtl-is: 50%; }
-html[dir="rtl"] .left-\[16\%\] { --rtl-is: 16%; }
-html[dir="rtl"] :is(.left-0, .left-0\.5, .left-1, .left-1\.5, .left-2, .left-2\.5, .left-3, .left-5, .left-1\/4, .left-1\/2, .left-\[16\%\]) { left: auto; inset-inline-start: var(--rtl-is); }
-html[dir="rtl"] .right-0 { --rtl-ie: 0; }
-html[dir="rtl"] .right-1 { --rtl-ie: calc(var(--spacing) * 1); }
-html[dir="rtl"] .right-2 { --rtl-ie: calc(var(--spacing) * 2); }
-html[dir="rtl"] .right-3 { --rtl-ie: calc(var(--spacing) * 3); }
-html[dir="rtl"] .right-4 { --rtl-ie: calc(var(--spacing) * 4); }
-html[dir="rtl"] .right-1\/4 { --rtl-ie: 25%; }
-html[dir="rtl"] .right-\[16\%\] { --rtl-ie: 16%; }
-html[dir="rtl"] .-right-2\.5 { --rtl-ie: calc(var(--spacing) * -2.5); }
-html[dir="rtl"] .-right-20 { --rtl-ie: calc(var(--spacing) * -20); }
-html[dir="rtl"] :is(.right-0, .right-1, .right-2, .right-3, .right-4, .right-1\/4, .right-\[16\%\], .-right-2\.5, .-right-20) { right: auto; inset-inline-end: var(--rtl-ie); }
-html[dir="rtl"] .border-l-2 { --rtl-bw: 2px; }
-html[dir="rtl"] .border-l-4 { --rtl-bw: 4px; }
-html[dir="rtl"] .border-l-\[3px\] { --rtl-bw: 3px; }
-html[dir="rtl"] :is(.border-l-2, .border-l-4, .border-l-\[3px\]) { border-left-width: 0; border-inline-start-width: var(--rtl-bw); }
-html[dir="rtl"] .border-l-primary { border-left-color: var(--color-border); border-inline-start-color: var(--color-primary); }
-html[dir="rtl"] .border-r { border-right-width: 0; border-inline-end-width: 1px; }
-html[dir="rtl"] .last\:border-r-0:last-child { border-left-width: 0; }
-html[dir="rtl"] .rounded-r-lg { border-top-right-radius: 0; border-bottom-right-radius: 0; border-start-end-radius: var(--radius-lg); border-end-end-radius: var(--radius-lg); }
-html[dir="rtl"] .translate-x-0\.5 { --rtl-tx: -0.5; }
-html[dir="rtl"] .translate-x-1 { --rtl-tx: -1; }
-html[dir="rtl"] .translate-x-4 { --rtl-tx: -4; }
-html[dir="rtl"] .translate-x-5 { --rtl-tx: -5; }
-html[dir="rtl"] .translate-x-6 { --rtl-tx: -6; }
-html[dir="rtl"] :is(.translate-x-0\.5, .translate-x-1, .translate-x-4, .translate-x-5, .translate-x-6) { translate: calc(var(--spacing) * var(--rtl-tx)) var(--tw-translate-y); }
-html[dir="rtl"] .-translate-x-1\/2 { translate: 50% var(--tw-translate-y); }
-@media (min-width: 48rem) { html[dir="rtl"] .md\:ml-2 { margin-left: 0; margin-inline-start: calc(var(--spacing) * 2); } html[dir="rtl"] .md\:ml-auto { margin-left: 0; margin-inline-start: auto; } html[dir="rtl"] .md\:pl-6 { padding-left: 0; padding-inline-start: calc(var(--spacing) * 6); } }
-html[dir="rtl"] :where(code, pre, kbd, samp, input[type="email"], input[type="url"]) { direction: ltr; text-align: left; }
-html[dir="rtl"] :where(.material-symbols-outlined, .traffic-lights, .react-flow) { direction: ltr; }
+html[dir="rtl"] .text-left {
+  text-align: start;
+}
+html[dir="rtl"] .text-right {
+  text-align: end;
+}
+html[dir="rtl"] .ml-0 {
+  --rtl-ms: 0;
+}
+html[dir="rtl"] .ml-0\.5 {
+  --rtl-ms: 0.5;
+}
+html[dir="rtl"] .ml-1 {
+  --rtl-ms: 1;
+}
+html[dir="rtl"] .ml-1\.5 {
+  --rtl-ms: 1.5;
+}
+html[dir="rtl"] .ml-2 {
+  --rtl-ms: 2;
+}
+html[dir="rtl"] .ml-3 {
+  --rtl-ms: 3;
+}
+html[dir="rtl"] .ml-4 {
+  --rtl-ms: 4;
+}
+html[dir="rtl"] .ml-5 {
+  --rtl-ms: 5;
+}
+html[dir="rtl"] .ml-6 {
+  --rtl-ms: 6;
+}
+html[dir="rtl"] .ml-7 {
+  --rtl-ms: 7;
+}
+html[dir="rtl"] :is(.ml-0, .ml-0\.5, .ml-1, .ml-1\.5, .ml-2, .ml-3, .ml-4, .ml-5, .ml-6, .ml-7) {
+  margin-left: 0;
+  margin-inline-start: calc(var(--spacing) * var(--rtl-ms));
+}
+html[dir="rtl"] .ml-auto {
+  margin-left: 0;
+  margin-inline-start: auto;
+}
+html[dir="rtl"] .mr-0\.5 {
+  --rtl-me: 0.5;
+}
+html[dir="rtl"] .mr-1 {
+  --rtl-me: 1;
+}
+html[dir="rtl"] .mr-2 {
+  --rtl-me: 2;
+}
+html[dir="rtl"] .mr-3 {
+  --rtl-me: 3;
+}
+html[dir="rtl"] :is(.mr-0\.5, .mr-1, .mr-2, .mr-3) {
+  margin-right: 0;
+  margin-inline-end: calc(var(--spacing) * var(--rtl-me));
+}
+html[dir="rtl"] .mr-auto {
+  margin-right: 0;
+  margin-inline-end: auto;
+}
+html[dir="rtl"] .pl-1 {
+  --rtl-ps: 1;
+}
+html[dir="rtl"] .pl-2 {
+  --rtl-ps: 2;
+}
+html[dir="rtl"] .pl-3 {
+  --rtl-ps: 3;
+}
+html[dir="rtl"] .pl-4 {
+  --rtl-ps: 4;
+}
+html[dir="rtl"] .pl-5 {
+  --rtl-ps: 5;
+}
+html[dir="rtl"] .pl-6 {
+  --rtl-ps: 6;
+}
+html[dir="rtl"] .pl-7 {
+  --rtl-ps: 7;
+}
+html[dir="rtl"] .pl-8 {
+  --rtl-ps: 8;
+}
+html[dir="rtl"] .pl-9 {
+  --rtl-ps: 9;
+}
+html[dir="rtl"] .pl-10 {
+  --rtl-ps: 10;
+}
+html[dir="rtl"] .pl-12 {
+  --rtl-ps: 12;
+}
+html[dir="rtl"] :is(.pl-1, .pl-2, .pl-3, .pl-4, .pl-5, .pl-6, .pl-7, .pl-8, .pl-9, .pl-10, .pl-12) {
+  padding-left: 0;
+  padding-inline-start: calc(var(--spacing) * var(--rtl-ps));
+}
+html[dir="rtl"] .pr-1 {
+  --rtl-pe: 1;
+}
+html[dir="rtl"] .pr-2 {
+  --rtl-pe: 2;
+}
+html[dir="rtl"] .pr-2\.5 {
+  --rtl-pe: 2.5;
+}
+html[dir="rtl"] .pr-3 {
+  --rtl-pe: 3;
+}
+html[dir="rtl"] .pr-4 {
+  --rtl-pe: 4;
+}
+html[dir="rtl"] .pr-9 {
+  --rtl-pe: 9;
+}
+html[dir="rtl"] .pr-10 {
+  --rtl-pe: 10;
+}
+html[dir="rtl"] :is(.pr-1, .pr-2, .pr-2\.5, .pr-3, .pr-4, .pr-9, .pr-10) {
+  padding-right: 0;
+  padding-inline-end: calc(var(--spacing) * var(--rtl-pe));
+}
+html[dir="rtl"] .left-0 {
+  --rtl-is: 0;
+}
+html[dir="rtl"] .left-0\.5 {
+  --rtl-is: calc(var(--spacing) * 0.5);
+}
+html[dir="rtl"] .left-1 {
+  --rtl-is: calc(var(--spacing) * 1);
+}
+html[dir="rtl"] .left-1\.5 {
+  --rtl-is: calc(var(--spacing) * 1.5);
+}
+html[dir="rtl"] .left-2 {
+  --rtl-is: calc(var(--spacing) * 2);
+}
+html[dir="rtl"] .left-2\.5 {
+  --rtl-is: calc(var(--spacing) * 2.5);
+}
+html[dir="rtl"] .left-3 {
+  --rtl-is: calc(var(--spacing) * 3);
+}
+html[dir="rtl"] .left-5 {
+  --rtl-is: calc(var(--spacing) * 5);
+}
+html[dir="rtl"] .left-1\/4 {
+  --rtl-is: 25%;
+}
+html[dir="rtl"] .left-1\/2 {
+  --rtl-is: 50%;
+}
+html[dir="rtl"] .left-\[16\%\] {
+  --rtl-is: 16%;
+}
+html[dir="rtl"]
+  :is(
+    .left-0,
+    .left-0\.5,
+    .left-1,
+    .left-1\.5,
+    .left-2,
+    .left-2\.5,
+    .left-3,
+    .left-5,
+    .left-1\/4,
+    .left-1\/2,
+    .left-\[16\%\]
+  ) {
+  left: auto;
+  inset-inline-start: var(--rtl-is);
+}
+html[dir="rtl"] .right-0 {
+  --rtl-ie: 0;
+}
+html[dir="rtl"] .right-1 {
+  --rtl-ie: calc(var(--spacing) * 1);
+}
+html[dir="rtl"] .right-2 {
+  --rtl-ie: calc(var(--spacing) * 2);
+}
+html[dir="rtl"] .right-3 {
+  --rtl-ie: calc(var(--spacing) * 3);
+}
+html[dir="rtl"] .right-4 {
+  --rtl-ie: calc(var(--spacing) * 4);
+}
+html[dir="rtl"] .right-1\/4 {
+  --rtl-ie: 25%;
+}
+html[dir="rtl"] .right-\[16\%\] {
+  --rtl-ie: 16%;
+}
+html[dir="rtl"] .-right-2\.5 {
+  --rtl-ie: calc(var(--spacing) * -2.5);
+}
+html[dir="rtl"] .-right-20 {
+  --rtl-ie: calc(var(--spacing) * -20);
+}
+html[dir="rtl"]
+  :is(
+    .right-0,
+    .right-1,
+    .right-2,
+    .right-3,
+    .right-4,
+    .right-1\/4,
+    .right-\[16\%\],
+    .-right-2\.5,
+    .-right-20
+  ) {
+  right: auto;
+  inset-inline-end: var(--rtl-ie);
+}
+html[dir="rtl"] .border-l-2 {
+  --rtl-bw: 2px;
+}
+html[dir="rtl"] .border-l-4 {
+  --rtl-bw: 4px;
+}
+html[dir="rtl"] .border-l-\[3px\] {
+  --rtl-bw: 3px;
+}
+html[dir="rtl"] :is(.border-l-2, .border-l-4, .border-l-\[3px\]) {
+  border-left-width: 0;
+  border-inline-start-width: var(--rtl-bw);
+}
+html[dir="rtl"] .border-l-primary {
+  border-left-color: var(--color-border);
+  border-inline-start-color: var(--color-primary);
+}
+html[dir="rtl"] .border-r {
+  border-right-width: 0;
+  border-inline-end-width: 1px;
+}
+html[dir="rtl"] .last\:border-r-0:last-child {
+  border-left-width: 0;
+}
+html[dir="rtl"] .rounded-r-lg {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-start-end-radius: var(--radius-lg);
+  border-end-end-radius: var(--radius-lg);
+}
+html[dir="rtl"] .translate-x-0\.5 {
+  --rtl-tx: -0.5;
+}
+html[dir="rtl"] .translate-x-1 {
+  --rtl-tx: -1;
+}
+html[dir="rtl"] .translate-x-4 {
+  --rtl-tx: -4;
+}
+html[dir="rtl"] .translate-x-5 {
+  --rtl-tx: -5;
+}
+html[dir="rtl"] .translate-x-6 {
+  --rtl-tx: -6;
+}
+html[dir="rtl"]
+  :is(.translate-x-0\.5, .translate-x-1, .translate-x-4, .translate-x-5, .translate-x-6) {
+  translate: calc(var(--spacing) * var(--rtl-tx)) var(--tw-translate-y);
+}
+html[dir="rtl"] .-translate-x-1\/2 {
+  translate: 50% var(--tw-translate-y);
+}
+@media (min-width: 48rem) {
+  html[dir="rtl"] .md\:ml-2 {
+    margin-left: 0;
+    margin-inline-start: calc(var(--spacing) * 2);
+  }
+  html[dir="rtl"] .md\:ml-auto {
+    margin-left: 0;
+    margin-inline-start: auto;
+  }
+  html[dir="rtl"] .md\:pl-6 {
+    padding-left: 0;
+    padding-inline-start: calc(var(--spacing) * 6);
+  }
+}
+html[dir="rtl"] :where(code, pre, kbd, samp, input[type="email"], input[type="url"]) {
+  direction: ltr;
+  text-align: left;
+}
+html[dir="rtl"] :where(.material-symbols-outlined, .traffic-lights, .react-flow) {
+  direction: ltr;
+}
+
+/* Orchestration Canvas: honor prefers-reduced-motion (spec §6). Scoped so the
+   other xyflow surfaces keep their current behavior until elevation #4 lands. */
+@media (prefers-reduced-motion: reduce) {
+  .orchestration-canvas .animate-ping {
+    animation: none;
+  }
+  .orchestration-canvas .react-flow__edge.animated path {
+    animation: none;
+    stroke-dasharray: none;
+  }
+  .orchestration-canvas .orch-edge-particle {
+    display: none;
+  }
+}

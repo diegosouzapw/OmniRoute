@@ -5,6 +5,7 @@
 
 import "./request/claude-to-openai.ts";
 import "./request/openai-to-claude.ts";
+import "./request/openai-to-clova.ts";
 import "./request/gemini-to-openai.ts";
 import "./request/openai-to-gemini.ts";
 import "./request/antigravity-to-openai.ts";
@@ -15,6 +16,7 @@ import "./request/claude-to-gemini.ts";
 
 import "./response/claude-to-openai.ts";
 import "./response/openai-to-claude.ts";
+import "./response/clova-to-openai.ts";
 import "./response/gemini-to-openai.ts";
 import "./response/gemini-to-claude.ts";
 import "./response/openai-to-antigravity.ts";

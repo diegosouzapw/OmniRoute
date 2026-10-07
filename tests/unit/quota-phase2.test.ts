@@ -8,16 +8,13 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-quota-phase2-"
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { parseProviderQuotaHeaders, applyQuotaHeadersToState } = await import(
-  "../../src/lib/quota/quotaAdapters"
-);
+const { parseProviderQuotaHeaders, applyQuotaHeadersToState } =
+  await import("../../src/lib/quota/quotaAdapters");
 const { getQuotaAnalyticsSummary } = await import("../../src/lib/quota/quotaAnalytics");
-const { getActiveQuotaResetItems, resetExpiredQuotaWindows } = await import(
-  "../../src/lib/quota/quotaResetTimers"
-);
-const { recordProviderQuotaUsage, getProviderQuota } = await import(
-  "../../src/lib/quota/providerQuotaState"
-);
+const { getActiveQuotaResetItems, resetExpiredQuotaWindows } =
+  await import("../../src/lib/quota/quotaResetTimers");
+const { recordProviderQuotaUsage, getProviderQuota } =
+  await import("../../src/lib/quota/providerQuotaState");
 const { getDbInstance } = coreDb;
 
 async function resetStorage() {
@@ -96,15 +93,7 @@ test("quotaResetTimers: tracks active reset items and purges expired windows", (
     `INSERT OR REPLACE INTO provider_quota_state
      (connection_id, model, tokens_used, token_limit, window_start, window_reset, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    connId,
-    model,
-    5000,
-    5000,
-    now - 10_000,
-    now - 1_000,
-    new Date().toISOString()
-  );
+  ).run(connId, model, 5000, 5000, now - 10_000, now - 1_000, new Date().toISOString());
 
   const expiredCount = resetExpiredQuotaWindows();
   assert.ok(expiredCount >= 1);

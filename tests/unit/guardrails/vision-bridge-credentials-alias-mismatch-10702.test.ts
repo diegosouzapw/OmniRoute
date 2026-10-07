@@ -10,9 +10,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const core = await import("../../../src/lib/db/core.ts");
 const providersDb = await import("../../../src/lib/db/providers.ts");
-const { hasUsableCredentialsForModel } = await import(
-  "../../../src/lib/guardrails/visionBridgeCredentials.ts"
-);
+const { hasUsableCredentialsForModel } =
+  await import("../../../src/lib/guardrails/visionBridgeCredentials.ts");
 
 test.after(() => {
   core.resetDbInstance();

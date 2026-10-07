@@ -38,6 +38,86 @@ test("mistral path posts once and returns the upstream body", async () => {
   assert.equal(data.pages[0].markdown, "ok");
 });
 
+test("OCR sanitizes structured upstream error bodies", async () => {
+  const opaqueIdentifier = "AbC9xY7pQ2mN8vR4kL6z";
+  const res = await handleOcr({
+    body: {
+      model: "mistral/mistral-ocr-latest",
+      document: { type: "image_url", image_url: "https://x/y.png" },
+    },
+    credentials: { apiKey: "sk" },
+    fetchImpl: async () =>
+      Response.json(
+        {
+          error: {
+            message: "quota metadata at /srv/provider/private.json",
+            type: opaqueIdentifier,
+            code: opaqueIdentifier,
+            reason: opaqueIdentifier,
+            api_key: "credential-value-12345",
+          },
+        },
+        { status: 429 }
+      ),
+    sleepImpl: noSleep,
+  });
+  const payload = (await res.json()) as {
+    error: { message: string; type?: string; code?: string; reason?: string; api_key?: string };
+  };
+
+  assert.equal(res.status, 429);
+  assert.equal(payload.error.api_key, undefined);
+  assert.doesNotMatch(payload.error.message, /srv\/provider/i);
+  assert.doesNotMatch(
+    JSON.stringify(payload),
+    new RegExp(`credential-value-12345|${opaqueIdentifier}`, "i")
+  );
+});
+
+test("OCR canonicalizes blank, plaintext, and mislabeled upstream failures", async () => {
+  const scenarios = [
+    { name: "blank", body: "   ", contentType: "application/json" },
+    {
+      name: "plaintext",
+      body: "access_token=ocr-plain-secret at /srv/private/ocr.txt",
+      contentType: "text/plain",
+    },
+    {
+      name: "mislabeled",
+      body: "<html>api_key=ocr-html-secret at /srv/private/ocr.html</html>",
+      contentType: "application/json",
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    const res = await handleOcr({
+      body: {
+        model: "mistral/mistral-ocr-latest",
+        document: { type: "image_url", image_url: "https://x/y.png" },
+      },
+      credentials: { apiKey: "sk" },
+      fetchImpl: async () =>
+        new Response(scenario.body, {
+          status: 502,
+          headers: { "content-type": scenario.contentType },
+        }),
+      sleepImpl: noSleep,
+    });
+    const text = await res.text();
+    const payload = JSON.parse(text) as { error: { message: string } };
+
+    assert.equal(res.status, 502, scenario.name);
+    assert.match(res.headers.get("content-type") || "", /application\/json/i, scenario.name);
+    assert.match(res.headers.get("access-control-allow-methods") || "", /OPTIONS/, scenario.name);
+    assert.equal(typeof payload.error.message, "string", scenario.name);
+    assert.doesNotMatch(
+      text,
+      /ocr-plain-secret|ocr-html-secret|srv\/private|<html>/i,
+      scenario.name
+    );
+  }
+});
+
 test("azure DI path polls Operation-Location until succeeded", async () => {
   const { impl, calls } = fetchStub([
     { status: 202, headers: { "Operation-Location": "https://poll/op/1" } },

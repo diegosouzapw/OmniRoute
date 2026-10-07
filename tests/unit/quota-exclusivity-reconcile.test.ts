@@ -17,19 +17,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-quota-exclusivity-"),
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-exclusivity-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.API_KEY_SECRET =
-  process.env.API_KEY_SECRET || "exclusivity-reconcile-test-secret";
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "exclusivity-reconcile-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
-const { reconcilePoolExclusivity } = await import(
-  "../../src/lib/quota/quotaKey.ts"
-);
+const { reconcilePoolExclusivity } = await import("../../src/lib/quota/quotaKey.ts");
 
 // ---------------------------------------------------------------------------
 // Test lifecycle helpers
@@ -147,7 +142,7 @@ test("reconcilePoolExclusivity: idempotent — calling twice with same args does
   assert.equal(
     quotasAfterFirst.filter((q) => q === pool.id).length,
     1,
-    "poolId should appear exactly once",
+    "poolId should appear exactly once"
   );
 
   // Second call — idempotent
@@ -158,12 +153,12 @@ test("reconcilePoolExclusivity: idempotent — calling twice with same args does
   assert.deepEqual(
     quotasAfterSecond,
     quotasAfterFirst,
-    "allowedQuotas should be unchanged after second call",
+    "allowedQuotas should be unchanged after second call"
   );
   assert.equal(
     quotasAfterSecond.filter((q) => q === pool.id).length,
     1,
-    "poolId should still appear exactly once",
+    "poolId should still appear exactly once"
   );
 });
 
@@ -194,7 +189,7 @@ test("reconcilePoolExclusivity: missing/unknown keyId is skipped defensively (no
   // ghost-key does not exist in the DB; must not throw
   await assert.doesNotReject(
     () => reconcilePoolExclusivity(pool.id, [], ["ghost-key-id-that-does-not-exist"], true),
-    "should not throw for unknown key IDs",
+    "should not throw for unknown key IDs"
   );
 });
 

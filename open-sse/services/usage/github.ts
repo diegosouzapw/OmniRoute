@@ -86,7 +86,7 @@ export async function getGitHubUsage(accessToken?: string, providerSpecificData?
       // NOT the used count. The pre-3.8.6 implementation inverted this and
       // showed "0% when not used / 100% when fully used" on the dashboard.
       // Confirmed against three independent upstream parsers:
-      //   - robinebers/openusage  docs/providers/copilot.md (Free Tier table)
+      //   - robinebers/openusage  (upstream docs/providers/copilot.md Free Tier table)
       //   - raycast/extensions    agent-usage/src/copilot/fetcher.ts (inline comment)
       //   - looplj/axonhub        frontend/src/components/quota-badges.tsx
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);

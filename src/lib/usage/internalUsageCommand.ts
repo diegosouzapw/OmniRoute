@@ -99,7 +99,7 @@ async function normalizeDeps(deps: InternalUsageCommandDeps = {}): Promise<Requi
 
 async function getDefaultUsageCommandQuotaPolicy(): Promise<UsageCommandQuotaPolicy> {
   const [{ getCachedSettings }, { resolveResilienceSettings }] = await Promise.all([
-    import("@/lib/localDb"),
+    import("@/lib/db/readCache"),
     import("@/lib/resilience/settings"),
   ]);
   const resilience = resolveResilienceSettings(await getCachedSettings());
@@ -829,7 +829,10 @@ export async function handleInternalUsageCommandHttpRequest(
     if (!apiKey || !(await resolvedDeps.isValidApiKey(apiKey))) {
       if (json) {
         return Response.json(
-          { allowed: false, error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE } } satisfies UsageCommandJson,
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE },
+          } satisfies UsageCommandJson,
           { status: 401 }
         );
       }
@@ -840,7 +843,10 @@ export async function handleInternalUsageCommandHttpRequest(
     if (!metadata?.id) {
       if (json) {
         return Response.json(
-          { allowed: false, error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE } } satisfies UsageCommandJson,
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_AUTH_REQUIRED_MESSAGE },
+          } satisfies UsageCommandJson,
           { status: 401 }
         );
       }
@@ -850,7 +856,10 @@ export async function handleInternalUsageCommandHttpRequest(
     if (metadata.allowUsageCommand !== true) {
       if (json) {
         return Response.json(
-          { allowed: false, error: { message: USAGE_COMMAND_DISABLED_MESSAGE } } satisfies UsageCommandJson,
+          {
+            allowed: false,
+            error: { message: USAGE_COMMAND_DISABLED_MESSAGE },
+          } satisfies UsageCommandJson,
           { status: 403 }
         );
       }

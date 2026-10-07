@@ -4,6 +4,7 @@ import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import { getJobRegistry } from "@/lib/jobRegistry";
 import { registerBudgetResetJob } from "@/lib/jobs/budgetResetJob";
 import { registerTokenHealthCheck } from "@/lib/jobs/tokenHealthCheckJob";
+import { registerLogExportJob } from "@/lib/jobs/logExportJob";
 import { backfillVolcPlanAutoSync } from "@/lib/providers/volcPlanAutoSyncBackfill";
 
 // Initialize runtime background sync services once per server process.
@@ -43,6 +44,7 @@ export async function ensureCloudSyncInitialized() {
       const registry = getJobRegistry();
       registerBudgetResetJob(registry);
       registerTokenHealthCheck(registry);
+      registerLogExportJob(registry);
       await registry.startAll();
 
       initialized = true;

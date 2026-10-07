@@ -78,7 +78,7 @@ async function withSandboxModule(fakeSpawn, fn) {
   }
 }
 
-test("builtin skill handlers validate required fields and perform real sandboxed work", async () => {
+test("builtin skill handlers validate required fields and perform real sandboxed work", async (t) => {
   const dataDir = makeTempDir("omniroute-skills-builtins-");
   const context = { apiKeyId: "key-123", sessionId: "session-123" };
 
@@ -139,6 +139,27 @@ test("builtin skill handlers validate required fields and perform real sandboxed
         /restricted segment/
       );
 
+      // #15064: http_request resolves the host and pins the connection to the checked address, so
+      // the request no longer goes through globalThis.fetch. Answer the lookup with a public
+      // address and stand in for the pinned connection.
+      const dns = await import("node:dns");
+      const originalPromisesLookup = dns.promises.lookup;
+      dns.promises.lookup = async (hostname, options) =>
+        hostname === "example.com"
+          ? [{ address: "93.184.216.34", family: 4 }]
+          : originalPromisesLookup(hostname, options);
+      const { setSafeOutboundPinnedFetchTestOverride } =
+        await import("../../src/shared/network/safeOutboundFetch.ts");
+      const pinnedTo = [];
+      setSafeOutboundPinnedFetchTestOverride((address) => {
+        pinnedTo.push(address);
+        return (url, init) => globalThis.fetch(url, init);
+      });
+      t.after(() => {
+        dns.promises.lookup = originalPromisesLookup;
+        setSafeOutboundPinnedFetchTestOverride(undefined);
+      });
+
       globalThis.fetch = async (url, init) => {
         assert.equal(String(url), "https://example.com/api");
         assert.equal(init.method, "POST");
@@ -166,6 +187,7 @@ test("builtin skill handlers validate required fields and perform real sandboxed
       assert.equal(httpResult.status, 201);
       assert.equal(httpResult.body, "created");
       assert.equal(httpResult.headers["content-type"], "text/plain");
+      assert.deepEqual(pinnedTo, ["93.184.216.34"]);
 
       await assert.rejects(
         () => builtinSkills.http_request({ url: "http://127.0.0.1:9000" }, context),
@@ -408,7 +430,7 @@ test("containerProvider: all five providers registered", () => {
     assert.ok(mod.ALL_PROVIDERS.length === 5);
     assert.deepStrictEqual(
       mod.ALL_PROVIDERS.map((p) => p.id),
-      ["docker", "apple", "wsl", "orbstack", "podman"],
+      ["docker", "apple", "wsl", "orbstack", "podman"]
     );
     assert.ok(mod.PROVIDER_BY_ID.has("docker"));
     assert.ok(mod.PROVIDER_BY_ID.has("apple"));
@@ -420,27 +442,15 @@ test("containerProvider: all five providers registered", () => {
 
 test("containerProvider: platformPriority returns correct order per OS", () => {
   return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
-    const originalPlatform = Object.getOwnPropertyDescriptor(
-      process,
-      "platform",
-    );
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform");
 
     // darwin
     Object.defineProperty(process, "platform", { value: "darwin" });
-    assert.deepStrictEqual(mod.platformPriority(), [
-      "apple",
-      "orbstack",
-      "podman",
-      "docker",
-    ]);
+    assert.deepStrictEqual(mod.platformPriority(), ["apple", "orbstack", "podman", "docker"]);
 
     // win32
     Object.defineProperty(process, "platform", { value: "win32" });
-    assert.deepStrictEqual(mod.platformPriority(), [
-      "wsl",
-      "docker",
-      "podman",
-    ]);
+    assert.deepStrictEqual(mod.platformPriority(), ["wsl", "docker", "podman"]);
 
     // linux
     Object.defineProperty(process, "platform", { value: "linux" });
@@ -448,11 +458,7 @@ test("containerProvider: platformPriority returns correct order per OS", () => {
 
     // Restore
     if (originalPlatform) {
-      Object.defineProperty(
-        process,
-        "platform",
-        originalPlatform,
-      );
+      Object.defineProperty(process, "platform", originalPlatform);
     }
   });
 });
@@ -467,25 +473,10 @@ test("containerProvider: buildRun produces run as args[0] for all providers", ()
       readOnly: true,
     };
     for (const provider of mod.ALL_PROVIDERS) {
-      const resolved = provider.buildRun(
-        "alpine",
-        ["echo", "hi"],
-        "test-id",
-        config,
-      );
-      assert.equal(
-        resolved.args[0],
-        "run",
-        `${provider.id}: args[0] must be "run"`,
-      );
-      assert.ok(
-        resolved.args.includes("--rm"),
-        `${provider.id}: should include --rm`,
-      );
-      assert.ok(
-        resolved.args.includes("alpine"),
-        `${provider.id}: should include image`,
-      );
+      const resolved = provider.buildRun("alpine", ["echo", "hi"], "test-id", config);
+      assert.equal(resolved.args[0], "run", `${provider.id}: args[0] must be "run"`);
+      assert.ok(resolved.args.includes("--rm"), `${provider.id}: should include --rm`);
+      assert.ok(resolved.args.includes("alpine"), `${provider.id}: should include image`);
       // killArgs must return something callable
       const kill = resolved.killArgs("test-cont");
       assert.ok(Array.isArray(kill), `${provider.id}: killArgs returns array`);
@@ -555,9 +546,7 @@ test("containerProvider: resolveProvider falls back to docker when no runtime in
   // Auto-detect walks platform priority â€” if nothing is installed we
   // always land on docker as the fallback.
   const provider = await mod.resolveProvider();
-  assert.ok(
-    ["docker", "apple", "wsl", "podman", "orbstack"].includes(provider.id),
-  );
+  assert.ok(["docker", "apple", "wsl", "podman", "orbstack"].includes(provider.id));
   // Ensure the fallback is always docker when probes fail
   // (this test is best-effort â€” on a host with docker installed,
   //  the auto-detect will legitimately pick docker)

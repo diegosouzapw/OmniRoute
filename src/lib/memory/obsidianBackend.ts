@@ -231,6 +231,7 @@ export class ObsidianBackend implements MemoryBackend {
         if (filter.apiKeyId && memory.apiKeyId !== filter.apiKeyId) continue;
         if (filter.type && memory.type !== filter.type) continue;
         if (filter.sessionId && memory.sessionId !== filter.sessionId) continue;
+        if (filter.category && memory.metadata.category !== filter.category) continue;
 
         memories.push(memory);
         byType[memory.type] = (byType[memory.type] || 0) + 1;

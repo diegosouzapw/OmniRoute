@@ -113,7 +113,11 @@ for (const { provider, liveUrl, source = "api" } of LIVE_CASES) {
       const body = (await response.json()) as ModelsBody;
       assert.equal(body.provider, provider);
       assert.ok(fetched, `should have probed ${liveUrl}`);
-      assert.equal(body.source, source, "should serve the live upstream catalog, not local_catalog");
+      assert.equal(
+        body.source,
+        source,
+        "should serve the live upstream catalog, not local_catalog"
+      );
       const ids = body.models.map((m) => m.id);
       assert.ok(
         ids.includes(`${provider}-live-a`) && ids.includes(`${provider}-live-b`),

@@ -46,7 +46,7 @@ const src = readFileSync(ROUTE_PATH, "utf8");
 test("quota/keys/[id]/models: imports requireManagementAuth", () => {
   assert.ok(
     src.includes("requireManagementAuth"),
-    "route must import and call requireManagementAuth",
+    "route must import and call requireManagementAuth"
   );
 });
 
@@ -66,20 +66,17 @@ test("quota/keys/[id]/models: GET returns early when authError is truthy", () =>
   const getBody = src.slice(getIdx);
   assert.ok(
     getBody.includes("if (authError) return authError"),
-    "GET must return authError immediately — 401 without auth",
+    "GET must return authError immediately — 401 without auth"
   );
 });
 
 // ── Error sanitization ────────────────────────────────────────────────────────
 
 test("quota/keys/[id]/models: imports buildErrorBody from @omniroute/open-sse/utils/error", () => {
-  assert.ok(
-    src.includes("buildErrorBody"),
-    "route must use buildErrorBody — Hard Rule #12",
-  );
+  assert.ok(src.includes("buildErrorBody"), "route must use buildErrorBody — Hard Rule #12");
   assert.ok(
     src.includes("@omniroute/open-sse/utils/error"),
-    "route must import buildErrorBody from @omniroute/open-sse/utils/error",
+    "route must import buildErrorBody from @omniroute/open-sse/utils/error"
   );
 });
 
@@ -99,43 +96,43 @@ test("quota/keys/[id]/models: does NOT leak raw err.message outside buildErrorBo
 test("quota/keys/[id]/models: imports resolveQuotaKeyScope from @/lib/quota/quotaKey", () => {
   assert.ok(
     src.includes("resolveQuotaKeyScope"),
-    "route must call resolveQuotaKeyScope to compute pool scope",
+    "route must call resolveQuotaKeyScope to compute pool scope"
   );
   assert.ok(
     src.includes("@/lib/quota/quotaKey"),
-    "route must import resolveQuotaKeyScope from @/lib/quota/quotaKey",
+    "route must import resolveQuotaKeyScope from @/lib/quota/quotaKey"
   );
 });
 
 test("quota/keys/[id]/models: imports filterModelsToQuotaPools from @/lib/quota/quotaCombos", () => {
   assert.ok(
     src.includes("filterModelsToQuotaPools"),
-    "route must call filterModelsToQuotaPools to filter combo candidates",
+    "route must call filterModelsToQuotaPools to filter combo candidates"
   );
   assert.ok(
     src.includes("@/lib/quota/quotaCombos"),
-    "route must import filterModelsToQuotaPools from @/lib/quota/quotaCombos",
+    "route must import filterModelsToQuotaPools from @/lib/quota/quotaCombos"
   );
 });
 
 test("quota/keys/[id]/models: passes scope.poolSlugs to filterModelsToQuotaPools", () => {
   assert.ok(
     src.includes("scope.poolSlugs"),
-    "route must pass scope.poolSlugs to filterModelsToQuotaPools (same as catalog.ts approach)",
+    "route must pass scope.poolSlugs to filterModelsToQuotaPools (same as catalog.ts approach)"
   );
 });
 
 // ── DB imports from localDb ───────────────────────────────────────────────────
 
-test("quota/keys/[id]/models: imports getApiKeyById from @/lib/localDb", () => {
+test("quota/keys/[id]/models: imports getApiKeyById from @/lib/db/apiKeys", () => {
   assert.ok(src.includes("getApiKeyById"), "route must call getApiKeyById");
   assert.ok(
-    src.includes("@/lib/localDb"),
-    "route must import from @/lib/localDb (not from @/lib/db/apiKeys directly)",
+    src.includes("@/lib/db/apiKeys"),
+    "route must import getApiKeyById from @/lib/db/apiKeys (not from the localDb barrel)"
   );
 });
 
-test("quota/keys/[id]/models: imports getCombos from @/lib/localDb", () => {
+test("quota/keys/[id]/models: imports getCombos from @/lib/db/combos", () => {
   assert.ok(src.includes("getCombos"), "route must call getCombos to build combo candidates");
 });
 
@@ -144,14 +141,14 @@ test("quota/keys/[id]/models: imports getCombos from @/lib/localDb", () => {
 test("quota/keys/[id]/models: GET returns { models } shape", () => {
   assert.ok(
     src.includes("{ models }") || src.includes("{models}") || src.includes("models:"),
-    "GET must return { models } in the response body",
+    "GET must return { models } in the response body"
   );
 });
 
 test("quota/keys/[id]/models: maps filtered combos to model id strings (.map(m => m.id))", () => {
   assert.ok(
     src.includes(".map(") && src.includes("m.id"),
-    "route must map filtered combo entries to their id strings",
+    "route must map filtered combo entries to their id strings"
   );
 });
 
@@ -160,7 +157,7 @@ test("quota/keys/[id]/models: maps filtered combos to model id strings (.map(m =
 test("quota/keys/[id]/models: returns buildErrorBody(404, ...) when key not found", () => {
   assert.ok(
     src.includes("buildErrorBody(404"),
-    "route must use buildErrorBody(404, ...) when the API key is not found",
+    "route must use buildErrorBody(404, ...) when the API key is not found"
   );
   assert.ok(src.includes("404"), "route must return HTTP 404 on missing key");
 });
@@ -170,7 +167,7 @@ test("quota/keys/[id]/models: returns buildErrorBody(404, ...) when key not foun
 test("quota/keys/[id]/models: has dynamic = 'force-dynamic' export", () => {
   assert.ok(
     src.includes('dynamic = "force-dynamic"') || src.includes("dynamic = 'force-dynamic'"),
-    "route must export dynamic = 'force-dynamic'",
+    "route must export dynamic = 'force-dynamic'"
   );
 });
 
@@ -179,22 +176,19 @@ test("quota/keys/[id]/models: has dynamic = 'force-dynamic' export", () => {
 test("quota/keys/[id]/models: reads id via await params (Next 16 pattern)", () => {
   assert.ok(
     src.includes("await params"),
-    "route must use await params — Next 16 async params pattern",
+    "route must use await params — Next 16 async params pattern"
   );
 });
 
 test("quota/keys/[id]/models: params typed as Promise<{ id: string }>", () => {
   assert.ok(
     src.includes("Promise<") && src.includes("id: string"),
-    "params type must be Promise<{ id: string }> — matching groups/[id] pattern",
+    "params type must be Promise<{ id: string }> — matching groups/[id] pattern"
   );
 });
 
 // ── exports GET ───────────────────────────────────────────────────────────────
 
 test("quota/keys/[id]/models: exports GET handler", () => {
-  assert.ok(
-    src.includes("export async function GET"),
-    "route must export the GET handler",
-  );
+  assert.ok(src.includes("export async function GET"), "route must export the GET handler");
 });

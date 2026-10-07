@@ -39,14 +39,38 @@ function rrCombo(name: string) {
     strategy: "round-robin",
     config: { maxRetries: 0 },
     models: [
-      { kind: "model", provider: "codex", providerId: "codex", model: "m-a", connectionId: "conn-A", id: `${name}-0` },
-      { kind: "model", provider: "codex", providerId: "codex", model: "m-b", connectionId: "conn-B", id: `${name}-1` },
-      { kind: "model", provider: "glm-cn", providerId: "glm-cn", model: "m-c", connectionId: "conn-C", id: `${name}-2` },
+      {
+        kind: "model",
+        provider: "codex",
+        providerId: "codex",
+        model: "m-a",
+        connectionId: "conn-A",
+        id: `${name}-0`,
+      },
+      {
+        kind: "model",
+        provider: "codex",
+        providerId: "codex",
+        model: "m-b",
+        connectionId: "conn-B",
+        id: `${name}-1`,
+      },
+      {
+        kind: "model",
+        provider: "glm-cn",
+        providerId: "glm-cn",
+        model: "m-c",
+        connectionId: "conn-C",
+        id: `${name}-2`,
+      },
     ],
   };
 }
 
-async function dispatchConnection(combo: Record<string, unknown>, firstMessage: string): Promise<string> {
+async function dispatchConnection(
+  combo: Record<string, unknown>,
+  firstMessage: string
+): Promise<string> {
   let conn = "?";
   await handleComboChat({
     body: { model: combo.name, messages: [{ role: "user", content: firstMessage }], stream: false },
@@ -104,7 +128,10 @@ test("round-robin: DISTINCT conversations still spread across connections on tur
   const combo = rrCombo("rr-spread");
   const hist: Record<string, number> = {};
   for (let i = 0; i < 6; i++) {
-    const conn = await dispatchConnection(combo, `conversation number ${i} — distinct first message`);
+    const conn = await dispatchConnection(
+      combo,
+      `conversation number ${i} — distinct first message`
+    );
     hist[conn] = (hist[conn] || 0) + 1;
   }
   // Round-robin distribution must be preserved across conversations: more than one

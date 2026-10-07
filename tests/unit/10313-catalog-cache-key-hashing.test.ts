@@ -45,10 +45,11 @@ function captureMapKeys(): { keys: string[]; restore: () => void } {
   };
 }
 
-// buildCatalogCacheKey emits `prefix|isCodex|apiKeyFingerprint|configuredOnly|hideAuto|hideNoThink`
-// (6 pipe-delimited fields). Other in-flight keys (e.g. `x-request-id`) don't match.
+// buildCatalogCacheKey emits
+// `prefix|isCodex|apiKeyFingerprint|configuredOnly|hideAuto|hideNoThink|page`
+// (7 pipe-delimited fields). Other in-flight keys (e.g. `x-request-id`) don't match.
 function isCatalogCacheKey(k: string): boolean {
-  return k.split("|").length === 6;
+  return k.split("|").length === 7;
 }
 
 test("catalog cache Map keys must not contain the raw bearer API key (#10313)", async () => {
@@ -118,14 +119,26 @@ test("cache keys embed the sha256 digest of the secret, never the raw secret (#1
   // The hashed fingerprint, not the raw secret, rides in the cache keys.
   const keysWithDigestA = catalogKeys.filter((k) => k.includes(digestA));
   const keysWithDigestB = catalogKeys.filter((k) => k.includes(digestB));
-  assert.ok(keysWithDigestA.length > 0, `expected a cache key embedding the fingerprint of A: ${catalogKeys.join(",")}`);
-  assert.ok(keysWithDigestB.length > 0, `expected a cache key embedding the fingerprint of B: ${catalogKeys.join(",")}`);
+  assert.ok(
+    keysWithDigestA.length > 0,
+    `expected a cache key embedding the fingerprint of A: ${catalogKeys.join(",")}`
+  );
+  assert.ok(
+    keysWithDigestB.length > 0,
+    `expected a cache key embedding the fingerprint of B: ${catalogKeys.join(",")}`
+  );
 
   // Raw secrets must never appear (issue #10313 root cause).
   assert.ok(!catalogKeys.some((k) => k.includes(rawA) || k.includes(rawB)));
 
   // Identical secrets ⇒ identical key (memoized reuse); different ⇒ distinct.
-  assert.ok(keysWithDigestA.every((k) => k === keysWithDigestA[0]), "all A keys must be identical");
-  assert.ok(keysWithDigestB.every((k) => k === keysWithDigestB[0]), "all B keys must be identical");
+  assert.ok(
+    keysWithDigestA.every((k) => k === keysWithDigestA[0]),
+    "all A keys must be identical"
+  );
+  assert.ok(
+    keysWithDigestB.every((k) => k === keysWithDigestB[0]),
+    "all B keys must be identical"
+  );
   assert.notEqual(keysWithDigestA[0], keysWithDigestB[0]);
 });

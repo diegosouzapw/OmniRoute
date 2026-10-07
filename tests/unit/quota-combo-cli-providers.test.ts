@@ -29,7 +29,8 @@ const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  if (fs.existsSync(TEST_DATA_DIR)) fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (fs.existsSync(TEST_DATA_DIR))
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 

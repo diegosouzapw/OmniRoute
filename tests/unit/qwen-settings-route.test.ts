@@ -19,7 +19,7 @@ const route = await import("../../src/app/api/cli-tools/qwen-settings/route.ts")
 
 const authCookie = async (): Promise<string> => {
   process.env.JWT_SECRET = "qwen-settings-route-test-secret";
-  const token = await new SignJWT({ sub: "qwen-route-test" })
+  const token = await new SignJWT({ authenticated: true, sub: "qwen-route-test" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")

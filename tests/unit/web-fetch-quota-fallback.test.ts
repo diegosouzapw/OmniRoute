@@ -80,10 +80,10 @@ test("auto-select skips a rate-limited firecrawl and falls to jina-reader", asyn
       throw new Error("firecrawl should never be called once rate-limited");
     }
     if (u.includes("r.jina.ai")) {
-      return new Response(
-        JSON.stringify({ data: { content: "jina content", links: [] } }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ data: { content: "jina content", links: [] } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch to ${u}`);
   };
@@ -116,10 +116,10 @@ test("auto-select falls through to jina-reader when firecrawl returns 429 at req
       });
     }
     if (u.includes("r.jina.ai")) {
-      return new Response(
-        JSON.stringify({ data: { content: "jina content", links: [] } }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ data: { content: "jina content", links: [] } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch to ${u}`);
   };
@@ -151,10 +151,10 @@ test("auto-select falls through to jina-reader when firecrawl returns 403 (quota
       });
     }
     if (u.includes("r.jina.ai")) {
-      return new Response(
-        JSON.stringify({ data: { content: "jina content", links: [] } }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ data: { content: "jina content", links: [] } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch to ${u}`);
   };
@@ -186,10 +186,10 @@ test("auto-select does NOT fall through when firecrawl returns a plain 400 bad r
     }
     if (u.includes("r.jina.ai")) {
       jinaWasCalled = true;
-      return new Response(
-        JSON.stringify({ data: { content: "jina content", links: [] } }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ data: { content: "jina content", links: [] } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch to ${u}`);
   };

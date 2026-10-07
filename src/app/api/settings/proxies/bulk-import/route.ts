@@ -1,4 +1,4 @@
-import { upsertProxy } from "@/lib/localDb";
+import { upsertProxy } from "@/lib/db/proxies";
 import { bulkImportProxiesSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";

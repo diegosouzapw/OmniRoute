@@ -26,7 +26,6 @@ function mountHook<T>(useHook: () => T): {
   function HookComponent() {
     const captureRef = useRef<T>(undefined as unknown as T);
     captureRef.current = useHook();
-    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
     hookRef.current = captureRef.current;
     return null;
   }

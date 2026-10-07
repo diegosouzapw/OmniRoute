@@ -72,8 +72,7 @@ test("#9134 combo name is rejected instead of resolved", async () => {
     new Response(JSON.stringify({ text: "ok" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
-    })
-  ) as typeof fetch;
+    })) as typeof fetch;
 
   const res = await route.POST(transcriptionRequest("transcricao"));
   const body = await res.text();

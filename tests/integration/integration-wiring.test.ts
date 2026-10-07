@@ -82,6 +82,8 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
 describe("Pipeline Wiring — sse chat handler", () => {
   const src = readProjectFile("src/sse/handlers/chat.ts");
   const coreSrc = readProjectFile("open-sse/handlers/chatCore.ts");
+  // recordCost moved with the streaming tail when handleChatCore was split into leaves.
+  const streamingTailSrc = readProjectFile("open-sse/handlers/chatCore/streamingTail.ts");
 
   it("should import and use guardrail pre-call validation", () => {
     assert.ok(src, "src/sse/handlers/chat.ts should exist");
@@ -107,8 +109,9 @@ describe("Pipeline Wiring — sse chat handler", () => {
 
   it("should keep cost tracking integration in the chat pipeline", () => {
     assert.ok(coreSrc, "open-sse/handlers/chatCore.ts should exist");
+    assert.ok(streamingTailSrc, "open-sse/handlers/chatCore/streamingTail.ts should exist");
     assert.match(coreSrc, /calculateCost/);
-    assert.match(coreSrc, /recordCost/);
+    assert.match(streamingTailSrc, /recordCost/);
   });
 
   it("should not track backup artifacts in the active src/sse shim", () => {
@@ -460,6 +463,7 @@ describe("Page Integration — cache page wiring", () => {
 
 describe("Page Integration — cost explorer wiring", () => {
   const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  const usageAnalytics = readProjectFile("src/shared/components/UsageAnalytics.tsx");
   const costExplorerUtils = readProjectFile(
     "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
   );
@@ -472,6 +476,11 @@ describe("Page Integration — cost explorer wiring", () => {
     assert.match(costsPage, /byServiceTier/);
     assert.match(costExplorerUtils, /buildCostExplorerRows/);
     assert.match(costExplorerUtils, /serviceTier/);
+  });
+
+  it("should request token-price estimates for flat-rate providers", () => {
+    assert.match(costsPage, /includeFlatRateEstimates:\s*"true"/);
+    assert.match(usageAnalytics, /params\.set\("includeFlatRateEstimates",\s*"true"\)/);
   });
 });
 

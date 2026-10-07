@@ -249,7 +249,7 @@ test("codex 429 probe never runs the account-rotation failover (no persisted coo
   mockUpstream(429, "rate limited");
   const result = await runSingleModelTest({
     providerId: "codex",
-    modelId: "gpt-5-codex",
+    modelId: "gpt-5.6-sol",
     connectionId: connId,
     timeoutMs: 10_000,
   });

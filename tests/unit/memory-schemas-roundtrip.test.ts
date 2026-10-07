@@ -200,7 +200,7 @@ test("EmbeddingProviderListingSchema: rejects missing required model fields", ()
 
 test("MemoryEngineStatusSchema: accepts valid fully-populated status", () => {
   const result = MemoryEngineStatusSchema.safeParse({
-    keyword: { available: true, backend: "FTS5" },
+    keyword: { available: true, backend: "FTS5", reason: "FTS5 keyword search active" },
     embedding: {
       source: "remote",
       model: "openai/text-embedding-3-small",
@@ -230,7 +230,7 @@ test("MemoryEngineStatusSchema: accepts valid fully-populated status", () => {
 
 test("MemoryEngineStatusSchema: rejects wrong literal for keyword.backend", () => {
   const result = MemoryEngineStatusSchema.safeParse({
-    keyword: { available: true, backend: "BM25" }, // wrong backend literal
+    keyword: { available: true, backend: "BM25", reason: "x" }, // wrong backend literal
     embedding: {
       source: null,
       model: null,
@@ -243,12 +243,12 @@ test("MemoryEngineStatusSchema: rejects wrong literal for keyword.backend", () =
     qdrant: { enabled: false, healthy: null, latencyMs: null, error: null },
     rerank: { enabled: false, provider: null, model: null, available: false, reason: "" },
   });
-  assert.equal(result.success, false, "backend 'BM25' must be rejected (must be literal 'FTS5')");
+  assert.equal(result.success, false, "backend 'BM25' must be rejected (must be 'FTS5' or 'none')");
 });
 
 test("MemoryEngineStatusSchema: rejects invalid vectorStore backend", () => {
   const result = MemoryEngineStatusSchema.safeParse({
-    keyword: { available: true, backend: "FTS5" },
+    keyword: { available: true, backend: "FTS5", reason: "x" },
     embedding: {
       source: null,
       model: null,

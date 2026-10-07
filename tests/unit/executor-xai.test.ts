@@ -15,9 +15,9 @@ import { xaiProvider } from "../../open-sse/config/providers/registry/xai/index.
 
 const credentials = { apiKey: "test-key" };
 
-test("XaiExecutor is registered under the 'xai' key and set as the registry executor", () => {
+test("XaiExecutor is registered under the 'xai' key and set as the registry executor", async () => {
   assert.equal(hasSpecializedExecutor("xai"), true);
-  assert.ok(getExecutor("xai") instanceof XaiExecutor);
+  assert.ok((await getExecutor("xai")) instanceof XaiExecutor);
   assert.equal(xaiProvider.executor, "xai");
 });
 

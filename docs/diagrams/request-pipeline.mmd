@@ -17,8 +17,8 @@ flowchart LR
   Resolve --> Single["handleSingleModel<br/>(per target)"]
   Combo -->|single| Single
   Single --> Translate["translateRequest<br/>(OpenAI↔Claude↔Gemini)"]
-  Translate --> Exec["getExecutor<br/>(89 executor modules)"]
-  Exec --> Upstream["Upstream Provider<br/>(329 catalog entries)"]
+  Translate --> Exec["getExecutor<br/>(104 executor modules)"]
+  Exec --> Upstream["Upstream Provider<br/>(352 catalog entries)"]
   Upstream --> Stream["SSE / JSON"]
   Stream --> Transformer["responsesTransformer<br/>(Responses↔Chat)"]
   Transformer --> Client

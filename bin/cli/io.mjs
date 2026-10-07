@@ -81,3 +81,7 @@ export function printInfo(message) {
 export function printError(message) {
   console.log(`\x1b[31m✖ ${message}\x1b[0m`);
 }
+
+export function printWarning(message) {
+  console.log(`\x1b[33m⚠ ${message}\x1b[0m`);
+}

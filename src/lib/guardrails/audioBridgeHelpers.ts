@@ -24,6 +24,19 @@ export interface AudioTranscriptionConfig {
   timeoutMs: number;
 }
 
+export interface AudioTranscriptionSegment {
+  confidence?: number;
+  endSeconds: number;
+  startSeconds: number;
+  text: string;
+}
+
+export interface AudioTranscriptionTimedResult {
+  /** Present only when the provider actually returned per-segment timing. */
+  segments?: AudioTranscriptionSegment[];
+  text: string;
+}
+
 export interface AudioTranscriptionDependencies {
   fetchImpl?: typeof fetch;
   fetchRemote?: (
@@ -163,39 +176,94 @@ export async function selectAudioBridgeModel(
   return null;
 }
 
-/** Send one audio part through OmniRoute's existing multipart transcription route. */
-export async function callAudioTranscription(
+/** Resolve one audio part's raw bytes + best-guess MIME, decoding/fetching its `ref`. */
+async function resolveAudioBytes(
   part: AudioPart,
   config: AudioTranscriptionConfig,
-  deps: AudioTranscriptionDependencies = {}
-): Promise<string> {
+  deps: AudioTranscriptionDependencies,
+  signal: AbortSignal
+): Promise<{ bytes: Buffer; mime?: string }> {
+  const dataUri = /^data:([^;,]+);base64,(.+)$/is.exec(part.ref);
+  if (dataUri) {
+    return { bytes: Buffer.from(dataUri[2], "base64"), mime: dataUri[1].toLowerCase() };
+  }
+  if (/^https?:\/\//i.test(part.ref)) {
+    const fetchRemote =
+      deps.fetchRemote ??
+      ((url: string, options: { signal: AbortSignal }) =>
+        fetchRemoteImage(url, {
+          guard: "public-only",
+          maxBytes: 25 * 1024 * 1024,
+          pinDns: true,
+          signal: options.signal,
+          timeoutMs: config.timeoutMs,
+        }));
+    const remote = await fetchRemote(part.ref, { signal });
+    return { bytes: remote.buffer, mime: remote.contentType.split(";", 1)[0]?.trim().toLowerCase() };
+  }
+  return { bytes: Buffer.from(part.ref, "base64") };
+}
+
+/** Build the exact multipart body OmniRoute's own transcription route expects. */
+function buildTranscriptionMultipartBody(
+  bytes: Buffer,
+  format: string,
+  safeMime: string,
+  model: string,
+  extraFields: Readonly<Record<string, string>>
+  // Buffer<ArrayBuffer> (what Buffer.concat actually returns), not the wider
+  // Buffer<ArrayBufferLike>: only the former is assignable to fetch's BodyInit under the
+  // open-sse tsconfig, and this body is passed straight to fetch() below (#11654).
+): { body: Buffer<ArrayBuffer>; boundary: string } {
+  const fileName = `audio.${format.replace(/[^a-z0-9]/g, "") || "wav"}`;
+  const boundary = `----OmniRouteAudioBridge${randomUUID().replace(/-/g, "")}`;
+  const CRLF = "\r\n";
+  const extraFieldParts = Object.entries(extraFields).map(([name, value]) =>
+    Buffer.from(
+      `--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}` +
+        `${value}${CRLF}`
+    )
+  );
+  const body = Buffer.concat([
+    Buffer.from(
+      `--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="file"; filename="${fileName}"${CRLF}` +
+        `Content-Type: ${safeMime}${CRLF}${CRLF}`
+    ),
+    bytes,
+    Buffer.from(
+      `${CRLF}--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="model"${CRLF}${CRLF}` +
+        `${model}${CRLF}`
+    ),
+    ...extraFieldParts,
+    Buffer.from(`--${boundary}--${CRLF}`),
+  ]);
+  return { body, boundary };
+}
+
+/**
+ * Send one audio part through OmniRoute's existing multipart transcription
+ * route (the one Audio Bridge transcription boundary) and return the parsed
+ * JSON response. `extraFields` lets callers request provider extras (e.g.
+ * `response_format=verbose_json`) without duplicating this HTTP client.
+ */
+async function sendAudioTranscriptionRequest(
+  part: AudioPart,
+  config: AudioTranscriptionConfig,
+  deps: AudioTranscriptionDependencies,
+  extraFields: Readonly<Record<string, string>>
+): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
   try {
-    let bytes: Buffer;
-    let detectedMime: string | undefined;
-    const dataUri = /^data:([^;,]+);base64,(.+)$/is.exec(part.ref);
-    if (dataUri) {
-      detectedMime = dataUri[1].toLowerCase();
-      bytes = Buffer.from(dataUri[2], "base64");
-    } else if (/^https?:\/\//i.test(part.ref)) {
-      const fetchRemote =
-        deps.fetchRemote ??
-        ((url: string, options: { signal: AbortSignal }) =>
-          fetchRemoteImage(url, {
-            guard: "public-only",
-            maxBytes: 25 * 1024 * 1024,
-            pinDns: true,
-            signal: options.signal,
-            timeoutMs: config.timeoutMs,
-          }));
-      const remote = await fetchRemote(part.ref, { signal: controller.signal });
-      bytes = remote.buffer;
-      detectedMime = remote.contentType.split(";", 1)[0]?.trim().toLowerCase();
-    } else {
-      bytes = Buffer.from(part.ref, "base64");
-    }
-
+    const { bytes, mime: detectedMime } = await resolveAudioBytes(
+      part,
+      config,
+      deps,
+      controller.signal
+    );
     const configuredFormat = part.format?.trim().toLowerCase();
     const format =
       configuredFormat || (detectedMime ? AUDIO_MIME_FORMAT[detectedMime] : undefined) || "wav";
@@ -206,22 +274,13 @@ export async function callAudioTranscription(
     const safeMime = /^[a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*$/i.test(mime)
       ? mime
       : "application/octet-stream";
-    const fileName = `audio.${format.replace(/[^a-z0-9]/g, "") || "wav"}`;
-    const boundary = `----OmniRouteAudioBridge${randomUUID().replace(/-/g, "")}`;
-    const CRLF = "\r\n";
-    const multipartBody = Buffer.concat([
-      Buffer.from(
-        `--${boundary}${CRLF}` +
-          `Content-Disposition: form-data; name="file"; filename="${fileName}"${CRLF}` +
-          `Content-Type: ${safeMime}${CRLF}${CRLF}`
-      ),
+    const { body: multipartBody, boundary } = buildTranscriptionMultipartBody(
       bytes,
-      Buffer.from(
-        `${CRLF}--${boundary}${CRLF}` +
-          `Content-Disposition: form-data; name="model"${CRLF}${CRLF}` +
-          `${config.model}${CRLF}--${boundary}--${CRLF}`
-      ),
-    ]);
+      format,
+      safeMime,
+      config.model,
+      extraFields
+    );
 
     const port = (deps.getPort ?? (() => getRuntimePorts().port))();
     const bearer = (deps.getBearer ?? resolveSelfLoopBearer)();
@@ -241,11 +300,11 @@ export async function callAudioTranscription(
     if (!response.ok) {
       throw new Error(`Audio transcription failed (${response.status})`);
     }
-    const data = (await response.json()) as { text?: unknown };
+    const data = (await response.json()) as Record<string, unknown>;
     if (typeof data.text !== "string") {
       throw new Error("Audio transcription returned an invalid response");
     }
-    return data.text.trim();
+    return data;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("Audio transcription timed out");
@@ -254,4 +313,73 @@ export async function callAudioTranscription(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** Send one audio part through OmniRoute's existing multipart transcription route. */
+export async function callAudioTranscription(
+  part: AudioPart,
+  config: AudioTranscriptionConfig,
+  deps: AudioTranscriptionDependencies = {}
+): Promise<string> {
+  const data = await sendAudioTranscriptionRequest(part, config, deps, {});
+  return (data.text as string).trim();
+}
+
+function normalizeTranscriptionSegment(raw: unknown): AudioTranscriptionSegment | null {
+  if (!raw || typeof raw !== "object") return null;
+  const segment = raw as Record<string, unknown>;
+  const startSeconds =
+    typeof segment.start === "number"
+      ? segment.start
+      : typeof segment.startSeconds === "number"
+        ? segment.startSeconds
+        : Number.NaN;
+  const endSeconds =
+    typeof segment.end === "number"
+      ? segment.end
+      : typeof segment.endSeconds === "number"
+        ? segment.endSeconds
+        : Number.NaN;
+  const text = typeof segment.text === "string" ? segment.text.trim() : "";
+  if (
+    !text ||
+    !Number.isFinite(startSeconds) ||
+    !Number.isFinite(endSeconds) ||
+    startSeconds < 0 ||
+    endSeconds <= startSeconds
+  ) {
+    return null;
+  }
+  const confidence =
+    typeof segment.confidence === "number" && Number.isFinite(segment.confidence)
+      ? Math.min(1, Math.max(0, segment.confidence))
+      : undefined;
+  return {
+    endSeconds,
+    startSeconds,
+    text,
+    ...(confidence === undefined ? {} : { confidence }),
+  };
+}
+
+/**
+ * Same Audio Bridge transcription boundary as {@link callAudioTranscription},
+ * requesting `verbose_json` so a provider that supports it can return
+ * per-segment timing. Callers must treat a result with no `segments` as
+ * coarse (whole-clip) timing only — the provider did not supply detail.
+ */
+export async function callAudioTranscriptionTimed(
+  part: AudioPart,
+  config: AudioTranscriptionConfig,
+  deps: AudioTranscriptionDependencies = {}
+): Promise<AudioTranscriptionTimedResult> {
+  const data = await sendAudioTranscriptionRequest(part, config, deps, {
+    response_format: "verbose_json",
+  });
+  const text = (data.text as string).trim();
+  const rawSegments = Array.isArray(data.segments) ? data.segments : [];
+  const segments = rawSegments
+    .map(normalizeTranscriptionSegment)
+    .filter((segment): segment is AudioTranscriptionSegment => segment !== null);
+  return segments.length > 0 ? { segments, text } : { text };
 }

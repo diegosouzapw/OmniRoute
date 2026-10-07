@@ -128,10 +128,7 @@ export async function prepareJinaMixedEmbeddingInput(
       continue;
     }
     if (isCanonicalEmbeddingItem(item)) {
-      const [translated] = await prepareJinaInput(
-        [item as EmbeddingMultimodalItem],
-        fetchMedia
-      );
+      const [translated] = await prepareJinaInput([item as EmbeddingMultimodalItem], fetchMedia);
       out.push(translated);
       continue;
     }
@@ -163,7 +160,9 @@ function embeddingValues(entry: unknown): unknown[] {
   return Array.isArray(values) ? values : [];
 }
 
-function normalizeGeminiEmbedContentResponse(data: Record<string, unknown>): Record<string, unknown> {
+function normalizeGeminiEmbedContentResponse(
+  data: Record<string, unknown>
+): Record<string, unknown> {
   return {
     object: "list",
     data: [{ object: "embedding", embedding: embeddingValues(data.embedding), index: 0 }],
@@ -263,10 +262,7 @@ async function itemToGeminiContent(
     return { parts: [await jinaDocToGeminiPart(item, fetchMedia)] };
   }
   if (isCanonicalEmbeddingItem(item)) {
-    const [part] = await prepareGeminiParts(
-      [item as EmbeddingMultimodalItem],
-      fetchMedia
-    );
+    const [part] = await prepareGeminiParts([item as EmbeddingMultimodalItem], fetchMedia);
     return { parts: [part] };
   }
   throw new Error("Unsupported Gemini embedding input item");
@@ -345,4 +341,42 @@ export async function prepareStructuredEmbeddingRequest(
     };
   }
   throw new Error(`Provider ${provider.id} has no structured embedding input translator`);
+}
+
+/**
+ * Normalize a single-text embedding endpoint's response into OpenAI's
+ * `/v1/embeddings` list shape.
+ *
+ * CLOVA Studio's embedding v2 answers:
+ *
+ * ```
+ * {"status":{"code":"20000","message":"OK"},
+ *  "result":{"embedding":[…1024 floats],"inputTokens":4}}
+ * ```
+ *
+ * There is no `data[]` and no `usage` object, so both are synthesized. `index` is
+ * left at 0 here — the batching loop in `embeddings.ts` rewrites it to the
+ * caller's position before the response is returned.
+ *
+ * A non-20000 status or malformed success envelope throws so an HTTP-200 error
+ * envelope can never be exposed as an empty successful embedding response.
+ */
+export function normalizeClovaEmbeddingV2Response(
+  rawData: Record<string, unknown>
+): Record<string, unknown> {
+  const statusCode = (rawData?.status as { code?: unknown } | undefined)?.code;
+  if (String(statusCode) !== "20000") {
+    throw new Error("CLOVA Studio embedding v2 returned an unsuccessful status");
+  }
+
+  const result = (rawData?.result ?? {}) as Record<string, unknown>;
+  if (!Array.isArray(result.embedding)) {
+    throw new Error("CLOVA Studio embedding v2 response is missing an embedding vector");
+  }
+
+  const inputTokens = Number(result.inputTokens) || 0;
+  return {
+    data: [{ object: "embedding", index: 0, embedding: result.embedding }],
+    usage: { prompt_tokens: inputTokens, total_tokens: inputTokens },
+  };
 }

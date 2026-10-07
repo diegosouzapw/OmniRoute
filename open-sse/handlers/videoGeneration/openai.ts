@@ -35,6 +35,11 @@ function resolveVideoEndpoint(credentials: unknown, fallback: string): string {
       ? creds.baseUrl.trim()
       : null;
   const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+  // Узел своего адреса может не иметь — у встроенных провайдеров его и не
+  // бывает. Тогда работает `fallback`: это готовый endpoint из реестра, а не
+  // корень, поэтому путь к нему не дописывается (у nanogpt адрес оканчивается
+  // на /video/generations — в единственном числе).
+  if (!nodeBaseUrl) return fallback;
   let n = nodeBaseUrl;
   while (n.endsWith("/")) n = n.slice(0, -1);
   if (n.endsWith("/videos/generations")) return n;

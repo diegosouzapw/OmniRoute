@@ -13,7 +13,8 @@ import {
   getAntigravityOAuthUserAgent,
 } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
-import { lockExactModel } from "../services/accountFallback.ts";
+import { parseRetryFromErrorText, type RetryHintProvenance } from "../services/accountFallback.ts";
+import { parseDetailedRetryHintFromJsonBody } from "../services/retryAfterJson.ts";
 import {
   shouldRetryWithCredits,
   shouldUseCreditsFirst,
@@ -22,6 +23,7 @@ import {
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
+import { markAntigravityModelQuotaExhausted } from "../services/antigravityFamilyCooldown.ts";
 import { getMitmAlias } from "@/lib/db/models";
 import {
   MAX_ANTIGRAVITY_OUTPUT_TOKENS,
@@ -88,6 +90,21 @@ const ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS = 15_000;
 // Bounded per-URL auto-retry count for both the Retry-After-driven short retry and
 // the no-Retry-After transient/429 backoff loop in executeOnce().
 const MAX_AUTO_RETRIES = 3;
+
+export function resolveAntigravityBodyRetryHint(
+  body: string,
+  errorMessage: string
+): { retryMs: number; source: RetryHintProvenance } | null {
+  const structured = parseDetailedRetryHintFromJsonBody(body, Number.MAX_SAFE_INTEGER);
+  if (structured) {
+    return {
+      retryMs: structured.retryAfterMs,
+      source: structured.provenance,
+    };
+  }
+  const retryMs = parseRetryFromErrorText(errorMessage);
+  return retryMs ? { retryMs, source: "body" } : null;
+}
 
 const ANTIGRAVITY_TRANSIENT_ERROR_PATTERNS: RegExp[] = [
   /high\s+traffic/i,
@@ -226,17 +243,15 @@ export function createCreditsExtractionTransform(
   );
 }
 
-/**
- * Persist a quota-exhausted cooldown to the DB for `connectionId` so that
- * cross-request and post-restart routing skips this connection until the
- * cooldown expires. Exported for unit testing. @internal
- */
-export function markConnectionQuotaExhausted(connectionId: string, retryAfterMs: number): void {
+export function markConnectionQuotaExhausted(
+  connectionId: string,
+  retryAfterMs: number,
+  model?: string | null
+): void {
   try {
+    if (markAntigravityModelQuotaExhausted(connectionId, retryAfterMs, model)) return;
     setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
-  } catch {
-    // DB write failure must never crash the request path
-  }
+  } catch {}
 }
 
 /**
@@ -313,7 +328,8 @@ function applyAntigravityGenerationDefaults(
   if (
     Number.isFinite(thinkingBudget) &&
     thinkingBudget > 0 &&
-    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
+    Number.isFinite(maxOutputTokens) &&
+    maxOutputTokens <= thinkingBudget
   ) {
     generationConfig.maxOutputTokens = Math.floor(thinkingBudget) + 1;
   }
@@ -361,7 +377,9 @@ const COMPETITIVE_AGENT_PROMPT_PATTERNS: RegExp[] = [
  */
 export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknown {
   const record = asRecord(systemInstruction);
-  const parts = Array.isArray(record?.parts) ? (record.parts as Array<Record<string, unknown>>) : [];
+  const parts = Array.isArray(record?.parts)
+    ? (record.parts as Array<Record<string, unknown>>)
+    : [];
   if (parts.length === 0) return systemInstruction;
 
   let changed = false;
@@ -369,7 +387,10 @@ export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknow
     if (typeof part.text !== "string" || part.text.length === 0) return part;
     let text = part.text;
     for (const pattern of COMPETITIVE_AGENT_PROMPT_PATTERNS) {
-      const stripped = text.replace(pattern, "").replace(/\n{3,}/g, "\n\n").trimStart();
+      const stripped = text
+        .replace(pattern, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trimStart();
       if (stripped !== text) {
         changed = true;
         text = stripped;
@@ -487,6 +508,7 @@ function isAntigravityGeminiChatModel(upstreamModel: string): boolean {
 export const __test_stripTrailingAntigravityAssistantTurn = stripTrailingAntigravityAssistantTurn;
 
 type AntigravityCreditsRetryState = { attempted: boolean };
+type AntigravityPhysicalSendCounter = { value: number };
 
 /** Base per-url-index attempt context, before the request has been sent. */
 type AntigravityAttemptContext = {
@@ -506,6 +528,8 @@ type AntigravityAttemptContext = {
   urlIndex: number;
   retryAttemptsByUrl: Record<number, number>;
   fallbackCount: number;
+  physicalSendCounter: AntigravityPhysicalSendCounter;
+  correlationId: string | null;
 };
 
 /** Context threaded through the 429/503 handling helpers — adds the sent response. */
@@ -583,6 +607,10 @@ export class AntigravityExecutor extends BaseExecutor {
     const normalizeProjectId = (value: unknown): string | null => {
       if (typeof value !== "string") return null;
       const trimmedValue = value.trim();
+      // A row poisoned with the manual-project sentinel must behave as "no project"
+      // so it takes the typed 422 GCP_PROJECT_REQUIRED path (and gets flagged
+      // missing_project_id) instead of sending `projects/__REQUIRES_GCP_PROJECT__`.
+      if (trimmedValue === ANTIGRAVITY_REQUIRES_MANUAL_PROJECT) return null;
       return trimmedValue ? trimmedValue : null;
     };
     const bodyRecord = asRecord(body) ?? {};
@@ -806,6 +834,7 @@ export class AntigravityExecutor extends BaseExecutor {
       enable_thinking: _enableThinking,
       thinking_budget: _thinkingBudget,
       enabledCreditTypes: _enabledCreditTypes,
+      stream: _streamField,
       ...passthroughFields
     } = normalizedBody;
 
@@ -875,6 +904,7 @@ export class AntigravityExecutor extends BaseExecutor {
       // a proactive discovery here prevents 422 errors on the next request when the
       // per-token memoization cache is invalidated by the new access token.
       let projectId = credentials.projectId?.trim() || "";
+      if (projectId === ANTIGRAVITY_REQUIRES_MANUAL_PROJECT) projectId = "";
       if (!projectId && newAccessToken) {
         try {
           const discovered = await ensureAntigravityProjectAssigned(
@@ -883,7 +913,7 @@ export class AntigravityExecutor extends BaseExecutor {
             getAntigravityClientProfile(credentials),
             AbortSignal.timeout(8_000)
           );
-          if (discovered) {
+          if (discovered && discovered !== ANTIGRAVITY_REQUIRES_MANUAL_PROJECT) {
             projectId = discovered;
             await persistDiscoveredAntigravityProjectId(
               credentials.connectionId,
@@ -1148,6 +1178,7 @@ export class AntigravityExecutor extends BaseExecutor {
    * exactly the same single call as before (zero extra upstream requests).
    */
   async execute(input: ExecuteInput) {
+    const physicalSendCounter: AntigravityPhysicalSendCounter = { value: 0 };
     await resolveAntigravityClientVersion(getAntigravityClientProfile(input.credentials));
 
     // Look up the chain by the NORMALLY-resolved upstream id (honours MITM/static aliases).
@@ -1157,7 +1188,7 @@ export class AntigravityExecutor extends BaseExecutor {
 
     if (chain.length <= 1) {
       // No fallback chain (flash, claude, plain pro, unknown) → single attempt, unchanged.
-      return this.executeOnce(input);
+      return this.executeOnce(input, undefined, physicalSendCounter);
     }
 
     let firstResult: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>> | null = null;
@@ -1165,7 +1196,7 @@ export class AntigravityExecutor extends BaseExecutor {
       const candidate = chain[i];
       let result: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>>;
       try {
-        result = await this.executeOnce(input, candidate);
+        result = await this.executeOnce(input, candidate, physicalSendCounter);
       } catch (error) {
         const outcome = handleAntigravityFallbackChainError(
           input,
@@ -1207,7 +1238,7 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     // Unreachable (loop always returns), but keeps the type checker happy.
-    return firstResult ?? this.executeOnce(input);
+    return firstResult ?? this.executeOnce(input, undefined, physicalSendCounter);
   }
 
   /**
@@ -1218,8 +1249,18 @@ export class AntigravityExecutor extends BaseExecutor {
    * status of the first response so `execute()` can decide whether to fall through. @internal
    */
   private async executeOnce(
-    { model, body, stream, credentials, signal, log, upstreamExtraHeaders }: ExecuteInput,
-    modelIdOverride?: string
+    {
+      model,
+      body,
+      stream,
+      credentials,
+      signal,
+      log,
+      upstreamExtraHeaders,
+      correlationId = null,
+    }: ExecuteInput,
+    modelIdOverride?: string,
+    physicalSendCounter: AntigravityPhysicalSendCounter = { value: 0 }
   ) {
     await resolveAntigravityClientVersion(getAntigravityClientProfile(credentials));
     const fallbackCount = this.getFallbackCount();
@@ -1286,6 +1327,8 @@ export class AntigravityExecutor extends BaseExecutor {
           urlIndex,
           retryAttemptsByUrl,
           fallbackCount,
+          physicalSendCounter,
+          correlationId,
         });
 
         if (outcome.action === "return") return outcome.result;
@@ -1297,11 +1340,24 @@ export class AntigravityExecutor extends BaseExecutor {
           throw signal?.reason ?? error;
         }
         lastError = error;
-        l.error(
+        // A fetch failure on a URL that still has a fallback is a retry, not a
+        // failed request: the loop continues and the client gets the next
+        // URL's answer. Logging it at error floods the error stream with
+        // requests that succeeded. Only the last URL, which is rethrown below,
+        // is a real failure. Node hides the socket reason (ECONNRESET and
+        // friends) on error.cause, so surface that code instead of the bare
+        // "fetch failed".
+        const cause =
+          error instanceof Error && error.cause instanceof Error
+            ? (error.cause as NodeJS.ErrnoException).code || error.cause.message
+            : "";
+        const detail = `${error instanceof Error ? error.message : String(error)}${cause ? ` (cause: ${cause})` : ""}`;
+        const hasFallback = urlIndex + 1 < this.getFallbackCount();
+        l[hasFallback ? "warn" : "error"](
           "TELEMETRY",
-          `[Antigravity] Network/Fetch Error - URL: ${url}, Model: ${model}, Error: ${error instanceof Error ? error.message : String(error)}`
+          `[Antigravity] Network/Fetch Error - URL: ${url}, Model: ${model}, Error: ${detail}`
         );
-        if (urlIndex + 1 < fallbackCount) {
+        if (hasFallback) {
           l.debug("RETRY", `Error on ${url}, trying fallback ${urlIndex + 1}`);
           continue;
         }
@@ -1334,7 +1390,8 @@ export class AntigravityExecutor extends BaseExecutor {
       accountId,
       urlIndex,
       retryAttemptsByUrl,
-      fallbackCount,
+      physicalSendCounter,
+      correlationId,
     } = ctx;
 
     const { response, finalHeaders } = await sendAntigravityRequest(
@@ -1347,7 +1404,9 @@ export class AntigravityExecutor extends BaseExecutor {
       stream,
       signal,
       log,
-      retryAttemptsByUrl[urlIndex]
+      retryAttemptsByUrl[urlIndex],
+      physicalSendCounter,
+      correlationId
     );
 
     let retryMs: number | null = null;
@@ -1544,7 +1603,6 @@ export class AntigravityExecutor extends BaseExecutor {
     const {
       response,
       url,
-      model,
       headers,
       transformedBody,
       credentials,
@@ -1562,7 +1620,8 @@ export class AntigravityExecutor extends BaseExecutor {
       const errorMessage = buildAntigravity429ErrorMessage(errorJson);
 
       // 1. Try to parse explicit retry time from message
-      const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);
+      const bodyRetryHint = resolveAntigravityBodyRetryHint(errorBody, errorMessage);
+      const parsedRetryMs = bodyRetryHint?.retryMs ?? null;
 
       // 2. Classify 429, then decide the final retry time BEFORE the credits retry so
       //    full_quota_exhausted can skip the credits attempt entirely (avoids ~41s hold
@@ -1579,11 +1638,6 @@ export class AntigravityExecutor extends BaseExecutor {
         !creditsAlreadyInjected &&
         !creditsRetryState.attempted &&
         shouldRetryWithCredits(credentials?.accessToken || "", creditsMode);
-
-      // Retry mode gets one credits attempt before the exact-model lock is persisted.
-      if (decision.kind === "full_quota_exhausted" && retryMs && !creditsRetryEligible) {
-        lockExactModel(this.provider, accountId, model, "quota_exhausted", retryMs);
-      }
 
       if (category === "quota_exhausted" && creditsAlreadyInjected) {
         handleCreditsFailure(credentials?.accessToken || "");
@@ -1603,10 +1657,12 @@ export class AntigravityExecutor extends BaseExecutor {
           signal,
           log,
           accountId,
-          updateAntigravityRemainingCredits
+          updateAntigravityRemainingCredits,
+          ctx.physicalSendCounter,
+          ctx.correlationId
         );
         if (creditsResult) return { kind: "return", result: creditsResult };
-        if (retryMs) markConnectionQuotaExhausted(accountId, retryMs);
+        if (retryMs) markConnectionQuotaExhausted(accountId, retryMs, ctx.model);
       }
 
       return {

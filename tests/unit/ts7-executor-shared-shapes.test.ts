@@ -14,6 +14,10 @@ const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts"
  * that failed to type-check — no duplicate added here.
  */
 
+// NOTE: the former truncates-to-128 guard here is superseded by
+// opencode-tools-no-truncation.test.ts (#11444): tool-list limiting moved to
+// chatCore truncateToolList(); the executor must forward arrays intact.
+
 describe("OpencodeExecutor — tools truncation survives the narrowing fix", () => {
   const executor = new OpencodeExecutor("opencode-go");
   const CREDENTIALS = { apiKey: "k" } as Record<string, unknown>;
@@ -33,15 +37,25 @@ describe("OpencodeExecutor — tools truncation survives the narrowing fix", () 
     };
   }
 
-  it("truncates an over-long tools array to 128 entries", () => {
+  // #11444 removed the executor's own `tools.slice(0, 128)`: it dropped every tool past
+  // the 128th (task, skill, write, read…) and left subagent runs paralyzed. Limiting is
+  // the chatCore layer's job now — `upstreamBody.truncateToolList()`, which reads a
+  // per-provider limit from `toolLimitDetector` instead of a hardcoded 128, so
+  // grok-cli (200) and nvidia (1536) are not cut at someone else's ceiling.
+  //
+  // This case used to assert the truncation and directly contradicted
+  // `opencode-tools-no-truncation.test.ts`, which owns the pass-through contract. It now
+  // pins the same direction from this file's angle — the narrowing fix must not let the
+  // cap creep back in here — so the two agree instead of racing.
+  it("forwards an over-long tools array intact, leaving the limit to chatCore (#11444)", () => {
     const out = executor.transformRequest("oc/kimi-k2.6", bodyWith(200), true, CREDENTIALS) as {
       tools: unknown[];
     };
-    assert.equal(out.tools.length, 128, "upstream rejects more than 128 tools");
-    assert.deepEqual(
-      (out.tools[127] as { function: { name: string } }).function.name,
-      "tool_127",
-      "truncation keeps the first 128 in order, not an arbitrary slice"
+    assert.equal(out.tools.length, 200, "the executor must not impose a tool cap");
+    assert.equal(
+      (out.tools[199] as { function: { name: string } }).function.name,
+      "tool_199",
+      "order and tail preserved — nothing sliced off"
     );
   });
 
@@ -76,4 +90,3 @@ describe("OpencodeExecutor — tools truncation survives the narrowing fix", () 
     assert.equal((out as unknown[]).length, 1);
   });
 });
-

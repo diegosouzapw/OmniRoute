@@ -1,38 +1,40 @@
-/* Adapted from miuuyy/codex-chatgpt-web commit 55592fca0ba19a27f1b769cec8fff61ff340a785 (MIT). */
+/* Adapted from miuuyy/codex-chatgpt-web v4.0.7 commit b59d7dc51b84fb1f465ff1d00f5207f3b2b4a494 (MIT). */
 import { createHash } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as z from "zod/v4";
 import { namespacedToolName, type CodexTool } from "../../types";
+import { VERSION } from "../../version";
 import type { ChatGptTurnEnvironment } from "./environment";
-import { callTurnBroker, type BrokerToolResult } from "./turn-broker";
+import { CODEX_COMPACTION_CONTROL_WIRE_NAME } from "./native-compaction-control";
+import { callTurnBroker, TurnBrokerTimeoutError, type BrokerToolResult } from "./turn-broker";
 
 interface ClaimedTurn {
   bindingId: string;
-  environment: ChatGptTurnEnvironment & { expiresAt: number };
+  environment: ChatGptTurnEnvironment & { expiresAt?: number };
 }
 
-interface ResolvedTurn {
-  environment: ChatGptTurnEnvironment & { expiresAt: number };
-}
-
-const bindingSchema = z
-  .string()
-  .min(20)
-  .max(256)
-  .describe("Opaque binding_id returned by codex_bind_turn.");
+const turnTokenSchema = z.string().min(20).max(256);
 const jsonArgumentsSchema = z.record(z.string(), z.unknown()).default({});
+export const CHATGPT_WEB_AGENT_WAIT_POLL_MS = 10_000;
+// The OpenAI tunnel currently owns a two-minute command-response deadline. The local MCP server
+// must settle first so an abandoned native tool call is returned as an MCP error instead of
+// letting the tunnel tear down and poison its long-lived stdio transport.
+export const CHATGPT_WEB_MCP_INVOCATION_TIMEOUT_MS = 90_000;
+
+interface McpRequestExtra {
+  sessionId?: string;
+  requestId: string | number;
+  _meta?: unknown;
+  requestInfo?: unknown;
+  signal?: AbortSignal;
+}
 
 function scopeHash(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 12);
 }
 
-function requestScopeSummary(extra: {
-  sessionId?: string;
-  requestId: string | number;
-  _meta?: unknown;
-  requestInfo?: unknown;
-}): string {
+function requestScopeSummary(extra: McpRequestExtra): string {
   const meta =
     extra._meta && typeof extra._meta === "object" && !Array.isArray(extra._meta)
       ? Object.entries(extra._meta as Record<string, unknown>)
@@ -79,8 +81,73 @@ function namedTool(environment: ChatGptTurnEnvironment, requestedWireName: strin
   return tool;
 }
 
-function invocationTimeout(environment: ChatGptTurnEnvironment & { expiresAt: number }): number {
-  return Math.max(1, environment.expiresAt - Date.now());
+function isAgentWaitTool(tool: CodexTool): boolean {
+  return (
+    tool.name === "wait_agent" &&
+    (tool.namespace === "multi_agent_v1" || tool.namespace === "multi_agent_v2")
+  );
+}
+
+function browserToolDescription(tool: CodexTool): string {
+  if (!isAgentWaitTool(tool)) return tool.description;
+  return `${tool.description}\n\nChatGPT Web transport rule: wait for exactly 10 seconds per call, then release the MCP channel so spawned Web agents can use their own tools. Repeat with the same target ids until a terminal status is returned.`;
+}
+
+function browserToolParameters(tool: CodexTool): Record<string, unknown> {
+  if (!isAgentWaitTool(tool)) return tool.parameters;
+  const parameters = structuredClone(tool.parameters);
+  const properties =
+    parameters.properties &&
+    typeof parameters.properties === "object" &&
+    !Array.isArray(parameters.properties)
+      ? (parameters.properties as Record<string, unknown>)
+      : {};
+  const timeout =
+    properties.timeout_ms &&
+    typeof properties.timeout_ms === "object" &&
+    !Array.isArray(properties.timeout_ms)
+      ? (properties.timeout_ms as Record<string, unknown>)
+      : {};
+  const required = Array.isArray(parameters.required)
+    ? parameters.required.filter((value): value is string => typeof value === "string")
+    : [];
+  return {
+    ...parameters,
+    properties: {
+      ...properties,
+      timeout_ms: {
+        ...timeout,
+        type: "number",
+        const: CHATGPT_WEB_AGENT_WAIT_POLL_MS,
+        minimum: CHATGPT_WEB_AGENT_WAIT_POLL_MS,
+        maximum: CHATGPT_WEB_AGENT_WAIT_POLL_MS,
+        description:
+          "Required transport-safe polling interval. Use exactly 10000 and repeat the same targets until completion.",
+      },
+    },
+    required: [...new Set([...required, "timeout_ms"])],
+  };
+}
+
+function assertBrowserToolArguments(tool: CodexTool, args: Record<string, unknown>): void {
+  if (!isAgentWaitTool(tool)) return;
+  if (args.timeout_ms !== CHATGPT_WEB_AGENT_WAIT_POLL_MS) {
+    throw new Error(
+      `ChatGPT Web wait_agent requires timeout_ms=${CHATGPT_WEB_AGENT_WAIT_POLL_MS}` +
+        " so the shared MCP channel remains available to spawned Web agents"
+    );
+  }
+}
+
+export function chatGptMcpInvocationTimeout(
+  environment: ChatGptTurnEnvironment & { expiresAt?: number },
+  now = Date.now()
+): number {
+  const remaining =
+    environment.expiresAt === undefined
+      ? CHATGPT_WEB_MCP_INVOCATION_TIMEOUT_MS
+      : Math.max(1, environment.expiresAt - now);
+  return Math.min(CHATGPT_WEB_MCP_INVOCATION_TIMEOUT_MS, remaining);
 }
 
 function asMcpResult(value: BrokerToolResult) {
@@ -107,14 +174,9 @@ function gatewayNestedToolName(toolName: string): string {
   return toolName.replace(/[^A-Za-z0-9_$]/g, "_");
 }
 
-function execGatewayProgram(
-  nestedToolName: string,
-  freeform: boolean,
-  payload: { arguments?: Record<string, unknown>; input?: string }
-): string {
-  const nestedInput = freeform ? (payload.input ?? "") : (payload.arguments ?? {});
+function execGatewayResultProgram(invocation: string[]): string {
   return [
-    `const result = await tools[${JSON.stringify(gatewayNestedToolName(nestedToolName))}](${JSON.stringify(nestedInput)});`,
+    ...invocation,
     "const emit = value => {",
     "  if (Array.isArray(value)) { for (const item of value) emit(item); return; }",
     '  if (value && typeof value === "object") {',
@@ -132,62 +194,116 @@ function execGatewayProgram(
   ].join("\n");
 }
 
-export async function runChatGptMcpServer(options: { brokerSocketPath: string }): Promise<void> {
-  const server = new McpServer({ name: "codex-native", version: "3.0.0" });
+function execGatewayProgram(
+  nestedToolName: string,
+  freeform: boolean,
+  payload: { arguments?: Record<string, unknown>; input?: string }
+): string {
+  const nestedInput = freeform ? (payload.input ?? "") : (payload.arguments ?? {});
+  return execGatewayResultProgram([
+    `const result = await tools[${JSON.stringify(gatewayNestedToolName(nestedToolName))}](${JSON.stringify(nestedInput)});`,
+  ]);
+}
 
-  const environment = async (
-    bindingId: string
-  ): Promise<ChatGptTurnEnvironment & { expiresAt: number }> => {
-    const resolved = await callTurnBroker<ResolvedTurn>(options.brokerSocketPath, {
-      method: "resolve",
-      bindingId,
-    });
-    if (resolved.environment.expiresAt <= Date.now()) throw new Error("Codex turn binding expired");
-    return resolved.environment;
+function execCommandGatewayProgram(
+  execCommandArguments: Record<string, unknown>,
+  shellCommandArguments: Record<string, unknown>
+): string {
+  const execCommandName = gatewayNestedToolName("exec_command");
+  const shellCommandName = gatewayNestedToolName("shell_command");
+  return execGatewayResultProgram([
+    'if (typeof ALL_TOOLS === "undefined" || !Array.isArray(ALL_TOOLS)) throw new Error("Native command tool registry is unavailable");',
+    "const nativeCommandNames = new Set(ALL_TOOLS.map(tool => tool?.name));",
+    `const nativeCommandCandidates = ${JSON.stringify([execCommandName, shellCommandName])}.filter(name => nativeCommandNames.has(name));`,
+    'if (nativeCommandCandidates.length !== 1) throw new Error("Expected exactly one native command tool; found " + (nativeCommandCandidates.join(", ") || "none"));',
+    "const nativeCommandName = nativeCommandCandidates[0];",
+    "const nativeCommand = tools[nativeCommandName];",
+    'if (typeof nativeCommand !== "function") throw new Error("Native command tool " + nativeCommandName + " is listed but unavailable");',
+    `const nativeCommandInput = nativeCommandName === ${JSON.stringify(execCommandName)} ? ${JSON.stringify(execCommandArguments)} : ${JSON.stringify(shellCommandArguments)};`,
+    "const result = await nativeCommand(nativeCommandInput);",
+  ]);
+}
+
+export async function runChatGptMcpServer(options: { brokerSocketPath: string }): Promise<void> {
+  const server = new McpServer({ name: "codex-native", version: VERSION });
+
+  const claimTurn = async (
+    toolName: string,
+    turnToken: string,
+    extra: McpRequestExtra
+  ): Promise<ClaimedTurn> => {
+    console.error(`[chatgpt-web-mcp] ${toolName} scope=${requestScopeSummary(extra)}`);
+    return await callTurnBroker<ClaimedTurn>(
+      options.brokerSocketPath,
+      { method: "claim", token: turnToken },
+      5_000,
+      extra.signal
+    );
   };
 
   const invoke = async (
     bindingId: string,
-    bound: ChatGptTurnEnvironment & { expiresAt: number },
+    bound: ChatGptTurnEnvironment & { expiresAt?: number },
     tool: CodexTool,
-    payload: { arguments?: Record<string, unknown>; input?: string }
+    payload: { arguments?: Record<string, unknown>; input?: string },
+    signal?: AbortSignal
   ) => {
-    const response = await callTurnBroker<BrokerToolResult>(
-      options.brokerSocketPath,
-      {
-        method: "invoke",
+    const timeoutMs = chatGptMcpInvocationTimeout(bound);
+    try {
+      const response = await callTurnBroker<BrokerToolResult>(
+        options.brokerSocketPath,
+        {
+          method: "invoke",
+          bindingId,
+          wireName: wireName(tool),
+          freeform: tool.freeform === true,
+          ...(tool.freeform
+            ? { input: payload.input ?? "" }
+            : { arguments: payload.arguments ?? {} }),
+        },
+        timeoutMs,
+        signal
+      );
+      return asMcpResult(response);
+    } catch (error) {
+      // A cancelled/timed-out MCP request no longer has a consumer for the native result. Revoke
+      // the whole turn capability so the broker drops the pending invocation and every later call
+      // from that abandoned ChatGPT response fails explicitly against its retired binding.
+      await callTurnBroker(options.brokerSocketPath, {
+        method: "release",
         bindingId,
-        wireName: wireName(tool),
-        freeform: tool.freeform === true,
-        ...(tool.freeform
-          ? { input: payload.input ?? "" }
-          : { arguments: payload.arguments ?? {} }),
-      },
-      invocationTimeout(bound)
-    );
-    return asMcpResult(response);
-  };
-
-  const invokeNative = (
-    bindingId: string,
-    bound: ChatGptTurnEnvironment & { expiresAt: number },
-    tool: CodexTool,
-    payload: { arguments?: Record<string, unknown>; input?: string }
-  ) => {
-    const gateway = execGateway(bound);
-    return gateway && gateway !== tool
-      ? invoke(bindingId, bound, gateway, {
-          input: execGatewayProgram(wireName(tool), tool.freeform === true, payload),
-        })
-      : invoke(bindingId, bound, tool, payload);
+      }).catch((releaseError) => {
+        console.error(
+          `[chatgpt-web-mcp] failed to retire abandoned binding: ${releaseError instanceof Error ? releaseError.message : String(releaseError)}`
+        );
+      });
+      if (error instanceof TurnBrokerTimeoutError) {
+        const toolName = wireName(tool);
+        console.error(
+          `[chatgpt-web-mcp] ${toolName} did not complete within ${timeoutMs}ms; retired its turn binding`
+        );
+        return result(
+          {
+            code: "codex_tool_timeout",
+            tool: toolName,
+            timeout_ms: timeoutMs,
+            retryable: false,
+            message: `Codex tool ${toolName} did not complete before the MCP transport deadline. The current turn binding was retired; do not retry it in this ChatGPT response.`,
+          },
+          true
+        );
+      }
+      throw error;
+    }
   };
 
   const invokeNestedNative = (
     bindingId: string,
-    bound: ChatGptTurnEnvironment & { expiresAt: number },
+    bound: ChatGptTurnEnvironment & { expiresAt?: number },
     nestedToolName: string,
     freeform: boolean,
-    payload: { arguments?: Record<string, unknown>; input?: string }
+    payload: { arguments?: Record<string, unknown>; input?: string },
+    signal?: AbortSignal
   ) => {
     const gateway = execGateway(bound);
     if (!gateway) {
@@ -195,58 +311,16 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         `This Codex turn did not advertise ${nestedToolName} or the native exec gateway`
       );
     }
-    return invoke(bindingId, bound, gateway, {
-      input: execGatewayProgram(nestedToolName, freeform, payload),
-    });
-  };
-
-  server.registerTool(
-    "codex_bind_turn",
-    {
-      title: "Bind this response to its Codex turn",
-      description:
-        "Idempotently claim the capability for the current outer Codex turn before calling its native tools.",
-      inputSchema: { turn_token: z.string().min(20).max(256) },
-      annotations: {
-        readOnlyHint: true,
-        destructiveHint: false,
-        idempotentHint: true,
-        openWorldHint: false,
+    return invoke(
+      bindingId,
+      bound,
+      gateway,
+      {
+        input: execGatewayProgram(nestedToolName, freeform, payload),
       },
-    },
-    async ({ turn_token }, extra) => {
-      console.error(`[chatgpt-web-mcp] codex_bind_turn scope=${requestScopeSummary(extra)}`);
-      const claimed = await callTurnBroker<ClaimedTurn>(options.brokerSocketPath, {
-        method: "claim",
-        token: turn_token,
-      });
-      const commandTool =
-        exactTool(claimed.environment, "exec_command") ??
-        exactTool(claimed.environment, "shell_command");
-      const gateway = execGateway(claimed.environment);
-      return result({
-        binding_id: claimed.bindingId,
-        harness_version: 3,
-        execution: "outer_codex_native",
-        cwd: claimed.environment.cwd,
-        roots: claimed.environment.roots,
-        writable_roots: claimed.environment.writableRoots,
-        sandbox: claimed.environment.sandboxPolicy.type,
-        expires_at: new Date(claimed.environment.expiresAt).toISOString(),
-        tool_count: claimed.environment.tools.length,
-        command_tool: commandTool ? wireName(commandTool) : gateway ? "exec_command" : null,
-        outer_tool_gateway: gateway ? wireName(gateway) : null,
-        capabilities: [
-          "native_tool_loop",
-          "session_history",
-          "exec",
-          "apply_patch",
-          "images",
-          "tool_registry",
-        ],
-      });
-    }
-  );
+      signal
+    );
+  };
 
   server.registerTool(
     "codex_exec",
@@ -255,7 +329,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       description:
         "Invoke the command tool advertised by the current outer Codex harness. A long-running command returns its native session_id.",
       inputSchema: {
-        binding_id: bindingSchema,
+        turn_token: turnTokenSchema,
         cmd: z.string().min(1).max(100_000),
         workdir: z.string().max(16_384).optional(),
         yield_time_ms: z.number().int().min(250).max(30_000).optional(),
@@ -266,31 +340,44 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
-        openWorldHint: false,
+        openWorldHint: true,
       },
     },
-    async ({ binding_id, cmd, workdir, yield_time_ms, max_output_tokens, tty }, extra) => {
-      console.error(`[chatgpt-web-mcp] codex_exec scope=${requestScopeSummary(extra)}`);
-      const bound = await environment(binding_id);
+    async ({ turn_token, cmd, workdir, yield_time_ms, max_output_tokens, tty }, extra) => {
+      const claimed = await claimTurn("codex_exec", turn_token, extra);
+      const bound = claimed.environment;
+      const execCommandArguments = {
+        cmd,
+        ...(workdir ? { workdir } : {}),
+        ...(yield_time_ms !== undefined ? { yield_time_ms } : {}),
+        ...(max_output_tokens !== undefined ? { max_output_tokens } : {}),
+        ...(tty !== undefined ? { tty } : {}),
+      };
+      const shellCommandArguments = {
+        command: cmd,
+        ...(workdir ? { workdir } : {}),
+        ...(yield_time_ms !== undefined ? { timeout_ms: yield_time_ms } : {}),
+      };
       const tool = exactTool(bound, "exec_command") ?? exactTool(bound, "shell_command");
-      const commandName = tool?.name ?? "exec_command";
-      const args =
-        commandName === "exec_command"
-          ? {
-              cmd,
-              ...(workdir ? { workdir } : {}),
-              ...(yield_time_ms !== undefined ? { yield_time_ms } : {}),
-              ...(max_output_tokens !== undefined ? { max_output_tokens } : {}),
-              ...(tty !== undefined ? { tty } : {}),
-            }
-          : {
-              command: cmd,
-              ...(workdir ? { workdir } : {}),
-              ...(yield_time_ms !== undefined ? { timeout_ms: yield_time_ms } : {}),
-            };
-      return tool
-        ? invokeNative(binding_id, bound, tool, { arguments: args })
-        : invokeNestedNative(binding_id, bound, commandName, false, { arguments: args });
+      if (tool) {
+        const args = tool.name === "exec_command" ? execCommandArguments : shellCommandArguments;
+        return invoke(claimed.bindingId, bound, tool, { arguments: args }, extra.signal);
+      }
+      const gateway = execGateway(bound);
+      if (!gateway) {
+        throw new Error(
+          "This Codex turn did not advertise a native command tool or the native exec gateway"
+        );
+      }
+      return invoke(
+        claimed.bindingId,
+        bound,
+        gateway,
+        {
+          input: execCommandGatewayProgram(execCommandArguments, shellCommandArguments),
+        },
+        extra.signal
+      );
     }
   );
 
@@ -300,7 +387,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       title: "Continue a native Codex command session",
       description: "Write characters to, or poll, a session_id returned by codex_exec.",
       inputSchema: {
-        binding_id: bindingSchema,
+        turn_token: turnTokenSchema,
         session_id: z.number().int().nonnegative(),
         chars: z.string().max(1_000_000).optional(),
         yield_time_ms: z.number().int().min(250).max(300_000).optional(),
@@ -310,11 +397,12 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
-        openWorldHint: false,
+        openWorldHint: true,
       },
     },
-    async ({ binding_id, session_id, chars, yield_time_ms, max_output_tokens }) => {
-      const bound = await environment(binding_id);
+    async ({ turn_token, session_id, chars, yield_time_ms, max_output_tokens }, extra) => {
+      const claimed = await claimTurn("codex_write_stdin", turn_token, extra);
+      const bound = claimed.environment;
       const tool = exactTool(bound, "write_stdin");
       const payload = {
         arguments: {
@@ -325,8 +413,8 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         },
       };
       return tool
-        ? invokeNative(binding_id, bound, tool, payload)
-        : invokeNestedNative(binding_id, bound, "write_stdin", false, payload);
+        ? invoke(claimed.bindingId, bound, tool, payload, extra.signal)
+        : invokeNestedNative(claimed.bindingId, bound, "write_stdin", false, payload, extra.signal);
     }
   );
 
@@ -336,7 +424,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       title: "Apply a native Codex patch",
       description:
         "Invoke the outer Codex apply_patch tool, producing a native file-change item in the Codex task.",
-      inputSchema: { binding_id: bindingSchema, patch: z.string().min(1).max(5_000_000) },
+      inputSchema: { turn_token: turnTokenSchema, patch: z.string().min(1).max(5_000_000) },
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
@@ -344,14 +432,22 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         openWorldHint: false,
       },
     },
-    async ({ binding_id, patch }) => {
-      const bound = await environment(binding_id);
+    async ({ turn_token, patch }, extra) => {
+      const claimed = await claimTurn("codex_apply_patch", turn_token, extra);
+      const bound = claimed.environment;
       const tool = exactTool(bound, "apply_patch");
       if (!tool)
-        return invokeNestedNative(binding_id, bound, "apply_patch", true, { input: patch });
+        return invokeNestedNative(
+          claimed.bindingId,
+          bound,
+          "apply_patch",
+          true,
+          { input: patch },
+          extra.signal
+        );
       return tool.freeform
-        ? invokeNative(binding_id, bound, tool, { input: patch })
-        : invokeNative(binding_id, bound, tool, { arguments: { input: patch } });
+        ? invoke(claimed.bindingId, bound, tool, { input: patch }, extra.signal)
+        : invoke(claimed.bindingId, bound, tool, { arguments: { input: patch } }, extra.signal);
     }
   );
 
@@ -362,7 +458,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       description:
         "Invoke the outer Codex view_image tool and return its multimodal result to this same ChatGPT response.",
       inputSchema: {
-        binding_id: bindingSchema,
+        turn_token: turnTokenSchema,
         path: z.string().min(1).max(16_384),
         detail: z.enum(["high", "original"]).optional(),
       },
@@ -373,13 +469,14 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         openWorldHint: false,
       },
     },
-    async ({ binding_id, path, detail }) => {
-      const bound = await environment(binding_id);
+    async ({ turn_token, path, detail }, extra) => {
+      const claimed = await claimTurn("codex_view_image", turn_token, extra);
+      const bound = claimed.environment;
       const tool = exactTool(bound, "view_image");
       const payload = { arguments: { path, ...(detail ? { detail } : {}) } };
       return tool
-        ? invokeNative(binding_id, bound, tool, payload)
-        : invokeNestedNative(binding_id, bound, "view_image", false, payload);
+        ? invoke(claimed.bindingId, bound, tool, payload, extra.signal)
+        : invokeNestedNative(claimed.bindingId, bound, "view_image", false, payload, extra.signal);
     }
   );
 
@@ -390,7 +487,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       description:
         "Search the exact tool registry supplied to the current outer Codex turn, including configured MCP/app tools.",
       inputSchema: {
-        binding_id: bindingSchema,
+        turn_token: turnTokenSchema,
         query: z.string().max(500).optional(),
         offset: z.number().int().min(0).max(100_000).default(0),
         limit: z.number().int().min(1).max(50).default(20),
@@ -403,8 +500,9 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         openWorldHint: false,
       },
     },
-    async ({ binding_id, query, offset, limit, include_schema }) => {
-      const bound = await environment(binding_id);
+    async ({ turn_token, query, offset, limit, include_schema }, extra) => {
+      const claimed = await claimTurn("codex_tool_inventory", turn_token, extra);
+      const bound = claimed.environment;
       const needle = query?.trim().toLowerCase();
       const matches = bound.tools.filter(
         (tool) =>
@@ -418,9 +516,9 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         wire_name: wireName(tool),
         name: tool.name,
         namespace: tool.namespace ?? null,
-        description: tool.description,
+        description: browserToolDescription(tool),
         kind: tool.freeform ? "freeform" : tool.toolSearch ? "tool_search" : "function",
-        ...(include_schema ? { parameters: tool.parameters } : {}),
+        ...(include_schema ? { parameters: browserToolParameters(tool) } : {}),
       }));
       return result({
         tools: page,
@@ -437,7 +535,7 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
       description:
         "Invoke an exact wire_name returned by codex_tool_inventory. The outer Codex runtime performs the call, approvals, and UI lifecycle.",
       inputSchema: {
-        binding_id: bindingSchema,
+        turn_token: turnTokenSchema,
         wire_name: z.string().min(1).max(1_000),
         arguments: jsonArgumentsSchema.optional(),
         input: z.string().max(5_000_000).optional(),
@@ -449,18 +547,52 @@ export async function runChatGptMcpServer(options: { brokerSocketPath: string })
         openWorldHint: true,
       },
     },
-    async ({ binding_id, wire_name, arguments: args, input }) => {
-      const bound = await environment(binding_id);
+    async ({ turn_token, wire_name, arguments: args, input }, extra) => {
+      if (wire_name === CODEX_COMPACTION_CONTROL_WIRE_NAME) {
+        if (input !== undefined) {
+          throw new Error("Compaction control handoff does not accept freeform input");
+        }
+        const handoffId = args?.handoff_id;
+        const summary = args?.summary;
+        if (typeof handoffId !== "string" || handoffId.length === 0) {
+          throw new Error("Compaction control handoff requires handoff_id");
+        }
+        if (typeof summary !== "string") {
+          throw new Error("Compaction control handoff requires summary");
+        }
+        await callTurnBroker(
+          options.brokerSocketPath,
+          {
+            method: "submit_compaction_handoff",
+            token: turn_token,
+            handoffId,
+            summary,
+          },
+          5_000,
+          extra.signal
+        );
+        return result({ submitted: true });
+      }
+      const claimed = await claimTurn("codex_tool_call", turn_token, extra);
+      const bound = claimed.environment;
       const tool = namedTool(bound, wire_name);
       if (tool.freeform) {
         if (input === undefined) throw new Error(`Freeform Codex tool ${wire_name} requires input`);
         if (args && Object.keys(args).length > 0)
           throw new Error(`Freeform Codex tool ${wire_name} does not accept arguments`);
-        return invokeNative(binding_id, bound, tool, { input });
+        return invoke(claimed.bindingId, bound, tool, { input }, extra.signal);
       }
       if (input !== undefined)
         throw new Error(`Function Codex tool ${wire_name} does not accept freeform input`);
-      return invokeNative(binding_id, bound, tool, { arguments: args ?? {} });
+      const invocationArguments = args ?? {};
+      assertBrowserToolArguments(tool, invocationArguments);
+      return invoke(
+        claimed.bindingId,
+        bound,
+        tool,
+        { arguments: invocationArguments },
+        extra.signal
+      );
     }
   );
 

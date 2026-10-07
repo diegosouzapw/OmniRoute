@@ -435,3 +435,39 @@ test("self-service status normalizes Codex account quota for one explicit connec
     },
   });
 });
+
+test("self-service fetches Moonshot custom-node quota via providerSpecificData host", async () => {
+  const metadata = {
+    id: "key-mnative",
+    name: "moonshot native",
+    scopes: [SELF_USAGE_SCOPE, SELF_ACCOUNT_QUOTA_SCOPE],
+    allowedConnections: ["conn-mnative"],
+  };
+  const fetches: string[] = [];
+  const { deps } = makeDeps({
+    getProviderConnectionById: async (connectionId: string) => ({
+      id: connectionId,
+      provider: "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf",
+      isActive: true,
+      providerSpecificData: { baseUrl: "https://api.moonshot.cn/v1" },
+    }),
+    fetchAndPersistProviderLimits: async (connectionId: string) => {
+      fetches.push(connectionId);
+      return {
+        connection: { id: connectionId, provider: "openai-compatible-chat-e2971611-bc02-4c37-8fc5-39b8e3906fdf" },
+        usage: {
+          plan: "Kimi 开放平台（国内）",
+          quotas: {
+            available: { remaining: 15, remainingPercentage: 100, unlimited: true, currency: "CNY" },
+          },
+        },
+        cache: { quotas: null, plan: null, message: null, fetchedAt: "" },
+      };
+    },
+  });
+
+  const status = await buildApiKeySelfServiceStatus(metadata, deps);
+  assert.deepEqual(fetches, ["conn-mnative"]);
+  assert.equal(status.accountQuotas[0].unavailable, undefined);
+  assert.equal(status.accountQuotas[0].plan, "Kimi 开放平台（国内）");
+});

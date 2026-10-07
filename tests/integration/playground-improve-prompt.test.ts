@@ -19,16 +19,12 @@ import os from "node:os";
 import path from "node:path";
 
 // Set up a temp DATA_DIR so getDbInstance() initialises cleanly
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-improve-prompt-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-improve-prompt-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 // Disable mandatory auth for most tests
 process.env.REQUIRE_API_KEY = "false";
 
-const { POST, OPTIONS } = await import(
-  "../../src/app/api/playground/improve-prompt/route.ts"
-);
+const { POST, OPTIONS } = await import("../../src/app/api/playground/improve-prompt/route.ts");
 
 const BASE_URL = "http://localhost:20128";
 
@@ -84,7 +80,11 @@ test("happy path: system + prompt both provided", async () => {
     ) as typeof fetch;
 
     const res = await POST(
-      postRequest({ system: "You are a helper.", prompt: "Tell me about AI.", model: "gpt-4o-mini" })
+      postRequest({
+        system: "You are a helper.",
+        prompt: "Tell me about AI.",
+        model: "gpt-4o-mini",
+      })
     );
     assert.equal(res.status, 200);
 
@@ -161,15 +161,13 @@ test("happy path: usage defaults to 0 when not in upstream response", async () =
   try {
     // Return response without usage field
     globalThis.fetch = (async (_url: unknown, _opts: unknown) => {
-      return new Response(
-        JSON.stringify({ choices: [{ message: { content: "improved" } }] }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ choices: [{ message: { content: "improved" } }] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }) as typeof fetch;
 
-    const res = await POST(
-      postRequest({ prompt: "Hello world", model: "gpt-4o-mini" })
-    );
+    const res = await POST(postRequest({ prompt: "Hello world", model: "gpt-4o-mini" }));
     assert.equal(res.status, 200);
 
     const body = (await res.json()) as { tokensIn: number; tokensOut: number };
@@ -245,9 +243,7 @@ test("upstream error returns sanitized error message — no stack trace in body"
       "Internal error\n    at /home/user/project/src/handler.ts:42:10\n    at process.nextTick"
     ) as typeof fetch;
 
-    const res = await POST(
-      postRequest({ prompt: "Hello", model: "gpt-4o-mini" })
-    );
+    const res = await POST(postRequest({ prompt: "Hello", model: "gpt-4o-mini" }));
     // Should be an error response (not 200)
     assert.ok(res.status >= 400);
 
@@ -270,9 +266,7 @@ test("upstream network error is sanitized", async () => {
       throw new Error("ECONNREFUSED connect ECONNREFUSED 127.0.0.1:20128");
     }) as typeof fetch;
 
-    const res = await POST(
-      postRequest({ prompt: "Hello", model: "gpt-4o-mini" })
-    );
+    const res = await POST(postRequest({ prompt: "Hello", model: "gpt-4o-mini" }));
     assert.ok(res.status >= 500);
 
     const body = (await res.json()) as { error: { message: string } };
@@ -289,9 +283,7 @@ test("401 when REQUIRE_API_KEY=true and no key provided", async () => {
   const originalRequired = process.env.REQUIRE_API_KEY;
   try {
     process.env.REQUIRE_API_KEY = "true";
-    const res = await POST(
-      postRequest({ prompt: "Test", model: "gpt-4o-mini" })
-    );
+    const res = await POST(postRequest({ prompt: "Test", model: "gpt-4o-mini" }));
     assert.equal(res.status, 401);
 
     const body = (await res.json()) as { error: { message: string } };

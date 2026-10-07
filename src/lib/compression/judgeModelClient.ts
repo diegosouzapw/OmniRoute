@@ -18,9 +18,10 @@ export function createPricedJudgeClient(
   provider: string,
   credentials: ProviderCredentials
 ): ModelClient {
-  const executor = getExecutor(provider);
   return {
     async complete(model: string, messages: ChatTurn[]): Promise<ModelCallResult> {
+      // #11220: getExecutor is async (lazy registry) — resolve per call.
+      const executor = await getExecutor(provider);
       const input: ExecuteInput = {
         model,
         body: { model, messages, stream: false },

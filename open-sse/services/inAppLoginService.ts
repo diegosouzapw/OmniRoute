@@ -4,8 +4,7 @@
  * Opens a Playwright browser context, navigates to the provider's login page,
  * and polls for target cookies/tokens after the user completes login.
  *
- * Used as the dashboard/web fallback path when Electron is not available.
- * For Electron-native login, see electron/loginManager.js.
+ * The primary login surface for cookie providers (dashboard and web clients).
  *
  * Events:
  *   "status" — { providerId: string, status: string, message: string }
@@ -54,7 +53,7 @@ export class InAppLoginService extends EventEmitter {
 
   /**
    * Start a login flow for a web-cookie provider using Playwright.
-   * @param providerId - e.g. "claude-web", "chatgpt-web"
+   * @param providerId - e.g. "claude-web", "perplexity-web"
    * @param options.timeout - Total timeout in ms (default: config value or 300s)
    */
   async startLogin(providerId: string, options?: { timeout?: number }): Promise<LoginResult> {

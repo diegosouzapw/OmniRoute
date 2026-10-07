@@ -97,10 +97,7 @@ test("3 columns coexist: disableNonPublicModels, allowedQuotas, streamDefaultMod
   );
 
   // Verify streamDefaultMode is still present
-  assert.ok(
-    metadata.streamDefaultMode !== undefined,
-    "streamDefaultMode should be present"
-  );
+  assert.ok(metadata.streamDefaultMode !== undefined, "streamDefaultMode should be present");
   assert.equal(metadata.streamDefaultMode, "json", "streamDefaultMode should be 'json'");
 });
 

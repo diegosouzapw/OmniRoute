@@ -19,7 +19,14 @@ import {
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
-import { hasFixedQuotaOrder, hasCanonicalWindowOrder, sortQuotasByWindow } from "../quotaParsing";
+import {
+  findKiloPassQuotaRow,
+  isKiloPassDisplayRow,
+  hasFixedQuotaOrder,
+  hasCanonicalWindowOrder,
+  sortQuotasByWindow,
+} from "../quotaParsing";
+import KiloPassMeter from "./KiloPassMeter";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -153,17 +160,34 @@ interface Props {
 
 function QuotaDetailRow({
   q,
+  kiloPassRow = null,
   onHideQuota,
   onOpenResetCredits,
   loadingResetCredits = false,
 }: {
   q: any;
+  /** Collapsed Kilo Pass display row; present only on kilocode provider cards. */
+  kiloPassRow?: any | null;
   onHideQuota?: (quota: any) => void;
   onOpenResetCredits?: () => void;
   loadingResetCredits?: boolean;
 }) {
   const t = useTranslations("usage");
   const canHide = typeof onHideQuota === "function" && !q.isCredits && !q.isResetCredits;
+  if (isKiloPassDisplayRow(q)) {
+    return (
+      <KiloPassMeter
+        base={q.kiloPassBase ?? kiloPassRow?.kiloPassBase ?? 0}
+        bonus={q.kiloPassBonus ?? kiloPassRow?.kiloPassBonus ?? 0}
+        used={q.used}
+        total={q.total}
+        remaining={q.remaining}
+        nextBillingAt={q.resetAt ?? kiloPassRow?.resetAt ?? null}
+        balance={q.kiloPassBalance ?? null}
+      />
+    );
+  }
+
   if (q.isResetCredits) {
     const count = Number(q.creditCount ?? q.remaining ?? 0);
     const colors = getBarColor(q.remainingPercentage ?? 100);
@@ -332,6 +356,10 @@ export default function QuotaCardExpanded({
   );
   const hiddenCount = sortedQuotas.length - visibleQuotas.length;
 
+  // Only Kilo Code cards host the dedicated Kilo Pass meter; the collapsed display row carries
+  // the derived meter values while balance/renewal metadata render below it.
+  const kiloPassRow = providerId === "kilocode" ? findKiloPassQuotaRow(sortedQuotas) : null;
+
   const refreshedLabel = refreshedAt
     ? new Date(refreshedAt).toLocaleTimeString([], {
         hour: "2-digit",
@@ -367,6 +395,7 @@ export default function QuotaCardExpanded({
             <QuotaDetailRow
               key={`${q.name}-${q.modelKey ?? ""}-${i}`}
               q={q}
+              kiloPassRow={kiloPassRow}
               onHideQuota={onHideQuota}
               onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
               loadingResetCredits={loadingResetCredits}
@@ -418,10 +447,10 @@ export default function QuotaCardExpanded({
         </button>
       )}
 
-      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t border-border/40">
         {refreshedLabel && (
           <span
-            className={`text-[10px] tabular-nums ${
+            className={`text-[10px] tabular-nums shrink-0 ${
               hasStaleData ? "text-amber-500" : "text-text-muted"
             }`}
             title={
@@ -433,7 +462,7 @@ export default function QuotaCardExpanded({
             {tr("updatedShort", "Updated")} {refreshedLabel}
           </span>
         )}
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 ml-auto">
           {canRedeemResetCredit && (
             <button
               type="button"
@@ -442,7 +471,7 @@ export default function QuotaCardExpanded({
                 e.stopPropagation();
                 onOpenResetCredits?.();
               }}
-              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span
                 className={`material-symbols-outlined text-[12px] ${
@@ -461,7 +490,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onOpenCutoff();
             }}
-            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+            className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
               hasCutoffOverrides ? "border-primary/40 text-primary" : "border-border"
             }`}
           >
@@ -474,7 +503,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onOpenCost();
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
           >
             <span className="material-symbols-outlined text-[12px]">bar_chart</span>
             {t("usdCost")}
@@ -486,7 +515,7 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onRefresh();
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             <span
               className={`material-symbols-outlined text-[12px] ${loading ? "animate-spin" : ""}`}

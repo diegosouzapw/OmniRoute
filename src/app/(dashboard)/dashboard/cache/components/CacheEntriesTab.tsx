@@ -63,7 +63,9 @@ export default function CacheEntriesTab() {
   );
 
   useEffect(() => {
-    fetchEntries();
+    void (async () => {
+      await fetchEntries();
+    })();
   }, [fetchEntries]);
 
   const handleDelete = async (signature: string) => {

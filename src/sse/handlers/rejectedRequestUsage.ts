@@ -18,6 +18,7 @@
  * never turn into a second failure on the response path.
  */
 import { saveCallLog, saveRequestUsage } from "@/lib/usageDb";
+import { redactVideoTranscriptFieldsForLog } from "@/lib/guardrails/videoBridgeSnapshotRedaction";
 
 export interface RejectedRequestUsageInput {
   status: number;
@@ -82,7 +83,12 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     duration,
     tokens: {},
     error: error || null,
-    requestBody,
+    // #12150 P2 item 7: this request was rejected BEFORE the guardrail chain ran
+    // (circuit-breaker-open / combo-exhausted), so the video-bridge guardrail
+    // never redacted the transcript. Redact defensively here — a no-op clone for
+    // any non-video body, structured field substitution (never bypassable by cue
+    // content) for a video one. See videoBridgeSnapshotRedaction.ts.
+    requestBody: requestBody == null ? requestBody : redactVideoTranscriptFieldsForLog(requestBody),
     comboName,
     comboStepId,
     comboExecutionKey,

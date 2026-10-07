@@ -50,27 +50,6 @@ function useModelCapabilityOverridesData() {
     window.setTimeout(() => setStatusMessage(null), 4000);
   }, []);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [catalogRes, overridesRes] = await Promise.all([
-        fetch("/api/pricing/models"),
-        fetch("/api/model-capability-overrides"),
-      ]);
-      if (catalogRes.ok)
-        setCatalog((await catalogRes.json()) as Record<string, PricingCatalogProvider>);
-      if (overridesRes.ok) {
-        const payload = (await overridesRes.json()) as { overrides?: ModelCapabilityOverride[] };
-        setOverrides(payload.overrides || []);
-      }
-    } catch (error) {
-      console.error("Failed to load model capability overrides:", error);
-      showStatus("error", t("modelOverrideLoadFailed"));
-    } finally {
-      setLoading(false);
-    }
-  }, [showStatus, t]);
-
   const saveOverride = useCallback(
     async (target: string, key: ModelOverrideKey, value: number | string) => {
       try {
@@ -109,8 +88,35 @@ function useModelCapabilityOverridesData() {
   );
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [catalogRes, overridesRes] = await Promise.all([
+          fetch("/api/pricing/models"),
+          fetch("/api/model-capability-overrides"),
+        ]);
+        if (catalogRes.ok) {
+          const catalogPayload = (await catalogRes.json()) as Record<
+            string,
+            PricingCatalogProvider
+          >;
+          if (!cancelled) setCatalog(catalogPayload);
+        }
+        if (overridesRes.ok) {
+          const payload = (await overridesRes.json()) as { overrides?: ModelCapabilityOverride[] };
+          if (!cancelled) setOverrides(payload.overrides || []);
+        }
+      } catch (error) {
+        console.error("Failed to load model capability overrides:", error);
+        if (!cancelled) showStatus("error", t("modelOverrideLoadFailed"));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showStatus, t]);
 
   return { catalog, overrides, loading, statusMessage, saveOverride, removeOverride };
 }

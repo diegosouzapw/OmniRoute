@@ -21,7 +21,7 @@ const originalJwtSecret = process.env.JWT_SECRET;
 async function createAuthCookie() {
   process.env.JWT_SECRET = "test-cli-tools-secret";
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const token = await new SignJWT({ sub: "test-user" })
+  const token = await new SignJWT({ authenticated: true, sub: "test-user" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -55,7 +55,9 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-  await fs.rm(DUMMY_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }).catch(() => {});
+  await fs
+    .rm(DUMMY_HOME, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+    .catch(() => {});
   if (originalXDG === undefined) delete process.env.XDG_CONFIG_HOME;
   else process.env.XDG_CONFIG_HOME = originalXDG;
   if (originalAppData === undefined) delete process.env.APPDATA;
@@ -211,6 +213,46 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
       limit: { context: 128_000, output: 8192 },
     },
   });
+});
+
+test("guide-settings POST writes catalog limits and falls back when a model is absent (#15406)", async () => {
+  const req = await buildRequest("opencode", {
+    baseUrl: "http://localhost:20128/v1",
+    apiKey: "sk-123",
+    model: "cx/known-model",
+    models: ["cx/known-model", "unknown/model"],
+    modelLabels: { "cx/known-model": "Known model" },
+    catalog: [
+      {
+        id: "cx/known-model",
+        context_length: 200_000,
+        max_output_tokens: 32_000,
+        capabilities: { reasoning: true },
+      },
+    ],
+  });
+  const response = (await guideSettingsRoute.POST(req, {
+    params: { toolId: "opencode" },
+  })) as Response;
+  assert.equal(response.status, 200);
+
+  const content = parse(await fs.readFile(OPENCODE_CONFIG_PATH, "utf-8"));
+  const known = content.provider.omniroute.models["cx/known-model"];
+  assert.equal(known.limit.context, 200_000);
+  assert.equal(known.limit.output, 32_000);
+  assert.notEqual(known.limit.context, 128_000);
+  assert.notEqual(known.limit.output, 8_192);
+  assert.equal(known.reasoning, true);
+
+  const unknown = content.provider.omniroute.models["unknown/model"];
+  assert.equal(unknown.limit.context, 128_000);
+  assert.equal(unknown.limit.output, 8_192);
+  assert.equal(unknown.reasoning, undefined);
+
+  assert.equal(content.providers.omniroute.models["cx/known-model"].limit.context, 200_000);
+  assert.equal(content.providers.omniroute.models["cx/known-model"].limit.output, 32_000);
+  assert.equal(content.providers.omniroute.models["unknown/model"].limit.context, 128_000);
+  assert.equal(content.providers.omniroute.models["unknown/model"].limit.output, 8_192);
 });
 
 test("guide-settings POST refuses to overwrite an invalid opencode.jsonc (#10227)", async () => {

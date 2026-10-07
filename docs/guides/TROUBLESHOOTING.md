@@ -8,7 +8,7 @@ lastUpdated: 2026-07-15
 
 > **For Users**: Looking for quick fixes? See the [Quick Reference](#quick-reference) below.
 
-🌐 **Languages:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/TROUBLESHOOTING.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/TROUBLESHOOTING.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/TROUBLESHOOTING.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/TROUBLESHOOTING.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/TROUBLESHOOTING.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/TROUBLESHOOTING.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/TROUBLESHOOTING.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/TROUBLESHOOTING.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/TROUBLESHOOTING.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Common problems and solutions for OmniRoute.
 
@@ -18,17 +18,18 @@ Common problems and solutions for OmniRoute.
 
 **New to OmniRoute?** Start here — these solve 90% of problems:
 
-| I see this              | What it means                       | What to do                                                                                        |
-| ----------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
-| "Can't connect"         | OmniRoute isn't running             | Run `omniroute` or `docker restart omniroute`                                                     |
-| "Invalid API key"       | Your key is wrong or expired        | Re-copy the key from the provider's website                                                       |
-| "Rate limit exceeded"   | You're sending too many requests    | Wait 1 minute, or use `model: "auto"` for automatic fallback                                      |
-| "Quota exceeded"        | You've used up your free/paid quota | Connect more providers, or use free providers (Kiro, Pollinations)                                |
-| "Slow responses"        | Provider is busy or far away        | Use `model: "auto/fast"` or connect a faster provider (Groq, Cerebras)                            |
-| "Wrong provider used"   | `auto` picked a different provider  | That's normal! `auto` picks the best one. Force a specific provider with `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"       | Provider is down                    | Wait and retry, or use `model: "auto"` to switch providers                                        |
-| "401 Unauthorized"      | Your credentials are wrong          | Check your API key or re-authenticate with OAuth                                                  |
-| "429 Too Many Requests" | Rate limited                        | Wait 1 minute, or connect more providers                                                          |
+| I see this                    | What it means                               | What to do                                                                                        |
+| ----------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| "Can't connect"               | OmniRoute isn't running                     | Run `omniroute` or `docker restart omniroute`                                                     |
+| "Invalid API key"             | Your key is wrong or expired                | Re-copy the key from the provider's website                                                       |
+| "Rate limit exceeded"         | You're sending too many requests            | Wait 1 minute, or use `model: "auto"` for automatic fallback                                      |
+| "Quota exceeded"              | You've used up your free/paid quota         | Connect more providers, or use free providers (Kiro, Pollinations)                                |
+| "Slow responses"              | Provider is busy or far away                | Use `model: "auto/fast"` or connect a faster provider (Groq, Cerebras)                            |
+| "Wrong provider used"         | `auto` picked a different provider          | That's normal! `auto` picks the best one. Force a specific provider with `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"             | Provider is down                            | Wait and retry, or use `model: "auto"` to switch providers                                        |
+| "401 Unauthorized"            | Your credentials are wrong                  | Check your API key or re-authenticate with OAuth                                                  |
+| "omniroute is not recognized" | Windows PATH is missing global node modules | Add your npm global prefix to Windows PATH. Find it with `npm config get prefix`.                 |
+| "429 Too Many Requests"       | Rate limited                                | Wait 1 minute, or connect more providers                                                          |
 
 **Still stuck?** See the [detailed troubleshooting](#detailed-troubleshooting) below, or ask on [Discord](https://discord.gg/U47eFqAXCn).
 
@@ -40,11 +41,11 @@ Common problems and solutions for OmniRoute.
 
 ### Rate Limiting on Free Providers (429 / 400 / 401)
 
-**Symptom**: When using `model: "auto"` with free/no-auth providers (opencode, felo-web, auggie, etc.), you intermittently get `HTTP 429`, `400`, or `401` instead of answers. The requests succeed when retrying the same prompt moments later, but automation (cron jobs, agents, scripts) breaks on the first failure.
+**Symptom**: When using `model: "auto"` with free/no-auth providers (opencode, auggie, etc.), you intermittently get `HTTP 429`, `400`, or `401` instead of answers. The requests succeed when retrying the same prompt moments later, but automation (cron jobs, agents, scripts) breaks on the first failure.
 
 **Root cause**: Three independent failure modes stack up:
 
-1. **Provider rate-limit (`429`)**: Free tiers (notably `felo/felo-chat`) enforce a per-window quota. A burst of parallel calls exhausts it, so the next request is refused until the window resets.
+1. **Provider rate-limit (`429`)**: Free tiers can enforce a per-window quota. A burst of parallel calls exhausts it, so the next request is refused until the window resets.
 2. **Broken model in passthrough (`400`/`401`)**: `auto/*` pools can include passthrough models from `opencode` that are registered in the catalog but have no live credentials (e.g. `oc/north-mini-code-free` → `401`). The auto-router tries one, fails, and the error propagates before fallback kicks in.
 3. **Concurrency amplification (`429` under load)**: When multiple agent/cron sessions hit `auto` at once, the aggregate request rate exceeds what free providers tolerate, so legitimate calls get flagged as abusive.
 
@@ -52,17 +53,17 @@ Common problems and solutions for OmniRoute.
 
 ```bash
 export OMNIROUTE_ROTATE_ON_400=true           # hop to another model/provider on 400/401 (skips broken passthrough models)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # raise the heavyweight admission ceiling (default 1) so long-context bursts are not rejected
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # longer bounded wait for heavyweight capacity instead of an immediate retryable 503
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicit heavyweight admission ceiling (unset by default: no request-count cap, see note below)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # raise the bounded wait past the RATE_LIMIT_MAX_WAIT_MS default for slow upstreams
 ```
 
 Set these in the OmniRoute process environment (the daemon, e.g. via the LaunchAgent plist or `systemctl edit`), then restart OmniRoute. The rotation flag is the single highest-leverage lever: it converts a hard failure into a transparent retry against a healthy provider in the pool.
 
-**Note**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` (default `1`, per process) caps how many heavyweight — long-context — requests run at once; the bound is an admission gate, not a provider rate limiter. Raising it only reduces client-visible `503 chat_admission_busy` rejects for heavy requests. The per-provider rate limiting (`open-sse/services/rateLimitManager.ts`) is governed separately by `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, and `RATE_LIMIT_AUTO_ENABLE` — see `.env.example`.
+**Note**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` caps how many heavyweight — long-context — requests run at once; the bound is an admission gate, not a provider rate limiter. **#503-fanout update:** this var is no longer set by default (it now binds only when explicitly configured, as above) — heavyweight admission is instead gated by an auto-derived byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) that scales itself from the host's real memory ceiling, so a fresh deployment should see far fewer `503 chat_admission_busy` rejects without setting this var at all; explicitly setting it here still works exactly as documented. Explicit byte-budget overrides clamp to 8 MiB–2 GiB. A `413 body_exceeds_budget` is not transient: increase that byte budget, lower `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, or increase the process memory ceiling. An `inflight_bytes_budget` shed is temporary contention and remains retryable. The per-provider rate limiting (`open-sse/services/rateLimitManager.ts`) is governed separately by `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, and `RATE_LIMIT_AUTO_ENABLE` — see `.env.example`.
 
 **How to verify it worked**: run your agent/cron twice in quick succession and confirm both succeed. Before the fix, the second run typically throws `429`/`401`. After the fix, failures (if any) are retried transparently and the call completes. You can also `curl /monitoring/health` and watch the `rateLimitedUntil` field on the provider connections and the `circuitBreakers.providerBreakers[].state` for the affected providers — the state is one of `CLOSED`, `DEGRADED`, `OPEN`, or `HALF_OPEN` (see `src/shared/utils/circuitBreaker.ts`), and a provider that keeps failing will flip `CLOSED → DEGRADED → OPEN` before the reset window lets a probe through (`HALF_OPEN`).
 
-**If you still see 429**: the active account for that provider has genuinely exhausted its *quota* (not just rate). Add a second account for the same provider in the OmniRoute dashboard → Providers → Accounts, or mix in another free provider (e.g. `routeway`, `auggie`). Rotation only helps with transient rate/400/401; a hard quota exhaustion requires a second credential or a different provider.
+**If you still see 429**: the active account for that provider has genuinely exhausted its _quota_ (not just rate). Add a second account for the same provider in the OmniRoute dashboard → Providers → Accounts, or mix in another free provider (e.g. `routeway`, `auggie`). Rotation only helps with transient rate/400/401; a hard quota exhaustion requires a second credential or a different provider.
 
 **If you see 403 on vision models (`auto/vision`, `bazaarlink/*`)**: the connected account lacks a paid plan that includes vision, or the API key has insufficient permissions. Verify in the provider dashboard that the key scope includes vision/multimodal, or connect a paid tier account and keep it as the vision target.
 
@@ -72,12 +73,93 @@ Set these in the OmniRoute process environment (the daemon, e.g. via the LaunchA
 
 When you run `npm install -g omniroute`, you may see a wall of warnings like `npm warn ERESOLVE`, peer-dependency notices, and `deprecated` messages. **These are expected and harmless.** Your install succeeded if you see `added <N> packages` in the output.
 
+To suppress the peer-dependency resolution warnings, use OmniRoute's supported install form:
+
+```bash
+npm install -g omniroute --legacy-peer-deps
+```
+
+`--legacy-peer-deps` suppresses `ERESOLVE` and peer-dependency notices only. Deprecation notices remain visible because they come from transitive third-party packages; they do not indicate that the install failed.
+
 The warnings come from stale peer-dependency ranges in third-party packages OmniRoute doesn't control:
 
 1. **`marked-terminal` wants `marked >=1 <16`, found `marked@18`** — works fine in practice; the upstream peer range is just stale.
-2. **`deprecated prebuild-install@7.1.3`** — the native-binary fetch helper. Only relevant later if a web-cookie provider reports a missing `tls-client-node` native binary (a separate issue, not caused by this warning).
+2. **`deprecated prebuild-install@7.1.3`** — a transitive native-binary fetch helper. It is not
+   used to install the pinned `wreq-js` transport binding and does not indicate that web-cookie
+   provider transport setup failed.
 
 **No action needed** — the warnings cannot be fully silenced without forking upstream packages.
+
+---
+
+## npm install-scripts Blocked Warning (global install)
+
+<a name="npm-install-scripts-blocked-warning-global-install"></a>
+
+When running `npm install -g omniroute`, newer npm versions (v11+ and v12+) block package lifecycle scripts by default and display an install-scripts warning:
+
+```
+npm warn install-scripts 7 packages had install scripts blocked because they are not covered by allowScripts:
+  omniroute@<version> (postinstall: node scripts/build/postinstall.mjs)
+  keytar, @parcel/watcher, @swc/core, protobufjs, esbuild, onnxruntime-node
+```
+
+### Can this warning be ignored?
+
+**Partially, but running without scripts is not recommended.** OmniRoute includes graceful fallbacks: if native `better-sqlite3` bindings cannot be loaded from the standalone bundle, the application falls back through alternative drivers such as `node:sqlite` or `sql.js` (see [SQLite Runtime Resolution](../ops/SQLITE_RUNTIME.md)). The server will still start, but running on WASM fallbacks like `sql.js` disables SQLite WAL (Write-Ahead Logging) mode and increases memory and disk-sync overhead.
+
+### Which scripts are actually required?
+
+Not all blocked scripts are essential for running OmniRoute:
+
+* **Essential (`omniroute`, `better-sqlite3`):** OmniRoute runs from a Next.js standalone application bundle (`dist/`). During installation, npm downloads or compiles the host-specific native SQLite driver in the top-level `node_modules/better-sqlite3/`. OmniRoute's `postinstall` script (`scripts/build/postinstall.mjs`) then verifies and copies these host-specific binaries into `dist/node_modules/` so the standalone server can access them. If `omniroute`'s postinstall script is blocked, this copy step is skipped.
+* **Optional/transitive (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** These are build helpers, watcher tools, or system keychain utilities. Allowing them prevents build warnings, but they are not required for core routing functionality.
+* **Excluded (`onnxruntime-node`):** An optional dependency for local AI embeddings and is **not** required for OmniRoute to run. Its postinstall script downloads ~300MB of CUDA assets from NuGet; do not include it in the allow-list unless you explicitly intend to use local ONNX acceleration on supported hardware.
+
+### Recommended fix
+
+To allow the required install scripts during a global install and silence warnings, pass `--allow-scripts` for OmniRoute and its native dependencies:
+
+```bash
+npm install -g omniroute --allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild
+```
+
+Alternatively, to configure this permanently for all global installations on your user account:
+
+```bash
+npm config set allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+npm install -g omniroute
+```
+
+### Verify your installation
+
+After installation, run the built-in diagnostic tool to ensure that native bindings and the runtime environment are healthy:
+
+```bash
+omniroute doctor
+```
+
+---
+
+## Gemini Web and Playwright Chromium
+
+If a Gemini Web request returns `503` with a message that Playwright Chromium
+is not installed, the npm package is present but the browser binary is missing.
+Playwright deliberately keeps browser downloads separate from npm package
+installation, so this response is expected until the browser is installed.
+
+For a global npm installation, install Chromium from the OmniRoute package's
+directory so the browser cache belongs to the same Playwright installation:
+
+```bash
+cd "$(npm root -g)/omniroute"
+npx playwright install chromium
+```
+
+Restart OmniRoute after the install, then retry the Gemini Web request. If you
+run OmniRoute from a Docker image, use the `-web` image (or the `runner-web`
+build target), which bundles Chromium and its dependencies; the base image does
+not.
 
 ---
 
@@ -148,9 +230,9 @@ desktop app, for example:
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` and
   `workerProcessEntry.js` — [Playwright](https://playwright.dev), the browser-automation
   library used for in-app provider login and browser-backed chat.
-- `resources/app/.build/next/node_modules/tls-client-node-<hash>/bin/tls-client-windows-64-<ver>.dll`
-  — the native binary from `tls-client-node`, used for Cloudflare-tolerant HTTP on some web
-  providers.
+- `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
+  — the pinned `wreq-js` native binding used for browser-fingerprinted HTTP on web-cookie
+  providers (`<arch>` is `x64` or `arm64`).
 
 **Why it fires:** the Windows installer is **not yet code-signed**, so an unsigned NSIS
 installer has zero reputation and behavioral heuristics run at maximum aggression. Combined
@@ -538,8 +620,12 @@ When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex 
 
 - The chat completions endpoint returns a retryable `503` response whose error code is
   `chat_admission_busy`.
-- The response includes `Retry-After`; the byte-based path uses 2 seconds, while the
-  structure-based path uses 1 second and includes `reason: "structure_limit"`.
+- The response includes `Retry-After`. Since #12135 the value is derived from observed
+  occupancy — the larger of the `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` window the request already
+  waited and the time the current heavyweight leases have been held — rounded up to whole
+  seconds and capped at 60. On an idle gate it keeps the historical floors: 2 seconds on the
+  byte-based path, 1 second on the structure-based path (which also includes
+  `reason: "structure_limit"`).
 - This can happen while another heavyweight chat or long-running streaming response is still
   in flight.
 
@@ -556,8 +642,8 @@ The byte-based response body is:
 ```
 
 The structure-based response uses the same type and code, with the message
-`Structurally heavy chat request capacity is busy; retry shortly.` and
-`reason: "structure_limit"`.
+`Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
+and `reason: "structure_limit"`.
 At the default thresholds, a request is structurally heavy when it has at least `200` messages,
 at least `64` tools, or at least `32,000` estimated tokens, or when bounded structure estimation
 exhausts its bounds of `10,000` visited nodes or depth `12`.
@@ -567,34 +653,41 @@ Each process uses a process-local guard to reserve limited heavyweight capacity 
 and parsing a large request body. A heavyweight lease remains held for the lifetime of an SSE
 response.
 
+**#503-fanout:** before this fix, the guard capped concurrency at a fixed request COUNT
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, default `1`) regardless of host memory, so coding-agent
+fan-out (multiple subagents/CLIs, bodies routinely > 256 KB) collapsed to an effective
+concurrency of ~1 and 503'd under completely normal load. The guard now self-tunes: it is gated
+by an auto-derived ingest BYTE budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) sized from the
+process's real memory ceiling, and it also consults a live resource-pressure signal — so it
+only sheds when the host is genuinely under memory pressure, not merely because more than one
+heavy request arrived at once. The old count cap (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) is
+still honored, but only if you explicitly set it.
+
 When capacity is busy, a heavyweight request first waits up to
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `5000`, `0` disables the wait) for a slot to free up
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (defaults to `RATE_LIMIT_MAX_WAIT_MS`; `0` disables the wait) for a slot to free up
 before answering the retryable `503`. The bounded wait exists so agent-style clients
 (OpenCode, Claude Code, Cursor) that fan out heavy sub-requests concurrently serialize the burst
 instead of burning their whole retry budget on immediate rejections and dying mid-task.
-Current heavyweight lease occupancy is not surfaced in the dashboard.
+Current heavyweight lease occupancy, the resolved byte budget, and live pressure severity are
+surfaced at `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — check these before touching any env var.
 Settings → Resilience → Request Queue → Concurrent Requests does not control this; that setting
 governs a separate provider request-queue mechanism.
 
 **Fix:**
 
 1. Retry first. Clients should honor `Retry-After` and use backoff rather than immediately
-   repeating the request. Note that with the default `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000`
-   a heavy request already waited up to 5 seconds before the `503`, so a client retry loop should
-   back off beyond that instead of hammering.
-2. If normal deployment traffic repeatedly exhausts the guard, you can cautiously raise
-   `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` from its default of `1`. Increase it one step at a time,
-   restart OmniRoute after each change, and observe memory headroom under representative load.
-   Every additional heavyweight request can increase concurrent V8 heap use and container or
-   host OOM risk. No value is safe for every deployment; validate the setting against your own
-   traffic and memory limits rather than assuming that `2` is universally safe.
-3. Prefer widening the wait (`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`) over raising the in-flight
-   limit when bursts are short: waiting costs latency, while an extra concurrent heavyweight
-   request costs heap residency for the whole request lifetime.
+   repeating the request.
+2. Check `/api/monitoring/health` → `chatAdmission` before tuning anything. `countCapEnabled:
+false` and a generous `maxInflightBytes` mean the auto-derived budget is already doing its
+   job; a `pressureSeverity` of `high`/`critical` means the host is genuinely low on memory —
+   that is not fixable by an admission env var, it needs more RAM or a smaller workload.
+3. Only if `/api/monitoring/health` shows the auto-derived budget is genuinely too small for
+   your host (rare — it already scales from container to bare-metal), override it directly with
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` rather than falling back to the legacy request-count cap.
 
 See the [environment-variable reference](../reference/ENVIRONMENT.md#4-security--authentication)
-for the authoritative admission settings. Loosening the heavyweight classification thresholds
-can let expensive requests bypass this guard and is riskier than a cautious in-flight increase.
+for the authoritative admission settings.
 
 ---
 
@@ -723,6 +816,33 @@ Issues specific to the v3.8.0 release and their current workarounds. If a fix la
 
 - Adjust the client to call without `background`, or
 - Wait for a later release that ships full async background mode (track the changelog)
+
+---
+
+## Slow Startup / Readiness Timeout
+
+If the CLI prints `⚠ Server did not respond within 60s` but the server is
+actually working, the readiness probe budget is too short for your environment.
+
+This commonly happens on Windows (antivirus, filesystem watchers) or containers
+with heavy startup workloads.
+
+**Fix — raise the budget:**
+
+```bash
+# Via env var (persists across starts):
+export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 minutes
+omniroute serve
+
+# Via CLI flag (one-off):
+omniroute serve --ready-timeout 180000
+```
+
+The default is 60 000 ms (60 s). The warning is informational only; the server
+continues starting in the background and will be reachable once boot completes.
+
+See [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) for full
+details on `OMNIROUTE_READY_TIMEOUT_MS`.
 
 ---
 

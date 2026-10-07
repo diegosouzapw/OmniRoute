@@ -13,7 +13,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-v1-ws-route-sec
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const wsRoute = await import("../../src/app/api/v1/ws/route.ts");
 
 function resetStorage() {

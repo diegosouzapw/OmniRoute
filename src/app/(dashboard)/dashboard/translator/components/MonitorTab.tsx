@@ -115,7 +115,9 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
   }, []);
 
   useEffect(() => {
-    void fetchHistory();
+    void (async () => {
+      await fetchHistory();
+    })();
     if (autoRefresh) {
       intervalRef.current = setInterval(() => {
         void fetchHistory();

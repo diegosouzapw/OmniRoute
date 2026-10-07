@@ -1104,6 +1104,11 @@ async function installTailscaleLinux(password: string, onProgress?: (message: st
   });
 }
 
+export function buildWindowsTailscaleInstallCommand(msiPath: string): string {
+  const escapedMsiPath = msiPath.replace(/'/g, "''");
+  return `Start-Process msiexec -ArgumentList '/i','${escapedMsiPath}','TS_NOLAUNCH=true','/quiet','/norestart' -Verb RunAs -Wait`;
+}
+
 async function installTailscaleWindows(onProgress?: (message: string) => void) {
   const msiUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi";
   const msiPath = path.join(os.tmpdir(), "tailscale-setup.msi");
@@ -1125,12 +1130,7 @@ async function installTailscaleWindows(onProgress?: (message: string) => void) {
   await new Promise<void>((resolve, reject) => {
     const child = spawn(
       "powershell",
-      [
-        "-NoProfile",
-        "-NonInteractive",
-        "-Command",
-        `Start-Process msiexec -ArgumentList '/i','${msiPath}','TS_NOLAUNCH=true','/quiet','/norestart' -Verb RunAs -Wait`,
-      ],
+      ["-NoProfile", "-NonInteractive", "-Command", buildWindowsTailscaleInstallCommand(msiPath)],
       {
         windowsHide: true,
         stdio: ["ignore", "pipe", "pipe"],

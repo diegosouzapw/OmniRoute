@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteCustomEvalSuite, getCustomEvalSuite, saveCustomEvalSuite } from "@/lib/localDb";
+import { deleteCustomEvalSuite, getCustomEvalSuite, saveCustomEvalSuite } from "@/lib/db/evals";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { evalSuiteSaveSchema } from "@/shared/validation/schemas";

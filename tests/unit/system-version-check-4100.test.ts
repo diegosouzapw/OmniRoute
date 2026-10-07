@@ -155,3 +155,32 @@ test("HTTP version sources reject oversized bodies without parsing them", async 
   assert.equal(registryCancelled, true);
   assert.equal(githubCancelled, true);
 });
+
+test("HTTP version sources handle aborted stream signals gracefully", async () => {
+  let streamCancelled = false;
+  const hangingResponse = () =>
+    new Response(
+      new ReadableStream({
+        start() {
+          // Intentionally do not enqueue or close, simulating a hung stream
+        },
+        cancel() {
+          streamCancelled = true;
+        },
+      }),
+      { status: 200 }
+    );
+
+  const fakeFetchWithAbort = (async (_url: string, init?: RequestInit) => {
+    setImmediate(() => {
+      if (init?.signal && typeof init.signal.dispatchEvent === "function") {
+        init.signal.dispatchEvent(new Event("abort"));
+      }
+    });
+    return hangingResponse();
+  }) as unknown as typeof fetch;
+
+  assert.equal(await getLatestVersionFromRegistry(fakeFetchWithAbort), null);
+  assert.equal(await getLatestVersionFromGitHub(fakeFetchWithAbort), null);
+  assert.equal(streamCancelled, true);
+});

@@ -87,10 +87,14 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(PROVIDER_ID_TO_ALIAS.glm).toBe("glm");
     expect(byProviderId).toEqual(byAlias);
     expect(byProviderId.map((model) => model.id)).toEqual([
+      "glm-5.3-flash",
       "glm-5.3",
       "glm-5.3-high",
       "glm-5.3-low",
       "glm-5.3-max",
+      "glm-5.3-flash-high",
+      "glm-5.3-flash-low",
+      "glm-5.3-flash-max",
       "glm-5.2",
       "glm-5.2-high",
       "glm-5.2-max",
@@ -109,10 +113,15 @@ describe("GLM Coding provider registry surfaces", () => {
 
   it("declares exact GLM reasoning-effort tiers across every shared GLM provider", () => {
     const routedTiers = new Map<string, readonly string[]>([
+      ["glm-5.3-flash", ["low", "high", "max"]],
       ["glm-5.3", ["low", "high", "max"]],
       ["glm-5.3-high", ["high"]],
       ["glm-5.3-low", ["low"]],
       ["glm-5.3-max", ["max"]],
+      ["glm-5.3-flash", ["low", "high", "max"]],
+      ["glm-5.3-flash-high", ["high"]],
+      ["glm-5.3-flash-low", ["low"]],
+      ["glm-5.3-flash-max", ["max"]],
       ["glm-5.2", ["high", "max"]],
       ["glm-5.2-high", ["high"]],
       ["glm-5.2-max", ["max"]],
@@ -181,6 +190,7 @@ describe("GLM Coding provider registry surfaces", () => {
     const get = (id: string) => models.find((m) => m.id === id);
 
     expect(get("glm-5")?.toolCalling).toBe(true);
+    expect(get("glm-5.3-flash")?.toolCalling).toBe(true);
     expect(get("glm-4.7-flash")?.toolCalling).toBe(true);
     expect(get("glm-4.5-air")?.toolCalling).toBe(true);
     expect(get("glm-5.2")?.toolCalling).toBe(true);
@@ -193,6 +203,13 @@ describe("GLM Coding provider registry surfaces", () => {
       cached: 0.2,
       reasoning: 4.8,
       cache_creation: 1.0,
+    });
+    expect(getPricingForModel("glm", "glm-5.3-flash")).toEqual({
+      input: 0.075,
+      output: 0.25,
+      cached: 0.015,
+      reasoning: 0.25,
+      cache_creation: 0.075,
     });
     expect(getPricingForModel("glm", "glm-4.7-flash")).toEqual({
       input: 0,

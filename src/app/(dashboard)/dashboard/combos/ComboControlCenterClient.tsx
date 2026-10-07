@@ -279,7 +279,10 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
   }, [comboId, range, t]);
 
   useEffect(() => {
-    void load();
+    // Async continuation — see react-hooks/set-state-in-effect.
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   const summary = useMemo(

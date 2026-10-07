@@ -59,11 +59,11 @@ function mockFetchCapture(status = 200, text = "Hello from Blackbox") {
   };
 }
 
-test("BlackboxWebExecutor is registered in executor index", () => {
+test("BlackboxWebExecutor is registered in executor index", async () => {
   assert.ok(hasSpecializedExecutor("blackbox-web"));
   assert.ok(hasSpecializedExecutor("bb-web"));
-  const executor = getExecutor("blackbox-web");
-  const alias = getExecutor("bb-web");
+  const executor = await getExecutor("blackbox-web");
+  const alias = await getExecutor("bb-web");
   assert.ok(executor instanceof BlackboxWebExecutor);
   assert.ok(alias instanceof BlackboxWebExecutor);
 });

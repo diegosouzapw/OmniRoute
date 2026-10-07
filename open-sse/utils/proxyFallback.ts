@@ -10,7 +10,9 @@
 
 import { fetch as undiciFetch } from "undici";
 import { createProxyDispatcher, normalizeProxyUrl } from "./proxyDispatcher.ts";
-import { resolveProxyForScopeFromRegistry, listProxies, listOneproxyProxies } from "@/lib/localDb";
+import { resolveProxyForScopeFromRegistry, listProxies } from "@/lib/db/proxies";
+import { listOneproxyProxies } from "@/lib/db/oneproxy";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 // ---------------------------------------------------------------------------
@@ -426,8 +428,8 @@ export async function selectWorkingProxyFallback(_connectionId?: string): Promis
         type: url.protocol.replace(":", "") || "http",
         host: url.hostname,
         port: parseInt(url.port, 10) || (url.protocol === "https:" ? 443 : 80),
-        username: url.username ? decodeURIComponent(url.username) : "",
-        password: url.password ? decodeURIComponent(url.password) : "",
+        username: url.username ? decodeUserinfo(url.username) : "",
+        password: url.password ? decodeUserinfo(url.password) : "",
       },
       level: "autoSelect",
       levelId: null,

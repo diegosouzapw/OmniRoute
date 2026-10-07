@@ -63,7 +63,7 @@ changing the server-wide setting for your other clients. On a reference instance
 If you would rather fix it server-wide for _every_ client, set the
 `MODELS_CATALOG_PREFIX_MODE` feature flag to `alias` in the dashboard. See
 [API_REFERENCE → prefix](../reference/API_REFERENCE.md#model-id-prefixes-prefix) for the
-query parameter and the warning about `canonical`.
+query parameter and the per-mode table.
 
 ### It hides models that cannot chat
 

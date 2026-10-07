@@ -11,14 +11,22 @@ import {
   countTextTokens,
   isCodexTokenizerContext,
   tokenizerContextFromBody,
+  MAX_EXACT_TOKEN_COUNT_CHARS,
 } from "../../../src/shared/utils/tiktokenCounter.ts";
 import {
   anthropicImageTokens,
   ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS,
   openAIVisionTokens,
 } from "omniglyph";
+import { isInlineBase64ImageBlock } from "../contextManager.ts";
+import {
+  jsonLength,
+  jsonLengthStrippingBase64DataUris,
+  rawLengthStrippingBase64DataUris,
+} from "../../utils/jsonSize.ts";
 
 const CHARS_PER_TOKEN = 4;
+const DEFAULT_IMAGE_TOKEN_ESTIMATE = 1200;
 
 /**
  * Anthropic image block shape this estimator recognizes:
@@ -112,11 +120,15 @@ function decodePngDimensions(base64: string): { width: number; height: number } 
   }
 }
 
-/** Char-count fallback for one value (same accounting as the legacy estimator). */
+/** Char-count fallback for one value (using jsonLength to avoid allocating multi-MB strings).
+ * Base64 data URIs embedded in arbitrary strings (not just structured image blocks) are
+ * stripped so a tool-output screenshot doesn't inflate the token estimate (#7847 drift). */
 function charTokensOf(value: unknown): number {
   if (value === null || value === undefined) return 0;
-  const str = typeof value === "string" ? value : JSON.stringify(value);
-  return Math.ceil(str.length / CHARS_PER_TOKEN);
+  if (typeof value === "string") {
+    return Math.ceil(rawLengthStrippingBase64DataUris(value) / CHARS_PER_TOKEN);
+  }
+  return Math.ceil(jsonLengthStrippingBase64DataUris(value) / CHARS_PER_TOKEN);
 }
 
 /**
@@ -142,22 +154,41 @@ function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
     return content.map((block) => {
       if (isAnthropicPngImageBlock(block)) {
         const dims = decodePngDimensions(block.source.data);
-        if (!dims) return block; // fall back to char-counting this block as-is
+        if (!dims) {
+          // Recognized image block that can't be decoded: use a bounded estimate rather
+          // than char-counting the raw base64, which would inflate the token estimate
+          // multi-MB (the #7847 OOM/drift class).
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, source: { ...block.source, data: "" } };
+        }
         imageTokens += anthropicImageTokens(dims.width, dims.height, "standard");
         imageTokens += ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS;
         return { ...block, source: { ...block.source, data: "" } };
       }
       if (isOpenAIChatPngImagePart(block)) {
         const dims = pngDimensionsFromDataUrl(block.image_url.url);
-        if (!dims) return block;
+        if (!dims) {
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, image_url: { ...block.image_url, url: "" } };
+        }
         imageTokens += openAIVisionTokens(model, dims.width, dims.height);
         return { ...block, image_url: { ...block.image_url, url: "" } };
       }
       if (isOpenAIResponsesPngImagePart(block)) {
         const dims = pngDimensionsFromDataUrl(block.image_url);
-        if (!dims) return block;
+        if (!dims) {
+          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+          return { ...block, image_url: "" };
+        }
         imageTokens += openAIVisionTokens(model, dims.width, dims.height);
         return { ...block, image_url: "" };
+      }
+      if (isInlineBase64ImageBlock(block as Record<string, unknown>)) {
+        // Inline-base64 image content-block shape (AI SDK / Gemini / flat) not
+        // covered by the PNG decoders above. Keep the estimate bounded so a
+        // multi-MB screenshot doesn't inflate the token count (#7847 drift).
+        imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+        return { ...block, image: "" };
       }
       return block;
     });
@@ -201,15 +232,19 @@ export function estimateCompressionTokens(text: string | object | null | undefin
       text as Record<string, unknown>
     );
     if (imageTokens === 0) {
-      // Keep the legacy character estimate for generic payloads. Codex payloads use
-      // the model-appropriate tokenizer so their compression stats match hard budgets.
-      return useExactTokenizer
-        ? countTextTokens(JSON.stringify(text), tokenizerContext)
-        : charTokensOf(text);
+      // countTextTokens falls back to a char heuristic above MAX_EXACT_TOKEN_COUNT_CHARS,
+      // so materializing JSON.stringify(text) for a large body would only allocate a
+      // multi-MB transient that's immediately discarded (#7847 OOM class). Measure the
+      // serialized length via jsonLength instead and skip the allocation when oversized.
+      if (useExactTokenizer && jsonLength(text) <= MAX_EXACT_TOKEN_COUNT_CHARS) {
+        return countTextTokens(JSON.stringify(text), tokenizerContext);
+      }
+      return charTokensOf(text);
     }
-    return useExactTokenizer
-      ? countTextTokens(JSON.stringify(clone), tokenizerContext) + imageTokens
-      : charTokensOf(clone) + imageTokens;
+    if (useExactTokenizer && jsonLength(clone) <= MAX_EXACT_TOKEN_COUNT_CHARS) {
+      return countTextTokens(JSON.stringify(clone), tokenizerContext) + imageTokens;
+    }
+    return charTokensOf(clone) + imageTokens;
   } catch {
     // Non-serializable/unexpected shape → fall back to the legacy char-count,
     // never throw out of an estimator.

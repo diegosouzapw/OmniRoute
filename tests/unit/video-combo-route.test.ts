@@ -162,10 +162,7 @@ test("video route resolves a custom video model reached through combo dispatch",
   assert.equal(payload.data[0].url, "https://combo-custom.example.com/generated.mp4");
 
   assert.ok(captured, "fetch should have been called for the resolved custom model");
-  assert.equal(
-    captured!.url,
-    "https://combo-custom.example.com/v1/videos/generations"
-  );
+  assert.equal(captured!.url, "https://combo-custom.example.com/v1/videos/generations");
   assert.equal(captured!.headers.Authorization, "Bearer combo-custom-key");
   // The upstream call strips the provider prefix — resolvedProvider flowed
   // through the combo path the same way it does on the direct route.

@@ -7,7 +7,7 @@
  *   1. Bare combo / alias name with no slash (`image`) — resolved to the combo's single
  *      image target, then that target is itself prefix-resolved. Bare combos intentionally
  *      override built-in image aliases with the same name.
- *   2. Built-in image model id / alias (`cgpt-web/...`, `gpt-image-1`, …) — untouched.
+ *   2. Built-in image model id / alias (`openai/gpt-image-2`, `gpt-image-1`, etc.) — untouched.
  *   3. Custom provider *prefix* form (`myImg/gpt-image-2`) — rewritten to the internal
  *      `<nodeId>/<model>` id (#3205 did this inline in the generations route only).
  *
@@ -18,7 +18,9 @@ import { parseImageModel } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { resolveComboTargets } from "@omniroute/open-sse/services/combo.ts";
 
 import { getComboByName, getCombos } from "@/lib/db/combos";
-import { getCachedProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
+import { assertMicrosoftDesignerWebProviderAvailable } from "@/shared/constants/designerWebRetirement";
+import { assertCommonChatGptWebModelAvailable } from "@/shared/constants/chatgptWebRetirement";
 
 /**
  * Rewrite a `prefix/model` custom image model to its internal `<nodeId>/<model>` form.
@@ -28,10 +30,12 @@ import { getCachedProviderNodes } from "@/lib/localDb";
  */
 export async function resolveImageModelPrefix(modelStr: string): Promise<string> {
   if (typeof modelStr !== "string") return modelStr;
+  assertCommonChatGptWebModelAvailable(modelStr);
   const slash = modelStr.indexOf("/");
   if (slash <= 0) return modelStr;
 
   const prefixPart = modelStr.slice(0, slash);
+  assertMicrosoftDesignerWebProviderAvailable(prefixPart);
   const rest = modelStr.slice(slash + 1);
   if (!rest) return modelStr;
 
@@ -75,6 +79,9 @@ export async function resolveSingleImageComboTarget(name: string): Promise<strin
  */
 export async function resolveImageRouteModel(modelStr: string): Promise<string> {
   if (typeof modelStr !== "string" || !modelStr.trim()) return modelStr;
+  assertCommonChatGptWebModelAvailable(modelStr);
+  const slash = modelStr.indexOf("/");
+  assertMicrosoftDesignerWebProviderAvailable(slash > 0 ? modelStr.slice(0, slash) : modelStr);
   const parsedModel = parseImageModel(modelStr);
   const hasSlash = modelStr.includes("/");
 

@@ -9,6 +9,25 @@ import { backupDbFile } from "../backup";
 import { invalidateDbCache } from "../readCache";
 import { toRecord, type JsonRecord } from "./columns";
 
+function normalizeDailyQuotaResetHour(value: unknown): number | null {
+  return value === 0 || value ? Number(value) : null;
+}
+
+function withParsedCustomHeaders(node: JsonRecord, storedJson: string | null): JsonRecord {
+  const result: JsonRecord = { ...node };
+  if (storedJson) {
+    try {
+      result.customHeaders = JSON.parse(storedJson);
+    } catch {
+      result.customHeaders = null;
+    }
+  } else {
+    result.customHeaders = null;
+  }
+  delete result.customHeadersJson;
+  return result;
+}
+
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
   get: (...params: unknown[]) => TRow | undefined;
@@ -88,32 +107,23 @@ export async function createProviderNode(data: JsonRecord) {
     // Optional operator-supplied remote icon URL (#2166) — plain TEXT, no JSON parsing needed.
     iconUrl: data.iconUrl || null,
     customHeadersJson,
+    dailyQuotaResetTimezone: data.dailyQuotaResetTimezone || null,
+    dailyQuotaResetHour: normalizeDailyQuotaResetHour(data.dailyQuotaResetHour),
     createdAt: now,
     updatedAt: now,
   };
 
   db.prepare(
     `
-    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, icon_url, custom_headers_json, created_at, updated_at)
-    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @iconUrl, @customHeadersJson, @createdAt, @updatedAt)
+    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, icon_url, custom_headers_json, daily_quota_reset_timezone, daily_quota_reset_hour, created_at, updated_at)
+    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @iconUrl, @customHeadersJson, @dailyQuotaResetTimezone, @dailyQuotaResetHour, @createdAt, @updatedAt)
   `
   ).run(node);
 
   backupDbFile("pre-write");
   invalidateDbCache("nodes");
 
-  const result: JsonRecord = { ...node };
-  if (customHeadersJson) {
-    try {
-      result.customHeaders = JSON.parse(customHeadersJson);
-    } catch {
-      result.customHeaders = null;
-    }
-  } else {
-    result.customHeaders = null;
-  }
-  delete result.customHeadersJson;
-  return result;
+  return withParsedCustomHeaders({ ...node }, customHeadersJson);
 }
 
 export async function updateProviderNode(id: string, data: JsonRecord) {
@@ -144,7 +154,10 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     UPDATE provider_nodes SET type = @type, name = @name, prefix = @prefix,
     api_type = @apiType, base_url = @baseUrl, chat_path = @chatPath,
     models_path = @modelsPath, icon_url = @iconUrl,
-    custom_headers_json = @customHeadersJson, updated_at = @updatedAt
+    custom_headers_json = @customHeadersJson,
+    daily_quota_reset_timezone = @dailyQuotaResetTimezone,
+    daily_quota_reset_hour = @dailyQuotaResetHour,
+    updated_at = @updatedAt
     WHERE id = @id
   `
   ).run({
@@ -160,25 +173,15 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     // stored custom icon when the caller submits an empty value.
     iconUrl: merged["iconUrl"] || null,
     customHeadersJson: merged["customHeadersJson"] || null,
+    dailyQuotaResetTimezone: merged["dailyQuotaResetTimezone"] || null,
+    dailyQuotaResetHour: normalizeDailyQuotaResetHour(merged["dailyQuotaResetHour"]),
     updatedAt: merged["updatedAt"],
   });
 
   backupDbFile("pre-write");
   invalidateDbCache("nodes");
 
-  const result: JsonRecord = { ...merged };
-  const storedJson = merged["customHeadersJson"] as string | null;
-  if (storedJson) {
-    try {
-      result.customHeaders = JSON.parse(storedJson);
-    } catch {
-      result.customHeaders = null;
-    }
-  } else {
-    result.customHeaders = null;
-  }
-  delete result.customHeadersJson;
-  return result;
+  return withParsedCustomHeaders(merged, (merged["customHeadersJson"] as string | null) ?? null);
 }
 
 export async function deleteProviderNode(id: string) {

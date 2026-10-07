@@ -1,15 +1,12 @@
-// Web-cookie provider key validators (part A): deepseek-web, qwen-web, grok-web, chatgpt-web,
+// Web-cookie provider key validators (part A): deepseek-web, kimi-web, grok-web,
 // perplexity-web, blackbox-web. Extracted from validation.ts (god-file decomposition) — top-level
 // functions with no dispatcher-state captures; behavior is byte-identical to the original inline defs.
-import { addModelsSuffix } from "./urlHelpers";
 import { applyCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import {
   buildGrokCookieHeader,
-  buildQwenCookieHeader,
   extractCookieValue,
   extractKimiAccessToken,
-  extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
 
@@ -26,7 +23,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
   if (!rawCred) {
     return {
       valid: false,
-      error: "Missing Kimi access_token from www.kimi.com localStorage",
+      error: "Missing Kimi access_token from www.kimi.ai localStorage",
     };
   }
 
@@ -35,17 +32,17 @@ export async function validateKimiWebProvider({ apiKey }: any) {
     return {
       valid: false,
       error:
-        "Could not find a Kimi access_token. Re-login at https://www.kimi.com and copy it from localStorage.",
+        "Could not find a Kimi access_token. Re-login at https://www.kimi.ai and copy it from localStorage.",
     };
   }
 
   try {
-    const resp = await fetch("https://www.kimi.com/api/user", {
+    const resp = await fetch("https://www.kimi.ai/api/user", {
       headers: {
         Accept: "application/json, text/plain, */*",
         Authorization: `Bearer ${accessToken}`,
-        Origin: "https://www.kimi.com",
-        Referer: "https://www.kimi.com/",
+        Origin: "https://www.kimi.ai",
+        Referer: "https://www.kimi.ai/",
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       },
@@ -55,7 +52,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
       return {
         valid: false,
         error:
-          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh access_token",
+          "Kimi session is invalid or expired — re-login at https://www.kimi.ai and paste a fresh access_token",
       };
     }
     if (!resp.ok) {
@@ -69,7 +66,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
         return {
           valid: false,
           error:
-            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh access_token",
+            "Kimi session token is invalid or expired — re-login at https://www.kimi.ai and paste a fresh access_token",
         };
       }
     } catch {
@@ -149,120 +146,6 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
     }
     return { valid: true, error: null };
   } catch (error: any) {
-    return toValidationErrorResult(error);
-  }
-}
-
-// qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models/` (via
-// addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
-// outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
-//
-// History of the session probe:
-//   - Originally `GET /api/v2/user` (Chat2API-derived). Upstream retired the path
-//     in mid-2026: it now returns `{"success":false,"data":{"code":"not found"}}`
-//     regardless of credentials, so the body-shape check (#3958) always fails.
-//   - Current probe: `GET /api/v1/auths/` (note the trailing slash — without it
-//     the path returns 401). This is the endpoint Qwen's own SPA hits right after
-//     login to fetch the user profile. It returns the user object directly at the
-//     top level: `{ id, email, name, role, ... }`.
-//
-// The validator mirrors the executor's anti-bot headers + cookie-jar replay and uses
-// plain fetch (like the other web-cookie validators) so it never hits the
-// addModelsSuffix/redirect path.
-export async function validateQwenWebProvider({ apiKey }: any) {
-  const rawCred = String(apiKey ?? "").trim();
-  if (!rawCred) {
-    return {
-      valid: false,
-      error:
-        "Missing Qwen session — paste the full chat.qwen.ai Cookie header (must include token, cna and ssxmod_itna)",
-    };
-  }
-
-  const token = extractQwenToken(rawCred);
-  const cookieHeader = buildQwenCookieHeader(rawCred);
-  if (!token && !cookieHeader) {
-    return {
-      valid: false,
-      error: "Could not find a Qwen token/cookie in the pasted value",
-    };
-  }
-
-  try {
-    const headers: Record<string, string> = {
-      Accept: "*/*",
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-      Origin: "https://chat.qwen.ai",
-      Referer: "https://chat.qwen.ai/",
-      source: "web",
-      "bx-v": "2.5.36",
-      // The Qwen SPA's `version` header is required by the v2 chat completion
-      // endpoint; the validator sends it too so the probe matches a real
-      // browser request as closely as possible. (The session probe endpoint
-      // doesn't enforce it, but consistency with the executor avoids surprises
-      // if Qwen ever tightens its WAF rules.)
-      version: "0.2.66",
-    };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-    if (cookieHeader) headers["Cookie"] = cookieHeader;
-
-    // The trailing slash is significant: `/api/v1/auths` (no slash) answers 401,
-    // `/api/v1/auths/` returns the user profile.
-    const resp = await fetch("https://chat.qwen.ai/api/v1/auths/", { headers });
-    const contentType = resp.headers.get("content-type") || "";
-
-    if (resp.status === 401 || resp.status === 403) {
-      return {
-        valid: false,
-        error:
-          "Qwen session is invalid or expired — re-login at https://chat.qwen.ai and paste a fresh full Cookie header",
-      };
-    }
-    // Alibaba's WAF / retired-v1 gateway answers with an HTML challenge page (or 504)
-    // instead of JSON. A bearer token alone is no longer enough for the v2 endpoint.
-    if (contentType.includes("text/html") || resp.status === 504) {
-      return {
-        valid: false,
-        error:
-          "Qwen blocked the request with its anti-bot WAF. Re-login at https://chat.qwen.ai and paste a fresh full Cookie header (must include cna, ssxmod_itna and token) — a bearer token alone is not accepted.",
-      };
-    }
-    if (!resp.ok) {
-      return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
-    }
-
-    // Parse JSON response and verify we have a real user object.
-    // /api/v1/auths/ returns the user at the top level: {id, email, name, role, ...}.
-    // We require `id` to be a non-empty string AND look like a real identifier
-    // (uuid-ish or otherwise ≥8 chars) to avoid false-positives from upstream
-    // error envelopes that happen to ship a top-level `id: "not_found"` style
-    // field. Keep the legacy nested checks (data.user, user) for robustness in
-    // case the upstream shape changes again.
-    try {
-      const data = await resp.json();
-      const hasTopLevelUser =
-        typeof data?.id === "string" && data.id.length >= 8 && typeof data?.email === "string";
-      const hasNestedUser =
-        (typeof data?.user?.id === "string" && data.user.id.length > 0) ||
-        (typeof data?.data?.user?.id === "string" && data.data.user.id.length > 0);
-      if (!hasTopLevelUser && !hasNestedUser) {
-        return {
-          valid: false,
-          error:
-            "Qwen session token is invalid or expired — re-login at https://chat.qwen.ai and paste a fresh full Cookie header",
-        };
-      }
-    } catch (parseError) {
-      return {
-        valid: false,
-        error: "Qwen returned invalid JSON response",
-      };
-    }
-
-    return { valid: true, error: null };
-  } catch (error) {
     return toValidationErrorResult(error);
   }
 }
@@ -404,7 +287,7 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       errorDetail = (response.text || "").slice(0, 240);
     } catch {}
 
-    // Detect Cloudflare challenge pages even with a 200 status from tls-client-node
+    // Detect Cloudflare challenge pages even when the browser transport reports status 200.
     if (isCloudflareChallenge(errorDetail)) {
       return {
         valid: false,
@@ -483,114 +366,6 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       valid: false,
       error: `Grok validation failed (${response.status})${errorDetail ? `: ${errorDetail}` : ""}`,
     };
-  } catch (error: any) {
-    return toValidationErrorResult(error);
-  }
-}
-
-export async function validateChatGptWebProvider({ apiKey, providerSpecificData = {} }: any) {
-  try {
-    // Accept bare value, unchunked cookie, chunked (.0/.1) cookies, or full
-    // "Cookie: ..." DevTools line. Pass through verbatim once recognised.
-    let cookieHeader = String(apiKey || "").trim();
-    if (/^cookie\s*:\s*/i.test(cookieHeader)) {
-      cookieHeader = cookieHeader.replace(/^cookie\s*:\s*/i, "");
-    }
-    if (!/__Secure-next-auth\.session-token(?:\.\d+)?\s*=/.test(cookieHeader)) {
-      cookieHeader = `__Secure-next-auth.session-token=${cookieHeader}`;
-    }
-
-    // Use the TLS-impersonating client — Cloudflare on chatgpt.com pins
-    // cf_clearance to JA3/JA4 + HTTP/2 SETTINGS, so plain Node fetch always
-    // gets cf-mitigated: challenge regardless of cookies.
-    const { tlsFetchChatGpt, TlsClientUnavailableError } =
-      await import("@omniroute/open-sse/services/chatgptTlsClient.ts");
-
-    let response;
-    try {
-      response = await tlsFetchChatGpt("https://chatgpt.com/api/auth/session", {
-        method: "GET",
-        headers: applyCustomUserAgent(
-          {
-            Accept: "application/json",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Cache-Control": "no-cache",
-            Cookie: cookieHeader,
-            Origin: "https://chatgpt.com",
-            Pragma: "no-cache",
-            Referer: "https://chatgpt.com/",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0",
-          },
-          providerSpecificData
-        ),
-        timeoutMs: 30_000,
-      });
-    } catch (err: any) {
-      if (err instanceof TlsClientUnavailableError) {
-        return {
-          valid: false,
-          error: `${err.message} (chatgpt-web requires this — without it, Cloudflare blocks every request)`,
-        };
-      }
-      throw err;
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    const cfRay = response.headers.get("cf-ray");
-    const cfMitigated = response.headers.get("cf-mitigated");
-
-    if (response.status === 401 || response.status === 403) {
-      const bodyText = response.text || "";
-      if (cfMitigated || /just a moment|cloudflare|cf-chl|attention required/i.test(bodyText)) {
-        return {
-          valid: false,
-          error:
-            "Cloudflare blocked the validator — open chatgpt.com in your browser, then copy the FULL Cookie line from DevTools (Network → request → Cookie) including cf_clearance, __cf_bm, _cfuvid, and the session-token chunks.",
-        };
-      }
-      return {
-        valid: false,
-        error:
-          "Invalid ChatGPT session cookie — re-paste __Secure-next-auth.session-token from chatgpt.com DevTools → Cookies",
-      };
-    }
-
-    if (response.status >= 500) {
-      return { valid: false, error: `ChatGPT unavailable (${response.status})` };
-    }
-
-    if (response.status >= 400) {
-      return { valid: false, error: `Validation failed: ${response.status}` };
-    }
-
-    if (!contentType.includes("json")) {
-      return {
-        valid: false,
-        error: `ChatGPT returned non-JSON (${contentType || "no content-type"}${cfRay ? `, cf-ray=${cfRay}` : ""}) — paste the FULL Cookie line including cf_clearance, __cf_bm, _cfuvid alongside the session-token chunks.`,
-      };
-    }
-
-    let data: any = {};
-    try {
-      data = JSON.parse(response.text || "{}");
-    } catch {
-      return {
-        valid: false,
-        error:
-          "ChatGPT session response was not JSON — paste the FULL Cookie line including cf_clearance and __cf_bm.",
-      };
-    }
-    if (!data?.accessToken) {
-      return {
-        valid: false,
-        error: "ChatGPT session expired — log into chatgpt.com and copy a fresh cookie",
-      };
-    }
-    return { valid: true, error: null };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -680,7 +455,7 @@ export async function validatePerplexityWebProvider({ apiKey, providerSpecificDa
           valid: false,
           error:
             "Cloudflare is blocking connections from this server's IP (TLS fingerprint rejected). " +
-            "The session cookie may still be valid — install tls-client-node's native binary or route " +
+            "The session cookie may still be valid — verify the wreq-js 3.2 native binding or route " +
             "perplexity-web through a residential proxy.",
         };
       }

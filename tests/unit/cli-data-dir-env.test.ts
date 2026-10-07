@@ -61,8 +61,5 @@ test("CLI env loader scans all env paths while preserving first value wins", () 
 
   assert.match(loaderSource, /for \(const envPath of envPaths\)/);
   assert.match(loaderSource, /if \(process\.env\[key\] === undefined\)/);
-  assert.doesNotMatch(
-    loaderSource,
-    /Loaded env from \$\{envPath\}[\s\S]{0,80}\breturn;/
-  );
+  assert.doesNotMatch(loaderSource, /Loaded env from \$\{envPath\}[\s\S]{0,80}\breturn;/);
 });

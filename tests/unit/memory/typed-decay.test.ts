@@ -14,9 +14,7 @@ before(() => {
   process.env.DATA_DIR = dataDir;
 });
 
-const {
-  MemoryType,
-} = await import("../../../src/lib/memory/types.ts");
+const { MemoryType } = await import("../../../src/lib/memory/types.ts");
 const {
   resolveTypedDecayConfig,
   isTypeImmune,
@@ -27,9 +25,8 @@ const {
   DEFAULT_TTL_DAYS_BY_TYPE,
   DEFAULT_ACCESS_IMMUNITY_THRESHOLD,
 } = await import("../../../src/lib/memory/typedDecay.ts");
-const { createMemory, getMemory, recordMemoryAccess, listMemoriesForDecay } = await import(
-  "../../../src/lib/memory/store.ts"
-);
+const { createMemory, getMemory, recordMemoryAccess, listMemoriesForDecay } =
+  await import("../../../src/lib/memory/store.ts");
 const { resetDbInstance, getDbInstance } = await import("../../../src/lib/db/core.ts");
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -113,7 +110,10 @@ describe("typedDecay — env config", () => {
     const cfg = resolveTypedDecayConfig({} as NodeJS.ProcessEnv);
     assert.equal(cfg.enabled, false);
     assert.equal(cfg.accessImmunityThreshold, DEFAULT_ACCESS_IMMUNITY_THRESHOLD);
-    assert.equal(cfg.ttlDaysByType[MemoryType.EPISODIC], DEFAULT_TTL_DAYS_BY_TYPE[MemoryType.EPISODIC]);
+    assert.equal(
+      cfg.ttlDaysByType[MemoryType.EPISODIC],
+      DEFAULT_TTL_DAYS_BY_TYPE[MemoryType.EPISODIC]
+    );
   });
 
   it("MEMORY_TYPED_DECAY_EPISODIC_DAYS=0 makes episodic immune too", () => {

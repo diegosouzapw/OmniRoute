@@ -44,22 +44,32 @@ export function cumulativeXpForLevel(level: number): number {
 }
 
 /**
- * Calculate level from total XP using the inverse of the cumulative XP curve.
+ * Calculate the exact level from total XP.
  *
- * The cumulative XP for level L approximates to `100 * L^2.5 / 2.5`.
- * Solving for L gives `L ≈ (totalXp * 2.5 / 100) ^ 0.4`.
+ * The inverse cumulative curve supplies a fast initial estimate. The result is
+ * then reconciled against the exact floored thresholds from `xpForLevel`.
  *
  * @param totalXp - Total accumulated XP
  * @returns Current level (minimum 1)
  *
  * @example
  * calculateLevel(0)      // 1
- * calculateLevel(5000)   // ~8
- * calculateLevel(100000) // ~100
+ * calculateLevel(cumulativeXpForLevel(10)) // 10
  */
 export function calculateLevel(totalXp: number): number {
-  if (totalXp <= 0) return 1;
-  return Math.max(1, Math.floor(Math.pow((totalXp * 2.5) / 100, 0.4)));
+  if (!Number.isFinite(totalXp) || totalXp <= 0) return 1;
+  const boundedXp = Math.min(totalXp, Number.MAX_SAFE_INTEGER);
+
+  // Use the inverse curve only as a fast starting point, then reconcile it
+  // against the exact floored cumulative thresholds used by the XP engine.
+  let level = Math.max(1, Math.floor(Math.pow((boundedXp * 2.5) / 100, 0.4)));
+  while (level > 1 && cumulativeXpForLevel(level) > boundedXp) {
+    level -= 1;
+  }
+  while (cumulativeXpForLevel(level + 1) <= boundedXp) {
+    level += 1;
+  }
+  return level;
 }
 
 /**

@@ -161,10 +161,28 @@ Plugins live under the OmniRoute data directory:
   └─ index.js          # (or whatever manifest.main points to)
 ```
 
-`getDefaultPluginDir()` (`src/lib/plugins/scanner.ts`) resolves this to
-`<home>/.omniroute/plugins`, where `<home>` is taken from the `HOME` /
-`USERPROFILE` environment variables. `POST /api/plugins/scan` discovers any
-subdirectory there that holds a valid `plugin.json` and registers it.
+`getDefaultPluginDir()` (`src/lib/plugins/scanner.ts`) resolves that directory in
+three steps:
+
+1. **`OMNIROUTE_PLUGINS_DIR`**, when set — used verbatim, whatever `HOME` says. This is
+   the explicit knob for Docker/K8s, where the plugin tree is bind-mounted at a path
+   that usually has nothing to do with the container's home directory (#11827).
+2. `<home>/.omniroute/plugins`, where `<home>` comes from the `HOME` / `USERPROFILE`
+   environment variables.
+3. `/tmp/.omniroute/plugins`, when the process exports no home at all.
+
+The resolved directory is logged once at startup as `scanner.dir_resolved`, naming the
+input that won (`OMNIROUTE_PLUGINS_DIR`, `home`, or `no-home-fallback`) — so an image
+that silently lands on step 3 says so, instead of only reporting an empty plugin list.
+`POST /api/plugins/scan` discovers any subdirectory there that holds a valid
+`plugin.json` and registers it; the same directory is the root that
+`pluginManager.install()` copies plugins into, so an override moves discovery and
+installation together.
+
+> **`OMNIROUTE_PLUGINS_DIR` is not `OMNIROUTE_PLUGIN_PATH`.** The latter is read only by
+> the CLI command-plugin loader (`bin/cli/plugins.mjs`) to find `omniroute-cmd-*` npm
+> packages that add `omniroute` subcommands — it has no effect on the runtime scanner
+> described here. See [PLUGINS.md](./PLUGINS.md) for that side.
 
 ### Custom marketplace registry URL
 

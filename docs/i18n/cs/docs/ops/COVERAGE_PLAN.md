@@ -1,170 +1,181 @@
 # Test Coverage Plan (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../ar/docs/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../bg/docs/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../bn/docs/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../cs/docs/COVERAGE_PLAN.md) · 🇩🇰 [da](../../da/docs/COVERAGE_PLAN.md) · 🇩🇪 [de](../../de/docs/COVERAGE_PLAN.md) · 🇪🇸 [es](../../es/docs/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../fa/docs/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../fi/docs/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../fr/docs/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../gu/docs/COVERAGE_PLAN.md) · 🇮🇱 [he](../../he/docs/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../hi/docs/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../hu/docs/COVERAGE_PLAN.md) · 🇮🇩 [id](../../id/docs/COVERAGE_PLAN.md) · 🇮🇹 [it](../../it/docs/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../ja/docs/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../ko/docs/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../mr/docs/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../ms/docs/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../nl/docs/COVERAGE_PLAN.md) · 🇳🇴 [no](../../no/docs/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../phi/docs/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../pl/docs/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../pt/docs/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../ro/docs/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../ru/docs/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../sk/docs/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../sv/docs/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../sw/docs/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../ta/docs/COVERAGE_PLAN.md) · 🇮🇳 [te](../../te/docs/COVERAGE_PLAN.md) · 🇹🇭 [th](../../th/docs/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../tr/docs/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../ur/docs/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../vi/docs/COVERAGE_PLAN.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/COVERAGE_PLAN.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/COVERAGE_PLAN.md) · 🇪🇹 [am](../../../am/docs/ops/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../../ar/docs/ops/COVERAGE_PLAN.md) · 🇦🇿 [az](../../../az/docs/ops/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../../bg/docs/ops/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../../bn/docs/ops/COVERAGE_PLAN.md) · 🇧🇦 [bs](../../../bs/docs/ops/COVERAGE_PLAN.md) · 🇩🇰 [da](../../../da/docs/ops/COVERAGE_PLAN.md) · 🇩🇪 [de](../../../de/docs/ops/COVERAGE_PLAN.md) · 🇬🇷 [el](../../../el/docs/ops/COVERAGE_PLAN.md) · 🇪🇸 [es](../../../es/docs/ops/COVERAGE_PLAN.md) · 🇪🇪 [et](../../../et/docs/ops/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../../fa/docs/ops/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../../fi/docs/ops/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../../fr/docs/ops/COVERAGE_PLAN.md) · 🇮🇪 [ga](../../../ga/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../../gu/docs/ops/COVERAGE_PLAN.md) · 🇳🇬 [ha](../../../ha/docs/ops/COVERAGE_PLAN.md) · 🇮🇱 [he](../../../he/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../../hi/docs/ops/COVERAGE_PLAN.md) · 🇭🇷 [hr](../../../hr/docs/ops/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../../hu/docs/ops/COVERAGE_PLAN.md) · 🇦🇲 [hy](../../../hy/docs/ops/COVERAGE_PLAN.md) · 🇮🇩 [id](../../../id/docs/ops/COVERAGE_PLAN.md) · 🇳🇬 [ig](../../../ig/docs/ops/COVERAGE_PLAN.md) · 🇮🇹 [it](../../../it/docs/ops/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../../ja/docs/ops/COVERAGE_PLAN.md) · 🇬🇪 [ka](../../../ka/docs/ops/COVERAGE_PLAN.md) · 🇰🇭 [km](../../../km/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [kn](../../../kn/docs/ops/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../../ko/docs/ops/COVERAGE_PLAN.md) · 🇱🇹 [lt](../../../lt/docs/ops/COVERAGE_PLAN.md) · 🇱🇻 [lv](../../../lv/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [ml](../../../ml/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../../mr/docs/ops/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../../ms/docs/ops/COVERAGE_PLAN.md) · 🇲🇹 [mt](../../../mt/docs/ops/COVERAGE_PLAN.md) · 🇲🇲 [my](../../../my/docs/ops/COVERAGE_PLAN.md) · 🇳🇵 [ne](../../../ne/docs/ops/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../../nl/docs/ops/COVERAGE_PLAN.md) · 🇳🇴 [no](../../../no/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [or](../../../or/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [pa](../../../pa/docs/ops/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../../phi/docs/ops/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../../pl/docs/ops/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../../pt/docs/ops/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../../ro/docs/ops/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../../ru/docs/ops/COVERAGE_PLAN.md) · 🇱🇰 [si](../../../si/docs/ops/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../../sk/docs/ops/COVERAGE_PLAN.md) · 🇸🇮 [sl](../../../sl/docs/ops/COVERAGE_PLAN.md) · 🇷🇸 [sr](../../../sr/docs/ops/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../../sv/docs/ops/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../../sw/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../../ta/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [te](../../../te/docs/ops/COVERAGE_PLAN.md) · 🇹🇭 [th](../../../th/docs/ops/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../../tr/docs/ops/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../../ur/docs/ops/COVERAGE_PLAN.md) · 🇺🇿 [uz](../../../uz/docs/ops/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../../vi/docs/ops/COVERAGE_PLAN.md) · 🇳🇬 [yo](../../../yo/docs/ops/COVERAGE_PLAN.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/COVERAGE_PLAN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/COVERAGE_PLAN.md)
 
 ---
 
-Last updated: 2026-03-28
+Poslední aktualizace: 2026-06-28
 
-## Baseline
+> Stav změřený dne 2026-05-13: řádky 82.58 %, příkazy 82.58 %, funkce 84.23 %, větve 75.22 %. Fáze 1–5 jsou dokončeny. Aktuálně se zaměřujeme na fázi 6 (>=85 %) a fázi 7 (>=90 %).
 
-There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
+## Výchozí stav
 
-| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
-| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
-| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
-| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
-| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
+V závislosti na způsobu výpočtu reportu existuje několik hodnot pokrytí. Pro plánování je užitečná pouze jedna z nich.
 
-The recommended baseline is the number to optimize against.
+| Metrika                 | Rozsah                                                | Příkazy / řádky |   Větve |  Funkce | Poznámky                                                          |
+| ----------------------- | ----------------------------------------------------- | --------------: | ------: | ------: | ----------------------------------------------------------------- |
+| Původní                 | Starý `npm run test:coverage`                         |         79.42 % | 75.15 % | 67.94 % | Nadhodnocené: započítává testovací soubory a vynechává `open-sse` |
+| Diagnostická            | Pouze zdrojové soubory, bez testů a bez `open-sse`    |         68.16 % | 63.55 % | 64.06 % | Užitečné pouze k izolaci `src/**`                                 |
+| Doporučený výchozí stav | Pouze zdrojové soubory, bez testů a včetně `open-sse` |         82.58 % | 75.22 % | 84.23 % | Toto je výchozí stav celého projektu, který se má zlepšovat       |
 
-## Rules
+Doporučený výchozí stav je hodnota, kterou je třeba optimalizovat.
 
-- Coverage targets apply to source files, not to `tests/**`.
-- `open-sse/**` is part of the product and must remain in scope.
-- New code should not reduce coverage in touched areas.
-- Prefer testing behavior and branch outcomes over implementation details.
-- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
+## Pravidla
 
-## Current command set
+- Cíle pokrytí se vztahují na zdrojové soubory, nikoli na `tests/**`.
+- `open-sse/**` je součástí produktu a musí zůstat zahrnutý.
+- Nový kód by neměl snižovat pokrytí v dotčených oblastech.
+- Upřednostňujte testování chování a výsledků větví před detaily implementace.
+- Pro `src/lib/db/**` upřednostňujte dočasné databáze SQLite a malé testovací datové sady před rozsáhlými mocky.
+
+## Aktuální sada příkazů
 
 - `npm run test:coverage`
-  - Main source coverage gate for the unit test suite
-  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
+  - Hlavní kontrola pokrytí zdrojového kódu pro sadu jednotkových testů
+  - Generuje `text-summary`, `html`, `json-summary` a `lcov`
 - `npm run coverage:report`
-  - Detailed file-by-file report from the latest run
+  - Podrobný report po jednotlivých souborech z posledního spuštění
 - `npm run test:coverage:legacy`
-  - Historical comparison only
+  - Pouze pro historické porovnání
 
-## Milestones
+## Milníky
 
-| Phase   |                 Target | Focus                                             |
-| ------- | ---------------------: | ------------------------------------------------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
-| Phase 2 | 65% statements / lines | DB and route foundations                          |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
-| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
+| Fáze   |                  Cíl | Zaměření                                                           | Stav      |
+| ------ | -------------------: | ------------------------------------------------------------------ | --------- |
+| Fáze 1 | 60 % příkazů / řádků | Rychlá zlepšení a nízkorizikové pokrytí pomocných funkcí           | ✅ Hotovo |
+| Fáze 2 | 65 % příkazů / řádků | Základy databáze a tras                                            | ✅ Hotovo |
+| Fáze 3 | 70 % příkazů / řádků | Validace poskytovatelů a analytika využití                         | ✅ Hotovo |
+| Fáze 4 | 75 % příkazů / řádků | Překladače a pomocné funkce `open-sse`                             | ✅ Hotovo |
+| Fáze 5 | 80 % příkazů / řádků | Obslužné rutiny `open-sse` a větve vykonavatele                    | ✅ Hotovo |
+| Fáze 6 | 85 % příkazů / řádků | Složitější okrajové případy, dluh v pokrytí větví a regresní sady  | Probíhá   |
+| Fáze 7 | 90 % příkazů / řádků | Závěrečné doladění, odstranění mezer a přísné postupné zpřísňování | Čeká      |
 
-Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
+Pokrytí větví a funkcí by se mělo s každou fází postupně zvyšovat, ale hlavním pevným cílem jsou příkazy / řádky.
 
-## Priority hotspots
+## Prioritní problematické oblasti
 
-These files or areas offer the best return for the next phases:
+Tyto soubory mají dnes nejnižší pokrytí řádků (< 60 %) a nabízejí nejlepší přínos pro fáze 6–7. Vygenerováno z `coverage/coverage-summary.json` dne 2026-05-13:
 
-1. `open-sse/handlers`
-   - `chatCore.ts` at 7.57%
-   - Overall directory at 29.07%
-2. `open-sse/translator/request`
-   - Overall directory at 36.39%
-   - Many translators are still near single-digit coverage
-3. `open-sse/translator/response`
-   - Overall directory at 8.07%
-4. `open-sse/executors`
-   - Overall directory at 36.62%
-5. `src/lib/db`
-   - `models.ts` at 20.66%
-   - `registeredKeys.ts` at 34.46%
-   - `modelComboMappings.ts` at 36.25%
-   - `settings.ts` at 46.40%
-   - `webhooks.ts` at 33.33%
-6. `src/lib/usage`
-   - `usageHistory.ts` at 21.12%
-   - `usageStats.ts` at 9.56%
-   - `costCalculator.ts` at 30.00%
-7. `src/lib/providers`
-   - `validation.ts` at 41.16%
-8. Low-risk utility and API files for early gains
-   - `src/shared/utils/upstreamError.ts`
-   - `src/shared/utils/apiAuth.ts`
-   - `src/lib/api/errorResponse.ts`
-   - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`
+| #   | Soubor                                                       | Řádky % |
+| --- | ------------------------------------------------------------ | ------: |
+| 1   | `open-sse/services/compression/validation.ts`                |   7.87% |
+| 2   | `src/app/api/v1/batches/route.ts`                            |   9.67% |
+| 3   | `src/app/docs/components/FeedbackWidget.tsx`                 |   9.80% |
+| 4   | `open-sse/services/compression/toolResultCompressor.ts`      |  10.00% |
+| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                  |  10.63% |
+| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`    |  10.96% |
+| 7   | `open-sse/services/specificityRules.ts`                      |  11.28% |
+| 8   | `src/mitm/systemCommands.ts`                                 |  12.19% |
+| 9   | `open-sse/services/compression/aggressive.ts`                |  12.77% |
+| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                |  12.98% |
+| 11  | `open-sse/services/compression/progressiveAging.ts`          |  13.26% |
+| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts` |  13.43% |
+| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`  |  13.51% |
+| 14  | `src/lib/cloudAgent/agents/jules.ts`                         |  13.52% |
+| 15  | `open-sse/services/compression/lite.ts`                      |  14.46% |
+| 16  | `src/app/api/v1/rerank/route.ts`                             |  14.94% |
+| 17  | `open-sse/services/compression/preservation.ts`              |  15.07% |
+| 18  | `src/lib/cloudAgent/agents/codex.ts`                         |  15.54% |
+| 19  | `open-sse/services/tierResolver.ts`                          |  16.66% |
+| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                |  16.66% |
 
-## Execution checklist
+Témata pro fáze 6–7:
 
-### Phase 1: 56.95% -> 60%
+- `open-sse/services/compression/**` představuje nejhustší skupinu souborů s nízkým pokrytím a tvoří největší část zbývající mezery.
+- Trasy API pro dávky a přehodnocení pořadí (`src/app/api/v1/batches/**`, `src/app/api/v1/rerank/route.ts`) potřebují testy na úrovni obslužných funkcí.
+- Adaptéry cloudových agentů (`src/lib/cloudAgent/agents/jules.ts`, `codex.ts`) a `tierResolver.ts` potřebují scénářové testy.
+- Komponenty uživatelského rozhraní dokumentace a `src/mitm/systemCommands.ts` mají nižší prioritu, ale umožňují snadno zvýšit pokrytí větví.
 
-- [x] Fix coverage metric so it reflects source code instead of test files
-- [x] Keep a legacy coverage script for comparison
-- [x] Record the baseline and hotspots in-repo
-- [ ] Add focused tests for low-risk utilities:
+## Kontrolní seznam realizace
+
+### Fáze 1: 56.95% -> 60%
+
+- [x] Opravit metriku pokrytí tak, aby odrážela zdrojový kód namísto testovacích souborů
+- [x] Zachovat původní skript pro pokrytí pro účely porovnání
+- [x] Zaznamenat výchozí stav a problematické oblasti v repozitáři
+- [ ] Přidat cílené testy pro nízkorizikové pomocné moduly:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Add route tests for:
+- [ ] Přidat testy tras pro:
   - `src/app/api/settings/require-login/route.ts`
   - `src/app/api/providers/[id]/models/route.ts`
 
-### Phase 2: 60% -> 65%
+### Fáze 2: 60% -> 65%
 
-- [ ] Add DB-backed tests for:
+- [ ] Přidat testy využívající databázi pro:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Cover branch behavior in:
+- [ ] Pokrýt chování větví v:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
   - `src/app/api/v1/moderations/route.ts`
 
-### Phase 3: 65% -> 70%
+### Fáze 3: 65% -> 70%
 
-- [ ] Add usage analytics tests for:
+- [ ] Přidat testy analytiky využití pro:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Expand route coverage for proxy management and settings branches
+- [ ] Rozšířit pokrytí tras pro správu proxy a větve nastavení
 
-### Phase 4: 70% -> 75%
+### Fáze 4: 70% -> 75%
 
-- [ ] Cover translator helpers and central translation paths:
+- [ ] Pokrýt pomocné funkce překladače a hlavní cesty překladu:
   - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
   - `open-sse/translator/response/*`
 
-### Phase 5: 75% -> 80%
+### Fáze 5: 75% -> 80%
 
-- [ ] Add handler-level tests for:
+- [ ] Přidat testy na úrovni obslužných funkcí pro:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+- [ ] Přidat pokrytí větví vykonavatele pro autentizaci specifickou pro poskytovatele, opakované pokusy a přepsání koncových bodů
 
-### Phase 6: 80% -> 85%
+### Fáze 6: 80% -> 85%
 
-- [ ] Merge more edge-case suites into the main coverage path
-- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
-- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
+- [ ] Začlenit více sad testů hraničních případů do hlavní cesty měření pokrytí
+- [ ] Zvýšit pokrytí funkcí u databázových modulů se slabým pokrytím konstruktorů a pomocných funkcí
+- [ ] Odstranit mezery v pokrytí větví v `settings.ts`, `registeredKeys.ts`, `validation.ts` a pomocných funkcích překladače
 
-### Phase 7: 85% -> 90%
+### Fáze 7: 85% -> 90%
 
-- [ ] Treat the remaining low-coverage files as blockers
-- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
-- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
+- [ ] Považovat zbývající soubory s nízkým pokrytím za blokující
+- [ ] Přidat regresní testy pro každou nepokrytou produkční chybu opravenou během úsilí o dosažení 90 %
+- [ ] Zvýšit minimální požadované pokrytí v CI až poté, co bude místní výchozí stav stabilní alespoň ve dvou po sobě jdoucích spuštěních
 
-## Ratchet policy
+## Zásady postupného zpřísňování
 
-Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
+Prahové hodnoty `npm run test:coverage` aktualizujte teprve poté, co projekt skutečně překročí další milník s dostatečnou rezervou.
 
-Recommended ratchet sequence:
+**Aktuální limit:** `npm run test:coverage` vynucuje **60 příkazů / 60 řádků / 60 funkcí / 60 větví** (metrika byla nově nastavena ve fázi Quality-Gates 6A.1 — dřívější výchozí hodnota 82.58 % byla nadhodnocená, protože započítávala testovací soubory a nezahrnovala `open-sse`). Příkaz `test:coverage:legacy` zachovává pro historické porovnání původní metriku 50/50/50.
+
+Pro jednorázové kontroly prahové hodnoty vůči nejnovější zprávě použijte:
+
+```bash
+node scripts/check/test-report-summary.mjs --threshold 75
+```
+
+Doporučená posloupnost zpřísňování (pořadí je `příkazy-řádky / větve / funkce`):
 
 1. 55/60/55
 2. 60/62/58
 3. 65/64/62
 4. 70/66/66
-5. 75/70/72
+5. 75/70/72 <-- aktuální limit (75/70/75)
 6. 80/75/78
 7. 85/80/84
 8. 90/85/88
 
-Order is `statements-lines / branches / functions`.
+Dalším cílem zpřísnění je `80/75/78`, jakmile se pokrytí větví udrží nad 78 % ve dvou po sobě jdoucích spuštěních.
 
-## Known gap
+## Známý nedostatek
 
-The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.
+Aktuální příkaz pro pokrytí měří hlavní sadu jednotkových testů pro Node a zahrnuje zdrojový kód, ke kterému se z ní přistupuje, včetně `open-sse`. Pokrytí z Vitestu zatím neslučuje do jediné sjednocené zprávy. Toto sloučení má smysl provést později, ale není překážkou pro zahájení růstu z 60 % na 80 %.

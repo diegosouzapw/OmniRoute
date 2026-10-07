@@ -74,6 +74,24 @@ curl https://localhost:20128/api/context/rtk/raw-output/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/context/rtk/discover
+
+GET context › rtk › discover
+
+```bash
+curl https://localhost:20128/api/context/rtk/discover \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/context/rtk/learn
+
+GET context › rtk › learn
+
+```bash
+curl https://localhost:20128/api/context/rtk/learn \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

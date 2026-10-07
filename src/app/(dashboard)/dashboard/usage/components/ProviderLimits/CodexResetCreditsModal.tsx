@@ -13,8 +13,58 @@ interface Props {
   availableCount: number;
   isOpen: boolean;
   loading: boolean;
+  provider: string;
   onClose: () => void;
   onRedeem: (selectionToken: string) => Promise<void>;
+}
+
+function isGlmResetProvider(provider: string): boolean {
+  return provider !== "codex";
+}
+
+export function getResetCreditWindowTitle(
+  provider: string,
+  credit: CodexResetCreditView,
+  tr: (key: string, fallback: string, values?: UsageTranslationValues) => string
+): string {
+  if (!isGlmResetProvider(provider)) {
+    return credit.title || tr("resetCreditDefaultTitle", "Full reset");
+  }
+
+  const windowTitle =
+    credit.resetType === "WEEK"
+      ? tr("glmResetCreditWeekTitle", "Weekly window reset")
+      : tr("glmResetCreditFiveHourTitle", "5-hour window reset");
+  return credit.title ? `${windowTitle} · ${credit.title}` : windowTitle;
+}
+
+export function getResetCreditConfirmation(
+  provider: string,
+  resetType: string | undefined,
+  tr: (key: string, fallback: string, values?: UsageTranslationValues) => string
+): string {
+  if (!isGlmResetProvider(provider)) {
+    return tr(
+      "confirmRedeemResetCredit",
+      "Redeeming immediately resets the eligible Codex usage windows and permanently consumes this credit."
+    );
+  }
+  if (resetType === "WEEK") {
+    return tr(
+      "glmConfirmRedeemWeekResetCredit",
+      "Redeeming immediately resets the weekly usage window and permanently consumes this card."
+    );
+  }
+  if (resetType === "FIVE_HOUR") {
+    return tr(
+      "glmConfirmRedeemFiveHourResetCredit",
+      "Redeeming immediately resets the 5-hour usage window and permanently consumes this card."
+    );
+  }
+  return tr(
+    "glmConfirmRedeemResetCredit",
+    "Redeeming immediately resets the selected usage window and permanently consumes this card."
+  );
 }
 
 function formatRelativeExpiry(expiresAt: string | null | undefined): string | null {
@@ -80,9 +130,11 @@ function ResetCreditModalFooter({
 
 function ResetCreditConfirmation({
   credit,
+  provider,
   tr,
 }: {
   credit: CodexResetCreditView;
+  provider: string;
   tr: (key: string, fallback: string, values?: UsageTranslationValues) => string;
 }) {
   return (
@@ -95,15 +147,12 @@ function ResetCreditConfirmation({
               {tr("confirmRedeemResetCreditTitle", "Redeem this reset credit?")}
             </p>
             <p className="mt-1 text-sm text-text-muted">
-              {tr(
-                "confirmRedeemResetCredit",
-                "Redeeming immediately resets the eligible Codex usage windows and permanently consumes this credit."
-              )}
+              {getResetCreditConfirmation(provider, credit.resetType, tr)}
             </p>
           </div>
         </div>
       </div>
-      <CreditSummary credit={credit} tr={tr} />
+      <CreditSummary credit={credit} provider={provider} tr={tr} />
     </div>
   );
 }
@@ -113,12 +162,14 @@ function ResetCreditList({
   credits,
   loading,
   onSelect,
+  provider,
   tr,
 }: {
   availableCount: number;
   credits: CodexResetCreditView[];
   loading: boolean;
   onSelect: (selectionToken: string) => void;
+  provider: string;
   tr: (key: string, fallback: string, values?: UsageTranslationValues) => string;
 }) {
   if (credits.length === 0) {
@@ -141,7 +192,7 @@ function ResetCreditList({
           key={credit.selectionToken}
           className="flex flex-col gap-3 rounded-lg border border-border bg-bg-subtle/40 p-3 sm:flex-row sm:items-center"
         >
-          <CreditSummary credit={credit} tr={tr} recommended={index === 0} />
+          <CreditSummary credit={credit} provider={provider} tr={tr} recommended={index === 0} />
           <Button
             size="sm"
             className="shrink-0"
@@ -161,6 +212,7 @@ export default function CodexResetCreditsModal({
   availableCount,
   isOpen,
   loading,
+  provider,
   onClose,
   onRedeem,
 }: Props) {
@@ -196,7 +248,11 @@ export default function CodexResetCreditsModal({
     <Modal
       isOpen={isOpen}
       onClose={close}
-      title={tr("resetCreditsModalTitle", "Codex reset credits")}
+      title={
+        isGlmResetProvider(provider)
+          ? tr("glmResetCreditsModalTitle", "GLM Coding Plan reset cards")
+          : tr("resetCreditsModalTitle", "Codex reset credits")
+      }
       size="lg"
       closeOnOverlay={!loading}
       footer={
@@ -211,20 +267,26 @@ export default function CodexResetCreditsModal({
       }
     >
       {confirming && selectedCredit ? (
-        <ResetCreditConfirmation credit={selectedCredit} tr={tr} />
+        <ResetCreditConfirmation credit={selectedCredit} provider={provider} tr={tr} />
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-text-muted">
-            {tr(
-              "resetCreditsModalExplainer",
-              "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first."
-            )}
+            {isGlmResetProvider(provider)
+              ? tr(
+                  "glmResetCreditsModalExplainer",
+                  "Reset cards are ordered by expiration. Choose the 5-hour or weekly window you want to reset."
+                )
+              : tr(
+                  "resetCreditsModalExplainer",
+                  "Credits are ordered by expiration. Automatic redemption always uses the credit that expires first."
+                )}
           </p>
           <ResetCreditList
             availableCount={availableCount}
             credits={credits}
             loading={loading}
             onSelect={beginRedeem}
+            provider={provider}
             tr={tr}
           />
         </div>
@@ -235,10 +297,12 @@ export default function CodexResetCreditsModal({
 
 function CreditSummary({
   credit,
+  provider,
   recommended = false,
   tr,
 }: {
   credit: CodexResetCreditView;
+  provider: string;
   recommended?: boolean;
   tr: (key: string, fallback: string, values?: UsageTranslationValues) => string;
 }) {
@@ -250,7 +314,7 @@ function CreditSummary({
     <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-text-main">
-          {credit.title || tr("resetCreditDefaultTitle", "Full reset")}
+          {getResetCreditWindowTitle(provider, credit, tr)}
         </span>
         {recommended && (
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">

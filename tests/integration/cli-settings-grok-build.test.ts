@@ -29,7 +29,8 @@ process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE = "1";
 
 // Import DB reset helpers (must be before route import)
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 
 // Import route handlers

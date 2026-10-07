@@ -77,6 +77,32 @@ test("aborting the shared budget stops both branches and rejects safely", async 
   assert.equal(aborted, 2);
 });
 
+test("an already-aborted budget rejects before either branch starts", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  let videoStarted = false;
+  let audioStarted = false;
+
+  await assert.rejects(
+    fuseVideoAndAudio({
+      audio: async () => {
+        audioStarted = true;
+        return track("audio", "spoken", 1);
+      },
+      signal: controller.signal,
+      timeoutMs: 1000,
+      video: async () => {
+        videoStarted = true;
+        return track("video", "scene", 0);
+      },
+    }),
+    /aborted/i
+  );
+
+  assert.equal(videoStarted, false);
+  assert.equal(audioStarted, false);
+});
+
 test("rejects when both sides fail and removes exact duplicate observations", async () => {
   const observation = {
     confidence: 1,

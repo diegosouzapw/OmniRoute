@@ -1,6 +1,6 @@
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { getFreeProxyStats } from "@/lib/localDb";
+import { getFreeProxyStats } from "@/lib/db/freeProxies";
 import { getAllProviders } from "@/lib/freeProxyProviders";
 import {
   isFreeProxyAutoSyncEnabled,

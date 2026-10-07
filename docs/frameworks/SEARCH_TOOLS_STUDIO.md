@@ -57,7 +57,7 @@ New tab for extracting content from a URL via `POST /v1/web/fetch` (created in p
 - Submit → fetch → render `ScrapeResult.tsx`.
 - `ScrapeResult` renders markdown preview + raw toggle.
 - Cap: if response body > **256 KB**, UI shows `(truncated, view raw)` and opens raw in a Monaco modal (D21).
-- Metadata panel: provider (firecrawl/jina-reader/tavily-search/tinyfish), latency, cost, response size, links count.
+- Metadata panel: provider (firecrawl/jina-reader/tavily-search/tinyfish/nimble-search/anysearch-search), latency, cost, response size, links count.
 - Uses `useScrapeFetch.ts` hook.
 
 ### Compare Tab
@@ -105,15 +105,7 @@ Runs the same query/URL across up to **4 providers in parallel** (D22):
 `ProviderCatalog.tsx` exposes the full provider list from `GET /api/search/providers`
 (extended in F4 to include fetch providers):
 
-| Field                          | Source                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------ |
-| `id`, `name`                   | `searchRegistry.ts`                                                                        |
-| `kind`                         | `"search"` (12 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search, tinyfish)   |
-| `costPerQuery`                 | Registry data                                                                              |
-| `freeMonthlyQuota`             | Registry data                                                                              |
-| `searchTypes` / `fetchFormats` | Registry data                                                                              |
-| `status`                       | `"configured"` / `"missing"` / `"rate_limited"` — derived at runtime from credential store |
-| `configureHref`                | `/dashboard/providers`                                                                     |
+| `kind` | `"search"` (20 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search, tinyfish, nimble-search, anysearch-search) |
 
 The status is **derived at request time** by checking whether credentials exist and whether
 all keys are currently in cooldown.
@@ -136,7 +128,7 @@ Only one backend change was needed for this feature:
 
 `src/app/api/search/providers/route.ts` was extended to:
 
-- Include all 4 fetch providers (`firecrawl`, `jina-reader`, `tavily-search`, `tinyfish`) in the array.
+- Include all 6 fetch providers (`firecrawl`, `jina-reader`, `tavily-search`, `tinyfish`, `nimble-search`, `anysearch-search`) in the array.
 - Add `kind: "search" | "fetch"` to every item.
 - Add `status: "configured" | "missing" | "rate_limited"` derived from live credential state.
 - Maintain backward compatibility — existing fields (`id`, `name`, etc.) unchanged.

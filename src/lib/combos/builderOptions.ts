@@ -1,12 +1,7 @@
-import {
-  getAllCustomModels,
-  getAllSyncedAvailableModels,
-  getCombos,
-  getModelIsHidden,
-  getProviderConnections,
-  getProviderNodes,
-  getSettings,
-} from "@/lib/localDb";
+import { getAllCustomModels, getAllSyncedAvailableModels, getModelIsHidden } from "@/lib/db/models";
+import { getCombos } from "@/lib/db/combos";
+import { getProviderConnections, getProviderNodes } from "@/lib/db/providers";
+import { getSettings } from "@/lib/db/settings";
 import { getAccountDisplayName, getProviderDisplayName } from "@/lib/display/names";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
@@ -35,6 +30,7 @@ type CustomModelLike = {
   apiFormat?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   supportsThinking?: boolean;
   isHidden?: boolean;
@@ -46,6 +42,7 @@ type SyncedModelLike = {
   source?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
@@ -389,7 +386,10 @@ function buildModelOptions(
       name: toStringOrNull(model.name),
       source: "imported",
       supportedEndpoints: toStringArray(model.supportedEndpoints),
-      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
+      contextLength:
+        toNumberOrNull(model.contextWindow) ??
+        toNumberOrNull(model.inputTokenLimit) ??
+        resolved.contextWindow,
       outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
       supportsThinking:
         typeof model.supportsThinking === "boolean"
@@ -533,7 +533,7 @@ function buildModelOptions(
       source,
       supportedEndpoints: toStringArray(model.supportedEndpoints),
       apiFormat: toStringOrNull(model.apiFormat),
-      contextLength: toNumberOrNull(model.inputTokenLimit),
+      contextLength: toNumberOrNull(model.contextWindow) ?? toNumberOrNull(model.inputTokenLimit),
       outputTokenLimit: toNumberOrNull(model.outputTokenLimit),
       supportsThinking:
         typeof model.supportsThinking === "boolean" ? model.supportsThinking : undefined,
@@ -707,7 +707,15 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     // #2901 follow-up: a configured OpenCode connection shadows the no-auth
     // entry below, so it must receive the same `oc/` routing prefix. The raw
     // `opencode/` prefix is reserved by model parsing for the api-key tier.
-    const routingPrefix = providerId === "opencode" ? providerVisual.alias : providerId;
+    // #14135: custom provider nodes (provider-node source) configured with a prefix alias
+    // must route under their alias (e.g. "of/model"), not their raw internal database node id
+    // (e.g. "openai-compatible-chat-<uuid>/model").
+    const routingPrefix =
+      providerId === "opencode"
+        ? providerVisual.alias
+        : providerVisual.source === "provider-node" && providerVisual.alias
+          ? providerVisual.alias
+          : providerId;
     rewriteQualifiedModelPrefix(modelMap, providerId, routingPrefix);
 
     const normalizedConnections =

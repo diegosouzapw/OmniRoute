@@ -9,13 +9,15 @@ import assert from "node:assert/strict";
 const mod = await import("../../open-sse/executors/notion-web.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers/web-cookie.ts");
-const { __setTlsFetchOverrideForTesting } = await import(
-  "../../open-sse/services/notionTlsClient.ts"
-);
+const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
+  await import("../../open-sse/services/notionTlsClient.ts");
 
 /** Mock the Chrome-JA3 path used by sendNotionInferenceRequest (not global fetch). */
 function installNotionTlsMock(
-  handler: (url: string, opts: { headers?: Record<string, string>; body?: string }) => Promise<{
+  handler: (
+    url: string,
+    opts: { headers?: Record<string, string>; body?: string }
+  ) => Promise<{
     status: number;
     text: string;
   }>
@@ -33,6 +35,27 @@ function installNotionTlsMock(
     };
   });
   return () => __setTlsFetchOverrideForTesting(null);
+}
+
+function hostilePrototypeFailure(label: string): unknown {
+  return new Proxy(
+    {},
+    {
+      getPrototypeOf() {
+        throw new Error(`access_token=${label}-prototype-secret at /srv/private/${label}.ts:1:2`);
+      },
+      get(_target, property) {
+        if (property === "toString") {
+          return () => {
+            throw new Error(
+              `access_token=${label}-coercion-secret at /srv/private/${label}-coercion.ts:1:2`
+            );
+          };
+        }
+        return undefined;
+      },
+    }
+  );
 }
 
 describe("NotionWebExecutor — registry consistency", () => {
@@ -389,6 +412,104 @@ describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => 
     }
   });
 
+  it("fails closed without plain fetch when the binding is unavailable behind a proxy", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const previousHttpsProxy = process.env.HTTPS_PROXY;
+    const previousFetch = globalThis.fetch;
+    let resolvedProxyUrl: string | undefined;
+    let plainFetchCalls = 0;
+    process.env.HTTPS_PROXY = "http://account-proxy.test:8080";
+    __setTlsFetchOverrideForTesting(async (_url, options) => {
+      resolvedProxyUrl = options.proxyUrl;
+      throw new TlsClientUnavailableError("native binding unavailable");
+    });
+    globalThis.fetch = (async () => {
+      plainFetchCalls += 1;
+      return new Response("plain fallback must not run", { status: 200 });
+    }) as typeof fetch;
+
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      assert.equal(resolvedProxyUrl, "http://account-proxy.test:8080");
+      assert.equal(plainFetchCalls, 0, "plain fetch would bypass the resolved proxy");
+    } finally {
+      __setTlsFetchOverrideForTesting(null);
+      globalThis.fetch = previousFetch;
+      if (previousHttpsProxy === undefined) delete process.env.HTTPS_PROXY;
+      else process.env.HTTPS_PROXY = previousHttpsProxy;
+    }
+  });
+
+  it("sanitizes credentials, private paths, and stack frames from TLS transport errors", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const restore = installNotionTlsMock(async () => {
+      throw new Error(
+        "TLS transport failed; access token: notion-tls-secret while reading " +
+          "/srv/private/notion/request.ts:42:7\n    at send (/srv/private/notion/request.ts:42:7)"
+      );
+    });
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      assert.equal(result.url, "https://app.notion.com/api/v3/runInferenceTranscript");
+      assert.equal(
+        (result.transformedBody as { spaceId?: string }).spaceId,
+        "space-1",
+        "the executor must preserve the upstream request body on transport failure"
+      );
+      const errBody = (await result.response.json()) as {
+        error: { message: string; type: string; code: string };
+      };
+      assert.match(errBody.error.message, /Notion fetch failed: TLS transport failed/);
+      assert.equal(errBody.error.type, "upstream_error");
+      assert.equal(errBody.error.code, "HTTP_502");
+      assert.ok(!errBody.error.message.includes("notion-tls-secret"));
+      assert.ok(!errBody.error.message.includes("/srv/private"));
+      assert.ok(!errBody.error.message.includes("at send"));
+    } finally {
+      restore();
+    }
+  });
+
+  it("fails closed when a TLS rejection has a hostile prototype", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const restoreTls = installNotionTlsMock(async () => {
+      throw hostilePrototypeFailure("notion-tls-proxy");
+    });
+
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      const responseText = await result.response.text();
+      assert.match(responseText, /Notion fetch failed: unknown error/);
+      assert.doesNotMatch(responseText, /prototype-secret|coercion-secret|\/srv\/private/);
+    } finally {
+      restoreTls();
+    }
+  });
+
   it("surfaces nested patch-start temporarily-unavailable as a typed error (not empty-body 502)", async () => {
     const executor = new mod.NotionWebExecutor();
     const restore = installNotionTlsMock(async () => ({
@@ -529,9 +650,7 @@ describe("buildNotionTranscript", () => {
         },
         {
           role: "user",
-          content: [
-            { type: "text", text: "find icon skill" },
-          ] as unknown as string,
+          content: [{ type: "text", text: "find icon skill" }] as unknown as string,
         },
       ],
       { spaceId: "s1" }

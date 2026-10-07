@@ -92,7 +92,9 @@ test("#2244 cross-IdP dedup: same email + DIFFERENT username creates a separate 
     "two different IdP identities sharing an email must NOT be collapsed into one connection"
   );
   const usernames = conns
-    .map((c) => (c as { providerSpecificData?: { username?: string } }).providerSpecificData?.username)
+    .map(
+      (c) => (c as { providerSpecificData?: { username?: string } }).providerSpecificData?.username
+    )
     .sort();
   assert.deepEqual(usernames, ["alice-google", "alice-huggingface"]);
 });

@@ -33,10 +33,51 @@ import {
   type CatalogEnrichmentSnapshot,
 } from "@/lib/modelMetadataRegistry";
 import { createModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
-import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
+import {
+  isModelCatalogNamesEnabled,
+  isNoThinkingAliasEnabled,
+  isDisableThinkingLevelVariantsEnabled,
+} from "@/shared/utils/featureFlags";
 import { extractApiKey } from "@/sse/services/auth";
 import { maybeOmitCatalogModelName } from "./catalogHelpers";
+import { applyCatalogPage, catalogJsonResponse, parseCatalogPage } from "./catalogPagination";
 import { isCodexModelCatalogClient } from "./catalogRequest";
+
+type CatalogVariantAuthorizer = (model: Record<string, any>) => boolean | Promise<boolean>;
+
+async function resolveCatalogVariantAuthorizer(
+  request: Request
+): Promise<CatalogVariantAuthorizer | null> {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) return null;
+
+  const { getApiKeyMetadata, isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+  const keyMeta = await getApiKeyMetadata(apiKey);
+  if (!keyMeta || keyMeta.id === "env-key" || keyMeta.allowedQuotas?.length) return null;
+
+  const hasModelRestrictions =
+    keyMeta.modelAccessMode === "restricted" ||
+    Boolean(keyMeta.allowedModels?.length) ||
+    Boolean(keyMeta.blockedModels?.length) ||
+    keyMeta.disableNonPublicModels === true;
+  if (!hasModelRestrictions) return null;
+
+  return (model) => typeof model.id === "string" && isModelAllowedForKey(apiKey, model.id);
+}
+
+async function filterUnauthorizedAppendedVariants(
+  baseModels: Array<Record<string, any>>,
+  modelsWithVariants: Array<Record<string, any>>,
+  authorize: CatalogVariantAuthorizer | null
+): Promise<Array<Record<string, any>>> {
+  if (!authorize || modelsWithVariants.length <= baseModels.length) return modelsWithVariants;
+
+  const retained = modelsWithVariants.slice(0, baseModels.length);
+  for (const variant of modelsWithVariants.slice(baseModels.length)) {
+    if (await authorize(variant)) retained.push(variant);
+  }
+  return retained;
+}
 
 /**
  * Post-filter chain applied AFTER the API-key filter, so variants and mirrors are
@@ -54,10 +95,13 @@ export async function applyCatalogPostFilters(
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
     hideNoThinkVariants?: boolean;
+    authorizeSyntheticModel?: CatalogVariantAuthorizer;
   }
 ): Promise<Array<Record<string, any>>> {
   const yieldTurn = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
   let finalModels = models;
+  const authorizeSyntheticModel =
+    ctx.authorizeSyntheticModel ?? (await resolveCatalogVariantAuthorizer(request));
 
   // variants are only generated for surviving models.
   if (new URL(request.url).searchParams.get("configuredOnly") === "true") {
@@ -77,19 +121,37 @@ export async function applyCatalogPostFilters(
   // model is permitted. Runs before the no-thinking pass: the gateway already routes these
   // suffixed ids (claudeEffortVariant.ts), this just makes them selectable in catalog-only
   // clients (OpenCode) that can't set a reasoning_effort config the way VS Code does.
-  finalModels = appendClaudeEffortVariants(
-    finalModels,
-    ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
-  );
+  // Gated like the synced-effort pass below: OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS suppresses -low/-medium/-high catalog variants.
+  if (!isDisableThinkingLevelVariantsEnabled()) {
+    const beforeClaudeEffortVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeClaudeEffortVariants,
+      appendClaudeEffortVariants(
+        beforeClaudeEffortVariants,
+        ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+      ),
+      authorizeSyntheticModel
+    );
+  }
 
   // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
   // key-filtered list, so a variant only appears when its real model is permitted.
   // #9418: skip when hideNoThinkVariants is on — the ids are still routable when
-  // sent explicitly, just not advertised in the catalog.
+  // sent explicitly, just not advertised in the catalog. The NO_THINKING_ALIAS_ENABLED
+  // feature flag is the stronger switch: it also stops the ids from routing (see
+  // src/sse/handlers/chat.ts), so nothing is advertised when it is off. Resolved once
+  // here and injected, keeping the open-sse helper I/O-free (one flag read per catalog
+  // build, not one per model).
   if (!ctx.hideNoThinkVariants) {
-    finalModels = appendNoThinkingVariants(
-      finalModels,
-      ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+    const beforeNoThinkingVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeNoThinkingVariants,
+      appendNoThinkingVariants(
+        beforeNoThinkingVariants,
+        ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined,
+        { featureEnabled: isNoThinkingAliasEnabled() }
+      ),
+      authorizeSyntheticModel
     );
   }
 
@@ -151,7 +213,14 @@ export async function applyCatalogPostFilters(
   // #7694: advertise `<provider>/<model>-<tier>` variants for synced models that
   // captured `reasoning.supported_efforts` at sync time (capabilities.effort_tiers).
   // Derived from the already key-filtered list; skips codex/kimi (own suffix mechanism).
-  finalModels = appendSyncedEffortVariants(finalModels);
+  if (!isDisableThinkingLevelVariantsEnabled()) {
+    const beforeSyncedEffortVariants = finalModels;
+    finalModels = await filterUnauthorizedAppendedVariants(
+      beforeSyncedEffortVariants,
+      appendSyncedEffortVariants(beforeSyncedEffortVariants),
+      authorizeSyntheticModel
+    );
+  }
 
   await yieldTurn();
 
@@ -272,13 +341,19 @@ export async function finalizeCatalogResponse(
   // empty/foreign `base_instructions` would drop codex's agent prompt to nothing and
   // break its agent behavior (verified empirically against codex 0.137). An empty array
   // keeps codex on its built-in model info — same inference as today, minus the error.
+  const page = parseCatalogPage(request);
+  const paged = applyCatalogPage(orderedModels, page);
   const responseBody: Record<string, unknown> = {
     object: "list",
-    data: orderedModels,
+    data: paged.models,
   };
+  if (page.limit != null || page.after) {
+    responseBody.has_more = paged.hasMore;
+    if (paged.lastId) responseBody.last_id = paged.lastId;
+  }
   if (isCodexModelCatalogClient(request)) {
     responseBody.models = [];
   }
 
-  return Response.json(responseBody, { headers });
+  return catalogJsonResponse(responseBody, headers);
 }

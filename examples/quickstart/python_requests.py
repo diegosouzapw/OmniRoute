@@ -16,7 +16,7 @@ headers = {
 }
 
 data = {
-    "model": "felo/auto",  # Keyless, works out of the box — no sign-up needed
+    "model": "auto",  # Zero-config routing, works out of the box — no sign-up needed
     "stream": False,
     "messages": [
         {"role": "user", "content": "Hello! What can you do?"}

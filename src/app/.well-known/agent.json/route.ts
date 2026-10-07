@@ -22,7 +22,7 @@ const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
  * Returns the OmniRoute Agent Card that describes this gateway's
  * capabilities as an A2A agent.
  */
-export async function GET(request: NextRequest) {
+export async function GET(request?: NextRequest) {
   // Conductor PRD RF2: fleet skills from the OmniConductor hub (cached ~60s; [] when
   // the hub is unset/offline — the card stays valid without the fleet section).
   const fleetSkills = await getFleetSkills();

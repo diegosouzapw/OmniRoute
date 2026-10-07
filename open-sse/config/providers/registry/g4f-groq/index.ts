@@ -1,8 +1,8 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-// g4f.space/api/groq — no-key reverse proxy to Groq (gpt4free project, issue #6650).
-// Same OpenAI-compatible shape as the other no-key gateways (uncloseai):
-// standard chat/completions + /v1/models discovery, no custom executor/translator.
+// g4f.space/api/groq — optional-auth remote gateway to Groq (gpt4free, issue #6650).
+// Anonymous requests require proof-of-work cake credits; a member API key is the
+// alternative. Standard OpenAI chat/completions + /v1/models; no custom executor.
 export const g4f_groqProvider: RegistryEntry = {
   id: "g4f-groq",
   alias: "g4fgroq",

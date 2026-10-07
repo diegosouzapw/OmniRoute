@@ -7,6 +7,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-catalog-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-test-secret";
+process.env.CATALOG_BUILD_TIMEOUT_MS = process.env.CATALOG_BUILD_TIMEOUT_MS || "120000"; // #12627 bound flakes a cold tsx build; 12627-catalog-inflight-timeout owns it
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -175,11 +176,11 @@ test("v1 models catalog includes display names by default", async () => {
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+  const model = body.data.find((item) => item.id === "oc/big-pickle");
 
   assert.equal(response.status, 200);
   assert.ok(model);
-  assert.equal(model.name, "Claude Sonnet 4 (The Old LLM 🆓)");
+  assert.equal(model.name, "Big Pickle");
 });
 
 test("v1 models catalog omits display names when the feature flag is disabled", async () => {
@@ -190,12 +191,12 @@ test("v1 models catalog omits display names when the feature flag is disabled", 
       new Request("http://localhost/api/v1/models")
     );
     const body = (await response.json()) as any;
-    const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+    const model = body.data.find((item) => item.id === "oc/big-pickle");
 
     assert.equal(response.status, 200);
     assert.ok(model);
     assert.equal("name" in model, false);
-    assert.equal(model.root, "claude_sonnet_4");
+    assert.equal(model.root, "big-pickle");
   } finally {
     featureFlagsDb.removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
   }

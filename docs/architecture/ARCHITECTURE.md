@@ -1,12 +1,12 @@
 ---
 title: "OmniRoute Architecture"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # OmniRoute Architecture
 
-🌐 **Languages:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md)
+🌐 **Languages:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/architecture/ARCHITECTURE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇪🇪 [Eesti](../i18n/et/docs/architecture/ARCHITECTURE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/architecture/ARCHITECTURE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/architecture/ARCHITECTURE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/architecture/ARCHITECTURE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇲🇹 [Malti](../i18n/mt/docs/architecture/ARCHITECTURE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/architecture/ARCHITECTURE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/architecture/ARCHITECTURE.md) | 🇷🇸 [Српски](../i18n/sr/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇵🇰 [اردو](../i18n/ur/docs/architecture/ARCHITECTURE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/architecture/ARCHITECTURE.md)
 
 _Last updated: 2026-06-28_
 
@@ -17,27 +17,27 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (349 providers, 107 executors)
+- OpenAI-compatible API surface for CLI/tools (355 providers, 108 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
 - OAuth + API-key provider connection management (22 OAuth provider modules)
-- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
+- Embedding generation via `/v1/embeddings` (18 providers)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
-- Audio transcription via `/v1/audio/transcriptions` (7 providers)
-- Text-to-speech via `/v1/audio/speech` (10 providers)
+- Audio transcription via `/v1/audio/transcriptions` (18 providers)
+- Text-to-speech via `/v1/audio/speech` (24 built-in providers)
 - Video generation via `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Music generation via `/v1/music/generations` (ComfyUI)
-- Web search via `/v1/search` (5 providers)
+- Web search via `/v1/search` (20 providers)
 - Moderations via `/v1/moderations`
 - Reranking via `/v1/rerank`
 - Think tag parsing (`<think>...</think>`) for reasoning models
 - Response sanitization for strict OpenAI SDK compatibility
 - Role normalization (developer→system, system→user) for cross-provider compatibility
 - Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing (26 DB modules)
+- Local persistence for providers, keys, aliases, combos, settings, pricing (122 DB modules)
 - Usage/cost tracking and request logging
 - Optional cloud sync for multi-device/state sync
 - IP allowlist/blocklist for API access control
@@ -58,7 +58,7 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (87 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server (110 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -299,7 +299,7 @@ Services (business logic):
 - Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 - Cooldown-aware retry: `src/sse/services/cooldownAwareRetry.ts` — per-model cooldown retries with configurable `requestRetry` / `maxRetryIntervalSec`
 - Safe outbound fetch: `src/shared/network/safeOutboundFetch.ts` — guarded provider/model fetch with SSRF guard, private-URL blocking, retry, and timeout
-- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — validates provider URLs against private/localhost CIDR ranges
+- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider URLs; `src/shared/network/outboundUrlGuardPolicy.ts` picks the mode from `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, and their dashboard toggles (see `docs/reference/ENVIRONMENT.md`)
 - Provider request defaults: `open-sse/services/providerRequestDefaults.ts` — provider-level `maxTokens`, `temperature`, `thinkingBudgetTokens` defaults
 - GLM provider constants: `open-sse/config/glmProvider.ts` — shared GLM models, quota URLs, GLMT timeout/defaults
 - Antigravity upstream: `open-sse/config/antigravityUpstream.ts` — base URL and discovery path constants
@@ -324,20 +324,20 @@ Domain layer modules:
 OAuth provider modules (22 individual files under `src/lib/oauth/providers/`):
 
 - Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `qoder.ts`, `raycast.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Individual providers: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
 - Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
 ## 5) Embedded Services (v3.8.4)
 
 OmniRoute can install, supervise, and route to locally-running AI tool processes
-called **embedded services**. Two are shipped in v3.8.4: 9Router and CLIProxyAPI.
+called **embedded services**. Five are shipped: 9Router, CLIProxyAPI, Bifrost, Mux and Dario.
 
 Architecture layers:
 
 - **UI** (`/dashboard/providers/services`) — two-tab page with lifecycle controls,
   live log streaming, API key management, and (for 9Router) embedded native UI via
   an internal reverse proxy.
-- **API** (`/api/services/{name}/*`) — 8 endpoints for 9Router, 7 for CLIProxyAPI,
+- **API** (`/api/services/{name}/*`) — 11 endpoints for 9Router, 10 for CLIProxyAPI, 8 each for Bifrost / Mux / Dario,
   all classified **LOCAL_ONLY** (hard rule #17). A shared `GET /api/services/[name]/logs`
   SSE endpoint serves both services.
 - **Supervisor** (`src/lib/services/`) — generic `ServiceSupervisor` class wraps
@@ -370,14 +370,18 @@ Key capabilities:
   **auto**, lkgp, context-optimized, context-relay, **fusion**, plus a fallback path) —
   auto is the headline addition in v3.8.0; `fusion` (panel fan-out + judge synthesis,
   `open-sse/services/fusion.ts`) is new in v3.8.36.
-- **9-factor scoring**: cost, latency p95, success rate, quota headroom, lockout
-  proximity, breaker state, recent failures, model availability, and tag affinity.
+- **16-factor scoring**: quota, health, inverse cost, inverse latency, task fit and
+  ten more. The canonical table of factors and their default weights lives in
+  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — restating it here would
+  give it a second place to go stale.
 - **Virtual factory** materializes ephemeral combos when no matching named combo
   exists, sourcing candidates from healthy active provider connections.
 - **Auto prefixes**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
   `auto/smart`, `auto/lkgp` — each backed by a tuned weight profile.
-- **4 mode packs**: coding, fast, cheap, smart — shipped as preset weight
-  configurations callable from the dashboard.
+- **6 mode packs**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
+  `reliability-first` and `chaos-mode` — preset weight configurations callable from
+  the dashboard. (Not to be confused with the `auto/*` prefixes above, which are
+  request-time variants.)
 
 For full algorithmic detail (factor formulas, weight tuning), see
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
@@ -488,12 +492,9 @@ the global circuit breaker / connection cooldown / model lockout layers:
   `claudeCodeToolRemapper.ts`
 - Claude Code fingerprint shaping: `open-sse/services/claudeCodeFingerprint.ts`
 - Claude Code obfuscation: `open-sse/services/claudeCodeObfuscation.ts`
-- ChatGPT TLS client: `open-sse/services/chatgptTlsClient.ts` (curl-impersonate
-  style for ChatGPT-Web sessions)
-- ChatGPT image cache: `open-sse/services/chatgptImageCache.ts`
 
 For the full stealth playbook and operational guidance, see
-[`docs/security/STEALTH_GUIDE.md`](../security/STEALTH_GUIDE.md).
+`docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`).
 
 ### H. Webhooks, Reasoning Cache, Read Cache
 
@@ -517,7 +518,7 @@ For the full stealth playbook and operational guidance, see
 Primary state DB (SQLite):
 
 - Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
-- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
+- DB access: import specific `src/lib/db/*` modules directly (the old `localDb.ts` barrel was removed)
 - file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
 - entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
@@ -540,7 +541,7 @@ Domain State DB (SQLite):
 - API key generation/verification: `src/shared/utils/apiKey.ts`
 - Provider secrets persisted in `providerConnections` entries
 - Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
-- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — blocks private/loopback/link-local ranges for all provider calls
+- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — host checks on provider calls and webhook targets; the mode comes from `src/shared/network/outboundUrlGuardPolicy.ts` (flags in `docs/reference/ENVIRONMENT.md`)
 - Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
 - Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
 - WebSocket handshake auth: `src/lib/ws/handshake.ts` — validates WS upgrade requests via API key or session cookie
@@ -882,8 +883,8 @@ flowchart LR
 
 - `open-sse/translator/index.ts`: translator registry and orchestration
 - Request translators: `open-sse/translator/request/*` (9 modules — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
-- Response translators: `open-sse/translator/response/*` (8 modules — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`)
-- Helpers: `open-sse/translator/helpers/*` (8 modules — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`)
+- Response translators: `open-sse/translator/response/*` (11 modules — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`, `openai-to-gemini`, `openai-to-gemini-sse`, `responsesToolItem`)
+- Helpers: `open-sse/translator/helpers/*` (12 modules — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `jsonUtil`, `markdownBoundary`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `strictSystemHoist`, `toolCallHelper`, `toolCallShim`)
 - Format constants: `open-sse/translator/formats.ts`
 - Bootstrap and registry: `open-sse/translator/bootstrap.ts`, `open-sse/translator/registry.ts`
 - Image-format helpers: `open-sse/translator/image/`
@@ -891,110 +892,110 @@ flowchart LR
 ### Persistence
 
 - `src/lib/db/*`: persistent config/state and domain persistence on SQLite
-- `src/lib/localDb.ts`: compatibility re-export for DB modules
+- `src/lib/db/*`: import specific modules directly — no barrel (the old `localDb.ts` re-export layer was removed)
 - `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
 
 ## Provider Executor Coverage (Strategy Pattern)
 
 Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
 
-| Executor                 | Provider(s)                                                                                                                                                 | Special Handling                                                     |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor`        | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
-| `AntigravityExecutor`    | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing, 429 obfuscation     |
-| `AzureOpenAIExecutor`    | Azure OpenAI                                                                                                                                                | Deployment-based routing, api-version query enforcement              |
-| `BlackboxWebExecutor`    | Blackbox AI (web-mode)                                                                                                                                      | Web-session reverse with TLS fingerprint emulation                   |
-| `ChatGPTWebExecutor`     | ChatGPT web                                                                                                                                                 | TLS client + session cookie management (`chatgptTlsClient.ts`)       |
-| `ClaudeIdentityExecutor` | Claude.ai (CCH path)                                                                                                                                        | Constraint + tool-remap pipelines, fingerprint shaping               |
-| `CliProxyApiExecutor`    | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
-| `CloudflareAiExecutor`   | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
-| `CodexExecutor`          | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
-| `CommandCodeExecutor`    | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
-| `CursorExecutor`         | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
-| `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
-| `GlmExecutor`            | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
-| `GrokWebExecutor`        | xAI Grok web                                                                                                                                                | Web-session reverse, mode selection (think/standard)                 |
-| `KieExecutor`            | KIE                                                                                                                                                         | Custom token issuance with rotating session anchors                  |
-| `KiroExecutor`           | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
-| `MuseSparkWebExecutor`   | Muse Spark (web)                                                                                                                                            | Web-session reverse with image-message bridging                      |
-| `NlpCloudExecutor`       | NLP Cloud                                                                                                                                                   | Provider-specific request body shape                                 |
-| `OpenCodeExecutor`       | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
-| `PerplexityWebExecutor`  | Perplexity web                                                                                                                                              | Web-session reverse for chat continuation                            |
-| `PetalsExecutor`         | Petals distributed inference                                                                                                                                | Decentralized swarm routing                                          |
-| `PollinationsExecutor`   | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
-| `QoderExecutor`          | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
-| `VertexExecutor`         | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
-| `DevinDesktopExecutor`   | Devin Desktop                                                                                                                                               | Imported API key + Connect-protobuf chat streaming                   |
+| Executor                  | Provider(s)                                                                                                                                                 | Special Handling                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing, 429 obfuscation     |
+| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                                | Deployment-based routing, api-version query enforcement              |
+| `BlackboxWebExecutor`     | Blackbox AI (web-mode)                                                                                                                                      | Web-session reverse with TLS fingerprint emulation                   |
+| `ClaudeIdentityExecutor`  | Claude.ai (CCH path)                                                                                                                                        | Constraint + tool-remap pipelines, fingerprint shaping               |
+| `CliProxyApiExecutor`     | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
+| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                         | Browser-session Responses API bridge with thread/turn pinning        |
+| `CommandCodeExecutor`     | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
+| `GlmExecutor`             | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
+| `GrokWebExecutor`         | xAI Grok web                                                                                                                                                | Web-session reverse, mode selection (think/standard)                 |
+| `KieExecutor`             | KIE                                                                                                                                                         | Custom token issuance with rotating session anchors                  |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
+| `MuseSparkWebExecutor`    | Muse Spark (web)                                                                                                                                            | Web-session reverse with image-message bridging                      |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                   | Provider-specific request body shape                                 |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
+| `PerplexityWebExecutor`   | Perplexity web                                                                                                                                              | Web-session reverse for chat continuation                            |
+| `PetalsExecutor`          | Petals distributed inference                                                                                                                                | Decentralized swarm routing                                          |
+| `PollinationsExecutor`    | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
+| `QoderExecutor`           | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
+| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                               | Imported API key + Connect-protobuf chat streaming                   |
 
 All other providers (including custom compatible nodes) use the `DefaultExecutor`.
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 237 registered providers in
+> **Note:** The matrix below is a representative sample of the 351 registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).
 
-| Provider          | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude            | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini            | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity       | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
-| OpenAI            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex             | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot    | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor            | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro              | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Kilo Code         | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Cline             | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding       | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax  | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq              | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI     | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations      | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| LongCat           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud      | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Nebius            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI         | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Command Code      | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Z.AI / GLM        | openai           | API Key / OAuth       | ✅               | ✅         | ❌            | ❌                 |
-| GLMT (preset)     | claude           | API Key               | ✅               | ✅         | ❌            | ⚠️ Per request     |
-| Kimi Coding       | openai           | OAuth / API Key       | ✅               | ✅         | ✅            | ❌                 |
-| KIE               | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Devin Desktop     | openai           | Imported API key      | ✅ (Connect→SSE) | ✅         | ❌            | ⚠️ Per request     |
-| GitLab Duo        | openai           | OAuth (GitLab)        | ✅               | ✅         | ✅            | ❌                 |
-| Devin CLI | openai | Local CLI login | ✅ | ✅ | ❌ | ✅ Task API |
-| Codex Cloud       | openai-responses | OAuth                 | ✅               | ❌         | ✅            | ✅ Rate limits     |
-| Jules             | openai           | OAuth                 | ✅               | ✅         | ✅            | ✅ Task API        |
-| AgentRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| ChatGPT-Web       | openai           | Session cookie + TLS  | ✅               | ✅         | ❌            | ❌                 |
-| Grok-Web          | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity-Web    | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
-| BlackBox-Web      | openai           | Session cookie + TLS  | ✅               | ✅         | ❌            | ❌                 |
-| Muse-Spark-Web    | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
-| ModelScope        | openai           | API Key               | ✅               | ✅         | ❌            | ⚠️ Quota policy    |
-| BazaarLink        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Petals            | openai           | None                  | ✅               | ✅         | ❌            | ❌                 |
-| Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| OpenCode (Go/Zen) | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| CLIProxyAPI       | openai           | Custom                | ✅               | ✅         | ❌            | ❌                 |
+| Provider            | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ------------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude              | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini              | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity         | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI              | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex               | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| ChatGPT Web (Codex) | openai-responses | Browser session       | ✅ forced        | ❌         | ❌            | ❌                 |
+| GitHub Copilot      | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor              | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro                | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qoder               | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Kilo Code           | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Cline               | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Kimi Coding         | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| OpenRouter          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax    | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq                | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere              | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cloudflare AI       | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
+| Pollinations        | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
+| Scaleway AI         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| LongCat             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Ollama Cloud        | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
+| HuggingFace         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Nebius              | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| SiliconFlow         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Hyperbolic          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Vertex AI           | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Command Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Z.AI / GLM          | openai           | API Key / OAuth       | ✅               | ✅         | ❌            | ❌                 |
+| GLMT (preset)       | claude           | API Key               | ✅               | ✅         | ❌            | ⚠️ Per request     |
+| Kimi Coding         | openai           | OAuth / API Key       | ✅               | ✅         | ✅            | ❌                 |
+| KIE                 | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Devin Desktop       | openai           | Imported API key      | ✅ (Connect→SSE) | ✅         | ❌            | ⚠️ Per request     |
+| GitLab Duo          | openai           | OAuth (GitLab)        | ✅               | ✅         | ✅            | ❌                 |
+| Devin CLI           | openai           | Local CLI login       | ✅               | ✅         | ❌            | ✅ Task API        |
+| Codex Cloud         | openai-responses | OAuth                 | ✅               | ❌         | ✅            | ✅ Rate limits     |
+| Jules               | openai           | OAuth                 | ✅               | ✅         | ✅            | ✅ Task API        |
+| AgentRouter         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Grok-Web            | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity-Web      | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| BlackBox-Web        | openai           | Session cookie + TLS  | ✅               | ✅         | ❌            | ❌                 |
+| Muse-Spark-Web      | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| ModelScope          | openai           | API Key               | ✅               | ✅         | ❌            | ⚠️ Quota policy    |
+| BazaarLink          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Petals              | openai           | None                  | ✅               | ✅         | ❌            | ❌                 |
+| Qoder               | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| OpenCode (Go/Zen)   | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| CLIProxyAPI         | openai           | Custom                | ✅               | ✅         | ❌            | ❌                 |
 
 ## Format Translation Coverage
 
@@ -1094,9 +1095,9 @@ legacy compatibility. The current runtime contract uses:
 
 ## 6) SSRF / Outbound URL Guard
 
-- `src/shared/network/outboundUrlGuard.ts` blocks all private/loopback/link-local target URLs before they reach provider executors
+- `BaseExecutor.assertOutboundUrlAllowed` (`open-sse/executors/base.ts`) applies `src/shared/network/outboundUrlGuard.ts` to chat requests dispatched through `BaseExecutor.execute()`. In public-only mode (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` with the private flag off) it blocks private and loopback hosts and 169.254.0.0/16; in every other mode it blocks cloud-metadata hosts. It checks the hostname or IP literal as written, before any DNS lookup. Built-in local providers skip it.
 - Provider model discovery and validation routes use `src/shared/network/safeOutboundFetch.ts` which applies the guard before every outbound request
-- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 422 and are logged to the compliance audit trail via `providerAudit.ts`
+- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 503 (`getSafeOutboundFetchErrorStatus`; the model-discovery route returns 400), and genuine SSRF blocks during validation are logged to the audit trail as `provider.validation.ssrf_blocked` events
 
 ## Observability and Operational Signals
 

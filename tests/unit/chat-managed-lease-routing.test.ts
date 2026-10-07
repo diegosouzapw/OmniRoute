@@ -633,3 +633,123 @@ test("one-step managed pipeline uses the ordinary fenced lease path", async () =
   assert.equal(response.status, 200);
   assert.equal(dispatches, 1);
 });
+
+test("normal API key can dispatch through a connection listed by an idle lease-capable key", async () => {
+  const connection = await seedConnection("openai", { name: "idle-conn", apiKey: "sk-idle-conn" });
+  await seedManagedKey([connection.id]);
+  const normalKey = await apiKeysDb.createApiKey("normal-key", "test");
+
+  const dispatchedKeys: string[] = [];
+  globalThis.fetch = async (_url, init) => {
+    dispatchedKeys.push(new Headers(init?.headers).get("authorization") ?? "");
+    return buildOpenAIResponse("normal key success");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/chat/completions",
+      authKey: normalKey.key,
+      body: {
+        model: "openai/gpt-4.1",
+        stream: false,
+        messages: [{ role: "user", content: "hello from normal key" }],
+      },
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(dispatchedKeys.length, 1);
+  assert.equal(dispatchedKeys[0], "Bearer sk-idle-conn");
+});
+
+test("normal API key routes to alternative eligible connection when primary is actively leased", async () => {
+  const connectionX = await seedConnection("openai", {
+    name: "leased-x",
+    apiKey: "sk-leased-x",
+    priority: 1,
+  });
+  const _connectionY = await seedConnection("openai", {
+    name: "free-y",
+    apiKey: "sk-free-y",
+    priority: 2,
+  });
+  const managedKey = await seedManagedKey([connectionX.id]);
+  const normalKey = await apiKeysDb.createApiKey("normal-key", "test");
+
+  const acquired = leaseDb.acquireExclusiveConnectionLease({
+    leaseOwnerId: OWNER,
+    apiKeyId: managedKey.id,
+    provider: "openai",
+    connectionId: connectionX.id,
+  });
+  assert.equal(acquired.kind, "ACQUIRED");
+
+  const dispatchedKeys: string[] = [];
+  globalThis.fetch = async (_url, init) => {
+    dispatchedKeys.push(new Headers(init?.headers).get("authorization") ?? "");
+    return buildOpenAIResponse("routed to y");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/chat/completions",
+      authKey: normalKey.key,
+      body: {
+        model: "openai/gpt-4.1",
+        stream: false,
+        messages: [{ role: "user", content: "hello from normal key" }],
+      },
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(dispatchedKeys.length, 1);
+  assert.equal(dispatchedKeys[0], "Bearer sk-free-y");
+});
+
+test("normal API key recovers connection after expired lease reconciliation without sleep", async () => {
+  const connection = await seedConnection("openai", {
+    name: "expiring-conn",
+    apiKey: "sk-expiring-conn",
+  });
+  const managedKey = await seedManagedKey([connection.id]);
+  const normalKey = await apiKeysDb.createApiKey("normal-key", "test");
+
+  const baseTime = "2026-01-01T00:00:00.000Z";
+  const afterExpiry = "2026-01-01T00:00:05.000Z";
+
+  const acquired = leaseDb.acquireExclusiveConnectionLease({
+    leaseOwnerId: OWNER,
+    apiKeyId: managedKey.id,
+    provider: "openai",
+    connectionId: connection.id,
+    now: baseTime,
+    ttlMs: 1000,
+  });
+  assert.equal(acquired.kind, "ACQUIRED");
+
+  const expiredCount = leaseDb.reconcileExpiredExclusiveConnectionLeases(afterExpiry);
+  assert.equal(expiredCount, 1);
+
+  const dispatchedKeys: string[] = [];
+  globalThis.fetch = async (_url, init) => {
+    dispatchedKeys.push(new Headers(init?.headers).get("authorization") ?? "");
+    return buildOpenAIResponse("reconciled after expiry");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/chat/completions",
+      authKey: normalKey.key,
+      body: {
+        model: "openai/gpt-4.1",
+        stream: false,
+        messages: [{ role: "user", content: "hello after expiry" }],
+      },
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(dispatchedKeys.length, 1);
+  assert.equal(dispatchedKeys[0], "Bearer sk-expiring-conn");
+});

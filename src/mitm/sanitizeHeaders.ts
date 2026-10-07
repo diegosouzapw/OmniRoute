@@ -1,61 +1,37 @@
 import type { IncomingHttpHeaders } from "node:http";
-import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
-import { maskSecret } from "./maskSecrets";
+import { isForbiddenUpstreamHeaderName } from "../shared/constants/upstreamHeaders.ts";
+import { maskSecret } from "./maskSecrets.ts";
 
-/**
- * Header names whose values must be masked (case-insensitive).
- * These carry credentials/tokens that must not appear in logs or broadcasts.
- */
-const SECRET_HEADER_NAMES = new Set([
+const MASKED_CREDENTIAL_HEADERS = new Set([
   "authorization",
-  "cookie",
-  // `set-cookie` is the RESPONSE-side credential header — upstream session/CSRF
-  // cookies must be masked too, else they leak verbatim into inspector JSON.
-  "set-cookie",
-  "x-api-key",
   "api-key",
-  "bearer",
-  "proxy-authorization",
+  "x-api-key",
+  "x-auth-token",
+  "x-goog-api-key",
 ]);
+const FULLY_REDACTED_HEADERS = new Set(["cookie", "set-cookie"]);
 
-function isSecretHeader(name: string): boolean {
-  return SECRET_HEADER_NAMES.has(name.toLowerCase());
+function sanitizeCredentialValue(value: string): string {
+  const masked = maskSecret(value);
+  return masked === value ? "[REDACTED]" : masked;
 }
 
-/**
- * Sanitize HTTP headers for safe logging/broadcasting.
- *
- * - Removes headers in the upstream denylist (hop-by-hop, Host, etc.)
- * - Applies maskSecret() to values of authorization/cookie/key headers
- * - Coerces array values to comma-joined strings
- * - Returns a plain Record<string, string> (never undefined values)
- */
 export function sanitizeHeaders(
-  headers: IncomingHttpHeaders | Record<string, string | string[] | undefined>,
+  headers: IncomingHttpHeaders | Record<string, string | string[] | undefined>
 ): Record<string, string> {
-  const result: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(headers)) {
-    if (value === undefined || value === null) continue;
-
-    const lowerKey = key.toLowerCase();
-
-    // Remove denylist headers (hop-by-hop, framing)
-    if (isForbiddenUpstreamHeaderName(lowerKey)) continue;
-
-    // Normalize array values
-    const strValue = Array.isArray(value) ? value.join(", ") : String(value);
-
-    // Mask secret header values
-    if (isSecretHeader(lowerKey)) {
-      // `set-cookie` carries an entire session/CSRF cookie value that maskSecret's
-      // format heuristics (Bearer / sk- / ≥40-char) do NOT catch, so it would leak
-      // verbatim into inspector JSON — fully redact it (SECURITY_AUDIT M6).
-      result[lowerKey] = lowerKey === "set-cookie" ? "[REDACTED]" : maskSecret(strValue);
-    } else {
-      result[lowerKey] = strValue;
+  const sanitized: Record<string, string> = {};
+  for (const [rawName, rawValue] of Object.entries(headers)) {
+    const name = rawName.trim().toLowerCase();
+    if (!name) continue;
+    if (isForbiddenUpstreamHeaderName(name)) continue;
+    if (FULLY_REDACTED_HEADERS.has(name)) {
+      sanitized[name] = "[REDACTED]";
+      continue;
     }
-  }
+    if (rawValue === undefined) continue;
 
-  return result;
+    const value = Array.isArray(rawValue) ? rawValue.join(", ") : rawValue;
+    sanitized[name] = MASKED_CREDENTIAL_HEADERS.has(name) ? sanitizeCredentialValue(value) : value;
+  }
+  return sanitized;
 }

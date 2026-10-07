@@ -30,6 +30,16 @@ const BOOTSTRAP_TIMEOUT_MS = 8_000;
 const ONBOARD_TIMEOUT_MS = 15_000;
 const DEFAULT_TIER_ID = "legacy-tier";
 
+// onboardUser is a Long-Running Operation: Google frequently answers the
+// first call with {"done": false} (no cloudaicompanionProject field yet) and
+// expects the SAME request re-sent every couple of seconds until the
+// operation settles with {"done": true, response: {...}}. Treating the
+// first "done:false" response as "no project" (BYOP) misclassifies a normal
+// in-progress onboarding as "bring your own project" and permanently caches
+// that wrong verdict. Poll bounded, matching 9router's onboardUser().
+const ONBOARD_POLL_MAX_ATTEMPTS = 5;
+const ONBOARD_POLL_INTERVAL_MS = 2_000;
+
 /** Ordered list of loadCodeAssist endpoint URLs. */
 export function getAntigravityLoadCodeAssistUrls(): string[] {
   return ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map((base) => `${base}${LOAD_CODE_ASSIST_PATH}`);
@@ -61,6 +71,19 @@ const onboardLocks = new Map<string, Promise<void>>();
  * instead of retrying (a fabricated id gets a delayed 429 RESOURCE_EXHAUSTED).
  */
 export const ANTIGRAVITY_REQUIRES_MANUAL_PROJECT = "__REQUIRES_GCP_PROJECT__";
+
+/**
+ * True only for a real GCP project id. Empty values and the
+ * ANTIGRAVITY_REQUIRES_MANUAL_PROJECT sentinel are NOT usable: the sentinel is a
+ * control signal, never a project — persisting or sending it upstream makes the
+ * account look configured (it then wins account selection) while every request
+ * fails with `Project 'projects/__REQUIRES_GCP_PROJECT__' not found`.
+ */
+export function isUsableAntigravityProjectId(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  return trimmed !== "" && trimmed !== ANTIGRAVITY_REQUIRES_MANUAL_PROJECT;
+}
 
 /**
  * Per-token cache of accounts Google told us to Bring Your Own Project.
@@ -163,9 +186,30 @@ async function tryLoadCodeAssist(
 }
 
 /**
+ * Extract the project id from a settled ({done:true}) onboardUser response body.
+ * The documented LRO shape nests it under `response.cloudaicompanionProject`
+ * (matches 9router's onboardUser and Google's Operation envelope), but some
+ * observed responses put it at the top level — check both.
+ */
+function extractProjectIdFromOnboardResponse(data: Record<string, unknown> | null): string | null {
+  const nested = (data?.response as Record<string, unknown> | undefined)?.cloudaicompanionProject;
+  const project = nested ?? data?.cloudaicompanionProject;
+  if (typeof project === "string") {
+    const id = project.trim();
+    return id || null;
+  }
+  if (project && typeof project === "object") {
+    const id = (project as Record<string, unknown>).id;
+    if (typeof id === "string" && id.trim()) return id.trim();
+  }
+  return null;
+}
+
+/**
  * Attempt onboardUser to create a Cloud Code project for the account.
  * Called when loadCodeAssist returns no project — the account has never
- * been onboarded. Returns true if any endpoint reports success.
+ * been onboarded. Polls the same endpoint on {done:false} responses (an
+ * in-progress LRO) before concluding anything about the account.
  */
 async function tryOnboardUser(
   accessToken: string,
@@ -176,47 +220,74 @@ async function tryOnboardUser(
 ): Promise<AntigravityOnboardStatus> {
   const urls = getAntigravityOnboardUrls();
   const headers = getAntigravityContentHeaders(clientProfile, accessToken);
+  const body = JSON.stringify({
+    tier_id: tierId,
+    metadata: getAntigravityLoadCodeAssistMetadata(),
+  });
 
   for (const url of urls) {
-    if (signal?.aborted) throw signal.reason;
-    try {
-      const timeoutSignal = AbortSignal.timeout(ONBOARD_TIMEOUT_MS);
-      const response = await fetchImpl(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          tier_id: tierId,
-          metadata: getAntigravityLoadCodeAssistMetadata(),
-        }),
-        signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
-      });
+    for (let attempt = 1; attempt <= ONBOARD_POLL_MAX_ATTEMPTS; attempt++) {
+      if (signal?.aborted) throw signal.reason;
+      try {
+        const timeoutSignal = AbortSignal.timeout(ONBOARD_TIMEOUT_MS);
+        const response = await fetchImpl(url, {
+          method: "POST",
+          headers,
+          body,
+          signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
+        });
 
-      if (response.ok) {
-        // Accounts Google expects to Bring Their Own Project: onboardUser
-        // returns 200 without a `cloudaicompanionProject` in the body — no
-        // automatic project creation for standard-tier/personal accounts
-        // (tracked in #8491). Detect that so we can fail fast with a clear
-        // instruction instead of retrying forever or fabricating an id that
-        // Google later rejects with a delayed 429 RESOURCE_EXHAUSTED.
-        const body = await response.text().catch(() => "");
-        if (body && !/cloudaicompanionProject/.test(body)) {
+        if (!response.ok) {
           console.warn(
-            `[models] antigravity onboardUser done but no project in response at ${url} — Google BYOP (user-defined GCP project) required`
+            `[models] antigravity onboardUser failed at ${url} (${response.status}) — trying next`
           );
-          return "requires_manual_project";
+          break;
         }
-        return "onboarded";
-      }
 
-      console.warn(
-        `[models] antigravity onboardUser failed at ${url} (${response.status}) — trying next`
-      );
-    } catch (error) {
-      if (signal?.aborted || (error instanceof Error && error.name === "AbortError")) {
-        throw signal?.reason ?? error;
+        const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+        // Only an EXPLICIT `done: false` means "in-progress LRO, poll again".
+        // A proper Google Operation always carries `done` when it is one; a
+        // response with `done` absent entirely (e.g. `{}`) is not an LRO in
+        // progress — it's Google's immediate, settled "no project" answer for
+        // BYOP accounts (#8491) and must fall through to that classification
+        // on the first attempt, same as before this polling was added.
+        if (data?.done === false) {
+          // In-progress LRO — Google hasn't decided (project created, or
+          // BYOP required) yet. Re-send the same request after a short wait.
+          if (attempt < ONBOARD_POLL_MAX_ATTEMPTS) {
+            console.warn(
+              `[models] antigravity onboardUser at ${url} not done yet (attempt ${attempt}/${ONBOARD_POLL_MAX_ATTEMPTS}) — waiting`
+            );
+            await new Promise((resolve) => setTimeout(resolve, ONBOARD_POLL_INTERVAL_MS));
+            continue;
+          }
+          console.warn(
+            `[models] antigravity onboardUser at ${url} still not done after ${ONBOARD_POLL_MAX_ATTEMPTS} attempts — treating as failed`
+          );
+          break;
+        }
+
+        // done:true — Google has settled the operation. Accounts Google
+        // expects to Bring Their Own Project answer with done:true and no
+        // cloudaicompanionProject — no automatic project creation for
+        // standard-tier/personal accounts (tracked in #8491). Only now is it
+        // safe to draw that conclusion.
+        if (extractProjectIdFromOnboardResponse(data)) {
+          return "onboarded";
+        }
+        console.warn(
+          `[models] antigravity onboardUser done but no project in response at ${url} — Google BYOP (user-defined GCP project) required`
+        );
+        return "requires_manual_project";
+      } catch (error) {
+        if (signal?.aborted || (error instanceof Error && error.name === "AbortError")) {
+          throw signal?.reason ?? error;
+        }
+        const msg = error instanceof Error ? error.message : String(error);
+        console.warn(`[models] antigravity onboardUser threw for ${url}: ${msg} — trying next`);
+        break;
       }
-      const msg = error instanceof Error ? error.message : String(error);
-      console.warn(`[models] antigravity onboardUser threw for ${url}: ${msg} — trying next`);
     }
   }
   return "failed";

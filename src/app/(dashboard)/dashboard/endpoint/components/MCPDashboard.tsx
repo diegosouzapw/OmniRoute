@@ -266,13 +266,19 @@ export default function McpDashboardPage() {
   }, [auditOffset, toolFilter, successFilter, apiKeyFilter]);
 
   useEffect(() => {
-    refreshSummary();
+    // Async continuation — see react-hooks/set-state-in-effect.
+    void (async () => {
+      await refreshSummary();
+    })();
     const interval = setInterval(refreshSummary, 30000);
     return () => clearInterval(interval);
   }, [refreshSummary]);
 
   useEffect(() => {
-    refreshAudit();
+    // Async continuation — see react-hooks/set-state-in-effect.
+    void (async () => {
+      await refreshAudit();
+    })();
   }, [refreshAudit]);
 
   const handleSwitchCombo = async () => {
@@ -425,7 +431,9 @@ export default function McpDashboardPage() {
               <p>
                 {t("scopesEnforced")}:{" "}
                 <span className="font-semibold">
-                  {(status?.scopesEnforced ?? status?.heartbeat?.scopesEnforced) ? t("yes") : t("no")}
+                  {(status?.scopesEnforced ?? status?.heartbeat?.scopesEnforced)
+                    ? t("yes")
+                    : t("no")}
                 </span>
               </p>
               <p>

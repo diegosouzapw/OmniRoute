@@ -9,7 +9,7 @@ import {
   removeGroupPermission,
   addKeyToGroup,
   removeKeyFromGroup,
-} from "@/lib/localDb";
+} from "@/lib/db/apiKeyGroups";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 type RouteParams = { params: Promise<{ id: string }> };

@@ -2,10 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, "release/**"]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 concurrency:
@@ -41,7 +43,11 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Validate gate inventory
+        run: npm run check:gate-manifest
+
       # Refuse a PR that targets its own head branch before spending anything on it. #8912 has
       # head == base == release/v3.8.50: no diff, can never merge, and it sits in the queue with
       # a full check board attached on every push to that branch. One field comparison.
@@ -68,6 +74,7 @@ jobs:
               echo "docs=true"
               echo "i18n=true"
               echo "workflow=true"
+              echo "testsOnly=false"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -93,23 +100,31 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
             .eslintcache-complexity
           key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
+          # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
+          # cache built under a different suppressions file / lint config / lockfile reports
+          # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
+          # invisible for a whole cycle. Exact key or a cold full lint (~13 min) — never a
+          # partial cache from another configuration.
       # Single ESLint inventory (JSON) — quality-gate reuses the artifact instead of
       # a second cold full-tree pass for eslintWarnings ratchet counts.
       - name: ESLint (JSON report)
@@ -122,10 +137,12 @@ jobs:
           path: .artifacts/eslint-results.json
           if-no-files-found: warn
           retention-days: 7
-      - run: npm run check:cycles
+      - run: npm run check:cycles:ratchet
       - run: npm run check:route-validation:t06
       - run: npm run check:any-budget:t11
       - run: npm run check:provider-consistency
+      - run: npm run check:model-lifecycle
+      - run: npm run check:provider-asset-provenance
       - run: npm run check:fetch-targets
       - run: npm run check:deps
       - run: npm run check:file-size
@@ -136,7 +153,24 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
+      - name: AI attribution in commit / PR metadata (Hard Rule #16)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA" --pr-title "$PR_TITLE" --pr-body-file "$RUNNER_TEMP/pr-body.md"
+      # A test parked in vitest.config.ts's exclude list does not run, and looks like
+      # coverage to whoever reads the tree. 62 files accumulated behind a comment pointing
+      # at #8618 — closed in August while the list grew to 62; 51 of them passed when
+      # finally measured (#13204). This gate requires every exclusion to name a tracker and
+      # to appear in config/quality/vitest-exclusions.json, so the debt stays reviewable.
+      - run: npm run check:vitest-exclusions
       # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
       # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
       # generator either reproduces the committed SKILL.md files or it does not.
@@ -184,7 +218,7 @@ jobs:
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
     # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
-    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -196,18 +230,25 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Restore ESLint file cache
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             .eslintcache
             .eslintcache-complexity
           key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
+          # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
+          # cache built under a different suppressions file / lint config / lockfile reports
+          # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
+          # invisible for a whole cycle. Exact key or a cold full lint (~13 min) — never a
+          # partial cache from another configuration.
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
       # continue-on-error: o artifact pode não existir se a job test-coverage foi
       # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
@@ -294,7 +335,7 @@ jobs:
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     # Path filter: code-only (scanners/ratchets target production surface).
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -305,9 +346,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
       - name: Circular deps (dpdm; advisory)
@@ -315,8 +359,9 @@ jobs:
         run: npm run check:circular-deps
       # BLOCKING ratchet (Etapa 2): bundleSize must not regress vs the baseline
       # (gzip via @size-limit/file, installed by `npm ci`). --ratchet exits 1 on a
-      # measured regression; it SKIPs (exit 0) when the size-limit plugin/build is
-      # absent (a non-comparable measurement never blocks).
+      # measured regression AND on an unmeasurable one (#15159 G-04): "could not
+      # measure" is not "no regression". A missing @size-limit/file or a missing
+      # CLI entrypoint now fails loudly here instead of reporting a silent pass.
       - name: Bundle size (ratchet, blocking)
         run: npm run check:bundle-size -- --ratchet
       # CodeQL ratchet foi PROMOVIDO a BLOQUEANTE no job quality-gate (v3.8.26) —
@@ -391,8 +436,8 @@ jobs:
         run: npm run check:vuln-ratchet -- --ratchet
       # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
       # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
-      # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
-      # zizmor is absent (a missing binary never blocks).
+      # Both tools must complete with valid reports. Missing/broken scanners or
+      # an absent baseline are INCOMPLETE, never zero findings or acceptance.
       - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
         run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
@@ -421,9 +466,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
       # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
@@ -437,8 +485,11 @@ jobs:
       # One FS inventory of src/app/api for both anti-hallucination directions.
       - name: API docs refs (openapi + prose → routes)
         run: npm run check:api-docs-refs
-      - name: i18n translation drift (warn)
-        run: node scripts/i18n/check-translation-drift.mjs --warn
+      # Blocking since the 2026-09 docs re-sync: a core doc edited without `npm run i18n:run
+      # --files=<doc>` (or `--adopt` for a mechanical edit) leaves 65 stale mirrors behind;
+      # the run only retranslates the `## ` sections whose text changed, so it is cheap.
+      - name: i18n docs drift (sources changed since their translation)
+        run: node scripts/i18n/check-translation-drift.mjs
 
   docs-lint:
     name: Docs Lint (prose — advisory)
@@ -457,8 +508,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - name: markdownlint (docs + root, advisory)
         run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
       - name: Vale prose lint (Microsoft style, advisory)
@@ -489,10 +540,20 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      # Real-translation ratchet: a leaf copied verbatim from en.json passes key
+      # parity above but is still English to the user (es shipped 55% English).
+      # Blocking since PR-4 retranslated the verbatim-English backlog: the share of
+      # untranslated leaves per locale may only fall (ratchet baseline in
+      # config/quality/i18n-translation-baseline.json; `npm run i18n:check-ratio:update`).
+      - name: i18n real-translation ratio
+        run: node scripts/i18n/check-translation-ratio.mjs
       # #8463: a rewritten English value used to leave its 39 translations behind
       # silently (googleOAuthWarning shipped wrong copy in 39 locales for months).
       # Key parity above cannot see it — a stale translation counts as covered.
@@ -500,6 +561,30 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-ui-value-drift.mjs
+      # Sibling of the drift gate above. That one catches an English value that was
+      # REWRITTEN; this one catches an English key that was ADDED while some locales never
+      # got it. The coverage gate at the top of this job cannot: it is a percentage per
+      # locale, and 11 absent keys out of ~13,000 leaves coverage at 99.9%. Incident: the
+      # Phase 3 canvas keys were translated across the 42 locales that existed, then the EU
+      # batch (#13044) took the repo to 51 and the nine newcomers shipped untranslated.
+      - name: i18n new-key coverage (a new key must reach every locale)
+        env:
+          BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
+        run: node scripts/i18n/check-new-key-coverage.mjs
+      # Absolute complement of the two gates above: every locale must carry exactly the key
+      # set of en.json, whatever the age of the key. A locale batch is generated from the
+      # en.json of the day the branch is cut and translates for days while the base keeps
+      # adding keys — the batch PR adds no key itself, so the new-key gate stays silent and
+      # 43 absent keys out of ~13,000 still read 99.7 % coverage. Incident 2026-09-15:
+      # batch 1 (#13044) landed 43 keys short in nine locales, batch 2 (#13660) 10 keys short
+      # in eight. Fix is `sync-ui-keys --locale=<codes> --translate-markers`.
+      - name: i18n key completeness (every locale carries every en.json key)
+        run: node scripts/i18n/check-key-completeness.mjs
+      # Same gate for the CLI catalogs (bin/cli/locales). check:cli-i18n only compares
+      # pt-BR / zh-CN / zh-TW; 38 locales shipped with 1–24 of 830 keys for months
+      # (audit 2026-09-16) and the CLI silently fell back to English for them.
+      - name: i18n key completeness (CLI catalogs)
+        run: node scripts/i18n/check-key-completeness.mjs --catalog=cli
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below
@@ -517,9 +602,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
 
@@ -581,6 +669,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
@@ -611,18 +700,17 @@ jobs:
     # back to ubuntu-latest unless the PR head repo is this repository (push /
     # dispatch events are own-origin by definition). Any failure path (VM down,
     # var unset/false) also falls back to ubuntu-latest.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
     needs: changes
-    # The .113 pool runs ONE next-build with room to spare and two at the edge: the
-    # box has 31 GB and a single next-build peaks at 14–16 GB RSS. On 2026-08-28
-    # 13:50Z the kernel OOM-killed main's build while a PR build ran beside it
-    # (five Build jobs had been queued by a burst of PRs). Two lanes: main keeps
-    # its own so a release is never queued behind PR traffic; PR builds serialize
-    # among themselves. GitHub keeps one running + one pending per group and
-    # CANCELS older pendings — a cancelled PR build is re-runnable; a dead main
-    # build costs the publish its artefact and a 40-minute rebuild that OOMs.
+    # Capacity is owned by the ONE omni-build runner slot (#12048), also used by
+    # Docker amd64. Do not add another worker with that label on the same host
+    # without reviewing its memory budget (a next-build peaks at 14–16 GB RSS).
+    # A shared PR concurrency group is not a queue: GitHub's default one-pending
+    # limit replaces unrelated waiting PRs even with cancel-in-progress: false.
+    # Isolate candidate refs; the runner slot still serializes self-hosted builds.
+    # Keep main's group unchanged because docker-publish shares heavy-build-main.
     concurrency:
-      group: heavy-build-${{ github.ref == 'refs/heads/main' && 'main' || 'pr' }}
+      group: heavy-build-${{ github.ref == 'refs/heads/main' && 'main' || github.ref }}
       cancel-in-progress: false
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
@@ -631,9 +719,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
       # Turbopack switch below — Turbopack does not read/write the webpack cache dir
@@ -650,6 +741,10 @@ jobs:
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
+      - name: Verify colocated compression worker
+        run: node --import tsx/esm --test tests/integration/compression-worker-standalone.int.test.ts
+        env:
+          RUN_STANDALONE_INT: "1"
       - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
@@ -679,9 +774,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -774,9 +872,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -845,9 +946,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
       # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
@@ -905,9 +1009,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Install Bun (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -943,9 +1050,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
       # WS5.2/5.3 (v3.8.49 plan): JUnit output feeds Trunk Flaky Tests (advisory upload
@@ -960,7 +1070,7 @@ jobs:
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
-        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        uses: trunk-io/analytics-uploader@14c0f18990953eecd01c9c5afe3cc63a73b6c371 # v2.1.5
         with:
           junit-paths: trunk-junit/**/*.xml
           org-slug: omniroute
@@ -982,7 +1092,7 @@ jobs:
     # blocking job was green. The upload step now has its own ceiling; this is headroom.
     timeout-minutes: 30
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -992,9 +1102,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
         with:
@@ -1063,7 +1176,7 @@ jobs:
         # stalled upload can neither eat the job's budget nor turn a green job cancelled.
         timeout-minutes: 5
         continue-on-error: true
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -1222,11 +1335,9 @@ jobs:
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
     needs: [build, changes]
-    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
-    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
-    # production-broken only, full-suite evidence from the previous green run linked in the
-    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
-    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
+    # Tests-only diffs outside tests/e2e/ cannot change the served app. A hotfix
+    # label is not evidence for this candidate and cannot waive required tests.
+    if: ${{ needs.changes.outputs.testsOnly != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -1242,12 +1353,16 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -1288,7 +1403,7 @@ jobs:
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
-        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        uses: trunk-io/analytics-uploader@14c0f18990953eecd01c9c5afe3cc63a73b6c371 # v2.1.5
         with:
           junit-paths: junit-e2e-results.xml
           org-slug: omniroute
@@ -1317,9 +1432,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - name: Integration tests (shard ${{ matrix.shard }}/2)
         env:
@@ -1342,9 +1460,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:security
 
@@ -1370,9 +1491,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:ecosystem
 
@@ -1399,11 +1523,66 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
+          package-manager-cache: false
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
+        with:
+          # PR acceleration is not release-candidate provenance.
+          cache: ${{ github.event_name == 'pull_request' }}
       - run: npm run check:node-runtime
       - run: npm run test:protocols:e2e
+
+  admission-verdict:
+    name: Gate / CI
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - changes
+      - lint
+      - quality-gate
+      - quality-extended
+      - docs-sync-strict
+      - docs-lint
+      - i18n-ui-coverage
+      - i18n-glossary-zhcn
+      - i18n
+      - pr-test-policy
+      - build
+      - package-artifact
+      - electron-package-smoke
+      - test-unit
+      - test-bun-sqlite
+      - test-vitest
+      - test-coverage
+      - test-e2e
+      - test-integration
+      - test-security
+      - test-ecosystem
+      - test-protocols-e2e
+      - sonarqube
+      - coverage-pr-comment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          package-manager-cache: false
+          node-version: ${{ env.CI_NODE_VERSION }}
+      - name: Evaluate exact-candidate admission
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: node scripts/quality/admission-verdict.mjs ci
+      - name: Retain admission receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ci-admission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/ci-admission.json
+          if-no-files-found: error
+          retention-days: 14
 
   ci-summary:
     name: CI Dashboard
@@ -1454,90 +1633,92 @@ jobs:
             esac
           }
 
-          echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "# 🚀 CI Dashboard"
+            echo ""
 
-          # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
-          # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
-          # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
-          # completion in round 4, where it revealed a suite that had been broken the whole cycle
-          # plus two production bugs. A gate that never finishes is indistinguishable from one that
-          # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
-          CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
-            | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
-            | sort | paste -sd", " -) || CANCELLED_JOBS=""
-          if [ -n "$CANCELLED_JOBS" ]; then
-            {
-              echo "> ### ⚫ Cancelled — no verdict was reported"
-              echo ">"
-              echo "> \`$CANCELLED_JOBS\`"
-              echo ">"
-              echo "> These did not fail; they never finished, so nothing was checked. Treat this"
-              echo "> run as INCOMPLETE for those gates. If the cancellation came from"
-              echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
-              echo "> re-run them before reading this dashboard as green."
+            # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
+            # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
+            # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
+            # completion in round 4, where it revealed a suite that had been broken the whole cycle
+            # plus two production bugs. A gate that never finishes is indistinguishable from one that
+            # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
+            CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
+              | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
+              | sort | paste -sd", " -) || CANCELLED_JOBS=""
+            if [ -n "$CANCELLED_JOBS" ]; then
+              {
+                echo "> ### ⚫ Cancelled — no verdict was reported"
+                echo ">"
+                echo "> \`$CANCELLED_JOBS\`"
+                echo ">"
+                echo "> These did not fail; they never finished, so nothing was checked. Treat this"
+                echo "> run as INCOMPLETE for those gates. If the cancellation came from"
+                echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
+                echo "> re-run them before reading this dashboard as green."
+                echo ""
+              }
+            fi
+
+            echo "## 🧱 Core Checks"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Change Classification | $(status '${{ needs.changes.result }}') |"
+            echo "| Lint | $(status '${{ needs.lint.result }}') |"
+            echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |"
+            echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |"
+            echo "| i18n Glossary (zh-CN, ko) | $(status '${{ needs.i18n-glossary-zhcn.result }}') |"
+            echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |"
+            echo "| SonarQube (opt-in; disabled without SONARQUBE_ENABLED=true) | $(status '${{ needs.sonarqube.result }}') |"
+
+            echo ""
+            echo "## 🏗️ Build"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Build Matrix | $(status '${{ needs.build.result }}') |"
+            echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |"
+            echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |"
+
+            echo ""
+            echo "## 🧪 Tests"
+            echo "| Suite | Status |"
+            echo "|-------|--------|"
+            echo "| Unit | $(status '${{ needs.test-unit.result }}') |"
+            echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |"
+            echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |"
+            echo "| E2E | $(status '${{ needs.test-e2e.result }}') |"
+            echo "| Integration | $(status '${{ needs.test-integration.result }}') |"
+            echo "| Security Tests | $(status '${{ needs.test-security.result }}') |"
+            echo "| Ecosystem E2E | $(status '${{ needs.test-ecosystem.result }}') |"
+            echo "| Protocol Clients E2E (advisory, #10049) | $(status '${{ needs.test-protocols-e2e.result }}') |"
+
+            echo ""
+            echo "## 🌍 Translations"
+
+            total=0
+            langs=0
+
+            if [ -d results ]; then
+              for file in results/*.txt; do
+                [ -f "$file" ] || continue
+                val=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' "$file" | grep "Untranslated:" | awk '{print $2}')
+                val=${val:-0}
+                total=$((total + val))
+                langs=$((langs + 1))
+              done
+            fi
+
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|------|"
+            echo "| Languages checked | $langs |"
+            echo "| Total untranslated | $total |"
+
+            if [ "$total" -gt 0 ]; then
               echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Change Classification | $(status '${{ needs.changes.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n Glossary (zh-CN, ko) | $(status '${{ needs.i18n-glossary-zhcn.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SonarQube (opt-in; disabled without SONARQUBE_ENABLED=true) | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🏗️ Build" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Ecosystem E2E | $(status '${{ needs.test-ecosystem.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Protocol Clients E2E (advisory, #10049) | $(status '${{ needs.test-protocols-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🌍 Translations" >> "$GITHUB_STEP_SUMMARY"
-
-          total=0
-          langs=0
-
-          if [ -d results ]; then
-            for file in results/*.txt; do
-              [ -f "$file" ] || continue
-              val=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' "$file" | grep "Untranslated:" | awk '{print $2}')
-              val=${val:-0}
-              total=$((total + val))
-              langs=$((langs + 1))
-            done
-          fi
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Languages checked | $langs |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Total untranslated | $total |" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ "$total" -gt 0 ]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "⚠️ **Translations need attention**" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "✅ **All translations complete**" >> "$GITHUB_STEP_SUMMARY"
-          fi
+              echo "⚠️ **Translations need attention**"
+            else
+              echo ""
+              echo "✅ **All translations complete**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

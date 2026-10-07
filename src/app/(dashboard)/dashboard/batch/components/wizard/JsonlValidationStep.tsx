@@ -22,30 +22,35 @@ export default function JsonlValidationStep({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const r = validateJsonl(jsonl, { endpoint });
-      setResult(r);
-      onResult(r);
-    } catch (err) {
-      console.error("[JsonlValidationStep] validate error:", err);
-      // Provide a minimal failed result on exception
-      const errResult: ValidationResult = {
-        ok: false,
-        totalLines: 0,
-        sampledLines: 0,
-        uniqueCustomIds: 0,
-        duplicateCustomIds: [],
-        errors: [{ lineNumber: 0, reason: t("wizardValidationParseFailed") }],
-        preview: [],
-        byteSize: 0,
-      };
-      setResult(errResult);
-      onResult(errResult);
-    } finally {
-      setLoading(false);
-    }
+    // Deferred to a microtask: the compiler bars synchronous setState in an
+    // effect body; validation still lands before the next paint batch.
+    void (async () => {
+      await Promise.resolve();
+      setLoading(true);
+      setResult(null);
+      try {
+        const r = validateJsonl(jsonl, { endpoint });
+        setResult(r);
+        onResult(r);
+      } catch (err) {
+        console.error("[JsonlValidationStep] validate error:", err);
+        // Provide a minimal failed result on exception
+        const errResult: ValidationResult = {
+          ok: false,
+          totalLines: 0,
+          sampledLines: 0,
+          uniqueCustomIds: 0,
+          duplicateCustomIds: [],
+          errors: [{ lineNumber: 0, reason: t("wizardValidationParseFailed") }],
+          preview: [],
+          byteSize: 0,
+        };
+        setResult(errResult);
+        onResult(errResult);
+      } finally {
+        setLoading(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonl, endpoint]);
 

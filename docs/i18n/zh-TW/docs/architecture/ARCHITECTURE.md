@@ -1,4 +1,9 @@
+# OmniRoute Architecture (中文 (繁體))
+
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md)
+
 ---
+
 title: "OmniRoute 架構"
 version: 3.8.40
 lastUpdated: 2026-06-28
@@ -6,7 +11,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute 架構
 
-🌐 **語言：** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md) | 🇭🇰 [中文 (繁體)](../i18n/zh-TW/docs/architecture/ARCHITECTURE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md)
 
 _最後更新：2026-06-28_
 
@@ -322,7 +327,7 @@ flowchart LR
 OAuth 提供者模組（`src/lib/oauth/providers/` 下的 22 個個別檔案）：
 
 - 註冊表索引：`src/lib/oauth/providers/index.ts`
-- 個別提供者：`agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `qoder.ts`, `raycast.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- 個別提供者：`agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
 - 薄包裝層：`src/lib/oauth/providers.ts` — 從個別模組重新匯出
 
 ## 5) 嵌入式服務（v3.8.4）
@@ -466,8 +471,6 @@ FSM 轉換結果饋入自動組合的評分，對背景/自動化任務偏向較
 - Claude Code CCH（相容性通道握手）：`open-sse/services/claudeCodeCCH.ts`，加上 `claudeCodeCompatible.ts`、`claudeCodeConstraints.ts`、`claudeCodeExtraRemap.ts`、`claudeCodeToolRemapper.ts`
 - Claude Code 指紋塑造：`open-sse/services/claudeCodeFingerprint.ts`
 - Claude Code 混淆：`open-sse/services/claudeCodeObfuscation.ts`
-- ChatGPT TLS 客戶端：`open-sse/services/chatgptTlsClient.ts`（curl-impersonate 風格的 ChatGPT-Web 工作階段）
-- ChatGPT 圖片快取：`open-sse/services/chatgptImageCache.ts`
 
 完整的隱匿手冊與操作指南，請參閱
 [`docs/security/STEALTH_GUIDE.md`](../security/STEALTH_GUIDE.md)。
@@ -873,103 +876,103 @@ flowchart LR
 
 每個提供者都有一個專門的執行器，繼承自 `BaseExecutor`（位於 `open-sse/executors/base.ts`），提供 URL 建置、標頭建構、指數退避重試、憑證刷新鉤子與 `execute()` 協調方法。
 
-| 執行器                   | 提供者                                                                                                                                                   | 特殊處理                                                   |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `DefaultExecutor`        | OpenAI、Claude、Gemini、Qwen、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA 等 | 每個提供者的動態 URL/標頭設定                              |
-| `AntigravityExecutor`    | Google Antigravity                                                                                                                                       | 自訂專案/工作階段 ID、Retry-After 解析、429 混淆           |
-| `AzureOpenAIExecutor`    | Azure OpenAI                                                                                                                                             | 基於部署的路由、api-version 查詢強制                       |
-| `BlackboxWebExecutor`    | Blackbox AI（網頁模式）                                                                                                                                  | 含 TLS 指紋模擬的網頁工作階段反向                          |
-| `ChatGPTWebExecutor`     | ChatGPT 網頁                                                                                                                                             | TLS 客戶端 + 工作階段 Cookie 管理（`chatgptTlsClient.ts`） |
-| `ClaudeIdentityExecutor` | Claude.ai（CCH 路徑）                                                                                                                                    | 約束 + 工具重新對應管線、指紋塑造                          |
-| `CliProxyApiExecutor`    | CLIProxyAPI 相容提供者                                                                                                                                   | 自訂驗證與協定處理                                         |
-| `CloudflareAiExecutor`   | Cloudflare Workers AI                                                                                                                                    | 帳戶 ID 注入、基於 Neurons 的用量追蹤                      |
-| `CodexExecutor`          | OpenAI Codex                                                                                                                                             | 注入系統指令、強制推理努力                                 |
-| `CommandCodeExecutor`    | Command Code                                                                                                                                             | OAuth + 每個工作階段的標頭輪換                             |
-| `CursorExecutor`         | Cursor IDE                                                                                                                                               | ConnectRPC 協定、Protobuf 編碼、透過 checksum 的請求簽署   |
-| `DevinCliExecutor`       | Devin CLI                                                                                                                                                | 透過雲端代理模組的 Devin 任務生命週期橋接                  |
-| `GithubExecutor`         | GitHub Copilot                                                                                                                                           | Copilot 令牌刷新、模擬 VSCode 標頭                         |
-| `GitlabExecutor`         | GitLab Duo                                                                                                                                               | GitLab OAuth + 專案範圍路由                                |
-| `GlmExecutor`            | Z.AI GLM（含 `glmt` 預設）                                                                                                                               | 思考預算感知、GLMT 預設常數                                |
-| `GrokWebExecutor`        | xAI Grok 網頁                                                                                                                                            | 網頁工作階段反向、模式選擇（think/standard）               |
-| `KieExecutor`            | KIE                                                                                                                                                      | 自訂令牌簽發，含輪換的工作階段錨點                         |
-| `KiroExecutor`           | AWS CodeWhisperer/Kiro                                                                                                                                   | AWS EventStream 二進位格式 → SSE 轉換                      |
-| `MuseSparkWebExecutor`   | Muse Spark（網頁）                                                                                                                                       | 含圖片訊息橋接的網頁工作階段反向                           |
-| `NlpCloudExecutor`       | NLP Cloud                                                                                                                                                | 提供者特定的請求主體形式                                   |
-| `OpenCodeExecutor`       | OpenCode                                                                                                                                                 | AI SDK 相容提供者設定                                      |
-| `PerplexityWebExecutor`  | Perplexity 網頁                                                                                                                                          | 用於聊天延續的網頁工作階段反向                             |
-| `PetalsExecutor`         | Petals 分散式推理                                                                                                                                        | 去中心化群組路由                                           |
-| `PollinationsExecutor`   | Pollinations AI                                                                                                                                          | 無需 API 金鑰、速率限制請求                                |
-| `QoderExecutor`          | Qoder AI                                                                                                                                                 | PAT 與 OAuth 支援、多模型免費方案                          |
-| `VertexExecutor`         | Google Vertex AI                                                                                                                                         | 服務帳戶驗證、基於區域的端點                               |
-| `DevinDesktopExecutor` | Devin Desktop | 匯入的 API 金鑰 + Connect-protobuf 聊天串流 |
+| 執行器                    | 提供者                                                                                                                                                   | 特殊處理                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI、Claude、Gemini、Qwen、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA 等 | 每個提供者的動態 URL/標頭設定                            |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                       | 自訂專案/工作階段 ID、Retry-After 解析、429 混淆         |
+| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                             | 基於部署的路由、api-version 查詢強制                     |
+| `BlackboxWebExecutor`     | Blackbox AI（網頁模式）                                                                                                                                  | 含 TLS 指紋模擬的網頁工作階段反向                        |
+| `ClaudeIdentityExecutor`  | Claude.ai（CCH 路徑）                                                                                                                                    | 約束 + 工具重新對應管線、指紋塑造                        |
+| `CliProxyApiExecutor`     | CLIProxyAPI 相容提供者                                                                                                                                   | 自訂驗證與協定處理                                       |
+| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                    | 帳戶 ID 注入、基於 Neurons 的用量追蹤                    |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                             | 注入系統指令、強制推理努力                               |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                      | 瀏覽器工作階段 Responses API 橋接與執行緒/輪次固定       |
+| `CommandCodeExecutor`     | Command Code                                                                                                                                             | OAuth + 每個工作階段的標頭輪換                           |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                               | ConnectRPC 協定、Protobuf 編碼、透過 checksum 的請求簽署 |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                | 透過雲端代理模組的 Devin 任務生命週期橋接                |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                           | Copilot 令牌刷新、模擬 VSCode 標頭                       |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                               | GitLab OAuth + 專案範圍路由                              |
+| `GlmExecutor`             | Z.AI GLM（含 `glmt` 預設）                                                                                                                               | 思考預算感知、GLMT 預設常數                              |
+| `GrokWebExecutor`         | xAI Grok 網頁                                                                                                                                            | 網頁工作階段反向、模式選擇（think/standard）             |
+| `KieExecutor`             | KIE                                                                                                                                                      | 自訂令牌簽發，含輪換的工作階段錨點                       |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                   | AWS EventStream 二進位格式 → SSE 轉換                    |
+| `MuseSparkWebExecutor`    | Muse Spark（網頁）                                                                                                                                       | 含圖片訊息橋接的網頁工作階段反向                         |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                | 提供者特定的請求主體形式                                 |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                                 | AI SDK 相容提供者設定                                    |
+| `PerplexityWebExecutor`   | Perplexity 網頁                                                                                                                                          | 用於聊天延續的網頁工作階段反向                           |
+| `PetalsExecutor`          | Petals 分散式推理                                                                                                                                        | 去中心化群組路由                                         |
+| `PollinationsExecutor`    | Pollinations AI                                                                                                                                          | 無需 API 金鑰、速率限制請求                              |
+| `QoderExecutor`           | Qoder AI                                                                                                                                                 | PAT 與 OAuth 支援、多模型免費方案                        |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                         | 服務帳戶驗證、基於區域的端點                             |
+| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                            | 匯入的 API 金鑰 + Connect-protobuf 聊天串流              |
 
 所有其他提供者（包括自訂相容節點）使用 `DefaultExecutor`。
 
 ## 提供者相容性矩陣
 
-> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 237 個已註冊提供者的代表性樣本。
+> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 351 個已註冊提供者的代表性樣本。
 > 完整且持續更新的清單，請參閱
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)（自動產生）或
 > `src/shared/constants/providers.ts`（載入時經 Zod 驗證）中的權威來源。
 
-| 提供者             | 格式             | 驗證                  | 串流             | 非串流 | 令牌刷新 | 用量 API         |
-| ------------------ | ---------------- | --------------------- | ---------------- | ------ | -------- | ---------------- |
-| Claude             | claude           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ 僅管理員      |
-| Gemini             | gemini           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
-| Antigravity        | antigravity      | OAuth                 | ✅               | ✅     | ✅       | ✅ 完整配額 API  |
-| OpenAI             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Codex              | openai-responses | OAuth                 | ✅ 強制          | ❌     | ✅       | ✅ 速率限制      |
-| GitHub Copilot     | openai           | OAuth + Copilot 令牌  | ✅               | ✅     | ✅       | ✅ 配額快照      |
-| Cursor             | cursor           | 自訂 checksum         | ✅               | ✅     | ❌       | ❌               |
-| Kiro               | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌     | ✅       | ✅ 用量限制      |
-| Qoder              | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| Kilo Code          | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| Cline              | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| Kimi Coding        | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| OpenRouter         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| GLM/Kimi/MiniMax   | claude           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| DeepSeek           | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Groq               | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| xAI（Grok）        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Mistral            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Perplexity         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Together AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Fireworks AI       | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cerebras           | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cohere             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| NVIDIA NIM         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cloudflare AI      | openai           | API 令牌 + 帳戶 ID    | ✅               | ✅     | ❌       | ❌               |
-| Pollinations       | openai           | 無（無需金鑰）        | ✅               | ✅     | ❌       | ❌               |
-| Scaleway AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| LongCat            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Ollama Cloud       | openai           | API 金鑰（選用）      | ✅               | ✅     | ❌       | ❌               |
-| HuggingFace        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Nebius             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| SiliconFlow        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Hyperbolic         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Vertex AI          | gemini           | 服務帳戶              | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
-| Command Code       | openai           | OAuth                 | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| Z.AI / GLM         | openai           | API 金鑰 / OAuth      | ✅               | ✅     | ❌       | ❌               |
-| GLMT（預設）       | claude           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 每次請求      |
-| Kimi Coding        | openai           | OAuth / API 金鑰      | ✅               | ✅     | ✅       | ❌               |
-| KIE                | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Devin Desktop | openai | 匯入的 API 金鑰 | ✅ (Connect→SSE) | ✅ | ❌ | ⚠️ 每次請求 |
-| GitLab Duo         | openai           | OAuth（GitLab）       | ✅               | ✅     | ✅       | ❌               |
-| Devin CLI | openai | 本機 CLI 登入 | ✅ | ✅ | ❌ | ✅ 任務 API |
-| Codex Cloud        | openai-responses | OAuth                 | ✅               | ❌     | ✅       | ✅ 速率限制      |
-| Jules              | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
-| AgentRouter        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| ChatGPT-Web        | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
-| Grok-Web           | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| Perplexity-Web     | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| BlackBox-Web       | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
-| Muse-Spark-Web     | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| ModelScope         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 配額政策      |
-| BazaarLink         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Petals             | openai           | 無                    | ✅               | ✅     | ❌       | ❌               |
-| Qoder              | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| OpenCode（Go/Zen） | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| CLIProxyAPI        | openai           | 自訂                  | ✅               | ✅     | ❌       | ❌               |
+| 提供者              | 格式             | 驗證                  | 串流             | 非串流 | 令牌刷新 | 用量 API         |
+| ------------------- | ---------------- | --------------------- | ---------------- | ------ | -------- | ---------------- |
+| Claude              | claude           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ 僅管理員      |
+| Gemini              | gemini           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
+| Antigravity         | antigravity      | OAuth                 | ✅               | ✅     | ✅       | ✅ 完整配額 API  |
+| OpenAI              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Codex               | openai-responses | OAuth                 | ✅ 強制          | ❌     | ✅       | ✅ 速率限制      |
+| ChatGPT Web (Codex) | openai-responses | 瀏覽器工作階段        | ✅ 強制          | ❌     | ❌       | ❌               |
+| GitHub Copilot      | openai           | OAuth + Copilot 令牌  | ✅               | ✅     | ✅       | ✅ 配額快照      |
+| Cursor              | cursor           | 自訂 checksum         | ✅               | ✅     | ❌       | ❌               |
+| Kiro                | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌     | ✅       | ✅ 用量限制      |
+| Qoder               | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| Kilo Code           | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| Cline               | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| Kimi Coding         | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| OpenRouter          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| GLM/Kimi/MiniMax    | claude           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| DeepSeek            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Groq                | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| xAI（Grok）         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Mistral             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Perplexity          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Together AI         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Fireworks AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cerebras            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cohere              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| NVIDIA NIM          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cloudflare AI       | openai           | API 令牌 + 帳戶 ID    | ✅               | ✅     | ❌       | ❌               |
+| Pollinations        | openai           | 無（無需金鑰）        | ✅               | ✅     | ❌       | ❌               |
+| Scaleway AI         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| LongCat             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Ollama Cloud        | openai           | API 金鑰（選用）      | ✅               | ✅     | ❌       | ❌               |
+| HuggingFace         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Nebius              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| SiliconFlow         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Hyperbolic          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Vertex AI           | gemini           | 服務帳戶              | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
+| Command Code        | openai           | OAuth                 | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| Z.AI / GLM          | openai           | API 金鑰 / OAuth      | ✅               | ✅     | ❌       | ❌               |
+| GLMT（預設）        | claude           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 每次請求      |
+| Kimi Coding         | openai           | OAuth / API 金鑰      | ✅               | ✅     | ✅       | ❌               |
+| KIE                 | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Devin Desktop       | openai           | 匯入的 API 金鑰       | ✅ (Connect→SSE) | ✅     | ❌       | ⚠️ 每次請求      |
+| GitLab Duo          | openai           | OAuth（GitLab）       | ✅               | ✅     | ✅       | ❌               |
+| Devin CLI           | openai           | 本機 CLI 登入         | ✅               | ✅     | ❌       | ✅ 任務 API      |
+| Codex Cloud         | openai-responses | OAuth                 | ✅               | ❌     | ✅       | ✅ 速率限制      |
+| Jules               | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
+| AgentRouter         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Grok-Web            | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| Perplexity-Web      | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| BlackBox-Web        | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
+| Muse-Spark-Web      | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| ModelScope          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 配額政策      |
+| BazaarLink          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Petals              | openai           | 無                    | ✅               | ✅     | ❌       | ❌               |
+| Qoder               | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| OpenCode（Go/Zen）  | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| CLIProxyAPI         | openai           | 自訂                  | ✅               | ✅     | ❌       | ❌               |
 
 ## 格式轉換覆蓋範圍
 

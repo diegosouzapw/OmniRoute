@@ -149,7 +149,7 @@ export async function computeAnalytics(
 
   // Pre-fetch pricing for all unique (provider, model) pairs — one DB round-trip
   // per unique pair instead of one per entry, then compute costs synchronously.
-  const { getPricingForModel } = await import("@/lib/localDb");
+  const { getPricingForModel } = await import("@/lib/db/settings");
   const pricingCache = new Map<string, Record<string, unknown> | null>();
   const uniquePairs = new Set(entries.map((e) => `${e.provider}|||${e.model}`));
   await Promise.all(

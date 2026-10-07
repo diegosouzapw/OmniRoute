@@ -128,7 +128,7 @@ test("getPair returns curr and prev buckets", () => {
   const now = Date.now();
 
   consumptionDb.incrementBucket(key, dim, 100, 70, now); // current bucket
-  consumptionDb.incrementBucket(key, dim, 99, 30, now);  // previous bucket
+  consumptionDb.incrementBucket(key, dim, 99, 30, now); // previous bucket
 
   const { curr, prev } = consumptionDb.getPair(key, dim, 100);
   assert.equal(curr, 70);
@@ -157,8 +157,8 @@ test("gcOlderThan deletes only rows with updated_at strictly less than threshold
 
   // Insert 3 rows with different timestamps
   consumptionDb.incrementBucket("key-gc1", "pool-gc:tokens:daily", 1, 1, now - 100); // older → deleted
-  consumptionDb.incrementBucket("key-gc2", "pool-gc:tokens:daily", 2, 1, now - 1);   // older → deleted
-  consumptionDb.incrementBucket("key-gc3", "pool-gc:tokens:daily", 3, 1, now);       // at threshold → kept
+  consumptionDb.incrementBucket("key-gc2", "pool-gc:tokens:daily", 2, 1, now - 1); // older → deleted
+  consumptionDb.incrementBucket("key-gc3", "pool-gc:tokens:daily", 3, 1, now); // at threshold → kept
   consumptionDb.incrementBucket("key-gc4", "pool-gc:tokens:daily", 4, 1, now + 100); // newer → kept
 
   const deleted = consumptionDb.gcOlderThan(threshold);

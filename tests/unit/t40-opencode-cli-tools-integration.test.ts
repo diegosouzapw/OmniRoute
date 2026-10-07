@@ -172,27 +172,21 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
   });
 });
 
-test("T40: OpenCode tool card references theme-aware brand assets", () => {
+test("T40: OpenCode tool card uses the internal generic asset", () => {
   const opencode = CLI_TOOLS.opencode;
   assert.equal(opencode.image, undefined);
-  assert.equal(opencode.imageLight, "/providers/opencode-light.svg");
-  assert.equal(opencode.imageDark, "/providers/opencode-dark.svg");
+  assert.equal(opencode.imageLight, "/providers/cli-generic.svg");
+  assert.equal(opencode.imageDark, "/providers/cli-generic.svg");
 });
 
-test("T40: OpenCode light/dark provider assets are valid SVG files", async () => {
-  const light = await fs.readFile(
-    path.join(process.cwd(), "public/providers/opencode-light.svg"),
-    "utf-8"
-  );
-  const dark = await fs.readFile(
-    path.join(process.cwd(), "public/providers/opencode-dark.svg"),
+test("T40: OpenCode generic provider asset is a valid SVG file", async () => {
+  const generic = await fs.readFile(
+    path.join(process.cwd(), "public/providers/cli-generic.svg"),
     "utf-8"
   );
 
-  assert.match(light, /^<svg[\s>]/);
-  assert.match(dark, /^<svg[\s>]/);
-  assert.doesNotMatch(light, /<html/i);
-  assert.doesNotMatch(dark, /<html/i);
+  assert.match(generic, /^<svg[\s>]/);
+  assert.doesNotMatch(generic, /<html/i);
 });
 
 test("T40: Windsurf was removed from CLI_TOOLS in plan 14 D17 (MITM backlog plan 11)", () => {

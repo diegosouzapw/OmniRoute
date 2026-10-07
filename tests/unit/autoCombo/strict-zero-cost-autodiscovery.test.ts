@@ -35,7 +35,7 @@ function safeState(): FreeAccessState {
 // `findBudgetEntry(candidate, catalog)`. These provider ids are otherwise
 // arbitrary — the fixtures below prove the behavior is driven entirely by
 // catalog membership, not by any hardcoded provider/model name.
-const KEYLESS_PROVIDER = "felo-web";
+const KEYLESS_PROVIDER = "synthetic-keyless-provider";
 const QUOTA_PROVIDER = "groq";
 const REAL_CONN = "conn-1";
 

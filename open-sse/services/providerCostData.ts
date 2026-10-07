@@ -1,4 +1,5 @@
-import type { TierAssignment } from "./tierTypes";
+import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
+import { isFreeModel } from "@/shared/utils/freeModels";
 import type { TierConfig } from "./tierTypes";
 
 export interface ModelPricing {
@@ -6,17 +7,22 @@ export interface ModelPricing {
   outputCostPer1M: number;
   isFree: boolean;
   freeQuotaLimit?: number;
+  // True only when the value is a conservative guess (final fallback path).
+  // Absent on legacy objects; explicit false on every catalog-sourced path.
+  isEstimated?: boolean;
 }
 
 export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "gpt-4o": { inputCostPer1M: 2.5, outputCostPer1M: 10.0, isFree: false },
   "gpt-4o-mini": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
+  "claude-fable-5-1": { inputCostPer1M: 10.0, outputCostPer1M: 50.0, isFree: false },
   "claude-fable-5": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-5": { inputCostPer1M: 5.0, outputCostPer1M: 25.0, isFree: false },
   "claude-opus-4-8": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-4-7": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-sonnet-4-6": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
-  "claude-sonnet-5": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
+  "claude-sonnet-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
+  "claude-sonnet-5-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
   "claude-haiku-4-5": { inputCostPer1M: 0.8, outputCostPer1M: 4.0, isFree: false },
   "gemini-2.5-flash": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
   "gemini-2.5-pro": { inputCostPer1M: 1.25, outputCostPer1M: 5.0, isFree: false },
@@ -37,15 +43,35 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 export function getModelPricing(provider: string, model: string): ModelPricing {
-  const directKey = model.toLowerCase();
-  if (KNOWN_MODEL_PRICING[directKey]) {
-    return KNOWN_MODEL_PRICING[directKey];
+  const normalized = String(model || "")
+    .split("/")
+    .pop()!
+    .toLowerCase();
+  const providerHit = KNOWN_MODEL_PRICING[`${provider}/${normalized}`.toLowerCase()];
+  if (providerHit) return { ...providerHit, isEstimated: false };
+  const defaultPricing = getDefaultPricingForModel(provider, model);
+  if (defaultPricing) {
+    const inputCostPer1M = Number(defaultPricing.input);
+    const outputCostPer1M = Number(defaultPricing.output);
+    if (Number.isFinite(inputCostPer1M) && Number.isFinite(outputCostPer1M)) {
+      return {
+        inputCostPer1M,
+        outputCostPer1M,
+        isFree: inputCostPer1M === 0 && outputCostPer1M === 0,
+        isEstimated: false,
+      };
+    }
   }
-  const providerKey = `${provider}/${model}`.toLowerCase();
-  if (KNOWN_MODEL_PRICING[providerKey]) {
-    return KNOWN_MODEL_PRICING[providerKey];
-  }
-  return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false };
+  const genericHit = KNOWN_MODEL_PRICING[normalized];
+  if (genericHit) return { ...genericHit, isEstimated: false };
+  if (isFreeModel(provider, { id: normalized }))
+    return { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true, isEstimated: false };
+  return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false, isEstimated: true };
+}
+
+/** Input cost per 1M tokens a virtual auto-combo candidate is scored at. */
+export function resolveVirtualCost(providerId: string, modelId: string): number {
+  return getModelPricing(providerId, modelId).inputCostPer1M;
 }
 
 export function isExplicitlyFree(provider: string, config: TierConfig): boolean {

@@ -227,9 +227,9 @@ export default function RawJsonPanel({
   const tgtMeta = FORMAT_META[targetFormat] ?? FORMAT_META["openai"];
 
   // ── i18n safe getter ───────────────────────────────────────────────────────
-  const tr = (key: string, fallback: string): string => {
+  const tr = (key: string, fallback: string, values?: Record<string, string>): string => {
     try {
-      const v = t(key as Parameters<typeof t>[0]);
+      const v = t(key as Parameters<typeof t>[0], values as never);
       if (v === key || v === `translator.${key}`) return fallback;
       return v as string;
     } catch {
@@ -371,17 +371,27 @@ export default function RawJsonPanel({
                 </span>
                 {translationPath === "hub-and-spoke" ? (
                   <span>
-                    {tr("translationPathHubSpoke", "")
-                      .replace("{source}", FORMAT_META[sourceFormat]?.label ?? sourceFormat)
-                      .replace("{target}", FORMAT_META[targetFormat]?.label ?? targetFormat) ||
-                      `${FORMAT_META[sourceFormat]?.label ?? sourceFormat} → OpenAI → ${FORMAT_META[targetFormat]?.label ?? targetFormat}`}
+                    {(() => {
+                      const source = FORMAT_META[sourceFormat]?.label ?? sourceFormat;
+                      const target = FORMAT_META[targetFormat]?.label ?? targetFormat;
+                      return (
+                        tr("translationPathHubSpoke", "", { source, target })
+                          .replace("{source}", source)
+                          .replace("{target}", target) || `${source} → OpenAI → ${target}`
+                      );
+                    })()}
                   </span>
                 ) : translationPath === "direct" ? (
                   <span>
-                    {tr("translationPathDirect", "")
-                      .replace("{source}", FORMAT_META[sourceFormat]?.label ?? sourceFormat)
-                      .replace("{target}", FORMAT_META[targetFormat]?.label ?? targetFormat) ||
-                      `${FORMAT_META[sourceFormat]?.label ?? sourceFormat} → ${FORMAT_META[targetFormat]?.label ?? targetFormat}`}
+                    {(() => {
+                      const source = FORMAT_META[sourceFormat]?.label ?? sourceFormat;
+                      const target = FORMAT_META[targetFormat]?.label ?? targetFormat;
+                      return (
+                        tr("translationPathDirect", "", { source, target })
+                          .replace("{source}", source)
+                          .replace("{target}", target) || `${source} → ${target}`
+                      );
+                    })()}
                   </span>
                 ) : (
                   <span>{tr("translationPathPassthrough", "Passthrough (same format)")}</span>

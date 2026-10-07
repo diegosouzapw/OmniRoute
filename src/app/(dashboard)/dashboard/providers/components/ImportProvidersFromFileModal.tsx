@@ -4,6 +4,12 @@ import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/shared/components";
 import type { ParsedProviderImportEntry, ProviderImportParseError } from "./parseProviderImportFile";
 import { useImportProvidersFromFile } from "./useImportProvidersFromFile";
+import {
+  downloadProviderImportCsvTemplate,
+  formatImportErrorLine,
+  visibleImportErrors,
+  type ImportResult,
+} from "./providerImportFeedback";
 
 interface ImportProvidersFromFileModalProps {
   isOpen: boolean;
@@ -122,6 +128,30 @@ function FilePickerRow({ fileInputRef, fileName, onFile, t }: FilePickerRowProps
   );
 }
 
+function ImportResultPanel({ result, t }: { result: ImportResult; t: Translator }) {
+  const { shown, extra } = visibleImportErrors(result.errors);
+  const failed = result.failed > 0 || shown.length > 0;
+  return (
+    <div
+      className={`px-3 py-2 rounded border text-sm ${
+        failed
+          ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      }`}
+    >
+      {t("importFromFileResult", { success: result.success, failed: result.failed })}
+      {shown.length > 0 && (
+        <ul className="mt-2 list-disc pl-5 text-xs text-text-muted font-normal space-y-0.5">
+          {shown.map((err, i) => (
+            <li key={i}>{formatImportErrorLine(err)}</li>
+          ))}
+          {extra > 0 && <li>{t("importFromFileMoreErrors", { count: extra })}</li>}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /**
  * Wizard step: upload a CSV/JSON file listing MULTIPLE, possibly different providers,
  * pick which parsed rows to actually import, then submit them in one batch (#6836).
@@ -141,18 +171,18 @@ export function ImportProvidersFromFileModal({
     <Modal isOpen={isOpen} onClose={() => s.handleClose(onClose)} title={t("importFromFileTitle")} maxWidth="xl">
       <div className="flex flex-col gap-4">
         <p className="text-sm text-text-muted">{t("importFromFileDescription")}</p>
+        <p className="text-xs text-text-muted">{t("importFromFileSchemaHint")}</p>
 
         <FilePickerRow fileInputRef={s.fileInputRef} fileName={s.fileName} onFile={s.handleFile} t={t} />
         <ParseErrorsList errors={s.errors} t={t} />
         <EntriesTable entries={s.entries} selected={s.selected} onToggleRow={s.toggleRow} onToggleAll={s.toggleAll} t={t} />
 
-        {s.result && (
-          <div className="px-3 py-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-sm text-emerald-400">
-            {t("importFromFileResult", { success: s.result.success, failed: s.result.failed })}
-          </div>
-        )}
+        {s.result && <ImportResultPanel result={s.result} t={t} />}
 
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+          <Button size="sm" variant="ghost" onClick={downloadProviderImportCsvTemplate}>
+            {t("importFromFileDownloadTemplate")}
+          </Button>
           <Button size="sm" variant="secondary" onClick={() => s.handleClose(onClose)}>
             {t("cancel")}
           </Button>

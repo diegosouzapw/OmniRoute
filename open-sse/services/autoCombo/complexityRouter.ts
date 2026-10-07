@@ -75,11 +75,11 @@ export function classifyRequestComplexity(input: RuleInput): ComplexityClassific
  * failure — fail-open, so scoring stays tier-neutral. Extracted from combo.ts to
  * keep the complexity-routing logic in one module.
  */
-export function buildComplexityRoutingHint(
+export async function buildComplexityRoutingHint(
   modelTargets: Parameters<typeof generateRoutingHints>[0],
   body: { messages?: unknown; tools?: unknown; model?: unknown } | null | undefined,
   log: { info: (tag: string, message: string) => void }
-): RoutingHint | null {
+): Promise<RoutingHint | null> {
   try {
     const ruleInput = {
       messages: Array.isArray(body?.messages)
@@ -92,7 +92,7 @@ export function buildComplexityRoutingHint(
         : undefined,
       model: typeof body?.model === "string" ? body.model : undefined,
     };
-    const hint = generateRoutingHints(modelTargets, ruleInput);
+    const hint = await generateRoutingHints(modelTargets, ruleInput);
     // Tool-use escalation: floor the recommended tier at "cheap" so scoring
     // favors function-calling-reliable models for agentic requests.
     const classification = classifyRequestComplexity(ruleInput);

@@ -4,6 +4,23 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// Typed views over the raw sqlite rows / payload envelopes this suite inspects —
+// keeps the assertions honest without @typescript-eslint/no-explicit-any (#12146).
+type CallLogRow = {
+  name?: string;
+  cnt?: number;
+  detail_state?: string | null;
+  cache_source?: string | null;
+  has_request_body?: number;
+  has_response_body?: number;
+  has_pipeline_details?: number;
+  artifact_relpath?: string;
+  artifact_size_bytes?: number;
+  error_summary?: string | null;
+};
+type PayloadEnvelope = { body?: Record<string, unknown> };
+type PayloadMap = { providerResponse?: PayloadEnvelope; clientResponse?: PayloadEnvelope };
+
 import { useDecollidedMigrationsDir } from "./helpers/decollidedMigrationsDir.ts";
 
 useDecollidedMigrationsDir();
@@ -133,9 +150,18 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   assert.equal(detail?.comboStepId, "step-openai-a");
   assert.equal(detail?.comboExecutionKey, "combo-a:0:step-openai-a");
   assert.equal(detail?.pipelinePayloads?.clientRawRequest?.body?.raw, true);
-  assert.equal((detail?.pipelinePayloads?.providerRequest as any).body?.translated, true);
-  assert.equal((detail?.pipelinePayloads as any).providerResponse?.body?.upstream, true);
-  assert.equal((detail?.pipelinePayloads as any).clientResponse?.body?.final, true);
+  assert.equal(
+    (detail?.pipelinePayloads?.providerRequest as PayloadEnvelope | undefined)?.body?.translated,
+    true
+  );
+  assert.equal(
+    (detail?.pipelinePayloads as PayloadMap | undefined)?.providerResponse?.body?.upstream,
+    true
+  );
+  assert.equal(
+    (detail?.pipelinePayloads as PayloadMap | undefined)?.clientResponse?.body?.final,
+    true
+  );
   assert.match(
     detail?.artifactRelPath || "",
     /^2026-03-30\/2026-03-30T12-34-56\.789Z_req_artifact_1\.json$/
@@ -145,7 +171,7 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   const columns = db
     .prepare("SELECT name FROM pragma_table_info('call_logs') ORDER BY cid")
     .all()
-    .map((row) => (row as any).name);
+    .map((row) => (row as CallLogRow).name);
   assert.equal(columns.includes("request_body"), false);
   assert.equal(columns.includes("response_body"), false);
   assert.equal(columns.includes("error"), false);
@@ -158,12 +184,12 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
     `
     )
     .get(logId);
-  (assert as any).equal((summaryRow as any).detail_state, "ready");
-  assert.equal((summaryRow as any).cache_source, "semantic");
-  assert.equal((summaryRow as any).has_request_body, 1);
-  assert.equal((summaryRow as any).has_response_body, 1);
-  assert.equal((summaryRow as any).has_pipeline_details, 1);
-  assert.equal(typeof (summaryRow as any).artifact_relpath, "string");
+  assert.equal((summaryRow as CallLogRow).detail_state, "ready");
+  assert.equal((summaryRow as CallLogRow).cache_source, "semantic");
+  assert.equal((summaryRow as CallLogRow).has_request_body, 1);
+  assert.equal((summaryRow as CallLogRow).has_response_body, 1);
+  assert.equal((summaryRow as CallLogRow).has_pipeline_details, 1);
+  assert.equal(typeof (summaryRow as CallLogRow).artifact_relpath, "string");
 
   const artifactPath = path.join(TEST_DATA_DIR, "call_logs", detail.artifactRelPath);
   const serializedArtifact = fs.readFileSync(artifactPath, "utf8");
@@ -241,14 +267,18 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
     .getDbInstance()
     .prepare("SELECT artifact_relpath FROM call_logs WHERE id = ?")
     .get("fresh-log");
-  const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", (freshRow as any).artifact_relpath);
+  const freshAbsPath = path.join(
+    TEST_DATA_DIR,
+    "call_logs",
+    (freshRow as CallLogRow).artifact_relpath
+  );
 
   assert.equal(
     (
       core
         .getDbInstance()
         .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
-        .get("expired-log") as any
+        .get("expired-log") as CallLogRow
     ).cnt,
     1
   );
@@ -259,13 +289,20 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
 
   const db = core.getDbInstance();
   assert.equal(
-    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("expired-log") as any)
-      .cnt,
+    (
+      db
+        .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
+        .get("expired-log") as CallLogRow
+    ).cnt,
     0
   );
   assert.equal(fs.existsSync(oldAbsPath), false);
   assert.equal(
-    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log") as any).cnt,
+    (
+      db
+        .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
+        .get("fresh-log") as CallLogRow
+    ).cnt,
     1
   );
   assert.equal(fs.existsSync(freshAbsPath), true);
@@ -424,15 +461,15 @@ test("getCallLogById falls back to legacy inline rows and request_detail_logs", 
   assert.deepEqual(detail?.error, { message: "legacy-error" });
   assert.equal(detail?.pipelinePayloads?.clientRequest?.body?.from, "detail-client");
   assert.equal(
-    (detail?.pipelinePayloads?.providerRequest as any).body?.from,
+    (detail?.pipelinePayloads?.providerRequest as PayloadEnvelope | undefined)?.body?.from,
     "detail-provider-request"
   );
-  (assert as any).equal(
-    (detail?.pipelinePayloads?.providerResponse as any).body?.from,
+  assert.equal(
+    (detail?.pipelinePayloads?.providerResponse as PayloadEnvelope | undefined)?.body?.from,
     "detail-provider-response"
   );
   assert.equal(
-    (detail?.pipelinePayloads?.clientResponse as any).body?.from,
+    (detail?.pipelinePayloads?.clientResponse as PayloadEnvelope | undefined)?.body?.from,
     "detail-client-response"
   );
   assert.equal(detail?.hasPipelineDetails, true);
@@ -461,8 +498,8 @@ test("getCallLogById marks missing artifacts explicitly and clears stale DB poin
   const row = db
     .prepare("SELECT artifact_relpath, detail_state FROM call_logs WHERE id = ?")
     .get("missing-artifact");
-  assert.equal((row as any).artifact_relpath, null);
-  assert.equal((row as any).detail_state, "missing");
+  assert.equal((row as CallLogRow).artifact_relpath, null);
+  assert.equal((row as CallLogRow).detail_state, "missing");
 });
 
 test("saveCallLog keeps large payloads out of SQLite while preserving explicit detail export", async () => {
@@ -491,12 +528,12 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
     `
     )
     .get("artifact-only-large-payload");
-  assert.equal((row as any).detail_state, "ready");
-  assert.equal((row as any).has_request_body, 1);
-  (assert as any).equal(typeof (row as any).artifact_relpath, "string");
-  assert.equal((row as any).error_summary, "upstream unavailable");
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.equal((row as CallLogRow).has_request_body, 1);
+  assert.equal(typeof (row as CallLogRow).artifact_relpath, "string");
+  assert.equal((row as CallLogRow).error_summary, "upstream unavailable");
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.equal(artifact.requestBody.payload.length, requestBody.payload.length);
 
@@ -505,7 +542,10 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
 
   const exported = await callLogs.exportCallLogsSince("2026-03-31T00:00:00.000Z");
   assert.equal(exported.length, 1);
-  assert.equal((exported[0] as any).requestBody.payload.length, requestBody.payload.length);
+  assert.equal(
+    (exported[0] as { requestBody: { payload: string } }).requestBody.payload.length,
+    requestBody.payload.length
+  );
 });
 
 test("saveCallLog truncates oversized call log artifacts for storage", async () => {
@@ -539,10 +579,10 @@ test("saveCallLog truncates oversized call log artifacts for storage", async () 
     `
     )
     .get("truncated-artifact");
-  assert.equal((row as any).detail_state, "ready");
-  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.ok((row as CallLogRow).artifact_size_bytes <= 512 * 1024);
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.deepEqual(artifact.requestBody, { payload: "request" });
   assert.deepEqual(artifact.responseBody, { output: "response" });
@@ -582,10 +622,10 @@ test("saveCallLog omits oversized non-stream pipeline payloads to enforce artifa
     `
     )
     .get("truncated-pipeline-artifact");
-  assert.equal((row as any).detail_state, "ready");
-  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.ok((row as CallLogRow).artifact_size_bytes <= 512 * 1024);
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.deepEqual(artifact.requestBody, { payload: "request" });
   assert.deepEqual(artifact.responseBody, { output: "response" });
@@ -626,10 +666,10 @@ test("saveCallLog honors CALL_LOG_PIPELINE_MAX_SIZE_KB for pipeline artifacts", 
     `
     )
     .get("configured-pipeline-artifact-cap");
-  assert.equal((row as any).detail_state, "ready");
-  assert.ok((row as any).artifact_size_bytes <= 8 * 1024);
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.ok((row as CallLogRow).artifact_size_bytes <= 8 * 1024);
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.deepEqual(artifact.pipeline, {
     error: {
@@ -668,16 +708,69 @@ test("saveCallLog falls back to a compact sentinel when the configured cap is ve
     `
     )
     .get("tiny-pipeline-artifact-cap");
-  assert.equal((row as any).detail_state, "ready");
-  assert.ok((row as any).artifact_size_bytes <= 1024);
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.ok((row as CallLogRow).artifact_size_bytes <= 1024);
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.deepEqual(artifact, {
     schemaVersion: 5,
     _omniroute_truncated: true,
     reason: "call_log_artifact_size_limit_exceeded",
+    error: null,
   });
+});
+
+test("saveCallLog preserves a truncated error in size-limit-fallback artifacts (opencode-go 504 diagnosability)", async () => {
+  // Regression: the minimal size-limit fallback used to replace the error
+  // with "[omitted: call log artifact size limit exceeded]", wiping the only
+  // field that explains WHY the request failed. The error must survive.
+  process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = "1";
+  const hugePayload = "x".repeat(64 * 1024);
+  const upstreamError =
+    "[504]: Fetch timeout after 110000ms on https://opencode.ai/zen/go/v1/chat/completions";
+
+  await callLogs.saveCallLog({
+    id: "tiny-cap-preserves-error",
+    timestamp: "2026-03-31T10:08:30.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 504,
+    model: `openai/${"gpt".repeat(512)}`,
+    provider: "opencode-go",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    error: upstreamError,
+    pipelinePayloads: {
+      providerRequest: { body: hugePayload },
+      providerResponse: { body: hugePayload },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("tiny-cap-preserves-error");
+  assert.equal((row as CallLogRow).detail_state, "ready");
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.equal(
+    artifact.error,
+    upstreamError,
+    "the upstream error must be preserved verbatim in the fallback artifact"
+  );
+  assert.equal(artifact._omniroute_truncated, true);
+  assert.equal(
+    artifact.requestBody,
+    undefined,
+    "oversized bodies must be dropped, but the error must survive"
+  );
 });
 
 test("CALL_LOG_PIPELINE_MAX_SIZE_KB does not cap artifacts without pipeline details", async () => {
@@ -705,10 +798,10 @@ test("CALL_LOG_PIPELINE_MAX_SIZE_KB does not cap artifacts without pipeline deta
     `
     )
     .get("non-pipeline-artifact-ignores-pipeline-cap");
-  assert.equal((row as any).detail_state, "ready");
-  assert.ok((row as any).artifact_size_bytes > 8 * 1024);
+  assert.equal((row as CallLogRow).detail_state, "ready");
+  assert.ok((row as CallLogRow).artifact_size_bytes > 8 * 1024);
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as CallLogRow).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.equal(artifact.requestBody.payload.length, requestBody.payload.length);
 });

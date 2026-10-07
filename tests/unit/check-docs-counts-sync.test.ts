@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   parseProviderTotal,
@@ -19,6 +20,7 @@ const tally = tallyDrift as (
     docKey: string;
     strict: boolean;
     files: string[];
+    validate?: (content: string) => { ok: boolean; detail: string };
   }[],
   getContent: (file: string) => string | null
 ) => { strict: number; soft: number; lines: string[] };
@@ -105,16 +107,20 @@ test("the gate exits 0 against the current (synced) repo state", () => {
 // down to 1.37B, because no gate watched that number.
 import {
   checkFreeTierHeadline,
+  extractGatedClaims,
   extractHeadlineClaims,
 } from "../../scripts/check/check-docs-counts-sync.mjs";
 
 const checkHeadline = checkFreeTierHeadline as (
   content: string,
-  totals: { s: number; m: number; p: number }
+  totals: { s: number; m: number; p: number; g?: number }
 ) => { ok: boolean; detail: string };
 const extractClaims = extractHeadlineClaims as (
   content: string
 ) => { value: number; text: string }[];
+const extractGated = extractGatedClaims as (
+  content: string
+) => { tokens: number; unit: "B" | "M"; text: string }[];
 
 const TOTALS = { s: 1_371_725_000, m: 1_998_225_000, p: 39 };
 
@@ -144,6 +150,45 @@ test("free-tier gate ignores non-headline figures", () => {
 
 test("free-tier gate passes when a file carries no headline at all", () => {
   assert.equal(checkHeadline("no figures here", TOTALS).ok, true);
+});
+
+// --- Eligibility-gated bucket ("+~6M behind regional identity verification") --
+// The gated figure sits next to the headline and is validated with its own anchor,
+// so it can neither drift nor be silently dropped once the catalog reports one.
+const TOTALS_G = { s: 1_503_225_000, m: 2_129_725_000, p: 35, g: 6_000_000 };
+
+test("free-tier gate validates the gated figure that sits next to the headline", () => {
+  const ok =
+    "~1.5B free tokens per month … +~6M behind regional identity verification (ModelScope)";
+  assert.equal(checkHeadline(ok, TOTALS_G).ok, true);
+  const stale = "~1.5B free tokens per month … +~60M behind regional identity verification";
+  assert.equal(checkHeadline(stale, TOTALS_G).ok, false);
+  assert.match(checkHeadline(stale, TOTALS_G).detail, /gated/);
+});
+
+test("free-tier gate rejects a file that carries the headline but omits the gated line", () => {
+  assert.equal(checkHeadline("~1.5B free tokens per month", TOTALS_G).ok, false);
+  // a file with no headline at all is still fine (per-provider tables, changelogs)
+  assert.equal(checkHeadline("no figures here", TOTALS_G).ok, true);
+  // and nothing changes for callers that pass no gated total
+  assert.equal(
+    checkHeadline("~1.5B free tokens per month", { s: TOTALS_G.s, m: TOTALS_G.m, p: 35 }).ok,
+    true
+  );
+});
+
+test("gated claims are read in M or B and need the anchor phrase", () => {
+  assert.deepEqual(extractGated("~6M of unrelated text"), []);
+  assert.deepEqual(extractGated("+~6M behind regional identity verification"), [
+    { tokens: 6_000_000, unit: "M", text: "+~6M" },
+  ]);
+  assert.equal(
+    checkHeadline("~1.5B free tokens per month · ~1.2B behind regional identity verification", {
+      ...TOTALS_G,
+      g: 1_230_000_000,
+    }).ok,
+    true
+  );
 });
 
 // --- Generic numeric-claim gate (engines / MCP tools / scopes / CLI) --------
@@ -279,4 +324,319 @@ test("SVG gate ignores coordinates, sizes and unrelated small counts", () => {
     "<text>100+ providers</text><text>90+ free</text>";
   const r = checkSvg(noise, SVG_EXPECTED);
   assert.equal(r.ok, true, `coordinates/attrs must never register claims: ${r.detail}`);
+});
+
+// --- Auto-Combo scoring factors ------------------------------------------------------
+// The engine was described as 6-, 9-, 12-, 13- and 14-factor across the repo while
+// `DEFAULT_WEIGHTS` declared 15. The count is now read from the source of truth.
+
+import { parseScoringFactors } from "../../scripts/check/check-docs-counts-sync.mjs";
+
+const parseFactors = parseScoringFactors as (sourceText: string) => number;
+
+const WEIGHTS_SOURCE = `
+export const DEFAULT_WEIGHTS: ScoringWeights = {
+  quota: 0.1429,
+  health: 0.1605,
+  // A comment naming a decoy: fake: 0.5
+  cacheAffinity: 0,
+  /* block comment with another decoy: alsoFake: 0.2 */
+  quality: 0.03,
+};
+`;
+
+test("counts every factor DEFAULT_WEIGHTS declares, comments included as noise", () => {
+  assert.equal(parseFactors(WEIGHTS_SOURCE), 4);
+});
+
+test("a zero-weight factor still counts as declared", () => {
+  // `cacheAffinity` and `resetWindowAffinity` sit at 0 but are computed, and
+  // `cacheAffinity` gates prompt-cache dedup outside the score.
+  assert.ok(WEIGHTS_SOURCE.includes("cacheAffinity: 0"));
+  assert.equal(parseFactors(WEIGHTS_SOURCE.replace("cacheAffinity: 0,", "")), 3);
+});
+
+test("returns 0 rather than a wrong number when the source cannot be read", () => {
+  assert.equal(parseFactors(""), 0);
+  assert.equal(parseFactors("export const SOMETHING_ELSE = { a: 1 };"), 0);
+});
+
+test("scoring factor validator flags every stale count the repo carried", () => {
+  const v = makeValidator(15, { what: "scoring factors", pattern: /(\d+)[- ]factors?\b/gi });
+  assert.equal(v("a **15-factor** scoring function").ok, true);
+  assert.equal(v("scores every candidate on **15 factors**").ok, true);
+  assert.equal(v("a doc with no claim at all").ok, true);
+  for (const stale of ["6-factor", "9-factor", "12-factor", "13-factor", "14-factor"]) {
+    assert.equal(v(`the ${stale} scoring engine`).ok, false, `expected ${stale} to be flagged`);
+  }
+});
+
+// --- v3.8.51 hardening: rewritten-claim evasion + version prose ------------------
+// Regression guards for the 2026-08-31 audit: "56 recurring/keyless free-forever"
+// and "105-tool MCP server" dodged the original patterns, "149 versioned SQL
+// migration files" dodged the migrations pattern, and the README footer shipped
+// "v3.8.50" on a 3.8.51 tree with no gate reading it.
+import { makeVersionClaimValidator } from "../../scripts/check/check-docs-counts-sync.mjs";
+
+const makeVersionValidator = makeVersionClaimValidator as (
+  expected: string | null
+) => (content: string) => { ok: boolean; detail: string };
+
+test("free-forever gate catches the rewritten recurring/keyless form", () => {
+  const v = makeValidator(53, {
+    what: "free-forever providers",
+    pattern: /(\d+)(?:\s+recurring(?:\/|\s+or\s+)keyless)?\s+free[- ]forever/gi,
+  });
+  assert.equal(v("53 free forever").ok, true);
+  assert.equal(v("53 recurring/keyless free-forever providers").ok, true);
+  assert.equal(v("56 recurring or keyless free-forever providers").ok, false);
+  assert.equal(v("55 free-forever").ok, false);
+});
+
+test("migrations gate catches the 'versioned SQL migration files' form", () => {
+  const v = makeValidator(167, {
+    what: "migrations",
+    pattern: /(\d+)\+? (?:versioned )?(?:SQL )?migrations?\b/gi,
+  });
+  assert.equal(v("167 versioned SQL migration files").ok, true);
+  assert.equal(v("167 SQL migrations").ok, true);
+  assert.equal(v("149 versioned SQL migration files").ok, false);
+});
+
+test("MCP-tools gate catches the hyphenated N-tool form and skips phase numbers", () => {
+  const v = makeValidator(110, {
+    what: "MCP tools",
+    pattern: /(\d+)[- ]tools?\b/gi,
+    skipBefore: /(tools?|definitions?)\s*\(\s*$|phase\s+$/i,
+    skipAfter: /^\s*\(\d+ CLI/,
+  });
+  assert.equal(v("a 110-tool MCP server").ok, true);
+  assert.equal(v("a 105-tool MCP server").ok, false);
+  assert.equal(v("Phase 2 tool handlers (8 advanced tools)").ok, true);
+});
+
+test("recurring-pools gate skips the positive-budget subset", () => {
+  const v = makeValidator(38, {
+    what: "recurring pools",
+    pattern: /(\d+) (?:documented )?(?:recurring|free-tier) pool(?:s|(?:\s+keys))?\b/gi,
+    skipAfter: /^\s+with a published positive/i,
+  });
+  assert.equal(v("38 recurring pool keys").ok, true);
+  assert.equal(v("20 recurring pools with a published positive monthly budget").ok, true);
+  assert.equal(v("39 recurring pools").ok, false);
+});
+
+test("version gate compares README-footer and llm.txt prose against package.json", () => {
+  const v = makeVersionValidator("3.8.51");
+  assert.equal(v("OmniRoute v3.8.51 · Node ≥22.22.2").ok, true);
+  assert.equal(v("**Current version:** 3.8.51").ok, true);
+  assert.equal(v("OmniRoute v3.8.50 · Node ≥22.22.2").ok, false);
+  assert.equal(v("**Current version:** 3.8.50").ok, false);
+  assert.equal(v("no version here").ok, true);
+  assert.equal(makeVersionValidator(null)("anything").ok, false);
+});
+
+// --- Mode packs ------------------------------------------------------------
+// Two packs (`reliability-first`, `chaos-mode`) shipped without ever reaching
+// the reference table, and two documents still claimed four. A count alone would
+// not have caught the table: it names four packs and says so. So the gate reads
+// the pack NAMES from the module itself and asks the reference document to
+// mention each one.
+import { makeModePackNamesValidator } from "../../scripts/check/check-docs-counts-sync.mjs";
+
+const packNames = makeModePackNamesValidator as (
+  names: string[]
+) => (content: string) => { ok: boolean; detail: string };
+
+test("a document that names every pack passes", () => {
+  const validate = packNames(["ship-fast", "cost-saver"]);
+  assert.equal(validate("We ship ship-fast and cost-saver profiles.").ok, true);
+});
+
+test("a document that forgets a pack fails, and says which one", () => {
+  const validate = packNames(["ship-fast", "chaos-mode"]);
+  const result = validate("We ship the ship-fast profile.");
+  assert.equal(result.ok, false);
+  assert.match(result.detail, /chaos-mode/);
+});
+
+test("a longer name does not satisfy the gate for a shorter one", () => {
+  // `includes` would let "ship-fast-v2" stand in for "ship-fast", so a doc could
+  // pass while naming a pack that does not ship.
+  assert.equal(packNames(["ship-fast"])("only ship-fast-v2 is documented here").ok, false);
+  assert.equal(packNames(["chaos"])("we document chaos-mode only").ok, false);
+});
+
+test("the name gate stays quiet when the source yields nothing", () => {
+  assert.equal(packNames([])("anything at all").ok, true);
+});
+
+// The pack names come from the same tsx subprocess that already reads every other
+// code-derived count, not from a regex over the source text: a reader that parses
+// TypeScript by hand is a gate that can be silently wrong, which is worse than no
+// gate at all.
+test("the module is the source of the names, so the gate cannot misparse it", async () => {
+  const { MODE_PACKS } = await import("../../open-sse/services/autoCombo/modePacks.ts");
+  const names = Object.keys(MODE_PACKS);
+  assert.ok(names.length > 0);
+  const page = names.join(", ");
+  assert.equal(packNames(names)(page).ok, true);
+  assert.equal(packNames(names)(names.slice(1).join(", ")).ok, false);
+});
+
+const MODE_PACK_CLAIM = {
+  what: "mode packs",
+  pattern: /(\d+)\s+(?:curated\s+|pre-defined\s+)?\*{0,2}(?:mode\s+packs?|weight\s+profiles?)\b/gi,
+};
+
+test("a stale mode pack count is rejected, in each spelling the docs use", () => {
+  const v = makeValidator(6, MODE_PACK_CLAIM);
+  assert.equal(v("- **4 mode packs**: coding, fast, cheap, smart").ok, false);
+  assert.equal(v("| modePacks.ts | 4 weight profiles (ship-fast, ...) |").ok, false);
+  assert.equal(v("4 pre-defined weight profiles").ok, false);
+});
+
+test("markdown emphasis does not hide a mode pack count", () => {
+  const v = makeValidator(6, MODE_PACK_CLAIM);
+  assert.equal(v("Backed by 6 curated **mode packs** (ship-fast, ...)").ok, true);
+  assert.equal(v("6 pre-defined weight profiles in `modePacks.ts`").ok, true);
+});
+
+test("a required claim cannot be silenced by rewording it away", () => {
+  // This is the failure mode the gate exists to prevent: reword the sentence past
+  // the pattern and "no claim in this file" used to read as a pass.
+  const optional = makeValidator(6, MODE_PACK_CLAIM);
+  const required = makeValidator(6, { ...MODE_PACK_CLAIM, requireClaim: true });
+  const reworded = "half a dozen curated profiles ship with the engine";
+  assert.equal(optional(reworded).ok, true, "a file that need not state it still passes");
+  assert.equal(required(reworded).ok, false, "the reference document must state it");
+  assert.match(required(reworded).detail, /required to state one/);
+});
+
+// --- Free-tier reference: the two curated facts ----------------------------
+// FREE_TIERS.md is dense with numbers, so these two patterns are deliberately
+// narrow. A loose one would gate a token budget by accident, and a gate that
+// fires on the wrong number gets deleted rather than fixed.
+const HARD_STOP_CLAIM = {
+  what: "hard-stop-guaranteed entries",
+  pattern:
+    /(\d+) entr(?:y|ies) (?:that )?(?:carry|carries) an? independently documented hard stop/gi,
+};
+
+const TRAINING_CLAIM = {
+  what: "training-disclosure entries",
+  pattern: /(\d+) entr(?:y|ies) (?:that )?(?:carry|carries) a (?:prompt-)?training disclosure/gi,
+};
+
+test("the hard-stop claim passes on the real sentence and fails on a stale count", () => {
+  const v = makeValidator(5, HARD_STOP_CLAIM);
+  assert.equal(v("5 entries carry an independently documented hard stop, and").ok, true);
+  assert.equal(v("99 entries carry an independently documented hard stop, and").ok, false);
+});
+
+test("the training claim passes on the real sentence and fails on a stale count", () => {
+  const v = makeValidator(13, TRAINING_CLAIM);
+  assert.equal(v("13 entries carry a prompt-training disclosure.").ok, true);
+  assert.equal(v("13 entries carry a training disclosure.").ok, true);
+  assert.equal(v("4 entries carry a prompt-training disclosure.").ok, false);
+});
+
+test("a reworded or deleted sentence fails, instead of passing as absent", () => {
+  // The gate's real failure mode is not a stale number, it is silence: reword the
+  // sentence past the pattern and "no claim in this file" used to read green.
+  const required = makeValidator(5, { ...HARD_STOP_CLAIM, requireClaim: true });
+  assert.equal(required("5 entries have a provider-documented hard-stop guarantee.").ok, false);
+  assert.equal(required("the page no longer mentions it at all").ok, false);
+  assert.equal(required("5 entries carry an independently documented hard stop.").ok, true);
+
+  const trainingRequired = makeValidator(13, { ...TRAINING_CLAIM, requireClaim: true });
+  assert.equal(trainingRequired("13 entries disclose training use.").ok, false);
+  assert.equal(trainingRequired("13 entries carry a prompt-training disclosure.").ok, true);
+});
+
+test("the live page actually satisfies both required gates", () => {
+  // A unit test on synthetic strings proves the validator; this one proves the
+  // document. Without it, the two could drift apart and both stay green.
+  // The expected counts come from the catalog itself rather than a literal: the
+  // page tracks the live flags, so a hard-coded number goes stale the moment a
+  // batch of rows lands (it did, at 5, when the 39 xKiro rows were added).
+  const catalog = readFileSync(
+    path.resolve(here, "../../open-sse/config/freeModelCatalog.data.ts"),
+    "utf8"
+  );
+  const countFlag = (flag: string): number =>
+    catalog.split("\n").filter((l) => l.includes(`${flag}: true`)).length;
+  const hardStop = countFlag("hardStopGuaranteed");
+  const training = countFlag("trainsOnPrompts");
+  assert.ok(hardStop > 0, "catalog should carry at least one hardStopGuaranteed row");
+  assert.ok(training > 0, "catalog should carry at least one trainsOnPrompts row");
+
+  const page = readFileSync(path.resolve(here, "../../docs/reference/FREE_TIERS.md"), "utf8");
+  assert.equal(makeValidator(hardStop, { ...HARD_STOP_CLAIM, requireClaim: true })(page).ok, true);
+  assert.equal(makeValidator(training, { ...TRAINING_CLAIM, requireClaim: true })(page).ok, true);
+});
+
+test("neither claim fires on the other numbers the page is full of", () => {
+  const page =
+    "446 cataloged free-tier entries across 30 recurring pools, 12.5M tokens/mo, " +
+    "$10 deposit unlock, 24M/mo boost, 800 output tokens, 2026-06-17.";
+  assert.equal(makeValidator(7, HARD_STOP_CLAIM)(page).ok, true);
+  assert.equal(makeValidator(13, TRAINING_CLAIM)(page).ok, true);
+});
+
+function freeTierCheck(freeTierCount: number, manifestFreeTier: number, freeTierReg?: number) {
+  const reg = freeTierReg ?? freeTierCount;
+  return {
+    label: "Manifest free-tier capability count (live code)",
+    actual: manifestFreeTier,
+    docKey: "free-tier capability",
+    strict: true,
+    files: ["scripts/check/check-docs-counts-sync.mjs"],
+    validate: () => ({
+      ok: manifestFreeTier === reg,
+      detail: `manifest ${manifestFreeTier} vs leaf∩registry ${reg} (leaf ${freeTierCount})`,
+    }),
+  };
+}
+
+test("gate flags STRICT when manifest free-tier count differs from leaf∩registry", () => {
+  const r = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(r.strict, 1);
+});
+
+test("gate passes when counts agree", () => {
+  const r = tally([freeTierCheck(5, 5, 5)], () => "live");
+  assert.equal(r.strict, 0);
+});
+
+test("gate passes on the arcee-ai shape: leaf=5, reg=4, manifest=4 (catalogue-only leaf)", () => {
+  // arcee-ai is in FREE_TIER_PROVIDER_SET (leaf) but absent from REGISTRY, so the
+  // prod gate compares the manifest against the intersection (reg), not the raw leaf.
+  const r = tally([freeTierCheck(5, 4, 4)], () => "live");
+  assert.equal(r.strict, 0);
+  // ...while the same manifest against the raw leaf (reg=leaf=5) must stay red.
+  const stale = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(stale.strict, 1);
+});
+
+test("gate skips when readCodeFacts fails (actual 0 fallback)", () => {
+  const r = tally(
+    [
+      {
+        label: "Code-derived counts",
+        actual: 0,
+        docKey: "code facts",
+        strict: false,
+        files: [] as string[],
+      },
+    ],
+    () => "live"
+  );
+  assert.equal(r.strict, 0);
+});
+
+test("buildChecks contains a free-tier gate", async () => {
+  const { buildChecks } = await import("../../scripts/check/check-docs-counts-sync.mjs");
+  const checks = (buildChecks as () => { label: string }[])();
+  assert.ok(checks.some((c) => c.label.includes("free-tier")));
 });

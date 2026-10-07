@@ -166,7 +166,15 @@ test("saveBudgetResetLog and loadBudgetResetLogs", async () => {
 test("deleteBudget removes budget and reset logs", async () => {
   await resetStorage();
   ds.saveBudget("del-key", { dailyLimitUsd: 10 });
-  ds.saveBudgetResetLog({ apiKeyId: "del-key", resetInterval: "daily", previousSpend: 3, resetAt: 1, nextResetAt: 2, periodStart: 0, periodEnd: 1 });
+  ds.saveBudgetResetLog({
+    apiKeyId: "del-key",
+    resetInterval: "daily",
+    previousSpend: 3,
+    resetAt: 1,
+    nextResetAt: 2,
+    periodStart: 0,
+    periodEnd: 1,
+  });
   ds.deleteBudget("del-key");
   assert.equal(ds.loadBudget("del-key"), null);
   assert.deepEqual(ds.loadBudgetResetLogs("del-key"), []);

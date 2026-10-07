@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Card, Toggle } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
@@ -22,6 +22,66 @@ const DEFAULTS: ModelLockoutSettings = {
   maxBackoffSteps: 10,
   useExponentialBackoff: true,
 };
+
+type WebkitAudioWindow = Window & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
+function scheduleNotifyChime(context: AudioContext): void {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const startsAt = context.currentTime;
+  const endsAt = startsAt + 0.1;
+
+  // A short, locally synthesized tone avoids shipping a third-party audio asset.
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(880, startsAt);
+  gain.gain.setValueAtTime(0.0001, startsAt);
+  gain.gain.exponentialRampToValueAtTime(0.045, startsAt + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startsAt + 0.09);
+
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  };
+  oscillator.start(startsAt);
+  oscillator.stop(endsAt);
+}
+
+function playNotifyChime(contextRef: { current: AudioContext | null }): void {
+  try {
+    if (typeof window === "undefined") return;
+
+    const AudioContextConstructor =
+      window.AudioContext ?? (window as WebkitAudioWindow).webkitAudioContext;
+    if (!AudioContextConstructor) return;
+
+    if (!contextRef.current || contextRef.current.state === "closed") {
+      contextRef.current = new AudioContextConstructor();
+    }
+
+    const context = contextRef.current;
+    if (context.state !== "running") {
+      void context
+        .resume()
+        .then(() => {
+          try {
+            scheduleNotifyChime(context);
+          } catch {
+            // Sound is optional and must never block a settings change.
+          }
+        })
+        .catch(() => undefined);
+      return;
+    }
+
+    scheduleNotifyChime(context);
+  } catch {
+    // Sound is optional and must never block a settings change.
+  }
+}
 
 function NumberField({
   label,
@@ -71,12 +131,28 @@ export default function ModelLockoutCard() {
   const t = useTranslations("settings");
   const tc = useTranslations("common");
   const notify = useNotificationStore();
+  const notifyAudioContextRef = useRef<AudioContext | null>(null);
 
   const [data, setData] = useState<ModelLockoutSettings>(DEFAULTS);
   const [draft, setDraft] = useState<ModelLockoutSettings>(DEFAULTS);
   const [errorCodesInput, setErrorCodesInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(
+    () => () => {
+      const context = notifyAudioContextRef.current;
+      notifyAudioContextRef.current = null;
+      if (context && context.state !== "closed") {
+        try {
+          void context.close().catch(() => undefined);
+        } catch {
+          // Sound cleanup is optional and must never block the page from unmounting.
+        }
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -254,22 +330,6 @@ export default function ModelLockoutCard() {
     return `${ms}ms`;
   };
 
-  const notifyRef = useRef<HTMLAudioElement | null>(null);
-  const playNotify = useCallback(() => {
-    try {
-      if (notifyRef.current) {
-        notifyRef.current.pause();
-        notifyRef.current.currentTime = 0;
-      } else {
-        notifyRef.current = new Audio("/audio/ui-notify.mp3");
-        notifyRef.current.volume = 0.3;
-      }
-      void notifyRef.current.play();
-    } catch {
-      // Audio is optional.
-    }
-  }, []);
-
   if (loading) {
     return (
       <Card className="p-6">
@@ -314,7 +374,7 @@ export default function ModelLockoutCard() {
             checked={draft.enabled}
             onChange={(checked) => {
               setDraft((prev) => ({ ...prev, enabled: checked }));
-              playNotify();
+              playNotifyChime(notifyAudioContextRef);
             }}
             label={t("modelLockoutEnabled")}
             description={t("modelLockoutEnabledDescription")}
@@ -443,7 +503,7 @@ export default function ModelLockoutCard() {
                 ...prev,
                 useExponentialBackoff: checked,
               }));
-              playNotify();
+              playNotifyChime(notifyAudioContextRef);
             }}
             label={t("modelLockoutExponentialBackoff")}
             description={t("modelLockoutExponentialBackoffDescription")}

@@ -103,3 +103,63 @@ test("only the target-refusal statuses are flagged blocked across the whole rang
   }
   assert.deepEqual(flagged, [401, 403, 429]);
 });
+
+// ─── policy E, opt-in: PROXY_HEALTH_BLOCKED_RESETS_STREAK (#13608) ───
+// The probe target needs no key, so a refusal is often the normal answer of a healthy proxy
+// behind a shared egress IP. With the flag on, a refused relay resets the streak; status and
+// removal stay untouched. A relayed 5xx is `inconclusive` and keeps the streak either way.
+
+test("flag on: blocked resets the streak, never advances it, never touches status", () => {
+  const d = decideProxyHealthAction({
+    outcome: "blocked",
+    priorFailures: 2,
+    autoRemove: false,
+    autoDisable: false,
+    removeAfter: 3,
+    blockedResetsStreak: true,
+  });
+  assert.deepEqual(d, { failures: 0, clearFailures: true, setStatus: null, remove: false });
+});
+
+test("flag on: blocked still cannot remove, disable or re-activate a proxy", () => {
+  for (const managed of [
+    { autoRemove: true, autoDisable: true },
+    { autoRemove: false, autoDisable: true },
+    { autoRemove: true, autoDisable: false },
+  ]) {
+    const d = decideProxyHealthAction({
+      outcome: "blocked",
+      priorFailures: 3,
+      removeAfter: 3,
+      blockedResetsStreak: true,
+      ...managed,
+    });
+    assert.equal(d.remove, false);
+    assert.equal(d.setStatus, null, "a refusal is not proof of health: no re-activation");
+    assert.equal(d.failures, 0);
+  }
+});
+
+test("flag on: an inconclusive (5xx/timeout) probe still keeps the streak", () => {
+  const d = decideProxyHealthAction({
+    outcome: "inconclusive",
+    priorFailures: 2,
+    autoRemove: true,
+    removeAfter: 3,
+    blockedResetsStreak: true,
+  });
+  assert.deepEqual(d, { failures: 2, clearFailures: false, setStatus: null, remove: false });
+});
+
+test("flag explicitly off is the neutral default", () => {
+  const input = {
+    outcome: "blocked" as const,
+    priorFailures: 2,
+    autoRemove: false,
+    removeAfter: 3,
+  };
+  assert.deepEqual(
+    decideProxyHealthAction({ ...input, blockedResetsStreak: false }),
+    decideProxyHealthAction(input)
+  );
+});

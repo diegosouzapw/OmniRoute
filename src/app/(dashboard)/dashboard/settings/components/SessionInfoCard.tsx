@@ -66,11 +66,13 @@ export default function SessionInfoCard() {
       setLoading(false);
     }
 
-    loadSession();
+    void (async () => {
+      await loadSession();
+    })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const handleLogout = async () => {
     try {

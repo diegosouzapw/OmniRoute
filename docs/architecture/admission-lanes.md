@@ -9,20 +9,52 @@ lastUpdated: 2026-08-10
 OmniRoute has **two** process-local lane systems with different scopes. They are
 complementary; operators should know which one they are looking at.
 
-## 1. Byte-level per-connection lanes (`chatBodyAdmission.ts`)
+## 1. Byte-level process-wide admission (`chatBodyAdmission.ts`)
 
-- **Scope:** the buffered-body/heap path for `POST /v1/chat/completions`. Guards
+- **Scope:** the buffered-body/heap path for `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses`, and the other chat-shaped routes. Guards
   against heap amplification from large coding-agent bodies (#4380).
-- **Gate:** **always on.** Each distinct API key (hashed) — or `anonymous` — gets its
-  own lane with `CHAT_MAX_HEAVY_IN_FLIGHT` capacity, so one session's burst cannot
-  starve another session's heavyweight slot.
+- **One process-global controller, not per-key lanes (#10110).** Every API key
+  (hashed) or `anonymous` session admits against the **same** shared budget —
+  the hashed session id is used ONLY as a fairness scheduling key (round-robin
+  dispatch across waiters), never as a capacity shard. A prior version of this
+  doc described per-key lanes with independent capacity; that model was
+  removed in #10110 because it let unauthenticated fake credentials multiply
+  the process-wide bound.
+- **Gate (#503-fanout): an auto-derived ingest BYTE budget, not a fixed request
+  count.** The legacy `CHAT_MAX_HEAVY_IN_FLIGHT` request-count cap (default `1`
+  before this fix) collapsed coding-agent fan-out (multiple subagents/CLIs,
+  bodies routinely > 256 KB) to an effective concurrency of ~1, which 503'd
+  under completely normal load. It now binds only when an operator explicitly
+  sets `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Left unset, admission is instead
+  gated by `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — a budget auto-derived from the
+  process's real memory ceiling (`src/shared/middleware/admissionBudget.ts`):
+  25% of the tighter of the V8 heap limit and any cgroup/container limit,
+  divided by an 8x transient-amplification factor, clamped between 8 MiB and
+  2 GiB. Explicit overrides use the same clamps. This scales itself from a
+  512 MB container to a 32 GB desktop with no env tuning. A body that cannot
+  fit within the effective budget fails immediately with `413 body_exceeds_budget`;
+  only contention among individually serviceable bodies enters the bounded
+  fairness queue. A live multi-signal resource-pressure tracker (V8 heap ratio,
+  cgroup, PSI, OOM events — `open-sse/utils/resourcePressurePolicy.ts`) shortens
+  the bounded wait under `high` pressure and sheds immediately with
+  `503 resource_pressure` under `critical` pressure, before any bytes are even
+  ingested. PSI is read from this unit's cgroup `memory.pressure` when present
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` is
+  host-wide and is only the fallback on bare metal / cgroup v1, so a swapping
+  host cannot 503 an idle container.
 - **Tuning:**
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` — idle-lane eviction (default 60000)
-  - `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — lane count cap (default 64)
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — queue-wait before 503 (default 2000)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override for the auto-derived byte budget
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — legacy request-count cap, opt-in only
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — queue-wait before 503 (defaults to `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — queued-bytes heap valve (default 4 MB)
-- **Reports:** not in `GET /api/monitoring/health` today; observable via
-  `PerConnectionAdmissionController.snapshot()` (sessionId hash, activeHeavy, idleMs).
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — deprecated
+    no-ops since #10110 (accepted for config compatibility, ignored)
+- **Reports:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — including
+  the #503-fanout additions `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, and `countCapEnabled`
+  (false on a default deployment — confirms the byte budget, not the legacy
+  count cap, is what is actually binding).
 
 ## 2. Adaptive runtime virtual lanes (`open-sse/services/admission`)
 
@@ -91,3 +123,22 @@ against the **parent's** tenant lane.
 The byte-level lanes bound the memory-heavy parse/compress path; the adaptive lanes
 bound dispatch cost per tenant. #9654's criterion 1 ("one session's burst does not 503
 another") is enforced by system 1 unconditionally and by system 2 once opt-in is enabled.
+
+## 4. One-process long `/v1/responses` (healthy-headroom)
+
+[#10437](https://github.com/diegosouzapw/OmniRoute/pull/10437) added
+`tryAcquireHealthyHeadroom` so a second structurally-heavy request is admitted
+when the heap is below `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO`. The BYTE
+path used by `admitChatRequest` (bodies ≥ `OMNIROUTE_CHAT_LARGE_BODY_BYTES`,
+default 256 KiB, including `POST /v1/responses`) uses the **same** escape.
+
+This is the supported **one-process** recipe for more than two concurrent long
+SSE `/v1/responses`: raise primary + healthy-headroom only as far as the heap
+and the process-wide inflight-byte budget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`
+/ #10110) allow. Tens of long SSE clients (40–50) is that memory-budget
+question, not a hard “max 2” product limit. A pressured heap still sheds with
+retryable `503` so #7849 does not return.
+
+To **multiply heaps**, run N independent `DATA_DIR`s (#11024). Never
+`replicas > 1` on one SQLite file (#10350). This section is not a reopen of
+the DATA_DIR scale-out recipe.

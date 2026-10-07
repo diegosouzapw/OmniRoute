@@ -22,7 +22,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = process.env.JWT_SECRET || "model-aliases-selfheal-jwt";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const modelDeprecation = await import("../../open-sse/services/modelDeprecation.ts");
 const route = await import("../../src/app/api/settings/model-aliases/route.ts");
 

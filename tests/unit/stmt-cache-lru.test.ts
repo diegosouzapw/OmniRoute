@@ -50,9 +50,9 @@ test("statement cache handles 200+ unique SELECTs without errors (LRU eviction)"
     }
 
     // Verify the DB is still functional after eviction churn
-    const finalRow = db
-      .prepare("SELECT COUNT(*) AS cnt FROM stmt_cache_test")
-      .get() as { cnt: number };
+    const finalRow = db.prepare("SELECT COUNT(*) AS cnt FROM stmt_cache_test").get() as {
+      cnt: number;
+    };
     assert.equal(finalRow.cnt, 1, "table should still have 1 row after cache churn");
   } finally {
     cleanup();

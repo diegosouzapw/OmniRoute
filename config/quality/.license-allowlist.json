@@ -75,11 +75,23 @@
       "risk": "low",
       "reviewAt": "v4.0.0"
     },
-    "tls-client-node": {
-      "license": "Custom: LICENSE (Apache-2.0 + Commons Clause)",
-      "justification": "TODO: revisar — tls-client-node uses Apache-2.0 with a 'Commons Clause' addendum that restricts 'Selling' the software (i.e., offering it as a hosted/commercial service whose value derives substantially from tls-client-node). OmniRoute is an open-source proxy; however if deployed as a paid SaaS/hosting service, this restriction could apply. The package is used by grokTlsClient.ts for Grok TLS fingerprinting. RISK: medium — legal review recommended before commercial deployment. Alternatives: consider replacing with a native TLS fingerprinting approach or a truly permissive library.",
-      "risk": "medium",
-      "reviewAt": "v3.9.0"
+    "@eloqnt/config": {
+      "license": "MIT",
+      "justification": "Transitive of next-intl (MIT). npm registry SPDX for the @eloqnt scope is MIT; @eloqnt/config@0.1.0 republished with license: MIT. The locked 0.0.2 tarball (next-intl's ^0.0.2 range, which is 0.0.x only) omits both package.json#license and a LICENSE file, so license-checker reports UNKNOWN. Same author (Jan Amann / amannn). OmniRoute does not modify the package. Re-review when next-intl bumps the range to a release that ships the license field.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "@eloqnt/format-json": {
+      "license": "MIT",
+      "justification": "Same as @eloqnt/config: next-intl transitive, registry SPDX MIT, locked 0.0.3 tarball omits license field and LICENSE file so the checker reports UNKNOWN. Re-review with the next-intl range bump.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "@eloqnt/format-po": {
+      "license": "MIT",
+      "justification": "Same as @eloqnt/config: next-intl transitive, registry SPDX MIT, locked 0.0.3 tarball omits license field and LICENSE file so the checker reports UNKNOWN. Re-review with the next-intl range bump.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
     }
   }
 }

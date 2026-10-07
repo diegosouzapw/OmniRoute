@@ -19,8 +19,15 @@ export interface VertexAnthropicDiscoveryModel {
 
 export function parseVertexAnthropicModels(data: unknown): VertexAnthropicDiscoveryModel[] {
   if (!data || typeof data !== "object") return [];
-  const envelope = data as { models?: unknown[] };
-  const models = Array.isArray(envelope.models) ? envelope.models : [];
+  const record = data as { models?: unknown[]; publisherModels?: unknown[] };
+  // The Model Garden publisher-model list is served by the v1beta1 API, which
+  // returns `{ publisherModels: [...] }`. Accept both the v1beta1 envelope and
+  // the generic `{ models: [...] }` shape for robustness.
+  const models = Array.isArray(record.publisherModels)
+    ? record.publisherModels
+    : Array.isArray(record.models)
+      ? record.models
+      : [];
 
   return models
     .map((m: unknown) => {
@@ -28,7 +35,11 @@ export function parseVertexAnthropicModels(data: unknown): VertexAnthropicDiscov
       const rawName = typeof model.name === "string" ? model.name : "";
       // "publishers/anthropic/models/claude-sonnet-4-6" or
       // "projects/x/locations/y/publishers/anthropic/models/claude-sonnet-4-6"
-      const id = rawName.replace(/^(?:projects\/[^/]+\/locations\/[^/]+\/)?publishers\/anthropic\/models\//, "") || rawName;
+      const id =
+        rawName.replace(
+          /^(?:projects\/[^/]+\/locations\/[^/]+\/)?publishers\/anthropic\/models\//,
+          ""
+        ) || rawName;
       if (!id) return null;
 
       return {

@@ -45,7 +45,6 @@ test("no two provider IDs share the same alias in the open-sse registry", () => 
 
 test("primary providers keep the short alias; web variants use their own id", () => {
   // open-sse registry (source of the startup warning + chat routing)
-  assert.equal(PROVIDER_ID_TO_ALIAS["qwen-web"], "qwen-web");
   assert.equal(PROVIDER_ID_TO_ALIAS.kimi, "kimi");
   assert.equal(PROVIDER_ID_TO_ALIAS["kimi-web"], "kimi-web");
   assert.equal(PROVIDER_ID_TO_ALIAS.huggingchat, "huggingchat");
@@ -54,20 +53,17 @@ test("primary providers keep the short alias; web variants use their own id", ()
 test("src/shared providers map resolves the same aliases unambiguously", () => {
   // alias → id
   assert.equal(resolveProviderId("kimi"), "kimi");
-  // id used as alias for the secondary variants
-  assert.equal(resolveProviderId("qwen-web"), "qwen-web");
+  // ids used as aliases for the supported secondary variants
   assert.equal(resolveProviderId("kimi-web"), "kimi-web");
   assert.equal(resolveProviderId("huggingchat"), "huggingchat");
   // id → alias
   assert.equal(getProviderAlias("kimi"), "kimi");
 });
 
-// #6673: hailuo-web must not collide with the paid API-key minimax/minimax-cn
-// providers — it uses its own id as alias, per the secondary-variant convention.
-test("hailuo-web resolves to its own id/alias and does not collide with minimax", () => {
-  assert.equal(PROVIDER_ID_TO_ALIAS["hailuo-web"], "hailuo-web");
-  assert.equal(resolveProviderId("hailuo-web"), "hailuo-web");
-  assert.equal(getProviderAlias("hailuo-web"), "hailuo-web");
+test("retired Hailuo alias is absent while official MiniMax aliases remain distinct", () => {
+  assert.equal(PROVIDER_ID_TO_ALIAS["hailuo-web"], undefined);
+  assert.equal(PROVIDER_ID_TO_ALIAS.minimax, "minimax");
+  assert.equal(PROVIDER_ID_TO_ALIAS["minimax-cn"], "minimax-cn");
   assert.equal(resolveProviderId("minimax"), "minimax");
   assert.equal(resolveProviderId("minimax-cn"), "minimax-cn");
 });

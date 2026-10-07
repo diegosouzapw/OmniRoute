@@ -17,7 +17,8 @@ async function resetStorage() {
   core.resetDbInstance();
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      if (fs.existsSync(TEST_DATA_DIR)) fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      if (fs.existsSync(TEST_DATA_DIR))
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       break;
     } catch (error: unknown) {
       const code = (error as { code?: string } | undefined)?.code;

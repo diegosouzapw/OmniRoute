@@ -158,7 +158,11 @@ test("cleanupExpiredLogs honors the dashboard usageHistory retention when env is
 
     // 30 days < the configured 90-day dashboard retention → must be kept.
     // With the old env-default (7d) behavior this row would be deleted.
-    assert.equal(result.deletedUsage, 0, "30-day usage_history must survive a 90-day dashboard retention");
+    assert.equal(
+      result.deletedUsage,
+      0,
+      "30-day usage_history must survive a 90-day dashboard retention"
+    );
     assert.equal((db.prepare("SELECT COUNT(*) AS cnt FROM usage_history").get() as any).cnt, 1);
   } finally {
     if (savedCall !== undefined) process.env.CALL_LOG_RETENTION_DAYS = savedCall;

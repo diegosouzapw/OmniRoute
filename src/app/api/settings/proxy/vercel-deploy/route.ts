@@ -3,7 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { vercelDeploySchema } from "@/shared/validation/freeProxySchemas";
-import { createProxy } from "@/lib/localDb";
+import { createProxy } from "@/lib/db/proxies";
 import { encrypt } from "@/lib/db/encryption";
 // Shared SSRF-safe relay-path resolver — the same pure guard embedded in the
 // Deno Deploy worker. Both edge relays must enforce identical path validation,
@@ -53,7 +53,11 @@ export default async function handler(req) {
     return new Response(resolved.reason, { status: resolved.status });
   }
   const headers = new Headers(req.headers);
-  ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach(h => headers.delete(h));
+  [
+    "host", "connection", "content-length", "keep-alive", "proxy-connection",
+    "proxy-authenticate", "proxy-authorization", "transfer-encoding", "te", "trailer", "upgrade",
+    "x-relay-target", "x-relay-path", "x-relay-auth",
+  ].forEach(h => headers.delete(h));
   const upstream = await fetch(resolved.url, {
     method: req.method,
     headers,

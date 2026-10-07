@@ -1,4 +1,5 @@
 import { getProviderCredentials } from "@/sse/services/auth";
+import { isCredentialDiagnosticSentinel } from "@/sse/services/credentialSentinel";
 import { recordCost } from "@/domain/costRules";
 import * as defaultLog from "@/sse/utils/logger";
 import {
@@ -63,10 +64,10 @@ export class WebSearchExecutionError extends Error {
 
 async function resolveSearchCredentials(providerId: string) {
   const creds = await getProviderCredentials(providerId).catch(() => null);
-  if (creds) return creds;
+  if (creds && !isCredentialDiagnosticSentinel(creds)) return creds;
   for (const fallbackId of getSearchCredentialFallbacks(providerId)) {
     const fallback = await getProviderCredentials(fallbackId).catch(() => null);
-    if (fallback) return fallback;
+    if (fallback && !isCredentialDiagnosticSentinel(fallback)) return fallback;
   }
   return null;
 }
@@ -127,7 +128,13 @@ export async function executeWebSearch(
 
   const log = input.log || defaultLog;
   if (input.provider === "x_search") input.provider = "x-search";
-  if (input.provider === "x-search") input.search_type = "x";
+  if (input.provider === "xquik" || input.provider === "xquik_search") {
+    input.provider = "xquik-search";
+  }
+  if (input.provider === "anysearch" || input.provider === "anysearch_search") {
+    input.provider = "anysearch-search";
+  }
+  if (input.provider === "x-search" || input.provider === "xquik-search") input.search_type = "x";
   const searchType = input.search_type || "web";
 
   if (input.provider) {
@@ -180,33 +187,26 @@ export async function executeWebSearch(
       );
     }
   } else {
-    credentials = await resolveSearchCredentials(providerConfig.id);
+    // Auto-select: prefer the cheapest non-fallback provider that actually has
+    // credentials. Fallback-only free providers are a last resort, so a
+    // configured paid provider is never skipped just because a cheaper
+    // no-credentials provider appears first in the cost sort (issue #11524).
+    const candidateProviders = Object.values(SEARCH_PROVIDERS)
+      .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, searchType))
+      .sort((a, b) => a.costPerQuery - b.costPerQuery);
 
-    if (!credentials) {
-      // A CONFIGURED provider always wins over a free `fallbackOnly` one (issue #11524):
-      // sweep every regular provider for real credentials BEFORE considering the
-      // last-resort ones. Running the fallbackOnly loop first made `duckduckgo-free`
-      // (costPerQuery 0, no credentials required) win unconditionally, so an operator's
-      // paid search connection was silently ignored whenever the cheapest auto-selected
-      // provider happened to have no credentials.
-      const sortedIds = Object.values(SEARCH_PROVIDERS)
-        .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, searchType))
-        .sort((a, b) => a.costPerQuery - b.costPerQuery)
-        .map((provider) => provider.id);
-
-      for (const providerId of sortedIds) {
-        if (providerId === providerConfig.id) continue;
-        const altConfig = getSearchProvider(providerId);
-        const altCreds = await resolveSearchCredentials(providerId);
-        if (altConfig && altCreds) {
-          providerConfig = altConfig;
-          credentials = altCreds;
-          break;
-        }
+    for (const candidate of candidateProviders) {
+      const candidateCredentials = await resolveSearchCredentials(candidate.id);
+      if (candidateCredentials) {
+        providerConfig = candidate;
+        credentials = candidateCredentials;
+        break;
       }
     }
 
     if (!credentials) {
+      // Last resort: fallback-only providers so out-of-the-box search
+      // still works when no credentialed provider is configured.
       const fallbackProviders = Object.values(SEARCH_PROVIDERS)
         .filter((provider) => provider.fallbackOnly && supportsSearchType(provider, searchType))
         .sort((a, b) => a.costPerQuery - b.costPerQuery);
@@ -234,17 +234,20 @@ export async function executeWebSearch(
       );
     }
 
+    // Exclude fallback-only providers from execution-time alternates.
+    // They are reserved for last-resort primary selection.
     const otherIds = Object.values(SEARCH_PROVIDERS)
-      .filter((provider) => supportsSearchType(provider, searchType))
+      .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, searchType))
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((provider) => provider.id)
       .filter((providerId) => providerId !== providerConfig!.id);
 
     for (const providerId of otherIds) {
-      const creds = await resolveSearchCredentials(providerId);
-      if (creds) {
+      const altConfig = getSearchProvider(providerId);
+      const altCreds = await resolveSearchCredentials(providerId);
+      if (altConfig && altCreds) {
         alternateProviderId = providerId;
-        alternateCredentials = creds;
+        alternateCredentials = altCreds;
         break;
       }
     }

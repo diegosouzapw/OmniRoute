@@ -40,6 +40,18 @@ paths:
       responses:
         "200":
           description: Updated widget
+  /api/widgets/preview:
+    post:
+      tags: [Widgets]
+      summary: Preview widget
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Previewed widget
 components:
   parameters:
     ResourceId:
@@ -83,11 +95,16 @@ test("generator resolves a $ref path parameter into --id and substitutes {id} in
     );
     assert.doesNotMatch(generated, /url = "\/api\/widgets\/\{id\}";\s*\n\s*const res/);
 
-    // requestBody presence must still produce --body.
+    // Required and optional request bodies must preserve their OpenAPI semantics.
     assert.match(
       generated,
-      /\.option\("--body <jsonOrPath>"/,
-      "generated command must declare --body for the requestBody"
+      /tag\.command\("patch-api-widgets-id-?"\)[\s\S]*?\.requiredOption\("--body <jsonOrPath>"/,
+      "generated command must require --body for a required requestBody"
+    );
+    assert.match(
+      generated,
+      /tag\.command\("post-api-widgets-preview"\)[\s\S]*?\.option\("--body <jsonOrPath>"/,
+      "generated command must keep --body optional for an optional requestBody"
     );
   } finally {
     rmSync(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
@@ -132,19 +149,37 @@ components:
 
 test("real generated bin/cli/api-commands/combos.mjs has --id and --body on the PATCH combo command (#10955)", () => {
   const src = readFileSync(REAL_COMBOS, "utf8");
-  const patchBlockMatch = src.match(/ {2}tag\.command\("patch-[^"]*"\)[\s\S]*?\n {2}(?=tag\.command\(|\})/);
+  const patchBlockMatch = src.match(
+    / {2}tag\.command\("patch-[^"]*"\)[\s\S]*?\n {2}(?=tag\.command\(|\})/
+  );
   assert.ok(patchBlockMatch, "combos.mjs must have a generated patch-* command block");
   const patchBlock = patchBlockMatch[0];
 
-  assert.match(patchBlock, /\.requiredOption\("--id <id>"/, "PATCH combo command must require --id");
   assert.match(
     patchBlock,
-    /\.option\("--body <jsonOrPath>"/,
-    "PATCH combo command must accept --body"
+    /\.requiredOption\("--id <id>"/,
+    "PATCH combo command must require --id"
+  );
+  assert.match(
+    patchBlock,
+    /\.requiredOption\("--body <jsonOrPath>"/,
+    "PATCH combo command must require --body"
   );
   assert.match(
     patchBlock,
     /url = url\.replace\("\{id\}", encodeURIComponent\(opts\.id/,
     "PATCH combo command must substitute {id} in the URL, not send it literally"
   );
+});
+
+test("real generated combo-test command accepts and forwards its required request body", () => {
+  const src = readFileSync(REAL_COMBOS, "utf8");
+  const testBlockMatch = src.match(
+    / {2}tag\.command\("post-api-combos-test"\)[\s\S]*?(?=\n {2}tag\.command\(|\n\})/
+  );
+  assert.ok(testBlockMatch, "combos.mjs must have a generated combo-test command block");
+  const testBlock = testBlockMatch[0];
+
+  assert.match(testBlock, /\.requiredOption\("--body <jsonOrPath>"/);
+  assert.match(testBlock, /const res = await apiFetch\(url, \{ method: "POST", body,/);
 });

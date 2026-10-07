@@ -99,6 +99,7 @@ export async function fuseVideoAndAudio(
   if (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 1 || options.timeoutMs > 120_000) {
     throw new Error("Invalid video/audio fusion timeout");
   }
+  if (options.signal?.aborted) throw new Error("Video/audio fusion was aborted");
   const controller = new AbortController();
   const parentAbort = () => controller.abort();
   options.signal?.addEventListener("abort", parentAbort, { once: true });

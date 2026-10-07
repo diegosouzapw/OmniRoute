@@ -117,6 +117,8 @@ export default function ProviderDetailPageClient() {
     providerNode,
     loading,
     retestingId,
+    handleClearCooldown,
+    clearingCooldownId,
     batchTesting,
     batchTestResults,
     selectedIds,
@@ -142,7 +144,7 @@ export default function ProviderDetailPageClient() {
     setBatchTestResults,
     setProviderNode,
     fetchConnections,
-    fetchProxyConfig,
+    refreshProxyState,
     deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
@@ -190,6 +192,7 @@ export default function ProviderDetailPageClient() {
   const {
     modelMeta,
     syncedAvailableModels,
+    syncedCatalogAuthoritative,
     modelAliases,
     fetchProviderModelMeta,
     fetchAliases,
@@ -284,14 +287,14 @@ export default function ProviderDetailPageClient() {
     NOAUTH_PROVIDERS[providerId]?.noAuth === true ||
     getProviderById(providerId)?.managedAccount === true;
   const registryModels = getModelsByProviderId(providerId);
-  // Prefer synced API-discovered models when available, then merge built-ins
-  // and user-managed custom models without duplicating IDs. Cursor exclusive
-  // listing drops the static registry entirely when synced is non-empty.
+  // Use the server's active-catalog authority decision for display and Test All.
+  // Registry entries supply metadata/fallback; operator custom models remain.
   const models = useMemo(() => {
     return mergeProviderModelListing({
       providerId,
       registryModels,
       syncedModels: syncedAvailableModels,
+      syncedCatalogAuthoritative,
       customModels: (modelMeta.customModels || []).map((cm) => ({
         ...cm,
         id: cm.id,
@@ -305,6 +308,7 @@ export default function ProviderDetailPageClient() {
     registryModels,
     syncedAvailableModels,
     modelMeta.customModels,
+    syncedCatalogAuthoritative,
     usesCuratedModelsOnly,
   ]);
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
@@ -671,7 +675,11 @@ export default function ProviderDetailPageClient() {
             />
           ) : (
             <>
-              <CoolingConnectionsPanel connections={connections} />
+              <CoolingConnectionsPanel
+                connections={connections}
+                onClearCooldown={handleClearCooldown}
+                clearingCooldownId={clearingCooldownId}
+              />
               <ConnectionsListPanel
                 connections={connections}
                 providerId={providerId}
@@ -764,6 +772,7 @@ export default function ProviderDetailPageClient() {
             modelMeta={modelMeta}
             modelAliases={modelAliases}
             syncedAvailableModels={syncedAvailableModels}
+            syncedCatalogAuthoritative={syncedCatalogAuthoritative}
             compatibleFallbackModels={compatibleFallbackModels}
             copied={copied}
             onCopy={copy}
@@ -838,7 +847,7 @@ export default function ProviderDetailPageClient() {
         isCommandCode={isCommandCode}
         isUpstreamProxyProvider={isUpstreamProxyProvider}
         subscriptionRisk={subscriptionRisk}
-        existingConnectionCount={connections.length}
+        existingConnectionNames={connections.map((c) => c.name ?? "").filter(Boolean)}
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}
@@ -902,7 +911,7 @@ export default function ProviderDetailPageClient() {
         emailsVisible={emailsVisible}
         proxyTarget={proxyTarget}
         setProxyTarget={setProxyTarget}
-        fetchProxyConfig={fetchProxyConfig}
+        refreshProxyState={refreshProxyState}
         importProgress={importProgress}
         showImportModal={showImportModal}
         setShowImportModal={setShowImportModal}

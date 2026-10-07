@@ -52,6 +52,9 @@ export async function runPluginOnResponseHook(args: {
  */
 export type PluginOnStreamCompletePayload = {
   status: number;
+  /** Correlates this stream-completion event with the originating request — the same
+   *  id passed to onRequest/onResponse for the request (chatCore's traceId). (#11825) */
+  requestId?: string;
   usage?: {
     prompt_tokens?: number;
     completion_tokens?: number;
@@ -81,11 +84,13 @@ export async function runPluginOnStreamCompleteHook(args: {
   provider: string | null | undefined;
   errorCode?: string | null | undefined;
   startTime: number;
+  requestId?: string;
 }): Promise<void> {
   try {
     const { runOnStreamComplete } = await import("@/lib/plugins/hooks");
     runOnStreamComplete({
       status: args.status,
+      requestId: args.requestId,
       usage: args.usage as PluginOnStreamCompletePayload["usage"],
       timing: {
         latencyMs: Date.now() - args.startTime,

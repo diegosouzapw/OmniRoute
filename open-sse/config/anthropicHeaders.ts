@@ -4,9 +4,12 @@ import {
   CLAUDE_CODE_CLIENT_VERSION,
   CLAUDE_CODE_RUNTIME_VERSION,
   CLAUDE_CODE_SDK_PACKAGE_VERSION,
+  getClaudeCodeClientBillingVersion,
+  getClaudeCodeClientVersion,
   getClaudeCodeUserAgent,
 } from "@/shared/constants/claudeCodeClient";
 import { modelSupportsContext1mBeta } from "../config/context1m.ts";
+import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 export const ANTHROPIC_VERSION_HEADER = "2023-06-01";
 
@@ -26,7 +29,6 @@ const ANTHROPIC_BETA_BASE = Object.freeze([
   "extended-cache-ttl-2025-04-11",
   "cache-diagnosis-2026-04-07",
   "code-execution-2025-08-25",
-  "skills-2025-10-02",
 ]);
 
 const CLAUDE_OAUTH_EXTRA_BETAS = Object.freeze(["fine-grained-tool-streaming-2025-05-14"]);
@@ -42,6 +44,165 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
 ].join(",");
 
 /**
+ * Anthropic Skills beta flag. Must only be emitted when a code_execution tool
+ * is declared in the request body; sending it on tool-less requests causes
+ * upstream Anthropic to reject with HTTP 400 (#14200).
+ */
+export const SKILLS_BETA_HEADER = "skills-2025-10-02";
+
+/**
+ * Append an Anthropic Beta header token to an existing headers object.
+ * Preserves case of existing anthropic-beta / Anthropic-Beta header,
+ * deduplicates tokens, and creates anthropic-beta if not present.
+ */
+export function appendAnthropicBetaHeader(
+  headers: Record<string, string>,
+  betaHeader: string
+): void {
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  if (!existingKey) {
+    headers["anthropic-beta"] = betaHeader;
+    return;
+  }
+
+  const existingValues = String(headers[existingKey] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (!existingValues.includes(betaHeader)) {
+    headers[existingKey] = [...existingValues, betaHeader].join(",");
+  }
+}
+
+/**
+ * Remove an Anthropic Beta header token from an existing headers object.
+ * Preserves case of existing anthropic-beta / Anthropic-Beta header.
+ */
+export function removeAnthropicBetaHeader(
+  headers: Record<string, string>,
+  betaHeader: string
+): void {
+  if (!headers || typeof headers !== "object") return;
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  if (!existingKey) return;
+
+  const existingValues = String(headers[existingKey] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value && value !== betaHeader);
+
+  if (existingValues.length > 0) {
+    headers[existingKey] = existingValues.join(",");
+  } else {
+    delete headers[existingKey];
+  }
+}
+
+/**
+ * Detect whether a request body contains an Anthropic code_execution tool.
+ * Anthropic requires the skills-2025-10-02 beta header only when a code_execution
+ * tool is present in the request body; sending it on tool-less requests causes
+ * upstream to reject with HTTP 400 (#14200).
+ *
+ * Accepts both parsed JSON objects and serialized JSON strings for robustness.
+ */
+export function hasCodeExecutionTool(body: unknown): boolean {
+  if (!body) return false;
+  let parsed: unknown = body;
+  if (typeof body === "string") {
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      return false;
+    }
+  }
+  if (!parsed || typeof parsed !== "object") return false;
+  const tools = (parsed as { tools?: unknown }).tools;
+  if (!Array.isArray(tools) || tools.length === 0) return false;
+  return tools.some((tool) => {
+    if (!tool || typeof tool !== "object") return false;
+    const t = tool as { type?: unknown; name?: unknown; function?: { name?: unknown } };
+    if (
+      typeof t.type === "string" &&
+      (t.type === "code_execution" || t.type.startsWith("code_execution_"))
+    ) {
+      return true;
+    }
+    if (t.name === "code_execution") {
+      return true;
+    }
+    if (
+      t.type === "function" &&
+      t.function &&
+      typeof t.function === "object" &&
+      t.function.name === "code_execution"
+    ) {
+      return true;
+    }
+    return false;
+  });
+}
+
+/**
+ * Append the Skills beta header to outbound Anthropic-family request headers
+ * if and only if a code_execution tool is present in the request body.
+ *
+ * Single source of truth across base executor, default executor, and provider headers (#14200).
+ */
+export function maybeAppendSkillsBeta(
+  headers: Record<string, string>,
+  provider: string | undefined | null,
+  body: unknown,
+  extraCondition = false
+): void {
+  if (!headers || typeof headers !== "object") return;
+  if (!hasCodeExecutionTool(body)) return;
+
+  const p = typeof provider === "string" ? provider : "";
+  const isAnthropicFamily =
+    p === "anthropic" ||
+    p === "claude" ||
+    p.startsWith("anthropic-compatible-") ||
+    usesCcWireImage(p) ||
+    extraCondition;
+
+  if (isAnthropicFamily) {
+    appendAnthropicBetaHeader(headers, SKILLS_BETA_HEADER);
+  }
+}
+
+/**
+ * Synchronize the Skills beta header with the finalized request body.
+ * If the body contains a code_execution tool, ensures skills-2025-10-02 is present.
+ * If the body does not contain a code_execution tool (or tools were stripped/transformed),
+ * ensures skills-2025-10-02 is removed (#14200).
+ */
+export function syncSkillsBeta(
+  headers: Record<string, string>,
+  provider: string | undefined | null,
+  body: unknown,
+  extraCondition = false
+): void {
+  if (!headers || typeof headers !== "object") return;
+  const p = typeof provider === "string" ? provider : "";
+  const isAnthropicFamily =
+    p === "anthropic" ||
+    p === "claude" ||
+    p.startsWith("anthropic-compatible-") ||
+    usesCcWireImage(p) ||
+    extraCondition;
+
+  if (!isAnthropicFamily) return;
+
+  if (hasCodeExecutionTool(body)) {
+    appendAnthropicBetaHeader(headers, SKILLS_BETA_HEADER);
+  } else {
+    removeAnthropicBetaHeader(headers, SKILLS_BETA_HEADER);
+  }
+}
+
+/**
  * Client-negotiated `anthropic-beta` values that are safe to forward to the
  * claude.ai backend on top of OmniRoute's own set. Kept to betas the backend
  * actually accepts and that OmniRoute does not otherwise emit — so a blind
@@ -52,6 +213,51 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
  * credit gate); forwarding it when the CLIENT negotiated it matches what real
  * Claude Code sends for `/model <id>[1m]` and is required for >200K-context
  * requests on models/accounts where the beta is enforced.
+ *
+ * dangerous-tool-use-2026-09-03 is the auto-mode classifier pair: Claude Code
+ * v2.1.278+ sends it together with the top-level `safeguards` request field and
+ * reads the answer back from `message_delta.delta.safeguard_results`. The body
+ * field already survives the claude to claude passthrough, so dropping only the
+ * beta left the upstream with a field it was not asked to act on: no results
+ * come back, the client latches "something on the path to the API dropped it"
+ * and falls back to its own billed classifier requests for the rest of the
+ * session. Forwarding the pair intact is what makes a gateway session eligible
+ * (https://code.claude.com/docs/en/auto-mode-classifier-billing).
+ *
+ * afk-mode-2026-01-31 is the second beta Claude Code attaches while auto mode is
+ * active (captured on the wire in #14186). Dropping it strips the auto-mode
+ * negotiation the upstream expects next to the classifier pair.
+ *
+ * The per-message effort betas gate Anthropic's message-level `output_config`
+ * (an effort-only system message carrying `output_config.effort`, sent by
+ * Claude Code to change effort mid-conversation). Without its beta upstream
+ * rejects the body field the passthrough kept with
+ * `400 messages.N.output_config: Extra inputs are not permitted` (#14746) —
+ * the same field-travels/beta-drops shape as the dangerous-tool-use pair above.
+ * Two tokens are kept, each with a hard source:
+ *   - `mid-conversation-output-config-2026-07-01` — Anthropic's documented
+ *     beta for the feature ("Per-message effort is in beta and requires the
+ *     beta header ...", https://platform.claude.com/docs/en/build-with-claude/effort;
+ *     the doc's curl example uses the exact directive shape we receive).
+ *     This is the token selectBetaFlags derives from the body shape below.
+ *   - `per-turn-control-2026-07-01` — the token Claude Code itself puts on
+ *     the wire, captured from @anthropic-ai/claude-code@2.1.282
+ *     (`C("per_message_effort","per-turn-control-2026-07-01")` in the shipped
+ *     binary). Forwarding it is what keeps a real Claude Code session working
+ *     through the proxy.
+ * AWS Bedrock's adaptive-thinking guide documents the same schema gate and
+ * quotes the exact 400 above; it also lists `mid-conversation-effort-2026-08-01`
+ * and `per-message-effort-2026-07-01` as aliases. Those two are deliberately
+ * trimmed: no known client sends them, and OmniRoute's Bedrock executor does
+ * not negotiate `anthropic_beta` at all.
+ *
+ * `timing-2026-09-09` and `inline-tools-2026-09-15` are the other two per-turn
+ * betas Claude Code puts on the wire, captured from @anthropic-ai/claude-code@2.1.284
+ * (`C("per_turn_timing","timing-2026-09-09")` and
+ * `C("inline_tools","inline-tools-2026-09-15")` in the shipped binary). The
+ * inline-tools beta gates message-level `tool_addition` blocks; without it
+ * upstream rejects the body with a 400 whose message reads
+ * "`tool_addition` blocks require anthropic-beta".
  */
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
@@ -63,6 +269,17 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   // gate (#9505), so a client that sent it must keep it through the merge —
   // otherwise its effort negotiation is silently dropped.
   "effort-2025-11-24",
+  // Per-message effort (message-level output_config) — sources in doc comment above.
+  "mid-conversation-output-config-2026-07-01",
+  "per-turn-control-2026-07-01",
+  // Fable 5.1 betas (@ai-sdk/anthropic sends both automatically): without them
+  // upstream rejects `thinking.block_binding` / `thinking.display` with 400.
+  "thinking-binding-controls-2026-08-01",
+  "thinking-display-updates-2026-08-18",
+  "dangerous-tool-use-2026-09-03",
+  "afk-mode-2026-01-31",
+  "timing-2026-09-09",
+  "inline-tools-2026-09-15",
 ]);
 
 /**
@@ -80,12 +297,19 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
  * there with "long context beta is not yet available for this subscription"
  * (#10119). When no model is supplied (legacy callers without model resolution),
  * the prior forwarding behavior is preserved.
+ *
+ * `body` (optional) gate: when supplied, `skills-2025-10-02` is forwarded only
+ * if the request body contains a `code_execution` tool (#14200). Sending the
+ * skills beta on tool-less requests causes upstream Anthropic to reject with
+ * HTTP 400 "Skills beta requires the code_execution tool". When omitted or null,
+ * backward-compatible allowlist forwarding is preserved.
  */
 export function mergeClientAnthropicBeta(
   base: string,
   clientBeta: string | null | undefined,
   allow: readonly string[] = FORWARDABLE_CLIENT_BETAS,
-  model?: string | null
+  model?: string | null,
+  body?: unknown
 ): string {
   const baseList = base
     .split(",")
@@ -96,9 +320,15 @@ export function mergeClientAnthropicBeta(
   const allowList = allow
     .map((s) => s.toLowerCase())
     .filter((lower) => {
-      if (lower !== "context-1m-2025-08-07") return true;
-      if (model === undefined || model === null || model === "") return true;
-      return modelSupportsContext1mBeta(model);
+      if (lower === "context-1m-2025-08-07") {
+        if (model === undefined || model === null || model === "") return true;
+        return modelSupportsContext1mBeta(model);
+      }
+      if (lower === "skills-2025-10-02") {
+        if (body === undefined || body === null) return true;
+        return hasCodeExecutionTool(body);
+      }
+      return true;
     });
   const allowSet = new Set(allowList);
   for (const token of clientBeta
@@ -112,6 +342,36 @@ export function mergeClientAnthropicBeta(
     }
   }
   return baseList.join(",");
+}
+
+/**
+ * Apply the client's negotiated `anthropic-beta` to an outbound header set.
+ *
+ * `seedWhenAbsent` is for Anthropic-format upstreams that carry no static beta
+ * set of their own (`anthropic-compatible-*`): without it the caller had no
+ * `anthropic-beta` key to merge into, skipped the merge entirely, and forwarded
+ * no client beta at all rather than a filtered one. The seeded base is empty, so
+ * the allowlist still decides what travels and the gateway never invents betas a
+ * third-party upstream did not advertise. A merge that survives to nothing leaves
+ * the header unset instead of emitting an empty one.
+ */
+export function applyClientAnthropicBeta(
+  headers: Record<string, string>,
+  clientBeta: string | null | undefined,
+  options: { seedWhenAbsent?: boolean; model?: string | null; body?: unknown } = {}
+): void {
+  if (typeof clientBeta !== "string" || !clientBeta.trim()) return;
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  const key = existingKey ?? (options.seedWhenAbsent ? "anthropic-beta" : null);
+  if (!key) return;
+  const merged = mergeClientAnthropicBeta(
+    headers[key] ?? "",
+    clientBeta,
+    undefined,
+    options.model,
+    options.body
+  );
+  if (merged) headers[key] = merged;
 }
 
 /**
@@ -166,8 +426,51 @@ export function normalizeAnthropicHeaderVariants(headers: Record<string, string>
 }
 
 export const CLAUDE_CLI_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export function getClaudeCliVersion(): string {
+  return getClaudeCodeClientVersion();
+}
 export const CLAUDE_CLI_BUILD_REVISION = CLAUDE_CODE_CLIENT_BUILD_REVISION;
+/** Captured-pin snapshot. Wire billing uses getClaudeCliBillingVersion(). */
 export const CLAUDE_CLI_BILLING_VERSION = CLAUDE_CODE_CLIENT_BILLING_VERSION;
+export function getClaudeCliBillingVersion(): string {
+  return getClaudeCodeClientBillingVersion();
+}
+/** Module-load snapshot of the pin (or env if set before import). Wire UA uses getClaudeCodeUserAgent(). */
 export const CLAUDE_CLI_USER_AGENT = getClaudeCodeUserAgent("cli");
+export { getClaudeCodeUserAgent };
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = CLAUDE_CODE_RUNTIME_VERSION;
+
+/**
+ * Merge a Claude-Code-shaped header set over the outbound headers, dropping any
+ * case variant of the same name first — undici would otherwise concatenate the two
+ * into a single rejected value (issue #1454).
+ */
+export function mergeCcHeaders(
+  headers: Record<string, string>,
+  ccHeaders: Record<string, string>
+): void {
+  const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
+  for (const key of Object.keys(headers)) {
+    if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
+  }
+  Object.assign(headers, ccHeaders);
+}
+
+/**
+ * Stainless SDK metadata for the Claude wire image. OS/arch follow the host running
+ * the signed binary; the runtime version is pinned to the captured CLI, not OmniRoute's
+ * Node. Mutates `headers`.
+ */
+export function applyStainlessHeaders(
+  headers: Record<string, string>,
+  parts: { arch: string; os: string }
+): void {
+  headers["X-Stainless-Arch"] = parts.arch;
+  headers["X-Stainless-Lang"] = "js";
+  headers["X-Stainless-OS"] = parts.os;
+  headers["X-Stainless-Runtime"] = "node";
+  headers["X-Stainless-Runtime-Version"] = CLAUDE_CLI_STAINLESS_RUNTIME_VERSION;
+  headers["X-Stainless-Retry-Count"] = "0";
+  delete headers["X-Stainless-Os"];
+}

@@ -4,6 +4,51 @@ import {
   getCachedAntigravityIdeVersion,
 } from "./antigravityVersion.ts";
 
+// loadCodeAssist/onboardUser's `metadata` body is a protobuf-JSON-shaped
+// object — ideType/pluginType are int32 enums on the wire, not strings, and
+// platform is required. Values mirror the sibling 9router project's
+// LOAD_CODE_ASSIST_METADATA (open-sse/config/appConstants.js).
+//
+// Live comparison (same Google account, same host, 2026-08-25): 9Router
+// (this exact metadata shape, including a Linux platform enum) succeeded
+// against loadCodeAssist/onboardUser; OmniRoute (ideType as the bare string
+// "ANTIGRAVITY", no platform/pluginType) got 403 on both from the identical
+// account. Sending an incomplete client identity reads to Google's backend
+// as untrusted and gets rejected.
+//
+// NOTE: a prior version of this function carried the comment "Matches
+// Antigravity-Manager quota.rs: only ideType (no platform — LINUX is
+// rejected)" — the opposite conclusion, presumably true when it was
+// written. Trusting the fresh live comparison over that stale claim here;
+// if this regresses Linux specifically, that old note is why.
+const ANTIGRAVITY_IDE_TYPE_ENUM = 9;
+const ANTIGRAVITY_PLUGIN_TYPE_GEMINI_ENUM = 2;
+const ANTIGRAVITY_PLATFORM_ENUM = {
+  UNSPECIFIED: 0,
+  DARWIN_AMD64: 1,
+  DARWIN_ARM64: 2,
+  LINUX_AMD64: 3,
+  LINUX_ARM64: 4,
+  WINDOWS_AMD64: 5,
+} as const;
+
+function resolveAntigravityPlatformEnum(): number {
+  const platform = process.platform;
+  const arch = process.arch;
+  if (platform === "darwin") {
+    return arch === "arm64"
+      ? ANTIGRAVITY_PLATFORM_ENUM.DARWIN_ARM64
+      : ANTIGRAVITY_PLATFORM_ENUM.DARWIN_AMD64;
+  }
+  if (platform === "linux") {
+    return arch === "arm64"
+      ? ANTIGRAVITY_PLATFORM_ENUM.LINUX_ARM64
+      : ANTIGRAVITY_PLATFORM_ENUM.LINUX_AMD64;
+  }
+  if (platform === "win32") return ANTIGRAVITY_PLATFORM_ENUM.WINDOWS_AMD64;
+  return ANTIGRAVITY_PLATFORM_ENUM.UNSPECIFIED;
+}
+
 export const ANTIGRAVITY_IDE_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
 export const ANTIGRAVITY_IDE_NODE_X_GOOG_API_CLIENT = "gl-node/22.21.1";
 
@@ -68,8 +113,10 @@ export function getAntigravityIdeNodeHeaders(accessToken?: string | null): Recor
 }
 
 /** Native loadCodeAssist body metadata captured from both official clients. */
-export function getAntigravityLoadCodeAssistMetadata(): Record<string, string> {
+export function getAntigravityLoadCodeAssistMetadata(): Record<string, number> {
   return {
-    ideType: "ANTIGRAVITY",
+    ideType: ANTIGRAVITY_IDE_TYPE_ENUM,
+    platform: resolveAntigravityPlatformEnum(),
+    pluginType: ANTIGRAVITY_PLUGIN_TYPE_GEMINI_ENUM,
   };
 }

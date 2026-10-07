@@ -37,6 +37,7 @@ export async function getChatGptWebCodexDoctorStatus(connection: {
   );
   let storageState = false;
   let login = false;
+  let solAvailable = data.solAvailable !== false;
   let proAvailable = data.proAvailable === true;
   let credential = false;
   try {
@@ -44,22 +45,13 @@ export async function getChatGptWebCodexDoctorStatus(connection: {
     credential = Boolean(secrets.storageState);
     if (credential) ensureConnectionStorageStateFromCredential(connectionId, secrets);
     storageState = existsSync(paths.storageStatePath);
-    login = browserLoginStateExists({
-      mode: "browser-only",
-      appName: "OmniRoute Codex",
-      storageStatePath: paths.storageStatePath,
-      brokerSocketPath: paths.brokerSocketPath,
-      ...(chrome ? { chromeExecutablePath: chrome } : {}),
-      ...(cdpConfigured ? { cdpEndpoint: process.env.CHATGPT_WEB_CODEX_CDP_URL } : {}),
-      headed: false,
-      proAvailable,
-      autoApproveToolCalls: false,
-    });
+    login = browserLoginStateExists({ storageStatePath: paths.storageStatePath });
     if (login) {
       try {
         const marker = JSON.parse(
           readFileSync(`${paths.storageStatePath}.verified.json`, "utf8")
         ) as Record<string, unknown>;
+        if (typeof marker.solAvailable === "boolean") solAvailable = marker.solAvailable;
         if (typeof marker.proAvailable === "boolean") proAvailable = marker.proAvailable;
       } catch {
         // Marker detail is optional.
@@ -105,6 +97,7 @@ export async function getChatGptWebCodexDoctorStatus(connection: {
     toolRoundtrip: { ready: tunnel.ok && runtime.brokers > 0 },
     runtime,
     lease,
+    solAvailable,
     proAvailable,
     recovery: {
       interactiveLoginRequired: storageState && !login,

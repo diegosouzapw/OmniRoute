@@ -7,6 +7,7 @@ import {
 } from "../../src/lib/modelCapabilityModalities.ts";
 import {
   MODALITY_BRIDGE_DEFAULTS,
+  resolveVideoAudioTranscriptionRuntimeSettings,
   resolveVideoBridgeRuntimeSettings,
 } from "../../src/shared/constants/modalityBridgeDefaults.ts";
 import { updateSettingsSchema } from "../../src/shared/validation/settingsSchemas.ts";
@@ -93,5 +94,24 @@ test("persisted segment-aware policy remains an explicit opt-in", () => {
     resolveVideoBridgeRuntimeSettings({ modalityBridgeVideoSamplingPolicy: "segment_aware" })
       .samplingPolicy,
     "segment_aware"
+  );
+});
+
+test("the operator half of the FU-06 audio-transcription dual opt-in defaults OFF (#11654)", () => {
+  assert.deepEqual(resolveVideoAudioTranscriptionRuntimeSettings({}), { enabled: false });
+  assert.deepEqual(resolveVideoAudioTranscriptionRuntimeSettings(undefined), { enabled: false });
+  assert.deepEqual(
+    resolveVideoAudioTranscriptionRuntimeSettings({
+      modalityBridgeVideoAudioTranscriptionEnabled: true,
+    }),
+    { enabled: true }
+  );
+  assert.equal(
+    updateSettingsSchema.safeParse({ modalityBridgeVideoAudioTranscriptionEnabled: true }).success,
+    true
+  );
+  assert.equal(
+    updateSettingsSchema.safeParse({ modalityBridgeVideoAudioTranscriptionEnabled: "yes" }).success,
+    false
   );
 });

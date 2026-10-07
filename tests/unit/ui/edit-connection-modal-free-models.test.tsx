@@ -37,14 +37,6 @@ function render(props: Record<string, unknown>) {
   return el;
 }
 
-function setInputValue(input: HTMLInputElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
-  act(() => {
-    setter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-}
-
 async function waitFor(fn: () => boolean, timeoutMs = 2000) {
   const start = Date.now();
   while (!fn()) {
@@ -273,7 +265,7 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
 });
 
 describe("EditConnectionModal — quota scraping fields", () => {
-  it("saves OpenCode Go workspace and replacement auth cookie", async () => {
+  it("renders only the API key for OpenCode Go and saves no scraping credentials", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const el = render({
       providerId: "opencode-go",
@@ -287,13 +279,9 @@ describe("EditConnectionModal — quota scraping fields", () => {
       onSave,
     });
 
-    const workspaceInput = el.querySelector<HTMLInputElement>(
-      'input[name="opencodeGoWorkspaceId"]'
-    )!;
-    const cookieInput = el.querySelector<HTMLInputElement>('input[name="opencodeGoAuthCookie"]')!;
-    expect(workspaceInput.value).toBe("workspace-existing");
-    setInputValue(workspaceInput, "workspace-updated");
-    setInputValue(cookieInput, "auth=opencode-cookie");
+    expect(el.querySelector('input[name="opencodeGoWorkspaceId"]')).toBeNull();
+    expect(el.querySelector('input[name="opencodeGoAuthCookie"]')).toBeNull();
+    expect(el.querySelector('input[placeholder="enterNewApiKey"]')).toBeTruthy();
 
     const saveBtn = Array.from(el.querySelectorAll("button")).find(
       (b) => b.textContent?.trim() === "save"
@@ -304,8 +292,8 @@ describe("EditConnectionModal — quota scraping fields", () => {
 
     await waitFor(() => onSave.mock.calls.length > 0);
     const payload = onSave.mock.calls[0][0];
-    expect(payload.providerSpecificData?.opencodeGoWorkspaceId).toBe("workspace-updated");
-    expect(payload.providerSpecificData?.opencodeGoAuthCookie).toBe("auth=opencode-cookie");
+    expect(payload.providerSpecificData).not.toHaveProperty("opencodeGoWorkspaceId");
+    expect(payload.providerSpecificData).not.toHaveProperty("opencodeGoAuthCookie");
   });
 
   it("omits Ollama Cloud usage cookie when the edit field is left blank", async () => {

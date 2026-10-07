@@ -20,7 +20,7 @@ const providers = [
 ] as const;
 
 for (const [id, alias, endpoint] of providers) {
-  test(`${id} is wired through registry, metadata, endpoint and default executor`, () => {
+  test(`${id} is wired through registry, metadata, endpoint and default executor`, async () => {
     const registry = REGISTRY[id];
     const metadata = APIKEY_PROVIDERS[id];
 
@@ -35,7 +35,7 @@ for (const [id, alias, endpoint] of providers) {
     assert.equal(metadata.hasFree, true);
     assert.equal(metadata.passthroughModels, true);
     assert.ok(typeof metadata.freeNote === "string" && metadata.freeNote.length > 0);
-    assert.ok(getExecutor(id) instanceof DefaultExecutor);
+    assert.ok((await getExecutor(id)) instanceof DefaultExecutor);
     assert.equal(isValidModel(id, "future/live-catalog-model"), true);
     assert.equal(isValidModel(alias, "future/live-catalog-model"), true);
   });

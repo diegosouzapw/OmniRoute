@@ -1,4 +1,5 @@
-import { assignProxyToScope, getProxyAssignments, resolveProxyForConnection } from "@/lib/localDb";
+import { assignProxyToScope, getProxyAssignments } from "@/lib/db/proxies";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { proxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";

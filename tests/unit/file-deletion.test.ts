@@ -8,8 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-file-dele
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { createFile, deleteFile, listFiles, createBatch, getBatch, updateBatch } =
-  await import("@/lib/localDb");
+const { createFile, deleteFile, listFiles } = await import("@/lib/db/files");
+const { createBatch, getBatch, updateBatch } = await import("@/lib/db/batches");
 const { getDbInstance, resetDbInstance } = await import("@/lib/db/core");
 
 after(() => {

@@ -74,6 +74,18 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+// Wraps the GET so a failure comes back as a value: the load callback then only
+// sets state after the await (no synchronous setState reachable from the effect).
+async function fetchParamFilterConfigSafe(
+  providerId: string
+): Promise<{ ok: boolean; config?: ParamFilterConfig; error?: string }> {
+  try {
+    return { ok: true, config: await fetchParamFilterConfig(providerId) };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // State hook — owns config load/save/reset so the component body stays JSX-only.
 // ---------------------------------------------------------------------------
@@ -95,7 +107,10 @@ function useDirtySetter<T>(setValue: (value: T) => void, setDirty: (value: boole
 function useProviderParamFilterConfig(providerId: string, t: Translate) {
   const notify = useNotificationStore();
   const [, setConfig] = useState<ParamFilterConfig>({ block: [], allow: [], autoLearn: false });
-  const [loading, setLoading] = useState(true);
+  // Loading is derived: true until a load attempt for the CURRENT provider
+  // settles — this also re-shows the skeleton when providerId changes.
+  const [loadedProviderId, setLoadedProviderId] = useState<string | null>(null);
+  const loading = loadedProviderId !== providerId;
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [blockText, setBlockTextState] = useState("");
@@ -106,24 +121,24 @@ function useProviderParamFilterConfig(providerId: string, t: Translate) {
   const setAllowText = useDirtySetter(setAllowTextState, setDirty);
   const setAutoLearn = useDirtySetter(setAutoLearnState, setDirty);
 
-  const loadConfig = useCallback(async () => {
-    setLoading(true);
-    try {
-      const cfg = await fetchParamFilterConfig(providerId);
-      setConfig(cfg);
-      setBlockTextState(formatCommaList(cfg.block));
-      setAllowTextState(formatCommaList(cfg.allow));
-      setAutoLearnState(cfg.autoLearn);
-    } catch (err) {
-      notify.notify(t("paramFiltersLoadError", { error: errorMessage(err) }), "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [providerId, notify, t]);
-
+  // The async work is defined INSIDE the effect (a component-scope loader
+  // called synchronously from an effect is rejected by the compiler rules);
+  // every setState here runs after the await.
   useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+    const run = async () => {
+      const outcome = await fetchParamFilterConfigSafe(providerId);
+      if (outcome.ok) {
+        setConfig(outcome.config);
+        setBlockTextState(formatCommaList(outcome.config.block));
+        setAllowTextState(formatCommaList(outcome.config.allow));
+        setAutoLearnState(outcome.config.autoLearn);
+      } else {
+        notify.notify(t("paramFiltersLoadError", { error: outcome.error }), "error");
+      }
+      setLoadedProviderId(providerId);
+    };
+    void run();
+  }, [providerId, notify, t]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Input, Modal } from "@/shared/components";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
+import { extractErrorMessage } from "@/shared/utils/upstreamError";
 
 /**
  * VolcengineConnectModal — phone/SMS-code login for the Volcano Engine console.
@@ -66,6 +67,16 @@ function isTerminal(phase: SessionPhase | undefined): boolean {
   return !!phase && TERMINAL_PHASES.includes(phase);
 }
 
+function extractModalError(data: unknown, fallback: string): string {
+  const record = data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+  return (
+    extractErrorMessage(record?.error) ||
+    (typeof record?.error === "string" ? record.error : null) ||
+    (typeof record?.message === "string" ? record.message : null) ||
+    fallback
+  );
+}
+
 type VolcengineConnectModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -88,7 +99,16 @@ export default function VolcengineConnectModal({
   notify,
   t,
 }: VolcengineConnectModalProps) {
-  const [phone, setPhone] = useState("");
+  // Prefilled from the last successful login via a lazy initializer — reading
+  // localStorage inside the open effect required a synchronous setState there.
+  const [phone, setPhone] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return localStorage.getItem(PHONE_STORAGE_KEY) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [code, setCode] = useState("");
   const [captcha, setCaptcha] = useState("");
   const [session, setSession] = useState<SessionView | null>(null);
@@ -99,6 +119,12 @@ export default function VolcengineConnectModal({
   const [resendCountdown, setResendCountdown] = useState(0);
 
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Latest session, mirrored for the close/unmount cleanup below — that effect
+  // only depends on isOpen, so reading the state directly would be stale.
+  const sessionRef = useRef<SessionView | null>(null);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   // ── lifecycle ────────────────────────────────────────────────────────────
 
@@ -117,22 +143,35 @@ export default function VolcengineConnectModal({
     setResendCountdown(0);
   }, [stopTimers]);
 
+  // Leaving the modal cancels an in-flight session server-side and stops
+  // polling. Runs as the cleanup of this open-scoped effect (no setState here).
   useEffect(() => {
-    if (!isOpen) {
-      // Leaving the modal cancels an in-flight session server-side.
-      const active = session && !isTerminal(session.phase) ? session : null;
+    if (!isOpen) return;
+    return () => {
+      const current = sessionRef.current;
+      const active = current && !isTerminal(current.phase) ? current : null;
       if (active) {
         void fetch(`/api/providers/volcengine-plan/connect/${active.sessionId}/cancel`, {
           method: "POST",
         }).catch(() => {});
       }
-      reset();
-      return;
+      stopTimers();
+    };
+  }, [isOpen, stopTimers]);
+
+  // Local state reset on close — a render-phase adjustment guarded by the
+  // previous isOpen value (react.dev "adjusting state when a prop changes")
+  // instead of a synchronous setState inside an effect.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setSession(null);
+      setCode("");
+      setCaptcha("");
+      setResendCountdown(0);
     }
-    const saved = typeof window !== "undefined" ? localStorage.getItem(PHONE_STORAGE_KEY) : null;
-    if (saved) setPhone(saved);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }
 
   useEffect(() => stopTimers, [stopTimers]);
 
@@ -190,7 +229,7 @@ export default function VolcengineConnectModal({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.success || !data?.session) {
-        throw new Error(data?.error || "Failed to start Volcano login");
+        throw new Error(extractModalError(data, "Failed to start Volcano login"));
       }
       setSession(data.session);
       setResendCountdown(
@@ -241,7 +280,7 @@ export default function VolcengineConnectModal({
           void onConnected();
         }
       } else {
-        throw new Error(data?.error || "Failed to submit verification code");
+        throw new Error(extractModalError(data, "Failed to submit verification code"));
       }
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "Failed to submit verification code");

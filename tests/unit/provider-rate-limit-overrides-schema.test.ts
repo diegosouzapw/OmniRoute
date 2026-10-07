@@ -13,6 +13,7 @@ function parse(overrides: unknown) {
 test("rateLimitOverrides: valid object with all fields", () => {
   const r = parse({
     rpm: 100,
+    rpd: 5000,
     tpm: 50000,
     tpd: 1000000,
     minTime: 100,
@@ -22,12 +23,31 @@ test("rateLimitOverrides: valid object with all fields", () => {
   assert.ok(r.success, String(r.error));
   assert.deepEqual(r.data.rateLimitOverrides, {
     rpm: 100,
+    rpd: 5000,
     tpm: 50000,
     tpd: 1000000,
     minTime: 100,
     maxConcurrent: 5,
     maxWaitMs: 45000,
   });
+});
+
+test("rateLimitOverrides: rpd coerced from string", () => {
+  const r = parse({ rpd: "500" });
+  assert.ok(r.success, String(r.error));
+  assert.equal(r.data.rateLimitOverrides.rpd, 500);
+});
+
+test("rateLimitOverrides: rejects negative rpd", () => {
+  assert.equal(parse({ rpd: -1 }).success, false);
+});
+
+test("rateLimitOverrides: rejects float rpd", () => {
+  assert.equal(parse({ rpd: 1.5 }).success, false);
+});
+
+test("rateLimitOverrides: rejects rpd above max", () => {
+  assert.equal(parse({ rpd: 10_000_001 }).success, false);
 });
 
 test("rateLimitOverrides: partial fields", () => {

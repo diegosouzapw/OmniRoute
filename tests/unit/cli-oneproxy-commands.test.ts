@@ -44,14 +44,19 @@ test("oneproxy stats passa provider e period para MCP", async () => {
   const origFetch = globalThis.fetch;
   globalThis.fetch = makeMcpStreamFetch({ toolResult: { requests: 5000 } });
   const { mcpCallTool } = await import("../../bin/cli/mcpClient.mjs");
-  const result = await mcpCallTool("omniroute_oneproxy_stats", { provider: "openai", period: "24h" });
+  const result = await mcpCallTool("omniroute_oneproxy_stats", {
+    provider: "openai",
+    period: "24h",
+  });
   globalThis.fetch = origFetch;
   assert.deepEqual(result, { requests: 5000 });
 });
 
 test("oneproxy fetch chama omniroute_oneproxy_fetch com count e type", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = makeMcpStreamFetch({ toolResult: { proxies: [{ host: "10.0.0.1", type: "http" }] } });
+  globalThis.fetch = makeMcpStreamFetch({
+    toolResult: { proxies: [{ host: "10.0.0.1", type: "http" }] },
+  });
   const { mcpCallTool } = await import("../../bin/cli/mcpClient.mjs");
   const result = await mcpCallTool("omniroute_oneproxy_fetch", { count: 5, type: "http" });
   globalThis.fetch = origFetch;

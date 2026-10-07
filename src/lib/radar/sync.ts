@@ -55,6 +55,8 @@ export type SyncStatus =
 
 export interface RadarCacheEntry {
   version: string;
+  /** Date the feed's data was built (`generatedAt`), as validated by the schema. */
+  generatedAt?: string | null;
   tier: string;
   payload: string;
   signature: string;
@@ -313,6 +315,7 @@ export async function syncRadar(deps: SyncDeps = {}): Promise<SyncStatus> {
     // Step 9: Cache the result
     const cacheEntry: RadarCacheEntry = {
       version: feed.version,
+      generatedAt: feed.generatedAt,
       tier: servedTier,
       payload: rawBytes.toString("utf-8"),
       signature,

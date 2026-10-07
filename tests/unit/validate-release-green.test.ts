@@ -31,6 +31,22 @@ test("eslintCounts sums errors + warnings across files", () => {
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
 });
 
+test("ESLint JSON with zero findings cannot hide a failed process", () => {
+  const results = evaluateEslintRun({ code: 42, out: '[{"errorCount":0,"warningCount":0}]' }, 0);
+  assert.equal(computeVerdict(results).releaseGreen, false);
+  assert.match(results[0].detail, /42/);
+});
+
+test("timeout diagnostics retain partial stdout and stderr", () => {
+  const result = classifyRunError(
+    { code: "ETIMEDOUT", stdout: "last completed test\n", stderr: "worker diagnostic\n" },
+    1000
+  );
+  assert.equal(result.code, 124);
+  assert.match(result.out, /last completed test/);
+  assert.match(result.out, /worker diagnostic/);
+});
+
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
   const out = 'npm warn something\n[{"errorCount":0,"warningCount":1}]';
   assert.deepEqual(parseEslintJson(out), [{ errorCount: 0, warningCount: 1 }]);
@@ -221,6 +237,26 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
 });
 
+test("pre-flight reports pricing freshness as drift, not as a hard failure", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // The gate reads git history (KNOWN_MODEL_PRICING untouched for 90 days), so it turns red
+  // by itself as time passes: a drift entry keeps it visible without blocking a release.
+  assert.match(
+    src,
+    /driftCmd\(\s*"pricing-freshness"[\s\S]*?"check:pricing-freshness"/,
+    "pricing-freshness must run check:pricing-freshness as a drift check"
+  );
+  assert.doesNotMatch(
+    src,
+    /hardCmd\(\s*"pricing-freshness"/,
+    "pricing-freshness must not be a HARD gate"
+  );
+});
+
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
   const fs = await import("node:fs");
   const src = fs.readFileSync(
@@ -246,7 +282,8 @@ test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h ser
   // main() must be async and the slow suites (unit/vitest/integration/pack-artifact)
   // must run via a single Promise.all over runAsync — not four sequential hardCmd calls.
   assert.match(src, /async function main\(\)/, "main must be async to await the parallel wave");
-  assert.match(src, /const execFileAsync = promisify\(execFile\)/, "async runner must exist");
+  assert.match(src, /await runGateProcess\(/, "commands must use the asynchronous supervisor");
+  assert.match(src, /const runAsync = run/, "slow suites must use the same supervised runner");
   assert.match(src, /await Promise\.all\(\s*slow\.map\(/, "slow suites must run concurrently");
   // The four slow-gate ids must all be present in the parallel wave.
   for (const id of ["unit", "vitest", "integration", "pack-artifact"]) {
@@ -275,6 +312,33 @@ test("pre-flight runs tarball boot only after the package artifact builder compl
     /packArtifactResult[\s\S]*?check:pack-boot/,
     "pack-boot must be explicitly sequenced from the package-artifact result"
   );
+});
+
+test("pack gate builds, stamps dist/BUILD_SHA, then validates against the tree under test (#10427)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  const gate = src.slice(src.indexOf("async function runPackArtifactGate"));
+  assert.ok(gate.length > 0, "the pack gate runner must exist");
+  const buildAt = gate.indexOf('"build:cli"');
+  const stampAt = gate.indexOf("scripts/build/write-build-sha.mjs");
+  const checkAt = gate.indexOf('"check:pack-artifact"');
+  // `build:cli` never writes dist/BUILD_SHA, so a bare `check:pack-artifact` always failed
+  // the provenance guard with "dist/BUILD_SHA is missing" — the same trap ci.yml avoids.
+  assert.ok(buildAt >= 0 && stampAt > buildAt, "BUILD_SHA must be stamped after build:cli");
+  assert.ok(checkAt > stampAt, "the artifact must be validated only after it is stamped");
+  assert.match(
+    gate.slice(checkAt, checkAt + 200),
+    /env: PACK_GATE_ENV/,
+    "a release-branch tip is never an ancestor of origin/main mid-cycle"
+  );
+  assert.match(src, /const PACK_GATE_ENV = \{ OMNIROUTE_RELEASE_REF: "HEAD" \}/);
+  // Both entry points (the parallel wave and --with-build --quick) must use it.
+  assert.equal(src.match(/runPackArtifactGate\b/g)?.length, 3);
+  assert.doesNotMatch(src, /runAsync\(npmCmd, \["run", "check:pack-artifact"\]/);
+  assert.doesNotMatch(src, /id: "pack-artifact",[^}]*args:/);
 });
 
 // ─── --full-ci gate extraction (P0, v3.8.46 post-mortem) ─────────────────────
@@ -380,6 +444,16 @@ test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.4
     assert.ok(ids.has(g), `real ci.yml must expose ${g} to --full-ci`);
   }
   assert.ok(ids.size >= 20, "the real gate set is substantial (>= 20 static gates)");
+});
+
+test("validate-release-green parses workflow YAML via the declared js-yaml dependency", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  assert.match(src, /from ["']js-yaml["']/);
+  assert.doesNotMatch(src, /from ["']yaml["']/);
 });
 
 // ─── Verdict accuracy (review of the #9985 release-green verdict) ────────────
@@ -494,4 +568,23 @@ test("the --full-ci loop classifies from the curated results, not a hardcoded ki
     /kind:\s*fullCiKindFor\(g\.id,\s*results\)/,
     "--full-ci must classify each ci.yml gate through fullCiKindFor()"
   );
+});
+
+test("extractCiGates: skips steps guarded to pull_request events (no PR range outside a PR)", () => {
+  const yaml = `
+jobs:
+  lint:
+    steps:
+      - run: npm run check:public-creds
+      - name: AI attribution
+        if: github.event_name == 'pull_request'
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          npm run check:ai-attribution -- --range "$PR_BASE_SHA..$PR_HEAD_SHA"
+      - name: still local
+        if: github.event_name != 'pull_request'
+        run: npm run check:db-rules
+`;
+  const ids = extract(yaml).map((g) => g.id);
+  assert.deepEqual(ids, ["check:public-creds", "check:db-rules"]);
 });

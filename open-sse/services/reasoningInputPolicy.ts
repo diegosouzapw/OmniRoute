@@ -43,7 +43,19 @@ export function resolveReasoningTransport(
 ): ReasoningTransport {
   const normalized = typeof provider === "string" ? provider.trim().toLowerCase() : "";
   const transport = REASONING_TRANSPORTS.get(normalized);
-  return transport ?? (preserveEncryptedReasoning ? "opaque" : "plaintext");
+  if (transport) return transport;
+  // #12128: Generic Responses-protocol endpoints (e.g. openai-compatible-responses-*,
+  // custom-openai-responses, proxy backends) implement the OpenAI/Codex Responses API
+  // where reasoning input items cannot accept plaintext content (maxItems: 0).
+  if (
+    normalized.startsWith("openai-compatible-responses") ||
+    normalized.startsWith("custom-openai-responses") ||
+    normalized.includes("codex") ||
+    normalized.includes("responses")
+  ) {
+    return "opaque";
+  }
+  return preserveEncryptedReasoning ? "opaque" : "plaintext";
 }
 
 function asRecord(value: unknown): JsonRecord | null {

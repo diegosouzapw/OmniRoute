@@ -125,6 +125,8 @@ export interface DailyCostRow {
   cacheReadTokens: number;
   cacheCreationTokens: number;
   reasoningTokens: number;
+  storedCost: number;
+  isAggregated: number;
 }
 
 /**
@@ -144,7 +146,9 @@ export function getDailyCostRows(unifiedSource: string, params: AnalyticsParams)
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
         COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+        COALESCE(SUM(stored_cost), 0.0) as storedCost,
+        MAX(is_aggregated) as isAggregated
       FROM ${unifiedSource} AS _u
       GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
       ORDER BY date ASC
@@ -201,6 +205,8 @@ export interface ModelUsageRow {
   avgLatencyMs: number;
   successfulRequests: number;
   lastUsed: string;
+  storedCost: number;
+  isAggregated: number;
 }
 
 /**
@@ -224,9 +230,14 @@ export function getModelUsageRows(unifiedSource: string, params: AnalyticsParams
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
         COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
         COALESCE(SUM(CASE WHEN success = 1 THEN requests ELSE 0 END), 0) as successfulRequests,
-        COALESCE(MAX(timestamp), '') as lastUsed
+        COALESCE(MAX(timestamp), '') as lastUsed,
+        COALESCE(SUM(stored_cost), 0.0) as storedCost,
+        MAX(is_aggregated) as isAggregated
       FROM ${unifiedSource} AS _u
-      GROUP BY LOWER(model), LOWER(provider), serviceTier
+      -- Keep cost inputs separated by day. Historical provider rows do not
+      -- always use one cache-token convention, and computeCostFromPricing's
+      -- non-cached-input clamp is intentionally non-linear across those rows.
+      GROUP BY DATE(timestamp), LOWER(model), LOWER(provider), serviceTier
       ORDER BY requests DESC
     `
     )
@@ -244,6 +255,8 @@ export interface ProviderCostRow {
   cacheReadTokens: number;
   cacheCreationTokens: number;
   reasoningTokens: number;
+  storedCost: number;
+  isAggregated: number;
 }
 
 /**
@@ -265,9 +278,11 @@ export function getProviderCostRows(
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
         COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+        COALESCE(SUM(stored_cost), 0.0) as storedCost,
+        MAX(is_aggregated) as isAggregated
       FROM ${unifiedSource} AS _u
-      GROUP BY LOWER(provider), LOWER(model), serviceTier
+      GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
     `
     )
     .all(params) as ProviderCostRow[];
@@ -347,6 +362,7 @@ export function getAccountCostRows(whereClause: string, params: AnalyticsParams)
           usage_history.provider,
           usage_history.model,
           usage_history.service_tier,
+          usage_history.timestamp,
           usage_history.tokens_input,
           usage_history.tokens_output,
           usage_history.tokens_cache_read,
@@ -366,7 +382,7 @@ export function getAccountCostRows(whereClause: string, params: AnalyticsParams)
         COALESCE(SUM(account_events.tokens_cache_creation), 0) as cacheCreationTokens,
         COALESCE(SUM(account_events.tokens_reasoning), 0) as reasoningTokens
       FROM account_events
-      GROUP BY accountKey, LOWER(account_events.provider), LOWER(account_events.model), serviceTier
+      GROUP BY DATE(account_events.timestamp), accountKey, LOWER(account_events.provider), LOWER(account_events.model), serviceTier
     `
     )
     .all(params) as AccountCostRow[];
@@ -516,7 +532,7 @@ export function getApiKeyUsageRows(
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
       FROM usage_history
       ${apiKeyWhereClause}
-      GROUP BY COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown'), NULLIF(api_key_id, ''), LOWER(provider), LOWER(model), serviceTier
+      GROUP BY DATE(timestamp), COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown'), NULLIF(api_key_id, ''), LOWER(provider), LOWER(model), serviceTier
     `
     )
     .all(params) as ApiKeyUsageRow[];
@@ -535,6 +551,8 @@ export interface ServiceTierUsageRow {
   cacheCreationTokens: number;
   reasoningTokens: number;
   totalTokens: number;
+  storedCost: number;
+  isAggregated: number;
 }
 
 /**
@@ -559,9 +577,11 @@ export function getServiceTierUsageRows(
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
         COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
         COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
-        COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
+        COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
+        COALESCE(SUM(stored_cost), 0.0) as storedCost,
+        MAX(is_aggregated) as isAggregated
       FROM ${unifiedSource} AS _u
-      GROUP BY serviceTier, LOWER(provider), LOWER(model)
+      GROUP BY DATE(timestamp), serviceTier, LOWER(provider), LOWER(model)
     `
     )
     .all(params) as ServiceTierUsageRow[];
@@ -656,6 +676,8 @@ export interface PresetCostModelRow {
   cacheReadTokens: number;
   cacheCreationTokens: number;
   reasoningTokens: number;
+  storedCost: number;
+  isAggregated: number;
 }
 
 /**
@@ -678,9 +700,11 @@ export function getPresetCostModelRows(
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
         COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+        COALESCE(SUM(stored_cost), 0.0) as storedCost,
+        MAX(is_aggregated) as isAggregated
       FROM ${presetUnifiedSource} AS _pu
-      GROUP BY LOWER(model), LOWER(provider), serviceTier
+      GROUP BY DATE(timestamp), LOWER(model), LOWER(provider), serviceTier
     `
     )
     .all(params) as PresetCostModelRow[];

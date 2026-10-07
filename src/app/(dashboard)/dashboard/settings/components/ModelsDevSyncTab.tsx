@@ -64,6 +64,16 @@ function formatInterval(hours: number): string {
   return hours === 168 ? "7d" : `${hours}h`;
 }
 
+async function fetchSyncStatusData(): Promise<ModelsDevStatus | null> {
+  try {
+    const res = await fetch("/api/settings/models-dev?action=status");
+    if (res.ok) return (await res.json()) as ModelsDevStatus;
+  } catch {
+    // Silently fail — sync may not be initialized yet
+  }
+  return null;
+}
+
 export default function ModelsDevSyncTab() {
   const t = useTranslations("settings");
   const [status, setStatus] = useState<ModelsDevStatus | null>(null);
@@ -78,21 +88,21 @@ export default function ModelsDevSyncTab() {
   );
 
   const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch("/api/settings/models-dev?action=status");
-      if (res.ok) {
-        const data = await res.json();
-        setStatus(data);
-      }
-    } catch {
-      // Silently fail — sync may not be initialized yet
-    }
+    const data = await fetchSyncStatusData();
+    if (data) setStatus(data);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchStatus(), fetch("/api/settings").then((r) => (r.ok ? r.json() : null))])
-      .then(([, settingsData]) => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [statusData, settingsData] = await Promise.all([
+          fetchSyncStatusData(),
+          fetch("/api/settings").then((r) => (r.ok ? r.json() : null)),
+        ]);
+        if (cancelled) return;
+        if (statusData) setStatus(statusData);
         if (settingsData) {
           setEnabled(settingsData.modelsDevSyncEnabled === true);
           const intervalMs = settingsData.modelsDevSyncInterval || 86400000;
@@ -100,12 +110,17 @@ export default function ModelsDevSyncTab() {
           setIntervalHours(hours);
           setDraftPos(hoursToPosition(hours));
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch models.dev settings:", err);
-        setFeedback({ type: "error", message: "Failed to load settings" });
-      });
-  }, [fetchStatus]);
+        if (!cancelled) setFeedback({ type: "error", message: "Failed to load settings" });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const triggerSync = async () => {
     setSyncing(true);

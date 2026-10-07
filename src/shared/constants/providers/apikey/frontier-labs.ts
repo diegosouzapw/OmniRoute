@@ -15,6 +15,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   reka: {
     id: "reka",
+    serviceKinds: ["llm"],
     alias: "reka",
     name: "Reka",
     icon: "auto_awesome",
@@ -37,12 +38,25 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "PN",
     website: "https://pioneer.ai",
     notice: {
-      text: "Pioneer AI by Fastino Labs. Free $75 usage credits, no credit card required. Use API key auth with a pio_sk_... key. Only open-tier models (Qwen3, Llama, Gemma, SmolLM) work directly — gated models (Claude/GPT/Gemini) require prior fine-tuning via the Pioneer platform.",
+      text: "Pioneer AI by Fastino Labs. Use API key auth with a pio_sk_... key. Only open-tier models (Qwen3, Llama, Gemma, SmolLM) work directly — gated models (Claude/GPT/Gemini) require prior fine-tuning via the Pioneer platform. No free tier — paid plans start with $40 of platform credits.",
       apiKeyUrl: "https://agent.pioneer.ai/settings/api-keys",
       signupUrl: "https://agent.pioneer.ai/auth",
     },
-    hasFree: true,
-    freeNote: "$75 free usage credits — no credit card required",
+    hasFree: false,
+    serviceKinds: ["llm"],
+  },
+  "uc-direct": {
+    id: "uc-direct",
+    alias: "ucd",
+    name: "UC Direct (uncensored.com)",
+    icon: "auto_awesome",
+    color: "#111827",
+    textIcon: "UD",
+    website: "https://uncensored.com",
+    authHint:
+      "Use your uncensored.com Developer API key (uai_sk_live_...). OmniRoute sends it as the X-api-key header to the OpenAI-compatible https://api.uncensored.com/api/v1 endpoint. The key never expires. This is the metered/credits surface; the un-metered subscription chat is the separate 'uc' provider.",
+    apiHint:
+      "UC Direct is OpenAI-compatible on /api/v1. OmniRoute probes /api/v1/models (public) and routes chat traffic to /api/v1/chat/completions. Errors: 402 out of credits, 403 moderation/scope, 429 rate limit.",
     serviceKinds: ["llm"],
   },
   anthropic: {
@@ -77,11 +91,13 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "GQ",
     website: "https://groq.com",
     hasFree: true,
-    freeNote: "Free tier: 30 RPM / 14.4K RPD — no credit card",
+    freeNote:
+      "Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
     serviceKinds: ["llm", "imageToText"],
   },
   blackbox: {
     id: "blackbox",
+    serviceKinds: ["llm"],
     alias: "bb",
     name: "Blackbox AI",
     icon: "view_in_ar",
@@ -128,6 +144,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   perplexity: {
     id: "perplexity",
+    serviceKinds: ["llm"],
     alias: "pplx",
     name: "Perplexity",
     icon: "search",
@@ -135,8 +152,24 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "PP",
     website: "https://www.perplexity.ai",
   },
+  "perplexity-agent": {
+    id: "perplexity-agent",
+    alias: "pplx-agent",
+    name: "Perplexity Agent",
+    icon: "search",
+    color: "#20808D",
+    textIcon: "PA",
+    website: "https://www.perplexity.ai",
+    authHint:
+      "Use your Perplexity API key. OmniRoute routes Agent API model IDs through Perplexity's Responses-compatible endpoint.",
+    apiHint:
+      "Use Agent API model IDs with the pplx-agent/ prefix, for example pplx-agent/openai/gpt-5.6-sol or pplx-agent/anthropic/claude-opus-4-5.",
+    passthroughModels: true,
+    serviceKinds: ["llm"],
+  },
   cohere: {
     id: "cohere",
+    serviceKinds: ["llm"],
     alias: "cohere",
     name: "Cohere",
     icon: "hub",
@@ -148,6 +181,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   "meta-llama": {
     id: "meta-llama",
+    serviceKinds: ["llm"],
     alias: "meta",
     name: "Meta Llama API",
     icon: "smart_toy",
@@ -157,6 +191,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   morph: {
     id: "morph",
+    serviceKinds: ["llm"],
     alias: "morph",
     name: "Morph",
     icon: "auto_fix_high",
@@ -168,6 +203,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   galadriel: {
     id: "galadriel",
+    serviceKinds: ["llm"],
     alias: "galadriel",
     name: "Galadriel",
     icon: "auto_awesome",
@@ -182,6 +218,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   ai21: {
     id: "ai21",
+    serviceKinds: ["llm"],
     alias: "ai21",
     name: "AI21 Labs",
     icon: "psychology_alt",
@@ -193,6 +230,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   venice: {
     id: "venice",
+    serviceKinds: ["llm"],
     alias: "venice",
     name: "Venice.ai",
     icon: "travel_explore",
@@ -202,6 +240,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   codestral: {
     id: "codestral",
+    serviceKinds: ["llm"],
     alias: "codestral",
     name: "Codestral",
     icon: "terminal",
@@ -211,6 +250,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   upstage: {
     id: "upstage",
+    serviceKinds: ["llm"],
     alias: "upstage",
     name: "Upstage",
     icon: "trending_up",
@@ -220,6 +260,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   maritalk: {
     id: "maritalk",
+    serviceKinds: ["llm"],
     alias: "maritalk",
     name: "Maritalk",
     icon: "translate",
@@ -229,6 +270,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   "nous-research": {
     id: "nous-research",
+    serviceKinds: ["llm"],
     alias: "nous",
     name: "Nous Research",
     icon: "hub",
@@ -244,6 +286,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   "arcee-ai": {
     id: "arcee-ai",
+    serviceKinds: ["llm"],
     alias: "arcee",
     name: "Arcee AI",
     icon: "auto_awesome",
@@ -257,6 +300,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   liquid: {
     id: "liquid",
+    serviceKinds: ["llm"],
     alias: "liquid",
     name: "Liquid AI",
     icon: "water_drop",
@@ -271,6 +315,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   inception: {
     id: "inception",
+    serviceKinds: ["llm"],
     alias: "inception",
     name: "Inception",
     icon: "auto_awesome",
@@ -284,6 +329,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
   },
   writer: {
     id: "writer",
+    serviceKinds: ["llm"],
     alias: "writer",
     name: "Writer",
     icon: "auto_awesome",
@@ -292,21 +338,6 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     website: "https://dev.writer.com",
     apiHint:
       "Writer Palmyra is OpenAI-compatible at https://api.writer.com/v1. palmyra-x5 offers a 1M-token context window.",
-    hasFree: false,
-  },
-  "muse-code": {
-    id: "muse-code",
-    alias: "mc",
-    name: "Muse Code (Meta)",
-    icon: "auto_awesome",
-    color: "#0866FF",
-    textIcon: "MC",
-    website: "https://github.com/meta-llama/llama-stack",
-    authHint:
-      "Use your META_API_KEY env var as a Bearer token. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
-    apiHint:
-      "Muse Code is OpenAI-compatible. OmniRoute routes chat traffic through the Responses API and exposes the proprietary model catalog at /v1/muse-code/models.",
-    passthroughModels: true,
     hasFree: false,
   },
 };

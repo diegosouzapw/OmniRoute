@@ -96,7 +96,11 @@ export function extractUserToken(credentials: Record<string, unknown>): string |
 function errorResponse(status: number, message: string, dsCode?: number): Response {
   return new Response(
     JSON.stringify({
-      error: { message, type: "upstream_error", code: dsCode ?? `HTTP_${status}` },
+      error: {
+        message: sanitizeErrorMessage(message),
+        type: "upstream_error",
+        code: dsCode ?? `HTTP_${status}`,
+      },
     }),
     { status, headers: { "Content-Type": "application/json" } }
   );
@@ -141,13 +145,14 @@ function generateFakeCookie(): string {
 
 // ── PoW Solver (DeepSeekHashV1) ─────────────────────────────────────────
 
-async function solvePow(challenge: PowChallenge): Promise<string> {
+async function solvePow(challenge: PowChallenge, signal?: AbortSignal | null): Promise<string> {
   const answer = await solveDeepSeekPowAsync(
     challenge.algorithm,
     challenge.challenge,
     challenge.salt,
     challenge.difficulty,
-    challenge.expire_at
+    challenge.expire_at,
+    { signal }
   );
   if (answer < 0) throw new Error("PoW solver failed");
   return Buffer.from(
@@ -376,6 +381,12 @@ async function collectSSEContent(
   let content = "";
   let reasoningContent = "";
   let currentPath: "thinking" | "content" | "" = "";
+  // Track whether DeepSeek actually signalled completion (`response/status: "FINISHED"`).
+  // Without this, an upstream session drop (expired cookie, anti-bot challenge, network
+  // hiccup) mid-stream was silently reported as a normal "stop" completion with whatever
+  // partial content had arrived so far — e.g. just "I'll check that..." with no follow-up,
+  // HTTP 200, finish_reason "stop". Confirmed in production call logs.
+  let sawFinished = false;
   const streamModel = model || "deepseek-web";
   const thinkingModel = isThinkingModel(streamModel);
   const searchResults: DeepSeekSearchResult[] = [];
@@ -421,6 +432,8 @@ async function collectSSEContent(
         const data = JSON.parse(payload);
         const p = data?.p;
         const v = data?.v;
+
+        if (p === "response/status" && v === "FINISHED") sawFinished = true;
 
         if (v && typeof v === "object" && v.response) {
           if (v.response.thinking_enabled === true) currentPath = "thinking";
@@ -482,6 +495,18 @@ async function collectSSEContent(
 
   const citations = appendSearchCitations(searchResults, streamModel);
   if (citations) content += `\n\n${citations}`;
+
+  // The upstream HTTP body closed without ever sending `response/status: "FINISHED"`.
+  // That means the DeepSeek web session was cut off mid-generation (expired cookie,
+  // anti-bot challenge, network drop, etc.) rather than genuinely completing. Surface
+  // this as an error (caught by execute()'s try/catch -> 502) instead of returning the
+  // partial stub as a successful "stop" response.
+  if (!sawFinished) {
+    throw new Error(
+      "DeepSeek web session ended before completion (no FINISHED signal received) — " +
+        "likely a dropped cookie session or network interruption upstream. Retry the request."
+    );
+  }
 
   return { content, reasoningContent };
 }
@@ -566,11 +591,7 @@ export function messagesToPrompt(
   }
 
   const effectiveWindow =
-    historyWindow > 0
-      ? historyWindow
-      : conversation.length > 1
-        ? DEFAULT_AUTO_HISTORY_WINDOW
-        : 0;
+    historyWindow > 0 ? historyWindow : conversation.length > 1 ? DEFAULT_AUTO_HISTORY_WINDOW : 0;
 
   if (effectiveWindow > 0 && conversation.length > 1) {
     // Rolling-window transcript of the most recent turns (#2942, auto-applied per
@@ -891,8 +912,8 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       return {
         response: errorResponse(
           400,
-          "Invalid credentials: paste your userToken from DeepSeek localStorage " +
-            "(DevTools → Application → Local Storage → chat.deepseek.com → userToken)"
+          "Missing userToken \u2014 paste it from DeepSeek localStorage " +
+            "(DevTools \u2192 Application \u2192 Local Storage \u2192 chat.deepseek.com \u2192 userToken)"
         ),
         url: COMPLETION_URL,
         headers: {},
@@ -932,7 +953,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       // One completion attempt against a given session id (fresh PoW per attempt).
       const performCompletion = async (sid: string) => {
         const powChallenge = await getPowChallenge(accessToken, signal);
-        const powAnswer = await solvePow(powChallenge);
+        const powAnswer = await solvePow(powChallenge, signal);
         const reqHeaders: Record<string, string> = {
           ...FAKE_HEADERS,
           "Content-Type": "application/json",
@@ -1082,13 +1103,49 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       // OpenAI tool_calls. Buffering (even for stream clients) is acceptable because
       // tool invocations are short and need the complete block to parse. (#2820)
       if (hasTools) {
-        const { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+        // The scraped web session occasionally returns a malformed reply where DeepSeek
+        // clearly attempted a tool call (a literal <tool...> tag is present) but the block
+        // could not be parsed even with salvageLeadingJsonObject's recovery (genuinely
+        // truncated JSON, garbled beyond repair, etc). Unlike a real API, this upstream is
+        // non-deterministic enough that simply asking again with a fresh session usually
+        // succeeds — so retry a bounded number of times before giving up and surfacing the
+        // raw (still-tagged) text to the caller.
+        const MAX_TOOL_PARSE_ATTEMPTS = 2;
+        let content = "";
+        let reasoningContent = "";
+        let cleanedContent = "";
+        let toolCalls: ReturnType<typeof parseDeepSeekToolCalls>["toolCalls"] = null;
+
+        for (let attempt = 1; attempt <= MAX_TOOL_PARSE_ATTEMPTS; attempt += 1) {
+          ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
+          ({ content: cleanedContent, toolCalls } = parseDeepSeekToolCalls(
+            content,
+            `call-${Date.now()}`,
+            requestedTools
+          ));
+
+          const unparsedToolTagRemains =
+            !toolCalls && /<tool(?:_call)?[\s:>]/i.test(cleanedContent);
+          if (!unparsedToolTagRemains || attempt === MAX_TOOL_PARSE_ATTEMPTS) break;
+
+          log?.warn?.(
+            "DEEPSEEK-WEB",
+            `Malformed tool-call reply on attempt ${attempt}/${MAX_TOOL_PARSE_ATTEMPTS} — retrying with a fresh session`
+          );
+          if (persistSession) sessionCache.delete(userToken);
+          sessionId = await createSession(accessToken, signal);
+          if (persistSession) {
+            evictOldest(sessionCache);
+            sessionCache.set(userToken, { sessionId, createdAt: Date.now() });
+          }
+          const retried = await performCompletion(sessionId);
+          resp = retried.resp;
+          reqHeaders = retried.reqHeaders;
+          requestPayload = retried.requestPayload;
+          if (!resp.ok) break; // fall through — final content/toolCalls stay from the last successful attempt
+        }
+
         await cleanupFn();
-        const { content: cleanedContent, toolCalls } = parseDeepSeekToolCalls(
-          content,
-          `call-${Date.now()}`,
-          requestedTools
-        );
         return buildToolAwareResult({
           stream: stream !== false,
           clientModel,
@@ -1145,7 +1202,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("DEEPSEEK-WEB", `Execute failed: ${msg}`);
 
-      if (err instanceof DOMException && err.name === "AbortError") {
+      if (err instanceof Error && err.name === "AbortError") {
         return {
           response: errorResponse(499, "Request cancelled"),
           url: COMPLETION_URL,

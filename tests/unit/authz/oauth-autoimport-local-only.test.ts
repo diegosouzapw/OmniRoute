@@ -8,11 +8,7 @@ import { isLocalOnlyPath } from "../../../src/server/authz/routeGuard.ts";
 // host-local credential files. They must NOT be PUBLIC (which skips the LOCAL_ONLY
 // tier); they must classify MANAGEMENT and be loopback-gated.
 
-const AUTO_IMPORT = [
-  "/api/oauth/cursor/auto-import",
-  "/api/oauth/kiro/auto-import",
-  "/api/oauth/raycast/auto-import",
-];
+const AUTO_IMPORT = ["/api/oauth/cursor/auto-import", "/api/oauth/kiro/auto-import"];
 
 test("OAuth auto-import routes are excluded from PUBLIC classification", () => {
   for (const p of AUTO_IMPORT) {

@@ -1,4 +1,4 @@
-import { bulkAssignProxyToScope } from "@/lib/localDb";
+import { bulkAssignProxyToScope } from "@/lib/db/proxies";
 import { bulkProxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";

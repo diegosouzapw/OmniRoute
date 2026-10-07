@@ -21,9 +21,8 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
-const { applyComboTargetExhaustion } = await import(
-  "../../open-sse/services/combo/targetExhaustion.ts"
-);
+const { applyComboTargetExhaustion } =
+  await import("../../open-sse/services/combo/targetExhaustion.ts");
 const { classifyProviderError } = await import("../../open-sse/services/errorClassifier.ts");
 
 const QUOTA_EXHAUSTED_429 = '{"error":{"message":"账户额度不足，请充值后重试"}}';
@@ -414,7 +413,7 @@ const CONNECTION_SCOPE_FALLBACK_RESULT = {
 
 test("combo in-request skip: agentrouter connection-scope quota marks exhaustedConnections (#10334)", () => {
   const sets = comboSets();
-  const exhausted = applyComboTargetExhaustion(comboTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(comboTarget(), {
     ...comboBaseOpts,
     result: { status: 429 },
     fallbackResult: CONNECTION_SCOPE_FALLBACK_RESULT,
@@ -451,12 +450,15 @@ test("combo in-request skip: agentrouter connection-scope quota marks exhaustedC
 
 test("combo in-request skip: no connectionId falls back to whole-provider exhaustion", () => {
   const sets = comboSets();
-  const exhausted = applyComboTargetExhaustion(comboTarget({ connectionId: null }), {
-    ...comboBaseOpts,
-    result: { status: 429 },
-    fallbackResult: CONNECTION_SCOPE_FALLBACK_RESULT,
-    sets,
-  });
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
+    comboTarget({ connectionId: null }),
+    {
+      ...comboBaseOpts,
+      result: { status: 429 },
+      fallbackResult: CONNECTION_SCOPE_FALLBACK_RESULT,
+      sets,
+    }
+  );
   assert.equal(exhausted, true);
   assert.ok(
     sets.exhaustedProviders.has("agentrouter"),
@@ -473,7 +475,7 @@ test("exclusivity: an equivalent connection-scope-shaped result for ollama-cloud
   // applyComboTargetExhaustion ALSO re-checks the provider via
   // isAgentrouterConnectionQuotaScope rather than trusting whatever shape
   // it is handed.
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     comboTarget({ provider: "ollama-cloud", connectionId: "conn-ollama-1" }),
     {
       ...comboBaseOpts,
@@ -493,7 +495,7 @@ test("exclusivity: an equivalent connection-scope-shaped result for ollama-cloud
 
 test("exclusivity: vertex with the same synthetic connection-scope result marks nothing", () => {
   const sets = comboSets();
-  const exhausted = applyComboTargetExhaustion(
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(
     comboTarget({ provider: "vertex", connectionId: "conn-vertex-1" }),
     {
       ...comboBaseOpts,
@@ -509,7 +511,7 @@ test("exclusivity: vertex with the same synthetic connection-scope result marks 
 
 test("guard: a permanent agentrouter fallbackResult with scope connection does NOT mark the connection exhausted here either", () => {
   const sets = comboSets();
-  const exhausted = applyComboTargetExhaustion(comboTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(comboTarget(), {
     ...comboBaseOpts,
     result: { status: 429 },
     fallbackResult: { ruleScope: "connection" as const, reason: "auth_error", permanent: true },
@@ -522,7 +524,7 @@ test("guard: a permanent agentrouter fallbackResult with scope connection does N
 
 test("guard: a credits-exhausted agentrouter fallbackResult with scope connection does NOT mark the connection exhausted here either", () => {
   const sets = comboSets();
-  const exhausted = applyComboTargetExhaustion(comboTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(comboTarget(), {
     ...comboBaseOpts,
     result: { status: 429 },
     fallbackResult: {
@@ -578,7 +580,7 @@ function makeLogSpy() {
 test("combo in-request skip: a RAW 403 with connection-scope quota also takes this branch (not markAuthLevelExhaustion)", () => {
   const sets = comboSets();
   const spy = makeLogSpy();
-  const exhausted = applyComboTargetExhaustion(comboTarget(), {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(comboTarget(), {
     ...comboBaseOpts,
     result: { status: 403 },
     fallbackResult: CONNECTION_SCOPE_FALLBACK_RESULT,

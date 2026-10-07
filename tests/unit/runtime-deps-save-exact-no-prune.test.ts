@@ -11,7 +11,15 @@
 // code path with zero network use.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  rmSync,
+  mkdirSync,
+  writeFileSync,
+  chmodSync,
+  existsSync,
+  readFileSync,
+} from "node:fs";
 import { join, delimiter } from "node:path";
 import { tmpdir } from "node:os";
 

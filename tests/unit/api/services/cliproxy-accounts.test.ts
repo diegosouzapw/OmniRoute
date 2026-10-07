@@ -26,9 +26,7 @@ after(() => {
 });
 
 it("requires OmniRoute management authentication", async () => {
-  const response = await GET(
-    new Request("http://localhost/api/services/cliproxy/accounts")
-  );
+  const response = await GET(new Request("http://localhost/api/services/cliproxy/accounts"));
   assert.equal(response.status, 401);
 });
 

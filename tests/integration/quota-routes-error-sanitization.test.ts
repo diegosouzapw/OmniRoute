@@ -17,9 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-quota-err-sanitization-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-err-sanitization-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-quota-sanitization-secret";
 process.env.QUOTA_STORE_DRIVER = "sqlite";
@@ -68,16 +66,8 @@ async function assertNoStackTrace(res: Response, label: string) {
 
 // Helper to assert secret URL not in response body text
 function assertNoSecretUrlText(text: string, label: string) {
-  assert.doesNotMatch(
-    text,
-    /secret-host/,
-    `${label}: Response must not contain secret Redis host`
-  );
-  assert.doesNotMatch(
-    text,
-    /redis:\/\/secret/,
-    `${label}: Response must not contain Redis URL`
-  );
+  assert.doesNotMatch(text, /secret-host/, `${label}: Response must not contain secret Redis host`);
+  assert.doesNotMatch(text, /redis:\/\/secret/, `${label}: Response must not contain Redis URL`);
 }
 
 // Reads the response body once and runs both assertions (body cannot be read twice)
@@ -118,9 +108,7 @@ test("POST /api/quota/pools 400 error response has no stack trace", async () => 
 // ---------------------------------------------------------------------------
 
 test("GET /api/quota/pools/[id] 404 response has no stack trace", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/quota/pools/does-not-exist"
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/quota/pools/does-not-exist");
   const res = await poolIdRoute.GET(req, {
     params: Promise.resolve({ id: "does-not-exist" }),
   });
@@ -179,13 +167,10 @@ test("GET /api/quota/plans 200 response has no stack trace or path leak", async 
 // ---------------------------------------------------------------------------
 
 test("PUT /api/quota/plans/[connectionId] 400 error response has no stack trace", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/quota/plans/conn-bad",
-    {
-      method: "PUT",
-      body: { dimensions: [] }, // PlanUpsertSchema requires min(1)
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/quota/plans/conn-bad", {
+    method: "PUT",
+    body: { dimensions: [] }, // PlanUpsertSchema requires min(1)
+  });
   const res = await planIdRoute.PUT(req, {
     params: Promise.resolve({ connectionId: "conn-bad" }),
   });
@@ -212,9 +197,7 @@ test("GET /api/quota/preview 400 error response has no stack trace", async () =>
 // ---------------------------------------------------------------------------
 
 test("GET /api/settings/quota-store response does not contain Redis URL (Hard Rule #12/#1)", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store"
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store");
   const res = await settingsRoute.GET(req);
   assert.equal(res.status, 200);
   await assertNoStackTraceAndNoSecretUrl(res, "GET /api/settings/quota-store 200");
@@ -225,13 +208,10 @@ test("GET /api/settings/quota-store response does not contain Redis URL (Hard Ru
 // ---------------------------------------------------------------------------
 
 test("PUT /api/settings/quota-store 400 error response has no stack trace", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "baddriver" },
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "baddriver" },
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 400);
   await assertNoStackTrace(res, "PUT /api/settings/quota-store 400");
@@ -242,13 +222,10 @@ test("PUT /api/settings/quota-store 400 error response has no stack trace", asyn
 // ---------------------------------------------------------------------------
 
 test("PUT /api/settings/quota-store redis+no-URL error response does not leak Redis URL", async () => {
-  const req = await makeManagementSessionRequest(
-    "http://localhost/api/settings/quota-store",
-    {
-      method: "PUT",
-      body: { driver: "redis" }, // No URL provided
-    }
-  );
+  const req = await makeManagementSessionRequest("http://localhost/api/settings/quota-store", {
+    method: "PUT",
+    body: { driver: "redis" }, // No URL provided
+  });
   const res = await settingsRoute.PUT(req);
   assert.equal(res.status, 400);
   await assertNoStackTraceAndNoSecretUrl(res, "PUT /api/settings/quota-store redis-no-url 400");

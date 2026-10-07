@@ -22,15 +22,11 @@ async function resetStorage() {
   getDbInstance();
 }
 
-const sessionsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/sessions/route.ts"
-);
-const sessionDetailRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/sessions/[id]/route.ts"
-);
-const sessionRequestsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/sessions/[id]/requests/route.ts"
-);
+const sessionsRoute = await import("../../src/app/api/tools/traffic-inspector/sessions/route.ts");
+const sessionDetailRoute =
+  await import("../../src/app/api/tools/traffic-inspector/sessions/[id]/route.ts");
+const sessionRequestsRoute =
+  await import("../../src/app/api/tools/traffic-inspector/sessions/[id]/requests/route.ts");
 
 async function createSession(name?: string): Promise<string> {
   const res = await sessionsRoute.POST(
@@ -131,7 +127,7 @@ test("POST /sessions/[id]/requests: error response does not leak stack trace", a
   // POST to non-existent session — exercises the 404 path error body
   const res = await postRequest("00000000-0000-4000-8000-000000000099", "data");
   assert.equal(res.status, 404);
-  const body = await res.json() as { error?: { message?: string } };
+  const body = (await res.json()) as { error?: { message?: string } };
   const msg = body?.error?.message ?? "";
   assert.ok(!msg.includes("at /"), "should not contain stack trace");
 });

@@ -38,11 +38,13 @@ export async function GET(request: Request) {
     const apiKeyId = searchParams.get("apiKeyId") || undefined;
     const type = (searchParams.get("type") as any) || undefined;
     const sessionId = searchParams.get("sessionId") || undefined;
+    const category = searchParams.get("category")?.trim() || undefined;
 
     const result = await memoryManager.list({
       apiKeyId,
       type,
       sessionId,
+      category,
       query,
       limit: paginationParams.limit,
       offset:

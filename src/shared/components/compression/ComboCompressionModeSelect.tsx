@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 export interface ComboCompressionModeSelectCombo {
@@ -53,9 +53,15 @@ export function ComboCompressionModeSelect({
   const [compressionOverride, setCompressionOverride] = useState(initialCompressionMode);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  // Re-sync the select when the combo's persisted mode changes (render-time
+  // adjustment per react.dev "You Might Not Need an Effect" — replaces the old
+  // mirror effect that called setState synchronously).
+  const [prevInitialCompressionMode, setPrevInitialCompressionMode] =
+    useState(initialCompressionMode);
+  if (initialCompressionMode !== prevInitialCompressionMode) {
+    setPrevInitialCompressionMode(initialCompressionMode);
     setCompressionOverride(initialCompressionMode);
-  }, [initialCompressionMode]);
+  }
 
   const handleChange = async (value: string) => {
     setCompressionOverride(value);

@@ -7,7 +7,6 @@ import {
   ANTHROPIC_VERSION_HEADER,
   CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
   CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
-  CLAUDE_CLI_USER_AGENT,
   resolvePublicCred,
 } from "../../shared.ts";
 
@@ -29,12 +28,26 @@ export const claudeProvider: RegistryEntry = {
   },
   models: [
     {
+      id: "claude-fable-5-1",
+      name: "Claude Fable 5.1",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
+      supportsVision: true,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
       id: "claude-fable-5",
       name: "Claude Fable 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
       // Opus 4.7+/Fable 5 reject non-default temperature/top_p/top_k with a 400 (sampling
       // is fixed; reasoning is steered by output_config.effort). Strip them before dispatch.
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -42,6 +55,8 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Opus 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
       supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
@@ -50,6 +65,9 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Opus 4.8",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -57,6 +75,9 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Opus 4.7",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
@@ -65,6 +86,8 @@ export const claudeProvider: RegistryEntry = {
       supportsXHighEffort: false,
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
     },
     {
       id: "claude-opus-4-5-20251101",
@@ -72,6 +95,8 @@ export const claudeProvider: RegistryEntry = {
       supportsXHighEffort: false,
       contextLength: 200000,
       maxOutputTokens: 64000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
     },
     {
       id: "claude-sonnet-5",
@@ -86,22 +111,33 @@ export const claudeProvider: RegistryEntry = {
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
+      id: "claude-sonnet-5-5",
+      name: "Claude Sonnet 5.5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsXHighEffort: true,
+      // Sonnet 5.5 caps effort at xhigh. Listing the tiers here makes the
+      // executor lower a requested "max" to "xhigh" instead of forwarding it.
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
       id: "claude-sonnet-4-6",
-      name: "Claude 4.6 Sonnet",
+      name: "Claude Sonnet 4.6",
       supportsXHighEffort: false,
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-sonnet-4-5-20250929",
-      name: "Claude 4.5 Sonnet",
+      name: "Claude Sonnet 4.5",
       supportsXHighEffort: false,
       contextLength: 200000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-haiku-4-5-20251001",
-      name: "Claude 4.5 Haiku",
+      name: "Claude Haiku 4.5",
       supportsXHighEffort: false,
       contextLength: 200000,
       maxOutputTokens: 64000,

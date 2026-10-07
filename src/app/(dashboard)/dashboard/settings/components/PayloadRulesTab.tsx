@@ -55,6 +55,21 @@ function getErrorMessage(payload: unknown, fallback: string): string {
   return fallback;
 }
 
+async function fetchPayloadRulesResult(
+  fallbackMessage: string
+): Promise<{ text?: string; error?: string }> {
+  try {
+    const response = await fetch("/api/settings/payload-rules");
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(getErrorMessage(payload, fallbackMessage));
+    }
+    return { text: JSON.stringify(payload, null, 2) };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : fallbackMessage };
+  }
+}
+
 export default function PayloadRulesTab() {
   const t = useTranslations("settings");
   const tCommon = useTranslations("common");
@@ -88,30 +103,28 @@ export default function PayloadRulesTab() {
     };
   }, [parsedEditor.value]);
 
+  const applyConfigResult = useCallback((result: { text?: string; error?: string }) => {
+    if (result.text !== undefined) setEditorValue(result.text);
+    if (result.error !== undefined) setMessage({ type: "error", text: result.error });
+    setLoading(false);
+  }, []);
+
   const loadConfig = useCallback(async () => {
     setLoading(true);
     setMessage(null);
-    try {
-      const response = await fetch("/api/settings/payload-rules");
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(getErrorMessage(payload, tCommon("failedToLoad")));
-      }
-
-      setEditorValue(JSON.stringify(payload, null, 2));
-    } catch (error) {
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : tCommon("failedToLoad"),
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [tCommon]);
+    applyConfigResult(await fetchPayloadRulesResult(tCommon("failedToLoad")));
+  }, [applyConfigResult, tCommon]);
 
   useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+    let cancelled = false;
+    void (async () => {
+      const result = await fetchPayloadRulesResult(tCommon("failedToLoad"));
+      if (!cancelled) applyConfigResult(result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyConfigResult, tCommon]);
 
   const handleReset = () => {
     setEditorValue(EMPTY_PAYLOAD_RULES_TEXT);

@@ -150,8 +150,7 @@ test("migration does not treat explicit default global tier as legacy fast", asy
 
   assert.equal(firstRun.legacyFastEnabled, false);
   const providerSpecificData = byId.get(created.id)?.providerSpecificData as
-    | { requestDefaults?: unknown }
-    | undefined;
+    { requestDefaults?: unknown } | undefined;
   assert.deepEqual(providerSpecificData?.requestDefaults, {
     reasoningEffort: "medium",
   });

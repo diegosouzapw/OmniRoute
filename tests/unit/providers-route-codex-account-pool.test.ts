@@ -12,9 +12,12 @@ process.env.ALLOW_API_KEY_REVEAL = "false";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const quotaCache = await import("../../src/domain/quotaCache.ts");
+const auth = await import("../../src/sse/services/auth.ts");
 const providersRoute = await import("../../src/app/api/providers/route.ts");
 
 test.after(() => {
+  quotaCache.__clearForTests();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
@@ -51,6 +54,13 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
     apiKey: "openai-api-secret",
   });
 
+  const { setProviderLimitsCache } = await import("../../src/lib/db/providerLimits.ts");
+  setProviderLimitsCache(codex.id, {
+    quotas: { session: { used: 25, total: 100 }, weekly: { used: 60, total: 100 } },
+    plan: null,
+    message: null,
+    fetchedAt: new Date().toISOString(),
+  });
   const response = await providersRoute.GET(
     await makeManagementSessionRequest("http://localhost/api/providers")
   );
@@ -80,6 +90,11 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
   };
   assert.equal(pool.parentConnectionId, codex.id);
   assert.equal(pool.children.length, 2);
+  const quota = pool.children[0].quota as {
+    windows: { "5h": { usedPercentage: number }; "7d": { usedPercentage: number } };
+  };
+  assert.equal(quota.windows["5h"].usedPercentage, 25);
+  assert.equal(quota.windows["7d"].usedPercentage, 60);
   assert.deepEqual(
     pool.children.map((child) => child.key),
     [
@@ -112,4 +127,103 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
   }
   const safeProviderData = codexRow.providerSpecificData as Record<string, unknown>;
   assert.equal("consoleApiKey" in safeProviderData, false);
+});
+
+test("GET projects the same scoped Codex quota observations used by routing", async () => {
+  const resetAt5h = new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString();
+  const resetAt7d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const codex = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: "Codex cache-only quota",
+    quotaVisible: true,
+    providerSpecificData: {
+      limitPolicy: {
+        enabled: true,
+        thresholdPercent: 99,
+        windows: ["session", "weekly"],
+      },
+    },
+  });
+
+  quotaCache.setQuotaCache(codex.id, "codex", {
+    session: { remainingPercentage: 50, resetAt: resetAt5h },
+    weekly: { remainingPercentage: 50, resetAt: resetAt7d },
+  });
+  quotaCache.setQuotaCache(codex.id, "codex", {
+    session: { remainingPercentage: 0, resetAt: resetAt5h },
+    weekly: { remainingPercentage: 75, resetAt: resetAt7d },
+    gpt_5_3_codex_spark_session: { remainingPercentage: 60, resetAt: resetAt5h },
+    gpt_5_3_codex_spark_weekly: { remainingPercentage: 40, resetAt: resetAt7d },
+  });
+
+  const routing = auth.evaluateQuotaLimitPolicy(
+    "codex",
+    {
+      id: codex.id,
+      providerSpecificData: codex.providerSpecificData ?? {},
+    } as never,
+    "gpt-5.5-codex"
+  );
+  assert.equal(routing.blocked, true);
+  assert.deepEqual(routing.reasons, ["session usage 100%"]);
+
+  const response = await providersRoute.GET(
+    await makeManagementSessionRequest("http://localhost/api/providers?provider=codex")
+  );
+  const body = (await response.json()) as {
+    connections: Array<{
+      id: string;
+      codexAccountPool: {
+        children: Array<{
+          key: { scope: "codex" | "spark" };
+          quota: {
+            observedAt: string | null;
+            windows: Record<
+              "5h" | "7d",
+              {
+                usage: number | null;
+                limit: number | null;
+                resetAt: string | null;
+                usedPercentage: number | null;
+              } | null
+            >;
+          };
+        }>;
+      };
+    }>;
+  };
+  const pool = body.connections.find((connection) => connection.id === codex.id)?.codexAccountPool;
+  assert.ok(pool);
+  const general = pool.children.find((child) => child.key.scope === "codex");
+  const spark = pool.children.find((child) => child.key.scope === "spark");
+  assert.ok(general);
+  assert.ok(spark);
+
+  assert.deepEqual(general.quota.windows["5h"], {
+    usage: null,
+    limit: null,
+    resetAt: resetAt5h,
+    usedPercentage: 100,
+  });
+  assert.deepEqual(general.quota.windows["7d"], {
+    usage: null,
+    limit: null,
+    resetAt: resetAt7d,
+    usedPercentage: 25,
+  });
+  assert.deepEqual(spark.quota.windows["5h"], {
+    usage: null,
+    limit: null,
+    resetAt: resetAt5h,
+    usedPercentage: 40,
+  });
+  assert.deepEqual(spark.quota.windows["7d"], {
+    usage: null,
+    limit: null,
+    resetAt: resetAt7d,
+    usedPercentage: 60,
+  });
+  assert.ok(general.quota.observedAt);
+  assert.equal(general.quota.observedAt, spark.quota.observedAt);
 });

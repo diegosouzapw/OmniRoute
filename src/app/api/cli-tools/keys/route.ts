@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
-import { getApiKeys } from "@/lib/localDb";
+import { getApiKeys } from "@/lib/db/apiKeys";
 import { maskStoredApiKey } from "@/lib/apiKeyExposure";
 
 // GET /api/cli-tools/keys - List API keys with raw values for authenticated CLI tools UI only

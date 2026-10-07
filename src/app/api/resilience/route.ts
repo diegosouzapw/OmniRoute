@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCachedSettings, getSettings, updateSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/db/readCache";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import {
   buildLegacyResilienceCompat,
   mergeResilienceSettings,
@@ -134,6 +135,7 @@ export async function GET() {
       requestQueue: resilience.requestQueue,
       connectionCooldown: resilience.connectionCooldown,
       providerBreaker: resilience.providerBreaker,
+      tokenRefreshBreaker: resilience.tokenRefreshBreaker,
       waitForCooldown: {
         enabled: resilience.waitForCooldown.enabled,
         maxRetries: resilience.waitForCooldown.maxRetries,
@@ -141,8 +143,11 @@ export async function GET() {
       },
       comboCooldownWait: resilience.comboCooldownWait,
       quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
+      streamStallCooldown: resilience.streamStallCooldown,
       providerCooldown: resilience.providerCooldown,
+      quotaPreflight: resilience.quotaPreflight,
       providerQuotaOverrides: resilience.providerQuotaOverrides,
+      credentialHealthCheck: resilience.credentialHealthCheck,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -195,6 +200,12 @@ export async function PATCH(request) {
       ...(body.providerBreaker
         ? { providerBreaker: body.providerBreaker as ResilienceSettingsPatch["providerBreaker"] }
         : {}),
+      ...(body.tokenRefreshBreaker
+        ? {
+            tokenRefreshBreaker:
+              body.tokenRefreshBreaker as ResilienceSettingsPatch["tokenRefreshBreaker"],
+          }
+        : {}),
       ...(body.waitForCooldown
         ? { waitForCooldown: body.waitForCooldown as ResilienceSettingsPatch["waitForCooldown"] }
         : {}),
@@ -210,15 +221,30 @@ export async function PATCH(request) {
               body.quotaShareConcurrencyLimit as ResilienceSettingsPatch["quotaShareConcurrencyLimit"],
           }
         : {}),
+      ...(body.streamStallCooldown
+        ? {
+            streamStallCooldown:
+              body.streamStallCooldown as ResilienceSettingsPatch["streamStallCooldown"],
+          }
+        : {}),
       ...(body.providerCooldown
         ? {
             providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
           }
         : {}),
+      ...(body.quotaPreflight
+        ? { quotaPreflight: body.quotaPreflight as ResilienceSettingsPatch["quotaPreflight"] }
+        : {}),
       ...(body.providerQuotaOverrides
         ? {
             providerQuotaOverrides:
               body.providerQuotaOverrides as ResilienceSettingsPatch["providerQuotaOverrides"],
+          }
+        : {}),
+      ...(body.credentialHealthCheck
+        ? {
+            credentialHealthCheck:
+              body.credentialHealthCheck as ResilienceSettingsPatch["credentialHealthCheck"],
           }
         : {}),
       ...normalizeLegacyPatch(body),
@@ -250,6 +276,7 @@ export async function PATCH(request) {
       requestQueue: nextResilience.requestQueue,
       connectionCooldown: nextResilience.connectionCooldown,
       providerBreaker: nextResilience.providerBreaker,
+      tokenRefreshBreaker: nextResilience.tokenRefreshBreaker,
       waitForCooldown: {
         enabled: nextResilience.waitForCooldown.enabled,
         maxRetries: nextResilience.waitForCooldown.maxRetries,
@@ -257,8 +284,11 @@ export async function PATCH(request) {
       },
       comboCooldownWait: nextResilience.comboCooldownWait,
       quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
+      streamStallCooldown: nextResilience.streamStallCooldown,
       providerCooldown: nextResilience.providerCooldown,
+      quotaPreflight: nextResilience.quotaPreflight,
       providerQuotaOverrides: nextResilience.providerQuotaOverrides,
+      credentialHealthCheck: nextResilience.credentialHealthCheck,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

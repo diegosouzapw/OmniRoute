@@ -86,10 +86,7 @@ test("non-JSON data line (plain-text rate-limit message) is NOT forwarded to cli
   );
 
   // Both valid JSON chunks must appear
-  assert.ok(
-    output.includes("chatcmpl-nonjson-1"),
-    `First valid chunk missing.\nOutput: ${output}`
-  );
+  assert.ok(output.includes("chatcmpl-nonjson-1"), `First valid chunk missing.\nOutput: ${output}`);
   assert.ok(
     output.includes("chatcmpl-nonjson-2"),
     `Second valid chunk missing.\nOutput: ${output}`
@@ -117,11 +114,7 @@ test("exactly one [DONE] emitted even when upstream sends a duplicate", async ()
 
 test("valid JSON chunks pass through correctly in passthrough mode", async () => {
   const output = await readTransformed(
-    [
-      `data: ${validChunk1}\n\n`,
-      `data: ${validChunk2}\n\n`,
-      "data: [DONE]\n\n",
-    ],
+    [`data: ${validChunk1}\n\n`, `data: ${validChunk2}\n\n`, "data: [DONE]\n\n"],
     PASSTHROUGH_OPTIONS
   );
 

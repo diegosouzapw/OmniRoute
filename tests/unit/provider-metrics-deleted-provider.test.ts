@@ -4,9 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-provider-metrics-deleted-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-provider-metrics-deleted-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -47,7 +45,14 @@ test("#10714: a provider deleted from provider_connections must NOT keep showing
   // Deleted provider: historical call_logs rows exist, but no provider_connections row.
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary) VALUES (?, ?, ?, ?, ?, ?)`
-  ).run("g4f-pollinations-error", "2026-08-19T11:00:00.000Z", "g4f-pollinations", 402, 50, "payment required");
+  ).run(
+    "g4f-pollinations-error",
+    "2026-08-19T11:00:00.000Z",
+    "g4f-pollinations",
+    402,
+    50,
+    "payment required"
+  );
 
   const response = await providerMetricsRoute.GET();
   const body = (await response.json()) as ProviderMetricsResponse;

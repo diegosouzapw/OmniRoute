@@ -1,6 +1,6 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert";
-import { createFile, listFiles, deleteFile, getFile } from "@/lib/localDb";
+import { createFile, listFiles, deleteFile, getFile } from "@/lib/db/files";
 
 describe("Files API - Integration Tests", () => {
   afterEach(() => {

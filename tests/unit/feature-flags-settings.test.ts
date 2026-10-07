@@ -34,8 +34,25 @@ const {
 // #10889 added OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN, bumping the count to 51.
 // The codex-app-server work then added OMNIROUTE_CODEX_APP_SERVER_ENABLED
 // (feature flag gating the opt-in Codex app-server WebSocket transport),
-// bumping it from 51 to 52.
-const EXPECTED_FEATURE_FLAG_COUNT = 52;
+// bumping it from 51 to 52. NO_THINKING_ALIAS_ENABLED (master switch for the
+// no-think/<provider>/<model> gateway aliases) then bumped it from 52 to 53.
+// OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS bumped it from 53 to 54;
+// the dead ONEPROXY_ENABLED (readerless since the 1proxy purge, #12091)
+// brought it back to 53. UNIVERSAL_CONTEXT_HANDOFF_ENABLED bumped it to 54.
+// #13641 added SEARCH_STATS_HIDE_DELETED_CONNECTIONS, bumping the count to 56.
+// 893fef9c added OPENCODE_PARK_AND_RESUME (74 -> 75); FLUSH_EMPTY_RETRY_ENABLED
+// (flush empty-turn retry, default off) bumps it to 76. ROTATION_ATTRIBUTION
+// (rotation skipped/served masked ids + proxy-log request correlation, all
+// read-only diagnostics) takes it to 77. STREAM_READINESS_STALL_RETRY
+// (one bounded retry when a stream stalls before usable output, default off)
+// takes it to 78.
+// OPENCODE_POOL_RESELECT (re-select a pool member per attempt after a
+// per-address 429, default off) takes the registry to 79.
+// PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
+// takes it to 80.
+// PROXY_OPERATOR_EGRESS_ENABLED (operator-pushed dated observed addresses per
+// pool member, default off) takes it to 81.
+const EXPECTED_FEATURE_FLAG_COUNT = 81;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -146,12 +163,43 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(early.requiresRestart, false);
     assert.strictEqual(early.warningLevel, "caution");
 
+    const orderFix = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "STREAM_RECOVERY_TOOLCALL_ORDER_FIX"
+    );
+
+    assert.ok(orderFix, "STREAM_RECOVERY_TOOLCALL_ORDER_FIX should exist");
+    assert.strictEqual(orderFix.category, "runtime");
+    assert.strictEqual(orderFix.type, "boolean");
+    assert.strictEqual(orderFix.defaultValue, "false");
+    assert.strictEqual(orderFix.requiresRestart, false);
+    assert.strictEqual(orderFix.warningLevel, "info");
+    assert.strictEqual(
+      orderFix.descriptionI18nKey,
+      "featureFlagStreamRecoveryToolcallOrderFixDescription"
+    );
+
     assert.ok(midstream, "STREAM_RECOVERY_MIDSTREAM_ENABLED should exist");
     assert.strictEqual(midstream.category, "runtime");
     assert.strictEqual(midstream.type, "boolean");
     assert.strictEqual(midstream.defaultValue, "false");
     assert.strictEqual(midstream.requiresRestart, false);
     assert.strictEqual(midstream.warningLevel, "danger");
+  });
+
+  it("defines early-EOF sibling failover as a runtime boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED"
+    );
+    assert.ok(def, "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+    assert.strictEqual(def.warningLevel, "info");
+    assert.strictEqual(
+      def.descriptionI18nKey,
+      "featureFlagStreamEarlyEofSiblingFailoverEnabledDescription"
+    );
   });
 
   it("defines control-plane proxy direct fallback as a network boolean flag disabled by default", () => {
@@ -166,6 +214,57 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.warningLevel, "danger");
   });
 
+  it("defines OPENCODE_RESPONSES_STALL_ROTATION as an opt-in network boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "OPENCODE_RESPONSES_STALL_ROTATION");
+    assert.ok(def, "OPENCODE_RESPONSES_STALL_ROTATION should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines OPENCODE_USER_BLOCKED_ROTATION as an opt-in network boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "OPENCODE_USER_BLOCKED_ROTATION");
+    assert.ok(def, "OPENCODE_USER_BLOCKED_ROTATION should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines OPENCODE_TRANSIENT_FAILOVER_BACKOFF as an opt-in network boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "OPENCODE_TRANSIENT_FAILOVER_BACKOFF"
+    );
+    assert.ok(def, "OPENCODE_TRANSIENT_FAILOVER_BACKOFF should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT as an opt-in runtime boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT"
+    );
+    assert.ok(def, "MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines OPENCODE_RATE_LIMITED_429_EARLY_STOP as an opt-in network boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "OPENCODE_RATE_LIMITED_429_EARLY_STOP"
+    );
+    assert.ok(def, "OPENCODE_RATE_LIMITED_429_EARLY_STOP should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
   it("defines network rotation shared-egress guard as a network boolean flag enabled by default", () => {
     const def = FEATURE_FLAG_DEFINITIONS.find(
       (d) => d.key === "NETWORK_ROTATION_SHARED_EGRESS_GUARD"
@@ -176,6 +275,50 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.defaultValue, "true");
     assert.strictEqual(def.requiresRestart, false);
     assert.strictEqual(def.warningLevel, "info");
+  });
+
+  it("defines skip-recently-failed proxies as a network boolean flag enabled by default", () => {
+    // Guards the routing default: with this on, pools and account rotation skip a proxy
+    // that just failed. Opt-out with PROXY_SKIP_RECENTLY_FAILED=false.
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_SKIP_RECENTLY_FAILED");
+    assert.ok(def, "PROXY_SKIP_RECENTLY_FAILED should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "true");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines the pool egress observation as a network boolean flag disabled by default", () => {
+    // Guards the UI default: the read-only panel under a proxy pool stays hidden unless opted in.
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_POOL_EGRESS_OBSERVATION");
+    assert.ok(def, "PROXY_POOL_EGRESS_OBSERVATION should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines the operator egress push as a network boolean flag disabled by default", () => {
+    // Guards the push default: the operator-egress route answers 404 and pool reads
+    // stay journal-only unless opted in.
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_OPERATOR_EGRESS_ENABLED");
+    assert.ok(def, "PROXY_OPERATOR_EGRESS_ENABLED should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines blocked-resets-streak as a health boolean flag disabled by default", () => {
+    // Guards the #10654 default: a target-refused probe stays neutral unless opted in.
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "PROXY_HEALTH_BLOCKED_RESETS_STREAK"
+    );
+    assert.ok(def, "PROXY_HEALTH_BLOCKED_RESETS_STREAK should exist");
+    assert.strictEqual(def.category, "health");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
   });
 
   it("defines remote audio provider nodes as a network boolean flag disabled by default", () => {
@@ -195,6 +338,17 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.category, "runtime");
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines the no-thinking alias master switch as a runtime boolean enabled by default", () => {
+    // Default ON: turning the shipped no-think/ alias feature into a flag must not
+    // silently drop catalog variants operators already point their clients at.
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "NO_THINKING_ALIAS_ENABLED");
+    assert.ok(def, "NO_THINKING_ALIAS_ENABLED should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "true");
     assert.strictEqual(def.requiresRestart, false);
   });
 

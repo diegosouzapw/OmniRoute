@@ -36,6 +36,10 @@ import {
   getResolvedModelCapabilities,
   supportsReasoning,
 } from "@/lib/modelCapabilities";
+import {
+  jsonLengthStrippingBase64DataUris,
+  rawLengthStrippingBase64DataUris,
+} from "../utils/jsonSize.ts";
 
 // Effort → budget token mapping
 export const EFFORT_BUDGETS: Record<string, number> = {
@@ -350,7 +354,8 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
   const tools = Array.isArray(bodyRecord.tools) ? bodyRecord.tools : [];
   const toolCount = tools.length;
 
-  // Get last user message length
+  // Get last user message length. Strip base64 data URIs so an inline image in the prompt
+  // doesn't inflate lastMsgLength and silently bump the complexity multiplier.
   let lastMsgLength = 0;
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
@@ -358,8 +363,8 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
     if (msgRecord.role === "user") {
       lastMsgLength =
         typeof msgRecord.content === "string"
-          ? msgRecord.content.length
-          : JSON.stringify(msgRecord.content || "").length;
+          ? rawLengthStrippingBase64DataUris(msgRecord.content)
+          : jsonLengthStrippingBase64DataUris(msgRecord.content || "");
       break;
     }
   }

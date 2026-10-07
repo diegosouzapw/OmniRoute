@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import CliStatusBadge from "./CliStatusBadge";
@@ -8,6 +8,10 @@ import { useTranslations } from "next-intl";
 import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+
+// (#523) Default to the first available key while the user hasn't picked one.
+const defaultKeyId = (selectedId, apiKeys) =>
+  selectedId || (apiKeys?.length > 0 ? apiKeys[0].id : "");
 
 export default function ClineToolCard({
   tool,
@@ -56,32 +60,12 @@ export default function ClineToolCard({
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   // (#523) Store the key *id* (not the masked string) so the backend can
-  // resolve the real secret from DB before writing to config files.
-  useEffect(() => {
-    if (apiKeys?.length > 0 && !selectedApiKeyId) {
-      setSelectedApiKeyId(apiKeys[0].id);
-    }
-  }, [apiKeys, selectedApiKeyId]);
+  // resolve the real secret from DB before writing to config files. Derived
+  // during render instead of synced through an effect
+  // (react-hooks/set-state-in-effect).
+  const effectiveApiKeyId = defaultKeyId(selectedApiKeyId, apiKeys);
 
-  useEffect(() => {
-    if (isExpanded && !clineStatus) {
-      checkClineStatus();
-      fetchModelAliases();
-      fetchBackups();
-    }
-  }, [isExpanded, clineStatus]);
-
-  useEffect(() => {
-    if (clineStatus?.settings && !hasInitializedModel.current) {
-      const currentModel = clineStatus.settings.openAiModelId;
-      if (currentModel) {
-        setSelectedModel(currentModel);
-        hasInitializedModel.current = true;
-      }
-    }
-  }, [clineStatus]);
-
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       if (res.ok) {
@@ -91,9 +75,9 @@ export default function ClineToolCard({
     } catch {
       /* ignore */
     }
-  };
+  }, []);
 
-  const fetchBackups = async () => {
+  const fetchBackups = useCallback(async () => {
     try {
       const res = await fetch("/api/cli-tools/backups?tool=cline");
       if (res.ok) {
@@ -103,7 +87,39 @@ export default function ClineToolCard({
     } catch {
       /* ignore */
     }
-  };
+  }, []);
+
+  const checkClineStatus = useCallback(async () => {
+    setCheckingCline(true);
+    try {
+      const res = await fetch("/api/cli-tools/cline-settings");
+      const data = await res.json();
+      setClineStatus(data);
+      // One-time model initialization from the settings file, right after the
+      // fetch resolves (was a separate clineStatus effect — moved here so no
+      // setState runs synchronously inside an effect body).
+      if (data?.settings && !hasInitializedModel.current) {
+        const currentModel = data.settings.openAiModelId;
+        if (currentModel) {
+          setSelectedModel(currentModel);
+          hasInitializedModel.current = true;
+        }
+      }
+    } catch (error) {
+      setClineStatus({ error: error.message });
+    } finally {
+      setCheckingCline(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!(isExpanded && !clineStatus)) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([checkClineStatus(), fetchModelAliases(), fetchBackups()]);
+    })();
+  }, [isExpanded, clineStatus, checkClineStatus, fetchModelAliases, fetchBackups]);
 
   const handleRestoreBackup = async (backupId) => {
     setRestoringBackup(backupId);
@@ -133,19 +149,6 @@ export default function ClineToolCard({
     }
   };
 
-  const checkClineStatus = async () => {
-    setCheckingCline(true);
-    try {
-      const res = await fetch("/api/cli-tools/cline-settings");
-      const data = await res.json();
-      setClineStatus(data);
-    } catch (error) {
-      setClineStatus({ error: error.message });
-    } finally {
-      setCheckingCline(false);
-    }
-  };
-
   const getEffectiveBaseUrl = () => {
     if (customBaseUrl) return customBaseUrl;
     return baseUrl || DEFAULT_DISPLAY_BASE_URL;
@@ -161,7 +164,7 @@ export default function ClineToolCard({
         : `${effectiveBaseUrl}/v1`;
 
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
-      const selectedKeyId = selectedApiKeyId?.trim() || null;
+      const selectedKeyId = effectiveApiKeyId?.trim() || null;
 
       const res = await fetch("/api/cli-tools/cline-settings", {
         method: "POST",
@@ -365,7 +368,7 @@ export default function ClineToolCard({
                     <label className="text-sm text-text-muted">{t("apiKey")}</label>
                     {apiKeys && apiKeys.length > 0 ? (
                       <select
-                        value={selectedApiKeyId}
+                        value={effectiveApiKeyId}
                         onChange={(e) => setSelectedApiKeyId(e.target.value)}
                         className="px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                       >
@@ -483,7 +486,7 @@ export default function ClineToolCard({
             onApply: handleManualConfig,
             currentConfig: {
               model: selectedModel,
-              apiKey: apiKeys?.find((k) => k.id === selectedApiKeyId)?.key || "",
+              apiKey: apiKeys?.find((k) => k.id === effectiveApiKeyId)?.key || "",
               baseUrl: customBaseUrl || baseUrl,
             },
           } as any)}

@@ -21,9 +21,8 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { parseJsoncOrNull, readJsoncConfig } = await import(
-  "../../src/app/api/cli-tools/_lib/jsoncConfig.ts"
-);
+const { parseJsoncOrNull, readJsoncConfig } =
+  await import("../../src/app/api/cli-tools/_lib/jsoncConfig.ts");
 
 test("parseJsoncOrNull tolerates trailing commas in objects", () => {
   const jsonc = `{
@@ -119,9 +118,6 @@ test("cli-tools settings routes use the JSONC-tolerant reader (source-guard)", a
       !/JSON\.parse\(\s*content\s*\)/.test(head),
       `${r}: read helper still calls raw JSON.parse(content) — port the JSONC fix`
     );
-    assert.ok(
-      /readJsoncConfig\s*[<(]/.test(head),
-      `${r}: read helper must invoke readJsoncConfig`
-    );
+    assert.ok(/readJsoncConfig\s*[<(]/.test(head), `${r}: read helper must invoke readJsoncConfig`);
   }
 });

@@ -69,6 +69,62 @@ test("buildHandoffSystemMessage and injectHandoffIntoBody preserve existing hist
   assert.equal(body.messages.length, 2);
 });
 
+test("injectHandoffIntoBody appends Claude-native handoff to top-level system", () => {
+  const payload = {
+    sessionId: "sess-1",
+    comboName: "relay-combo",
+    fromAccount: "conn-a",
+    summary: "Keep the Claude-native request shape",
+    keyDecisions: ["keep system prompts top-level"],
+    taskProgress: "Continue the request",
+    activeEntities: ["contextHandoff.ts"],
+    messageCount: 8,
+    model: "claude/claude-opus-5",
+    warningThresholdPct: 0.85,
+    generatedAt: "2099-04-08T12:00:00.000Z",
+    expiresAt: "2099-04-08T17:00:00.000Z",
+  };
+  const body = {
+    system: "Existing Claude prompt",
+    max_tokens: 64,
+    messages: [{ role: "user", content: [{ type: "text", text: "Continue" }] }],
+  };
+
+  const injected = contextHandoff.injectHandoffIntoBody(body, payload, undefined, "claude");
+  const system = injected.system as Array<Record<string, unknown>>;
+
+  assert.strictEqual(injected.messages, body.messages);
+  assert.deepEqual(system[0], { type: "text", text: "Existing Claude prompt" });
+  assert.match(String(system[1]?.text), /<context_handoff>/);
+  assert.equal(system[1]?.type, "text");
+});
+
+test("injectHandoffIntoBody keeps OpenAI system fields on the message-based path", () => {
+  const payload = {
+    sessionId: "sess-1",
+    comboName: "relay-combo",
+    fromAccount: "conn-a",
+    summary: "Keep the OpenAI request shape",
+    keyDecisions: [],
+    taskProgress: "Continue",
+    activeEntities: [],
+    messageCount: 1,
+    model: "openai/gpt-5",
+    warningThresholdPct: 0.85,
+    generatedAt: "2099-04-08T12:00:00.000Z",
+    expiresAt: "2099-04-08T17:00:00.000Z",
+  };
+  const body = {
+    system: undefined,
+    messages: [{ role: "user", content: "Continue" }],
+  };
+
+  const injected = contextHandoff.injectHandoffIntoBody(body, payload, undefined, "openai");
+
+  assert.equal((injected.messages as Array<Record<string, unknown>>)[0]?.role, "system");
+  assert.equal(injected.system, undefined);
+});
+
 test("injectHandoffIntoBody preserves Responses API shape for native Codex requests", () => {
   const payload = {
     sessionId: "sess-1",
@@ -305,6 +361,63 @@ test("maybeGenerateHandoff allows a new attempt after a failed in-flight generat
   assert.ok(saved);
   assert.equal(saved.summary, "Retry succeeded");
   assert.equal(calls, 2);
+});
+
+test("selectMessagesForSummary handles schema-locked vs standard relayMode", () => {
+  const messages = [
+    { role: "system", content: "System instruction" },
+    { role: "user", content: "Msg 1" },
+    { role: "assistant", content: "Msg 2" },
+    { role: "user", content: "Msg 3" },
+  ];
+
+  // Standard mode includes system message
+  const standard = contextHandoff.selectMessagesForSummary(messages, 2, "standard");
+  assert.equal(standard[0].role, "system");
+  assert.equal(standard.length, 3); // system + last 2
+
+  // Schema-locked mode excludes system message
+  const locked = contextHandoff.selectMessagesForSummary(messages, 2, "schema-locked");
+  assert.equal(locked[0].role, "assistant");
+  assert.equal(locked[0].content, "Msg 2");
+  assert.equal(locked.length, 2); // only non-system slice
+});
+
+test("selectMessagesForSummary trims non-system messages and excludes system in schema-locked token overflow", () => {
+  // Input with system messages and huge non-system messages exceeding token limit
+  const hugeText = "x".repeat(35000);
+  const messages = [
+    { role: "system", content: "System prompt" },
+    { role: "developer", content: "Developer prompt" },
+    { role: "user", content: `User msg 1: ${hugeText}` },
+    { role: "assistant", content: `Assistant msg 2: ${hugeText}` },
+    { role: "user", content: "User msg 3 short" },
+  ];
+
+  const trimmedLocked = contextHandoff.selectMessagesForSummary(messages, 10, "schema-locked");
+  // Should exclude system and developer messages
+  assert.ok(trimmedLocked.every((m) => m.role !== "system" && m.role !== "developer"));
+  // Should have trimmed down to non-overflowing messages (or last non-system)
+  assert.ok(trimmedLocked.length < 3);
+  assert.equal(trimmedLocked[trimmedLocked.length - 1].content, "User msg 3 short");
+});
+
+test("resolveUniversalHandoffConfig correctly parses relayMode", async () => {
+  const comboSchema = await import("../../src/shared/validation/schemas/combo.ts");
+  const parsedLocked = comboSchema.comboRuntimeConfigSchema.parse({
+    relayMode: "schema-locked",
+  });
+  assert.equal(parsedLocked.relayMode, "schema-locked");
+
+  const parsedStandard = comboSchema.comboRuntimeConfigSchema.parse({
+    relayMode: "standard",
+  });
+  assert.equal(parsedStandard.relayMode, "standard");
+
+  const resolvedConfig = contextHandoff.resolveUniversalHandoffConfig({
+    relayMode: "schema-locked",
+  });
+  assert.equal(resolvedConfig.relayMode, "schema-locked");
 });
 
 test("maybeGenerateHandoff respects explicit empty handoffProviders and skips generation", async () => {

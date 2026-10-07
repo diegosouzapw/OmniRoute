@@ -19,7 +19,15 @@ const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000",
 
 declare global {
   var __omnirouteShutdown:
-    { init: boolean; shuttingDown: boolean; activeRequests: number } | undefined;
+    | {
+        init: boolean;
+        shuttingDown: boolean;
+        activeRequests: number;
+        shutdownPromise?: Promise<void>;
+      }
+    | undefined;
+  var __omnirouteRequestShutdown: ((signal: string) => Promise<void>) | undefined;
+  var __omnirouteCustomServerOwnsShutdown: boolean | undefined;
 }
 
 function getShutdownState() {
@@ -99,15 +107,17 @@ async function cleanup(): Promise<void> {
   try {
     const [
       { closeAuditDb },
-      { closeDbInstance },
+      { shutdownDbInstance },
       { flushSpendBatchWriter },
       { closeLogRotation },
+      { closeSharedLoggerResource },
       { closeCallLogSaves },
     ] = await Promise.all([
       import("@omniroute/open-sse/mcp-server/audit.ts"),
       import("@/lib/db/core"),
       import("@/lib/spend/batchWriter"),
       import("@/lib/logRotation"),
+      import("@/shared/utils/loggerResource"),
       import("@/lib/usage/callLogs"),
     ]);
     const flushResult = await flushSpendBatchWriter();
@@ -120,12 +130,13 @@ async function cleanup(): Promise<void> {
     if (closeAuditDb()) {
       console.log("[Shutdown] MCP audit database checkpointed and closed.");
     }
-    if (closeDbInstance()) {
-      console.log("[Shutdown] SQLite database checkpointed and closed.");
+    try {
+      if (await shutdownDbInstance()) {
+        console.log("[Shutdown] SQLite database checkpointed and closed.");
+      }
+    } catch (error) {
+      console.error("[Shutdown] Database cleanup failed:", (error as Error).message);
     }
-    closeLogRotation();
-    console.log("[Shutdown] Log rotation timer stopped.");
-
     // Tear down any persistent VNC login browser containers so they don't leak
     // past the server process. Best-effort; no-op if the feature was never used
     // or the docker CLI is unavailable.
@@ -147,9 +158,34 @@ async function cleanup(): Promise<void> {
     } catch {
       /* feature unused */
     }
+
+    await closeSharedLoggerResource();
+    closeLogRotation();
+    console.log("[Shutdown] Logger transport and log rotation stopped.");
   } catch (err) {
     console.error("[Shutdown] Error during cleanup:", (err as Error).message);
   }
+}
+
+/**
+ * Start the process-wide shutdown sequence, or join the sequence already in progress.
+ */
+export function requestGracefulShutdown(signal: string): Promise<void> {
+  const state = getShutdownState();
+  if (state.shutdownPromise) return state.shutdownPromise;
+
+  state.shuttingDown = true;
+  markServerStopping();
+  state.shutdownPromise = (async () => {
+    console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
+
+    await waitForDrain();
+    await cleanup();
+
+    console.log("[Shutdown] Bye.");
+  })();
+
+  return state.shutdownPromise;
 }
 
 /**
@@ -158,30 +194,35 @@ async function cleanup(): Promise<void> {
  */
 export function initGracefulShutdown(): void {
   const state = getShutdownState();
+  globalThis.__omnirouteRequestShutdown ??= requestGracefulShutdown;
   if (state.init) return;
   state.init = true;
 
-  const shutdown = async (signal: string) => {
-    if (state.shuttingDown) return;
-    state.shuttingDown = true;
-    markServerStopping();
+  if (globalThis.__omnirouteCustomServerOwnsShutdown) {
+    console.log("[Shutdown] Cleanup registered with the custom server shutdown owner.");
+    return;
+  }
 
-    console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
-
-    await waitForDrain();
-    await cleanup();
-
-    console.log("[Shutdown] Bye.");
-    process.exit(0);
+  const shutdown = (signal: string) => {
+    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => {
+      // #13306: on Windows, sql.js's Emscripten WASM build leaves pending libuv
+      // async-handle teardown work in flight after a statement has run. Calling
+      // process.exit() in the same tick as cleanup() resolving tears the event loop
+      // down before that teardown settles, and libuv's Windows async-handle close path
+      // asserts `!(handle->flags & UV_HANDLE_CLOSING)` -> hard abort. Deferring by one
+      // macrotask (mirrors 9router's own shutdown call sites, e.g.
+      // appUpdater.js:199, cli/cli.js:675) gives that teardown work a chance to run.
+      setTimeout(() => process.exit(0), 0);
+    });
   };
 
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
   // #8045: on Windows, closing the console window delivers CTRL_CLOSE_EVENT, which
   // Node/libuv maps to a JS-visible "SIGHUP" event — without this listener, closing
   // the window never runs cleanup() (WAL checkpoint + closeDbInstance()), leaving
   // storage.sqlite's WAL un-checkpointed for the next launch.
-  process.on("SIGHUP", () => shutdown("SIGHUP"));
+  process.on("SIGHUP", () => void shutdown("SIGHUP"));
 
   console.log("[Shutdown] Graceful shutdown handlers registered.");
 }

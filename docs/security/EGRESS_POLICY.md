@@ -190,10 +190,7 @@ export function buildSocksFamilySocketOptions(family: 4 | 6 | null): Record<stri
 }
 ```
 
-`createProxyDispatcher` chooses the connector based on whether a family is pinned:
-
-- `family === null` (i.e. `auto` over a hostname) → stock `socksDispatcher` from `fetch-socks`.
-- `family === 4 | 6` → `createSocksDispatcherWithFamily`, which threads `socket_options` into `SocksClient.createConnection` so Happy Eyeballs cannot pick IPv4 for an IPv6-only egress policy.
+All SOCKS5 dispatches go through `createSocksDispatcherWithFamily` regardless of `family` (including `null` / `auto` over a hostname): `buildSocksFamilySocketOptions(null)` yields `{}`, and the same `SocksClient.createConnection` + TLS `buildConnector` path is used with `socket_options` pinning so Happy Eyeballs cannot pick IPv4 for an IPv6-only egress policy.
 
 SOCKS5 support itself is on by default (opt-out via `ENABLE_SOCKS5_PROXY=false`); see [PROXY_GUIDE.md → Environment Variables](../ops/PROXY_GUIDE.md#environment-variables).
 
@@ -246,5 +243,5 @@ When a resolved proxy object carries a non-`auto` `family`, `proxyConfigToUrl` a
 > 📖 **Related documentation:**
 >
 > - [Proxy Guide](../ops/PROXY_GUIDE.md) — full proxy system: registry CRUD, 4-level resolution, rotation, health checking, API reference
-> - [Stealth Guide](./STEALTH_GUIDE.md) — TLS fingerprint and CLI fingerprint layers that ride on top of the proxy
+> - `docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`) — TLS fingerprint and CLI fingerprint layers that ride on top of the proxy
 > - [Route Guard Tiers](./ROUTE_GUARD_TIERS.md) — loopback enforcement for local-only routes

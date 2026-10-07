@@ -38,6 +38,8 @@ import { encrypt, decrypt } from "./encryption";
 
 export interface RadarCache {
   version: string;
+  /** Date the feed's data was built, from the feed itself. Null when unknown. */
+  generatedAt: string | null;
   tier: string;
   payload: string;
   signature: string;
@@ -114,8 +116,8 @@ export function getRadarCache(): RadarCache | null {
   const db = getDbInstance();
   const row = db
     .prepare(
-      "SELECT version, tier, payload, signature, fetched_at AS fetchedAt " +
-        "FROM radar_feed_cache WHERE id = 1"
+      "SELECT version, generated_at AS generatedAt, tier, payload, signature, " +
+        "fetched_at AS fetchedAt FROM radar_feed_cache WHERE id = 1"
     )
     .get() as RadarCache | undefined;
 
@@ -128,6 +130,7 @@ export function getRadarCache(): RadarCache | null {
  */
 export function setRadarCache(entry: {
   version: string;
+  generatedAt?: string | null;
   tier: string;
   payload: string;
   signature: string;
@@ -137,15 +140,23 @@ export function setRadarCache(entry: {
   const fetchedAt = entry.fetchedAt ?? new Date().toISOString();
 
   db.prepare(
-    `INSERT INTO radar_feed_cache (id, version, tier, payload, signature, fetched_at)
-     VALUES (1, ?, ?, ?, ?, ?)
+    `INSERT INTO radar_feed_cache (id, version, generated_at, tier, payload, signature, fetched_at)
+     VALUES (1, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
-       version    = excluded.version,
-       tier       = excluded.tier,
-       payload    = excluded.payload,
-       signature  = excluded.signature,
-       fetched_at = excluded.fetched_at`
-  ).run(entry.version, entry.tier, entry.payload, entry.signature, fetchedAt);
+       version      = excluded.version,
+       generated_at = excluded.generated_at,
+       tier         = excluded.tier,
+       payload      = excluded.payload,
+       signature    = excluded.signature,
+       fetched_at   = excluded.fetched_at`
+  ).run(
+    entry.version,
+    entry.generatedAt ?? null,
+    entry.tier,
+    entry.payload,
+    entry.signature,
+    fetchedAt
+  );
 }
 
 // ---------------------------------------------------------------------------

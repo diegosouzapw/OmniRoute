@@ -130,9 +130,12 @@ export default function ReasoningCacheTab() {
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Snapshot of "now" taken when the data lands (never during render — the
+  // purity rule bars Date.now() there); entries only render after a fetch.
+  const [nowMs, setNowMs] = useState(0);
 
   const timeAgo = (dateStr: string): string => {
-    const diff = Date.now() - new Date(dateStr).getTime();
+    const diff = nowMs - new Date(dateStr).getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 1) return t("justNow");
     if (minutes < 60) return t("minutesAgo", { minutes });
@@ -147,6 +150,7 @@ export default function ReasoningCacheTab() {
       const res = await fetch("/api/cache/reasoning");
       if (res.ok) {
         const json: ReasoningCacheData = await res.json();
+        setNowMs(Date.now());
         setData(json);
       }
     } catch (error) {
@@ -157,7 +161,9 @@ export default function ReasoningCacheTab() {
   }, []);
 
   useEffect(() => {
-    void fetchData();
+    void (async () => {
+      await fetchData();
+    })();
     const id = setInterval(() => void fetchData(), REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
   }, [fetchData]);

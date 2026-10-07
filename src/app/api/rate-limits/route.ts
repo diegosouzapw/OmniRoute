@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getCacheStats } from "@omniroute/open-sse/services/signatureCache.ts";
-import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import {
   enableRateLimitProtection,
   disableRateLimitProtection,

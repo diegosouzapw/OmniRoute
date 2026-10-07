@@ -535,7 +535,7 @@ test("provider models route returns the local catalog for built-in image provide
     {
       id: "topaz-enhance",
       name: "topaz-enhance",
-      apiFormat: "images",
+      apiFormat: "images-generations",
       supportedEndpoints: ["images"],
     },
   ]);
@@ -981,7 +981,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     { id: "gemini-pro-agent", name: "Gemini 3.1 Pro (High)" },
     { id: "gemini-3.7-flash-high", name: "Gemini 3.7 Flash (High)" },
     { id: "gemini-3.7-flash-medium", name: "Gemini 3.7 Flash (Medium)" },
-    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash High" },
+    { id: "gemini-3.8-flash-high", name: "Gemini 3.8 Flash (High)" },
   ]);
 });
 

@@ -61,10 +61,16 @@ async function main() {
     OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
     REQUIRE_API_KEY: explicitBaseUrl ? process.env.REQUIRE_API_KEY : "false",
     ENABLE_CLI_TOOLS: "true",
+    // The production auth policy derives locality from the real TCP peer stamp.
+    HOST: process.env.HOST || "127.0.0.1",
+    OMNIROUTE_DISABLE_BACKGROUND_SERVICES:
+      process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES || "true",
   };
 
   if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
+    // Match the protocol-client harness: bare next dev cannot stamp the peer,
+    // so bootstrap management calls correctly fail closed before tests run.
+    serverProcess = spawn(process.execPath, ["scripts/dev/run-next.mjs", "dev"], {
       stdio: "inherit",
       env: testEnv,
     });

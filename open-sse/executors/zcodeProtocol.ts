@@ -1,4 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { shouldUseShellForCommand } from "@/shared/services/cliRuntime";
 
 const HEADER_SIZE = 13;
 const REGULAR_MESSAGE = 1;
@@ -154,6 +155,21 @@ export function encodeZcodeRpcCall(
   return frame;
 }
 
+/**
+ * Whether spawn() must go through the shell to launch `command`.
+ *
+ * On win32, npm installs global CLI wrappers (e.g. the `zcode`/ZCODE_BIN
+ * shim) as `.cmd`/`.bat` files. Since Node's CVE-2024-27980 fix, `spawn()`
+ * refuses to launch a `.cmd`/`.bat` target without `shell: true`, throwing
+ * ENOENT/EINVAL instead (#13963, same class of bug as #8590/Qoder). The
+ * bundled ZCODE_SERVER_NODE runtime path spawns a bare `node`/`node.exe`
+ * binary (no `.cmd`/`.bat` extension) and must keep `shell: false` even on
+ * win32 — `shouldUseShellForCommand()` already encodes that extension check.
+ */
+export function shouldUseShellForZcodeCommand(command: string): boolean {
+  return shouldUseShellForCommand(command);
+}
+
 function errorFromPayload(payload: unknown, fallback: string): Error {
   if (payload && typeof payload === "object") {
     const record = payload as JsonRecord;
@@ -178,7 +194,7 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
   private readonly startupTimeoutMs: number;
   private readonly requestTimeoutMs: number;
   private child?: ChildProcessWithoutNullStreams;
-  private outputBuffer = Buffer.alloc(0);
+  private pendingChunks: Buffer[] = [];
   private handshakeDone = false;
   private ready = false;
   private startPromise?: Promise<void>;
@@ -212,7 +228,8 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
         cwd: this.cwd,
         env: this.env ? { ...process.env, ...this.env } : process.env,
         stdio: ["pipe", "pipe", "pipe"],
-        shell: false,
+        // shell:true on win32 for a .cmd/.bat ZCode shim — see #13963/#8590.
+        shell: shouldUseShellForZcodeCommand(this.command),
         windowsHide: true,
       });
     } catch (error) {
@@ -220,7 +237,7 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     }
 
     this.child = child;
-    this.outputBuffer = Buffer.alloc(0);
+    this.pendingChunks = [];
     this.handshakeDone = false;
     this.ready = false;
     child.stdin.on("error", () => {
@@ -260,7 +277,11 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     });
 
     try {
-      await this.withTimeout(readyPromise, this.startupTimeoutMs, "ZCode app-server handshake timed out");
+      await this.withTimeout(
+        readyPromise,
+        this.startupTimeoutMs,
+        "ZCode app-server handshake timed out"
+      );
       this.ready = true;
     } catch (error) {
       await this.disposeChild(child);
@@ -271,18 +292,30 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     }
   }
 
+  // Buffer accumulated stdout bytes. Chunks are collected in an array and
+  // collapsed into one contiguous buffer only when a complete frame (or the
+  // hello line) might be present — the previous `concat(prev, chunk)` per data
+  // event re-allocated the whole buffer on every chunk, i.e. O(n²) total.
   private onStdout(chunk: Buffer): void {
-    this.outputBuffer = Buffer.concat([this.outputBuffer, chunk]);
+    this.pendingChunks.push(chunk);
+    let total = 0;
+    for (const part of this.pendingChunks) total += part.byteLength;
+    const buffer =
+      total === chunk.byteLength && this.pendingChunks.length > 0
+        ? chunk
+        : Buffer.concat(this.pendingChunks);
+    this.pendingChunks = [buffer];
+
     if (!this.handshakeDone) {
-      const newline = this.outputBuffer.indexOf(0x0a);
+      const newline = buffer.indexOf(0x0a);
       if (newline < 0) {
-        if (this.outputBuffer.byteLength > 64 * 1024) {
+        if (buffer.byteLength > 64 * 1024) {
           this.serverReadyError?.(new Error("ZCode hello line is too large"));
         }
         return;
       }
-      const line = this.outputBuffer.subarray(0, newline).toString("utf8").trim();
-      this.outputBuffer = this.outputBuffer.subarray(newline + 1);
+      const line = buffer.subarray(0, newline).toString("utf8").trim();
+      this.pendingChunks = [buffer.subarray(newline + 1)];
       let hello: unknown;
       try {
         hello = JSON.parse(line);
@@ -296,20 +329,26 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
       }
       const child = this.child;
       if (!child) return;
-      child.stdin.write(`${JSON.stringify({
-        type: "zcode-hello-ack",
-        version: "omniroute",
-        clientId: `omniroute-${process.pid}`,
-      })}\n`);
+      child.stdin.write(
+        `${JSON.stringify({
+          type: "zcode-hello-ack",
+          version: "omniroute",
+          clientId: `omniroute-${process.pid}`,
+        })}\n`
+      );
       this.handshakeDone = true;
     }
     this.consumeFrames();
   }
 
   private consumeFrames(): void {
-    while (this.outputBuffer.byteLength >= HEADER_SIZE) {
-      const type = this.outputBuffer.readUInt8(0);
-      const length = this.outputBuffer.readUInt32BE(9);
+    // Collapse to one buffer for frame scanning (only happens once per data
+    // event since onStdout already deduped), then drop consumed frames.
+    const buffer = this.pendingChunks[0];
+    let offset = 0;
+    while (buffer.byteLength - offset >= HEADER_SIZE) {
+      const type = buffer.readUInt8(offset);
+      const length = buffer.readUInt32BE(offset + 9);
       if (length > MAX_FRAME_BYTES) {
         const error = new Error("ZCode frame exceeds the configured safety limit");
         this.serverReadyError?.(error);
@@ -317,9 +356,9 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
         return;
       }
       const frameLength = HEADER_SIZE + length;
-      if (this.outputBuffer.byteLength < frameLength) return;
-      const body = this.outputBuffer.subarray(HEADER_SIZE, frameLength);
-      this.outputBuffer = this.outputBuffer.subarray(frameLength);
+      if (buffer.byteLength - offset < frameLength) break;
+      const body = buffer.subarray(offset + HEADER_SIZE, offset + frameLength);
+      offset += frameLength;
       if (type !== REGULAR_MESSAGE) continue;
       try {
         const header = decodeZcodeValue(body, 0);
@@ -331,6 +370,7 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
         this.rejectPending(normalized);
       }
     }
+    if (offset > 0) this.pendingChunks = [buffer.subarray(offset)];
   }
 
   private handleMessage(headerValue: unknown, payload: unknown): void {
@@ -350,10 +390,12 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     if (type === RESPONSE_MESSAGE) {
       request.resolve(payload);
     } else {
-      request.reject(errorFromPayload(
-        payload,
-        type === ERROR_MESSAGE ? "ZCode RPC request failed" : "ZCode RPC request canceled"
-      ));
+      request.reject(
+        errorFromPayload(
+          payload,
+          type === ERROR_MESSAGE ? "ZCode RPC request failed" : "ZCode RPC request canceled"
+        )
+      );
     }
   }
 
@@ -421,7 +463,11 @@ export class ZcodeAppServerClient implements ZcodeClientLike {
     }
   }
 
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    message: string
+  ): Promise<T> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       return await Promise.race([

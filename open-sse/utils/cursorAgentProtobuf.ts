@@ -11,19 +11,34 @@
  *   - Cross-checked against router-for-me/CLIProxyAPI's reference Go impl
  *     and KooshaPari/cliproxyapi-plusplus's hand-rolled field tables
  *
- * The endpoint is a Connect-RPC client-streaming RPC. We send one frame
- * (AgentClientMessage with a RunRequest) and end the stream; the server
- * streams back an AgentServerMessage per chunk.
+ * The endpoint is a bidirectional Connect-RPC stream. The RunRequest stays
+ * open so client-side exec results can be returned on the same connection.
  */
 
 import zlib from "node:zlib";
 import crypto from "node:crypto";
 import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
+import { pushTtftBreakdown, safely, type TtftBreakdownDelta } from "./cursorAgentProtobuf/ttft.ts";
+import {
+  EXTRA_EXEC_SERVER_FIELDS,
+  decodeExtraExecEvent,
+  type ExtraExecEvent,
+} from "./cursorAgentProtobuf/extraExec.ts";
+import {
+  PI_EXEC_SERVER_FIELDS,
+  decodePiExecEvent,
+  type PiExecEvent,
+} from "./cursorAgentProtobuf/pi.ts";
 import {
   cursorImageAttachmentPath,
   encodeSelectedImageBody,
   type EncodedImage,
 } from "./cursorAgentProtobuf/imageEncoding.ts";
+import {
+  CURSOR_EFFORT_SUFFIXES,
+  applyCursorReasoningEffort,
+  resolveOneMillionContextModel,
+} from "./cursorAgentProtobuf/requestedModelParameters.ts";
 import {
   WT_VARINT,
   WT_LEN,
@@ -41,7 +56,38 @@ import {
   findField,
   decodeStringField,
   decodeVarintField,
+  type Field,
 } from "./cursorAgentProtobuf/wire.ts";
+
+export {
+  encodeExecReadRejected,
+  encodeExecWriteRejected,
+  encodeExecDeleteRejected,
+  encodeExecLsRejected,
+  encodeExecShellRejected,
+  encodeExecShellStreamRejected,
+  encodeExecListMcpResourcesResult,
+  encodeExecBackgroundShellSpawnRejected,
+  encodeExecGrepError,
+  encodeExecFetchError,
+  encodeExecFetchSuccess,
+  encodeExecWriteShellStdinError,
+  encodeExecReadSuccess,
+  encodeExecReadFileNotFound,
+  looksLikeFileNotFound,
+  encodeExecGrepSuccess,
+  encodeExecLsSuccess,
+  encodeExecShellSuccess,
+  encodeExecShellStreamResult,
+  encodeExecWriteSuccess,
+  encodeExecWriteError,
+  encodeExecDiagnosticsResult,
+  encodeExecMcpResult,
+  encodeExecMcpError,
+  ECM_MINI_SWE_BASH_RESULT,
+} from "./cursorAgentProtobuf/execResults.ts";
+export { flattenMessages, messageContentToText } from "./cursorAgentProtobuf/messageHistory.ts";
+export type { ChatMessage } from "./cursorAgentProtobuf/messageHistory.ts";
 
 // ─── Field numbers (from agent.proto descriptor) ───────────────────────────
 
@@ -53,11 +99,10 @@ const ARR_MODEL_DETAILS = 3; // AgentRunRequest.model_details (ModelDetails, msg
 const ARR_CONVERSATION_ID = 5; // AgentRunRequest.conversation_id
 const ARR_MCP_TOOLS = 4; // AgentRunRequest.mcp_tools (empty placeholder required)
 const ARR_REQUESTED_MODEL = 9; // AgentRunRequest.requested_model
-const ARR_UNKNOWN_12 = 12; // observed varint=0 in cursor-agent traffic
-const ARR_REQUEST_ID = 16; // observed UUID, same value as conversation_id
+const ARR_EXCLUDE_WORKSPACE_CONTEXT = 12; // AgentRunRequest.exclude_workspace_context
+const ARR_CONVERSATION_GROUP_ID = 16; // AgentRunRequest.conversation_group_id
 
 const CSS_ROOT_PROMPT = 1; // ConversationStateStructure.root_prompt_messages_json
-const CSS_TURNS = 8; // ConversationStateStructure.turns
 
 const CA_USER_MESSAGE_ACTION = 1; // ConversationAction.user_message_action
 
@@ -103,6 +148,11 @@ const ASM_KV_SERVER_MESSAGE = 4; // AgentServerMessage.kv_server_message
 
 const ESM_ID = 1; // ExecServerMessage.id
 const ESM_EXEC_ID = 15; // ExecServerMessage.exec_id
+// ExecServerMessage.span_context (OpenTelemetry: trace_id / span_id / flags).
+// Purely diagnostic — it must never be mistaken for the event variant, which
+// is what happened while the variant was guessed as "the first LEN field".
+const ESM_SPAN_CONTEXT = 19;
+const ESM_MACHINE_ID = 57; // ExecServerMessage.machine_id, not an exec variant
 const ESM_REQUEST_CONTEXT_ARGS = 10; // ExecServerMessage.request_context_args
 
 const IU_TEXT_DELTA = 1; // InteractionUpdate.text_delta
@@ -116,27 +166,10 @@ const IU_TURN_ENDED = 14;
 
 const TDU_TEXT = 1; // TextDeltaUpdate.text
 
-// ─── Phase 1+: tool-use field numbers ──────────────────────────────────────
-// Field numbers in result-message oneof discriminators (RES_*) are best-known
-// values; verified against wire-tap captures during integration testing.
-
 const ACM_KV_CLIENT_MESSAGE = 3; // AgentClientMessage.kv_client_message
 
 // CSS_ROOT_PROMPT and CSS_TURNS already declared above (lines 34-35)
 // CSS_TURNS_OLD = 2 is deprecated; CSS_TURNS = 8 is current.
-
-// ExecClientMessage payload variants (mirror ESM_*)
-const ECM_SHELL_RESULT = 2;
-const ECM_WRITE_RESULT = 3;
-const ECM_DELETE_RESULT = 4;
-const ECM_GREP_RESULT = 5;
-const ECM_READ_RESULT = 7;
-const ECM_LS_RESULT = 8;
-const ECM_DIAGNOSTICS_RESULT = 9;
-const ECM_MCP_RESULT = 11;
-const ECM_BACKGROUND_SHELL_SPAWN_RES = 16;
-const ECM_FETCH_RESULT = 20;
-const ECM_WRITE_SHELL_STDIN_RESULT = 23;
 
 // ExecServerMessage variant tags (used by exec router in Phase 2)
 const ESM_SHELL_ARGS = 2;
@@ -147,19 +180,35 @@ const ESM_READ_ARGS = 7;
 const ESM_LS_ARGS = 8;
 const ESM_DIAGNOSTICS_ARGS = 9;
 const ESM_MCP_ARGS = 11;
+// ExecServerMessage.mcp_state_exec_args — McpStateExecArgs{1: server_identifiers,
+// 2: kick_only}. A BLOCKING request: until it is answered the server emits
+// nothing but heartbeats.
+const ESM_MCP_STATE_ARGS = 36;
+const ESM_LIST_MCP_RESOURCES_ARGS = 17; // ExecServerMessage.list_mcp_resources_exec_args
 const ESM_SHELL_STREAM_ARGS = 14;
 const ESM_BACKGROUND_SHELL_SPAWN = 16;
+const ESM_MINI_SWE_BASH_ARGS = 52; // Shares ShellArgs with shell_args (field 2)
 const ESM_FETCH_ARGS = 20;
 const ESM_WRITE_SHELL_STDIN_ARGS = 23;
 
 // Args sub-message field numbers (path and shell variants)
 const ARG_PATH = 1; // ReadArgs.path / WriteArgs.path / DeleteArgs.path / LsArgs.path
+const ARG_READ_OFFSET = 4; // ReadArgs.offset (optional int32)
+const ARG_READ_LIMIT = 5; // ReadArgs.limit (optional uint32)
 const ARG_SHELL_COMMAND = 1; // ShellArgs.command
 const ARG_SHELL_WORKING_DIR = 2; // ShellArgs.working_directory
 const ARG_SHELL_TIMEOUT = 3; // ShellArgs.timeout
 const ARG_SHELL_IS_BACKGROUND = 11; // ShellArgs.is_background
 const ARG_SHELL_HARD_TIMEOUT = 14; // ShellArgs.hard_timeout
 const ARG_FETCH_URL = 1; // FetchArgs.url
+// GrepArgs / WriteArgs (agent.v1). Only the parts a declared client tool can
+// express are decoded; the rest (sort, head_limit, sandbox_policy…) stay
+// unread because no external schema carries them.
+const ARG_GREP_PATTERN = 1; // GrepArgs.pattern
+const ARG_GREP_PATH = 2; // GrepArgs.path
+const ARG_GREP_GLOB = 3; // GrepArgs.glob
+const ARG_GREP_OUTPUT_MODE = 4; // GrepArgs.output_mode
+const ARG_WRITE_FILE_TEXT = 2; // WriteArgs.file_text
 
 // KvServerMessage / KvClientMessage
 const KSM_ID = 1;
@@ -181,24 +230,6 @@ const SBA_BLOB_ID = 1; // SetBlobArgs.blob_id (bytes)
 const SBA_BLOB_DATA = 2; // SetBlobArgs.blob_data (bytes)
 const GBR_BLOB_DATA = 1; // GetBlobResult.blob_data (bytes) — verified by wire test (cursor parses field 1 as JSON)
 
-// Rejection sub-messages (path-based: read/write/delete/ls)
-const REJ_PATH = 1;
-const REJ_REASON = 2;
-
-// ShellRejected (command + working_dir + reason)
-const SREJ_COMMAND = 1;
-const SREJ_WORKING_DIR = 2;
-const SREJ_REASON = 3;
-
-// Generic error sub-messages
-const ERR_MESSAGE = 1; // GrepError.error / WriteShellStdinError.error
-const FERR_URL = 1; // FetchError.url
-const FERR_ERROR = 2; // FetchError.error
-
-// Result-message variant discriminators (oneof). field 1 = success/accepted,
-// field 2 = rejected/error. Matches existing RCR_SUCCESS=1 pattern.
-const RES_REJECTED = 2; // rejected variant for read/write/delete/ls/shell/bg_shell
-
 // McpToolDefinition
 const MTD_NAME = 1;
 const MTD_DESCRIPTION = 2;
@@ -210,16 +241,7 @@ const MTD_TOOL_NAME = 5;
 const MCA_NAME = 1;
 const MCA_ARGS = 2; // map<string, bytes>
 const MCA_TOOL_CALL_ID = 3;
-const MCA_PROVIDER_IDENTIFIER = 4;
 const MCA_TOOL_NAME = 5;
-
-// McpResult variants
-const MCR_SUCCESS = 1;
-const MCR_ERROR = 2;
-const MCS_CONTENT = 1; // McpSuccess.content (repeated McpToolResultContentItem)
-const MCS_IS_ERROR = 2;
-const MCC_TEXT = 1; // McpToolResultContentItem.text (oneof) -> McpTextContent
-const MTC_TEXT = 1; // McpTextContent.text
 
 // google.protobuf.Value (well-known type)
 const VAL_NULL = 1;
@@ -311,8 +333,6 @@ export function normalizeCursorModelId(modelId: string): string {
 // Grok (`cursor-grok-*` / legacy `grok-*`) follows the Claude-style `effort`
 // parameter. Without the split, ids like `cursor-grok-4.5-high` return empty
 // turns (same symptom as #7289). Combined `-high-fast` is supported.
-const CURSOR_EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh", "max"] as const;
-
 /**
  * If `normalized` starts with `prefix` and ends with one of the known effort
  * suffixes, split it into the base model id plus a `{id: paramId, value}`
@@ -432,6 +452,8 @@ export function resolveRequestedModel(
       };
     }
   }
+  const oneMillionContext = resolveOneMillionContextModel(normalized);
+  if (oneMillionContext) return oneMillionContext;
   // Live catalog is authoritative for exact ids (flattened effort variants).
   if (opts?.liveCatalogIds?.has(normalized)) {
     return { modelId: normalized, parameters: [] };
@@ -479,6 +501,7 @@ export type OpenAITool = {
 
 export type AgentRunInput = {
   modelId: string;
+  reasoningEffort?: string;
   userText: string;
   conversationId?: string;
   messageId?: string;
@@ -510,24 +533,40 @@ export type { EncodedImage };
  * the tools as available.
  */
 export function openAIToolsToMcpDefs(tools: OpenAITool[]): McpToolDefinition[] {
-  return tools.map((t) => {
-    const params = t.function?.parameters ?? { type: "object", properties: {} };
-    return {
-      name: t.function.name,
-      description: t.function.description ?? "",
-      inputSchemaBytes: jsonSchemaToProtobufValue(params),
-      providerIdentifier: "omniroute",
-      toolName: t.function.name,
+  return tools.flatMap((t): McpToolDefinition[] => {
+    // Chat Completions nests the definition under `function`; the Responses
+    // API keeps it flat ({ type, name, description, parameters }). A request
+    // that arrives on /v1/responses therefore produced tools whose name was
+    // undefined — Cursor accepted the frame and then exposed a nameless,
+    // uncallable namespace, so the model never invoked anything.
+    const fn = (t as { function?: OpenAITool["function"] }).function;
+    const flat = t as unknown as {
+      name?: string;
+      description?: string;
+      parameters?: unknown;
     };
+    const name = (fn?.name ?? flat.name ?? "").trim();
+    if (!name) return [];
+    const params = fn?.parameters ?? flat.parameters ?? { type: "object", properties: {} };
+    return [
+      {
+        name,
+        description: fn?.description ?? flat.description ?? "",
+        inputSchemaBytes: jsonSchemaToProtobufValue(params),
+        providerIdentifier: OMNIROUTE_MCP_SERVER_IDENTIFIER,
+        toolName: name,
+      },
+    ];
   });
 }
 
 export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   const conversationId = input.conversationId || crypto.randomUUID();
   const messageId = input.messageId || crypto.randomUUID();
-  const { modelId, parameters } = resolveRequestedModel(input.modelId, {
-    liveCatalogIds: input.liveCatalogIds,
-  });
+  const { modelId, parameters } = applyCursorReasoningEffort(
+    resolveRequestedModel(input.modelId, { liveCatalogIds: input.liveCatalogIds }),
+    input.reasoningEffort
+  );
 
   // UserMessage { text, message_id, selected_context, mode=1 }.
   // selected_context is normally an empty placeholder (required by the server
@@ -612,8 +651,8 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
     mcpToolsBlock,
     encodeString(ARR_CONVERSATION_ID, conversationId),
     requestedModel,
-    Buffer.concat([encodeTag(ARR_UNKNOWN_12, WT_VARINT), encodeVarint(0)]),
-    encodeString(ARR_REQUEST_ID, conversationId),
+    Buffer.concat([encodeTag(ARR_EXCLUDE_WORKSPACE_CONTEXT, WT_VARINT), encodeVarint(0)]),
+    encodeString(ARR_CONVERSATION_GROUP_ID, conversationId),
   ];
 
   // AgentClientMessage { run_request }
@@ -636,7 +675,8 @@ export type DecodedDelta =
   | { kind: "thinking"; text: string }
   | { kind: "thinking_complete" }
   | { kind: "token_delta"; tokens: number }
-  | { kind: "turn_ended" }
+  | { kind: "turn_ended"; usage?: CursorTurnUsage }
+  | TtftBreakdownDelta
   | { kind: "heartbeat" }
   | { kind: "tool_call_started" }
   | { kind: "tool_call_completed" }
@@ -652,6 +692,72 @@ export type DecodedDelta =
   | { kind: "kv_server_message" }
   | { kind: "unknown"; field: number };
 
+export type CursorTurnUsage = {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  reasoningTokens?: number;
+};
+
+function decodeTurnUsage(bytes: Buffer): CursorTurnUsage | undefined {
+  const fields = decodeFields(bytes);
+  const read = (number: number) => {
+    const field = fields.find((item) => item.fieldNumber === number && item.wireType === 0);
+    return field?.wireType === 0 && field.varint <= BigInt(Number.MAX_SAFE_INTEGER)
+      ? Number(field.varint)
+      : undefined;
+  };
+  const usage: CursorTurnUsage = {
+    inputTokens: read(1),
+    outputTokens: read(2),
+    cacheReadTokens: read(3),
+    cacheWriteTokens: read(4),
+    reasoningTokens: read(5),
+  };
+  return Object.values(usage).some((value) => value !== undefined) ? usage : undefined;
+}
+
+type InteractionUpdateDecoder = (field: Field) => DecodedDelta[];
+
+const INTERACTION_UPDATE_DECODERS: Partial<Record<number, InteractionUpdateDecoder>> = {
+  [IU_TEXT_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "text", text: decodeStringField(field.bytes, TDU_TEXT) }]
+      : [],
+  [IU_THINKING_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "thinking", text: decodeStringField(field.bytes, TDU_TEXT) }]
+      : [],
+  [IU_THINKING_COMPLETED]: () => [{ kind: "thinking_complete" }],
+  [IU_TOOL_CALL_STARTED]: () => [{ kind: "tool_call_started" }],
+  [IU_TOOL_CALL_COMPLETED]: (field) => {
+    const deltas: DecodedDelta[] = [];
+    if (field.wireType === WT_LEN) {
+      const todoWrite = decodeNativeTodoWriteCompletion(field.bytes);
+      if (todoWrite) deltas.push(todoWrite);
+    }
+    deltas.push({ kind: "tool_call_completed" });
+    return deltas;
+  },
+  [IU_TOKEN_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "token_delta", tokens: decodeVarintField(field.bytes, 1) }]
+      : [],
+  [IU_HEARTBEAT]: () => [{ kind: "heartbeat" }],
+  [IU_TURN_ENDED]: (field) => {
+    // Usage is telemetry: a malformed body must not drop the turn_ended end signal.
+    const usage =
+      field.wireType === WT_LEN ? safely(() => decodeTurnUsage(field.bytes)) : undefined;
+    return [usage ? { kind: "turn_ended", usage } : { kind: "turn_ended" }];
+  },
+};
+
+function decodeInteractionUpdate(field: Field): DecodedDelta[] {
+  const decoder = INTERACTION_UPDATE_DECODERS[field.fieldNumber];
+  return decoder ? decoder(field) : [{ kind: "unknown", field: field.fieldNumber }];
+}
+
 export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
   const out: DecodedDelta[] = [];
   for (const top of decodeFields(payload)) {
@@ -659,47 +765,10 @@ export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
       out.push({ kind: "kv_server_message" });
       continue;
     }
+    if (pushTtftBreakdown(top, out)) continue;
     if (top.fieldNumber !== ASM_INTERACTION_UPDATE || top.wireType !== 2) continue;
     for (const update of decodeFields(top.bytes)) {
-      if (update.wireType !== 2 && update.wireType !== 0) continue;
-      switch (update.fieldNumber) {
-        case IU_TEXT_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "text", text: decodeStringField(update.bytes, TDU_TEXT) });
-          }
-          break;
-        case IU_THINKING_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "thinking", text: decodeStringField(update.bytes, TDU_TEXT) });
-          }
-          break;
-        case IU_THINKING_COMPLETED:
-          out.push({ kind: "thinking_complete" });
-          break;
-        case IU_TOOL_CALL_STARTED:
-          out.push({ kind: "tool_call_started" });
-          break;
-        case IU_TOOL_CALL_COMPLETED:
-          if (update.wireType === 2) {
-            const todoWrite = decodeNativeTodoWriteCompletion(update.bytes);
-            if (todoWrite) out.push(todoWrite);
-          }
-          out.push({ kind: "tool_call_completed" });
-          break;
-        case IU_TOKEN_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "token_delta", tokens: decodeVarintField(update.bytes, 1) });
-          }
-          break;
-        case IU_HEARTBEAT:
-          out.push({ kind: "heartbeat" });
-          break;
-        case IU_TURN_ENDED:
-          out.push({ kind: "turn_ended" });
-          break;
-        default:
-          out.push({ kind: "unknown", field: update.fieldNumber });
-      }
+      out.push(...decodeInteractionUpdate(update));
     }
   }
   return out;
@@ -750,52 +819,44 @@ export type KvServerEvent =
       requestMetadata: Buffer | null;
     };
 
+function findLengthDelimitedField(fields: Field[], fieldNumber: number): Buffer | null {
+  const field = findField(fields, fieldNumber);
+  return field?.wireType === WT_LEN ? field.bytes : null;
+}
+
+function decodeBlobId(payload: Buffer, fieldNumber: number): Buffer {
+  return findLengthDelimitedField(decodeFields(payload), fieldNumber) ?? Buffer.alloc(0);
+}
+
+function decodeSetBlobArgs(payload: Buffer): { blobId: Buffer; blobData: Buffer } {
+  const fields = decodeFields(payload);
+  return {
+    blobId: findLengthDelimitedField(fields, SBA_BLOB_ID) ?? Buffer.alloc(0),
+    blobData: findLengthDelimitedField(fields, SBA_BLOB_DATA) ?? Buffer.alloc(0),
+  };
+}
+
 export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
-  for (const top of decodeFields(payload)) {
-    if (top.fieldNumber !== ASM_KV_SERVER_MESSAGE || top.wireType !== 2) continue;
+  const top = findField(decodeFields(payload), ASM_KV_SERVER_MESSAGE);
+  if (top?.wireType !== WT_LEN) return null;
 
-    let kvId = 0;
-    let getBlobArgs: Buffer | null = null;
-    let setBlobArgs: Buffer | null = null;
-    let requestMetadata: Buffer | null = null;
-
-    for (const f of decodeFields(top.bytes)) {
-      if (f.fieldNumber === KSM_ID && f.wireType === 0) {
-        kvId = Number(f.varint);
-      } else if (f.fieldNumber === KSM_GET_BLOB_ARGS && f.wireType === 2) {
-        getBlobArgs = f.bytes;
-      } else if (f.fieldNumber === KSM_SET_BLOB_ARGS && f.wireType === 2) {
-        setBlobArgs = f.bytes;
-      } else if (f.fieldNumber === KSM_REQUEST_METADATA && f.wireType === 2) {
-        requestMetadata = f.bytes;
-      }
-    }
-
-    if (getBlobArgs) {
-      // GetBlobArgs { blob_id (1): bytes }
-      let blobId: Buffer = Buffer.alloc(0);
-      for (const f of decodeFields(getBlobArgs)) {
-        if (f.fieldNumber === GBA_BLOB_ID && f.wireType === 2) {
-          blobId = f.bytes;
-        }
-      }
-      return { kind: "kv_get_blob", kvId, blobId, requestMetadata };
-    }
-    if (setBlobArgs) {
-      // SetBlobArgs { blob_id (1): bytes, blob_data (2): bytes }
-      let blobId: Buffer = Buffer.alloc(0);
-      let blobData: Buffer = Buffer.alloc(0);
-      for (const f of decodeFields(setBlobArgs)) {
-        if (f.fieldNumber === SBA_BLOB_ID && f.wireType === 2) {
-          blobId = f.bytes;
-        } else if (f.fieldNumber === SBA_BLOB_DATA && f.wireType === 2) {
-          blobData = f.bytes;
-        }
-      }
-      return { kind: "kv_set_blob", kvId, blobId, blobData, requestMetadata };
-    }
+  const fields = decodeFields(top.bytes);
+  const idField = findField(fields, KSM_ID);
+  const kvId = idField?.wireType === WT_VARINT ? Number(idField.varint) : 0;
+  const requestMetadata = findLengthDelimitedField(fields, KSM_REQUEST_METADATA);
+  const getBlobArgs = findLengthDelimitedField(fields, KSM_GET_BLOB_ARGS);
+  if (getBlobArgs) {
+    return {
+      kind: "kv_get_blob",
+      kvId,
+      blobId: decodeBlobId(getBlobArgs, GBA_BLOB_ID),
+      requestMetadata,
+    };
   }
-  return null;
+
+  const setBlobArgs = findLengthDelimitedField(fields, KSM_SET_BLOB_ARGS);
+  if (!setBlobArgs) return null;
+  return { kind: "kv_set_blob", kvId, ...decodeSetBlobArgs(setBlobArgs), requestMetadata };
 }
 
 // ─── Phase 2: full ExecServerMessage variant decoder ───────────────────────
@@ -810,11 +871,56 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
 
 export type ExecServerEvent =
   | { kind: "exec_request_context"; execMsgId: number; execId: string }
-  | { kind: "exec_read"; execMsgId: number; execId: string; path: string }
-  | { kind: "exec_write"; execMsgId: number; execId: string; path: string }
+  | { kind: "exec_list_mcp_resources"; execMsgId: number; execId: string }
+  | {
+      /**
+       * An exec variant this build has no handler for. Surfaced instead of
+       * being silently dropped: an unhandled variant used to stall the turn
+       * until CURSOR_STREAM_TIMEOUT_MS with nothing in the logs naming it, so
+       * every new field Cursor introduces cost a 5-minute hang to diagnose.
+       */
+      kind: "exec_unknown";
+      execMsgId: number;
+      execId: string;
+      variantField: number;
+    }
+  | {
+      kind: "exec_mcp_state";
+      execMsgId: number;
+      execId: string;
+      serverIdentifiers: string[];
+    }
+  | {
+      kind: "exec_read";
+      execMsgId: number;
+      execId: string;
+      path: string;
+      /** ReadArgs.offset: first line to read. Absent when the model reads the whole file. */
+      offset?: number;
+      /** ReadArgs.limit: number of lines to read. */
+      limit?: number;
+    }
+  | {
+      kind: "exec_write";
+      execMsgId: number;
+      execId: string;
+      path: string;
+      fileText: string;
+      hasFileBytes?: boolean;
+      encodingHint?: string;
+      returnFileContentAfterWrite?: boolean;
+    }
   | { kind: "exec_delete"; execMsgId: number; execId: string; path: string }
   | { kind: "exec_ls"; execMsgId: number; execId: string; path: string }
-  | { kind: "exec_grep"; execMsgId: number; execId: string }
+  | {
+      kind: "exec_grep";
+      execMsgId: number;
+      execId: string;
+      pattern: string;
+      path: string;
+      glob: string;
+      outputMode?: string;
+    }
   | { kind: "exec_diagnostics"; execMsgId: number; execId: string }
   | {
       kind: "exec_shell";
@@ -846,6 +952,16 @@ export type ExecServerEvent =
       isBackground: boolean;
       hardTimeout: number;
     }
+  | {
+      kind: "exec_mini_swe_bash";
+      execMsgId: number;
+      execId: string;
+      command: string;
+      workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
+    }
   | { kind: "exec_fetch"; execMsgId: number; execId: string; url: string }
   | { kind: "exec_write_shell_stdin"; execMsgId: number; execId: string }
   | {
@@ -856,7 +972,9 @@ export type ExecServerEvent =
       toolCallId: string;
       // args populated by Phase 5 (decodeMcpArgs); empty {} until then.
       args: Record<string, unknown>;
-    };
+    }
+  | PiExecEvent
+  | ExtraExecEvent;
 
 type DecodedShellArgs = {
   command: string;
@@ -886,143 +1004,236 @@ function decodeShellArgs(payload: Buffer): DecodedShellArgs {
   return decoded;
 }
 
-export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
-  for (const top of decodeFields(payload)) {
-    if (top.fieldNumber !== ASM_EXEC_SERVER_MESSAGE || top.wireType !== 2) continue;
+type ExecEventContext = {
+  execMsgId: number;
+  execId: string;
+  variantBytes: Buffer;
+};
 
-    let execMsgId = 0;
-    let execId = "";
-    let variantField = 0;
-    let variantBytes: Buffer | null = null;
+type ExecEventDecoder = (context: ExecEventContext) => ExecServerEvent;
+type PathExecKind = "exec_read" | "exec_delete" | "exec_ls";
+type ShellExecKind = "exec_shell" | "exec_shell_stream" | "exec_bg_shell" | "exec_mini_swe_bash";
 
-    for (const f of decodeFields(top.bytes)) {
-      if (f.fieldNumber === ESM_ID && f.wireType === 0) {
-        execMsgId = Number(f.varint);
-      } else if (f.fieldNumber === ESM_EXEC_ID && f.wireType === 2) {
-        execId = f.bytes.toString("utf8");
-      } else if (f.wireType === 2) {
-        // Any other LEN field is the variant payload. Take the first one we
-        // see — variants don't co-occur in a well-formed message.
-        if (variantField === 0) {
-          variantField = f.fieldNumber;
-          variantBytes = f.bytes;
-        }
-      }
-    }
+function createPathExecEvent(kind: PathExecKind, context: ExecEventContext): ExecServerEvent {
+  return {
+    kind,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    path: decodeStringField(context.variantBytes, ARG_PATH),
+  };
+}
 
-    if (variantBytes === null) continue;
-
-    switch (variantField) {
-      case ESM_REQUEST_CONTEXT_ARGS:
-        return { kind: "exec_request_context", execMsgId, execId };
-      case ESM_READ_ARGS:
-        return {
-          kind: "exec_read",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_WRITE_ARGS:
-        return {
-          kind: "exec_write",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_DELETE_ARGS:
-        return {
-          kind: "exec_delete",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_LS_ARGS:
-        return {
-          kind: "exec_ls",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_GREP_ARGS:
-        return { kind: "exec_grep", execMsgId, execId };
-      case ESM_DIAGNOSTICS_ARGS:
-        return { kind: "exec_diagnostics", execMsgId, execId };
-      case ESM_SHELL_ARGS: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_shell",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_SHELL_STREAM_ARGS: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_shell_stream",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_BACKGROUND_SHELL_SPAWN: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_bg_shell",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_FETCH_ARGS:
-        return {
-          kind: "exec_fetch",
-          execMsgId,
-          execId,
-          url: decodeStringField(variantBytes, ARG_FETCH_URL),
-        };
-      case ESM_WRITE_SHELL_STDIN_ARGS:
-        return { kind: "exec_write_shell_stdin", execMsgId, execId };
-      case ESM_MCP_ARGS: {
-        // McpArgs.args is map<string, bytes>; each value is a protobuf-
-        // encoded google.protobuf.Value. Decode keys and value-bytes here,
-        // then convert each Value to its JSON shape.
-        let toolName = "";
-        let toolCallId = "";
-        const args: Record<string, unknown> = {};
-        for (const f of decodeFields(variantBytes)) {
-          if (f.wireType !== 2) continue;
-          if (f.fieldNumber === MCA_TOOL_NAME) {
-            toolName = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_NAME && !toolName) {
-            // tool_name (5) takes precedence; fall back to name (1)
-            toolName = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_TOOL_CALL_ID) {
-            toolCallId = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_ARGS) {
-            // FieldsEntry { key (1): string, value (2): bytes }
-            let key = "";
-            let valueBytes: Buffer | null = null;
-            for (const entry of decodeFields(f.bytes)) {
-              if (entry.fieldNumber === MAP_KEY && entry.wireType === 2) {
-                key = entry.bytes.toString("utf8");
-              } else if (entry.fieldNumber === MAP_VALUE && entry.wireType === 2) {
-                valueBytes = entry.bytes;
-              }
-            }
-            if (key && valueBytes !== null) {
-              args[key] = decodeProtobufValue(valueBytes);
-            }
-          }
-        }
-        return { kind: "exec_mcp", execMsgId, execId, toolName, toolCallId, args };
-      }
-      default:
-        // Unknown variant — return null so caller can keep buffering.
-        return null;
+/**
+ * ReadArgs also carries an optional line range. Dropping it turns every partial
+ * read into a whole-file read, which clients such as Claude Code answer with
+ * "file unchanged" — the model then never gets the lines it asked for.
+ */
+function createReadExecEvent(context: ExecEventContext): ExecServerEvent {
+  const event = createPathExecEvent("exec_read", context) as Extract<
+    ExecServerEvent,
+    { kind: "exec_read" }
+  >;
+  for (const field of decodeFields(context.variantBytes)) {
+    if (field.wireType !== WT_VARINT) continue;
+    if (field.fieldNumber === ARG_READ_OFFSET) {
+      event.offset = Number(BigInt.asIntN(32, field.varint));
+    } else if (field.fieldNumber === ARG_READ_LIMIT) {
+      event.limit = Number(BigInt.asUintN(32, field.varint));
     }
   }
-  return null;
+  return event;
+}
+
+function createShellExecEvent(kind: ShellExecKind, context: ExecEventContext): ExecServerEvent {
+  return {
+    kind,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    ...decodeShellArgs(context.variantBytes),
+  };
+}
+
+function decodeMcpMapEntry(payload: Buffer): { key: string; value: unknown } | null {
+  const fields = decodeFields(payload);
+  const key = findLengthDelimitedField(fields, MAP_KEY)?.toString("utf8") ?? "";
+  const valueBytes = findLengthDelimitedField(fields, MAP_VALUE);
+  return key && valueBytes ? { key, value: decodeProtobufValue(valueBytes) } : null;
+}
+
+function decodeMcpExecEvent(context: ExecEventContext): ExecServerEvent {
+  const fields = decodeFields(context.variantBytes);
+  const canonicalName = findLengthDelimitedField(fields, MCA_TOOL_NAME);
+  const fallbackName = findLengthDelimitedField(fields, MCA_NAME);
+  const toolName = (canonicalName ?? fallbackName)?.toString("utf8") ?? "";
+  const toolCallId = findLengthDelimitedField(fields, MCA_TOOL_CALL_ID)?.toString("utf8") ?? "";
+  const args: Record<string, unknown> = {};
+  for (const field of fields) {
+    if (field.fieldNumber !== MCA_ARGS || field.wireType !== WT_LEN) continue;
+    const entry = decodeMcpMapEntry(field.bytes);
+    if (entry) args[entry.key] = entry.value;
+  }
+  return {
+    kind: "exec_mcp",
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    toolName,
+    toolCallId,
+    args,
+  };
+}
+
+const EXEC_EVENT_DECODERS: Partial<Record<number, ExecEventDecoder>> = {
+  [ESM_REQUEST_CONTEXT_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_request_context",
+    execMsgId,
+    execId,
+  }),
+  [ESM_READ_ARGS]: (context) => createReadExecEvent(context),
+  [ESM_WRITE_ARGS]: (context) => {
+    const encodingHint = decodeStringField(context.variantBytes, 6);
+    const hasFileBytes = decodeFields(context.variantBytes).some(
+      (part) => part.fieldNumber === 5 && part.wireType === 2 && part.bytes.length > 0
+    );
+    return {
+      kind: "exec_write" as const,
+      execMsgId: context.execMsgId,
+      execId: context.execId,
+      path: decodeStringField(context.variantBytes, ARG_PATH),
+      fileText: decodeStringField(context.variantBytes, ARG_WRITE_FILE_TEXT),
+      ...(hasFileBytes ? { hasFileBytes: true } : {}),
+      ...(encodingHint ? { encodingHint } : {}),
+      ...(decodeVarintField(context.variantBytes, 4) ? { returnFileContentAfterWrite: true } : {}),
+    };
+  },
+  [ESM_DELETE_ARGS]: (context) => createPathExecEvent("exec_delete", context),
+  [ESM_LS_ARGS]: (context) => createPathExecEvent("exec_ls", context),
+  [ESM_GREP_ARGS]: (context) => ({
+    kind: "exec_grep" as const,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    pattern: decodeStringField(context.variantBytes, ARG_GREP_PATTERN),
+    path: decodeStringField(context.variantBytes, ARG_GREP_PATH),
+    glob: decodeStringField(context.variantBytes, ARG_GREP_GLOB),
+    outputMode: decodeStringField(context.variantBytes, ARG_GREP_OUTPUT_MODE),
+  }),
+  [ESM_DIAGNOSTICS_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_diagnostics",
+    execMsgId,
+    execId,
+  }),
+  [ESM_SHELL_ARGS]: (context) => createShellExecEvent("exec_shell", context),
+  [ESM_SHELL_STREAM_ARGS]: (context) => createShellExecEvent("exec_shell_stream", context),
+  [ESM_BACKGROUND_SHELL_SPAWN]: (context) => createShellExecEvent("exec_bg_shell", context),
+  [ESM_MINI_SWE_BASH_ARGS]: (context) => createShellExecEvent("exec_mini_swe_bash", context),
+  [ESM_FETCH_ARGS]: ({ execMsgId, execId, variantBytes }) => ({
+    kind: "exec_fetch",
+    execMsgId,
+    execId,
+    url: decodeStringField(variantBytes, ARG_FETCH_URL),
+  }),
+  [ESM_WRITE_SHELL_STDIN_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_write_shell_stdin",
+    execMsgId,
+    execId,
+  }),
+  [ESM_MCP_ARGS]: decodeMcpExecEvent,
+  [ESM_LIST_MCP_RESOURCES_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_list_mcp_resources" as const,
+    execMsgId,
+    execId,
+  }),
+  [ESM_MCP_STATE_ARGS]: (context) => ({
+    kind: "exec_mcp_state" as const,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    // McpStateExecArgs.server_identifiers is `repeated string`; Cursor asks for
+    // a specific server on the first probe and with an empty list afterwards
+    // (meaning "every server you have").
+    serverIdentifiers: decodeFields(context.variantBytes).flatMap((field) =>
+      field.fieldNumber === MSA_SERVER_IDENTIFIERS && field.wireType === WT_LEN
+        ? [field.bytes.toString("utf8")]
+        : []
+    ),
+  }),
+};
+
+for (const field of PI_EXEC_SERVER_FIELDS) {
+  EXEC_EVENT_DECODERS[field] = (context) => decodePiExecEvent(field, context);
+}
+for (const field of EXTRA_EXEC_SERVER_FIELDS) {
+  EXEC_EVENT_DECODERS[field] = (context) => decodeExtraExecEvent(field, context);
+}
+
+// McpStateExecArgs.server_identifiers
+const MSA_SERVER_IDENTIFIERS = 1;
+
+/** The MCP server name OmniRoute declares to Cursor for the client's tools. */
+export const OMNIROUTE_MCP_SERVER_IDENTIFIER = "omniroute";
+
+/**
+ * Field numbers that carry an event variant. The envelope also contains the id
+ * (1), the metadata envelope (19) and assorted scalars, so the variant can NOT
+ * be guessed as "the first length-delimited field" — field 19 always won that
+ * race and the real variant was dropped.
+ */
+const EXEC_VARIANT_FIELDS: ReadonlySet<number> = new Set(
+  Object.keys(EXEC_EVENT_DECODERS).map(Number)
+);
+
+/**
+ * Resolve the exec id, preferring the current metadata envelope (field 19
+ * sub-field 2) and falling back to the legacy standalone field 15.
+ */
+function resolveExecId(fields: ReturnType<typeof decodeFields>): string {
+  // exec_id is field 15 and nothing else. Frames that do not carry one
+  // (request_context, mcp_state) are correlated by `id` (field 1) instead.
+  return findLengthDelimitedField(fields, ESM_EXEC_ID)?.toString("utf8") ?? "";
+}
+
+function decodeExecEventContext(
+  payload: Buffer
+): (ExecEventContext & { variantField: number }) | null {
+  const top = findField(decodeFields(payload), ASM_EXEC_SERVER_MESSAGE);
+  if (top?.wireType !== WT_LEN) return null;
+
+  const fields = decodeFields(top.bytes);
+  const idField = findField(fields, ESM_ID);
+
+  // Prefer a known variant tag; only then fall back to "some other LEN field"
+  // so an unrecognised future variant is still surfaced to the caller (which
+  // can log it) instead of silently decoding as null.
+  const variant =
+    fields.find(
+      (field) => field.wireType === WT_LEN && EXEC_VARIANT_FIELDS.has(field.fieldNumber)
+    ) ??
+    fields.find(
+      (field) =>
+        field.wireType === WT_LEN &&
+        field.fieldNumber !== ESM_EXEC_ID &&
+        field.fieldNumber !== ESM_SPAN_CONTEXT &&
+        field.fieldNumber !== ESM_MACHINE_ID
+    );
+  if (!variant || variant.wireType !== WT_LEN) return null;
+
+  return {
+    execMsgId: idField?.wireType === WT_VARINT ? Number(idField.varint) : 0,
+    execId: resolveExecId(fields),
+    variantField: variant.fieldNumber,
+    variantBytes: variant.bytes,
+  };
+}
+
+export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
+  const context = decodeExecEventContext(payload);
+  if (!context) return null;
+  const decoder = EXEC_EVENT_DECODERS[context.variantField];
+  if (decoder) return decoder(context);
+  return {
+    kind: "exec_unknown",
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    variantField: context.variantField,
+  };
 }
 
 /**
@@ -1045,6 +1256,14 @@ export function encodeRequestContextResponse(
     for (const tool of tools) {
       rcParts.push(encodeMessage(RCS_TOOLS, [encodeMcpToolDefinitionBody(tool)]));
     }
+    rcParts.push(
+      encodeMessage(RCS_MCP_META_TOOL_OPTIONS, [
+        encodeBoolField(MMTO_ENABLED, true),
+        encodeMessage(MMTO_DESCRIPTORS, [
+          encodeMcpDescriptor(OMNIROUTE_MCP_SERVER_IDENTIFIER, tools),
+        ]),
+      ])
+    );
   }
   const requestContext = encodeMessage(RCS_REQUEST_CONTEXT, rcParts);
   const success = encodeMessage(RCR_SUCCESS, [requestContext]);
@@ -1056,172 +1275,99 @@ export function encodeRequestContextResponse(
   return wrapConnectFrame(ecm);
 }
 
-// RequestContext.tools field number — multiple tool defs are repeated within
-// the inner RequestContext message.
-const RCS_TOOLS = 2;
+// RequestContext.tools — field 7, verified against the Cursor Agent CLI's own
+// schema (agent.v1.RequestContext). Field 2 is `rules`: sending the tool set
+// there meant the model never saw the declared MCP namespace at all
+// ("Omniroute namespace is unavailable" in its reasoning) and fell back to
+// Cursor's built-in tools.
+const RCS_TOOLS = 7;
+// RequestContext.mcp_meta_tool_options — McpMetaToolOptions{1: enabled,
+// 2: mcp_descriptors}. Cursor always drives MCP through its meta tools
+// (GetDynamicTools / CallDynamicTool), and the catalogue those return is built
+// from these descriptors. Declaring the tools only in RequestContext.tools is
+// not enough: without a descriptor the model sees an empty namespace, reports
+// it as unavailable and falls back to Cursor's built-in tools.
+const RCS_MCP_META_TOOL_OPTIONS = 34;
+const MMTO_ENABLED = 1; // McpMetaToolOptions.enabled
+const MMTO_DESCRIPTORS = 2; // McpMetaToolOptions.mcp_descriptors
+const MD_SERVER_NAME = 1; // McpDescriptor.server_name
+const MD_SERVER_IDENTIFIER = 2; // McpDescriptor.server_identifier
+const MD_TOOLS = 5; // McpDescriptor.tools
+const MTDESC_TOOL_NAME = 1; // McpToolDescriptor.tool_name
+const MTDESC_DESCRIPTION = 3; // McpToolDescriptor.description
+const MTDESC_INPUT_SCHEMA = 4; // McpToolDescriptor.input_schema
 
-// ─── ExecClientMessage wrapper ──────────────────────────────────────────────
+/** Build the McpDescriptor that makes the tools discoverable via GetDynamicTools. */
+function encodeMcpDescriptor(serverIdentifier: string, tools: McpToolDefinition[]): Buffer {
+  return Buffer.concat([
+    encodeString(MD_SERVER_NAME, serverIdentifier),
+    encodeString(MD_SERVER_IDENTIFIER, serverIdentifier),
+    ...tools.map((tool) =>
+      encodeMessage(MD_TOOLS, [
+        Buffer.concat([
+          encodeString(MTDESC_TOOL_NAME, tool.toolName || tool.name),
+          encodeString(MTDESC_DESCRIPTION, tool.description),
+          encodeBytes(MTDESC_INPUT_SCHEMA, tool.inputSchemaBytes),
+        ]),
+      ])
+    ),
+  ]);
+}
+
+// ExecClientMessage.mcp_state_exec_result — mirrors ESM_MCP_STATE_ARGS (36).
+const ECM_MCP_STATE_RESULT = 36;
+const MSR_SUCCESS = 1; // McpStateExecResult.success
+const MSS_SERVERS = 1; // McpStateSuccess.servers
+const MST_SERVER_NAME = 1; // McpStateServer.server_name
+const MST_SERVER_IDENTIFIER = 2; // McpStateServer.server_identifier
+const MST_TOOLS = 5; // McpStateServer.tools
+const MST_STATUS = 7; // McpStateServer.status
+const MCP_SERVER_STATUS_READY = "ready";
 
 /**
- * Build an ExecClientMessage frame:
- *   AgentClientMessage {
- *     exec_client_message (2): ExecClientMessage {
- *       id (1): execMsgId,
- *       exec_id (15): execId,
- *       <resultFieldNumber>: resultPayload,
+ * Answer the blocking MCP state handshake (ExecServerMessage.mcp_state_exec_args,
+ * field 36) by declaring OmniRoute as one MCP server exposing the client's tools.
+ *
+ * Until this is answered Cursor emits nothing but heartbeats, and if the server
+ * entry is missing the model reports the namespace as unavailable and silently
+ * falls back to its own built-in tools.
+ *
+ * Shape (agent.v1, taken from the Cursor Agent CLI's own schema):
+ *
+ *   ExecClientMessage {
+ *     id (1), exec_id (15),
+ *     mcp_state_exec_result (36) {
+ *       success (1) {
+ *         servers (1): McpStateServer {
+ *           server_name (1), server_identifier (2), tools (5), status (7)
+ *         }
+ *       }
  *     }
  *   }
- * Connect-RPC framed, ready to write to the h2 stream.
- *
- * `exec_id` is force-set even when empty (matches kaitranntt's behavior).
  */
-function wrapExecClientMessage(
-  execMsgId: number,
+export function encodeMcpStateResponse(
+  id: number,
   execId: string,
-  resultFieldNumber: number,
-  resultPayload: Buffer
+  serverIdentifier: string,
+  tools: McpToolDefinition[]
 ): Buffer {
-  const ecm = encodeMessage(ACM_EXEC_CLIENT_MESSAGE, [
-    encodeUInt32Field(ECM_ID, execMsgId),
-    encodeString(ECM_EXEC_ID, execId),
-    encodeMessage(resultFieldNumber, [resultPayload]),
+  const server = encodeMessage(MSS_SERVERS, [
+    Buffer.concat([
+      encodeString(MST_SERVER_NAME, serverIdentifier),
+      encodeString(MST_SERVER_IDENTIFIER, serverIdentifier),
+      ...tools.map((tool) => encodeMessage(MST_TOOLS, [encodeMcpToolDefinitionBody(tool)])),
+      encodeString(MST_STATUS, MCP_SERVER_STATUS_READY),
+    ]),
   ]);
-  return wrapConnectFrame(ecm);
-}
+  const result = encodeMessage(ECM_MCP_STATE_RESULT, [encodeMessage(MSR_SUCCESS, [server])]);
 
-// ─── Phase 1: built-in tool rejection encoders ─────────────────────────────
-// Cursor's model invokes built-in tools (read/write/shell/grep/etc.) which we
-// can't safely run inside the proxy. We respond with a typed rejection so the
-// model continues without that tool — matches kaitranntt's stance and avoids
-// stalling the h2 stream.
-
-function encodePathRejection(path: string, reason: string): Buffer {
-  return Buffer.concat([encodeString(REJ_PATH, path), encodeString(REJ_REASON, reason)]);
-}
-
-function encodeShellRejection(command: string, workingDir: string, reason: string): Buffer {
-  return Buffer.concat([
-    encodeString(SREJ_COMMAND, command),
-    encodeString(SREJ_WORKING_DIR, workingDir),
-    encodeString(SREJ_REASON, reason),
-  ]);
-}
-
-export function encodeExecReadRejected(
-  execMsgId: number,
-  execId: string,
-  path: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodePathRejection(path, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_READ_RESULT, rejected);
-}
-
-export function encodeExecWriteRejected(
-  execMsgId: number,
-  execId: string,
-  path: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodePathRejection(path, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_WRITE_RESULT, rejected);
-}
-
-export function encodeExecDeleteRejected(
-  execMsgId: number,
-  execId: string,
-  path: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodePathRejection(path, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_DELETE_RESULT, rejected);
-}
-
-export function encodeExecLsRejected(
-  execMsgId: number,
-  execId: string,
-  path: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodePathRejection(path, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_LS_RESULT, rejected);
-}
-
-export function encodeExecShellRejected(
-  execMsgId: number,
-  execId: string,
-  command: string,
-  workingDir: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodeShellRejection(command, workingDir, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_SHELL_RESULT, rejected);
-}
-
-export function encodeExecBackgroundShellSpawnRejected(
-  execMsgId: number,
-  execId: string,
-  command: string,
-  workingDir: string,
-  reason: string
-): Buffer {
-  const rejected = encodeMessage(RES_REJECTED, [encodeShellRejection(command, workingDir, reason)]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_BACKGROUND_SHELL_SPAWN_RES, rejected);
-}
-
-export function encodeExecGrepError(execMsgId: number, execId: string, errMsg: string): Buffer {
-  const grepError = encodeString(ERR_MESSAGE, errMsg);
-  const errorVariant = encodeMessage(RES_REJECTED, [grepError]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_GREP_RESULT, errorVariant);
-}
-
-export function encodeExecFetchError(
-  execMsgId: number,
-  execId: string,
-  url: string,
-  errMsg: string
-): Buffer {
-  const fetchError = Buffer.concat([encodeString(FERR_URL, url), encodeString(FERR_ERROR, errMsg)]);
-  const errorVariant = encodeMessage(RES_REJECTED, [fetchError]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_FETCH_RESULT, errorVariant);
-}
-
-export function encodeExecWriteShellStdinError(
-  execMsgId: number,
-  execId: string,
-  errMsg: string
-): Buffer {
-  const stdinError = encodeString(ERR_MESSAGE, errMsg);
-  const errorVariant = encodeMessage(RES_REJECTED, [stdinError]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_WRITE_SHELL_STDIN_RESULT, errorVariant);
-}
-
-export function encodeExecDiagnosticsResult(execMsgId: number, execId: string): Buffer {
-  // DiagnosticsResult is empty — there's no rejection variant.
-  return wrapExecClientMessage(execMsgId, execId, ECM_DIAGNOSTICS_RESULT, Buffer.alloc(0));
-}
-
-// ─── Phase 1: MCP result encoders (used when WE invoke a tool on behalf
-// of the model — Phase 5 wires this to OpenAI tool_calls). ─────────────────
-
-export function encodeExecMcpResult(
-  execMsgId: number,
-  execId: string,
-  content: string,
-  isError: boolean
-): Buffer {
-  // McpTextContent { text } → McpToolResultContentItem.text
-  const textContent = encodeMessage(MCC_TEXT, [encodeString(MTC_TEXT, content)]);
-  const successFields: Buffer[] = [encodeMessage(MCS_CONTENT, [textContent])];
-  if (isError) successFields.push(encodeBoolField(MCS_IS_ERROR, true));
-  const success = encodeMessage(MCR_SUCCESS, successFields);
-  return wrapExecClientMessage(execMsgId, execId, ECM_MCP_RESULT, success);
-}
-
-export function encodeExecMcpError(execMsgId: number, execId: string, errMsg: string): Buffer {
-  const mcpError = encodeString(ERR_MESSAGE, errMsg);
-  const errorVariant = encodeMessage(MCR_ERROR, [mcpError]);
-  return wrapExecClientMessage(execMsgId, execId, ECM_MCP_RESULT, errorVariant);
+  return wrapConnectFrame(
+    encodeMessage(ACM_EXEC_CLIENT_MESSAGE, [
+      encodeUInt32Field(ECM_ID, id),
+      encodeString(ECM_EXEC_ID, execId),
+      result,
+    ])
+  );
 }
 
 // ─── Phase 1: KV blob handshake encoders ───────────────────────────────────
@@ -1316,6 +1462,87 @@ export function jsonSchemaToProtobufValue(json: unknown): Buffer {
  * Handles all six Value variants: null, number (double), string, bool,
  * struct (object), list (array). Unknown fields are skipped.
  */
+type ProtobufValueDecodeResult = { value: unknown; nextPos: number };
+type ProtobufValueDecoder = (
+  buf: Buffer,
+  pos: number,
+  wireType: number
+) => ProtobufValueDecodeResult;
+
+function readLengthDelimitedPayload(
+  buf: Buffer,
+  pos: number,
+  wireType: number
+): { payload: Buffer; nextPos: number } | null {
+  if (wireType !== WT_LEN) return null;
+  const [len, afterLength] = decodeVarint(buf, pos);
+  const lenN = checkedLen(len, afterLength, buf);
+  return {
+    payload: buf.subarray(afterLength, afterLength + lenN),
+    nextPos: afterLength + lenN,
+  };
+}
+
+function decodeNullValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const nextPos = wireType === WT_VARINT ? decodeVarint(buf, pos)[1] : pos;
+  return { value: null, nextPos };
+}
+
+function decodeNumberValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const valid = wireType === 1 && pos + 8 <= buf.length;
+  return { value: valid ? buf.readDoubleLE(pos) : 0, nextPos: valid ? pos + 8 : pos };
+}
+
+function decodeStringValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded?.payload.toString("utf8") ?? "",
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+function decodeBoolValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  if (wireType !== WT_VARINT) return { value: false, nextPos: pos };
+  const [value, nextPos] = decodeVarint(buf, pos);
+  return { value: value !== 0n, nextPos };
+}
+
+function decodeStructValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded ? decodeProtobufStruct(decoded.payload) : {},
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+function decodeListValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded ? decodeProtobufList(decoded.payload) : [],
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+const PROTOBUF_VALUE_DECODERS: Partial<Record<number, ProtobufValueDecoder>> = {
+  [VAL_NULL]: decodeNullValue,
+  [VAL_NUMBER]: decodeNumberValue,
+  [VAL_STRING]: decodeStringValue,
+  [VAL_BOOL]: decodeBoolValue,
+  [VAL_STRUCT]: decodeStructValue,
+  [VAL_LIST]: decodeListValue,
+};
+
+function skipUnknownProtobufField(buf: Buffer, pos: number, wireType: number): number {
+  if (wireType === WT_VARINT) return decodeVarint(buf, pos)[1];
+  if (wireType === WT_LEN) {
+    const [len, afterLength] = decodeVarint(buf, pos);
+    return afterLength + checkedLen(len, afterLength, buf);
+  }
+  if (wireType === 1) return pos + 8;
+  if (wireType === 5) return pos + 4;
+  return pos;
+}
+
 export function decodeProtobufValue(buf: Buffer): unknown {
   let pos = 0;
   while (pos < buf.length) {
@@ -1323,97 +1550,26 @@ export function decodeProtobufValue(buf: Buffer): unknown {
     pos = np;
     const fieldNumber = Number(t >> 3n);
     const wireType = Number(t & 0x7n);
-    switch (fieldNumber) {
-      case VAL_NULL: {
-        if (wireType === WT_VARINT) {
-          [, pos] = decodeVarint(buf, pos);
-        }
-        return null;
-      }
-      case VAL_NUMBER: {
-        if (wireType === 1 && pos + 8 <= buf.length) {
-          const value = buf.readDoubleLE(pos);
-          pos += 8;
-          return value;
-        }
-        return 0;
-      }
-      case VAL_STRING: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const value = buf.subarray(pos, pos + lenN).toString("utf8");
-          pos += lenN;
-          return value;
-        }
-        return "";
-      }
-      case VAL_BOOL: {
-        if (wireType === WT_VARINT) {
-          const [val, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          return val !== 0n;
-        }
-        return false;
-      }
-      case VAL_STRUCT: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const inner = buf.subarray(pos, pos + lenN);
-          pos += lenN;
-          return decodeProtobufStruct(inner);
-        }
-        return {};
-      }
-      case VAL_LIST: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const inner = buf.subarray(pos, pos + lenN);
-          pos += lenN;
-          return decodeProtobufList(inner);
-        }
-        return [];
-      }
-      default:
-        // Skip unknown field
-        if (wireType === WT_VARINT) {
-          [, pos] = decodeVarint(buf, pos);
-        } else if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          pos += Number(len);
-        } else if (wireType === 1) {
-          pos += 8;
-        } else if (wireType === 5) {
-          pos += 4;
-        }
-    }
+    const decoder = PROTOBUF_VALUE_DECODERS[fieldNumber];
+    if (decoder) return decoder(buf, pos, wireType).value;
+    pos = skipUnknownProtobufField(buf, pos, wireType);
   }
   return null;
 }
 
+function decodeProtobufStructEntry(payload: Buffer): { key: string; value: unknown } | null {
+  const fields = decodeFields(payload);
+  const key = findLengthDelimitedField(fields, MAP_KEY)?.toString("utf8") ?? "";
+  const valueBytes = findLengthDelimitedField(fields, MAP_VALUE);
+  return key && valueBytes ? { key, value: decodeProtobufValue(valueBytes) } : null;
+}
+
 function decodeProtobufStruct(buf: Buffer): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  for (const f of decodeFields(buf)) {
-    if (f.fieldNumber === STRUCT_FIELDS && f.wireType === 2) {
-      let key = "";
-      let valueBytes: Buffer | null = null;
-      for (const entry of decodeFields(f.bytes)) {
-        if (entry.fieldNumber === MAP_KEY && entry.wireType === 2) {
-          key = entry.bytes.toString("utf8");
-        } else if (entry.fieldNumber === MAP_VALUE && entry.wireType === 2) {
-          valueBytes = entry.bytes;
-        }
-      }
-      if (key && valueBytes) {
-        result[key] = decodeProtobufValue(valueBytes);
-      }
-    }
+  for (const field of decodeFields(buf)) {
+    if (field.fieldNumber !== STRUCT_FIELDS || field.wireType !== WT_LEN) continue;
+    const entry = decodeProtobufStructEntry(field.bytes);
+    if (entry) result[entry.key] = entry.value;
   }
   return result;
 }
@@ -1462,85 +1618,4 @@ function encodeProtobufValue(value: unknown): Buffer {
   }
   // Fallback: encode as null
   return Buffer.concat([encodeTag(VAL_NULL, WT_VARINT), encodeVarint(0)]);
-}
-
-// ─── User message extractor (for chat-completions input) ───────────────────
-
-export type ChatMessage = {
-  role: "user" | "assistant" | "system" | "tool";
-  content?: string | Array<{ type: string; text?: string }> | null;
-  tool_calls?: Array<{
-    id: string;
-    type?: "function" | string;
-    function: { name: string; arguments: string };
-  }>;
-  tool_call_id?: string;
-};
-
-/**
- * Flatten an OpenAI-shaped message list down to a single user-text string
- * suitable for cursor's UserMessage. The agent endpoint expects ONE user
- * message per Run; we concatenate prior conversation as context.
- *
- * Phase 6 cold-resume support: handles `role:"tool"` results and
- * `assistant.tool_calls` so that follow-up turns after an OpenAI tool call
- * round-trip coherently. Format follows kaitranntt's reference impl —
- * cursor's model has been observed to handle this layout reliably.
- */
-export function flattenMessages(messages: ChatMessage[]): string {
-  if (!Array.isArray(messages) || messages.length === 0) return "";
-
-  const partsToText = (content: ChatMessage["content"]): string => {
-    if (typeof content === "string") return content;
-    if (content == null) return "";
-    if (!Array.isArray(content)) return "";
-    return content
-      .map((p) => (typeof p?.text === "string" ? p.text : ""))
-      .filter(Boolean)
-      .join("\n");
-  };
-
-  // System instructions go first as a labeled prefix. (The cursor executor
-  // routes system messages through the KV blob channel — see Phase 7 — but
-  // this branch is kept for non-cursor callers.)
-  const systemTexts = messages
-    .filter((m) => m.role === "system")
-    .map((m) => partsToText(m.content))
-    .filter(Boolean);
-
-  const turn = messages.filter((m) => m.role !== "system");
-
-  // Single-user-message fast path (no tool_calls, no labels).
-  if (turn.length === 1 && turn[0].role === "user" && !turn[0].tool_calls) {
-    const userText = partsToText(turn[0].content);
-    return systemTexts.length > 0 ? `${systemTexts.join("\n\n")}\n\n${userText}` : userText;
-  }
-
-  // Multi-turn / tool-using format. Each message is labeled. Tool calls
-  // and tool results get their own labeled lines.
-  const lines: string[] = [];
-  for (const m of turn) {
-    const text = partsToText(m.content);
-    if (m.role === "user") {
-      if (text) lines.push(`User: ${text}`);
-    } else if (m.role === "assistant") {
-      if (text) lines.push(`Assistant: ${text}`);
-      if (Array.isArray(m.tool_calls)) {
-        for (const tc of m.tool_calls) {
-          const args = tc.function?.arguments ?? "";
-          lines.push(
-            `Assistant called tool ${tc.function?.name ?? "(unknown)"} ` +
-              `(${tc.id}) with arguments: ${args}`
-          );
-        }
-      }
-    } else if (m.role === "tool") {
-      const callId = m.tool_call_id ?? "(unknown)";
-      lines.push(`Tool result (${callId}): ${text}`);
-    } else {
-      if (text) lines.push(`${m.role}: ${text}`);
-    }
-  }
-  const labelled = lines.join("\n\n");
-  return systemTexts.length > 0 ? `${systemTexts.join("\n\n")}\n\n${labelled}` : labelled;
 }

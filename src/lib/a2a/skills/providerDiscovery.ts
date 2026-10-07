@@ -120,7 +120,7 @@ export interface ProviderDiscoveryResult {
 
 export async function executeProviderDiscovery(task: A2ATask): Promise<ProviderDiscoveryResult> {
   const [{ getProviderConnections }, { getAllCircuitBreakerStatuses }] = await Promise.all([
-    import("@/lib/localDb"),
+    import("@/lib/db/providers"),
     import("@/shared/utils/circuitBreaker"),
   ]);
 

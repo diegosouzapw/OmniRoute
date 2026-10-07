@@ -168,8 +168,10 @@ export default function ModelCompatPopover({
     width: number;
   } | null>(null);
   const headerRowIdRef = useRef(0);
+  // Mirror of headerRows, kept in sync by applyHeaderRows below (every state
+  // write goes through it), so blur/close commits read the freshest rows
+  // without touching the ref during render.
   const headerRowsRef = useRef<HeaderDraftRow[]>([]);
-  headerRowsRef.current = headerRows;
 
   // Param-filter drafts are mirrored into a ref so the close/unmount save path reads the
   // latest typed values instead of the values captured when the handler was created (#8910).
@@ -190,13 +192,18 @@ export default function ModelCompatPopover({
     providerId,
     modelId,
   });
-  paramTargetRef.current = { key: paramTargetKey, providerId, modelId };
+  // Mirrored in an effect (never during render): the ref is only read from
+  // event handlers and the save path, which run after this effect committed.
+  useEffect(() => {
+    paramTargetRef.current = { key: paramTargetKey, providerId, modelId };
+  }, [paramTargetKey, providerId, modelId]);
 
-  // Mirrors of the displayed text, so an edit can snapshot both fields synchronously.
+  // Mirrors of the displayed text, so an edit can snapshot both fields
+  // synchronously. applyParamFields below is the ONLY writer of
+  // blockText/allowText and keeps these refs in sync itself, so no render-time
+  // mirroring is needed (and none is allowed by the compiler's refs rule).
   const blockTextRef = useRef("");
   const allowTextRef = useRef("");
-  blockTextRef.current = blockText;
-  allowTextRef.current = allowText;
   // Which target the values currently in the fields belong to. Guards the invariant that
   // blockTextRef/allowTextRef never hold content belonging to a target other than the one being
   // displayed — the desync that let one model's server values be saved under another (#8910).
@@ -273,14 +280,38 @@ export default function ModelCompatPopover({
     };
   }, [open, tryCommitHeaderRows]);
 
-  useEffect(() => {
-    if (!open) return;
-    const rec = getUpstreamHeadersRecord(protocol);
-    setHeaderRows(recordToHeaderRows(rec, genHeaderRowId));
-    // Only re-load rows when opening or switching protocol — not when the parent passes a new
-    // inline callback every render (would wipe in-progress edits).
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-  }, [open, protocol]);
+  // Rows (re)load from the parent when the popover opens or the protocol
+  // switches — both user gestures — so the load lives in those handlers
+  // (handleToggleOpen / handleProtocolChange) instead of an effect. This keeps
+  // the old guarantee: a new inline parent callback on a re-render never wipes
+  // in-progress edits.
+  const applyHeaderRows = (rows: HeaderDraftRow[]) => {
+    headerRowsRef.current = rows;
+    setHeaderRows(rows);
+  };
+
+  const loadHeaderRowsFor = (nextProtocol: string) => {
+    const rec = getUpstreamHeadersRecord(nextProtocol);
+    applyHeaderRows(recordToHeaderRows(rec, genHeaderRowId));
+  };
+
+  const resetValueVisibility = () => {
+    setValuePeekRowId(null);
+    setValueFocusRowId(null);
+  };
+
+  const handleToggleOpen = () => {
+    const next = !open;
+    setOpen(next);
+    resetValueVisibility();
+    if (next) loadHeaderRowsFor(protocol);
+  };
+
+  const handleProtocolChange = (nextProtocol: string) => {
+    setProtocol(nextProtocol);
+    resetValueVisibility();
+    if (open) loadHeaderRowsFor(nextProtocol);
+  };
 
   // Load model-level block/allow from param-filters API
   useEffect(() => {
@@ -420,30 +451,23 @@ export default function ModelCompatPopover({
     };
   }, [open, paramTargetKey, saveModelParamFilters]);
 
-  useEffect(() => {
-    setValuePeekRowId(null);
-    setValueFocusRowId(null);
-  }, [open, protocol]);
-
   const namedHeaderCount = headerRows.filter((r) => r.name.trim()).length;
   const canAddHeaderRow = namedHeaderCount < UPSTREAM_HEADERS_UI_MAX;
 
   const updateHeaderRow = (id: string, patch: Partial<Pick<HeaderDraftRow, "name" | "value">>) => {
-    setHeaderRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    applyHeaderRows(headerRowsRef.current.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
   const addHeaderRow = () => {
     if (!canAddHeaderRow) return;
-    setHeaderRows((prev) => [...prev, { id: genHeaderRowId(), name: "", value: "" }]);
+    applyHeaderRows([...headerRowsRef.current, { id: genHeaderRowId(), name: "", value: "" }]);
   };
 
   const removeHeaderRow = (id: string) => {
-    setHeaderRows((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      const normalized = next.length === 0 ? [{ id: genHeaderRowId(), name: "", value: "" }] : next;
-      queueMicrotask(() => tryCommitHeaderRows(normalized));
-      return normalized;
-    });
+    const next = headerRowsRef.current.filter((r) => r.id !== id);
+    const normalized = next.length === 0 ? [{ id: genHeaderRowId(), name: "", value: "" }] : next;
+    applyHeaderRows(normalized);
+    queueMicrotask(() => tryCommitHeaderRows(normalized));
   };
 
   useEffect(() => {
@@ -452,7 +476,11 @@ export default function ModelCompatPopover({
       const target = e.target as Node;
       const insideTrigger = ref.current?.contains(target);
       const insidePanel = panelRef.current?.contains(target);
-      if (!insideTrigger && !insidePanel) setOpen(false);
+      if (!insideTrigger && !insidePanel) {
+        setOpen(false);
+        setValuePeekRowId(null);
+        setValueFocusRowId(null);
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -478,10 +506,10 @@ export default function ModelCompatPopover({
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPortalPanelRect(null);
-      return;
-    }
+    // No rect reset on close: the portal render is gated on `open`, and
+    // reopening recomputes the rect below before the browser paints, so a
+    // stale rect is never visible.
+    if (!open) return;
     updatePortalPanelRect();
     window.addEventListener("resize", updatePortalPanelRect);
     window.addEventListener("scroll", updatePortalPanelRect, true);
@@ -498,7 +526,7 @@ export default function ModelCompatPopover({
     <div className="relative inline-flex" ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggleOpen}
         disabled={disabled}
         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-text-muted hover:bg-muted hover:text-text-main disabled:opacity-50 transition-colors"
         title={t("compatAdjustmentsTitle")}
@@ -535,7 +563,7 @@ export default function ModelCompatPopover({
               </label>
               <select
                 value={protocol}
-                onChange={(e) => setProtocol(e.target.value)}
+                onChange={(e) => handleProtocolChange(e.target.value)}
                 disabled={disabled}
                 className="mb-4 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-xs text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
               >
@@ -679,7 +707,10 @@ export default function ModelCompatPopover({
                       </div>
                       <button
                         type="button"
-                        disabled={disabled || headerRows.length <= 1}
+                        disabled={
+                          disabled ||
+                          (headerRows.length <= 1 && !row.name.trim() && !row.value.trim())
+                        }
                         onClick={() => removeHeaderRow(row.id)}
                         title={t("compatUpstreamRemoveRow")}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/80 text-text-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"

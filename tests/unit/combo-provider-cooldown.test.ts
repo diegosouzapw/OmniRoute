@@ -49,7 +49,7 @@ test("combo failover skips the cooled provider target on the next request", asyn
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
     // openai/gpt-4o-mini is now ambiguous (multi-provider); use o3-mini which resolves unambiguously to openai
-    models: ["openai/o3-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/o3-mini", "claude/claude-sonnet-4.6"],
   });
 
   let openaiCalls = 0;
@@ -137,8 +137,8 @@ test("pre-screen marks target unavailable when circuit breaker is OPEN", async (
     {
       kind: "model" as const,
       stepId: "step-2",
-      executionKey: "claude/claude-3-5-sonnet-20241022",
-      modelStr: "claude/claude-3-5-sonnet-20241022",
+      executionKey: "claude/claude-sonnet-4.6",
+      modelStr: "claude/claude-sonnet-4.6",
       provider: "claude",
       providerId: "conn-2",
       connectionId: "conn-2",
@@ -153,7 +153,7 @@ test("pre-screen marks target unavailable when circuit breaker is OPEN", async (
   assert.ok(openaiResult, "openai target should have a pre-screen result");
   assert.equal(openaiResult.available, false, "open-circuit-breaker target should be unavailable");
 
-  const claudeResult = results.get("claude/claude-3-5-sonnet-20241022");
+  const claudeResult = results.get("claude/claude-sonnet-4.6");
   assert.ok(claudeResult, "claude target should have a pre-screen result");
   assert.equal(claudeResult.available, true, "closed-circuit-breaker target should be available");
 });

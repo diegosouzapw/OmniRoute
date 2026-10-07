@@ -22,6 +22,23 @@ export function buildVideoBridgeBrokerHeaders(): Record<string, string> {
   return { [VIDEO_BRIDGE_BROKER_AUTH_HEADER]: brokerToken() };
 }
 
+/**
+ * The same process-local secret used to authenticate requests INTO the broker (#11659).
+ * The broker route stamps this into its JSON response body so a client-side adapter can
+ * prove the payload actually came from this trusted loopback process — never from a
+ * caller-declared label — before it is allowed to construct "embedded" provenance.
+ */
+export function currentVideoBridgeBrokerFingerprint(): string {
+  return brokerToken();
+}
+
+export function verifyVideoBridgeBrokerFingerprint(candidate: unknown): boolean {
+  if (typeof candidate !== "string" || candidate.length === 0) return false;
+  const expected = brokerToken();
+  if (candidate.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(candidate, "utf8"), Buffer.from(expected, "utf8"));
+}
+
 function normalizeVideoBridgePrincipalId(value: string | null): string | null {
   if (!value || value.length > 256) return null;
   for (let index = 0; index < value.length; index += 1) {

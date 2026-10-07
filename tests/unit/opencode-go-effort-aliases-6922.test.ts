@@ -96,35 +96,43 @@ test("#6922 parseEffortLevel: base model without tier → null", () => {
   assert.strictEqual(parseEffortLevel("glm-5.2"), null);
 });
 
-// ─── transformRequest: end-to-end model-id rewrite + reasoning_effort inject ──
+// ─── transformRequest: #6922 wiring, updated by #10788 ─────────────────────
 //
-// parseEffortLevel is a pure function, but the actual bug (#6922) surfaces
-// through OpencodeExecutor.transformRequest — the caller that rewrites the
-// outbound model id and injects reasoning_effort. These tests exercise that
-// public entry point directly so a broken wiring (e.g. parseEffortLevel
-// correct but never called, or its result dropped) would fail here even if
-// the parseEffortLevel-only tests above stayed green.
+// parseEffortLevel is a pure function, but the original bug (#6922) surfaces
+// through OpencodeExecutor.transformRequest. Since #10788, glm-5.2 / mimo-v2.5
+// (non-DeepSeek families) forward the effort-suffixed alias VERBATIM — the
+// suffix is their only native effort mechanism and opencode-go has no flat
+// reasoning_effort field to receive a rewritten tier. Only DeepSeek V4 keeps
+// the base-rewrite + field-injection contract.
 
 const CREDENTIALS = { apiKey: "k" } as Record<string, unknown>;
 
-test("#6922 transformRequest: glm-5.2-high → model rewritten to glm-5.2, reasoning_effort injected", () => {
+test("#6922/#10788 transformRequest: glm-5.2-high forwards the alias verbatim", () => {
   const executor = new OpencodeExecutor("opencode-go");
   const body = { model: "glm-5.2-high", messages: [{ role: "user", content: "hi" }] };
 
   const out = executor.transformRequest("glm-5.2-high", body, true, CREDENTIALS);
 
-  assert.equal(out.model, "glm-5.2", "model id must be rewritten to the base id");
-  assert.equal(out.reasoning_effort, "high", "reasoning_effort must be injected from the alias");
+  assert.equal(out.model, "glm-5.2-high", "alias id must reach the wire untouched");
+  assert.equal(
+    out.reasoning_effort,
+    undefined,
+    "no flat reasoning_effort may be injected for non-DeepSeek families"
+  );
 });
 
-test("#6922 transformRequest: mimo-v2.5-max → model rewritten to mimo-v2.5, reasoning_effort injected", () => {
+test("#6922/#10788 transformRequest: mimo-v2.5-max forwards the alias verbatim", () => {
   const executor = new OpencodeExecutor("opencode-go");
   const body = { model: "mimo-v2.5-max", messages: [{ role: "user", content: "hi" }] };
 
   const out = executor.transformRequest("mimo-v2.5-max", body, true, CREDENTIALS);
 
-  assert.equal(out.model, "mimo-v2.5", "model id must be rewritten to the base id");
-  assert.equal(out.reasoning_effort, "max", "reasoning_effort must be injected from the alias");
+  assert.equal(out.model, "mimo-v2.5-max", "alias id must reach the wire untouched");
+  assert.equal(
+    out.reasoning_effort,
+    undefined,
+    "no flat reasoning_effort may be injected for non-DeepSeek families"
+  );
 });
 
 test("#6922 transformRequest: does not clobber an already-set reasoning_effort", () => {
@@ -137,7 +145,7 @@ test("#6922 transformRequest: does not clobber an already-set reasoning_effort",
 
   const out = executor.transformRequest("glm-5.2-high", body, true, CREDENTIALS);
 
-  assert.equal(out.model, "glm-5.2", "model id is still rewritten to the base id");
+  assert.equal(out.model, "glm-5.2-high", "non-DeepSeek alias id is left untouched");
   assert.equal(
     out.reasoning_effort,
     "caller-supplied",

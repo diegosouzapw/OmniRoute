@@ -19,7 +19,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-for-memory-put";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
 // ── Dynamic import of route module (after DATA_DIR set) ──
 const memoryIdRoute = await import("../../src/app/api/memory/[id]/route.ts");

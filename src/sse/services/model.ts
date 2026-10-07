@@ -1,13 +1,9 @@
 // Re-export from open-sse with localDb integration
-import {
-  getModelAliases,
-  getComboByName,
-  getComboById,
-  getComboByNameInsensitive,
-  getCachedProviderNodes,
-  getCustomModels,
-} from "@/lib/localDb";
-import { getCachedSettings } from "@/lib/localDb";
+import { getModelAliases, getCustomModels } from "@/lib/db/models";
+import { getComboByName, getComboById, getComboByNameInsensitive } from "@/lib/db/combos";
+import { getCachedProviderNodes, getCachedSettings } from "@/lib/db/readCache";
+
+import { getSyncedAutoAliases } from "@/lib/providerModels/syncedAutoAliases.ts";
 import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
 import { getModelCompatOverrides } from "@/lib/db/models/compat";
 import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
@@ -21,6 +17,22 @@ import { getLearnedReasoningEffortForModel } from "@omniroute/open-sse/services/
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
 import { getReservedProviderPrefixes } from "@/shared/constants/reservedProviderPrefixes";
+import {
+  assertMicrosoftDesignerWebProviderAvailable,
+  isMicrosoftDesignerWebProviderRetiredError,
+} from "@/shared/constants/designerWebRetirement";
+import {
+  assertRuntimeProviderAvailable,
+  isRuntimeProviderRetirementError,
+} from "@/shared/constants/providerRetirement";
+import {
+  assertCommonChatGptWebModelAvailable,
+  assertCommonChatGptWebProviderAvailable,
+  isCommonChatGptWebRetirementError,
+} from "@/shared/constants/chatgptWebRetirement";
+import { commonChatGptWebRetirementResponse } from "@/lib/providers/chatgptWebRetirementResponse";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 
 export { parseModel, stripContextWindowSuffix };
 
@@ -47,6 +59,8 @@ function buildWildcardAliasMap(settings: Record<string, unknown>): Record<string
 
 /**
  * Build a combined model alias map that merges all alias stores:
+ * 0. Auto-aliases derived from synced Antigravity-family discovery (lowest
+ *    precedence — bare base name → default tier; see syncedAutoAliases.ts).
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
  *    /api/models/alias/ and seeded at startup.
  * 2. Settings-based exact aliases (settings.modelAliases) — set via the Settings UI and
@@ -62,9 +76,10 @@ function buildWildcardAliasMap(settings: Record<string, unknown>): Record<string
  * cannot collide with a real model id, so ordering never affects exact-alias lookups.
  */
 async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
-  const [dbAliases, settings] = await Promise.all([
+  const [dbAliases, settings, autoAliases] = await Promise.all([
     getModelAliases().catch(() => ({})),
     getCachedSettings().catch(() => ({}) as Record<string, unknown>),
+    getSyncedAutoAliases().catch(() => ({}) as Record<string, string>),
   ]);
 
   const settingsAliases =
@@ -76,7 +91,9 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 
   const wildcardMap = buildWildcardAliasMap(settings);
 
-  return { ...dbAliases, ...settingsAliases, ...wildcardMap };
+  // Auto-aliases (derived from synced discovery) merge first — lowest
+  // precedence: any explicit DB/settings/wildcard alias always wins.
+  return { ...autoAliases, ...dbAliases, ...settingsAliases, ...wildcardMap };
 }
 
 /**
@@ -299,9 +316,46 @@ function buildRuntimeModelMeta(
   return metadata;
 }
 
+/**
+ * #14393: some live/synced catalogs expose an upstream model id that itself
+ * contains a "/" (e.g. logfare's "logfare/auto"). parseModel() unconditionally
+ * splits the client-addressed model string on the FIRST "/", so a request
+ * literally addressed as "logfare/auto" is split into provider "logfare" +
+ * model "auto", which never matches the real synced row id "logfare/auto".
+ *
+ * Try the primary (already-split) synced-catalog match first. When it misses
+ * and the caller supplied the pre-split original address, retry the SAME
+ * provider's synced catalog using that original string as the candidate id
+ * before declaring the model unavailable. This only adds a fallback match —
+ * it cannot regress a provider/model combo that already resolves via the
+ * primary lookup.
+ */
+function resolveSyncedMatch(
+  providerId: string,
+  requestedModelId: string,
+  resolvedModelId: string,
+  originalModelId: string | undefined,
+  syncedModels: unknown
+): { match: any; modelId: string } {
+  const primaryMatch = findLiveCatalogModelMeta(
+    providerId,
+    requestedModelId,
+    resolvedModelId,
+    syncedModels
+  );
+  if (primaryMatch) return { match: primaryMatch, modelId: resolvedModelId };
+
+  const canFallback = originalModelId !== undefined && originalModelId !== resolvedModelId;
+  const fallbackMatch = canFallback ? findSyncedModelMeta(syncedModels, originalModelId) : null;
+  if (fallbackMatch) return { match: fallbackMatch, modelId: originalModelId as string };
+
+  return { match: undefined, modelId: resolvedModelId };
+}
+
 async function lookupModelMeta(
   providerId: string,
-  modelId: string
+  modelId: string,
+  originalModelId?: string
 ): Promise<{
   modelId: string;
   metadata: RuntimeModelMeta;
@@ -353,12 +407,15 @@ async function lookupModelMeta(
     // Custom models remain explicit operator overrides even when live discovery
     // is authoritative for the provider.
     const customMatch = findCustomModelMeta(customModels, resolvedModelId);
-    const syncedMatch = findLiveCatalogModelMeta(
+    const syncedResolution = resolveSyncedMatch(
       providerId,
       modelId,
       resolvedModelId,
+      originalModelId,
       syncedModels
     );
+    resolvedModelId = syncedResolution.modelId;
+    const syncedMatch = syncedResolution.match;
     const registryMatch = findRegistryModel(providerId, resolvedModelId);
     const compatOverrideMatch = Array.isArray(compatOverrides)
       ? compatOverrides.find((m) => m.id === resolvedModelId || m.id === modelId)
@@ -388,32 +445,72 @@ async function lookupModelMeta(
 /**
  * When a custom provider node is matched by its raw internal `node.id` (e.g. a combo
  * step addressing `<connId>/...` — see #2778), `parsed.model` was never split on the
- * node's own `prefix`, unlike the alias-addressing path where `parseModel` already
- * strips it. If the caller naively concatenates `owned_by` (the node's prefix, as
- * listed by /api/models) with the raw model id, the resulting model string carries a
- * redundant leading `${node.prefix}/` segment that the upstream provider does not
- * recognize, causing a 400. Strip it so `<connId>/<prefix>/<rawModelId>` normalizes to
- * the same `<rawModelId>` the bare alias form resolves to (#6772).
+ * node's own identifiers, unlike the alias-addressing path where `parseModel` already
+ * strips the prefix. If the caller naively concatenates routing segments with the raw
+ * model id, the resulting model string carries redundant leading segments that the
+ * upstream provider does not recognize, causing deterministic 404s (retried).
+ *
+ * Observed in production traffic: `<connId>/<connId>/<model>` — requests addressed
+ * by the node's internal id (#2778) left a second `<connId>/` segment in parsed.model
+ * that the historical strip (prefix alone, #6772) never saw, and the composite went
+ * upstream verbatim. We now shed ANY of the matched node's routing identifiers (prefix AND internal id), repeatedly, until stable.
+ * A legitimate namespace different from these identifiers is untouched (#493);
+ * an operator naming their prefix identically to one of their catalog namespaces
+ * sees that namespace shed — accepted limitation, precedent #6772.
  */
-function stripRedundantNodePrefix(model: string, nodePrefix: unknown): string {
-  if (typeof nodePrefix !== "string" || !nodePrefix) return model;
-  const redundant = `${nodePrefix}/`;
-  return model.startsWith(redundant) ? model.slice(redundant.length) : model;
+function stripRedundantNodeRoutingSegments(model: string, routingIds: unknown[]): string {
+  let out = model;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const seg of routingIds) {
+      if (typeof seg !== "string" || !seg) continue;
+      const redundant = `${seg}/`;
+      if (out.startsWith(redundant)) {
+        out = out.slice(redundant.length);
+        changed = true;
+      }
+    }
+  }
+  return out;
 }
 
 /**
  * Get full model info (parse or resolve)
  */
 export async function getModelInfo(modelStr) {
+  // Reject the raw common-provider identity before compatible-node lookup or
+  // stripModelPrefix can erase/remap it. Ordinary bare model aliases remain
+  // operator-owned; the two retired bare ids are intentionally blocked.
+  assertCommonChatGptWebModelAvailable(modelStr);
   const parsed = parseModel(modelStr);
+  // Fail before compatible-node lookup and stripModelPrefix can erase or remap
+  // a retired provider identity. Executor/auth tombstones are later defenses;
+  // they cannot see the original prefix after either remapping path.
+  assertRuntimeProviderAvailable(parsed.providerAlias);
+  assertRuntimeProviderAvailable(parsed.provider);
   const { extendedContext } = parsed;
 
+  // Fail closed before a custom compatible node or stripModelPrefix can reinterpret
+  // an exact retired provider id/alias as an unrelated live provider.
+  assertMicrosoftDesignerWebProviderAvailable(parsed.providerAlias || parsed.provider);
+
+  const assertResolvedModelAvailable = (info: any) => {
+    assertCommonChatGptWebProviderAvailable(info?.provider);
+    return info;
+  };
+
   const attachRuntimeModelMeta = async (info: any) => {
+    assertResolvedModelAvailable(info);
     if (!info?.provider || !info?.model) return info;
 
     const providerId = String(info.provider);
     const requestedModelId = String(info.model);
-    const { modelId, metadata, available } = await lookupModelMeta(providerId, requestedModelId);
+    const { modelId, metadata, available } = await lookupModelMeta(
+      providerId,
+      requestedModelId,
+      modelStr
+    );
 
     if (!available) {
       return {
@@ -457,20 +554,20 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedOpenAI) {
-        const normalizedModel = stripRedundantNodePrefix(
-          parsed.model as string,
-          matchedOpenAI.prefix
-        );
+        const normalizedModel = stripRedundantNodeRoutingSegments(parsed.model as string, [
+          matchedOpenAI.prefix,
+          matchedOpenAI.id,
+        ]);
         const { modelId, metadata } = await lookupModelMeta(
           matchedOpenAI.id as string,
           normalizedModel
         );
-        return {
+        return assertResolvedModelAvailable({
           provider: matchedOpenAI.id,
           model: modelId,
           extendedContext,
           ...metadata,
-        };
+        });
       }
 
       // Check Anthropic Compatible nodes
@@ -479,20 +576,20 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedAnthropic) {
-        const normalizedModel = stripRedundantNodePrefix(
-          parsed.model as string,
-          matchedAnthropic.prefix
-        );
+        const normalizedModel = stripRedundantNodeRoutingSegments(parsed.model as string, [
+          matchedAnthropic.prefix,
+          matchedAnthropic.id,
+        ]);
         const { modelId, metadata } = await lookupModelMeta(
           matchedAnthropic.id as string,
           normalizedModel
         );
-        return {
+        return assertResolvedModelAvailable({
           provider: matchedAnthropic.id,
           model: modelId,
           extendedContext,
           ...metadata,
-        };
+        });
       }
     }
 
@@ -502,7 +599,7 @@ export async function getModelInfo(modelStr) {
       const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
         const strippedResult = await getModelInfoCore(parsed.model, getCombinedModelAliases);
-        return { ...strippedResult, extendedContext };
+        return assertResolvedModelAvailable({ ...strippedResult, extendedContext });
       }
     } catch {
       // If settings read fails, fall through to normal resolution
@@ -514,6 +611,28 @@ export async function getModelInfo(modelStr) {
   }
 
   return await attachRuntimeModelMeta(await getModelInfoCore(modelStr, getCombinedModelAliases));
+}
+
+export async function getModelInfoOrRetirementResponse(modelId: string) {
+  try {
+    return await getModelInfo(modelId);
+  } catch (error) {
+    if (isMicrosoftDesignerWebProviderRetiredError(error)) {
+      return { error: errorResponse(HTTP_STATUS.GONE, error.message) };
+    }
+    if (isRuntimeProviderRetirementError(error)) {
+      return {
+        error: errorResponse(error.status, error.message, {
+          type: "provider_error",
+          code: error.code,
+        }),
+      };
+    }
+    if (isCommonChatGptWebRetirementError(error)) {
+      return { error: commonChatGptWebRetirementResponse() };
+    }
+    throw error;
+  }
 }
 
 /**
@@ -579,7 +698,7 @@ export async function getComboForModel(modelStr) {
 
   // 2. NEW — check model-combo mappings table (pattern match)
   try {
-    const { resolveComboForModel } = await import("@/lib/localDb");
+    const { resolveComboForModel } = await import("@/lib/db/modelComboMappings");
     const mapped = await resolveComboForModel(baseModelStr || modelStr);
     if (mapped && (mapped as any).models?.length > 0) {
       return mapped;

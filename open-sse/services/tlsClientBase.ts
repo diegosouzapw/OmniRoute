@@ -1,49 +1,45 @@
 /**
- * Shared TLS client infrastructure — a factory-style base that consolidates
- * 6 nearly-identical per-provider TLS client files into one source of truth.
+ * Shared browser-impersonating HTTP transport for five web-cookie provider wrappers.
  *
- * Each provider file calls `createTlsClientModule(config)` to obtain its
- * provider-specific `tlsFetch` and `__setTlsFetchOverrideForTesting` exports.
+ * Provider wrappers keep their existing `tlsFetch*` APIs while this module owns
+ * wreq-js loading, transport pooling, proxy selection, deadlines, byte responses,
+ * SSE/NDJSON validation, EOF handling, and cancellation.
  *
- * TailFile variants:
- *   A  — Uint8Array enqueue, includes EOF symbol, substring-based cleanup
- *        ChatGPT, Claude, Perplexity, Notion
- *   B1 — Buffer.from enqueue, excludes EOF symbol, inline drainRemaining loop
- *        Grok
- *   B2 — Buffer.from enqueue, excludes EOF symbol, extracted helpers
- *        LMArena
- *
- * Response validation:
- *   sse — checks `looksLikeSse(peek)`, falls back to buffered
- *         ChatGPT, Claude, Perplexity, Notion
- *   cf  — checks `isCloudflareChallenge(peek)` → 403, HTML → 502
- *         Grok, LMArena
+ * Every wreq request uses an ephemeral cookie scope. Transports are reused process-wide,
+ * bounded by an LRU pool, and keyed by browser profile, emulated OS, and resolved proxy;
+ * no cookie jar or session identifier is shared between calls.
  */
 
-// ---------------------------------------------------------------------------
-// Node imports
-// ---------------------------------------------------------------------------
-import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
-import { join, dirname } from "node:path";
-import { open, unlink, rmdir, readFile, mkdtemp, stat } from "node:fs/promises";
-
-// ---------------------------------------------------------------------------
-// Proxy resolution — every provider file imports both of these
-// ---------------------------------------------------------------------------
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import {
+  createWreqTransportClient,
+  WreqRuntimeUnavailableError,
+  type WreqTransportRuntime,
+  type WreqTransportRuntimeLoader,
+} from "../utils/tlsClient.ts";
 import { resolveTlsClientProxyUrl } from "./tlsClientProxy.ts";
-import { buildNativeTlsClientOptions } from "./tlsClientDownloadDir.ts";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+type EmulationOs = "windows" | "macos" | "linux" | "android" | "ios";
+
+export type IterableHeaders = Iterable<[string, string]> & {
+  getSetCookie?: () => string[];
+};
+
+export interface ReadableBodyLike {
+  getReader: () => ReadableStreamDefaultReader<Uint8Array>;
+  cancel?: (reason?: unknown) => Promise<void>;
+}
 
 export interface TlsResponseLike {
   status: number;
-  headers: Record<string, string[]>;
-  body: string;
+  headers: Record<string, string[]> | IterableHeaders;
+  body: string | ReadableBodyLike | null;
+  text?: () => Promise<string>;
+  bytes?: () => Promise<Uint8Array>;
 }
+
+export type WreqRuntimeLike = WreqTransportRuntime;
+export type WreqRuntimeLoader = WreqTransportRuntimeLoader;
 
 export interface TlsFetchResult {
   status: number;
@@ -64,59 +60,40 @@ export interface TlsFetchOptions {
   proxyUrl?: string;
 }
 
-// ---------------------------------------------------------------------------
-// Factory config (one instance per provider stub)
-// ---------------------------------------------------------------------------
-
 export interface TlsClientConfig {
   /** Human-readable provider name for logs and error messages. */
   providerName: string;
-  /** TLS profile identifier (e.g. "chrome_146") */
+  /** Browser profile identifier, for example `chrome_146` or `firefox_148`. */
   tlsProfile: string;
-  /** Default upstream domain for proxy resolution (e.g. "https://chatgpt.com") */
+  /** Operating system paired with the browser profile. */
+  emulationOs?: EmulationOs;
+  /** Default upstream domain used by proxy resolution. */
   domain: string;
-  /** Temp directory prefix (e.g. "cgpt-stream-") */
-  tempDirPrefix: string;
-  /** EOF symbol for streaming (default "[DONE]") */
+  /** @deprecated wreq-js streams directly and ignores this compatibility field. */
+  tempDirPrefix?: string;
+  /** Default EOF marker. An empty string disables marker filtering. */
   streamEofSymbol?: string;
-  /** Default timeout in ms (default 60_000) */
+  /** Native request timeout in milliseconds. */
   defaultTimeoutMs?: number;
-  /** Hard timeout grace period in ms (default 10_000) */
+  /** Additional JavaScript-side hard-timeout grace period. */
   hardTimeoutGraceMs?: number;
-  /** First-byte timeout for waitForContent (default 5_000; ChatGPT uses 30_000) */
+  /** Delay after which a late first byte is returned as a buffered response. */
   firstByteTimeoutMs?: number;
-  /**
-   * TailFile variant:
-   *   "A"  — Uint8Array enqueue, includes EOF, substring cleanup
-   *   "B1" — Buffer.from enqueue, excludes EOF, inline drainRemaining
-   *   "B2" — Buffer.from enqueue, excludes EOF, extracted helpers
-   */
-  tailFileVariant: "A" | "B1" | "B2";
-  /**
-   * Response validation mode:
-   *   "sse" — check looksLikeSse → fall back to buffered
-   *   "cf"  — check isCloudflareChallenge → 403, HTML → 502, else stream
-   */
+  /** How a detected EOF marker is exposed; `none` disables marker filtering. */
+  streamEofPolicy?: "include" | "exclude" | "none";
+  /** @deprecated Compatibility alias: `A` includes EOF; `B1`/`B2` exclude it. */
+  tailFileVariant?: "A" | "B1" | "B2";
+  /** `sse` validates SSE prefixes; `cf` rejects Cloudflare/HTML responses. */
   responseValidation: "sse" | "cf";
-  /**
-   * Optional override for proxy resolution domain (e.g., LMArena uses
-   * "https://arena.ai" hardcoded instead of the config domain).
-   */
+  /** Optional proxy-resolution domain override (LMArena uses arena.ai). */
   proxyDomainOverride?: string;
-  /**
-   * Whether to export `isCloudflareChallenge` from the provider stub.
-   * Grok, LMArena, Perplexity, Notion all export it.
-   */
+  /** Whether the provider module exposes the Cloudflare detection helper. */
   exportCloudflareCheck: boolean;
-  /**
-   * Whether to expose `__tlsFetchStreamingForTesting` (ChatGPT only).
-   */
+  /** Whether to expose the direct-stream dependency-injection seam. */
   exposeStreamingForTesting?: boolean;
+  /** External-runtime seam used by focused tests; production loads wreq-js lazily. */
+  wreqRuntimeLoader?: WreqRuntimeLoader;
 }
-
-// ---------------------------------------------------------------------------
-// Error classes
-// ---------------------------------------------------------------------------
 
 export class TlsClientUnavailableError extends Error {
   override name = "TlsClientUnavailableError";
@@ -126,28 +103,93 @@ export class TlsClientHangError extends Error {
   override name = "TlsClientHangError";
 }
 
-// ---------------------------------------------------------------------------
-// Shared helpers (identical across all 6 providers)
-// ---------------------------------------------------------------------------
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export function makeAbortError(signal: AbortSignal): Error {
   const reason = signal.reason;
   if (reason instanceof Error) return reason;
-  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
-  err.name = "AbortError";
-  return err;
+  const error = new Error(typeof reason === "string" ? reason : "The operation was aborted");
+  error.name = "AbortError";
+  return error;
 }
 
-export function toHeaders(raw: Record<string, string[]> | null | undefined): Headers {
-  const h = new Headers();
-  for (const [k, vs] of Object.entries(raw || {})) {
-    for (const v of vs) h.append(k, v);
+export function toHeaders(
+  raw: Record<string, string[]> | IterableHeaders | null | undefined
+): Headers {
+  const headers = new Headers();
+  if (!raw) return headers;
+
+  const iterator = (raw as Partial<IterableHeaders>)[Symbol.iterator];
+  if (typeof iterator === "function") {
+    const iterable = raw as IterableHeaders;
+    const setCookies = typeof iterable.getSetCookie === "function" ? iterable.getSetCookie() : [];
+    for (const [name, value] of iterable) {
+      if (name.toLowerCase() !== "set-cookie" || setCookies.length === 0) {
+        headers.append(name, value);
+      }
+    }
+    for (const value of setCookies) headers.append("set-cookie", value);
+    return headers;
   }
-  return h;
+
+  for (const [name, values] of Object.entries(raw)) {
+    for (const value of values) headers.append(name, value);
+  }
+  return headers;
+}
+
+function isReadableBody(body: TlsResponseLike["body"]): body is ReadableBodyLike {
+  return body !== null && typeof body !== "string" && typeof body.getReader === "function";
+}
+
+function concatChunks(chunks: Uint8Array[]): Uint8Array {
+  const length = chunks.reduce((total, chunk) => total + chunk.byteLength, 0);
+  const combined = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return combined;
+}
+
+async function readAllChunks(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  initialChunks: Uint8Array[] = [],
+  readNext: () => Promise<ReadableStreamReadResult<Uint8Array>> = () => reader.read()
+): Promise<Uint8Array> {
+  const chunks = [...initialChunks];
+  while (true) {
+    const next = await readNext();
+    if (next.done) return concatChunks(chunks);
+    chunks.push(next.value);
+  }
+}
+
+async function readTlsResponseText(
+  response: TlsResponseLike,
+  onReader?: (reader: ReadableStreamDefaultReader<Uint8Array>) => void
+): Promise<string> {
+  if (typeof response.body === "string") return response.body;
+  if (isReadableBody(response.body)) {
+    const reader = response.body.getReader();
+    onReader?.(reader);
+    return new TextDecoder().decode(await readAllChunks(reader));
+  }
+  if (typeof response.text === "function") return response.text();
+  return "";
+}
+
+async function readTlsResponseBytes(
+  response: TlsResponseLike,
+  onReader?: (reader: ReadableStreamDefaultReader<Uint8Array>) => void
+): Promise<Uint8Array> {
+  if (isReadableBody(response.body)) {
+    const reader = response.body.getReader();
+    onReader?.(reader);
+    return readAllChunks(reader);
+  }
+  if (typeof response.bytes === "function") return response.bytes();
+  if (typeof response.body === "string") return Buffer.from(response.body, "binary");
+  return new Uint8Array();
 }
 
 export async function raceWithTimeout<T>(
@@ -155,111 +197,42 @@ export async function raceWithTimeout<T>(
   timeoutMs: number,
   signal: AbortSignal | null | undefined
 ): Promise<T> {
-  // If no signal, just race with a simple timeout.
-  if (!signal) {
-    return await Promise.race([
-      promise,
-      new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new TlsClientHangError()), timeoutMs);
-      }),
-    ]);
-  }
-
-  // With signal, race against both timeout and abort.
   return await new Promise<T>((resolve, reject) => {
     let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const done = (fn: () => void) => {
-      if (!settled) {
-        settled = true;
-        fn();
-      }
+    const onAbort = (): void => {
+      settle(() => reject(makeAbortError(signal!)));
+    };
+    const cleanup = (): void => {
+      if (timer) clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const settle = (complete: () => void): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      complete();
     };
 
-    const timer = setTimeout(() => {
-      done(() => reject(new TlsClientHangError()));
-    }, timeoutMs);
-
-    const onAbort = () => {
-      done(() => reject(makeAbortError(signal)));
-    };
-
-    if (signal.aborted) {
+    timer = setTimeout(
+      () => settle(() => reject(new TlsClientHangError())),
+      Math.max(0, timeoutMs)
+    );
+    if (signal?.aborted) {
       onAbort();
     } else {
-      signal.addEventListener("abort", onAbort, { once: true });
+      signal?.addEventListener("abort", onAbort, { once: true });
     }
 
     promise.then(
-      (v) => {
-        done(() => {
-          clearTimeout(timer);
-          signal.removeEventListener("abort", onAbort);
-          resolve(v);
-        });
-      },
-      (e) => {
-        done(() => {
-          clearTimeout(timer);
-          signal.removeEventListener("abort", onAbort);
-          reject(e);
-        });
-      }
+      (value) => settle(() => resolve(value)),
+      (error) => settle(() => reject(error))
     );
   });
 }
 
-/** Read up to N bytes from a file, returning the utf-8 decoded text. */
-export async function readFirstBytes(path: string, n: number): Promise<string> {
-  const fd = await open(path, "r");
-  try {
-    const buf = Buffer.alloc(n);
-    const { bytesRead } = await fd.read(buf, 0, n, 0);
-    return buf.subarray(0, bytesRead).toString("utf8");
-  } finally {
-    await fd.close().catch(() => {});
-  }
-}
-
-/**
- * Wait for the streaming output file to exist AND contain at least one byte.
- * Returns false if the request settles before any bytes arrive (so the caller
- * can drain `requestPromise` and surface the real upstream status). Returns
- * true as soon as the file has data.
- */
-export async function waitForContent(
-  path: string,
-  timeoutMs: number,
-  requestPromise: Promise<TlsResponseLike>
-): Promise<boolean> {
-  let requestSettled = false;
-  requestPromise.then(
-    () => {
-      requestSettled = true;
-    },
-    () => {
-      requestSettled = true;
-    }
-  );
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const s = await stat(path);
-      if (s.size > 0) return true;
-    } catch {
-      // file doesn't exist yet
-    }
-    if (requestSettled) return false;
-    await sleep(25);
-  }
-  return false;
-}
-
-/**
- * Returns true if the peeked response body looks like an SSE stream — i.e.,
- * begins (after any leading whitespace) with one of the SSE field markers
- * (`data:`, `event:`, `id:`, `retry:`) or a comment line (`:`).
- */
+/** Return true when a prefix begins with an SSE field or comment marker. */
 export function looksLikeSse(text: string): boolean {
   const trimmed = text.replace(/^[\s\r\n]+/, "");
   if (!trimmed) return false;
@@ -267,9 +240,7 @@ export function looksLikeSse(text: string): boolean {
   return /^(data|event|id|retry):/i.test(trimmed);
 }
 
-/**
- * Returns true if the response body is a Cloudflare challenge/interstitial page.
- */
+/** Return true when a response prefix is a Cloudflare challenge/interstitial. */
 export function isCloudflareChallenge(text: string | null | undefined): boolean {
   if (!text) return false;
   return /just a moment|window\._cf_chl_opt|challenges\.cloudflare\.com|attention required|cf-chl/i.test(
@@ -277,430 +248,273 @@ export function isCloudflareChallenge(text: string | null | undefined): boolean 
   );
 }
 
-// ---------------------------------------------------------------------------
-// Temp-path cleanup — two variants
-// ---------------------------------------------------------------------------
-
-/** Variant A: substring-based parent dir extraction (ChatGPT, Claude, Perplexity, Notion) */
-async function cleanupTempPathSubstring(path: string): Promise<void> {
-  await unlink(path).catch(() => {});
-  const dir = path.substring(0, path.lastIndexOf("/"));
-  await rmdir(dir).catch(() => {});
+function couldBecomeSsePrefix(text: string): boolean {
+  const trimmed = text.replace(/^[\s\r\n]+/, "").toLowerCase();
+  return ["data:", "event:", "id:", "retry:", ":"].some((marker) => marker.startsWith(trimmed));
 }
 
-/** Variant B: dirname-based parent dir extraction (Grok, LMArena) */
-async function cleanupTempPathDirname(path: string): Promise<void> {
-  await unlink(path).catch(() => {});
-  await rmdir(dirname(path)).catch(() => {});
+function couldBecomeCloudflareChallenge(text: string): boolean {
+  const trimmed = text.trimStart().toLowerCase();
+  return [
+    "just a moment",
+    "window._cf_chl_opt",
+    "challenges.cloudflare.com",
+    "attention required",
+    "cf-chl",
+  ].some((marker) => marker.startsWith(trimmed));
 }
 
-async function readTextFileIfExists(path: string): Promise<string> {
-  try {
-    return await readFile(path, "utf8");
-  } catch {
-    return "";
-  }
+type EofControlCandidate = "possible" | "matched" | "not-control";
+
+function classifyEofControlCandidate(bytes: number[], eofSymbol: string): EofControlCandidate {
+  const decoded = new TextDecoder().decode(Uint8Array.from(bytes), { stream: true });
+  const candidate = decoded.replace(/^[\t\r ]+/, "");
+  if (candidate.startsWith(eofSymbol)) return "matched";
+  if (eofSymbol.startsWith(candidate)) return "possible";
+
+  const dataPrefix = "data:";
+  const lowerCandidate = candidate.toLowerCase();
+  if (dataPrefix.startsWith(lowerCandidate)) return "possible";
+  if (!lowerCandidate.startsWith(dataPrefix)) return "not-control";
+
+  const dataValue = candidate.slice(dataPrefix.length).replace(/^[\t ]+/, "");
+  if (dataValue.startsWith(eofSymbol)) return "matched";
+  return eofSymbol.startsWith(dataValue) ? "possible" : "not-control";
 }
 
-// ---------------------------------------------------------------------------
-// TailFile — Variant A
-//   Uint8Array enqueue, includes EOF symbol, substring cleanup
-//   Used by: ChatGPT, Claude, Perplexity, Notion
-// ---------------------------------------------------------------------------
-
-function tailFileVariantA(
-  path: string,
+function createEofFilteredStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  initialChunks: Uint8Array[],
   eofSymbol: string,
-  done: Promise<TlsResponseLike>,
-  signal: AbortSignal | null = null,
-  cleanupPath: string
+  includeEof: boolean,
+  readNext: () => Promise<ReadableStreamReadResult<Uint8Array>>,
+  onReadError: (error: unknown) => void,
+  onFinalize: () => void,
+  signal: AbortSignal | null,
+  hardDeadlineAt: number
 ): ReadableStream<Uint8Array> {
+  const queued = [...initialChunks];
+  const eofBytes = new TextEncoder().encode(eofSymbol);
+  let controlCandidate: number[] = [];
+  let atLineStart = true;
+  let closed = false;
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  let removeAbortListener = (): void => {};
+  let lifecycleCleaned = false;
+
+  const cleanupLifecycle = (): void => {
+    if (lifecycleCleaned) return;
+    lifecycleCleaned = true;
+    if (deadlineTimer) clearTimeout(deadlineTimer);
+    deadlineTimer = undefined;
+    removeAbortListener();
+    removeAbortListener = (): void => {};
+    onFinalize();
+  };
+
+  const cancelNativeReader = async (reason: unknown): Promise<void> => {
+    try {
+      await reader.cancel(reason);
+    } catch {
+      // Native cancellation is best-effort cleanup; preserve the authoritative stream error.
+    }
+  };
+
+  const errorStream = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    error: Error,
+    notifyReadError: boolean
+  ): void => {
+    if (closed) return;
+    closed = true;
+    controlCandidate = [];
+    cleanupLifecycle();
+    if (notifyReadError) onReadError(error);
+    void cancelNativeReader(error);
+    try {
+      controller.error(error);
+    } catch {
+      // The consumer may have closed the stream concurrently.
+    }
+  };
+
   return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const fd = await open(path, "r");
-      const buf = Buffer.alloc(64 * 1024);
-      let offset = 0;
-      let finished = false;
-      let aborted = false;
-      let upstreamError: Error | null = null;
-
-      done.then(
-        () => {
-          finished = true;
-        },
-        (err) => {
-          upstreamError = err instanceof Error ? err : new Error(String(err));
-          finished = true;
-        }
-      );
-
-      const onAbort = () => {
-        aborted = true;
-      };
+    start(controller) {
       if (signal) {
-        if (signal.aborted) aborted = true;
-        else signal.addEventListener("abort", onAbort, { once: true });
+        const onAbort = (): void => errorStream(controller, makeAbortError(signal), false);
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+        removeAbortListener = (): void => signal.removeEventListener("abort", onAbort);
       }
 
-      let errored = false;
-      try {
-        while (!aborted) {
-          const { bytesRead } = await fd.read(buf, 0, buf.length, offset);
-          if (bytesRead > 0) {
-            const chunk = buf.subarray(0, bytesRead);
-            offset += bytesRead;
-            const text = chunk.toString("utf8");
-            if (text.includes(eofSymbol)) {
-              const cutAt = text.indexOf(eofSymbol) + eofSymbol.length;
-              controller.enqueue(new Uint8Array(chunk.subarray(0, cutAt)));
-              break;
-            }
-            controller.enqueue(new Uint8Array(chunk));
-          } else if (finished) {
-            if (upstreamError) {
-              controller.error(upstreamError);
-              errored = true;
-            }
-            break;
-          } else {
-            await sleep(25);
-          }
-        }
-      } catch (err) {
-        controller.error(err);
-        errored = true;
-      } finally {
-        if (signal) signal.removeEventListener("abort", onAbort);
-        await fd.close().catch(() => {});
-        await cleanupTempPathSubstring(cleanupPath);
-        if (!errored) controller.close();
+      if (Number.isFinite(hardDeadlineAt)) {
+        deadlineTimer = setTimeout(
+          () => {
+            errorStream(controller, new TlsClientHangError(), true);
+          },
+          Math.max(0, hardDeadlineAt - Date.now())
+        );
+        deadlineTimer.unref?.();
       }
     },
-  });
-}
-
-// ---------------------------------------------------------------------------
-// TailFile — Variant B1
-//   Buffer.from enqueue, excludes EOF symbol, inline drainRemaining loop
-//   Used by: Grok
-// ---------------------------------------------------------------------------
-
-function tailFileVariantB1(
-  path: string,
-  eofSymbol: string,
-  done: Promise<TlsResponseLike>,
-  signal: AbortSignal | null = null,
-  cleanupPath: string
-): ReadableStream<Uint8Array> {
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const fd = await open(path, "r");
-      const buf = Buffer.alloc(64 * 1024);
-      let offset = 0;
-      let finished = false;
-      let aborted = false;
-      let upstreamError: Error | null = null;
-
-      done.then(
-        () => {
-          finished = true;
-        },
-        (err) => {
-          upstreamError = err instanceof Error ? err : new Error(String(err));
-          finished = true;
-        }
-      );
-
-      const onAbort = () => {
-        aborted = true;
-      };
-      if (signal) {
-        if (signal.aborted) aborted = true;
-        else signal.addEventListener("abort", onAbort, { once: true });
-      }
-
-      let errored = false;
-      try {
-        while (!aborted) {
-          const { bytesRead } = await fd.read(buf, 0, buf.length, offset);
-          if (bytesRead > 0) {
-            const chunk = buf.subarray(0, bytesRead);
-            offset += bytesRead;
-            const text = chunk.toString("utf8");
-
-            if (text.includes(eofSymbol)) {
-              const beforeEof = text.substring(0, text.indexOf(eofSymbol));
-              if (beforeEof) {
-                controller.enqueue(Buffer.from(beforeEof, "utf8"));
-              }
-              controller.close();
-              return;
-            }
-
-            controller.enqueue(Buffer.from(chunk));
+    async pull(controller) {
+      while (!closed) {
+        let chunk = queued.shift();
+        if (!chunk) {
+          let next: ReadableStreamReadResult<Uint8Array>;
+          try {
+            next = await readNext();
+          } catch (error) {
+            if (closed) return;
+            closed = true;
+            cleanupLifecycle();
+            onReadError(error);
+            await cancelNativeReader(error);
+            controller.error(error);
+            return;
           }
-
-          if (finished) {
-            // Request finished — drain any remaining bytes then close.
-            while (true) {
-              const { bytesRead } = await fd.read(buf, 0, buf.length, offset);
-              if (bytesRead === 0) break;
-              const chunk = buf.subarray(0, bytesRead);
-              offset += bytesRead;
-              const text = chunk.toString("utf8");
-
-              if (text.includes(eofSymbol)) {
-                const beforeEof = text.substring(0, text.indexOf(eofSymbol));
-                if (beforeEof) {
-                  controller.enqueue(Buffer.from(beforeEof, "utf8"));
-                }
-                controller.close();
-                return;
-              }
-
-              controller.enqueue(Buffer.from(chunk));
+          if (closed) return;
+          if (next.done) {
+            if (controlCandidate.length > 0) {
+              controller.enqueue(Uint8Array.from(controlCandidate));
             }
-
-            if (upstreamError && !errored) {
-              errored = true;
-              controller.error(upstreamError);
-              return;
-            }
-
+            controlCandidate = [];
+            closed = true;
+            cleanupLifecycle();
             controller.close();
             return;
           }
-
-          await sleep(25);
+          chunk = next.value;
         }
-      } catch (err) {
-        if (!errored) {
-          errored = true;
-          controller.error(err instanceof Error ? err : new Error(String(err)));
+
+        if (eofBytes.byteLength === 0) {
+          controller.enqueue(chunk);
+          return;
         }
-      } finally {
-        await fd.close().catch(() => {});
-        await cleanupTempPathDirname(cleanupPath);
-        if (signal) signal.removeEventListener("abort", onAbort);
-      }
-    },
-  });
-}
 
-// ---------------------------------------------------------------------------
-// TailFile — Variant B2
-//   Buffer.from enqueue, excludes EOF symbol, extracted helpers
-//   Used by: LMArena
-// ---------------------------------------------------------------------------
-
-type FileHandle = Awaited<ReturnType<typeof open>>;
-
-function enqueueChunkMaybeEof(
-  controller: ReadableStreamDefaultController<Uint8Array>,
-  chunk: Buffer,
-  eofSymbol: string
-): boolean {
-  const text = chunk.toString("utf8");
-  if (!text.includes(eofSymbol)) {
-    controller.enqueue(Buffer.from(chunk));
-    return false;
-  }
-  const beforeEof = text.substring(0, text.indexOf(eofSymbol));
-  if (beforeEof) controller.enqueue(Buffer.from(beforeEof, "utf8"));
-  controller.close();
-  return true;
-}
-
-async function drainRemaining(
-  fd: FileHandle,
-  buf: Buffer,
-  offsetRef: { offset: number },
-  controller: ReadableStreamDefaultController<Uint8Array>,
-  eofSymbol: string
-): Promise<"closed" | "drained"> {
-  while (true) {
-    const { bytesRead } = await fd.read(buf, 0, buf.length, offsetRef.offset);
-    if (bytesRead === 0) return "drained";
-    const chunk = buf.subarray(0, bytesRead);
-    offsetRef.offset += bytesRead;
-    if (enqueueChunkMaybeEof(controller, chunk, eofSymbol)) return "closed";
-  }
-}
-
-function tailFileVariantB2(
-  path: string,
-  eofSymbol: string,
-  done: Promise<TlsResponseLike>,
-  signal: AbortSignal | null = null,
-  cleanupPath: string
-): ReadableStream<Uint8Array> {
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const fd = await open(path, "r");
-      const buf = Buffer.alloc(64 * 1024);
-      const offsetRef = { offset: 0 };
-      let finished = false;
-      let aborted = false;
-      let upstreamError: Error | null = null;
-      let errored = false;
-
-      done.then(
-        () => {
-          finished = true;
-        },
-        (err) => {
-          upstreamError = err instanceof Error ? err : new Error(String(err));
-          finished = true;
-        }
-      );
-
-      const onAbort = () => {
-        aborted = true;
-      };
-      if (signal) {
-        if (signal.aborted) aborted = true;
-        else signal.addEventListener("abort", onAbort, { once: true });
-      }
-
-      try {
-        while (!aborted) {
-          const { bytesRead } = await fd.read(buf, 0, buf.length, offsetRef.offset);
-          if (bytesRead > 0) {
-            const chunk = buf.subarray(0, bytesRead);
-            offsetRef.offset += bytesRead;
-            if (enqueueChunkMaybeEof(controller, chunk, eofSymbol)) return;
-          }
-
-          if (!finished) {
-            await sleep(25);
+        const output: number[] = [];
+        let eofReached = false;
+        for (const byte of chunk) {
+          if (!atLineStart) {
+            output.push(byte);
+            if (byte === 0x0a || byte === 0x0d) atLineStart = true;
             continue;
           }
 
-          const drained = await drainRemaining(fd, buf, offsetRef, controller, eofSymbol);
-          if (drained === "closed") return;
-          if (upstreamError && !errored) {
-            errored = true;
-            controller.error(upstreamError);
-            return;
+          if (byte === 0x0a || byte === 0x0d) {
+            for (const candidateByte of controlCandidate) output.push(candidateByte);
+            controlCandidate = [];
+            output.push(byte);
+            continue;
           }
+
+          controlCandidate.push(byte);
+          const classification = classifyEofControlCandidate(controlCandidate, eofSymbol);
+          if (classification === "matched") {
+            if (includeEof) {
+              for (const candidateByte of controlCandidate) output.push(candidateByte);
+            }
+            controlCandidate = [];
+            eofReached = true;
+            break;
+          }
+          if (classification === "not-control") {
+            for (const candidateByte of controlCandidate) output.push(candidateByte);
+            controlCandidate = [];
+            atLineStart = false;
+          }
+        }
+
+        if (eofReached) {
+          if (output.length > 0) controller.enqueue(Uint8Array.from(output));
+          closed = true;
+          cleanupLifecycle();
+          await cancelNativeReader("TLS stream EOF reached");
           controller.close();
           return;
         }
-      } catch (err) {
-        if (!errored) {
-          errored = true;
-          controller.error(err instanceof Error ? err : new Error(String(err)));
+
+        if (output.length > 0) {
+          controller.enqueue(Uint8Array.from(output));
+          return;
         }
-      } finally {
-        await fd.close().catch(() => {});
-        await cleanupTempPathDirname(cleanupPath);
-        if (signal) signal.removeEventListener("abort", onAbort);
       }
+    },
+    async cancel(reason) {
+      closed = true;
+      controlCandidate = [];
+      cleanupLifecycle();
+      await cancelNativeReader(reason);
     },
   });
 }
 
-// ---------------------------------------------------------------------------
-// Client lifecycle — TLS client singleton per provider
-// ---------------------------------------------------------------------------
+export type TlsRequestPromise = Promise<TlsResponseLike> & {
+  invalidateTransport?: () => void;
+  releaseTransport?: () => void;
+};
 
-/**
- * Create a getClient function for a provider stub.
- * Uses dynamic `import("tls-client-node")` with `{ runtimeMode: "native" }`
- * and `client.start()`, matching the original per-provider lifecycle.
- */
+export interface TlsRequestClient {
+  request: (url: string, options: Record<string, unknown>) => TlsRequestPromise;
+  invalidateTransport?: (options: Record<string, unknown>) => void;
+}
+
+/** Create a provider facade over the shared ephemeral-cookie wreq transport pool. */
 export function createGetClient(config: {
   providerName: string;
   tlsProfile?: string;
-}): () => Promise<{
-  request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
-}> {
-  let clientPromise: Promise<{
-    request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
-  }> | null = null;
-  let exitHookInstalled = false;
+  emulationOs?: EmulationOs;
+  wreqRuntimeLoader?: WreqRuntimeLoader;
+}): () => Promise<TlsRequestClient> {
+  const browser = config.tlsProfile ?? "chrome_146";
+  const os = config.emulationOs ?? "macos";
+  const wreqClient = createWreqTransportClient({
+    browser,
+    os,
+    runtimeLoader: config.wreqRuntimeLoader,
+  });
 
-  const installExitHook = (client: { stop: () => Promise<void> }): void => {
-    if (!exitHookInstalled) {
-      exitHookInstalled = true;
-      process.on("exit", () => {
-        void client.stop();
+  const client: TlsRequestClient = {
+    request(url, options) {
+      const wreqRequest = wreqClient.request(url, options);
+      const adapted = wreqRequest.catch((error: unknown) => {
+        if (!(error instanceof WreqRuntimeUnavailableError)) throw error;
+        throw new TlsClientUnavailableError(
+          `wreq-js 3.2.x is not installed or unsupported on this platform — ` +
+            `cannot start browser transport for ${config.providerName}`
+        );
+      }) as TlsRequestPromise;
+      Object.defineProperties(adapted, {
+        invalidateTransport: {
+          value: () => wreqRequest.invalidateTransport(),
+        },
+        releaseTransport: {
+          value: () => wreqRequest.releaseTransport(),
+        },
       });
-    }
+      return adapted;
+    },
   };
 
-  return async function getClient(): Promise<{
-    request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
-  }> {
-    if (!clientPromise) {
-      clientPromise = (async () => {
-        let TLSClientCtor: {
-          new (config: Record<string, unknown>): {
-            start: () => Promise<void>;
-            request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
-            stop: () => Promise<void>;
-          };
-        };
-        try {
-          // tls-client-node uses a native binary loaded at runtime.
-          // The dynamic import delays the binary load until first use — no
-          // point crashing startup on machines where it's not installed.
-          const mod = await import("tls-client-node");
-          TLSClientCtor = mod.TLSClient;
-        } catch {
-          throw new TlsClientUnavailableError(
-            `tls-client-node is not installed — cannot start TLS client for ${config.providerName}`
-          );
-        }
-        const tlsOptions: Record<string, unknown> = {
-          ...buildNativeTlsClientOptions(),
-        };
-        if (config.tlsProfile) {
-          tlsOptions.clientIdentifier = config.tlsProfile;
-        }
-        const client = new TLSClientCtor(tlsOptions);
-        // Start the native TLS client binding
-        await client.start();
-        installExitHook(client);
-
-        return client;
-      })();
-    }
-    return clientPromise;
-  };
+  return async () => client;
 }
 
-/**
- * Resolve the proxy URL for a tls-client request. Per-call value wins;
- * falls back to the provider-specific env var and the dashboard proxy config.
- */
+/** Resolve a per-call/provider/dashboard proxy for a browser-transport request. */
 export function resolveProxyUrl(domain: string, perCall: string | undefined): string | undefined {
   return resolveTlsClientProxyUrl(domain, perCall, resolveProxyForRequest);
 }
 
-// ---------------------------------------------------------------------------
-// Factory — creates provider-specific tlsFetch + helpers
-// ---------------------------------------------------------------------------
-
-const CLEANUP_VARIANTS = {
-  A: cleanupTempPathSubstring,
-  B: cleanupTempPathDirname,
-} as const;
-
-const TAIL_FILE_VARIANTS = {
-  A: tailFileVariantA,
-  B1: tailFileVariantB1,
-  B2: tailFileVariantB2,
-} as const;
-
 export interface TlsClientModule {
-  tlsFetch: (url: string, options: TlsFetchOptions) => Promise<TlsFetchResult>;
+  tlsFetch: (url: string, options?: TlsFetchOptions) => Promise<TlsFetchResult>;
   __setTlsFetchOverrideForTesting: (
     fn: ((url: string, options: TlsFetchOptions) => Promise<TlsFetchResult>) | null
   ) => void;
   isCloudflareChallenge?: (text: string | null | undefined) => boolean;
   __tlsFetchStreamingForTesting?: (
-    client: { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
+    client: TlsRequestClient,
     url: string,
     requestOptions: Record<string, unknown>,
     eofSymbol?: string,
@@ -710,57 +524,62 @@ export interface TlsClientModule {
   ) => Promise<TlsFetchResult>;
 }
 
-/**
- * Create a provider-specific TLS client module.
- *
- * Each provider file calls this once at module level and re-exports
- * the returned `tlsFetch` (as e.g. `tlsFetchChatGpt`) and
- * `__setTlsFetchOverrideForTesting`.
- */
+/** Build one provider-specific facade over the shared wreq-js transport. */
 export function createTlsClientModule(config: TlsClientConfig): TlsClientModule {
   const {
     providerName,
     tlsProfile,
+    emulationOs = "macos",
     domain,
-    tempDirPrefix,
     streamEofSymbol = "[DONE]",
     defaultTimeoutMs = 60_000,
     hardTimeoutGraceMs = 10_000,
     firstByteTimeoutMs = 5_000,
-    tailFileVariant,
     responseValidation,
     proxyDomainOverride,
     exportCloudflareCheck,
+    wreqRuntimeLoader,
   } = config;
+  const streamEofPolicy =
+    config.streamEofPolicy ?? (config.tailFileVariant === "A" ? "include" : "exclude");
 
-  const getClient = createGetClient({ providerName, tlsProfile });
-
-  function resetClientCache(): void {
-    // The getClient closure holds clientPromise — by design the only
-    // reference is inside getClient's closure. After a hang we need
-    // the next call to spawn a fresh binding. We achieve this by
-    // clearing the local reference; the module-level tlsFetch will
-    // re-read via getClient which recreates it.
-    // Since getClient's clientPromise is a closure variable, we
-    // re-create getClient itself:
-    Object.assign(localState, {
-      getClient: createGetClient({ providerName, tlsProfile }),
-    });
-    // Note: this is safe because only tlsFetch calls getClient.
-    // A concurrent in-flight call holds its own reference.
-  }
-
-  const localState: { getClient: typeof getClient } = { getClient };
-
+  const getClient = createGetClient({
+    providerName,
+    tlsProfile,
+    emulationOs,
+    wreqRuntimeLoader,
+  });
   let testOverride: ((url: string, options: TlsFetchOptions) => Promise<TlsFetchResult>) | null =
     null;
 
-  const tailFileFn = TAIL_FILE_VARIANTS[tailFileVariant];
+  const invalidateOnHang = (
+    client: TlsRequestClient,
+    requestOptions: Record<string, unknown>,
+    error: unknown,
+    request?: TlsRequestPromise | null
+  ): void => {
+    if (!(error instanceof TlsClientHangError)) return;
+    if (request?.invalidateTransport) request.invalidateTransport();
+    else client.invalidateTransport?.(requestOptions);
+  };
 
-  const cleanupFn = tailFileVariant === "A" ? cleanupTempPathSubstring : cleanupTempPathDirname;
+  const releaseRequest = (request?: TlsRequestPromise | null): void => {
+    request?.releaseTransport?.();
+  };
+
+  const cancelResponseBody = async (
+    body: { cancel: (reason?: unknown) => Promise<void> },
+    reason: unknown
+  ): Promise<void> => {
+    try {
+      await body.cancel(reason);
+    } catch {
+      // Cleanup must not replace the authoritative timeout, abort, or response classification.
+    }
+  };
 
   async function tlsFetchStreaming(
-    client: { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
+    client: TlsRequestClient,
     url: string,
     requestOptions: Record<string, unknown>,
     eofSymbol: string,
@@ -768,157 +587,267 @@ export function createTlsClientModule(config: TlsClientConfig): TlsClientModule 
     hardTimeoutMs: number,
     firstByteMs: number = firstByteTimeoutMs
   ): Promise<TlsFetchResult> {
-    const dir = await mkdtemp(join(tmpdir(), tempDirPrefix));
-    const path = join(dir, `${randomUUID()}.sse`);
+    const startedAt = Date.now();
+    const hardDeadlineAt = startedAt + hardTimeoutMs;
+    const firstByteDeadlineAt = Number.isFinite(firstByteMs)
+      ? startedAt + Math.max(0, firstByteMs)
+      : Number.POSITIVE_INFINITY;
+    const remainingHardTimeoutMs = (): number => Math.max(0, hardDeadlineAt - Date.now());
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+    let request: TlsRequestPromise | null = null;
+    let leaseTransferredToStream = false;
 
-    const streamOpts: Record<string, unknown> = {
-      ...requestOptions,
-      streamOutputPath: path,
-      streamOutputBlockSize: 1024,
-      streamOutputEOFSymbol: eofSymbol,
-    };
-
-    let resetOnHang = true;
-    const requestPromise = raceWithTimeout(
-      client.request(url, streamOpts),
-      hardTimeoutMs,
-      signal
-    ).catch((err: unknown) => {
-      if (resetOnHang && err instanceof TlsClientHangError) {
-        resetClientCache();
-        resetOnHang = false;
+    try {
+      request = client.request(url, requestOptions);
+      const response = await raceWithTimeout(request, remainingHardTimeoutMs(), signal);
+      if (!isReadableBody(response.body)) {
+        const text = await raceWithTimeout(
+          readTlsResponseText(response),
+          remainingHardTimeoutMs(),
+          signal
+        );
+        return { status: response.status, headers: toHeaders(response.headers), text, body: null };
       }
-      throw err;
-    });
 
-    // Wait for the file to exist AND have at least one byte.
-    const ready = await waitForContent(path, firstByteMs, requestPromise);
-    if (!ready) {
-      const r = await requestPromise.catch(
-        (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
-      );
-      const fileText = await readTextFileIfExists(path);
-      await cleanupFn(path);
-      return {
-        status: r.status,
-        headers: toHeaders(r.headers),
-        text: r.body || fileText,
-        body: null,
+      reader = response.body.getReader();
+      const activeReader = reader;
+      const readBeforeHardDeadline = (): Promise<ReadableStreamReadResult<Uint8Array>> =>
+        raceWithTimeout(activeReader.read(), remainingHardTimeoutMs(), signal);
+      const initialChunks: Uint8Array[] = [];
+      const readFirstNonEmptyChunk = async (): Promise<ReadableStreamReadResult<Uint8Array>> => {
+        while (true) {
+          const result = await readBeforeHardDeadline();
+          if (result.done || result.value.byteLength > 0) return result;
+        }
       };
-    }
+      const firstRead = readFirstNonEmptyChunk();
+      let firstResult: ReadableStreamReadResult<Uint8Array>;
+      let firstByteTimedOut = Date.now() >= firstByteDeadlineAt;
 
-    const peek = await readFirstBytes(path, 256);
+      if (Number.isFinite(firstByteMs) && !firstByteTimedOut) {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          const timed = await Promise.race([
+            firstRead.then((result) => ({ kind: "read" as const, result })),
+            new Promise<{ kind: "timeout" }>((resolve) => {
+              timer = setTimeout(
+                () => resolve({ kind: "timeout" }),
+                Math.max(0, firstByteDeadlineAt - Date.now())
+              );
+            }),
+          ]);
+          if (timed.kind === "timeout") {
+            firstByteTimedOut = true;
+            firstResult = await firstRead;
+          } else {
+            firstResult = timed.result;
+          }
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      } else {
+        firstResult = await firstRead;
+      }
 
-    if (responseValidation === "cf") {
-      // Cloudflare challenge check
-      if (isCloudflareChallenge(peek)) {
-        await cleanupFn(path);
+      if (!firstResult.done) initialChunks.push(firstResult.value);
+      if (firstByteTimedOut) {
+        const bytes = await readAllChunks(activeReader, initialChunks, readBeforeHardDeadline);
+        return {
+          status: response.status,
+          headers: toHeaders(response.headers),
+          text: new TextDecoder().decode(bytes),
+          body: null,
+        };
+      }
+
+      let previewBytes = concatChunks(initialChunks).subarray(0, 256);
+      let preview = new TextDecoder().decode(previewBytes, { stream: true });
+      let previewReachedEof = firstResult.done;
+      while (
+        !previewReachedEof &&
+        previewBytes.byteLength < 256 &&
+        ((responseValidation === "sse" &&
+          !looksLikeSse(preview) &&
+          couldBecomeSsePrefix(preview)) ||
+          (responseValidation === "cf" &&
+            !isCloudflareChallenge(preview) &&
+            (preview.trimStart().startsWith("<") || couldBecomeCloudflareChallenge(preview))))
+      ) {
+        const next = await readBeforeHardDeadline();
+        if (next.done) {
+          previewReachedEof = true;
+          break;
+        }
+        initialChunks.push(next.value);
+        previewBytes = concatChunks(initialChunks).subarray(0, 256);
+        preview = new TextDecoder().decode(previewBytes, { stream: true });
+      }
+
+      if (previewReachedEof && previewBytes.byteLength === 0) {
+        return {
+          status: response.status,
+          headers: toHeaders(response.headers),
+          text: "",
+          body: null,
+        };
+      }
+
+      if (responseValidation === "cf" && isCloudflareChallenge(preview)) {
+        await cancelResponseBody(activeReader, "Cloudflare challenge");
         return {
           status: 403,
           headers: new Headers({ "Content-Type": "text/html" }),
-          text: peek,
+          text: preview,
           body: null,
         };
       }
-      // HTML error page check
-      if (peek.trimStart().startsWith("<")) {
-        await cleanupFn(path);
+
+      if (responseValidation === "cf" && preview.trimStart().startsWith("<")) {
+        await cancelResponseBody(activeReader, "HTML response");
         return {
           status: 502,
           headers: new Headers({ "Content-Type": "text/html" }),
-          text: peek,
+          text: preview,
           body: null,
         };
       }
-    } else {
-      // SSE validation — if it doesn't look like SSE, return buffered
-      if (!looksLikeSse(peek)) {
-        const r = await requestPromise.catch(
-          (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
-        );
-        const fileText = await readTextFileIfExists(path);
-        await cleanupFn(path);
+
+      if (response.status < 200 || response.status >= 300) {
+        const bytes = await readAllChunks(activeReader, initialChunks, readBeforeHardDeadline);
         return {
-          status: r.status,
-          headers: toHeaders(r.headers),
-          text: r.body || fileText,
+          status: response.status,
+          headers: toHeaders(response.headers),
+          text: new TextDecoder().decode(bytes),
           body: null,
         };
       }
+
+      if (responseValidation === "sse" && !looksLikeSse(preview)) {
+        const bytes = await readAllChunks(activeReader, initialChunks, readBeforeHardDeadline);
+        return {
+          status: response.status,
+          headers: toHeaders(response.headers),
+          text: new TextDecoder().decode(bytes),
+          body: null,
+        };
+      }
+
+      const headers = toHeaders(response.headers);
+      headers.set(
+        "Content-Type",
+        responseValidation === "cf" ? "application/x-ndjson" : "text/event-stream"
+      );
+      headers.set("Cache-Control", "no-cache");
+      const stream = createEofFilteredStream(
+        activeReader,
+        initialChunks,
+        streamEofPolicy === "none" ? "" : eofSymbol,
+        streamEofPolicy === "include",
+        readBeforeHardDeadline,
+        (error) => invalidateOnHang(client, requestOptions, error, request),
+        () => releaseRequest(request),
+        signal,
+        hardDeadlineAt
+      );
+      leaseTransferredToStream = true;
+      reader = null;
+      return { status: 200, headers, text: null, body: stream };
+    } catch (error) {
+      invalidateOnHang(client, requestOptions, error, request);
+      if (reader) await cancelResponseBody(reader, error);
+      throw error;
+    } finally {
+      if (!leaseTransferredToStream) releaseRequest(request);
     }
-
-    // Looks valid — create streaming response.
-    const stream = tailFileFn(path, eofSymbol, requestPromise, signal, path);
-
-    const contentType = responseValidation === "cf" ? "application/x-ndjson" : "text/event-stream";
-
-    const headers = new Headers({
-      "Content-Type": contentType,
-      "Cache-Control": "no-cache",
-    });
-    return { status: 200, headers, text: null, body: stream };
   }
 
   async function tlsFetch(url: string, options: TlsFetchOptions = {}): Promise<TlsFetchResult> {
-    // Resolve proxyUrl early so test overrides and the real path both see it.
     const resolvedProxyUrl = resolveProxyUrl(proxyDomainOverride ?? domain, options.proxyUrl);
     if (testOverride) return testOverride(url, { ...options, proxyUrl: resolvedProxyUrl });
+    if (options.signal?.aborted) throw makeAbortError(options.signal);
 
-    if (options.signal?.aborted) {
-      throw makeAbortError(options.signal);
-    }
-    const client = await localState.getClient();
-    if (options.signal?.aborted) {
-      throw makeAbortError(options.signal);
-    }
+    const client = await getClient();
+    if (options.signal?.aborted) throw makeAbortError(options.signal);
 
     const requestOptions: Record<string, unknown> = {
       method: options.method || "GET",
       headers: options.headers || {},
       body: options.body,
-      tlsClientIdentifier: tlsProfile,
       timeoutMilliseconds: options.timeoutMs ?? defaultTimeoutMs,
-      followRedirects: true,
-      withRandomTLSExtensionOrder: true,
       proxyUrl: resolvedProxyUrl,
+      signal: options.signal,
     };
-
-    requestOptions.isByteResponse = options.byteResponse === true;
+    const hardTimeoutMs = (options.timeoutMs ?? defaultTimeoutMs) + hardTimeoutGraceMs;
 
     if (options.stream) {
-      return await tlsFetchStreaming(
+      return tlsFetchStreaming(
         client,
         url,
         requestOptions,
-        options.streamEofSymbol || streamEofSymbol,
+        options.streamEofSymbol ?? streamEofSymbol,
         options.signal ?? null,
-        (options.timeoutMs ?? defaultTimeoutMs) + hardTimeoutGraceMs,
+        hardTimeoutMs,
         firstByteTimeoutMs
       );
     }
 
-    let tlsResponse: TlsResponseLike;
+    const hardDeadlineAt = Date.now() + hardTimeoutMs;
+    const remainingHardTimeoutMs = (): number => Math.max(0, hardDeadlineAt - Date.now());
+    let response: TlsResponseLike | null = null;
+    let bodyReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+    let request: TlsRequestPromise | null = null;
     try {
-      tlsResponse = await raceWithTimeout(
-        client.request(url, requestOptions),
-        (options.timeoutMs ?? defaultTimeoutMs) + hardTimeoutGraceMs,
+      request = client.request(url, requestOptions);
+      response = await raceWithTimeout(request, remainingHardTimeoutMs(), options.signal ?? null);
+      if (options.signal?.aborted) throw makeAbortError(options.signal);
+      const headers = toHeaders(response.headers);
+      if (options.byteResponse) {
+        const bytes = await raceWithTimeout(
+          readTlsResponseBytes(response, (reader) => {
+            bodyReader = reader;
+          }),
+          remainingHardTimeoutMs(),
+          options.signal ?? null
+        );
+        bodyReader = null;
+        const mime =
+          headers.get("content-type")?.split(";", 1)[0]?.trim() || "application/octet-stream";
+        return {
+          status: response.status,
+          headers,
+          text: `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`,
+          body: null,
+        };
+      }
+      const text = await raceWithTimeout(
+        readTlsResponseText(response, (reader) => {
+          bodyReader = reader;
+        }),
+        remainingHardTimeoutMs(),
         options.signal ?? null
       );
-    } catch (err) {
-      if (err instanceof TlsClientHangError) {
-        resetClientCache();
+      bodyReader = null;
+      return { status: response.status, headers, text, body: null };
+    } catch (error) {
+      invalidateOnHang(client, requestOptions, error, request);
+      if (bodyReader) {
+        await cancelResponseBody(bodyReader, error);
+      } else if (
+        response &&
+        isReadableBody(response.body) &&
+        typeof response.body.cancel === "function"
+      ) {
+        await cancelResponseBody(
+          response.body as ReadableBodyLike & {
+            cancel: (reason?: unknown) => Promise<void>;
+          },
+          error
+        );
       }
-      throw err;
+      throw error;
+    } finally {
+      releaseRequest(request);
     }
-    if (options.signal?.aborted) {
-      throw makeAbortError(options.signal);
-    }
-    return {
-      status: tlsResponse.status,
-      headers: toHeaders(tlsResponse.headers),
-      text: tlsResponse.body,
-      body: null,
-    };
   }
 
   const module: TlsClientModule = {
@@ -927,11 +856,7 @@ export function createTlsClientModule(config: TlsClientConfig): TlsClientModule 
       testOverride = fn;
     },
   };
-
-  if (exportCloudflareCheck) {
-    module.isCloudflareChallenge = isCloudflareChallenge;
-  }
-
+  if (exportCloudflareCheck) module.isCloudflareChallenge = isCloudflareChallenge;
   if (config.exposeStreamingForTesting) {
     module.__tlsFetchStreamingForTesting = (
       client,
@@ -941,18 +866,8 @@ export function createTlsClientModule(config: TlsClientConfig): TlsClientModule 
       signal = null,
       hardTimeoutMs = defaultTimeoutMs + hardTimeoutGraceMs,
       firstByteMs = firstByteTimeoutMs
-    ): Promise<TlsFetchResult> => {
-      return tlsFetchStreaming(
-        client,
-        url,
-        requestOptions,
-        eofSymbol,
-        signal,
-        hardTimeoutMs,
-        firstByteMs
-      );
-    };
+    ) =>
+      tlsFetchStreaming(client, url, requestOptions, eofSymbol, signal, hardTimeoutMs, firstByteMs);
   }
-
   return module;
 }

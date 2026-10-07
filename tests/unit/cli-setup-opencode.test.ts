@@ -146,7 +146,12 @@ describe("omniroute setup opencode", () => {
   });
 
   it("fails with a clear error (exit 1) when the bundled plugin dist is missing", async () => {
-    fs.rmSync(path.join(FAKE_PLUGIN_DIR, "dist"), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(path.join(FAKE_PLUGIN_DIR, "dist"), {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
     try {
       const r = await runSetupOpenCodeCommand({
         configDir: CONFIG_DIR,

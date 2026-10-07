@@ -14,7 +14,7 @@ import { normalizeClaudeBaseUrl } from "@/shared/services/claudeCliConfig";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliSettingsEnvSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getApiKeyById } from "@/lib/localDb";
+import { getApiKeyById } from "@/lib/db/apiKeys";
 import { readJsoncConfig } from "../_lib/jsoncConfig";
 
 // Get claude settings path based on OS

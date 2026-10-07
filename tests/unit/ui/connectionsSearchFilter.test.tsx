@@ -35,6 +35,11 @@ const CONNECTIONS: ConnectionRowConnection[] = [
   { id: "conn-2", name: "Bob", email: "bob@example.com", providerSpecificData: { tag: "staging" } },
   { id: "conn-3", name: "Carol", email: "carol@gmail.com" },
   { id: "special-id-9", name: undefined, email: undefined },
+  {
+    id: "conn-grade",
+    name: "Grade-S-Node",
+    providerSpecificData: { tag: "relay", baseUrl: "http://145.10.20.30:8080" },
+  },
 ];
 
 describe("matchesAccountQuery / filterConnectionsByQuery — #7937", () => {
@@ -73,6 +78,20 @@ describe("matchesAccountQuery / filterConnectionsByQuery — #7937", () => {
 
   it("does not match a connection missing the queried field", () => {
     expect(matchesAccountQuery("anything", CONNECTIONS[3])).toBe(false);
+  });
+
+  // #12108 — detail-page search must also match providerSpecificData.baseUrl
+  // (import stores the override there; id/tag/name/email never contain the host).
+  it("matches providerSpecificData.baseUrl by host substring (#12108)", () => {
+    expect(matchesAccountQuery("145.10.20.30", CONNECTIONS[4])).toBe(true);
+    expect(matchesAccountQuery("145.10.20.30", CONNECTIONS[0])).toBe(false);
+    expect(filterConnectionsByQuery("145.10.20.30", CONNECTIONS).map((c) => c.id)).toEqual([
+      "conn-grade",
+    ]);
+  });
+
+  it("matches providerSpecificData.baseUrl case-insensitively (#12108)", () => {
+    expect(matchesAccountQuery("HTTP://145.10.20.30:8080", CONNECTIONS[4])).toBe(true);
   });
 });
 

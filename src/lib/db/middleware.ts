@@ -7,8 +7,7 @@
  */
 
 import { getDbInstance } from "@/lib/db/core";
-import { rowToCamel } from "@/lib/db/core";
-import type { HookConfig, HookConfigRow, HookLogEntry, HookScope } from "@/lib/middleware/types";
+import type { HookConfig, HookConfigRow, HookLogEntry } from "@/lib/middleware/types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -71,26 +70,12 @@ export function getEnabledMiddlewareHooks(): HookConfig[] {
 }
 
 /**
- * Get scoped hooks for a given combo ID.
- */
-export function getComboMiddlewareHooks(comboId: string): HookConfig[] {
-  const db = getDbInstance() as any;
-  const rows = db
-    .prepare(
-      "SELECT * FROM middleware_hooks WHERE enabled = 1 AND (scope_type = 'global' OR (scope_type = 'combo' AND combo_id = ?)) ORDER BY priority ASC"
-    )
-    .all(comboId) as HookConfigRow[];
-  return rows.map(rowToHookConfig);
-}
-
-/**
  * Get a single hook by name.
  */
 export function getMiddlewareHook(name: string): HookConfig | undefined {
   const db = getDbInstance() as any;
   const row = db.prepare("SELECT * FROM middleware_hooks WHERE name = ?").get(name) as
-    | HookConfigRow
-    | undefined;
+    HookConfigRow | undefined;
   return row ? rowToHookConfig(row) : undefined;
 }
 
@@ -170,34 +155,6 @@ export function recordHookExecution(name: string, error?: string): void {
     ).run(name);
   }
 }
-
-// ── Log Operations ────────────────────────────────────────────────────────
-
-/**
- * Insert a hook execution log entry.
- */
-export function insertHookLog(entry: HookLogEntry): void {
-  const db = getDbInstance() as any;
-  db.prepare(
-    `
-    INSERT INTO middleware_logs (id, hook_name, request_id, duration_ms, mutated, skipped, error, timestamp)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `
-  ).run(
-    entry.id,
-    entry.hookName,
-    entry.requestId,
-    entry.durationMs,
-    entry.mutated ? 1 : 0,
-    entry.skipped ? 1 : 0,
-    entry.error || null,
-    entry.timestamp
-  );
-}
-
-/**
- * Get hook execution logs, optionally filtered by hook name.
- */
 export function getHookLogs(hookName?: string, limit = 50): HookLogEntry[] {
   const db = getDbInstance() as any;
   let rows: any[];
@@ -218,22 +175,4 @@ export function getHookLogs(hookName?: string, limit = 50): HookLogEntry[] {
     error: r.error,
     timestamp: r.timestamp,
   }));
-}
-
-/**
- * Clean up old hook logs (keep last N entries).
- */
-export function cleanupHookLogs(maxEntries = 10000): number {
-  const db = getDbInstance() as any;
-  // Delete logs beyond the max, keeping the most recent
-  const result = db
-    .prepare(
-      `
-    DELETE FROM middleware_logs WHERE id NOT IN (
-      SELECT id FROM middleware_logs ORDER BY timestamp DESC LIMIT ?
-    )
-  `
-    )
-    .run(maxEntries);
-  return result.changes;
 }

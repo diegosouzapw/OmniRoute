@@ -11,6 +11,8 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { PROVIDER_PROFILES } from "../config/constants.ts";
+import { getProviderCategory } from "../config/providerRegistry.ts";
 
 interface CooldownEntry {
   /** Timestamp of last recorded failure (ms since epoch) */
@@ -19,6 +21,47 @@ interface CooldownEntry {
   failureCount: number;
   /** How long this entry must be retained for cleanup purposes */
   retentionMs: number;
+  /**
+   * Provider-level entries only: timestamps of recent failures, pruned to the
+   * profile's `providerFailureWindowMs`. Powers the PROVIDER_PROFILES window
+   * gate (`providerFailureThreshold` failures inside the window trip a
+   * `providerCooldownMs` cooldown for the whole provider).
+   */
+  failureTimestamps?: number[];
+}
+
+// ── PROVIDER_PROFILES window gate (whole-provider scope) ─────────────────────
+// `providerFailureThreshold` / `providerFailureWindowMs` / `providerCooldownMs`
+// shipped in PROVIDER_PROFILES with no runtime consumer (2026-08-31 docs
+// audit, P0.1). Provider-level entries (no connectionId) now honor them: the
+// provider only counts as cooling after `providerFailureThreshold` failures
+// inside `providerFailureWindowMs`, and then cools for `providerCooldownMs`.
+// Connection-level entries keep the pre-existing exponential backoff.
+function providerWindowProfile(provider: string) {
+  const category = getProviderCategory(provider);
+  const profile = PROVIDER_PROFILES[category] ?? PROVIDER_PROFILES.apikey;
+  return {
+    failureThreshold: profile.providerFailureThreshold,
+    failureWindowMs: profile.providerFailureWindowMs,
+    cooldownMs: profile.providerCooldownMs,
+  };
+}
+
+function pruneWindow(timestamps: number[], windowMs: number, now: number): number[] {
+  const cutoff = now - windowMs;
+  const pruned = timestamps.filter((t) => t >= cutoff);
+  // Memory bound: the gate only ever needs `failureThreshold` recent samples;
+  // keep a small multiple so bursts cannot grow the array unbounded.
+  return pruned.length > 200 ? pruned.slice(-200) : pruned;
+}
+
+function providerWindowCooldownMs(provider: string, entry: CooldownEntry, now: number): number {
+  const { failureThreshold, failureWindowMs, cooldownMs } = providerWindowProfile(provider);
+  const inWindow = pruneWindow(entry.failureTimestamps ?? [], failureWindowMs, now);
+  if (inWindow.length < failureThreshold) return 0;
+  const elapsed = now - entry.lastFailureAt;
+  const remaining = cooldownMs - elapsed;
+  return remaining > 0 ? remaining : 0;
 }
 
 // Global cooldown state: keyed by "provider:connectionId" or "provider"
@@ -90,8 +133,21 @@ export function recordProviderCooldown(
     existing.lastFailureAt = now;
     existing.failureCount++;
     existing.retentionMs = Math.max(existing.retentionMs, retentionMs);
+    if (!connectionId) {
+      const { failureWindowMs } = providerWindowProfile(provider);
+      existing.failureTimestamps = pruneWindow(
+        [...(existing.failureTimestamps ?? []), now],
+        failureWindowMs,
+        now
+      );
+    }
   } else {
-    cooldownMap.set(key, { lastFailureAt: now, failureCount: 1, retentionMs });
+    cooldownMap.set(key, {
+      lastFailureAt: now,
+      failureCount: 1,
+      retentionMs,
+      ...(connectionId ? {} : { failureTimestamps: [now] }),
+    });
   }
 
   startCleanupIfNeeded();
@@ -119,6 +175,11 @@ export function isProviderInCooldown(
   if (entry.failureCount === 0) return false;
 
   const now = Date.now();
+
+  if (!connectionId) {
+    return providerWindowCooldownMs(provider, entry, now) > 0;
+  }
+
   const elapsed = now - entry.lastFailureAt;
 
   const minCooldownMs =
@@ -151,6 +212,12 @@ export function getRemainingCooldownMs(
   if (!entry) return 0;
 
   const now = Date.now();
+
+  if (!connectionId) {
+    if (entry.failureCount === 0) return 0;
+    return providerWindowCooldownMs(provider, entry, now);
+  }
+
   const elapsed = now - entry.lastFailureAt;
 
   const minCooldownMs =
@@ -183,8 +250,9 @@ export function recordProviderSuccess(provider: string, connectionId: string | u
   const key = cooldownKey(provider, connectionId);
   const entry = cooldownMap.get(key);
   if (entry) {
-    // Reset failure count but keep the entry
+    // Reset failure count and the provider-level failure window, keep the entry
     entry.failureCount = 0;
+    entry.failureTimestamps = [];
   }
 }
 

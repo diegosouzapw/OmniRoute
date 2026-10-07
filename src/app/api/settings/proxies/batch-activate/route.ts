@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { updateProxy } from "@/lib/localDb";
+import { updateProxy } from "@/lib/db/proxies";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
@@ -28,12 +28,20 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return createErrorResponse({ status: 400, message: "Invalid JSON body", type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid JSON body",
+      type: "invalid_request",
+    });
   }
 
   const validation = validateBody(batchActivateSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return createErrorResponse({ status: 400, message: validation.error.message, type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: validation.error.message,
+      type: "invalid_request",
+    });
   }
 
   const { ids, status } = validation.data;
@@ -51,12 +59,20 @@ export async function POST(request: Request) {
           results.push({ id, success: false, error: "Proxy not found" });
         }
       } catch (err) {
-        results.push({ id, success: false, error: err instanceof Error ? err.message : "Unknown error" });
+        results.push({
+          id,
+          success: false,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
       }
     }
 
     if (updatedCount > 0) {
-      try { clearDispatcherCache(); } catch { /* non-critical */ }
+      try {
+        clearDispatcherCache();
+      } catch {
+        /* non-critical */
+      }
     }
 
     return Response.json({

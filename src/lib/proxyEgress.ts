@@ -313,7 +313,7 @@ export async function diagnoseAllEgressIps(deps?: {
   const getConnections =
     deps?.getConnections ??
     (async () => {
-      const { getProviderConnections } = await import("./localDb");
+      const { getProviderConnections } = await import("@/lib/db/providers");
       return (await getProviderConnections({ authType: "oauth" })) as Array<{
         id: string;
         provider: string;
@@ -363,7 +363,8 @@ export interface ProxyValidationResult {
   egressIp: string | null;
   latencyMs: number;
   previousStatus: string | null;
-  newStatus: "active" | "error";
+  newStatus: string;
+  preserved: boolean;
 }
 
 /**
@@ -428,6 +429,25 @@ export async function validateProxyPool(deps?: {
     });
     const probe = await resolveEgressIp(url, { force: true });
     const alive = !!probe.ip && !probe.error;
+    // Operator/health statuses stay untouched by validation: the probe still
+    // ran above, so the report keeps its alive/egressIp signal. The two-value
+    // literal mirrors PROXY_ALIVE_PREDICATE in db/proxies/guards.ts; revisit if
+    // the status registry is ever derived from a single shared source (part 2).
+    const previous = (p.status ?? "").toLowerCase();
+    if (previous === "inactive" || previous === "dead") {
+      report.push({
+        proxyId: p.id,
+        host: p.host,
+        port: p.port,
+        alive,
+        egressIp: probe.ip,
+        latencyMs: probe.latencyMs,
+        previousStatus: p.status ?? null,
+        newStatus: p.status as string,
+        preserved: true,
+      });
+      continue;
+    }
     const newStatus: "active" | "error" = alive ? "active" : "error";
     await markStatus(p.id, newStatus, { latencyMs: probe.latencyMs, egressIp: probe.ip });
     report.push({
@@ -439,6 +459,7 @@ export async function validateProxyPool(deps?: {
       latencyMs: probe.latencyMs,
       previousStatus: p.status ?? null,
       newStatus,
+      preserved: false,
     });
   }
 

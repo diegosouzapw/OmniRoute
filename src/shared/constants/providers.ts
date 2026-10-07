@@ -43,7 +43,7 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
 
 // Providers presented as one dashboard card with OAuth as the primary action
 // and a direct API-key alternative. Keep these out of FREE_APIKEY_PROVIDER_IDS.
-const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn", "xai"]);
+const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn", "xai", "muse-code"]);
 
 export function supportsDualAuthProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && DUAL_AUTH_PROVIDER_IDS.has(providerId);
@@ -75,7 +75,6 @@ export function getProviderConnectionFamilyIds(providerId: unknown): readonly st
 
 // Web / Cookie Providers
 
-
 // API Key Providers
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -97,11 +96,13 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "kilo-gateway",
   "aimlapi",
   "novita",
+  "opper",
   "piapi",
   "getgoapi",
   "laozhang",
   "vercel-ai-gateway",
   "unorouter",
+  "xkiro",
   "agentrouter",
   "thebai",
   "fenayai",
@@ -121,8 +122,10 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "anyapi",
   "electronhub",
   "llmgateway",
+  "lyceum",
   "llm-kiwi",
   "literouter",
+  "eurouter",
   "mnn-ai",
   "meganova-ai",
   "mixlayer",
@@ -144,7 +147,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "helixmind",
   "tabitoken",
   "logfare",
-
+  "seekai",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -181,7 +184,7 @@ export const VIDEO_PROVIDER_IDS = new Set([
 // IDE Providers: editors with built-in AI subscription (separate section in UI).
 // These providers live in OAUTH_PROVIDERS but render under "IDE Providers"
 // instead of "OAuth Providers" to avoid visual duplication.
-export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae", "raycast"]);
+export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
@@ -250,6 +253,10 @@ const EXPLICIT_OPTIONAL_APIKEY_PROVIDER_IDS = new Set([
   "gitlawb",
   "gitlawb-gmi",
   "naga-ac",
+  // UC (uncensored.com) persona: un-metered subscription chat with NO API key —
+  // auth is a durable Clerk credential stored in providerSpecificData, from which
+  // the executor mints a short-lived session token per connect.
+  "uc",
 ]);
 
 export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
@@ -279,6 +286,7 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "blackbox-web",
   "muse-spark-web",
   "deepseek-web",
+  "chatgpt-web",
   "inner-ai",
   "qoder",
   "google-pse-search",
@@ -481,64 +489,7 @@ export const ID_TO_ALIAS = new Proxy({} as Record<string, string>, {
   },
 });
 
-// Providers that support usage/quota API
-export const USAGE_SUPPORTED_PROVIDERS = [
-  "antigravity",
-  "agy",
-  "kiro",
-  "amazon-q",
-  "github",
-  "codex",
-  "claude",
-  "cursor",
-  "qoder",
-  "kimi-coding",
-  "kimi-coding-apikey",
-  "glm",
-  "glm-cn",
-  "zai",
-  "glmt",
-  "opencode-go",
-  "ollama-cloud",
-  "minimax",
-  "minimax-cn",
-  "crof",
-  "nanogpt",
-  "deepseek",
-  "xiaomi-mimo",
-  "xiaomi-mimo-token-plan",
-  "vertex",
-  "vertex-partner",
-  "codebuddy-cn",
-  // PromptQL playground credits (getCreditSummary → USD micros)
-  "promptql",
-  "pql",
-  // Adobe Firefly web (cookie/JWT as apikey) — GET firefly.adobe.io/v1/credits/balance
-  "adobe-firefly",
-  "firefly",
-  "hyperagent",
-  "ha",
-  // xAI OAuth (Grok) weekly quota (id + public alias, same pattern as ha/agy)
-  "xai-oauth",
-  "xao",
-  // Grok Build subscription, billing credits, and auto top-up status
-  "grok-cli",
-  // Firecrawl team credits (GET /v2/team/credit-usage)
-  "firecrawl",
-  // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
-  "volcengine-agent-plan",
-  "volcengine-coding-plan",
-  // Command Code credits + 5h/weekly rolling windows
-  "command-code",
-  "conol-web",
-  "cnl",
-  // Alibaba Coding Plan triple-window quota (#9603 UI gap — fetcher existed, list entry missing)
-  "bailian-coding-plan",
-  // Qwen Cloud / Model Studio personal Token Plan (cookie-authenticated console gateway)
-  "qwen-cloud-token-plan",
-  // AgentRouter (New-API) console balance quota (consoleApiKey + newApiUserId)
-  "agentrouter",
-];
+export { USAGE_SUPPORTED_PROVIDERS } from "@omniroute/open-sse/services/usage/supportedProviders.ts";
 
 // ── Zod validation, lazily on first AI_PROVIDERS access (perf: skips the walk
 // for processes that never touch AI_PROVIDERS, e.g. short-lived CLI commands) ──

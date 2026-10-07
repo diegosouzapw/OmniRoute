@@ -250,3 +250,32 @@ test("setup command prioritizes an explicit --password flag over INITIAL_PASSWOR
     process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
   }
 });
+
+test("setup command does not replace an existing password from INITIAL_PASSWORD", async () => {
+  const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+  await withTempEnv(async (dataDir) => {
+    const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
+
+    await runSetupCommand({ nonInteractive: true, password: "existing-admin-secret" });
+
+    process.env.INITIAL_PASSWORD = "CHANGEME";
+    const exitCode = await runSetupCommand({ nonInteractive: true });
+
+    assert.equal(exitCode, 0);
+
+    const db = new Database(path.join(dataDir, "storage.sqlite"));
+    const passwordRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password'")
+      .get() as { value: string };
+    db.close();
+
+    const storedHash = JSON.parse(passwordRow.value) as string;
+    assert.equal(await bcrypt.compare("existing-admin-secret", storedHash), true);
+    assert.equal(await bcrypt.compare("CHANGEME", storedHash), false);
+  });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+});

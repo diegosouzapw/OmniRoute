@@ -134,7 +134,11 @@ function seedFixture() {
   assert.equal(aliasCanonical.model, "claude-opus-4-5-20251101");
   assert.notEqual(aliasCanonical.model, "claude-4.5-opus");
   assert.equal(
-    capabilityOverrides.setModelCapabilityOverride("github/claude-4.5-opus", "max_output_tokens", 77777),
+    capabilityOverrides.setModelCapabilityOverride(
+      "github/claude-4.5-opus",
+      "max_output_tokens",
+      77777
+    ),
     true
   );
   assert.equal(

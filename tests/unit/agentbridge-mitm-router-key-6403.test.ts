@@ -19,6 +19,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ab-routerkey-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -27,9 +28,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-for-agen
 
 const core = await import("../../src/lib/db/core.ts");
 const { createApiKey } = await import("../../src/lib/db/apiKeys.ts");
-const { resolveRouterApiKey } = await import(
-  "../../src/app/api/tools/agent-bridge/server/route.ts"
-);
+const { resolveRouterApiKey } =
+  await import("../../src/app/api/tools/agent-bridge/server/route.ts");
 
 function resetDb() {
   core.resetDbInstance();
@@ -42,13 +42,9 @@ test.beforeEach(() => {
   delete process.env.ROUTER_API_KEY;
 });
 
-test.after(() => {
+test.after(async () => {
   delete process.env.ROUTER_API_KEY;
-  try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  } catch {
-    /* noop */
-  }
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("resolveRouterApiKey: explicit apiKey field always wins", async () => {

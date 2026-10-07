@@ -18,16 +18,15 @@ delete process.env.PROXY_LOG_INCLUDE_IPS;
 const core = await import("../../src/lib/db/core.ts");
 const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { forceProxyHealthSweep, formatEgressSharingSummaryLine } = await import(
-  "../../src/lib/proxyHealth/scheduler.ts"
-) as unknown as {
-  forceProxyHealthSweep: () => Promise<void>;
-  formatEgressSharingSummaryLine: (
-    summary: EgressSharingSummary,
-    warnings: Array<{ egressIp: string; rotationGroup: string; connections: string[] }>,
-    includeDetails: boolean
-  ) => string;
-};
+const { forceProxyHealthSweep, formatEgressSharingSummaryLine } =
+  (await import("../../src/lib/proxyHealth/scheduler.ts")) as unknown as {
+    forceProxyHealthSweep: () => Promise<void>;
+    formatEgressSharingSummaryLine: (
+      summary: EgressSharingSummary,
+      warnings: Array<{ egressIp: string; rotationGroup: string; connections: string[] }>,
+      includeDetails: boolean
+    ) => string;
+  };
 import type { EgressSharingSummary } from "../../src/lib/proxyEgress.ts";
 
 function resetStorage() {
@@ -48,13 +47,20 @@ test("formatEgressSharingSummaryLine is anonymous by default and raw when opted 
     windowStart: "2026-08-20T00:00:00.000Z",
     windowEnd: "2026-08-21T00:00:00.000Z",
     distinctEgressIps: 1,
-    sharingByRotationGroup: [{ rotationGroup: "openai-auth0", sharedIps: 1, maxAccountsSharingOneIp: 2 }],
+    sharingByRotationGroup: [
+      { rotationGroup: "openai-auth0", sharedIps: 1, maxAccountsSharingOneIp: 2 },
+    ],
     maxAccountsSharingOneIp: 2,
   };
-  const warnings = [{ egressIp: "100.115.194.84", rotationGroup: "openai-auth0", connections: ["a", "b"] }];
+  const warnings = [
+    { egressIp: "100.115.194.84", rotationGroup: "openai-auth0", connections: ["a", "b"] },
+  ];
 
   const anonymous = formatEgressSharingSummaryLine(summary, warnings, false);
-  assert.equal(anonymous, "[ProxyHealth] egress: 1 rotation group(s) share an egress IP (max 2 accounts)");
+  assert.equal(
+    anonymous,
+    "[ProxyHealth] egress: 1 rotation group(s) share an egress IP (max 2 accounts)"
+  );
   assert.ok(!anonymous.includes("100.115.194.84"), "no IP without opt-in");
 
   const raw = formatEgressSharingSummaryLine(summary, warnings, true);
@@ -72,13 +78,29 @@ test("forceProxyHealthSweep logs the anonymous egress line when accounts share a
   });
 
   // Two codex accounts on one egress IP, persisted (the sweep reads the DB).
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-a", connectionId: "conn-a" });
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-b", connectionId: "conn-b" });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-a",
+    connectionId: "conn-a",
+  });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-b",
+    connectionId: "conn-b",
+  });
   proxyLogger.flushProxyLogsSync(); // persist the enqueued batch before the sweep reads the DB
 
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => { logs.push(args.join(" ")); };
+  console.log = (...args: unknown[]) => {
+    logs.push(args.join(" "));
+  };
   try {
     await forceProxyHealthSweep();
   } finally {
@@ -102,13 +124,29 @@ test("forceProxyHealthSweep logs raw details only with PROXY_LOG_INCLUDE_IPS=tru
     host: "127.0.0.1",
     port: 1,
   });
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-a", connectionId: "conn-a" });
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-b", connectionId: "conn-b" });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-a",
+    connectionId: "conn-a",
+  });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-b",
+    connectionId: "conn-b",
+  });
   proxyLogger.flushProxyLogsSync(); // persist the enqueued batch before the sweep reads the DB
 
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => { logs.push(args.join(" ")); };
+  console.log = (...args: unknown[]) => {
+    logs.push(args.join(" "));
+  };
   try {
     await forceProxyHealthSweep();
   } finally {

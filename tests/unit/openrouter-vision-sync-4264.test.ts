@@ -107,9 +107,7 @@ test("#4264 synced OpenRouter vision model surfaces capabilities.vision in /v1/m
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;
 
-  const visionModel = body.data.find((m: any) =>
-    String(m.id).endsWith("nex-agi/nex-n2-pro:free")
-  );
+  const visionModel = body.data.find((m: any) => String(m.id).endsWith("nex-agi/nex-n2-pro:free"));
   assert.ok(visionModel, `expected the synced vision model in the catalog`);
   // RED before the fix: synced models carried no capabilities at all.
   assert.equal(visionModel.capabilities?.vision, true);

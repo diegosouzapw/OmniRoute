@@ -14,9 +14,7 @@ import path from "node:path";
 //   - the legacy re-query path (no token passed) must still work unmodified
 //   - the per-minute cap must still be enforced correctly via the fast-path
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-relay-check-rate-limit-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-relay-check-rate-limit-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

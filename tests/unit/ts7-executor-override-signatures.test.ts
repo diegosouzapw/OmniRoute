@@ -1,13 +1,11 @@
 /**
  * Guards the executor override signatures fixed for TS 7 readiness.
  *
- * Three executors declared a *private/protected* `buildHeaders()` helper whose signature
+ * Two executors declared a *private/protected* `buildHeaders()` helper whose signature
  * has nothing to do with `BaseExecutor.buildHeaders(credentials, stream?, clientHeaders?,
  * model?, health?)`:
  *
- *   hailuo-web  (token: string, yy: string)
  *   lmarena     (_model: string, credentials: unknown, _body: unknown)
- *   qwen-web    (token: string, cookieHeader: string, chatId?: string)
  *
  * They were name collisions, not overrides — each shadowed the inherited member with an
  * incompatible signature (TS2416). `BaseExecutor` calls `this.buildHeaders(credentials,
@@ -23,14 +21,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
-import { HailuoWebExecutor } from "../../open-sse/executors/hailuo-web.ts";
 import { LMArenaExecutor } from "../../open-sse/executors/lmarena.ts";
-import { QwenWebExecutor } from "../../open-sse/executors/qwen-web.ts";
 
 const CASES = [
-  { name: "hailuo-web", make: () => new HailuoWebExecutor(), helper: "buildStreamHeaders" },
   { name: "lmarena", make: () => new LMArenaExecutor(), helper: "buildRequestHeaders" },
-  { name: "qwen-web", make: () => new QwenWebExecutor(), helper: "buildApiHeaders" },
 ];
 
 for (const { name, make, helper } of CASES) {

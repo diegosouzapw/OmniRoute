@@ -261,6 +261,52 @@ test("transformToOllama leaves successful non-SSE responses untouched", async ()
   assert.deepEqual(await result.json(), body);
 });
 
+test("transformToOllama preserves multi-byte UTF-8 content split across chunks", async () => {
+  // Content with multi-byte code points (CJK) that upstreams stream in raw byte chunks.
+  const content = "你好世界🌍";
+  const inputSSE =
+    `data: ${JSON.stringify({
+      choices: [{ index: 0, delta: { content }, finish_reason: null }],
+    })}\n` +
+    `data: ${JSON.stringify({
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    })}\n`;
+
+  const bytes = new TextEncoder().encode(inputSSE);
+  // Split at a byte offset that lands INSIDE a multi-byte sequence (a UTF-8 continuation
+  // byte, 0x80–0xBF), so each half ends/starts mid-character.
+  let splitAt = -1;
+  for (let i = 1; i < bytes.length; i++) {
+    if (bytes[i] >= 0x80 && bytes[i] < 0xc0) {
+      splitAt = i;
+      break;
+    }
+  }
+  assert.ok(splitAt > 0, "test fixture should contain a multi-byte sequence to split");
+
+  const inputStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(bytes.slice(0, splitAt));
+      controller.enqueue(bytes.slice(splitAt));
+      controller.close();
+    },
+  });
+
+  const mockResponse = new Response(inputStream, {
+    headers: { "Content-Type": "text/event-stream" },
+  });
+
+  const text = await transformToOllama(mockResponse, "test-model").text();
+  const lines = text
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
+
+  const streamed = lines.map((line) => line.message?.content || "").join("");
+  assert.equal(streamed, content, "streamed content should match the original bytes exactly");
+  assert.ok(!streamed.includes("�"), "must not contain the U+FFFD replacement character");
+});
+
 test("transformToOllama merges multi-chunk numeric tool_call id", async () => {
   const inputSSE = [
     `data: ${JSON.stringify({

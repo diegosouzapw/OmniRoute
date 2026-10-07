@@ -361,7 +361,7 @@ can be run standalone.
 
 ## DB Schema Summary
 
-Three tables added by migrations `073–075`:
+Three tables added by migrations `078`, `079` and `085`:
 
 - `quota_pools` + `quota_allocations` — pool definitions and per-key allocations.
 - `quota_consumption` — rolling 2-bucket counters per `(apiKeyId, dimensionKey)`.

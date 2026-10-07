@@ -1,11 +1,14 @@
 import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
-import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
+import { DEFAULT_WEIGHTS, reliabilityFactor, ScoringWeights } from "./scoring";
 import { getCachedProviderConnections } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { isMicrosoftDesignerWebRetiredProviderId } from "@/shared/constants/designerWebRetirement";
+import { isRuntimeRetiredProviderId } from "@/shared/constants/providerRetirement";
+import { isCommonChatGptWebRetiredProviderId } from "@/shared/constants/chatgptWebRetirement";
 import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { toNumber } from "@/shared/utils/numeric";
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
@@ -23,12 +26,28 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { classifyTier } from "../tierResolver";
+import { getQualityScore } from "../routing/quality.ts";
+import { readBreakerStates, snapshotHealthFactor, type BreakerState } from "./snapshotBreaker.ts";
+import { resolveVirtualCost } from "../providerCostData";
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { getSyncedAvailableModelsByConnection, getCustomModels } from "@/lib/db/models";
-import { filterPaidOnlyCandidates } from "./paidModelFilter";
-import { filterStrictZeroCostCandidates, filterTosAvoidCandidates } from "./strictZeroCostFilter";
+import { filterPaidOnlyCandidatesWithDiagnosis } from "./paidModelFilter";
+import { filterLockoutCandidates, warnPoolDrop } from "./modelLockoutFilter";
+import { filterModelExposureCandidates } from "./modelExposureFilter";
+import {
+  filterSubscriptionOnlyCandidates,
+  orderPoolByRung,
+  type LadderOptions,
+} from "./subscriptionLadder";
+import {
+  classifyStrictZeroCostCandidate,
+  describeStrictExclusions,
+  filterStrictZeroCostCandidatesWithDiagnosis,
+  filterTosAvoidCandidates,
+  findBudgetEntry,
+} from "./strictZeroCostFilter";
 import { resolveFreeAccessState } from "./freeAccessQuota";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { resolveProviderAlias } from "../model.ts";
@@ -36,10 +55,19 @@ import { filterExcludedCandidates } from "./candidateOverrides";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
 import {
   filterResilienceBlockedCandidates,
+  buildConnectionResilienceMap,
   SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
-  type ConnectionResilienceView,
 } from "./resilienceCandidateFilter";
 import type { ChaosTuning } from "./chaosEngine";
+import {
+  applyTracedPoolStage,
+  recordAutoCandidatePool,
+  recordAutoDroppedCandidates,
+  recordAutoSurvivors,
+} from "./autoEvaluationTrace";
+import { computeAdvertisedLimits } from "./advertisedLimits";
+
+export { computeAdvertisedLimits };
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -91,16 +119,28 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Observed failure rate 0..1 when known; null/absent reads fully reliable. */
+  failureRate?: number | null;
   /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
   resolvedContextLength?: number | null;
   resolvedMaxOutputTokens?: number | null;
   resolvedSupportsVision?: boolean;
   resolvedReasoning?: boolean;
   resolvedSupportsThinking?: boolean;
+  /** Observed feedback quality 0..1 (the same signal as ProviderCandidate.quality). */
+  quality?: number | null;
+  /**
+   * Why STRICT_ZERO_COST would exclude this candidate, or null when it would
+   * not. Only populated for the read-only inspector build (`skip`), where the
+   * guard is deliberately not applied — dispatch builds leave it undefined and
+   * do no extra work.
+   */
+  freeAccessExclusion?: import("./strictZeroCostFilter").StrictZeroCostExclusionReason | null;
 }
 
 type VirtualAutoCombo = AutoComboConfig & {
   strategy: "auto";
+  traceInvocationId?: string;
   models: Array<{
     id: string;
     kind: "model";
@@ -110,6 +150,9 @@ type VirtualAutoCombo = AutoComboConfig & {
     allowedConnectionIds?: string[];
     weight: number;
     label: string;
+    /** Carried through from the candidate for the read-only inspector; absent
+     * on every dispatch build. */
+    freeAccessExclusion?: import("./strictZeroCostFilter").StrictZeroCostExclusionReason | null;
   }>;
   /** MAX of candidates' context windows — safe to advertise because the
    * auto-combo context pre-filter routes oversized requests to large-window
@@ -145,6 +188,98 @@ type VirtualAutoCombo = AutoComboConfig & {
 export interface PreparedVirtualAutoComboInputs {
   readonly regularCandidates: readonly VirtualAutoComboCandidate[];
   readonly familyCandidates: readonly VirtualAutoComboCandidate[];
+  /**
+   * `provider_connections.auth_type` per connection id. Subscription-first
+   * routing classifies billing per CONNECTION (`connectionBilling.ts`), and
+   * the candidate pool only carries connection ids — so the auth types are
+   * captured here, during the one bulk connection read this function already
+   * does, instead of re-reading the DB per pool narrowing.
+   */
+  readonly authTypeByConnectionId?: ReadonlyMap<string, string | null>;
+  /** Operator settings for the subscription ladder; absent = feature off. */
+  readonly subscriptionLadder?: SubscriptionLadderSettings;
+}
+
+/**
+ * Operator-facing knobs for subscription-first routing. Mirrors the Zod shape
+ * in `src/shared/validation/settingsSchemas.ts`.
+ *
+ * Deliberately TUNING ONLY — there is no `enabled` flag here. `auto/subscription`
+ * and `auto/thrifty` are new ids that nothing routes through unless a caller
+ * asks for them by name, so requesting the id IS the opt-in. A settings toggle
+ * that could switch them off would be actively dangerous: it would leave an id
+ * whose whole promise is "plan-included only" quietly serving the full pool,
+ * paid models included.
+ */
+export interface SubscriptionLadderSettings {
+  exitCutoffPercent?: number;
+  reentryMinRemainingPercent?: number;
+  rungBudgetUsd?: Record<string, number>;
+  /** Staleness bound for a cached quota reading, derived from the existing
+   * `autoRefreshProviderQuotaInterval` exactly as STRICT_ZERO_COST does. */
+  maxStateAgeMs: number;
+}
+
+function readSubscriptionLadderSettings(
+  settings: Record<string, unknown>
+): SubscriptionLadderSettings {
+  const maxStateAgeMs = (Number(settings.autoRefreshProviderQuotaInterval) || 180) * 1000;
+  const raw = settings.subscriptionLadder;
+  if (!raw || typeof raw !== "object") return { maxStateAgeMs };
+  const value = raw as Record<string, unknown>;
+  const numeric = (key: string): number | undefined =>
+    typeof value[key] === "number" && Number.isFinite(value[key] as number)
+      ? (value[key] as number)
+      : undefined;
+  const exitCutoffPercent = numeric("exitCutoffPercent");
+  const reentryMinRemainingPercent = numeric("reentryMinRemainingPercent");
+  return {
+    maxStateAgeMs,
+    ...(exitCutoffPercent === undefined ? {} : { exitCutoffPercent }),
+    ...(reentryMinRemainingPercent === undefined ? {} : { reentryMinRemainingPercent }),
+    ...(value.rungBudgetUsd && typeof value.rungBudgetUsd === "object"
+      ? { rungBudgetUsd: value.rungBudgetUsd as Record<string, number> }
+      : {}),
+  };
+}
+
+/**
+ * Build the injected dependencies the pure ladder module needs. Everything it
+ * touches is resolved here — the live quota cache, connection auth types, and
+ * the economic tier resolver — so `subscriptionLadder.ts` itself stays free of
+ * DB, network, and registry imports.
+ */
+function buildLadderOptions(
+  prepared: PreparedVirtualAutoComboInputs,
+  tier: "subscription" | "thrifty"
+): LadderOptions {
+  const tuning = prepared.subscriptionLadder;
+  const authTypes = prepared.authTypeByConnectionId;
+  return {
+    enabled: true,
+    resolveFreeAccessState,
+    resolveAuthType: (connectionId: string) => authTypes?.get(connectionId) ?? null,
+    resolveEconomicTier: (provider: string, model: string) => {
+      try {
+        const resolved = classifyTier(provider, model).tier;
+        return resolved === "free" || resolved === "premium" ? resolved : "cheap";
+      } catch {
+        // Same conservative default `safeClassifyTier` uses in suffixComposition.
+        return "cheap";
+      }
+    },
+    maxStateAgeMs: tuning?.maxStateAgeMs ?? 180_000,
+    // The two groupings read a missing quota reading OPPOSITELY on purpose —
+    // see `LadderOptions.admitUnknownQuota`.
+    admitUnknownQuota: tier === "thrifty",
+    ...(tuning?.exitCutoffPercent === undefined
+      ? {}
+      : { exitCutoffPercent: tuning.exitCutoffPercent }),
+    ...(tuning?.reentryMinRemainingPercent === undefined
+      ? {}
+      : { reentryMinRemainingPercent: tuning.reentryMinRemainingPercent }),
+    ...(tuning?.rungBudgetUsd ? { rungBudgetUsd: tuning.rungBudgetUsd } : {}),
+  };
 }
 
 function toExpiryMs(value: unknown): number | null {
@@ -212,9 +347,9 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 
 // Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
 // candidate pool. Narrowed to the backends verified to answer without any
-// configuration on our reference egress (VPS .15): `opencode` and `felo-web`
-// both return 200 there, while duckduckgo-web (429/VQD rate limit), theoldllm
-// (403 Vercel egress block), chipotle (502), aihorde (401, anon key rejected)
+// configuration on our reference egress (VPS .15): `opencode` returns 200
+// there, while duckduckgo-web (429/VQD rate limit),
+// aihorde (401, anon key rejected)
 // and the others are unreliable. The excluded providers stay fully usable via
 // direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
 // re-verified. Re-add an id here to bring it back into every auto/* pool.
@@ -227,7 +362,7 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 // pool, so it admits any no-auth backend that genuinely serves the family (e.g.
 // auggie, a local CLI subprocess with zero HTTP egress, belongs in auto/glm
 // regardless of this list). See the `bypassAllowlist` param below.
-const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode", "felo-web"]);
+const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode"]);
 
 function isChatAutoComboNoAuthProvider(
   providerDef: NoAuthProviderDefinition,
@@ -324,7 +459,7 @@ function getNoAuthCandidates(
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         model: modelId,
         modelStr: `${routingPrefix}/${modelId}`,
-        costPer1MTokens: 0,
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -332,77 +467,7 @@ function getNoAuthCandidates(
   return candidates;
 }
 
-/**
- * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
- * This combo is not persisted in the DB.
- */
-/**
- * Aggregate the context window / max output to ADVERTISE for an auto combo.
- *
- * MAX across candidates (not min): the auto-combo context pre-filter
- * (combo.ts::filterTargetsByRequestCompatibility + the estimated-tokens
- * pre-filter) already routes oversized requests away from small-window
- * candidates, so advertising the largest window lets clients (e.g. opencode)
- * keep their smart auto-compaction calibrated to the best candidate instead
- * of compacting prematurely — or, worse, receiving 0 and disabling
- * compaction entirely (the "agent keeps forgetting things" bug).
- *
- * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
- * non-empty pool always yields a positive contextLength.
- *
- * maxOutputTokens has no such guaranteed fallback in getResolvedModelCapabilities()
- * — registry entries and models.dev sync data are both optional per model, so a
- * candidate pool whose members all lack that specific field (e.g. #6453's
- * provider-family combos, `auto/llama` and friends, over no-auth/free-tier
- * registry entries that were never annotated with maxOutputTokens) would
- * otherwise advertise `null`, which mirrors the `context: 0` bug this module's
- * docstring describes for contextLength (opencode disables smart auto-compaction
- * entirely when a limit is falsy). Fall back to a conservative generic default so
- * a non-empty pool always yields a positive maxOutputTokens too.
- */
-const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
-
-type AdvertisedLimitCandidate = {
-  provider: string;
-  model: string;
-  resolvedContextLength?: number | null;
-  resolvedMaxOutputTokens?: number | null;
-};
-
-export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]): {
-  contextLength: number | null;
-  maxOutputTokens: number | null;
-} {
-  if (!Array.isArray(candidates) || candidates.length === 0) {
-    return { contextLength: null, maxOutputTokens: null };
-  }
-
-  let contextLength: number | null = null;
-  let maxOutputTokens: number | null = null;
-  for (const candidate of candidates) {
-    const limit =
-      candidate.resolvedContextLength !== undefined
-        ? candidate.resolvedContextLength
-        : getTokenLimit(candidate.provider, candidate.model);
-    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
-      contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
-    }
-    const output =
-      candidate.resolvedMaxOutputTokens !== undefined
-        ? candidate.resolvedMaxOutputTokens
-        : getResolvedModelCapabilities({
-            provider: candidate.provider,
-            model: candidate.model,
-          }).maxOutputTokens;
-    if (typeof output === "number" && Number.isFinite(output) && output > 0) {
-      maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
-    }
-  }
-  if (maxOutputTokens === null) {
-    maxOutputTokens = DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS;
-  }
-  return { contextLength, maxOutputTokens };
-}
+/** Creates a virtual AutoCombo configuration dynamically from connected providers. */
 
 // Catalog-scale pools can contain hundreds of models. Keep both candidate construction
 // and capability preparation cooperative instead of monopolising one event-loop turn.
@@ -428,7 +493,7 @@ function yieldVirtualAutoPreparationTurn(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function attachPreparedCapabilityValues(
+export async function attachPreparedCapabilityValues(
   candidates: readonly VirtualAutoComboCandidate[],
   state: PreparedCapabilityState
 ): Promise<VirtualAutoComboCandidate[]> {
@@ -475,26 +540,51 @@ async function attachPreparedCapabilityValues(
         await yieldVirtualAutoPreparationTurn();
       }
     }
-    prepared.push({ ...candidate, ...values });
+    prepared.push({
+      ...candidate,
+      ...values,
+      quality: getQualityScore(candidate.provider, candidate.model),
+    });
   }
   return prepared;
+}
+
+// Endpoints that can serve a chat turn. A synced/custom model that declares only other
+// surfaces (images, videos, audio, embeddings, rerank) can never answer an auto/* chat
+// request, so it must not enter the candidate pool (the no-auth path already gates on
+// `serviceKinds`; this is the credentialed-provider equivalent).
+const CHAT_CAPABLE_ENDPOINTS = new Set(["chat", "responses"]);
+
+export function isDeclaredNonChatModel(model: {
+  modelType?: unknown;
+  supportedEndpoints?: unknown;
+}): boolean {
+  if (typeof model.modelType === "string" && model.modelType !== "chat") return true;
+  const endpoints = Array.isArray(model.supportedEndpoints)
+    ? model.supportedEndpoints.filter((e): e is string => typeof e === "string")
+    : [];
+  return endpoints.length > 0 && !endpoints.some((e) => CHAT_CAPABLE_ENDPOINTS.has(e));
 }
 
 export async function prepareVirtualAutoComboInputs(
   options: {
     includeResolvedCapabilities?: boolean;
     resolutionSnapshot?: ModelCapabilityResolutionSnapshot;
-  } = {}
+    traceInvocationId?: string;
+  } = {},
+  skip = false // #9133 — inspector opt-out, see filterResilienceBlockedCandidates
 ): Promise<PreparedVirtualAutoComboInputs> {
-  const [connections, disabledNoAuthConnections, settings] = await Promise.all([
+  const [rawConnections, rawDisabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
-    // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
-    // filter applied above since their credential is synthetic, but a real
-    // provider_connections row CAN exist for them (created via "Add Account")
-    // and its own isActive=false must gate the auto-combo pool too — not just
+    // #6557: synthetic no-auth credentials bypass active filtering, but a real Add Account
+    // row may exist; its isActive=false must also gate auto-combo.
     getCachedProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
+  const available = (conn: VirtualFactoryConn) =>
+    !isCommonChatGptWebRetiredProviderId(conn.provider);
+  const connections = rawConnections.filter(available);
+  const disabledNoAuthConnections = rawDisabledNoAuthConnections.filter(available);
   const blockedProviders = new Set(
     Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
   );
@@ -503,19 +593,24 @@ export async function prepareVirtualAutoComboInputs(
       .filter((conn) => conn.provider in NOAUTH_PROVIDERS)
       .map((conn) => conn.provider)
   );
+  const runtimeConnections = connections.filter(
+    (connection) =>
+      !isMicrosoftDesignerWebRetiredProviderId(connection.provider) &&
+      !isRuntimeRetiredProviderId(connection.provider)
+  );
   const hiddenModelsMap = getHiddenModelsByProvider();
   // #7622: a no-auth provider's own provider_connections row (#6557) can carry
   // `providerSpecificData.excludedModels` regardless of its isActive state (the
   // dispatch-time enforcement in auth.ts does not gate on isActive either), so
   // gather it from BOTH the active and disabled connection lists.
   const noAuthProviderSpecificData = new Map<string, Record<string, unknown> | null | undefined>();
-  for (const conn of [...connections, ...disabledNoAuthConnections]) {
+  for (const conn of [...runtimeConnections, ...disabledNoAuthConnections]) {
     if (conn.provider in NOAUTH_PROVIDERS) {
       noAuthProviderSpecificData.set(conn.provider, conn.providerSpecificData);
     }
   }
 
-  const validConnections = connections.filter(hasUsableConnectionCredential);
+  const validConnections = runtimeConnections.filter(hasUsableConnectionCredential);
 
   const candidatePool: VirtualAutoComboCandidate[] = [];
   const registry = getProviderRegistry();
@@ -548,15 +643,36 @@ export async function prepareVirtualAutoComboInputs(
     // back to the static catalog only when the user has none. This keeps catalog-only
     // models (e.g. openrouter/auto) out of every auto/* pool when the operator only
     // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
-    const [syncedByConnection, customModels] = await Promise.all([
+    const [syncedByConnection, rawCustomModels] = await Promise.all([
       getSyncedAvailableModelsByConnection(providerId),
       getCustomModels(providerId),
     ]);
+    // The `customModels` key_value blob is operator-writable and is stored as raw
+    // parsed JSON, so a row can be `null` or a non-object. The catalog builder
+    // already filters those out (catalog.ts, "Add custom models"); without the same
+    // filter here every read below null-derefs and the whole auto/* pool fails to
+    // materialize ("Could not materialize built-in auto model auto/<id>").
+    const customModels: Array<{ id?: string; modelType?: unknown; supportedEndpoints?: unknown }> =
+      (Array.isArray(rawCustomModels) ? rawCustomModels : []).filter(
+        (model: unknown): model is { id?: string } =>
+          !!model && typeof model === "object" && !Array.isArray(model)
+      );
     const userVisibleIds = new Set<string>();
+    const nonChatIds = new Set<string>();
     for (const models of Object.values(syncedByConnection)) {
-      for (const m of models) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+      for (const m of models) {
+        if (!m.id || hiddenModels?.has(m.id)) continue;
+        userVisibleIds.add(m.id);
+        if (isDeclaredNonChatModel(m)) nonChatIds.add(m.id);
+      }
     }
-    for (const m of customModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+    for (const m of customModels) {
+      if (!m.id || hiddenModels?.has(m.id)) continue;
+      userVisibleIds.add(m.id);
+      if (isDeclaredNonChatModel(m)) nonChatIds.add(m.id);
+    }
+    // Decided before dropping non-chat ids: an image-only sync must not fall back to
+    // the provider's static catalog.
     const hasUserModels = userVisibleIds.size > 0;
     const modelIds = hasUserModels
       ? Array.from(userVisibleIds)
@@ -569,6 +685,7 @@ export async function prepareVirtualAutoComboInputs(
         await yieldVirtualAutoPreparationTurn();
       }
       if (hiddenModels?.has(modelId)) continue;
+      if (nonChatIds.has(modelId)) continue;
 
       const allowedConnectionIds = providerConnections
         .filter((conn) => {
@@ -594,17 +711,17 @@ export async function prepareVirtualAutoComboInputs(
         allowedConnectionIds,
         model: modelId,
         modelStr: `${providerId}/${modelId}`,
-        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
 
   // #7623: honor existing model lockouts + connection cooldown/terminal state so
   // auto/* never advertises models the dispatch path would immediately skip.
-  const connectionsById = new Map<string, ConnectionResilienceView>();
-  for (const conn of [...connections, ...disabledNoAuthConnections]) {
-    connectionsById.set(conn.id, conn);
-  }
+  const connectionsById = buildConnectionResilienceMap([
+    ...runtimeConnections,
+    ...disabledNoAuthConnections,
+  ]);
 
   const connectedProviders = new Set(validConnections.map((conn) => conn.provider));
   const buildPreparedPool = (bypassNoAuthAllowlist: boolean) => {
@@ -620,13 +737,40 @@ export async function prepareVirtualAutoComboInputs(
       ),
     ];
 
-    const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById);
+    const traceInvocationId = options.traceInvocationId;
+    recordAutoCandidatePool(traceInvocationId, pool);
+    // Closes over the mutable `pool` binding so each stage below only names
+    // what changed, not the trace plumbing (invocation id + prior pool).
+    const applyStage = (
+      next: VirtualAutoComboCandidate[],
+      stage: Parameters<typeof applyTracedPoolStage>[3],
+      detail: string
+    ) => applyTracedPoolStage(traceInvocationId, pool, next, stage, detail);
+
+    const resilienceFilteredPool = filterResilienceBlockedCandidates(
+      pool,
+      connectionsById,
+      skip,
+      traceInvocationId
+    );
     if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
-    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
-    if (paidFilteredPool !== pool) pool = paidFilteredPool;
+    const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
+    warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
+    pool = applyStage(paid.pool, "paid_only", "hidePaidModels");
+
+    const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
+    warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
+    if (lockout) {
+      pool = applyStage(lockout.pool, "model_lockout", "model-lockout");
+    }
+
+    // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
+    // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
+    const exposureFilteredPool = filterModelExposureCandidates(pool, settings);
+    pool = applyStage(exposureFilteredPool, "model_exposure", "model-exposure");
 
     // STRICT_ZERO_COST: opt-in, off by default (`settings.freeAccessPolicy !== "strict"`
     // leaves `pool` byte-identical, same contract as `hidePaidModels`). See
@@ -635,20 +779,59 @@ export async function prepareVirtualAutoComboInputs(
     // per-candidate: `resolveFreeAccessState` here is a raw pass-through of the real
     // per-(provider,connectionId) resolver; the filter itself decides which connection(s)
     // on each candidate to check and rewrites `allowedConnectionIds` to the SAFE subset.
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, {
-      enabled: settings.freeAccessPolicy === "strict",
-      resolveFreeAccessState,
+    const strictZeroCostThresholds = {
       // 1 percentage point of headroom, not 0: `freeAccessQuota.ts` reports
       // remaining allowance as a percentage, and a raw ">0" comparison would
       // let a reading of e.g. 0.3% (rounding noise, not real headroom) pass.
       minRemainingAllowance: 1,
       maxStateAgeMs: toNumber(settings.autoRefreshProviderQuotaInterval, 180) * 1000,
-    });
-    if (strictFilteredPool !== pool) pool = strictFilteredPool;
+    };
+    const strictZeroCostOn = settings.freeAccessPolicy === "strict";
+    const strictOptions = {
+      // The read-only candidate inspector (#9133) must be able to see what the
+      // guard would exclude, and why — the same opt-out the resilience filter
+      // already honours through `skip`. Dispatch (`skip === false`) is unaffected.
+      enabled: strictZeroCostOn && !skip,
+      resolveFreeAccessState,
+      ...strictZeroCostThresholds,
+    };
+    const strict = filterStrictZeroCostCandidatesWithDiagnosis(
+      pool,
+      strictOptions,
+      traceInvocationId
+    );
+    if (strict.diagnosis) {
+      warnPoolDrop(
+        log,
+        "STRICT",
+        strict.diagnosis.excluded,
+        pool.length,
+        describeStrictExclusions(strict.diagnosis)
+      );
+    }
+    pool = strict.pool;
+
+    // Annotate here rather than in the handler: this is where the thresholds and
+    // `resolveFreeAccessState` already live. Doing it downstream would mean a second
+    // copy of both, with nothing to keep them in agreement.
+    if (strictZeroCostOn && skip) {
+      pool = pool.map((candidate) => {
+        const verdict = classifyStrictZeroCostCandidate(
+          candidate,
+          findBudgetEntry(candidate),
+          resolveFreeAccessState,
+          strictZeroCostThresholds
+        );
+        return {
+          ...candidate,
+          freeAccessExclusion: verdict.outcome === "safe" ? null : verdict.outcome,
+        };
+      });
+    }
 
     // Separate, optional ToS guard — independent of economic safety on purpose.
     const tosFilteredPool = filterTosAvoidCandidates(pool, settings.excludeTosAvoid === true);
-    if (tosFilteredPool !== pool) pool = tosFilteredPool;
+    pool = applyStage(tosFilteredPool, "tos", "tos-avoid");
 
     return pool;
   };
@@ -656,8 +839,15 @@ export async function prepareVirtualAutoComboInputs(
   const regularCandidates = buildPreparedPool(false);
   // #6453/#8183: family selectors bypass the reliability-curated no-auth allowlist.
   const familyCandidates = buildPreparedPool(true);
+  // Subscription-first routing inputs, captured from the connection read above
+  // so no later stage has to touch the DB again.
+  const authTypeByConnectionId = new Map<string, string | null>();
+  for (const conn of connections) {
+    authTypeByConnectionId.set(conn.id, typeof conn.authType === "string" ? conn.authType : null);
+  }
+  const subscriptionLadder = readSubscriptionLadderSettings(settings);
   if (!options.includeResolvedCapabilities) {
-    return { regularCandidates, familyCandidates };
+    return { regularCandidates, familyCandidates, authTypeByConnectionId, subscriptionLadder };
   }
 
   // One uninterrupted bulk read of all three capability tables for this prepare only.
@@ -671,6 +861,8 @@ export async function prepareVirtualAutoComboInputs(
   return {
     regularCandidates: await attachPreparedCapabilityValues(regularCandidates, capabilityState),
     familyCandidates: await attachPreparedCapabilityValues(familyCandidates, capabilityState),
+    authTypeByConnectionId,
+    subscriptionLadder,
   };
 }
 
@@ -683,7 +875,8 @@ export async function prepareVirtualAutoComboInputs(
  */
 export function computeSnapshotWeights(
   candidates: readonly VirtualAutoComboCandidate[],
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  breakerByProvider?: ReadonlyMap<string, BreakerState>
 ): Map<string, number> {
   const scores = new Map<string, number>();
   for (const c of candidates) {
@@ -721,8 +914,14 @@ export function computeSnapshotWeights(
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
 
-    // health + quota: no runtime telemetry at snapshot time → neutral baseline
-    score += (weights.health + weights.quota) * 0.5;
+    // reliability (#12792): the same failure-rate factor as scoring.ts; absent reads as
+    // fully reliable. The snapshot path was the only one still ignoring it.
+    if (weights.reliability > 0) score += weights.reliability * reliabilityFactor(c);
+
+    // health: build-time breaker state (OPEN 0, CLOSED 1, else neutral 0.5); quota stays neutral
+    score += weights.health * snapshotHealthFactor(breakerByProvider, c.provider);
+    score += weights.quota * 0.5;
+    score += (weights.quality ?? 0) * (Number.isFinite(c.quality) ? Number(c.quality) : 0.5);
 
     scores.set(c.modelStr, Math.min(score, 1));
   }
@@ -745,7 +944,8 @@ export async function createVirtualAutoComboFromPrepared(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
   let candidatePool = clonePreparedCandidates(
     spec?.family ? prepared.familyCandidates : prepared.regularCandidates
@@ -765,6 +965,13 @@ export async function createVirtualAutoComboFromPrepared(
   }
   const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
   if (overrideFilteredPool !== candidatePool) {
+    recordAutoDroppedCandidates(
+      traceInvocationId,
+      candidatePool,
+      overrideFilteredPool,
+      "candidate_override",
+      "candidate-override"
+    );
     candidatePool.length = 0;
     candidatePool.push(...overrideFilteredPool);
   }
@@ -815,6 +1022,13 @@ export async function createVirtualAutoComboFromPrepared(
       : null;
   if (candidateFilter) {
     const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
+    recordAutoDroppedCandidates(
+      traceInvocationId,
+      candidatePool,
+      narrowed,
+      "category_tier",
+      "category-tier"
+    );
     const label = spec?.family
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
@@ -839,6 +1053,40 @@ export async function createVirtualAutoComboFromPrepared(
         `${label} matched no connected models; returning an empty pool.${spec?.family ? "" : ' Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.'}`
       );
       effectivePool = [];
+    }
+  }
+
+  // Subscription-first routing (`auto/subscription`, `auto/thrifty`). Applied
+  // AFTER the category/tier narrowing above because, unlike every other tier,
+  // these two select on the connection's billing class and its live quota
+  // state rather than on the model's catalog price — see
+  // `subscriptionLadder.ts` and `docs/routing/SUBSCRIPTION_LADDER.md`.
+  if (spec?.tier === "subscription" || spec?.tier === "thrifty") {
+    const ladderOptions = buildLadderOptions(prepared, spec.tier);
+    const beforePool = effectivePool;
+    const beforeCount = effectivePool.length;
+    effectivePool =
+      spec.tier === "subscription"
+        ? filterSubscriptionOnlyCandidates(effectivePool, ladderOptions)
+        : orderPoolByRung(effectivePool, ladderOptions);
+    recordAutoDroppedCandidates(
+      spec.tier === "subscription" ? traceInvocationId : undefined,
+      beforePool,
+      effectivePool,
+      "subscription_ladder",
+      "subscription-ladder"
+    );
+    if (spec.tier === "subscription" && effectivePool.length === 0 && beforeCount > 0) {
+      // Intended, not a defect: the operator asked for plan-included capacity
+      // only, and right now there is none with verified headroom. Failing
+      // closed here is the entire promise of the id — the caller's existing
+      // empty-pool path turns it into a clear error rather than a silent,
+      // billable fallback.
+      warnEmptyAutoPoolOnce(
+        "auto/subscription",
+        "auto/subscription: no plan-included connection has verified quota headroom; " +
+          "returning an empty pool rather than falling back to paid capacity."
+      );
     }
   }
 
@@ -897,7 +1145,8 @@ export async function createVirtualAutoComboFromPrepared(
   }
 
   const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
-  const snapshotScores = computeSnapshotWeights(effectivePool, weights);
+  const breakerStates = readBreakerStates(providerPool);
+  const snapshotScores = computeSnapshotWeights(effectivePool, weights, breakerStates);
   const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,
@@ -909,6 +1158,9 @@ export async function createVirtualAutoComboFromPrepared(
       : {}),
     weight: snapshotScores.get(candidate.modelStr) ?? 1,
     label: candidate.provider,
+    ...(candidate.freeAccessExclusion === undefined
+      ? {}
+      : { freeAccessExclusion: candidate.freeAccessExclusion }),
   }));
   const autoConfig = {
     candidatePool: providerPool,
@@ -946,6 +1198,8 @@ export async function createVirtualAutoComboFromPrepared(
   } else {
     chaosModels = models;
   }
+
+  recordAutoSurvivors(traceInvocationId, effectivePool, "category_tier");
 
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
@@ -988,8 +1242,16 @@ export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec,
   apiKeyId?: string,
-  autoChannel?: string
+  autoChannel?: string,
+  traceInvocationId?: string
 ): Promise<VirtualAutoCombo> {
-  const prepared = await prepareVirtualAutoComboInputs();
-  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel);
+  const prepared = await prepareVirtualAutoComboInputs({ traceInvocationId });
+  return createVirtualAutoComboFromPrepared(
+    prepared,
+    variant,
+    spec,
+    apiKeyId,
+    autoChannel,
+    traceInvocationId
+  );
 }

@@ -5,6 +5,7 @@ import {
   buildHealthPayload,
   buildSessionsSummary,
   buildTelemetryPayload,
+  countStaleDbNonOkConnections,
   projectAdaptiveAdmissionSummary,
   projectChatAdmissionSummary,
 } from "../../src/lib/monitoring/observability.ts";
@@ -348,11 +349,17 @@ test("buildHealthPayload projects allowlisted structural chatAdmission fields on
     waiting: 2,
     queuedBytes: 524_288,
     shedTotal: 3,
-    shedsByReason: { queue_timeout: 2, queued_bytes_budget: 1 },
+    shedsByReason: { queue_timeout: 2, body_exceeds_budget: 1 },
     lanes: [
       { key: "key_c49d1c242feda590", waiting: 1 },
       { key: "anonymous", waiting: 1 },
     ],
+    // #503-fanout additions.
+    inflightBytes: 131_072,
+    maxInflightBytes: 134_217_728,
+    budgetSource: "v8_heap",
+    pressureSeverity: "normal",
+    countCapEnabled: false,
     // Extra keys that must never leak into the public payload.
     internalController: { secret: "controller-state" },
     rawAuthorization: "Bearer raw-SHOULD-NOT-LEAK",
@@ -387,11 +394,16 @@ test("buildHealthPayload projects allowlisted structural chatAdmission fields on
     waiting: 2,
     queuedBytes: 524_288,
     shedTotal: 3,
-    shedsByReason: { queue_timeout: 2, queued_bytes_budget: 1 },
+    shedsByReason: { queue_timeout: 2, body_exceeds_budget: 1 },
     lanes: [
       { key: "key_c49d1c242feda590", waiting: 1 },
       { key: "anonymous", waiting: 1 },
     ],
+    inflightBytes: 131_072,
+    maxInflightBytes: 134_217_728,
+    budgetSource: "v8_heap",
+    pressureSeverity: "normal",
+    countCapEnabled: false,
   });
   // The adaptive projection is untouched by the new key.
   assert.equal(payload.adaptiveAdmission, null);
@@ -404,4 +416,59 @@ test("buildHealthPayload projects allowlisted structural chatAdmission fields on
   // Absent / null snapshot projects to null (degraded path parity).
   assert.equal(projectChatAdmissionSummary(null), null);
   assert.equal(projectChatAdmissionSummary(undefined), null);
+});
+
+test("buildHealthPayload marks credentialHealth as probe-cache and counts sticky sqlite status", () => {
+  assert.equal(
+    countStaleDbNonOkConnections([
+      { id: "a", isActive: true, testStatus: "expired" },
+      { id: "b", isActive: true, testStatus: "credits_exhausted" },
+      { id: "c", isActive: false, testStatus: "error" },
+      { id: "d", isActive: true, testStatus: "active" },
+      { id: "e", isActive: true, testStatus: "unknown" },
+    ]),
+    2
+  );
+
+  const payload = buildHealthPayload({
+    appVersion: "1.2.3",
+    settings: { setupComplete: true },
+    connections: [
+      { id: "sticky-expired", provider: "openai", isActive: true, testStatus: "expired" },
+      { id: "ok", provider: "anthropic", isActive: true, testStatus: "active" },
+    ],
+    circuitBreakers: [],
+    rateLimitStatus: {},
+    learnedLimits: {},
+    lockouts: {},
+    localProviders: {},
+    inflightRequests: 0,
+    quotaMonitorSummary: {
+      active: 0,
+      alerting: 0,
+      exhausted: 0,
+      errors: 0,
+      statusCounts: { starting: 0, idle: 0, healthy: 0, warning: 0, exhausted: 0, error: 0 },
+      byProvider: {},
+    },
+    quotaMonitorMonitors: [],
+    activeSessions: [],
+    credentialHealth: {
+      total: 1,
+      healthy: 1,
+      failed: 0,
+      unknown: 0,
+      stale: 0,
+    },
+  });
+
+  assert.deepEqual(payload.credentialHealth, {
+    total: 1,
+    healthy: 1,
+    failed: 0,
+    unknown: 0,
+    stale: 0,
+    source: "probe-cache",
+    staleDbNonOkCount: 1,
+  });
 });

@@ -15,6 +15,7 @@
 export const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-fable-5",
   "claude-sonnet-5",
+  "claude-sonnet-5-5",
   "claude-sonnet-4-6",
   "claude-opus-4-8",
   "claude-opus-4-7",
@@ -34,6 +35,9 @@ export function modelSupportsContext1mBeta(model: string | null | undefined): bo
     .replace(/-\d{8}$/, "");
 
   return CONTEXT_1M_SUPPORTED_MODELS.some(
-    (supported) => normalizedModel === supported || normalizedModel.startsWith(`${supported}-`)
+    (supported) =>
+      normalizedModel === supported ||
+      (normalizedModel.startsWith(`${supported}-`) &&
+        !/^\d/.test(normalizedModel.slice(supported.length + 1)))
   );
 }

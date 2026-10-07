@@ -27,7 +27,10 @@ test("#8065 a renewed quota written by one module instance is invisible to anoth
   // Instance W: simulates providerLimitsSyncScheduler's instrumentation-node.ts chunk.
   const quotaCacheW = await import("../../src/domain/quotaCache.ts?instance=W");
   quotaCacheW.setQuotaCache(connectionId, "codex", {
-    session: { remainingPercentage: 100, resetAt: new Date(Date.now() + 7 * 86400000).toISOString() },
+    session: {
+      remainingPercentage: 100,
+      resetAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+    },
   });
   assert.equal(quotaCacheW.isQuotaExhaustedForRequest(connectionId, "codex"), false);
 

@@ -32,19 +32,20 @@ type Translate = (key: string, values?: Record<string, string>) => string;
 
 const DEFAULT_TOGGLES: InterceptionToggles = { interceptSearch: false, interceptFetch: false };
 
+async function throwOnErrorResponse(res: Response): Promise<void> {
+  if (res.ok) return;
+  const errData = await res.json().catch(() => ({}));
+  throw new Error(errData.error || `HTTP ${res.status}`);
+}
+
 async function fetchInterceptionToggles(providerId: string): Promise<InterceptionToggles> {
   const res = await fetch(`/api/providers/${providerId}/interception-rules`);
+  await throwOnErrorResponse(res);
   const data = await res.json();
   return {
     interceptSearch: data?.interceptSearch === true,
     interceptFetch: data?.interceptFetch === true,
   };
-}
-
-async function throwOnErrorResponse(res: Response): Promise<void> {
-  if (res.ok) return;
-  const errData = await res.json().catch(() => ({}));
-  throw new Error(errData.error || `HTTP ${res.status}`);
 }
 
 async function putInterceptionToggles(
@@ -63,26 +64,42 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+// Wraps the GET so a failure comes back as a value: the load callback then only
+// sets state after the await (no synchronous setState reachable from the effect).
+async function fetchInterceptionTogglesSafe(
+  providerId: string
+): Promise<{ ok: boolean; toggles?: InterceptionToggles; error?: string }> {
+  try {
+    return { ok: true, toggles: await fetchInterceptionToggles(providerId) };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
 function useProviderInterceptionToggles(providerId: string, t: Translate) {
   const notify = useNotificationStore();
   const [toggles, setToggles] = useState<InterceptionToggles>(DEFAULT_TOGGLES);
-  const [loading, setLoading] = useState(true);
+  // Loading is derived: true until a load attempt for the CURRENT provider
+  // settles — this also re-shows the skeleton when providerId changes.
+  const [loadedProviderId, setLoadedProviderId] = useState<string | null>(null);
+  const loading = loadedProviderId !== providerId;
   const [savingKey, setSavingKey] = useState<keyof InterceptionToggles | null>(null);
 
-  const loadToggles = useCallback(async () => {
-    setLoading(true);
-    try {
-      setToggles(await fetchInterceptionToggles(providerId));
-    } catch (err) {
-      notify.error(t("interceptionLoadError", { error: errorMessage(err) }));
-    } finally {
-      setLoading(false);
-    }
-  }, [providerId, notify, t]);
-
+  // The async work is defined INSIDE the effect (a component-scope loader
+  // called synchronously from an effect is rejected by the compiler rules);
+  // every setState here runs after the await.
   useEffect(() => {
-    loadToggles();
-  }, [loadToggles]);
+    const run = async () => {
+      const outcome = await fetchInterceptionTogglesSafe(providerId);
+      if (outcome.ok) {
+        setToggles(outcome.toggles);
+      } else {
+        notify.error(t("interceptionLoadError", { error: outcome.error }));
+      }
+      setLoadedProviderId(providerId);
+    };
+    void run();
+  }, [providerId, notify, t]);
 
   const handleToggle = useCallback(
     async (key: keyof InterceptionToggles, value: boolean) => {
@@ -130,9 +147,7 @@ export default function ProviderInterceptionSection({
       <h2 className="text-base font-semibold text-text-main mb-1">
         {t("interceptionSectionTitle")}
       </h2>
-      <p className="text-xs text-text-muted mb-4 leading-relaxed">
-        {t("interceptionSectionHint")}
-      </p>
+      <p className="text-xs text-text-muted mb-4 leading-relaxed">{t("interceptionSectionHint")}</p>
       <div className="flex flex-col gap-4">
         <Toggle
           size="sm"

@@ -77,11 +77,18 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
                 }>;
               };
               if (cancelled) return;
-              const providerConn = connData.connections?.find(
+              const providerConnections = connData.connections?.filter(
                 (c) => (c.provider === providerId || c.id === providerId) && c.isActive !== false
               );
+              const providerConn = providerConnections?.[0];
 
-              if (providerConn?.providerSpecificData?.autoFetchModels === true && !cancelled) {
+              if (
+                providerConn &&
+                providerConnections.every(
+                  (connection) => connection.providerSpecificData?.autoFetchModels === true
+                ) &&
+                !cancelled
+              ) {
                 const syncRes = await fetch(
                   `/api/providers/${encodeURIComponent(providerConn.id)}/sync-models?mode=sync`,
                   { method: "POST" }
@@ -126,10 +133,7 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
   }, [providerId, t]);
 
   useEffect(() => {
-    if (!providerId) {
-      setLoading(false);
-      return;
-    }
+    if (!providerId) return;
     return load();
   }, [providerId, load]);
 
@@ -145,5 +149,7 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
     load();
   }, [providerId, load]);
 
-  return { models, loading, error, retry };
+  // Without a providerId nothing ever loads, so the exposed loading flag is
+  // derived instead of being reset synchronously inside the effect above.
+  return { models, loading: providerId ? loading : false, error, retry };
 }

@@ -69,6 +69,24 @@ curl https://localhost:20128/api/auth/oidc/callback \
   -b cookie.jar
 ```
 
+### GET /api/auth/csrf
+
+GET auth › csrf
+
+```bash
+curl https://localhost:20128/api/auth/csrf \
+  -b cookie.jar
+```
+
+### GET /api/auth/status
+
+GET auth › status
+
+```bash
+curl https://localhost:20128/api/auth/status \
+  -b cookie.jar
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
@@ -116,7 +134,7 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 | Embeddings            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-embeddings/SKILL.md  |
 | Web search            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-search/SKILL.md  |
 | Web fetch             | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-fetch/SKILL.md   |
-| MCP server (107 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omni-mcp/SKILL.md         |
+| MCP server (110 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omni-mcp/SKILL.md         |
 | A2A protocol          | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-a2a/SKILL.md         |
 | Routing & combos      | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-routing/SKILL.md     |
 | Token compression     | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-compression/SKILL.md |

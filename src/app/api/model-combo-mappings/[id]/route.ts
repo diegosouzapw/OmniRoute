@@ -11,7 +11,7 @@ import {
   updateModelComboMapping,
   deleteModelComboMapping,
   getModelComboMappingById,
-} from "@/lib/localDb";
+} from "@/lib/db/modelComboMappings";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const updateMappingSchema = z.object({

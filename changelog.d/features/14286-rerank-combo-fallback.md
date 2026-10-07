@@ -1,0 +1,1 @@
+- **feat(rerank):** `/v1/rerank` expands named combos with ordered fallback from a local rerank node to hosted providers ([#14286](https://github.com/diegosouzapw/OmniRoute/pull/14286)) — thanks @seanford

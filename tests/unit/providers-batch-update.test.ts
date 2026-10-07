@@ -9,9 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { batchUpdateProviderConnectionsSchema, providersBatchTestSchema } = await import(
-  "../../src/shared/validation/schemas.ts"
-);
+const { batchUpdateProviderConnectionsSchema, providersBatchTestSchema } =
+  await import("../../src/shared/validation/schemas.ts");
 
 type Connection = Awaited<ReturnType<typeof providersDb.createProviderConnection>>;
 

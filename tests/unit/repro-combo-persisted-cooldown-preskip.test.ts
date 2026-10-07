@@ -64,24 +64,45 @@ describe("combo persisted-cooldown pre-skip", () => {
     );
   });
 
-  it("skips an unavailable connection that has no cooldown timestamp yet", () => {
+  it("skips a RECENT unavailable connection that has no cooldown timestamp yet", () => {
     // AUTH's markAccountUnavailable() writes testStatus before (and sometimes
     // without) rate_limited_until — a burst must not dispatch into that window.
+    // #12168: the skip is now bounded by lastErrorAt, so the failure must be
+    // recent for the bare label to still block.
     const reason = getPersistedConnectionCooldownSkipReason(TARGET, {
       testStatus: "unavailable",
       rateLimitedUntil: null,
+      lastErrorAt: new Date().toISOString(),
     });
     assert.ok(reason);
     assert.match(reason!, /status=unavailable/);
   });
 
-  it("skips an unavailable connection whose cooldown already expired", () => {
+  it("#12168: does NOT skip a stale unavailable label once the grace window passed", () => {
+    // This inverts the pre-#12168 assertion, which locked in the bug: an
+    // `unavailable` row whose failure is old (and whose cooldown, if any, has
+    // expired) was skipped unconditionally. Because this gate runs BEFORE
+    // dispatch, that prevented the very success that would call
+    // clearAccountError() — and the recovery job cannot rescue a row with no
+    // rateLimitedUntil either. A whole pool could stay dark forever.
     const reason = getPersistedConnectionCooldownSkipReason(TARGET, {
       testStatus: "unavailable",
       rateLimitedUntil: new Date(Date.now() - 60_000).toISOString(),
+      lastErrorAt: new Date(Date.now() - 10 * 60_000).toISOString(),
     });
-    assert.ok(reason);
-    assert.match(reason!, /status=unavailable/);
+    assert.equal(reason, null);
+  });
+
+  it("#12168: does NOT skip an unavailable row with no timestamps at all", () => {
+    // The orphan state: testStatus left as `unavailable` while rateLimitedUntil
+    // was nulled. Unbounded skipping here is what produced ALL_TARGETS_SKIPPED
+    // with zero upstream attempts.
+    const reason = getPersistedConnectionCooldownSkipReason(TARGET, {
+      testStatus: "unavailable",
+      rateLimitedUntil: null,
+      lastErrorAt: null,
+    });
+    assert.equal(reason, null);
   });
 
   it("does not skip an expired cooldown on an otherwise healthy connection", () => {
@@ -94,16 +115,15 @@ describe("combo persisted-cooldown pre-skip", () => {
     );
   });
 
-  it("does not skip when allowRateLimitedConnection is set", () => {
+  it("skips a future cooldown even when allowRateLimitedConnection is set", () => {
     const until = new Date(Date.now() + 60_000).toISOString();
-    assert.equal(
-      getPersistedConnectionCooldownSkipReason(
-        TARGET,
-        { testStatus: "unavailable", rateLimitedUntil: until },
-        true
-      ),
-      null
+    const reason = getPersistedConnectionCooldownSkipReason(
+      TARGET,
+      { testStatus: "unavailable", rateLimitedUntil: until },
+      true
     );
+    assert.ok(reason);
+    assert.match(reason!, /has persisted cooldown until/);
   });
 
   it("does not skip when the connection row is missing", () => {
@@ -145,27 +165,28 @@ describe("combo persisted-cooldown re-check on retry", () => {
 
     assert.equal(await resolvePersistedConnectionCooldownSkipReason(TARGET, fetchConnection), null);
 
-    const retryReason = await resolvePersistedConnectionCooldownSkipReason(
-      TARGET,
-      fetchConnection
-    );
+    const retryReason = await resolvePersistedConnectionCooldownSkipReason(TARGET, fetchConnection);
     assert.ok(retryReason);
     assert.match(retryReason!, /persisted cooldown until/);
     assert.equal(calls, 2, "each attempt must re-read the connection");
   });
 
-  it("does not read the connection when allowRateLimitedConnection is set", async () => {
+  it("reads the connection and skips a future cooldown when allowRateLimitedConnection is set", async () => {
     let calls = 0;
     const reason = await resolvePersistedConnectionCooldownSkipReason(
       TARGET,
       async () => {
         calls++;
-        return { testStatus: "unavailable", rateLimitedUntil: null };
+        return {
+          testStatus: "unavailable",
+          rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+        };
       },
       true
     );
-    assert.equal(reason, null);
-    assert.equal(calls, 0);
+    assert.ok(reason);
+    assert.match(reason!, /has persisted cooldown until/);
+    assert.equal(calls, 1);
   });
 
   it("never blocks dispatch when the connection read throws", async () => {

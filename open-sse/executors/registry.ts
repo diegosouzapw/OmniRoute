@@ -28,11 +28,46 @@ export function getRegisteredExecutor(alias: string): BaseExecutor | undefined {
   return registry.get(alias);
 }
 
-export function hasRegisteredExecutor(alias: string): boolean {
-  return registry.has(alias);
+// ── #11220: lazy registration ───────────────────────────────────────────────
+// Aliases may register a deferred loader instead of an instance. The alias and
+// its registration ORDER are declared eagerly — hasRegisteredExecutor() and
+// listExecutorAliases() stay synchronous and the golden snapshot keeps its
+// shape — while the class import + construction happen on first use. A
+// completed load caches into `registry`, so later resolution is identical to a
+// static registration.
+const lazyLoaders = new Map<string, () => Promise<BaseExecutor>>();
+const lazyInFlight = new Map<string, Promise<BaseExecutor>>();
+
+export function registerLazyExecutor(alias: string, load: () => Promise<BaseExecutor>): void {
+  if (registry.has(alias) || lazyLoaders.has(alias)) {
+    throw new Error(`executor alias already registered: "${alias}"`);
+  }
+  lazyLoaders.set(alias, load);
 }
 
-/** All registered aliases, in registration order. */
+export function loadRegisteredExecutor(alias: string): Promise<BaseExecutor> | undefined {
+  const cached = registry.get(alias);
+  if (cached) return Promise.resolve(cached);
+  const load = lazyLoaders.get(alias);
+  if (!load) return undefined;
+  let inFlight = lazyInFlight.get(alias);
+  if (!inFlight) {
+    inFlight = load().then((executor) => {
+      registerExecutor(alias, executor);
+      lazyLoaders.delete(alias);
+      lazyInFlight.delete(alias);
+      return executor;
+    });
+    lazyInFlight.set(alias, inFlight);
+  }
+  return inFlight;
+}
+
+export function hasRegisteredExecutor(alias: string): boolean {
+  return registry.has(alias) || lazyLoaders.has(alias);
+}
+
+/** All registered aliases — static and lazy — in registration order. */
 export function listExecutorAliases(): string[] {
-  return [...registry.keys()];
+  return [...registry.keys(), ...lazyLoaders.keys()];
 }

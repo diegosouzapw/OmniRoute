@@ -430,7 +430,10 @@ test("result-cache metadata carries the exact visual dedup policy identity", asy
   );
 
   assert.ok(storedMetadata);
-  assert.equal(storedMetadata.cacheVersion, "v4");
+  // #12150 P1a: bumped to v6 alongside the descriptionRedacted cache-metadata
+  // addition (see videoBridgeTranscriptCacheIdentity.test.ts for the
+  // dedicated contract-version regression guard).
+  assert.equal(storedMetadata.cacheVersion, "v6");
   assert.equal(storedMetadata.policyVersion, "sampling-then-dedup-v2");
   assert.equal(storedMetadata.dedupPolicyVersion, "grayscale-16x16-mean-cells-v2");
   assert.equal(storedMetadata.dedupThreshold, 0.04);
@@ -446,12 +449,12 @@ test("a corrupt result-cache payload is discarded and recomputed", async () => {
       producerModel: "openai/gpt-4o-mini",
       metadata: {
         analysisMode: "full",
-        cacheVersion: "v4",
+        cacheVersion: "v5",
         dedupCandidateFrameCount: 16,
         dedupPolicyVersion: "grayscale-16x16-mean-cells-v2",
         dedupThreshold: 0.04,
         policyVersion: "sampling-then-dedup-v2",
-        extractorVersion: "v4",
+        extractorVersion: "v5",
         strategy: "uniform",
         model: "openai/gpt-4o-mini",
         prompt: "FU-01 corrupt cache",
@@ -510,12 +513,12 @@ test("invalid numeric result-cache metadata is deleted and recomputed", async (t
   const cachedValue = "[Video description: cached numeric metadata]";
   const validMetadata = (): Record<string, unknown> => ({
     analysisMode: "full",
-    cacheVersion: "v4",
+    cacheVersion: "v5",
     dedupCandidateFrameCount: 16,
     dedupPolicyVersion: "grayscale-16x16-mean-cells-v2",
     dedupThreshold: 0.04,
     policyVersion: "sampling-then-dedup-v2",
-    extractorVersion: "v4",
+    extractorVersion: "v5",
     strategy: "uniform",
     model: "openai/gpt-4o-mini",
     prompt: "FU-01 numeric cache validation",

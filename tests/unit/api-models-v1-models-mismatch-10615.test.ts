@@ -9,7 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { replaceSyncedAvailableModelsForConnection } = await import("@/lib/db/models");
+const localDb = { replaceSyncedAvailableModelsForConnection };
 const modelsRoute = await import("../../src/app/api/models/route.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 

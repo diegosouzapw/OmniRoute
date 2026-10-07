@@ -4,8 +4,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chatcore-translation-"));
+const TEST_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chatcore-translation-"));
+const TEST_DATA_DIR = path.join(TEST_ROOT, "data");
+const TEST_PLUGINS_DIR = path.join(TEST_ROOT, "plugins");
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_PLUGINS_DIR = process.env.OMNIROUTE_PLUGINS_DIR;
+fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+fs.mkdirSync(TEST_PLUGINS_DIR, { recursive: true });
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -372,6 +379,7 @@ async function invokeChatCore({
   reasoningTransportFallback = "drop",
   managedLease = null,
   cachedSettings = null,
+  modelTargetFormat = undefined,
 }: any = {}) {
   const calls: any[] = [];
 
@@ -401,10 +409,19 @@ async function invokeChatCore({
     const requestBody = structuredClone(body);
     const result = await handleChatCore({
       body: requestBody,
-      modelInfo: { provider, model, extendedContext: false },
+      modelInfo:
+        modelTargetFormat !== undefined
+          ? { provider, model, extendedContext: false, targetFormat: modelTargetFormat }
+          : { provider, model, extendedContext: false },
       credentials: credentials || {
         apiKey: "sk-test",
-        providerSpecificData: {},
+        // #13452/#13798: buildUrl() refuses an `*-compatible-*` node with no baseUrl
+        // rather than defaulting to the real OpenAI/Anthropic API, so the default
+        // fixture has to hydrate the connection the way a configured one is. Real
+        // providers keep the empty bag — their URL comes from the registry.
+        providerSpecificData: /-compatible-/.test(provider)
+          ? { baseUrl: "https://compatible.example/v1" }
+          : {},
       },
       log: noopLog(),
       clientRawRequest: {
@@ -448,7 +465,11 @@ test.after(async () => {
   resetAccountSemaphores();
   await flushAsyncSideEffects();
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  if (ORIGINAL_PLUGINS_DIR === undefined) delete process.env.OMNIROUTE_PLUGINS_DIR;
+  else process.env.OMNIROUTE_PLUGINS_DIR = ORIGINAL_PLUGINS_DIR;
+  fs.rmSync(TEST_ROOT, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 test("chatCore times out upstream execution before provider response headers", async () => {
   // This test asserts pendingDetail.providerRequest — only attached when the
@@ -456,7 +477,7 @@ test("chatCore times out upstream execution before provider response headers", a
   // (fresh-DB default leaves it off → the waitFor below would never resolve;
   // failed deterministically on CI and on an isolated run, incl. at v3.8.18).
   await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
-  const executor = getExecutor("openai");
+  const executor = await getExecutor("openai");
   const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
   executor.getTimeoutMs = () => 200;
 
@@ -541,11 +562,11 @@ test("chatCore can disable pipeline stream chunk capture through environment", a
 test("chatCore keeps Responses-native Codex payloads in native passthrough mode", async () => {
   const { call, result } = await invokeChatCore({
     provider: "codex",
-    model: "gpt-5.1-codex",
+    model: "gpt-5.6-sol",
     endpoint: "/v1/responses",
     credentials: { accessToken: "codex-token", providerSpecificData: {} },
     body: {
-      model: "gpt-5.1-codex",
+      model: "gpt-5.6-sol",
       input: "ship it",
       instructions: "custom system prompt",
       store: true,
@@ -768,11 +789,19 @@ test("chatCore preserves Combo skip behavior for incompatible reasoning", async 
   assert.equal(skipped.calls.length, 0);
 });
 
+// #14316 moved DeepSeek to Chat Completions by default; these cases pin the Responses alternate,
+// which a connection selects by targetFormat (apiType only drives openai-compatible-*).
+const DEEPSEEK_RESPONSES_CREDENTIALS = {
+  apiKey: "sk-deepseek",
+  providerSpecificData: { targetFormat: "openai-responses" },
+};
+
 test("chatCore carries Chat reasoning_content into official DeepSeek Responses input", async () => {
   const { call, result } = await invokeChatCore({
     provider: "deepseek",
     model: "deepseek-v4-pro",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-pro",
       stream: false,
@@ -822,6 +851,7 @@ test("chatCore replays nonstream DeepSeek Responses reasoning across a Chat tool
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -850,6 +880,7 @@ test("chatCore replays nonstream DeepSeek Responses reasoning across a Chat tool
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -879,6 +910,7 @@ test("chatCore replays streamed DeepSeek Responses reasoning across a Chat tool 
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: true,
@@ -904,6 +936,7 @@ test("chatCore replays streamed DeepSeek Responses reasoning across a Chat tool 
     provider: "deepseek",
     model: "deepseek-v4-flash",
     endpoint: "/v1/chat/completions",
+    credentials: DEEPSEEK_RESPONSES_CREDENTIALS,
     body: {
       model: "deepseek-v4-flash",
       stream: false,
@@ -1111,14 +1144,14 @@ test("chatCore captures streaming no-tool reasoning for Responses replay", async
 test("chatCore automatically preserves provider-generated opaque reasoning for Codex", async () => {
   const { call, result } = await invokeChatCore({
     provider: "codex",
-    model: "gpt-5.1-codex",
+    model: "gpt-5.6-sol",
     endpoint: "/v1/responses",
     credentials: {
       accessToken: "codex-token",
       providerSpecificData: {},
     },
     body: {
-      model: "gpt-5.1-codex",
+      model: "gpt-5.6-sol",
       stream: false,
       input: [
         { id: "rs_valid", type: "reasoning", encrypted_content: "encrypted-blob" },
@@ -1360,65 +1393,67 @@ test("chatCore normalizes native Claude Code messages for native Claude OAuth pa
   // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
   assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
-test("chatCore preserves Opus 5 mid-conversation system cache breakpoints", async () => {
-  await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
-  invalidateCacheControlSettingsCache();
+for (const model of ["claude-opus-5", "claude-fable-5", "claude-fable-5-1"]) {
+  test(`chatCore preserves ${model} mid-conversation system cache breakpoints`, async () => {
+    await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
+    invalidateCacheControlSettingsCache();
 
-  const { call, result } = await invokeChatCore({
-    provider: "claude",
-    model: "claude-opus-5",
-    endpoint: "/v1/messages",
-    credentials: { apiKey: "claude-key", providerSpecificData: {} },
-    body: {
-      model: "claude-opus-5",
-      max_tokens: 64,
-      system: [
-        {
-          type: "text",
-          text: "stable system prompt",
-          cache_control: { type: "ephemeral", ttl: "5m" },
-        },
-      ],
-      messages: [
-        { role: "user", content: [{ type: "text", text: "first turn" }] },
-        { role: "assistant", content: [{ type: "text", text: "first response" }] },
-        {
-          role: "system",
-          content: [
-            {
-              type: "text",
-              text: "compact continuation",
-              cache_control: { type: "ephemeral" },
-            },
-          ],
-        },
-        { role: "user", content: [{ type: "text", text: "latest turn" }] },
-      ],
-      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
-    },
-    userAgent: "Claude-Code/2.1.220",
-    requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "session-123" },
-    responseFormat: "claude",
-  });
+    const { call, result } = await invokeChatCore({
+      provider: "claude",
+      model,
+      endpoint: "/v1/messages",
+      credentials: { apiKey: "claude-key", providerSpecificData: {} },
+      body: {
+        model,
+        max_tokens: 64,
+        system: [
+          {
+            type: "text",
+            text: "stable system prompt",
+            cache_control: { type: "ephemeral", ttl: "5m" },
+          },
+        ],
+        messages: [
+          { role: "user", content: [{ type: "text", text: "first turn" }] },
+          { role: "assistant", content: [{ type: "text", text: "first response" }] },
+          {
+            role: "system",
+            content: [
+              {
+                type: "text",
+                text: "compact continuation",
+                cache_control: { type: "ephemeral" },
+              },
+            ],
+          },
+          { role: "user", content: [{ type: "text", text: "latest turn" }] },
+        ],
+        tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+      },
+      userAgent: "Claude-Code/2.1.220",
+      requestHeaders: { "x-app": "cli", "x-claude-code-session-id": "session-123" },
+      responseFormat: "claude",
+    });
 
-  assert.equal(result.success, true);
-  assert.deepEqual(
-    call.body.messages.map((message: { role: string }) => message.role),
-    ["user", "assistant", "system", "user"]
-  );
-  assert.deepEqual(call.body.messages[2].content[0].cache_control, {
-    type: "ephemeral",
-    ttl: "5m",
+    assert.equal(result.success, true);
+    assert.deepEqual(
+      call.body.messages.map((message: { role: string }) => message.role),
+      ["user", "assistant", "system", "user"]
+    );
+    assert.deepEqual(call.body.messages[2].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
+    });
+    assert.equal(
+      call.body.system.some((block: { text?: string }) => block.text === "compact continuation"),
+      false
+    );
+    assert.deepEqual(call.body.messages[3].content[0].cache_control, {
+      type: "ephemeral",
+      ttl: "5m",
+    });
   });
-  assert.equal(
-    call.body.system.some((block: { text?: string }) => block.text === "compact continuation"),
-    false
-  );
-  assert.deepEqual(call.body.messages[3].content[0].cache_control, {
-    type: "ephemeral",
-    ttl: "5m",
-  });
-});
+}
 test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough", async () => {
   const { call, result } = await invokeChatCore({
     provider: "claude",
@@ -1545,6 +1580,65 @@ test("chatCore normalizes native Claude Code messages before CC-compatible relay
 
   // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
   assert.equal(call.body.messages[2].content[0].type, "tool_result");
+});
+
+// Issue #13971: the CC-bridge unconditionally preserved raw tool_result blocks even when the
+// target speaks OpenAI-compatible (503 on those gateways). Fix: gate preserveToolResultBlocks
+// on targetFormat === FORMATS.CLAUDE. userAgent is plain (non-Claude-Code) so both requests hit
+// the CC-bridge's normalizeClaudeUpstreamMessages branch (chatCore.ts:2377-2385), not the
+// Claude-Code semantic-passthrough branch above it, which this fix does not touch.
+function ccBridgeToolResultCall(modelTargetFormat?: string) {
+  return invokeChatCore({
+    provider: "anthropic-compatible-cc-test",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
+    },
+    body: {
+      model: "claude-sonnet-4-6",
+      max_tokens: 64,
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "toolu_x", name: "Read", input: {} }],
+        },
+        {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "toolu_x", content: "file contents" }],
+        },
+      ],
+      tools: [{ name: "Read", input_schema: { type: "object", properties: {} } }],
+    },
+    userAgent: "unit-test",
+    responseFormat: "claude",
+    modelTargetFormat,
+  });
+}
+test("chatCore strips tool_result blocks on the CC-bridge path when the target is OpenAI-compatible", async () => {
+  const { call, result } = await ccBridgeToolResultCall("openai");
+  assert.equal(result.success, true);
+  // No block may be raw tool_result/tool_use — that shape 503'd on #13971; the
+  // orphan-tool-use cleanup also drops the now-unmatched assistant turn, a stronger guard.
+  for (const message of call.body.messages) {
+    for (const block of message.content) {
+      assert.notEqual(block.type, "tool_result");
+      assert.notEqual(block.type, "tool_use");
+    }
+  }
+  const flattened = call.body.messages
+    .flatMap((m: { content: Array<{ text?: string }> }) => m.content)
+    .map((b: { text?: string }) => b.text)
+    .join("\n");
+  assert.match(flattened, /file contents/);
+});
+// Same branch, real (Claude-native) target format — tool_result stays preserved raw.
+test("chatCore still preserves tool_result blocks on the CC-bridge path when the target is Claude-native", async () => {
+  const { call, result } = await ccBridgeToolResultCall();
+  assert.equal(result.success, true);
+  assert.equal(call.body.messages[0].content[0].type, "tool_use");
+  assert.equal(call.body.messages[1].content[0].type, "tool_result");
 });
 test("chatCore preserves cache_control automatically for Claude Code single-model requests", async () => {
   await settingsDb.updateSettings({ alwaysPreserveClientCache: "auto" });
@@ -1813,6 +1907,40 @@ test("chatCore sets Claude tool prefix disabling, strips empty Anthropic text bl
     ["hello"]
   );
 });
+// #13835: a third-party provider's own ordinary tool name (GitHub Copilot's client-executed
+// "web_fetch" function tool) must still get the proxy_ prefix even though this request lands
+// in the same general (non-claude-passthrough) branch as the "claude" provider test above —
+// only genuine first-party Anthropic traffic (provider "claude") should skip prefixing.
+test("chatCore still prefixes ordinary third-party tool names for non-Anthropic providers targeting Claude", async () => {
+  const { call } = await invokeChatCore({
+    provider: "github",
+    model: "claude-haiku-4.5",
+    endpoint: "/v1/chat/completions",
+    credentials: { apiKey: "gh-key", providerSpecificData: {} },
+    body: {
+      model: "github/claude-haiku-4.5",
+      messages: [{ role: "user", content: "fetch a url" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "web_fetch",
+            description: "Fetches a URL from the internet.",
+            parameters: {
+              type: "object",
+              properties: { url: { type: "string" } },
+              required: ["url"],
+            },
+          },
+        },
+      ],
+    },
+    responseFormat: "claude",
+  });
+
+  assert.equal(call.body.tools[0].name, "proxy_web_fetch");
+  assert.equal(call.body._toolNameMap, undefined);
+});
 test("chatCore restores prefixed Claude passthrough tool names in upstream responses", async () => {
   const { result } = await invokeChatCore({
     provider: "claude",
@@ -1904,7 +2032,8 @@ test("chatCore downgrades unsupported xhigh effort for assistant-prefill OpenAI-
 
   assert.equal(result.success, true);
   assert.equal(call.body.model, "glm-5.1");
-  assert.equal(call.body.reasoning_effort, "high");
+  // GLM 5.1+ natively uses `max` as the top tier (#11875); xhigh maps to max.
+  assert.equal(call.body.reasoning_effort, "max");
 });
 test("chatCore logs chat completions endpoint as OpenAI protocol", async () => {
   const { call, result } = await invokeChatCore({
@@ -1937,35 +2066,12 @@ test("chatCore surfaces translation errors with explicit status codes", async ()
     FORMATS.OPENAI_RESPONSES,
     FORMATS.OPENAI,
     () => {
-      const error = new Error("responses translator rejected the payload");
-      error.statusCode = 409;
-      throw error;
-    },
-    null
-  );
-
-  const { result } = await invokeChatCore({
-    provider: "openai",
-    model: "gpt-4o-mini",
-    endpoint: "/v1/responses",
-    body: {
-      model: "gpt-4o-mini",
-      input: "hello",
-    },
-  });
-
-  assert.equal(result.success, false);
-  assert.equal(result.status, 409);
-  assert.equal(result.error, "responses translator rejected the payload");
-});
-test("chatCore surfaces typed translation errors with the declared error type", async () => {
-  register(
-    FORMATS.OPENAI_RESPONSES,
-    FORMATS.OPENAI,
-    () => {
-      const error = new Error("typed translator failure");
+      const error = new Error(
+        "translator rejected access_token=translation-secret at /srv/private/translator.ts\n" +
+          "    at translate (/srv/private/translator.ts:41:8)"
+      );
       error.statusCode = 422;
-      error.errorType = "unsupported_feature";
+      error.errorType = "unsupported_feature access_token=type-secret /srv/private/type.ts";
       throw error;
     },
     null
@@ -1983,10 +2089,16 @@ test("chatCore surfaces typed translation errors with the declared error type", 
 
   assert.equal(result.success, false);
   assert.equal(result.status, 422);
-
-  const payload = (await result.response.json()) as any;
-  assert.equal(payload.error.type, "unsupported_feature");
-  assert.equal(payload.error.code, "unsupported_feature");
+  const payload = (await result.response.json()) as {
+    error: { message: string; type: string; code: string };
+  };
+  assert.equal(payload.error.type, "invalid_request_error");
+  assert.equal(payload.error.code, "");
+  assert.match(payload.error.message, /translator rejected/);
+  assert.doesNotMatch(
+    JSON.stringify({ payload, internalError: result.error }),
+    /translation-secret|type-secret|srv\/private|translator\.ts|type\.ts|\bat translate\b/i
+  );
 });
 test("chatCore returns 500 when translation throws a generic error", async () => {
   register(
@@ -2503,7 +2615,7 @@ test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", as
   const resetAt7d = new Date(Date.now() + 3_600_000).toISOString();
   const { result } = await invokeChatCore({
     provider: "codex",
-    model: "gpt-5.1-codex",
+    model: "gpt-5.6-sol",
     endpoint: "/v1/responses",
     connectionId: connection.id,
     credentials: {
@@ -2511,7 +2623,7 @@ test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", as
       providerSpecificData: {},
     },
     body: {
-      model: "gpt-5.1-codex",
+      model: "gpt-5.6-sol",
       input: "persist quota",
       stream: false,
     },
@@ -2990,7 +3102,7 @@ test("buildStreamingResponseHeaders drops upstream compression and framing heade
     )
   );
 
-  assert.equal(headers.get("Content-Type"), "text/event-stream");
+  assert.equal(headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(headers.get("Content-Encoding"), null);
   assert.equal(headers.get("Content-Length"), null);
   assert.equal(headers.get("Transfer-Encoding"), null);
@@ -3025,7 +3137,7 @@ test("chatCore strips upstream compression and length headers from streaming res
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.equal(result.response.headers.get("Content-Length"), null);
   assert.equal(result.response.headers.get("X-Upstream-Trace"), "trace-1");
   assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");

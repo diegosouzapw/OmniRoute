@@ -35,10 +35,7 @@ const ptBrJson = JSON.parse(fs.readFileSync(PT_BR_JSON_PATH, "utf-8")) as Record
 // ── PoolWizardProps: editPool field ───────────────────────────────────────────
 
 test("PoolWizard.tsx: declares editPool in PoolWizardProps", () => {
-  assert.ok(
-    wizardSrc.includes("editPool?"),
-    "Expected optional editPool field in PoolWizardProps"
-  );
+  assert.ok(wizardSrc.includes("editPool?"), "Expected optional editPool field in PoolWizardProps");
 });
 
 test("PoolWizard.tsx: imports QuotaPool type", () => {
@@ -69,11 +66,10 @@ test("PoolWizard.tsx: submit handler branches on editPool", () => {
     wizardSrc.includes("editPool"),
     "Expected editPool to appear in PoolWizard source (branching in submit)"
   );
-  // The branching condition inside handleFinish
-  assert.ok(
-    wizardSrc.includes("if (editPool)"),
-    "Expected if (editPool) branch in handleFinish"
-  );
+  // The branching condition inside handleFinish (create path guards on !editPool;
+  // the old "} else if (editPool)" literal lived in the reset effect that #12146
+  // batch 5 turned into a render adjustment).
+  assert.ok(wizardSrc.includes("if (!editPool)"), "Expected the editPool branch in handleFinish");
 });
 
 // ── Pre-fill references ───────────────────────────────────────────────────────
@@ -112,17 +108,17 @@ test("PoolWizard.tsx: pre-fills groupId from editPool.groupId", () => {
 
 // ── i18n key usage ────────────────────────────────────────────────────────────
 
-test("PoolWizard.tsx: uses t(\"saveChanges\") for the submit button in edit mode", () => {
+test('PoolWizard.tsx: uses t("saveChanges") for the submit button in edit mode', () => {
   assert.ok(
     wizardSrc.includes('t("saveChanges")'),
-    "Expected t(\"saveChanges\") used in submit button (edit mode)"
+    'Expected t("saveChanges") used in submit button (edit mode)'
   );
 });
 
-test("PoolWizard.tsx: uses t(\"editPoolTitle\") for the modal title in edit mode", () => {
+test('PoolWizard.tsx: uses t("editPoolTitle") for the modal title in edit mode', () => {
   assert.ok(
     wizardSrc.includes('t("editPoolTitle")'),
-    "Expected t(\"editPoolTitle\") used in modal title (edit mode)"
+    'Expected t("editPoolTitle") used in modal title (edit mode)'
   );
 });
 

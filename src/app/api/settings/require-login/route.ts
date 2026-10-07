@@ -1,30 +1,28 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import {
   hasManagementPasswordConfigured,
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
+import { consumeBootstrapToken } from "@/lib/auth/bootstrapToken";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { BOOTSTRAP_TOKEN_HEADER } from "@/server/authz/headers";
+import {
+  getDashboardJwtSecret,
+  verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
+} from "@/shared/utils/dashboardSessionToken";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-function getJwtSecret(): Uint8Array | null {
-  const secret = process.env.JWT_SECRET?.trim();
-  return secret ? new TextEncoder().encode(secret) : null;
-}
-
 async function checkSessionAuthenticated(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
-    const secret = getJwtSecret();
-    if (!token || !secret) return false;
-    await jwtVerify(token, secret);
-    return true;
+    const token = cookieStore.get(DASHBOARD_SESSION_COOKIE)?.value;
+    return (await verifyDashboardSessionToken(token, getDashboardJwtSecret())) !== null;
   } catch {
     return false;
   }
@@ -130,6 +128,10 @@ export async function POST(request: Request) {
     }
 
     await updateSettings(updates);
+    // #14296: one-shot — a Docker/NAT-forwarded operator that authenticated
+    // this write via the bootstrap token cannot replay it for a second write.
+    // A no-op when the header is absent or stale (never matches).
+    consumeBootstrapToken(request.headers.get(BOOTSTRAP_TOKEN_HEADER));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[API] Error updating require-login settings:", error);

@@ -349,6 +349,122 @@ test("Claude subscription quota recovery clears synthetic cooldown once the real
   assert.equal(after.backoffLevel, 0, "backoff level should reset to 0");
 });
 
+// ─── syntheticCooldownOutlivedByRealWindows override contract ───────────────
+// The override that un-locks the synthetic Claude cooldown above is a real
+// resilience-semantics change; these tests pair with it explicitly
+// (fails-before: every case here ran red on CI run 32786966560 shard 7/8
+// before the override existed / would go red if the gate were unconditional).
+test("syntheticCooldownOutlivedByRealWindows accepts replenished windows with an elapsed reset", () => {
+  const now = Date.now();
+  const ok = providerLimits.syntheticCooldownOutlivedByRealWindows(
+    {
+      quotas: {
+        session: { remaining: 87, resetAt: new Date(now - 60_000).toISOString() },
+        weekly: {
+          remaining: 62,
+          remainingPercentage: 62,
+          resetAt: new Date(now - 60_000).toISOString(),
+        },
+      },
+    },
+    now
+  );
+  assert.equal(ok, true, "positive live-window evidence must authorize the override");
+});
+
+test("syntheticCooldownOutlivedByRealWindows refuses windows without any reset evidence", () => {
+  const now = Date.now();
+  // Unknown-reset window: remaining > 0 but no parseable resetAt — matches the
+  // kimi-coding partial-refresh semantics (never authorize on unknown state).
+  const refused = providerLimits.syntheticCooldownOutlivedByRealWindows(
+    { quotas: { Ratelimit: { remaining: 100 }, Weekly: { remaining: 62 } } },
+    now
+  );
+  assert.equal(refused, false, "unknown-reset windows must not authorize an override");
+});
+
+test("override does not unlock executor-sourced rate limits (#11277)", async () => {
+  const created = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: `Executor RL ${Date.now()}`,
+    apiKey: "glm-exec-key",
+    testStatus: "unavailable",
+    isActive: true,
+    lastError: "429 too many requests",
+    lastErrorType: "rate_limited",
+    lastErrorSource: "executor",
+    errorCode: 429,
+    rateLimitedUntil: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    backoffLevel: 2,
+  });
+  const connection = await providersDb.getProviderConnectionById((created as { id: string }).id);
+
+  const result = await providerLimits.maybeClearRecoveredQuotaState(connection, {
+    quotas: {
+      tokens: { remaining: 90, resetAt: new Date(Date.now() - 60_000).toISOString() },
+    },
+  });
+
+  assert.equal(result.testStatus, "unavailable", "executor 429 lockout must stay hard");
+  assert.ok(result.rateLimitedUntil, "future rateLimitedUntil must be preserved (#11277)");
+});
+
+test("override does not unlock extra_usage policy blocks", async () => {
+  const created = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    accessToken: "tok-extra-usage-refusal",
+    refreshToken: "refresh-extra-usage-refusal",
+    testStatus: "unavailable",
+    isActive: true,
+    lastError: "extra usage limit",
+    lastErrorType: "quota_exhausted",
+    lastErrorSource: "extra_usage",
+    errorCode: 429,
+    rateLimitedUntil: new Date(Date.now() + 5 * 60_000).toISOString(),
+    backoffLevel: 1,
+  });
+  const connection = await providersDb.getProviderConnectionById((created as { id: string }).id);
+
+  const result = await providerLimits.maybeClearRecoveredQuotaState(connection, {
+    quotas: {
+      session: { remaining: 80, resetAt: new Date(Date.now() - 60_000).toISOString() },
+      weekly: { remaining: 70, resetAt: new Date(Date.now() - 60_000).toISOString() },
+    },
+  });
+
+  assert.equal(result.testStatus, "unavailable", "extra_usage blocks are never synthetic");
+  assert.ok(result.rateLimitedUntil, "extra_usage cooldown must be preserved");
+});
+
+test("override does not unlock when a quota window lacks reset evidence", async () => {
+  const created = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    accessToken: "tok-unknown-reset-refusal",
+    refreshToken: "refresh-unknown-reset-refusal",
+    testStatus: "unavailable",
+    isActive: true,
+    lastError: "usage limit reached",
+    lastErrorType: "quota_exhausted",
+    errorCode: 429,
+    rateLimitedUntil: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    backoffLevel: 1,
+  });
+  const connection = await providersDb.getProviderConnectionById((created as { id: string }).id);
+
+  // One window carries no resetAt at all — the override must refuse.
+  const result = await providerLimits.maybeClearRecoveredQuotaState(connection, {
+    quotas: {
+      session: { remaining: 87, resetAt: new Date(Date.now() - 60_000).toISOString() },
+      weekly: { remaining: 62 },
+    },
+  });
+
+  assert.equal(result.testStatus, "unavailable", "unknown-reset window keeps the lock");
+});
+
 test("Claude subscription quota still exhausted keeps the connection locked (no real recovery yet)", async () => {
   // Inverse of the above: the real session window is still exhausted with no parseable
   // reset (mirrors the existing kimi-coding test's semantics) — must stay locked even

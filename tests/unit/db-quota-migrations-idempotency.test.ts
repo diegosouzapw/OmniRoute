@@ -24,7 +24,9 @@ const core = await import("../../src/lib/db/core.ts");
 
 function getDb() {
   return core.getDbInstance() as unknown as {
-    prepare: <TRow = unknown>(sql: string) => {
+    prepare: <TRow = unknown>(
+      sql: string
+    ) => {
       all: (...params: unknown[]) => TRow[];
       get: (...params: unknown[]) => TRow | undefined;
       run: (...params: unknown[]) => { changes: number };
@@ -35,9 +37,7 @@ function getDb() {
 function listSqliteMaster(type: "table" | "index"): string[] {
   const db = getDb();
   const rows = db
-    .prepare<{ name: string }>(
-      `SELECT name FROM sqlite_master WHERE type = ? ORDER BY name`
-    )
+    .prepare<{ name: string }>(`SELECT name FROM sqlite_master WHERE type = ? ORDER BY name`)
     .all(type);
   return rows.map((r) => r.name);
 }
@@ -64,7 +64,10 @@ test("migrations 073-075 create all expected tables and indexes on first init", 
   const indexes = listSqliteMaster("index");
 
   for (const table of EXPECTED_TABLES) {
-    assert.ok(tables.includes(table), `Expected table '${table}' to exist. Found: ${tables.join(", ")}`);
+    assert.ok(
+      tables.includes(table),
+      `Expected table '${table}' to exist. Found: ${tables.join(", ")}`
+    );
   }
 
   for (const idx of EXPECTED_INDEXES) {

@@ -16,6 +16,7 @@ import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../../src/shared/utils/shuffleDeck";
 import { handleFusionChat, type FusionTuning } from "../fusion.ts";
+import { handleAgenticPipelineChat, type AgenticOrchestrationConfig } from "../agenticPipeline.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { errorResponseWithComboDiagnostics } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
@@ -30,6 +31,7 @@ import {
 } from "./comboStructure.ts";
 import { isComboModelVisible } from "./comboVisibility.ts";
 import { buildFusionHandleSingleModel, extractFusionPanelSpec } from "./fusionPanel.ts";
+import { expandTargetsForAllStrategies } from "./connectionAwareExpansion.ts";
 import {
   expandComboSystemPromptIfPresent,
   resolveTargetFingerprint,
@@ -49,6 +51,7 @@ import {
   releaseRejectedQualityResponse,
   validateResponseQuality,
 } from "./validateQuality.ts";
+import { isTrustedEmptyTurn } from "./emptyTurnTrust.ts";
 import type {
   ComboCollectionLike,
   ComboLike,
@@ -234,7 +237,9 @@ async function evaluatePinnedResponse(args: {
       pinnedClone,
       clientRequestedStream,
       log,
-      config.responseValidation
+      config.responseValidation,
+      null,
+      await isTrustedEmptyTurn(parseModel(pinnedModel).provider, pinnedResult)
     );
     releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
     if (pinnedQuality.valid) return pinnedResult;
@@ -246,7 +251,7 @@ async function evaluatePinnedResponse(args: {
     return null;
   }
   const pinnedStatus = pinnedResult.status || 500;
-  if (![408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+  if (![401, 408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
     return pinnedResult;
   }
   log.warn(
@@ -438,12 +443,25 @@ export async function tryFusionDispatch(args: {
   }
   if (strategy !== "fusion") return null;
 
-  const allResolvedFusionTargets = resolveComboTargets(
+  let allResolvedFusionTargets = resolveComboTargets(
     combo,
     args.allCombos,
     clampComboDepth(config.maxComboDepth),
     args.hiddenModelsByProvider
   );
+  // Connection-aware expansion is opt-in. The fusion panel itself is
+  // keyed by model string below (`resolvedByModelStr` keeps ONE target per
+  // modelStr -- the first healthy connection), so the panel size is unchanged;
+  // only each member's connectionId becomes a vetted, non-exhausted account.
+  allResolvedFusionTargets = await expandTargetsForAllStrategies({
+    strategy,
+    targets: allResolvedFusionTargets,
+    comboName: combo.name,
+    config: combo.config,
+    settings: args.settings as Record<string, unknown> | null | undefined,
+    log,
+    apiKeyAllowedConnectionIds: args.apiKeyAllowedConnections ?? null,
+  });
   // #3378 (ported from upstream decolua/9router): every non-fusion combo
   // strategy runs candidates through filterTargetsByRequestCompatibility before
   // dispatch, which excludes a target whose vision support cannot be *confirmed*
@@ -490,8 +508,19 @@ export async function tryFusionDispatch(args: {
   for (const target of resolvedFusionTargets) {
     if (!resolvedByModelStr.has(target.modelStr)) resolvedByModelStr.set(target.modelStr, target);
   }
+  // Deduplicate targets by stepId / modelStr so panel size does not inflate
+  // when models expand across multiple connections.
+  const seenPanelKeys = new Set<string>();
+  const distinctTargets: typeof resolvedFusionTargets = [];
+  for (const target of resolvedFusionTargets) {
+    const key = target.stepId ?? target.modelStr;
+    if (!seenPanelKeys.has(key)) {
+      seenPanelKeys.add(key);
+      distinctTargets.push(target);
+    }
+  }
   const { panel: fusionPanel, comboRefUnits } = extractFusionPanelSpec(
-    resolvedFusionTargets.map((target) => target.modelStr),
+    distinctTargets.map((target) => target.modelStr),
     combo.name,
     null
   );
@@ -539,6 +568,8 @@ export async function tryPipelineDispatch(args: {
   combo: ComboLike;
   config: ComboSetupConfig;
   strategy: string;
+  settings?: Record<string, unknown> | null;
+  apiKeyAllowedConnections?: string[] | null;
   allCombos?: ComboCollectionLike;
   handleSingleModelWithTimeout: HandleSingleModel;
   log: ComboLogger;
@@ -549,18 +580,56 @@ export async function tryPipelineDispatch(args: {
     combo,
     config,
     strategy,
+    settings,
+    apiKeyAllowedConnections,
     allCombos,
     handleSingleModelWithTimeout,
     log,
     hiddenModelsByProvider,
   } = args;
   if (strategy !== "pipeline") return null;
-  const pipelineSteps: PipelineStep[] = resolveComboTargets(
+  const resolvedTargets = resolveComboTargets(
     combo,
     allCombos,
     clampComboDepth(config.maxComboDepth),
     hiddenModelsByProvider
-  ).map((target) => ({ target, prompt: target.prompt }));
+  );
+  const expanded = await expandTargetsForAllStrategies({
+    strategy,
+    targets: resolvedTargets,
+    comboName: combo.name,
+    config: combo.config,
+    settings: settings as Record<string, unknown> | null | undefined,
+    log,
+    apiKeyAllowedConnectionIds: apiKeyAllowedConnections ?? null,
+  });
+  // Pipeline: each stage is one step. If a step expanded to multiple connections,
+  // keep the first healthy connection for that stage.
+  const seenSteps = new Set<string>();
+  const pipelineTargets: typeof expanded = [];
+  for (const target of expanded) {
+    const key = target.stepId ?? target.modelStr;
+    if (!seenSteps.has(key)) {
+      seenSteps.add(key);
+      pipelineTargets.push(target);
+    }
+  }
+  const pipelineSteps: PipelineStep[] = pipelineTargets.map((target) => ({
+    target,
+    prompt: target.prompt,
+  }));
+  const agenticConfig = (combo.config as Record<string, unknown> | null | undefined)
+    ?.agenticOrchestration as AgenticOrchestrationConfig | undefined;
+  if (agenticConfig?.enabled) {
+    return handleAgenticPipelineChat({
+      body,
+      steps: pipelineSteps,
+      handleSingleModel: handleSingleModelWithTimeout,
+      log,
+      comboName: combo.name,
+      config: agenticConfig,
+    });
+  }
   return handlePipelineChat({
     body,
     steps: pipelineSteps,

@@ -1,6 +1,31 @@
 export type NamespaceIdentity = { namespace: string; name: string };
 
 /**
+ * Capture both ledgers before the legacy extractor deletes their side channels.
+ * Responses pivots carry object-valued namespace identities AND string-valued
+ * provider aliases; recovering aliases from identities alone loses the latter.
+ */
+export function extractRequestToolMetadata(translatedBody: Record<string, unknown>): {
+  requestToolIdentityMap: Map<string, NamespaceIdentity> | null;
+  toolNameAliasMap: Map<string, string> | null;
+} {
+  const toolNameAliasMap = toToolNameAliasMap(
+    translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null
+  );
+  const requestToolIdentityMap = extractRequestToolIdentityMap(translatedBody);
+  // Both ledgers are captured above, so the side channel is consumed here. The
+  // standalone extractor keeps a string alias ledger next to namespace identities
+  // (#14751) for callers that resolve aliases from the body later; this combined
+  // entry point returns that ledger instead (#12839), so nothing may linger on the
+  // body that is about to be serialized for dispatch.
+  delete translatedBody._toolNameMap;
+  return {
+    requestToolIdentityMap,
+    toolNameAliasMap: toolNameAliasMap ?? toToolNameAliasMap(requestToolIdentityMap),
+  };
+}
+
+/**
  * Return a string-valued copy only when the complete map is an alias ledger.
  *
  * The legacy `_toolNameMap` side channel can carry either response aliases or
@@ -22,8 +47,28 @@ export function toToolNameAliasMap(
 }
 
 /**
+ * Decide which alias ledger the response translator gets.
+ *
+ * Namespace identities and provider aliases are independent ledgers. Prefer
+ * the intact provider aliases, then native Claude aliases. Older producers
+ * expose only a string-valued `_toolNameMap`, which extraction consumes and
+ * returns through the legacy channel; recover that ledger as a fallback.
+ * Never reinterpret object-valued namespace identities as response aliases.
+ */
+export function resolveResponseToolNameMap(
+  translatedToolNameMap: unknown,
+  nativeClaudeToolNameMap: Map<string, string> | null,
+  requestToolIdentityMap: ReadonlyMap<string, unknown> | null
+): Map<string, string> | null {
+  if (translatedToolNameMap instanceof Map && translatedToolNameMap.size > 0) {
+    return translatedToolNameMap as Map<string, string>;
+  }
+  return nativeClaudeToolNameMap ?? toToolNameAliasMap(requestToolIdentityMap);
+}
+
+/**
  * Extract the #7936 request-tool identity map from the translated body and
- * strip both side channels before dispatch.
+ * consume namespace metadata while preserving an independent provider alias ledger.
  *
  * #9780 — prefer the dedicated `_namespaceToolIdentityMap`: on a pivot the
  * openai->claude/gemini step publishes its own alias `Map<string, string>` on
@@ -42,6 +87,14 @@ export function extractRequestToolIdentityMap(
         ? translatedBody._toolNameMap
         : null;
   delete translatedBody._namespaceToolIdentityMap;
-  delete translatedBody._toolNameMap;
+  // With both channels present, consuming provider aliases here loses the
+  // sanitized Gemini name before resolveResponseToolNameMap can restore it.
+  // Keep legacy single-ledger extraction behavior for older producers.
+  if (
+    !(namespaceIdentityMap instanceof Map) ||
+    !toToolNameAliasMap(translatedBody._toolNameMap as Map<string, unknown>)
+  ) {
+    delete translatedBody._toolNameMap;
+  }
   return requestToolIdentityMap as Map<string, NamespaceIdentity> | null;
 }

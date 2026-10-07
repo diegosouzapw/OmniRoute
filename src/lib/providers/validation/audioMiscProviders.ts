@@ -302,9 +302,16 @@ export async function validateBailianCodingPlanProvider({
       }),
     });
 
-    // 401/403 => invalid key
+    // 401/403 => invalid key. An expired/lapsed Token Plan subscription yields the
+    // exact same upstream 401 invalid_api_key (observed live 2026-09-01: subscription
+    // ended 08-23, the previously working key started failing), so name it as a cause.
     if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
+      return {
+        valid: false,
+        error:
+          "Invalid API key — or the Token Plan subscription is expired/inactive; " +
+          "check it in the Model Studio console",
+      };
     }
 
     // Non-auth 4xx (e.g., 400 bad request) means auth passed but request was malformed
@@ -525,6 +532,58 @@ export async function validateNlpCloudProvider({ apiKey, providerSpecificData = 
   return { valid: false, error: "Connection failed while testing NLP Cloud" };
 }
 
+export async function validateOneMinAiProvider({ apiKey, providerSpecificData = {} }: any) {
+  const modelId =
+    typeof providerSpecificData.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : "gpt-4o-mini";
+
+  try {
+    const response = await validationWrite("https://api.1min.ai/api/chat-with-ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "API-KEY": apiKey },
+      body: JSON.stringify({
+        type: "UNIFY_CHAT_WITH_AI",
+        model: modelId,
+        promptObject: { prompt: "test" },
+      }),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "oneminai_chat_with_ai" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "oneminai_chat_with_ai",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    // 400/422 with a valid key still means the key authenticated — 1min.ai
+    // rejects an unrecognized/unauthorized model this same way as a bad
+    // request body, so a validation-shaped 4xx is treated as "key is valid".
+    if (response.status === 400 || response.status === 422) {
+      return { valid: true, error: null, method: "oneminai_chat_with_ai" };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing 1min.ai" };
+}
+
 export async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeRunwayBaseUrl(providerSpecificData.baseUrl);
 
@@ -579,6 +638,7 @@ export async function validateNousResearchProvider({ apiKey, providerSpecificDat
         model: modelId,
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
+        tags: ["user=omniroute"],
       }),
     });
 

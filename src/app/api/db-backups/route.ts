@@ -8,7 +8,7 @@ import {
   setDbBackupMaxFiles,
   getDbBackupRetentionDays,
   setDbBackupRetentionDays,
-} from "@/lib/localDb";
+} from "@/lib/db/backup";
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";

@@ -183,9 +183,8 @@ test(
     const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-happy-"));
     const file2 = path.join(dir2, "storage.sqlite");
     try {
-      const { tryOpenSync, getSqlJsAdapter } = await import(
-        "../../src/lib/db/adapters/driverFactory"
-      );
+      const { tryOpenSync, getSqlJsAdapter } =
+        await import("../../src/lib/db/adapters/driverFactory");
       const { default: Database } = await import("better-sqlite3");
       const seed = new Database(file2);
       seed.exec("CREATE TABLE t (id INTEGER)");

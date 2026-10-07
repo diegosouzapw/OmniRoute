@@ -1,64 +1,59 @@
 # Contributor Covenant Code of Conduct (Deutsch)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇧🇦 [bs](../bs/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## Unser Versprechen
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+Wir als Mitglieder, Mitwirkende und Verantwortliche verpflichten uns, die Teilnahme an unserer
+Gemeinschaft für alle zu einer belästigungsfreien Erfahrung zu machen, unabhängig von Alter, Körpergröße,
+sichtbarer oder unsichtbarer Behinderung, ethnischer Zugehörigkeit, Geschlechtsmerkmalen, Geschlechtsidentität
+und -ausdruck, Erfahrungsniveau, Bildung, sozioökonomischem Status,
+Nationalität, persönlichem Erscheinungsbild, ethnischer Herkunft, Religion oder sexueller Identität
+und Orientierung.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Wir verpflichten uns, auf eine Weise zu handeln und miteinander umzugehen, die zu einer offenen, einladenden,
+vielfältigen, inklusiven und gesunden Gemeinschaft beiträgt.
 
-## Our Standards
+## Unsere Standards
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Beispiele für Verhaltensweisen, die zu einem positiven Umfeld für unsere
+Community beitragen:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Empathie und Freundlichkeit gegenüber anderen Menschen zeigen
+- Andere Meinungen, Standpunkte und Erfahrungen respektieren
+- Konstruktives Feedback geben und respektvoll annehmen
+- Verantwortung übernehmen, uns bei den von unseren Fehlern Betroffenen
+  entschuldigen und aus der Erfahrung lernen
+- Uns darauf konzentrieren, was nicht nur für uns als Einzelpersonen, sondern
+  für die gesamte Community am besten ist
 
-Examples of unacceptable behavior include:
+Beispiele für inakzeptables Verhalten:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Die Verwendung sexualisierter Sprache oder Darstellungen sowie sexuelle
+  Aufmerksamkeit oder Annäherungsversuche jeglicher Art
+- Trollen, beleidigende oder abwertende Kommentare sowie persönliche oder
+  politische Angriffe
+- Öffentliche oder private Belästigung
+- Die Veröffentlichung privater Informationen anderer, wie etwa einer Wohn-
+  oder E-Mail-Adresse, ohne deren ausdrückliche Zustimmung
+- Sonstiges Verhalten, das in einem professionellen Umfeld vernünftigerweise
+  als unangemessen angesehen werden könnte
 
-## Enforcement Responsibilities
+## Verantwortlichkeiten bei der Durchsetzung
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Die Verantwortlichen der Community sind dafür zuständig, unsere Standards für akzeptables Verhalten klarzustellen und durchzusetzen. Sie werden angemessene und faire Korrekturmaßnahmen als Reaktion auf Verhaltensweisen ergreifen, die sie als unangemessen, bedrohlich, beleidigend oder schädlich erachten.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Die Verantwortlichen der Community haben das Recht und die Pflicht, Kommentare, Commits, Code, Wiki-Bearbeitungen, Issues und andere Beiträge zu entfernen, zu bearbeiten oder abzulehnen, wenn diese nicht mit diesem Verhaltenskodex übereinstimmen. Wenn es angemessen ist, werden sie die Gründe für Moderationsentscheidungen mitteilen.
 
-## Scope
+## Geltungsbereich
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Dieser Verhaltenskodex gilt in allen Gemeinschaftsbereichen sowie dann, wenn
+eine Person die Gemeinschaft offiziell in öffentlichen Räumen vertritt.
+Beispiele für die Vertretung unserer Gemeinschaft sind die Nutzung einer offiziellen E-Mail-Adresse,
+das Veröffentlichen von Beiträgen über ein offizielles Social-Media-Konto oder das Auftreten als ernannte
+Vertretung bei einer Online- oder Offline-Veranstaltung.
 
 ## Enforcement
 
@@ -70,51 +65,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## Richtlinien zur Durchsetzung
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Die Verantwortlichen der Community werden diese Richtlinien zu den Auswirkungen auf die Community befolgen, um die Konsequenzen für alle Handlungen festzulegen, die ihrer Ansicht nach gegen diesen Verhaltenskodex verstoßen:
 
-### 1. Correction
+### 1. Korrektur
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**Auswirkungen auf die Community**: Verwendung unangemessener Sprache oder anderes Verhalten, das in der Community als unprofessionell oder unerwünscht angesehen wird.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Konsequenz**: Eine private, schriftliche Verwarnung durch die Verantwortlichen der Community, in der die Art des Verstoßes klargestellt und erläutert wird, warum das Verhalten unangemessen war. Eine öffentliche Entschuldigung kann verlangt werden.
 
-### 2. Warning
+### 2. Verwarnung
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**Auswirkungen auf die Community**: Ein Verstoß durch einen einzelnen Vorfall oder eine Reihe von Handlungen.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Konsequenz**: Eine Verwarnung mit Konsequenzen bei Fortsetzung des Verhaltens. Für einen festgelegten Zeitraum darf keine Interaktion mit den beteiligten Personen stattfinden, einschließlich unaufgeforderter Kontaktaufnahme mit denjenigen, die den Verhaltenskodex durchsetzen. Dies schließt die Vermeidung von Interaktionen sowohl in Community-Bereichen als auch über externe Kanäle wie soziale Medien ein. Ein Verstoß gegen diese Bedingungen kann zu einem vorübergehenden oder dauerhaften Ausschluss führen.
 
-### 3. Temporary Ban
+### 3. Vorübergehender Ausschluss
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**Auswirkungen auf die Community**: Ein schwerwiegender Verstoß gegen die Community-Standards, einschließlich anhaltenden unangemessenen Verhaltens.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Konsequenz**: Ein vorübergehender Ausschluss von jeglicher Interaktion oder öffentlichen Kommunikation mit der Community für einen festgelegten Zeitraum. Während dieses Zeitraums ist weder eine öffentliche noch eine private Interaktion mit den beteiligten Personen gestattet, einschließlich unaufgeforderter Kontaktaufnahme mit denjenigen, die den Verhaltenskodex durchsetzen. Ein Verstoß gegen diese Bedingungen kann zu einem dauerhaften Ausschluss führen.
 
-### 4. Permanent Ban
+### 4. Dauerhafter Ausschluss
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**Auswirkungen auf die Community**: Wiederholte Verstöße gegen die Community-Standards, einschließlich anhaltenden unangemessenen Verhaltens, der Belästigung einer Person oder aggressiven beziehungsweise herabwürdigenden Verhaltens gegenüber Personengruppen.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**Konsequenz**: Ein dauerhafter Ausschluss von jeglicher öffentlicher Interaktion innerhalb der Community.
 
 ## Attribution
 

@@ -43,7 +43,10 @@ test("returns the LAST known egress IP of the connection in the window", () => {
     connectionId: "conn-a",
   });
   proxyLogger.flushProxyLogsSync(); // persist the enqueued batch before the DB-backed lookup
-  const got = getRecentEgressIpForConnection("conn-a", new Date(Date.now() - 24 * 3600_000).toISOString());
+  const got = getRecentEgressIpForConnection(
+    "conn-a",
+    new Date(Date.now() - 24 * 3600_000).toISOString()
+  );
   assert.deepEqual(got, { egressIp: "203.0.113.9", at: got!.at });
 });
 
@@ -55,11 +58,20 @@ test("ignores rows with NULL egress_ip (never probed)", () => {
     egressIp: null,
     connectionId: "conn-b",
   });
-  assert.equal(getRecentEgressIpForConnection("conn-b", new Date(Date.now() - 24 * 3600_000).toISOString()), null);
+  assert.equal(
+    getRecentEgressIpForConnection("conn-b", new Date(Date.now() - 24 * 3600_000).toISOString()),
+    null
+  );
 });
 
 test("returns null when the connection has no row in the window", () => {
-  assert.equal(getRecentEgressIpForConnection("ghost-conn", new Date(Date.now() - 24 * 3600_000).toISOString()), null);
+  assert.equal(
+    getRecentEgressIpForConnection(
+      "ghost-conn",
+      new Date(Date.now() - 24 * 3600_000).toISOString()
+    ),
+    null
+  );
 });
 
 test("does not return rows outside the since window", () => {
@@ -70,5 +82,8 @@ test("does not return rows outside the since window", () => {
     `INSERT INTO proxy_logs (id, timestamp, status, provider, target_url, egress_ip, connection_id)
      VALUES (?, ?, 'success', 'opencode', 'https://api.opencode.ai/chat', '203.0.113.1', 'conn-c')`
   ).run(randomUUID(), new Date(Date.now() - 48 * 3600_000).toISOString());
-  assert.equal(getRecentEgressIpForConnection("conn-c", new Date(Date.now() - 24 * 3600_000).toISOString()), null);
+  assert.equal(
+    getRecentEgressIpForConnection("conn-c", new Date(Date.now() - 24 * 3600_000).toISOString()),
+    null
+  );
 });

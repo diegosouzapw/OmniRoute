@@ -33,6 +33,17 @@ export interface SearchProviderConfig {
    */
   fallbackOnly?: boolean;
   disabled?: boolean;
+  /**
+   * May a CALLER-supplied `provider_options.baseUrl` redirect this provider?
+   *
+   * Only ever true for a keyless, self-hosted provider. For anything with
+   * `authType: "apikey"` the builder attaches the OPERATOR's key to whatever
+   * host the base URL resolves to, so honoring a caller-chosen value hands that
+   * key to the caller's server (GHSA-3f8g-pfh9-j687). The invariant
+   * "never set alongside authType: apikey" is enforced by
+   * tests/unit/search-baseurl-client-override-3f8g.test.ts.
+   */
+  allowClientBaseUrlOverride?: boolean;
 }
 
 export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
@@ -112,6 +123,27 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     searchTypes: ["web", "news"],
     defaultMaxResults: 5,
     maxMaxResults: 20,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
+  // Nimble also serves POST /v1/web/fetch through the same credential — see
+  // open-sse/executors/nimble-fetch.ts.
+  "nimble-search": {
+    id: "nimble-search",
+    name: "Nimble Search",
+    baseUrl: "https://sdk.nimbleway.com/v1/search",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0.005,
+    freeMonthlyQuota: 0,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 100,
+    // Kept below GLOBAL_TIMEOUT_MS (handlers/search.ts) so a stalled Nimble call
+    // still leaves budget for the failover provider instead of burning the whole
+    // request window.
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
@@ -211,6 +243,11 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 3 * 60 * 1000,
     fallbackOnly: true,
+    // Keyless and self-hosted by definition: the caller names their own SearXNG
+    // instance and no operator credential travels with the request. This is a
+    // documented flow (tests/unit/search-route.test.ts). Still block-metadata
+    // guarded, so IMDS stays unreachable.
+    allowClientBaseUrlOverride: true,
   },
 
   "ollama-search": {
@@ -330,6 +367,45 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 60_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
+
+  // Direct X API search through Xquik. Keep it fallback-only so the existing
+  // SuperGrok provider remains the default for search_type "x".
+  "xquik-search": {
+    id: "xquik-search",
+    name: "Xquik X Search",
+    baseUrl: "https://xquik.com/api/v1/x/tweets/search",
+    method: "GET",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    costPerQuery: 0.00075,
+    freeMonthlyQuota: 0,
+    searchTypes: ["x"],
+    defaultMaxResults: 5,
+    maxMaxResults: 20,
+    timeoutMs: 15_000,
+    cacheTTLMs: 5 * 60 * 1000,
+    fallbackOnly: true,
+  },
+
+  // Free public web search for AI agents (https://anysearch.com). fallback-only:
+  // a cost-0 provider never overrides configured paid providers in automatic
+  // selection. max_results is capped at 10 upstream.
+  "anysearch-search": {
+    id: "anysearch-search",
+    name: "AnySearch",
+    baseUrl: "https://api.anysearch.com/v1/search",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0, // free tier is 1000 req/day (daily reset, not monthly) — 0 matches the xquik convention; the daily figure lives in the UI catalog authHint
+    searchTypes: ["web"],
+    defaultMaxResults: 5,
+    maxMaxResults: 10,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+    fallbackOnly: true,
+  },
 };
 
 /**
@@ -377,6 +453,10 @@ export const SEARCH_PROVIDER_ALIASES: Record<string, string> = {
   c7: "context7",
   x_search: "x-search",
   x: "x-search",
+  xquik: "xquik-search",
+  xquik_search: "xquik-search",
+  anysearch: "anysearch-search",
+  anysearch_search: "anysearch-search",
 };
 
 export function resolveSearchProviderId(providerId: string): string {

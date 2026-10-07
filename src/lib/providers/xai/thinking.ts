@@ -12,14 +12,16 @@
  *   - honor explicit caller intent verbatim
  */
 
-const VALID_EFFORTS = new Set(["minimal", "low", "medium", "high"]);
+const VALID_EFFORTS = new Set(["minimal", "low", "medium", "high", "xhigh"]);
 
-export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
+export type ReasoningEffort = "minimal" | "low" | "medium" | "high" | "xhigh";
 
 export function normalizeXaiReasoningEffort(effort: unknown): ReasoningEffort | undefined {
   if (typeof effort !== "string") return undefined;
   const normalized = effort.toLowerCase();
-  if (normalized === "max" || normalized === "xhigh") return "high";
+  // "max" is not an xAI tier; "xhigh" is real on grok-4.6+ and xAI itself
+  // degrades it to "high" on older models, so passing it through is always safe.
+  if (normalized === "max") return "high";
   return VALID_EFFORTS.has(normalized) ? (normalized as ReasoningEffort) : undefined;
 }
 

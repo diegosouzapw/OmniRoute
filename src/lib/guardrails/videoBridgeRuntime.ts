@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { promisify } from "node:util";
 
+import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
+
 const execFileAsync = promisify(execFile);
 
 export interface VideoCommandOptions {
@@ -133,7 +135,7 @@ const SAFE_FORMATS = new Set([
   "webm",
 ]);
 const SAFE_FORMAT_WHITELIST = [...SAFE_FORMATS].join(",");
-const defaultRunner: VideoCommandRunner = async (executable, args, options) => {
+export const defaultRunner: VideoCommandRunner = async (executable, args, options) => {
   const result = await execFileAsync(executable, [...args], {
     encoding: "utf8",
     maxBuffer: 1024 * 1024,
@@ -143,7 +145,7 @@ const defaultRunner: VideoCommandRunner = async (executable, args, options) => {
   });
   return { stdout: String(result.stdout), stderr: String(result.stderr) };
 };
-function assertLocalPath(filePath: string): void {
+export function assertLocalPath(filePath: string): void {
   if (!isAbsolute(filePath) || filePath.includes("\0") || filePath.includes("://")) {
     throw new Error("Video runtime requires a local path");
   }
@@ -997,7 +999,7 @@ export async function extractVideoFramesFromBytes(
     return {
       durationSeconds: metadata.durationSeconds,
       frames: frameFiles.map((frame, index) => ({
-        dataUri: `data:image/jpeg;base64,${frameBytes[index].toString("base64")}`,
+        dataUri: `${JPEG_FRAME_DATA_URI_PREFIX}${frameBytes[index].toString("base64")}`,
         timestampSeconds: frame.timestampSeconds,
       })),
       sampling: frameFiles.sampling,

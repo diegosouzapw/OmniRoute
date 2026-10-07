@@ -1,4 +1,5 @@
-import { listProxies } from "@/lib/localDb";
+import { isSocks5ProxyEnabled } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { listProxies } from "@/lib/db/proxies";
 import {
   handleProxyCreate,
   handleProxyDelete,
@@ -42,10 +43,8 @@ export async function GET(request: Request) {
       // #5890: coarse relay health pulse for the dashboard — how many relay
       // probes have run, and how many came back alive.
       relayProbeStats: getRelayProbeStats(),
-      // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
-      socks5Enabled: !["false", "0", "no", "off"].includes(
-        (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase()
-      ),
+      // SOCKS5 defaults ON — see isSocks5ProxyEnabled().
+      socks5Enabled: isSocks5ProxyEnabled(),
     });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxies");

@@ -1,0 +1,1 @@
+- **fix(compression):** the Compression Hub, the combos manager and the RTK page show a Retry when `GET /api/settings/compression` fails, and keep the controls that depend on the loaded settings off screen until a GET succeeds, so a failed load can no longer render defaults as the stored settings ([#15583](https://github.com/diegosouzapw/OmniRoute/pull/15583)) — thanks @woodsonl

@@ -15,7 +15,8 @@ process.env.JWT_SECRET = "test-jwt-secret-for-oidc-callback";
 // @ts-ignore - intentional for test harness timing (see note at top)
 const core = await import("../../src/lib/db/core.ts");
 // @ts-ignore - intentional for test harness timing
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 // @ts-ignore - intentional for test harness timing
 const callbackRoute = await import("../../src/app/api/auth/oidc/callback/route.ts");
 
@@ -74,7 +75,7 @@ async function setupFullOidcSettings() {
     oidcClientId: "client-oidc-test",
     oidcClientSecret: "secret-oidc-test",
     oidcRedirectPath: "/api/auth/oidc/callback",
-    oidcAllowedSubjects: [],
+    oidcAllowedSubjects: ["user-123"],
   });
 }
 
@@ -506,3 +507,162 @@ test("OIDC callback error redirect respects proxy headers (#10224)", async () =>
   // With the fix, it correctly uses originEarly
   assert.equal(loc, "https://auth.pubg-sell.ir/login?oidc_error=missing_code");
 });
+
+test("OIDC callback handles issuer with trailing slash in settings and token (#14119)", async () => {
+  const issuerWithSlash = "https://authentik.company/application/o/omniroute/";
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: issuerWithSlash,
+    oidcClientId: "client-oidc-authentik",
+    oidcClientSecret: "secret-oidc-authentik",
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: ["authentik-user-1"],
+  });
+
+  const { idToken, jwks } = await createSignedIdToken({
+    iss: issuerWithSlash,
+    aud: "client-oidc-authentik",
+    sub: "authentik-user-1",
+    email: "user@authentik.test",
+  });
+
+  const testState = "state-authentik-trailing-slash";
+  capturedCookies["oidc_state"] = { value: testState };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : (input as URL).toString();
+    if (url.includes("/.well-known/openid-configuration")) {
+      return new Response(
+        JSON.stringify({
+          issuer: issuerWithSlash,
+          token_endpoint: "https://authentik.company/application/o/omniroute/token",
+          jwks_uri: "https://authentik.company/application/o/omniroute/jwks",
+        }),
+        { status: 200 }
+      );
+    }
+    if (url.includes("/token")) {
+      return new Response(JSON.stringify({ id_token: idToken }), { status: 200 });
+    }
+    if (url.includes("/jwks")) {
+      return new Response(JSON.stringify(jwks), { status: 200 });
+    }
+    return new Response("not mocked", { status: 404 });
+  }) as unknown as typeof fetch;
+
+  try {
+    const reqUrl = `http://localhost/api/auth/oidc/callback?code=auth-code-authentik&state=${testState}`;
+    const response = await callbackRoute.GET(
+      new Request(reqUrl, { headers: { "x-forwarded-proto": "http" } })
+    );
+
+    assert.equal(response.status, 307);
+    const location = response.headers.get("location");
+    assert.ok(location && location.endsWith("/dashboard"));
+
+    const authCookie = capturedCookies["auth_token"];
+    assert.ok(authCookie, "auth_token cookie must be set");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("OIDC callback handles issuer mismatch on trailing slash between settings and token (#14119)", async () => {
+  // Configured without trailing slash in settings
+  const issuerNoSlash = "https://authentik.company/application/o/omniroute";
+  const issuerWithSlash = "https://authentik.company/application/o/omniroute/";
+
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: issuerNoSlash,
+    oidcClientId: "client-oidc-authentik-mismatch",
+    oidcClientSecret: "secret-oidc-authentik-mismatch",
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: ["authentik-user-2"],
+  });
+
+  // Token signed with trailing slash (common with Authentik discovery)
+  const { idToken, jwks } = await createSignedIdToken({
+    iss: issuerWithSlash,
+    aud: "client-oidc-authentik-mismatch",
+    sub: "authentik-user-2",
+  });
+
+  const testState = "state-authentik-mismatch";
+  capturedCookies["oidc_state"] = { value: testState };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = typeof input === "string" ? input : (input as URL).toString();
+    if (url.includes("/.well-known/openid-configuration")) {
+      return new Response(
+        JSON.stringify({
+          issuer: issuerWithSlash,
+          token_endpoint: "https://authentik.company/application/o/omniroute/token",
+          jwks_uri: "https://authentik.company/application/o/omniroute/jwks",
+        }),
+        { status: 200 }
+      );
+    }
+    if (url.includes("/token")) {
+      return new Response(JSON.stringify({ id_token: idToken }), { status: 200 });
+    }
+    if (url.includes("/jwks")) {
+      return new Response(JSON.stringify(jwks), { status: 200 });
+    }
+    return new Response("not mocked", { status: 404 });
+  }) as unknown as typeof fetch;
+
+  try {
+    const reqUrl = `http://localhost/api/auth/oidc/callback?code=auth-code-mismatch&state=${testState}`;
+    const response = await callbackRoute.GET(
+      new Request(reqUrl, { headers: { "x-forwarded-proto": "http" } })
+    );
+
+    assert.equal(response.status, 307);
+    const location = response.headers.get("location");
+    assert.ok(location && location.endsWith("/dashboard"));
+
+    const authCookie = capturedCookies["auth_token"];
+    assert.ok(authCookie, "auth_token cookie must be set");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+for (const [label, subjects] of [
+  ["an empty allowlist", []],
+  ["an allowlist of blank entries", ["", "   "]],
+] as const) {
+  test(`OIDC callback refuses to sign anyone in with ${label} (not_configured)`, async () => {
+    await setupFullOidcSettings();
+    await localDb.updateSettings({ oidcAllowedSubjects: [...subjects] });
+
+    const testState = "state-empty-allowlist";
+    capturedCookies["oidc_state"] = { value: testState };
+
+    const originalFetch = globalThis.fetch;
+    let outboundCalls = 0;
+    globalThis.fetch = (async () => {
+      outboundCalls += 1;
+      throw new Error("the identity provider must not be contacted");
+    }) as typeof fetch;
+    try {
+      const response = await callbackRoute.GET(
+        new Request(`http://localhost/api/auth/oidc/callback?code=foo&state=${testState}`)
+      );
+
+      assert.equal(response.status, 307);
+      assert.ok((response.headers.get("location") || "").includes("oidc_error=not_configured"));
+      assert.equal(outboundCalls, 0);
+      assert.equal(capturedCookies["auth_token"], undefined);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}

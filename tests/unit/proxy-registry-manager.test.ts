@@ -14,7 +14,7 @@ test("auth-less host:port produces socks5 entry with generated name (default typ
   assert.equal(e.type, "socks5");
   assert.equal(e.username, "");
   assert.equal(e.password, "");
-  assert.equal(e.status, "active");
+  assert.equal("status" in e, false);
   assert.match(e.name, /127\.0\.0\.1:7897/);
 });
 
@@ -164,12 +164,9 @@ test("http://user:pass@ip:port parses correctly", () => {
 // ── Protocol header mode ───────────────────────────────────────────────────────
 
 test("protocol header sets default type for subsequent shorthand lines", () => {
-  const text = [
-    "http",
-    "1.2.3.4:8080",
-    "5.6.7.8:3128:user:pass",
-    "user:pass@9.10.11.12:443",
-  ].join("\n");
+  const text = ["http", "1.2.3.4:8080", "5.6.7.8:3128:user:pass", "user:pass@9.10.11.12:443"].join(
+    "\n"
+  );
   const { entries, errors } = parseBulkImportText(text);
   assert.equal(errors.length, 0);
   assert.equal(entries.length, 3);
@@ -179,11 +176,7 @@ test("protocol header sets default type for subsequent shorthand lines", () => {
 });
 
 test("protocol:// prefix overrides protocol header default", () => {
-  const text = [
-    "socks5",
-    "http://1.2.3.4:8080",
-    "1.2.3.4:1080",
-  ].join("\n");
+  const text = ["socks5", "http://1.2.3.4:8080", "1.2.3.4:1080"].join("\n");
   const { entries, errors } = parseBulkImportText(text);
   assert.equal(errors.length, 0);
   assert.equal(entries.length, 2);
@@ -205,11 +198,7 @@ test("protocol header mode with mixed shorthand and pipe formats", () => {
 });
 
 test("protocol header only affects lines after it", () => {
-  const text = [
-    "1.2.3.4:1080",
-    "http",
-    "1.2.3.4:8080",
-  ].join("\n");
+  const text = ["1.2.3.4:1080", "http", "1.2.3.4:8080"].join("\n");
   const { entries, errors } = parseBulkImportText(text);
   assert.equal(errors.length, 0);
   assert.equal(entries.length, 2);
@@ -241,7 +230,7 @@ test("pipe-delimited minimal NAME|HOST|PORT defaults type to socks5", () => {
   assert.equal(errors.length, 0);
   assert.equal(entries.length, 1);
   assert.equal(entries[0].type, "socks5");
-  assert.equal(entries[0].status, "active");
+  assert.equal("status" in entries[0], false);
 });
 
 test("pipe-delimited missing NAME produces error", () => {
@@ -337,4 +326,88 @@ test("bare text with no colons or pipes produces error", () => {
   assert.equal(entries.length, 0);
   assert.equal(errors.length, 1);
   assert.equal(errors[0].reason, "bulkImportErrorMissingHost");
+});
+
+// ── Status is written only when the line carries one ──────────────────────────
+
+test("pipe-delimited line with an empty STATUS column has no status key", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.3|1080|||socks5|US||note");
+  assert.equal(errors.length, 0);
+  assert.equal("status" in entries[0], false);
+});
+
+test("pipe-delimited line with STATUS=inactive keeps it", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.4|1080|||socks5|US|inactive|note");
+  assert.equal(errors.length, 0);
+  assert.equal(entries[0].status, "inactive");
+});
+
+test("pipe-delimited line with an unknown STATUS is rejected", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.5|1080|||socks5|US|foo|note");
+  assert.equal(entries.length, 0);
+  assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
+});
+
+test("pipe-delimited line with STATUS=active keeps it", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.8|1080|||socks5|US|active|note");
+  assert.equal(errors.length, 0);
+  assert.equal(entries[0].status, "active");
+});
+
+test("pipe-delimited line with STATUS=Inactive keeps lowercase inactive", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.9|1080|||socks5|US|Inactive|note");
+  assert.equal(errors.length, 0);
+  assert.equal(entries[0].status, "inactive");
+});
+
+test("pipe-delimited line with STATUS=dead is rejected", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.10|1080|||socks5|US|dead|note");
+  assert.equal(entries.length, 0);
+  assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
+});
+
+test("pipe-delimited line with STATUS=error is rejected", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.11|1080|||socks5|US|error|note");
+  assert.equal(entries.length, 0);
+  assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
+});
+
+// ── Dashboard send payload omits a missing status ───────────────────────────
+// Mirrors the item mapping in ProxyRegistryManager (bulk import send): a line
+// without a status must reach the API without a status key, so the stored one
+// is left alone. JSON.stringify drops undefined values, which is what makes an
+// `entry.status as ... | undefined` mapping safe to send as-is.
+
+function buildSendBody(entries: Array<{ [key: string]: unknown }>) {
+  const payload = {
+    items: entries.map((entry) => ({
+      name: entry.name,
+      type: entry.type,
+      host: entry.host,
+      port: entry.port,
+      username: (entry.username as string) || undefined,
+      password: (entry.password as string) || undefined,
+      region: (entry.region as string) || null,
+      notes: (entry.notes as string) || null,
+      status: entry.status as "active" | "inactive" | undefined,
+    })),
+  };
+  return JSON.parse(JSON.stringify(payload)) as {
+    items: Array<{ [key: string]: unknown }>;
+  };
+}
+
+test("send payload for a line without a status carries no status key", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.6|1080");
+  assert.equal(errors.length, 0);
+  assert.equal("status" in entries[0], false);
+  const body = buildSendBody(entries);
+  assert.equal("status" in body.items[0], false);
+});
+
+test("send payload for a line with STATUS=inactive keeps inactive", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.7|1080|||socks5|US|inactive|note");
+  assert.equal(errors.length, 0);
+  const body = buildSendBody(entries);
+  assert.equal(body.items[0].status, "inactive");
 });

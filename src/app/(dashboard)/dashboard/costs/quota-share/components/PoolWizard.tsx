@@ -17,7 +17,7 @@
  * Phase C1 — Quota Share Redesign.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/shared/components";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -172,6 +172,132 @@ function Stepper({ currentStep }: { currentStep: 1 | 2 | 3 }) {
 // Main component
 // ────────────────────────────────────────────────────────────────────────────
 
+// Pure helpers hoisted out of the component to keep its cognitive budget flat
+// (check:cognitive-complexity new-code mode).
+function pickWizardDimensions(
+  primaryConnectionId: string | undefined,
+  plans: Record<string, { dimensions: QuotaDimension[] } | undefined>,
+  catalogDimensions: QuotaDimension[] | null
+): QuotaDimension[] {
+  if (!primaryConnectionId) return [];
+  const existingPlan = plans[primaryConnectionId];
+  if (existingPlan && existingPlan.dimensions.length > 0) return [...existingPlan.dimensions];
+  return catalogDimensions ? [...catalogDimensions] : [];
+}
+
+// Pure predicate hoisted out of the component to keep its cognitive budget flat
+// (check:cognitive-complexity new-code mode): snap the group <select> to a real,
+// selectable option in create mode once groups load.
+function poolWizardNeedsGroupSnap(
+  open: boolean,
+  isEditing: boolean,
+  groups: Array<{ id: string }>,
+  groupId: string
+): boolean {
+  if (!open || isEditing || groups.length === 0) return false;
+  return groupId === "all" || !groups.some((g) => g.id === groupId);
+}
+
+type WizardSetters = {
+  setStep: Dispatch<SetStateAction<1 | 2 | 3>>;
+  setConnectionIds: Dispatch<SetStateAction<string[]>>;
+  setPoolName: Dispatch<SetStateAction<string>>;
+  setDefaultPolicy: Dispatch<SetStateAction<Policy>>;
+  setEditDimensions: Dispatch<SetStateAction<QuotaDimension[]>>;
+  setDimensionsEdited: Dispatch<SetStateAction<boolean>>;
+  setAllocations: Dispatch<SetStateAction<PoolAllocation[]>>;
+  setExclusive: Dispatch<SetStateAction<boolean>>;
+  setError: Dispatch<SetStateAction<string | null>>;
+  setSaving: Dispatch<SetStateAction<boolean>>;
+  setGroupId: Dispatch<SetStateAction<string>>;
+};
+
+// Render-time state adjustment (react-hooks/set-state-in-effect): reload the editable
+// dimensions when the primary connection changes. Lives in a hook so the component's
+// complexity budget stays flat (check:complexity new-code mode).
+function useWizardDimensionsAdjustment({
+  primaryConnectionId,
+  selectedProvider,
+  plans,
+  setEditDimensions,
+  setDimensionsEdited,
+}: {
+  primaryConnectionId: string | undefined;
+  selectedProvider: string | undefined;
+  plans: Record<string, { dimensions: QuotaDimension[] } | undefined>;
+} & Pick<WizardSetters, "setEditDimensions" | "setDimensionsEdited">) {
+  const [prevPrimaryConnectionId, setPrevPrimaryConnectionId] = useState(primaryConnectionId);
+  if (primaryConnectionId !== prevPrimaryConnectionId) {
+    setPrevPrimaryConnectionId(primaryConnectionId);
+    const catalogPlan = selectedProvider ? getKnownPlan(selectedProvider) : null;
+    setEditDimensions(
+      pickWizardDimensions(primaryConnectionId, plans, catalogPlan?.dimensions ?? null)
+    );
+    setDimensionsEdited(false);
+  }
+}
+
+// Render-time state adjustment keyed on the (open, editPool) pair — reset on close,
+// pre-fill on edit open — mirroring the old effect's deps (react-hooks/set-state-in-effect).
+function useWizardOpenCloseAdjustment({
+  open,
+  editPool,
+  editPoolExclusive,
+  initialGroupId,
+  plans,
+  ...set
+}: {
+  open: boolean;
+  editPool?: QuotaPool;
+  editPoolExclusive?: boolean;
+  initialGroupId: string;
+  plans: Record<string, { dimensions: QuotaDimension[] } | undefined>;
+} & WizardSetters) {
+  const [prevWizardKey, setPrevWizardKey] = useState<{ open: boolean; editPool?: QuotaPool }>({
+    open,
+    editPool,
+  });
+  const changed = prevWizardKey.open !== open || prevWizardKey.editPool !== editPool;
+  if (changed) setPrevWizardKey({ open, editPool });
+  if (changed && !open) {
+    // Closing: always reset to defaults.
+    set.setStep(1);
+    set.setConnectionIds([]);
+    set.setPoolName("");
+    set.setDefaultPolicy("hard");
+    set.setEditDimensions([]);
+    set.setDimensionsEdited(false);
+    set.setAllocations([]);
+    set.setExclusive(false);
+    set.setError(null);
+    set.setSaving(false);
+    set.setGroupId(initialGroupId);
+  }
+  if (changed && open && editPool) {
+    // Opening in edit mode: pre-fill from the existing pool. Preserves the pool's
+    // exclusivity so editing an exclusive pool does not silently un-exclusive it;
+    // dimensionsEdited stays false so the PUT is skipped unless the user edits.
+    const ids =
+      Array.isArray(editPool.connectionIds) && editPool.connectionIds.length > 0
+        ? editPool.connectionIds
+        : [editPool.connectionId];
+    const existingPlan = plans[ids[0]];
+    set.setConnectionIds(ids);
+    set.setPoolName(editPool.name);
+    set.setGroupId(editPool.groupId ?? initialGroupId);
+    set.setAllocations(editPool.allocations ?? []);
+    set.setExclusive(editPoolExclusive ?? false);
+    set.setEditDimensions(
+      existingPlan && existingPlan.dimensions.length > 0 ? [...existingPlan.dimensions] : []
+    );
+    set.setDimensionsEdited(false);
+    set.setError(null);
+    set.setSaving(false);
+    set.setStep(1);
+  }
+  // When open && !editPool (create mode): the close-reset above already restored defaults.
+}
+
 export default function PoolWizard({
   open,
   onClose,
@@ -248,83 +374,36 @@ export default function PoolWizard({
     [connections, existingPoolConnectionIds, lockedProvider]
   );
 
-  // ── Load dimensions when primary connection changes ───────────────────────
-
-  useEffect(() => {
-    if (!primaryConnectionId) {
-      setEditDimensions([]);
-      setDimensionsEdited(false);
-      return;
-    }
-    const existingPlan = plans[primaryConnectionId];
-    if (existingPlan && existingPlan.dimensions.length > 0) {
-      setEditDimensions([...existingPlan.dimensions]);
-    } else {
-      const catalogPlan = selectedConn ? getKnownPlan(selectedConn.provider) : null;
-      setEditDimensions(catalogPlan ? [...catalogPlan.dimensions] : []);
-    }
-    setDimensionsEdited(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [primaryConnectionId]);
-
-  // ── Reset wizard on open/close ────────────────────────────────────────────
-
-  useEffect(() => {
-    if (!open) {
-      // Closing: always reset to defaults.
-      setStep(1);
-      setConnectionIds([]);
-      setPoolName("");
-      setDefaultPolicy("hard");
-      setEditDimensions([]);
-      setDimensionsEdited(false);
-      setAllocations([]);
-      setExclusive(false);
-      setError(null);
-      setSaving(false);
-      setGroupId(initialGroupId);
-    } else if (editPool) {
-      // Opening in edit mode: pre-fill from the existing pool.
-      const ids =
-        Array.isArray(editPool.connectionIds) && editPool.connectionIds.length > 0
-          ? editPool.connectionIds
-          : [editPool.connectionId];
-      setConnectionIds(ids);
-      setPoolName(editPool.name);
-      setGroupId(editPool.groupId ?? initialGroupId);
-      setAllocations(editPool.allocations ?? []);
-      // Preserve the pool's current exclusivity state so editing an exclusive pool
-      // doesn't silently un-exclusive it. Falls back to false only when not provided.
-      setExclusive(editPoolExclusive ?? false);
-      // Pre-load plan dimensions for the primary connection (same as create path).
-      // dimensionsEdited stays false so the PUT is skipped unless the user actively edits.
-      const primaryId = ids[0];
-      const existingPlan = plans[primaryId];
-      if (existingPlan && existingPlan.dimensions.length > 0) {
-        setEditDimensions([...existingPlan.dimensions]);
-      } else {
-        setEditDimensions([]);
-      }
-      setDimensionsEdited(false);
-      setError(null);
-      setSaving(false);
-      setStep(1);
-    }
-    // When open && !editPool (create mode): the existing create-reset on close handles defaults.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, editPool, initialGroupId]);
-
-  // Keep the group <select> on a real, selectable option: if the inherited page
-  // filter was "all" (or an unknown id), snap to the first real group once groups
-  // load. Prevents persisting groupId="all" (which renders under no group → B1).
-  useEffect(() => {
-    if (!open || editPool) return;
-    if (groups.length === 0) return;
-    if (groupId === "all" || !groups.some((g) => g.id === groupId)) {
-      setGroupId(groups[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, editPool, groups]);
+  useWizardDimensionsAdjustment({
+    primaryConnectionId,
+    selectedProvider: selectedConn?.provider,
+    plans,
+    setEditDimensions,
+    setDimensionsEdited,
+  });
+  useWizardOpenCloseAdjustment({
+    open,
+    editPool,
+    editPoolExclusive,
+    initialGroupId,
+    plans,
+    setStep,
+    setConnectionIds,
+    setPoolName,
+    setDefaultPolicy,
+    setEditDimensions,
+    setDimensionsEdited,
+    setAllocations,
+    setExclusive,
+    setError,
+    setSaving,
+    setGroupId,
+  });
+  // Keep the group <select> on a real, selectable option (create mode) — self-
+  // extinguishing state adjustment during render (react-hooks/set-state-in-effect).
+  if (poolWizardNeedsGroupSnap(open, Boolean(editPool), groups, groupId)) {
+    setGroupId(groups[0].id);
+  }
 
   // ── Step 2 — dimension editors ────────────────────────────────────────────
 
@@ -399,6 +478,9 @@ export default function PoolWizard({
     const name = poolName.trim();
     if (connectionIds.length === 0 || !name) return [];
 
+    const group = groups.find((g) => g.id === groupId);
+    const effectiveGroupName = group?.name || name;
+
     const MAX_PER_PROVIDER = 3;
     return connectionIds
       .map((cid) => {
@@ -407,11 +489,11 @@ export default function PoolWizard({
         const allModels = getPreviewModels(conn.provider);
         const names = allModels
           .slice(0, MAX_PER_PROVIDER)
-          .map((m) => quotaModelName(name, conn.provider, m));
+          .map((m) => quotaModelName(effectiveGroupName, conn.provider, m));
         return { provider: conn.provider, names, totalModels: allModels.length };
       })
       .filter(Boolean) as Array<{ provider: string; names: string[]; totalModels: number }>;
-  }, [connectionIds, connections, poolName]);
+  }, [connectionIds, connections, poolName, groupId, groups]);
 
   // Flat list (for legacy single-provider path, kept for step-3 rendering simplicity)
   const previewNames = useMemo(

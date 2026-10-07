@@ -66,7 +66,7 @@ function wireModel(calls: FetchCall[]): string {
 
 test("#10809: command-code/mimo-v2.5 wire model is normalized to xiaomi/mimo-v2.5", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "command-code/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -77,7 +77,7 @@ test("#10809: command-code/mimo-v2.5 wire model is normalized to xiaomi/mimo-v2.
 
 test("#10809: cmd/mimo-v2.5 (alias prefix) is also normalized", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "cmd/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -88,7 +88,7 @@ test("#10809: cmd/mimo-v2.5 (alias prefix) is also normalized", async () => {
 
 test("#10809: already vendor-prefixed wire ids pass through unchanged", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "command-code/deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -104,7 +104,7 @@ test("#10809: already vendor-prefixed wire ids pass through unchanged", async ()
 
 test("image_url parts pass through unchanged (text + image preserved)", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "MiniMaxAI/MiniMax-M3",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -125,15 +125,12 @@ test("image_url parts pass through unchanged (text + image preserved)", async ()
   assert.equal(content.length, 2);
   assert.equal(content[0].type, "text");
   assert.equal(content[1].type, "image_url", "image_url part preserved as-is");
-  assert.equal(
-    (content[1].image_url as { url: string }).url,
-    "data:image/png;base64,iVBORw0KGgo="
-  );
+  assert.equal((content[1].image_url as { url: string }).url, "data:image/png;base64,iVBORw0KGgo=");
 });
 
 test("Anthropic Messages-style source image blocks pass through unchanged", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "xiaomi/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -161,12 +158,15 @@ test("Anthropic Messages-style source image blocks pass through unchanged", asyn
   assert.equal(content.length, 2, "text + image parts preserved");
   assert.equal(content[1].type, "image");
   assert.equal((content[1].source as { type: string }).type, "base64");
-  assert.equal((content[1].source as { data: string }).data, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+  assert.equal(
+    (content[1].source as { data: string }).data,
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+  );
 });
 
 test("Anthropic source.url image block passes through unchanged", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "xiaomi/mimo-v2.5",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -191,7 +191,7 @@ test("Anthropic source.url image block passes through unchanged", async () => {
 
 test("multiple image parts are all preserved", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "minimax-m3",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -217,7 +217,7 @@ test("multiple image parts are all preserved", async () => {
 
 test("plain string content passes through unchanged", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "minimax-m3",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -233,7 +233,7 @@ test("text-only model still forwards image parts (passthrough, no CLI stripping)
   // The /provider/v1 OpenAI surface accepts image content for any model id; the
   // executor forwards content untouched, so there is no text-only stripping.
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },

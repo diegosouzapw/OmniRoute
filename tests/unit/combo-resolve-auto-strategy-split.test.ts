@@ -1,7 +1,11 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveAutoStrategyOrder } from "@omniroute/open-sse/services/combo/resolveAutoStrategy.ts";
+import {
+  evaluateAutoCandidates,
+  resolveAutoStrategyOrder,
+} from "@omniroute/open-sse/services/combo/resolveAutoStrategy.ts";
+import { DEFAULT_WEIGHTS } from "@omniroute/open-sse/services/autoCombo/scoring.ts";
 import { resetDbInstance } from "@/lib/db/core.ts";
 
 // resolveAutoStrategyOrder loads the LKGP via the DB singleton (dynamic import);
@@ -85,6 +89,44 @@ test("all candidates quota-cutoff-blocked -> early 429 Response", async () => {
     assert.ok(result.earlyResponse instanceof Response);
     assert.equal(result.earlyResponse.status, 429);
   }
+});
+
+test("candidate evaluation is deterministic and does not mutate builder-owned candidates", async () => {
+  const candidates = [
+    {
+      kind: "model",
+      stepId: "s1",
+      executionKey: "openai>gpt-4o@account-a",
+      modelStr: "gpt-4o",
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "account-a",
+      quotaRemaining: 80,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      latencyStdDev: 10,
+      errorRate: 0,
+    },
+  ];
+  const before = structuredClone(candidates);
+  const options = {
+    targets: [target("openai", "gpt-4o")],
+    comboName: "autoc",
+    body: { prompt_cache_key: "pure-evaluation", messages: [] },
+    taskType: "default",
+    weights: DEFAULT_WEIGHTS,
+    buildAutoCandidates: (async () => candidates) as never,
+  };
+
+  const first = await evaluateAutoCandidates(options);
+  const second = await evaluateAutoCandidates(options);
+
+  assert.deepEqual(first.scoredTargets, second.scoredTargets);
+  assert.deepEqual(candidates, before);
+  assert.notEqual(first.candidates[0], candidates[0]);
+  assert.equal(first.scoredTargets[0].factors.quota, 0.8);
 });
 
 test("cache affinity scores expanded auto account candidates directly", async () => {

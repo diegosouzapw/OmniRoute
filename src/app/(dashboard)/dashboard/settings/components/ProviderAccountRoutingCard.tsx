@@ -16,12 +16,27 @@ type Props = {
 };
 
 const STRATEGY_OPTIONS = ACCOUNT_FALLBACK_STRATEGY_VALUES.filter((v) =>
-  ["fill-first", "round-robin", "priority", "p2c", "random", "least-used"].includes(v)
+  ["fill-first", "round-robin", "priority", "p2c", "random", "least-used", "expiry-first"].includes(
+    v
+  )
 );
 
 function clampProviderStickyLimit(raw: string): number {
   const val = parseInt(raw, 10);
-  return Math.min(10, Math.max(1, Number.isNaN(val) ? 3 : val));
+  return Math.min(1000, Math.max(1, Number.isNaN(val) ? 3 : val));
+}
+
+async function fetchProviderOverride(
+  providerKey: string
+): Promise<{ override: ProviderStrategyOverride | undefined } | null> {
+  const res = await fetch("/api/settings", { cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return {
+    override: ((data?.providerStrategies || {}) as Record<string, ProviderStrategyOverride>)[
+      providerKey
+    ],
+  };
 }
 
 /** Loads/saves the per-provider account-routing override. Extracted out of the
@@ -31,22 +46,28 @@ function useProviderAccountRoutingState(providerKey: string) {
   const [stickyLimit, setStickyLimit] = useState("3");
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    const res = await fetch("/api/settings", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = await res.json();
-    const override = ((data?.providerStrategies || {}) as Record<string, ProviderStrategyOverride>)[
-      providerKey
-    ];
+  const applyOverride = useCallback((override: ProviderStrategyOverride | undefined) => {
     setStrategy(override?.fallbackStrategy || "");
     setStickyLimit(
       override?.stickyRoundRobinLimit != null ? String(override.stickyRoundRobinLimit) : ""
     );
-  }, [providerKey]);
+  }, []);
+
+  const load = useCallback(async () => {
+    const result = await fetchProviderOverride(providerKey);
+    if (result) applyOverride(result.override);
+  }, [applyOverride, providerKey]);
 
   useEffect(() => {
-    load().catch(console.error);
-  }, [load]);
+    let cancelled = false;
+    void (async () => {
+      const result = await fetchProviderOverride(providerKey);
+      if (!cancelled && result) applyOverride(result.override);
+    })().catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [applyOverride, providerKey]);
 
   const save = useCallback(
     async (nextStrategy: string, nextSticky: string) => {
@@ -84,7 +105,7 @@ function useProviderAccountRoutingState(providerKey: string) {
         setBusy(false);
       }
     },
-    [providerKey]
+    [load, providerKey]
   );
 
   return { strategy, setStrategy, stickyLimit, setStickyLimit, busy, save };
@@ -124,7 +145,7 @@ export default function ProviderAccountRoutingCard({ providerKey, connectionCoun
             label={t("stickyLimit")}
             type="number"
             min={1}
-            max={10}
+            max={1000}
             disabled={busy}
             value={stickyLimit || "3"}
             onChange={(e) => setStickyLimit(e.target.value)}

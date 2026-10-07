@@ -90,9 +90,17 @@ test("persistOAuthConnection still merges a re-login for the SAME Codex chatgptU
     providerSpecificData: { chatgptUserId: "user-solo" },
   });
 
-  assert.equal(second.id, first.id, "re-authenticating the same Codex user must update the same row");
+  assert.equal(
+    second.id,
+    first.id,
+    "re-authenticating the same Codex user must update the same row"
+  );
 
   const rows = await providersDb.getProviderConnections({ provider: "codex" });
-  assert.equal(rows.length, 1, "no duplicate connection should be created for the same chatgptUserId");
+  assert.equal(
+    rows.length,
+    1,
+    "no duplicate connection should be created for the same chatgptUserId"
+  );
   assert.equal(rows[0]?.accessToken, "token-second", "the row must reflect the latest tokens");
 });

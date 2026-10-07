@@ -36,12 +36,12 @@ test("thinking.levels is parsed into supportedThinkingEfforts", () => {
   assert.deepEqual(detectSupportedThinkingEfforts(record), ["medium", "high"]);
 });
 
-test("duplicates are deduped, max canonicalizes to xhigh, unknown native tier retained", () => {
+test("duplicates are deduped, max is canonical, unknown native tier retained", () => {
   const record = {
     id: "model-d",
     supported_reasoning_levels: [{ effort: "max" }, { effort: "max" }, { effort: "ultra" }],
   };
-  assert.deepEqual(detectSupportedThinkingEfforts(record), ["xhigh", "ultra"]);
+  assert.deepEqual(detectSupportedThinkingEfforts(record), ["max", "ultra"]);
 });
 
 test("a malformed entry inside an otherwise-valid array is dropped, the rest survive, no throw", () => {
@@ -196,9 +196,8 @@ test("metadata.reasoning.supported_efforts (neuralwatt shape) is parsed into sup
       },
     },
   ]);
-  // max canonicalizes to xhigh through the shared discovery normalization,
-  // matching every other tier-array source.
-  assert.deepEqual(model.supportedThinkingEfforts, ["xhigh", "high", "none"]);
+  // `max` is a first-class canonical tier (#11875) and is preserved as-is.
+  assert.deepEqual(model.supportedThinkingEfforts, ["max", "high", "none"]);
 });
 
 test("metadata.reasoning.supported_efforts does not override a top-level declared tier list", () => {

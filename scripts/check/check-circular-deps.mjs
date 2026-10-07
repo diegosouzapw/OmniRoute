@@ -40,7 +40,7 @@ const ENTRYPOINTS = [
   "src/lib/db/core.ts",
 ];
 
-const DPDM_BIN = resolve(projectRoot, "node_modules/.bin/dpdm");
+const DPDM_BIN = resolve(projectRoot, "node_modules/dpdm/lib/bin/dpdm.js");
 const TSCONFIG = resolve(projectRoot, "tsconfig.json");
 
 /**

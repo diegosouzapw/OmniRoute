@@ -35,7 +35,12 @@ test("assembleStandalone repairs a hollow externalized package dir in the nested
   const standaloneDir = path.join(distDir, "standalone");
   fs.mkdirSync(standaloneDir, { recursive: true });
   fs.writeFileSync(path.join(standaloneDir, "server.js"), "// server");
-  const hollowNestedPkgDir = path.join(standaloneDir, relDistDir, "node_modules", "some-nested-pkg");
+  const hollowNestedPkgDir = path.join(
+    standaloneDir,
+    relDistDir,
+    "node_modules",
+    "some-nested-pkg"
+  );
   fs.mkdirSync(hollowNestedPkgDir, { recursive: true });
 
   assembleStandalone({
@@ -45,7 +50,13 @@ test("assembleStandalone repairs a hollow externalized package dir in the nested
     copyNatives: true,
   });
 
-  const repairedIndexPath = path.join(outDir, relDistDir, "node_modules", "some-nested-pkg", "index.js");
+  const repairedIndexPath = path.join(
+    outDir,
+    relDistDir,
+    "node_modules",
+    "some-nested-pkg",
+    "index.js"
+  );
   assert.ok(
     fs.existsSync(repairedIndexPath),
     "hollow nested externalized package dir must be repaired with the real source package (index.js present)"

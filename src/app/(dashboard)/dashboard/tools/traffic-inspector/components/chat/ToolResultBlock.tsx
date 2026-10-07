@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { JsonViewer } from "../shared/JsonViewer";
+import { shortCallId } from "@/shared/utils/formatting";
 
 interface ToolResultBlockProps {
   toolUseId: string;
@@ -22,7 +23,9 @@ export function ToolResultBlock({ toolUseId, content }: ToolResultBlockProps) {
           {expanded ? "expand_less" : "expand_more"}
         </span>
         <span className="text-green-300 font-mono font-medium text-xs">tool_result</span>
-        <span className="text-text-muted text-xs font-mono ml-auto">{toolUseId.slice(0, 8)}</span>
+        <span className="text-text-muted text-xs font-mono ml-auto" title={toolUseId}>
+          {shortCallId(toolUseId)}
+        </span>
       </button>
       {expanded && (
         <div className="mt-2 border-t border-green-500/20 pt-2">

@@ -37,6 +37,25 @@ describe("bounded request feature extraction", () => {
     }
   });
 
+  it("measures admission bodies beyond the default size-estimator limit", () => {
+    const body = {
+      messages: Array.from({ length: 200 }, () => ({ role: "user", content: "x".repeat(10_000) })),
+    };
+    const features = extractAdmissionCostFeatures(body);
+
+    assert.ok((features.bodyBytes ?? 0) > 1_000_000);
+    assert.ok((features.estimatedInputTokens ?? 0) > 250_000);
+  });
+
+  it("uses the active admission cost budget when measuring bodies", () => {
+    const body = { payload: "x".repeat(17_000_000) };
+    const features = extractAdmissionCostFeatures(body, {
+      cost: { bodyBytesPerUnit: 1_000_000, maxRequestCost: 20 },
+    });
+
+    assert.ok((features.bodyBytes ?? 0) > 16_384_000);
+  });
+
   it("extracts production-realistic Chat, Responses, Gemini, and Antigravity shapes", () => {
     // OpenAI Chat Completions — stream omitted defaults false (higher non-stream class).
     const chat = extractAdmissionCostFeatures({
@@ -146,7 +165,7 @@ describe("bounded request feature extraction", () => {
   it("bounds tool scans and never touches entries beyond the budget (conservative count)", () => {
     // Huge leading string makes estimateSizeFast byte-exit before walking tools,
     // so only countTools can touch the tools proxy — proving its scan bound alone.
-    const sizePad = "x".repeat(300_000);
+    const sizePad = "x".repeat(17_000_000);
 
     let accesses = 0;
     const tools = new Proxy([] as unknown[], {

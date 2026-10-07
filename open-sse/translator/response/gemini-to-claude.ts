@@ -6,6 +6,7 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../../services/geminiThoughtSignatureStore.ts";
+import { splitMarkdownBoundary } from "../helpers/markdownBoundary.ts";
 
 function normalizeToolName(name: string, toolNameMap?: Map<string, string> | null): string {
   return restoreClaudeToolName(name, toolNameMap);
@@ -95,6 +96,33 @@ function extractXmlInvokeBlocks(
   return { cleaned, toolCalls };
 }
 
+// Helper: flush any buffered Markdown boundary text before closing the open text block
+function flushMarkdownBuffer(state, results) {
+  const buffered = state._markdownBuffer;
+  state._markdownCodeSpanRun = 0;
+  state._markdownTrailingBackslash = false;
+  state._markdownFenceRun = 0;
+  state._markdownFenceOpening = false;
+  state._markdownFenceClosingRun = 0;
+  state._markdownLineIndent = 0;
+  if (!buffered) return;
+  state._markdownBuffer = "";
+  if (state.openTextBlockIdx === null) {
+    const idx = state.contentBlockIndex++;
+    state.openTextBlockIdx = idx;
+    results.push({
+      type: "content_block_start",
+      index: idx,
+      content_block: { type: "text", text: "" },
+    });
+  }
+  results.push({
+    type: "content_block_delta",
+    index: state.openTextBlockIdx,
+    delta: { type: "text_delta", text: buffered },
+  });
+}
+
 /**
  * Direct Gemini → Claude response translator.
  * Converts Gemini streaming chunks directly to Claude Messages API
@@ -122,6 +150,13 @@ export function geminiToClaudeResponse(chunk, state) {
     state.contentBlockIndex = 0;
     // Track open text block so we can keep it open across chunks
     state.openTextBlockIdx = null;
+    state._markdownBuffer = "";
+    state._markdownCodeSpanRun = 0;
+    state._markdownTrailingBackslash = false;
+    state._markdownFenceRun = 0;
+    state._markdownFenceOpening = false;
+    state._markdownFenceClosingRun = 0;
+    state._markdownLineIndent = 0;
 
     results.push({
       type: "message_start",
@@ -153,6 +188,7 @@ export function geminiToClaudeResponse(chunk, state) {
       // Thinking content → thinking block (always open+close per chunk)
       if (isThought && part.text) {
         // Close any open text block first
+        flushMarkdownBuffer(state, results);
         if (state.openTextBlockIdx !== null) {
           results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
           state.openTextBlockIdx = null;
@@ -186,6 +222,7 @@ export function geminiToClaudeResponse(chunk, state) {
       // Function call → tool_use block
       if (part.functionCall) {
         // Close any open text block first
+        flushMarkdownBuffer(state, results);
         if (state.openTextBlockIdx !== null) {
           results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
           state.openTextBlockIdx = null;
@@ -250,6 +287,7 @@ export function geminiToClaudeResponse(chunk, state) {
 
         // Process any extracted text-format tool calls (<tool_call>, TOOL_CALL, <invoke>)
         if (textToolCalls.length > 0) {
+          flushMarkdownBuffer(state, results);
           if (state.openTextBlockIdx !== null) {
             results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
             state.openTextBlockIdx = null;
@@ -290,21 +328,57 @@ export function geminiToClaudeResponse(chunk, state) {
         }
 
         if (cleaned) {
-          // Open a new text block only if none is open yet
-          if (state.openTextBlockIdx === null) {
-            const idx = state.contentBlockIndex++;
-            state.openTextBlockIdx = idx;
+          // Rehydrate buffered Markdown boundary prefix before emitting.
+          const bufferedPrefix = state._markdownBuffer || "";
+          state._markdownBuffer = "";
+          const combinedText = bufferedPrefix + cleaned;
+          const {
+            emit: textToEmit,
+            hold: textToHold,
+            backtickRun,
+            trailingBackslash,
+            fenceRun,
+            fenceOpening,
+            fenceClosingRun,
+            lineIndent,
+          } = splitMarkdownBoundary(
+            combinedText,
+            state._markdownCodeSpanRun || 0,
+            state._markdownTrailingBackslash === true,
+            state._markdownFenceRun || 0,
+            state._markdownFenceOpening === true,
+            state._markdownFenceClosingRun || 0,
+            state._markdownLineIndent || 0,
+          );
+          state._markdownBuffer = textToHold;
+          state._markdownCodeSpanRun = backtickRun || 0;
+          state._markdownTrailingBackslash = trailingBackslash === true;
+          state._markdownFenceRun = fenceRun || 0;
+          state._markdownFenceOpening = fenceOpening === true;
+          state._markdownFenceClosingRun = fenceClosingRun || 0;
+          state._markdownLineIndent = lineIndent || 0;
+
+          // Fully-held chunk (e.g. "`" + "code" -> whole text deferred to the
+          // boundary buffer): emitting an empty delta here opens a text block
+          // and fires a zero-length text_delta for nothing. The held content
+          // flushes on the next chunk; skip the event pair entirely.
+          if (textToEmit) {
+            // Open a new text block only if none is open yet
+            if (state.openTextBlockIdx === null) {
+              const idx = state.contentBlockIndex++;
+              state.openTextBlockIdx = idx;
+              results.push({
+                type: "content_block_start",
+                index: idx,
+                content_block: { type: "text", text: "" },
+              });
+            }
             results.push({
-              type: "content_block_start",
-              index: idx,
-              content_block: { type: "text", text: "" },
+              type: "content_block_delta",
+              index: state.openTextBlockIdx,
+              delta: { type: "text_delta", text: textToEmit },
             });
           }
-          results.push({
-            type: "content_block_delta",
-            index: state.openTextBlockIdx,
-            delta: { type: "text_delta", text: cleaned },
-          });
         }
       }
     }
@@ -323,7 +397,7 @@ export function geminiToClaudeResponse(chunk, state) {
       typeof usageMeta.cachedContentTokenCount === "number" ? usageMeta.cachedContentTokenCount : 0;
 
     state.usage = {
-      input_tokens: inputTokens,
+      input_tokens: Math.max(0, inputTokens - cachedTokens),
       output_tokens: candidatesTokens + thoughtsTokens,
     };
     if (cachedTokens > 0) {
@@ -334,6 +408,7 @@ export function geminiToClaudeResponse(chunk, state) {
   // ── Finish reason → close open blocks + message_delta + message_stop ──
   if (candidate.finishReason) {
     // Close any still-open text block before finishing
+    flushMarkdownBuffer(state, results);
     if (state.openTextBlockIdx !== null) {
       results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
       state.openTextBlockIdx = null;

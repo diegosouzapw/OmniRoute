@@ -56,6 +56,7 @@ export default function Modal({
   const t = useTranslations("common");
   const titleId = useId();
   const dialogRef = useRef(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   const sizes = {
     sm: "max-w-sm",
@@ -88,6 +89,22 @@ export default function Modal({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
+  // Return keyboard users to the control that opened the dialog.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const activeElement = document.activeElement;
+    previouslyFocusedRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+
+    return () => {
+      const previouslyFocused = previouslyFocusedRef.current;
+      previouslyFocusedRef.current = null;
+      if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [isOpen]);
+
   // Focus trap
   useEffect(() => {
     if (!isOpen || !dialogRef.current) return;
@@ -98,9 +115,9 @@ export default function Modal({
 
     // Focus first focusable element
     const firstFocusable = dialog.querySelector(focusableSelector);
-    if (firstFocusable) {
-      setTimeout(() => firstFocusable.focus(), 50);
-    }
+    const focusTimer = firstFocusable
+      ? window.setTimeout(() => firstFocusable.focus(), 50)
+      : undefined;
 
     const handleTab = (e) => {
       if (e.key !== "Tab") return;
@@ -121,7 +138,10 @@ export default function Modal({
     };
 
     dialog.addEventListener("keydown", handleTab);
-    return () => dialog.removeEventListener("keydown", handleTab);
+    return () => {
+      if (focusTimer !== undefined) window.clearTimeout(focusTimer);
+      dialog.removeEventListener("keydown", handleTab);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -255,7 +275,7 @@ export function ConfirmModal({
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             {resolvedCancelText}
           </Button>
-          <Button variant={variant} onClick={onConfirm} loading={loading}>
+          <Button variant={variant} onClick={() => void onConfirm()} loading={loading}>
             {resolvedConfirmText}
           </Button>
         </>

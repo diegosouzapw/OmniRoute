@@ -131,11 +131,7 @@ test("cloudSync returns a generic error when the API responds with a non-OK stat
   const originalConsoleLog = console.log;
   const logged = [];
   console.log = (...args) =>
-    logged.push(
-      args
-        .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)))
-        .join(" ")
-    );
+    logged.push(args.map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x))).join(" "));
   globalThis.fetch = async () =>
     new Response("upstream unavailable", {
       status: 503,

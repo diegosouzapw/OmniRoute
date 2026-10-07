@@ -27,10 +27,12 @@ function insertTestMemory(
   content: string,
   key: string
 ): void {
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO memories (id, api_key_id, type, key, content, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-  `).run(id, "test-api-key", "factual", key, content);
+  `
+  ).run(id, "test-api-key", "factual", key, content);
 }
 
 async function resetStorage() {

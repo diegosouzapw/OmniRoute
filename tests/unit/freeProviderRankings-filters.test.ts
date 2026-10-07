@@ -363,3 +363,63 @@ test("attachProviderUsage: inputs are never mutated", () => {
   assert.notEqual(out[0].reliability, rankings[0].reliability);
   assert.equal(JSON.stringify(rankings), before);
 });
+
+test("no sortBy => the ELO order is untouched", async () => {
+  const { computeFreeProviderRankings } = await import("../../src/lib/freeProviderRankings.ts");
+  const withoutParam = await computeFreeProviderRankings(undefined, 50);
+  const explicitElo = await computeFreeProviderRankings(undefined, 50, { sortBy: "elo" });
+  assert.deepEqual(
+    explicitElo.map((r) => r.id),
+    withoutParam.map((r) => r.id)
+  );
+});
+
+test("sortBy=reliability pulls the usage aggregate even without withUsage", async () => {
+  const { computeFreeProviderRankings } = await import("../../src/lib/freeProviderRankings.ts");
+  const ranked = await computeFreeProviderRankings(undefined, 50, { sortBy: "reliability" });
+  assert.ok(Array.isArray(ranked));
+  assert.ok(
+    ranked.every((r, i) => {
+      const rate = r.reliability?.usage?.successRate ?? null;
+      const next = ranked[i + 1]?.reliability?.usage?.successRate ?? null;
+      return !(rate === null && next !== null);
+    }),
+    "a provider without a stated rate must never precede one that has one"
+  );
+});
+
+test("sortBy=reliability with limit: reliability order runs before the slice", async () => {
+  const { sortRankingsByReliability } = await import("../../src/lib/freeProviderRankingsUsage.ts");
+  const { filterRankingsByAuthType, sortRankingsAuthTypeFirst } =
+    await import("../../src/lib/freeProviderRankingsAuthType.ts");
+  // Mirrors page wiring: reliability first, then auth-type grouping (stable sort preserves inner order).
+  function ranking(id: string, category: string, elo: number, rate: number | null | undefined) {
+    return {
+      id,
+      name: id,
+      category,
+      topModel: { id: `${id}/m`, name: "M", score: elo },
+      averageScore: elo,
+      modelCount: 1,
+      reliability: rate === undefined ? undefined : { connections: [], state: "healthy", usage: { requests: 100, successes: rate === null ? 0 : Math.round(rate * 100), successRate: rate, avgLatencyMs: null, lastRequestAt: null, windowHours: 24 } },
+    } as unknown as import("../../src/lib/freeProviderRankings.ts").FreeProviderRanking;
+  }
+  // 4 inputs: 2 types × 2 rates, ELO not aligned with rate — so raw order != reliability order.
+  // filterRankingsByAuthType is a no-op for "" (empty) but keeps the shape explicit.
+  const input = filterRankingsByAuthType(
+    [ranking("noauth-low", "noauth", 1000, 0.95), ranking("apikey-low", "apikey", 1200, 0.95), ranking("apikey-high", "apikey", 1500, 0.4), ranking("noauth-high", "noauth", 1400, 0.4)],
+    ""
+  );
+  // On the API, `limit` applies after ordering. Here we prove the same by slicing the ordered result.
+  const ordered = sortRankingsByReliability(input);
+  const sliced = ordered.slice(0, 2);
+  // 0.95 providers first; equal rate falls back to ELO (1200 before 1000), not input order.
+  assert.deepEqual(sliced.map((r) => r.id), ["apikey-low", "noauth-low"], "top-2 by reliability, ELO on equal rate");
+  assert.equal(sliced.every((r) => r.reliability?.usage?.successRate !== null), true);
+  // Combined-sort stability: reliability inside each auth-type group.
+  const combined = sortRankingsAuthTypeFirst(ordered);
+  const noauthRank = combined.filter((r) => r.category === "noauth").map((r) => r.id);
+  const apikeyRank = combined.filter((r) => r.category === "apikey").map((r) => r.id);
+  assert.deepEqual(noauthRank, ["noauth-low", "noauth-high"], "within noauth, higher rate stays first");
+  assert.deepEqual(apikeyRank, ["apikey-low", "apikey-high"], "within apikey, higher rate stays first");
+});

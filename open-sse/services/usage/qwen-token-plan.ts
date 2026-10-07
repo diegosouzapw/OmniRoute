@@ -11,6 +11,7 @@
 
 import {
   fetchQwenTokenPlanQuota,
+  resolveConsoleSite,
   QWEN_TOKEN_PLAN_WINDOW_5H,
   QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
   type QwenTokenPlanQuota,
@@ -54,13 +55,26 @@ export async function getQwenTokenPlanUsage(
     });
 
     if (!quota) {
+      // The same plan is sold through two consoles with different portals, gateway
+      // hosts and login tickets — instructions for the wrong console produce a cookie
+      // the gateway rejects (console mismatch → NotLogined). With no cookie stored the
+      // console is inferred from the provider id, same rule the fetcher applies.
+      const site = resolveConsoleSite("", provider);
+      const guide =
+        site.consoleSite === "ALIYUN"
+          ? "Get it at modelstudio.console.alibabacloud.com (logged in): F12 › Network, " +
+            "reload, filter by api.json, click a request to " +
+            "bailian-singapore-cs.alibabacloud.com and copy the whole Cookie value from " +
+            "Request Headers (it contains login_aliyunid_ticket)."
+          : "Get it at home.qwencloud.com › Billing › Subscription (logged in): F12 › " +
+            "Network, reload, filter by api.json, click a request to " +
+            "cs-data.qwencloud.com and copy the whole Cookie value from Request Headers " +
+            "(it contains login_qwencloud_ticket).";
+      const brand = site.consoleSite === "ALIYUN" ? "Alibaba" : "Qwen";
       return {
         message:
-          "Qwen Token Plan connected. Quota needs a console session cookie — the inference " +
-          "API key cannot read it. Get it at home.qwencloud.com › Billing › Subscription " +
-          "(logged in): F12 › Network, reload, filter by api.json, click a request to " +
-          "cs-data.qwencloud.com and copy the whole Cookie value from Request Headers " +
-          "(it contains login_qwencloud_ticket). Paste it into the connection's " +
+          `${brand} Token Plan connected. Quota needs a console session cookie — the ` +
+          `inference API key cannot read it. ${guide} Paste it into the connection's ` +
           "'Qwen / Model Studio console cookie' field, or set QWEN_CLOUD_COOKIE. " +
           "The cookie expires with the browser session — re-paste it when this message returns.",
       };

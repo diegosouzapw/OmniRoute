@@ -72,3 +72,55 @@ test("explicit supportsVision=false is respected (text-only override)", () => {
   const fields = helper(entry, "alias/pixtral-12b", "pixtral-12b");
   assert.equal(fields, null);
 });
+
+// ─── catalog.ts:1613/1569 vision-branch narrowing (TS2367 fix) ──────────────
+// The production expression `!modelType || modelType === "chat"` was reduced to
+// `!modelType` because classifyModelSupportedEndpoints() can never return
+// "chat". These asserts pin that invariant so a future union widening forces a
+// revisit of the call sites instead of silently changing /v1/models output.
+
+test("classifyModelSupportedEndpoints never yields type 'chat'", async () => {
+  const { classifyModelSupportedEndpoints } =
+    await import("../../src/shared/constants/modelSupportedEndpoints.ts");
+  const endpointSets = [
+    [],
+    ["chat"],
+    ["chat", "completions"],
+    ["responses"],
+    ["embeddings"],
+    ["rerank"],
+    ["images"],
+    ["videos"],
+    ["video"],
+    ["audio-speech"],
+    ["audio-transcriptions"],
+    ["audio"],
+    ["chat", "images"],
+    ["fim"],
+    ["totally-unknown-endpoint"],
+  ];
+  for (const endpoints of endpointSets) {
+    const { type } = classifyModelSupportedEndpoints(endpoints);
+    assert.notEqual(
+      type,
+      "chat" as never,
+      `type must never be "chat" for [${endpoints.join(", ")}] — the catalog vision branch relies on !modelType covering chat-type models`
+    );
+  }
+});
+
+test("custom chat-type models keep their vision fields after the TS2367 narrowing", async () => {
+  const { classifyModelSupportedEndpoints } =
+    await import("../../src/shared/constants/modelSupportedEndpoints.ts");
+  const helper = getCustomVisionCapabilityFields as Helper;
+  // A user-registered custom model with no specialty endpoints classifies as
+  // plain chat (modelType === undefined) and checked "vision-capable".
+  const classification = classifyModelSupportedEndpoints(["chat"]);
+  const modelType = classification.type; // undefined by the invariant above
+  const fields = helper({ supportsVision: true }, "my-vision-llm");
+  assert.ok(fields, "supportsVision:true custom model must surface vision fields");
+  // The exact production expression after the narrowing:
+  const visionFields = !modelType ? fields : null;
+  assert.ok(visionFields, "chat-type (modelType=undefined) keeps vision fields");
+  assert.equal(visionFields?.capabilities.vision, true);
+});

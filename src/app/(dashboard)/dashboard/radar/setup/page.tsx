@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -48,14 +48,23 @@ function resolveText(text: RadarLocalizedText, locale: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function RadarSetupPage() {
+function RadarSetupPageContent() {
   const t = useTranslations("radarSetupPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
   const provider = searchParams.get("provider");
 
   const [setupData, setSetupData] = useState<ProviderSetupData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(provider !== null);
+
+  // Adjust-during-render when the provider query param changes (React docs
+  // pattern): a null provider has nothing to load, any other transition
+  // restarts the loading state before the fetch effect fires.
+  const [prevProvider, setPrevProvider] = useState(provider);
+  if (provider !== prevProvider) {
+    setPrevProvider(provider);
+    setLoading(provider !== null);
+  }
   const [error, setError] = useState("");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
@@ -63,7 +72,6 @@ export default function RadarSetupPage() {
   // Fetch catalog to find the provider's setup data
   useEffect(() => {
     if (!provider) {
-      setLoading(false);
       return;
     }
 
@@ -123,12 +131,13 @@ export default function RadarSetupPage() {
   }, [provider, t]);
 
   // Test connection — uses the EXISTING connection-test endpoint
+  const connectionId = setupData?.connectionId ?? null;
   const handleTestConnection = useCallback(async () => {
-    if (!setupData?.connectionId) return;
+    if (!connectionId) return;
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/providers/${encodeURIComponent(setupData.connectionId)}/test`, {
+      const res = await fetch(`/api/providers/${encodeURIComponent(connectionId)}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -147,7 +156,7 @@ export default function RadarSetupPage() {
     } finally {
       setTesting(false);
     }
-  }, [setupData?.connectionId, t]);
+  }, [connectionId, t]);
 
   if (!provider) {
     return (
@@ -279,5 +288,13 @@ export default function RadarSetupPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function RadarSetupPage() {
+  return (
+    <Suspense fallback={null}>
+      <RadarSetupPageContent />
+    </Suspense>
   );
 }

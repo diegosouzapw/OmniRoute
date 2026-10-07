@@ -93,17 +93,22 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
     role: "system",
     parts: [{ text: "Rules" }],
   });
-  assert.equal(result.contents[0].role, "model");
-  assert.deepEqual(result.contents[0].parts[0] as any, { thought: true, text: "need tool" });
-  assert.deepEqual(result.contents[0].parts[1] as any, {
+  // This fixture's messages start with an assistant tool_use and no leading
+  // user turn -- ensureHistoryDoesNotOpenWithFunctionCall (Gemini rejects a
+  // functionCall turn with nothing before it) prepends a synthetic user turn,
+  // shifting the mapped content this test cares about to index 1/2.
+  assert.equal(result.contents[0].role, "user");
+  assert.equal(result.contents[1].role, "model");
+  assert.deepEqual(result.contents[1].parts[0] as any, { thought: true, text: "need tool" });
+  assert.deepEqual(result.contents[1].parts[1] as any, {
     thoughtSignature: "SIG_MAP_WEATHER",
     functionCall: { id: "tu_1", name: "weather", args: { city: "Tokyo" } },
   });
-  assert.deepEqual(result.contents[1].parts[0] as any, {
+  assert.deepEqual(result.contents[2].parts[0] as any, {
     functionResponse: {
       id: "tu_1",
       name: "weather",
-      response: { result: { result: "20C" } },
+      response: { result: "20C" },
     },
   });
   assert.equal(result.generationConfig.maxOutputTokens, 256);
@@ -258,8 +263,11 @@ test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () 
   assert.ok(longToolName.length > 64);
   assert.equal(sanitizedToolName.length, 64);
   assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
-  assert.equal(getFunctionCall(result.contents[0].parts[0] as any).name, sanitizedToolName);
-  assert.equal(getFunctionResponse(result.contents[1].parts[0] as any).name, sanitizedToolName);
+  // Same leading-user-turn shift as above: this fixture also opens on an
+  // assistant tool_use with no preceding user turn.
+  assert.equal(result.contents[0].role, "user");
+  assert.equal(getFunctionCall(result.contents[1].parts[0] as any).name, sanitizedToolName);
+  assert.equal(getFunctionResponse(result.contents[2].parts[0] as any).name, sanitizedToolName);
   assert.equal(parameters.examples, undefined);
   assert.equal(parameters.properties?.path?.["x-ui"], undefined);
 });
@@ -477,4 +485,35 @@ test("Claude -> Gemini non-numeric budget_tokens falls through to effort path", 
     thinkingBudget: 1024,
     includeThoughts: true,
   });
+});
+
+test("Claude -> Gemini maps stop_sequences and stop to generationConfig.stopSequences", () => {
+  const result1 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      stop_sequences: ["STOP", "\nHuman:"],
+    },
+    false
+  );
+  assert.deepEqual(result1.generationConfig.stopSequences, ["STOP", "\nHuman:"]);
+
+  const result2 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      stop: "SINGLE_STOP",
+    },
+    false
+  );
+  assert.deepEqual(result2.generationConfig.stopSequences, ["SINGLE_STOP"]);
+
+  const result3 = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+    },
+    false
+  );
+  assert.strictEqual(result3.generationConfig.stopSequences, undefined);
 });

@@ -345,11 +345,14 @@ test("test-provider --all-providers consumes the connections envelope", async ()
     assert.ok(requests.some((url) => url.includes("/api/providers?limit=200")));
     const parsed = JSON.parse(output.join(""));
     assert.deepEqual(
-      parsed.map(({ provider, model }: { provider: string; model: string }) => ({ provider, model })),
+      parsed.map(({ provider, model }: { provider: string; model: string }) => ({
+        provider,
+        model,
+      })),
       [
         { provider: "anthropic", model: "claude" },
         { provider: "gemini", model: "gemini" },
-      ],
+      ]
     );
     assert.ok(parsed.every(({ success }: { success: boolean }) => success));
   } finally {

@@ -12,7 +12,7 @@ process.env.DEVIN_AGENTIC_HOME = process.env.HOME;
 fs.mkdirSync(process.env.HOME, { recursive: true });
 fs.mkdirSync(process.env.DATA_DIR, { recursive: true });
 
-const { assertLocalAcpUrl, buildDevinChildEnv, DevinCliAgenticExecutor } =
+const { assertLocalAcpUrl, buildDevinChildEnv, DevinCliAgenticExecutor, isIsolatedDevinHome } =
   await import("../../open-sse/executors/devin-cli-agentic.ts");
 const { devin_cli_agenticProvider } =
   await import("../../open-sse/config/providers/registry/devin-cli-agentic/index.ts");
@@ -63,6 +63,38 @@ test("Devin child environment is allowlisted and requires an isolated home", () 
   );
   assert.throws(
     () => buildDevinChildEnv({}, { PATH: "/usr/bin", DEVIN_AGENTIC_HOME: "/tmp/outside" }),
+    /inside the bridge sandbox/
+  );
+});
+
+test("Devin isolated-home check accepts Windows sandbox paths (#12405)", () => {
+  // CI unit tests run on Linux, where path.isAbsolute() rejects "C:\\..." before the
+  // sandbox check runs, so the pure helper is exercised directly with Windows strings.
+  for (const home of [
+    "C:\\Users\\example\\.sandbox\\home",
+    "C:\\Users\\example\\.sandbox\\devin-sandbox\\home",
+    "D:/omniroute/.sandbox/home",
+    "\\\\server\\share\\.sandbox\\home",
+    "/home/bridge",
+    "/opt/omniroute/.sandbox/unit-home",
+  ]) {
+    assert.equal(isIsolatedDevinHome(home), true, `accepts ${home}`);
+  }
+  for (const home of [
+    "C:\\Users\\example",
+    "C:\\Users\\example\\devin-sandbox",
+    "C:\\Users\\example\\.sandbox",
+    "C:\\Users\\example\\sandbox\\home",
+    "/tmp/outside",
+    "/home/bridge2",
+    "",
+  ]) {
+    assert.equal(isIsolatedDevinHome(home), false, `rejects ${home}`);
+  }
+  // Absoluteness is still enforced by the caller, not by the sandbox-segment helper.
+  assert.throws(
+    () =>
+      buildDevinChildEnv({}, { PATH: "/usr/bin", DEVIN_AGENTIC_HOME: "relative/.sandbox/home" }),
     /inside the bridge sandbox/
   );
 });

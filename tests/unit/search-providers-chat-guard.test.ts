@@ -29,7 +29,7 @@ test("#10274: no search provider has a specialized chat executor", () => {
   }
 });
 
-test("#10274: a chat-completion request routed to a search provider must not silently hit OpenAI's endpoint", () => {
+test("#10274: a chat-completion request routed to a search provider must not silently hit OpenAI's endpoint", async () => {
   // Desired behavior: search providers (registered only in SEARCH_PROVIDERS, never in the
   // chat REGISTRY) must not silently resolve to OpenAI's chat/completions endpoint when
   // routed through the normal chat-completions executor path. getExecutor() must throw a
@@ -40,9 +40,9 @@ test("#10274: a chat-completion request routed to a search provider must not sil
   // OpenAI's endpoint -- this assertion FAILS on unfixed release/v3.8.50 code because no
   // error is thrown at all.
   for (const id of SEARCH_PROVIDER_IDS) {
-    assert.throws(
-      () => getExecutor(id),
-      (err) => {
+    await assert.rejects(
+      getExecutor(id),
+      (err: Error & { status?: number }) => {
         assert.match(err.message, /search provider/i);
         assert.match(err.message, /does not support chat completions/i);
         assert.match(err.message, /\/v1\/search/i);

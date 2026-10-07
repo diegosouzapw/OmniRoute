@@ -96,6 +96,8 @@ describe("resilience/settings normalize split-guard", () => {
     assert.deepEqual(keys, [
       "comboCooldownWait",
       "connectionCooldown",
+      // Global default cadence for the background credential health check sweep.
+      "credentialHealthCheck",
       "providerBreaker",
       "providerCooldown",
       "providerQuotaOverrides",
@@ -103,6 +105,10 @@ describe("resilience/settings normalize split-guard", () => {
       "quotaShareConcurrencyLimit",
       "requestQueue",
       "streamRecovery",
+      // Whether a stream content stall cools down the account (default off).
+      "streamStallCooldown",
+      // Token-refresh breaker scope + thresholds (per-connection isolation opt-in).
+      "tokenRefreshBreaker",
       "waitForCooldown",
     ]);
   });

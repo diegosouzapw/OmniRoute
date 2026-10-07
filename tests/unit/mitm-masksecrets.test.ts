@@ -39,6 +39,23 @@ test("maskSecret — long opaque token (≥40 chars) is masked", () => {
   assert.ok(result.length < longToken.length);
 });
 
+test("maskSecret — dotted opaque tokens are redacted as one integral credential", () => {
+  const token =
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NvcGUiOiJhZG1pbiJ9.signature1234567890";
+  const result = maskSecret(token);
+  assert.ok(result.startsWith("eyJh"));
+  assert.ok(result.endsWith("…90"));
+  assert.ok(!result.includes("eyJzdWIi"), "the middle JWT-like segment must not survive");
+  assert.equal((result.match(/…/g) ?? []).length, 1, "the credential must be masked once");
+});
+
+test("maskSecret — padded opaque tokens include trailing padding in one redaction", () => {
+  const token = `${"A".repeat(42)}==`;
+  const result = maskSecret(token);
+  assert.equal(result, "AAAA…==");
+  assert.equal((result.match(/…/g) ?? []).length, 1);
+});
+
 test("maskSecret — string without secrets is unchanged", () => {
   const safe = "Content-Type: application/json";
   assert.equal(maskSecret(safe), safe);

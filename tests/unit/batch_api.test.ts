@@ -3,27 +3,24 @@ import assert from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-api-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-123";
 
+const { createFile, getFileContent, getFile, listFiles, formatFileResponse, deleteFile } =
+  await import("@/lib/db/files");
 const {
-  createFile,
   createBatch,
   getBatch,
-  getFileContent,
   updateBatch,
-  createProviderConnection,
-  createApiKey,
-  getFile,
-  listFiles,
-  formatFileResponse,
-  deleteFile,
   getTerminalBatches,
   ensureBatchItemCheckpoints,
   markBatchItemResult,
-} = await import("../../src/lib/localDb.ts");
+} = await import("@/lib/db/batches");
+const { createProviderConnection } = await import("@/lib/db/providers");
+const { createApiKey } = await import("@/lib/db/apiKeys");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 const {
   initBatchProcessor,
@@ -206,6 +203,13 @@ test("Batch API and Processing", async () => {
 });
 
 test("Batch handles and counts failures correctly", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: { message: "Model not found" } }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+
   initBatchProcessor();
   try {
     // 1. Create a file with a request that will fail (invalid provider/model)
@@ -268,6 +272,7 @@ test("Batch handles and counts failures correctly", async () => {
     }
   } finally {
     stopBatchProcessor();
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -394,6 +399,21 @@ test("Batch rejects input lines whose url does not match the batch endpoint", as
 });
 
 test("Batch forces stream: false for all requests", async () => {
+  const originalFetch = globalThis.fetch;
+  let dispatchedBody: Record<string, unknown> | null = null;
+  globalThis.fetch = async (_input, init) => {
+    dispatchedBody = JSON.parse(String(init?.body));
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "batch response" } }],
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  };
+
   initBatchProcessor();
   try {
     const batchItems = [
@@ -453,8 +473,10 @@ test("Batch forces stream: false for all requests", async () => {
         "Should not have JSON parsing error from SSE stream"
       );
     }
+    assert.strictEqual(dispatchedBody?.stream, false, "Batch dispatch must disable streaming");
   } finally {
     stopBatchProcessor();
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -580,7 +602,7 @@ test("List batches pagination and response format", async () => {
   const batchIds = batchOrder.map((entry) => entry.id);
 
   // 2. Test listBatches logic (direct DB call)
-  const { listBatches } = await import("../../src/lib/localDb");
+  const { listBatches } = await import("@/lib/db/batches");
   const allBatches = listBatches(apiKey.id, 10);
   assert.strictEqual(allBatches.length, 5);
   assert.strictEqual(allBatches[0].id, batchIds[0]);
@@ -794,7 +816,7 @@ test("Files and batches routes expose explicit CORS preflight handlers", async (
   }
 });
 
-test("Batch by-id route exposes ownerless records to anonymous requests", async () => {
+test("Batch by-id route hides ownerless records from anonymous requests (GHSA-2jm2-mpx8-6523)", async () => {
   const file = createFile({
     bytes: 2,
     filename: "ownerless.jsonl",
@@ -809,15 +831,18 @@ test("Batch by-id route exposes ownerless records to anonymous requests", async 
     apiKeyId: null,
   });
 
+  // A null owner is unattributable: only the operator's dashboard session may
+  // read it. An anonymous caller (no key, no session) gets the same 404 a
+  // foreign key gets — never the record.
   const response = await batchByIdRoute.GET(
     new Request(`http://localhost/api/v1/batches/${batch.id}`),
     { params: Promise.resolve({ id: batch.id }) }
   );
   const body = await response.json();
 
-  assert.strictEqual(response.status, 200);
-  assert.strictEqual(body.id, batch.id);
-  assert.strictEqual(body.status, "validating");
+  assert.strictEqual(response.status, 404);
+  assert.strictEqual(body.error?.message, "Batch not found");
+  assert.strictEqual(body.id, undefined, "the ownerless record must not be returned");
 });
 
 test("Batch Cancel API", async () => {
@@ -1320,4 +1345,8 @@ test("getTerminalBatches returns only terminal statuses ordered oldest first", a
       "Results should be ordered oldest first"
     );
   }
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });

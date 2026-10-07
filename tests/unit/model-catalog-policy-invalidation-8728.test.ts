@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-model-catalog-policy-8728-"),
+  path.join(os.tmpdir(), "omniroute-model-catalog-policy-8728-")
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
@@ -77,6 +77,12 @@ test("updateApiKeyPermissions increments only on catalog-affecting fields", asyn
 
   await apiKeys.updateApiKeyPermissions(created.id, { disableNonPublicModels: true });
   assert.equal(catalogVersion(), ++version);
+
+  await apiKeys.updateApiKeyPermissions(created.id, { allowAutoCombos: false });
+  assert.equal(catalogVersion(), ++version);
+
+  await apiKeys.updateApiKeyPermissions(created.id, { catalogScope: "combos" });
+  assert.equal(catalogVersion(), ++version);
 });
 
 test("isModelAllowedForKey cache recomputes when group permissions change", async () => {
@@ -108,7 +114,7 @@ test("isModelAllowedForKey cache recomputes after custom model visibility change
     "Catalog cache repro",
     "manual",
     "chat-completions",
-    ["chat"],
+    ["chat"]
   );
 
   assert.equal(await apiKeys.isModelAllowedForKey(key.key, modelId), true);

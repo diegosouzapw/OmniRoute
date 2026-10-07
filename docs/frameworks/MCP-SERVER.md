@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.50
-lastUpdated: 2026-08-08
+version: 3.8.51
+lastUpdated: 2026-09-22
 ---
 
 # OmniRoute MCP Server Documentation
@@ -24,6 +24,23 @@ Or via the open-sse transport:
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
 ```
+
+The HTTP transports (`sse` / `streamable-http`, served in-process by the dashboard server) are
+off by default and were previously toggleable only from the `/dashboard/mcp` page. As of v3.8.51
+the CLI has parity:
+
+```bash
+omniroute mcp status                                  # enabled/online, transport, tool count
+omniroute mcp enable [--transport stdio|sse|streamable-http]
+omniroute mcp disable
+omniroute mcp restart                                 # resets active sse/streamable-http sessions
+```
+
+`mcp enable`/`mcp disable` PATCH the same `mcpEnabled` (and optionally `mcpTransport`) setting
+the dashboard toggles via `/api/settings`. `mcp restart` calls `POST /api/mcp/restart`: it tears
+down active `sse`/`streamable-http` sessions so the next request re-initializes cleanly, returns
+`409` if MCP is disabled, and `501` for the `stdio` transport (stdio clients own their own
+subprocess — there is no in-process handle to restart).
 
 ## Transports
 
@@ -64,24 +81,24 @@ Cursor, Cline, and compatible MCP client setup.
 
 ---
 
-## Essential Tools (13) — Phase 1
+## Essential Tools (14) — Phase 1
 
-| Tool                            | Scopes                | Description                                                   |
-| :------------------------------ | :-------------------- | :------------------------------------------------------------ |
-| `omniroute_get_health`          | `read:health`         | Uptime, memory, circuit breakers, rate limits, cache stats    |
-| `omniroute_list_combos`         | `read:combos`         | All configured combos with strategies (optional metrics)      |
-| `omniroute_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                      |
-| `omniroute_switch_combo`        | `write:combos`        | Activate or deactivate a combo                                |
-| `omniroute_create_combo`        | `write:combos`        | Create a validated combo through the existing combo API       |
-| `omniroute_check_quota`         | `read:quota`          | Quota used/total, percent remaining, reset time, token health |
-| `omniroute_route_request`       | `execute:completions` | Send a chat completion through OmniRoute routing              |
-| `omniroute_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month)                |
-| `omniroute_list_models_catalog` | `read:models`         | Full model catalog with capabilities, status, pricing         |
-| `omniroute_radar_catalog`       | `read:radar`          | Local signed Radar catalog; optional provider/family filters  |
-| `omniroute_tool_search`         | `read:tools`          | Discover tools from the registered MCP catalog                |
-| `omniroute_web_search`          | `execute:search`      | Web search through the configured search providers. Not X/Twitter. |
-| `omniroute_x_search`            | `execute:search`      | Search X (Twitter) through SuperGrok / xAI server-side `x_search`. Requires `xai-oauth` or an xAI API key. Not the X Developer Platform MCP. |
-| `omniroute_web_fetch`           | `execute:search`      | Fetch web content through the configured fetch providers      |
+| Tool                            | Scopes                | Description                                                                                                                    |
+| :------------------------------ | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_get_health`          | `read:health`         | Uptime, memory, circuit breakers, rate limits, cache stats                                                                     |
+| `omniroute_list_combos`         | `read:combos`         | All configured combos with strategies (optional metrics)                                                                       |
+| `omniroute_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                                                                                       |
+| `omniroute_switch_combo`        | `write:combos`        | Activate or deactivate a combo                                                                                                 |
+| `omniroute_create_combo`        | `write:combos`        | Create a validated combo through the existing combo API                                                                        |
+| `omniroute_check_quota`         | `read:quota`          | Quota used/total, percent remaining, reset time, token health                                                                  |
+| `omniroute_route_request`       | `execute:completions` | Send a chat completion through OmniRoute routing                                                                               |
+| `omniroute_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month)                                                                                 |
+| `omniroute_list_models_catalog` | `read:models`         | Full model catalog with capabilities, status, pricing                                                                          |
+| `omniroute_radar_catalog`       | `read:radar`          | Local signed Radar catalog; optional provider/family filters                                                                   |
+| `omniroute_tool_search`         | `read:tools`          | Discover tools from the registered MCP catalog                                                                                 |
+| `omniroute_web_search`          | `execute:search`      | Web search through the configured search providers. Not X/Twitter.                                                             |
+| `omniroute_x_search`            | `execute:search`      | Search X through xAI/SuperGrok, or choose `xquik-search` for Xquik API results. Requires credentials for the selected backend. |
+| `omniroute_web_fetch`           | `execute:search`      | Fetch web content through the configured fetch providers                                                                       |
 
 ## Advanced Tools (11) — Phase 2
 
@@ -215,13 +232,13 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ## Agent Skill Catalog Tools (3)
 
-Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 45-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
 
-| Tool                              | Scopes         | Description                                                                                                      |
-| :-------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`     | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
-| `omniroute_agent_skills_get`      | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+| Tool                              | Scopes         | Description                                                                                                                |
+| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | List all 45 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage               |
+| `omniroute_agent_skills_get`      | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                                  |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 23 API, 21 CLI and 1 config skills have SKILL.md files on the filesystem vs catalog totals |
 
 See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
 
@@ -233,12 +250,12 @@ frameworks ship alongside the MCP server in v3.8.0 and are documented separately
 
 ### Cloud Agents
 
-Cloud Agents are out-of-process AI coding agents (codex-cloud, devin, jules) wired into
+Cloud Agents are out-of-process AI coding agents (codex-cloud, cursor-cloud, devin, jules) wired into
 OmniRoute through the same connection model used for LLM providers. They are exposed via
 their own REST surface (`/api/v1/agents/*`) and are **not** part of the MCP tool catalog
 — calling a Cloud Agent does not consume an MCP scope.
 
-- Implementation: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex-cloud.ts`, `agents/devin.ts`, `agents/jules.ts`).
+- Implementation: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
 - Lifecycle: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
 - Documentation: [docs/frameworks/CLOUD_AGENT.md](./CLOUD_AGENT.md).
 
@@ -276,35 +293,144 @@ Both SSE and Streamable HTTP transports are blocked until the MCP server is enab
 
 ## Authentication & Scopes
 
-MCP tools are authenticated through API key scopes. Scope enforcement is centralized in
-`open-sse/mcp-server/scopeEnforcement.ts`. Each tool requires specific scopes:
+MCP tool calls read scope strings from the caller. That check is one of three
+independent namespaces. A pass from one checker is not a pass from the others.
+The rules are [Three scope namespaces](#three-scope-namespaces).
+The tool catalog is [MCP tool scopes](#mcp-tool-scopes).
 
-| Scope                 | Tools                                                                                                             |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check` |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                         |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                            |
-| `read:quota`          | `check_quota`                                                                                                     |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                            |
-| `read:models`         | `list_models_catalog`                                                                                             |
-| `execute:completions` | `route_request`, `test_combo`                                                                                     |
-| `execute:search`      | `web_search`                                                                                                      |
-| `write:budget`        | `set_budget_guard`                                                                                                |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                       |
-| `pricing:write`       | `sync_pricing`                                                                                                    |
-| `read:cache`          | `cache_stats`                                                                                                     |
-| `write:cache`         | `cache_flush`                                                                                                     |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                        |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
-| `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
-| `write:notion`        | `notion_append_blocks`                                                                                            |
-| `read:memory`         | `memory_search`                                                                                                   |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                |
-| `write:skills`        | `skills_enable`                                                                                                   |
-| `execute:skills`      | `skills_execute`                                                                                                  |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
+### Three scope namespaces
+
+`manage` on an API key, `read:compression` on an MCP tool, and `read` on an
+`oma_live_…` access token are three different grants. Callers who send a `read`
+access token to a mutating management route get HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+That rank is `scopeSatisfies`. It does not consult the MCP table, and the MCP
+matcher does not consult it.
+
+| Namespace          | Credential                                                | Checker                | A pass allows                                                |
+| :----------------- | :-------------------------------------------------------- | :--------------------- | :----------------------------------------------------------- |
+| API-key management | `api_keys.scopes`                                         | `hasManageScope`       | Management REST for that Bearer key                          |
+| API-key additive   | same array, one exact string                              | the helper named below | Only that one capability                                     |
+| MCP tool scopes    | same array, else MCP `_meta`, else `OMNIROUTE_MCP_SCOPES` | `scopeMatches`         | That tool, once enforcement is on                            |
+| Access token       | `oma_live_…`                                              | `scopeSatisfies`       | The management route whose method and path require that rank |
+
+Minting each credential is covered in
+[Management Authentication](../guides/MANAGEMENT-AUTH.md).
+
+#### API-key scopes
+
+One `api_keys.scopes` array feeds two jobs. They use different functions.
+
+**Management REST.** `manage` and `admin` are the members of
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` is what authorizes management routes for that key. `admin` is
+management-capable on those routes. The word `admin` here is not the
+access-token rank and it does not expand into MCP tool scopes.
+
+**Additive strings.** Each one is an exact membership test, and each one stays
+outside `MANAGEMENT_API_KEY_SCOPES`.
+
+| Scope                          | A pass allows                                                                                                                                                   |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | The non-loopback `/api/mcp/` LOCAL_ONLY carve-out only (`hasMcpConnectOrManageScope`). A key with `manage` or `admin` still passes that carve-out.              |
+| `self:usage`                   | `GET /api/v1/me/status` for this key (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` adds this scope on create (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Upstream account quotas inside that status payload (`src/lib/usage/apiKeySelfService.ts`). The status route still requires `self:usage`.                        |
+| `policy:bypass-provider-quota` | This key's inference calls skip the provider-quota policy (`hasProviderQuotaBypassScope` in `src/sse/handlers/chat.ts`).                                        |
+
+#### Matching
+
+The catalog is the table under [MCP tool scopes](#mcp-tool-scopes). Do not
+treat `MCP_SCOPE_LIST` in `src/shared/constants/mcpScopes.ts` as that catalog:
+it is the original typed subset. Later tools declare further scopes beside it
+(`read:notion`, `read:skills`, `read:local-corpus`, and the rest of the table).
+
+`evaluateToolScopes` in `open-sse/mcp-server/scopeEnforcement.ts` allows a call
+when every required scope matches some granted scope:
+
+- `*` matches every required scope.
+- A granted scope that ends in `*` matches a required scope that starts with
+  the prefix before the star. `read:*` matches `read:compression`.
+- Every other granted scope matches only the identical required string.
+
+A key whose scopes are `["manage"]` fails `scopeMatches` for `read:compression`.
+The same call fails for `admin`, `mcp:connect`, `read`, and `write` when those
+are the only granted strings. There is no hierarchy among MCP tool scopes
+beyond the trailing `*`.
+
+Enforcement is off unless `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (default
+`false`). While it is off, `evaluateToolScopes` allows the call and skips the
+catalog. While it is on, HTTP uses the Bearer key's `api_keys.scopes` as
+`authInfo` (see [Per-key HTTP scope binding](#per-key-http-scope-binding-7895)).
+When no key scopes resolve, the granted set falls through to MCP `_meta`, then
+`OMNIROUTE_MCP_SCOPES`.
+
+#### Access-token scopes
+
+`oma_live_…` tokens (`src/lib/accessTokens/scopes.ts`) carry `read`, `write`,
+or `admin`. `scopeSatisfies` is a rank: `admin` covers `write` and `read`, and
+`write` covers `read`. Unknown scopes cover nothing.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) compares that
+rank with `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD`, and `OPTIONS` require `read`.
+- Every other method requires `write`.
+- Paths in `ADMIN_SCOPE_PREFIXES` require `admin` for every method. `/api/mcp`
+  is on that list, so a `write` access token still cannot call the MCP HTTP
+  surface.
+- Paths in `ADMIN_MUTATION_PREFIXES` require `admin` only for mutations.
+
+`PATCH /api/keys/{id}` is a mutation and is not on those admin lists, so a
+`read` token receives 403
+`Access token scope 'read' is insufficient; 'write' required.`
+A `write` or `admin` access token satisfies that route. A dashboard JWT, the
+loopback CLI machine-id token, and an API key with `manage` or `admin` take
+other branches and are not narrowed by this rank.
+
+An access token that passes `scopeSatisfies` for `/api/mcp` has cleared the
+management gate only. Tool calls still run `scopeMatches` against API-key
+scopes. The access-token rank is not an input to `scopeMatches`.
+
+### MCP tool scopes
+
+Scope enforcement is centralized in `open-sse/mcp-server/scopeEnforcement.ts`.
+Each tool requires specific scopes:
+
+| Scope                 | Tools                                                                                                                                                                        |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
+| `read:quota`          | `check_quota`                                                                                                                                                                |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
+| `read:models`         | `list_models_catalog`                                                                                                                                                        |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                           |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                               |
+| `read:cache`          | `cache_stats`                                                                                                                                                                |
+| `write:cache`         | `cache_flush`                                                                                                                                                                |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                            |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                       |
+| `read:memory`         | `memory_search`                                                                                                                                                              |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                 |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                           |
+| `write:skills`        | `skills_enable`                                                                                                                                                              |
+| `execute:skills`      | `skills_execute`                                                                                                                                                             |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                      |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                    |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
+| `read:obsidian`       | 13 read tools — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 write tools — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
@@ -409,7 +535,7 @@ The heartbeat snapshot contains:
   "transport": "stdio",
   "scopesEnforced": false,
   "allowedScopes": [],
-  "toolCount": 43
+  "toolCount": 110
 }
 ```
 
@@ -438,7 +564,7 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
 | `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
 | `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 34 entries)            |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 45 entries)            |
 | `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
 | `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
 | `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |

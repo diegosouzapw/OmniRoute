@@ -55,7 +55,7 @@ test.after(() => {
     force: true,
 
     maxRetries: 5,
-  retryDelay: 100,
+    retryDelay: 100,
   });
 });
 

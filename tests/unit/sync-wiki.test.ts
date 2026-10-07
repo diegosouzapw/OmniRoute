@@ -6,10 +6,13 @@ import {
   normKey,
   toWikiName,
   toWikiContent,
+  rewriteWikiLinks,
   syncHomeCounts,
   parseWikiPage,
   WIKI_BANNER,
   NEW_PAGE_EXCLUDE,
+  GITHUB_REPO_URL,
+  GITHUB_RAW_URL,
 } from "../../scripts/docs/sync-wiki.mjs";
 
 test("normKey: case/separator-insensitive fuzzy key (matches docs basename to curated wiki name)", () => {
@@ -40,6 +43,83 @@ test("toWikiContent: a document without frontmatter is kept intact (plus banner)
   const doc = "# No Frontmatter\n\nHello.\n";
   const out = toWikiContent(doc);
   assert.equal(out, WIKI_BANNER + "# No Frontmatter\n\nHello.\n");
+});
+
+test("rewriteWikiLinks: converts relative doc links to curated wiki page names", () => {
+  const wikiKeyMap = new Map([
+    ["autocombo", "Auto-Combo"],
+    ["resilienceguide", "Resilience-Guide"],
+    ["mcpserver", "MCP-Server"],
+  ]);
+
+  const md = `
+# Architecture
+
+See [Auto-Combo](../routing/AUTO-COMBO.md) and [Resilience](./RESILIENCE_GUIDE.md).
+With anchor: [14 Factors](../routing/AUTO-COMBO.md#14-factors).
+Ref style: [MCP][mcp-ref]
+HTML: <a href="../routing/AUTO-COMBO.md#strategies">Strategies</a>
+
+[mcp-ref]: ../frameworks/MCP-SERVER.md "MCP Tools"
+`;
+
+  const out = rewriteWikiLinks(md, {
+    srcFile: "docs/architecture/ARCHITECTURE.md",
+    wikiKeyMap,
+  });
+
+  assert.ok(out.includes("[Auto-Combo](Auto-Combo)"));
+  assert.ok(out.includes("[Resilience](Resilience-Guide)"));
+  assert.ok(out.includes("[14 Factors](Auto-Combo#14-factors)"));
+  assert.ok(out.includes('[mcp-ref]: MCP-Server "MCP Tools"'));
+  assert.ok(out.includes('<a href="Auto-Combo#strategies">Strategies</a>'));
+});
+
+test("rewriteWikiLinks: converts repo code and root markdown links to GitHub blob URLs", () => {
+  const md = `
+Refer to [DB Core](../../src/lib/db/core.ts) and [README](../README.md).
+Check [Package config](../../package.json) and [Auth Guard](../../src/server/authz/routeGuard.ts).
+`;
+
+  const out = rewriteWikiLinks(md, {
+    srcFile: "docs/architecture/ARCHITECTURE.md",
+  });
+
+  assert.ok(out.includes(`[DB Core](${GITHUB_REPO_URL}/blob/main/src/lib/db/core.ts)`));
+  assert.ok(out.includes(`[README](${GITHUB_REPO_URL}/blob/main/docs/README.md)`));
+  assert.ok(out.includes(`[Package config](${GITHUB_REPO_URL}/blob/main/package.json)`));
+  assert.ok(out.includes(`[Auth Guard](${GITHUB_REPO_URL}/blob/main/src/server/authz/routeGuard.ts)`));
+});
+
+test("rewriteWikiLinks: rewrites image links to GitHub raw content URLs", () => {
+  const md = `![Architecture Overview](../diagrams/exported/resilience-3layers.svg "Diagram")`;
+  const out = rewriteWikiLinks(md, {
+    srcFile: "docs/architecture/ARCHITECTURE.md",
+  });
+  assert.equal(
+    out,
+    `![Architecture Overview](${GITHUB_RAW_URL}/docs/diagrams/exported/resilience-3layers.svg "Diagram")`
+  );
+});
+
+test("rewriteWikiLinks: preserves pure anchor links and external URLs", () => {
+  const md = `[Top](#top) and [Website](https://example.com) and [Email](mailto:test@example.com)`;
+  const out = rewriteWikiLinks(md, {
+    srcFile: "docs/architecture/ARCHITECTURE.md",
+  });
+  assert.equal(out, md);
+});
+
+test("rewriteWikiLinks: prepends locale prefix for localized wiki pages", () => {
+  const wikiKeyMap = new Map([["autocombo", "Auto-Combo"]]);
+  const md = `[Auto-Combo](../routing/AUTO-COMBO.md#scoring)`;
+  const out = rewriteWikiLinks(md, {
+    srcFile: "docs/i18n/pt-BR/routing/AUTO-COMBO.md",
+    wikiKeyMap,
+    locale: "pt-BR",
+  });
+  // U+2010 HYPHEN
+  assert.equal(out, "[Auto-Combo](pt-BR\u2010Auto-Combo#scoring)");
 });
 
 test("syncHomeCounts: rewrites the cover-page provider/strategy counts", () => {

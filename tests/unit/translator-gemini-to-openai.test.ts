@@ -237,3 +237,70 @@ test("Gemini -> OpenAI maintains matching IDs across multi-turn tool call and re
   assert.equal(toolResponseCallId, "call_calc_456");
   assert.equal(assistantCallId, toolResponseCallId);
 });
+
+test("Gemini -> OpenAI preserves falsy primitive results in function responses (false, 0, empty string, null)", () => {
+  const cases: Array<[unknown, string]> = [
+    [false, "false"],
+    [0, "0"],
+    ["", '""'],
+    [null, "null"],
+    [true, "true"],
+    [42, "42"],
+    ["done", '"done"'],
+  ];
+
+  for (const [inputVal, expected] of cases) {
+    const result = geminiToOpenAIRequest(
+      "gpt-4o",
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                functionResponse: {
+                  id: "call_test",
+                  name: "check_condition",
+                  response: { result: inputVal },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      false
+    );
+
+    assert.equal(result.messages.length, 1);
+    assert.equal(result.messages[0].role, "tool");
+    assert.equal(result.messages[0].tool_call_id, "call_test");
+    assert.equal(result.messages[0].content, expected);
+  }
+});
+
+test("Gemini -> OpenAI preserves custom response objects without result key", () => {
+  const result = geminiToOpenAIRequest(
+    "gpt-4o",
+    {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                id: "call_custom",
+                name: "custom_op",
+                response: { output: "value", success: false },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "tool");
+  assert.equal(result.messages[0].content, '{"output":"value","success":false}');
+});

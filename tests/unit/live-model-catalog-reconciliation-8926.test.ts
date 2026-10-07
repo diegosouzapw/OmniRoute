@@ -117,24 +117,24 @@ test("#8926: explicit custom model overrides live-catalog exclusion", async () =
 });
 
 test("#8926: effort helper identifies only explicitly registered variants", () => {
-  assert.equal(isRegisteredProviderEffortVariant("cursor", "gpt-5.3-codex-high"), true);
+  assert.equal(isRegisteredProviderEffortVariant("cursor", "claude-fable-5-1-thinking-high"), true);
 
   assert.equal(
-    isRegisteredProviderEffortVariant("cursor", "gpt-5.3-codex-max"),
+    isRegisteredProviderEffortVariant("cursor", "claude-fable-5-1-thinking-ultra"),
     false,
     "an invented suffix must not bypass live-catalog authority"
   );
 });
 
 test("#8926: registered effort route survives while invented effort route is rejected", async () => {
-  await seedProviderCatalog("cursor", "cursor-live-8926", ["gpt-5.3-codex"]);
+  await seedProviderCatalog("cursor", "cursor-live-8926", ["claude-fable-5-1"]);
 
-  const registered = await getModelInfo("cursor/gpt-5.3-codex-high");
+  const registered = await getModelInfo("cursor/claude-fable-5-1-thinking-high");
 
   assert.equal(registered.provider, "cursor");
-  assert.equal(registered.model, "gpt-5.3-codex-high");
+  assert.equal(registered.model, "claude-fable-5-1-thinking-high");
 
-  const invented = await getModelInfo("cursor/gpt-5.3-codex-max");
+  const invented = await getModelInfo("cursor/claude-fable-5-1-thinking-ultra");
 
   assert.equal(invented.provider, null);
   assert.equal(invented.errorType, "model_not_found");
@@ -170,13 +170,13 @@ test("#8926: providers without an authoritative live catalog retain static fallb
 test("#8926: registered effort variant is rejected when its live base is absent", async () => {
   await seedProviderCatalog("cursor", "cursor-live-without-base-8926", ["cursor-live-only-8926"]);
 
-  const explicit = await getModelInfo("cursor/gpt-5.3-codex-high");
+  const explicit = await getModelInfo("cursor/claude-fable-5-1-thinking-high");
 
   assert.equal(explicit.provider, null);
   assert.equal(explicit.errorType, "model_not_found");
   assert.match(explicit.errorMessage, /active live catalog/i);
 
-  const bare = await getModelInfo("gpt-5.3-codex-high");
+  const bare = await getModelInfo("claude-fable-5-1-thinking-high");
 
   assert.equal(bare.provider, null);
   assert.equal(bare.errorType, "model_not_found");
@@ -187,7 +187,6 @@ test("#8926: live authority defaults to strict and honors explicit partial-disco
   assert.equal(providerUsesAuthoritativeLiveCatalog("github"), true);
   assert.equal(providerUsesAuthoritativeLiveCatalog("cursor"), true);
   assert.equal(providerUsesAuthoritativeLiveCatalog("unknown-provider-8926"), true);
-  assert.equal(providerUsesAuthoritativeLiveCatalog("theoldllm"), true);
   assert.equal(providerUsesAuthoritativeLiveCatalog("command-code"), false);
 });
 
@@ -203,44 +202,30 @@ test("#8926: partial passthrough discovery remains non-authoritative", async () 
   );
 });
 
-test("ChatGPT Web curated variants require their mapped upstream live slug", async () => {
-  const variants = new Map([
-    ["gpt-5.6-sol-pro", "gpt-5-6-pro"],
-    ["gpt-5.6-sol-xhigh", "gpt-5-6-thinking"],
-    ["gpt-5.6-sol-high", "gpt-5-6-thinking"],
-    ["gpt-5.6-sol-medium", "gpt-5-6-thinking"],
-    ["gpt-5.6-sol-instant", "gpt-5-6"],
-    ["gpt-5.6-luna-free-thinking", "gpt-5-6"],
-    ["gpt-5.6-luna-free", "gpt-5-6"],
-    ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
-    ["gpt-5.5-pro", "gpt-5-5-pro"],
-    ["gpt-5.5-xhigh", "gpt-5-5-thinking"],
-    ["gpt-5.5-high", "gpt-5-5-thinking"],
-    ["gpt-5.5-medium", "gpt-5-5-thinking"],
-    ["gpt-5.5-instant", "gpt-5-5"],
+test("#12866: agy CLI catalog is visible after parseModel folds the prefix to antigravity", async () => {
+  // Production shape: combo steps are `agy/gemini-3.8-flash-high` on CLI-card
+  // rows. parseModel canonicalizes `agy/` → `antigravity` (#8013), then live
+  // authority looks up the IDE catalog keyed `antigravity:<id>`. Those two
+  // catalogs are distinct stored ids — CLI has flash-high, IDE does not —
+  // so the request 400s even though the pinned agy connection serves the model.
+  await seedProviderCatalog("agy", "agy-cli-catalog-12866", ["gemini-3.8-flash-high"]);
+  await seedProviderCatalog("antigravity", "antigravity-ide-catalog-12866", [
+    "gemini-3.8-flash-tiered",
   ]);
 
-  await seedProviderCatalog(
-    "chatgpt-web",
-    "chatgpt-web-live-8926",
-    Array.from(new Set(variants.values()))
+  const resolved = await getModelInfo("agy/gemini-3.8-flash-high");
+
+  assert.equal(resolved.errorType, undefined, resolved.errorMessage);
+  assert.equal(resolved.model, "gemini-3.8-flash-high");
+  assert.ok(
+    resolved.provider === "agy" || resolved.provider === "antigravity",
+    `expected agy/antigravity, got ${resolved.provider}`
   );
 
-  const catalog = await getActiveSyncedCatalog("chatgpt-web");
-  assert.equal(catalog.authoritative, true);
-
-  for (const modelId of variants.keys()) {
-    const resolved = await getModelInfo(`chatgpt-web/${modelId}`);
-    assert.equal(resolved.provider, "chatgpt-web", modelId);
-    assert.equal(resolved.model, modelId, modelId);
-  }
-
-  await seedProviderCatalog("chatgpt-web", "chatgpt-web-live-8926", ["gpt-5-6"]);
-
-  const available = await getModelInfo("chatgpt-web/gpt-5.6-sol-instant");
-  assert.equal(available.provider, "chatgpt-web");
-
-  const unavailable = await getModelInfo("chatgpt-web/gpt-5.6-sol-pro");
-  assert.equal(unavailable.provider, null);
-  assert.equal(unavailable.errorType, "model_not_found");
+  const antigravityCatalog = await getActiveSyncedCatalog("antigravity");
+  assert.equal(
+    antigravityCatalog.models.some((model) => model.id === "gemini-3.8-flash-high"),
+    true,
+    "antigravity live lookup must union the sibling agy CLI catalog"
+  );
 });

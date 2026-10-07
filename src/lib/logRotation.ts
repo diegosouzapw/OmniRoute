@@ -42,8 +42,18 @@ export function getAppLogRotationCheckInterval(): number {
   );
 }
 
-/** Module-level timer handle — cleared by closeLogRotation(). */
-let rotationTimer: ReturnType<typeof setInterval> | null = null;
+interface LogRotationState {
+  timer: ReturnType<typeof setInterval> | null;
+}
+
+declare global {
+  var __omnirouteLogRotationState: LogRotationState | undefined;
+}
+
+/** Process-wide state survives Next.js development HMR and split server chunks. */
+function getLogRotationState(): LogRotationState {
+  return (globalThis.__omnirouteLogRotationState ??= { timer: null });
+}
 
 export function getLogConfig() {
   const logToFile = getAppLogToFile();
@@ -172,6 +182,9 @@ export function cleanupOverflowLogs(logFilePath: string, maxFiles: number): void
  * Call closeLogRotation() during application shutdown to clear the timer.
  */
 export function initLogRotation(): void {
+  const state = getLogRotationState();
+  if (state.timer !== null) return;
+
   const config = getLogConfig();
   if (!config.logToFile) return;
 
@@ -181,7 +194,7 @@ export function initLogRotation(): void {
   cleanupOverflowLogs(config.logFilePath, config.maxFiles);
 
   const intervalMs = getAppLogRotationCheckInterval();
-  rotationTimer = setInterval(
+  state.timer = setInterval(
     (filePath: string, maxSize: number, maxFiles: number) => {
       rotateIfNeeded(filePath, maxSize);
       cleanupOverflowLogs(filePath, maxFiles);
@@ -191,7 +204,7 @@ export function initLogRotation(): void {
     config.maxFileSize,
     config.maxFiles
   );
-  rotationTimer.unref?.();
+  state.timer.unref?.();
 }
 
 /**
@@ -199,8 +212,9 @@ export function initLogRotation(): void {
  * Idempotent — safe to call multiple times.
  */
 export function closeLogRotation(): void {
-  if (rotationTimer !== null) {
-    clearInterval(rotationTimer);
-    rotationTimer = null;
+  const state = getLogRotationState();
+  if (state.timer !== null) {
+    clearInterval(state.timer);
+    state.timer = null;
   }
 }

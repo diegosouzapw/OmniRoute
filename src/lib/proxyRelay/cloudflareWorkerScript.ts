@@ -109,7 +109,11 @@ async function handleRelay(request) {
   }
   const relayPath = request.headers.get("x-relay-path") || "/";
   const headers = new Headers(request.headers);
-  ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach((h) => headers.delete(h));
+  [
+    "host", "connection", "content-length", "keep-alive", "proxy-connection",
+    "proxy-authenticate", "proxy-authorization", "transfer-encoding", "te", "trailer", "upgrade",
+    "x-relay-target", "x-relay-path", "x-relay-auth",
+  ].forEach((h) => headers.delete(h));
   const init = {
     method: request.method,
     headers,

@@ -46,16 +46,6 @@ export interface UserBadge {
   badgeCategory?: string | null;
   badgeRarity?: string;
 }
-
-export interface XpAuditLogEntry {
-  id: number;
-  apiKeyId: string;
-  action: string;
-  xpEarned: number;
-  metadata: string | null;
-  createdAt: string;
-}
-
 export interface TokenLedgerEntry {
   id: number;
   fromApiKeyId: string;
@@ -172,6 +162,21 @@ export function addXp(apiKeyId: string, action: string, amount: number, metadata
     )
     .run(apiKeyId, action, amount, metadata ?? null);
 
+  // Durable per-key/per-action counter (#12546). xp_audit_log is pruned by
+  // retention.xpAuditLog (default 30 days), so counting action-count badge
+  // progress directly off that table silently reset every "lifetime" milestone.
+  // Increment a durable counter here, alongside the audit insert, using the same
+  // per-row weight getActionCount() reads: the metadata `amount` when present
+  // (token_share stores the shared amount there), otherwise 1.
+  db()
+    .prepare(
+      `INSERT INTO xp_action_counts (api_key_id, action, count, updated_at)
+     VALUES (?, ?, COALESCE(CAST(json_extract(?, '$.amount') AS INTEGER), 1), datetime('now'))
+     ON CONFLICT(api_key_id, action)
+     DO UPDATE SET count = count + excluded.count, updated_at = datetime('now')`
+    )
+    .run(apiKeyId, action, metadata ?? null);
+
   db()
     .prepare(
       `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
@@ -217,10 +222,17 @@ export function updateLevel(apiKeyId: string, level: number): void {
 
 // ──────────────── Badges ────────────────
 
-export function unlockBadge(apiKeyId: string, badgeId: string): void {
-  db()
+/**
+ * Award a badge to an API key. Idempotent on the `(api_key_id, badge_id)` primary key.
+ *
+ * @returns `true` when this call inserted the badge, `false` when it was already earned.
+ *   Callers that pay the `badge_unlock` XP reward key off this so a badge is paid once.
+ */
+export function unlockBadge(apiKeyId: string, badgeId: string): boolean {
+  const result = db()
     .prepare(`INSERT OR IGNORE INTO user_badges (api_key_id, badge_id) VALUES (?, ?)`)
     .run(apiKeyId, badgeId);
+  return result.changes > 0;
 }
 
 /**
@@ -235,6 +247,24 @@ export function hasBadge(apiKeyId: string, badgeId: string): boolean {
   const row = db()
     .prepare(`SELECT 1 FROM user_badges WHERE api_key_id = ? AND badge_id = ? LIMIT 1`)
     .get(apiKeyId, badgeId);
+  return !!row;
+}
+
+/**
+ * Whether `xp_audit_log` already holds an entry for this action on the current UTC day.
+ *
+ * `created_at` is written by the table default `datetime('now')` as
+ * `"YYYY-MM-DD HH:MM:SS"` (UTC), so a lexical compare against `date('now')` selects
+ * today's rows. Used as the once-per-day guard for daily rewards such as `streak_bonus`.
+ */
+export function hasXpActionToday(apiKeyId: string, action: string): boolean {
+  const row = db()
+    .prepare(
+      `SELECT 1 FROM xp_audit_log
+       WHERE api_key_id = ? AND action = ? AND created_at >= date('now')
+       LIMIT 1`
+    )
+    .get(apiKeyId, action);
   return !!row;
 }
 
@@ -299,22 +329,22 @@ export function getBadgeDefinitions(category?: string): BadgeDefinition[] {
 
 /**
  * Aggregate XP across every API key (the operator-wide profile view used by the
- * dashboard profile page, which is not scoped to a single key). Sums total XP and
- * takes the highest reached level. (#3484)
+ * dashboard profile page, which is not scoped to a single key). The aggregate
+ * level must be derived from the same summed XP displayed by the profile. (#3484)
  */
 export function getAggregateXp(): UserLevelRow {
   const row = db()
     .prepare(
       `SELECT COALESCE(SUM(total_xp), 0) AS total_xp,
-              COALESCE(MAX(current_level), 1) AS current_level,
               MAX(updated_at) AS updated_at
        FROM user_levels`
     )
-    .get() as { total_xp: number; current_level: number; updated_at: string | null };
+    .get() as { total_xp: number; updated_at: string | null };
+  const totalXp = row?.total_xp ?? 0;
   return {
     apiKeyId: "*",
-    totalXp: row?.total_xp ?? 0,
-    currentLevel: row?.current_level ?? 1,
+    totalXp,
+    currentLevel: calculateLevel(totalXp),
     updatedAt: row?.updated_at ?? "",
   };
 }

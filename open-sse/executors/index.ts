@@ -1,249 +1,195 @@
 import { SEARCH_PROVIDERS } from "../config/searchRegistry.ts";
-import { registerExecutor, getRegisteredExecutor, hasRegisteredExecutor } from "./registry.ts";
+import { assertMicrosoftDesignerWebProviderAvailable } from "@/shared/constants/designerWebRetirement";
+import { assertRuntimeProviderAvailable } from "@/shared/constants/providerRetirement";
+import { assertCommonChatGptWebProviderAvailable } from "@/shared/constants/chatgptWebRetirement";
+import { registerLazyExecutor, loadRegisteredExecutor, hasRegisteredExecutor } from "./registry.ts";
+// Type-only: pulls no runtime code, keeps DefaultExecutor the only eager class.
 import type { BaseExecutor } from "./base.ts";
-import { AntigravityExecutor } from "./antigravity.ts";
-import { GithubExecutor } from "./github.ts";
-import { GheCopilotExecutor } from "./ghe-copilot.ts";
-import { QoderExecutor } from "./qoder.ts";
-import { KiroExecutor } from "./kiro.ts";
-import { CodexExecutor } from "./codex.ts";
-import { CodexAppServerExecutor } from "./codex-app-server.ts";
-import { CursorExecutor } from "./cursor.ts";
-import { TraeExecutor } from "./trae.ts";
-import { DefaultExecutor } from "./default.ts";
-import { BedrockExecutor } from "./bedrock.ts";
-import { GlmExecutor } from "./glm.ts";
-import { PollinationsExecutor } from "./pollinations.ts";
-import { CloudflareAIExecutor } from "./cloudflare-ai.ts";
-import { FreebuffExecutor } from "./freebuff.ts";
-import { OpencodeExecutor } from "./opencode.ts";
-import { VertexExecutor } from "./vertex.ts";
-import { CliproxyapiExecutor } from "./cliproxyapi.ts";
-import { DarioExecutor } from "./dario.ts";
-import { NineRouterExecutor } from "./ninerouter.ts";
-import { PerplexityWebExecutor } from "./perplexity-web.ts";
-import { GrokWebExecutor } from "./grok-web.ts";
-import { GeminiWebExecutor } from "./gemini-web.ts";
-import { TencentAIStudioWebExecutor } from "./tencent-aistudio-web.ts";
-import { GeminiBusinessExecutor } from "./gemini-business.ts";
-import { ChatGptWebExecutor } from "./chatgpt-web.ts";
-import { ChatGptWebCodexExecutor } from "./chatgpt-web-codex.ts";
-import { BlackboxWebExecutor } from "./blackbox-web.ts";
-import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
-import { AzureOpenAIExecutor } from "./azure-openai.ts";
-import { AzureAiExecutor } from "./azure-ai.ts";
-import { CommandCodeExecutor } from "./commandCode.ts";
-import { GitlabExecutor } from "./gitlab.ts";
-import { NlpCloudExecutor } from "./nlpcloud.ts";
-import { DevinDesktopExecutor } from "./devin-desktop.ts";
-import { ZedHostedExecutor } from "./zed-hosted.ts";
-import { DevinCliExecutor } from "./devin-cli.ts";
-import { ZcodeExecutor } from "./zcode.ts";
-import { DevinCliAgenticExecutor } from "./devin-cli-agentic.ts";
-import { AuggieExecutor } from "./auggie.ts";
-import { DeepSeekWebExecutor } from "./deepseek-web.ts";
-import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
-import { AdaptaWebExecutor } from "./adapta-web.ts";
-import { CopilotWebExecutor } from "./copilot-web.ts";
-import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
-import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
-import { AdobeFireflyExecutor } from "./adobe-firefly.ts";
-import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
-import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
-import { FeloWebExecutor } from "./felo-web.ts";
-import { T3ChatWebExecutor } from "./t3-chat-web.ts";
-import { ClaudeWebExecutor } from "./claude-web.ts";
-import { InnerAiExecutor } from "./inner-ai.ts";
-import { HuggingChatExecutor } from "./huggingchat.ts";
-import { YuanbaoWebExecutor } from "./yuanbao-web.ts";
-import { PoeWebExecutor } from "./poe-web.ts";
-import { VeniceWebExecutor } from "./venice-web.ts";
-import { NotionWebExecutor } from "./notion-web.ts";
-import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
-import { CheaperInferenceExecutor } from "./cheaperinference.ts";
-import { KimiWebExecutor } from "./kimi-web.ts";
-import { DoubaoWebExecutor } from "./doubao-web.ts";
-import { QwenWebExecutor } from "./qwen-web.ts";
-import { RaycastExecutor } from "./raycast.ts";
-import { HailuoWebExecutor } from "./hailuo-web.ts";
-import { ZaiWebExecutor } from "./zai-web.ts";
-import { KimiExecutor } from "./kimi.ts";
-import { MoonshotExecutor } from "./moonshot.ts";
-import { TheOldLlmExecutor } from "./theoldllm.ts";
-import { ChipotleExecutor } from "./chipotle.ts";
-import { LMArenaExecutor } from "./lmarena.ts";
-import { GrokCliExecutor } from "./grok-cli.ts";
-import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
-import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
-import { CloudflarePlaygroundExecutor } from "./cloudflare-playground.ts";
-import { TinyCmsExecutor } from "./tinycms.ts";
-import { HyperAgentExecutor } from "./hyperagent.ts";
-import { XaiExecutor } from "./xai.ts";
-import { PromptQlExecutor } from "./promptql.ts";
-import { ConolWebExecutor } from "./conol-web.ts";
+import { getDefaultExecutor } from "./defaultResolver.ts";
 
-// R0.3 — declarative built-in table. The object literal stays as the single
-// place built-ins are declared (compile-time duplicate-key safety; the
-// check:known-symbols gate parses this literal from source), but lookup goes
-// through the ExecutorRegistry (./registry.ts): every entry is registered at
-// module load below, and getExecutor()/hasSpecializedExecutor() consult the
-// registry — the literal is never read at request time.
-const executors = {
-  antigravity: new AntigravityExecutor(),
-  agy: new AntigravityExecutor(),
-  github: new GithubExecutor(),
-  "ghe-copilot": new GheCopilotExecutor(),
-  qoder: new QoderExecutor(),
-  kiro: new KiroExecutor(),
-  "amazon-q": new KiroExecutor("amazon-q"),
-  bedrock: new BedrockExecutor(),
-  codex: new CodexExecutor(),
-  "codex-app-server": new CodexAppServerExecutor({}, "codex-app-server"),
-  "chatgpt-web-codex": new ChatGptWebCodexExecutor(),
-  "cgpt-codex": new ChatGptWebCodexExecutor(),
-  cursor: new CursorExecutor(),
-  trae: new TraeExecutor(),
-  glm: new GlmExecutor("glm"),
-  "glm-cn": new GlmExecutor("glm-cn"),
-  glmt: new GlmExecutor("glmt"),
-  cu: new CursorExecutor(), // Alias for cursor
-  "cursor-api": new CursorExecutor("cursor-api"),
-  cua: new CursorExecutor("cursor-api"),
-  "azure-openai": new AzureOpenAIExecutor(),
-  "azure-ai": new AzureAiExecutor(),
-  "command-code": new CommandCodeExecutor(),
-  cmd: new CommandCodeExecutor(), // Alias
-  gitlab: new GitlabExecutor(),
-  "gitlab-duo": new GitlabExecutor("gitlab-duo"),
-  nlpcloud: new NlpCloudExecutor(),
-  pollinations: new PollinationsExecutor(),
-  pol: new PollinationsExecutor(), // Alias
-  "cloudflare-ai": new CloudflareAIExecutor(),
-  cf: new CloudflareAIExecutor(), // Alias
-  freebuff: new FreebuffExecutor(),
-  fb: new FreebuffExecutor(), // Alias
-  "opencode-zen": new OpencodeExecutor("opencode-zen"),
-  "opencode-go": new OpencodeExecutor("opencode-go"),
-  opencode: new OpencodeExecutor("opencode-zen"), // Alias for opencode-zen
-  vertex: new VertexExecutor(),
-  "vertex-partner": new VertexExecutor(),
-  cliproxyapi: new CliproxyapiExecutor(),
-  cpa: new CliproxyapiExecutor(), // Alias
-  dario: new DarioExecutor(),
-  dr: new DarioExecutor(), // Alias
-  "9router": new NineRouterExecutor(),
-  nr: new NineRouterExecutor(), // Alias
-  "perplexity-web": new PerplexityWebExecutor(),
-  "pplx-web": new PerplexityWebExecutor(), // Alias
-  "grok-web": new GrokWebExecutor(),
-  "claude-web": new ClaudeWebExecutor(),
-  "cw-web": new ClaudeWebExecutor(), // Alias
-  "gemini-web": new GeminiWebExecutor(),
-  gweb: new GeminiWebExecutor(), // Alias
-  "gemini-business": new GeminiBusinessExecutor(),
-  gembiz: new GeminiBusinessExecutor(), // Alias
-  "chatgpt-web": new ChatGptWebExecutor(),
-  "cgpt-web": new ChatGptWebExecutor(), // Alias
-  "blackbox-web": new BlackboxWebExecutor(),
-  "bb-web": new BlackboxWebExecutor(), // Alias
-  "muse-spark-web": new MuseSparkWebExecutor(),
-  "ms-web": new MuseSparkWebExecutor(), // Alias
-  "devin-desktop": new DevinDesktopExecutor(),
-  "zed-hosted": new ZedHostedExecutor(),
-  "devin-cli": new DevinCliExecutor(),
-  zcode: new ZcodeExecutor(),
-  zc: new ZcodeExecutor(), // Alias
-  "devin-cli-agentic": new DevinCliAgenticExecutor(),
-  devin: new DevinCliExecutor(), // Alias
-  "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
-  "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
-  "adapta-web": new AdaptaWebExecutor(),
-  "adp-web": new AdaptaWebExecutor(), // Alias
-  "copilot-web": new CopilotWebExecutor(),
-  "copilot-m365-web": new CopilotM365WebExecutor(),
-  copilot: new CopilotWebExecutor(), // Alias
-  "microsoft-designer-web": new MicrosoftDesignerWebExecutor(),
-  msdesigner: new MicrosoftDesignerWebExecutor(), // Alias
-  "adobe-firefly": new AdobeFireflyExecutor(),
-  firefly: new AdobeFireflyExecutor(), // Alias
-  "veoaifree-web": new VeoAIFreeWebExecutor(),
-  "veo-free": new VeoAIFreeWebExecutor(), // Alias
-  "duckduckgo-web": new DuckDuckGoWebExecutor(),
-  ddgw: new DuckDuckGoWebExecutor(), // Alias
-  "felo-web": new FeloWebExecutor(),
-  felo: new FeloWebExecutor(), // Alias
-  "t3-web": new T3ChatWebExecutor(),
-  t3chat: new T3ChatWebExecutor(), // Alias
-  "inner-ai": new InnerAiExecutor(),
-  "in-ai": new InnerAiExecutor(), // Alias
-  huggingchat: new HuggingChatExecutor(),
-  hc: new HuggingChatExecutor(), // Alias
-  "yuanbao-web": new YuanbaoWebExecutor(),
-  "tencent-aistudio-web": new TencentAIStudioWebExecutor(),
-  tasw: new TencentAIStudioWebExecutor(),
-  ybw: new YuanbaoWebExecutor(), // Alias
-  "poe-web": new PoeWebExecutor(),
+// R0.3 — declarative built-in table, made LAZY by #11220.
+//
+// The object literal below stays as the single place built-ins are declared
+// (compile-time duplicate-key safety; the check:known-symbols gate parses this
+// literal from source), but its values are now deferred loaders instead of
+// eagerly-constructed instances. At module load every ALIAS is registered in
+// declaration order; the class import + construction happen on first use via
+// loadRegisteredExecutor() and are cached in the same registry a static
+// registration would have populated.
+//
+// Why: importing this barrel previously pulled all ~100 executor modules and
+// constructed every instance at boot — ~0.7–1.2s and ~35MB of heap measured on
+// top of the minimal set — even for deployments that use a handful of
+// providers. Bundlers split the dynamic imports into on-demand chunks.
+//
+// Contract preserved (pinned by tests/unit/executor-map-golden.test.ts):
+//   - keys and their ORDER are byte-stable
+//   - each alias still gets its OWN instance (aliases never share)
+//   - ctor arguments are unchanged
+const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
+  antigravity: () => import("./antigravity.ts").then((m) => new m.AntigravityExecutor()),
+  agy: () => import("./antigravity.ts").then((m) => new m.AntigravityExecutor()),
+  github: () => import("./github.ts").then((m) => new m.GithubExecutor()),
+  "ghe-copilot": () => import("./ghe-copilot.ts").then((m) => new m.GheCopilotExecutor()),
+  qoder: () => import("./qoder.ts").then((m) => new m.QoderExecutor()),
+  kiro: () => import("./kiro.ts").then((m) => new m.KiroExecutor()),
+  "amazon-q": () => import("./kiro.ts").then((m) => new m.KiroExecutor("amazon-q")),
+  bedrock: () => import("./bedrock.ts").then((m) => new m.BedrockExecutor()),
+  codex: () => import("./codex.ts").then((m) => new m.CodexExecutor()),
+  "codex-app-server": () =>
+    Promise.all([import("./codex-app-server.ts"), import("./codex.ts")]).then(
+      ([appServer, codex]) =>
+        new appServer.CodexAppServerExecutor(
+          { websocketFn: codex.getCodexAppServerWebsocketTransport() },
+          "codex-app-server"
+        )
+    ),
+  maxai: () => import("./maxai.ts").then((m) => new m.MaxAiExecutor()),
+  uc: () => import("./uc.ts").then((m) => new m.UcExecutor()),
+  "chatgpt-web-codex": () =>
+    import("./chatgpt-web-codex.ts").then((m) => new m.ChatGptWebCodexExecutor()),
+  "cgpt-codex": () => import("./chatgpt-web-codex.ts").then((m) => new m.ChatGptWebCodexExecutor()),
+  "chatgpt-web": () => import("./chatgpt-web.ts").then((m) => new m.ChatGptWebExecutor()),
+  cursor: () => import("./cursor.ts").then((m) => new m.CursorExecutor()),
+  trae: () => import("./trae.ts").then((m) => new m.TraeExecutor()),
+  glm: () => import("./glm.ts").then((m) => new m.GlmExecutor("glm")),
+  "glm-cn": () => import("./glm.ts").then((m) => new m.GlmExecutor("glm-cn")),
+  glmt: () => import("./glm.ts").then((m) => new m.GlmExecutor("glmt")),
+  cu: () => import("./cursor.ts").then((m) => new m.CursorExecutor()), // Alias for cursor
+  "cursor-api": () => import("./cursor.ts").then((m) => new m.CursorExecutor("cursor-api")),
+  cua: () => import("./cursor.ts").then((m) => new m.CursorExecutor("cursor-api")),
+  "azure-openai": () => import("./azure-openai.ts").then((m) => new m.AzureOpenAIExecutor()),
+  "azure-ai": () => import("./azure-ai.ts").then((m) => new m.AzureAiExecutor()),
+  "command-code": () => import("./commandCode.ts").then((m) => new m.CommandCodeExecutor()),
+  cmd: () => import("./commandCode.ts").then((m) => new m.CommandCodeExecutor()), // Alias
+  gitlab: () => import("./gitlab.ts").then((m) => new m.GitlabExecutor()),
+  "gitlab-duo": () => import("./gitlab.ts").then((m) => new m.GitlabExecutor("gitlab-duo")),
+  nlpcloud: () => import("./nlpcloud.ts").then((m) => new m.NlpCloudExecutor()),
+  oneminai: () => import("./oneminai.ts").then((m) => new m.OneMinAiExecutor()),
+  "1min": () => import("./oneminai.ts").then((m) => new m.OneMinAiExecutor()), // Alias
+  pollinations: () => import("./pollinations.ts").then((m) => new m.PollinationsExecutor()),
+  pol: () => import("./pollinations.ts").then((m) => new m.PollinationsExecutor()), // Alias
+  "cloudflare-ai": () => import("./cloudflare-ai.ts").then((m) => new m.CloudflareAIExecutor()),
+  cf: () => import("./cloudflare-ai.ts").then((m) => new m.CloudflareAIExecutor()), // Alias
+  freebuff: () => import("./freebuff.ts").then((m) => new m.FreebuffExecutor()),
+  fb: () => import("./freebuff.ts").then((m) => new m.FreebuffExecutor()), // Alias
+  "opencode-zen": () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")),
+  "opencode-go": () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-go")),
+  opencode: () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")), // Alias for opencode-zen
+  vertex: () => import("./vertex.ts").then((m) => new m.VertexExecutor()),
+  "vertex-partner": () => import("./vertex.ts").then((m) => new m.VertexExecutor()),
+  cliproxyapi: () => import("./cliproxyapi.ts").then((m) => new m.CliproxyapiExecutor()),
+  cpa: () => import("./cliproxyapi.ts").then((m) => new m.CliproxyapiExecutor()), // Alias
+  dario: () => import("./dario.ts").then((m) => new m.DarioExecutor()),
+  dr: () => import("./dario.ts").then((m) => new m.DarioExecutor()), // Alias
+  "9router": () => import("./ninerouter.ts").then((m) => new m.NineRouterExecutor()),
+  nr: () => import("./ninerouter.ts").then((m) => new m.NineRouterExecutor()), // Alias
+  "perplexity-web": () => import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()),
+  "pplx-web": () => import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()), // Alias
+  "grok-web": () => import("./grok-web.ts").then((m) => new m.GrokWebExecutor()),
+  "claude-web": () => import("./claude-web.ts").then((m) => new m.ClaudeWebExecutor()),
+  "cw-web": () => import("./claude-web.ts").then((m) => new m.ClaudeWebExecutor()), // Alias
+  "gemini-web": () => import("./gemini-web.ts").then((m) => new m.GeminiWebExecutor()),
+  gweb: () => import("./gemini-web.ts").then((m) => new m.GeminiWebExecutor()), // Alias
+  "blackbox-web": () => import("./blackbox-web.ts").then((m) => new m.BlackboxWebExecutor()),
+  "bb-web": () => import("./blackbox-web.ts").then((m) => new m.BlackboxWebExecutor()), // Alias
+  "muse-spark-web": () => import("./muse-spark-web.ts").then((m) => new m.MuseSparkWebExecutor()),
+  "ms-web": () => import("./muse-spark-web.ts").then((m) => new m.MuseSparkWebExecutor()), // Alias
+  "devin-desktop": () => import("./devin-desktop.ts").then((m) => new m.DevinDesktopExecutor()),
+  "zed-hosted": () => import("./zed-hosted.ts").then((m) => new m.ZedHostedExecutor()),
+  "devin-cli": () => import("./devin-cli.ts").then((m) => new m.DevinCliExecutor()),
+  zcode: () => import("./zcode.ts").then((m) => new m.ZcodeExecutor()),
+  zc: () => import("./zcode.ts").then((m) => new m.ZcodeExecutor()), // Alias
+  "devin-cli-agentic": () =>
+    import("./devin-cli-agentic.ts").then((m) => new m.DevinCliAgenticExecutor()),
+  devin: () => import("./devin-cli.ts").then((m) => new m.DevinCliExecutor()), // Alias
+  "deepseek-web": () =>
+    import("./deepseek-web-with-auto-refresh.ts").then(
+      (m) => new m.DeepSeekWebWithAutoRefreshExecutor()
+    ),
+  "ds-web": () =>
+    import("./deepseek-web-with-auto-refresh.ts").then(
+      (m) => new m.DeepSeekWebWithAutoRefreshExecutor()
+    ), // Alias
+  "adapta-web": () => import("./adapta-web.ts").then((m) => new m.AdaptaWebExecutor()),
+  "adp-web": () => import("./adapta-web.ts").then((m) => new m.AdaptaWebExecutor()), // Alias
+  "copilot-web": () => import("./copilot-web.ts").then((m) => new m.CopilotWebExecutor()),
+  "copilot-m365-web": () =>
+    import("./copilot-m365-web.ts").then((m) => new m.CopilotM365WebExecutor()),
+  copilot: () => import("./copilot-web.ts").then((m) => new m.CopilotWebExecutor()), // Alias
+  "adobe-firefly": () => import("./adobe-firefly.ts").then((m) => new m.AdobeFireflyExecutor()),
+  firefly: () => import("./adobe-firefly.ts").then((m) => new m.AdobeFireflyExecutor()), // Alias
+  "veoaifree-web": () => import("./veoaifree-web.ts").then((m) => new m.VeoAIFreeWebExecutor()),
+  "veo-free": () => import("./veoaifree-web.ts").then((m) => new m.VeoAIFreeWebExecutor()), // Alias
+  "duckduckgo-web": () => import("./duckduckgo-web.ts").then((m) => new m.DuckDuckGoWebExecutor()),
+  ddgw: () => import("./duckduckgo-web.ts").then((m) => new m.DuckDuckGoWebExecutor()), // Alias
+  "t3-web": () => import("./t3-chat-web.ts").then((m) => new m.T3ChatWebExecutor()),
+  t3chat: () => import("./t3-chat-web.ts").then((m) => new m.T3ChatWebExecutor()), // Alias
+  "inner-ai": () => import("./inner-ai.ts").then((m) => new m.InnerAiExecutor()),
+  "in-ai": () => import("./inner-ai.ts").then((m) => new m.InnerAiExecutor()), // Alias
+  huggingchat: () => import("./huggingchat.ts").then((m) => new m.HuggingChatExecutor()),
+  hc: () => import("./huggingchat.ts").then((m) => new m.HuggingChatExecutor()), // Alias
+  "yuanbao-web": () => import("./yuanbao-web.ts").then((m) => new m.YuanbaoWebExecutor()),
+  "tencent-aistudio-web": () =>
+    import("./tencent-aistudio-web.ts").then((m) => new m.TencentAIStudioWebExecutor()),
+  tasw: () => import("./tencent-aistudio-web.ts").then((m) => new m.TencentAIStudioWebExecutor()), // Alias
+  ybw: () => import("./yuanbao-web.ts").then((m) => new m.YuanbaoWebExecutor()), // Alias
+  "poe-web": () => import("./poe-web.ts").then((m) => new m.PoeWebExecutor()),
   // #8969: do NOT alias canonical `poe` (API-key / api.poe.com) to PoeWebExecutor.
   // Registry declares executor:"default"; the hard-coded map previously won and
   // routed API-key traffic to GraphQL /api/gql_POST → HTTP 405.
-  "venice-web": new VeniceWebExecutor(),
-  ven: new VeniceWebExecutor(), // Alias
-  "notion-web": new NotionWebExecutor(),
-  nw: new NotionWebExecutor(), // Alias
-  promptql: new PromptQlExecutor(),
-  pql: new PromptQlExecutor(), // Alias
-  "v0-vercel-web": new V0VercelWebExecutor(),
-  v0: new V0VercelWebExecutor(), // Alias
-  "kimi-web": new KimiWebExecutor(),
-  "kimi-coding-apikey": new KimiExecutor("kimi-coding-apikey"), // Legacy alias
-  "kimi-coding": new KimiExecutor(), // Alias
-  moonshot: new MoonshotExecutor(),
-  kimi: new MoonshotExecutor("kimi"), // Hidden legacy Moonshot provider id
-  cheaperinference: new CheaperInferenceExecutor(),
-  cinf: new CheaperInferenceExecutor("cheaperinference"), // Alias
-  "doubao-web": new DoubaoWebExecutor(),
-  db: new DoubaoWebExecutor(), // Alias
-  "qwen-web": new QwenWebExecutor(),
-  raycast: new RaycastExecutor(),
-  rc: new RaycastExecutor(), // Alias
-  "hailuo-web": new HailuoWebExecutor(),
-  "zai-web": new ZaiWebExecutor(),
-  zw: new ZaiWebExecutor(), // Alias
-  theoldllm: new TheOldLlmExecutor(),
-  tllm: new TheOldLlmExecutor(), // Alias
-  chipotle: new ChipotleExecutor(),
-  pepper: new ChipotleExecutor(), // Alias
-  lmarena: new LMArenaExecutor(),
-  lma: new LMArenaExecutor(), // Alias
-  "grok-cli": new GrokCliExecutor(),
-  gc: new GrokCliExecutor(), // Alias
-  "codebuddy-cn": new CodeBuddyCnExecutor(),
-  cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
-  "zenmux-free": new ZenmuxFreeExecutor(),
-  "cloudflare-playground": new CloudflarePlaygroundExecutor(),
-  cfp: new CloudflarePlaygroundExecutor(), // Alias for cloudflare-playground
-  "tinycms-web": new TinyCmsExecutor(),
-  tcw: new TinyCmsExecutor(), // Alias
-  hyperagent: new HyperAgentExecutor(),
-  ha: new HyperAgentExecutor(), // Alias
-  zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
-  auggie: new AuggieExecutor(),
-  xai: new XaiExecutor(),
-  "xai-oauth": new XaiExecutor("xai-oauth"),
-  xao: new XaiExecutor("xai-oauth"),
-  qw: new QwenWebExecutor(), // Alias
-  "conol-web": new ConolWebExecutor(),
-  cnl: new ConolWebExecutor(), // Alias
+  "venice-web": () => import("./venice-web.ts").then((m) => new m.VeniceWebExecutor()),
+  ven: () => import("./venice-web.ts").then((m) => new m.VeniceWebExecutor()), // Alias
+  "notion-web": () => import("./notion-web.ts").then((m) => new m.NotionWebExecutor()),
+  nw: () => import("./notion-web.ts").then((m) => new m.NotionWebExecutor()), // Alias
+  promptql: () => import("./promptql.ts").then((m) => new m.PromptQlExecutor()),
+  pql: () => import("./promptql.ts").then((m) => new m.PromptQlExecutor()), // Alias
+  "v0-vercel-web": () => import("./v0-vercel-web.ts").then((m) => new m.V0VercelWebExecutor()),
+  v0: () => import("./v0-vercel-web.ts").then((m) => new m.V0VercelWebExecutor()), // Alias
+  "kimi-web": () => import("./kimi-web.ts").then((m) => new m.KimiWebExecutor()),
+  "kimi-coding-apikey": () =>
+    import("./kimi.ts").then((m) => new m.KimiExecutor("kimi-coding-apikey")), // Legacy alias
+  "kimi-coding": () => import("./kimi.ts").then((m) => new m.KimiExecutor()), // Alias
+  moonshot: () => import("./moonshot.ts").then((m) => new m.MoonshotExecutor()),
+  kimi: () => import("./moonshot.ts").then((m) => new m.MoonshotExecutor("kimi")), // Hidden legacy Moonshot provider id
+  cheaperinference: () =>
+    import("./cheaperinference.ts").then((m) => new m.CheaperInferenceExecutor()),
+  cinf: () =>
+    import("./cheaperinference.ts").then((m) => new m.CheaperInferenceExecutor("cheaperinference")), // Alias
+  "doubao-web": () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()),
+  db: () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()), // Alias
+  "zai-web": () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()),
+  zw: () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()), // Alias
+  lmarena: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()),
+  lma: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()), // Alias
+  "grok-cli": () => import("./grok-cli.ts").then((m) => new m.GrokCliExecutor()),
+  gc: () => import("./grok-cli.ts").then((m) => new m.GrokCliExecutor()), // Alias
+  "codebuddy-cn": () => import("./codebuddy-cn.ts").then((m) => new m.CodeBuddyCnExecutor()),
+  cbcn: () => import("./codebuddy-cn.ts").then((m) => new m.CodeBuddyCnExecutor()), // Alias for codebuddy-cn
+  "zenmux-free": () => import("./zenmux-free.ts").then((m) => new m.ZenmuxFreeExecutor()),
+  "cloudflare-playground": () =>
+    import("./cloudflare-playground.ts").then((m) => new m.CloudflarePlaygroundExecutor()),
+  cfp: () => import("./cloudflare-playground.ts").then((m) => new m.CloudflarePlaygroundExecutor()), // Alias for cloudflare-playground
+  "tinycms-web": () => import("./tinycms.ts").then((m) => new m.TinyCmsExecutor()),
+  tcw: () => import("./tinycms.ts").then((m) => new m.TinyCmsExecutor()), // Alias
+  hyperagent: () => import("./hyperagent.ts").then((m) => new m.HyperAgentExecutor()),
+  ha: () => import("./hyperagent.ts").then((m) => new m.HyperAgentExecutor()), // Alias
+  zmf: () => import("./zenmux-free.ts").then((m) => new m.ZenmuxFreeExecutor()), // Alias for zenmux-free
+  auggie: () => import("./auggie.ts").then((m) => new m.AuggieExecutor()),
+  xai: () => import("./xai.ts").then((m) => new m.XaiExecutor()),
+  "xai-oauth": () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
+  xao: () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
+  "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
+  "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
+  cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
 };
 
-// Bootstrap: register every built-in in the ExecutorRegistry. registerExecutor
-// throws on duplicates, so an alias collision fails at module load, exactly as
-// loudly as a duplicate object key would have failed at lint time.
-for (const [alias, executor] of Object.entries(executors) as [string, BaseExecutor][]) {
-  registerExecutor(alias, executor);
+// Bootstrap: declare every built-in alias in the ExecutorRegistry. Duplicate
+// aliases fail at module load, exactly as loudly as a duplicate object key
+// would have failed at lint time. Instances materialize on first use (#11220).
+for (const [alias, load] of Object.entries(lazyExecutors)) {
+  registerLazyExecutor(alias, load);
 }
-
-const defaultCache = new Map();
 
 // #6699 — providers that exist ONLY as Cloud Agent task-API entries
 // (CLOUD_AGENT_PROVIDERS / staticModels "Available Models" catalog) and have no
@@ -267,9 +213,12 @@ const CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS = new Set(["jules"]);
 // providers must be executed through /v1/search, never the chat-completions path.
 const CHAT_UNSUPPORTED_SEARCH_PROVIDERS = new Set(Object.keys(SEARCH_PROVIDERS));
 
-export function getExecutor(provider) {
-  const registered = getRegisteredExecutor(provider);
-  if (registered) return registered;
+export async function getExecutor(provider: string): Promise<BaseExecutor> {
+  assertMicrosoftDesignerWebProviderAvailable(provider);
+  assertRuntimeProviderAvailable(provider);
+  assertCommonChatGptWebProviderAvailable(provider);
+  const loaded = await loadRegisteredExecutor(provider);
+  if (loaded) return loaded;
   if (CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS.has(provider)) {
     const err = new Error(
       `Provider "${provider}" is a cloud-agent provider and does not support direct chat completions; use the Cloud Agents task API instead.`
@@ -284,78 +233,15 @@ export function getExecutor(provider) {
     (err as Error & { status?: number }).status = 400;
     throw err;
   }
-  if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
-  return defaultCache.get(provider);
+  return getDefaultExecutor(provider);
 }
 
-export function hasSpecializedExecutor(provider) {
+export function hasSpecializedExecutor(provider: string): boolean {
   return hasRegisteredExecutor(provider);
 }
 
-export { registerExecutor, listExecutorAliases } from "./registry.ts";
-
+export { registerExecutor, registerLazyExecutor, listExecutorAliases } from "./registry.ts";
+// Value re-export: base.ts is already eager (DefaultExecutor extends it), and
+// scripts/check/check-known-symbols.ts reads this export from the module.
 export { BaseExecutor } from "./base.ts";
-export { AntigravityExecutor } from "./antigravity.ts";
-export { GithubExecutor } from "./github.ts";
-export { QoderExecutor } from "./qoder.ts";
-export { KiroExecutor } from "./kiro.ts";
-export { CodexExecutor } from "./codex.ts";
-export { CursorExecutor } from "./cursor.ts";
-export { TraeExecutor } from "./trae.ts";
 export { DefaultExecutor } from "./default.ts";
-export { BedrockExecutor } from "./bedrock.ts";
-export { GlmExecutor } from "./glm.ts";
-export { PollinationsExecutor } from "./pollinations.ts";
-export { CloudflareAIExecutor } from "./cloudflare-ai.ts";
-export { OpencodeExecutor } from "./opencode.ts";
-export { CliproxyapiExecutor } from "./cliproxyapi.ts";
-export { DarioExecutor } from "./dario.ts";
-export { NineRouterExecutor } from "./ninerouter.ts";
-export { VertexExecutor } from "./vertex.ts";
-export { PerplexityWebExecutor } from "./perplexity-web.ts";
-export { GrokWebExecutor } from "./grok-web.ts";
-export { GeminiWebExecutor } from "./gemini-web.ts";
-export { KieExecutor } from "./kie.ts";
-export { ChatGptWebExecutor } from "./chatgpt-web.ts";
-export { BlackboxWebExecutor } from "./blackbox-web.ts";
-export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
-export { AzureOpenAIExecutor } from "./azure-openai.ts";
-export { AzureAiExecutor } from "./azure-ai.ts";
-export { CommandCodeExecutor } from "./commandCode.ts";
-export { GitlabExecutor } from "./gitlab.ts";
-export { NlpCloudExecutor } from "./nlpcloud.ts";
-export { DevinDesktopExecutor } from "./devin-desktop.ts";
-export { ZedHostedExecutor } from "./zed-hosted.ts";
-export { DevinCliExecutor } from "./devin-cli.ts";
-export { DevinCliAgenticExecutor } from "./devin-cli-agentic.ts";
-export { AuggieExecutor } from "./auggie.ts";
-export { CopilotWebExecutor } from "./copilot-web.ts";
-export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
-export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
-export { AdobeFireflyExecutor } from "./adobe-firefly.ts";
-export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
-export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
-export { FeloWebExecutor } from "./felo-web.ts";
-export { ClaudeWebExecutor } from "./claude-web.ts";
-export { DeepSeekWebExecutor } from "./deepseek-web.ts";
-export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
-export { AdaptaWebExecutor } from "./adapta-web.ts";
-export { YuanbaoWebExecutor } from "./yuanbao-web.ts";
-export { T3ChatWebExecutor } from "./t3-chat-web.ts";
-export { InnerAiExecutor } from "./inner-ai.ts";
-export { QwenWebExecutor } from "./qwen-web.ts";
-export { HailuoWebExecutor } from "./hailuo-web.ts";
-export { TheOldLlmExecutor } from "./theoldllm.ts";
-export { ChipotleExecutor } from "./chipotle.ts";
-export { LMArenaExecutor } from "./lmarena.ts";
-export { GrokCliExecutor } from "./grok-cli.ts";
-export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
-export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
-export { CloudflarePlaygroundExecutor } from "./cloudflare-playground.ts";
-export { TinyCmsExecutor } from "./tinycms.ts";
-export { HyperAgentExecutor } from "./hyperagent.ts";
-export { XaiExecutor } from "./xai.ts";
-export { MoonshotExecutor } from "./moonshot.ts";
-export { CheaperInferenceExecutor } from "./cheaperinference.ts";
-export { PromptQlExecutor } from "./promptql.ts";
-export { ConolWebExecutor } from "./conol-web.ts";

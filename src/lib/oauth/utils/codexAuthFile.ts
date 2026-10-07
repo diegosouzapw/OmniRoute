@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { createBackup } from "@/shared/services/backupService";
 import { getCliConfigPaths } from "@/shared/services/cliRuntime";
 import {
@@ -197,7 +197,9 @@ function buildCodexAuthPayload(connection: CodexConnectionLike): CodexAuthFilePa
 }
 
 async function resolveFreshCodexConnection(connectionId: string): Promise<CodexConnectionLike> {
-  const connection = (await getCachedProviderConnectionById(connectionId)) as CodexConnectionLike | null;
+  const connection = (await getCachedProviderConnectionById(
+    connectionId
+  )) as CodexConnectionLike | null;
   if (!connection) {
     throw new CodexAuthFileError("Connection not found", 404, "not_found");
   }
@@ -377,7 +379,11 @@ export type CodexAuthWriteDecision =
 export async function writeCodexAuthFileToLocalCliIfNeeded(
   connectionId: string,
   options: { force?: boolean } = {}
-): Promise<{ decision: CodexAuthWriteDecision; authPath: string | null; result?: Awaited<ReturnType<typeof writeCodexAuthFileToLocalCli>> }> {
+): Promise<{
+  decision: CodexAuthWriteDecision;
+  authPath: string | null;
+  result?: Awaited<ReturnType<typeof writeCodexAuthFileToLocalCli>>;
+}> {
   const paths = getCliConfigPaths("codex");
   const authPath = paths?.auth ?? null;
 

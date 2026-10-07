@@ -1,4 +1,5 @@
-import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
+import { getProviderConnectionById } from "@/lib/db/providers";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import {
   fetchAndPersistProviderLimits,

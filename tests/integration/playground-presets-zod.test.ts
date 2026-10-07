@@ -19,20 +19,18 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolated DB per test file
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-presets-zod-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-presets-zod-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.REQUIRE_API_KEY = "false";
 
 const core = await import("../../src/lib/db/core.ts");
 
-const { POST: createPost } = await import(
-  "../../src/app/api/playground/presets/route.ts"
-);
-const { GET: idGet, PUT: idPut, DELETE: idDelete } = await import(
-  "../../src/app/api/playground/presets/[id]/route.ts"
-);
+const { POST: createPost } = await import("../../src/app/api/playground/presets/route.ts");
+const {
+  GET: idGet,
+  PUT: idPut,
+  DELETE: idDelete,
+} = await import("../../src/app/api/playground/presets/[id]/route.ts");
 
 const BASE_URL = "http://localhost:20128";
 
@@ -133,9 +131,7 @@ test("POST with missing model → 400", async () => {
 });
 
 test("POST with empty model → 400", async () => {
-  const res = await createPost(
-    postReq({ name: "Test", endpoint: "chat.completions", model: "" })
-  );
+  const res = await createPost(postReq({ name: "Test", endpoint: "chat.completions", model: "" }));
   assert.equal(res.status, 400);
   const body = (await res.json()) as { error: { message: string } };
   assert.ok(body.error);
@@ -145,7 +141,12 @@ test("POST with empty model → 400", async () => {
 test("POST with system > 50000 chars → 400", async () => {
   const longSystem = "x".repeat(50001);
   const res = await createPost(
-    postReq({ name: "Big System", endpoint: "chat.completions", model: "gpt-4o", system: longSystem })
+    postReq({
+      name: "Big System",
+      endpoint: "chat.completions",
+      model: "gpt-4o",
+      system: longSystem,
+    })
   );
   assert.equal(res.status, 400);
   const body = (await res.json()) as { error: { message: string } };
@@ -156,7 +157,12 @@ test("POST with system > 50000 chars → 400", async () => {
 test("POST with system exactly 50000 chars → 201 (boundary: valid)", async () => {
   const maxSystem = "x".repeat(50000);
   const res = await createPost(
-    postReq({ name: "Max System", endpoint: "chat.completions", model: "gpt-4o", system: maxSystem })
+    postReq({
+      name: "Max System",
+      endpoint: "chat.completions",
+      model: "gpt-4o",
+      system: maxSystem,
+    })
   );
   assert.equal(res.status, 201);
 });
@@ -205,10 +211,7 @@ test("PUT with empty name → 400", async () => {
 test("PUT with system > 50000 chars → 400", async () => {
   const validId = "00000000-0000-4000-8000-000000000001";
   const longSystem = "y".repeat(50001);
-  const res = await idPut(
-    putReq(validId, { system: longSystem }),
-    await resolveParams(validId)
-  );
+  const res = await idPut(putReq(validId, { system: longSystem }), await resolveParams(validId));
   assert.equal(res.status, 400);
   const body = (await res.json()) as { error: { message: string } };
   assert.ok(body.error);

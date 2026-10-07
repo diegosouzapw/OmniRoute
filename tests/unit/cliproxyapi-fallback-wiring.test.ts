@@ -30,10 +30,8 @@ const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
 // Import the executor module to get the real exported functions.
 // This may be a cached import if cliproxyapi-executor.test.ts ran first — that
 // is intentional; we test the live module state, not a fresh copy.
-const {
-  clearCliproxyapiUrlCache,
-  resolveCliproxyapiBaseUrl,
-} = await import("../../open-sse/executors/cliproxyapi.ts");
+const { clearCliproxyapiUrlCache, resolveCliproxyapiBaseUrl } =
+  await import("../../open-sse/executors/cliproxyapi.ts");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -121,7 +119,10 @@ describe("CLIProxyAPI fallback wiring", () => {
       const url2 = await resolveCliproxyapiBaseUrl();
 
       assert.ok(url1.endsWith(":8001"), `url1 should end with :8001, got: ${url1}`);
-      assert.ok(url2.endsWith(":8002"), `url2 should end with :8002 after cache clear, got: ${url2}`);
+      assert.ok(
+        url2.endsWith(":8002"),
+        `url2 should end with :8002 after cache clear, got: ${url2}`
+      );
       assert.notEqual(url1, url2);
     });
   });

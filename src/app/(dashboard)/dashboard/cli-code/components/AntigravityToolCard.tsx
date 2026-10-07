@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Badge, Modal, Input, ModelSelectModal } from "@/shared/components";
 import { MITM_TOOL_HOSTS } from "@/shared/constants/mitmToolHosts";
 import { useTranslations } from "next-intl";
@@ -49,22 +49,12 @@ export default function AntigravityToolCard({
   const [modelAliases, setModelAliases] = useState({});
 
   // (#523) Store the key *id* (not the masked string) so the backend can
-  // resolve the real secret from DB before writing to config files.
-  useEffect(() => {
-    if (apiKeys?.length > 0 && !selectedApiKeyId) {
-      setSelectedApiKeyId(apiKeys[0].id);
-    }
-  }, [apiKeys, selectedApiKeyId]);
+  // resolve the real secret from DB before writing to config files. Default to
+  // the first available key while the user hasn't picked one — derived during
+  // render instead of synced through an effect (react-hooks/set-state-in-effect).
+  const effectiveApiKeyId = selectedApiKeyId || (apiKeys?.length > 0 ? apiKeys[0].id : "");
 
-  useEffect(() => {
-    if (isExpanded && !status) {
-      fetchStatus();
-      loadSavedMappings();
-      fetchModelAliases();
-    }
-  }, [isExpanded, status]);
-
-  const loadSavedMappings = async () => {
+  const loadSavedMappings = useCallback(async () => {
     try {
       const res = await fetch(`/api/cli-tools/antigravity-mitm/alias?tool=${tool.id}`);
       if (res.ok) {
@@ -78,9 +68,9 @@ export default function AntigravityToolCard({
     } catch (error) {
       console.log("Error loading saved mappings:", error);
     }
-  };
+  }, [tool.id]);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/cli-tools/antigravity-mitm");
       if (res.ok) {
@@ -91,9 +81,9 @@ export default function AntigravityToolCard({
       console.log("Error fetching status:", error);
       setStatus({ running: false });
     }
-  };
+  }, []);
 
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       const data = await res.json();
@@ -101,7 +91,16 @@ export default function AntigravityToolCard({
     } catch (error) {
       console.log("Error fetching model aliases:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!(isExpanded && !status)) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([fetchStatus(), loadSavedMappings(), fetchModelAliases()]);
+    })();
+  }, [isExpanded, status, fetchStatus, loadSavedMappings, fetchModelAliases]);
 
   // MITM elevation is decided by the *server* OS, not by this browser's user
   // agent. The server reports `isWin` and `needsSudoPassword` in GET status —
@@ -135,7 +134,7 @@ export default function AntigravityToolCard({
     try {
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId =
-        selectedApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+        effectiveApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
       const res = await fetch("/api/cli-tools/antigravity-mitm", {
         method: "POST",
@@ -345,7 +344,7 @@ export default function AntigravityToolCard({
                 </span>
                 {apiKeys.length > 0 ? (
                   <select
-                    value={selectedApiKeyId}
+                    value={effectiveApiKeyId}
                     onChange={(e) => setSelectedApiKeyId(e.target.value)}
                     className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                   >

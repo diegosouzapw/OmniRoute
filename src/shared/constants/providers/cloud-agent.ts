@@ -5,6 +5,7 @@
 export const CLOUD_AGENT_PROVIDERS = {
   jules: {
     id: "jules",
+    serviceKinds: [],
     alias: "jules",
     name: "Google Jules",
     icon: "engineering",
@@ -15,6 +16,7 @@ export const CLOUD_AGENT_PROVIDERS = {
   },
   devin: {
     id: "devin",
+    serviceKinds: [],
     alias: "devin",
     name: "Devin",
     icon: "smart_toy",
@@ -25,6 +27,7 @@ export const CLOUD_AGENT_PROVIDERS = {
   },
   "codex-cloud": {
     id: "codex-cloud",
+    serviceKinds: [],
     alias: "codex-cloud",
     name: "Codex Cloud",
     icon: "cloud",

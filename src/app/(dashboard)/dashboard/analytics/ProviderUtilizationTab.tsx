@@ -131,7 +131,9 @@ export default function ProviderUtilizationTab() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchUtilization(range, aggregateBy, controller.signal);
+    void (async () => {
+      await fetchUtilization(range, aggregateBy, controller.signal);
+    })();
 
     return () => controller.abort();
   }, [fetchUtilization, range, aggregateBy]);
@@ -169,6 +171,25 @@ export default function ProviderUtilizationTab() {
   }, [data]);
 
   const latestPoints = useMemo(() => getLatestPoints(data?.data ?? []), [data?.data]);
+
+  const resolveDisplayName = useCallback(
+    (key: string) => {
+      const colonIdx = key.indexOf(":");
+      const isConnectionKey = aggregateBy === "connection" && colonIdx !== -1;
+      if (isConnectionKey) {
+        const connectionId = key.slice(colonIdx + 1);
+        const connMeta = data?.connectionMeta?.[connectionId];
+        return getAccountDisplayName({
+          id: connectionId,
+          email: connMeta?.email,
+          name: connMeta?.name,
+          displayName: connMeta?.displayName,
+        });
+      }
+      return resolveProviderName(key, nodeMap);
+    },
+    [aggregateBy, data?.connectionMeta, nodeMap]
+  );
 
   const hasData = Boolean(data?.data.length);
   const [retrying, setRetrying] = useState(false);
@@ -301,7 +322,7 @@ export default function ProviderUtilizationTab() {
               providers={data?.providers ?? []}
               providerColors={providerColors}
               range={range}
-              resolveProviderName={resolveProviderName}
+              resolveProviderName={resolveDisplayName}
               nodeMap={nodeMap}
               formatTimestamp={formatTimestamp}
               formatPercent={formatPercent}
@@ -319,15 +340,7 @@ export default function ProviderUtilizationTab() {
                   ? point.provider.slice(0, colonIdx)
                   : point.provider;
                 const connectionId = isConnectionKey ? point.provider.slice(colonIdx + 1) : null;
-                const connMeta = connectionId ? data?.connectionMeta?.[connectionId] : null;
-                const cardTitle = isConnectionKey
-                  ? getAccountDisplayName({
-                      id: connectionId ?? undefined,
-                      email: connMeta?.email,
-                      name: connMeta?.name,
-                      displayName: connMeta?.displayName,
-                    })
-                  : resolveProviderName(point.provider, nodeMap);
+                const cardTitle = resolveDisplayName(point.provider);
                 const cardSubtitle = isConnectionKey
                   ? `${providerPart} · account ${(connectionId ?? "").slice(0, 8)}…`
                   : t("providerUtilizationLatestSnapshot");
@@ -340,12 +353,8 @@ export default function ProviderUtilizationTab() {
                           <ProviderIcon providerId={providerPart} size={22} />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-text-main">
-                            {cardTitle}
-                          </p>
-                          <p className="text-xs text-text-muted">
-                            {cardSubtitle}
-                          </p>
+                          <p className="text-sm font-semibold text-text-main">{cardTitle}</p>
+                          <p className="text-xs text-text-muted">{cardSubtitle}</p>
                         </div>
                       </div>
                       <span

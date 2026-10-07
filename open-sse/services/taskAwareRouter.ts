@@ -174,7 +174,7 @@ const TASK_PATTERNS: Record<TaskType, TaskPattern> = {
  *  - The list rotted. Those ids aged out by a generation or two, and every model
  *    release made them staler. Naming an intent instead removes the maintenance.
  *  - It bypassed the router. `applyTaskAwareRouting` overwrites `body.model`, so a
- *    literal target skipped auto-combo's 13-factor scoring (quota, circuit-breaker
+ *    literal target skipped auto-combo's 16-factor scoring (quota, circuit-breaker
  *    health, cost, latency, stability), connection cooldown and model lockout — and
  *    hard-failed for any operator who simply had no connection for that provider.
  *

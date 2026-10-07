@@ -4,16 +4,14 @@
 // only for non-streaming requests (the `hasTools && !stream` gate). Streaming
 // requests — the default for agentic coding clients — got the raw <tool> text
 // as plain delta.content and never emitted a tool_calls SSE delta, so clients
-// could not execute tools. These tests live in a dedicated file mirroring
-// tests/unit/chatgpt-web-tools-5240.test.ts (the reference fix for chatgpt-web).
+// could not execute tools. These tests pin the shared web-tool response contract.
 
 import test from "node:test";
 import assert from "node:assert/strict";
 
 const { PerplexityWebExecutor } = await import("../../open-sse/executors/perplexity-web.ts");
-const { __setTlsFetchOverrideForTesting } = await import(
-  "../../open-sse/services/perplexityTlsClient.ts"
-);
+const { __setTlsFetchOverrideForTesting } =
+  await import("../../open-sse/services/perplexityTlsClient.ts");
 
 // ─── Helper: Build a mock SSE stream from Perplexity events ─────────────────
 

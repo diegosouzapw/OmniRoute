@@ -20,10 +20,11 @@ process.on("exit", () => {
 });
 
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
+const { setPinnedFetchTestOverride } = await import("../../src/shared/network/remoteImageFetch.ts");
 
 test("handleImageGeneration returns Fal images as base64 when response_format is omitted", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  const mockFetchImpl = async (url) => {
     const stringUrl = String(url);
     if (stringUrl === "https://fal.run/fal-ai/flux-2-flex") {
       return new Response(
@@ -39,6 +40,11 @@ test("handleImageGeneration returns Fal images as base64 when response_format is
     }
     throw new Error(`Unexpected URL: ${stringUrl}`);
   };
+  // #13883: resolveImageSource now sets `pinDns: true`, which pins the connection via a
+  // real undici socket and would bypass this mocked globalThis.fetch — route it through
+  // the test-only pinned-fetch override instead (src/shared/network/remoteImageFetch.ts).
+  globalThis.fetch = mockFetchImpl;
+  setPinnedFetchTestOverride(mockFetchImpl);
 
   try {
     const result = await handleImageGeneration({
@@ -51,5 +57,6 @@ test("handleImageGeneration returns Fal images as base64 when response_format is
     assert.equal(result.data.data[0].url, undefined);
   } finally {
     globalThis.fetch = originalFetch;
+    setPinnedFetchTestOverride(undefined);
   }
 });

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 import {
   APP_STAGING_ALLOWED_EXACT_PATHS,
@@ -14,6 +14,21 @@ import {
   parseJsonArrayOutput,
   parseJsonValuesOutput,
 } from "../../scripts/build/pack-artifact-policy.ts";
+
+test("artifact path policy arrays contain no duplicate entries", () => {
+  const policies = {
+    APP_STAGING_ALLOWED_EXACT_PATHS,
+    APP_STAGING_ALLOWED_PATH_PREFIXES,
+    PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+    PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+    PACK_ARTIFACT_REQUIRED_PATHS,
+  };
+
+  for (const [name, paths] of Object.entries(policies)) {
+    const duplicates = [...new Set(paths.filter((entry, index) => paths.indexOf(entry) !== index))];
+    assert.deepEqual(duplicates, [], `${name} contains duplicate paths: ${duplicates.join(", ")}`);
+  }
+});
 
 test("normalizeArtifactPath normalizes slashes and leading relative markers", () => {
   assert.equal(
@@ -225,6 +240,55 @@ test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it a
   assert.deepEqual(unexpectedPaths, []);
 });
 
+test("config/i18n.json ships in the tarball: allowed, required, and in package.json files[]", () => {
+  // Locale source of truth read at runtime by bin/cli/i18n.mjs (OMNIROUTE_LANG alias
+  // resolution, e.g. uk → uk-UA / fil → phi) and bin/cli/commands/config.mjs
+  // (`config lang list`). package.json "files" never shipped config/, so the published
+  // CLI silently fell back to en for every alias — pin all three layers so the file can
+  // never drop out of the tarball again.
+  const configPath = "config/i18n.json";
+
+  const unexpectedPaths = findUnexpectedArtifactPaths([configPath], {
+    exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+    prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+  });
+  assert.deepEqual(unexpectedPaths, [], `${configPath} must be allowed in the tarball`);
+
+  assert.ok(
+    PACK_ARTIFACT_REQUIRED_PATHS.includes(configPath),
+    `${configPath} must be a required tarball path (check:pack-artifact regression guard)`
+  );
+
+  const files: string[] = JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8")
+  ).files;
+  assert.ok(files.includes(configPath), `package.json "files" must list ${configPath}`);
+});
+
+test("CLI runtime manifest ships without allowing arbitrary config files", () => {
+  const manifestPath = "config/cli-tools-manifest.json";
+  const unrelatedConfigPaths = ["config/private.json", "config/cli-tools-manifest.json.bak"];
+  assert.deepEqual(
+    findUnexpectedArtifactPaths([manifestPath, ...unrelatedConfigPaths], {
+      exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+      prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+    }),
+    unrelatedConfigPaths.toSorted()
+  );
+  assert.ok(PACK_ARTIFACT_REQUIRED_PATHS.includes(manifestPath));
+  assert.deepEqual(
+    findMissingArtifactPaths(
+      PACK_ARTIFACT_REQUIRED_PATHS.filter((entry) => entry !== manifestPath),
+      PACK_ARTIFACT_REQUIRED_PATHS
+    ),
+    [manifestPath]
+  );
+  const files: string[] = JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8")
+  ).files;
+  assert.ok(files.includes(manifestPath));
+});
+
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
     [
@@ -244,16 +308,25 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "bin/aliasResolver.mjs",
     "bin/aliasResolverHook.mjs",
     "bin/cli/data-dir.mjs",
+    "bin/cli/privateDataDir.mjs",
     "bin/cli/program.mjs",
     "bin/cli/utils/ensureAndroidCacheDir.mjs",
     "bin/cli/utils/parseEnvValue.mjs",
     "bin/cli/utils/storageKeyProvision.mjs",
     "bin/cli/utils/versionFastPath.mjs",
+    "bin/cli/utils/volatileEnvPath.mjs",
     "bin/mcp-server.mjs",
     "bin/mcpStdioConsoleGuard.mjs",
     "bin/nodeRuntimeSupport.mjs",
+    "config/cli-tools-manifest.json",
+    "config/i18n.json",
+    "config/release/wreq-js-native-manifest.json",
+    "config/release/wreq-js-rust-license-inventory.json",
+    "config/release/wreq-js-rust-notices.md",
     "dist/head-response-guard.cjs",
     "dist/http-method-guard.cjs",
+    // #13636/#14064: server-ws.mjs crash guard, enforced by the closure suites.
+    "dist/httpClientAbortGuard.mjs",
     "dist/main-server-timeouts.mjs",
     "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
     "dist/open-sse/services/compression/rules/en/filler.json",
@@ -261,16 +334,32 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/peer-stamp.mjs",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
+    "dist/src/lib/db/healthCheckWorker.js",
     "dist/src/lib/usage/callLogArtifactWorker.js",
     "dist/systemd-notify.mjs",
     "dist/tls-options.mjs",
     "dist/webdav-handler.mjs",
     "scripts/build/colocateOptionals.mjs",
-    "scripts/build/fixTlsClientNodeBinary.mjs",
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/runtime-env.mjs",
+    "scripts/build/wreqJsNative.mjs",
     "scripts/packs/optionalPackInstaller.mjs",
     "scripts/packs/optionalPackManifest.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
+});
+
+test("every shipped @omniroute workspace package is covered by an artifact prefix", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { files: string[] };
+  assert.ok(packageJson.files.includes("@omniroute/"));
+
+  const workspacePackages = readdirSync("@omniroute", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(`@omniroute/${entry.name}/package.json`))
+    .map((entry) => `@omniroute/${entry.name}/`);
+
+  assert.ok(workspacePackages.includes("@omniroute/opencode-plugin-v2/"));
+  const uncovered = workspacePackages.filter(
+    (prefix) => !PACK_ARTIFACT_ALLOWED_PATH_PREFIXES.includes(prefix)
+  );
+  assert.deepEqual(uncovered, []);
 });

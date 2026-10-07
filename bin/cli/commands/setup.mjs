@@ -24,9 +24,9 @@ function wantsProviderSetup(opts) {
   return opts.addProvider || Boolean(opts.provider) || Boolean(opts.apiKey);
 }
 
-async function resolvePassword(opts, prompt, nonInteractive) {
-  if (opts.password) return opts.password;
-  if (process.env.INITIAL_PASSWORD) return process.env.INITIAL_PASSWORD;
+async function resolvePassword(opts, prompt, nonInteractive, settings) {
+  if (opts.password !== undefined) return opts.password;
+  if (!settings.password && process.env.INITIAL_PASSWORD) return process.env.INITIAL_PASSWORD;
   if (nonInteractive) return "";
 
   const answer = await prompt.ask("Set an admin password now? [y/N]", "N");
@@ -41,9 +41,9 @@ async function resolvePassword(opts, prompt, nonInteractive) {
 }
 
 async function setupPassword(db, opts, prompt, nonInteractive) {
-  const password = await resolvePassword(opts, prompt, nonInteractive);
+  const settings = getSettings(db);
+  const password = await resolvePassword(opts, prompt, nonInteractive, settings);
   if (!password) {
-    const settings = getSettings(db);
     if (!settings.password) {
       updateSettings(db, { requireLogin: false });
     }

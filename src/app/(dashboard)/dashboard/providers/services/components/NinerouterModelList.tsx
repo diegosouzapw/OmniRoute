@@ -32,6 +32,22 @@ export function paginateModels(
   return models.slice(start, start + pageSize);
 }
 
+// Fetch + parse extracted from the component so errors surface as a return
+// value instead of state mutations inside catch/finally blocks.
+async function fetchServiceModels(
+  refresh: boolean
+): Promise<{ ok: boolean; data?: ServiceModel[]; message?: string | null }> {
+  try {
+    const url = `/api/services/${NAME}/models${refresh ? "?refresh=true" : ""}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await res.json();
+    return { ok: true, data: Array.isArray(body?.data) ? body.data : [] };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : null };
+  }
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function NinerouterModelList() {
@@ -42,35 +58,48 @@ export function NinerouterModelList() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchModels = useCallback(
+  const loadModels = useCallback(
     async (refresh = false) => {
-      if (refresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      try {
-        const url = `/api/services/${NAME}/models${refresh ? "?refresh=true" : ""}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const body = await res.json();
-        const data: ServiceModel[] = Array.isArray(body?.data) ? body.data : [];
-        setModels(data);
+      // All setState calls stay after the await so the mount effect below can
+      // call this loader without a synchronous setState inside the effect; the
+      // refresh button sets its spinner flags in its own handler instead.
+      const outcome = await fetchServiceModels(refresh);
+      if (outcome.ok) {
+        setModels(outcome.data);
         setPage(1);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t("modelsLoadFailed"));
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+        setError(null);
+      } else {
+        setError(outcome.message ?? t("modelsLoadFailed"));
       }
+      setLoading(false);
+      setRefreshing(false);
     },
     [t]
   );
 
+  // Inline-in-effect (calling the component-scope loadModels callback
+  // synchronously from an effect is rejected by the compiler rules); every
+  // setState here runs after the await.
   useEffect(() => {
-    void fetchModels(false);
-  }, [fetchModels]);
+    const run = async () => {
+      const outcome = await fetchServiceModels(false);
+      if (outcome.ok) {
+        setModels(outcome.data);
+        setPage(1);
+        setError(null);
+      } else {
+        setError(outcome.message ?? t("modelsLoadFailed"));
+      }
+      setLoading(false);
+    };
+    void run();
+  }, [t]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setError(null);
+    void loadModels(true);
+  };
 
   const totalPages = Math.max(1, Math.ceil(models.length / PAGE_SIZE));
   const visibleModels = paginateModels(models, page, PAGE_SIZE);
@@ -92,7 +121,7 @@ export function NinerouterModelList() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => fetchModels(true)}
+          onClick={handleRefresh}
           disabled={loading || refreshing}
           className="shrink-0"
         >

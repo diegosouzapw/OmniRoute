@@ -70,6 +70,12 @@ function runGeminiToClaude(geminiChunk) {
     const converted = openaiToClaudeResponse(chunk, claudeState);
     if (converted) claudeEvents.push(...converted);
   }
+  // End-of-stream flush: production calls the translator once more with `null`
+  // when the upstream stream closes (open-sse/utils/stream.ts flush →
+  // translateResponse(..., null, state)). Since dd35750e5f a finish chunk that
+  // carries no usage is deferred until that flush, so the driver must mirror it.
+  const flushed = openaiToClaudeResponse(null, claudeState);
+  if (flushed) claudeEvents.push(...flushed);
   return { openaiEvents, claudeEvents };
 }
 

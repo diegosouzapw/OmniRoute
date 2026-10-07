@@ -17,17 +17,15 @@
 //     a real defect; exit 1.
 //   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size, cyclomatic
 //     complexity, dead-code, type-coverage, compression-budget, openapi-coverage,
+//     pricing-freshness,
 //     workflow-lint/zizmor, codeql-ratchet) → ratchet drift accrued across the
 //     cycle is NOT a contributor's fault; it is reported and rebaselined by the
 //     maintainer at release. Drift NEVER changes the exit code, so wiring this as
 //     a check can never block anyone on drift.
 //
-// COMPLETENESS: this mirrors the FULL release-PR gate set (quality-gate +
-// quality-extended + docs-sync-strict + integration), not a subset — and reports
-// EVERY red in one pass (the report is collected, not fail-fast), so the release
-// PR is green on its first CI run instead of revealing reds in ~40-min layers. The
-// only release-PR gates it cannot reproduce locally are GitHub-side CodeQL semantic
-// analysis and SonarQube/SonarCloud (external services).
+// SCOPE: this diagnoses the curated checks below and, with --full-ci, the static
+// commands extracted from selected CI jobs. It does not reproduce every workflow,
+// matrix, hosted scanner or merge-candidate gate. A local PASS is not merge admission.
 //
 // This script DIAGNOSES + REPORTS only (no auto-fix). The fix-to-green
 // orchestration lives in the /green-prs + review-prs flows that call it.
@@ -50,21 +48,21 @@
 // Per-gate output is saved to _artifacts/release-green/<gate>.log (gitignored) —
 // diagnose a red from the file instead of re-running the gate.
 
-import { execFile, execFileSync } from "node:child_process";
-import { promisify } from "node:util";
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseYaml } from "yaml";
+import { load as parseYaml } from "js-yaml";
+import { runGateProcess } from "./gate-process.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 export const ESLINT_TIMEOUT_MS = 60 * 60 * 1000;
 
-// Per-gate captured output. execFileSync buffers everything and the report only
-// shows a one-line summary, so without these files every red requires RE-RUNNING
-// the gate just to see the detail (the dominant cost of the 2026-07-05 pre-flight).
+// Convenient per-gate summaries. The supervisor additionally persists immutable,
+// incremental command logs and receipts under commands/; these are required evidence.
 const LOG_DIR = join(ROOT, "_artifacts", "release-green");
 function saveGateLog(id, out) {
   try {
@@ -189,6 +187,20 @@ export function parseEslintJson(out) {
  * the parser instead of the gate ceiling.
  */
 export function evaluateEslintRun({ code, out }, warningBaseline) {
+  if (code !== 0) {
+    return [
+      {
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail:
+          code === 124
+            ? firstFailureLine(out)
+            : `ESLint process exited ${code}: ${firstFailureLine(out)}`,
+      },
+    ];
+  }
   const parsed = parseEslintJson(out);
   if (!parsed) {
     return [
@@ -348,6 +360,11 @@ export function extractCiGates(
     const steps = doc?.jobs?.[job]?.steps;
     if (!Array.isArray(steps)) continue;
     for (const step of steps) {
+      // A step guarded to pull_request events reads the PR's base/head/title/body, which a
+      // scheduled or push validation does not have (check:ai-attribution ran `git log ".."`).
+      if (typeof step?.if === "string" && /event_name\s*==\s*['"]pull_request['"]/.test(step.if)) {
+        continue;
+      }
       const runStr = typeof step?.run === "string" ? step.run : "";
       if (!runStr) continue;
       for (const rawLine of runStr.split("\n")) {
@@ -385,7 +402,7 @@ export function classifyRunError(err, timeoutMs) {
   if (timedOut && timeoutMs) {
     return {
       code: 124,
-      out: `gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
+      out: `${err?.stdout || ""}${err?.stderr || ""}${err?.stdout || err?.stderr ? "\n" : ""}gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
     };
   }
   return {
@@ -399,53 +416,86 @@ export function classifyRunError(err, timeoutMs) {
 // every one a false-positive red against the release branch).
 const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
 let hermetic = false;
+/**
+ * Env for the pack gate's provenance guard (#10427).
+ *
+ * `validate-pack-artifact.ts` checks `dist/BUILD_SHA` for ancestry against
+ * `OMNIROUTE_RELEASE_REF`, defaulting to `origin/main`. That default is right at
+ * PUBLICATION (npm-publish.yml runs on main) but structurally impossible here: this
+ * validator runs ON a release branch, whose tip is by definition NOT an ancestor of
+ * main mid-cycle, so the gate reported `off-release-line` on every single run and the
+ * tarball boot-smoke cascaded off it. `ci.yml` already resolves the same problem for
+ * `pull_request` by pointing the ref at the head under test; the checkable invariant
+ * here is identical — "the stamp matches the tree we just validated" — so point it at
+ * HEAD. This does not relax the guard: a dist/ built from some other commit still
+ * fails, and a missing BUILD_SHA still fails.
+ */
+const PACK_GATE_ENV = { OMNIROUTE_RELEASE_REF: "HEAD" };
+
 function buildGateEnv(extra) {
   const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
   if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
   return env;
 }
 
-function run(cmd, cmdArgs, opts = {}) {
-  try {
-    const out = execFileSync(cmd, cmdArgs, {
-      cwd: ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-      maxBuffer: 256 * 1024 * 1024,
-      env: buildGateEnv(opts.env),
-      // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
-      // exit, so they show no progress while running). undefined = no timeout for fast gates.
-      ...(opts.timeout ? { timeout: opts.timeout } : {}),
-    });
-    return { code: 0, out };
-  } catch (err) {
-    return classifyRunError(err, opts.timeout);
-  }
+const commandReceipts = [];
+const cancellation = new AbortController();
+
+async function run(cmd, cmdArgs, opts = {}) {
+  const label = `${cmd} ${cmdArgs.join(" ")}`;
+  const logPath = join(LOG_DIR, "commands", `${randomUUID()}.log`);
+  const result = await runGateProcess(cmd, cmdArgs, {
+    cwd: ROOT,
+    env: buildGateEnv(opts.env),
+    logPath,
+    timeout: opts.timeout || 30 * 60 * 1000,
+    signal: cancellation.signal,
+    onHeartbeat: ({ elapsedMs, bytes, lastOutputAt }) =>
+      process.stderr.write(
+        `… ${label}: ${Math.round(elapsedMs / 1000)}s, ${bytes} bytes, last output ${lastOutputAt}\n`
+      ),
+  });
+  commandReceipts.push({ command: label, receiptPath: result.receiptPath, ...result.receipt });
+  return result;
 }
 
-const execFileAsync = promisify(execFile);
+const runAsync = run;
 
-// Async twin of run() — same {code, out} contract, so the slow suites (unit /
-// vitest / integration / pack-artifact) can run CONCURRENTLY instead of in
-// series. Sequentially they dominate the pre-flight wall time (~2h in the
-// v3.8.45 run); they are independent processes with per-process DATA_DIR
-// isolation, so overlapping them cuts the pre-flight to ~the slowest single one.
-async function runAsync(cmd, cmdArgs, opts = {}) {
-  try {
-    const { stdout, stderr } = await execFileAsync(cmd, cmdArgs, {
-      cwd: ROOT,
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-      env: buildGateEnv(opts.env),
-      ...(opts.timeout ? { timeout: opts.timeout } : {}),
-    });
-    return { code: 0, out: `${stdout || ""}${stderr || ""}` };
-  } catch (err) {
-    return classifyRunError(err, opts.timeout);
+/**
+ * Package-artifact gate, run the way ci.yml's pack job runs it (#10427).
+ *
+ * `check:pack-artifact` assembles dist/ through `build:cli` when staging is missing, and
+ * `build:cli` never writes dist/BUILD_SHA — only `build:release` does. Pointing the ref at
+ * HEAD (PACK_GATE_ENV) is not enough on its own: the guard still stops at "dist/BUILD_SHA is
+ * missing". ci.yml builds, stamps, then validates; mirror that order here. The guard is not
+ * relaxed: an unstamped dist/ or one built from another commit still fails.
+ */
+async function runPackArtifactGate(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  const steps = [
+    { cmd: npmCmd, args: ["run", "build:cli"] },
+    { cmd: process.execPath, args: ["scripts/build/write-build-sha.mjs"] },
+    {
+      cmd: npmCmd,
+      args: ["run", "check:pack-artifact"],
+      env: PACK_GATE_ENV,
+    },
+  ];
+  let out = "";
+  for (const step of steps) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return classifyRunError({ killed: true, signal: "SIGTERM" }, timeoutMs);
+    const result = await runAsync(step.cmd, step.args, { env: step.env, timeout: remaining });
+    out += result.out;
+    if (result.code !== 0) return { code: result.code, out };
   }
+  return { code: 0, out };
 }
 
 async function main() {
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.once(signal, () => cancellation.abort(signal));
+  }
   const args = new Set(process.argv.slice(2));
   const JSON_OUT = args.has("--json");
   const WITH_BUILD = args.has("--with-build");
@@ -460,14 +510,13 @@ async function main() {
     process.stderr.write(`${icon} [${r.kind}] ${r.label}${r.detail ? ` — ${r.detail}` : ""}\n`);
   };
 
-  // Announce a gate BEFORE running it. The long suites (unit/vitest/integration) run silently
-  // for many minutes (execFileSync buffers their output until exit), which previously looked like
-  // a hang and got the pre-flight killed before it surfaced the unit reds (the v3.8.42 miss).
+  // Announce before running; supervisor heartbeats then distinguish a quiet process
+  // from a missing observation without treating silence as a successful result.
   const announce = (label) => process.stderr.write(`▶ ${label}…\n`);
 
-  const hardCmd = (id, label, cmd, cmdArgs, opts) => {
+  const hardCmd = async (id, label, cmd, cmdArgs, opts) => {
     announce(label);
-    const { code, out } = run(cmd, cmdArgs, opts);
+    const { code, out } = await run(cmd, cmdArgs, opts);
     saveGateLog(id, out);
     record({
       id,
@@ -483,9 +532,9 @@ async function main() {
   // non-zero exit here is drift to rebaseline at release, never a contributor block.
   // ALL checks run regardless of earlier failures (the report is collected, not
   // fail-fast) so one pass surfaces every red instead of revealing them in layers.
-  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
+  const driftCmd = async (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
-    const { code, out } = run(cmd, cmdArgs, opts);
+    const { code, out } = await run(cmd, cmdArgs, opts);
     saveGateLog(id, out);
     record({
       id,
@@ -498,7 +547,7 @@ async function main() {
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
 
-  hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
+  await hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
@@ -507,7 +556,7 @@ async function main() {
     // pre-existing debt in config/quality/eslint-suppressions.json must not count as
     // errors here — only NET-NEW violations are release reds. The cold release runner can
     // exceed 30 minutes as the repository grows, and this pre-flight often runs under load.
-    const lintRun = run(
+    const lintRun = await run(
       "npx",
       [
         "eslint",
@@ -538,13 +587,13 @@ async function main() {
     }
   }
 
-  hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
-  hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
+  await hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
+  await hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
 
   // Complexity + cognitive (one ESLint walk; both still recorded as drift)
   {
     announce("Complexity + cognitive ratchets (shared ESLint walk)");
-    const { out } = run(npmCmd, ["run", "check:complexity-ratchets"]);
+    const { out } = await run(npmCmd, ["run", "check:complexity-ratchets"]);
     saveGateLog("complexity-ratchets", out);
     const cogCurrent = parseCognitiveCount(out);
     const cogBase = baselineValue("cognitiveComplexity");
@@ -584,7 +633,7 @@ async function main() {
 
   // file-size (drift)
   {
-    const { code, out } = run(npmCmd, ["run", "check:file-size"]);
+    const { code, out } = await run(npmCmd, ["run", "check:file-size"]);
     record({
       id: "file-size",
       label: "File-size ratchet",
@@ -602,8 +651,10 @@ async function main() {
   if (!QUICK) {
     announce("Test-masking (weakened-assert guard vs main)");
     // best-effort fetch so the merge-base diff is accurate; ignore fetch failure (offline pre-flight)
-    run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], { timeout: 60 * 1000 });
-    const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
+    await run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], {
+      timeout: 60 * 1000,
+    });
+    const { code, out } = await run(npmCmd, ["run", "check:test-masking"], {
       env: { GITHUB_BASE_REF: "main" },
     });
     saveGateLog("test-masking", out);
@@ -621,32 +672,51 @@ async function main() {
   // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
   // here (drift, never blocking) means a single rebaseline pass at release.
   // complexity recorded above with cognitive (check:complexity-ratchets)
-  driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
-  driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
-  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
+  await driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
+  await driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, [
+    "run",
+    "check:type-coverage",
+  ]);
+  await driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
     "run",
     "check:compression-budget",
   ]);
-  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, [
+  await driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, [
     "run",
     "check:openapi-coverage",
   ]);
-  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, [
+  await driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, [
     "run",
     "check:workflows",
     "--",
     "--ratchet",
   ]);
-  driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, ["run", "check:codeql-ratchet"]);
+  await driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, [
+    "run",
+    "check:codeql-ratchet",
+  ]);
+  // Pricing data untouched for 90 days: a clock, not a regression, so it can't belong to a
+  // PR gate (it would red every PR at once). Reported here, refreshed at release.
+  await driftCmd(
+    "pricing-freshness",
+    "Pricing freshness (90 days)",
+    npmCmd,
+    ["run", "check:pricing-freshness"],
+    "touched within 90 days"
+  );
 
   // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
   // routes, i18n mirror drift) — HARD.
-  hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, ["run", "check:docs-all"]);
+  await hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, [
+    "run",
+    "check:docs-all",
+  ]);
 
   if (!QUICK) {
-    // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
-    // PR→release does NOT run unit/vitest/integration per-PR — the v3.8.42 release PR exploded
-    // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
+    // These are the gates that catch inherited base-red tests from cycle PRs (the v3.8.42
+    // release PR exploded with 15 such reds). Non-draft code PRs into release/** run the unit
+    // suite and test:vitest per PR (quality.yml fast-unit, fast-vitest); only integration is
+    // absent. These gates run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
     // The slow suites are INDEPENDENT processes (each self-isolates DATA_DIR) with
@@ -697,13 +767,15 @@ async function main() {
       slow.push({
         id: "pack-artifact",
         label: "Package artifact (npm pack policy)",
-        args: ["run", "check:pack-artifact"],
+        run: runPackArtifactGate,
         timeout: 20 * 60 * 1000,
       });
     }
     slow.forEach((g) => announce(`${g.label} [parallel]`));
     const slowResults = await Promise.all(
-      slow.map((g) => runAsync(npmCmd, g.args, { timeout: g.timeout }))
+      slow.map((g) =>
+        g.run ? g.run(g.timeout) : runAsync(npmCmd, g.args, { timeout: g.timeout, env: g.env })
+      )
     );
     slow.forEach((g, i) => {
       const { code, out } = slowResults[i];
@@ -753,9 +825,7 @@ async function main() {
     }
   } else if (WITH_BUILD) {
     // --with-build without the suites (--quick): still verify the package artifact.
-    const { code, out } = await runAsync(npmCmd, ["run", "check:pack-artifact"], {
-      timeout: 20 * 60 * 1000,
-    });
+    const { code, out } = await runPackArtifactGate(20 * 60 * 1000);
     saveGateLog("pack-artifact", out);
     record({
       id: "pack-artifact",
@@ -787,7 +857,7 @@ async function main() {
     for (const g of gates) {
       // Skip a gate the curated pass already ran with the same id (avoid double-running lint).
       if (already.has(g.id)) continue;
-      const { code, out } = run(npmCmd, g.args, {
+      const { code, out } = await run(npmCmd, g.args, {
         env: g.env,
         timeout: fullCiTimeoutFor(g.id),
       });
@@ -805,6 +875,19 @@ async function main() {
     }
   }
 
+  // A crashed or unobserved tool is not measured ratchet drift. Keep infrastructure
+  // uncertainty blocking even when the command normally produces advisory findings.
+  commandReceipts.forEach((receipt, index) => {
+    if (!["PASS", "FAIL"].includes(receipt.outcome)) {
+      record({
+        id: `execution-${index}`,
+        label: receipt.command,
+        kind: "hard",
+        ok: false,
+        detail: `${receipt.outcome}: ${receipt.receiptPath}`,
+      });
+    }
+  });
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);
 
   process.stderr.write("\n──────── verdict ────────\n");
@@ -815,17 +898,25 @@ async function main() {
   process.stderr.write(
     releaseGreen
       ? "\n✅ RELEASE-GREEN (no hard failures). Any drift above is rebaselined at release, not a contributor concern.\n"
-      : "\n❌ NOT release-green — hard failures must be fixed (in the originating PR branch, via co-authorship).\n"
+      : "\n❌ NOT release-green — inspect execution evidence and compare the exact base before attributing a failure to a contributor.\n"
   );
 
   if (JSON_OUT) {
     process.stdout.write(
       JSON.stringify(
         {
+          schemaVersion: 1,
+          candidateSha: execFileSync("git", ["rev-parse", "HEAD"], {
+            cwd: ROOT,
+            encoding: "utf8",
+          }).trim(),
+          profile: QUICK ? "quick" : WITH_BUILD && FULL_CI ? "full" : "standard",
+          completedAt: new Date().toISOString(),
           releaseGreen,
           hardFailures: hardFailures.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
           drift: drift.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
           checks: results.map((r) => ({ id: r.id, kind: r.kind, ok: r.ok, detail: r.detail })),
+          commandReceipts,
         },
         null,
         2

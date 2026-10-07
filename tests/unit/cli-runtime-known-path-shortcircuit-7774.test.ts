@@ -25,9 +25,8 @@ delete process.env.CLI_CLAUDE_BIN;
 delete process.env.CLI_EXTRA_PATHS;
 process.env.npm_config_prefix = path.join(fakeHome, "npm-prefix-unused");
 
-const { getCliRuntimeStatus, getKnownToolPaths } = await import(
-  "../../src/shared/services/cliRuntime.ts"
-);
+const { getCliRuntimeStatus, getKnownToolPaths } =
+  await import("../../src/shared/services/cliRuntime.ts");
 
 function makeExecutable(filePath: string, content: string) {
   fs.writeFileSync(filePath, content);

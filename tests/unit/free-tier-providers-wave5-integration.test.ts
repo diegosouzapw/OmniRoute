@@ -27,7 +27,7 @@ const providers = [
 ] as const;
 
 for (const { id, endpoint, modelsUrl, hasFree } of providers) {
-  test(`${id} is fully wired through the public provider interfaces`, () => {
+  test(`${id} is fully wired through the public provider interfaces`, async () => {
     const registry = REGISTRY[id];
     const metadata = APIKEY_PROVIDERS[id];
 
@@ -52,7 +52,7 @@ for (const { id, endpoint, modelsUrl, hasFree } of providers) {
     assert.equal(AGGREGATOR_PROVIDER_IDS.has(id), true);
     assert.equal(hasSpecializedExecutor(id), false);
 
-    const executor = getExecutor(id);
+    const executor = await getExecutor(id);
     assert.ok(executor instanceof DefaultExecutor);
     assert.equal(executor.buildUrl("live-model", false), endpoint);
     assert.equal(isValidModel(id, "future/live-catalog-model"), true);

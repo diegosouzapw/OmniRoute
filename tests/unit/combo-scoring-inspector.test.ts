@@ -30,6 +30,11 @@ const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuit
 const { DEFAULT_WEIGHTS, normalizeScoringWeights } =
   await import("../../open-sse/services/autoCombo/scoring.ts");
 const { MODE_PACKS } = await import("../../open-sse/services/autoCombo/modePacks.ts");
+const { buildAutoCandidates } = await import("../../open-sse/services/combo.ts");
+const { parseAutoConfig } = await import("../../open-sse/services/combo/autoConfig.ts");
+const { resolveComboTargets } = await import("../../open-sse/services/combo/comboStructure.ts");
+const { evaluateAutoCandidates } =
+  await import("../../open-sse/services/combo/resolveAutoStrategy.ts");
 
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();
@@ -183,9 +188,7 @@ test("scoring inspector ranks targets and explains score contributions", async (
   );
   assert.ok(Math.abs(contributionSum - response.combos[0].targets[0].score) < 0.02);
   assert.ok(response.combos[0].targets[0].factors.some((factor) => factor.key === "quota"));
-  assert.ok(
-    response.combos[0].targets[0].factors.some((factor) => factor.source === "combo_health")
-  );
+  assert.ok(response.combos[0].targets[0].factors.some((factor) => factor.source === "runtime"));
 });
 
 test("scoring inspector reports mode packs over explicit auto weights", async () => {
@@ -244,6 +247,122 @@ test("scoring inspector reports valid explicit auto weights", async () => {
   assert.equal(response.combos[0].modePack, null);
   assert.deepEqual(response.combos[0].weights, explicitWeights);
 });
+test("configured auto preview uses live evaluation scores and zero quota contribution", async () => {
+  const weights = normalizeScoringWeights({
+    ...DEFAULT_WEIGHTS,
+    quota: 0,
+    latencyInv: DEFAULT_WEIGHTS.latencyInv + DEFAULT_WEIGHTS.quota,
+  });
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-live-parity",
+    strategy: "auto",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    autoConfig: { weights },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+  });
+  const resolvedTargets = resolveComboTargets(combo as never, [combo] as never);
+  const evaluation = await evaluateAutoCandidates({
+    targets: resolvedTargets,
+    comboName: combo.name,
+    body: {},
+    taskType: "default",
+    weights,
+    resetWindowConfig: parseAutoConfig(combo as never, resolvedTargets).resetWindowConfig,
+    buildAutoCandidates,
+  });
+
+  assert.deepEqual(
+    response.combos[0].targets.map((target) => ({
+      executionKey: target.executionKey,
+      score: target.score,
+      factors: Object.fromEntries(target.factors.map((factor) => [factor.key, factor.value])),
+    })),
+    evaluation.scoredTargets.map((target) => ({
+      executionKey: target.target.executionKey,
+      score: Number(target.score.toFixed(4)),
+      factors: Object.fromEntries(
+        Object.entries(target.factors).map(([key, value]) => [key, Number(value.toFixed(4))])
+      ),
+    }))
+  );
+  for (const target of response.combos[0].targets) {
+    const quota = target.factors.find((factor) => factor.key === "quota");
+    assert.equal(quota?.source, "runtime");
+    assert.equal(quota?.weight, 0);
+    assert.equal(quota?.contribution, 0);
+    assert.equal(
+      target.score,
+      Number(target.factors.reduce((sum, factor) => sum + factor.contribution, 0).toFixed(4))
+    );
+  }
+});
+
+test("configured auto preview with no model steps preserves health-derived targets", async () => {
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-empty-auto",
+    strategy: "auto",
+    models: [],
+  });
+  const target = {
+    executionKey: "health-only-target",
+    stepId: "health-only-target",
+    model: "openai/gpt-4o-mini",
+    provider: "openai",
+    connectionId: null,
+    label: "Health-only target",
+    requests: 1,
+    successRate: 100,
+    avgLatencyMs: 100,
+    lastStatus: 200,
+    lastUsedAt: new Date().toISOString(),
+    quotaRemainingPct: 100,
+    quotaIsExhausted: false,
+    quotaTrend: null,
+    quotaScope: "provider" as const,
+  };
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+    healthResponse: {
+      timeRange: "24h",
+      combos: [
+        {
+          comboId: String(combo.id),
+          comboName: combo.name,
+          strategy: "auto",
+          models: [],
+          cost: { totalUsd: 0, avgPerRequestUsd: 0, byModel: [] },
+          quotaHealth: { providers: [], worstRemainingPct: 100 },
+          usageSkew: { modelDistribution: [], giniCoefficient: 0 },
+          performance: { avgLatencyMs: 100, successRate: 100, totalRequests: 1 },
+          targetHealth: [target],
+        },
+      ],
+    },
+    forecastResponse: {
+      asOf: new Date().toISOString(),
+      timeRange: "24h",
+      horizon: "7d",
+      method: "linear_history",
+      combos: [],
+    },
+  });
+
+  assert.equal(response.combos[0].targets.length, 1);
+  assert.equal(response.combos[0].targets[0].executionKey, target.executionKey);
+});
+
 test("scoring inspector normalizes partial explicit auto weights like runtime", async () => {
   const explicitWeights = {
     quota: 0.3,

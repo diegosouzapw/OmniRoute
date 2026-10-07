@@ -23,6 +23,90 @@ export type TurnDisplayContent = {
   toolName: string | null;
 };
 
+type CanonicalTurnLike = {
+  role: "system" | "user" | "assistant" | "tool";
+  text: string;
+  blockKind: "text" | "tool_use" | "tool_result";
+  toolName: string | null;
+};
+
+type JsonRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value && typeof value === "object" ? (value as JsonRecord) : null;
+}
+
+function turnsFromBody(body: unknown): CanonicalTurnLike[] {
+  const rec = asRecord(body);
+  return rec ? extractCanonicalTurns(rec) : [];
+}
+
+/**
+ * extractCanonicalTurns's Chat Completions branch only reads a message's
+ * `content` -- a tool-calling assistant message carries its call in
+ * `tool_calls` instead with `content: null`, so it silently produces no turn
+ * at all and the matching conversation_turn_nodes row can never resolve.
+ * Deliberately scoped to this read-only display path instead of extending
+ * extractCanonicalTurns itself: that function also drives
+ * conversationTracker.ts's write-path identity/hashing, and this codebase's
+ * only caller of it there (chat.ts's resolveConversationId) always feeds the
+ * client-facing Responses-API body -- never Chat Completions
+ * `messages`/`tool_calls` -- so extending it there would be unreachable for
+ * real traffic here but still carries real write-path identity-hash risk for
+ * any other caller/format that function might ever serve. Mirrors
+ * extractCanonicalTurns's own Responses-shape function_call handling: one
+ * turn per call, role "tool" (matches how a Responses API function_call item,
+ * which also carries no `role`, canonicalizes -- not "assistant"), toolName
+ * from the call, text the raw arguments string untouched (already a JSON
+ * string in both APIs, so passing it through unmodified is what a
+ * byte-identical hash against the original Responses-shaped item needs).
+ */
+function extractChatCompletionsToolUseTurns(messages: unknown): CanonicalTurnLike[] {
+  if (!Array.isArray(messages)) return [];
+  const turns: CanonicalTurnLike[] = [];
+  for (const item of messages) {
+    const rec = asRecord(item) ?? {};
+    if (rec.role !== "assistant" || !Array.isArray(rec.tool_calls)) continue;
+    for (const call of rec.tool_calls) {
+      const fn = asRecord(asRecord(call)?.function);
+      const args = fn?.arguments;
+      if (typeof args !== "string" || !args) continue;
+      turns.push({
+        role: "tool",
+        text: args,
+        blockKind: "tool_use",
+        toolName: typeof fn?.name === "string" ? fn.name : null,
+      });
+    }
+  }
+  return turns;
+}
+
+function turnsFromClientResponse(clientResponse: unknown): CanonicalTurnLike[] {
+  const rec = asRecord(clientResponse);
+  if (!rec) return [];
+  const summary = asRecord(rec.summary);
+  const output = Array.isArray(rec.output) ? rec.output : summary?.output;
+  return Array.isArray(output) ? extractCanonicalTurns({ input: output }) : [];
+}
+
+function turnsFromProviderRequest(body: unknown): CanonicalTurnLike[] {
+  const rec = asRecord(body);
+  return [...turnsFromBody(rec), ...extractChatCompletionsToolUseTurns(rec?.messages)];
+}
+
+function indexTurns(result: Map<string, TurnDisplayContent>, turns: CanonicalTurnLike[]): void {
+  for (const turn of turns) {
+    const hash = hashTurnContent(turn);
+    if (result.has(hash)) continue;
+    result.set(hash, {
+      textPreview: turn.text,
+      blockKind: turn.blockKind,
+      toolName: turn.toolName,
+    });
+  }
+}
+
 /**
  * Resolve display content for a batch of turn nodes, keyed by content_hash.
  * Content_hash is sha256(role+text) only — real traffic has plenty of
@@ -64,19 +148,10 @@ export function resolveTurnDisplayContent(
   for (const relPath of artifactPathByCorrelationId.values()) {
     const { artifact, state } = readCallArtifact(relPath);
     if (state !== "ready") continue;
-    const clientRawRequest = artifact?.pipeline?.clientRawRequest as { body?: unknown } | undefined;
-    const body = clientRawRequest?.body;
-    if (!body || typeof body !== "object") continue;
-
-    for (const turn of extractCanonicalTurns(body as Record<string, unknown>)) {
-      const hash = hashTurnContent(turn);
-      if (result.has(hash)) continue;
-      result.set(hash, {
-        textPreview: turn.text,
-        blockKind: turn.blockKind,
-        toolName: turn.toolName,
-      });
-    }
+    const pipeline = asRecord(artifact?.pipeline);
+    indexTurns(result, turnsFromBody(asRecord(pipeline?.clientRawRequest)?.body));
+    indexTurns(result, turnsFromClientResponse(pipeline?.clientResponse));
+    indexTurns(result, turnsFromProviderRequest(asRecord(pipeline?.providerRequest)?.body));
   }
   return result;
 }

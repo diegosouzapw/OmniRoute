@@ -2,9 +2,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { ChatAdmissionController, admitChatRequest } = await import(
-  "../../src/shared/middleware/chatBodyAdmission.ts"
-);
+const { ChatAdmissionController, admitChatRequest } =
+  await import("../../src/shared/middleware/chatBodyAdmission.ts");
 const { withChatAdmission } = await import("../../src/shared/middleware/withChatAdmission.ts");
 
 function largeBody(n = 64): string {
@@ -26,6 +25,10 @@ test("withChatAdmission does not invoke the handler when a second large body is 
 
   const first = await admitChatRequest(chatRequest("http://x/v1/responses", body), options);
   assert.equal(first.admit, true);
+  // Occupy the #10437 healthy-headroom slot so the wrapper still hits today's 503
+  // path (withChatAdmission does not inject heapPressureCheck).
+  const headroom = controller.tryAcquireHealthyHeadroom();
+  assert.ok(headroom);
 
   let called = false;
   const wrapped = withChatAdmission(async () => {
@@ -40,6 +43,7 @@ test("withChatAdmission does not invoke the handler when a second large body is 
   const json = await res.json();
   assert.equal(json.error.code, "chat_admission_busy");
   first.lease?.release();
+  headroom.release();
 });
 
 test("withChatAdmission invokes the handler and forwards the admitted request", async () => {
@@ -59,8 +63,14 @@ test("withChatAdmission invokes the handler and forwards the admitted request", 
 
 test("responses admits inline before json; messages wrap withChatAdmission before withInjectionGuard", async () => {
   const { readFileSync } = await import("node:fs");
-  const responses = readFileSync(new URL("../../src/app/api/v1/responses/route.ts", import.meta.url), "utf8");
-  const messages = readFileSync(new URL("../../src/app/api/v1/messages/route.ts", import.meta.url), "utf8");
+  const responses = readFileSync(
+    new URL("../../src/app/api/v1/responses/route.ts", import.meta.url),
+    "utf8"
+  );
+  const messages = readFileSync(
+    new URL("../../src/app/api/v1/messages/route.ts", import.meta.url),
+    "utf8"
+  );
   const catchAll = readFileSync(
     new URL("../../src/app/api/v1/responses/[...path]/route.ts", import.meta.url),
     "utf8"
@@ -72,7 +82,10 @@ test("responses admits inline before json; messages wrap withChatAdmission befor
   assert.ok(admitAt >= 0, "responses route must call admitChatRequest");
   assert.ok(jsonAt > admitAt, "admitChatRequest must run before request.json()");
   assert.doesNotMatch(responses, /withChatAdmission/);
-  assert.match(messages, /withChatAdmission\(\s*withInjectionGuard\(postHandler\)\s*\)/);
+  assert.match(
+    messages,
+    /withChatAdmission\(\s*withInjectionGuard\(postHandler(?:,\s*\{[^}]*\})?\)\s*\)/
+  );
   assert.match(catchAll, /export const POST = withChatAdmission\(postHandler\)/);
   assert.doesNotMatch(catchAll, /export async function POST/);
 });

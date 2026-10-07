@@ -12,6 +12,9 @@ const { normalizeCodexTools, isCodexFreePlan } = await import("../../open-sse/ex
 test("isCodexFreePlan detects workspacePlanType === 'free' (case-insensitive)", () => {
   assert.equal(isCodexFreePlan({ workspacePlanType: "free" }), true);
   assert.equal(isCodexFreePlan({ workspacePlanType: "FREE" }), true);
+  assert.equal(isCodexFreePlan({ chatgptPlanType: "free" }), true);
+  assert.equal(isCodexFreePlan({ chatgptPlanType: "FREE" }), true);
+  assert.equal(isCodexFreePlan({ workspacePlanType: "team", chatgptPlanType: "free" }), false);
   assert.equal(isCodexFreePlan({ workspacePlanType: "team" }), false);
   assert.equal(isCodexFreePlan({ workspacePlanType: "" }), false);
   assert.equal(isCodexFreePlan({}), false);

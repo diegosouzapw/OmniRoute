@@ -22,14 +22,20 @@
 
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
+import type { BaseExecutor } from "@omniroute/open-sse/executors/base";
+import { splitCodexReasoningSuffix } from "@omniroute/open-sse/executors/codex/reasoningSuffix.ts";
+import { isModelSelectable } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { getCodexUsage } from "@omniroute/open-sse/services/usage/codex.ts";
-import { getSettings, getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { throttleQuotaFetch } from "@omniroute/open-sse/services/quotaFetchThrottle.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { getSettings, resolveProxyForConnection } from "@/lib/db/settings";
+import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
-import { refreshAndUpdateCredentials } from "@/lib/usage/providerLimits";
+import { refreshAndUpdateCredentialsWithResolver } from "@/lib/usage/providerLimits/credentialRefresh";
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import {
   QUOTA_AUTOPING_FAILURE_COOLDOWN_MS,
+  QUOTA_AUTOPING_FAR_RESET_SKIP_MS,
   QUOTA_AUTOPING_PROVIDERS,
   QUOTA_AUTOPING_REFRESH_AHEAD_MS,
   QUOTA_AUTOPING_TICK_INTERVAL_MS,
@@ -39,6 +45,9 @@ import {
 const log = logger("QuotaAutoPing");
 
 type JsonRecord = Record<string, unknown>;
+
+/** Provider config plus the ping model resolved for this tick (#11905). */
+type ResolvedQuotaAutoPingProviderConfig = QuotaAutoPingProviderConfig & { pingModel: string };
 
 export interface QuotaAutoPingConnection {
   id: string;
@@ -56,30 +65,86 @@ export interface QuotaAutoPingConnection {
 
 export interface QuotaAutoPingDeps {
   getSettings: () => Promise<JsonRecord>;
-  getProviderConnections: (
-    filter: JsonRecord
-  ) => Promise<QuotaAutoPingConnection[]>;
+  getProviderConnections: (filter: JsonRecord) => Promise<QuotaAutoPingConnection[]>;
   updateProviderConnection: (id: string, data: JsonRecord) => Promise<unknown>;
   refreshAndUpdateCredentials: (
     connection: QuotaAutoPingConnection
   ) => Promise<{ connection: QuotaAutoPingConnection }>;
-  getCodexUsage: (
-    accessToken?: string,
-    providerSpecificData?: JsonRecord
-  ) => Promise<JsonRecord>;
-  getExecutor: (provider: string) => { execute: (input: JsonRecord) => Promise<JsonRecord> };
+  getCodexUsage: (accessToken?: string, providerSpecificData?: JsonRecord) => Promise<JsonRecord>;
+  /**
+   * #11904: the #6009/#6058 gate that spaces genuine upstream quota fetches. Every
+   * other Codex quota read is behind it; this scheduler's read has to be too, since
+   * it runs unattended once a minute per connection.
+   */
+  throttleQuotaFetch: () => Promise<void>;
+  resolveProxyForConnection: (connectionId: string) => Promise<{ proxy?: unknown } | null>;
+  runWithProxyContext: <T>(proxyConfig: unknown, callback: () => Promise<T>) => Promise<T>;
+  getExecutor: (provider: "codex") => Promise<BaseExecutor>;
   canExecuteProvider: (provider: string) => boolean;
   isConnectionUnavailableToAuxiliaryActivity: (connectionId: string) => Promise<boolean>;
+  /**
+   * #11905: which model the tiny ping is sent as. Resolved from the live provider
+   * catalog + lifecycle registry every tick (see resolveQuotaAutoPingModel) instead
+   * of a pinned id, so a vendor shutdown pauses the ping with a diagnostic rather
+   * than turning the scheduler into a retry loop against a dead model.
+   */
+  resolvePingModel: (provider: "codex", nowMs: number) => Promise<string | null>;
 }
 
 export interface QuotaAutoPingState {
   running: boolean;
   resetCache: Record<string, string>;
   failureCache: Record<string, number>;
+  /** Last resolved ping model per provider (`null` = nothing selectable); logs on change only. */
+  pingModelCache: Record<string, string | null>;
 }
 
 export function createQuotaAutoPingState(): QuotaAutoPingState {
-  return { running: false, resetCache: {}, failureCache: {} };
+  return { running: false, resetCache: {}, failureCache: {}, pingModelCache: {} };
+}
+
+let codexExecutorPromise: Promise<BaseExecutor> | null = null;
+
+async function loadQuotaAutoPingExecutor(provider: string): Promise<BaseExecutor> {
+  if (provider !== "codex") {
+    throw new Error(`Quota auto-ping does not support provider "${provider}"`);
+  }
+
+  try {
+    codexExecutorPromise ??= import("@omniroute/open-sse/executors/codex.ts").then(
+      ({ CodexExecutor }) => new CodexExecutor()
+    );
+    return await codexExecutorPromise;
+  } catch (error) {
+    codexExecutorPromise = null;
+    throw error;
+  }
+}
+
+/**
+ * Pick the model the Codex ping is sent as (#11905).
+ *
+ * Walks the provider's catalog in registry order (the same "first entry is the
+ * default" rule as getDefaultModel) and returns the first id that is a base model
+ * — the ping sets `reasoning.effort` itself, so `-low`/`-max` variants are
+ * redundant — and that the lifecycle gate would let through on the request path
+ * (`checkLifecycle` in chatCore uses the same provider-scoped isModelSelectable).
+ * Returns null when nothing in the catalog is selectable; the caller logs and
+ * pauses instead of sending.
+ */
+export async function resolveQuotaAutoPingModel(
+  provider: "codex",
+  asOf: Date | number | string = Date.now()
+): Promise<string | null> {
+  // Lazy for the same reason loadQuotaAutoPingExecutor is: this module sits on the
+  // instrumentation boot path and the model registry is a large import graph (#12074).
+  const { getProviderModels } = await import("@omniroute/open-sse/config/providerModels.ts");
+  for (const model of getProviderModels(provider)) {
+    if (splitCodexReasoningSuffix(model.id).effort !== null) continue;
+    if (!isModelSelectable(provider, model.id, { asOf })) continue;
+    return model.id;
+  }
+  return null;
 }
 
 export function createDefaultQuotaAutoPingDeps(): QuotaAutoPingDeps {
@@ -88,11 +153,15 @@ export function createDefaultQuotaAutoPingDeps(): QuotaAutoPingDeps {
     getProviderConnections,
     updateProviderConnection,
     refreshAndUpdateCredentials: async (connection) =>
-      refreshAndUpdateCredentials(connection as never),
+      refreshAndUpdateCredentialsWithResolver(connection, loadQuotaAutoPingExecutor),
     getCodexUsage,
-    getExecutor,
+    throttleQuotaFetch,
+    resolveProxyForConnection,
+    runWithProxyContext,
+    getExecutor: loadQuotaAutoPingExecutor,
     canExecuteProvider: (provider) => getCircuitBreaker(provider).canExecute(),
     isConnectionUnavailableToAuxiliaryActivity,
+    resolvePingModel: resolveQuotaAutoPingModel,
   };
 }
 
@@ -151,11 +220,7 @@ function wasPingedRecently(
   return Number.isFinite(lastPingAtMs) && nowMs - lastPingAtMs < intervalMs;
 }
 
-function shouldSkipAfterFailure(
-  state: QuotaAutoPingState,
-  key: string,
-  nowMs: number
-): boolean {
+function shouldSkipAfterFailure(state: QuotaAutoPingState, key: string, nowMs: number): boolean {
   const failedAt = state.failureCache[key];
   return Boolean(failedAt) && nowMs - failedAt < QUOTA_AUTOPING_FAILURE_COOLDOWN_MS;
 }
@@ -166,7 +231,7 @@ function isRateLimited(connection: QuotaAutoPingConnection, nowMs: number): bool
   return Number.isFinite(untilMs) && untilMs > nowMs;
 }
 
-function buildCodexPingBody(providerConfig: QuotaAutoPingProviderConfig): JsonRecord {
+function buildCodexPingBody(providerConfig: ResolvedQuotaAutoPingProviderConfig): JsonRecord {
   return {
     model: providerConfig.pingModel,
     input: [
@@ -205,10 +270,10 @@ async function drainResponseBody(response: Response | undefined): Promise<void> 
 
 async function sendCodexPing(
   connection: QuotaAutoPingConnection,
-  providerConfig: QuotaAutoPingProviderConfig,
+  providerConfig: ResolvedQuotaAutoPingProviderConfig,
   deps: QuotaAutoPingDeps
 ): Promise<boolean> {
-  const executor = deps.getExecutor("codex");
+  const executor = await deps.getExecutor("codex");
   const result = await executor.execute({
     model: providerConfig.pingModel,
     stream: true,
@@ -271,8 +336,8 @@ async function isPingCandidateBlocked(
   // resetAt — the guard is preserved here for that case.
   return Boolean(
     !providerConfig.pingWhenResetAtSlides &&
-      cachedReset &&
-      nowMs < new Date(cachedReset).getTime() - QUOTA_AUTOPING_REFRESH_AHEAD_MS
+    cachedReset &&
+    nowMs < new Date(cachedReset).getTime() - QUOTA_AUTOPING_REFRESH_AHEAD_MS
   );
 }
 
@@ -287,6 +352,12 @@ function shouldSendPing(
   resetKey: string,
   nowMs: number
 ): boolean {
+  // #13601: warming a window whose reset is days away has no benefit — the
+  // window cannot roll soon, so the ping can only fail (quota-hammering).
+  const resetAtMs = new Date(resetAt).getTime();
+  if (Number.isFinite(resetAtMs) && resetAtMs - nowMs > QUOTA_AUTOPING_FAR_RESET_SKIP_MS) {
+    return false;
+  }
   if (
     providerConfig.skipWhenBlockingQuotaExhausted &&
     hasExhaustedBlockingQuota(quotas, providerConfig.quotaKey)
@@ -323,45 +394,91 @@ async function refreshConnectionForPing(
 async function pingConnection(
   connection: QuotaAutoPingConnection,
   provider: "codex",
-  providerConfig: QuotaAutoPingProviderConfig,
+  providerConfig: ResolvedQuotaAutoPingProviderConfig,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
   nowMs: number
 ): Promise<void> {
   const key = cacheKey(provider, connection.id);
   const cachedReset = state.resetCache[key];
-  if (await isPingCandidateBlocked(connection, provider, providerConfig, deps, state, key, cachedReset, nowMs)) {
+  if (
+    await isPingCandidateBlocked(
+      connection,
+      provider,
+      providerConfig,
+      deps,
+      state,
+      key,
+      cachedReset,
+      nowMs
+    )
+  ) {
     return;
   }
 
   const current = await refreshConnectionForPing(connection, provider, deps, state, key, nowMs);
   if (!current) return;
 
-  const usage = await deps.getCodexUsage(current.accessToken, current.providerSpecificData);
-  const quotas = (usage.quotas as JsonRecord) || {};
-  const quota = quotas[providerConfig.quotaKey] as JsonRecord | undefined;
-  const resetAt = quota?.resetAt as string | undefined;
-  if (!resetAt) return;
-  state.resetCache[key] = resetAt;
+  const proxyInfo = await deps.resolveProxyForConnection(current.id);
+  await deps.runWithProxyContext(proxyInfo?.proxy ?? null, async () => {
+    // Pace this the same way every other quota fetcher does. Placed after the skip
+    // checks above so a connection that never reaches the network does not consume a
+    // slot and delay the ones that do.
+    await deps.throttleQuotaFetch();
+    const usage = await deps.getCodexUsage(current.accessToken, current.providerSpecificData);
+    const quotas = (usage.quotas as JsonRecord) || {};
+    const quota = quotas[providerConfig.quotaKey] as JsonRecord | undefined;
+    const resetAt = quota?.resetAt as string | undefined;
+    if (!resetAt) return;
+    state.resetCache[key] = resetAt;
 
-  const resetKey = normalizeResetKey(resetAt);
-  if (!shouldSendPing(providerConfig, quotas, quota, cachedReset, resetAt, current, resetKey, nowMs)) {
-    return;
-  }
+    const resetKey = normalizeResetKey(resetAt);
+    if (
+      !shouldSendPing(providerConfig, quotas, quota, cachedReset, resetAt, current, resetKey, nowMs)
+    ) {
+      return;
+    }
 
-  const ok = await sendCodexPing(current, providerConfig, deps);
-  if (!ok) {
-    state.failureCache[key] = nowMs;
-    log.warn(`${provider}:${current.id}: ping failed`, { resetAt });
-    return;
-  }
+    const ok = await sendCodexPing(current, providerConfig, deps);
+    if (!ok) {
+      state.failureCache[key] = nowMs;
+      log.warn(`${provider}:${current.id}: ping failed`, { resetAt });
+      return;
+    }
 
-  delete state.failureCache[key];
-  await deps.updateProviderConnection(current.id, {
-    lastPingedResetKey: resetKey,
-    lastPingAt: new Date(nowMs).toISOString(),
+    delete state.failureCache[key];
+    await deps.updateProviderConnection(current.id, {
+      lastPingedResetKey: resetKey,
+      lastPingAt: new Date(nowMs).toISOString(),
+    });
+    log.info(`${provider}:${current.id}: ping sent`, { resetAt, model: providerConfig.pingModel });
   });
-  log.info(`${provider}:${current.id}: ping sent`, { resetAt });
+}
+
+/**
+ * Resolve this tick's ping model and log only when the answer changes, so a
+ * catalog with nothing selectable produces one actionable warning rather than one
+ * per tick, and a model swap after an upgrade is visible in the log.
+ */
+async function resolveProviderPingModel(
+  provider: "codex",
+  deps: QuotaAutoPingDeps,
+  state: QuotaAutoPingState,
+  nowMs: number
+): Promise<string | null> {
+  const pingModel = await deps.resolvePingModel(provider, nowMs);
+  if (state.pingModelCache[provider] !== pingModel) {
+    state.pingModelCache[provider] = pingModel;
+    if (pingModel) {
+      log.info(`${provider}: ping model resolved`, { model: pingModel });
+    } else {
+      log.warn(
+        `${provider}: no selectable ping model in the ${provider} catalog — auto-ping paused ` +
+          "until the model registry or lifecycle data lists a live model (#11905)"
+      );
+    }
+  }
+  return pingModel;
 }
 
 function getEnabledConnectionIds(
@@ -370,14 +487,13 @@ function getEnabledConnectionIds(
 ): Record<string, boolean> {
   return (
     ((settings[providerConfig.settingsKey] as JsonRecord | undefined)?.connections as
-      | Record<string, boolean>
-      | undefined) || {}
+      Record<string, boolean> | undefined) || {}
   );
 }
 
 async function pingProviderConnections(
   provider: "codex",
-  providerConfig: QuotaAutoPingProviderConfig,
+  providerConfig: ResolvedQuotaAutoPingProviderConfig,
   enabledMap: Record<string, boolean>,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
@@ -418,9 +534,11 @@ export async function runQuotaAutoPingTick(
     for (const [provider, providerConfig] of Object.entries(QUOTA_AUTOPING_PROVIDERS)) {
       const enabledMap = getEnabledConnectionIds(settings, providerConfig);
       if (Object.keys(enabledMap).length === 0) continue;
+      const pingModel = await resolveProviderPingModel(provider as "codex", deps, state, nowMs);
+      if (!pingModel) continue;
       await pingProviderConnections(
         provider as "codex",
-        providerConfig,
+        { ...providerConfig, pingModel },
         enabledMap,
         deps,
         state,

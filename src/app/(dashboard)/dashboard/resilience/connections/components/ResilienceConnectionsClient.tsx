@@ -137,7 +137,7 @@ export default function ResilienceConnectionsClient() {
     >
       {stopReason === "local_only"
         ? t("pollErrorLocalOnly") // LOCAL_ONLY gate rejection - page only accessible from localhost/LAN
-        : stoppedRef.current
+        : stopReason !== "none"
           ? t("pollErrorStopped")
           : t("pollErrorTransient")}
       {stopReason !== "local_only" && (
@@ -193,7 +193,7 @@ export default function ResilienceConnectionsClient() {
       <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>{t("pollingNote")}</div>
       <ConnectionsTable
         connections={data.connections}
-        receivedAt={data.receivedAt ?? Date.now()}
+        receivedAt={data.receivedAt ?? 0}
         degraded={data.meta.degraded}
       />
       <BreakerTimeline breakers={data.breakers} onWindowChange={setWindowMs} />

@@ -522,14 +522,18 @@ export default function RouteExplainabilityTab({
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchLogs(controller.signal);
+    void (async () => {
+      await fetchLogs(controller.signal);
+    })();
     return () => controller.abort();
   }, [fetchLogs]);
 
   useEffect(() => {
     if (!selectedId) return;
     const controller = new AbortController();
-    fetchExplanation(selectedId, controller.signal);
+    void (async () => {
+      await fetchExplanation(selectedId, controller.signal);
+    })();
     return () => controller.abort();
   }, [fetchExplanation, selectedId]);
 

@@ -52,7 +52,7 @@ function writeOauthEnvExample(rootDir: string) {
   );
 }
 
-test("syncEnv creates .env from .env.example and generates install-time secrets", () => {
+test("syncEnv creates .env from .env.example and leaves runtime-owned secrets blank", () => {
   const rootDir = createTempRoot();
 
   // Temporarily override DATA_DIR so the encrypted-credentials guard doesn't
@@ -66,8 +66,13 @@ test("syncEnv creates .env from .env.example and generates install-time secrets"
     const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
 
     assert.deepEqual(result, { created: true, added: 7 });
-    assert.match(envContent, /^JWT_SECRET=.{32,}$/m);
-    assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
+    // The three secrets the server provisions itself stay blank here. Filling
+    // them in the package directory hides ensureSecrets() (instrumentation-node),
+    // which restores them from the durable store or generates and persists them
+    // there — so a pre-filled value is silently replaced by a new one on every
+    // reinstall. STORAGE_ENCRYPTION_KEY was pulled out for that reason (#1622).
+    assert.match(envContent, /^JWT_SECRET=$/m);
+    assert.match(envContent, /^API_KEY_SECRET=$/m);
     assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=$/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
@@ -103,7 +108,7 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
     assert.deepEqual(result, { created: false, added: 5 });
     assert.match(envContent, /^JWT_SECRET=my-custom-secret-that-should-stay$/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=custom-claude$/m);
-    assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
+    assert.match(envContent, /^API_KEY_SECRET=$/m);
     assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=$/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);

@@ -8,6 +8,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import InfoTooltip from "@/shared/components/InfoTooltip";
 import { useTranslations } from "next-intl";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 
 type CoverageFilter = "all" | "lt50" | "gte50lt100" | "full";
 type AuthFilter = "all" | "oauth" | "apikey" | "unknown";
@@ -67,6 +68,37 @@ function getSourceTone(source: PricingSource): string {
   }
 }
 
+type PricingBundle = {
+  catalog?: Record<string, PricingCatalogProvider>;
+  pricing?: Record<string, Record<string, Record<string, number>>>;
+  sources?: Record<string, Record<string, PricingSource>>;
+  sync?: SyncStatus;
+};
+
+async function fetchPricingBundle(): Promise<PricingBundle> {
+  const [catalogRes, pricingRes, syncRes] = await Promise.all([
+    fetch("/api/pricing/models"),
+    fetch("/api/pricing?includeSources=1"),
+    fetch("/api/pricing/sync"),
+  ]);
+  const bundle: PricingBundle = {};
+  if (catalogRes.ok) {
+    bundle.catalog = (await catalogRes.json()) as Record<string, PricingCatalogProvider>;
+  }
+  if (pricingRes.ok) {
+    const pricingPayload = (await pricingRes.json()) as {
+      pricing?: Record<string, Record<string, Record<string, number>>>;
+      sourceMap?: Record<string, Record<string, PricingSource>>;
+    };
+    bundle.pricing = pricingPayload.pricing || {};
+    bundle.sources = pricingPayload.sourceMap || {};
+  }
+  if (syncRes.ok) {
+    bundle.sync = (await syncRes.json()) as SyncStatus;
+  }
+  return bundle;
+}
+
 export default function PricingTab() {
   const [catalog, setCatalog] = useState<Record<string, PricingCatalogProvider>>({});
   const [pricingData, setPricingData] = useState<
@@ -98,42 +130,43 @@ export default function PricingTab() {
     window.setTimeout(() => setStatusMessage(null), 4000);
   }, []);
 
+  const applyPricingBundle = useCallback((bundle: PricingBundle) => {
+    if (bundle.catalog) setCatalog(bundle.catalog);
+    if (bundle.pricing) setPricingData(bundle.pricing);
+    if (bundle.sources) setPricingSources(bundle.sources);
+    if (bundle.sync) setSyncStatus(bundle.sync);
+    setLoading(false);
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [catalogRes, pricingRes, syncRes] = await Promise.all([
-        fetch("/api/pricing/models"),
-        fetch("/api/pricing?includeSources=1"),
-        fetch("/api/pricing/sync"),
-      ]);
-
-      if (catalogRes.ok) {
-        setCatalog((await catalogRes.json()) as Record<string, PricingCatalogProvider>);
-      }
-
-      if (pricingRes.ok) {
-        const pricingPayload = (await pricingRes.json()) as {
-          pricing?: Record<string, Record<string, Record<string, number>>>;
-          sourceMap?: Record<string, Record<string, PricingSource>>;
-        };
-        setPricingData(pricingPayload.pricing || {});
-        setPricingSources(pricingPayload.sourceMap || {});
-      }
-
-      if (syncRes.ok) {
-        setSyncStatus((await syncRes.json()) as SyncStatus);
-      }
+      applyPricingBundle(await fetchPricingBundle());
     } catch (error) {
       console.error("Failed to load pricing data:", error);
       showStatus("error", t("pricingLoadFailed"));
-    } finally {
       setLoading(false);
     }
-  }, [showStatus, t]);
+  }, [applyPricingBundle, showStatus, t]);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const bundle = await fetchPricingBundle();
+        if (!cancelled) applyPricingBundle(bundle);
+      } catch (error) {
+        console.error("Failed to load pricing data:", error);
+        if (!cancelled) {
+          showStatus("error", t("pricingLoadFailed"));
+          setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyPricingBundle, showStatus, t]);
 
   const allProviders = useMemo(() => {
     return Object.entries(catalog)
@@ -216,10 +249,13 @@ export default function PricingTab() {
     [allProviders]
   );
 
-  // Reset visible count when filters change
-  useEffect(() => {
+  // Reset visible count when filters change (state adjustment during render)
+  const filtersKey = `${searchQuery}|${coverageFilter}|${authFilter}|${sortKey}`;
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filtersKey);
+  if (prevFiltersKey !== filtersKey) {
+    setPrevFiltersKey(filtersKey);
     setVisibleCount(INITIAL_VISIBLE);
-  }, [searchQuery, coverageFilter, authFilter, sortKey]);
+  }
 
   const stats = useMemo(() => {
     const totalModels = allProviders.reduce((sum, provider) => sum + provider.modelCount, 0);
@@ -331,8 +367,8 @@ export default function PricingTab() {
         });
 
         if (!response.ok) {
-          const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
-          throw new Error(errorPayload.error || t("saveFailed"));
+          const errorPayload = await response.json().catch(() => null);
+          throw new Error(extractApiErrorMessage(errorPayload, t("saveFailed")));
         }
 
         setEditedProviders((previous) => {
@@ -368,8 +404,8 @@ export default function PricingTab() {
         });
 
         if (!response.ok) {
-          const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
-          throw new Error(errorPayload.error || t("resetFailed"));
+          const errorPayload = await response.json().catch(() => null);
+          throw new Error(extractApiErrorMessage(errorPayload, t("resetFailed")));
         }
 
         setEditedProviders((previous) => {

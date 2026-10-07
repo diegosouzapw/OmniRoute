@@ -2,6 +2,21 @@
 
 import { useTranslations } from "next-intl";
 
+const INTERACTIVE_ELEMENT_SELECTOR =
+  'a[href], button, input, select, textarea, summary, [role="button"], [role="link"], ' +
+  '[contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+
+function targetsNestedInteractiveElement(
+  row: HTMLTableRowElement,
+  target: EventTarget | null
+): boolean {
+  if (!(target instanceof Element)) return false;
+  const interactiveElement = target.closest(INTERACTIVE_ELEMENT_SELECTOR);
+  return (
+    interactiveElement !== null && interactiveElement !== row && row.contains(interactiveElement)
+  );
+}
+
 /**
  * DataTable — Shared UI primitive (T-29)
  *
@@ -64,6 +79,9 @@ export default function DataTable({
   if (loading) {
     return (
       <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
         style={{
           display: "flex",
           alignItems: "center",
@@ -73,7 +91,12 @@ export default function DataTable({
           fontSize: "14px",
         }}
       >
-        <span style={{ animation: "spin 1s linear infinite", marginRight: "8px" }}>⏳</span>
+        <span
+          aria-hidden="true"
+          style={{ animation: "spin 1s linear infinite", marginRight: "8px" }}
+        >
+          ⏳
+        </span>
         {t("loading")}
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -148,7 +171,25 @@ export default function DataTable({
           {data.map((row, idx) => (
             <tr
               key={row.id || idx}
-              onClick={() => onRowClick?.(row)}
+              onClick={(event) => {
+                if (
+                  !onRowClick ||
+                  targetsNestedInteractiveElement(event.currentTarget, event.target)
+                )
+                  return;
+                onRowClick(row);
+              }}
+              onKeyDown={
+                onRowClick
+                  ? (event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      onRowClick(row);
+                    }
+                  : undefined
+              }
+              tabIndex={onRowClick ? 0 : undefined}
               style={{
                 cursor: onRowClick ? "pointer" : "default",
                 background:

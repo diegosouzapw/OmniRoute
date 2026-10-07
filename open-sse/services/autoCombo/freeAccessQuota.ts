@@ -20,8 +20,10 @@ import {
   type UsageFetcherProvider,
 } from "./../usage.ts";
 import { getCachedProviderConnections } from "@/lib/db/readCache";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import type { FreeAccessState } from "./strictZeroCostFilter";
+import { isStateStaleForReset } from "./subscriptionLadder";
 
 const USAGE_FETCHER_PROVIDER_SET = new Set<string>(USAGE_FETCHER_PROVIDERS);
 
@@ -99,16 +101,20 @@ function sweepIfDue(): void {
  * `quota_omniroute.py`'s own parsing) and returns `null` — never a guess —
  * for anything else. `null` is treated as "not proven safe" by the filter.
  */
-function extractRemainingAllowance(usage: unknown): number | null {
+function extractRemainingAllowance(usage: unknown, opts?: { isFreeTier?: boolean }): number | null {
   if (!usage || typeof usage !== "object") return null;
   const quotas = (usage as Record<string, unknown>).quotas;
   if (!quotas || typeof quotas !== "object") return null;
 
   let worstPercent: number | null = null;
+  let sawUnlimited = false;
   for (const raw of Object.values(quotas as Record<string, unknown>)) {
     if (!raw || typeof raw !== "object") continue;
     const q = raw as Record<string, unknown>;
-    if (q.unlimited === true) continue;
+    if (q.unlimited === true) {
+      sawUnlimited = true;
+      continue;
+    }
     let pct: number | null =
       typeof q.remainingPercentage === "number" ? q.remainingPercentage : null;
     if (
@@ -122,6 +128,7 @@ function extractRemainingAllowance(usage: unknown): number | null {
     if (pct === null) continue;
     worstPercent = worstPercent === null ? pct : Math.min(worstPercent, pct);
   }
+  if (worstPercent === null && sawUnlimited && opts?.isFreeTier === true) return 100;
   return worstPercent; // percentage points; the filter's threshold is compared against this unit
 }
 
@@ -147,7 +154,9 @@ async function refresh(provider: string, connectionId: string): Promise<void> {
       connection as unknown as Parameters<typeof getUsageForProvider>[0],
       { forceRefresh: false }
     );
-    const remaining = extractRemainingAllowance(usage);
+    const remaining = extractRemainingAllowance(usage, {
+      isFreeTier: providerHasFreeModels(provider),
+    });
     const state: FreeAccessState = {
       status: remaining === null ? "UNKNOWN" : remaining > 0 ? "SAFE" : "EXHAUSTED",
       remainingFreeAllowance: remaining,
@@ -191,7 +200,13 @@ export function resolveFreeAccessState(
 
   const key = cacheKey(provider, connectionId);
   const entry = cache.get(key);
-  const fresh = entry && Date.now() - entry.fetchedAtMs <= ttlMs();
+  // Subscription-first routing (decision 3): an entry whose own `resetAt` has
+  // already passed describes a quota window that no longer exists, so it is
+  // stale REGARDLESS of its age. Without this, a plan that refilled at
+  // midnight keeps reading EXHAUSTED until the TTL happens to lapse, and
+  // routing stays on paid rungs for no reason. See `subscriptionLadder.ts`.
+  const resetElapsed = entry !== undefined && isStateStaleForReset(entry.state);
+  const fresh = entry && !resetElapsed && Date.now() - entry.fetchedAtMs <= ttlMs();
   if (!fresh) {
     void refresh(provider, connectionId);
   }

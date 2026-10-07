@@ -38,7 +38,14 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-const COLD_WINDOWS = ["Bonus Pack 1", "Bonus Pack 2", "Bonus Pack 3", "Bonus Pack 4", "Weekly", "Daily"];
+const COLD_WINDOWS = [
+  "Bonus Pack 1",
+  "Bonus Pack 2",
+  "Bonus Pack 3",
+  "Bonus Pack 4",
+  "Weekly",
+  "Daily",
+];
 const HOT_WINDOWS = ["Monthly", "Bonus Pack 5", "Bonus Pack 6"];
 
 test("#8431 idle healthy windows survive rehydration even when hot windows accumulate >200 rows", () => {

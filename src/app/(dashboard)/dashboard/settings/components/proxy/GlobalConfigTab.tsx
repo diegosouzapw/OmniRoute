@@ -17,6 +17,17 @@ type HealthcheckSummary = {
   failed: number;
 };
 
+async function fetchGlobalProxyConfig(): Promise<GlobalProxyConfig | undefined> {
+  try {
+    const res = await fetch("/api/settings/proxy?level=global");
+    if (res.ok) {
+      const data = await res.json();
+      return data.proxy || null;
+    }
+  } catch {}
+  return undefined;
+}
+
 export default function GlobalConfigTab() {
   const [proxyModalOpen, setProxyModalOpen] = useState(false);
   const [globalProxy, setGlobalProxy] = useState<GlobalProxyConfig>(null);
@@ -32,37 +43,33 @@ export default function GlobalConfigTab() {
   const tc = useTranslations("common");
 
   const loadGlobalProxy = useCallback(async () => {
-    try {
-      const res = await fetch("/api/settings/proxy?level=global");
-      if (res.ok) {
-        const data = await res.json();
-        setGlobalProxy(data.proxy || null);
-      }
-    } catch {}
-  }, []);
-
-  const loadPerKeyProxyEnabled = useCallback(async () => {
-    try {
-      const res = await fetch("/api/settings", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        if (mountedRef.current) setPerKeyProxyEnabled(data.perKeyProxyEnabled === true);
-      }
-    } catch {
-      /* leave default */
-    } finally {
-      if (mountedRef.current) setPerKeyLoading(false);
-    }
+    const proxy = await fetchGlobalProxyConfig();
+    if (proxy !== undefined) setGlobalProxy(proxy);
   }, []);
 
   useEffect(() => {
     mountedRef.current = true;
-    loadGlobalProxy();
-    loadPerKeyProxyEnabled();
+    void (async () => {
+      const proxy = await fetchGlobalProxyConfig();
+      if (mountedRef.current && proxy !== undefined) setGlobalProxy(proxy);
+    })();
+    void (async () => {
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (mountedRef.current) setPerKeyProxyEnabled(data.perKeyProxyEnabled === true);
+        }
+      } catch {
+        /* leave default */
+      } finally {
+        if (mountedRef.current) setPerKeyLoading(false);
+      }
+    })();
     return () => {
       mountedRef.current = false;
     };
-  }, [loadGlobalProxy, loadPerKeyProxyEnabled]);
+  }, []);
 
   const handleTogglePerKeyProxyEnabled = async () => {
     const newValue = !perKeyProxyEnabled;

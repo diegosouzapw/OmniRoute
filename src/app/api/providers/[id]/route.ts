@@ -4,12 +4,11 @@ import {
   getProviderAuditTarget,
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
-import {
-  getCachedProviderConnectionById,
-  updateProviderConnection,
-  deleteProviderConnection,
-  isCloudEnabled,
-} from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
+import { updateProviderConnection } from "@/lib/db/providers";
+import { clearRequestRejectedStreak } from "@omniroute/open-sse/services/requestRejectedStreak.ts";
+import { deleteProviderConnection } from "@/lib/db/providers/deletion";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
@@ -31,11 +30,19 @@ import {
   enableRateLimitProtection,
   disableRateLimitProtection,
 } from "@/../open-sse/services/rateLimitManager";
-import {
-  finalizeValidatedChatGptWebCodexSecrets,
-  decodeChatGptWebCodexSecrets,
-  encodeChatGptWebCodexSecrets,
-} from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
+// Dynamically imported below, inside the one `provider === "chatgpt-web-codex"`
+// branch that needs it -- same fix as #12355 (src/app/api/providers/route.ts),
+// which missed this identical pattern in the by-id route. This module's
+// transitive chain pulls in tiktoken's WASM tokenizer, which Turbopack dev
+// mode fails to resolve for this graph even with `tiktoken` listed in
+// serverExternalPackages. A static top-level import evaluates that whole
+// chain on EVERY PUT to this route regardless of provider, turning an
+// unrelated-provider bundling bug into a route-wide 500 (observed live: PUT
+// on a plain openai-compatible connection's rename failed with "Missing
+// tiktoken_bg.wasm" after 17-50s, never touching chatgpt-web-codex at all).
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import { chatGptWebStorageStateFromCookieHeader } from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
+import { applyOperatorActivationIntent } from "@/lib/providers/operatorDisable";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -129,10 +136,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ...validation.error.details.map((d) => d.field).filter(Boolean),
         ...validation.error.details.flatMap((d) => d.keys ?? []),
       ];
-      return NextResponse.json(
-        { error: { ...validation.error, rejected } },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: { ...validation.error, rejected } }, { status: 400 });
     }
     const body = validation.data;
     const {
@@ -166,6 +170,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
+    const retirementResponse = rejectRetiredCommonChatGptWebProvider(existing.provider);
+    if (retirementResponse) return retirementResponse;
 
     const updateData: Record<string, any> = {};
     if (name !== undefined) updateData.name = name;
@@ -180,6 +186,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             ? incomingPsd.validationId
             : "";
         try {
+          const {
+            finalizeValidatedChatGptWebCodexSecrets,
+            decodeChatGptWebCodexSecrets,
+            encodeChatGptWebCodexSecrets,
+          } = await import("@omniroute/open-sse/services/chatgptWebCodexAdmin.ts");
           const incomingSecrets = decodeChatGptWebCodexSecrets(apiKey);
           const existingSecrets = decodeChatGptWebCodexSecrets(existing.apiKey || "");
           const encoded = encodeChatGptWebCodexSecrets({
@@ -201,6 +212,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             { status: 400 }
           );
         }
+      } else if (existing.provider === "chatgpt-web") {
+        try {
+          JSON.parse(apiKey);
+          updateData.apiKey = apiKey;
+        } catch {
+          try {
+            updateData.apiKey = JSON.stringify(chatGptWebStorageStateFromCookieHeader(apiKey));
+          } catch {
+            return NextResponse.json(
+              { error: "ChatGPT Web storage state JSON or Cookie header is invalid" },
+              { status: 400 }
+            );
+          }
+        }
       } else {
         updateData.apiKey = apiKey;
       }
@@ -212,8 +237,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (lastErrorSource !== undefined) updateData.lastErrorSource = lastErrorSource;
     if (errorCode !== undefined) updateData.errorCode = errorCode;
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
+    // Clearing the cooldown by hand also forgets the refusal streak (#12859).
+    if (rateLimitedUntil === null || testStatus === "active") clearRequestRejectedStreak(id);
     if (lastTested !== undefined) updateData.lastTested = lastTested;
-    if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
+    // healthCheckInterval PATCH semantics: undefined = leave as-is; null = clear
+    // the override (connection follows the global default); 0-1440 = explicit
+    // per-connection minutes (0 opts this connection out of the sweep).
+    if (healthCheckInterval === null) updateData.healthCheckInterval = null;
+    else if (healthCheckInterval !== undefined)
+      updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
     if (incomingWindowThresholds !== undefined) {
@@ -339,6 +371,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
+    // Fields the caller changed, for the audit trail. Captured before the
+    // operator-intent marker below, which is bookkeeping for isActive and not a
+    // providerSpecificData edit by the caller.
+    const changedFields = Object.keys(updateData);
+
+    // Record the operator's explicit on/off intent so automated activation paths
+    // (the connection test) do not turn a deliberately disabled connection back on.
+    if (typeof isActive === "boolean") {
+      updateData.providerSpecificData = applyOperatorActivationIntent(
+        updateData.providerSpecificData ?? existing.providerSpecificData,
+        isActive
+      );
+    }
+
     const updated = await updateProviderConnection(id, updateData);
 
     // If rateLimitOverrides was included in the request, refresh the in-memory
@@ -382,7 +428,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       requestId: auditContext.requestId,
       metadata: {
         provider: existing.provider,
-        changedFields: Object.keys(updateData),
+        changedFields,
         before: summarizeProviderConnectionForAudit(existing),
         after: summarizeProviderConnectionForAudit(updated),
       },

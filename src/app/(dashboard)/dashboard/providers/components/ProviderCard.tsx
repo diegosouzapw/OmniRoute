@@ -160,9 +160,14 @@ function WarningBadge({
       lastFailureSuffix,
     }
   );
-  const ariaLabel = providerText(t, "warningNotice.ariaLabel", "View connection health details, {count} warning(s)", {
-    count,
-  });
+  const ariaLabel = providerText(
+    t,
+    "warningNotice.ariaLabel",
+    "View connection health details, {count} warning(s)",
+    {
+      count,
+    }
+  );
 
   const activate = (e: MouseEvent | KeyboardEvent) => {
     e.preventDefault();
@@ -431,10 +436,9 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   };
 
   const staticIconPath = (() => {
-    if (isCompatible) {
-      return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
+    if (isCompatible || isAnthropicCompatible || isCcCompatible) {
+      return "/providers/cli-generic.svg";
     }
-    if (isAnthropicCompatible || isCcCompatible) return "/providers/anthropic-m.png";
     return null;
   })();
 

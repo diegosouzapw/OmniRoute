@@ -37,16 +37,21 @@ export default function KiroAuthModal({
   const [importingApiKey, setImportingApiKey] = useState(false);
   const [autoDetecting, setAutoDetecting] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) return;
-    setSelectedMethod(null);
-    setIdcStartUrl("");
-    setIdcRegion("us-east-1");
-    setRefreshToken("");
-    setApiKey("");
-    setApiKeyRegion("us-east-1");
-    setError(null);
-  }, [isOpen]);
+  // Reset the form when the modal closes (render-time adjustment per react.dev
+  // "You Might Not Need an Effect" — replaces the old reset effect).
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setSelectedMethod(null);
+      setIdcStartUrl("");
+      setIdcRegion("us-east-1");
+      setRefreshToken("");
+      setApiKey("");
+      setApiKeyRegion("us-east-1");
+      setError(null);
+    }
+  }
 
   // Auto-detect token when import method is selected
   useEffect(() => {

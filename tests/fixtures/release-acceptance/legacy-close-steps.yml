@@ -1,0 +1,39 @@
+      - name: Close tracking issue when the branch is green again
+        if: steps.validate.outputs.exit == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.branch.outputs.target }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The open/update step above is the UPWARD half of the loop; without this
+          # step a stale "not green" issue outlives the fix and every base-green check
+          # (`AGENTS.md` → "Base-green check") keeps stamping new PRs as base-red inherited.
+          TITLE="🔴 Release branch not green: ${TARGET}"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "✅ \`${TARGET}\` is release-green again at \`${GITHUB_SHA:0:9}\` — ${RUN_URL}. Auto-closed by Release-Green (continuous)."
+            echo "Closed issue #$EXISTING"
+          fi
+
+      - name: Close tracking issue when the branch is green again
+        if: steps.validate.outputs.exit == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The open/update step above is the UPWARD half of the loop; without this
+          # step a stale "not green" issue outlives the fix and every base-green check
+          # (`AGENTS.md` → "Base-green check") keeps stamping new PRs as base-red inherited.
+          TITLE="🔴 main branch not green"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "✅ \`main\` is main-green again at \`${GITHUB_SHA:0:9}\` — ${RUN_URL}. Auto-closed by Release-Green (continuous)."
+            echo "Closed issue #$EXISTING"
+          fi
+

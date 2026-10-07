@@ -1,5 +1,10 @@
 import { existsSync } from "node:fs";
 
+import {
+  CHATGPT_WEB_CODEX_CONNECTOR_NAME,
+  CHATGPT_WEB_CODEX_RUNTIME_HEADED,
+} from "@/shared/constants/chatgptWebCodex";
+
 import { isVerifiedNativeCodexRequest } from "../config/codexIdentity.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
@@ -116,21 +121,44 @@ function responseStateNamespace(connectionId: string, parsed: CodexParsedRequest
   return `${connectionId}:${identity.threadId}:${identity.turnId}`;
 }
 
-function previousResponseBelongsToTurn(
+function itemType(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const type = (value as Record<string, unknown>).type;
+  return typeof type === "string" ? type : "";
+}
+
+function itemRole(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const role = (value as Record<string, unknown>).role;
+  return typeof role === "string" ? role : "";
+}
+
+export function inputHasSelfContainedCodexContinuation(body: Record<string, unknown>): boolean {
+  const input = Array.isArray(body.input) ? body.input : [];
+  let hasUser = false;
+  let hasToolOutput = false;
+  for (const item of input) {
+    if (itemRole(item) === "user" || itemType(item) === "message") hasUser = true;
+    if (itemType(item) === "function_call_output" || itemType(item) === "custom_tool_call_output") {
+      hasToolOutput = true;
+    }
+  }
+  return hasUser && hasToolOutput;
+}
+
+export function resolveChatGptWebCodexPreviousResponse(
   body: Record<string, unknown>,
-  connectionId: string,
-  parsed: CodexParsedRequest
-): boolean {
+  namespace: string
+): { body: Record<string, unknown>; ok: boolean } {
   if (typeof body.previous_response_id !== "string" || !body.previous_response_id.trim()) {
-    return true;
+    return { body, ok: true };
   }
-  try {
-    const namespace = responseStateNamespace(connectionId, parsed);
-    const expanded = expandPreviousResponseInput(body, namespace);
-    return expanded !== body;
-  } catch {
-    return false;
-  }
+  const expanded = expandPreviousResponseInput(body, namespace);
+  if (expanded !== body) return { body: record(expanded), ok: true };
+  if (!inputHasSelfContainedCodexContinuation(body)) return { body, ok: false };
+  const next = { ...body };
+  delete next.previous_response_id;
+  return { body: next, ok: true };
 }
 
 function toolModeRequired(parsed: CodexParsedRequest): boolean {
@@ -156,44 +184,46 @@ function buildProviderConfig(
     throw new Error("No supported Chrome or Chromium executable was found");
   }
 
+  const solAvailable = data.solAvailable !== false;
   const proAvailable = data.proAvailable === true;
+  if (route.sol !== solAvailable) {
+    throw new Error(
+      route.sol
+        ? "ChatGPT Sol models are not available for this Luna-only connection"
+        : "ChatGPT Luna models are only available for Luna-only connections"
+    );
+  }
   if (route.pro && !proAvailable) {
-    throw new Error("ChatGPT Pro is not available for this connection");
+    throw new Error(`${route.id} is not available for this non-Pro connection`);
   }
 
   const hasTools = toolModeRequired(parsed);
-  const requiredChoice =
-    parsed.options.toolChoice === "required" || typeof parsed.options.toolChoice === "object";
-  if (route.pro && requiredChoice) {
-    throw new Error("ChatGPT Web Pro is read-only and cannot satisfy a required tool choice");
-  }
-
   const connector =
     configuredString(data, "connectorName", "appName") ??
-    process.env.CHATGPT_WEB_CODEX_CONNECTOR_NAME?.trim();
-  if (!route.pro && hasTools && !connector) {
-    throw new Error("ChatGPT Web (Codex) tools require a ready tunnel and Custom Connector");
-  }
+    (process.env.CHATGPT_WEB_CODEX_CONNECTOR_NAME?.trim() || CHATGPT_WEB_CODEX_CONNECTOR_NAME);
 
-  parsed.modelId = "gpt-5.6-sol";
+  parsed.modelId = route.backendModel;
   parsed.options.reasoning = route.effort;
 
   return {
     adapter: "chatgpt-web",
     baseUrl: "https://chatgpt.com",
-    defaultModel: "gpt-5.6-sol",
-    models: ["gpt-5.6-sol"],
+    defaultModel: route.backendModel,
+    models: [route.backendModel],
     chatgptWeb: {
-      ...(connector ? { appName: connector } : {}),
+      appName: connector,
       storageStatePath,
       ...(chromeExecutablePath ? { chromeExecutablePath } : {}),
       ...(cdpEndpoint ? { cdpEndpoint } : {}),
       brokerSocketPath: paths.brokerSocketPath,
       threadEnvironmentStatePath: paths.threadEnvironmentStatePath,
-      headed: false,
-      localToolsEnabled: !route.pro && hasTools,
+      lunaCheckpointStatePath: paths.lunaCheckpointStatePath,
+      headed: CHATGPT_WEB_CODEX_RUNTIME_HEADED,
+      localToolsEnabled: hasTools,
+      solAvailable,
       proAvailable,
-      autoApproveToolCalls: !route.pro && hasTools,
+      experimentalBiggerContext: data.experimentalBiggerContext === true,
+      autoApproveToolCalls: hasTools,
     },
   };
 }
@@ -260,7 +290,8 @@ export class ChatGptWebCodexExecutor extends BaseExecutor {
       const initialBody = nativeBody(input.body);
       const initialParsed = parseRequest(initialBody);
       const namespace = responseStateNamespace(connectionId, initialParsed);
-      if (!previousResponseBelongsToTurn(initialBody, connectionId, initialParsed)) {
+      const resolvedPrevious = resolveChatGptWebCodexPreviousResponse(initialBody, namespace);
+      if (!resolvedPrevious.ok) {
         return wrapped(
           errorResponse(
             409,
@@ -270,7 +301,7 @@ export class ChatGptWebCodexExecutor extends BaseExecutor {
           initialBody
         );
       }
-      const expandedBody = expandPreviousResponseInput(initialBody, namespace);
+      const expandedBody = resolvedPrevious.body;
       const parsed = parseRequest(expandedBody);
       responseStateNamespace(connectionId, parsed);
 
@@ -302,17 +333,20 @@ export class ChatGptWebCodexExecutor extends BaseExecutor {
       const runtimePaths = connectionRuntimePaths(connectionId);
       const loginConfig = {
         mode: "browser-only" as const,
-        appName: configuredString(providerData, "connectorName", "appName") ?? "OmniRoute Codex",
+        appName:
+          configuredString(providerData, "connectorName", "appName") ??
+          CHATGPT_WEB_CODEX_CONNECTOR_NAME,
         ...(chromeExecutablePath ? { chromeExecutablePath } : {}),
         ...(cdpEndpoint ? { cdpEndpoint } : {}),
         storageStatePath,
         brokerSocketPath: runtimePaths.brokerSocketPath,
-        headed: false,
+        headed: CHATGPT_WEB_CODEX_RUNTIME_HEADED,
         proAvailable: providerData.proAvailable === true,
         autoApproveToolCalls: false,
       };
       if (!browserLoginStateExists(loginConfig)) {
         const capabilities = await inspectBrowserLoginCapabilities(loginConfig);
+        providerData.solAvailable = capabilities.solAvailable;
         providerData.proAvailable = capabilities.proAvailable;
         providerData.browserVerified = true;
         if (chromeExecutablePath) providerData.chromeExecutablePath = chromeExecutablePath;
@@ -320,6 +354,7 @@ export class ChatGptWebCodexExecutor extends BaseExecutor {
         await input.onCredentialsRefreshed?.({
           providerSpecificData: {
             ...record(input.credentials.providerSpecificData),
+            solAvailable: capabilities.solAvailable,
             proAvailable: capabilities.proAvailable,
             browserVerified: true,
             ...(chromeExecutablePath ? { chromeExecutablePath } : {}),
@@ -327,7 +362,7 @@ export class ChatGptWebCodexExecutor extends BaseExecutor {
           },
         });
       }
-      const routeUsesTools = !route.pro && toolModeRequired(parsed);
+      const routeUsesTools = toolModeRequired(parsed);
       if (routeUsesTools) {
         const tunnelId =
           configuredString(providerData, "tunnelId") ??

@@ -73,4 +73,3 @@ test("#3061 opencode-zen no-auth: excluding 'noauth' returns null (breaks the fa
     "excluded synthetic noauth must not be re-selected for the opencode-zen keyless path"
   );
 });
-

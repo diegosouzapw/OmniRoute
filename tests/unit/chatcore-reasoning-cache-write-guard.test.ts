@@ -18,6 +18,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-chatcore-reasoning-cache-write-guard-")
@@ -161,14 +162,14 @@ async function invokeChatCoreStreaming(provider: string, model: string, toolCall
   }
 }
 
-test.after(() => {
+test.after(async () => {
   try {
     core.resetDbInstance();
   } catch {}
   try {
     clearReasoningCacheAll();
   } catch {}
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("non-streaming: a replay provider (xiaomi-mimo) populates the reasoning cache", async () => {

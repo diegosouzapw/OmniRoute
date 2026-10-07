@@ -165,6 +165,23 @@ test("retired Gemini 3.5 Flash IDs have no provider-neutral model specs", () => 
   }
 });
 
+test("retired provider-neutral Gemini 3.5 tiers keep resolvable capability floors", () => {
+  // gemini-3-flash-agent lost its MODEL_SPECS entry in the 3.5 -> 3.7 catalog
+  // retirement but must still resolve the full Flash capability profile via
+  // family fallbacks; the retired -extra-low/-low neutral tiers must NOT
+  // fabricate context/output ceilings (they stay null) while keeping the
+  // vision-capable default so downstream gating stays conservative.
+  const agentCaps = modelCapabilities.getResolvedModelCapabilities("gemini-3-flash-agent");
+  assert.equal(agentCaps.contextWindow, 1048576, "agent tier keeps the 1M Flash context window");
+  assert.equal(agentCaps.maxOutputTokens, 65536, "agent tier keeps the 64K output ceiling");
+  assert.equal(agentCaps.supportsThinking, false, "agent tier encodes a non-thinking variant");
+  assert.equal(agentCaps.supportsTools, true, "agent tier supports tools");
+  assert.equal(agentCaps.supportsVision, true, "agent tier supports vision");
+
+  const retiredLow = modelCapabilities.getResolvedModelCapabilities("gemini-3.5-flash-low");
+  assert.equal(retiredLow.contextWindow, null, "retired low tier fabricates no context window");
+});
+
 test("Antigravity Gemini 3.7 tier IDs share the Flash capability profile", () => {
   for (const modelId of [
     "gemini-3.7-flash-high",
@@ -186,7 +203,7 @@ test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   // GPT OSS models should not be blocked by the heuristic
   assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);
   assert.equal(modelCapabilities.supportsToolCalling("gpt-oss-120b"), true);
-  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-20b"), false); // in registry
+  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-120b"), false); // in registry
 
   // DeepSeek Reasoner supports tool calling
   assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);

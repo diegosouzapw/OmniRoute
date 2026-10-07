@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Works the second you install it — zero config. Three steps: 1. Install — npm install -g omniroute, one command, server on localhost port 20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool. 3. It answers — call model auto and get an instant reply with no API key, no signup, no configuration. Keyless free providers OpenCode Free and Felo are pre-wired into the auto combo, so a fresh install responds out of the box.">
+<svg viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Works the second you install it — zero config. Three steps: 1. Install — npm install -g omniroute, one command, server on localhost port 20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool. 3. It answers — call model auto and get an instant reply with no API key, no signup, no configuration. Keyless provider OpenCode Free is pre-wired into the auto combo, so a fresh install responds out of the box.">
   <desc>Animated flow card: three step tiles (Install, Point your tool, It answers) fade in left to right, a dot travels along the connectors between them in a loop, and the final check pulses.</desc>
   <defs>
     <pattern id="gridW" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -112,6 +112,6 @@
   </g>
 
   <!-- footer -->
-  <text x="40" y="406" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">OpenCode Free &#38; Felo are pre-wired into <tspan fill="#7ee787">auto</tspan> — a fresh install responds out of the box.</text>
+  <text x="40" y="406" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">OpenCode Free is pre-wired into <tspan fill="#7ee787">auto</tspan> — a fresh install responds out of the box.</text>
   <text x="1160" y="406" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">$0 · MIT</text>
 </svg>

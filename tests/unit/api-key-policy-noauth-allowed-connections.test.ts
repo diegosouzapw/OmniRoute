@@ -3,7 +3,7 @@
  *
  * TDD regression test: an API key pinned via `allowedConnections` to a specific
  * connection must NOT receive synthetic no-auth credentials for free providers
- * (e.g. felo-chat).
+ * (e.g. OpenCode Free).
  */
 
 import test from "node:test";
@@ -25,31 +25,36 @@ const RESTRICTED_CONNECTION_UUID = "00000000-0000-4000-8000-000000000001";
 
 test.after(() => {
   coreDb.resetDbInstance();
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch {}
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {}
 });
 
-test("#9057 LAYER1: restricted key gets NO synthetic credentials for noauth provider felo", async () => {
+test("#9057 LAYER1: restricted key gets NO synthetic credentials for OpenCode Free", async () => {
   // LAYER1: getProviderCredentials() with explicit allowedConnections
   // must NOT return synthetic noauth credentials because the synthetic
   // "noauth" connection is never in an explicit allowed-connections list.
   const creds = await getProviderCredentials(
-    "felo",
+    "opencode",
     null,
     [RESTRICTED_CONNECTION_UUID], // allowedConnections restricts to a real UUID
-    "felo-chat"
+    "big-pickle"
   );
-  assert.equal(creds, null,
-    "noauth provider felo must not leak synthetic credentials for a connection-restricted key");
+  assert.equal(
+    creds,
+    null,
+    "OpenCode Free must not leak synthetic credentials for a connection-restricted key"
+  );
 });
 
-test("#9057 LAYER1: unrestricted key still gets synthetic credentials for felo", async () => {
+test("#9057 LAYER1: unrestricted key still gets synthetic credentials for OpenCode Free", async () => {
   const creds = await getProviderCredentials(
-    "felo",
+    "opencode",
     null,
-    null,   // allowedConnections=null means unrestricted
-    "felo-chat"
+    null, // allowedConnections=null means unrestricted
+    "big-pickle"
   );
-  assert(creds, "unrestricted key must receive synthetic credentials for felo");
+  assert(creds, "unrestricted key must receive synthetic credentials for OpenCode Free");
   assert.equal(
     (creds as Record<string, unknown>)?.connectionId,
     "noauth",
@@ -57,7 +62,27 @@ test("#9057 LAYER1: unrestricted key still gets synthetic credentials for felo",
   );
 });
 
-test("#9057 LAYER2: isModelAllowedForKey rejects felo-chat for disableNonPublicModels key", async () => {
+// The auto combo pins keyless targets to the synthetic connection id, and
+// pin-fail-closed turns that pin into the allowlist ["noauth"]. An allowlist
+// that explicitly names the synthetic id must still receive it — otherwise
+// every OpenCode Free target of a fresh install is skipped as "availability".
+test("#9057 LAYER1: allowlist that names the synthetic noauth id still gets credentials", async () => {
+  const creds = await getProviderCredentials("opencode", null, ["noauth"], "big-pickle");
+  assert(creds, "a combo pin to the synthetic noauth connection must resolve");
+  assert.equal((creds as Record<string, unknown>)?.connectionId, "noauth");
+});
+
+test("#9057 LAYER1: allowlist mixing a real UUID and noauth still gets synthetic credentials", async () => {
+  const creds = await getProviderCredentials(
+    "opencode",
+    null,
+    [RESTRICTED_CONNECTION_UUID, "noauth"],
+    "big-pickle"
+  );
+  assert.equal((creds as Record<string, unknown>)?.connectionId, "noauth");
+});
+
+test("#9057 LAYER2: isModelAllowedForKey rejects keyless model for disableNonPublicModels key", async () => {
   // Create a key with disableNonPublicModels=true
   const created = await apiKeysDb.createApiKey("dnp-9057", "machine-dnp");
   assert(created, "key must be created");
@@ -66,6 +91,6 @@ test("#9057 LAYER2: isModelAllowedForKey rejects felo-chat for disableNonPublicM
     disableNonPublicModels: true,
   });
 
-  const allowed = await isModelAllowedForKey(key, "felo-chat");
-  assert.equal(allowed, false, "disableNonPublicModels key must reject felo-chat");
+  const allowed = await isModelAllowedForKey(key, "big-pickle");
+  assert.equal(allowed, false, "disableNonPublicModels key must reject keyless models");
 });

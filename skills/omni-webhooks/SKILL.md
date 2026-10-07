@@ -14,7 +14,86 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 
 ## Endpoints
 
-_No endpoints mapped for this area yet._
+### GET /api/webhooks
+
+GET webhooks
+
+```bash
+curl https://localhost:20128/api/webhooks \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/webhooks
+
+POST webhooks
+
+```bash
+curl -X POST https://localhost:20128/api/webhooks \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/webhooks/{id}
+
+GET webhooks › <id>
+
+```bash
+curl https://localhost:20128/api/webhooks/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/webhooks/{id}
+
+PUT webhooks › <id>
+
+```bash
+curl -X PUT https://localhost:20128/api/webhooks/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/webhooks/{id}
+
+DELETE webhooks › <id>
+
+```bash
+curl -X DELETE https://localhost:20128/api/webhooks/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/webhooks/{id}/deliveries
+
+GET webhooks › <id> › deliveries
+
+```bash
+curl https://localhost:20128/api/webhooks/{id}/deliveries \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/webhooks/{id}/test
+
+POST webhooks › <id> › test
+
+```bash
+curl -X POST https://localhost:20128/api/webhooks/{id}/test \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/webhooks/validate-url
+
+POST webhooks › validate url
+
+```bash
+curl -X POST https://localhost:20128/api/webhooks/validate-url \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

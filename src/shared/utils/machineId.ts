@@ -57,9 +57,10 @@ function getMachineIdRaw(): string {
   }
 
   // Strategy 2: macOS — ioreg IOPlatformUUID
+  // Skip when DISABLE_IOREG_STRATEGY=1 so tests can reach Strategy 4/5 on darwin.
   try {
-    if (process.platform !== "darwin") {
-      throw new Error("Not macOS");
+    if (process.platform !== "darwin" || process.env.DISABLE_IOREG_STRATEGY === "1") {
+      throw new Error("Not macOS or ioreg disabled");
     }
     const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", {
       encoding: "utf8",

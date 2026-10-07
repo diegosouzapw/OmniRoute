@@ -2,8 +2,8 @@
  * Browser-TLS-impersonating HTTP client for grok.com.
  *
  * Thin re-export over the shared `tlsClientBase.ts` factory
- * (`createTlsClientModule`). All provider-agnostic logic (sidecar lifecycle,
- * streaming tail-file, proxy resolution, error classes, Cloudflare challenge
+ * (`createTlsClientModule`). All provider-agnostic logic (wreq-js transport
+ * pooling, direct streaming, proxy resolution, deadlines, Cloudflare challenge
  * detection) lives in the base module; this file supplies only Grok-specific
  * config and preserves the original public export surface.
  */
@@ -22,9 +22,9 @@ const HARD_TIMEOUT_GRACE_MS =
 export const tlsClientModule = createTlsClientModule({
   providerName: "Grok",
   tlsProfile: "chrome_146",
+  emulationOs: "linux",
   domain: "https://grok.com",
-  tempDirPrefix: "grok-stream-",
-  tailFileVariant: "B1",
+  streamEofPolicy: "exclude",
   responseValidation: "cf",
   exportCloudflareCheck: true,
   defaultTimeoutMs: DEFAULT_TIMEOUT_MS,

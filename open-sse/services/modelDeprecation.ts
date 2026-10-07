@@ -7,6 +7,8 @@
  * Supports both built-in aliases (static) and custom aliases (persisted via Settings API).
  */
 
+import { hasKnownProviderModel } from "./model.ts";
+
 // ── Built-in Deprecation Aliases ────────────────────────────────────────────
 // These are known renames/retirements across providers.
 // Format: deprecated ID → current ID
@@ -20,17 +22,23 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "gemini-2.0-flash": "gemini-2.5-flash",
   "gemini-2.0-flash-lite": "gemini-3.1-flash-lite",
   "gemini-3.1-flash-lite-preview": "gemini-3.1-flash-lite",
-  "gemini-3-pro-high": "gemini-3.1-pro-high",
+  // #11503: the catalog spells this one with hyphens ("gemini-3-1-pro-high"); the
+  // dotted form is not a routable id, so the rewrite used to guarantee a 404.
+  "gemini-3-pro-high": "gemini-3-1-pro-high",
   "gemini-3-pro-low": "gemini-3.1-pro-low",
   // Retired free Gemma (was in the gemini-free pool) → current gemini-free model
   "gemma-4": "gemini-3.1-flash-lite",
 
-  // Claude legacy → current
-  "claude-3-opus-20240229": "claude-opus-4-20250514",
-  "claude-3-sonnet-20240229": "claude-sonnet-4-20250514",
-  "claude-3-haiku-20240307": "claude-3-5-sonnet-20241022",
-  "claude-3-5-sonnet-latest": "claude-sonnet-4-20250514",
-  "claude-3-5-haiku-latest": "claude-3-5-sonnet-20241022",
+  // Claude legacy → current.
+  // #11503: these five forwarded one retired id to another (claude-opus-4-20250514 and
+  // claude-sonnet-4-20250514 retired 2026-06-15, claude-3-5-sonnet-20241022 retired
+  // 2025-10-28), so every rewrite landed on a model the vendor no longer serves. The
+  // targets below are the replacements Anthropic publishes on its deprecations page.
+  "claude-3-opus-20240229": "claude-opus-4-8",
+  "claude-3-sonnet-20240229": "claude-sonnet-4-6",
+  "claude-3-haiku-20240307": "claude-haiku-4-5-20251001",
+  "claude-3-5-sonnet-latest": "claude-sonnet-4-6",
+  "claude-3-5-haiku-latest": "claude-haiku-4-5-20251001",
 
   // Kimi/Moonshot — Fireworks long-path aliases (#265)
   "accounts/fireworks/models/kimi-k2p5": "moonshotai/Kimi-K2.5",
@@ -40,11 +48,12 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "fireworks/accounts/fireworks/models/kimi-k2": "moonshotai/Kimi-K2",
   "kimi-k2": "moonshotai/Kimi-K2",
 
-  // Qwen — the model ships only under the `-preview` id (bailian-coding-plan, qoder,
-  // qwen-cloud-token-plan, qwen-web). Without this, the bare id missed MODEL_SPECS and
-  // the context preflight fell back to contextManager's `default: 128000`, rejecting
-  // prompts the model's real 1M window accepts. Drop this line if Alibaba ever ships a
-  // distinct GA `qwen3.8-max` — it would no longer be the same model.
+  // Qwen — preview-only providers (bailian-coding-plan, qoder, qwen-cloud-token-plan)
+  // still serve the model solely under the `-preview` id; without this rewrite the
+  // bare id missed MODEL_SPECS there and the context preflight fell back to
+  // contextManager's `default: 128000`. Providers that list the GA id as-is
+  // (alibaba, qwen-cloud, kilocode, clinepass, xkiro, opencode-go — #14181) are
+  // exempted by the provider-aware check in resolveModelAlias.
   "qwen3.8-max": "qwen3.8-max-preview",
 
   // Mistral short aliases
@@ -57,7 +66,13 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   // Llama short aliases
   "llama-3.3": "llama-3.3-70b-versatile",
   "llama-3-70b": "llama-3.3-70b-versatile",
-  "llama-3-8b": "llama3-8b-8192",
+  // #11503: llama3-8b-8192 deprecated on Groq 2025-08-30 and not in the
+  // catalog; llama-3.1-8b-instant is the replacement Groq names.
+  "llama-3-8b": "llama-3.1-8b-instant",
+
+  // Agnes 1.5 Flash: wiki marks deprecated; live GET /v1/models
+  // (2026-09-09) no longer lists it (503 no channel).
+  "agnes-1.5-flash": "agnes-3.0-flash",
 };
 
 // ── Custom Aliases (persisted via Settings API) ─────────────────────────────
@@ -106,20 +121,30 @@ export function getAllAliases(): Record<string, string> {
  * Resolve a model alias to its current ID.
  * Custom aliases override built-in ones.
  *
+ * The table is GLOBAL but the catalog is not: `kimi-k2`, `gemini-2.0-flash` and friends
+ * are still served under their original id by some aggregators, and rewriting them there
+ * turns a working request into a 404. So when the caller knows which provider will serve
+ * the request (#11503), a provider that lists the id as-is wins over the alias table.
+ * Callers with no provider in hand keep the previous unconditional behaviour.
+ *
  * @param {string} modelId - The model ID to resolve
+ * @param {string | null} [provider] - Provider (id or alias) that will serve the request
  * @returns {string} The resolved model ID, or the original if not deprecated
  */
-export function resolveModelAlias(modelId: string): string {
+export function resolveModelAlias(modelId: string, provider?: string | null): string {
   if (!modelId) return modelId;
 
-  // Check custom aliases first (higher priority)
+  // Check custom aliases first (higher priority). An operator-authored alias is an
+  // explicit instruction, so it applies even when the provider serves the source id.
   const custom = customAliases();
   if (custom[modelId]) return custom[modelId];
 
-  // Then check built-in
-  if (BUILT_IN_ALIASES[modelId]) return BUILT_IN_ALIASES[modelId];
+  if (!BUILT_IN_ALIASES[modelId]) return modelId;
 
-  return modelId;
+  // The provider serves this id itself — nothing is deprecated from its point of view.
+  if (provider && hasKnownProviderModel(provider, modelId)) return modelId;
+
+  return BUILT_IN_ALIASES[modelId];
 }
 
 /**

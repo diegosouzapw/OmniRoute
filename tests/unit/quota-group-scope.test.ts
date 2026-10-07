@@ -100,7 +100,10 @@ test("resolveQuotaKeyScope: key in pool A sees ALL connections/providers of grou
 
   // Must include both connections
   assert.ok(scope.connectionIds.includes(idA), "should include pool A connection");
-  assert.ok(scope.connectionIds.includes(idB), "should include pool B connection (group expansion)");
+  assert.ok(
+    scope.connectionIds.includes(idB),
+    "should include pool B connection (group expansion)"
+  );
   assert.equal(scope.connectionIds.length, 2, "exactly 2 connections");
 
   // Must include both providers
@@ -207,7 +210,10 @@ test("filterModelsToQuotaPools: keeps both providers' qtSd/<group>/... models fr
   assert.equal(result.length, 2, "should return both providers' models for the group");
   assert.ok(result.some((m) => m.id === `qtSd/${groupSlug}/openrouter/gpt-5.5`));
   assert.ok(result.some((m) => m.id === `qtSd/${groupSlug}/baidu/ernie-4.5`));
-  assert.ok(!result.some((m) => m.id === `qtSd/otherg/openrouter/gpt-5.5`), "other group filtered out");
+  assert.ok(
+    !result.some((m) => m.id === `qtSd/otherg/openrouter/gpt-5.5`),
+    "other group filtered out"
+  );
   assert.ok(!result.some((m) => m.id === "gpt-5.5"), "non-quota model filtered out");
 });
 
@@ -240,7 +246,11 @@ test("resolveQuotaKeyScope: orphan pool in group that also has a valid pool — 
     apiKey: "sk-partial-valid",
   });
   const idValid = (connValid as Record<string, unknown>).id as string;
-  const validPool = poolsDb.createPool({ connectionId: idValid, name: "Valid Pool G", groupId: groupG.id });
+  const validPool = poolsDb.createPool({
+    connectionId: idValid,
+    name: "Valid Pool G",
+    groupId: groupG.id,
+  });
 
   // One orphan pool in the same group
   const orphanPool = poolsDb.createPool({
@@ -254,7 +264,10 @@ test("resolveQuotaKeyScope: orphan pool in group that also has a valid pool — 
 
   // The group has a valid connection (the validPool's connection) so group slug should be included
   const expectedSlug = quotaGroupSlug(groupG.name);
-  assert.ok(scope.poolSlugs.includes(expectedSlug), "group slug should be included since group has valid connection");
+  assert.ok(
+    scope.poolSlugs.includes(expectedSlug),
+    "group slug should be included since group has valid connection"
+  );
   assert.ok(scope.connectionIds.includes(idValid), "should include the valid pool's connection");
   assert.ok(scope.providers.includes("openrouter"), "should include openrouter from valid pool");
 

@@ -1,64 +1,58 @@
 # Contributor Covenant Code of Conduct (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇧🇦 [bs](../bs/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## எங்கள் உறுதிமொழி
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+உறுப்பினர்கள், பங்களிப்பாளர்கள் மற்றும் தலைவர்கள் ஆகிய நாங்கள், வயது, உடல்
+அளவு, காணக்கூடிய அல்லது காண இயலாத மாற்றுத்திறன், இனக்குழு, பாலினப் பண்புகள், பாலின
+அடையாளம் மற்றும் வெளிப்பாடு, அனுபவ நிலை, கல்வி, சமூக-பொருளாதார நிலை,
+தேசியம், தனிப்பட்ட தோற்றம், இனம், மதம் அல்லது பாலியல் அடையாளம்
+மற்றும் பாலியல் சார்பு ஆகியவற்றைப் பொருட்படுத்தாமல், எங்கள் சமூகத்தில் பங்கேற்பது
+அனைவருக்கும் துன்புறுத்தல் இல்லாத அனுபவமாக இருப்பதை உறுதிசெய்வதாக உறுதியளிக்கிறோம்.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+திறந்த, வரவேற்கும், பன்முகத்தன்மை கொண்ட, அனைவரையும் உள்ளடக்கிய மற்றும்
+ஆரோக்கியமான சமூகத்திற்குப் பங்களிக்கும் விதங்களில் செயல்படவும் தொடர்புகொள்ளவும் உறுதியளிக்கிறோம்.
 
-## Our Standards
+## எங்கள் தரநிலைகள்
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+எங்கள் சமூகத்திற்கு நேர்மறையான சூழலை உருவாக்க உதவும் நடத்தைக்கான
+எடுத்துக்காட்டுகள்:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- மற்றவர்களிடம் பரிவையும் அன்பையும் வெளிப்படுத்துதல்
+- மாறுபட்ட கருத்துகள், கண்ணோட்டங்கள் மற்றும் அனுபவங்களுக்கு மதிப்பளித்தல்
+- ஆக்கபூர்வமான கருத்துக்களை வழங்குவதும் அவற்றை மனமுவந்து ஏற்றுக்கொள்வதும்
+- நமது தவறுகளால் பாதிக்கப்பட்டவர்களிடம் பொறுப்பேற்று மன்னிப்புக் கோருவதும்,
+  அந்த அனுபவத்திலிருந்து கற்றுக்கொள்வதும்
+- தனிநபர்களாக நமக்கு எது சிறந்தது என்பதில் மட்டுமல்லாமல், ஒட்டுமொத்த
+  சமூகத்திற்கும் எது சிறந்தது என்பதில் கவனம் செலுத்துதல்
 
-Examples of unacceptable behavior include:
+ஏற்றுக்கொள்ள முடியாத நடத்தைக்கான எடுத்துக்காட்டுகள்:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- பாலியல் சார்ந்த மொழி அல்லது படங்களைப் பயன்படுத்துதல் மற்றும் எந்த வகையிலான
+  பாலியல் கவனிப்புகள் அல்லது அணுகுமுறைகள்
+- இணையச் சீண்டல், அவமதிக்கும் அல்லது இழிவுபடுத்தும் கருத்துகள் மற்றும் தனிப்பட்ட அல்லது அரசியல் தாக்குதல்கள்
+- பொது அல்லது தனிப்பட்ட துன்புறுத்தல்
+- மற்றவர்களின் வெளிப்படையான அனுமதியின்றி, அவர்களது வீட்டு முகவரி அல்லது மின்னஞ்சல்
+  முகவரி போன்ற தனிப்பட்ட தகவல்களை வெளியிடுதல்
+- தொழில்முறைச் சூழலில் பொருத்தமற்றதாக நியாயமான முறையில் கருதப்படக்கூடிய
+  பிற நடத்தைகள்
 
-## Enforcement Responsibilities
+## அமலாக்கப் பொறுப்புகள்
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+ஏற்றுக்கொள்ளத்தக்க நடத்தை குறித்த எங்கள் தரநிலைகளைத் தெளிவுபடுத்தி அமல்படுத்துவதற்கு சமூகத் தலைவர்கள் பொறுப்பாவார்கள். மேலும், பொருத்தமற்றது, அச்சுறுத்தலானது, புண்படுத்தக்கூடியது அல்லது தீங்கு விளைவிக்கக்கூடியது என அவர்கள் கருதும் எந்தவொரு நடத்தைக்கும் பதிலளிக்கும் வகையில், பொருத்தமான மற்றும் நியாயமான திருத்த நடவடிக்கைகளை மேற்கொள்வார்கள்.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+இந்த நடத்தை விதிமுறைகளுடன் ஒத்துப்போகாத கருத்துகள், commits, code, wiki திருத்தங்கள், issues மற்றும் பிற பங்களிப்புகளை நீக்குவதற்கும், திருத்துவதற்கும் அல்லது நிராகரிப்பதற்கும் சமூகத் தலைவர்களுக்கு உரிமையும் பொறுப்பும் உள்ளது. மேலும், பொருத்தமான சந்தர்ப்பங்களில் உள்ளடக்க நெறிப்படுத்தல் முடிவுகளுக்கான காரணங்களை அவர்கள் தெரிவிப்பார்கள்.
 
-## Scope
+## வரம்பு
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+இந்த நடத்தை விதிமுறை அனைத்து சமூகத் தளங்களிலும் பொருந்தும். மேலும், ஒரு நபர் பொது இடங்களில்
+அதிகாரப்பூர்வமாக சமூகத்தைப் பிரதிநிதித்துவப்படுத்தும்போதும் இது பொருந்தும்.
+அதிகாரப்பூர்வ மின்னஞ்சல் முகவரியைப் பயன்படுத்துதல், அதிகாரப்பூர்வ சமூக ஊடகக் கணக்கு வழியாகப்
+பதிவிடுதல் அல்லது இணையவழி அல்லது நேரடி நிகழ்வில் நியமிக்கப்பட்ட பிரதிநிதியாகச்
+செயல்படுதல் ஆகியவை நமது சமூகத்தைப் பிரதிநிதித்துவப்படுத்துவதற்கான எடுத்துக்காட்டுகளாகும்.
 
 ## Enforcement
 
@@ -70,51 +64,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## அமலாக்க வழிகாட்டுதல்கள்
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+இந்த நடத்தை விதிகளை மீறுவதாகத் தாங்கள் கருதும் எந்தவொரு செயலுக்குமான விளைவுகளைத் தீர்மானிக்கும்போது, சமூகத் தலைவர்கள் பின்வரும் சமூகத் தாக்க வழிகாட்டுதல்களைப் பின்பற்றுவார்கள்:
 
-### 1. Correction
+### 1. திருத்தம்
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**சமூகத் தாக்கம்**: பொருத்தமற்ற மொழியைப் பயன்படுத்துதல் அல்லது சமூகத்தில் தொழில்முறையற்றதாகவோ விரும்பத்தகாததாகவோ கருதப்படும் பிற நடத்தைகள்.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**விளைவு**: மீறலின் தன்மையைத் தெளிவுபடுத்தியும், அந்த நடத்தை ஏன் பொருத்தமற்றதாக இருந்தது என்பதை விளக்கியும் சமூகத் தலைவர்களிடமிருந்து தனிப்பட்ட முறையில் எழுத்துப்பூர்வமான எச்சரிக்கை வழங்கப்படும். பொது மன்னிப்புக் கோருமாறு கேட்டுக்கொள்ளப்படலாம்.
 
-### 2. Warning
+### 2. எச்சரிக்கை
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**சமூகத் தாக்கம்**: ஒரு தனிப்பட்ட சம்பவம் அல்லது தொடர்ச்சியான செயல்கள் மூலமாக நிகழும் மீறல்.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**விளைவு**: அந்த நடத்தைத் தொடர்வதற்கான விளைவுகளைக் குறிப்பிடும் எச்சரிக்கை. குறிப்பிட்ட காலத்திற்கு, இதில் சம்பந்தப்பட்ட நபர்களுடனோ, நடத்தை விதிகளை அமல்படுத்துபவர்களுடன் கோரப்படாத தொடர்பு உட்படவோ, எந்தத் தொடர்பும் வைத்துக்கொள்ளக் கூடாது. சமூக ஊடகங்கள் போன்ற வெளிப்புற வழித்தடங்கள் மட்டுமல்லாது, சமூகத் தளங்களிலும் தொடர்புகளைத் தவிர்ப்பது இதில் அடங்கும். இந்த நிபந்தனைகளை மீறுவது தற்காலிக அல்லது நிரந்தரத் தடைக்கு வழிவகுக்கலாம்.
 
-### 3. Temporary Ban
+### 3. தற்காலிகத் தடை
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**சமூகத் தாக்கம்**: தொடர்ந்து நிகழும் பொருத்தமற்ற நடத்தை உட்பட, சமூகத் தரநிலைகளின் கடுமையான மீறல்.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**விளைவு**: குறிப்பிட்ட காலத்திற்கு சமூகத்துடனான எந்தவிதமான தொடர்பிலிருந்தும் அல்லது பொதுத் தகவல் பரிமாற்றத்திலிருந்தும் தற்காலிகத் தடை விதிக்கப்படும். இந்தக் காலத்தில், இதில் சம்பந்தப்பட்ட நபர்களுடனோ, நடத்தை விதிகளை அமல்படுத்துபவர்களுடன் கோரப்படாத தொடர்பு உட்படவோ, பொது அல்லது தனிப்பட்ட தொடர்பு எதுவும் அனுமதிக்கப்படாது. இந்த நிபந்தனைகளை மீறுவது நிரந்தரத் தடைக்கு வழிவகுக்கலாம்.
 
-### 4. Permanent Ban
+### 4. நிரந்தரத் தடை
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**சமூகத் தாக்கம்**: தொடர்ந்து நிகழும் பொருத்தமற்ற நடத்தை, ஒரு தனிநபரைத் துன்புறுத்துதல் அல்லது குறிப்பிட்ட வகுப்பைச் சேர்ந்த தனிநபர்களிடம் ஆக்ரோஷமாக நடந்துகொள்ளுதல் அல்லது அவர்களை இழிவுபடுத்துதல் உள்ளிட்ட சமூகத் தரநிலைகளை மீறும் தொடர் போக்கை வெளிப்படுத்துதல்.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**விளைவு**: சமூகத்திற்குள் எந்தவிதமான பொதுத் தொடர்பிலும் ஈடுபடுவதற்கு நிரந்தரத் தடை விதிக்கப்படும்.
 
 ## Attribution
 

@@ -47,10 +47,10 @@ function credentials(
 }
 
 describe("KimiExecutor", () => {
-  it("forces the primary Kimi upstream to stream while preserving JSON client semantics", () => {
+  it("forces the primary Kimi upstream to stream while preserving JSON client semantics", async () => {
     assert.equal(REGISTRY.kimi?.forceStream, true);
 
-    const executor = getExecutor("kimi");
+    const executor = await getExecutor("kimi");
     assert.ok(executor instanceof MoonshotExecutor);
     assert.equal(
       executor.buildUrl("kimi-k2.5", true, 0, credentials(FORMATS.OPENAI)),
@@ -89,9 +89,9 @@ describe("KimiExecutor", () => {
     assert.equal(headers.Authorization, "Bearer oauth-token");
     assert.equal(headers["x-api-key"], undefined);
     assert.equal(headers["X-Msh-Platform"], "kimi_code_cli");
-    assert.equal(headers["X-Msh-Version"], "0.26.0");
+    assert.equal(headers["X-Msh-Version"], "2.1.1");
     assert.equal(headers["X-Msh-Device-Id"], "12345678-1234-1234-1234-1234567890ab");
-    assert.equal(headers["User-Agent"], "kimi-code-cli/0.26.0");
+    assert.equal(headers["User-Agent"], "kimi-code-cli/2.1.1");
   });
 
   it("routes Anthropic-protocol models to beta Messages with x-api-key", () => {

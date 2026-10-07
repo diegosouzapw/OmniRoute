@@ -28,6 +28,11 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // immediate-fail behavior.
 export const STREAM_DISCONNECT_GRACE_PERIOD_MS = upstreamTimeouts.streamDisconnectGracePeriodMs;
 
+// Hard cap for a connected upstream stream. This timer never resets on
+// upstream byte activity and is independent of REQUEST_TIMEOUT_MS. Set
+// STREAM_ACTIVE_TIMEOUT_MS=0 to disable it.
+export const STREAM_ACTIVE_TIMEOUT_MS = upstreamTimeouts.streamActiveTimeoutMs;
+
 // Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
 // set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
 // conservative for large prompts and slow first-byte reasoning providers.
@@ -54,6 +59,14 @@ export const SSE_HEARTBEAT_INTERVAL_MS = upstreamTimeouts.sseHeartbeatIntervalMs
 // Prevents indefinite hangs when the upstream sends headers but stalls on the body.
 // Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
 export const FETCH_BODY_TIMEOUT_MS = upstreamTimeouts.fetchBodyTimeoutMs;
+
+// Hard byte cap on the HuggingChat NDJSON body accumulated by
+// open-sse/executors/huggingchat/jsonlStream.ts. Prevents a stalled/hostile upstream that
+// never emits a terminal `finalAnswer` / `status: finished` marker from buffering
+// indefinitely (#12577). Sized generously for legitimate long completions while staying
+// well below a heap-exhausting size — mirrors the readCappedBuffer/readBodyCapped pattern
+// already used by veoaifree-web.ts and context7-fetch.ts.
+export const HUGGINGCHAT_MAX_BODY_BYTES = 4 * 1024 * 1024;
 
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
@@ -174,7 +187,9 @@ export const HTTP_STATUS = {
   UNPROCESSABLE_ENTITY: 422,
   REQUEST_TIMEOUT: 408,
   GONE: 410,
+  PAYLOAD_TOO_LARGE: 413,
   RATE_LIMITED: 429,
+  PLAN_LIMIT_EXCEEDED: 432,
   SERVER_ERROR: 500,
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
@@ -311,7 +326,7 @@ export const MAX_TOOLS_LIMIT = 128;
 
 /**
  * Interval (ms) for the background credential health check scheduler.
- * Default: 300000 (5 minutes). Minimum: 10000 (10 seconds).
+ * Default: 3600000 (60 minutes). Minimum: 10000 (10 seconds).
  */
 export const CREDENTIAL_HEALTH_CHECK_INTERVAL = (() => {
   const raw = process.env.CREDENTIAL_HEALTH_CHECK_INTERVAL;
@@ -319,7 +334,7 @@ export const CREDENTIAL_HEALTH_CHECK_INTERVAL = (() => {
     const parsed = Number(raw);
     if (Number.isFinite(parsed) && parsed >= 10_000) return parsed;
   }
-  return 300_000;
+  return 3_600_000;
 })();
 
 /**
@@ -350,11 +365,15 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
  *   as soon as this many bytes accumulate, regardless of the timer.
  * - EARLY_RETRY_MAX: max transparent re-opens of the upstream stream while the
  *   holdback is still uncommitted (free-claude-code uses 5 total attempts = 4 retries).
+ * - EMPTY_TURN_RETRY_MAX: max bounded retries of a translated stream turn that ends
+ *   with no usable content (same family: bounded retries of a failing stream
+ *   before anything is exposed to the client).
  */
 export const STREAM_RECOVERY = {
   HOLDBACK_MS: 750,
   BUFFER_MAX_BYTES: 65536,
   EARLY_RETRY_MAX: 4,
+  EMPTY_TURN_RETRY_MAX: 4,
   /**
    * Minimum character overlap `trimContinuationOverlap` must find between the
    * already-emitted text and a mid-stream continuation for the continuation to be

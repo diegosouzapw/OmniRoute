@@ -53,7 +53,12 @@ function buildRoot(rootDir: string): void {
     },
     { "dist/index.js": "export const llmlingua = true;\n" }
   );
-  mkPkg(rootNm, "es-toolkit", { main: "index.js" }, { "index.js": "export const esToolkit = true;\n" });
+  mkPkg(
+    rootNm,
+    "es-toolkit",
+    { main: "index.js" },
+    { "index.js": "export const esToolkit = true;\n" }
+  );
   mkPkg(
     rootNm,
     "js-tiktoken",
@@ -71,12 +76,7 @@ test("computeDependencyClosure walks deps transitively and skips peers (transfor
     buildRoot(root);
     const closure = computeDependencyClosure(join(root, "node_modules"));
 
-    for (const expected of [
-      "@atjsh/llmlingua-2",
-      "js-tiktoken",
-      "es-toolkit",
-      "base64-js",
-    ]) {
+    for (const expected of ["@atjsh/llmlingua-2", "js-tiktoken", "es-toolkit", "base64-js"]) {
       assert.ok(closure.includes(expected), `closure should include ${expected}`);
     }
     // The peer (declared via peerDependencies, NOT dependencies) must NOT be pulled in.
@@ -104,12 +104,7 @@ test("colocateLlmlinguaOptionals copies the closure into dist and never clobbers
     }
 
     // Full closure landed in dist/node_modules.
-    for (const name of [
-      "@atjsh/llmlingua-2",
-      "es-toolkit",
-      "js-tiktoken",
-      "base64-js",
-    ]) {
+    for (const name of ["@atjsh/llmlingua-2", "es-toolkit", "js-tiktoken", "base64-js"]) {
       assert.ok(existsSync(join(distNm, name)), `${name} should be co-located into dist`);
     }
     // The package payload came along (not just the manifest).

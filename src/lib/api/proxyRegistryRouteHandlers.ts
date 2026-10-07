@@ -6,7 +6,7 @@ import {
   getProxyWhereUsed,
   updateProxy,
   updateProxyAndAssign,
-} from "@/lib/localDb";
+} from "@/lib/db/proxies";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { createProxyRegistrySchema, updateProxyRegistrySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";

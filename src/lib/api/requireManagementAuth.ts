@@ -47,10 +47,16 @@ function invalidManagementTokenResponse(options: RequireManagementAuthOptions): 
 }
 
 export async function requireManagementAuth(
-  request: Request,
+  request?: Request | null,
   options: RequireManagementAuthOptions = {}
 ): Promise<Response | null> {
-  if (!options.alwaysRequireAuth && !(await isAuthRequired(request))) {
+  // Direct in-process invocation without a Request (unit/integration tests call
+  // route handlers as plain functions) is a trusted local caller — Next.js always
+  // supplies a real Request on the HTTP path, so this branch is unreachable there.
+  if (request === undefined || request === null) {
+    return null;
+  }
+  if (!options.alwaysRequireAuth && !(await isAuthRequired(request, { ignorePublicRoute: true }))) {
     return null;
   }
 

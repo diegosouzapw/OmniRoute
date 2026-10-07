@@ -41,16 +41,17 @@ const BASE_OPTIONS = { minRemainingAllowance: 1, maxStateAgeMs: 180_000, now: no
 
 const REAL_CONN = "conn-real-1";
 
-// A real keyless entry from the catalog (felo-web, all models keyless/tos=avoid),
+// A real keyless entry from the catalog (OpenCode Free, all models keyless/tos=avoid),
 // as a genuine no-auth candidate (the only shape that legitimately gets the shortcut).
 const KEYLESS = {
-  provider: "felo-web",
-  model: "felo-chat",
+  provider: "opencode",
+  model: "big-pickle",
   connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
 };
 // A real quota-based entry with hardStopGuaranteed: true (added by this feature),
 // as a concrete single-connection candidate.
-const QUOTA_SAFE = { provider: "groq", model: "llama-3.3-70b-versatile", connectionId: REAL_CONN };
+// 2026-09-02: was groq/llama-3.3-70b-versatile, retired from the Groq free tier on 2026-08-16.
+const QUOTA_SAFE = { provider: "groq", model: "openai/gpt-oss-120b", connectionId: REAL_CONN };
 // A real quota-based entry WITHOUT hardStopGuaranteed (agentrouter: one-time-initial,
 // no usage adapter, no documented "no credit card" claim — must never pass).
 const QUOTA_UNGUARANTEED = {
@@ -69,7 +70,7 @@ const PAID = { provider: "openai", model: "gpt-4o", connectionId: REAL_CONN };
 
 test("sanity: fixtures exist in the real catalog with the metadata these tests assume", () => {
   const groqEntry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.equal(groqEntry?.hardStopGuaranteed, true, "groq must carry hardStopGuaranteed: true");
   const arEntry = FREE_MODEL_BUDGETS.find(
@@ -80,17 +81,21 @@ test("sanity: fixtures exist in the real catalog with the metadata these tests a
     true,
     "agentrouter must NOT carry hardStopGuaranteed: true (no documented hard-stop guarantee)"
   );
-  const feloEntry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "felo-web" && m.modelId === "felo-chat"
+  const keylessEntry = FREE_MODEL_BUDGETS.find(
+    (m) => m.provider === "opencode" && m.modelId === "big-pickle"
   );
-  assert.equal(feloEntry?.freeType, "keyless");
-  assert.equal(feloEntry?.tos, "avoid", "felo-web must be tos=avoid for the ToS-guard tests below");
+  assert.equal(keylessEntry?.freeType, "keyless");
+  assert.equal(
+    keylessEntry?.tos,
+    "avoid",
+    "opencode must be tos=avoid for the ToS-guard tests below"
+  );
 });
 
 // 1. keyless SAFE (genuine no-auth candidate) → PASS
 test("keyless candidate from the genuine no-auth path passes with no state at all", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "felo-web" && m.modelId === "felo-chat"
+    (m) => m.provider === "opencode" && m.modelId === "big-pickle"
   );
   assert.deepEqual(
     evaluateCandidateConnections(KEYLESS, entry, () => undefined, BASE_OPTIONS),
@@ -117,7 +122,7 @@ test("model absent from the free catalog is excluded even under a known provider
 // 5. quota SAFE + fresh + hardStop → PASS
 test("quota-based candidate with hardStopGuaranteed, fresh SAFE state above threshold passes", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.deepEqual(
     evaluateCandidateConnections(
@@ -133,7 +138,7 @@ test("quota-based candidate with hardStopGuaranteed, fresh SAFE state above thre
 // 6. quota exhausted → EXCLUDE
 test("EXHAUSTED status excludes even with a fresh checkedAt", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const state = freshState({ status: "EXHAUSTED", remainingFreeAllowance: 0 });
   assert.deepEqual(
@@ -145,7 +150,7 @@ test("EXHAUSTED status excludes even with a fresh checkedAt", () => {
 // 7. usage adapter absent (no state resolvable) → EXCLUDE
 test("quota-based candidate with no resolvable state is excluded, not assumed safe", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.deepEqual(
     evaluateCandidateConnections(QUOTA_SAFE, entry, () => undefined, BASE_OPTIONS),
@@ -158,7 +163,7 @@ test("quota-based candidate with no resolvable state is excluded, not assumed sa
 // here — same assertion as #7, the important contract is "never falls back to SAFE").
 test("UNKNOWN status excludes", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const state = freshState({ status: "UNKNOWN", remainingFreeAllowance: null });
   assert.deepEqual(
@@ -170,7 +175,7 @@ test("UNKNOWN status excludes", () => {
 // 9. usage state stale → EXCLUDE
 test("stale checkedAt excludes even when status is SAFE", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const stale = freshState({ checkedAt: "2026-08-19T00:00:00.000Z" }); // >24h before NOW
   assert.deepEqual(
@@ -210,7 +215,7 @@ test("hardStopGuaranteed explicitly false excludes", () => {
 // 12 & 13. ToS guard, independent of economic evaluation
 test("tos=avoid + excludeTosAvoid=true excludes a keyless-safe candidate", () => {
   const result = filterTosAvoidCandidates([KEYLESS], true);
-  assert.deepEqual(result, [], "felo-web (tos=avoid) must be dropped when the guard is on");
+  assert.deepEqual(result, [], "opencode (tos=avoid) must be dropped when the guard is on");
 });
 
 test("tos=avoid + excludeTosAvoid=false leaves normal economic evaluation untouched", () => {

@@ -5,6 +5,7 @@
 export const UPSTREAM_PROXY_PROVIDERS = {
   cliproxyapi: {
     id: "cliproxyapi",
+    serviceKinds: [],
     alias: "cpa",
     name: "CLIProxyAPI",
     icon: "proxy",
@@ -20,6 +21,7 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
   "9router": {
     id: "9router",
+    serviceKinds: [],
     alias: "nr",
     name: "9router",
     icon: "router",

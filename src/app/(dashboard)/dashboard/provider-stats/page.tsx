@@ -9,8 +9,10 @@
 
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { useTranslations } from "next-intl";
-import { Card } from "@/shared/components";
+
 import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
+import { formatComboSuccessRate } from "@/lib/usage/providerStatsFormatters";
+import { Card } from "@/shared/components";
 
 interface ProviderStat {
   provider: string;
@@ -44,6 +46,25 @@ type SortKey =
   | "avgTtftAfterToolMs"
   | "avgGapAfterToolMs";
 type SortDir = "asc" | "desc";
+
+// Hoisted out of the page component so a stable component type survives re-renders
+// (react-hooks/static-components).
+function SortIcon({
+  column,
+  sortKey,
+  sortDir,
+}: {
+  column: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+}) {
+  if (sortKey !== column) return null;
+  return (
+    <span className="material-symbols-outlined text-[14px] ml-1 align-middle text-primary">
+      {sortDir === "desc" ? "arrow_downward" : "arrow_upward"}
+    </span>
+  );
+}
 
 function formatNumber(n: number | null): string {
   if (n == null) return "0";
@@ -93,7 +114,10 @@ export default function ProviderStatsPage() {
   }, [t]);
 
   useEffect(() => {
-    fetchData();
+    // Async continuation — see react-hooks/set-state-in-effect.
+    void (async () => {
+      await fetchData();
+    })();
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -137,16 +161,6 @@ export default function ProviderStatsPage() {
     if (!modelsByProvider.has(m.provider)) modelsByProvider.set(m.provider, []);
     modelsByProvider.get(m.provider)!.push(m);
   }
-
-  // Sort helper icon
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return null;
-    return (
-      <span className="material-symbols-outlined text-[14px] ml-1 align-middle text-primary">
-        {sortDir === "desc" ? "arrow_downward" : "arrow_upward"}
-      </span>
-    );
-  };
 
   if (!data && !error) {
     return (
@@ -260,44 +274,51 @@ export default function ProviderStatsPage() {
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalRequests")}
                 >
-                  {t("requests")} <SortIcon column="totalRequests" />
+                  {t("requests")}{" "}
+                  <SortIcon column="totalRequests" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("successfulRequests")}
                 >
-                  {t("success")} <SortIcon column="successfulRequests" />
+                  {t("success")}{" "}
+                  <SortIcon column="successfulRequests" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th className="text-right py-2 px-3 text-text-muted font-medium">{t("rate")}</th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgLatencyMs")}
                 >
-                  {t("avgLatency")} <SortIcon column="avgLatencyMs" />
+                  {t("avgLatency")}{" "}
+                  <SortIcon column="avgLatencyMs" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalTokensIn")}
                 >
-                  {t("tokensIn")} <SortIcon column="totalTokensIn" />
+                  {t("tokensIn")}{" "}
+                  <SortIcon column="totalTokensIn" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalTokensOut")}
                 >
-                  {t("tokensOut")} <SortIcon column="totalTokensOut" />
+                  {t("tokensOut")}{" "}
+                  <SortIcon column="totalTokensOut" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgTtftAfterToolMs")}
                 >
-                  {t("ttftAfterTool")} <SortIcon column="avgTtftAfterToolMs" />
+                  {t("ttftAfterTool")}{" "}
+                  <SortIcon column="avgTtftAfterToolMs" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgGapAfterToolMs")}
                 >
-                  {t("gapAfterTool")} <SortIcon column="avgGapAfterToolMs" />
+                  {t("gapAfterTool")}{" "}
+                  <SortIcon column="avgGapAfterToolMs" sortKey={sortKey} sortDir={sortDir} />
                 </th>
                 <th className="py-2 px-3 w-8" />
               </tr>
@@ -493,7 +514,7 @@ export default function ProviderStatsPage() {
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums">
                       {typeof m.successRate === "number"
-                        ? `${(m.successRate * 100).toFixed(1)}%`
+                        ? formatComboSuccessRate(m.successRate)
                         : "—"}
                     </td>
                   </tr>

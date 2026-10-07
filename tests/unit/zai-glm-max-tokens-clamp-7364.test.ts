@@ -8,10 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7364-max-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const {
-  stripUnsupportedParams,
-  __STRIP_RULES_FOR_TEST,
-} = await import("../../open-sse/translator/paramSupport.ts");
+const { stripUnsupportedParams, __STRIP_RULES_FOR_TEST } =
+  await import("../../open-sse/translator/paramSupport.ts");
 
 test.after(() => {
   core.resetDbInstance();

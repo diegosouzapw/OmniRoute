@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
@@ -8,6 +8,9 @@ import { useTranslations } from "next-intl";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+
+// (#618) Match any custom:OmniRoute-<i> entry (multi-model).
+const isOmniRouteEntry = (m) => typeof m?.id === "string" && m.id.startsWith("custom:OmniRoute");
 
 export default function DroidToolCard({
   tool,
@@ -45,9 +48,6 @@ export default function DroidToolCard({
   const [restoringBackup, setRestoringBackup] = useState(null);
   const cliReady = !!(droidStatus?.installed && droidStatus?.runnable);
 
-  // (#618) Match any custom:OmniRoute-<i> entry (multi-model).
-  const isOmniRouteEntry = (m) => typeof m?.id === "string" && m.id.startsWith("custom:OmniRoute");
-
   const getConfigStatus = () => {
     if (!cliReady) return null;
     const currentConfig = droidStatus.settings?.customModels?.find(isOmniRouteEntry);
@@ -65,22 +65,12 @@ export default function DroidToolCard({
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   // (#523) Store the key *id* (not the masked string) so the backend can
-  // resolve the real secret from DB before writing to config files.
-  useEffect(() => {
-    if (apiKeys?.length > 0 && !selectedApiKeyId) {
-      setSelectedApiKeyId(apiKeys[0].id);
-    }
-  }, [apiKeys, selectedApiKeyId]);
+  // resolve the real secret from DB before writing to config files. Default to
+  // the first available key while the user hasn't picked one — derived during
+  // render instead of synced through an effect (react-hooks/set-state-in-effect).
+  const effectiveApiKeyId = selectedApiKeyId || (apiKeys?.length > 0 ? apiKeys[0].id : "");
 
-  useEffect(() => {
-    if (isExpanded && !droidStatus) {
-      checkDroidStatus();
-      fetchModelAliases();
-      fetchBackups();
-    }
-  }, [isExpanded, droidStatus]);
-
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       const data = await res.json();
@@ -88,34 +78,67 @@ export default function DroidToolCard({
     } catch (error) {
       console.log("Error fetching model aliases:", error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    if (droidStatus?.installed && !hasInitializedModel.current) {
-      hasInitializedModel.current = true;
-      // (#618) Pre-fill the multi-model list from every custom:OmniRoute-<i>
-      // entry, preserving the original index order.
-      const existing = (droidStatus.settings?.customModels || [])
-        .filter(isOmniRouteEntry)
-        .slice()
-        .sort((a, b) => (a.index || 0) - (b.index || 0));
-      if (existing.length > 0) {
-        setModelList(existing.map((m) => m.model).filter(Boolean));
-        const first = existing[0];
-        // apiKey may be a structured secret reference (object) rather than a
-        // plaintext string. Only match on strings.
-        if (typeof first?.apiKey === "string" && first.apiKey) {
-          // (#523) Keys from /api/keys are masked. Match by prefix/suffix.
-          const fileKeyPrefix = first.apiKey.slice(0, 8);
-          const fileKeySuffix = first.apiKey.slice(-4);
-          const matchedKey = apiKeys?.find(
-            (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
-          );
-          if (matchedKey) setSelectedApiKeyId(matchedKey.id);
+  // ── Backups ──
+  const fetchBackups = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cli-tools/backups?tool=droid");
+      const data = await res.json();
+      if (res.ok) setBackups(data.backups || []);
+    } catch (error) {
+      console.log("Error fetching backups:", error);
+    }
+  }, []);
+
+  const checkDroidStatus = useCallback(async () => {
+    setCheckingDroid(true);
+    try {
+      const res = await fetch("/api/cli-tools/droid-settings");
+      const data = await res.json();
+      setDroidStatus(data);
+      // One-time form initialization from the settings file, right after the
+      // fetch resolves (was a separate droidStatus effect — moved here so no
+      // setState runs synchronously inside an effect body).
+      if (data?.installed && !hasInitializedModel.current) {
+        hasInitializedModel.current = true;
+        // (#618) Pre-fill the multi-model list from every custom:OmniRoute-<i>
+        // entry, preserving the original index order.
+        const existing = (data.settings?.customModels || [])
+          .filter(isOmniRouteEntry)
+          .slice()
+          .sort((a, b) => (a.index || 0) - (b.index || 0));
+        if (existing.length > 0) {
+          setModelList(existing.map((m) => m.model).filter(Boolean));
+          const first = existing[0];
+          // apiKey may be a structured secret reference (object) rather than a
+          // plaintext string. Only match on strings.
+          if (typeof first?.apiKey === "string" && first.apiKey) {
+            // (#523) Keys from /api/keys are masked. Match by prefix/suffix.
+            const fileKeyPrefix = first.apiKey.slice(0, 8);
+            const fileKeySuffix = first.apiKey.slice(-4);
+            const matchedKey = apiKeys?.find(
+              (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
+            );
+            if (matchedKey) setSelectedApiKeyId(matchedKey.id);
+          }
         }
       }
+    } catch (error) {
+      setDroidStatus({ installed: false, error: error.message });
+    } finally {
+      setCheckingDroid(false);
     }
-  }, [droidStatus, apiKeys]);
+  }, [apiKeys]);
+
+  useEffect(() => {
+    if (!(isExpanded && !droidStatus)) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([checkDroidStatus(), fetchModelAliases(), fetchBackups()]);
+    })();
+  }, [isExpanded, droidStatus, checkDroidStatus, fetchModelAliases, fetchBackups]);
 
   // (#618) Multi-model list manipulation helpers.
   const addModel = (value) => {
@@ -125,19 +148,6 @@ export default function DroidToolCard({
     setModelInput("");
   };
   const removeModel = (id) => setModelList((prev) => prev.filter((m) => m !== id));
-
-  const checkDroidStatus = async () => {
-    setCheckingDroid(true);
-    try {
-      const res = await fetch("/api/cli-tools/droid-settings");
-      const data = await res.json();
-      setDroidStatus(data);
-    } catch (error) {
-      setDroidStatus({ installed: false, error: error.message });
-    } finally {
-      setCheckingDroid(false);
-    }
-  };
 
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || baseUrl;
@@ -155,7 +165,7 @@ export default function DroidToolCard({
     try {
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId =
-        selectedApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+        effectiveApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
       const res = await fetch("/api/cli-tools/droid-settings", {
         method: "POST",
@@ -227,17 +237,6 @@ export default function DroidToolCard({
     setModalOpen(false);
   };
 
-  // ── Backups ──
-  const fetchBackups = async () => {
-    try {
-      const res = await fetch("/api/cli-tools/backups?tool=droid");
-      const data = await res.json();
-      if (res.ok) setBackups(data.backups || []);
-    } catch (error) {
-      console.log("Error fetching backups:", error);
-    }
-  };
-
   const handleRestoreBackup = async (backupId) => {
     setRestoringBackup(backupId);
     setMessage(null);
@@ -269,7 +268,7 @@ export default function DroidToolCard({
 
   const getManualConfigs = () => {
     // (#523) Look up the key object by id to get the masked display value.
-    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+    const selectedKeyObj = apiKeys?.find((k) => k.id === effectiveApiKeyId);
     const keyToDisplay =
       selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
 
@@ -415,7 +414,7 @@ export default function DroidToolCard({
                   </span>
                   {apiKeys.length > 0 ? (
                     <select
-                      value={selectedApiKeyId}
+                      value={effectiveApiKeyId}
                       onChange={(e) => setSelectedApiKeyId(e.target.value)}
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >

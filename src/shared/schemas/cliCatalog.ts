@@ -68,4 +68,5 @@ export const EXPECTED_CODE_COUNT = 21;
 // Note: #6318 originally also shipped duplicate "pi"/"jcode"/"codewhale" entries —
 // those tools were already delivered by a separate PR, so only omp+letta landed here.
 // +1 (#11166): "prime-agent" (PrimeIntellect-ai/prime-agent) added as an agent entry.
-export const EXPECTED_AGENT_COUNT = 9;
+// +1 (#11578): "5dive" (5dive-ai/5dive) added as an agent entry.
+export const EXPECTED_AGENT_COUNT = 10;

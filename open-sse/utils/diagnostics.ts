@@ -10,6 +10,11 @@
  */
 
 import { sanitizeErrorMessage } from "./error.ts";
+import { classifyFakeSuccessBody } from "../services/errorClassifier.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+} from "./responsesSequence.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +27,10 @@ export type MalformedReason =
   | "parse_fail"
   | "empty_choices"
   | "empty_stream"
+  // #13461: a 2xx body whose assistant text is the provider's own error
+  // prose disguised as a successful completion (allowlisted providers only
+  // — see classifyFakeSuccessBody in open-sse/services/errorClassifier.ts).
+  | "content_is_upstream_error"
   | string;
 
 export interface ReportMalformed200Opts {
@@ -52,6 +61,7 @@ const REASON_MESSAGES: Record<string, string> = {
   parse_fail: "failed to parse upstream stream",
   empty_choices: "response had no usable choices/output",
   empty_stream: "upstream stream carried no content",
+  content_is_upstream_error: "upstream reported a failure disguised as a successful response",
 };
 
 function describeReason(reason?: MalformedReason): string {
@@ -140,8 +150,13 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
   );
   const event = {
     type: "response.failed",
+    // #14330: this frame is synthesized outside the real per-stream sequence
+    // counter, so it uses the shared synthetic seed instead of omitting the
+    // required field — a strict Responses decoder aborts without it.
+    // #15202: `response.id` must be a string; `null` aborts those same decoders.
+    sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     response: {
-      id: null,
+      id: buildSyntheticResponsesFailureId(),
       status: "failed",
       error: {
         type: "stream_error",
@@ -172,8 +187,19 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Claude Messages shape (type:"message" + content[]) is checked directly,
  *   since a Claude client receives the body in that shape (no
  *   `choices`/`object:"response"`).
+ * - #13461: for the narrow provider allowlist in classifyFakeSuccessBody
+ *   (open-sse/services/errorClassifier.ts), a short Chat Completions
+ *   assistant message that is dominated by a known credits-exhausted /
+ *   account-deactivated phrase is treated as malformed too ("fake success")
+ *   even though it carries non-empty content — see that function's doc
+ *   comment for the false-positive guards. `provider` is optional and comes
+ *   from the single call site in chatCore.ts; every other caller/shape is
+ *   unaffected.
  */
-export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
+export function detectMalformedNonStream(
+  resp: unknown,
+  provider?: string | null
+): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
   const body = resp as Record<string, unknown>;
@@ -200,7 +226,20 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
       });
     if (!hasOutput) return "empty_choices";
     const status = typeof body.status === "string" ? body.status : "";
-    if (status && !["completed", "done"].includes(status)) return "no_terminal";
+    // OpenAI Responses spec: "incomplete" (budget exhausted — max_output_tokens
+    // / max_tool_calls) and "cancelled" are legal terminal states, not a body
+    // that never finished. A non-streaming /v1/responses call with a small
+    // max_output_tokens on a reasoning model deterministically returns
+    // status:"incomplete" with usable partial output; mapping that to 502
+    // "did not reach a terminal state" kills every such request (chat
+    // completions already surfaces the equivalent as finish_reason:"length").
+    // "canceled" is the spelling parseSSEToResponsesOutput writes when the
+    // terminal event is response.canceled and the snapshot omits status
+    // (sseParser.ts). "failed" stays malformed so describeMalformedNonStream
+    // can emit the upstream error message; "in_progress" / "queued" / anything
+    // else is still mid-flight.
+    if (status && !["completed", "done", "incomplete", "cancelled", "canceled"].includes(status))
+      return "no_terminal";
     return null;
   }
 
@@ -255,20 +294,32 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     //  1) A block IS present but invalid (e.g. text:"", a lone "(empty response)"
     //     sentinel, or only null entries) — the model genuinely produced no
     //     usable output. That is a MALFORMED-200 empty_choices regardless of
-    //     stop_reason (parity with the OpenAI content:"" path).
-    //  2) `content: []` — no block at all. Only a genuinely *terminal* response
-    //     (a final stop_reason with no output) is empty_choices. #9971: a
-    //     truncated / non-terminal body — the Claude Code OAuth upstream cutting
-    //     a long generation mid-turn, or a content-less thinking-only stream
-    //     that never emitted a terminal event — carries content:[] with no
-    //     reachable end, so flagging it would turn an upstream truncation into a
-    //     false 502. Require a terminal stop_reason before calling a block-less
-    //     response genuinely empty.
-    if (content.length === 0) {
-      const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
-      const isTerminal = stopReason.length > 0;
-      return isTerminal ? "empty_choices" : null;
-    }
+    //     stop_reason (parity with the OpenAI content:"" path) — UNLESS the
+    //     terminal stop_reason is one of the legitimate truncated-completion
+    //     exemptions below (#12968).
+    //  2) `content: []` — no block at all. #9971: a truncated / non-terminal
+    //     body (no stop_reason) must not become empty_choices. A terminal
+    //     stop_reason with no output usually is empty_choices — except the
+    //     same legitimate empty stops that `isEmptyContentResponse` already
+    //     accepts (`max_tokens`, `tool_use`). Claude Code's `/model` probe
+    //     sends `max_tokens: 1`; Opus can burn that budget on thinking and
+    //     return content:[] + stop_reason max_tokens. Treating that as
+    //     empty_choices turns a valid 200 into MALFORMED-200 → 502 even
+    //     though errorClassifier would have let it through.
+    const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    // #12968: the #9971 exemption above only fired when `content` was a
+    // completely empty array. A tiny `max_tokens` probe against an
+    // Anthropic-compatible shim can instead return content:[{type:"text",
+    // text:""}] — one block, just with no visible text — which is the exact
+    // same legitimate truncated-completion shape, so the exemption must apply
+    // whenever there is no visible output, not only when content is [].
+    // "length" is the OpenAI-style spelling some Claude-compatible shims
+    // (ollama qwen3 with the reasoning budget exhausted) emit for the same
+    // truncated-completion case — sentinel content + stop_reason "length".
+    if (stopReason === "max_tokens" || stopReason === "tool_use" || stopReason === "length")
+      return null;
+    // content:[] with no stop_reason at all is non-terminal, not empty (#9971).
+    if (content.length === 0 && stopReason.length === 0) return null;
     return "empty_choices";
   }
 
@@ -311,9 +362,64 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     return false;
   });
 
-  if (!anyHasOutput) return "empty_choices";
+  if (!anyHasOutput) {
+    // A finish_reason of "length" is the chat-completions spelling of a
+    // truncated completion: the model hit max_tokens. Claude's translator maps
+    // stop_reason "max_tokens" to it (claude-to-openai.ts), and the Claude
+    // shape already exempts that case (#12968, diagnostics above) because a
+    // thinking model can burn a 1-token probe budget and return no visible
+    // text. Rejecting the translated form reintroduces the 502 the exemption
+    // removed. "stop" with no output stays empty_choices.
+    const truncated = choices.some((choice) => {
+      const c = choice as Record<string, unknown>;
+      return c?.finish_reason === "length";
+    });
+    if (truncated) return null;
+    return "empty_choices";
+  }
+
+  // #13461: only for the narrow provider allowlist — see classifyFakeSuccessBody's
+  // doc comment for the false-positive guards (short content + dominant signal).
+  if (provider && classifyFakeSuccessBody(extractChatCompletionText(choices), provider)) {
+    return "content_is_upstream_error";
+  }
+
   return null;
 }
+
+// Joins every non-empty text-bearing field across all choices of a Chat
+// Completions body into one string, for the #13461 fake-success check above.
+// Mirrors the shapes `anyHasOutput` already recognizes as "real" content
+// (plain string, Anthropic-style content-block array) — reasoning/tool_calls
+// are intentionally excluded, since a disguised upstream error always
+// surfaces as visible assistant text, never as a reasoning trace.
+function extractChatCompletionText(choices: unknown[]): string {
+  const parts: string[] = [];
+  for (const choice of choices) {
+    const c = choice as Record<string, unknown>;
+    const msg = c?.message as Record<string, unknown> | undefined;
+    if (typeof msg?.content === "string") {
+      parts.push(msg.content as string);
+    } else if (Array.isArray(msg?.content)) {
+      for (const block of msg.content as unknown[]) {
+        const b = block as Record<string, unknown> | null;
+        if (b && typeof b === "object" && b.type === "text" && typeof b.text === "string") {
+          parts.push(b.text as string);
+        }
+      }
+    }
+  }
+  return parts.join(" ");
+}
+
+/**
+ * `error.type` shared by every non-streaming "malformed 200" failure built by
+ * describeMalformedNonStream(). Its presence means the upstream already
+ * answered HTTP 200 with a body (so the call was most likely billed) and only
+ * the translated result was unusable. Retry layers read it to avoid replaying
+ * the same paid call against the same account.
+ */
+export const UPSTREAM_RESPONDED_ERROR_TYPE = "upstream_response_error";
 
 export function describeMalformedNonStream(
   resp: unknown,
@@ -321,10 +427,24 @@ export function describeMalformedNonStream(
 ): { message: string; code: string; type: string } {
   const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
   if (body?.object === "response" && body.status === "failed") {
+    const err =
+      body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
+    const rawMessage =
+      typeof err?.message === "string" && err.message.trim().length > 0 ? err.message.trim() : null;
     return {
-      message: "upstream reported a failed response without usable output",
+      // Trim only here; buildErrorBody (chatCore) does the single sanitization pass.
+      message: rawMessage
+        ? `upstream reported a failed response: ${rawMessage}`
+        : "upstream reported a failed response without usable output",
       code: "upstream_response_failed",
-      type: "upstream_response_error",
+      type: UPSTREAM_RESPONDED_ERROR_TYPE,
+    };
+  }
+  if (reason === "content_is_upstream_error") {
+    return {
+      message: "upstream reported a failure disguised as a successful response",
+      code: "upstream_fake_success",
+      type: UPSTREAM_RESPONDED_ERROR_TYPE,
     };
   }
   return {
@@ -333,7 +453,7 @@ export function describeMalformedNonStream(
         ? "upstream response did not reach a terminal state"
         : "upstream returned an empty response without usable output",
     code: "upstream_empty_response",
-    type: "upstream_response_error",
+    type: UPSTREAM_RESPONDED_ERROR_TYPE,
   };
 }
 

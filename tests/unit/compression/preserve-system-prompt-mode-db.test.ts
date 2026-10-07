@@ -59,9 +59,8 @@ test("legacy preserveSystemPrompt=false (no mode row) derives whenNoCache", asyn
   );
 
   // End-to-end: without a cacheable prefix, a legacy-off install must still compress the prompt.
-  const { resolveCacheAwareConfig } = await import(
-    "../../../open-sse/services/compression/cacheAwareConfig.ts"
-  );
+  const { resolveCacheAwareConfig } =
+    await import("../../../open-sse/services/compression/cacheAwareConfig.ts");
   assert.equal(
     resolveCacheAwareConfig(cfg).preserveSystemPrompt,
     false,

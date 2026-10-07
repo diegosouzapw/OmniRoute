@@ -4,11 +4,8 @@ import assert from "node:assert/strict";
 import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
 import { supportsXHighEffort } from "../../open-sse/config/providerModels.ts";
 import { sanitizeReasoningEffortForProvider } from "../../open-sse/executors/base.ts";
-import {
-  getExecutor,
-  hasSpecializedExecutor,
-  MoonshotExecutor,
-} from "../../open-sse/executors/index.ts";
+import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
+import { MoonshotExecutor } from "../../open-sse/executors/moonshot.ts";
 import {
   sanitizeOpenAIResponse,
   sanitizeResponsesApiResponse,
@@ -63,11 +60,11 @@ test("Kimi K3 advertises its 1M context/output and native capabilities", () => {
   assert.equal(capabilities.interleavedField, "reasoning_content");
 });
 
-test("Moonshot ids use the specialized request normalizer", () => {
+test("Moonshot ids use the specialized request normalizer", async () => {
   assert.equal(hasSpecializedExecutor("moonshot"), true);
   assert.equal(hasSpecializedExecutor("kimi"), true);
-  assert.ok(getExecutor("moonshot") instanceof MoonshotExecutor);
-  assert.ok(getExecutor("kimi") instanceof MoonshotExecutor);
+  assert.ok((await getExecutor("moonshot")) instanceof MoonshotExecutor);
+  assert.ok((await getExecutor("kimi")) instanceof MoonshotExecutor);
 });
 
 test("Kimi K3 uses max reasoning, fixed sampling, and max_completion_tokens", () => {

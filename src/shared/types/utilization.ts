@@ -58,11 +58,17 @@ export interface ComboHealthMetrics {
   quotaHealth: {
     providers: Array<{
       provider: string;
-      remainingPct: number;
+      remainingPct: number | null;
       isExhausted: boolean;
       trend: "improving" | "stable" | "declining";
+      dropReason?:
+        | import("../../../open-sse/services/autoCombo/strictZeroCostFilter").StrictZeroCostExclusionReason
+        | "hidePaidModels"
+        | "modelLockout"
+        | "no-snapshot"
+        | null;
     }>;
-    worstRemainingPct: number;
+    worstRemainingPct: number | null;
   };
   usageSkew: {
     modelDistribution: Array<{
@@ -282,7 +288,8 @@ export type ComboScoringInspectorFactorKey =
   | "sessionAvailability"
   | "resetWindowAffinity"
   | "connectionDensity"
-  | "quality";
+  | "quality"
+  | "reliability";
 
 export type ComboScoringInspectorSource =
   "combo_health" | "combo_forecast" | "combo_autopilot" | "runtime" | "default";

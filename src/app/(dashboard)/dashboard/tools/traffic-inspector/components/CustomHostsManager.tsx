@@ -42,7 +42,9 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
   };
 
   useEffect(() => {
-    void fetchHosts();
+    void (async () => {
+      await fetchHosts();
+    })();
   }, []);
 
   const addHost = async () => {

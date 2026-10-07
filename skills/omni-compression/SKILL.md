@@ -43,6 +43,48 @@ curl https://localhost:20128/api/compression/rules \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### POST /api/compression/compare
+
+POST compression › compare
+
+```bash
+curl -X POST https://localhost:20128/api/compression/compare \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/compression/compare/verify
+
+POST compression › compare › verify
+
+```bash
+curl -X POST https://localhost:20128/api/compression/compare/verify \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/compression/engines
+
+GET compression › engines
+
+```bash
+curl https://localhost:20128/api/compression/engines \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/compression/retrieve
+
+POST compression › retrieve
+
+```bash
+curl -X POST https://localhost:20128/api/compression/retrieve \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

@@ -404,7 +404,14 @@ test("getLastSessionModel uses latest id as deterministic tie-breaker", async ()
   assert.equal(handoffDb.getLastSessionModel(sessionId, comboName), "anthropic/new");
 });
 
-test("handleComboChat universal handoff does not accumulate injected handoffs across fallback targets", async () => {
+test("handleComboChat universal handoff skips same-request fallback targets entirely", async () => {
+  // #12227 follow-up: a same-request fallback target (i > 0) serves the SAME
+  // client request the failed primary target would have served -- the client
+  // never saw the earlier target fail, so there's no genuine "handoff" to
+  // explain. Injecting one there replaces real conversation content with a
+  // context-free note; weaker fallback models have been observed fabricating
+  // content instead of just answering the actual request when handed that
+  // note. The fallback target must receive the original request untouched.
   const sessionId = "sess-universal-no-mutate";
   const comboName = "universal-no-mutate";
 
@@ -463,10 +470,8 @@ test("handleComboChat universal handoff does not accumulate injected handoffs ac
       typeof message?.content === "string" && message.content.includes("<context_handoff>")
   );
 
-  assert.equal(handoffMessages.length, 1);
-  assert.match(handoffMessages[0].content, /openai\/previous/);
-  assert.match(handoffMessages[0].content, /anthropic\/fallback/);
-  assert.doesNotMatch(handoffMessages[0].content, /openai\/failed/);
+  assert.equal(handoffMessages.length, 0);
+  assert.deepEqual(fallbackBody.messages, [{ role: "user", content: "Continue" }]);
 });
 
 test("handleComboChat universal handoff detects model switch before recording current model", async () => {

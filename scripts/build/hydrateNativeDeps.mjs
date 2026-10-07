@@ -7,21 +7,26 @@
  * matrix leg. Everything except install-machine-forked optional packages is
  * platform-independent:
  *
- *  - Bundled-for-all (verify only): koffi ships every triplet under
- *    `build/koffi/<os>_<arch>`, better-sqlite3 v13 ships Node-API prebuilds for
- *    8 platforms, wreq-js ships `rust/wreq-js.<plat>-<arch>[-libc].node`, and
- *    onnxruntime-node ships `bin/napi-v6/<os>/<arch>`.
+ *  - Bundled-for-all (verify only): better-sqlite3 v13 ships Node-API prebuilds
+ *    for 8 platforms, and onnxruntime-node ships `bin/napi-v6/<os>/<arch>`.
  *  - Install-machine-forked (hydrate): `@img/sharp-*`, `@img/sharp-libvips-*`,
- *    `@ngrok/ngrok-*` and macOS-only `fsevents` resolve to whichever platform
- *    ran `npm ci`. The ubuntu-built tree carries the linux forks; each leg
- *    replaces them with the forks from its OWN `npm ci`d node_modules.
+ *    `@ngrok/ngrok-*`, `@wreq-js/binding-*`, and macOS-only `fsevents` resolve
+ *    to whichever platform ran `npm ci`. The ubuntu-built tree carries the
+ *    linux forks; each leg replaces them with the forks from its OWN install.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 
+import { resolveWreqJsNativeBinding } from "./wreqJsNative.mjs";
+
 /** Scope prefixes whose members are install-machine-forked. */
-export const HYDRATED_SCOPES = ["@img/sharp-", "@img/sharp-libvips-", "@ngrok/ngrok-"];
+export const HYDRATED_SCOPES = [
+  "@img/sharp-",
+  "@img/sharp-libvips-",
+  "@ngrok/ngrok-",
+  "@wreq-js/binding-",
+];
 
 /** Standalone packages that are not forked but must never be platform-forked. */
 export const HYDRATED_ROOT_PACKAGES = ["fsevents"];
@@ -33,8 +38,7 @@ export const HYDRATED_ROOT_PACKAGES = ["fsevents"];
 export const BUNDLED_EXEMPTIONS = new Set(["onnxruntime-node:darwin-x64"]);
 
 function platformTriple(platform, arch) {
-  // koffi uses underscore triplets; better-sqlite3/wreq-js/onnx use dashes.
-  return { koffi: `${platform}_${arch}`, dash: `${platform}-${arch}` };
+  return { dash: `${platform}-${arch}` };
 }
 
 function rmrf(target) {
@@ -106,9 +110,6 @@ export function verifyBundledNatives({ nodeModulesDir, platform, arch }) {
   const errors = [];
   const triple = platformTriple(platform, arch);
 
-  const koffiDir = path.join(nodeModulesDir, "koffi", "build", "koffi", triple.koffi);
-  if (!fs.existsSync(koffiDir)) errors.push(`koffi: missing bundled triplet ${triple.koffi}`);
-
   const sqlitePrebuild = path.join(
     nodeModulesDir,
     "better-sqlite3",
@@ -118,13 +119,23 @@ export function verifyBundledNatives({ nodeModulesDir, platform, arch }) {
   if (!fs.existsSync(sqlitePrebuild))
     errors.push(`better-sqlite3: missing prebuild ${triple.dash}.node`);
 
-  const wreqDir = path.join(nodeModulesDir, "wreq-js", "rust");
-  const wreqNames = fs.existsSync(wreqDir)
-    ? fs
-        .readdirSync(wreqDir)
-        .filter((n) => n.startsWith(`wreq-js.${triple.dash}`) && n.endsWith(".node"))
-    : [];
-  if (wreqNames.length === 0) errors.push(`wreq-js: missing rust binary for ${triple.dash}`);
+  const wreqBinding = resolveWreqJsNativeBinding({
+    platform,
+    arch,
+    libc: platform === "linux" ? "gnu" : undefined,
+  });
+  if (!wreqBinding) {
+    errors.push(`wreq-js: unsupported target ${triple.dash}`);
+  } else {
+    const wreqBinary = path.join(
+      nodeModulesDir,
+      ...wreqBinding.packageName.split("/"),
+      wreqBinding.fileName
+    );
+    if (!fs.existsSync(wreqBinary)) {
+      errors.push(`wreq-js: missing ${wreqBinding.packageName}/${wreqBinding.fileName}`);
+    }
+  }
 
   const exempt = BUNDLED_EXEMPTIONS.has(`onnxruntime-node:${triple.dash}`);
   if (!exempt) {

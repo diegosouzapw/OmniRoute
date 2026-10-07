@@ -3,7 +3,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { QdrantSettingsUpdateSchema } from "@/shared/schemas/qdrant";
 import { getQdrantConfig, normalizeQdrantConfig } from "@/lib/memory/qdrant";
-import { updateSettings, getSettings } from "@/lib/localDb";
+import { updateSettings, getSettings } from "@/lib/db/settings";
 import { invalidateMemorySettingsCache } from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: { message: "Invalid JSON body", details: [] } },
-      { status: 400 },
+      { status: 400 }
     );
   }
 

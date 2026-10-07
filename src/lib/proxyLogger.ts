@@ -7,8 +7,15 @@
  * Pattern follows callLogs.js (T-15 decomposition).
  */
 import { v4 as uuidv4 } from "uuid";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
+import { sanitizeTimingMs } from "@omniroute/open-sse/utils/timingMs.ts";
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
 import { ensureProxyLogsColumns } from "./db/schemaColumns";
+import { normalizeProxyHostForLog } from "./proxyLogHost";
+
+// Re-exported for existing callers; the helper lives in a zero-import leaf so DB modules
+// can use it without loading this module (which hydrates from SQLite at import time).
+export { normalizeProxyHostForLog };
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
@@ -18,6 +25,9 @@ interface ProxyInfo {
   type: string;
   host: string;
   port: number | string;
+  /** Registry name (e.g. `murphy-eu-fr`) — carried by registry resolution so the
+   *  proxy log can identify a leg even when many entries share host:port. */
+  name?: string;
 }
 
 interface ProxyLogEntry {
@@ -38,8 +48,26 @@ interface ProxyLogEntry {
   error: string | null;
   connectionId: string | null;
   comboId: string | null;
+  // `account` is the configured connection id prefix (connectionId slice);
+  // `rotationAccount` is the masked id of the rotation account that served the
+  // request (multi-account anonymous rotation only, null otherwise). Both stay
+  // masked prefixes — never a full account id.
   account: string | null;
+  /** Masked serving-account id of the rotation executor (null unless set). */
+  rotationAccount: string | null;
+  /** Request correlation id shared with call_logs (null unless set). */
+  correlationId: string | null;
   tlsFingerprint: boolean;
+  /** HTTP status the provider actually returned; null when no response was received. */
+  upstreamStatus: number | null;
+  /** 1-based position of this row within its request journal; null for unjournaled rows. */
+  attemptNumber: number | null;
+  /** Outcome of this send within its request journal; null for unjournaled rows. */
+  attemptIssue: "served" | "abandoned" | null;
+  /** Send start -> response headers received; null when unknown (network throw). */
+  headersMs: number | null;
+  /** Send start -> first useful body byte; null until the byte arrives. */
+  firstChunkMs: number | null;
 }
 
 type ProxyLogInput = Partial<ProxyLogEntry> & {
@@ -78,7 +106,12 @@ function loadFromDb() {
         timestamp: row.timestamp,
         status: row.status || "success",
         proxy: row.proxy_host
-          ? { type: row.proxy_type, host: row.proxy_host, port: row.proxy_port }
+          ? {
+              type: row.proxy_type,
+              host: row.proxy_host,
+              port: row.proxy_port,
+              name: row.proxy_name || undefined,
+            }
           : null,
         level: row.level || "direct",
         levelId: row.level_id || null,
@@ -91,7 +124,17 @@ function loadFromDb() {
         connectionId: row.connection_id || null,
         comboId: row.combo_id || null,
         account: row.account || null,
+        rotationAccount: row.rotation_account || null,
+        correlationId: row.correlation_id || null,
         tlsFingerprint: row.tls_fingerprint === 1,
+        upstreamStatus: typeof row.upstream_status === "number" ? row.upstream_status : null,
+        attemptNumber: typeof row.attempt_number === "number" ? row.attempt_number : null,
+        attemptIssue:
+          row.attempt_issue === "served" || row.attempt_issue === "abandoned"
+            ? row.attempt_issue
+            : null,
+        headersMs: sanitizeTimingMs(row.headers_ms),
+        firstChunkMs: sanitizeTimingMs(row.first_chunk_ms),
       });
     }
 
@@ -99,7 +142,10 @@ function loadFromDb() {
       console.log(`[proxyLogger] Loaded ${proxyLogs.length} proxy logs from SQLite`);
     }
   } catch (err: any) {
-    console.warn("[proxyLogger] Failed to load from DB:", err.message);
+    console.warn(
+      "[proxyLogger] Failed to load from DB:",
+      sanitizeErrorMessage(err) || "Proxy log hydration failed"
+    );
   }
 }
 
@@ -113,10 +159,7 @@ loadFromDb();
 
 /** Read at call time so tests can toggle it between imports. */
 export function isProxyLogIncludeIps(): boolean {
-  return (
-    process.env.PROXY_LOG_INCLUDE_IPS === "true" ||
-    process.env.PROXY_LOG_INCLUDE_IPS === "1"
-  );
+  return process.env.PROXY_LOG_INCLUDE_IPS === "true" || process.env.PROXY_LOG_INCLUDE_IPS === "1";
 }
 
 /**
@@ -133,6 +176,7 @@ export function formatProxyEgressConsoleLine(params: {
   egressIp: string | null;
   level: string;
   proxyHost: string | null | undefined;
+  proxyName?: string | null | undefined;
   status: string;
   includeDetails?: boolean;
 }): string {
@@ -142,21 +186,31 @@ export function formatProxyEgressConsoleLine(params: {
     return `[ProxyEgress] ${provider} status=${status}`;
   }
   const proxy = params.proxyHost ? `:${params.proxyHost}` : "";
+  const name = params.proxyName ? ` name=${params.proxyName}` : "";
   return (
     `[ProxyEgress] ${provider}/${params.account || "-"} ` +
     `in=${params.clientIp || "?"} out=${params.egressIp || "?"} ` +
-    `proxy=${params.level}${proxy} status=${status}`
+    `proxy=${params.level}${proxy}${name} status=${status}`
   );
 }
 
 // ──────────────── Log a proxy event ────────────────
 
 export function logProxyEvent(entry: ProxyLogInput) {
+  const safeError =
+    entry.error === null || entry.error === undefined || entry.error === ""
+      ? null
+      : sanitizeErrorMessage(entry.error) || "Proxy request failed";
   const log: ProxyLogEntry = {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     status: entry.status || "success",
-    proxy: entry.proxy || null,
+    proxy: entry.proxy
+      ? {
+          ...entry.proxy,
+          host: normalizeProxyHostForLog(entry.proxy.host) ?? entry.proxy.host,
+        }
+      : null,
     level: entry.level || "direct",
     levelId: entry.levelId || null,
     provider: entry.provider || null,
@@ -164,11 +218,24 @@ export function logProxyEvent(entry: ProxyLogInput) {
     clientIp: entry.clientIp ?? entry.publicIp ?? null,
     egressIp: entry.egressIp ?? null,
     latencyMs: entry.latencyMs || 0,
-    error: entry.error || null,
+    error: safeError,
     connectionId: entry.connectionId || null,
     comboId: entry.comboId || null,
     account: entry.account || null,
+    rotationAccount: entry.rotationAccount || null,
+    correlationId: entry.correlationId || null,
     tlsFingerprint: entry.tlsFingerprint || false,
+    upstreamStatus: entry.upstreamStatus ?? null,
+    attemptNumber:
+      typeof entry.attemptNumber === "number" && Number.isInteger(entry.attemptNumber)
+        ? entry.attemptNumber
+        : null,
+    attemptIssue:
+      entry.attemptIssue === "served" || entry.attemptIssue === "abandoned"
+        ? entry.attemptIssue
+        : null,
+    headersMs: sanitizeTimingMs(entry.headersMs),
+    firstChunkMs: sanitizeTimingMs(entry.firstChunkMs),
   };
 
   // Structured egress line so the operator can confirm, in the proxy logs, which
@@ -182,6 +249,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
         egressIp: log.egressIp,
         level: log.level,
         proxyHost: log.proxy?.host,
+        proxyName: log.proxy?.name,
         status: log.status,
         includeDetails: isProxyLogIncludeIps(),
       })
@@ -236,15 +304,17 @@ export function flushProxyLogsSync() {
   // 1. If Redis driver is active, asynchronously publish batch to Redis Stream/Channel
   if (process.env.QUOTA_STORE_DRIVER === "redis" || process.env.QUOTA_STORE_REDIS_URL) {
     try {
-      import("@/lib/quota/redisQuotaStore").then(({ getRedisQuotaStore }) => {
-        const store = getRedisQuotaStore(process.env.QUOTA_STORE_REDIS_URL || "");
-        const client = (store as any)?.client;
-        if (client && typeof client.publish === "function") {
-          for (const entry of batch) {
-            client.publish("omniroute:proxy_logs", JSON.stringify(entry)).catch(() => {});
+      import("@/lib/quota/redisQuotaStore")
+        .then(({ getRedisQuotaStore }) => {
+          const store = getRedisQuotaStore(process.env.QUOTA_STORE_REDIS_URL || "");
+          const client = (store as any)?.client;
+          if (client && typeof client.publish === "function") {
+            for (const entry of batch) {
+              client.publish("omniroute:proxy_logs", JSON.stringify(entry)).catch(() => {});
+            }
           }
-        }
-      }).catch(() => {});
+        })
+        .catch(() => {});
     } catch {
       /* ignore redis pub errors */
     }
@@ -254,12 +324,14 @@ export function flushProxyLogsSync() {
   try {
     const db = getDbInstance();
     const insertStmt = db.prepare(
-      `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
+      `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port, proxy_name,
         level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
-        connection_id, combo_id, account, tls_fingerprint)
-      VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
+        connection_id, combo_id, account, rotation_account, correlation_id, tls_fingerprint, upstream_status,
+        attempt_number, attempt_issue, headers_ms, first_chunk_ms)
+      VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort, @proxyName,
         @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
-        @connectionId, @comboId, @account, @tlsFingerprint)`
+        @connectionId, @comboId, @account, @rotationAccount, @correlationId, @tlsFingerprint, @upstreamStatus,
+        @attemptNumber, @attemptIssue, @headersMs, @firstChunkMs)`
     );
 
     const transaction = db.transaction((entries: ProxyLogEntry[]) => {
@@ -271,6 +343,7 @@ export function flushProxyLogsSync() {
           proxyType: item.proxy?.type || null,
           proxyHost: item.proxy?.host || null,
           proxyPort: item.proxy?.port ? Number(item.proxy.port) : null,
+          proxyName: item.proxy?.name || null,
           level: item.level,
           levelId: item.levelId,
           provider: item.provider,
@@ -282,14 +355,94 @@ export function flushProxyLogsSync() {
           connectionId: item.connectionId,
           comboId: item.comboId,
           account: item.account,
+          rotationAccount: item.rotationAccount,
+          correlationId: item.correlationId,
           tlsFingerprint: item.tlsFingerprint ? 1 : 0,
+          upstreamStatus: item.upstreamStatus,
+          attemptNumber: item.attemptNumber,
+          attemptIssue: item.attemptIssue,
+          headersMs: item.headersMs,
+          firstChunkMs: item.firstChunkMs,
         });
       }
     });
 
     transaction(batch);
   } catch (err: any) {
-    console.warn("[proxyLogger] Failed to write proxy log batch to disk:", err?.message || err);
+    console.warn(
+      "[proxyLogger] Failed to write proxy log batch to disk:",
+      sanitizeErrorMessage(err) || "Proxy log persistence failed"
+    );
+  }
+}
+
+// ──────────────── Deferred timing patch ────────────────
+
+// Bounded join key for late first-chunk arrivals: log id -> queued entry ref.
+// Registered only when the first byte is still unknown at journal time; every
+// entry leaves through exactly one path below (notify, settle-without-byte,
+// cancel/error, cap eviction, clear). Cap mirrors the ring buffer so the
+// registry never retains more than memory already does.
+export const TIMING_LINK_CAP = 200;
+const pendingFirstChunk = new Map<string, ProxyLogEntry>();
+
+function evictOldestTimingLink(): void {
+  const oldest = pendingFirstChunk.keys().next();
+  if (!oldest.done) pendingFirstChunk.delete(oldest.value);
+}
+
+/**
+ * Totest seam: current registry size (bounded by TIMING_LINK_CAP).
+ */
+export function pendingFirstChunkSizeForTests(): number {
+  return pendingFirstChunk.size;
+}
+
+/**
+ * Link a journaled row to its still-open upstream body. Called by the journal
+ * layer right after logProxyEvent returns the entry, when the first byte has
+ * not arrived yet. No-ops (no entry) when the timing is already known or when
+ * there is no body to wait for.
+ */
+export function linkPendingFirstChunk(
+  id: string,
+  entry: ProxyLogEntry,
+  timingKnown: boolean,
+  hasBody: boolean
+): void {
+  if (timingKnown || !hasBody) return;
+  if (pendingFirstChunk.size >= TIMING_LINK_CAP) evictOldestTimingLink();
+  pendingFirstChunk.set(id, entry);
+}
+
+function dropPendingFirstChunk(id: string): void {
+  pendingFirstChunk.delete(id);
+}
+
+/**
+ * Settle a linked row once the first useful body byte arrives (or never does).
+ * Before the batch flush the queued object is mutated in place so the INSERT
+ * carries the value; after the flush the row is patched by id and the
+ * in-memory copy is updated. Every path drops the registry entry.
+ * The patch callback keeps this module decoupled from the db writer: the
+ * journal/capture layer passes updateAttemptTiming from the owned db module.
+ */
+export function settlePendingFirstChunk(
+  id: string,
+  firstChunkMs: number | null,
+  patchRow?: (id: string, patch: { firstChunkMs: number | null }) => boolean
+): void {
+  const entry = pendingFirstChunk.get(id);
+  dropPendingFirstChunk(id);
+  if (!entry) return;
+  const clean = sanitizeTimingMs(firstChunkMs);
+  entry.firstChunkMs = clean;
+  if (!shouldPersistToDisk) return;
+  if (pendingLogsQueue.includes(entry)) return;
+  try {
+    patchRow?.(id, { firstChunkMs: clean });
+  } catch {
+    // Deferred visibility is best-effort; the in-memory copy above stays correct.
   }
 }
 
@@ -327,6 +480,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
     logs = logs.filter(
       (l) =>
         (l.proxy?.host || "").toLowerCase().includes(q) ||
+        (l.proxy?.name || "").toLowerCase().includes(q) ||
         (l.provider || "").toLowerCase().includes(q) ||
         (l.targetUrl || "").toLowerCase().includes(q) ||
         (l.clientIp || "").toLowerCase().includes(q) ||
@@ -345,13 +499,17 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
 
 export function clearProxyLogs() {
   proxyLogs.length = 0;
+  pendingFirstChunk.clear();
 
   if (shouldPersistToDisk) {
     try {
       const db = getDbInstance();
       db.prepare("DELETE FROM proxy_logs").run();
     } catch (err: any) {
-      console.warn("[proxyLogger] Failed to clear DB:", err.message);
+      console.warn(
+        "[proxyLogger] Failed to clear DB:",
+        sanitizeErrorMessage(err) || "Proxy log cleanup failed"
+      );
     }
   }
 }

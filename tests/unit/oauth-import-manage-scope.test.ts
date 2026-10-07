@@ -60,7 +60,11 @@ test("codex/import-token: non-manage key → 403, no key → 401, manage key pas
   const nonManage = await apiKeysDb.createApiKey("client", "machine-client", []);
   const manage = await apiKeysDb.createApiKey("admin", "machine-admin", ["manage"]);
 
-  assert.equal((await post(codexImportToken, nonManage.key)).status, 403, "non-manage key rejected");
+  assert.equal(
+    (await post(codexImportToken, nonManage.key)).status,
+    403,
+    "non-manage key rejected"
+  );
   assert.equal((await post(codexImportToken)).status, 401, "no credential rejected");
 
   const withManage = await post(codexImportToken, manage.key);

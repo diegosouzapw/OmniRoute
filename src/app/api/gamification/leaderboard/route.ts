@@ -7,9 +7,25 @@ import {
   type LeaderboardScope,
 } from "@/lib/gamification/leaderboard";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getApiKeyDisplayNames } from "@/lib/db/apiKeys/displayNames";
 
 export async function OPTIONS() {
   return handleCorsOptions();
+}
+
+/**
+ * Attach each entry's API key display name for the dashboard "Name" column.
+ *
+ * Route-local on purpose: the shared getTopN helper stays id-only so the
+ * federation leaderboard never ships operator key names to peer servers. Only
+ * the name is added — the lookup reads no key material, and a leaderboard row
+ * whose key was deleted keeps `name: null` so the UI can fall back to the id.
+ */
+function withApiKeyNames<T extends { apiKeyId: string }>(
+  entries: T[]
+): Array<T & { name: string | null }> {
+  const names = getApiKeyDisplayNames(entries.map((entry) => entry.apiKeyId));
+  return entries.map((entry) => ({ ...entry, name: names.get(entry.apiKeyId) ?? null }));
 }
 
 export async function GET(request: NextRequest) {
@@ -29,7 +45,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const entries = await getTopN(scope, limit);
+  const entries = withApiKeyNames(await getTopN(scope, limit));
   let myRank: number | null = null;
   let neighbors = null;
 

@@ -58,6 +58,22 @@ updates:
       # on the VPS — so keep auto-bumps frozen (no update-types = ignore every version).
       # Migrate it intentionally, not via dependabot (#4050).
       - dependency-name: "@huggingface/transformers"
+      # onnxruntime-node is the OTHER HALF of the @huggingface/transformers pair frozen
+      # above: the hoisted copy must equal the exact version transformers pins, or npm
+      # nests a second ABI-incompatible native copy (contract test
+      # tests/unit/onnxruntime-single-copy.test.ts, pair established in #9962). A solo
+      # bump can never be correct — it only ever moves together with transformers, in
+      # the same deliberate migration PR. Freezing it keeps the production group PRs
+      # (e.g. #12219) from being born red on the pair contract.
+      - dependency-name: "onnxruntime-node"
+      # eslint-plugin-react-hooks is pinned to 7.0.1 by a contract test
+      # (tests/unit/eslint-react-hooks-version-pinned.test.ts) until the 7.1.1 rule set
+      # is adopted deliberately — that adoption needs a full cold lint run and its own
+      # PR (the #12146 react-hooks migration finished on 2026-09-01, so the path is
+      # open; the bump still must not ride a dependabot group, where it reds the
+      # development group PRs, e.g. #12220). Remove this ignore in the adoption PR
+      # together with the pin test.
+      - dependency-name: "eslint-plugin-react-hooks"
 
   - package-ecosystem: "github-actions"
     directory: "/"

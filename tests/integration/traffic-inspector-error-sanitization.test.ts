@@ -17,53 +17,36 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { globalTrafficBuffer } = await import("../../src/mitm/inspector/buffer.ts");
 
-const requestsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/requests/route.ts"
-);
-const requestDetailRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/requests/[id]/route.ts"
-);
-const annotationRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/requests/[id]/annotation/route.ts"
-);
-const hostsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/hosts/route.ts"
-);
-const hostDetailRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/hosts/[host]/route.ts"
-);
-const sessionsRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/sessions/route.ts"
-);
-const sessionDetailRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/sessions/[id]/route.ts"
-);
-const ingestRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/internal/ingest/route.ts"
-);
-const httpProxyRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/http-proxy/route.ts"
-);
-const systemProxyRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts"
-);
-const tlsInterceptRoute = await import(
-  "../../src/app/api/tools/traffic-inspector/capture-modes/tls-intercept/route.ts"
-);
+const requestsRoute = await import("../../src/app/api/tools/traffic-inspector/requests/route.ts");
+const requestDetailRoute =
+  await import("../../src/app/api/tools/traffic-inspector/requests/[id]/route.ts");
+const annotationRoute =
+  await import("../../src/app/api/tools/traffic-inspector/requests/[id]/annotation/route.ts");
+const hostsRoute = await import("../../src/app/api/tools/traffic-inspector/hosts/route.ts");
+const hostDetailRoute =
+  await import("../../src/app/api/tools/traffic-inspector/hosts/[host]/route.ts");
+const sessionsRoute = await import("../../src/app/api/tools/traffic-inspector/sessions/route.ts");
+const sessionDetailRoute =
+  await import("../../src/app/api/tools/traffic-inspector/sessions/[id]/route.ts");
+const ingestRoute =
+  await import("../../src/app/api/tools/traffic-inspector/internal/ingest/route.ts");
+const httpProxyRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/http-proxy/route.ts");
+const systemProxyRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts");
+const tlsInterceptRoute =
+  await import("../../src/app/api/tools/traffic-inspector/capture-modes/tls-intercept/route.ts");
 
 function noStackTrace(msg: string, label: string): void {
   assert.ok(
     !msg.includes("at /"),
     `${label}: error message must not contain stack trace (found "at /")`
   );
-  assert.ok(
-    !msg.includes(".ts:"),
-    `${label}: error message must not include TS file paths`
-  );
+  assert.ok(!msg.includes(".ts:"), `${label}: error message must not include TS file paths`);
 }
 
 async function getErrorMessage(res: Response): Promise<string> {
-  const body = await res.json() as { error: { message: string } };
+  const body = (await res.json()) as { error: { message: string } };
   return body.error?.message ?? "";
 }
 
@@ -76,19 +59,16 @@ test.after(() => {
 });
 
 test("requests: invalid profile param does not leak stack", async () => {
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/requests?profile=BAD"
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/requests?profile=BAD");
   const res = await requestsRoute.GET(req);
   assert.equal(res.status, 400);
   noStackTrace(await getErrorMessage(res), "GET /requests");
 });
 
 test("requests/[id]: unknown id does not leak stack", async () => {
-  const res = await requestDetailRoute.GET(
-    new Request("http://localhost/"),
-    { params: Promise.resolve({ id: randomUUID() }) }
-  );
+  const res = await requestDetailRoute.GET(new Request("http://localhost/"), {
+    params: Promise.resolve({ id: randomUUID() }),
+  });
   assert.equal(res.status, 404);
   noStackTrace(await getErrorMessage(res), "GET /requests/[id]");
 });
@@ -148,40 +128,33 @@ test("hosts/[host] PATCH: invalid body does not leak stack", async () => {
 });
 
 test("sessions: 404 does not leak stack", async () => {
-  const res = await sessionDetailRoute.GET(
-    new Request("http://localhost/"),
-    { params: Promise.resolve({ id: randomUUID() }) }
-  );
+  const res = await sessionDetailRoute.GET(new Request("http://localhost/"), {
+    params: Promise.resolve({ id: randomUUID() }),
+  });
   assert.equal(res.status, 404);
   noStackTrace(await getErrorMessage(res), "GET /sessions/[id]");
 });
 
 test("ingest: 403 does not leak stack", async () => {
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/internal/ingest",
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: "Bearer wrong-token",
-      },
-      body: JSON.stringify({}),
-    }
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/internal/ingest", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer wrong-token",
+    },
+    body: JSON.stringify({}),
+  });
   const res = await ingestRoute.POST(req);
   assert.equal(res.status, 403);
   noStackTrace(await getErrorMessage(res), "POST /internal/ingest (403)");
 });
 
 test("http-proxy: invalid action does not leak stack", async () => {
-  const req = new Request(
-    "http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy",
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "invalid" }),
-    }
-  );
+  const req = new Request("http://localhost/api/tools/traffic-inspector/capture-modes/http-proxy", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "invalid" }),
+  });
   const res = await httpProxyRoute.POST(req);
   assert.equal(res.status, 400);
   noStackTrace(await getErrorMessage(res), "POST /capture-modes/http-proxy");

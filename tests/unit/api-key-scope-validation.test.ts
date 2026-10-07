@@ -71,6 +71,44 @@ test("lease scope requires an explicit non-empty connection allowlist", () => {
   );
 });
 
+test("updateKeyPermissionsSchema validates connectionAccessMode and allowedConnections parity", () => {
+  const connection = "00000000-0000-4000-8000-000000000001";
+  assert.equal(
+    updateKeyPermissionsSchema.safeParse({
+      connectionAccessMode: "restricted",
+      allowedConnections: [],
+    }).success,
+    false
+  );
+  assert.equal(
+    updateKeyPermissionsSchema.safeParse({
+      connectionAccessMode: "restricted",
+    }).success,
+    false
+  );
+  assert.equal(
+    updateKeyPermissionsSchema.safeParse({
+      connectionAccessMode: "restricted",
+      allowedConnections: [connection],
+    }).success,
+    true
+  );
+  assert.equal(
+    updateKeyPermissionsSchema.safeParse({
+      connectionAccessMode: "all",
+      allowedConnections: [],
+    }).success,
+    true
+  );
+  assert.equal(
+    updateKeyPermissionsSchema.safeParse({
+      connectionAccessMode: "all",
+      allowedConnections: [connection],
+    }).success,
+    false
+  );
+});
+
 test("api key create route normalizes omitted scopes to self-service usage", () => {
   const source = fs.readFileSync(path.join(repoRoot, "src/app/api/keys/route.ts"), "utf8");
 

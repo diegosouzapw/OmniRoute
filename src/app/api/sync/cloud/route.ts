@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getApiKeys, createApiKey, pickApiKeyForInternalUse, updateSettings } from "@/lib/localDb";
+import { getApiKeys, createApiKey, pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
+import { updateSettings } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud, fetchWithTimeout, CLOUD_URL } from "@/lib/cloudSync";
 import fs from "fs/promises";
@@ -53,7 +54,10 @@ export async function GET() {
       return NextResponse.json({ enabled: true, connected: false });
     }
   } catch (error: unknown) {
-    return NextResponse.json({ enabled: false, error: sanitizeErrorMessage(error) }, { status: 500 });
+    return NextResponse.json(
+      { enabled: false, error: sanitizeErrorMessage(error) },
+      { status: 500 }
+    );
   }
 }
 
@@ -67,7 +71,12 @@ export async function POST(request: any) {
     rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: { message: "Invalid request", details: [{ field: "body", message: "Invalid JSON body" }] } },
+      {
+        error: {
+          message: "Invalid request",
+          details: [{ field: "body", message: "Invalid JSON body" }],
+        },
+      },
       { status: 400 }
     );
   }
@@ -92,7 +101,10 @@ export async function POST(request: any) {
         }
         // Sync first — only enable if sync succeeds
         const enableResult = await syncAndVerify(machineId, createdKey?.key, keys);
-        const enableBody = await enableResult.clone().json().catch(() => ({}));
+        const enableBody = await enableResult
+          .clone()
+          .json()
+          .catch(() => ({}));
         // Only persist cloudEnabled if sync succeeded (body.success exists)
         if (enableBody.success) {
           await updateSettings({ cloudEnabled: true });
@@ -125,10 +137,7 @@ async function syncAndVerify(machineId: string, createdKey: any, existingKeys: a
   // Step 1: Sync data to cloud
   const syncResult: any = await syncToCloud(machineId, createdKey);
   if (syncResult.error) {
-    return NextResponse.json(
-      { error: `Cloud sync failed: ${syncResult.error}` },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: `Cloud sync failed: ${syncResult.error}` }, { status: 502 });
   }
 
   // Build the cloud URL for the frontend to use
@@ -221,7 +230,8 @@ async function handleDisable(machineId: string, request: any) {
   }
 
   // Update Claude CLI settings to use local endpoint
-  const host = request.headers.get("host") || "localhost:20128";
+  const defaultPort = process.env.PORT || process.env.DASHBOARD_PORT || "20128";
+  const host = request.headers.get("host") || `localhost:${defaultPort}`;
   await updateClaudeSettingsToLocal(machineId, host);
 
   return NextResponse.json({

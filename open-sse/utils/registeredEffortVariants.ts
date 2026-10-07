@@ -14,10 +14,9 @@ export function getRegisteredProviderEffortBaseModelId(
   modelId: string
 ): string | null {
   const providerModels = getProviderModels(providerId);
+  const registeredVariant = providerModels.find((candidate) => candidate.id === modelId);
 
-  if (!providerModels.some((candidate) => candidate.id === modelId)) {
-    return null;
-  }
+  if (!registeredVariant) return null;
 
   for (const effort of REGISTERED_EFFORT_SUFFIXES) {
     const suffix = `-${effort}`;
@@ -25,7 +24,15 @@ export function getRegisteredProviderEffortBaseModelId(
 
     const baseModelId = modelId.slice(0, -suffix.length);
 
-    return providerModels.some((candidate) => candidate.id === baseModelId) ? baseModelId : null;
+    if (providerModels.some((candidate) => candidate.id === baseModelId)) return baseModelId;
+
+    // Curated providers may intentionally expose only useful variants while the
+    // authoritative live catalog exposes their unsuffixed wire model. The registry
+    // declaration is the proof; never infer this relationship from spelling alone.
+    const declaredLiveBase = registeredVariant.liveCatalogIds?.find(
+      (candidate) => candidate === baseModelId || !candidate.endsWith(`-${effort}`)
+    );
+    return declaredLiveBase ?? null;
   }
 
   return null;

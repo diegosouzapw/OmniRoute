@@ -80,7 +80,9 @@ function useDiscoveryResults(t: Translate) {
   }, [t]);
 
   useEffect(() => {
-    void load();
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   return { results, loading, feedback, setFeedback, load };

@@ -1,11 +1,9 @@
 /**
- * Conversation normalizer — converts OpenAI / Anthropic / Gemini request +
- * response payloads into a single provider-agnostic shape.
+ * Provider-neutral conversation projection for Traffic Inspector views.
  *
- * MIT — port from https://github.com/chouzz/llm-interceptor (ui/utils.ts)
- *
- * Returns `null` for non-LLM requests or payloads we cannot understand —
- * never throws — so the renderer can fall back to the raw view.
+ * This is an independent implementation of the public OpenAI, Anthropic, and
+ * Gemini payload shapes. It intentionally emits only the normalized block
+ * types consumed by the inspector UI.
  */
 
 import { mergeStream, parseSseStream } from "./sseMerger.ts";
@@ -16,435 +14,333 @@ import type {
   NormalizedTurn,
 } from "./types.ts";
 
+type JsonRecord = Record<string, unknown>;
 type NormalizedRole = NormalizedTurn["role"];
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
-  return null;
+const WRAPPER_KEYS = ["body", "payload", "data", "request", "requestBody", "response"];
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as JsonRecord)
+    : null;
 }
 
-function tryParseJson(value: string | null | undefined): unknown {
-  if (!value) return null;
+function tryParseJson(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
   try {
-    return JSON.parse(value);
+    return JSON.parse(trimmed) as unknown;
   } catch {
     return null;
   }
 }
 
-function normalizeRole(raw: unknown): NormalizedRole {
-  if (raw === "system" || raw === "user" || raw === "assistant" || raw === "tool") {
-    return raw;
-  }
-  if (raw === "model") return "assistant";
-  if (raw === "function") return "tool";
-  return "user";
+function hasConversationShape(record: JsonRecord): boolean {
+  return (
+    "messages" in record ||
+    "input" in record ||
+    "contents" in record ||
+    "system" in record ||
+    "systemInstruction" in record ||
+    "choices" in record ||
+    "candidates" in record ||
+    "content" in record ||
+    "output" in record
+  );
 }
 
-/**
- * OpenAI / Anthropic message content can be a string, or an array of blocks.
- * Returns a list of normalized blocks.
- */
-function blocksFromOpenAiContent(content: unknown): NormalizedBlock[] {
-  if (content == null) return [];
-  if (typeof content === "string") {
-    if (content.length === 0) return [];
-    return [{ type: "text", text: content }];
-  }
-  if (!Array.isArray(content)) return [];
-  const out: NormalizedBlock[] = [];
-  for (const raw of content) {
-    if (typeof raw === "string") {
-      out.push({ type: "text", text: raw });
-      continue;
-    }
-    const block = asRecord(raw);
-    if (!block) continue;
-    const type = block.type;
-    if (type === "text" || type === "output_text") {
-      const text = typeof block.text === "string" ? block.text : "";
-      out.push({ type: "text", text });
-    } else if (type === "input_text") {
-      const text = typeof block.text === "string" ? block.text : "";
-      out.push({ type: "text", text });
-    } else if (type === "tool_use") {
-      out.push({
-        type: "tool_use",
-        id: typeof block.id === "string" ? block.id : "",
-        name: typeof block.name === "string" ? block.name : "",
-        input: block.input ?? {},
-      });
-    } else if (type === "tool_result") {
-      out.push({
-        type: "tool_result",
-        tool_use_id: typeof block.tool_use_id === "string" ? block.tool_use_id : "",
-        content: block.content ?? null,
-      });
-    } else if (typeof block.text === "string") {
-      out.push({ type: "text", text: block.text });
-    }
-  }
-  return out;
-}
-
-/**
- * OpenAI assistant messages may declare `tool_calls`. Each becomes a
- * `tool_use` block alongside any text content.
- */
-function appendOpenAiToolCalls(blocks: NormalizedBlock[], toolCalls: unknown): NormalizedBlock[] {
-  if (!Array.isArray(toolCalls)) return blocks;
-  for (const raw of toolCalls) {
-    const tc = asRecord(raw);
-    if (!tc) continue;
-    const fn = asRecord(tc.function) ?? {};
-    let parsedInput: unknown = {};
-    if (typeof fn.arguments === "string") {
-      try {
-        parsedInput = JSON.parse(fn.arguments);
-      } catch {
-        parsedInput = fn.arguments;
+function unwrapPayload(value: unknown): unknown {
+  let current = tryParseJson(value);
+  for (let depth = 0; depth < 5; depth += 1) {
+    const record = asRecord(current);
+    if (!record || hasConversationShape(record)) return current;
+    let next: unknown = undefined;
+    for (const key of WRAPPER_KEYS) {
+      if (record[key] !== undefined) {
+        next = record[key];
+        break;
       }
-    } else if (fn.arguments != null) {
-      parsedInput = fn.arguments;
     }
-    blocks.push({
-      type: "tool_use",
-      id: typeof tc.id === "string" ? tc.id : "",
-      name: typeof fn.name === "string" ? fn.name : "",
-      input: parsedInput,
-    });
+    if (next === undefined) return current;
+    current = tryParseJson(next);
+  }
+  return current;
+}
+
+function normalizedRole(value: unknown): NormalizedRole | null {
+  if (value === "system" || value === "user" || value === "assistant" || value === "tool") {
+    return value;
+  }
+  if (value === "model") return "assistant";
+  if (value === "function") return "tool";
+  return null;
+}
+
+function textBlock(value: unknown): NormalizedBlock | null {
+  return typeof value === "string" && value.length > 0 ? { type: "text", text: value } : null;
+}
+
+function parseArguments(value: unknown): unknown {
+  if (typeof value !== "string") return value ?? {};
+  if (!value.trim()) return {};
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return value;
+  }
+}
+
+function toolUseBlock(value: JsonRecord): NormalizedBlock | null {
+  const directFunction = asRecord(value.function);
+  const geminiFunction = asRecord(value.functionCall);
+  const source = directFunction ?? geminiFunction ?? value;
+  const name = typeof source.name === "string" ? source.name : null;
+  if (!name) return null;
+
+  const idValue = value.id ?? value.call_id ?? geminiFunction?.id ?? name;
+  const input =
+    source.arguments !== undefined
+      ? parseArguments(source.arguments)
+      : source.args !== undefined
+        ? source.args
+        : source.input !== undefined
+          ? source.input
+          : {};
+  return {
+    type: "tool_use",
+    id: typeof idValue === "string" ? idValue : name,
+    name,
+    input,
+  };
+}
+
+function toolResultBlock(value: JsonRecord): NormalizedBlock | null {
+  const geminiResponse = asRecord(value.functionResponse);
+  const idValue =
+    value.tool_use_id ??
+    value.tool_call_id ??
+    value.call_id ??
+    geminiResponse?.id ??
+    geminiResponse?.name;
+  if (typeof idValue !== "string") return null;
+  const content =
+    value.output !== undefined
+      ? value.output
+      : value.content !== undefined
+        ? value.content
+        : geminiResponse?.response;
+  return { type: "tool_result", tool_use_id: idValue, content };
+}
+
+function reasoningBlocks(value: JsonRecord): NormalizedBlock[] {
+  const blocks: NormalizedBlock[] = [];
+  const summary = Array.isArray(value.summary) ? value.summary : [];
+  for (const entry of summary) {
+    const record = asRecord(entry);
+    const block = textBlock(record?.text);
+    if (block) blocks.push(block);
   }
   return blocks;
 }
 
-/**
- * Build NormalizedTurn[] from OpenAI / Anthropic chat messages.
- */
-/** Responses API reasoning items carry `summary: [{type: "summary_text", text}]`. */
-function reasoningSummaryText(summary: unknown): string {
-  if (!Array.isArray(summary)) return "";
-  const parts: string[] = [];
-  for (const raw of summary) {
-    const block = asRecord(raw);
-    if (block && typeof block.text === "string") parts.push(block.text);
+function blocksFromPart(value: unknown): NormalizedBlock[] {
+  if (typeof value === "string") {
+    const block = textBlock(value);
+    return block ? [block] : [];
   }
-  return parts.join("\n\n");
-}
+  const part = asRecord(value);
+  if (!part) return [];
 
-function turnsFromOpenAiMessages(messages: unknown[]): NormalizedTurn[] {
-  const out: NormalizedTurn[] = [];
-  for (const raw of messages) {
-    const msg = asRecord(raw);
-    if (!msg) continue;
-
-    // Responses API items for tool activity/reasoning carry no `role` at
-    // all — they're distinguished by `type` instead. Handle these before the
-    // role-based branches below, which would otherwise silently drop them
-    // (empty `content`, no `tool_calls`, `normalizeRole(undefined)` defaults
-    // to "user") — the exact gap that made a real OpenClaw request's
-    // function_call/function_call_output items vanish from the Conversation
-    // Context panel entirely (2026-08-06).
-    if (msg.type === "function_call") {
-      let parsedInput: unknown = {};
-      if (typeof msg.arguments === "string") {
-        try {
-          parsedInput = JSON.parse(msg.arguments);
-        } catch {
-          parsedInput = msg.arguments;
-        }
-      } else if (msg.arguments != null) {
-        parsedInput = msg.arguments;
-      }
-      out.push({
-        role: "assistant",
-        blocks: [
-          {
-            type: "tool_use",
-            id: typeof msg.call_id === "string" ? msg.call_id : "",
-            name: typeof msg.name === "string" ? msg.name : "",
-            input: parsedInput,
-          },
-        ],
-      });
-      continue;
-    }
-    if (msg.type === "function_call_output") {
-      out.push({
-        role: "tool",
-        blocks: [
-          {
-            type: "tool_result",
-            tool_use_id: typeof msg.call_id === "string" ? msg.call_id : "",
-            content: msg.output ?? null,
-          },
-        ],
-      });
-      continue;
-    }
-    if (msg.type === "reasoning") {
-      const text = reasoningSummaryText(msg.summary);
-      if (!text) continue;
-      out.push({ role: "assistant", blocks: [{ type: "text", text }] });
-      continue;
-    }
-
-    const role = normalizeRole(msg.role);
-
-    if (msg.role === "tool" || msg.role === "function") {
-      const content = msg.content;
-      out.push({
-        role: "tool",
-        blocks: [
-          {
-            type: "tool_result",
-            tool_use_id:
-              typeof msg.tool_call_id === "string"
-                ? msg.tool_call_id
-                : typeof msg.name === "string"
-                  ? msg.name
-                  : "",
-            content,
-          },
-        ],
-      });
-      continue;
-    }
-
-    const blocks = blocksFromOpenAiContent(msg.content);
-    if ("tool_calls" in msg) {
-      appendOpenAiToolCalls(blocks, msg.tool_calls);
-    }
-    if (blocks.length === 0 && msg.content == null && !("tool_calls" in msg)) {
-      continue;
-    }
-    out.push({ role, blocks });
+  const type = typeof part.type === "string" ? part.type : "";
+  if (type === "tool_use" || type === "function_call" || part.functionCall) {
+    const block = toolUseBlock(part);
+    return block ? [block] : [];
   }
-  return out;
-}
-
-/**
- * Gemini contents have a different shape: `[{role, parts: [{text|...}]}]`.
- */
-function turnsFromGeminiContents(contents: unknown[]): NormalizedTurn[] {
-  const out: NormalizedTurn[] = [];
-  for (const raw of contents) {
-    const turn = asRecord(raw);
-    if (!turn) continue;
-    const role = normalizeRole(turn.role);
-    const blocks: NormalizedBlock[] = [];
-    if (Array.isArray(turn.parts)) {
-      for (const partRaw of turn.parts) {
-        const part = asRecord(partRaw);
-        if (!part) continue;
-        if (typeof part.text === "string") {
-          blocks.push({ type: "text", text: part.text });
-        } else if (part.functionCall) {
-          const fc = asRecord(part.functionCall) ?? {};
-          blocks.push({
-            type: "tool_use",
-            id: typeof fc.name === "string" ? fc.name : "",
-            name: typeof fc.name === "string" ? fc.name : "",
-            input: fc.args ?? {},
-          });
-        } else if (part.functionResponse) {
-          const fr = asRecord(part.functionResponse) ?? {};
-          blocks.push({
-            type: "tool_result",
-            tool_use_id: typeof fr.name === "string" ? fr.name : "",
-            content: fr.response ?? null,
-          });
-        }
-      }
-    }
-    if (blocks.length > 0) out.push({ role, blocks });
+  if (type === "tool_result" || type === "function_call_output" || part.functionResponse) {
+    const block = toolResultBlock(part);
+    return block ? [block] : [];
   }
-  return out;
-}
-
-/**
- * Anthropic Messages API requests carry a top-level `system` field (string
- * or array of `{type:"text"|text}` blocks). Convert to a `system` turn.
- */
-function systemTurnFromAnthropic(system: unknown): NormalizedTurn | null {
-  if (!system) return null;
-  if (typeof system === "string") {
-    return system.length === 0
-      ? null
-      : { role: "system", blocks: [{ type: "text", text: system }] };
+  if (type === "reasoning") return reasoningBlocks(part);
+  if (
+    type === "text" ||
+    type === "input_text" ||
+    type === "output_text" ||
+    type === "summary_text" ||
+    type === ""
+  ) {
+    const block = textBlock(part.text);
+    return block ? [block] : [];
   }
-  if (!Array.isArray(system)) return null;
-  const blocks: NormalizedBlock[] = [];
-  for (const raw of system) {
-    const item = asRecord(raw);
-    if (item && typeof item.text === "string") {
-      blocks.push({ type: "text", text: item.text });
-    } else if (typeof raw === "string") {
-      blocks.push({ type: "text", text: raw });
-    }
-  }
-  if (blocks.length === 0) return null;
-  return { role: "system", blocks };
-}
-
-export function buildRequestTurns(body: unknown): NormalizedTurn[] | null {
-  const obj = asRecord(body);
-  if (!obj) return null;
-
-  if (Array.isArray(obj.messages)) {
-    const turns: NormalizedTurn[] = [];
-    const systemTurn = systemTurnFromAnthropic(obj.system);
-    if (systemTurn) turns.push(systemTurn);
-    turns.push(...turnsFromOpenAiMessages(obj.messages));
-    return turns;
-  }
-
-  if (Array.isArray(obj.contents)) {
-    const turns: NormalizedTurn[] = [];
-    const sysObj = asRecord(obj.systemInstruction);
-    if (sysObj && Array.isArray(sysObj.parts)) {
-      const parts: NormalizedBlock[] = [];
-      for (const partRaw of sysObj.parts) {
-        const p = asRecord(partRaw);
-        if (p && typeof p.text === "string") parts.push({ type: "text", text: p.text });
-      }
-      if (parts.length > 0) turns.push({ role: "system", blocks: parts });
-    }
-    turns.push(...turnsFromGeminiContents(obj.contents));
-    return turns;
-  }
-
-  if (typeof obj.prompt === "string") {
-    return [{ role: "user", blocks: [{ type: "text", text: obj.prompt }] }];
-  }
-  if (typeof obj.input === "string") {
-    return [{ role: "user", blocks: [{ type: "text", text: obj.input }] }];
-  }
-  if (Array.isArray(obj.input)) {
-    return turnsFromOpenAiMessages(obj.input);
-  }
-
-  return null;
-}
-
-function isSseResponse(req: InterceptedRequest): boolean {
-  const accept = req.requestHeaders["accept"] ?? req.requestHeaders["Accept"] ?? "";
-  const ct = req.responseHeaders["content-type"] ?? req.responseHeaders["Content-Type"] ?? "";
-  return (
-    accept.includes("event-stream") ||
-    ct.includes("event-stream") ||
-    /^\s*event:|^\s*data:/m.test(req.responseBody ?? "")
-  );
-}
-
-function extractAnthropicResponseTurn(message: unknown): NormalizedTurn | null {
-  const obj = asRecord(message);
-  if (!obj) return null;
-  const content = obj.content;
-  if (!Array.isArray(content)) return null;
-  const blocks: NormalizedBlock[] = [];
-  for (const raw of content) {
-    const block = asRecord(raw);
-    if (!block) continue;
-    if (block.type === "text" && typeof block.text === "string") {
-      blocks.push({ type: "text", text: block.text });
-    } else if (block.type === "tool_use") {
-      blocks.push({
-        type: "tool_use",
-        id: typeof block.id === "string" ? block.id : "",
-        name: typeof block.name === "string" ? block.name : "",
-        input: block.input ?? {},
-      });
-    } else if (block.type === "thinking" && typeof block.thinking === "string") {
-      blocks.push({ type: "text", text: block.thinking });
-    }
-  }
-  if (blocks.length === 0) return null;
-  return { role: "assistant", blocks };
-}
-
-function extractOpenAiResponseTurn(message: unknown): NormalizedTurn | null {
-  const obj = asRecord(message);
-  if (!obj || !Array.isArray(obj.choices)) return null;
-  const first = asRecord(obj.choices[0]);
-  if (!first) return null;
-  const msg = asRecord(first.message) ?? asRecord(first.delta);
-  if (!msg) return null;
-  const blocks = blocksFromOpenAiContent(msg.content);
-  if ("tool_calls" in msg) appendOpenAiToolCalls(blocks, msg.tool_calls);
-  if (blocks.length === 0) return null;
-  return { role: "assistant", blocks };
-}
-
-function extractGeminiResponseTurn(message: unknown): NormalizedTurn | null {
-  const obj = asRecord(message);
-  if (!obj || !Array.isArray(obj.candidates)) return null;
-  const first = asRecord(obj.candidates[0]);
-  if (!first) return null;
-  const content = asRecord(first.content);
-  if (!content || !Array.isArray(content.parts)) return null;
-  const blocks: NormalizedBlock[] = [];
-  for (const partRaw of content.parts) {
-    const part = asRecord(partRaw);
-    if (!part) continue;
-    if (typeof part.text === "string") {
-      blocks.push({ type: "text", text: part.text });
-    } else if (part.functionCall) {
-      const fc = asRecord(part.functionCall) ?? {};
-      blocks.push({
-        type: "tool_use",
-        id: typeof fc.name === "string" ? fc.name : "",
-        name: typeof fc.name === "string" ? fc.name : "",
-        input: fc.args ?? {},
-      });
-    }
-  }
-  if (blocks.length === 0) return null;
-  return { role: "assistant", blocks };
-}
-
-export function buildResponseTurns(req: InterceptedRequest): NormalizedTurn[] {
-  const raw = req.responseBody ?? "";
-  if (!raw) return [];
-
-  let payload: unknown = null;
-
-  if (isSseResponse(req)) {
-    const merged = mergeStream(parseSseStream(raw));
-    payload = merged.message ?? null;
-  } else {
-    payload = tryParseJson(raw);
-  }
-
-  if (!payload) return [];
-
-  const anth = extractAnthropicResponseTurn(payload);
-  if (anth) return [anth];
-  const oai = extractOpenAiResponseTurn(payload);
-  if (oai) return [oai];
-  const gem = extractGeminiResponseTurn(payload);
-  if (gem) return [gem];
-
   return [];
 }
 
-/**
- * Normalize an intercepted LLM request + response into a provider-agnostic
- * conversation. Returns `null` for non-LLM requests or unparseable payloads.
- */
+function blocksFromContent(value: unknown): NormalizedBlock[] {
+  if (Array.isArray(value)) return value.flatMap(blocksFromPart);
+  return blocksFromPart(value);
+}
+
+function turnFromMessage(value: unknown): NormalizedTurn | null {
+  const message = asRecord(value);
+  if (!message) return null;
+  const type = typeof message.type === "string" ? message.type : "";
+
+  if (type === "function_call") {
+    const block = toolUseBlock(message);
+    return block ? { role: "assistant", blocks: [block] } : null;
+  }
+  if (type === "function_call_output") {
+    const block = toolResultBlock(message);
+    return block ? { role: "tool", blocks: [block] } : null;
+  }
+  if (type === "reasoning") {
+    const blocks = reasoningBlocks(message);
+    return blocks.length > 0 ? { role: "assistant", blocks } : null;
+  }
+
+  const role = normalizedRole(message.role);
+  if (!role) return null;
+  if (role === "tool") {
+    const block = toolResultBlock(message);
+    return block ? { role, blocks: [block] } : null;
+  }
+
+  const blocks = blocksFromContent(message.content ?? message.parts);
+  for (const rawCall of Array.isArray(message.tool_calls) ? message.tool_calls : []) {
+    const call = asRecord(rawCall);
+    const block = call ? toolUseBlock(call) : null;
+    if (block) blocks.push(block);
+  }
+  const legacyCall = asRecord(message.function_call);
+  if (legacyCall) {
+    const block = toolUseBlock({
+      id: message.tool_call_id ?? legacyCall.name,
+      function: legacyCall,
+    });
+    if (block) blocks.push(block);
+  }
+  if (blocks.length === 0) return null;
+  const projectedRole =
+    role === "user" && blocks.every((block) => block.type === "tool_result") ? "tool" : role;
+  return { role: projectedRole, blocks };
+}
+
+function turnsFromItems(items: unknown[]): NormalizedTurn[] {
+  const turns: NormalizedTurn[] = [];
+  for (const item of items) {
+    const turn = turnFromMessage(item);
+    if (turn) turns.push(turn);
+  }
+  return turns;
+}
+
+function systemTurn(value: unknown): NormalizedTurn | null {
+  const record = asRecord(value);
+  const content = record?.parts ?? value;
+  const blocks = blocksFromContent(content);
+  return blocks.length > 0 ? { role: "system", blocks } : null;
+}
+
+/** Normalize a decoded request payload, or a JSON string/wrapper containing one. */
+export function buildRequestTurns(body: unknown): NormalizedTurn[] | null {
+  const payload = asRecord(unwrapPayload(body));
+  if (!payload) {
+    const block = textBlock(typeof body === "string" ? body : null);
+    return block ? [{ role: "user", blocks: [block] }] : null;
+  }
+
+  const turns: NormalizedTurn[] = [];
+  const topLevelSystem = payload.systemInstruction ?? payload.system ?? payload.instructions;
+  if (topLevelSystem !== undefined) {
+    const turn = systemTurn(topLevelSystem);
+    if (turn) turns.push(turn);
+  }
+
+  if (Array.isArray(payload.messages)) turns.push(...turnsFromItems(payload.messages));
+  if (Array.isArray(payload.contents)) turns.push(...turnsFromItems(payload.contents));
+  if (Array.isArray(payload.input)) turns.push(...turnsFromItems(payload.input));
+  if (typeof payload.input === "string") {
+    const block = textBlock(payload.input);
+    if (block) turns.push({ role: "user", blocks: [block] });
+  }
+
+  return turns.length > 0 ? turns : null;
+}
+
+function turnFromAnthropicResponse(payload: JsonRecord): NormalizedTurn | null {
+  if (!Array.isArray(payload.content)) return null;
+  const blocks = blocksFromContent(payload.content);
+  return blocks.length > 0 ? { role: "assistant", blocks } : null;
+}
+
+function turnsFromOpenAiResponse(payload: JsonRecord): NormalizedTurn[] {
+  const turns: NormalizedTurn[] = [];
+  for (const rawChoice of Array.isArray(payload.choices) ? payload.choices : []) {
+    const choice = asRecord(rawChoice);
+    const turn = choice ? turnFromMessage(choice.message ?? choice.delta) : null;
+    if (turn) turns.push(turn);
+  }
+  return turns;
+}
+
+function turnsFromGeminiResponse(payload: JsonRecord): NormalizedTurn[] {
+  const turns: NormalizedTurn[] = [];
+  for (const rawCandidate of Array.isArray(payload.candidates) ? payload.candidates : []) {
+    const candidate = asRecord(rawCandidate);
+    const content = asRecord(candidate?.content);
+    const blocks = blocksFromContent(content?.parts);
+    if (blocks.length > 0) turns.push({ role: "assistant", blocks });
+  }
+  return turns;
+}
+
+function turnsFromResponsesApi(payload: JsonRecord): NormalizedTurn[] {
+  return turnsFromItems(Array.isArray(payload.output) ? payload.output : []);
+}
+
+function isSseResponse(req: InterceptedRequest): boolean {
+  const contentType =
+    req.responseHeaders["content-type"] ?? req.responseHeaders["Content-Type"] ?? "";
+  const body = req.responseBody ?? "";
+  return (
+    contentType.toLowerCase().includes("text/event-stream") ||
+    body.startsWith("data:") ||
+    body.startsWith("event:") ||
+    body.includes("\ndata:") ||
+    body.includes("\nevent:")
+  );
+}
+
+/** Normalize the response side of an intercepted request. */
+export function buildResponseTurns(req: InterceptedRequest): NormalizedTurn[] {
+  if (!req.responseBody) return [];
+  let decoded: unknown;
+  if (isSseResponse(req)) {
+    decoded = mergeStream(parseSseStream(req.responseBody)).message;
+  } else {
+    decoded = unwrapPayload(req.responseBody);
+  }
+  const payload = asRecord(unwrapPayload(decoded));
+  if (!payload) return [];
+
+  const turns = turnsFromOpenAiResponse(payload);
+  turns.push(...turnsFromGeminiResponse(payload));
+  turns.push(...turnsFromResponsesApi(payload));
+  const anthropic = turnFromAnthropicResponse(payload);
+  if (anthropic) turns.push(anthropic);
+  if (turns.length > 0) return turns;
+
+  const nestedMessage = turnFromMessage(payload.message);
+  return nestedMessage ? [nestedMessage] : [];
+}
+
 export function normalizeConversation(req: InterceptedRequest): NormalizedConversation | null {
-  if (req.detectedKind !== "llm") return null;
-
-  const requestBody = tryParseJson(req.requestBody);
-  const requestTurns = buildRequestTurns(requestBody);
-  if (!requestTurns) return null;
-
-  const responseTurns = buildResponseTurns(req);
-
+  if (req.detectedKind !== undefined && req.detectedKind !== "llm") return null;
+  const request = buildRequestTurns(req.requestBody);
+  if (!request || request.length === 0) return null;
   return {
-    request: requestTurns,
-    response: responseTurns,
+    request,
+    response: buildResponseTurns(req),
     contextKey: req.contextKey ?? null,
   };
 }

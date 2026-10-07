@@ -74,6 +74,7 @@ yarn-error.log*
 # Local gitleaks artifacts (do not commit)
 gitleaks-local.json
 !.env.example
+!.env.selfhost.example
 !.env.homolog.example
 !.env.devin-bridge.example
 # Provider API keys (never commit)
@@ -218,6 +219,7 @@ scripts/i18n/_pending-keys.json
 
 # PR Reviews and local feedback files
 pr_reviews*.json
+/review/
 
 #hidden local data directories (never commit)
 .local-data/
@@ -296,3 +298,6 @@ docker-compose.yml.bak
 
 # check:install-upgrade work trees (~12 GB, disposable)
 /.install-upgrade/
+
+# run-translation.mjs writes the state atomically via a per-process temp file
+/.i18n-state.json.*.tmp

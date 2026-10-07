@@ -19,7 +19,9 @@ function fakeHub(routes: Record<string, { status: number; body: unknown }>): Pro
   const server = createServer((req, res) => {
     const hit = Object.entries(routes).find(([p]) => (req.url ?? "").startsWith(p));
     res.writeHead(hit ? hit[1].status : 404, { "content-type": "application/json" });
-    res.end(JSON.stringify(hit ? hit[1].body : { error: "hub: segredo interno que NÃO pode vazar" }));
+    res.end(
+      JSON.stringify(hit ? hit[1].body : { error: "hub: segredo interno que NÃO pode vazar" })
+    );
   });
   servers.push(server);
   return new Promise((resolve) => {
@@ -52,11 +54,26 @@ test("GET /api/conductor/fleet devolve snapshot whitelisted; sem hub → degrada
   process.env.CONDUCTOR_HUB_URL = await fakeHub({
     "/v1/runners": {
       status: 200,
-      body: [{ id: "r_1", token: "VAZOU?", online: true, capabilities: { name: "devbox", clis: [{ profile: "claude" }] } }],
+      body: [
+        {
+          id: "r_1",
+          token: "VAZOU?",
+          online: true,
+          capabilities: { name: "devbox", clis: [{ profile: "claude" }] },
+        },
+      ],
     },
     "/v1/tasks": {
       status: 200,
-      body: [{ id: "t_1", status: "working", mode: "solo", repo: { url: "https://x/r" }, assigned_runner: "r_1" }],
+      body: [
+        {
+          id: "t_1",
+          status: "working",
+          mode: "solo",
+          repo: { url: "https://x/r" },
+          assigned_runner: "r_1",
+        },
+      ],
     },
   });
   process.env.CONDUCTOR_HUB_TOKEN = "tok";
@@ -86,7 +103,10 @@ test("GET /api/conductor/tasks/[id] → 404 sanitizado quando o hub não conhece
 
 test("POST cancel repassa recusa do hub com status, sem corpo upstream", async () => {
   process.env.CONDUCTOR_HUB_URL = await fakeHub({
-    "/v1/tasks/t_done/cancel": { status: 409, body: { error: "segredo interno que NÃO pode vazar" } },
+    "/v1/tasks/t_done/cancel": {
+      status: 409,
+      body: { error: "segredo interno que NÃO pode vazar" },
+    },
     "/v1/tasks/t_ok/cancel": { status: 200, body: { ok: true } },
   });
   const denied = await cancelRoute.POST(new Request("http://localhost/x", { method: "POST" }), {

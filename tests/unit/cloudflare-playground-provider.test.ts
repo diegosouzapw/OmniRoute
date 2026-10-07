@@ -167,9 +167,9 @@ test("cloudflare-playground registry entry has no-auth shape and curated models"
   assert.equal(llama?.supportsReasoning, undefined);
 });
 
-test("executor resolves for both the id and the cfp alias", () => {
-  const byId = getExecutor("cloudflare-playground");
-  const byAlias = getExecutor("cfp");
+test("executor resolves for both the id and the cfp alias", async () => {
+  const byId = await getExecutor("cloudflare-playground");
+  const byAlias = await getExecutor("cfp");
   assert.ok(byId instanceof CloudflarePlaygroundExecutor);
   assert.ok(byAlias instanceof CloudflarePlaygroundExecutor);
 });

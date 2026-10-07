@@ -210,9 +210,7 @@ test("interceptToolCalls executes memory tools when allowed via builtinToolNames
 
 test("interceptToolCalls skips memory tools not allowed by builtinToolNames", async () => {
   const results = await interceptToolCalls(
-    [
-      { id: "call-x", name: MEMORY_DELETE_TOOL_NAME, arguments: { id: "anything" } },
-    ],
+    [{ id: "call-x", name: MEMORY_DELETE_TOOL_NAME, arguments: { id: "anything" } }],
     {
       apiKeyId: "key-mem",
       sessionId: "session-mem",

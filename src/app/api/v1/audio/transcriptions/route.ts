@@ -24,9 +24,35 @@ import {
 } from "@/app/api/v1/_shared/rateLimit";
 import { attachOmniRouteMetaToResponse } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
-import { getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
+import { getComboByName, getCombos } from "@/lib/db/combos";
+import { getDatabaseSettings } from "@/lib/db/databaseSettings";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { log } from "@omniroute/open-sse/utils/logger.ts";
+import { saveCallLog } from "@/lib/usageDb";
+
+/**
+ * Best-effort peek at a successful transcription response for upstream duration
+ * usage (e.g. Scaleway's `usage: {type:"duration", seconds:N}`) so it is at least
+ * visible/auditable on the call_logs row even before a per-second cost rule
+ * consumes it (#13544). Never touches the original response body/stream — reads
+ * a clone, and any parse failure is swallowed so logging never blocks the reply.
+ */
+export async function peekDurationUsage(
+  response: Response
+): Promise<{ type?: string; seconds?: number } | undefined> {
+  try {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return undefined;
+    const parsed = (await response.clone().json()) as { usage?: unknown } | null;
+    const usage = parsed && typeof parsed === "object" ? parsed.usage : null;
+    if (usage && typeof usage === "object" && (usage as { type?: unknown }).type === "duration") {
+      return usage as { type?: string; seconds?: number };
+    }
+  } catch {
+    // Best-effort only — the transcription response itself already succeeded.
+  }
+  return undefined;
+}
 
 /**
  * Copy a multipart body, swapping only the `model` field. Combo fan-out needs one
@@ -62,7 +88,9 @@ export async function OPTIONS() {
 async function transcribeWithModel(
   formData: FormData,
   modelStr: string,
-  startTime: number
+  startTime: number,
+  apiKeyId?: string | null,
+  apiKeyName?: string | null
 ): Promise<Response> {
   // Provider nodes eligible for transcription: this route's own audio type plus
   // general chat/responses gateways. Remote hosts are opt-in (default OFF).
@@ -137,10 +165,16 @@ async function transcribeWithModel(
     resolvedProvider: providerConfig,
     resolvedModel,
   });
+
+  const connectionId = (credentials as { connectionId?: string } | null)?.connectionId || undefined;
+  const logModel = `${provider}/${resolvedModel}`;
+
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
-    // No text body / playback duration available from the multipart upload, so
-    // per-second pricing cannot be applied → cost 0 (ADD-only headers, body intact).
+    const durationUsage = await peekDurationUsage(response);
+    // No per-second pricing rule exists yet for transcription duration → cost 0
+    // (ADD-only headers, body intact). The upstream usage is still persisted on
+    // the call_logs row below so it is auditable ahead of that pricing rule.
     response = attachOmniRouteMetaToResponse(response, {
       provider,
       model: resolvedModel,
@@ -148,6 +182,35 @@ async function transcribeWithModel(
       latencyMs: Date.now() - startTime,
       requestId: generateRequestId(),
     });
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/transcriptions",
+      status: 200,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      responseBody: durationUsage ? { usage: durationUsage } : undefined,
+      apiKeyId: apiKeyId || undefined,
+      apiKeyName: apiKeyName || undefined,
+    }).catch(() => {});
+  } else if (response) {
+    const errorText = await response
+      .clone()
+      .text()
+      .catch(() => "");
+    saveCallLog({
+      method: "POST",
+      path: "/v1/audio/transcriptions",
+      status: response.status,
+      model: logModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      error: errorText.slice(0, 500),
+      apiKeyId: apiKeyId || undefined,
+      apiKeyName: apiKeyName || undefined,
+    }).catch(() => {});
   }
   return response;
 }
@@ -176,6 +239,12 @@ export async function POST(request) {
   const policy = await enforceApiKeyPolicy(request, modelStr);
   if (policy.rejection) return policy.rejection;
 
+  // Forwarded into transcribeWithModel() (and combo fan-out below) so the
+  // resulting call_logs row is attributable to the API key that made the
+  // request, matching the pattern every other proxied route follows (#13544).
+  const apiKeyId = policy.apiKeyInfo?.id || null;
+  const apiKeyName = policy.apiKeyInfo?.name || null;
+
   // A bare name (no "/") may be a combo. /v1/models advertises combos, and chat and
   // embeddings both resolve them — resolving here too keeps the catalog honest and
   // frees callers from hardcoding a provider's internal model id.
@@ -196,7 +265,13 @@ export async function POST(request) {
           body: { model: modelStr } as any,
           combo: combo as any,
           handleSingleModel: async (_reqBody: any, targetModelStr: string) =>
-            transcribeWithModel(withModel(formData, targetModelStr), targetModelStr, startTime),
+            transcribeWithModel(
+              withModel(formData, targetModelStr),
+              targetModelStr,
+              startTime,
+              apiKeyId,
+              apiKeyName
+            ),
           isModelAvailable: undefined,
           log,
           settings,
@@ -210,5 +285,5 @@ export async function POST(request) {
     }
   }
 
-  return transcribeWithModel(formData, modelStr, startTime);
+  return transcribeWithModel(formData, modelStr, startTime, apiKeyId, apiKeyName);
 }

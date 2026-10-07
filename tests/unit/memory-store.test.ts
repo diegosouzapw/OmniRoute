@@ -117,6 +117,40 @@ test("memory store CRUD round-trip persists to the memories table and invalidate
   assert.equal(await store.deleteMemory(created.id), false);
 });
 
+test("createMemory syncs memory_id to the SQLite rowid so FTS keyword search can JOIN (regression: silent 0-result FTS)", async () => {
+  const created = await store.createMemory({
+    apiKeyId: "key-fts",
+    sessionId: "session-fts",
+    type: MemoryType.FACTUAL,
+    key: "incident:server",
+    content:
+      "The server logs CRITICAL errors during a system reminder. Compact dashboard preferred.",
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare("SELECT id, memory_id, rowid FROM memories WHERE id = ?")
+    .get(created.id) as { id: string; memory_id: number | null; rowid: number } | undefined;
+  assert.ok(row, "stored memory must exist");
+  assert.equal(row.memory_id, row.rowid, "memory_id must be synced to the SQLite rowid on insert");
+
+  // Sanitize the MATCH query exactly like retrieval.ts does (bare tokens can
+  // crash FTS5 with syntax errors; quoted tokens are the safe AND form).
+  const safeQuery = ["server", "CRITICAL", "reminder"].map((t) => `"${t}"`).join(" ");
+  const hits = db
+    .prepare(
+      `SELECT m.id FROM memories m JOIN memory_fts f ON m.memory_id = f.rowid
+       WHERE f.memory_fts MATCH ? AND m.api_key_id = ? ORDER BY f.rank LIMIT ?`
+    )
+    .all(safeQuery, "key-fts", 10) as Array<{ id: string }>;
+  assert.ok(
+    hits.some((h) => h.id === created.id),
+    "FTS JOIN must return the freshly stored memory (memory_id must match the FTS rowid)"
+  );
+
+  assert.equal(await store.deleteMemory(created.id), true);
+});
+
 test("getMemory returns null for invalid identifiers and tolerates malformed metadata rows", async () => {
   assert.equal(await store.getMemory(""), null);
   assert.equal(await store.getMemory("missing-id"), null);

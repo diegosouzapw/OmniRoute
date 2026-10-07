@@ -39,12 +39,29 @@ function resolvePort(protocol: string, port: string): number {
  * socksConnector but threads `socket_options` (which fetch-socks does not expose)
  * into SocksClient so Happy Eyeballs cannot pick IPv4 for an IPv6-only egress policy.
  */
-function socksConnectorWithFamily(
+export function socksConnectorWithFamily(
   proxy: SocksProxy,
   family: 4 | 6 | null,
-  tlsOpts: buildConnector.BuildOptions = {}
+  tlsOpts: buildConnector.BuildOptions = {},
+  connectTimeout?: number,
+  _buildConnectorForTest?: typeof buildConnector
 ): buildConnector.connector {
-  const undiciConnect = buildConnector(tlsOpts);
+  const isDisabled = connectTimeout === 0;
+  // SOCKS lib: 0 throws (isValidTimeoutValue: value>0) and undefined → DEFAULT_TIMEOUT 30s;
+  // undici: 0 disables (core/util.js: if (!opts.timeout) return noop), undefined → 10s. Divergence intentional.
+  const handshakeTimeout = isDisabled
+    ? undefined
+    : (connectTimeout ?? resolveSocksHandshakeTimeoutMs());
+  const tlsTimeout = connectTimeout;
+  // Sequential budget: both phases bounded by the same connectTimeout → wall-time up to 60s for https
+  // (vs 30s direct). Shared-deadline alternative rejected as unjustified complexity.
+  const build = _buildConnectorForTest ?? buildConnector;
+  // This custom connector bypasses Agent.allowH2, and buildConnector defaults allowH2 to true,
+  // so ALPN still negotiated h2 over SOCKS. Pin the TLS hop to HTTP/1.1 as well.
+  const h1Opts = { ...tlsOpts, allowH2: false };
+  const undiciConnect = build(
+    tlsTimeout !== undefined ? { ...h1Opts, timeout: tlsTimeout } : h1Opts
+  );
   const socketOptions = buildSocksFamilySocketOptions(family);
   return async (options, callback) => {
     const { protocol, hostname, port, httpSocket } = options as unknown as {
@@ -57,7 +74,7 @@ function socksConnectorWithFamily(
       const r = await SocksClient.createConnection({
         command: "connect",
         proxy,
-        timeout: resolveSocksHandshakeTimeoutMs(),
+        timeout: handshakeTimeout,
         destination: { host: hostname, port: resolvePort(protocol, port) },
         existing_socket: httpSocket as never,
         socket_options: socketOptions as never,
@@ -79,11 +96,15 @@ export function createSocksDispatcherWithFamily(
   family: 4 | 6 | null,
   agentOptions: Agent.Options = {}
 ): Dispatcher {
-  const { connect, ...rest } = agentOptions as Agent.Options & {
+  const { connect, connectTimeout, ...rest } = agentOptions as Agent.Options & {
+    connectTimeout?: number;
     connect?: buildConnector.BuildOptions;
   };
   return new Agent({
     ...rest,
-    connect: socksConnectorWithFamily(proxy, family, connect),
+    // Undici 8 negotiates HTTP/2 by default; its h2 client over SOCKS reset streams
+    // (ERR_HTTP2_STREAM_ERROR) and emitted listener-less stream errors that crashed the process.
+    allowH2: false,
+    connect: socksConnectorWithFamily(proxy, family, connect, connectTimeout),
   });
 }

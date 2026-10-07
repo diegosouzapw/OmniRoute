@@ -683,6 +683,25 @@ test("Chat -> Responses converts json_schema response_format to text.format", ()
   assert.equal(result.response_format, undefined);
 });
 
+test("Chat -> Responses converts json_object response_format to text.format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return the answer as JSON" }],
+      response_format: { type: "json_object" },
+    },
+    false,
+    null
+  ) as { text?: unknown; response_format?: unknown };
+
+  assert.deepEqual(result.text, {
+    format: {
+      type: "json_object",
+    },
+  });
+  assert.equal(result.response_format, undefined);
+});
+
 test("Chat -> Responses uses response_format over nonstandard chat text.format", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-5.2-codex",

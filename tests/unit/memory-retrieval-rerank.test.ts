@@ -144,7 +144,12 @@ test("retrieveMemories: large result set is token-budget capped before any reran
   const db = core.getDbInstance();
   // Insert 20 memories
   for (let i = 1; i <= 20; i++) {
-    insertMemory(db, `large-${i}`, "api-large", `Content number ${i} with enough words to use tokens.`);
+    insertMemory(
+      db,
+      `large-${i}`,
+      "api-large",
+      `Content number ${i} with enough words to use tokens.`
+    );
   }
 
   const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");

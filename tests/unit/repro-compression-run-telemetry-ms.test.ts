@@ -26,9 +26,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-crt-ms-")
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { cleanupCompressionRunTelemetry } = await import("../../src/lib/db/cleanup.ts");
-const { insertCompressionRunTelemetryRow } = await import(
-  "../../src/lib/db/compressionRunTelemetry.ts"
-);
+const { insertCompressionRunTelemetryRow } =
+  await import("../../src/lib/db/compressionRunTelemetry.ts");
 const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
@@ -92,8 +91,8 @@ test("cleanupCompressionRunTelemetry deletes rows older than the retention windo
   assert.strictEqual(result.deleted, 3, "should delete the 3 rows aged 40 days");
   assert.strictEqual(result.errors, 0);
 
-  const remaining = db
-    .prepare("SELECT COUNT(*) as cnt FROM compression_run_telemetry")
-    .get() as { cnt: number };
+  const remaining = db.prepare("SELECT COUNT(*) as cnt FROM compression_run_telemetry").get() as {
+    cnt: number;
+  };
   assert.strictEqual(remaining.cnt, 2, "should keep the 2 rows aged 5 days");
 });

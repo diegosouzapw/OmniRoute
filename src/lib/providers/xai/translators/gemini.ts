@@ -263,7 +263,7 @@ function toolsGeminiToXai(tools: GeminiTool[]): XaiTool[] | undefined {
  */
 export function geminiRequestToXaiResponses(
   req: GeminiRequest,
-  model: string | null = null,
+  model: string | null = null
 ): XaiResponsesRequest {
   if (!req || typeof req !== "object") return req as unknown as XaiResponsesRequest;
   const input: XaiInputItem[] = [];
@@ -275,9 +275,7 @@ export function geminiRequestToXaiResponses(
     if (fnItems.length) {
       for (const it of fnItems) input.push(it);
       // Filter remaining text/image parts
-      const remaining = (c.parts ?? []).filter(
-        (p) => !p?.functionCall && !p?.functionResponse,
-      );
+      const remaining = (c.parts ?? []).filter((p) => !p?.functionCall && !p?.functionResponse);
       if (remaining.length) input.push({ role, content: partsToXaiBlocks(remaining) });
     } else {
       input.push({ role, content: partsToXaiBlocks(c.parts ?? []) });
@@ -324,7 +322,7 @@ export function geminiRequestToXaiResponses(
  */
 export function xaiCompletedToGeminiJson(
   completed: XaiCompleted,
-  origReq: GeminiRequest | null = null,
+  origReq: GeminiRequest | null = null
 ): object {
   const parts: unknown[] = [];
   const finishReason = "STOP";
@@ -364,7 +362,8 @@ export function xaiCompletedToGeminiJson(
       promptTokenCount: u.input_tokens ?? u.prompt_tokens ?? 0,
       candidatesTokenCount: u.output_tokens ?? u.completion_tokens ?? 0,
       totalTokenCount:
-        u.total_tokens ?? ((u.input_tokens ?? 0) + (u.output_tokens ?? 0)),
+        u.total_tokens ??
+        (u.input_tokens ?? u.prompt_tokens ?? 0) + (u.output_tokens ?? u.completion_tokens ?? 0),
     };
   }
   return out;

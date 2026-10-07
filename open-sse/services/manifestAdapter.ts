@@ -1,7 +1,7 @@
 import type { TierAssignment, ProviderTier } from "./tierTypes";
 import { PROVIDER_TIER } from "./tierTypes";
 import type { SpecificityResult, SpecificityLevel } from "./specificityTypes";
-import { classifyTier } from "./tierResolver";
+import { classifyTier, classifyTierAsync } from "./tierResolver";
 import {
   analyzeSpecificity,
   getSpecificityLevel,
@@ -29,17 +29,24 @@ export interface RoutingHint {
   strategyModifier: StrategyModifier;
 }
 
-export function generateRoutingHints(
+export async function generateRoutingHints(
   targets: ResolvedComboTarget[],
   input: RuleInput
-): RoutingHint {
+): Promise<RoutingHint> {
   const tierAssignments = new Map<string, TierAssignment>();
-  for (const target of targets) {
-    if (target.kind !== "model") continue;
-    const key = `${target.provider}::${target.modelStr}`;
-    if (!tierAssignments.has(key)) {
-      tierAssignments.set(key, classifyTier(target.provider, target.modelStr));
-    }
+  const modelTargets = targets.filter((t) => t.kind === "model");
+  const settled = await Promise.all(
+    modelTargets.map(async (target) => {
+      const key = `${target.provider}::${target.modelStr}`;
+      try {
+        return [key, await classifyTierAsync(target.provider, target.modelStr)] as const;
+      } catch {
+        return [key, classifyTier(target.provider, target.modelStr)] as const;
+      }
+    })
+  );
+  for (const [key, assignment] of settled) {
+    if (!tierAssignments.has(key)) tierAssignments.set(key, assignment);
   }
 
   const specificity = analyzeSpecificity(input);

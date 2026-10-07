@@ -13,9 +13,14 @@ import {
 } from "./assembleStandalone.mjs";
 import {
   isBackendOnlyBuild,
+  isContributorBuild,
+  shouldBuildStandalone,
+  stubContributorInstrumentation,
   stubDashboardPages,
   restoreDashboardPages,
 } from "./backendOnlyPages.mjs";
+
+export { shouldBuildStandalone } from "./backendOnlyPages.mjs";
 
 /**
  * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
@@ -135,10 +140,7 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
   // to webpack (Windows, native-binding trouble, RAM-constrained machines — #6409, and
   // docs/reference/ENVIRONMENT.md). The choice is env-only ON PURPOSE: the variable is
   // the operator's control and CI sets it explicitly, so sniffing the runtime here would
-  // silently override an operator who asked for Turbopack. Bun 1.4+ supports Turbopack's
-  // V8 worker bindings (#11471), so the historical `process.versions.bun` → `--webpack`
-  // hardcode is gone; the `OMNIROUTE_USE_TURBOPACK=0` fallback remains for Bun < 1.4
-  // images built with the webpack path.
+  // silently override an operator who asked for Turbopack.
   if (baseEnv.OMNIROUTE_USE_TURBOPACK === "0") {
     return "--webpack";
   }
@@ -297,6 +299,12 @@ export async function main() {
         "[build-next-isolated] OMNIROUTE_BUILD_BACKEND_ONLY set — building API only (dashboard UI stubbed)"
       );
       stubbedPages = stubDashboardPages(projectRoot);
+      if (isContributorBuild()) {
+        stubbedPages.push(...stubContributorInstrumentation(projectRoot));
+        console.log(
+          "[build-next-isolated] Contributor profile: instrumentation entrypoint stubbed for compile-only validation"
+        );
+      }
       process.once("SIGINT", onFatalSignal);
       process.once("SIGTERM", onFatalSignal);
     }
@@ -305,7 +313,7 @@ export async function main() {
 
     const result = await runNextBuild();
     const standaloneDir = path.join(distDir, "standalone");
-    if (result.code === 0 && (await exists(standaloneDir))) {
+    if (result.code === 0 && (await exists(standaloneDir)) && shouldBuildStandalone()) {
       try {
         await fs.cp(path.join(projectRoot, "docs"), path.join(standaloneDir, "docs"), {
           recursive: true,
@@ -372,6 +380,10 @@ export async function main() {
       } catch (assembleErr) {
         console.warn("[build-next-isolated] Non-fatal error assembling standalone:", assembleErr);
       }
+    } else if (result.code === 0 && !shouldBuildStandalone()) {
+      console.log(
+        "[build-next-isolated] Skipped standalone packaging (standalone disabled for fast compile)"
+      );
     }
     process.exitCode = result.code;
   } catch (error) {

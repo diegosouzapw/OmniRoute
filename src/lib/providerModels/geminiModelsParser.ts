@@ -6,7 +6,7 @@
  *   - predict                          → "images"  (Imagen image generation)
  *   - predictLongRunning               → "videos"  (Veo video generation)
  *   - embedContent                     → "embeddings"
- *   - bidiGenerateContent              → "audio"   (Live real-time audio)
+ *   - bidiGenerateContent              → ignored   (Gemini Live is not proxied)
  *
  * Model-id heuristics refine the long-running bucket because Google exposes both
  * Imagen and Veo via long-running methods on the same endpoint:
@@ -19,7 +19,7 @@
  *
  * This is shared by the `gemini` discovery config and the `vertex` /
  * `vertex-partner` (incl. Vertex AI Express key) discovery branches, so every
- * model the account can access — chat, image, video, audio and embeddings —
+ * supported model the account can access — chat, image, video and embeddings —
  * surfaces dynamically instead of being limited to the small static registry.
  */
 const METHOD_TO_ENDPOINT: Record<string, string> = {
@@ -37,6 +37,7 @@ const IGNORED_METHODS = new Set([
   "createCachedContent",
   "batchGenerateContent",
   "asyncBatchEmbedContent",
+  "bidiGenerateContent",
 ]);
 
 const RETIRED_GEMINI_MODEL_IDS = new Set(["gemini-3.5-flash"]);
@@ -78,6 +79,13 @@ export function parseGeminiModelsList(data: any): GeminiDiscoveryModel[] {
         endpoints.add("images");
       }
 
+      if (
+        endpoints.size === 0 &&
+        methods.length > 0 &&
+        methods.every((method) => IGNORED_METHODS.has(method))
+      ) {
+        return null;
+      }
       if (endpoints.size === 0) endpoints.add("chat");
 
       return {
@@ -91,5 +99,8 @@ export function parseGeminiModelsList(data: any): GeminiDiscoveryModel[] {
         ...(m.thinking === true ? { supportsThinking: true } : {}),
       } as GeminiDiscoveryModel;
     })
-    .filter((model: GeminiDiscoveryModel) => !RETIRED_GEMINI_MODEL_IDS.has(model.id));
+    .filter(
+      (model: GeminiDiscoveryModel | null): model is GeminiDiscoveryModel =>
+        Boolean(model) && !RETIRED_GEMINI_MODEL_IDS.has(model.id)
+    );
 }

@@ -3,7 +3,7 @@
  *
  * Reverse-engineered, unofficial, undocumented endpoint (not a published
  * Google public API) — the same class of integration this codebase already
- * accepts for other "-web"/no-auth style providers (edgeTts.ts, chipotle.ts).
+ * accepts for other "-web"/no-auth style providers.
  * No user account/API key is required.
  *
  * The issue's originally proposed endpoint

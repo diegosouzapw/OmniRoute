@@ -153,7 +153,11 @@ test(
       [],
       "vision-incapable rr-blind must never receive the image_url body, even as a last-resort fallback"
     );
-    assert.notEqual(result.status, 200, "must not silently succeed via the vision-incapable target");
+    assert.notEqual(
+      result.status,
+      200,
+      "must not silently succeed via the vision-incapable target"
+    );
   }
 );
 

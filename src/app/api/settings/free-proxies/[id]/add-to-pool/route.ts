@@ -1,7 +1,7 @@
 import { request as undiciRequest } from "undici";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/db/freeProxies";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,

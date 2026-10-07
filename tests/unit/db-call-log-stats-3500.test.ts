@@ -81,6 +81,21 @@ function insertCallLog(row: Record<string, unknown>) {
 
 test.before(() => {
   core.resetDbInstance();
+  // Search queries only surface providers with a live provider_connections
+  // row — seed connections for the search providers used below so their
+  // call_logs rows are not filtered out as deleted providers.
+  const now = new Date().toISOString();
+  const db = core.getDbInstance();
+  for (const [id, provider] of [
+    ["conn-3500-brave", "brave"],
+    ["conn-3500-serper", "serper"],
+    ["conn-3500-bing", "bing"],
+    ["conn-3500-rare-provider", "rare_provider"],
+  ] as const) {
+    db.prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    ).run(id, provider, now, now);
+  }
 });
 
 test.after(() => {
@@ -97,12 +112,16 @@ test("#3500 getProviderMetrics — aggregates totals and latency per provider", 
   // provider_connections row — seed openai/anthropic connections so their
   // call_logs rows are not filtered out as ghost/deleted providers.
   const db0 = core.getDbInstance();
-  db0.prepare(
-    `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
-  ).run("conn-3500-openai", "openai", new Date().toISOString(), new Date().toISOString());
-  db0.prepare(
-    `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
-  ).run("conn-3500-anthropic", "anthropic", new Date().toISOString(), new Date().toISOString());
+  db0
+    .prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    )
+    .run("conn-3500-openai", "openai", new Date().toISOString(), new Date().toISOString());
+  db0
+    .prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    )
+    .run("conn-3500-anthropic", "anthropic", new Date().toISOString(), new Date().toISOString());
 
   // Two openai rows: one success, one error with error_summary
   const ts1 = "2025-06-01T10:00:00.000Z";
@@ -121,11 +140,14 @@ test("#3500 getProviderMetrics — aggregates totals and latency per provider", 
   // Provider '-' should be excluded
   insertCallLog({ provider: "-", status: 200 });
   // Provider null should be excluded (insert directly to avoid type issue)
-  core.getDbInstance().prepare(
-    `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
+  core
+    .getDbInstance()
+    .prepare(
+      `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
       tokens_in, tokens_out, cache_source, detail_state, has_request_body, has_response_body, has_pipeline_details)
      VALUES (?, ?, 'POST', '/v1/test', 200, 'x', NULL, 100, 0, 0, 'upstream', 'none', 0, 0, 0)`
-  ).run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
+    )
+    .run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
 
   const rows = mod.getProviderMetrics();
 
@@ -212,20 +234,47 @@ test("#3500 getSearchAggregateStats — correct totals, today, errors, avg, cach
 
   // Rows inserted after todayStart qualify as "today"
   const nowIso = new Date().toISOString();
-  // duration=0 → excluded from avg_duration; duration=3 → cached (>0 && <5)
-  insertCallLog({ provider: "brave", status: 200, duration: 100, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 200, duration: 3, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 500, duration: 80, request_type: "search", timestamp: nowIso });
+  // #13928: "cached" is driven by cache_source='semantic', not duration —
+  // this row's duration is deliberately >5ms to prove the fix no longer
+  // uses the old `duration < 5` latency heuristic.
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 100,
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 50,
+    cache_source: "semantic",
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 500,
+    duration: 80,
+    request_type: "search",
+    timestamp: nowIso,
+  });
   // Old row (yesterday) — not in today count
   const yesterday = new Date(Date.now() - 86_400_000).toISOString();
-  insertCallLog({ provider: "brave", status: 200, duration: 200, request_type: "search", timestamp: yesterday });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 200,
+    request_type: "search",
+    timestamp: yesterday,
+  });
 
   const result = mod.getSearchAggregateStats(todayIso);
 
   assert.ok(result.total >= 4, "total includes all search rows (across all tests in file)");
   assert.ok(result.today >= 3, "today counts rows from today");
   assert.ok(result.errors >= 1, "errors counts status >= 400");
-  assert.ok(result.cached >= 1, "cached counts duration in (0,5)");
+  assert.ok(result.cached >= 1, "cached counts cache_source='semantic' rows (#13928)");
   assert.ok(result.avg_duration !== null, "avg_duration not null when rows have duration > 0");
 });
 
@@ -264,12 +313,12 @@ test("#3500 getSearchProviderCounts — ordered by cnt desc", () => {
   if (rows.length >= 2) {
     assert.ok(rows[0].cnt >= rows[rows.length - 1].cnt, "ordered by cnt desc");
   }
-  // bing (5 added) should beat rare_provider (2 added) if both appear
+  // bing (5 added) should beat rare_provider (2 added)
   const bing = rows.find((r) => r.provider === "bing");
   const rare = rows.find((r) => r.provider === "rare_provider");
-  if (bing && rare) {
-    assert.ok(bing.cnt > rare.cnt, "bing cnt > rare_provider cnt");
-  }
+  assert.ok(bing, "bing row present");
+  assert.ok(rare, "rare_provider row present");
+  assert.ok(bing.cnt > rare.cnt, "bing cnt > rare_provider cnt");
 });
 
 // ---------------------------------------------------------------------------
@@ -297,9 +346,7 @@ test("getProviderUsageSince — only counts rows inside the window", () => {
   insertCallLog({ provider: "usage-window", status: 200, timestamp: OUT_OF_WINDOW });
   insertCallLog({ provider: "usage-window", status: 500, timestamp: OUT_OF_WINDOW });
 
-  const row = mod
-    .getProviderUsageSince(USAGE_CUTOFF)
-    .find((r) => r.provider === "usage-window");
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-window");
   assert.ok(row, "provider must be present");
   assert.equal(row.requests, 2, "rows before the cutoff must not be counted");
   assert.equal(row.successes, 2);
@@ -314,9 +361,7 @@ test("getProviderUsageSince — 2xx/3xx count as success, 4xx/5xx do not", () =>
     insertCallLog({ provider: "usage-status", status, timestamp: IN_WINDOW });
   }
 
-  const row = mod
-    .getProviderUsageSince(USAGE_CUTOFF)
-    .find((r) => r.provider === "usage-status");
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-status");
   assert.ok(row);
   assert.equal(row.requests, 8);
   assert.equal(row.successes, 4, "same success rule as getProviderMetrics");
@@ -349,9 +394,7 @@ test("getProviderUsageSince — latency and lastRequestAt are bounded by the win
     timestamp: OUT_OF_WINDOW,
   });
 
-  const row = mod
-    .getProviderUsageSince(USAGE_CUTOFF)
-    .find((r) => r.provider === "usage-latency");
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-latency");
   assert.ok(row);
   assert.equal(row.avgLatencyMs, 100, "the out-of-window 900ms row must not weigh in");
   assert.equal(row.lastRequestAt, IN_WINDOW);
@@ -362,6 +405,12 @@ test("getProviderUsageSince — providers '-' and NULL are excluded", () => {
   insertCallLog({ provider: "-", status: 200, timestamp: IN_WINDOW });
 
   const rows = mod.getProviderUsageSince(USAGE_CUTOFF);
-  assert.equal(rows.find((r) => r.provider === "-"), undefined);
-  assert.equal(rows.find((r) => r.provider === null), undefined);
+  assert.equal(
+    rows.find((r) => r.provider === "-"),
+    undefined
+  );
+  assert.equal(
+    rows.find((r) => r.provider === null),
+    undefined
+  );
 });

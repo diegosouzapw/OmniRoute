@@ -1,12 +1,41 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+
+// (#523) Default to the first available key while the user hasn't picked one.
+const defaultKeyId = (selectedId, apiKeys) =>
+  selectedId || (apiKeys?.length > 0 ? apiKeys[0].id : "");
+
+/**
+ * One-time form initialization from ~/.openclaw/openclaw.json, applied right
+ * after a status fetch resolves: mirror the primary model into the form and
+ * re-select the API key whose masked value matches the stored one.
+ */
+function initOpenclawFormFromSettings(data, apiKeys, onSelectModel, onSelectKeyId) {
+  const provider = data.settings?.models?.providers?.["omniroute"];
+  if (!provider) return;
+
+  const primaryModel = data.settings?.agents?.defaults?.model?.primary;
+  if (primaryModel) onSelectModel(primaryModel.replace("omniroute/", ""));
+
+  // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
+  // Match by prefix/suffix instead of exact comparison.
+  // apiKey may be a structured secret reference (object) rather than a
+  // plaintext string, e.g. OpenClaw SecretRefs. Only match on strings.
+  if (typeof provider.apiKey !== "string" || !provider.apiKey) return;
+  const fileKeyPrefix = provider.apiKey.slice(0, 8);
+  const fileKeySuffix = provider.apiKey.slice(-4);
+  const matchedKey = apiKeys?.find(
+    (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
+  );
+  if (matchedKey) onSelectKeyId(matchedKey.id);
+}
 
 export default function OpenClawToolCard({
   tool,
@@ -57,22 +86,12 @@ export default function OpenClawToolCard({
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
   // (#523) Store the key *id* (not the masked string) so the backend can
-  // resolve the real secret from DB before writing to config files.
-  useEffect(() => {
-    if (apiKeys?.length > 0 && !selectedApiKeyId) {
-      setSelectedApiKeyId(apiKeys[0].id);
-    }
-  }, [apiKeys, selectedApiKeyId]);
+  // resolve the real secret from DB before writing to config files. Derived
+  // during render instead of synced through an effect
+  // (react-hooks/set-state-in-effect).
+  const effectiveApiKeyId = defaultKeyId(selectedApiKeyId, apiKeys);
 
-  useEffect(() => {
-    if (isExpanded && !openclawStatus) {
-      checkOpenclawStatus();
-      fetchModelAliases();
-      fetchBackups();
-    }
-  }, [isExpanded, openclawStatus]);
-
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       const data = await res.json();
@@ -80,46 +99,47 @@ export default function OpenClawToolCard({
     } catch (error) {
       console.log("Error fetching model aliases:", error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    if (openclawStatus?.installed && !hasInitializedModel.current) {
-      hasInitializedModel.current = true;
-      const provider = openclawStatus.settings?.models?.providers?.["omniroute"];
-      if (provider) {
-        const primaryModel = openclawStatus.settings?.agents?.defaults?.model?.primary;
-        if (primaryModel) {
-          const modelId = primaryModel.replace("omniroute/", "");
-          setSelectedModel(modelId);
-        }
-        // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
-        // Match by prefix/suffix instead of exact comparison.
-        // apiKey may be a structured secret reference (object) rather than a
-        // plaintext string, e.g. OpenClaw SecretRefs. Only match on strings.
-        if (typeof provider.apiKey === "string" && provider.apiKey) {
-          const fileKeyPrefix = provider.apiKey.slice(0, 8);
-          const fileKeySuffix = provider.apiKey.slice(-4);
-          const matchedKey = apiKeys?.find(
-            (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
-          );
-          if (matchedKey) setSelectedApiKeyId(matchedKey.id);
-        }
-      }
+  // ── Backups ──
+  const fetchBackups = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cli-tools/backups?tool=openclaw");
+      const data = await res.json();
+      if (res.ok) setBackups(data.backups || []);
+    } catch (error) {
+      console.log("Error fetching backups:", error);
     }
-  }, [openclawStatus, apiKeys]);
+  }, []);
 
-  const checkOpenclawStatus = async () => {
+  const checkOpenclawStatus = useCallback(async () => {
     setCheckingOpenclaw(true);
     try {
       const res = await fetch("/api/cli-tools/openclaw-settings");
       const data = await res.json();
       setOpenclawStatus(data);
+      // One-time form initialization from the settings file, right after the
+      // fetch resolves (was a separate openclawStatus effect — moved here so
+      // no setState runs synchronously inside an effect body).
+      if (data?.installed && !hasInitializedModel.current) {
+        hasInitializedModel.current = true;
+        initOpenclawFormFromSettings(data, apiKeys, setSelectedModel, setSelectedApiKeyId);
+      }
     } catch (error) {
       setOpenclawStatus({ installed: false, error: error.message });
     } finally {
       setCheckingOpenclaw(false);
     }
-  };
+  }, [apiKeys]);
+
+  useEffect(() => {
+    if (!(isExpanded && !openclawStatus)) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([checkOpenclawStatus(), fetchModelAliases(), fetchBackups()]);
+    })();
+  }, [isExpanded, openclawStatus, checkOpenclawStatus, fetchModelAliases, fetchBackups]);
 
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || baseUrl;
@@ -137,7 +157,7 @@ export default function OpenClawToolCard({
     try {
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId =
-        selectedApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+        effectiveApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
       const res = await fetch("/api/cli-tools/openclaw-settings", {
         method: "POST",
@@ -199,17 +219,6 @@ export default function OpenClawToolCard({
     setModalOpen(false);
   };
 
-  // ── Backups ──
-  const fetchBackups = async () => {
-    try {
-      const res = await fetch("/api/cli-tools/backups?tool=openclaw");
-      const data = await res.json();
-      if (res.ok) setBackups(data.backups || []);
-    } catch (error) {
-      console.log("Error fetching backups:", error);
-    }
-  };
-
   const handleRestoreBackup = async (backupId) => {
     setRestoringBackup(backupId);
     setMessage(null);
@@ -241,7 +250,7 @@ export default function OpenClawToolCard({
 
   const getManualConfigs = () => {
     // (#523) Look up the key object by id to get the masked display value.
-    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+    const selectedKeyObj = apiKeys?.find((k) => k.id === effectiveApiKeyId);
     const keyToDisplay =
       selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
 
@@ -408,7 +417,7 @@ export default function OpenClawToolCard({
                   </span>
                   {apiKeys.length > 0 ? (
                     <select
-                      value={selectedApiKeyId}
+                      value={effectiveApiKeyId}
                       onChange={(e) => setSelectedApiKeyId(e.target.value)}
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >

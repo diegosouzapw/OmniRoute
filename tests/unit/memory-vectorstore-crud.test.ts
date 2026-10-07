@@ -84,11 +84,11 @@ function insertMemory(
   db: ReturnType<typeof core.getDbInstance>,
   id: string,
   apiKeyId: string,
-  content: string,
+  content: string
 ) {
   db.prepare(
     `INSERT INTO memories (id, api_key_id, type, key, content, created_at)
-     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`,
+     VALUES (?, ?, 'factual', ?, ?, datetime('now'))`
   ).run(id, apiKeyId, `key-${id}`, content);
 }
 
@@ -137,7 +137,7 @@ test("upsertVector: throws when memoryId does not exist in memories table", asyn
   await assert.rejects(
     () => store.upsertVector("nonexistent-id", makeVec(1.0, 0.0, 0.0, 0.0)),
     /memory not found/i,
-    "should throw when memoryId not found",
+    "should throw when memoryId not found"
   );
 });
 
@@ -176,7 +176,7 @@ test("searchVector: returns topK=2 results ordered by distance ASC", async (t) =
   if (hits.length >= 2) {
     assert.ok(
       hits[0].distance <= hits[1].distance,
-      "results must be ordered by distance ASC (smaller = more similar)",
+      "results must be ordered by distance ASC (smaller = more similar)"
     );
   }
 
@@ -263,6 +263,6 @@ test("deleteVector: no-op when memoryId does not exist (no throw)", async (t) =>
   // Should not throw.
   await assert.doesNotReject(
     () => store.deleteVector("nonexistent-id"),
-    "deleteVector for non-existent id must be a no-op (not throw)",
+    "deleteVector for non-existent id must be a no-op (not throw)"
   );
 });

@@ -25,5 +25,5 @@ export const agyProvider: RegistryEntry = {
   },
   models: [...AGY_PUBLIC_MODELS],
   passthroughModels: true,
-  liveCatalogAuthoritative: false,
+  liveCatalogAuthoritative: true,
 };

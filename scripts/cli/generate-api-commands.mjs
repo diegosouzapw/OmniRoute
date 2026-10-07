@@ -130,7 +130,10 @@ for (const [tag, ops] of Object.entries(byTag)) {
       lines.push(`    .${flag}("--${kebab(p.name)} <${p.name}>", "${escapeStr(p.description)}")`);
     }
     if (hasBody) {
-      lines.push(`    .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")`);
+      const bodyFlag = op.requestBody.required ? "requiredOption" : "option";
+      lines.push(
+        `    .${bodyFlag}("--body <jsonOrPath>", "JSON body or @path/to/file.json")`
+      );
     }
     lines.push(`    .action(async (opts, cmd) => {`);
     lines.push(`      const gOpts = cmd.optsWithGlobals();`);

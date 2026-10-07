@@ -1,6 +1,6 @@
 // Tool-call emulation helpers for web-cookie executors (#5240, #5927).
 //
-// Web-cookie providers (chatgpt-web, perplexity-web, ...) have no native
+// Web-cookie providers (Perplexity Web, Gemini Web, etc.) may have no native
 // function calling. When the OpenAI request carries `tools`, the prompt-side
 // shim (`prepareToolMessages` in ../translator/webTools.ts) injects a `<tool>`
 // contract; on the response side we parse `<tool>{...}</tool>` blocks back
@@ -113,6 +113,7 @@ export async function buildToolModeResponse(
   stream: boolean,
   meta: { cid: string; created: number; model: string; idSeed?: string }
 ): Promise<Response> {
+  if (!bufferedJson.ok) return bufferedJson;
   const jsonResponse = await applyToolCallsToJsonResponse(
     bufferedJson,
     requestedTools,

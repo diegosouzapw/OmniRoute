@@ -30,12 +30,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-volc-connect-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const codeRoute = await import(
-  "../../src/app/api/providers/volcengine-plan/connect/[sessionId]/code/route.ts"
-);
-const identityRoute = await import(
-  "../../src/app/api/providers/volcengine-plan/connect/[sessionId]/identity/route.ts"
-);
+const codeRoute =
+  await import("../../src/app/api/providers/volcengine-plan/connect/[sessionId]/code/route.ts");
+const identityRoute =
+  await import("../../src/app/api/providers/volcengine-plan/connect/[sessionId]/identity/route.ts");
 
 test.after(() => {
   core.resetDbInstance();

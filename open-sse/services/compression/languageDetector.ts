@@ -1,15 +1,29 @@
 const LANGUAGE_HINTS: Record<string, RegExp[]> = {
-  it: [/(?<![\p{L}\p{N}])(?:perche|perché|pero|però|cioe|cioè|quindi|potresti|vorrei|adesso|errore|grazie|devo|voglio|questo|quello|anche|sono|molto)(?![\p{L}\p{N}])/iu],
-  "pt-BR": [/(?<![\p{L}\p{N}])(?:voce|você|preciso|arquivo|codigo|código|erro|falha|obrigado)(?![\p{L}\p{N}])/iu],
+  it: [
+    /(?<![\p{L}\p{N}])(?:perche|perché|pero|però|cioe|cioè|quindi|potresti|vorrei|adesso|errore|grazie|devo|voglio|questo|quello|anche|sono|molto)(?![\p{L}\p{N}])/iu,
+  ],
+  "pt-BR": [
+    /(?<![\p{L}\p{N}])(?:voce|você|preciso|arquivo|codigo|código|erro|falha|obrigado)(?![\p{L}\p{N}])/iu,
+  ],
   // NOTE: English-ambiguous words are intentionally excluded — "error" (es) and
   // "configuration" (fr) are identical in English and would misclassify English text.
   // Spanish/French keep their distinctive native spellings (fallo / erreur, etc).
-  es: [/(?<![\p{L}\p{N}])(?:necesito|archivo|codigo|código|fallo|gracias|puedes)(?![\p{L}\p{N}])/iu],
+  es: [
+    /(?<![\p{L}\p{N}])(?:necesito|archivo|codigo|código|fallo|gracias|puedes)(?![\p{L}\p{N}])/iu,
+  ],
   de: [/(?<![\p{L}\p{N}])(?:ich|datei|fehler|bitte|kannst|konfiguration|danke)(?![\p{L}\p{N}])/iu],
   fr: [/(?<![\p{L}\p{N}])(?:fichier|erreur|merci|peux|besoin)(?![\p{L}\p{N}])/iu],
-  ru: [/(?<![\p{L}\p{N}])(?:\u044d\u0442\u043e|\u0447\u0442\u043e|\u043a\u0430\u043a|\u0435\u0441\u043b\u0438|\u0447\u0442\u043e\u0431\u044b|\u043a\u043e\u0442\u043e\u0440\u044b\u0439|\u043c\u043e\u0436\u0435\u0442|\u043d\u0443\u0436\u043d\u043e|\u0435\u0441\u0442\u044c|\u0431\u044b\u043b\u043e|\u0431\u0443\u0434\u0435\u0442|\u043c\u043e\u0436\u043d\u043e|\u0434\u043e\u043b\u0436\u0435\u043d|\u0444\u0430\u0439\u043b|\u043e\u0448\u0438\u0431\u043a\u0430|\u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430|\u0434\u0430\u043d\u043d\u044b\u0435)(?![\p{L}\p{N}])/iu, /[\u0430-\u044f\u0451]/iu],
+  ru: [
+    /(?<![\p{L}\p{N}])(?:\u044d\u0442\u043e|\u0447\u0442\u043e|\u043a\u0430\u043a|\u0435\u0441\u043b\u0438|\u0447\u0442\u043e\u0431\u044b|\u043a\u043e\u0442\u043e\u0440\u044b\u0439|\u043c\u043e\u0436\u0435\u0442|\u043d\u0443\u0436\u043d\u043e|\u0435\u0441\u0442\u044c|\u0431\u044b\u043b\u043e|\u0431\u0443\u0434\u0435\u0442|\u043c\u043e\u0436\u043d\u043e|\u0434\u043e\u043b\u0436\u0435\u043d|\u0444\u0430\u0439\u043b|\u043e\u0448\u0438\u0431\u043a\u0430|\u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430|\u0434\u0430\u043d\u043d\u044b\u0435)(?![\p{L}\p{N}])/iu,
+    /[\u0430-\u044f\u0451]/iu,
+  ],
   ja: [/[\u3040-\u30ff]/u],
-  id: [/(?<![\p{L}\p{N}])(?:saya|kamu|anda|dengan|untuk|yang|tidak|bisa|terima\s+kasih|dari)(?![\p{L}\p{N}])/iu],
+  hu: [
+    /(?<![\p{L}\p{N}])(?:kérlek|tudnád|szeretném|magyarázd|mutasd|miért|hogyan|függvény|beállítás|adatbázis|következő|problémám|megoldani|hiba|fájl|így)(?![\p{L}\p{N}])/iu,
+  ],
+  id: [
+    /(?<![\p{L}\p{N}])(?:saya|kamu|anda|dengan|untuk|yang|tidak|bisa|terima\s+kasih|dari)(?![\p{L}\p{N}])/iu,
+  ],
 };
 
 /**

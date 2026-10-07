@@ -81,11 +81,26 @@ test("getCompressionSettings returned config has expected shape", async () => {
     assert.ok(typeof config.defaultMode === "string", "defaultMode should be string");
     assert.ok(typeof config.autoTriggerTokens === "number", "autoTriggerTokens should be number");
     assert.ok(typeof config.cacheMinutes === "number", "cacheMinutes should be number");
-    assert.ok(typeof config.preserveSystemPrompt === "boolean", "preserveSystemPrompt should be boolean");
-    assert.ok(config.cavemanConfig && typeof config.cavemanConfig === "object", "cavemanConfig should be object");
-    assert.ok(config.rtkConfig && typeof config.rtkConfig === "object", "rtkConfig should be object");
-    assert.ok(config.languageConfig && typeof config.languageConfig === "object", "languageConfig should be object");
-    assert.ok(config.aggressive && typeof config.aggressive === "object", "aggressive should be object");
+    assert.ok(
+      typeof config.preserveSystemPrompt === "boolean",
+      "preserveSystemPrompt should be boolean"
+    );
+    assert.ok(
+      config.cavemanConfig && typeof config.cavemanConfig === "object",
+      "cavemanConfig should be object"
+    );
+    assert.ok(
+      config.rtkConfig && typeof config.rtkConfig === "object",
+      "rtkConfig should be object"
+    );
+    assert.ok(
+      config.languageConfig && typeof config.languageConfig === "object",
+      "languageConfig should be object"
+    );
+    assert.ok(
+      config.aggressive && typeof config.aggressive === "object",
+      "aggressive should be object"
+    );
     assert.ok(config.ultra && typeof config.ultra === "object", "ultra should be object");
   } finally {
     cleanup();

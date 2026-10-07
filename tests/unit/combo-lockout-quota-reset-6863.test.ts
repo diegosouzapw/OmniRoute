@@ -1,6 +1,5 @@
-// #6863: combo path model lockout must honor a parsed upstream quota reset
-// ("Resets in 92h27m28s") instead of the base cooldown ladder, mirroring the
-// single-model path (src/sse/services/auth.ts usedUpstreamRetryHint/quotaResetHintMs).
+// #6863: combo path model lockout must prefer a parsed reset over the base
+// cooldown ladder while still respecting the operator's max for body prose.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -35,7 +34,7 @@ test.after(() => {
   } catch {}
 });
 
-test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#6863)", async () => {
+test("combo 429 body reset beats base cooldown but is capped by maxCooldownMs (#6863)", async () => {
   const provider = "antigravity"; // OAuth category → quota signals preserved on 429
   const model = "claude-sonnet-4.6";
 
@@ -77,12 +76,12 @@ test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#
 
   const info = getModelLockoutInfo(provider, "", model);
   assert.ok(info, "combo 429 must record a model lockout");
-  // Bug #6863: lockout was baseCooldownMs (~seconds) while upstream said 92.5h.
-  // The lockout must equal the parsed reset minus elapsed test runtime (bounded slack),
-  // so a hardcoded long cooldown (e.g. a fixed 1h) cannot pass.
+  // Preserve #6863 (do not fall back to ~seconds), but prose is not an
+  // authoritative reset and must not bypass the operator's 30m maximum.
   assert.ok(
-    info!.remainingMs > parsedResetMs! - 5_000 && info!.remainingMs <= parsedResetMs!,
-    `lockout must equal the parsed upstream reset (~${parsedResetMs}ms); got ${info!.remainingMs}ms (~${Math.round(info!.remainingMs / 1000)}s)`
+    info!.remainingMs > settings.modelLockout.maxCooldownMs - 5_000 &&
+      info!.remainingMs <= settings.modelLockout.maxCooldownMs,
+    `body reset must clamp to maxCooldownMs (${settings.modelLockout.maxCooldownMs}ms); got ${info!.remainingMs}ms`
   );
 });
 
@@ -92,10 +91,15 @@ test("combo 429 lockout prefers a SHORT parsed reset over the subscription fallb
   // while quotaResetHintMs carries the real parsed reset. A max() of the two
   // would over-lock (1h) — the lockout must follow the parsed value (~45m),
   // matching the single-model path in src/sse/services/auth.ts.
-  const provider = "claude"; // OAuth category → subscription-quota branch applies
-  const model = "claude-sonnet-4-6";
-  const shortResetMessage =
-    "429: Usage limit reached. Your Claude Pro usage limit resets in 45m0s.";
+  //
+  // Native `claude` is deliberately NOT used here: since #13888 an explicit Claude
+  // quota 429 without fresh per-model quota evidence is CONNECTION-scoped (the
+  // connection is exhausted, no model lockout — covered by
+  // tests/unit/claude-scoped-quota-auth.test.ts). Codex is another OAuth provider
+  // whose subscription "usage limit reached" 429 still takes this branch.
+  const provider = "codex"; // OAuth category → subscription-quota branch applies
+  const model = "gpt-5.3-codex";
+  const shortResetMessage = "429: Usage limit reached. Your usage limit resets in 45m0s.";
 
   const settings = {
     modelLockout: {

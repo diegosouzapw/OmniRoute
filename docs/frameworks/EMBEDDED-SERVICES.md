@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router, CLIProxyAPI, Mux, and Bifrost"
+description: "Reference for 9Router, CLIProxyAPI, Mux, Bifrost, and open-wa"
 ---
 
 # Embedded Services
 
 > **Version:** v3.8.44
-> **Last updated:** 2026-07-03
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Last updated:** 2026-09-09
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,16 +32,18 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Four services are embedded as of v3.8.44:
+Six services are embedded:
 
-| Service         | npm package                                    | Default port | Purpose                                                                                                          |
-| --------------- | ----------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                                      |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                     |
-| **CLIProxyAPI** | `@anthropic/cli-proxy` (via `cliproxy` binary) |     auto     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire              |
-| **Mux**         | `mux` (headless `mux server`)                  |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).   |
-| **Bifrost**     | `@maximhq/bifrost`                             |    8080      | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                       |
+| Service         | npm package                        | Default port | Purpose                                                                                                                                                                                |
+| --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                          |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                                                                                          |
+| **CLIProxyAPI** | GitHub release binary (`cliproxy`) |     8317     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire                                                                                   |
+| **Mux**         | `mux` (headless `mux server`)      |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).                                                                         |
+| **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                             |
+| **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane |
+| **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                              |
 
-All four follow the same supervisory model:
+All six follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
@@ -111,7 +113,7 @@ All four follow the same supervisory model:
 │  modelSync.ts       Periodic GET /v1/models → service_models table │
 │  ringBuffer.ts      Circular log buffer (5 MB per service)         │
 │  healthCheck.ts     Polling HTTP health probe                      │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (installer adapters)                          │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-compatible HTTP (loopback)
@@ -150,6 +152,7 @@ All four follow the same supervisory model:
 | `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall for 9Router         |
 | `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
 | `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
+| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall for open-wa         |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
 | `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
 | `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |
@@ -211,7 +214,7 @@ race conditions when, for example, auto-start and a UI button fire simultaneousl
 All routes under `/api/services/` are **LOCAL_ONLY** (loopback only, hard rule #17).
 Non-loopback requests receive `403 LOCAL_ONLY` regardless of auth token.
 
-### 4.1 9Router endpoints (8 routes)
+### 4.1 9Router endpoints (11 routes)
 
 #### `POST /api/services/9router/install`
 
@@ -429,11 +432,12 @@ SSE stream of live logs from 9Router's stdout/stderr ring buffer.
 
 ---
 
-### 4.2 CLIProxyAPI endpoints (7 routes)
+### 4.2 CLIProxyAPI endpoints (10 routes)
 
-CLIProxyAPI has the same endpoint shape as 9Router minus `rotate-key` (CLIProxyAPI
-does not require an injected API key; it authenticates via the host's existing CLI
-config) and `status` includes fewer fields.
+CLIProxyAPI has the same endpoint shape as 9Router minus `rotate-key`, plus
+`accounts`, `provider-expose` and `auto-restart-adopted`. It now receives a
+dedicated data-plane API key injected at spawn (`needsApiKey: true` in
+`bootstrap.ts`, used for model sync); `status` includes fewer fields.
 
 | Method | Path                                | Description                          |
 | ------ | ----------------------------------- | ------------------------------------ |
@@ -450,7 +454,7 @@ four services using the `[name]` dynamic segment.
 
 ---
 
-### 4.3 Mux endpoints (7 routes)
+### 4.3 Mux endpoints (8 routes)
 
 Mux has the same endpoint shape as CLIProxyAPI — no `rotate-key` route in the API
 surface (the bearer token is generated the same way as 9Router's via
@@ -458,34 +462,34 @@ surface (the bearer token is generated the same way as 9Router's via
 there is no dedicated rotation endpoint yet). Mux is lifecycle-managed only: unlike
 9Router, it has no Layer 4 executor and is never registered as a routing provider.
 
-| Method | Path                            | Description                          |
-| ------ | -------------------------------- | ------------------------------------- |
-| `POST` | `/api/services/mux/install`    | Install Mux from npm (`npm i mux`)   |
-| `POST` | `/api/services/mux/start`      | Start Mux (`mux server`)             |
-| `POST` | `/api/services/mux/stop`       | Stop Mux                             |
-| `POST` | `/api/services/mux/restart`    | Restart Mux                          |
-| `POST` | `/api/services/mux/update`     | Update to newer npm version          |
-| `GET`  | `/api/services/mux/status`     | Live + DB status                     |
-| `POST` | `/api/services/mux/auto-start` | Toggle auto-start                    |
+| Method | Path                           | Description                        |
+| ------ | ------------------------------ | ---------------------------------- |
+| `POST` | `/api/services/mux/install`    | Install Mux from npm (`npm i mux`) |
+| `POST` | `/api/services/mux/start`      | Start Mux (`mux server`)           |
+| `POST` | `/api/services/mux/stop`       | Stop Mux                           |
+| `POST` | `/api/services/mux/restart`    | Restart Mux                        |
+| `POST` | `/api/services/mux/update`     | Update to newer npm version        |
+| `GET`  | `/api/services/mux/status`     | Live + DB status                   |
+| `POST` | `/api/services/mux/auto-start` | Toggle auto-start                  |
 
 ---
 
-### 4.4 Bifrost endpoints (7 routes)
+### 4.4 Bifrost endpoints (8 routes)
 
 Bifrost is a Go AI-gateway relay backend (`@maximhq/bifrost`). It uses the same
 endpoint shape as CLIProxyAPI (no `rotate-key` — Bifrost manages its own provider
 keys in `config.json` under its `-app-dir`).
 
-| Method | Path                               | Description                                            |
-| ------ | ---------------------------------- | ------------------------------------------------------ |
-| `POST` | `/api/services/bifrost/install`    | Install Bifrost from npm (`@maximhq/bifrost`)          |
-| `POST` | `/api/services/bifrost/start`      | Start Bifrost on port 8080 (default)                   |
-| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                           |
-| `POST` | `/api/services/bifrost/restart`    | Restart Bifrost                                        |
-| `POST` | `/api/services/bifrost/update`     | Update to newer version                                |
-| `GET`  | `/api/services/bifrost/status`     | Live + DB status                                       |
-| `POST` | `/api/services/bifrost/auto-start` | Toggle auto-start                                      |
-| `GET`  | `/api/services/bifrost/logs`       | SSE log tail (via shared `[name]/logs` dynamic route)  |
+| Method | Path                               | Description                                           |
+| ------ | ---------------------------------- | ----------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Install Bifrost from npm (`@maximhq/bifrost`)         |
+| `POST` | `/api/services/bifrost/start`      | Start Bifrost on port 8080 (default)                  |
+| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                          |
+| `POST` | `/api/services/bifrost/restart`    | Restart Bifrost                                       |
+| `POST` | `/api/services/bifrost/update`     | Update to newer version                               |
+| `GET`  | `/api/services/bifrost/status`     | Live + DB status                                      |
+| `POST` | `/api/services/bifrost/auto-start` | Toggle auto-start                                     |
+| `GET`  | `/api/services/bifrost/logs`       | SSE log tail (via shared `[name]/logs` dynamic route) |
 
 **Routing wiring:** When `BIFROST_BASE_URL` is unset and the supervised Bifrost
 instance is running, `getBifrostRoutingConfig()` (in `routingBackend.ts`) automatically
@@ -494,7 +498,49 @@ always takes precedence.
 
 ---
 
-### 4.4 Reverse proxy (9Router dashboard embed)
+### 4.5 Dario endpoints (12 routes)
+
+Same lifecycle shape as the other services (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`) plus a token-gated OAuth
+control plane under `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+`admin/login-start`, `admin/login-complete` (all behind `DARIO_ADMIN_TOKEN`).
+
+### 4.6 open-wa endpoints (7 routes)
+
+open-wa (`@open-wa/wa-automate`) drives a headless Chromium instance (via
+Puppeteer) to automate WhatsApp Web. It uses the same endpoint shape as Mux (no
+`rotate-key` route yet). It is lifecycle-managed only — not a routing target,
+no Layer 4 executor/provider entry.
+
+| Method | Path                              | Description                                           |
+| ------ | --------------------------------- | ----------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Install open-wa from npm (`@open-wa/wa-automate`)     |
+| `POST` | `/api/services/openwa/start`      | Start open-wa on port 8323 (default)                  |
+| `POST` | `/api/services/openwa/stop`       | Stop open-wa                                          |
+| `POST` | `/api/services/openwa/restart`    | Restart open-wa                                       |
+| `POST` | `/api/services/openwa/update`     | Update to newer version                               |
+| `GET`  | `/api/services/openwa/status`     | Live + DB status                                      |
+| `POST` | `/api/services/openwa/auto-start` | Toggle auto-start                                     |
+| `GET`  | `/api/services/openwa/logs`       | SSE log tail (via shared `[name]/logs` dynamic route) |
+
+**API key:** injected as `WA_KEY` — open-wa's generic `WA_*`-prefixed env
+override maps it onto the `--key`/`-k` CLI option
+(`dist/cli/setup.js::envArgs()`, verified against the installed 4.76.0
+package). Prefixed `ow_` when generated by `generateServiceApiKey()`. open-wa
+reads the key back from a `key`/`api_key` HTTP header (not `Authorization:
+Bearer`); `/api-docs*` is explicitly exempted from the check
+(`setupAuthenticationLayer` in `dist/cli/server.js`), so the health probe
+needs no auth header.
+
+**Pairing:** open-wa is unofficial and unaffiliated with WhatsApp — the
+connected number carries a ban risk from WhatsApp's own automation detection.
+On first start, the pairing QR code is printed to stdout and surfaced through
+the existing Logs panel/SSE stream — there is no dedicated QR-image endpoint
+in this integration yet.
+
+---
+
+### 4.7 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:
@@ -552,8 +598,8 @@ OmniRoute:
    flag, so the token never appears in `ps`/process listings).
 4. Never returns the plaintext key in any HTTP response.
 
-CLIProxyAPI does not require an injected key (it authenticates via the host's
-existing CLI config).
+CLIProxyAPI receives a dedicated data-plane key injected at spawn
+(`needsApiKey: true` — used for model sync against the adapter).
 
 ### SSRF defense
 

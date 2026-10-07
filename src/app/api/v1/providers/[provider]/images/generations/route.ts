@@ -14,6 +14,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 /**
  * Handle CORS preflight
@@ -32,6 +33,8 @@ export async function OPTIONS() {
  */
 export async function POST(request, { params }) {
   const { provider: rawProvider } = await params;
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(rawProvider);
+  if (retirementResponse) return retirementResponse;
 
   // Verify this is a valid image provider
   const imageProvider = getImageProvider(rawProvider);

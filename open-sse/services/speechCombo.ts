@@ -24,7 +24,6 @@ import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
 import { attachOmniRouteMetaToResponse } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
-import { getClientIpFromRequest } from "@/lib/ipUtils";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -35,10 +34,6 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 export async function executeSpeechCombo(
   comboName: string,
   body: Record<string, unknown>,
-  auth: {
-    request: Request;
-    policy: { apiKeyInfo?: { id?: string; name?: string } | null };
-  },
   startTime: number
 ): Promise<Response> {
   const combo = await getComboByName(comboName);
@@ -80,7 +75,6 @@ export async function executeSpeechCombo(
     );
   }
 
-  const clientIp = getClientIpFromRequest(auth.request);
   let lastError: { status: number; error: string } | null = null;
   let fallbackCount = 0;
 
@@ -129,7 +123,6 @@ export async function executeSpeechCombo(
       credentials,
       resolvedProvider: providerConfig,
       resolvedModel,
-      clientIp,
     });
 
     if (response?.ok) {

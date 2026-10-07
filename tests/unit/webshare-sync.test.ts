@@ -291,8 +291,7 @@ test("WebshareProvider.sync never leaks the API key in error messages on an HTTP
   const originalFetch = globalThis.fetch;
   process.env.FREE_PROXY_WEBSHARE_API_KEY = FAKE_API_KEY;
 
-  globalThis.fetch = (async () =>
-    new Response("Unauthorized", { status: 401 })) as typeof fetch;
+  globalThis.fetch = (async () => new Response("Unauthorized", { status: 401 })) as typeof fetch;
 
   try {
     const p = getProvider("webshare")!;
@@ -302,7 +301,10 @@ test("WebshareProvider.sync never leaks the API key in error messages on an HTTP
     assert.ok(result.errors.length > 0);
     for (const err of result.errors) {
       assert.ok(!err.includes(FAKE_API_KEY), `error must not leak the API key: ${err}`);
-      assert.ok(!err.toLowerCase().includes("authorization"), `error must not leak the auth header: ${err}`);
+      assert.ok(
+        !err.toLowerCase().includes("authorization"),
+        `error must not leak the auth header: ${err}`
+      );
     }
   } finally {
     globalThis.fetch = originalFetch;

@@ -26,14 +26,23 @@ describe("ModalityBridgeVideoTab", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
   let failPatch = false;
   let failSettingsLoad = false;
+  let runtimeMode: "ready" | "unavailable" | "network-error" = "ready";
 
   beforeEach(() => {
     (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
     failPatch = false;
     failSettingsLoad = false;
+    runtimeMode = "ready";
     fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("/api/modality-bridge/video/runtime")) {
+        if (runtimeMode === "network-error") throw new Error("network unreachable");
+        if (runtimeMode === "unavailable") {
+          return Response.json({
+            available: false,
+            reason: "ffmpeg binary not found on PATH",
+          });
+        }
         return Response.json({
           available: true,
           ffmpegVersion: "6.1.1",
@@ -142,6 +151,29 @@ describe("ModalityBridgeVideoTab", () => {
         String(input).includes("/api/modality-bridge/video/runtime")
       )
     ).toBe(false);
+  });
+
+  it("labels a confirmed-missing runtime as unavailable with its reason", async () => {
+    runtimeMode = "unavailable";
+    const element = await render();
+    await waitFor(
+      () => element.textContent?.includes("modalityBridgeVideoRuntimeUnavailable") ?? false,
+      "unavailable runtime status"
+    );
+    expect(element.textContent).toContain("ffmpeg binary not found on PATH");
+    expect(element.textContent).not.toContain("modalityBridgeVideoRuntimeChecking");
+    expect(element.textContent).not.toContain("modalityBridgeVideoRuntimeReady");
+  });
+
+  it("labels a probe that could not complete as unknown, never as unavailable (#11657)", async () => {
+    runtimeMode = "network-error";
+    const element = await render();
+    // The frame-count field is settings-only and renders regardless of the
+    // runtime probe outcome, so `render()`'s own wait is sufficient here —
+    // there is no separate "unknown" DOM marker to poll for.
+    expect(element.textContent).toContain("modalityBridgeVideoRuntimeChecking");
+    expect(element.textContent).not.toContain("modalityBridgeVideoRuntimeUnavailable");
+    expect(element.textContent).not.toContain("modalityBridgeVideoRuntimeInstall");
   });
 
   it("persists the enable toggle and clamps frame count to 16", async () => {

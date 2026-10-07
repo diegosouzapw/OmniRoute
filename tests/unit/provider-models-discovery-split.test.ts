@@ -24,7 +24,11 @@ import {
   isNamedOpenAIStyleProvider,
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
-import { isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded } from "../../src/shared/services/codexDiscoveryPolicy.ts";
+import {
+  classifyCodexDiscoveryModel,
+  getCodexDiscoveryMode,
+  isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded,
+} from "../../src/shared/services/codexDiscoveryPolicy.ts";
 import {
   applyCodexDiscoveryFilters,
   buildCodexDiscoveryCatalog,
@@ -39,6 +43,7 @@ import {
   mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexGithubCatalogResponse,
   normalizeCodexModelsResponse,
+  reconcileCodexDiscoveryCatalog,
   reconcileCuratedCodexCatalog,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
@@ -133,8 +138,9 @@ test("providerSets.isNamedOpenAIStyleProvider matches Set membership", () => {
 // ── providerModelsConfig leaf ────────────────────────────────────────────────
 
 test("providerModelsConfig.PROVIDER_MODELS_CONFIG keeps core provider entries", () => {
-  assert.equal(PROVIDER_MODELS_CONFIG.claude.url, "https://api.anthropic.com/v1/models");
-  assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"].url, "https://chat.qwen.ai/api/v2/models/");
+  assert.equal(PROVIDER_MODELS_CONFIG.claude.url, "https://api.anthropic.com/v1/models?limit=1000");
+  assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"], undefined);
+  assert.ok(PROVIDER_MODELS_CONFIG["qwen-cloud"]);
 });
 
 test("providerModelsConfig keeps the aimlapi live catalog entry", () => {
@@ -172,10 +178,10 @@ test("providerModelsConfig grok-cli.parseResponse preserves exact supported reas
     ],
   });
 
-  assert.deepEqual(parsed[0].supportedThinkingEfforts, ["high", "low", "medium"]);
+  assert.deepEqual(parsed[0].supportedThinkingEfforts, ["high", "low", "medium", "xhigh"]);
   assert.deepEqual(parsed[1].supportedThinkingEfforts, ["low", "medium", "high"]);
   assert.equal(parsed[2].supportsThinking, true);
-  assert.equal(parsed[2].supportedThinkingEfforts, undefined);
+  assert.deepEqual(parsed[2].supportedThinkingEfforts, ["xhigh"]);
 });
 
 test("providerModelsConfig openrouter.parseResponse keeps the full catalog (LLMs not filtered out)", () => {
@@ -272,6 +278,158 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
   assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.outputTokenLimit, 64000);
 });
 
+test("codex safe discovery classifies public metadata before activating it", () => {
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex", visibility: "list", supportedInApi: true },
+      { source: "github", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "active" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex" },
+      { source: "github", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "candidate", reason: "missing-explicit-list-visibility" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "future-codex", minimalClientVersion: "invalid" },
+      { source: "live", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "candidate", reason: "invalid-minimal-client-version" }
+  );
+  assert.deepEqual(
+    classifyCodexDiscoveryModel(
+      { id: "gpt-5.4-high", visibility: "list", supportedInApi: true },
+      { source: "live", mode: "safe", implementedClientVersion: "0.153.4" }
+    ),
+    { status: "retired", reason: "denylisted" }
+  );
+});
+
+test("codex retired ids stay out of the discovery catalog", () => {
+  for (const id of ["gpt-5.3-codex-spark", "codex-auto-review"]) {
+    assert.equal(isCodexDiscoveryModelExcluded({ id }), true);
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), true);
+    assert.deepEqual(
+      classifyCodexDiscoveryModel(
+        { id, visibility: "list", supportedInApi: true },
+        { source: "live", mode: "all", implementedClientVersion: "0.157.1" }
+      ),
+      { status: "retired", reason: "denylisted" }
+    );
+  }
+
+  const catalog = buildCodexDiscoveryCatalog(
+    [
+      {
+        id: "gpt-5.3-codex-spark",
+        name: "GPT 5.3 Codex Spark",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "codex-auto-review",
+        name: "Codex Auto Review",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "gpt-6-sol",
+        name: "GPT-6-Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+    ],
+    []
+  );
+  assert.deepEqual(
+    catalog.map((model) => model.id),
+    ["gpt-6-sol"]
+  );
+});
+
+test("the codex registry no longer advertises the retired spark id", async () => {
+  const { codexProvider } = await import("../../open-sse/config/providers/registry/codex/index.ts");
+  assert.equal(
+    codexProvider.models?.some((model) => model.id === "gpt-5.3-codex-spark"),
+    false
+  );
+});
+
+test("codex discovery mode preserves the legacy opt-in", () => {
+  assert.equal(getCodexDiscoveryMode({}), "off");
+  assert.equal(getCodexDiscoveryMode({ autoFetchModels: true }), "safe");
+  assert.equal(getCodexDiscoveryMode({ codexDiscoveryMode: "all" }), "all");
+});
+
+test("codex reconciliation keeps candidates out of the active catalog", () => {
+  const catalog = reconcileCodexDiscoveryCatalog(
+    [
+      {
+        id: "future-codex",
+        name: "Future Codex",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        discoverySource: "github",
+      },
+    ],
+    [],
+    "safe",
+    "0.153.4"
+  );
+  assert.deepEqual(catalog.activeModels, []);
+  assert.deepEqual(
+    catalog.candidateModels.map(({ id, discoveryStatus, compatibilityReason }) => ({
+      id,
+      discoveryStatus,
+      compatibilityReason,
+    })),
+    [
+      {
+        id: "future-codex",
+        discoveryStatus: "candidate",
+        compatibilityReason: "missing-explicit-list-visibility",
+      },
+    ]
+  );
+});
+
+test("codex.normalizeCodexModelsResponse preserves compatibility metadata and reasoning efforts", () => {
+  assert.deepEqual(
+    normalizeCodexGithubCatalogResponse({
+      models: [
+        {
+          slug: "future-codex",
+          visibility: "list",
+          supported_in_api: true,
+          minimal_client_version: "0.153.4",
+          supported_reasoning_levels: ["low", "high", "xhigh"],
+        },
+      ],
+    })[0],
+    {
+      id: "future-codex",
+      name: "future-codex",
+      owned_by: "codex",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+      discoverySource: "github",
+      visibility: "list",
+      supportedInApi: true,
+      minimalClientVersion: "0.153.4",
+      supportsThinking: true,
+      supportedThinkingEfforts: ["low", "high", "xhigh"],
+    }
+  );
+});
+
 test("codex.normalizeCodexModelsResponse prefers max_context_window over the context_window pricing tier", () => {
   // The live Codex OAuth catalog reports BOTH fields: `context_window` is the
   // first pricing tier (~272K) while `max_context_window` is the real usable
@@ -335,12 +493,61 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
 
   assert.deepEqual(
     parsed.map((model) => model.id),
-    ["gpt-5.6-sol"]
+    ["gpt-5.6-sol", "future-model"]
   );
   assert.equal(parsed[0]?.description, "Latest frontier agentic coding model.");
   assert.equal(parsed[0]?.inputTokenLimit, 372000);
   assert.equal(parsed[0]?.supportsThinking, true);
   assert.equal(parsed[0]?.supportsVision, true);
+});
+
+test("codex catalog keeps reasoning tiers when upstream sends objects", () => {
+  const parsed = normalizeCodexModelsResponse({
+    models: [
+      {
+        slug: "gpt-6-sol",
+        display_name: "GPT 6 Sol",
+        visibility: "list",
+        supported_in_api: true,
+        supported_reasoning_levels: [
+          { effort: "low" },
+          { effort: "medium" },
+          { effort: "high" },
+          { effort: "xhigh" },
+          { effort: "max" },
+          { effort: "ultra" },
+          { effort: "" },
+          { value: "high" },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(parsed[0]?.supportsThinking, true);
+  assert.deepEqual(parsed[0]?.supportedThinkingEfforts, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+});
+
+test("codex catalog ignores non-object reasoning entries", () => {
+  const parsed = normalizeCodexModelsResponse({
+    models: [
+      {
+        slug: "gpt-6-sol",
+        display_name: "GPT 6 Sol",
+        visibility: "list",
+        supported_in_api: true,
+        supported_reasoning_levels: [1, null, { effort: "high" }],
+      },
+    ],
+  });
+
+  assert.deepEqual(parsed[0]?.supportedThinkingEfforts, ["high"]);
 });
 
 test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list authoritative", () => {
@@ -381,6 +588,36 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.name, "Live Sol");
   assert.equal(enriched[0]?.inputTokenLimit, 372000);
   assert.equal(enriched[0]?.supportsVision, true);
+});
+
+test("codex.enrichCodexModelsFromGithubCatalog uses the GitHub catalog when there is no live list", () => {
+  const catalog = enrichCodexModelsFromGithubCatalog(
+    [],
+    [
+      {
+        id: "gpt-5.6-luna",
+        name: "GitHub Luna",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "gpt-5.6-terra",
+        name: "GitHub Terra",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 272000,
+      },
+    ]
+  );
+
+  assert.deepEqual(
+    catalog.map((model) => model.id),
+    ["gpt-5.6-luna", "gpt-5.6-terra"]
+  );
+  assert.equal(catalog[0]?.name, "GitHub Luna");
+  assert.equal(catalog[1]?.inputTokenLimit, 272000);
 });
 
 test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conservatively (smaller wins)", () => {

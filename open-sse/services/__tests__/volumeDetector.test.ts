@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 // Mock the DB so recommendStrategyOverride sees adaptiveVolumeRouting = true.
 // Without this the real getSettings() throws (no SQLite in test env), the
 // catch block fires, and the function returns noOverride before any rule runs.
-vi.mock("@/lib/localDb", () => ({
+vi.mock("@/lib/db/settings", () => ({
   getSettings: vi.fn().mockResolvedValue({ adaptiveVolumeRouting: true }),
 }));
 

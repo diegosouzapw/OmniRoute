@@ -33,29 +33,77 @@ const DISCOVERY_FAILED_WARNING =
   "(loadCodeAssist/onboardUser failed). The account is marked degraded; discovery retries " +
   "automatically on the first request.";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/** Cloud Code project id from either the mapped token top-level or providerSpecificData. */
+function extractAntigravityProjectId(
+  tokenData: Record<string, unknown> | null | undefined
+): string {
+  if (!tokenData) return "";
+  const nested = toRecord(tokenData.providerSpecificData);
+  for (const candidate of [tokenData.projectId, nested.projectId]) {
+    if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+  }
+  return "";
+}
+
 /**
  * #11284: when projectId discovery failed at connect time, return the degrade
  * fields to persist (testStatus:"degraded" + typed error markers) instead of
  * silently saving a false "active". Returns null for healthy payloads.
+ *
+ * The original gate only fired when `projectDiscoveryOutcome` was set. Paste
+ * credentials, persistOAuthConnection, and agy CLI import can persist an empty
+ * projectId without that flag -- treat the empty id itself as the signal.
  */
 export function antigravityDegradedProjectState(
   provider: string,
   tokenData: Record<string, unknown> | null | undefined
 ): AntigravityDegradedProjectState | null {
   if (!PROJECT_EXPECTED_PROVIDERS.has(provider)) return null;
+  if (extractAntigravityProjectId(tokenData)) return null;
   const outcome = tokenData?.projectDiscoveryOutcome;
-  if (!outcome) return null;
+  const resolvedOutcome =
+    outcome === "discovery_failed" ? "discovery_failed" : "requires_manual_project";
   console.warn(
-    `[oauth] ${provider}: marking connection degraded — no Cloud Code projectId (${String(outcome)}) (#11284)`
+    `[oauth] ${provider}: marking connection degraded - no Cloud Code projectId (${String(resolvedOutcome)}) (#11284)`
   );
   return {
     testStatus: "degraded",
     errorCode: "missing_project_id",
     lastErrorType: "oauth_missing_project_id",
     lastError:
-      outcome === "requires_manual_project"
-        ? BYOP_WARNING
-        : DISCOVERY_FAILED_WARNING,
-    warning: outcome === "requires_manual_project" ? BYOP_WARNING : DISCOVERY_FAILED_WARNING,
+      resolvedOutcome === "requires_manual_project" ? BYOP_WARNING : DISCOVERY_FAILED_WARNING,
+    warning:
+      resolvedOutcome === "requires_manual_project" ? BYOP_WARNING : DISCOVERY_FAILED_WARNING,
+  };
+}
+
+/** Persist fields that MUST win over a spread tokenData payload. */
+export function antigravityPersistStatus(
+  degradedProject: AntigravityDegradedProjectState | null | undefined
+): {
+  testStatus: "degraded" | "active";
+  errorCode: string | null;
+  lastErrorType: string | null;
+  lastError: string | null;
+} {
+  if (degradedProject) {
+    return {
+      testStatus: degradedProject.testStatus,
+      errorCode: degradedProject.errorCode,
+      lastErrorType: degradedProject.lastErrorType,
+      lastError: degradedProject.lastError,
+    };
+  }
+  return {
+    testStatus: "active",
+    errorCode: null,
+    lastErrorType: null,
+    lastError: null,
   };
 }

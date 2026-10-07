@@ -14,6 +14,11 @@ import {
 } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
+import {
+  antigravityDegradedProjectState,
+  antigravityPersistStatus,
+  type AntigravityDegradedProjectState,
+} from "@/lib/oauth/antigravityProjectGate";
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -52,13 +57,40 @@ function isSameCodexAccount(
 }
 
 /**
+ * Does this existing Claude connection represent the SAME account as the
+ * incoming login? One Anthropic identity can belong to several organizations
+ * at once — the personal workspace (`organizationType` `claude_max`/
+ * `claude_pro`) plus any Team/Enterprise organization (`claude_team`) — and
+ * they all authenticate with the same email and the same `accountUUID`, each
+ * with its own tokens, plan and rate limits. `organizationUUID` is the only
+ * field that separates them, so an email-only match silently overwrote
+ * whichever organization had been connected first. Require `organizationUUID`
+ * to agree whenever BOTH sides carry it; when either side lacks it (rows
+ * stored before Claude started returning it) the legacy bare-email match
+ * still applies, so re-authenticating an existing connection keeps updating
+ * it in place instead of forking a duplicate.
+ */
+function isSameClaudeAccount(
+  existingProviderData: Record<string, any> | null | undefined,
+  incomingProviderData: Record<string, any> | null | undefined
+): boolean {
+  const incomingOrganization = incomingProviderData?.organizationUUID;
+  const existingOrganization = existingProviderData?.organizationUUID;
+  if (incomingOrganization && existingOrganization) {
+    return safeEqual(existingOrganization, incomingOrganization);
+  }
+  return true;
+}
+
+/**
  * Find the existing OAuth connection (if any) that an incoming token payload
  * should be merged into, shared by every OAuth-completion call site
  * (persistOAuthConnection, and the exchange/poll/poll-callback branches in
  * `src/app/api/oauth/[provider]/[action]/route.ts`). Matches by explicit
  * connectionId first, then by same email + auth type — with Codex requiring
- * workspaceId/chatgptUserId agreement (#7737) to avoid silently overwriting
- * a different Codex account that merely shares an email.
+ * workspaceId/chatgptUserId agreement (#7737) and Claude requiring
+ * organizationUUID agreement, to avoid silently overwriting a different
+ * account that merely shares an email.
  */
 export function findExistingOAuthConnectionMatch(
   existing: Array<Record<string, any>>,
@@ -75,6 +107,9 @@ export function findExistingOAuthConnectionMatch(
     if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
     if (provider === "codex") {
       return isSameCodexAccount(c.providerSpecificData, tokenData.providerSpecificData);
+    }
+    if (provider === "claude") {
+      return isSameClaudeAccount(c.providerSpecificData, tokenData.providerSpecificData);
     }
     return true;
   });
@@ -97,12 +132,8 @@ export function buildOAuthConnectionCreatePayload(
   provider: string,
   tokenData: Record<string, any>,
   expiresAt: string | null,
-  degradedProject?: {
-    testStatus: "degraded";
-    errorCode: string;
-    lastErrorType: string;
-    lastError: string;
-  } | null
+  // warning is HTTP-response only (oauth route); persistence copies error fields.
+  degradedProject?: AntigravityDegradedProjectState | null
 ) {
   return {
     provider,
@@ -112,15 +143,9 @@ export function buildOAuthConnectionCreatePayload(
     tokenExpiresAt: expiresAt,
     // #11284: degraded when Cloud Code projectId discovery failed at connect
     // time — the row is saved (refresh token stored, request-time bootstrap
-    // can self-heal) but visibly NOT active.
-    testStatus: degradedProject?.testStatus ?? ("active" as const),
-    ...(degradedProject
-      ? {
-          errorCode: degradedProject.errorCode,
-          lastErrorType: degradedProject.lastErrorType,
-          lastError: degradedProject.lastError,
-        }
-      : {}),
+    // can self-heal) but visibly NOT active. Spread AFTER tokenData so stale
+    // error fields in the payload cannot leak through.
+    ...antigravityPersistStatus(degradedProject),
   };
 }
 
@@ -148,6 +173,7 @@ export async function persistOAuthConnection(
   const expiresAt = tokenData.expiresIn
     ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
     : null;
+  const degradedProject = antigravityDegradedProjectState(provider, tokenData);
 
   let connection: any;
   // A connectionId is an explicit "update THIS connection" signal (token refresh
@@ -163,14 +189,14 @@ export async function persistOAuthConnection(
       connection = await updateProviderConnection(matchId, {
         ...tokenData,
         expiresAt,
-        testStatus: "active",
+        ...antigravityPersistStatus(degradedProject),
         isActive: true,
       });
     }
   }
   if (!connection) {
     connection = await createProviderConnection(
-      buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+      buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt, degradedProject)
     );
   }
 

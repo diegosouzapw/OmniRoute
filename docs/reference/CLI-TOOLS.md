@@ -13,7 +13,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
 | **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 26           |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 9            |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 10           |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
@@ -56,12 +56,16 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
 remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
-without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen) take
-`--model <id>` (and `--yes` for non-interactive runs). To launch a CLI with the
+without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) take
+`--model <id>` (and `--yes` for non-interactive runs). `setup-5dive` is the one
+recipe that does not write under `$HOME`: it configures a 5dive agent fleet by
+writing a root-owned auth profile on the fleet host, so it re-execs through `sudo`
+and has no remote mode of its own. To launch a CLI with the
 right env injected and no config written at all, use the generic
 `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
 gemini — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
@@ -93,8 +97,11 @@ host answers **`422`** with `containerEphemeralTarget: true`, the safe error
 text and — for the tools with a host recipe (claude, codex, opencode, cline,
 kilo, continue) — a `hostSetupCommand` (e.g. `omniroute setup-opencode`) to run
 on the host instead; nothing is written. `dryRun: true` keeps working in container
-mode and returns the generated content + target path without touching disk, so
-you can preview from the dashboard and apply on the host. This behavior is
+mode and returns a redacted preview + target path without touching disk. Preview
+content is not a credential-bearing configuration to copy or import. Apply with
+the original tool/base URL/API key/model inputs on the host, or use the indicated
+host-side setup command. See [CLI configuration security](../security/CLI-CONFIGURATION.md)
+for the preview header and request contract. This behavior is
 intentional and regression-guarded by
 `tests/unit/api/cli-tools/apply-container-guard.test.ts` — never "fix" a 422
 by removing the guard.
@@ -176,7 +183,7 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 ---
 
-## 2. CLI Agents Catalog (9 tools)
+## 2. CLI Agents Catalog (10 tools)
 
 Autonomous agents that appear in `/dashboard/cli-agents`:
 
@@ -191,6 +198,7 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 | omp          | Oh My Pi         | OSS                      | full           | true         |
 | letta        | Letta CLI        | Letta                    | full           | false        |
 | prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
 
 ---
 
@@ -713,7 +721,7 @@ These assume a running OmniRoute server, unless noted otherwise:
 ```bash
 omniroute status                       # Comprehensive runtime status
 omniroute logs                         # Stream request logs (--json, --search, --follow)
-omniroute config show                  # Display current configuration
+omniroute config list                  # Display configured CLI tools
 
 omniroute provider list                # List available providers (alias of providers list)
 omniroute provider add                 # Register OmniRoute as a provider on a tool

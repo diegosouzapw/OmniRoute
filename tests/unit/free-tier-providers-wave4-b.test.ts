@@ -21,7 +21,7 @@ test("Free.ai exposes its exact OpenAI-compatible endpoint and live catalog", ()
   assert.equal(freeAiProvider.passthroughModels, true);
 });
 
-test("Free.ai uses DefaultExecutor without a specialized executor", () => {
-  assert.ok(getExecutor("free-ai") instanceof DefaultExecutor);
+test("Free.ai uses DefaultExecutor without a specialized executor", async () => {
+  assert.ok(await getExecutor("free-ai") instanceof DefaultExecutor);
   assert.equal(hasSpecializedExecutor("free-ai"), false);
 });

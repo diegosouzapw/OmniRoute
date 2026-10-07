@@ -113,13 +113,15 @@ export default function UsageStats() {
     () => sortData(stats?.byModel, stats?.pending?.byModel),
     [stats?.byModel, stats?.pending?.byModel, sortData]
   );
+  const statsByAccount = stats?.byAccount;
+  const statsPendingByAccount = stats?.pending?.byAccount;
   const sortedAccounts = useMemo(() => {
     // For accounts, pendingMap is by connectionId, but dataMap is by accountKey
     // We need to map connectionId pending counts to accountKeys
     const accountPendingMap: Record<string, any> = {};
-    if (stats?.pending?.byAccount) {
-      Object.entries(stats.byAccount || {}).forEach(([accountKey, data]: [string, any]) => {
-        const connPending = stats.pending.byAccount[data.connectionId];
+    if (statsPendingByAccount) {
+      Object.entries(statsByAccount || {}).forEach(([accountKey, data]: [string, any]) => {
+        const connPending = statsPendingByAccount[data.connectionId];
         if (connPending) {
           // Get modelKey (rawModel (provider))
           const modelKey = data.provider ? `${data.rawModel} (${data.provider})` : data.rawModel;
@@ -127,11 +129,12 @@ export default function UsageStats() {
         }
       });
     }
-    return sortData(stats?.byAccount, accountPendingMap);
-  }, [stats?.byAccount, stats?.pending?.byAccount, sortData]);
+    return sortData(statsByAccount, accountPendingMap);
+  }, [statsByAccount, statsPendingByAccount, sortData]);
 
+  // Note: no synchronous setLoading(true) here — `loading` starts as true and the
+  // only showLoading=true call happens on mount, so the skeleton is already up.
   const fetchStats = useCallback(async (showLoading = true): Promise<void> => {
-    if (showLoading) setLoading(true);
     try {
       const res = await fetch("/api/usage/history");
       if (res.ok) {
@@ -157,7 +160,10 @@ export default function UsageStats() {
   }, []);
 
   useEffect(() => {
-    fetchStats();
+    const run = async () => {
+      await fetchStats();
+    };
+    run();
   }, [fetchStats]);
 
   useEffect(() => {

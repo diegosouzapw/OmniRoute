@@ -4,16 +4,17 @@ import assert from "node:assert/strict";
 import {
   normalizeDuckDuckGoModel,
   DUCKDUCKGO_DEFAULT_MODEL,
-} from "../../open-sse/executors/duckduckgo-web.ts";
+} from "../../open-sse/executors/duckduckgo-web/models.ts";
 import { duckduckgo_webProvider } from "../../open-sse/config/providers/registry/duckduckgo-web/index.ts";
 import { FREE_MODEL_BUDGETS } from "../../open-sse/config/freeModelCatalog.data.ts";
 
 // #8000 — the current free Duck.ai lineup, wire ids captured live from
-// duckchat/v1/models (2026-07-22). A retired/unknown model id is rejected by
+// duckchat/v1/models (re-captured 2026-08-26: gpt-5.4-nano retired upstream,
+// gpt-5.6-luna added to the free tier). A retired/unknown model id is rejected by
 // duckchat/v1/chat with 400 ERR_BAD_REQUEST, which is the exact reported symptom.
 const CURRENT_FREE_IDS = new Set([
   "gpt-5.4-mini",
-  "gpt-5.4-nano",
+  "gpt-5.6-luna",
   "claude-haiku-4-5",
   "mistral-small-2603",
   "tinfoil/gpt-oss-120b",
@@ -28,6 +29,7 @@ const RETIRED_IDS = [
   "llama-4-scout",
   "claude-3-5-haiku-20241022",
   "mistral-small-2501",
+  "gpt-5.4-nano",
 ];
 
 test("#8000: default model is a current free wire id, not retired gpt-4o-mini", () => {
@@ -44,7 +46,9 @@ test("#8000: every retired id normalizes to a current wire id (never passes thro
   }
   // the `duckduckgo-web/` routing prefix is stripped before aliasing
   assert.ok(CURRENT_FREE_IDS.has(normalizeDuckDuckGoModel("duckduckgo-web/gpt-4o-mini")));
-  assert.equal(normalizeDuckDuckGoModel("duckduckgo-web/gpt-5.4-nano"), "gpt-5.4-nano");
+  // gpt-5.4-nano was retired upstream between the 2026-07-22 and 2026-08-26 captures;
+  // existing selections must alias forward instead of hard-failing with 400.
+  assert.equal(normalizeDuckDuckGoModel("duckduckgo-web/gpt-5.4-nano"), "gpt-5.4-mini");
 });
 
 test("#8000: current wire ids pass through unchanged", () => {
@@ -59,6 +63,13 @@ test("#8000: provider registry advertises exactly the current wire ids", () => {
   for (const retired of RETIRED_IDS) {
     assert.ok(!ids.includes(retired), `registry must drop retired id ${retired}`);
   }
+});
+
+test("#8000: provider registry baseUrl tracks the executor host", () => {
+  assert.ok(
+    duckduckgo_webProvider.baseUrl.startsWith("https://duck.ai/"),
+    `registry baseUrl must point at duck.ai, got ${duckduckgo_webProvider.baseUrl}`
+  );
 });
 
 test("#8000: free-model catalog advertises exactly the current wire ids", () => {

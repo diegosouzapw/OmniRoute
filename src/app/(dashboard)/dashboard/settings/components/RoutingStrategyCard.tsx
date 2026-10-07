@@ -50,26 +50,30 @@ function useRoutingStrategySettings() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/settings", { cache: "no-store" });
-      if (!res.ok) return;
-      const data = await res.json();
-      setSettings({
-        fallbackStrategy: data?.fallbackStrategy || "fill-first",
-        stickyRoundRobinLimit: data?.stickyRoundRobinLimit ?? 3,
-        comboStrategy: data?.comboStrategy || "fallback",
-        comboStickyRoundRobinLimit: data?.comboStickyRoundRobinLimit ?? 1,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    load().catch(console.error);
-  }, [load]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setSettings({
+          fallbackStrategy: data?.fallbackStrategy || "fill-first",
+          stickyRoundRobinLimit: data?.stickyRoundRobinLimit ?? 3,
+          comboStrategy: data?.comboStrategy || "fallback",
+          comboStickyRoundRobinLimit: data?.comboStickyRoundRobinLimit ?? 1,
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const run = useCallback(async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -109,7 +113,10 @@ function AccountRoundRobinSection({ t, busy, settings, setSettings, run }: Secti
             run(async () => {
               const next = accountRoundRobin ? "fill-first" : "round-robin";
               const updated = await patchSettings({ fallbackStrategy: next });
-              setSettings((prev) => ({ ...prev, fallbackStrategy: updated.fallbackStrategy || next }));
+              setSettings((prev) => ({
+                ...prev,
+                fallbackStrategy: updated.fallbackStrategy || next,
+              }));
             })
           }
         />
@@ -124,15 +131,17 @@ function AccountRoundRobinSection({ t, busy, settings, setSettings, run }: Secti
           <Input
             type="number"
             min={1}
-            max={10}
+            max={1000}
             disabled={busy}
             className="w-16 sm:w-20 text-center shrink-0"
             value={settings.stickyRoundRobinLimit ?? 3}
-            onChange={(e) => setSettings((prev) => ({ ...prev, stickyRoundRobinLimit: e.target.value }))}
+            onChange={(e) =>
+              setSettings((prev) => ({ ...prev, stickyRoundRobinLimit: e.target.value }))
+            }
             onBlur={() =>
               run(async () => {
                 const limit = Math.min(
-                  10,
+                  1000,
                   Math.max(1, parseInt(String(settings.stickyRoundRobinLimit), 10) || 3)
                 );
                 const updated = await patchSettings({ stickyRoundRobinLimit: limit });
@@ -182,7 +191,7 @@ function ComboRoundRobinSection({ t, busy, settings, setSettings, run }: Section
           <Input
             type="number"
             min={1}
-            max={100}
+            max={1000}
             disabled={busy}
             className="w-20 text-center"
             value={settings.comboStickyRoundRobinLimit ?? 1}
@@ -192,7 +201,7 @@ function ComboRoundRobinSection({ t, busy, settings, setSettings, run }: Section
             onBlur={() =>
               run(async () => {
                 const limit = Math.min(
-                  100,
+                  1000,
                   Math.max(1, parseInt(String(settings.comboStickyRoundRobinLimit), 10) || 1)
                 );
                 const updated = await patchSettings({ comboStickyRoundRobinLimit: limit });
@@ -266,8 +275,20 @@ export default function RoutingStrategyCard() {
         <p className="text-sm text-text-muted">{tc("loading")}</p>
       ) : (
         <div className="flex flex-col gap-4">
-          <AccountRoundRobinSection t={t} busy={busy} settings={settings} setSettings={setSettings} run={run} />
-          <ComboRoundRobinSection t={t} busy={busy} settings={settings} setSettings={setSettings} run={run} />
+          <AccountRoundRobinSection
+            t={t}
+            busy={busy}
+            settings={settings}
+            setSettings={setSettings}
+            run={run}
+          />
+          <ComboRoundRobinSection
+            t={t}
+            busy={busy}
+            settings={settings}
+            setSettings={setSettings}
+            run={run}
+          />
           <RoutingSummaryFooter
             t={t}
             accountRoundRobin={accountRoundRobin}

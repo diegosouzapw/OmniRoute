@@ -25,6 +25,7 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
+  parseContextWindowOverrideInput,
   providerText,
   targetFormatBadgeI18nKey,
   type CompatModelRow,
@@ -78,17 +79,23 @@ function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => str
   return labels[endpoint] || endpoint;
 }
 
-/**
- * #4125: parse the free-text "Context Window Override" field. Blank → no override
- * (`value: null`, not an error). A non-empty value must be a positive whole number of
- * tokens; anything else is rejected. Pulled out of saveEdit so its own branching stays
- * off that handler's cyclomatic complexity.
- */
-function parseContextWindowOverrideInput(raw: string): { value: number | null; invalid: boolean } {
-  const trimmed = raw.trim();
-  if (!trimmed) return { value: null, invalid: false };
-  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
-  return { value: Number(trimmed), invalid: false };
+// Fetch + parse extracted from the component so errors surface as a return
+// value (logged here) instead of state writes inside catch/finally blocks —
+// the load callback then only sets state after the await, which lets the
+// mount effect call it without a synchronous setState.
+async function fetchProviderModelsPayload(providerId: string): Promise<{
+  models: CompatModelRow[];
+  overrides: Array<CompatModelRow & { id: string }>;
+} | null> {
+  try {
+    const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { models: data.models || [], overrides: data.modelCompatOverrides || [] };
+  } catch (e) {
+    console.error("Failed to fetch custom models:", e);
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -133,29 +140,36 @@ export default function CustomModelsSection({
   // the model as vision-capable by hand (read back by getCustomVisionCapabilityFields()).
   const [newSupportsVision, setNewSupportsVision] = useState(false);
   const [editingSupportsVision, setEditingSupportsVision] = useState(false);
+  const [newIsFree, setNewIsFree] = useState(false);
+  const [editingIsFree, setEditingIsFree] = useState(false);
 
   const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
   const syncedModelIdSet = useMemo(() => new Set(syncedModelIds), [syncedModelIds]);
 
   const fetchCustomModels = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCustomModels(data.models || []);
-        setModelCompatOverrides(data.modelCompatOverrides || []);
-      }
-    } catch (e) {
-      console.error("Failed to fetch custom models:", e);
-    } finally {
-      setLoading(false);
+    const payload = await fetchProviderModelsPayload(providerId);
+    if (payload) {
+      setCustomModels(payload.models);
+      setModelCompatOverrides(payload.overrides);
     }
+    setLoading(false);
   }, [providerId]);
 
+  // Initial load: the async work is defined INSIDE the effect (calling the
+  // component-scope fetchCustomModels callback synchronously from an effect is
+  // rejected by the compiler rules); every setState here runs after the await.
   useEffect(() => {
-    fetchCustomModels();
-  }, [fetchCustomModels]);
+    const run = async () => {
+      const payload = await fetchProviderModelsPayload(providerId);
+      if (payload) {
+        setCustomModels(payload.models);
+        setModelCompatOverrides(payload.overrides);
+      }
+      setLoading(false);
+    };
+    void run();
+  }, [providerId]);
 
   const handleAdd = async () => {
     if (!newModelId.trim() || adding) return;
@@ -172,6 +186,7 @@ export default function CustomModelsSection({
           supportedEndpoints: newEndpoints,
           ...(newTargetFormat ? { targetFormat: newTargetFormat } : {}),
           ...(newSupportsVision ? { supportsVision: true } : {}),
+          ...(newIsFree ? { isFree: true } : {}),
         }),
       });
       if (res.ok) {
@@ -181,6 +196,7 @@ export default function CustomModelsSection({
         setNewEndpoints(["chat"]);
         setNewTargetFormat("");
         setNewSupportsVision(false);
+        setNewIsFree(false);
         await fetchCustomModels();
         onModelsChanged?.();
       }
@@ -267,6 +283,7 @@ export default function CustomModelsSection({
       typeof model.contextWindowOverride === "number" ? String(model.contextWindowOverride) : ""
     );
     setEditingSupportsVision(model.supportsVision === true);
+    setEditingIsFree(model.isFree === true);
   };
 
   const cancelEdit = () => {
@@ -276,6 +293,7 @@ export default function CustomModelsSection({
     setEditingTargetFormat("");
     setEditingContextWindowOverride("");
     setEditingSupportsVision(false);
+    setEditingIsFree(false);
     setSavingModelId(null);
   };
 
@@ -334,9 +352,8 @@ export default function CustomModelsSection({
           ...(editingTargetFormat ? { targetFormat: editingTargetFormat } : {}),
           // #4125: manual context-window override — number to set, null to clear.
           contextWindowOverride,
-          // #1904: manual vision-capability override — true/false to set, null to
-          // clear back to the id-based heuristic.
           supportsVision: editingSupportsVision ? true : null,
+          isFree: editingIsFree ? true : null,
         }),
       });
 
@@ -520,6 +537,20 @@ export default function CustomModelsSection({
               />
               {`👁️ ${t("visionCapableLabel")}`}
             </label>
+            <label
+              htmlFor="custom-model-is-free"
+              className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
+              title="Mark as free-tier (shown even when hide paid models is on)"
+            >
+              <input
+                id="custom-model-is-free"
+                type="checkbox"
+                checked={newIsFree}
+                onChange={(e) => setNewIsFree(e.target.checked)}
+                className="rounded border-border"
+              />
+              FREE
+            </label>
           </div>
         </div>
       </div>
@@ -597,6 +628,11 @@ export default function CustomModelsSection({
                         title={t("visionCapableHint")}
                       >
                         {`👁️ ${t("visionCapableLabel")}`}
+                      </span>
+                    )}
+                    {model.isFree === true && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
+                        FREE
                       </span>
                     )}
                     {model.supportedEndpoints?.includes("embeddings") && (
@@ -727,6 +763,20 @@ export default function CustomModelsSection({
                               className="rounded border-border"
                             />
                             {`👁️ ${t("visionCapableLabel")}`}
+                          </label>
+                          <label
+                            htmlFor={`custom-model-edit-free-${model.id}`}
+                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap px-2.5 py-2"
+                            title="Mark as free-tier"
+                          >
+                            <input
+                              id={`custom-model-edit-free-${model.id}`}
+                              type="checkbox"
+                              checked={editingIsFree}
+                              onChange={(e) => setEditingIsFree(e.target.checked)}
+                              className="rounded border-border"
+                            />
+                            FREE
                           </label>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">

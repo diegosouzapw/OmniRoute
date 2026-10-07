@@ -60,6 +60,58 @@ test("parseVertexAnthropicModels: malformed input yields an empty list", () => {
   assert.deepEqual(parseVertexAnthropicModels({ models: [{ name: "" }, {}] }), []);
 });
 
+test("parseVertexAnthropicModels: v1beta1 publisherModels envelope (Model Garden list)", () => {
+  // The Model Garden publisher-model list is served by the v1beta1 API and
+  // returns `{ publisherModels: [...] }` (v1 does not support list). Regression
+  // for #11991: discovery previously read only `data.models`, so the Claude
+  // catalog never populated the active synced catalog and every model id was
+  // rejected as "not available in the active live catalog".
+  const out = parseVertexAnthropicModels({
+    publisherModels: [
+      { name: "publishers/anthropic/models/claude-sonnet-4-6", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-opus-4-8", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-opus-5", launchStage: "GA" },
+    ],
+  });
+  assert.equal(out.length, 3);
+  assert.deepEqual(out[0], {
+    id: "claude-sonnet-4-6",
+    name: "claude-sonnet-4-6",
+    supportedEndpoints: ["chat"],
+    targetFormat: "claude",
+    owned_by: "anthropic",
+  });
+  assert.equal(out[1].id, "claude-opus-4-8");
+  assert.equal(out[2].id, "claude-opus-5");
+});
+
+test("parseVertexAnthropicModels: real Model Garden response reference (2026-08)", () => {
+  // Snapshot of the actual v1beta1 publishers/anthropic/models response used to
+  // reproduce #11991. Ids must map to routable claude-* ids.
+  const real = {
+    publisherModels: [
+      { name: "publishers/anthropic/models/claude-opus-4-1", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-sonnet-4-5", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-haiku-4-5", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-opus-4-6", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-sonnet-4-6", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-sonnet-5", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-opus-4-8", launchStage: "GA" },
+      { name: "publishers/anthropic/models/claude-opus-5", launchStage: "GA" },
+    ],
+  };
+  const out = parseVertexAnthropicModels(real);
+  const ids = out.map((m) => m.id);
+  assert.ok(ids.includes("claude-sonnet-4-6"));
+  assert.ok(ids.includes("claude-opus-4-8"));
+  assert.ok(ids.includes("claude-opus-5"));
+  // Every parsed model carries the claude target format for the translator.
+  for (const m of out) {
+    assert.equal(m.targetFormat, "claude");
+    assert.equal(m.owned_by, "anthropic");
+  }
+});
+
 test("getModelTargetFormat: claude-* on vertex resolves to the claude translator (heuristic)", () => {
   // A future Claude model with no static registry entry must still route
   // through the Anthropic Messages translator on both vertex ids.

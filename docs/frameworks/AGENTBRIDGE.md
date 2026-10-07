@@ -6,11 +6,11 @@ lastUpdated: 2026-06-28
 
 # AgentBridge
 
-AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS traffic from IDE AI agents and reroutes it through OmniRoute's unified routing engine. It supports **9 IDE agents** — Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor, Zed, Claude Code, Open Code, and Trae (investigating) — making OmniRoute the broadest-coverage MITM proxy for AI coding assistants on the market.
+AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS traffic from IDE AI agents and reroutes it through OmniRoute's unified routing engine. It supports **10 IDE agents** — Antigravity, Kiro, GitHub Copilot, GHE Copilot, OpenAI Codex, Cursor, Zed, Claude Code, Open Code, and Trae (investigating) — making OmniRoute the broadest-coverage MITM proxy for AI coding assistants on the market.
 
 **Dashboard location:** `/dashboard/tools/agent-bridge`
 **Sidebar group:** Tools (after Cloud Agents)
-**See also:** [`TRAFFIC_INSPECTOR.md`](./TRAFFIC_INSPECTOR.md) — monitor all intercepted traffic in real-time; [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) — the Linux TPROXY transparent-decrypt capture mode driven by the `/api/tools/agent-bridge/tproxy` route.
+**See also:** [`TRAFFIC_INSPECTOR.md`](./TRAFFIC_INSPECTOR.md) — monitor all intercepted traffic in real-time; `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) — the Linux TPROXY transparent-decrypt capture mode driven by the `/api/tools/agent-bridge/tproxy` route.
 
 ---
 
@@ -22,7 +22,7 @@ When an IDE agent (e.g., GitHub Copilot, Cursor, Claude Code) makes an API call,
 
 This means you can:
 
-- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 338 providers.
+- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 352 providers.
 - **Apply model mappings**: `gemini-3-flash` → `claude-sonnet-4.7` transparently at the handler level.
 - **Observe all agent traffic**: every intercepted request is published to the [Traffic Inspector](./TRAFFIC_INSPECTOR.md).
 - **Apply OmniRoute resilience**: combo routing, circuit breakers, fallbacks, and cost tracking work for IDE agent traffic too.
@@ -172,11 +172,16 @@ When set, configures `undici`'s global dispatcher with the extra CA cert, allowi
 
 ### 2.7 Secret masking (`src/mitm/maskSecrets.ts`)
 
-Applied to all request bodies and headers **before** they enter the Traffic Inspector buffer or any log:
+The independent clean-room scanner is applied to request bodies and credential headers
+**before** they enter the Traffic Inspector buffer or any log. It performs a single linear pass:
 
 - `sk-` / `ak-` / `pk-` prefixed tokens (OpenAI/Anthropic-style)
-- `Authorization: Bearer <token>` headers
-- Generic long tokens (≥40 chars)
+- RFC 6750 `Authorization: Bearer <token>` credentials, with whole-token precedence
+- Generic long opaque tokens (≥40 chars), including dotted and padded forms
+
+`sanitizeHeaders()` lowercases retained names, joins array values deterministically, drops the
+shared hop-by-hop/framing denylist (including proxy authentication), fully redacts `cookie` and
+`set-cookie`, and delegates credential values to the scanner.
 
 ---
 
@@ -287,6 +292,15 @@ The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintena
 | **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
 | **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
 | **Import config** | `POST /api/tools/agent-bridge/config`  | Uploads a previously-exported config JSON (see §3.7).                                                                                                                            |
+
+Each agent card also has its own **Restore default** button (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — a one-click, per-agent undo that un-spoofs only that
+agent's hosts, clears its saved model mappings, and resets its `dns_enabled`/`setup_completed`
+state, so the IDE talks to the real upstream again once fully restarted. It does **not** touch the
+shared MITM server or root CA (other agents may still depend on them) — those stay reachable
+through the Server Card and the **Remove CA** action above. On Windows it also best-effort runs
+`ipconfig /flushdns`, since the Windows DNS Client caches hosts-file entries and won't drop a
+just-removed spoof otherwise.
 
 **Diagnostics checks** (`summarizeDiagnostics()` in `src/mitm/inspector/diagnostics.ts`). The route runs the effectful probe for each and feeds the booleans into the pure summarizer; a single `healthy` verdict plus a per-failure hint is returned:
 
@@ -506,6 +520,7 @@ Base path: `/api/tools/agent-bridge/`
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                        |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                                   |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                     |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Restore default: un-spoof this agent's DNS, clear its mappings, reset its state (see §3.6)                                |
 | POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                          |
 | GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                                  |
 | POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                           |
@@ -522,7 +537,7 @@ Base path: `/api/tools/agent-bridge/`
 | GET                 | `/api/tools/agent-bridge/upstream-ca`          | Get configured upstream CA path                                                                                            |
 | POST                | `/api/tools/agent-bridge/upstream-ca`          | Validate + persist upstream CA path                                                                                        |
 | POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validate-only (dry-run) an upstream CA path — does not persist                                                             |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — see [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) |
 
 Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 

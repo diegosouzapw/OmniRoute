@@ -20,7 +20,10 @@
  * preserved constructs) into placeholder strings. The prose between placeholders
  * is what gets sent to the backend. Code blocks are re-stitched verbatim into
  * the output. This is done REGARDLESS of what the backend does — the engine
- * physically never passes code to the model.
+ * physically never passes code to the model. XML tags and negation/absolute
+ * words are additionally split out of prose (the uncased default model breaks
+ * tag punctuation and prunes negations), and backend replies are mapped back
+ * to the original casing/edge whitespace before re-stitching.
  *
  * ### Fail-open points (all errors → original body)
  * 1. Backend rejects for a prose segment → catch → segment kept as-is.
@@ -95,6 +98,61 @@ interface TextSegment {
 }
 
 /**
+ * Spans the backend must never see, split out of prose before the call and
+ * re-stitched verbatim afterwards:
+ * - XML-style tags (`<tag>`, `</tag>`, `<br/>`, ...). The uncased default
+ *   model rebuilds output from word pieces, which breaks tag punctuation;
+ *   lone tags outside the known preserved envelopes need the same shield.
+ * - Negations/absolutes (`not`, `never`, `must`, `don't`, ...). Pruning one
+ *   inverts an instruction, so they are not prunable by construction.
+ * Hyphenated compounds (`no-op`) are excluded via the lookarounds so ordinary
+ * words are never fragmented.
+ */
+const PROTECTED_SPAN_RE =
+  /(<\/?[A-Za-z][A-Za-z0-9._-]*(?:\s[^<>]*?)?\/?>|\b\w+(?:n't|n’t)\b|(?<![A-Za-z0-9_-])(?:not|no|never|none|nothing|nobody|nowhere|neither|nor|cannot|always|must)(?![A-Za-z0-9_-]))/gi;
+
+/** Split protected spans out of a prose segment; they re-stitch verbatim. */
+function splitProtectedSpans(prose: string): TextSegment[] {
+  PROTECTED_SPAN_RE.lastIndex = 0;
+  const out: TextSegment[] = [];
+  let cursor = 0;
+  for (const m of prose.matchAll(PROTECTED_SPAN_RE)) {
+    const idx = m.index ?? 0;
+    if (idx > cursor) out.push({ kind: "prose", text: prose.slice(cursor, idx) });
+    out.push({ kind: "preserved", text: m[0] });
+    cursor = idx + m[0].length;
+  }
+  if (cursor < prose.length) out.push({ kind: "prose", text: prose.slice(cursor) });
+  return out;
+}
+
+/** Word token for case restoration (keeps `don't`-style contractions whole). */
+const WORD_RE = /[A-Za-z0-9]+(?:['\u2019][A-Za-z0-9]+)*/g;
+
+/**
+ * Map surviving backend words back to their original character spans.
+ * The default model is uncased, so its output is lowercased prose rebuilt from
+ * word pieces; for each output word, restore the casing of the matching source
+ * word (first unused case-insensitive match wins, in order). Words the backend
+ * invented match nothing and are left as-is. Whole-word only.
+ */
+function restoreSourceCase(source: string, output: string): string {
+  const forms = new Map<string, string[]>();
+  for (const w of source.matchAll(WORD_RE)) {
+    const key = w[0].toLowerCase();
+    const list = forms.get(key);
+    if (list) list.push(w[0]);
+    else forms.set(key, [w[0]]);
+  }
+  if (forms.size === 0) return output;
+  return output.replace(WORD_RE, (w) => {
+    const list = forms.get(w.toLowerCase());
+    const form = list?.shift();
+    return form ?? w;
+  });
+}
+
+/**
  * Split `text` into alternating prose / preserved segments using
  * `extractPreservedBlocks` from preservation.ts.
  *
@@ -111,7 +169,7 @@ function splitProseAndPreserved(text: string): TextSegment[] {
   const { text: withPlaceholders, blocks } = extractPreservedBlocks(text);
 
   if (blocks.length === 0) {
-    return [{ kind: "prose", text }];
+    return splitProtectedSpans(text);
   }
 
   const segments: TextSegment[] = [];
@@ -129,7 +187,8 @@ function splitProseAndPreserved(text: string): TextSegment[] {
     if (original !== undefined) {
       segments.push({ kind: "preserved", text: original });
     } else {
-      segments.push({ kind: "prose", text: part });
+      // Shield tags + negations/absolutes from the backend before it sees them.
+      segments.push(...splitProtectedSpans(part));
     }
   }
 
@@ -147,6 +206,11 @@ type MessageLike = {
 /**
  * Compress a single prose string via the backend.
  * On any error, fail-open and return the original text.
+ *
+ * The uncased default model lowercases and re-spaces its output, so a raw
+ * backend reply is never stitched in directly: surviving words are mapped back
+ * to their original spans (casing) and edge whitespace the backend ate is
+ * restored, keeping newlines/spacing around preserved segments intact.
  */
 async function compressProseText(
   text: string,
@@ -156,9 +220,19 @@ async function compressProseText(
   if (!text.trim()) return { text, didCompress: false };
   try {
     const compressed = await backend(text, opts);
+    // An empty reply carries no surviving words — stitching it in would delete
+    // the segment, so treat it like any other backend failure.
+    if (typeof compressed !== "string" || !compressed.trim()) {
+      return { text, didCompress: false };
+    }
+    let out = restoreSourceCase(text, compressed);
+    const leading = text.match(/^\s*/)?.[0] ?? "";
+    const trailing = text.match(/\s*$/)?.[0] ?? "";
+    if (leading && !/^\s/.test(out)) out = leading + out;
+    if (trailing && !/\s$/.test(out)) out = out + trailing;
     // Accept only if it actually gets shorter (reject no-ops or expansions)
-    if (typeof compressed === "string" && compressed.length < text.length) {
-      return { text: compressed, didCompress: true };
+    if (out.length < text.length) {
+      return { text: out, didCompress: true };
     }
     return { text, didCompress: false };
   } catch {

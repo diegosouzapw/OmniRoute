@@ -142,7 +142,9 @@ test("v1 music generation success Response carries cost telemetry headers", asyn
       return new Response(
         JSON.stringify({
           "music-cost-1": {
-            outputs: { 7: { audio: [{ filename: "track.wav", subfolder: "out", type: "output" }] } },
+            outputs: {
+              7: { audio: [{ filename: "track.wav", subfolder: "out", type: "output" }] },
+            },
           },
         }),
         { status: 200, headers: { "content-type": "application/json" } }

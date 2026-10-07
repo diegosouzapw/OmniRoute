@@ -194,7 +194,9 @@ test("integration: opted-in claude_pro connection → fetch fires with Bearer to
   delete process.env.OMNIROUTE_WARMUP_CRON;
 });
 
-test("hard lease isolation skips an opted-in lease-only connection with zero model calls", async () => {
+test("warmup pings an opted-in lease-capable connection while its lease is FREE", async () => {
+  // #11775: an idle (FREE) lease-capable connection is ordinary capacity, so the warmup
+  // scheduler pings it like any other opted-in connection; only an ACTIVE lease isolates.
   const { startWarmupScheduler, stopWarmupScheduler } =
     await import("../../src/lib/warmupScheduler.ts");
   const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -214,9 +216,7 @@ test("hard lease isolation skips an opted-in lease-only connection with zero mod
   });
   await settingsDb.updateSettings({ claudeWarmup: { connections: { [conn.id]: true } } });
 
-  const mock = installMockFetch(() => {
-    throw new Error("unexpected model warmup call");
-  });
+  const mock = installMockFetch(() => new Response("{}", { status: 200 }));
   process.env.OMNIROUTE_WARMUP_ENABLED = "1";
   process.env.OMNIROUTE_WARMUP_CRON = "*/1 * * * *";
   startWarmupScheduler();
@@ -224,7 +224,7 @@ test("hard lease isolation skips an opted-in lease-only connection with zero mod
   stopWarmupScheduler();
   mock.restore();
 
-  assert.equal(mock.calls.length, 0);
+  assert.ok(mock.calls.length >= 1, "FREE lease-capable connection is warmed like any other");
   delete process.env.OMNIROUTE_WARMUP_ENABLED;
   delete process.env.OMNIROUTE_WARMUP_CRON;
 });

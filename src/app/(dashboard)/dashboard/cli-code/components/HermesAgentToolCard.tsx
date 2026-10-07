@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
 
@@ -19,11 +19,6 @@ const HERMES_ROLES: Role[] = [
   },
   { id: "vision", labelKey: "hermesRoleVision", descriptionKey: "hermesRoleVisionDesc" },
   {
-    id: "web_extract",
-    labelKey: "hermesRoleWebExtract",
-    descriptionKey: "hermesRoleWebExtractDesc",
-  },
-  {
     id: "compression",
     labelKey: "hermesRoleCompression",
     descriptionKey: "hermesRoleCompressionDesc",
@@ -38,6 +33,7 @@ const HERMES_ROLES: Role[] = [
     labelKey: "hermesRoleApproval",
     descriptionKey: "hermesRoleApprovalDesc",
   },
+  { id: "review", labelKey: "hermesRoleReview", descriptionKey: "hermesRoleReviewDesc" },
   { id: "mcp", labelKey: "hermesRoleMcp", descriptionKey: "hermesRoleMcpDesc" },
   {
     id: "title_generation",
@@ -77,6 +73,16 @@ const HERMES_ROLES: Role[] = [
     labelKey: "hermesRoleBackgroundReview",
     descriptionKey: "hermesRoleBackgroundReviewDesc",
   },
+  {
+    id: "moa_reference",
+    labelKey: "hermesRoleMoaReference",
+    descriptionKey: "hermesRoleMoaReferenceDesc",
+  },
+  {
+    id: "moa_aggregator",
+    labelKey: "hermesRoleMoaAggregator",
+    descriptionKey: "hermesRoleMoaAggregatorDesc",
+  },
 ];
 
 const HERMES_AGENT_ZERO_CONFIG_PROVIDERS = ["opencode"];
@@ -109,12 +115,14 @@ export default function HermesAgentToolCard({
   // those providers never surface in the Hermes Agent role picker (#7151).
   const [modelAliases, setModelAliases] = useState({});
 
-  // Track whether we have already seeded from batchStatus on this expand
-  const seededFromBatchRef = useRef(false);
+  // Render-stable "now" snapshot for the relative-time chip — Date.now() is
+  // impure during render (react-hooks/purity), so capture it once via a lazy
+  // state initializer. Minute-level granularity makes the frozen value fine.
+  const [nowTs] = useState(() => Date.now());
 
   function formatTimeSince(iso: string): string {
     const then = new Date(iso).getTime();
-    const diff = Date.now() - then;
+    const diff = nowTs - then;
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     if (days > 0) return t("daysAgoShort", { count: days });
@@ -143,37 +151,7 @@ export default function HermesAgentToolCard({
     }
   }, []);
 
-  useEffect(() => {
-    if (!isExpanded) {
-      // Reset seed flag when collapsed so it can seed again on next expand
-      seededFromBatchRef.current = false;
-      setPreviewYaml(null);
-      setFirstSetupAt(null);
-      return;
-    }
-    // Phase 3: Seed from detector snapshot (batchStatus) for instant UI — once per expand.
-    // NOTE: currentRoles is intentionally NOT a dependency. loadCurrentConfig() below sets
-    // currentRoles to a fresh object on every fetch; if currentRoles were a dep, the effect
-    // would re-fire → refetch → setCurrentRoles → re-fire … an infinite loop. On the detail
-    // page isExpanded is hardcoded true, so that loop spun forever (the "loading forever" +
-    // console spam of /api/cli-tools/hermes-agent-settings). We read currentRoles only via a
-    // functional update so the emptiness guard sees the latest value without subscribing to it.
-    if (!seededFromBatchRef.current && batchStatus?.hermesAgentRoles) {
-      seededFromBatchRef.current = true;
-      setCurrentRoles((prev) => {
-        if (Object.keys(prev).length > 0) return prev;
-        const seeded: Record<string, any> = {};
-        Object.entries(batchStatus.hermesAgentRoles).forEach(([role, info]: [string, any]) => {
-          seeded[role] = { model: info.model, provider: info.provider };
-        });
-        return seeded;
-      });
-    }
-    loadCurrentConfig();
-    fetchModelAliases();
-  }, [isExpanded, batchStatus, loadCurrentConfig]);
-
-  const fetchModelAliases = async () => {
+  const fetchModelAliases = useCallback(async () => {
     try {
       const res = await fetch("/api/models/alias");
       const data = await res.json();
@@ -181,6 +159,40 @@ export default function HermesAgentToolCard({
     } catch (error) {
       console.warn("Error fetching model aliases:", error);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await Promise.all([loadCurrentConfig(), fetchModelAliases()]);
+    })();
+  }, [isExpanded, loadCurrentConfig, fetchModelAliases]);
+
+  // Phase 3: seed the visible role data from the detector snapshot
+  // (batchStatus) for instant UI while /api/cli-tools/hermes-agent-settings is
+  // in flight — derived during render instead of copied into state
+  // (react-hooks/set-state-in-effect). Freshly loaded roles always win once
+  // loadCurrentConfig() resolves and populates currentRoles.
+  const seededRoles = useMemo(() => {
+    const seeded: Record<string, any> = {};
+    Object.entries(batchStatus?.hermesAgentRoles || {}).forEach(([role, info]: [string, any]) => {
+      seeded[role] = { model: info.model, provider: info.provider };
+    });
+    return seeded;
+  }, [batchStatus]);
+  const displayRoles = Object.keys(currentRoles).length > 0 ? currentRoles : seededRoles;
+
+  const handleToggle = () => {
+    // Collapsing: drop the stale preview and setup timestamp (was done by a
+    // collapse effect — moved into the toggle handler so no setState runs
+    // synchronously inside an effect body).
+    if (isExpanded) {
+      setPreviewYaml(null);
+      setFirstSetupAt(null);
+    }
+    onToggle();
   };
 
   const setRoleSelection = (roleId: string, model: string, provider = "OmniRoute") => {
@@ -211,7 +223,7 @@ export default function HermesAgentToolCard({
         model: sel.model,
       }));
     } else {
-      payloadSelections = Object.entries(currentRoles)
+      payloadSelections = Object.entries(displayRoles)
         .filter(([_, info]) => info && info.model)
         .map(([role, info]) => ({ role, model: info.model }));
     }
@@ -334,7 +346,10 @@ export default function HermesAgentToolCard({
   return (
     <Card padding="sm" className="overflow-hidden">
       {/* Collapsed header — exact match to OpenClaw / Kilo / other Auto-Configured entries */}
-      <div className="flex items-center justify-between hover:cursor-pointer" onClick={onToggle}>
+      <div
+        className="flex items-center justify-between hover:cursor-pointer"
+        onClick={handleToggle}
+      >
         <div className="flex items-center gap-3">
           <div className="size-8 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[22px] text-text-muted">terminal</span>
@@ -355,9 +370,7 @@ export default function HermesAgentToolCard({
                   </span>
                 )}
               </h3>
-              {(Object.keys(currentRoles).length > 0 ||
-                Object.keys(selections).length > 0 ||
-                Object.keys(batchStatus?.hermesAgentRoles || {}).length > 0) && (
+              {(Object.keys(displayRoles).length > 0 || Object.keys(selections).length > 0) && (
                 <span className="text-[10px] px-1.5 py-px rounded bg-emerald-500/10 text-emerald-600">
                   {t("hermesConfiguredRoles", {
                     configured: configuredRolesCount,
@@ -416,7 +429,7 @@ export default function HermesAgentToolCard({
           {/* Roles list — flat consistent rows (no nested Card.Section boxes) */}
           <div className="flex flex-col gap-2">
             {HERMES_ROLES.map((role) => {
-              const current = currentRoles[role.id];
+              const current = displayRoles[role.id];
               const sel = selections[role.id];
 
               // displayed model prefers pending user choice, falls back to real current from YAML
@@ -550,7 +563,7 @@ export default function HermesAgentToolCard({
               disabled={
                 isSaving ||
                 isLoading ||
-                (Object.keys(selections).length === 0 && Object.keys(currentRoles).length === 0)
+                (Object.keys(selections).length === 0 && Object.keys(displayRoles).length === 0)
               }
               loading={isPreviewLoading}
             >

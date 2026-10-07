@@ -39,6 +39,11 @@ export const CAVEMAN_INSTRUCTION_BY_LANGUAGE = {
     full: `Responda seco e compacto. Frases curtas OK. Preserve todo conteudo tecnico, codigo, erros, URLs e identificadores exatamente. ${SHARED_BOUNDARIES}`,
     ultra: `Responda ultra compacto. Use prosa tecnica curta e abreviacoes comuns como DB/auth/config/req/res/fn. Nunca abrevie simbolos de codigo, APIs, erros, URLs ou identificadores. ${SHARED_BOUNDARIES}`,
   },
+  hu: {
+    lite: `Válaszolj tömören. Hagyd el a tölteléket, udvariaskodást és bizonytalanságot. Tartsd meg a teljes mondatokat, technikai kifejezéseket, kódot, hibákat, URL-eket és azonosítókat pontosan. ${SHARED_BOUNDARIES}`,
+    full: `Válaszolj tömören, mint egy okos barlanglakó. Hagyd el a tölteléket, udvariaskodást és körülírást. Rövid mondatok és töredékek rendben. Tartsd meg minden technikai tartalmat, kódot, hibát, URL-t és azonosítót pontosan. ${SHARED_BOUNDARIES}`,
+    ultra: `Válaszolj ultra tömören. Maximális tömörítés, távirati stílus. Használj gyakori rövidítéseket (DB/auth/config/req/res/fn/impl), és hagyd el a felesleges kötőszavakat. Soha ne rövidíts kódszimbólumokat, API-neveket, hibaüzeneteket, URL-eket vagy azonosítókat. ${SHARED_BOUNDARIES}`,
+  },
   es: {
     lite: `Responde conciso. Quita relleno, cortesias y dudas. Conserva terminos tecnicos, codigo, errores, URLs e identificadores exactos. ${SHARED_BOUNDARIES}`,
     full: `Responde seco y compacto. Fragmentos OK. Conserva todo el contenido tecnico, codigo, errores, URLs e identificadores exactos. ${SHARED_BOUNDARIES}`,
@@ -68,6 +73,21 @@ export const CAVEMAN_INSTRUCTION_BY_LANGUAGE = {
     lite: `Trả lời súc tích. Bỏ từ đệm, sáo rỗng, rào đón. Giữ nguyên câu hoàn chỉnh, thuật ngữ kỹ thuật, code, lỗi, URL và định danh. ${SHARED_BOUNDARIES}`,
     full: `Trả lời cộc lốc như người tối cổ thông minh. Bỏ mạo từ, từ đệm, sáo rỗng, rào đón. Chấp nhận câu rút gọn. Dùng từ đồng nghĩa ngắn. Giữ nguyên mọi nội dung kỹ thuật, code, lỗi, URL và định danh. ${SHARED_BOUNDARIES}`,
     ultra: `Trả lời cực kỳ cộc lốc. Nén tối đa. Như điện tín. Viết tắt (DB/auth/config/req/res/fn/impl), bỏ liên từ, dùng mũi tên cho quan hệ nhân quả (X → Y). Một từ nếu một từ là đủ. Không bao giờ viết tắt ký hiệu code, tên API, chuỗi lỗi, URL hoặc định danh. ${SHARED_BOUNDARIES}`,
+  },
+  it: {
+    lite: `Rispondi conciso. Togli riempitivi, convenevoli e incertezze. Mantieni termini tecnici, codice, errori, URL e identificatori esatti. ${SHARED_BOUNDARIES}`,
+    full: `Rispondi secco e compatto. Frammenti OK. Mantieni tutto il contenuto tecnico, codice, errori, URL e identificatori esatti. ${SHARED_BOUNDARIES}`,
+    ultra: `Rispondi ultra compatto. Usa prosa tecnica breve e abbreviazioni comuni come DB/auth/config/req/res/fn. Mai abbreviare simboli di codice, API, errori, URL o identificatori. ${SHARED_BOUNDARIES}`,
+  },
+  ru: {
+    lite: `Отвечай кратко. Убирай воду, любезности и оговорки. Технические термины, код, ошибки, URL и идентификаторы сохраняй точно. ${SHARED_BOUNDARIES}`,
+    full: `Отвечай сухо и сжато. Фрагменты допустимы. Всё техническое содержимое, код, ошибки, URL и идентификаторы сохраняй точно. ${SHARED_BOUNDARIES}`,
+    ultra: `Отвечай ультракратко. Короткая техническая проза и общепринятые сокращения вроде DB/auth/config/req/res/fn. Никогда не сокращай символы кода, API, строки ошибок, URL или идентификаторы. ${SHARED_BOUNDARIES}`,
+  },
+  zh: {
+    lite: `回答要简洁。去掉废话、客套和含糊措辞。技术术语、代码、错误、URL 和标识符保持原样。${SHARED_BOUNDARIES}`,
+    full: `回答干脆紧凑。可用短句。所有技术内容、代码、错误、URL 和标识符保持原样。${SHARED_BOUNDARIES}`,
+    ultra: `回答极度紧凑。用简短技术表述和常见缩写如 DB/auth/config/req/res/fn。绝不缩写代码符号、API 名、错误串、URL 或标识符。${SHARED_BOUNDARIES}`,
   },
 } as const;
 
@@ -150,12 +170,14 @@ export function applyCavemanOutputMode(
 
   // Check idempotency before bypass so the marker in an already-injected system
   // message doesn't trigger a false-positive bypass (e.g. SHARED_BOUNDARIES keywords).
-  const alreadyApplied = messages.some(
-    (message) =>
-      message.role === "system" &&
-      typeof message.content === "string" &&
-      message.content.includes(CAVEMAN_OUTPUT_MARKER)
-  );
+  const alreadyApplied =
+    systemFieldIncludesMarker(body.system, CAVEMAN_OUTPUT_MARKER) ||
+    messages.some(
+      (message) =>
+        message.role === "system" &&
+        typeof message.content === "string" &&
+        message.content.includes(CAVEMAN_OUTPUT_MARKER)
+    );
   if (alreadyApplied) return { body, applied: false, skippedReason: "already_applied" };
 
   if (config.autoClarity !== false) {
@@ -164,17 +186,92 @@ export function applyCavemanOutputMode(
   }
 
   const instruction = buildCavemanOutputInstruction(config, language);
-  const nextMessages = [...messages];
-  const first = nextMessages[0];
+  return {
+    body: { ...body, ...placeSystemInstruction(messages, body.system, instruction) },
+    applied: true,
+  };
+}
 
+/**
+ * Minimal message shape accepted by {@link placeSystemInstruction}. Both the
+ * legacy caveman injector and the unified output-styles injector funnel their
+ * instruction placement through it.
+ */
+interface InjectableMessage {
+  role?: unknown;
+  content?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * Decide where an injected system instruction lands on a chat body without
+ * ever creating a new `system` message at messages[0].
+ *
+ * Anthropic-shaped bodies carry the initial system prompt in the top-level
+ * `system` field (string or content-block array) and the claude passthrough
+ * forwards `messages[]` upstream unchanged, so a synthetic system entry at
+ * index 0 is rejected with "messages.0: use the top-level 'system' parameter
+ * for the initial system prompt" (#12584). Placement preference:
+ *
+ * 1. Leading string-content system message: merge in place (legacy behavior).
+ * 2. Top-level `system` string/array: merge there (Anthropic contract).
+ * 3. Any later string-content system message: merge in place.
+ * 4. Append a trailing system message (valid at any position for
+ *    OpenAI-shaped bodies; hoisted by the claude system-role extraction).
+ *
+ * Returns a partial body patch (`messages` and/or `system`) to spread over
+ * the original body.
+ */
+export function placeSystemInstruction<M extends InjectableMessage>(
+  messages: M[],
+  system: unknown,
+  instruction: string
+): { messages?: Array<M | { role: string; content: string }>; system?: unknown } {
+  const first = messages[0];
   if (first?.role === "system" && typeof first.content === "string") {
-    nextMessages[0] = {
-      ...first,
-      content: `${first.content.trim()}\n\n${instruction}`,
-    };
-  } else {
-    nextMessages.unshift({ role: "system", content: instruction });
+    const nextMessages: Array<M | { role: string; content: string }> = [...messages];
+    nextMessages[0] = { ...first, content: `${first.content.trim()}\n\n${instruction}` };
+    return { messages: nextMessages };
   }
+  if (typeof system === "string") {
+    const trimmed = system.trim();
+    return { system: trimmed ? `${trimmed}\n\n${instruction}` : instruction };
+  }
+  if (Array.isArray(system)) {
+    return { system: [...system, { type: "text", text: instruction }] };
+  }
+  const mergeIdx = messages.findIndex(
+    (message) => message?.role === "system" && typeof message.content === "string"
+  );
+  if (mergeIdx >= 0) {
+    const nextMessages: Array<M | { role: string; content: string }> = [...messages];
+    const target = messages[mergeIdx];
+    nextMessages[mergeIdx] = {
+      ...target,
+      content: `${(target.content as string).trim()}\n\n${instruction}`,
+    };
+    return { messages: nextMessages };
+  }
+  if (messages.length === 0) {
+    // #12584: an empty array has no non-zero index to append at; route through
+    // `system` instead of creating messages[0].
+    return { system: instruction };
+  }
+  return { messages: [...messages, { role: "system", content: instruction }] };
+}
 
-  return { body: { ...body, messages: nextMessages }, applied: true };
+/**
+ * True when an idempotency marker is already present in a top-level `system`
+ * field (string or Anthropic content-block array), so instruction injection
+ * that targets that field is not re-applied on retries or follow-up turns.
+ */
+export function systemFieldIncludesMarker(system: unknown, marker: string): boolean {
+  if (typeof system === "string") return system.includes(marker);
+  if (Array.isArray(system)) {
+    return system.some((block) => {
+      const text = (block as { text?: unknown } | null | undefined)?.text;
+      return typeof text === "string" && text.includes(marker);
+    });
+  }
+  return false;
 }

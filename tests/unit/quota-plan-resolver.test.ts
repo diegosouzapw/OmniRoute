@@ -55,9 +55,12 @@ test("planResolver: DB plan present → returns DB plan (source=manual)", async 
   const { resolvePlan } = await import("../../src/lib/quota/planResolver.ts");
 
   // Seed a DB override
-  providerPlansDb.upsertPlan("conn-123", "openai", [
-    { unit: "tokens", window: "hourly", limit: 10_000 },
-  ], "manual");
+  providerPlansDb.upsertPlan(
+    "conn-123",
+    "openai",
+    [{ unit: "tokens", window: "hourly", limit: 10_000 }],
+    "manual"
+  );
 
   const plan = resolvePlan("conn-123", "openai");
   assert.equal(plan.source, "manual");
@@ -95,9 +98,12 @@ test("planResolver: DB plan overrides catalog for same provider", async () => {
   const { resolvePlan } = await import("../../src/lib/quota/planResolver.ts");
 
   // codex is in catalog, but we add a DB override
-  providerPlansDb.upsertPlan("conn-codex-override", "codex", [
-    { unit: "requests", window: "daily", limit: 999 },
-  ], "manual");
+  providerPlansDb.upsertPlan(
+    "conn-codex-override",
+    "codex",
+    [{ unit: "requests", window: "daily", limit: 999 }],
+    "manual"
+  );
 
   const plan = resolvePlan("conn-codex-override", "codex");
   assert.equal(plan.source, "manual");

@@ -17,8 +17,8 @@
 // sarvam+plamo in regional) to 193, then #8170 (inception/typhoon — inception in frontier-labs,
 // typhoon in regional) to 195, then Firecrawl dual search+fetch under SEARCH_PROVIDERS.firecrawl
 // (removed specialty-media duplicate) to 194, #8861 (Xiaomi MiMo Token Plan, regional) to 195, and
-// the Cheaper Inference gateway (OSS-sponsor reseller, gateways family) to 198 (UnoRouter #9009,
-// Raycast Pro #8895), then later additions to 199; retiring GitHub Models brings it to 198.
+// the Cheaper Inference gateway (OSS-sponsor reseller, gateways family) to 198 (UnoRouter #9009),
+// then later additions to 199; retiring GitHub Models brings it to 198.
 // The v3.8.50 free-tier gateway waves (#9631 registry cycle, waves 2-5, #9210 phase 3) grew the
 // gateways family to 228 measured on the tip; Puter retired (#10210) and chatanywhere restored
 // (base-reds round 3, #9985) are both included in that measurement; Cursor API (specialty-media,
@@ -26,14 +26,27 @@
 // merge-train batch — independently bumped the gateways family too, landing at 231; Freebuff
 // (gateways, #10531) brings it to 232. #8864 moves uncloseai (gateways family) into
 // NOAUTH_PROVIDERS, dropping the APIKEY_PROVIDERS count to 231. Logfare (gateways, #10987) brings it back to 232.
-// #11176 removes hackclub (gateways family), landing at 231. The Volcano Ark plan providers
-// (volcengine-agent-plan + volcengine-coding-plan, regional family, commit d732cf615) bring it
-// to 233 - measured on the tip: merged 233 keys, 233 unique, family sum 233 with an empty
-// cross-family duplicate set, so the strict partition is intact.
+// #11176 removes hackclub (gateways family), landing at 231.
+// The v3.8.50 back-merge (f95b03d) adds Synthetic (specialty-media) and
+// Kilo Gateway (gateways); #11434 adds volcengine-agent-plan and
+// volcengine-coding-plan (regional family) — both land at 233.
+// release/v3.8.51 adds Opper (gateways, #11629) and 1min.ai (gateways, #11631) — lands at 235;
+// Perplexity Agent API (#12103) makes it 236;
+// UC Direct (#11513, uncensored.com metered Developer API) adds one frontier-labs entry — 237;
+// SeekAi (#11786, QuantumNous New-API gateway) adds one gateways entry — 238.
+// GreenPT (#13024, 2b9e7fb3e) and EURouter (#13025, 22473dee5) each add one gateways entry — 240.
+// Agnes AI China (#13399, cdcde97c7) adds one apikey/regional entry — 241.
+// xKiro (#12648, 83fa4328f) adds one apikey entry — 242.
+// Lyceum (pay-per-use OpenAI-compatible gateway, 2026-09-20) adds one apikey entry — 243.
+// Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
+// OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
+// Retiring suno (#14224, 4af4937e) removes one specialty-media apikey entry — 241.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
+
+const APIKEY_PROVIDER_COUNT = 241;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
@@ -58,12 +71,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 233 entries (no loss / no dup)", async () => {
+test(`APIKEY_PROVIDERS merges the 6 family files into ${APIKEY_PROVIDER_COUNT} entries (no loss / no dup)`, async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 233);
-  assert.equal(new Set(keys).size, 233, "duplicate keys after spread-merge");
+  assert.equal(keys.length, APIKEY_PROVIDER_COUNT);
+  assert.equal(new Set(keys).size, APIKEY_PROVIDER_COUNT, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 233.
+  // strict partition (every provider in exactly one), so the sum must be exactly APIKEY_PROVIDER_COUNT.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -83,7 +96,11 @@ test("APIKEY_PROVIDERS merges the 6 family files into 233 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 233, "families must partition all 233 providers");
+  assert.equal(
+    famTotal,
+    APIKEY_PROVIDER_COUNT,
+    `families must partition all ${APIKEY_PROVIDER_COUNT} providers`
+  );
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

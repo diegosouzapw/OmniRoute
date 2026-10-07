@@ -151,6 +151,7 @@ test("shouldProtectOriginalFirst covers auto, priority, fill-first, and lkgp", (
 
 test("shouldProtectOriginalFirst still covers the pre-existing quota-share/weighted/sticky/auto-router cases", () => {
   assert.equal(shouldProtectOriginalFirst(false, false, "quota-share"), true);
+  assert.equal(shouldProtectOriginalFirst(false, false, "quota-weighted"), true);
   assert.equal(shouldProtectOriginalFirst(false, false, "weighted"), true);
   assert.equal(shouldProtectOriginalFirst(true, false, "round-robin"), true);
   assert.equal(shouldProtectOriginalFirst(false, true, "round-robin"), true);

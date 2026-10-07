@@ -1,10 +1,7 @@
 {
   "_comment": "Catraca de test-discovery (check-test-discovery.mjs). Cada entrada e um arquivo de teste que NENHUM runner coleta (ele nunca roda) — divida congelada na auditoria 6A.1 (2026-06-09; 195 originais, 135 religados no node runner em 6A.1c). So pode DIMINUIR: religue o teste (ajustando o glob do runner ou movendo o arquivo) e remova a entrada via --update. NAO adicione novos orfaos — corrija o runner.",
-  "_remaining_13": "13 orfaos restantes: 2 testes de API em settings + 1 snapshot de quota do DB; 4 golden-set + 1 benchmark + 1 teste live + 1 stress (deliberadamente manuais — decidir runner/gating); 3 integration/services (gated RUN_SERVICES_INT=1, sem runner CI).",
+  "_remaining_10": "10 orfaos restantes: 4 golden-set + 1 benchmark + 1 teste live + 1 stress (deliberadamente manuais — decidir runner/gating); 3 integration/services (gated RUN_SERVICES_INT=1, sem runner CI).",
   "orphans": [
-    "src/app/api/settings/__tests__/memory.test.ts",
-    "src/app/api/settings/__tests__/settings.test.ts",
-    "src/lib/db/__tests__/quotaSnapshots.test.ts",
     "tests/benchmarks/pipeline-accuracy.test.ts",
     "tests/golden-set/compression-caveman-v2.test.ts",
     "tests/golden-set/compression-quality.test.ts",
@@ -13,7 +10,6 @@
     "tests/integration/services/cliproxy-coexistence.test.ts",
     "tests/integration/services/full-lifecycle.int.test.ts",
     "tests/integration/services/route-guard-services.int.test.ts",
-    "tests/live/deepseek-web-live.test.ts",
-    "tests/theoldllm-stress.test.ts"
+    "tests/live/deepseek-web-live.test.ts"
   ]
 }

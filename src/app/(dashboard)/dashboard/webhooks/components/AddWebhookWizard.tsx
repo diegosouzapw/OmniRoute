@@ -92,10 +92,13 @@ export function AddWebhookWizard({
 
   useEffect(() => {
     if (!isOpen) return;
-    setStep(1);
-    setState(stateFromWebhook(editingWebhook));
-    setError(null);
-    setCreatedId(editingWebhook?.id ?? null);
+    void (async () => {
+      await Promise.resolve();
+      setStep(1);
+      setState(stateFromWebhook(editingWebhook));
+      setError(null);
+      setCreatedId(editingWebhook?.id ?? null);
+    })();
   }, [editingWebhook, isOpen]);
 
   const handleClose = () => {

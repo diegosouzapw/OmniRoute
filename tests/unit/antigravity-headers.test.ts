@@ -95,8 +95,13 @@ test("OAuth User-Agent selection keeps IDE and CLI identities independent", () =
   assert.match(getAntigravityOAuthUserAgent("cli"), /^antigravity\/cli\/1\.2\.0 /);
 });
 
-test("loadCodeAssist body metadata remains ideType only", () => {
-  assert.deepEqual(getAntigravityLoadCodeAssistMetadata(), { ideType: "ANTIGRAVITY" });
-  assert.equal("platform" in getAntigravityLoadCodeAssistMetadata(), false);
-  assert.equal("pluginType" in getAntigravityLoadCodeAssistMetadata(), false);
+test("loadCodeAssist body metadata sends numeric protobuf-JSON enums, not a bare ideType string", () => {
+  // Google's backend 403s loadCodeAssist/onboardUser when ideType is sent as
+  // the string "ANTIGRAVITY" with platform/pluginType omitted — verified via
+  // a live side-by-side against 9router (same account, same host) using the
+  // full enum shape below, which succeeded. See antigravityHeaders.ts for
+  // the full incident note.
+  const metadata = getAntigravityLoadCodeAssistMetadata();
+  assert.deepEqual(metadata, { ideType: 9, platform: metadata.platform, pluginType: 2 });
+  assert.equal(typeof metadata.platform, "number");
 });

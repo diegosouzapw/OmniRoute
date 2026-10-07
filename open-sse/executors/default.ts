@@ -11,11 +11,12 @@ import {
   joinClaudeCodeCompatibleUrl,
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
-import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  mergeClientAnthropicBeta,
+  applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
+  maybeAppendSkillsBeta,
 } from "../config/anthropicHeaders.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -40,7 +41,6 @@ import {
   normalizeWatsonxChatUrl,
   normalizeOciChatUrl,
   normalizeSapChatUrl,
-  normalizeXiaomiMimoChatUrl,
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
@@ -61,12 +61,89 @@ import {
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
-import { normalizePoolConfig } from "./default/poolConfig.ts";
+import { normalizePoolConfig, rejectStrictPool } from "./default/poolConfig.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { xiaomiAlternateUrl, xiaomiMimoChatUrl } from "./default/xiaomiTokenPlan.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
+const PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS = 4096;
+
+function defaultPerplexityAgentMaxOutputTokens<T>(body: T): T {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+  const record = body as Record<string, unknown>;
+  if (
+    record.max_output_tokens !== undefined ||
+    record.max_completion_tokens !== undefined ||
+    record.max_tokens !== undefined
+  ) {
+    return body;
+  }
+
+  return {
+    ...record,
+    max_output_tokens: PERPLEXITY_AGENT_DEFAULT_MAX_OUTPUT_TOKENS,
+  } as T;
+}
+
+const ZAI_GLM_53_OPENAI_MODEL_PATTERN = /^glm-5\.3(?:-flash)?$/i;
+const ZAI_GLM_53_EFFORT_MODEL_PATTERN = /^(glm-5\.3(?:-flash)?)-(low|high|max)$/i;
+
+function hasTools(body: unknown): boolean {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+  const tools = (body as Record<string, unknown>).tools;
+  return Array.isArray(tools) && tools.length > 0;
+}
+
+function applyZaiGlm53OpenAIDefaults<T>(
+  provider: string,
+  model: string,
+  body: T,
+  stream: boolean
+): T {
+  if (provider !== "zai" && provider !== "glm-coding-apikey") return body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+  const record = body as Record<string, unknown>;
+  const outboundModel = typeof record.model === "string" ? record.model : model;
+  const effortMatch = outboundModel.match(ZAI_GLM_53_EFFORT_MODEL_PATTERN);
+  const baseModel = effortMatch?.[1] ?? outboundModel;
+  if (!ZAI_GLM_53_OPENAI_MODEL_PATTERN.test(baseModel)) return body;
+
+  let next: Record<string, unknown> | null = null;
+  const mutate = (): Record<string, unknown> => (next ??= { ...record });
+
+  const editableForEffort = mutate();
+  if (effortMatch) editableForEffort.model = baseModel;
+  if (record.reasoning_effort === undefined && record.reasoning === undefined) {
+    // GLM-5.3 always reasons (thinking cannot be disabled upstream), so a
+    // request with no effort — Pi "off", plain API calls — maps to the floor
+    // tier "low" per the declared-tier clamp convention (none/minimal → low),
+    // not the vendor default "max". Explicit max stays opt-in via
+    // reasoning_effort or the -max model aliases; xhigh normalizes to max in
+    // the shared sanitizer via the declared tiers.
+    editableForEffort.reasoning_effort = (effortMatch?.[2] ?? "low").toLowerCase();
+  }
+
+  const existingThinking =
+    record.thinking && typeof record.thinking === "object" && !Array.isArray(record.thinking)
+      ? (record.thinking as Record<string, unknown>)
+      : null;
+  const editableForThinking = mutate();
+  editableForThinking.thinking = {
+    ...(existingThinking || {}),
+    type: "enabled",
+    clear_thinking: false,
+  };
+
+  if (stream && hasTools(record) && record.tool_stream === undefined) {
+    mutate().tool_stream = true;
+  }
+
+  return (next ?? body) as T;
+}
 
 function normalizeNvidiaToolCallId(id: unknown): unknown {
   if (id === null || id === undefined) return id;
@@ -155,7 +232,7 @@ export class DefaultExecutor extends BaseExecutor {
     void urlIndex;
     if (this.provider?.startsWith?.("openai-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.openai.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
@@ -168,7 +245,7 @@ export class DefaultExecutor extends BaseExecutor {
     }
     if (this.provider?.startsWith?.("anthropic-compatible-")) {
       const psd = credentials?.providerSpecificData;
-      const baseUrl = psd?.baseUrl || "https://api.anthropic.com/v1";
+      const baseUrl = requireCompatibleBaseUrl(this.provider, psd); // #13452
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (isClaudeCodeCompatible(this.provider)) {
         return joinClaudeCodeCompatibleUrl(
@@ -190,7 +267,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (alternate?.baseUrl && !hasManualBaseUrl) {
         // Operator's manual override (#6147) keeps its own semantics and falls
         // through to the provider-specific handling below.
-        const normalized = alternate.baseUrl.replace(/\/$/, "");
+        const normalized = xiaomiAlternateUrl(this.provider, alternate.baseUrl, credentials);
         // A model-scoped alternate (the Gemini protocol: `{base}/{model}:generateContent`)
         // builds its own URL — chatPath/urlSuffix are constants and cannot carry the model.
         if (alternate.urlBuilder) return alternate.urlBuilder(normalized, model, stream);
@@ -198,6 +275,12 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
     switch (this.provider) {
+      case "muse-code": {
+        const baseUrl = normalizeOpenAIChatUrl(this.resolveBaseUrl(credentials));
+        return baseUrl.replace(/\/(?:chat\/completions|chat)$/, "/responses");
+      }
+      case "perplexity-agent":
+        return this.config.baseUrl;
       case "openai": {
         // #5842: responses-only models (o1-pro / gpt-5.x-pro) 404 on
         // /v1/chat/completions ("only supported in v1/responses"). Route them to
@@ -281,10 +364,10 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeXiaomiMimoChatUrl(baseUrl);
-      }
+      case "xiaomi-mimo-token-plan":
+        return xiaomiMimoChatUrl(this.provider, credentials, () =>
+          this.resolveBaseUrl(credentials)
+        );
       case "snowflake": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSnowflakeChatUrl(baseUrl);
@@ -395,7 +478,9 @@ export class DefaultExecutor extends BaseExecutor {
     credentials,
     stream = true,
     clientHeaders?: Record<string, string> | null,
-    model?: string | null
+    model?: string | null,
+    _health?: unknown,
+    body?: unknown
   ) {
     const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
 
@@ -501,6 +586,15 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
+        // buildClinepassHeaders() (called below via isClinepass=true) is the single
+        // source of truth for the OAuth-vs-BYOK decision, keyed off
+        // credentials.accessToken — do not re-decide it here off credentials.authType,
+        // which can diverge from the real credential shape (#11828 review).
+        if (credentials?.accessToken) {
+          console.debug("[Auth] Using OAuth token for Cline/Kilo Code request.");
+        } else {
+          console.debug("[Auth] Using direct API key for Cline/Kilo Code request.");
+        }
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
       case "cline":
@@ -600,19 +694,18 @@ export class DefaultExecutor extends BaseExecutor {
       // 400 "Tool reference not found". Allowlist-merge preserves it without
       // forwarding betas the backend rejects.
       const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
-      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
-      if (betaKey && clientBeta) {
-        headers[betaKey] = mergeClientAnthropicBeta(
-          headers[betaKey],
-          clientBeta,
-          undefined,
-          // Gate the client-negotiated context-1m beta on the RESOLVED target model:
-          // combo/fallback can route a request negotiated for a [1m] sibling onto a
-          // model that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
-          model
-        );
-      }
+      // `model` gates the client-negotiated context-1m beta on the RESOLVED target:
+      // combo/fallback can route a request negotiated for a [1m] sibling onto a model
+      // that does not qualify (e.g. Haiku), which Anthropic rejects (#10119).
+      // `body` gates skills-2025-10-02 on presence of code_execution tool (#14200).
+      applyClientAnthropicBeta(headers, clientBeta, {
+        seedWhenAbsent: this.provider?.startsWith?.("anthropic-compatible-") === true,
+        model,
+        body,
+      });
     }
+
+    maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));
 
     normalizeAnthropicHeaderVariants(headers);
 
@@ -639,8 +732,7 @@ export class DefaultExecutor extends BaseExecutor {
 
     const record = body as Record<string, unknown>;
     const rf = record.response_format as
-      | { type?: string; json_schema?: { schema?: unknown } }
-      | undefined;
+      { type?: string; json_schema?: { schema?: unknown } } | undefined;
     if (!rf) return body;
 
     // openai-compatible-* providers accept json_object natively — only the
@@ -725,6 +817,9 @@ export class DefaultExecutor extends BaseExecutor {
 
     withDefaults = this.applyJsonSchemaFallback(withDefaults);
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
+    if (this.provider === "perplexity-agent") {
+      withDefaults = defaultPerplexityAgentMaxOutputTokens(withDefaults);
+    }
 
     if (this.provider === "nvidia") {
       normalizeNvidiaToolCallIds(withDefaults);
@@ -747,6 +842,38 @@ export class DefaultExecutor extends BaseExecutor {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
       delete withoutClientMetadata.client_metadata;
       withDefaults = withoutClientMetadata;
+    }
+    // Nous Research inference gateway (portal.nousresearch.com) requires a top-level
+    // `tags` array containing at least a `user=` item on raw API-key requests (#11861).
+    // Without `tags`, upstream returns 400 "missing tags".
+    // Without `user=...`, upstream returns 400 "missing user tag".
+    if (
+      this.provider === "nous-research" &&
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults)
+    ) {
+      const record = withDefaults as Record<string, unknown>;
+      const extraBody = record.extra_body as Record<string, unknown> | undefined;
+
+      const rawTags = Array.isArray(record.tags)
+        ? (record.tags as unknown[])
+        : Array.isArray(extraBody?.tags)
+          ? (extraBody.tags as unknown[])
+          : [];
+
+      const stringTags = rawTags.filter(
+        (t): t is string => typeof t === "string" && t.trim().length > 0
+      );
+
+      const hasUserTag = stringTags.some((t) => t.startsWith("user="));
+      if (!hasUserTag) {
+        const username =
+          typeof record.user === "string" && record.user.trim() ? record.user.trim() : "omniroute";
+        record.tags = [...stringTags, `user=${username}`];
+      } else {
+        record.tags = stringTags;
+      }
     }
 
     // 9router#1649: Mistral's API returns 422 (extra_forbidden) when an
@@ -841,7 +968,9 @@ export class DefaultExecutor extends BaseExecutor {
 
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
       if (targetFormat === "openai") {
-        const isRecentOpenAI = /^(?:openai\/)?(?:o1|o3|o4|gpt-5)/i.test(model);
+        const isRecentOpenAI = /^(?:openai\/)?(?:o1|o3|o4|gpt-(?:[5-9]|1\d)(?:[._-]|$))/i.test(
+          model
+        );
         if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
           const defaultsRecord = withDefaults as Record<string, unknown>;
           if ("max_tokens" in defaultsRecord) {
@@ -860,6 +989,8 @@ export class DefaultExecutor extends BaseExecutor {
           };
         }
       }
+
+      withDefaults = applyZaiGlm53OpenAIDefaults(this.provider, model, withDefaults, stream);
     }
 
     // Config-driven strip of params unsupported by the target provider/model
@@ -899,18 +1030,19 @@ export class DefaultExecutor extends BaseExecutor {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
 
-    // 9router#1480: native Moonshot providers 400 when a prior assistant turn
-    // lacks reasoning_content. OpencodeExecutor
-    // already injects a placeholder for OpenCode-routed thinking models; the
-    // direct connections hit neither injection path. Scope to Moonshot ids so
-    // gateway-served models that merely match the thinking-model name pattern
-    // (and may reject an extra field) are unaffected.
-    if (this.provider === "kimi" || this.provider === "moonshot") {
+    // 9router#1480: native Moonshot providers 400 when a prior assistant turn lacks
+    // reasoning_content. Scope to Moonshot ids, or a registry entry opting in via
+    // `requiresReasoningContentEcho` (e.g. `bai`'s DeepSeek resale, #13599).
+    const reasoningEcho =
+      this.provider === "kimi" ||
+      this.provider === "moonshot" ||
+      !!getRegistryEntry(this.provider)?.requiresReasoningContentEcho;
+    if (reasoningEcho) {
       const outboundModel =
         typeof (withDefaults as Record<string, unknown>)?.model === "string"
           ? ((withDefaults as Record<string, unknown>).model as string)
           : model;
-      if (shouldInjectReasoningContentPlaceholder(this.provider, outboundModel)) {
+      if (shouldInjectReasoningContentPlaceholder(reasoningEcho, this.provider, outboundModel)) {
         withDefaults = injectReasoningContentForThinkingModel(withDefaults);
       }
     }
@@ -962,7 +1094,8 @@ export class DefaultExecutor extends BaseExecutor {
     const reasoningEnabled =
       thinking?.type === "enabled" ||
       (typeof effort === "string" && effort !== "none" && effort !== "off") ||
-      effort === true;
+      effort === true ||
+      modelEntry.alwaysReasons === true;
     if (!reasoningEnabled) return body;
 
     const MIN_TOKENS = 4096;
@@ -978,10 +1111,10 @@ export class DefaultExecutor extends BaseExecutor {
     const tokenKey =
       body.max_completion_tokens !== undefined ? "max_completion_tokens" : "max_tokens";
 
+    // #14888: a positive client budget is a choice. Raising it made reasoning
+    // models spend the whole window on thinking and return empty content.
     if (typeof current !== "number" || current <= 0) {
       body[tokenKey] = target;
-    } else if (current < MIN_TOKENS && current < maxOutput) {
-      body[tokenKey] = MIN_TOKENS;
     }
     return body;
   }
@@ -1021,8 +1154,8 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    // #6846 Phase 1: per-connection concurrency cap for nvidia — no-op for every
-    // other provider (returns null immediately, no semaphore key allocated).
+    rejectStrictPool(input.validationDispatch, this.poolConfig);
+    // #6846 Phase 1: per-connection nvidia concurrency cap — no-op for other providers.
     const releaseNvidiaSlot = await acquireNvidiaConcurrencySlot(
       this.provider,
       input.credentials?.connectionId

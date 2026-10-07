@@ -361,10 +361,7 @@ test("#9416: provider with configured prefix still uses the configured prefix (r
 
   // Must still use the configured prefix, NOT slugified name
   const entry = body.data.find((m) => m.id === `${CONFIGURED_PREFIX}/glm-5.2`);
-  assert.ok(
-    entry,
-    `expected entry with configured prefix "${CONFIGURED_PREFIX}/glm-5.2"`
-  );
+  assert.ok(entry, `expected entry with configured prefix "${CONFIGURED_PREFIX}/glm-5.2"`);
   assert.equal(entry!.owned_by, CONFIGURED_PREFIX);
   assert.notEqual(entry!.owned_by, "pix4k-talk-probe"); // not slugified
 });

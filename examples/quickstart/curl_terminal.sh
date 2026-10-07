@@ -11,7 +11,7 @@ curl "$API_URL" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer dummy-key" \
   -d '{
-    "model": "felo/auto",
+    "model": "auto",
     "stream": false,
     "messages": [
       { "role": "user", "content": "Hello! What can you do?" }

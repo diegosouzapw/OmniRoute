@@ -30,14 +30,19 @@ import path from "node:path";
 import http from "node:http";
 import { EventEmitter } from "node:events";
 import { createCipheriv, randomBytes, scryptSync } from "node:crypto";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+// `URL.pathname` is a URL path, not an OS path: on Windows it yields
+// "/C:/..." — a leading slash before the drive letter. `path.resolve` does not
+// treat that as absolute, so it prepends the CWD and produces "C:\C:\...",
+// which fails to import. `fileURLToPath` decodes to a real OS path on every
+// platform (it also un-escapes %20 in paths containing spaces).
 const HANDLER_PATH = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
+  path.dirname(fileURLToPath(import.meta.url)),
   "../../scripts/dev/webdav-handler.mjs"
 );
 
@@ -253,10 +258,7 @@ test("verifyBasicAuth: empty header returns false", async () => {
 
 test("verifyBasicAuth: non-Basic scheme returns false", async () => {
   const { verifyBasicAuth } = await importHandler();
-  assert.equal(
-    verifyBasicAuth("Bearer some-token", "alice", "s3cr3t"),
-    false
-  );
+  assert.equal(verifyBasicAuth("Bearer some-token", "alice", "s3cr3t"), false);
 });
 
 test("verifyBasicAuth: malformed base64 returns false", async () => {
@@ -372,7 +374,15 @@ test("buildPropfindXml: escapes XML special chars in names", async () => {
 test("buildPropfindXml: file entry has no D:collection resourcetype", async () => {
   const { buildPropfindXml } = await importHandler();
   const xml = buildPropfindXml(
-    [{ name: "note.md", href: "/api/v1/webdav/note.md", isDir: false, size: 99, mtime: new Date() }],
+    [
+      {
+        name: "note.md",
+        href: "/api/v1/webdav/note.md",
+        isDir: false,
+        size: 99,
+        mtime: new Date(),
+      },
+    ],
     "/api/v1/webdav/"
   );
   // File should have empty resourcetype, not a collection

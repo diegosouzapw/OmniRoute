@@ -33,7 +33,7 @@ const {
   getModelIsHidden,
   mergeModelCompatOverride,
   updateCustomModel,
-} = await import("../../src/lib/localDb.ts");
+} = await import("@/lib/db/models");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {

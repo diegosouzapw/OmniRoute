@@ -8,7 +8,7 @@ const PRICING = { input: 1, output: 2 };
 const TOKENS = { input: 1_000_000, output: 1_000_000 };
 
 test("isFlatRateProvider: cookie-web providers are flat-rate", () => {
-  for (const id of ["chatgpt-web", "grok-web", "gemini-web", "claude-web", "kimi-web"]) {
+  for (const id of ["grok-web", "gemini-web", "claude-web", "kimi-web"]) {
     assert.equal(isFlatRateProvider(id), true, `${id} should be flat-rate`);
   }
 });
@@ -32,8 +32,13 @@ test("isFlatRateProvider: dedicated subscription / coding-plan providers are fla
 });
 
 test("isFlatRateProvider: case-insensitive + trimmed", () => {
-  assert.equal(isFlatRateProvider("  CHATGPT-WEB "), true);
+  assert.equal(isFlatRateProvider("  GROK-WEB "), true);
   assert.equal(isFlatRateProvider("MINIMAX"), true);
+});
+
+test("isFlatRateProvider: clean-room ChatGPT Web is flat-rate but its legacy alias is retired", () => {
+  assert.equal(isFlatRateProvider("chatgpt-web"), true);
+  assert.equal(isFlatRateProvider("cgpt-web"), false);
 });
 
 test("isFlatRateProvider: metered / cost-tracked providers are NOT flat-rate (no hidden cost)", () => {
@@ -65,7 +70,7 @@ test("isFlatRateProvider: empty / nullish is not flat-rate", () => {
 
 test("computeCostFromPricing: flat-rate provider with flatRateAsZero → $0", () => {
   assert.equal(
-    computeCostFromPricing(PRICING, TOKENS, { provider: "chatgpt-web", flatRateAsZero: true }),
+    computeCostFromPricing(PRICING, TOKENS, { provider: "grok-web", flatRateAsZero: true }),
     0
   );
   assert.equal(
@@ -81,7 +86,7 @@ test("computeCostFromPricing: flat-rate provider with flatRateAsZero → $0", ()
 
 test("computeCostFromPricing: opt-in only — flat-rate provider WITHOUT the flag still estimates", () => {
   // Proves the guard never silently changes budget/routing/per-request paths.
-  assert.equal(computeCostFromPricing(PRICING, TOKENS, { provider: "chatgpt-web" }), 3);
+  assert.equal(computeCostFromPricing(PRICING, TOKENS, { provider: "grok-web" }), 3);
 });
 
 test("#11149: opencode-go is a flat-rate subscription, not metered", () => {

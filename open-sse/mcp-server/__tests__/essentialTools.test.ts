@@ -358,6 +358,38 @@ describe("omniroute_x_search handler (via MCP dispatch)", () => {
     expect(body.search_type).toBe("x");
     expect(body.provider).toBe("x-search");
   });
+
+  it("should route an explicit Xquik search through xquik-search", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: "xs2",
+        provider: "xquik-search",
+        query: "agents sdk",
+        results: [
+          {
+            title: "@openai",
+            url: "https://x.com/openai/status/1912345678901234567",
+            snippet: "Agents SDK update",
+            position: 1,
+          },
+        ],
+        cached: false,
+        usage: { queries_used: 1, search_cost_usd: 0.00015 },
+      }),
+    });
+
+    const result = await client.callTool({
+      name: "omniroute_x_search",
+      arguments: { query: "agents sdk", max_results: 5, provider: "xquik-search" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    const [, options] = mockFetch.mock.calls[0];
+    const body = JSON.parse(options.body as string);
+    expect(body.search_type).toBe("x");
+    expect(body.provider).toBe("xquik-search");
+  });
 });
 
 // ── omniroute_get_health: handler dispatch tests ──────────────────────────────

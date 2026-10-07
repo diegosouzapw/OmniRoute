@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Select, Toggle } from "@/shared/components";
 import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
@@ -15,6 +15,8 @@ interface EditCompatibleNodeModalNode {
   chatPath?: string;
   modelsPath?: string;
   iconUrl?: string;
+  dailyQuotaResetTimezone?: string | null;
+  dailyQuotaResetHour?: number | null;
   providerSpecificData?: Record<string, unknown>;
 }
 
@@ -48,6 +50,8 @@ export default function EditCompatibleNodeModal({
     consoleApiKey: "",
     newApiUserId: "",
     quotaPerUnit: "",
+    dailyQuotaResetTimezone: "",
+    dailyQuotaResetHour: "",
   });
   const [saving, setSaving] = useState(false);
   const [checkKey, setCheckKey] = useState("");
@@ -62,8 +66,23 @@ export default function EditCompatibleNodeModal({
   const [iconUrlError, setIconUrlError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && node) {
+  // Modal-open form initialization from the node being edited — applied as a
+  // render-phase adjustment guarded by the previously initialized node
+  // (react.dev "adjusting state when a prop changes") instead of a
+  // synchronous-setState effect. Closing clears the marker so the next open
+  // re-initializes again.
+  const [initializedFor, setInitializedFor] = useState<{
+    node: EditCompatibleNodeModalNode;
+    isAnthropic?: boolean;
+    isCcCompatible?: boolean;
+  } | null>(null);
+  if (isOpen && node) {
+    if (
+      initializedFor?.node !== node ||
+      initializedFor.isAnthropic !== isAnthropic ||
+      initializedFor.isCcCompatible !== isCcCompatible
+    ) {
+      setInitializedFor({ node, isAnthropic, isCcCompatible });
       const psd = (node.providerSpecificData || {}) as Record<string, unknown>;
       setFormData({
         name: node.name || "",
@@ -83,6 +102,11 @@ export default function EditCompatibleNodeModal({
         consoleApiKey: typeof psd.consoleApiKey === "string" ? psd.consoleApiKey : "",
         newApiUserId: typeof psd.newApiUserId === "string" ? psd.newApiUserId : "",
         quotaPerUnit: typeof psd.quotaPerUnit === "number" ? String(psd.quotaPerUnit) : "",
+        dailyQuotaResetTimezone: node.dailyQuotaResetTimezone || "",
+        dailyQuotaResetHour:
+          node.dailyQuotaResetHour === 0 || node.dailyQuotaResetHour
+            ? String(node.dailyQuotaResetHour)
+            : "",
       });
       setSaveError(null);
       setIconUrlError(null);
@@ -94,7 +118,9 @@ export default function EditCompatibleNodeModal({
         )
       );
     }
-  }, [isOpen, node, isAnthropic, isCcCompatible]);
+  } else if (initializedFor !== null) {
+    setInitializedFor(null);
+  }
 
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
@@ -124,6 +150,10 @@ export default function EditCompatibleNodeModal({
         modelsPath: isCcCompatible ? "" : formData.modelsPath,
         iconUrl: formData.iconUrl.trim(),
       };
+      const tz = formData.dailyQuotaResetTimezone.trim();
+      payload.dailyQuotaResetTimezone = tz || null;
+      const hourRaw = formData.dailyQuotaResetHour.trim();
+      payload.dailyQuotaResetHour = hourRaw === "" ? null : Number(hourRaw);
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
       }
@@ -328,6 +358,22 @@ export default function EditCompatibleNodeModal({
                 hint={t("modelsPathHint")}
               />
             )}
+            <Input
+              label={t("dailyQuotaResetTimezoneLabel")}
+              value={formData.dailyQuotaResetTimezone}
+              onChange={(e) =>
+                setFormData({ ...formData, dailyQuotaResetTimezone: e.target.value })
+              }
+              placeholder="Asia/Shanghai"
+              hint={t("dailyQuotaResetTimezoneHint")}
+            />
+            <Input
+              label={t("dailyQuotaResetHourLabel")}
+              value={formData.dailyQuotaResetHour}
+              onChange={(e) => setFormData({ ...formData, dailyQuotaResetHour: e.target.value })}
+              placeholder="0"
+              hint={t("dailyQuotaResetHourHint")}
+            />
           </div>
         )}
         <div className="flex gap-2">

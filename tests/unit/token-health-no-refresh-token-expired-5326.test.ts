@@ -201,19 +201,64 @@ test("checkConnection clears stale no_refresh_token state for usable GitHub Copi
   }
 });
 
-// Boundary regression for #8182 vs #5326: the terminal-skip guard added by #8182
-// must keep skipping a GitHub Copilot connection that is "expired" for a DIFFERENT
-// reason than the recoverable no_refresh_token self-heal above (e.g. a manually
-// banned/invalidated account). Only the EXACT no_refresh_token shape is exempted
-// from the terminal skip — this proves the #5326 fix did not reopen #8182's
-// wasted-probe fix for every "expired" GitHub connection.
-test("checkConnection still skips a GitHub Copilot connection expired for a non-no_refresh_token reason (#8182 boundary)", async () => {
+// Boundary between #8182's terminal-skip and the retry-budget exemption that later
+// widened it (`isRecoverableExpiredWithRetryBudget` in tokenHealthCheck.ts).
+//
+// #8182 skipped every "expired" connection to stop wasting a probe per sweep on rows
+// that can never self-heal. That was too wide: a transient OAuth failure parks a healthy
+// connection at "expired" and it could then never come back. The current guard therefore
+// exempts an expired connection while it still has retry budget AND is not
+// `account_deactivated`, so only genuinely dead accounts stay unprobed.
+//
+// This case used to assert the pre-exemption behaviour — that ANY non-`no_refresh_token`
+// expired GitHub connection is skipped — which is no longer the policy. Both halves of
+// the real boundary are pinned below instead, so the wasted-probe protection is still
+// covered where it actually applies.
+test("checkConnection probes an expired GitHub connection that still has retry budget", async () => {
+  await resetStorage();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ message: "Bad credentials" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    })) as typeof fetch;
+
+  try {
+    const connection = await providersDb.createProviderConnection({
+      provider: "github",
+      authType: "oauth",
+      name: "GitHub Transiently Expired Account",
+      accessToken: "github-access-token",
+      refreshToken: null,
+      providerSpecificData: {
+        copilotToken: "copilot-token",
+        copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      },
+      testStatus: "expired",
+      errorCode: "invalid_grant",
+      lastError: "Manually invalidated by operator.",
+      isActive: true,
+    });
+
+    await tokenHealthCheck.checkConnection(connection);
+
+    const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+    assert.ok(
+      updated?.lastHealthCheckAt,
+      "retry budget remaining — the sweep must probe so a transient failure can self-heal"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("checkConnection still skips an expired GitHub connection whose account is deactivated (#8182)", async () => {
   await resetStorage();
 
   const connection = await providersDb.createProviderConnection({
     provider: "github",
     authType: "oauth",
-    name: "GitHub Genuinely Expired Account",
+    name: "GitHub Deactivated Account",
     accessToken: "github-access-token",
     refreshToken: null,
     providerSpecificData: {
@@ -222,18 +267,15 @@ test("checkConnection still skips a GitHub Copilot connection expired for a non-
     },
     testStatus: "expired",
     errorCode: "invalid_grant",
-    lastError: "Manually invalidated by operator.",
+    lastErrorType: "account_deactivated",
+    lastError: "Account deactivated upstream.",
     isActive: true,
   });
 
   await tokenHealthCheck.checkConnection(connection);
 
   const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
-  assert.equal(
-    updated?.testStatus,
-    "expired",
-    "terminal-skip must still apply outside the exact no_refresh_token shape"
-  );
+  assert.equal(updated?.testStatus, "expired", "a dead account must stay terminal");
   assert.equal(updated?.errorCode, "invalid_grant");
   assert.equal(
     updated?.lastHealthCheckAt ?? null,

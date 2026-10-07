@@ -11,6 +11,7 @@ import { harvestToCredentials, type HarvestResult } from "@/lib/vncSession/harve
 test("manifest lookup resolves known providers and rejects unknown", () => {
   assert.equal(isVncProvider("gemini-web"), true);
   assert.equal(isVncProvider("chatgpt-web"), true);
+  assert.equal(isVncProvider("chatgpt-web-codex"), true);
   assert.equal(isVncProvider("not-a-provider"), false);
   assert.equal(getVncProvider(null), null);
   assert.equal(getVncProvider("gemini-web")?.url, "https://gemini.google.com");
@@ -24,7 +25,10 @@ test("provider list has well-formed URLs, unique IDs, and canonical requirements
   for (const entry of providers) {
     assert.match(entry.url, /^https:\/\//, `bad url for ${entry.id}`);
     assert.ok(["cookie", "token"].includes(entry.requirement.kind), `bad kind for ${entry.id}`);
-    assert.ok(Array.isArray(entry.requirement.storageKeys), `storageKeys not array for ${entry.id}`);
+    assert.ok(
+      Array.isArray(entry.requirement.storageKeys),
+      `storageKeys not array for ${entry.id}`
+    );
     assert.equal(getVncProvider(entry.id)?.id, entry.id);
   }
 });

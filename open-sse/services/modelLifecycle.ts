@@ -4,7 +4,14 @@
  * Replacement model IDs are migration guidance only. This module never rewrites a
  * request: shutdown models are rejected, deprecated models remain callable until
  * their shutdown date, and untracked models pass through unchanged.
+ *
+ * Dated OpenAI rows in MODEL_LIFECYCLE_RECORDS stay provider-scoped (a warn-before-
+ * shutdown date on `openai` must not leak onto an aggregator that still serves the
+ * id). Snapshot `status: "retired"` ids from config/quality/model-lifecycle.json
+ * are id-scoped and prefix-stripped (#11625): `openai/gpt-5.2-codex` on openrouter
+ * is the same retired vendor id as `gpt-5.2-codex`.
  */
+import { readFileSync } from "node:fs";
 
 export const OPENAI_MODEL_DEPRECATIONS_URL = "https://developers.openai.com/api/docs/deprecations";
 
@@ -128,6 +135,67 @@ function shutdownTimestamp(shutdownAt: string): number {
   return Date.parse(`${shutdownAt}T00:00:00.000Z`);
 }
 
+const SNAPSHOT_URL = new URL("../../config/quality/model-lifecycle.json", import.meta.url);
+const SNAPSHOT_SOURCE = "config/quality/model-lifecycle.json";
+
+type VendorRetiredEntry = {
+  vendor?: string;
+  status?: string;
+  retiredOn?: string | null;
+  replacement?: string | null;
+};
+
+let _retiredIds: Set<string> | null = null;
+let _retiredEntries: Map<string, VendorRetiredEntry> | null = null;
+
+function loadVendorRetiredSnapshot(): {
+  ids: Set<string>;
+  entries: Map<string, VendorRetiredEntry>;
+} {
+  if (_retiredIds && _retiredEntries) return { ids: _retiredIds, entries: _retiredEntries };
+  const ids = new Set<string>();
+  const entries = new Map<string, VendorRetiredEntry>();
+  try {
+    const parsed = JSON.parse(readFileSync(SNAPSHOT_URL, "utf8")) as {
+      retired?: Record<string, VendorRetiredEntry>;
+    };
+    for (const [id, entry] of Object.entries(parsed.retired ?? {})) {
+      if (entry?.status !== "retired") continue;
+      const key = id.toLowerCase();
+      ids.add(key);
+      entries.set(key, entry);
+    }
+  } catch {
+    // Snapshot missing → no id-scoped veto. Dated OpenAI rows still apply.
+  }
+  _retiredIds = ids;
+  _retiredEntries = entries;
+  return { ids, entries };
+}
+
+/** True when `modelId` or its last `vendor/` path segment is `status: "retired"` in the snapshot. */
+export function isVendorRetiredId(modelId: string | null | undefined): boolean {
+  if (typeof modelId !== "string" || modelId.length === 0) return false;
+  const lower = modelId.toLowerCase();
+  const { ids } = loadVendorRetiredSnapshot();
+  if (ids.has(lower)) return true;
+  const slash = lower.lastIndexOf("/");
+  return slash !== -1 && ids.has(lower.slice(slash + 1));
+}
+
+function lookupVendorRetiredEntry(modelId: string): VendorRetiredEntry | null {
+  const lower = modelId.toLowerCase();
+  const { entries } = loadVendorRetiredSnapshot();
+  return entries.get(lower) ?? entries.get(lower.slice(lower.lastIndexOf("/") + 1)) ?? null;
+}
+
+/** Drop auto-combo candidates whose model id the vendor has retired (#11625). */
+export function rejectRetiredAutoComboCandidates<T extends { model: string }>(
+  candidates: readonly T[]
+): T[] {
+  return candidates.filter((candidate) => !isVendorRetiredId(candidate.model));
+}
+
 export function getModelLifecycleDecision(
   provider: string | null | undefined,
   model: string | null | undefined,
@@ -138,6 +206,24 @@ export function getModelLifecycleDecision(
   const record = RECORDS_BY_KEY.get(lifecycleKey(normalizedProvider, normalizedModel));
 
   if (!record) {
+    if (isVendorRetiredId(normalizedModel)) {
+      const entry = lookupVendorRetiredEntry(normalizedModel);
+      const replacementId =
+        typeof entry?.replacement === "string" && entry.replacement.length > 0
+          ? entry.replacement
+          : null;
+      return {
+        provider: normalizedProvider,
+        model: normalizedModel,
+        status: "shutdown",
+        action: "reject",
+        shutdownAt: typeof entry?.retiredOn === "string" ? entry.retiredOn : null,
+        replacement: replacementId
+          ? { provider: entry?.vendor ?? "", model: replacementId }
+          : null,
+        source: SNAPSHOT_SOURCE,
+      };
+    }
     return {
       provider: normalizedProvider,
       model: normalizedModel,
@@ -170,7 +256,8 @@ export function formatModelLifecycleMessage(decision: ModelLifecycleDecision): s
     ? ` Use "${decision.replacement.provider}/${decision.replacement.model}" instead.`
     : "";
   if (decision.status === "shutdown") {
-    return `Model "${modelRef}" was shut down on ${decision.shutdownAt} and cannot be routed automatically.${replacement}`;
+    const when = decision.shutdownAt ? ` was shut down on ${decision.shutdownAt}` : " has been retired by its vendor";
+    return `Model "${modelRef}"${when} and cannot be routed automatically.${replacement}`;
   }
   return `Model "${modelRef}" is deprecated and is scheduled to shut down on ${decision.shutdownAt}.${replacement}`;
 }

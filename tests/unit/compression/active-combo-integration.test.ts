@@ -11,8 +11,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
 const combosDb = await import("../../../src/lib/db/compressionCombos.ts");
 const { updateCompressionSettings } = await import("../../../src/lib/db/compression.ts");
-const { selectCompressionPlan } = await import("../../../open-sse/services/compression/strategySelector.ts");
-const { DEFAULT_COMPRESSION_CONFIG } = await import("../../../open-sse/services/compression/types.ts");
+const { selectCompressionPlan } =
+  await import("../../../open-sse/services/compression/strategySelector.ts");
+const { DEFAULT_COMPRESSION_CONFIG } =
+  await import("../../../open-sse/services/compression/types.ts");
 
 after(() => {
   resetDbInstance();
@@ -31,11 +33,26 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
   await updateCompressionSettings({ enabled: true, activeComboId: created.id });
 
   // Mirror chatCore's load: build the combos map from the DB.
-  const combos = Object.fromEntries(combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline]));
+  const combos = Object.fromEntries(
+    combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline])
+  );
   const config = { ...DEFAULT_COMPRESSION_CONFIG, enabled: true, activeComboId: created.id };
-  const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
+  // #14529: a lossy profile only runs when the request opts in; header-less requests still
+  // resolve the ACTIVE profile (source) but get its lossy steps swapped for the safe pair.
+  const plan = selectCompressionPlan(
+    config,
+    null,
+    5000,
+    undefined,
+    undefined,
+    combos,
+    "allow-lossy"
+  );
   assert.equal(plan.mode, "stacked");
   assert.deepEqual(plan.stackedPipeline, [{ engine: "rtk", intensity: "standard" }]);
+  const headerless = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
+  assert.equal(headerless.source, "active-profile");
+  assert.deepEqual(headerless.stackedPipeline, [{ engine: "session-dedup" }, { engine: "lite" }]);
 
   // Setting activeComboId did NOT change which combo is is_default (legacy untouched).
   const def = combosDb.getDefaultCompressionCombo();

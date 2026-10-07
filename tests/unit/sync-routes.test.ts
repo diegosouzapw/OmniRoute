@@ -20,7 +20,8 @@ const compliance = await import("../../src/lib/compliance/index.ts");
 const syncTokensRoute = await import("../../src/app/api/sync/tokens/route.ts");
 const syncTokenByIdRoute = await import("../../src/app/api/sync/tokens/[id]/route.ts");
 const syncBundleRoute = await import("../../src/app/api/sync/bundle/route.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
 function resetStorage() {
   apiKeysDb.resetApiKeyState();

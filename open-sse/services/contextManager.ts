@@ -366,6 +366,14 @@ export function getSourcedTokenLimit(
  *
  * `ResolvedComboTarget.provider` is populated independently of `modelStr`, so fall
  * back to it before calling `getTokenLimit` (#8716).
+ *
+ * Known sources only (#14931): a target whose window resolves solely to the
+ * generic catch-all default returns `undefined` instead of that guess, so the
+ * runtime combo `Math.min()` in `resolveComboContextLimit` drops it — the
+ * sibling-side counterpart of the #10734 rule `getSourcedTokenLimit` already
+ * applies to advertised combos. An uncataloged member must not clamp the whole
+ * combo to a 128000 it may not have; when every member is unknown the resolver
+ * still falls back to the generic default on its own (source=fallback).
  */
 export function getComboTargetTokenLimit(options: {
   modelStr?: string | null;
@@ -373,7 +381,7 @@ export function getComboTargetTokenLimit(options: {
   parsedProvider?: string | null;
   parsedModel?: string | null;
   targetProvider?: string | null;
-}): number {
+}): number | undefined {
   let parsedProvider = options.parsedProvider;
   let parsedModel = options.parsedModel;
   if (
@@ -385,7 +393,7 @@ export function getComboTargetTokenLimit(options: {
     if (parsedModel === undefined) parsedModel = parsed.model;
   }
   const provider = parsedProvider ?? options.targetProvider ?? options.provider ?? "unknown";
-  return getTokenLimit(provider, parsedModel ?? null);
+  return getSourcedTokenLimit(provider, parsedModel ?? null);
 }
 
 /**
@@ -436,37 +444,10 @@ export function resolveTokenLimit(
   return { limit: DEFAULT_LIMITS.default, specific: false };
 }
 
-/**
- * Resolve the context limit to use for proactive compression of a COMBO
- * request.
- *
- * chatCore always executes with the CONCRETE target's provider/model
- * (handleSingleModel resolves the target before delegating), so the
- * executing target's own limit is authoritative. Using min(...allTargets)
- * here — the previous behavior — compressed at the smallest sibling's
- * window even when running on the largest target, destructively purging
- * history long before the real window filled ("agent keeps forgetting").
- *
- * min(...comboTargetLimits) is kept only as a defensive fallback for the
- * case where the current provider/model resolves no specific limit at all.
- */
-export function resolveComboContextLimit(options: {
-  provider: string;
-  model: string | null;
-  comboTargetLimits: number[];
-}): { limit: number; source: "target" | "combo-min" | "fallback" } {
-  const own = resolveTokenLimit(options.provider, options.model ?? null);
-  if (own.specific) {
-    return { limit: own.limit, source: "target" };
-  }
-  const knownTargets = (options.comboTargetLimits || []).filter(
-    (value) => Number.isFinite(value) && value > 0
-  );
-  if (knownTargets.length > 0) {
-    return { limit: Math.min(...knownTargets), source: "combo-min" };
-  }
-  return { limit: own.limit, source: "fallback" };
-}
+// Combo context-limit resolution lives in ./comboContextLimit.ts; re-exported
+// here so existing importers keep working.
+export { resolveComboContextLimit } from "./comboContextLimit.ts";
+export type { ComboContextLimitSource } from "./comboContextLimit.ts";
 
 /**
  * Apply context compression to request body.
@@ -678,8 +659,11 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
   // index 0 is accepted by every provider (same slot the old splice used when
   // system[] was empty).
   if (keep < nonSystem.length) {
-    const dropped = nonSystem.length - keep;
-    const droppedNotice = `[Context compressed: ${dropped} earlier messages removed to fit context window]`;
+    // Byte-stable: no interpolated drop count. A per-request count here
+    // changes messages[0] on nearly every request over a growing
+    // conversation, busting the upstream provider's prefix cache anchored
+    // at index 0 (issue #14600).
+    const droppedNotice = "[Context compressed: earlier messages removed to fit context window]";
     const first = result[0];
     if (first && (first.role === "system" || first.role === "developer")) {
       if (typeof first.content === "string") {

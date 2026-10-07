@@ -184,10 +184,10 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.149.0");
-  assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
-  assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.149.0 (Windows 10.0.26200; x64)");
+  assert.equal(standardHeaders.Version, "0.156.1");
+  assert.equal(standardHeaders["Openai-Beta"], "responses_websockets=2026-02-06");
+  assert.equal(standardHeaders["X-Codex-Beta-Features"], undefined);
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.156.1 (Windows 10.0.26200; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -213,7 +213,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.149.0");
+      assert.equal(headers.Version, "0.156.1");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -273,7 +273,6 @@ test("CodexExecutor.transformRequest non-passthrough allowlist strips all residu
     function_call: "auto",
     functions: [{ name: "test", parameters: {} }],
     max_completion_tokens: 1000,
-    parallel_tool_calls: true,
     user: "cursor-user",
     metadata: { key: "value" },
     stream_options: { include_usage: true },
@@ -310,7 +309,6 @@ test("CodexExecutor.transformRequest non-passthrough allowlist strips all residu
   assert.equal(result.function_call, undefined, "function_call should be stripped");
   assert.equal(result.functions, undefined, "functions should be stripped");
   assert.equal(result.max_completion_tokens, undefined, "max_completion_tokens should be stripped");
-  assert.equal(result.parallel_tool_calls, undefined, "parallel_tool_calls should be stripped");
   assert.equal(result.user, undefined, "user should be stripped");
   assert.equal(result.metadata, undefined, "metadata should be stripped");
   assert.equal(result.stream_options, undefined, "stream_options should be stripped");
@@ -1032,6 +1030,161 @@ test("CodexExecutor.execute captures the exact websocket request body before sen
   assert.equal(sentBody.model, "gpt-5.5");
 });
 
+test("CodexExecutor.execute emits response.failed when websocket closes before a terminal event", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.output_text.delta",
+            delta: "partial output",
+          }),
+        });
+        ws.onclose?.();
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  assert.match(body, /event: response\.failed/);
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+
+  const dataLine = body.split("\n").find((line) => line.includes('"upstream_websocket_closed"'));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.status, "failed");
+  assert.equal(payload.response.error.code, "upstream_websocket_closed");
+});
+
+test("CodexExecutor.execute does not emit a second terminal event after normal websocket close", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.completed",
+            response: { id: "resp_complete", status: "completed" },
+          }),
+        });
+        ws.onclose?.();
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.completed"]);
+  assert.doesNotMatch(body, /upstream_websocket_closed/);
+});
+
+test("CodexExecutor.execute emits a single response.failed when onerror precedes onclose", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({
+            type: "response.output_text.delta",
+            delta: "partial output",
+          }),
+        });
+        // Real WebSocket implementations fire onerror before onclose on an
+        // abnormal close — the closed latch must keep this to one terminal event.
+        ws.onerror?.({ message: "socket hang up" });
+        ws.onclose?.({ code: 1006 });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+  // The first failure wins: onerror fired before onclose, so the emitted code is
+  // upstream_websocket_error, not upstream_websocket_closed.
+  assert.match(body, /upstream_websocket_error/);
+  assert.doesNotMatch(body, /upstream_websocket_closed/);
+});
+
+test("CodexExecutor.execute emits response.failed when websocket closes with no prior events", async () => {
+  const executor = new CodexExecutor();
+  const ws: MockCodexWebSocket = {
+    send() {
+      queueMicrotask(() => {
+        ws.onclose?.({ code: 1006, reason: "abnormal closure" });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const result = await executor.execute({
+    model: "gpt-5.5-xhigh",
+    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+    stream: true,
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { codexTransport: "websocket" },
+    },
+  });
+  const body = await result.response.text();
+
+  const terminalEvents = body.match(/event: response\.(?:completed|failed|incomplete)/g) ?? [];
+  assert.deepEqual(terminalEvents, ["event: response.failed"]);
+  assert.match(body, /upstream_websocket_closed/);
+});
+
 test("CodexExecutor.execute adds CLI-like session identity headers without changing response flow", async () => {
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
@@ -1388,11 +1541,10 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
-test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
-  // Source intentionally returns null (not an error object) so that base.ts does
-  // not spread stale error fields onto activeCredentials. The upstream 401/403
-  // drives the proper re-auth / mark-expired path instead.
-  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
+test("CodexExecutor.refreshCredentials surfaces an unrecoverable sentinel for dead refresh tokens", async () => {
+  // A dead refresh token is terminal for this connection, not a provider
+  // outage: the unrecoverable sentinel skips retries and spares the breaker.
+  // Source: open-sse/executors/codex.ts — refreshCredentials().
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1403,7 +1555,8 @@ test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to 
 
   try {
     const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
-    assert.equal(result, null, "should return null to leave original credentials untouched");
+    assert.equal(result?.error, "unrecoverable_refresh_error");
+    assert.equal(result?.code, "invalid_grant");
   } finally {
     globalThis.fetch = originalFetch;
   }

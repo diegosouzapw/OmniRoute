@@ -15,10 +15,12 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-v1-provid
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const providerNodesDb = await import("../../src/lib/db/providers/nodes.ts");
 const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
-const routeModule = await import(
-  "../../src/app/api/v1/providers/[provider]/models/route.ts"
-);
+const catalog = await import("../../src/app/api/v1/models/catalog.ts");
+const routeModule = await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
 function makeRequest(provider: string) {
   return new Request(`http://localhost/api/v1/providers/${encodeURIComponent(provider)}/models`);
@@ -32,6 +34,9 @@ async function callGET(provider: string) {
 
 test.beforeEach(() => {
   core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  catalog.__resetCatalogBuilderRunsForTest();
 });
 
 test.after(() => {
@@ -107,10 +112,54 @@ test("GET /v1/providers/:provider/models returns synced embedded service models"
   assert.equal(res.status, 200);
   assert.equal(body.object, "list");
   assert.deepEqual(
-    body.data.map((model: any) => model.id),
+    body.data.map((model: { id: string }) => model.id),
     ["cli/gpt-5"]
   );
   assert.equal(body.data[0].owned_by, "cliproxyapi");
+  assert.equal(body.data[0].parent, null);
+});
+
+test("#13829: compatible provider IDs return synced models owned by their public prefix", async () => {
+  const providerId = "openai-compatible-chat-a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+  const prefix = "hz";
+  const modelId = "Qwen/Qwen3.6-35B-A3B-FP8";
+
+  await providerNodesDb.createProviderNode({
+    id: providerId,
+    type: "openai-compatible-chat",
+    name: "Hetzner",
+    prefix,
+    apiType: "chat",
+    baseUrl: "https://inference.example.com/v1",
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: providerId,
+    authType: "apikey",
+    name: "Hetzner",
+    apiKey: "test-key",
+    isActive: true,
+    testStatus: "active",
+  });
+  await modelsDb.replaceSyncedAvailableModelsForConnection(providerId, String(connection.id), [
+    { id: modelId, name: modelId, source: "imported" },
+  ]);
+
+  const catalogResponse = await catalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const catalogBody = (await catalogResponse.json()) as { data: Array<Record<string, unknown>> };
+  const catalogModel = catalogBody.data.find((model) => model.id === `${prefix}/${modelId}`);
+  assert.equal(catalogModel?.owned_by, prefix);
+
+  const res = await callGET(providerId);
+  const body = await res.json();
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(
+    body.data.map((model: { id: string }) => model.id),
+    [modelId]
+  );
+  assert.equal(body.data[0].owned_by, prefix);
   assert.equal(body.data[0].parent, null);
 });
 

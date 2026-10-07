@@ -46,7 +46,9 @@ export function WebhooksPageClient() {
   }, [t]);
 
   useEffect(() => {
-    void load();
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   const stats = useMemo(

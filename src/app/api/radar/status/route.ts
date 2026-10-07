@@ -23,12 +23,18 @@ export async function OPTIONS() {
 }
 
 function cacheStatus(
-  cache: { version?: string; generatedAt?: string; tier: string; fetchedAt: string } | null
+  cache: { version?: string; generatedAt?: string | null; tier: string; fetchedAt: string } | null
 ) {
   if (!cache) return { available: false };
   return {
     available: true,
     version: cache.version ?? cache.generatedAt,
+    // Reported on its own where the cache carries it — folding the build date
+    // into `version` loses the distinction between when a feed was built and
+    // when this install downloaded it. Absent for the offers and intel caches,
+    // which store no build date: a null there would claim the date is unknown
+    // when in fact it was never kept.
+    ...("generatedAt" in cache ? { generatedAt: cache.generatedAt ?? null } : {}),
     tier: cache.tier,
     fetchedAt: cache.fetchedAt,
   };

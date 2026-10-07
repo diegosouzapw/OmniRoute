@@ -106,8 +106,18 @@ export function listFiles(
   }
 
   if (after) {
-    // Get the creation time of the 'after' file to use for pagination
-    const afterFile = getFile(after);
+    // Get the creation time of the 'after' file to use for pagination.
+    // #14481 item 5/LEDGER-20/21 (same pattern as listBatches()): getFile()
+    // applies no owner filter, so a foreign tenant's file id used to still
+    // resolve here and its created_at was used as the pagination bound — an
+    // existence + timestamp oracle for another tenant's file. When this call
+    // IS owner-scoped, a cursor belonging to a DIFFERENT owner is treated
+    // exactly like an unknown one (ignored) instead of trusted.
+    const resolvedAfterFile = getFile(after);
+    const afterFile =
+      apiKeyId && resolvedAfterFile && resolvedAfterFile.apiKeyId !== apiKeyId
+        ? null
+        : resolvedAfterFile;
     if (afterFile) {
       if (order === "desc") {
         query += " AND (created_at < ? OR (created_at = ? AND id < ?))";
@@ -167,4 +177,40 @@ export function deleteFile(id: string): boolean {
     .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ?")
     .run(Math.floor(Date.now() / 1000), id);
   return result.changes > 0;
+}
+
+/**
+ * Owner-scoped soft delete: same effect as `deleteFile`, but only when the
+ * file belongs to `apiKeyId`. Used by the key-scoped completed-batch sweep so
+ * a batch that references another tenant's (or an unowned) file never nulls
+ * that file's content (GHSA-wvxc-jp3v-5mg5, SEC-C). Returns false when the
+ * row is not the caller's; throws on an empty owner so a caller cannot widen
+ * the delete by passing a blank id.
+ */
+export function deleteFileOwnedBy(id: string, apiKeyId: string): boolean {
+  if (typeof apiKeyId !== "string" || apiKeyId.trim() === "") {
+    throw new Error("deleteFileOwnedBy: apiKeyId is required");
+  }
+  const db = getDbInstance();
+  const result = db
+    .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ? AND api_key_id = ?")
+    .run(Math.floor(Date.now() / 1000), id, apiKeyId);
+  return result.changes > 0;
+}
+
+/**
+ * Clears the BLOB content of files past their own `expires_at`, mirroring the
+ * deleteFile() soft-delete shape (row kept for metadata/audit, content freed).
+ * Like ccr_blocks (see pruneExpiredCcrBlocks), a file carries its own expiry --
+ * this needs no separate retention-days setting, just an operator-scheduled
+ * sweep, since nothing previously enforced expires_at at all. Observed live:
+ * 1,874 rows / 5.19 GB of uploaded file content, most long past expiry.
+ */
+export function pruneExpiredFiles(now: number): number {
+  const result = getDbInstance()
+    .prepare(
+      "UPDATE files SET deleted_at = ?, content = NULL WHERE expires_at IS NOT NULL AND expires_at < ? AND deleted_at IS NULL"
+    )
+    .run(now, now);
+  return result.changes ?? 0;
 }

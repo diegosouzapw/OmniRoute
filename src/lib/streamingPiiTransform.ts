@@ -1,4 +1,4 @@
-import { createSseTextTransform, FieldCategory, getFieldCategory } from "./sseTextTransform";
+import { createSseTextTransform, FieldCategory, classifyField } from "./sseTextTransform";
 import { sanitizePII } from "./piiSanitizer";
 
 export interface PiiTransformOptions {
@@ -115,33 +115,6 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
       }
       return null;
     }
-
-    // Explicitly target formats to prevent metadata corruption and leakage
-    const METADATA_KEYS = [
-      "id",
-      "model",
-      "object",
-      "created",
-      "finish_reason",
-      "finishReason",
-      "role",
-      "type",
-      "index",
-      "stop_reason",
-      "stop_sequence",
-      "system_fingerprint",
-      "service_tier",
-      "usage",
-      "prompt_tokens",
-      "completion_tokens",
-      "total_tokens",
-      "input_tokens",
-      "output_tokens",
-      "logprobs",
-      "refusal",
-      "name",
-      "event",
-    ];
 
     // 1. Claude format
     if (
@@ -283,22 +256,31 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     // 5. Generic fallback
     const templateJson = lastContentJson || lastJson;
     const finalJson = JSON.parse(JSON.stringify(templateJson));
-    const clearDeltas = (obj: any) => {
+    // Skip recognized system metadata (same `classifyField`/METADATA_KEYS as sanitizeObject
+    // in sseTextTransform.ts) — fields like `provider` or `native_finish_reason` must never
+    // be cleared to "" or refilled with buffered answer text here either. See #13488.
+    const clearDeltas = (obj: any, parentKey = "") => {
       if (!obj || typeof obj !== "object") return;
+      const isArray = Array.isArray(obj);
       for (const key of Object.keys(obj)) {
-        if (METADATA_KEYS.includes(key)) {
-          continue;
-        }
         if (typeof obj[key] === "string") {
+          if (classifyField(key, parentKey) === null) {
+            continue;
+          }
           obj[key] = "";
         } else if (typeof obj[key] === "object") {
-          clearDeltas(obj[key]);
+          clearDeltas(obj[key], isArray ? parentKey : key);
         }
       }
     };
     clearDeltas(finalJson);
 
-    const populateRemaining = (obj: any, currentChoiceIdx = 0, currentToolIdx = 0) => {
+    const populateRemaining = (
+      obj: any,
+      currentChoiceIdx = 0,
+      currentToolIdx = 0,
+      parentKey = ""
+    ) => {
       if (!obj || typeof obj !== "object") return;
 
       let choiceIdx = currentChoiceIdx;
@@ -315,20 +297,21 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
       }
 
       const compositeKey = `${choiceIdx}_${toolIdx}`;
+      const isArray = Array.isArray(obj);
 
       for (const key of Object.keys(obj)) {
-        if (METADATA_KEYS.includes(key)) {
-          continue;
-        }
         if (typeof obj[key] === "string") {
-          const field: FieldCategory = getFieldCategory(key);
+          const field = classifyField(key, parentKey);
+          if (field === null) {
+            continue;
+          }
           const choiceBuf = getBuffers(compositeKey);
           if (choiceBuf[field]) {
             obj[key] = (obj[key] || "") + choiceBuf[field];
             choiceBuf[field] = "";
           }
         } else if (typeof obj[key] === "object") {
-          populateRemaining(obj[key], choiceIdx, toolIdx);
+          populateRemaining(obj[key], choiceIdx, toolIdx, isArray ? parentKey : key);
         }
       }
     };

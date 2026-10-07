@@ -11,14 +11,14 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "omniroute-vscode-copilot-banner-dismissed-v1";
-const MARKETPLACE_URL = "https://link.omniroute.online/vsx";
+const MARKETPLACE_URL =
+  "https://marketplace.visualstudio.com/items?itemName=diegosouzapw.omnicopilot";
 
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 
 async function renderBanner(): Promise<HTMLDivElement> {
-  const { default: VscodeCopilotBanner } = await import(
-    "../../../src/app/(dashboard)/dashboard/VscodeCopilotBanner"
-  );
+  const { default: VscodeCopilotBanner } =
+    await import("../../../src/app/(dashboard)/dashboard/VscodeCopilotBanner");
 
   const container = document.createElement("div");
   document.body.appendChild(container);

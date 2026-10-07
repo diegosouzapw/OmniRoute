@@ -141,13 +141,19 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   assert.equal(ids.includes("gemini-3-flash-preview"), false);
 });
 
-test("Claude flagship catalogs keep Fable 5 first", () => {
-  for (const provider of ["anthropic", "cc", "cw", "gh", "ghe-copilot"]) {
+test("verified Anthropic launch catalogs keep Fable 5.1 first", () => {
+  for (const provider of ["anthropic", "cc", "cw"]) {
     assert.equal(
       getProviderModels(provider)[0]?.id,
-      "claude-fable-5",
+      "claude-fable-5-1",
       `${provider} must list the strongest Claude model first`
     );
+  }
+});
+
+test("Copilot catalogs retain Fable 5 until their Fable 5.1 IDs are verified", () => {
+  for (const provider of ["gh", "ghe-copilot"]) {
+    assert.equal(getProviderModels(provider)[0]?.id, "claude-fable-5");
   }
 });
 

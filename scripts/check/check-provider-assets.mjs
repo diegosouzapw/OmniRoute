@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const providerDir = join(repoRoot, "public", "providers");
 const MAX_RASTER_BYTES = 128 * 1024;
-const MAX_RASTER_DIMENSION = 256;
+const MAX_RASTER_DIMENSION = 512;
 const RASTER_EXTENSIONS = new Set([".png", ".jpg", ".jpeg"]);
 
 function extensionOf(fileName) {

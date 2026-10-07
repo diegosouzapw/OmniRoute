@@ -21,9 +21,7 @@ const MAP = {
       "tests/unit/api/chat-route.test.ts",
       "tests/unit/combo/combo-strategy.test.ts",
     ],
-    "src/shared/constants/routingStrategies.ts": [
-      "tests/unit/combo/combo-strategy.test.ts",
-    ],
+    "src/shared/constants/routingStrategies.ts": ["tests/unit/combo/combo-strategy.test.ts"],
   },
 };
 
@@ -87,4 +85,55 @@ test("selectImpacted: non-source files are ignored (no __RUN_ALL__)", () => {
     map: MAP,
   });
   assert.deepEqual(sel, []);
+});
+
+// ── #8084 D1 completion: stdin mode + loader parity ─────────────────────────
+import fs from "node:fs";
+import path from "node:path";
+import { changedFilesFromStdin } from "../../scripts/quality/select-impacted-tests.mjs";
+
+test("changedFilesFromStdin: one path per line, trimmed, blanks dropped", () => {
+  assert.deepEqual(changedFilesFromStdin("  src/a.ts \n\nopen-sse/b.ts\r\n\n"), [
+    "src/a.ts",
+    "open-sse/b.ts",
+  ]);
+  assert.deepEqual(changedFilesFromStdin(""), []);
+  assert.deepEqual(changedFilesFromStdin(undefined), []);
+});
+
+const SCRIPT = fs.readFileSync(
+  path.resolve(import.meta.dirname, "../../scripts/quality/test-scoped.sh"),
+  "utf8"
+);
+
+test("test-scoped.sh feeds the selector via --stdin (staged mode must not read git commits)", () => {
+  assert.match(SCRIPT, /select-impacted-tests\.mjs" --stdin/);
+});
+
+test("test-scoped.sh mirrors the CI loader split (#6787): dashboard→tsx, serial→concurrency=1, rest→tsx/esm", () => {
+  assert.match(SCRIPT, /tests\/unit\/dashboard\/\*\) DASH\+=/);
+  assert.match(SCRIPT, /tests\/unit\/serial\/\*\) SERIAL\+=/);
+  assert.match(
+    SCRIPT,
+    /node --import tsx "\$\{NODE_COMMON\[@\]\}" --test-concurrency=4 "\$\{DASH\[@\]\}"/
+  );
+  assert.match(
+    SCRIPT,
+    /node --import tsx\/esm "\$\{NODE_COMMON\[@\]\}" --test-concurrency=1 "\$\{SERIAL\[@\]\}"/
+  );
+  assert.match(
+    SCRIPT,
+    /node --import tsx\/esm "\$\{NODE_COMMON\[@\]\}" --test-concurrency=4 "\$\{REST\[@\]\}"/
+  );
+});
+
+test("package.json exposes every mode the script header documents", () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.resolve(import.meta.dirname, "../../package.json"), "utf8")
+  );
+  for (const name of ["test:scoped", "test:scoped:staged", "test:scoped:full"]) {
+    assert.ok(pkg.scripts[name], `missing script ${name}`);
+    assert.match(pkg.scripts[name], /scripts\/quality\/test-scoped\.sh/);
+  }
+  assert.match(pkg.scripts["test:scoped:full"], /--full/);
 });

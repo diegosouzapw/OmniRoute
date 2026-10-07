@@ -34,6 +34,12 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "BUILD_SHA",
+  // Sentinel written by write-build-base-path.mjs into the standalone dist/. Consumed at
+  // container start time by ensure-docker-base-path.mjs to compare the baked-in
+  // OMNIROUTE_BASE_PATH against the runtime value. Without this entry prepublish Step
+  // 10.7 (findUnexpectedArtifactPaths) prunes it as an unexpected artifact → the Docker
+  // container crashes at startup with a missing sentinel.
+  "BUILD_OMNIROUTE_BASE_PATH",
   "docs/openapi.yaml",
   // #7065: imported by dist/server-ws.mjs; assembleStandalone copies it but without
   // this bare entry the prepublish prune deleted it → every `omniroute` boot of the
@@ -47,8 +53,14 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "open-sse/services/compression/compressionWorker.js",
   "src/lib/usage/callLogArtifactWorker.js",
+  "src/lib/db/healthCheckWorker.js",
   "package.json",
   "peer-stamp.mjs",
+  // #13636/#14064: server-ws.mjs imports ./httpClientAbortGuard.mjs (process crash
+  // guard); assembleStandalone copies it from src/shared/utils. Without this entry
+  // the prepublish prune deletes it and every boot of the published package dies
+  // with ERR_MODULE_NOT_FOUND — the 3.8.47 head-response-guard class.
+  "httpClientAbortGuard.mjs",
   "main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test
   // tests/unit/pack-artifact-server-ws-closure.test.ts.
@@ -94,7 +106,13 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "LICENSE",
   "README.md",
   "THIRD_PARTY_NOTICES.md",
+  "config/release/wreq-js-native-manifest.json",
+  "config/release/wreq-js-rust-license-inventory.json",
+  "config/release/wreq-js-rust-notices.md",
   "bin/aliasResolver.mjs",
+  // #14006: Antigravity MITM bridge (operator tool for the Antigravity IDE/CLI).
+  // Pure node:* imports, shipped via package.json "files": ["bin/"].
+  "bin/antigravity-bridge.mjs",
   "bin/chatgpt-web-codex-mcp.mjs",
   // #7808: ESM loader hook split out of bin/aliasResolver.mjs to silence CodeQL
   // js/incomplete-url-substring-sanitization (the old code built a
@@ -119,6 +137,14 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "bin/restore-policies.sh",
   "bin/rollback.sh",
   "bin/snapshot-data.sh",
+  // Locale source of truth read at runtime by bin/cli/i18n.mjs (OMNIROUTE_LANG alias
+  // resolution: uk → uk-UA, fil/tl → phi, zh-hk/zh-mo/zh-hant → zh-TW) and by
+  // bin/cli/commands/config.mjs (`config lang list`). Shipped via package.json "files";
+  // without it the published CLI cannot resolve aliases and `config lang list` is empty.
+  "config/i18n.json",
+  // Read by bin/cli/cli-manifest.mjs for run/configure/completion contracts.
+  // Allow the runtime manifest itself, not arbitrary files under config/.
+  "config/cli-tools-manifest.json",
   "open-sse/mcp-server/README.md",
   "open-sse/mcp-server/audit.ts",
   "open-sse/mcp-server/httpTransport.ts",
@@ -136,12 +162,12 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/build-next-isolated.mjs",
   "scripts/check/check-supported-node-runtime.ts",
   "scripts/build/native-binary-compat.mjs",
+  "scripts/build/wreqJsNative.mjs",
   "scripts/build/postinstall.mjs",
+  // Imported by scripts/build/postinstall.mjs to pick the better-sqlite3 prebuild target.
+  "scripts/build/betterSqlitePrebuildTarget.mjs",
   "scripts/build/postinstallSupport.mjs",
   "scripts/build/colocateOptionals.mjs",
-  // #7802: imported by scripts/build/postinstall.mjs to repair tls-client-node's
-  // native binary (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web transport).
-  "scripts/build/fixTlsClientNodeBinary.mjs",
   // #8859: imported by scripts/build/postinstall.mjs to repair playwright-core's
   // browser resolution on Termux/Android (no glibc, no bundled browsers).
   "scripts/build/fixPlaywrightAndroid.mjs",
@@ -153,6 +179,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/packs/optionalPackManifest.mjs",
   "scripts/build/sync-env.mjs",
   "scripts/dev/responses-ws-proxy.mjs",
+  // Imported by scripts/dev/responses-ws-proxy.mjs.
+  "scripts/dev/peer-stamp.mjs",
   "scripts/dev/sync-env.mjs",
   // #5361: imported at runtime by bin/cli/commands/serve.mjs + the standalone
   // server wrapper for opt-in native HTTPS/TLS serving (kept dependency-light).
@@ -163,6 +191,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-plugin/",
+  // #12870 shipped the v2 plugin beside its v1 sibling but never widened this
+  // allowlist, so every packed file under it read as an unexpected artifact.
+  "@omniroute/opencode-plugin-v2/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
   // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
@@ -181,6 +212,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
   "dist/src/lib/usage/callLogArtifactWorker.js",
+  "dist/src/lib/db/healthCheckWorker.js",
   "dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
   "dist/open-sse/services/compression/rules/en/filler.json",
   "dist/server.js",
@@ -190,6 +222,8 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test.
   "dist/systemd-notify.mjs",
+  // server-ws.mjs import (process crash guard, #13636/#14064) — enforced by the closure test.
+  "dist/httpClientAbortGuard.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.
@@ -203,10 +237,14 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // required entries make its absence loud (#7065 class; derived + enforced by
   // tests/unit/pack-artifact-entrypoint-closures.test.ts).
   "bin/cli/data-dir.mjs",
+  // GHSA-2pg2-xm9r-8544: private-by-default DATA_DIR / .env modes, called on every boot.
+  "bin/cli/privateDataDir.mjs",
   "bin/cli/utils/ensureAndroidCacheDir.mjs",
   "bin/cli/utils/parseEnvValue.mjs",
   "bin/cli/utils/storageKeyProvision.mjs",
   "bin/cli/utils/versionFastPath.mjs",
+  // #11437 import — `describeVolatileEnvWarning`, called on every CLI boot.
+  "bin/cli/utils/volatileEnvPath.mjs",
   "bin/mcp-server.mjs",
   // #9281: stdout/stderr console guard preloaded via `node --import` by
   // bin/mcp-server.mjs before the MCP entry's module graph evaluates — without it
@@ -220,13 +258,21 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // or the CLI fails to boot — list them REQUIRED so a regression is loud.
   "bin/aliasResolver.mjs",
   "bin/aliasResolverHook.mjs",
+  // Locale aliases consumed by bin/cli/i18n.mjs at runtime. config/ is not an allowlist
+  // PREFIX, so a vanished file would never fail the unexpected-paths check — list it
+  // REQUIRED so the tarball can never silently lose it again (#7065 class).
+  "config/i18n.json",
+  "config/cli-tools-manifest.json",
+  "config/release/wreq-js-native-manifest.json",
+  "config/release/wreq-js-rust-license-inventory.json",
+  "config/release/wreq-js-rust-notices.md",
   "package.json",
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
   "scripts/build/colocateOptionals.mjs",
-  "scripts/build/fixTlsClientNodeBinary.mjs",
   "scripts/build/runtime-env.mjs",
+  "scripts/build/wreqJsNative.mjs",
   // #10382: runtime imports of bin/cli/commands/packs.mjs (optional packs CLI) —
   // listed REQUIRED so their absence from the tarball fails loudly.
   "scripts/packs/optionalPackInstaller.mjs",

@@ -106,6 +106,8 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           account_key,
           api_key_id,
           api_key_name,
+          0.0 as stored_cost,
+          0 as is_aggregated,
           1 as requests
         FROM usage_history
         ${rawWhere}
@@ -126,6 +128,8 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           NULL as account_key,
           NULL as api_key_id,
           NULL as api_key_name,
+          COALESCE(total_cost, 0.0) as stored_cost,
+          1 as is_aggregated,
           total_requests as requests
         FROM daily_usage_summary
         ${aggWhere}
@@ -136,6 +140,7 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           tokens_cache_read, tokens_cache_creation, tokens_reasoning,
           service_tier, success, latency_ms,
           connection_id, account_key, api_key_id, api_key_name,
+          0.0 as stored_cost, 0 as is_aggregated,
           1 as requests
         FROM usage_history
         ${rawWhere}
@@ -185,7 +190,8 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
     ? `(
         SELECT timestamp, provider, model, service_tier,
           tokens_input, tokens_output,
-          tokens_cache_read, tokens_cache_creation, tokens_reasoning
+          tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+          0.0 as stored_cost, 0 as is_aggregated
         FROM usage_history
         ${presetRawWhere}
         UNION ALL
@@ -197,13 +203,16 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
           total_output_tokens as tokens_output,
           0 as tokens_cache_read,
           0 as tokens_cache_creation,
-          0 as tokens_reasoning
+          0 as tokens_reasoning,
+          COALESCE(total_cost, 0.0) as stored_cost,
+          1 as is_aggregated
         FROM daily_usage_summary
         ${presetAggWhere}
       )`
     : `(SELECT timestamp, provider, model, service_tier,
           tokens_input, tokens_output,
-          tokens_cache_read, tokens_cache_creation, tokens_reasoning
+          tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+          0.0 as stored_cost, 0 as is_aggregated
         FROM usage_history
         ${presetRawWhere}
       )`;

@@ -25,6 +25,7 @@ test("SEARCH_PROVIDERS has all registered providers", () => {
   assert.ok(SEARCH_PROVIDERS["perplexity-search"], "perplexity-search should exist");
   assert.ok(SEARCH_PROVIDERS["exa-search"], "exa should exist");
   assert.ok(SEARCH_PROVIDERS["tavily-search"], "tavily should exist");
+  assert.ok(SEARCH_PROVIDERS["nimble-search"], "nimble should exist");
   assert.ok(SEARCH_PROVIDERS["firecrawl"], "firecrawl should exist");
   assert.ok(SEARCH_PROVIDERS["google-pse-search"], "google-pse should exist");
   assert.ok(SEARCH_PROVIDERS["linkup-search"], "linkup should exist");
@@ -36,9 +37,11 @@ test("SEARCH_PROVIDERS has all registered providers", () => {
   assert.ok(SEARCH_PROVIDERS["jina-search"], "jina-search should exist");
   assert.ok(SEARCH_PROVIDERS["duckduckgo-free"], "duckduckgo-free should exist");
   assert.ok(SEARCH_PROVIDERS["x-search"], "x-search should exist");
-  // #11140: context7 (library-docs search) is the 17th registered provider
+  assert.ok(SEARCH_PROVIDERS["xquik-search"], "xquik-search should exist");
+  assert.ok(SEARCH_PROVIDERS["anysearch-search"], "anysearch-search should exist");
+  // #11140: context7 provides library-docs search
   assert.ok(SEARCH_PROVIDERS["context7"], "context7 should exist");
-  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 17);
+  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 20);
 });
 
 test("duckduckgo-free config is a no-key, fallback-only provider", () => {
@@ -172,16 +175,18 @@ test("zai-search config is correct", () => {
 
 test("getAllSearchProviders returns flat list", () => {
   const all = getAllSearchProviders();
-  // #11140: 17 providers with context7 registered
-  assert.equal(all.length, 17);
+  assert.equal(all.length, 20);
   assert.ok(all.some((p) => p.id === "duckduckgo-free"));
   assert.ok(all.some((p) => p.id === "jina-search"));
   assert.ok(all.some((p) => p.id === "x-search"));
+  assert.ok(all.some((p) => p.id === "xquik-search"));
+  assert.ok(all.some((p) => p.id === "anysearch-search"));
   assert.ok(all.some((p) => p.id === "serper-search"));
   assert.ok(all.some((p) => p.id === "brave-search"));
   assert.ok(all.some((p) => p.id === "perplexity-search"));
   assert.ok(all.some((p) => p.id === "exa-search"));
   assert.ok(all.some((p) => p.id === "tavily-search"));
+  assert.ok(all.some((p) => p.id === "nimble-search"));
   assert.ok(all.some((p) => p.id === "google-pse-search"));
   assert.ok(all.some((p) => p.id === "linkup-search"));
   assert.ok(all.some((p) => p.id === "searchapi-search"));
@@ -420,6 +425,8 @@ test("v1SearchSchema accepts new search providers", async () => {
     "duckduckgo-free",
     "firecrawl",
     "x-search",
+    "xquik-search",
+    "anysearch-search",
   ] as const;
 
   for (const provider of providers) {

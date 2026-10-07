@@ -12,5 +12,15 @@
 export const OPENCODE_ZEN_GO_SHARED_MODELS = Object.freeze([
   { id: "kimi-k2.7-code", name: "Kimi K2.7 Code" },
   { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
-  { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+  {
+    id: "qwen3.6-plus",
+    name: "Qwen3.6 Plus",
+    targetFormat: "claude",
+    supportsVision: false,
+    // #10788: effort-tier aliases exist as explicit registry rows; declare the
+    // vocabulary on the shared base row so variant synthesis and the sanitizer
+    // agree on it for both opencode-go and opencode-zen.
+    supportsReasoning: true,
+    supportedThinkingEfforts: ["high", "max"],
+  },
 ]);

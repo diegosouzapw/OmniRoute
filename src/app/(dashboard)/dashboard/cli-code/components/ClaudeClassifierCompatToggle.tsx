@@ -50,7 +50,11 @@ export default function ClaudeClassifierCompatToggle() {
   }, [t]);
 
   useEffect(() => {
-    load();
+    // Load in an async continuation so every setState happens after an await
+    // (react-hooks/set-state-in-effect: no synchronous setState in effect bodies).
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   const cycle = useCallback(async () => {

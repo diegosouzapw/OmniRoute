@@ -1,3 +1,8 @@
+import {
+  sanitizeErrorMessage,
+  sanitizeUpstreamDetails,
+} from "@omniroute/open-sse/utils/errorSanitization.ts";
+
 import { skillRegistry } from "./registry";
 import { SkillExecution, SkillStatus, SkillHandler } from "./types";
 import { builtinSkills } from "./builtins";
@@ -7,6 +12,169 @@ import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_EXECUTOR");
+
+function toSafeSkillErrorMessage(value: unknown): string {
+  try {
+    const raw = value instanceof Error ? value.message : value;
+    return sanitizeErrorMessage(raw) || "Skill execution failed";
+  } catch {
+    return "Skill execution failed";
+  }
+}
+
+const SKILL_FAILURE_DISCRIMINATORS = new Set(["error", "failed", "failure"]);
+
+function isSkillErrorKey(key: string): boolean {
+  const normalizedKey = key.replace(/[-_]/g, "").toLowerCase();
+  return (
+    normalizedKey === "error" ||
+    normalizedKey === "errors" ||
+    normalizedKey === "warning" ||
+    normalizedKey === "warnings"
+  );
+}
+
+function isFailureDiscriminator(value: unknown): boolean {
+  return typeof value === "string" && SKILL_FAILURE_DISCRIMINATORS.has(value.trim().toLowerCase());
+}
+
+function isSkillFailureOutput(output: Record<string, unknown>): boolean {
+  try {
+    const status = output.status;
+    return (
+      output.success === false ||
+      (typeof status === "number" && Number.isFinite(status) && status >= 400) ||
+      isFailureDiscriminator(status) ||
+      isFailureDiscriminator(output.type) ||
+      isFailureDiscriminator(output.event) ||
+      isFailureDiscriminator(output.kind)
+    );
+  } catch {
+    return true;
+  }
+}
+
+type SensitiveSkillReferences = {
+  objects: WeakSet<object>;
+  strings: Set<string>;
+};
+
+function markSensitiveSkillReference(value: unknown, sensitive: SensitiveSkillReferences): void {
+  if (typeof value === "string") {
+    sensitive.strings.add(value);
+    return;
+  }
+  if (!value || typeof value !== "object" || sensitive.objects.has(value)) return;
+
+  sensitive.objects.add(value);
+  try {
+    for (const entry of Object.values(value as Record<string, unknown>)) {
+      markSensitiveSkillReference(entry, sensitive);
+    }
+  } catch {
+    // A revoked proxy or throwing getter is unsafe to expose at the boundary.
+  }
+}
+
+function collectSensitiveSkillReferences(
+  value: unknown,
+  sensitive: SensitiveSkillReferences,
+  visited: WeakSet<object>
+): void {
+  if (!value || typeof value !== "object" || visited.has(value)) return;
+  visited.add(value);
+
+  try {
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      if (isSkillErrorKey(key)) {
+        markSensitiveSkillReference(entry, sensitive);
+      } else {
+        collectSensitiveSkillReferences(entry, sensitive, visited);
+      }
+    }
+  } catch {
+    markSensitiveSkillReference(value, sensitive);
+  }
+}
+
+type SkillProjectionContext = {
+  active: WeakSet<object>;
+  projected: WeakMap<object, unknown>;
+  sensitive: SensitiveSkillReferences;
+};
+
+function projectNestedSkillErrorSubtrees(value: unknown, context: SkillProjectionContext): unknown {
+  if (typeof value === "string") {
+    return context.sensitive.strings.has(value) ? sanitizeErrorMessage(value) : value;
+  }
+  if (!value || typeof value !== "object") return value;
+  if (context.active.has(value)) return "[circular]";
+  if (context.projected.has(value)) return context.projected.get(value);
+
+  if (context.sensitive.objects.has(value)) {
+    const safeValue = sanitizeUpstreamDetails(value);
+    context.projected.set(value, safeValue);
+    return safeValue;
+  }
+
+  context.active.add(value);
+  if (Array.isArray(value)) {
+    const projected: unknown[] = [];
+    context.projected.set(value, projected);
+    for (const entry of value) projected.push(projectNestedSkillErrorSubtrees(entry, context));
+    context.active.delete(value);
+    return projected;
+  }
+
+  const projected: Record<string, unknown> = {};
+  context.projected.set(value, projected);
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    projected[key] = isSkillErrorKey(key)
+      ? sanitizeUpstreamDetails(entry)
+      : projectNestedSkillErrorSubtrees(entry, context);
+  }
+  context.active.delete(value);
+  return projected;
+}
+
+function skillFailureMessage(output: Record<string, unknown>): string {
+  try {
+    for (const candidate of [output.message, output.reason, output.statusText, output.error]) {
+      if (typeof candidate === "string" || candidate instanceof Error) {
+        return toSafeSkillErrorMessage(candidate);
+      }
+    }
+  } catch {
+    // Fall through to the stable public message.
+  }
+  return "Skill execution failed";
+}
+
+export function projectSkillOutputForBoundary(
+  output: Record<string, unknown>
+): Record<string, unknown> {
+  try {
+    if (isSkillFailureOutput(output)) {
+      const projected = sanitizeUpstreamDetails(output);
+      return projected && typeof projected === "object" && !Array.isArray(projected)
+        ? (projected as Record<string, unknown>)
+        : { success: false, error: "Skill execution failed" };
+    }
+
+    const sensitive: SensitiveSkillReferences = {
+      objects: new WeakSet<object>(),
+      strings: new Set<string>(),
+    };
+    collectSensitiveSkillReferences(output, sensitive, new WeakSet<object>());
+    return projectNestedSkillErrorSubtrees(output, {
+      active: new WeakSet<object>(),
+      projected: new WeakMap<object, unknown>(),
+      sensitive,
+    }) as Record<string, unknown>;
+  } catch {
+    return { success: false, error: "Skill execution failed" };
+  }
+}
 
 class SkillExecutor {
   private static instance: SkillExecutor;
@@ -50,6 +218,8 @@ class SkillExecutor {
       throw new Error(`Skill not found: ${skillName}`);
     }
 
+    // Check enabled/disabled BEFORE creating a DB row (preserves pre-Task-3
+    // behavior: disabled/missing skills never write to skill_executions).
     if (!skill.enabled) {
       throw new Error(`Skill is disabled: ${skillName}`);
     }
@@ -74,36 +244,10 @@ class SkillExecutor {
         new Date().toISOString()
       );
 
-      let handler = this.handlers.get(skill.handler);
-      if (!handler) {
-        // Builtin handlers are registered by instrumentation-node at startup,
-        // but Next.js may compile this module into multiple chunks (each with
-        // its own SkillExecutor singleton). Fall back to the builtin registry
-        // so `POST /api/skills/executions` works regardless of which chunk the
-        // route is served from.
-        const builtin = builtinSkills[skill.handler];
-        if (builtin) {
-          this.handlers.set(skill.handler, builtin);
-          handler = builtin;
-        }
-      }
-      if (!handler) {
-        throw new Error(`Handler not found: ${skill.handler}`);
-      }
-
-      let output: Record<string, unknown> | null = null;
-      let errorMessage: string | null = null;
-      let status = SkillStatus.SUCCESS;
-
-      try {
-        const result = await this.executeWithTimeout(
-          handler(input, { apiKeyId: context.apiKeyId, sessionId: context.sessionId || "" })
-        );
-        output = result;
-      } catch (err) {
-        errorMessage = err instanceof Error ? err.message : String(err);
-        status = SkillStatus.ERROR;
-      }
+      const { output, errorMessage, status } = await this.runHandler(skillName, input, {
+        apiKeyId: context.apiKeyId,
+        sessionId: context.sessionId || "",
+      });
 
       const durationMs = Date.now() - startTime;
 
@@ -131,7 +275,7 @@ class SkillExecutor {
       };
     } catch (err) {
       const durationMs = Date.now() - startTime;
-      const errorMessage = err instanceof Error ? err.message : String(err);
+      const errorMessage = toSafeSkillErrorMessage(err);
 
       db.prepare(
         `UPDATE skill_executions SET status = ?, error_message = ?, duration_ms = ? WHERE id = ?`
@@ -148,6 +292,119 @@ class SkillExecutor {
         setTimeout(() => reject(new Error("Skill execution timed out")), this.timeout)
       ),
     ]);
+  }
+
+  /**
+   * Shared handler lookup + execute + output projection used by both
+   * `execute()` (which writes history) and `executeClaimed()` (which does not).
+   */
+  private async runHandler(
+    skillName: string,
+    input: Record<string, unknown>,
+    context: { apiKeyId: string; sessionId: string }
+  ): Promise<{
+    output: Record<string, unknown> | null;
+    errorMessage: string | null;
+    status: SkillStatus;
+  }> {
+    const skill = skillRegistry.getSkill(skillName, context.apiKeyId);
+    if (!skill) {
+      throw new Error(`Skill not found: ${skillName}`);
+    }
+    if (!skill.enabled) {
+      throw new Error(`Skill is disabled: ${skillName}`);
+    }
+
+    let handler = this.handlers.get(skill.handler);
+    if (!handler) {
+      const builtin = builtinSkills[skill.handler];
+      if (builtin) {
+        this.handlers.set(skill.handler, builtin);
+        handler = builtin;
+      }
+    }
+    if (!handler) {
+      throw new Error(`Handler not found: ${skill.handler}`);
+    }
+
+    let output: Record<string, unknown> | null = null;
+    let errorMessage: string | null = null;
+    let status = SkillStatus.SUCCESS;
+
+    try {
+      const result = await this.executeWithTimeout(
+        handler(input, { apiKeyId: context.apiKeyId, sessionId: context.sessionId || "" })
+      );
+      const resultIsFailure = isSkillFailureOutput(result);
+      output = projectSkillOutputForBoundary(result);
+      if (resultIsFailure) {
+        errorMessage = skillFailureMessage(result);
+        status = SkillStatus.ERROR;
+      }
+    } catch (err) {
+      errorMessage = toSafeSkillErrorMessage(err);
+      status = SkillStatus.ERROR;
+    }
+
+    return { output, errorMessage, status };
+  }
+
+  /**
+   * Execute a claimed skill call for the server-owned tool loop.
+   * Reuses the same handler lookup/timeout/projection as `execute()`
+   * but does NOT write to `skill_executions` — the fence table owns
+   * persistence for claimed executions.
+   */
+  async executeClaimed(
+    skillName: string,
+    input: Record<string, unknown>,
+    context: { apiKeyId: string; sessionId: string },
+    executionId: string
+  ): Promise<SkillExecution> {
+    const settings = await getSettings();
+    if (settings.skillsEnabled === false) {
+      throw new Error("Skills execution is disabled. Enable Skills in Settings > AI.");
+    }
+
+    const skill = skillRegistry.getSkill(skillName, context.apiKeyId);
+    if (!skill) {
+      throw new Error(`Skill not found: ${skillName}`);
+    }
+
+    const startTime = Date.now();
+    log.info("skills.executor.claimed_start", {
+      skillId: skill.id,
+      skillName,
+      apiKeyId: context.apiKeyId,
+      executionId,
+    });
+
+    const { output, errorMessage, status } = await this.runHandler(skillName, input, context);
+    const durationMs = Date.now() - startTime;
+
+    if (status !== SkillStatus.SUCCESS) {
+      throw new Error(`Skill execution failed: ${errorMessage ?? "unknown error"}`);
+    }
+
+    log.info("skills.executor.claimed_complete", {
+      skillId: skill.id,
+      success: status === SkillStatus.SUCCESS,
+      durationMs,
+      executionId,
+    });
+
+    return {
+      id: executionId,
+      skillId: skill.id,
+      apiKeyId: context.apiKeyId,
+      sessionId: context.sessionId || "",
+      input,
+      output,
+      status,
+      errorMessage,
+      durationMs,
+      createdAt: new Date(),
+    };
   }
 
   getExecution(executionId: string): SkillExecution | undefined {

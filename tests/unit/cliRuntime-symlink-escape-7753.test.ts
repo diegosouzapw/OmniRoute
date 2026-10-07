@@ -27,9 +27,8 @@ fs.chmodSync(realBinaryPath, 0o755);
 const symlinkPath = path.join(localBinDir, "opencode");
 fs.symlinkSync(realBinaryPath, symlinkPath);
 
-const { getCliRuntimeStatus, checkKnownPath } = await import(
-  "../../src/shared/services/cliRuntime.ts"
-);
+const { getCliRuntimeStatus, checkKnownPath } =
+  await import("../../src/shared/services/cliRuntime.ts");
 
 test("#7753: a CLI symlink located inside an expected parent dir is wrongly reported not-installed when its resolved target escapes EXPECTED_PARENT_PATHS", async () => {
   const status = await getCliRuntimeStatus("opencode");

@@ -8,9 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9204-agy-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { createConnectionFromAgyToken } = await import(
-  "../../src/lib/oauth/utils/agyAuthImport.ts"
-);
+const { createConnectionFromAgyToken } = await import("../../src/lib/oauth/utils/agyAuthImport.ts");
 const { parseModel } = await import("../../open-sse/services/model.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 

@@ -50,9 +50,9 @@ afterEach(() => {
 
 describe("AddApiKeyModal — cookie modal sizing (#6265)", () => {
   it("caps height on the OUTERMOST dialog wrapper, not on an inner body div", () => {
-    // chatgpt-web is a `kind: "cookie"` web-session provider — same shared modal
+    // perplexity-web is a `kind: "cookie"` web-session provider — same shared modal
     // path lmarena/claude-web/gemini-web/kimi-web/z-ai all go through.
-    const el = render({ provider: "chatgpt-web", providerName: "ChatGPT (Web)" });
+    const el = render({ provider: "perplexity-web", providerName: "Perplexity Web" });
 
     const dialog = el.querySelector<HTMLElement>('[role="dialog"]');
     expect(dialog).toBeTruthy();

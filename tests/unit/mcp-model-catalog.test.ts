@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { getMcpModelsCatalog } from "../../open-sse/mcp-server/server.ts";
+import { listModelsCatalogOutput } from "../../open-sse/mcp-server/schemas/tools.ts";
 
 test("getMcpModelsCatalog aggregates only active connection model endpoints", async () => {
   const calls: string[] = [];
@@ -56,6 +57,88 @@ test("getMcpModelsCatalog aggregates only active connection model endpoints", as
   });
 });
 
+test("getMcpModelsCatalog skips tool-only providers during aggregate discovery", async () => {
+  const calls: string[] = [];
+
+  const result = await getMcpModelsCatalog(
+    {},
+    {
+      listProviderConnections: async () => [
+        { id: "conn-tinyfish", provider: "tinyfish", isActive: true },
+        { id: "conn-github", provider: "github", isActive: true },
+      ],
+      fetchJson: async (path: string) => {
+        calls.push(path);
+        return {
+          source: "api",
+          models: [{ id: "gpt-4.1", owned_by: "github", supportedEndpoints: ["chat"] }],
+        };
+      },
+    }
+  );
+
+  assert.deepEqual(calls, ["/api/providers/conn-github/models?excludeHidden=true"]);
+  assert.equal(result.models.length, 1);
+  assert.equal(result.models[0]?.id, "gpt-4.1");
+  assert.equal(result.providerFailures, undefined);
+});
+
+test("getMcpModelsCatalog isolates unavailable model providers during aggregate discovery", async () => {
+  const result = await getMcpModelsCatalog(
+    {},
+    {
+      listProviderConnections: async () => [
+        { id: "conn-openai", provider: "openai", isActive: true },
+        { id: "conn-github", provider: "github", isActive: true },
+      ],
+      fetchJson: async (path: string) => {
+        if (path === "/api/providers/conn-openai/models?excludeHidden=true") {
+          throw new Error("sensitive upstream failure details");
+        }
+
+        return {
+          source: "api",
+          models: [{ id: "gpt-4.1", owned_by: "github", supportedEndpoints: ["chat"] }],
+        };
+      },
+    }
+  );
+
+  assert.equal(result.models.length, 1);
+  assert.equal(result.models[0]?.id, "gpt-4.1");
+  assert.deepEqual(result.providerFailures, [
+    {
+      provider: "openai",
+      connectionId: "conn-openai",
+      status: "unavailable",
+    },
+  ]);
+  assert.equal(result.warning, "Provider 'openai' model catalog is unavailable.");
+  assert.doesNotMatch(result.warning ?? "", /sensitive upstream failure details/);
+  assert.equal(listModelsCatalogOutput.safeParse(result).success, true);
+});
+
+test("getMcpModelsCatalog rejects explicit tool-only provider requests before fetching", async () => {
+  let fetchCalled = false;
+
+  await assert.rejects(
+    getMcpModelsCatalog(
+      { provider: "tinyfish" },
+      {
+        listProviderConnections: async () => [
+          { id: "conn-tinyfish", provider: "tinyfish", isActive: true },
+        ],
+        fetchJson: async () => {
+          fetchCalled = true;
+          return { models: [] };
+        },
+      }
+    ),
+    /does not expose a model catalog/
+  );
+  assert.equal(fetchCalled, false);
+});
+
 test("getMcpModelsCatalog exposes codex default thinking effort when no override is stored", async () => {
   const result = await getMcpModelsCatalog(
     { provider: "codex" },
@@ -79,21 +162,44 @@ test("getMcpModelsCatalog exposes codex default thinking effort when no override
   assert.equal(result.models[0]?.thinkingEffort, "medium");
 });
 
+// #12776 — context_length must be carried through the MCP catalog projection
+test("getMcpModelsCatalog includes context_length when present", async () => {
+  const result = await getMcpModelsCatalog(
+    {},
+    {
+      listProviderConnections: async () => [{ id: "conn-1", provider: "openai", isActive: true }],
+      fetchJson: async () => ({
+        source: "api",
+        models: [
+          { id: "gpt-4.1", owned_by: "openai", context_length: 1048576 },
+          { id: "text-embedding-3-small", owned_by: "openai" },
+        ],
+      }),
+    }
+  );
+
+  const gpt = result.models.find((m) => m.id === "gpt-4.1");
+  const emb = result.models.find((m) => m.id === "text-embedding-3-small");
+
+  assert.equal(gpt?.context_length, 1048576, "context_length carried from upstream");
+  assert.equal(emb?.context_length, undefined, "omitted when upstream has no context_length");
+});
+
 test("getMcpModelsCatalog exposes stored thinking effort overrides", async () => {
   const result = await getMcpModelsCatalog(
-    { provider: "chatgpt-web" },
+    { provider: "gemini-web" },
     {
       listProviderConnections: async () => [
         {
-          id: "conn-chatgpt",
-          provider: "chatgpt-web",
+          id: "conn-gemini-web",
+          provider: "gemini-web",
           isActive: true,
           providerSpecificData: { thinkingEffort: "extended" },
         },
       ],
       fetchJson: async () => ({
         source: "api",
-        models: [{ id: "gpt-5", owned_by: "chatgpt-web", supportedEndpoints: ["chat"] }],
+        models: [{ id: "gemini-3.1-pro", owned_by: "gemini-web", supportedEndpoints: ["chat"] }],
       }),
     }
   );
@@ -132,7 +238,9 @@ test("getMcpModelsCatalog returns empty result when requested provider has no ac
   const result = await getMcpModelsCatalog(
     { provider: "github" },
     {
-      listProviderConnections: async () => [{ id: "conn-codex", provider: "codex", isActive: true }],
+      listProviderConnections: async () => [
+        { id: "conn-codex", provider: "codex", isActive: true },
+      ],
       fetchJson: async () => {
         throw new Error("fetchJson should not be called without a matching active provider");
       },

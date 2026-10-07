@@ -9,8 +9,10 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
-import { getCachedSettings } from "@/lib/localDb";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { getCachedSettings } from "@/lib/db/readCache";
+import { isTrustedLoopbackInternalServiceRequest } from "@/lib/api/internalServiceAuth";
+import { isAuthenticated, isCacheScopedKey } from "@/shared/utils/apiAuth";
+import { CACHE_READ_SCOPE, CACHE_WRITE_SCOPE } from "@/shared/constants/managementScopes";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function errorMessage(error: unknown): string {
@@ -18,7 +20,11 @@ function errorMessage(error: unknown): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (
+    !isTrustedLoopbackInternalServiceRequest(req) &&
+    !(await isAuthenticated(req)) &&
+    !(await isCacheScopedKey(req, CACHE_READ_SCOPE))
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -28,10 +34,14 @@ export async function GET(req: NextRequest) {
     const trendHours = Math.min(720, Math.max(1, Number.isNaN(rawHours) ? 24 : rawHours));
 
     const cacheStats = getCacheStats();
-    const idempotencyStats = await getIdempotencyStats();
-    const promptCacheMetrics = await getCacheMetrics();
-    const trend = await getCacheTrend(trendHours);
-    const settings = await getCachedSettings().catch(() => ({}));
+    // Promise.all allows concurrent execution; if one rejects, others still resolve,
+    // which is safe for this read-only stats endpoint.
+    const [idempotencyStats, promptCacheMetrics, trend, settings] = await Promise.all([
+      getIdempotencyStats(),
+      getCacheMetrics(),
+      getCacheTrend(trendHours),
+      getCachedSettings().catch(() => ({})),
+    ]);
 
     return NextResponse.json({
       semanticCache: cacheStats,
@@ -48,7 +58,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (
+    !isTrustedLoopbackInternalServiceRequest(req) &&
+    !(await isAuthenticated(req)) &&
+    !(await isCacheScopedKey(req, CACHE_WRITE_SCOPE))
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

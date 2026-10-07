@@ -22,26 +22,28 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolated DB per test file
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-presets-crud-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-presets-crud-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.REQUIRE_API_KEY = "false";
 
 const core = await import("../../src/lib/db/core.ts");
 
 // Import route handlers
-const { GET: listGet, POST: createPost, OPTIONS: listOptions } = await import(
-  "../../src/app/api/playground/presets/route.ts"
-);
-const { GET: idGet, PUT: idPut, DELETE: idDelete, OPTIONS: idOptions } = await import(
-  "../../src/app/api/playground/presets/[id]/route.ts"
-);
+const {
+  GET: listGet,
+  POST: createPost,
+  OPTIONS: listOptions,
+} = await import("../../src/app/api/playground/presets/route.ts");
+const {
+  GET: idGet,
+  PUT: idPut,
+  DELETE: idDelete,
+  OPTIONS: idOptions,
+} = await import("../../src/app/api/playground/presets/[id]/route.ts");
 
 const BASE_URL = "http://localhost:20128";
 
-const UUID_V4_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -186,7 +188,12 @@ test("PUT /presets/[id] partial patch (name only) updates correctly", async () =
   );
   assert.equal(putRes.status, 200);
 
-  const updated = (await putRes.json()) as { id: string; name: string; endpoint: string; model: string };
+  const updated = (await putRes.json()) as {
+    id: string;
+    name: string;
+    endpoint: string;
+    model: string;
+  };
   assert.equal(updated.id, created.id);
   assert.equal(updated.name, "Updated Name");
   // Other fields should be preserved
@@ -295,10 +302,7 @@ test("GET /presets/[id] with non-UUID id → 400", async () => {
 
 test("PUT /presets/[id] with non-UUID id → 400", async () => {
   const badId = "also-not-a-uuid";
-  const res = await idPut(
-    putReq(badId, { name: "Whatever" }),
-    await resolveParams(badId)
-  );
+  const res = await idPut(putReq(badId, { name: "Whatever" }), await resolveParams(badId));
   assert.equal(res.status, 400);
 
   const body = (await res.json()) as { error: { message: string } };

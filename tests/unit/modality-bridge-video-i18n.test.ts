@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
 const messagesDirectory = path.resolve("src/i18n/messages");
 const requiredKeys = [
@@ -18,11 +19,11 @@ const requiredKeys = [
   "modalityBridgeVideoMaxVideos",
 ] as const;
 
-test("all 43 UI locale catalogs contain non-placeholder Video Bridge settings", () => {
+test(`all ${i18nConfig.locales.length} UI locale catalogs contain non-placeholder Video Bridge settings`, () => {
   const catalogs = readdirSync(messagesDirectory)
     .filter((file) => file.endsWith(".json"))
     .sort();
-  assert.equal(catalogs.length, 43);
+  assert.equal(catalogs.length, i18nConfig.locales.length);
   const english = JSON.parse(readFileSync(path.join(messagesDirectory, "en.json"), "utf8")) as {
     settings: Record<string, string>;
   };

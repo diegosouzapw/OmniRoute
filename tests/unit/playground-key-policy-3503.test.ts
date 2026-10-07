@@ -15,6 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SignJWT } from "jose";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-playground-key-3503-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -32,7 +33,7 @@ const KEY_SECRET = created.key;
 
 async function sessionCookie(): Promise<string> {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const jwt = await new SignJWT({ sub: "admin" })
+  const jwt = await new SignJWT({ authenticated: true, sub: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")
     .sign(secret);
@@ -47,15 +48,19 @@ function req(headers: Record<string, string>) {
   } as unknown as Request;
 }
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("#3503 — authenticated session + key-id header resolves the key secret server-side", async () => {
   const out = await resolvePlaygroundTestKey(
     req({ [PLAYGROUND_KEY_ID_HEADER]: KEY_ID, cookie: await sessionCookie() })
   );
-  assert.equal(out, KEY_SECRET, "an authenticated session should resolve the selected key's secret by id");
+  assert.equal(
+    out,
+    KEY_SECRET,
+    "an authenticated session should resolve the selected key's secret by id"
+  );
 });
 
 test("#3503 — SECURITY: the key-id header is IGNORED without an authenticated session", async () => {

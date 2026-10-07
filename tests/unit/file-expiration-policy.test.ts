@@ -1,6 +1,6 @@
 import { describe, it, before, afterEach } from "node:test";
 import assert from "node:assert";
-import { createFile, getFile, listFiles, deleteFile } from "@/lib/localDb";
+import { createFile, getFile, listFiles, deleteFile } from "@/lib/db/files";
 import { getDbInstance } from "@/lib/db/core.ts";
 
 describe("File Expiration Policy", () => {

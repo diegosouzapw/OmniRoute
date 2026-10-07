@@ -32,7 +32,13 @@ function delegationRequest(body: unknown, bearer?: string) {
 const VALID_BODY = {
   skill: "conductor-cli-claude",
   messages: [{ role: "user", content: "adicione um README com a seção Sobre" }],
-  metadata: { conductor: { repo: { url: "https://git.x/repo", base_ref: "dev" }, mode: "solo", model: "cc/claude-sonnet-5" } },
+  metadata: {
+    conductor: {
+      repo: { url: "https://git.x/repo", base_ref: "dev" },
+      mode: "solo",
+      model: "cc/claude-sonnet-5",
+    },
+  },
 };
 
 test.beforeEach(() => {
@@ -91,7 +97,11 @@ test("delegação válida → 201 com o task_id do hub; requirements derivados d
   const out = await res.json();
   assert.equal(out.conductor_task_id, "t_delegada");
   assert.equal(out.state, "submitted");
-  const sent = bodies[0] as { repo: { url: string; base_ref: string }; spec: { prompt: string }; requirements: { cli: string; model: string } };
+  const sent = bodies[0] as {
+    repo: { url: string; base_ref: string };
+    spec: { prompt: string };
+    requirements: { cli: string; model: string };
+  };
   assert.equal(sent.repo.url, "https://git.x/repo");
   assert.equal(sent.repo.base_ref, "dev");
   assert.equal(sent.spec.prompt, "adicione um README com a seção Sobre");

@@ -45,6 +45,16 @@ test("isNativeSqliteLoadError detects MODULE_NOT_FOUND via error.code", () => {
   assert.equal(isNativeSqliteLoadError(err), true);
 });
 
+test("isNativeSqliteLoadError detects minified TypeError 'a is not a function'", () => {
+  const err = new TypeError("a is not a function");
+  assert.equal(isNativeSqliteLoadError(err), true);
+});
+
+test("isNativeSqliteLoadError detects 'is not a constructor' from a non-function export", () => {
+  const err = new TypeError("b.default is not a constructor");
+  assert.equal(isNativeSqliteLoadError(err), true);
+});
+
 test("isNativeSqliteLoadError returns false for unrelated errors", () => {
   assert.equal(isNativeSqliteLoadError(new Error("SQLITE_BUSY: database is locked")), false);
   assert.equal(isNativeSqliteLoadError(new Error("ENOENT: no such file")), false);

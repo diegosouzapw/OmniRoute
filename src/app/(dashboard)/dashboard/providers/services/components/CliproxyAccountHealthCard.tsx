@@ -18,7 +18,11 @@ const STATE_LABELS: Record<CliproxyAccountHealthResult["state"], string> = {
 };
 
 function AccountRow({ account }: { account: CliproxyAccountHealth }) {
-  const state = account.disabled ? "Disabled" : account.unavailable ? "Unavailable" : account.status;
+  const state = account.disabled
+    ? "Disabled"
+    : account.unavailable
+      ? "Unavailable"
+      : account.status;
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 border-t border-border py-3 first:border-t-0">
       <div className="min-w-0">
@@ -44,33 +48,50 @@ function AccountRow({ account }: { account: CliproxyAccountHealth }) {
   );
 }
 
+// Network + parse concerns live outside the component so the load callback only
+// sets state after the await (no synchronous setState reachable from the effect).
+async function fetchAccountHealth(): Promise<CliproxyAccountHealthResult> {
+  try {
+    const response = await fetch("/api/services/cliproxy/accounts", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch {
+    return { state: "unreachable", accounts: [], version: null };
+  }
+}
+
 export function CliproxyAccountHealthCard() {
   const [result, setResult] = useState<CliproxyAccountHealthResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/services/cliproxy/accounts", { cache: "no-store" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      setResult(await response.json());
-    } catch {
-      setResult({ state: "unreachable", accounts: [], version: null });
-    } finally {
-      setLoading(false);
-    }
+    const next = await fetchAccountHealth();
+    setResult(next);
+    setLoading(false);
   }, []);
 
+  // Inline-in-effect (calling the component-scope `load` callback synchronously
+  // from an effect is rejected by the compiler rules); setState is post-await.
   useEffect(() => {
+    const run = async () => {
+      const next = await fetchAccountHealth();
+      setResult(next);
+      setLoading(false);
+    };
+    void run();
+  }, []);
+
+  const handleRefresh = () => {
+    setLoading(true);
     void load();
-  }, [load]);
+  };
 
   return (
     <Card
       title="CLIProxyAPI accounts"
       subtitle="Read-only status from the authenticated management API"
       action={
-        <Button variant="secondary" size="sm" onClick={() => void load()} loading={loading}>
+        <Button variant="secondary" size="sm" onClick={handleRefresh} loading={loading}>
           Refresh
         </Button>
       }
@@ -87,7 +108,9 @@ export function CliproxyAccountHealthCard() {
         )
       ) : (
         <p className="text-sm text-text-muted">
-          {loading && !result ? "Loading account health…" : STATE_LABELS[result?.state ?? "unreachable"]}
+          {loading && !result
+            ? "Loading account health…"
+            : STATE_LABELS[result?.state ?? "unreachable"]}
         </p>
       )}
     </Card>

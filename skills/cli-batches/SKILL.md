@@ -50,6 +50,7 @@ omniroute batches get <batchId>
 
 **Flags:**
 
+- `--input-file <fileId>`
 - `--endpoint <e>`
 - `--completion-window <w>`
 - `--metadata <kv>`
@@ -64,6 +65,7 @@ omniroute batches create
 
 **Flags:**
 
+- `--jsonl <path>`
 - `--endpoint <e>`
 - `--wait`
 
@@ -151,6 +153,10 @@ omniroute files get <fileId>
 ```
 
 ### `files upload <path>`
+
+**Flags:**
+
+- `--purpose <p>`
 
 **Example:**
 

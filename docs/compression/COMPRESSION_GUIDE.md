@@ -68,7 +68,8 @@ Inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — removes fill
 Smart history management for long sessions:
 
 - **Message Aging** — older messages get progressively compressed
-- **Tool Result Summarization** — long tool outputs replaced with summaries
+- **Tool Result Compression** — long tool outputs truncated or elided (first/last lines,
+  match-line filtering, JSON key compaction)
 - **Structural Integrity Guards** — ensures `tool_use` + `tool_result` pairs stay consistent
 - **Context Window Awareness** — respects per-model token limits
 
@@ -78,10 +79,13 @@ Smart history management for long sessions:
 
 Maximum compression for token-critical scenarios:
 
-- **Heuristic Pruning** — removes messages below relevance threshold
-- **Code Block Thinning** — compresses repetitive code examples
-- **Binary Search Truncation** — finds optimal cut point for context window
-- All Aggressive mode features included
+- **Heuristic Pruning** — score-based token pruning of prose
+- **Structure Preservation** — fenced code blocks, inline code, URLs and identifiers are
+  tombstoned and re-stitched verbatim, never pruned
+- **Optional SLM tier** — a small local model can refine the prune when configured
+- Independent of Aggressive mode: it does not run message aging, tool-result compression
+  or the fallback summarizer (only an SLM-tier failure can route a fallback pass through
+  aggressive)
 
 **Best for:** When you're hitting context limits repeatedly.
 
@@ -95,7 +99,7 @@ RTK mode is optimized for verbose tool outputs that appear in coding-agent sessi
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
 - Imports RTK TOML schema v1 filters from project or global `filters.toml` files, with inline-test
   validation and trust-gating for project files
-- Ships 49 built-in filters with inline verify samples
+- Ships 55 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
 - Supports trust-gated project filters, global filters, and optional redacted raw-output recovery
@@ -182,22 +186,6 @@ With Stacked:        10K-2.5K tokens sent     (78-95% eligible RTK+Caveman range
 
 ---
 
-## Output Styles
-
-Output styles inject a system prompt instruction to steer the model's writing style. They are defined in the output style catalog and support multiple languages and intensity levels (`lite`, `full`, `ultra`). 
-
-| Style | Description | Supported Languages | Levels |
-| --- | --- | --- | --- |
-| `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. | `en`, `pt-BR`, `ja`, `id`, `vi` | `lite`, `full`, `ultra` |
-| `less-code` | YAGNI ladder: smallest working change, no unrequested abstractions. | `en`, `pt-BR`, `vi`, `ja`, `id` | `lite`, `full`, `ultra` |
-| `ponytail` | Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff. | `en`, `pt-BR`, `vi`, `ja`, `id` | `lite`, `full`, `ultra` |
-| `i-have-adhd` | Action-first output: next action leads, steps numbered, one concrete next step, no preamble. | `en`, `pt-BR`, `vi`, `ja`, `id` | `lite`, `full`, `ultra` |
-| `terse-cjk` | Classical-Chinese ultra-terse style (locale-gated to zh). | `zh` | `lite`, `full`, `ultra` |
-
-Each level appends a shared boundary clause ensuring that code blocks, URLs, file paths, commands, and identifiers remain verbatim.
-
----
-
 ## Configuration
 
 ### Dashboard
@@ -227,7 +215,8 @@ This lets you use stacked compression on free/coding providers while keeping lit
 subscriptions.
 
 This "Per-Combo Override" assignment is a different control from the **routing-combo compression
-mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) — that override does not pick a named
+mode** override (Default/Off/Lite/Standard/Aggressive/Ultra/Codex Responses — the field's
+schema also accepts `rtk`, `stacked` and `omniglyph`) — that override does not pick a named
 compression-combo pipeline; it just sets the `compressionMode` field consulted by
 `resolveCompressionPlan`. It can be set either on the combo card (`Dashboard → Combos`) or, since
 #6760, per routing combo in the "Assign to routing" list on
@@ -242,12 +231,17 @@ auto-trigger, and the panel Default. Unknown values are ignored (the request is 
 the global master switch still gates everything: when compression is off globally, the header cannot
 turn it on. Values:
 
-| Value         | Effect                                                               |
-| ------------- | -------------------------------------------------------------------- |
-| `off`         | No compression for this request.                                     |
-| `default`     | The panel-derived Default profile (ignores the active profile).      |
-| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
-| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
+| Value         | Effect                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `off`         | No compression for this request.                                                                 |
+| `default`     | The panel-derived Default profile (ignores the active profile). Lossy engines are left off.      |
+| `safe`        | Same as omitting the header: dedup and whitespace folding only.                                  |
+| `allow-lossy` | Keep this request's operator plan, including summaries, relevance filters, and style rewrites.   |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. This is the per-request opt-in for that engine. |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id.                             |
+
+Without `allow-lossy`, `engine:<id>`, or a named combo, lossy engines are not applied. The
+request still gets session dedup and whitespace folding when compression is on.
 
 The applied plan is echoed back in the `X-OmniRoute-Compression: <mode>; source=<source>` response
 header, where `<source>` is one of `request-header`, `routing-override`, `active-profile`,
@@ -319,13 +313,13 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase    | Modes                                                                                                        | Status                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
-| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) | ✅ Shipped (API-configurable; dashboard controls not yet built, #7005) |
+| Phase    | Modes                                                                                                                                         | Status     |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Phase 1  | Off, Lite                                                                                                                                     | ✅ Shipped |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                                                   | ✅ Shipped |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                                                              | ✅ Shipped |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                   | ✅ Shipped |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ Shipped |
 
 ---
 
@@ -339,8 +333,14 @@ RTK mode is inspired by **[RTK - Rust Token Killer](https://github.com/rtk-ai/rt
 
 ## Advanced Compression Systems
 
-Beyond the 7 standard modes, OmniRoute includes several advanced compression
-systems that work automatically based on context.
+Beyond the 7 modes described above (the source also accepts `codex-responses` and
+`omniglyph` modes, which this guide does not cover), the sections below cover features
+that work inside or alongside those modes: Tool Result Compression and Progressive Aging
+are steps 1 and 2 of the aggressive engine (Aggressive mode and an `aggressive` step of a
+stacked pipeline), the Stacked Pipeline is how Stacked mode runs, Cache-Aware Compression
+downgrades `aggressive` and `ultra` to `standard` for caching providers while compression
+is on, and Caveman Output Mode and Output Styles are opt-in system-prompt instructions,
+off by default, that shape the model's output instead of compressing the request.
 
 ### Cache-Aware Compression
 
@@ -358,7 +358,9 @@ The `cachingAware.ts` module solves this by **detecting caching context** and
 2. **Identify caching providers** — Checks if the target provider supports caching
 3. **Adjust strategy** — Downgrades `aggressive`/`ultra` to `standard` for caching providers
 4. **Skip system prompt** — System prompts are usually cached, so don't compress them
-5. **Use deterministic transformations** — Only use transformations that produce consistent output
+
+The strategy helper also returns a `deterministicOnly` flag, but the plan builder consumes
+only the strategy — nothing downstream reads the flag today.
 
 #### Code example
 
@@ -375,7 +377,7 @@ const body = {
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
-// → { hasCacheControl: true, provider: "anthropic", isCachingProvider: true }
+// → { hasCacheControl: true, provider: "anthropic", targetFormat: null, isCachingProvider: true }
 
 const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
@@ -383,21 +385,26 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### When to use
 
-Cache-aware compression is **always on** — no configuration needed. It only kicks in
-when:
-
-- The request has `cache_control` markers
-- The target provider supports prompt caching (Anthropic, OpenAI, etc.)
+Cache-aware compression is **always on** — no configuration needed. It kicks in whenever
+compression is on and the target provider supports prompt caching (Anthropic, OpenAI,
+etc.); explicit `cache_control` markers are not required — a caching provider alone
+triggers the downgrade, and markers alone never do (marker detection feeds cache
+telemetry, not the strategy decision).
 
 ### Progressive Aging
 
 Long conversations accumulate many message turns, but older turns become less
-relevant. The `progressiveAging.ts` module **degrades messages by turn distance**:
+relevant. The `progressiveAging.ts` module **degrades messages by turn distance**
+(distance measured from the end of the conversation). With the shipped defaults
+(`verbatim: 2, light: 2, moderate: 3`):
 
-- **Recent turns (0-3)**: Kept verbatim (full detail)
-- **Medium turns (4-8)**: Lite compression (whitespace, formatting cleanup)
-- **Old turns (9+)**: Caveman compression (filler removal, summarization)
-- **Very old turns (20+)**: Heavily summarized or dropped
+- **Last 2 turns (distance ≤ 2)**: Kept verbatim
+- **Distance 3**: Caveman compression (filler removal)
+- **Distance 4+**: Assistant messages summarized; user messages reduced to their first
+  line, capped at 120 characters; other roles untouched. System prompts, already-aged
+  messages and the latest user message are always kept verbatim regardless of distance.
+  Nothing is dropped outright, and the `light`
+  band is unreachable with the shipped defaults (`light` equals `verbatim`).
 
 #### Code example
 
@@ -412,10 +419,11 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // First 3 turns: verbatim
-  light: 8, // Turns 4-8: lite compression
-  moderate: 20, // Turns 9-20: caveman compression
-  // Turns 21+: heavy summarization
+  verbatim: 3, // last 3 turns: verbatim
+  light: 8, // distance <= 8: lite compression
+  moderate: 20, // distance <= 20: caveman compression
+  fullSummary: 5, // required by the type, not read by the banding code
+  // distance > 20: summarized (assistant) / first line kept (user)
 });
 
 // saved = number of tokens saved
@@ -423,7 +431,8 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### When to use
 
-Progressive aging is **always on** for `aggressive` and `ultra` modes. It's
+Progressive aging is **always on** for `aggressive` mode — it is step 2 of
+`compressAggressive()`. Ultra mode does not run it. It's
 particularly effective for:
 
 - Long-running coding sessions
@@ -432,14 +441,30 @@ particularly effective for:
 
 ### Caveman Output Mode
 
-The `outputMode.ts` module injects **system prompt instructions** to make the
-model itself produce compressed, terse output (a "caveman" style).
+Caveman output mode adds **system prompt instructions** that ask the model itself for
+terse output — the `lite` level asks for concise answers that keep full sentences, `full`
+asks it to "respond terse like smart caveman", and `ultra` asks for telegraphic output;
+instructions only ask, they cannot guarantee it. Requests receive them through
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`):
+`open-sse/handlers/chatCore.ts` first resolves the selection with the back-compat shim
+(`resolveOutputStyleSelection()` in
+`open-sse/services/compression/outputStyles/backCompat.ts`), which, while `outputStyles`
+is empty, maps an enabled `cavemanOutputMode` to the `terse-prose` output style at
+`cavemanOutputMode.intensity` (see Back-compat below); a non-empty `outputStyles`
+selection is used as is, and `cavemanOutputMode.enabled` and `intensity` then have no
+effect, while its `autoClarity` toggle still applies. `outputMode.ts` holds the
+instruction texts (`CAVEMAN_INSTRUCTION_BY_LANGUAGE`), the content bypass and the
+placement helper that injection uses; its own `applyCavemanOutputMode()` injector has no
+production caller.
 
 #### How it works
 
-Instead of compressing the input, this mode adds a system prompt like:
+This mode does not compress the input. It adds an instruction block to the system prompt
+(see How injection works below), and any input compression mode selected for the request
+still runs afterwards, on the body that now carries the block. Ahead of the shared
+boundaries clause that every level ends with, the English `full` level reads:
 
-> "Reply in minimal words. Skip pleasantries. Use short sentences."
+> "Respond terse like smart caveman. Drop articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries, hedging. Fragments OK. Short synonyms (big not extensive, fix not implement). Keep all technical substance, code, errors, URLs, identifiers exact."
 
 This works particularly well for:
 
@@ -449,54 +474,109 @@ This works particularly well for:
 
 #### When to use
 
-Caveman output mode is **opt-in** — set it via the combo config:
+Caveman output mode is **opt-in**. With compression on (`enabled: true`, the master toggle
+on the Compression Settings page), turn it on with `cavemanOutputMode.enabled`; `intensity`
+picks `lite`, `full` or `ultra`:
 
 ```json
 {
-  "strategy": "auto",
-  "config": {
-    "auto": {
-      "outputMode": "caveman"
-    }
+  "enabled": true,
+  "cavemanOutputMode": {
+    "enabled": true,
+    "intensity": "full"
   }
 }
 ```
+
+A compression combo's **Output Mode** toggle (`outputMode`, level in `outputModeIntensity`)
+sets the same switch for the requests that combo applies to, and the
+`omniroute_set_compression_engine` MCP tool writes it through its boolean `outputMode`
+argument. A non-empty `outputStyles` selection takes precedence over this switch. In the
+dashboard, enabling the **Terse prose** output style injects the same block (see Output
+Styles below).
 
 ### Output Styles (catalog)
 
 Caveman output mode above is the **legacy single-style path**. Phase 4 generalized it
 into a catalog of composable output styles: `OUTPUT_STYLE_CATALOG` in
 `open-sse/services/compression/outputStyles/catalog.ts`. Each style is a system-prompt
-instruction that makes the model itself produce cheaper output; styles can be enabled
+instruction that asks the model itself for cheaper output; styles can be enabled
 together and are injected in catalog order.
 
-| Style | `id` | What it does | Instruction languages |
-| --- | --- | --- | --- |
-| Terse prose | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed). | en, pt-BR, ja, id |
-| Less code | `less-code` | YAGNI ladder: smallest working change, no unrequested abstractions. | en only (backlog: [#10426](https://github.com/diegosouzapw/OmniRoute/issues/10426)) |
-| Ponytail (lazy senior dev) | `ponytail` | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff. | en, pt-BR, vi, ja, id |
-| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, vi, ja, id |
-| Terse CJK (文言) | `terse-cjk` | Classical-Chinese ultra-terse style. | zh (locale-gated: only offered when the detected language is `zh`) |
+| Style                      | `id`          | What it does                                                                                                                                                                                                 | Instruction languages                         |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| Terse prose                | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Less code                  | `less-code`   | YAGNI ladder: smallest working change, no unrequested abstractions.                                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Ponytail (lazy senior dev) | `ponytail`    | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff.                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Terse CJK (文言)           | `terse-cjk`   | `full`/`ultra` answer in Classical Chinese (文言); `lite` only asks for brief answers without function words, pleasantries or embellishment.                                                                 | zh (locale-gated, see below)                  |
 
 Every style ships three intensity levels — `lite`, `full`, `ultra` — and every level
-ends with the shared boundaries clause, which keeps code blocks, file paths, commands,
-error strings, URLs and identifiers verbatim.
+ends with the shared boundaries clause (`SHARED_BOUNDARIES` in `outputMode.ts`), which
+keeps code blocks, file paths, commands, errors and URLs exact. The `terse-prose` and
+`terse-cjk` level texts add identifiers to that list.
+
+`terse-cjk` is locale-gated to `zh` in two places. The Compression Settings page lists
+its row only when the dashboard UI language is Chinese (`zh-CN` or `zh-TW`), and
+`applyOutputStyles()` injects it only when the request's resolved language (see Language
+selection below) is `zh`. Hiding the row does not clear a saved `terse-cjk` selection:
+the settings API accepts any style id, and saving other styles on the page keeps it. At
+request time, the `applyOutputStyles()` language check is the only locale gate.
 
 #### How injection works
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) resolves
 the selection against the catalog (unknown ids and locale-mismatched styles are
-dropped, never an error), concatenates the selected instructions in catalog order,
-appends the boundaries clause **once**, and front-loads the result into the system
-prompt behind a single idempotency marker (`[OmniRoute Output Styles]`) — re-applying
-is a no-op. When the detected request language has a translation, the localized
+dropped, never an error; a selection that resolves to no style leaves the body
+unchanged, skipped as `no_styles`), concatenates the selected instructions in catalog
+order,
+appends the boundaries clause **once** (plus the safety clause, `SAFETY_BOUNDARIES` or its
+translation, when `less-code` or `ponytail` is selected), and starts the block with a
+single idempotency marker (`[OmniRoute Output Styles]`), so re-applying is a no-op. When
+the resolved language (see Language selection below) has a translation, the localized
 instruction is injected instead of English.
+
+On a body with a non-empty `messages` array, the idempotency check runs before the
+content bypass: when the `[OmniRoute Output Styles]` marker is already in the top-level
+`system` field (a string or a content-block array) or in a system message with string
+content, the body is left unchanged as `already_applied` and no keyword check runs.
+Otherwise a content bypass (`shouldBypassCavemanOutputMode()` in
+`open-sse/services/compression/outputMode.ts`) checks the text of the last three
+messages, whatever their role, and skips the styles for the whole turn when that text
+matches its security, irreversible-action or clarification keywords, or an
+order-sensitive sequence: `first`, `then`, `after that`, `before`, `rollback` or
+`backup` followed within 240 characters by `delete`, `drop`, `migrate`, `deploy` or
+`release`. The bypass runs while the **Auto-Clarity Bypass** toggle
+(`cavemanOutputMode.autoClarity`, on by default) is on; turning the toggle off skips the
+keyword check.
+
+When the bypass lets the turn through, `placeSystemInstruction()` (same file), which
+never creates a new `messages[0]`, places the block in the first of these it finds:
+
+1. A leading system message with string content: the block is appended after its text.
+2. The top-level `system` field: the block is appended after the text of a string, or
+   added as a new text block to a content-block array.
+3. The first later system message with string content: the block is appended after its
+   text.
+4. None of the above: the block goes into a new system message at the end of `messages`.
+
+On a body without a `messages` array (or with an empty one), no content bypass runs and
+a top-level `system` field is not consulted. The block is appended after the text of a
+string `instructions` field, unless that field already contains the
+`[OmniRoute Output Styles]` marker, in which case the body is left unchanged as
+`already_applied`. When the body has no string `instructions` field but carries `input`
+(a string or an array), the block becomes `instructions`, replacing any non-string value
+that field held. A body with neither a string `instructions` field nor a string or array
+`input` is left unchanged and skipped as `no_messages`.
 
 #### How to enable
 
-In the dashboard: **Context → Settings → Compression** — one row per style with an
-on/off toggle and a level selector. Programmatically, the compression config persists
-the selection as:
+In the dashboard: **Compression Context → Compression Settings**
+(`/dashboard/context/settings`), Output styles section: one row per style with an on/off
+toggle and a level selector. Styles inject while compression itself is on (the page's
+master toggle, `enabled`). The **Auto-Clarity Bypass** toggle is on the **Caveman**
+page (`/dashboard/context/caveman`), in its **Output Mode** card. Programmatically, the
+compression config persists the selection as:
 
 ```json
 {
@@ -507,44 +587,118 @@ the selection as:
 }
 ```
 
-Back-compat: the legacy `outputMode: "caveman"` combo setting still works and maps to
-`terse-prose`, byte-identical to the old injection in all four legacy languages.
+Back-compat: while `outputStyles` is empty, the legacy `cavemanOutputMode.enabled`
+setting maps to `terse-prose` at `cavemanOutputMode.intensity`. The block then starts
+with the `[OmniRoute Output Styles]` marker, where the legacy `applyCavemanOutputMode()`
+injector wrote `[OmniRoute Caveman Output Mode]`. Below the marker, the text matches the
+legacy injection in en, pt-BR, es, de, fr, it, ru, id and vi; in ja and zh it carries one
+extra space before the boundaries clause. `terse-prose` translates into pt-BR, es, de,
+fr, it, ru, zh, ja, id and vi, so a request whose resolved language is `hu` gets the
+English text where the legacy injector used its Hungarian one.
+
+Output-style language selection (`resolveOutputStyleLanguage()` in
+`outputStyles/apply.ts`): with `languageConfig.enabled` on, `autoDetect` samples the
+latest user message in the request's `messages` array that has text (string content, or
+the `text` of its content parts) and runs the Caveman engine's detector
+(`detectCompressionLanguage()`) on it. The detector returns `zh` for text with Han
+characters and no kana; otherwise it returns whichever of `it`, `pt-BR`, `es`, `de`,
+`fr`, `ru`, `ja`, `hu` and `id` has the most hint matches, and `en` when none match —
+text it cannot classify gets English, never `defaultLanguage`, and `vi` is never
+detected although the styles ship `vi` text. A Responses API body keeps its turns in
+`input`, which is not sampled, so it gets `defaultLanguage`, then English. When no user
+message in `messages` has text, or with `autoDetect` off, `defaultLanguage` applies,
+then English. With `languageConfig.enabled` off, the language is English — unless a
+compression combo applies to the request (a combo assigned to the request's routing
+combo, or the default compression combo chatCore falls back to for the built-in stacked
+pipeline): applying a combo turns `languageConfig.enabled` on for that request and sets
+`defaultLanguage` from the combo's language packs (the saved value if it is one of the
+combo's packs, otherwise the combo's first pack, which defaults to `en`), while the
+saved `autoDetect` (on by default) still applies. The Caveman input engine picks its
+rule-pack language differently — per text part and, with auto-detect off, gated on
+`enabledPacks`.
 
 The style × language matrix is pinned by
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: a new style cannot ship
-without at least a pt-BR translation (or an explicit tracked exception), and an
-existing style cannot silently lose a locale. To add a style, see
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: every catalog style needs an
+entry in the test's `BASELINE_LANGUAGES`; a style that is not locale-gated must ship a
+pt-BR translation (the locale-gated `terse-cjk` is exempt from this rule) unless it is
+listed in `KNOWN_ENGLISH_ONLY`, which may hold only styles with no translations at all —
+a listed style that has any translation fails the test; and a style fails the test when
+it loses a language that its `BASELINE_LANGUAGES` entry lists. To add a style, see
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Tool Result Compression
 
-The `toolResultCompressor.ts` module provides **5 specialized compression strategies**
-for tool results (function calls, agent outputs, search results, etc.):
+`compressToolResult()` in `open-sse/services/compression/toolResultCompressor.ts`
+compresses tool-result text with **5 strategies**. It tries them in this order, and the
+first enabled strategy whose check matches the content decides the result:
 
-1. **Search result compression** — Removes redundant results, keeps top-N
-2. **File read compression** — Truncates large files, preserves headers/imports
-3. **Code execution compression** — Keeps only essential stdout/stderr
-4. **Database query compression** — Limits rows, removes verbose metadata
-5. **API response compression** — Strips null fields, condenses arrays
+1. **`fileContent`**: content of 3 or more lines in which at least one line, ignoring
+   leading indentation, starts with `import `, `export `, `function `, `class `,
+   `const `, `let `, `var ` or `return ` (the keyword plus a space), or with `if`,
+   `for` or `while` followed by `(` or ` (`, keeps its first 20 and last 5 lines, with
+   the elided middle marked.
+2. **`grepSearch`**: content with at least one line of the form `<path>:<digits>:`,
+   where the text before the first colon has no whitespace, keeps only those lines, at
+   most 30, followed by a count of any further matches and the list of matched files;
+   every other line is dropped. One such line is enough to trigger the strategy, so a
+   log line starting with a timestamp such as `12:30:45` also counts.
+3. **`shellOutput`**: output that contains an ANSI CSI sequence (`ESC[` then digits or
+   semicolons then a letter, as in color codes) or a `$` followed by whitespace
+   anywhere in the text loses those sequences (other escapes, such as `ESC[?25l` or an
+   OSC window-title sequence, are kept) and keeps its last 50 lines, with consecutive
+   repeated lines collapsed. Because this check runs before `json` and `errorMessage`,
+   JSON or error output that contains such a `$` never reaches them while
+   `shellOutput` is on.
+4. **`json`**: a JSON payload over 2,000 characters that starts with `{` or `[` (after
+   optional whitespace) and parses is summarized: an array of more than 7 items keeps
+   its first 5 and last 2 items and its total count, and an object keeps its first 20
+   keys, with each nested object or array value replaced by a `{…N keys}` placeholder
+   (for an array, N is its length) and a `_remaining_<N>_keys` marker counting the keys
+   dropped past the first 20. Scalar values are copied whole, so an object of 20 keys
+   or fewer with no nested values is only re-indented — a minified one gains characters
+   and stays unchanged.
+5. **`errorMessage`**: output that contains, anywhere and in any letter case, `error:`,
+   `error ` (the word followed by a space, as in `no error found`), `[error]`,
+   `exception:`, `exception `, `[exception]` or `traceback` keeps its first line, the
+   next 10 lines and the last 3, with a `… [N frames elided] …` marker in place of the
+   lines between them. The marker appears only when more than 13 lines follow the first
+   line, so error output of 14 lines or fewer is not shortened (at 12 or 13 lines the
+   last 3 repeat lines already kept).
+
+After a strategy matches, even one that saves nothing, the later strategies are not
+tried. When the matching strategy saves no estimated tokens (length ÷ 4, rounded up) —
+for example a code-like file of 25 lines or fewer, or a JSON array over 2,000
+characters with 7 items or fewer — the aggressive engine keeps the original tool
+result: both callers (`compressAggressive()` and `compressAnthropicToolResultBlock()`)
+keep the original when `saved` is 0 or below, while `compressToolResult()` itself still
+returns that strategy's output. The tool-result step is not the last word: the
+engine's fallback summarizer can still shorten a `tool` or `function` message longer
+than 8,192 characters (`maxTokensPerMessage`, 2,048, times 4).
 
 #### When to use
 
-Tool result compression is **always on** when tool calls are present. No
-configuration needed.
+Tool result compression is step 1 of the aggressive engine (`compressAggressive()` in
+`open-sse/services/compression/aggressive.ts`), so it runs in Aggressive mode and in an
+`aggressive` step of a stacked pipeline. It compresses OpenAI-shape `tool` and `function`
+messages and the text inside Anthropic `tool_result` blocks. Each strategy has its own
+switch under `aggressive.toolStrategies`, all on by default. In the dashboard, the
+switches are in the Caveman page's **Advanced** view while compression is on and the
+default mode is Aggressive.
 
 ### Stacked Pipeline
 
 The stacked mode runs **multiple engines in sequence** — usually RTK first
-(60-90% savings on tool output), then Caveman (30% additional savings on the
-remaining text). This achieves **78-95% total savings**.
+(60-90% savings on tool output), then Caveman on the remaining text (~46% input
+savings). Composed, that is the **78-95% eligible range** (see Upstream Savings Math
+above): `1 - (1 - 0.60..0.90) × (1 - 0.46)` averages ≈89%.
 
 #### How it works
 
 ```
 Input (1000 tokens)
   → RTK (command-aware filter) → 200 tokens
-    → Caveman (filler removal) → 140 tokens
-  → Output (140 tokens, 86% savings)
+    → Caveman (filler removal) → 108 tokens
+  → Output (108 tokens, ~89% savings)
 ```
 
 #### When to use
@@ -555,18 +709,10 @@ Use stacked mode for:
 - Cost-sensitive batch processing
 - When you need maximum token savings
 
-Configure via combo:
-
-```json
-{
-  "strategy": "auto",
-  "config": {
-    "auto": {
-      "modePack": "stacked"
-    }
-  }
-}
-```
+Stacked pipelines are configured through the global `stackedPipeline` compression
+setting, or through a named compression combo assigned to a routing combo (see
+Per-Combo Override above) — not through an auto-combo `modePack` (that field only
+re-weights auto-combo model selection, and `stacked` is not a valid pack name).
 
 ---
 
@@ -580,16 +726,10 @@ for different use cases:
   "id": "coding-combo",
   "strategy": "priority",
   "config": {
-    "auto": {
-      "weights": { "taskFit": 0.5 },
-      "modePack": "quality-first"
-    }
+    "weights": { "taskFit": 0.5 },
+    "modePack": "quality-first"
   },
-  "compressionOverride": {
-    "mode": "aggressive",
-    "stackedPipelines": ["rtk", "caveman"],
-    "preserveToolDefinitions": true
-  }
+  "compressionOverride": "aggressive"
 }
 ```
 
@@ -598,7 +738,9 @@ This is useful for:
 - **Coding combos**: Use `aggressive` mode for long sessions
 - **Quick Q&A combos**: Use `lite` mode for fast responses
 - **Tool-heavy combos**: Use `stacked` mode for max savings
-- **Production combos**: Use `cache-aware` mode for caching providers
+- **Production combos**: leave the override off for caching providers — the always-on
+  cache-aware adjustment downgrades `aggressive`/`ultra` to `standard` automatically
+  (there is no selectable `cache-aware` mode)
 
 ---
 

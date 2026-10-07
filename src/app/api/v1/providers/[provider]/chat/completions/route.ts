@@ -5,6 +5,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 let initialized = false;
 
@@ -34,6 +35,8 @@ export async function OPTIONS() {
  */
 async function postHandler(request, { params }) {
   const { provider: rawProvider } = await params;
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(rawProvider);
+  if (retirementResponse) return retirementResponse;
 
   const providerEntry = getRegistryEntry(rawProvider);
 

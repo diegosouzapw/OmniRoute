@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getExecutor, AntigravityExecutor } from "../../open-sse/executors/index.ts";
-import { processAntigravitySSEPayload } from "../../open-sse/executors/antigravity.ts";
+import { getExecutor } from "../../open-sse/executors/index.ts";
+import {
+  AntigravityExecutor,
+  processAntigravitySSEPayload,
+} from "../../open-sse/executors/antigravity.ts";
 
 function emptyCollected(): any {
   return {
@@ -14,21 +17,21 @@ function emptyCollected(): any {
   };
 }
 
-test("getExecutor('agy') returns AntigravityExecutor (not DefaultExecutor)", () => {
-  const executor = getExecutor("agy");
+test("getExecutor('agy') returns AntigravityExecutor (not DefaultExecutor)", async () => {
+  const executor = await getExecutor("agy");
   assert.ok(executor instanceof AntigravityExecutor, "agy provider should use AntigravityExecutor");
 });
 
-test("getExecutor('antigravity') returns AntigravityExecutor", () => {
-  const executor = getExecutor("antigravity");
+test("getExecutor('antigravity') returns AntigravityExecutor", async () => {
+  const executor = await getExecutor("antigravity");
   assert.ok(
     executor instanceof AntigravityExecutor,
     "antigravity provider should use AntigravityExecutor"
   );
 });
 
-test("getExecutor('agy') builds valid streaming URL", () => {
-  const executor = getExecutor("agy");
+test("getExecutor('agy') builds valid streaming URL", async () => {
+  const executor = await getExecutor("agy");
   const url = executor.buildUrl("gemini-3.7-flash-high", true);
   assert.ok(
     url.includes("streamGenerateContent?alt=sse"),
@@ -36,8 +39,8 @@ test("getExecutor('agy') builds valid streaming URL", () => {
   );
 });
 
-test("getExecutor('agy') builds valid non-streaming URL", () => {
-  const executor = getExecutor("agy");
+test("getExecutor('agy') builds valid non-streaming URL", async () => {
+  const executor = await getExecutor("agy");
   const url = executor.buildUrl("gemini-3.7-flash-high", false);
   // Antigravity executor always uses streaming endpoint (buildUrl ignores stream flag)
   assert.ok(
@@ -46,8 +49,8 @@ test("getExecutor('agy') builds valid non-streaming URL", () => {
   );
 });
 
-test("getExecutor('agy') buildHeaders returns Bearer auth", () => {
-  const executor = getExecutor("agy");
+test("getExecutor('agy') buildHeaders returns Bearer auth", async () => {
+  const executor = await getExecutor("agy");
   const headers = executor.buildHeaders({ accessToken: "test-token" });
   assert.equal(headers.Authorization, "Bearer test-token");
 });

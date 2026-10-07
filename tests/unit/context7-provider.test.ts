@@ -91,7 +91,15 @@ test("web-fetch routing policies pin context7 as explicit-only and anonymous-cap
   // The generic providers stay mutable-free at the type level and complete.
   assert.deepEqual(
     [...WEB_FETCH_PROVIDERS],
-    ["firecrawl", "jina-reader", "tavily-search", "tinyfish", "context7"]
+    [
+      "firecrawl",
+      "jina-reader",
+      "tavily-search",
+      "tinyfish",
+      "anysearch-search",
+      "context7",
+      "nimble-search",
+    ]
   );
 });
 

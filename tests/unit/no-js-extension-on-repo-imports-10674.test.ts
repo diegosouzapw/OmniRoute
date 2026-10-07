@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,7 +31,19 @@ function relativeJsImports(): string[] {
     if ((err as { status?: number }).status === 1) return [];
     throw err;
   }
-  return out.split("\n").filter((line) => line.trim().length > 0);
+  return (
+    out
+      .split("\n")
+      .filter((line) => line.trim().length > 0)
+      // A `.js` specifier whose target really is a JavaScript file (e.g.
+      // open-sse/lib/deepseek-pow-hash.js, shared with a worker) is correct —
+      // the defect #10674 guards against is a `.js` suffix on a `.ts` source.
+      .filter((line) => {
+        const m = /^([^:]+):\d+:.*from "(\.{1,2}\/[^"]*\.js)"/.exec(line);
+        if (!m) return true;
+        return !fs.existsSync(path.resolve(REPO_ROOT, path.dirname(m[1]), m[2]));
+      })
+  );
 }
 
 test("no first-party TypeScript module is imported through a .js specifier", () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 export const RISK_ACKNOWLEDGED_STORAGE_KEY = "omniroute-risk-acknowledged";
 
@@ -53,22 +53,38 @@ export function isRiskAcknowledged(providerId: string): boolean {
   return readRiskAcknowledgedMap()[providerId] === true;
 }
 
+// localStorage is a mutable external store, so the hook below subscribes to it
+// through useSyncExternalStore instead of mirroring it into component state
+// with an effect (which required a synchronous setState on providerId change).
+const riskAcknowledgedListeners = new Set<() => void>();
+
+function subscribeToRiskAcknowledged(listener: () => void): () => void {
+  riskAcknowledgedListeners.add(listener);
+  return () => {
+    riskAcknowledgedListeners.delete(listener);
+  };
+}
+
+function emitRiskAcknowledgedChange(): void {
+  for (const listener of riskAcknowledgedListeners) listener();
+}
+
 export function acknowledgeProviderRisk(providerId: string): void {
   const map = readRiskAcknowledgedMap();
   map[providerId] = true;
   writeRiskAcknowledgedMap(map);
+  emitRiskAcknowledgedChange();
 }
 
 export function useRiskAcknowledged(providerId: string) {
-  const [acknowledged, setAcknowledged] = useState(() => isRiskAcknowledged(providerId));
-
-  useEffect(() => {
-    setAcknowledged(isRiskAcknowledged(providerId));
-  }, [providerId]);
+  const acknowledged = useSyncExternalStore(
+    subscribeToRiskAcknowledged,
+    () => isRiskAcknowledged(providerId),
+    () => false
+  );
 
   const acknowledge = useCallback(() => {
     acknowledgeProviderRisk(providerId);
-    setAcknowledged(true);
   }, [providerId]);
 
   return { acknowledged, acknowledge };

@@ -29,7 +29,8 @@ type CoreModule = typeof import("../../src/lib/db/core.ts");
 type ProvidersDbModule = typeof import("../../src/lib/db/providers.ts");
 type ModelsDbModule = typeof import("../../src/lib/db/models.ts");
 type CatalogModule = typeof import("../../src/app/api/v1/models/catalog.ts");
-type ManagedAvailableModelsModule = typeof import("../../src/lib/providerModels/managedAvailableModels.ts");
+type ManagedAvailableModelsModule =
+  typeof import("../../src/lib/providerModels/managedAvailableModels.ts");
 
 let core: CoreModule;
 let providersDb: ProvidersDbModule;

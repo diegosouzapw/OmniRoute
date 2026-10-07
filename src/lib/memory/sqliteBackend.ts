@@ -64,6 +64,7 @@ export class SQLiteBackend implements MemoryBackend {
       apiKeyId: filter.apiKeyId,
       type: filter.type,
       sessionId: filter.sessionId,
+      category: filter.category,
       query: filter.query,
       limit: filter.limit,
       offset: filter.offset,

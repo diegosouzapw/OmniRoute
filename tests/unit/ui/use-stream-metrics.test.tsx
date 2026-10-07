@@ -5,9 +5,7 @@
 import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  useStreamMetrics,
-} from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
+import { useStreamMetrics } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 import type { UseStreamMetrics } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────
@@ -30,7 +28,6 @@ function mountHook<T>(useHook: () => T): {
     captureRef.current = useHook();
     // Expose the captured value through the outer hookRef via the React ref.
     // This is safe because captureRef lives inside the component.
-    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
     hookRef.current = captureRef.current;
     return null;
   }
@@ -152,8 +149,9 @@ describe("useStreamMetrics", () => {
     expect(m.totalMs).toBe(2000);
     expect(m.tokensOut).toBe(15);
     expect(m.tokensIn).toBe(0);
-    // tps = 15 / (2000/1000) = 7.5
-    expect(m.tps).toBeCloseTo(7.5);
+    // #13373 (#13130): tps is generation throughput — tokens over (totalMs − ttftMs).
+    // tps = 15 / ((2000 − 200)/1000) = 8.333…
+    expect(m.tps).toBeCloseTo(15 / 1.8);
     unmount();
   });
 
@@ -182,7 +180,8 @@ describe("useStreamMetrics", () => {
     const m = result.current.metrics;
     expect(m.tokensIn).toBe(10);
     expect(m.tokensOut).toBe(15);
-    expect(m.tps).toBeCloseTo(7.5);
+    // #13373: generation time excludes TTFT → 15 / 1.8 s
+    expect(m.tps).toBeCloseTo(15 / 1.8);
     unmount();
   });
 

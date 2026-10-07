@@ -263,3 +263,50 @@ test("self-service API key scope labels do not expose missing placeholders", () 
     }
   }
 });
+
+test("exclusive lease badge and notice use i18n translation keys", () => {
+  const source = readApiManagerPage();
+  const rowBadgesStart = source.indexOf("{/* Existing badges */}");
+  const rowBadgesEnd = source.indexOf("{/* Actions column */}", rowBadgesStart);
+  const rowBadges = source.slice(rowBadgesStart, rowBadgesEnd);
+
+  assert.match(rowBadges, /hasExclusiveLeaseScope &&/);
+  assert.match(rowBadges, /\{t\("exclusiveLease"\)\}/);
+  assert.doesNotMatch(rowBadges, />\s*Exclusive Lease\s*</);
+
+  const modalStart = source.indexOf("const PermissionsModal");
+  const modalNoticeStart = source.indexOf("{/* Exclusive Lease Notice */}", modalStart);
+  const modalNoticeEnd = source.indexOf("{/* Allowed Connections Section */}", modalNoticeStart);
+  const modalNotice = source.slice(modalNoticeStart, modalNoticeEnd);
+
+  assert.match(modalNotice, /hasExclusiveLeaseScope &&/);
+  assert.match(modalNotice, /\{t\("exclusiveLeaseNoticeTitle"\)\}/);
+  assert.match(modalNotice, /\{t\("exclusiveLeaseNoticeDesc"\)\}/);
+});
+
+test("permissions modal connection controls and empty-restrict validation use i18n translation keys", () => {
+  const source = readApiManagerPage();
+  const modalStart = source.indexOf("const PermissionsModal");
+  const handleSaveStart = source.indexOf("const handleSave = useCallback", modalStart);
+  const handleSaveEnd = source.indexOf("const handleBlockClaudeCodeFamily", handleSaveStart);
+  const handleSave = source.slice(handleSaveStart, handleSaveEnd);
+
+  assert.match(handleSave, /!allowAllConnections && selectedConnections\.length === 0/);
+  assert.match(handleSave, /setSaveError\(t\("selectAtLeastOneConnection"\)\)/);
+  assert.doesNotMatch(handleSave, /setSaveError\("Select at least one connection/);
+
+  const connectionsSectionStart = source.indexOf("{/* Allowed Connections Section */}", modalStart);
+  const connectionsSectionEnd = source.indexOf(
+    "{/* Allowed Combos Section */}",
+    connectionsSectionStart
+  );
+  const connectionsSection = source.slice(connectionsSectionStart, connectionsSectionEnd);
+
+  assert.match(connectionsSection, /\{t\("allConnections"\)\}/);
+  assert.match(connectionsSection, /\{t\("onlySelectedConnections"\)\}/);
+  assert.match(connectionsSection, /t\("selectAtLeastOneConnection"\)/);
+  assert.match(connectionsSection, /t\("allConnectionsDesc"\)/);
+  assert.match(connectionsSection, /t\("restrictedToConnections"/);
+  assert.doesNotMatch(connectionsSection, />\s*All\s*<\/button>/);
+  assert.doesNotMatch(connectionsSection, />\s*Restrict\s*<\/button>/);
+});

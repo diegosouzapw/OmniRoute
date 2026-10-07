@@ -27,10 +27,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "ag-11284-test-secret
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const {
-  markAntigravityMissingCloudCodeProject,
-  persistDiscoveredAntigravityProjectId,
-} = await import("../../open-sse/services/antigravityProjectPersistence.ts");
+const { markAntigravityMissingCloudCodeProject, persistDiscoveredAntigravityProjectId } =
+  await import("../../open-sse/services/antigravityProjectPersistence.ts");
 
 async function resetStorage() {
   core.resetDbInstance();

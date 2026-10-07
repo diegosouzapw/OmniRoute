@@ -37,6 +37,29 @@ test("increases timeout for large conversation history", () => {
   assert.ok(result.reasons.includes("large_history"));
 });
 
+test("Cursor keeps the bounded max readiness window for a flattened long Responses history", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    maxTimeoutMs: 180_000,
+    provider: "cursor",
+    model: "grok-4.7",
+    body: { messages: items(1), tools: tools(11) },
+    sourceBody: { input: items(156), tools: tools(11) },
+  });
+  assert.equal(result.timeoutMs, 180_000);
+  assert.ok(result.reasons.includes("cursor_long_history"));
+
+  const short = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    maxTimeoutMs: 180_000,
+    provider: "cursor",
+    model: "grok-4.7",
+    body: { messages: items(1) },
+    sourceBody: { input: items(10) },
+  });
+  assert.equal(short.timeoutMs, 80_000);
+});
+
 test("increases timeout for tool-heavy requests", () => {
   const result = resolveStreamReadinessTimeout({
     baseTimeoutMs: 30_000,
@@ -94,16 +117,28 @@ test("does NOT bump small NON-high codex requests (#3825 scope guard)", () => {
   assert.deepEqual(result.reasons, ["base"]);
 });
 
-test("does NOT bump small high-reasoning NON-codex requests (#3825 scope guard)", () => {
+test("bumps small high-reasoning NON-codex requests", () => {
   const result = resolveStreamReadinessTimeout({
     baseTimeoutMs: 80_000,
     provider: "openai",
-    model: "gpt-5.5-high",
-    body: { messages: items(3), tools: tools(2) },
+    model: "glm-5.3",
+    body: { messages: items(3), tools: tools(2), reasoning_effort: "high" },
   });
 
-  assert.equal(result.timeoutMs, 80_000);
-  assert.deepEqual(result.reasons, ["base"]);
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("high_reasoning"));
+});
+
+test("bumps max reasoning effort from the Responses API shape", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "openai-compatible",
+    model: "kimi-k3",
+    body: { input: items(3), reasoning: { effort: "max" } },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("high_reasoning"));
 });
 
 test("caps adaptive timeout at maxTimeoutMs", () => {
@@ -118,6 +153,19 @@ test("caps adaptive timeout at maxTimeoutMs", () => {
   assert.equal(result.timeoutMs, 120_000);
   assert.ok(result.reasons.includes("very_large_history"));
   assert.ok(result.reasons.includes("very_large_payload"));
+});
+
+test("honors the timeout cascade when it exceeds the adaptive cap", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    cascadeTimeoutMs: 240_000,
+    provider: "openai",
+    model: "gpt-4.1",
+    body: { messages: items(401) },
+  });
+
+  assert.equal(result.maxTimeoutMs, 240_000);
+  assert.equal(result.timeoutMs, 125_000);
 });
 
 test("uses a 180s adaptive cap by default for very large agent requests", () => {
@@ -163,7 +211,7 @@ test("bumps small requests to third-party Claude-format replicas (agentrouter, Z
   );
 });
 
-test("does NOT bump Minimax (M3) — #3110 moved it from claude to openai format so images work, and the readiness bump is keyed off the registry's `format: \"claude\"` field", () => {
+test('does NOT bump Minimax (M3) — #3110 moved it from claude to openai format so images work, and the readiness bump is keyed off the registry\'s `format: "claude"` field', () => {
   // Minimax's replica quirk (long reasoning warm-up) hasn't changed, but this
   // policy intentionally keys off the translator format, not the provider
   // name — the registry is the single source of truth (see isClaudeFormatReasoningProvider
@@ -235,10 +283,8 @@ test("does NOT double-bump when codex-high reasoning and Claude-format replica b
     body: { messages: items(3), tools: tools(2), reasoning_effort: "high" },
   });
 
-  // Should be bumped by exactly one reason — claude_format_heavy_reasoning —
-  // because agentrouter is not a codex provider, the codex_* path never fires.
   assert.equal(result.timeoutMs, 110_000);
-  assert.ok(result.reasons.includes("claude_format_heavy_reasoning"));
+  assert.ok(result.reasons.includes("high_reasoning"));
   assert.ok(!result.reasons.includes("codex_gpt_5_5_high_reasoning"));
 });
 
@@ -265,4 +311,127 @@ test("treats unknown provider names as non-Claude-format (no false positives)", 
 
   assert.equal(result.timeoutMs, 80_000);
   assert.ok(!result.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("gives extended-thinking model aliases the reasoning readiness bump (#11922)", () => {
+  // #11922: kiro/claude-sonnet-5-thinking 504'd with
+  // "Stream produced no non-ping SSE event within 125000ms" — the 80s base plus
+  // the 45s very-large-history bump, capped there because nothing recognised the
+  // request as a reasoning target. Kiro serves Anthropic thinking models through
+  // its own CodeWhisperer translator, so `format: "kiro"` (not "claude") kept it
+  // out of the claude_format_heavy_reasoning bump, and the `-thinking` alias was
+  // never a reasoning signal the way `-high` is.
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "kiro",
+    model: "claude-sonnet-5-thinking",
+    body: { messages: items(401) },
+  });
+
+  assert.equal(result.timeoutMs, 155_000);
+  assert.ok(result.reasons.includes("extended_thinking"));
+});
+
+test("extended-thinking bump is provider-agnostic and fires for small requests", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "devin",
+    model: "claude-opus-4-6-thinking",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("extended_thinking"));
+});
+
+test("does NOT stack extended-thinking with the Claude-format replica bump", () => {
+  // Both bumps model the same one-off reasoning warm-up. A claude-format replica
+  // serving a `-thinking` alias must get 30s once, not 60s twice.
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "agentrouter",
+    model: "claude-sonnet-4-6-thinking",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("extended_thinking"));
+  assert.ok(!result.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("does NOT stack extended-thinking with the codex high-reasoning bump", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-5.5-thinking",
+    body: { messages: items(2), reasoning_effort: "high" },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"));
+  assert.ok(!result.reasons.includes("extended_thinking"));
+});
+
+test("does not treat an unrelated id containing 'thinking' as an alias suffix", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "openai",
+    model: "thinking-machines-lab-model",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.ok(!result.reasons.includes("extended_thinking"));
+});
+
+// Codex now serves gpt-6.x models, and its top effort tiers are spelled `xhigh` and
+// `max` (`gpt-6.1-sol-xhigh`, `gpt-6-luna-max`). Without the reasoning bump those long
+// warm-ups tripped the content-stall watchdog at the base window mid-reasoning.
+test("gives high-reasoning Codex GPT-6.x aliases (-xhigh, -max) the codex reasoning bump", () => {
+  for (const model of ["gpt-6.1-sol-xhigh", "gpt-6-luna-max"]) {
+    const result = resolveStreamReadinessTimeout({
+      baseTimeoutMs: 80_000,
+      provider: "codex",
+      model,
+      body: { input: items(3), tools: tools(2) },
+    });
+
+    assert.equal(result.timeoutMs, 110_000, model);
+    assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"), model);
+  }
+});
+
+test("treats an xhigh reasoning effort in the request body as high reasoning", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), reasoning: { effort: "xhigh" } },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"));
+});
+
+test("gives large Codex GPT-6.x Responses requests the codex large-request bump", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), tools: tools(16) },
+  });
+
+  assert.ok(result.reasons.includes("codex_gpt_5_5_large_responses"));
+});
+
+test("does NOT bump small Codex GPT-6.x requests without a high effort tier", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.deepEqual(result.reasons, ["base"]);
 });

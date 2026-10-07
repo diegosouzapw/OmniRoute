@@ -157,6 +157,33 @@ test("resetDbInstance invalidates provider connection read caches", async () => 
   assert.equal((await providersDb.getProviderConnections()).length, 0);
 });
 
+test("createProviderConnection upsert invalidates the provider connection read cache", async () => {
+  const readCache = await import("../../src/lib/db/readCache.ts");
+  const original = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    email: "cache-upsert@example.com",
+    accessToken: "token-a",
+    refreshToken: "refresh-a",
+    testStatus: "active",
+  });
+
+  const primed = await readCache.getCachedProviderConnectionById(original.id);
+  assert.equal(primed?.testStatus, "active");
+
+  await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    email: "cache-upsert@example.com",
+    accessToken: "token-b",
+    refreshToken: "refresh-b",
+    testStatus: "retrying",
+  });
+
+  const refreshed = await readCache.getCachedProviderConnectionById(original.id);
+  assert.equal(refreshed?.testStatus, "retrying");
+});
+
 test("cached LKGP values refresh only after the specific key is invalidated", async () => {
   const readCache = await importFresh("src/lib/db/readCache.ts");
   const db = core.getDbInstance();

@@ -1,3 +1,7 @@
+# wasm-bindgen glue + embedded WASM_BASE64. Prettier rewrites the generated JS
+# (quotes, wrapping) on any touch of this file; format tinycmsDomMocks.ts instead.
+open-sse/executors/tinycmsSigner.ts
+
 # Long reference tables are manually aligned; formatting the whole file causes noisy diffs.
 docs/reference/ENVIRONMENT.md
 
@@ -14,6 +18,7 @@ open-sse/config/freeModelCatalog.data.ts
 # Prettier reformats the frontmatter (blank line after ---), which makes the gate
 # fail on any skill that happens to pass through lint-staged.
 skills/*/SKILL.md
+skills/*/references/*.md
 
 # check:changelog-integrity compares release bullets against the base as exact
 # strings. Prettier normalizes markdown emphasis inside them (*from* -> _from_)

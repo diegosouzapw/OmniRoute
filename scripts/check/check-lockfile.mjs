@@ -7,6 +7,7 @@
 //   --validate-https       → toda URL "resolved" deve usar HTTPS (bloqueia http://)
 //   --validate-integrity   → todo pacote deve ter hash de integridade sha512
 //   --allowed-hosts npm    → apenas registry.npmjs.org é host permitido
+//   npm ls --workspaces    → entradas do lockfile satisfazem cada workspace
 //
 // Complementa check-deps (Fase 2 / allowlist de nomes): aquele garante que só
 // nomes aprovados entram; este garante que os pacotes instalados vieram do registry
@@ -57,16 +58,74 @@ export function getLockfileLintConfig() {
  * @returns {string[]}
  */
 export function buildLockfileLintArgs(cfg) {
-  const args = [
-    "--path", cfg.lockfilePath,
-    "--type", cfg.type,
-  ];
+  const args = ["--path", cfg.lockfilePath, "--type", cfg.type];
   if (cfg.validateHttps) args.push("--validate-https");
   if (cfg.validateIntegrity) args.push("--validate-integrity");
   if (cfg.allowedHosts.length) {
     args.push("--allowed-hosts", ...cfg.allowedHosts);
   }
   return args;
+}
+
+/**
+ * Returns the cross-platform npm command that verifies direct workspace
+ * dependencies from package-lock.json, independent of the installed tree.
+ *
+ * @param {NodeJS.Platform} [platform]
+ * @param {string | undefined} [comSpec]
+ * @returns {{ command: string, args: string[] }}
+ */
+export function getWorkspaceDependencyCheckCommand(
+  platform = process.platform,
+  comSpec = process.env.ComSpec
+) {
+  const npmArgs = ["ls", "--workspaces", "--depth=0", "--package-lock-only"];
+  if (platform === "win32") {
+    return {
+      command: comSpec || "cmd.exe",
+      args: ["/d", "/s", "/c", "npm.cmd", ...npmArgs],
+    };
+  }
+
+  return {
+    command: "npm",
+    args: npmArgs,
+  };
+}
+
+/**
+ * Executes the workspace dependency consistency check while keeping the process
+ * boundary injectable for deterministic success and failure tests.
+ *
+ * @param {{
+ *   platform?: NodeJS.Platform,
+ *   comSpec?: string,
+ *   execFile?: typeof execFileSync,
+ * }} [options]
+ * @returns {{ ok: true } | { ok: false, stdout: string, stderr: string }}
+ */
+export function runWorkspaceDependencyCheck(options = {}) {
+  const {
+    platform = process.platform,
+    comSpec = process.env.ComSpec,
+    execFile = execFileSync,
+  } = options;
+  const workspaceCheck = getWorkspaceDependencyCheckCommand(platform, comSpec);
+
+  try {
+    execFile(workspaceCheck.command, workspaceCheck.args, {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      stdout: err.stdout ?? "",
+      stderr: err.stderr ?? "",
+    };
+  }
 }
 
 function main() {
@@ -109,6 +168,17 @@ function main() {
         "    If a scoped/private registry is intentionally used, add its hostname\n" +
         "    to getLockfileLintConfig().allowedHosts in scripts/check/check-lockfile.mjs"
     );
+    process.exit(1);
+  }
+
+  const workspaceResult = runWorkspaceDependencyCheck();
+  if (workspaceResult.ok) {
+    console.log("[check-lockfile] OK — workspace lock entries match their manifests");
+  } else {
+    console.error("[check-lockfile] FAIL — workspace lock entries are inconsistent:");
+    if (workspaceResult.stdout) console.error(workspaceResult.stdout);
+    if (workspaceResult.stderr) console.error(workspaceResult.stderr);
+    console.error("\n  → Regenerate the affected lock entries and verify with a clean `npm ci`");
     process.exit(1);
   }
 }

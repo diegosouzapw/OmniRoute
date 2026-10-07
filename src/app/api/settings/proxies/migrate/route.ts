@@ -1,4 +1,4 @@
-import { migrateLegacyProxyConfigToRegistry } from "@/lib/localDb";
+import { migrateLegacyProxyConfigToRegistry } from "@/lib/db/proxies";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { z } from "zod";

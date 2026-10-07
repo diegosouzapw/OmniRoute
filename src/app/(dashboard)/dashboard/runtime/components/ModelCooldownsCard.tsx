@@ -35,7 +35,9 @@ export default function ModelCooldownsCard() {
   }, [notify, t]);
 
   useEffect(() => {
-    void load();
+    void (async () => {
+      await load();
+    })();
     const timer = setInterval(() => {
       void load();
     }, 5000);

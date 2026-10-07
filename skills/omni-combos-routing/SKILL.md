@@ -131,6 +131,46 @@ curl -X DELETE https://localhost:20128/api/fallback/chains \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/combos/auto
+
+GET combos › auto
+
+```bash
+curl https://localhost:20128/api/combos/auto \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/combos/builder/options
+
+GET combos › builder › options
+
+```bash
+curl https://localhost:20128/api/combos/builder/options \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/combos/duplicate
+
+POST combos › duplicate
+
+```bash
+curl -X POST https://localhost:20128/api/combos/duplicate \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/combos/reorder
+
+POST combos › reorder
+
+```bash
+curl -X POST https://localhost:20128/api/combos/reorder \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
@@ -188,7 +228,7 @@ curl -X POST $OMNIROUTE_URL/api/combos \
 | `reset-window` | Order targets by their configured reset window |
 | `headroom` | Prefer targets with more remaining quota headroom |
 | `strict-random` | Random without repeating until all targets have been used |
-| `auto` | Auto-Combo scoring across 13 factors |
+| `auto` | Auto-Combo scoring across 16 factors |
 | `lkgp` | Last-known-good-provider sticky routing |
 | `context-optimized` | Pick the best model for the request's context size |
 | `cache-optimized` | Prefer targets with stronger cache affinity |
@@ -197,7 +237,7 @@ curl -X POST $OMNIROUTE_URL/api/combos \
 
 ## Auto-combo (recommended for production)
 
-Auto-combo scores each candidate on 13 factors every request:
+Auto-combo scores each candidate on 16 factors every request:
 
 ```bash
 curl -X POST $OMNIROUTE_URL/api/combos \

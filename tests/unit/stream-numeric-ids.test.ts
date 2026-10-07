@@ -232,7 +232,9 @@ test("createSSEStream responses passthrough coerces numeric ids to strings", asy
   assert.equal(typeof added.item.call_id, "string");
   assert.equal(added.item.call_id, "654");
 
-  const delta = payloads.find((payload) => payload.type === "response.function_call_arguments.delta");
+  const delta = payloads.find(
+    (payload) => payload.type === "response.function_call_arguments.delta"
+  );
   assert.equal(typeof delta.response_id, "string");
   assert.equal(delta.response_id, "987");
   assert.equal(typeof delta.item_id, "string");

@@ -1,0 +1,563 @@
+{
+  "_comment": "Historical commits already merged into release/v3.8.51 before check:ai-attribution (#14441, 2026-09-22) existed, or merged past it. They cannot be rewritten (shared history), so the --range scan of the v3.8.51 release PR (main..release/v3.8.51) skips exactly these full SHAs. Add ONLY commits that are already on a release branch; never a commit of an open PR. The commit-msg hook and --message-file/--pr-title/--pr-body checks ignore this list. Remove the entries once v3.8.51 has landed on main (the next release PR range no longer contains them).",
+  "commits": {
+    "ed384009a805d62fe5185847fcbfa4fa0a02a1c5": {
+      "pr": 14130,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action from 4.37.9 to 4.38.0 (#14130)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "84eae29d311de4dba5c0fecdcefb0a8ee6e376c0": {
+      "pr": 14129,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/init from 4.37.9 to 4.38.0 (#14129)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "e8413da4508a45001833aa8d58d444cfdad013c1": {
+      "pr": 14128,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump codecov/codecov-action from 7.0.0 to 7.1.0 (#14128)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "ddd2aec818b9ef922869c17120222a1c03c6c297": {
+      "pr": 14127,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/analyze from 4.37.9 to 4.38.0 (#14127)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "c198720b2c5bc839d66cbb36741d28440a1a7bd4": {
+      "pr": 14126,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump actions/setup-node from 5 to 7 (#14126)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "b51e9bb34467a24878029918e6c79cd9a5e6e107": {
+      "pr": 14122,
+      "kind": "ai",
+      "subject": "fix(providers): keep array subscripts in perplexity-web code output (#14122)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "614ff4b60a11307ca7a6887eacf3cf130e35599a": {
+      "pr": 13008,
+      "kind": "ai",
+      "subject": "fix(sse): thread errorText into shouldMarkAccountExhaustedFrom429 (#13008)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "d600eba35b5d17717e24dfa1b90ffa06f9c920a5": {
+      "pr": 12485,
+      "kind": "ai",
+      "subject": "fix(cli): preflight the port before serving so a second instance cannot de-register the first (#12485)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "55b6ca6573473c8088098226e1f1acdd9b0ffd03": {
+      "pr": 13637,
+      "kind": "ai",
+      "subject": "fix(compression): fall back in-process when the compression worker fa… (#13637)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "706dc75c13906d83e1932e05e40c0c65b98ae41e": {
+      "pr": 12406,
+      "kind": "ai",
+      "subject": "fix(chatCore): stop executeWithUpstreamStartTimeout leaking its abortPromise listener (hedge-cancelled process exit) (#12406)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "44e32a1995cbd7eb914ae7537d905b6a808bad63": {
+      "pr": 13664,
+      "kind": "dependabot",
+      "subject": "deps: bump electron from 44.0.0 to 44.3.0 in /electron (#13664)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "b36c81d3f00b20677c65180867fbc58d302c6ed8": {
+      "pr": 12484,
+      "kind": "ai",
+      "subject": "fix(cli): escalate the readiness probe timeout so a slow health response is not a phantom boot failure (#12484)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "b84059213f87c914523e98773c83213d13898d96": {
+      "pr": 12310,
+      "kind": "ai",
+      "subject": "fix(gemini): preserve response-schema nullability across union flattening (#12310)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "04eba4dc05f37d8b4721b3f621b474808722fbaf": {
+      "pr": 13223,
+      "kind": "ai",
+      "subject": "fix(mcp): load audit sqlite via runtime helper (#13223)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "04cc8aab673a65b62eac03ca06f256291b32350e": {
+      "pr": 12309,
+      "kind": "ai",
+      "subject": "fix(cache): fold the response output contract into the semantic cache signature (#12309)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "a5d603ebc986c05e1dd92a79779b11469118d631": {
+      "pr": 12948,
+      "kind": "ai",
+      "subject": "fix(soniox): pass client parameters through and surface speaker diarization (#12948)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "602161d7bc1392a7ed2e0be127382b7c551d76c3": {
+      "pr": 13661,
+      "kind": "dependabot",
+      "subject": "deps: bump the development group across 1 directory with 15 updates (#13661)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "856051901d5444cbe7f5cc88e39f541f3bc9d679": {
+      "pr": 12977,
+      "kind": "dependabot",
+      "subject": "deps: bump oven/bun from 1.4.0-slim to 1.4.2-slim (#12977)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "96824288f521f7a3339e32beb9cdddeb42881373": {
+      "pr": 11564,
+      "kind": "ai",
+      "subject": "feat(compression): make proactive context-compression threshold a live setting (#11564)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "7f6958960c37d0d55b77f87eb79104174c890a9c": {
+      "pr": 10626,
+      "kind": "dependabot",
+      "subject": "deps: bump the development group with 13 updates (#10626)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "9814276b0fcd546c1e83a58f9dcd4d5d0a72c5c4": {
+      "pr": 10625,
+      "kind": "dependabot",
+      "subject": "deps: bump the production group with 14 updates (#10625)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "3d27c19d1734df8a23e82ecec3424f481deccefa": {
+      "pr": 10622,
+      "kind": "dependabot",
+      "subject": "deps: bump electron from 43.3.0 to 43.4.0 in /electron (#10622)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "548316a2c41bd9380877d485071820adf07111f6": {
+      "pr": 10392,
+      "kind": "ai",
+      "subject": "fix(translator): Normalize tool call names from lowercase to PascalCase when translating upstream responses to Claude Messages API format (#10392)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "24ef1dc3d477441503fb88a46f831792ecf0a31e": {
+      "pr": 10411,
+      "kind": "ai",
+      "subject": "Sanitize test fixtures, add developer .env guidance, and add gitleaks… (#10411)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "8bd0e7b6bfa197409977bee2fad9145140db5761": {
+      "pr": 10403,
+      "kind": "dependabot",
+      "subject": "deps: bump the production group across 1 directory with 21 updates (#10403)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "3c8432791e9bd5e8af0e8f4939449119cddc550d": {
+      "pr": 10407,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/init from 4.37.4 to 4.37.6 (#10407)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "142bd5019f543cc6001dd805f402d3db0cfa3a23": {
+      "pr": 10406,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/analyze from 4.37.4 to 4.37.6 (#10406)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "d9e24d84d8378e136959be98457b77e07fa0d803": {
+      "pr": 10405,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action from 4.37.4 to 4.37.6 (#10405)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "c481ee331224d6bbdd9e8d26596ab6adc7ce8f16": {
+      "pr": 10043,
+      "kind": "dependabot",
+      "subject": "deps: bump the development group across 1 directory with 22 updates (#10043)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "242cc5e797a5e62b9380d7246a060e71868ac3f0": {
+      "pr": 10042,
+      "kind": "dependabot",
+      "subject": "deps: bump electron from 43.2.0 to 43.3.0 in /electron (#10042)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "57640277a224f79c620fcdcf838a9bc0b772a39e": {
+      "pr": 9584,
+      "kind": "ai",
+      "subject": "feat(providers): integrate wave4 free-tier gateways (#9584)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "ce70df60030670c7803b9b9c5c576cfa268bec68": {
+      "pr": 8080,
+      "kind": "ai",
+      "subject": "feat(a2a): Conductor bridge — mirror OmniConductor hub tasks into the A2A TaskManager (PRD RF1) (#8080)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "3898305df069ba5aa530c7354816ca35bb421f11": {
+      "pr": 9164,
+      "kind": "bot-other",
+      "subject": "fix(rate-limit): separate queue wait from execution timeout (#9164)",
+      "reason": "github-actions[bot] co-author trailer from an automated fix-up commit squashed into a contributor PR"
+    },
+    "f5ce51a9ff42b239cb8898a4163c4cc1b205fa52": {
+      "pr": 8974,
+      "kind": "ai",
+      "subject": "feat(providers): add Conol (conol.ai) web session provider (#8974)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "5133aad76daca5d1494bc18bf3adacf7f3727ee2": {
+      "pr": 9634,
+      "kind": "ai",
+      "subject": "fix(test): reconcile base-drifted test expectations on release/v3.8.50 (#9634)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "b13c3cd20219fb298b068ff58537dda55a0aec2b": {
+      "pr": 9423,
+      "kind": "ai",
+      "subject": "fix(translator): normalize streamed optional tool arguments (#9423)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "5f75abe4a2040c42e614de671250500d4673d847": {
+      "pr": 9874,
+      "kind": "ai",
+      "subject": "cherry-pick(pr-9634): fix(test): reconcile base-drifted test expectations on release/v3.8.50 (#9874)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "9acf79f04fa1f09b4a5e41a2715db221fd8b8791": {
+      "pr": 9082,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action from 4 to 4.37.3 (#9082)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "09665ab455501553a4c37aa018aa979ceefd544f": {
+      "pr": 9081,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump docker/login-action from 4 to 4.5.2 (#9081)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "53f82848420e8008041d0c9a003b20753c58cbca": {
+      "pr": 8306,
+      "kind": "ai",
+      "subject": "fix(api): enforce image generation API key auth (#8306)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "aecf2fccef67a2ecb2884279c724cefb24ef5396": {
+      "pr": 8793,
+      "kind": "dependabot",
+      "subject": "deps: bump the production group across 1 directory with 18 updates (#8793)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "6afec74f26df69cafb564b0c0987fff0df70b2db": {
+      "pr": 8782,
+      "kind": "dependabot",
+      "subject": "deps: bump electron from 43.1.1 to 43.2.0 in /electron (#8782)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "7d67912f5b1beb3d4971818f3ed9d0c2ed3e0b10": {
+      "pr": 8695,
+      "kind": "dependabot",
+      "subject": "Dependabot updates (#8695)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "4053e2314a1cc1b4caba96c0d72bf614c0c38eb3": {
+      "pr": 8561,
+      "kind": "ai",
+      "subject": "chore(quality): rebaseline file-size for inherited base growth (#8561)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "94125e09b13ceae62518c0288d7b4cbd8a81f2bb": {
+      "pr": 8456,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump actions/setup-python from 6 to 7 (#8456)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "fb6b8e523356aa0c385e91f378283e5706f1b165": {
+      "pr": 8455,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/init from 4.37.1 to 4.37.3 (#8455)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "2a02d63676564845be90799d27d2f8b4638cdf75": {
+      "pr": 8454,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump ossf/scorecard-action from 2.4.3 to 2.4.4 (#8454)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "2129aa8a4a70aa19402ddc4f719c42284b93107f": {
+      "pr": 8453,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/analyze from 4.37.1 to 4.37.3 (#8453)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "592defd488de6a48ce7adf5121546ced0cbcb9f9": {
+      "pr": 8452,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump codecov/codecov-action from 5.5.5 to 7.0.0 (#8452)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "9dcbbd18c8d707218d1565a79bdc29a0490c6502": {
+      "pr": 8355,
+      "kind": "ai",
+      "subject": "fix(i18n): restore brand proper nouns and unify terminology in zh-CN and zh-TW (#8355)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "1f7ec2c3213bb8a160f6c29774a9bdb76b4dff8d": {
+      "pr": 8308,
+      "kind": "ai",
+      "subject": "fix(cpa): isolate credential-pool failures (#8308)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "cbe49f6929b20d73a8cec8b7dc66338123d05f91": {
+      "pr": 8303,
+      "kind": "ai",
+      "subject": "fix(mcp): keep POST SSE responses uncompressed (#8303)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "1684adcd63c188f8c91acd2fe3f9e76609d3ae28": {
+      "pr": 8302,
+      "kind": "ai",
+      "subject": "fix(providers): adapt Kimi nonstream requests internally (#8302)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "8a2a3d48b02a865a5d34c4247359caa2569197d9": {
+      "pr": 8301,
+      "kind": "ai",
+      "subject": "perf(api): singleflight version lookups (#8278) (#8301)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "08a21bcf27a504c752b038d6d5c4f6d91e301bb3": {
+      "pr": 8296,
+      "kind": "ai",
+      "subject": "fix(backend): add structure-aware chat admission (#8296)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "069d5a79257590a3d2f6ecd45a2a08c1a3cc9984": {
+      "pr": 8292,
+      "kind": "ai",
+      "subject": "fix(dashboard): stop sidebar RSC prefetch storms (#8292)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "612b6b38efdfef68ad2beb40f15ae1c27d75e77d": {
+      "pr": 8235,
+      "kind": "dependabot",
+      "subject": "deps: bump next from 16.2.10 to 16.2.11 (#8235)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "71887ae529b3aed98b1234b4f31f16b7dca101f7": {
+      "pr": 8232,
+      "kind": "ai",
+      "subject": "fix: restore OAuth auto-refresh for gemini-cli connections (#8232)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "9b58c2ba19bdbddb28c0d99d90d0f2113f121472": {
+      "pr": 7989,
+      "kind": "dependabot",
+      "subject": "docs: fix Docker IPv6 connection reset with -p 127.0.0.1 bind (fixes #7722) (#7989)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "98754c16dc55a03b8079b1e2224835555f3649d4": {
+      "pr": 7988,
+      "kind": "dependabot",
+      "subject": "docs: document npm install ERESOLVE/peer/deprecated warnings as harmless (fixes #7951) (#7988)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "2b6e856f6488460a9d13f58bda27e86877eee07d": {
+      "pr": 7528,
+      "kind": "ai",
+      "subject": "fix(providers): migrate muse-spark-web from GraphQL to WebSocket protocol (#7528)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "55549bfe5afa48886284d9d41d7f37c252c09f21": {
+      "pr": 7911,
+      "kind": "dependabot",
+      "subject": "feat(sse): add PromptQL playground provider (unofficial) (#7911)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "3ab66e0ec09c463950bd05c66a2665798b01e28b": {
+      "pr": 7898,
+      "kind": "dependabot",
+      "subject": "deps: bump the development group with 5 updates (#7898)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "8158d170d7e0b10433aabda735a1b3f26b82d958": {
+      "pr": 7897,
+      "kind": "dependabot",
+      "subject": "deps: bump the production group with 8 updates (#7897)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "d813bedf5c9cec169ce907e063a753f1fe793f7e": {
+      "pr": 7808,
+      "kind": "dependabot",
+      "subject": "fix(cli): register ESM alias resolver for @/ paths under global install (#7808)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "e18dfa989942c85999665ae7a512fb58d1e17d1f": {
+      "pr": 7806,
+      "kind": "dependabot",
+      "subject": "fix(plugins): 5 bugs on the plugin path (3 Windows-only, 2 all-platform) (#7806)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "f8dd12b7211fdefca5306dfc9c67f76286563605": {
+      "pr": 7744,
+      "kind": "dependabot",
+      "subject": "IC2: Cache provider connections by ID + provider nodes (#7744)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "9a6a846ae6de8e93e31276b3ef6208e8b02bb2f7": {
+      "pr": 7719,
+      "kind": "dependabot",
+      "subject": "perf(memory): mitigate event-loop starvation under 3000+ provider connections (#7719)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "fdf407a6d604a342a67daa7f3256253252a4ec1a": {
+      "pr": 7700,
+      "kind": "dependabot",
+      "subject": "fix(usage): preserve account identity history (#7700)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "b61be8d2d01f49efc19514d987eb97e834874547": {
+      "pr": 7787,
+      "kind": "dependabot",
+      "subject": "feat(perf): IC2 — cache provider connections by ID + lazy-decrypt credentials (#7787)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "1b7209034edae459379cca221cc44b54d208f17d": {
+      "pr": 7633,
+      "kind": "dependabot",
+      "subject": "fix(combo): expose computed context_length via /api/combos for accurate OC plugin display (#7633)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "f1a77fefc59cd5fd73850eed140fdff4c87ed036": {
+      "pr": 7625,
+      "kind": "dependabot",
+      "subject": "fix(combo): auto-clear stale session pins and emit recovery hints on combo exhaustion (#7625)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "44d16a5c247ed28f6e2e0c78ced7eed7b247490b": {
+      "pr": 7398,
+      "kind": "dependabot",
+      "subject": "fix(test): skip real DNS writes in MITM dynamic-import test (#7398)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "10e5dd81e04fbbe6e4a77f06e5c2311e7503898d": {
+      "pr": 7390,
+      "kind": "ai",
+      "subject": "fix(branding): regenerate raster favicons — white mark was shipped without its gradient tile (#7390)",
+      "reason": "third-party contributor PR squash-merged with AI co-author/session trailers before the gate existed (Hard Rule #16 violation, recorded in #14436)"
+    },
+    "cfc1d79edde064444430c20110550cd14ffa1dbb": {
+      "pr": 7642,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/init from 4.37.0 to 4.37.1 (#7642)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "fd28ab13dfa6aa885a9648ea69647a9c5d8c1f0c": {
+      "pr": 7641,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/analyze from 4.37.0 to 4.37.1 (#7641)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "f35cddee6fc542cf46ad33d140f08ae093346aa9": {
+      "pr": 7352,
+      "kind": "dependabot",
+      "subject": "deps: bump the production group across 1 directory with 12 updates (#7352)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "f0908ea974f9e2ab257a781a6f82cab15a4fa2cf": {
+      "pr": 7351,
+      "kind": "dependabot",
+      "subject": "deps: bump the development group with 8 updates (#7351)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "56808c72dea075c9a1457a4c05f8c933620004ba": {
+      "pr": 7350,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump codecov/codecov-action (#7350)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "8320fbb2356a1782fd78243b7a424f132c1d81dc": {
+      "pr": 7349,
+      "kind": "dependabot",
+      "subject": "deps: bump electron from 43.1.0 to 43.1.1 in /electron (#7349)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "f4b5af7801edb0a60a8e1600278952b45e5b3418": {
+      "pr": 7348,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump actions/setup-node from 6 to 7 (#7348)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "38d6cd9955d55548dd1f85fff3ab2b477537659d": {
+      "pr": 6943,
+      "kind": "dependabot",
+      "subject": "fix(6813): fix thinking budget zero drop and default thinkingConfig injection (#6943)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "c4c8af3965ee6bcd0bfc9b3501300523f635023a": {
+      "pr": 6867,
+      "kind": "dependabot",
+      "subject": "feat(proxy): shorthand proxy formats + protocol header mode for bulk import (#6867)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "6530c92aa622f8eeaf930719feeda1900f8d88c6": {
+      "pr": 6833,
+      "kind": "dependabot",
+      "subject": "feat(provider): add OpenVecta AI inference gateway (#6833)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "84c437d19e6399b4b82909b9ffa6129c591f8e59": {
+      "pr": 6832,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/init from 4.36.3 to 4.37.0 (#6832)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "067d0d6ed7d01550a35eac201794773da75f6e1a": {
+      "pr": 6831,
+      "kind": "dependabot",
+      "subject": "chore(deps): bump github/codeql-action/analyze from 4.36.3 to 4.37.0 (#6831)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "912ff8d1c4a181eef62f003e4b8fb64ab6e3662a": {
+      "pr": 6640,
+      "kind": "dependabot",
+      "subject": "fix(vision-bridge): auto-reroute non-vision models to fastest vision model when images detected (#6640)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "e697670046f00ae17a713de165a049c85e18f7aa": {
+      "pr": 6647,
+      "kind": "dependabot",
+      "subject": "fix(cli): detect WinGet Claude Code on Windows (#6647)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "2b33c6c635ebe141b6280beeee118d2e6e37df5b": {
+      "pr": 6646,
+      "kind": "dependabot",
+      "subject": "docs(routing): reconcile 17 vs 18 public-strategy count in AUTO-COMBO (#6646)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "484abed8c1dd3f463a9f011225f785e52bda2d82": {
+      "pr": 6644,
+      "kind": "dependabot",
+      "subject": "docs: sync routing-strategy count to 18 across README + AGENTS.md (#6644)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "6e16ae7b32a6c632f61948e27c0f52cc1225be94": {
+      "pr": 6643,
+      "kind": "dependabot",
+      "subject": "docs(claude): fix p2c casing to match ROUTING_STRATEGY_VALUES (#6643)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "1188847f0f4b9f0995ad9656a5ed0e7d64d412c4": {
+      "pr": 6649,
+      "kind": "dependabot",
+      "subject": "feat: add setting for provider/model-specific parameters (#6649)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    },
+    "2d9f85d587bd41dd7c2057df2121779a85827157": {
+      "pr": 6648,
+      "kind": "dependabot",
+      "subject": "fix(mimocode): handle 400 with cooldown + account rotation (#6648)",
+      "reason": "dependabot[bot] dependency bump (Signed-off-by/Co-authored-by written by GitHub itself)"
+    }
+  }
+}

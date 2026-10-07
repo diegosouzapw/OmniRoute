@@ -40,7 +40,9 @@ export function useMemorySettings(): UseMemorySettingsResult {
 
   useEffect(() => {
     mounted.current = true;
-    void fetchOnce();
+    void (async () => {
+      await fetchOnce();
+    })();
     return () => {
       mounted.current = false;
     };

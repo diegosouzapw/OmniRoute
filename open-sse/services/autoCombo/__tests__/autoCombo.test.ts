@@ -2,7 +2,7 @@
  * Unit tests for Auto-Combo Engine (Phase 5)
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeAll, describe, it, expect, beforeEach } from "vitest";
 import { calculateFactors, calculateScore, DEFAULT_WEIGHTS, validateWeights } from "../scoring";
 import type { ProviderCandidate, ScoringWeights } from "../scoring";
 import {
@@ -18,6 +18,13 @@ import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
 import { getStrategy } from "../routerStrategy";
 import type { RoutingContext } from "../routerStrategy";
+
+// #15106: the first getTaskFitness() call in a worker pays the lazy, synchronous
+// model-intelligence DB init. Pay it here, under its own generous budget, so the
+// 5s per-test timeout measures the test and not first-call setup under parallel load.
+beforeAll(() => {
+  getTaskFitness("warmup-model", "coding");
+}, 30_000);
 
 describe("Scoring", () => {
   const candidate: ProviderCandidate = {
@@ -71,7 +78,7 @@ describe("Scoring", () => {
 
 describe("Task Fitness", () => {
   it("should return fitness score for known model+task", () => {
-    const score = getTaskFitness("claude-sonnet", "coding");
+    const score = getTaskFitness("o3", "coding");
     expect(score).toBeGreaterThan(0.5);
   });
 
@@ -101,10 +108,15 @@ describe("Task Fitness", () => {
       // The fix: getTaskFitnessWithSource strips a trailing "-free" suffix
       // and re-queries arena_elo with the base id. We seed an arena_elo
       // row directly via the DB module, look up the free variant, and
-      // assert the alias path returns the base score with source
-      // "arena_elo_free_alias".
-      const baseId = "alias-base-test-4517";
-      const freeId = "alias-base-test-4517-free";
+      // assert the alias path returns the base score, now tagged
+      // "arena_elo:inherited" by the shared resolver (#11489).
+      //
+      // #11489 also made the base-id lookup CATALOG-ANCHORED, so this uses a
+      // real catalog pair instead of the synthetic ids it was written with:
+      // an id that resolves to a base no provider actually ships is a ghost,
+      // and inheriting a score for it was never meaningful.
+      const baseId = "mimo-v2.5";
+      const freeId = "mimo-v2.5-free";
       const { upsertModelIntelligence, deleteModelIntelligence } =
         await import("../../../../src/lib/db/modelIntelligence.ts");
       // Seed arena_elo on the base id only — no row exists for the free id.
@@ -121,9 +133,9 @@ describe("Task Fitness", () => {
       try {
         const result = getTaskFitnessWithSource(freeId, "coding");
         // Without the fix: result.source would be "wildcard_boost" (0.5 default).
-        // With the fix: result.source is "arena_elo_free_alias" with score 0.42.
+        // With the fix: result.source is "arena_elo:inherited" with score 0.42.
         expect(result.score).toBeCloseTo(0.42, 5);
-        expect(result.source).toBe("arena_elo_free_alias");
+        expect(result.source).toBe("arena_elo:inherited");
       } finally {
         deleteModelIntelligence(baseId, "arena_elo", "coding");
         invalidateFitnessCache();
@@ -236,6 +248,136 @@ describe("Mode Packs", () => {
 
   it("undefined pack should return undefined", () => {
     expect(getModePack("nonexistent")).toBeUndefined();
+  });
+
+  it("every pack carries quality>0 and reliability>0 and sums to 0.9999", () => {
+    for (const name of getModePackNames()) {
+      const w = getModePack(name)!;
+      expect(Number(w.quality)).toBeGreaterThan(0);
+      expect(Number(w.reliability)).toBeGreaterThan(0);
+      const sum = Object.values(w).reduce((a, b) => a + Number(b), 0);
+      expect(sum).toBeCloseTo(0.9999, 3);
+    }
+  });
+});
+
+describe("Mode pack ranking gates (cold/warm/health)", () => {
+  function scoreOne(candidate: ProviderCandidate, pack: ScoringWeights): number {
+    const factors = calculateFactors(candidate, [candidate], "coding", () => 0.5);
+    return calculateScore(factors, pack);
+  }
+  it("cold pool ranking unchanged (reliability 1, quality 0.5 neutrals)", () => {
+    const a: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: undefined,
+      errorRate: 0,
+      quality: undefined,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const b: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: undefined,
+      errorRate: 0,
+      quality: undefined,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const pack = MODE_PACKS["reliability-first"];
+    expect(scoreOne(a, pack)).toBeCloseTo(scoreOne(b, pack), 5);
+  });
+  it("warm reliability 0.01 vs 0.4 flips winner at health tie", () => {
+    const highFail: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: 0.4,
+      errorRate: 0,
+      quality: 0.5,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const lowFail: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: 0.01,
+      errorRate: 0,
+      quality: 0.5,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const pack = MODE_PACKS["reliability-first"];
+    expect(scoreOne(lowFail, pack)).toBeGreaterThan(scoreOne(highFail, pack));
+  });
+  it("boundedRate NaN yields reliability 1", () => {
+    const c: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: NaN,
+      errorRate: 0,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const factors = calculateFactors(c, [c], "coding", () => 0.5);
+    expect(factors.reliability).toBe(1);
+  });
+  it("health CLOSED vs HALF_OPEN still outweighs reliability gap", () => {
+    const healthyHighFail: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "CLOSED",
+      failureRate: 0.4,
+      errorRate: 0,
+      quality: 0.5,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const halfOpenLowFail: ProviderCandidate = {
+      provider: "test-provider",
+      model: "test-model",
+      circuitBreakerState: "HALF_OPEN",
+      failureRate: 0.01,
+      errorRate: 0,
+      quality: 0.5,
+      quotaRemaining: 50,
+      quotaTotal: 100,
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      accountTier: "pro",
+      latencyStdDev: 10,
+    };
+    const pack = MODE_PACKS["reliability-first"];
+    expect(scoreOne(healthyHighFail, pack)).toBeGreaterThan(scoreOne(halfOpenLowFail, pack));
   });
 });
 
@@ -489,7 +631,7 @@ describe("LKGP Strategy", () => {
 
 describe("Task Fitness Resolution Chain", () => {
   it("getTaskFitness should return static table score for known models", () => {
-    const score = getTaskFitness("claude-sonnet", "coding");
+    const score = getTaskFitness("o3", "coding");
     expect(score).toBe(0.95);
   });
 
@@ -509,7 +651,7 @@ describe("Task Fitness Resolution Chain", () => {
   });
 
   it("getTaskFitnessWithSource should return source='fitness_table' for known static models", () => {
-    const result = getTaskFitnessWithSource("claude-sonnet", "coding");
+    const result = getTaskFitnessWithSource("o3", "coding");
     expect(result).toEqual({ score: 0.95, source: "fitness_table" });
   });
 
@@ -569,7 +711,7 @@ describe("Task Fitness Resolution Chain", () => {
   });
 
   it("getTaskFitnessWithSource returns 'fitness_table' for statically known models", () => {
-    const result = getTaskFitnessWithSource("claude-sonnet", "review");
+    const result = getTaskFitnessWithSource("o3", "review");
     expect(result.source).toBe("fitness_table");
     expect(result.score).toBe(0.92);
   });
@@ -590,15 +732,15 @@ describe("Task Fitness DB Resolution Chain", () => {
   it("falls back to static FITNESS_TABLE when DB is not initialized", () => {
     // In the test environment, DB is typically not initialized,
     // so getTaskFitness should fall through to the static table
-    const score = getTaskFitness("claude-sonnet", "coding");
-    // Static table has claude-sonnet → 0.95 for coding
+    const score = getTaskFitness("o3", "coding");
+    // Static table has o3 → 0.95 for coding
     expect(score).toBe(0.95);
   });
 
   it("falls back to static FITNESS_TABLE for review task type", () => {
-    const score = getTaskFitness("claude-opus", "review");
-    // Static table has claude-opus → 0.95 for review
-    expect(score).toBe(0.95);
+    const score = getTaskFitness("gemini-2.5-pro", "review");
+    // Static table has gemini-2.5-pro → 0.93 for review
+    expect(score).toBe(0.93);
   });
 
   it("falls back to wildcard boosts when no static entry exists and DB unavailable", () => {
@@ -629,14 +771,14 @@ describe("Task Fitness DB Resolution Chain", () => {
   });
 
   it("resolution chain: static table takes priority over wildcard for known models", () => {
-    // "claude-sonnet" is in the static table with coding=0.95
+    // "o3" is in the static table with coding=0.95
     // It does NOT match "coder" wildcard because the static table is checked first
-    const score = getTaskFitness("claude-sonnet", "coding");
+    const score = getTaskFitness("o3", "coding");
     expect(score).toBe(0.95); // From static table, NOT wildcard
   });
 
   it("getTaskFitnessWithSource identifies fitness_table as source for known models", () => {
-    const model = "claude-sonnet";
+    const model = "o3";
     const category = "coding";
 
     const result = getTaskFitnessWithSource(model, category);
@@ -645,14 +787,14 @@ describe("Task Fitness DB Resolution Chain", () => {
   });
 
   it("case insensitivity: model names are lowercased before lookup", () => {
-    const upperScore = getTaskFitness("CLAUDE-SONNET", "coding");
-    const lowerScore = getTaskFitness("claude-sonnet", "coding");
+    const upperScore = getTaskFitness("O3", "coding");
+    const lowerScore = getTaskFitness("o3", "coding");
     expect(upperScore).toBe(lowerScore);
   });
 
   it("case insensitivity: task types are lowercased before lookup", () => {
-    const upperScore = getTaskFitness("claude-sonnet", "CODING");
-    const lowerScore = getTaskFitness("claude-sonnet", "coding");
+    const upperScore = getTaskFitness("o3", "CODING");
+    const lowerScore = getTaskFitness("o3", "coding");
     expect(upperScore).toBe(lowerScore);
   });
 

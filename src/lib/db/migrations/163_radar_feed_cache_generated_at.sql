@@ -1,0 +1,12 @@
+-- 163_radar_feed_cache_generated_at.sql
+--
+-- radar_feed_cache (migration 136) kept only fetched_at — when this install
+-- downloaded the feed — while the feed itself carries generatedAt, the date
+-- its data was built. Nothing downstream could tell a recent download from
+-- recent data: a feed fetched minutes ago can carry weeks-old figures.
+--
+-- radar_referrals_cache (migration 142) already persists that date; this
+-- brings the catalog cache in line. NULL on rows cached before this column
+-- existed — the date is unknown, and stays unknown rather than being stood in
+-- for by fetched_at.
+ALTER TABLE radar_feed_cache ADD COLUMN generated_at TEXT DEFAULT NULL;

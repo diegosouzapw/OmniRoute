@@ -22,10 +22,24 @@ export const grok_cliProvider: RegistryEntry = {
   passthroughModels: true,
   models: [
     {
+      id: "grok-4.7",
+      name: "Grok 4.7",
+      contextLength: 500000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
+      toolCalling: true,
+      targetFormat: "openai-responses",
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+    },
+    {
       id: "grok-4.6",
       name: "Grok 4.6",
       contextLength: 500000,
       supportsReasoning: true,
+      // Verified with a Responses `input_image` probe. grok-4.5 misread the same image,
+      // so it stays undeclared.
+      supportsVision: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
       toolCalling: true,
       targetFormat: "openai-responses",
       unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
@@ -35,6 +49,7 @@ export const grok_cliProvider: RegistryEntry = {
       name: "Grok 4.5",
       contextLength: 500000,
       supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
       toolCalling: true,
       targetFormat: "openai-responses",
       unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],

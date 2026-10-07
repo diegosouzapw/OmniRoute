@@ -11,7 +11,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const raw = await request.json().catch(() => ({}));
   const validation = validateBody(volcenginePlanConnectSchema, raw);
-  if (!validation.success) {
+  if (validation.success === false) {
     return NextResponse.json(
       { success: false, error: formatValidationMessage(validation.error) },
       { status: 400 }
@@ -26,7 +26,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         "@omniroute/open-sse/services/volcengineConsoleAutoLogin.ts"
       );
       const started = await volcengineConsoleAutoLoginService.startLogin(phone, { timeout });
-      if (!started.ok) {
+      if (started.ok === false) {
         return NextResponse.json({ success: false, error: started.error }, { status: 400 });
       }
       return NextResponse.json({ success: true, session: started.session });

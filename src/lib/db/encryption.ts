@@ -76,6 +76,43 @@ function decryptFailureSignature(
 const RECOVERY_HINT =
   "Re-authenticate this account, or verify STORAGE_ENCRYPTION_KEY matches the key used to store it.";
 
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { isTestContext, resolveDataDir } from "../dataPaths.ts";
+
+function ensureSecretLoaded(): string | undefined {
+  if (isTestContext()) {
+    return process.env.STORAGE_ENCRYPTION_KEY;
+  }
+  if (process.env.STORAGE_ENCRYPTION_KEY) {
+    return process.env.STORAGE_ENCRYPTION_KEY;
+  }
+  const candidates = [
+    path.join(resolveDataDir(), ".env"),
+    path.join(process.cwd(), ".env"),
+    path.join(os.homedir(), ".hermes", ".env"),
+  ];
+  for (const envPath of candidates) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("STORAGE_ENCRYPTION_KEY=")) {
+            const val = trimmed.split("=", 2)[1]?.trim().replace(/^["'](.*)["']$/, "$1");
+            if (val) {
+              process.env.STORAGE_ENCRYPTION_KEY = val;
+              return val;
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+  return undefined;
+}
+
 /**
  * Derive the PRIMARY encryption key using the static salt.
  * This is the canonical key derivation that all new encryptions use.
@@ -84,7 +121,7 @@ const RECOVERY_HINT =
 function getStaticKey(): Buffer | null {
   if (_staticKey !== null) return _staticKey;
 
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+  const secret = ensureSecretLoaded();
   if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
   try {
@@ -110,7 +147,7 @@ function getStaticKey(): Buffer | null {
 function getLegacyDynamicKey(): Buffer | null {
   if (_legacyDynamicKey !== null) return _legacyDynamicKey;
 
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+  const secret = ensureSecretLoaded();
   if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
   const dynamicSalt = createHash("sha256").update(secret).digest().slice(0, 16);
@@ -124,7 +161,7 @@ function getLegacyDynamicKey(): Buffer | null {
 
 /** Check if encryption is enabled. */
 export function isEncryptionEnabled(): boolean {
-  return !!process.env.STORAGE_ENCRYPTION_KEY;
+  return !!ensureSecretLoaded();
 }
 
 /**
@@ -249,6 +286,36 @@ export function decrypt(
     }
     return null;
   }
+}
+
+/**
+ * #11500 — decrypt() wrapper for callers outside decryptConnectionFields()
+ * (the lazy-decrypt views in providers/lazyConnectionView.ts, which call
+ * decrypt() directly on every fresh getProviderConnections() cycle). A
+ * fresh Proxy wraps a fresh row object each cycle, so per-proxy memoization
+ * never survives across cycles — without this wrapper the raw
+ * "[Encryption] Decryption failed..." line re-fires every single cycle for
+ * the same corrupt/stale-key credential. Shares the loggedDecryptFailures
+ * Set with decryptConnectionFields() so a credential already flagged via one
+ * path does not re-log via the other, and logs the SAME raw message
+ * decrypt() would emit (unlike decryptConnectionFields()'s enriched
+ * message) — just deduped to once per (provider + connection + field +
+ * ciphertext) instead of once per cycle.
+ */
+export function decryptQuiet(
+  ciphertext: string | null | undefined,
+  meta: { connectionId: string; provider: string; field: string }
+): string | null | undefined {
+  if (!looksEncrypted(ciphertext)) {
+    return decrypt(ciphertext);
+  }
+  const signature = `${meta.provider}::${meta.connectionId}::${meta.field}:${ciphertext}`;
+  const alreadyLogged = loggedDecryptFailures.has(signature);
+  const result = decrypt(ciphertext, { quiet: alreadyLogged });
+  if (result === null && !alreadyLogged) {
+    loggedDecryptFailures.add(signature);
+  }
+  return result;
 }
 
 /**

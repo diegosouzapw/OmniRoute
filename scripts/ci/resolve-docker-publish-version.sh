@@ -32,10 +32,10 @@ case "$EVENT_NAME" in
           ;;
         release/v*)
           if [ -z "$DEFAULT_BRANCH" ] || [ "$REF_NAME" != "$DEFAULT_BRANCH" ]; then
-            echo "Refusing to publish next from non-default release branch: $REF_NAME" >&2
-            exit 1
+            VERSION="skip"
+          else
+            VERSION="next"
           fi
-          VERSION="next"
           ;;
         *)
           echo "Unsupported Docker publish branch: $REF_NAME" >&2

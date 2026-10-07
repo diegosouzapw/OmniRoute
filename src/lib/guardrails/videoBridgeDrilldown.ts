@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import sharp from "sharp";
 
+import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
 import { resolveVideoFocusWindow, type VideoFocusWindow } from "./videoBridgeRuntime";
 
 export interface VideoDrilldownFrameInput {
@@ -101,9 +102,8 @@ export const VIDEO_DRILLDOWN_MAX_FRAME_BYTES = 4 * 1024 * 1024;
 export const VIDEO_DRILLDOWN_MAX_ENTRY_BYTES = 32 * 1024 * 1024;
 const MAX_DURATION_SECONDS = 600;
 const MAX_FRAME_DIMENSION = 8192;
-const JPEG_DATA_URI_PREFIX = "data:image/jpeg;base64,";
 export const VIDEO_DRILLDOWN_MAX_FRAME_DATA_URI_CHARS =
-  JPEG_DATA_URI_PREFIX.length + Math.ceil(VIDEO_DRILLDOWN_MAX_FRAME_BYTES / 3) * 4;
+  JPEG_FRAME_DATA_URI_PREFIX.length + Math.ceil(VIDEO_DRILLDOWN_MAX_FRAME_BYTES / 3) * 4;
 
 function validationFailure(message: string): never {
   throw new VideoDrilldownValidationError(message);
@@ -270,10 +270,10 @@ async function decodeCanonicalJpeg(
   resolution: { height: number; width: number };
 }> {
   throwIfAborted(signal);
-  if (!dataUri.startsWith(JPEG_DATA_URI_PREFIX)) {
+  if (!dataUri.startsWith(JPEG_FRAME_DATA_URI_PREFIX)) {
     validationFailure("Invalid drill-down JPEG frame");
   }
-  const encoded = dataUri.slice(JPEG_DATA_URI_PREFIX.length);
+  const encoded = dataUri.slice(JPEG_FRAME_DATA_URI_PREFIX.length);
   if (dataUri.length > VIDEO_DRILLDOWN_MAX_FRAME_DATA_URI_CHARS) {
     validationFailure("Drill-down frame byte limit exceeded");
   }
@@ -622,7 +622,7 @@ export class VideoDrilldownCache {
       )
       .slice(0, frameCount)
       .map((frame) => ({
-        dataUri: `${JPEG_DATA_URI_PREFIX}${frame.data.toString("base64")}`,
+        dataUri: `${JPEG_FRAME_DATA_URI_PREFIX}${frame.data.toString("base64")}`,
         height: frame.height,
         timestampSeconds: frame.timestampSeconds,
         width: frame.width,

@@ -14,7 +14,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-synced-del-
 process.env.DATA_DIR = tmpDir;
 
 const { replaceSyncedAvailableModelsForConnection, getSyncedAvailableModels } =
-  await import("../../src/lib/localDb.ts");
+  await import("@/lib/db/models");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
@@ -38,7 +38,7 @@ test("a deleted synced model is restored when upstream advertises it again", asy
   let synced = (await getSyncedAvailableModels(provider)).map((m) => m.id);
   assert.ok(synced.includes("model-del"), "both models present after first sync");
 
-  const { removeSyncedAvailableModel } = await import("../../src/lib/localDb.ts");
+  const { removeSyncedAvailableModel } = await import("@/lib/db/models");
   assert.equal(await removeSyncedAvailableModel(provider, "model-del"), true);
   synced = (await getSyncedAvailableModels(provider)).map((m) => m.id);
   assert.ok(!synced.includes("model-del"), "delete removes the current synced row");

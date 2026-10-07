@@ -31,7 +31,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
-const { mergeModelCompatOverride } = await import("../../src/lib/localDb.ts");
+const { mergeModelCompatOverride } = await import("@/lib/db/models");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
@@ -93,7 +93,7 @@ test("#11300 A: hiding a static model under its ALIAS (cc) excludes it under bot
   );
 });
 
-test("#11300 B: hiding a codex-native unprefixed model under \"openai\" excludes the bare model id", async () => {
+test('#11300 B: hiding a codex-native unprefixed model under "openai" excludes the bare model id', async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
@@ -151,9 +151,11 @@ test("#11300 C: hiding a compatible-node synced model under its configured PREFI
   });
 
   const modelId = "deepseek-v4-flash-0731";
-  await modelsDb.replaceSyncedAvailableModelsForConnection(NODE_ID, (connection as { id: string }).id, [
-    { id: modelId, name: "DeepSeek V4 Flash", source: "imported", supportedEndpoints: ["chat"] },
-  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    NODE_ID,
+    (connection as { id: string }).id,
+    [{ id: modelId, name: "DeepSeek V4 Flash", source: "imported", supportedEndpoints: ["chat"] }]
+  );
 
   let ids = await fetchCatalogIds();
   assert.ok(

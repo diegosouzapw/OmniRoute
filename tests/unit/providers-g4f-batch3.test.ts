@@ -68,8 +68,8 @@ for (const [id, info] of Object.entries(PROVIDERS)) {
     assert.equal(entry.passthroughModels, true);
   });
 
-  test(`#6674 ${id} resolves through getExecutor() as a DefaultExecutor instance`, () => {
-    const executor = getExecutor(id);
+  test(`#6674 ${id} resolves through getExecutor() as a DefaultExecutor instance`, async () => {
+    const executor = await getExecutor(id);
     assert.ok(
       executor instanceof DefaultExecutor,
       `${id} has no custom executor — must fall through to DefaultExecutor`

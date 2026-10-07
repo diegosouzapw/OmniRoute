@@ -32,8 +32,12 @@ test("T31: antigravity static catalog exposes client-visible Gemini preview IDs"
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
+// #11503 retargeted the -high alias from the dotted id to the hyphenated one, on the
+// grounds that the catalog spells it that way and the dotted form is not routable.
+// The two rungs therefore no longer share a spelling — pinned separately so a future
+// re-unification is a deliberate edit here rather than a silent drift.
 test("T31: legacy Gemini aliases resolve to Gemini 3.1 IDs", () => {
-  assert.equal(resolveDeprecatedAlias("gemini-3-pro-high"), "gemini-3.1-pro-high");
+  assert.equal(resolveDeprecatedAlias("gemini-3-pro-high"), "gemini-3-1-pro-high");
   assert.equal(resolveDeprecatedAlias("gemini-3-pro-low"), "gemini-3.1-pro-low");
 });
 

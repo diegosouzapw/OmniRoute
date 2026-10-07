@@ -16,9 +16,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-desc-5005-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { createComboSchema, updateComboSchema } = await import(
-  "../../src/shared/validation/schemas.ts"
-);
+const { createComboSchema, updateComboSchema } =
+  await import("../../src/shared/validation/schemas.ts");
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 

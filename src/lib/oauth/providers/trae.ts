@@ -42,6 +42,8 @@ type TraeRawTokens = {
   app_version?: string;
   userRegion?: string;
   user_region?: string;
+  userTimezone?: string;
+  user_timezone?: string;
   userIdentity?: string;
   user_identity?: string;
 };
@@ -69,6 +71,7 @@ export const trae = {
       appLanguage: tokens.appLanguage || tokens.app_language || "en",
       appVersion: tokens.appVersion || tokens.app_version || "1.0.0.1229",
       userRegion: tokens.userRegion || tokens.user_region || "US",
+      userTimezone: tokens.userTimezone || tokens.user_timezone || undefined,
       userIdentity: tokens.userIdentity || tokens.user_identity || "Free",
       // Preserved for callers that key off a machine id (e.g. the IDE flow).
       machineId: tokens.machineId,

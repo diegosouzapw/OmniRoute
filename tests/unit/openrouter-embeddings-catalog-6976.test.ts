@@ -75,10 +75,7 @@ test("embeddingRegistry curated openrouter catalog carries the refreshed lineup 
     const dim = config!.models.find((m) => m.id === expected)?.dimensions;
     assert.equal(typeof dim, "number", `${expected} must carry a dimensions value`);
   }
-  assert.equal(
-    config!.models.find((m) => m.id === "google/gemini-embedding-2")?.dimensions,
-    3072
-  );
+  assert.equal(config!.models.find((m) => m.id === "google/gemini-embedding-2")?.dimensions, 3072);
   assert.equal(
     config!.models.find((m) => m.id === "google/gemini-embedding-2-preview")?.dimensions,
     3072

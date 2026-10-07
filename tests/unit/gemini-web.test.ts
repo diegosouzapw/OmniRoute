@@ -7,9 +7,9 @@ const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/exe
 
 // ─── Registration ───────────────────────────────────────────────────────────
 
-test("GeminiWebExecutor is registered in executor index", () => {
+test("GeminiWebExecutor is registered in executor index", async () => {
   assert.ok(hasSpecializedExecutor("gemini-web"));
-  const executor = getExecutor("gemini-web");
+  const executor = await getExecutor("gemini-web");
   assert.ok(executor instanceof GeminiWebExecutor);
 });
 
@@ -121,6 +121,7 @@ test("Normalizes a bare __Secure-1PSID value before adding browser cookies", asy
           }),
           keyboard: {
             type: async () => {},
+            insertText: async () => {},
             press: async () => {},
           },
         }),

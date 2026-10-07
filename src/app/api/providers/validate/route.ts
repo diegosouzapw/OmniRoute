@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getProviderNodeById } from "@/models";
@@ -8,10 +9,13 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { validateProviderApiKey } from "@/lib/providers/validation";
-import { getProxyForLevel, resolveProxyForProvider } from "@/lib/localDb";
+import { projectProviderValidationResultForPublicResponse } from "@/lib/providers/validation/transport";
+import { getProxyForLevel } from "@/lib/db/settings";
+import { resolveProxyForProvider } from "@/lib/db/proxies";
 import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 function sanitizeAuditUrl(url: string | null | undefined) {
   if (!url) return null;
@@ -63,6 +67,9 @@ export async function POST(request) {
       tunnelId,
       connectorName,
     } = validation.data;
+
+    const retirementResponse = rejectRetiredCommonChatGptWebProvider(provider);
+    if (retirementResponse) return retirementResponse;
 
     let providerSpecificData: any = { validationModelId };
     if (customUserAgent) {
@@ -118,12 +125,14 @@ export async function POST(request) {
       proxyToUse = providerProxy || globalProxy || null;
     }
 
-    const result = await runWithProxyContextOrDirect(proxyToUse || null, () =>
-      validateProviderApiKey({
-        provider,
-        apiKey,
-        providerSpecificData,
-      })
+    const result = projectProviderValidationResultForPublicResponse(
+      await runWithProxyContextOrDirect(proxyToUse || null, () =>
+        validateProviderApiKey({
+          provider,
+          apiKey,
+          providerSpecificData,
+        })
+      )
     );
 
     if (result.unsupported) {
@@ -169,7 +178,7 @@ export async function POST(request) {
       providerSpecificData: result.providerSpecificData || null,
     });
   } catch (error) {
-    console.log("Error validating API key:", error);
+    console.log("Error validating API key:", sanitizeErrorMessage(error) || "Validation failed");
     return NextResponse.json({ error: "Validation failed" }, { status: 500 });
   }
 }

@@ -45,9 +45,9 @@ describe("zed-hosted registry entry", () => {
     assert.equal(entry.oauth, undefined);
   });
 
-  test("executor is wired in the executors map", () => {
+  test("executor is wired in the executors map", async () => {
     assert.ok(hasSpecializedExecutor("zed-hosted"));
-    assert.ok(getExecutor("zed-hosted") instanceof ZedHostedExecutor);
+    assert.ok(await getExecutor("zed-hosted") instanceof ZedHostedExecutor);
   });
 });
 

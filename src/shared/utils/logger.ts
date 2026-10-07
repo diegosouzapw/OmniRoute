@@ -18,6 +18,10 @@ import { resolve } from "path";
 import { getLogConfig, initLogRotation } from "@/lib/logRotation";
 import { getAppLogLevel } from "@/lib/logEnv";
 import { redactLogArgs } from "@/shared/utils/logRedaction";
+import {
+  getOrCreateSharedLoggerResource,
+  type SharedLoggerResource,
+} from "@/shared/utils/loggerResource";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -61,7 +65,7 @@ function getTransportCompatibleConfig(): pino.LoggerOptions {
  * vanished, so failed writes are dropped (best-effort stderr notice) instead of
  * escalating.
  */
-function buildFileTransportStream(targets: NonNullable<pino.TransportMultiOptions["targets"]>) {
+function buildTransportStream(targets: NonNullable<pino.TransportMultiOptions["targets"]>) {
   const stream = pino.transport({ targets });
   stream.on("error", (err: unknown) => {
     try {
@@ -75,11 +79,65 @@ function buildFileTransportStream(targets: NonNullable<pino.TransportMultiOption
   return stream;
 }
 
+interface OwnedLogStream {
+  flushSync?: () => void;
+  end?: () => void;
+  once?: (event: string, listener: () => void) => unknown;
+}
+
+async function closeOwnedStream(stream: OwnedLogStream | null): Promise<void> {
+  if (!stream) return;
+
+  try {
+    stream.flushSync?.();
+  } catch {
+    // Best-effort shutdown: a missing log destination must not block process exit.
+  }
+
+  if (!stream.end) return;
+
+  await new Promise<void>((resolveClose) => {
+    let resolved = false;
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      resolveClose();
+    };
+    const fallback = setTimeout(finish, 1_000);
+
+    stream.once?.("close", () => {
+      clearTimeout(fallback);
+      finish();
+    });
+
+    try {
+      stream.end?.();
+      if (!stream.once) {
+        clearTimeout(fallback);
+        finish();
+      }
+    } catch {
+      clearTimeout(fallback);
+      finish();
+    }
+  });
+}
+
+function createLoggerResource(
+  logger: pino.Logger,
+  stream: OwnedLogStream | null
+): SharedLoggerResource {
+  return {
+    logger,
+    close: () => closeOwnedStream(stream),
+  };
+}
+
 /**
  * Build the logger with optional file transport.
  * Uses pino transport targets for all destinations.
  */
-function buildLogger(): pino.Logger {
+function buildLoggerResource(): SharedLoggerResource {
   const logConfig = getLogConfig();
   const logLevel = (baseConfig.level as string) || "info";
   const transportConfig = getTransportCompatibleConfig();
@@ -95,7 +153,7 @@ function buildLogger(): pino.Logger {
 
       if (isDev) {
         // Dev: pino-pretty → stdout, JSON → file
-        const stream = buildFileTransportStream([
+        const stream = buildTransportStream([
           {
             target: "pino-pretty",
             options: {
@@ -113,12 +171,12 @@ function buildLogger(): pino.Logger {
             level: logLevel,
           },
         ]);
-        return pino(transportConfig, stream);
+        return createLoggerResource(pino(transportConfig, stream), stream);
       }
 
       // Production: JSON → stdout + JSON → file
       {
-        const stream = buildFileTransportStream([
+        const stream = buildTransportStream([
           {
             target: "pino/file",
             options: { destination: 1 }, // stdout
@@ -130,7 +188,7 @@ function buildLogger(): pino.Logger {
             level: logLevel,
           },
         ]);
-        return pino(transportConfig, stream);
+        return createLoggerResource(pino(transportConfig, stream), stream);
       }
     } catch (err) {
       // Log the actual error for diagnostics (issue #165)
@@ -156,12 +214,15 @@ function buildLogger(): pino.Logger {
         });
 
         // Production fallback: JSON to both stdout and file via multistream
-        return pino(
-          baseConfig,
-          pino.multistream([
-            { stream: process.stdout, level: logLevel as pino.Level },
-            { stream: fileDestination, level: logLevel as pino.Level },
-          ])
+        return createLoggerResource(
+          pino(
+            baseConfig,
+            pino.multistream([
+              { stream: process.stdout, level: logLevel as pino.Level },
+              { stream: fileDestination, level: logLevel as pino.Level },
+            ])
+          ),
+          fileDestination
         );
       } catch (fallbackErr) {
         try {
@@ -175,9 +236,8 @@ function buildLogger(): pino.Logger {
 
   // Console-only (no file logging)
   if (isDev) {
-    return pino({
-      ...baseConfig,
-      transport: {
+    const stream = buildTransportStream([
+      {
         target: "pino-pretty",
         options: {
           colorize: true,
@@ -185,14 +245,18 @@ function buildLogger(): pino.Logger {
           ignore: "pid,hostname,service",
           messageFormat: "[{module}] {msg}",
         },
+        level: logLevel,
       },
-    });
+    ]);
+    return createLoggerResource(pino(transportConfig, stream), stream);
   }
 
-  return pino(baseConfig);
+  return createLoggerResource(pino(baseConfig), null);
 }
 
-export const logger = buildLogger();
+const sharedLoggerResource = getOrCreateSharedLoggerResource(buildLoggerResource);
+
+export const logger = sharedLoggerResource.logger;
 
 /**
  * Create a child logger with a module tag.

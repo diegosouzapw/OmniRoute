@@ -8,7 +8,6 @@ import {
   KiroOAuthWrapper,
   CursorAuthModal,
   TraeAuthModal,
-  RaycastAuthModal,
   ProxyConfigModal,
 } from "@/shared/components";
 import RiskNoticeModal from "../../components/RiskNoticeModal";
@@ -55,7 +54,7 @@ interface ProviderModalsPanelProps {
   isCommandCode: boolean;
   isUpstreamProxyProvider: boolean;
   subscriptionRisk: boolean;
-  existingConnectionCount?: number;
+  existingConnectionNames?: string[];
   // Risk notice
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
@@ -138,7 +137,7 @@ interface ProviderModalsPanelProps {
   // Proxy config
   proxyTarget: ProxyTarget | null;
   setProxyTarget: (t: ProxyTarget | null) => void;
-  fetchProxyConfig: () => Promise<void>;
+  refreshProxyState: () => Promise<void>;
   // Import progress
   importProgress: ImportProgress;
   showImportModal: boolean;
@@ -157,7 +156,7 @@ export default function ProviderModalsPanel({
   isCcCompatible,
   isUpstreamProxyProvider,
   subscriptionRisk,
-  existingConnectionCount,
+  existingConnectionNames,
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
@@ -222,7 +221,7 @@ export default function ProviderModalsPanel({
   emailsVisible,
   proxyTarget,
   setProxyTarget,
-  fetchProxyConfig,
+  refreshProxyState,
   importProgress,
   showImportModal,
   setShowImportModal,
@@ -281,13 +280,6 @@ export default function ProviderModalsPanel({
             onSuccess={handleOAuthSuccess}
             onClose={() => setShowOAuthModal(false)}
           />
-        ) : providerId === "raycast" ? (
-          <RaycastAuthModal
-            isOpen={showOAuthModal}
-            reauthConnection={reauthConnection}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
-          />
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
@@ -319,7 +311,7 @@ export default function ProviderModalsPanel({
           providerName={providerInfo.name}
           providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
-          existingConnectionCount={existingConnectionCount}
+          existingConnectionNames={existingConnectionNames}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
@@ -452,7 +444,7 @@ export default function ProviderModalsPanel({
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
           onSaved={() => {
-            void fetchProxyConfig();
+            void refreshProxyState();
           }}
         />
       )}

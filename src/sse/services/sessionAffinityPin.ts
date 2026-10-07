@@ -26,6 +26,7 @@
  * check wrapping `evaluateQuotaLimitPolicy` — are injected as callbacks.
  */
 
+import { createHash } from "crypto";
 import {
   getSessionAccountAffinity,
   upsertSessionAccountAffinity,
@@ -42,6 +43,183 @@ import {
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isComboPerModelTimeoutAbort } from "@omniroute/open-sse/services/combo/comboAbortReasons.ts";
 import * as log from "../utils/logger";
+import { readHeaderValue } from "./headerReader.ts";
+
+export { readHeaderValue } from "./headerReader.ts";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/** Maximum accepted session-key input length. Longer identifiers are rejected before processing. */
+const SESSION_KEY_MAX_INPUT_LEN = 4096;
+
+function normalizeSessionKey(value: unknown, prefix: string): string | null {
+  if (typeof value !== "string" || value.length > SESSION_KEY_MAX_INPUT_LEN) return null;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return null;
+  if (trimmed.length <= 180 && /^[A-Za-z0-9._:-]+$/.test(trimmed)) {
+    return `${prefix}:${trimmed}`;
+  }
+  return `${prefix}:sha256:${createHash("sha256").update(trimmed).digest("hex")}`;
+}
+
+/** Upper bound on text extracted for session hashing (matches the slice in extractSessionAffinityKey). */
+const SESSION_HASH_TEXT_LIMIT = 4096;
+
+function extractBoundedNonEmptyText(
+  value: unknown,
+  limit = SESSION_HASH_TEXT_LIMIT
+): string | null {
+  if (typeof value !== "string" || limit <= 0) return null;
+  const bounded = value.slice(0, limit);
+  return bounded.trim().length > 0 ? bounded : null;
+}
+
+/**
+ * Extracts human-readable text from a value for session-affinity hashing.
+ *
+ * Design constraints (post-adversarial-review):
+ * - NEVER calls `JSON.stringify` on arbitrary objects — avoids synchronous
+ *   Event Loop blocking on huge payloads (e.g. 50MB multimodal base64).
+ * - NEVER returns structural tokens like `"[]"` or `"{}"` — avoids global
+ *   session-key collisions across unrelated users with empty payloads.
+ * - Only extracts values from known text fields (`.text`, `.content`) or
+ *   raw strings.  Payloads without recognisable text content get `null`,
+ *   which correctly signals "no input-based session affinity" — callers
+ *   should use explicit session IDs instead.
+ */
+function extractTextForSessionHash(value: unknown): string | null {
+  if (typeof value === "string") return extractBoundedNonEmptyText(value);
+
+  if (Array.isArray(value)) {
+    const parts: string[] = [];
+    let totalLen = 0;
+    for (const item of value) {
+      if (totalLen >= SESSION_HASH_TEXT_LIMIT) break;
+      let candidate: unknown = null;
+      if (typeof item === "string") {
+        candidate = item;
+      } else {
+        const record = asRecord(item);
+        if (typeof record.text === "string") candidate = record.text;
+        else if (typeof record.content === "string") candidate = record.content;
+      }
+      const separatorLength = parts.length > 0 ? 1 : 0;
+      const text = extractBoundedNonEmptyText(
+        candidate,
+        SESSION_HASH_TEXT_LIMIT - totalLen - separatorLength
+      );
+      if (text) {
+        parts.push(text);
+        totalLen += separatorLength + text.length;
+      }
+    }
+    return parts.length > 0 ? parts.join("\n") : null;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    // Known text fields — covers OpenAI, Anthropic, and most providers
+    const directText =
+      extractBoundedNonEmptyText(record.text) ??
+      extractBoundedNonEmptyText(record.content) ??
+      extractBoundedNonEmptyText(record.prompt);
+    if (directText) return directText;
+    // Gemini format: { parts: [{ text: "..." }, ...] }
+    if (Array.isArray(record.parts)) {
+      const partsText = extractTextForSessionHash(record.parts);
+      if (partsText) return partsText;
+    }
+    // No recognisable text field — return null rather than risking a
+    // potentially huge JSON.stringify on arbitrary payload shapes.
+    return null;
+  }
+
+  return null;
+}
+
+function getFirstInputText(body: unknown): string | null {
+  const record = asRecord(body);
+
+  // Codex / Responses API: { input: "..." | [...] }
+  if (record.input !== undefined) {
+    if (typeof record.input === "string") return extractBoundedNonEmptyText(record.input);
+    if (Array.isArray(record.input)) {
+      for (const item of record.input) {
+        const itemRecord = asRecord(item);
+        const text = extractTextForSessionHash(itemRecord.content ?? item);
+        if (text) return text;
+      }
+    }
+    const text = extractTextForSessionHash(record.input);
+    if (text) return text;
+  }
+
+  // OpenAI Chat / Anthropic Messages: { messages: [...] }
+  if (Array.isArray(record.messages)) {
+    const userMessage = record.messages.find((message) => asRecord(message).role === "user");
+    const firstMessage = userMessage ?? record.messages[0];
+    const text = extractTextForSessionHash(asRecord(firstMessage).content ?? firstMessage);
+    if (text) return text;
+  }
+
+  // Google Gemini: { contents: [{ role: "user", parts: [{ text: "..." }] }] }
+  if (Array.isArray(record.contents)) {
+    const userContent = record.contents.find((c) => asRecord(c).role === "user");
+    const firstContent = userContent ?? record.contents[0];
+    const text = extractTextForSessionHash(asRecord(firstContent).parts ?? firstContent);
+    if (text) return text;
+  }
+
+  // OpenAI Legacy Completions / Anthropic /v1/complete / Ollama: { prompt: "..." }
+  const prompt = extractBoundedNonEmptyText(record.prompt);
+  if (prompt) return prompt;
+
+  // Other common root-level text fields
+  const query = extractBoundedNonEmptyText(record.query);
+  if (query) return query;
+  const instruction = extractBoundedNonEmptyText(record.instruction);
+  if (instruction) return instruction;
+
+  return null;
+}
+
+/**
+ * Derives the stable connection-affinity key for a request.
+ *
+ * @param body - Parsed request body containing explicit session identifiers or recognized text.
+ * @param headers - Optional request headers that may carry an explicit session identifier.
+ * @returns A namespaced affinity key, or `null` when no safe key can be derived.
+ */
+export function extractSessionAffinityKey(
+  body: unknown,
+  headers?: Headers | { get?: (name: string) => string | null } | null
+): string | null {
+  const headerKey = normalizeSessionKey(
+    readHeaderValue(headers, "x-codex-session-id") ??
+      readHeaderValue(headers, "x-session-id") ??
+      readHeaderValue(headers, "x-omniroute-session"),
+    "header"
+  );
+  if (headerKey) return headerKey;
+
+  const record = asRecord(body);
+  const metadata = asRecord(record.metadata);
+  const explicitKey =
+    normalizeSessionKey(metadata.session_id, "metadata") ??
+    normalizeSessionKey(metadata.sessionId, "metadata") ??
+    normalizeSessionKey(record.conversation_id, "conversation") ??
+    normalizeSessionKey(record.session_id, "session") ??
+    normalizeSessionKey(record.prompt_cache_key, "prompt-cache");
+  if (explicitKey) return explicitKey;
+
+  const inputText = getFirstInputText(body);
+  if (!inputText) return null;
+  return `input:sha256:${createHash("sha256").update(inputText).digest("hex")}`;
+}
 
 /** Minimal structural view of a provider connection this module reads. */
 export interface AffinityPinConnection {
@@ -396,4 +574,29 @@ export function resolveForcedConnectionForCredentialPool(
   if (!params.bypassQuotaPolicy && params.isQuotaPolicyBlocked(forcedConn)) return null;
 
   return forced;
+}
+
+/**
+ * A forced connection (combo step `connectionId` / `x-omniroute-connection`) is an
+ * operator instruction, not a suggestion. resolveForcedConnectionForCredentialPool()
+ * above returns null for two very different reasons: (a) intentional pin-release
+ * cases it already handles correctly (the forced id was excluded after a failed
+ * attempt, is cooling down, or is quota-blocked — those must keep degrading to
+ * normal sibling fallback), and (b) the forced id simply not being present in the
+ * pool at all (e.g. an operator deactivated that connection). Only (b) must be
+ * treated as a hard failure instead of falling through to dynamic sibling
+ * selection across the rest of the provider's connections — this predicate
+ * identifies exactly (b), checked *before* resolveForcedConnectionForCredentialPool
+ * runs, so the two cases are never conflated.
+ */
+export function isForcedConnectionMissingFromPool(
+  forcedConnectionId: string | null,
+  excludedConnectionIds: ReadonlySet<string>,
+  connections: AffinityPinConnection[]
+): boolean {
+  return (
+    forcedConnectionId !== null &&
+    !excludedConnectionIds.has(forcedConnectionId) &&
+    !connections.some((conn) => conn.id === forcedConnectionId)
+  );
 }

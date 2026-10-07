@@ -250,7 +250,9 @@ export default function ProviderHealthAutopilotCard() {
   }, [t]);
 
   useEffect(() => {
-    void load();
+    void (async () => {
+      await load();
+    })();
     const timer = setInterval(() => void load(), 15000);
     return () => clearInterval(timer);
   }, [load]);

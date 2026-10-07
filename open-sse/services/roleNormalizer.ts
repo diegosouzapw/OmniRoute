@@ -23,6 +23,11 @@ const PROVIDERS_WITHOUT_SYSTEM_ROLE = new Set([
   // Known to reject system role (from troubleshooting report)
   // GLM uses Claude format, so this is handled through claude translator
   // But if accessed through OpenAI-format providers like nvidia, it needs this:
+  // DuckDuckGo duck.ai (duckchat/v1/chat) accepts only user/assistant roles — a
+  // system/developer message yields 400 ERR_BAD_REQUEST (#ddgw). Registry id +
+  // alias are both listed because either may arrive as the routing provider id.
+  "duckduckgo-web",
+  "ddgw",
 ]);
 
 /**

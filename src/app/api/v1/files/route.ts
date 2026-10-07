@@ -1,7 +1,13 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/localDb";
+import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/db/files";
 import { NextResponse } from "next/server";
-import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+import {
+  getApiKeyRequestScope,
+  resolveListScope,
+  resolveEffectiveApiKeyId,
+} from "@/app/api/v1/_helpers/apiKeyScope";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -65,7 +71,37 @@ export function parseFilesListQuery(searchParams: URLSearchParams):
 export async function POST(request: Request) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
+
+  // Fail closed on an unresolvable OR invalid credential — the same 401 fold
+  // `getApiKeyRequestScope` already applies (`apiKeyId: null` for a
+  // revoked/expired/banned/deactivated/unresolvable key, #13881) — so the
+  // per-key policy check below never has to special-case that status itself.
+  if (scope.apiKey && !scope.apiKeyId) {
+    return NextResponse.json(buildErrorBody(401, "Invalid API key"), {
+      status: 401,
+      headers: CORS_HEADERS,
+    });
+  }
+
+  // per-key operator policy (endpoint allowlist, schedule, usage cap, rate
+  // limit) — LEDGER-2 of the omni-code-sec 2026-09-21 run / #14481. Called
+  // UNCONDITIONALLY, exactly like batches/delete-completed/route.ts: a bare
+  // `x-api-key`/`x-goog-api-key` credential (no anthropic-version, non-Claude
+  // UA) is accepted by the CLIENT_API auth layer but ignored by
+  // getApiKeyRequestScope's extractApiKey() (scope.apiKeyId stays null for
+  // it) — enforceApiKeyPolicy resolves it independently via
+  // extractUngatedClientApiKey() (GHSA-2phc-xp22-9f56), so gating this call
+  // on scope.apiKeyId let that transport skip the endpoint allowlist,
+  // schedule, usage cap, rate limit and key quota entirely (round-2 PoC
+  // against e543b64). A keyless caller (session/anonymous) is a no-op here.
+  const policy = await enforceApiKeyPolicy(request, null);
+  if (policy.rejection) return policy.rejection;
+
+  // A key resolved only via the ungated x-api-key/x-goog-api-key transport
+  // never sets scope.apiKeyId (see the comment above) — fall back to the id
+  // enforceApiKeyPolicy() independently resolved, so the upload is not
+  // attributed to nobody (LEDGER-27, omni-code-sec round 3).
+  const apiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
 
   try {
     const formData = await request.formData();
@@ -130,7 +166,39 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const scope = await getApiKeyRequestScope(request);
   if (scope.rejection) return scope.rejection;
-  const apiKeyId = scope.apiKeyId;
+
+  // Fail closed on an unresolvable OR invalid credential — the same 401 fold
+  // `getApiKeyRequestScope` already applies (`apiKeyId: null` for a
+  // revoked/expired/banned/deactivated/unresolvable key, #13881) — so the
+  // per-key policy check below never has to special-case that status itself.
+  if (scope.apiKey && !scope.apiKeyId) {
+    return NextResponse.json(buildErrorBody(401, "Invalid API key"), {
+      status: 401,
+      headers: CORS_HEADERS,
+    });
+  }
+
+  // per-key operator policy (endpoint allowlist, schedule, usage cap, rate
+  // limit) — LEDGER-2 of the omni-code-sec 2026-09-21 run / #14481. Called
+  // UNCONDITIONALLY, exactly like batches/delete-completed/route.ts: a bare
+  // `x-api-key`/`x-goog-api-key` credential (no anthropic-version, non-Claude
+  // UA) is accepted by the CLIENT_API auth layer but ignored by
+  // getApiKeyRequestScope's extractApiKey() (scope.apiKeyId stays null for
+  // it) — enforceApiKeyPolicy resolves it independently via
+  // extractUngatedClientApiKey() (GHSA-2phc-xp22-9f56), so gating this call
+  // on scope.apiKeyId let that transport skip the endpoint allowlist,
+  // schedule, usage cap, rate limit and key quota entirely (round-2 PoC
+  // against e543b64). A keyless caller (session/anonymous) is a no-op here.
+  const policy = await enforceApiKeyPolicy(request, null);
+  if (policy.rejection) return policy.rejection;
+
+  // Key → own files only; dashboard session without a key → instance-wide;
+  // anonymous / unresolvable bearer → 401. `listFiles`/`countFiles` read an
+  // absent owner as "every tenant", so the widening must be an explicit
+  // decision here, never a fallback (GHSA-m3hp-hq9g-fpmv).
+  const listScope = resolveListScope(scope);
+  if (listScope.mode === "rejected") return listScope.response;
+  const ownerFilter = listScope.mode === "api_key" ? listScope.apiKeyId : undefined;
 
   const { searchParams } = new URL(request.url);
   const parsed = parseFilesListQuery(searchParams);
@@ -139,7 +207,7 @@ export async function GET(request: Request) {
 
   // We fetch limit + 1 to check if there are more items
   const files = listFiles({
-    apiKeyId: apiKeyId || undefined,
+    apiKeyId: ownerFilter,
     purpose,
     limit: limit + 1,
     after,
@@ -148,7 +216,7 @@ export async function GET(request: Request) {
 
   const hasMore = files.length > limit;
   const data = files.slice(0, limit);
-  const totalCount = countFiles({ apiKeyId: apiKeyId || undefined, purpose });
+  const totalCount = countFiles({ apiKeyId: ownerFilter, purpose });
 
   return NextResponse.json(
     {

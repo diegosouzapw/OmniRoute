@@ -171,7 +171,10 @@ test("cycle delegates to the shared sync-cycle runner (same path as the manual r
   let called = false;
   scheduler._setSyncCycleRunnerForTests(async () => {
     called = true;
-    return { results: { "1proxy": { fetched: 1, added: 1, updated: 0, errors: [] } }, lastSyncAt: "x" };
+    return {
+      results: { "1proxy": { fetched: 1, added: 1, updated: 0, errors: [] } },
+      lastSyncAt: "x",
+    };
   });
 
   await scheduler.forceFreeProxySyncCycle();

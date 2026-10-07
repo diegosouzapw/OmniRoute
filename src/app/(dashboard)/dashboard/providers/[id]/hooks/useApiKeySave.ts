@@ -57,13 +57,29 @@ export function useApiKeySave({
 }: UseApiKeySaveParams) {
   const handleSaveApiKey = useCallback(
     async (formData: Record<string, unknown>) => {
+      // Issue #11324: callers that only want to add one manual model (rather than
+      // importing an upstream provider's entire catalog) can pass `skipModelSync: true`
+      // to opt out of the automatic post-save full /sync-models call. This flag is a
+      // client-side intent signal only — keep it out of the persisted connection
+      // payload and relay it only through the non-persisted request header below.
+      const { skipModelSync, ...connectionFormData } = formData;
+      const autoFetchModels =
+        (
+          connectionFormData.providerSpecificData as
+            | Record<string, unknown>
+            | null
+            | undefined
+        )?.autoFetchModels === true;
       try {
         const res = await fetch("/api/providers", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(autoFetchModels || skipModelSync ? { "X-Skip-Model-Sync": "true" } : {}),
+          },
           body: JSON.stringify({
             provider: resolveApiKeySaveProviderId(providerId),
-            ...formData,
+            ...connectionFormData,
           }),
         });
         if (res.ok) {
@@ -75,7 +91,13 @@ export function useApiKeySave({
 
           // Most providers sync their live catalog after connection creation. Curated-only
           // providers intentionally use the registry list and must not show an import flow.
-          if (newConnection?.id && !providerUsesCuratedModelsOnly(providerId)) {
+          // Issue #11324: callers may also opt out explicitly via `skipModelSync`.
+          if (
+            newConnection?.id &&
+            !providerUsesCuratedModelsOnly(providerId) &&
+            autoFetchModels &&
+            !skipModelSync
+          ) {
             setShowImportModal(true);
             setImportProgress({
               current: 0,

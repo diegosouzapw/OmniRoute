@@ -12,12 +12,13 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7819-rout
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
-const routeModule = await import(
-  "../../../src/app/api/v1/auto-combo/[channel]/candidates/route.ts"
-);
+const routeModule =
+  await import("../../../src/app/api/v1/auto-combo/[channel]/candidates/route.ts");
 
 function makeRequest(channel: string) {
-  return new Request(`http://localhost/api/v1/auto-combo/${encodeURIComponent(channel)}/candidates`);
+  return new Request(
+    `http://localhost/api/v1/auto-combo/${encodeURIComponent(channel)}/candidates`
+  );
 }
 
 async function callGET(channel: string) {

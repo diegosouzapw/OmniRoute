@@ -21,6 +21,20 @@ const GEO_BLOCKED_HINT =
   "call the model API. Route antigravity/agy egress through a proxy in a " +
   "supported region (e.g. US/EU) or use a different provider.";
 
+/**
+ * Extract the real upstream error message (e.g. Google's Gemini-dialect field-path
+ * rejection) from a parsed Antigravity `upstream_details`-shaped body, so callers can
+ * surface it directly in `error.message` instead of only nesting it under
+ * `upstream_details` — the generic `parseUpstreamError()` re-parser used by the shared
+ * chatCore failure path only reads the outer `error.message` (#13591).
+ */
+function extractUpstreamMessage(details: unknown): string | null {
+  if (!details || typeof details !== "object") return null;
+  const err = (details as { error?: { message?: unknown } }).error;
+  const msg = err && typeof err.message === "string" ? err.message : null;
+  return msg && msg.trim() ? msg.trim() : null;
+}
+
 export function buildAntigravityUpstreamError(status: number, statusText: string, rawBody: string) {
   let upstreamDetails: unknown;
   try {
@@ -36,5 +50,9 @@ export function buildAntigravityUpstreamError(status: number, statusText: string
       upstreamDetails
     );
   }
-  return buildErrorBody(status, `Antigravity upstream error (${status})${suffix}`, upstreamDetails);
+  const upstreamMessage = extractUpstreamMessage(upstreamDetails);
+  const message = upstreamMessage
+    ? `Antigravity upstream error (${status}): ${upstreamMessage}`
+    : `Antigravity upstream error (${status})${suffix}`;
+  return buildErrorBody(status, message, upstreamDetails);
 }

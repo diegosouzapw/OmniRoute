@@ -25,6 +25,7 @@
     "SEARCH_TOOLS_STUDIO",
     "SKILLS",
     "TRAFFIC_INSPECTOR",
-    "WEBHOOKS"
+    "WEBHOOKS",
+    "LOG-EXPORT"
   ]
 }

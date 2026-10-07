@@ -19,6 +19,9 @@ const { generateSignature, setCachedResponse, clearCache } =
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
 const { formatOmniRouteCost } = await import("../../src/domain/omnirouteResponseMeta.ts");
+const { translateNonStreamingResponse } =
+  await import("../../open-sse/handlers/responseTranslator.ts");
+const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -42,7 +45,12 @@ function makeBaseArgs(overrides: Record<string, unknown> = {}) {
       },
     },
     effectiveServiceTier: undefined,
-    connectionId: null as string | null,
+    pendingScope: {
+      id: null,
+      model: "gpt-4o",
+      provider: "openai",
+      connectionId: null,
+    },
     startTime: Date.now(),
     log: {
       debug: () => {
@@ -162,7 +170,12 @@ function makeHitArgs(overrides: Record<string, unknown> = {}) {
       },
     },
     effectiveServiceTier: undefined,
-    connectionId: null as string | null,
+    pendingScope: {
+      id: null,
+      model: "gpt-4o",
+      provider: "openai",
+      connectionId: null,
+    },
     startTime: Date.now() - 5,
     log: {
       debug: (...a: unknown[]) => {
@@ -180,16 +193,36 @@ function makeHitArgs(overrides: Record<string, unknown> = {}) {
 
 // Seed the cache under the EXACT signature checkSemanticCache rebuilds for `args`.
 function seedHit(args: ReturnType<typeof makeHitArgs>["args"], response: unknown) {
+  const body = args.body as Record<string, unknown>;
   const signature = generateSignature(
     args.model,
-    args.body.messages ?? (args.body as Record<string, unknown>).input,
+    body.messages ?? body.input,
     args.body.temperature,
-    (args.body as Record<string, unknown>).top_p,
-    args.apiKeyId ?? undefined
+    body.top_p,
+    args.apiKeyId ?? undefined,
+    { toolChoice: body.tool_choice, tools: body.tools, responseFormat: body.response_format }
   );
   setCachedResponse(signature, args.model, response);
   return signature;
 }
+
+test("transcript-observed requests bypass existing semantic-cache hits", async () => {
+  clearCache();
+  const { args, persistCalls, convertedCalls } = makeHitArgs({
+    semanticCacheEnabled: true,
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "sensitive cached query" }],
+      temperature: 0,
+    },
+    videoTranscriptSensitive: true,
+  });
+  seedHit(args, { choices: [{ message: { content: "PRIVATE_VIDEO_CACHE_SENTINEL" } }] });
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+  assert.equal(result, null);
+  assert.equal(persistCalls.length, 0);
+  assert.equal(convertedCalls.length, 0);
+});
 
 test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + logging side effects", async () => {
   clearCache();
@@ -378,6 +411,60 @@ test("checkSemanticCache HIT bills 0 incremental cost and reports the original c
   );
 });
 
+test("checkSemanticCache replays the full prompt total of an OpenAI answer cached for a Claude client", async () => {
+  clearCache();
+  // A non-streaming Claude client served by an OpenAI provider: the cache stores the
+  // client-format body, where responseTranslator split prompt_tokens into
+  // input_tokens (fresh only) + cache_read/cache_creation counters.
+  const openAiAnswer = {
+    id: "chatcmpl-claude-client",
+    object: "chat.completion",
+    model: "gpt-4o",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "cached answer" }, finish_reason: "stop" },
+    ],
+    usage: {
+      prompt_tokens: 10_000,
+      completion_tokens: 50,
+      total_tokens: 10_050,
+      prompt_tokens_details: { cached_tokens: 9_000, cache_creation_tokens: 900 },
+    },
+  };
+  const cached = translateNonStreamingResponse(openAiAnswer, "openai", "claude");
+  assert.equal(cached.type, "message", "sanity: the cached body is Claude-shaped");
+  assert.equal(cached.usage.input_tokens, 100, "sanity: input_tokens excludes the cache");
+
+  const { args } = makeHitArgs({
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query claude client" }],
+      temperature: 0,
+    },
+    stream: false,
+  });
+  seedHit(args, cached);
+
+  const expectedSaved = formatOmniRouteCost(
+    await calculateCost(
+      args.provider,
+      args.model,
+      extractUsageFromResponse(openAiAnswer, args.provider) as Record<string, number>
+    )
+  );
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+  assert.ok(result, "HIT -> non-null result");
+  const res = result.response as Response;
+
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.tokensIn), "10000");
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.savingsTokens), "10050");
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.costSaved),
+    expectedSaved,
+    "the avoided cost matches the original OpenAI usage, fresh input included"
+  );
+});
+
 test("checkSemanticCache isolates HITs per apiKeyId (no cross-key cache sharing) [#3740 edge]", async () => {
   clearCache();
   const cached = {
@@ -491,4 +578,132 @@ test("checkSemanticCache HIT includes X-OmniRoute-Cache-Latency: synthetic heade
     "synthetic",
     "HIT response carries X-OmniRoute-Cache-Latency: synthetic marker"
   );
+});
+
+test("checkSemanticCache HIT finalizes the exact pending request by id", async () => {
+  clearCache();
+  const { clearPendingRequests, getPendingById, trackPendingRequest } =
+    await import("../../src/lib/usage/usageHistory.ts");
+  const { getCompletedDetails } = await import("../../src/lib/usage/completedRequestDetails.ts");
+  clearPendingRequests();
+  try {
+    const cached = {
+      id: "chatcmpl-cached-finalize",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "finalize answer" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 },
+    };
+    const pendingId = trackPendingRequest("gpt-4o", "openai", "account-a", true);
+    assert.ok(pendingId);
+    const { args } = makeHitArgs({
+      body: {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "hit query finalize" }],
+        temperature: 0,
+      },
+      pendingScope: {
+        id: pendingId,
+        model: "gpt-4o",
+        provider: "openai",
+        connectionId: "account-a",
+      },
+    });
+    seedHit(args, cached);
+
+    const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+    assert.ok(result);
+    assert.equal(getPendingById().has(pendingId as string), false);
+    const completed = getCompletedDetails().get(pendingId as string);
+    assert.ok(completed);
+    assert.equal(completed.status, 200);
+    assert.deepEqual(completed.clientResponse, cached);
+  } finally {
+    clearPendingRequests();
+  }
+});
+
+// ─── tool_choice / tools / response_format must be part of the signature (#12734) ────────────
+
+test("#12734: cached tool_calls response must NOT be replayed for tool_choice: 'none'", async () => {
+  clearCache();
+  const messages = [{ role: "user", content: "what is 2+2?" }];
+  const toolCallResponse = {
+    id: "chatcmpl-tool-calls",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "tool_calls",
+        message: {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "memory_search", arguments: "{}" },
+            },
+          ],
+        },
+      },
+    ],
+    usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+  };
+  // Stored under a body with NO tool_choice (mirrors the real pipeline: the cache check
+  // runs before memory/skill tool injection, so the signature it stores under never saw
+  // tool_choice at all).
+  const { args: storeArgs } = makeHitArgs({ body: { model: "gpt-4o", messages, temperature: 0 } });
+  seedHit(storeArgs, toolCallResponse);
+
+  const { args: forbidArgs } = makeHitArgs({
+    body: { model: "gpt-4o", messages, temperature: 0, tool_choice: "none" },
+  });
+  const result = await checkSemanticCache(forbidArgs as Parameters<typeof checkSemanticCache>[0]);
+
+  assert.equal(
+    result,
+    null,
+    "a tool_choice:'none' request must be a cache MISS against a tool_calls response cached without tool_choice"
+  );
+});
+
+test("#12734: identical tool_choice/tools/response_format across requests still HITs", async () => {
+  clearCache();
+  const messages = [{ role: "user", content: "what is the weather?" }];
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "get_weather",
+        description: "Get the weather",
+        parameters: { type: "object" },
+      },
+    },
+  ];
+  const cached = {
+    id: "chatcmpl-tool-config-hit",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "sunny" }, finish_reason: "stop" },
+    ],
+    usage: { prompt_tokens: 8, completion_tokens: 2, total_tokens: 10 },
+  };
+  const body = {
+    model: "gpt-4o",
+    messages,
+    temperature: 0,
+    tool_choice: "auto",
+    tools,
+    response_format: { type: "json_object" },
+  };
+  const { args: storeArgs } = makeHitArgs({ body });
+  seedHit(storeArgs, cached);
+
+  const { args: readArgs } = makeHitArgs({ body: { ...body } });
+  const result = await checkSemanticCache(readArgs as Parameters<typeof checkSemanticCache>[0]);
+
+  assert.ok(result, "identical tool_choice/tools/response_format must still HIT");
 });

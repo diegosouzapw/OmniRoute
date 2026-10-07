@@ -18,12 +18,9 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ab-hook-"
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { resetDbInstance, getDbInstance } = await import("../../src/lib/db/core.ts");
-const { addCustomHost, toggleCustomHost } = await import(
-  "../../src/lib/db/inspectorCustomHosts.ts"
-);
-const { recordRequestStart } = await import(
-  "../../src/mitm/inspector/agentBridgeHook.ts"
-);
+const { addCustomHost, toggleCustomHost } =
+  await import("../../src/lib/db/inspectorCustomHosts.ts");
+const { recordRequestStart } = await import("../../src/mitm/inspector/agentBridgeHook.ts");
 
 async function resetStorage() {
   resetDbInstance();

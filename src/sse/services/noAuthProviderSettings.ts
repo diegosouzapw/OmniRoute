@@ -1,4 +1,4 @@
-import { getSettings } from "@/lib/localDb";
+import { getSettings } from "@/lib/db/settings";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import * as log from "../utils/logger";
 

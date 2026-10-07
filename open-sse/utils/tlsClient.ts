@@ -1,13 +1,383 @@
-import { createRequire } from "module";
 import { createHash } from "node:crypto";
+import * as nodeModule from "node:module";
 import { getTlsClientTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+// #12656 — re-exported so proxyFetch.ts (frozen at its file-size cap) can
+// import the first-byte watchdog alongside TlsClient without adding a line.
+export { guardTlsFirstByte } from "./tlsFirstByteWatchdog.ts";
 
-const runtimeRequire = createRequire(import.meta.url);
+// #12491 — anchor on process.argv[1]||cwd() rather than import.meta.url: the
+// standalone Docker runtime re-lays-out files at a different relative depth
+// than the build, so an import.meta.url-relative resolution can miss even
+// though this loader already keeps the specifier itself dynamic (see
+// loadRuntimeModule() below). Matches src/lib/machineToken.ts and
+// src/lib/db/adapters/runtimeRequire.ts's established anchor pattern.
+const runtimeRequire = nodeModule.createRequire(process.argv[1] || process.cwd());
 
 function loadRuntimeModule(moduleName: string): unknown {
   // Keep the specifier dynamic. Turbopack rewrites a literal createRequire call
   // to a hashed external name that is absent from the standalone Docker runtime.
   return Reflect.apply(runtimeRequire, undefined, [moduleName]);
+}
+
+export type WreqTransportLike = {
+  close: () => Promise<void> | void;
+};
+
+export type WreqTransportResponseLike = {
+  status: number;
+  headers:
+    | Record<string, string[]>
+    | (Iterable<[string, string]> & {
+        getSetCookie?: () => string[];
+      });
+  body:
+    | string
+    | (Pick<ReadableStream<Uint8Array>, "getReader"> & {
+        cancel?: (reason?: unknown) => Promise<void>;
+      })
+    | null;
+  text?: () => Promise<string>;
+  bytes?: () => Promise<Uint8Array>;
+};
+
+export type WreqTransportRuntime = {
+  createTransport: (options: Record<string, unknown>) => Promise<WreqTransportLike>;
+  fetch: (url: string, options: Record<string, unknown>) => Promise<WreqTransportResponseLike>;
+};
+
+export type WreqTransportRuntimeLoader = () => Promise<WreqTransportRuntime>;
+
+export type WreqTransportRequestPromise = Promise<WreqTransportResponseLike> & {
+  /** Close this request's exact transport generation if it is still current. */
+  invalidateTransport: () => void;
+  /** Mark this request complete so its idle transport may be reused or evicted. */
+  releaseTransport: () => void;
+};
+
+export type WreqTransportRequestClient = {
+  request: (url: string, options: Record<string, unknown>) => WreqTransportRequestPromise;
+};
+
+export class WreqRuntimeUnavailableError extends Error {
+  override name = "WreqRuntimeUnavailableError";
+}
+
+export class WreqTransportCapacityError extends Error {
+  override name = "WreqTransportCapacityError";
+  readonly code = "TLS_SESSION_CAPACITY";
+}
+
+type EmulationOs = "windows" | "macos" | "linux" | "android" | "ios";
+
+let wreqRuntimeModule: Record<string, unknown> | null = null;
+let wreqRuntimeModuleError: unknown;
+let wreqRuntimeModuleResolved = false;
+
+function getWreqRuntimeModule(): Record<string, unknown> {
+  if (!wreqRuntimeModuleResolved) {
+    wreqRuntimeModuleResolved = true;
+    try {
+      wreqRuntimeModule = loadRuntimeModule("wreq-js") as Record<string, unknown>;
+    } catch (error) {
+      wreqRuntimeModuleError = error;
+    }
+  }
+  if (wreqRuntimeModule) return wreqRuntimeModule;
+  throw wreqRuntimeModuleError ?? new Error("wreq-js runtime unavailable");
+}
+
+const TRANSPORT_POOL_KEY = Symbol.for("omniroute.wreqTransportPool.instance");
+const TRANSPORT_POOL_LIFECYCLE_KEY = Symbol.for("omniroute.wreqTransportPool.lifecycle");
+type WreqLifecycleResource = {
+  closeAll: () => Promise<void> | void;
+};
+const transportPoolGlobal = globalThis as typeof globalThis & {
+  [TRANSPORT_POOL_KEY]?: WreqTransportPool;
+  [TRANSPORT_POOL_LIFECYCLE_KEY]?: {
+    pools: Set<WreqLifecycleResource>;
+    exitHookInstalled: boolean;
+  };
+};
+
+function registerWreqLifecycleResource(resource: WreqLifecycleResource): void {
+  const lifecycle = transportPoolGlobal[TRANSPORT_POOL_LIFECYCLE_KEY] ?? {
+    pools: new Set<WreqLifecycleResource>(),
+    exitHookInstalled: false,
+  };
+  transportPoolGlobal[TRANSPORT_POOL_LIFECYCLE_KEY] = lifecycle;
+  lifecycle.pools.add(resource);
+  if (lifecycle.exitHookInstalled) return;
+  lifecycle.exitHookInstalled = true;
+  process.once("exit", () => {
+    for (const registered of lifecycle.pools) {
+      try {
+        void registered.closeAll();
+      } catch {
+        // Process shutdown is best effort; every close has already been initiated.
+      }
+    }
+    lifecycle.pools.clear();
+  });
+}
+
+async function closeWreqLifecycleResources(): Promise<void> {
+  const resources = [...(transportPoolGlobal[TRANSPORT_POOL_LIFECYCLE_KEY]?.pools ?? [])];
+  await Promise.allSettled(
+    resources.map((resource) => Promise.resolve().then(() => resource.closeAll()))
+  );
+}
+
+/** Focused-test seam for proving the shared process lifecycle without emitting `exit`. */
+export async function __closeWreqLifecycleResourcesForTesting(): Promise<void> {
+  await closeWreqLifecycleResources();
+}
+
+function loadWreqTransportRuntime(): Promise<WreqTransportRuntime> {
+  try {
+    const loaded = getWreqRuntimeModule() as Partial<WreqTransportRuntime>;
+    if (typeof loaded.createTransport !== "function" || typeof loaded.fetch !== "function") {
+      throw new Error("wreq-js runtime is missing createTransport/fetch");
+    }
+    return Promise.resolve(loaded as WreqTransportRuntime);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+type WreqTransportEntry = {
+  pending: Promise<WreqTransportLike>;
+  transport: WreqTransportLike | null;
+  activeRequests: number;
+  lastUsed: number;
+  closed: boolean;
+  closing: Promise<void> | null;
+};
+
+type WreqTransportLease = {
+  key: string | null;
+  entry: WreqTransportEntry | null;
+  released: boolean;
+  invalidated: boolean;
+};
+
+class WreqTransportPool {
+  private runtimePromise: Promise<WreqTransportRuntime> | null = null;
+  private readonly transports = new Map<string, WreqTransportEntry>();
+  private readonly pendingCloses = new Set<Promise<void>>();
+  private readonly maxTransports: number;
+  private capacityReservations = 0;
+  private accessSequence = 0;
+
+  constructor(
+    private readonly runtimeLoader: WreqTransportRuntimeLoader,
+    maxTransports = 128
+  ) {
+    this.maxTransports = Number.isInteger(maxTransports) && maxTransports > 0 ? maxTransports : 128;
+  }
+
+  private getRuntime(): Promise<WreqTransportRuntime> {
+    if (!this.runtimePromise) {
+      const pending = this.runtimeLoader().catch((error: unknown) => {
+        if (this.runtimePromise === pending) this.runtimePromise = null;
+        throw new WreqRuntimeUnavailableError(
+          error instanceof Error && error.message
+            ? `wreq-js runtime unavailable: ${error.message}`
+            : "wreq-js runtime unavailable"
+        );
+      });
+      this.runtimePromise = pending;
+    }
+    return this.runtimePromise;
+  }
+
+  private key(browser: string, os: EmulationOs, options: Record<string, unknown>): string {
+    const proxy = typeof options.proxyUrl === "string" ? options.proxyUrl : "";
+    return `${browser}\0${os}\0${proxy}`;
+  }
+
+  private closeEntry(key: string, entry: WreqTransportEntry): Promise<void> {
+    if (this.transports.get(key) !== entry) return entry.closing ?? Promise.resolve();
+    this.transports.delete(key);
+    if (entry.closed) return entry.closing ?? Promise.resolve();
+    entry.closed = true;
+    let closing: Promise<void>;
+    try {
+      closing = entry.transport
+        ? Promise.resolve(entry.transport.close()).then(() => undefined)
+        : entry.pending.then((transport) => transport.close()).then(() => undefined);
+    } catch {
+      closing = Promise.resolve();
+    }
+    closing = closing
+      .catch(() => {
+        // Close is best-effort after eviction; capacity is released by the finalizer below.
+      })
+      .finally(() => {
+        this.pendingCloses.delete(closing);
+      });
+    entry.closing = closing;
+    this.pendingCloses.add(closing);
+    return closing;
+  }
+
+  private findOldestIdleEntry(): [string, WreqTransportEntry] | undefined {
+    let candidate: [string, WreqTransportEntry] | undefined;
+    for (const pair of this.transports) {
+      const [, entry] = pair;
+      if (entry.activeRequests > 0) continue;
+      if (!candidate || entry.lastUsed < candidate[1].lastUsed) candidate = pair;
+    }
+    return candidate;
+  }
+
+  private reserveCapacity(): Promise<void> | null {
+    const occupied = this.transports.size + this.pendingCloses.size + this.capacityReservations;
+    this.capacityReservations += 1;
+    if (occupied < this.maxTransports) return null;
+
+    const candidate = this.findOldestIdleEntry();
+    if (!candidate) {
+      this.capacityReservations -= 1;
+      throw new WreqTransportCapacityError(
+        `wreq-js transport capacity exhausted (${this.maxTransports} active proxy/profile keys)`
+      );
+    }
+    return this.closeEntry(candidate[0], candidate[1]);
+  }
+
+  private releaseCapacityReservation(): void {
+    this.capacityReservations = Math.max(0, this.capacityReservations - 1);
+  }
+
+  private releaseLease(lease: WreqTransportLease): void {
+    if (lease.released) return;
+    lease.released = true;
+    const entry = lease.entry;
+    if (!entry) return;
+    entry.activeRequests = Math.max(0, entry.activeRequests - 1);
+    entry.lastUsed = ++this.accessSequence;
+  }
+
+  private invalidateLease(lease: WreqTransportLease): void {
+    if (lease.invalidated) return;
+    lease.invalidated = true;
+    if (lease.key && lease.entry) this.closeEntry(lease.key, lease.entry);
+    this.releaseLease(lease);
+  }
+
+  async closeAll(): Promise<void> {
+    const closes = [...this.transports].map(([key, entry]) => this.closeEntry(key, entry));
+    await Promise.allSettled([...closes, ...this.pendingCloses]);
+  }
+
+  client(browser: string, os: EmulationOs): WreqTransportRequestClient {
+    registerWreqLifecycleResource(this);
+    return {
+      request: (url, options) => {
+        const lease: WreqTransportLease = {
+          key: null,
+          entry: null,
+          released: false,
+          invalidated: false,
+        };
+        const request = (async () => {
+          const runtime = await this.getRuntime();
+          if (lease.released) throw new Error("wreq-js request lease was released before dispatch");
+
+          const key = this.key(browser, os, options);
+          let entry = this.transports.get(key);
+          if (!entry) {
+            const capacityWait = this.reserveCapacity();
+            try {
+              if (capacityWait) await capacityWait;
+              if (lease.released) {
+                throw new Error("wreq-js request lease was released before dispatch");
+              }
+              entry = this.transports.get(key);
+              if (!entry) {
+                const proxy = typeof options.proxyUrl === "string" ? options.proxyUrl : undefined;
+                const transportOptions: Record<string, unknown> = { browser, os };
+                if (proxy) transportOptions.proxy = proxy;
+                let createdEntry: WreqTransportEntry;
+                const pending = runtime.createTransport(transportOptions).then((transport) => {
+                  createdEntry.transport = transport;
+                  return transport;
+                });
+                entry = {
+                  pending,
+                  transport: null,
+                  activeRequests: 0,
+                  lastUsed: ++this.accessSequence,
+                  closed: false,
+                  closing: null,
+                };
+                createdEntry = entry;
+                this.transports.set(key, entry);
+                void pending.catch(() => {
+                  if (this.transports.get(key) === createdEntry) this.transports.delete(key);
+                  createdEntry.closed = true;
+                });
+              }
+            } finally {
+              this.releaseCapacityReservation();
+            }
+          }
+
+          lease.key = key;
+          lease.entry = entry;
+          entry.activeRequests += 1;
+          entry.lastUsed = ++this.accessSequence;
+
+          const transport = await entry.pending;
+          if (lease.released) throw new Error("wreq-js request lease was released before dispatch");
+          return runtime.fetch(url, {
+            method: options.method,
+            headers: options.headers,
+            body: options.body,
+            redirect: "follow",
+            timeout: options.timeoutMilliseconds,
+            signal: options.signal,
+            transport,
+            cookieMode: "ephemeral",
+          });
+        })() as WreqTransportRequestPromise;
+
+        Object.defineProperties(request, {
+          invalidateTransport: {
+            value: () => this.invalidateLease(lease),
+          },
+          releaseTransport: {
+            value: () => this.releaseLease(lease),
+          },
+        });
+        void request.catch(() => this.releaseLease(lease));
+        return request;
+      },
+    };
+  }
+}
+
+/**
+ * Build an ephemeral-cookie wreq client backed by the process-wide transport pool.
+ * Tests that inject a runtime loader receive an isolated pool to avoid cross-test state.
+ */
+export function createWreqTransportClient(options: {
+  browser: string;
+  os: EmulationOs;
+  runtimeLoader?: WreqTransportRuntimeLoader;
+  maxTransports?: number;
+}): WreqTransportRequestClient {
+  if (options.runtimeLoader) {
+    return new WreqTransportPool(options.runtimeLoader, options.maxTransports).client(
+      options.browser,
+      options.os
+    );
+  }
+  const pool =
+    transportPoolGlobal[TRANSPORT_POOL_KEY] ??
+    new WreqTransportPool(loadWreqTransportRuntime, options.maxTransports);
+  transportPoolGlobal[TRANSPORT_POOL_KEY] = pool;
+  return pool.client(options.browser, options.os);
 }
 
 export type WreqResponse = {
@@ -29,7 +399,7 @@ export type CreateSessionFn = (options: Record<string, unknown>) => Promise<Wreq
 
 let createSession: CreateSessionFn | null;
 try {
-  const loaded = loadRuntimeModule("wreq-js") as { createSession?: CreateSessionFn };
+  const loaded = getWreqRuntimeModule() as { createSession?: CreateSessionFn };
   createSession = typeof loaded.createSession === "function" ? loaded.createSession : null;
 } catch {
   if (process.env.ENABLE_TLS_FINGERPRINT === "true") {
@@ -55,14 +425,7 @@ function getProxyFromEnv(): string | undefined {
 }
 
 export type WreqBodyInit =
-  | string
-  | ArrayBuffer
-  | ArrayBufferView
-  | URLSearchParams
-  | Buffer
-  | Blob
-  | FormData
-  | null;
+  string | ArrayBuffer | ArrayBufferView | URLSearchParams | Buffer | Blob | FormData | null;
 
 export interface TlsFetchOptions {
   method?: string;
@@ -253,12 +616,13 @@ export class TlsClient {
 
   constructor(
     createSessionFn: CreateSessionFn | null = createSession,
-    maxSessions = 128
+    maxSessions = 128,
+    registerLifecycle = false
   ) {
     this.createSessionFn = createSessionFn;
     this._libraryAvailable = !!createSessionFn;
-    this.maxSessions =
-      Number.isInteger(maxSessions) && maxSessions > 0 ? maxSessions : 128;
+    this.maxSessions = Number.isInteger(maxSessions) && maxSessions > 0 ? maxSessions : 128;
+    if (registerLifecycle) registerWreqLifecycleResource(this);
   }
 
   /** Library availability only. Per-session circuit state is enforced inside fetch(). */
@@ -299,10 +663,17 @@ export class TlsClient {
   }
 
   private closeSession(session: WreqSession): Promise<void> {
+    let closeResult: Promise<void>;
+    try {
+      closeResult = Promise.resolve(session.close()).then(() => undefined);
+    } catch {
+      closeResult = Promise.resolve();
+    }
     let closing: Promise<void>;
-    closing = Promise.resolve()
-      .then(() => session.close())
-      .catch(() => {})
+    closing = closeResult
+      .catch(() => {
+        // A native close failure must not leak the session-capacity slot.
+      })
       .finally(() => {
         this.pendingCloses.delete(closing);
       });
@@ -419,7 +790,7 @@ export class TlsClient {
     return session ? this.closeSession(session) : Promise.resolve();
   }
 
-  private async closeSessions(): Promise<void> {
+  async closeAll(): Promise<void> {
     const pending = [...this.pendingSessions.values()];
     this.globalSessionEpoch++;
     this.pendingSessions.clear();
@@ -445,10 +816,7 @@ export class TlsClient {
     return true;
   }
 
-  private recordFailure(
-    key = this.getDefaultSessionKey(),
-    sessionHadCookies = false
-  ): void {
+  private recordFailure(key = this.getDefaultSessionKey(), sessionHadCookies = false): void {
     const state = this.circuits.get(key) ?? {
       failureCount: 0,
       cooldownMs: this.baseCooldownMs,
@@ -501,10 +869,7 @@ export class TlsClient {
     if (state) state.halfOpenInFlight = false;
   }
 
-  private async getSession(
-    resolvedProxy: string | null,
-    key: string
-  ): Promise<WreqSession | null> {
+  private async getSession(resolvedProxy: string | null, key: string): Promise<WreqSession | null> {
     const cached = this.sessions.get(key);
     if (cached) {
       this.pendingEvictions.delete(key);
@@ -526,10 +891,7 @@ export class TlsClient {
 
     const creating = Reflect.apply(this.createSessionFn, undefined, [sessionOpts])
       .then(async (session) => {
-        if (
-          globalEpoch !== this.globalSessionEpoch ||
-          sessionEpoch !== this.getSessionEpoch(key)
-        ) {
+        if (globalEpoch !== this.globalSessionEpoch || sessionEpoch !== this.getSessionEpoch(key)) {
           await this.closeSession(session);
           throw new Error("wreq-js session invalidated");
         }
@@ -615,8 +977,7 @@ export class TlsClient {
       return response;
     } catch (err) {
       const isCallerAbort = options.signal?.aborted === true;
-      const sessionHadCookies =
-        !isCallerAbort && this.hasSessionCookies(session, url);
+      const sessionHadCookies = !isCallerAbort && this.hasSessionCookies(session, url);
       releaseSession();
       if (isCallerAbort) {
         this.releaseHalfOpen(key);
@@ -636,7 +997,7 @@ export class TlsClient {
   }
 
   async exit(): Promise<void> {
-    await this.closeSessions();
+    await this.closeAll();
   }
 
   resetCircuit(proxy?: string | null, sessionScope?: string): void {
@@ -664,14 +1025,11 @@ export class TlsClient {
     const circuitOpenUntil = state?.circuitOpenUntil ?? 0;
     const circuitTripped = state?.circuitTripped ?? false;
     return {
-      available:
-        this._libraryAvailable &&
-        (!circuitTripped || Date.now() >= circuitOpenUntil),
+      available: this._libraryAvailable && (!circuitTripped || Date.now() >= circuitOpenUntil),
       circuitTripped,
       failureCount: state?.failureCount ?? 0,
       circuitOpenUntil,
-      coolDownRemainingMs:
-        circuitOpenUntil > 0 ? Math.max(0, circuitOpenUntil - Date.now()) : 0,
+      coolDownRemainingMs: circuitOpenUntil > 0 ? Math.max(0, circuitOpenUntil - Date.now()) : 0,
     };
   }
 }
@@ -682,5 +1040,6 @@ const scopedGlobal = globalThis as typeof globalThis & {
 };
 const tlsClient = scopedGlobal[TLS_CLIENT_KEY] ?? new TlsClient();
 scopedGlobal[TLS_CLIENT_KEY] = tlsClient;
+registerWreqLifecycleResource(tlsClient);
 
 export default tlsClient;

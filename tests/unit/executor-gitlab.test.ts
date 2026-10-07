@@ -19,11 +19,11 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-test("GitlabExecutor is registered in the executor index", () => {
+test("GitlabExecutor is registered in the executor index", async () => {
   assert.equal(hasSpecializedExecutor("gitlab"), true);
-  assert.ok(getExecutor("gitlab") instanceof GitlabExecutor);
+  assert.ok((await getExecutor("gitlab")) instanceof GitlabExecutor);
   assert.equal(hasSpecializedExecutor("gitlab-duo"), true);
-  assert.ok(getExecutor("gitlab-duo") instanceof GitlabExecutor);
+  assert.ok((await getExecutor("gitlab-duo")) instanceof GitlabExecutor);
 });
 
 test("GitlabExecutor posts PAT-backed code suggestion requests to the configured instance", async () => {
@@ -147,7 +147,7 @@ test("GitlabExecutor maps upstream auth failures to OpenAI-style errors", async 
 });
 
 test("GitlabExecutor uses GitLab direct_access for gitlab-duo and persists the cache", async () => {
-  const executor = getExecutor("gitlab-duo") as GitlabExecutor;
+  const executor = (await getExecutor("gitlab-duo")) as GitlabExecutor;
   const originalFetch = globalThis.fetch;
   const calls: Array<{ url: string; headers: Record<string, string> }> = [];
   const refreshedPatches: Array<Record<string, unknown>> = [];
@@ -223,7 +223,7 @@ test("GitlabExecutor uses GitLab direct_access for gitlab-duo and persists the c
 });
 
 test("GitlabExecutor falls back to the public Code Suggestions endpoint when direct_access is disabled", async () => {
-  const executor = getExecutor("gitlab-duo") as GitlabExecutor;
+  const executor = (await getExecutor("gitlab-duo")) as GitlabExecutor;
   const originalFetch = globalThis.fetch;
   const calls: string[] = [];
 
@@ -274,7 +274,7 @@ test("GitlabExecutor falls back to the public Code Suggestions endpoint when dir
 // Code Suggestions completions endpoint (same resilience as the 403-disabled case
 // above), instead of surfacing an opaque 401 token error with no fallback.
 test("GitlabExecutor falls back to the public Code Suggestions endpoint when direct_access returns 401", async () => {
-  const executor = getExecutor("gitlab-duo") as GitlabExecutor;
+  const executor = (await getExecutor("gitlab-duo")) as GitlabExecutor;
   const originalFetch = globalThis.fetch;
   const calls: string[] = [];
 
@@ -316,6 +316,58 @@ test("GitlabExecutor falls back to the public Code Suggestions endpoint when dir
     const body = (await result.response.json()) as GitLabResponseBody;
     assert.equal(body.model, "code-gecko");
     assert.match(body.choices[0].message.content, /monolith fallback works/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+// #12958: an entitlement/scope-resolution 403 (NOT the "direct connections are
+// disabled" tenant-config message) must ALSO fall back to the public Code Suggestions
+// completions endpoint — previously only that exact message recovered; any other 403
+// hard-failed the request even when the same token was accepted by the public endpoint.
+test("GitlabExecutor falls back to the public Code Suggestions endpoint on an entitlement-flavored 403 (#12958)", async () => {
+  const executor = (await getExecutor("gitlab-duo")) as GitlabExecutor;
+  const originalFetch = globalThis.fetch;
+  const calls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+
+    if (String(url) === "https://gitlab.example.com/api/v4/code_suggestions/direct_access") {
+      return jsonResponse({ error: "insufficient_scope", scope: "ai_features" }, 403);
+    }
+
+    return jsonResponse({
+      model: { name: "code-gecko" },
+      choices: [{ text: "fallback path works" }],
+    });
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "gitlab-duo-code-suggestions",
+      body: {
+        messages: [{ role: "user", content: "Say hello" }],
+      },
+      stream: false,
+      credentials: {
+        accessToken: "oauth-access",
+        providerSpecificData: {
+          baseUrl: "https://gitlab.example.com",
+        },
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    assert.deepEqual(calls, [
+      "https://gitlab.example.com/api/v4/code_suggestions/direct_access",
+      "https://gitlab.example.com/api/v4/code_suggestions/completions",
+    ]);
+
+    const body = (await result.response.json()) as GitLabResponseBody;
+    assert.equal(body.model, "code-gecko");
+    assert.match(body.choices[0].message.content, /fallback path/i);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -8,12 +8,15 @@ export type StreamReadinessPolicyInput = {
   provider?: string | null;
   model?: string | null;
   body?: StreamReadinessBody;
+  sourceBody?: StreamReadinessBody;
   maxTimeoutMs?: number;
+  cascadeTimeoutMs?: number;
 };
 
 export type StreamReadinessPolicyResult = {
   timeoutMs: number;
   baseTimeoutMs: number;
+  maxTimeoutMs: number;
   reasons: string[];
 };
 
@@ -65,22 +68,26 @@ function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
 function isCodexGpt5x(provider?: string | null, model?: string | null): boolean {
   const normalizedProvider = (provider || "").toLowerCase();
   const normalizedModel = (model || "").toLowerCase();
-  // Match the gpt-5.x family (gpt-5, gpt-5.1, gpt-5.5, ...) on the codex provider.
-  return normalizedProvider === "codex" && /gpt-5(\.\d+)?/.test(normalizedModel);
+  // Match the gpt-5.x family and its successors (gpt-5, gpt-5.5, gpt-6, gpt-6.1, ...)
+  // on the codex provider.
+  return normalizedProvider === "codex" && /gpt-[5-9](\.\d+)?/.test(normalizedModel);
 }
 
+const HIGH_REASONING_EFFORTS = ["high", "xhigh", "max"];
+
 /**
- * High-reasoning Codex GPT-5.x targets do a cold, expensive reasoning warm-up
- * (~78s TTFB) even for small prompts. Detect "high" reasoning effort either from
- * the model alias suffix (`...-high`) or from the request body's reasoning effort
- * field (OpenAI `reasoning_effort` or Responses API `reasoning.effort`).
+ * High-reasoning targets can do a cold, expensive reasoning warm-up even for
+ * small prompts. Detect "high", "xhigh" or "max" reasoning effort either from
+ * the model alias suffix (`...-high`, `...-xhigh`, `...-max`) or from the request
+ * body's reasoning effort field (OpenAI `reasoning_effort` or Responses API
+ * `reasoning.effort`).
  */
 function isHighReasoningEffort(
   model: string | null | undefined,
   body: StreamReadinessBody
 ): boolean {
   const normalizedModel = (model || "").toLowerCase();
-  if (/-high\b/.test(normalizedModel) || normalizedModel.endsWith("-high")) return true;
+  if (/-(?:x?high|max)\b/.test(normalizedModel)) return true;
 
   const effort = (() => {
     const direct = body?.["reasoning_effort"];
@@ -92,7 +99,28 @@ function isHighReasoningEffort(
     }
     return "";
   })();
-  return effort.toLowerCase() === "high";
+  return HIGH_REASONING_EFFORTS.includes(effort.toLowerCase());
+}
+
+/**
+ * Extended-thinking aliases (`claude-sonnet-5-thinking`, `claude-opus-4-6-thinking-1m`,
+ * `gpt-5.6-luna-free-thinking`, ...) run the same cold reasoning warm-up that earns
+ * codex high-effort targets their unconditional bump — the client asked for extended
+ * thinking, so the first non-ping event is gated behind it regardless of prompt size.
+ *
+ * This is keyed on the model alias rather than the provider's registry `format`
+ * because the providers that serve these models translate them themselves:
+ * kiro (`format: "kiro"`, Anthropic models over CodeWhisperer), devin, antigravity
+ * and chatgpt-web all publish `-thinking` ids while sitting outside the
+ * claude-format bump. #11922 was exactly that gap — `kiro/claude-sonnet-5-thinking`
+ * 504'd at the 125s readiness window (80s base + 45s large-history) because nothing
+ * in this policy recognised the request as a reasoning target.
+ */
+function isExtendedThinkingModel(model?: string | null): boolean {
+  if (!model) return false;
+  // Matches `-thinking` at the end and before a further qualifier (`-thinking-1m`),
+  // without matching unrelated ids that merely contain the word.
+  return /-thinking(?:-|$)/.test(model.toLowerCase());
 }
 
 export function resolveStreamReadinessTimeout(
@@ -100,10 +128,19 @@ export function resolveStreamReadinessTimeout(
 ): StreamReadinessPolicyResult {
   const baseTimeoutMs = Math.max(0, Math.floor(input.baseTimeoutMs || 0));
   if (baseTimeoutMs <= 0) {
-    return { timeoutMs: baseTimeoutMs, baseTimeoutMs, reasons: ["disabled"] };
+    return {
+      timeoutMs: baseTimeoutMs,
+      baseTimeoutMs,
+      maxTimeoutMs: baseTimeoutMs,
+      reasons: ["disabled"],
+    };
   }
 
-  const maxTimeoutMs = Math.max(baseTimeoutMs, input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS);
+  const maxTimeoutMs = Math.max(
+    baseTimeoutMs,
+    input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS,
+    input.cascadeTimeoutMs ?? 0
+  );
   const reasons: string[] = [];
   let timeoutMs = baseTimeoutMs;
 
@@ -112,8 +149,16 @@ export function resolveStreamReadinessTimeout(
   const itemCount = Math.max(inputCount, messageCount);
   const toolCount = countArrayField(input.body, "tools");
   const estimatedChars = estimateBodyChars(input.body);
+  const cursorSourceItems = ["cursor", "cursor-api"].includes((input.provider || "").toLowerCase())
+    ? Math.max(
+        countArrayField(input.sourceBody, "input"),
+        countArrayField(input.sourceBody, "messages")
+      )
+    : 0;
   const codexGpt5x = isCodexGpt5x(input.provider, input.model);
-  const codexHighReasoning = codexGpt5x && isHighReasoningEffort(input.model, input.body);
+  const highReasoning = isHighReasoningEffort(input.model, input.body);
+  const codexHighReasoning = codexGpt5x && highReasoning;
+  const extendedThinking = isExtendedThinkingModel(input.model);
 
   if (itemCount > VERY_LARGE_ITEM_THRESHOLD) {
     timeoutMs += 45_000;
@@ -144,6 +189,9 @@ export function resolveStreamReadinessTimeout(
   if (codexHighReasoning) {
     timeoutMs += 30_000;
     reasons.push("codex_gpt_5_5_high_reasoning");
+  } else if (highReasoning) {
+    timeoutMs += 30_000;
+    reasons.push("high_reasoning");
   } else if (
     codexGpt5x &&
     (itemCount > LARGE_ITEM_THRESHOLD || toolCount >= TOOL_HEAVY_THRESHOLD)
@@ -157,13 +205,31 @@ export function resolveStreamReadinessTimeout(
   // first SSE event — enough that the default 80s readiness window 504s before
   // the upstream speaks. Mirror the codex_gpt_5_5_high_reasoning bump so this
   // class of provider cannot be misidentified as a stalled connection.
-  if (isClaudeFormatReasoningProvider(input.provider) && !codexHighReasoning) {
+  // #11922: an explicitly-requested extended-thinking target warms up before it
+  // emits anything, on whichever provider serves it. Mirror the codex high-effort
+  // bump so the readiness watchdog cannot mistake that warm-up for a stalled
+  // stream. Kept exclusive with the other reasoning bumps below — these all model
+  // the same one-off warm-up, so they must not stack into a multi-minute window.
+  if (extendedThinking && !codexHighReasoning) {
+    timeoutMs += 30_000;
+    reasons.push("extended_thinking");
+  }
+
+  if (isClaudeFormatReasoningProvider(input.provider) && !highReasoning && !extendedThinking) {
     timeoutMs += 30_000;
     reasons.push("claude_format_heavy_reasoning");
+  }
+
+  // Cursor flattens Responses history into one wire message before dispatch;
+  // use the original item count so long agent conversations get the existing
+  // hard ceiling instead of failing at the 80s first-event budget.
+  if (cursorSourceItems > LARGE_ITEM_THRESHOLD) {
+    timeoutMs = maxTimeoutMs;
+    reasons.push("cursor_long_history");
   }
 
   timeoutMs = Math.min(timeoutMs, maxTimeoutMs);
   if (timeoutMs === baseTimeoutMs) reasons.push("base");
 
-  return { timeoutMs, baseTimeoutMs, reasons };
+  return { timeoutMs, baseTimeoutMs, maxTimeoutMs, reasons };
 }

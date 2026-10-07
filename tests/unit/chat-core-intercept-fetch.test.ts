@@ -15,12 +15,10 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-chatcore-in
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
-const { setInterceptionRules, resolveInterceptFetch } = await import(
-  "../../src/lib/db/interceptionRules.ts"
-);
-const { prepareWebFetchFallbackBody } = await import(
-  "../../open-sse/services/webFetchInterception.ts"
-);
+const { setInterceptionRules, resolveInterceptFetch } =
+  await import("../../src/lib/db/interceptionRules.ts");
+const { prepareWebFetchFallbackBody } =
+  await import("../../open-sse/services/webFetchInterception.ts");
 
 function buildRequestBody() {
   return {

@@ -22,7 +22,8 @@ import { NextResponse } from "next/server";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { GroupRenameSchema } from "@/shared/schemas/quota";
-import { renameGroup, deleteGroup, getGroup, getPoolsByGroup } from "@/lib/localDb";
+import { renameGroup, deleteGroup, getGroup } from "@/lib/db/quotaGroups";
+import { getPoolsByGroup } from "@/lib/db/quotaPools";
 
 export const dynamic = "force-dynamic";
 
@@ -55,10 +56,7 @@ export async function PATCH(request: Request, { params }: RouteParams): Promise<
         await syncQuotaCombos(pool.id);
       } catch (err) {
         // Guard: combo-sync failure must never break group rename callers.
-        console.warn(
-          "[quota-groups] syncQuotaCombos failed (non-fatal):",
-          (err as Error)?.message,
-        );
+        console.warn("[quota-groups] syncQuotaCombos failed (non-fatal):", (err as Error)?.message);
       }
     }
 

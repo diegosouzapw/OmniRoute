@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE } from "@/i18n/config";
 import fs from "node:fs";
 import path from "node:path";
 import { resolveSafeI18nSectionDir } from "@/lib/docsI18nPath";
+import { resolveDocHref, normalizeDocsMarkdownLinks } from "@/lib/docsLinkResolver";
 import { getTranslations } from "next-intl/server";
 
 // ── Locale detection ────────────────────────────────────────────────────────
@@ -63,7 +64,9 @@ async function tryI18nFallback(slug: string[], locale: string): Promise<string |
     import("marked"),
     import("@/lib/docsSanitizer"),
   ]);
-  const html = marked.parse(body) as string;
+  const docRelPath = `${slug.join("/")}.md`;
+  const normalizedBody = normalizeDocsMarkdownLinks(body, docRelPath);
+  const html = marked.parse(normalizedBody) as string;
   return sanitizeDocsHtml(html);
 }
 
@@ -93,12 +96,18 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
     );
   }
 
-  // Default: English MDX rendered natively by Fumadocs
+  // Default: English MDX rendered natively by Fumadocs with resolved links
   const MDX = page.data.body;
+  const docPath = page.file?.path || `${params.slug.join("/")}.md`;
+  const DocsLink = (linkProps: React.ComponentProps<typeof defaultMdxComponents.a>) => {
+    const resolved = linkProps.href ? resolveDocHref(linkProps.href, docPath) : linkProps.href;
+    return <defaultMdxComponents.a {...linkProps} href={resolved} />;
+  };
+
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents }} />
+        <MDX components={{ ...defaultMdxComponents, a: DocsLink }} />
       </DocsBody>
     </DocsPage>
   );

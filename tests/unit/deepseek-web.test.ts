@@ -18,13 +18,13 @@ test("DeepSeekWebExecutor registered as deepseek-web and ds-web", () => {
   assert.ok(hasSpecializedExecutor("ds-web"));
 });
 
-test("getExecutor returns DeepSeekWebWithAutoRefreshExecutor", () => {
-  const exec = getExecutor("deepseek-web");
+test("getExecutor returns DeepSeekWebWithAutoRefreshExecutor", async () => {
+  const exec = await getExecutor("deepseek-web");
   assert.ok(exec instanceof DeepSeekWebWithAutoRefreshExecutor);
 });
 
-test("alias ds-web resolves same executor", () => {
-  assert.ok(getExecutor("ds-web") instanceof DeepSeekWebWithAutoRefreshExecutor);
+test("alias ds-web resolves same executor", async () => {
+  assert.ok(await getExecutor("ds-web") instanceof DeepSeekWebWithAutoRefreshExecutor);
 });
 
 test("provider name is deepseek-web", () => {
@@ -648,24 +648,73 @@ test("execute with a new DeepSeek userToken restarts auto-refresh", async () => 
 
 // ─── Abort handling ──────────────────────────────────────────────────────
 
-test("execute: handles abort signal gracefully", async () => {
+test("execute: propagates the request signal into an in-flight PoW search", async () => {
   const dsMod4 = await import("../../open-sse/executors/deepseek-web.ts");
-  if (dsMod4.tokenCache) dsMod4.tokenCache.clear();
-  const executor = new DeepSeekWebExecutor();
+  dsMod4.tokenCache.clear();
+  dsMod4.sessionCache.clear();
+  const originalFetch = globalThis.fetch;
   const controller = new AbortController();
-  controller.abort();
-  const result = await executor.execute({
-    model: "default",
-    body: { messages: [{ role: "user", content: "hi" }] },
-    stream: true,
-    credentials: { apiKey: "test-token-abort" },
-    signal: controller.signal,
-  });
-  assert.ok(result.response, "Should return response");
-  assert.ok(
-    result.response.status >= 400 || result.response.status === 499,
-    "Should indicate error or abort"
-  );
+  let completionCalls = 0;
+
+  globalThis.fetch = async (input) => {
+    const url = input.toString();
+    if (url.includes("/users/current")) {
+      return new Response(
+        JSON.stringify({ code: 0, data: { biz_data: { token: "abort-access-token" } } }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (url.includes("/chat_session/create")) {
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: { biz_data: { chat_session: { id: "abort-session" } } },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (url.includes("/chat/create_pow_challenge")) {
+      setTimeout(() => controller.abort(), 0);
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: {
+            biz_data: {
+              challenge: {
+                algorithm: "DeepSeekHashV1",
+                challenge: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                salt: "abort",
+                signature: "test-signature",
+                difficulty: 50_000,
+                expire_at: 1,
+                expire_after: 1,
+                target_path: "/api/v0/chat/completion",
+              },
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (url.includes("/chat/completion")) completionCalls += 1;
+    throw new Error(`Unexpected request after PoW cancellation: ${url}`);
+  };
+
+  try {
+    const result = await new DeepSeekWebExecutor().execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test-token-abort" },
+      signal: controller.signal,
+    });
+    assert.equal(result.response.status, 499);
+    assert.equal(completionCalls, 0, "an aborted request must not reach completion");
+  } finally {
+    globalThis.fetch = originalFetch;
+    dsMod4.tokenCache.clear();
+    dsMod4.sessionCache.clear();
+  }
 });
 
 // ─── Search enabled ──────────────────────────────────────────────────────

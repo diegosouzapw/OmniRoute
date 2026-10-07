@@ -5,6 +5,7 @@
 export const APIKEY_PROVIDERS_SPECIALTY = {
   nlpcloud: {
     id: "nlpcloud",
+    serviceKinds: ["llm"],
     alias: "nlpc",
     name: "NLP Cloud",
     icon: "psychology",
@@ -20,6 +21,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   runwayml: {
     id: "runwayml",
+    serviceKinds: [],
     alias: "runway",
     name: "Runway",
     icon: "movie",
@@ -33,6 +35,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   kie: {
     id: "kie",
+    serviceKinds: [],
     alias: "kie",
     name: "KIE.AI",
     icon: "hub",
@@ -42,6 +45,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   pollinations: {
     id: "pollinations",
+    serviceKinds: ["llm"],
     alias: "pol",
     name: "Pollinations AI",
     icon: "local_florist",
@@ -57,6 +61,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   haiper: {
     id: "haiper",
+    serviceKinds: [],
     alias: "hp",
     name: "Haiper",
     icon: "videocam",
@@ -67,6 +72,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   leonardo: {
     id: "leonardo",
+    serviceKinds: [],
     alias: "leo",
     name: "Leonardo AI",
     icon: "palette",
@@ -77,6 +83,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   ideogram: {
     id: "ideogram",
+    serviceKinds: [],
     alias: "ideo",
     name: "Ideogram",
     icon: "image",
@@ -87,6 +94,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   magnific: {
     id: "magnific",
+    serviceKinds: [],
     alias: "freepik",
     name: "Magnific",
     icon: "image",
@@ -98,18 +106,9 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     hasFree: true,
     freeNote: "One-time ~€5 API credit for new accounts; pay-per-use afterward.",
   },
-  suno: {
-    id: "suno",
-    alias: "suno",
-    name: "Suno",
-    icon: "music_note",
-    color: "#F59E0B",
-    textIcon: "SU",
-    website: "https://suno.ai",
-    authHint: "Paste session cookie from suno.ai (Clerk auth)",
-  },
   udio: {
     id: "udio",
+    serviceKinds: [],
     alias: "udio",
     name: "Udio",
     icon: "music_note",
@@ -120,6 +119,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "v0-vercel": {
     id: "v0-vercel",
+    serviceKinds: ["llm"],
     alias: "v0",
     name: "v0 (Vercel)",
     icon: "code_blocks",
@@ -129,6 +129,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   gitlab: {
     id: "gitlab",
+    serviceKinds: ["llm"],
     alias: "gitlab",
     name: "GitLab Duo PAT",
     icon: "hub",
@@ -140,6 +141,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "voyage-ai": {
     id: "voyage-ai",
+    serviceKinds: [],
     alias: "voyage",
     name: "Voyage AI",
     icon: "blur_on",
@@ -152,6 +154,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "jina-ai": {
     id: "jina-ai",
+    serviceKinds: [],
     alias: "jina",
     name: "Jina AI (Foundation API)",
     icon: "sort",
@@ -165,6 +168,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "fal-ai": {
     id: "fal-ai",
+    serviceKinds: [],
     alias: "fal",
     name: "Fal.ai",
     icon: "image",
@@ -174,6 +178,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "stability-ai": {
     id: "stability-ai",
+    serviceKinds: [],
     alias: "stability",
     name: "Stability AI",
     icon: "image",
@@ -183,6 +188,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "black-forest-labs": {
     id: "black-forest-labs",
+    serviceKinds: [],
     alias: "bfl",
     name: "Black Forest Labs",
     icon: "image",
@@ -192,6 +198,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   recraft: {
     id: "recraft",
+    serviceKinds: [],
     alias: "recraft",
     name: "Recraft",
     icon: "image",
@@ -201,6 +208,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   topaz: {
     id: "topaz",
+    serviceKinds: [],
     alias: "topaz",
     name: "Topaz",
     icon: "image",
@@ -210,6 +218,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   segmind: {
     id: "segmind",
+    serviceKinds: [],
     alias: "segmind",
     name: "Segmind",
     icon: "image",
@@ -225,6 +234,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   dify: {
     id: "dify",
+    serviceKinds: ["llm"],
     alias: "dify",
     name: "Dify",
     icon: "smart_toy",
@@ -238,6 +248,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   nomic: {
     id: "nomic",
+    serviceKinds: [],
     alias: "nomic",
     name: "Nomic",
     icon: "hub",
@@ -251,6 +262,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   mixedbread: {
     id: "mixedbread",
+    serviceKinds: [],
     alias: "mxbai",
     name: "Mixedbread AI",
     icon: "hub",
@@ -295,6 +307,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   deepai: {
     id: "deepai",
+    serviceKinds: [],
     alias: "deepai",
     name: "DeepAI",
     icon: "psychology",
@@ -308,6 +321,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
   },
   "cursor-api": {
     id: "cursor-api",
+    serviceKinds: ["llm"],
     alias: "cua",
     name: "Cursor API",
     icon: "edit_note",

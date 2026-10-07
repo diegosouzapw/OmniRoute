@@ -27,8 +27,8 @@ describe("Issue #9550 - amazon-q alias resolution", () => {
     assert.equal(parsed.model, "amazon-q");
   });
 
-  it('getExecutor("amazon-q") should exist and be a KiroExecutor', () => {
-    const executor = getExecutor("amazon-q");
+  it('getExecutor("amazon-q") should exist and be a KiroExecutor', async () => {
+    const executor = await getExecutor("amazon-q");
     assert.ok(executor, "getExecutor('amazon-q') should return an executor");
     assert.equal(
       executor.constructor.name,

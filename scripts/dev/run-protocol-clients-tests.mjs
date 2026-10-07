@@ -57,10 +57,24 @@ async function main() {
           OMNIROUTE_BASE_URL: baseUrl,
         }),
     OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
+    // Pin the custom server's bind address to loopback (#11535). The bootstrap
+    // loopback verdict (apiAuth.isLoopbackRequest) comes from the peer stamp the
+    // custom server writes from the real TCP socket (GHSA-7pq4-8pvv-rx7r), never
+    // from nextUrl.hostname / Host — the pin keeps the harness's own clients on a
+    // loopback socket so that stamp resolves to 127.0.0.1.
+    HOST: process.env.HOST || "127.0.0.1",
   };
 
   if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
+    // Boot the REAL custom server (run-next.mjs), not the bare `next dev` CLI.
+    // Only the custom Node server stamps the trusted PEER_IP_HEADER from the TCP
+    // socket; without that stamp the authz middleware fails closed on locality and
+    // every LOCAL_ONLY route (e.g. /api/mcp/audit) answers 403 even from loopback
+    // (#11535). run-next.mjs honors OMNIROUTE_E2E_BOOTSTRAP_MODE=open by clearing
+    // bootstrap credentials after its env merge, keeping the audit assertions live
+    // (200) instead of masking them behind a 401. The Playwright webServer runner is
+    // intentionally left untouched — it serves the whole blocking test-e2e suite.
+    serverProcess = spawn(process.execPath, ["scripts/dev/run-next.mjs", "dev"], {
       stdio: "inherit",
       env: testEnv,
     });

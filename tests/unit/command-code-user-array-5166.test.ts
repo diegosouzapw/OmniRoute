@@ -15,9 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-cmd-code-user-array-5166-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cmd-code-user-array-5166-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
@@ -58,7 +56,7 @@ function captureFetch(response: Response) {
 
 test("#5166 user message with multi-part array content passes through as an OpenAI array", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -86,7 +84,7 @@ test("#5166 user message with multi-part array content passes through as an Open
 
 test("#5166 user message with single text-part array passes through", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -102,7 +100,7 @@ test("#5166 user message with single text-part array passes through", async () =
 
 test("#5166 user message with plain string content passes through unchanged", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
@@ -114,7 +112,7 @@ test("#5166 user message with plain string content passes through unchanged", as
 
 test("#5166 user message with mixed parts (text + image_url) keeps all parts", async () => {
   const calls = captureFetch(okResponse());
-  await getExecutor("command-code").execute({
+  (await getExecutor("command-code")).execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },

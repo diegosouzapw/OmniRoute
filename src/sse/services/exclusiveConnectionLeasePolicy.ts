@@ -1,4 +1,3 @@
-import { getExclusiveLeaseConnectionIds } from "@/lib/db/apiKeys";
 import {
   acquireExclusiveConnectionLease,
   getActiveExclusiveConnectionLease,
@@ -37,11 +36,8 @@ export async function applyExclusiveConnectionLeasePolicy(
 ): Promise<LeaseCandidatePolicy> {
   const occupancy = getExclusiveLeaseOccupancy(connections.map((connection) => connection.id));
   if (!options.lease) {
-    const managed = await getExclusiveLeaseConnectionIds();
     return {
-      connections: connections.filter(
-        (connection) => !managed.has(connection.id) && !occupancy.has(connection.id)
-      ),
+      connections: connections.filter((connection) => !occupancy.has(connection.id)),
       activeLease: null,
       retryAfter: null,
     };

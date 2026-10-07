@@ -55,8 +55,11 @@ test("#8134: github claude-opus fallback chain never returns an unsupported tier
     hops.push(next!);
     current = next!;
   }
-  // The skip specifically fired: the 4.6 -> next hop jumped past the absent
-  // 4-6-thinking tier straight to a catalogued model.
+  // The skip specifically fired: the ladder walks the catalogued tiers in
+  // order — 4.7, then 4.6 — before jumping past the absent 4-6-thinking tier
+  // straight to the dated 4.5 snapshot's undated catalog entry.
+  assert.equal(hops[0].replace(/^github\//, ""), "claude-opus-4.7", "first hop must be 4.7");
+  assert.equal(hops[1].replace(/^github\//, ""), "claude-opus-4.6", "second hop must be 4.6");
   assert.equal(hops[2].replace(/^github\//, ""), "claude-opus-4.5");
 });
 

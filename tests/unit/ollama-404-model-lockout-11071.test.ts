@@ -10,7 +10,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const auth = await import("../../src/sse/services/auth.ts");
-const { hasPerModelQuota, isModelLocked } = await import("../../open-sse/services/accountFallback.ts");
+const { hasPerModelQuota, isModelLocked } =
+  await import("../../open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -53,7 +54,11 @@ test("markAccountUnavailable locks only the missing model on a 404 from ollama-l
 
   // The connection in DB must remain active / not marked unavailable for sibling models
   const connInDb = await providersDb.getProviderConnectionById(connection.id);
-  assert.notEqual(connInDb?.testStatus, "unavailable", "connection should not be marked unavailable connection-wide on a 404 model-not-found error");
+  assert.notEqual(
+    connInDb?.testStatus,
+    "unavailable",
+    "connection should not be marked unavailable connection-wide on a 404 model-not-found error"
+  );
 
   // getProviderCredentials must still serve sibling models
   const selectedForSibling = await auth.getProviderCredentials(
@@ -62,5 +67,8 @@ test("markAccountUnavailable locks only the missing model on a 404 from ollama-l
     null,
     "model-a"
   );
-  assert.ok(selectedForSibling && !("allExpired" in selectedForSibling), "sibling model-a must still be selected on the same connection");
+  assert.ok(
+    selectedForSibling && !("allExpired" in selectedForSibling),
+    "sibling model-a must still be selected on the same connection"
+  );
 });

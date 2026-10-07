@@ -17,7 +17,8 @@ process.env.API_KEY_SECRET = "test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const proxyLogger = await import("../../src/lib/proxyLogger.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const route = await import("../../src/app/api/settings/proxies/egress/route.ts");
 
@@ -48,16 +49,32 @@ test("GET /api/settings/proxies/egress adds an anonymous summary to the existing
   const bearer = await setupAuth();
 
   // Seed two codex accounts on one egress IP (persisted proxy_logs).
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-a", connectionId: "conn-a" });
-  proxyLogger.logProxyEvent({ status: "success", provider: "codex", targetUrl: "codex/gpt-5.5", egressIp: "100.115.194.84", account: "acc-b", connectionId: "conn-b" });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-a",
+    connectionId: "conn-a",
+  });
+  proxyLogger.logProxyEvent({
+    status: "success",
+    provider: "codex",
+    targetUrl: "codex/gpt-5.5",
+    egressIp: "100.115.194.84",
+    account: "acc-b",
+    connectionId: "conn-b",
+  });
   // logProxyEvent only enqueues for the 1s/100-entry background batch; the route
   // below reads persisted proxy_logs synchronously, so flush before asserting or
   // the rows are not yet on disk (timing-flaky otherwise).
   proxyLogger.flushProxyLogsSync();
 
-  const response = await route.GET(new Request("https://example.com/api/settings/proxies/egress", {
-    headers: { authorization: `Bearer ${bearer}` },
-  }));
+  const response = await route.GET(
+    new Request("https://example.com/api/settings/proxies/egress", {
+      headers: { authorization: `Bearer ${bearer}` },
+    })
+  );
   assert.equal(response.status, 200);
 
   const body = await response.json();

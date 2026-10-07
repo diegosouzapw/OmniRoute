@@ -82,7 +82,12 @@ test("keeps legacy files in place when zip creation fails", async () => {
   // Remove the archive dir created by the first test, then write a file
   // at that path so mkdirSync throws EEXIST. This simulates a zip
   // creation failure. The migration should leave legacy files intact.
-  fs.rmSync(migrations.LOG_ARCHIVES_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.rmSync(migrations.LOG_ARCHIVES_DIR, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 100,
+  });
   fs.writeFileSync(migrations.LOG_ARCHIVES_DIR, "not-a-directory");
 
   await assert.rejects(() => migrations.archiveLegacyRequestLogs());

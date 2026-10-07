@@ -1,24 +1,30 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
   assertNativeDriverSelected,
   buildSmokeEnv,
+  ensureSmokeEnvDirs,
   FATAL_LOG_PATTERNS,
   LINUX_EXECUTABLE_NAMES,
   stopApp,
   waitForDatabaseOpen,
   DB_TOUCH_PATH,
 } from "../../scripts/dev/smoke-electron-packaged.mjs";
+import { tarPack } from "../../scripts/build/optionalPackStaging.mjs";
 
 test("electron smoke discovers the default Linux executable name", () => {
   assert.ok(LINUX_EXECUTABLE_NAMES.includes("omniroute-desktop"));
 });
 
 test("electron smoke env allowlists runtime variables and drops secrets", () => {
+  const dataDir = path.join("/tmp", "omniroute-electron-smoke-test");
   const env = buildSmokeEnv({
     currentPlatform: "linux",
-    dataDir: "/tmp/omniroute-electron-smoke-test",
+    dataDir,
     parentEnv: {
       DISPLAY: ":99",
       GITHUB_TOKEN: "should-not-leak",
@@ -27,15 +33,62 @@ test("electron smoke env allowlists runtime variables and drops secrets", () => 
     },
   });
 
-  assert.equal(env.DATA_DIR, "/tmp/omniroute-electron-smoke-test");
+  // Expected values are built with path.join so the assertions hold on every
+  // host platform: buildSmokeEnv() composes its redirected paths with join(),
+  // which yields backslashes on Windows even when currentPlatform is "linux".
+  assert.equal(env.DATA_DIR, dataDir);
   assert.equal(env.DISPLAY, ":99");
   assert.equal(env.PATH, "/usr/bin");
-  assert.equal(env.HOME, "/tmp/omniroute-electron-smoke-test/home");
-  assert.equal(env.XDG_CONFIG_HOME, "/tmp/omniroute-electron-smoke-test/config");
+  assert.equal(env.HOME, path.join(dataDir, "home"));
+  assert.equal(env.XDG_CONFIG_HOME, path.join(dataDir, "config"));
   assert.equal(env.ELECTRON_ENABLE_LOGGING, "1");
   assert.equal(env.ELECTRON_ENABLE_STACK_DUMPING, "1");
   assert.equal(env.GITHUB_TOKEN, undefined);
   assert.equal(env.SNYK_TOKEN, undefined);
+});
+
+test("electron smoke pre-creates the USERPROFILE-derived Roaming userData tree on Windows", async () => {
+  // #7592: Electron resolves userData from %USERPROFILE%\AppData\Roaming\<name>
+  // (USERPROFILE takes precedence over the APPDATA env var) and the path
+  // service throws — rather than creates — when the directory is missing, so
+  // requestSingleInstanceLock() returns false and the app exits(0) silently.
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-smoke-env-test-"));
+  try {
+    const smokeEnv = buildSmokeEnv({ currentPlatform: "win32", dataDir });
+    // Inject the smoke TARGET platform: ensureSmokeEnvDirs must key its win32
+    // userData-tree branches off the target, not the host OS — otherwise this
+    // guard can never pass on a Linux CI host (the 8/9 red the reviewer hit).
+    await ensureSmokeEnvDirs(smokeEnv, dataDir, { currentPlatform: "win32" });
+
+    for (const appName of ["omniroute-desktop", "OmniRoute", "omniroute"]) {
+      const derived = path.join(smokeEnv.USERPROFILE, "AppData", "Roaming", appName);
+      assert.ok(fs.existsSync(derived), `expected pre-created derived userData dir: ${derived}`);
+      const viaAppData = path.join(smokeEnv.APPDATA, appName);
+      assert.ok(fs.existsSync(viaAppData), `expected pre-created APPDATA dir: ${viaAppData}`);
+    }
+  } finally {
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("electron smoke tarPack handles absolute Windows-style tarball paths", () => {
+  // GNU tar treats `C:\...` in `-f` as a remote rsh target ("Cannot connect to
+  // C:"), which broke optional-pack staging on Windows. tarPack() must pass a
+  // bare filename with cwd at the tarball directory instead.
+  const staging = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-tar-pack-test-"));
+  try {
+    const nodeModules = path.join(staging, "pack", "node_modules");
+    fs.mkdirSync(path.join(nodeModules, "fixture-pkg"), { recursive: true });
+    fs.writeFileSync(path.join(nodeModules, "fixture-pkg", "index.js"), "module.exports = 1;");
+
+    const tarballPath = path.join(staging, "optional-pack-fixture.tar.gz");
+    tarPack(path.join(staging, "pack"), tarballPath);
+
+    assert.ok(fs.existsSync(tarballPath), "tarball should exist after tarPack");
+    assert.ok(fs.statSync(tarballPath).size > 0, "tarball should not be empty");
+  } finally {
+    fs.rmSync(staging, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 });
 
 test("electron smoke treats Electron process errors as fatal startup logs", () => {

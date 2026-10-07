@@ -16,9 +16,13 @@ export function generateClaudeConfig(options: {
   const model = options.model || "claude-3-5-sonnet-20241022";
 
   const config = {
-    baseUrl: `${base}/v1`,
-    authToken: options.apiKey,
-    models: [{ id: model }],
+    model,
+    env: {
+      ANTHROPIC_BASE_URL: base,
+      ANTHROPIC_AUTH_TOKEN: options.apiKey,
+      ANTHROPIC_MODEL: model,
+      CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY: "1",
+    },
   };
 
   return JSON.stringify(config, null, 2);

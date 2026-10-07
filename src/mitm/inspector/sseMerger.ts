@@ -1,11 +1,8 @@
 /**
- * SSE merger — reconstructs complete LLM response from streaming SSE chunks.
+ * Server-sent event parsing and provider response reconstruction.
  *
- * MIT — port from https://github.com/chouzz/llm-interceptor (merger.py)
- *
- * Detects API format by chunk shape (not URL — robust to URL rewrite) and
- * rebuilds Anthropic / OpenAI / Gemini responses. Falls back to a raw event
- * list when the format is unrecognised so the caller never crashes.
+ * This module is an independent implementation based on the WHATWG event-stream
+ * algorithm and the public OpenAI, Anthropic, and Gemini streaming schemas.
  */
 
 export type ApiFormat = "anthropic" | "openai" | "gemini" | "unknown";
@@ -23,294 +20,475 @@ export interface MergedResponse {
   raw?: SseEvent[];
 }
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
-  return null;
+type JsonRecord = Record<string, unknown>;
+
+interface AnthropicBlockState {
+  block: JsonRecord;
+  partialInput: string;
 }
 
-/**
- * Inspect chunk shapes to determine the upstream API. Matches on the first
- * recognisable hint; returns `"unknown"` if none match.
- */
-export function detectApiFormat(chunks: SseEvent[]): ApiFormat {
-  for (const c of chunks) {
-    const j = asRecord(c.json);
-    if (!j) continue;
-    if (j.type === "message_start" || j.type === "content_block_delta") return "anthropic";
-    if (Array.isArray(j.choices)) {
-      const first = j.choices[0];
-      if (first && typeof first === "object" && "delta" in first) return "openai";
+interface OpenAiToolState {
+  value: JsonRecord;
+  functionValue: JsonRecord;
+}
+
+interface OpenAiChoiceState {
+  value: JsonRecord;
+  message: JsonRecord;
+  tools: Map<number, OpenAiToolState>;
+}
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as JsonRecord)
+    : null;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function asIndex(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : fallback;
+}
+
+function appendString(record: JsonRecord, key: string, value: unknown): void {
+  if (typeof value !== "string") return;
+  const current = typeof record[key] === "string" ? record[key] : "";
+  record[key] = current + value;
+}
+
+function mergeRecord(previous: unknown, next: unknown): JsonRecord {
+  return { ...(asRecord(previous) ?? {}), ...(asRecord(next) ?? {}) };
+}
+
+function dispatchSseEvent(
+  events: SseEvent[],
+  dataLines: string[],
+  sawDataField: boolean,
+  eventName: string
+): void {
+  if (!sawDataField) return;
+
+  const data = dataLines.join("\n");
+  const event: SseEvent = { data };
+  if (eventName) event.event = eventName;
+
+  if (data !== "[DONE]") {
+    try {
+      event.json = JSON.parse(data) as unknown;
+    } catch {
+      // Raw data is still useful to callers when a provider emits a sentinel or malformed JSON.
     }
-    if (Array.isArray(j.candidates)) return "gemini";
+  }
+  events.push(event);
+}
+
+/** Parse a complete `text/event-stream` payload using WHATWG field semantics. */
+export function parseSseStream(raw: string): SseEvent[] {
+  const input = raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw;
+  const events: SseEvent[] = [];
+  let dataLines: string[] = [];
+  let eventName = "";
+  let sawDataField = false;
+  let lineStart = 0;
+
+  const processLine = (line: string): void => {
+    if (line.length === 0) {
+      dispatchSseEvent(events, dataLines, sawDataField, eventName);
+      dataLines = [];
+      eventName = "";
+      sawDataField = false;
+      return;
+    }
+    if (line.startsWith(":")) return;
+
+    const colon = line.indexOf(":");
+    const field = colon === -1 ? line : line.slice(0, colon);
+    let value = colon === -1 ? "" : line.slice(colon + 1);
+    if (value.startsWith(" ")) value = value.slice(1);
+
+    if (field === "data") {
+      dataLines.push(value);
+      sawDataField = true;
+    } else if (field === "event") {
+      eventName = value;
+    }
+    // `id`, `retry`, comments, and extension fields do not alter the public event shape.
+  };
+
+  for (let index = 0; index < input.length; index += 1) {
+    const code = input.charCodeAt(index);
+    if (code !== 0x0a && code !== 0x0d) continue;
+
+    processLine(input.slice(lineStart, index));
+    if (code === 0x0d && input.charCodeAt(index + 1) === 0x0a) index += 1;
+    lineStart = index + 1;
+  }
+
+  // WHATWG does not dispatch an event that lacks its terminating blank line.
+  return events;
+}
+
+export function detectApiFormat(chunks: SseEvent[]): ApiFormat {
+  for (const chunk of chunks) {
+    const namedEvent = chunk.event ?? "";
+    if (
+      namedEvent === "message_start" ||
+      namedEvent === "message_delta" ||
+      namedEvent === "message_stop" ||
+      namedEvent.startsWith("content_block_")
+    ) {
+      return "anthropic";
+    }
+    const payload = asRecord(chunk.json);
+    if (!payload) continue;
+
+    const type = typeof payload.type === "string" ? payload.type : "";
+    if (
+      type === "message_start" ||
+      type === "message_delta" ||
+      type === "message_stop" ||
+      type.startsWith("content_block_")
+    ) {
+      return "anthropic";
+    }
+    if (Array.isArray(payload.choices) || type.startsWith("response.")) return "openai";
+    if (Array.isArray(payload.candidates) || asRecord(payload.usageMetadata)) return "gemini";
   }
   return "unknown";
 }
 
-/**
- * Parse a raw SSE stream (the response body string captured by the proxy)
- * into discrete events. Empty blocks and `[DONE]` terminators are skipped
- * silently; malformed JSON payloads are kept as raw `data` (no `json`).
- */
-export function parseSseStream(raw: string): SseEvent[] {
-  const events: SseEvent[] = [];
-  if (!raw) return events;
-  // SSE blocks separated by blank lines — accept both LF and CRLF.
-  for (const block of raw.split(/\r?\n\r?\n/)) {
-    if (!block.trim()) continue;
-    const ev: SseEvent = {};
-    for (const line of block.split(/\r?\n/)) {
-      if (line.startsWith("event:")) {
-        ev.event = line.slice(6).trim();
-      } else if (line.startsWith("data:")) {
-        ev.data = (ev.data ?? "") + line.slice(5).trim();
+export function rebuildAnthropic(chunks: SseEvent[]): MergedResponse {
+  let message: JsonRecord = { type: "message", role: "assistant", content: [] };
+  const blocks = new Map<number, AnthropicBlockState>();
+
+  for (const chunk of chunks) {
+    const payload = asRecord(chunk.json);
+    if (!payload) continue;
+    const type = typeof payload.type === "string" ? payload.type : "";
+
+    if (type === "message_start") {
+      const startedMessage = asRecord(payload.message);
+      if (startedMessage) {
+        message = { ...startedMessage };
+        for (const [position, value] of asArray(startedMessage.content).entries()) {
+          const block = asRecord(value);
+          if (block) blocks.set(position, { block: { ...block }, partialInput: "" });
+        }
       }
-    }
-    if (ev.data === undefined) continue;
-    if (ev.data === "[DONE]") {
-      events.push(ev);
       continue;
     }
-    try {
-      ev.json = JSON.parse(ev.data);
-    } catch {
-      // keep raw data only
+
+    const index = asIndex(payload.index, blocks.size);
+    if (type === "content_block_start") {
+      const contentBlock = asRecord(payload.content_block);
+      if (contentBlock) {
+        blocks.set(index, { block: { ...contentBlock }, partialInput: "" });
+      }
+      continue;
     }
-    events.push(ev);
-  }
-  return events;
-}
 
-interface AnthropicBlock {
-  type: string;
-  text?: string;
-  thinking?: string;
-  id?: string;
-  name?: string;
-  input?: unknown;
-}
-
-/**
- * Rebuild an Anthropic Messages API response from streaming events.
- * Handles `text_delta`, `thinking_delta`, and `input_json_delta` deltas;
- * applies `JSON.parse` (best-effort) on accumulated tool-use input.
- */
-export function rebuildAnthropic(chunks: SseEvent[]): MergedResponse {
-  const blocks: AnthropicBlock[] = [];
-  let message: Record<string, unknown> | null = null;
-  const inputJsonByIndex: Record<number, string> = {};
-
-  for (const c of chunks) {
-    const j = asRecord(c.json);
-    if (!j) continue;
-    const t = j.type;
-
-    if (t === "message_start") {
-      const m = asRecord(j.message);
-      message = m ? { ...m } : {};
-    } else if (t === "content_block_start") {
-      const idx = typeof j.index === "number" ? j.index : blocks.length;
-      const cb = asRecord(j.content_block);
-      const block: AnthropicBlock = { type: "text" };
-      if (cb) {
-        for (const [k, v] of Object.entries(cb)) (block as Record<string, unknown>)[k] = v;
+    if (type === "content_block_delta") {
+      const delta = asRecord(payload.delta);
+      if (!delta) continue;
+      const state = blocks.get(index) ?? { block: {}, partialInput: "" };
+      const deltaType = typeof delta.type === "string" ? delta.type : "";
+      if (deltaType === "text_delta") appendString(state.block, "text", delta.text);
+      if (deltaType === "thinking_delta") appendString(state.block, "thinking", delta.thinking);
+      if (deltaType === "signature_delta") {
+        appendString(state.block, "signature", delta.signature);
       }
-      if (block.type === "text" && block.text === undefined) block.text = "";
-      if (block.type === "thinking" && block.thinking === undefined) block.thinking = "";
-      if (block.type === "tool_use" && block.input === undefined) block.input = {};
-      blocks[idx] = block;
-    } else if (t === "content_block_delta") {
-      const idx = typeof j.index === "number" ? j.index : 0;
-      const d = asRecord(j.delta);
-      if (!d) continue;
-      // Ensure a block slot exists (some streams skip content_block_start).
-      const slot = blocks[idx] ?? (blocks[idx] = { type: "text", text: "" });
-      const dType = d.type;
-      if (dType === "text_delta" && typeof d.text === "string") {
-        slot.text = (slot.text ?? "") + d.text;
-      } else if (dType === "thinking_delta" && typeof d.thinking === "string") {
-        slot.thinking = (slot.thinking ?? "") + d.thinking;
-      } else if (dType === "input_json_delta" && typeof d.partial_json === "string") {
-        inputJsonByIndex[idx] = (inputJsonByIndex[idx] ?? "") + d.partial_json;
+      if (deltaType === "input_json_delta" && typeof delta.partial_json === "string") {
+        state.partialInput += delta.partial_json;
       }
-    } else if (t === "content_block_stop") {
-      const idx = typeof j.index === "number" ? j.index : 0;
-      const slot = blocks[idx];
-      if (slot && slot.type === "tool_use" && inputJsonByIndex[idx]) {
+      blocks.set(index, state);
+      continue;
+    }
+
+    if (type === "content_block_stop") {
+      const state = blocks.get(index);
+      if (state?.partialInput) {
         try {
-          slot.input = JSON.parse(inputJsonByIndex[idx]);
+          state.block.input = JSON.parse(state.partialInput) as unknown;
         } catch {
-          // keep accumulated string for forensic visibility
-          slot.input = inputJsonByIndex[idx];
+          state.block.input = state.partialInput;
         }
       }
-    } else if (t === "message_delta") {
-      if (!message) message = {};
-      const d = asRecord(j.delta);
-      if (d && typeof d.stop_reason === "string") {
-        message.stop_reason = d.stop_reason;
-      }
-      const usage = asRecord(j.usage);
-      if (usage) {
-        const prev = asRecord(message.usage) ?? {};
-        message.usage = { ...prev, ...usage };
+      continue;
+    }
+
+    if (type === "message_delta") {
+      Object.assign(message, asRecord(payload.delta) ?? {});
+      if (payload.usage !== undefined) {
+        message.usage = mergeRecord(message.usage, payload.usage);
       }
     }
   }
 
-  const filledBlocks = blocks.filter((b) => b !== undefined);
-  return {
-    format: "anthropic",
-    message: { ...(message ?? {}), content: filledBlocks },
+  message.content = [...blocks.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([, state]) => state.block);
+  return { format: "anthropic", message };
+}
+
+function getOpenAiChoice(
+  choices: Map<number, OpenAiChoiceState>,
+  index: number
+): OpenAiChoiceState {
+  const existing = choices.get(index);
+  if (existing) return existing;
+  const created: OpenAiChoiceState = {
+    value: { index },
+    message: { role: "assistant", content: "" },
+    tools: new Map(),
   };
+  choices.set(index, created);
+  return created;
 }
 
-interface OpenAiToolCall {
-  index: number;
-  id?: string;
-  type?: string;
-  function: { name: string; arguments: string };
+function mergeOpenAiTools(state: OpenAiChoiceState, toolDeltas: unknown[]): void {
+  for (const [position, rawTool] of toolDeltas.entries()) {
+    const tool = asRecord(rawTool);
+    if (!tool) continue;
+    const index = asIndex(tool.index, position);
+    const current = state.tools.get(index) ?? { value: { index }, functionValue: {} };
+
+    for (const [key, value] of Object.entries(tool)) {
+      if (key !== "function" && key !== "index" && value !== undefined) {
+        current.value[key] = value;
+      }
+    }
+    const functionDelta = asRecord(tool.function);
+    if (functionDelta) {
+      if (typeof functionDelta.name === "string") {
+        appendString(current.functionValue, "name", functionDelta.name);
+      }
+      if (typeof functionDelta.arguments === "string") {
+        appendString(current.functionValue, "arguments", functionDelta.arguments);
+      }
+      current.value.function = current.functionValue;
+    }
+    state.tools.set(index, current);
+  }
 }
 
-interface OpenAiChoice {
-  index: number;
-  message: {
-    role: string;
-    content: string;
-    tool_calls?: OpenAiToolCall[];
-    refusal?: string;
+function rebuildOpenAiResponses(chunks: SseEvent[]): JsonRecord {
+  let response: JsonRecord = { object: "response", output: [] };
+  const items = new Map<number, JsonRecord>();
+  const contentByItem = new Map<number, Map<number, JsonRecord>>();
+
+  const getItem = (outputIndex: number): JsonRecord => {
+    const existing = items.get(outputIndex);
+    if (existing) return existing;
+    const created: JsonRecord = { type: "message", role: "assistant", content: [] };
+    items.set(outputIndex, created);
+    return created;
   };
-  finish_reason: string | null;
+
+  const getPart = (outputIndex: number, contentIndex: number): JsonRecord => {
+    let content = contentByItem.get(outputIndex);
+    if (!content) {
+      content = new Map();
+      contentByItem.set(outputIndex, content);
+    }
+    const existing = content.get(contentIndex);
+    if (existing) return existing;
+    const created: JsonRecord = { type: "output_text", text: "" };
+    content.set(contentIndex, created);
+    return created;
+  };
+
+  const mergeItem = (outputIndex: number, rawItem: unknown): void => {
+    const item = asRecord(rawItem);
+    if (!item) return;
+    const current = getItem(outputIndex);
+    for (const [key, value] of Object.entries(item)) {
+      if (key !== "content" && value !== undefined) current[key] = value;
+    }
+    for (const [contentIndex, rawPart] of asArray(item.content).entries()) {
+      const part = asRecord(rawPart);
+      if (part) Object.assign(getPart(outputIndex, contentIndex), part);
+    }
+  };
+
+  for (const chunk of chunks) {
+    const payload = asRecord(chunk.json);
+    if (!payload) continue;
+    const embeddedResponse = asRecord(payload.response);
+    if (embeddedResponse) {
+      for (const [key, value] of Object.entries(embeddedResponse)) {
+        if (key !== "output" && value !== undefined) response[key] = value;
+      }
+      for (const [outputIndex, item] of asArray(embeddedResponse.output).entries()) {
+        mergeItem(outputIndex, item);
+      }
+    }
+
+    const outputIndex = asIndex(payload.output_index, 0);
+    const contentIndex = asIndex(payload.content_index, 0);
+    if (
+      payload.type === "response.output_item.added" ||
+      payload.type === "response.output_item.done"
+    ) {
+      mergeItem(outputIndex, payload.item);
+    }
+    if (
+      payload.type === "response.content_part.added" ||
+      payload.type === "response.content_part.done"
+    ) {
+      const part = asRecord(payload.part);
+      if (part) Object.assign(getPart(outputIndex, contentIndex), part);
+    }
+    if (payload.type === "response.output_text.delta") {
+      appendString(getPart(outputIndex, contentIndex), "text", payload.delta);
+    }
+    if (payload.type === "response.output_text.done" && typeof payload.text === "string") {
+      getPart(outputIndex, contentIndex).text = payload.text;
+    }
+    if (payload.type === "response.refusal.delta") {
+      const part = getPart(outputIndex, contentIndex);
+      part.type = "refusal";
+      appendString(part, "refusal", payload.delta);
+    }
+    if (payload.type === "response.refusal.done" && typeof payload.refusal === "string") {
+      const part = getPart(outputIndex, contentIndex);
+      part.type = "refusal";
+      part.refusal = payload.refusal;
+    }
+    if (payload.type === "response.function_call_arguments.delta") {
+      const item = getItem(outputIndex);
+      item.type = "function_call";
+      appendString(item, "arguments", payload.delta);
+    }
+    if (
+      payload.type === "response.function_call_arguments.done" &&
+      typeof payload.arguments === "string"
+    ) {
+      const item = getItem(outputIndex);
+      item.type = "function_call";
+      item.arguments = payload.arguments;
+    }
+  }
+
+  response.output = [...items.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([outputIndex, item]) => {
+      const content = contentByItem.get(outputIndex);
+      if (content && content.size > 0) {
+        item.content = [...content.entries()]
+          .sort(([left], [right]) => left - right)
+          .map(([, part]) => part);
+      }
+      return item;
+    });
+  return response;
 }
 
-/**
- * Rebuild an OpenAI Chat Completions response from streaming events.
- * Accumulates content text and tool-call fragments per choice/index.
- */
 export function rebuildOpenAI(chunks: SseEvent[]): MergedResponse {
-  const choicesByIdx: Record<number, OpenAiChoice> = {};
-  let model: string | null = null;
-  let usage: unknown = null;
-  let id: string | null = null;
+  const hasChatChunks = chunks.some((chunk) => Array.isArray(asRecord(chunk.json)?.choices));
+  if (!hasChatChunks) {
+    return { format: "openai", message: rebuildOpenAiResponses(chunks) };
+  }
 
-  for (const c of chunks) {
-    const j = asRecord(c.json);
-    if (!j) continue;
-    if (typeof j.model === "string") model = j.model;
-    if (typeof j.id === "string") id = j.id;
-    if (j.usage != null) usage = j.usage;
-    if (!Array.isArray(j.choices)) continue;
+  const result: JsonRecord = {};
+  const choices = new Map<number, OpenAiChoiceState>();
 
-    for (const raw of j.choices) {
-      const ch = asRecord(raw);
-      if (!ch) continue;
-      const idx = typeof ch.index === "number" ? ch.index : 0;
-      const slot = (choicesByIdx[idx] ??= {
-        index: idx,
-        message: { role: "assistant", content: "" },
-        finish_reason: null,
-      });
-      const delta = asRecord(ch.delta) ?? {};
-      if (typeof delta.role === "string") slot.message.role = delta.role;
-      if (typeof delta.content === "string") slot.message.content += delta.content;
-      if (typeof delta.refusal === "string") {
-        slot.message.refusal = (slot.message.refusal ?? "") + delta.refusal;
-      }
-      if (Array.isArray(delta.tool_calls)) {
-        slot.message.tool_calls ??= [];
-        for (const tcRaw of delta.tool_calls) {
-          const tc = asRecord(tcRaw);
-          if (!tc) continue;
-          const ti = typeof tc.index === "number" ? tc.index : 0;
-          const tcSlot =
-            slot.message.tool_calls[ti] ??
-            (slot.message.tool_calls[ti] = {
-              index: ti,
-              function: { name: "", arguments: "" },
-            });
-          if (typeof tc.id === "string") tcSlot.id = tc.id;
-          if (typeof tc.type === "string") tcSlot.type = tc.type;
-          const fn = asRecord(tc.function);
-          if (fn) {
-            if (typeof fn.name === "string") tcSlot.function.name += fn.name;
-            if (typeof fn.arguments === "string") tcSlot.function.arguments += fn.arguments;
-          }
+  for (const chunk of chunks) {
+    const payload = asRecord(chunk.json);
+    if (!payload) continue;
+    for (const [key, value] of Object.entries(payload)) {
+      if (key !== "choices" && key !== "usage" && value !== undefined) result[key] = value;
+    }
+    if (payload.usage !== undefined) result.usage = payload.usage;
+
+    for (const [position, rawChoice] of asArray(payload.choices).entries()) {
+      const choice = asRecord(rawChoice);
+      if (!choice) continue;
+      const index = asIndex(choice.index, position);
+      const state = getOpenAiChoice(choices, index);
+      const delta = asRecord(choice.delta);
+
+      if (delta) {
+        if (typeof delta.role === "string") state.message.role = delta.role;
+        appendString(state.message, "content", delta.content);
+        appendString(state.message, "refusal", delta.refusal);
+        mergeOpenAiTools(state, asArray(delta.tool_calls));
+
+        const functionCall = asRecord(delta.function_call);
+        if (functionCall) {
+          const current = asRecord(state.message.function_call) ?? {};
+          appendString(current, "name", functionCall.name);
+          appendString(current, "arguments", functionCall.arguments);
+          state.message.function_call = current;
         }
       }
-      if (typeof ch.finish_reason === "string") slot.finish_reason = ch.finish_reason;
-    }
-  }
 
-  return {
-    format: "openai",
-    message: {
-      id,
-      model,
-      choices: Object.values(choicesByIdx).sort((a, b) => a.index - b.index),
-      usage,
-    },
-  };
-}
-
-/**
- * Rebuild a Gemini `generateContent`-style response from streaming events.
- * Concatenates all parts across emitted candidates into a single candidate.
- */
-export function rebuildGemini(chunks: SseEvent[]): MergedResponse {
-  const parts: unknown[] = [];
-  let usageMetadata: unknown = null;
-  let finishReason: unknown = null;
-  let modelVersion: string | null = null;
-
-  for (const c of chunks) {
-    const j = asRecord(c.json);
-    if (!j) continue;
-    if (j.usageMetadata != null) usageMetadata = j.usageMetadata;
-    if (typeof j.modelVersion === "string") modelVersion = j.modelVersion;
-    if (!Array.isArray(j.candidates)) continue;
-    for (const candRaw of j.candidates) {
-      const cand = asRecord(candRaw);
-      if (!cand) continue;
-      if (cand.finishReason != null) finishReason = cand.finishReason;
-      const content = asRecord(cand.content);
-      if (!content) continue;
-      const ps = content.parts;
-      if (Array.isArray(ps)) {
-        for (const p of ps) parts.push(p);
+      for (const [key, value] of Object.entries(choice)) {
+        if (key !== "delta" && value !== null && value !== undefined) state.value[key] = value;
       }
     }
   }
 
-  return {
-    format: "gemini",
-    message: {
-      candidates: [
-        {
-          content: { parts, role: "model" },
-          ...(finishReason != null ? { finishReason } : {}),
-        },
-      ],
-      ...(modelVersion ? { modelVersion } : {}),
-      ...(usageMetadata != null ? { usageMetadata } : {}),
-    },
-  };
+  result.choices = [...choices.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([, state]) => {
+      if (state.tools.size > 0) {
+        state.message.tool_calls = [...state.tools.entries()]
+          .sort(([left], [right]) => left - right)
+          .map(([, tool]) => tool.value);
+      }
+      return { ...state.value, message: state.message };
+    });
+  return { format: "openai", message: result };
 }
 
-/**
- * Merge an array of SSE events into a single rebuilt response. Returns
- * `{ format: "unknown", raw }` (no throw) for unrecognised shapes.
- */
+export function rebuildGemini(chunks: SseEvent[]): MergedResponse {
+  const result: JsonRecord = {};
+  const candidates = new Map<number, JsonRecord>();
+  const parts = new Map<number, unknown[]>();
+
+  for (const chunk of chunks) {
+    const payload = asRecord(chunk.json);
+    if (!payload) continue;
+    for (const [key, value] of Object.entries(payload)) {
+      if (key !== "candidates" && value !== undefined) result[key] = value;
+    }
+
+    for (const [position, rawCandidate] of asArray(payload.candidates).entries()) {
+      const candidate = asRecord(rawCandidate);
+      if (!candidate) continue;
+      const index = asIndex(candidate.index, position);
+      const current = candidates.get(index) ?? { index };
+      const content = asRecord(candidate.content);
+      const currentParts = parts.get(index) ?? [];
+      if (content) currentParts.push(...asArray(content.parts));
+      parts.set(index, currentParts);
+
+      for (const [key, value] of Object.entries(candidate)) {
+        if (key !== "content" && value !== undefined) current[key] = value;
+      }
+      if (content) {
+        current.content = {
+          ...asRecord(current.content),
+          ...content,
+          parts: currentParts,
+        };
+      }
+      candidates.set(index, current);
+    }
+  }
+
+  result.candidates = [...candidates.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([, candidate]) => candidate);
+  return { format: "gemini", message: result };
+}
+
 export function mergeStream(chunks: SseEvent[]): MergedResponse {
   const format = detectApiFormat(chunks);
-  switch (format) {
-    case "anthropic":
-      return rebuildAnthropic(chunks);
-    case "openai":
-      return rebuildOpenAI(chunks);
-    case "gemini":
-      return rebuildGemini(chunks);
-    default:
-      return { format: "unknown", raw: chunks };
-  }
+  if (format === "anthropic") return rebuildAnthropic(chunks);
+  if (format === "openai") return rebuildOpenAI(chunks);
+  if (format === "gemini") return rebuildGemini(chunks);
+  return { format: "unknown", raw: chunks };
 }

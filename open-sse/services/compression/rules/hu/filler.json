@@ -1,0 +1,173 @@
+{
+  "language": "hu",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "pleasantries",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:köszönöm(?: szépen)?|köszi|szívesen|nincs mit|örömmel|természetesen|persze|abszolút)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove standalone Hungarian pleasantries and courtesy fillers."
+    },
+    {
+      "name": "polite_framing",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:kérlek\\s*,?|légy szíves\\s*,?|volnál szíves\\s*,?|megtennéd\\s*,? hogy|szeretném\\s*,? ha|arra kérlek\\s*,? hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove polite request framing while preserving the requested action."
+    },
+    {
+      "name": "hedging",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:úgy gondolom,? hogy|azt hiszem,? hogy|véleményem szerint|valószínűleg|talán|lehet,? hogy|úgy tűnik,? hogy|úgy látszik,? hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove common Hungarian hedging when it does not carry technical intent."
+    },
+    {
+      "name": "verbose_instructions",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:részletesen magyarázd el|magyarázd el részletesen|adj részletes magyarázatot|készíts átfogó magyarázatot|írj részletes magyarázatot)(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "magyarázd el",
+      "replacementMap": {
+        "részletesen magyarázd el": "magyarázd el",
+        "magyarázd el részletesen": "magyarázd el",
+        "adj részletes magyarázatot": "magyarázd el",
+        "készíts átfogó magyarázatot": "magyarázd el",
+        "írj részletes magyarázatot": "magyarázd el"
+      },
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Collapse verbose requests for detailed explanations into a direct instruction."
+    },
+    {
+      "name": "filler_adverbs",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:alapvetően|lényegében|tulajdonképpen|igazából|valójában|szó szerint|egyszerűen)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove common discourse-filler adverbs."
+    },
+    {
+      "name": "filler_phrases",
+      "pattern": "^(?:azt szeretném,? hogy|azt szeretném megtudni,? hogy|azt szeretném kérni,? hogy|szeretnék kérni|az lenne a kérdésem,? hogy)\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove first-person framing at the start of user requests."
+    },
+    {
+      "name": "redundant_openers",
+      "pattern": "^(?:szia|sziasztok|szervusz|jó reggelt|jó napot|helló|üdv)\\s*[,.!?]?\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove greeting openers from user prompts."
+    },
+    {
+      "name": "verbose_requests",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:azt szeretném megkérdezni,? hogy|az iránt érdeklődnék,? hogy|arra lennék kíváncsi,? hogy|meg tudnád mondani,? hogy|meg tudnád mutatni,? hogy)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Shorten indirect Hungarian request formulations."
+    },
+    {
+      "name": "self_reference",
+      "pattern": "^(?:azon dolgozom,? hogy|éppen dolgozom azon,? hogy|próbálom megoldani,? hogy|megpróbálom|azzal próbálkozom,? hogy)\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove redundant first-person process framing from user prompts."
+    },
+    {
+      "name": "excessive_gratitude",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:nagyon köszönöm|előre is köszönöm|köszönöm szépen|hálás lennék)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove repetitive gratitude that does not affect task intent."
+    },
+    {
+      "name": "qualifier_removal",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:egy kicsit|egy picit|némileg|valamennyire|egyfajta|olyanfajta)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove low-information qualifiers."
+    },
+    {
+      "name": "softeners",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ha lehet|ha lehetséges|ha van rá lehetőség|amikor ráérsz|ha időd engedi|amennyiben lehetséges)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove optionality-softening phrases that do not change the requested task."
+    },
+    {
+      "name": "uncertainty_fillers",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:nagyjából|többé-kevésbé|valamilyen szinten|bizonyos értelemben|mondhatni|nagy vonalakban)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove vague scope fillers when they add little signal."
+    },
+    {
+      "name": "assistant_fillers",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:itt van|alább találod|az alábbiakban|nézzük meg|lássuk)(?![\\p{L}\\p{N}_])[:,.!?\\s]*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove low-information assistant lead-ins."
+    },
+    {
+      "name": "current_state_filler",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:jelen pillanatban|ebben a pillanatban|most éppen)(?![\\p{L}\\p{N}_])\\s*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove temporal filler when the current state is obvious from context."
+    },
+    {
+      "name": "meta_politeness",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:köszönettel|köszönetképpen|szíves segítségeddel)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
+      "flags": "giu",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "full",
+      "description": "Remove uncommon but redundant courtesy closings."
+    }
+  ]
+}

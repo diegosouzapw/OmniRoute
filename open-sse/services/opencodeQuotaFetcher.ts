@@ -1,68 +1,24 @@
 /**
- * opencodeQuotaFetcher.ts — OpenCode Go / OpenCode / OpenCode Zen Quota Fetcher
+ * OpenCode Go / OpenCode / OpenCode Zen quota fetcher.
  *
- * Implements QuotaFetcher for the opencode-go, opencode, and opencode-zen providers
- * (quotaPreflight.ts + quotaMonitor.ts).
- *
- * OpenCode Go has THREE independent quota windows per subscription:
- *   - 5-hour (rolling):  $12 of usage
- *   - Weekly:            $30 of usage
- *   - Monthly:           $60 of usage
- *
- * Upstream endpoint (defensive — no public API exists yet):
- *   GET https://opencode.ai/zen/go/v1/quota
+ * The official API exposes rolling, weekly, and monthly usage percentages:
+ *   GET https://opencode.ai/zen/go/v1/usage
  *   Authorization: Bearer <apiKey>
  *
- * Expected response shape:
- *   {
- *     quota: {
- *       window_5h:      { used: number, limit: number, reset_at: number | null },
- *       window_weekly:  { used: number, limit: number, reset_at: number | null },
- *       window_monthly: { used: number, limit: number, reset_at: number | null }
- *     }
- *   }
- *
- * NOTE: As of 2026, no public quota API exists for OpenCode Go / OpenCode Zen
- * (tracked upstream in anomalyco/opencode#16017, #18648, #31084). The default
- * endpoint currently returns HTTP 404. This fetcher is implemented defensively
- * so that the dashboard shows "No quota data" gracefully rather than crashing,
- * and so that when an endpoint is finally published, only the URL constant
- * needs to change.
- *
- * On a 404 response we log ONE console.warn (latched per process — not per
- * request) pointing at the upstream tracking issues, then cache the
- * "endpoint unavailable" result for 5 minutes to avoid hammering. On any other
- * non-200 / parse failure we return null (fail-open) silently. The first
- * call from each server boot is what the operator is most likely to see, so
- * we make it count.
- *
- * Cache: in-memory TTL (60s for success, 5 min for 404).
- *
- * Override: set OMNIROUTE_OPENCODE_QUOTA_URL to a working endpoint. If
- * OpenCode ships a public endpoint (likely in the form of the merged PR
- * #16513), the maintainer can update the default.
- *
- * Registration: call registerOpencodeQuotaFetcher() once at server startup.
+ * Successful responses are cached for 60 seconds. Network, HTTP, and response
+ * parsing failures remain fail-open so quota checks never block on missing data.
  */
 
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
-import { resolveOpenCodeGoDashboardConfig } from "./opencodeOllamaUsage.ts";
 
-// OpenCode quota endpoint — same key works across opencode, opencode-go, opencode-zen
-// Default points at /zen/go/v1/quota which returns 404 today (no public quota API yet,
-// tracked in anomalyco/opencode#16017).  Set OMNIROUTE_OPENCODE_QUOTA_URL to override.
 const OPENCODE_QUOTA_URL =
-  process.env.OMNIROUTE_OPENCODE_QUOTA_URL ?? "https://opencode.ai/zen/go/v1/quota";
+  process.env.OMNIROUTE_OPENCODE_QUOTA_URL ?? "https://opencode.ai/zen/go/v1/usage";
 
-// Cache TTL — matches Codex / DeepSeek / Bailian pattern (60s)
 const CACHE_TTL_MS = 60_000;
-// TTL for cached "endpoint unavailable" results (404) — longer to avoid hammering
-// a non-existent endpoint
-const NO_ENDPOINT_TTL_MS = 5 * 60_000; // 5 minutes
 
-// Window keys as surfaced to the dashboard and quota-window registry
+// Window keys surfaced to the quota UI and quota-window registry
 export const OPENCODE_WINDOW_5H = "window_5h";
 export const OPENCODE_WINDOW_WEEKLY = "window_weekly";
 export const OPENCODE_WINDOW_MONTHLY = "window_monthly";
@@ -76,13 +32,12 @@ export interface OpencodeTripleWindowQuota extends QuotaInfo {
 }
 
 interface CacheEntry {
-  quota: OpencodeTripleWindowQuota | null;
+  quota: OpencodeTripleWindowQuota;
   fetchedAt: number;
-  /** true when quota is null because the upstream endpoint returned 404 */
-  noEndpoint?: boolean;
+  apiKey: string;
 }
 
-// In-memory cache: connectionId → { quota, fetchedAt }
+// In-memory cache: connectionId → successful quota bound to its normalized API key
 const quotaCache = new Map<string, CacheEntry>();
 
 // One-time 404 warning per URL (avoids spamming on every request)
@@ -120,280 +75,105 @@ if (typeof _cacheCleanup === "object" && "unref" in _cacheCleanup) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return fallback;
-}
-
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
 }
 
-function parseWindowResetAt(window: Record<string, unknown>): string | null {
-  const resetAt = toNumber(window["reset_at"] ?? window["resetAt"], 0);
-  if (resetAt > 0) {
-    // Unix timestamp in seconds (< 1e12) or milliseconds (>= 1e12)
-    return new Date(resetAt < 1e12 ? resetAt * 1000 : resetAt).toISOString();
-  }
-  const resetAfterSeconds = toNumber(
-    window["reset_after_seconds"] ?? window["resetAfterSeconds"],
-    0
-  );
-  if (resetAfterSeconds > 0) {
-    return new Date(Date.now() + resetAfterSeconds * 1000).toISOString();
-  }
-  return null;
-}
+type ParsedUsageWindow = {
+  percentUsed: number;
+  resetAt: string;
+  limitReached: boolean;
+};
 
-function parseWindowPercent(window: Record<string, unknown>): number {
-  const used = toNumber(window["used"] ?? window["used_amount"], 0);
-  const limit = toNumber(window["limit"] ?? window["limit_amount"], 0);
-  if (limit <= 0) return 0;
-  return Math.max(0, Math.min(1, used / limit));
-}
-
-// ─── Response Parser ──────────────────────────────────────────────────────────
-
-function parseOpencodeQuotaResponse(data: unknown): OpencodeTripleWindowQuota | null {
-  const obj = toRecord(data);
-  const quotaObj = toRecord(obj["quota"] ?? obj["data"] ?? obj["usage"]);
-
-  // Look for windows under various possible keys
-  const w5h = toRecord(
-    quotaObj[OPENCODE_WINDOW_5H] ?? quotaObj["5h"] ?? quotaObj["hourly"] ?? quotaObj["short"]
-  );
-  const wWeekly = toRecord(
-    quotaObj[OPENCODE_WINDOW_WEEKLY] ?? quotaObj["weekly"] ?? quotaObj["week"] ?? quotaObj["wk"]
-  );
-  const wMonthly = toRecord(
-    quotaObj[OPENCODE_WINDOW_MONTHLY] ?? quotaObj["monthly"] ?? quotaObj["month"] ?? quotaObj["mo"]
-  );
-
-  const has5h = Object.keys(w5h).length > 0;
-  const hasWeekly = Object.keys(wWeekly).length > 0;
-  const hasMonthly = Object.keys(wMonthly).length > 0;
-
-  // Need at least one window to be meaningful
-  if (!has5h && !hasWeekly && !hasMonthly) return null;
-
-  const percent5h = has5h ? parseWindowPercent(w5h) : 0;
-  const percentWeekly = hasWeekly ? parseWindowPercent(wWeekly) : 0;
-  const percentMonthly = hasMonthly ? parseWindowPercent(wMonthly) : 0;
-
-  const resetAt5h = has5h ? parseWindowResetAt(w5h) : null;
-  const resetAtWeekly = hasWeekly ? parseWindowResetAt(wWeekly) : null;
-  const resetAtMonthly = hasMonthly ? parseWindowResetAt(wMonthly) : null;
-
-  const worstPercent = Math.max(percent5h, percentWeekly, percentMonthly);
-  const limitReached =
-    Boolean(obj["limit_reached"] ?? quotaObj["limit_reached"]) || worstPercent >= 1;
-
-  // Dominant reset: pick the window with the worst usage
-  let dominantResetAt: string | null = null;
-  if (worstPercent === percent5h) {
-    dominantResetAt = resetAt5h ?? resetAtWeekly ?? resetAtMonthly;
-  } else if (worstPercent === percentWeekly) {
-    dominantResetAt = resetAtWeekly ?? resetAt5h ?? resetAtMonthly;
-  } else {
-    dominantResetAt = resetAtMonthly ?? resetAtWeekly ?? resetAt5h;
-  }
-
-  const window5h = { percentUsed: percent5h, resetAt: resetAt5h };
-  const windowWeekly = { percentUsed: percentWeekly, resetAt: resetAtWeekly };
-  const windowMonthly = { percentUsed: percentMonthly, resetAt: resetAtMonthly };
-
-  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
-  if (has5h) windows[OPENCODE_WINDOW_5H] = window5h;
-  if (hasWeekly) windows[OPENCODE_WINDOW_WEEKLY] = windowWeekly;
-  if (hasMonthly) windows[OPENCODE_WINDOW_MONTHLY] = windowMonthly;
-
-  return {
-    used: worstPercent * 100,
-    total: 100,
-    percentUsed: worstPercent,
-    resetAt: dominantResetAt,
-    windows,
-    window5h,
-    windowWeekly,
-    windowMonthly,
-    limitReached,
-  };
-}
-
-// ─── Core Fetcher ─────────────────────────────────────────────────────────────
-
-// ─── Dashboard Snapshot Bridge (#11234) ───────────────────────────────────────
-//
-// The live endpoint above has no public quota API today (404 — see module
-// JSDoc), so without this bridge every preflight evaluated `null` and
-// proceeded (fail-open) even when the dashboard already showed a drained
-// window. The dashboard scrape (`getOpenCodeGoUsage` in
-// opencodeOllamaUsage.ts) persists per-window snapshots through
-// `src/domain/quotaCache.ts::setQuotaCache` under the window keys
-// session / weekly / mcp_monthly; this bridge synthesizes the same
-// OpencodeTripleWindowQuota shape from those cached snapshots so the quota
-// cutoff sees them.
-//
-// Read-only: accessors only, never SQL, never a re-scrape on the hot path.
-// Fail-open is preserved — no snapshots means `null`, exactly as before.
-
-// Dashboard snapshot key → fetcher/preflight window key.
-const DASHBOARD_SNAPSHOT_WINDOW_MAP: ReadonlyArray<readonly [string, string]> = [
-  ["session", OPENCODE_WINDOW_5H],
-  ["weekly", OPENCODE_WINDOW_WEEKLY],
-  ["mcp_monthly", OPENCODE_WINDOW_MONTHLY],
-];
-
-function hasDashboardQuotaConfig(connection?: Record<string, unknown>): boolean {
-  // Snapshots can only exist when the operator configured the dashboard
-  // scrape for this connection (or globally via env). Gating on it keeps the
-  // snapshot read (and its cold-start DB hydration) off connections that
-  // could never have produced one.
-  const psd = connection?.providerSpecificData as Record<string, unknown> | undefined;
-  return resolveOpenCodeGoDashboardConfig(psd).state !== "none";
-}
-
-async function synthesizeQuotaFromDashboardSnapshots(
-  connectionId: string
-): Promise<OpencodeTripleWindowQuota | null> {
-  let quotaCacheDomain: typeof import("../../src/domain/quotaCache.ts");
-  try {
-    // Dynamic import: a static edge would close an initialization cycle
-    // (opencodeQuotaFetcher → quotaCache → usage.ts → usage/opencode.ts →
-    // opencodeQuotaFetcher).
-    quotaCacheDomain = await import("../../src/domain/quotaCache.ts");
-  } catch {
+function parseUsageWindow(value: unknown): ParsedUsageWindow | null {
+  const window = toRecord(value);
+  const { status, percent, resetsAt } = window;
+  if (
+    (status !== "ok" && status !== "rate-limited") ||
+    typeof percent !== "number" ||
+    !Number.isFinite(percent) ||
+    percent < 0 ||
+    percent > 100 ||
+    typeof resetsAt !== "string" ||
+    !resetsAt ||
+    !Number.isFinite(Date.parse(resetsAt))
+  ) {
     return null;
   }
 
-  // Hydrate the in-memory cache from persisted snapshots when cold (the
-  // accessor does this internally), then read the raw per-window rows.
-  quotaCacheDomain.getQuotaWindowStatus(connectionId, DASHBOARD_SNAPSHOT_WINDOW_MAP[0][0]);
-  const entry = quotaCacheDomain.getQuotaCache(connectionId);
-  const quotas = entry?.quotas;
-  if (!quotas || typeof quotas !== "object") return null;
+  return {
+    percentUsed: status === "rate-limited" ? 1 : percent / 100,
+    resetAt: resetsAt,
+    limitReached: status === "rate-limited" || percent === 100,
+  };
+}
 
-  const now = Date.now();
-  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
+function parseOpencodeQuotaResponse(data: unknown): OpencodeTripleWindowQuota | null {
+  const usage = toRecord(toRecord(data).usage);
+  const rolling = parseUsageWindow(usage.rolling);
+  const weekly = parseUsageWindow(usage.weekly);
+  const monthly = parseUsageWindow(usage.monthly);
+  if (!rolling || !weekly || !monthly) return null;
 
-  for (const [snapshotKey, windowKey] of DASHBOARD_SNAPSHOT_WINDOW_MAP) {
-    const raw = quotas[snapshotKey];
-    if (!raw || typeof raw.remainingPercentage !== "number") continue;
-    // #10095 mirror: a window whose fraction upstream never reported is
-    // "unknown", not 0% — it must not count as exhausted.
-    if (raw.fractionReported === false) continue;
-    const resetAt = typeof raw.resetAt === "string" && raw.resetAt ? raw.resetAt : null;
-    if (resetAt) {
-      const resetMs = Date.parse(resetAt);
-      // Mirror getQuotaWindowStatus (quotaCache.ts): an expired resetAt means
-      // the window has rolled into a fresh period — the cached percentage is
-      // stale and must not count as exhausted.
-      if (Number.isFinite(resetMs) && resetMs <= now) continue;
-    }
-    const remaining = Math.max(0, Math.min(100, raw.remainingPercentage));
-    windows[windowKey] = { percentUsed: 1 - remaining / 100, resetAt };
-  }
-
-  if (Object.keys(windows).length === 0) return null;
-
-  const window5h = windows[OPENCODE_WINDOW_5H] ?? { percentUsed: 0, resetAt: null };
-  const windowWeekly = windows[OPENCODE_WINDOW_WEEKLY] ?? { percentUsed: 0, resetAt: null };
-  const windowMonthly = windows[OPENCODE_WINDOW_MONTHLY] ?? { percentUsed: 0, resetAt: null };
-
+  const window5h = { percentUsed: rolling.percentUsed, resetAt: rolling.resetAt };
+  const windowWeekly = { percentUsed: weekly.percentUsed, resetAt: weekly.resetAt };
+  const windowMonthly = { percentUsed: monthly.percentUsed, resetAt: monthly.resetAt };
   const worstPercent = Math.max(
     window5h.percentUsed,
     windowWeekly.percentUsed,
     windowMonthly.percentUsed
   );
-
-  // Dominant reset: pick the window with the worst usage (same policy as the
-  // live-response parser above).
-  let dominantResetAt: string | null = null;
-  if (worstPercent === window5h.percentUsed) {
-    dominantResetAt = window5h.resetAt ?? windowWeekly.resetAt ?? windowMonthly.resetAt;
-  } else if (worstPercent === windowWeekly.percentUsed) {
-    dominantResetAt = windowWeekly.resetAt ?? window5h.resetAt ?? windowMonthly.resetAt;
-  } else {
-    dominantResetAt = windowMonthly.resetAt ?? windowWeekly.resetAt ?? window5h.resetAt;
-  }
+  const dominantResetAt =
+    worstPercent === window5h.percentUsed
+      ? window5h.resetAt
+      : worstPercent === windowWeekly.percentUsed
+        ? windowWeekly.resetAt
+        : windowMonthly.resetAt;
 
   return {
     used: worstPercent * 100,
     total: 100,
     percentUsed: worstPercent,
     resetAt: dominantResetAt,
-    windows,
+    windows: {
+      [OPENCODE_WINDOW_5H]: window5h,
+      [OPENCODE_WINDOW_WEEKLY]: windowWeekly,
+      [OPENCODE_WINDOW_MONTHLY]: windowMonthly,
+    },
     window5h,
     windowWeekly,
     windowMonthly,
-    limitReached: worstPercent >= 1,
+    limitReached: rolling.limitReached || weekly.limitReached || monthly.limitReached,
   };
 }
 
+// ─── Core Fetcher ─────────────────────────────────────────────────────────────
 /**
  * Fetch current quota for an OpenCode connection.
- * Returns percentUsed = max(5h%, weekly%, monthly%) — worst-case across all windows.
- *
- * Defensive implementation: returns null on any non-200 / parse failure (fail-open).
- * See module-level JSDoc for upstream API stability note.
- *
- * @param connectionId - Connection ID from the DB (used for cache keying)
- * @param connection - Optional connection snapshot with apiKey
- * @returns OpencodeTripleWindowQuota or null if fetch fails / no credentials
+ * Returns null on missing credentials, HTTP errors, malformed responses, and
+ * network failures so callers preserve fail-open behavior.
  */
 export async function fetchOpencodeQuota(
   connectionId: string,
   connection?: Record<string, unknown>
 ): Promise<OpencodeTripleWindowQuota | null> {
-  // Snapshots can only exist when the dashboard scrape is configured for this
-  // connection (or globally via env); without it the bridge stays off and the
-  // fetcher never touches the snapshot store.
-  const dashboardConfigured = hasDashboardQuotaConfig(connection);
-
-  // Check cache first
-  const cached = quotaCache.get(connectionId);
-  if (cached) {
-    // 404 sentinel — use longer TTL to avoid hammering a non-existent endpoint
-    if (cached.noEndpoint && Date.now() - cached.fetchedAt < NO_ENDPOINT_TTL_MS) {
-      // The live endpoint is known-absent — serve dashboard snapshots if the
-      // operator configured the scrape (#11234).
-      return dashboardConfigured ? synthesizeQuotaFromDashboardSnapshots(connectionId) : null;
-    }
-    if (cached.quota !== null && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-      return cached.quota;
-    }
-  }
-
-  const live = await fetchLiveOpencodeQuota(connectionId, connection);
-  if (live) return live;
-
-  // #11234 — the live endpoint has no public quota API (404) or failed:
-  // fall back to the operator-configured dashboard snapshots, read-only.
-  return dashboardConfigured ? synthesizeQuotaFromDashboardSnapshots(connectionId) : null;
-}
-
-async function fetchLiveOpencodeQuota(
-  connectionId: string,
-  connection?: Record<string, unknown>
-): Promise<OpencodeTripleWindowQuota | null> {
-  // Extract API key from connection
   const apiKey =
-    typeof connection?.apiKey === "string" && connection.apiKey.trim().length > 0
+    typeof connection?.apiKey === "string"
       ? connection.apiKey
-      : null;
+          .trim()
+          .replace(/^Bearer\s+/i, "")
+          .trim()
+      : "";
+  if (!apiKey) return null;
 
-  if (!apiKey) {
-    return null;
+  const cached = quotaCache.get(connectionId);
+  if (cached && cached.apiKey === apiKey && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+    return cached.quota;
   }
 
   try {
-    // #6911: space concurrent upstream quota fetches (mirrors codexQuotaFetcher.ts).
     await throttleQuotaFetch();
     const response = await fetch(OPENCODE_QUOTA_URL, {
       method: "GET",
@@ -406,29 +186,14 @@ async function fetchLiveOpencodeQuota(
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        // Upstream doesn't expose this endpoint. Warn once per URL per process so
-        // operators know the dashboard will be empty for opencode-go connections.
-        // Cache a 404 sentinel for NO_ENDPOINT_TTL_MS to avoid hammering.
-        // See opencode issues #10448, #16017, #18648, #31084.
-        if (!_warned404Urls.has(OPENCODE_QUOTA_URL)) {
-          _warned404Urls.add(OPENCODE_QUOTA_URL);
-          console.warn(
-            `[opencodeQuotaFetcher] ${OPENCODE_QUOTA_URL} returned 404 — opencode-go usage API is not yet public. ` +
-              `Set OMNIROUTE_OPENCODE_QUOTA_URL to a working endpoint, or follow ` +
-              `https://github.com/anomalyco/opencode/issues/16017 for upstream status.`
-          );
-        }
-        quotaCache.set(connectionId, {
-          quota: null,
-          fetchedAt: Date.now(),
-          noEndpoint: true,
-        });
-        return null;
+      if (response.status === 404 && !_warned404Urls.has(OPENCODE_QUOTA_URL)) {
+        _warned404Urls.add(OPENCODE_QUOTA_URL);
+        console.warn(
+          `[opencodeQuotaFetcher] Official usage endpoint ${OPENCODE_QUOTA_URL} returned 404. ` +
+            "Verify OMNIROUTE_OPENCODE_QUOTA_URL when using a relay or test server."
+        );
       }
-      if (response.status === 401 || response.status === 403) {
-        quotaCache.delete(connectionId);
-      }
+      if (response.status === 401 || response.status === 403) quotaCache.delete(connectionId);
       return null;
     }
 
@@ -436,18 +201,15 @@ async function fetchLiveOpencodeQuota(
     try {
       data = await response.json();
     } catch {
-      // Malformed JSON — fail open
       return null;
     }
 
     const quota = parseOpencodeQuotaResponse(data);
     if (!quota) return null;
 
-    // Store in cache
-    quotaCache.set(connectionId, { quota, fetchedAt: Date.now() });
+    quotaCache.set(connectionId, { quota, fetchedAt: Date.now(), apiKey });
     return quota;
   } catch {
-    // Network error, timeout, etc. — fail open
     return null;
   }
 }

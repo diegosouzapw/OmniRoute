@@ -108,6 +108,9 @@ test("clearStaleCrashCooldowns clears past-dated transient cooldown on restart",
     ...conn,
     rateLimitedUntil: new Date(JUST_PAST).toISOString(),
     testStatus: "unavailable",
+    lastError: "upstream timeout",
+    lastErrorType: "timeout",
+    errorCode: 504,
     backoffLevel: 1,
   });
 
@@ -119,6 +122,10 @@ test("clearStaleCrashCooldowns clears past-dated transient cooldown on restart",
   assert.ok(!updated?.rateLimitedUntil, "past cooldown should also be cleared on startup");
   assert.equal(updated?.testStatus, "active", "testStatus should be 'active'");
   assert.equal(updated?.backoffLevel, 0, "backoffLevel should be 0");
+  // The startup sweep resets the whole transient cluster, not just the cooldown:
+  assert.ok(!updated?.lastError, "lastError should be absent/falsy after recovery");
+  assert.ok(!updated?.lastErrorType, "lastErrorType should be absent/falsy after recovery");
+  assert.ok(!updated?.errorCode, "errorCode should be absent/falsy after recovery");
 });
 
 test("clearStaleCrashCooldowns does NOT clear terminal states (banned)", async () => {
@@ -262,8 +269,5 @@ test("clearStaleCrashCooldowns handles mixed transient + terminal connections co
 
   const updatedTerminal = await providersDb.getProviderConnectionById(terminal.id);
   assert.equal(updatedTerminal?.testStatus, "banned", "terminal connection untouched");
-  assert.ok(
-    updatedTerminal?.rateLimitedUntil,
-    "terminal rate_limited_until preserved"
-  );
+  assert.ok(updatedTerminal?.rateLimitedUntil, "terminal rate_limited_until preserved");
 });

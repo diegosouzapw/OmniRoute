@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { deleteProxyById } from "@/lib/localDb";
+import { deleteProxyById } from "@/lib/db/proxies";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
@@ -22,12 +22,20 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return createErrorResponse({ status: 400, message: "Invalid JSON body", type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid JSON body",
+      type: "invalid_request",
+    });
   }
 
   const validation = validateBody(batchDeleteSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return createErrorResponse({ status: 400, message: validation.error.message, type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: validation.error.message,
+      type: "invalid_request",
+    });
   }
 
   const { ids, force } = validation.data;
@@ -45,15 +53,28 @@ export async function POST(request: Request) {
           results.push({ id, success: false, error: "Proxy not found" });
         }
       } catch (err) {
-        results.push({ id, success: false, error: err instanceof Error ? err.message : "Unknown error" });
+        results.push({
+          id,
+          success: false,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
       }
     }
 
     if (deletedCount > 0) {
-      try { clearDispatcherCache(); } catch { /* non-critical */ }
+      try {
+        clearDispatcherCache();
+      } catch {
+        /* non-critical */
+      }
     }
 
-    return Response.json({ success: deletedCount > 0, deleted: deletedCount, failed: ids.length - deletedCount, results });
+    return Response.json({
+      success: deletedCount > 0,
+      deleted: deletedCount,
+      failed: ids.length - deletedCount,
+      results,
+    });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to batch delete proxies");
   }

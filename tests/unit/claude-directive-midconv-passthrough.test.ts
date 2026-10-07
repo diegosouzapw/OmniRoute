@@ -109,9 +109,7 @@ test("claude mid-conversation-system passthrough relocates a directive-only mess
   // The claude identity layer prepends its own blocks; assert the client's
   // block survived rather than an exact count.
   assert.ok(
-    captured.body.system.some(
-      (block) => block.type === "text" && block.text === "You are Claude."
-    )
+    captured.body.system.some((block) => block.type === "text" && block.text === "You are Claude.")
   );
   assert.equal(captured.body.tools.length, 1);
   // The directive stays message-level; the top level (if set) is the base

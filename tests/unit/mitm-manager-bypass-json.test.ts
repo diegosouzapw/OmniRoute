@@ -13,9 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-mitm-bypass-json-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mitm-bypass-json-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -74,20 +72,12 @@ test("writeBypassJson — pulls from DB when no patterns argument passed", () =>
   manager.writeBypassJson();
   const file = path.join(TEST_DATA_DIR, "mitm", "bypass.json");
   const payload = JSON.parse(fs.readFileSync(file, "utf-8"));
-  assert.deepEqual(
-    payload.patterns.sort(),
-    ["*.from-db.example.com", "literal.com"].sort()
-  );
+  assert.deepEqual(payload.patterns.sort(), ["*.from-db.example.com", "literal.com"].sort());
 });
 
 test("writeBypassJson — does NOT write default patterns (those live in server.cjs)", () => {
   // Seed defaults via the DB module — these should NOT appear in the JSON.
-  bypassDb.seedDefaultBypassPatterns([
-    "*.bank.test",
-    "*.gov.test",
-    "okta.com",
-    "auth0.com",
-  ]);
+  bypassDb.seedDefaultBypassPatterns(["*.bank.test", "*.gov.test", "okta.com", "auth0.com"]);
   manager.writeBypassJson();
   const file = path.join(TEST_DATA_DIR, "mitm", "bypass.json");
   const payload = JSON.parse(fs.readFileSync(file, "utf-8"));

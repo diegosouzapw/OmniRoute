@@ -98,23 +98,20 @@ export async function onRequest(ctx) {
   }
 );
 
-test(
-  "loadPlugin no longer spawns the plugin host with stdout/stderr fully ignored",
-  async () => {
-    const source = await readFile(
-      join(import.meta.dirname, "../../src/lib/plugins/loader.ts"),
-      "utf-8"
-    );
-    // The original bug: stdio: ["ignore", "ignore", "ignore", "ipc"] discards
-    // stdout (fd 1) and stderr (fd 2) at the OS level unconditionally.
-    assert.doesNotMatch(
-      source,
-      /stdio:\s*\[\s*["']ignore["']\s*,\s*["']ignore["']\s*,\s*["']ignore["']\s*,\s*["']ipc["']\s*\]/,
-      "loader.ts must not spawn the plugin host with stdout+stderr both set to " +
-        "'ignore' — that silently discards all plugin console.log/console.error output"
-    );
-  }
-);
+test("loadPlugin no longer spawns the plugin host with stdout/stderr fully ignored", async () => {
+  const source = await readFile(
+    join(import.meta.dirname, "../../src/lib/plugins/loader.ts"),
+    "utf-8"
+  );
+  // The original bug: stdio: ["ignore", "ignore", "ignore", "ipc"] discards
+  // stdout (fd 1) and stderr (fd 2) at the OS level unconditionally.
+  assert.doesNotMatch(
+    source,
+    /stdio:\s*\[\s*["']ignore["']\s*,\s*["']ignore["']\s*,\s*["']ignore["']\s*,\s*["']ipc["']\s*\]/,
+    "loader.ts must not spawn the plugin host with stdout+stderr both set to " +
+      "'ignore' — that silently discards all plugin console.log/console.error output"
+  );
+});
 
 // Secondary #8395 finding: runPluginOnResponseHook was only wired into chatCore.ts's
 // STREAMING success path — the non-streaming (stream:false) JSON-return branch
@@ -126,34 +123,39 @@ test(
 // contract test for runPluginOnResponseHook itself
 // (tests/unit/chatcore-plugin-onresponse.test.ts).
 test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and streaming success paths", async () => {
-  const source = await readFile(
-    join(import.meta.dirname, "../../open-sse/handlers/chatCore.ts"),
+  // After the chatCore decomposition the two success-path call sites live in the
+  // leg leaves: non-streaming in nonStreamingResponse.ts, streaming in streamingTail.ts.
+  const nonStreamingSource = await readFile(
+    join(import.meta.dirname, "../../open-sse/handlers/chatCore/nonStreamingResponse.ts"),
+    "utf-8"
+  );
+  const streamingSource = await readFile(
+    join(import.meta.dirname, "../../open-sse/handlers/chatCore/streamingTail.ts"),
     "utf-8"
   );
 
-  const nonStreamingReturnIndex = source.indexOf("buildNonStreamingJsonResponse(translatedResponse");
   const hookCallNeedle = "await runPluginOnResponseHook({";
-  const hookCallIndex = source.indexOf(hookCallNeedle);
-  const secondHookCallIndex = source.indexOf(hookCallNeedle, hookCallIndex + 1);
+  const nonStreamingReturnIndex = nonStreamingSource.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
+  const hookCallIndex = nonStreamingSource.indexOf(hookCallNeedle);
+  const streamingHookCallIndex = streamingSource.indexOf(hookCallNeedle);
 
-  assert.notEqual(hookCallIndex, -1, "expected at least one runPluginOnResponseHook call site");
+  assert.notEqual(hookCallIndex, -1, "expected a runPluginOnResponseHook call site in the non-streaming leg");
   assert.notEqual(
-    secondHookCallIndex,
+    streamingHookCallIndex,
     -1,
-    "expected TWO runPluginOnResponseHook call sites — one per success branch " +
-      "(non-streaming JSON return and streaming SSE return)"
+    "expected a runPluginOnResponseHook call site in the streaming leg — one per success branch"
   );
   assert.ok(
-    source.indexOf("response: { status: 200, data: translatedResponse }") !== -1,
+    nonStreamingSource.indexOf("response: { status: 200, data: translatedResponse }") !== -1,
     "non-streaming branch must pass translatedResponse as plugin response data (#8711)"
   );
   assert.ok(
-    source.indexOf("response: { status: 200, streamed: true }") !== -1,
+    streamingSource.indexOf("response: { status: 200, streamed: true }") !== -1,
     "streaming branch must pass streamed:true without materializing SSE body (#8711)"
   );
   assert.ok(
     hookCallIndex < nonStreamingReturnIndex,
     "the non-streaming branch must call runPluginOnResponseHook BEFORE returning " +
-      "buildNonStreamingJsonResponse(...), not skip it"
+      "maybeWrapForcedNonStreamingResponsesJson(...), not skip it"
   );
 });

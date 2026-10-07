@@ -59,8 +59,11 @@ infrastructure and settings. Three tiers exist, applied in priority order:
 ```
   ┌─────────────────────────────────────────────────────────────┐
   │  TIER 0 — Keyword (FTS5)                                     │
-  │  Always available. SQLite FTS5 full-text search over         │
-  │  content + key. Used when strategy = "exact" or as fallback. │
+  │  Probe-driven availability: FTS5 when the SQLite build       │
+  │  supports it (better-sqlite3 / node:sqlite / bun:sqlite);    │
+  │  unavailable on FTS5-less builds (e.g. sql.js/WASM —         │
+  │  "no such module: fts5"). Used when strategy = "exact" or    │
+  │  as fallback; engine-status keyword reflects the probe.      │
   └──────────────────────────────────┬──────────────────────────┘
                                      │ strategy = semantic|hybrid?
                                      ▼
@@ -152,7 +155,7 @@ amortizes the backfill cost across real requests without blocking startup.
 `limit` pending entries per request. Progress can be polled via
 `GET /api/memory/engine-status` (`vectorStore.needsReindex`).
 
-The `memory_vec_meta` table (migration `073_memory_vec.sql`) stores:
+The `memory_vec_meta` table (migration `083_memory_vec.sql`) stores:
 
 - `active_dim` — current vector dimension (null = not yet calibrated).
 - `embedding_signature` — `${source}:${model}:${dim}` used to detect changes.
@@ -174,7 +177,9 @@ Nine embedding and vector fields are available in `MemorySettingsExtended` in
 | `staticEnabled`          | `boolean`                                          | `false`  | Opt-in for static potion-base-8M local model     |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Enable reranking step (adds +200-500ms/req)      |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Rerank provider/model in `provider/model` format |
-| `vectorStore`            | `"sqlite-vec" \| "qdrant" \| "auto"`               | `"auto"` | Which vector backend to use                      |
+
+`rerankProviderModel` is resolved by `POST /v1/rerank` (called over loopback), so it accepts anything that route accepts: a curated cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) or an OpenAI-compatible provider node as `<node-prefix>/<model>` (e.g. `skilled-mini/bge-reranker-v2-m3` for a TEI/Infinity box). Loopback nodes are always eligible; a node on another host (LAN, Tailscale) additionally requires the `RERANK_REMOTE_PROVIDER_NODES` feature flag and must pass the provider outbound URL policy — see [Feature Flags](../reference/FEATURE_FLAGS.md). The dashboard selector lists curated providers plus local nodes; any valid `provider/model` string can be set directly via `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Which vector backend to use |
 
 These are exposed via `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
@@ -568,7 +573,7 @@ the legacy/global settings surface.
 ## Caching
 
 `src/lib/memory/store.ts` keeps an in-process LRU-ish cache
-(`MEMORY_CACHE_TTL = 5 min`, `MEMORY_MAX_CACHE_SIZE = 10 000`, with 20 %
+(`MEMORY_CACHE_TTL = 1 min`, `MEMORY_MAX_CACHE_SIZE = 500`, with 20 %
 oldest eviction) for `getMemory(id)` reads, plus a generic key/value
 `memoryCache` layer (`src/lib/memory/cache.ts`) with `get`/`set`/`invalidate`
 methods used by callers that want their own scoped cache (1 000-entry LRU,
@@ -608,7 +613,7 @@ default TTL 5 min).
   - `src/lib/db/memoryVec.ts` — CRUD for `memory_vec_meta`
   - `src/lib/db/migrations/015_create_memories.sql`,
     `022_add_memory_fts5.sql`, `023_fix_memory_fts_uuid.sql`,
-    `073_memory_vec.sql`
+    `083_memory_vec.sql`
   - `src/app/api/memory/route.ts`, `[id]/route.ts`, `health/route.ts`
   - `src/app/api/memory/retrieve-preview/route.ts`
   - `src/app/api/memory/engine-status/route.ts`
@@ -628,14 +633,15 @@ default TTL 5 min).
 
 OmniRoute's memory engine supports **four embedding sources** (`src/lib/memory/embedding/`). Each has different trade-offs in **latency, cost, model quality, and setup complexity**.
 
-### The Four Providers
+### The Embedding Sources
 
-| Provider       | Source                                     | Latency                         | Cost                 | Quality                    | Setup              |
-| -------------- | ------------------------------------------ | ------------------------------- | -------------------- | -------------------------- | ------------------ |
-| `transformers` | Local ONNX model (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU)                 | Free                 | Good                       | `npm install` only |
-| `static`       | Pre-computed vectors (cached)              | <1ms                            | Free                 | N/A (depends on cache hit) | None               |
-| `remote`       | OpenAI / Cohere / Voyage API               | ~100-300ms                      | $0.02-0.10/1M tokens | Excellent                  | API key            |
-| `cache`        | In-memory LRU layer over any source        | <1ms (hit), full latency (miss) | Free                 | Same as underlying         | None               |
+| Provider       | Source                                     | Latency                         | Cost                 | Quality                    | Setup                               |
+| -------------- | ------------------------------------------ | ------------------------------- | -------------------- | -------------------------- | ----------------------------------- |
+| `transformers` | Local ONNX model (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU)                 | Free                 | Good                       | `npm install` only                  |
+| `static`       | Pre-computed vectors (cached)              | <1ms                            | Free                 | N/A (depends on cache hit) | None                                |
+| `remote`       | OpenAI / Cohere / Voyage API               | ~100-300ms                      | $0.02-0.10/1M tokens | Excellent                  | API key                             |
+| `auto`         | Picks the best available source at runtime | Same as chosen source           | Free                 | Same as chosen source      | None                                |
+| _(cache)_      | In-memory LRU layer over any source        | <1ms (hit), full latency (miss) | Free                 | Same as underlying         | Always on (not a selectable source) |
 
 ### Decision Tree
 
@@ -1092,7 +1098,7 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Expected output: **26 tests, all passing** covering:
+Expected output: **35 tests, all passing** covering:
 
 - Constructor (2)
 - Health check (4) — success, failure 500, network error, latency

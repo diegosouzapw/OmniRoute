@@ -18,13 +18,11 @@ import path from "node:path";
 const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-8388-"));
 process.env.DATA_DIR = tmpDataDir;
 
-const { compressionSettingsUpdateSchema } = await import(
-  "../../src/shared/validation/compressionConfigSchemas.ts"
-);
+const { compressionSettingsUpdateSchema } =
+  await import("../../src/shared/validation/compressionConfigSchemas.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../src/lib/db/compression.ts");
 
 test.after(() => {
   resetDbInstance();

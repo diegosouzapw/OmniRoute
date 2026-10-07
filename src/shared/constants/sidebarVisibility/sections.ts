@@ -41,6 +41,15 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "dns",
   },
   {
+    id: "model-catalog",
+    href: "/dashboard/models",
+    i18nKey: "modelCatalog",
+    labelFallback: "Model catalog",
+    subtitleKey: "modelCatalogSubtitle",
+    subtitleFallback: "Browse models across providers",
+    icon: "view_list",
+  },
+  {
     id: "embedded-services",
     href: "/dashboard/providers/services",
     i18nKey: "embeddedServices",
@@ -253,6 +262,13 @@ const TOOLS_GROUP: SidebarItemGroup = {
       subtitleFallback: "CLI-agent fleet",
     },
     {
+      id: "orchestration",
+      href: "/dashboard/orchestration",
+      i18nKey: "orchestration",
+      subtitleKey: "orchestrationSubtitle",
+      icon: "account_tree",
+    },
+    {
       id: "agent-bridge",
       href: "/dashboard/tools/agent-bridge",
       i18nKey: "agentBridge",
@@ -295,6 +311,15 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
       i18nKey: "webhooks",
       subtitleKey: "webhooksSubtitle",
       icon: "webhook",
+    },
+    {
+      id: "log-export",
+      href: "/dashboard/log-export",
+      i18nKey: "logExport",
+      subtitleKey: "logExportSubtitle",
+      icon: "cloud_upload",
+      labelFallback: "Log export",
+      subtitleFallback: "Ship call logs out",
     },
   ],
 };
@@ -633,6 +658,13 @@ const GAMIFICATION_GROUP: SidebarItemGroup = {
       subtitleKey: "tokensSubtitle",
       icon: "toll",
     },
+    {
+      id: "gamification-admin",
+      href: "/dashboard/gamification/admin",
+      i18nKey: "gamificationAdmin",
+      subtitleKey: "gamificationAdminSubtitle",
+      icon: "admin_panel_settings",
+    },
   ],
 };
 
@@ -828,7 +860,6 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     titleKey: "devtoolsSection",
     titleFallback: "Dev Tools",
     children: DEVTOOLS_ITEMS,
-    visibility: "debug",
   },
   {
     id: "agentic-features",

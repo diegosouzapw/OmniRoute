@@ -236,10 +236,7 @@ test("TRANSLATE mode drops commentary-phase text before translateResponse (#6952
 
   // The real tool call must still be forwarded (arguments are JSON-escaped inside
   // an `input_json_delta` SSE frame, so match on the unescaped path fragment).
-  assert.ok(
-    output.includes("/tmp/real.txt"),
-    "the real function_call arguments must be forwarded"
-  );
+  assert.ok(output.includes("/tmp/real.txt"), "the real function_call arguments must be forwarded");
   assert.ok(output.includes(TOOL_NAME), "the real function_call name must be forwarded");
 });
 

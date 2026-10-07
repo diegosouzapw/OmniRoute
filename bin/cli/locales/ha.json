@@ -1,0 +1,1340 @@
+{
+  "common": {
+    "error": "Kuskure: {message}",
+    "serverOffline": "Sabar OmniRoute ba ta kan layi. Kunna ta da: omniroute serve",
+    "authRequired": "Ana buƙatar tantancewa. Saita OMNIROUTE_API_KEY ko gudanar da: omniroute setup",
+    "rateLimited": "An wuce iyakar buƙatu. Sake gwadawa bayan {seconds}s.",
+    "timeout": "Lokacin buƙata ya ƙare bayan {ms}ms.",
+    "success": "An gama.",
+    "yes": "eh",
+    "no": "a'a",
+    "confirm": "Ka tabbata? (eh/a'a)",
+    "dryRun": "[dry-run] za a {action}",
+    "cancelled": "An soke.",
+    "jsonOpt": "Fitar da sakamako a matsayin JSON",
+    "yesOpt": "Tsallake tambayar tabbatarwa"
+  },
+  "setup": {
+    "title": "Saitin OmniRoute",
+    "passwordPrompt": "Kalmar sirrin mai gudanarwa",
+    "providerPrompt": "Mai bayarwa na asali (bar shi babu komai don tsallakewa)",
+    "done": "An kammala saiti",
+    "passwordSet": "An saita kalmar sirrin mai gudanarwa",
+    "providerSet": "An saita mai bayarwa: {name}",
+    "testingProvider": "Ana gwada haɗin mai bayarwa: {name}",
+    "testPassed": "Gwajin mai bayarwa ya yi nasara",
+    "testFailed": "Gwajin mai bayarwa ya gaza: {error}",
+    "loginEnabled": "Shiga: an kunna (an sabunta kalmar sirri)",
+    "loginDisabled": "Shiga: an kashe",
+    "providerInfo": "Mai bayarwa: {info}",
+    "opencode": "Shigar da kuma saita @omniroute/opencode-plugin da aka haɗa don OpenCode"
+  },
+  "doctor": {
+    "title": "Mai Binciken OmniRoute",
+    "dbOk": "Ma'ajiyar bayanai: Lafiya ({path})",
+    "dbMissing": "Ma'ajiyar bayanai: ba a fara ta ba — gudanar da `omniroute setup`",
+    "portOk": "Tashar {port}: tana samuwa",
+    "portConflict": "Tashar {port}: wani tsari yana amfani da ita",
+    "encryptionOk": "Maɓallin ɓoyewa: an saita",
+    "encryptionMissing": "Maɓallin ɓoyewa ya ɓace — gudanar da `omniroute setup`",
+    "allGood": "Duk gwaje-gwaje sun yi nasara.",
+    "warnings": "Gargaɗi {count} — duba sama."
+  },
+  "providers": {
+    "title": "Masu Bayarwa",
+    "noProviders": "Ba a saita wani mai bayarwa ba. Gudanar da: omniroute setup",
+    "testing": "Ana gwada {name}...",
+    "available": "Akwai masu bayarwa {count}",
+    "connected": "An haɗa",
+    "disconnected": "An katse haɗin",
+    "validationFailed": "Tabbatarwa ta gaza: {error}",
+    "metrics": {
+      "description": "Nuna ma'aunin aikin mai samarwa (jinkiri, ƙimar nasara, farashi)",
+      "provider": "Tace ta ID na mai samarwa",
+      "connection_id": "Tace ta ID na haɗi",
+      "period": "Tsawon lokaci: 1h|6h|24h|7d|30d (tsoho: 24h)",
+      "metric": "Mayar da hankali kan takamaiman filin ma'auni",
+      "sort": "Jera bisa fili (daga mafi girma zuwa mafi ƙanƙanta)",
+      "limit": "Matsakaicin adadin layuka (tsoho: 50)",
+      "watch": "Sabunta kowane 5s (yanayin kai-tsaye)",
+      "compare": "ID na masu samarwa da aka raba da waƙafi don kwatantawa gefe da gefe"
+    },
+    "metric_single": {
+      "description": "Samo ƙimar ma'auni guda ɗaya don takamaiman haɗi"
+    },
+    "rotate": {
+      "description": "Sauya maɓallin API na upstream don haɗin mai samarwa",
+      "newKeyOpt": "Sabuwar ƙimar maɓallin API (a guje shi: fi son --from-env)",
+      "fromEnvOpt": "Karanta sabon maɓalli daga canjin muhalli VAR",
+      "oauthOpt": "Fara tsarin sake tabbatar da OAuth a maimakon haka",
+      "skipTestOpt": "Tsallake gwajin haɗi bayan sauyawa",
+      "dryRunOpt": "Buga abin da zai canza ba tare da rubutawa ba",
+      "confirmPrompt": "A maye gurbin maɓallin API na haɗin \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Za a sauya maɓallin \"{name}\" ({id}). Ba a yi wani canji ba.",
+      "oauthHint": "Haɗin OAuth — gudanar da: omniroute oauth {provider}",
+      "envVarEmpty": "Ba a saita canjin muhalli {var} ba ko kuma babu komai a cikinsa.",
+      "success": "An sauya maɓallin \"{name}\". Gudanar da `providers test {id}` don tabbatarwa.",
+      "testPassed": "Gwajin bayan sauyawa ya yi nasara.",
+      "testFailed": "Gwajin bayan sauyawa ya gaza: {error}"
+    },
+    "status": {
+      "description": "Nuna lafiyar maɓalli ga duk haɗe-haɗen masu samarwa (shekaru, ƙarewar wa'adi, lokacin dakatawa)",
+      "providerOpt": "Tace ta sunan mai samarwa",
+      "header": "ID         Mai samarwa    Suna                     Matsayin ƙarewa  Matsayin gwaji  Dakatawa har zuwa",
+      "noData": "Babu bayanan haɗin mai samarwa da ake da su.",
+      "requiresServer": "providers status yana buƙatar sabar OmniRoute ta kasance tana aiki."
+    }
+  },
+  "keys": {
+    "title": "Maɓallan API",
+    "addDescription": "Ƙara ko sabunta maɓallin API na mai samarwa",
+    "listDescription": "Jera duk maɓallan API da aka saita",
+    "removeDescription": "Cire maɓallin API na mai samarwa",
+    "regenerateDescription": "Sake samar da maɓallin API na OmniRoute",
+    "revokeDescription": "Soke maɓallin API na OmniRoute",
+    "revealDescription": "Bayyana ƙimar maɓallin API da aka ɓoye",
+    "usageDescription": "Nuna amfanin baya-bayan nan na maɓallin API",
+    "usageLimitOpt": "Adadin buƙatun baya-bayan nan",
+    "rotateDescription": "Samar da sabon maɓalli kuma a soke tsohon",
+    "graceOpt": "Lokacin rangwame (ms) kafin a soke tsohon maɓallin",
+    "stdinOpt": "Karanta maɓallin API daga stdin maimakon hujjar umarni",
+    "added": "An ƙara maɓalli don {provider}.",
+    "removed": "An cire maɓalli.",
+    "listed": "Maɓalli {count}.",
+    "noKeys": "Ba a saita wasu maɓallai ba.",
+    "noUsage": "Ba a sami bayanan amfani ba.",
+    "confirmRemove": "A cire maɓalli {id}?",
+    "confirmRegenerate": "A sake samar da maɓalli {id}?",
+    "confirmRevoke": "A soke maɓalli {id}?",
+    "confirmRotate": "A sauya maɓalli {id}? (za a soke tsohon maɓallin bayan lokacin rangwame)",
+    "regenerated": "An sake samarwa. Sabon maɓalli: {key}",
+    "revoked": "An soke maɓalli {id}.",
+    "rotated": "An sauya maɓalli {id}. ID na sabon maɓalli: {newId}",
+    "revealWarning": "⚠  Wannan zai nuna cikakken maɓallin ba tare da ɓoyewa ba. Tabbatar allonka yana keɓantacce.",
+    "providerRequired": "Ana buƙatar mai samarwa.",
+    "keyRequired": "Ana buƙatar maɓallin API.",
+    "stdinEmpty": "Ba a bayar da maɓallin API ta stdin ba.",
+    "unknownProvider": "Mai samarwa da ba a sani ba: {provider}",
+    "policy": {
+      "title": "Manufar Maɓalli",
+      "showDescription": "Nuna manufar iyakar buƙatu/kuɗi ta maɓalli",
+      "setDescription": "Saita manufar iyakar buƙatu/kuɗi ta maɓalli",
+      "rateLimitOpt": "Matsakaicin buƙatu a minti ɗaya",
+      "maxCostOpt": "Matsakaicin kuɗi a rana (USD)",
+      "allowedModelsOpt": "Jerin samfuran da aka yarda da su, waɗanda aka raba da waƙafi",
+      "nothingToSet": "Ba a bayar da wani filin manufa ba. Yi amfani da --rate-limit, --max-cost, ko --allowed-models.",
+      "updated": "An sabunta manufar."
+    },
+    "expiration": {
+      "title": "Ƙarewar Wa'adin Maɓalli",
+      "listDescription": "Jera maɓallan da wa'adinsu zai ƙare nan ba da jimawa ba",
+      "daysOpt": "Nuna maɓallan da wa'adinsu zai ƙare cikin kwanaki N",
+      "none": "Babu maɓallan da wa'adinsu zai ƙare cikin kwanaki {days}.",
+      "listTitle": "Maɓallan da wa'adinsu zai ƙare cikin kwanaki {days}:"
+    }
+  },
+  "authExport": {
+    "description": "Fitar da bayanan shaidar masu samarwa da aka WARWARE ƁOYENSU (na gida kawai, fitarwa a bayyane)",
+    "idOpt": "Fitar da haɗin da ya dace da wannan id/suna/mai samarwa kawai",
+    "formatOpt": "Tsarin fitarwa: json ko env",
+    "outOpt": "Rubuta fitarwar zuwa fayil maimakon stdout (za a rubuta shi da izinin 0600)",
+    "forceOpt": "Tabbatar cewa ka fahimci wannan yana bugawa/rubuta sirrika a bayyane",
+    "warning": "⚠ Wannan yana bugawa/rubuta maɓallan API da token na OAuth da aka WARWARE ƁOYENSU a bayyane. Tabbatar allonka, tarihin shell, da duk wani fayil ɗin fitarwa sun kasance a keɓance.",
+    "confirmHeading": "⚠ GARGAƊI: wannan yana fitar da bayanan shaidar masu samarwa da aka WARWARE ƁOYENSU a bayyane",
+    "confirmBody": "Wannan umarnin yana warware ɓoye bayanai sannan ya buga/rubuta apiKey, accessToken, refreshToken, da\nidToken na haɗin da aka zaɓa. Ɗauki fitarwar a matsayin sirri.",
+    "confirmFooter": "Don tabbatarwa, gudanar da:\n  omniroute auth export --force",
+    "missingKey": "Ana buƙatar STORAGE_ENCRYPTION_KEY don fitar da bayanan shaidarka.",
+    "notFound": "Ba a sami haɗin ba: {id}",
+    "invalidFormat": "Tsari mara inganci: {format}. Yi amfani da json ko env."
+  },
+  "stream": {
+    "description": "Watsa amsar taɗi tare da hanyoyin dubawa na SSE",
+    "file": "Karanta saƙon umarni daga fayil",
+    "stdin": "Karanta saƙon umarni daga stdin",
+    "model": "ID na samfurin (tsoho: auto)",
+    "system": "Saƙon umarni na tsarin",
+    "combo": "Tilasta amfani da takamaiman combo ta suna",
+    "max_tokens": "Matsakaicin adadin tokens a cikin amsa",
+    "responses_api": "Yi amfani da /v1/responses maimakon /v1/chat/completions",
+    "raw": "Buga layukan SSE kai tsaye yadda aka karɓe su",
+    "debug": "Buga bayanin lokacin kowane yanki zuwa stderr",
+    "save": "Ajiye duk abubuwan da suka faru na SSE zuwa fayil na .jsonl",
+    "error": {
+      "empty_prompt": "Kuskure: ana buƙatar saƙon umarni (positional arg, --file, ko --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Nazarin amfani, kasafin kuɗi, ƙayyadaddun amfani, da rajistoci",
+    "analytics": {
+      "description": "Nuna haɗaɗɗen nazarin amfani",
+      "period": "Tsawon lokaci: 1d|7d|30d|90d|ytd|all (tsoho: 30d)",
+      "provider": "Tace ta ID na mai samarwa"
+    },
+    "budget": {
+      "description": "Sarrafa kasafin kuɗin farashi",
+      "set": {
+        "scope": "Iyakokin kasafin kuɗi (tsoho: global)",
+        "period": "Lokacin kasafin kuɗi: daily|weekly|monthly (tsoho: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Nuna amfani da ƙayyadadden rabon mai samarwa",
+      "provider": "Tace ta ID na mai samarwa",
+      "check": "Nuna ko akwai isasshen rabo don sabuwar buƙata"
+    },
+    "logs": {
+      "description": "Nuna rajistocin kiran buƙata",
+      "limit": "Adadin bayanan rajista da za a dawo da su (tsoho: 100)",
+      "search": "Tambayar nema don tace rajistoci",
+      "since": "Dawo da rajistoci tun daga wannan hatimin lokaci",
+      "follow": "Ci gaba da bibiyar sabbin bayanan rajista",
+      "api_key": "Tace rajistoci ta API key"
+    },
+    "utilization": {
+      "description": "Nuna ma'aunin amfani da API key",
+      "api_key": "Tace ta API key"
+    },
+    "history": {
+      "description": "Nuna tarihin buƙata",
+      "limit": "Adadin bayanan tarihi (tsoho: 100)"
+    },
+    "proxy_logs": {
+      "description": "Nuna rajistocin buƙata na matakin proxy",
+      "limit": "Adadin bayanan rajistar proxy (tsoho: 100)"
+    }
+  },
+  "cost": {
+    "description": "Nuna rahoton farashi tare da rarrabewa bisa mai samarwa, samfuri, combo, ko API key",
+    "period": "Tsawon lokaci: 1d|7d|30d|90d|ytd|all (tsoho: 30d)",
+    "since": "Ranar farawa (tsarin ISO, misali 2026-01-01) — tana maye gurbin --period",
+    "until": "Ranar ƙarewa (tsarin ISO)",
+    "group_by": "Rarraba sakamako ta: provider|model|api-key|combo|day (tsoho: provider)",
+    "api_key_filter": "Tace ta takamaiman mabuɗin API",
+    "limit": "Matsakaicin adadin layukan da za a nuna (tsoho: 100)"
+  },
+  "simulate": {
+    "description": "Kwaikwayon zaɓin hanya ba tare da aiwatarwa ba — nuna waɗanne masu samarwa za a zaɓa ba tare da kiran upstream ba",
+    "file": "Loda cikakken jikin buƙata daga fayil ɗin JSON",
+    "model": "ID na samfuri (tsoho: auto)",
+    "combo": "Tilasta amfani da takamaiman combo ta suna",
+    "reasoning": "Matakin ƙoƙarin tunani (low|medium|high)",
+    "thinking": "Kasafin token na tsawaitaccen tunani",
+    "explain": "Buga bishiyar fallback da kewayon farashi zuwa stderr",
+    "noCombo": "Ba a sami combo mai dacewa ba. Saita ɗaya da: omniroute combo create"
+  },
+  "chat": {
+    "description": "Aika saƙon tattaunawa na sau ɗaya zuwa OmniRoute",
+    "file": "Karanta saƙon umarni daga fayil",
+    "stdin": "Karanta saƙon umarni daga stdin",
+    "system": "Saƙon umarnin tsarin",
+    "model": "ID na samfuri (tsoho: auto)",
+    "max_tokens": "Matsakaicin adadin token a cikin amsa",
+    "temperature": "Yanayin samfurawa (0–2)",
+    "top_p": "Samfurawar nucleus ta Top-p",
+    "reasoning_effort": "Matakin ƙoƙarin tunani (low|medium|high)",
+    "thinking_budget": "Kasafin token na tsawaitaccen tunani",
+    "combo": "Tilasta amfani da takamaiman combo ta suna",
+    "responses_api": "Yi amfani da /v1/responses maimakon /v1/chat/completions",
+    "stream": "Yaɗa amsa a hankali",
+    "no_history": "Kada a adana zuwa ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Kuskure: ana buƙatar saƙon umarni (positional arg, --file, ko --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Kaddamar da uwar garken OmniRoute (aikin tsoho)",
+    "starting": "Ana kaddamar da uwar garken OmniRoute a tashar {port}...",
+    "ready": "A shirye yake a http://localhost:{port}",
+    "stopping": "Ana dakatar da uwar garke (PID {pid})...",
+    "stopped": "An dakatar da uwar garke.",
+    "notRunning": "Uwar garken ba ya aiki.",
+    "port": "Tashar da za a saurara a kanta (tsoho: 20128)",
+    "no_open": "Kada a buɗe burauza ta atomatik",
+    "daemon": "Gudanar da uwar garke a matsayin daemon na bayan fage",
+    "log": "Nuna rajistan ayyukan uwar garke a nan take",
+    "no_recovery": "Kashe sake farawa ta atomatik idan ya rushe (yanayin debugging)",
+    "max_restarts": "Matsakaicin sake farawa bayan rushewa cikin daƙiƙa 30 kafin a haƙura (tsoho: 2)",
+    "tray": "Fara a tiren tsarin (na kwamfutar tebur kawai, sai an zaɓa)",
+    "no_tray": "Kashe gunkin tiren tsarin",
+    "ready_timeout": "Lokacin ƙarewar gwajin shiri a ms (har ila yau OMNIROUTE_READY_TIMEOUT_MS, tsoho 60000)",
+    "tls_cert": "Hanyar zuwa takardar shaidar TLS (PEM) don samar da HTTPS (haka kuma OMNIROUTE_TLS_CERT)",
+    "tls_key": "Hanyar zuwa maɓallin sirri na TLS (PEM) don samar da HTTPS (haka kuma OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Ajiyar madadin",
+    "description": "Ƙirƙiri ajiyar madadin bayanan OmniRoute",
+    "creating": "Ana ƙirƙirar ajiyar madadin...",
+    "done": "An adana ajiyar madadin zuwa {path}",
+    "noFiles": "Babu fayilolin da za a yi wa ajiyar madadin (ba a fara amfani da ma'ajiyar bayanai ba)",
+    "failed": "Ajiyar madadin ta gaza: {error}",
+    "restoring": "Ana maidowa daga {path}...",
+    "restored": "An kammala maidowa.",
+    "restoreDescription": "Maido daga ajiyar madadin",
+    "listTitle": "Ajiyoyin Madadin da Ake da Su",
+    "noBackups": "Ba a sami ajiyoyin madadin ba.",
+    "notFound": "Ba a sami ajiyar madadin ba: {name}",
+    "confirmRestore": "A rubuta a kan bayanan yanzu da ajiyar madadin daga {ts}?",
+    "createDescription": "Ƙirƙiri ajiyar madadin bayanan OmniRoute",
+    "nameOpt": "Sunan ajiyar madadin na musamman",
+    "cloudOpt": "Loda ajiyar madadin zuwa ma'ajiyar girgije",
+    "encryptOpt": "Rufaffen ajiyar madadin da AES-256-GCM",
+    "keyFileOpt": "Hanyar zuwa fayil mai ɗauke da kalmar sirrin ɓoyewa",
+    "excludeOpt": "Ware fayil da ya dace da tsari (ana iya maimaitawa)",
+    "retentionOpt": "Ajiye ajiyoyin madadin N na ƙarshe kawai",
+    "passphrasePrompt": "Kalmar sirrin ɓoyewa:",
+    "noPassphrase": "Ana buƙatar kalmar sirri don ajiyar madadin mai rufaffiyar ɓoyewa.",
+    "cloudFailed": "Gargaɗi: lodawa zuwa girgije ya gaza. An adana ajiyar madadin a na'urar.",
+    "cloudUploaded": "An loda ajiyar madadin zuwa girgije: {url}",
+    "auto": {
+      "title": "Jadawalin Ajiyar Madadin",
+      "enableDescription": "Kunna ajiyoyin madadin na atomatik bisa jadawali",
+      "disableDescription": "Kashe ajiyoyin madadin na atomatik bisa jadawali",
+      "statusDescription": "Nuna halin jadawalin ajiyar madadin na yanzu",
+      "cronOpt": "Bayanin Cron don jadawali (tsoho: kullum da ƙarfe 3 na safe)",
+      "enabled": "An kunna ajiyar madadin ta atomatik (cron: {cron}).",
+      "hint": "omniroute serve yana karanta jadawalin lokacin farawa.",
+      "disabled": "An kashe ajiyar madadin ta atomatik.",
+      "notConfigured": "Ba a saita jadawalin ajiyar madadin ba."
+    }
+  },
+  "health": {
+    "description": "Duba lafiyar sabar da halin sassa",
+    "noServer": "Sabar ba ta aiki. Fara da: omniroute serve",
+    "title": "Lafiya",
+    "status": "Matsayi: {status}",
+    "uptime": "Tsawon lokacin aiki: {uptime}",
+    "requests": "Buƙatu (awa 24): {count}",
+    "cost": "Kuɗi (awa 24): ${cost}"
+  },
+  "quota": {
+    "description": "Nuna yadda ake amfani da ƙa'idar adadin mai samarwa",
+    "noServer": "Sabar ba ta aiki. Fara da: omniroute serve",
+    "noData": "Babu bayanin ƙa'idar adadi."
+  },
+  "cache": {
+    "description": "Sarrafa ma'ajiyar martani",
+    "noServer": "Sabar ba ta aiki. Fara da: omniroute serve",
+    "cleared": "An share ma'ajiyar.",
+    "clearFailed": "An kasa share ma'ajiyar."
+  },
+  "redis": {
+    "description": "Ƙaddamar da kwantenar Redis na cikin gida da dannawa 1 (Podman ko Docker) don ma'ajiyar OmniRoute da bin diddigin ƙa'idar adadi"
+  },
+  "test": {
+    "description": "Gwada haɗin mai samarwa",
+    "noServer": "Sabar ba ta aiki. Fara da: omniroute serve",
+    "testing": "Ana gwada {provider} / {model}...",
+    "passed": "Haɗin ya yi nasara!",
+    "failed": "Haɗin ya gaza: {error}",
+    "allProvidersOpt": "Gwada duk masu samarwa da aka saita",
+    "latencyOpt": "Nuna ma'aunin jinkiri (matsakaici/mafi ƙanƙanta/mafi girma a ms)",
+    "repeatOpt": "Maimaita gwajin sau N sannan a tattara sakamakon",
+    "compareOpt": "Samfuran da waƙafi ya raba don kwatantawa (misali gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Adana sakamakon a fayil na JSON",
+    "saved": "An adana sakamakon zuwa {path}",
+    "compareTitle": "Kwatanta Samfura",
+    "compareMinTwo": "Ana buƙatar aƙalla samfura biyu don --compare (waƙafi ya raba su)",
+    "noProviders": "Ba a saita wani mai samarwa ba. Ƙara ɗaya da: omniroute keys add"
+  },
+  "update": {
+    "checking": "Ana bincika sabuntawa...",
+    "upToDate": "An riga an sabunta zuwa na baya-bayan nan ({version}).",
+    "available": "Akwai sabuntawa: {current} → {latest}",
+    "installing": "Ana girka {latest}...",
+    "done": "An sabunta zuwa {latest}. Sake kunna sabar don aiwatarwa."
+  },
+  "mcp": {
+    "title": "Sabar MCP",
+    "running": "Sabar MCP tana aiki ({transport})",
+    "stopped": "An dakatar da sabar MCP.",
+    "restarted": "An sake kunna sabar MCP.",
+    "stoppedHint": "Gudanar da `omniroute mcp enable` don kunna shi.",
+    "enabled": "An kunna sabar MCP.",
+    "disabled": "An kashe sabar MCP.",
+    "enable": {
+      "description": "Kunna sabar MCP",
+      "transport": "Hanyar jigilar da za a yi amfani da ita: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Kashe sabar MCP"
+    },
+    "call": {
+      "description": "Kira kayan aikin MCP kai tsaye",
+      "args": "Abun hujjojin JSON (a cikin layi)",
+      "args_file": "Hanyar fayil ɗin hujjojin JSON",
+      "stream": "Yi amfani da maƙurar watsawa kai tsaye (/api/mcp/stream)",
+      "scope": "Iyakacin izini da ake buƙata (ana iya maimaitawa, misali read:health)"
+    },
+    "scopes": {
+      "description": "Jera iyakokin MCP da ake da su",
+      "tool": "Nuna iyakokin da wani takamaiman kayan aiki ke buƙata"
+    },
+    "tools": {
+      "description": "Bincika kayan aikin MCP",
+      "list": {
+        "description": "Jera duk kayan aikin MCP",
+        "scope": "Tace bisa iyaka"
+      },
+      "info": {
+        "description": "Nuna bayanan metadata na kayan aikin MCP"
+      },
+      "schema": {
+        "description": "Nuna tsarin JSON na shigarwa/fitarwa na kayan aikin MCP",
+        "io": "Nau'in tsari: input|output (tsoho: input)"
+      }
+    },
+    "audit": {
+      "description": "Rajistan binciken MCP (wani suna na audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Jera ƙwarewar A2A da ake da su daga katin wakili"
+    },
+    "invoke": {
+      "description": "Kira wata ƙwarewar A2A kuma dawo da ID na aikin",
+      "input": "Abun shigarwa na JSON",
+      "input_file": "Hanyar zuwa fayil ɗin shigarwa na JSON",
+      "wait": "Jira aikin ya kammala kafin a dawo",
+      "timeout": "Iyakar lokacin jiran kammalawa a ms (tsoho: 60000)"
+    },
+    "tasks": {
+      "description": "Sarrafa ayyukan A2A",
+      "list": {
+        "status": "Tace bisa matsayi",
+        "skill": "Tace bisa ID na ƙwarewa"
+      },
+      "watch": {
+        "description": "Duba matsayin aiki akai-akai har sai ya kammala"
+      },
+      "stream": {
+        "description": "Watsa abubuwan da ke faruwa yayin aiwatar da aiki ta SSE"
+      },
+      "logs": {
+        "description": "Nuna saƙonnin aiki da kayayyakin da aka samar"
+      }
+    }
+  },
+  "policy": {
+    "description": "Sarrafa manufofin ba da izini na OmniRoute",
+    "list": {
+      "description": "Jera manufofi",
+      "kind": "Tace bisa nau'i (allow|deny|rate-limit|cost-cap)",
+      "scope": "Tace bisa iyaka (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Samo cikakkun bayanan manufa ta ID"
+    },
+    "create": {
+      "description": "Ƙirƙiri manufa daga fayil ɗin JSON",
+      "file": "Hanyar zuwa fayil ɗin JSON na manufa"
+    },
+    "update": {
+      "description": "Sabunta manufa daga fayil ɗin JSON",
+      "file": "Hanyar zuwa fayil ɗin JSON na manufa"
+    },
+    "delete": {
+      "description": "Share manufa ta ID",
+      "yes": "Tsallake tambayar tabbatarwa"
+    },
+    "evaluate": {
+      "description": "Gwada kimanta manufa ba tare da aiwatarwa ba (exit 0=allowed, 4=denied)",
+      "api_key": "Maɓallin API da za a kimanta",
+      "action": "Aikin da za a bincika (misali chat, embed, admin)",
+      "resource": "Hanyar albarkatu ko mai ganowa",
+      "context": "Ƙarin mahalli a matsayin abun JSON"
+    },
+    "export": {
+      "description": "Fitar da duk manufofi zuwa fayil ɗin JSON"
+    },
+    "import": {
+      "description": "Shigo da manufofi daga fayil ɗin JSON",
+      "overwrite": "Maye gurbin manufofin da suke akwai masu ID iri ɗaya"
+    }
+  },
+  "compression": {
+    "description": "Saita kuma bincika tsarin matse bayanai na OmniRoute",
+    "status": {
+      "description": "Nuna halin matse bayanai da saitunan yanzu"
+    },
+    "configure": {
+      "description": "Saita saitunan matse bayanai",
+      "engine": "Injin matse bayanai (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Ƙarfin Caveman 0.0–1.0",
+      "rtk_budget": "Kasafin token na RTK",
+      "language_pack": "Kunshin harshe da za a kunna"
+    },
+    "engine": {
+      "description": "Samo ko saita injin matse bayanai mai aiki"
+    },
+    "combos": {
+      "description": "Sarrafa ƙididdigar haɗe-haɗen matse bayanai"
+    },
+    "rules": {
+      "description": "Sarrafa ƙa’idojin matse bayanai",
+      "add": {
+        "pattern": "Tsarin da za a dace da shi (regex ko field:pattern)",
+        "action": "Aiki: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Jera kunshe-kunshen harshe na matse bayanai da ake da su"
+    },
+    "preview": {
+      "description": "Yi samfotin tasirin matse bayanai kan buƙata",
+      "file": "Hanyar fayil ɗin JSON na buƙata"
+    }
+  },
+  "tunnel": {
+    "title": "Ramuka",
+    "listDescription": "Jera tunnels masu aiki",
+    "createDescription": "Ƙirƙiri tunnel",
+    "created": "An ƙirƙiri tunnel: {url}",
+    "stopped": "An dakatar da tunnel.",
+    "confirmStop": "A dakatar da tunnel {id}?",
+    "stopDescription": "Dakatar da tunnel",
+    "statusDescription": "Nuna cikakken halin tunnel",
+    "logsDescription": "Nuna rajistan ayyukan tunnel",
+    "infoDescription": "Nuna cikakkun bayanan saitin tunnel",
+    "rotateDescription": "Samar da sabon URL na tunnel",
+    "tailOpt": "Adadin layukan rajista da za a nuna",
+    "typeRequired": "Ana buƙatar nau'in tunnel.",
+    "noLogs": "Babu rajistan ayyuka.",
+    "notAvailable": "Ba a samun bayanan tunnel.",
+    "noTunnels": "Babu tunnels masu aiki.",
+    "infoTitle": "Bayanan tunnel: {type}",
+    "rotated": "An sauya URL na tunnel: {url}",
+    "confirmRotate": "A sauya tunnel {type}? (za a samar da sabon URL)"
+  },
+  "stop": {
+    "description": "Dakatar da sabar OmniRoute",
+    "stopping": "Ana dakatar da sabar (PID {pid})...",
+    "stopped": "An dakatar da sabar.",
+    "notRunning": "Babu sabar da ke aiki.",
+    "portFallback": "Ba a sami fayil ɗin PID ba, ana ƙoƙarin dakatarwa ta hanyar port..."
+  },
+  "restart": {
+    "description": "Sake kunna sabar OmniRoute",
+    "restarting": "Ana sake kunna sabar OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Buɗe dashboard na OmniRoute a cikin burauza",
+    "opening": "Ana buɗe dashboard a {url}",
+    "urlOnly": "Buga URL na dashboard ba tare da buɗe burauza ba",
+    "tui": "Buɗe dashboard na TUI mai hulɗa (UI na tasha, shafuka 7)"
+  },
+  "models": {
+    "description": "Jera samfuran da ake da su (yana buƙatar sabar)",
+    "search": "Tace samfura ta id, suna, mai samarwa, ko bayani",
+    "noServer": "Sabar ba ta aiki. Fara da: omniroute serve",
+    "noModels": "Ba a sami samfura ba."
+  },
+  "audit": {
+    "description": "Samun damar rajistan bin ƙa’ida da na binciken MCP",
+    "source": "Tushen rajista: all|compliance|mcp (tsoho: all)",
+    "since": "Mayar da shigarwar daga wannan hatimin lokaci (ISO 8601)",
+    "until": "Mayar da shigarwar har zuwa wannan hatimin lokaci (ISO 8601)",
+    "tail": {
+      "description": "Nuna shigarwar rajistan bincike na kwanan nan",
+      "follow": "Ci gaba da bin sabbin shigarwa (bincike kowane 2s)",
+      "limit": "Matsakaicin adadin shigarwar da za a nuna (tsoho: 100)"
+    },
+    "search": {
+      "description": "Nemo shigarwar rajistan bincike ta kalmar nema",
+      "limit": "Matsakaicin adadin sakamako (tsoho: 200)",
+      "actor": "Tace ta ID na mai aiwatarwa",
+      "action": "Tace ta sunan aiki"
+    },
+    "export": {
+      "description": "Fitar da rajistan bincike zuwa fayil",
+      "format": "Tsarin fitarwa: jsonl|csv (tsoho: jsonl)"
+    },
+    "stats": {
+      "description": "Nuna ƙididdigar rajistan bincike",
+      "period": "Tsawon lokaci: 1d|7d|30d (tsoho: 7d)"
+    },
+    "get": {
+      "description": "Samo shigarwa guda ɗaya ta ID daga rajistan bincike"
+    }
+  },
+  "skills": {
+    "description": "Sarrafa ƙwarewar OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Jera ƙwarewar da aka girka",
+      "type": "Tace ta nau’i (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Nuna ƙwarewar da aka kunna kawai",
+      "disabled": "Nuna ƙwarewar da aka kashe kawai",
+      "api_key": "Tace ta mabuɗin API"
+    },
+    "get": {
+      "description": "Samo bayanan ƙwarewa ta ID"
+    },
+    "install": {
+      "description": "Girka ƙwarewa daga fayil ko URL",
+      "from_file": "Hanyar zuwa fayil ɗin ma’anar ƙwarewa na JSON",
+      "from_url": "URL na ma’anar ƙwarewa ta nesa",
+      "type": "Nau’in ƙwarewa (sandbox|custom|hybrid)",
+      "enable": "Kunna ƙwarewa bayan girkawa"
+    },
+    "enable": {
+      "description": "Kunna ƙwarewa ta ID"
+    },
+    "disable": {
+      "description": "Kashe ƙwarewa ta ID",
+      "yes": "Tsallake tambayar tabbatarwa"
+    },
+    "delete": {
+      "description": "Share fasaha ta amfani da ID",
+      "yes": "Tsallake saƙon neman tabbatarwa"
+    },
+    "execute": {
+      "description": "Gudanar da fasaha ta amfani da ID",
+      "input": "Abin shigarwa na JSON",
+      "input_file": "Hanyar fayil ɗin shigarwa na JSON",
+      "timeout": "Iyakar lokacin gudanarwa a ms (tsoho: 30000)"
+    },
+    "executions": {
+      "description": "Jera tarihin gudanar da fasaha",
+      "skill": "Tace ta ID na fasaha",
+      "limit": "Matsakaicin sakamako (tsoho: 50)",
+      "status": "Tace ta matsayi (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Sarrafa fasahohin da aka girka ta SSH"
+    },
+    "marketplace": {
+      "description": "Bincika kuma girka fasahohi daga kasuwa"
+    },
+    "mp": {
+      "search": {
+        "description": "Nemo fakitoci a kasuwa",
+        "category": "Tace ta rukuni",
+        "tag": "Tace ta alama",
+        "limit": "Matsakaicin sakamako (tsoho: 30)",
+        "sort": "Tsara bisa: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Nuna bayanan fakiti da readme"
+      },
+      "install": {
+        "description": "Girka fakitin kasuwa",
+        "version": "Sigar fakiti (tsoho: latest)",
+        "enable": "Kunna bayan girkawa",
+        "yes": "Tsallake saƙon neman tabbatarwa"
+      },
+      "categories": {
+        "description": "Jera rukunonin kasuwa"
+      },
+      "featured": {
+        "description": "Nuna fitattun fakitocin kasuwa"
+      }
+    }
+  },
+  "memory": {
+    "description": "Sarrafa ma'ajiyar tattaunawar OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Nemo shigarwar ma'ajiya ta tambayar ma'ana",
+      "type": "Tace ta nau'in ma'ajiya (user|feedback|project|reference)",
+      "limit": "Matsakaicin sakamako (tsoho: 20)",
+      "api_key": "Tace ta API key",
+      "token_budget": "Ƙayyade jimillar tokens a sakamako"
+    },
+    "add": {
+      "description": "Ƙara sabuwar shigarwar ma'ajiya",
+      "content": "Abun rubutun ma'ajiya",
+      "file": "Karanta abun ciki daga fayil",
+      "type": "Nau'in ma'ajiya (tsoho: user)",
+      "metadata": "Abin metadata na JSON",
+      "api_key": "Haɗa da API key"
+    },
+    "clear": {
+      "description": "Share shigarwar ma'ajiya da suka dace da matatu",
+      "type": "Tace ta nau'i",
+      "older": "Share shigarwar da suka girmi tsawon lokaci (30d, 6m, 1y)",
+      "api_key": "Tace ta API key",
+      "yes": "Tsallake saƙon neman tabbatarwa"
+    },
+    "list": {
+      "description": "Jera bayanan ƙwaƙwalwa ba tare da matsayin bincike ba",
+      "type": "Tace ta nau'i",
+      "limit": "Matsakaicin sakamako (tsoho: 100)",
+      "api_key": "Tace ta API key"
+    },
+    "get": {
+      "description": "Samo shigarwar ƙwaƙwalwa guda ɗaya ta ID"
+    },
+    "delete": {
+      "description": "Share shigarwar ƙwaƙwalwa ta ID",
+      "yes": "Tsallake saƙon neman tabbatarwa"
+    },
+    "health": {
+      "description": "Nuna lafiyar tsarin ƙwaƙwalwa (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Sarrafa haɗin masu samar da OAuth",
+    "providers": {
+      "description": "Jera masu samarwa masu goyon bayan OAuth da nau'ikan tsarukan izininsu"
+    },
+    "start": {
+      "description": "Fara tsarin ba da izinin OAuth ga mai samarwa",
+      "provider": "ID na mai samarwa (gemini, copilot, cursor, …)",
+      "no_browser": "Buga URL kawai — kar a buɗe burauza",
+      "import_system": "Shigo da bayanan izini ta atomatik daga saitunan tsarin gida",
+      "social": "Mai samar da shiga ta hanyar kafar sada zumunta (google|github) — ana buƙatarsa don kiro",
+      "timeout": "Iyakar lokacin jiran ba da izini a ms (tsoho: 300000)"
+    },
+    "status": {
+      "description": "Jera haɗin OAuth masu aiki",
+      "provider": "Tace ta ID na mai samarwa"
+    },
+    "revoke": {
+      "description": "Soke haɗin OAuth",
+      "provider": "ID na mai samarwar da za a soke",
+      "connection_id": "Soke takamaiman haɗi ta ID",
+      "yes": "Tsallake saƙon neman tabbatarwa"
+    }
+  },
+  "cloud": {
+    "description": "Sarrafa ayyukan wakilan AI na gajimare (codex, devin, jules)",
+    "agents": {
+      "description": "Jera wakilan gajimare da ake da su"
+    },
+    "agent": {
+      "description": "Sarrafa ayyukan wakilin gajimare na {agent}",
+      "auth": {
+        "description": "Ba wa {agent} izini ta OAuth"
+      }
+    },
+    "task": {
+      "description": "Sarrafa ayyukan wakilan gajimare",
+      "create": {
+        "description": "Ƙirƙiri sabon aikin wakili",
+        "title": "Taken aiki (tsoho shi ne haruffa 80 na farko na umarni)",
+        "prompt": "Rubutun umarnin aiki",
+        "prompt_file": "Karanta umarni daga fayil",
+        "repo": "URL na ma'ajiyar da za a kwafa don aikin",
+        "branch": "Sunan reshen da za a yi amfani da shi",
+        "metadata": "Abun metadata na JSON"
+      },
+      "list": {
+        "description": "Jera ayyukan wakili",
+        "status": "Tace ta matsayi (running|completed|failed|cancelled)",
+        "limit": "Matsakaicin sakamako (tsoho: 50)"
+      },
+      "get": {
+        "description": "Samo cikakkun bayanan aiki ta ID"
+      },
+      "status": {
+        "description": "Buga matsayin aiki (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Soke aiki da ke gudana",
+        "yes": "Tsallake tambayar tabbatarwa"
+      },
+      "approve": {
+        "description": "Amince da shirin wakilin don fara aiwatarwa"
+      },
+      "message": {
+        "description": "Aika saƙo zuwa aikin da ke gudana"
+      }
+    },
+    "sources": {
+      "description": "Jera fayilolin tushe da wani aiki ya samar"
+    }
+  },
+  "eval": {
+    "description": "Sarrafa rukunin gwaje-gwajen tantancewa da gudanarwarsu",
+    "suites": {
+      "description": "Sarrafa rukunin gwaje-gwajen tantancewa",
+      "list": {
+        "description": "Jera rukunin gwaje-gwajen tantancewa"
+      },
+      "get": {
+        "description": "Samo bayanan rukunin gwajin tantancewa ta ID"
+      },
+      "create": {
+        "description": "Ƙirƙiri rukunin gwajin tantancewa daga fayil ɗin JSON",
+        "file": "Hanyar zuwa fayil ɗin JSON mai bayyana rukunin gwajin"
+      }
+    },
+    "run": {
+      "description": "Fara gudanar da tantancewa ga wani rukuni",
+      "model": "ID na samfurin da za a tantance (tsoho: auto)",
+      "combo": "Tilasta amfani da takamaiman haɗi ta suna",
+      "concurrency": "Adadin samfurori da za a gudanar a lokaci guda (tsoho: 4)",
+      "tag": "Yi wa wannan gudanarwar alama don tacewa daga baya",
+      "watch": "Sa ido kan ci gaban gudanarwar har sai ta kammala"
+    },
+    "list": {
+      "description": "Jera gudanarwar tantancewa",
+      "suite": "Tace ta ID na rukuni",
+      "status": "Tace ta matsayi",
+      "since": "Dawo da gudanarwar tun daga wannan tambarin lokaci",
+      "limit": "Matsakaicin adadin sakamako (tsoho: 50)"
+    },
+    "get": {
+      "description": "Samo bayanan gudanarwar tantancewa ta ID"
+    },
+    "results": {
+      "description": "Nuna sakamakon samfurori na gudanarwar tantancewa",
+      "failed": "Nuna samfurorin da suka gaza kawai"
+    },
+    "cancel": {
+      "description": "Soke tantancewar da ke gudana",
+      "yes": "Tsallake tambayar tabbatarwa"
+    },
+    "scorecard": {
+      "description": "Nuna katin sakamako na gudanarwar tantancewa da aka kammala"
+    }
+  },
+  "webhooks": {
+    "description": "Sarrafa webhooks na OmniRoute",
+    "events": {
+      "description": "Jera duk nau'ikan abubuwan da suka faru na webhook da ake da su"
+    },
+    "list": {
+      "description": "Jera webhooks da aka saita"
+    },
+    "get": {
+      "description": "Samo bayanan webhook ta ID"
+    },
+    "add": {
+      "description": "Yi rajistar sabon webhook",
+      "url": "URL na inda za a aika",
+      "events": "Jerin nau'ikan abubuwan da suka faru da aka raba da waƙafi",
+      "secret": "Sirrin sanya hannu na HMAC",
+      "header": "Ƙarin header a tsarin key=value (ana iya maimaitawa)",
+      "no_enabled": "Ƙirƙiri webhook a yanayin da aka kashe"
+    },
+    "update": {
+      "description": "Sabunta webhook da ke akwai",
+      "enabled": "Saita yanayin kunnawa (true|false)"
+    },
+    "remove": {
+      "description": "Goge webhook",
+      "yes": "Tsallake saƙon neman tabbatarwa"
+    },
+    "test": {
+      "description": "Aika taron gwaji zuwa webhook",
+      "event": "Nau'in taron da za a kwaikwaya (tsoho: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Mai Zabar Hanyar AI Mai Wayo tare da Komawar Kai-tsaye",
+    "version": "Buga sigar sannan a fita",
+    "output": "Tsarin fitarwa (table, json, jsonl, csv)",
+    "quiet": "Ɗakile fitarwar da ba ta da muhimmanci",
+    "no_color": "Kashe fitarwa mai launuka",
+    "timeout": "Wa'adin buƙatar HTTP a cikin milisakan",
+    "api_key": "Maɓallin API na sabar OmniRoute",
+    "base_url": "URL na asalin sabar OmniRoute",
+    "context": "Mahallin/fayil ɗin saitin sabar da za a yi amfani da shi don wannan umarni",
+    "lang": "Saita harshen nunawar CLI (yana maye gurbin OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Sarrafa fayiloli (ɗorawa, jere, samu, saukewa, gogewa)",
+    "list": {
+      "purpose": "Tace bisa manufa",
+      "limit": "Matsakaicin sakamako"
+    },
+    "get": {
+      "description": "Samu bayanan siffanta fayil"
+    },
+    "upload": {
+      "description": "Ɗora fayil",
+      "purpose": "Manufar fayil (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Sauke abun cikin fayil",
+      "out": "Ajiye zuwa path (tsoho: stdout)"
+    },
+    "delete": {
+      "yes": "Tsallake tabbatarwa"
+    }
+  },
+  "batches": {
+    "description": "Sarrafa ayyukan batch masu dacewa da OpenAI",
+    "list": {
+      "status": "Tace bisa matsayi",
+      "limit": "Matsakaicin sakamako"
+    },
+    "create": {
+      "description": "Ƙirƙiri aikin batch",
+      "inputFile": "ID na fayil ɗin shigarwa",
+      "endpoint": "Endpoint da aka nufa",
+      "window": "Wa'adin kammalawa",
+      "metadata": "Ƙara metadata key=value"
+    },
+    "submit": {
+      "description": "Ɗora fayil ɗin JSONL sannan a ƙirƙiri batch",
+      "jsonl": "Path zuwa fayil ɗin JSONL",
+      "endpoint": "Endpoint da aka nufa",
+      "wait": "Jira har sai an kammala"
+    },
+    "cancel": {
+      "yes": "Tsallake tabbatarwa"
+    },
+    "wait": {
+      "timeout": "Wa'adin ƙarewa a cikin ms"
+    },
+    "output": {
+      "out": "Ajiye fitarwa zuwa path"
+    },
+    "errors": {
+      "out": "Ajiye kurakurai zuwa path"
+    }
+  },
+  "translator": {
+    "description": "Fassara jikin buƙatu tsakanin tsarin LLM",
+    "detect": {
+      "description": "Gano tsarin body"
+    },
+    "translate": {
+      "description": "Canza body daga wani tsari zuwa wani"
+    },
+    "send": {
+      "description": "Fassara kuma aika zuwa upstream"
+    },
+    "stream": {
+      "description": "Fassara request body ta hanyar stream"
+    },
+    "from": "Tsarin tushe (openai|anthropic|gemini|cohere)",
+    "to": "Tsarin manufa (openai|anthropic|gemini|cohere)",
+    "file": "Hanyar fayil ɗin JSON na request body",
+    "out": "Ajiye sakamako zuwa fayil",
+    "model": "Maye gurbin model",
+    "history": {
+      "limit": "Matsakaicin adadin sakamako"
+    }
+  },
+  "pricing": {
+    "description": "Sarrafa bayanan farashi na models",
+    "sync": {
+      "description": "Daidaita farashi daga tushen upstream",
+      "provider": "Tace ta provider",
+      "force": "Tilasta sake daidaitawa"
+    },
+    "list": {
+      "provider": "Tace ta provider",
+      "model": "Tace ta model",
+      "limit": "Matsakaicin adadin sakamako"
+    },
+    "defaults": {
+      "description": "Sarrafa tsoffin farashi",
+      "input": "Kudin input ga kowane tokens miliyan 1 (USD)",
+      "output": "Kudin output ga kowane tokens miliyan 1 (USD)",
+      "cacheRead": "Kudin karanta cache ga kowane tokens miliyan 1 (USD)",
+      "cacheWrite": "Kudin rubuta cache ga kowane tokens miliyan 1 (USD)"
+    },
+    "diff": {
+      "description": "Nuna bambanci da farashin upstream",
+      "model": "Tace ta model"
+    }
+  },
+  "radar": {
+    "description": "Bincika kuma daidaita feeds na katalogin Radar na cikin gida",
+    "status": "Nuna saitunan Radar na cikin gida da matsayin cache na feed",
+    "sync": "Daidaita katalogi, referrals, offers, da Intel ta hanyar sabar cikin gida"
+  },
+  "resilience": {
+    "description": "Bincika kuma sarrafa hanyoyin jure matsala",
+    "status": {
+      "provider": "Tace ta provider"
+    },
+    "breakers": {
+      "provider": "Tace ta provider"
+    },
+    "cooldowns": {
+      "provider": "Tace ta provider",
+      "connectionId": "Tace ta ID na connection"
+    },
+    "lockouts": {
+      "provider": "Tace ta provider",
+      "model": "Tace ta model"
+    },
+    "reset": {
+      "description": "Sake saita matsayin breaker/cooldown",
+      "provider": "Provider da za a sake saitawa",
+      "connectionId": "ID na connection da za a sake saitawa",
+      "model": "Model da za a sake saita lockout ɗinsa",
+      "allCooldowns": "Sake saita duk cooldowns na provider",
+      "yes": "Tsallake tabbatarwa"
+    },
+    "profile": {
+      "description": "Sarrafa bayanin martabar juriya",
+      "name": "Sunan bayanin martaba"
+    },
+    "config": {
+      "description": "Sarrafa daidaitawar juriya",
+      "threshold": "Iyakar gazawa",
+      "resetTimeout": "Lokacin jira kafin sake saiti a ms",
+      "baseCooldown": "Asalin lokacin hucewa a ms"
+    }
+  },
+  "nodes": {
+    "description": "Sarrafa nodes na mai samarwa (endpoints)",
+    "list": {
+      "provider": "Tace ta mai samarwa",
+      "enabled": "Nuna nodes da aka kunna kawai"
+    },
+    "add": {
+      "provider": "Sunan mai samarwa",
+      "baseUrl": "Base URL na node",
+      "name": "Sunan node",
+      "weight": "Nauyin daidaita kaya",
+      "region": "Alamar yanki",
+      "authHeader": "Kan tantancewa na musamman (key=value)"
+    },
+    "update": {
+      "baseUrl": "Sabon base URL",
+      "name": "Sabon suna",
+      "weight": "Sabon nauyi",
+      "region": "Sabon yanki",
+      "enabled": "Kunna ko kashe (true|false)"
+    },
+    "remove": {
+      "yes": "Tsallake tabbatarwa"
+    },
+    "validate": {
+      "baseUrl": "URL da za a inganta",
+      "provider": "Mai samarwar da za a yi ingantawa da shi"
+    },
+    "test": {
+      "description": "Aika buƙatar gwaji zuwa node"
+    },
+    "metrics": {
+      "description": "Nuna ma'aunin node",
+      "period": "Tsawon lokaci (misali 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Daidaita tsarin sarrafa mahallin (Caveman, RTK)",
+    "analytics": {
+      "period": "Tsawon lokaci (misali 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Sarrafa matse mahallin Caveman",
+      "config": {
+        "description": "Nuna ko sabunta daidaitawar Caveman",
+        "aggressiveness": "Ƙarfin aiki 0.0–1.0",
+        "maxShrinkPct": "Matsakaicin kaso na raguwa",
+        "preserveTags": "Alamomin da za a kiyaye, waɗanda waƙafi ya raba"
+      }
+    },
+    "rtk": {
+      "description": "Sarrafa mai inganta mahallin RTK",
+      "config": {
+        "description": "Nuna ko sabunta daidaitawar RTK",
+        "tokenBudget": "Kasafin token na RTK",
+        "reservePct": "Kason ajiyar"
+      },
+      "filters": {
+        "description": "Sarrafa matatan RTK",
+        "pattern": "Tsarin tacewa (regex)",
+        "priority": "Muhimmancin mataci (tsoho: 100)",
+        "action": "Tace aiki: drop|shrink|replace",
+        "yes": "Tsallake tabbatarwa"
+      },
+      "test": {
+        "file": "Hanyar fayil ɗin JSON na buƙata"
+      }
+    },
+    "combos": {
+      "description": "Gudanar da haɗe-haɗe bisa mahallin aiki"
+    }
+  },
+  "sessions": {
+    "description": "Duba da sarrafa zaman aiki masu gudana",
+    "list": {
+      "user": "Tace ta mai amfani",
+      "kind": "Tace ta nau'i (dashboard|api-key|mcp|a2a)",
+      "active": "Nuna zaman aiki masu gudana kawai",
+      "limit": "Matsakaicin sakamako (tsoho: 100)"
+    },
+    "expire": {
+      "yes": "Tsallake tabbatarwa"
+    },
+    "expireAll": {
+      "user": "Mai amfani da za a ƙare zaman aikinsa",
+      "yes": "Tsallake tabbatarwa"
+    }
+  },
+  "tags": {
+    "description": "Sarrafa alamomin albarkatu",
+    "add": {
+      "color": "Launin alama (hex ko suna)",
+      "description": "Bayanin alama"
+    },
+    "remove": {
+      "yes": "Tsallake tabbatarwa"
+    },
+    "assign": {
+      "tag": "Sunan alama",
+      "to": "Albarkatun da aka nufa a matsayin type:id (misali provider:openai)"
+    },
+    "unassign": {
+      "tag": "Sunan alama",
+      "from": "Albarkatun tushe a matsayin type:id"
+    }
+  },
+  "openapi": {
+    "description": "Samun dama da gwada ƙayyadaddun OmniRoute OpenAPI",
+    "dump": {
+      "description": "Fitar da ƙayyadaddun OpenAPI zuwa stdout ko fayil",
+      "format": "Tsarin fitarwa: yaml|json (tsoho: yaml)",
+      "out": "Ajiye zuwa hanyar fayil"
+    },
+    "validate": {
+      "description": "Tabbatar da ingancin ƙayyadaddun OpenAPI"
+    },
+    "try": {
+      "description": "Gwada mashigar API ta hanyar ƙayyadaddun",
+      "method": "Hanyar HTTP (tsoho: GET)",
+      "body": "Hanyar fayil ɗin JSON na jikin buƙata",
+      "query": "Sigar tambaya a matsayin key=value (ana iya maimaitawa)",
+      "header": "Kan magana a matsayin key=value (ana iya maimaitawa)"
+    },
+    "endpoints": {
+      "description": "Jera duk mashigai na API",
+      "search": "Tace ta hanya ko taƙaitaccen bayani"
+    },
+    "paths": {
+      "description": "Jera duk hanyoyin API"
+    }
+  },
+  "combo": {
+    "title": "Haɗe-haɗe",
+    "switched": "Haɗin da ke aiki: {name}",
+    "created": "An ƙirƙiri haɗi: {name}",
+    "deleted": "An goge haɗi: {name}",
+    "noCombos": "Ba a saita haɗe-haɗe ba.",
+    "confirmDelete": "A goge haɗin {name}?",
+    "suggest": {
+      "description": "Ba da shawarar haɗi mafi dacewa da aiki ta amfani da makin AI",
+      "task": "Bayanin aiki",
+      "maxCost": "Matsakaicin kuɗin kowace buƙata a USD",
+      "maxLatencyMs": "Matsakaicin jinkiri a cikin milisekondi",
+      "weights": "Ma'aunin maki na JSON, misali {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Adadin manyan zaɓuɓɓukan da za a nuna (tsoho: 5)",
+      "explain": "Buga dalili zuwa stderr",
+      "switch": "Kunna combo mafi girman matsayi"
+    }
+  },
+  "oneproxy": {
+    "description": "Sarrafa tarin upstream na OneProxy",
+    "stats": {
+      "provider": "Tace ta provider",
+      "period": "Tsawon lokaci (tsoho: 24h)"
+    },
+    "fetch": {
+      "description": "Dauko proxies daga tarin",
+      "count": "Adadin proxies da za a dauko (tsoho: 1)",
+      "type": "Nau'in proxy: http|socks5 (tsoho: http)"
+    },
+    "rotate": {
+      "description": "Tilasta sauya proxy",
+      "provider": "Provider da za a sauya wa",
+      "connectionId": "Takamaiman ID na haɗin da za a sauya"
+    },
+    "config": {
+      "description": "Nuna ko sabunta saitunan OneProxy",
+      "enabled": "Kunna tarin proxy (true|false)",
+      "poolSize": "Girman tarin",
+      "providerSource": "URL na proxy provider",
+      "rotationPolicy": "Manufar sauyawa: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Jera tarin proxy na yanzu tare da ma'aunai"
+    }
+  },
+  "open": {
+    "description": "Buɗe takamaiman shafin dashboard na OmniRoute a cikin burauza",
+    "url": "Buga URL kawai, kada a buɗe burauza"
+  },
+  "telemetry": {
+    "description": "Samun damar bayanan telemetry da aka tattara",
+    "summary": {
+      "description": "Nuna taƙaitaccen telemetry da aka tattara",
+      "period": "Tsawon lokaci: 24h|7d|30d (tsoho: 24h)",
+      "compareTo": "Kwatanta da lokacin da ya gabata"
+    },
+    "export": {
+      "description": "Fitar da abubuwan telemetry zuwa JSONL",
+      "out": "Hanyar fayil ɗin fitarwa (tsoho: telemetry.jsonl)",
+      "period": "Tsawon lokacin da za a fitar (tsoho: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Daidaita saituna tsakanin instances na OmniRoute",
+    "push": {
+      "description": "Tura saituna zuwa cloud ko remote instance",
+      "target": "Wurin da ake nufi (cloud ko context:name)",
+      "bundle": "Sassan bundle da za a daidaita",
+      "dryRun": "Yi samfoti ba tare da aiwatarwa ba"
+    },
+    "pull": {
+      "description": "Jawo saituna daga cloud ko remote",
+      "source": "Madogara (cloud ko context:name)",
+      "merge": "Haɗa da saitunan da suke akwai",
+      "replace": "Maye gurbin saitunan da suke akwai",
+      "dryRun": "Yi samfoti ba tare da aiwatarwa ba"
+    },
+    "diff": {
+      "source": "Mahallin tushe",
+      "target": "Mahallin manufa"
+    },
+    "bundle": {
+      "description": "Fitar da saituna a matsayin fayil ɗin bundle",
+      "include": "Sassan da za a haɗa (waƙafi ya raba su)"
+    },
+    "import": {
+      "description": "Shigo da fayil ɗin bundle",
+      "dryRun": "Tabbatar ba tare da aiwatarwa ba"
+    },
+    "initialize": {
+      "fromCloud": "Fara daga ajiyar bayanan cloud"
+    },
+    "tokens": {
+      "description": "Sarrafa token ɗin daidaitawa",
+      "create": {
+        "name": "Sunan token",
+        "scope": "Iyakokin token",
+        "ttl": "TTL na token (misali 30d)"
+      },
+      "revoke": {
+        "yes": "Tsallake tabbatarwa"
+      }
+    },
+    "resolve": {
+      "description": "Warware rikice-rikicen daidaitawa ta hanyar hulɗa"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Sarrafa mahallai/furofayilolin sabar (ƙara, yi amfani, jera, nuna, cire, sake suna, fitarwa, shigo da su)"
+    },
+    "lang": {
+      "description": "Sarrafa harshen nunin CLI",
+      "getDescription": "Nuna lambar harshen da ke aiki a yanzu",
+      "setDescription": "Saita harshen nuni kuma ajiye shi a config",
+      "listDescription": "Jera duk harsunan da ake da su",
+      "listTitle": "Harsunan da Ake da su",
+      "current": "Harshe: {code} ({name})",
+      "saved": "An saita harshe zuwa {code} ({name}).",
+      "noCode": "Ana buƙatar lambar harshe. Gudanar da 'omniroute config lang list' don ganin lambobin da ake da su.",
+      "unknown": "Lambar harshe da ba a sani ba: {code}. Gudanar da 'omniroute config lang list' don ganin lambobin da ake da su.",
+      "alreadySet": "An riga an saita harshe zuwa {code}.",
+      "envHint": "Shawara: za ka kuma iya saita OMNIROUTE_LANG={code} a cikin environment ɗinka."
+    }
+  },
+  "completion": {
+    "description": "Samar ko shigar da rubutun cika umarnin shell",
+    "zsh": "Buga rubutun cika umarnin zsh",
+    "bash": "Buga rubutun cika umarnin bash",
+    "fish": "Buga rubutun cika umarnin fish",
+    "install": "Shigar da rubutun cika umarni ga duk tsarin don shell da aka gano",
+    "refresh": "Sabunta ma'ajiyar wucin gadi ta combos/providers/models"
+  },
+  "logs": {
+    "description": "Watsa ko fitar da rajistan buƙatu",
+    "follow": "Watsa rajista kai tsaye a ainihin lokaci",
+    "filter": "Tace ta mataki (error,warn,info) — waƙafi ya raba su",
+    "lines": "Adadin layukan da za a ɗauko",
+    "timeout": "Lokacin ƙarewar haɗi a ms",
+    "baseUrl": "Tushen URL na OmniRoute API",
+    "requestId": "Tace ta ID na buƙata",
+    "apiKey": "Tace ta maɓallin API",
+    "combo": "Tace ta sunan combo",
+    "status": "Tace ta lambar matsayin HTTP",
+    "durationMin": "Mafi ƙarancin tsawon lokacin buƙata a ms",
+    "durationMax": "Mafi iyakar tsawon lokacin buƙata a ms",
+    "export": "Adana rajistan ayyuka zuwa fayil (json/jsonl/csv)",
+    "exported": "An adana rajistan ayyuka zuwa {path}",
+    "stopped": "An dakatar da kwararar rajistan ayyuka.",
+    "streamError": "Kuskuren kwararar rajistan ayyuka: {message}"
+  },
+  "tray": {
+    "description": "Sarrafa alamar tiren tsarin",
+    "show": "Nuna alamar tire (idan uwar garken na gudana da --tray)",
+    "hide": "Ɓoye alamar tire",
+    "quit": "Rufe OmniRoute ta tire"
+  },
+  "autostart": {
+    "description": "Sarrafa farawa ta atomatik na OmniRoute yayin boot (Linux: sabis ɗin mai amfani na systemd)",
+    "enable": "Kunna farawa ta atomatik yayin boot",
+    "disable": "Kashe farawa ta atomatik yayin boot",
+    "toggle": "Sauya yanayin farawa ta atomatik yayin boot",
+    "status": "Nuna matsayin farawa ta atomatik"
+  },
+  "runtime": {
+    "description": "Sarrafa abubuwan dogaro na runtime na asali",
+    "check": "Duba matsayin abubuwan dogaro na asali a kundin adireshin runtime",
+    "repair": "Sake shigar da abubuwan dogaro na asali a kundin adireshin runtime",
+    "repair_force": "Tilasta sake shigarwa ko da suna ingantattu",
+    "clean": "Cire kundin adireshin runtime (yana 'yantar da sararin faifai)",
+    "clean_yes": "Tsallake tabbatarwa"
+  },
+  "repl": {
+    "description": "REPL mai mu'amala da zagaye da yawa tare da LLM",
+    "model": "Samfurin da za a yi amfani da shi (tsoho: auto)",
+    "combo": "Sunan combo da za a yi amfani da shi",
+    "system": "Umarnin tsarin",
+    "resume": "Ci gaba da zaman da aka adana ta sunansa"
+  },
+  "plugin": {
+    "description": "Sarrafa plugins na CLI (omniroute-cmd-*)",
+    "list": "Jera plugins da aka shigar",
+    "install": "Shigar da plugin daga npm ko hanyar fayil ta gida",
+    "remove": "Cire plugin da aka shigar",
+    "info": "Nuna cikakkun bayanai na plugin da aka shigar",
+    "search": "Bincika rajistar npm don plugins da ake da su",
+    "update": "Sabunta plugin(s) da aka shigar",
+    "scaffold": "Ƙirƙiri samfurin farko na sabon plugin"
+  },
+  "launch": {
+    "description": "Ƙaddamar da Claude Code da aka nuna masa OmniRoute (na gida ko na nesa, tare da --profile)",
+    "token": "Token da ya kamata abokin cinikin Claude ya aika (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "Ba a iya isa ga OmniRoute a {port}. Fara shi da 'omniroute serve'.",
+    "notFound": "Ba a sami CLI na 'claude' a PATH ba."
+  },
+  "run": {
+    "description": "Ƙaddamar da manufa ta CLI mai goyan baya ta hanyar OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Samar da bayanan martabar Claude Code na ~/.claude/profiles daga kundin samfuran OmniRoute"
+  },
+  "connect": {
+    "description": "Haɗa zuwa sabar OmniRoute ta nesa kuma shiga yanayin nesa"
+  },
+  "tokens": {
+    "description": "Sarrafa alamomin samun damar CLI masu iyakantaccen izini (yanayin nesa)"
+  },
+  "configure": {
+    "description": "Zaɓi mai samarwa+samfuri daga sabar da ke aiki sannan saita CLI na gida mai goyan baya"
+  },
+  "launchCodex": {
+    "description": "Ƙaddamar da Codex CLI da aka nuna masa OmniRoute (na gida ko VPS na nesa)"
+  },
+  "setupCodex": {
+    "description": "Samar da fayilolin bayanan martabar ~/.codex daga kundin samfuran OmniRoute kai tsaye"
+  },
+  "packs": {
+    "description": "Sarrafa fakitin runtime na zaɓi (ML / sarrafa burauza ta atomatik)",
+    "listDescription": "Jera fakitin zaɓi da matsayin shigar da su",
+    "installDescription": "Shigar da fakitin zaɓi cikin DATA_DIR",
+    "verifyDescription": "Tabbatar da fakitin da aka shigar bisa fihirisar checksum da aka kawo",
+    "removeDescription": "Cire fakitin zaɓi da aka shigar",
+    "sourceOpt": "Kundin adireshin da ke ɗauke da abubuwan fakiti da fihirisar fakitin",
+    "warnNoIndex": "Ba a sami optional-packs.index.json ba — ba a samun shigarwa/tabbatarwa a wannan checkout (kunshin manhajar tebur na ɗauke da shi)",
+    "errUnknown": "fakitin da ba a sani ba: {name}",
+    "errNoIndex": "ba a sami fihirisar fakiti ba; saka --source <dir> mai ɗauke da abubuwan fakitin (kunshin manhajar tebur na kawo shi kusa da manhajar)",
+    "installed": "an shigar da fakitin \"{name}\" kuma an tabbatar da shi a {dir}",
+    "restartHint": "sake kunna sabar OmniRoute (ko manhajar tebur) domin runtime ya ɗauki fakitin",
+    "removed": "an cire fakitin \"{name}\"",
+    "notInstalled": "ba a shigar da fakitin \"{name}\" ba",
+    "verifyOk": "an tabbatar da duk fakitin da aka shigar",
+    "verifyFailed": "fakiti {count} sun gaza tabbatarwa",
+    "noneInstalled": "ba a shigar da wani fakitin zaɓi ba"
+  }
+}

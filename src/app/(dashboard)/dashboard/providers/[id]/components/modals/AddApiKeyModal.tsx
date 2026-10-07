@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle, TALL_MODAL_PROPS } from "@/shared/components";
+import { CHATGPT_WEB_CODEX_CONNECTOR_NAME } from "@/shared/constants/chatgptWebCodex";
 import {
   providerAllowsOptionalApiKey,
   supportsBulkApiKey,
@@ -46,7 +47,10 @@ export interface AddApiKeyModalProps {
   providerName?: string;
   providerWebsite?: string;
   initialBaseUrl?: string;
-  existingConnectionCount?: number;
+  // #15006 — pass live connection NAMES (not a count): after a delete the count
+  // no longer matches the highest suffix, so a count-derived default collides
+  // with a live connection and the backend name-upsert overwrites it.
+  existingConnectionNames?: string[];
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -70,7 +74,7 @@ export default function AddApiKeyModal({
   providerName,
   providerWebsite,
   initialBaseUrl,
-  existingConnectionCount = 0,
+  existingConnectionNames = [],
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -111,7 +115,7 @@ export default function AddApiKeyModal({
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
   const commandCodeAuthPhaseLabel = getCommandCodeAuthPhaseLabel(commandCodeAuthState);
   const [formData, setFormData] = useState({
-    name: computeConnectionDefaultName(existingConnectionCount),
+    name: computeConnectionDefaultName(existingConnectionNames),
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -140,7 +144,7 @@ export default function AddApiKeyModal({
     importFreeModelsOnly: false,
     tunnelId: "",
     runtimeKey: "",
-    connectorName: "OmniRoute Codex",
+    connectorName: CHATGPT_WEB_CODEX_CONNECTOR_NAME,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -162,12 +166,12 @@ export default function AddApiKeyModal({
     // name-based upsert that would silently overwrite the first connection (#6499, #11033).
     setFormData((current) => ({
       ...current,
-      name: computeConnectionDefaultName(existingConnectionCount),
+      name: computeConnectionDefaultName(existingConnectionNames),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
     setValidationResult(null);
     setSaveError(null);
-  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionNames]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
@@ -183,13 +187,15 @@ export default function AddApiKeyModal({
     ? providerText(t, "modalTokenIdLabel", "Token ID")
     : isAwsPolly
       ? providerText(t, "awsPollySecretAccessKeyLabel", "AWS Secret Access Key")
-      : isQoder
-        ? t("personalAccessTokenLabel")
-        : webSessionCredential
-          ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
-          : apiKeyOptional
-            ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-            : t("apiKeyLabel");
+      : isVertex
+        ? providerText(t, "vertexCredentialLabel", "API Key or Service Account JSON")
+        : isQoder
+          ? t("personalAccessTokenLabel")
+          : webSessionCredential
+            ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+            : apiKeyOptional
+              ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+              : t("apiKeyLabel");
   const apiCredentialPlaceholder = isModal
     ? "ak-xxxxxxxxxxxxxxxx"
     : isVertex
@@ -209,19 +215,25 @@ export default function AddApiKeyModal({
         "modalTokenIdHint",
         "Modal auth uses a Token ID + Token Secret pair. Create one at https://modal.com/settings → API Tokens."
       )
-    : isQoder
-      ? t("qoderPatHint")
-      : isFreebuff
-        ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
-        : isWebSessionCredential
-          ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
-          : isLocalSelfHostedProvider
-            ? t("localProviderApiKeyOptionalHint", {
-                provider: localProviderMetadata?.name || providerName || provider || "",
-              })
-            : apiKeyOptional
-              ? t("apiKeyOptionalHint")
-              : undefined;
+    : isVertex
+      ? providerText(
+          t,
+          "vertexCredentialHint",
+          "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery."
+        )
+      : isQoder
+        ? t("qoderPatHint")
+        : isFreebuff
+          ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
+          : isWebSessionCredential
+            ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+            : isLocalSelfHostedProvider
+              ? t("localProviderApiKeyOptionalHint", {
+                  provider: localProviderMetadata?.name || providerName || provider || "",
+                })
+              : apiKeyOptional
+                ? t("apiKeyOptionalHint")
+                : undefined;
   const credentialValidationFailedMessage = isWebSessionCredential
     ? providerText(
         t,
@@ -779,48 +791,49 @@ export default function AddApiKeyModal({
                 onImport={(apiKey) => setFormData({ ...formData, apiKey })}
               />
             )}
-            {!isNoAuthWebSessionCredential && (() => {
-              const isCheckDisabled =
-                (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                (isGooglePse && !formData.cx.trim()) ||
-                validating ||
-                saving;
-              return (
-                <div className="flex gap-2">
-                  <Input
-                    label={apiCredentialLabel}
-                    type="password"
-                    value={formData.apiKey}
-                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isCheckDisabled) {
-                        e.preventDefault();
-                        handleValidate();
-                      }
-                    }}
-                    className="flex-1"
-                    placeholder={apiCredentialPlaceholder}
-                    hint={apiCredentialHint}
-                    autoComplete="off"
-                    spellCheck={false}
-                    autoCapitalize="off"
-                  />
-                  <div className="pt-6">
-                    <Button
-                      onClick={handleValidate}
-                      disabled={isCheckDisabled}
-                      variant="secondary"
-                    >
-                      {validating
-                        ? t("checking")
-                        : webSessionCredential
-                          ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
-                          : t("check")}
-                    </Button>
+            {!isNoAuthWebSessionCredential &&
+              (() => {
+                const isCheckDisabled =
+                  (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                  (isGooglePse && !formData.cx.trim()) ||
+                  validating ||
+                  saving;
+                return (
+                  <div className="flex gap-2">
+                    <Input
+                      label={apiCredentialLabel}
+                      type="password"
+                      value={formData.apiKey}
+                      onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !isCheckDisabled) {
+                          e.preventDefault();
+                          handleValidate();
+                        }
+                      }}
+                      className="flex-1"
+                      placeholder={apiCredentialPlaceholder}
+                      hint={apiCredentialHint}
+                      autoComplete="off"
+                      spellCheck={false}
+                      autoCapitalize="off"
+                    />
+                    <div className="pt-6">
+                      <Button
+                        onClick={handleValidate}
+                        disabled={isCheckDisabled}
+                        variant="secondary"
+                      >
+                        {validating
+                          ? t("checking")
+                          : webSessionCredential
+                            ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                            : t("check")}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
             {isChatGptWebCodex && (
               <div className="space-y-3 rounded-lg border border-border bg-surface/40 p-3">
                 <div>
@@ -852,7 +865,7 @@ export default function AddApiKeyModal({
                   label="ChatGPT-Custom-Connector"
                   value={formData.connectorName}
                   onChange={(e) => setFormData({ ...formData, connectorName: e.target.value })}
-                  placeholder="OmniRoute Codex"
+                  placeholder={CHATGPT_WEB_CODEX_CONNECTOR_NAME}
                 />
                 {validationCapabilities && (
                   <div className="grid grid-cols-2 gap-2 text-xs text-text-muted">

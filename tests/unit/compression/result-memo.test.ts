@@ -6,11 +6,15 @@ import {
   makeMemoKey,
   isDeterministicMode,
   clearMemoStore,
+  resultMemoForTests,
   MEMO_CAP,
 } from "../../../open-sse/services/compression/resultMemo.ts";
 import type { CompressionResult } from "../../../open-sse/services/compression/types.ts";
 import { DEFAULT_COMPRESSION_CONFIG } from "../../../open-sse/services/compression/types.ts";
-import { applyCompression } from "../../../open-sse/services/compression/strategySelector.ts";
+import {
+  applyCompression,
+  applyCompressionAsync,
+} from "../../../open-sse/services/compression/strategySelector.ts";
 
 const baseBody = {
   messages: [{ role: "user", content: "hello world compress me please" }],
@@ -218,7 +222,6 @@ describe("applyCompression with memoization", () => {
   });
 
   it("flag OFF: two identical calls both compute (no caching path)", () => {
-    let callCount = 0;
     // We can't easily spy on internal engine, so we verify via deterministic output
     // equality between independent calls (proving cache isn't interfering).
     // Use a body that will be lightly compressed.
@@ -255,6 +258,38 @@ describe("applyCompression with memoization", () => {
     // Verify cache was populated
     const key = makeMemoKey(body, "lite", memoConfig, "u1");
     assert.notEqual(memoLookup(key), null);
+  });
+
+  it("memo misses and hits cannot mutate the cached result", () => {
+    const body = {
+      messages: [{ role: "user", content: "Mutation isolation test content. ".repeat(15) }],
+      model: "gpt-4",
+    };
+    const miss = applyCompression(body, "lite", { config: memoConfig, principalId: "u1" });
+    const expected = structuredClone(miss.body);
+    miss.body.messages[0]!.content = "mutated miss";
+
+    const hit = applyCompression(body, "lite", { config: memoConfig, principalId: "u1" });
+    assert.deepEqual(hit.body, expected);
+    hit.body.messages[0]!.content = "mutated hit";
+
+    assert.deepEqual(
+      applyCompression(body, "lite", { config: memoConfig, principalId: "u1" }).body,
+      expected
+    );
+    assert.equal(resultMemoForTests.lookupCount, 3);
+  });
+
+  it("async memo misses and hits perform one lookup per call", async () => {
+    const body = {
+      messages: [{ role: "user", content: "Async lookup count test content. ".repeat(15) }],
+      model: "gpt-4",
+    };
+
+    await applyCompressionAsync(body, "lite", { config: memoConfig, principalId: "u1" });
+    assert.equal(resultMemoForTests.lookupCount, 1);
+    await applyCompressionAsync(body, "lite", { config: memoConfig, principalId: "u1" });
+    assert.equal(resultMemoForTests.lookupCount, 2);
   });
 
   it("flag ON + deterministic mode: different principalId = MISS", () => {

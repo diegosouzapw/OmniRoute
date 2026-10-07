@@ -51,10 +51,7 @@ test.before(async () => {
 
   await combosDb.createCombo({
     name: COMBO_NAME,
-    models: [
-      `${MAIN_PROVIDER}/${MAIN_MODEL}`,
-      `${SIBLING_PROVIDER}/${SIBLING_MODEL}`,
-    ],
+    models: [`${MAIN_PROVIDER}/${MAIN_MODEL}`, `${SIBLING_PROVIDER}/${SIBLING_MODEL}`],
   });
 
   // Defensive: nothing in the expected (fixed) code path should ever reach

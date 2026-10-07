@@ -703,6 +703,9 @@ paths:
                         type: string
                         enum:
                           - FTS5
+                          - none
+                      reason:
+                        type: string
                   embedding:
                     type: object
                     properties:
@@ -1936,9 +1939,24 @@ paths:
     post:
       tags: [Combos]
       summary: Test a combo configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [comboName]
+              properties:
+                comboName:
+                  type: string
+                  minLength: 1
       responses:
         "200":
           description: Test result
+        "400":
+          description: Missing or invalid combo name
+        "404":
+          description: Combo not found
 
   /api/settings:
     get:
@@ -2794,11 +2812,13 @@ paths:
           schema: { type: string }
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked (alreadyRevoked is true when it was already revoked)
         "403":
           description: Insufficient scope
         "404":
-          description: Token not found or already revoked
+          description: Token not found
+        "409":
+          description: Prefix matches more than one live token; nothing revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 

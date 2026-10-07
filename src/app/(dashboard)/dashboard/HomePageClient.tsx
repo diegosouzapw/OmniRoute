@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
@@ -106,6 +106,12 @@ const INLINE_LINK = "text-primary hover:underline";
 const DOCS_LINK =
   "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors";
 
+// Stable no-op subscription for useSyncExternalStore reads of never-changing
+// browser globals (location.origin does not change without a full navigation).
+function emptySubscribe() {
+  return () => {};
+}
+
 export default function HomePageClient({ machineId }: HomePageClientProps) {
   const router = useRouter();
   const isElectron = useIsElectron();
@@ -115,7 +121,13 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [baseUrl, setBaseUrl] = useState("/v1");
+  // useSyncExternalStore keeps SSR/hydration consistent ("/v1" on the server,
+  // the real origin after hydration) without a setState-in-effect round-trip.
+  const baseUrl = useSyncExternalStore(
+    emptySubscribe,
+    () => `${globalThis.location.origin}/v1`,
+    () => "/v1"
+  );
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
   const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
@@ -135,36 +147,39 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Platform detection and download links for Electron
   const platform =
     typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
+  // Destructured to locals: `versionInfo?.current` in a dependency array trips
+  // the lint heuristic that treats any `.current` access as a mutable ref read.
+  const installedVersion = versionInfo?.current || "";
+  const latestVersion = versionInfo?.latest || "";
   const electronDownload = useMemo(() => {
-    const latest = versionInfo?.latest || "";
-    const cleanLatest = latest.replace(/^v/, "");
+    const cleanLatest = latestVersion.replace(/^v/, "");
     if (platform === "darwin") {
       return {
         label: t("downloadDmg"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.dmg`,
-        desc: t("downloadDmgDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadDmgDescription", { version: installedVersion }),
       };
     }
     if (platform === "win32") {
       return {
         label: t("downloadExe"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute.Setup.${cleanLatest}.exe`,
-        desc: t("downloadExeDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadExeDescription", { version: installedVersion }),
       };
     }
     if (platform === "linux") {
       return {
         label: t("downloadAppImage"),
         url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.AppImage`,
-        desc: t("downloadAppImageDescription", { version: versionInfo?.current || "" }),
+        desc: t("downloadAppImageDescription", { version: installedVersion }),
       };
     }
     return {
       label: t("downloadUpdate"),
       url: `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${cleanLatest}`,
-      desc: t("downloadUpdateDescription", { version: versionInfo?.current || "" }),
+      desc: t("downloadUpdateDescription", { version: installedVersion }),
     };
-  }, [platform, t, versionInfo?.latest, versionInfo?.current]);
+  }, [platform, t, latestVersion, installedVersion]);
 
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
@@ -234,12 +249,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       });
   }, []);
 
-  useEffect(() => {
-    if (typeof globalThis.window !== "undefined") {
-      setBaseUrl(`${globalThis.location.origin}/v1`);
-    }
-  }, []);
-
   const fetchData = useCallback(async () => {
     try {
       const [provRes, modelsRes, versionRes] = await Promise.all([
@@ -267,7 +276,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    void (async () => {
+      await fetchData();
+    })();
   }, [fetchData]);
 
   // Fetch provider nodes for display labels (compat providers)

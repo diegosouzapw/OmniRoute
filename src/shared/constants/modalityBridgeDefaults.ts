@@ -33,6 +33,12 @@ export const MODALITY_BRIDGE_DEFAULTS = {
   videoSamplingPolicy: "uniform" as VideoSamplingPolicy,
   videoMaxVideos: 1,
   videoTimeoutMs: 120000,
+  // Server-orchestrated Audio Bridge STT over Video Bridge audio extraction
+  // (FU-06, #11654) spends provider credit on the operator's behalf, so it
+  // stays OFF by default — Hard Rule #20's "never spend by default" spirit.
+  // Every transcription attempt additionally requires a per-request opt-in;
+  // this flag alone never triggers a call.
+  videoAudioTranscriptionEnabled: false,
 } as const;
 
 export interface VisionBridgeRuntimeSettings {
@@ -57,6 +63,11 @@ export interface AudioBridgeRuntimeSettings {
   cacheEnabled: boolean;
   cacheTtlMinutes: number;
   cacheMaxEntries: number;
+}
+
+export interface VideoAudioTranscriptionRuntimeSettings {
+  /** Operator opt-in only — a request still needs its own opt-in (FU-06, #11654). */
+  enabled: boolean;
 }
 
 export interface VideoBridgeRuntimeSettings {
@@ -139,6 +150,22 @@ export function resolveAudioBridgeRuntimeSettings(
       pickNumber(s.modalityBridgeCacheTtlMinutes) ?? MODALITY_BRIDGE_DEFAULTS.cacheTtlMinutes,
     cacheMaxEntries:
       pickNumber(s.modalityBridgeCacheMaxEntries) ?? MODALITY_BRIDGE_DEFAULTS.cacheMaxEntries,
+  };
+}
+
+/**
+ * Resolve the operator half of the FU-06 dual opt-in for Video Bridge audio
+ * transcription. The request-side opt-in is a separate, per-request signal —
+ * this settings flag alone never authorizes a transcription call.
+ */
+export function resolveVideoAudioTranscriptionRuntimeSettings(
+  settings: Record<string, unknown> | null | undefined
+): VideoAudioTranscriptionRuntimeSettings {
+  const s = settings ?? {};
+  return {
+    enabled:
+      pickBoolean(s.modalityBridgeVideoAudioTranscriptionEnabled) ??
+      MODALITY_BRIDGE_DEFAULTS.videoAudioTranscriptionEnabled,
   };
 }
 

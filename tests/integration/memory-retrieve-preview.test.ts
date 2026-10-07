@@ -12,21 +12,18 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {
-  makeManagementSessionRequest,
-} from "../helpers/managementSession.ts";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-retrieve-preview-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-retrieve-preview";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
 // Import route AFTER setting DATA_DIR
-const retrieveRoute = await import(
-  "../../src/app/api/memory/retrieve-preview/route.ts"
-);
+const retrieveRoute = await import("../../src/app/api/memory/retrieve-preview/route.ts");
 const { POST } = retrieveRoute;
 
 // ── Helpers ──
@@ -106,9 +103,7 @@ test("POST /api/memory/retrieve-preview — 401 without auth when requireLogin=t
 
 test("POST /api/memory/retrieve-preview — error path: no stack trace (invalid JSON)", async () => {
   // Test via invalid JSON body — the parse step should return 400 without a stack trace
-  const { createManagementSessionHeaders } = await import(
-    "../helpers/managementSession.ts"
-  );
+  const { createManagementSessionHeaders } = await import("../helpers/managementSession.ts");
   const headers = await createManagementSessionHeaders();
 
   const req = new Request("http://localhost/api/memory/retrieve-preview", {

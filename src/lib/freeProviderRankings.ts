@@ -9,10 +9,12 @@
  */
 
 import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
 import { getProviderUsageSince, type ProviderUsageRow } from "./db/callLogStats";
+import { familyCanonicalOf } from "./providerFamilyAgg";
 import { getCustomModels } from "./db/models";
 // Type-only: reuse the health vocabulary instead of forking it.
 import { RANGE_MS } from "./monitoring/providerHealthMatrix";
@@ -81,29 +83,35 @@ function getFreeProviders() {
     });
   }
 
-  // OAuth providers with free tier
+  // OAuth providers with a documented free tier
   for (const [id, p] of Object.entries(OAUTH_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "oauth",
       });
     }
   }
 
-  // API key providers with free tier
+  // API key providers with a documented free tier
   for (const [id, p] of Object.entries(APIKEY_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "apikey",
       });
     }
@@ -295,6 +303,52 @@ export interface FreeProviderRankingFilterOptions {
   withUsage?: boolean;
   /** Window for `withUsage`. Defaults to `24h`, the health matrix's own default. */
   usageRange?: ProviderHealthMatrixRange;
+  /**
+   * Ordering. `elo` (default) keeps the published behaviour: rank by the top
+   * model's Arena score. `reliability` puts providers whose success rate can be
+   * stated first, which requires the usage aggregate — hence the snapshot.
+   */
+  sortBy?: "elo" | "reliability";
+}
+
+/**
+ * PURE: does this request need the connection snapshot loaded?
+ *
+ * `usage` is grafted onto `reliability`, which only exists once the snapshot is
+ * loaded — so `withUsage` on its own used to return rankings with no
+ * `reliability` at all, silently. It now pulls the snapshot itself.
+ * `filterFreeProviderRankings` is a no-op when neither filter is set, so an
+ * unfiltered caller still gets every provider back.
+ */
+export function needsConnectionSnapshot(opts: FreeProviderRankingFilterOptions): boolean {
+  return Boolean(
+    opts.configuredOnly || opts.availableOnly || opts.withUsage || opts.sortBy === "reliability"
+  );
+}
+
+/**
+ * PURE: does this request need the served-call usage aggregate?
+ * `withUsage` asks for it explicitly; `sortBy: "reliability"` needs it to
+ * order providers by measured success rate.
+ */
+function needsUsageAggregate(opts: FreeProviderRankingFilterOptions): boolean {
+  return Boolean(opts.withUsage) || opts.sortBy === "reliability";
+}
+
+/**
+ * Apply the requested ordering. `elo` (default) keeps the list as ranked;
+ * `reliability` re-orders by measured success rate via the usage module
+ * (lazy import, only paid for when asked). Runs after enrichment and before
+ * the slice, so `limit` still counts providers that survived the filters —
+ * and so the caller gets the top N of the order they asked for, not the
+ * top N of the ELO order re-sorted.
+ */
+async function applyRankingOrder(
+  rankings: FreeProviderRanking[],
+  sortBy: FreeProviderRankingFilterOptions["sortBy"]
+): Promise<FreeProviderRanking[]> {
+  if (sortBy !== "reliability") return rankings;
+  return (await import("./freeProviderRankingsUsage")).sortRankingsByReliability(rankings);
 }
 
 /** Group connection states by provider id (shared by filter and reliability attach). */
@@ -429,7 +483,7 @@ export function attachProviderUsage(
 ): FreeProviderRanking[] {
   const byProvider = new Map(usageRows.map((row) => [row.provider, row]));
   return rankings.map((ranking) => {
-    const row = byProvider.get(ranking.id);
+    const row = byProvider.get(ranking.id) ?? byProvider.get(familyCanonicalOf(ranking.id));
     if (!row || !ranking.reliability) return ranking;
     return {
       ...ranking,
@@ -530,7 +584,7 @@ export async function computeFreeProviderRankings(
   // Apply the additive configured/available filters (if requested) BEFORE the
   // limit slice, so `limit` counts providers that survive the filter.
   let filtered = rankings;
-  if (opts.configuredOnly || opts.availableOnly) {
+  if (needsConnectionSnapshot(opts)) {
     // `getProviderConnections` returns a loose JsonRecord[]; ConnectionState is a
     // structural subset of it, so TS needs the explicit `unknown` hop (TS2352).
     const connections = (await getProviderConnections({
@@ -545,7 +599,7 @@ export async function computeFreeProviderRankings(
     // Third dimension, opt-in: what the provider actually served. `state` above
     // reads the connection as it stands now and cannot see a provider that
     // answers every call with an error — only the call log can.
-    if (opts.withUsage) {
+    if (needsUsageAggregate(opts)) {
       const range = opts.usageRange ?? "24h";
       const windowMs = RANGE_MS[range];
       const since = new Date(Date.now() - windowMs).toISOString();
@@ -557,5 +611,7 @@ export async function computeFreeProviderRankings(
     }
   }
 
-  return filtered.slice(0, limit);
+  const ordered = await applyRankingOrder(filtered, opts.sortBy);
+
+  return ordered.slice(0, limit);
 }

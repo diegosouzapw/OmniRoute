@@ -24,7 +24,7 @@ async function resetStorage(): Promise<void> {
         force: true,
 
         maxRetries: 5,
-  retryDelay: 100,
+        retryDelay: 100,
       });
       break;
     } catch (error: unknown) {
@@ -89,7 +89,7 @@ test.after(() => {
     force: true,
 
     maxRetries: 5,
-  retryDelay: 100,
+    retryDelay: 100,
   });
 });
 

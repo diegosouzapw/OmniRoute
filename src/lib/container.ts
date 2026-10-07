@@ -23,7 +23,7 @@ import {
   encrypt,
   encryptConnectionFields,
 } from "./db/encryption.ts";
-import { getSettings } from "./localDb.ts";
+import { getSettings } from "@/lib/db/settings";
 import { getCircuitBreaker } from "../shared/utils/circuitBreaker.ts";
 import { recordTelemetry, RequestTelemetry } from "../shared/utils/requestTelemetry.ts";
 

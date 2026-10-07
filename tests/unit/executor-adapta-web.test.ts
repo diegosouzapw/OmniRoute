@@ -36,18 +36,25 @@ describe("AdaptaWebExecutor", () => {
   });
 
   it("execute returns proper result shape on auth failure", async () => {
-    const executor = new mod.AdaptaWebExecutor();
-    const result = await executor.execute({
-      model: "adapta-one",
-      body: { messages: [{ role: "user", content: "hi" }] },
-      stream: false,
-      credentials: { apiKey: "invalid-jwt" },
-      signal: null,
-    });
-    assert.ok(result.response instanceof Response);
-    assert.ok(typeof result.url === "string");
-    assert.ok(typeof result.headers === "object");
-    assert.ok(result.transformedBody !== undefined);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(null, { status: 401 })) as typeof fetch;
+
+    try {
+      const executor = new mod.AdaptaWebExecutor();
+      const result = await executor.execute({
+        model: "adapta-one",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "invalid-jwt" },
+        signal: null,
+      });
+      assert.ok(result.response instanceof Response);
+      assert.ok(typeof result.url === "string");
+      assert.ok(typeof result.headers === "object");
+      assert.ok(result.transformedBody !== undefined);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it("testConnection returns false for invalid credentials", async () => {

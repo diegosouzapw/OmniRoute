@@ -44,7 +44,11 @@ export function useApiKeyUsageLimits(selectedApiKeyId: string | null) {
   );
 
   useEffect(() => {
-    void load();
+    // Async continuation — the compiler rejects a sync call to a setter-capturing
+    // callback from the effect body (react-hooks/set-state-in-effect).
+    void (async () => {
+      await load();
+    })();
   }, [load]);
 
   return { payload, loading, save };

@@ -20,7 +20,8 @@ process.env.API_KEY_SECRET = "test-all-statuses-secret";
 
 // Import DB modules after setting DATA_DIR
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 
 // Import cliTools modules (batchStatusCache for cache tests)

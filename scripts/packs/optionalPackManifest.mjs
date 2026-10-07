@@ -57,7 +57,7 @@ export const OPTIONAL_PACKS = [
     name: "browser-runtime",
     packVersion: 1,
     description:
-      "Browser automation closure: Claude Turnstile solver and ChatGPT/Gemini web executors",
+      "Browser automation closure: Claude Turnstile solver and ChatGPT Web (Codex)/Gemini web executors",
     packages: [{ name: "playwright" }, { name: "playwright-core" }],
   },
 ];

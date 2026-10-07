@@ -79,8 +79,6 @@ Even outside blocked regions, proxies are useful for:
 | **Settings Route**   | `src/app/api/settings/proxy/route.ts`        | Legacy proxy config API (GET/PUT/DELETE)                   |
 | **Management Route** | `src/app/api/v1/management/proxies/route.ts` | Registry CRUD API (GET/POST/PATCH/DELETE)                  |
 | **1proxy DB**        | `src/lib/db/oneproxy.ts`                     | Free proxy marketplace persistence                         |
-| **1proxy Sync**      | `src/lib/oneproxySync.ts`                    | Fetches proxies from 1proxy API                            |
-| **1proxy Rotator**   | `src/lib/oneproxyRotator.ts`                 | Rotation strategies (quality/random/sequential)            |
 
 ---
 
@@ -505,13 +503,9 @@ For exposing your OmniRoute instance to the public internet (Cloudflare/ngrok/Ta
 
 ## Environment Variables
 
-| Variable                         | Default                               | Description                                                    |
-| -------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`            | `true`                                | Enable SOCKS5 proxy support (default `true` in `.env.example`) |
-| `ONEPROXY_ENABLED`               | `true`                                | Enable 1proxy integration                                      |
-| `ONEPROXY_API_URL`               | `https://1proxy-api.aitradepulse.com` | 1proxy API endpoint                                            |
-| `ONEPROXY_MAX_PROXIES`           | `500`                                 | Maximum proxies to sync                                        |
-| `ONEPROXY_MIN_QUALITY_THRESHOLD` | `50`                                  | Minimum quality score to import                                |
+| Variable              | Default | Description                                                    |
+| --------------------- | ------- | -------------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY` | `true`  | Enable SOCKS5 proxy support (default `true` in `.env.example`) |
 
 ---
 
@@ -772,55 +766,10 @@ Use `random`
 evenly)
 ```
 
-### Configuring Rotation Strategy
-
-```ts
-import { rotateOneproxyProxy } from "omniroute/oneproxyRotator";
-
-// In a one-off script
-const proxy = await rotateOneproxyProxy({ strategy: "quality" });
-if (proxy) {
-  console.log(`Selected: ${proxy.host}:${proxy.port}, quality=${proxy.qualityScore}`);
-}
-```
-
-### Resetting Sequential Index
-
-When using `sequential` strategy, the internal index accumulates. To reset:
-
-```ts
-import { resetSequentialIndex } from "omniroute/oneproxyRotator";
-
-resetSequentialIndex();
-```
-
-Useful when:
-
-- Restarting a load test
-- Recovering from a proxy outage (so you don't cycle through dead ones first)
-- Manually rebalancing after adding new proxies
-
-### Marking a Proxy as Failed
-
-When a proxy consistently fails, mark it manually so the rotator will skip it:
-
-```ts
-import { failOneproxyProxy } from "omniroute/oneproxyRotator";
-
-const removed = await failOneproxyProxy("203.0.113.7", 8080);
-if (removed) {
-  console.log("Proxy marked as failed; rotator will skip it");
-}
-```
-
-The proxy is **not deleted** — it's marked unhealthy and won't be selected until the next successful health check (via `proxyHealth.ts`) or manual reset.
-
----
-
 ## Automatic Failure Exclusion for Your Own Proxies
 
-`failOneproxyProxy()` above only covers the 1proxy marketplace pool, which already
-auto-degrades on failure (see [Proxy Quality Scores](#proxy-quality-scores)). For
+The 1proxy marketplace pool already auto-degrades failed proxies on its own (see
+[Proxy Quality Scores](#proxy-quality-scores)). For
 proxies **you** added to the registry, the background health scheduler
 (`src/lib/proxyHealth/scheduler.ts`) provides the same "exclude a dead member from
 the chain automatically" behavior, without deleting anything:

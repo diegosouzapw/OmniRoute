@@ -91,16 +91,16 @@ function mockFetchError(error) {
 
 // ─── Test: Executor registration ────────────────────────────────────────────
 
-test("PerplexityWebExecutor is registered in executor index", () => {
+test("PerplexityWebExecutor is registered in executor index", async () => {
   assert.ok(hasSpecializedExecutor("perplexity-web"));
   assert.ok(hasSpecializedExecutor("pplx-web"));
-  const executor = getExecutor("perplexity-web");
+  const executor = await getExecutor("perplexity-web");
   assert.ok(executor instanceof PerplexityWebExecutor);
 });
 
-test("PerplexityWebExecutor alias resolves to same type", () => {
-  const a = getExecutor("perplexity-web");
-  const b = getExecutor("pplx-web");
+test("PerplexityWebExecutor alias resolves to same type", async () => {
+  const a = await getExecutor("perplexity-web");
+  const b = await getExecutor("pplx-web");
   assert.ok(a instanceof PerplexityWebExecutor);
   assert.ok(b instanceof PerplexityWebExecutor);
 });

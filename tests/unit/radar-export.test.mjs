@@ -64,7 +64,10 @@ test("radar export provenance never fabricates unknown fields", () => {
   assert.equal(p.sourceRef, null);
   assert.equal(p.runUrl, null);
   // sourceCommit: SHA de 40 hex (via git no checkout) ou null se indisponível.
-  assert.ok(p.sourceCommit === null || /^[0-9a-f]{40}$/.test(p.sourceCommit), "sourceCommit sha|null");
+  assert.ok(
+    p.sourceCommit === null || /^[0-9a-f]{40}$/.test(p.sourceCommit),
+    "sourceCommit sha|null"
+  );
 });
 
 test("radar export provenance reflects the GitHub Actions environment when present", () => {

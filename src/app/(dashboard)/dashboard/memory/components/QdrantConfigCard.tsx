@@ -40,7 +40,8 @@ export default function QdrantConfigCard() {
     collection?: { exists: boolean; vectorSize?: number; vectorName?: string | null };
   } | null>(null);
   const [searchValidated, setSearchValidated] = useState(false);
-  const [tutorialOpen, setTutorialOpen] = useState(false);  const [checking, setChecking] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<
@@ -109,7 +110,8 @@ export default function QdrantConfigCard() {
       // invalidate in-flight checks so they cannot overwrite the new state.
       healthSeqRef.current += 1;
       setHealth(null);
-      setSearchValidated(false);      setQdrant(next);
+      setSearchValidated(false);
+      setQdrant(next);
       setSaving(true);
       setSaveStatus("");
       try {
@@ -153,7 +155,8 @@ export default function QdrantConfigCard() {
         setSaving(false);
       }
     },
-    [qdrant, checkHealth]  );
+    [qdrant, checkHealth]
+  );
 
   // Auto-check on mount once settings load: without this the status badge
   // renders red after a page refresh because `health` starts as null and the
@@ -161,7 +164,9 @@ export default function QdrantConfigCard() {
   // connection button still drives the same check manually.
   useEffect(() => {
     if (!loading && qdrant.enabled && health === null) {
-      void checkHealth();
+      void (async () => {
+        await checkHealth();
+      })();
     }
   }, [loading, qdrant.enabled, health, checkHealth]);
 
@@ -245,7 +250,8 @@ export default function QdrantConfigCard() {
                 ? "text-text-muted"
                 : health.ok
                   ? "text-emerald-500"
-                  : "text-red-500"          }`}
+                  : "text-red-500"
+          }`}
         >
           <span
             className={`inline-block w-2.5 h-2.5 rounded-full ${

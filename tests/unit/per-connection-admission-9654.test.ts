@@ -170,9 +170,13 @@ test("admitChatRequest with explicit controller overrides per-connection lookup"
 });
 
 test("admitChatStructure routes structural rejection to per-connection controller when heap pressure is genuinely high (#10183/#10268)", async () => {
-  // occupy sess-a's per-connection controller via the module-level instance
+  // occupy sess-a's per-connection controller via the module-level instance.
+  // #503-fanout: the production singleton's legacy count cap is unlimited by
+  // default (OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT unset in tests) — the real
+  // capacity dimension is now the auto-derived ingest byte budget, so
+  // "occupied" must exhaust that budget, not the (now unlimited) count.
   const controller = perConnectionAdmissionController.getController("sess-a");
-  const occupied = controller.tryAcquireHeavy();
+  const occupied = controller.tryAcquireBudget(controller.maxInflightBytes);
   assert.ok(occupied);
 
   const result = await admitChatStructure(
@@ -199,9 +203,10 @@ test("admitChatStructure routes structural rejection to per-connection controlle
 });
 
 test("admitChatStructure with different sessionId shares the global budget", async () => {
-  // occupy the shared process-global budget via sess-a
+  // occupy the shared process-global budget via sess-a (byte budget — see
+  // the #503-fanout comment in the previous test).
   const ctrlA = perConnectionAdmissionController.getController("sess-a");
-  const occupied = ctrlA.tryAcquireHeavy();
+  const occupied = ctrlA.tryAcquireBudget(ctrlA.maxInflightBytes);
   assert.ok(occupied);
 
   // Session B must NOT get independent capacity (pre-#10110 it did — that was

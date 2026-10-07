@@ -165,6 +165,26 @@ test("normalizes Responses API reasoning items (no `role` field) into an assista
   assert.equal((conv.request[0].blocks[0] as { text: string }).text, "Thinking about the request.");
 });
 
+test("normalizes Responses API instructions as a system turn before input", () => {
+  const req = makeReq({
+    path: "/v1/responses",
+    requestBody: JSON.stringify({
+      instructions: "Answer tersely.",
+      input: [{ role: "user", content: [{ type: "input_text", text: "Hello" }] }],
+    }),
+  });
+  const conv = normalizeConversation(req);
+  assert.ok(conv);
+  assert.deepEqual(
+    conv.request.map((turn) => turn.role),
+    ["system", "user"]
+  );
+  assert.equal(
+    (conv.request[0].blocks[0] as { type: "text"; text: string }).text,
+    "Answer tersely."
+  );
+});
+
 test("normalizes Anthropic request with top-level system + tool_use response", () => {
   const req = makeReq({
     host: "api.anthropic.com",
@@ -188,6 +208,29 @@ test("normalizes Anthropic request with top-level system + tool_use response", (
   assert.equal(conv.response[0].blocks.length, 2);
   assert.equal(conv.response[0].blocks[0].type, "text");
   assert.equal(conv.response[0].blocks[1].type, "tool_use");
+});
+
+test("normalizes Anthropic user-carried tool_result content as a tool turn", () => {
+  const req = makeReq({
+    host: "api.anthropic.com",
+    path: "/v1/messages",
+    requestBody: JSON.stringify({
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "toolu_1", content: "sunny" }],
+        },
+      ],
+    }),
+  });
+  const conv = normalizeConversation(req);
+  assert.ok(conv);
+  assert.equal(conv.request[0].role, "tool");
+  assert.deepEqual(conv.request[0].blocks[0], {
+    type: "tool_result",
+    tool_use_id: "toolu_1",
+    content: "sunny",
+  });
 });
 
 test("normalizes Gemini request contents + functionCall response", () => {

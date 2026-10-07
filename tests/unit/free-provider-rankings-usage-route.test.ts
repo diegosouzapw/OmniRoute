@@ -85,3 +85,35 @@ test("route: with withUsage, call_logs is queried exactly once", async () => {
   assert.equal(res.status, 200);
   assert.equal(hits, 1, "one aggregate, never one query per provider");
 });
+
+test("route: an unknown sortBy is rejected with 400, not coerced", async () => {
+  const res = await route.GET(get("?sortBy=bogus"));
+  assert.equal(res.status, 400);
+  const body = (await res.json()) as { details?: Record<string, unknown> };
+  assert.ok(body.details?.sortBy, "the offending parameter must be named");
+});
+
+test("route: sortBy=reliability is accepted (elo stays default)", async () => {
+  for (const value of ["elo", "reliability"]) {
+    const res = await route.GET(get(`?sortBy=${value}`));
+    assert.equal(res.status, 200, `sortBy=${value} must be accepted`);
+  }
+});
+
+test("route: sortBy=reliability queries call_logs even without withUsage", async () => {
+  const spy = countCallLogQueries();
+  const res = await route.GET(get("?sortBy=reliability"));
+  const hits = spy.stop();
+
+  assert.equal(res.status, 200);
+  assert.ok(hits >= 1, "sortBy=reliability must pull the usage aggregate");
+});
+
+test("route: plain request without sortBy or withUsage never touches call_logs", async () => {
+  const spy = countCallLogQueries();
+  const res = await route.GET(get(""));
+  const hits = spy.stop();
+
+  assert.equal(res.status, 200);
+  assert.equal(hits, 0, "default path must stay free of the usage aggregate");
+});

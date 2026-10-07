@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   callAudioTranscription,
+  callAudioTranscriptionTimed,
   extractAudioParts,
   replaceAudioParts,
   selectAudioBridgeModel,
@@ -216,4 +217,100 @@ test("remote audio_url uses the guarded remote fetch before self-loop upload", a
 
   assert.equal(fetchedUrl, "https://media.example.test/clip.ogg");
   assertMultipartFile(uploaded, "audio.ogg", "audio/ogg", Buffer.from("OggS remote audio"));
+});
+
+test("timed transcription requests verbose_json and preserves provider-supplied segment timing", async () => {
+  let uploaded: RequestInit | undefined;
+  const result = await callAudioTranscriptionTimed(
+    {
+      messageIndex: 0,
+      partIndex: 0,
+      ref: Buffer.from("RIFF timed audio").toString("base64"),
+      shape: "input_audio",
+      format: "wav",
+    },
+    { model: "deepgram/nova-3", timeoutMs: 1_000 },
+    {
+      fetchImpl: async (_input, init) => {
+        uploaded = init;
+        return Response.json({
+          text: "hello world",
+          segments: [
+            { start: 0, end: 1.2, text: "hello", confidence: 0.95 },
+            { start: 1.2, end: 2.4, text: "world" },
+          ],
+        });
+      },
+      getPort: () => 3210,
+      getBearer: () => "internal-test-key",
+    }
+  );
+
+  const contentType = new Headers(uploaded?.headers).get("content-type");
+  const boundary = contentType?.split("boundary=", 2)[1];
+  const body = uploaded?.body as Buffer;
+  assert.ok(
+    body.includes(
+      Buffer.from(
+        `--${boundary}\r\n` +
+          'Content-Disposition: form-data; name="response_format"\r\n\r\n' +
+          `verbose_json\r\n`
+      )
+    ),
+    "verbose_json must be requested from the same transcription boundary"
+  );
+  assert.equal(result.text, "hello world");
+  assert.deepEqual(result.segments, [
+    { startSeconds: 0, endSeconds: 1.2, text: "hello", confidence: 0.95 },
+    { startSeconds: 1.2, endSeconds: 2.4, text: "world" },
+  ]);
+});
+
+test("timed transcription reports no segments when the provider ignores verbose_json", async () => {
+  const result = await callAudioTranscriptionTimed(
+    {
+      messageIndex: 0,
+      partIndex: 0,
+      ref: Buffer.from("RIFF coarse audio").toString("base64"),
+      shape: "input_audio",
+      format: "wav",
+    },
+    { model: "deepgram/nova-3", timeoutMs: 1_000 },
+    {
+      fetchImpl: async () => Response.json({ text: "coarse only" }),
+      getPort: () => 3210,
+      getBearer: () => "internal-test-key",
+    }
+  );
+
+  assert.equal(result.text, "coarse only");
+  assert.equal(result.segments, undefined);
+});
+
+test("timed transcription drops malformed provider segments instead of trusting them", async () => {
+  const result = await callAudioTranscriptionTimed(
+    {
+      messageIndex: 0,
+      partIndex: 0,
+      ref: Buffer.from("RIFF bad segments").toString("base64"),
+      shape: "input_audio",
+      format: "wav",
+    },
+    { model: "deepgram/nova-3", timeoutMs: 1_000 },
+    {
+      fetchImpl: async () =>
+        Response.json({
+          text: "text",
+          segments: [
+            { start: 5, end: 2, text: "backwards" },
+            { start: 0, end: 1, text: "" },
+            { start: "nope", end: 1, text: "not a number" },
+          ],
+        }),
+      getPort: () => 3210,
+      getBearer: () => "internal-test-key",
+    }
+  );
+
+  assert.equal(result.segments, undefined);
 });

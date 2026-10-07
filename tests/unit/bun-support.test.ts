@@ -27,14 +27,22 @@ test("createSyncDriverFactory prefers bun:sqlite built-in driver when running un
     (process.versions as Record<string, string>).bun = "1.1.20";
 
     const dummyBunDb = {
-      query: () => ({ run: () => ({ changes: 1, lastInsertRowid: 1 }), get: () => null, all: () => [] }),
+      query: () => ({
+        run: () => ({ changes: 1, lastInsertRowid: 1 }),
+        get: () => null,
+        all: () => [],
+      }),
       exec: () => {},
       close: () => {},
     };
 
     const loader = (modName: string) => {
       if (modName === "bun:sqlite") {
-        return { Database: function DummyBunDatabase() { return dummyBunDb; } };
+        return {
+          Database: function DummyBunDatabase() {
+            return dummyBunDb;
+          },
+        };
       }
       throw new Error(`Unexpected module ${modName}`);
     };
@@ -93,9 +101,7 @@ test("createSyncDriverFactory prefers better-sqlite3 when running under Node", (
 // for Windows / native-binding trouble / RAM-constrained machines — see
 // docs/reference/ENVIRONMENT.md and #6409. Nothing sniffs the runtime, so pin that:
 // a hidden override would silently ignore an explicit `=1` from an operator who set
-// it on purpose (CI does, in build.yml / ci.yml / quality.yml). Bun 1.4+ supports
-// Turbopack's V8 worker bindings (#11471), so the historical bun-only webpack
-// forced path is gone from the Bun image as well.
+// it on purpose (CI does, in build.yml / ci.yml / quality.yml).
 test("resolveNextBuildBundlerFlag is decided by OMNIROUTE_USE_TURBOPACK alone, not by the runtime", async () => {
   const buildIsolated = await import("../../scripts/build/build-next-isolated.mjs");
   const originalBun = process.versions.bun;

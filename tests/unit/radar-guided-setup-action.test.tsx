@@ -108,7 +108,7 @@ describe("Radar guided setup provider action", () => {
   });
 
   it("keeps a subscription-risk provider behind the existing acknowledgement gate", async () => {
-    providerId = "chatgpt-web";
+    providerId = "grok-web";
     const { container, root } = await renderProviderPage();
 
     expect(container.querySelector('input[type="password"]')).toBeNull();

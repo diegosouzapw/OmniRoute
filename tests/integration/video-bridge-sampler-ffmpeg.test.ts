@@ -112,7 +112,9 @@ test(
   { skip: REAL_FFMPEG_SKIP },
   async (context) => {
     const directory = await mkdtemp(join(tmpdir(), "omniroute-video-sampler-fixtures-"));
-    context.after(async () => rm(directory, { force: true, recursive: true, maxRetries: 5, retryDelay: 100 }));
+    context.after(async () =>
+      rm(directory, { force: true, recursive: true, maxRetries: 5, retryDelay: 100 })
+    );
 
     const rapidCuts = await createRapidEdgeCutFixture(directory);
     await context.test("rapid cuts near both ends retain coverage within the cap", async () => {

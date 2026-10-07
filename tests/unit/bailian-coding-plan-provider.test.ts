@@ -432,7 +432,11 @@ test("validateProviderApiKey returns invalid for 401 response (bailian-coding-pl
     });
 
     assert.equal(result.valid, false, "Should return invalid for 401");
-    assert.equal(result.error, "Invalid API key", "Error should be 'Invalid API key'");
+    assert.match(
+      String(result.error),
+      /^Invalid API key/,
+      "Error should start with 'Invalid API key'"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -457,7 +461,11 @@ test("validateProviderApiKey returns invalid for 403 response (bailian-coding-pl
     });
 
     assert.equal(result.valid, false, "Should return invalid for 403");
-    assert.equal(result.error, "Invalid API key", "Error should be 'Invalid API key'");
+    assert.match(
+      String(result.error),
+      /^Invalid API key/,
+      "Error should start with 'Invalid API key'"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

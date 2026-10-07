@@ -144,7 +144,6 @@ test("runJsonMigration normalizes legacy combo strategy names at the import boun
   assert.equal(byId.get("combo-unknown").strategy, "priority");
 });
 
-
 test("runJsonMigration rejects invalid combo invariants atomically", () => {
   const db = core.getDbInstance();
 

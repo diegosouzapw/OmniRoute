@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
-  <title id="title">Cheaper Inference gateway mark</title>
-  <rect x="1" y="1" width="62" height="62" fill="#050807" stroke="#31f889" stroke-width="2" />
-  <path d="M8 21V8h13M43 56h13V43" fill="none" stroke="#c8d2cc" stroke-width="2" />
-  <path d="M31 20c-8 0-13 5-13 12s5 12 13 12" fill="none" stroke="#f2f5f3" stroke-linecap="square" stroke-width="7" />
-  <path d="m33 25 10 7-10 7" fill="none" stroke="#31f889" stroke-linecap="square" stroke-linejoin="miter" stroke-width="5" />
-</svg>

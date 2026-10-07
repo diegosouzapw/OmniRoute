@@ -130,6 +130,26 @@ export function registerKeys(program) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+test("extension modules retain their parent command and required flags", () => {
+  const { cleanup } = withFixtureCli({
+    "model-validation.mjs": `models.command("test-add <model>")
+      .description("Validate then add")
+      .requiredOption("--provider <id>", "Provider")
+      .requiredOption("--connection <id>", "Connection")
+      .option("--dry-run", "Preview");`,
+  });
+  try {
+    const { commands, families } = parseCliRegistry();
+    const command = commands.get("models test-add <model>");
+    assert.ok(command);
+    assert.equal(command.isSubcommand, true);
+    assert.deepEqual(command.flags, ["--provider <id>", "--connection <id>", "--dry-run"]);
+    assert.equal(families.get("cli-models")?.length, 1);
+  } finally {
+    cleanup();
+  }
+});
+
 test("parseCliRegistry() returns commands Map and families Map", () => {
   const { cleanup } = withFixtureCli({
     "providers.mjs": FIXTURE_PROVIDERS_MJS,
@@ -284,6 +304,56 @@ export function registerBackup(program) {
   } finally {
     cleanup();
   }
+});
+
+test("parseCliRegistry() reads positionals declared with .addArgument()", () => {
+  // Commander takes a positional either inline in .command("stop <type>") or
+  // through .addArgument(new Argument(...)). The parser only saw the first, so
+  // `tunnel create [type]` was published as `tunnel create` -- the generator
+  // then wanted to delete the argument from the committed page on every run.
+  const fixture = `
+import { Argument } from "commander";
+
+export function registerTunnel(program) {
+  const tunnel = program.command("tunnel").description("Manage tunnels");
+
+  tunnel
+    .command("create")
+    .description("Create a tunnel")
+    .addArgument(new Argument("[type]", "Tunnel type").choices(["cloudflare"]).default("cloudflare"));
+
+  tunnel
+    .command("set")
+    .description("Set a profile")
+    .addArgument(new Argument("<name>", "Profile name").choices(["a", "b"]));
+
+  tunnel.command("stop <type>").description("Stop a tunnel");
+}
+`;
+  const { cleanup } = withFixtureCli({ "tunnel.mjs": fixture });
+  try {
+    const { commands } = parseCliRegistry();
+    assert.ok(commands.get("tunnel create [type]"), "optional positional should be kept");
+    assert.ok(commands.get("tunnel set <name>"), "required positional should be kept");
+    // The inline form still works, and is not doubled up by the new pattern.
+    assert.ok(commands.get("tunnel stop <type>"), "inline positional should be unchanged");
+    assert.equal(
+      commands.get("tunnel create"),
+      undefined,
+      "the bare name must not also be registered"
+    );
+  } finally {
+    cleanup();
+  }
+});
+
+test("parseCliRegistry() with the real tunnel.mjs keeps `tunnel create [type]`", () => {
+  // Guards the drift directly: this is the line the generator was rewriting.
+  const { commands } = parseCliRegistry();
+  assert.ok(
+    commands.get("tunnel create [type]"),
+    "tunnel create must carry its optional type argument"
+  );
 });
 
 test("parseCliRegistry() skips unrecognised .mjs files", () => {

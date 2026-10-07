@@ -43,13 +43,12 @@ import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 import { countUniqueMcpTools } from "./toolCount.ts";
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
+import { analyticsRangeForPeriod, readAnalyticsTotals } from "./analyticsShape.ts";
 import {
   evaluateToolScopes,
   resolveCallerScopeContext,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
-import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
-import { getInternalServiceAuthHeaders } from "../../src/lib/api/internalServiceAuth.ts";
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
@@ -90,18 +89,16 @@ import {
   clampMcpAccessibilityConfig,
   type McpAccessibilityConfig,
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
-import { getDbInstance } from "../../src/lib/db/core.ts";
+import { getDbInstance, ensureDbInitialized } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
-import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { isMcpScopeEnforcementEnabled } from "../../src/shared/utils/featureFlags.ts";
+import { toSafeMcpErrorMessage } from "./errorMessage.ts";
 import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
 import { getMcpModelsCatalog } from "./catalog.ts";
 import { registerRadarCatalogTool } from "./radarCatalog.ts";
 import type { TextToolResult } from "./toolResult.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
 
-const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
-const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
     .split(",")
@@ -173,11 +170,6 @@ function isLaneFlagOn(value: unknown): boolean {
   return value === true || value === "1" || value === "true";
 }
 
-function toStringArray(value: unknown, fallback: string[] = []): string[] {
-  const values = toArray(value).filter((entry): entry is string => typeof entry === "string");
-  return values.length > 0 ? values : fallback;
-}
-
 function normalizeComboModels(
   rawModels: unknown
 ): Array<{ provider: string; model: string; priority: number }> {
@@ -197,35 +189,17 @@ function normalizeComboModels(
   });
 }
 
-function getOmniRouteApiKey(): string {
-  return process.env.OMNIROUTE_API_KEY || "";
-}
+/**
+ * Re-exported rather than defined here, and imported (not just re-exported) because the
+ * tool handlers below call it by name — a bare `export … from` creates no local binding.
+ *
+ * #15159 M-06: the hop moved to its own leaf module so that `catalog.ts` and
+ * `radarCatalog.ts` can import it directly instead of reaching back into this file
+ * through `import("./server.ts")`, which closed two cycles in the dependency graph.
+ */
+import { omniRouteFetch } from "./internalFetch.ts";
 
-export async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  const url = `${OMNIROUTE_BASE_URL}${path}`;
-  const apiKey = getOmniRouteApiKey();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    // Static env key is only a fallback; the per-caller MCP identity forwarded via
-    // withMcpHttpAuthContext must win over it (#5819).
-    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    ...getMcpHttpAuthHeadersForInternalFetch(),
-    ...((options.headers as Record<string, string>) || {}),
-    // Authenticate only the server-to-server hop. This does not replace or
-    // weaken the caller identity forwarded above.
-    ...getInternalServiceAuthHeaders(),
-  };
-
-  const signal = options.signal || mcpFetchTimeoutSignal("management");
-  const response = await fetch(url, { ...options, headers, signal });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
-  }
-
-  return response.json();
-}
+export { omniRouteFetch };
 
 function withScopeEnforcement(
   toolName: string,
@@ -237,7 +211,7 @@ function withScopeEnforcement(
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
-      MCP_ENFORCE_SCOPES,
+      isMcpScopeEnforcementEnabled(),
       toolScopes
     );
     if (!scopeCheck.allowed) {
@@ -328,9 +302,7 @@ async function handleGetHealth() {
       .filter(({ settled }) => settled.status === "rejected")
       .map(({ source, settled }) => ({
         source,
-        error: sanitizeErrorMessage(
-          settled.status === "rejected" ? (settled as PromiseRejectedResult).reason : undefined
-        ),
+        error: toSafeMcpErrorMessage((settled as PromiseRejectedResult).reason, ""),
       }));
 
     const result = {
@@ -378,7 +350,7 @@ async function handleGetHealth() {
     await logToolCall("omniroute_get_health", {}, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_get_health", {}, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -420,7 +392,7 @@ async function handleListCombos(args: { includeMetrics?: boolean }) {
     await logToolCall("omniroute_list_combos", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_list_combos", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -435,7 +407,7 @@ async function handleGetComboMetrics(args: { comboId: string }) {
     await logToolCall("omniroute_get_combo_metrics", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_get_combo_metrics", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -451,7 +423,7 @@ async function handleSwitchCombo(args: { comboId: string; active: boolean }) {
     await logToolCall("omniroute_switch_combo", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_switch_combo", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -472,7 +444,7 @@ async function handleCreateCombo(args: {
     await logToolCall("omniroute_create_combo", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_create_combo", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -493,7 +465,7 @@ async function handleCheckQuota(args: { provider?: string; connectionId?: string
     await logToolCall("omniroute_check_quota", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_check_quota", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -562,7 +534,7 @@ async function handleRouteRequest(args: {
     );
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall(
       "omniroute_route_request",
       { model: args.model },
@@ -579,26 +551,20 @@ async function handleCostReport(args: { period?: string }) {
   const start = Date.now();
   try {
     const period = args.period || "session";
-    const rangeMap: Record<string, string> = {
-      session: "1d",
-      day: "1d",
-      week: "7d",
-      month: "30d",
-    };
-    const range = rangeMap[period] || "30d";
+    const range = analyticsRangeForPeriod(period);
     const raw = toRecord(
       await omniRouteFetch(`/api/usage/analytics?range=${encodeURIComponent(range)}`)
     );
-    const tokenCount = toRecord(raw.tokenCount);
+    const totals = readAnalyticsTotals(raw);
     const budget = toRecord(raw.budget);
 
     const result = {
       period,
-      totalCost: toNumber(raw.totalCost, 0),
-      requestCount: toNumber(raw.requestCount, 0),
+      totalCost: totals.totalCost,
+      requestCount: totals.requestCount,
       tokenCount: {
-        prompt: toNumber(tokenCount.prompt, 0),
-        completion: toNumber(tokenCount.completion, 0),
+        prompt: totals.promptTokens,
+        completion: totals.completionTokens,
       },
       byProvider: toArray(raw.byProvider),
       byModel: toArray(raw.byModel),
@@ -611,7 +577,7 @@ async function handleCostReport(args: { period?: string }) {
     await logToolCall("omniroute_cost_report", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_cost_report", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -631,7 +597,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
     );
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_list_models_catalog", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -660,13 +626,17 @@ async function handleWebSearch(args: {
     await logToolCall("omniroute_web_search", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_web_search", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
 
-async function handleXSearch(args: { query: string; max_results?: number }) {
+async function handleXSearch(args: {
+  query: string;
+  max_results?: number;
+  provider?: "x-search" | "xquik-search";
+}) {
   const start = Date.now();
   try {
     const result = await omniRouteFetch("/v1/search", {
@@ -675,14 +645,14 @@ async function handleXSearch(args: { query: string; max_results?: number }) {
         query: args.query,
         max_results: args.max_results ?? 5,
         search_type: "x",
-        provider: "x-search",
+        provider: args.provider ?? "x-search",
       }),
       signal: AbortSignal.timeout(120000),
     });
     await logToolCall("omniroute_x_search", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_x_search", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -690,7 +660,14 @@ async function handleXSearch(args: { query: string; max_results?: number }) {
 
 async function handleWebFetch(args: {
   url: string;
-  provider?: "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish" | "context7";
+  provider?:
+    | "firecrawl"
+    | "jina-reader"
+    | "tavily-search"
+    | "tinyfish"
+    | "context7"
+    | "nimble-search"
+    | "anysearch-search";
   format?: "markdown" | "html" | "links" | "screenshot";
   include_metadata?: boolean;
   depth?: number;
@@ -715,7 +692,7 @@ async function handleWebFetch(args: {
     await logToolCall("omniroute_web_fetch", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = toSafeMcpErrorMessage(err);
     await logToolCall("omniroute_web_fetch", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
@@ -1171,7 +1148,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Memory tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1198,7 +1175,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Skill tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1223,7 +1200,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
           const result = await toolDef.handler(parsedArgs, extra);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
           return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
         }
       })
@@ -1248,7 +1225,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "GitHub skill tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1275,7 +1252,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Plugin tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1302,7 +1279,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Compression tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1339,7 +1316,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
                 content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
               };
             } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
+              const msg = toSafeMcpErrorMessage(err, "Pool tool execution failed");
               return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
             }
           },
@@ -1367,7 +1344,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Gamification tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1394,7 +1371,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Notion tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1421,8 +1398,9 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (error) {
+            const msg = toSafeMcpErrorMessage(error, "Local corpus tool execution failed");
             return {
-              content: [{ type: "text" as const, text: `Error: ${sanitizeErrorMessage(error)}` }],
+              content: [{ type: "text" as const, text: `Error: ${msg}` }],
               isError: true,
             };
           }
@@ -1450,7 +1428,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
+            const msg = toSafeMcpErrorMessage(err, "Obsidian tool execution failed");
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
           }
         },
@@ -1491,7 +1469,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
                 ],
               };
             } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
+              const msg = toSafeMcpErrorMessage(err, "Skill execution failed");
               return {
                 content: [{ type: "text" as const, text: `Error: ${msg}` }],
                 isError: true,
@@ -1516,16 +1494,16 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
  * Called when `omniroute --mcp` is used.
  */
 export async function startMcpStdio(): Promise<void> {
+  await ensureDbInitialized();
   // Stdout is reserved for JSON-RPC — bin/mcpStdioConsoleGuard.mjs is preloaded via
   // `node --import` (see bin/mcp-server.mjs) so console.log/warn already redirect to
-  // stderr before this module's own imports evaluate (DB init happens as a side effect of
-  // createMcpServer()'s tool registration, earlier than any code placed here could catch).
+  // stderr before this module's own imports evaluate.
   const server = createMcpServer();
   const transport = new StdioServerTransport();
   const version = process.env.npm_package_version || "1.8.1";
   const stopHeartbeat = startMcpHeartbeat({
     version,
-    scopesEnforced: MCP_ENFORCE_SCOPES,
+    scopesEnforced: isMcpScopeEnforcementEnabled,
     allowedScopes: Array.from(MCP_ALLOWED_SCOPES),
     toolCount: TOTAL_MCP_TOOL_COUNT,
   });

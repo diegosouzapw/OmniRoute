@@ -20,7 +20,7 @@ export async function getOrInitSupervisor(): Promise<ServiceSupervisor> {
     tool: TOOL,
     port: PORT,
     spawnArgs: () => resolveSpawnArgs(PORT, managementKey),
-    healthUrl: () => `http://127.0.0.1:${PORT}/v1/models`,
+    healthUrl: () => `http://127.0.0.1:${PORT}/healthz`,
     healthIntervalMs: 5_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,

@@ -11,11 +11,12 @@ import {
   mergeModelCompatOverride,
   getHiddenModelsByProvider,
   type ModelCompatPatch,
-} from "@/lib/localDb";
+} from "@/lib/db/models";
 import {
   getModelContextOverrideRecord,
   setModelContextOverride,
   removeModelContextOverride,
+  listModelContextOverrides,
 } from "@/lib/db/modelContextOverrides";
 import {
   deleteManagedAvailableModelAliases,
@@ -27,7 +28,7 @@ import {
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 export const dynamic = "force-dynamic";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -52,15 +53,10 @@ function normalizeRequestedModelIds(
  * List custom models (all providers if no provider param)
  */
 export async function GET(request) {
-  try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
 
+  try {
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
 
@@ -93,9 +89,25 @@ export async function GET(request) {
       }
     }
 
+    // #14337: the block above attaches the override to CUSTOM-model rows only.
+    // A synced/imported model has no `customModels` row, so its override — which
+    // the PUT compatOnly branch has always accepted — was never readable, and the
+    // UI had no value to show or edit. Return the provider's overrides directly
+    // so a row without a custom entry can still carry one.
+    const modelContextOverrides = provider
+      ? listModelContextOverrides()
+          .filter((override) => override.provider === provider)
+          .map((override) => ({
+            modelId: override.modelId,
+            contextWindowOverride: override.realContext,
+            contextWindowOverrideSource: override.source,
+          }))
+      : [];
+
     return Response.json({
       models: modelsWithContextOverride,
       modelCompatOverrides,
+      modelContextOverrides,
       hiddenModelsByProvider,
     });
   } catch {
@@ -111,6 +123,9 @@ export async function GET(request) {
  * Body: { provider, modelId, modelName? }
  */
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -122,14 +137,6 @@ export async function POST(request) {
   }
 
   try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const validation = validateBody(providerModelMutationSchema, rawBody);
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
@@ -149,6 +156,10 @@ export async function POST(request) {
       supportsVision,
       // #9820: optional video-generation job preset (job/poll path).
       generationConfig,
+      isFree,
+      dimensions,
+      supportedInputTypes,
+      modelType,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -164,7 +175,13 @@ export async function POST(request) {
         ...(maxOutputTokens != null ? { outputTokenLimit: maxOutputTokens } : {}),
       },
       typeof supportsVision === "boolean" ? supportsVision : undefined,
-      generationConfig
+      generationConfig,
+      typeof isFree === "boolean" ? isFree : undefined,
+      {
+        ...(typeof dimensions === "number" && dimensions > 0 ? { dimensions } : {}),
+        ...(Array.isArray(supportedInputTypes) ? { supportedInputTypes } : {}),
+        ...(typeof modelType === "string" ? { modelType } : {}),
+      }
     );
     return Response.json({ model });
   } catch (error) {
@@ -181,6 +198,9 @@ export async function POST(request) {
  * Body: { provider, modelId, modelName?, apiFormat?, supportedEndpoints? }
  */
 export async function PUT(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -192,13 +212,6 @@ export async function PUT(request) {
   }
 
   try {
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const validation = validateBody(providerModelMutationSchema, rawBody);
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
@@ -218,6 +231,7 @@ export async function PUT(request) {
       contextWindowOverride,
       supportsVision,
       generationConfig,
+      isFree,
     } = validation.data;
 
     const raw = rawBody as Record<string, unknown>;
@@ -230,8 +244,8 @@ export async function PUT(request) {
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
     if ("upstreamHeaders" in raw) updates.upstreamHeaders = upstreamHeaders;
-    // #1904: manual vision-capability override — null clears back to heuristic.
     if ("supportsVision" in raw) updates.supportsVision = supportsVision;
+    if ("isFree" in raw) updates.isFree = isFree;
     // #9820: video-generation job preset — schema is non-nullable optional, so
     // presence implies a well-formed { preset } object; null is rejected by Zod.
     if ("generationConfig" in raw && generationConfig !== undefined) {
@@ -255,10 +269,12 @@ export async function PUT(request) {
       }
     }
 
-    const model = await updateCustomModel(provider, modelId, updates);
+    const model = await updateCustomModel(provider, modelId, updates, { createIfMissing: true });
 
     if (!model) {
       const rawKeys = Object.keys(raw);
+      // isFree is intentionally excluded: it has no compat-override home (customModels row only),
+      // so a PUT with isFree against a missing row must 404 rather than enter the compat branch.
       const compatOnly =
         rawKeys.length > 0 &&
         rawKeys.every((k) =>
@@ -368,6 +384,9 @@ export async function PUT(request) {
  * Body: { isHidden: boolean, modelIds?: string[] }
  */
 export async function PATCH(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -379,13 +398,6 @@ export async function PATCH(request) {
   }
 
   try {
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
     const body =
@@ -407,6 +419,17 @@ export async function PATCH(request) {
       );
     }
 
+    // #12172: optional modality scope (e.g. "chat", "images") so hiding a model on one
+    // registry surface does not also hide an identically-ID'd model on another one.
+    // Omitted = legacy "hide everywhere" behavior, unchanged for existing callers.
+    if (typeof body.modality !== "undefined" && typeof body.modality !== "string") {
+      return Response.json(
+        { error: { message: "modality must be a string when provided", type: "validation_error" } },
+        { status: 400 }
+      );
+    }
+    const modality = typeof body.modality === "string" && body.modality ? body.modality : undefined;
+
     const modelIds = normalizeRequestedModelIds(searchParams, body);
     if (modelIds.length === 0) {
       return Response.json(
@@ -423,7 +446,7 @@ export async function PATCH(request) {
     for (const modelId of modelIds) {
       const updatedModel = await updateCustomModel(provider, modelId, { isHidden: body.isHidden });
       if (!updatedModel) {
-        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden });
+        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden, modality });
       }
     }
 
@@ -457,15 +480,10 @@ export async function PATCH(request) {
  * DELETE /api/provider-models?provider=<id>&model=<modelId>
  */
 export async function DELETE(request) {
-  try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
 
+  try {
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
     const modelId = searchParams.get("model");

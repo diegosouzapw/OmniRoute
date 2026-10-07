@@ -59,11 +59,22 @@ test.after(() => {
 test("recordChange persists to SQLite, not memory", () => {
   const db = core.getDbInstance();
   const tableRow = db
-    .prepare("SELECT count(*) as c FROM sqlite_master WHERE type='table' AND name='config_audit_log'")
+    .prepare(
+      "SELECT count(*) as c FROM sqlite_master WHERE type='table' AND name='config_audit_log'"
+    )
     .get() as CountRow;
   assert.equal(tableRow.c, 1);
 
-  const e = audit.recordChange("update", "provider", "p1", "My Provider", { a: 1 }, { a: 2 }, "api", null);
+  const e = audit.recordChange(
+    "update",
+    "provider",
+    "p1",
+    "My Provider",
+    { a: 1 },
+    { a: 2 },
+    "api",
+    null
+  );
   assert.equal(countRows(), 1);
 
   const { entries, total } = audit.getAuditLog({ target: "provider" });
@@ -74,7 +85,15 @@ test("recordChange persists to SQLite, not memory", () => {
 
 test("pagination + filters read from SQLite", () => {
   audit.recordChange("create", "combo", "c1", "C1", null, { models: ["m1"] }, "dashboard");
-  audit.recordChange("update", "combo", "c1", "C1", { models: ["m1"] }, { models: ["m1", "m2"] }, "api");
+  audit.recordChange(
+    "update",
+    "combo",
+    "c1",
+    "C1",
+    { models: ["m1"] },
+    { models: ["m1", "m2"] },
+    "api"
+  );
 
   const { entries, total } = audit.getAuditLog({ target: "combo", limit: 1, offset: 0 });
   assert.equal(total, 2);

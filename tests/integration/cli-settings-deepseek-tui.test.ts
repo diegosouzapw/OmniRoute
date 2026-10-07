@@ -8,19 +8,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-deepseek-tui-settings-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-deepseek-tui-settings-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-deepseek-tui";
 process.env.JWT_SECRET = "test-jwt-secret-deepseek-tui";
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updateSettings } = await import("@/lib/db/settings");
+const localDb = { updateSettings };
 
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/deepseek-tui-settings/route.ts"
-);
+const { GET, POST, DELETE } =
+  await import("../../src/app/api/cli-tools/deepseek-tui-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -103,10 +101,7 @@ test("deepseek-tui-settings POST: writes config.toml with valid body", async () 
         }),
       })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
@@ -136,16 +131,13 @@ test("deepseek-tui-settings DELETE: removes config file", async () => {
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(
       path.join(configDir, "config.toml"),
-      "# managed by OmniRoute (plan 14)\n[openai]\nbase_url = \"http://localhost:20128\"\n"
+      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
     );
 
     const res = await DELETE(
       new Request("http://localhost/api/cli-tools/deepseek-tui-settings", { method: "DELETE" })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);

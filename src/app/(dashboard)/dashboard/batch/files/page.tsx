@@ -41,7 +41,9 @@ export default function BatchFilesPage() {
   }, []);
 
   useEffect(() => {
-    void fetchAll();
+    void (async () => {
+      await fetchAll();
+    })();
   }, [fetchAll]);
 
   return (

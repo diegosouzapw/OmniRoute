@@ -57,7 +57,7 @@ test("combo hits a failing provider only once before falling back across same-pr
       "openai/o3-mini",
       "openai/o1-mini",
       "openai/gpt-4.1-mini",
-      "claude/claude-3-5-sonnet-20241022",
+      "claude/claude-sonnet-4.6",
     ],
   });
 

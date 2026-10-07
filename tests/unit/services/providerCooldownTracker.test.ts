@@ -9,6 +9,7 @@ import {
   getCooldownEntryCount,
   cleanupExpiredCooldownEntries,
 } from "../../../open-sse/services/providerCooldownTracker.ts";
+import { PROVIDER_PROFILES } from "../../../open-sse/config/constants.ts";
 import {
   resolveResilienceSettings,
   DEFAULT_RESILIENCE_SETTINGS,
@@ -183,8 +184,16 @@ test("different connections have independent cooldowns", () => {
 
 test("provider-only key works without connectionId", () => {
   const settings = makeSettings();
+  // Provider-level entries honor the PROVIDER_PROFILES window gate: a single
+  // failure no longer cools the whole provider (2026-08-31 audit, P0.1 wiring).
   recordProviderCooldown("openai", undefined, settings);
+  assert.equal(isProviderInCooldown("openai", undefined, settings), false);
 
+  // Reaching the profile threshold trips the whole-provider cooldown, still
+  // independent from any connection-level key.
+  for (let i = 1; i < PROVIDER_PROFILES.apikey.providerFailureThreshold; i++) {
+    recordProviderCooldown("openai", undefined, settings);
+  }
   assert.ok(isProviderInCooldown("openai", undefined, settings));
   assert.equal(isProviderInCooldown("openai", "conn-1", settings), false);
 });

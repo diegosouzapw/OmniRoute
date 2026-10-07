@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { generateRoutingHints } from "../../open-sse/services/manifestAdapter.ts";
 
 test("manifest routing generates hints without error", async () => {
-  const hints = generateRoutingHints([], {
+  const hints = await generateRoutingHints([], {
     messages: [{ content: "Test" }],
   });
   assert.equal(hints.specificityLevel, "trivial");
@@ -11,7 +11,7 @@ test("manifest routing generates hints without error", async () => {
 });
 
 test("manifest routing failure gracefully falls back - empty targets handled", async () => {
-  const hints = generateRoutingHints([], {
+  const hints = await generateRoutingHints([], {
     messages: [{ content: "Hello world" }],
   });
   assert.equal(hints.eligibleTargets.length, 0);
@@ -20,7 +20,7 @@ test("manifest routing failure gracefully falls back - empty targets handled", a
 });
 
 test("specificity score is non-negative and bounded", async () => {
-  const hints = generateRoutingHints([], {
+  const hints = await generateRoutingHints([], {
     messages: [{ content: "Hello" }],
   });
   assert.ok(hints.specificity.score >= 0);
@@ -28,7 +28,7 @@ test("specificity score is non-negative and bounded", async () => {
 });
 
 test("routing hints contain all required fields", async () => {
-  const hints = generateRoutingHints([], {
+  const hints = await generateRoutingHints([], {
     messages: [{ content: "Test message" }],
   });
   assert.ok("specificityLevel" in hints);
@@ -40,7 +40,7 @@ test("routing hints contain all required fields", async () => {
 });
 
 test("trivial query recommends free tier", async () => {
-  const hints = generateRoutingHints([], {
+  const hints = await generateRoutingHints([], {
     messages: [{ content: "Hello" }],
   });
   assert.equal(hints.recommendedMinTier, "free");

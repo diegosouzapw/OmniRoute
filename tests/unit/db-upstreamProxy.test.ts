@@ -53,7 +53,8 @@ afterEach(() => {
 });
 
 after(() => {
-  if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (fs.existsSync(fileTmpDir))
+    fs.rmSync(fileTmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function resetModuleStorage() {

@@ -13,7 +13,7 @@ export const orcarouterProvider: RegistryEntry = {
   alias: "orcarouter",
   format: "openai",
   executor: "default",
-  baseUrl: "https://api.orcarouter.ai/v1",
+  baseUrl: "https://api.orcarouter.ai/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
   defaultContextLength: 128000,
@@ -51,6 +51,7 @@ export const orcarouterProvider: RegistryEntry = {
       supportsVision: true,
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "grok/grok-4.3",

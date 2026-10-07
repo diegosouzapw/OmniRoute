@@ -5,12 +5,19 @@ import test from "node:test";
 import {
   VIDEO_BRIDGE_BROKER_PATH,
   buildVideoBridgeBrokerHeaders,
+  extractVideoAudioViaBroker,
   extractVideoFramesViaBroker,
   isVideoBridgeBrokerInternalRequest,
   resolveVideoBridgeBrokerBaseUrl,
 } from "../../src/lib/guardrails/videoBridgeBrokerClient.ts";
 import { createVideoExtractionQueue } from "../../src/lib/guardrails/videoBridgeBrokerQueue.ts";
 import { AUTHZ_HEADER_PEER_LOCALITY } from "../../src/server/authz/headers.ts";
+import {
+  BROKER_TIMEOUT_MS,
+  handleVideoExtractionBrokerRequest,
+} from "../../src/app/api/modality-bridge/video/extract/route.ts";
+
+const EXTRACT_PATH = "/api/modality-bridge/video/extract";
 
 test("broker origin is pinned to the active loopback listener and ignores client-controlled origins", () => {
   const previousPort = process.env.PORT;
@@ -209,6 +216,152 @@ test("broker queue bounds pending jobs and queued bytes", async () => {
   await assert.rejects(() => queue.run(1, async () => undefined), /queue capacity/);
   release();
   await Promise.all([active, pending]);
+});
+
+test("audio broker client requests mode=audio on the exact same pinned route", async () => {
+  let requestedUrl = "";
+  let requestedInit: RequestInit | undefined;
+  const response = await extractVideoAudioViaBroker(
+    Buffer.from("safe-video"),
+    { timeoutMs: 5_000 },
+    {
+      fetchImpl: async (input, init) => {
+        requestedUrl = String(input);
+        requestedInit = init;
+        return Response.json({
+          audio: { channels: 1, dataUri: "data:audio/wav;base64,UklGRg==", sampleRateHz: 16000 },
+          durationSeconds: 4,
+        });
+      },
+    }
+  );
+
+  assert.match(requestedUrl, /\/api\/modality-bridge\/video\/extract\?mode=audio$/);
+  assert.equal(new URL(requestedUrl).hostname, "127.0.0.1");
+  assert.equal(requestedInit?.method, "POST");
+  assert.deepEqual(Buffer.from(requestedInit?.body as Uint8Array), Buffer.from("safe-video"));
+  assert.equal(response.durationSeconds, 4);
+  assert.deepEqual(response.audio, {
+    channels: 1,
+    dataUri: "data:audio/wav;base64,UklGRg==",
+    sampleRateHz: 16000,
+  });
+});
+
+test("audio broker client rejects a malformed or non-WAV response instead of trusting it", async () => {
+  await assert.rejects(
+    () =>
+      extractVideoAudioViaBroker(
+        Buffer.from("safe-video"),
+        { timeoutMs: 5_000 },
+        {
+          fetchImpl: async () =>
+            Response.json({
+              audio: { channels: 1, dataUri: "data:image/jpeg;base64,QQ==", sampleRateHz: 16000 },
+              durationSeconds: 4,
+            }),
+        }
+      ),
+    /invalid metadata/
+  );
+});
+
+test("broker route enforces the exact same queue-capacity contract for the audio operation as for frames", async () => {
+  // maxPending: 0 rejects every run() as capacity-exceeded from the first call —
+  // this is the identical VideoExtractionQueueError path frames already relies on
+  // (see "broker route maps queue capacity..." above), now exercised for mode=audio.
+  const queue = createVideoExtractionQueue({ concurrency: 1, maxPending: 0, maxQueuedBytes: 100 });
+
+  const audioResponse = await handleVideoExtractionBrokerRequest(
+    new Request(`http://localhost${EXTRACT_PATH}?mode=audio`, {
+      method: "POST",
+      headers: {
+        ...buildVideoBridgeBrokerHeaders(),
+        [AUTHZ_HEADER_PEER_LOCALITY]: "loopback",
+        "Content-Type": "application/octet-stream",
+      },
+      body: Buffer.from("video"),
+    }),
+    {
+      queue,
+      extractAudio: async () => {
+        throw new Error("audio extractor must not run once the shared queue reports capacity");
+      },
+    }
+  );
+
+  assert.equal(audioResponse.status, 503);
+  assert.equal(audioResponse.headers.get("Retry-After"), "1");
+});
+
+test("the module-level broker singleton queue is the same object for every dispatch branch", async () => {
+  // Neither branch of the route is given a `queue` dependency here, so all
+  // three must fall back to the identical `extractionQueue` singleton —
+  // proving production traffic for frames, audio, and subtitles (#11659,
+  // merged alongside #11654 in the same /merge-batch) shares one process
+  // queue instead of each operation racing its own.
+  const routeSource = await import("node:fs/promises").then((fs) =>
+    fs.readFile(
+      new URL("../../src/app/api/modality-bridge/video/extract/route.ts", import.meta.url),
+      "utf8"
+    )
+  );
+  const queueReferences = routeSource.match(/dependencies\.queue \?\? extractionQueue/g) ?? [];
+  assert.equal(
+    queueReferences.length,
+    3,
+    "the frame, audio, and subtitle branches must all default to the one extractionQueue singleton"
+  );
+});
+
+test("broker route rejects frame-only parameters when mode=audio", async () => {
+  const response = await handleVideoExtractionBrokerRequest(
+    new Request(`http://localhost${EXTRACT_PATH}?mode=audio&frames=2`, {
+      method: "POST",
+      headers: {
+        ...buildVideoBridgeBrokerHeaders(),
+        [AUTHZ_HEADER_PEER_LOCALITY]: "loopback",
+        "Content-Type": "application/octet-stream",
+      },
+      body: Buffer.from("video"),
+    })
+  );
+  assert.equal(response.status, 400);
+});
+
+test("broker route runs the injected audio extractor with the shared deadline and byte budget", async () => {
+  let receivedTimeoutMs = 0;
+  let receivedByteLength = 0;
+  const response = await handleVideoExtractionBrokerRequest(
+    new Request(`http://localhost${EXTRACT_PATH}?mode=audio`, {
+      method: "POST",
+      headers: {
+        ...buildVideoBridgeBrokerHeaders(),
+        [AUTHZ_HEADER_PEER_LOCALITY]: "loopback",
+        "Content-Type": "application/octet-stream",
+      },
+      body: Buffer.from("video-bytes"),
+    }),
+    {
+      extractAudio: async (bytes, options) => {
+        receivedByteLength = bytes.byteLength;
+        receivedTimeoutMs = options.timeoutMs;
+        return {
+          channels: 1,
+          dataUri: "data:audio/wav;base64,UklGRg==",
+          durationSeconds: 3,
+          sampleRateHz: 16000,
+        };
+      },
+    }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(receivedByteLength, Buffer.from("video-bytes").byteLength);
+  assert.equal(receivedTimeoutMs, BROKER_TIMEOUT_MS);
+  const body = (await response.json()) as { audio: { dataUri: string }; durationSeconds: number };
+  assert.equal(body.durationSeconds, 3);
+  assert.equal(body.audio.dataUri, "data:audio/wav;base64,UklGRg==");
 });
 
 test("broker queue removes an aborted pending item and never executes it", async () => {

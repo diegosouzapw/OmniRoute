@@ -21,6 +21,7 @@ import {
   _clearDrrStateForTest,
   _getDrrDeficitForTest,
 } from "../../open-sse/services/combo/quotaShareStrategy.ts";
+import { applyStrategyOrdering } from "../../open-sse/services/combo/applyStrategyOrdering.ts";
 import {
   incrementInflight,
   decrementInflight,
@@ -99,6 +100,52 @@ describe("quotaShareInflight", () => {
     incrementInflight("conn-b", leaseMs, NOW);
     assert.equal(getInflight("conn-b", NOW), 1);
     assert.equal(getInflight("conn-b", NOW + leaseMs + 1), 0);
+  });
+
+  test("an orphaned lease expires even while the connection keeps taking traffic", () => {
+    // The lease exists to bound a leak from a request that aborts before its
+    // release callback runs. A single per-connection expiry was refreshed by
+    // every later increment, so under sustained traffic the orphaned count rode
+    // along forever — the leak was unbounded exactly when the connection was
+    // busy, which is when P2C's view of load matters most.
+    const minute = 60_000;
+    incrementInflight("conn-leak", DEFAULT_LEASE_MS, NOW); // request that never releases
+
+    for (let i = 1; i <= 10; i++) {
+      const at = NOW + i * minute;
+      incrementInflight("conn-leak", DEFAULT_LEASE_MS, at);
+      decrementInflight("conn-leak", at + 1);
+    }
+
+    // 10 minutes on, five times the 120s lease: the orphan must be gone.
+    assert.equal(getInflight("conn-leak", NOW + 10 * minute + 2), 0);
+  });
+
+  test("a late release retires only its own lease, not its neighbours'", () => {
+    // Two concurrent requests on one connection. The first settles after the
+    // lease it was stamped with has lapsed. It must not take the second
+    // request's live slot with it — presenting a busy connection as idle sends
+    // P2C straight at the connection that is already loaded.
+    // First at NOW (lease lapses at NOW+120s), second at NOW+100s (lapses at
+    // NOW+220s). Releasing the first at NOW+130s is therefore a release that
+    // arrives after its own lease expired but while its neighbour is still live.
+    incrementInflight("conn-pair", DEFAULT_LEASE_MS, NOW);
+    incrementInflight("conn-pair", DEFAULT_LEASE_MS, NOW + 100_000);
+    assert.equal(getInflight("conn-pair", NOW + 100_000), 2);
+
+    decrementInflight("conn-pair", NOW + 130_000);
+
+    assert.equal(getInflight("conn-pair", NOW + 130_000), 1);
+  });
+
+  test("expired leases are retired without an explicit decrement, per request", () => {
+    const leaseMs = 1_000;
+    incrementInflight("conn-mix", leaseMs, NOW);
+    incrementInflight("conn-mix", leaseMs * 10, NOW);
+    assert.equal(getInflight("conn-mix", NOW), 2);
+    // The short lease lapses; the long one does not.
+    assert.equal(getInflight("conn-mix", NOW + leaseMs + 1), 1);
+    assert.equal(getInflight("conn-mix", NOW + leaseMs * 10 + 1), 0);
   });
 
   test("empty connectionId returns 0 (fail-open)", () => {
@@ -233,6 +280,48 @@ describe("DRR: deficit round robin", () => {
       counts["ek-heavy"] >= counts["ek-light"] * 1.5,
       `heavy/light ratio should be ~2:1, got ${counts["ek-heavy"]}:${counts["ek-light"]}`
     );
+  });
+
+  test("unweighted steps (weight 0 from the resolver) still alternate instead of pinning the first", () => {
+    // comboStructure resolves a step with no weight to 0, and #10881 made 0 mean "disabled".
+    // With every target at 0 the total weight is 0 and DRR returned definition order, so a
+    // quota-share combo without explicit weights sent every request to its first target.
+    const t1 = makeTarget("ek-unweighted-1", "conn-unweighted-1", 0);
+    const t2 = makeTarget("ek-unweighted-2", "conn-unweighted-2", 0);
+
+    const selected: Array<string | undefined> = [];
+    for (let i = 0; i < 4; i++) {
+      const r = selectQuotaShareTarget(
+        [t1, t2],
+        "combo-unweighted",
+        "anthropic/claude-sonnet-4-5",
+        NOW
+      );
+      selected.push(r.target?.executionKey);
+      r.decrementInflight();
+    }
+    assert.deepEqual(selected, [
+      "ek-unweighted-1",
+      "ek-unweighted-2",
+      "ek-unweighted-1",
+      "ek-unweighted-2",
+    ]);
+  });
+
+  test("an explicit weight 0 still disables that target while another target is weighted", () => {
+    const weighted = makeTarget("ek-on", "conn-on", 100);
+    const disabled = makeTarget("ek-off", "conn-off", 0);
+
+    for (let i = 0; i < 4; i++) {
+      const r = selectQuotaShareTarget(
+        [disabled, weighted],
+        "combo-disabled",
+        "anthropic/claude-sonnet-4-5",
+        NOW
+      );
+      assert.equal(r.target?.executionKey, "ek-on");
+      r.decrementInflight();
+    }
   });
 
   test("DRR state is isolated per comboName", () => {
@@ -488,5 +577,50 @@ describe("activation: qtSd/ combos use strategy 'quota-share'", () => {
       (INTERNAL_ROUTING_STRATEGY_VALUES as readonly string[]).includes("quota-share"),
       "'quota-share' must be in the internal (non-UI) routing strategy list"
     );
+  });
+});
+
+// ─── #11371: release must travel out of the ordering path ───────────────────
+
+describe("applyStrategyOrdering threads the in-flight release (#11371)", () => {
+  const noopLog = { info() {}, warn() {}, error() {}, debug() {} };
+
+  test("quota-share ordering returns a release that restores the counter to 0", async () => {
+    const targets = [makeTarget("ek-rel-a", "conn-rel-a"), makeTarget("ek-rel-b", "conn-rel-b")];
+    const { orderedTargets, quotaShareRelease } = await applyStrategyOrdering(
+      "quota-share",
+      targets,
+      {
+        combo: { id: "c-rel", name: "qtSd/rel" },
+        config: {},
+        body: { model: "anthropic/claude-sonnet-4-5" },
+        log: noopLog,
+        apiKeyAllowedConnections: null,
+      } as never
+    );
+
+    assert.ok(orderedTargets.length > 0);
+    assert.ok(quotaShareRelease, "quota-share ordering must hand back a release callback");
+    const winnerConn = orderedTargets[0].connectionId ?? "";
+    assert.ok(winnerConn, "winner must carry a connectionId for the reservation");
+    // Selection reserved exactly one slot on the winner's connection.
+    assert.equal(getInflight(winnerConn, NOW), 1, "selection must reserve one in-flight slot");
+    // The real-caller contract: release once when the request settles.
+    quotaShareRelease!();
+    assert.equal(getInflight(winnerConn, NOW), 0, "release must return the counter to 0");
+    // Idempotent: a second call must not push the counter negative.
+    quotaShareRelease!();
+    assert.equal(getInflight(winnerConn, NOW), 0, "double release floors at 0");
+  });
+
+  test("non-quota-share strategies leave quotaShareRelease null", async () => {
+    const result = await applyStrategyOrdering("fill-first", [makeTarget("ek-null", "conn-null")], {
+      combo: { id: "c-ff", name: "plain" },
+      config: {},
+      body: {},
+      log: noopLog,
+      apiKeyAllowedConnections: null,
+    } as never);
+    assert.equal(result.quotaShareRelease, null);
   });
 });

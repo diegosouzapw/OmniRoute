@@ -16,6 +16,7 @@ export function connectionRuntimePaths(connectionId: string) {
     storageStatePath: join(root, "storage-state.json"),
     brokerSocketPath: join(getConfigDir(), "runtime", "turn-broker.sock"),
     threadEnvironmentStatePath: join(root, "thread-environments.json"),
+    lunaCheckpointStatePath: join(root, "luna-checkpoints.json"),
   };
 }
 
@@ -41,8 +42,9 @@ function parseCookies(raw: string): Array<Record<string, unknown>> {
   return pairs.map(([name, value]) => ({
     name,
     value,
-    domain: ".chatgpt.com",
+    domain: name.startsWith("__Host-") ? "chatgpt.com" : ".chatgpt.com",
     path: "/",
+    expires: -1,
     secure: true,
     httpOnly: name.startsWith("__Secure-") || name.startsWith("__Host-"),
     sameSite: "Lax",

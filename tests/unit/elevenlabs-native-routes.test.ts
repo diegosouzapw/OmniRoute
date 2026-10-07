@@ -6,18 +6,13 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-elevenlabs-native-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.API_KEY_SECRET =
-  process.env.API_KEY_SECRET || "elevenlabs-native-route-test-secret";
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "elevenlabs-native-route-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const readCache = await import("../../src/lib/db/readCache.ts");
 const voicesRoute = await import("../../src/app/api/v1/voices/route.ts");
-const speechRoute = await import(
-  "../../src/app/api/v1/text-to-speech/[voiceId]/route.ts"
-);
-const transcriptionRoute = await import(
-  "../../src/app/api/v1/speech-to-text/route.ts"
-);
+const speechRoute = await import("../../src/app/api/v1/text-to-speech/[voiceId]/route.ts");
+const transcriptionRoute = await import("../../src/app/api/v1/speech-to-text/route.ts");
 const originalFetch = globalThis.fetch;
 const API_KEY = "test-elevenlabs-key";
 
@@ -35,9 +30,10 @@ function seedCredential() {
 }
 
 function clearCredentials() {
-  core.getDbInstance().prepare("DELETE FROM provider_connections WHERE provider = ?").run(
-    "elevenlabs"
-  );
+  core
+    .getDbInstance()
+    .prepare("DELETE FROM provider_connections WHERE provider = ?")
+    .run("elevenlabs");
   readCache.invalidateDbCache("connections");
 }
 
@@ -89,14 +85,11 @@ test("POST /v1/text-to-speech/[voiceId] forwards JSON and binary response", asyn
   }) as typeof fetch;
 
   const response = await speechRoute.POST(
-    new Request(
-      "http://localhost/v1/text-to-speech/voice_123?output_format=mp3_44100_128",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-      }
-    ),
+    new Request("http://localhost/v1/text-to-speech/voice_123?output_format=mp3_44100_128", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+    }),
     { params: Promise.resolve({ voiceId: "voice_123" }) }
   );
   assert.equal(response.status, 200);

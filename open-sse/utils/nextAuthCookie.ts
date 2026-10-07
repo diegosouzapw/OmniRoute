@@ -1,6 +1,6 @@
 /**
  * NextAuth session-token cookie helpers shared by web-cookie providers that
- * authenticate via __Secure-next-auth.session-token (chatgpt-web, perplexity-web, …).
+ * authenticate via __Secure-next-auth.session-token (for example, Perplexity Web).
  *
  * Rotation can change the shape (unchunked → chunked or vice versa). When that
  * happens, every old family member must be dropped — keeping the stale variant

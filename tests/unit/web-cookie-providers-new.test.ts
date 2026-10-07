@@ -8,7 +8,6 @@ const { V0VercelWebExecutor } = await import("../../open-sse/executors/v0-vercel
 const { KimiWebExecutor } = await import("../../open-sse/executors/kimi-web.ts");
 const { MoonshotExecutor } = await import("../../open-sse/executors/moonshot.ts");
 const { DoubaoWebExecutor } = await import("../../open-sse/executors/doubao-web.ts");
-const { QwenWebExecutor } = await import("../../open-sse/executors/qwen-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,50 +109,58 @@ const noopExecuteInput = {
 
 // ── Registration Tests ───────────────────────────────────────────────────────
 
-test("HuggingChat executor is registered", () => {
+test("HuggingChat executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("huggingchat"));
   assert.ok(hasSpecializedExecutor("hc"));
-  const executor = getExecutor("huggingchat");
+  const executor = await getExecutor("huggingchat");
   assert.ok(executor instanceof HuggingChatExecutor);
 });
 
-test("Poe Web executor is registered", () => {
+test("Poe Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("poe-web"));
-  const executor = getExecutor("poe-web");
+  const executor = await getExecutor("poe-web");
   assert.ok(executor instanceof PoeWebExecutor);
   // #8969: canonical API-key `poe` must not route through PoeWebExecutor.
   assert.equal(hasSpecializedExecutor("poe"), false);
-  assert.ok(!(getExecutor("poe") instanceof PoeWebExecutor));
+  const poeApiExecutor = await getExecutor("poe");
+  assert.ok(!(poeApiExecutor instanceof PoeWebExecutor));
 });
 
-test("Venice Web executor is registered", () => {
+test("Venice Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("venice-web"));
   assert.ok(hasSpecializedExecutor("ven"));
-  const executor = getExecutor("venice-web");
+  const executor = await getExecutor("venice-web");
   assert.ok(executor instanceof VeniceWebExecutor);
 });
 
-test("v0 Vercel Web executor is registered", () => {
+test("v0 Vercel Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("v0-vercel-web"));
   assert.ok(hasSpecializedExecutor("v0"));
-  const executor = getExecutor("v0-vercel-web");
+  const executor = await getExecutor("v0-vercel-web");
   assert.ok(executor instanceof V0VercelWebExecutor);
 });
 
-test("Kimi Web executor is registered", () => {
-  assert.ok(getExecutor("kimi-web") instanceof KimiWebExecutor);
+test("Kimi Web executor is registered", async () => {
+  const kimiWebExecutor = await getExecutor("kimi-web");
+  assert.ok(kimiWebExecutor instanceof KimiWebExecutor);
   // #4699: the legacy `kimi` API-key id must never route through Kimi Web.
   assert.ok(hasSpecializedExecutor("kimi"));
-  const legacyExecutor = getExecutor("kimi");
+  const legacyExecutor = await getExecutor("kimi");
   assert.ok(legacyExecutor instanceof MoonshotExecutor);
   assert.ok(!(legacyExecutor instanceof KimiWebExecutor));
 });
 
-test("Doubao Web executor is registered", () => {
+test("Doubao Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("doubao-web"));
   assert.ok(hasSpecializedExecutor("db"));
-  const executor = getExecutor("doubao-web");
+  const executor = await getExecutor("doubao-web");
   assert.ok(executor instanceof DoubaoWebExecutor);
+});
+
+test("Qwen Web aliases stay removed while Qwen Cloud remains routable", async () => {
+  assert.equal(hasSpecializedExecutor("qwen-web"), false);
+  assert.equal(hasSpecializedExecutor("qw"), false);
+  assert.equal((await getExecutor("qwen-cloud")).getProvider(), "qwen-cloud");
 });
 
 // ── Constructor Tests ────────────────────────────────────────────────────────
@@ -186,21 +193,6 @@ test("Kimi Web sets correct provider", () => {
 test("Doubao Web sets correct provider", () => {
   const executor = new DoubaoWebExecutor();
   assert.equal(executor.getProvider(), "doubao-web");
-});
-
-// ── Registration Tests (Qwen Web) ────────────────────────────────────────────
-
-test("Qwen Web executor is registered", () => {
-  assert.ok(hasSpecializedExecutor("qwen-web"));
-  const executor = getExecutor("qwen-web");
-  assert.ok(executor instanceof QwenWebExecutor);
-});
-
-// ── Constructor Tests (Qwen Web) ─────────────────────────────────────────────
-
-test("Qwen Web sets correct provider", () => {
-  const executor = new QwenWebExecutor();
-  assert.equal(executor.getProvider(), "qwen-web");
 });
 
 // ── HuggingChat Execution Tests ──────────────────────────────────────────────

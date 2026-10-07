@@ -106,7 +106,11 @@ test("#4073 mistral/pixtral-12b-latest resolves vision via the synced `-latest` 
 
   const latest = modelCapabilities.getResolvedModelCapabilities("mistral/pixtral-12b-latest");
   // attachment === true can ONLY come from the synced row keyed `pixtral-12b`.
-  assert.equal(latest.attachment, true, "synced attachment must resolve via the stripped `-latest` alias");
+  assert.equal(
+    latest.attachment,
+    true,
+    "synced attachment must resolve via the stripped `-latest` alias"
+  );
   assert.equal(latest.supportsVision, true);
 });
 
@@ -142,7 +146,9 @@ test("#4073 the `-latest` strip never fabricates a match for an unknown id", () 
   // No synced row for `unknown-text-model` (stripped) nor its `-latest` form, and
   // the heuristic doesn't recognise it → attachment null, vision null. The strip
   // must not invent a capability out of nothing.
-  const unknown = modelCapabilities.getResolvedModelCapabilities("mistral/unknown-text-model-latest");
+  const unknown = modelCapabilities.getResolvedModelCapabilities(
+    "mistral/unknown-text-model-latest"
+  );
   assert.equal(unknown.attachment, null);
   assert.equal(unknown.supportsVision, null);
 });

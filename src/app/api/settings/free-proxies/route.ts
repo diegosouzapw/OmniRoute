@@ -9,7 +9,7 @@ import {
   clearFreeProxiesBySource,
   getFreeProxyStats,
   getFreeProxySyncErrors,
-} from "@/lib/localDb";
+} from "@/lib/db/freeProxies";
 import type { FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 
 export async function GET(request: Request) {

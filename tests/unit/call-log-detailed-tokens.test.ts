@@ -1,127 +1,28 @@
-/**
+﻿/**
  * Unit tests for detailed token tracking in call logs.
  *
  * Verifies that getPromptCacheReadTokensOrNull, getPromptCacheCreationTokensOrNull,
  * and getReasoningTokensOrNull correctly distinguish between:
- *   - Provider didn't report the field → null
- *   - Provider reported zero → 0
+ *   - Provider didn't report the field -> null
+ *   - Provider reported zero -> 0
  *
  * Also tests getLoggedInputTokens for each provider format.
+ *
+ * These import the real implementations. They used to inline a hand-copied clone
+ * of tokenAccounting.ts, which drifted from the source and ended up asserting a
+ * bug as expected behaviour (`cache_write_tokens` silently dropped).
  */
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-// ── Inline the logic from tokenAccounting.ts ────────────────────────────
-
-function asRecord(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-}
-
-function toFiniteNumber(value) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function getPromptTokenDetails(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const promptDetails = asRecord(tokenRecord.prompt_tokens_details);
-  if (Object.keys(promptDetails).length > 0) return promptDetails;
-  return asRecord(tokenRecord.input_tokens_details);
-}
-
-function getPromptCacheReadTokens(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const promptDetails = getPromptTokenDetails(tokenRecord);
-  return toFiniteNumber(
-    tokenRecord.cacheRead ??
-      tokenRecord.cache_read_input_tokens ??
-      tokenRecord.cached_tokens ??
-      promptDetails.cached_tokens
-  );
-}
-
-function getPromptCacheCreationTokens(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const promptDetails = getPromptTokenDetails(tokenRecord);
-  return toFiniteNumber(
-    tokenRecord.cacheCreation ??
-      tokenRecord.cache_creation_input_tokens ??
-      promptDetails.cache_creation_tokens
-  );
-}
-
-function getReasoningTokens(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const completionDetails = asRecord(tokenRecord.completion_tokens_details);
-  return toFiniteNumber(
-    tokenRecord.reasoning ?? tokenRecord.reasoning_tokens ?? completionDetails.reasoning_tokens
-  );
-}
-
-function hasAnyKey(record, keys) {
-  return keys.some((k) => record[k] !== undefined && record[k] !== null);
-}
-
-function getPromptCacheReadTokensOrNull(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const promptDetails = getPromptTokenDetails(tokenRecord);
-  if (
-    hasAnyKey(tokenRecord, ["cacheRead", "cache_read_input_tokens", "cached_tokens"]) ||
-    hasAnyKey(promptDetails, ["cached_tokens"])
-  ) {
-    return getPromptCacheReadTokens(tokens);
-  }
-  return null;
-}
-
-function getPromptCacheCreationTokensOrNull(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const promptDetails = getPromptTokenDetails(tokenRecord);
-  if (
-    hasAnyKey(tokenRecord, ["cacheCreation", "cache_creation_input_tokens"]) ||
-    hasAnyKey(promptDetails, ["cache_creation_tokens"])
-  ) {
-    return getPromptCacheCreationTokens(tokens);
-  }
-  return null;
-}
-
-function getReasoningTokensOrNull(tokens) {
-  const tokenRecord = asRecord(tokens);
-  const completionDetails = asRecord(tokenRecord.completion_tokens_details);
-  if (
-    hasAnyKey(tokenRecord, ["reasoning", "reasoning_tokens"]) ||
-    hasAnyKey(completionDetails, ["reasoning_tokens"])
-  ) {
-    return getReasoningTokens(tokens);
-  }
-  return null;
-}
-
-function getLoggedInputTokens(tokens) {
-  const tokenRecord = asRecord(tokens);
-  if (tokenRecord.input !== undefined && tokenRecord.input !== null) {
-    return toFiniteNumber(tokenRecord.input);
-  }
-  if (tokenRecord.input_tokens !== undefined && tokenRecord.input_tokens !== null) {
-    return (
-      toFiniteNumber(tokenRecord.input_tokens) +
-      toFiniteNumber(tokenRecord.cache_read_input_tokens) +
-      toFiniteNumber(tokenRecord.cache_creation_input_tokens)
-    );
-  }
-  const promptTokens = toFiniteNumber(tokenRecord.prompt_tokens);
-  return promptTokens;
-}
-
-// ── Provider format tests ───────────────────────────────────────────────
-
-describe("detailed token extraction — per provider format", () => {
+import {
+  getLoggedInputTokens,
+  getPromptCacheCreationTokensOrNull,
+  getPromptCacheReadTokensOrNull,
+  getReasoningTokensOrNull,
+} from "../../src/lib/usage/tokenAccounting.ts";
+describe("detailed token extraction â€” per provider format", () => {
   it("Anthropic (streaming extracted): input_tokens=3, cache_creation=113613, cache_read=0", () => {
     // Raw Anthropic streaming usage (from message_start event)
     const tokens = {
@@ -171,13 +72,12 @@ describe("detailed token extraction — per provider format", () => {
     };
     assert.equal(getLoggedInputTokens(tokens), 5);
     assert.equal(getPromptCacheReadTokensOrNull(tokens), 0, "Cache read = 0 (reported)");
-    // cache_write_tokens is in prompt_tokens_details but our function checks
-    // cache_creation_input_tokens / cache_creation_tokens
-    // OpenRouter uses cache_write_tokens which is NOT recognized → null
+    // OpenRouter spells cache creation `cache_write_tokens`. It is a reported
+    // zero, so it must map to 0 -- not to null, which means "not reported".
     assert.equal(
       getPromptCacheCreationTokensOrNull(tokens),
-      null,
-      "OpenRouter cache_write_tokens not mapped to creation"
+      0,
+      "OpenRouter cache_write_tokens maps to cache creation"
     );
     assert.equal(getReasoningTokensOrNull(tokens), 60, "Reasoning = 60");
   });

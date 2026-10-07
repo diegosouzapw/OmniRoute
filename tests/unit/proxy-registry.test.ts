@@ -14,9 +14,8 @@ const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
-const { createProxyRegistrySchema, updateProxyRegistrySchema } = await import(
-  "../../src/shared/validation/schemas.ts"
-);
+const { createProxyRegistrySchema, updateProxyRegistrySchema } =
+  await import("../../src/shared/validation/schemas.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;

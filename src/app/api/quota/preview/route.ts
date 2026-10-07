@@ -25,7 +25,7 @@ import { NextResponse } from "next/server";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { QuotaPreviewQuerySchema } from "@/shared/schemas/quota";
-import { getPool } from "@/lib/localDb";
+import { getPool } from "@/lib/db/quotaPools";
 import { enforceQuotaShare } from "@/lib/quota/enforce";
 
 export const dynamic = "force-dynamic";

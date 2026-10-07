@@ -18,17 +18,14 @@ keep failing.
 
 ## Supported Events
 
-The `WebhookEvent` type (`src/lib/webhookDispatcher.ts`) currently models:
+The `WebhookEvent` type (`src/lib/webhooks/eventDescriptions.ts`, consumed by `src/lib/webhookDispatcher.ts`) currently models exactly four events:
 
-| Event                | Fires when                                                |
-| -------------------- | --------------------------------------------------------- |
-| `request.completed`  | A proxied request completes successfully                  |
-| `request.failed`     | A proxied request fails after all retries/fallback        |
-| `provider.error`     | A provider returns an error eligible for circuit-breaking |
-| `provider.recovered` | A previously failing provider returns to a healthy state  |
-| `quota.exceeded`     | An API key crosses a budget/quota threshold               |
-| `combo.switched`     | A combo strategy switches its primary target              |
-| `test.ping`          | Synthetic event used by the test endpoint                 |
+| Event               | Fires when                                         |
+| ------------------- | -------------------------------------------------- |
+| `request.completed` | A proxied request completes successfully           |
+| `request.failed`    | A proxied request fails after all retries/fallback |
+| `quota.exceeded`    | An API key crosses a budget/quota threshold        |
+| `test.ping`         | Synthetic event used by the test endpoint          |
 
 Subscriptions accept the literal `"*"` to receive every event. Unknown event
 names in `events` are ignored at dispatch time.
@@ -123,23 +120,26 @@ Table `webhooks` (migration `011_webhooks.sql`):
 | `last_status`       | INT     | HTTP status of the last attempt (0 = network) |
 | `failure_count`     | INT     | Resets to 0 on success, +1 on failure         |
 
-There is **no separate `webhook_deliveries` table** in the current schema —
-delivery history is aggregated on the `webhooks` row. If you need full audit
-history, consume `request.completed` / `audit` style events from a downstream
-log store.
+Delivery history is persisted in the dedicated `webhook_deliveries` table
+(migration `069_webhook_deliveries.sql`, written via
+`src/lib/db/webhookDeliveries.ts::insertDelivery` on every attempt), in addition
+to the aggregate counters on the `webhooks` row. Kind metadata (Slack / Discord /
+Telegram / custom payload transformers) was added by `070_webhooks_kind_metadata.sql`.
 
 ## REST API
 
 All endpoints require management auth (`requireManagementAuth`).
 
-| Endpoint                  | Method | Description                     |
-| ------------------------- | ------ | ------------------------------- |
-| `/api/webhooks`           | GET    | List webhooks (secrets masked)  |
-| `/api/webhooks`           | POST   | Create webhook                  |
-| `/api/webhooks/[id]`      | GET    | Webhook detail (full secret)    |
-| `/api/webhooks/[id]`      | PUT    | Update fields                   |
-| `/api/webhooks/[id]`      | DELETE | Remove                          |
-| `/api/webhooks/[id]/test` | POST   | Fire a `test.ping` (no retries) |
+| Endpoint                        | Method | Description                              |
+| ------------------------------- | ------ | ---------------------------------------- |
+| `/api/webhooks`                 | GET    | List webhooks (secrets masked)           |
+| `/api/webhooks`                 | POST   | Create webhook                           |
+| `/api/webhooks/[id]`            | GET    | Webhook detail (full secret)             |
+| `/api/webhooks/[id]`            | PUT    | Update fields                            |
+| `/api/webhooks/[id]`            | DELETE | Remove                                   |
+| `/api/webhooks/[id]/test`       | POST   | Fire a `test.ping` (no retries)          |
+| `/api/webhooks/[id]/deliveries` | GET    | Recent delivery attempts for one webhook |
+| `/api/webhooks/validate-url`    | POST   | Pre-flight URL validation (SSRF guard)   |
 
 `GET /api/webhooks` masks the secret to `<first 10 chars>...` to avoid leaking
 on listing pages. Use the `[id]` GET when you actually need the secret.
@@ -153,7 +153,7 @@ curl -X POST http://localhost:20128/api/webhooks \
   -d '{
     "url": "https://hooks.slack.com/services/...",
     "secret": "whsec_my_shared_secret",
-    "events": ["quota.exceeded", "provider.error"],
+    "events": ["quota.exceeded", "request.failed"],
     "description": "Slack alerts"
   }'
 ```
@@ -203,21 +203,6 @@ The dashboard page at `/dashboard/webhooks` (see
 }
 ```
 
-### provider.error
-
-```json
-{
-  "event": "provider.error",
-  "timestamp": "2026-05-13T20:31:00.000Z",
-  "data": {
-    "provider": "anthropic",
-    "status": 503,
-    "consecutive_failures": 5,
-    "circuit_state": "open"
-  }
-}
-```
-
 ### test.ping
 
 ```json
@@ -255,5 +240,5 @@ absence).
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — full management API surface
 - [RESILIENCE_GUIDE.md](../architecture/RESILIENCE_GUIDE.md) — circuit breaker / cooldown
-  semantics that drive `provider.error` / `provider.recovered`
+  semantics behind provider failures surfaced via `request.failed`
 - Source: `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`

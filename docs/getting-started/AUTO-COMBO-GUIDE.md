@@ -46,14 +46,14 @@ model: "auto/cheap"     # Cheapest option
 
 ## Which "auto" Should I Use?
 
-| If you want... | Use this | Best for | How it works |
-|----------------|----------|----------|--------------|
-| **Best overall** | `auto` | General questions, chat | Balances speed, cost, and quality |
-| **Best code** | `auto/coding` | Writing code, debugging | Picks models good at coding tasks |
-| **Fastest response** | `auto/fast` | Quick answers, low latency | Prioritizes speed over everything |
-| **Cheapest option** | `auto/cheap` | Saving money | Picks the cheapest provider |
-| **Smartest model** | `auto/smart` | Complex tasks | Quality-first + explores new models |
-| **Most available** | `auto/offline` | When providers are busy | Picks providers with most capacity |
+| If you want...       | Use this       | Best for                   | How it works                        |
+| -------------------- | -------------- | -------------------------- | ----------------------------------- |
+| **Best overall**     | `auto`         | General questions, chat    | Balances speed, cost, and quality   |
+| **Best code**        | `auto/coding`  | Writing code, debugging    | Picks models good at coding tasks   |
+| **Fastest response** | `auto/fast`    | Quick answers, low latency | Prioritizes speed over everything   |
+| **Cheapest option**  | `auto/cheap`   | Saving money               | Picks the cheapest provider         |
+| **Smartest model**   | `auto/smart`   | Complex tasks              | Quality-first + explores new models |
+| **Most available**   | `auto/offline` | When providers are busy    | Picks providers with most capacity  |
 
 ### Examples
 
@@ -81,7 +81,7 @@ curl http://localhost:20128/v1/chat/completions \
 When you send a request with `model: "auto"`, OmniRoute:
 
 1. **Looks at all your connected providers** — Every provider you've added (OpenAI, Anthropic, Google, etc.)
-2. **Scores each one** on 5 factors:
+2. **Scores each one**, weighing among other things:
    - Is it working? (health)
    - Does it have capacity? (quota)
    - How much does it cost? (price)
@@ -94,29 +94,29 @@ When you send a request with `model: "auto"`, OmniRoute:
 
 Each provider gets a score from 0 to 1. The higher the score, the better the fit.
 
-| Factor | Weight | What it means |
-|--------|--------|---------------|
-| Health | 20% | Is the provider working? (circuit breaker state) |
-| Quota | 15% | Does it have capacity remaining? |
-| Cost | 15% | How expensive is it? (cheaper = higher score) |
-| Speed | 12% | How fast is it? (lower latency = higher score) |
-| Task Fit | 8% | Is it good at this type of task? |
-| Stability | 5% | Is it consistent? (low error rate) |
-| Tier | 5% | Account tier (Ultra > Pro > Free) |
-| Other | 20% | Context affinity, connection density, etc. |
+| Factor    | Weight | What it means                                    |
+| --------- | ------ | ------------------------------------------------ |
+| Health    | 20%    | Is the provider working? (circuit breaker state) |
+| Quota     | 15%    | Does it have capacity remaining?                 |
+| Cost      | 15%    | How expensive is it? (cheaper = higher score)    |
+| Speed     | 12%    | How fast is it? (lower latency = higher score)   |
+| Task Fit  | 8%     | Is it good at this type of task?                 |
+| Stability | 5%     | Is it consistent? (low error rate)               |
+| Tier      | 5%     | Account tier (Ultra > Pro > Free)                |
+| Other     | 20%    | Context affinity, connection density, etc.       |
 
 ### How Variants Change the Scoring
 
 Each variant uses different weights:
 
-| Variant | Prioritizes | Key Weights |
-|---------|-------------|-------------|
-| `auto` | Balanced | health=20%, quota=15%, cost=15% |
-| `auto/coding` | Quality | taskFit=37%, stability=15% |
-| `auto/fast` | Speed | latency=32%, health=28% |
-| `auto/cheap` | Cost | cost=37% |
-| `auto/smart` | Quality + Explore | taskFit=37%, exploration=10% |
-| `auto/offline` | Capacity | quota=37%, health=28% |
+| Variant        | Prioritizes       | Key Weights                     |
+| -------------- | ----------------- | ------------------------------- |
+| `auto`         | Balanced          | health=20%, quota=15%, cost=15% |
+| `auto/coding`  | Quality           | taskFit=37%, stability=15%      |
+| `auto/fast`    | Speed             | latency=32%, health=28%         |
+| `auto/cheap`   | Cost              | cost=37%                        |
+| `auto/smart`   | Quality + Explore | taskFit=37%, exploration=10%    |
+| `auto/offline` | Capacity          | quota=37%, health=28%           |
 
 ---
 
@@ -125,15 +125,19 @@ Each variant uses different weights:
 OmniRoute has **three layers of protection**:
 
 ### 1. Auto-Fallback
+
 If the best provider fails, OmniRoute automatically tries the next one. You don't need to do anything.
 
 ### 2. Self-Healing
+
 If a provider keeps failing:
+
 - **Score < 0.2** → Excluded for 5 minutes
 - **Circuit breaker open** → Auto-excluded
 - **More than 50% providers down** → Incident mode (no exploration)
 
 ### 3. Emergency Fallback
+
 If all providers fail, OmniRoute routes to stable free providers (like Kiro or Qoder) as a last resort.
 
 ---
@@ -209,7 +213,8 @@ Round-robin cycles through providers in order. Auto-combo **scores each provider
 ## Learn More
 
 For developers and contributors, see the [Auto-Combo Technical Reference](../routing/AUTO-COMBO.md) for:
-- Full 13-factor scoring algorithm
+
+- Full 16-factor scoring algorithm
 - Mode pack weight tables
 - Implementation file paths
 - API endpoints

@@ -13,26 +13,26 @@ npx omniroute
 
 ## Examples
 
-| File | Language | Dependency |
-|------|----------|------------|
-| [`python_requests.py`](python_requests.py) | Python | `pip install requests` |
-| [`nodejs_axios.js`](nodejs_axios.js) | Node.js | `npm install axios` |
-| [`curl_terminal.sh`](curl_terminal.sh) | Bash / cURL | `curl` (pre-installed on Mac/Linux) |
-| [`php_curl.php`](php_curl.php) | PHP | PHP 7.4+ with cURL |
+| File                                       | Language    | Dependency                          |
+| ------------------------------------------ | ----------- | ----------------------------------- |
+| [`python_requests.py`](python_requests.py) | Python      | `pip install requests`              |
+| [`nodejs_axios.js`](nodejs_axios.js)       | Node.js     | `npm install axios`                 |
+| [`curl_terminal.sh`](curl_terminal.sh)     | Bash / cURL | `curl` (pre-installed on Mac/Linux) |
+| [`php_curl.php`](php_curl.php)             | PHP         | PHP 7.4+ with cURL                  |
 
-All examples use **`felo/auto`** — a keyless, zero-configuration model that works immediately with no provider sign-up required.
+All examples use **`auto`** — the zero-configuration router that works immediately with no provider sign-up required.
 
 ## Key Settings (same in all examples)
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| `model` | `felo/auto` | Keyless provider, works out of the box |
-| `stream` | `false` | Returns standard JSON instead of SSE stream |
+| Setting         | Value              | Why                                                   |
+| --------------- | ------------------ | ----------------------------------------------------- |
+| `model`         | `auto`             | Zero-configuration routing, works out of the box      |
+| `stream`        | `false`            | Returns standard JSON instead of SSE stream           |
 | `Authorization` | `Bearer dummy-key` | Any non-empty string satisfies the header requirement |
 
 ## What to Change
 
-To use a different model, replace `felo/auto` with any model ID from:
+To use a specific model, replace `auto` with any model ID from:
 
 ```bash
 curl http://localhost:20128/v1/models
