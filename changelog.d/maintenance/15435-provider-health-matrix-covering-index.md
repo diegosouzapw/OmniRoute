@@ -1,0 +1,1 @@
+- **perf(db):** speed up the provider health matrix with a covering call-log index ([#15435](https://github.com/diegosouzapw/OmniRoute/pull/15435)) — thanks @maxmad64bis

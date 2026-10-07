@@ -85,7 +85,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "OUTBOUND_SSRF_GUARD_ENABLED",
     label: "SSRF Guard",
-    description: "Block outbound requests to private/internal IP ranges",
+    description:
+      "Legacy alias: a value saved on this flag's dashboard toggle is read before the environment; false, 0, no, or off in either turns the outbound URL guard's host checks off like OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
     descriptionI18nKey: "featureFlagOutboundSsrfGuardEnabledDescription",
     category: "security",
     defaultValue: "true",
@@ -159,7 +160,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "RERANK_REMOTE_PROVIDER_NODES",
     label: "Remote Rerank Provider Nodes",
     description:
-      "Allow POST /v1/rerank (and the memory engine's rerank step, which calls it over loopback) to use OpenAI-compatible provider nodes hosted outside localhost — a LAN box or Tailscale peer running TEI, Infinity, vLLM, etc. Off by default — routing to a remote host changes egress identity and must be an explicit operator decision. Loopback nodes are always allowed and unaffected. Remote nodes must also pass the provider outbound URL policy (cloud-metadata hosts are never routed to).",
+      "Allow POST /v1/rerank (and the memory engine's rerank step, which calls it over loopback) to use OpenAI-compatible provider nodes hosted outside localhost — a LAN box or Tailscale peer running TEI, Infinity, vLLM, etc. Off by default — routing to a remote host changes egress identity and must be an explicit operator decision. Loopback nodes are always allowed and unaffected. Remote nodes must also pass the provider outbound URL policy.",
     descriptionI18nKey: "settings.featureFlags.rerankRemoteProviderNodes",
     category: "network",
     defaultValue: "false",
@@ -250,6 +251,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",
+  },
+  {
+    key: "PROXY_OPERATOR_EGRESS_ENABLED",
+    label: "Proxy Operator Egress",
+    description:
+      "Accept operator-pushed dated observed addresses per pool member and merge them with the journal read for display and pool order. Off by default: the push route answers 404 and pool reads behave exactly as before.",
+    descriptionI18nKey: "featureFlagProxyOperatorEgressDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
   },
   {
     key: "OPENCODE_RESPONSES_STALL_ROTATION",
@@ -361,7 +374,8 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     key: "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
     label: "Allow Private Provider URLs",
-    description: "Allow provider URLs pointing to private/internal networks",
+    description:
+      "Turns off the outbound URL guard's host checks, cloud-metadata block included, on provider URL validation, model discovery, provider-node base URLs, and the proxy-fallback test, and allows private webhook targets. Local and LAN URLs already pass on the validation, discovery, and provider-node paths by default; the proxy-fallback test and webhook targets check only this flag",
     descriptionI18nKey: "featureFlagOmnirouteAllowPrivateProviderUrlsDescription",
     category: "network",
     defaultValue: "false",
@@ -373,7 +387,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     key: "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS",
     label: "Allow Local Provider URLs",
     description:
-      "Allow adding and validating providers on local/private addresses (127.0.0.1, localhost, LAN, private IP ranges) — needed for local OpenAI-compatible models. Enabled by default (OmniRoute is local-first); turn it OFF to enforce strict public-only blocking if you only use public providers. Cloud-metadata endpoints (e.g. 169.254.169.254) stay blocked either way.",
+      "Allow provider URLs on local/private addresses (127.0.0.1, localhost, LAN). On by default (OmniRoute is local-first): the guard then blocks cloud-metadata endpoints (all of 169.254.0.0/16 plus the known metadata hostnames). Disable for strict public-only blocking: private and loopback hosts are blocked too",
     descriptionI18nKey: "featureFlagOmnirouteAllowLocalProviderUrlsDescription",
     category: "network",
     defaultValue: "true",

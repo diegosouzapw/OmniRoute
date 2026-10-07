@@ -346,13 +346,14 @@ export async function PATCH(request: Request) {
       }) as typeof body.modelLockout;
     }
 
-    if (body.oidcEnabled === true) {
+    if (body.oidcEnabled !== undefined || body.oidcAllowedSubjects !== undefined) {
       const current = await getSettings();
+      const enabled = body.oidcEnabled ?? current.oidcEnabled === true;
       const subjects = Array.isArray(body.oidcAllowedSubjects)
         ? (body.oidcAllowedSubjects as unknown[])
         : ((current.oidcAllowedSubjects as unknown[] | undefined) ?? []);
       const hasAtLeastOne = subjects.some((s) => typeof s === "string" && s.trim().length > 0);
-      if (!hasAtLeastOne) {
+      if (enabled && !hasAtLeastOne) {
         emitSettingsFailureAudit(request, actor, "OIDC_ALLOWED_SUBJECTS_REQUIRED", attemptedKeys);
         return NextResponse.json(
           {

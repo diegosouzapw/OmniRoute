@@ -40,6 +40,7 @@ import {
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import { isCodexQuotaFilteringDisabled } from "@/lib/providers/codexQuotaFiltering";
 import { resolveProviderId } from "@/shared/constants/providers";
 import {
   claudeQuotaMatchesModel,
@@ -57,8 +58,7 @@ import {
   isQuotaHealthy,
 } from "./quotaCacheState";
 
-// #14359 — re-exported so existing callers (chat.ts, tests) keep importing from here. Only
-// markQuotaHealthy has outside callers; the rest are internal and stay unexported (dead-code gate).
+// Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -424,6 +424,10 @@ function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean 
   return true;
 }
 
+function reportedClaudeQuotaRemaining(quota: QuotaInfo): boolean {
+  return quota.fractionReported !== false && quota.remainingPercentage > 0;
+}
+
 function isBlockingClaudeQuota(quota: QuotaInfo): boolean {
   const metadata = quota.claudeQuota;
   if (!metadata?.active) return false;
@@ -431,8 +435,19 @@ function isBlockingClaudeQuota(quota: QuotaInfo): boolean {
   return severity === null || severity === "critical";
 }
 
-function activeClaudeResetMs(quota: QuotaInfo, now: number): number | null {
-  if (!isBlockingClaudeQuota(quota) || !quota.resetAt) return null;
+function isPreflightBlockingClaudeQuota(quota: QuotaInfo): boolean {
+  // An active critical window with reported remaining quota is a predictive
+  // warning. It must not skip the upstream request, but a later real 429
+  // still classifies from the same active/critical metadata.
+  return isBlockingClaudeQuota(quota) && !reportedClaudeQuotaRemaining(quota);
+}
+
+function activeClaudeResetMs(
+  quota: QuotaInfo,
+  now: number,
+  blocking: (quota: QuotaInfo) => boolean = isBlockingClaudeQuota
+): number | null {
+  if (!blocking(quota) || !quota.resetAt) return null;
   const resetMs = parseDate(quota.resetAt);
   return resetMs !== null && resetMs > now ? resetMs : null;
 }
@@ -440,8 +455,7 @@ function activeClaudeResetMs(quota: QuotaInfo, now: number): number | null {
 function isActiveClaudeExhaustion(quota: QuotaInfo, now: number): boolean {
   // Active critical limits can be predictive warnings while quota remains.
   // Explicit upstream 429s still use activeClaudeResetMs without this preflight guard.
-  if (quota.fractionReported !== false && quota.remainingPercentage > 0) return false;
-  return activeClaudeResetMs(quota, now) !== null;
+  return activeClaudeResetMs(quota, now, isPreflightBlockingClaudeQuota) !== null;
 }
 
 function isClaudeQuotaExhaustedForRequest(
@@ -636,8 +650,8 @@ export function isQuotaExhaustedForRequest(
   requestedModel: string | null = null,
   providerSpecificData?: unknown
 ): boolean {
-  // #14359 — a recent successful dispatch stands the predicates down for a park window.
   if (isQuotaHealthy(connectionId)) return false;
+  if (isCodexQuotaFilteringDisabled(provider, providerSpecificData)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;

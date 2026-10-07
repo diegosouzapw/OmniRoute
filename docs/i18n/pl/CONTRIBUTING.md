@@ -399,22 +399,22 @@ Napisz testy jednostkowe w `tests/unit/`, obejmujące co najmniej:
 
 ---
 
-## Lista kontrolna pull requestu
+## Lista kontrolna Pull Requesta
 
-- [ ] Testy przechodzą (`npm test`)
-- [ ] Lintowanie przechodzi (`npm run lint`)
+- [ ] Testy przechodzą pomyślnie (`npm test`)
+- [ ] Lintowanie przechodzi pomyślnie (`npm run lint`)
 - [ ] Kompilacja kończy się powodzeniem (`npm run build`)
 - [ ] Dodano typy TypeScript dla nowych publicznych funkcji i interfejsów
 - [ ] Brak zakodowanych na stałe sekretów lub wartości zapasowych
-- [ ] Publiczne dane uwierzytelniające dostawcy nadrzędnego osadzono za pomocą `resolvePublicCred()` (zobacz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nigdy jako literały
-- [ ] Odpowiedzi o błędach przechodzą przez `buildErrorBody()` / `sanitizeErrorMessage()` — brak nieprzetworzonych śladów stosu w treściach odpowiedzi (zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Polecenia powłoki (`exec` / `spawn`) przekazują wartości środowiska wykonawczego przez `env`, a nie przez interpolację ciągów znaków
+- [ ] Publiczne dane uwierzytelniające usług nadrzędnych osadzono za pomocą `resolvePublicCred()` (zobacz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nigdy jako literały
+- [ ] Odpowiedzi błędów są przetwarzane przez `buildErrorBody()` / `sanitizeErrorMessage()` — brak surowych śladów stosu w treści odpowiedzi (zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Polecenia powłoki (`exec` / `spawn`) przekazują wartości czasu wykonywania przez `env`, a nie przez interpolację ciągów znaków
 - [ ] Wszystkie dane wejściowe są walidowane za pomocą schematów Zod
-- [ ] Dodano **fragment** dziennika zmian w `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` dla zmian widocznych dla użytkownika (zobacz [`changelog.d/README.md`](./changelog.d/README.md)) — **nie** edytuj bezpośrednio `CHANGELOG.md`; fragmenty są agregowane podczas wydania i nigdy nie powodują konfliktów między pull requestami
-- [ ] Zaktualizowano dokumentację (jeśli dotyczy)
-- [ ] Nie utworzono żadnych nowych alertów CodeQL / Secret-Scanning albo każdy z nich odrzucono z uzasadnieniem technicznym odwołującym się do odpowiedniego dokumentu w `docs/security/`
-- [ ] Trasy uruchamiające procesy potomne (`/api/mcp/`, `/api/cli-tools/runtime/`) sklasyfikowano jako `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts` — zobacz [Twarda reguła #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Brak wpisów końcowych `Co-Authored-By` w komunikatach commitów — commity muszą być przypisane wyłącznie do tożsamości Git właściciela repozytorium (Twarda reguła #16)
+- [ ] Dla zmian widocznych dla użytkowników dodano **fragment** dziennika zmian w `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (zobacz [`changelog.d/README.md`](./changelog.d/README.md)) — **nie** edytuj bezpośrednio pliku `CHANGELOG.md`; fragmenty są agregowane podczas wydania i nigdy nie powodują konfliktów między Pull Requestami
+- [ ] Dokumentacja została zaktualizowana (jeśli dotyczy)
+- [ ] Nie utworzono nowych alertów CodeQL / Secret-Scanning lub każdy z nich został odrzucony z technicznym uzasadnieniem odwołującym się do odpowiedniego dokumentu w `docs/security/`
+- [ ] Trasy uruchamiające procesy podrzędne (`/api/mcp/`, `/api/cli-tools/runtime/`) sklasyfikowano jako `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts` — zobacz [Twarda reguła nr 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Brak stopek `Co-authored-by` dotyczących AI/botów w komunikatach commitów (Twarda reguła nr 16) — współpracownicy będący ludźmi, których praca została ponownie wykorzystana, są wymieniani za pomocą standardowych stopek `Co-authored-by: Name <email>`
 
 ---
 

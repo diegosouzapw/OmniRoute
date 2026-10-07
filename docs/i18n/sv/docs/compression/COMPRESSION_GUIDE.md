@@ -467,8 +467,7 @@ i stället för den engelska.
 För en body med `messages` kontrollerar en innehållsförbikoppling (`shouldBypassCavemanOutputMode()` i
 `open-sse/services/compression/outputMode.ts`) de tre senaste meddelandena och hoppar över
 stilarna för hela interaktionen när de matchar dess nyckelord för säkerhet, oåterkalleliga åtgärder,
-förtydliganden eller ordningskänslighet. Förbikopplingen följer inställningen för instrumentpanelens
-växlingsknapp **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`).
+förtydliganden eller ordningskänslighet. Förbikopplingen körs medan instrumentpanelens växlingsknapp **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) är påslagen, vilket är standardinställningen; med knappen avslagen gäller de valda stilarna även i dessa interaktioner.
 
 När förbikopplingen släpper igenom interaktionen placerar `placeSystemInstruction()` (samma fil),
 som aldrig skapar en ny `messages[0]`, blocket på den första av följande platser som hittas:

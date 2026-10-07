@@ -65,16 +65,20 @@ export class MinIntervalThrottle {
     });
     try {
       await prev;
+      // The chain is single-file here, so this read cannot race another acquire.
       const now = this.clock.now();
-      if (this.lastStart !== 0) {
-        const jitter = this.jitterMs > 0 ? Math.floor(this.rand() * this.jitterMs) : 0;
-        const wait = this.lastStart + this.minIntervalMs + jitter - now;
-        if (wait > 0) await this.clock.sleep(wait);
-      }
-      this.lastStart = this.clock.now();
+      const startAt =
+        this.lastStart === 0 ? now : this.lastStart + this.minIntervalMs + this.nextJitter();
+      this.lastStart = startAt;
+      const wait = startAt - now;
+      if (wait > 0) await this.clock.sleep(wait);
     } finally {
       release();
     }
+  }
+
+  private nextJitter(): number {
+    return this.jitterMs > 0 ? Math.floor(this.rand() * this.jitterMs) : 0;
   }
 }
 
@@ -115,4 +119,9 @@ export function throttleQuotaFetch(): Promise<void> {
 /** Test-only: reset the memoized shared throttle (e.g. after changing env). */
 export function resetQuotaFetchThrottle(): void {
   _sharedThrottle = null;
+}
+
+/** Test-only: install a throttle as the process-wide gate. */
+export function setQuotaFetchThrottleForTests(throttle: MinIntervalThrottle | null): void {
+  _sharedThrottle = throttle;
 }

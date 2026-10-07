@@ -81,7 +81,7 @@ export interface FreeModelCandidate {
 }
 
 /** Shipped-catalog entry for this provider (id or alias): trusted on its own. */
-function isCatalogFreeModel(provider: string, modelId: unknown): boolean {
+export function isCatalogFreeModel(provider: string, modelId: unknown): boolean {
   if (typeof modelId !== "string") return false;
   return (
     FREE_MODEL_IDS_BY_PROVIDER.get(provider)?.has(modelId) === true ||

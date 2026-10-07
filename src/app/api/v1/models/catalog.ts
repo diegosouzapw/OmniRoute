@@ -563,7 +563,7 @@ async function buildUnifiedModelsResponseCore(
       getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
     const getComboTargetModelId = (target: ComboCatalogTarget) => {
-      const resolved = getComboTargetModelIdFromMaps(aliasMaps, target);
+      const resolved = getComboTargetModelIdFromMaps(aliasMaps, target, providerNodeIdByPrefix);
       if (!resolved) return null;
       const nodeId = providerNodeIdByPrefix[resolved.providerId];
       return nodeId ? { ...resolved, providerId: nodeId } : resolved;
@@ -1991,7 +1991,8 @@ async function buildUnifiedModelsResponseCore(
     const apiKey = extractApiKey(request);
     let finalModels = models;
     if (apiKey) {
-      const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+      const { getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+      const { isCatalogModelAllowedForKey } = await import("./catalogKeyFilter");
 
       // Quota-exclusive keys (allowedQuotas non-empty): list ONLY the pool's qtSd/*
       // virtual models. #4806: build from the hidden qtSd/* combos directly — the base
@@ -2036,14 +2037,8 @@ async function buildUnifiedModelsResponseCore(
             }
             continue;
           }
-          // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
-          // check either one as the config could use either patterns
-          if (
-            (await isModelAllowedForKey(apiKey, m.id)) ||
-            (await isModelAllowedForKey(apiKey, m.root))
-          ) {
-            filtered.push(m);
-          }
+          // m.id decides; a bare m.root also matches a bare allowlist entry (#781, #15409).
+          if (await isCatalogModelAllowedForKey(apiKey, m, keyMeta.blockedModels)) filtered.push(m);
         }
         finalModels = filtered;
       }
