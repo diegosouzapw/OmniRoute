@@ -253,7 +253,11 @@ export function getAutoBackupFrequencySetting(): AutoBackupFrequency | null {
 export function getAutoBackupFrequencyIntervalMs(
   frequency: AutoBackupFrequency | null
 ): number | null {
-  if (!frequency || frequency === "never") return null;
+  // Explicit "never" is the only value that disables automatic backups.
+  // An absent setting keeps the pre-#15550 hourly throttle instead of
+  // treating unset as off.
+  if (frequency === "never") return null;
+  if (!frequency) return BACKUP_THROTTLE_MS;
   switch (frequency) {
     case "daily":
       return 24 * 60 * 60 * 1000;
@@ -262,7 +266,7 @@ export function getAutoBackupFrequencyIntervalMs(
     case "monthly":
       return 30 * 24 * 60 * 60 * 1000;
     default:
-      return null;
+      return BACKUP_THROTTLE_MS;
   }
 }
 
@@ -340,7 +344,8 @@ export function backupDbFile(reason = "auto") {
   try {
     if (isBuildPhase || isCloud) return null;
     if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) return null;
-    if (reason !== "manual" && reason !== "pre-restore" && isSqliteAutoBackupDisabled()) return null;
+    if (reason !== "manual" && reason !== "pre-restore" && isSqliteAutoBackupDisabled())
+      return null;
     // #5871: honor the persisted `backup.autoBackupEnabled` dashboard toggle. Only
     // manual and pre-restore backups bypass this gate; automatic + pre-write safety
     // snapshots must stop firing once the operator disables auto-backup in the UI.

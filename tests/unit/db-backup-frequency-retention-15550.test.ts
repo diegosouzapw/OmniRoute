@@ -98,12 +98,20 @@ test("autoBackupFrequency='weekly': enforces 7-day interval", () => {
   const now = Date.now();
 
   // 3 days old (< 7d) -> not due
-  seedBackupFile(backupDir, "db_2026-02-08T12-00-00-000Z_auto.sqlite", now - 3 * 24 * 60 * 60 * 1000);
+  seedBackupFile(
+    backupDir,
+    "db_2026-02-08T12-00-00-000Z_auto.sqlite",
+    now - 3 * 24 * 60 * 60 * 1000
+  );
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir, now }), false);
 
   // 8 days old (>= 7d) -> due
   const oldBackupDir = makeBackupSubdir("freq-weekly-old");
-  seedBackupFile(oldBackupDir, "db_2026-02-03T12-00-00-000Z_auto.sqlite", now - 8 * 24 * 60 * 60 * 1000);
+  seedBackupFile(
+    oldBackupDir,
+    "db_2026-02-03T12-00-00-000Z_auto.sqlite",
+    now - 8 * 24 * 60 * 60 * 1000
+  );
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir: oldBackupDir, now }), true);
 });
 
@@ -117,13 +125,53 @@ test("autoBackupFrequency='monthly': enforces 30-day interval", () => {
   const now = Date.now();
 
   // 15 days old (< 30d) -> not due
-  seedBackupFile(backupDir, "db_2026-01-27T12-00-00-000Z_auto.sqlite", now - 15 * 24 * 60 * 60 * 1000);
+  seedBackupFile(
+    backupDir,
+    "db_2026-01-27T12-00-00-000Z_auto.sqlite",
+    now - 15 * 24 * 60 * 60 * 1000
+  );
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir, now }), false);
 
   // 31 days old (>= 30d) -> due
   const oldBackupDir = makeBackupSubdir("freq-monthly-old");
-  seedBackupFile(oldBackupDir, "db_2026-01-11T12-00-00-000Z_auto.sqlite", now - 31 * 24 * 60 * 60 * 1000);
+  seedBackupFile(
+    oldBackupDir,
+    "db_2026-01-11T12-00-00-000Z_auto.sqlite",
+    now - 31 * 24 * 60 * 60 * 1000
+  );
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir: oldBackupDir, now }), true);
+});
+
+test("unset autoBackupFrequency keeps the hourly throttle; explicit never disables", () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    "DELETE FROM key_value WHERE key = 'autoBackupFrequency' OR key = 'backup.autoBackupFrequency'"
+  ).run();
+  assert.equal(backup.getAutoBackupFrequencySetting(), null);
+  assert.equal(backup.getAutoBackupFrequencyIntervalMs(null), 60 * 60 * 1000);
+  assert.equal(backup.getAutoBackupFrequencyIntervalMs("never"), null);
+
+  const now = Date.now();
+  const recentDir = makeBackupSubdir("freq-unset-recent");
+  seedBackupFile(recentDir, "db_2026-02-11T12-30-00-000Z_auto.sqlite", now - 30 * 60 * 1000);
+  assert.equal(
+    backup.isAutoBackupDueByFrequency({ backupDir: recentDir, now }),
+    false,
+    "unset frequency must keep the 60-minute throttle"
+  );
+
+  const dueDir = makeBackupSubdir("freq-unset-due");
+  seedBackupFile(dueDir, "db_2026-02-11T11-00-00-000Z_auto.sqlite", now - 61 * 60 * 1000);
+  assert.equal(backup.isAutoBackupDueByFrequency({ backupDir: dueDir, now }), true);
+
+  const emptyDir = makeBackupSubdir("freq-unset-empty");
+  assert.equal(backup.isAutoBackupDueByFrequency({ backupDir: emptyDir, now }), true);
+
+  databaseSettings.updateDatabaseSettings({
+    backup: { autoBackupEnabled: true, autoBackupFrequency: "never", keepLastNBackups: 5 },
+  });
+  assert.equal(backup.getAutoBackupFrequencySetting(), "never");
+  assert.equal(backup.isAutoBackupDueByFrequency({ backupDir: dueDir, now }), false);
 });
 
 test("autoBackupFrequency='never': always skips automatic backups", () => {
@@ -139,7 +187,11 @@ test("autoBackupFrequency='never': always skips automatic backups", () => {
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir, now }), false);
 
   // With a 100-day-old backup
-  seedBackupFile(backupDir, "db_2025-10-01T12-00-00-000Z_auto.sqlite", now - 100 * 24 * 60 * 60 * 1000);
+  seedBackupFile(
+    backupDir,
+    "db_2025-10-01T12-00-00-000Z_auto.sqlite",
+    now - 100 * 24 * 60 * 60 * 1000
+  );
   assert.equal(backup.isAutoBackupDueByFrequency({ backupDir, now }), false);
 });
 
@@ -183,7 +235,10 @@ test("manual and pre-restore bypass autoBackupEnabled=false, frequency='never', 
 
   // Verify that pre-restore backup succeeds even immediately after (within throttle window)
   const preRestoreResult = backup.backupDbFile("pre-restore");
-  assert.ok(preRestoreResult, "pre-restore backup must succeed within throttle window and when auto-backup is disabled");
+  assert.ok(
+    preRestoreResult,
+    "pre-restore backup must succeed within throttle window and when auto-backup is disabled"
+  );
   assert.ok(preRestoreResult.filename.includes("_pre-restore.sqlite"));
 
   // Verify that a subsequent automatic backup is still blocked
@@ -214,7 +269,9 @@ test("retention fallback: resolves legacy flat keepLastNBackups key", () => {
   const db = core.getDbInstance();
 
   db.prepare("DELETE FROM key_value WHERE namespace = ?").run("dbBackup");
-  db.prepare("DELETE FROM key_value WHERE namespace = 'databaseSettings' AND key LIKE '%keepLastNBackups%'").run();
+  db.prepare(
+    "DELETE FROM key_value WHERE namespace = 'databaseSettings' AND key LIKE '%keepLastNBackups%'"
+  ).run();
 
   db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
     "databaseSettings",
@@ -240,7 +297,11 @@ test("retention precedence: dbBackup.maxFiles takes precedence over databaseSett
   backup.setDbBackupMaxFiles(3);
 
   const retention = backupRetention.resolveDbBackupRetention(db, {});
-  assert.equal(retention.maxFiles, 3, "dbBackup.maxFiles must take precedence over databaseSettings");
+  assert.equal(
+    retention.maxFiles,
+    3,
+    "dbBackup.maxFiles must take precedence over databaseSettings"
+  );
 });
 
 test("retention precedence: DB_BACKUP_MAX_FILES takes precedence over all DB settings", () => {
@@ -264,7 +325,11 @@ test("updateDatabaseSettings synchronizes keepLastNBackups with dbBackup.maxFile
     backup: { autoBackupEnabled: true, autoBackupFrequency: "daily", keepLastNBackups: 11 },
   });
 
-  assert.equal(backup.getDbBackupMaxFiles(), 11, "updating databaseSettings must sync to dbBackup.maxFiles");
+  assert.equal(
+    backup.getDbBackupMaxFiles(),
+    11,
+    "updating databaseSettings must sync to dbBackup.maxFiles"
+  );
 });
 
 // ──────────────── Windows EBUSY / EPERM Deletion & Counting (#15550) ────────────────
@@ -289,9 +354,16 @@ test("unlinkSyncWithRetry: retries on EBUSY and stops immediately upon success",
   };
 
   try {
-    const success = backupRetention.unlinkSyncWithRetry(tmpFile, { maxAttempts: 5, baseDelayMs: 2 });
+    const success = backupRetention.unlinkSyncWithRetry(tmpFile, {
+      maxAttempts: 5,
+      baseDelayMs: 2,
+    });
     assert.equal(success, true, "deletion must succeed after transient EBUSY locks clear");
-    assert.equal(attempts, 3, "must retry until success on attempt 3 and not make unnecessary attempts (4 and 5)");
+    assert.equal(
+      attempts,
+      3,
+      "must retry until success on attempt 3 and not make unnecessary attempts (4 and 5)"
+    );
     assert.ok(!fs.existsSync(tmpFile), "file must be deleted");
   } finally {
     fs.unlinkSync = originalUnlinkSync;
@@ -315,7 +387,10 @@ test("unlinkSyncWithRetry: returns false when EBUSY retries are exhausted", () =
   };
 
   try {
-    const success = backupRetention.unlinkSyncWithRetry(tmpFile, { maxAttempts: 3, baseDelayMs: 2 });
+    const success = backupRetention.unlinkSyncWithRetry(tmpFile, {
+      maxAttempts: 3,
+      baseDelayMs: 2,
+    });
     assert.equal(success, false, "must return false when maxAttempts exhausted");
     assert.equal(attempts, 3, "must attempt exactly maxAttempts times");
     assert.ok(fs.existsSync(tmpFile), "file must remain on disk");
@@ -364,12 +439,20 @@ test("backupDbFile('pre-write'): frequency gate is wired – recent backup preve
   const backupDir = path.join(TEST_DATA_DIR, "db_backups");
   fs.mkdirSync(backupDir, { recursive: true });
   const now = Date.now();
-  seedBackupFile(backupDir, "db_2026-02-11T12-00-00-000Z_pre-write.sqlite", now - 2 * 60 * 60 * 1000);
+  seedBackupFile(
+    backupDir,
+    "db_2026-02-11T12-00-00-000Z_pre-write.sqlite",
+    now - 2 * 60 * 60 * 1000
+  );
 
   // 1. Verify the exported frequency gate itself: it must report "not due" when the
   //    newest valid backup is only 2h old (< 24h daily interval).
   const due = backup.isAutoBackupDueByFrequency({ backupDir, now });
-  assert.equal(due, false, "frequency gate must block a pre-write backup that is only 2h after the last one");
+  assert.equal(
+    due,
+    false,
+    "frequency gate must block a pre-write backup that is only 2h after the last one"
+  );
 
   // 2. Verify end-to-end wiring: backupDbFile("pre-write") must return null.
   //    In the test runner context isSqliteAutoBackupDisabled() also returns true
