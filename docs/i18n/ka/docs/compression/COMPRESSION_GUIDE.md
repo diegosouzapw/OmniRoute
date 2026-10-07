@@ -453,9 +453,7 @@ const { messages: aged, saved } = applyAging(messages, {
 `messages`-ის მქონე body-ში, შიგთავსის გვერდის ავლა (`shouldBypassCavemanOutputMode()`
 `open-sse/services/compression/outputMode.ts`-ში) ბოლო სამ შეტყობინებას ამოწმებს და
 მთელი turn-ისთვის სტილებს გამოტოვებს, როცა ისინი უსაფრთხოების, შეუქცევადი მოქმედების,
-დაზუსტების ან რიგითობაზე დამოკიდებულ საკვანძო სიტყვებს ემთხვევა. გვერდის ავლა მუშაობს
-dashboard-ის **Auto-Clarity Bypass** გადამრთველის (`cavemanOutputMode.autoClarity`) მიმდინარე
-პარამეტრის შესაბამისად.
+დაზუსტების ან რიგითობაზე დამოკიდებულ საკვანძო სიტყვებს ემთხვევა. გვერდის ავლა მუშაობს, სანამ dashboard-ის **Auto-Clarity Bypass** გადამრთველი (`cavemanOutputMode.autoClarity`) ჩართულია, რაც ნაგულისხმევია; გადამრთველის გამორთვისას არჩეული სტილები ამ turn-ებზეც ვრცელდება.
 
 როცა გვერდის ავლა turn-ს ატარებს, `placeSystemInstruction()` (იმავე ფაილში), რომელიც
 ახალ `messages[0]`-ს არასდროს ქმნის, ბლოკს ათავსებს პირველივე ნაპოვნ ადგილას:

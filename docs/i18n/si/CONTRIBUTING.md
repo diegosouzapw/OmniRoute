@@ -402,19 +402,19 @@ docs/
 ## Pull Request පිරික්සුම් ලැයිස්තුව
 
 - [ ] පරීක්ෂණ සමත් වේ (`npm test`)
-- [ ] ලින්ට් කිරීම සමත් වේ (`npm run lint`)
-- [ ] ගොඩනැගීම සාර්ථක වේ (`npm run build`)
-- [ ] නව පොදු ශ්රිත සහ අතුරුමුහුණත් සඳහා TypeScript වර්ග එක් කර ඇත
-- [ ] දෘඪ-කේතනය කළ රහස් හෝ පෙරනිමි විකල්ප අගයන් නොමැත
-- [ ] පොදු ඉහළ මට්ටමේ අක්තපත්ර `resolvePublicCred()` හරහා කේතයට ඇතුළත් කර ඇත ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) බලන්න), කිසිවිටෙක ලිටරල ලෙස නොවේ
-- [ ] දෝෂ ප්රතිචාර `buildErrorBody()` / `sanitizeErrorMessage()` හරහා යොමු වේ — ප්රතිචාර බොඩි තුළ අමු ස්ටැක් ට්රේස් නොමැත ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) බලන්න)
-- [ ] Shell විධාන (`exec` / `spawn`) ධාවනකාල අගයන් තන්තු අන්තර්නිවේෂණය හරහා නොව `env` හරහා ලබා දෙයි
-- [ ] සියලු ආදාන Zod ස්කීමා මඟින් වලංගු කර ඇත
-- [ ] පරිශීලකයාට පෙනෙන වෙනස්කම් සඳහා `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` යටතේ වෙනස්කම් ලොග් **ඛණ්ඩයක්** එක් කර ඇත ([`changelog.d/README.md`](./changelog.d/README.md) බලන්න) — `CHANGELOG.md` සෘජුවම සංස්කරණය **නොකරන්න**; නිකුත් කිරීමේදී ඛණ්ඩ එක්රැස් කෙරෙන අතර ඒවා PR අතර කිසිවිටෙක ගැටුම් ඇති නොකරයි
-- [ ] ලේඛන යාවත්කාලීන කර ඇත (අදාළ නම්)
-- [ ] නව CodeQL / Secret-Scanning අනතුරු ඇඟවීම් විවෘත කර නැත, නැතහොත් සෑම එකක්ම අදාළ `docs/security/` ලේඛනය සඳහන් කරන තාක්ෂණික සාධාරණීකරණයක් සමඟ ප්රතික්ෂේප කර ඇත
-- [ ] උප ක්රියාවලි ආරම්භ කරන මාර්ග (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` තුළ `isLocalOnlyPath()` ලෙස වර්ගීකරණය කර ඇත — [දැඩි රීතිය #15](docs/security/ROUTE_GUARD_TIERS.md) බලන්න
-- [ ] commit පණිවිඩ තුළ `Co-Authored-By` ට්රේලර් නොමැත — commits ගබඩා හිමිකරුගේ Git අනන්යතාව යටතේ පමණක් දිස් විය යුතුය (දැඩි රීතිය #16)
+- [ ] Linting සමත් වේ (`npm run lint`)
+- [ ] Build කිරීම සාර්ථක වේ (`npm run build`)
+- [ ] නව public functions සහ interfaces සඳහා TypeScript types එක් කර ඇත
+- [ ] Hardcode කළ secrets හෝ fallback values නොමැත
+- [ ] Public upstream credentials, literals ලෙස නොව `resolvePublicCred()` හරහා embed කර ඇත ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) බලන්න)
+- [ ] Error responses, `buildErrorBody()` / `sanitizeErrorMessage()` හරහා යොමු වේ — response bodies තුළ raw stack traces නොමැත ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) බලන්න)
+- [ ] Shell commands (`exec` / `spawn`), string interpolation හරහා නොව `env` හරහා runtime values ලබා දෙයි
+- [ ] සියලු inputs, Zod schemas සමඟ validate කර ඇත
+- [ ] පරිශීලකයාට පෙනෙන වෙනස්කම් සඳහා `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` යටතේ Changelog **fragment** එකක් එක් කර ඇත ([`changelog.d/README.md`](./changelog.d/README.md) බලන්න) — `CHANGELOG.md` සෘජුව සංස්කරණය **නොකරන්න**; release අවස්ථාවේදී fragments එකතු කෙරෙන අතර PR අතර කිසිවිටෙක ගැටුම් ඇති නොවේ
+- [ ] Documentation යාවත්කාලීන කර ඇත (අදාළ නම්)
+- [ ] නව CodeQL / Secret-Scanning alerts කිසිවක් විවෘත කර නැත, නැතහොත් අදාළ `docs/security/` ලේඛනය සඳහන් කරන තාක්ෂණික සාධාරණීකරණයක් සමඟ ඒ සෑම එකක්ම ඉවත දමා ඇත
+- [ ] Child processes ආරම්භ කරන routes (`/api/mcp/`, `/api/cli-tools/runtime/`), `src/server/authz/routeGuard.ts` තුළ `isLocalOnlyPath()` ලෙස වර්ගීකරණය කර ඇත — [දැඩි රීතිය #15](docs/security/ROUTE_GUARD_TIERS.md) බලන්න
+- [ ] Commit messages තුළ AI/bot `Co-authored-by` trailers නොමැත (දැඩි රීතිය #16) — නැවත භාවිත කරන ලද කාර්යයේ මානව සහයෝගිතාකරුවන්ට සම්මත `Co-authored-by: Name <email>` trailers මඟින් ගෞරවය ලබා දී ඇත
 
 ---
 

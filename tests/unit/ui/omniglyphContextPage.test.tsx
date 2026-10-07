@@ -51,16 +51,29 @@ interface CapturedPut {
   body: Record<string, unknown>;
 }
 
-function setupFetchMock(): { puts: CapturedPut[] } {
+// putStatus(n) sets the HTTP status of the n-th PUT (1-based); every PUT succeeds by default.
+// rejectPuts makes every PUT throw instead, the network-failure path.
+function setupFetchMock(
+  options: {
+    putStatus?: (n: number) => number;
+    rejectPuts?: boolean;
+    initialEngines?: Record<string, unknown>;
+  } = {}
+): {
+  puts: CapturedPut[];
+} {
   const puts: CapturedPut[] = [];
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-  // omniglyph absent from `engines` initially → disabled; rtk/caveman present so we can
-  // assert they SURVIVE the PUT (the store persists the whole map as one row).
+  // omniglyph is absent from `engines`, so the switch starts off; rtk and caveman are present
+  // so a test can check that a toggle PUT leaves them out.
   const initialConfig = {
     enabled: true,
-    engines: { rtk: { enabled: true, level: "standard" }, caveman: { enabled: false } },
+    engines: options.initialEngines ?? {
+      rtk: { enabled: true, level: "standard" },
+      caveman: { enabled: false },
+    },
   };
 
   vi.spyOn(globalThis, "fetch").mockImplementation(
@@ -69,9 +82,11 @@ function setupFetchMock(): { puts: CapturedPut[] } {
       const method = (init?.method ?? "GET").toUpperCase();
       if (url.includes("/api/settings/compression")) {
         if (method === "PUT") {
+          if (options.rejectPuts) throw new TypeError("fetch failed");
           const body = JSON.parse(String(init?.body ?? "{}"));
           puts.push({ url, body });
-          return json({ ...initialConfig, ...body });
+          const status = options.putStatus?.(puts.length) ?? 200;
+          return status === 200 ? json({ ...initialConfig, ...body }) : json({}, status);
         }
         return json(initialConfig);
       }
@@ -81,13 +96,38 @@ function setupFetchMock(): { puts: CapturedPut[] } {
   return { puts };
 }
 
+async function mountPage(): Promise<HTMLElement> {
+  const { default: Page } =
+    await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
+  let container!: HTMLElement;
+  await act(async () => {
+    container = mount(<Page />);
+  });
+  await flush();
+  return container;
+}
+
+function enableToggle(container: HTMLElement): HTMLButtonElement {
+  const toggle = container.querySelector(
+    '[data-testid="omniglyph-enable-toggle"] button'
+  ) as HTMLButtonElement | null;
+  expect(toggle, "enable toggle button must exist").toBeTruthy();
+  return toggle!;
+}
+
+async function click(button: HTMLButtonElement) {
+  await act(async () => {
+    button.click();
+  });
+  await flush();
+}
+
 // ── Tests ──────────────────────────────────────────────────────────────────────
 describe("OmniglyphContextPage", () => {
   it("renders the four sections with the measured numbers and the real render", async () => {
     setupFetchMock();
-    const { default: Page } = await import(
-      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
-    );
+    const { default: Page } =
+      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
     let container!: HTMLElement;
     await act(async () => {
       container = mount(<Page />);
@@ -117,30 +157,83 @@ describe("OmniglyphContextPage", () => {
     expect(container.querySelector('[data-testid="omniglyph-enable-toggle"]')).toBeTruthy();
   });
 
-  it("enabling the engine PUTs the full engines map with omniglyph on, preserving the others", async () => {
+  it("enabling the engine PUTs only the omniglyph entry", async () => {
     const { puts } = setupFetchMock();
-    const { default: Page } = await import(
-      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
-    );
-    let container!: HTMLElement;
-    await act(async () => {
-      container = mount(<Page />);
-    });
-    await flush();
+    const container = await mountPage();
 
-    const toggle = container.querySelector('[data-testid="omniglyph-enable-toggle"] button') as HTMLButtonElement | null;
-    expect(toggle, "enable toggle button must exist").toBeTruthy();
-    await act(async () => {
-      toggle!.click();
-    });
-    await flush();
+    await click(enableToggle(container));
 
     expect(puts.length).toBe(1);
-    const engines = puts[0]!.body.engines as Record<string, { enabled: boolean }>;
-    expect(engines.omniglyph).toEqual({ enabled: true });
-    // The other engines must survive the whole-map PUT.
-    expect(engines.rtk?.enabled).toBe(true);
-    expect(engines.caveman?.enabled).toBe(false);
+    // The server merges engines by id, so the page sends only the engine it changed and
+    // cannot overwrite engines another page changed after this one loaded.
+    expect(puts[0]!.body).toEqual({ engines: { omniglyph: { enabled: true } } });
+  });
+
+  it("disabling the engine PUTs only the omniglyph entry, off", async () => {
+    const { puts } = setupFetchMock({
+      initialEngines: {
+        omniglyph: { enabled: true, level: "standard" },
+        rtk: { enabled: true },
+      },
+    });
+    const container = await mountPage();
+    const toggle = enableToggle(container);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    await click(toggle);
+
+    expect(puts.length).toBe(1);
+    // The off toggle also sends only its own entry; a stored level survives server-side.
+    expect(puts[0]!.body).toEqual({ engines: { omniglyph: { enabled: false } } });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("a rejected fetch is a failed save: the switch rolls back and the error shows", async () => {
+    const { puts } = setupFetchMock({ rejectPuts: true });
+    const container = await mountPage();
+    const toggle = enableToggle(container);
+
+    await click(toggle);
+
+    expect(puts.length).toBe(0);
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(container.textContent).toContain("Could not save.");
+  });
+
+  it("a failed save puts the switch back and shows the error", async () => {
+    const { puts } = setupFetchMock({ putStatus: () => 500 });
+    const container = await mountPage();
+    const toggle = enableToggle(container);
+
+    await click(toggle);
+
+    expect(puts.length).toBe(1);
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(container.textContent).toContain("Could not save.");
+  });
+
+  it("a timer left by an earlier save does not clear a later save error", async () => {
+    vi.useFakeTimers();
+    try {
+      const { puts } = setupFetchMock({ putStatus: (n) => (n === 1 ? 200 : 500) });
+      const container = await mountPage();
+      const toggle = enableToggle(container);
+
+      await click(toggle);
+      expect(container.textContent).toContain("Saved.");
+
+      await click(toggle);
+      expect(puts.length).toBe(2);
+      expect(container.textContent).toContain("Could not save.");
+
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+      await flush();
+      expect(container.textContent).toContain("Could not save.");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("carrega o perfil salvo e faz PATCH só do perfil, sem reescrever o mapa de engines", async () => {
@@ -170,9 +263,8 @@ describe("OmniglyphContextPage", () => {
       }
     );
 
-    const { default: Page } = await import(
-      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
-    );
+    const { default: Page } =
+      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
     let container!: HTMLElement;
     await act(async () => {
       container = mount(<Page />);
@@ -203,5 +295,141 @@ describe("OmniglyphContextPage", () => {
     expect(puts[0]!.body).toEqual({ omniglyph: { profile: "passthrough" } });
     // O perfil vive fora do mapa `engines`: mandá-lo junto reescreveria o mapa inteiro.
     expect(puts[0]!.body.engines).toBeUndefined();
+  });
+});
+
+describe("OmniglyphContextPage when the settings GET fails", () => {
+  // The page's only load is the settings GET, and it fails as it does while the server
+  // restarts. Later requests, including a retried GET, reach the stored row.
+  const FAILURES = {
+    "a 500": async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 }),
+    "a network error": async () => {
+      throw new TypeError("Failed to fetch");
+    },
+  };
+
+  function failFirstSettingsGet(failure: keyof typeof FAILURES) {
+    const { puts } = setupFetchMock();
+    vi.mocked(globalThis.fetch).mockImplementationOnce(FAILURES[failure]);
+    return puts;
+  }
+
+  async function mountPage() {
+    const { default: Page } =
+      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<Page />);
+    });
+    await flush();
+    return container;
+  }
+
+  function retryButton(container: HTMLElement) {
+    return Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Retry"
+    );
+  }
+
+  function toggleButton(container: HTMLElement) {
+    return container.querySelector(
+      '[data-testid="omniglyph-enable-toggle"] button'
+    ) as HTMLButtonElement | null;
+  }
+
+  it.each(Object.keys(FAILURES) as Array<keyof typeof FAILURES>)(
+    "offers no control that would save defaults over the stored engines after %s",
+    async (failure) => {
+      const puts = failFirstSettingsGet(failure);
+      const container = await mountPage();
+
+      // The failed load leaves engines {}: a toggle still on the page PUTs
+      // {omniglyph:{enabled:true}} alone, and the store keeps only that engine.
+      const toggle = toggleButton(container);
+      if (toggle) {
+        await act(async () => toggle.click());
+        await flush();
+      }
+
+      expect(puts, "a save before any GET succeeds overwrites the stored engines").toEqual([]);
+      expect(container.querySelector('[data-testid="omniglyph-profile-select"]')).toBeNull();
+      expect(container.textContent).toContain("Failed To Load");
+      expect(retryButton(container), "the load error offers a retry").toBeTruthy();
+    }
+  );
+
+  it("shows a retry that loads the stored settings before the controls return", async () => {
+    const puts = failFirstSettingsGet("a 500");
+    const container = await mountPage();
+    expect(container.textContent).toContain("Failed To Load");
+
+    // The retried GET stays open, and the controls stay out until it answers.
+    let release!: () => Promise<void>;
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          release = async () => {
+            await act(async () =>
+              resolve(
+                new Response(
+                  JSON.stringify({
+                    enabled: true,
+                    engines: {
+                      rtk: { enabled: true, level: "standard" },
+                      caveman: { enabled: false },
+                    },
+                  }),
+                  { status: 200, headers: { "Content-Type": "application/json" } }
+                )
+              )
+            );
+            await flush();
+          };
+        })
+    );
+    await act(async () => retryButton(container)!.click());
+    await flush();
+    expect(toggleButton(container), "the controls wait for the retried GET").toBeNull();
+
+    await release();
+    expect(toggleButton(container)).toBeTruthy();
+    // Saves go out again once a GET has succeeded. The server merges engines by id,
+    // so the page sends only the engine this toggle changed.
+    await act(async () => toggleButton(container)!.click());
+    await flush();
+    expect(puts[0]!.body).toEqual({ engines: { omniglyph: { enabled: true } } });
+  });
+
+  it("ignores an answer from the load that a retry superseded", async () => {
+    failFirstSettingsGet("a 500");
+    const container = await mountPage();
+
+    // The retried GET stays open, so a second retry can start while it is pending.
+    let releaseStale!: () => Promise<void>;
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          releaseStale = async () => {
+            await act(async () =>
+              resolve(
+                new Response(JSON.stringify({ engines: { omniglyph: { enabled: true } } }), {
+                  status: 200,
+                  headers: { "Content-Type": "application/json" },
+                })
+              )
+            );
+            await flush();
+          };
+        })
+    );
+    await act(async () => retryButton(container)!.click());
+    await flush();
+    await act(async () => retryButton(container)!.click());
+    await flush();
+
+    // The first retry's answer lands after the second retry's; it must be dropped.
+    await releaseStale();
+    const toggle = toggleButton(container);
+    expect(toggle?.getAttribute("aria-checked"), "the superseded answer is dropped").toBe("false");
   });
 });

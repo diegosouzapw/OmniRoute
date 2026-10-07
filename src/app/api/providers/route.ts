@@ -153,9 +153,12 @@ export async function GET(request: Request) {
           ? {
               codexAccountPool: projectCodexAccountPoolWithRoutingQuota(
                 {
-                  id: c.id,
+                  id: String(c.id),
                   provider: c.provider,
-                  providerSpecificData: c.providerSpecificData ?? {},
+                  providerSpecificData:
+                    c.providerSpecificData && typeof c.providerSpecificData === "object"
+                      ? (c.providerSpecificData as Readonly<Record<string, unknown>>)
+                      : {},
                 },
                 Date.now(),
                 quotaCache[String(c.id)]
@@ -196,12 +199,19 @@ export async function POST(request: Request) {
       defaultModel,
       testStatus,
       providerSpecificData: incomingPsd,
+      allowNoCredential,
     } = validation.data;
     const provider = resolveProviderId(requestedProvider);
     const retirementResponse =
       rejectRetiredCommonChatGptWebProvider(requestedProvider) ??
       rejectRetiredCommonChatGptWebProvider(provider);
     if (retirementResponse) return retirementResponse;
+    if (allowNoCredential === true && !providerAllowsOptionalApiKey(provider)) {
+      return NextResponse.json(
+        { error: "This provider does not allow a connection without a credential" },
+        { status: 400 }
+      );
+    }
 
     // Business validation
     const isValidProvider =

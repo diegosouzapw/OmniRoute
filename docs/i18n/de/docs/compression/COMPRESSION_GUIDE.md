@@ -454,9 +454,7 @@ anstelle von Englisch injiziert.
 Bei einem Body mit `messages` prüft ein Inhalts-Bypass (`shouldBypassCavemanOutputMode()` in
 `open-sse/services/compression/outputMode.ts`) die letzten drei Nachrichten und überspringt
 die Stile für den gesamten Durchlauf, wenn sie seinen sicherheitsrelevanten, irreversiblen Aktions-,
-Klärungs- oder reihenfolgesensiblen Schlüsselwörtern entsprechen. Der Bypass läuft unabhängig
-davon, wie der **Auto-Clarity Bypass**-Schalter (`cavemanOutputMode.autoClarity`) des Dashboards
-eingestellt ist.
+Klärungs- oder reihenfolgesensiblen Schlüsselwörtern entsprechen. Der Bypass läuft, solange der **Auto-Clarity Bypass**-Schalter (`cavemanOutputMode.autoClarity`) des Dashboards eingeschaltet ist, was der Standard ist; bei ausgeschaltetem Schalter gelten die ausgewählten Stile auch bei diesen Durchläufen.
 
 Wenn der Bypass den Durchlauf zulässt, platziert `placeSystemInstruction()` (gleiche Datei), das
 niemals eine neue `messages[0]` erstellt, den Block in der ersten der folgenden Stellen, die es findet:

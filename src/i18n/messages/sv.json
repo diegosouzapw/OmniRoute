@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxypooler och rotationen per konto för opencode slutar att återanvända en proxy som nyss misslyckades (nekad TCP-kontroll eller ett 429-svar som togs emot via den) under en processpecifik period som fördubblas vid varje upprepat fel, upp till en maxgräns. Ingen proxystatus skrivs; om alla kandidater läggs åt sidan förblir valet oförändrat. Påslaget som standard; `false` återställer det vanliga urvalet.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "För leverantörer vars kvot fördelas per egress-adress rangordnas en pool-medlem som delar den observerade egress-adressen med en nyligen avvisad medlem precis under de friska medlemmarna. Endast ordning, aldrig uteslutning. Kräver PROXY_SKIP_RECENTLY_FAILED, som producerar avvisningssignalen den läser. Av som standard: urvalsordningen är exakt den vanliga rotationen.",
   "featureFlagProxyPoolEgressObservationDescription": "Visa under en proxypool på instrumentpanelen hur många observerade utgående IP-adresser som betjänade dess medlemmar under de senaste 24 timmarna, hur många anslutningar som använde dem och det högsta antalet som observerades bakom en och samma IP-adress. Skrivskyddat, beräknat från proxyloggen och används aldrig för dirigering. Avstängt som standard: poolredigeraren är oförändrad och observationsrutten returnerar null.",
+  "featureFlagProxyOperatorEgressDescription": "Acceptera operatörspushade, daterade observerade adresser per poolmedlem och slå ihop dem med den lästa journalen för visning och poolordning. Avstängd som standard: push-routen returnerar 404 och pool-läsningar beter sig exakt som tidigare.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Låt en kontroll som avvisades av målet (401/403/429: proxyn vidarebefordrade begäran men destinationen avvisade den utgående IP-adressen) nollställa proxyns serie av på varandra följande fel i proxyhälsokontrollen, precis som en besvarad kontroll. Avstängt som standard: ett avvisande förblir neutralt och bibehåller serien. Ett 5xx-svar förblir icke avgörande i båda fallen, och ett avvisande tar aldrig bort, inaktiverar eller återaktiverar en proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Låt den automatiska rensningen ta bort avslutade (slutförda/misslyckade/avbrutna/utgångna) Batch API-jobb som är äldre än OMNIROUTE_BATCH_RETENTION_DAYS, tillsammans med deras kontrollpunkter per rad, och rensa BLOB-innehållet i uppladdade filer efter deras egna expires_at. Av som standard: varje befintlig installation behåller dessa data precis som tidigare tills en operatör väljer att aktivera funktionen. Den operatörsutlösta rutten DELETE /api/v1/batches/delete-completed påverkas inte oavsett inställning – det är ett separat, ovillkorligt offentligt API-kontrakt.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Hämta xAI:s aktuella modellkatalog för xai-oauth-anslutningar från https://api.x.ai/v1/models med OAuth-bearer-token i stället för den statiska, oföränderliga grunduppsättningen. Av som standard: xai-oauth fortsätter att tillhandahålla den statiska grunduppsättningen oförändrad. Om ett fel uppstår när modellerna ska fastställas återgår identifieringen till grunduppsättningen.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokal proxy-core-slutpunkt är ogiltig; SS/VMess/Trojan/VLESS-noder ignorerades.",
         "NEEDS_CORE_NOT_CONFIGURED": "Denna prenumeration har noder som behöver en lokal proxy-core (SS/VMess/Trojan/VLESS); de dirigeras inte förrän du konfigurerar local-core SOCKS5-slutpunkten.",
         "NO_USABLE_NODES": "Prenumerationen gav inga användbara noder (http/https/socks5 eller noder med en lokal core-slutpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-cores styranrop misslyckades; den tidigare rutten förblir aktiv. Kontrollera styr-URL och hemlighet och uppdatera sedan."
+        "SELECTOR_SWITCH_FAILED": "Proxy-cores styranrop misslyckades; den tidigare rutten förblir aktiv. Kontrollera styr-URL och hemlighet och uppdatera sedan.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Den genererade kärnkonfigurationen kunde inte ersätta den antagna filen; kopien bredvid sparades i stället.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Vissa poster hoppades över under genereringen. Se serverloggen."
       },
       "description": "Klistra in din proxy-prenumerationslänk. När den har aktiverats dirigeras trafiken genom proxypoolen i globalt läge eller regel (specificerad leverantör). Prenumerationsnoder synkroniseras automatiskt till proxypoolen och återanvänder befintliga polling-, hälsokontroll- och anti-läckmekanismer.",
       "addSubscription": "Lägg till prenumeration",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Inga byten registrerade ännu",
       "lastSwitchMember": "Betjänande medlem",
       "nextSwitch": "Nästa möjliga byte",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Sökväg till kärnbinären",
+      "coreBinaryPathHelp": "Valfritt: verifierar den genererade filen med kärnbinären innan den antagna filen ersätts. Lämna tomt för att fortsätta skriva bredvid. Katalogen skapas om den saknas.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Samlad hälsokontroll",
     "bulkHealthcheckDesc": "Testa alla konfigurerade proxyservrar mot en mål-URL för att se vilka som fungerar.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-beskrivningskomprimering",
     "mcpAccessibilityTitle": "MCP-tillgänglighetsutdata",
     "compressionSettingsCavemanIntensity": "Grottmänniska intensitet",
-    "compressionSettingsCavemanOutputMode": "Grottmansutgångsläge",
     "compressionSettingsOutputStyles": "Utdatastilar",
     "compressionStylesTileTitle": "Utdatastilar",
     "compressionSettingsOutputIntensity": "Utgångsintensitet",
-    "compressionSettingsAutoClarityBypass": "Automatisk förbikoppling av klarhet",
     "compressionEffectivePipeline": "Effektiv pipeline:",
     "compressionDerivedOff": "av",
     "compressionDerivedRuns": "körningar: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Vad GET /v1/models visar för denna nyckel. Att begränsa listan ändrar aldrig vad nyckeln kan anropa.",
     "catalogScopeAll": "Båda",
     "catalogScopeCombos": "Endast kombinationer",
-    "catalogScopeModels": "Endast modeller"
+    "catalogScopeModels": "Endast modeller",
+    "resilienceTokenRefreshTitle": "Tokenuppdateringsbrytare",
+    "resilienceTokenRefreshDesc": "Stoppar försök att uppdatera token efter upprepade fel. Omfattningen per-connection isolerar ett dött konto så att friska konton hos samma leverantör fortsätter att uppdateras.",
+    "resilienceTokenRefreshScope": "Försök att uppdatera token för en leverantör",
+    "resilienceTokenRefreshTrigger": "Varandra påföljande misslyckade försök att uppdatera",
+    "resilienceTokenRefreshEffect": "Pausar försök att uppdatera under kylperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfång",
+    "resilienceTokenRefreshScopeProvider": "Leverantör (alla konton delar en enda strömbrytare)",
+    "resilienceTokenRefreshScopeConnection": "Anslutning (varje konto har egen strömbrytare)",
+    "resilienceTokenRefreshThreshold": "Misslyckanden innan paus",
+    "resilienceTokenRefreshCooldown": "Paus efter utlösnings"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Minsta antal rader att komprimera",
         "description": "Minsta antal rader i en homogen JSON-array som krävs för att utlösa tabellkomprimering. Standard: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Bevara systemprompt"
       },
       "summarizerEnabled": {
         "label": "Aktivera sammanfattare"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Meddelanden kortare än detta komprimeras inte. Lägre = mer kompression.",
     "tooltipMinSavings": "Komprimera bara om det sparar åtminstone så många tokens.",
     "ultraSettings": "Ultrainställningar",
-    "ultraSettingsDesc": "SLM-driven semantisk komprimering",
-    "preview": {
-      "lite": "Svara kortfattat. Bevara tekniska termer, kod, fel, URL:er och identifierare.",
-      "full": "Svara koncist och kompakt. Bevara allt tekniskt innehåll.",
-      "ultra": "Svara extremt kortfattat med vanliga tekniska förkortningar. Bevara exakta symboler."
-    }
+    "ultraSettingsDesc": "SLM-driven semantisk komprimering"
   },
   "translator": {
     "title": "Översättare",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Fel utan tillskriven utgång: {count}",
     "poolMemberEgress": "{host}:{port} gick ut via {egressIp} · senaste {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observerad under de senaste {hours} h",
+    "poolMemberEgressOperator": "{host}:{port} gick ut via {egressIp} · tillhandahållet av operatör, {date}",
     "poolMemberEgressHint": "Senaste utgående IP-adress som observerats via den här poolmedlemmen under tidsintervallet, hämtad från proxyloggen. En medlem utan trafik under tidsintervallet visar raden för ingen trafik.",
     "poolRemove": "Ta bort",
     "poolRemoveFailed": "Misslyckades med att ta bort proxyn från poolen",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "proxyn går inte att nå",
     "poolSetAsideKindIpQuota429": "IP-hastighetsbegränsning (429)",
     "poolSetAsideKindSlow": "långsamma svar",
+    "poolSetAsideKindGeoBlocked": "regionsblockerad (403/451)",
     "poolSetAsideUntil": "Tillbaka i rotation {endsAt}",
     "poolSetAsideRepeat": "Åsidosatt {count, plural, one {# gång} other {# gånger}}",
     "poolUnknownAddress": "Okänd adress",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Positionsordning",
     "poolHealthRankingOff": "Hälsorankning av",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} långsamma övergivanden",
+    "clientAborted": "{count} klientavbrott",
+    "slowAbandonedHint": "Övergivna efter rubrikväntetidgränsen, exkluderade från transporttalet",
     "previousSuccessRate": "Tidigare {rate} % lyckade",
-    "upstreamRefusals": "{count} upstream-avvisningar",
     "connectionTestsCount": "{count} anslutningstester",
-    "notMeasured": "Inte mätt"
+    "notMeasured": "Inte mätt",
+    "upstream4xx": "{count} uppströms klientfel",
+    "upstream5xx": "{count} uppströms serverfel",
+    "uniformEgressLine": "{affected} av {exits} utgångar fallerar samtidigt hos {provider} (senaste {hours}h) — inte ett utgångsproblem"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Ärver anslutningspool ({count})",
     "poolEmptyBlocked": "Poolen tom — förfrågningar misslyckas (inte direkt)",
     "directEgress": "Direkt (ingen proxy)",
-    "ownProxy": "Egen proxy"
+    "ownProxy": "Egen proxy",
+    "freeTierPause": "Modellen {model} pausades (429), tillbaka {time}",
+    "freeTierPauseProvider": "Pausat (429), tillbaka {time}",
+    "freeTierPauseNote": "Paus i processen på denna instans"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,9 +13083,9 @@
     "dbOverrideCount": "{count} DB-överskrivningar",
     "searchPlaceholder": "Sök flaggor...",
     "descriptionModeLabel": "Beskrivningsvy",
-    "descriptionModeHint": "Vid hovring: korten förblir kompakta och när du hovrar över en beskrivning visas hela texten. Fullständig text: visa alltid hela beskrivningen.",
+    "descriptionModeHint": "Vid hovring: korten förblir kompakta och att hovra över en beskrivning visar hela texten. Hela texten: visa alltid den fullständiga beskrivningen.",
     "descriptionModeHover": "Vid hovring",
-    "descriptionModeFull": "Fullständig text",
+    "descriptionModeFull": "Hela texten",
     "categories": {
       "all": "Alla",
       "security": "Säkerhet",

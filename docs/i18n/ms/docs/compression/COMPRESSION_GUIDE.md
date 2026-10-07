@@ -451,8 +451,7 @@ disuntikkan dan bukannya bahasa Inggeris.
 Pada badan dengan `messages`, pintasan kandungan (`shouldBypassCavemanOutputMode()` dalam
 `open-sse/services/compression/outputMode.ts`) menyemak tiga mesej terakhir dan melangkau
 gaya untuk keseluruhan giliran apabila ia sepadan dengan keselamatan, tindakan tidak boleh diterbalikkan,
-penjelasan, atau kata kunci sensitif urutan. Pintasan berjalan tidak kira apa yang ditetapkan oleh togol **Pintasan Kejelasan Auto** papan pemuka
-(`cavemanOutputMode.autoClarity`).
+penjelasan, atau kata kunci sensitif urutan. Pintasan berjalan selagi togol **Pintasan Kejelasan Auto** papan pemuka (`cavemanOutputMode.autoClarity`) dihidupkan, iaitu tetapan lalai; apabila togol dimatikan, gaya yang dipilih turut digunakan pada giliran tersebut.
 
 Apabila pintasan membenarkan giliran, `placeSystemInstruction()` (fail yang sama), yang
 tidak pernah mencipta `messages[0]` baharu, meletakkan blok dalam yang pertama daripada ini yang ditemuinya:
