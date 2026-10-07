@@ -45,6 +45,7 @@ import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import { analyticsRangeForPeriod, readAnalyticsTotals } from "./analyticsShape.ts";
 import {
+  buildScopeDenialMessage,
   evaluateToolScopes,
   resolveCallerScopeContext,
   type McpToolExtraLike,
@@ -215,13 +216,11 @@ function withScopeEnforcement(
       toolScopes
     );
     if (!scopeCheck.allowed) {
-      const missingScopes =
-        scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
       const reason = scopeCheck.reason || "scope_check_failed";
-      const msg =
-        `Insufficient MCP scopes for ${toolName}. ` +
-        `Missing: ${missingScopes}. ` +
-        `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
+      // S-04 (#15159): no Caller=/source= here — see buildScopeDenialMessage. The
+      // identity is still recorded in the _scopeCheck audit payload below, which is
+      // where an operator needs it.
+      const msg = buildScopeDenialMessage(toolName, scopeCheck.missing);
       const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
       await logToolCall(
         toolName,
