@@ -24,6 +24,8 @@ import {
   recordModelLockoutFailure,
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
+import { evaluateAvalancheRisk } from "@omniroute/open-sse/services/accountFallback/antiAvalanche.ts";
+import { estimateTokens } from "@omniroute/open-sse/services/contextManager.ts";
 import { getCombo, getComboForModel, getModelInfo } from "../services/model";
 import { stripContextWindowSuffix } from "@omniroute/open-sse/services/model.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
@@ -2525,6 +2527,20 @@ async function handleSingleModelChat(
       const is401 = result.status === 401;
       const skipConnectionDisable = shouldSkipConnDisable(result, is401, hasExtraKeys, provider);
 
+      // Anti-Avalanche Guard: detect payload-induced rate limits / TPM rejections to suppress domino failover
+      const avalancheRisk =
+        result.status === 429 || result.status === 413 || result.status === 400
+          ? evaluateAvalancheRisk({
+              status: result.status,
+              errorText: errorStr,
+              provider,
+              model: effectiveModel,
+              promptTokens: estimateTokens(requestBody?.messages ?? requestBody),
+              fallbackAttemptCount: excludedConnectionIds.size,
+              settings: runtimeOptions?.cachedSettings,
+            })
+          : null;
+
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }
         : await markAccountUnavailable(
@@ -2542,8 +2558,24 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
+              isAvalancheRisk: avalancheRisk?.isAvalancheRisk ?? false,
+              avalancheCooldownMs: avalancheRisk?.suggestedCooldownMs,
+              suppressFallback: avalancheRisk?.shouldSuppressFallback ?? false,
             })
           );
+
+      if (avalancheRisk?.shouldSuppressFallback) {
+        log.warn(
+          "ANTI_AVALANCHE",
+          `${provider}/${model} cascading failover suppressed (${avalancheRisk.reason}, ~${avalancheRisk.promptTokens} tokens, attempt ${excludedConnectionIds.size + 1}) to prevent key exhaustion`
+        );
+        if (result.response?.headers) {
+          result.response.headers.set("x-omniroute-anti-avalanche", "suppressed");
+          if (avalancheRisk.reason) {
+            result.response.headers.set("x-omniroute-avalanche-reason", avalancheRisk.reason);
+          }
+        }
+      }
 
       // An explicit pin (combo step `connectionId` / `x-omniroute-connection`) is an
       // operator instruction, not a suggestion: the account cooldown above is still
