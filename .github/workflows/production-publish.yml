@@ -1,9 +1,12 @@
 name: Production Build & Publish to GHCR
 
+# Publishes the fork's production image to GHCR.
+# NOTE: this fork's default branch is `develop` (not `main`); adjust the
+# `branches` list below if the production branch is renamed.
 on:
   push:
     branches:
-      - main
+      - develop
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -53,7 +56,7 @@ jobs:
           flavor: |
             latest=auto
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
             type=sha,format=short,prefix=sha-
             type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
 

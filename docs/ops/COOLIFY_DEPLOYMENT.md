@@ -42,7 +42,8 @@ providers, publish `runner-base` instead and drop the extra size.
 
 ## 2. Build & publish the image
 
-Push to `main` (or run the workflow manually) to trigger
+Push to the production branch (this fork's default is `develop`; `main` in a
+standard fork) or run the workflow manually to trigger
 `.github/workflows/production-publish.yml`:
 
 - Builds `target: runner-web`, `platforms: linux/amd64`.
