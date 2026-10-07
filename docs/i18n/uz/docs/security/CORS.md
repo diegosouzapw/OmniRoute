@@ -116,23 +116,26 @@ belgilash mumkin.
 
 ## Misol: OmniRoute oldidagi teskari proksi
 
-CORS OmniRoute tomonidan amalga oshiriladi, shuning uchun proksi odatda
-`Access-Control-*` sarlavhalarini qoʻshmasligi yoki qayta yozmasligi **kerak**
-(ikkilangan sarlavhalar brauzerlar ishini buzadi). TLSʼni yakunlang va soʻrovlarni
-yoʻnaltiring — preflight soʻroviga OmniRoute javob bersin:
+CORS OmniRoute tomonidan qoʻllanadi, shuning uchun proksi odatda `Access-Control-*`
+sarlavhalarini **qoʻshmasligi** yoki qayta yozmasligi kerak (takroriy sarlavhalar brauzerlar ishlashini buzadi). TLS ulanishini
+yakunlang va soʻrovni yoʻnaltiring — dastlabki soʻrovga OmniRoute javob bersin:
 
 ```nginx
-# nginx — OmniRouteʼga yoʻnaltiring; bu yerda Access-Control-* ni kiritmang
+# nginx — OmniRouteʼga yoʻnaltiring; bu yerda Access-Control-* sarlavhalarini kiritmang
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For ni 127.0.0.1 qilib belgilamang — bu loopback marshrut himoyasini chetlab oʻtadi.
+    # Yoʻnaltirish sarlavhalarini saqlang: ayni xostdagi proksi loopback orqali ulanadi va aynan ular
+    # OmniRouteʼga murojaat qiluvchi mahalliy operator emasligini bildiradi. Ulardan hech birini qoʻshmaydigan proksi
+    # barcha masofaviy murojaat qiluvchilarni mahalliy sifatida koʻrsatadi. X-Forwarded-Forʼni ham hech qachon 127.0.0.1 qilib belgilamang.
 }
 ```
 
-Ruxsat etilgan brauzer manbalarini proksida emas, OmniRouteʼda
-(`CORS_ALLOWED_ORIGINS` yoki Security sahifasi orqali) belgilang.
+Brauzer uchun ruxsat etilgan manbalarni proksida emas, OmniRouteʼda (`CORS_ALLOWED_ORIGINS` yoki
+Security ichki oynasida) belgilang.
 
 ## Manba fayllari
 

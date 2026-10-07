@@ -4,10 +4,13 @@
 
 ---
 
-OmniRoute leverer en familie af `setup-*`-kommandoer, der konfigurerer en kode-
-CLI (Codex, Claude Code, OpenCode, Cline, …) til at bruge OmniRoute som backend — så
+For det delte eksekverbare manifest, begrænsede underordnede miljøer og vedvarende
+Gemini-opsætning, se [CLI-startkontrakter](./CLI-LAUNCH-CONTRACTS.md).
+
+OmniRoute leveres med en familie af `setup-*`-kommandoer, der konfigurerer en
+kodnings-CLI (Codex, Claude Code, OpenCode, Cline, …) til at bruge OmniRoute som backend — så
 værktøjet kommunikerer med **ét** slutpunkt, og OmniRoute dirigerer til den rette udbyder med
-automatisk fallback. Hver kommando læser det **aktuelle** modelkatalog fra en kørende
+automatisk fallback. Hver kommando læser det **aktive** modelkatalog fra en kørende
 OmniRoute (lokal eller ekstern) og skriver værktøjets egen konfigurationsfil på **din**
 maskine. API-nøglen refereres via en miljøvariabel, hvor værktøjet
 understøtter det. Kommandoer, der gemmer en lokal miljøfil for værktøjet, er angivet nedenfor.
@@ -22,9 +25,9 @@ samme målord, der er afledt af manifestet. De ældre værktøjsspecifikke start
 `omniroute launch` (Claude Code) og `omniroute launch-codex` (Codex) — er fortsat
 tilgængelige.
 
-Introduktion af udbydere er tilgængelig fra den samme lokale eller eksterne kontekst. De
-API-orienterede kommandoer nedenfor holder administrationsgodkendelse adskilt fra udbydernes
-legitimationsoplysninger og udskriver aldrig legitimationsoplysninger i struktureret output:
+Onboarding af udbydere er tilgængelig fra den samme lokale eller eksterne kontekst. De
+API-orienterede kommandoer nedenfor holder administrationsgodkendelse adskilt fra
+udbyderlegitimationsoplysninger og udskriver aldrig legitimationsoplysninger i struktureret output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -39,14 +42,20 @@ bevares til kontrolleret lokal brug. `providers remove` kræver `--yes` i en
 ikke-interaktiv terminal, og alle fem kommandoer respekterer den aktive kontekst eller de
 globale indstillinger `--base-url`/`--api-key`.
 
-Se de værktøjsspecifikke dybdegående vejledninger for den indledende, manuelt udarbejdede
-grundkonfiguration af de to mest omfattende integrationer:
+Udbydervælgere afviser tvetydige ID-præfikser, navne eller udbydernavne; brug et
+fuldt forbindelses-ID, når flere forbindelser matcher. Oprettelses- og redigeringskommandoer læser
+den gemte forbindelse tilbage, og fjernelse bekræfter, at den ikke længere kan læses.
+En import springer et eksisterende udbyder/navn-par over. Importerede poster kan ikke tilsidesætte
+administrationsslutpunktet, konteksten eller administrationslegitimationsoplysningerne, der leveres til CLI'en.
+
+For den indledende, manuelt skrevne basisopsætning af de to mest omfattende integrationer, se de
+værktøjsspecifikke dybdegående vejledninger:
 
 - [Konfiguration af Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfiguration af Codex CLI](./CODEX-CLI-CONFIGURATION.md)
 - [Ekstern tilstand](./REMOTE-MODE.md) — styr en ekstern OmniRoute (VPS / Tailnet) fra din bærbare computer
 - [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-udvidelsen; den kan også køre disse
-  `setup-*`-kommandoer for dig direkte fra editoren
+  `setup-*`-kommandoer for dig inde fra editoren
 
 ---
 

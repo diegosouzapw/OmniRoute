@@ -4,25 +4,29 @@
 
 ---
 
+Informāciju par koplietojamo izpildāmo failu manifestu, ierobežotām bērnprocesu vidēm un pastāvīgo
+Gemini iestatīšanu skatiet sadaļā [CLI palaišanas līgumi](./CLI-LAUNCH-CONTRACTS.md).
+
 OmniRoute nodrošina `setup-*` komandu saimi, kas konfigurē programmēšanas
 CLI (Codex, Claude Code, OpenCode, Cline, …), lai tas izmantotu OmniRoute kā savu aizmugursistēmu — tādējādi
-rīks sazinās ar **vienu** galapunktu, bet OmniRoute novirza pieprasījumus uz pareizo pakalpojumu sniedzēju,
-izmantojot automātisku rezerves variantu. Katra komanda nolasa **aktuālo** modeļu katalogu no darbojošās
+rīks sazinās ar **vienu** galapunktu, bet OmniRoute novirza pieprasījumus pareizajam pakalpojumu sniedzējam ar
+automātisku rezerves varianta izmantošanu. Katra komanda nolasa **aktuālo** modeļu katalogu no palaistas
 OmniRoute instances (lokālas vai attālas) un ieraksta paša rīka konfigurācijas failu **jūsu**
-datorā. Ja rīks to atbalsta, atsauce uz API atslēgu tiek norādīta ar vides mainīgo. Komandas, kas saglabā rīka lokālo vides failu, ir norādītas tālāk.
+datorā. API atslēge tiek norādīta, izmantojot vides mainīgo, ja vien rīks
+to atbalsta. Komandas, kas saglabā rīka lokālo vides failu, ir norādītas tālāk.
 
-Ir pieejams arī universāls palaidējs — `omniroute run <target>` —, kas palaiž
+Ir pieejams arī vispārīgs palaidējs — `omniroute run <target>` —, kas palaiž
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vai `gemini` ar
-ievadītu atbilstošo vidi, vispār neierakstot nekādu konfigurāciju. Mērķi un to
+ievadītiem atbilstošajiem vides mainīgajiem, vispār neierakstot konfigurāciju. Mērķi un to
 aizstājvārdi tiek iegūti no kanoniskā manifesta `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā tos
-pašus no manifesta iegūtos mērķu nosaukumus. Mantotie katram rīkam paredzētie palaidēji —
+`open-code`, `qwen-code`, `gemini-cli`), un `omniroute completion` piedāvā
+tos pašus no manifesta atvasinātos mērķu vārdus. Mantotie katram rīkam paredzētie palaidēji —
 `omniroute launch` (Claude Code) un `omniroute launch-codex` (Codex) — joprojām ir
 pieejami.
 
-Pakalpojumu sniedzēju pievienošana ir pieejama tajā pašā lokālajā vai attālajā kontekstā. Tālāk norādītās
-API prioritārās komandas nošķir pārvaldības autentifikāciju no pakalpojumu sniedzēju
+Pakalpojumu sniedzēju sākotnējā iestatīšana ir pieejama tajā pašā lokālajā/attālajā kontekstā. Tālāk norādītās
+uz API orientētās komandas nodala pārvaldības autentifikāciju no pakalpojumu sniedzēja
 akreditācijas datiem un nekad neizvada akreditācijas datus strukturētā izvadē:
 
 ```bash
@@ -33,13 +37,19 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptos ieteicams izmantot `--credential-stdin` vai `--credential-env`; `--credential`
-ir saglabāts kontrolētai lokālai lietošanai. Neinteraktīvā terminālī komandai `providers remove`
-ir nepieciešams `--yes`, un visas piecas komandas ievēro aktīvo kontekstu vai
-globālās opcijas `--base-url`/`--api-key`.
+Skriptos ieteicams izmantot `--credential-stdin` vai `--credential-env`; opcija `--credential`
+ir saglabāta kontrolētai lokālai lietošanai. Neinteraktīvā terminālī komandai `providers remove` ir nepieciešama opcija `--yes`,
+un visas piecas komandas izmanto aktīvo kontekstu vai globālās
+`--base-url`/`--api-key` opcijas.
 
-Informāciju par abu funkcijām bagātāko integrāciju vienreizējo, manuāli veicamo pamatkonfigurāciju skatiet
-katram rīkam paredzētajos detalizētajos aprakstos:
+Pakalpojumu sniedzēju selektori noraida neviennozīmīgus ID prefiksus, nosaukumus vai pakalpojumu sniedzēju nosaukumus; ja atbilst
+vairāki savienojumi, izmantojiet pilnu savienojuma ID. Izveides un rediģēšanas komandas atkārtoti nolasa
+saglabāto savienojumu, bet noņemšanas komanda pārbauda, vai tas vairs nav nolasāms.
+Importēšana izlaiž jau esošu pakalpojumu sniedzēja/nosaukuma pāri. Importētie ieraksti nevar pārrakstīt
+CLI norādīto pārvaldības galapunktu, kontekstu vai pārvaldības akreditācijas datus.
+
+Informāciju par divu funkcijām bagātāko integrāciju vienreizējo, manuāli izveidoto pamatkonfigurāciju skatiet
+katram rīkam veltītajos detalizētajos aprakstos:
 
 - [Claude Code konfigurācija](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfigurācija](./CODEX-CLI-CONFIGURATION.md)

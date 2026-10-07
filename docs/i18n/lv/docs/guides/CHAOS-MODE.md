@@ -4,22 +4,45 @@
 
 ---
 
-> **Informācijas panelis:** **Haosa režīms** (sānjoslā) → `/dashboard/chaos`  
+> **Informācijas panelis:** **Chaos Mode** (sānjoslā) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (informācijas paneļa sesija) · `POST /api/skills/collect/chaos` (API atslēga)  
 > **Avots:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Haosa režīms nosūta **vienu uzdevumu vairākiem pakalpojumu sniedzējiem vienlaikus** — katrs iesaistītais pakalpojumu sniedzējs
-piedāvā vienu modeļa instanci, un jūs saņemat visas atbildes blakus citu citai (vai ķēdē). Tā ir
-vairāku modeļu izpildes virsma, nevis maršrutēšanas stratēģija: tā nekad neietekmē jūsu parasto
+Chaos Mode nosūta **vienu uzdevumu vairākiem nodrošinātājiem vienlaikus** — katrs iesaistītais nodrošinātājs
+piedāvā vienu modeļa instanci, un jūs saņemat visas atbildes līdzās (vai ķēdē). Tā ir
+vairāku modeļu izpildes saskarne, nevis maršrutēšanas stratēģija: tā nekad neietekmē jūsu parasto
 `/v1/chat/completions` datplūsmu.
 
-**Nošķīrums — tiek piegādātas trīs dažādas lietas, kuru nosaukumā ir "chaos":**
+**Nošķīrums — tiek nodrošinātas trīs dažādas lietas, kuru nosaukumā ir „chaos”:**
 
-| Lieta                            | Kas tā ir                                                                                                                                      | Kur dokumentēta                              |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Haosa režīms**                 | Šeit aprakstītā informācijas paneļa lapa un API: viena uzdevuma izplatīšana daudziem pakalpojumu sniedzējiem (paralēli vai sadarbības režīmā). | Šī rokasgrāmata                              |
-| `auto/chaos`                     | Auto-Combo modeļa ID ar kļūmju ievadīšanas vērtēšanas svariem noturības testēšanai. Nekas nav jākonfigurē.                                     | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Haosa kombinācijas konfigurācija | Saglabāta kombinācija ar `config.chaos.enabled`, kas izplata uzdevumu modeļu panelim ar neobligātu vērtētāja modeli (pieejams tikai ar API).   | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Lieta                            | Kas tā ir                                                                                                                                                                                      | Kur dokumentēta                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**                   | Šeit aprakstītā informācijas paneļa lapa un API: viena uzdevuma izsūtīšana daudziem nodrošinātājiem (paralēli vai sadarbojoties).                                                              | Šī rokasgrāmata                              |
+| `auto/chaos`                     | Auto-Combo modeļa ID: paralēla izsūtīšana, viens modelis katram nodrošinātājam un viens augšupstraumes izsaukums katram. Tā nav kļūmju ievadīšana ([detalizēti](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos kombinācijas konfigurācija | Saglabāta kombinācija ar `config.chaos.enabled` veic tādu pašu izsūtīšanu (tikai API); `judgeModel` tikai izvēlas galīgo atbildi, neveicot sintēzes izsaukumu.                                 | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralēla izsūtīšana
+
+`auto/chaos` **nav** kļūmju ievadīšanas vai noturības testēšanas iestatījums. Pieprasot
+`model: "auto/chaos"` galapunktā `/v1/chat/completions`:
+
+1. Tiek izveidots panelis ar **vienu modeli no katra nodrošinātāja**: katra
+   savienotā nodrošinātāja pirmais kandidāts kandidātu kopas secībā, ne vairāk kā 5 dalībnieki
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, maksimālā robeža ir 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode` svaru
+   pakotne tikai iestata katra dalībnieka `weight`; izsūtīšana šo vērtību nenolasa.
+2. Tas pats pieprasījums tiek nosūtīts katram paneļa dalībniekam **paralēli**, tāpēc viens pieprasījums
+   izmaksā vienu augšupstraumes izsaukumu katram paneļa dalībniekam
+   (`open-sse/services/autoCombo/chaosEngine.ts`, nosūtīts no
+   `open-sse/services/combo.ts`).
+3. Kad pienāk rezultāti, katram paneļa dalībniekam tiek straumēta viena statusa rinda: pēc noklusējuma SSE komentārs
+   (`: chaos <index> ok|fail <model>`), kā arī `omni-chaos-part`
+   notikums (`model`, `index`, `ok`, `error`), ja pieprasījumā ir iestatīts
+   `stream_options.include_chaos_parts: true`. Tie nesatur atbildes tekstu.
+4. Kā galīgais OpenAI stila fragments tiek nosūtīta **viena** paneļa atbilde: pirmā paneļa
+   dalībnieka atbilde (`auto/chaos` iestata to kā `judgeModel`), ja tā ir veiksmīga, pretējā gadījumā
+   pēdējā veiksmīgā dalībnieka atbilde. Pārējās paneļa atbildes netiek atgrieztas, tāpēc
+   jūs maksājat par N izsaukumiem un saņemat vienu pabeigto atbildi.
 
 ## Iestatīšana
 

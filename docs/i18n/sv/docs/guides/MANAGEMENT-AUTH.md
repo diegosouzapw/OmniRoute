@@ -4,56 +4,49 @@
 
 ---
 
-OmniRoute har **fyra autentiseringsfamiljer** som kan auktorisera hanteringsrutter.
-De är inte utbytbara. API-nycklar för inferens (`sk-…`) hanterar **inte**
-servern om de inte uttryckligen har tilldelats omfånget `manage` eller `admin`.
+OmniRoute har **fyra uppsättningar autentiseringsuppgifter** som kan auktorisera hanteringsrutter.
+De är inte utbytbara. Inference API-nycklar (`sk-…`) hanterar **inte** servern om de inte uttryckligen har beviljats `manage`- eller `admin`-omfattning.
 
-Kanonisk implementation: `src/lib/api/requireManagementAuth.ts`.
+Kanonisk implementering: `src/lib/api/requireManagementAuth.ts`.
 
-| Autentiseringsuppgift           | Typiskt format                            | Skapas var                                                 | Avsedd användning            | Hanteringsbehörighet                                                                                                  |
-| ------------------------------- | ----------------------------------------- | ---------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| JWT-session för kontrollpanelen | `auth_token`-cookie                       | Inloggning på kontrollpanelen                              | Webbläsargränssnitt          | Fullständig hantering via kontrollpanelen, med förbehåll för regler om CSRF, lokal åtkomst och alltid skyddade rutter |
-| Maskin-ID-token för CLI         | intern/lokal                              | Initiering av CLI (`omniroute` på samma maskin)            | Lokalt CLI                   | Endast lokal hantering                                                                                                |
-| Omfångsbegränsad åtkomsttoken   | `oma_live_…`                              | **Inställningar → Åtkomsttoken** eller `omniroute connect` | Fjärr-CLI och hanterings-API | Måste uppfylla ruttens obligatoriska omfång `read`, `write` eller `admin`                                             |
-| API-nyckel för inferens         | `sk-…` (och andra prefix för API-nycklar) | **API-hanteraren/API-nycklar**                             | Inferens via `/v1/*`         | **Ingen** om inte nyckelns metadata inkluderar `manage` eller `admin`                                                 |
+| Autentiseringsuppgift | Typisk form                         | Skapas var                                                 | Avsedd användning            | Hanteringskapacitet                                                                                      |
+| :-------------------- | :---------------------------------- | :--------------------------------------------------------- | :--------------------------- | :------------------------------------------------------------------------------------------------------- |
+| Dashboard JWT-session | `auth_token` cookie                 | Dashboard-inloggning                                       | Webbläsar-UI                 | Fullständig dashboard-hantering, med förbehåll för CSRF, lokalitet och regler för alltid-skyddade-rutter |
+| CLI maskin-ID-token   | intern / lokal                      | CLI-bootstrap (`omniroute` på samma maskin)                | Lokal CLI                    | Endast lokal hantering                                                                                   |
+| Omfattad åtkomsttoken | `oma_live_…`                        | **Inställningar → Åtkomsttoken** eller `omniroute connect` | Fjärr-CLI och hanterings-API | Måste uppfylla ruttenas nödvändiga `read`-, `write`- eller `admin`-omfattning                            |
+| Inference API-nyckel  | `sk-…` (och andra API-nyckelprefix) | **API-hanterare / API-nycklar**                            | `/v1/* inference`            | **Ingen** om inte nyckelns metadata inkluderar `manage` eller `admin`                                    |
 
-Autentiseringsuppgifter med `oma_` är avsedda för hantering/CLI. De är **inte** API-nycklar för inferens.
+`oma_`-autentiseringsuppgifter är hanterings-/CLI-autentiseringsuppgifter. De är **inte** inference API-nycklar.
 
-Om autentisering med inloggning/API-nyckel är inaktiverad för servern kan vissa hanteringsrutter
-acceptera oautentiserade anrop. Rutter som endast är lokala och alltid skyddade tillämpar
-fortfarande sina egna regler. Det är därför inte alltid obligatoriskt att uppvisa någon
-av dessa autentiseringsuppgifter, och innehav av en sådan är inte alltid tillräckligt utan
-det obligatoriska omfånget och rätt lokalitet för rutten.
+Om inloggning/API-nyckelautentisering är inaktiverad för servern, kan vissa hanteringsrutter acceptera oautentiserade anrop. Lokala och alltid-skyddade rutter tillämpar fortfarande sina egna regler. Att presentera en av dessa autentiseringsuppgifter är därför inte universellt obligatoriskt, och att inneha en är inte universellt tillräckligt utan den nödvändiga omfattningen och ruttlokaliteten.
 
-Relaterat: [Fjärrläge](./REMOTE-MODE.md) (hur `oma_live_…` utfärdas för ett fjärr-CLI).
+Relaterat: [Fjärrläge](./REMOTE-MODE.md) (hur `oma_live_…` skapas för en fjärr-CLI).
 
 ---
 
-## Omfångsmatriser
+## Scope-matriser
 
-Dessa två omfångsvokabulärer är **olika**. Blanda inte ihop dem.
+API-nyckelhanterings-scopes och access-token-scopes är olika vokabulärer. MCP-verktygs-scopes är en tredje vokabulär, som kontrolleras med `scopeMatches` snarare än någon av funktionerna i tabellerna nedan. Jämförelse: [Tre scope-namnrymder](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Omfång för åtkomsttoken (`oma_live_…`)
+### Access Token-scopes (`oma_live_…`)
 
-| Omfång  | Typiska åtgärder                                                               |
-| ------- | ------------------------------------------------------------------------------ |
-| `read`  | List-/statusanrop med GET som token har rätt att se                            |
-| `write` | Ändringar (skapa/uppdatera/radera) under administratörsnivå                    |
-| `admin` | Fullständigt fjärr-CLI/anslutningstoken (standard vid initiering med lösenord) |
+| Scope   | Typiska operationer                                                                         |
+| ------- | ------------------------------------------------------------------------------------------- |
+| `read`  | List-/status-GET-anrop som tokenet har behörighet att se                                    |
+| `write` | Mutationer (skapa/uppdatera/radera) under admin-nivå                                        |
+| `admin` | Fullständig fjärr-CLI / anslutningstoken (standardvärden för lösenords-bootstrap finns här) |
 
-En token med `read` kan inte anropa en `write`-rutt. Meddelandeformat vid körning:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+Ett token med `read` kan inte anropa en `write`-rutt. Form på körtidsmeddelande: `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Hanteringsomfång för API-nycklar
+### API-nyckelhanterings-scopes
 
-| Omfång   | Innebörd                                                                    |
-| -------- | --------------------------------------------------------------------------- |
-| (inget)  | Endast inferens. Hanteringsrutter returnerar 403.                           |
-| `manage` | Hanterings-API (samma spärr som API-nyckelgrenen i `requireManagementAuth`) |
-| `admin`  | Uppfyller även `hasManageScope` (behandlas som hanteringsbehörig)           |
+| Scope    | Betydelse                                                               |
+| -------- | ----------------------------------------------------------------------- |
+| (ingen)  | Endast inferens. Hanteringsrutter returnerar 403.                       |
+| `manage` | Hanterings-API (samma grind som `requireManagementAuth` API-nyckelgren) |
+| `admin`  | Uppfyller även `hasManageScope` (behandlas som hanteringskapabel)       |
 
-Aktivera `manage` för nyckeln i gränssnittet API-nycklar/API-hanteraren. Återanvänd inte en
-nyckel för chattklienter till automatisering om du inte avsiktligt har tilldelat detta omfång.
+Aktivera `manage` på nyckeln i API Keys / API Manager UI. Återanvänd inte en chattklientnyckel för automatisering om du inte medvetet har beviljat det scopet.
 
 ---
 
@@ -127,26 +120,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Aktuella körningsfel (återge inte hemligheter)
+## Aktuella körtidsfel (återge inte hemligheter)
 
-| Situation                                           | Typisk status | Meddelande (rensat)                                                  |
-| --------------------------------------------------- | ------------- | -------------------------------------------------------------------- |
-| Inga autentiseringsuppgifter                        | 401           | `Authentication required`                                            |
-| Ogiltig/utgången `oma_live_…`                       | 401           | `Invalid or expired access token`                                    |
-| Giltig API-nyckel utan `manage`/`admin`             | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Ogiltig vanlig API-nyckel på en administrationsrutt | 403           | `Invalid management token`                                           |
-| Åtkomsttokenens behörighet är för låg               | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situation                                      | Typisk status | Meddelande (sanerat)                                                 |
+| :--------------------------------------------- | :------------ | :------------------------------------------------------------------- |
+| Inga autentiseringsuppgifter                   | 401           | `Authentication required`                                            |
+| Ogiltig/utgången `oma_live_…`                  | 401           | `Invalid or expired access token`                                    |
+| Giltig API-nyckel utan `manage`/`admin`        | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Ogiltig vanlig API-nyckel på en hanteringsrutt | 403           | `Invalid management token`                                           |
+| Åtkomsttoken-omfång för lågt                   | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-”Invalid management token” innebär att bearer-tokenen **inte** godkändes som en autentiseringsuppgift för administration. Det anger **inte** vilken typ du behöver utfärda. Använd tabellen ovan: inferensnycklar behöver `manage`-behörighet; fjärr-CLI behöver `oma_live_…`; dashboarden använder sessionscookien.
+"Invalid management token" betyder att bäraren **inte** accepterades som en hanteringsautentiseringsuppgift. Det talar **inte** om vilken familj som ska skapas. Använd tabellen ovan: inferensnycklar behöver `manage`-omfång; fjärr-CLI behöver `oma_live_…`; instrumentpanelen använder sessionscookien.
 
 ---
 
-## Rekommenderat val enligt principen om minsta behörighet
+## Rekommenderat val med minst privilegier
 
-| Anropare                                                   | Använd                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| Anropare                                                   | Användning                                                    |
+| :--------------------------------------------------------- | :------------------------------------------------------------ |
 | Webbläsare                                                 | Dashboard-session                                             |
 | CLI på servervärden                                        | Maskintoken                                                   |
 | CLI på en bärbar dator som kommunicerar med en fjärrserver | `oma_live_…` från `omniroute connect`                         |
-| CI/skript (endast administration)                          | `oma_live_…` med minsta möjliga behörighet som fungerar       |
+| CI / skript (endast hantering)                             | `oma_live_…` med minsta möjliga omfång som fungerar           |
 | CI som måste anropa både `/v1` och `/api`                  | API-nyckel med `manage` **eller** två autentiseringsuppgifter |

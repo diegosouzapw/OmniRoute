@@ -4,56 +4,68 @@
 
 ---
 
-OmniRoute avaldab npm-i ja Dockeri artefakte. Need kontrollid tagavad päritolutõendi,
-inventuuri (SBOM) ja CVE-skannimise, põhinevad täielikult avatud lähtekoodil ning on integreeritud väljalaske töövoogudesse.
-**Esmalt teavitav** lähenemine — praegu annavad need tulemustest teada ning pärast esimest
-edukat väljalaset muudetakse need blokeerivaks.
+OmniRoute avaldab npm + Docker artefakte. Need väravad pakuvad päritolu, varude (SBOM) ja CVE skaneerimist, kõik OSS, integreeritud väljalaskevoo protsessidesse. **Nõuandepõhine** lähenemine — nad annavad aru kohe, kuid muudavad blokeerivaks pärast esimest edukat väljalaset.
 
-| Kontroll                | Tööriist                                       | Kus                               | Blokeerib?                      | Väljund                                              |
-| ----------------------- | ---------------------------------------------- | --------------------------------- | ------------------------------- | ---------------------------------------------------- |
-| SLSA päritolu (npm)     | `npm --provenance` (OIDC)                      | `npm-publish.yml`                 | ainult avaldamise nurjumisel    | npmjs-i märk / `npm audit signatures`                |
-| npm-i SBOM              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                 | ainult genereerimise nurjumisel | Väljalaske vara + artefakt                           |
-| Tõmmise SBOM            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (ühendamine) | teavitav                        | CycloneDX-i artefakt                                 |
-| Trivy CVE (SARIF)       | `aquasecurity/trivy-action`                    | `docker-publish.yml` (ühendamine) | teavitav                        | SARIF (HIGH+CRITICAL) → vahekaart Security           |
-| Trivy CRITICAL-kontroll | `aquasecurity/trivy-action`                    | `docker-publish.yml` (ühendamine) | **blokeeriv**                   | `exit-code: '1'` parandatava CRITICAL-i korral       |
-| osv vulnCount           | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)     | **blokeeriv**                   | fikseerib `metrics.vulnCount` väärtuse (suund: alla) |
-| OpenSSF Scorecard       | `ossf/scorecard-action`                        | `scorecard.yml` (cron)            | teavitav                        | SARIF → Security + märk                              |
+| Värav                 | Tööriist                                       | Kus                           | Blokeerib?                           | Väljund                                   |
+| --------------------- | ---------------------------------------------- | ----------------------------- | ------------------------------------ | ----------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | ainult avaldamise ebaõnnestumisel    | badge npmjs / `npm audit signatures`      |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | ainult genereerimise ebaõnnestumisel | Release asset + artifact                  |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | nõuandev                             | CycloneDX artifact                        |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | nõuandev                             | SARIF (HIGH+CRITICAL) → Security tab      |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **blokeeriv**                        | `exit-code: '1'` on fixable CRITICAL      |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **blokeeriv**                        | kohandab `metrics.vulnCount` (suund:alla) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | nõuandev                             | SARIF → Security + badge                  |
 
-Tõmmise CVE fikseerimismehhanism kasutab failis `docker-publish.yml` **kahte sammu**: SARIF-i samm
-(`HIGH,CRITICAL`, `exit-code: 0`) hoiab HIGH+CRITICAL leiud vahekaardil Security nähtavana
-ilma blokeerimiseta; _CRITICAL-kontrolli_ samm (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) nurjab väljalaske CRITICAL-taseme CVE korral, **millele on parandus saadaval**. `ignore-unfixed`
-takistab väljalaske blokeerimist baastõmmise CVE tõttu, millele pole ülesvoolu parandust.
+Kujutise CVE kohandamine kasutab `docker-publish.yml` failis **kahte sammu**: SARIF-samm (`HIGH,CRITICAL`, `exit-code: 0`) hoiab HIGH+CRITICAL nähtavana turvalisuse vahekaardil blokeerimata; _KRIITILISE värava_ samm (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) nurjab väljalaske KRIITILISE CVE korral, **millele on parandus saadaval**. `ignore-unfixed` takistab väljalaske blokeerimist baaskujutise CVE tõttu, millel puudub ülesvoolu parandus.
 
-## ⚠️ CVE-de varieeruvus (blokeerivad osv/Trivy kontrollid)
+## ⚠️ CVE varieeruvus (blokeerivad osv/Trivy väravad)
 
-osv ja Trivy võrdlevad sõltuvusi CVE-andmebaasidega, mis **pidevalt kasvavad**. PR,
-mis **ei muuda ühtegi sõltuvust**, võib äkitselt ebaõnnestuda, sest olemasolevas sõltuvuses
-avalikustati uus CVE (osv: mõõdetud `vulnCount` > lähtetase; Trivy: tõmmises on uus
-parandatav CRITICAL). **See on blokeeriva CVE-kontrolli OODATUD tööpõhimõte,
-mitte toote regressioon.**
+osv ja Trivy võrdlevad sõltuvusi CVE andmebaasidega, mis **pidevalt kasvavad**. PR, mis **ei puuduta ühtegi sõltuvust**, võib ootamatult punaseks minna, sest olemasolevas sõltuvuses avastati uus CVE (osv: mõõdetud `vulnCount` > baasjoon; Trivy: uus parandatav KRIITILINE kujutises). **See on blokeeriva CVE värava OODATUD operatiivne käitumine, mitte toote regressioon.**
 
-Kui osv või Trivy muutub äsja avalikustatud CVE tõttu punaseks, tuleb teha järgmist:
+Kui osv või Trivy lähevad äsja avaldatud CVE tõttu punaseks, on lahendus:
 
-1. **Uuenda mõjutatud sõltuvust** (eelistatud) — mine üle parandatud versioonile faili `package.json`
-   `overrides` kaudu (transitiivsed sõltuvused) või loo tõmmis parandatud baastõmmise põhjal uuesti.
-2. **Kui ülesvoolu parandust pole:**
-   - **osv:** määra `metrics.vulnCount` lähtetase uuesti failis `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` ei hõlma eraldiseisvaid kontrolle — muuda väärtust
-     käsitsi, `direction:down`) ning lisa põhjendus ja jälgimisprobleem.
-   - **Trivy:** lisa faili `.trivyignore` kirje (üks CVE-ID rea kohta) koos põhjendava
-     kommentaari ja jälgimisprobleemiga. `ignore-unfixed: true` hõlmab juba automaatselt
-     parandusteta CVE-sid.
+1.  **Uuenda mõjutatud sõltuvust** (eelistatud) — uuenda parandatud versioonile `package.json` `overrides` kaudu (transitiivsed sõltuvused) või ehita kujutis uuesti parandatud baasil.
+2.  **Kui ülesvoolu parandust pole:**
+    - **osv:** määra `metrics.vulnCount` uuesti baasjooneks failis `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` ei hõlma spetsiaalseid väravaid — muuda väärtust käsitsi, `direction:down`) koos põhjenduse märkuse + jälgimisprobleemiga.
+    - **Trivy:** lisa kirje faili `.trivyignore` (CVE-ID rea kohta) koos põhjenduse kommentaari + jälgimisprobleemiga. `ignore-unfixed: true` katab juba automaatselt CVE-d ilma parandusteta.
 
-Mõlemad kontrollid **JÄETAKSE sujuvalt VAHELE** (väljumiskood 0), kui tööriist puudub või mõõtmine
-nurjub (`osv-scanner` pole asukohas PATH, osv.dev/võrk pole kättesaadav, vigane JSON) —
-**mõõtmise** nurjumine ei blokeeri kunagi; blokeerib ainult **mõõdetud** regressioon.
+Mõlemad väravad **jätavad sujuvalt vahele** (exit 0), kui tööriist puudub või mõõtmine ebaõnnestub (osv-scanner pole PATH-is, osv.dev/võrk kättesaamatu, vigane JSON) — **mõõtmise** ebaõnnestumine ei blokeeri kunagi, ainult **mõõdetud** regressioon blokeerib.
 
-## Tööjärg: Scorecardi teavitav kontroll → blokeeriv kontroll
+## Teadaolevad aktsepteeritud riskid
 
-Pärast esimest edukat väljalaset, mille puhul Scorecard esitab tulemuse:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: skoori fikseerimine (fikseerib mõõdetud skoori; see ei tohi väheneda).
+`extract-zip@2.0.1` sisaldab kahte parandamata kõrge riskitasemega sümlingi-läbimise nõrkust.
+Vastavalt ülaltoodud CVE variandi lahenduse "ülesvoolu parandust pole" harule on see **aktsepteeritud risk**, mitte uuendus:
 
-Täiendab 7. etapi kontrolle (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-auditeerib töövooge endid; Scorecard mõõdab hoidla üldist turbeolukorda.
+- **Ahel:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Kinnitatud `package-lock.json` kaudu — täpselt üks pakett kogu sõltuvuspuus
+  (`@openai/codex-security`) deklareerib `extract-zip`, ja täpselt üks pakett
+  (`promptfoo`) deklareerib `@openai/codex-security`.
+- **Ahelas ei eksisteeri ühtegi parandatud versiooni.** `extract-zip@2.0.1` (avaldatud 2020) on paketi viimane väljalase — seda ei hooldata. `@openai/codex-security`
+  praegune npm-latest (`0.1.29`) tõmbab endiselt `extract-zip@2.0.1`.
+- **Tootmises kättesaamatu.** `promptfoo` on ainult arendussõltuvus (pole kunagi loetletud
+  `dependencies` all), ja ükski fail `src/`, `open-sse/` või `bin/` all ei impordi
+  `extract-zip` npm paketti — OmniRoute'i enda `extractZip()` abifunktsioon
+  (`src/lib/versionManager/binaryManager.ts:93`) kasutab natiivseid `unzip`/`tar`
+  käske ja on seega mitteseotud. `@openai/codex-security` sisaldab ka oma sümlingi-läbimise
+  kaitset lisaks extract-zip'i onEntry tagasihelistamisele.
+- **Ärge** looge `extract-zip` jaoks aliast `package.json` `overrides` kaudu — ainus elujõuline
+  asendus on Electron-org-internal ja see on API-ga kokkusobimatu
+  `@openai/codex-security` enda onEntry/defaultDirMode/defaultFileMode kontrollidega;
+  selle ülekirjutamine rikuks vaikselt selle paketi turvakontrollid.
+- **Algväärtus:** mõõdetud osv `vulnCount` (3) on juba tunduvalt allpool külmutatud
+  `config/quality/quality-baseline.json` algväärtusest (27) — hammasratta muutust pole vaja.
+- **Regressioonikaitse:** `tests/unit/extract-zip-14482-exposure.test.ts` kinnitab
+  ülaltoodud ahela ja tootmisesse mitteimportimise invariandi; see ebaõnnestub CI-s,
+  kui kumbki neist kunagi katkeb (nt tulevane PR muudab `extract-zip` tootmises kättesaadavaks).
+- **Jälgimine:** probleem #14482.
+
+## Tööjärjekord: Scorecard'i nõuanne → blokeerimine
+
+Pärast esimest rohelist väljalaset Scorecard'i aruandlusega:
+
+- Scorecard: punktide hammasratas (külmutab mõõdetud skoori; ei saa väheneda).
+
+Täiendab 7. faasi väravaid (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+auditeerib töövooge endid; Scorecard mõõdab hoidla üldist olukorda.

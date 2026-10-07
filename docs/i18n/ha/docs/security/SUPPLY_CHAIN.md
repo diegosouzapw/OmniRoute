@@ -4,56 +4,79 @@
 
 ---
 
-OmniRoute yana wallafa kayan npm + Docker. Waɗannan ƙofofi suna samar da shaidar asali,
-jerin kayan haɗi (SBOM) da binciken CVE, dukkansu OSS ne, kuma an haɗa su cikin tsarin sakin sigogi.
-Matsayin **shawara-da-farko** — suna bayar da rahoto a yanzu, sannan a mayar da su masu toshewa bayan
-saki na farko da ya yi nasara.
+OmniRoute na buga kayan aikin npm + Docker. Waɗannan ƙofofin suna ba da tabbaci,
+kayan aiki (SBOM) da kuma binciken CVE, duk OSS, an haɗa su cikin ayyukan saki.
+Matsayin **Advisory-first** — suna bayar da rahoto yanzu, suna haɓaka zuwa toshewa bayan
+sakin kore na farko.
 
-| Ƙofa                 | Kayan aiki                                     | Inda                          | Yana toshewa?                | Sakamako                                               |
-| -------------------- | ---------------------------------------------- | ----------------------------- | ---------------------------- | ------------------------------------------------------ |
-| Shaidar SLSA (npm)   | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | kawai idan wallafawa ya gaza | lambar shaida ta npmjs / `npm audit signatures`        |
-| SBOM na npm          | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | kawai idan samarwa ya gaza   | Kadarar saki + artifact                                |
-| SBOM na image        | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | na shawara                   | CycloneDX artifact                                     |
-| Trivy CVE (SARIF)    | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | na shawara                   | SARIF (HIGH+CRITICAL) → shafin Tsaro                   |
-| Ƙofar Trivy CRITICAL | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **mai toshewa**              | `exit-code: '1'` kan CRITICAL da za a iya gyarawa      |
-| osv vulnCount        | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **mai toshewa**              | yana ƙara tsaurara `metrics.vulnCount` (alkibla: ƙasa) |
-| OpenSSF Scorecard    | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | na shawara                   | SARIF → Tsaro + lambar shaida                          |
+| Kofa                  | Kayan aiki                                     | Inda                          | Yana toshewa?              | Fitarwa                                        |
+| :-------------------- | :--------------------------------------------- | :---------------------------- | :------------------------- | :--------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | kawai idan bugawa ya gaza  | alamar npmjs / `npm audit signatures`          |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | kawai idan samarwa ya gaza | Kayan saki + kayan aiki                        |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (haɗa)   | shawara                    | Kayan aikin CycloneDX                          |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (haɗa)   | shawara                    | SARIF (HIGH+CRITICAL) → shafin Tsaro           |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (haɗa)   | **toshewa**                | `exit-code: '1'` akan CRITICAL mai gyarawa     |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **toshewa**                | ratchets `metrics.vulnCount` (shugabanci:ƙasa) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | shawara                    | SARIF → Tsaro + alama                          |
 
-Tsauraran matakin CVE na image yana amfani da **matakai biyu** a cikin `docker-publish.yml`: matakin SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) yana sa HIGH+CRITICAL su ci gaba da bayyana a shafin Tsaro
-ba tare da toshewa ba; matakin _ƙofar CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) yana sa sakin ya gaza idan akwai CVE na CRITICAL **wanda ake da gyaransa**. `ignore-unfixed`
-yana hana toshe sakin saboda CVE na base-image wanda ba shi da facin upstream.
+CVE ratchet na hoton yana amfani da **matakai biyu** a cikin `docker-publish.yml`: matakin SARIF
+(`HIGH,CRITICAL`, `exit-code: 0`) yana kiyaye HIGH+CRITICAL a bayyane a cikin shafin Tsaro
+ba tare da toshewa ba; matakin _CRITICAL gate_ (`severity: CRITICAL`, `ignore-unfixed: true`,
+`exit-code: 1`) yana kasa sakin akan CRITICAL CVE **tare da gyara da ake samu**. `ignore-unfixed`
+yana hana toshe sakin don CVE na asali ba tare da facin sama ba.
 
-## ⚠️ Sauyin CVE (ƙofofin osv/Trivy masu toshewa)
+## ⚠️ Bambancin CVE (toshewar ƙofofin osv/Trivy)
 
-osv da Trivy suna kwatanta deps da rumbunan bayanan CVE waɗanda **ke ci gaba da ƙaruwa**. Wani PR
-wanda **bai taɓa dependencies ba** zai iya komawa ja ba zato ba tsammani saboda an bayyana sabon CVE
-a cikin dep da ake da shi (osv: `vulnCount` da aka auna > baseline; Trivy: sabon
-CRITICAL da za a iya gyarawa a cikin image). **Wannan halayyar aiki ce da AKE TSAMMANI daga ƙofar CVE
-mai toshewa, ba koma-bayan samfur ba ne.**
+osv da Trivy suna kwatanta deps da bayanan CVE waɗanda **ke ci gaba da girma**. PR
+wanda **bai taɓa dogaro ba** na iya zama ja ba zato ba tsammani saboda an bayyana sabon CVE
+a cikin dep da ke akwai (osv: an auna `vulnCount` > tushe; Trivy: sabon
+CRITICAL mai gyarawa a cikin hoton). **Wannan shine halin aiki da ake tsammani na toshewar
+ƙofar CVE, ba koma baya na samfur ba.**
 
-Idan osv ko Trivy suka koma ja saboda sabon CVE da aka bayyana, maganin shi ne:
+Lokacin da osv ko Trivy suka zama ja saboda sabon CVE da aka bayyana, maganin shine:
 
-1. **Ɗaga sigar dep da abin ya shafa** (an fi so) — haɓaka zuwa sigar da aka yi wa faci ta hanyar `package.json`
-   `overrides` (transitive deps) ko sake gina image a kan base da aka yi wa faci.
-2. **Idan babu gyaran upstream:**
-   - **osv:** sake saita baseline na `metrics.vulnCount` a cikin `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` ba ya rufe ƙofofi na musamman — gyara ƙimar
-     da hannu, `direction:down`) tare da bayanin dalili + tracking issue.
-   - **Trivy:** ƙara shigarwa a cikin `.trivyignore` (CVE-ID ɗaya a kowane layi) tare da comment na
-     dalili + tracking issue. `ignore-unfixed: true` ya riga ya rufe CVEs marasa
-     faci ta atomatik.
+1. **Haɓaka dep da abin ya shafa** (an fi so) — haɓaka zuwa sigar da aka gyara ta hanyar `package.json`
+   `overrides` (transitive deps) ko sake gina hoton akan tushe da aka gyara.
+2. **Idan babu gyara na sama:**
+   - **osv:** sake daidaita `metrics.vulnCount` a cikin `config/quality/quality-baseline.json`
+     (`npm run quality:ratchet -- --update` baya rufe ƙofofin da aka keɓe — gyara darajar da
+     hannu, `direction:down`) tare da bayanin hujja + batun bin diddigi.
+   - **Trivy:** ƙara shigarwa a cikin `.trivyignore` (CVE-ID a kowane layi) tare da bayanin
+     hujja + batun bin diddigi. `ignore-unfixed: true` ya riga ya rufe CVEs ba tare da
+     facin kai tsaye ba.
 
-Dukkan ƙofofin biyu suna **TSALLAKEWA cikin sauƙi** (exit 0) idan kayan aikin ba ya nan ko aunawar
-ta gaza (osv-scanner ba ya cikin PATH, ba a iya isa osv.dev/network, JSON mara inganci) — gazawar
-**aunawa** ba ta taɓa toshewa; sai dai koma-bayan da **aka auna** ne yake toshewa.
+Duk ƙofofin **suna tsallakewa da kyau** (fita 0) lokacin da kayan aikin ba su nan ko kuma ma'aunin
+ya gaza (osv-scanner ba a cikin PATH, osv.dev/network ba za a iya isa ba, JSON mara inganci) —
+gazawar **ma'auni** ba ta taɓa toshewa ba, kawai koma baya **da aka auna** ke toshewa.
 
-## Backlog: Shawarar Scorecard → mai toshewa
+## Sanannun Hadarurruka Masu Karɓa
 
-Bayan saki na farko da ya yi nasara tare da rahoton Scorecard:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: tsauraran matakin makin (yana daskarar da makin da aka auna; ba zai iya raguwa ba).
+`extract-zip@2.0.1` yana ɗauke da shawarwari biyu na symlink-traversal masu tsanani waɗanda ba a gyara ba.
+Bisa ga reshen "babu gyara daga tushe" na maganin CVE Variance da ke sama, wannan **hadari ne da aka karɓa**, ba haɓakawa ba ne:
 
-Yana cike giɓin ƙofofin Phase 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-yana binciken workflows ɗin kansu; Scorecard yana auna matsayin repo gaba ɗaya.
+- **Sarka:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  An tabbatar ta hanyar `package-lock.json` — fakiti ɗaya tak a cikin dukkan bishiyar dogaro (`@openai/codex-security`) ya bayyana `extract-zip`, kuma fakiti ɗaya tak (`promptfoo`) ya bayyana `@openai/codex-security`.
+- **Babu wani fitowar da aka gyara a ko'ina a cikin sarka.** `extract-zip@2.0.1` (wanda aka buga a 2020) shine fitowar ƙarshe na fakitin — ba a kula da shi. `@openai/codex-security`'s
+  current npm-latest (`0.1.29`) har yanzu yana jawo `extract-zip@2.0.1`.
+- **Ba za a iya isa gare shi daga samarwa ba.** `promptfoo` devDependency-only ne (ba a taɓa lissafa shi a ƙarƙashin `dependencies` ba), kuma babu wani fayil a ƙarƙashin `src/`, `open-sse/`, ko `bin/` da ke shigo da fakitin npm na
+  `extract-zip` — OmniRoute's own `extractZip()` helper
+  (`src/lib/versionManager/binaryManager.ts:93`) yana amfani da `unzip`/`tar` na asali kuma ba shi da alaƙa. `@openai/codex-security` kuma yana jigilar nasa mai gadi na symlink-traversal a saman kiran baya na onEntry na extract-zip.
+- **Kada** a yi amfani da sunan `extract-zip` ta hanyar `package.json` `overrides` — kawai madadin da za a iya amfani da shi shine Electron-org-internal kuma API-incompatible ne da binciken onEntry/defaultDirMode/defaultFileMode na
+  `@openai/codex-security`; maye gurbinsa zai karya binciken tsaro na wannan fakitin a hankali.
+- **Matsayin Farko:** osv `vulnCount` (3) da aka auna ya riga ya kasance ƙasa da matsayin farko na
+  `config/quality/quality-baseline.json` (27) — babu buƙatar canjin ratchet.
+- **Mai gadi na koma baya:** `tests/unit/extract-zip-14482-exposure.test.ts` yana tabbatar da
+  sarka da kuma invariant na rashin shigo da samarwa da ke sama; yana kasa CI idan ɗayan ya taɓa
+  karyewa (misali, PR na gaba ya sa `extract-zip` ya zama mai isa daga samarwa).
+- **Bibiya:** issue #14482.
+
+## Baya: Shawarwarin Scorecard → toshewa
+
+Bayan fitowar kore ta farko tare da rahoton Scorecard:
+
+- Scorecard: ratchet na maki (yana daskare maki da aka auna; ba zai iya raguwa ba).
+
+Yana cika ƙofofin Mataki na 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
+yana bincika ayyukan da kansu; Scorecard yana auna matsayin repo gaba ɗaya.

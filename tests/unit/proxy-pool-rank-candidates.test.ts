@@ -118,10 +118,10 @@ test("the probe URL carries auth and the port like the dispatcher", async () => 
   );
 });
 
-test("with the flag off the order stays the plain rotation", async () => {
+test("with the flag opted out the order stays the plain rotation", async () => {
   const [a] = await pool(2);
   setAside(a);
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   try {
     assert.equal(await pick(), a.host);
   } finally {

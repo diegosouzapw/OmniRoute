@@ -4,12 +4,12 @@
 
 ---
 
-> **事實來源：** `src/server/authz/`、`src/shared/constants/publicApiRoutes.ts`、`src/lib/api/requireManagementAuth.ts`、`src/shared/utils/apiAuth.ts`
-> **最後更新：** 2026-06-28 — v3.8.40
+> **真實來源：** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **上次更新：** 2026-09-22 — 範圍命名空間指向 MCP-SERVER.md
 
-OmniRoute 擁有一套可感知路由的授權管線，會對每個 API 請求進行管控。分類是**確定性的**，且採取**失敗時關閉**原則——任何無法分類的項目最終都會歸類為 `MANAGEMENT`，並要求工作階段或管理級權杖。本頁針對維護路由或設計新端點的工程師說明此模型。
+OmniRoute 具有一個路由感知授權管道，用於把關每個 API 請求。分類是**確定性**且**故障關閉**的 — 任何無法分類的內容最終都會歸類為 `MANAGEMENT`，並要求會話或管理級別的令牌。本頁解釋了供維護路由或設計新端點的工程師使用的模型。
 
-![授權管線（3 種路由類別 + 原則評估）](../diagrams/exported/authz-pipeline.svg)
+![授權管道（3 種路由類別 + 策略評估）](../diagrams/exported/authz-pipeline.svg)
 
 > 來源：[diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,57 +17,59 @@ OmniRoute 擁有一套可感知路由的授權管線，會對每個 API 請求�
 
 ### 1. API 金鑰（Bearer）
 
-用於與 OpenAI/Anthropic/Gemini 相容的用戶端 API，以及少數在金鑰具有 `manage` 範圍時可存取的管理路由。
+用於與 OpenAI/Anthropic/Gemini 相容的用戶端 API，以及 API 金鑰具有 `manage` 範圍時的少數管理路由。
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 驗證，並透過 `src/shared/utils/apiAuth.ts` 重新匯出。驗證器也接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 環境變數作為持久性透傳金鑰（議題 #1350）。
+由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 驗證，並透過 `src/shared/utils/apiAuth.ts` 重新匯出。驗證器也接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 環境變數作為永久的直通金鑰（議題 #1350）。
 
 ### 2. 儀表板工作階段（auth_token Cookie）
 
-用於儀表板頁面與管理員操作。
+用於儀表板頁面和管理操作。
 
 ```
-Cookie: auth_token=<以 JWT_SECRET 簽署的 JWT>
+Cookie: auth_token=<使用 JWT_SECRET 簽署的 JWT>
 ```
 
-只有當 JWT 驗證成功**且**帶有 `authenticated: true` 時，Cookie 才是工作階段
-（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。Cookie 的每個
-使用端（路由守衛、授權管線重新整理、WebSocket 交握、即時
+只有在 JWT 驗證成功**且**帶有 `authenticated: true` 時，Cookie 才會被視為工作階段
+（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。每個
+Cookie 使用者（儀表板路由守衛（`isDashboardSessionAuthenticated()`）、授權管線重新整理、WebSocket 交握、即時
 伺服器、`/api/settings/require-login`、`/api/auth/status`）都會透過該輔助函式處理。
-另有其他以 `JWT_SECRET` 簽署的 JWT——Cursor CLI 透傳功能會為金鑰持有者建立
-`iss "omniroute" / aud "cursor-cli"` 權杖——但這些權杖絕不會被視為工作階段
+也存在其他使用 `JWT_SECRET` 簽署的 JWT——Cursor CLI 直通功能會為金鑰持有者簽發
+`iss "omniroute" / aud "cursor-cli"` 權杖——而這些權杖絕不會被視為工作階段
 （#13298）。
 
-由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 驗證。當 JWT 在其 30 天有效期中剩餘不到 7 天時，管線會自動重新整理該 JWT。
+由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 驗證。當 JWT 在其 30 天有效期內剩餘不到 7 天時，管線會自動重新整理 JWT。
 
-部分管理路由接受**任一**模式：Cookie，或在 API 金鑰具有 `manage`（或 `admin`）範圍時使用 `Bearer <key>`。這正是 v3.8 新增的「可透過 API 呼叫設定」工作流程。
+工作階段也可能在 30 天到期之前結束，因為每個簽發器都會透過 `mintDashboardSessionToken`（包含簽發時間 `iat` 和 ID `jti`），且驗證器會檢查兩項設定：`sessionsValidAfter`，它會在變更密碼時設定，使在該時間之前簽發的所有工作階段都無法再通過驗證（變更密碼的瀏覽器會取得新的 Cookie）；以及 `revokedDashboardSessions`，`POST /api/auth/logout` 會將已登出工作階段的 `jti` 加入其中。由舊版簽發的工作階段不帶有這兩項宣告，並會持續有效至首次變更密碼為止。如果無法讀取設定，則不信任該工作階段。
 
-#### 選用的 OIDC 登入閘門（#6973）
+部分管理路由接受**任一**模式：Cookie，或在 API 金鑰具有 `manage`（或 `admin`）範圍時接受 `Bearer <key>`。這使得 v3.8 中新增的「可透過 API 呼叫進行設定」工作流程得以實現。
 
-儀表板管理員登入除了預設的密碼登入外，也支援**選擇啟用**的 OIDC（OpenID Connect）流程——密碼登入永遠不會被移除，只會加入額外的登入方式：
+#### 選用的 OIDC 登入閘道（#6973）
+
+儀表板管理員登入除了預設的密碼登入之外，也支援**選擇啟用**的 OIDC（OpenID Connect）流程——密碼登入永遠不會移除，只會由 OIDC 加以補充：
 
 - 除非 `settings.oidcEnabled === true`，**且** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` 均已設定（設定 → 驗證），否則此功能將停用。
-  在其他情況下，`GET /api/auth/oidc/login` 會傳回 `400`。
+  `oidcClientId` / `oidcClientSecret` 均已設定（設定 → 驗證），否則此功能會停用。
+  否則，`GET /api/auth/oidc/login` 會傳回 `400`。
 - `GET /api/auth/oidc/login` 會從簽發者的
-  `/.well-known/openid-configuration` 探索 `authorization_endpoint`（若失敗則改用
-  `<issuer>/authorize`），根據傳入的請求建立重新導向 URI
-  （可感知 `x-forwarded-proto`），並使用儲存在 `httpOnly` `oidc_state` Cookie 中的隨機 `state`
-  重新導向至 IdP。
+  `/.well-known/openid-configuration` 探索 `authorization_endpoint`（備援至
+  `<issuer>/authorize`），根據傳入的請求建構重新導向 URI
+  （可感知 `x-forwarded-proto`），並重新導向至 IdP，同時將隨機 `state`
+  儲存在 `httpOnly` 的 `oidc_state` Cookie 中。
 - `GET /api/auth/oidc/callback` 會驗證 `state`、交換授權
   碼，並透過簽發者的 JWKS 驗證 ID 權杖的簽章
-  （使用 `jose` 的 `createRemoteJWKSet`，依每個 JWKS URI 進行快取），同時執行 `issuer`/`audience`
+  （`jose` 的 `createRemoteJWKSet`，依每個 JWKS URI 快取），同時執行 `issuer`/`audience`
   檢查。選用的 `oidcAllowedSubjects` 允許清單會比對權杖的
-  `sub` 宣告或其 `email` 宣告——只有當
-  `email_verified === true` 時才會採信電子郵件宣告，因此 IdP 上未經驗證的電子郵件絕不可能通過
-  閘門。
-- 成功後，系統會建立與密碼
-  登入所核發的**完全相同**、有效期為 30 天的 `auth_token` JWT
+  `sub` 宣告或其 `email` 宣告——只有在
+  `email_verified === true` 時才會採納電子郵件宣告，因此 IdP 中未經驗證的電子郵件永遠無法通過
+  此閘道。
+- 成功後，它會簽發與密碼登入所簽發的**完全相同**、有效期為 30 天的 `auth_token` JWT
   （`src/app/api/auth/login/route.ts`），因此儀表板工作階段管線的其餘部分
-  （自動重新整理、Cookie 旗標）維持不變——OIDC 只會取代 Cookie 的建立方式，不會改變它所授予的權限。
+  （自動重新整理、Cookie 旗標）保持不變——OIDC 只會取代 Cookie 的簽發方式，
+  而不會改變它所授予的權限。
 
 ## 路由類別
 
@@ -200,24 +202,31 @@ export async function POST(request: Request) {
 
 ## 範圍
 
-API 金鑰包含一個 `scopes` 陣列（以 JSON 儲存於 `api_keys.scopes`，請參閱 `src/lib/db/apiKeys.ts`）。
+三個命名空間。每個檢查器只讀取其自身的字串。關於為什麼 `manage` 會使 `read:compression` 的 `scopeMatches` 失敗，以及為什麼 `read` 存取權杖無法 `PATCH /api/keys/{id}` 的並排說明，請參閱[三個範圍命名空間](../frameworks/MCP-SERVER.md#three-scope-namespaces)。
+
+API 金鑰帶有一個 `scopes` 陣列（以 JSON 格式儲存在 `api_keys.scopes` 中，請參閱 `src/lib/db/apiKeys.ts`）。
 
 ### 管理範圍
 
-- `manage` / `admin` — 以 Bearer 傳送時，授予該金鑰存取管理 API 端點的權限。
+- `manage` / `admin` — `hasManageScope`。對管理 API 路由的 Bearer 存取。
+- `mcp:connect`、`self:usage`、`self:account-quota` 和
+  `policy:bypass-provider-quota` 是附加的精確匹配範圍。它們位於
+  `MANAGEMENT_API_KEY_SCOPES` 之外。`mcp:connect` 僅開啟
+  `/api/mcp/` 非迴路（non-loopback）的劃分。
 
-### MCP 範圍（`src/shared/constants/mcpScopes.ts`）
+### MCP 工具範圍
 
-每個 MCP 工具都會透過 `MCP_TOOL_SCOPES` 要求特定範圍。完整清單（`MCP_SCOPE_LIST`）：
+目錄和匹配規則（相同字串，或以 `*` 結尾的已授予範圍）：
+[MCP 工具範圍](../frameworks/MCP-SERVER.md#mcp-tool-scopes)。
+`src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 是原始的類型化
+子集，而非完整的目錄。在 `resolveCallerScopeContext()` 從 MCP 驗證資訊、請求中繼資料或 `OMNIROUTE_MCP_SCOPES` 解析範圍後，執行會在
+`open-sse/mcp-server/scopeEnforcement.ts` 中進行。除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`，否則它會保持關閉。
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### 存取權杖範圍
 
-在 `open-sse/mcp-server/server.ts` 中，`resolveCallerScopeContext()` 從 MCP 驗證資訊、請求中繼資料或 `OMNIROUTE_MCP_SCOPES` 解析範圍後，範圍強制執行機制會將每個工具的範圍清單傳入 `evaluateToolScopes()`。
+`oma_live_…` 權杖上的 `read` / `write` / `admin`，按 `scopeSatisfies` 排序
+（`src/lib/accessTokens/scopes.ts`）。此排序僅適用於存取權杖憑證。請參閱
+[管理驗證](../guides/MANAGEMENT-AUTH.md)。
 
 ## 必須驗證切換選項
 
@@ -263,9 +272,9 @@ x-omniroute-auth-scopes:    以逗號分隔的清單
 
 請在處理常式內使用 `assertAuth(req, expectedClass)`——若中介軟體遭到繞過，它會擲出代碼為 `AUTHZ_NOT_INITIALIZED` 的 `AuthzAssertionError`（有助於在測試中發現設定退步問題）。
 
-## 另請參閱
+## 參閱
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 各端點的驗證標記
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — 驗證事件的稽核記錄
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP 範圍強制執行詳細資訊
-- 原始碼：`src/server/authz/`、`src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 每個端點的身份驗證標記
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — 身份驗證事件的稽核日誌
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — 三個範圍命名空間和 MCP 工具範圍目錄
+- 來源：`src/server/authz/`、`src/lib/api/requireManagementAuth.ts`

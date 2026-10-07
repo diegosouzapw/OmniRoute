@@ -178,44 +178,56 @@ Stacked ile:         Gönderilen 10K-2.5K token     (uygun RTK+Caveman içeriği
 
 ## Yapılandırma
 
-### Gösterge Paneli
+### Kontrol Paneli
 
-`Gösterge Paneli → Bağlam ve Önbellek` bölümüne gidin:
+`Kontrol Paneli → Bağlam ve Önbellek`'e gidin:
 
 - **Caveman** — mod seçimi, dil paketleri, önizleme ve genel varsayılanlar
-- **RTK** — komut filtresi önizlemesi, RTK güvenlik ayarları ve filtre kataloğu
-- **Sıkıştırma Komboları** — yönlendirme kombinasyonlarına atanmış adlandırılmış motor işlem hatları
-- **Otomatik Tetikleme Eşiği** — belirteç sayısı eşiği aştığında sıkıştırmayı otomatik olarak devreye alır
+- **RTK** — komut-filtre önizlemesi, RTK güvenlik ayarları ve filtre kataloğu
+- **Sıkıştırma Kombinasyonları** — yönlendirme kombinasyonlarına atanan adlandırılmış motor işlem hatları
+- **Otomatik Tetikleme Eşiği** — belirteç sayısı eşiği aştığında sıkıştırmayı otomatik olarak devreye sokar
 
-### Kombo Bazında Geçersiz Kılma
+### Kombinasyon Başına Geçersiz Kılma
 
-`Gösterge Paneli → Bağlam ve Önbellek → Sıkıştırma Komboları` bölümünde bir yönlendirme kombosuna sıkıştırma kombosu atayın:
+`Kontrol Paneli → Bağlam ve Önbellek → Sıkıştırma Kombinasyonları`'nda, bir sıkıştırma kombinasyonunu bir yönlendirme
+kombinasyonuna atayın:
 
 ```txt
-Combo: "free-tier-fallback"
-  Compression Combo: "coding-agent-stack"
-  Pipeline: RTK -> Caveman
-  Targets:
+Kombinasyon: "free-tier-fallback"
+  Sıkıştırma Kombinasyonu: "coding-agent-stack"
+  İşlem Hattı: RTK -> Caveman
+  Hedefler:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-Bu, ücretli aboneliklerde lite modunu korurken ücretsiz/kodlama sağlayıcılarında yığınlanmış sıkıştırma kullanmanıza olanak tanır.
+Bu, ücretsiz/kodlama sağlayıcılarında yığılmış sıkıştırma kullanmanıza olanak tanırken, ücretli
+aboneliklerde lite modu korur.
 
-Bu "Kombo Bazında Geçersiz Kılma" ataması, **yönlendirme kombosu sıkıştırma modu** geçersiz kılmasından (Default/Off/Lite/Standard/Aggressive/Ultra) farklı bir denetimdir — bu geçersiz kılma, adlandırılmış bir sıkıştırma kombosu işlem hattı seçmez; yalnızca `resolveCompressionPlan` tarafından kullanılan `compressionMode` alanını ayarlar. Bu ayar, kombo kartından (`Gösterge Paneli → Kombolar`) veya #6760'tan itibaren `Gösterge Paneli → Bağlam ve Önbellek → Sıkıştırma Komboları` bölümündeki "Yönlendirmeye ata" listesinde, yukarıda açıklanan işlem hattı atama onay kutusunun hemen yanında her yönlendirme kombosu için ayrı ayrı yapılabilir. Her iki arayüzdeki ayarlar da aynı `PUT /api/combos/{id}` uç noktası üzerinden kalıcı hâle getirilir.
+Bu "Kombinasyon Başına Geçersiz Kılma" ataması, **yönlendirme-kombinasyonu sıkıştırma
+modu** geçersiz kılmasından (Varsayılan/Kapalı/Lite/Standart/Agresif/Ultra) farklı bir kontroldür — bu geçersiz kılma
+adlandırılmış bir sıkıştırma-kombinasyonu işlem hattı seçmez; sadece `resolveCompressionPlan` tarafından kullanılan
+`compressionMode` alanını ayarlar. Bu, kombinasyon kartında (`Kontrol Paneli → Kombinasyonlar`) veya #6760'tan bu yana,
+yukarıda belgelenen işlem hattı atama onay kutusunun hemen yanında, `Kontrol Paneli → Bağlam ve Önbellek → Sıkıştırma Kombinasyonları`'ndaki "Yönlendirmeye Ata" listesinde her yönlendirme kombinasyonu için ayarlanabilir. Her iki yüzey de aynı `PUT /api/combos/{id}` uç noktası aracılığıyla kalıcı hale getirilir.
 
-### İstek bazında geçersiz kılma
+### İstek Başına Geçersiz Kılma
 
-Tek bir isteğin sıkıştırma planını geçersiz kılmak için `x-omniroute-compression` istek başlığını gönderin. Bu, en yüksek önceliğe sahiptir — yönlendirme kombosu geçersiz kılmasını, etkin profili, otomatik tetiklemeyi ve paneldeki Default ayarını geçersiz kılar. Bilinmeyen değerler yok sayılır (istek hiçbir zaman reddedilmez) ve genel ana anahtar her şeyi denetlemeye devam eder: sıkıştırma genel olarak kapalı olduğunda başlık bunu açamaz. Değerler:
+Tek bir istek için sıkıştırma planını geçersiz kılmak üzere `x-omniroute-compression` istek başlığını gönderin.
+En yüksek önceliğe sahiptir — yönlendirme-kombinasyonu geçersiz kılmasını, etkin profili, otomatik tetiklemeyi ve panel Varsayılanını yener. Bilinmeyen değerler yok sayılır (istek asla reddedilmez) ve genel ana anahtar her şeyi hala kontrol eder: sıkıştırma genel olarak kapalıyken, başlık onu açamaz. Değerler:
 
-| Değer         | Etki                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| `off`         | Bu istek için sıkıştırma uygulanmaz.                                                                   |
-| `default`     | Panelden türetilen Default profili (etkin profili yok sayar).                                          |
-| `engine:<id>` | Etkinleştirilmişse tek bir motor; ör. `engine:rtk`.                                                    |
-| `<combo>`     | Önce ada göre (büyük/küçük harf duyarsız), ardından kimliğe göre eşleştirilen adlandırılmış bir kombo. |
+| Değer         | Etki                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| `off`         | Bu istek için sıkıştırma yok.                                                                         |
+| `default`     | Panelden türetilen Varsayılan profil (etkin profili yok sayar). Kayıplı motorlar kapalı kalır.        |
+| `safe`        | Başlığı atlamakla aynı: yalnızca tekilleştirme ve boşluk katlama.                                     |
+| `allow-lossy` | Bu isteğin operatör planını, özetler, alaka düzeyi filtreleri ve stil yeniden yazmaları dahil tut.    |
+| `engine:<id>` | Etkinleştirildiğinde tek bir motor, örn. `engine:rtk`. Bu, o motor için istek başına katılım.         |
+| `<combo>`     | Adlandırılmış bir kombinasyon, önce ada göre (büyük/küçük harf duyarsız), sonra kimliğe göre eşleşir. |
 
-Uygulanan plan, `X-OmniRoute-Compression: <mode>; source=<source>` yanıt başlığında geri bildirilir; burada `<source>`, `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` veya `off` değerlerinden biridir.
+`allow-lossy`, `engine:<id>` veya adlandırılmış bir kombinasyon olmadan, kayıplı motorlar uygulanmaz.
+Sıkıştırma açıkken istek yine de oturum tekilleştirme ve boşluk katlama alır.
+
+Uygulanan plan, `X-OmniRoute-Compression: <mode>; source=<source>` yanıt başlığında geri yansıtılır; burada `<source>`, `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` veya `off` değerlerinden biridir.
 
 ### API
 
@@ -228,7 +240,7 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Belirli bir RTK/yığınlanmış yükün önizlemesini yap
+# Belirli bir RTK/yığılmış yükü önizle
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
@@ -236,7 +248,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # RTK filtre paketlerini listele
 curl http://localhost:20128/api/context/rtk/filters
 
-# İsteğe bağlı komut meta verileriyle RTK'yi doğrudan test et
+# RTK'yi isteğe bağlı komut meta verileriyle doğrudan test et
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -282,13 +294,13 @@ Sıkıştırılan her istek, sunucu günlüklerinde istatistikler içerir:
 
 ## Aşama Yol Haritası
 
-| Aşama    | Modlar                                                                                                                                                     | Durum         |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| Aşama 1  | Kapalı, Lite                                                                                                                                               | ✅ Yayınlandı |
-| Aşama 2  | Standard, Aggressive, Ultra                                                                                                                                | ✅ Yayınlandı |
-| Aşama 3  | RTK, Stacked, Sıkıştırma Kombinasyonları                                                                                                                   | ✅ Yayınlandı |
-| Aşama 4  | Çıktı Stilleri, SLM katmanlı Ultra, değerlendirme düzeneği                                                                                                 | ✅ Yayınlandı |
-| Aşama 4C | Uyarlanabilir bağlam bütçesi ("kadran") — hesaplama motoru + API (`PUT /api/settings/compression` üzerindeki `contextBudget`) + pano modu/ilke denetimleri | ✅ Yayınlandı |
+| Aşama    | Modlar                                                                                                                                                                 | Durum         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Aşama 1  | Kapalı, Lite                                                                                                                                                           | ✅ Gönderildi |
+| Aşama 2  | Standart, Agresif, Ultra                                                                                                                                               | ✅ Gönderildi |
+| Aşama 3  | RTK, Yığılmış, Sıkıştırma Kombinasyonları                                                                                                                              | ✅ Gönderildi |
+| Aşama 4  | Çıktı Stilleri, SLM-katman Ultra, değerlendirme donanımı                                                                                                               | ✅ Gönderildi |
+| Aşama 4C | Uyarlanabilir bağlam-bütçesi ("kadran") — hesaplama motoru + API (`contextBudget` üzerinde `PUT /api/settings/compression`) + kontrol paneli modu/politika kontrolleri | ✅ Gönderildi |
 
 ---
 
@@ -306,7 +318,7 @@ OmniRoute, 7 standart modun ötesinde, bağlama göre otomatik olarak çalışan
 
 ### Önbellek Duyarlı Sıkıştırma
 
-Bazı sağlayıcılar (istem önbelleğe alma özelliğine sahip Anthropic gibi), maliyetleri ve gecikmeyi azaltmak için istemin bazı bölümlerini önbelleğe almalarına olanak tanıyan **istem önbelleğe alma** özelliğini destekler. Önbelleğe alma etkinken agresif sıkıştırma, önbelleğe alınan token'ları değiştirerek önbelleği geçersiz kıldığı için performansa gerçekte **zarar verebilir**.
+Bazı sağlayıcılar (istem önbelleğe alma özelliğine sahip Anthropic gibi), maliyetleri ve gecikmeyi azaltmak için istemin bazı bölümlerini önbelleğe almalarına olanak tanıyan **istem önbelleğe almayı** destekler. Önbelleğe alma etkinleştirildiğinde agresif sıkıştırma, önbelleğe alınmış tokenları değiştirerek önbelleği geçersiz kıldığı için performansa gerçekten **zarar verebilir**.
 
 `cachingAware.ts` modülü, **önbelleğe alma bağlamını algılayarak** ve **sıkıştırma stratejisini** buna göre ayarlayarak bu sorunu çözer.
 
@@ -314,7 +326,7 @@ Bazı sağlayıcılar (istem önbelleğe alma özelliğine sahip Anthropic gibi)
 
 1. **Önbelleğe alma bağlamını algılama** — İstek gövdesini `cache_control` işaretçileri için tarar
 2. **Önbelleğe alma sağlayıcılarını belirleme** — Hedef sağlayıcının önbelleğe almayı destekleyip desteklemediğini kontrol eder
-3. **Stratejiyi ayarlama** — Önbelleğe alma sağlayıcıları için `aggressive`/`ultra` modunu `standard` moduna düşürür
+3. **Stratejiyi ayarlama** — Önbelleğe alma sağlayıcıları için `aggressive`/`ultra` modlarını `standard` moduna düşürür
 4. **Sistem istemini atlama** — Sistem istemleri genellikle önbelleğe alınır, bu nedenle bunları sıkıştırmaz
 5. **Belirlenimci dönüşümler kullanma** — Yalnızca tutarlı çıktı üreten dönüşümleri kullanır
 
@@ -341,19 +353,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Ne zaman kullanılmalı?
 
-Önbellek duyarlı sıkıştırma **her zaman açıktır** — herhangi bir yapılandırma gerekmez. Yalnızca şu durumlarda devreye girer:
+Önbellek duyarlı sıkıştırma **her zaman etkindir** — yapılandırma gerekmez. Yalnızca şu durumlarda devreye girer:
 
 - İstekte `cache_control` işaretçileri bulunduğunda
 - Hedef sağlayıcı istem önbelleğe almayı desteklediğinde (Anthropic, OpenAI vb.)
 
 ### Aşamalı Eskitme
 
-Uzun konuşmalarda çok sayıda mesaj sırası birikir, ancak eski sıralar zamanla daha az alakalı hâle gelir. `progressiveAging.ts` modülü, **mesajları sıra uzaklığına göre sadeleştirir**:
+Uzun konuşmalarda çok sayıda mesaj sırası birikir, ancak eski sıralar zamanla daha az ilgili hâle gelir. `progressiveAging.ts` modülü, **mesajları sıra mesafesine göre sadeleştirir**:
 
-- **Son sıralar (0-3)**: Olduğu gibi korunur (tüm ayrıntılar)
-- **Orta uzaklıktaki sıralar (4-8)**: Lite sıkıştırma (boşluk ve biçimlendirme temizliği)
-- **Eski sıralar (9+)**: Caveman sıkıştırması (dolgu ifadelerinin kaldırılması, özetleme)
-- **Çok eski sıralar (20+)**: Yoğun biçimde özetlenir veya kaldırılır
+- **Yakın zamandaki sıralar (0-3)**: Olduğu gibi korunur (tüm ayrıntılarla)
+- **Orta uzaklıktaki sıralar (4-8)**: Hafif sıkıştırma (boşluk ve biçimlendirme temizliği)
+- **Eski sıralar (9+)**: İlkel sıkıştırma (dolgu ifadelerinin kaldırılması, özetleme)
+- **Çok eski sıralar (20+)**: Yoğun şekilde özetlenir veya kaldırılır
 
 #### Kod örneği
 
@@ -369,8 +381,8 @@ const messages = [
 
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // İlk 3 sıra: olduğu gibi
-  light: 8, // 4-8. sıralar: lite sıkıştırma
-  moderate: 20, // 9-20. sıralar: caveman sıkıştırması
+  light: 8, // 4-8. sıralar: hafif sıkıştırma
+  moderate: 20, // 9-20. sıralar: ilkel sıkıştırma
   // 21. ve sonraki sıralar: yoğun özetleme
 });
 
@@ -379,31 +391,31 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Ne zaman kullanılmalı?
 
-Aşamalı yaşlandırma, `aggressive` ve `ultra` modlarında **her zaman etkindir**. Özellikle şu durumlarda etkilidir:
+Aşamalı eskitme, `aggressive` ve `ultra` modlarında **her zaman etkindir**. Özellikle şu durumlarda etkilidir:
 
-- Uzun süren kodlama oturumları
-- Birkaç güne yayılan konuşmalar
+- Uzun süreli kodlama oturumları
+- Birden fazla güne yayılan konuşmalar
 - Çok sayıda araç çağrısı içeren ajan tabanlı iş akışları
 
-### Caveman Çıktı Modu
+### İlkel Çıktı Modu
 
-`outputMode.ts` modülü, modelin kendisinin sıkıştırılmış ve kısa bir çıktı ("caveman" tarzı) üretmesini sağlamak için **sistem istemi talimatları** ekler.
+`outputMode.ts` modülü, modelin kendisinin sıkıştırılmış ve kısa çıktı üretmesini sağlamak için **sistem istemi talimatları** ekler ("ilkel" bir tarz).
 
 #### Nasıl çalışır?
 
-Bu mod, girdiyi sıkıştırmak yerine aşağıdakine benzer bir sistem istemi ekler:
+Bu mod, girdiyi sıkıştırmak yerine şuna benzer bir sistem istemi ekler:
 
-> "Asgari sayıda kelimeyle yanıt ver. Nezaket ifadelerini atla. Kısa cümleler kullan."
+> "En az sayıda sözcükle yanıt ver. Nezaket ifadelerini atla. Kısa cümleler kullan."
 
-Bu yöntem özellikle şu durumlarda iyi çalışır:
+Bu, özellikle şu durumlarda iyi çalışır:
 
 - Kod üretimi (daha kısa çıktı = daha az token)
 - Hızlı soru-cevap (ayrıntılı açıklamalara gerek yoktur)
-- Toplu işleme (iş hacmini en üst düzeye çıkarır)
+- Toplu işleme (verimi en üst düzeye çıkarır)
 
 #### Ne zaman kullanılmalı?
 
-Caveman çıktı modu **isteğe bağlıdır** — combo yapılandırması aracılığıyla ayarlayın:
+İlkel çıktı modu **isteğe bağlıdır** — birleşik yapılandırma aracılığıyla ayarlayın:
 
 ```json
 {
@@ -418,25 +430,56 @@ Caveman çıktı modu **isteğe bağlıdır** — combo yapılandırması aracı
 
 ### Çıktı Stilleri (katalog)
 
-Yukarıdaki Caveman çıktı modu, **eski tek stilli yoldur**. Phase 4, bunu birleştirilebilir çıktı stillerinden oluşan bir katalog hâline getirdi: `open-sse/services/compression/outputStyles/catalog.ts` içindeki `OUTPUT_STYLE_CATALOG`. Her stil, modelin kendisinin daha düşük maliyetli çıktı üretmesini sağlayan bir sistem istemi talimatıdır; stiller birlikte etkinleştirilebilir ve katalog sırasına göre eklenir.
+Yukarıdaki ilkel çıktı modu, **eski tek stilli yoldur**. 4. Aşama, bunu birleştirilebilir çıktı stillerinden oluşan bir katalog hâline getirmiştir: `open-sse/services/compression/outputStyles/catalog.ts` içindeki `OUTPUT_STYLE_CATALOG`. Her stil, modelin kendisinin daha düşük maliyetli çıktı üretmesini sağlayan bir sistem istemi talimatıdır; stiller birlikte etkinleştirilebilir ve katalog sırasına göre eklenir.
 
-| Stil                                  | `id`          | Ne yapar?                                                                                                                                                                                                                                         | Talimat dilleri                                                            |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Kısa düzyazı                          | `terse-prose` | Dolgu ifadelerini, tanımlıkları ve kaçamak ifadeleri kaldırır; teknik içeriği aynen korur. Eski Caveman çıktı moduyla aynı metindir (yeniden yazılmaz, referans verilir).                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Daha az kod                           | `less-code`   | YAGNI basamakları: çalışan en küçük değişiklik, istenmeyen soyutlamalar yok.                                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Ponytail (tembel kıdemli geliştirici) | `ponytail`    | "En iyi kod, hiç yazılmamış koddur": yeniden yazmak yerine yeniden kullanma, belirti yerine kök neden, çalışan en kısa diff.                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| ADHD'im var (önce eylem)              | `i-have-adhd` | Önce eylem (düzyazıdan önce komut/yol/kod parçacığı), numaralandırılmış ve sınırlı adımlar, TEK somut sonraki adım; giriş, özet veya kapanış yok. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) temel alınarak uyarlanmıştır. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Kısa CJK (文言)                       | `terse-cjk`   | Klasik Çince, son derece kısa stil.                                                                                                                                                                                                               | zh (yerel ayar kısıtlıdır: yalnızca çözümlenen dil `zh` olduğunda sunulur) |
+| Stil                                    | `id`          | Ne yapar                                                                                                                                                                                                                      | Talimat dilleri                                                                       |
+| --------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Kısa ve öz anlatım                      | `terse-prose` | Dolgu sözcüklerini/tanımlıkları/kaçamak ifadeleri çıkarır; teknik içeriği eksiksiz korur. Eski mağara adamı çıktı moduyla aynı metindir (atıfta bulunulur, yeniden yazılmaz).                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| Daha az kod                             | `less-code`   | YAGNI basamakları: çalışan en küçük değişiklik, istenmemiş soyutlama yok.                                                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| At kuyruğu (tembel kıdemli geliştirici) | `ponytail`    | "En iyi kod, hiç yazılmamış koddur": yeniden kullanma > yeniden yazma, temel neden > belirti, çalışan en kısa diff.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| ADHD'm var (önce eylem)                 | `i-have-adhd` | Önce eylem (düz yazıdan önce komut/yol/kod parçacığı), numaralı ve sınırlandırılmış adımlar, TEK somut sonraki adım, giriş/özet/kapanış yok. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) uyarlamasıdır. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| Kısa CJK (文言)                         | `terse-cjk`   | Klasik Çince, son derece kısa stil.                                                                                                                                                                                           | zh (yerel ayarla sınırlandırılmıştır: yalnızca çözümlenen dil `zh` olduğunda sunulur) |
 
-Her stil üç yoğunluk düzeyiyle sunulur — `lite`, `full`, `ultra` — ve her düzey, kod bloklarını, dosya yollarını, komutları, hata dizelerini, URL'leri ve tanımlayıcıları aynen koruyan ortak sınırlar maddesiyle sona erer.
+Her stil üç yoğunluk düzeyiyle sunulur — `lite`, `full`, `ultra` — ve her düzey,
+kod bloklarını, dosya yollarını, komutları, hata dizelerini, URL'leri ve tanımlayıcıları
+aynen koruyan ortak sınırlar maddesiyle sona erer.
 
-#### Ekleme nasıl çalışır?
+#### Enjeksiyon nasıl çalışır?
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`), seçimi kataloğa göre çözümler (bilinmeyen id'ler ve yerel ayarla eşleşmeyen stiller kaldırılır, hiçbir zaman hata oluşmaz), seçilen talimatları katalog sırasına göre birleştirir, sınırlar maddesini **bir kez** ekler ve sonucu tek bir yinelenebilirlik işaretçisinin (`[OmniRoute Output Styles]`) ardından sistem isteminin başına yerleştirir — yeniden uygulanması hiçbir işlem yapmaz. Algılanan istek dili için bir çeviri mevcutsa İngilizce yerine yerelleştirilmiş talimat eklenir.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`), seçimi
+kataloğa göre çözümler (bilinmeyen kimlikler ve yerel ayarla eşleşmeyen stiller
+çıkarılır, hiçbir zaman hata oluşturmaz), seçilen talimatları katalog sırasına göre
+birleştirir, sınırlar maddesini **bir kez** ekler ve bloğu tek bir eşgüçlülük
+işaretiyle (`[OmniRoute Output Styles]`) başlatır; böylece yeniden uygulama hiçbir işlem
+yapmaz. Çözümlenen dilin (aşağıdaki Dil seçimi bölümüne bakın) bir çevirisi varsa
+İngilizce yerine yerelleştirilmiş talimat enjekte edilir.
+
+`messages` içeren bir gövdede, `open-sse/services/compression/outputMode.ts` içindeki
+bir içerik atlama denetimi (`shouldBypassCavemanOutputMode()`) son üç mesajı kontrol eder
+ve bunlar güvenlik, geri döndürülemez eylem, açıklama isteme veya sıraya duyarlı anahtar
+sözcüklerle eşleştiğinde tüm tur için stilleri atlar. Atlama işlemi, panodaki **Auto-Clarity Bypass** anahtarı (`cavemanOutputMode.autoClarity`) açık olduğu sürece çalışır; bu varsayılan durumdur. Anahtar kapalıyken seçilen stiller bu turlarda da uygulanır.
+
+Atlama denetimi turun geçmesine izin verdiğinde, aynı dosyadaki ve hiçbir zaman yeni bir
+`messages[0]` oluşturmayan `placeSystemInstruction()`, bloğu bulduğu ilk uygun konuma
+yerleştirir:
+
+1. Başta yer alan, dize içerikli bir sistem mesajı: blok, mesaj metninin sonuna eklenir.
+2. Üst düzey `system` alanı: blok, dizeyse metnin sonuna eklenir; içerik bloğu dizisiyse
+   yeni bir metin bloğu olarak eklenir.
+3. Daha sonra yer alan, dize içerikli ilk sistem mesajı: blok, mesaj metninin sonuna
+   eklenir.
+4. Yukarıdakilerin hiçbiri: blok, `messages` sonundaki yeni bir sistem mesajına
+   yerleştirilir.
+
+`messages` içermeyen bir gövdede blok, dize türündeki `instructions` alanının sonuna
+eklenir veya gövde `input` (bir dize ya da dizi) taşıyorsa `instructions` olur. Ne
+`instructions` ne de `input` içeren bir gövde `no_messages` olarak atlanır.
 
 #### Nasıl etkinleştirilir?
 
-Kontrol panelinde: **Context → Settings → Compression** — her stil için açma/kapatma düğmesi ve düzey seçici içeren bir satır bulunur. Program aracılığıyla sıkıştırma yapılandırması seçimi şu şekilde saklar:
+Panoda: **Context → Settings → Compression** — her stil için açma/kapatma anahtarı ve
+düzey seçici içeren bir satır bulunur. Programlama yoluyla sıkıştırma yapılandırması
+seçimi şu şekilde kalıcılaştırır:
 
 ```json
 {
@@ -447,29 +490,38 @@ Kontrol panelinde: **Context → Settings → Compression** — her stil için a
 }
 ```
 
-Geriye dönük uyumluluk: Eski `outputMode: "caveman"` combo ayarı çalışmaya devam eder ve tüm eski dillerde önceki eklemeyle bayt düzeyinde aynı olan `terse-prose` stiline eşlenir.
+Geriye dönük uyumluluk: eski `outputMode: "caveman"` birleşik ayarı hâlâ çalışır ve
+`terse-prose` stiline eşlenir; her eski dilde eski enjeksiyonla bayt düzeyinde aynıdır.
 
-Dil seçimi: `languageConfig.enabled` açıkken `autoDetect`, en son kullanıcı mesajının dilini seçer (girdi motorlarıyla aynı algılayıcı); `autoDetect` seçeneğinin kapatılması dili `defaultLanguage` değerine sabitler. Kapalı → İngilizce.
+Dil seçimi: `languageConfig.enabled` açıkken `autoDetect`, en son kullanıcı mesajının
+dilini seçer (girdi motorlarıyla aynı algılayıcı); `autoDetect` kapatıldığında
+`defaultLanguage` sabitlenir. Kapalı → İngilizce.
 
-Stil × dil matrisi `tests/unit/compression/output-styles-i18n-matrix.test.ts` tarafından sabitlenir: Yeni bir stil, en azından pt-BR çevirisi (veya açıkça izlenen bir istisna) olmadan yayımlanamaz ve mevcut bir stil herhangi bir yerel ayarı sessizce kaybedemez. Bir stil eklemek için [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) belgesine bakın.
+Stil × dil matrisi
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` tarafından sabitlenir: yeni
+bir stil, en azından bir pt-BR çevirisi (veya açıkça izlenen bir istisna) olmadan
+yayımlanamaz ve mevcut bir stil sessizce bir yerel ayarı kaybedemez. Stil eklemek için
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) belgesine
+bakın.
 
 ### Araç Sonucu Sıkıştırma
 
-`toolResultCompressor.ts` modülü, araç sonuçları (fonksiyon çağrıları, ajan çıktıları, arama sonuçları vb.) için **5 özel sıkıştırma stratejisi** sağlar:
+`toolResultCompressor.ts` modülü, araç sonuçları (işlev çağrıları, aracı çıktıları,
+arama sonuçları vb.) için **5 özel sıkıştırma stratejisi** sağlar:
 
-1. **Arama sonucu sıkıştırma** — Gereksiz yinelenen sonuçları kaldırır, en iyi N sonucu tutar
-2. **Dosya okuma sıkıştırması** — Büyük dosyaları kısaltır, başlıkları/içe aktarımları korur
-3. **Kod yürütme sıkıştırması** — Yalnızca temel stdout/stderr içeriğini tutar
-4. **Veritabanı sorgusu sıkıştırması** — Satır sayısını sınırlar, ayrıntılı meta verileri kaldırır
-5. **API yanıtı sıkıştırması** — Null alanları kaldırır, dizileri yoğunlaştırır
+1. **Arama sonucu sıkıştırma** — Gereksiz sonuçları kaldırır, en iyi N sonucu korur
+2. **Dosya okuma sıkıştırması** — Büyük dosyaları kısaltır, başlıkları/içe aktarmaları korur
+3. **Kod yürütme sıkıştırması** — Yalnızca gerekli stdout/stderr içeriğini korur
+4. **Veritabanı sorgusu sıkıştırması** — Satırları sınırlar, ayrıntılı meta verileri kaldırır
+5. **API yanıtı sıkıştırması** — Null alanları çıkarır, dizileri yoğunlaştırır
 
-#### Ne zaman kullanılmalı?
+#### Ne zaman kullanılmalı
 
-Araç çağrıları mevcut olduğunda araç sonucu sıkıştırma **her zaman etkindir**. Yapılandırma gerekmez.
+Araç çağrıları mevcut olduğunda araç sonucu sıkıştırması **her zaman açıktır**. Herhangi bir yapılandırma gerekmez.
 
 ### Yığılmış İşlem Hattı
 
-Yığılmış mod, **birden fazla motoru sırayla** çalıştırır — genellikle önce RTK (araç çıktısında %60-90 tasarruf), ardından Caveman (kalan metinde ek %30 tasarruf). Bu, **toplamda %78-95 tasarruf** sağlar.
+Yığılmış mod, **birden fazla motoru sırayla** çalıştırır — genellikle önce RTK (araç çıktısında %60-90 tasarruf), ardından Caveman (kalan metinde ek %30 tasarruf). Bu, toplamda **%78-95 tasarruf** sağlar.
 
 #### Nasıl çalışır?
 
@@ -484,9 +536,9 @@ Girdi (1000 token)
 
 Yığılmış modu şu durumlarda kullanın:
 
-- Araç ağırlıklı iş akışları (ajan tabanlı kodlama, araştırma)
+- Araç ağırlıklı iş akışları (otonom kodlama, araştırma)
 - Maliyete duyarlı toplu işleme
-- En yüksek token tasarrufuna ihtiyaç duyduğunuzda
+- Maksimum token tasarrufuna ihtiyaç duyduğunuzda
 
 Combo aracılığıyla yapılandırın:
 

@@ -97,25 +97,28 @@ ayarlanabilir.
   korunur. Yönetim/kontrol paneli origin'lerini izin verici yapılandırmalardan
   uzak tutun; bunlar kesinlikle güvenli biçimde kapalı kalmalıdır.
 
-## Örnek: OmniRoute'un önündeki ters proxy
+## Örnek: OmniRoute önünde ters proxy
 
-CORS, OmniRoute'un kendisi tarafından uygulanır; bu nedenle proxy genel olarak
-`Access-Control-*` üst bilgileri eklememeli veya yeniden yazmamalıdır (çift üst
-bilgiler tarayıcılarda sorunlara yol açar). TLS'yi sonlandırıp iletin —
-ön kontrol isteğini OmniRoute'un yanıtlamasına izin verin:
+CORS, OmniRoute tarafından uygulanır; bu nedenle proxy genel olarak
+`Access-Control-*` başlıklarını **eklememeli** veya yeniden yazmamalıdır (çift başlıklar tarayıcıları bozar). TLS'yi sonlandırın
+ve iletin — ön kontrol isteğini OmniRoute'un yanıtlamasına izin verin:
 
 ```nginx
-# nginx — OmniRoute'a ilet; buraya Access-Control-* ekleme
+# nginx — OmniRoute'a iletin; burada Access-Control-* eklemeyin
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For değerini 127.0.0.1 olarak ayarlama — bu, loopback rota korumasını etkisiz hâle getirir.
+    # İletme başlıklarını koruyun: aynı ana makinedeki bir proxy geri döngü adresinden bağlanır ve
+    # OmniRoute'a çağrıyı yapanın yerel operatör olmadığını bu başlıklar bildirir. Bunların hiçbirini eklemeyen bir proxy,
+    # uzaktaki tüm çağrı sahiplerini yerelmiş gibi gösterir. X-Forwarded-For değerini de asla 127.0.0.1 olarak ayarlamayın.
 }
 ```
 
-İzin verilen tarayıcı origin'lerini proxy'de değil, OmniRoute'ta
-(`CORS_ALLOWED_ORIGINS` veya Güvenlik sekmesi) ayarlayın.
+İzin verilen tarayıcı kaynaklarını proxy'de değil, OmniRoute'ta (`CORS_ALLOWED_ORIGINS` veya
+Güvenlik sekmesi) ayarlayın.
 
 ## Kaynak dosyalar
 

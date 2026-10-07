@@ -4,20 +4,20 @@
 
 ---
 
-> **Извор истине:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Последње ажурирање:** 2026-06-28 — v3.8.40
+> **Izvor istine:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Poslednje ažurirano:** 2026-09-22 — prostori imena opsega ukazuju na MCP-SERVER.md
 
-OmniRoute има процес ауторизације свестан рута који контролише сваки API захтев. Класификација је **детерминистичка** и **затворена у случају грешке** — све што не може да се класификује завршава као `MANAGEMENT` и захтева сесију или токен са управљачким нивоом приступа. Ова страница објашњава модел инжењерима који одржавају руте или пројектују нове крајње тачке.
+OmniRoute ima autorizacionu cevovodnu liniju svesnu ruta koja kontroliše svaki API zahtev. Klasifikacija je **deterministička** i **fail-closed** — sve što se ne može klasifikovati završava kao `MANAGEMENT` i zahteva sesiju ili token menadžerskog nivoa. Ova stranica objašnjava model za inženjere koji održavaju rute ili dizajniraju nove krajnje tačke.
 
-![AuthZ процес (3 класе рута + процена смерница)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ cevovodna linija (3 klase ruta + evaluacija politike)](../diagrams/exported/authz-pipeline.svg)
 
-> Извор: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> Izvor: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Два режима аутентификације
 
 ### 1. API кључ (Bearer)
 
-Користи се за клијентске API-је компатибилне са OpenAI/Anthropic/Gemini и за неколико управљачких рута када кључ има опсег `manage`.
+Користи се за клијентске API-је компатибилне са OpenAI/Anthropic/Gemini и неколико рута за управљање када кључ има опсег `manage`.
 
 ```
 Authorization: Bearer <api-key>
@@ -25,7 +25,7 @@ Authorization: Bearer <api-key>
 
 Проверава се помоћу `isValidApiKey()` / `extractApiKey()` у `src/sse/services/auth.ts` и поново се извози преко `src/shared/utils/apiAuth.ts`. Валидатор такође прихвата променљиве окружења `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` као трајне кључеве за директно прослеђивање (проблем #1350).
 
-### 2. Сесија контролне табле (auth_token колачић)
+### 2. Сесија контролне табле (колачић auth_token)
 
 За странице контролне табле и администраторске операције.
 
@@ -33,43 +33,44 @@ Authorization: Bearer <api-key>
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Колачић представља сесију само када је JWT успешно проверен **и** садржи `authenticated: true`
+Колачић представља сесију само када је JWT верификован **и** садржи `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Сваки
-корисник колачића (заштитни механизам руте, освежавање AuthZ процеса, WebSocket руковање, сервер
-уживо, `/api/settings/require-login`, `/api/auth/status`) користи тај помоћни механизам.
-Постоје и други JWT-ови потписани помоћу `JWT_SECRET` — Cursor CLI директно прослеђивање издаје
-токене `iss "omniroute" / aud "cursor-cli"` власницима кључева — и они никада не представљају сесије
+корисник колачића (заштита руте контролне табле (`isDashboardSessionAuthenticated()`), освежавање authz процеса, WebSocket руковање, сервер уживо, `/api/settings/require-login`, `/api/auth/status`) пролази кроз ту помоћну функцију.
+Постоје и други JWT-ови потписани помоћу `JWT_SECRET` — директно прослеђивање за Cursor CLI издаје
+токене са `iss "omniroute" / aud "cursor-cli"` власницима кључева — и они никада нису сесије
 (#13298).
 
-Проверава се помоћу `isDashboardSessionAuthenticated()` у `src/shared/utils/apiAuth.ts`. Процес аутоматски освежава JWT када је до истека његовог 30-дневног трајања остало мање од 7 дана.
+Проверава се помоћу `isDashboardSessionAuthenticated()` у `src/shared/utils/apiAuth.ts`. Процес аутоматски освежава JWT када му преостане мање од 7 дана од периода важења од 30 дана.
 
-Неке управљачке руте прихватају **било који** режим: колачић ИЛИ `Bearer <key>` када API кључ има опсег `manage` (или `admin`). То омогућава ток рада „подесиво путем API позива“ додат у v3.8.
+Сесија се такође може завршити пре истека 30 дана јер сваки издавалац користи `mintDashboardSessionToken` (време издавања `iat` и идентификатор `jti`), а верификатор проверава две поставке: `sessionsValidAfter`, која се поставља при промени лозинке тако да свака сесија издата пре тога престане да пролази верификацију (прегледач у којем је лозинка промењена добија нов колачић), и `revokedDashboardSessions`, у коју `POST /api/auth/logout` додаје `jti` одјављене сесије. Сесије издате у старијој верзији не садрже ниједну од ових тврдњи и остају важеће до прве промене лозинке. Ако поставке није могуће прочитати, сесија се не сматра поузданом.
 
-#### Опциона OIDC контрола пријаве (#6973)
+Неке руте за управљање прихватају **било који** режим: колачић ИЛИ `Bearer <key>` када API кључ има опсег `manage` (или `admin`). То омогућава ток рада „подесиво путем API позива“, додат у v3.8.
+
+#### Опциона OIDC контрола пријављивања (#6973)
 
 Администраторска пријава на контролну таблу такође подржава **опциони** OIDC (OpenID Connect) ток
 поред подразумеване пријаве лозинком — пријава лозинком се никада не уклања, већ се само
 допуњује:
 
 - Онемогућено је осим ако је `settings.oidcEnabled === true` **и** ако су `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` сви подешени (Подешавања → Аутентификација).
-  `GET /api/auth/oidc/login` у супротном враћа `400`.
+  `oidcClientId` / `oidcClientSecret` конфигурисани (Settings → Auth).
+  У супротном, `GET /api/auth/oidc/login` враћа `400`.
 - `GET /api/auth/oidc/login` открива `authorization_endpoint` из
-  издаваочевог `/.well-known/openid-configuration` (као резерву користи
-  `<issuer>/authorize`), гради URI за преусмеравање на основу долазног захтева
-  (узимајући у обзир `x-forwarded-proto`) и преусмерава на IdP са насумичним `state`
-  сачуваним у `httpOnly` колачићу `oidc_state`.
+  издаваочевог `/.well-known/openid-configuration` (резервно користи
+  `<issuer>/authorize`), формира URI за преусмеравање на основу долазног захтева
+  (узимајући у обзир `x-forwarded-proto`) и преусмерава на IdP са насумичном вредношћу `state`
+  сачуваном у `httpOnly` колачићу `oidc_state`.
 - `GET /api/auth/oidc/callback` проверава `state`, размењује ауторизациони
-  кôд и проверава потпис ID токена преко издавачевог JWKS-а
-  (`createRemoteJWKSet` из пакета `jose`, кеширано по JWKS URI-ју) уз провере
+  кôд и проверава потпис ID токена преко издаваочевог JWKS-а
+  (`createRemoteJWKSet` из пакета `jose`, кеширан по JWKS URI-ју), уз провере
   `issuer`/`audience`. Опциона листа дозвољених вредности `oidcAllowedSubjects` упоређује
-  `sub` тврдњу токена или његову `email` тврдњу — `email` тврдња се прихвата само када
-  је `email_verified === true`, тако да непроверена адреса е-поште код IdP-а никада не може проћи
+  тврдњу `sub` токена или његову тврдњу `email` — тврдња о адреси е-поште прихвата се само када је
+  `email_verified === true`, тако да непотврђена адреса е-поште код IdP-а никада не може проћи
   контролу.
-- У случају успеха, издаје **потпуно исти** 30-дневни `auth_token` JWT као пријава
-  лозинком (`src/app/api/auth/login/route.ts`), тако да остатак процеса сесије
-  контролне табле (аутоматско освежавање, ознаке колачића) остаје непромењен —
-  OIDC мења само начин на који се колачић издаје, а не права која он додељује.
+- Након успеха, издаје се **потпуно исти** 30-дневни `auth_token` JWT који издаје пријава
+  лозинком (`src/app/api/auth/login/route.ts`), тако да остатак
+  процеса сесије контролне табле (аутоматско освежавање, ознаке колачића) остаје непромењен —
+  OIDC замењује само начин издавања колачића, а не овлашћења која он пружа.
 
 ## Класе рута
 
@@ -202,26 +203,36 @@ export async function POST(request: Request) {
 
 ## Opsezi
 
-API ključevi sadrže niz `scopes` (čuva se kao JSON u `api_keys.scopes`, pogledajte `src/lib/db/apiKeys.ts`).
+Tri imenska prostora. Svaki proveravač čita samo sopstvene stringove. Uporedni prikaz,
+uključujući zašto `manage` ne uspeva `scopeMatches` za `read:compression` i zašto
+`read` pristupni token ne može `PATCH /api/keys/{id}`, nalazi se u
+[Tri imenska prostora opsega](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Upravljački opseg
+API ključevi sadrže niz `scopes` (sačuvan kao JSON u `api_keys.scopes`, pogledajte `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — omogućava ključu pristup krajnjim tačkama upravljačkog API-ja kada se šalje kao Bearer.
+### Opseg upravljanja
 
-### MCP opsezi (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Pristup upravljačkim API rutama putem Bearer tokena.
+- `mcp:connect`, `self:usage`, `self:account-quota` i
+  `policy:bypass-provider-quota` su aditivni opsezi sa tačnim podudaranjem. Oni se nalaze
+  izvan `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otvara samo
+  `/api/mcp/` ne-povratni izuzetak.
 
-Svaki MCP alat zahteva određene opsege putem `MCP_TOOL_SCOPES`. Kompletna lista (`MCP_SCOPE_LIST`):
+### MCP alatni opsezi
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog i pravila podudaranja (identičan string, ili dodeljeni opseg koji se završava sa `*`):
+[MCP alatni opsezi](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` u `src/shared/constants/mcpScopes.ts` je originalni tipizirani
+podskup, a ne taj puni katalog. Sprovođenje se vrši u
+`open-sse/mcp-server/scopeEnforcement.ts` nakon što `resolveCallerScopeContext()`
+razreši opsege iz MCP informacija o autentifikaciji, metapodataka zahteva ili `OMNIROUTE_MCP_SCOPES`.
+Ostaje isključeno osim ako `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Provera opsega u `open-sse/mcp-server/server.ts` prosleđuje listu opsega svakog alata funkciji
-`evaluateToolScopes()` nakon što `resolveCallerScopeContext()` razreši opsege iz MCP informacija za autentifikaciju,
-metapodataka zahteva ili `OMNIROUTE_MCP_SCOPES`.
+### Opsezi pristupnog tokena
+
+`read` / `write` / `admin` na `oma_live_…` tokenima, rangirani po `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ovaj rang se primenjuje samo na akreditive
+pristupnog tokena. Pogledajte [Autentifikacija upravljanja](../guides/MANAGEMENT-AUTH.md).
 
 ## Prekidač za obaveznu autentifikaciju
 
@@ -267,9 +278,9 @@ x-omniroute-auth-scopes:    листа раздвојена зарезима
 
 Користите `assertAuth(req, expectedClass)` унутар руковалаца — баца `AuthzAssertionError` са кодом `AUTHZ_NOT_INITIALIZED` ако је посреднички софтвер заобиђен (корисно за откривање регресија конфигурације у тестовима).
 
-## Погледајте и
+## Pogledajte takođe
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ознака аутентификације за сваку крајњу тачку
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — евиденција ревизије за догађаје аутентификације
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — детаљи примене MCP опсега
-- Извор: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka za autentifikaciju po krajnjoj tački
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — dnevnik revizije za događaje autentifikacije
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tri imenska prostora opsega i MCP katalog opsega alata
+- Izvor: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

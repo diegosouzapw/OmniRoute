@@ -4,24 +4,24 @@
 
 ---
 
-OmniRoute `free_proxies` jadvalida tashqi provayderlardan (1proxy, proxifly, iplocate, webshare) sinxronlangan, saralab tanlangan bepul proksilar toʻplamini taqdim etadi. Boshqaruv panelida ular **Sozlamalar → Bepul proksilar** boʻlimida koʻrsatiladi. Ushbu hujjat roʻyxat marshruti taqdim etadigan server tomonidagi filtrlash, saralash, hisoblash va sinxronlash xatolari haqidagi hisobotni qamrab oladi.
+OmniRoute `free_proxies` jadvalida tashqi provayderlardan (1proxy, proxifly, iplocate, webshare) sinxronlangan, saralangan bepul proksilar toʻplamini taqdim etadi. Boshqaruv panelida ular **Sozlamalar → Bepul proksilar** boʻlimida koʻrsatiladi. Ushbu hujjat roʻyxat marshruti taqdim etadigan server tomonidagi filtrlash, saralash, hisoblash va sinxronlash xatolari haqidagi hisobotlarni yoritadi.
 
 ## Roʻyxat marshruti — `GET /api/settings/free-proxies`
 
-Filtrlangan, saralangan va sahifalangan qismni hamda umumiy sonni qaytaradi. Filtrlash va hisoblash SQLʼda bajariladi, shuning uchun interfeys har bir qatorni xotiraga yuklamasdan haqiqiy umumiy sonni (masalan, `Jami: 0`) koʻrsatishi mumkin.
+Filtrlangan, saralangan va sahifalangan qism hamda umumiy sonni qaytaradi. Filtrlash va hisoblash SQL orqali bajariladi, shuning uchun interfeys barcha qatorlarni xotiraga yuklamasdan haqiqiy umumiy sonni (masalan, `Jami: 0`) koʻrsatishi mumkin.
 
 ### Soʻrov parametrlari
 
-| Param             | Tur                                | Standart qiymat | Maʼnosi                                                                                                                                              |
-| ----------------- | ---------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `search`          | satr                               | `""`            | Xost (va manba) ustunida registrga sezgir `LIKE`.                                                                                                    |
-| `protocol`        | satr                               | `""`            | `type` filtri: `http` / `https` / `socks4` / `socks5`. Boʻsh qiymat = barchasi.                                                                      |
-| `country`         | satr                               | `""`            | `countryCode` filtri (ISO-2). Boʻsh qiymat = barchasi.                                                                                               |
-| `minQuality`      | raqam                              | `0`             | Faqat `qualityScore >= minQuality` boʻlgan qatorlar. `0` = quyi chegara yoʻq.                                                                        |
-| `disabledSources` | satr                               | `""`            | Istisno qilinadigan, vergul bilan ajratilgan manba identifikatorlari (masalan, `proxifly,webshare`).                                                 |
-| `sortBy`          | `quality` \| `latency` \| `recent` | `quality`       | `quality` = ball kamayish tartibida; `latency` = kechikish oʻsish tartibida (null qiymatlar oxirida); `recent` = `lastValidated` kamayish tartibida. |
-| `offset`          | raqam                              | `0`             | Sahifalash boshlanishi.                                                                                                                              |
-| `limit`           | raqam                              | `50`            | Sahifa oʻlchami (server tomonida cheklanadi).                                                                                                        |
+| Parametr          | Tur                                | Standart  | Maʼnosi                                                                                                                                                                         |
+| ----------------- | ---------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search`          | satr                               | `""`      | Host (va manba) ustunida katta-kichik harflarni farqlaydigan `LIKE`.                                                                                                            |
+| `protocol`        | satr                               | `""`      | `type` filtri: `http` / `https` / `socks4` / `socks5`. Boʻsh boʻlsa = barchasi.                                                                                                 |
+| `country`         | satr                               | `""`      | `countryCode` filtri (ISO-2). Boʻsh boʻlsa = barchasi.                                                                                                                          |
+| `minQuality`      | son                                | `0`       | Faqat `qualityScore >= minQuality` boʻlgan qatorlar. `0` = minimal chegara yoʻq.                                                                                                |
+| `disabledSources` | satr                               | `""`      | Istisno qilinadigan manba identifikatorlarining vergul bilan ajratilgan roʻyxati (masalan, `proxifly,webshare`).                                                                |
+| `sortBy`          | `quality` \| `latency` \| `recent` | `quality` | `quality` = ball boʻyicha kamayish tartibida; `latency` = kechikish boʻyicha oʻsish tartibida (null qiymatlar oxirida); `recent` = `lastValidated` boʻyicha kamayish tartibida. |
+| `offset`          | son                                | `0`       | Sahifalash boshlanishi.                                                                                                                                                         |
+| `limit`           | son                                | `50`      | Sahifa hajmi (server tomonida cheklanadi).                                                                                                                                      |
 
 ### Javob
 
@@ -47,16 +47,16 @@ Filtrlangan, saralangan va sahifalangan qismni hamda umumiy sonni qaytaradi. Fil
 }
 ```
 
-`total` sahifalashdan **oldingi** filtrlangan umumiy sonni aks ettiradi, shu sababli interfeys `Jami: N` va `hasMore` qiymatlarini bir-biridan mustaqil koʻrsatishi mumkin. `syncErrors` manba identifikatori boʻyicha kalitlanadi va faqat oxirgi sinxronlashi muvaffaqiyatsiz tugagan manbalar uchun toʻldiriladi — `Jami: 0` natijasi hech qachon izohsiz qolmaydi.
+`total` sahifalashdan **oldingi** filtrlangan umumiy sonni aks ettiradi, shuning uchun interfeys `Jami: N` va `hasMore` qiymatlarini bir-biridan mustaqil koʻrsatishi mumkin. `syncErrors` manba identifikatori boʻyicha kalitlanadi va faqat oxirgi sinxronlash muvaffaqiyatsiz tugagan manbalar uchun toʻldiriladi — `Jami: 0` natijasi hech qachon izohsiz qolmaydi.
 
 ## Toʻplamga qoʻshish — `POST /api/settings/free-proxies/[id]/add-to-pool`
 
-Bepul proksini boshqariladigan `proxy_registry` toʻplamiga oʻtkazadi. Avval yuqori oqimni tekshiradi; muvaffaqiyatli boʻlsa, yangi toʻplam proksisining identifikatori va oʻlchangan kechikishni qaytaradi.
+Bepul proksini boshqariladigan `proxy_registry` toʻplamiga oʻtkazadi. Avval yuqori oqimni tekshiradi; muvaffaqiyatli boʻlsa, toʻplamdagi yangi proksi identifikatori va oʻlchangan kechikishni qaytaradi.
 
 ## Sinxronlash — `POST /api/settings/free-proxies/sync`
 
-Barcha yoqilgan manbalarni (yoki `{ "sources": [...] }` ichidagi qismiy toʻplamni) qayta yuklaydi. Har bir manba mustaqil sinxronlanadi; muvaffaqiyatsiz manba `syncErrors` ichida qayd etiladi, qolganlari esa yakunlanishda davom etadi, shu sababli qisman sinxronlashlar avvalgi yaroqli maʼlumotlarni hech qachon oʻchirib yubormaydi.
+Barcha yoqilgan manbalardan (yoki `{ "sources": [...] }` ichidagi qismiy toʻplamdan) maʼlumotlarni qayta oladi. Har bir manba mustaqil ravishda sinxronlanadi; muvaffaqiyatsiz manba `syncErrors` ichida qayd etiladi, qolganlari esa davom etib yakunlanadi, shuning uchun qisman sinxronlash avvalgi yaroqli maʼlumotlarni hech qachon oʻchirib yubormaydi.
 
 ## Statistika — `GET /api/settings/free-proxies/stats`
 
-Qatorlar maʼlumotlarisiz `total / inPool / avgQuality / bySource / lastSyncAt` agregatini qaytaradi — boshqaruv paneli sarlavhasidagi vidjetlar tomonidan ishlatiladi.
+Qatorlar maʼlumotlarisiz `total / inPool / avgQuality / bySource / lastSyncAt` agregatini qaytaradi — bu boshqaruv paneli sarlavhasidagi vidjetlar tomonidan ishlatiladi.

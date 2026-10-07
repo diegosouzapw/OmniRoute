@@ -4,72 +4,74 @@
 
 ---
 
-> **ប្រភពយោងចម្បង:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-06-28 — v3.8.40
+> **ប្រភពនៃការពិត:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **បានធ្វើបច្ចុប្បន្នភាពចុងក្រោយ:** 2026-09-22 — ឈ្មោះលំហនៃវិសាលភាពចង្អុលទៅ MCP-SERVER.md
 
-OmniRoute មានខ្សែដំណើរការផ្តល់សិទ្ធិដែលយល់ដឹងអំពី route និងគ្រប់គ្រងរាល់សំណើ API។ ការចាត់ថ្នាក់គឺ **មានលក្ខណៈកំណត់ច្បាស់លាស់** និង **បិទការចូលប្រើនៅពេលបរាជ័យ** — អ្វីក៏ដោយដែលមិនអាចចាត់ថ្នាក់បាន នឹងត្រូវចាត់ជា `MANAGEMENT` ហើយទាមទារ session ឬ token កម្រិតគ្រប់គ្រង។ ទំព័រនេះពន្យល់អំពីម៉ូដែលសម្រាប់វិស្វករដែលថែទាំ route ឬរចនា endpoint ថ្មីៗ។
+OmniRoute មានបំពង់បង្ហូរការអនុញ្ញាតដែលដឹងពីផ្លូវ ដែលទប់ស្កាត់រាល់សំណើ API។ ការចាត់ថ្នាក់គឺ **កំណត់បាន** និង **បរាជ័យបិទ** — អ្វីដែលមិនអាចចាត់ថ្នាក់បាននឹងក្លាយជា `MANAGEMENT` ហើយទាមទារវគ្គ ឬថូខឹនកម្រិតគ្រប់គ្រង។ ទំព័រនេះពន្យល់ពីគំរូសម្រាប់វិស្វករដែលថែទាំផ្លូវ ឬរចនាចំណុចបញ្ចប់ថ្មី។
 
-![ខ្សែដំណើរការ AuthZ (ចំណាត់ថ្នាក់ route 3 + ការវាយតម្លៃគោលការណ៍)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
-> ប្រភព៖ [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> ប្រភព: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## របៀបផ្ទៀងផ្ទាត់អត្តសញ្ញាណពីរ
 
 ### 1. API Key (Bearer)
 
-ប្រើសម្រាប់ API របស់ client ដែលត្រូវគ្នាជាមួយ OpenAI/Anthropic/Gemini និង route គ្រប់គ្រងមួយចំនួន នៅពេល key មាន scope `manage`។
+ប្រើសម្រាប់ API របស់ម៉ាស៊ីនភ្ញៀវដែលត្រូវគ្នាជាមួយ OpenAI/Anthropic/Gemini និង route គ្រប់គ្រងមួយចំនួន នៅពេល key មាន scope `manage`។
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-ត្រូវបានផ្ទៀងផ្ទាត់ដោយ `isValidApiKey()` / `extractApiKey()` នៅក្នុង `src/sse/services/auth.ts` ហើយត្រូវបាន export ឡើងវិញតាមរយៈ `src/shared/utils/apiAuth.ts`។ កម្មវិធីផ្ទៀងផ្ទាត់ក៏ទទួលយក env vars `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ជា passthrough key អចិន្ត្រៃយ៍ផងដែរ (បញ្ហា #1350)។
+ត្រូវបានផ្ទៀងផ្ទាត់ដោយ `isValidApiKey()` / `extractApiKey()` ក្នុង `src/sse/services/auth.ts` ហើយត្រូវបាន export ឡើងវិញតាមរយៈ `src/shared/utils/apiAuth.ts`។ កម្មវិធីផ្ទៀងផ្ទាត់ក៏ទទួលយក env vars `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ជា key បញ្ជូនបន្តអចិន្ត្រៃយ៍ផងដែរ (issue #1350)។
 
-### 2. Dashboard Session (cookie auth_token)
+### 2. សម័យ Dashboard (cookie auth_token)
 
 សម្រាប់ទំព័រ dashboard និងប្រតិបត្តិការរដ្ឋបាល។
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT ដែលបានចុះហត្ថលេខាដោយ JWT_SECRET>
 ```
 
-cookie មួយត្រូវបានចាត់ទុកជា session លុះត្រាតែ JWT ត្រូវបានផ្ទៀងផ្ទាត់ **ហើយ** មាន `authenticated: true`
+cookie មួយត្រូវបានចាត់ទុកជាសម័យ លុះត្រាតែ JWT ត្រូវបានផ្ទៀងផ្ទាត់ **ហើយ** មាន `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)។ គ្រប់
-កន្លែងដែលប្រើប្រាស់ cookie (route guard, ការធ្វើឱ្យ authz pipeline ស្រស់ឡើងវិញ, WebSocket handshake, live
+ផ្នែកដែលប្រើប្រាស់ cookie នេះ (កម្មវិធីការពារ route របស់ dashboard (`isDashboardSessionAuthenticated()`), ការធ្វើឱ្យ authz pipeline ស្រស់ឡើងវិញ, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) សុទ្ធតែឆ្លងកាត់ helper នោះ។
-មាន JWT ផ្សេងទៀតដែលបានចុះហត្ថលេខាដោយ `JWT_SECRET` — Cursor CLI passthrough បង្កើត
-token `iss "omniroute" / aud "cursor-cli"` សម្រាប់អ្នកកាន់ key — ហើយ token ទាំងនេះមិនត្រូវបានចាត់ទុកជា session ឡើយ
+មាន JWT ផ្សេងទៀតដែលបានចុះហត្ថលេខាដោយ `JWT_SECRET` — ការបញ្ជូនបន្ត Cursor CLI បង្កើត
+token `iss "omniroute" / aud "cursor-cli"` សម្រាប់អ្នកកាន់ key — ហើយ token ទាំងនោះមិនត្រូវបានចាត់ទុកជាសម័យឡើយ
 (#13298)។
 
-ត្រូវបានផ្ទៀងផ្ទាត់ដោយ `isDashboardSessionAuthenticated()` នៅក្នុង `src/shared/utils/apiAuth.ts`។ ខ្សែដំណើរការនេះធ្វើឱ្យ JWT ស្រស់ឡើងវិញដោយស្វ័យប្រវត្តិ នៅពេលវាមានសុពលភាពនៅសល់តិចជាង 7 ថ្ងៃ ក្នុងរយៈពេលសុពលភាពសរុប 30 ថ្ងៃ។
+ត្រូវបានផ្ទៀងផ្ទាត់ដោយ `isDashboardSessionAuthenticated()` ក្នុង `src/shared/utils/apiAuth.ts`។ pipeline នឹងធ្វើឱ្យ JWT ស្រស់ឡើងវិញដោយស្វ័យប្រវត្តិ នៅពេលវានៅសល់សុពលភាពតិចជាង 7 ថ្ងៃក្នុងរយៈពេលសុពលភាពសរុប 30 ថ្ងៃ។
 
-route គ្រប់គ្រងមួយចំនួនទទួលយក **របៀបណាមួយក៏បាន**៖ cookie ឬ `Bearer <key>` នៅពេល API key មាន scope `manage` (ឬ `admin`)។ នេះជាអ្វីដែលអនុញ្ញាតឱ្យមានលំហូរការងារ "អាចកំណត់រចនាសម្ព័ន្ធតាមរយៈការហៅ API" ដែលបានបន្ថែមនៅក្នុង v3.8។
+សម័យមួយក៏អាចបញ្ចប់មុនពេលគ្រប់ 30 ថ្ងៃបានដែរ ពីព្រោះរាល់កម្មវិធីបង្កើត token សុទ្ធតែឆ្លងកាត់ `mintDashboardSessionToken` (មានពេលវេលាចេញផ្សាយ `iat` និងលេខសម្គាល់ `jti`) ហើយកម្មវិធីផ្ទៀងផ្ទាត់ពិនិត្យការកំណត់ពីរ៖ `sessionsValidAfter` ដែលត្រូវបានកំណត់នៅពេលផ្លាស់ប្តូរពាក្យសម្ងាត់ ដើម្បីឱ្យគ្រប់សម័យដែលបានចេញមុនពេលនោះឈប់អាចផ្ទៀងផ្ទាត់បាន (កម្មវិធីរុករកដែលបានផ្លាស់ប្តូរពាក្យសម្ងាត់នឹងទទួលបាន cookie ថ្មី) និង `revokedDashboardSessions` ដែល `POST /api/auth/logout` បន្ថែម `jti` របស់សម័យដែលបានចាកចេញទៅក្នុងនោះ។ សម័យដែលបានបង្កើតដោយកំណែចាស់មិនមាន claim ទាំងពីរនេះទេ ហើយនៅតែមានសុពលភាពរហូតដល់មានការផ្លាស់ប្តូរពាក្យសម្ងាត់លើកដំបូង។ ប្រសិនបើមិនអាចអានការកំណត់បានទេ សម័យនោះនឹងមិនត្រូវបានជឿទុកចិត្តឡើយ។
 
-#### ច្រកចូល OIDC ជាជម្រើស (#6973)
+route គ្រប់គ្រងមួយចំនួនទទួលយករបៀប **មួយណាក៏បាន**៖ cookie ឬ `Bearer <key>` នៅពេល API key មាន scope `manage` (ឬ `admin`)។ នេះជាអ្វីដែលអនុញ្ញាតឱ្យដំណើរការ "អាចកំណត់រចនាសម្ព័ន្ធតាមរយៈការហៅ API" ដែលបានបន្ថែមក្នុង v3.8 អាចដំណើរការបាន។
 
-ការចូលជាអ្នកគ្រប់គ្រង dashboard ក៏គាំទ្រលំហូរ OIDC (OpenID Connect) ដែលត្រូវតែ **បើកប្រើដោយជាក់លាក់**
-រួមជាមួយការចូលដោយពាក្យសម្ងាត់លំនាំដើម — ការចូលដោយពាក្យសម្ងាត់មិនត្រូវបានលុបចេញឡើយ គ្រាន់តែ
+#### របាំងចូល OIDC ជាជម្រើស (#6973)
+
+ការចូលជាអ្នកគ្រប់គ្រង dashboard ក៏គាំទ្រលំហូរ OIDC (OpenID Connect) ដែលត្រូវ **ជ្រើសរើសបើកប្រើ**
+រួមជាមួយការចូលតាមពាក្យសម្ងាត់លំនាំដើមផងដែរ — ការចូលតាមពាក្យសម្ងាត់មិនត្រូវបានដកចេញឡើយ គឺគ្រាន់តែ
 ត្រូវបានបំពេញបន្ថែមប៉ុណ្ណោះ៖
 
 - ត្រូវបានបិទ លុះត្រាតែ `settings.oidcEnabled === true` **ហើយ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` ទាំងអស់ត្រូវបានកំណត់រចនាសម្ព័ន្ធ (Settings → Auth)។
-  `GET /api/auth/oidc/login` ត្រឡប់ `400` បើមិនដូច្នោះទេ។
+  `oidcClientId` / `oidcClientSecret` ត្រូវបានកំណត់រចនាសម្ព័ន្ធទាំងអស់ (ការកំណត់ → ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ)។
+  បើមិនដូច្នោះទេ `GET /api/auth/oidc/login` នឹងត្រឡប់ `400`។
 - `GET /api/auth/oidc/login` ស្វែងរក `authorization_endpoint` ពី
-  `/.well-known/openid-configuration` របស់ issuer (បើរកមិនឃើញ វាប្រើ
-  `<issuer>/authorize`) បង្កើត redirect URI ពីសំណើដែលចូលមក
-  (គាំទ្រ `x-forwarded-proto`) ហើយបញ្ជូនបន្តទៅ IdP ជាមួយ `state` ចៃដន្យ
-  ដែលរក្សាទុកក្នុង cookie `oidc_state` ប្រភេទ `httpOnly`។
-- `GET /api/auth/oidc/callback` ផ្ទៀងផ្ទាត់ `state` ប្តូរ authorization
-  code ហើយផ្ទៀងផ្ទាត់ហត្ថលេខារបស់ ID token តាមរយៈ JWKS របស់ issuer
+  `/.well-known/openid-configuration` របស់ issuer (ប្រើ
+  `<issuer>/authorize` ជំនួស ប្រសិនបើរកមិនឃើញ) បង្កើត URI សម្រាប់បញ្ជូនបន្តពីសំណើចូល
+  (យល់ដឹងអំពី `x-forwarded-proto`) ហើយបញ្ជូនបន្តទៅ IdP ជាមួយ `state` ចៃដន្យ
+  ដែលត្រូវបានរក្សាទុកក្នុង cookie `oidc_state` ប្រភេទ `httpOnly`។
+- `GET /api/auth/oidc/callback` ផ្ទៀងផ្ទាត់ `state` ផ្លាស់ប្តូរ authorization
+  code និងផ្ទៀងផ្ទាត់ហត្ថលេខារបស់ ID token តាមរយៈ JWKS របស់ issuer
   (`createRemoteJWKSet` របស់ `jose` ដែលត្រូវបាន cache សម្រាប់ JWKS URI នីមួយៗ) ជាមួយការត្រួតពិនិត្យ `issuer`/`audience`។
-  បញ្ជីអនុញ្ញាត `oidcAllowedSubjects` ដែលជាជម្រើស ផ្គូផ្គងនឹង claim
-  `sub` របស់ token ឬ claim `email` របស់វា — claim អ៊ីមែលត្រូវបានទទួលស្គាល់តែនៅពេល
-  `email_verified === true` ប៉ុណ្ណោះ ដូច្នេះអ៊ីមែលដែលមិនបានផ្ទៀងផ្ទាត់នៅ IdP មិនអាចឆ្លងកាត់
-  ច្រកត្រួតពិនិត្យនេះបានឡើយ។
-- នៅពេលជោគជ័យ វាបង្កើត JWT `auth_token` អាយុកាល 30 ថ្ងៃដែល **ដូចគ្នាបេះបិទ** នឹង JWT ដែលការចូលដោយពាក្យសម្ងាត់
-  ចេញឱ្យ (`src/app/api/auth/login/route.ts`) ដូច្នេះផ្នែកផ្សេងទៀតនៃ
-  ខ្សែដំណើរការ dashboard session (ការធ្វើឱ្យស្រស់ដោយស្វ័យប្រវត្តិ និង cookie flags) នៅតែមិនផ្លាស់ប្តូរ —
-  OIDC គ្រាន់តែជំនួសរបៀបដែល cookie ត្រូវបានបង្កើតប៉ុណ្ណោះ មិនមែនសិទ្ធិដែលវាផ្តល់ឱ្យនោះទេ។
+  បញ្ជីអនុញ្ញាត `oidcAllowedSubjects` ជាជម្រើស ផ្គូផ្គងជាមួយ claim
+  `sub` ឬ claim `email` របស់ token — claim អ៊ីមែលត្រូវបានទទួលស្គាល់តែនៅពេល
+  `email_verified === true` ប៉ុណ្ណោះ ដូច្នេះអ៊ីមែលដែលមិនទាន់បានផ្ទៀងផ្ទាត់នៅ IdP មិនអាចឆ្លងកាត់
+  របាំងនេះបានឡើយ។
+- នៅពេលជោគជ័យ វាបង្កើត JWT `auth_token` អាយុកាល 30 ថ្ងៃដែល **ដូចគ្នាបេះបិទ** នឹង JWT ដែលការចូលតាមពាក្យសម្ងាត់
+  ចេញផ្សាយ (`src/app/api/auth/login/route.ts`) ដូច្នេះផ្នែកផ្សេងទៀតនៃ
+  dashboard session pipeline (ការធ្វើឱ្យស្រស់ដោយស្វ័យប្រវត្តិ និង cookie flags) នៅតែមិនផ្លាស់ប្តូរ —
+  OIDC គ្រាន់តែជំនួសរបៀបបង្កើត cookie ប៉ុណ្ណោះ មិនមែនអ្វីដែល cookie នោះផ្តល់សិទ្ធិឱ្យទេ។
 
 ## ថ្នាក់ Route
 
@@ -198,28 +200,24 @@ export async function POST(request: Request) {
 
 ជ្រើសរើស set តាមទម្រង់ មិនមែនតាមភាពងាយស្រួលទេ។ Route មួយត្រូវដាក់ក្នុង `PUBLIC_API_ROUTES_EXACT` (ឬ `PUBLIC_READONLY_CORS_API_ROUTES` សម្រាប់ GET-only)។ មានតែ subtree ពិតប្រាកដប៉ុណ្ណោះដែលត្រូវដាក់ក្នុង `PUBLIC_API_ROUTE_PREFIXES` ហើយវា **ត្រូវតែបញ្ចប់ដោយ `/`**។ ការដាក់ route ទោលមួយក្នុងបញ្ជី prefix ក៏ធ្វើឱ្យ path ជាប់គ្នាទាំងអស់ដែលមានតួអក្សរដើមដូចគ្នាក្លាយជាសាធារណៈផងដែរ — រួមទាំង dynamic-segment sibling ដែលត្រូវបានបន្ថែមនៅពេលក្រោយ (GHSA-74g9-q8f6-793h)។ ធ្វើបច្ចុប្បន្នភាព unit test នៅ `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` និង `tests/unit/authz/classify.test.ts`។
 
-## វិសាលភាព
+## Scopes
 
-API key មានអារេ `scopes` (រក្សាទុកជា JSON នៅក្នុង `api_keys.scopes` សូមមើល `src/lib/db/apiKeys.ts`)។
+ឈ្មោះលំហបី។ កម្មវិធីពិនិត្យនីមួយៗអានតែខ្សែអក្សររបស់វាប៉ុណ្ណោះ។ ការប្រៀបធៀបគ្នា រួមទាំងមូលហេតុដែល `manage` បរាជ័យ `scopeMatches` សម្រាប់ `read:compression` និងមូលហេតុដែល access token `read` មិនអាច `PATCH /api/keys/{id}` គឺ [ឈ្មោះលំហបី](../frameworks/MCP-SERVER.md#three-scope-namespaces)។
 
-### វិសាលភាពគ្រប់គ្រង
+API keys មាន array `scopes` (រក្សាទុកជា JSON ក្នុង `api_keys.scopes` សូមមើល `src/lib/db/apiKeys.ts`)។
 
-- `manage` / `admin` — ផ្តល់សិទ្ធិឱ្យ key ចូលប្រើ endpoint របស់ management API នៅពេលផ្ញើជា Bearer។
+### Management scope
 
-### វិសាលភាព MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`។ ការចូលប្រើ Bearer ទៅកាន់ផ្លូវ API គ្រប់គ្រង។
+- `mcp:connect`, `self:usage`, `self:account-quota`, និង `policy:bypass-provider-quota` គឺជា scopes ដែលត្រូវគ្នាពិតប្រាកដបន្ថែម។ ពួកវាស្ថិតនៅខាងក្រៅ `MANAGEMENT_API_KEY_SCOPES`។ `mcp:connect` បើកតែ `/api/mcp/` non-loopback carve-out ប៉ុណ្ណោះ។
 
-ឧបករណ៍ MCP នីមួយៗតម្រូវឱ្យមានវិសាលភាពជាក់លាក់តាមរយៈ `MCP_TOOL_SCOPES`។ បញ្ជីពេញលេញ (`MCP_SCOPE_LIST`)៖
+### MCP tool scopes
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+កាតាឡុក និងច្បាប់ផ្គូផ្គង (ខ្សែអក្សរដូចគ្នា ឬ scope ដែលបានផ្តល់ដែលបញ្ចប់ដោយ `*`): [MCP tool scopes](../frameworks/MCP-SERVER.md#mcp-tool-scopes)។ `MCP_SCOPE_LIST` ក្នុង `src/shared/constants/mcpScopes.ts` គឺជា subset ដែលបានកំណត់ប្រភេទដើម មិនមែនជាកាតាឡុកពេញលេញនោះទេ។ ការអនុវត្តដំណើរការក្នុង `open-sse/mcp-server/scopeEnforcement.ts` បន្ទាប់ពី `resolveCallerScopeContext()` ដោះស្រាយ scopes ពីព័ត៌មាន MCP auth, metadata សំណើ, ឬ `OMNIROUTE_MCP_SCOPES`។ វានៅតែបិទ លុះត្រាតែ `OMNIROUTE_MCP_ENFORCE_SCOPES=true`។
 
-ការអនុវត្តវិសាលភាពនៅក្នុង `open-sse/mcp-server/server.ts` បញ្ជូនបញ្ជីវិសាលភាពរបស់ឧបករណ៍នីមួយៗទៅក្នុង
-`evaluateToolScopes()` បន្ទាប់ពី `resolveCallerScopeContext()` កំណត់វិសាលភាពពីព័ត៌មានផ្ទៀងផ្ទាត់ MCP,
-metadata របស់ request ឬ `OMNIROUTE_MCP_SCOPES`។
+### Access-token scopes
+
+`read` / `write` / `admin` លើ tokens `oma_live_…` ដែលត្រូវបានចាត់ថ្នាក់ដោយ `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`)។ ចំណាត់ថ្នាក់នេះអនុវត្តចំពោះ access-token credential ប៉ុណ្ណោះ។ សូមមើល [Management Authentication](../guides/MANAGEMENT-AUTH.md)។
 
 ## ការបិទបើកតម្រូវការផ្ទៀងផ្ទាត់
 
@@ -267,7 +265,7 @@ x-omniroute-auth-scopes:    បញ្ជីដែលបំបែកដោយស�
 
 ## សូមមើលផងដែរ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — សញ្ញាសម្គាល់ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណតាម endpoint នីមួយៗ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — កំណត់ហេតុសវនកម្មសម្រាប់ព្រឹត្តិការណ៍ផ្ទៀងផ្ទាត់អត្តសញ្ញាណ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — ព័ត៌មានលម្អិតអំពីការអនុវត្ត MCP scope
-- កូដប្រភព៖ `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — សញ្ញាសម្គាល់ការផ្ទៀងផ្ទាត់សម្រាប់ចុងចំណុចនីមួយៗ
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — កំណត់ហេតុសវនកម្មសម្រាប់ព្រឹត្តិការណ៍ផ្ទៀងផ្ទាត់
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ដែនឈ្មោះវិសាលភាពបី និងកាតាឡុកវិសាលភាពឧបករណ៍ MCP
+- ប្រភព: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

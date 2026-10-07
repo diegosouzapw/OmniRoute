@@ -169,6 +169,28 @@ test("fetchQwenTokenPlanQuota parses the captured weekly-only usage response", a
   invalidateQwenTokenPlanQuotaCache(connectionId);
 });
 
+test("fetchQwenTokenPlanQuota reports limitReached when only the weekly window is returned and fully used (#14359 precondition)", async () => {
+  const connectionId = `qwen-weekly-full-${Date.now()}`;
+  const calls: FetchCall[] = [];
+  mockGateway(calls, {
+    usagePayload: { per1WeekResetTime: RESET_MS, per1WeekPercentage: 1 },
+  });
+
+  const quota = await fetchQwenTokenPlanQuota(connectionId, {
+    providerSpecificData: { qwenCloudCookie: "token=abc", qwenCloudSecToken: "sec-tok" },
+  });
+
+  assert.ok(quota, "expected quota, got null");
+  // #14359: with the 5-hour window "Temporarily Removed", a fully-used weekly
+  // window makes the fetcher report limitReached with the WEEKLY reset — the
+  // exact value the quota cache then parks the connection on for ~4 days.
+  assert.equal(quota.percentUsed, 1);
+  assert.equal(quota.resetAt, new Date(RESET_MS).toISOString());
+  assert.equal((quota as { limitReached: boolean }).limitReached, true);
+
+  invalidateQwenTokenPlanQuotaCache(connectionId);
+});
+
 test("fetchQwenTokenPlanQuota includes the 5-hour window when the API returns it", async () => {
   const connectionId = `qwen-5h-${Date.now()}`;
   const calls: FetchCall[] = [];

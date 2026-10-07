@@ -3,6 +3,8 @@
 // model-type inference, and the free-model / display-name heuristics that shape
 // OpenRouter entries in `getUnifiedModelsResponse`.
 
+import { hasPayloadFreeEvidence } from "@/shared/utils/payloadFreeEvidence";
+
 export function qualifyOpenRouterModelId(modelId: string): string {
   return modelId.startsWith("openrouter/") ? modelId : `openrouter/${modelId}`;
 }
@@ -30,10 +32,11 @@ export function isZeroPrice(value: unknown) {
 
 export function isOpenRouterFreeModel(model: {
   id?: string;
-  pricing?: { prompt?: string; completion?: string };
+  pricing?: unknown;
+  isFree?: unknown;
+  tags?: unknown;
 }) {
-  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
+  return hasPayloadFreeEvidence(model);
 }
 
 export function getOpenRouterDisplayName(model: {

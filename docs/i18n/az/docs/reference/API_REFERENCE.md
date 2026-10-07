@@ -88,13 +88,13 @@ Content-Type: application/json
 
 ## Eksklüziv idarə olunan sessiya icarələri
 
-Eksklüziv idarə olunan sessiya icarəsi seçim əsasında aktivləşdirilən, klientdən asılı olmayan marşrutlaşdırma müqaviləsidir: bir aktiv sahib
+Eksklüziv idarə olunan sessiya icarəsi seçim əsasında aktivləşdirilən, müştəridən asılı olmayan marşrutlaşdırma müqaviləsidir: bir aktiv sahib
 bir uyğun OmniRoute bağlantısını saxlayır. Bu, modeli icarəyə vermir, OAuth tələb etmir, konkret
-klienti müəyyənləşdirmir və ya konkret provayder tələb etmir.
+müştərini müəyyənləşdirmir və ya konkret provayder tələb etmir.
 
 Autentifikasiya edən API açarı `lease:exclusive` əhatə dairəsinə və açıq şəkildə göstərilmiş, boş olmayan
-`allowedConnections` siyahısına malik olmalıdır. Verilənlər bazasının mutasiya sərhədi açar
-yaradılarkən və qismən yenilənərkən hər iki sahənin birlikdə olmasını təmin edir.
+`allowedConnections` siyahısına malik olmalıdır. Verilənlər bazasının mutasiya sərhədi açarın
+yaradılması və qismən yenilənməsi zamanı hər iki sahənin birlikdə olmasını təmin edir.
 
 ```http
 POST /api/v1/session-leases
@@ -105,9 +105,9 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-Uğurlu əldəetmə, yeniləmə və buraxma cavabları vaxt möhürlərini, `state` sahəsini və dəqiq müsbət
-`generation` dəyərini göstərir, lakin seçilmiş bağlantını və ya giriş məlumatlarını heç vaxt göstərmir. Yeniləmə və buraxma zamanı
-nəsil JSON gövdəsində təqdim olunur:
+Uğurlu əldəetmə, yeniləmə və buraxma cavabları vaxt nişanlarını, `state` dəyərini və dəqiq müsbət
+`generation` dəyərini göstərir, lakin seçilmiş bağlantını və ya etimadnamələri heç vaxt açıqlamır. Yeniləmə və buraxma əməliyyatları
+generation dəyərini JSON gövdəsində təqdim edir:
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -117,7 +117,7 @@ nəsil JSON gövdəsində təqdim olunur:
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-Aktiv icarə sahibi cari bağlantısı üçün məxfiliyi qoruyan ekran metadatasını açıq şəkildə tələb edə bilər:
+Aktiv icarə sahibi cari əlaqələndirməsi üçün məxfiliyi qoruyan göstərmə metadatasını açıq şəkildə tələb edə bilər:
 
 ```json
 { "action": "status", "generation": 1 }
@@ -137,37 +137,37 @@ Aktiv icarə sahibi cari bağlantısı üçün məxfiliyi qoruyan ekran metadata
 }
 ```
 
-Seçim əsasında aktivləşdirilən bu status əməliyyatı bir verilənlər bazası tranzaksiyasında qeyri-şəffaf sahib, autentifikasiya edilmiş idarə olunan API açarı və dəqiq
-aktiv nəsil ilə məhdudlaşdırılır. `displayName` yalnız boşluqları kəsilmiş, konfiqurasiya olunmuş
-bağlantı adıdır; təhlükəsiz konfiqurasiya olunmuş ad mövcud olmadıqda bu, `null` olur. OmniRoute e-poçt ünvanını və ya yaradılmış
-hesab identifikatorunu heç vaxt onunla əvəz etmir. Provayder dəyəri həssas olmayan ekran etiketidir və heç vaxt
-yaradılmış uyğun provayder identifikatoru deyil. Giriş məlumatları, tokenlər, kukilər, xam bağlantı və ya API
-açarı identifikatorları, sahib heşləri, məhdudlaşdırma sirləri və daxili marşrutlaşdırma məlumatları istisna edilir.
+Seçim əsasında aktivləşdirilən bu status əməliyyatı bir verilənlər bazası tranzaksiyası daxilində qeyri-şəffaf sahib, autentifikasiya edilmiş idarə olunan API açarı və dəqiq
+aktiv generation dəyəri ilə qorunur. `displayName` yalnız kənar boşluqları silinmiş, konfiqurasiya edilmiş
+bağlantı adıdır; təhlükəsiz konfiqurasiya edilmiş ad olmadıqda onun dəyəri `null` olur. OmniRoute heç vaxt onun əvəzinə
+e-poçt ünvanı və ya yaradılmış hesab identifikatoru istifadə etmir. Provayder dəyəri həssas olmayan göstərmə etiketidir və heç vaxt
+yaradılmış uyğun provayder identifikatoru deyil. Etimadnamələr, tokenlər, kukilər, emal edilməmiş bağlantı və ya API
+açarı identifikatorları, sahib heşləri, qoruma sirləri və daxili marşrutlaşdırma məlumatları daxil edilmir.
 
-Yanlış açar, yanlış sahib, köhnəlmiş nəsil, çatışmayan, vaxtı bitmiş, buraxılmış və etibarsızlaşdırılmış axtarışların hamısı
-bağlantı metadatası olmadan eyni `409 LEASE_FENCE_STALE` xətasını qaytarır. Tutum gözləmə cavabı almış klientin yoxlamaq üçün aktiv bağlantısı yoxdur. Marşrutlaşdırma aktiv icarəni dəyişdirdikdə,
-eyni nəsil etibarlı qalır və status atomar şəkildə köhnə bağlantını deyil, yeni bağlantını qaytarır.
-Mövcud klientlər dəyişməz qalır, çünki əldəetmə, yeniləmə, buraxma və gözləmə cavabları
-əvvəlki strukturlarını qoruyur.
+Yanlış açar, yanlış sahib, köhnəlmiş generation, mövcud olmayan, müddəti bitmiş, buraxılmış və etibarsızlaşdırılmış axtarışların hamısı
+bağlantı metadatası olmadan eyni `409 LEASE_FENCE_STALE` xətasını qaytarır. Tutum gözləmə cavabı almış müştərinin yoxlaya biləcəyi aktiv əlaqələndirməsi yoxdur. Marşrutlaşdırma aktiv icarəni dəyişdirdikdə,
+eyni generation etibarlı qalır və status köhnə deyil, yeni əlaqələndirməni atomar şəkildə qaytarır.
+Mövcud müştərilər dəyişməz qalır, çünki əldəetmə, yeniləmə, buraxma və gözləmə cavabları
+əvvəlki strukturlarını saxlayır.
 
 Bu server müqaviləsi standart OpenAI Codex `/status` davranışını dəyişmir. Standart Codex hazırda öz
 model provayderini və daxili autentifikasiya/hesab vəziyyətini bildirir, lakin ixtiyari fərdi
-provayder hesabı metadatasını göstərmir; gələcək klient inteqrasiyası bu əməliyyatı çağırmalı və
+provayder hesabı metadatasını göstərmir; gələcək müştəri inteqrasiyası bu əməliyyatı çağırmalı və
 `connection.displayName` dəyərinin necə göstəriləcəyinə qərar verməlidir.
 
-Bundan sonra hər idarə olunan inferensiya sorğusu hər iki idarəetmə başlığını təqdim edir:
+Bundan sonra idarə olunan hər bir nəticəçıxarma sorğusu hər iki idarəetmə başlığını təqdim edir:
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-Dəqiq sahib, nəsil, aktiv bağlantı və autentifikasiya edilmiş API açarı hər dəstəklənən yuxarı axın
-cəhdindən dərhal əvvəl məhdudlaşdırılır. Sahib və nəsli başqa açarla təkrar istifadə etmək, hətta həmin açar eyni bağlantıya icazə verdikdə belə
-uğursuz olur. Xam sahib dəyərləri saxlanılmır, jurnala yazılmır, sorğu ani görüntüsündə qorunmur və ya
+Dəqiq sahib, generation, aktiv bağlantı və autentifikasiya edilmiş API açarı dəstəklənən hər bir yuxarı axın cəhdindən
+dərhal əvvəl qorunur. Sahib və generation dəyərlərinin başqa açarla təkrar istifadəsi, həmin açar eyni bağlantıya icazə versə belə,
+uğursuz olur. Emal edilməmiş sahib dəyərləri daimi saxlanmır, jurnala yazılmır, sorğu anlıq görüntüsündə saxlanmır və ya
 yuxarı axına ötürülmür.
 
-Müvəqqəti rəqabət HTTP `429` cavabını `Retry-After` ilə birlikdə qaytarır:
+Müvəqqəti resurs rəqabəti HTTP `429` cavabını `Retry-After` ilə və aşağıdakılarla qaytarır:
 
 ```json
 {
@@ -179,29 +179,31 @@ Müvəqqəti rəqabət HTTP `429` cavabını `Retry-After` ilə birlikdə qaytar
 ```
 
 Bu cavab yalnız adi uyğun dəstin boş olmadığını və hər bir boş namizədin
-başqa sahibə aid aktiv icarə tərəfindən tutulduğunu bildirir. Dəstəklənməyən modellər/provayderlər, siyasət uyğunsuzluğu, gözləmə müddəti, kvota,
-sağlamlıq və digər adi uyğunluq xətaları mövcud OmniRoute cavablarını qoruyur.
+başqa bir aktiv icarə tərəfindən tutulduğunu bildirir. Dəstəklənməyən modellər/provayderlər, siyasət uyğunsuzluğu, soyuma müddəti, kvota,
+sağlamlıq və digər adi uyğunluq xətaları mövcud OmniRoute cavablarını saxlayır.
 
 ### `x-omniroute-compression`
 
-Sıxılma planının hər sorğu üzrə əvəzlənməsi. Ən yüksək üstünlük — marşrutlaşdırma kombinasiyası
-üzrə əvəzləməni, aktiv profili, avtomatik işə düşməni və paneldəki Defolt dəyəri üstələyir. Dəyərlər:
+Sıxışdırma planının hər sorğu üzrə əvəzlənməsi. Ən yüksək prioritetə malikdir — marşrutlaşdırma kombinasiyasının
+əvəzlənməsini, aktiv profili, avtomatik işəsalmanı və paneldəki Defolt dəyəri üstələyir. Dəyərlər:
 
-| Dəyər         | Təsir                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Bu sorğu üçün sıxılma yoxdur.                                                                                           |
-| `default`     | Paneldən əldə edilən Defolt profil (aktiv profili nəzərə almır).                                                        |
-| `engine:<id>` | Aktiv olduqda tək mühərrik, məsələn, `engine:rtk`.                                                                      |
-| `<combo>`     | Əvvəlcə ada görə (registrdən asılı olmayaraq), sonra isə identifikatora görə uyğunlaşdırılan adlandırılmış kombinasiya. |
+| Dəyər         | Təsir                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `off`         | Bu sorğu üçün sıxışdırma tətbiq edilmir.                                                                                  |
+| `default`     | Paneldən əldə edilən Defolt profil (aktiv profili nəzərə almır). İtkili mühərriklər söndürülmüş qalır.                    |
+| `safe`        | Yalnız dublikatların silinməsi və boşluqların birləşdirilməsi.                                                            |
+| `allow-lossy` | Xülasələr və üslub yenidənyazmaları daxil olmaqla operator planını bu sorğu üçün saxlayır.                                |
+| `engine:<id>` | Aktiv olduqda tək mühərrik, məsələn, `engine:rtk`. Həmin mühərrik üçün hər sorğu üzrə aktivləşdirmə.                      |
+| `<combo>`     | Əvvəlcə ada görə (böyük-kiçik hərfə həssas olmadan), sonra identifikatora görə uyğunlaşdırılan adlandırılmış kombinasiya. |
 
 Qeydlər:
 
-- Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir); həll prosesi adi operator üstünlüyünə keçir.
-- Bir neçə kombinasiya eyni ada malikdirsə, deterministik uyğunluq üçün kombinasiyanın **id** dəyərini ötürün.
-- Adı `off` və ya `default` olan kombinasiya adla seçilə bilməz (bu açar sözlər əvvəlcə şərh edilir); belə kombinasiyaya identifikatoru ilə istinad edin.
-- Əsas sıxılma keçidi sərt maneədir: sıxılma qlobal olaraq deaktiv edildikdə, bu başlıq onu aktivləşdirə bilməz.
+- Naməlum dəyərlər nəzərə alınmır (sorğu heç vaxt rədd edilmir); müəyyənləşdirmə adi operator prioritetinə keçir.
+- Bir neçə kombinasiya eyni adı paylaşırsa, deterministik uyğunluq üçün kombinasiyanın **id** dəyərini ötürün.
+- Adı `off` və ya `default` olan kombinasiya ada görə seçilə bilməz (bu açar sözlər əvvəlcə şərh olunur); belə kombinasiyaya onun id dəyəri ilə istinad edin.
+- Əsas sıxışdırma keçidi sərt məhdudiyyətdir: sıxışdırma qlobal olaraq deaktiv edildikdə bu başlıq onu aktivləşdirə bilməz.
 
-Tətbiq edilmiş plan cavab başlığında əks etdirilir:
+Tətbiq edilmiş plan cavab başlığında geri qaytarılır:
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
@@ -438,45 +440,45 @@ Sidecar prosesdən kənarda işlədikdə və `open-sse/config/providerPluginMani
 
 ---
 
-## Uyğunluq endpoint-ləri
+## Uyğunluq Endpoint-ləri
 
-| Metod | Yol                                       | Format                                      |
-| ----- | ----------------------------------------- | ------------------------------------------- |
-| POST  | `/v1/chat/completions`                    | OpenAI                                      |
-| POST  | `/v1/messages`                            | Anthropic                                   |
-| POST  | `/v1/responses`                           | OpenAI Responses                            |
-| POST  | `/v1/embeddings`                          | OpenAI                                      |
-| POST  | `/v1/images/generations`                  | OpenAI Images                               |
-| POST  | `/v1/images/edits`                        | OpenAI Images (redaktə/inpaint)             |
-| POST  | `/v1/videos/generations`                  | OpenAI üslubunda video generasiyası         |
-| POST  | `/v1/music/generations`                   | OpenAI üslubunda musiqi generasiyası        |
-| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
-| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsi qaytarır)         |
-| POST  | `/v1/rerank`                              | Cohere/Voyage üslubunda yenidən sıralama    |
-| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)              |
-| POST  | `/v1/segment`                             | Jina seqmentləşdiricisi (`segment.jina.ai`) |
-| POST  | `/v1/moderations`                         | OpenAI Moderations                          |
-| GET   | `/v1/models`                              | OpenAI                                      |
-| POST  | `/v1/messages/count_tokens`               | Anthropic                                   |
-| GET   | `/v1beta/models`                          | Gemini                                      |
-| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                      |
-| POST  | `/v1/api/chat`                            | Ollama                                      |
-| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq aliası                       |
-| GET   | `/api/v1/vscode/{token}/models`           | OpenAI modelləri aliası                     |
-| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş aliası              |
-| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenləşdirilmiş aliası    |
-| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş aliası              |
-| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama teqləri üçün tokenləşdirilmiş alias  |
+| Metod | Yol                                       | Format                                       |
+| ----- | ----------------------------------------- | -------------------------------------------- |
+| POST  | `/v1/chat/completions`                    | OpenAI                                       |
+| POST  | `/v1/messages`                            | Anthropic                                    |
+| POST  | `/v1/responses`                           | OpenAI Responses                             |
+| POST  | `/v1/embeddings`                          | OpenAI                                       |
+| POST  | `/v1/images/generations`                  | OpenAI Images                                |
+| POST  | `/v1/images/edits`                        | OpenAI Images (redaktə/inpaint)              |
+| POST  | `/v1/videos/generations`                  | OpenAI üslublu video generasiyası            |
+| POST  | `/v1/music/generations`                   | OpenAI üslublu musiqi generasiyası           |
+| POST  | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                           |
+| POST  | `/v1/audio/speech`                        | OpenAI TTS (audio gövdəsi qaytarır)          |
+| POST  | `/v1/rerank`                              | Cohere/Voyage üslublu yenidən sıralama       |
+| POST  | `/v1/classify`                            | Jina təsnifatı (`api.jina.ai`)               |
+| POST  | `/v1/segment`                             | Jina seqmentləşdiricisi (`segment.jina.ai`)  |
+| POST  | `/v1/moderations`                         | OpenAI Moderations                           |
+| GET   | `/v1/models`                              | OpenAI                                       |
+| POST  | `/v1/messages/count_tokens`               | Anthropic                                    |
+| GET   | `/v1beta/models`                          | Gemini                                       |
+| POST  | `/v1beta/models/{...path}`                | Gemini generateContent                       |
+| POST  | `/v1/api/chat`                            | Ollama                                       |
+| GET   | `/api/v1/vscode/{token}/`                 | OpenAI kataloq aliası                        |
+| GET   | `/api/v1/vscode/{token}/models`           | OpenAI model aliası                          |
+| POST  | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenləşdirilmiş aliası               |
+| POST  | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenləşdirilmiş aliası     |
+| POST  | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenləşdirilmiş aliası               |
+| GET   | `/api/v1/vscode/{token}/api/tags`         | Ollama etiketlərinin tokenləşdirilmiş aliası |
 
-Bütün POST marşrutları eyni quruluşa malikdir: `Bearer your-api-key` + Zod tərəfindən doğrulanan JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s.; `src/shared/validation/schemas.ts` faylına baxın). Sxem doğrulaması uğursuz olduqda 4xx qaytarılır.
+Bütün POST marşrutları eyni formaya uyğundur: `Bearer your-api-key` + Zod ilə doğrulanan JSON gövdəsi (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` və s.; baxın: `src/shared/validation/schemas.ts`). Sxem doğrulaması uğursuz olduqda 4xx qaytarılır.
 
-`Authorization: Bearer ...` əlavə edə bilməyən klientlər üçün OmniRoute API açarlarını həm sorğu sətri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`), həm də aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` endpoint-ləri vasitəsilə URL-də qəbul edir.
+`Authorization: Bearer ...` əlavə edə bilməyən klientlər üçün OmniRoute həmçinin sorğu sətri uyğunluğu (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) və ya aşağıda sənədləşdirilmiş xüsusi `/api/v1/vscode/{token}/...` endpoint-ləri vasitəsilə URL-də API açarlarını qəbul edir.
 
 ```bash
-# Yenidən sıralama (bulud reyestri provayderi və ya "<prefix>/<model>" şəklində OpenAI-uyğun provayder qovşağı)
+# Yenidən sıralama (bulud reyestri provayderi və ya "<prefix>/<model>" kimi OpenAI-uyğun provayder nodu)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina təsnifatı (Foundation API giriş məlumatları)
+# Jina təsnifatı (Foundation API etimadnamələri)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
 # Jina seqmentləşdiricisi
@@ -491,35 +493,39 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # TTS — audio/mpeg (və ya tələb olunan formatda) gövdə qaytarır
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Şəkil redaktəsi (multipart)
+# Soniox TTS dil və səs tələb edir: `language` üçün standart dəyər "en"-dir; çatışmayan
+# səs və ya OpenAI-nin standart səs adı (alloy, nova, …) "Adrian" olur
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
+# Şəklin redaktəsi (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Video / musiqi generasiyası (provayder prefiksli model identifikatoru)
+# Video / musiqi generasiyası (provayder prefiksli model ID-si)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Yenidən sıralama provayder qovşaqları:** `POST /v1/rerank` sorğuları həmçinin `<node-prefix>/<model>` kimi ünvanlanan
-> OpenAI-uyğun provayder qovşaqlarına (oMLX, vLLM, Infinity, şlüz arxasındakı TEI, …) yönləndirir. Loopback
-> qovşaqları (`localhost`, `127.0.0.1`, `172.16.0.0/12`) həmişə uyğundur. İstənilən digər hostdakı
-> qovşaqlar — LAN-dakı cihaz və ya Tailscale tərəfi — yalnız operator `RERANK_REMOTE_PROVIDER_NODES`
-> funksiya bayrağını aktiv etdikdə **və** qovşağın baza URL-i provayderin çıxış URL siyasətindən
-> (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) keçdikdə uyğundur;
-> bulud metadata hostlarına heç vaxt yönləndirmə aparılmır. Yaddaş mühərrikinin yenidən sıralama mərhələsi bu marşrutu
-> loopback üzərindən çağırır, buna görə də eyni qayda Yaddaş ayarlarındakı `rerankProviderModel` üçün də keçərlidir.
+> **Yenidən sıralama provayder nodları:** `POST /v1/rerank` həmçinin `<node-prefix>/<model>` kimi ünvanlanan OpenAI-uyğun provayder nodlarına
+> (oMLX, vLLM, Infinity, şlüz arxasındakı TEI, …) yönləndirir. Loopback
+> nodları (`localhost`, `127.0.0.1`, `172.16.0.0/12`) həmişə uyğundur. İstənilən digər
+> hostdakı nodlar — LAN qurğusu və ya Tailscale qoşulma nöqtəsi — yalnız operator
+> `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrağını aktivləşdirdikdə **və** nodun baza URL-i provayderin
+> xarici URL siyasətindən (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) keçdikdə uyğundur;
+> bulud metadata hostlarına heç vaxt yönləndirmə edilmir. Yaddaş mühərrikinin yenidən sıralama addımı bu marşrutu
+> loopback üzərindən çağırır, buna görə də eyni qayda Yaddaş ayarlarındakı `rerankProviderModel` üçün keçərlidir.
 >
-> **Lokal server strukturları:** qovşaq `<base>/v1/rerank` ünvanında, 404 halında isə `<base>/rerank`
-> ünvanında çağırılır (Infinity, TEI). Yuxarı axına göndərilən gövdə həm Cohere/OpenAI yazılışını (`documents`,
-> `return_documents`), həm də TEI yazılışını (`texts`, `return_text`) ehtiva edir və yuxarı axından gələn cavab
-> Cohere zərfinə normallaşdırılır: TEI-nin sadə `[{index, score, text}]` formatı, yüngül şlüzlərdən gələn
-> `{results: [{index, score}]}` və Voyage üslubundakı `{data: [...]}` cavablarının hamısı klientə
-> `{results: [{index, relevance_score, document?}]}` şəklində, xala görə sıralanmış və `top_n` ilə məhdudlaşdırılmış olaraq qaytarılır.
+> **Lokal server formaları:** nod `<base>/v1/rerank` ünvanında, 404 halında isə `<base>/rerank`
+> ünvanında çağırılır (Infinity, TEI). Yuxarı axın gövdəsi həm Cohere/OpenAI yazılışını (`documents`,
+> `return_documents`), həm də TEI yazılışını (`texts`, `return_text`) daşıyır və yuxarı axın cavabı
+> Cohere zərfinə normallaşdırılır: TEI-nin açıq `[{index, score, text}]` formatı, sadə şlüzlərdən gələn
+> `{results: [{index, score}]}` və Voyage üslublu `{data: [...]}` formatlarının hamısı klientə
+> `{results: [{index, relevance_score, document?}]}` şəklində, bala görə sıralanmış və `top_n` ilə məhdudlaşdırılmış formada qaytarılır.
 
-> **Provayder qovşaqlarının aşkarlanması:** OpenAI-uyğun provayder qovşağındakı modellər `GET /v1/models`
-> daxilində qovşaq prefiksi altında görünür. Endpoint metadatası olmayan sətirlər (lokal `/v1/models` siyahıları üçün tipikdir)
-> qovşağın `apiType` dəyərini miras alır; beləliklə, susmaya görə çat kimi qəbul edilmək əvəzinə, `embeddings`
-> qovşağının modelləri `type: "embedding"`, `rerank` qovşağının modelləri isə `type: "rerank"` olur.
-> Sinxronlaşdırılmış və ya əl ilə əlavə edilmiş sətirdə açıq şəkildə göstərilən `supportedEndpoints` yenə də üstünlüyə malikdir.
+> **Provayder qovşağının aşkarlanması:** OpenAI ilə uyğun provayder qovşağındakı modellər `GET /v1/models`
+> cavabında qovşaq prefiksi altında görünür. Son nöqtə metadatası olmayan sətirlər (yerli `/v1/models` siyahıları üçün səciyyəvidir)
+> qovşağın `apiType` dəyərini miras alır; beləliklə, standart olaraq çat tipinə təyin edilmək əvəzinə, `embeddings` qovşağının modelləri `type: "embedding"`,
+> `rerank` qovşağının modelləri isə `type: "rerank"` olur; sinxronlaşdırılmış və ya əl ilə əlavə edilmiş sətirdə açıq şəkildə göstərilən
+> `supportedEndpoints` yenə də üstünlüyə malikdir.
 
 ### Xüsusi Provayder Marşrutları
 
@@ -529,7 +535,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provayder prefiksi olmadıqda avtomatik əlavə edilir. Uyğun gəlməyən modellər `400` qaytarır.
+Provayder prefiksi yoxdursa, avtomatik əlavə edilir. Uyğun gəlməyən modellər `400` qaytarır.
 
 ---
 
@@ -821,30 +827,31 @@ X-OmniRoute-No-Cache: true
 
 ## İdarəetmə paneli və idarəetmə
 
-İdarəetmə marşrutları (`/api/*`, ictimai autentifikasiya/giriş istisna olmaqla) adi inferensiya API açarları ilə **avtorizasiya edilmir**. Etimadnamə ailələri, əhatə dairələri və curl nümunələri:
+İdarəetmə marşrutları (`/api/*`, ictimai autentifikasiya/giriş istisna olmaqla) adi inferens API açarları ilə **avtorizasiya edilmir**. Etimadnamə ailələri, əhatə dairələri və curl nümunələri:
 [İdarəetmə autentifikasiyası](../guides/MANAGEMENT-AUTH.md).
 
 ### Autentifikasiya
 
-| Son nöqtə                     | Metod   | Təsvir                            |
-| ----------------------------- | ------- | --------------------------------- |
-| `/api/auth/login`             | POST    | Daxil olma                        |
-| `/api/auth/logout`            | POST    | Çıxış                             |
-| `/api/settings/require-login` | GET/PUT | Giriş tələbinin aktivləşdirilməsi |
+| Son nöqtə                     | Metod   | Təsvir                                                |
+| ----------------------------- | ------- | ----------------------------------------------------- |
+| `/api/auth/login`             | POST    | Daxil olma                                            |
+| `/api/auth/logout`            | POST    | Çıxış                                                 |
+| `/api/settings/require-login` | GET/PUT | Giriş tələbinin aktivləşdirilməsi/deaktivləşdirilməsi |
 
 ### Provayderlərin idarə edilməsi
 
-| Son nöqtə                    | Metod                 | Təsvir                                                                                                                      |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Provayderləri siyahılamaq / yaratmaq                                                                                        |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Provayderi idarə etmək                                                                                                      |
-| `/api/providers/[id]/test`   | POST                  | Provayder bağlantısını sınaqdan keçirmək                                                                                    |
-| `/api/providers/[id]/models` | GET                   | Provayder modellərini siyahılamaq                                                                                           |
-| `/api/providers/validate`    | POST                  | Provayder konfiqurasiyasını doğrulamaq                                                                                      |
-| `/api/providers/bulk`        | POST                  | BİR provayder üçün API açarlarını toplu şəkildə əlavə etmək                                                                 |
-| `/api/providers/import`      | POST                  | Təhlil edilmiş CSV/JSON faylından heterogen provayder SİYAHISINI idxal etmək (#6836); hər sətir üzrə qismən xəta nəticələri |
-| `/api/provider-nodes*`       | Müxtəlif              | Provayder qovşaqlarının idarə edilməsi                                                                                      |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Fərdi modellər (əlavə etmək, yeniləmək, gizlətmək/göstərmək, silmək)                                                        |
+| Son nöqtə                               | Metod                 | Təsvir                                                                                                                                                                             |
+| --------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | Provayderləri sadalamaq / yaratmaq                                                                                                                                                 |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Provayderi idarə etmək                                                                                                                                                             |
+| `/api/providers/[id]/test`              | POST                  | Provayder bağlantısını sınaqdan keçirmək                                                                                                                                           |
+| `/api/providers/[id]/models`            | GET                   | Provayder modellərini sadalamaq                                                                                                                                                    |
+| `/api/providers/validate`               | POST                  | Provayder konfiqurasiyasını doğrulamaq                                                                                                                                             |
+| `/api/providers/bulk`                   | POST                  | BİR provayder üçün API açarlarını toplu şəkildə əlavə etmək                                                                                                                        |
+| `/api/providers/import`                 | POST                  | Təhlil edilmiş CSV/JSON faylından heterogen provayder SİYAHISINI idxal etmək (#6836); hər sətir üzrə qismən uğursuzluq nəticələri                                                  |
+| `/api/provider-nodes*`                  | Müxtəlif              | Provayder qovşaqlarının idarə edilməsi                                                                                                                                             |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Fərdi modellər (əlavə etmək, yeniləmək, gizlətmək/göstərmək, silmək)                                                                                                               |
+| `/api/provider-models/validate-and-add` | POST                  | İdarəetmə autentifikasiyalı, seçim əsasında aktivləşdirilən ciddi bağlantı doğrulaması və atomik fərdi model qeydiyyatı; baxın: [Model doğrulaması](../guides/MODEL-VALIDATION.md) |
 
 ### OAuth axınları
 
@@ -854,13 +861,13 @@ X-OmniRoute-No-Cache: true
 
 ### Marşrutlaşdırma və konfiqurasiya
 
-| Son nöqtə             | Metod    | Təsvir                               |
-| --------------------- | -------- | ------------------------------------ |
-| `/api/models/alias`   | GET/POST | Model ləqəbləri                      |
-| `/api/models/catalog` | GET      | Provayder və növ üzrə bütün modellər |
-| `/api/combos*`        | Müxtəlif | Kombinasiyaların idarə edilməsi      |
-| `/api/keys*`          | Müxtəlif | API açarlarının idarə edilməsi       |
-| `/api/pricing`        | GET      | Model qiymətləri                     |
+| Son nöqtə             | Metod    | Təsvir                                 |
+| --------------------- | -------- | -------------------------------------- |
+| `/api/models/alias`   | GET/POST | Model aliasları                        |
+| `/api/models/catalog` | GET      | Provayderə və növə görə bütün modellər |
+| `/api/combos*`        | Müxtəlif | Kombinasiyaların idarə edilməsi        |
+| `/api/keys*`          | Müxtəlif | API açarlarının idarə edilməsi         |
+| `/api/pricing`        | GET      | Model qiymətləri                       |
 
 ### İstifadə və analitika
 
@@ -871,78 +878,78 @@ X-OmniRoute-No-Cache: true
 | `/api/usage/request-logs`        | GET             | Sorğu səviyyəli jurnallar                                                                                                                                                                                                                                                                                                           |
 | `/api/usage/[connectionId]`      | GET             | Hər bağlantı üzrə istifadə                                                                                                                                                                                                                                                                                                          |
 | `/api/usage/token-limits`        | GET/POST/DELETE | Hər API açarı üzrə token limiti büdcələri                                                                                                                                                                                                                                                                                           |
-| `/api/usage/model-latency-stats` | GET             | Provayder/model üzrə sürüşən gecikmə aqreqatı (avg/p50/p95/p99, uğur faizi); filtrlər: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                              |
+| `/api/usage/model-latency-stats` | GET             | Provayder/model üzrə sürüşən gecikmə aqreqatı (orta/p50/p95/p99, uğur faizi); filtrlər: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                             |
 | `/api/usage/cache-health`        | GET             | `call_logs` üzrə prompt keşinin sağlamlıq xülasəsi — yazma/oxuma nisbəti, yazma ölçüsünün p50/p90/p99 paylanması, intensiv yazmaların konsentrasiyası, model üzrə bölgü və `healthy`/`degraded`/`thrash`/`no-data` nəticəsi; sorğu parametrləri: `range` (`1h`\|`24h`\|`7d`\|`30d`, standart `24h`) və istəyə bağlı `model` (#8827) |
 
 ### Parametrlər
 
-| Endpoint                              | Metod         | Təsvir                                                                                                                                                                                                    |
-| ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Ümumi parametrlər                                                                                                                                                                                         |
-| `/api/settings/proxy`                 | GET/PUT       | Şəbəkə proksisi konfiqurasiyası                                                                                                                                                                           |
-| `/api/settings/proxy/test`            | POST          | Proksi bağlantısını sınaqdan keçirmək                                                                                                                                                                     |
-| `/api/settings/ip-filter`             | GET/PUT       | İcazə verilən/bloklanan IP siyahısı                                                                                                                                                                       |
-| `/api/settings/thinking-budget`       | GET/PUT       | Düşünmə/əsaslandırma **sorğusu** üçün yenidən yazma rejimi (dəyişikliksiz ötürmə / avtomatik silmə / fərdi / adaptiv). Sıxılmadan asılı deyil. Baxın: [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Qlobal sistem promptu                                                                                                                                                                                     |
-| `/api/settings/compression`           | GET/PUT       | Qlobal sıxılma konfiqurasiyası                                                                                                                                                                            |
-| `/api/settings/purge-request-history` | POST          | Sorğu jurnalı sətirlərini və lokal çağırış jurnalı artefaktlarını təmizləmək                                                                                                                              |
+| Endpoint                              | Metod         | Təsvir                                                                                                                                                                                                |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Ümumi parametrlər                                                                                                                                                                                     |
+| `/api/settings/proxy`                 | GET/PUT       | Şəbəkə proksi konfiqurasiyası                                                                                                                                                                         |
+| `/api/settings/proxy/test`            | POST          | Proksi bağlantısını sınaqdan keçirin                                                                                                                                                                  |
+| `/api/settings/ip-filter`             | GET/PUT       | İcazə verilən/bloklanan IP siyahısı                                                                                                                                                                   |
+| `/api/settings/thinking-budget`       | GET/PUT       | Düşünmə/mühakimə **sorğusunun** yenidən yazılma rejimi (dəyişikliksiz ötürmə / avtomatik silmə / fərdi / adaptiv). Sıxılmadan asılı deyil. Baxın: [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Qlobal sistem promptu                                                                                                                                                                                 |
+| `/api/settings/compression`           | GET/PUT       | Qlobal sıxılma konfiqurasiyası                                                                                                                                                                        |
+| `/api/settings/purge-request-history` | POST          | Sorğu jurnalı sətirlərini və lokal çağırış jurnalı artefaktlarını təmizləyin                                                                                                                          |
 
 ### Kontekst və sıxılma
 
-| Endpoint                               | Metod          | Təsvir                                                                           |
-| -------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked sıxılmasına önbaxış               |
-| `/api/compression/language-packs`      | GET            | Mövcud Caveman dil paketlərinin siyahısı                                         |
-| `/api/compression/rules`               | GET            | Caveman qaydalarının metadatasının siyahısı                                      |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman-ə məxsus parametrlər üçün alternativ ad                                  |
-| `/api/context/rtk/config`              | GET/PUT        | Fərdi filtrlər və xam çıxışın saxlanması daxil olmaqla RTK-yə məxsus parametrlər |
-| `/api/context/rtk/filters`             | GET            | RTK filtr kataloqu və fərdi filtr diaqnostikası                                  |
-| `/api/context/rtk/test`                | POST           | Mətn yükü üzərində RTK önbaxışını/sınağını işə salmaq                            |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Göstərici ID-si ilə saxlanılan redaktə edilmiş xam çıxışı oxumaq                 |
-| `/api/context/combos`                  | GET/POST       | Sıxılma kombinasiyalarının siyahısı/yaradılması                                  |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Sıxılma kombinasiyasının təfərrüatları/yenilənməsi/silinməsi                     |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Sıxılma kombinasiyalarını marşrutlaşdırma kombinasiyalarına təyin etmək          |
-| `/api/context/analytics`               | GET            | Sıxılma analitikası üçün alternativ ad                                           |
+| Son nöqtə                              | Metod          | Təsvir                                                                             |
+| -------------------------------------- | -------------- | ---------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked sıxılmasına önbaxış                 |
+| `/api/compression/language-packs`      | GET            | Mövcud Caveman dil paketlərini siyahıla                                            |
+| `/api/compression/rules`               | GET            | Caveman qaydalarının metadatasını siyahıla                                         |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman üçün xüsusi parametrlərin alternativ adı                                   |
+| `/api/context/rtk/config`              | GET/PUT        | Fərdi filtrlər və xam çıxışın saxlanması daxil olmaqla RTK üçün xüsusi parametrlər |
+| `/api/context/rtk/filters`             | GET            | RTK filtr kataloqu və fərdi filtr diaqnostikası                                    |
+| `/api/context/rtk/test`                | POST           | Mətn faydalı yükü üzərində RTK önbaxışını/sınağını icra et                         |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Göstərici identifikatoruna əsasən saxlanılmış redaktə edilmiş xam çıxışı oxu       |
+| `/api/context/combos`                  | GET/POST       | Sıxılma kombinasiyalarını siyahıla/yarat                                           |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Sıxılma kombinasiyasının təfərrüatları/yenilənməsi/silinməsi                       |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Sıxılma kombinasiyalarını marşrutlaşdırma kombinasiyalarına təyin et               |
+| `/api/context/analytics`               | GET            | Sıxılma analitikasının alternativ adı                                              |
 
 ### Monitorinq
 
-| Endpoint                             | Metod      | Təsvir                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Aktiv sessiyaların izlənməsi                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/rate-limits`                   | GET        | Hesab üzrə sorğu tezliyi limitləri                                                                                                                                                                                                                                                                                                                                                                                              |
-| `/api/monitoring/health`             | GET        | Sağlamlıq yoxlaması + provayder xülasəsi (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). İdarəetmə görünüşünə `credentialHealth` daxildir: yoxlama keşi skalyarları, `failed>0` olduqda `failedConnections` və `staleDbNonOkCount` (SQLite-da qalıcı `test_status`, ölçü göstəricisi deyil). Baxın: [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Keş statistikası / təmizləmə                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/modality-bridge/stats`         | GET        | Yaddaşdaxili `attempts`, uğurlar/`bridged`, uğursuzluqlar, keş uyğunluqları, `totalLatencyMs`, `latencySamples`, nümunə sayına əsaslanan `averageLatencyMs` və son istifadə vaxtı (yenidən başladıldıqda sıfırlanır; idarəetmə autentifikasiyası)                                                                                                                                                                               |
-| `/api/modality-bridge/video/runtime` | GET        | İdarəetmə autentifikasiyasından/yoxlamasından əvvəl etibarlı loopback üçün ciddi yoxlama; təmizlənmiş FFmpeg/ffprobe əlçatanlığı və versiyaları (no-store)                                                                                                                                                                                                                                                                      |
-| `/api/modality-bridge/video/extract` | POST       | Daxili, autentifikasiya edilmiş, etibarlı loopback bayt brokeri; 50 MiB giriş, məhdud növbə/32 MiB çıxış, `503` tutum, `499` bağlantının kəsilməsi, `504` son müddət; ictimai fayl yükləmə API-si deyil                                                                                                                                                                                                                         |
+| Son nöqtə                            | Metod      | Təsvir                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Aktiv sessiyaların izlənməsi                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/rate-limits`                   | GET        | Hesab üzrə sürət məhdudiyyətləri                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `/api/monitoring/health`             | GET        | Sağlamlıq yoxlaması + provayder xülasəsi (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). İdarəetmə görünüşünə `credentialHealth` daxildir: yoxlama keşinin skalyarları, `failed>0` olduqda `failedConnections` və `staleDbNonOkCount` (ölçü göstəricisi deyil, SQLite-da qalıcı `test_status`). Baxın: [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Keş statistikası / təmizləmə                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/modality-bridge/stats`         | GET        | Yaddaşdaxili `attempts`, uğurlar/`bridged`, uğursuzluqlar, keş uyğunluqları, `totalLatencyMs`, `latencySamples`, nümunələrin sayına əsaslanan `averageLatencyMs` və son istifadə vaxtı (yenidən başladıldıqda sıfırlanır; idarəetmə autentifikasiyası)                                                                                                                                                                             |
+| `/api/modality-bridge/video/runtime` | GET        | İdarəetmə autentifikasiyası/yoxlamasından əvvəl ciddi etibarlı geri-dövrə yoxlaması; təmizlənmiş FFmpeg/ffprobe əlçatanlığı və versiyaları (saxlanılmır)                                                                                                                                                                                                                                                                           |
+| `/api/modality-bridge/video/extract` | POST       | Daxili autentifikasiya edilmiş etibarlı geri-dövrə bayt brokeri; 50 MiB giriş, məhdud növbə/32 MiB çıxış, `503` tutum, `499` bağlantının kəsilməsi, `504` son müddət; ictimai yükləmə API-si deyil                                                                                                                                                                                                                                 |
 
-### Ehtiyat nüsxələmə və ixrac/idxal
+### Yedəkləmə və ixrac/idxal
 
-| Son nöqtə                   | Metod | Təsvir                                                     |
-| --------------------------- | ----- | ---------------------------------------------------------- |
-| `/api/db-backups`           | GET   | Mövcud ehtiyat nüsxələri siyahıya alır                     |
-| `/api/db-backups`           | PUT   | Əl ilə ehtiyat nüsxə yaradır                               |
-| `/api/db-backups`           | POST  | Müəyyən ehtiyat nüsxədən bərpa edir                        |
-| `/api/db-backups/export`    | GET   | Verilənlər bazasını .sqlite faylı kimi endirir             |
-| `/api/db-backups/import`    | POST  | Verilənlər bazasını əvəz etmək üçün .sqlite faylı yükləyir |
-| `/api/db-backups/exportAll` | GET   | Tam ehtiyat nüsxəni .tar.gz arxivi kimi endirir            |
+| Son nöqtə                   | Metod | Təsvir                                                  |
+| --------------------------- | ----- | ------------------------------------------------------- |
+| `/api/db-backups`           | GET   | Mövcud ehtiyat nüsxələri siyahıla                       |
+| `/api/db-backups`           | PUT   | Əl ilə ehtiyat nüsxə yarat                              |
+| `/api/db-backups`           | POST  | Müəyyən ehtiyat nüsxədən bərpa et                       |
+| `/api/db-backups/export`    | GET   | Verilənlər bazasını .sqlite faylı kimi endir            |
+| `/api/db-backups/import`    | POST  | Verilənlər bazasını əvəz etmək üçün .sqlite faylı yüklə |
+| `/api/db-backups/exportAll` | GET   | Tam ehtiyat nüsxəni .tar.gz arxivi kimi endir           |
 
 ### Bulud Sinxronizasiyası
 
 | Son nöqtə              | Metod    | Təsvir                             |
 | ---------------------- | -------- | ---------------------------------- |
 | `/api/sync/cloud`      | Müxtəlif | Bulud sinxronizasiya əməliyyatları |
-| `/api/sync/initialize` | POST     | Sinxronizasiyanı başladır          |
+| `/api/sync/initialize` | POST     | Sinxronizasiyanı başladın          |
 | `/api/cloud/*`         | Müxtəlif | Bulud idarəetməsi                  |
 
 ### Tunellər
 
-| Son nöqtə                  | Metod | Təsvir                                                                             |
-| -------------------------- | ----- | ---------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET   | İdarəetmə paneli üçün Cloudflare Quick Tunnel quraşdırma/işləmə vəziyyətini oxuyur |
-| `/api/tunnels/cloudflared` | POST  | Cloudflare Quick Tunnel-i aktiv və ya deaktiv edir (`action=enable/disable`)       |
-| `/api/tunnels/ngrok`       | GET   | İdarəetmə paneli üçün ngrok Tunnel işləmə vəziyyətini oxuyur                       |
-| `/api/tunnels/ngrok`       | POST  | ngrok Tunnel-i aktiv və ya deaktiv edir (`action=enable/disable`)                  |
+| Son nöqtə                  | Metod | Təsvir                                                                           |
+| -------------------------- | ----- | -------------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET   | İdarəetmə paneli üçün Cloudflare Quick Tunnel quraşdırma/icra vəziyyətini oxu    |
+| `/api/tunnels/cloudflared` | POST  | Cloudflare Quick Tunnel-i aktivləşdir və ya deaktiv et (`action=enable/disable`) |
+| `/api/tunnels/ngrok`       | GET   | İdarəetmə paneli üçün ngrok Tunnel icra vəziyyətini oxu                          |
+| `/api/tunnels/ngrok`       | POST  | ngrok Tunnel-i aktivləşdir və ya deaktiv et (`action=enable/disable`)            |
 
 ### CLI Alətləri
 
@@ -958,38 +965,38 @@ CLI cavablarına bunlar daxildir: `installed`, `runnable`, `command`, `commandPa
 
 ### ACP Agentləri
 
-| Son nöqtə         | Metod  | Təsvir                                                                               |
-| ----------------- | ------ | ------------------------------------------------------------------------------------ |
-| `/api/acp/agents` | GET    | Vəziyyətləri ilə birlikdə aşkarlanmış bütün agentləri (daxili + fərdi) siyahıya alır |
-| `/api/acp/agents` | POST   | Fərdi agent əlavə edir və ya aşkarlama keşini yeniləyir                              |
-| `/api/acp/agents` | DELETE | `id` sorğu parametri ilə fərdi agenti silir                                          |
+| Son nöqtə         | Metod  | Təsvir                                                               |
+| ----------------- | ------ | -------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Aşkarlanmış bütün agentləri (daxili + xüsusi) vəziyyəti ilə siyahıla |
+| `/api/acp/agents` | POST   | Xüsusi agent əlavə et və ya aşkarlama keşini yenilə                  |
+| `/api/acp/agents` | DELETE | Xüsusi agenti `id` sorğu parametri ilə sil                           |
 
-GET cavabına `agents[]` (id, ad, binar fayl, versiya, quraşdırılıb, protokol, fərdidir) və `summary` (cəmi, quraşdırılıb, tapılmayıb, daxili, fərdi) daxildir.
+GET cavabına `agents[]` (id, ad, binar fayl, versiya, quraşdırılıb, protokol, xüsusidir) və `summary` (cəmi, quraşdırılıb, tapılmayıb, daxili, xüsusi) daxildir.
 
-### Dayanıqlılıq və Tezlik Məhdudiyyətləri
+### Dayanıqlılıq və Sorğu Tezliyi Məhdudiyyətləri
 
-| Son nöqtə                         | Metod     | Təsvir                                                                                                               |
-| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Sorğu növbəsini, bağlantının gözləmə müddətini, provayder qoruyucusunu və gözləmə parametrlərini əldə edir/yeniləyir |
-| `/api/resilience/reset`           | POST      | Provayder dövrə qoruyucularını sıfırlayır                                                                            |
-| `/api/resilience/model-cooldowns` | GET       | Qalan vaxta görə sıralanmış aktiv (provayder, bağlantı, model) bloklamalarını siyahıya alır                          |
-| `/api/resilience/model-cooldowns` | DELETE    | Model bloklamasını təmizləyir — gövdə: `{provider, model}` və ya hər şeyi silmək üçün `{all: true}`                  |
-| `/api/rate-limits`                | GET       | Hesab üzrə tezlik məhdudiyyəti vəziyyəti                                                                             |
-| `/api/rate-limit`                 | GET       | Qlobal tezlik məhdudiyyəti konfiqurasiyası                                                                           |
+| Son nöqtə                         | Metod     | Təsvir                                                                                                          |
+| --------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Sorğu növbəsini, bağlantının gözləmə müddətini, provayder qoruyucusunu və gözləmə parametrlərini əldə et/yenilə |
+| `/api/resilience/reset`           | POST      | Provayder dövrə qoruyucularını sıfırla                                                                          |
+| `/api/resilience/model-cooldowns` | GET       | Qalan müddətə görə sıralanmış aktiv (provayder, bağlantı, model) kilidləmələrini siyahıla                       |
+| `/api/resilience/model-cooldowns` | DELETE    | Model kilidləməsini təmizlə — gövdədə `{provider, model}` və ya hər şeyi silmək üçün `{all: true}`              |
+| `/api/rate-limits`                | GET       | Hesab üzrə sorğu tezliyi məhdudiyyəti vəziyyəti                                                                 |
+| `/api/rate-limit`                 | GET       | Qlobal sorğu tezliyi məhdudiyyəti konfiqurasiyası                                                               |
 
-> Bütün dörd `/api/resilience/*` marşrutu **idarəetmə autentifikasiyası** (`requireManagementAuth`) tələb edir. Provayder qoruyucusu, bağlantının gözləmə müddəti və model bloklaması arasındakı fərqlərin tam izahı üçün [Dayanıqlılıq (genişləndirilmiş)](#resilience-extended) bölməsinə baxın.
+> Dörd `/api/resilience/*` marşrutunun hamısı **idarəetmə autentifikasiyası** (`requireManagementAuth`) tələb edir. Provayder qoruyucusu, bağlantının gözləmə müddəti və model kilidləməsi arasındakı fərqlərin tam izahı üçün [Dayanıqlılıq (genişləndirilmiş)](#resilience-extended) bölməsinə baxın.
 
 ### Qiymətləndirmələr
 
-| Son nöqtə    | Metod    | Təsvir                                                               |
-| ------------ | -------- | -------------------------------------------------------------------- |
-| `/api/evals` | GET/POST | Qiymətləndirmə dəstlərini siyahıya alır / qiymətləndirməni işə salır |
+| Son nöqtə    | Metod    | Təsvir                                                        |
+| ------------ | -------- | ------------------------------------------------------------- |
+| `/api/evals` | GET/POST | Qiymətləndirmə dəstlərini siyahıla / qiymətləndirməni işə sal |
 
 ### Siyasətlər
 
-| Son nöqtə       | Metod           | Təsvir                                   |
-| --------------- | --------------- | ---------------------------------------- |
-| `/api/policies` | GET/POST/DELETE | Marşrutlaşdırma siyasətlərini idarə edir |
+| Son nöqtə       | Metod           | Təsvir                                 |
+| --------------- | --------------- | -------------------------------------- |
+| `/api/policies` | GET/POST/DELETE | Marşrutlaşdırma siyasətlərini idarə et |
 
 ### Uyğunluq
 
@@ -999,24 +1006,24 @@ GET cavabına `agents[]` (id, ad, binar fayl, versiya, quraşdırılıb, protoko
 
 ### v1beta (Gemini ilə Uyğun)
 
-| Son nöqtə                  | Metod | Təsvir                                    |
-| -------------------------- | ----- | ----------------------------------------- |
-| `/v1beta/models`           | GET   | Modelləri Gemini formatında siyahıya alır |
-| `/v1beta/models/{...path}` | POST  | Gemini `generateContent` son nöqtəsi      |
+| Son nöqtə                  | Metod | Təsvir                               |
+| -------------------------- | ----- | ------------------------------------ |
+| `/v1beta/models`           | GET   | Modelləri Gemini formatında siyahıla |
+| `/v1beta/models/{...path}` | POST  | Gemini `generateContent` son nöqtəsi |
 
-Bu son nöqtələr yerli Gemini SDK uyğunluğu gözləyən klientlər üçün Gemini API formatını təkrarlayır.
+Bu son nöqtələr yerli Gemini SDK uyğunluğu gözləyən müştərilər üçün Gemini API formatını təkrarlayır.
 
 ### Daxili / Sistem API-ləri
 
-| Endpoint                 | Metod | Təsvir                                                                |
-| ------------------------ | ----- | --------------------------------------------------------------------- |
-| `/api/init`              | GET   | Tətbiqin başladılmasının yoxlanması (ilk işə salmada istifadə olunur) |
-| `/api/tags`              | GET   | Ollama ilə uyğun model teqləri (Ollama klientləri üçün)               |
-| `/api/restart`           | POST  | Serverin təhlükəsiz şəkildə yenidən başladılmasını işə salır          |
-| `/api/shutdown`          | POST  | Serverin təhlükəsiz şəkildə dayandırılmasını işə salır                |
-| `/api/system/env/repair` | POST  | OAuth provayderinin mühit dəyişənlərini bərpa edir                    |
+| Son nöqtə                | Metod | Təsvir                                                               |
+| ------------------------ | ----- | -------------------------------------------------------------------- |
+| `/api/init`              | GET   | Tətbiqin ilkinləşdirmə yoxlaması (ilk işə salınmada istifadə olunur) |
+| `/api/tags`              | GET   | Ollama ilə uyğun model teqləri (Ollama klientləri üçün)              |
+| `/api/restart`           | POST  | Serverin təhlükəsiz şəkildə yenidən başladılmasını işə salır         |
+| `/api/shutdown`          | POST  | Serverin təhlükəsiz şəkildə dayandırılmasını işə salır               |
+| `/api/system/env/repair` | POST  | OAuth provayderinin mühit dəyişənlərini bərpa edir                   |
 
-> **Qeyd:** Bu endpoint-lər sistem tərəfindən daxili məqsədlər üçün və ya Ollama klientləri ilə uyğunluq üçün istifadə olunur. Adətən son istifadəçilər tərəfindən çağırılmır.
+> **Qeyd:** Bu son nöqtələr sistem tərəfindən daxili məqsədlər üçün və ya Ollama klientləri ilə uyğunluq üçün istifadə olunur. Adətən son istifadəçilər tərəfindən çağırılmır.
 
 ### OAuth Mühitinin Bərpası _(v3.6.1+)_
 
@@ -1029,7 +1036,7 @@ Content-Type: application/json
 }
 ```
 
-Müəyyən provayder üçün çatışmayan və ya zədələnmiş OAuth mühit dəyişənlərini bərpa edir. Aşağıdakı cavabı qaytarır:
+Müəyyən bir provayder üçün çatışmayan və ya zədələnmiş OAuth mühit dəyişənlərini bərpa edir. Aşağıdakı cavabı qaytarır:
 
 ```json
 {
@@ -1456,22 +1463,22 @@ GET /.well-known/agent.json
 
 ---
 
-## Bulud, Evals və Assess
+## Bulud, qiymətləndirmələr və dəyərləndirmə
 
 | Metod | Yol | Təsvir |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer açarını yoxlayır və bulud sinxronizasiya müştəriləri üçün maskalanmış provayder bağlantıları + model aliasları qaytarır |
-| POST | `/api/cloud/credentials/update` | Buludla sinxronlaşdırılmış provayder üçün şifrələnmiş giriş məlumatlarını yeniləyir |
-| POST | `/api/cloud/model/resolve` | Lokal marşrutlaşdırma cədvəlindən istifadə edərək məntiqi model identifikatorunu konkret provayder/model ilə uyğunlaşdırır |
-| GET | `/api/cloud/models/alias` | Bulud sinxronizasiyasına təqdim edilən model aliaslarını siyahılayır |
-| GET | `/api/assess` | Ən son qiymətləndirmə kateqoriyalarını oxuyur (hər provayder/model üzrə) |
-| POST | `/api/assess` | Qiymətləndirmə başladır — gövdə: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | Daxili eval dəstlərini + ən son icraları siyahılayır |
-| POST | `/api/evals` | Eval icrasını başladır |
-| POST | `/api/evals/suites` | Fərdi eval dəsti yaradır — gövdə `evalSuiteSaveSchema` tərəfindən yoxlanılır |
-| GET | `/api/evals/suites/[id]` | Fərdi eval dəstini əldə edir |
+| POST | `/api/cloud/auth` | Bearer açarını yoxlayın və buludla sinxronizasiya müştəriləri üçün maskalanmış provayder bağlantılarını + model aliaslarını qaytarın |
+| POST | `/api/cloud/credentials/update` | Buludla sinxronizasiya olunan provayder üçün şifrələnmiş giriş məlumatlarını yeniləyin |
+| POST | `/api/cloud/model/resolve` | Lokal marşrutlaşdırma cədvəlindən istifadə edərək məntiqi model id-sini konkret provayder/model ilə uyğunlaşdırın |
+| GET | `/api/cloud/models/alias` | Bulud sinxronizasiyasına təqdim edilən model aliaslarını siyahılayın |
+| GET | `/api/assess` | Ən son dəyərləndirmə kateqoriyalarını oxuyun (hər provayder/model üzrə) |
+| POST | `/api/assess` | Dəyərləndirmə başladın — gövdə: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Daxili qiymətləndirmə dəstlərini + ən son icraları siyahılayın |
+| POST | `/api/evals` | Qiymətləndirmə icrasını başladın |
+| POST | `/api/evals/suites` | Fərdi qiymətləndirmə dəsti yaradın — gövdə `evalSuiteSaveSchema` ilə doğrulanır |
+| GET | `/api/evals/suites/[id]` | Fərdi qiymətləndirmə dəstini əldə edin |
 
-**Autentifikasiya:** `/api/cloud/auth` Bearer açarını birbaşa yoxlayır; digər `/api/cloud/*`, `/api/evals/*` və `/api/assess` marşrutları idarəetmə sessiyası/API açarı tələb edir. `/api/assess` POST diskriminantlı birləşmə əhatə dairəsi sxemi ilə `validateBody` istifadə edir.
+**Autentifikasiya:** `/api/cloud/auth` Bearer açarını birbaşa doğrulayır və yalnız `manage` / `admin` əhatə dairəsinə malik açar üçün hər bağlantının maskalanmış açarını və `projectId` dəyərini qaytarır; digər `/api/cloud/*`, `/api/evals/*` və `/api/assess` marşrutları idarəetmə sessiyası/API açarı tələb edir. `/api/assess` POST ayrı-seçkili birləşmə əhatə dairəsi sxemi ilə `validateBody` istifadə edir.
 
 ---
 

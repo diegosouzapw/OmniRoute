@@ -4,17 +4,27 @@
 
 ---
 
-Sinusuri ng OmniRoute ang mga tugon ng error mula sa upstream para sa mga senyales na nagsasaad na ang isang **account ng provider ay permanenteng hindi na magagamit** (sinuspinde / dineactivate / pinagbawalan dahil sa ToS) at, kapag may tumugma, inililipat ang koneksiyong iyon sa isang **terminal na estadong `banned`** upang hindi na ito mapili para sa mga kahilingan. Ito ang kino-configure ng card ng mga setting na **Seguridad → Mga Ipinagbabawal na Keyword** ("Mga karagdagang keyword na nagti-trigger sa pagtukoy ng permanenteng pagbabawal sa account. Palaging nalalapat ang mga built-in na keyword.").
+Sinusuri ng OmniRoute ang mga upstream error response para sa mga senyas na nagpapahiwatig na ang isang provider
+**account ay permanenteng hindi na magagamit** (suspended / deactivated / na-ban dahil sa ToS) at, kapag
+may tumugma, inililipat ang koneksiyong iyon sa isang **terminal na `banned` state** upang hindi na ito
+mapili para sa mga request. Ito ang kino-configure ng settings card na **Security → Banned Keywords**
+("Mga karagdagang keyword na nagti-trigger ng pagtukoy sa permanenteng pag-ban ng account.
+Palaging inilalapat ang mga built-in na keyword.").
 
-Idinodokumento ng pahinang ito ang built-in na listahan, ang daloy ng pagtukoy, ang saklaw nito, kung paano ligtas na magdagdag ng mga custom na keyword, at kung paano ibalik ang isang na-flag na koneksiyon. Ang terminal na estado mismo ay bahagi ng modelo ng katatagan — tingnan ang
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Mga terminal na estado").
+Idinodokumento ng pahinang ito ang built-in na listahan, ang daloy ng pagtukoy, saklaw nito, kung paano ligtas na
+magdagdag ng mga custom na keyword, at kung paano i-recover ang isang na-flag na koneksiyon. Ang terminal
+state mismo ay bahagi ng resilience model — tingnan ang
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Mga terminal state").
 
-**Pinagmumulan ng katotohanan:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Pinagmulan ng katotohanan:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+kasama ang `open-sse/services/errorClassifier.ts` para sa non-terminal na verification class
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) at para sa
+403 branch na gumagamit nito.
 
 ## Mga built-in na keyword
 
-Palaging nalalapat ang 8 substring na ito (hindi case-sensitive), anuman ang anumang custom na listahan:
+Palaging inilalapat ang 7 substring na ito (hindi sensitibo sa laki o liit ng titik), anuman ang anumang custom na listahan:
 
 ```
 account_deactivated
@@ -22,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Nagbabago ang listahang ito habang binabago ng mga provider ang pananalita ng kanilang pagbabawal. Ang awtoritatibong
-> kopya ay `ACCOUNT_DEACTIVATED_SIGNALS` sa `open-sse/services/accountFallback.ts`;
+> Nagbabago ang listahang ito habang binabago ng mga provider ang pananalita ng kanilang pagbabawal. Ang opisyal
+> na kopya ay `ACCOUNT_DEACTIVATED_SIGNALS` sa `open-sse/services/accountFallback.ts`;
 > ituring ang block sa itaas bilang isang snapshot.
 
-May dalawang magkatabing, **magkahiwalay** na talahanayan ng signal sa parehong file at _hindi_ bahagi
-ng pagtukoy gamit ang mga ipinagbabawal na keyword:
+### Hindi isang pagbabawal: mga prompt sa pag-verify na maaaring aksiyunan ng operator
 
-- `CREDITS_EXHAUSTED_SIGNALS` — naubos ang billing/quota (`insufficient_quota`,
+Ang `verify your account to continue` ay **dating kasama** sa listahan sa itaas. Hindi ito
+signal ng pagbabawal at nasa `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` na ngayon, na inuuri bilang
+mare-recover na `PROJECT_ROUTE_ERROR` sa halip na permanenteng wakasan ang koneksyon.
+
+Ibinabalik ito ng Google Cloud Code / Antigravity bilang `403 VALIDATION_REQUIRED`. Ito ay
+**pansamantala at nangyayari sa malulusog na account na may buong quota** — nasukat sa isang aktuwal
+na deployment (2026-09-25, `proxy_logs`): isang koneksyon sa Antigravity ang nagbalik ng 33 sa mga
+403 na ito sa loob ng 10 minuto at nanatiling `active`, samantalang ang isang kaugnay na koneksyong may 100 % ng
+quota nito sa lahat ng 17 window ay permanenteng na-ban dahil sa **iisa** lamang nito. Ang tanging
+pagkakaiba ay kung aling pagtatangka ang nagkataong naproseso.
+
+Mahalaga ang pagkakaibang ito dahil ang terminal na pagtutugma ay `permanent: true` (1-taong cooldown,
+hindi kailanman awtomatikong nare-recover), samantalang maaaring alisin ng operator ang prompt sa pag-verify sa isang browser.
+Dahil sa pagpapanatili ng parirala sa listahan ng pagbabawal, hindi rin maaabot ang mare-recover na cloud-code 403 branch sa
+`classifyProviderError` para sa pananalitang ito, dahil unang sinusuri ang `accountDeactivated` — kaya hindi kailanman
+maipapatupad ang project-route recovery na idinagdag para sa Gemini Code Assist sa
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) at
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452).
+
+Ang tatlong magkatabi ngunit **magkakahiwalay** na talahanayan ng signal ay _hindi_ bahagi ng pagtukoy sa mga ipinagbabawal na keyword:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — ubos na billing/quota (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → terminal na `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **hindi terminal**; maaari itong mabawi sa pamamagitan ng pag-refresh ng token.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **hindi terminal**; maaari itong ma-recover sa pamamagitan ng pag-refresh ng token.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **hindi terminal**; kailangang muling
+  i-verify ng operator ang account sa upstream. Matatagpuan sa `open-sse/services/errorClassifier.ts`
+  (ang dalawa pa ay nasa `accountFallback.ts`). Tingnan ang seksyon sa itaas.
 
 Tandaan: ang mga karaniwang pansamantalang parirala tulad ng **`rate limit`** / `429` ay pinangangasiwaan ng
-path para sa rate limit / cooldown ng koneksiyon at **hindi** mga signal ng pagbabawal.
+rate-limit / connection-cooldown path at **hindi** mga signal ng pagbabawal.
 
 ## Daloy ng pagtukoy
 

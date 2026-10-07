@@ -523,3 +523,489 @@ test("agnes Video 2.5-flash submits Bearer auth and polls /v1/videos/{id}", asyn
     globalThis.setTimeout = originalSetTimeout;
   }
 });
+
+test("agnes Video V2.0 extracts result URL when returned as top-level url instead of metadata.url (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "task-top-123",
+          video_id: "video-top-123",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        url: "https://platform-outputs.agnes-ai.space/video-toplevel.mp4",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.error, undefined);
+    assert.equal(result.success, true);
+    assert.equal(
+      result.data.data[0].url,
+      "https://platform-outputs.agnes-ai.space/video-toplevel.mp4"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 does not return a JSON-encoded array string as the result URL (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "task-arr-1",
+          video_id: "video-arr-1",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        url: '[{"url":"https://platform-outputs.agnes-ai.space/video-array.mp4"}]',
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.error, undefined);
+    assert.equal(result.success, true);
+    assert.equal(
+      result.data.data[0].url,
+      "https://platform-outputs.agnes-ai.space/video-array.mp4"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 does not mistake a slash-containing non-URL value for the result URL (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "task-slash-1",
+          video_id: "video-slash-1",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        metadata: { url: "v2/clip" },
+        video_url: "https://platform-outputs.agnes-ai.space/video-real.mp4",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.error, undefined);
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "https://platform-outputs.agnes-ai.space/video-real.mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 extracts result URL from video_url, stringified metadata, data array, and fallback taskId (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+
+  // Case 1: video_url at top level + submit response with only `id` (no video_id)
+  globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.method === "POST") {
+      return new Response(JSON.stringify({ id: "task-video-url-123", status: "queued" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({
+        status: "COMPLETED",
+        video_url: "https://platform-outputs.agnes-ai.space/video-field.mp4",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const res1 = await handleVideoGeneration({
+      body: { model: "agnes/agnes-video-v2.0", prompt: "test 1" },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+    assert.equal(res1.success, true);
+    assert.equal(res1.data.data[0].url, "https://platform-outputs.agnes-ai.space/video-field.mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Case 2: metadata as serialized JSON string
+  globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.method === "POST") {
+      return new Response(JSON.stringify({ video_id: "vid-meta-str", status: "queued" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({
+        status: "succeeded",
+        metadata: JSON.stringify({
+          url: "https://platform-outputs.agnes-ai.space/video-meta-json.mp4",
+        }),
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const res2 = await handleVideoGeneration({
+      body: { model: "agnes/agnes-video-v2.0", prompt: "test 2" },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+    assert.equal(res2.success, true);
+    assert.equal(
+      res2.data.data[0].url,
+      "https://platform-outputs.agnes-ai.space/video-meta-json.mp4"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Case 3: data array with objects [{ url }]
+  globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.method === "POST") {
+      return new Response(JSON.stringify({ task_id: "task-data-arr", status: "queued" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({
+        task_status: "done",
+        data: [{ url: "https://platform-outputs.agnes-ai.space/video-data-arr.mp4" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const res3 = await handleVideoGeneration({
+      body: { model: "agnes/agnes-video-v2.0", prompt: "test 3" },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+    assert.equal(res3.success, true);
+    assert.equal(
+      res3.data.data[0].url,
+      "https://platform-outputs.agnes-ai.space/video-data-arr.mp4"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 prefers task_id over a generic id when the preset path is absent (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const polled: string[] = [];
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "corr-99887766",
+          task_id: "real-job-42",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    polled.push(call.url);
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        url: "https://platform-outputs.agnes-ai.space/video-ok.mp4",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.ok(
+      polled.some((u) => u.includes("real-job-42")),
+      "poll should use task_id, got: " + polled.join(",")
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 does not fall back to a thumbnail nested under metadata (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const polled: string[] = [];
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "job-thumb-1",
+          task_id: "job-thumb-1",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    polled.push(call.url);
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        result: { url: "https://cdn.example.com/preview-thumb.png" },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.notStrictEqual(
+      result?.data?.data?.[0]?.url,
+      "https://cdn.example.com/preview-thumb.png"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 keeps scanning past an image and returns the real video url (#13726)", async () => {
+  const originalFetch = globalThis.fetch;
+  const polled: string[] = [];
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "job-thumb-1",
+          task_id: "job-thumb-1",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    polled.push(call.url);
+    return new Response(
+      JSON.stringify({
+        status: "completed",
+        result: [
+          { url: "https://cdn.example.com/preview.png" },
+          { url: "https://cdn.example.com/real-video.mp4" },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-v2.0",
+        prompt: "A cinematic drone shot over mountains",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.data.data[0].url, "https://cdn.example.com/real-video.mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video V2.0 still returns a relative url at the documented preset path when nothing stricter matches (#13726)", async () => {
+  // Before #13726 any non-empty string at preset.resultPath was returned as-is.
+  // The stricter https/data/leading-slash filter must not turn that into a 502
+  // for a provider whose documented field holds a relative path.
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    if ((init?.method || "GET") === "POST") {
+      return new Response(JSON.stringify({ video_id: "video-rel-1", status: "queued" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({ status: "completed", metadata: { url: "videos/abc.mp4" } }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: { model: "agnes/agnes-video-v2.0", prompt: "A cinematic drone shot" },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.error, undefined);
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "videos/abc.mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});

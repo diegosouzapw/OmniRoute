@@ -4,69 +4,71 @@
 
 ---
 
-> **প্রামাণিক উৎস:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **সর্বশেষ হালনাগাদ:** 2026-06-28 — v3.8.40
+> **সত্যের উৎস:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **সর্বশেষ হালনাগাদ:** 2026-09-22 — স্কোপ নেমস্পেসগুলো MCP-SERVER.md-এর দিকে নির্দেশ করে
 
-OmniRoute-এ একটি রুট-সচেতন অনুমোদন পাইপলাইন রয়েছে, যা প্রতিটি API অনুরোধ নিয়ন্ত্রণ করে। শ্রেণিবিন্যাস **নির্ধারণমূলক** এবং **fail-closed** — যেকোনো কিছু শ্রেণিবদ্ধ করা না গেলে সেটি `MANAGEMENT` হিসেবে গণ্য হয় এবং একটি সেশন বা ম্যানেজমেন্ট-গ্রেড টোকেন দাবি করে। রুট রক্ষণাবেক্ষণকারী বা নতুন এন্ডপয়েন্ট ডিজাইনকারী প্রকৌশলীদের জন্য এই পৃষ্ঠায় মডেলটি ব্যাখ্যা করা হয়েছে।
+OmniRoute-এ একটি রুট-সচেতন অথরাইজেশন পাইপলাইন রয়েছে, যা প্রতিটি API অনুরোধকে নিয়ন্ত্রণ করে। শ্রেণিবিন্যাস **নির্ধারণবাদী** এবং **ব্যর্থ হলে বন্ধ** — শ্রেণিবদ্ধ করা যায় না এমন সবকিছু শেষ পর্যন্ত `MANAGEMENT` হিসেবে গণ্য হয় এবং একটি সেশন বা ম্যানেজমেন্ট-গ্রেড টোকেন দাবি করে। রুট রক্ষণাবেক্ষণকারী বা নতুন এন্ডপয়েন্ট ডিজাইনকারী প্রকৌশলীদের জন্য এই পৃষ্ঠায় মডেলটি ব্যাখ্যা করা হয়েছে।
 
 ![AuthZ পাইপলাইন (৩টি রুট শ্রেণি + নীতি মূল্যায়ন)](../diagrams/exported/authz-pipeline.svg)
 
 > উৎস: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## দুটি Auth মোড
+## দুটি প্রমাণীকরণ মোড
 
 ### 1. API কী (Bearer)
 
-OpenAI/Anthropic/Gemini-সামঞ্জস্যপূর্ণ ক্লায়েন্ট API এবং কীটির `manage` স্কোপ থাকলে কয়েকটি ম্যানেজমেন্ট রুটের জন্য ব্যবহৃত হয়।
+OpenAI/Anthropic/Gemini-সামঞ্জস্যপূর্ণ ক্লায়েন্ট API এবং কীটির `manage` স্কোপ থাকলে কয়েকটি ব্যবস্থাপনা রুটের জন্য ব্যবহৃত হয়।
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts`-এর `isValidApiKey()` / `extractApiKey()` দ্বারা যাচাই করা হয় এবং `src/shared/utils/apiAuth.ts`-এর মাধ্যমে পুনরায় এক্সপোর্ট করা হয়। যাচাইকারীটি `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` এনভায়রনমেন্ট ভ্যারিয়েবলকেও স্থায়ী পাসথ্রু কী হিসেবে গ্রহণ করে (ইস্যু #1350)।
+`src/sse/services/auth.ts`-এর `isValidApiKey()` / `extractApiKey()` দ্বারা যাচাই করা হয় এবং `src/shared/utils/apiAuth.ts`-এর মাধ্যমে পুনরায় এক্সপোর্ট করা হয়। যাচাইকারীটি স্থায়ী পাসথ্রু কী হিসেবে `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` এনভায়রনমেন্ট ভেরিয়েবলও গ্রহণ করে (ইস্যু #1350)।
 
 ### 2. ড্যাশবোর্ড সেশন (auth_token কুকি)
 
-ড্যাশবোর্ড পৃষ্ঠা এবং অ্যাডমিন অপারেশনের জন্য।
+ড্যাশবোর্ড পৃষ্ঠা এবং অ্যাডমিন কার্যক্রমের জন্য।
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-কোনো কুকি কেবল তখনই একটি সেশন, যখন JWT-টি যাচাইয়ে উত্তীর্ণ হয় **এবং** এতে `authenticated: true` থাকে
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। কুকিটির প্রতিটি
-ব্যবহারকারী (রুট গার্ড, authz পাইপলাইন রিফ্রেশ, WebSocket হ্যান্ডশেক, লাইভ
+একটি কুকিকে কেবল তখনই সেশন হিসেবে গণ্য করা হয়, যখন JWT যাচাইয়ে উত্তীর্ণ হয় **এবং** এতে `authenticated: true` থাকে
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। কুকিটির প্রত্যেক
+ব্যবহারকারী (ড্যাশবোর্ড রুট গার্ড (`isDashboardSessionAuthenticated()`), authz পাইপলাইন রিফ্রেশ, WebSocket হ্যান্ডশেক, লাইভ
 সার্ভার, `/api/settings/require-login`, `/api/auth/status`) ওই হেল্পারের মধ্য দিয়ে যায়।
-`JWT_SECRET` দিয়ে সাইন করা অন্যান্য JWT-ও রয়েছে — Cursor CLI পাসথ্রু কীধারীদের জন্য
+`JWT_SECRET` দিয়ে স্বাক্ষরিত অন্যান্য JWT-ও রয়েছে — Cursor CLI পাসথ্রু কীধারীদের জন্য
 `iss "omniroute" / aud "cursor-cli"` টোকেন তৈরি করে — এবং সেগুলো কখনোই সেশন নয়
 (#13298)।
 
 `src/shared/utils/apiAuth.ts`-এর `isDashboardSessionAuthenticated()` দ্বারা যাচাই করা হয়। ৩০ দিনের মেয়াদের মধ্যে ৭ দিনের কম সময় অবশিষ্ট থাকলে পাইপলাইনটি স্বয়ংক্রিয়ভাবে JWT রিফ্রেশ করে।
 
-কিছু ম্যানেজমেন্ট রুট **যেকোনো একটি** মোড গ্রহণ করে: কুকি অথবা API কীটির `manage` (বা `admin`) স্কোপ থাকলে `Bearer <key>`। এটিই v3.8-এ যোগ করা "API কলের মাধ্যমে কনফিগারযোগ্য" কর্মপ্রবাহটিকে সম্ভব করে।
+একটি সেশন ৩০ দিন পূর্ণ হওয়ার আগেও শেষ হতে পারে, কারণ প্রতিটি টোকেন নির্মাতা `mintDashboardSessionToken`-এর মধ্য দিয়ে যায় (একটি ইস্যু সময় `iat` এবং একটি আইডি `jti`) এবং যাচাইকারী দুটি সেটিং পরীক্ষা করে: `sessionsValidAfter`, যা পাসওয়ার্ড পরিবর্তনের সময় সেট করা হয়, ফলে এর আগে ইস্যু করা প্রতিটি সেশন আর যাচাইয়ে উত্তীর্ণ হয় না (যে ব্রাউজার থেকে পাসওয়ার্ড পরিবর্তন করা হয়েছে সেটি একটি নতুন কুকি পায়), এবং `revokedDashboardSessions`, যেখানে `POST /api/auth/logout` সাইন-আউট করা সেশনের `jti` যোগ করে। পুরোনো কোনো রিলিজ দ্বারা তৈরি সেশনে এই দাবিগুলোর কোনোটিই থাকে না এবং প্রথম পাসওয়ার্ড পরিবর্তন পর্যন্ত সেগুলো বৈধ থাকে। সেটিংস পড়া না গেলে সেশনটিকে বিশ্বস্ত বলে গণ্য করা হয় না।
+
+কিছু ব্যবস্থাপনা রুট **যেকোনো একটি** মোড গ্রহণ করে: কুকি অথবা `Bearer <key>`, যখন API কীটিতে `manage` (বা `admin`) স্কোপ থাকে। এটিই v3.8-এ যোগ করা "API কলের মাধ্যমে কনফিগারযোগ্য" কর্মপ্রবাহকে সম্ভব করে।
 
 #### ঐচ্ছিক OIDC লগইন গেট (#6973)
 
-ড্যাশবোর্ড অ্যাডমিন লগইনটি ডিফল্ট পাসওয়ার্ড লগইনের পাশাপাশি একটি **opt-in** OIDC (OpenID Connect) প্রবাহও সমর্থন করে — পাসওয়ার্ড লগইন কখনোই সরানো হয় না, কেবল
-সম্পূরক করা হয়:
+ড্যাশবোর্ড অ্যাডমিন লগইনটি ডিফল্ট পাসওয়ার্ড লগইনের পাশাপাশি একটি **ঐচ্ছিকভাবে সক্রিয়যোগ্য** OIDC (OpenID Connect) প্রবাহও সমর্থন করে — পাসওয়ার্ড লগইন কখনো সরানো হয় না, কেবল
+এর সঙ্গে অতিরিক্ত বিকল্প যোগ করা হয়:
 
 - `settings.oidcEnabled === true` **এবং** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret`—সবকটি কনফিগার করা না থাকলে এটি নিষ্ক্রিয় থাকে (Settings → Auth)।
+  `oidcClientId` / `oidcClientSecret`—সবগুলো কনফিগার করা না থাকলে এটি নিষ্ক্রিয় থাকে (Settings → Auth)।
   অন্যথায় `GET /api/auth/oidc/login` `400` ফেরত দেয়।
-- `GET /api/auth/oidc/login` ইস্যুয়ারের
-  `/.well-known/openid-configuration` থেকে `authorization_endpoint` আবিষ্কার করে (`<issuer>/authorize`-এ
-  ফলব্যাক করে), আগত অনুরোধ থেকে রিডাইরেক্ট URI তৈরি করে
-  (`x-forwarded-proto`-সচেতন), এবং একটি র্যান্ডম `state`-সহ IdP-তে রিডাইরেক্ট করে,
-  যা একটি `httpOnly` `oidc_state` কুকিতে সংরক্ষিত থাকে।
-- `GET /api/auth/oidc/callback` `state` যাচাই করে, অথরাইজেশন
-  কোড বিনিময় করে এবং ইস্যুয়ারের JWKS-এর মাধ্যমে ID টোকেনের স্বাক্ষর যাচাই করে
-  (`jose`-এর `createRemoteJWKSet`, প্রতি JWKS URI অনুযায়ী ক্যাশ করা) এবং `issuer`/`audience`
-  পরীক্ষা করে। একটি ঐচ্ছিক `oidcAllowedSubjects` অনুমোদিত-তালিকা টোকেনের
-  `sub` ক্লেইম বা এর `email` ক্লেইমের সঙ্গে মিলিয়ে দেখে — `email` ক্লেইমটি কেবল তখনই গ্রহণ করা হয় যখন
-  `email_verified === true`, ফলে IdP-তে থাকা কোনো অযাচাইকৃত ইমেইল কখনোই
+- `GET /api/auth/oidc/login` ইস্যুকারীর
+  `/.well-known/openid-configuration` থেকে `authorization_endpoint` আবিষ্কার করে (তা না পেলে
+  `<issuer>/authorize` ব্যবহার করে), আগত অনুরোধ থেকে রিডাইরেক্ট URI তৈরি করে
+  (`x-forwarded-proto`-সচেতন), এবং একটি `httpOnly` `oidc_state` কুকিতে সংরক্ষিত এলোমেলো `state`
+  সহ IdP-তে রিডাইরেক্ট করে।
+- `GET /api/auth/oidc/callback` `state` যাচাই করে, অনুমোদন
+  কোড বিনিময় করে এবং ইস্যুকারীর JWKS-এর মাধ্যমে ID টোকেনের স্বাক্ষর যাচাই করে
+  (`jose`-এর `createRemoteJWKSet`, প্রতি JWKS URI অনুযায়ী ক্যাশ করা) এবং সঙ্গে `issuer`/`audience`
+  পরীক্ষাও করে। একটি ঐচ্ছিক `oidcAllowedSubjects` অনুমোদন-তালিকা টোকেনের
+  `sub` দাবি অথবা এর `email` দাবির সঙ্গে মিলিয়ে দেখে — ইমেইল দাবিটি কেবল তখনই গ্রহণ করা হয়, যখন
+  `email_verified === true`; ফলে IdP-তে থাকা কোনো অযাচাইকৃত ইমেইল কখনোই
   গেট অতিক্রম করতে পারে না।
-- সফল হলে এটি পাসওয়ার্ড লগইনের জারি করা **হুবহু একই** ৩০ দিনের `auth_token` JWT
-  তৈরি করে (`src/app/api/auth/login/route.ts`), ফলে ড্যাশবোর্ড সেশন
+- সফল হলে এটি পাসওয়ার্ড লগইন দ্বারা ইস্যু করা **হুবহু একই** ৩০ দিনের `auth_token` JWT
+  তৈরি করে (`src/app/api/auth/login/route.ts`), তাই ড্যাশবোর্ড সেশন
   পাইপলাইনের বাকি অংশ (স্বয়ংক্রিয় রিফ্রেশ, কুকি ফ্ল্যাগ) অপরিবর্তিত থাকে —
   OIDC শুধু কুকিটি কীভাবে তৈরি হয় তা প্রতিস্থাপন করে, এটি কী অনুমতি দেয় তা নয়।
 
@@ -201,24 +203,33 @@ export async function POST(request: Request) {
 
 ## স্কোপসমূহ
 
-API কীগুলো একটি `scopes` অ্যারে বহন করে (JSON হিসেবে `api_keys.scopes`-এ সংরক্ষিত, দেখুন `src/lib/db/apiKeys.ts`)।
+তিনটি নেমস্পেস। প্রতিটি পরীক্ষক কেবল তার নিজস্ব স্ট্রিং পড়ে। পাশাপাশি তুলনা, যার মধ্যে কেন `manage` `read:compression`-এর জন্য `scopeMatches`-এ ব্যর্থ হয় এবং কেন একটি `read` অ্যাক্সেস টোকেন `PATCH /api/keys/{id}` করতে পারে না, তা এখানে রয়েছে:
+[তিনটি স্কোপ নেমস্পেস](../frameworks/MCP-SERVER.md#three-scope-namespaces)।
 
-### ম্যানেজমেন্ট স্কোপ
+API কিগুলো একটি `scopes` অ্যারে বহন করে (`api_keys.scopes`-এ JSON হিসেবে সংরক্ষিত, দেখুন `src/lib/db/apiKeys.ts`)।
 
-- `manage` / `admin` — Bearer হিসেবে পাঠানো হলে কীটিকে ম্যানেজমেন্ট API এন্ডপয়েন্টগুলোতে অ্যাক্সেস দেয়।
+### ব্যবস্থাপনা স্কোপ
 
-### MCP স্কোপসমূহ (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`। ব্যবস্থাপনা API রুটগুলোতে Bearer অ্যাক্সেস।
+- `mcp:connect`, `self:usage`, `self:account-quota`, এবং
+  `policy:bypass-provider-quota` হলো সংযোজনধর্মী হুবহু-মিল স্কোপ। এগুলো
+  `MANAGEMENT_API_KEY_SCOPES`-এর বাইরে থাকে। `mcp:connect` কেবল
+  `/api/mcp/` নন-লুপব্যাক ব্যতিক্রমটি উন্মুক্ত করে।
 
-প্রতিটি MCP টুলের জন্য `MCP_TOOL_SCOPES`-এর মাধ্যমে নির্দিষ্ট স্কোপ প্রয়োজন। সম্পূর্ণ তালিকা (`MCP_SCOPE_LIST`):
+### MCP টুল স্কোপসমূহ
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+ক্যাটালগ এবং মেলানোর নিয়মাবলি (অভিন্ন স্ট্রিং, অথবা `*` দিয়ে শেষ হওয়া কোনো মঞ্জুরকৃত স্কোপ):
+[MCP টুল স্কোপসমূহ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts`-এর `MCP_SCOPE_LIST` হলো মূল টাইপযুক্ত
+উপসেট, সম্পূর্ণ ক্যাটালগটি নয়। `resolveCallerScopeContext()` MCP প্রমাণীকরণ তথ্য, অনুরোধের মেটাডেটা, অথবা `OMNIROUTE_MCP_SCOPES` থেকে স্কোপ নির্ধারণ করার পর
+`open-sse/mcp-server/scopeEnforcement.ts`-এ প্রয়োগ কার্যকর হয়।
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` না হলে এটি নিষ্ক্রিয় থাকে।
 
-`resolveCallerScopeContext()` MCP auth তথ্য, রিকোয়েস্ট মেটাডেটা, অথবা `OMNIROUTE_MCP_SCOPES` থেকে স্কোপ নির্ধারণ করার পর `open-sse/mcp-server/server.ts`-এর স্কোপ প্রয়োগ ব্যবস্থা প্রতিটি টুলের স্কোপ তালিকা `evaluateToolScopes()`-এ পাঠায়।
+### অ্যাক্সেস-টোকেন স্কোপসমূহ
+
+`oma_live_…` টোকেনে `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) অনুযায়ী র্যাঙ্ক করা। এই র্যাঙ্ক কেবল অ্যাক্সেস-টোকেন
+ক্রেডেনশিয়ালের ক্ষেত্রেই প্রযোজ্য। দেখুন [ব্যবস্থাপনা প্রমাণীকরণ](../guides/MANAGEMENT-AUTH.md)।
 
 ## Auth আবশ্যকতা টগল
 
@@ -266,7 +277,7 @@ x-omniroute-auth-scopes:    কমা দিয়ে পৃথক করা ত
 
 ## আরও দেখুন
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — প্রতিটি এন্ডপয়েন্টের অথ মার্কার
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — অথ ইভেন্টের অডিট লগ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP স্কোপ প্রয়োগের বিস্তারিত
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — প্রতিটি এন্ডপয়েন্টের auth মার্কার
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auth ইভেন্টগুলোর জন্য অডিট লগ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — তিনটি scope namespace এবং MCP tool-scope ক্যাটালগ
 - সোর্স: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

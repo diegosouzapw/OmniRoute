@@ -4,55 +4,57 @@
 
 ---
 
-OmniRoute boshqaruv marshrutlarini avtorizatsiya qila oladigan **toʻrtta hisob maʼlumotlari oilasiga** ega.
-Ular oʻzaro almashtirilmaydi. Inferens API kalitlari (`sk-…`), agar ularga aniq ravishda
-`manage` yoki `admin` doirasi berilmagan boʻlsa, serverni **boshqarmaydi**.
+OmniRoute'da **to'rtta hisobga olish ma'lumotlari oilasi** mavjud bo'lib, ular boshqaruv marshrutlarini avtorizatsiya qila oladi.
+Ular bir-birini almashtira olmaydi. Inference API kalitlari (`sk-…`) serverni boshqarmaydi,
+agar ularga aniq `manage` yoki `admin` doirasi berilmagan bo'lsa.
 
-Kanonik implementatsiya: `src/lib/api/requireManagementAuth.ts`.
+Kanonik amalga oshirish: `src/lib/api/requireManagementAuth.ts`.
 
-| Hisob maʼlumoti                  | Odatdagi shakli                           | Qayerda yaratiladi                                           | Moʻljallangan foydalanish         | Boshqaruv imkoniyati                                                                                       |
-| -------------------------------- | ----------------------------------------- | ------------------------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Dashboard JWT seansi             | `auth_token` cookie fayli                 | Dashboard orqali kirish                                      | Brauzer interfeysi                | CSRF, lokallik va doimo himoyalangan marshrut qoidalariga amal qilgan holda dashboardʼni toʻliq boshqarish |
-| CLI machine-id tokeni            | ichki / lokal                             | CLI boshlangʻich sozlamasi (xuddi shu mashinada `omniroute`) | Lokal CLI                         | Faqat lokal boshqaruv                                                                                      |
-| Doirasi belgilangan Access Token | `oma_live_…`                              | **Settings → Access Tokens** yoki `omniroute connect`        | Masofaviy CLI va boshqaruv APIʼsi | Marshrut talab qiladigan `read`, `write` yoki `admin` doirasiga mos kelishi kerak                          |
-| Inferens API kaliti              | `sk-…` (va boshqa API kaliti prefikslari) | **API Manager / API Keys**                                   | `/v1/*` inferensi                 | Kalit metamaʼlumotlarida `manage` yoki `admin` boʻlmasa, **hech qanday**                                   |
+| Hisobga olish ma'lumotlari | Odatiy shakl                             | Qayerda yaratilgan                                         | Mo'ljallangan foydalanish      | Boshqaruv imkoniyati                                                                                  |
+| :------------------------- | :--------------------------------------- | :--------------------------------------------------------- | :----------------------------- | :---------------------------------------------------------------------------------------------------- |
+| Dashboard JWT sessiyasi    | `auth_token` cookie                      | Dashboardga kirish                                         | Brauzer interfeysi             | CSRF, joylashuv va doimiy himoyalangan marshrut qoidalariga bo'ysunadigan to'liq dashboard boshqaruvi |
+| CLI machine-id tokeni      | ichki / mahalliy                         | CLI bootstrap (`omniroute` bir xil mashinada)              | Mahalliy CLI                   | Faqat mahalliy boshqaruv                                                                              |
+| Doirali kirish tokeni      | `oma_live_…`                             | **Sozlamalar → Kirish Tokenlari** yoki `omniroute connect` | Masofaviy CLI va boshqaruv API | Marshrutning talab qilinadigan `read`, `write` yoki `admin` doirasiga mos kelishi kerak               |
+| Inference API kaliti       | `sk-…` (va boshqa API-kalit prefikslari) | **API menejeri / API kalitlari**                           | `/v1/*` inference              | **Hech qanday** agar kalit metama'lumotlarida `manage` yoki `admin` bo'lmasa                          |
 
-`oma_` hisob maʼlumotlari boshqaruv/CLI hisob maʼlumotlaridir. Ular inferens API kalitlari **emas**.
+`oma_` hisobga olish ma'lumotlari boshqaruv/CLI hisobga olish ma'lumotlaridir. Ular inference API kalitlari **emas**.
 
-Agar server uchun kirish/API kaliti orqali autentifikatsiya oʻchirilgan boʻlsa, ayrim boshqaruv marshrutlari
-autentifikatsiyasiz chaqiruvlarni qabul qilishi mumkin. Faqat lokal va doimo himoyalangan marshrutlarda
-baribir oʻz qoidalari amal qiladi. Shu sababli, bu hisob maʼlumotlaridan birini taqdim etish barcha holatlarda
-majburiy emas va kerakli doira hamda marshrut lokalligisiz unga egalik qilish ham barcha holatlarda yetarli emas.
+Agar server uchun kirish/API-kalit autentifikatsiyasi o'chirilgan bo'lsa, ba'zi boshqaruv marshrutlari
+autentifikatsiyadan o'tmagan chaqiruvlarni qabul qilishi mumkin. Faqat mahalliy va doimiy himoyalangan marshrutlar
+o'z qoidalarini qo'llashda davom etadi. Shuning uchun, ushbu hisobga olish ma'lumotlaridan birini taqdim etish universal
+majburiy emas, va unga ega bo'lish talab qilingan doira va marshrut joylashuvisiz universal yetarli emas.
 
-Tegishli: [Masofaviy rejim](./REMOTE-MODE.md) (`oma_live_…` masofaviy CLI uchun qanday yaratilishi).
+Bog'liq: [Masofaviy rejim](./REMOTE-MODE.md) (`oma_live_…` masofaviy CLI uchun qanday yaratilishi).
 
 ---
 
-## Doiralar matritsalari
+## Doiraviy matritsalar
 
-Bu ikki doira lugʻati **bir-biridan farq qiladi**. Ularni aralashtirmang.
+API-kalit boshqaruvi doiralari va kirish tokeni doiralari turli xil lugʻatlardir.
+MCP vositasi doiralari uchinchi lugʻat boʻlib, quyidagi jadvallardagi funksiyalardan koʻra
+`scopeMatches` bilan tekshiriladi. Yonma-yon:
+[Uchta doiraviy nom maydoni](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Access Token doiralari (`oma_live_…`)
+### Kirish tokeni doiralari (`oma_live_…`)
 
-| Doira   | Odatdagi amallar                                                                            |
-| ------- | ------------------------------------------------------------------------------------------- |
-| `read`  | Token koʻrishiga ruxsat berilgan roʻyxat/holat GET soʻrovlari                               |
-| `write` | Admin darajasidan pastdagi oʻzgartirishlar (yaratish/yangilash/oʻchirish)                   |
-| `admin` | Toʻliq masofaviy CLI / ulanish tokeni (parol orqali boshlangʻich sozlashda standart qiymat) |
+| Doira   | Odatdagi operatsiyalar                                                    |
+| ------- | ------------------------------------------------------------------------- |
+| `read`  | Token koʻrishga ruxsat berilgan roʻyxat/holat GET soʻrovlari              |
+| `write` | Admin ostidagi oʻzgarishlar (yaratish/yangilash/oʻchirish)                |
+| `admin` | Toʻliq masofaviy CLI / ulanish tokeni (parol bootstrap bu yerda standart) |
 
-`read` doirasiga ega token `write` marshrutini chaqira olmaydi. Ish vaqtidagi xabar shakli:
+`read` doirasiga ega token `write` yoʻnalishini chaqira olmaydi. Ishlash vaqtidagi xabar shakli:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### API kalitining boshqaruv doiralari
+### API-kalit boshqaruvi doiralari
 
-| Doira    | Maʼnosi                                                                                |
-| -------- | -------------------------------------------------------------------------------------- |
-| (yoʻq)   | Faqat inferens. Boshqaruv marshrutlari 403 qaytaradi.                                  |
-| `manage` | Boshqaruv APIʼsi (`requireManagementAuth` API kaliti tarmogʻi bilan bir xil tekshiruv) |
-| `admin`  | `hasManageScope` talabini ham qondiradi (boshqaruv imkoniyatiga ega deb qaraladi)      |
+| Doira    | Maʼnosi                                                                       |
+| -------- | ----------------------------------------------------------------------------- |
+| (none)   | Faqat xulosa. Boshqaruv yoʻnalishlari 403 qaytaradi.                          |
+| `manage` | Boshqaruv API (xuddi `requireManagementAuth` API-kalit tarmogʻi kabi)         |
+| `admin`  | Shuningdek, `hasManageScope` ni qondiradi (boshqaruvga qodir deb hisoblanadi) |
 
-Kalit uchun API Keys / API Manager interfeysida `manage`ni yoqing. Agar bu doirani ataylab
-bermagan boʻlsangiz, avtomatlashtirish uchun chat mijozi kalitidan qayta foydalanmang.
+API Keys / API Manager UI da kalitda `manage` ni yoqing. Agar siz ushbu doirani ataylab bermagan boʻlsangiz, avtomatlashtirish uchun chat mijozining kalitini qayta ishlatmang.
 
 ---
 
@@ -127,27 +129,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Joriy ish vaqti xatolari (sirlarni aks ettirmang)
+## Joriy ish vaqti xatolari (maxfiy ma'lumotlarni aks ettirmang)
 
-| Vaziyat                                           | Odatdagi holat | Xabar (maxfiy maʼlumotlardan tozalangan)                                      |
-| ------------------------------------------------- | -------------- | ----------------------------------------------------------------------------- |
-| Hisob maʼlumoti yoʻq                              | 401            | `Autentifikatsiya talab qilinadi`                                             |
-| Yaroqsiz/muddati tugagan `oma_live_…`             | 401            | `Yaroqsiz yoki muddati tugagan kirish tokeni`                                 |
-| `manage`/`admin` huquqisiz yaroqli API kaliti     | 403            | `API kalitida 'manage' doirasi yoʻq. Uni API Keys boshqaruv panelida yoqing.` |
-| Boshqaruv marshrutidagi yaroqsiz oddiy API kaliti | 403            | `Yaroqsiz boshqaruv tokeni`                                                   |
-| Access Token doirasi yetarli emas                 | 403            | `Kirish tokenining '<have>' doirasi yetarli emas; '<need>' talab qilinadi.`   |
+| Vaziyat                                        | Odatiy holat | Xabar (tozalangan)                                                   |
+| :--------------------------------------------- | :----------- | :------------------------------------------------------------------- |
+| Hisobga olish ma'lumotlari yo'q                | 401          | `Authentication required`                                            |
+| Yaroqsiz/muddati o'tgan `oma_live_…`           | 401          | `Invalid or expired access token`                                    |
+| `manage`/`admin` ruxsatisiz haqiqiy API kaliti | 403          | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Boshqaruv yo'lida yaroqsiz oddiy API kaliti    | 403          | `Invalid management token`                                           |
+| Kirish tokenining ruxsat doirasi juda past     | 403          | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Yaroqsiz boshqaruv tokeni" degani bearer boshqaruv hisob maʼlumoti sifatida **qabul qilinmaganini** anglatadi. Bu qaysi turdagi hisob maʼlumotini yaratish kerakligini **bildirmaydi**. Yuqoridagi jadvaldan foydalaning:
-inferensiya kalitlariga `manage` doirasi kerak; masofaviy CLI uchun `oma_live_…` kerak; boshqaruv paneli esa seans cookie’sidan foydalanadi.
+"Invalid management token" bu tashuvchi boshqaruv hisobga olish ma'lumotlari sifatida **qabul qilinmaganini** anglatadi. U sizga qaysi oilani yaratishni **aytmaydi**. Yuqoridagi jadvaldan foydalaning: xulosa kalitlari `manage` ruxsat doirasini talab qiladi; masofaviy CLI `oma_live_…` ni talab qiladi; boshqaruv paneli sessiya kukisidan foydalanadi.
 
 ---
 
-## Tavsiya etilgan minimal imtiyozli tanlov
+## Tavsiya etilgan eng kam imtiyozli tanlov
 
-| Chaqiruvchi                                                | Foydalaniladigan vosita                                           |
-| ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| Brauzer                                                    | Boshqaruv paneli seansi                                           |
-| Server xostidagi CLI                                       | Mashina tokeni                                                    |
-| Masofaviy server bilan aloqa qiluvchi noutbukdagi CLI      | `omniroute connect` orqali olingan `oma_live_…`                   |
-| CI / skriptlar (faqat boshqaruv)                           | Ishlaydigan eng kichik doiraga ega `oma_live_…`                   |
-| Ham `/v1`, ham `/api`’ga murojaat qilishi kerak boʻlgan CI | `manage` doirasiga ega API kaliti **yoki** ikkita hisob maʼlumoti |
+| Chaquiruvchi                                   | Foydalanish                                               |
+| :--------------------------------------------- | :-------------------------------------------------------- |
+| Brauzer                                        | Boshqaruv paneli sessiyasi                                |
+| Server xostidagi CLI                           | Mashina tokeni                                            |
+| Noutbukdagi CLI uzoq server bilan gaplashadi   | `omniroute connect` dan `oma_live_…`                      |
+| CI / skriptlar (faqat boshqaruv)               | Eng kichik ishlaydigan doiradagi `oma_live_…`             |
+| `/v1` va `/api` ni chaqirishi kerak bo'lgan CI | `manage` **yoki** ikkita hisob ma'lumotiga ega API kaliti |

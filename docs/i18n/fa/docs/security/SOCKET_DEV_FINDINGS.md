@@ -185,28 +185,27 @@ rawBody)`) پیش از تجزیه JSON بررسی میکند. اگر secret تن
 
 ## پروفایل ساخت: `minimal`
 
-برای کاربرانی که به یک artifact سازگار با Socket نیاز دارند، با دستور زیر build کنید:
+برای کاربرانی که به یک خروجی سازگار با Socket نیاز دارند، با دستور زیر بسازید:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-پلاگین `NormalModuleReplacementPlugin` در webpack چهار ماژول را به stubها alias میکند:
+افزونه webpack با نام `NormalModuleReplacementPlugin` چهار ماژول را به نمونههای جایگزین متصل میکند:
 
-| ماژول                                       | Stub                                             |
+| ماژول                                       | نمونه جایگزین                                    |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-هر stub همان سطح رابط را export میکند، اما هر تابع در زمان اجرا یک
-`featureDisabledError(name)` پرتاب میکند. routeهایی که به ماژول غیرفعالشده
-وابستهاند، بهجای فعالکردن مسیر کد حساس، HTTP 503 را همراه با پیامی شفاف
-برمیگردانند.
+هر نمونه جایگزین همان رابط را صادر میکند، اما تمام توابع آن در زمان اجرا یک
+`featureDisabledError(name)` ایجاد میکنند. مسیرهایی که به ماژول غیرفعالشده
+وابستهاند، بهجای فعالکردن مسیر کد حساس، وضعیت HTTP 503 را همراه با پیامی
+شفاف برمیگردانند.
 
-باندل حاصل برای انتشار با نام `omniroute-secure` در نظر گرفته شده است. برای
-دستورالعمل انتشار به `docs/ops/PUBLISHING_SECURE.md` مراجعه کنید.
+بسته نهایی برای انتشار با نام `omniroute-secure` در نظر گرفته شده است.
 
 ---
 

@@ -87,9 +87,33 @@ export async function releaseChatAdmissionAfterHandler(
   lease: ChatAdmissionLease | null,
   options: ReleaseChatAdmissionOptions = {}
 ): Promise<Response> {
+  const { signal } = options;
+  let abortedWhilePending = false;
+  let detachAbortListener = (): void => undefined;
+
+  if (signal && lease) {
+    const onAbort = (): void => {
+      abortedWhilePending = true;
+      detachAbortListener();
+      if (!lease.released) lease.release();
+    };
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+      detachAbortListener = () => signal.removeEventListener("abort", onAbort);
+    }
+  }
+
   try {
-    return releaseChatAdmissionWhenDone(await responsePromise, lease, options);
+    const response = await responsePromise;
+    detachAbortListener();
+    // The lease was already released by the pending-phase abort listener above;
+    // skip the redundant stream-wrapping work in releaseChatAdmissionWhenDone.
+    if (abortedWhilePending) return response;
+    return releaseChatAdmissionWhenDone(response, lease, options);
   } catch (error) {
+    detachAbortListener();
     lease?.release();
     throw error;
   }

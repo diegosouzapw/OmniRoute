@@ -1,0 +1,1 @@
+- `Coverage` job on `ci.yml`: the informational Codecov upload gets its own 5-minute ceiling and `continue-on-error`, and the job budget grows from 20 to 30 minutes (the 8-shard c8 merge alone takes ~10) — a stalled upload no longer ends the job `cancelled` and drags a fully green `main` run's conclusion down with it

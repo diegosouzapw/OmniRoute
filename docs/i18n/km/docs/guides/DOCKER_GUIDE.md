@@ -237,14 +237,14 @@ Prod stack ដំណើរការស្របគ្នាជាមួយ dev c
 
 ## ដំណាក់កាល Dockerfile
 
-ឃ្លាំងកូដនេះផ្ដល់ជូន Dockerfile ពហុដំណាក់កាល (`Dockerfile`)។ មានដំណាក់កាលចំនួនបួនដែលអាចប្រើបាន សូមជ្រើសរើស `target` ឱ្យសមស្របនឹងករណីប្រើប្រាស់របស់អ្នក។
+ឃ្លាំងកូដនេះផ្តល់មកជាមួយ Dockerfile ពហុដំណាក់កាល (`Dockerfile`)។ មានដំណាក់កាលចំនួនបួនដែលអាចប្រើបាន; សូមជ្រើសរើស `target` ដែលត្រឹមត្រូវសម្រាប់ករណីប្រើប្រាស់របស់អ្នក។
 
-| ដំណាក់កាល     | អ៊ីមេจមូលដ្ឋាន        | គោលបំណង                                                                                                                                                                                                                                                                                                             |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | ដំឡើង dependencies (`npm ci --legacy-peer-deps`) និងដំណើរការ `npm run build` (ប្រើ Turbopack តាមលំនាំដើម — សូមមើលធនធានពេល build ខាងក្រោម)                                                                                                                                                                           |
-| `runner-base` | `node:26-trixie-slim` | បរិស្ថានដំណើរការ production ជាមួយលទ្ធផល standalone របស់ Next.js។ **មិនមានភ្ជាប់ CLI របស់ provider ទេ។**                                                                                                                                                                                                             |
-| `runner-cli`  | `runner-base`         | បន្ថែម `git`, `docker.io`, `docker-compose` និង CLI សកល៖ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`។ **សូមជ្រើសរើសដំណាក់កាលនេះសម្រាប់ workflow បែប agentic។**                                                                                                                                |
-| `runner-web`  | `runner-base`         | បន្ថែម Playwright + កម្មវិធីរុករក Chromium (`--with-deps`) សម្រាប់ provider ដែលប្រើ web session៖ `gemini-web`, `claude-web`, `claude-turnstile`។ **សូមជ្រើសរើសដំណាក់កាលនេះនៅពេលអ្នកប្រើ provider ទាំងនោះ** — អ៊ីមេจធម្មតានឹងបរាជ័យនៅពេលស្នើសុំ ប្រសិនបើគ្មានវា (សូមមើលកំណត់សម្គាល់ `-web` នៅក្រោមប៉ុស្តិ៍ចេញផ្សាយ)។ |
+| ដំណាក់កាល     | Image មូលដ្ឋាន        | គោលបំណង                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | ដំឡើង dependencies (`npm ci --legacy-peer-deps`) និងដំណើរការ `npm run build` (ប្រើ Turbopack តាមលំនាំដើម — សូមមើលធនធានពេល build ខាងក្រោម)                                                                                                                                                                 |
+| `runner-base` | `node:26-trixie-slim` | Runtime សម្រាប់ production ដែលមានលទ្ធផល standalone របស់ Next.js។ **មិនមាន CLI របស់ provider ណាមួយភ្ជាប់មកជាមួយទេ។**                                                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | បន្ថែម `git`, `docker.io`, `docker-compose` និង CLI សកល៖ `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`។ **សូមជ្រើសរើសវាសម្រាប់ workflow បែប agentic។**                                                                                                                                |
+| `runner-web`  | `runner-base`         | បន្ថែម Playwright + កម្មវិធីរុករក Chromium (`--with-deps`) សម្រាប់ provider ដែលប្រើ web session៖ `gemini-web`, `claude-web`, `claude-turnstile`។ **សូមជ្រើសរើសវានៅពេលអ្នកប្រើ provider ទាំងនេះ** — image ធម្មតានឹងបរាជ័យនៅពេល request ប្រសិនបើគ្មានវា (សូមមើលកំណត់សម្គាល់ `-web` ក្រោម Release Channels)។ |
 
 Build target ជាក់លាក់មួយដោយដៃ៖
 
@@ -256,78 +256,84 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### ធនធានពេល build
 
-build arg ចំនួនបីគ្រប់គ្រងការប្រើប្រាស់ធនធានរបស់ដំណាក់កាល `builder`។ ពួកវាប្រើតែនៅពេល build ប៉ុណ្ណោះ —
-`OMNIROUTE_MEMORY_MB` (ខាងក្រោម) គឺជាការកំណត់សម្រាប់ runtime ដាច់ដោយឡែកមួយទៀត។
+Build args ចំនួនបីគ្រប់គ្រងធនធានដែលដំណាក់កាល `builder` ប្រើប្រាស់។ ពួកវាសម្រាប់តែពេល build ប៉ុណ្ណោះ —
+`OMNIROUTE_MEMORY_MB` (ខាងក្រោម) គឺជា knob សម្រាប់ runtime ដាច់ដោយឡែកមួយ។
 
-| Build arg                   | លំនាំដើម | ឥទ្ធិពល                                                                                        |
-| --------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` នឹង build ដោយប្រើ webpack ជំនួសវិញ។ ប្រើអង្គចងចាំនៅកម្រិតកំពូលតិចជាង ប៉ុន្តែយឺតជាង។        |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | កម្រិតអតិបរមានៃ heap របស់ V8 (`--max-old-space-size`) សម្រាប់ `next build` ដែលត្រូវបានបង្កើត។  |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | បញ្ជូនតម្លៃទៅ `CIRCLE_NODE_TOTAL`; Next កំណត់ `workers = N - 1` សម្រាប់ការប្រមូលទិន្នន័យទំព័រ។ |
+| Build arg                   | លំនាំដើម | ឥទ្ធិពល                                                                                       |
+| --------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` build ដោយប្រើ webpack៖ ប្រើអង្គចងចាំអតិបរមាតិចជាង ប៉ុន្តែយឺតជាង។ `1` ជ្រើសប្រើ Turbopack។ |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ដែនកំណត់ heap របស់ V8 (`--max-old-space-size`) សម្រាប់ `next build` ដែលត្រូវបានបង្កើតឡើង។     |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | បញ្ជូនតម្លៃទៅ `CIRCLE_NODE_TOTAL`; Next កំណត់ `workers = N - 1` សម្រាប់ការប្រមូល page-data។   |
 
-`OMNIROUTE_BUILD_WORKERS` គឺជាតម្លៃដែលគួរបង្កើននៅលើម៉ាស៊ីន build ធំ ហើយក៏ជាតម្លៃដែលគួរ
-សង្ស័យនៅពេល build លើម៉ាស៊ីនដែលមានធនធានកម្របរាជ័យ **បន្ទាប់ពី** `✓ Compiled successfully`។ worker
-សម្រាប់ទិន្នន័យទំព័រនីមួយៗគឺជា process ដាច់ដោយឡែក ហើយ process មេ `next build` ក៏ដូចគ្នា;
-ការធ្វើតេស្តឡើងវិញលើ VPS ដែលកំពុងដំណើរការជាក់ស្ដែង (issue #7518) បានវាស់ឃើញថា RSS កម្រិតកំពូលរបស់ process នីមួយៗ
-មានតម្លៃ ~4.5 GB ដោយឯករាជ្យពី flag heap របស់ `NODE_OPTIONS` (Turbopack compile នៅក្នុង
-អង្គចងចាំ native/Rust ដែលនៅក្រៅ heap របស់ V8)។ តម្លៃលំនាំដើម `2` (→ worker 1, សរុប 2
-process) ត្រូវបានកំណត់សម្រាប់ runner ដែល host ដោយ GitHub ទំហំ 16 GB / 4 vCPU ដែល
-pipeline សម្រាប់ publish ប្រើ។ នៅតម្លៃ `8` (→ worker 7) runner នោះអស់អង្គចងចាំ ហើយ
+`OMNIROUTE_BUILD_WORKERS` គឺជាតម្លៃដែលគួរបង្កើនលើ builder ដែលមានធនធានធំ ហើយក៏ជាតម្លៃដែល
+គួរសង្ស័យនៅពេល build ក្នុងបរិស្ថានមានធនធានកំណត់បរាជ័យ **បន្ទាប់ពី** `✓ Compiled successfully`។ រាល់
+page-data worker នីមួយៗគឺជា process ដាច់ដោយឡែក ហើយ parent `next build` ខ្លួនវាក៏ដូចគ្នា;
+ការធ្វើតេស្តឡើងវិញលើ VPS ផ្ទាល់ (issue #7518) បានវាស់ឃើញថា RSS អតិបរមារបស់ process នីមួយៗមាន
+~4.5 GB ដោយឯករាជ្យពី heap flag របស់ `NODE_OPTIONS` (Turbopack compile ក្នុង
+អង្គចងចាំ native/Rust នៅខាងក្រៅ V8 heap)។ លំនាំដើម `2` (→ worker 1, សរុប 2
+processes) ត្រូវបានកំណត់សម្រាប់ runner ដែល host ដោយ GitHub ទំហំ 16 GB / 4 vCPU ដែល
+publish pipeline ប្រើ។ នៅតម្លៃ `8` (→ workers 7) runner នោះអស់អង្គចងចាំ ហើយ
 buildkit បានធ្វើឱ្យជំហាននោះបរាជ័យជាមួយ `ResourceExhausted: ... cannot allocate memory`;
-តម្លៃ `3` (→ worker 2) នៅតែមិនគ្រប់គ្រាន់ បន្ទាប់ពី RSS ក្នុងមួយ process ត្រូវបានវាស់
-ដោយផ្ទាល់ ជំនួសឱ្យការប៉ាន់ស្មាន។ `tests/unit/docker-build-memory-budget.test.ts`
-ធ្វើការគណនាដោយផ្អែកលើតួលេខដែលបានវាស់ ហើយនឹងបរាជ័យ ប្រសិនបើការកំណត់ណាមួយក្នុងចំណោមទាំងពីរ
-លើសសមត្ថភាពរបស់ runner។
+`3` (→ workers 2) នៅតែមិនអាចដំណើរការបាន បន្ទាប់ពី RSS ក្នុងមួយ process ត្រូវបានវាស់
+ដោយផ្ទាល់ជំនួសឱ្យការប៉ាន់ស្មាន។ `tests/unit/docker-build-memory-budget.test.ts`
+ធ្វើការគណនាដោយផ្អែកលើតួលេខដែលបានវាស់ ហើយនឹងបរាជ័យ ប្រសិនបើ knob ណាមួយ
+កើនលើសសមត្ថភាពរបស់ runner។
 
-Turbopack compile នៅក្នុងអង្គចងចាំ native Rust ដែលស្ថិតនៅ **ក្រៅ** heap របស់ V8 ដូច្នេះ
-`OMNIROUTE_BUILD_MEMORY_MB` មិនអាចកំណត់ព្រំដែនវាបានទេ។ នៅលើ host ដែលមានកម្រិតអង្គចងចាំ
-build នឹងត្រូវបាន OOM killer បញ្ឈប់ដោយ SIGKILL ដោយមិនមានសារកំហុសអ្វីទាំងអស់ — វាគ្រាន់តែ
-ឈប់នៅពាក់កណ្ដាល `Creating an optimized production build` ដែលមើលទៅដូចជាគាំង ជាជាង
-អស់អង្គចងចាំ។ ប្រសិនបើ build host មានធនធានកម្រិតទាប សូមប្ដូរ bundler៖
+Turbopack compile ក្នុងអង្គចងចាំ native Rust ដែលស្ថិតនៅ **ខាងក្រៅ** V8 heap ដូច្នេះ
+`OMNIROUTE_BUILD_MEMORY_MB` មិនកំណត់ព្រំដែនវាទេ។ លើ host ដែលមានដែនកំណត់អង្គចងចាំ
+build នឹងត្រូវបាន OOM killer បញ្ចប់ដោយ SIGKILL ដោយគ្មានសារកំហុសអ្វីទាំងអស់ — វាគ្រាន់តែ
+ឈប់នៅពាក់កណ្តាល `Creating an optimized production build` ដែលមើលទៅដូចជាជាប់គាំង
+ជាជាងអស់អង្គចងចាំ។ នេះជាមូលហេតុដែល `Dockerfile` ប្រើ webpack ជាលំនាំដើម
+(`OMNIROUTE_USE_TURBOPACK=0`) ខុសពី `npm run dev` / `npm run build` ដែល
+Turbopack ជាលំនាំដើមក្នុងកូដ៖ `docker build .` ធម្មតាដែលគ្មាន build args (ដែល
+Railway និង host ដំឡើងដោយចុចតែម្តងផ្សេងទៀតដំណើរការ) មិនត្រូវបរាជ័យដោយស្ងៀមស្ងាត់លើ
+builder ដែលមានដែនកំណត់អង្គចងចាំឡើយ។ Image ដែលបាន publish រួចហើយបញ្ជូន
+`OMNIROUTE_USE_TURBOPACK=0` យ៉ាងជាក់លាក់ក្នុង `docker-publish.yml`។ លើ builder ដែលមាន
+RAM ច្រើន សូមជ្រើសប្រើ Turbopack ដើម្បីឱ្យ build លឿនជាងមុន៖
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ត្រូវបានបើក ដូច្នេះ `next build` ដំណើរការ process មេ **និង** process worker
-ហើយ process នីមួយៗគោរពតាម `OMNIROUTE_BUILD_MEMORY_MB` ដោយឡែកពីគ្នា។ កំណត់កម្រិតអង្គចងចាំរបស់ container
-ឱ្យលើសប្រហែលពីរដងនៃតម្លៃនោះ មិនមែនត្រឹមមួយដងទេ។
+`webpackBuildWorker` ត្រូវបានបើក ដូច្នេះ `next build` ដំណើរការ parent **និង** worker
+process ហើយ process នីមួយៗគោរពតាម `OMNIROUTE_BUILD_MEMORY_MB` ដោយឡែកពីគ្នា។ សូមកំណត់
+ដែនកំណត់របស់ container ឱ្យខ្ពស់ជាងប្រហែលពីរដងនៃតម្លៃនោះ មិនមែនតែមួយដងទេ។
 
-បានវាស់នៅលើមែកធាងនេះ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)៖
+លទ្ធផលដែលបានវាស់លើ source tree នេះ (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`)៖
 
-| Bundler   | កម្រិតអង្គចងចាំរបស់ container | លទ្ធផល                                             |
-| --------- | ----------------------------- | -------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB                | ត្រូវបាន OOM-killed នៅកម្រិតទាំងពីរ ដោយស្ងាត់ស្ងៀម |
-| webpack   | 8 GiB                         | build worker ត្រូវបាន SIGKILL                      |
-| webpack   | 12 GiB                        | ជោគជ័យ ដោយឡើងដល់កម្រិតកំពូល 11.1 GiB               |
+| Bundler   | ដែនកំណត់របស់ container | លទ្ធផល                                         |
+| --------- | ---------------------- | ---------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB         | ត្រូវបានបញ្ចប់ដោយ OOM នៅទាំងពីរ ដោយស្ងៀមស្ងាត់ |
+| webpack   | 8 GiB                  | build worker ត្រូវបានបញ្ចប់ដោយ SIGKILL         |
+| webpack   | 12 GiB                 | បានជោគជ័យ ដោយឡើងដល់កម្រិតអតិបរមា 11.1 GiB      |
 
-### តម្លៃលំនាំដើមពេល runtime
+### លំនាំដើមសម្រាប់ runtime
 
 តម្លៃលំនាំដើមដែល export ដោយ `runner-base`៖ `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`។
 
-ឥរិយាបថអង្គចងចាំនៅក្នុង Docker៖
+ឥរិយាបថអង្គចងចាំក្នុង Docker៖
 
-- Image កំណត់ `OMNIROUTE_MEMORY_MB=1024` ហើយទាញយក `NODE_OPTIONS=--max-old-space-size=1024` ពីវា។
-- ដំណើរការ server ជាក់ស្តែងត្រូវបានចាប់ផ្ដើមដោយ standalone launcher ដែលអាន `OMNIROUTE_MEMORY_MB` ហើយបន្ថែម `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`។
-- Node ប្រើតម្លៃ `--max-old-space-size` ដែលបានបញ្ជាក់ម្តងទៀតចុងក្រោយ ដូច្នេះការកំណត់ `OMNIROUTE_MEMORY_MB` គ្រប់គ្រងដែនកំណត់ heap ជាក់ស្តែងរបស់ Docker។
-- ដោយសារ image តែងតែកំណត់វា fallback ដែលកែតម្រូវតាម RAM របស់ launcher នឹងមិនត្រូវបានប្រើក្រោម Docker ទេ។ សូមបង្កើនវាដោយជាក់លាក់សម្រាប់ workload (តារាងខាងក្រោម)។ `2048` នៅតែតូចពេកសម្រាប់ `/v1/responses` របស់ coding agent។
+- Image កំណត់ `OMNIROUTE_MEMORY_MB=1024` ហើយបង្កើត `NODE_OPTIONS=--max-old-space-size=1024` ពីវា។
+- ដំណើរការ server ជាក់ស្តែងត្រូវបានចាប់ផ្តើមដោយ standalone launcher ដែលអាន `OMNIROUTE_MEMORY_MB` ហើយបន្ថែម `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`។
+- Node ប្រើតម្លៃ `--max-old-space-size` ដែលកើតឡើងដដែលៗចុងក្រោយ ដូច្នេះការកំណត់ `OMNIROUTE_MEMORY_MB` គ្រប់គ្រងដែនកំណត់ heap របស់ Docker ដែលមានប្រសិទ្ធភាព។
+- ដោយសារ image តែងតែកំណត់វា fallback ដែលសម្របតាម RAM របស់ launcher ផ្ទាល់មិនត្រូវបានអនុវត្តនៅក្រោម Docker ឡើយ។ បង្កើនវាដោយជាក់លាក់សម្រាប់បន្ទុកការងារ (តារាងខាងក្រោម)។ `2048` នៅតែតូចពេកសម្រាប់ `/v1/responses` របស់ coding-agent។
 
-### RAM ពេលដំណើរការសម្រាប់ coding agent
+### RAM ពេលដំណើរការសម្រាប់ coding agents
 
-តម្លៃលំនាំដើម 1 GiB របស់ Docker គឺជាកម្រិតអប្បបរមាសម្រាប់ dashboard/light chat មិនមែនជាទំហំសម្រាប់ production ទេ។ Body វែងៗរបស់ `POST /v1/responses` (មានសាររាប់រយ និង tools រាប់សិប) រក្សាទុកក្រាហ្វជាច្រើនក្នុង memory អំឡុងពេល compression។ Request ពីរដែលត្រួតគ្នា ដែលនីមួយៗមានទំហំប្រហែល ~3 MiB / ~750k-token បានធ្វើឱ្យ V8 បញ្ឈប់នៅ old-space ទំហំ **12 GiB** (`FATAL ERROR: Reached heap limit`) ហើយក៏បានប៉ះ cgroup OOM ទំហំ 16 GiB ផងដែរ។ សូមមើល [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)។
+តម្លៃលំនាំដើម 1 GiB របស់ Docker គឺជាកម្រិតអប្បបរមាសម្រាប់ dashboard/light-chat មិនមែនជាទំហំសម្រាប់ production ទេ។ Body វែងៗរបស់ `POST /v1/responses` (សាររាប់រយ និង tools រាប់សិប) រក្សាទុក graph ច្រើនក្នុង memory អំឡុងពេល compression។ Request ពីរដែលត្រួតគ្នា មានទំហំប្រហែល ~3 MiB / ~750k-token បានធ្វើឱ្យ V8 បញ្ឈប់នៅ old-space ទំហំ **12 GiB** (`FATAL ERROR: Reached heap limit`) ហើយក៏បានប៉ះ cgroup OOM ទំហំ 16 GiB ផងដែរ។ សូមមើល [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)។
 
-កំណត់ទំហំ **cgroup `--memory` ឱ្យធំជាង heap** — native buffers, SQLite និងទិន្នន័យបណ្ដោះអាសន្នរបស់ compression ស្ថិតនៅក្រៅ V8។
+កំណត់ទំហំ **cgroup `--memory` ឱ្យធំជាង heap** — native buffers, SQLite និង compression intermediates ស្ថិតនៅក្រៅ V8។
 
-| Workload                                   | `OMNIROUTE_MEMORY_MB`            | Container / cgroup             | កំណត់សម្គាល់                                                                                                                        |
-| ------------------------------------------ | -------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard និង light chat មួយ               | `1024` (តម្លៃលំនាំដើមរបស់ image) | ≥2 GiB                         |                                                                                                                                     |
-| Coding agent មួយ (Claude/Codex/Grok)       | `8192`                           | ≥10 GiB                        | ជាទូទៅសម្រាប់ `/v1/responses` ក្នុង session តែមួយ                                                                                   |
-| `/v1/responses` វែងពីរដែលដំណើរការដំណាលគ្នា | `10240`–`12288`                  | ≥12–16 GiB                     | បានវាស់ឃើញថា V8 បញ្ឈប់នៅ heap ទំហំប្រហែល ~12 GiB                                                                                    |
-| Context វែងៗចំនួនបី ឬច្រើនជាងនេះ           | កុំដំណើរការលើ process តែមួយ      | ដំណើរការតាមលំដាប់ / RAM បន្ថែម | តាមលំនាំដើម ការទទួលយក workload ធ្ងន់ៗអនុញ្ញាតឱ្យមាន 1 in-flight; ការបង្កើនវាដោយគ្មាន RAM គ្រប់គ្រាន់នឹងធ្វើឱ្យការបញ្ឈប់នេះកើតឡើងវិញ |
+| បន្ទុកការងារ                               | `OMNIROUTE_MEMORY_MB`       | Container / cgroup                    | កំណត់សម្គាល់                                                                                             |
+| ------------------------------------------ | --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Dashboard និង light chat មួយ               | `1024` (លំនាំដើមរបស់ image) | ≥2 GiB                                |                                                                                                          |
+| Coding agent មួយ (Claude/Codex/Grok)       | `8192`                      | ≥10 GiB                               | `/v1/responses` ដែលមាន session តែមួយជាទូទៅ                                                               |
+| `/v1/responses` វែងពីរដំណើរការព្រមគ្នា     | `10240`–`12288`             | ≥12–16 GiB                            | បានវាស់ឃើញការបញ្ឈប់របស់ V8 នៅ heap ប្រហែល ~12 GiB                                                        |
+| Context វែងបី ឬច្រើនជាងនេះដំណើរការព្រមគ្នា | កុំដំណើរការលើ process តែមួយ | តម្រៀបឱ្យដំណើរការម្តងមួយ / RAM បន្ថែម | លំនាំដើម heavyweight admission អនុញ្ញាត 1 in-flight; ការបង្កើនវាដោយគ្មាន RAM នឹងនាំឱ្យមានការបញ្ឈប់ឡើងវិញ |
 
-`omniroute serve` នៅលើ bare metal កែតម្រូវទៅប្រហែល ~35% នៃ RAM (កំណត់ក្នុងចន្លោះ `[512, 4096]`) នៅពេល `OMNIROUTE_MEMORY_MB` **មិនត្រូវបានកំណត់**។ Docker តែងតែកំណត់វាជា `1024` ដូច្នេះការកែតម្រូវនោះមិនដែលដំណើរការនៅក្នុង official image ទេ។
+`omniroute serve` នៅលើ bare metal កំណត់តាម RAM ប្រហែល ~35% (កម្រិតត្រឹម `[512, 4096]`) នៅពេល `OMNIROUTE_MEMORY_MB` **មិនបានកំណត់**។ Docker តែងតែកំណត់ `1024` ដូច្នេះការកំណត់តាមនេះមិនដែលដំណើរការនៅក្នុង official image ទេ។
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

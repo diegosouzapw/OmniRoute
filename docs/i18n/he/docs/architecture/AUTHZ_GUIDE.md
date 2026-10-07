@@ -5,70 +5,72 @@
 ---
 
 > **מקור האמת:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **עדכון אחרון:** 2026-06-28 — v3.8.40
+> **עודכן לאחרונה:** 2026-09-22 — מרחבי שמות של סקופים מצביעים על MCP-SERVER.md
 
-ל-OmniRoute יש תהליך הרשאה המודע לנתיבים, אשר מסנן כל בקשת API. הסיווג הוא **דטרמיניסטי** ופועל בגישת **כשל-סגור** — כל דבר שלא ניתן לסווג מגיע ל-`MANAGEMENT` ודורש סשן או אסימון ברמת ניהול. דף זה מסביר את המודל למהנדסים שמתחזקים נתיבים או מתכננים נקודות קצה חדשות.
+ל-OmniRoute יש צינור הרשאות מודע-לנתיבים שחוסם כל בקשת API. הסיווג הוא **דטרמיניסטי** ו**סגור-בכישלון** — כל דבר שלא ניתן לסווגו מסתיים כ-`MANAGEMENT` ודורש סשן או אסימון ברמת ניהול. עמוד זה מסביר את המודל למהנדסים המתחזקים נתיבים או מתכננים נקודות קצה חדשות.
 
-![תהליך AuthZ (שלוש מחלקות נתיבים + הערכת מדיניות)](../diagrams/exported/authz-pipeline.svg)
+![צינור AuthZ (3 מחלקות נתיבים + הערכת מדיניות)](../diagrams/exported/authz-pipeline.svg)
 
 > מקור: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## שני מצבי אימות
 
-### 1. מפתח API ‏(Bearer)
+### 1. מפתח API‏ (Bearer)
 
-משמש עבור ממשקי ה-API ללקוחות התואמים ל-OpenAI/Anthropic/Gemini, וכן עבור כמה נתיבי ניהול כאשר למפתח יש את ההיקף `manage`.
+משמש עבור ממשקי ה-API של הלקוחות התואמים ל-OpenAI/Anthropic/Gemini ועבור כמה נתיבי ניהול כאשר למפתח יש הרשאת `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-מאומת באמצעות `isValidApiKey()` / `extractApiKey()` שבקובץ `src/sse/services/auth.ts`, ומיוצא מחדש דרך `src/shared/utils/apiAuth.ts`. המאמת מקבל גם את משתני הסביבה `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` כמפתחות העברה מתמשכים (גיליון #1350).
+מאומת באמצעות `isValidApiKey()` / `extractApiKey()` בקובץ `src/sse/services/auth.ts` ומיוצא מחדש דרך `src/shared/utils/apiAuth.ts`. המאמת מקבל גם את משתני הסביבה `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` כמפתחות מעבר קבועים (סוגיה #1350).
 
-### 2. סשן לוח הבקרה (קובץ cookie בשם auth_token)
+### 2. סשן לוח הבקרה (קובץ cookie מסוג auth_token)
 
-עבור דפי לוח הבקרה ופעולות ניהול.
+עבור דפי לוח הבקרה ופעולות מנהל מערכת.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
 קובץ cookie נחשב לסשן רק כאשר ה-JWT מאומת **וגם** מכיל `authenticated: true`
-‏(`src/shared/utils/dashboardSessionToken.ts` ← `verifyDashboardSessionToken`). כל
-צרכן של קובץ ה-cookie (שומר הנתיב, רענון תהליך ה-authz, לחיצת היד של WebSocket, השרת
-הפעיל, `/api/settings/require-login`,‏ `/api/auth/status`) עובר דרך פונקציית העזר הזו.
-קיימים אסימוני JWT נוספים החתומים באמצעות `JWT_SECRET` — מנגנון ההעברה של Cursor CLI מנפיק
-אסימוני `iss "omniroute" / aud "cursor-cli"` למחזיקי מפתחות — והם לעולם אינם נחשבים לסשנים
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). כל
+צרכן של קובץ ה-cookie (מגן הנתיבים של לוח הבקרה (`isDashboardSessionAuthenticated()`), רענון צינור ה-authz, לחיצת היד של WebSocket, השרת
+הפעיל, `/api/settings/require-login`, `/api/auth/status`) עובר דרך פונקציית העזר הזו.
+קיימים אסימוני JWT אחרים החתומים באמצעות `JWT_SECRET` — מנגנון המעבר של Cursor CLI מנפיק
+אסימוני `iss "omniroute" / aud "cursor-cli"` למחזיקי מפתחות — והם לעולם אינם סשנים
 (#13298).
 
-מאומת באמצעות `isDashboardSessionAuthenticated()` שבקובץ `src/shared/utils/apiAuth.ts`. התהליך מרענן את ה-JWT אוטומטית כאשר נותרו פחות מ-7 ימים מתוך אורך החיים שלו, שהוא 30 יום.
+האימות מתבצע באמצעות `isDashboardSessionAuthenticated()` בקובץ `src/shared/utils/apiAuth.ts`. צינור העיבוד מרענן אוטומטית את ה-JWT כאשר נותרו פחות מ-7 ימים מתוך משך חייו בן 30 הימים.
 
-נתיבי ניהול מסוימים מקבלים **כל אחד** מהמצבים: קובץ cookie או `Bearer <key>` כאשר למפתח ה-API יש את ההיקף `manage` (או `admin`). זה מה שמאפשר את תהליך העבודה „ניתן להגדרה באמצעות קריאות API” שנוסף ב-v3.8.
+סשן יכול גם להסתיים לפני ש-30 הימים שלו חולפים, משום שכל מנגנון הנפקה עובר דרך `mintDashboardSessionToken` (עם זמן הנפקה `iat` ומזהה `jti`), והמאמת בודק שתי הגדרות: `sessionsValidAfter`, שמוגדרת בעת שינוי סיסמה כך שכל סשן שהונפק לפניה מפסיק להיות מאומת (הדפדפן שבו שונתה הסיסמה מקבל קובץ cookie חדש), ו-`revokedDashboardSessions`, שאליה `POST /api/auth/logout` מוסיף את ה-`jti` של הסשן שממנו בוצעה היציאה. סשנים שהונפקו על ידי גרסה ישנה יותר אינם מכילים אף אחת מהטענות הללו ונשארים תקפים עד לשינוי הסיסמה הראשון. אם לא ניתן לקרוא את ההגדרות, הסשן אינו נחשב מהימן.
 
-#### שער כניסה אופציונלי באמצעות OIDC ‏(#6973)
+חלק מנתיבי הניהול מקבלים **כל אחד** משני המצבים: קובץ cookie או `Bearer <key>` כאשר למפתח ה-API יש הרשאת `manage` (או `admin`). זה מה שמאפשר את תהליך העבודה "ניתן להגדרה באמצעות קריאות API" שנוסף ב-v3.8.
 
-כניסת מנהל המערכת ללוח הבקרה תומכת גם בתהליך OIDC (‏OpenID Connect) **אופציונלי**
-לצד הכניסה המוגדרת כברירת מחדל באמצעות סיסמה — הכניסה באמצעות סיסמה לעולם אינה מוסרת, אלא רק
-מקבלת חלופה נוספת:
+#### שער התחברות אופציונלי באמצעות OIDC‏ (#6973)
+
+התחברות מנהל המערכת ללוח הבקרה תומכת גם בתהליך OIDC‏ (OpenID Connect) **אופציונלי**
+לצד התחברות ברירת המחדל באמצעות סיסמה — התחברות באמצעות סיסמה לעולם אינה מוסרת, אלא רק
+מקבלת אפשרות נוספת:
 
 - מושבת אלא אם `settings.oidcEnabled === true` **וגם** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` מוגדרים כולם (הגדרות ← אימות).
-  `GET /api/auth/oidc/login` מחזיר `400` כאשר התנאים אינם מתקיימים.
+  `oidcClientId` / `oidcClientSecret` מוגדרים כולם (הגדרות → אימות).
+  אחרת, `GET /api/auth/oidc/login` מחזיר `400`.
 - `GET /api/auth/oidc/login` מאתר את `authorization_endpoint` מתוך
-  `/.well-known/openid-configuration` של המנפיק (עם חזרה ל-
+  `/.well-known/openid-configuration` של המנפיק (עם חזרה אל
   `<issuer>/authorize`), בונה את URI ההפניה מחדש מתוך הבקשה הנכנסת
-  (תוך התחשבות ב-`x-forwarded-proto`), ומפנה אל ה-IdP עם ערך `state`
-  אקראי המאוחסן בקובץ cookie מסוג `oidc_state` עם `httpOnly`.
+  (תוך התחשבות ב-`x-forwarded-proto`), ומפנה אל ה-IdP עם `state` אקראי
+  המאוחסן בקובץ cookie מסוג `oidc_state` עם `httpOnly`.
 - `GET /api/auth/oidc/callback` מאמת את `state`, מחליף את קוד ההרשאה
   ומאמת את חתימת אסימון ה-ID באמצעות ה-JWKS של המנפיק
-  (`createRemoteJWKSet` של `jose`, הנשמר במטמון לפי URI של JWKS), עם בדיקות
-  `issuer`/`audience`. רשימת ההיתרים האופציונלית `oidcAllowedSubjects` מתאימה מול
-  מאפיין `sub` של האסימון או מאפיין `email` שלו — מאפיין הדוא״ל מתקבל רק כאשר
-  `email_verified === true`, כך שכתובת דוא״ל לא מאומתת אצל ה-IdP לעולם אינה יכולה לעבור
+  (`createRemoteJWKSet` של `jose`, הנשמר במטמון לפי URI של JWKS), תוך בדיקות
+  `issuer`/`audience`. רשימת ההיתרים האופציונלית `oidcAllowedSubjects` בודקת התאמה לטענת
+  `sub` של האסימון או לטענת `email` שלו — טענת הדוא"ל מתקבלת רק כאשר
+  `email_verified === true`, כך שכתובת דוא"ל לא מאומתת אצל ה-IdP לעולם לא תוכל לעבור
   את השער.
-- לאחר הצלחה, הוא מנפיק **בדיוק את אותו** JWT מסוג `auth_token` ל-30 יום שמונפק
-  בכניסה באמצעות סיסמה (`src/app/api/auth/login/route.ts`), כך ששאר
-  תהליך סשן לוח הבקרה (רענון אוטומטי, דגלי cookie) נותר ללא שינוי —
+- לאחר הצלחה, הוא מנפיק את **אותו** JWT מסוג `auth_token` ל-30 יום שמנפיקה ההתחברות
+  באמצעות סיסמה (`src/app/api/auth/login/route.ts`), כך ששאר
+  צינור סשן לוח הבקרה (רענון אוטומטי, דגלי קובץ cookie) נשאר ללא שינוי —
   OIDC מחליף רק את האופן שבו קובץ ה-cookie מונפק, ולא את ההרשאות שהוא מעניק.
 
 ## מחלקות נתיבים
@@ -198,28 +200,37 @@ export async function POST(request: Request) {
 
 בחרו את הקבוצה לפי המבנה, ולא לפי הנוחות. נתיב יחיד נכנס ל-`PUBLIC_API_ROUTES_EXACT` (או ל-`PUBLIC_READONLY_CORS_API_ROUTES` אם הוא מיועד ל-GET בלבד); רק תת-עץ אמיתי נכנס ל-`PUBLIC_API_ROUTE_PREFIXES`, והוא **חייב להסתיים ב-`/`**. הוספת נתיב יחיד לרשימת הקידומות הופכת לציבורי גם כל נתיב סמוך שחולק את התווים הפותחים שלו — כולל נתיבים אחים בעלי מקטע דינמי שיתווספו בהמשך (GHSA-74g9-q8f6-793h). עדכנו את בדיקות היחידה ב-`tests/unit/public-api-routes.test.ts`, ב-`tests/unit/authz/public-route-exact-match.test.ts` וב-`tests/unit/authz/classify.test.ts`.
 
-## היקפי הרשאה
+## היקפים
 
-מפתחות API מכילים מערך `scopes` (המאוחסן כ-JSON ב-`api_keys.scopes`, ראו `src/lib/db/apiKeys.ts`).
+שלושה מרחבי שמות. כל בודק קורא רק את המחרוזות שלו. ההשוואה זה לצד זה,
+כולל מדוע `manage` נכשל ב-`scopeMatches` עבור `read:compression` ומדוע אסימון גישה מסוג
+`read` אינו יכול לבצע `PATCH /api/keys/{id}`, נמצאת ב-[שלושה מרחבי שמות של היקפים](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### היקף הרשאת ניהול
+מפתחות API נושאים מערך `scopes` (המאוחסן כ-JSON ב-`api_keys.scopes`, ראה `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — מעניק למפתח גישה לנקודות קצה של API הניהול כאשר הוא נשלח כ-Bearer.
+### היקף ניהול
 
-### היקפי הרשאה של MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. גישת Bearer לניתובים של API הניהול.
+- `mcp:connect`, `self:usage`, `self:account-quota`, ו-
+  `policy:bypass-provider-quota` הם היקפים תוספתיים של התאמה מדויקת. הם נמצאים
+  מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` פותח רק את
+  החריץ הלא-לולאתי `/api/mcp/`.
 
-כל כלי MCP דורש היקפי הרשאה מסוימים באמצעות `MCP_TOOL_SCOPES`. הרשימה המלאה (`MCP_SCOPE_LIST`):
+### היקפי כלי MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+קטלוג וכללי התאמה (מחרוזת זהה, או היקף מוענק המסיים ב-`*`):
+[היקפי כלי MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` ב-`src/shared/constants/mcpScopes.ts` הוא תת-הקבוצה המקלידה המקורית,
+לא הקטלוג המלא הזה. האכיפה מתבצעת ב-
+`open-sse/mcp-server/scopeEnforcement.ts` לאחר ש-`resolveCallerScopeContext()`
+פותר היקפים מפרטי אימות MCP, מטא-נתונים של בקשה, או `OMNIROUTE_MCP_SCOPES`.
+הוא נשאר כבוי אלא אם כן `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-אכיפת היקפי ההרשאה ב-`open-sse/mcp-server/server.ts` מעבירה את רשימת היקפי ההרשאה של כל כלי אל
-`evaluateToolScopes()` לאחר ש-`resolveCallerScopeContext()` פותרת את היקפי ההרשאה מפרטי האימות של MCP,
-ממטא-נתוני הבקשה או מ-`OMNIROUTE_MCP_SCOPES`.
+### היקפי אסימוני גישה
+
+`read` / `write` / `admin` על אסימוני `oma_live_…`, מדורגים לפי `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). דירוג זה חל על אישור אסימון הגישה בלבד.
+ראה [אימות ניהול](../guides/MANAGEMENT-AUTH.md).
 
 ## מתג דרישת אימות
 
@@ -269,5 +280,5 @@ x-omniroute-auth-scopes:    רשימה מופרדת בפסיקים
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — סמן אימות לכל נקודת קצה
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — יומן ביקורת לאירועי אימות
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — פרטי אכיפת היקפי MCP
-- קוד מקור: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — שלושה מרחבי שמות של היקפים וקטלוג היקף-כלי של MCP
+- מקור: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

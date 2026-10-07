@@ -4,26 +4,29 @@
 
 ---
 
+För det delade körbara manifestet, begränsade underordnade miljöer och permanent
+Gemini-konfiguration, se [CLI-startkontrakt](./CLI-LAUNCH-CONTRACTS.md).
+
 OmniRoute levereras med en familj av `setup-*`-kommandon som konfigurerar ett
-kodnings-CLI (Codex, Claude Code, OpenCode, Cline, …) för att använda OmniRoute som backend — så att
-verktyget kommunicerar med **en** slutpunkt och OmniRoute dirigerar till rätt leverantör med
+CLI-verktyg för kodning (Codex, Claude Code, OpenCode, Cline, …) så att det använder OmniRoute som backend — därmed
+kommunicerar verktyget med **en** slutpunkt och OmniRoute dirigerar till rätt leverantör med
 automatisk reservväxling. Varje kommando läser den **aktuella** modellkatalogen från en körande
-OmniRoute-instans (lokal eller fjärransluten) och skriver verktygets egen konfigurationsfil på **din**
+OmniRoute-instans (lokal eller fjärransluten) och skriver till verktygets egen konfigurationsfil på **din**
 dator. API-nyckeln refereras via en miljövariabel där verktyget
 stöder det. Kommandon som sparar en verktygslokal miljöfil anges nedan.
 
-Det finns också en allmän startfunktion — `omniroute run <target>` — som startar
+Det finns också en generell startfunktion — `omniroute run <target>` — som startar
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` eller `gemini` med rätt
-miljö injicerad, utan att skriva någon konfiguration alls. Mål och deras
-alias hämtas från det kanoniska manifestet `bin/cli/cli-manifest.mjs`
+miljö injicerad, helt utan att skriva någon konfiguration. Mål och deras
+alias kommer från det kanoniska manifestet `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), och `omniroute completion` erbjuder samma
-manifestbaserade målord. De äldre verktygsspecifika startfunktionerna —
-`omniroute launch` (Claude Code) och `omniroute launch-codex` (Codex) — är fortfarande
-tillgängliga.
+`open-code`, `qwen-code`, `gemini-cli`), och `omniroute completion` erbjuder
+samma målord som härletts från manifestet. De äldre verktygsspecifika startfunktionerna —
+`omniroute launch` (Claude Code) och `omniroute launch-codex` (Codex) — finns
+fortfarande tillgängliga.
 
 Introduktion av leverantörer är tillgänglig från samma lokala eller fjärranslutna kontext. De
-API-fokuserade kommandona nedan håller autentisering för administration åtskild från leverantörernas
+API-fokuserade kommandona nedan håller administrationsautentisering åtskild från leverantörernas
 autentiseringsuppgifter och skriver aldrig ut en autentiseringsuppgift i strukturerade utdata:
 
 ```bash
@@ -39,13 +42,19 @@ finns kvar för kontrollerad lokal användning. `providers remove` kräver `--ye
 icke-interaktiv terminal, och alla fem kommandona respekterar den aktiva kontexten eller de
 globala alternativen `--base-url`/`--api-key`.
 
-För den inledande, manuella grundkonfigurationen av de två mest omfattande integrationerna, se de
+Leverantörsväljare avvisar tvetydiga ID-prefix, namn eller leverantörsnamn; använd ett
+fullständigt anslutnings-ID när flera anslutningar matchar. Kommandon för att skapa och redigera
+läser tillbaka den sparade anslutningen, och borttagning verifierar att den inte längre kan läsas.
+En import hoppar över ett befintligt par av leverantör och namn. Importerade poster kan inte åsidosätta
+administrationsslutpunkten, kontexten eller administrationsuppgifterna som angetts för CLI-verktyget.
+
+För den manuella engångsgrundkonfigurationen av de två mest omfattande integrationerna, se de
 verktygsspecifika fördjupningarna:
 
 - [Konfiguration av Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfiguration av Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Fjärrläge](./REMOTE-MODE.md) — styr en fjärransluten OmniRoute-instans (VPS/Tailnet) från din bärbara dator
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — tillägget OmniCopilot; det kan också köra dessa
+- [Fjärrläge](./REMOTE-MODE.md) — styr en fjärransluten OmniRoute-instans (VPS / Tailnet) från din bärbara dator
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — tillägget OmniCopilot; det kan även köra dessa
   `setup-*`-kommandon åt dig inifrån redigeraren
 
 ---

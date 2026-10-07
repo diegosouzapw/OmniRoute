@@ -4,7 +4,7 @@ export const KIMI_CODING_OPENAI_URL = `${KIMI_CODING_BASE_URL}/chat/completions`
 export const KIMI_CODING_ANTHROPIC_URL = `${KIMI_CODING_BASE_URL}/messages?beta=true`;
 
 export const KIMI_CODE_CLI_PLATFORM = "kimi_code_cli";
-export const KIMI_CODE_CLI_VERSION = "0.26.0";
+export const KIMI_CODE_CLI_VERSION = "2.1.1";
 
 export type KimiCodeThinkingPolicy = {
   supportsThinking: boolean;
@@ -57,8 +57,133 @@ export function normalizeKimiDeviceId(value: unknown): string {
   ].join("-");
 }
 
+const KIMI_VERSION_OVERRIDE_ENV = "KIMI_CLI_VERSION";
+const DOTTED_TRIPLE_PATTERN = /^\d+\.\d+\.\d+$/;
+const NPM_KIMI_CODE_LATEST_URL = "https://registry.npmjs.org/@moonshot-ai/kimi-code/latest";
+export const KIMI_CODE_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+export const KIMI_CODE_VERSION_FETCH_TIMEOUT_MS = 20_000;
+
+type FetchLike = typeof fetch;
+
+let cachedVersion: string | null = null;
+let cachedAt = 0;
+let inFlight: Promise<string> | null = null;
+let fetchImpl: FetchLike = fetch;
+
+function parseDottedTriple(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return DOTTED_TRIPLE_PATTERN.test(trimmed) ? trimmed : null;
+}
+
+function compareDottedTriple(a: string, b: string): number {
+  const aParts = a.split(".").map((part) => Number.parseInt(part, 10) || 0);
+  const bParts = b.split(".").map((part) => Number.parseInt(part, 10) || 0);
+  for (let i = 0; i < 3; i += 1) {
+    if (aParts[i] !== bParts[i]) return aParts[i] - bParts[i];
+  }
+  return 0;
+}
+
+function pickAtLeastPin(version: string | null): string {
+  if (!version || compareDottedTriple(version, KIMI_CODE_CLI_VERSION) <= 0) {
+    return KIMI_CODE_CLI_VERSION;
+  }
+  return version;
+}
+
+function readEnvOverride(): string | null {
+  const raw = typeof process === "undefined" ? undefined : process.env?.[KIMI_VERSION_OVERRIDE_ENV];
+  const normalized = sanitizeKimiHeaderValue(raw, "");
+  return normalized || null;
+}
+
+function readFreshCache(): string | null {
+  if (!cachedVersion) return null;
+  if (Date.now() - cachedAt >= KIMI_CODE_VERSION_CACHE_TTL_MS) return null;
+  return cachedVersion;
+}
+
+/**
+ * Sync hot path. Env override wins. Otherwise a cached registry version newer
+ * than the pin, else the pin. Outside tests, a stale cache starts one
+ * background refresh; this call itself never waits on the network.
+ */
 export function getKimiCodeCliVersion(): string {
-  return sanitizeKimiHeaderValue(process.env.KIMI_CLI_VERSION, KIMI_CODE_CLI_VERSION);
+  const override = readEnvOverride();
+  if (override) return override;
+  if (typeof process !== "undefined" && !process.env.NODE_TEST_CONTEXT && !readFreshCache() && !inFlight) {
+    void refreshKimiCodeCliVersion();
+  }
+  return pickAtLeastPin(readFreshCache());
+}
+
+/**
+ * Warm the npm cache (20s timeout, 6h TTL, coalesced, never rejects).
+ * A failure, or a publish that is not newer than the pin, leaves the pin
+ * (or the previous fresh cache) in place.
+ */
+export function refreshKimiCodeCliVersion(): Promise<string> {
+  const override = readEnvOverride();
+  if (override) return Promise.resolve(override);
+
+  const fresh = readFreshCache();
+  if (fresh) return Promise.resolve(pickAtLeastPin(fresh));
+
+  if (inFlight) return inFlight;
+
+  inFlight = (async () => {
+    let resolved: string | null = null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), KIMI_CODE_VERSION_FETCH_TIMEOUT_MS);
+      try {
+        const response = await fetchImpl(NPM_KIMI_CODE_LATEST_URL, {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "OmniRoute-KimiCodeVersion/1.0",
+          },
+          signal: controller.signal,
+        });
+        if (response.ok) {
+          const payload = (await response.json()) as { version?: unknown };
+          resolved = parseDottedTriple(payload?.version);
+        }
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch {
+      resolved = null;
+    }
+
+    if (resolved && compareDottedTriple(resolved, KIMI_CODE_CLI_VERSION) > 0) {
+      cachedVersion = resolved;
+      cachedAt = Date.now();
+    }
+    return pickAtLeastPin(resolved ?? readFreshCache());
+  })();
+
+  const current = inFlight;
+  void current.finally(() => {
+    if (inFlight === current) inFlight = null;
+  });
+  return current;
+}
+
+/** Test seam: drop the registry cache so the next refresh hits the network. */
+export function resetKimiCodeCliVersionCache(): void {
+  cachedVersion = null;
+  cachedAt = 0;
+  inFlight = null;
+}
+
+/** Test seam: replace the registry fetch. Production leaves the global fetch. */
+export function setKimiCodeCliVersionFetch(next: FetchLike): void {
+  fetchImpl = next;
+}
+
+export function resetKimiCodeCliVersionFetch(): void {
+  fetchImpl = fetch;
 }
 
 export function getKimiCodeCliUserAgent(): string {

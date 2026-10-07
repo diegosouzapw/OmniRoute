@@ -4,63 +4,63 @@
 
 ---
 
-> Model Context Protocol-kiszolgáló 110 eszközzel az útválasztási, gyorsítótárazási, tömörítési, memória-, képesség-, proxy-, készlet-, Radar- és kontextusforrás-műveletekhez.
+> Modellkontext protokoll szerver 110 eszközzel az útválasztás, gyorsítótár, tömörítés, memória, képességek, proxy, pool, Radar és kontextusforrás műveletek terén.
 >
-> Hiteles forrás: az `open-sse/mcp-server/server.ts` a `countUniqueMcpTools()` segítségével **110 egyedi eszközt** számít ki: 45 kanonikus definíciót (beleértve a hat CCR-életciklus-eszközt, az agent-skills eszközhármast, az `omniroute_radar_catalog` és az `omniroute_x_search` eszközt), továbbá memória- (3), képesség- (4), GitHub-képesség- (3), készlet- (6), gamifikációs (8), bővítmény- (8), Notion- (6), Obsidian- (22), helyi korpusz- (3), valamint két, kizárólag RTK-alapú tömörítési eszközt.
+> Az igazság forrása: az `open-sse/mcp-server/server.ts` **110 egyedi eszközt** számol ki a `countUniqueMcpTools()` segítségével: 45 kanonikus definíció (beleértve a hat CCR életciklus eszközt, az ügynök-képességek hármasát, az `omniroute_radar_catalog` és az `omniroute_x_search`), plusz memória (3), képességek (4), GitHub képességek (3), pool (6), gamification (8), bővítmények (8), Notion (6), Obsidian (22), helyi korpusz (3), és két RTK-only tömörítő eszköz.
 
 ## Telepítés
 
-Az OmniRoute MCP beépített. Indítsa el a következő paranccsal:
+Az OmniRoute MCP beépített. Indítsa el a következővel:
 
 ```bash
 omniroute --mcp
 ```
 
-Vagy az open-sse átvitelen keresztül:
+Vagy az open-sse transzporton keresztül:
 
 ```bash
-# Streamelhető HTTP-átvitel (20130-as port)
-omniroute --dev  # Az MCP automatikusan elindul az /mcp végponton
+# HTTP streamelhető transzport (20130-as port)
+omniroute --dev  # Az MCP automatikusan elindul a /mcp végponton
 ```
 
-A HTTP-átvitelek (`sse` / `streamable-http`, amelyeket az irányítópult-kiszolgáló folyamaton belül szolgál ki)
-alapértelmezés szerint ki vannak kapcsolva, és korábban csak a `/dashboard/mcp` oldalon lehetett őket átkapcsolni. A v3.8.51
-verziótól kezdve a CLI is ugyanazokat a lehetőségeket biztosítja:
+Az HTTP transzportok (`sse` / `streamable-http`, amelyeket a műszerfal szerver folyamaton belül szolgál ki)
+alapértelmezetten ki vannak kapcsolva, és korábban csak a `/dashboard/mcp` oldalon lehetett őket váltani. A v3.8.51-es verziótól
+a CLI is rendelkezik ezzel a funkcióval:
 
 ```bash
-omniroute mcp status                                  # engedélyezett/online állapot, átvitel, eszközök száma
+omniroute mcp status                                  # engedélyezve/online, transzport, eszközök száma
 omniroute mcp enable [--transport stdio|sse|streamable-http]
 omniroute mcp disable
 omniroute mcp restart                                 # visszaállítja az aktív sse/streamable-http munkameneteket
 ```
 
-Az `mcp enable`/`mcp disable` PATCH-kéréssel módosítja ugyanazt az `mcpEnabled` (és opcionálisan az `mcpTransport`) beállítást,
-amelyet az irányítópult kapcsolói a `/api/settings` útvonalon keresztül kezelnek. Az `mcp restart` meghívja a `POST /api/mcp/restart` végpontot: leállítja
-az aktív `sse`/`streamable-http` munkameneteket, így a következő kérés tisztán újrainicializálhatja azokat; `409` választ ad,
-ha az MCP le van tiltva, és `501` választ a `stdio` átvitel esetén (a stdio-kliensek a saját
-alfolyamatukat kezelik — nincs folyamaton belüli leíró, amely újraindítható lenne).
+Az `mcp enable`/`mcp disable` ugyanazt az `mcpEnabled` (és opcionálisan `mcpTransport`) beállítást PATCH-eli,
+amit a műszerfal a `/api/settings` útvonalon keresztül vált. Az `mcp restart` meghívja a `POST /api/mcp/restart` végpontot:
+ez leállítja az aktív `sse`/`streamable-http` munkameneteket, így a következő kérés tisztán inicializálódik,
+`409`-et ad vissza, ha az MCP le van tiltva, és `501`-et a `stdio` transzport esetén (a stdio kliensek saját
+alfolyamatot kezelnek – nincs folyamaton belüli kezelő a újraindításhoz).
 
-## Átvitelek
+## Transzportok
 
-Az MCP-kiszolgáló három átvitelt biztosít, amelyek mindegyike ugyanarra a `createMcpServer()` gyárra épül:
+Az MCP szerver három transzportot tesz elérhetővé, mindegyiket ugyanaz a `createMcpServer()` gyár támogatja:
 
-| Átvitel           | Hely                                            | Mikor használandó                                            |
-| :---------------- | :---------------------------------------------- | :----------------------------------------------------------- |
-| `stdio`           | `open-sse/mcp-server/server.ts`                 | IDE-integrációkhoz (Claude Desktop, Cursor stb.)             |
-| `sse`             | `POST/GET /api/mcp/sse` a `httpTransport` révén | Eseményfolyamot igénylő böngésző- és ügynökkliensekhez       |
-| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`               | Több munkamenetes HTTP-kliensekhez (`mcp-session-id` fejléc) |
+| Transzport        | Hol                                         | Mikor használjuk                                             |
+| :---------------- | :------------------------------------------ | :----------------------------------------------------------- |
+| `stdio`           | `open-sse/mcp-server/server.ts`             | IDE integrációk (Claude Desktop, Cursor stb.)                |
+| `sse`             | `POST/GET /api/mcp/sse` via `httpTransport` | Böngésző/ügynök kliensek, amelyek eseményfolyamot igényelnek |
+| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | Több munkamenetes HTTP kliensek (`mcp-session-id` fejléc)    |
 
-Az aktív HTTP-átvitelt (`sse` vagy `streamable-http`) az `mcpTransport` beállítás választja ki. Az átvitelek közötti váltás bezárja a másik átvitel meglévő munkameneteit.
+Az aktív HTTP transzportot (`sse` vagy `streamable-http`) az `mcpTransport` beállítás választja ki. A transzportok váltása bezárja a meglévő munkameneteket a másik transzporton.
 
-### Távoli hozzáférés (manage hatókörű megkerülés)
+### Távoli hozzáférés (manage-scope bypass)
 
-Az `/api/mcp/*` a LOCAL_ONLY szinthez tartozik (`src/server/authz/routeGuard.ts`) — alapértelmezés szerint csak a loopback gazdagépek (`localhost`, `127.0.0.1`, `::1`) érhetik el. A v3.8.2 verziótól kezdve a nem loopback kliensek is csatlakozhatnak, ha olyan `Authorization: Bearer <api-key>` fejlécet küldenek, amelynek kulcsa rendelkezik a `manage` hatókörrel. Ez az egyetlen módja annak, hogy alagúton, fordított proxyn vagy nyilvános gazdagépnéven keresztül elérje a távoli MCP-kiszolgálót.
+Az `/api/mcp/*` a LOCAL_ONLY szinten található (`src/server/authz/routeGuard.ts`) – alapértelmezetten csak a loopback hostok (`localhost`, `127.0.0.1`, `::1`) érhetik el. A v3.8.2-es verziótól kezdve a nem loopback kliensek is csatlakozhatnak, ha `Authorization: Bearer <api-key>` fejlécet mutatnak be, amelynek kulcsa `manage` hatókörrel rendelkezik. Ez az egyetlen módja annak, hogy egy távoli MCP szervert elérjünk egy alagúton, fordított proxyn vagy nyilvános hosztnéven keresztül.
 
 ```bash
-# A manage hatókör megadása: nyissa meg az irányítópult API Keys oldalát, és kapcsolja be
-# a kulcshoz tartozó „Management Access” beállítást, vagy létrehozáskor POST-kéréssel adja meg a scopes:["manage"] értéket.
+# Adjon manage hatókört: nyissa meg a műszerfal API kulcsok oldalát, és kapcsolja be
+# a "Management Access" opciót a kulcson, vagy POST-olja a scopes:["manage"]-t létrehozáskor.
 
-# Ezután csatlakozzon egy távoli MCP-kliensről:
+# Ezután csatlakozzon egy távoli MCP kliensről:
 curl -i \
   -H "Host: your-public-host.example" \
   -H "Authorization: Bearer sk-…" \
@@ -70,133 +70,129 @@ curl -i \
   https://your-public-host.example/api/mcp/stream
 ```
 
-Egy `manage` hatókörrel nem rendelkező kulcs (vagy a Bearer fejléc hiánya) `403 LOCAL_ONLY` választ eredményez. A kapcsolódó `/api/cli-tools/runtime/*` előtag szándékosan NEM kerülhető meg — lásd: [Útvonalőr-szintek — manage hatókörű kivétel](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+Egy nem `manage` kulcs (vagy Bearer hiánya) `403 LOCAL_ONLY` hibát ad vissza. A `/api/cli-tools/runtime/*` testvér előtag szándékosan NEM megkerülhető – lásd [Route Guard Tiers — Manage-scope carve-out](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
-## IDE-konfiguráció
+## IDE konfiguráció
 
-A Claude Desktop, a Cursor, a Cline és a kompatibilis MCP-kliensek beállításához lásd az [MCP-kliens konfigurációja](../guides/SETUP_GUIDE.md#mcp-client-configuration) című részt.
+Lásd az [MCP kliens konfigurációt](../guides/SETUP_GUIDE.md#mcp-client-configuration) a Claude Desktop, Cursor, Cline és kompatibilis MCP kliens beállításához.
 
 ---
 
 ## Alapvető eszközök (14) — 1. fázis
 
-| Eszköz                          | Hatókörök             | Leírás                                                                                                                                                                       |
-| :------------------------------ | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_get_health`          | `read:health`         | Üzemidő, memória, megszakítók, sebességkorlátok, gyorsítótár-statisztikák                                                                                                    |
-| `omniroute_list_combos`         | `read:combos`         | Az összes konfigurált kombináció a stratégiákkal (opcionális mérőszámokkal)                                                                                                  |
-| `omniroute_get_combo_metrics`   | `read:combos`         | Egy adott kombináció teljesítménymérőszámai                                                                                                                                  |
-| `omniroute_switch_combo`        | `write:combos`        | Egy kombináció aktiválása vagy deaktiválása                                                                                                                                  |
-| `omniroute_create_combo`        | `write:combos`        | Ellenőrzött kombináció létrehozása a meglévő kombinációs API-n keresztül                                                                                                     |
-| `omniroute_check_quota`         | `read:quota`          | Felhasznált/teljes kvóta, fennmaradó százalék, visszaállítási idő, tokenállapot                                                                                              |
-| `omniroute_route_request`       | `execute:completions` | Csevegési kiegészítési kérés küldése az OmniRoute útválasztásán keresztül                                                                                                    |
-| `omniroute_cost_report`         | `read:usage`          | Költségjelentés időszakonként (munkamenet/nap/hét/hónap)                                                                                                                     |
-| `omniroute_list_models_catalog` | `read:models`         | Teljes modellkatalógus képességekkel, állapottal és árakkal                                                                                                                  |
-| `omniroute_radar_catalog`       | `read:radar`          | Helyi, aláírt Radar-katalógus; opcionális szolgáltató- és családszűrők                                                                                                       |
-| `omniroute_tool_search`         | `read:tools`          | Eszközök felderítése a regisztrált MCP-katalógusból                                                                                                                          |
-| `omniroute_web_search`          | `execute:search`      | Webes keresés a konfigurált keresési szolgáltatókon keresztül. Az X/Twitter szolgáltatásra nem terjed ki.                                                                    |
-| `omniroute_x_search`            | `execute:search`      | Keresés az X-en az xAI/SuperGrok használatával, vagy az `xquik-search` kiválasztása Xquik API-eredményekhez. A kiválasztott háttérrendszerhez hitelesítő adatok szükségesek. |
-| `omniroute_web_fetch`           | `execute:search`      | Webes tartalom lekérése a konfigurált lekérési szolgáltatókon keresztül                                                                                                      |
+| Eszköz                          | Hatókörök             | Leírás                                                                                                                                                                              |
+| :------------------------------ | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_get_health`          | `read:health`         | Üzemidő, memória, megszakítók, sebességkorlátok, gyorsítótár statisztikák                                                                                                           |
+| `omniroute_list_combos`         | `read:combos`         | Minden konfigurált kombináció stratégiákkal (opcionális metrikák)                                                                                                                   |
+| `omniroute_get_combo_metrics`   | `read:combos`         | Teljesítménymetrikák egy adott kombinációhoz                                                                                                                                        |
+| `omniroute_switch_combo`        | `write:combos`        | Kombináció aktiválása vagy deaktiválása                                                                                                                                             |
+| `omniroute_create_combo`        | `write:combos`        | Érvényesített kombináció létrehozása a meglévő kombináció API-n keresztül                                                                                                           |
+| `omniroute_check_quota`         | `read:quota`          | Felhasznált/összes kvóta, fennmaradó százalék, visszaállítási idő, token állapot                                                                                                    |
+| `omniroute_route_request`       | `execute:completions` | Csevegés befejezés küldése OmniRoute útválasztáson keresztül                                                                                                                        |
+| `omniroute_cost_report`         | `read:usage`          | Költségjelentés időszak szerint (munkamenet/nap/hét/hónap)                                                                                                                          |
+| `omniroute_list_models_catalog` | `read:models`         | Teljes modellkatalógus képességekkel, állapottal, árazással                                                                                                                         |
+| `omniroute_radar_catalog`       | `read:radar`          | Helyi aláírt Radar katalógus; opcionális szolgáltató/család szűrők                                                                                                                  |
+| `omniroute_tool_search`         | `read:tools`          | Eszközök felfedezése a regisztrált MCP katalógusból                                                                                                                                 |
+| `omniroute_web_search`          | `execute:search`      | Webes keresés a konfigurált keresésszolgáltatókon keresztül. Nem X/Twitter.                                                                                                         |
+| `omniroute_x_search`            | `execute:search`      | Keresés X-en keresztül xAI/SuperGrok segítségével, vagy válassza az `xquik-search` lehetőséget az Xquik API eredményeihez. Hitelesítő adatok szükségesek a kiválasztott backendhez. |
+| `omniroute_web_fetch`           | `execute:search`      | Webes tartalom lekérése a konfigurált lekérési szolgáltatókon keresztül                                                                                                             |
 
-## Speciális eszközök (11) — 2. fázis
+## Haladó Eszközök (11) — 2. Fázis
 
-| Eszköz                             | Hatókörök                            | Leírás                                                                                                                       |
-| :--------------------------------- | :----------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Próbaüzemű útválasztási szimuláció tartalék útvonalak fájával                                                                |
-| `omniroute_set_budget_guard`       | `write:budget`                       | Munkamenet-költségkeret korlátozási/blokkolási/riasztási művelettel                                                          |
-| `omniroute_set_routing_strategy`   | `write:combos`                       | Kombinációs stratégia futásidejű frissítése (prioritásos/súlyozott/automatikus/stb.)                                         |
-| `omniroute_set_resilience_profile` | `write:resilience`                   | `aggressive` / `balanced` / `conservative` rezilienciaprofil alkalmazása                                                     |
-| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Egy kombináció minden szolgáltatójának élő tesztje valós upstream hívással                                                   |
-| `omniroute_get_provider_metrics`   | `read:health`                        | Szolgáltatónkénti metrikák p50/p95/p99 késleltetéssel és az áramkör-megszakító állapotával                                   |
-| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Kombináció ajánlása feladattípus szerint, költségkeret- és késleltetési korlátozásokkal                                      |
-| `omniroute_explain_route`          | `read:health`, `read:usage`          | Annak magyarázata, hogy egy kérés miért került egy adott szolgáltatóhoz (pontozási tényezők + tartalék útvonalak)            |
-| `omniroute_get_session_snapshot`   | `read:usage`                         | Teljes munkamenet-pillanatkép: költség, tokenek, leggyakoribb modellek/szolgáltatók, hibák, költségkeret-védelem             |
-| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Adatbázis-eltérések, például hibás kombinációhivatkozások / árva sorok diagnosztizálása (és opcionális automatikus javítása) |
-| `omniroute_sync_pricing`           | `pricing:write`                      | Árazási adatok szinkronizálása külső forrásokból (LiteLLM); támogatja a `dryRun` módot                                       |
+| Eszköz                             | Hatáskörök                           | Leírás                                                                                                                               |
+| :--------------------------------- | :----------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Szárazon futó útválasztási szimuláció tartalék fával                                                                                 |
+| `omniroute_set_budget_guard`       | `write:budget`                       | Munkamenet költségkeret leépítési/blokkolási/riasztási művelettel                                                                    |
+| `omniroute_set_routing_strategy`   | `write:combos`                       | Kombinált stratégia frissítése futásidőben (prioritás/súlyozott/auto/stb.)                                                           |
+| `omniroute_set_resilience_profile` | `write:resilience`                   | `agresszív` / `kiegyensúlyozott` / `konzervatív` ellenállóképességi előbeállítás alkalmazása                                         |
+| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Élő teszt minden szolgáltató számára egy kombinációban, valós upstream hívás használatával                                           |
+| `omniroute_get_provider_metrics`   | `read:health`                        | Szolgáltatónkénti metrikák p50/p95/p99 késleltetéssel és megszakító állapotával                                                      |
+| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Kombináció ajánlása feladattípus szerint költségkeret/késleltetési korlátokkal                                                       |
+| `omniroute_explain_route`          | `read:health`, `read:usage`          | Elmagyarázza, miért lett egy kérés egy szolgáltatóhoz irányítva (pontozási tényezők + tartalékok)                                    |
+| `omniroute_get_session_snapshot`   | `read:usage`                         | Teljes munkamenet pillanatkép: költség, tokenek, legjobb modellek/szolgáltatók, hibák, költségkeret őr                               |
+| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Adatbázis-eltérések diagnosztizálása (és opcionálisan automatikus javítása), mint például törött kombinált hivatkozások / árva sorok |
+| `omniroute_sync_pricing`           | `pricing:write`                      | Árazási adatok szinkronizálása külső forrásokból (LiteLLM); támogatja a `dryRun` funkciót                                            |
 
-## Gyorsítótár-eszközök (2)
+## Gyorsítótár Eszközök (2)
 
-| Eszköz                  | Hatókörök     | Leírás                                                                 |
-| :---------------------- | :------------ | :--------------------------------------------------------------------- |
-| `omniroute_cache_stats` | `read:cache`  | Szemantikai gyorsítótár, promptgyorsítótár és idempotenciastatisztikák |
-| `omniroute_cache_flush` | `write:cache` | A gyorsítótár globális vagy aláírás/modell szerinti ürítése            |
+| Eszköz                  | Hatáskörök    | Leírás                                                                   |
+| :---------------------- | :------------ | :----------------------------------------------------------------------- |
+| `omniroute_cache_stats` | `read:cache`  | Szemantikus gyorsítótár, prompt-gyorsítótár és idempotencia statisztikák |
+| `omniroute_cache_flush` | `write:cache` | Gyorsítótár ürítése globálisan vagy aláírás/modell szerint               |
 
-## Tömörítési eszközök (13)
+## Tömörítési Eszközök (13)
 
-| Eszköz                              | Hatókörök           | Leírás                                                                                                                                            |
-| :---------------------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `omniroute_compression_status`      | `read:compression`  | Tömörítési beállítások, analitikai összegzés és gyorsítótár-tudatos statisztikák (az `analytics.mcpDescriptionCompression` metaadatokkal együtt)  |
-| `omniroute_compression_configure`   | `write:compression` | A tömörítési mód, küszöbérték, célzott arány, rendszerprompt-megőrzés és az MCP-leírástömörítés kapcsolójának konfigurálása                       |
-| `omniroute_set_compression_engine`  | `write:compression` | Az aktív motor (off/caveman/rtk/stacked), valamint a Caveman/RTK intenzitásának kiválasztása                                                      |
-| `omniroute_list_compression_combos` | `read:compression`  | Az elnevezett tömörítési kombinációk és motorfolyamataik felsorolása                                                                              |
-| `omniroute_compression_combo_stats` | `read:compression`  | Tömörítési kombináció és motor szerint csoportosított analitika                                                                                   |
-| `omniroute_ccr_store`               | `write:compression` | Hívónként elkülönített tartalom tárolása a korlátozott méretű, memóriabeli CCR-tárban, valamint egy jelölő és egy `ccr://`-hivatkozás visszaadása |
-| `omniroute_ccr_retrieve`            | `read:compression`  | CCR-tartalom lekérése teljes egészében vagy eleje, vége, sorok, grep és statisztikai módok használatával                                          |
-| `omniroute_ccr_inspect`             | `read:compression`  | A hívó tulajdonában lévő CCR-metaadatok vizsgálata a tartalom visszaadása nélkül                                                                  |
-| `omniroute_ccr_list`                | `read:compression`  | A hívó tulajdonában lévő CCR-blokkok lapozott metaadatainak felsorolása                                                                           |
-| `omniroute_ccr_delete`              | `write:compression` | A hívó tulajdonában lévő CCR-blokk törlése                                                                                                        |
-| `omniroute_ccr_stats`               | `read:compression`  | A hívóra vonatkozó memóriahasználat, életciklus-számlálók és tárkorlátok jelentése                                                                |
-| `omniroute_rtk_discover`            | `read:compression`  | Ismétlődő zaj észlelése a külön engedélyezett RTK-kimeneti mintákban                                                                              |
-| `omniroute_rtk_learn`               | `read:compression`  | Felülvizsgálható RTK-szűrőtervezet létrehozása a külön engedélyezett mintákból                                                                    |
+| Eszköz                              | Hatáskörök          | Leírás                                                                                                                                                  |
+| :---------------------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `omniroute_compression_status`      | `read:compression`  | Tömörítési beállítások, analitikai összefoglaló és gyorsítótár-tudatos statisztikák (tartalmazza az `analytics.mcpDescriptionCompression` metaadatokat) |
+| `omniroute_compression_configure`   | `write:compression` | Tömörítési mód, küszöbérték, célarány, rendszer-prompt megőrzés, MCP leírás tömörítés kapcsoló konfigurálása                                            |
+| `omniroute_set_compression_engine`  | `write:compression` | Az aktív motor kiválasztása (ki/caveman/rtk/stacked) és a Caveman/RTK intenzitás beállítása                                                             |
+| `omniroute_list_compression_combos` | `read:compression`  | Nevesített tömörítési kombinációk és motor pipeline-jaik listázása                                                                                      |
+| `omniroute_compression_combo_stats` | `read:compression`  | Analitika tömörítési kombináció és motor szerint csoportosítva                                                                                          |
+| `omniroute_ccr_store`               | `write:compression` | Hívó által izolált tartalom tárolása a korlátozott, memóriában lévő CCR tárolóban, és egy jelölő, valamint `ccr://` hivatkozás visszaadása              |
+| `omniroute_ccr_retrieve`            | `read:compression`  | CCR tartalom lekérése teljes egészében, vagy fej, farok, sorok, grep és statisztikai módokban                                                           |
+| `omniroute_ccr_inspect`             | `read:compression`  | Hívó tulajdonában lévő CCR metaadatok ellenőrzése tartalom visszaadása nélkül                                                                           |
+| `omniroute_ccr_list`                | `read:compression`  | Hívó tulajdonában lévő CCR blokkok lapozott metaadatainak listázása                                                                                     |
+| `omniroute_ccr_delete`              | `write:compression` | Hívó tulajdonában lévő CCR blokk törlése                                                                                                                |
+| `omniroute_ccr_stats`               | `read:compression`  | Hívó-specifikus memóriahasználat, életciklus-számlálók és tárolási korlátok jelentése                                                                   |
+| `omniroute_rtk_discover`            | `read:compression`  | Ismétlődő zaj felfedezése az opt-in RTK kimeneti mintákban                                                                                              |
+| `omniroute_rtk_learn`               | `read:compression`  | Áttekinthető RTK szűrőtervezet generálása opt-in mintákból                                                                                              |
 
-A CCR-bejegyzések kizárólag a memóriában találhatók, és újraindításkor eltűnnek. Az egyes blokkok mérete legfeljebb 2 MiB, az egyes
-azonosítókhoz tartozó tárhely 16 MiB, a globális tárhely pedig 64 MiB lehet. A bejegyzések alapértelmezett TTL-je 24 óra (legfeljebb
-hét nap). A teljes MCP-lekérés 256 KiB-ra korlátozott; a nagyobb blokkok továbbra is elérhetők a
-tartományalapú és grep módokon keresztül. A tárolás, lekérés, felsorolás, vizsgálat, törlés és statisztikák az
-azonosított API-kulcs tulajdonosa szerint vannak elkülönítve. Az auditrekordok kivonatokat és méret-metaadatokat tartalmaznak, tartalmat soha.
+A CCR bejegyzések csak memóriában léteznek, és újraindításkor eltűnnek. Minden blokk 2 MiB-ra, minden fő entitás 16 MiB-ra, és a globális tároló 64 MiB-ra van korlátozva. A bejegyzések alapértelmezés szerint 24 órás TTL-lel rendelkeznek (maximum hét nap). A teljes MCP lekérés 256 KiB-ra korlátozott; a nagyobb blokkok továbbra is elérhetők a tartományi és grep módokon keresztül. A tárolás, lekérés, listázás, ellenőrzés, törlés és statisztikák az autentikált API-kulcs fő entitása által vannak izolálva. Az audit rekordok hash-eket és méret metaadatokat tartalmaznak, soha nem tartalmat.
 
-Az `omniroute_compression_status` külön, az `analytics.mcpDescriptionCompression` alatt jelenti az MCP-leírások tömörítését. Ezek az értékek az MCP által listázható leírások (`tools`, `prompts`, `resources` és `resourceTemplates`) metaadatméret-becslései; nem szolgáltatói használati bizonylatok, és `source: "mcp_metadata_estimate"` jelöléssel rendelkeznek.
+`omniroute_compression_status` külön jelenti az MCP leírás tömörítését az `analytics.mcpDescriptionCompression` alatt. Ezek az értékek az MCP listázható leírások (`tools`, `prompts`, `resources`, és `resourceTemplates`) metaadat-méret becslései; nem szolgáltatói használati nyugták, és `source: "mcp_metadata_estimate"` jelöléssel vannak ellátva.
 
-### MCP akadálymentességi fa szűrője (v3.8.0)
+### MCP akadálymentességi fa szűrő (v3.8.0)
 
-A fenti tömörítési eszközöktől elkülönülten az OmniRoute tartalmaz egy végrehajtás utáni szűrőt, amely tömöríti az MCP böngésző-/akadálymentességi eszközök **eszközeredményeit**, mielőtt azok visszakerülnek az ágenshez. Ez a szűrő önmagában nem eszköz — transzparens módon fut minden olyan eszközeredményen, amely részletes akadálymentességifa- vagy böngészőpillanatkép-szöveget (≥2000 karakter) tartalmaz.
+A fenti tömörítő eszközöktől elkülönülten az OmniRoute tartalmaz egy végrehajtás utáni szűrőt, amely tömöríti az MCP böngésző/akadálymentességi eszközök **eszközeredményeit**, mielőtt azok visszakerülnének az ügynökhöz. Ez a szűrő önmagában nem eszköz – átláthatóan fut minden olyan eszközeredményen, amely részletes akadálymentességi fa vagy böngésző-pillanatkép szöveget tartalmaz (≥2000 karakter).
 
-Fő működési jellemzők:
+Főbb viselkedések:
 
-- ≥30 egymást követő, ismétlődő testvérsort elejét és végét tartalmazó összefoglalóvá von össze
-- Megőrzi a Playwright/számítógép-használat által igényelt `[ref=eXX]` hivatkozási pontokat
-- A túlméretes szöveget (>50 000 karakter) navigációs útmutatással kiegészítve kényszerítetten csonkolja
-- Várható megtakarítás: **60–80%** a böngészőpillanatkép-adattartalmakon
+- Összecsukja a ≥30 egymást követő ismétlődő testvérsort egy fej + farok összefoglalóvá
+- Megőrzi a Playwright/számítógép-használat által megkövetelt `[ref=eXX]` horgonyokat
+- Keményen levágja a túlméretezett szöveget (>50 000 karakter) egy navigációs tippel
+- Várható megtakarítás: **60–80%** a böngésző-pillanatkép hasznos terhelésén
 
 Konfiguráció: `compression.mcpAccessibility` a globális beállításokban (056-os migráció).
 Implementáció: `open-sse/services/compression/engines/mcpAccessibility/`.
-Teljes dokumentáció: [Tömörítési motorok — MCP akadálymentességi fa szűrője](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
+Teljes dokumentáció: [Tömörítő motorok — MCP akadálymentességi fa szűrő](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
 
-Az ezen eszközök mögötti futásidejű tömörítési modellről lásd: [Tömörítési motorok](../compression/COMPRESSION_ENGINES.md) és [RTK-tömörítés](../compression/RTK_COMPRESSION.md).
+Lásd [Tömörítő motorok](../compression/COMPRESSION_ENGINES.md) és [RTK tömörítés](../compression/RTK_COMPRESSION.md) ezen eszközök mögötti futásidejű tömörítési modelljéhez.
 
-## 1Proxy eszközök (3)
+## 1Proxy Eszközök (3)
 
-| Eszköz                      | Hatókörök      | Leírás                                                                                             |
-| :-------------------------- | :------------- | :------------------------------------------------------------------------------------------------- |
-| `omniroute_oneproxy_fetch`  | `read:proxies` | Ingyenes proxyk lekérése az 1proxy piacteréről (protokoll-/ország-/minőség-/korlátalapú szűrőkkel) |
-| `omniroute_oneproxy_rotate` | `read:proxies` | A következő elérhető proxy lekérése stratégia szerint (`random` / `quality` / `sequential`)        |
-| `omniroute_oneproxy_stats`  | `read:proxies` | Készletstatisztikák, szinkronizálási állapot, protokoll és ország szerinti eloszlás                |
+| Eszköz                      | Hatókörök      | Leírás                                                                                      |
+| :-------------------------- | :------------- | :------------------------------------------------------------------------------------------ |
+| `omniroute_oneproxy_fetch`  | `read:proxies` | Ingyenes proxyk lekérése az 1proxy piactérről (protokoll/ország/minőség/limit szűrők)       |
+| `omniroute_oneproxy_rotate` | `read:proxies` | A következő elérhető proxy lekérése stratégia szerint (`random` / `quality` / `sequential`) |
+| `omniroute_oneproxy_stats`  | `read:proxies` | Pool statisztikák, szinkronizálási állapot, eloszlás protokoll és ország szerint            |
 
-## Memóriaeszközök (3)
+## Memória Eszközök (3)
 
-Definiálva az `open-sse/mcp-server/tools/memoryTools.ts` fájlban. A hitelesítést és a hatóköröket a szabványos MCP-hatókörfolyamat érvényesíti.
+Definiálva az `open-sse/mcp-server/tools/memoryTools.ts` fájlban. Az autentikáció/hatókör a standard MCP hatókör-folyamaton keresztül érvényesül.
 
 | Eszköz                    | Hatókörök      | Leírás                                                                                          |
 | :------------------------ | :------------- | :---------------------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | `read:memory`  | Memóriák keresése lekérdezés, típus vagy API-kulcs alapján, a tokenkeret betartatásával         |
-| `omniroute_memory_add`    | `write:memory` | Új memóriabejegyzés hozzáadása (`factual` / `episodic` / `procedural` / `semantic`)             |
-| `omniroute_memory_clear`  | `write:memory` | Memóriák törlése egy API-kulcshoz, opcionálisan típus vagy `olderThan` időbélyeg alapján szűrve |
+| `omniroute_memory_search` | `read:memory`  | Memóriák keresése lekérdezés / típus / API kulcs alapján, token-költségvetés érvényesítésével   |
+| `omniroute_memory_add`    | `write:memory` | Új memória bejegyzés hozzáadása (`factual` / `episodic` / `procedural` / `semantic`)            |
+| `omniroute_memory_clear`  | `write:memory` | Memóriák törlése egy API kulcshoz, opcionálisan szűrve típus vagy `olderThan` időbélyeg alapján |
 
-## Képességeszközök (4)
+## Képesség Eszközök (4)
 
-Definiálva az `open-sse/mcp-server/tools/skillTools.ts` fájlban. A háttérben az `src/lib/skills/registry` és az `src/lib/skills/executor` biztosítja a működést.
+Definiálva az `open-sse/mcp-server/tools/skillTools.ts` fájlban. A `src/lib/skills/registry` + `src/lib/skills/executor` támogatja.
 
-| Eszköz                        | Hatókörök        | Leírás                                                                                                   |
-| :---------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | `read:skills`    | Regisztrált képességek listázása API-kulcs, név vagy engedélyezési állapot szerinti opcionális szűréssel |
-| `omniroute_skills_enable`     | `write:skills`   | Egy adott képesség engedélyezése vagy letiltása azonosító alapján                                        |
-| `omniroute_skills_execute`    | `execute:skills` | Képesség végrehajtása a megadott bemenettel és a végrehajtási rekord visszaadása                         |
-| `omniroute_skills_executions` | `read:skills`    | A közelmúltbeli képesség-végrehajtási előzmények listázása                                               |
+| Eszköz                        | Hatókörök        | Leírás                                                                                                  |
+| :---------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------ |
+| `omniroute_skills_list`       | `read:skills`    | Regisztrált képességek listázása opcionális szűréssel API kulcs, név vagy engedélyezett állapot szerint |
+| `omniroute_skills_enable`     | `write:skills`   | Egy adott képesség engedélyezése vagy letiltása ID alapján                                              |
+| `omniroute_skills_execute`    | `execute:skills` | Képesség végrehajtása megadott bemenettel és a végrehajtási rekord visszaadása                          |
+| `omniroute_skills_executions` | `read:skills`    | A legutóbbi képesség végrehajtási előzmények listázása                                                  |
 
-## Notion kontextusforrás (6)
+## Notion Kontextus Forrás (6)
 
-Definiálva az `open-sse/mcp-server/tools/notionTools.ts` fájlban. A token a `key_value` táblában tárolódik az `src/lib/db/notion.ts` segítségével. A REST-kliens az `src/lib/notion/api.ts` fájlban található. A beállítási API az `src/app/api/settings/notion/route.ts` fájlban található. Az irányítópult felhasználói felülete az `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` fájlban található.
+Definiálva az `open-sse/mcp-server/tools/notionTools.ts` fájlban. A token a `key_value` táblában van tárolva a `src/lib/db/notion.ts` segítségével. REST kliens a `src/lib/notion/api.ts` fájlban. Beállítások API a `src/app/api/settings/notion/route.ts` fájlban. Irányítópult UI a `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` fájlban.
 
-Konfigurálja a Notion-integrációs tokenjét a végpont irányítópultjának **Kontextusforrások** lapján vagy a REST API-n keresztül:
+Konfigurálja a Notion integrációs tokenjét az Endpoint irányítópult **Context Sources** lapján, vagy a REST API-n keresztül:
 
 ```bash
 # Token beállítása
@@ -207,223 +203,263 @@ curl -X POST http://localhost:20128/api/settings/notion \
 # Állapot ellenőrzése
 curl http://localhost:20128/api/settings/notion
 
-# Leválasztás
+# Kapcsolat bontása
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Eszköz                       | Hatókörök      | Leírás                                                                     |
-| :--------------------------- | :------------- | :------------------------------------------------------------------------- |
-| `notion_search`              | `read:notion`  | Teljes szöveges keresés az összes oldalon és adatbázisban                  |
-| `notion_get_page`            | `read:notion`  | Oldal lekérése azonosító alapján, a tulajdonságaival együtt                |
-| `notion_list_block_children` | `read:notion`  | Egy oldal vagy blokk gyermekblokkjainak listázása                          |
-| `notion_query_database`      | `read:notion`  | Adatbázis lekérdezése szűrőkkel, rendezésekkel és lapozással               |
-| `notion_get_database`        | `read:notion`  | Adatbázisséma lekérése azonosító alapján                                   |
-| `notion_append_blocks`       | `write:notion` | Gyermekblokkok hozzáfűzése egy szülőblokkhoz (kérelmenként legfeljebb 100) |
+| Eszköz                       | Hatókörök      | Leírás                                                              |
+| :--------------------------- | :------------- | :------------------------------------------------------------------ |
+| `notion_search`              | `read:notion`  | Teljes szöveges keresés az összes oldalon és adatbázisban           |
+| `notion_get_page`            | `read:notion`  | Oldal lekérése ID alapján a tulajdonságaival                        |
+| `notion_list_block_children` | `read:notion`  | Egy oldal vagy blokk gyermekblokkjainak listázása                   |
+| `notion_query_database`      | `read:notion`  | Adatbázis lekérdezése szűrőkkel, rendezésekkel és lapozással        |
+| `notion_get_database`        | `read:notion`  | Adatbázis séma lekérése ID alapján                                  |
+| `notion_append_blocks`       | `write:notion` | Gyermekblokkok hozzáfűzése egy szülőblokkhoz (max. 100 kérésenként) |
 
-## Agentkészség-katalógus eszközei (3)
+## Ügynök Képesség Katalógus Eszközök (3)
 
-Az `open-sse/mcp-server/tools/agentSkillTools.ts` fájlban vannak definiálva. A háttérben a `src/lib/agentSkills/catalog` biztosítja működésüket. Ezek az eszközök elérhetővé teszik a 45 bejegyzésből álló Agent Skills dokumentációs katalógust az MCP-kliensek és külső agentek számára. Hatókör: `read:catalog`.
+Definiálva a `open-sse/mcp-server/tools/agentSkillTools.ts` fájlban. A `src/lib/agentSkills/catalog` támogatja. Ezek az eszközök az 45 bejegyzésből álló Ügynök Képességek dokumentációs katalógusát teszik elérhetővé az MCP kliensek és külső ügynökök számára. Hatókör: `read:catalog`.
 
-| Eszköz                            | Hatókörök      | Leírás                                                                                                                                                              |
-| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `omniroute_agent_skills_list`     | `read:catalog` | Mind a 45 agentkészség listázása opcionális `category` (api\|cli) és `area` szűrőkkel; metaadatokat és lefedettséget ad vissza                                      |
-| `omniroute_agent_skills_get`      | `read:catalog` | Egyetlen készség teljes metaadatainak és SKILL.md-tartalmának lekérése a kanonikus `id` alapján                                                                     |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Lefedettségi statisztikák: a 23 API-, 21 CLI- és 1 konfigurációs készség közül hánynak van SKILL.md fájlja a fájlrendszerben a katalógus teljes elemszámához képest |
+| Eszköz                            | Hatókörök      | Leírás                                                                                                                                                                  |
+| :-------------------------------- | :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | Listázza mind a 45 ügynök képességet opcionális `category` (api\|cli) és `area` szűrőkkel; metaadatokat + lefedettséget ad vissza                                       |
+| `omniroute_agent_skills_get`      | `read:catalog` | Teljes metaadatok + SKILL.md tartalom lekérése egyetlen képességhez kanonikus `id` alapján                                                                              |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Lefedettségi statisztikák: hány API (23), CLI (21) és konfigurációs (1) képesség rendelkezik SKILL.md fájllal a fájlrendszeren a katalógus összesített adataihoz képest |
 
-A teljes katalógust és azt, hogy a külső agentek hogyan használják, lásd az [AGENT-SKILLS.md](./AGENT-SKILLS.md) dokumentumban.
+Lásd az [AGENT-SKILLS.md](./AGENT-SKILLS.md) fájlt a teljes katalógusért és azért, hogy a külső ügynökök hogyan használják azt.
 
 ## Kapcsolódó keretrendszerek (v3.8.0)
 
-A fenti MCP-eszközkészlet (110 egyedi eszköz, a `countUniqueMcpTools()` számítása alapján) szándékosan
-a futásidejű útválasztási, gyorsítótárazási, tömörítési, memória-, készség-, proxy- és kontextusforrás-műveletekre
-korlátozódik. A v3.8.0 verzióban két kapcsolódó keretrendszer is az MCP-kiszolgáló mellett érkezik, amelyek
-külön dokumentációval rendelkeznek:
+A fenti MCP eszközleltár (110 egyedi eszköz, a `countUniqueMcpTools()` által számítva) szándékosan
+a futásidejű útválasztási/gyorsítótárazási/tömörítési/memória/képességek/proxy/kontextus-forrás műveletekre
+korlátozódik. Két szomszédos keretrendszer szállítódik az MCP szerverrel együtt a v3.8.0-ban, és külön
+vannak dokumentálva:
 
-### Felhőagentek
+### Felhőügynökök
 
-A felhőagentek folyamaton kívül futó AI-kódoló agentek (codex-cloud, cursor-cloud, devin, jules), amelyek
-ugyanazon a kapcsolati modellen keresztül csatlakoznak az OmniRoute-hoz, mint az LLM-szolgáltatók. Saját
-REST-felületükön (`/api/v1/agents/*`) érhetők el, és **nem** részei az MCP-eszközkatalógusnak
-— egy felhőagent meghívása nem használ fel MCP-hatókört.
+A felhőügynökök folyamaton kívüli AI kódoló ügynökök (codex-cloud, cursor-cloud, devin, jules),
+amelyek az OmniRoute-ba ugyanazon a kapcsolati modellen keresztül vannak bekötve, mint az LLM szolgáltatók.
+Saját REST felületükön keresztül érhetők el (`/api/v1/agents/*`), és **nem** részei az MCP
+eszközkatalógusnak — egy felhőügynök hívása nem fogyaszt MCP hatókört.
 
-- Megvalósítás: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
+- Implementáció: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
 - Életciklus: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
 - Dokumentáció: [docs/frameworks/CLOUD_AGENT.md](./CLOUD_AGENT.md).
 
-### Védelmi korlátok
+### Korlátok (Guardrails)
 
-A védelmi korlátok a csevegési folyamatban alkalmazott, végrehajtás előtti/utáni szűrők (vision-bridge, pii-masker, prompt-injection).
-Az MCP eszköz-/útvonalréteg elérése előtt futnak, és strukturált szabálysértéseket küldenek a naplózási folyamatba;
-nem MCP-eszközként hívódnak meg.
+A korlátok (guardrails) végrehajtás előtti/utáni szűrők (vision-bridge, pii-masker, prompt-injection),
+amelyeket a chat pipeline-on belül alkalmaznak. Mielőtt az MCP eszköz/útvonal réteg elérhetővé válna,
+futnak, és strukturált jogsértéseket bocsátanak ki az audit pipeline-ba; nem MCP eszközként hívódnak meg.
 
-- Megvalósítás: `src/lib/guardrails/`.
+- Implementáció: `src/lib/guardrails/`.
 - Dokumentáció: [docs/security/GUARDRAILS.md](../security/GUARDRAILS.md).
 
-Egy blokkoltnak tűnő MCP-hívás hibakeresésekor ellenőrizze az MCP auditnaplóját
-(`scope_denied:*` bejegyzések) és a védelmi korlátok auditnyomvonalát is — egy kérést valamelyik
-védelmi korlát **azelőtt** elutasíthat, hogy az elérné az MCP hatókör-érvényesítési rétegét.
+Amikor egy blokkoltnak tűnő MCP hívást hibakeres, ellenőrizze mind az MCP audit naplót
+(`scope_denied:*` bejegyzések), mind a korlátok audit nyomvonalát — egy kérést egy korlát
+**mielőtt** elérné az MCP hatókör-érvényesítési réteget, elutasíthat.
 
 ---
 
-## REST API-végpontok
+## REST API végpontok
 
-| Végpont                | Metódus               | Leírás                                                                                                          | Hitelesítés                    |
-| :--------------------- | :-------------------- | :-------------------------------------------------------------------------------------------------------------- | :----------------------------- |
-| `/api/mcp/status`      | `GET`                 | Kiszolgálóállapot: életjel, HTTP-átvitel állapota, auditálási tevékenység összegzése                            | Felügyeleti (munkamenet/admin) |
-| `/api/mcp/tools`       | `GET`                 | Eszközkatalógus (név, leírás, hatókörök, fázis, forrásvégpontok)                                                | Felügyeleti                    |
-| `/api/mcp/sse`         | `GET` / `POST`        | SSE-átviteli végpont (az `mcpEnabled` + `mcpTransport === "sse"` feltételekhez kötve)                           | API-kulcs + hatókörök          |
-| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Folyamatos HTTP-átvitel (az `mcp-session-id` fejlécet használja; a `DELETE` lezárja a munkamenetet)             | API-kulcs + hatókörök          |
-| `/api/mcp/audit`       | `GET`                 | Auditnapló-bejegyzések az `mcp_tool_audit` forrásból (szűrők: `limit`, `offset`, `tool`, `success`, `apiKeyId`) | Felügyeleti                    |
-| `/api/mcp/audit/stats` | `GET`                 | Összesített auditstatisztikák (`totalCalls`, `successRate`, `avgDurationMs`, leggyakrabban használt eszközök)   | Felügyeleti                    |
+| Végpont                | Metódus               | Leírás                                                                                                         | Hitelesítés                    |
+| :--------------------- | :-------------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------- |
+| `/api/mcp/status`      | `GET`                 | Szerver állapot: heartbeat, HTTP transzport állapot, audit tevékenység összefoglaló                            | Menedzsment (munkamenet/admin) |
+| `/api/mcp/tools`       | `GET`                 | Eszközkatalógus (név, leírás, hatókörök, fázis, forrás végpontok)                                              | Menedzsment                    |
+| `/api/mcp/sse`         | `GET` / `POST`        | SSE transzport végpont (`mcpEnabled` + `mcpTransport === "sse"` által védett)                                  | API kulcs + hatókörök          |
+| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Streamelhető HTTP transzport (`mcp-session-id` fejlécet használ; a `DELETE` lezárja a munkamenetet)            | API kulcs + hatókörök          |
+| `/api/mcp/audit`       | `GET`                 | Audit napló bejegyzések a `mcp_tool_audit` táblából (szűrők: `limit`, `offset`, `tool`, `success`, `apiKeyId`) | Menedzsment                    |
+| `/api/mcp/audit/stats` | `GET`                 | Összesített audit statisztikák (`totalCalls`, `successRate`, `avgDurationMs`, top eszközök)                    | Menedzsment                    |
 
 Forrásfájlok: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`.
 
-Az SSE és a folyamatos HTTP-átvitel egyaránt blokkolva van mindaddig, amíg az MCP-kiszolgálót nem engedélyezik a Beállításokban (`mcpEnabled`), és ki nem választják a megfelelő `mcpTransport` értéket. Ha nem a megfelelő átvitel van konfigurálva, az útvonal HTTP 400-as választ ad vissza a beállítások módosítására vonatkozó útmutatással.
+Mind az SSE, mind a streamelhető HTTP transzportok blokkolva vannak, amíg az MCP szerver nincs engedélyezve a Beállításokban (`mcpEnabled`), és a megfelelő `mcpTransport` nincs kiválasztva. Ha rossz transzport van konfigurálva, az útvonal HTTP 400-at ad vissza, utalva a beállítások módosítására.
 
 ---
 
 ## Hitelesítés és hatókörök
 
-Az MCP-eszközök hitelesítése API-kulcsok hatókörein keresztül történik. A hatókörök érvényesítése központilag, az
-`open-sse/mcp-server/scopeEnforcement.ts` fájlban történik. Minden eszközhöz meghatározott hatókörök szükségesek:
+Az MCP eszköz a hívótól beolvasott hatókör-karakterláncokat használja. Ez az ellenőrzés egyike a három független névtérnek. Az egyik ellenőrző általi átengedés nem jelenti a többi általi átengedést. A szabályok a [Három hatókör-névtér](#három-hatókör-névtér) részben találhatók. Az eszközkatalógus az [MCP eszközhatókörök](#mcp-eszközhatókörök) részben található.
 
-| Hatókör               | Eszközök                                                                                                                                                                          |
-| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                 |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                         |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                            |
-| `read:quota`          | `check_quota`                                                                                                                                                                     |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                            |
-| `read:models`         | `list_models_catalog`                                                                                                                                                             |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                     |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                             |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                                |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                       |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                    |
-| `read:cache`          | `cache_stats`                                                                                                                                                                     |
-| `write:cache`         | `cache_flush`                                                                                                                                                                     |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                        |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                 |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                             |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                  |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                            |
-| `read:memory`         | `memory_search`                                                                                                                                                                   |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                      |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                |
-| `write:skills`        | `skills_enable`                                                                                                                                                                   |
-| `execute:skills`      | `skills_execute`                                                                                                                                                                  |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                  |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                           |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                         |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                  |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                    |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                   |
-| `read:obsidian`       | 13 olvasási eszköz — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 írási eszköz — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                   |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                 |
+### Három hatókör-névtér
 
-A helyettesítő karakteres hatókörök támogatottak: a `read:*` minden olvasási hatókört megad, a `*` pedig teljes hozzáférést biztosít.
+Az API-kulcson lévő `manage`, az MCP eszközön lévő `read:compression` és az `oma_live_…` hozzáférési tokenen lévő `read` három különböző jogosultság. Azok a hívók, akik `read` hozzáférési tokent küldenek egy módosító felügyeleti útvonalra, HTTP 403-at kapnak:
+`Access token scope 'read' is insufficient; 'write' required.`
+Ez a rang a `scopeSatisfies`. Ez nem veszi figyelembe az MCP táblázatot, és az MCP illesztő sem veszi figyelembe.
 
-### `mcp:connect` — szűk útvonal-képesség (#7895)
+| Névtér              | Hitelesítő adat                                                         | Ellenőrző                | Az átengedés lehetővé teszi                                                  |
+| :------------------ | :---------------------------------------------------------------------- | :----------------------- | :--------------------------------------------------------------------------- |
+| API-kulcs kezelés   | `api_keys.scopes`                                                       | `hasManageScope`         | Az adott Bearer kulcs felügyeleti REST-je                                    |
+| API-kulcs additív   | ugyanaz a tömb, egy pontos karakterlánc                                 | az alább nevezett segítő | Csak az az egy képesség                                                      |
+| MCP eszközhatókörök | ugyanaz a tömb, egyébként MCP `_meta`, egyébként `OMNIROUTE_MCP_SCOPES` | `scopeMatches`           | Az az eszköz, amint az érvényesítés be van kapcsolva                         |
+| Hozzáférési token   | `oma_live_…`                                                            | `scopeSatisfies`         | Az a felügyeleti útvonal, amelynek metódusa és útvonala igényli azt a rangot |
 
-A HTTP/SSE MCP-átvitel (`/api/mcp/*`) nem loopback címről történő eléréséhez szükséges az
-`/api/mcp/` LOCAL_ONLY kivétel (lásd: `docs/security/ROUTE_GUARD_TIERS.md`). Korábban
-ez a kivétel csak teljes `manage`/`admin` hatókörű API-kulcsot fogadott el — ez túl széles
-jogosultság egy olyan hívó számára, amelynek csak az MCP-vel kell kommunikálnia. A
-`src/shared/constants/managementScopes.ts` mostantól exportálja az
-`MCP_CONNECT_SCOPE = "mcp:connect"` értéket: ez egy hozzáadott, szűk hatókör (a
-`SELF_USAGE_SCOPE` precedensét követve), amely KIZÁRÓLAG az `/api/mcp/` megkerülést
-engedélyezi a `src/server/authz/policies/management.ts` fájlban — semmilyen más
-felügyeleti útvonalhoz nem ad hozzáférést, és szándékosan KIMARAD a
-`MANAGEMENT_API_KEY_SCOPES` értékből. A `manage`/`admin` hatókörrel rendelkező kulcsok
-továbbra is változatlanul átmennek a kivételen; az `mcp:connect` egy alacsonyabb
-jogosultságú alternatíva a kizárólag MCP-t használó távoli hívók számára, amelyet a
-`hasMcpConnectOrManageScope()` ellenőriz.
+Az egyes hitelesítő adatok létrehozását a [Felügyeleti hitelesítés](../guides/MANAGEMENT-AUTH.md) tárgyalja.
 
-### Kulcsonkénti HTTP-hatókör-hozzárendelés (#7895)
+#### API-kulcs hatókörök
 
-HTTP/SSE használatakor az `open-sse/mcp-server/httpTransport.ts` mostantól lekéri a hívó
-tényleges `api_keys.scopes` értékét a `resolveMcpCallerAuthInfo()`
-(`open-sse/mcp-server/httpAuthContext.ts`) segítségével, és átadja azt az MCP SDK
-`transport.handleRequest(req, { authInfo })` hívásának, így az egyes eszközhívásokhoz
-eljutó `extra.authInfo.scopes` a Bearer-kulcs saját hatóköreit tükrözi. A
-`scopeEnforcement.ts` fájlban található `resolveCallerScopeContext()` már eddig is
-előnyben részesítette az `authInfo` értékét a `_meta` és az `OMNIROUTE_MCP_SCOPES`
-környezeti változón alapuló tartalék megoldással szemben — ez a módosítás csupán ezt az
-első, legmagasabb prioritású forrást tölti fel, amely HTTP használatakor korábban nem
-kapott adatot. Ha nem sikerül API-kulcsot feloldani (nincs fejléc, érvénytelen kulcs), az
-`authInfo` értéke `undefined` marad, és a feloldás változatlanul a meglévő `meta`/környezeti
-változó láncra tér át. Ez NEM változtatja meg az `OMNIROUTE_MCP_ENFORCE_SCOPES`
-alapértelmezett értékét — a kikényszerítést továbbra is kifejezetten engedélyezni kell;
-ez a módosítás csak azt biztosítja, hogy engedélyezés után a kulcsonkénti útvonal élvezzen
-elsőbbséget. A stdio nem rendelkezik hívónkénti identitással (lásd:
-`mcpCallerIdentity.ts`), ezért nem érinti a változás — továbbra is a `_meta`/környezeti
-változó alapú tartalék láncot használja.
+Egy `api_keys.scopes` tömb két feladatot lát el. Különböző függvényeket használnak.
 
----
+**Felügyeleti REST.** A `manage` és az `admin` a `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) tagjai. A `hasManageScope` jogosítja fel az adott kulcs felügyeleti útvonalait. Az `admin` felügyeleti képességgel rendelkezik ezeken az útvonalakon. Az `admin` szó itt nem a hozzáférési token rangja, és nem terjed ki az MCP eszközhatókörökre.
+
+**Additív karakterláncok.** Mindegyik egy pontos tagsági teszt, és mindegyik kívül esik a `MANAGEMENT_API_KEY_SCOPES` hatókörén.
+
+| Hatókör                        | Az átengedés lehetővé teszi                                                                                                                                                        |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Csak a nem-loopback `/api/mcp/` LOCAL_ONLY kivágás (`hasMcpConnectOrManageScope`). A `manage` vagy `admin` kulccsal rendelkező kulcs továbbra is átmegy ezen a kivágáson.          |
+| `self:usage`                   | `GET /api/v1/me/status` ehhez a kulcshoz (`src/app/api/v1/me/status/route.ts`). A `POST /api/keys` hozzáadja ezt a hatókört létrehozáskor (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Felfelé irányuló fiókkvóták az állapotadat-csomagban (`src/lib/usage/apiKeySelfService.ts`). Az állapotútvonal továbbra is igényli a `self:usage` hatókört.                        |
+| `policy:bypass-provider-quota` | Ennek a kulcsnak a következtetési hívásai kihagyják a szolgáltatói kvóta szabályzatát (`hasProviderQuotaBypassScope` a `src/sse/handlers/chat.ts` fájlban).                        |
+
+#### Illesztés
+
+A katalógus az [MCP eszközhatókörök](#mcp-eszközhatókörök) alatti táblázat. Ne kezelje a `MCP_SCOPE_LIST` fájlt a `src/shared/constants/mcpScopes.ts` fájlban katalógusként: ez az eredeti típusos részhalmaz. Későbbi eszközök további hatóköröket deklarálnak mellette (`read:notion`, `read:skills`, `read:local-corpus`, és a táblázat többi része).
+
+Az `evaluateToolScopes` az `open-sse/mcp-server/scopeEnforcement.ts` fájlban engedélyezi a hívást, ha minden szükséges hatókör illeszkedik valamelyik megadott hatókörhöz:
+
+- A `*` minden szükséges hatókörhöz illeszkedik.
+- A `*`-gal végződő megadott hatókör illeszkedik egy olyan szükséges hatókörhöz, amely a csillag előtti előtaggal kezdődik. A `read:*` illeszkedik a `read:compression` hatókörhöz.
+- Minden más megadott hatókör csak az azonos szükséges karakterlánchoz illeszkedik.
+
+Egy olyan kulcs, amelynek hatókörei `["manage"]`, nem felel meg a `scopeMatches` ellenőrzésnek a `read:compression` esetében. Ugyanez a hívás sikertelen az `admin`, `mcp:connect`, `read` és `write` esetében, ha ezek az egyetlen megadott karakterláncok. Nincs hierarchia az MCP eszközhatókörök között a záró `*`-on túl.
+
+Az érvényesítés ki van kapcsolva, hacsak az `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (alapértelmezett `false`). Amíg ki van kapcsolva, az `evaluateToolScopes` engedélyezi a hívást és kihagyja a katalógust. Amíg be van kapcsolva, a HTTP a Bearer kulcs `api_keys.scopes` értékét használja `authInfo`-ként (lásd [Kulcsonkénti HTTP hatókör-kötés](#per-key-http-scope-binding-7895)). Ha nincsenek kulcs hatókörök feloldva, a megadott halmaz átesik az MCP `_meta`-n, majd az `OMNIROUTE_MCP_SCOPES`-en.
+
+#### Hozzáférési token hatókörök
+
+Az `oma_live_…` tokenek (`src/lib/accessTokens/scopes.ts`) `read`, `write` vagy `admin` hatóköröket hordoznak. A `scopeSatisfies` egy rang: az `admin` lefedi a `write` és a `read` hatóköröket, a `write` pedig a `read` hatókört. Az ismeretlen hatókörök semmit sem fednek le.
+
+Az `evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) összehasonlítja ezt a rangot az `inferRequiredScope` (`src/server/authz/accessScopes.ts`) értékével:
+
+- A `GET`, `HEAD` és `OPTIONS` `read` hatókört igényel.
+- Minden más metódus `write` hatókört igényel.
+- Az `ADMIN_SCOPE_PREFIXES` útvonalai `admin` hatókört igényelnek minden metódushoz. Az `/api/mcp` szerepel ezen a listán, így egy `write` hozzáférési token sem hívhatja meg az MCP HTTP felületét.
+- Az `ADMIN_MUTATION_PREFIXES` útvonalai `admin` hatókört igényelnek csak a módosításokhoz.
+
+A `PATCH /api/keys/{id}` egy mutáció, és nem szerepel azokon az admin listákon, ezért egy
+`read` token 403-at kap.
+`Access token scope 'read' is insufficient; 'write' required.`
+Egy `write` vagy `admin` hozzáférési token kielégíti ezt az útvonalat. Egy műszerfal JWT, a
+loopback CLI `machine-id` token, és egy `manage` vagy `admin` jogosultsággal rendelkező API kulcs
+más ágakon fut, és ezt a rangot nem szűkíti.
+
+Egy hozzáférési token, amely átmegy a `/api/mcp` `scopeSatisfies` ellenőrzésén, csak a
+felügyeleti kapun jutott át. Az eszközhívások továbbra is futtatják a `scopeMatches` ellenőrzést az API-kulcs
+hatókörökkel szemben. A hozzáférési token rangja nem bemenet a `scopeMatches` számára.
+
+### MCP eszköz hatókörök
+
+A hatókör-érvényesítés központosítva van az `open-sse/mcp-server/scopeEnforcement.ts` fájlban.
+Minden eszköz specifikus hatóköröket igényel:
+
+| Hatókör                     | Eszközök                                                                                                                                                                       |
+| :-------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `egészség:olvasás`          | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                              |
+| `kombinációk:olvasás`       | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                      |
+| `kombinációk:írás`          | `switch_combo`, `set_routing_strategy`                                                                                                                                         |
+| `kvóta:olvasás`             | `check_quota`                                                                                                                                                                  |
+| `használat:olvasás`         | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                         |
+| `modellek:olvasás`          | `list_models_catalog`                                                                                                                                                          |
+| `kiegészítések:végrehajtás` | `route_request`, `test_combo`                                                                                                                                                  |
+| `keresés:végrehajtás`       | `web_search`, `x_search`, `web_fetch`                                                                                                                                          |
+| `költségvetés:írás`         | `set_budget_guard`                                                                                                                                                             |
+| `rugalmasság:írás`          | `set_resilience_profile`, `db_health_check`                                                                                                                                    |
+| `árazás:írás`               | `sync_pricing`                                                                                                                                                                 |
+| `gyorsítótár:olvasás`       | `cache_stats`                                                                                                                                                                  |
+| `gyorsítótár:írás`          | `cache_flush`                                                                                                                                                                  |
+| `tömörítés:olvasás`         | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                     |
+| `tömörítés:írás`            | `compression_configure`, `set_compression_engine`                                                                                                                              |
+| `proxyk:olvasás`            | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                          |
+| `notion:olvasás`            | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                               |
+| `notion:írás`               | `notion_append_blocks`                                                                                                                                                         |
+| `memória:olvasás`           | `memory_search`                                                                                                                                                                |
+| `memória:írás`              | `memory_add`, `memory_clear`                                                                                                                                                   |
+| `készségek:olvasás`         | `skills_list`, `skills_executions`                                                                                                                                             |
+| `készségek:írás`            | `skills_enable`                                                                                                                                                                |
+| `készségek:végrehajtás`     | `skills_execute`                                                                                                                                                               |
+| `katalógus:olvasás`         | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                               |
+| `eszközök:olvasás`          | `omniroute_tool_search`                                                                                                                                                        |
+| `radar:olvasás`             | `omniroute_radar_catalog`                                                                                                                                                      |
+| `gamifikáció:olvasás`       | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                               |
+| `write:gamification`        | `gamification_invite`, `gamification_transfer`                                                                                                                                 |
+| `read:plugins`              | `plugin_list`, `plugin_executions`                                                                                                                                             |
+| `write:plugins`             | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                |
+| `read:obsidian`             | 13 olvasóeszköz — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`            | 9 íróeszköz — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                   |
+| `read:local-corpus`         | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                              |
+
+A helyettesítő karakteres hatókörök támogatottak: a `read:*` minden olvasási hatókört megad, a `*` teljes hozzáférést biztosít.
+
+### `mcp:connect` — szűkített útvonal-képesség (#7895)
+
+Az HTTP/SSE MCP transzport (`/api/mcp/*`) elérése nem-loopback címről megköveteli az `/api/mcp/` LOCAL_ONLY kivételt (lásd `docs/security/ROUTE_GUARD_TIERS.md`). Történelmileg ez a kivétel csak teljes `manage`/`admin` hatókörű API kulcsot fogadott el — túl széleskörű egy olyan hívó számára, akinek csak az MCP-vel kell kommunikálnia. A `src/shared/constants/managementScopes.ts` mostantól exportálja az `MCP_CONNECT_SCOPE = "mcp:connect"`-et: egy additív, szűk hatókör (ugyanaz az előzmény, mint a `SELF_USAGE_SCOPE` esetében), amely CSAK az `/api/mcp/` megkerülését engedélyezi a `src/server/authz/policies/management.ts`-ben — nem biztosít más menedzsment útvonalhoz hozzáférést, és szándékosan KI van hagyva a `MANAGEMENT_API_KEY_SCOPES`-ből. Egy `manage`/`admin` kulccsal rendelkező kulcs továbbra is változatlanul átmegy a kivételen; az `mcp:connect` egy alacsonyabb jogosultságú alternatíva távoli, csak MCP-t használó hívók számára, amelyet a `hasMcpConnectOrManageScope()` ellenőriz.
+
+### Kulcsonkénti HTTP hatókör-kötés (#7895)
+
+HTTP/SSE felett az `open-sse/mcp-server/httpTransport.ts` mostantól feloldja a hívó valós `api_keys.scopes` értékeit a `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) segítségével, és átadja az MCP SDK `transport.handleRequest(req, { authInfo })` metódusának, így az egyes eszközhívásokhoz eljutó `extra.authInfo.scopes` a Bearer kulcs saját hatóköreit tükrözi. A `scopeEnforcement.ts` `resolveCallerScopeContext()` metódusa már korábban is előnyben részesítette az `authInfo`-t a `_meta` és az `OMNIROUTE_MCP_SCOPES` környezeti változó visszatérése felett — ez csak az első, legmagasabb prioritású forrást tölti fel, amely korábban HTTP-n keresztül nem volt táplálva. Ha nincs feloldott API kulcs (nincs fejléc, érvénytelen kulcs), az `authInfo` `undefined` marad, és a feloldás változatlanul az existing `meta`/env láncra esik vissza. Ez NEM fordítja meg az `OMNIROUTE_MCP_ENFORCE_SCOPES` alapértelmezett értékét — a kényszerítést továbbra is explicit módon engedélyezni kell; ez a változás csak azt biztosítja, hogy a kulcsonkénti útvonal élvezzen elsőbbséget, amint engedélyezve van. A stdio-nak nincs hívónkénti identitása (lásd `mcpCallerIdentity.ts`), és ez nem érinti — az `_meta`/env visszatérési láncon marad.
 
 ## Környezeti változók
 
-| Változó                                 | Alapértelmezett érték                 | Rendeltetés                                                                                                                                  |
-| :-------------------------------------- | :------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`              | Az MCP-kiszolgáló által az OmniRoute belső API-jainak meghívásakor használt alap-URL                                                         |
-| `OMNIROUTE_API_KEY`                     | (üres)                                | A belső API-hívásokhoz `Authorization: Bearer` formájában továbbított API-kulcs                                                              |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (csak a `"true"` engedélyezi) | Ha engedélyezve van, a hiányzó hatókörök megtagadják az eszközhívásokat, és `scope_denied:<reason>` kerül az auditnaplóba                    |
-| `OMNIROUTE_MCP_SCOPES`                  | (üres)                                | Az alapértelmezetten „elérhetőnek” tekintett hatókörök vesszővel elválasztott engedélyezési listája (ha a hívó nem ad meg saját hatóköröket) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nincs beállítva = bekapcsolva)       | `0/false/off/no` értékre állítva letiltja az MCP-leírások tömörítését a regisztráció során                                                   |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nincs beállítva = bekapcsolva)       | A fenti kapcsoló alternatív álneve                                                                                                           |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                               | Megszakítási időkeret a belső felügyeleti lekérdezésekhez (állapot, ellenálló képesség, kombinációk, kvóta, használat)                       |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                               | Megszakítási időkeret a szolgáltatóra váró lépésekhez (`route_request`, `web_search`, `web_fetch`)                                           |
-| `MCP_TOOL_DENY`                         | (nincs beállítva = nincs szűrés)      | A `tools/list` listából eltávolítandó eszköznevek vesszővel elválasztott listája (az eszközök számosságának csökkentése — lásd alább)        |
-| `MCP_TOOL_ALLOW`                        | (nincs beállítva = nincs szűrés)      | A kizárólagosan megtartandó eszköznevek vesszővel elválasztott listája (engedélyezésilista-mód — lásd alább)                                 |
-| `DATA_DIR`                              | `~/.omniroute`                        | A rendszer a heartbeat fájlt a `${DATA_DIR}/runtime/mcp-heartbeat.json` útvonalra írja                                                       |
+| Változó                                 | Alapértelmezett                       | Cél                                                                                                                                                                            |
+| :-------------------------------------- | :------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`              | Az alap URL, amelyet az MCP szerver használ az OmniRoute belső API-k hívásakor                                                                                                 |
+| `OMNIROUTE_API_KEY`                     | (üres)                                | API kulcs, amelyet `Authorization: Bearer` formában továbbítanak a belső API hívásokhoz                                                                                        |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (csak a `"true"` engedélyezi) | Ha engedélyezve van, a hiányzó hatókörök megtagadják az eszközhívásokat, és `scope_denied:<reason>` bejegyzést naplóznak az audit naplóba                                      |
+| `OMNIROUTE_MCP_SCOPES`                  | (üres)                                | Vesszővel elválasztott engedélyezési lista a hatókörökről, amelyek alapértelmezés szerint „elérhetőnek” minősülnek (akkor használatos, ha a hívó nem ad meg saját hatóköröket) |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nincs beállítva = bekapcsolva)       | Ha `0/false/off/no` értékre van állítva, letiltja az MCP leírás tömörítését a regisztráció idején                                                                              |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nincs beállítva = bekapcsolva)       | Alternatív alias ugyanahhoz a kapcsolóhoz, mint fent                                                                                                                           |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                               | Megszakítási költségvetés a belső felügyeleti olvasásokhoz (állapot, rugalmasság, kombinációk, kvóta, használat)                                                               |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                               | Megszakítási költségvetés azokhoz a ugrásokhoz, amelyek szolgáltatóra várnak (`route_request`, `web_search`, `web_fetch`)                                                      |
+| `MCP_TOOL_DENY`                         | (nincs beállítva = nincs szűrő)       | Vesszővel elválasztott eszköznevek, amelyeket el kell dobni a `tools/list` listából (eszköz-kardinalitás csökkentés – lásd alább)                                              |
+| `MCP_TOOL_ALLOW`                        | (nincs beállítva = nincs szűrő)       | Vesszővel elválasztott eszköznevek, amelyeket kizárólagosan meg kell tartani (engedélyezési lista mód – lásd alább)                                                            |
+| `DATA_DIR`                              | `~/.omniroute`                        | A heartbeat fájl a `${DATA_DIR}/runtime/mcp-heartbeat.json` helyre íródik                                                                                                      |
 
 ---
 
-## Leírástömörítés
+## Leírás tömörítés
 
-Az MCP-eszköz-, prompt- és erőforrás-nyilvántartások a regisztráció/listázás során tömöríthetik a leírásokat, hogy csökkentsék az ügyfelek számára elérhető metaadatok méretét (és ezáltal a prompt kontextusának költségét). A megvalósítás az `open-sse/mcp-server/descriptionCompressor.ts` fájlban található, és a `createMcpServer()` függvényen belüli `compressMcpRegistryMetadata` révén kapcsolódik az MCP-kiszolgálóhoz.
+Az MCP eszköz-, prompt- és erőforrás-regiszterek tömöríthetik a leírásokat a regisztráció/listázás során, hogy csökkentsék az ügyfelek számára elérhető metaadat-lábnyomot (és ezáltal a prompt kontextus költségét). A megvalósítás az `open-sse/mcp-server/descriptionCompressor.ts` fájlban található, és a `createMcpServer()` függvényen belüli `compressMcpRegistryMetadata` segítségével van bekötve az MCP szerverbe.
 
-- A tömörítés a Caveman szabálykészlet (`getRulesForContext("all", "full")`) használatával fut végig a leírás szövegén, a megőrzendő blokkok (kódrészletek, körülhatárolt blokkok stb.) kivonásával, így a strukturális tartalom nem változik meg.
-- Telepítésenként a `key_value` beállítási tábla `compression.mcpDescriptionCompressionEnabled` értékével kapcsolható be vagy ki (alapértelmezés: engedélyezve) — a felhasználói felületen az **Analitika → MCP-leírástömörítés** menüpontban érhető el.
-- Folyamatszinten az `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` vagy az `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false` használatával kapcsolható be vagy ki.
-- A valós idejű statisztikák az `omniroute_compression_status` segítségével, az `analytics.mcpDescriptionCompression` alatt jelennek meg, és `source: "mcp_metadata_estimate"` címkével vannak ellátva, hogy megkülönböztethetők legyenek a szolgáltató tényleges használati bizonylataitól.
+- A tömörítés a leírás szövegén fut a Caveman szabályrendszer (`getRulesForContext("all", "full")`) használatával, megőrzött blokk-kivonatolással (kódspans, keretezett blokkok stb.), így a strukturális tartalom nem módosul.
+- Telepítésenkénti váltás a `key_value` beállítási táblázat `compression.mcpDescriptionCompressionEnabled` értékén keresztül (alapértelmezett: engedélyezve) – az UI-ban **Analytics → MCP description compression** néven jelenik meg.
+- Folyamat-szintű váltás az `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` vagy az `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false` segítségével.
+- Valós idejű statisztikák jelennek meg az `omniroute_compression_status` alatt az `analytics.mcpDescriptionCompression` részen, és `source: "mcp_metadata_estimate"` címkével vannak ellátva, hogy megkülönböztethetők legyenek a valós szolgáltatói használati nyugtáktól.
 
 ---
 
-## Eszközszám-csökkentés (F4.3)
+## Eszköz-kardinalitás csökkentés (F4.3)
 
-A leírástömörítés az egyes eszközök metaadatait csökkenti; az **eszközszám-csökkentés** egy lépéssel tovább megy, és azt mérsékli, hogy egyáltalán _hány_ eszköz legyen meghirdetve. Ha kevesebb eszköz szerepel a `tools/list` jegyzékben, az csökkenti az eszközkatalógus kliensmodell által fizetett, kérésenkénti tokenköltségét („5. rétegbeli” tömörítés). A megvalósítás egy tisztán működő, állapotmentes szűrő az `open-sse/mcp-server/toolCardinality.ts` fájlban (`reduceToolManifest`), amely a `createMcpServer()` (`open-sse/mcp-server/server.ts`) regisztrációs ciklusába van bekötve.
+A leírás tömörítése csökkenti az egyes eszközök metaadatait; az **eszköz-kardinalitás csökkentés** egy lépéssel tovább megy azáltal, hogy csökkenti, _hány_ eszközt hirdetnek meg egyáltalán. Kevesebb eszköz hirdetése a `tools/list` manifesztumban csökkenti a kérésenkénti tokenköltséget, amelyet az ügyfél modellje fizet az eszközkatalógusért ("5. réteg" tömörítés). A megvalósítás egy tiszta, állapotmentes szűrő az `open-sse/mcp-server/toolCardinality.ts` fájlban (`reduceToolManifest`), amely a `createMcpServer()` (`open-sse/mcp-server/server.ts`) regisztrációs ciklusába van bekötve.
 
-**Külön engedélyezendő, alapértelmezés szerint ki van kapcsolva.** A szűrő csak akkor fut le, ha a két környezeti változó közül legalább az egyik be van állítva; ha egyik sincs beállítva, mind a 110 eszköz változatlanul meg lesz hirdetve.
+**Bekapcsolható, alapértelmezetten kikapcsolva.** A szűrő csak akkor fut, ha legalább az egyik környezeti változó be van állítva; ha egyik sincs beállítva, mind a 110 eszköz változatlanul meghirdetésre kerül.
 
-| Változó          | Mód                                                                                                  |
-| :--------------- | :--------------------------------------------------------------------------------------------------- |
-| `MCP_TOOL_DENY`  | Tiltólista — vesszővel elválasztott eszköznevek, amelyek mindig kimaradnak a `tools/list` jegyzékből |
-| `MCP_TOOL_ALLOW` | Engedélyezési lista — vesszővel elválasztott eszköznevek; csak ezek maradnak meg, minden más kimarad |
+| Változó          | Mód                                                                                                          |
+| :--------------- | :----------------------------------------------------------------------------------------------------------- |
+| `MCP_TOOL_DENY`  | Feketelista — vesszővel elválasztott eszköznevek, amelyek mindig elvetésre kerülnek a `tools/list` listából  |
+| `MCP_TOOL_ALLOW` | Engedélyezési lista — vesszővel elválasztott eszköznevek; csak ezek maradnak meg, minden más elvetésre kerül |
 
-A `deny` elsőbbséget élvez az `allow` beállítással szemben. A neveket vessző választja el, a környező szóközök eltávolításra kerülnek, az üres elemeket pedig a rendszer figyelmen kívül hagyja. Példák:
+A `deny` felülírja az `allow` beállítást. A nevek vesszővel elválasztottak, levágottak, és az üres bejegyzések figyelmen kívül maradnak. Példák:
 
 ```bash
-# Két eszköz eltávolítása a katalógusból
+# Két eszköz elvetése a katalógusból
 MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
 
-# Csak az útválasztási és kvótaeszközök meghirdetése (engedélyezésilista-mód)
+# Csak az útválasztási + kvóta eszközök meghirdetése (engedélyezési lista mód)
 MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 ```
 
-**A kiszűrt eszközök eltávolításának módja:** a regisztráció mindig sikeres; a profil által elutasított eszköz ezután `.disable()` hívást kap az MCP SDK kezelőjén, így soha nem jelenik meg a `tools/list` jegyzékben, miközben a bekötés érintetlen marad (szabályos engedélyezés/letiltás, újraregisztráció nélkül). A profil elemzője a `readMcpToolProfileFromEnv(process.env)`, amely `null` értéket ad vissza (nincs szűrés), ha mindkét változó üres.
+**Hogyan távolítják el a szűrt eszközöket:** a regisztráció mindig sikeres; egy olyan eszköz, amelyet a profil elutasít, az MCP SDK kezelőjén `.disable()`-re kerül, így soha nem jelenik meg a `tools/list` listában, de a bekötés érintetlen marad (tiszta engedélyezés/letiltás, nincs újraregisztráció). A profil elemzője a `readMcpToolProfileFromEnv(process.env)`, amely `null` értéket ad vissza (nincs szűrés), ha mindkét változó üres.
 
-A `reduceToolManifest` mögötti, részletesebb `ToolProfile` struktúra támogatja a hatókörmetszet-alapú szűrést (`allowScopes`, `read:*` jellegű helyettesítő karakteres egyeztetéssel), valamint egy determinisztikus `maxTools` korlátot is. Ez a két beállítás azonban a teljes jegyzéket igényli a regisztráció idején, ezért jelenleg **nem** érhető el környezeti változókon keresztül (a `tools/list` szintű kapcsolódási pont nyomon követett későbbi feladat). Az `estimateManifestTokens()` használható a jegyzék tokenköltségének összehasonlítására a csökkentés előtt és után.
+A `reduceToolManifest` mögötti gazdagabb `ToolProfile` forma támogatja a hatókör-metszet szűrést is (`allowScopes`, `read:*` stílusú helyettesítő karakteres illesztéssel) és egy determinisztikus `maxTools` korlátot, de ez a két beállítás a teljes manifesztumot igényli a regisztrációkor, és ma **nem** érhetők el a környezeti változókon keresztül (egy `tools/list`-szintű hook egy nyomon követett feladat). Az `estimateManifestTokens()` elérhető a manifesztum tokenköltségének összehasonlítására a csökkentés előtt és után.
 
 ---
 
-## Futásidejű szívverés
+## Futásidejű szívverés (Heartbeat)
 
-A stdio átvitel 5 másodpercenként menti az elérhetőségi állapotot a `${DATA_DIR}/runtime/mcp-heartbeat.json` fájlba. Az irányítópult (`/api/mcp/status`) ezt a fájlt és a PID élő állapotát olvassa be az `online` érték meghatározásához. A HTTP-átvitelek ehelyett a folyamaton belüli `getMcpHttpStatus()` állapotát jelentik (fájlírás nélkül).
+Az stdio transzport 5 másodpercenként megőrzi az élőség állapotát a `${DATA_DIR}/runtime/mcp-heartbeat.json` fájlba. Az irányítópult (`/api/mcp/status`) ebből a fájlból és a PID élőségéből olvassa ki az `online` állapotot. A HTTP transzportok ehelyett a folyamaton belüli `getMcpHttpStatus()`-ból jelentik az állapotot (nincs fájlírás).
 
-A szívverési pillanatkép a következőket tartalmazza:
+A heartbeat pillanatkép a következőket tartalmazza:
 
 ```json
 {
@@ -440,47 +476,47 @@ A szívverési pillanatkép a következőket tartalmazza:
 
 ---
 
-## Auditnaplózás
+## Audit naplózás
 
-Az `open-sse/mcp-server/audit.ts` minden eszközhívást naplóz a SQLite `mcp_tool_audit` táblájába:
+Minden eszközhívás naplózásra kerül az SQLite `mcp_tool_audit` táblájába az `open-sse/mcp-server/audit.ts` által:
 
-- Eszköznév, argumentumok (az eszközönkénti `auditLevel` szerint kivonatolva/csonkolva), eredmény
-- Időtartam ezredmásodpercben, siker/sikertelenség jelzője, hibaüzenet (ha alkalmazható)
-- API-kulcs kivonata, időbélyeg
-- A hatókör-megtagadások `scope_denied:<reason>` formában, a hiányzó hatókörök listájával együtt kerülnek naplózásra
+- Eszköz neve, argumentumok (hash-elve/csonkítva az eszközönkénti `auditLevel` szerint), eredmény
+- Időtartam ms-ban, siker/hiba jelző, hibaüzenet (ha releváns)
+- API kulcs hash, időbélyeg
+- A hatókör-elutasítások `scope_denied:<reason>` formában kerülnek naplózásra a hiányzó hatókörök listájával
 
-A legutóbbi hívásokat az irányítópulton, illetve az `/api/mcp/audit` és `/api/mcp/audit/stats` REST-végpontokon tekintheti meg.
+Használja az irányítópultot vagy az `/api/mcp/audit` és `/api/mcp/audit/stats` REST végpontokat a legutóbbi hívások ellenőrzéséhez.
 
 ---
 
 ## Fájlok
 
-| Fájl                                                                     | Rendeltetés                                                                           |
-| :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------ |
-| `open-sse/mcp-server/server.ts`                                          | MCP-kiszolgáló gyártófüggvénye, stdio belépési pont, hatóköralapú eszközregisztrációk |
-| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamable HTTP-átvitel (munkamenet-kezelés)                                    |
-| `open-sse/mcp-server/scopeEnforcement.ts`                                | Eszközhatókörök kiértékelése és a hívó feloldása                                      |
-| `open-sse/mcp-server/audit.ts`                                           | Eszközhívások auditnaplózása (`mcp_tool_audit`)                                       |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio szívverésíró (`mcp-heartbeat.json`)                                             |
-| `open-sse/mcp-server/descriptionCompressor.ts`                           | Leírástömörítés az eszköz-, prompt- és erőforrás-nyilvántartásokhoz                   |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod-sémák + eszköznyilvántartás (`MCP_TOOLS`, 45 bejegyzés)                           |
-| `open-sse/mcp-server/tools/advancedTools.ts`                             | 2. fázisú, gyorsítótár- és 1proxy-eszközkezelők                                       |
-| `open-sse/mcp-server/tools/compressionTools.ts`                          | Tömörítőeszközök kezelői                                                              |
-| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memóriaeszközök definíciói (3 eszköz)                                                 |
-| `open-sse/mcp-server/tools/skillTools.ts`                                | Készségeszközök definíciói (4 eszköz)                                                 |
-| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion-kontextusforrás eszközdefiníciói (6 eszköz)                                    |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Játékosítási eszközök definíciói (8 eszköz)                                           |
-| `open-sse/mcp-server/tools/pluginTools.ts`                               | Bővítményregisztrációs és -kezelési eszközök (8 eszköz)                               |
-| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` végpont                                                             |
-| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` végpont                                                              |
-| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE-átviteli útvonal                                                   |
-| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamable HTTP-átviteli útvonal                                    |
-| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` auditnapló-lekérdezés                                                |
-| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` összesített auditmetrikák                                      |
-| `src/lib/notion/api.ts`                                                  | Notion REST API-kliens (újrapróbálkozás, időtúllépés, hibabesorolás)                  |
-| `src/lib/db/notion.ts`                                                   | Notion-token tartós tárolása (`key_value` tábla)                                      |
-| `src/app/api/settings/notion/route.ts`                                   | Notion-beállítások API-ja (GET/POST/DELETE)                                           |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion-tokenkezelési felhasználói felület                                             |
-| `tests/unit/notion-api.test.ts`                                          | Notion API-kliens tesztjei (7)                                                        |
-| `tests/unit/notion-tools.test.ts`                                        | Notion-eszközök hatókör-kikényszerítési tesztjei (10)                                 |
-| `tests/unit/db/notion.test.mjs`                                          | A Notion DB-modul tesztjei (3)                                                        |
+| Fájl                                                                     | Cél                                                                          |
+| :----------------------------------------------------------------------- | :--------------------------------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`                                          | MCP szerver gyár, stdio belépési pont, hatókörhöz kötött eszközregisztrációk |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamelhető HTTP transzport (munkamenet-kezelés)                      |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | Eszközhatókör kiértékelése és hívó feloldása                                 |
+| `open-sse/mcp-server/audit.ts`                                           | Eszközhívás audit naplózása (`mcp_tool_audit`)                               |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio szívverés író (`mcp-heartbeat.json`)                                   |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Leírás tömörítés eszköz / prompt / erőforrás regiszterekhez                  |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod sémák + eszközregiszter (`MCP_TOOLS`, 45 bejegyzés)                      |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | 2. fázis + gyorsítótár + 1proxy eszközkezelők                                |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | Tömörítési eszközkezelők                                                     |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memória eszköz definíciók (3 eszköz)                                         |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Képesség eszköz definíciók (4 eszköz)                                        |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion kontextusforrás eszköz definíciók (6 eszköz)                          |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamifikációs eszköz definíciók (8 eszköz)                                    |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin regisztrációs és kezelési eszközök (8 eszköz)                         |
+| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` végpont                                                    |
+| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` végpont                                                     |
+| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE transzport útvonal                                        |
+| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamelhető HTTP transzport útvonal                       |
+| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` audit napló lekérdezés                                      |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` összesített audit metrikák                            |
+| `src/lib/notion/api.ts`                                                  | Notion REST API kliens (újrapróbálkozás, időtúllépés, hibaosztályozás)       |
+| `src/lib/db/notion.ts`                                                   | Notion token perzisztencia (`key_value` tábla)                               |
+| `src/app/api/settings/notion/route.ts`                                   | Notion beállítások API (GET/POST/DELETE)                                     |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token kezelő felhasználói felület                                     |
+| `tests/unit/notion-api.test.ts`                                          | Notion API kliens tesztek (7)                                                |
+| `tests/unit/notion-tools.test.ts`                                        | Notion eszközök hatókör-érvényesítési tesztek (10)                           |
+| `tests/unit/db/notion.test.mjs`                                          | Notion DB modul tesztek (3)                                                  |

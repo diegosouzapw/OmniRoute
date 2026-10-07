@@ -9,43 +9,43 @@ Komprese OmniRoute je postavena na kontraktech enginů. Režim může přímo sp
 
 ## Režimy
 
-| Režim        | Cesta enginu                             | Zamýšlený vstup                                        |
-| ------------ | ---------------------------------------- | ------------------------------------------------------ |
-| `off`        | žádný                                    | Přesné zachování promptu                               |
-| `lite`       | Pomocné funkce Caveman lite              | Nízkorizikové průběžné čištění                         |
-| `standard`   | Caveman                                  | Kondenzace promptů v přirozeném jazyce                 |
-| `aggressive` | Caveman + sumarizátory historie/nástrojů | Dlouhé chatovací relace                                |
-| `ultra`      | Caveman + pomocné funkce pro prořezávání | Obnovení po dosažení limitu kontextu                   |
-| `rtk`        | RTK                                      | Výstup terminálu, shellu, sestavení, testů a gitu      |
-| `omniglyph`  | OmniGlyph                                | Kontext jako obrázek v nativním rozhraní poskytovatele |
-| `stacked`    | Pipeline, výchozí `rtk -> caveman`       | Smíšené logy nástrojů a próza, maximální úspora        |
+| Režim        | Cesta enginu                                                                                       | Určený vstup                                            |
+| ------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `off`        | žádná                                                                                              | Přesné zachování promptu                                |
+| `lite`       | Pomocné nástroje Caveman lite                                                                      | Vždy aktivní čištění s nízkým rizikem                   |
+| `standard`   | Caveman                                                                                            | Zkracování promptů v přirozeném jazyce                  |
+| `aggressive` | Caveman + sumarizátory historie/nástrojů                                                           | Dlouhé chatovací relace                                 |
+| `ultra`      | Caveman + pomocné nástroje pro prořezávání                                                         | Obnovení po dosažení limitu kontextu                    |
+| `rtk`        | RTK                                                                                                | Výstup terminálu, shellu, sestavení, testů a gitu       |
+| `omniglyph`  | OmniGlyph                                                                                          | Kontext jako obrázek na nativním rozhraní poskytovatele |
+| `stacked`    | Pipeline. Výchozí posloupnost požadavku je `session-dedup -> lite`. `rtk -> caveman` je volitelné. | Smíšené protokoly nástrojů a próza, maximální úspora    |
 
 ### Profily komprese OmniGlyph
 
-Engine `omniglyph` (balíček `omniglyph`, 1.4.0+) přijímá pojmenovaný sémantický profil, nastavený
-globálně prostřednictvím `omniglyph.profile` v nastavení komprese nebo pro jednotlivé kroky prostřednictvím
-konfigurace kroku ve zřetězeném pipeline:
+Engine `omniglyph` (balíček `omniglyph`, 1.4.0+) přijímá pojmenovaný sémantický profil, který se nastavuje
+globálně prostřednictvím `omniglyph.profile` v nastavení komprese nebo pro každý krok prostřednictvím
+konfigurace kroku skládané pipeline:
 
-| Profil        | Hranice                                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Výchozí. Zásady, podle kterých byla měřena publikovaná potvrzení — obrazový systém, dokumentace nástrojů a hustá historie |
-| `balanced`    | Zachovává aktivní stav v nativní podobě, chrání posledních 8 kol, slučuje starší uzavřenou historii                       |
-| `coding-safe` | Zachovává autoritu, schémata nástrojů a aktivní výstup nástrojů v nativní podobě, chrání posledních 12 kol                |
-| `passthrough` | Směruje bez transformace; engine je přeskočen                                                                             |
+| Profil        | Hranice                                                                                                               |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Výchozí. Zásady, které měřily zveřejněné výsledky — převádí systém, dokumentaci nástrojů a hustou historii na obrázky |
+| `balanced`    | Zachovává živý stav v nativní podobě, chrání posledních 8 kol a slučuje starší uzavřenou historii                     |
+| `coding-safe` | Zachovává autoritu, schémata nástrojů a živý výstup nástrojů v nativní podobě, chrání posledních 12 kol               |
+| `passthrough` | Směruje bez transformace; engine je přeskočen                                                                         |
 
 Profil je **strop, nikoli podlaha**: `mergeCompressionProfileOptions` v balíčku
-nedovolí, aby přepsání volajícím znovu otevřelo ztrátovou větev, kterou profil uzavřel, takže hodnota
-`preserveSystemPrompt: false` nastavená pro jednotlivý krok nemůže pod profilem `coding-safe` znovu povolit kompresi systémového promptu.
+nedovolí, aby přepsání volajícím znovu otevřelo ztrátovou větev, kterou profil uzavřel, takže nastavení
+`preserveSystemPrompt: false` pro konkrétní krok nemůže znovu povolit kompresi systému v profilu `coding-safe`.
 
-Naměřeno na tomto kódu: `coding-safe` a `balanced` zvyšují `minCompressChars` na jeho
-maximum a zachovávají systém, schémata nástrojů a výsledky nástrojů v nativní podobě, takže relace, která dosud
-nenahromadila historii, skončí na `below_min_chars` a engine nic netransformuje. Proto
-je výchozím profilem `aggressive`, nikoli nejbezpečnější profil.
+Naměřeno na této kódové základně: profily `coding-safe` a `balanced` zvyšují `minCompressChars` na jeho
+maximum a zachovávají systém, schémata nástrojů a výsledky nástrojů v nativní podobě, takže relace, ve které se
+dosud nenahromadila historie, skončí na `below_min_chars` a engine nic netransformuje. Proto je
+výchozím profilem `aggressive`, nikoli nejbezpečnější profil.
 
-Balíček určuje vlastní rozsah modelů a profil ze své konfigurace prostředí.
-OmniRoute toto rozhodnutí nikdy nedeleguje: adaptér omezuje bránu modelů na nejrestriktivnější rozsah balíčku,
-takže nastavení hostitelského prostředí může seznam povolených položek pouze zúžit, nikdy jej nerozšíří nad rámec
-naměřených potvrzení OmniRoute.
+Balíček určuje svůj vlastní rozsah modelů a profil z konfigurace prostředí.
+OmniRoute toto rozhodnutí nikdy nedeleguje: adaptér nastavuje bránu modelu na nejrestriktivnější rozsah
+balíčku, takže nastavení hostitelského prostředí mohou seznam povolených položek pouze zúžit, nikdy jej
+nemohou rozšířit nad rámec naměřených výsledků OmniRoute.
 
 ## Registr enginů
 

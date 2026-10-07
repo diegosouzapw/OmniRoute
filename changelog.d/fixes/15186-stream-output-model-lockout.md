@@ -1,0 +1,1 @@
+- **fix(sse):** an isolated 5xx after a stream already relayed output no longer records a model-only lockout that benched the model for every other client; three such failures in a row still lock it ([#15186](https://github.com/diegosouzapw/OmniRoute/pull/15186))

@@ -5,11 +5,11 @@
 ---
 
 > **Πηγή αλήθειας:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Τελευταία ενημέρωση:** 2026-06-28 — v3.8.40
+> **Τελευταία ενημέρωση:** 2026-09-22 — οι χώροι ονομάτων εμβέλειας παραπέμπουν στο MCP-SERVER.md
 
-Το OmniRoute διαθέτει μια διοχέτευση εξουσιοδότησης που λαμβάνει υπόψη τη διαδρομή και ελέγχει κάθε αίτημα API. Η ταξινόμηση είναι **ντετερμινιστική** και **κλειστή σε περίπτωση αποτυχίας** — οτιδήποτε δεν μπορεί να ταξινομηθεί καταλήγει ως `MANAGEMENT` και απαιτεί συνεδρία ή διακριτικό επιπέδου διαχείρισης. Αυτή η σελίδα εξηγεί το μοντέλο για μηχανικούς που συντηρούν διαδρομές ή σχεδιάζουν νέα τελικά σημεία.
+Το OmniRoute διαθέτει μια διοχέτευση εξουσιοδότησης με επίγνωση διαδρομών, η οποία ελέγχει κάθε αίτημα API. Η ταξινόμηση είναι **ντετερμινιστική** και **fail-closed** — οτιδήποτε δεν μπορεί να ταξινομηθεί καταλήγει ως `MANAGEMENT` και απαιτεί συνεδρία ή διακριτικό επιπέδου διαχείρισης. Αυτή η σελίδα εξηγεί το μοντέλο για μηχανικούς που συντηρούν διαδρομές ή σχεδιάζουν νέα τελικά σημεία.
 
-![Διοχέτευση AuthZ (3 κατηγορίες διαδρομών + αξιολόγηση πολιτικής)](../diagrams/exported/authz-pipeline.svg)
+![Διοχέτευση AuthZ (3 κλάσεις διαδρομών + αξιολόγηση πολιτικής)](../diagrams/exported/authz-pipeline.svg)
 
 > Πηγή: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -23,11 +23,11 @@
 Authorization: Bearer <api-key>
 ```
 
-Επικυρώνεται από τις `isValidApiKey()` / `extractApiKey()` στο `src/sse/services/auth.ts` και επανεξάγεται μέσω του `src/shared/utils/apiAuth.ts`. Ο επικυρωτής αποδέχεται επίσης τις μεταβλητές περιβάλλοντος `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ως μόνιμα κλειδιά διέλευσης (ζήτημα #1350).
+Επαληθεύεται από τις `isValidApiKey()` / `extractApiKey()` στο `src/sse/services/auth.ts` και επανεξάγεται μέσω του `src/shared/utils/apiAuth.ts`. Ο μηχανισμός επαλήθευσης αποδέχεται επίσης τις μεταβλητές περιβάλλοντος `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ως μόνιμα κλειδιά άμεσης διέλευσης (ζήτημα #1350).
 
 ### 2. Συνεδρία πίνακα ελέγχου (cookie auth_token)
 
-Για σελίδες του πίνακα ελέγχου και λειτουργίες διαχειριστή.
+Για τις σελίδες του πίνακα ελέγχου και τις λειτουργίες διαχειριστή.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
@@ -35,13 +35,15 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 Ένα cookie αποτελεί συνεδρία μόνο όταν το JWT επαληθεύεται **και** περιέχει `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Κάθε
-καταναλωτής του cookie (προστασία διαδρομών, ανανέωση διοχέτευσης authz, χειραψία WebSocket, ζωντανός
-διακομιστής, `/api/settings/require-login`, `/api/auth/status`) χρησιμοποιεί αυτό το βοηθητικό εργαλείο.
-Υπάρχουν και άλλα JWT υπογεγραμμένα με `JWT_SECRET` — η διέλευση του Cursor CLI δημιουργεί
-διακριτικά `iss "omniroute" / aud "cursor-cli"` για κατόχους κλειδιών — τα οποία δεν αποτελούν ποτέ συνεδρίες
+καταναλωτής του cookie (προστασία διαδρομών πίνακα ελέγχου (`isDashboardSessionAuthenticated()`), ανανέωση διοχέτευσης εξουσιοδότησης, χειραψία WebSocket, ζωντανός
+διακομιστής, `/api/settings/require-login`, `/api/auth/status`) περνά από αυτήν τη βοηθητική συνάρτηση.
+Υπάρχουν και άλλα JWT υπογεγραμμένα με `JWT_SECRET` — η άμεση διέλευση του Cursor CLI εκδίδει
+token με `iss "omniroute" / aud "cursor-cli"` για κατόχους κλειδιών — τα οποία δεν αποτελούν ποτέ συνεδρίες
 (#13298).
 
-Επαληθεύεται από την `isDashboardSessionAuthenticated()` στο `src/shared/utils/apiAuth.ts`. Η διοχέτευση ανανεώνει αυτόματα το JWT όταν απομένουν λιγότερες από 7 ημέρες από τη διάρκεια ζωής του των 30 ημερών.
+Επαληθεύεται από την `isDashboardSessionAuthenticated()` στο `src/shared/utils/apiAuth.ts`. Η διοχέτευση ανανεώνει αυτόματα το JWT όταν απομένουν λιγότερες από 7 ημέρες από τη διάρκεια ζωής των 30 ημερών.
+
+Μια συνεδρία μπορεί επίσης να λήξει πριν συμπληρωθούν οι 30 ημέρες, επειδή κάθε εκδότης χρησιμοποιεί τη `mintDashboardSessionToken` (χρόνος έκδοσης `iat` και αναγνωριστικό `jti`) και ο μηχανισμός επαλήθευσης ελέγχει δύο ρυθμίσεις: τη `sessionsValidAfter`, η οποία ορίζεται κατά την αλλαγή κωδικού πρόσβασης, ώστε να παύει να επαληθεύεται κάθε συνεδρία που εκδόθηκε πριν από αυτήν (το πρόγραμμα περιήγησης στο οποίο άλλαξε ο κωδικός πρόσβασης λαμβάνει νέο cookie), και τη `revokedDashboardSessions`, στην οποία το `POST /api/auth/logout` προσθέτει το `jti` της συνεδρίας από την οποία έγινε αποσύνδεση. Οι συνεδρίες που εκδόθηκαν από παλαιότερη έκδοση δεν περιέχουν κανένα από τα δύο claim και παραμένουν έγκυρες μέχρι την πρώτη αλλαγή κωδικού πρόσβασης. Αν δεν είναι δυνατή η ανάγνωση των ρυθμίσεων, η συνεδρία δεν θεωρείται αξιόπιστη.
 
 Ορισμένες διαδρομές διαχείρισης αποδέχονται **οποιονδήποτε** από τους δύο τρόπους: cookie Ή `Bearer <key>`, όταν το κλειδί API διαθέτει το πεδίο εφαρμογής `manage` (ή `admin`). Αυτό επιτρέπει τη ροή εργασίας «διαμόρφωση μέσω κλήσεων API» που προστέθηκε στην v3.8.
 
@@ -51,25 +53,25 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 παράλληλα με την προεπιλεγμένη σύνδεση μέσω κωδικού πρόσβασης — η σύνδεση μέσω κωδικού πρόσβασης δεν καταργείται ποτέ, απλώς
 συμπληρώνεται:
 
-- Είναι απενεργοποιημένη, εκτός εάν `settings.oidcEnabled === true` **και** τα `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` είναι όλα διαμορφωμένα (Ρυθμίσεις → Έλεγχος ταυτότητας).
+- Είναι απενεργοποιημένη, εκτός αν `settings.oidcEnabled === true` **και** τα `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` έχουν όλα διαμορφωθεί (Ρυθμίσεις → Έλεγχος ταυτότητας).
   Διαφορετικά, το `GET /api/auth/oidc/login` επιστρέφει `400`.
 - Το `GET /api/auth/oidc/login` εντοπίζει το `authorization_endpoint` από το
-  `/.well-known/openid-configuration` του εκδότη (με εναλλακτική το
+  `/.well-known/openid-configuration` του εκδότη (με εναλλακτική τη διεύθυνση
   `<issuer>/authorize`), δημιουργεί το URI ανακατεύθυνσης από το εισερχόμενο αίτημα
-  (λαμβάνοντας υπόψη το `x-forwarded-proto`) και ανακατευθύνει στον IdP με ένα τυχαίο `state`
-  αποθηκευμένο σε ένα cookie `oidc_state` τύπου `httpOnly`.
+  (λαμβάνοντας υπόψη το `x-forwarded-proto`) και ανακατευθύνει στον IdP με μια τυχαία τιμή `state`
+  αποθηκευμένη σε ένα cookie `oidc_state` με `httpOnly`.
 - Το `GET /api/auth/oidc/callback` επικυρώνει το `state`, ανταλλάσσει τον κωδικό εξουσιοδότησης
-  και επαληθεύει την υπογραφή του διακριτικού ID μέσω του JWKS του εκδότη
-  (`createRemoteJWKSet` της `jose`, το οποίο αποθηκεύεται στην κρυφή μνήμη ανά URI JWKS), με ελέγχους
-  `issuer`/`audience`. Μια προαιρετική λίστα επιτρεπόμενων `oidcAllowedSubjects` αντιστοιχίζει την αξίωση
-  `sub` του διακριτικού ή την αξίωση `email` — η αξίωση email λαμβάνεται υπόψη μόνο όταν
-  `email_verified === true`, επομένως μια μη επαληθευμένη διεύθυνση email στον IdP δεν μπορεί ποτέ να περάσει
+  και επαληθεύει την υπογραφή του ID token μέσω του JWKS του εκδότη
+  (με τη `createRemoteJWKSet` του `jose`, αποθηκευμένη στην κρυφή μνήμη ανά URI του JWKS), πραγματοποιώντας ελέγχους `issuer`/`audience`.
+  Μια προαιρετική λίστα επιτρεπόμενων `oidcAllowedSubjects` αντιστοιχίζει το claim
+  `sub` ή το claim `email` του token — το claim email λαμβάνεται υπόψη μόνο όταν
+  `email_verified === true`, επομένως ένα μη επαληθευμένο email στον IdP δεν μπορεί ποτέ να περάσει
   την πύλη.
-- Σε περίπτωση επιτυχίας, δημιουργεί το **ίδιο ακριβώς** JWT `auth_token` διάρκειας 30 ημερών που εκδίδει η σύνδεση
+- Σε περίπτωση επιτυχίας, εκδίδει το **ίδιο ακριβώς** JWT `auth_token` διάρκειας 30 ημερών που εκδίδει η σύνδεση
   μέσω κωδικού πρόσβασης (`src/app/api/auth/login/route.ts`), επομένως η υπόλοιπη
   διοχέτευση συνεδρίας του πίνακα ελέγχου (αυτόματη ανανέωση, σημαίες cookie) παραμένει αμετάβλητη —
-  το OIDC αντικαθιστά μόνο τον τρόπο δημιουργίας του cookie και όχι τα δικαιώματα που αυτό παρέχει.
+  το OIDC αντικαθιστά μόνο τον τρόπο έκδοσης του cookie, όχι τα δικαιώματα που αυτό παρέχει.
 
 ## Κλάσεις διαδρομών
 
@@ -198,28 +200,38 @@ export async function POST(request: Request) {
 
 Επιλέξτε το σύνολο βάσει μορφής και όχι βάσει ευκολίας. Μία διαδρομή τοποθετείται στο `PUBLIC_API_ROUTES_EXACT` (ή στο `PUBLIC_READONLY_CORS_API_ROUTES` αν είναι μόνο για GET)· μόνο ένα πραγματικό υποδέντρο τοποθετείται στο `PUBLIC_API_ROUTE_PREFIXES` και **πρέπει να τελειώνει σε `/`**. Η τοποθέτηση μιας μεμονωμένης διαδρομής στη λίστα προθεμάτων δημοσιοποιεί επίσης κάθε γειτονική διαδρομή που έχει τους ίδιους αρχικούς χαρακτήρες — συμπεριλαμβανομένων συγγενικών διαδρομών με δυναμικά τμήματα που θα προστεθούν αργότερα (GHSA-74g9-q8f6-793h). Ενημερώστε τις δοκιμές μονάδας στα `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` και `tests/unit/authz/classify.test.ts`.
 
-## Πεδία εφαρμογής
+## Εμβέλειες
 
-Τα κλειδιά API περιέχουν έναν πίνακα `scopes` (αποθηκευμένο ως JSON στο `api_keys.scopes`, βλ. `src/lib/db/apiKeys.ts`).
+Τρεις χώροι ονομάτων. Κάθε ελεγκτής διαβάζει μόνο τις δικές του συμβολοσειρές. Η παράθεση,
+συμπεριλαμβανομένου του γιατί το `manage` αποτυγχάνει στο `scopeMatches` για το `read:compression` και γιατί ένα
+διακριτικό πρόσβασης `read` δεν μπορεί να εκτελέσει `PATCH /api/keys/{id}`, βρίσκεται στην ενότητα
+[Τρεις χώροι ονομάτων εμβέλειας](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Πεδίο εφαρμογής διαχείρισης
+Τα κλειδιά API περιλαμβάνουν έναν πίνακα `scopes` (αποθηκευμένο ως JSON στο `api_keys.scopes`, βλ. `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — παρέχει στο κλειδί πρόσβαση στα τελικά σημεία του API διαχείρισης όταν αποστέλλεται ως Bearer.
+### Εμβέλεια διαχείρισης
 
-### Πεδία εφαρμογής MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Πρόσβαση Bearer στις διαδρομές API διαχείρισης.
+- Τα `mcp:connect`, `self:usage`, `self:account-quota` και
+  `policy:bypass-provider-quota` είναι προσθετικές εμβέλειες ακριβούς αντιστοίχισης. Βρίσκονται
+  εκτός του `MANAGEMENT_API_KEY_SCOPES`. Το `mcp:connect` ανοίγει μόνο την
+  εξαίρεση μη loopback για το `/api/mcp/`.
 
-Κάθε εργαλείο MCP απαιτεί συγκεκριμένα πεδία εφαρμογής μέσω του `MCP_TOOL_SCOPES`. Πλήρης λίστα (`MCP_SCOPE_LIST`):
+### Εμβέλειες εργαλείων MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Κατάλογος και κανόνες αντιστοίχισης (πανομοιότυπη συμβολοσειρά ή μια εκχωρημένη εμβέλεια που λήγει σε `*`):
+[Εμβέλειες εργαλείων MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Το `MCP_SCOPE_LIST` στο `src/shared/constants/mcpScopes.ts` είναι το αρχικό υποσύνολο με τύπους,
+όχι ο πλήρης κατάλογος. Η επιβολή εκτελείται στο
+`open-sse/mcp-server/scopeEnforcement.ts` αφού το `resolveCallerScopeContext()`
+επιλύσει τις εμβέλειες από τις πληροφορίες ελέγχου ταυτότητας MCP, τα μεταδεδομένα αιτήματος ή το `OMNIROUTE_MCP_SCOPES`.
+Παραμένει απενεργοποιημένη εκτός εάν έχει οριστεί `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Η επιβολή των πεδίων εφαρμογής στο `open-sse/mcp-server/server.ts` μεταβιβάζει τη λίστα πεδίων εφαρμογής κάθε εργαλείου στη
-`evaluateToolScopes()`, αφού η `resolveCallerScopeContext()` επιλύσει τα πεδία εφαρμογής από τις πληροφορίες ελέγχου ταυτότητας MCP,
-τα μεταδεδομένα του αιτήματος ή το `OMNIROUTE_MCP_SCOPES`.
+### Εμβέλειες διακριτικών πρόσβασης
+
+`read` / `write` / `admin` σε διακριτικά `oma_live_…`, ταξινομημένα βάσει του `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Αυτή η κατάταξη εφαρμόζεται μόνο στο διαπιστευτήριο διακριτικού πρόσβασης.
+Βλ. [Έλεγχος ταυτότητας διαχείρισης](../guides/MANAGEMENT-AUTH.md).
 
 ## Εναλλαγή απαίτησης ελέγχου ταυτότητας
 
@@ -267,7 +279,7 @@ x-omniroute-auth-scopes:    λίστα διαχωρισμένη με κόμμα�
 
 ## Δείτε επίσης
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — δείκτης ελέγχου ταυτότητας ανά τελικό σημείο
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ένδειξη ελέγχου ταυτότητας ανά τελικό σημείο
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — αρχείο καταγραφής ελέγχου για συμβάντα ελέγχου ταυτότητας
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — λεπτομέρειες επιβολής πεδίου εφαρμογής MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — τρεις χώροι ονομάτων εμβέλειας και κατάλογος εμβελειών εργαλείων MCP
 - Πηγαίος κώδικας: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

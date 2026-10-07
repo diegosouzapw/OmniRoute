@@ -1,0 +1,1 @@
+- **fix(dashboard):** proxy health now reports headers-wait abandonments and client aborts as separate counters instead of transport failures ([#15248](https://github.com/diegosouzapw/OmniRoute/pull/15248)) — thanks @maxmad64bis

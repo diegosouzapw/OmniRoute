@@ -4,72 +4,72 @@
 
 ---
 
-> **ዋና የእውነት ምንጭ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ለመጨረሻ ጊዜ የተዘመነው:** 2026-06-28 — v3.8.40
+> **የእውነት ምንጭ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **መጨረሻ የተዘመነው:** 2026-09-22 — የወሰን ስም-ክልሎች ወደ MCP-SERVER.md ያመለክታሉ
 
-OmniRoute እያንዳንዱን የAPI ጥያቄ የሚቆጣጠር፣ መስመርን የሚያውቅ የፈቃድ መስጫ ቧንቧ መስመር አለው። ምደባው **ቆራጥ** እና **በስህተት ጊዜ ዝግ** ነው — ሊመደብ የማይችል ማንኛውም ነገር `MANAGEMENT` ሆኖ ያበቃል፣ እንዲሁም ክፍለ-ጊዜ ወይም የአስተዳደር ደረጃ ያለው ቶከን ይጠይቃል። ይህ ገጽ መስመሮችን ለሚንከባከቡ ወይም አዳዲስ መዳረሻዎችን ለሚነድፉ መሐንዲሶች ሞዴሉን ያብራራል።
+OmniRoute እያንዳንዱን የAPI ጥያቄ የሚቆጣጠር፣ መንገድን የሚያውቅ የፈቃድ መስጫ ሂደት አለው። ምደባው **ቁርጥ ያለ** እና **ሲሳነው-ዝግ** ነው — ሊመደብ የማይችል ማንኛውም ነገር `MANAGEMENT` ሆኖ ይመደባል፣ እንዲሁም ክፍለ-ጊዜ ወይም የአስተዳደር-ደረጃ ቶከን ይጠይቃል። ይህ ገጽ መንገዶችን ለሚንከባከቡ ወይም አዳዲስ የመዳረሻ ነጥቦችን ለሚነድፉ መሐንዲሶች ሞዴሉን ያብራራል።
 
-![የAuthZ ቧንቧ መስመር (3 የመስመር ክፍሎች + የፖሊሲ ግምገማ)](../diagrams/exported/authz-pipeline.svg)
+![የAuthZ ሂደት (3 የመንገድ ምድቦች + የፖሊሲ ግምገማ)](../diagrams/exported/authz-pipeline.svg)
 
 > ምንጭ፦ [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## ሁለት የማረጋገጫ ሁነታዎች
+## ሁለት የማረጋገጫ ሁነቶች
 
 ### 1. API ቁልፍ (Bearer)
 
-ከOpenAI/Anthropic/Gemini ጋር ተኳዃኝ ለሆኑ የደንበኛ APIዎች፣ እንዲሁም ቁልፉ `manage` ወሰን ሲኖረው ለጥቂት የአስተዳደር መስመሮች ይጠቅማል።
+ለOpenAI/Anthropic/Gemini-ተኳሃኝ የደንበኛ APIዎች እና ቁልፉ `manage` ወሰን ሲኖረው ለጥቂት የአስተዳደር መስመሮች ጥቅም ላይ ይውላል።
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-በ`src/sse/services/auth.ts` ውስጥ ባሉት `isValidApiKey()` / `extractApiKey()` የሚረጋገጥ ሲሆን፣ በ`src/shared/utils/apiAuth.ts` በኩል እንደገና ወደ ውጭ ይላካል። አረጋጋጩ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` የአካባቢ ተለዋዋጮችንም እንደ ቋሚ የማሳለፊያ ቁልፎች ይቀበላል (ጉዳይ #1350)።
+በ`src/sse/services/auth.ts` ውስጥ ባሉት `isValidApiKey()` / `extractApiKey()` የሚረጋገጥ ሲሆን፣ በ`src/shared/utils/apiAuth.ts` በኩል እንደገና ወደ ውጭ ይላካል። አረጋጋጩ የ`OMNIROUTE_API_KEY` / `ROUTER_API_KEY` የአካባቢ ተለዋዋጮችንም እንደ ቋሚ የማሳለፊያ ቁልፎች ይቀበላል (ጉዳይ #1350)።
 
-### 2. የዳሽቦርድ ክፍለ-ጊዜ (auth_token ኩኪ)
+### 2. የዳሽቦርድ ክፍለ ጊዜ (auth_token cookie)
 
-ለዳሽቦርድ ገጾች እና ለአስተዳዳሪ ክዋኔዎች።
+ለዳሽቦርድ ገጾች እና ለአስተዳዳሪ ክንውኖች።
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWTው ሲረጋገጥ **እና** `authenticated: true` ሲይዝ ብቻ ኩኪው ክፍለ-ጊዜ ይሆናል
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)። ኩኪውን
-የሚጠቀም እያንዳንዱ አካል (የመስመር ጠባቂ፣ የauthz ቧንቧ መስመር ማደስ፣ የWebSocket መጨባበጥ፣ ቀጥታ
-አገልጋይ፣ `/api/settings/require-login`፣ `/api/auth/status`) በዚያ አጋዥ በኩል ያልፋል።
-በ`JWT_SECRET` የተፈረሙ ሌሎች JWTዎች አሉ — የCursor CLI ማሳለፊያው ለቁልፍ ባለቤቶች
-`iss "omniroute" / aud "cursor-cli"` ቶከኖችን ይፈጥራል — እና እነዚህ በፍጹም ክፍለ-ጊዜዎች አይደሉም
+JWTው ሲረጋገጥ **እና** `authenticated: true` ሲይዝ ብቻ cookieው ክፍለ ጊዜ ይሆናል
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)። እያንዳንዱ
+የcookieው ተጠቃሚ (የዳሽቦርድ መስመር ጠባቂ (`isDashboardSessionAuthenticated()`)፣ የauthz pipeline እድሳት፣ WebSocket handshake፣ live
+server፣ `/api/settings/require-login`፣ `/api/auth/status`) በዚያ helper በኩል ያልፋል።
+በ`JWT_SECRET` የተፈረሙ ሌሎች JWTዎችም አሉ — የCursor CLI passthrough ለቁልፍ ባለቤቶች
+`iss "omniroute" / aud "cursor-cli"` tokens ይፈጥራል — እነዚህም በፍጹም ክፍለ ጊዜዎች አይደሉም
 (#13298)።
 
-በ`src/shared/utils/apiAuth.ts` ውስጥ ባለው `isDashboardSessionAuthenticated()` ይረጋገጣል። ቧንቧ መስመሩ JWTው ከ30 ቀናት የዕድሜ ገደቡ ውስጥ ከ7 ቀናት ያነሰ ጊዜ ሲቀረው በራስ-ሰር ያድሰዋል።
+በ`src/shared/utils/apiAuth.ts` ውስጥ ባለው `isDashboardSessionAuthenticated()` ይረጋገጣል። በ30 ቀን የሕይወት ጊዜው ውስጥ ከ7 ቀናት ያነሰ ጊዜ ሲቀረው pipelineው JWTውን በራስ-ሰር ያድሳል።
 
-አንዳንድ የአስተዳደር መስመሮች **ከሁለቱ አንዱን** ሁነታ ይቀበላሉ፦ ኩኪ ወይም የAPI ቁልፉ `manage` (ወይም `admin`) ወሰን ሲኖረው `Bearer <key>`። በv3.8 የታከለውን «በAPI ጥሪዎች ሊዋቀር የሚችል» የስራ ፍሰት የሚያስችለው ይህ ነው።
+እያንዳንዱ አመንጪ በ`mintDashboardSessionToken` (የተሰጠበት ጊዜ `iat` እና መለያ `jti`) በኩል ስለሚያልፍ እና አረጋጋጩ ሁለት ቅንብሮችን ስለሚፈትሽ፣ አንድ ክፍለ ጊዜ 30 ቀናቱ ከማለቃቸው በፊትም ሊያበቃ ይችላል፦ `sessionsValidAfter`፣ የይለፍ ቃል ሲቀየር የሚዘጋጅ ሲሆን ከዚያ በፊት የተሰጡ ክፍለ ጊዜዎች በሙሉ እንዳይረጋገጡ ያደርጋል (የይለፍ ቃሉን የቀየረው browser አዲስ cookie ያገኛል)፤ እና `revokedDashboardSessions`፣ `POST /api/auth/logout` ዘግቶ የወጣውን ክፍለ ጊዜ `jti` የሚጨምርበት። በቀድሞ ልቀት የተፈጠሩ ክፍለ ጊዜዎች ከእነዚህ አቤቱታዎች አንዱንም አይይዙም፣ እና የመጀመሪያው የይለፍ ቃል ለውጥ እስኪከሰት ድረስ የሚሰሩ ሆነው ይቆያሉ። ቅንብሮቹ ሊነበቡ ካልቻሉ፣ ክፍለ ጊዜው አይታመንም።
+
+አንዳንድ የአስተዳደር መስመሮች **ከሁለቱ አንዱን** ሁነት ይቀበላሉ፦ cookie ወይም የAPI ቁልፉ `manage` (ወይም `admin`) ወሰን ሲኖረው `Bearer <key>`። ይህም በv3.8 የታከለውን "በAPI ጥሪዎች በኩል ሊዋቀር የሚችል" የሥራ ፍሰት ያስችላል።
 
 #### አማራጭ የOIDC መግቢያ በር (#6973)
 
-የዳሽቦርድ አስተዳዳሪ መግቢያው ከነባሪው የይለፍ ቃል መግቢያ ጎን ለጎን **በምርጫ የሚነቃ** የOIDC (OpenID Connect) ፍሰትንም
-ይደግፋል — የይለፍ ቃል መግቢያው በፍጹም አይወገድም፣ የሚደረገው መጨመር ብቻ
-ነው፦
+የዳሽቦርድ አስተዳዳሪ መግቢያው ከነባሪው የይለፍ ቃል መግቢያ ጎን ለጎን **በፈቃድ የሚነቃ** OIDC (OpenID Connect) ፍሰትንም ይደግፋል — የይለፍ ቃል መግቢያው ፈጽሞ አይወገድም፣ የሚደረገው መደገፍ ብቻ ነው፦
 
-- `settings.oidcEnabled === true` ካልሆነ **እና** `oidcIssuer` /
+- `settings.oidcEnabled === true` **እና** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ሁሉም ካልተዋቀሩ በስተቀር የተሰናከለ ነው (Settings → Auth)።
   ካልሆነ `GET /api/auth/oidc/login` `400` ይመልሳል።
 - `GET /api/auth/oidc/login` `authorization_endpoint`ን ከአውጪው
-  `/.well-known/openid-configuration` ይፈልጋል (`<issuer>/authorize`ን
-  እንደ አማራጭ ይጠቀማል)፣ የመልሶ ማዞሪያ URIውን ከገቢው ጥያቄ
-  (`x-forwarded-proto`ን የሚያውቅ) ይገነባል፣ እና በ`httpOnly` `oidc_state` ኩኪ ውስጥ
-  በተከማቸ የዘፈቀደ `state` ወደ IdPው መልሶ ያዞራል።
+  `/.well-known/openid-configuration` ያገኛል (`<issuer>/authorize`ን
+  እንደ አማራጭ ይጠቀማል)፣ የማዞሪያ URIውን ከገቢው ጥያቄ
+  (`x-forwarded-proto`-aware) ይገነባል፣ እና በ`httpOnly` `oidc_state` cookie ውስጥ
+  የተከማቸ የዘፈቀደ `state` ይዞ ወደ IdP ያዞራል።
 - `GET /api/auth/oidc/callback` `state`ን ያረጋግጣል፣ የፈቃድ
-  ኮዱን ይለዋወጣል፣ እና የID ቶከኑን ፊርማ በአውጪው JWKS
-  (የ`jose` `createRemoteJWKSet`፣ በእያንዳንዱ JWKS URI የሚሸጎጥ) ከ`issuer`/`audience`
-  ማረጋገጫዎች ጋር ያረጋግጣል። አማራጭ የ`oidcAllowedSubjects` የተፈቀዱ ዝርዝር ከቶከኑ
-  `sub` ይገባኛል ወይም ከ`email` ይገባኛል ጋር ያዛምዳል — የኢሜይል ይገባኛል የሚከበረው
-  `email_verified === true` ሲሆን ብቻ ነው፤ ስለዚህ በIdPው ላይ ያልተረጋገጠ ኢሜይል በፍጹም
-  በበሩ ማለፍ አይችልም።
-- ሲሳካ፣ የይለፍ ቃል መግቢያው የሚያወጣውን **በትክክል ተመሳሳይ** የ30 ቀናት `auth_token` JWT
-  (`src/app/api/auth/login/route.ts`) ይፈጥራል፤ በመሆኑም የተቀረው
-  የዳሽቦርድ ክፍለ-ጊዜ ቧንቧ መስመር (ራስ-ሰር ማደስ፣ የኩኪ ጠቋሚዎች) ሳይለወጥ ይቆያል —
-  OIDC የሚተካው ኩኪው የሚፈጠርበትን መንገድ ብቻ ነው፣ ኩኪው የሚሰጠውን ፈቃድ አይደለም።
+  codeውን ይለዋውጣል፣ እና የID tokenውን ፊርማ በአውጪው JWKS
+  (`jose` የ`createRemoteJWKSet`፣ በእያንዳንዱ JWKS URI የሚሸጎጥ) አማካኝነት ከ`issuer`/`audience`
+  ፍተሻዎች ጋር ያረጋግጣል። አማራጭ የ`oidcAllowedSubjects` የተፈቀዱ ዝርዝር ከtokenው
+  `sub` አቤቱታ ወይም ከ`email` አቤቱታው ጋር ያዛምዳል — የemail አቤቱታው የሚከበረው
+  `email_verified === true` ሲሆን ብቻ ነው፤ ስለዚህ በIdP ያልተረጋገጠ email
+  በሩን ፈጽሞ ማለፍ አይችልም።
+- ሲሳካ፣ የይለፍ ቃል መግቢያው የሚሰጠውን **ትክክለኛውን ተመሳሳይ** የ30 ቀን `auth_token` JWT
+  (`src/app/api/auth/login/route.ts`) ይፈጥራል፤ ስለዚህ የተቀረው
+  የዳሽቦርድ ክፍለ ጊዜ pipeline (ራስ-ሰር እድሳት፣ የcookie ምልክቶች) ሳይለወጥ ይቆያል —
+  OIDC የሚተካው cookieው የሚፈጠርበትን መንገድ ብቻ ነው፣ የሚሰጠውን ፈቃድ አይደለም።
 
 ## የRoute ክፍሎች
 
@@ -198,28 +198,35 @@ export async function POST(request: Request) {
 
 setን በቅርጹ መሠረት ይምረጡ፣ በአመቺነት መሠረት አይደለም። አንድ መስመር ወደ `PUBLIC_API_ROUTES_EXACT` ይገባል (ወይም GET-only ከሆነ ወደ `PUBLIC_READONLY_CORS_API_ROUTES`)፤ ወደ `PUBLIC_API_ROUTE_PREFIXES` የሚገባው እውነተኛ ንዑስ ዛፍ ብቻ ነው፣ እና **በ`/` መጨረስ አለበት**። ነጠላ መስመርን በprefix ዝርዝሩ ውስጥ ማስቀመጥ፣ ተመሳሳይ መሪ ቁምፊዎችን የሚጋሩ ሁሉንም አጎራባች paths ይፋዊ ያደርጋል — ይህም በኋላ የሚታከሉ dynamic-segment siblingsን ይጨምራል (GHSA-74g9-q8f6-793h)። በ`tests/unit/public-api-routes.test.ts`፣ `tests/unit/authz/public-route-exact-match.test.ts` እና `tests/unit/authz/classify.test.ts` ያሉ unit testsን ያዘምኑ።
 
-## የተደራሽነት ወሰኖች
+## የፈቃድ ወሰኖች
 
-የAPI ቁልፎች የ`scopes` ድርድር ይይዛሉ (እንደ JSON በ`api_keys.scopes` ውስጥ ይቀመጣል፤ `src/lib/db/apiKeys.ts`ን ይመልከቱ)።
+ሦስት namespace-ዎች አሉ። እያንዳንዱ checker የሚያነበው የራሱን string-ዎች ብቻ ነው። `manage` ለ`read:compression` በ`scopeMatches` ለምን እንደማይዛመድ እና የ`read` access token ለምን `PATCH /api/keys/{id}` ማድረግ እንደማይችል ጨምሮ፣ የጎን-ለጎን ንጽጽሩ
+[ሦስቱ የፈቃድ ወሰን namespace-ዎች](../frameworks/MCP-SERVER.md#three-scope-namespaces) ላይ ይገኛል።
 
-### የአስተዳደር ወሰን
+API key-ዎች የ`scopes` array ይይዛሉ (በ`api_keys.scopes` ውስጥ እንደ JSON ይከማቻል፤ `src/lib/db/apiKeys.ts`ን ይመልከቱ)።
 
-- `manage` / `admin` — ቁልፉ እንደ Bearer ሲላክ የአስተዳደር API መጨረሻ ነጥቦችን እንዲደርስ ፈቃድ ይሰጠዋል።
+### የአስተዳደር ፈቃድ ወሰን
 
-### MCP ወሰኖች (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`። ወደ የአስተዳደር API route-ዎች የBearer መዳረሻ።
+- `mcp:connect`፣ `self:usage`፣ `self:account-quota` እና
+  `policy:bypass-provider-quota` በትክክል የሚዛመዱ ተጨማሪ የፈቃድ ወሰኖች ናቸው። እነዚህ
+  ከ`MANAGEMENT_API_KEY_SCOPES` ውጭ ይገኛሉ። `mcp:connect` የሚከፍተው
+  የ`/api/mcp/` non-loopback ልዩ ፈቃድን ብቻ ነው።
 
-እያንዳንዱ MCP መሣሪያ በ`MCP_TOOL_SCOPES` በኩል የተወሰኑ ወሰኖችን ይፈልጋል። ሙሉ ዝርዝሩ (`MCP_SCOPE_LIST`)፦
+### የMCP tool ፈቃድ ወሰኖች
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Catalog እና የማዛመድ ደንቦች (ተመሳሳይ string፣ ወይም በ`*` የሚያበቃ የተፈቀደ ወሰን)፦
+[የMCP tool ፈቃድ ወሰኖች](../frameworks/MCP-SERVER.md#mcp-tool-scopes)።
+በ`src/shared/constants/mcpScopes.ts` ውስጥ ያለው `MCP_SCOPE_LIST` ያ ሙሉ catalog ሳይሆን የመጀመሪያው typed
+subset ነው። `resolveCallerScopeContext()` ከMCP auth info፣ ከrequest metadata ወይም ከ`OMNIROUTE_MCP_SCOPES`
+የፈቃድ ወሰኖችን ከወሰነ በኋላ፣ ማስፈጸሙ በ`open-sse/mcp-server/scopeEnforcement.ts`
+ውስጥ ይከናወናል። `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ካልሆነ በስተቀር እንደጠፋ ይቆያል።
 
-በ`open-sse/mcp-server/server.ts` ውስጥ ያለው የወሰን ማስፈጸሚያ፣ `resolveCallerScopeContext()` ወሰኖችን ከMCP የማረጋገጫ መረጃ፣
-ከጥያቄ ሜታዳታ ወይም ከ`OMNIROUTE_MCP_SCOPES` ከፈታ በኋላ የእያንዳንዱን መሣሪያ የወሰን ዝርዝር ወደ
-`evaluateToolScopes()` ያስተላልፋል።
+### የAccess-token ፈቃድ ወሰኖች
+
+በ`oma_live_…` token-ዎች ላይ `read` / `write` / `admin`፣ በ`scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ደረጃ የተሰጣቸው። ይህ ደረጃ የሚሠራው ለaccess-token
+credential ብቻ ነው። [የአስተዳደር ማረጋገጫ](../guides/MANAGEMENT-AUTH.md)ን ይመልከቱ።
 
 ## ማረጋገጫ ያስፈልጋል መቀያየሪያ
 
@@ -265,9 +272,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 በhandler ውስጥ `assertAuth(req, expectedClass)`ን ይጠቀሙ — middlewareው ከተዘለለ፣ `AUTHZ_NOT_INITIALIZED` ኮድ ያለውን `AuthzAssertionError` ይጥላል (ይህም በሙከራዎች ውስጥ የውቅር ወደኋላ መመለሶችን ለመለየት ጠቃሚ ነው)።
 
-## ተጨማሪ ይመልከቱ
+## በተጨማሪ ይመልከቱ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ለእያንዳንዱ endpoint የማንነት ማረጋገጫ ምልክት
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ለማንነት ማረጋገጫ ክስተቶች የኦዲት መዝገብ
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — የMCP scope ማስፈጸሚያ ዝርዝሮች
-- ምንጭ፦ `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ለእያንዳንዱ endpoint የauth ምልክት
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ለauth ክስተቶች የኦዲት መዝገብ
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ሦስት የscope namespace እና የMCP tool-scope ካታሎግ
+- ምንጭ፦ `src/server/authz/`፣ `src/lib/api/requireManagementAuth.ts`

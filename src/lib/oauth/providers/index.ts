@@ -31,6 +31,7 @@ import { openference } from "./openference";
 import { codebuddyCn } from "./codebuddy-cn";
 import { zed } from "./zed";
 import { zedHosted } from "./zed-hosted";
+import { museCode } from "./muse-code";
 
 export const PROVIDERS = {
   claude,
@@ -64,6 +65,7 @@ export const PROVIDERS = {
   // Zed IDE credential bridge — uses keychain import, not standard OAuth
   zed,
   "zed-hosted": zedHosted,
+  "muse-code": museCode,
 };
 
 export default PROVIDERS;

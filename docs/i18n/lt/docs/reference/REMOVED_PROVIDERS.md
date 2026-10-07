@@ -4,63 +4,32 @@
 
 ---
 
-Kai kurios paslaugos buvo integruotos į OmniRoute, o vėliau pašalintos jų valdytojų
-prašymu. Šis puslapis yra ilgalaikis tų pašalinimų registras. Vienintelė jo paskirtis –
-apsaugoti nuo netyčinio jų grąžinimo: bendraautoriui, radusiam seną šaką, podėlyje išsaugotą
-npm tarball failą, archyvuotą problemą ar prašymą „atkurti teikėją X“, reikia vienos vietos,
-kurioje būtų nurodyta: **negrąžinti**.
+Kai kurios paslaugos buvo integruotos į „OmniRoute“, o vėliau pašalintos, nes to paprašė jas valdantys asmenys. Šis puslapis yra patikimas tų pašalinimų įrašas. Jo vienintelis tikslas yra neleisti joms grįžti atsitiktinai: prisidėjęs asmuo, radęs seną šaką, talpykloje esantį npm tarball, archyvuotą problemą ar „atkurti teikėją X“ užklausą, turi turėti vieną vietą, kurioje būtų parašyta **neįvesti iš naujo**.
 
-Šis puslapis **nėra** nebeveikiančių ar nutrauktų paslaugų sąrašas. Jos registruojamos
-[`FREE_TIERS.md`](FREE_TIERS.md) („Pašalinta / nėra nemokamo lygio“) ir gali būti grąžintos,
-jei paslauga vėl pradės veikti. Toliau pateikti įrašai gali būti grąžinti tik gavus rašytinį
-prašyme nurodyto operatoriaus leidimą, o nuoroda į šį leidimą turi būti pridėta prie įrašo.
+Šis puslapis **nėra** mirusių ar nutrauktų paslaugų sąrašas. Jos yra stebimos [`FREE_TIERS.md`](FREE_TIERS.md) („Pašalinta / nėra nemokamo lygio“) ir gali grįžti, jei paslauga grįžta. Toliau pateikti įrašai gali grįžti tik gavus rašytinį leidimą iš užklausoje nurodyto operatoriaus, ir tas leidimas turi būti susietas su įrašu.
 
 ## Politika
 
-1. **Paslaugos operatoriaus prašymas pašalinti integraciją yra vykdomas, o ne svarstomas.**
-   OmniRoute nėra susijusi su jokia išorine paslauga. Kai paslaugos operatorius paprašo
-   pašalinti integraciją, ji pašalinama, neatsižvelgiant į tai, ar integracijoje buvo naudojama
-   oficiali API.
-2. **„Pašalinta“ apima kiekvieną OmniRoute valdomą vietą.** Vykdyklę, registro įrašą, teikėjo
-   id ir alternatyvųjį pavadinimą, modelių sąrašą, galinius taškus, aplinkos kintamuosius,
-   piktogramą, valdymo skydelio korteles, sugeneruotą teikėjo žinyną, `FREE_TIERS.md`,
-   aplinkos žinyną, README skaičius, `llm.txt` kopijas, specialiai skirtus testus ir etalonines
-   momentines kopijas, kodo komentarus, CHANGELOG punktus (su registre užfiksuotu suderinimu,
-   žr. `config/release/changelog-reconciliations.json`), GitHub Releases pastabas, wiki ir
-   GitHub problemas, diskusijas bei ištraukimo užklausas, kurių tema buvo tas teikėjas
-   (problemos ir diskusijos ištrinamos; ištraukimo užklausos pervadinamos, jų aprašas
-   pakeičiamas, o gija užrakinama, nes GitHub neleidžia ištrinti ištraukimo užklausų).
-3. **Niekada negrąžinkite šiame puslapyje esančio įrašo be rašytinio leidimo.** Tai apima
-   pakartotinį id arba alternatyviojo pavadinimo įtraukimą į bet kurį teikėjų katalogą,
-   domenų įtraukimą į vykdyklę, bendraautorio PR, kuriuo jis „atkuriamas“, priėmimą, jo
-   įtraukimą į nemokamų modelių katalogą arba rankinio būdo pasiekti jį per OmniRoute
-   dokumentavimą. Uždarykite tokius PR ir problemas pateikdami nuorodą į šį puslapį.
-4. **Įrašas turi būti minimalus.** Užfiksuokite tik tai, ko tikrintojui reikia pakartotiniam
-   įtraukimui atpažinti: identifikatorius, domenus, datas ir pašalinimą atlikusią ištraukimo
-   užklausą. Neaprašykite, kaip integracija veikė.
-5. **Regresijos apsauga yra `tests/unit/removed-providers-blocklist.test.ts`.** Ji nesuveikia,
-   jei kuris nors toliau nurodytas identifikatorius ar domenas vėl atsiranda teikėjų
-   kataloguose, vykdyklės susiejime arba teikėjų registro šaltiniuose. Naujus identifikatorius
-   į šį testą įtraukite tame pačiame PR, kuriuo čia pridedama eilutė.
+1. **Paslaugos operatoriaus prašymas pašalinti yra gerbiamas, o ne deramasi.** „OmniRoute“ nėra susijusi su jokia aukštesnio lygio paslauga. Kai paslaugos operatorius prašo pašalinti integraciją, ji pašalinama, nepriklausomai nuo to, ar integracija naudojo oficialią API, ar ne.
+2. **„Pašalinta“ reiškia kiekvieną „OmniRoute“ valdomą paviršių.** Vykdytojas, registro įrašas, teikėjo ID ir pseudonimas, modelių sąrašas, galiniai taškai, aplinkos kintamieji, piktograma, prietaisų skydelio kortelės, sugeneruota teikėjo nuoroda, `FREE_TIERS.md`, aplinkos nuoroda, README skaičiai, `llm.txt` veidrodžiai, skirti testai ir auksinės nuotraukos, kodo komentarai, CHANGELOG punktai (su apskaitos suderinimu, žr. `config/release/changelog-reconciliations.json`), „GitHub Releases“ pastabos, wiki ir „GitHub“ problemos, diskusijos ir ištraukimo užklausos, kurių tema buvo tas teikėjas (problemos ir diskusijos ištrintos; ištraukimo užklausos pervadintos, jų aprašymas pakeistas ir gija užrakinta, nes „GitHub“ negali ištrinti ištraukimo užklausų).
+3. **Niekada neįveskite iš naujo įrašo šiame puslapyje be rašytinio leidimo.** Tai apima ID ar pseudonimo grąžinimą į bet kurį teikėjų katalogą, domenų pridėjimą prie vykdytojo, prisidėjusio asmens PR, kuris jį „atkuria“, priėmimą, jo pridėjimą prie nemokamų modelių katalogo arba rankinio būdo pasiekti jį per „OmniRoute“ dokumentavimą. Uždarykite tokius PR ir problemas su nuoroda į šį puslapį.
+4. **Įrašas turi būti minimalus.** Įrašykite tik tai, ko recenzentui reikia, kad atpažintų pakartotinį įvedimą: identifikatorius, domenus, datas ir ištraukimo užklausą, kuri atliko pašalinimą. Neaprašykite, kaip veikė integracija.
+5. **Regresijos apsauga yra `tests/unit/removed-providers-blocklist.test.ts`.** Ji nepavyksta, kai bet kuris toliau nurodytas identifikatorius ar domenas vėl pasirodo teikėjų kataloguose, vykdytojo žemėlapyje ar teikėjų registro šaltiniuose. Pridėkite naujus identifikatorius prie to testo tame pačiame PR, kuris prideda eilutę čia.
 
 ## Registras
 
-| Pašalinta  | Teikėjo id  | Alternatyvusis pavadinimas | Domenai                                 | Prašymo teikėjas                            | Pašalinimo PR                                                  | Pastabos                                                                                                                     |
-| ---------- | ----------- | -------------------------- | --------------------------------------- | ------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-12 | `puter`     | `pu`                       | `puter.com`                             | Puter savininkas (Nariman Jelveh)           | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API rakto teikėjas. Migracija `152_remove_puter_provider.sql` išvalo išsaugotą konfigūraciją.                                |
-| 2026-09-02 | `theoldllm` | `tllm`                     | `theoldllm.com`, `theoldllm.vercel.app` | Paslaugos operatorius (pagalbos el. paštas) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Teikėjas be rakto. Rašytinis prašymas gautas 2026-08-30. Specialiai skirtos problemos ir diskusija ištrintos, PR pervadinti. |
+| Pašalinta  | Teikėjo id        | Pseudonimas | Domenai                                          | Užklausą pateikė                                                                                          | Pašalinimo PR                                                  | Pastabos                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ----------------- | ----------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-12 | `puter`           | `pu`        | `puter.com`                                      | Puter savininkas (Nariman Jelveh)                                                                         | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API rakto teikėjas. Migracija `152_remove_puter_provider.sql` išvalo išsaugotą konfigūraciją.                                                                                                                                                                                                                                                                                                                                                  |
+| 2026-09-02 | `theoldllm`       | `tllm`      | `theoldllm.com`, `theoldllm.vercel.app`          | Paslaugos operatorius (pagalbos el. paštas)                                                               | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Be rakto veikiantis teikėjas. Rašytinis prašymas gautas 2026-08-30. Skirtos problemos (issues) ir diskusijos ištrintos, PR pavadinimai pakeisti.                                                                                                                                                                                                                                                                                               |
+| 2026-09-21 | `gemini-business` | `gembiz`    | `business.gemini.google`                         | Projekto savininko sprendimas (problema [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Slapukais pagrįstas žiniatinklio teikėjas. „Google“ panaikino `BardFrontendService/StreamGenerate` galinį punktą, į kurį buvo nukreiptas vykdytojas; pakaitalas (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT sugeneruotas iš `__Secure-C_SES`/`csesidx`) negali būti sukurtas ar patvirtintas be galiojančios Gemini Enterprise/Workspace paskyros, kurios projektas neturi. Pašalinta, o ne perrašyta nepatikrinus. |
+| 2026-09-21 | `suno`            | `suno`      | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Projekto savininko sprendimas (`#14224`)                                                                  | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Slapukų autorizacijos teikėjas, o ne operatoriaus atliktas pašalinimas. `studio-api.suno.ai` veikla buvo sustabdyta (503); veikiančiam serveriui reikalingi Clerk JWT mainai bei mokama hCaptcha sprendimo priklausomybė, kurios OmniRoute nusprendė nepridėti dėl vieno muzikos teikėjo. `kie/suno-v4.0` ir `kie/suno-v3.5` (talpinami kie.ai) nėra paveikti ir lieka palaikomi.                                                              |
 
 ## Įrašo pridėjimas
 
-Gavus naują pašalinimo prašymą:
+Kai gaunamas naujas pašalinimo užklausas:
 
-1. Patvirtinkite, kad prašymą pateikė paslaugos operatorius (iš savo pagalbos adreso arba
-   valdomo domeno), ir pranešimą saugokite privačiai.
-2. Pašalinkite integraciją vadovaudamiesi politikos 2 punkte pateiktu kontroliniu sąrašu.
-   Naudokite [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) kaip teikėjo be
-   rakto pavyzdį, o [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) – kaip API
-   rakto teikėjo su išsaugotais ryšiais pavyzdį (pridėkite migraciją).
-3. Tame pačiame PR pridėkite vieną eilutę į pirmiau pateiktą lentelę, o identifikatorius – į
-   `tests/unit/removed-providers-blocklist.test.ts`.
-4. Sujungę PR, atsakykite operatoriui ir išvardykite, kas buvo pašalinta bei ko OmniRoute
-   negali pakeisti (jau paskelbtų npm ir Docker versijų, git istorijos, trečiųjų šalių šakų).
+1.  Patvirtinkite, kad užklausa gauta iš paslaugos operatoriaus (iš jo palaikymo adreso arba domeno, kurį jis kontroliuoja), ir laikykite pranešimą privačiai.
+2.  Pašalinkite integraciją vadovaudamiesi kontroliniu sąrašu, esančiu politikos punkte 2. Naudokite [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) kaip nuorodą tiekėjui be rakto ir [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) API rakto tiekėjui su saugomais ryšiais (pridėkite migraciją).
+3.  Toje pačioje PR pridėkite vieną eilutę į aukščiau esančią lentelę ir identifikatorius į `tests/unit/removed-providers-blocklist.test.ts`.
+4.  Atsakykite operatoriui, kai PR bus sujungtas, išvardydami, kas buvo pašalinta ir ko OmniRoute negali pakeisti (jau paskelbtos npm ir Docker versijos, git istorija, trečiųjų šalių šakos).

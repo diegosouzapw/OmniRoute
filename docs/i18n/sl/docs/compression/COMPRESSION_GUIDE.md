@@ -184,16 +184,17 @@ S Stacked:            10K-2.5K poslanih žetonov     (78-95% razpon RTK+Caveman 
 
 ### Nadzorna plošča
 
-Pomaknite se na `Dashboard → Context & Cache`:
+Pojdite na `Nadzorna plošča → Kontekst in predpomnilnik`:
 
 - **Caveman** — izbira načina, jezikovni paketi, predogled in globalne privzete nastavitve
 - **RTK** — predogled filtra ukazov, varnostne nastavitve RTK in katalog filtrov
-- **Kombinacije stiskanja** — poimenovani cevovodi mehanizmov, dodeljeni kombinacijam usmerjanja
-- **Prag samodejnega sproženja** — samodejno vklopi stiskanje, ko število žetonov preseže prag
+- **Kombinacije stiskanja** — poimenovani cevovodi motorjev, dodeljeni usmerjevalnim kombinacijam
+- **Prag samodejnega sprožilca** — samodejno vklopi stiskanje, ko število žetonov preseže prag
 
-### Preglasitev za posamezno kombinacijo
+### Prekrivanje na kombinacijo
 
-V `Dashboard → Context & Cache → Compression Combos` dodelite kombinacijo stiskanja kombinaciji usmerjanja:
+V `Nadzorna plošča → Kontekst in predpomnilnik → Kombinacije stiskanja` dodelite kombinacijo stiskanja
+usmerjevalni kombinaciji:
 
 ```txt
 Kombinacija: "free-tier-fallback"
@@ -204,43 +205,63 @@ Kombinacija: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-Tako lahko uporabljate večstopenjsko stiskanje pri brezplačnih ponudnikih in ponudnikih za programiranje, pri plačljivih naročninah pa ohranite lahki način.
+To vam omogoča uporabo naloženega stiskanja na brezplačnih/kodirnih ponudnikih, medtem ko ohranjate
+lahek način na plačljivih naročninah.
 
-Ta dodelitev »Preglasitev za posamezno kombinacijo« je drugačen kontrolnik od preglasitve **načina stiskanja kombinacije usmerjanja** (Privzeto/Izklopljeno/Lahko/Standardno/Agresivno/Ultra) — ta preglasitev ne izbere poimenovanega cevovoda kombinacije stiskanja; nastavi le polje `compressionMode`, ki ga upošteva `resolveCompressionPlan`. Nastavite jo lahko na kartici kombinacije (`Dashboard → Combos`) ali, od različice #6760 naprej, za posamezno kombinacijo usmerjanja na seznamu »Dodeli usmerjanju« v `Dashboard → Context & Cache → Compression Combos`, tik ob potrditvenem polju za dodelitev cevovoda, opisanem zgoraj. Obe možnosti se shranita prek iste končne točke `PUT /api/combos/{id}`.
+Ta dodelitev "Prekrivanje na kombinacijo" je drugačen nadzor od prekrivanja **načina stiskanja
+usmerjevalne kombinacije** (Privzeto/Izklopljeno/Lahko/Standardno/Agresivno/Ultra) — to prekrivanje
+ne izbere poimenovanega cevovoda kombinacije stiskanja; samo nastavi polje `compressionMode`, ki ga
+uporablja `resolveCompressionPlan`. Nastavite ga lahko na kartici kombinacije (`Nadzorna plošča →
+Kombinacije`) ali, od #6760, na usmerjevalno kombinacijo na seznamu "Dodelitev usmerjanju" na
+`Nadzorna plošča → Kontekst in predpomnilnik → Kombinacije stiskanja`, tik ob potrditvenem polju za
+dodelitev cevovoda, dokumentiranem zgoraj. Obe površini se ohranita prek iste končne točke `PUT
+/api/combos/{id}`.
 
-### Preglasitev za posamezno zahtevo
+### Prekrivanje na zahtevo
 
-Pošljite glavo zahteve `x-omniroute-compression`, da preglasite načrt stiskanja za posamezno zahtevo. Ima najvišjo prednost — prevlada nad preglasitvijo kombinacije usmerjanja, aktivnim profilom, samodejnim sproženjem in privzeto nastavitvijo na plošči. Neznane vrednosti so prezrte (zahteva ni nikoli zavrnjena), globalno glavno stikalo pa še vedno nadzoruje vse: ko je stiskanje globalno izklopljeno, ga glava ne more vklopiti. Vrednosti:
+Pošljite glavo zahteve `x-omniroute-compression`, da preglasite načrt stiskanja za eno samo
+zahtevo. Ima najvišjo prioriteto — preglasi prekrivanje usmerjevalne kombinacije, aktivni profil,
+samodejni sprožilec in privzeto ploščo. Neznane vrednosti se ignorirajo (zahteva ni nikoli
+zavržena) in globalno glavno stikalo še vedno nadzoruje vse: ko je stiskanje globalno izklopljeno,
+ga glava ne more vklopiti. Vrednosti:
 
-| Vrednost      | Učinek                                                                                                               |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `off`         | Brez stiskanja za to zahtevo.                                                                                        |
-| `default`     | Privzeti profil, določen na plošči (prezre aktivni profil).                                                          |
-| `engine:<id>` | Posamezen mehanizem, ko je omogočen, npr. `engine:rtk`.                                                              |
-| `<combo>`     | Poimenovana kombinacija; najprej se ujema po imenu (brez razlikovanja med velikimi in malimi črkami), nato po ID-ju. |
+| Vrednost      | Učinek                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `off`         | Brez stiskanja za to zahtevo.                                                                        |
+| `default`     | Privzeti profil, izpeljan iz plošče (ignorira aktivni profil). Izgubni motorji ostanejo izklopljeni. |
+| `safe`        | Enako kot izpustitev glave: samo odstranjevanje podvojenih podatkov in zlaganje presledkov.          |
+| `allow-lossy` | Ohrani načrt operaterja te zahteve, vključno s povzetki, filtri relevantnosti in prepisi sloga.      |
+| `engine:<id>` | En sam motor, ko je omogočen, npr. `engine:rtk`. To je vključitev na zahtevo za ta motor.            |
+| `<combo>`     | Poimenovana kombinacija, najprej se ujema po imenu (neobčutljivo na velikost črk), nato po ID-ju.    |
 
-Uporabljeni načrt je vrnjen v glavi odgovora `X-OmniRoute-Compression: <mode>; source=<source>`, kjer je `<source>` ena od vrednosti `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` ali `off`.
+Brez `allow-lossy`, `engine:<id>` ali poimenovane kombinacije se izgubni motorji ne uporabijo.
+Zahteva še vedno dobi odstranjevanje podvojenih podatkov seje in zlaganje presledkov, ko je
+stiskanje vklopljeno.
+
+Uporabljeni načrt se ponovi v glavi odgovora `X-OmniRoute-Compression: <mode>; source=<source>`,
+kjer je `<source>` eden od `request-header`, `routing-override`, `active-profile`, `auto-trigger`,
+`default` ali `off`.
 
 ### API
 
 ```bash
-# Pridobite nastavitve stiskanja
+# Pridobi nastavitve stiskanja
 curl http://localhost:20128/api/settings/compression
 
-# Posodobite nastavitve stiskanja
+# Posodobi nastavitve stiskanja
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Predoglejte si določeno vsebino RTK/večstopenjskega stiskanja
+# Predogled določenega tovora RTK/naloženega tovora
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# Prikažite seznam paketov filtrov RTK
+# Seznam paketov filtrov RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Neposredno preizkusite RTK z izbirnimi metapodatki ukaza
+# Preizkusite RTK neposredno z izbirnimi metapodatki ukaza
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -285,15 +306,15 @@ Vsaka stisnjena zahteva vključuje statistične podatke v dnevnikih strežnika:
 
 ---
 
-## Načrt faz
+## Časovni načrt faz
 
-| Faza    | Načini                                                                                                                                                                              | Stanje    |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Faza 1  | Izklopljeno, lahko                                                                                                                                                                  | ✅ Izdano |
-| Faza 2  | Standardno, agresivno, ultra                                                                                                                                                        | ✅ Izdano |
-| Faza 3  | RTK, zloženo, kombinacije stiskanja                                                                                                                                                 | ✅ Izdano |
-| Faza 4  | Slogi izhoda, ultra na ravni SLM, ogrodje za vrednotenje                                                                                                                            | ✅ Izdano |
-| Faza 4C | Prilagodljiv proračun konteksta (»številčnica«) — računski mehanizem + API (`contextBudget` pri `PUT /api/settings/compression`) + kontrolniki načina/pravilnika na nadzorni plošči | ✅ Izdano |
+| Faza    | Načini                                                                                                                                                                   | Status        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| Faza 1  | Izklopljeno, Lite                                                                                                                                                        | ✅ Dobavljeno |
+| Faza 2  | Standardno, Agresivno, Ultra                                                                                                                                             | ✅ Dobavljeno |
+| Faza 3  | RTK, Zloženo, Kombinacije stiskanja                                                                                                                                      | ✅ Dobavljeno |
+| Faza 4  | Izhodni slogi, SLM-tier Ultra, eval harness                                                                                                                              | ✅ Dobavljeno |
+| Faza 4C | Prilagodljiv proračun konteksta ("številčnica") – računski mehanizem + API (`contextBudget` na `PUT /api/settings/compression`) + nadzor načina/politike nadzorne plošče | ✅ Dobavljeno |
 
 ---
 
@@ -308,25 +329,25 @@ Način RTK temelji na navdihu projekta **[RTK - Rust Token Killer](https://githu
 ## Napredni sistemi stiskanja
 
 Poleg 7 standardnih načinov OmniRoute vključuje več naprednih sistemov stiskanja,
-ki delujejo samodejno glede na kontekst.
+ki glede na kontekst delujejo samodejno.
 
 ### Stiskanje z upoštevanjem predpomnilnika
 
-Nekateri ponudniki (kot je Anthropic s predpomnjenjem pozivov) podpirajo **predpomnjenje pozivov**,
-ki jim omogoča predpomnjenje delov poziva za zmanjšanje stroškov in zakasnitev. Ko je
-predpomnjenje omogočeno, lahko agresivno stiskanje dejansko **poslabša** zmogljivost,
-ker spremeni predpomnjene žetone in s tem razveljavi predpomnilnik.
+Nekateri ponudniki (na primer Anthropic s predpomnjenjem pozivov) podpirajo **predpomnjenje pozivov**,
+ki jim omogoča predpomnjenje delov poziva za zmanjšanje stroškov in zakasnitve. Ko je
+predpomnjenje omogočeno, lahko agresivno stiskanje dejansko **poslabša** učinkovitost,
+saj spremeni predpomnjene žetone in s tem razveljavi predpomnilnik.
 
-Modul `cachingAware.ts` to rešuje tako, da **zazna kontekst predpomnjenja** in
-temu ustrezno **prilagodi strategijo stiskanja**.
+Modul `cachingAware.ts` to rešuje z **zaznavanjem konteksta predpomnjenja** in
+ustreznim **prilagajanjem strategije stiskanja**.
 
 #### Kako deluje
 
-1. **Zazna kontekst predpomnjenja** — V telesu zahteve poišče oznake `cache_control`
-2. **Prepozna ponudnike s predpomnjenjem** — Preveri, ali ciljni ponudnik podpira predpomnjenje
-3. **Prilagodi strategijo** — Za ponudnike s predpomnjenjem zniža `aggressive`/`ultra` na `standard`
-4. **Preskoči sistemski poziv** — Sistemski pozivi so običajno predpomnjeni, zato jih ne stiska
-5. **Uporabi deterministične pretvorbe** — Uporabi samo pretvorbe, ki ustvarijo dosleden izhod
+1. **Zaznavanje konteksta predpomnjenja** — Pregleda telo zahteve in poišče oznake `cache_control`
+2. **Prepoznavanje ponudnikov s predpomnjenjem** — Preveri, ali ciljni ponudnik podpira predpomnjenje
+3. **Prilagajanje strategije** — Za ponudnike s predpomnjenjem zniža `aggressive`/`ultra` na `standard`
+4. **Izpustitev sistemskega poziva** — Sistemski pozivi so običajno predpomnjeni, zato jih ne stiska
+5. **Uporaba determinističnih pretvorb** — Uporablja samo pretvorbe, ki dajejo dosleden rezultat
 
 #### Primer kode
 
@@ -351,8 +372,8 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kdaj uporabiti
 
-Stiskanje z upoštevanjem predpomnilnika je **vedno vklopljeno** — konfiguracija ni potrebna. Aktivira se samo,
-ko:
+Stiskanje z upoštevanjem predpomnilnika je **vedno vklopljeno** — konfiguracija ni potrebna. Aktivira se
+samo, ko:
 
 - Zahteva vsebuje oznake `cache_control`
 - Ciljni ponudnik podpira predpomnjenje pozivov (Anthropic, OpenAI itd.)
@@ -362,9 +383,9 @@ ko:
 V dolgih pogovorih se nabere veliko izmenjav sporočil, vendar starejše izmenjave postanejo manj
 pomembne. Modul `progressiveAging.ts` **zmanjšuje podrobnost sporočil glede na oddaljenost izmenjave**:
 
-- **Nedavne izmenjave (0-3)**: Ohranjene dobesedno (vse podrobnosti)
-- **Srednje oddaljene izmenjave (4-8)**: Lahko stiskanje (čiščenje presledkov in oblikovanja)
-- **Stare izmenjave (9+)**: Stiskanje Caveman (odstranjevanje mašil, povzemanje)
+- **Nedavne izmenjave (0–3)**: Ohranjene dobesedno (vse podrobnosti)
+- **Srednje stare izmenjave (4–8)**: Rahlo stiskanje (čiščenje presledkov in oblikovanja)
+- **Stare izmenjave (9+)**: Jamsko stiskanje (odstranjevanje mašil, povzemanje)
 - **Zelo stare izmenjave (20+)**: Močno povzete ali odstranjene
 
 #### Primer kode
@@ -376,13 +397,13 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... Še 50 izmenjav ...
+  // ... še 50 izmenjav ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // Prve 3 izmenjave: dobesedno
-  light: 8, // Izmenjave 4–8: lahko stiskanje
-  moderate: 20, // Izmenjave 9–20: stiskanje Caveman
+  light: 8, // Izmenjave 4–8: rahlo stiskanje
+  moderate: 20, // Izmenjave 9–20: jamsko stiskanje
   // Izmenjave 21+: močno povzemanje
 });
 
@@ -391,31 +412,33 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Kdaj uporabiti
 
-Postopno staranje je **vedno vklopljeno** za načina `aggressive` in `ultra`. Še posebej učinkovito je za:
+Postopno staranje je **vedno vklopljeno** za načina `aggressive` in `ultra`. Še posebej
+učinkovito je pri:
 
-- Dolgotrajne seje programiranja
-- Večdnevne pogovore
-- Agentske delovne tokove s številnimi klici orodij
+- Dolgotrajnih programerskih sejah
+- Večdnevnih pogovorih
+- Agentskih delovnih tokovih s številnimi klici orodij
 
-### Način izpisa Caveman
+### Jamski način izpisa
 
-Modul `outputMode.ts` vstavi **navodila sistemskega poziva**, da model sam ustvari stisnjen, jedrnat izpis (v slogu »jamskega človeka«).
+Modul `outputMode.ts` vstavi **navodila v sistemski poziv**, da model
+sam ustvari stisnjen, jedrnat izpis (v »jamskem« slogu).
 
 #### Kako deluje
 
 Namesto stiskanja vhoda ta način doda sistemski poziv, kot je:
 
-> »Odgovori z najmanj besedami. Izpusti vljudnostne fraze. Uporabi kratke stavke.«
+> »Odgovori z najmanj besedami. Preskoči vljudnostne fraze. Uporabljaj kratke stavke.«
 
-To je še posebej učinkovito za:
+To je še posebej učinkovito pri:
 
-- Ustvarjanje kode (jedrnatejši izpis = manj žetonov)
-- Hitra vprašanja in odgovore (ni potrebe po obširnih razlagah)
-- Paketno obdelavo (največja prepustnost)
+- Ustvarjanju kode (jedrnatejši izpis = manj žetonov)
+- Hitrih vprašanjih in odgovorih (podrobne razlage niso potrebne)
+- Paketni obdelavi (največja prepustnost)
 
-#### Kdaj ga uporabiti
+#### Kdaj uporabiti
 
-Način izpisa Caveman je **izbiren** — nastavite ga prek kombinirane konfiguracije:
+Jamski način izpisa je **izbiren** — nastavite ga prek kombinirane konfiguracije:
 
 ```json
 {
@@ -430,25 +453,58 @@ Način izpisa Caveman je **izbiren** — nastavite ga prek kombinirane konfigura
 
 ### Slogi izpisa (katalog)
 
-Zgoraj opisani način izpisa Caveman je **starejša pot z enim samim slogom**. Četrta faza ga je posplošila v katalog sestavljivih slogov izpisa: `OUTPUT_STYLE_CATALOG` v `open-sse/services/compression/outputStyles/catalog.ts`. Vsak slog je navodilo sistemskega poziva, zaradi katerega model sam ustvari varčnejši izpis; sloge je mogoče omogočiti hkrati, vstavljeni pa so po vrstnem redu v katalogu.
+Zgoraj opisani jamski način izpisa je **starejša pot z enim samim slogom**. Faza 4 ga je posplošila
+v katalog sestavljivih slogov izpisa: `OUTPUT_STYLE_CATALOG` v
+`open-sse/services/compression/outputStyles/catalog.ts`. Vsak slog je navodilo v sistemskem pozivu,
+zaradi katerega model sam ustvari cenejši izpis; hkrati je mogoče omogočiti več slogov,
+ki se vstavijo po vrstnem redu v katalogu.
 
-| Slog                           | `id`          | Kaj počne                                                                                                                                                                                                              | Jeziki navodil                                                                       |
-| ------------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Jedrnata proza                 | `terse-prose` | Odstrani mašila/člene/omiljevanje; natančno ohrani tehnično vsebino. Enako besedilo kot pri starejšem načinu izpisa Caveman (sklicevano, ne prepisano).                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Manj kode                      | `less-code`   | Lestvica YAGNI: najmanjša delujoča sprememba, brez nezahtevanih abstrakcij.                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Čop (leni izkušeni razvijalec) | `ponytail`    | »Najboljša koda je koda, ki ni bila nikoli napisana«: ponovna uporaba > ponovno pisanje, temeljni vzrok > simptom, najkrajša delujoča razlika.                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Imam ADHD (najprej dejanje)    | `i-have-adhd` | Najprej dejanje (ukaz/pot/izsek pred prozo), oštevilčeni omejeni koraki, EN konkreten naslednji korak, brez uvoda/povzetka/zaključkov. Prirejeno po [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                        |
-| Jedrnati CJK (文言)            | `terse-cjk`   | Izjemno jedrnat slog klasične kitajščine.                                                                                                                                                                              | zh (omejeno glede na področno nastavitev: ponujeno samo, ko je razrešeni jezik `zh`) |
+| Slog                         | `id`          | Kaj počne                                                                                                                                                                                                                   | Jeziki navodil                                                                 |
+| ---------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Jedrnato besedilo            | `terse-prose` | Odstrani mašila/člene/omiljevanje; natančno ohrani tehnično vsebino. Enako besedilo kot v podedovanem načinu izpisa caveman (navedeno, ne prepisano).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
+| Manj kode                    | `less-code`   | Lestvica YAGNI: najmanjša delujoča sprememba brez nezahtevanih abstrakcij.                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
+| Čop (len izkušen razvijalec) | `ponytail`    | »Najboljša koda je koda, ki ni bila nikoli napisana«: ponovna uporaba > ponovno pisanje, temeljni vzrok > simptom, najkrajša delujoča razlika.                                                                              | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
+| Imam ADHD (najprej dejanje)  | `i-have-adhd` | Najprej dejanje (ukaz/pot/izsek pred besedilom), oštevilčeni omejeni koraki, EN konkreten naslednji korak, brez uvoda/povzetka/zaključka. Prilagojeno po [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                  |
+| Jedrnati CJK (文言)          | `terse-cjk`   | Izjemno jedrnat slog klasične kitajščine.                                                                                                                                                                                   | zh (omejeno na področno nastavitev: ponujeno samo, ko je razrešeni jezik `zh`) |
 
-Vsak slog vključuje tri ravni intenzivnosti — `lite`, `full`, `ultra` — vsaka raven pa se konča s skupno klavzulo o omejitvah, ki ohrani bloke kode, poti datotek, ukaze, nize napak, URL-je in identifikatorje nespremenjene.
+Vsak slog je na voljo s tremi stopnjami intenzivnosti — `lite`, `full`, `ultra` — in vsaka stopnja
+se konča s skupno določbo o mejah, ki bloke kode, poti datotek, ukaze,
+nize napak, URL-je in identifikatorje ohrani nespremenjene.
 
 #### Kako deluje vstavljanje
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razreši izbor glede na katalog (neznani id-ji in slogi, ki se ne ujemajo s področno nastavitvijo, so izpuščeni in nikoli ne povzročijo napake), združi izbrana navodila po vrstnem redu v katalogu, **enkrat** doda klavzulo o omejitvah in rezultat postavi na začetek sistemskega poziva za eno samo oznako idempotentnosti (`[OmniRoute Output Styles]`) — ponovna uporaba ne naredi ničesar. Ko za zaznani jezik zahteve obstaja prevod, je namesto angleškega navodila vstavljeno lokalizirano navodilo.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) razreši
+izbor glede na katalog (neznani ID-ji in slogi, ki se ne ujemajo s področno nastavitvijo, so
+izpuščeni, ne da bi prišlo do napake), združi izbrana navodila v vrstnem redu kataloga,
+**enkrat** doda določbo o mejah in blok začne z enim samim označevalnikom
+idempotentnosti (`[OmniRoute Output Styles]`), zato ponovna uporaba ne naredi ničesar. Ko
+za razrešeni jezik (glejte Izbira jezika spodaj) obstaja prevod, se namesto angleškega
+navodila vstavi lokalizirano navodilo.
+
+Pri telesu z `messages` obhod glede na vsebino (`shouldBypassCavemanOutputMode()` v
+`open-sse/services/compression/outputMode.ts`) preveri zadnja tri sporočila in preskoči
+sloge za celoten obrat, ko se ujemajo z njegovimi ključnimi besedami za varnost,
+nepovratna dejanja, pojasnjevanje ali občutljivost na vrstni red. Obhod se izvaja, dokler je stikalo **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na nadzorni plošči vklopljeno, kar je privzeta nastavitev; ob izklopljenem stikalu velijo izbrani slogi tudi v teh obratih.
+
+Ko obhod dovoli obdelavo obrata, `placeSystemInstruction()` (ista datoteka), ki
+nikoli ne ustvari novega `messages[0]`, postavi blok na prvo najdeno mesto med naslednjimi:
+
+1. Začetno sistemsko sporočilo z vsebino v obliki niza: blok se doda za njegovo besedilo.
+2. Polje `system` na najvišji ravni: blok se doda za besedilo niza ali
+   kot nov besedilni blok v polje blokov vsebine.
+3. Prvo poznejše sistemsko sporočilo z vsebino v obliki niza: blok se doda za njegovo
+   besedilo.
+4. Nič od navedenega: blok se doda v novo sistemsko sporočilo na koncu `messages`.
+
+Pri telesu brez `messages` se blok doda polju `instructions` v obliki niza
+ali postane `instructions`, ko telo vsebuje `input` (niz ali polje). Telo
+brez `instructions` in `input` se preskoči kot `no_messages`.
 
 #### Kako omogočiti
 
-Na nadzorni plošči: **Kontekst → Nastavitve → Stiskanje** — ena vrstica na slog s stikalom za vklop/izklop in izbirnikom ravni. Programsko konfiguracija stiskanja shrani izbor kot:
+Na nadzorni plošči: **Kontekst → Nastavitve → Stiskanje** — ena vrstica na slog s
+stikalom za vklop/izklop in izbirnikom stopnje. Programsko konfiguracija stiskanja
+shrani izbor kot:
 
 ```json
 {
@@ -459,29 +515,40 @@ Na nadzorni plošči: **Kontekst → Nastavitve → Stiskanje** — ena vrstica 
 }
 ```
 
-Združljivost za nazaj: starejša kombinirana nastavitev `outputMode: "caveman"` še vedno deluje in se preslika v `terse-prose`, pri čemer je v vsakem starejšem jeziku bajtno enaka staremu vstavljanju.
+Združljivost za nazaj: podedovana kombinirana nastavitev `outputMode: "caveman"` še vedno deluje in se preslika v
+`terse-prose`, pri čemer je v vsakem podedovanem jeziku bajtno enaka staremu vstavljanju.
 
-Izbira jezika: ko je `languageConfig.enabled` vklopljen, `autoDetect` izbere jezik najnovejšega uporabniškega sporočila (isti zaznavalnik kot pri vhodnih mehanizmih); izklop `autoDetect` pripne `defaultLanguage`. Izklopljeno → angleščina.
+Izbira jezika: ko je `languageConfig.enabled` vklopljen, `autoDetect` izbere
+jezik zadnjega uporabniškega sporočila (isti detektor kot pri vhodnih mehanizmih);
+izklop `autoDetect` pripne `defaultLanguage`. Izklopljeno → angleščina.
 
-Matrika slog × jezik je določena s `tests/unit/compression/output-styles-i18n-matrix.test.ts`: novega sloga ni mogoče izdati brez vsaj prevoda v pt-BR (ali izrecno zabeležene izjeme), obstoječi slog pa ne more neopazno izgubiti področne nastavitve. Za dodajanje sloga glejte [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Matriko slog × jezik določa
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: novega sloga ni mogoče izdati
+brez vsaj prevoda v pt-BR (ali izrecno zabeležene izjeme), obstoječi slog pa ne more
+neopazno izgubiti področne nastavitve. Za dodajanje sloga glejte
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Stiskanje rezultatov orodij
 
-Modul `toolResultCompressor.ts` ponuja **5 specializiranih strategij stiskanja** za rezultate orodij (klice funkcij, izpise agentov, rezultate iskanja itd.):
+Modul `toolResultCompressor.ts` zagotavlja **5 specializiranih strategij stiskanja**
+za rezultate orodij (klice funkcij, izpise agentov, rezultate iskanja itd.):
 
-1. **Stiskanje rezultatov iskanja** — odstrani odvečne rezultate in ohrani najboljših N
-2. **Stiskanje branja datotek** — skrajša velike datoteke ter ohrani glave/uvoze
-3. **Stiskanje izvajanja kode** — ohrani samo bistveni stdout/stderr
-4. **Stiskanje poizvedb podatkovne zbirke** — omeji vrstice in odstrani obširne metapodatke
-5. **Stiskanje odzivov API-ja** — odstrani polja z vrednostjo null in zgosti polja
+1. **Stiskanje rezultatov iskanja** — Odstrani odvečne rezultate, ohrani najboljših N
+2. **Stiskanje branja datotek** — Skrajša velike datoteke, ohrani glave/uvoze
+3. **Stiskanje izvajanja kode** — Ohrani samo bistvena stdout/stderr
+4. **Stiskanje poizvedb v podatkovni zbirki** — Omeji vrstice, odstrani obsežne metapodatke
+5. **Stiskanje odzivov API-ja** — Odstrani polja z vrednostjo null, zgosti polja
 
-#### Kdaj ga uporabiti
+#### Kdaj uporabiti
 
-Stiskanje rezultatov orodij je **vedno vklopljeno**, ko so prisotni klici orodij. Konfiguracija ni potrebna.
+Stiskanje rezultatov orodij je ob prisotnosti klicev orodij **vedno vklopljeno**. Konfiguracija ni
+potrebna.
 
-### Sestavljeni cevovod
+### Zaporedni cevovod
 
-Sestavljeni način izvaja **več mehanizmov zaporedno** — običajno najprej RTK (60–90 % prihranka pri izpisu orodij), nato Caveman (dodatnih 30 % prihranka pri preostalem besedilu). Tako doseže **78–95 % skupnega prihranka**.
+Zaporedni način izvaja **več mehanizmov enega za drugim** — običajno najprej RTK
+(60–90 % prihranka pri izhodu orodij), nato Caveman (dodatnih 30 % prihranka pri
+preostalem besedilu). Tako doseže **78–95 % skupnega prihranka**.
 
 #### Kako deluje
 
@@ -494,13 +561,13 @@ Vhod (1000 žetonov)
 
 #### Kdaj ga uporabiti
 
-Sestavljeni način uporabite za:
+Zaporedni način uporabite za:
 
-- Delovne tokove z veliko uporabo orodij (agentsko programiranje, raziskovanje)
+- Delovne tokove z intenzivno uporabo orodij (agentsko programiranje, raziskovanje)
 - Stroškovno občutljivo paketno obdelavo
-- Ko potrebujete največji prihranek žetonov
+- Ko potrebujete največji možni prihranek žetonov
 
-Konfigurirajte prek kombinirane konfiguracije:
+Konfigurirajte prek kombinacije:
 
 ```json
 {

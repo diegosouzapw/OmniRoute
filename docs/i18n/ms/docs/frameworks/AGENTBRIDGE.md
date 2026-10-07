@@ -189,14 +189,14 @@ senarai larangan hop-demi-hop/pembingkaian yang dikongsi (termasuk pengesahan pr
 
 Gunakan Kad Pelayan AgentBridge di `/dashboard/tools/agent-bridge`:
 
-| Tindakan               | Penerangan                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| Mulakan Pelayan        | Melancarkan `src/mitm/server.cjs` pada port 443                                       |
-| Hentikan Pelayan       | Menamatkan proses anak dengan selamat                                                 |
-| Mulakan Semula Pelayan | Hentikan + mulakan (mengambil perubahan sasaran)                                      |
-| Percayai Sijil         | Memasang `DATA_DIR/mitm/ca.crt` ke dalam stor kepercayaan OS                          |
-| Muat Turun Sijil       | Memuat turun `ca.crt` untuk pemasangan manual                                         |
-| Jana Semula Sijil      | Mencipta pasangan kunci CA baharu (semua sijil sedia ada bagi setiap ejen dibatalkan) |
+| Tindakan               | Penerangan                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| Mulakan Pelayan        | Menghasilkan proses `src/mitm/server.cjs` pada port 443                                 |
+| Hentikan Pelayan       | Menghentikan proses anak dengan baik                                                    |
+| Mulakan Semula Pelayan | Hentikan + mulakan (mengambil perubahan sasaran)                                        |
+| Percayai Sijil         | Memasang `DATA_DIR/mitm/ca.crt` ke dalam stor kepercayaan OS                            |
+| Muat Turun Sijil       | Memuat turun `ca.crt` untuk pemasangan manual                                           |
+| Jana Semula Sijil      | Mencipta pasangan kunci CA baharu (semua sijil sedia ada setiap ejen menjadi tidak sah) |
 
 ### 3.2 Percayai sijil
 
@@ -225,12 +225,12 @@ Atau gunakan butang "Percayai Sijil" dalam papan pemuka (menjalankan perintah ya
 
 #### IDE berasaskan Electron mengabaikan stor kepercayaan OS (`NODE_EXTRA_CA_CERTS`)
 
-Sesetengah IDE — terutamanya **Antigravity IDE**, serta aplikasi lain yang diterbitkan daripada Electron / VS Code — menyertakan
-masa jalan Node.js sendiri yang **tidak merujuk stor kepercayaan OS** untuk `fetch`/HTTPS
-keluar. Mempercayai CA pada peringkat OS/NSS sudah memadai untuk **bahagian belakang** natif IDE
-(cth. pelayan bahasa Go, yang menggunakan berkas CA OS), tetapi **bahagian hadapan Electron** masih
-akan gagal TLS — ia kelihatan seolah-olah aplikasi telah _dilog keluar_ atau memaparkan _"ralat sambungan"_
-walaupun log MITM menunjukkan panggilan but bahagian belakang mengembalikan `200`. Dua langkah
+Sesetengah IDE — terutamanya **Antigravity IDE**, serta aplikasi lain yang berasaskan Electron / VS Code — menyertakan
+masa jalan Node.js mereka sendiri yang **tidak merujuk stor kepercayaan OS** untuk
+`fetch`/HTTPS keluar. Mempercayai CA pada peringkat OS/NSS memadai untuk **bahagian belakang** asli IDE
+(contohnya pelayan bahasa Go, yang menggunakan berkas CA OS), tetapi **bahagian hadapan Electron** masih akan
+gagal dalam TLS — ini kelihatan seperti aplikasi telah _dilog keluar_ atau memaparkan _"ralat sambungan"_
+walaupun log MITM menunjukkan panggilan but permulaan bahagian belakang mengembalikan `200`. Dua langkah
 diperlukan dan kedua-duanya penting:
 
 1. Halakan masa jalan kepada CA secara eksplisit:
@@ -238,17 +238,17 @@ diperlukan dan kedua-duanya penting:
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
 2. **Lancarkan IDE daripada shell tersebut.** Memulakannya daripada ikon desktop / Dock / menu Mula
-   **tidak** mewarisi eksport shell dan `~/.config/environment.d/*.conf` hanya berkuat kuasa selepas
-   log masuk grafik yang baharu. Keluar sepenuhnya daripada IDE terlebih dahulu — kunci tika tunggal Electron
-   bermakna pelancaran kedua hanya memfokuskan proses sedia ada dan persekitaran baharu diabaikan.
+   **tidak** mewarisi eksport shell dan `~/.config/environment.d/*.conf` hanya digunakan selepas
+   log masuk grafik yang baharu. Keluar sepenuhnya daripada IDE terlebih dahulu — kunci tika tunggal Electron bermaksud pelancaran
+   kedua hanya memfokuskan proses sedia ada dan persekitaran baharu diabaikan.
 
 Langkah kepercayaan OS + NSS di atas masih diperlukan (tindanan rangkaian Chromium yang digunakan oleh sesetengah aliran
-pengesahan membaca stor NSS setiap pengguna dan mempunyai sematan statik sendiri untuk `*.googleapis.com` yang
+pengesahan membaca stor NSS setiap pengguna dan mempunyai sematan statiknya sendiri untuk `*.googleapis.com` yang
 diatasi oleh CA yang dipercayai secara setempat). `NODE_EXTRA_CA_CERTS` turut meliputi laluan `fetch` Node.
 
 ### 3.3 Penghalaan DNS
 
-Bagi setiap ejen yang ingin anda pintas, hos APInya mesti diselesaikan kepada `127.0.0.1`. AgentBridge mengurus entri `/etc/hosts` secara automatik apabila anda menogol DNS untuk sesuatu ejen dalam Bestari Persediaan.
+Bagi setiap ejen yang ingin anda pintas, hos APInya mesti ditetapkan kepada `127.0.0.1`. AgentBridge mengurus entri `/etc/hosts` secara automatik apabila anda menogol DNS untuk ejen dalam Bestari Persediaan.
 
 Contoh entri `/etc/hosts` untuk GitHub Copilot:
 
@@ -261,63 +261,72 @@ Contoh entri `/etc/hosts` untuk GitHub Copilot:
 
 Gunakan Jadual Pemetaan Model dalam setiap kad ejen untuk menentukan pemetaan sumber → sasaran:
 
-| Model sumber (natif ejen) | Model sasaran (OmniRoute) |
-| ------------------------- | ------------------------- |
-| `gpt-4o`                  | `claude-sonnet-4.7`       |
-| `*` (kad bebas)           | `claude-haiku-4.7`        |
+| Model sumber (asli ejen) | Model sasaran (OmniRoute) |
+| ------------------------ | ------------------------- |
+| `gpt-4o`                 | `claude-sonnet-4.7`       |
+| `*` (kad bebas)          | `claude-haiku-4.7`        |
 
 Kad bebas `*` memetakan mana-mana model yang tidak dikenali kepada sasaran yang ditentukan. Disimpan dalam jadual `agent_bridge_mappings`.
 
-> **Petua — temukan ID model sebenar ejen.** IDE mungkin menghantar nama model yang berbeza daripada
-> label UInya dan yang berubah antara versi utama. Contohnya, **Antigravity 2** menghantar
-> `gemini-3.1-pro-low`, `gemini-pro-agent`, dan `gemini-3.1-flash-lite` melalui rangkaian — bukan
-> `gemini-2.5-pro` yang ditunjukkan dalam dokumentasi lama. Hantar satu sembang tanpa pemetaan sepadan: MITM
-> merekodkan `model:` masuk yang tepat dan meneruskan permintaan. Petakan nilai literal tersebut, kemudian
+> **Petua — kenal pasti ID model sebenar ejen.** IDE mungkin menghantar nama model yang berbeza daripada
+> label UI-nya dan yang berubah antara versi utama. Contohnya, **Antigravity 2** menghantar
+> `gemini-3.1-pro-low`, `gemini-pro-agent` dan `gemini-3.1-flash-lite` melalui rangkaian — bukannya
+> `gemini-2.5-pro` yang ditunjukkan dalam dokumentasi lama. Hantar satu sembang tanpa pemetaan yang sepadan: MITM
+> merekodkan `model:` masuk yang tepat dan meneruskan permintaan tersebut. Petakan nilai literal itu, kemudian
 > permintaan seterusnya akan dipintas dan dihalakan kepada sasaran anda.
 
 ### 3.5 Notis risiko
 
-AgentBridge memintas kelayakan (token OAuth, kunci API) yang digunakan oleh IDE untuk mengesahkan identiti dengan penyedia huluan. Ini **disamarkan sebelum dilog** (lihat §2.7), tetapi dapat dilihat oleh lapisan MITM OmniRoute. Pengaktifan pertama setiap ejen memaparkan modal notis risiko yang boleh ditutup.
+AgentBridge memintas bukti kelayakan (token OAuth, kunci API) yang digunakan oleh IDE untuk mengesahkan identiti dengan penyedia huluan. Maklumat ini **disamarkan sebelum dilog** (lihat §2.7), tetapi boleh dilihat oleh lapisan MITM OmniRoute. Pengaktifan pertama setiap ejen memaparkan modal notis risiko yang boleh ditutup.
 
 ### 3.6 Penyelenggaraan & Diagnostik
 
-Papan pemuka menyediakan kad **Penyelenggaraan & Diagnostik** (`AgentBridgeMaintenanceCard`, dalam `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) yang memaparkan laluan operasi MITM yang sebelum ini tidak mempunyai UI. Sarikata kad tersebut: _"Uji sendiri saluran penangkapan, batalkan keadaan sistem yang tertinggal dan pindahkan persediaan anda antara mesin."_ Pembantu klien kad tersebut terletak dalam `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Papan pemuka menyediakan kad **Penyelenggaraan & Diagnostik** (`AgentBridgeMaintenanceCard`, dalam `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) yang menampilkan laluan operasi MITM yang sebelum ini tidak mempunyai UI. Sarikata kad tersebut: _"Uji sendiri saluran tangkapan, buat asal keadaan sistem yang berbaki dan pindahkan persediaan anda antara mesin."_ Pembantu klien kad tersebut terletak dalam `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Butang                  | Laluan                                 | Fungsinya                                                                                                                                                                                                   |
-| ----------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnosis**           | `GET /api/tools/agent-bridge/diagnose` | Menjalankan ujian kendiri saluran tangkapan dan memaparkan laporan bagi setiap pemeriksaan (✓/✗ + petunjuk pemulihan).                                                                                      |
-| **Baiki**               | `POST /api/tools/agent-bridge/repair`  | Membatalkan keadaan sistem MITM yatim (entri pemalsuan DNS, CA akar, proksi sistem) yang tertinggal akibat ranap atau SIGKILL. Idempoten — melaporkan "Tiada apa-apa untuk dibaiki" apabila keadaan bersih. |
-| **Alih keluar CA**      | `DELETE /api/tools/agent-bridge/cert`  | Menyahpercayai dan mengalih keluar CA akar MITM daripada stor kepercayaan OS (eksplisit, idempoten). Dipaparkan hanya apabila CA sedang dipercayai; memerlukan pengesahan sebaris "Alih keluar CA?".        |
-| **Eksport konfigurasi** | `GET /api/tools/agent-bridge/config`   | Memuat turun JSON konfigurasi mudah alih (lihat §3.7).                                                                                                                                                      |
-| **Import konfigurasi**  | `POST /api/tools/agent-bridge/config`  | Memuat naik JSON konfigurasi yang telah dieksport sebelum ini (lihat §3.7).                                                                                                                                 |
+| Butang                  | Laluan                                 | Fungsinya                                                                                                                                                                                                     |
+| ----------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagnosis**           | `GET /api/tools/agent-bridge/diagnose` | Menjalankan ujian kendiri saluran tangkapan dan memaparkan laporan bagi setiap semakan (✓/✗ + petunjuk pemulihan).                                                                                            |
+| **Baiki**               | `POST /api/tools/agent-bridge/repair`  | Membatalkan keadaan sistem MITM yatim (entri pemalsuan DNS, CA akar, proksi sistem) yang ditinggalkan akibat ranap atau SIGKILL. Idempoten — melaporkan "Tiada apa-apa untuk dibaiki" apabila keadaan bersih. |
+| **Alih keluar CA**      | `DELETE /api/tools/agent-bridge/cert`  | Menyahpercayai dan mengalih keluar CA akar MITM daripada gedung amanah OS (secara eksplisit, idempoten). Dipaparkan hanya apabila CA sedang dipercayai; memerlukan pengesahan sebaris "Alih keluar CA?".      |
+| **Eksport konfigurasi** | `GET /api/tools/agent-bridge/config`   | Memuat turun JSON konfigurasi mudah alih (lihat §3.7).                                                                                                                                                        |
+| **Import konfigurasi**  | `POST /api/tools/agent-bridge/config`  | Memuat naik JSON konfigurasi yang telah dieksport sebelum ini (lihat §3.7).                                                                                                                                   |
 
-**Pemeriksaan diagnostik** (`summarizeDiagnostics()` dalam `src/mitm/inspector/diagnostics.ts`). Laluan tersebut menjalankan prob berkesan untuk setiap pemeriksaan dan memasukkan nilai boolean ke dalam peringkas tulen; satu keputusan `healthy` berserta petunjuk bagi setiap kegagalan dikembalikan:
+Setiap kad ejen juga mempunyai butang **Pulihkan lalai** tersendiri (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — tindakan buat asal satu klik bagi setiap ejen yang hanya menyahpalsukan
+hos ejen tersebut, mengosongkan pemetaan modelnya yang disimpan, dan menetapkan semula keadaan `dns_enabled`/`setup_completed`,
+supaya IDE berkomunikasi semula dengan huluan sebenar selepas dimulakan semula sepenuhnya. Tindakan ini **tidak** menyentuh
+pelayan MITM atau CA akar yang dikongsi (ejen lain mungkin masih bergantung padanya) — kedua-duanya kekal boleh dicapai
+melalui Kad Pelayan dan tindakan **Alih keluar CA** di atas. Pada Windows, tindakan ini juga cuba menjalankan
+`ipconfig /flushdns` atas dasar usaha terbaik, kerana Klien DNS Windows menyimpan entri fail hos dalam cache dan tidak akan
+menggugurkan entri palsu yang baru sahaja dialih keluar jika tidak berbuat demikian.
 
-| Nama pemeriksaan   | Perkara yang disahkan                                   | Petunjuk apabila gagal                                                                                                                               |
-| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Proses pelayan MITM sedang aktif                        | "Pelayan MITM tidak berjalan. Mulakannya daripada tab AgentBridge."                                                                                  |
-| `server-reachable` | Pelayan MITM menerima sambungan pada portnya (prob TCP) | "Pelayan MITM tidak menerima sambungan pada portnya. Pastikan port tersebut tersedia dan anda mempunyai keistimewaan untuk mengikatnya."             |
-| `cert-exists`      | Sijil MITM telah dijana pada cakera                     | "Belum ada sijil MITM yang dijana. Jana satu daripada tab AgentBridge."                                                                              |
-| `cert-trusted`     | CA akar MITM berada dalam stor kepercayaan OS           | "CA akar MITM tidak dipercayai oleh stor OS, jadi pemintasan TLS akan gagal. Percayai sijil tersebut daripada tab AgentBridge."                      |
-| `dns-configured`   | Nama hos sasaran dipalsukan dalam `/etc/hosts`          | "Nama hos sasaran tidak dipalsukan dalam /etc/hosts, jadi trafik tidak pernah sampai kepada proksi. Dayakan DNS untuk ejen yang ingin anda tangkap." |
+**Semakan diagnostik** (`summarizeDiagnostics()` dalam `src/mitm/inspector/diagnostics.ts`). Laluan ini menjalankan siasatan yang mempunyai kesan bagi setiap semakan dan menyalurkan nilai boolean kepada peringkas tulen; satu keputusan `healthy` berserta petunjuk bagi setiap kegagalan dikembalikan:
 
-**Sepanduk keadaan yatim:** apabila halaman mengesan keadaan yang tertinggal akibat ranap (pemalsuan DNS / CA / proksi sistem), kad memaparkan sepanduk kuning jingga — _"Sesi terdahulu meninggalkan keadaan sistem (pemalsuan DNS, CA atau proksi sistem). Jalankan Baiki untuk membersihkannya."_ — dan menyerlahkan butang **Baiki**. `Repair` ialah analog lapisan aplikasi bagi bendera `--cleanup` ProxyBridge (ia mewakilkan kepada `repairMitm()` dalam `src/mitm/manager.ts`).
+| Nama semakan       | Perkara yang disahkan                                       | Petunjuk apabila gagal                                                                                                                               |
+| ------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | Proses pelayan MITM sedang aktif                            | "Pelayan MITM tidak berjalan. Mulakannya daripada tab AgentBridge."                                                                                  |
+| `server-reachable` | Pelayan MITM menerima sambungan pada portnya (siasatan TCP) | "Pelayan MITM tidak menerima sambungan pada portnya. Pastikan port tersebut bebas dan anda mempunyai keistimewaan untuk mengikatnya."                |
+| `cert-exists`      | Sijil MITM telah dijana pada cakera                         | "Belum ada sijil MITM yang dijana. Jana satu daripada tab AgentBridge."                                                                              |
+| `cert-trusted`     | CA akar MITM berada dalam gedung amanah OS                  | "CA akar MITM tidak dipercayai oleh gedung OS, maka pemintasan TLS akan gagal. Percayai sijil tersebut daripada tab AgentBridge."                    |
+| `dns-configured`   | Nama hos sasaran dipalsukan dalam `/etc/hosts`              | "Nama hos sasaran tidak dipalsukan dalam /etc/hosts, maka trafik tidak pernah sampai kepada proksi. Dayakan DNS untuk ejen yang ingin anda tangkap." |
 
-> CA akar MITM kekal dipasang merentasi henti/mula untuk mengelakkan gesaan sudo
+**Sepanduk keadaan yatim:** apabila halaman mengesan keadaan yang ditinggalkan akibat ranap (pemalsuan DNS / CA / proksi sistem), kad memaparkan sepanduk kuning jingga — _"Sesi terdahulu meninggalkan keadaan sistem (pemalsuan DNS, CA atau proksi sistem). Jalankan Baiki untuk membersihkannya."_ — dan menyerlahkan butang **Baiki**. `Repair` ialah analog lapisan aplikasi bagi bendera `--cleanup` ProxyBridge (ia mewakilkan tugas kepada `repairMitm()` dalam `src/mitm/manager.ts`).
+
+> CA akar MITM dikekalkan pemasangannya merentasi henti/mula untuk mengelakkan gesaan sudo
 > berulang (tingkah laku yang sama seperti mitmproxy/Charles), maka pengalihannya ialah tindakan
-> **Alih keluar CA** yang eksplisit dan bukannya sesuatu yang berlaku secara automatik ketika berhenti.
+> **Alih keluar CA** yang eksplisit dan bukannya sesuatu yang berlaku secara automatik apabila dihentikan.
 
 ### 3.7 Import/eksport konfigurasi mudah alih
 
-AgentBridge boleh menyirikan keadaan yang **boleh dilaraskan oleh pengendali** ke dalam blob JSON berversi supaya persediaan boleh direplikasi merentasi mesin. Pensiri ialah `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), yang disahkan oleh `AgentBridgeConfigSchema`.
+AgentBridge boleh mensirikan keadaan yang **boleh ditala oleh pengendali** menjadi blob JSON berversi supaya persediaan boleh direplikasi merentasi mesin. Pensiri tersebut ialah `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), yang disahkan oleh `AgentBridgeConfigSchema`.
 
-Eksport tersebut mengandungi tepat tiga bahagian (nilai lalai terbina dalam sengaja **TIDAK** dieksport, supaya pengimportan tidak sekali-kali menduplikasi atau bercanggah dengannya):
+Eksport tersebut merangkumi tepat tiga bahagian (lalai terbina dalam sengaja **TIDAK** dieksport, supaya proses import tidak akan menduplikasi atau bercanggah dengannya):
 
-| Medan            | Sumber                                                    | Catatan                                                                        |
-| ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `bypassPatterns` | corak pintasan takrifan pengguna (`agent_bridge_bypass`)  | corak lalai bank/gov/okta dikecualikan                                         |
-| `customHosts`    | hos tersuai Pemeriksa Trafik (`inspector_custom_hosts`)   | setiap satu: `{ host, kind: "llm"\|"app"\|"custom", label? }`                  |
-| `agentMappings`  | pemetaan model bagi setiap ejen (`agent_bridge_mappings`) | `{ [agentId]: [{ source, target }] }` bagi setiap ejen yang mempunyai pemetaan |
+| Medan            | Sumber                                                    | Nota                                                                            |
+| ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `bypassPatterns` | corak pintasan takrifan pengguna (`agent_bridge_bypass`)  | corak lalai bank/gov/okta dikecualikan                                          |
+| `customHosts`    | hos tersuai Traffic Inspector (`inspector_custom_hosts`)  | setiap satu: `{ host, kind: "llm"\|"app"\|"custom", label? }`                   |
+| `agentMappings`  | pemetaan model bagi setiap ejen (`agent_bridge_mappings`) | `{ [agentId]: [{ source, target }] }` untuk setiap ejen yang mempunyai pemetaan |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Eksport tersebut mengandungi tepat tiga bahagian (nilai lalai terbina dalam seng
 }
 ```
 
-**Tingkah laku import** (`POST /api/tools/agent-bridge/config`): corak pintasan dan pemetaan bagi setiap ejen **digantikan sepenuhnya**; hos tersuai ditambahkan secara **idempoten** (`INSERT OR IGNORE`). Respons melaporkan bilangan bagi setiap jenis yang telah digunakan:
+**Tingkah laku import** (`POST /api/tools/agent-bridge/config`): corak pintasan dan pemetaan bagi setiap ejen **digantikan sepenuhnya**; hos tersuai ditambahkan secara **idempoten** (`INSERT OR IGNORE`). Respons melaporkan bilangan setiap item yang telah diterapkan:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Perkara yang **TIDAK** terdapat dalam konfigurasi: status pelayan sedang berjalan, laluan sijil, status DNS bagi setiap ejen, laluan CA huluan dan tetapan TPROXY — semua itu ialah status hos/masa jalan, bukan keutamaan mudah alih.
+Perkara yang **TIDAK** terdapat dalam konfigurasi: keadaan pelayan sedang berjalan, laluan sijil, keadaan DNS bagi setiap ejen, laluan CA huluan dan tetapan TPROXY — semua itu ialah keadaan hos/masa jalan, bukan keutamaan mudah alih.
 
 ---
 
@@ -504,13 +513,14 @@ Laluan asas: `/api/tools/agent-bridge/`
 | Kaedah              | Laluan                                         | Penerangan                                                                                                                 |
 | ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | GET                 | `/api/tools/agent-bridge/state`                | Keadaan pelayan global + pengesanan/status setiap ejen                                                                     |
-| GET                 | `/api/tools/agent-bridge/agents`               | Senaraikan ejen berdaftar (id, nama, hos, kebolehgunaan, keadaan)                                                          |
+| GET                 | `/api/tools/agent-bridge/agents`               | Senaraikan ejen berdaftar (id, nama, hos, kebolehlaksanaan, keadaan)                                                       |
 | GET                 | `/api/tools/agent-bridge/agents/{id}`          | Keadaan satu ejen (konfigurasi sasaran + pengesanan + keadaan tersimpan)                                                   |
 | PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Kemas kini `setup_completed` untuk ejen                                                                                    |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Jalankan prob pengesanan untuk ejen (`installed`, `version?`, `path?`)                                                     |
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Dayakan/nyahdayakan DNS untuk ejen (`{enabled: boolean}`)                                                                  |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Pemetaan model untuk ejen                                                                                                  |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Gantikan pemetaan model                                                                                                    |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Pulihkan lalai: batalkan penyamaran DNS ejen ini, kosongkan pemetaannya, tetapkan semula keadaannya (lihat §3.6)           |
 | POST                | `/api/tools/agent-bridge/server`               | Mulakan/hentikan/mulakan semula pelayan (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)            |
 | GET                 | `/api/tools/agent-bridge/cert`                 | Status sijil (`exists`, `trusted`, `path`)                                                                                 |
 | POST                | `/api/tools/agent-bridge/cert`                 | Percayai (pasang) CA akar MITM                                                                                             |
@@ -521,12 +531,12 @@ Laluan asas: `/api/tools/agent-bridge/`
 | POST                | `/api/tools/agent-bridge/bypass`               | Gantikan semua corak pintasan yang ditakrifkan pengguna                                                                    |
 | DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Alih keluar satu corak pintasan yang ditakrifkan pengguna                                                                  |
 | GET                 | `/api/tools/agent-bridge/diagnose`             | Ujian kendiri saluran tangkapan (lihat §3.6)                                                                               |
-| POST                | `/api/tools/agent-bridge/repair`               | Buat asal keadaan sistem MITM yatim (lihat §3.6)                                                                           |
+| POST                | `/api/tools/agent-bridge/repair`               | Batalkan keadaan sistem MITM yatim (lihat §3.6)                                                                            |
 | GET                 | `/api/tools/agent-bridge/config`               | Eksport JSON konfigurasi mudah alih (lihat §3.7)                                                                           |
 | POST                | `/api/tools/agent-bridge/config`               | Import JSON konfigurasi mudah alih (lihat §3.7)                                                                            |
 | GET                 | `/api/tools/agent-bridge/upstream-ca`          | Dapatkan laluan CA huluan yang dikonfigurasikan                                                                            |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Sahkan + kekalkan laluan CA huluan                                                                                         |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Sahkan sahaja (percubaan kering) laluan CA huluan — tidak dikekalkan                                                       |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Sahkan + simpan laluan CA huluan                                                                                           |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Sahkan sahaja (larian kering) laluan CA huluan — tidak menyimpan                                                           |
 | GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Mod tangkapan nyahsulit telus TPROXY — lihat `docs/security/MITM-TPROXY-DECRYPT.md` (git; tidak dikompil ke dalam `/docs`) |
 
 Skema OpenAPI penuh: `docs/openapi.yaml` → tag `AgentBridge`.

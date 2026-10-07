@@ -4,11 +4,31 @@
 
 ---
 
-OmniRoute, bir kodlama CLI'sini (Codex, Claude Code, OpenCode, Cline, …) arka uç olarak OmniRoute'u kullanacak şekilde yapılandıran bir `setup-*` komutları ailesi sunar — böylece araç **tek** bir uç noktayla iletişim kurar ve OmniRoute, otomatik geri dönüş özelliğiyle istekleri doğru sağlayıcıya yönlendirir. Her komut, çalışmakta olan bir OmniRoute'tan (yerel veya uzak) **canlı** model kataloğunu okur ve aracın kendi yapılandırma dosyasını **sizin** makinenize yazar. Araç desteklediği sürece API anahtarına bir ortam değişkeni üzerinden başvurulur. Araca özel kalıcı bir ortam dosyası oluşturan komutlar aşağıda belirtilmiştir.
+Paylaşılan çalıştırılabilir dosya manifesti, kısıtlanmış alt ortamlar ve kalıcı
+Gemini kurulumu için [CLI başlatma sözleşmeleri](./CLI-LAUNCH-CONTRACTS.md) belgesine bakın.
 
-Ayrıca genel bir başlatıcı da vardır — `omniroute run <target>` — herhangi bir yapılandırma yazmadan `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` veya `gemini` komutunu gerekli ortam değişkenlerini enjekte ederek başlatır. Hedefler ve bunların takma adları, standart `bin/cli/cli-manifest.mjs` manifestosundan gelir (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) ve `omniroute completion` aynı manifestodan türetilen hedef sözcüklerini sunar. Araç başına eski başlatıcılar — `omniroute launch` (Claude Code) ve `omniroute launch-codex` (Codex) — kullanılmaya devam etmektedir.
+OmniRoute, bir kodlama CLI'ını (Codex, Claude Code, OpenCode, Cline, …) arka uç
+olarak OmniRoute'u kullanacak şekilde yapılandıran bir `setup-*` komutları ailesi
+sunar; böylece araç **tek** bir uç noktayla iletişim kurar ve OmniRoute, otomatik
+yedek sağlayıcıya geçiş özelliğiyle istekleri doğru sağlayıcıya yönlendirir. Her
+komut, çalışan bir OmniRoute'tan (yerel veya uzak) **canlı** model kataloğunu okur
+ve aracın kendi yapılandırma dosyasını **sizin** makinenize yazar. Araç desteklediği
+sürece API anahtarına bir ortam değişkeni üzerinden başvurulur. Araca özgü kalıcı
+bir ortam dosyası oluşturan komutlar aşağıda belirtilmiştir.
 
-Sağlayıcı ekleme işlemleri de aynı yerel/uzak bağlamdan yapılabilir. Aşağıdaki API öncelikli komutlar, yönetim kimlik doğrulamasını sağlayıcı kimlik bilgilerinden ayrı tutar ve yapılandırılmış çıktıda hiçbir zaman kimlik bilgisi yazdırmaz:
+Ayrıca hiçbir yapılandırma yazmadan doğru ortam değişkenlerini ekleyerek `claude`,
+`codex`, `aider`, `goose`, `opencode`, `qwen` veya `gemini` süreçlerini başlatan
+genel bir başlatıcı da vardır: `omniroute run <target>`. Hedefler ve bunların
+takma adları, standart `bin/cli/cli-manifest.mjs` manifestinden gelir
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`) ve `omniroute completion` aynı şekilde
+manifestten türetilen hedef sözcüklerini sunar. Araç başına eski başlatıcılar olan
+`omniroute launch` (Claude Code) ve `omniroute launch-codex` (Codex) kullanılmaya
+devam edilebilir.
+
+Sağlayıcı ekleme işlemi de aynı yerel/uzak bağlamdan gerçekleştirilebilir. Aşağıdaki
+API öncelikli komutlar, yönetim kimlik doğrulamasını sağlayıcı kimlik bilgilerinden
+ayrı tutar ve yapılandırılmış çıktıda hiçbir zaman kimlik bilgisi göstermez:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,14 +38,26 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Betikler için `--credential-stdin` veya `--credential-env` seçeneklerini tercih edin; `--credential`, denetimli yerel kullanım için korunmuştur. `providers remove`, etkileşimli olmayan bir terminalde `--yes` seçeneğini gerektirir ve beş komutun tamamı etkin bağlamı veya genel `--base-url`/`--api-key` seçeneklerini dikkate alır.
+Betikler için `--credential-stdin` veya `--credential-env` seçeneğini tercih edin;
+`--credential`, denetimli yerel kullanım için korunmuştur. `providers remove`,
+etkileşimli olmayan bir terminalde `--yes` seçeneğini gerektirir ve beş komutun
+tümü etkin bağlamı veya genel `--base-url`/`--api-key` seçeneklerini dikkate alır.
 
-En kapsamlı iki entegrasyonun tek seferlik, elle yazılan temel kurulumu için araçlara özel ayrıntılı kılavuzlara bakın:
+Sağlayıcı seçicileri belirsiz kimlik öneklerini, adları veya sağlayıcı adlarını
+reddeder; birden fazla bağlantı eşleştiğinde tam bağlantı kimliğini kullanın.
+Oluşturma ve düzenleme komutları kaydedilen bağlantıyı yeniden okur; kaldırma
+işlemi ise bağlantının artık okunamadığını doğrular. İçe aktarma işlemi, mevcut
+bir sağlayıcı/ad çiftini atlar. İçe aktarılan girdiler, CLI'a sağlanan yönetim uç
+noktasını, bağlamı veya yönetim kimlik bilgilerini geçersiz kılamaz.
+
+En kapsamlı iki entegrasyonun tek seferlik, elle yazılan temel kurulumu için araç
+başına ayrıntılı kılavuzlara bakın:
 
 - [Claude Code yapılandırması](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI yapılandırması](./CODEX-CLI-CONFIGURATION.md)
 - [Uzak Mod](./REMOTE-MODE.md) — dizüstü bilgisayarınızdan uzak bir OmniRoute'u (VPS / Tailnet) yönetin
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot uzantısı; bu `setup-*` komutlarını sizin için doğrudan düzenleyici içinden de çalıştırabilir
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot uzantısı; bu `setup-*`
+  komutlarını sizin için düzenleyicinin içinden de çalıştırabilir
 
 ---
 

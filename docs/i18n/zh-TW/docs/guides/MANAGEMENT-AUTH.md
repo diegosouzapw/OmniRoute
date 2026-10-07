@@ -4,82 +4,80 @@
 
 ---
 
-OmniRoute 有 **四種憑證系列** 可授權管理路由。
-這些憑證無法互換。推論 API 金鑰（`sk-…`）**不能**管理伺服器，
-除非已明確授予 `manage` 或 `admin` 範圍。
+OmniRoute 有**四種憑證家族**，可用於授權管理路由。
+它們不可互換。推論 API 金鑰 (`sk-…`) **不會**管理伺服器，除非它們被明確授予 `manage` 或 `admin` 範圍。
 
-標準實作：`src/lib/api/requireManagementAuth.ts`。
+規範實作：`src/lib/api/requireManagementAuth.ts`。
 
-| 憑證                | 典型形式                        | 建立位置                                       | 預定用途            | 管理能力                                                      |
-| ------------------- | ------------------------------- | ---------------------------------------------- | ------------------- | ------------------------------------------------------------- |
-| 儀表板 JWT 工作階段 | `auth_token` Cookie             | 儀表板登入                                     | 瀏覽器 UI           | 完整的儀表板管理，但受 CSRF、本機性及永遠受保護路由的規則約束 |
-| CLI 機器 ID 權杖    | 內部／本機                      | CLI 啟動程序（在同一台機器上執行 `omniroute`） | 本機 CLI            | 僅限本機管理                                                  |
-| 具範圍的存取權杖    | `oma_live_…`                    | **設定 → 存取權杖**或 `omniroute connect`      | 遠端 CLI 與管理 API | 必須滿足路由要求的 `read`、`write` 或 `admin` 範圍            |
-| 推論 API 金鑰       | `sk-…`（以及其他 API 金鑰前綴） | **API 管理員／API 金鑰**                       | `/v1/*` 推論        | **無**，除非金鑰中繼資料包含 `manage` 或 `admin`              |
+| 憑證             | 典型形式                       | 建立位置                                   | 預期用途            | 管理能力                                                    |
+| ---------------- | ------------------------------ | ------------------------------------------ | ------------------- | ----------------------------------------------------------- |
+| 儀表板 JWT 會話  | `auth_token` cookie            | 儀表板登入                                 | 瀏覽器使用者介面    | 完整的儀表板管理，受 CSRF、本地性及始終受保護路由規則的約束 |
+| CLI 機器 ID 權杖 | 內部 / 本地                    | CLI 啟動 (`omniroute` 在同一機器上)        | 本地 CLI            | 僅限本地管理                                                |
+| 範圍存取權杖     | `oma_live_…`                   | **設定 → 存取權杖** 或 `omniroute connect` | 遠端 CLI 和管理 API | 必須滿足路由所需的 `read`、`write` 或 `admin` 範圍          |
+| 推論 API 金鑰    | `sk-…` (以及其他 API 金鑰前綴) | **API 管理器 / API 金鑰**                  | `/v1/*` 推論        | **無**，除非金鑰中繼資料包含 `manage` 或 `admin`            |
 
-`oma_` 憑證是管理／CLI 憑證，**不是**推論 API 金鑰。
+`oma_` 憑證是管理/CLI 憑證。它們**不是**推論 API 金鑰。
 
-如果伺服器已停用登入／API 金鑰驗證，部分管理路由可能會接受未經驗證的呼叫。僅限本機及永遠受保護的路由仍會套用各自的規則。因此，提供其中一種憑證並非在所有情況下都是必要條件；若不具備所需範圍或不符合路由的本機性要求，即使持有憑證也不一定足夠。
+如果伺服器禁用了登入/API 金鑰驗證，某些管理路由可能會接受未經身份驗證的呼叫。僅限本地和始終受保護的路由仍適用其自身規則。因此，出示這些憑證之一並非普遍強制，且在沒有所需範圍和路由本地性的情況下，擁有其中之一也並非普遍足夠。
 
-相關資訊：[遠端模式](./REMOTE-MODE.md)（如何為遠端 CLI 簽發 `oma_live_…`）。
+相關：[遠端模式](./REMOTE-MODE.md) (如何為遠端 CLI 鑄造 `oma_live_…`)。
 
 ---
 
 ## 範圍矩陣
 
-以下兩組範圍詞彙**並不相同**，請勿混用。
+API 金鑰管理範圍和存取權杖範圍是不同的詞彙。MCP 工具範圍是第三種詞彙，使用 `scopeMatches` 檢查，而不是下表中任一函數。並排比較：[三個範圍命名空間](../frameworks/MCP-SERVER.md#three-scope-namespaces)。
 
-### 存取權杖範圍（`oma_live_…`）
+### 存取權杖範圍 (`oma_live_…`)
 
-| 範圍    | 典型操作                                                 |
-| ------- | -------------------------------------------------------- |
-| `read`  | 權杖獲准檢視的清單／狀態 GET 請求                        |
-| `write` | 管理員層級以下的變更操作（建立／更新／刪除）             |
-| `admin` | 完整的遠端 CLI／連線權杖（透過密碼啟動時預設使用此範圍） |
+| 範圍    | 典型操作                                     |
+| ------- | -------------------------------------------- |
+| `read`  | 權杖允許查看的列表/狀態 GET 請求             |
+| `write` | 管理員權限以下的變更 (建立/更新/刪除)        |
+| `admin` | 完整的遠端 CLI / 連線權杖 (密碼引導預設在此) |
 
-具有 `read` 範圍的權杖無法呼叫 `write` 路由。執行階段訊息格式：
-`Access token scope '<have>' is insufficient; '<need>' required.`
+具有 `read` 權限的權杖無法呼叫 `write` 路由。執行時訊息格式：`存取權杖範圍 '<have>' 不足；需要 '<need>'。`
 
 ### API 金鑰管理範圍
 
-| 範圍     | 含義                                                                     |
-| -------- | ------------------------------------------------------------------------ |
-| （無）   | 僅限推論。管理路由會傳回 403。                                           |
-| `manage` | 管理 API（與 `requireManagementAuth` 的 API 金鑰分支使用相同的驗證關卡） |
-| `admin`  | 也符合 `hasManageScope`（視為具備管理能力）                              |
+| 範圍     | 意義                                                         |
+| -------- | ------------------------------------------------------------ |
+| (無)     | 僅限推論。管理路由返回 403。                                 |
+| `manage` | 管理 API (與 `requireManagementAuth` API 金鑰分支相同的閘道) |
+| `admin`  | 也滿足 `hasManageScope` (被視為具備管理能力)                 |
 
-請在 API 金鑰／API 管理員 UI 中為金鑰啟用 `manage`。除非您刻意授予該範圍，否則請勿將聊天用戶端金鑰重複用於自動化作業。
+在 API 金鑰 / API 管理器使用者介面中啟用金鑰上的 `manage`。除非您刻意授予該範圍，否則不要將聊天客戶端金鑰重複用於自動化。
 
 ---
 
-## 如何建立及撤銷
+## 如何建立和撤銷
 
-### 儀表板 JWT 工作階段
+### 儀表板 JWT 會話
 
-1. 開啟 `/login`，使用管理密碼登入（首次啟動時使用 `INITIAL_PASSWORD`）。
-2. Cookie `auth_token` 為 HttpOnly。瀏覽器儀表板會自動使用它。
-3. 透過 `/api/auth/logout` 登出。沒有可供複製的長期有效密鑰。
+1. 開啟 `/login`，使用管理密碼登入（首次啟動時為 `INITIAL_PASSWORD`）。
+2. Cookie `auth_token` 是 HttpOnly。瀏覽器儀表板會自動使用它。
+3. 透過 `/api/auth/logout` 登出。沒有可複製的長期密鑰。
 
-### CLI 機器 ID 權杖
+### CLI 機器 ID 令牌
 
-1. 在與伺服器**相同的主機**上執行 `omniroute`（迴路位址）。
-2. CLI 會在 `~/.omniroute/` 下啟動並建立機器 ID 權杖（chmod 600）。
-3. 這在另一台機器上**無法**運作。遠端 CLI 請使用存取權杖。
+1. 在與伺服器**相同的主機**上執行 `omniroute`（迴路）。
+2. CLI 會在 `~/.omniroute/` 下引導一個機器 ID 令牌（chmod 600）。
+3. 這在另一台機器上**不起作用**。請使用存取令牌進行遠端 CLI。
 
-### 具範圍的存取權杖（`oma_live_…`）
+### 範圍存取令牌 (`oma_live_…`)
 
-1. 儀表板：**設定 → 存取權杖** → 建立（名稱＋範圍）。**密鑰只會顯示一次。**
-2. 或使用 CLI：`omniroute connect <host>`（密碼 → 權杖）。請參閱[遠端模式](./REMOTE-MODE.md)。
+1. 儀表板：**設定 → 存取令牌** → 建立（名稱 + 範圍）。**密鑰只顯示一次。**
+2. 或 CLI：`omniroute connect <host>`（密碼 → 令牌）。請參閱[遠端模式](./REMOTE-MODE.md)。
 3. 標頭：`Authorization: Bearer oma_live_…`
-4. 從相同的「存取權杖」頁面撤銷（或刪除 CLI 上下文）。
-5. 伺服器只會儲存雜湊值。請將純文字密鑰視同密碼妥善保管。
+4. 從相同的存取令牌頁面撤銷（或刪除 CLI 上下文）。
+5. 伺服器只儲存雜湊。請像對待密碼一樣對待明文。
 
-### 具管理範圍的 API 金鑰
+### 管理範圍 API 金鑰
 
-1. 儀表板：**API 管理員／API 金鑰** → 建立或編輯金鑰 → 啟用 `manage`（或 `admin`）。
-2. 標頭：`Authorization: Bearer sk-…`（使用該金鑰的實際前綴）。
-3. 在相同的 UI 中撤銷金鑰或移除 `manage`。
-4. 對於不使用 CLI 的自動化作業，請遵循最小權限原則：僅執行 GET 的工作，優先使用 `read` 存取權杖；只有當呼叫端也必須使用 `/v1` 及管理功能時，才在 API 金鑰上啟用 `manage`。
+1. 儀表板：**API 管理器 / API 金鑰** → 建立或編輯金鑰 → 啟用 `manage`（或 `admin`）。
+2. 標頭：`Authorization: Bearer sk-…`（金鑰的實際前綴）。
+3. 在相同的 UI 中撤銷或移除 `manage`。
+4. 對於非 CLI 的自動化，請使用最小權限：對於僅 GET 的任務，請優先使用 `read` 存取令牌；僅當呼叫者也必須使用 `/v1` 和管理時，才在 API 金鑰上使用 `manage`。
 
 ---
 
@@ -91,20 +89,20 @@ Authorization: Bearer sk-<secret>
 Cookie: auth_token=<dashboard-jwt>
 ```
 
-請勿將管理憑證放在 URL 路徑或查詢字串中。管理驗證僅能透過標頭/Cookie 進行。
+請勿將管理憑證放在 URL 路徑或查詢字串中。管理驗證僅限於標頭/Cookie。
 
 ---
 
-## 可複製貼上的範例
+## 複製貼上範例
 
-唯讀（列出提供者）。使用 `read` 存取權杖：
+唯讀（列出提供者）。使用 `read` 存取令牌：
 
 ```bash
 curl -sS "$OMNIROUTE_URL/api/providers" \
   -H "Authorization: Bearer oma_live_<read-token>"
 ```
 
-修改（建立提供者連線）。使用 `write`/`admin` 存取權杖，或具有 `manage` 範圍的 API 金鑰：
+修改（建立提供者連線）。使用 `write`/`admin` 存取令牌或管理範圍 API 金鑰：
 
 ```bash
 curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
@@ -113,7 +111,7 @@ curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
   -d '{"provider":"openai","apiKey":"<upstream-key>"}'
 ```
 
-推論（非管理用途）。使用一般 API 金鑰，不需要 `manage`：
+推斷（非管理）。普通 API 金鑰，無需 `manage`：
 
 ```bash
 curl -sS "$OMNIROUTE_URL/v1/models" \
@@ -122,26 +120,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## 目前的執行階段錯誤（請勿回顯機密資訊）
+## 目前執行時錯誤（不回顯密鑰）
 
-| 情況                                      | 一般狀態碼 | 訊息（已清理）                                                       |
-| ----------------------------------------- | ---------- | -------------------------------------------------------------------- |
-| 未提供憑證                                | 401        | `Authentication required`                                            |
-| 無效/已過期的 `oma_live_…`                | 401        | `Invalid or expired access token`                                    |
-| 有效但不具備 `manage`/`admin` 的 API 金鑰 | 403        | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| 在管理路由上使用無效的一般 API 金鑰       | 403        | `Invalid management token`                                           |
-| 存取權杖的範圍不足                        | 403        | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| 情況                               | 典型狀態 | 訊息（已淨化）                                                       |
+| ---------------------------------- | -------- | -------------------------------------------------------------------- |
+| 無憑證                             | 401      | `Authentication required`                                            |
+| 無效/過期 `oma_live_…`             | 401      | `Invalid or expired access token`                                    |
+| 有效 API 金鑰但無 `manage`/`admin` | 403      | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| 管理路由上的無效普通 API 金鑰      | 403      | `Invalid management token`                                           |
+| 存取令牌範圍過低                   | 403      | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-「Invalid management token」表示 Bearer 權杖**未**被接受為管理憑證。這**不會**告訴您應建立哪一類憑證。請參考上表：推論金鑰需要 `manage` 範圍；遠端 CLI 需要 `oma_live_…`；儀表板則使用工作階段 Cookie。
+「無效管理令牌」表示 bearer **未**被接受為管理憑證。它**不會**告訴您要鑄造哪個系列。請使用上表：推斷金鑰需要 `manage` 範圍；遠端 CLI 需要 `oma_live_…`；儀表板使用會話 Cookie。
 
 ---
 
 ## 建議的最小權限選擇
 
-| 呼叫端                             | 使用方式                                     |
-| ---------------------------------- | -------------------------------------------- |
-| 瀏覽器                             | 儀表板工作階段                               |
-| 伺服器主機上的 CLI                 | 機器權杖                                     |
-| 筆記型電腦上與遠端伺服器通訊的 CLI | 透過 `omniroute connect` 取得的 `oma_live_…` |
-| CI / 指令碼（僅限管理）            | 使用具備可行最小範圍的 `oma_live_…`          |
-| 必須同時呼叫 `/v1` 與 `/api` 的 CI | 具備 `manage` 的 API 金鑰，**或**兩組憑證    |
+| 呼叫者                             | 用途                                      |
+| ---------------------------------- | ----------------------------------------- |
+| 瀏覽器                             | 儀表板會話                                |
+| 伺服器主機上的 CLI                 | 機器令牌                                  |
+| 筆記型電腦上與遠端伺服器通訊的 CLI | 來自 `omniroute connect` 的 `oma_live_…`  |
+| CI / 腳本 (僅限管理)               | 具有最小作用範圍的 `oma_live_…`           |
+| 必須同時呼叫 `/v1` 和 `/api` 的 CI | 具有 `manage` 的 API 金鑰 **或** 兩個憑證 |

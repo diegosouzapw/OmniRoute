@@ -5,9 +5,9 @@
 ---
 
 > **Sumber kebenaran:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Terakhir diperbarui:** 2026-06-28 — v3.8.40
+> **Terakhir diperbarui:** 2026-09-22 — namespace cakupan mengarah ke MCP-SERVER.md
 
-OmniRoute memiliki pipeline otorisasi yang memahami rute dan membatasi setiap permintaan API. Klasifikasinya bersifat **deterministik** dan **fail-closed** — apa pun yang tidak dapat diklasifikasikan akan dianggap sebagai `MANAGEMENT` dan memerlukan sesi atau token tingkat manajemen. Halaman ini menjelaskan model tersebut bagi engineer yang memelihara rute atau merancang endpoint baru.
+OmniRoute memiliki pipeline otorisasi yang sadar rute yang menjaga setiap permintaan API. Klasifikasi bersifat **deterministik** dan **fail-closed** — apa pun yang tidak dapat diklasifikasikan akan berakhir sebagai `MANAGEMENT` dan memerlukan sesi atau token tingkat manajemen. Halaman ini menjelaskan model untuk insinyur yang memelihara rute atau merancang endpoint baru.
 
 ![Pipeline AuthZ (3 kelas rute + evaluasi kebijakan)](../diagrams/exported/authz-pipeline.svg)
 
@@ -17,13 +17,13 @@ OmniRoute memiliki pipeline otorisasi yang memahami rute dan membatasi setiap pe
 
 ### 1. Kunci API (Bearer)
 
-Digunakan untuk API klien yang kompatibel dengan OpenAI/Anthropic/Gemini serta beberapa rute manajemen ketika kunci memiliki cakupan `manage`.
+Digunakan untuk API klien yang kompatibel dengan OpenAI/Anthropic/Gemini dan beberapa rute pengelolaan ketika kunci memiliki cakupan `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Divalidasi oleh `isValidApiKey()` / `extractApiKey()` dalam `src/sse/services/auth.ts` dan diekspor ulang melalui `src/shared/utils/apiAuth.ts`. Validator juga menerima variabel lingkungan `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci passthrough persisten (isu #1350).
+Divalidasi oleh `isValidApiKey()` / `extractApiKey()` di `src/sse/services/auth.ts` dan diekspor ulang melalui `src/shared/utils/apiAuth.ts`. Validator juga menerima variabel lingkungan `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci passthrough persisten (isu #1350).
 
 ### 2. Sesi Dasbor (cookie auth_token)
 
@@ -33,22 +33,24 @@ Untuk halaman dasbor dan operasi admin.
 Cookie: auth_token=<JWT yang ditandatangani dengan JWT_SECRET>
 ```
 
-Cookie hanya dianggap sebagai sesi ketika JWT berhasil diverifikasi **dan** memuat `authenticated: true`
+Cookie hanya merupakan sesi ketika JWT berhasil diverifikasi **dan** memuat `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Setiap
-komponen yang menggunakan cookie tersebut (pelindung rute, penyegaran pipeline authz, handshake WebSocket, server
-live, `/api/settings/require-login`, `/api/auth/status`) melewati helper tersebut.
-Terdapat JWT lain yang ditandatangani dengan `JWT_SECRET` — passthrough Cursor CLI membuat token
-`iss "omniroute" / aud "cursor-cli"` untuk pemegang kunci — dan token-token tersebut tidak pernah dianggap sebagai sesi
+pengguna cookie tersebut (pelindung rute dasbor (`isDashboardSessionAuthenticated()`), penyegaran pipeline otorisasi, handshake WebSocket, server
+langsung, `/api/settings/require-login`, `/api/auth/status`) menggunakan helper tersebut.
+Terdapat JWT lain yang ditandatangani dengan `JWT_SECRET` — passthrough CLI Cursor membuat
+token `iss "omniroute" / aud "cursor-cli"` bagi pemegang kunci — dan token tersebut tidak pernah menjadi sesi
 (#13298).
 
-Diverifikasi oleh `isDashboardSessionAuthenticated()` dalam `src/shared/utils/apiAuth.ts`. Pipeline secara otomatis memperbarui JWT ketika masa berlakunya tersisa kurang dari 7 hari dari total masa berlaku 30 hari.
+Diverifikasi oleh `isDashboardSessionAuthenticated()` di `src/shared/utils/apiAuth.ts`. Pipeline secara otomatis memperbarui JWT ketika sisa masa berlakunya kurang dari 7 hari dari masa berlaku 30 hari.
 
-Beberapa rute manajemen menerima **salah satu** mode: cookie ATAU `Bearer <key>` ketika kunci API memiliki cakupan `manage` (atau `admin`). Inilah yang memungkinkan alur kerja "dapat dikonfigurasi melalui panggilan API" yang ditambahkan dalam v3.8.
+Sesi juga dapat berakhir sebelum 30 hari, karena setiap pembuat token menggunakan `mintDashboardSessionToken` (dengan waktu penerbitan `iat` dan ID `jti`) dan pemverifikasi memeriksa dua pengaturan: `sessionsValidAfter`, yang ditetapkan ketika kata sandi diubah agar setiap sesi yang diterbitkan sebelumnya tidak lagi berhasil diverifikasi (browser yang mengubah kata sandi mendapatkan cookie baru), dan `revokedDashboardSessions`, tempat `POST /api/auth/logout` menambahkan `jti` milik sesi yang diakhiri. Sesi yang dibuat oleh rilis lama tidak memuat kedua klaim tersebut dan tetap valid hingga perubahan kata sandi pertama. Jika pengaturan tidak dapat dibaca, sesi tidak dipercaya.
+
+Beberapa rute pengelolaan menerima **salah satu** mode: cookie ATAU `Bearer <key>` ketika kunci API memiliki cakupan `manage` (atau `admin`). Inilah yang memungkinkan alur kerja "dapat dikonfigurasi melalui panggilan API" yang ditambahkan di v3.8.
 
 #### Gerbang login OIDC opsional (#6973)
 
-Login admin dasbor juga mendukung alur OIDC (OpenID Connect) yang **bersifat opsional**
-bersama login kata sandi default — login kata sandi tidak pernah dihapus, hanya
+Login admin dasbor juga mendukung alur OIDC (OpenID Connect) yang **bersifat pilihan**
+bersama dengan login kata sandi default — login kata sandi tidak pernah dihapus, hanya
 dilengkapi:
 
 - Dinonaktifkan kecuali `settings.oidcEnabled === true` **dan** `oidcIssuer` /
@@ -56,19 +58,19 @@ dilengkapi:
   `GET /api/auth/oidc/login` akan mengembalikan `400` jika tidak.
 - `GET /api/auth/oidc/login` menemukan `authorization_endpoint` dari
   `/.well-known/openid-configuration` milik penerbit (dengan fallback ke
-  `<issuer>/authorize`), menyusun URI pengalihan dari permintaan yang masuk
+  `<issuer>/authorize`), membuat URI pengalihan dari permintaan yang masuk
   (dengan mempertimbangkan `x-forwarded-proto`), lalu mengalihkan ke IdP dengan `state`
   acak yang disimpan dalam cookie `oidc_state` beratribut `httpOnly`.
 - `GET /api/auth/oidc/callback` memvalidasi `state`, menukarkan kode otorisasi,
   dan memverifikasi tanda tangan token ID melalui JWKS milik penerbit
-  (`createRemoteJWKSet` dari `jose`, disimpan dalam cache per URI JWKS) dengan pemeriksaan
-  `issuer`/`audience`. Daftar izin opsional `oidcAllowedSubjects` mencocokkan klaim
-  `sub` token atau klaim `email`-nya — klaim email hanya diterima ketika
+  (`createRemoteJWKSet` milik `jose`, disimpan dalam cache untuk setiap URI JWKS) dengan pemeriksaan
+  `issuer`/`audience`. Daftar izin `oidcAllowedSubjects` opsional mencocokkan
+  klaim `sub` atau klaim `email` milik token — klaim email hanya diterima ketika
   `email_verified === true`, sehingga email yang belum diverifikasi di IdP tidak akan pernah lolos
   dari gerbang.
-- Jika berhasil, alur ini membuat JWT `auth_token` 30 hari yang **sama persis** dengan yang diterbitkan oleh login
-  kata sandi (`src/app/api/auth/login/route.ts`), sehingga bagian pipeline sesi
-  dasbor lainnya (penyegaran otomatis, atribut cookie) tidak berubah —
+- Jika berhasil, proses ini membuat JWT `auth_token` 30 hari yang **sama persis** dengan yang
+  diterbitkan oleh login kata sandi (`src/app/api/auth/login/route.ts`), sehingga bagian lain dari
+  pipeline sesi dasbor (penyegaran otomatis, atribut cookie) tidak berubah —
   OIDC hanya menggantikan cara cookie dibuat, bukan hak akses yang diberikannya.
 
 ## Kelas Rute
@@ -200,26 +202,28 @@ Pilih himpunan berdasarkan bentuk, bukan berdasarkan kemudahan. Satu rute dimasu
 
 ## Cakupan
 
-Kunci API memiliki array `scopes` (disimpan sebagai JSON di `api_keys.scopes`, lihat `src/lib/db/apiKeys.ts`).
+Tiga namespace. Setiap pemeriksa hanya membaca stringnya sendiri. Perbandingan berdampingan, termasuk mengapa `manage` gagal `scopeMatches` untuk `read:compression` dan mengapa token akses `read` tidak dapat `PATCH /api/keys/{id}`, ada di [Tiga namespace cakupan](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Cakupan pengelolaan
+Kunci API membawa array `scopes` (disimpan sebagai JSON di `api_keys.scopes`, lihat `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — memberikan kunci akses ke endpoint API pengelolaan saat dikirim sebagai Bearer.
+### Cakupan manajemen
 
-### Cakupan MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Akses bearer ke rute API manajemen.
+- `mcp:connect`, `self:usage`, `self:account-quota`, dan
+  `policy:bypass-provider-quota` adalah cakupan pencocokan persis yang aditif. Mereka berada di luar `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` hanya membuka bagian non-loopback `/api/mcp/`.
 
-Setiap alat MCP memerlukan cakupan tertentu melalui `MCP_TOOL_SCOPES`. Daftar lengkap (`MCP_SCOPE_LIST`):
+### Cakupan alat MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog dan aturan pencocokan (string identik, atau cakupan yang diberikan diakhiri dengan `*`):
+[Cakupan alat MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` di `src/shared/constants/mcpScopes.ts` adalah subset yang diketik asli, bukan katalog lengkap itu. Penegakan berjalan di
+`open-sse/mcp-server/scopeEnforcement.ts` setelah `resolveCallerScopeContext()` menyelesaikan cakupan dari info otentikasi MCP, metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+Ini tetap mati kecuali `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Penerapan cakupan di `open-sse/mcp-server/server.ts` meneruskan daftar cakupan setiap alat ke
-`evaluateToolScopes()` setelah `resolveCallerScopeContext()` menentukan cakupan dari informasi autentikasi MCP,
-metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+### Cakupan token akses
+
+`read` / `write` / `admin` pada token `oma_live_…`, diberi peringkat oleh `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Peringkat ini hanya berlaku untuk kredensial token akses. Lihat [Otentikasi Manajemen](../guides/MANAGEMENT-AUTH.md).
 
 ## Pengalih Wajib Autentikasi
 
@@ -267,7 +271,7 @@ Gunakan `assertAuth(req, expectedClass)` di dalam handler — fungsi ini melempa
 
 ## Lihat Juga
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — penanda autentikasi per endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — log audit untuk peristiwa autentikasi
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — detail penerapan cakupan MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — penanda otentikasi per endpoint
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — log audit untuk peristiwa otentikasi
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tiga namespace cakupan dan katalog cakupan alat MCP
 - Sumber: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

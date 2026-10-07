@@ -46,7 +46,7 @@ docker run -d \
 ## 使用环境文件
 
 ```bash
-# 请先复制并编辑 .env
+# 首先复制并编辑 .env
 cp .env.example .env
 
 docker run -d \
@@ -236,14 +236,14 @@ docker compose -f docker-compose.prod.yml down
 
 该仓库提供了一个多阶段 Dockerfile（`Dockerfile`）。其中公开了四个阶段；请根据你的使用场景选择正确的 `target`。
 
-| 阶段          | 基础镜像              | 用途                                                                                                                                                                                                                     |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | 安装依赖（`npm ci --legacy-peer-deps`）并运行 `npm run build`（默认使用 Turbopack——参见下方的构建时资源）                                                                                                                |
-| `runner-base` | `node:26-trixie-slim` | 包含 Next.js standalone 输出的生产运行时。**不捆绑任何提供者 CLI。**                                                                                                                                                     |
-| `runner-cli`  | `runner-base`         | 添加 `git`、`docker.io`、`docker-compose` 以及全局 CLI：`@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw`。**如需智能体工作流，请选择此阶段。**                                                          |
-| `runner-web`  | `runner-base`         | 为 Web 会话提供者添加 Playwright 和 Chromium 浏览器（`--with-deps`）：`gemini-web`、`claude-web`、`claude-turnstile`。**使用这些提供者时请选择此阶段**——普通镜像会在请求时失败（请参阅“发布渠道”下关于 `-web` 的说明）。 |
+| 阶段          | 基础镜像              | 用途                                                                                                                                                                                                                                 |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | 安装依赖（`npm ci --legacy-peer-deps`）并运行 `npm run build`（默认使用 Turbopack——请参阅下方的构建时资源）                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | 包含 Next.js standalone 输出的生产运行时。**不捆绑任何提供者 CLI。**                                                                                                                                                                 |
+| `runner-cli`  | `runner-base`         | 添加 `git`、`docker.io`、`docker-compose` 以及全局 CLI：`@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw`。**对于智能体工作流，请选择此阶段。**                                                                      |
+| `runner-web`  | `runner-base`         | 添加 Playwright 和 Chromium 浏览器（`--with-deps`），供 Web 会话提供者使用：`gemini-web`、`claude-web`、`claude-turnstile`。**使用这些提供者时请选择此阶段**——普通镜像若不包含它，会在请求时失败（请参阅发布渠道下的 `-web` 说明）。 |
 
-手动构建特定 target：
+手动构建特定目标：
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -253,51 +253,55 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### 构建时资源
 
-有三个构建参数用于控制 `builder` 阶段的资源开销。它们仅在构建时生效——
-`OMNIROUTE_MEMORY_MB`（见下文）是一个独立的运行时调节参数。
+三个构建参数控制 `builder` 阶段的资源开销。它们仅在构建时生效——
+`OMNIROUTE_MEMORY_MB`（见下文）是一个独立的运行时调节项。
 
 | 构建参数                    | 默认值 | 作用                                                                                   |
 | --------------------------- | ------ | -------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | 设为 `0` 时改用 webpack 构建。峰值内存更低，但速度更慢。                               |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` 使用 webpack 构建：峰值内存较低，但速度较慢。`1` 则启用 Turbopack。                |
 | `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | 为派生的 `next build` 设置 V8 堆上限（`--max-old-space-size`）。                       |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | 设置 `CIRCLE_NODE_TOTAL`；Next 使用 `workers = N - 1` 计算页面数据收集的 worker 数量。 |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | 传递给 `CIRCLE_NODE_TOTAL`；Next 使用 `workers = N - 1` 计算页面数据收集的工作进程数。 |
 
-在配置较高的构建器上，应优先调高 `OMNIROUTE_BUILD_WORKERS`；而当资源受限的构建在
-`✓ Compiled successfully` **之后**失败时，也应首先怀疑该参数。每个
-页面数据 worker 都是独立进程，父级 `next build` 本身也是如此；
-一次真实 VPS 复现（issue #7518）测得每个进程的峰值 RSS
-约为 4.5 GB，且不受 `NODE_OPTIONS` 堆标志影响（Turbopack 在
-V8 堆之外的原生/Rust 内存中进行编译）。默认值 `2`（→ 1 个 worker，共 2 个
-进程）是针对发布流水线所使用的 16 GB / 4 vCPU GitHub 托管 runner
-设定的。当设为 `8`（→ 7 个 worker）时，该 runner 会耗尽内存，
-buildkit 会以 `ResourceExhausted: ... cannot allocate memory`
-终止此步骤；在直接测量而非推断每个进程的 RSS 后发现，`3`（→ 2 个 worker）
-仍然无法满足内存要求。`tests/unit/docker-build-memory-budget.test.ts`
-会根据实测数据进行计算，并在任一参数超出 runner 承载能力时失败。
+在配置较高的构建机器上，应调高 `OMNIROUTE_BUILD_WORKERS`；当资源受限的构建在
+`✓ Compiled successfully` **之后**终止时，也应首先怀疑该参数。每个页面数据工作进程
+都是独立进程，父级 `next build` 本身也是如此；一次真实 VPS 复现（问题 #7518）测得，
+无论 `NODE_OPTIONS` 堆标志如何设置，每个进程的峰值 RSS 均约为 4.5 GB
+（Turbopack 在 V8 堆之外使用原生/Rust 内存进行编译）。默认值 `2`（→ 1 个工作进程，
+共 2 个进程）是按照发布流水线所使用的 16 GB / 4 vCPU GitHub 托管运行器来设定的。
+当值为 `8`（→ 7 个工作进程）时，该运行器耗尽内存，buildkit 以
+`ResourceExhausted: ... cannot allocate memory` 终止该步骤；直接测量每个进程的
+RSS（而不是进行推断）后发现，值为 `3`（→ 2 个工作进程）仍然无法容纳。
+`tests/unit/docker-build-memory-budget.test.ts` 会根据实测数据进行计算，并在任一
+调节项超出运行器容量时失败。
 
-Turbopack 在 V8 堆**之外**的原生 Rust 内存中进行编译，因此
-`OMNIROUTE_BUILD_MEMORY_MB` 无法限制它。在设有内存上限的主机上，
-构建进程随后会被 OOM killer 通过 SIGKILL 终止，且不会输出任何错误文本——它只会
-在 `Creating an optimized production build` 过程中停止，看起来更像是卡住，
-而不是内存不足。如果构建主机资源受限，请切换 bundler：
+Turbopack 使用位于 V8 堆**之外**的原生 Rust 内存进行编译，因此
+`OMNIROUTE_BUILD_MEMORY_MB` 无法限制它。在设有内存上限的主机上，构建进程随后会被
+OOM killer 通过 SIGKILL 终止，且完全不会显示错误文本——它只会在
+`Creating an optimized production build` 过程中停止，看起来像是卡住，而不是内存
+不足。这就是为什么 `Dockerfile` 默认使用 webpack
+（`OMNIROUTE_USE_TURBOPACK=0`），这与 `npm run dev` / `npm run build` 不同，后两者
+在代码中默认使用 Turbopack：不带任何构建参数的纯 `docker build .`（Railway 和其他
+一键式托管平台会运行此命令）不得在内存受限的构建机器上无提示地终止。已发布的镜像
+已在 `docker-publish.yml` 中显式传入 `OMNIROUTE_USE_TURBOPACK=0`。在内存充足的
+构建机器上，可启用 Turbopack 以加快构建速度：
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-由于启用了 `webpackBuildWorker`，`next build` 会运行一个父进程**和**一个 worker
-进程，并且每个进程都会分别遵循 `OMNIROUTE_BUILD_MEMORY_MB`。容器内存
-上限应设置为该值的大约两倍以上，而不是一倍。
+`webpackBuildWorker` 已启用，因此 `next build` 会运行一个父进程**和**一个工作进程，
+且每个进程都会分别遵守 `OMNIROUTE_BUILD_MEMORY_MB`。容器内存上限应设置为大约该值
+的两倍以上，而不是一倍。
 
 在此代码树上测得的数据（`--target runner-base`，`OMNIROUTE_BUILD_MEMORY_MB=6144`）：
 
-| Bundler   | 容器内存上限   | 结果                            |
-| --------- | -------------- | ------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | 两种配置均被 OOM 终止，且无提示 |
-| webpack   | 8 GiB          | 构建 worker 被 SIGKILL 终止     |
-| webpack   | 12 GiB         | 构建成功，峰值为 11.1 GiB       |
+| 打包器    | 容器内存上限   | 结果                              |
+| --------- | -------------- | --------------------------------- |
+| Turbopack | 8 GiB / 16 GiB | 两种配置下均被 OOM 终止，且无提示 |
+| webpack   | 8 GiB          | 构建工作进程被 SIGKILL 终止       |
+| webpack   | 12 GiB         | 成功，峰值达到 11.1 GiB           |
 
 ### 运行时默认值
 
@@ -306,24 +310,24 @@ docker build --target runner-base \
 Docker 中的内存行为：
 
 - 该镜像设置了 `OMNIROUTE_MEMORY_MB=1024`，并由此派生出 `NODE_OPTIONS=--max-old-space-size=1024`。
-- 实际的服务器进程由独立启动器启动；该启动器读取 `OMNIROUTE_MEMORY_MB`，并追加 `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`。
-- Node 使用最后一个重复出现的 `--max-old-space-size` 值，因此设置 `OMNIROUTE_MEMORY_MB` 即可控制 Docker 中实际生效的堆限制。
-- 由于镜像始终设置该变量，启动器自身根据 RAM 校准的回退逻辑在 Docker 下永远不会生效。请根据工作负载显式提高该值（见下表）。对于编码智能体的 `/v1/responses`，`2048` 仍然太小。
+- 实际的服务器进程由独立启动器启动；该启动器会读取 `OMNIROUTE_MEMORY_MB`，并追加 `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`。
+- Node 会使用最后一个重复的 `--max-old-space-size` 值，因此设置 `OMNIROUTE_MEMORY_MB` 即可控制 Docker 中实际生效的堆限制。
+- 由于镜像始终会设置该变量，因此启动器自身基于 RAM 校准的回退机制在 Docker 下永远不会生效。请根据工作负载明确提高该值（见下表）。对于编码智能体的 `/v1/responses`，`2048` 仍然太小。
 
 ### 编码智能体的运行时 RAM
 
-Docker 默认的 1 GiB 只是仪表板/轻量聊天场景的最低配置，并非生产环境配置。较长的 `POST /v1/responses` 请求体（包含数百条消息、数十个工具）在压缩期间会在内存中保留多个对象图。两个重叠的约 3 MiB / 约 75 万 token 的请求曾导致 V8 在 **12 GiB** 老生代空间下中止（`FATAL ERROR: Reached heap limit`），也曾触发 16 GiB cgroup OOM。参见 [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)。
+Docker 默认的 1 GiB 仅是仪表板/轻量聊天场景的最低配置，而非生产环境规格。较长的 `POST /v1/responses` 请求体（数百条消息、数十个工具）在压缩期间会在内存中保留多个对象图。两个重叠的约 3 MiB / 约 750k-token 请求曾导致 V8 在 **12 GiB** 老生代空间下中止（`FATAL ERROR: Reached heap limit`），并且还触发了 16 GiB cgroup OOM。请参阅 [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)。
 
-请将 **cgroup `--memory` 设置为高于堆大小**——原生缓冲区、SQLite 和压缩中间数据位于 V8 堆之外。
+为 **cgroup `--memory` 分配高于堆大小的容量**——原生缓冲区、SQLite 和压缩过程中的中间数据位于 V8 堆之外。
 
-| 工作负载                            | `OMNIROUTE_MEMORY_MB` | 容器 / cgroup       | 说明                                                                               |
-| ----------------------------------- | --------------------- | ------------------- | ---------------------------------------------------------------------------------- |
-| 仪表板、一次轻量聊天                | `1024`（镜像默认值）  | ≥2 GiB              |                                                                                    |
-| 一个编码智能体（Claude/Codex/Grok） | `8192`                | ≥10 GiB             | 典型的单会话 `/v1/responses`                                                       |
-| 两个并发的长 `/v1/responses`        | `10240`–`12288`       | ≥12–16 GiB          | 实测在约 12 GiB 堆大小时 V8 中止                                                   |
-| 三个以上并发的长上下文              | 不要在单个进程上运行  | 串行处理 / 更多 RAM | 默认重量级准入限制为 1 个进行中请求；在没有更多 RAM 的情况下提高该值会再次导致中止 |
+| 工作负载                            | `OMNIROUTE_MEMORY_MB` | 容器 / cgroup       | 说明                                                                                       |
+| ----------------------------------- | --------------------- | ------------------- | ------------------------------------------------------------------------------------------ |
+| 仪表板、一个轻量聊天                | `1024`（镜像默认值）  | ≥2 GiB              |                                                                                            |
+| 一个编码智能体（Claude/Codex/Grok） | `8192`                | ≥10 GiB             | 典型的单会话 `/v1/responses`                                                               |
+| 两个并发的长 `/v1/responses`        | `10240`–`12288`       | ≥12–16 GiB          | 实测在约 12 GiB 堆大小时 V8 中止                                                           |
+| 三个及以上并发长上下文              | 不要在单个进程中运行  | 串行处理 / 更多 RAM | 默认的重量级请求准入限制为 1 个进行中请求；在没有额外 RAM 的情况下提高该限制会再次导致中止 |
 
-当 `OMNIROUTE_MEMORY_MB` **未设置**时，裸机上的 `omniroute serve` 会按 RAM 的约 35% 进行校准（限制在 `[512, 4096]` 范围内）。Docker 始终将其设置为 `1024`，因此官方镜像中永远不会执行该校准逻辑。
+当 `OMNIROUTE_MEMORY_MB` **未设置**时，裸机上的 `omniroute serve` 会按 RAM 的约 35% 进行校准（限制在 `[512, 4096]` 范围内）。Docker 始终将其设置为 `1024`，因此官方镜像中永远不会执行该校准。
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

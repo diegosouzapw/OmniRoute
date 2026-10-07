@@ -23,7 +23,7 @@ Eller via open-sse-transporten:
 omniroute --dev  # MCP starter automatisk på /mcp-endepunktet
 ```
 
-HTTP-transportene (`sse` / `streamable-http`, som leveres i samme prosess av kontrollpanelserveren) er
+HTTP-transportene (`sse` / `streamable-http`, levert i samme prosess av kontrollpanelserveren) er
 deaktivert som standard og kunne tidligere bare slås av og på fra siden `/dashboard/mcp`. Fra og med v3.8.51
 har CLI-en tilsvarende funksjonalitet:
 
@@ -50,15 +50,15 @@ MCP-serveren tilbyr tre transporter, alle basert på den samme `createMcpServer(
 | `sse`             | `POST/GET /api/mcp/sse` via `httpTransport` | Nettleser-/agentklienter som trenger en hendelsesstrøm  |
 | `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | HTTP-klienter med flere økter (`mcp-session-id`-header) |
 
-Den aktive HTTP-transporten (`sse` eller `streamable-http`) velges med innstillingen `mcpTransport`. Bytte av transport lukker eksisterende økter på den andre transporten.
+Den aktive HTTP-transporten (`sse` eller `streamable-http`) velges av innstillingen `mcpTransport`. Bytte av transport lukker eksisterende økter på den andre transporten.
 
-### Ekstern tilgang (omgåelse med manage-tilgang)
+### Ekstern tilgang (omgåelse med manage-omfang)
 
-`/api/mcp/*` er i LOCAL_ONLY-nivået (`src/server/authz/routeGuard.ts`) — som standard er det bare loopback-verter (`localhost`, `127.0.0.1`, `::1`) som har tilgang. Siden v3.8.2 kan klienter som ikke bruker loopback, koble til hvis de oppgir `Authorization: Bearer <api-key>`, der nøkkelen har `manage`-tilgang. Dette er den eneste måten å nå den eksterne MCP-serveren på gjennom en tunnel, reversproxy eller et offentlig vertsnavn.
+`/api/mcp/*` tilhører LOCAL_ONLY-nivået (`src/server/authz/routeGuard.ts`) — som standard er det bare loopback-verter (`localhost`, `127.0.0.1`, `::1`) som kan nå det. Fra og med v3.8.2 kan klienter utenfor loopback koble til hvis de oppgir en `Authorization: Bearer <api-key>` der nøkkelen har `manage`-omfanget. Dette er den eneste måten å nå den eksterne MCP-serveren gjennom en tunnel, omvendt proxy eller et offentlig vertsnavn.
 
 ```bash
-# Gi manage-tilgang: åpne siden for API-nøkler i kontrollpanelet og slå på
-# "Administrasjonstilgang" for nøkkelen, eller send POST med scopes:["manage"] ved opprettelse.
+# Gi manage-omfang: åpne siden API Keys i kontrollpanelet og slå på
+# "Management Access" for nøkkelen, eller bruk POST med scopes:["manage"] ved opprettelse.
 
 # Koble deretter til fra en ekstern MCP-klient:
 curl -i \
@@ -70,7 +70,7 @@ curl -i \
   https://your-public-host.example/api/mcp/stream
 ```
 
-En nøkkel uten manage-tilgang (eller uten Bearer) returnerer `403 LOCAL_ONLY`. Søsterprefikset `/api/cli-tools/runtime/*` kan med hensikt IKKE omgås — se [Route Guard-nivåer — unntak for manage-tilgang](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+En nøkkel uten `manage`-omfang (eller uten Bearer) returnerer `403 LOCAL_ONLY`. Søskenprefikset `/api/cli-tools/runtime/*` kan med hensikt IKKE omgås — se [Rutevaktnivåer — unntak for manage-omfang](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
 ## IDE-konfigurasjon
 
@@ -81,45 +81,45 @@ Cursor, Cline og kompatible MCP-klienter.
 
 ## Viktige verktøy (14) — Fase 1
 
-| Verktøy                         | Tilganger             | Beskrivelse                                                                                                                         |
-| :------------------------------ | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_get_health`          | `read:health`         | Oppetid, minne, effektbrytere, hastighetsgrenser, hurtigbufferstatistikk                                                            |
-| `omniroute_list_combos`         | `read:combos`         | Alle konfigurerte kombinasjoner med strategier (valgfrie måledata)                                                                  |
-| `omniroute_get_combo_metrics`   | `read:combos`         | Ytelsesmålinger for en bestemt kombinasjon                                                                                          |
-| `omniroute_switch_combo`        | `write:combos`        | Aktiver eller deaktiver en kombinasjon                                                                                              |
-| `omniroute_create_combo`        | `write:combos`        | Opprett en validert kombinasjon gjennom det eksisterende API-et for kombinasjoner                                                   |
-| `omniroute_check_quota`         | `read:quota`          | Brukt/total kvote, prosentandel som gjenstår, tilbakestillingstidspunkt, tokenstatus                                                |
-| `omniroute_route_request`       | `execute:completions` | Send en chatfullføring gjennom OmniRoute-ruting                                                                                     |
-| `omniroute_cost_report`         | `read:usage`          | Kostnadsrapport etter periode (økt/dag/uke/måned)                                                                                   |
-| `omniroute_list_models_catalog` | `read:models`         | Fullstendig modellkatalog med funksjoner, status og priser                                                                          |
-| `omniroute_radar_catalog`       | `read:radar`          | Lokal, signert Radar-katalog; valgfrie filtre for leverandør/familie                                                                |
-| `omniroute_tool_search`         | `read:tools`          | Finn verktøy i den registrerte MCP-katalogen                                                                                        |
-| `omniroute_web_search`          | `execute:search`      | Nettsøk gjennom de konfigurerte søkeleverandørene. Ikke X/Twitter.                                                                  |
-| `omniroute_x_search`            | `execute:search`      | Søk på X gjennom xAI/SuperGrok, eller velg `xquik-search` for Xquik API-resultater. Krever påloggingsinformasjon for valgt backend. |
-| `omniroute_web_fetch`           | `execute:search`      | Hent nettinnhold gjennom de konfigurerte henteleverandørene                                                                         |
+| Verktøy                         | Tilganger             | Beskrivelse                                                                                                                    |
+| :------------------------------ | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_get_health`          | `read:health`         | Oppetid, minne, kretsbrytere, hastighetsbegrensninger og hurtigbufferstatistikk                                                |
+| `omniroute_list_combos`         | `read:combos`         | Alle konfigurerte kombinasjoner med strategier (valgfri metrikk)                                                               |
+| `omniroute_get_combo_metrics`   | `read:combos`         | Ytelsesmetrikk for en bestemt kombinasjon                                                                                      |
+| `omniroute_switch_combo`        | `write:combos`        | Aktiver eller deaktiver en kombinasjon                                                                                         |
+| `omniroute_create_combo`        | `write:combos`        | Opprett en validert kombinasjon via det eksisterende API-et for kombinasjoner                                                  |
+| `omniroute_check_quota`         | `read:quota`          | Brukt/total kvote, prosentandel som gjenstår, tilbakestillingstidspunkt og tokenstatus                                         |
+| `omniroute_route_request`       | `execute:completions` | Send en chatfullføring gjennom OmniRoute-ruting                                                                                |
+| `omniroute_cost_report`         | `read:usage`          | Kostnadsrapport etter periode (økt/dag/uke/måned)                                                                              |
+| `omniroute_list_models_catalog` | `read:models`         | Fullstendig modellkatalog med funksjoner, status og priser                                                                     |
+| `omniroute_radar_catalog`       | `read:radar`          | Lokal, signert Radar-katalog; valgfrie filtre for leverandør/familie                                                           |
+| `omniroute_tool_search`         | `read:tools`          | Finn verktøy fra den registrerte MCP-katalogen                                                                                 |
+| `omniroute_web_search`          | `execute:search`      | Nettsøk gjennom de konfigurerte søkeleverandørene. Ikke X/Twitter.                                                             |
+| `omniroute_x_search`            | `execute:search`      | Søk på X via xAI/SuperGrok, eller velg `xquik-search` for Xquik API-resultater. Krever påloggingsinformasjon for valgt bakend. |
+| `omniroute_web_fetch`           | `execute:search`      | Hent nettinnhold gjennom de konfigurerte henteleverandørene                                                                    |
 
 ## Avanserte verktøy (11) — Fase 2
 
-| Verktøy                            | Tilganger                            | Beskrivelse                                                                                                            |
-| :--------------------------------- | :----------------------------------- | :--------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Simulering av ruting uten utførelse, med reservetre                                                                    |
-| `omniroute_set_budget_guard`       | `write:budget`                       | Øktbudsjett med handling for nedgradering/blokkering/varsling                                                          |
-| `omniroute_set_routing_strategy`   | `write:combos`                       | Oppdater kombinasjonsstrategien under kjøring (prioritet/vektet/automatisk/osv.)                                       |
-| `omniroute_set_resilience_profile` | `write:resilience`                   | Bruk forhåndsinnstillingen `aggressive` / `balanced` / `conservative` for robusthet                                    |
-| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Sanntidstest av hver leverandør i en kombinasjon ved hjelp av et reelt oppstrømskall                                   |
-| `omniroute_get_provider_metrics`   | `read:health`                        | Måledata per leverandør med p50/p95/p99-latens og tilstand for effektbryter                                            |
-| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Anbefal kombinasjon etter oppgavetype, med budsjett- og latensbegrensninger                                            |
-| `omniroute_explain_route`          | `read:health`, `read:usage`          | Forklar hvorfor en forespørsel ble rutet til en leverandør (poengfaktorer + reserveløsninger)                          |
-| `omniroute_get_session_snapshot`   | `read:usage`                         | Fullstendig øyeblikksbilde av økten: kostnad, tokener, toppmodeller/-leverandører, feil, budsjettvern                  |
-| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnostiser (og reparer eventuelt automatisk) databaseavvik, som ødelagte kombinasjonsreferanser / foreldreløse rader |
-| `omniroute_sync_pricing`           | `pricing:write`                      | Synkroniser prisdata fra eksterne kilder (LiteLLM); støtter `dryRun`                                                   |
+| Verktøy                            | Tilganger                            | Beskrivelse                                                                                                           |
+| :--------------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_simulate_route`         | `read:health`, `read:combos`         | Simulering av ruting uten kjøring, med reservetre                                                                     |
+| `omniroute_set_budget_guard`       | `write:budget`                       | Øktbudsjett med handling for nedgradering/blokkering/varsling                                                         |
+| `omniroute_set_routing_strategy`   | `write:combos`                       | Oppdater kombinasjonsstrategien under kjøring (prioritet/vektet/automatisk/osv.)                                      |
+| `omniroute_set_resilience_profile` | `write:resilience`                   | Bruk forhåndsinnstillingen `aggressive` / `balanced` / `conservative` for robusthet                                   |
+| `omniroute_test_combo`             | `execute:completions`, `read:combos` | Sanntidstest av hver leverandør i en kombinasjon ved hjelp av et reelt oppstrømskall                                  |
+| `omniroute_get_provider_metrics`   | `read:health`                        | Måledata per leverandør med p50/p95/p99-latenstid og tilstand for effektbryter                                        |
+| `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | Anbefal en kombinasjon etter oppgavetype, med begrensninger for budsjett/latenstid                                    |
+| `omniroute_explain_route`          | `read:health`, `read:usage`          | Forklar hvorfor en forespørsel ble rutet til en leverandør (poengfaktorer + reserveløsninger)                         |
+| `omniroute_get_session_snapshot`   | `read:usage`                         | Fullstendig øyeblikksbilde av økten: kostnad, tokener, toppmodeller/-leverandører, feil, budsjettvakt                 |
+| `omniroute_db_health_check`        | `read:health`, `write:resilience`    | Diagnostiser (og reparer eventuelt automatisk) databaseavvik som ødelagte kombinasjonsreferanser / foreldreløse rader |
+| `omniroute_sync_pricing`           | `pricing:write`                      | Synkroniser prisdata fra eksterne kilder (LiteLLM); støtter `dryRun`                                                  |
 
 ## Hurtigbufferverktøy (2)
 
-| Verktøy                 | Tilganger     | Beskrivelse                                                                |
-| :---------------------- | :------------ | :------------------------------------------------------------------------- |
-| `omniroute_cache_stats` | `read:cache`  | Statistikk for semantisk hurtigbuffer, ledeteksthurtigbuffer og idempotens |
-| `omniroute_cache_flush` | `write:cache` | Tøm hurtigbufferen globalt eller etter signatur/modell                     |
+| Verktøy                 | Tilganger     | Beskrivelse                                                          |
+| :---------------------- | :------------ | :------------------------------------------------------------------- |
+| `omniroute_cache_stats` | `read:cache`  | Statistikk for semantisk hurtigbuffer, ledetekstbuffer og idempotens |
+| `omniroute_cache_flush` | `write:cache` | Tøm hurtigbufferen globalt eller etter signatur/modell               |
 
 ## Komprimeringsverktøy (13)
 
@@ -127,47 +127,46 @@ Cursor, Cline og kompatible MCP-klienter.
 | :---------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `omniroute_compression_status`      | `read:compression`  | Komprimeringsinnstillinger, analysesammendrag og hurtigbufferbevisst statistikk (inkluderer metadata for `analytics.mcpDescriptionCompression`) |
 | `omniroute_compression_configure`   | `write:compression` | Konfigurer komprimeringsmodus, terskel, målforhold, bevaring av systemledetekst og bryter for komprimering av MCP-beskrivelser                  |
-| `omniroute_set_compression_engine`  | `write:compression` | Velg den aktive motoren (off/caveman/rtk/stacked) og intensitet for Caveman/RTK                                                                 |
-| `omniroute_list_compression_combos` | `read:compression`  | Vis navngitte komprimeringskombinasjoner og deres motorforløp                                                                                   |
+| `omniroute_set_compression_engine`  | `write:compression` | Velg aktiv motor (off/caveman/rtk/stacked) og intensitet for Caveman/RTK                                                                        |
+| `omniroute_list_compression_combos` | `read:compression`  | List opp navngitte komprimeringskombinasjoner og deres motorforløp                                                                              |
 | `omniroute_compression_combo_stats` | `read:compression`  | Analyse gruppert etter komprimeringskombinasjon og motor                                                                                        |
-| `omniroute_ccr_store`               | `write:compression` | Lagre innhold som er isolert per innringer, i det avgrensede CCR-minnelageret, og returner en markør samt en `ccr://`-referanse                 |
-| `omniroute_ccr_retrieve`            | `read:compression`  | Hent CCR-innhold i sin helhet eller med moduser for begynnelse, slutt, linjer, grep og statistikk                                               |
+| `omniroute_ccr_store`               | `write:compression` | Lagre innhold isolert per innringer i det størrelsesbegrensede CCR-minnelageret, og returner en markør samt en `ccr://`-referanse               |
+| `omniroute_ccr_retrieve`            | `read:compression`  | Hent CCR-innhold i sin helhet eller med modusene start, slutt, linjer, grep og statistikk                                                       |
 | `omniroute_ccr_inspect`             | `read:compression`  | Inspiser innringereide CCR-metadata uten å returnere innhold                                                                                    |
-| `omniroute_ccr_list`                | `read:compression`  | Vis sideinndelte metadata for innringereide CCR-blokker                                                                                         |
+| `omniroute_ccr_list`                | `read:compression`  | List opp paginerte metadata for innringereide CCR-blokker                                                                                       |
 | `omniroute_ccr_delete`              | `write:compression` | Slett en innringereid CCR-blokk                                                                                                                 |
-| `omniroute_ccr_stats`               | `read:compression`  | Rapporter minnebruk avgrenset til innringeren, livssyklustellere og lagergrenser                                                                |
-| `omniroute_rtk_discover`            | `read:compression`  | Oppdag gjentakende støy i aktivt valgte RTK-utdataeksempler                                                                                     |
-| `omniroute_rtk_learn`               | `read:compression`  | Generer et RTK-filterutkast som kan gjennomgås, fra aktivt valgte eksempler                                                                     |
+| `omniroute_ccr_stats`               | `read:compression`  | Rapporter innringeravgrenset minnebruk, livssyklustellere og lagergrenser                                                                       |
+| `omniroute_rtk_discover`            | `read:compression`  | Oppdag tilbakevendende støy i frivillig innsendte RTK-utdataeksempler                                                                           |
+| `omniroute_rtk_learn`               | `read:compression`  | Generer et gjennomgåbart utkast til RTK-filter fra frivillig innsendte eksempler                                                                |
 
 CCR-oppføringer finnes bare i minnet og forsvinner ved omstart. Hver blokk er begrenset til 2 MiB, hver
 prinsipal til 16 MiB og det globale lageret til 64 MiB. Oppføringer har som standard en TTL på 24 timer (maksimalt
-sju dager). Fullstendig MCP-henting er begrenset til 256 KiB; større blokker er fortsatt tilgjengelige gjennom
-område- og grep-modusene. Lagring, henting, oppføring, inspeksjon, sletting og statistikk er isolert etter
-prinsipalen til den autentiserte API-nøkkelen. Revisjonslogger inneholder hasher og størrelsesmetadata, aldri innhold.
+sju dager). Fullstendig MCP-henting er begrenset til 256 KiB; større blokker er fortsatt tilgjengelige via
+modusene for intervall og grep. Lagring, henting, opplisting, inspeksjon, sletting og statistikk er isolert etter
+prinsipalen til den autentiserte API-nøkkelen. Revisjonsoppføringer inneholder hasher og størrelsesmetadata, aldri innhold.
 
 `omniroute_compression_status` rapporterer komprimering av MCP-beskrivelser separat under
-`analytics.mcpDescriptionCompression`. Disse verdiene er estimater for metadatastørrelsen til MCP-beskrivelser
-som kan listes opp (`tools`, `prompts`, `resources` og `resourceTemplates`); de er ikke kvitteringer for
-leverandørbruk og er merket med `source: "mcp_metadata_estimate"`.
+`analytics.mcpDescriptionCompression`. Disse verdiene er estimater for metadatastørrelsen til
+MCP-beskrivelser som kan listes opp (`tools`, `prompts`, `resources` og `resourceTemplates`); de er ikke
+kvitteringer for leverandørbruk og er merket med `source: "mcp_metadata_estimate"`.
 
-### MCP-filter for tilgjengelighetstrær (v3.8.0)
+### MCP-filter for tilgjengelighetstre (v3.8.0)
 
-Uavhengig av komprimeringsverktøyene ovenfor inkluderer OmniRoute et filter som kjøres etter
-utførelse og komprimerer **verktøyresultatene** fra MCP-verktøy for nettlesere/tilgjengelighet før de
-returneres til agenten. Dette filteret er ikke i seg selv et verktøy — det kjøres transparent på alle
-verktøyresultater som inneholder omfattende tekst fra tilgjengelighetstrær eller nettleserøyeblikksbilder
-(≥2000 tegn).
+Uavhengig av komprimeringsverktøyene ovenfor inkluderer OmniRoute et etterbehandlingsfilter som
+komprimerer **verktøyresultatene** fra MCP-nettleser-/tilgjengelighetsverktøy før de returneres til
+agenten. Dette filteret er ikke i seg selv et verktøy — det kjøres transparent på alle verktøyresultater
+som inneholder detaljert tekst fra tilgjengelighetstrær eller nettleserøyeblikksbilder (≥2000 tegn).
 
-Viktig funksjonalitet:
+Viktig atferd:
 
-- Slår sammen ≥30 påfølgende, gjentatte søskenlinjer til et sammendrag med begynnelse + avslutning
+- Slår sammen ≥30 påfølgende, gjentatte søskenlinjer til et sammendrag med begynnelse + slutt
 - Bevarer `[ref=eXX]`-ankre som kreves av Playwright/datamaskinbruk
-- Hardavkorter overdimensjonert tekst (>50,000 tegn) med et navigasjonstips
-- Forventet besparelse: **60–80%** for nyttelast fra nettleserøyeblikksbilder
+- Hardavkorter overdimensjonert tekst (>50 000 tegn) med et navigasjonstips
+- Forventet besparelse: **60–80 %** for nyttelaster fra nettleserøyeblikksbilder
 
 Konfigurasjon: `compression.mcpAccessibility` i globale innstillinger (migrering 056).
 Implementasjon: `open-sse/services/compression/engines/mcpAccessibility/`.
-Fullstendig dokumentasjon: [Komprimeringsmotorer — MCP-filter for tilgjengelighetstrær](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
+Fullstendig dokumentasjon: [Komprimeringsmotorer — MCP-filter for tilgjengelighetstre](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
 
 Se [Komprimeringsmotorer](../compression/COMPRESSION_ENGINES.md) og [RTK-komprimering](../compression/RTK_COMPRESSION.md) for
 kjøretidsmodellen for komprimering som ligger til grunn for disse verktøyene.
@@ -176,13 +175,13 @@ kjøretidsmodellen for komprimering som ligger til grunn for disse verktøyene.
 
 | Verktøy                     | Tilganger      | Beskrivelse                                                                               |
 | :-------------------------- | :------------- | :---------------------------------------------------------------------------------------- |
-| `omniroute_oneproxy_fetch`  | `read:proxies` | Hent gratis proxyer fra 1proxy-markedsplassen (filtre for protokoll/land/kvalitet/antall) |
+| `omniroute_oneproxy_fetch`  | `read:proxies` | Hent gratis proxyer fra 1proxy-markedsplassen (filtre for protokoll/land/kvalitet/grense) |
 | `omniroute_oneproxy_rotate` | `read:proxies` | Hent neste tilgjengelige proxy etter strategi (`random` / `quality` / `sequential`)       |
 | `omniroute_oneproxy_stats`  | `read:proxies` | Statistikk for utvalget, synkroniseringsstatus og fordeling etter protokoll og land       |
 
 ## Minneverktøy (3)
 
-Definert i `open-sse/mcp-server/tools/memoryTools.ts`. Autentisering/tilgang håndheves gjennom standardprosessen for MCP-tilganger.
+Definert i `open-sse/mcp-server/tools/memoryTools.ts`. Autentisering/tilgang håndheves gjennom standardpipeline for MCP-tilganger.
 
 | Verktøy                   | Tilganger      | Beskrivelse                                                                               |
 | :------------------------ | :------------- | :---------------------------------------------------------------------------------------- |
@@ -194,18 +193,18 @@ Definert i `open-sse/mcp-server/tools/memoryTools.ts`. Autentisering/tilgang hå
 
 Definert i `open-sse/mcp-server/tools/skillTools.ts`. Støttet av `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Verktøy                       | Tilganger        | Beskrivelse                                                                                       |
-| :---------------------------- | :--------------- | :------------------------------------------------------------------------------------------------ |
-| `omniroute_skills_list`       | `read:skills`    | Vis registrerte ferdigheter med valgfri filtrering etter API-nøkkel, navn eller aktivert tilstand |
-| `omniroute_skills_enable`     | `write:skills`   | Aktiver eller deaktiver en bestemt ferdighet etter ID                                             |
-| `omniroute_skills_execute`    | `execute:skills` | Kjør en ferdighet med angitte inndata, og returner kjøringsoppføringen                            |
-| `omniroute_skills_executions` | `read:skills`    | Vis nylig kjøringshistorikk for ferdigheter                                                       |
+| Verktøy                       | Tilganger        | Beskrivelse                                                                                      |
+| :---------------------------- | :--------------- | :----------------------------------------------------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`    | List registrerte ferdigheter med valgfri filtrering etter API-nøkkel, navn eller aktivert status |
+| `omniroute_skills_enable`     | `write:skills`   | Aktiver eller deaktiver en bestemt ferdighet etter ID                                            |
+| `omniroute_skills_execute`    | `execute:skills` | Kjør en ferdighet med angitte inndata, og returner kjøringsoppføringen                           |
+| `omniroute_skills_executions` | `read:skills`    | List nylig kjøringshistorikk for ferdigheter                                                     |
 
 ## Notion-kontekstkilde (6)
 
-Definert i `open-sse/mcp-server/tools/notionTools.ts`. Token lagres i `key_value`-tabellen via `src/lib/db/notion.ts`. REST-klient i `src/lib/notion/api.ts`. API for innstillinger i `src/app/api/settings/notion/route.ts`. Brukergrensesnitt for kontrollpanelet i `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
+Definert i `open-sse/mcp-server/tools/notionTools.ts`. Token lagres i `key_value`-tabellen via `src/lib/db/notion.ts`. REST-klient i `src/lib/notion/api.ts`. API for innstillinger i `src/app/api/settings/notion/route.ts`. Dashbordgrensesnitt i `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
 
-Konfigurer Notion-integrasjonstokenet ditt fra fanen **Kontekstkilder** i endepunktets kontrollpanel, eller via REST-API-et:
+Konfigurer integrasjonstokenet ditt for Notion fra fanen **Kontekstkilder** i Endpoint-dashbordet, eller via REST-API-et:
 
 ```bash
 # Angi token
@@ -220,56 +219,56 @@ curl http://localhost:20128/api/settings/notion
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Verktøy                      | Tilganger      | Beskrivelse                                                                     |
-| :--------------------------- | :------------- | :------------------------------------------------------------------------------ |
-| `notion_search`              | `read:notion`  | Fulltekstsøk på tvers av alle sider og databaser                                |
-| `notion_get_page`            | `read:notion`  | Hent en side etter ID sammen med egenskapene                                    |
-| `notion_list_block_children` | `read:notion`  | Vis underordnede blokker for en side eller blokk                                |
-| `notion_query_database`      | `read:notion`  | Spørr en database med filtre, sortering og paginering                           |
-| `notion_get_database`        | `read:notion`  | Hent databaseskjema etter ID                                                    |
-| `notion_append_blocks`       | `write:notion` | Legg til underordnede blokker i en overordnet blokk (maks. 100 per forespørsel) |
+| Verktøy                      | Tilganger      | Beskrivelse                                                             |
+| :--------------------------- | :------------- | :---------------------------------------------------------------------- |
+| `notion_search`              | `read:notion`  | Fulltekstsøk på tvers av alle sider og databaser                        |
+| `notion_get_page`            | `read:notion`  | Hent en side etter ID sammen med egenskapene                            |
+| `notion_list_block_children` | `read:notion`  | List underblokkene til en side eller blokk                              |
+| `notion_query_database`      | `read:notion`  | Spørr en database med filtre, sortering og paginering                   |
+| `notion_get_database`        | `read:notion`  | Hent databaseskjema etter ID                                            |
+| `notion_append_blocks`       | `write:notion` | Legg til underblokker i en overordnet blokk (maks. 100 per forespørsel) |
 
 ## Verktøy for Agent Skill-katalogen (3)
 
-Definert i `open-sse/mcp-server/tools/agentSkillTools.ts`. Støttet av `src/lib/agentSkills/catalog`. Disse verktøyene gjør dokumentasjonskatalogen med 45 Agent Skills tilgjengelig for MCP-klienter og eksterne agenter. Omfang: `read:catalog`.
+Definert i `open-sse/mcp-server/tools/agentSkillTools.ts`. Støttet av `src/lib/agentSkills/catalog`. Disse verktøyene eksponerer dokumentasjonskatalogen med 45 Agent Skills for MCP-klienter og eksterne agenter. Omfang: `read:catalog`.
 
-| Verktøy                           | Omfang         | Beskrivelse                                                                                                                                            |
-| :-------------------------------- | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`     | `read:catalog` | Vis alle de 45 agentferdighetene med valgfrie filtre for `category` (api\|cli) og `area`; returnerer metadata + dekning                                |
-| `omniroute_agent_skills_get`      | `read:catalog` | Hent fullstendige metadata + innholdet i SKILL.md for én ferdighet etter kanonisk `id`                                                                 |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Dekningsstatistikk: hvor mange av de 23 API-, 21 CLI- og 1 konfigurasjonsferdighetene som har SKILL.md-filer i filsystemet kontra totalene i katalogen |
+| Verktøy                           | Omfang         | Beskrivelse                                                                                                                                       |
+| :-------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `omniroute_agent_skills_list`     | `read:catalog` | List opp alle 45 agentferdigheter med valgfrie filtre for `category` (api\|cli) og `area`; returnerer metadata + dekning                          |
+| `omniroute_agent_skills_get`      | `read:catalog` | Hent fullstendige metadata + SKILL.md-innhold for én ferdighet etter kanonisk `id`                                                                |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Dekningsstatistikk: hvor mange av de 23 API-, 21 CLI- og 1 konfigurasjonsferdighetene som har SKILL.md-filer i filsystemet kontra katalogtotalene |
 
 Se [AGENT-SKILLS.md](./AGENT-SKILLS.md) for hele katalogen og hvordan eksterne agenter bruker den.
 
 ## Relaterte rammeverk (v3.8.0)
 
-Oversikten over MCP-verktøy ovenfor (110 unike verktøy, beregnet av `countUniqueMcpTools()`) er bevisst
+MCP-verktøybeholdningen ovenfor (110 unike verktøy, beregnet av `countUniqueMcpTools()`) er med hensikt
 avgrenset til operasjoner for ruting, hurtigbuffer, komprimering, minne, ferdigheter, proxy og kontekstkilder under kjøring. To tilstøtende
 rammeverk leveres sammen med MCP-serveren i v3.8.0 og er dokumentert separat:
 
 ### Skyagenter
 
-Skyagenter er KI-kodeagenter som kjører utenfor prosessen (codex-cloud, cursor-cloud, devin, jules), og som er koblet til
+Skyagenter er AI-kodingsagenter som kjører utenfor prosessen (codex-cloud, cursor-cloud, devin, jules), og som er koblet til
 OmniRoute gjennom den samme tilkoblingsmodellen som brukes for LLM-leverandører. De eksponeres via
 sitt eget REST-grensesnitt (`/api/v1/agents/*`) og er **ikke** en del av MCP-verktøykatalogen
-— et kall til en skyagent bruker ikke et MCP-omfang.
+— kall til en skyagent bruker ikke et MCP-omfang.
 
 - Implementasjon: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex.ts`, `agents/cursor.ts`, `agents/devin.ts`, `agents/jules.ts`).
 - Livssyklus: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
 - Dokumentasjon: [docs/frameworks/CLOUD_AGENT.md](./CLOUD_AGENT.md).
 
-### Sikkerhetsrekkverk
+### Sikkerhetsmekanismer
 
-Sikkerhetsrekkverk er filtre før/etter kjøring (vision-bridge, pii-masker, prompt-injection)
-som brukes inne i chatforløpet. De kjører før MCP-verktøy-/rutingslaget nås
-og sender strukturerte brudd til revisjonsforløpet; de kalles ikke som MCP-verktøy.
+Sikkerhetsmekanismer er filtre før/etter kjøring (vision-bridge, pii-masker, prompt-injection)
+som brukes inne i chat-pipelinen. De kjøres før MCP-verktøy-/rutingslaget nås
+og sender strukturerte brudd til revisjonspipelinen; de kalles ikke som MCP-verktøy.
 
 - Implementasjon: `src/lib/guardrails/`.
 - Dokumentasjon: [docs/security/GUARDRAILS.md](../security/GUARDRAILS.md).
 
-Når du feilsøker et MCP-kall som ser ut til å være blokkert, bør du kontrollere både MCP-revisjonsloggen
-(`scope_denied:*`-oppføringer) og revisjonssporet for sikkerhetsrekkverk — en forespørsel kan bli avvist av
-et sikkerhetsrekkverk **før** den når frem til laget som håndhever MCP-omfang.
+Ved feilsøking av et MCP-kall som ser ut til å være blokkert, må du kontrollere både MCP-revisjonsloggen
+(`scope_denied:*`-oppføringer) og sikkerhetsmekanismenes revisjonsspor — en forespørsel kan bli avvist av
+en sikkerhetsmekanisme **før** den noen gang når MCP-laget for håndheving av omfang.
 
 ---
 
@@ -277,7 +276,7 @@ et sikkerhetsrekkverk **før** den når frem til laget som håndhever MCP-omfang
 
 | Endepunkt              | Metode                | Beskrivelse                                                                                              | Autentisering              |
 | :--------------------- | :-------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------- |
-| `/api/mcp/status`      | `GET`                 | Serverstatus: livssignal, HTTP-transportstatus, sammendrag av revisjonsaktivitet                         | Administrasjon (økt/admin) |
+| `/api/mcp/status`      | `GET`                 | Serverstatus: livstegn, tilstand for HTTP-transport, sammendrag av revisjonsaktivitet                    | Administrasjon (økt/admin) |
 | `/api/mcp/tools`       | `GET`                 | Verktøykatalog (navn, beskrivelse, omfang, fase, kildeendepunkter)                                       | Administrasjon             |
 | `/api/mcp/sse`         | `GET` / `POST`        | SSE-transportendepunkt (styrt av `mcpEnabled` + `mcpTransport === "sse"`)                                | API-nøkkel + omfang        |
 | `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Strømmbar HTTP-transport (bruker `mcp-session-id`-headeren; `DELETE` avslutter økten)                    | API-nøkkel + omfang        |
@@ -286,14 +285,114 @@ et sikkerhetsrekkverk **før** den når frem til laget som håndhever MCP-omfang
 
 Kildefiler: `src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`.
 
-Både SSE- og strømbare HTTP-transporter er blokkert frem til MCP-serveren aktiveres i Innstillinger (`mcpEnabled`) og riktig `mcpTransport` velges. Hvis feil transport er konfigurert, returnerer ruten HTTP 400 med et tips om å endre innstillingene.
+Både SSE- og strømbare HTTP-transporter er blokkert inntil MCP-serveren er aktivert i Innstillinger (`mcpEnabled`) og riktig `mcpTransport` er valgt. Hvis feil transport er konfigurert, returnerer ruten HTTP 400 med et tips om å endre innstillingene.
 
 ---
 
-## Autentisering og tilganger
+## Autentisering og omfang
 
-MCP-verktøy autentiseres gjennom API-nøkkeltilganger. Håndheving av tilganger er sentralisert i
-`open-sse/mcp-server/scopeEnforcement.ts`. Hvert verktøy krever bestemte tilganger:
+MCP-verktøykall leser omfangsstrenger fra kalleren. Denne kontrollen er ett av tre
+uavhengige navnerom. Godkjenning fra én kontroll innebærer ikke godkjenning fra de andre.
+Reglene er beskrevet i [Tre omfangsnavnerom](#three-scope-namespaces).
+Verktøykatalogen finnes under [Omfang for MCP-verktøy](#mcp-tool-scopes).
+
+### Tre omfangsnavnerom
+
+`manage` på en API-nøkkel, `read:compression` på et MCP-verktøy og `read` på et
+`oma_live_…`-tilgangstoken er tre forskjellige tillatelser. Kallere som sender et `read`-
+tilgangstoken til en muterende administrasjonsrute, får HTTP 403:
+`Access token scope 'read' is insufficient; 'write' required.`
+Denne rangeringen håndteres av `scopeSatisfies`. Den slår ikke opp i MCP-tabellen, og MCP-
+samsvarskontrollen bruker heller ikke denne rangeringen.
+
+| Navnerom                 | Påloggingsopplysning                                             | Kontroll                           | En godkjenning tillater                                          |
+| :----------------------- | :--------------------------------------------------------------- | :--------------------------------- | :--------------------------------------------------------------- |
+| API-nøkkeladministrasjon | `api_keys.scopes`                                                | `hasManageScope`                   | REST-administrasjon for den aktuelle Bearer-nøkkelen             |
+| Tillegg for API-nøkkel   | samme matrise, én eksakt streng                                  | hjelperen som er navngitt nedenfor | Bare den ene funksjonaliteten                                    |
+| Omfang for MCP-verktøy   | samme matrise, ellers MCP `_meta`, ellers `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                     | Det aktuelle verktøyet, når håndheving er slått på               |
+| Tilgangstoken            | `oma_live_…`                                                     | `scopeSatisfies`                   | Administrasjonsruten der metoden og banen krever den rangeringen |
+
+Oppretting av hver påloggingsopplysning er beskrevet i
+[Administrasjonsautentisering](../guides/MANAGEMENT-AUTH.md).
+
+#### Omfang for API-nøkler
+
+Én `api_keys.scopes`-matrise brukes til to oppgaver. De bruker forskjellige funksjoner.
+
+**REST-administrasjon.** `manage` og `admin` er medlemmene i
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` er det som autoriserer administrasjonsruter for den aktuelle nøkkelen. `admin`
+gir administrasjonstilgang på disse rutene. Ordet `admin` her er ikke
+tilgangstokenrangeringen, og det utvides ikke til omfang for MCP-verktøy.
+
+**Tilleggsstrenger.** Hver av dem er en eksakt medlemskapstest, og alle forblir
+utenfor `MANAGEMENT_API_KEY_SCOPES`.
+
+| Omfang                         | En godkjenning tillater                                                                                                                                                              |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Bare LOCAL_ONLY-unntaket for `/api/mcp/` utenfor loopback (`hasMcpConnectOrManageScope`). En nøkkel med `manage` eller `admin` godkjennes fortsatt av dette unntaket.                |
+| `self:usage`                   | `GET /api/v1/me/status` for denne nøkkelen (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` legger til dette omfanget ved oppretting (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kvoter for oppstrømskontoer i denne statusnyttelasten (`src/lib/usage/apiKeySelfService.ts`). Statusruten krever fortsatt `self:usage`.                                              |
+| `policy:bypass-provider-quota` | Inferenskall fra denne nøkkelen hopper over policyen for leverandørkvoter (`hasProviderQuotaBypassScope` i `src/sse/handlers/chat.ts`).                                              |
+
+#### Samsvar
+
+Katalogen er tabellen under [Omfang for MCP-verktøy](#mcp-tool-scopes). Ikke
+behandle `MCP_SCOPE_LIST` i `src/shared/constants/mcpScopes.ts` som denne katalogen:
+den er det opprinnelige typede delsettet. Senere verktøy deklarerer flere omfang ved siden av den
+(`read:notion`, `read:skills`, `read:local-corpus` og resten av tabellen).
+
+`evaluateToolScopes` i `open-sse/mcp-server/scopeEnforcement.ts` tillater et kall
+når hvert obligatoriske omfang samsvarer med et innvilget omfang:
+
+- `*` samsvarer med alle obligatoriske omfang.
+- Et innvilget omfang som slutter med `*`, samsvarer med et obligatorisk omfang som begynner med
+  prefikset før stjernen. `read:*` samsvarer med `read:compression`.
+- Alle andre innvilgede omfang samsvarer bare med den identiske obligatoriske strengen.
+
+En nøkkel med omfangene `["manage"]` godkjennes ikke av `scopeMatches` for `read:compression`.
+Det samme kallet avvises for `admin`, `mcp:connect`, `read` og `write` når disse
+er de eneste innvilgede strengene. Det finnes ikke noe hierarki blant omfang for MCP-verktøy
+utover en avsluttende `*`.
+
+Håndheving er slått av med mindre `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (standardverdi
+`false`). Når den er slått av, tillater `evaluateToolScopes` kallet og hopper over
+katalogen. Når den er slått på, bruker HTTP Bearer-nøkkelens `api_keys.scopes` som
+`authInfo` (se [HTTP-binding av omfang per nøkkel](#per-key-http-scope-binding-7895)).
+Når ingen nøkkelomfang kan fastslås, faller det innvilgede settet tilbake på MCP `_meta`, deretter
+`OMNIROUTE_MCP_SCOPES`.
+
+#### Omfang for tilgangstokener
+
+`oma_live_…`-tokener (`src/lib/accessTokens/scopes.ts`) inneholder `read`, `write`
+eller `admin`. `scopeSatisfies` er en rangering: `admin` dekker `write` og `read`, og
+`write` dekker `read`. Ukjente omfang dekker ingenting.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) sammenligner denne
+rangeringen med `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+
+- `GET`, `HEAD` og `OPTIONS` krever `read`.
+- Alle andre metoder krever `write`.
+- Baner i `ADMIN_SCOPE_PREFIXES` krever `admin` for alle metoder. `/api/mcp`
+  står på denne listen, så et `write`-tilgangstoken kan fortsatt ikke kalle MCPs HTTP-
+  grensesnitt.
+- Baner i `ADMIN_MUTATION_PREFIXES` krever `admin` bare for mutasjoner.
+
+`PATCH /api/keys/{id}` er en mutasjon og finnes ikke på disse administratorlistene, så et
+`read`-token mottar 403
+`Tilgangstokenets omfang 'read' er utilstrekkelig; 'write' kreves.`
+Et tilgangstoken med `write` eller `admin` oppfyller kravene for denne ruten. En JWT fra kontrollpanelet,
+loopback-CLI-ens machine-id-token og en API-nøkkel med `manage` eller `admin` følger
+andre grener og begrenses ikke av denne rangeringen.
+
+Et tilgangstoken som består `scopeSatisfies` for `/api/mcp`, har bare passert
+administrasjonskontrollen. Verktøykall kjører fortsatt `scopeMatches` mot API-nøkkelens
+omfang. Tilgangstokenets rangering brukes ikke som inndata til `scopeMatches`.
+
+### Omfang for MCP-verktøy
+
+Håndheving av omfang er sentralisert i `open-sse/mcp-server/scopeEnforcement.ts`.
+Hvert verktøy krever bestemte omfang:
 
 | Omfang                | Verktøy                                                                                                                                                                       |
 | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -331,100 +430,99 @@ MCP-verktøy autentiseres gjennom API-nøkkeltilganger. Håndheving av tilganger
 | `write:obsidian`      | 9 skriveverktøy — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …              |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                             |
 
-Jokertegnomfang støttes: `read:*` gir alle lesetilganger, `*` gir full tilgang.
+Jokertegnomfang støttes: `read:*` gir alle leseomfang, mens `*` gir full tilgang.
 
-### `mcp:connect` — begrenset rutefunksjonalitet (#7895)
+### `mcp:connect` — avgrenset rutefunksjonalitet (#7895)
 
-Tilgang til HTTP/SSE MCP-transporten (`/api/mcp/*`) fra adresser som ikke er loopback, krever
-`/api/mcp/`-unntaket fra LOCAL_ONLY (se `docs/security/ROUTE_GUARD_TIERS.md`). Tidligere
-godtok dette unntaket bare en API-nøkkel med fullt `manage`/`admin`-omfang — for bredt for en
-klient som bare trenger å kommunisere med MCP. `src/shared/constants/managementScopes.ts`
-eksporterer nå `MCP_CONNECT_SCOPE = "mcp:connect"`: et additivt, begrenset omfang (etter samme
-presedens som `SELF_USAGE_SCOPE`) som KUN autoriserer omgåelsen for `/api/mcp/` i
+Tilgang til HTTP/SSE MCP-transporten (`/api/mcp/*`) fra en adresse utenfor loopback krever
+LOCAL_ONLY-unntaket for `/api/mcp/` (se `docs/security/ROUTE_GUARD_TIERS.md`). Historisk
+har dette unntaket bare godtatt en API-nøkkel med fullt `manage`-/`admin`-omfang — for bredt for en
+kaller som bare trenger å kommunisere med MCP. `src/shared/constants/managementScopes.ts`
+eksporterer nå `MCP_CONNECT_SCOPE = "mcp:connect"`: et additivt, avgrenset omfang (etter samme mønster som
+`SELF_USAGE_SCOPE`) som KUN autoriserer omgåelsen for `/api/mcp/` i
 `src/server/authz/policies/management.ts` — det gir ingen annen tilgang til administrasjonsruter
-og holdes med hensikt UTENFOR `MANAGEMENT_API_KEY_SCOPES`. En nøkkel med `manage`/`admin`
-passerer fortsatt unntaket uendret; `mcp:connect` er et alternativ med lavere privilegier for
-eksterne klienter som kun bruker MCP, kontrollert via `hasMcpConnectOrManageScope()`.
+og holdes bevisst UTENFOR `MANAGEMENT_API_KEY_SCOPES`. En nøkkel med `manage`-/`admin`-omfang
+går fortsatt gjennom unntaket uendret; `mcp:connect` er et alternativ med lavere privilegier for
+eksterne kallere som kun bruker MCP, kontrollert via `hasMcpConnectOrManageScope()`.
 
 ### HTTP-omfangsbinding per nøkkel (#7895)
 
-Over HTTP/SSE slår `open-sse/mcp-server/httpTransport.ts` nå opp innringerens faktiske
+Over HTTP/SSE løser `open-sse/mcp-server/httpTransport.ts` nå opp kallerens faktiske
 `api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-og sender det til MCP SDK-ens `transport.handleRequest(req, { authInfo })`, slik at
+og sender dem til MCP-SDK-ens `transport.handleRequest(req, { authInfo })`, slik at
 `extra.authInfo.scopes` som når hvert verktøykall, gjenspeiler Bearer-nøkkelens egne omfang.
-`resolveCallerScopeContext()` i `scopeEnforcement.ts` prioriterte allerede `authInfo` over
-reserveløsningen med `_meta` og miljøvariabelen `OMNIROUTE_MCP_SCOPES` — dette fyller bare ut
-den første kilden med høyest prioritet, som tidligere ikke ble matet over HTTP. Når ingen
-API-nøkkel kan slås opp (manglende header eller ugyldig nøkkel), forblir `authInfo` `undefined`,
-og oppslaget går videre til den eksisterende `meta`/miljøvariabel-kjeden uendret. Dette endrer
-IKKE standardverdien for `OMNIROUTE_MCP_ENFORCE_SCOPES` — håndheving må fortsatt aktiveres
-eksplisitt; denne endringen gjør bare at banen per nøkkel får forrang når den er aktivert.
-stdio har ingen identitet per innringer (se `mcpCallerIdentity.ts`) og påvirkes ikke — den
-fortsetter å bruke reserveløsningen med `_meta`/miljøvariabel-kjeden.
+`resolveCallerScopeContext()` i `scopeEnforcement.ts` prioriterte allerede `authInfo` fremfor
+`_meta` og reservemekanismen med miljøvariabelen `OMNIROUTE_MCP_SCOPES` — dette fyller bare ut den første
+kilden med høyest prioritet, som tidligere ikke ble fylt ut over HTTP. Når ingen API-nøkkel kan løses opp
+(ingen header, ugyldig nøkkel), forblir `authInfo` `undefined`, og oppløsningen går videre til den
+eksisterende `meta`-/miljøvariabelkjeden uendret. Dette endrer IKKE standardverdien til
+`OMNIROUTE_MCP_ENFORCE_SCOPES` — håndheving må fortsatt aktiveres eksplisitt; denne endringen gjør bare at
+banen per nøkkel får prioritet når dette er gjort. stdio har ingen identitet per kaller (se
+`mcpCallerIdentity.ts`) og påvirkes ikke — den fortsetter å bruke reservekjeden med `_meta`/miljøvariabel.
 
 ---
 
 ## Miljøvariabler
 
-| Variabel                                | Standardverdi                         | Formål                                                                                                                                             |
-| :-------------------------------------- | :------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`              | Basis-URL-en MCP-serveren bruker ved kall til interne OmniRoute-API-er                                                                             |
-| `OMNIROUTE_API_KEY`                     | (tom)                                 | API-nøkkel som videresendes som `Authorization: Bearer` til interne API-kall                                                                       |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (bare `"true"` aktiverer det) | Når aktivert vil manglende virkeområder avvise verktøykall og logge `scope_denied:<reason>` i revisjonsloggen                                      |
-| `OMNIROUTE_MCP_SCOPES`                  | (tom)                                 | Kommaseparert tillatelsesliste over virkeområder som anses som «tilgjengelige» som standard (brukes når innringeren ikke oppgir egne virkeområder) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (ikke angitt = på)                    | Når satt til `0/false/off/no`, deaktiveres komprimering av MCP-beskrivelser ved registrering                                                       |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (ikke angitt = på)                    | Alternativt alias for samme innstilling som ovenfor                                                                                                |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                               | Tidsgrense for avbrudd ved interne administrasjonslesinger (helse, robusthet, kombinasjoner, kvote, bruk)                                          |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                               | Tidsgrense for avbrudd ved hopp som venter på en leverandør (`route_request`, `web_search`, `web_fetch`)                                           |
-| `MCP_TOOL_DENY`                         | (ikke angitt = intet filter)          | Kommaseparerte verktøynavn som skal fjernes fra `tools/list` (reduksjon av antall verktøy — se nedenfor)                                           |
-| `MCP_TOOL_ALLOW`                        | (ikke angitt = intet filter)          | Kommaseparerte verktøynavn som skal beholdes eksklusivt (tillatelseslistemodus — se nedenfor)                                                      |
-| `DATA_DIR`                              | `~/.omniroute`                        | Heartbeat-filen skrives til `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                               |
+| Variabel                                | Standardverdi                         | Formål                                                                                                                                                |
+| :-------------------------------------- | :------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`              | Basis-URL-en som MCP-serveren bruker ved kall til interne OmniRoute-API-er                                                                            |
+| `OMNIROUTE_API_KEY`                     | (tom)                                 | API-nøkkel som videresendes som `Authorization: Bearer` til interne API-kall                                                                          |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (bare `"true"` aktiverer det) | Når aktivert vil manglende tilgangsområder avvise verktøykall og logge `scope_denied:<reason>` i revisjonsloggen                                      |
+| `OMNIROUTE_MCP_SCOPES`                  | (tom)                                 | Kommaseparert tillatelsesliste over tilgangsområder som anses som «tilgjengelige» som standard (brukes når kalleren ikke oppgir egne tilgangsområder) |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (ikke angitt = på)                    | Når satt til `0/false/off/no`, deaktiveres komprimering av MCP-beskrivelser ved registrering                                                          |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (ikke angitt = på)                    | Alternativt alias for samme innstilling som ovenfor                                                                                                   |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                               | Tidsbudsjett før avbrudd for interne administrasjonslesinger (helsetilstand, robusthet, kombinasjoner, kvote, bruk)                                   |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                               | Tidsbudsjett før avbrudd for hopp som venter på en leverandør (`route_request`, `web_search`, `web_fetch`)                                            |
+| `MCP_TOOL_DENY`                         | (ikke angitt = uten filter)           | Kommaseparerte verktøynavn som skal fjernes fra `tools/list` (reduksjon av verktøykardinalitet — se nedenfor)                                         |
+| `MCP_TOOL_ALLOW`                        | (ikke angitt = uten filter)           | Kommaseparerte verktøynavn som utelukkende skal beholdes (modus med tillatelsesliste — se nedenfor)                                                   |
+| `DATA_DIR`                              | `~/.omniroute`                        | Heartbeat-filen skrives til `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                  |
 
 ---
 
 ## Beskrivelseskomprimering
 
-MCP-registre for verktøy, ledetekster og ressurser kan komprimere beskrivelser ved registrering/visning for å redusere mengden metadata som eksponeres for klienter (og dermed kostnaden for ledetekstkontekst). Implementasjonen ligger i `open-sse/mcp-server/descriptionCompressor.ts` og er koblet til MCP-serveren via `compressMcpRegistryMetadata` i `createMcpServer()`.
+MCP-registre for verktøy, ledetekster og ressurser kan komprimere beskrivelser ved registrering/listing for å redusere mengden metadata som eksponeres for klienter (og dermed kostnaden for ledetekstkontekst). Implementasjonen finnes i `open-sse/mcp-server/descriptionCompressor.ts` og er koblet til MCP-serveren via `compressMcpRegistryMetadata` i `createMcpServer()`.
 
-- Komprimering kjøres på beskrivelsesteksten ved hjelp av Caveman-regelsettet (`getRulesForContext("all", "full")`) med uttrekking av bevarte blokker (kodeutdrag, inngjerdede blokker osv.), slik at strukturelt innhold ikke endres.
-- Aktiver eller deaktiver per distribusjon via verdien `compression.mcpDescriptionCompressionEnabled` i innstillingstabellen `key_value` (standard: aktivert) — tilgjengelig i brukergrensesnittet som **Analyse → Komprimering av MCP-beskrivelser**.
-- Aktiver eller deaktiver for hele prosessen via enten `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` eller `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
-- Sanntidsstatistikk vises via `omniroute_compression_status` under `analytics.mcpDescriptionCompression` og merkes med `source: "mcp_metadata_estimate"` for å skille den fra faktiske bruksdata fra leverandører.
+- Komprimeringen kjøres på beskrivelsesteksten ved hjelp av Caveman-regelsettet (`getRulesForContext("all", "full")`) med uthenting av bevarte blokker (kodefragmenter, inngjerdede blokker osv.), slik at strukturelt innhold ikke endres.
+- Slå funksjonen av eller på per distribusjon via verdien `compression.mcpDescriptionCompressionEnabled` i innstillingstabellen `key_value` (standard: aktivert) — tilgjengelig i brukergrensesnittet som **Analyse → Komprimering av MCP-beskrivelser**.
+- Slå funksjonen av eller på for hele prosessen via enten `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` eller `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
+- Sanntidsstatistikk vises via `omniroute_compression_status` under `analytics.mcpDescriptionCompression` og merkes med `source: "mcp_metadata_estimate"` for å skille den fra faktiske kvitteringer for leverandørbruk.
 
 ---
 
 ## Reduksjon av verktøyantall (F4.3)
 
-Beskrivelseskomprimering reduserer metadataene til hvert verktøy. **Reduksjon av verktøyantall** går ett skritt videre ved å redusere _hvor mange_ verktøy som i det hele tatt annonseres. Ved å annonsere færre verktøy i `tools/list`-manifestet reduseres tokenkostnaden per forespørsel som klientens modell betaler for verktøykatalogen («lag 5»-komprimering). Implementasjonen er et rent, tilstandsløst filter i `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), koblet inn i registreringsløkken i `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+Beskrivelseskomprimering reduserer metadataene for hvert verktøy. **Reduksjon av verktøyantall** går ett skritt videre ved å redusere _hvor mange_ verktøy som i det hele tatt kunngjøres. Når færre verktøy annonseres i `tools/list`-manifestet, reduseres tokenkostnaden per forespørsel som klientens modell betaler for verktøykatalogen («lag 5»-komprimering). Implementasjonen er et rent, tilstandsløst filter i `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), koblet til registreringsløkken i `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Må aktiveres, deaktivert som standard.** Filteret kjører bare når minst én av to miljøvariabler er angitt. Når ingen av dem er angitt, annonseres alle de 110 verktøyene uendret.
+**Må aktiveres, deaktivert som standard.** Filteret kjøres bare når minst én av to miljøvariabler er angitt. Når ingen av dem er angitt, kunngjøres alle de 110 verktøyene uendret.
 
 | Variabel         | Modus                                                                                 |
 | :--------------- | :------------------------------------------------------------------------------------ |
-| `MCP_TOOL_DENY`  | Blokkeringsliste — kommaseparerte verktøynavn som alltid fjernes fra `tools/list`     |
+| `MCP_TOOL_DENY`  | Svarteliste — kommaseparerte verktøynavn som alltid fjernes fra `tools/list`          |
 | `MCP_TOOL_ALLOW` | Tillatelsesliste — kommaseparerte verktøynavn; bare disse beholdes, alt annet fjernes |
 
-`deny` har prioritet over `allow`. Navnene er kommaseparerte, mellomrom fjernes, og tomme oppføringer ignoreres. Eksempler:
+`deny` prioriteres over `allow`. Navnene er kommaseparerte, innledende og etterfølgende mellomrom fjernes, og tomme oppføringer ignoreres. Eksempler:
 
 ```bash
 # Fjern to verktøy fra katalogen
 MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
 
-# Annonser bare rutings- og kvoteverktøyene (tillatelseslistemodus)
+# Kunngjør bare verktøyene for ruting og kvoter (tillatelseslistemodus)
 MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 ```
 
-**Slik fjernes filtrerte verktøy:** Registreringen lykkes alltid. Et verktøy som avvises av profilen, blir deretter deaktivert med `.disable()` på MCP SDK-håndtaket, slik at det aldri vises i `tools/list`, samtidig som koblingen forblir intakt (ryddig aktivering/deaktivering, uten ny registrering). Profilparseren er `readMcpToolProfileFromEnv(process.env)`, som returnerer `null` (ingen filtrering) når begge variablene er tomme.
+**Slik fjernes filtrerte verktøy:** Registreringen lykkes alltid. Et verktøy som avvises av profilen, blir deretter `.disable()`d på MCP SDK-håndtaket, slik at det aldri vises i `tools/list`, mens koblingene forblir intakte (ren aktivering/deaktivering, ingen ny registrering). Profilparseren er `readMcpToolProfileFromEnv(process.env)`, som returnerer `null` (ingen filtrering) når begge variablene er tomme.
 
-Den mer omfattende `ToolProfile`-strukturen bak `reduceToolManifest` støtter også filtrering etter overlappende omfang (`allowScopes`, med jokertegnmatching av typen `read:*`) og en deterministisk `maxTools`-grense, men disse to innstillingene krever hele manifestet ved registrering og er **ikke** tilgjengelige via miljøvariablene i dag (en hook på `tools/list`-nivå er registrert som en oppfølging). `estimateManifestTokens()` kan brukes til å sammenligne manifestets tokenkostnad før og etter reduksjon.
+Den mer omfattende `ToolProfile`-strukturen bak `reduceToolManifest` støtter også filtrering etter overlappende omfang (`allowScopes`, med jokertegnsamsvar av typen `read:*`) og en deterministisk `maxTools`-grense, men disse to innstillingene trenger hele manifestet ved registreringstidspunktet og eksponeres **ikke** gjennom miljøvariablene i dag (en tilkobling på `tools/list`-nivå er planlagt som en oppfølging). `estimateManifestTokens()` kan brukes til å sammenligne manifestets tokenkostnad før og etter reduksjonen.
 
 ---
 
-## Kjøretidssignal
+## Kjøretidspuls
 
-Stdio-transporten lagrer et signal om aktiv tilstand i `${DATA_DIR}/runtime/mcp-heartbeat.json` hvert 5. sekund. Kontrollpanelet (`/api/mcp/status`) leser denne filen sammen med PID-statusen for å utlede `online`. HTTP-transporter rapporterer i stedet status fra `getMcpHttpStatus()` i den kjørende prosessen (ingen filskriving).
+Stdio-transporten lagrer statusinformasjon i `${DATA_DIR}/runtime/mcp-heartbeat.json` hvert 5. sekund. Kontrollpanelet (`/api/mcp/status`) leser denne filen sammen med PID-statusen for å utlede `online`. HTTP-transporter rapporterer i stedet status fra `getMcpHttpStatus()` i den kjørende prosessen (ingen filskriving).
 
-Øyeblikksbildet av kjøretidssignalet inneholder:
+Pulstilstandsbildet inneholder:
 
 ```json
 {
@@ -446,11 +544,11 @@ Stdio-transporten lagrer et signal om aktiv tilstand i `${DATA_DIR}/runtime/mcp-
 Hvert verktøykall logges i SQLite-tabellen `mcp_tool_audit` av `open-sse/mcp-server/audit.ts`:
 
 - Verktøynavn, argumenter (hashet/avkortet i henhold til verktøyets `auditLevel`), resultat
-- Varighet i ms, flagg for vellykket/mislykket kjøring, feilmelding (når aktuelt)
+- Varighet i ms, indikator for suksess/feil, feilmelding (når aktuelt)
 - API-nøkkelhash, tidsstempel
-- Omfangsavvisninger logges som `scope_denied:<reason>` med listen over manglende omfang
+- Omfangsavslag logges som `scope_denied:<reason>` med listen over manglende omfang
 
-Bruk kontrollpanelet eller REST-endepunktene `/api/mcp/audit` og `/api/mcp/audit/stats` til å inspisere nylige kall.
+Bruk kontrollpanelet eller REST-endepunktene `/api/mcp/audit` og `/api/mcp/audit/stats` for å inspisere nylige kall.
 
 ---
 
@@ -459,25 +557,25 @@ Bruk kontrollpanelet eller REST-endepunktene `/api/mcp/audit` og `/api/mcp/audit
 | Fil                                                                      | Formål                                                                       |
 | :----------------------------------------------------------------------- | :--------------------------------------------------------------------------- |
 | `open-sse/mcp-server/server.ts`                                          | MCP-serverfabrikk, stdio-inngangspunkt, omfangsbaserte verktøyregistreringer |
-| `open-sse/mcp-server/httpTransport.ts`                                   | SSE- og Streamable HTTP-transport (sesjonshåndtering)                        |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE- og Streamable HTTP-transport (økthåndtering)                            |
 | `open-sse/mcp-server/scopeEnforcement.ts`                                | Evaluering av verktøyomfang og identifisering av anroper                     |
 | `open-sse/mcp-server/audit.ts`                                           | Revisjonslogging av verktøykall (`mcp_tool_audit`)                           |
 | `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio-hjerteslagskriver (`mcp-heartbeat.json`)                               |
-| `open-sse/mcp-server/descriptionCompressor.ts`                           | Komprimering av beskrivelser for verktøy-, ledetekst- og ressursregistre     |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Beskrivelseskomprimering for verktøy-, ledetekst- og ressursregistre         |
 | `open-sse/mcp-server/schemas/tools.ts`                                   | Zod-skjemaer og verktøyregister (`MCP_TOOLS`, 45 oppføringer)                |
-| `open-sse/mcp-server/tools/advancedTools.ts`                             | Behandlere for fase 2-, hurtigbuffer- og 1proxy-verktøy                      |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | Verktøybehandlere for fase 2, hurtigbuffer og 1proxy                         |
 | `open-sse/mcp-server/tools/compressionTools.ts`                          | Behandlere for komprimeringsverktøy                                          |
 | `open-sse/mcp-server/tools/memoryTools.ts`                               | Definisjoner av minneverktøy (3 verktøy)                                     |
 | `open-sse/mcp-server/tools/skillTools.ts`                                | Definisjoner av ferdighetsverktøy (4 verktøy)                                |
 | `open-sse/mcp-server/tools/notionTools.ts`                               | Verktøydefinisjoner for Notion-kontekstkilder (6 verktøy)                    |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definisjoner av spillifiseringsverktøy (8 verktøy)                           |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Definisjoner av gamifiseringsverktøy (8 verktøy)                             |
 | `open-sse/mcp-server/tools/pluginTools.ts`                               | Verktøy for registrering og administrasjon av programtillegg (8 verktøy)     |
 | `src/app/api/mcp/status/route.ts`                                        | Endepunktet `/api/mcp/status`                                                |
 | `src/app/api/mcp/tools/route.ts`                                         | Endepunktet `/api/mcp/tools`                                                 |
-| `src/app/api/mcp/sse/route.ts`                                           | SSE-transportrute for `/api/mcp/sse`                                         |
-| `src/app/api/mcp/stream/route.ts`                                        | Streamable HTTP-transportrute for `/api/mcp/stream`                          |
-| `src/app/api/mcp/audit/route.ts`                                         | Spørring i revisjonsloggen for `/api/mcp/audit`                              |
-| `src/app/api/mcp/audit/stats/route.ts`                                   | Aggregerte revisjonsmålinger for `/api/mcp/audit/stats`                      |
+| `src/app/api/mcp/sse/route.ts`                                           | SSE-transportruten `/api/mcp/sse`                                            |
+| `src/app/api/mcp/stream/route.ts`                                        | Streamable HTTP-transportruten `/api/mcp/stream`                             |
+| `src/app/api/mcp/audit/route.ts`                                         | Spørring i revisjonsloggen via `/api/mcp/audit`                              |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | Aggregerte revisjonsmålinger via `/api/mcp/audit/stats`                      |
 | `src/lib/notion/api.ts`                                                  | Klient for Notion REST API (nye forsøk, tidsavbrudd, feilklassifisering)     |
 | `src/lib/db/notion.ts`                                                   | Lagring av Notion-token (`key_value`-tabellen)                               |
 | `src/app/api/settings/notion/route.ts`                                   | API for Notion-innstillinger (GET/POST/DELETE)                               |

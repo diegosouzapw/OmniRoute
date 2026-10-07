@@ -7,45 +7,44 @@
 Ang compression ng OmniRoute ay binuo sa paligid ng mga kontrata ng engine. Maaaring direktang magpatakbo ang isang mode ng isang engine
 (`caveman` o `rtk`) o ng isang deterministikong stacked pipeline na nagpapatakbo ng maraming engine nang sunod-sunod.
 
-## Mga mode
+## Mga Mode
 
-| Mode         | Landas ng engine                      | Nilalayong input                                            |
-| ------------ | ------------------------------------- | ----------------------------------------------------------- |
-| `off`        | wala                                  | Eksaktong pagpapanatili ng prompt                           |
-| `lite`       | Mga lite helper ng Caveman            | Palaging aktibong paglilinis na mababa ang panganib         |
-| `standard`   | Caveman                               | Pagpapaikli ng prompt na nasa natural na wika               |
-| `aggressive` | Caveman + mga history/tool summarizer | Mahahabang session ng chat                                  |
-| `ultra`      | Caveman + mga pruning helper          | Pagbawi mula sa limitasyon ng context                       |
-| `rtk`        | RTK                                   | Output ng terminal, shell, build, test, at git              |
-| `omniglyph`  | OmniGlyph                             | Context bilang larawan sa native na wire ng provider        |
-| `stacked`    | Pipeline, default na `rtk -> caveman` | Magkahalong mga tool log at prose, pinakamalaking matitipid |
+| Mode         | Path ng engine                                                                                    | Inaasahang input                                            |
+| ------------ | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `off`        | wala                                                                                              | Eksaktong pagpapanatili ng prompt                           |
+| `lite`       | Caveman lite helpers                                                                              | Mababang-panganib na laging-aktibong paglilinis             |
+| `standard`   | Caveman                                                                                           | Kondensasyon ng prompt sa natural na wika                   |
+| `aggressive` | Caveman + history/tool summarizers                                                                | Mahahabang sesyon ng chat                                   |
+| `ultra`      | Caveman + pruning helpers                                                                         | Pagbawi sa limitasyon ng konteksto                          |
+| `rtk`        | RTK                                                                                               | Output ng terminal, shell, build, test, at git              |
+| `omniglyph`  | OmniGlyph                                                                                         | Konteksto bilang imahe sa native provider wire              |
+| `stacked`    | Pipeline. Ang default ng kahilingan ay `session-dedup -> lite`. Ang `rtk -> caveman` ay opsyonal. | Pinaghalong log ng tool at prosa, pinakamataas na matitipid |
 
 ### Mga profile ng compression ng OmniGlyph
 
-Tumatanggap ang `omniglyph` engine (package na `omniglyph`, 1.4.0+) ng pinangalanang semantic profile, na itinatakda
-nang pangkalahatan sa pamamagitan ng `omniglyph.profile` sa mga setting ng compression o para sa bawat hakbang sa pamamagitan ng
+Ang `omniglyph` engine (package `omniglyph`, 1.4.0+) ay tumatanggap ng pinangalanang semantic profile, na itinakda
+sa buong mundo sa pamamagitan ng `omniglyph.profile` sa mga setting ng compression o bawat hakbang sa pamamagitan ng
 step config ng stacked pipeline:
 
-| Profile       | Hangganan                                                                                                                                       |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Default. Ang patakarang sinukat ng mga naka-publish na receipt — ginagawang mga larawan ang system, mga dokumento ng tool, at siksik na history |
-| `balanced`    | Pinananatiling native ang live state, pinoprotektahan ang huling 8 turn, at kino-collapse ang mas lumang saradong history                       |
-| `coding-safe` | Pinananatiling native ang authority, mga tool schema, at live na output ng tool, at pinoprotektahan ang huling 12 turn                          |
-| `passthrough` | Nagruruta nang walang pagbabago; nilalaktawan ang engine                                                                                        |
+| Profile       | Hangganan                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Default. Ang patakaran na sinukat ng mga nailathalang resibo — sistema ng mga imahe, dokumento ng tool at siksik na kasaysayan |
+| `balanced`    | Pinapanatili ang live state na native, pinoprotektahan ang huling 8 pagliko, pinagsasama ang mas lumang saradong kasaysayan    |
+| `coding-safe` | Pinapanatili ang awtoridad, mga schema ng tool at live na output ng tool na native, pinoprotektahan ang huling 12 pagliko      |
+| `passthrough` | Nagruruta nang walang pagbabago; nilalaktawan ang engine                                                                       |
 
-Ang profile ay isang **ceiling, hindi floor**: tumatanggi ang `mergeCompressionProfileOptions` sa package
-na payagan ang override ng caller na muling magbukas ng lossy lane na isinara ng profile, kaya hindi maaaring
-muling paganahin ng `preserveSystemPrompt: false` sa bawat hakbang ang compression ng system sa ilalim ng `coding-safe`.
+Ang profile ay isang **kisame, hindi sahig**: Ang `mergeCompressionProfileOptions` sa package
+ay tumatangging payagan ang isang tumatawag na i-override ang muling pagbukas ng isang lossy lane na isinara ng profile, kaya ang isang per-step na
+`preserveSystemPrompt: false` ay hindi maaaring muling paganahin ang system compression sa ilalim ng `coding-safe`.
 
-Batay sa pagsukat sa codebase na ito: itinataas ng `coding-safe` at `balanced` ang `minCompressChars` sa
-maximum nito at pinananatiling native ang system, mga tool schema, at mga resulta ng tool, kaya ang isang session na hindi pa
-nakapag-ipon ng history ay humihinto sa `below_min_chars` at walang binabago ang engine. Iyon
-ang dahilan kung bakit `aggressive` ang default sa halip na ang pinakaligtas na profile.
+Sinukat sa codebase na ito: Ang `coding-safe` at `balanced` ay nagpapataas ng `minCompressChars` sa pinakamataas nito
+at pinapanatili ang system, mga schema ng tool at mga resulta ng tool na native, kaya ang isang sesyon na hindi pa
+nakakakolekta ng kasaysayan ay humihinto sa `below_min_chars` at walang binabago ang engine. Ito ang dahilan
+kung bakit ang default ay `aggressive` sa halip na ang pinakaligtas na profile.
 
-Tinutukoy ng package ang sarili nitong saklaw ng model at profile mula sa configuration ng environment nito.
-Hindi kailanman ipinapasa ng OmniRoute sa iba ang desisyon: itinatakda ng adapter ang model gate sa
-pinakamahigpit na saklaw ng package, kaya maaari lamang paliitin ng mga setting ng host environment ang allowlist, at hindi
-kailanman palawakin ito nang lampas sa mga sinukat na receipt ng OmniRoute.
+Ang package ay nilulutas ang sarili nitong saklaw ng modelo at profile mula sa configuration ng kapaligiran nito.
+Hindi kailanman ipinagkakatiwala ng OmniRoute ang desisyon: ipinipilit ng adapter ang model gate sa pinakamahigpit na saklaw ng package,
+kaya ang mga setting ng host environment ay maaari lamang paliitin ang allowlist, hindi kailanman palawakin ito lampas sa mga sinukat na resibo ng OmniRoute.
 
 ## Registry ng Engine
 
@@ -374,9 +373,9 @@ mga prefix na sensitibo sa cache, atbp.).
   `engineBreakdown` — hindi ito maipagkaiba sa isang hakbang na nilaktawan. Ang pagkilala sa pagitan ng
   "tumakbo, 0 %" at "nilaktawan" ay mangangailangan ng pagbabago sa breakdown model at ipinagpaliban muna.
 
-## Pagpapatunay
+## Balidasyon
 
-Ang mga nakatuong gate para sa bahaging ito ay:
+Ang mga nakatutok na gate para sa lugar na ito ay:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

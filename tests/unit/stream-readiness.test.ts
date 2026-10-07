@@ -756,6 +756,56 @@ test("ensureStreamReadiness preserves sanitized error-only diagnostics on early 
   }
 });
 
+function failingStream(error: Error, prefix: string[] = []): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (const chunk of prefix) controller.enqueue(encoder.encode(chunk));
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      controller.error(error);
+    },
+  });
+}
+
+test("ensureStreamReadiness reports the real upstream stream error instead of a timeout", async () => {
+  const warnings: string[] = [];
+  const response = new Response(
+    failingStream(
+      new Error("cursor-agent stream stalled: no progress for 60s at /srv/omniroute/cursor.ts:9"),
+      [": keepalive\n\n"]
+    ),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+
+  const result = await ensureStreamReadiness(response, {
+    timeoutMs: 5_000,
+    provider: "cursor",
+    model: "gemini-3.8-flash",
+    log: { warn: (_tag, message) => warnings.push(message) },
+  });
+
+  assert.equal(result.ok, false);
+  if (result.ok) assert.fail("an errored stream must be a readiness failure");
+  // Routing class is unchanged: STREAM_EARLY_EOF would add a same-connection retry (#3758)
+  // and delay the combo fallback on a stream the executor already gave up on.
+  assert.equal(result.response.status, 504);
+  assert.equal(result.code, "STREAM_READINESS_TIMEOUT");
+  assert.equal(result.type, "stream_timeout");
+  assert.equal(result.classificationReason, "Stream failed before producing a non-ping SSE event");
+  assert.match(result.upstreamDiagnostic ?? "", /stalled: no progress for 60s/);
+  assert.doesNotMatch(result.reason, /within \d+ms|\/srv\/omniroute/);
+  assert.match(result.reason, /stalled/);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /stalled/);
+
+  const body = (await result.response.json()) as {
+    error: { message: string; code: string };
+    upstream_details: { error: { message: string } };
+  };
+  assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
+  assert.equal(body.error.message, result.classificationReason);
+  assert.equal(body.upstream_details.error.message, result.upstreamDiagnostic);
+});
+
 test("stream-readiness diagnostics cannot reclassify Antigravity account exhaustion (#8972)", () => {
   const classificationError = "Stream ended before producing a non-ping SSE event";
   const diagnostic = "UPSTREAM_DETAIL quota exhausted; retry after 2s; empty content";

@@ -19,6 +19,7 @@ import {
   CONTEXT_1M_BETA_HEADER,
 } from "../../open-sse/services/claudeCodeCompatible.ts";
 import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
+import { CLAUDE_CODE_CLIENT_BILLING_VERSION } from "../../src/shared/constants/claudeCodeClient.ts";
 
 class TestExecutor extends BaseExecutor {
   constructor(config = {}) {
@@ -1573,10 +1574,10 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   assert.equal(capturedHeaders["X-Stainless-Package-Version"], "0.112.1");
 
   const sentBody = JSON.parse(capturedBody) as { system?: Array<{ text?: string }> };
-  assert.match(
-    sentBody.system?.[0]?.text ?? "",
-    /^x-anthropic-billing-header: cc_version=2\.1\.280\.d7b; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
-  );
+  const cc = `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_CLIENT_BILLING_VERSION}; `;
+  const billing = sentBody.system?.[0]?.text ?? "";
+  assert.equal(billing.slice(0, cc.length), cc, "cc_version tracks the constant (#14627)");
+  assert.match(billing.slice(cc.length), /^cc_entrypoint=cli; cch=[0-9a-f]{5};$/);
 });
 
 test('shouldForceResponsesUpstream respects explicit apiType="chat" even when namespace tools are present', () => {

@@ -4,30 +4,30 @@
 
 ---
 
-> **منبع حقیقت:** `src/server/authz/`، `src/shared/constants/publicApiRoutes.ts`، `src/lib/api/requireManagementAuth.ts`، `src/shared/utils/apiAuth.ts`
-> **آخرین بهروزرسانی:** 2026-06-28 — v3.8.40
+> **منبع اصلی:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **آخرین بهروزرسانی:** 2026-09-22 — فضاهای نام دامنه به MCP-SERVER.md اشاره دارند
 
-OmniRoute دارای یک خط لولهٔ مجوزدهی آگاه از مسیر است که تمام درخواستهای API را کنترل میکند. طبقهبندی **قطعی** و **بسته در صورت شکست** است — هر چیزی که قابل طبقهبندی نباشد، در نهایت `MANAGEMENT` در نظر گرفته میشود و به یک نشست یا توکنی با سطح دسترسی مدیریتی نیاز دارد. این صفحه مدل را برای مهندسانی توضیح میدهد که مسیرها را نگهداری میکنند یا endpointهای جدید طراحی میکنند.
+OmniRoute دارای یک خط لوله احراز هویت آگاه به مسیر است که هر درخواست API را کنترل میکند. طبقهبندی **قطعی** و **بستهدرصورتخطا** است — هر چیزی که قابل طبقهبندی نباشد به عنوان `MANAGEMENT` در نظر گرفته میشود و به یک نشست یا توکن با سطح دسترسی مدیریت نیاز دارد. این صفحه مدل را برای مهندسانی که مسیرها را نگهداری میکنند یا نقاط پایانی جدید طراحی میکنند، توضیح میدهد.
 
-![خط لولهٔ AuthZ (۳ کلاس مسیر + ارزیابی سیاست)](../diagrams/exported/authz-pipeline.svg)
+![خط لوله AuthZ (3 کلاس مسیر + ارزیابی سیاست)](../diagrams/exported/authz-pipeline.svg)
 
 > منبع: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## دو حالت احراز هویت
 
-### 1. کلید API (Bearer)
+### 1. کلید API ‏(Bearer)
 
-برای APIهای کلاینت سازگار با OpenAI/Anthropic/Gemini و چند مسیر مدیریتی، زمانی که کلید دارای scope با نام `manage` باشد، استفاده میشود.
+برای APIهای کلاینت سازگار با OpenAI/Anthropic/Gemini و چند مسیر مدیریتی، هنگامی که کلید دارای محدودهٔ `manage` باشد، استفاده میشود.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-اعتبارسنجی توسط `isValidApiKey()` / `extractApiKey()` در `src/sse/services/auth.ts` انجام و از طریق `src/shared/utils/apiAuth.ts` مجدداً صادر میشود. اعتبارسنج همچنین متغیرهای محیطی `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` را بهعنوان کلیدهای عبوری دائمی میپذیرد (issue #1350).
+اعتبارسنجی توسط `isValidApiKey()` / `extractApiKey()` در `src/sse/services/auth.ts` انجام میشود و از طریق `src/shared/utils/apiAuth.ts` نیز مجدداً صادر میشود. اعتبارسنج همچنین متغیرهای محیطی `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` را بهعنوان کلیدهای عبوری دائمی میپذیرد (مشکل #1350).
 
 ### 2. نشست داشبورد (کوکی auth_token)
 
-برای صفحات داشبورد و عملیات مدیریتی استفاده میشود.
+برای صفحات داشبورد و عملیات مدیریتی.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
@@ -35,40 +35,42 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 یک کوکی تنها زمانی نشست محسوب میشود که JWT با موفقیت تأیید شود **و** دارای `authenticated: true` باشد
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). تمام
-مصرفکنندگان این کوکی (محافظ مسیر، نوسازی خط لولهٔ authz، دستدهی WebSocket، سرور
-زنده، `/api/settings/require-login`، `/api/auth/status`) از این helper عبور میکنند.
-JWTهای دیگری نیز که با `JWT_SECRET` امضا شدهاند وجود دارند — قابلیت عبور Cursor CLI برای
-دارندگان کلید، توکنهای `iss "omniroute" / aud "cursor-cli"` صادر میکند — و این توکنها هرگز
-نشست محسوب نمیشوند (#13298).
+مصرفکنندگان این کوکی (محافظ مسیر داشبورد (`isDashboardSessionAuthenticated()`)، نوسازی خط لولهٔ مجوزدهی، دستدهی WebSocket، سرور
+زنده، `/api/settings/require-login`، `/api/auth/status`) از این تابع کمکی عبور میکنند.
+JWTهای دیگری نیز وجود دارند که با `JWT_SECRET` امضا شدهاند — مسیر عبوری Cursor CLI برای دارندگان کلید،
+توکنهایی با `iss "omniroute" / aud "cursor-cli"` صادر میکند — و این توکنها هرگز نشست
+محسوب نمیشوند (#13298).
 
-تأیید توسط `isDashboardSessionAuthenticated()` در `src/shared/utils/apiAuth.ts` انجام میشود. هنگامی که کمتر از ۷ روز از طول عمر ۳۰روزهٔ JWT باقی مانده باشد، خط لوله آن را بهطور خودکار نوسازی میکند.
+تأیید توسط `isDashboardSessionAuthenticated()` در `src/shared/utils/apiAuth.ts` انجام میشود. هنگامی که کمتر از 7 روز از طول عمر 30روزهٔ JWT باقی مانده باشد، خط لوله آن را بهطور خودکار نوسازی میکند.
 
-برخی مسیرهای مدیریتی **هر یک** از این دو حالت را میپذیرند: کوکی یا `Bearer <key>`، مشروط بر اینکه کلید API دارای scope با نام `manage` (یا `admin`) باشد. این همان قابلیتی است که گردش کار «قابل پیکربندی از طریق فراخوانیهای API» افزودهشده در v3.8 را ممکن میکند.
+یک نشست ممکن است پیش از پایان 30 روز نیز خاتمه یابد، زیرا همهٔ صادرکنندگان از `mintDashboardSessionToken` عبور میکنند (با زمان صدور `iat` و شناسهٔ `jti`) و تأییدکننده دو تنظیم را بررسی میکند: `sessionsValidAfter` که هنگام تغییر رمز عبور تنظیم میشود تا تأیید همهٔ نشستهای صادرشده پیش از آن متوقف شود (مرورگری که رمز عبور را تغییر داده است یک کوکی تازه دریافت میکند)، و `revokedDashboardSessions` که `POST /api/auth/logout` مقدار `jti` نشست خارجشده را به آن اضافه میکند. نشستهایی که توسط نسخهای قدیمیتر صادر شدهاند هیچیک از این ادعاها را ندارند و تا نخستین تغییر رمز عبور معتبر باقی میمانند. اگر تنظیمات قابل خواندن نباشند، نشست مورد اعتماد قرار نمیگیرد.
 
-#### دروازهٔ اختیاری ورود OIDC (#6973)
+برخی مسیرهای مدیریتی **هر یک** از این دو حالت را میپذیرند: کوکی یا `Bearer <key>`، مشروط بر اینکه کلید API دارای محدودهٔ `manage` (یا `admin`) باشد. این همان چیزی است که گردشکار «قابل پیکربندی از طریق فراخوانیهای API» اضافهشده در v3.8 را ممکن میسازد.
 
-ورود مدیر داشبورد در کنار ورود پیشفرض با گذرواژه، از یک جریان **اختیاری** OIDC (OpenID Connect) نیز پشتیبانی میکند — ورود با گذرواژه هرگز حذف نمیشود و فقط
-تکمیل میشود:
+#### دروازهٔ ورود اختیاری OIDC ‏(#6973)
 
-- غیرفعال است، مگر اینکه `settings.oidcEnabled === true` باشد **و** همهٔ
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` پیکربندی شده باشند (Settings → Auth).
-  در غیر این صورت، `GET /api/auth/oidc/login` مقدار `400` را برمیگرداند.
-- `GET /api/auth/oidc/login`، `authorization_endpoint` را از
+ورود مدیر داشبورد، در کنار ورود پیشفرض با رمز عبور، از یک جریان **انتخابی** OIDC ‏(OpenID Connect) نیز پشتیبانی میکند — ورود با رمز عبور هرگز حذف نمیشود و فقط
+با این روش تکمیل میشود:
+
+- این قابلیت غیرفعال است، مگر اینکه `settings.oidcEnabled === true` باشد **و** همهٔ مقادیر `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` پیکربندی شده باشند (Settings → Auth).
+  در غیر این صورت، `GET /api/auth/oidc/login` پاسخ `400` را برمیگرداند.
+- `GET /api/auth/oidc/login` مقدار `authorization_endpoint` را از
   `/.well-known/openid-configuration` صادرکننده کشف میکند (و در صورت عدم موفقیت، از
   `<issuer>/authorize` استفاده میکند)، URI تغییرمسیر را از درخواست ورودی
-  (با در نظر گرفتن `x-forwarded-proto`) میسازد و با یک `state` تصادفی که
-  در کوکی `oidc_state` از نوع `httpOnly` ذخیره شده است، کاربر را به IdP هدایت میکند.
-- `GET /api/auth/oidc/callback`، مقدار `state` را اعتبارسنجی میکند، کد مجوز را
+  (با درنظرگرفتن `x-forwarded-proto`) میسازد و با یک `state` تصادفی
+  که در کوکی `oidc_state` از نوع `httpOnly` ذخیره شده است، کاربر را به IdP هدایت میکند.
+- `GET /api/auth/oidc/callback` مقدار `state` را اعتبارسنجی میکند، کد مجوز را
   مبادله میکند و امضای توکن ID را از طریق JWKS صادرکننده
-  (`createRemoteJWKSet` متعلق به `jose`، با cache مجزا برای هر URI مربوط به JWKS) و با بررسیهای `issuer`/`audience`
-  تأیید میکند. allowlist اختیاری `oidcAllowedSubjects` با claim مربوط به
-  `sub` یا claim مربوط به `email` در توکن تطبیق داده میشود — claim مربوط به ایمیل فقط زمانی پذیرفته میشود که
-  `email_verified === true` باشد؛ بنابراین ایمیل تأییدنشده در IdP هرگز نمیتواند
+  (`createRemoteJWKSet` متعلق به `jose`، با کش جداگانه برای هر URI مربوط به JWKS) و همراه با بررسیهای `issuer`/`audience`
+  تأیید میکند. فهرست مجاز اختیاری `oidcAllowedSubjects` با ادعای
+  `sub` توکن یا ادعای `email` آن مطابقت داده میشود — ادعای ایمیل تنها هنگامی پذیرفته میشود که
+  `email_verified === true` باشد؛ بنابراین، ایمیل تأییدنشده در IdP هرگز نمیتواند
   از این دروازه عبور کند.
-- در صورت موفقیت، **دقیقاً همان** JWT سیروزهٔ `auth_token` صادرشده توسط ورود با گذرواژه
-  (`src/app/api/auth/login/route.ts`) ایجاد میشود؛ بنابراین سایر بخشهای
-  خط لولهٔ نشست داشبورد (نوسازی خودکار و flagهای کوکی) بدون تغییر باقی میمانند —
-  OIDC تنها نحوهٔ ایجاد کوکی را جایگزین میکند، نه مجوزهایی را که کوکی اعطا میکند.
+- در صورت موفقیت، **دقیقاً همان** JWT سیروزهٔ `auth_token` را صادر میکند که ورود با رمز عبور
+  صادر میکند (`src/app/api/auth/login/route.ts`)؛ بنابراین، باقی بخشهای
+  خط لولهٔ نشست داشبورد (نوسازی خودکار، پرچمهای کوکی) بدون تغییر باقی میمانند —
+  OIDC فقط نحوهٔ صدور کوکی را جایگزین میکند، نه مجوزهایی را که آن کوکی اعطا میکند.
 
 ## کلاسهای مسیر
 
@@ -197,26 +199,24 @@ export async function POST(request: Request) {
 
 مجموعه را بر اساس شکل انتخاب کنید، نه بر اساس سهولت. یک مسیر تکی باید در `PUBLIC_API_ROUTES_EXACT` قرار گیرد (یا برای مسیرهای فقط-GET در `PUBLIC_READONLY_CORS_API_ROUTES`)؛ تنها یک زیردرخت واقعی باید در `PUBLIC_API_ROUTE_PREFIXES` قرار گیرد و **حتماً باید به `/` ختم شود**. قرار دادن یک مسیر تکی در فهرست پیشوندها، تمام مسیرهای مجاوری را که نویسههای ابتدایی یکسانی دارند نیز عمومی میکند — از جمله مسیرهای همخانواده با سگمنت پویا که بعداً اضافه میشوند (GHSA-74g9-q8f6-793h). تستهای واحد موجود در `tests/unit/public-api-routes.test.ts`، `tests/unit/authz/public-route-exact-match.test.ts` و `tests/unit/authz/classify.test.ts` را بهروزرسانی کنید.
 
-## محدودهها
+## دامنهها
 
-کلیدهای API دارای یک آرایهٔ `scopes` هستند (که بهصورت JSON در `api_keys.scopes` ذخیره میشود؛ به `src/lib/db/apiKeys.ts` مراجعه کنید).
+سه فضای نام. هر بررسیکننده فقط رشتههای خود را میخواند. مقایسه جانبی، شامل اینکه چرا `manage` برای `read:compression` در `scopeMatches` شکست میخورد و چرا یک توکن دسترسی `read` نمیتواند `PATCH /api/keys/{id}` را انجام دهد، در [سه فضای نام دامنه](../frameworks/MCP-SERVER.md#three-scope-namespaces) آمده است.
 
-### محدودهٔ مدیریتی
+کلیدهای API یک آرایه `scopes` را حمل میکنند (که به صورت JSON در `api_keys.scopes` ذخیره میشود، به `src/lib/db/apiKeys.ts` مراجعه کنید).
 
-- `manage` / `admin` — هنگامی که کلید بهصورت Bearer ارسال شود، دسترسی به نقاط پایانی API مدیریتی را فراهم میکند.
+### دامنه مدیریت
 
-### محدودههای MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. دسترسی Bearer به مسیرهای API مدیریت.
+- `mcp:connect`، `self:usage`، `self:account-quota` و `policy:bypass-provider-quota` دامنههای افزودنی با تطابق دقیق هستند. آنها خارج از `MANAGEMENT_API_KEY_SCOPES` قرار دارند. `mcp:connect` فقط بخش غیر-لوپبک `/api/mcp/` را باز میکند.
 
-هر ابزار MCP از طریق `MCP_TOOL_SCOPES` به محدودههای مشخصی نیاز دارد. فهرست کامل (`MCP_SCOPE_LIST`):
+### دامنههای ابزار MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+کاتالوگ و قوانین تطابق (رشته یکسان، یا دامنهای اعطا شده که به `*` ختم میشود): [دامنههای ابزار MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `MCP_SCOPE_LIST` در `src/shared/constants/mcpScopes.ts` زیرمجموعه تایپ شده اصلی است، نه آن کاتالوگ کامل. اعمال قوانین در `open-sse/mcp-server/scopeEnforcement.ts` پس از اینکه `resolveCallerScopeContext()` دامنهها را از اطلاعات احراز هویت MCP، فراداده درخواست، یا `OMNIROUTE_MCP_SCOPES` حل و فصل میکند، اجرا میشود. این قابلیت خاموش میماند مگر اینکه `OMNIROUTE_MCP_ENFORCE_SCOPES=true` باشد.
 
-اعمال محدودهها در `open-sse/mcp-server/server.ts`، پس از آنکه `resolveCallerScopeContext()` محدودهها را از اطلاعات احراز هویت MCP، فرادادهٔ درخواست یا `OMNIROUTE_MCP_SCOPES` استخراج میکند، فهرست محدودهٔ هر ابزار را به `evaluateToolScopes()` ارسال میکند.
+### دامنههای توکن دسترسی
+
+`read` / `write` / `admin` بر روی توکنهای `oma_live_…`، رتبهبندی شده توسط `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). این رتبه فقط برای اعتبارنامه توکن دسترسی اعمال میشود. به [احراز هویت مدیریت](../guides/MANAGEMENT-AUTH.md) مراجعه کنید.
 
 ## کلید تغییر وضعیت الزام احراز هویت
 
@@ -265,6 +265,6 @@ x-omniroute-auth-scopes:    فهرست جداشده با ویرگول
 ## همچنین ببینید
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — نشانگر احراز هویت برای هر نقطه پایانی
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — گزارش ممیزی رویدادهای احراز هویت
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — جزئیات اعمال محدوده MCP
-- منبع: `src/server/authz/`، `src/lib/api/requireManagementAuth.ts`
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — گزارش حسابرسی برای رویدادهای احراز هویت
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — سه فضای نام دامنه و کاتالوگ دامنه ابزار MCP
+- منبع: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

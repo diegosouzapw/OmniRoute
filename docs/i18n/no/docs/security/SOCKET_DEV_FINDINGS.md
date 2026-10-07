@@ -216,13 +216,13 @@ kan sentralisere teamets legitimasjon på. Rettelsen gjør trusselmodellen tydel
 
 ## Byggeprofil: `minimal`
 
-For brukere som trenger en Socket-vennlig artefakt, bygg med:
+For brukere som trenger en Socket-kompatibel artefakt, bygg med:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack-utvidelsen `NormalModuleReplacementPlugin` bruker aliaser for å erstatte fire moduler med stubber:
+Webpack-pluginen `NormalModuleReplacementPlugin` tilordner fire moduler til stubber:
 
 | Modul                                       | Stubb                                            |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -231,13 +231,12 @@ Webpack-utvidelsen `NormalModuleReplacementPlugin` bruker aliaser for å erstatt
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Hver stubb eksporterer det samme grensesnittet, men alle funksjoner utløser
-`featureDisabledError(name)` under kjøring. Ruter som avhenger av den deaktiverte
+Hver stubb eksporterer det samme grensesnittet, men alle funksjoner utløser en
+`featureDisabledError(name)` under kjøring. Ruter som er avhengige av den deaktiverte
 modulen, returnerer HTTP 503 med en tydelig melding i stedet for å aktivere den
 sensitive kodebanen.
 
-Den resulterende pakken er ment å publiseres som `omniroute-secure`. Se
-`docs/ops/PUBLISHING_SECURE.md` for publiseringsoppskriften.
+Den resulterende pakken er ment å publiseres som `omniroute-secure`.
 
 ---
 

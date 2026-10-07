@@ -4,56 +4,59 @@
 
 ---
 
-OmniRoute har **fire legitimationsfamilier**, der kan godkende administrationsruter.
-De kan ikke bruges i flæng. Inferens-API-nøgler (`sk-…`) kan **ikke** administrere
-serveren, medmindre de udtrykkeligt har fået tildelt scope `manage` eller `admin`.
+OmniRoute har **fire legitimationsfamilier**, der kan autorisere administrationsruter.
+De kan ikke bruges i stedet for hinanden. Inferens-API-nøgler (`sk-…`) administrerer
+**ikke** serveren, medmindre de udtrykkeligt er blevet tildelt omfanget `manage` eller `admin`.
 
 Kanonisk implementering: `src/lib/api/requireManagementAuth.ts`.
 
-| Legitimationsoplysning | Typisk format                        | Oprettes hvor                                               | Tilsigtet brug                   | Administrationsfunktioner                                                                           |
-| ---------------------- | ------------------------------------ | ----------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Dashboard-JWT-session  | Cookien `auth_token`                 | Dashboard-login                                             | Browsergrænseflade               | Fuld administration via dashboardet, underlagt regler for CSRF, lokalitet og altid beskyttede ruter |
-| CLI-maskin-id-token    | intern / lokal                       | CLI-bootstrap (`omniroute` på samme maskine)                | Lokal CLI                        | Kun lokal administration                                                                            |
-| Adgangstoken med scope | `oma_live_…`                         | **Indstillinger → Adgangstokens** eller `omniroute connect` | Fjern-CLI og administrations-API | Skal opfylde rutens påkrævede scope `read`, `write` eller `admin`                                   |
-| Inferens-API-nøgle     | `sk-…` (og andre API-nøglepræfikser) | **API-administrator / API-nøgler**                          | `/v1/*`-inferens                 | **Ingen**, medmindre nøglens metadata indeholder `manage` eller `admin`                             |
+| Legitimationsoplysninger | Typisk format                        | Oprettet hvor                                               | Tilsigtet brug                   | Administrationsmuligheder                                                                  |
+| ------------------------ | ------------------------------------ | ----------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------ |
+| Dashboard-JWT-session    | `auth_token`-cookie                  | Login på dashboardet                                        | Browsergrænseflade               | Fuld dashboardadministration underlagt regler om CSRF, lokalitet og altid beskyttede ruter |
+| CLI-machine-id-token     | intern / lokal                       | CLI-bootstrap (`omniroute` på den samme maskine)            | Lokal CLI                        | Kun lokal administration                                                                   |
+| Adgangstoken med omfang  | `oma_live_…`                         | **Indstillinger → Adgangstokens** eller `omniroute connect` | Fjern-CLI og administrations-API | Skal opfylde rutens påkrævede omfang `read`, `write` eller `admin`                         |
+| Inferens-API-nøgle       | `sk-…` (og andre API-nøglepræfikser) | **API-administrator / API-nøgler**                          | `/v1/*`-inferens                 | **Ingen**, medmindre nøglens metadata inkluderer `manage` eller `admin`                    |
 
 `oma_`-legitimationsoplysninger er administrations-/CLI-legitimationsoplysninger. De er **ikke** inferens-API-nøgler.
 
-Hvis login-/API-nøglegodkendelse er deaktiveret på serveren, kan nogle administrationsruter
-acceptere kald uden godkendelse. Ruter, der kun er lokale eller altid er beskyttede, anvender
-stadig deres egne regler. Det er derfor ikke altid obligatorisk at angive en af disse
-legitimationsoplysninger, og det er heller ikke altid tilstrækkeligt at have en uden det påkrævede
-scope og den korrekte rutelokalitet.
+Hvis login-/API-nøglegodkendelse er deaktiveret for serveren, kan nogle administrationsruter
+acceptere ikke-godkendte kald. Ruter, der kun er lokale eller altid er beskyttede, anvender
+stadig deres egne regler. Det er derfor ikke altid obligatorisk at præsentere en af disse
+legitimationsoplysninger, og det er heller ikke altid tilstrækkeligt at være i besiddelse af
+en uden det påkrævede omfang og den påkrævede rutelokalitet.
 
-Relateret: [Fjerntilstand](./REMOTE-MODE.md) (sådan oprettes `oma_live_…` til en fjern-CLI).
+Relateret: [Fjerntilstand](./REMOTE-MODE.md) (hvordan `oma_live_…` udstedes til en fjern-CLI).
 
 ---
 
-## Scope-matricer
+## Omfangsmatricer
 
-Disse to scope-ordforråd er **forskellige**. Bland dem ikke sammen.
+Omfang for administration af API-nøgler og omfang for adgangstokens bruger forskellige ordforråd.
+Omfang for MCP-værktøjer udgør et tredje ordforråd, som kontrolleres med `scopeMatches` i stedet for
+nogen af funktionerne i tabellerne nedenfor. Side om side:
+[Tre navnerum for omfang](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scopes for adgangstokens (`oma_live_…`)
+### Omfang for adgangstokens (`oma_live_…`)
 
-| Scope   | Typiske handlinger                                                                       |
-| ------- | ---------------------------------------------------------------------------------------- |
-| `read`  | Liste-/status-GET-kald, som tokenet har adgang til at se                                 |
-| `write` | Ændringer (opret/opdater/slet) under administratorniveau                                 |
-| `admin` | Fuld fjern-CLI / forbindelsestoken (bootstrap med adgangskode bruger dette som standard) |
+| Omfang  | Typiske handlinger                                                                            |
+| ------- | --------------------------------------------------------------------------------------------- |
+| `read`  | GET-anmodninger til lister/status, som tokenet har tilladelse til at se                       |
+| `write` | Ændringer (opret/opdater/slet) under administratorniveau                                      |
+| `admin` | Fuld ekstern CLI / forbindelsestoken (standardindstillingen for adgangskode-bootstrap er her) |
 
-Et token med `read` kan ikke kalde en `write`-rute. Formatet på kørselsmeddelelsen er:
+Et token med `read` kan ikke kalde en `write`-rute. Formen på runtime-meddelelsen:
 `Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Administrationsscopes for API-nøgler
+### Omfang for administration af API-nøgler
 
-| Scope    | Betydning                                                                         |
-| -------- | --------------------------------------------------------------------------------- |
-| (ingen)  | Kun inferens. Administrationsruter returnerer 403.                                |
-| `manage` | Administrations-API (samme kontrol som API-nøglegrenen i `requireManagementAuth`) |
-| `admin`  | Opfylder også `hasManageScope` (behandles som administrationskompatibel)          |
+| Omfang   | Betydning                                                                                |
+| -------- | ---------------------------------------------------------------------------------------- |
+| (intet)  | Kun inferens. Administrationsruter returnerer 403.                                       |
+| `manage` | Administrations-API (samme adgangskontrol som API-nøglegrenen i `requireManagementAuth`) |
+| `admin`  | Opfylder også `hasManageScope` (behandles som egnet til administration)                  |
 
-Aktivér `manage` på nøglen i brugergrænsefladen API-nøgler / API-administrator. Genbrug ikke en
-chatklientnøgle til automatisering, medmindre du bevidst har tildelt dette scope.
+Aktivér `manage` for nøglen i brugergrænsefladen API Keys / API Manager. Genbrug ikke en
+chatklientnøgle til automatisering, medmindre du bevidst har tildelt den dette omfang.
 
 ---
 
@@ -127,26 +130,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Aktuelle kørselsfejl (gengiv ikke hemmeligheder)
+## Aktuelle runtime-fejl (afslør ikke hemmeligheder)
 
-| Situation                                              | Typisk status | Meddelelse (saneret)                                                 |
+| Situation                                              | Typisk status | Meddelelse (sanitiseret)                                             |
 | ------------------------------------------------------ | ------------- | -------------------------------------------------------------------- |
 | Ingen legitimationsoplysninger                         | 401           | `Authentication required`                                            |
-| Ugyldigt/udløbet `oma_live_…`                          | 401           | `Invalid or expired access token`                                    |
+| Ugyldig/udløbet `oma_live_…`                           | 401           | `Invalid or expired access token`                                    |
 | Gyldig API-nøgle uden `manage`/`admin`                 | 403           | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
 | Ugyldig almindelig API-nøgle på en administrationsrute | 403           | `Invalid management token`                                           |
-| Adgangstokenets scope er for lavt                      | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Access Token-scope er for lavt                         | 403           | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token" betyder, at bearer-tokenet **ikke** blev accepteret som en administrationslegitimationsoplysning. Det fortæller **ikke**, hvilken type du skal oprette. Brug tabellen ovenfor: inferensnøgler kræver `manage`-scope; fjern-CLI kræver `oma_live_…`; dashboardet bruger sessionscookien.
+"Invalid management token" betyder, at bearer-tokenet **ikke** blev accepteret som en
+administrationslegitimationsoplysning. Det fortæller dig **ikke**, hvilken type du skal oprette. Brug tabellen ovenfor:
+inferensnøgler kræver `manage`-scope; fjern-CLI'en kræver `oma_live_…`; dashboardet
+bruger sessionscookien.
 
 ---
 
 ## Anbefalet valg med færrest mulige rettigheder
 
-| Kalder                                                         | Brug                                                         |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| Browser                                                        | Dashboard-session                                            |
-| CLI på serverværten                                            | Maskintoken                                                  |
-| CLI på en bærbar computer, der kommunikerer med en fjernserver | `oma_live_…` fra `omniroute connect`                         |
-| CI/scripts (kun administration)                                | `oma_live_…` med det mindste scope, der fungerer             |
-| CI, der skal kalde både `/v1` og `/api`                        | API-nøgle med `manage` **eller** to legitimationsoplysninger |
+| Kaldende part                                         | Brug                                                         |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| Browser                                               | Dashboard-session                                            |
+| CLI på serverværten                                   | Maskintoken                                                  |
+| CLI på en laptop, der kommunikerer med en fjernserver | `oma_live_…` fra `omniroute connect`                         |
+| CI / scripts (kun administration)                     | `oma_live_…` med det mindst mulige omfang, der fungerer      |
+| CI, der skal kalde både `/v1` og `/api`               | API-nøgle med `manage` **eller** to legitimationsoplysninger |

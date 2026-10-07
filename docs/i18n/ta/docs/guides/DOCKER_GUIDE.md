@@ -235,18 +235,18 @@ docker compose -f docker-compose.prod.yml down
 
 prod stack, dev compose உடன் இணையாக இயங்கும் (வேறுபட்ட கண்டெய்னர் பெயர்கள், ports மற்றும் volumes), எனவே production தொடர்ந்து இயங்கிக்கொண்டிருக்கும்போது நீங்கள் உள்ளூரில் தொடர்ந்து மாற்றங்களைச் செய்து சோதிக்கலாம்.
 
-## Dockerfile கட்டங்கள்
+## Dockerfile நிலைகள்
 
-இந்தக் களஞ்சியம் பல-கட்ட Dockerfile (`Dockerfile`) ஒன்றை வழங்குகிறது. நான்கு கட்டங்கள் வெளிப்படுத்தப்பட்டுள்ளன; உங்கள் பயன்பாட்டிற்கு ஏற்ற `target`-ஐத் தேர்ந்தெடுக்கவும்.
+இந்த repository பல-நிலை Dockerfile (`Dockerfile`) ஒன்றுடன் வழங்கப்படுகிறது. நான்கு நிலைகள் வெளிப்படுத்தப்பட்டுள்ளன; உங்கள் பயன்பாட்டிற்கான சரியான `target`-ஐத் தேர்ந்தெடுக்கவும்.
 
-| கட்டம்        | அடிப்படை image        | நோக்கம்                                                                                                                                                                                                                                                                                                                                               |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | சார்புகளை நிறுவி (`npm ci --legacy-peer-deps`), `npm run build`-ஐ இயக்குகிறது (இயல்பாக Turbopack — கீழே உள்ள உருவாக்க நேர வளங்களைப் பார்க்கவும்)                                                                                                                                                                                                      |
-| `runner-base` | `node:26-trixie-slim` | Next.js standalone வெளியீட்டைக் கொண்ட production runtime. **எந்த provider CLI-களும் சேர்க்கப்படவில்லை.**                                                                                                                                                                                                                                              |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` மற்றும் global CLI-களைச் சேர்க்கிறது: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agentic workflow-களுக்கு இதைத் தேர்ந்தெடுக்கவும்.**                                                                                                                                                   |
-| `runner-web`  | `runner-base`         | Web-session provider-களுக்காக Playwright + Chromium browser (`--with-deps`) ஆகியவற்றைச் சேர்க்கிறது: `gemini-web`, `claude-web`, `claude-turnstile`. **அந்த provider-களைப் பயன்படுத்தும்போது இதைத் தேர்ந்தெடுக்கவும்** — இது இல்லாமல் plain image request நேரத்தில் தோல்வியடையும் (Release Channels என்பதன் கீழ் உள்ள `-web` குறிப்பைப் பார்க்கவும்). |
+| நிலை          | அடிப்படை image        | நோக்கம்                                                                                                                                                                                                                                                                                                                                           |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | சார்புகளை நிறுவி (`npm ci --legacy-peer-deps`), `npm run build`-ஐ இயக்குகிறது (இயல்பாக Turbopack — கீழே உள்ள கட்டுமான-நேர வளங்களைப் பார்க்கவும்)                                                                                                                                                                                                  |
+| `runner-base` | `node:26-trixie-slim` | Next.js-இன் standalone output உடன் கூடிய production runtime. **Provider CLI-கள் எதுவும் சேர்க்கப்படவில்லை.**                                                                                                                                                                                                                                      |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` மற்றும் global CLI-களைச் சேர்க்கிறது: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agentic workflow-களுக்கு இதைத் தேர்ந்தெடுக்கவும்.**                                                                                                                                               |
+| `runner-web`  | `runner-base`         | Web-session provider-களுக்காக Playwright + Chromium browser (`--with-deps`) ஆகியவற்றைச் சேர்க்கிறது: `gemini-web`, `claude-web`, `claude-turnstile`. **அந்த provider-களைப் பயன்படுத்தும்போது இதைத் தேர்ந்தெடுக்கவும்** — இது இல்லாமல் சாதாரண image கோரிக்கை நேரத்தில் தோல்வியடையும் (Release Channels-இன் கீழுள்ள `-web` குறிப்பைப் பார்க்கவும்). |
 
-குறிப்பிட்ட target ஒன்றைக் கைமுறையாக உருவாக்கவும்:
+ஒரு குறிப்பிட்ட target-ஐ கைமுறையாக build செய்யவும்:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,83 +254,93 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### உருவாக்க நேர வளங்கள்
+### கட்டுமான-நேர வளங்கள்
 
-`builder` கட்டத்தின் வளச் செலவைக் கட்டுப்படுத்தும் மூன்று build arg-கள் உள்ளன. அவை உருவாக்க நேரத்திற்கு மட்டுமே உரியவை —
+`builder` நிலையின் வளச் செலவை மூன்று build arg-கள் கட்டுப்படுத்துகின்றன. அவை build நேரத்திற்கு மட்டுமே உரியவை —
 `OMNIROUTE_MEMORY_MB` (கீழே) என்பது தனியான runtime கட்டுப்பாடு.
 
-| Build arg                   | இயல்புநிலை | விளைவு                                                                                                             |
-| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`        | `0` எனில் அதற்குப் பதிலாக webpack மூலம் உருவாக்கும். உச்ச memory குறைவாக இருக்கும், ஆனால் மெதுவாக இயங்கும்.        |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | தொடங்கப்படும் `next build`-க்கான V8 heap உச்சவரம்பு (`--max-old-space-size`).                                      |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL`-க்கு மதிப்பை வழங்குகிறது; page-data சேகரிப்பிற்காக Next, `workers = N - 1` எனக் கணக்கிடுகிறது. |
+| Build arg                   | இயல்புநிலை | விளைவு                                                                                                      |
+| --------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`        | `0` webpack மூலம் build செய்கிறது: குறைந்த உச்ச நினைவகம், மெதுவானது. `1` Turbopack-ஐத் தேர்வுசெய்கிறது.     |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | உருவாக்கப்படும் `next build`-க்கான V8 heap உச்சவரம்பு (`--max-old-space-size`).                             |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL`-க்கு மதிப்பளிக்கிறது; page-data சேகரிப்புக்காக Next, `workers = N - 1` எனக் கணிக்கிறது. |
 
-பெரிய builder ஒன்றில் அதிகரிக்க வேண்டியதும், குறைந்த வளமுள்ள build ஒன்று
-`✓ Compiled successfully` என்பதற்குப் **பிறகு** செயலிழக்கும்போது சந்தேகிக்க வேண்டியதும் `OMNIROUTE_BUILD_WORKERS`
-ஆகும். ஒவ்வொரு page-data worker-உம் தனித்தனி process ஆகும்; parent `next build`-உம்
-அப்படியே தனி process ஆகும்; ஒரு நேரடி VPS மறுஉருவாக்கத்தில் (issue #7518), ஒவ்வொரு process-இன்
-உச்ச RSS-உம் `NODE_OPTIONS` heap flag-இலிருந்து சுயாதீனமாக ~4.5 GB என்று அளவிடப்பட்டது
-(Turbopack, V8 heap-க்கு வெளியே உள்ள native/Rust memory-இல் compile செய்கிறது).
-இயல்புநிலையான `2` (→ 1 worker, மொத்தம் 2 process-கள்) என்பது publish pipeline பயன்படுத்தும்
-16 GB / 4 vCPU GitHub-hosted runner-களுக்கேற்ப நிர்ணயிக்கப்பட்டுள்ளது.
-`8` (→ 7 worker-கள்) என அமைத்தபோது அந்த runner-இன் memory தீர்ந்துவிட்டதால்,
-buildkit அந்தப் படிநிலையை `ResourceExhausted: ... cannot allocate memory` என்பதுடன்
-தோல்வியடையச் செய்தது; process ஒன்றிற்கான RSS ஊகிக்கப்படாமல் நேரடியாக அளவிடப்பட்டபோது,
-`3` (→ 2 worker-கள்) என்பதும் போதவில்லை. `tests/unit/docker-build-memory-budget.test.ts`
-அளவிடப்பட்ட மதிப்பை அடிப்படையாகக் கொண்டு கணக்கீடு செய்து, இரண்டு கட்டுப்பாடுகளில்
-ஏதேனும் ஒன்று runner-இன் கொள்ளளவை மீறினால் தோல்வியடைகிறது.
+பெரிய builder ஒன்றில் உயர்த்த வேண்டியது `OMNIROUTE_BUILD_WORKERS` ஆகும்; மேலும்,
+வளக் கட்டுப்பாடுள்ள build ஒன்று `✓ Compiled successfully` என்பதற்குப் **பிறகு**
+செயலிழக்கும்போது சந்தேகிக்க வேண்டியதும் இதுவே. ஒவ்வொரு page-data worker-உம்
+தனித்தனி process ஆகும்; parent `next build`-உம் தனி process ஆகும்;
+ஒரு செயல்பாட்டிலுள்ள VPS மறுஉருவாக்கம் (issue #7518), `NODE_OPTIONS` heap flag-ஐச்
+சாராமல் ஒவ்வொரு process-இன் உச்ச RSS-உம் ~4.5 GB என்று அளவிட்டது (Turbopack,
+V8 heap-க்கு வெளியே உள்ள native/Rust நினைவகத்தில் compile செய்கிறது). இயல்புநிலையான
+`2` (→ 1 worker, மொத்தம் 2 process-கள்), publish pipeline பயன்படுத்தும்
+16 GB / 4 vCPU GitHub-hosted runner-களுக்கு ஏற்றவாறு அமைக்கப்பட்டுள்ளது.
+`8`-இல் (→ 7 worker-கள்), அந்த runner-இல் நினைவகம் தீர்ந்தது; மேலும்
+buildkit, `ResourceExhausted: ... cannot allocate memory` என்ற பிழையுடன் அந்தப்
+படியைத் தோல்வியடையச் செய்தது; ஒரு process-க்கான RSS ஊகிக்கப்படுவதற்குப் பதிலாக
+நேரடியாக அளவிடப்பட்டபோது, `3` (→ 2 worker-கள்) என்பதும் போதவில்லை.
+`tests/unit/docker-build-memory-budget.test.ts`, அளவிடப்பட்ட மதிப்பைப் பயன்படுத்தி
+கணக்கீட்டைச் செய்து, ஏதேனும் ஒரு கட்டுப்பாடு runner-இன் கொள்ளளவை மீறினால்
+தோல்வியடைகிறது.
 
-Turbopack, V8 heap-க்கு **வெளியே** இருக்கும் native Rust memory-இல் compile செய்வதால்,
-`OMNIROUTE_BUILD_MEMORY_MB` அதற்கு வரம்பிடாது. Memory உச்சவரம்புள்ள host ஒன்றில்,
-எந்த error உரையும் இல்லாமல் OOM killer மூலம் build SIGKILL செய்யப்படும் — அது
-`Creating an optimized production build` என்பதன் நடுவில் அப்படியே நின்றுவிடும்;
-இதனால் out-of-memory பிரச்சினையாகத் தெரியாமல், செயல்முறை சிக்கிக்கொண்டதுபோல் தோன்றும்.
-Build host-இல் வளங்கள் குறைவாக இருந்தால், bundler-களை மாற்றவும்:
+Turbopack, V8 heap-க்கு **வெளியே** இருக்கும் native Rust நினைவகத்தில் compile
+செய்கிறது; எனவே `OMNIROUTE_BUILD_MEMORY_MB` அதைக் கட்டுப்படுத்தாது. நினைவக
+உச்சவரம்புள்ள host ஒன்றில், எந்தப் பிழை உரையும் இல்லாமல் OOM killer மூலம் build
+SIGKILL செய்யப்படுகிறது — அது `Creating an optimized production build` என்பதன்
+நடுவில் வெறுமனே நின்றுவிடுகிறது; இதனால் நினைவகம் தீர்ந்ததாகத் தோன்றுவதற்குப் பதிலாக
+செயலிழந்து நிற்பதைப் போல் தோன்றுகிறது. அதனால்தான் `npm run dev` / `npm run build`
+போல அல்லாமல், `Dockerfile` இயல்பாக webpack-ஐ
+(`OMNIROUTE_USE_TURBOPACK=0`) பயன்படுத்துகிறது; அவற்றில் Turbopack-தான் code
+இயல்புநிலை: build arg-கள் இல்லாத வெற்று `docker build .` கட்டளை (Railway மற்றும்
+பிற one-click host-கள் இயக்குவது), நினைவகக் கட்டுப்பாடுள்ள builder-இல் அமைதியாக
+செயலிழக்கக் கூடாது. வெளியிடப்பட்ட image-கள் ஏற்கனவே `docker-publish.yml`-இல்
+`OMNIROUTE_USE_TURBOPACK=0` என்பதை வெளிப்படையாக அனுப்புகின்றன. போதுமான RAM உள்ள
+builder-இல் விரைவான build-க்காக Turbopack-ஐத் தேர்வுசெய்யவும்:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` இயக்கப்பட்டிருப்பதால், `next build` ஒரு parent process-ஐயும்
-ஒரு worker process-ஐயும் இயக்குகிறது; ஒவ்வொன்றும் `OMNIROUTE_BUILD_MEMORY_MB`-ஐத்
-தனித்தனியாகப் பின்பற்றுகின்றன. Container உச்சவரம்பை அந்த மதிப்பின் ஒரு மடங்கிற்கு அல்ல,
-தோராயமாக இரண்டு மடங்கிற்கு மேல் அமைக்கவும்.
+`webpackBuildWorker` செயல்படுத்தப்பட்டுள்ளது; எனவே `next build` ஒரு parent
+process-ஐயும் ஒரு worker process-ஐயும் இயக்குகிறது, மேலும் ஒவ்வொன்றும்
+`OMNIROUTE_BUILD_MEMORY_MB`-ஐத் தனித்தனியாக மதிக்கின்றன. Container
+உச்சவரம்பை அந்த மதிப்பின் ஒருமடங்கிற்கு அல்லாமல், ஏறத்தாழ இருமடங்கிற்கும்
+அதிகமாக அமைக்கவும்.
 
 இந்த tree-இல் அளவிடப்பட்டது (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Container உச்சவரம்பு | முடிவு                                                  |
-| --------- | -------------------- | ------------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB       | இரண்டிலும் எந்தச் செய்தியுமின்றி OOM-kill செய்யப்பட்டது |
-| webpack   | 8 GiB                | build worker SIGKILL செய்யப்பட்டது                      |
-| webpack   | 12 GiB               | வெற்றியடைந்தது; உச்சப் பயன்பாடு 11.1 GiB                |
+| Bundler   | Container உச்சவரம்பு | முடிவு                                          |
+| --------- | -------------------- | ----------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB       | இரண்டிலும் பிழை உரையின்றி OOM-kill ஆனது         |
+| webpack   | 8 GiB                | build worker SIGKILL செய்யப்பட்டது              |
+| webpack   | 12 GiB               | வெற்றியடைந்தது, உச்சமாக 11.1 GiB பயன்படுத்தியது |
 
 ### Runtime இயல்புநிலைகள்
 
-`runner-base` மூலம் export செய்யப்படும் இயல்புநிலைகள்: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+`runner-base` export செய்யும் இயல்புநிலைகள்: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
-Docker-இல் memory செயல்பாடு:
+Docker-இல் நினைவகச் செயல்பாடு:
 
 - இந்த image `OMNIROUTE_MEMORY_MB=1024` என்பதை அமைத்து, அதிலிருந்து `NODE_OPTIONS=--max-old-space-size=1024` என்பதைப் பெறுகிறது.
-- உண்மையான server process, standalone launcher மூலம் தொடங்கப்படுகிறது; அது `OMNIROUTE_MEMORY_MB` மதிப்பைப் படித்து, `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` என்பதைச் சேர்க்கிறது.
-- மீண்டும் மீண்டும் குறிப்பிடப்பட்ட `--max-old-space-size` மதிப்புகளில் கடைசி மதிப்பை Node பயன்படுத்துகிறது; எனவே `OMNIROUTE_MEMORY_MB` அமைப்பது நடைமுறையிலுள்ள Docker heap வரம்பைக் கட்டுப்படுத்துகிறது.
-- image இதை எப்போதும் அமைப்பதால், launcher's RAM-அளவீடு செய்யப்பட்ட fallback Docker-இன் கீழ் ஒருபோதும் பயன்படுத்தப்படாது. workload-க்கு ஏற்ப இதை வெளிப்படையாக உயர்த்தவும் (கீழேயுள்ள அட்டவணையைப் பார்க்கவும்). coding-agent `/v1/responses` பயன்பாட்டிற்கு `2048` இன்னும் போதுமானதல்ல.
+- உண்மையான server process, standalone launcher மூலம் தொடங்கப்படுகிறது; அது `OMNIROUTE_MEMORY_MB` என்பதைப் படித்து `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` என்பதைச் சேர்க்கிறது.
+- மீண்டும் மீண்டும் வழங்கப்படும் `--max-old-space-size` மதிப்புகளில் கடைசி மதிப்பை Node பயன்படுத்துகிறது; எனவே `OMNIROUTE_MEMORY_MB` என்பதை அமைப்பது நடைமுறையில் பயன்படுத்தப்படும் Docker heap வரம்பைக் கட்டுப்படுத்துகிறது.
+- image எப்போதும் இதை அமைப்பதால், launcher-இன் RAM அடிப்படையில் அளவிடப்படும் fallback Docker-இல் ஒருபோதும் பயன்படுத்தப்படாது. பணிச்சுமைக்கேற்ப இதை வெளிப்படையாக அதிகரிக்கவும் (கீழே உள்ள அட்டவணையைப் பார்க்கவும்). coding-agent `/v1/responses` பயன்பாட்டிற்கு `2048` இன்னும் போதுமானதல்ல.
 
-### Coding agents-க்கான இயக்கநேர RAM
+### Coding agent-களுக்கான இயக்கநேர RAM
 
-1 GiB Docker இயல்புநிலை என்பது dashboard/இலகுவான-chat பயன்பாட்டிற்கான குறைந்தபட்ச அளவே தவிர, production அளவு அல்ல. நீண்ட `POST /v1/responses` body-கள் (நூற்றுக்கணக்கான messages, பத்துக்கணக்கான tools) compression நடைபெறும்போது பல in-memory graph-களைத் தக்கவைத்துக்கொள்கின்றன. ஒரே நேரத்தில் செயல்பட்ட சுமார் ~3 MiB / ~750k-token அளவுடைய இரண்டு requests, **12 GiB** old-space-இல் V8-ஐ நிறுத்தியுள்ளன (`FATAL ERROR: Reached heap limit`); மேலும் 16 GiB cgroup OOM வரம்பையும் எட்டியுள்ளன. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)-ஐப் பார்க்கவும்.
+1 GiB Docker இயல்புநிலை என்பது dashboard/இலகுவான chat பயன்பாட்டிற்கான குறைந்தபட்ச அளவே தவிர, production அளவு அல்ல. நீண்ட `POST /v1/responses` body-கள் (நூற்றுக்கணக்கான messages, பல பத்து tools) compression நடைபெறும்போது பல in-memory graph-களைத் தக்கவைத்துக்கொள்கின்றன. ஒரே நேரத்தில் செயல்பட்ட ~3 MiB / ~750k-token அளவுள்ள இரண்டு requests, **12 GiB** old-space-இல் V8-ஐ நிறுத்தியுள்ளன (`FATAL ERROR: Reached heap limit`); மேலும் 16 GiB cgroup OOM வரம்பையும் எட்டியுள்ளன. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) என்பதைப் பார்க்கவும்.
 
-**heap அளவைவிட அதிகமாக cgroup `--memory`-ஐ நிர்ணயிக்கவும்** — native buffer-கள், SQLite மற்றும் compression இடைநிலைத் தரவுகள் V8-க்கு வெளியே உள்ளன.
+**cgroup `--memory` அளவை heap-ஐ விட அதிகமாக** அமைக்கவும் — native buffers, SQLite மற்றும் compression இடைநிலைத் தரவுகள் V8-க்கு வெளியே இருக்கும்.
 
-| Workload                                                      | `OMNIROUTE_MEMORY_MB`          | Container / cgroup                   | குறிப்புகள்                                                                                                                                           |
-| ------------------------------------------------------------- | ------------------------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard, ஓர் இலகுவான chat                                   | `1024` (image இயல்புநிலை)      | ≥2 GiB                               |                                                                                                                                                       |
-| ஒரு coding agent (Claude/Codex/Grok)                          | `8192`                         | ≥10 GiB                              | வழக்கமான ஒற்றை-session `/v1/responses`                                                                                                                |
-| ஒரே நேரத்தில் இரண்டு நீண்ட `/v1/responses`                    | `10240`–`12288`                | ≥12–16 GiB                           | சுமார் ~12 GiB heap-இல் V8 நிறுத்தம் அளவிடப்பட்டது                                                                                                    |
-| ஒரே நேரத்தில் மூன்று அல்லது அதற்கு மேற்பட்ட நீண்ட context-கள் | ஒரே process-இல் செய்ய வேண்டாம் | தொடர்ச்சியாக இயக்கவும் / கூடுதல் RAM | இயல்புநிலை heavyweight admission-இல் 1 request மட்டுமே செயல்பாட்டில் இருக்கும்; RAM-ஐ அதிகரிக்காமல் இதை உயர்த்துவது மீண்டும் நிறுத்தத்தை ஏற்படுத்தும் |
+| பணிச்சுமை                                                  | `OMNIROUTE_MEMORY_MB`          | Container / cgroup                   | குறிப்புகள்                                                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard, ஓர் இலகுவான chat                                | `1024` (image இயல்புநிலை)      | ≥2 GiB                               |                                                                                                                                                       |
+| ஒரு coding agent (Claude/Codex/Grok)                       | `8192`                         | ≥10 GiB                              | வழக்கமான ஒற்றை-session `/v1/responses`                                                                                                                |
+| ஒரே நேரத்தில் இரண்டு நீண்ட `/v1/responses`                 | `10240`–`12288`                | ≥12–16 GiB                           | ~12 GiB heap-இல் V8 நிறுத்தம் அளவிடப்பட்டது                                                                                                           |
+| ஒரே நேரத்தில் மூன்று அல்லது அதற்கு மேற்பட்ட நீண்ட contexts | ஒரே process-இல் செய்ய வேண்டாம் | தொடர்ச்சியாக இயக்கவும் / கூடுதல் RAM | இயல்புநிலை heavyweight admission-இல் 1 request மட்டுமே செயல்பாட்டில் இருக்கும்; RAM-ஐ அதிகரிக்காமல் இதை உயர்த்துவது மீண்டும் நிறுத்தத்தை ஏற்படுத்தும் |
 
-bare metal-இல் `omniroute serve`, `OMNIROUTE_MEMORY_MB` **அமைக்கப்படாதபோது**, RAM-இன் சுமார் 35%-க்கு (`[512, 4096]` வரம்பிற்குள் கட்டுப்படுத்தப்பட்டு) அளவீடு செய்கிறது. Docker எப்போதும் `1024` என்பதை அமைப்பதால், அதிகாரப்பூர்வ image-இல் அந்த அளவீடு ஒருபோதும் இயங்காது.
+bare metal-இல் `omniroute serve`, `OMNIROUTE_MEMORY_MB` **அமைக்கப்படாதபோது**, RAM-இன் ~35% அளவுக்கு (`[512, 4096]` வரம்பிற்குள்) தன்னைச் சீரமைக்கிறது. Docker எப்போதும் `1024` என்பதை அமைப்பதால், அதிகாரப்பூர்வ image-இல் அந்தச் சீரமைப்பு ஒருபோதும் இயங்காது.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

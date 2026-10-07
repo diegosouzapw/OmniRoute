@@ -4,28 +4,28 @@
 
 ---
 
-> **आधिकारिक स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **पछिल्लो अद्यावधिक:** 2026-06-28 — v3.8.40
+> **सत्यको स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **अन्तिम पटक अद्यावधिक गरिएको:** 2026-09-22 — स्कोप नेमस्पेसहरूले MCP-SERVER.md लाई संकेत गर्दछ
 
-OmniRoute मा प्रत्येक API अनुरोधलाई नियन्त्रण गर्ने रुट-सचेत प्राधिकरण पाइपलाइन छ। वर्गीकरण **निर्धारक** र **विफलता हुँदा बन्द हुने** प्रकृतिको छ — वर्गीकरण गर्न नसकिने कुनै पनि कुरा अन्ततः `MANAGEMENT` मा पर्छ र त्यसका लागि सेसन वा व्यवस्थापन-स्तरको टोकन आवश्यक हुन्छ। यस पृष्ठले रुटहरू मर्मत गर्ने वा नयाँ एन्डपोइन्टहरू डिजाइन गर्ने इन्जिनियरहरूका लागि यो मोडेलको व्याख्या गर्छ।
+ओम्नीराउटसँग रुट-सचेत प्राधिकरण पाइपलाइन छ जसले प्रत्येक API अनुरोधलाई नियन्त्रण गर्दछ। वर्गीकरण **निर्धारित** र **फेल-क्लोज्ड** हुन्छ — वर्गीकरण गर्न नसकिने कुनै पनि कुरा `MANAGEMENT` को रूपमा समाप्त हुन्छ र सत्र वा व्यवस्थापन-ग्रेड टोकनको माग गर्दछ। यो पृष्ठले रुटहरू मर्मत गर्ने वा नयाँ एन्डपोइन्टहरू डिजाइन गर्ने इन्जिनियरहरूका लागि मोडेलको व्याख्या गर्दछ।
 
-![AuthZ पाइपलाइन (३ रुट वर्ग + नीति मूल्याङ्कन)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > स्रोत: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## दुई प्रमाणीकरण मोड
+## प्रमाणीकरणका दुई मोड
 
-### १. API कुञ्जी (Bearer)
+### 1. API कुञ्जी (Bearer)
 
-OpenAI/Anthropic/Gemini-सङ्गत क्लाइन्ट API हरू र कुञ्जीसँग `manage` स्कोप हुँदा केही व्यवस्थापन रुटहरूका लागि प्रयोग गरिन्छ।
+OpenAI/Anthropic/Gemini-संगत क्लाइन्ट API हरू र कुञ्जीसँग `manage` स्कोप हुँदा केही व्यवस्थापन रुटहरूका लागि प्रयोग गरिन्छ।
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` मा रहेको `isValidApiKey()` / `extractApiKey()` द्वारा प्रमाणीकरण गरिन्छ र `src/shared/utils/apiAuth.ts` मार्फत पुनः निर्यात गरिन्छ। प्रमाणीकरणकर्ताले `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` वातावरणीय चरहरूलाई स्थायी पासथ्रु कुञ्जीका रूपमा पनि स्वीकार गर्छ (मुद्दा #1350)।
+`src/sse/services/auth.ts` मा रहेको `isValidApiKey()` / `extractApiKey()` द्वारा प्रमाणीकरण गरिन्छ र `src/shared/utils/apiAuth.ts` मार्फत पुनः निर्यात गरिन्छ। प्रमाणीकरणकर्ताले `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` वातावरण चरहरूलाई स्थायी पासथ्रु कुञ्जीका रूपमा पनि स्वीकार गर्छ (issue #1350)।
 
-### २. ड्यासबोर्ड सेसन (auth_token कुकी)
+### 2. ड्यासबोर्ड सत्र (auth_token कुकी)
 
 ड्यासबोर्ड पृष्ठहरू र प्रशासकीय कार्यहरूका लागि।
 
@@ -33,40 +33,43 @@ Authorization: Bearer <api-key>
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT प्रमाणित हुँदा **र** त्यसमा `authenticated: true` हुँदा मात्र कुकीलाई सेसन मानिन्छ
+JWT प्रमाणीकरण सफल हुँदा **र** त्यसमा `authenticated: true` हुँदा मात्र कुकीलाई सत्र मानिन्छ
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। कुकी प्रयोग गर्ने प्रत्येक
-भाग (रुट गार्ड, authz पाइपलाइन रिफ्रेस, WebSocket ह्यान्डसेक, लाइभ
-सर्भर, `/api/settings/require-login`, `/api/auth/status`) त्यो सहायकमार्फत जान्छ।
+उपभोक्ता (ड्यासबोर्ड रुट गार्ड (`isDashboardSessionAuthenticated()`), authz पाइपलाइन रिफ्रेस, WebSocket ह्यान्डशेक, लाइभ
+सर्भर, `/api/settings/require-login`, `/api/auth/status`) उक्त हेल्परमार्फत जान्छ।
 `JWT_SECRET` ले हस्ताक्षर गरिएका अन्य JWT हरू पनि छन् — Cursor CLI पासथ्रुले
-कुञ्जी धारकहरूका लागि `iss "omniroute" / aud "cursor-cli"` टोकनहरू जारी गर्छ — र तिनलाई कहिल्यै सेसन मानिँदैन
+कुञ्जी धारकहरूका लागि `iss "omniroute" / aud "cursor-cli"` टोकनहरू जारी गर्छ — र तिनलाई कहिल्यै सत्र मानिँदैन
 (#13298)।
 
-`src/shared/utils/apiAuth.ts` मा रहेको `isDashboardSessionAuthenticated()` द्वारा प्रमाणीकरण गरिन्छ। JWT को ३०-दिने आयुमा ७ दिनभन्दा कम समय बाँकी हुँदा पाइपलाइनले त्यसलाई स्वतः रिफ्रेस गर्छ।
+`src/shared/utils/apiAuth.ts` मा रहेको `isDashboardSessionAuthenticated()` द्वारा प्रमाणीकरण गरिन्छ। JWT को 30-दिने आयुमा 7 दिनभन्दा कम समय बाँकी हुँदा पाइपलाइनले त्यसलाई स्वतः रिफ्रेस गर्छ।
 
-केही व्यवस्थापन रुटहरूले **जुनसुकै** मोड स्वीकार गर्छन्: कुकी वा API कुञ्जीसँग `manage` (वा `admin`) स्कोप हुँदा `Bearer <key>`। यही व्यवस्थाले v3.8 मा थपिएको "API कलहरूबाट कन्फिगर गर्न मिल्ने" कार्यप्रवाहलाई सम्भव बनाउँछ।
+सत्रको 30 दिन पूरा हुनुअघि पनि अन्त्य हुन सक्छ, किनकि प्रत्येक जारीकर्ताले `mintDashboardSessionToken` (जारी गरिएको समय `iat` र एउटा आईडी `jti`) प्रयोग गर्छ र प्रमाणीकरणकर्ताले दुईवटा सेटिङ जाँच गर्छ: `sessionsValidAfter`, जुन पासवर्ड परिवर्तन गर्दा सेट हुन्छ, जसले त्यसअघि जारी भएका प्रत्येक सत्रको प्रमाणीकरण रोक्छ (पासवर्ड परिवर्तन गरेको ब्राउजरले नयाँ कुकी पाउँछ), र `revokedDashboardSessions`, जसमा `POST /api/auth/logout` ले साइन आउट गरिएको सत्रको `jti` थप्छ। पुरानो रिलिजबाट जारी गरिएका सत्रहरूमा यीमध्ये कुनै पनि क्लेम हुँदैन र पहिलो पासवर्ड परिवर्तन नभएसम्म मान्य रहन्छन्। सेटिङहरू पढ्न सकिएन भने सत्रलाई विश्वसनीय मानिँदैन।
+
+केही व्यवस्थापन रुटहरूले **दुवैमध्ये कुनै एक** मोड स्वीकार गर्छन्: कुकी वा API कुञ्जीसँग `manage` (वा `admin`) स्कोप हुँदा `Bearer <key>`। यसैले v3.8 मा थपिएको "API कलमार्फत कन्फिगर गर्न सकिने" कार्यप्रवाह सम्भव बनाउँछ।
 
 #### वैकल्पिक OIDC लगइन गेट (#6973)
 
-ड्यासबोर्डको प्रशासक लगइनले पूर्वनिर्धारित पासवर्ड लगइनसँगै **स्वेच्छिक रूपमा सक्रिय गर्न मिल्ने** OIDC (OpenID Connect) प्रवाहलाई पनि समर्थन गर्छ — पासवर्ड लगइन कहिल्यै हटाइँदैन, केवल
+ड्यासबोर्ड प्रशासक लगइनले पूर्वनिर्धारित पासवर्ड लगइनसँगै **अप्ट-इन** OIDC (OpenID Connect) प्रवाहलाई पनि समर्थन गर्छ — पासवर्ड लगइन कहिल्यै हटाइँदैन, केवल
 पूरक बनाइन्छ:
 
 - `settings.oidcEnabled === true` **र** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` सबै कन्फिगर नभएसम्म निष्क्रिय रहन्छन् (Settings → Auth)।
+  `oidcClientId` / `oidcClientSecret` सबै कन्फिगर नगरिएसम्म यो निष्क्रिय रहन्छ (Settings → Auth)।
   अन्यथा `GET /api/auth/oidc/login` ले `400` फर्काउँछ।
 - `GET /api/auth/oidc/login` ले जारीकर्ताको
-  `/.well-known/openid-configuration` बाट `authorization_endpoint` पत्ता लगाउँछ (`<issuer>/authorize`
-  लाई वैकल्पिक रूपमा प्रयोग गर्छ), आगमन अनुरोधबाट रिडाइरेक्ट URI बनाउँछ
-  (`x-forwarded-proto`-सचेत), र अनियमित `state` लाई `httpOnly` `oidc_state`
-  कुकीमा भण्डारण गरेर IdP तर्फ रिडाइरेक्ट गर्छ।
+  `/.well-known/openid-configuration` बाट `authorization_endpoint` पत्ता लगाउँछ (`<issuer>/authorize` मा
+  फलब्याक हुन्छ), आगमन अनुरोधबाट रिडाइरेक्ट URI निर्माण गर्छ
+  (`x-forwarded-proto`-सचेत), र `httpOnly` `oidc_state` कुकीमा भण्डारण गरिएको अनियमित `state`
+  सहित IdP मा रिडाइरेक्ट गर्छ।
 - `GET /api/auth/oidc/callback` ले `state` प्रमाणीकरण गर्छ, प्राधिकरण
-  कोड साट्छ, र जारीकर्ताको JWKS मार्फत ID टोकनको हस्ताक्षर प्रमाणित गर्छ
-  (`jose` को `createRemoteJWKSet`, प्रत्येक JWKS URI का लागि क्यास गरिएको), साथै `issuer`/`audience`
-  जाँच गर्छ। वैकल्पिक `oidcAllowedSubjects` अनुमति-सूचीले टोकनको
-  `sub` दाबी वा यसको `email` दाबीसँग मिलान गर्छ — `email_verified === true` हुँदा मात्र इमेल दाबी स्वीकार गरिन्छ, त्यसैले IdP मा अप्रमाणित इमेलले कहिल्यै
-  गेट पार गर्न सक्दैन।
-- सफल भएपछि यसले पासवर्ड लगइनले जारी गर्ने (`src/app/api/auth/login/route.ts`) **ठ्याक्कै उही** ३०-दिने `auth_token` JWT
-  जारी गर्छ, त्यसैले ड्यासबोर्ड सेसन पाइपलाइनका बाँकी भाग (स्वतः रिफ्रेस, कुकी फ्ल्यागहरू) अपरिवर्तित रहन्छन् —
-  OIDC ले कुकी कसरी जारी हुन्छ भन्ने मात्र प्रतिस्थापन गर्छ, त्यसले प्रदान गर्ने अनुमति होइन।
+  कोड साट्छ, र `issuer`/`audience`
+  जाँचसहित जारीकर्ताको JWKS मार्फत ID टोकनको हस्ताक्षर प्रमाणीकरण गर्छ
+  (`jose` को `createRemoteJWKSet`, प्रत्येक JWKS URI का लागि क्यास गरिएको)। वैकल्पिक `oidcAllowedSubjects` अनुमतिसूचीले टोकनको
+  `sub` क्लेम वा त्यसको `email` क्लेमसँग मिलान गर्छ — `email_verified === true` हुँदा मात्र इमेल क्लेमलाई मान्यता दिइन्छ, त्यसैले IdP मा अप्रमाणित इमेलले
+  गेट कहिल्यै पार गर्न सक्दैन।
+- सफल भएपछि यसले पासवर्ड
+  लगइनले जारी गर्ने **ठ्याक्कै उही** 30-दिने `auth_token` JWT जारी गर्छ (`src/app/api/auth/login/route.ts`), त्यसैले बाँकी
+  ड्यासबोर्ड सत्र पाइपलाइन (स्वतः रिफ्रेस, कुकी फ्ल्यागहरू) अपरिवर्तित रहन्छ —
+  OIDC ले कुकीले के अनुमति दिन्छ भन्ने होइन, कुकी कसरी जारी हुन्छ भन्ने मात्र प्रतिस्थापन गर्छ।
 
 ## रुट वर्गहरू
 
@@ -199,26 +202,22 @@ export async function POST(request: Request) {
 
 ## स्कोपहरू
 
-API कुञ्जीहरूले `scopes` एरे बोक्छन् (`api_keys.scopes` मा JSON को रूपमा भण्डारण गरिएको छ, `src/lib/db/apiKeys.ts` हेर्नुहोस्)।
+तीन नेमस्पेसहरू। प्रत्येक परीक्षकले आफ्नै स्ट्रिङहरू मात्र पढ्छ। `manage` ले `read:compression` को लागि `scopeMatches` किन असफल हुन्छ र `read` पहुँच टोकनले `PATCH /api/keys/{id}` किन गर्न सक्दैन भन्ने सहितको साइड-बाइ-साइड, [तीन स्कोप नेमस्पेसहरू](../frameworks/MCP-SERVER.md#three-scope-namespaces) मा छ।
+
+API कुञ्जीहरूले `scopes` एरे बोक्छन् (`api_keys.scopes` मा JSON को रूपमा भण्डार गरिएको, `src/lib/db/apiKeys.ts` हेर्नुहोस्)।
 
 ### व्यवस्थापन स्कोप
 
-- `manage` / `admin` — Bearer को रूपमा पठाउँदा कुञ्जीलाई व्यवस्थापन API एन्डपोइन्टहरूमा पहुँच प्रदान गर्छ।
+- `manage` / `admin` — `hasManageScope`। व्यवस्थापन API मार्गहरूमा बेयरर पहुँच।
+- `mcp:connect`, `self:usage`, `self:account-quota`, र `policy:bypass-provider-quota` थपिने सटीक-मिलान स्कोपहरू हुन्। तिनीहरू `MANAGEMENT_API_KEY_SCOPES` बाहिर पर्छन्। `mcp:connect` ले `/api/mcp/` नन-लूपब्याक कार्व-आउट मात्र खोल्छ।
 
-### MCP स्कोपहरू (`src/shared/constants/mcpScopes.ts`)
+### MCP उपकरण स्कोपहरू
 
-प्रत्येक MCP उपकरणलाई `MCP_TOOL_SCOPES` मार्फत विशिष्ट स्कोपहरू आवश्यक पर्छन्। पूर्ण सूची (`MCP_SCOPE_LIST`):
+क्याटलग र मिल्दो नियमहरू (समान स्ट्रिङ, वा `*` मा समाप्त हुने प्रदान गरिएको स्कोप): [MCP उपकरण स्कोपहरू](../frameworks/MCP-SERVER.md#mcp-tool-scopes)। `src/shared/constants/mcpScopes.ts` मा रहेको `MCP_SCOPE_LIST` मूल टाइप गरिएको उपसमूह हो, पूर्ण क्याटलग होइन। `resolveCallerScopeContext()` ले MCP प्रमाणीकरण जानकारी, अनुरोध मेटाडेटा, वा `OMNIROUTE_MCP_SCOPES` बाट स्कोपहरू समाधान गरेपछि `open-sse/mcp-server/scopeEnforcement.ts` मा प्रवर्तन चल्छ। यो `OMNIROUTE_MCP_ENFORCE_SCOPES=true` नभएसम्म बन्द रहन्छ।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### पहुँच-टोकन स्कोपहरू
 
-`open-sse/mcp-server/server.ts` मा स्कोप कार्यान्वयनले `resolveCallerScopeContext()` ले MCP प्रमाणीकरण जानकारी,
-अनुरोध मेटाडेटा, वा `OMNIROUTE_MCP_SCOPES` बाट स्कोपहरू समाधान गरेपछि प्रत्येक उपकरणको स्कोप सूची
-`evaluateToolScopes()` मा पठाउँछ।
+`oma_live_…` टोकनहरूमा `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) द्वारा क्रमबद्ध। यो श्रेणी पहुँच-टोकन प्रमाणिकरणमा मात्र लागू हुन्छ। [व्यवस्थापन प्रमाणीकरण](../guides/MANAGEMENT-AUTH.md) हेर्नुहोस्।
 
 ## प्रमाणीकरण आवश्यक टगल
 
@@ -266,7 +265,7 @@ x-omniroute-auth-scopes:    अल्पविरामद्वारा छु
 
 ## यो पनि हेर्नुहोस्
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — प्रत्येक एन्डपोइन्टको प्रमाणीकरण मार्कर
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — प्रमाणीकरण घटनाहरूको अडिट लग
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP स्कोप कार्यान्वयनसम्बन्धी विवरणहरू
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — प्रति एन्डपोइन्ट प्रमाणीकरण मार्कर
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — प्रमाणीकरण घटनाहरूको लागि अडिट लग
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — तीन स्कोप नेमस्पेसहरू र MCP उपकरण-स्कोप क्याटलग
 - स्रोत: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

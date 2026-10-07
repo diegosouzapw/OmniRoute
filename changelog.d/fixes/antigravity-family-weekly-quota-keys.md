@@ -1,0 +1,1 @@
+- **fix(usage):** Antigravity family weekly buckets `gemini_weekly` and `claude_gpt_weekly` are kept by the provider-limits sanitizer, so `/api/usage/provider-limits` and the quota card can show the weekly window next to the 5-hour window instead of dropping those keys as unknown model ids

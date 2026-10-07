@@ -4,12 +4,12 @@
 
 ---
 
-> **सत्याचा अधिकृत स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **शेवटचे अद्यतन:** 2026-06-28 — v3.8.40
+> **सत्याचा स्रोत:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **शेवटचे अद्यतन:** 2026-09-22 — स्कोप नेमस्पेसेस MCP-SERVER.md कडे निर्देश करतात
 
-OmniRoute मध्ये मार्ग-जागरूक अधिकृतता पाइपलाइन आहे, जी प्रत्येक API विनंतीला प्रवेश देण्यापूर्वी तपासते. वर्गीकरण **निर्धारक** आणि **fail-closed** आहे — ज्याचे वर्गीकरण करता येत नाही अशी कोणतीही गोष्ट शेवटी `MANAGEMENT` म्हणून वर्गीकृत होते आणि त्यासाठी सत्र किंवा व्यवस्थापन-स्तरीय टोकन आवश्यक असते. मार्गांची देखभाल करणाऱ्या किंवा नवीन एंडपॉइंट डिझाइन करणाऱ्या अभियंत्यांसाठी हे पृष्ठ मॉडेल स्पष्ट करते.
+OmniRoute मध्ये एक मार्ग-जागरूक अधिकृतता पाइपलाइन आहे जी प्रत्येक API विनंतीला गेट करते. वर्गीकरण **निश्चित** आणि **फेल-क्लोज्ड** आहे — ज्याचे वर्गीकरण केले जाऊ शकत नाही ते `MANAGEMENT` म्हणून संपते आणि त्याला सत्र किंवा व्यवस्थापन-श्रेणी टोकनची आवश्यकता असते. हे पृष्ठ मार्ग राखणाऱ्या किंवा नवीन एंडपॉइंट्स डिझाइन करणाऱ्या अभियंत्यांसाठी मॉडेल स्पष्ट करते.
 
-![AuthZ पाइपलाइन (3 मार्ग वर्ग + धोरण मूल्यमापन)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ पाइपलाइन (3 मार्ग वर्ग + धोरण मूल्यांकन)](../diagrams/exported/authz-pipeline.svg)
 
 > स्रोत: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,57 +17,58 @@ OmniRoute मध्ये मार्ग-जागरूक अधिकृत�
 
 ### 1. API की (Bearer)
 
-OpenAI/Anthropic/Gemini-सुसंगत क्लायंट API साठी आणि कीकडे `manage` स्कोप असल्यास काही व्यवस्थापन मार्गांसाठी वापरली जाते.
+OpenAI/Anthropic/Gemini-सुसंगत क्लायंट API आणि कीकडे `manage` स्कोप असताना काही व्यवस्थापन मार्गांसाठी वापरली जाते.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` मधील `isValidApiKey()` / `extractApiKey()` द्वारे पडताळली जाते आणि `src/shared/utils/apiAuth.ts` द्वारे पुन्हा निर्यात केली जाते. पडताळक `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` पर्यावरण चलांनादेखील कायमस्वरूपी पासथ्रू की म्हणून स्वीकारतो (समस्या #1350).
+`src/sse/services/auth.ts` मधील `isValidApiKey()` / `extractApiKey()` द्वारे पडताळली जाते आणि `src/shared/utils/apiAuth.ts` द्वारे पुन्हा एक्सपोर्ट केली जाते. व्हॅलिडेटर `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars देखील कायमस्वरूपी पासथ्रू की म्हणून स्वीकारतो (इश्यू #1350).
 
-### 2. डॅशबोर्ड सत्र (auth_token कुकी)
+### 2. डॅशबोर्ड सेशन (auth_token कुकी)
 
-डॅशबोर्ड पृष्ठे आणि प्रशासकीय क्रियांसाठी.
+डॅशबोर्ड पृष्ठे आणि अॅडमिन ऑपरेशन्ससाठी.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT ची पडताळणी यशस्वी झाली **आणि** त्यात `authenticated: true` असेल, तरच कुकीला सत्र मानले जाते
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). कुकीचा वापर करणारा प्रत्येक
-घटक (मार्ग संरक्षक, authz पाइपलाइन रीफ्रेश, WebSocket हँडशेक, लाइव्ह
-सर्व्हर, `/api/settings/require-login`, `/api/auth/status`) त्या सहाय्यकाद्वारे प्रक्रिया करतो.
-`JWT_SECRET` वापरून स्वाक्षरी केलेले इतर JWT देखील अस्तित्वात आहेत — Cursor CLI पासथ्रू
-की धारकांसाठी `iss "omniroute" / aud "cursor-cli"` टोकन तयार करतो — आणि त्यांना कधीही सत्र मानले जात नाही
+JWT ची पडताळणी यशस्वी झाली **आणि** त्यात `authenticated: true` असेल, तरच कुकी ही सेशन मानली जाते
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). कुकी वापरणारा प्रत्येक घटक (डॅशबोर्ड रूट गार्ड (`isDashboardSessionAuthenticated()`), authz पाइपलाइन रिफ्रेश, WebSocket हँडशेक, लाइव्ह
+सर्व्हर, `/api/settings/require-login`, `/api/auth/status`) या हेल्परद्वारेच कार्य करतो.
+`JWT_SECRET` ने स्वाक्षरी केलेले इतर JWT देखील अस्तित्वात आहेत — Cursor CLI पासथ्रू कीधारकांसाठी
+`iss "omniroute" / aud "cursor-cli"` टोकन तयार करतो — आणि ती कधीही सेशन मानली जात नाहीत
 (#13298).
 
-`src/shared/utils/apiAuth.ts` मधील `isDashboardSessionAuthenticated()` द्वारे पडताळले जाते. JWT च्या 30 दिवसांच्या कालावधीतील 7 दिवसांपेक्षा कमी कालावधी उरला असल्यास पाइपलाइन त्याचे स्वयंचलितपणे नूतनीकरण करते.
+`src/shared/utils/apiAuth.ts` मधील `isDashboardSessionAuthenticated()` द्वारे पडताळणी केली जाते. JWT च्या 30 दिवसांच्या आयुष्यात 7 दिवसांपेक्षा कमी कालावधी शिल्लक असताना पाइपलाइन तो आपोआप रिफ्रेश करते.
 
-काही व्यवस्थापन मार्गांवर **दोन्हींपैकी कोणतीही एक** पद्धत स्वीकारली जाते: कुकी किंवा API कीकडे `manage` (किंवा `admin`) स्कोप असल्यास `Bearer <key>`. यामुळेच v3.8 मध्ये जोडलेली "API कॉलद्वारे कॉन्फिगर करता येणारी" कार्यपद्धती शक्य होते.
+सेशनचे 30 दिवस पूर्ण होण्याआधीही ते समाप्त होऊ शकते, कारण प्रत्येक टोकन तयार करणारा घटक `mintDashboardSessionToken` मधून जातो (इश्यू वेळ `iat` आणि आयडी `jti`) आणि व्हेरिफायर दोन सेटिंग्ज तपासतो: `sessionsValidAfter`, जी पासवर्ड बदलल्यावर सेट केली जाते, जेणेकरून त्यापूर्वी जारी केलेल्या प्रत्येक सेशनची पडताळणी थांबेल (पासवर्ड बदललेल्या ब्राउझरला नवीन कुकी मिळते), आणि `revokedDashboardSessions`, ज्यात `POST /api/auth/logout` साइन-आउट केलेल्या सेशनचा `jti` जोडतो. जुन्या रिलीजद्वारे तयार केलेल्या सेशन्समध्ये यापैकी कोणताही क्लेम नसतो आणि पहिला पासवर्ड बदल होईपर्यंत ती वैध राहतात. सेटिंग्ज वाचता न आल्यास, सेशनवर विश्वास ठेवला जात नाही.
+
+काही व्यवस्थापन मार्ग **दोन्हीपैकी कोणतीही** पद्धत स्वीकारतात: कुकी किंवा API कीकडे `manage` (किंवा `admin`) स्कोप असताना `Bearer <key>`. यामुळेच v3.8 मध्ये जोडलेला "API कॉलद्वारे कॉन्फिगर करण्यायोग्य" कार्यप्रवाह शक्य होतो.
 
 #### पर्यायी OIDC लॉगिन गेट (#6973)
 
-डॅशबोर्ड प्रशासक लॉगिनमध्ये डीफॉल्ट पासवर्ड लॉगिनसोबत **निवड करून सक्षम करता येणारा** OIDC (OpenID Connect) प्रवाहदेखील समर्थित आहे — पासवर्ड लॉगिन कधीही काढून टाकले जात नाही, त्याला केवळ
-पूरक पर्याय दिला जातो:
+डॅशबोर्ड अॅडमिन लॉगिन डीफॉल्ट पासवर्ड लॉगिनसोबत **निवडीनुसार सक्रिय करता येणाऱ्या** OIDC (OpenID Connect) प्रवाहालाही समर्थन देते — पासवर्ड लॉगिन कधीही काढून टाकले जात नाही, त्याला फक्त
+पूरक पर्याय जोडला जातो:
 
-- `settings.oidcEnabled === true` **आणि** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` हे सर्व कॉन्फिगर केलेले नसल्यास तो अक्षम असतो (Settings → Auth).
-  अन्यथा `GET /api/auth/oidc/login` `400` परत करतो.
-- `GET /api/auth/oidc/login`, इश्युअरच्या
-  `/.well-known/openid-configuration` मधून `authorization_endpoint` शोधतो (`<issuer>/authorize`
-  वर फॉलबॅक करतो), येणाऱ्या विनंतीवरून रीडायरेक्ट URI तयार करतो
-  (`x-forwarded-proto`-जागरूक), आणि यादृच्छिक `state`
-  `httpOnly` `oidc_state` कुकीमध्ये साठवून IdP कडे रीडायरेक्ट करतो.
-- `GET /api/auth/oidc/callback`, `state` ची पडताळणी करतो, अधिकृतता
-  कोडची देवाणघेवाण करतो आणि इश्युअरच्या JWKS द्वारे ID टोकनच्या स्वाक्षरीची
-  (`jose` चे `createRemoteJWKSet`, प्रत्येक JWKS URI साठी कॅश केलेले) `issuer`/`audience`
-  तपासण्यांसह पडताळणी करतो. पर्यायी `oidcAllowedSubjects` अनुमतीसूची टोकनच्या
-  `sub` क्लेमशी किंवा त्याच्या `email` क्लेमशी जुळवली जाते — `email_verified === true` असेल तेव्हाच ईमेल क्लेमचा
-  विचार केला जातो, त्यामुळे IdP वरील अपडताळलेला ईमेल कधीही
-  गेटमधून जाऊ शकत नाही.
-- यशस्वी झाल्यावर, पासवर्ड लॉगिनद्वारे जारी केला जाणारा **अगदी तोच** 30 दिवसांचा `auth_token` JWT तयार केला जातो
-  (`src/app/api/auth/login/route.ts`), त्यामुळे उर्वरित
-  डॅशबोर्ड सत्र पाइपलाइनमध्ये (स्वयंचलित नूतनीकरण, कुकी फ्लॅग) कोणताही बदल होत नाही —
+- `settings.oidcEnabled === true` **असेल आणि** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` हे सर्व कॉन्फिगर केलेले असतील (Settings → Auth), तरच ते सक्रिय असते.
+  अन्यथा `GET /api/auth/oidc/login` हे `400` परत करते.
+- `GET /api/auth/oidc/login` हे जारीकर्त्याच्या
+  `/.well-known/openid-configuration` मधून `authorization_endpoint` शोधते (`<issuer>/authorize` हा
+  फॉलबॅक वापरते), येणाऱ्या विनंतीवरून रीडायरेक्ट URI तयार करते
+  (`x-forwarded-proto` विचारात घेऊन), आणि `httpOnly` `oidc_state` कुकीमध्ये
+  साठवलेल्या यादृच्छिक `state` सह IdP कडे रीडायरेक्ट करते.
+- `GET /api/auth/oidc/callback` हे `state` ची पडताळणी करते, ऑथरायझेशन
+  कोडची अदलाबदल करते आणि जारीकर्त्याच्या JWKS द्वारे ID टोकनच्या स्वाक्षरीची पडताळणी करते
+  (`jose` चे `createRemoteJWKSet`, प्रत्येक JWKS URI साठी कॅश केलेले), तसेच `issuer`/`audience`
+  तपासण्या करते. पर्यायी `oidcAllowedSubjects` अनुमतीसूची टोकनच्या
+  `sub` क्लेमशी किंवा त्याच्या `email` क्लेमशी जुळवणी करते — `email_verified === true` असेल तरच
+  ईमेल क्लेम मान्य केला जातो, त्यामुळे IdP वरील अपडताळलेला ईमेल कधीही
+  गेट पार करू शकत नाही.
+- यशस्वी झाल्यावर, पासवर्ड लॉगिनद्वारे जारी केला जाणारा **अगदी तोच** 30-दिवसांचा `auth_token` JWT
+  तयार केला जातो (`src/app/api/auth/login/route.ts`), त्यामुळे उर्वरित
+  डॅशबोर्ड सेशन पाइपलाइन (ऑटो-रिफ्रेश, कुकी फ्लॅग्स) अपरिवर्तित राहते —
   OIDC फक्त कुकी कशी तयार केली जाते हे बदलते, ती कोणते अधिकार देते हे नाही.
 
 ## मार्ग वर्ग
@@ -201,26 +202,33 @@ export async function POST(request: Request) {
 
 ## स्कोप्स
 
-API कीमध्ये `scopes` अॅरे असतो (तो `api_keys.scopes` मध्ये JSON म्हणून संग्रहित केला जातो, `src/lib/db/apiKeys.ts` पहा).
+तीन नेमस्पेस. प्रत्येक चेकर फक्त स्वतःच्या स्ट्रिंग वाचतो. `manage` `read:compression` साठी `scopeMatches` का अयशस्वी होते आणि `read` ॲक्सेस टोकन `PATCH /api/keys/{id}` का करू शकत नाही, यासह बाजू-बाजूने तुलना
+[तीन स्कोप नेमस्पेस](../frameworks/MCP-SERVER.md#three-scope-namespaces) मध्ये दिली आहे.
+
+API की मध्ये `scopes` ॲरे असतो (JSON म्हणून `api_keys.scopes` मध्ये संग्रहित, `src/lib/db/apiKeys.ts` पहा).
 
 ### व्यवस्थापन स्कोप
 
-- `manage` / `admin` — Bearer म्हणून पाठवल्यास कीला व्यवस्थापन API एंडपॉइंट्समध्ये प्रवेश प्रदान करतो.
+- `manage` / `admin` — `hasManageScope`. व्यवस्थापन API मार्गांवर बेअरर ॲक्सेस.
+- `mcp:connect`, `self:usage`, `self:account-quota`, आणि
+  `policy:bypass-provider-quota` हे ॲडिटिव्ह एक्झॅक्ट-मॅच स्कोप आहेत. ते
+  `MANAGEMENT_API_KEY_SCOPES` च्या बाहेर आहेत. `mcp:connect` फक्त
+  `/api/mcp/` नॉन-लूपबॅक कार्व्ह-आउट उघडतो.
 
-### MCP स्कोप्स (`src/shared/constants/mcpScopes.ts`)
+### MCP टूल स्कोप्स
 
-प्रत्येक MCP साधनाला `MCP_TOOL_SCOPES` द्वारे विशिष्ट स्कोप्स आवश्यक असतात. संपूर्ण यादी (`MCP_SCOPE_LIST`):
+कॅटलॉग आणि जुळणारे नियम (सारखी स्ट्रिंग, किंवा `*` मध्ये समाप्त होणारा मंजूर स्कोप):
+[MCP टूल स्कोप्स](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`src/shared/constants/mcpScopes.ts` मधील `MCP_SCOPE_LIST` हा मूळ टाइप केलेला
+उपसंच आहे, तो पूर्ण कॅटलॉग नाही. `resolveCallerScopeContext()` MCP ऑथ माहिती, विनंती मेटाडेटा किंवा `OMNIROUTE_MCP_SCOPES` मधून स्कोप्सचे निराकरण केल्यानंतर
+`open-sse/mcp-server/scopeEnforcement.ts` मध्ये अंमलबजावणी चालते.
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` असल्याशिवाय ते बंद राहते.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ॲक्सेस-टोकन स्कोप्स
 
-`open-sse/mcp-server/server.ts` मधील स्कोप अंमलबजावणी, `resolveCallerScopeContext()` द्वारे MCP प्रमाणीकरण माहिती,
-विनंती मेटाडेटा किंवा `OMNIROUTE_MCP_SCOPES` मधून स्कोप्स निर्धारित झाल्यानंतर, प्रत्येक साधनाची स्कोप यादी
-`evaluateToolScopes()` मध्ये पाठवते.
+`oma_live_…` टोकनवर `read` / `write` / `admin`, `scopeSatisfies` द्वारे रँक केलेले
+(`src/lib/accessTokens/scopes.ts`). ही रँक फक्त ॲक्सेस-टोकन क्रेडेंशियलला लागू होते.
+[व्यवस्थापन प्रमाणीकरण](../guides/MANAGEMENT-AUTH.md) पहा.
 
 ## प्रमाणीकरण आवश्यक टॉगल
 
@@ -269,6 +277,6 @@ x-omniroute-auth-scopes:    स्वल्पविरामाने विभ
 ## हे देखील पहा
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — प्रत्येक एंडपॉइंटसाठी प्रमाणीकरण मार्कर
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — प्रमाणीकरण इव्हेंट्ससाठी ऑडिट लॉग
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP स्कोप अंमलबजावणीचे तपशील
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — प्रमाणीकरण घटनांसाठी ऑडिट लॉग
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — तीन स्कोप नेमस्पेस आणि MCP टूल-स्कोप कॅटलॉग
 - स्रोत: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

@@ -93,23 +93,28 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   管理／ダッシュボードのオリジンを寛容な設定に含めないでください。これらは厳密に
   フェイルクローズのままにする必要があります。
 
-## 例：OmniRoute の前段にあるリバースプロキシ
+## 例：OmniRoute の前段に配置するリバースプロキシ
 
-CORS は OmniRoute 自体によって適用されるため、通常、プロキシは `Access-Control-*`
-ヘッダーを追加または書き換えるべきではありません（ヘッダーが重複するとブラウザーで
-問題が発生します）。TLS を終端して転送し、プリフライトには OmniRoute が応答するようにしてください。
+CORS は OmniRoute 自体によって適用されるため、通常、プロキシ側で
+`Access-Control-*` ヘッダーを追加または書き換えるべきでは**ありません**（ヘッダーが重複するとブラウザーで問題が発生します）。TLS を終端して
+転送し、プリフライトへの応答は OmniRoute に任せてください。
 
 ```nginx
-# nginx — OmniRoute に転送する。ここでは Access-Control-* を挿入しないこと
+# nginx — OmniRoute に転送します。ここでは Access-Control-* を挿入しないでください
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For を 127.0.0.1 に設定しないこと。ループバックルートガードが無効になります。
+    # 転送ヘッダーは維持してください。同じホスト上のプロキシはループバックから接続するため、
+    # 呼び出し元がローカルのオペレーターではないことを OmniRoute に伝えるのは、これらのヘッダーです。
+    # これらを一切追加しないプロキシでは、すべてのリモート呼び出し元がローカルに見えてしまいます。
+    # また、X-Forwarded-For を 127.0.0.1 に設定しないでください。
 }
 ```
 
-許可するブラウザーオリジンは、プロキシではなく OmniRoute（`CORS_ALLOWED_ORIGINS` または
+ブラウザーに許可するオリジンは、プロキシではなく OmniRoute（`CORS_ALLOWED_ORIGINS` または
 Security タブ）で設定してください。
 
 ## ソースファイル

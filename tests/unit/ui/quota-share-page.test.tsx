@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // ── i18n stub ──────────────────────────────────────────────────────────────
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  // #14466 / #14807: PoolSchedulesCard and ProxyHealthCell now call useLocale().
+  useLocale: () => "en",
 }));
 
 // ── next/dynamic stub ──────────────────────────────────────────────────────
@@ -56,18 +58,14 @@ const mockUsePools = vi.fn(() => ({
   mutate: mockMutate,
 }));
 
-vi.mock(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/usePools",
-  () => ({ usePools: mockUsePools })
-);
+vi.mock("../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/usePools", () => ({
+  usePools: mockUsePools,
+}));
 
 // ── usePoolUsage mock ──────────────────────────────────────────────────────
-vi.mock(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/usePoolUsage",
-  () => ({
-    usePoolUsage: () => ({ usage: null, loading: false, error: null }),
-  })
-);
+vi.mock("../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/usePoolUsage", () => ({
+  usePoolUsage: () => ({ usage: null, loading: false, error: null }),
+}));
 
 // ── useLocalStoragePoolMigration mock ──────────────────────────────────────
 const mockMigration = vi.fn();
@@ -92,15 +90,12 @@ vi.mock(
 // ── fetch stub ─────────────────────────────────────────────────────────────
 vi.stubGlobal(
   "fetch",
-  vi.fn(() =>
-    Promise.resolve({ ok: true, json: () => Promise.resolve([]) } as unknown as Response)
-  )
+  vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) } as unknown as Response))
 );
 
 // ── Lazy import after mocks ────────────────────────────────────────────────
-const { default: QuotaSharePageClient } = await import(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient"
-);
+const { default: QuotaSharePageClient } =
+  await import("../../../src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient");
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

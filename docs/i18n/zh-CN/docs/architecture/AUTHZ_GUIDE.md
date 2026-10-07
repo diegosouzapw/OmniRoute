@@ -4,70 +4,73 @@
 
 ---
 
-> **事实来源：** `src/server/authz/`、`src/shared/constants/publicApiRoutes.ts`、`src/lib/api/requireManagementAuth.ts`、`src/shared/utils/apiAuth.ts`
-> **最后更新：** 2026-06-28 — v3.8.40
+> **事实来源：** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **最后更新：** 2026-09-22 — 范围命名空间指向 MCP-SERVER.md
 
-OmniRoute 具有一个感知路由的授权管道，用于管控每个 API 请求。分类过程是**确定性的**且**默认拒绝**——任何无法分类的请求最终都会归类为 `MANAGEMENT`，并要求提供会话或管理级令牌。本页面向维护路由或设计新端点的工程师，介绍该模型。
+OmniRoute 拥有一个路由感知的授权管道，用于守卫每个 API 请求。分类是**确定性**的且**故障关闭**的——任何无法分类的内容最终都会被归类为 `MANAGEMENT`，并要求会话或管理级别的令牌。本页面为维护路由或设计新端点的工程师解释了该模型。
 
-![AuthZ 管道（3 种路由类别 + 策略评估）](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > 来源：[diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## 两种认证模式
+## 两种身份验证模式
 
 ### 1. API 密钥（Bearer）
 
-用于兼容 OpenAI/Anthropic/Gemini 的客户端 API，以及少数允许具有 `manage` 作用域的密钥访问的管理路由。
+用于与 OpenAI/Anthropic/Gemini 兼容的客户端 API，以及 API 密钥具有 `manage` 作用域时的少数管理路由。
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 验证，并通过 `src/shared/utils/apiAuth.ts` 重新导出。验证器还接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 环境变量作为持久透传密钥（问题 #1350）。
+由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 验证，并通过 `src/shared/utils/apiAuth.ts` 重新导出。验证器还接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 环境变量作为持久直通密钥（问题 #1350）。
 
-### 2. 控制面板会话（auth_token cookie）
+### 2. 仪表板会话（auth_token cookie）
 
-用于控制面板页面和管理员操作。
+用于仪表板页面和管理操作。
 
 ```
-Cookie: auth_token=<使用 JWT_SECRET 签名的 JWT>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-仅当 JWT 验证通过**并且**携带 `authenticated: true` 时，cookie 才会被视为会话
-（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。cookie 的所有
-使用方（路由守卫、authz 管道刷新、WebSocket 握手、实时
+仅当 JWT 验证通过**且**携带 `authenticated: true` 时，cookie 才会被视为会话
+（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。cookie 的每个
+使用方（仪表板路由守卫（`isDashboardSessionAuthenticated()`）、授权管道刷新、WebSocket 握手、实时
 服务器、`/api/settings/require-login`、`/api/auth/status`）都会通过该辅助函数。
-系统中还存在其他使用 `JWT_SECRET` 签名的 JWT——Cursor CLI 透传会为密钥持有者签发
-`iss "omniroute" / aud "cursor-cli"` 令牌——这些令牌绝不会被视为会话
+还存在其他使用 `JWT_SECRET` 签名的 JWT——Cursor CLI 直通功能会为密钥持有者签发
+`iss "omniroute" / aud "cursor-cli"` 令牌——但它们永远不会被视为会话
 （#13298）。
 
-由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 验证。当 JWT 在其 30 天有效期内的剩余时间不足 7 天时，管道会自动刷新该 JWT。
+由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 验证。当 JWT 的 30 天有效期剩余不足 7 天时，管道会自动刷新它。
 
-部分管理路由接受**任一**模式：cookie，或者当 API 密钥具有 `manage`（或 `admin`）作用域时使用 `Bearer <key>`。这使得 v3.8 中新增的“可通过 API 调用进行配置”工作流成为可能。
+会话也可能在 30 天有效期结束前终止，因为每个签发方都会通过 `mintDashboardSessionToken`（包含签发时间 `iat` 和 ID `jti`），而验证器会检查两项设置：`sessionsValidAfter`，该值会在密码更改时设置，因此此前签发的所有会话都会停止通过验证（更改密码的浏览器会获得新的 cookie）；以及 `revokedDashboardSessions`，`POST /api/auth/logout` 会将已退出会话的 `jti` 添加到其中。由旧版本签发的会话不包含这两个声明，并会一直有效到首次更改密码为止。如果无法读取这些设置，则不会信任该会话。
+
+部分管理路由接受**任一**模式：cookie，或者当 API 密钥具有 `manage`（或 `admin`）作用域时使用 `Bearer <key>`。这使 v3.8 中新增的“可通过 API 调用进行配置”工作流成为可能。
 
 #### 可选的 OIDC 登录门禁（#6973）
 
-控制面板管理员登录除了默认的密码登录外，还支持**选择启用**的 OIDC（OpenID Connect）流程——密码登录绝不会被移除，只会得到补充：
+除了默认的密码登录外，仪表板管理员登录还支持**选择启用**的 OIDC（OpenID Connect）流程——密码登录永远不会被移除，只会得到
+补充：
 
-- 仅当 `settings.oidcEnabled === true`，并且 `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` 均已配置时才会启用（设置 → 认证）。
+- 除非 `settings.oidcEnabled === true`，**并且** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` 均已配置（设置 → 身份验证），否则该功能处于禁用状态。
   否则，`GET /api/auth/oidc/login` 返回 `400`。
 - `GET /api/auth/oidc/login` 从签发者的
-  `/.well-known/openid-configuration` 中发现 `authorization_endpoint`（回退到
+  `/.well-known/openid-configuration` 中发现 `authorization_endpoint`（找不到时回退到
   `<issuer>/authorize`），根据传入请求构建重定向 URI
-  （支持 `x-forwarded-proto`），并使用存储在 `httpOnly` `oidc_state` cookie 中的随机 `state`
+  （支持识别 `x-forwarded-proto`），并使用存储在 `httpOnly` `oidc_state` cookie 中的随机 `state`
   重定向到 IdP。
-- `GET /api/auth/oidc/callback` 验证 `state`、交换授权
-  码，并通过签发者的 JWKS 验证 ID 令牌的签名
+- `GET /api/auth/oidc/callback` 验证 `state`，交换授权
+  代码，并通过签发者的 JWKS 验证 ID 令牌的签名
   （使用 `jose` 的 `createRemoteJWKSet`，按 JWKS URI 缓存），同时执行 `issuer`/`audience`
   检查。可选的 `oidcAllowedSubjects` 允许列表会匹配令牌的
   `sub` 声明或其 `email` 声明——仅当
-  `email_verified === true` 时才认可 email 声明，因此 IdP 中未经验证的 email 永远无法通过
+  `email_verified === true` 时才接受 email 声明，因此 IdP 中未经验证的 email 永远无法通过
   该门禁。
 - 成功后，它会签发与密码
-  登录（`src/app/api/auth/login/route.ts`）所签发的**完全相同**的 30 天 `auth_token` JWT，因此控制面板会话
-  管道的其余部分（自动刷新、cookie 标志）保持不变——
-  OIDC 仅替代 cookie 的签发方式，而不会改变它所授予的权限。
+  登录（`src/app/api/auth/login/route.ts`）所签发的**完全相同**的 30 天期 `auth_token` JWT，因此仪表板
+  会话管道的其余部分（自动刷新、cookie 标志）保持不变——
+  OIDC 仅替换 cookie 的签发方式，而不会改变它授予的权限。
 
 ## 路由类别
 
@@ -200,24 +203,22 @@ export async function POST(request: Request) {
 
 ## 作用域
 
-API 密钥包含一个 `scopes` 数组（以 JSON 形式存储在 `api_keys.scopes` 中，参见 `src/lib/db/apiKeys.ts`）。
+三个命名空间。每个检查器只读取自己的字符串。关于 `manage` 为何在 `read:compression` 上 `scopeMatches` 失败，以及 `read` 访问令牌为何不能 `PATCH /api/keys/{id}` 的并排解释，请参阅[三个作用域命名空间](../frameworks/MCP-SERVER.md#three-scope-namespaces)。
+
+API 密钥带有一个 `scopes` 数组（以 JSON 格式存储在 `api_keys.scopes` 中，请参阅 `src/lib/db/apiKeys.ts`）。
 
 ### 管理作用域
 
-- `manage` / `admin` — 以 Bearer 方式发送时，授予该密钥访问管理 API 端点的权限。
+- `manage` / `admin` — `hasManageScope`。对管理 API 路由的持有者访问权限。
+- `mcp:connect`、`self:usage`、`self:account-quota` 和 `policy:bypass-provider-quota` 是附加的精确匹配作用域。它们位于 `MANAGEMENT_API_KEY_SCOPES` 之外。`mcp:connect` 仅开放 `/api/mcp/` 非回环的特殊区域。
 
-### MCP 作用域（`src/shared/constants/mcpScopes.ts`）
+### MCP 工具作用域
 
-每个 MCP 工具都通过 `MCP_TOOL_SCOPES` 要求特定作用域。完整列表（`MCP_SCOPE_LIST`）：
+目录和匹配规则（相同字符串，或以 `*` 结尾的已授予作用域）：[MCP 工具作用域](../frameworks/MCP-SERVER.md#mcp-tool-scopes)。`src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 是原始的类型化子集，而非完整的目录。在 `resolveCallerScopeContext()` 从 MCP 认证信息、请求元数据或 `OMNIROUTE_MCP_SCOPES` 解析作用域后，强制执行在 `open-sse/mcp-server/scopeEnforcement.ts` 中运行。除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`，否则它保持关闭。
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### 访问令牌作用域
 
-在 `open-sse/mcp-server/server.ts` 中，`resolveCallerScopeContext()` 从 MCP 身份验证信息、请求元数据或 `OMNIROUTE_MCP_SCOPES` 解析作用域后，作用域强制检查会将每个工具的作用域列表传递给 `evaluateToolScopes()`。
+在 `oma_live_…` 令牌上的 `read` / `write` / `admin`，按 `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) 排名。此排名仅适用于访问令牌凭据。请参阅[管理认证](../guides/MANAGEMENT-AUTH.md)。
 
 ## 身份验证要求开关
 
@@ -263,9 +264,9 @@ x-omniroute-auth-scopes:    逗号分隔的列表
 
 在处理程序中使用 `assertAuth(req, expectedClass)`——如果中间件被绕过，它会抛出代码为 `AUTHZ_NOT_INITIALIZED` 的 `AuthzAssertionError`（有助于在测试中发现配置回归）。
 
-## 另请参阅
+## 参见
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 每个端点的身份验证标记
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — 身份验证事件的审计日志
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP 作用域强制执行详情
-- 源代码：`src/server/authz/`、`src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 每个端点的认证标记
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — 认证事件的审计日志
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — 三个范围命名空间和 MCP 工具范围目录
+  来源：`src/server/authz/`，`src/lib/api/requireManagementAuth.ts`

@@ -43,47 +43,27 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose /
 
 ---
 
-## التكوين التلقائي مع `setup-*`
+## التكوين التلقائي باستخدام `setup-*`
 
-لا تحتاج إلى كتابة تكوين كل أداة يدويًا. يقوم OmniRoute بتوفير أمر `setup-*`
-لكل CLI مدعوم يقرأ كتالوج النموذج **الحالي** من OmniRoute قيد التشغيل (محلي أو بعيد) ويكتب تكوين الأداة الخاصة بك على جهازك:
+ليس عليك كتابة تكوين كل أداة يدويًا. يشحن OmniRoute أمر `setup-*` لكل واجهة سطر أوامر مدعومة تقرأ كتالوج النموذج **المباشر** من OmniRoute قيد التشغيل (محلي أو بعيد) وتكتب تكوين الأداة الخاص بها على جهازك:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-كل منها يقبل `--remote <url> --api-key <key>` (تكوين أداة محلية ضد OmniRoute بعيد)، `--dry-run` (معاينة دون كتابة)، و `--port`. الأدوات التي لا تحتوي على اكتشاف تلقائي للنموذج (Cline، Kilo، Roo، Goose، Aider، Qwen) تأخذ `--model <id>` (و `--yes` للتشغيل غير التفاعلي). لإطلاق CLI مع البيئة الصحيحة المدخلة ودون كتابة أي تكوين على الإطلاق، استخدم المشغل العام
-`omniroute run <target>` (claude، codex، aider، goose، opencode، qwen،
-gemini — الأهداف والأسماء المستعارة تأتي من `bin/cli/cli-manifest.mjs`); تظل المشغلات القديمة لكل أداة `omniroute launch` (Claude Code) و `omniroute launch-codex`
-(Codex) متاحة. CLI Gemini هو فقط للإطلاق: إنه هدف `omniroute run`
-ولكن ليس له وصفة `setup-*`/`configure`.
+يقبل كل منها `--remote <url> --api-key <key>` (تكوين أداة محلية مقابل OmniRoute بعيد)، و`--dry-run` (معاينة بدون كتابة)، و`--port`. الأدوات التي لا تحتوي على اكتشاف تلقائي للنموذج (Cline، Kilo، Roo، Goose، Aider، Qwen، 5dive) تأخذ `--model <id>` (و`--yes` للتشغيل غير التفاعلي). `setup-5dive` هي الوصفة الوحيدة التي لا تكتب تحت `$HOME`: فهي تقوم بتكوين أسطول وكلاء 5dive عن طريق كتابة ملف تعريف مصادقة يملكه الجذر على مضيف الأسطول، لذلك يتم إعادة تنفيذه عبر `sudo` وليس لديه وضع بعيد خاص به. لتشغيل واجهة سطر أوامر مع البيئة الصحيحة المحقونة وعدم كتابة أي تكوين على الإطلاق، استخدم المشغل العام `omniroute run <target>` (claude، codex، aider، goose، opencode، qwen، gemini - الأهداف والأسماء المستعارة تأتي من `bin/cli/cli-manifest.mjs`)؛ لا تزال المشغلات القديمة لكل أداة `omniroute launch` (Claude Code) و`omniroute launch-codex` (Codex) متاحة. واجهة سطر أوامر Gemini هي للتشغيل فقط: إنها هدف `omniroute run` ولكن ليس لديها وصفة `setup-*`/`configure`.
 
-> **المرجع الكامل:** الجدول الرئيسي — ما يكتبه كل أمر، كل علامة،
-> محلي مقابل بعيد، وأي الأدوات تحتاج إلى لاحقة `/v1` — موجود في
-> **[تكاملات CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **مرجع كامل:** الجدول الرئيسي - ما يكتبه كل أمر، كل علامة، محلي مقابل بعيد، وأي الأدوات تريد لاحقة `/v1` - موجود في **[تكاملات CLI](../guides/CLI-INTEGRATIONS.md)**.
 
 ### تشغيل هذه داخل حاوية
 
-أمر `setup-*` المنفذ داخل حاوية OmniRoute يكتب في
-المنزل الخاص بالحاوية، والذي لا تقرأه أي CLI مضيف والذي يختفي مع
-الحاوية. يكتشف OmniRoute ذلك ويخرج `2` مع تعليمات بدلاً من
-الكتابة. هناك طريقتان مدعومتان للمضي قدمًا — تثبيت CLI على المضيف و
-`omniroute connect` إلى الحاوية، أو ربط مجلدات التكوين وتعيين
-`CLI_CONFIG_HOME` (ملف تعريف المضيف في التكوين). كل أمر `setup-*`، بالإضافة إلى
-`omniroute configure` و `omniroute config set`، يقبل
-`--allow-container-write` عندما يكون تكوين CLIs الخاصة بالحاوية هو ما كنت تعنيه بالفعل؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` يفعل نفس الشيء للخادم. انظر
-[دليل Docker → تكوين أدوات CLI المضيف](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+يكتب أمر `setup-*` الذي يتم تنفيذه داخل حاوية OmniRoute في مجلد المنزل الخاص بالحاوية، والذي لا تقرأه أي واجهة سطر أوامر مضيفة ويختفي مع الحاوية. يكتشف OmniRoute ذلك ويخرج `2` مع تعليمات بدلاً من الكتابة. طريقتان مدعومتان للمضي قدمًا - تثبيت واجهة سطر الأوامر على المضيف و`omniroute connect` إلى الحاوية، أو ربط مجلدات التكوين وتعيين `CLI_CONFIG_HOME` (ملف تعريف `host` الخاص بالتركيب). يقبل كل أمر `setup-*`، بالإضافة إلى `omniroute configure` و`omniroute config set`، `--allow-container-write` عندما يكون تكوين واجهات سطر الأوامر الخاصة بالحاوية هو ما قصدته بالفعل؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` يفعل الشيء نفسه للخادم. راجع [دليل Docker ← تكوين أدوات CLI المضيفة](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-نقطة النهاية **apply** في لوحة المعلومات (`POST /api/cli-tools/apply`) تفرض نفس الحماية: في حاوية، كتابة الهدف الذي لم يتم ربطه من المضيف يجيب **`422`** مع `containerEphemeralTarget: true`، نص الخطأ الآمن و — للأدوات التي لديها وصفة مضيف (claude، codex، opencode، cline،
-kilo، continue) — أمر `hostSetupCommand` (مثل `omniroute setup-opencode`) للتشغيل
-على المضيف بدلاً من ذلك؛ لا يتم كتابة أي شيء. `dryRun: true` يستمر في العمل في وضع الحاوية
-ويعيد المحتوى الناتج + مسار الهدف دون لمس القرص، لذا يمكنك المعاينة من لوحة المعلومات وتطبيقها على المضيف. هذا السلوك
-مقصود ومحمى من التراجع بواسطة
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — لا "تصلح" 422
-عن طريق إزالة الحماية.
+تفرض **نقطة نهاية التطبيق** في لوحة المعلومات (`POST /api/cli-tools/apply`) نفس الحماية: في حاوية، الكتابة التي لا يتم ربط هدفها من المضيف تجيب بـ **`422`** مع `containerEphemeralTarget: true`، ونص الخطأ الآمن و - للأدوات التي تحتوي على وصفة مضيفة (claude، codex، opencode، cline، kilo، continue) - `hostSetupCommand` (على سبيل المثال `omniroute setup-opencode`) للتشغيل على المضيف بدلاً من ذلك؛ لا يتم كتابة أي شيء. يستمر `dryRun: true` في العمل في وضع الحاوية ويعيد معاينة منقحة + مسار الهدف دون لمس القرص. محتوى المعاينة ليس تكوينًا يحمل بيانات اعتماد لنسخه أو استيراده. طبق باستخدام الأداة الأصلية/عنوان URL الأساسي/مفتاح API/مدخلات النموذج على المضيف، أو استخدم أمر الإعداد المحدد على جانب المضيف. راجع [أمان تكوين CLI](../security/CLI-CONFIGURATION.md) لرأس المعاينة وعقد الطلب. هذا السلوك مقصود ومحمي من الانحدار بواسطة `tests/unit/api/cli-tools/apply-container-guard.test.ts` - لا "تصلح" أبدًا 422 عن طريق إزالة الحماية.
 
 ---
 

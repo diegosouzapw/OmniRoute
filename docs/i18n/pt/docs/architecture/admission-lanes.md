@@ -10,51 +10,57 @@ complementares; os operadores devem saber qual deles estão a observar.
 ## 1. Admissão ao nível dos bytes em todo o processo (`chatBodyAdmission.ts`)
 
 - **Âmbito:** o percurso de corpo em buffer/heap para `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` e as restantes rotas com formato de chat. Protege
-  contra a amplificação do heap causada por corpos grandes de agentes de programação (#4380).
-- **Um único controlador global do processo, não vias por chave (#10110).** Cada chave de API
-  (com hash) ou sessão `anonymous` é admitida com base no **mesmo** orçamento partilhado —
-  o ID de sessão com hash é usado APENAS como chave de agendamento equitativo (distribuição
-  round-robin entre pedidos em espera), nunca como uma partição de capacidade. Uma versão
-  anterior deste documento descrevia vias por chave com capacidade independente; esse modelo
-  foi removido em #10110 porque permitia que credenciais falsas não autenticadas multiplicassem
-  o limite aplicável a todo o processo.
-- **Controlo de admissão (#503-fanout): um orçamento de ingestão em BYTES derivado
-  automaticamente, não um número fixo de pedidos.** O limite legado de contagem de pedidos
-  `CHAT_MAX_HEAVY_IN_FLIGHT` (predefinição `1` antes desta correção) reduzia o fan-out dos
-  agentes de programação (vários subagentes/CLIs, com corpos frequentemente > 256 KB) a uma
-  concorrência efetiva de ~1, o que originava erros 503 sob uma carga perfeitamente normal.
-  Agora, este limite só é aplicado quando um operador define explicitamente
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Quando não está definido, a admissão é controlada
-  por `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — um orçamento derivado automaticamente do limite
-  real de memória do processo (`src/shared/middleware/admissionBudget.ts`): 25% do menor
-  valor entre o limite do heap V8 e qualquer limite de cgroup/contentor, dividido por um
-  fator de amplificação transitória de 8x e restringido ao intervalo entre 8 MiB e 2 GiB.
-  As substituições explícitas usam os mesmos limites. Isto ajusta-se automaticamente desde
-  um contentor de 512 MB até um computador de secretária com 32 GB, sem afinação através
-  de variáveis de ambiente. Um corpo que não caiba no orçamento efetivo falha imediatamente
-  com `413 body_exceeds_budget`; apenas a contenção entre corpos que podem ser processados
-  individualmente entra na fila limitada com equidade. Um monitor em tempo real da pressão
-  sobre os recursos, baseado em vários sinais (rácio do heap V8, cgroup, PSI, eventos OOM —
-  `open-sse/utils/resourcePressurePolicy.ts`), reduz o tempo de espera limitado sob pressão
-  `high` e rejeita imediatamente com `503 resource_pressure` sob pressão `critical`, antes
-  sequer de serem ingeridos quaisquer bytes. O PSI é lido a partir de `memory.pressure` do
-  cgroup desta unidade, quando disponível (`open-sse/utils/resourcePressureSampler.ts`);
-  `/proc/pressure/memory` abrange todo o anfitrião e só é usado como alternativa em sistemas
-  físicos / cgroup v1, pelo que um anfitrião a usar swap não pode provocar um erro 503 num
+  `/v1/messages`, `/v1/responses` e as outras rotas com formato de chat. Protege
+  contra a amplificação do heap provocada por corpos grandes de agentes de
+  programação (#4380).
+- **Um controlador global por processo, não faixas por chave (#10110).** Cada chave
+  de API (com hash) ou sessão `anonymous` é admitida relativamente ao **mesmo**
+  orçamento partilhado — o ID de sessão com hash é usado APENAS como chave de
+  escalonamento equitativo (distribuição round-robin pelos pedidos em espera),
+  nunca como uma partição de capacidade. Uma versão anterior deste documento
+  descrevia faixas por chave com capacidade independente; esse modelo foi
+  removido em #10110 porque permitia que credenciais falsas não autenticadas
+  multiplicassem o limite aplicável a todo o processo.
+- **Controlo (#503-fanout): um orçamento de ingestão em BYTES derivado
+  automaticamente, não uma contagem fixa de pedidos.** O limite legado de contagem
+  de pedidos `CHAT_MAX_HEAVY_IN_FLIGHT` (predefinição `1` antes desta correção)
+  reduzia o fan-out dos agentes de programação (vários subagentes/CLIs, com
+  corpos frequentemente > 256 KB) a uma concorrência efetiva de ~1, o que
+  originava erros 503 sob carga completamente normal. Agora, só é aplicado
+  quando um operador define explicitamente
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Quando não está definido, a admissão é
+  controlada por `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — um orçamento derivado
+  automaticamente do limite real de memória do processo
+  (`src/shared/middleware/admissionBudget.ts`): 25% do menor valor entre o limite
+  do heap V8 e qualquer limite de cgroup/contentor, dividido por um fator de
+  amplificação transitória de 8x, limitado entre 8 MiB e 2 GiB. As substituições
+  explícitas usam os mesmos limites. Isto ajusta-se automaticamente desde um
+  contentor de 512 MB até um computador de secretária com 32 GB, sem afinação
+  de variáveis de ambiente. Um corpo que não caiba no orçamento efetivo falha
+  imediatamente com `413 body_exceeds_budget`; apenas a contenção entre corpos
+  que podem ser processados individualmente entra na fila limitada com
+  equidade. Um monitor dinâmico da pressão sobre os recursos, baseado em vários
+  sinais (rácio do heap V8, cgroup, PSI, eventos OOM —
+  `open-sse/utils/resourcePressurePolicy.ts`), reduz o tempo de espera limitado
+  sob pressão `high` e rejeita imediatamente com `503 resource_pressure` sob
+  pressão `critical`, antes sequer da ingestão de quaisquer bytes. O PSI é lido
+  a partir de `memory.pressure` no cgroup desta unidade, quando disponível
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` abrange
+  todo o anfitrião e só é usado como alternativa em sistemas bare-metal /
+  cgroup v1, para que um anfitrião a usar swap não possa causar um erro 503 num
   contentor inativo.
 - **Afinação:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — substituição do orçamento de bytes derivado automaticamente
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limite legado de contagem de pedidos, apenas por adesão explícita
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — espera na fila antes de devolver 503 (predefinição: 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — válvula do heap para bytes em fila (predefinição: 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — operações sem efeito obsoletas
-    desde #10110 (aceites para compatibilidade de configuração, ignoradas)
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — espera na fila antes do erro 503 (a predefinição é `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — válvula de proteção do heap para bytes em fila (predefinição de 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — obsoletos e
+    sem efeito desde #10110 (aceites para compatibilidade de configuração, ignorados)
 - **Relatórios:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — incluindo
   as adições de #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` e `countCapEnabled`
-  (false numa implementação predefinida — confirma que é o orçamento de bytes, e não o
-  limite legado de contagem, que está efetivamente a ser aplicado).
+  (false numa implementação predefinida — confirma que o orçamento de bytes,
+  e não o limite legado de contagem, é o que está efetivamente a limitar).
 
 ## 2. Vias virtuais adaptativas em tempo de execução (`open-sse/services/admission`)
 

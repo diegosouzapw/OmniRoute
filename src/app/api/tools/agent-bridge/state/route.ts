@@ -15,6 +15,7 @@ import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState";
 import { getAllBypassPatterns } from "@/lib/db/agentBridgeBypass";
 import { getMappingsForAgent } from "@/lib/db/agentBridgeMappings";
 import { checkCertInstalled } from "@/mitm/cert/install";
+import { resolveActiveCertPath } from "@/mitm/cert/activeCert";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { ALL_TARGETS } from "@/mitm/targets/index";
 import path from "path";
@@ -42,9 +43,13 @@ export async function GET(): Promise<Response> {
     );
     const mappings = Object.fromEntries(mappingsEntries);
 
-    // Compute REAL certTrusted (OS trust store check, not just file exists)
+    // Compute REAL certTrusted (OS trust store check, not just file exists).
+    // #14070: resolve the file the active migration decision actually
+    // installs (ca.crt under the root-CA model) instead of always
+    // hard-coding the legacy server.crt path.
     const certDir = path.join(resolveMitmDataDir(), "mitm");
-    const certPath = path.join(certDir, "server.crt");
+    const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
+    const { certPath } = resolveActiveCertPath(certDir, rootCaEnabled);
     const certExists = fs.existsSync(certPath);
     const certTrusted = certExists ? await checkCertInstalled(certPath) : false;
 

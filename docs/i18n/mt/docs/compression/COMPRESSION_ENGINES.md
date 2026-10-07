@@ -7,45 +7,45 @@
 Il-kompressjoni ta’ OmniRoute hija mibnija madwar kuntratti tal-magni. Modalità tista’ tħaddem magna waħda direttament
 (`caveman` jew `rtk`) jew pipeline deterministiku f’saffi li jeżegwixxi diversi magni wara xulxin.
 
-## Modalitajiet
+## Modi
 
-| Modalità     | Mogħdija tal-magna                       | Input maħsub                                          |
-| ------------ | ---------------------------------------- | ----------------------------------------------------- |
-| `off`        | ebda waħda                               | Preservazzjoni eżatta tal-prompt                      |
-| `lite`       | Helpers lite ta’ Caveman                 | Tindif kontinwu b’riskju baxx                         |
-| `standard`   | Caveman                                  | Kondensazzjoni ta’ prompts b’lingwa naturali          |
-| `aggressive` | Caveman + summarizers tal-istorja/għodod | Sessjonijiet twal taċ-chat                            |
-| `ultra`      | Caveman + helpers tat-tnaqqija           | Irkupru mil-limitu tal-kuntest                        |
-| `rtk`        | RTK                                      | Output tat-terminal, shell, build, test, u git        |
-| `omniglyph`  | OmniGlyph                                | Kuntest bħala immaġni fuq il-wire nattiv tal-fornitur |
-| `stacked`    | Pipeline, default `rtk -> caveman`       | Logs imħallta tal-għodod u proża, iffrankar massimu   |
+| Mod          | Mogħdija tal-magna                                                                         | Input maħsub                                           |
+| ------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `off`        | xejn                                                                                       | Preservazzjoni eżatta tal-prompt                       |
+| `lite`       | Għajnuniet lite ta' Caveman                                                                | Tindif b'riskju baxx dejjem attiv                      |
+| `standard`   | Caveman                                                                                    | Kondensazzjoni tal-prompt b'lingwaġġ naturali          |
+| `aggressive` | Caveman + sommarizzaturi tal-istorja/għodod                                                | Sessjonijiet twal ta' chat                             |
+| `ultra`      | Caveman + għajnuniet għat-tqaxxir                                                          | Irkupru tal-limitu tal-kuntest                         |
+| `rtk`        | RTK                                                                                        | Output tat-terminal, shell, build, test, u git         |
+| `omniglyph`  | OmniGlyph                                                                                  | Kuntest bħala immaġni fuq il-wajer tal-fornitur nattiv |
+| `stacked`    | Pipeline. Id-default tat-talba huwa `session-dedup -> lite`. `rtk -> caveman` huwa opt-in. | Logs ta' għodod imħallta u proża, iffrankar massimu    |
 
-### Profili tal-kompressjoni ta’ OmniGlyph
+### Profili ta' kompressjoni OmniGlyph
 
-Il-magna `omniglyph` (il-package `omniglyph`, 1.4.0+) taċċetta profil semantiku msemmi, issettjat
-globalment permezz ta’ `omniglyph.profile` fis-settings tal-kompressjoni jew għal kull pass permezz
-tal-konfigurazzjoni tal-pass tal-pipeline f’saffi:
+Il-magna `omniglyph` (pakkett `omniglyph`, 1.4.0+) taċċetta profil semantiku bl-isem, issettjat
+globalment permezz ta' `omniglyph.profile` fis-settings tal-kompressjoni jew għal kull pass permezz tal-
+konfigurazzjoni tal-pass tal-pipeline stacked:
 
-| Profil        | Limitu                                                                                                                          |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Default. Il-politika mkejla mir-riżultati ippubblikati — timmaġinizza s-system, id-dokumentazzjoni tal-għodod u l-istorja densa |
-| `balanced`    | Iżomm l-istat attiv nattiv, jipproteġi l-aħħar 8 dawriet, u jikkollassa l-istorja magħluqa eqdem                                |
-| `coding-safe` | Iżomm l-awtorità, l-iskemi tal-għodod u l-output attiv tal-għodod nattivi, u jipproteġi l-aħħar 12-il dawra                     |
-| `passthrough` | Jirrotta mingħajr trasformazzjoni; il-magna tinqabeż                                                                            |
+| Profil        | Limitu                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Default. Il-politika li l-irċevuti ppubblikati kejlu — sistema ta' immaġini, dokumenti ta' għodod u storja densa |
+| `balanced`    | Iżomm l-istat ħaj nattiv, jipproteġi l-aħħar 8 dawriet, jikkollassa storja magħluqa aktar antika                 |
+| `coding-safe` | Iżomm l-awtorità, l-iskemi tal-għodod u l-output tal-għodod ħajjin nattivi, jipproteġi l-aħħar 12-il dawra       |
+| `passthrough` | Jirrotta mingħajr ma jittrasforma; il-magna tinqabeż                                                             |
 
-Il-profil huwa **limitu massimu, mhux minimu**: `mergeCompressionProfileOptions` fil-package
-jirrifjuta li jħalli override minn min isejjaħ jerġa’ jiftaħ mogħdija li titlef id-data u li l-profil ikun għalaq, għalhekk
-`preserveSystemPrompt: false` għal pass partikolari ma jistax jerġa’ jattiva l-kompressjoni tas-system taħt `coding-safe`.
+Il-profil huwa **saqaf, mhux art**: `mergeCompressionProfileOptions` fil-pakkett
+jirrifjuta li jħalli min isejjaħ jissupera jerġa' jiftaħ korsija b'telf li l-profil għalaq, għalhekk `preserveSystemPrompt: false` għal kull pass
+ma jistax jerġa' jattiva l-kompressjoni tas-sistema taħt `coding-safe`.
 
-Skont il-kejl fuq din il-codebase: `coding-safe` u `balanced` jgħollu `minCompressChars` sal-valur
-massimu tiegħu u jżommu s-system, l-iskemi tal-għodod u r-riżultati tal-għodod nattivi, għalhekk sessjoni li tkun għadha
-ma akkumulatx storja tieqaf f’`below_min_chars` u l-magna ma tittrasforma xejn. Huwa
-għalhekk li d-default huwa `aggressive` minflok l-aktar profil sikur.
+Imkejjel fuq din il-codebase: `coding-safe` u `balanced` jgħollu `minCompressChars` għall-
+massimu tiegħu u jżommu s-sistema, l-iskemi tal-għodod u r-riżultati tal-għodod nattivi, għalhekk sessjoni li għadha ma
+akkumulatx storja tieqaf f'`below_min_chars` u l-magna ma tittrasforma xejn. Dan
+huwa għalhekk li d-default huwa `aggressive` aktar milli l-aktar profil sikur.
 
-Il-package jirriżolvi l-ambitu tal-mudell u l-profil tiegħu mill-konfigurazzjoni tal-ambjent tiegħu stess.
-OmniRoute qatt ma jiddelega d-deċiżjoni: l-adapter jiffissa l-kontroll tal-mudell mal-aktar ambitu restrittiv
-tal-package, sabiex is-settings tal-ambjent tal-host ikunu jistgħu biss inaqqsu l-allowlist, u qatt
-iwessgħuha lil hinn mir-riżultati mkejla ta’ OmniRoute.
+Il-pakkett isolvi l-ambitu tal-mudell u l-profil tiegħu stess mill-konfigurazzjoni tal-ambjent tiegħu.
+OmniRoute qatt ma jiddelega d-deċiżjoni: l-adapter jiffissa l-bieb tal-mudell għall-aktar
+ambitu restrittiv tal-pakkett, għalhekk is-settings tal-ambjent ospitanti jistgħu biss iddejqu l-allowlist, qatt ma
+jwessgħuha lil hinn mill-irċevuti mkejla ta' OmniRoute.
 
 ## Reġistru tal-Engines
 
@@ -393,7 +393,7 @@ sensittivi għall-cache, eċċ.).
 
 ## Validazzjoni
 
-Il-gates iffukati għal din iż-żona huma:
+Il-bibien iffokati għal dan il-qasam huma:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

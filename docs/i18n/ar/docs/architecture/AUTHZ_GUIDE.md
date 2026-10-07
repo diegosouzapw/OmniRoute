@@ -5,11 +5,11 @@
 ---
 
 > **مصدر الحقيقة:** `src/server/authz/`، `src/shared/constants/publicApiRoutes.ts`، `src/lib/api/requireManagementAuth.ts`، `src/shared/utils/apiAuth.ts`
-> **آخر تحديث:** 2026-06-28 — v3.8.40
+> **آخر تحديث:** 2026-09-22 — تشير مساحات أسماء النطاقات إلى MCP-SERVER.md
 
-يحتوي OmniRoute على مسار معالجة للتفويض يراعي المسارات ويتحكم في كل طلب API. ويكون التصنيف **حتميًا** و**مغلقًا افتراضيًا عند الفشل** — فكل ما يتعذر تصنيفه ينتهي به المطاف ضمن `MANAGEMENT` ويتطلب جلسة أو رمزًا مميزًا بمستوى الإدارة. تشرح هذه الصفحة النموذج للمهندسين الذين يصونون المسارات أو يصممون نقاط نهاية جديدة.
+لدى OmniRoute مسار معالجة تخويل مُدرك للمسارات، يتحكم في كل طلب API. ويُعد التصنيف **حتميًا** و**مغلقًا عند الفشل** — فأي شيء يتعذر تصنيفه ينتهي به المطاف ضمن `MANAGEMENT` ويتطلب جلسة أو رمزًا مميزًا بمستوى الإدارة. تشرح هذه الصفحة النموذج للمهندسين الذين يتولون صيانة المسارات أو تصميم نقاط نهاية جديدة.
 
-![مسار معالجة AuthZ (3 فئات للمسارات + تقييم السياسة)](../diagrams/exported/authz-pipeline.svg)
+![مسار معالجة AuthZ (3 فئات للمسارات + تقييم السياسات)](../diagrams/exported/authz-pipeline.svg)
 
 > المصدر: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,33 +17,35 @@
 
 ### 1. مفتاح API ‏(Bearer)
 
-يُستخدم لواجهات API الخاصة بالعملاء والمتوافقة مع OpenAI/Anthropic/Gemini، وكذلك لبعض مسارات الإدارة عندما يكون للمفتاح نطاق `manage`.
+يُستخدم مع واجهات API للعملاء المتوافقة مع OpenAI/Anthropic/Gemini، ومع بعض مسارات الإدارة عندما يكون للمفتاح نطاق `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-يتم التحقق منه بواسطة `isValidApiKey()` / `extractApiKey()` في `src/sse/services/auth.ts`، وتُعاد تصديرهما عبر `src/shared/utils/apiAuth.ts`. يقبل المدقق أيضًا متغيري البيئة `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` بوصفهما مفتاحي تمرير دائمين (المشكلة #1350).
+يتم التحقق منه بواسطة `isValidApiKey()` / `extractApiKey()` في `src/sse/services/auth.ts`، ويُعاد تصديره عبر `src/shared/utils/apiAuth.ts`. يقبل المُتحقِّق أيضًا متغيري البيئة `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` بوصفهما مفتاحي تمرير دائمين (المشكلة #1350).
 
 ### 2. جلسة لوحة المعلومات (ملف تعريف الارتباط auth_token)
 
-تُستخدم لصفحات لوحة المعلومات وعمليات الإدارة.
+لصفحات لوحة المعلومات وعمليات الإدارة.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-لا يُعد ملف تعريف الارتباط جلسةً إلا عندما يتم التحقق من JWT **ويحمل** `authenticated: true`
-(`src/shared/utils/dashboardSessionToken.ts` ← `verifyDashboardSessionToken`). يمر كل
-مستهلك لملف تعريف الارتباط (حارس المسار، وتحديث مسار معالجة التفويض، ومصافحة WebSocket، والخادم
+لا يُعد ملف تعريف الارتباط جلسةً إلا عندما يتم التحقق من JWT **ويحمل أيضًا** `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). يمر كل
+مستهلك لملف تعريف الارتباط (حارس مسار لوحة المعلومات (`isDashboardSessionAuthenticated()`)، وتحديث مسار تفويض الوصول، ومصافحة WebSocket، والخادم
 المباشر، و`/api/settings/require-login`، و`/api/auth/status`) عبر تلك الدالة المساعدة.
-توجد رموز JWT أخرى موقعة باستخدام `JWT_SECRET` — إذ يُصدر تمرير Cursor CLI
-رموزًا تحمل `iss "omniroute" / aud "cursor-cli"` لحاملي المفاتيح — ولا تُعد جلسات مطلقًا
+توجد رموز JWT أخرى موقعة باستخدام `JWT_SECRET` — إذ ينشئ التمرير عبر Cursor CLI
+رموزًا تحتوي على `iss "omniroute" / aud "cursor-cli"` لحاملي المفاتيح — ولا تُعد جلسات أبدًا
 (#13298).
 
-يتم التحقق منها بواسطة `isDashboardSessionAuthenticated()` في `src/shared/utils/apiAuth.ts`. يُحدّث مسار المعالجة JWT تلقائيًا عندما يتبقى أقل من 7 أيام من مدة صلاحيته البالغة 30 يومًا.
+يتم التحقق بواسطة `isDashboardSessionAuthenticated()` في `src/shared/utils/apiAuth.ts`. يُحدِّث مسار المعالجة JWT تلقائيًا عندما يتبقى أقل من 7 أيام من مدة صلاحيته البالغة 30 يومًا.
 
-تقبل بعض مسارات الإدارة **أيًا من** الوضعين: ملف تعريف ارتباط أو `Bearer <key>` عندما يكون لمفتاح API نطاق `manage` (أو `admin`). وهذا ما يتيح سير عمل «القابل للتهيئة عبر استدعاءات API» المضاف في v3.8.
+يمكن أيضًا أن تنتهي الجلسة قبل اكتمال أيامها الثلاثين، لأن كل جهة مُصدِرة تمر عبر `mintDashboardSessionToken` (وقت إصدار `iat` ومعرّف `jti`)، ويتحقق المُتحقِّق من إعدادين: `sessionsValidAfter`، الذي يتم تعيينه عند تغيير كلمة المرور، بحيث يتوقف التحقق من كل جلسة صدرت قبله (ويحصل المتصفح الذي غيّر كلمة المرور على ملف تعريف ارتباط جديد)، و`revokedDashboardSessions`، الذي يضيف إليه `POST /api/auth/logout` قيمة `jti` الخاصة بالجلسة التي تم تسجيل الخروج منها. لا تحمل الجلسات التي أنشأها إصدار أقدم أيًا من هاتين المطالبتين، وتظل صالحة حتى أول تغيير لكلمة المرور. إذا تعذرت قراءة الإعدادات، فلا تكون الجلسة موثوقة.
+
+تقبل بعض مسارات الإدارة **أيًا من** الوضعين: ملف تعريف الارتباط أو `Bearer <key>` عندما يكون لمفتاح API نطاق `manage` (أو `admin`). وهذا ما يتيح سير العمل «القابل للتهيئة عبر استدعاءات API» الذي أُضيف في v3.8.
 
 #### بوابة تسجيل دخول OIDC اختيارية (#6973)
 
@@ -51,25 +53,25 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 إلى جانب تسجيل الدخول الافتراضي بكلمة المرور — ولا تتم إزالة تسجيل الدخول بكلمة المرور مطلقًا، بل
 يُستكمل فقط:
 
-- يكون معطلًا ما لم تكن `settings.oidcEnabled === true` **و**تكون جميع القيم `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` مهيأة (الإعدادات ← المصادقة).
-  وإلا، فيُرجع `GET /api/auth/oidc/login` الحالة `400`.
+- يكون معطلًا ما لم يكن `settings.oidcEnabled === true` **وكانت** جميع القيم `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` مُهيأة (Settings → Auth).
+  وإلا، يُرجع `GET /api/auth/oidc/login` الرمز `400`.
 - يكتشف `GET /api/auth/oidc/login` قيمة `authorization_endpoint` من
-  `/.well-known/openid-configuration` الخاص بجهة الإصدار (مع الرجوع احتياطيًا إلى
+  `/.well-known/openid-configuration` الخاصة بجهة الإصدار (مع الرجوع احتياطيًا إلى
   `<issuer>/authorize`)، وينشئ URI لإعادة التوجيه من الطلب الوارد
-  (مع مراعاة `x-forwarded-proto`)، ثم يعيد التوجيه إلى موفر الهوية IdP مع قيمة `state`
-  عشوائية مخزنة في ملف تعريف ارتباط `oidc_state` ذي السمة `httpOnly`.
+  (مع مراعاة `x-forwarded-proto`)، ثم يعيد التوجيه إلى IdP مع قيمة `state` عشوائية
+  مخزنة في ملف تعريف ارتباط `oidc_state` من النوع `httpOnly`.
 - يتحقق `GET /api/auth/oidc/callback` من `state`، ويستبدل رمز التفويض،
-  ويتحقق من توقيع رمز ID عبر JWKS الخاص بجهة الإصدار
-  (`createRemoteJWKSet` من `jose`، مع التخزين المؤقت لكل URI خاص بـJWKS)، مع إجراء عمليات تحقق
-  من `issuer`/`audience`. تطابق قائمة السماح الاختيارية `oidcAllowedSubjects` مطالبة
-  `sub` في الرمز أو مطالبة `email` — ولا تُقبل مطالبة البريد الإلكتروني إلا عندما تكون
-  `email_verified === true`، ولذلك لا يمكن لبريد إلكتروني غير متحقق منه لدى موفر الهوية IdP تجاوز
+  ويتحقق من توقيع رمز ID عبر JWKS الخاصة بجهة الإصدار
+  (`createRemoteJWKSet` من `jose`، مع التخزين المؤقت لكل URI خاص بـ JWKS)، مع إجراء عمليات تحقق
+  من `issuer`/`audience`. تطابق قائمة السماح الاختيارية `oidcAllowedSubjects`
+  مطالبة `sub` في الرمز أو مطالبة `email` فيه — ولا يتم اعتماد مطالبة البريد الإلكتروني إلا عندما
+  تكون `email_verified === true`، ولذلك لا يمكن لبريد إلكتروني غير موثَّق لدى IdP اجتياز
   البوابة مطلقًا.
-- عند النجاح، يُصدر التدفق رمز JWT ‏`auth_token` **نفسه تمامًا** بصلاحية 30 يومًا، وهو الرمز الذي
-  يصدره تسجيل الدخول بكلمة المرور (`src/app/api/auth/login/route.ts`)، ولذلك يبقى باقي
-  مسار معالجة جلسة لوحة المعلومات (التحديث التلقائي، وسمات ملفات تعريف الارتباط) دون تغيير —
-  إذ لا يستبدل OIDC سوى كيفية إصدار ملف تعريف الارتباط، وليس الصلاحيات التي يمنحها.
+- عند النجاح، ينشئ التدفق **رمز JWT نفسه تمامًا** في `auth_token` لمدة 30 يومًا، وهو الرمز الذي
+  يصدره تسجيل الدخول بكلمة المرور (`src/app/api/auth/login/route.ts`)، ولذلك يظل باقي
+  مسار معالجة جلسة لوحة المعلومات (التحديث التلقائي، وسمات ملف تعريف الارتباط) دون تغيير —
+  فلا يستبدل OIDC سوى طريقة إنشاء ملف تعريف الارتباط، وليس الصلاحيات التي يمنحها.
 
 ## فئات المسارات
 
@@ -202,26 +204,34 @@ export async function POST(request: Request) {
 
 ## النطاقات
 
-تحمل مفاتيح API مصفوفة `scopes` (تُخزَّن بصيغة JSON في `api_keys.scopes`، راجع `src/lib/db/apiKeys.ts`).
+ثلاثة مساحات أسماء. يقرأ كل مدقّق السلاسل النصية الخاصة به فقط. للمقارنة جنبًا إلى جنب، بما في ذلك سبب فشل `manage` في `scopeMatches` بالنسبة إلى `read:compression` وسبب عدم تمكّن رمز وصول ذي نطاق `read` من تنفيذ `PATCH /api/keys/{id}`، راجع
+[مساحات أسماء النطاقات الثلاث](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+تحمل مفاتيح API مصفوفة `scopes` (مخزّنة بصيغة JSON في `api_keys.scopes`، راجع `src/lib/db/apiKeys.ts`).
 
 ### نطاق الإدارة
 
-- `manage` / `admin` — يمنح المفتاح صلاحية الوصول إلى نقاط نهاية API الإدارية عند إرساله كرمز Bearer.
+- `manage` / `admin` — `hasManageScope`. وصول حامل الرمز إلى مسارات واجهة API الإدارية.
+- إن `mcp:connect` و`self:usage` و`self:account-quota` و
+  `policy:bypass-provider-quota` هي نطاقات تراكمية تعتمد على التطابق التام. وهي تقع
+  خارج `MANAGEMENT_API_KEY_SCOPES`. لا يتيح `mcp:connect` سوى
+  استثناء الوصول غير المحلي إلى `/api/mcp/`.
 
-### نطاقات MCP (`src/shared/constants/mcpScopes.ts`)
+### نطاقات أدوات MCP
 
-تتطلب كل أداة MCP نطاقات محددة عبر `MCP_TOOL_SCOPES`. القائمة الكاملة (`MCP_SCOPE_LIST`):
+دليل النطاقات وقواعد المطابقة (سلسلة نصية متطابقة، أو نطاق ممنوح ينتهي بـ `*`):
+[نطاقات أدوات MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+تمثّل `MCP_SCOPE_LIST` في `src/shared/constants/mcpScopes.ts` المجموعة الفرعية الأصلية
+ذات الأنواع المحددة، وليست الدليل الكامل. يجري الإنفاذ في
+`open-sse/mcp-server/scopeEnforcement.ts` بعد أن تحلّ `resolveCallerScopeContext()`
+النطاقات من معلومات مصادقة MCP أو بيانات الطلب الوصفية أو `OMNIROUTE_MCP_SCOPES`.
+ويظل معطّلًا ما لم تكن `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### نطاقات رموز الوصول
 
-يفرض التحقق من النطاقات في `open-sse/mcp-server/server.ts` قائمة نطاقات كل أداة من خلال تمريرها إلى
-`evaluateToolScopes()` بعد أن تحلّ `resolveCallerScopeContext()` النطاقات من معلومات مصادقة MCP،
-أو بيانات الطلب الوصفية، أو `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` على رموز `oma_live_…`، مرتبة بواسطة `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). ينطبق هذا الترتيب على بيانات اعتماد رمز الوصول
+فقط. راجع [مصادقة الإدارة](../guides/MANAGEMENT-AUTH.md).
 
 ## مفتاح تبديل اشتراط المصادقة
 
@@ -270,6 +280,6 @@ x-omniroute-auth-scopes:    قائمة مفصولة بفواصل
 ## انظر أيضًا
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — علامة المصادقة لكل نقطة نهاية
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — سجل تدقيق لأحداث المصادقة
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — تفاصيل فرض نطاقات MCP
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — سجل التدقيق لأحداث المصادقة
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — نطاقات الأذونات الثلاثة ودليل نطاقات أدوات MCP
 - المصدر: `src/server/authz/`، `src/lib/api/requireManagementAuth.ts`

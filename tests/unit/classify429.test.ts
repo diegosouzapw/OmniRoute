@@ -52,6 +52,45 @@ test("classify429: auth-layer synthetic 'have exhausted their quota' returns 'qu
   assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
 });
 
+// New test for the phrasing introduced in the recent comment
+test("classify429: detects 'exhausted all your credits' phrasing", () => {
+  const body1 = "You have exhausted all your credits. Please upgrade your plan.";
+  const body2 = "We have exhausted all your credits due to usage limits.";
+  assert.equal(classify429({ status: 429, body: body1 }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: body2 }), "quota_exhausted");
+});
+
+// The TPD patterns are terminal, so they classify as quota_exhausted even with
+// a short retry hint in the body — confirming that terminal signals override
+// upstream retry windows (as intended by the fix).
+test("classify429: TPD rate limit body with short retry hint still returns 'quota_exhausted'", () => {
+  const body =
+    "request reached organization TPD rate limit, current: 1500, limit: 1500. " +
+    "please retry in 30s";
+  // Terminal TPD pattern wins over the short retry hint → quota_exhausted
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+});
+
+// #13041: credit exhaustion is not always signalled with a 429 — some upstreams
+// answer 402/403 (or even 5xx) with a terminal "out of credits" body. Those must
+// classify as quota_exhausted so the breaker applies the long quota cooldown,
+// while a non-429 without terminal quota wording stays transient.
+test("classify429: non-429 credit-exhausted bodies return 'quota_exhausted' (#13041)", () => {
+  const body = { error: { message: "You have exhausted all your credits." } };
+  assert.equal(classify429({ status: 402, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 403, body: "Account is out of credits" }), "quota_exhausted");
+  assert.equal(
+    classify429FromError({ status: 402, message: "You have exhausted all your credits." }),
+    "quota_exhausted"
+  );
+});
+
+test("classify429: non-429 errors without terminal quota wording stay 'transient' (#13041)", () => {
+  assert.equal(classify429({ status: 500, body: "Internal server error" }), "transient");
+  assert.equal(classify429({ status: 403, body: "rate limit exceeded, retry in 5s" }), "transient");
+  assert.equal(classify429({ status: 200, body: "out of credits" }), "transient");
+});
+
 test("classify429: Google RESOURCE_EXHAUSTED with a billing-period reset is quota exhausted", () => {
   const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
   assert.equal(looksLikeQuotaExhausted(body), true);
@@ -467,7 +506,10 @@ test("classify429: Moonshot organization TPD rate limit is quota_exhausted", () 
 
 test("classify429: Moonshot engine overloaded stays rate_limit", () => {
   assert.equal(
-    classify429({ status: 429, body: "The engine is currently overloaded, please try again later" }),
-    "rate_limit",
+    classify429({
+      status: 429,
+      body: "The engine is currently overloaded, please try again later",
+    }),
+    "rate_limit"
   );
 });

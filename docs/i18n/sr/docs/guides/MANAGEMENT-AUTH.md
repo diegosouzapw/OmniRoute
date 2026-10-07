@@ -4,56 +4,59 @@
 
 ---
 
-OmniRoute има **четири породице акредитива** које могу да ауторизују руте за управљање.
-Оне нису међусобно заменљиве. Кључеви API-ја за инференцију (`sk-…`) **не** управљају
-сервером осим ако им изричито није додељен опсег `manage` или `admin`.
+OmniRoute ima **četiri porodice akreditiva** koje mogu autorizovati rute za upravljanje.
+Nisu međusobno zamenljivi. API ključevi za inferencu (`sk-…`) NE upravljaju
+serverom osim ako im nije eksplicitno dodeljen `manage` ili `admin` opseg.
 
-Канонска имплементација: `src/lib/api/requireManagementAuth.ts`.
+Kanonska implementacija: `src/lib/api/requireManagementAuth.ts`.
 
-| Акредитив                  | Типичан облик                         | Где се креира                                             | Намењена употреба               | Могућности управљања                                                                                   |
-| -------------------------- | ------------------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Dashboard JWT сесија       | `auth_token` колачић                  | Пријављивање на контролну таблу                           | Кориснички интерфејс прегледача | Потпуно управљање преко контролне табле, уз поштовање правила за CSRF, локалност и увек заштићене руте |
-| CLI machine-id токен       | интерни / локални                     | Покретање CLI-ја (`omniroute` на истом рачунару)          | Локални CLI                     | Само локално управљање                                                                                 |
-| Приступни токен са опсегом | `oma_live_…`                          | **Подешавања → Приступни токени** или `omniroute connect` | Удаљени CLI и API за управљање  | Мора да задовољи опсег `read`, `write` или `admin` који рута захтева                                   |
-| Кључ API-ја за инференцију | `sk-…` (и други префикси API кључева) | **Менаџер API-ја / API кључеви**                          | `/v1/*` инференција             | **Нема** осим ако метаподаци кључа садрже `manage` или `admin`                                         |
+| Akreditiv                  | Tipičan oblik                          | Kreiran gde                                                | Namena                            | Mogućnost upravljanja                                                                               |
+| :------------------------- | :------------------------------------- | :--------------------------------------------------------- | :-------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| JWT sesija kontrolne table | `auth_token` kolačić                   | Prijava na kontrolnu tablu                                 | Korisnički interfejs pretraživača | Potpuno upravljanje kontrolnom tablom, podložno CSRF-u, lokalitetu i pravilima uvek zaštićenih ruta |
+| CLI token ID-a mašine      | interni / lokalni                      | CLI pokretanje (`omniroute` na istoj mašini)               | Lokalni CLI                       | Samo lokalno upravljanje                                                                            |
+| Opsežni pristupni token    | `oma_live_…`                           | **Podešavanja → Pristupni tokeni** ili `omniroute connect` | Udaljeni CLI i API za upravljanje | Mora zadovoljiti zahtevani `read`, `write` ili `admin` opseg rute                                   |
+| API ključ za inferencu     | `sk-…` (i drugi prefiksi API ključeva) | **API menadžer / API ključevi**                            | inferenca `/v1/*`                 | **Nijedna** osim ako metapodaci ključa ne uključuju `manage` ili `admin`                            |
 
-`oma_` акредитиви су акредитиви за управљање/CLI. Они **нису** кључеви API-ја за инференцију.
+`oma_` akreditivi su akreditivi za upravljanje/CLI. Oni NISU API ključevi za inferencu.
 
-Ако је аутентификација пријављивањем/API кључем онемогућена на серверу, неке руте за управљање могу
-да прихватају неаутентификоване позиве. Руте које су само локалне и увек заштићене и даље примењују
-сопствена правила. Стога навођење једног од ових акредитива није увек
-обавезно, а поседовање акредитива није увек довољно без потребног
-опсега и одговарајуће локалности руте.
+Ako je prijava/API-ključ autentifikacija onemogućena za server, neke rute za upravljanje mogu
+prihvatiti neautentifikovane pozive. Rute samo za lokalno korišćenje i uvek zaštićene rute i dalje primenjuju
+sopstvena pravila. Predstavljanje jednog od ovih akreditiva stoga nije univerzalno
+obavezno, a posedovanje jednog nije univerzalno dovoljno bez zahtevanog
+opsega i lokaliteta rute.
 
-Повезано: [Удаљени режим](./REMOTE-MODE.md) (како се `oma_live_…` издаје за удаљени CLI).
+Povezano: [Remote Mode](./REMOTE-MODE.md) (kako se `oma_live_…` izdaje za udaljeni CLI).
 
 ---
 
-## Матрице опсега
+## Matrice opsega
 
-Ова два речника опсега су **различита**. Немојте их мешати.
+Opsezi za upravljanje API ključevima i opsezi pristupnih tokena su različiti rečnici.
+Opsezi MCP alata su treći rečnik, proveravaju se pomoću `scopeMatches` umesto
+bilo koje funkcije u tabelama ispod. Uporedo:
+[Tri imenska prostora opsega](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Опсези приступних токена (`oma_live_…`)
+### Opsezi pristupnog tokena (`oma_live_…`)
 
-| Опсег   | Типичне операције                                                                            |
-| ------- | -------------------------------------------------------------------------------------------- |
-| `read`  | GET захтеви за листе/статусе које токен сме да види                                          |
-| `write` | Измене (креирање/ажурирање/брисање) испод администраторског нивоа                            |
-| `admin` | Потпуни удаљени CLI / токен за повезивање (подразумевано при иницијализацији помоћу лозинке) |
+| Opseg   | Tipične operacije                                                                                    |
+| ------- | ---------------------------------------------------------------------------------------------------- |
+| `read`  | GET zahtevi za listanje/status koje token sme da vidi                                                |
+| `write` | Mutacije (kreiranje/ažuriranje/brisanje) ispod administratorskog nivoa                               |
+| `admin` | Potpuni daljinski CLI / token za povezivanje (podrazumevane vrednosti za pokretanje lozinke su ovde) |
 
-Токен са опсегом `read` не може да позове руту са опсегом `write`. Облик поруке током извршавања:
-`Опсег приступног токена '<have>' није довољан; потребан је '<need>'.`
+Token sa `read` ne može pozvati `write` rutu. Oblik poruke tokom izvršavanja:
+`Access token scope '<have>' is insufficient; '<need>' required.`
 
-### Опсези API кључева за управљање
+### Opsezi za upravljanje API ključevima
 
-| Опсег    | Значење                                                                            |
-| -------- | ---------------------------------------------------------------------------------- |
-| (нема)   | Само инференција. Руте за управљање враћају 403.                                   |
-| `manage` | API за управљање (иста провера као грана API кључа у `requireManagementAuth`)      |
-| `admin`  | Такође задовољава `hasManageScope` (третира се као опсег који омогућава управљање) |
+| Opseg     | Značenje                                                                      |
+| --------- | ----------------------------------------------------------------------------- |
+| (nijedan) | Samo zaključivanje. Rute za upravljanje vraćaju 403.                          |
+| `manage`  | API za upravljanje (ista kapija kao `requireManagementAuth` grana API ključa) |
+| `admin`   | Takođe zadovoljava `hasManageScope` (tretira se kao sposoban za upravljanje)  |
 
-Омогућите `manage` за кључ у корисничком интерфејсу API кључева / Менаџера API-ја. Немојте поново користити
-кључ клијента за ћаскање за аутоматизацију осим ако сте му намерно доделили тај опсег.
+Omogućite `manage` na ključu u korisničkom interfejsu API Keys / API Manager.
+Nemojte ponovo koristiti ključ klijenta za ćaskanje za automatizaciju osim ako namerno niste dodelili taj opseg.
 
 ---
 
@@ -127,26 +130,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Тренутне грешке током извршавања (не приказујте тајне)
+## Trenutne greške pri izvršavanju (ne prikazivati tajne)
 
-| Ситуација                                     | Типичан статус | Порука (санитизована)                                                |
-| --------------------------------------------- | -------------- | -------------------------------------------------------------------- |
-| Нема акредитива                               | 401            | `Authentication required`                                            |
-| Неважећи/истекли `oma_live_…`                 | 401            | `Invalid or expired access token`                                    |
-| Важећи API кључ без опсега `manage`/`admin`   | 403            | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Неважећи обичан API кључ на рути за управљање | 403            | `Invalid management token`                                           |
-| Опсег приступног токена је недовољан          | 403            | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Situacija                                        | Tipičan status | Poruka (sanitizovana)                                                |
+| :----------------------------------------------- | :------------- | :------------------------------------------------------------------- |
+| Nema akreditiva                                  | 401            | `Authentication required`                                            |
+| Nevažeći/istekao `oma_live_…`                    | 401            | `Invalid or expired access token`                                    |
+| Važeći API ključ bez `manage`/`admin`            | 403            | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Nevažeći običan API ključ na ruti za upravljanje | 403            | `Invalid management token`                                           |
+| Opseg pristupnog tokena je prenizak              | 403            | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-„Invalid management token“ значи да токен носиоца **није** прихваћен као акредитив за управљање. Ова порука вам **не** говори коју врсту акредитива треба да генеришете. Користите горњу табелу: кључевима за инференцију потребан је опсег `manage`; удаљеном CLI-ју је потребан `oma_live_…`; контролна табла користи колачић сесије.
+„Nevažeći token za upravljanje“ znači da nosilac **nije** prihvaćen kao akreditiv za upravljanje. To vam **ne** govori koju porodicu da kreirate. Koristite gornju tabelu: ključevi za inferenciju zahtevaju `manage` opseg; udaljeni CLI zahteva `oma_live_…`; kontrolna tabla koristi kolačić sesije.
 
 ---
 
-## Препоручени избор са најмањим привилегијама
+## Preporučeni izbor najmanjih privilegija
 
-| Позивалац                                           | Користите                                           |
-| --------------------------------------------------- | --------------------------------------------------- |
-| Прегледач                                           | Сесију контролне табле                              |
-| CLI на хосту сервера                                | Машински токен                                      |
-| CLI на лаптопу који комуницира са удаљеним сервером | `oma_live_…` из `omniroute connect`                 |
-| CI / скрипте (само за управљање)                    | `oma_live_…` са најмањим опсегом који функционише   |
-| CI који мора да позива и `/v1` и `/api`             | API кључ са опсегом `manage` **или** два акредитива |
+| Pozivalac                                            | Upotreba                                           |
+| :--------------------------------------------------- | :------------------------------------------------- |
+| Pretraživač                                          | Sesija kontrolne table                             |
+| CLI na hostu servera                                 | Mašinski token                                     |
+| CLI na laptopu koji komunicira sa udaljenim serverom | `oma_live_…` iz `omniroute connect`                |
+| CI / skripte (samo za upravljanje)                   | `oma_live_…` sa najmanjim opsegom koji funkcioniše |
+| CI koji mora pozvati i `/v1` i `/api`                | API ključ sa `manage` **ili** dve akreditacije     |

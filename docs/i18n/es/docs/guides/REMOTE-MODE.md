@@ -349,34 +349,34 @@ opencode -m omniroute/glm/glm-5.2 "..."          # exportar OMNIROUTE_API_KEY pr
 
 ---
 
-## Gestión de contextos (cambiar entre servidores)
+## Gestión de contextos (cambio entre servidores)
 
 Un **contexto** es un servidor guardado (baseUrl + credencial + ámbito). `omniroute connect`
-crea uno y lo activa; a partir de ese momento, todos los comandos se dirigen a él. Gestiona
-los contextos y cambia entre ellos con `omniroute contexts`:
+crea uno y lo activa; a partir de entonces, cada comando lo tiene como objetivo. Gestione y
+cambie entre ellos con `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # todos los contextos; el activo está marcado con ●
-omniroute contexts current         # el servidor activo, el estado de autenticación y el ámbito
+omniroute contexts list            # todos los contextos; el activo está marcado ●
+omniroute contexts current         # el servidor activo, estado de autenticación, ámbito
 ```
 
 ```text
-  | Nombre  | URL base                  | Autenticación | Ámbito | Descripción
-● | vps     | http://100.67.86.91:20128 | token         | admin  | OmniRoute remoto (…)
-  | default | http://localhost:20128    | ✗             |        |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | OmniRoute remoto (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Cambiar de servidor** — todos los comandos posteriores usan el contexto activo:
+**Cambiar de servidor** — cada comando subsiguiente sigue el contexto activo:
 
 ```bash
-omniroute contexts use vps         # → ahora todos los comandos se dirigen al VPS remoto
+omniroute contexts use vps         # → todos los comandos ahora apuntan al VPS remoto
 omniroute tokens list              #   (se ejecuta contra el VPS)
 
 omniroute contexts use default     # → de vuelta a localhost
 omniroute tokens list              #   (se ejecuta contra el servidor local)
 ```
 
-**Añadir un contexto manualmente** (en lugar de usar `connect`), inspeccionarlo o cambiarle el nombre:
+**Añadir un contexto manualmente** (en lugar de `connect`), inspeccionar o renombrar:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
@@ -385,31 +385,35 @@ omniroute contexts show staging    # detalles completos de un contexto
 omniroute contexts rename staging stg
 ```
 
-**Eliminar un contexto** — solicita confirmación; usa `--yes` para omitirla
-(requerido para scripts o shells no interactivos, que de lo contrario rechazan la operación de forma segura):
+**Eliminar un contexto** — solicita confirmación; pase `--yes` para omitirla
+(requerido para scripts / shells no interactivos, que de otro modo rechazan de forma segura):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) no se puede eliminar. Al eliminar el contexto activo, se vuelve
-> a `default`. Consejo: eliminar un contexto solo descarta la credencial **local** guardada;
-> revoca el token en el servidor con `omniroute tokens revoke <id>` para anular
-> realmente el acceso.
+> `default` (localhost) no se puede eliminar. Eliminar el contexto activo vuelve
+> a `default`. Consejo: eliminar un contexto solo elimina la credencial guardada **local** —
+> revoque el token en el servidor con `omniroute tokens revoke <id>` para
+> realmente eliminar el acceso.
 
-**Exportar/importar** contextos (p. ej., para moverlos entre máquinas). Los contextos nuevos solo
-conservan una referencia al llavero; las credenciales no se copian en la exportación cuando
-el llavero del sistema operativo está disponible:
+**Exportar / importar** contextos (por ejemplo, para moverlos entre máquinas). Las exportaciones omiten
+las credenciales por defecto, incluyendo las credenciales almacenadas por el respaldo de archivo. Use
+`--include-secrets` explícitamente cuando se necesite una copia de seguridad portátil que contenga credenciales:
 
 ```bash
-omniroute contexts export --out contexts.json     # valor predeterminado: stdout
-omniroute contexts import contexts.json            # sobrescribir; usa --merge para conservar los existentes
-omniroute contexts migrate --yes                  # mover los tokens antiguos en texto sin formato al llavero
+omniroute contexts export --out contexts.json     # redactado; destino por defecto: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # sobrescribir; --merge para mantener los existentes
+omniroute contexts migrate --yes                  # mover tokens de texto plano heredados al llavero
 ```
 
-En sistemas sin interfaz gráfica que no dispongan de un llavero del sistema operativo utilizable, la CLI recurre a
-`config.json` con el modo `0600` y muestra una advertencia una sola vez. Trata las exportaciones de
-ese mecanismo alternativo (y cualquier configuración antigua anterior a la migración) como material secreto.
+`--include-secrets` resuelve las referencias del llavero antes de exportar y falla si alguna
+credencial referenciada no puede leerse. `--no-secrets` siempre tiene prioridad.
+Los archivos de exportación se escriben atómicamente con el modo `0600`. Trate una exportación
+explícita que contenga secretos como material secreto. En sistemas sin cabeza sin un llavero del SO
+utilizable, la CLI recurre a `config.json` con el modo `0600` e imprime una
+advertencia única; una exportación predeterminada permanece redactada en este modo.
 
 ---
 

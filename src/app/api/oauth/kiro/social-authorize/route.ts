@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
 
 /**
@@ -8,9 +8,8 @@ import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
  * Returns a verification URL for the user to open in their browser.
  */
 export async function GET(request) {
-  if ((await isAuthRequired(request)) && !(await isAuthenticated(request))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResponse = await requireManagementAuth(request, { invalidApiKeyStatus: 401 });
+  if (authResponse) return authResponse;
 
   try {
     const { searchParams } = new URL(request.url);

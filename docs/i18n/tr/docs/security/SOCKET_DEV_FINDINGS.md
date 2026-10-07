@@ -215,13 +215,13 @@ açıkça ortaya koyar: "sunucu imzalar, istemci doğrular, operatör açıkça 
 
 ## Derleme profili: `minimal`
 
-Socket ile uyumlu bir yapıya ihtiyaç duyan kullanıcılar şu komutla derleyebilir:
+Socket uyumlu bir çıktıya ihtiyaç duyan kullanıcılar şu komutla derleme yapabilir:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin`, dört modülü takma adlarla stub'lara yönlendirir:
+webpack `NormalModuleReplacementPlugin`, dört modülü stub'larla eşler:
 
 | Modül                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -230,13 +230,12 @@ webpack `NormalModuleReplacementPlugin`, dört modülü takma adlarla stub'lara 
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Her stub aynı arayüzü dışa aktarır, ancak her işlev çalışma zamanında bir
+Her stub aynı arayüzü dışa aktarır, ancak tüm işlevler çalışma zamanında bir
 `featureDisabledError(name)` hatası oluşturur. Devre dışı bırakılan modüle
-bağlı rotalar, hassas kod yolunu etkinleştirmek yerine açık bir mesajla HTTP
-503 döndürür.
+bağlı rotalar, hassas kod yolunu etkinleştirmek yerine açık bir mesajla
+HTTP 503 yanıtı döndürür.
 
-Ortaya çıkan paketin `omniroute-secure` adıyla yayımlanması amaçlanmıştır.
-Yayımlama tarifi için `docs/ops/PUBLISHING_SECURE.md` belgesine bakın.
+Ortaya çıkan paketin `omniroute-secure` adıyla yayımlanması amaçlanmaktadır.
 
 ---
 

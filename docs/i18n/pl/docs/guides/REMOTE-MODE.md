@@ -4,26 +4,19 @@
 
 ---
 
-title: "Tryb zdalny — steruj zdalnym OmniRoute z laptopa"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+Uruchamiaj CLI `omniroute` na swoim laptopie, podczas gdy sam OmniRoute działa gdzieś indziej
+(na VPS-ie, serwerze domowym lub innym urządzeniu w Twojej sieci Tailnet). Logujesz się raz za pomocą
+`omniroute connect`, a od tego momentu **każde** polecenie CLI jest kierowane do tego zdalnego
+serwera — te same polecenia, te same dane wyjściowe, tylko wykonywane na serwerze zdalnym.
 
-# Tryb zdalny
-
-Uruchom CLI `omniroute` na laptopie, podczas gdy samo OmniRoute działa gdzie indziej
-(VPS, serwer domowy, inna maszyna w Tailnet). Logujesz się raz przez
-`omniroute connect`, a odtąd **każde** polecenie CLI celuje w ten zdalny
-serwer — te same komendy, ten sam wynik, tylko wykonane względem zdalnego hosta.
-
-Nie ma drugiego narzędzia do instalacji: tryb zdalny to zwykłe CLI `omniroute`
-plus tokeny dostępu ze **scope**.
+Nie trzeba instalować drugiego narzędzia: tryb zdalny to zwykły CLI `omniroute`
+oraz **tokeny dostępu** z określonym zakresem uprawnień.
 
 ```bash
-npm install -g omniroute                 # the normal CLI
-omniroute connect 192.168.0.15           # log in (password → scoped token)
-omniroute models list                    # ← now lists the REMOTE server's models
-omniroute configure codex                # ← writes a local Codex profile from the remote catalog
+npm install -g omniroute                 # standardowy CLI
+omniroute connect 192.168.0.15           # logowanie (hasło → token z określonym zakresem)
+omniroute models list                    # ← teraz wyświetla modele ZDALNEGO serwera
+omniroute configure codex                # ← zapisuje lokalny profil Codex ze zdalnego katalogu
 ```
 
 ---
@@ -31,195 +24,229 @@ omniroute configure codex                # ← writes a local Codex profile from
 ## Jak to działa
 
 ```
-your laptop                              remote OmniRoute (VPS)
+Twój laptop                              zdalny OmniRoute (VPS)
 ┌────────────────────┐                   ┌───────────────────────────────┐
-│ omniroute CLI      │  POST /api/cli/connect  (password → token)         │
-│  context: vps      │ ───────────────►  │ mints a scoped access token    │
+│ CLI omniroute      │  POST /api/cli/connect  (hasło → token)            │
+│  kontekst: vps     │ ───────────────►  │ generuje token dostępu         │
 │  baseUrl, token    │  Authorization: Bearer oma_live_…                  │
-│                    │ ───────────────►  │ every management route, scope- │
-│ writes configs     │ ◄───────────────  │ checked per the token's scope  │
-│ LOCALLY            │                   └───────────────────────────────┘
+│                    │ ───────────────►  │ każda trasa zarządzania jest   │
+│ zapisuje konfig.   │ ◄───────────────  │ sprawdzana wg zakresu tokenu   │
+│ LOKALNIE           │                   └───────────────────────────────┘
 └────────────────────┘
 ```
 
 - **Konteksty** przechowują po jednym serwerze (`~/.omniroute/config.json`, `chmod 600`).
-  `omniroute contexts use <name>` przełącza aktywny serwer; `default` to lokalny.
-- **Tokeny dostępu** (`oma_live_…`) autoryzują polecenia zarządzające. Są
-  odrębne od kluczy API do inferencji (`sk-…`, używanych dla `/v1/chat/completions`).
-- Po stronie serwera zapisywany jest tylko hash SHA-256 tokena. Tekst jawny pokazywany jest
-  **raz**, przy utworzeniu.
+  `omniroute contexts use <name>` przełącza aktywny serwer; `default` oznacza serwer lokalny.
+- **Tokeny dostępu** (`oma_live_…`) autoryzują polecenia zarządzania. Różnią się
+  od kluczy API do inferencji (`sk-…`, używanych dla `/v1/chat/completions`).
+- Po stronie serwera przechowywany jest wyłącznie skrót SHA-256 tokenu. Token w postaci jawnego tekstu jest wyświetlany
+  **tylko raz**, podczas tworzenia.
 
 ---
 
 ## Łączenie
 
-### Hasłem zarządzania (bootstrap)
+### Za pomocą hasła zarządzania (konfiguracja początkowa)
 
 ```bash
 omniroute connect 192.168.0.15
-# Management password for http://192.168.0.15:20128: ********
-# ✔ Connected to http://192.168.0.15:20128 — context '192.168.0.15' (scope: admin)
+# Hasło zarządzania dla http://192.168.0.15:20128: ********
+# ✔ Połączono z http://192.168.0.15:20128 — kontekst „192.168.0.15” (zakres: admin)
 ```
 
-Przepływ z hasłem domyślnie wystawia token **admin** (masz hasło, więc
-i tak masz pełną kontrolę). Zawęż scope przez `--scope`:
+Przepływ wykorzystujący hasło domyślnie generuje token **admin** (skoro masz hasło,
+masz już pełną kontrolę). Ogranicz zakres za pomocą `--scope`:
 
 ```bash
 omniroute connect 192.168.0.15 --scope write
 ```
 
-Opcje: `--port <p>` (gdy host nie ma portu), `--name <ctx>` (nazwa kontekstu),
-`--scope read|write|admin`. Pełny URL jest honorowany bez zmian:
+Opcje: `--port <p>` (gdy host nie zawiera portu), `--name <ctx>` (nazwa kontekstu),
+`--scope read|write|admin`. Pełny adres URL jest używany bez zmian:
 `omniroute connect https://omni.example.com`.
 
-### Wcześniej wygenerowanym tokenem
+### Za pomocą wcześniej wygenerowanego tokenu
 
-Wygeneruj token ze scope w dashboardzie (lub przez `omniroute tokens create`) i
+Wygeneruj token z określonym zakresem w panelu administracyjnym (lub za pomocą `omniroute tokens create`) i
 wklej go — hasło nie jest potrzebne:
 
 ```bash
 omniroute connect 192.168.0.15 --key oma_live_xxxxxxxx
 ```
 
-CLI waliduje go przez `GET /api/cli/whoami` i zapisuje jako aktywny kontekst.
+CLI weryfikuje go za pomocą `GET /api/cli/whoami` i zapisuje jako aktywny kontekst.
 
 ---
 
-## Scope
+## Zakresy uprawnień
 
-Trzy poziomy, hierarchicznie (`admin ⊃ write ⊃ read`):
+Trzy poziomy o strukturze hierarchicznej (`admin ⊃ write ⊃ read`):
 
-| Scope   | Co może                                                                                |
-| ------- | -------------------------------------------------------------------------------------- |
-| `read`  | listowanie/podgląd — `models list`, `providers status`, `logs`, `usage`, `cost`        |
-| `write` | read **+** konfiguracja/zastosowanie — `setup-codex`, `keys add`, `config set`, combos |
-| `admin` | write **+** zarządzanie — CRUD `tokens`, dodawanie providerów, services, policy, oauth |
+| Zakres  | Dostępne operacje                                                                            |
+| ------- | -------------------------------------------------------------------------------------------- |
+| `read`  | wyświetlanie/inspekcja — `models list`, `providers status`, `logs`, `usage`, `cost`          |
+| `write` | odczyt **+** konfiguracja/zastosowanie — `setup-codex`, `keys add`, `config set`, kombinacje |
+| `admin` | zapis **+** zarządzanie — CRUD `tokens`, dodawanie dostawców, usługi, zasady, oauth          |
 
-Serwer wywnioskuje wymagany scope każdej trasy z metody HTTP
-(`GET`→read, mutacje→write) oraz z allowlisty admin dla wrażliwych powierzchni
-(`/api/cli/tokens`, mutacje `/api/providers`, `/api/oauth`, `/api/services`, …).
-Token z niewystarczającym scope dostaje `403` z jasnym komunikatem.
+Serwer określa zakres wymagany przez każdą trasę na podstawie metody HTTP
+(`GET`→read, modyfikacje→write) oraz listy dozwolonych operacji administracyjnych dla wrażliwych obszarów
+(modyfikacje `/api/cli/tokens`, `/api/providers`, `/api/oauth`, `/api/services`, …).
+Token o niewystarczającym zakresie otrzymuje odpowiedź `403` z jasnym komunikatem.
 
 > Trasy uruchamiające procesy (`/api/services/*`, `/api/mcp/*`, …) pozostają
-> **tylko-loopback** — zdalny token nigdy do nich nie dotrze, niezależnie od scope.
+> dostępne **wyłącznie przez interfejs loopback** — zdalny token nigdy nie uzyska do nich dostępu, niezależnie od zakresu.
 
 ---
 
-## Podłączanie Antigravity na zdalnej instalacji
+## Łączenie Antigravity w instalacji zdalnej
 
-Antigravity używa ekranu zgody Google firstparty/nativeapp. Google wydaje
-kod autoryzacji tylko wtedy, gdy **przekierowanie loopback**
-(`http://127.0.0.1:<port>/callback`) jest **osiągalne z przeglądarki, która
-zatwierdza logowanie**. Na zdalnym VPS ten loopback żyje na
-serwerze, nie na Twojej maszynie, więc ekran zgody **wisi w nieskończoność i nigdy
-nie emituje kodu** — zwykły fallback „wklej URL callbacku” nie ma czego
-wkleić. (To ograniczenie po stronie Google: ten sam hang występuje w każdym proxy
-używającym dołączonego klienta desktop Antigravity, nie tylko w OmniRoute.)
+Antigravity korzysta z ekranu zgody Google typu firstparty/nativeapp. Google
+udostępnia kod autoryzacyjny tylko wtedy, gdy **przekierowanie zwrotne loopback**
+(`http://127.0.0.1:<port>/callback`) jest **osiągalne z przeglądarki, w której
+zatwierdzane jest logowanie**. W przypadku instalacji na zdalnym VPS ten adres
+loopback znajduje się na serwerze, a nie na Twoim komputerze, więc ekran zgody
+**zawiesza się na zawsze i nigdy nie zwraca kodu** — standardowy mechanizm awaryjny
+„wklej adres URL wywołania zwrotnego” nie ma niczego do wklejenia. (Jest to
+ograniczenie po stronie Google: takie samo zawieszenie występuje w każdym proxy,
+które korzysta z dołączonego klienta desktopowego Antigravity, nie tylko w
+OmniRoute).
 
-Dashboard wykrywa to, zanim ugrzęźniesz: otwarcie **Providers → Antigravity →
-Connect** z adresu innego niż localhost zamienia ogólne powiadomienie „skopiuj URL callbacku”
-na dwa poniższe rozwiązania, każde z już wypełnionym hostem i portem.
-(Adres LAN się liczy — `192.168.x.x` nie jest localhostem z punktu widzenia tego callbacku.)
+Panel wykrywa ten problem, zanim utkniesz: otwarcie **Dostawcy → Antigravity →
+Połącz** z adresu innego niż localhost zastępuje ogólny komunikat „skopiuj adres URL
+wywołania zwrotnego” dwoma poniższymi rozwiązaniami, w których host i port są już
+uzupełnione. (Adres LAN również się liczy — w kontekście tego wywołania zwrotnego
+`192.168.x.x` nie jest adresem localhost).
 
-Są dwa obsługiwane sposoby podłączenia Antigravity do zdalnego OmniRoute.
+Istnieją dwa obsługiwane sposoby połączenia Antigravity ze zdalnym OmniRoute.
 
-### Opcja A — lokalny helper logowania (zalecane)
+### Opcja A — lokalny pomocnik logowania (zalecane)
 
-Uruchom OAuth na **własnym komputerze**, gdzie `127.0.0.1` jest osiągalne, i wklej
-wynik do zdalnego dashboardu. Helper rozmawia tylko z Google — **nie**
-potrzebuje dostępu sieciowego do VPS, więc działa nawet za firewallami.
+Uruchom OAuth na **własnym komputerze**, na którym adres `127.0.0.1` jest osiągalny.
+Pomocnik komunikuje się bezpośrednio z Google, dzięki czemu proces wyrażania zgody
+może zostać ukończony tam, gdzie wersja dostępna w panelu nie jest w stanie tego
+zrobić.
+
+**Jeśli masz już aktywne połączenie** (`omniroute connect <host>`), nie musisz
+niczego kopiować — pomocnik sam dostarczy dane uwierzytelniające do tej instalacji:
 
 ```bash
-# On your LOCAL machine (needs Node.js + a browser):
+# Na Twoim komputerze LOKALNYM (wymaga Node.js i przeglądarki):
+omniroute connect 192.168.0.15        # jednorazowo — generuje token kontekstu z uprawnieniami administratora
 npx omniroute login antigravity
-#   ↳ opens the Google consent in your browser, captures the callback on a local
-#     loopback port, exchanges it, and prints a one-line credential blob:
+#   ↳ otwiera ekran zgody Google, przechwytuje wywołanie zwrotne na lokalnym porcie loopback,
+#     wymienia je i wysyła dane uwierzytelniające metodą POST do aktywnego kontekstu:
 #
+#   Połączono Antigravity pod adresem http://192.168.0.15:20128 (połączenie abc123).
+#   Nie trzeba niczego wklejać — możesz zamknąć ten terminal.
+```
+
+Wysłanie następuje automatycznie, gdy aktywny kontekst wskazuje na inny komputer.
+Możesz je wymusić w dowolnym kierunku za pomocą `--push` / `--no-push` albo wskazać
+konkretny kontekst za pomocą `--context <name>`.
+
+**Jeśli Twój komputer nie może połączyć się z VPS** (zapora sieciowa, brak SSH,
+odizolowane stanowisko), pomocnik nadal zadziała — _potrzebuje_ jedynie dostępu do
+Google. Użyj `--no-push` albo po prostu pozwól, aby wysyłanie się nie powiodło:
+zamiast odrzucić ukończoną już autoryzację, pomocnik wyświetli blob.
+
+```bash
+npx omniroute login antigravity --no-push
 #   omniroute-cred-v1.eyJ2IjoxLCJ...
 ```
 
-Następnie w **zdalnym** dashboardzie: **Providers → Antigravity → Connect** i
-wklej blob `omniroute-cred-v1.…` w pole **Step 2** (akceptuje albo
-URL callbacku, albo blob poświadczeń). OmniRoute dekoduje go, uruchamia onboarding Cloud Code
-po stronie serwera i utrwala połączenie.
+Następnie w **zdalnym** panelu przejdź do: **Dostawcy → Antigravity → Połącz** i wklej
+blob `omniroute-cred-v1.…` w polu **Krok 2** (akceptuje ono zarówno adres URL
+wywołania zwrotnego, jak i blob danych uwierzytelniających). OmniRoute go zdekoduje,
+przeprowadzi proces wdrażania Cloud Code po stronie serwera i trwale zapisze
+połączenie.
 
-> Blob zawiera refresh token — traktuj go jak hasło. Jest wysyłany raz
-> przez połączenie z dashboardem i przechowywany zaszyfrowany w spoczynku.
+> Blob zawiera token odświeżania — traktuj go jak hasło. W wariancie z wysyłaniem
+> jest przesyłany jednokrotnie przez uwierzytelnione połączenie kontekstu; w wariancie
+> z wklejaniem — przez połączenie z panelem. W obu przypadkach jest przechowywany
+> w postaci zaszyfrowanej, a po pomyślnym wysłaniu nigdy nie zostaje wyświetlony
+> w terminalu.
 
-Flagi: `--no-browser` (wypisz URL zamiast auto-otwierania), `--port <n>`
-(przypnij port loopback), `--timeout <ms>`.
+Flagi: `--no-browser` (wyświetla adres URL zamiast automatycznie go otwierać),
+`--port <n>` (ustawia port loopback), `--timeout <ms>`, `--push` / `--no-push`
+(nadpisuje automatyczne dostarczanie), `--context <name>` (wskazuje konkretny
+kontekst).
 
-### Opcja B — tunel SSH local-forward
+### Opcja B — tunel z lokalnym przekierowaniem SSH
 
-Jeśli masz dostęp SSH do VPS, przekieruj port dashboardu tak, by
-callback loopback wracał do serwera przez tunel:
+Jeśli masz dostęp do VPS przez SSH, przekieruj port panelu tak, aby wywołanie zwrotne
+loopback trafiało z powrotem do serwera przez tunel:
 
 ```bash
-# On your LOCAL machine:
+# Na Twoim komputerze LOKALNYM:
 ssh -L 20128:127.0.0.1:20128 user@your-vps
-# then open http://localhost:20128 in your LOCAL browser and connect Antigravity
-# normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
+# następnie otwórz http://localhost:20128 w LOKALNEJ przeglądarce i połącz Antigravity
+# w zwykły sposób — przekierowanie 127.0.0.1:20128/callback dociera teraz do VPS przez SSH.
 ```
 
-Ponieważ trafiasz do dashboardu jako `localhost:20128`, zgoda Google
-kończy się, a callback trafia na serwer przez ten sam tunel —
-bez bloba. Trzymaj tunel otwarty, aż połączenie pokaże się jako aktywne.
+Ponieważ otwierasz panel jako `localhost:20128`, proces wyrażania zgody Google
+zostaje ukończony, a wywołanie zwrotne jest dostarczane do serwera przez ten sam
+tunel — blob nie jest potrzebny. Nie zamykaj tunelu, dopóki połączenie nie zostanie
+oznaczone jako aktywne.
 
-W przeciwieństwie do providerów z fixed-loopback poniżej, **wystarczy jedno przekierowanie**:
-callback Antigravity jedzie na porcie samego dashboardu, więc nie ma drugiego
-portu specyficznego dla providera do tunelowania.
+W przeciwieństwie do opisanych poniżej dostawców ze stałym adresem loopback
+**wystarczy jedno przekierowanie**: wywołanie zwrotne Antigravity korzysta z portu
+samego panelu, więc nie trzeba tunelować drugiego portu specyficznego dla dostawcy.
 
-> W pełni headlessowa alternatywa (bez helpera, bez tunelu) to skonfigurowanie **własnych**
-> poświadczeń Google OAuth web + publicznego base URL; zobacz zmienne środowiskowe OAuth
-> providera. Dwie powyższe opcje nie wymagają dodatkowej konfiguracji Google.
+> W pełni bezobsługową alternatywą (bez pomocnika i bez tunelu) jest skonfigurowanie
+> **własnych** webowych danych uwierzytelniających Google OAuth oraz publicznego
+> bazowego adresu URL; zobacz zmienne środowiskowe OAuth dostawcy. Dwie powyższe
+> opcje nie wymagają dodatkowej konfiguracji Google.
 
 ---
 
-## Podłączanie Codex / Grok na zdalnej instalacji (providery fixed-loopback)
+## Łączenie Codex / Grok ze zdalną instalacją (dostawcy ze stałym adresem loopback)
 
-Codex, xAI (`xai-oauth`) i Grok CLI (`grok-cli`) rejestrują **stały** loopback
-`redirect_uri` w upstreamowej aplikacji OAuth. OmniRoute nie może go zmienić — provider
-zawsze odsyła przeglądarkę na ten sam zahardkodowany adres:
+Codex, xAI (`xai-oauth`) i Grok CLI (`grok-cli`) rejestrują **stały** adres loopback
+`redirect_uri` w swojej nadrzędnej aplikacji OAuth. OmniRoute nie może go zmienić —
+dostawca zawsze przekierowuje przeglądarkę z powrotem na ten sam, zakodowany na stałe adres:
 
-| Provider    | Stały callback, na który przekierowuje provider |
-| ----------- | ----------------------------------------------- |
-| `codex`     | `http://localhost:1455/auth/callback`           |
-| `xai-oauth` | `http://127.0.0.1:56121/callback`               |
-| `grok-cli`  | `http://127.0.0.1:56122/callback`               |
+| Dostawca    | Stały adres zwrotny, na który przekierowuje dostawca |
+| ----------- | ---------------------------------------------------- |
+| `codex`     | `http://localhost:1455/auth/callback`                |
+| `xai-oauth` | `http://127.0.0.1:56121/callback`                    |
+| `grok-cli`  | `http://127.0.0.1:56122/callback`                    |
 
-`localhost` oznacza tam **maszynę z przeglądarką**, podczas gdy serwer callback PKCE
-OmniRoute nasłuchuje na loopbacku **serwera**. Otwórz dashboard pod adresem LAN
-jak `http://192.168.0.15:20128` i te dwa się nie spotkają: kod autoryzacji
-trafia na `localhost:1455` Twojego laptopa, gdzie nic nie nasłuchuje,
-a provider kończy logowanie niepowodzeniem bez pokazania błędu.
+`localhost` oznacza tutaj **maszynę, na której działa przeglądarka**, natomiast serwer
+wywołania zwrotnego PKCE OmniRoute nasłuchuje na interfejsie loopback **serwera**.
+Gdy otworzysz panel pod adresem w sieci LAN, takim jak `http://192.168.0.15:20128`,
+te dwa punkty nigdy się nie połączą: kod autoryzacyjny zostanie dostarczony do
+`localhost:1455` Twojego laptopa, gdzie nic nie nasłuchuje, a dostawca przerwie
+logowanie bez wyświetlenia błędu.
 
-Dashboard wykrywa to przed otwarciem popup i pokazuje komendę tunelu
-zamiast pozwalać na ciche niepowodzenie logowania (#8046).
+Panel wykrywa to przed otwarciem wyskakującego okna i zamiast dopuszczać do
+bezgłośnego niepowodzenia logowania, wyświetla polecenie tunelowania (#8046).
 
-### Naprawa — przekieruj **oba** porty
+### Rozwiązanie — przekieruj **oba** porty
 
 ```bash
-# On the machine running the BROWSER:
+# Na maszynie, na której działa PRZEGLĄDARKA:
 ssh -L 20128:127.0.0.1:20128 -L 1455:127.0.0.1:1455 <user>@192.168.0.15
-# then browse to http://localhost:20128 and connect Codex from there
+# następnie przejdź do http://localhost:20128 i stamtąd połącz Codex
 ```
 
-Wymagane są dwa forwardy; forward tylko jednego nadal zawodzi:
+Wymagane są dwa przekierowania, a przekierowanie tylko jednego portu nadal nie zadziała:
 
-- **`20128`** (port dashboardu) sprawia, że origin jest prawdziwym localhostem, co w ogóle
-  powoduje, że OmniRoute uruchamia serwer callback PKCE — origin LAN nigdy
-  nie wchodzi w tę gałąź.
-- **`1455`** (stały port callback providera) to miejsce, dokąd wraca przeglądarka;
-  musi być tunelowane do loopbacku serwera.
+- **`20128`** (port panelu) sprawia, że źródło jest rzeczywiście lokalnym hostem,
+  co jest warunkiem uruchomienia przez OmniRoute serwera wywołania zwrotnego PKCE —
+  źródło w sieci LAN nigdy nie dociera do tej gałęzi.
+- **`1455`** (stały port wywołania zwrotnego dostawcy) to miejsce, do którego
+  przekierowywana jest przeglądarka; musi on zostać przesłany przez tunel do
+  interfejsu loopback serwera.
 
-Zamień `1455` na `56121`/`56122` przy podłączaniu xAI lub Grok CLI, a `20128` na
-faktyczny port dashboardu. Trzymaj tunel otwarty, aż połączenie pokaże się jako
-aktywne.
+Podczas łączenia z xAI lub Grok CLI zamień `1455` na `56121`/`56122`, a `20128`
+na rzeczywisty port panelu. Pozostaw tunel otwarty, dopóki połączenie nie zostanie
+wyświetlone jako aktywne.
 
-> **Brak dostępu SSH?** Codex i Grok CLI akceptują też wklejony token — zakładka **Paste API
-> Key** / **Import auth.json** w dialogu connect. Ta ścieżka nie ma callbacku loopback,
-> więc działa z dowolnego origin. Codex dodatkowo akceptuje goły access
-> token albo blob sesji `~/.codex/auth.json`.
+> **Brak dostępu SSH?** Codex i Grok CLI akceptują również wklejony token — służy
+> do tego karta **Wklej klucz API** / **Importuj auth.json** w oknie dialogowym
+> połączenia. Ta metoda nie korzysta z wywołania zwrotnego loopback, dlatego działa
+> z dowolnego źródła. Codex akceptuje dodatkowo sam token dostępu lub dane sesji
+> `~/.codex/auth.json`.
 
 ---
 
@@ -227,21 +254,22 @@ aktywne.
 
 ```bash
 omniroute tokens create --name "laptop" --scope write [--expires 30]
-#   ↳ prints the secret ONCE — copy it now
-omniroute tokens list                 # masked: id, name, scope, prefix, status, expiry
-omniroute tokens revoke <id|prefix>   # revoke immediately
-omniroute tokens scopes               # explain the three scopes
+#   ↳ wyświetla sekret TYLKO RAZ — skopiuj go teraz
+omniroute tokens list                 # zamaskowane: identyfikator, nazwa, zakres, prefiks, stan, data wygaśnięcia
+omniroute tokens revoke <id|prefix>   # natychmiast unieważnij
+omniroute tokens scopes               # objaśnij trzy zakresy
 ```
 
-Polecenia `tokens` wymagają poświadczenia **admin**. Tokenami możesz też zarządzać w
-dashboardzie pod **Settings → Access Tokens** (tworzenie, odwoływanie, kopiowanie raz).
+Polecenia `tokens` wymagają poświadczenia **administratora**. Tokenami można
+również zarządzać w panelu w sekcji **Ustawienia → Tokeny dostępu** (tworzenie,
+unieważnianie, jednorazowe kopiowanie).
 
 ---
 
-## Konfigurowanie CLI do programowania ze zdalnego katalogu
+## Konfigurowanie narzędzia CLI do programowania ze zdalnego katalogu
 
-`omniroute configure` odczytuje aktualny katalog modeli **aktywnego serwera** i zapisuje
-konfigurację na **Twoim** komputerze.
+`omniroute configure` odczytuje aktualny katalog modeli **aktywnego serwera**
+i zapisuje konfigurację na **Twojej** maszynie.
 
 ```bash
 omniroute configure codex
@@ -254,59 +282,62 @@ omniroute configure codex
 # tryb nieinteraktywny
 omniroute configure codex --provider glm --model glm/glm-5.2 --name glm52
 
-# zachowaj często używany model na początku interaktywnej listy wyboru
+# umieść często używany model na początku interaktywnego selektora
 omniroute configure codex --provider glm --model glm/glm-5.2 --favorite --yes
 ```
 
-Selektor przechowuje wyłącznie identyfikatory modeli (nigdy adresy URL ani dane uwierzytelniające) w lokalnym
-pliku `model-preferences.json`, z podziałem według kontekstu i docelowego CLI. Ulubione modele są
-wyświetlane przed ostatnio wybranymi; użyj `--unfavorite`, aby usunąć wybrany model
-z listy dla danego kontekstu i celu.
+Selektor przechowuje w lokalnym pliku `model-preferences.json` wyłącznie
+identyfikatory modeli (nigdy adresy URL ani poświadczenia), z podziałem na kontekst
+i docelowe narzędzie CLI. Ulubione są wyświetlane przed ostatnimi wyborami; użyj
+`--unfavorite`, aby usunąć wybrany model z listy dla danego kontekstu i narzędzia
+docelowego.
 
 Zapisany profil odwołuje się do klucza wnioskowania za pomocą zmiennej środowiskowej
-(`OMNIROUTE_API_KEY`) — sekret nigdy nie jest zapisywany na dysku. Informacje o jednorazowej
-konfiguracji bazowej Codex (blok `[model_providers.omniroute]`) znajdują się w
-[CODEX-CLI-CONFIGURATION.md](./CODEX-CLI-CONFIGURATION.md).
+(`OMNIROUTE_API_KEY`) — sekret nigdy nie jest zapisywany na dysku. Informacje
+o jednorazowej konfiguracji bazowej Codex (blok `[model_providers.omniroute]`)
+znajdziesz w pliku [CODEX-CLI-CONFIGURATION.md](./CODEX-CLI-CONFIGURATION.md).
 
-### Uruchamianie CLI ze zdalnym serwerem (bez zapisywania konfiguracji)
+### Uruchamianie narzędzia CLI względem serwera zdalnego (bez zapisywania konfiguracji)
 
-`omniroute run <target>` również respektuje aktywny kontekst: bazowy adres URL zdalnego serwera
-i dane uwierzytelniające kontekstu są przekazywane wyłącznie do uruchamianego procesu.
+`omniroute run <target>` również uwzględnia aktywny kontekst: zdalny bazowy adres
+URL i poświadczenie kontekstu są wstrzykiwane wyłącznie do uruchamianego procesu.
 
 ```bash
 omniroute connect 192.168.0.15
-omniroute run claude   --model openai/gpt-5.4          # Claude Code → zdalny serwer
+omniroute run claude   --model openai/gpt-5.4          # Claude Code → serwer zdalny
 omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "hello"
 omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
 
-# Wyświetl dokładny podgląd tego, co zostałoby uruchomione (tylko NAZWY KLUCZY środowiska, nigdy wartości):
+# Wyświetl dokładny podgląd uruchamianego procesu (tylko NAZWY KLUCZY środowiska, nigdy wartości):
 omniroute run codex --dry-run --json
 ```
 
 Cele: `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, `gemini`
-(jedno źródło: `bin/cli/cli-manifest.mjs`). Qwen i Gemini są uruchamiane z
-tymczasowym, izolowanym katalogiem domowym, który jest usuwany po zakończeniu, dzięki czemu uruchomienie nigdy nie modyfikuje
-ani nie wykorzystuje Twojej osobistej konfiguracji narzędzia.
+(jedno źródło: `bin/cli/cli-manifest.mjs`). Qwen i Gemini działają z tymczasowym,
+izolowanym katalogiem domowym, który jest usuwany po zakończeniu, dzięki czemu
+uruchomienie nigdy nie modyfikuje konfiguracji Twoich osobistych narzędzi ani
+nie powoduje przenikania do niej danych.
 
-### Polecenia konfiguracji dla poszczególnych CLI
+### Polecenia konfiguracji dla poszczególnych narzędzi CLI
 
-Każde obsługiwane CLI ma polecenie konfiguracji uwzględniające zdalny serwer (wszystkie respektują aktywny
-kontekst lub `--remote <url> --api-key <key>`):
+Każde obsługiwane narzędzie CLI ma polecenie konfiguracji dostosowane do pracy
+zdalnej (wszystkie uwzględniają aktywny kontekst albo opcje
+`--remote <url> --api-key <key>`):
 
-| CLI         | Polecenie                  | Co zapisuje                                                                                                                                                                                       |
-| ----------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Codex       | `omniroute setup-codex`    | profile `~/.codex/<name>.config.toml` (osobno dla każdego modelu)                                                                                                                                 |
-| Claude Code | `omniroute setup-claude`   | `~/.claude/profiles/<name>/settings.json` (osobno dla każdego modelu)                                                                                                                             |
-| OpenCode    | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — zgodny z OpenAI dostawca `omniroute` ze wszystkimi modelami z katalogu (uruchom `opencode -m omniroute/<model>`)                                             |
-| Cline       | `omniroute setup-cline`    | `~/.cline/data/{globalState,secrets}.json` (tryb CLI) + wyświetla ustawienia rozszerzenia VS Code do wklejenia (zgodne z OpenAI, bazowy URL **bez** `/v1`)                                        |
-| Kilo Code   | `omniroute setup-kilo`     | `~/.local/share/kilo/auth.json` (CLI) + ustawienia VS Code `kilocode.*` — zgodne z OpenAI, bazowy URL **z** `/v1`                                                                                 |
-| Continue    | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + CLI `cn`) — `provider: openai`, `apiBase` **z** `/v1`, klucz przez `${{ secrets.OMNIROUTE_API_KEY }}`                                              |
-| Cursor      | `omniroute setup-cursor`   | wyświetla kroki do wykonania w aplikacji (Settings → Models → Override OpenAI Base URL **z** `/v1` + klucz + model). Konfiguracja Cursor to nieprzejrzysta baza SQLite — tylko panel czatu        |
-| Roo Code    | `omniroute setup-roo`      | zapisuje plik JSON do importu przez Roo (`~/.omniroute/roo-settings.json`) + ustawia `roo-cline.autoImportSettingsPath` + wyświetla kroki w interfejsie (zgodne z OpenAI, bazowy URL **z** `/v1`) |
-| Crush       | `omniroute setup-crush`    | `~/.config/crush/crush.json` — dostawca `openai-compat`, `base_url` **z** `/v1`, klucz przez `$OMNIROUTE_API_KEY`                                                                                 |
-| Goose       | `omniroute setup-goose`    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **bez** `/v1` + `GOOSE_MODEL`) + instrukcja konfiguracji środowiska                                                        |
-| Aider       | `omniroute setup-aider`    | `~/.aider.conf.yml` (`openai-api-base` **bez** `/v1` + `model: openai/<id>`) + instrukcja konfiguracji środowiska (`aider --message --yes`)                                                       |
-| Qwen Code   | `omniroute setup-qwen`     | wpis V4 `modelProviders.openai` w `~/.qwen/settings.json` + `OMNIROUTE_API_KEY` w `~/.qwen/.env`                                                                                                  |
+| CLI         | Polecenie                  | Co zapisuje                                                                                                                                                                                         |
+| ----------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex       | `omniroute setup-codex`    | profile `~/.codex/<name>.config.toml` (dla każdego modelu)                                                                                                                                          |
+| Claude Code | `omniroute setup-claude`   | `~/.claude/profiles/<name>/settings.json` (dla każdego modelu)                                                                                                                                      |
+| OpenCode    | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — dostawca `omniroute` zgodny z OpenAI, ze wszystkimi modelami z katalogu (uruchom `opencode -m omniroute/<model>`)                                              |
+| Cline       | `omniroute setup-cline`    | `~/.cline/data/{globalState,secrets}.json` (tryb CLI) + wyświetla ustawienia rozszerzenia VS Code do wklejenia (zgodne z OpenAI, bazowy adres URL **bez** `/v1`)                                    |
+| Kilo Code   | `omniroute setup-kilo`     | `~/.local/share/kilo/auth.json` (CLI) + ustawienia VS Code `kilocode.*` — zgodne z OpenAI, bazowy adres URL **z** `/v1`                                                                             |
+| Continue    | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + CLI `cn`) — `provider: openai`, `apiBase` **z** `/v1`, klucz przez `${{ secrets.OMNIROUTE_API_KEY }}`                                                |
+| Cursor      | `omniroute setup-cursor`   | wyświetla kroki do wykonania w aplikacji (Settings → Models → Override OpenAI Base URL **z** `/v1` + klucz + model). Konfiguracja Cursor to nieprzejrzysta baza SQLite — tylko panel czatu          |
+| Roo Code    | `omniroute setup-roo`      | zapisuje plik JSON do importu w Roo (`~/.omniroute/roo-settings.json`) + ustawia `roo-cline.autoImportSettingsPath` + wyświetla kroki w interfejsie (zgodne z OpenAI, bazowy adres URL **z** `/v1`) |
+| Crush       | `omniroute setup-crush`    | `~/.config/crush/crush.json` — dostawca `openai-compat`, `base_url` **z** `/v1`, klucz przez `$OMNIROUTE_API_KEY`                                                                                   |
+| Goose       | `omniroute setup-goose`    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **bez** `/v1` + `GOOSE_MODEL`) + instrukcja konfiguracji środowiska                                                          |
+| Aider       | `omniroute setup-aider`    | `~/.aider.conf.yml` (`openai-api-base` **bez** `/v1` + `model: openai/<id>`) + instrukcja konfiguracji środowiska (`aider --message --yes`)                                                         |
+| Qwen Code   | `omniroute setup-qwen`     | wpis V4 `modelProviders.openai` w `~/.qwen/settings.json` + `OMNIROUTE_API_KEY` w `~/.qwen/.env`                                                                                                    |
 
 ```bash
 # OpenCode (dostawca zgodny z OpenAI, wszystkie modele z katalogu, zdalny VPS)
@@ -316,127 +347,141 @@ opencode -m omniroute/glm/glm-5.2 "..."          # najpierw wyeksportuj OMNIROUT
 ```
 
 > OpenCode oferuje również bogatszą integrację za pomocą **wtyczki**: `omniroute setup opencode`
-> (teraz obsługującą zdalne bramy dzięki `--remote`) instaluje `@omniroute/opencode-plugin`.
-> `setup-opencode` to lekkie rozwiązanie alternatywne, zgodne z OpenAI. Klucz API
-> jest wskazywany za pomocą `{env:OMNIROUTE_API_KEY}` — nigdy nie jest zapisywany na dysku.
+> (obsługującą teraz zdalne połączenia przez `--remote`), która instaluje `@omniroute/opencode-plugin`.
+> `setup-opencode` jest lekką alternatywą zgodną z OpenAI. Klucz API
+> jest wskazywany przez `{env:OMNIROUTE_API_KEY}` — nigdy nie jest zapisywany na dysku.
 >
-> W OpenCode v2 należy zamiast tego użyć `@omniroute/opencode-plugin-v2`: ten sam katalog,
-> inny kontrakt modułu ładującego. Gdy integracja jest połączona, wtyczka odczytuje klucz
-> z magazynu poświadczeń samego OpenCode, dzięki czemu zdalna brama nie wymaga żadnego klucza
-> w pliku `opencode.json`.
+> W OpenCode v2 użyj zamiast tego `@omniroute/opencode-plugin-v2`: ten sam katalog,
+> inny kontrakt modułu ładującego. Gdy integracja jest połączona, wtyczka odczytuje klucz z własnego magazynu
+> poświadczeń OpenCode, dzięki czemu zdalna brama w ogóle nie wymaga klucza w
+> `opencode.json`.
 
 ---
 
 ## Zarządzanie kontekstami (przełączanie między serwerami)
 
-**Kontekst** to zapisany serwer (baseUrl + poświadczenie + scope). `omniroute connect`
-tworzy jeden i czyni go aktywnym; odtąd każde polecenie go celuje. Zarządzaj i
-przełączaj je przez `omniroute contexts`:
+**Kontekst** to zapisany serwer (baseUrl + dane uwierzytelniające + zakres). Polecenie `omniroute connect`
+tworzy kontekst i ustawia go jako aktywny; od tego momentu każde polecenie jest kierowane do tego kontekstu. Kontekstami można zarządzać
+i przełączać się między nimi za pomocą `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # all contexts; the active one is marked ●
-omniroute contexts current         # the active server, auth status, scope
+omniroute contexts list            # wszystkie konteksty; aktywny jest oznaczony symbolem ●
+omniroute contexts current         # aktywny serwer, stan uwierzytelnienia i zakres
 ```
 
 ```text
-  | Name    | Base URL                  | Auth  | Scope | Description
-● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
-  | default | http://localhost:20128    | ✗     |       |
+  | Nazwa   | Bazowy URL                | Uwierzytelnianie | Zakres | Opis
+● | vps     | http://100.67.86.91:20128 | token            | admin  | Zdalny OmniRoute (…)
+  | default | http://localhost:20128    | ✗                |        |
 ```
 
-**Przełączanie serwerów** — każde kolejne polecenie podąża za aktywnym kontekstem:
+**Przełączanie serwerów** — każde kolejne polecenie korzysta z aktywnego kontekstu:
 
 ```bash
-omniroute contexts use vps         # → all commands now hit the remote VPS
-omniroute tokens list              #   (runs against the VPS)
+omniroute contexts use vps         # → wszystkie polecenia są teraz kierowane do zdalnego VPS
+omniroute tokens list              #   (wykonywane na VPS)
 
-omniroute contexts use default     # → back to localhost
-omniroute tokens list              #   (runs against the local server)
+omniroute contexts use default     # → powrót do localhost
+omniroute tokens list              #   (wykonywane na serwerze lokalnym)
 ```
 
-**Dodaj kontekst ręcznie** (zamiast `connect`), podejrzyj lub zmień nazwę:
+**Ręczne dodawanie kontekstu** (zamiast `connect`), wyświetlanie szczegółów lub zmiana nazwy:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
   --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # full details for one context
+omniroute contexts show staging    # pełne szczegóły jednego kontekstu
 omniroute contexts rename staging stg
 ```
 
-**Usuń kontekst** — pyta o potwierdzenie; podaj `--yes`, by pominąć
-(wymagane w skryptach / powłokach nieinteraktywnych, które inaczej bezpiecznie odmawiają):
+**Usuwanie kontekstu** — wymaga potwierdzenia; przekaż `--yes`, aby je pominąć
+(wymagane w skryptach / nieinteraktywnych powłokach, które w przeciwnym razie bezpiecznie odrzucą operację):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) nie może zostać usunięty. Usunięcie aktywnego kontekstu wraca
-> do `default`. Wskazówka: usunięcie kontekstu usuwa tylko **lokalnie** zapisane poświadczenie —
-> odwołaj token na serwerze przez `omniroute tokens revoke <id>`, by faktycznie
-> unieważnić dostęp.
+> Kontekstu `default` (localhost) nie można usunąć. Usunięcie aktywnego kontekstu powoduje powrót
+> do `default`. Wskazówka: usunięcie kontekstu usuwa jedynie **lokalnie** zapisane dane uwierzytelniające —
+> aby faktycznie odebrać dostęp, unieważnij token na serwerze za pomocą `omniroute tokens revoke <id>`.
 
-**Eksport / import** kontekstów (np. przeniesienie między maszynami — sekrety włącznie,
-więc ostrożnie z plikiem):
-
-```bash
-omniroute contexts export --out contexts.json     # default: stdout
-omniroute contexts import contexts.json            # overwrite; --merge to keep existing
-```
-
----
-
-## Szybki test end-to-end
-
-Cykl do skopiowania i wklejenia, by zweryfikować zdalną konfigurację od zera — połącz, wystaw
-token ze scope, skieruj polecenie, przełącz z powrotem i posprzątaj. Zamień
-`192.168.0.15` na host/IP serwera (Tailscale, LAN albo publiczny
-URL `https://…`).
+**Eksportowanie / importowanie** kontekstów (np. w celu przeniesienia ich między komputerami). Eksportowane dane domyślnie nie zawierają
+danych uwierzytelniających, w tym danych przechowywanych w zapasowym magazynie plikowym. Użyj jawnie
+`--include-secrets`, gdy potrzebna jest przenośna kopia zapasowa zawierająca dane uwierzytelniające:
 
 ```bash
-# 1. Connect (password → admin token, saved as a context that becomes active)
-omniroute connect 192.168.0.15                 # or: --key oma_live_xxxx  (no password)
-omniroute contexts current                     # shows the remote server + scope
-
-# 2. Use it — management commands now run against the remote
-omniroute tokens create --name laptop --scope read   # mint a narrower token
-omniroute tokens list                                 # masked list, from the remote
-
-# 3. Switch back and forth
-omniroute contexts use default                 # → local
-omniroute contexts use 192-168-0-15            # → remote again (name from `contexts list`)
-
-# 4. Tear down. NOTE: `contexts remove` only deletes the LOCAL credential —
-#    it does NOT revoke the token on the server. Revoke server-side first if you
-#    want to actually kill access.
-omniroute tokens revoke <id|prefix>            # kills access on the server
-omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if active → falls back to default), no prompt
+omniroute contexts export --out contexts.json     # dane zredagowane; domyślne miejsce docelowe: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # nadpisanie; użyj --merge, aby zachować istniejące dane
+omniroute contexts migrate --yes                  # przeniesienie starszych tokenów w postaci zwykłego tekstu do pęku kluczy
 ```
 
-> `--yes` czyni `contexts remove` nieinteraktywnym (wymagane w skryptach/CI; bez tego
-> powłoka nieinteraktywna bezpiecznie odmawia zamiast wisieć). Usunięcie
-> **aktywnego** kontekstu automatycznie wraca do `default`.
+Opcja `--include-secrets` przed eksportem rozwiązuje odwołania do pęku kluczy i zgłasza błąd, jeśli nie można
+odczytać któregokolwiek ze wskazanych poświadczeń. Opcja `--no-secrets` ma zawsze pierwszeństwo.
+Pliki eksportu są zapisywane atomowo z trybem `0600`. Jawny eksport
+zawierający dane poufne należy traktować jako materiał tajny. W systemach bez interfejsu graficznego, w których nie jest dostępny użyteczny
+pęk kluczy systemu operacyjnego, CLI korzysta awaryjnie z pliku `config.json` z trybem `0600` i wyświetla
+jednorazowe ostrzeżenie; w tym trybie domyślny eksport nadal nie zawiera danych poufnych.
 
 ---
 
-## Uwagi bezpieczeństwa
+## Szybki test kompleksowy
 
-- Tekst jawny tokena pokazywany jest raz; utrwalany jest tylko hash SHA-256 (jak u kluczy API).
-- `omniroute connect` korzysta z tej samej blokady brute-force logowania + logowania audytowego.
-- Preferuj HTTPS albo Tailnet jako transport; goły host domyślnie używa `http://`
-  dla wygody LAN/Tailscale — podaj pełny URL `https://…` dla TLS.
-- Lokalny plik kontekstów to `~/.omniroute/config.json` (`chmod 600`); tokeny
-  nigdy nie są wypisywane w logach (maskowane do prefiksu).
+Gotowy do skopiowania i wklejenia cykl pozwalający zweryfikować od podstaw konfigurację zdalną — połączenie, utworzenie
+tokena o określonym zakresie, skierowanie polecenia, powrót do poprzedniego kontekstu i usunięcie konfiguracji. Zastąp
+`192.168.0.15` nazwą hosta/adresem IP swojego serwera (Tailscale, LAN lub publicznym
+adresem URL `https://…`).
+
+```bash
+# 1. Połącz się (hasło → token administratora zapisany jako kontekst, który staje się aktywny)
+omniroute connect 192.168.0.15                 # lub: --key oma_live_xxxx  (bez hasła)
+omniroute contexts current                     # wyświetla zdalny serwer i zakres
+
+# 2. Użyj go — polecenia administracyjne są teraz wykonywane na serwerze zdalnym
+omniroute tokens create --name laptop --scope read   # utwórz token o węższym zakresie
+omniroute tokens list                                 # zamaskowana lista ze zdalnego serwera
+
+# 3. Przełączaj się między kontekstami
+omniroute contexts use default                 # → lokalny
+omniroute contexts use 192-168-0-15            # → ponownie zdalny (nazwa z `contexts list`)
+
+# 4. Usuń konfigurację. UWAGA: `contexts remove` usuwa tylko LOKALNE dane uwierzytelniające —
+#    NIE unieważnia tokena na serwerze. Jeśli chcesz faktycznie odebrać dostęp,
+#    najpierw unieważnij token po stronie serwera.
+omniroute tokens revoke <id|prefix>            # odbiera dostęp na serwerze
+omniroute contexts remove 192-168-0-15 --yes   # usuń lokalny kontekst (nawet jeśli jest aktywny → nastąpi powrót do default), bez pytania
+```
+
+> Opcja `--yes` sprawia, że `contexts remove` działa nieinteraktywnie (jest wymagana w skryptach/CI; bez
+> niej nieinteraktywna powłoka bezpiecznie odrzuci operację zamiast się zawiesić). Usunięcie
+> **aktywnego** kontekstu powoduje automatyczny powrót do `default`.
 
 ---
 
-## Endpointy API (referencja)
+## Uwagi dotyczące bezpieczeństwa
 
-| Metoda | Route                 | Auth              | Scope                            |
-| ------ | --------------------- | ----------------- | -------------------------------- |
-| POST   | `/api/cli/connect`    | hasło zarządzania | — (publiczne, bramkowane hasłem) |
-| GET    | `/api/cli/whoami`     | token dostępu     | read                             |
-| GET    | `/api/cli/tokens`     | token dostępu     | admin                            |
-| POST   | `/api/cli/tokens`     | token dostępu     | admin                            |
-| DELETE | `/api/cli/tokens/:id` | token dostępu     | admin                            |
+- Token w postaci jawnej jest wyświetlany tylko raz; zapisywany jest wyłącznie skrót SHA-256 (tak samo jak w przypadku kluczy API).
+- `omniroute connect` korzysta z tej samej blokady przed atakami brute-force oraz rejestrowania audytowego co logowanie.
+- Do transportu preferuj HTTPS lub Tailnet; sam host domyślnie używa `http://`
+  dla wygody w sieci LAN/Tailscale — aby użyć TLS, podaj pełny adres URL `https://…`.
+- Preferowany lokalny plik kontekstu to `~/.omniroute/config.json` (`chmod 600`),
+  zawierający wyłącznie `credentialRef`; sam token jest przechowywany w pęku
+  kluczy systemu operacyjnego (`keytar`) i nigdy nie jest wypisywany w logach. Instalacje bez interfejsu
+  użytkownika, które nie mają działającego natywnego pęku kluczy, korzystają z tego samego pliku z uprawnieniami `0600`
+  jako jawnie wskazanego rozwiązania awaryjnego i jednorazowo wyświetlają
+  ostrzeżenie. Po zainstalowaniu backendu pęku kluczy użyj polecenia
+  `omniroute contexts migrate --yes`.
 
-Zobacz [openapi.yaml](../openapi.yaml) po pełne schematy.
+---
+
+## Endpointy API (dokumentacja)
+
+| Metoda | Trasa                 | Uwierzytelnianie  | Zakres                          |
+| ------ | --------------------- | ----------------- | ------------------------------- |
+| POST   | `/api/cli/connect`    | hasło zarządzania | — (publiczny, chroniony hasłem) |
+| GET    | `/api/cli/whoami`     | token dostępu     | odczyt                          |
+| GET    | `/api/cli/tokens`     | token dostępu     | administrator                   |
+| POST   | `/api/cli/tokens`     | token dostępu     | administrator                   |
+| DELETE | `/api/cli/tokens/:id` | token dostępu     | administrator                   |
+
+Pełne schematy znajdują się w pliku [openapi.yaml](../openapi.yaml).

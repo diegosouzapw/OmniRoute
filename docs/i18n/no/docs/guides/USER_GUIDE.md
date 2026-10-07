@@ -684,13 +684,50 @@ Eller bruk kontrollpanelet: **Leverandører → [Leverandør] → Egendefinerte 
 
 Merknader:
 
-- OpenRouter og OpenAI/Anthropic-kompatible leverandører administreres kun fra **Tilgjengelige modeller**. Manuell tillegging, import og automatisk synkronisering havner alle i den samme listen over tilgjengelige modeller, så det finnes ingen separat seksjon for egendefinerte modeller for disse leverandørene.
+- OpenRouter og OpenAI-/Anthropic-kompatible leverandører administreres kun fra **Tilgjengelige modeller**. Manuell tillegging, import og automatisk synkronisering havner alle i den samme listen over tilgjengelige modeller, så disse leverandørene har ingen egen seksjon for egendefinerte modeller.
 - Seksjonen **Egendefinerte modeller** er beregnet på leverandører som ikke tilbyr administrert import av tilgjengelige modeller.
 
-### Sammenkobling av OmniRoute-noder
+### Egendefinerte OpenAI-kompatible leverandører
+
+Enhver gateway som bruker OpenAI-API-et (en lokalt driftet proxy, vLLM eller en tredjepartsaggregator)
+kan legges til som en egen leverandørnode:
+
+1. **Leverandører → Legg til OpenAI-kompatibel**.
+2. **Navn**: en visningsetikett for noden.
+3. **Prefiks**: rutingsnavnet. Klienter kaller modeller som `<prefix>/<model>`, så en node med
+   prefikset `mygw` leverer `mygw/gpt-4o-mini`. Obligatorisk; det er ingen tegnbegrensning.
+4. **API-type**: endepunktfamilien som gatewayen leverer (Chat Completions, Responses,
+   Embeddings, lyd, bilder).
+5. **Basis-URL**: API-roten, til og med `/v1` (for eksempel
+   `https://gateway.example.com/v1`), ikke hele banen `/chat/completions`. Gatewayer med
+   ikke-standardiserte baner angir dem under **Avanserte innstillinger** (chatbane, modellbane).
+6. Feltet **API-nøkkel (for kontroll)** tester bare tilkoblingen. Når noden er opprettet,
+   åpner du den og bruker **Legg til tilkobling** for å lagre nøkkelen som forespørsler skal bruke.
+
+Noden får en intern ID på formen `openai-compatible-<apiType>-<uuid>`; du trenger aldri
+å skrive den inn, ettersom prefikset er det offentlige navnet.
+
+#### Reserverte prefikser
+
+Et prefiks kan ikke være ID-en eller aliaset til en innebygd leverandør (for eksempel `openai`, `cf`), eller
+ID-en til en utfaset leverandør. Modellresolveren kontrollerer innebygde ID-er og aliaser før
+egendefinerte noder, så en node som bruker et slikt prefiks, vil aldri motta trafikk:
+`<prefix>/model` vil i stedet gå til den innebygde leverandøren, eller bli avvist hvis leverandøren
+er utfaset. Oppretting eller redigering av en node med et slikt prefiks avvises med:
+
+```text
+prefix: "<prefix>" er et reservert leverandørprefiks — velg et annet prefiks (reserverte ID-er/aliaser kan ikke brukes for egendefinerte noder fordi forespørsler som <prefix>/model rutes til en innebygd leverandør eller avvises når den er utfaset)
+```
+
+Velg et unikt prefiks (`mygw`, `acme-proxy`). Hvis forespørsler til en egendefinert node mislykkes med en
+feil som nevner en innebygd leverandør eller leverandørens legitimasjon, bør du kontrollere om nodens prefiks er
+reservert: Noder som ble lagret før denne regelen eksisterte, er fortsatt lagret, men prefikset deres ruter til
+den innebygde leverandøren. Rediger noden og gi den et nytt prefiks.
+
+### Koble sammen OmniRoute-noder
 
 En annen OmniRoute-gateway kan legges til som en **egendefinert OpenAI-kompatibel** leverandør. Bruk
-nodens `/v1`-basis-URL og en dedikert API-nøkkel med minst mulige rettigheter, utstedt av denne noden.
+peer-gatewayens `/v1`-basis-URL og en dedikert API-nøkkel med minst mulige rettigheter, utstedt av denne gatewayen.
 
 For gjensidige kjeder eller kjeder med flere hopp må den valgfrie sløyfebeskyttelsen aktiveres på hver gateway:
 
@@ -708,18 +745,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Bare forespørsler som sendes til en eksplisitt tillatt node-URL, mottar
-`X-OmniRoute-Peer-Trace`-headeren. En gateway avviser en gjentatt instans-ID eller oppbrukt hoppbudsjett
-med HTTP `508 Loop Detected`; vanlige oppstrømsleverandører mottar ingen nodemetadata.
+Bare forespørsler som sendes til en peer-URL som eksplisitt står på tillatelseslisten, får
+`X-OmniRoute-Peer-Trace`-headeren. En gateway avviser en gjentatt instans-ID eller en oppbrukt
+hoppgrense med HTTP `508 Loop Detected`; vanlige oppstrømsleverandører mottar ingen peer-metadata.
 
-Sammenkobling av noder er ikke databasereplikering eller failover mellom verter. Hver gateway beholder uavhengig
-SQLite-tilstand, hurtigbuffere, frekvenstellere og økter. Bruk en helsesjekket omvendt proxy eller klientbasert
+Sammenkobling av peer-noder er ikke databasereplikering eller verts-failover. Hver gateway har separat
+SQLite-tilstand, hurtigbuffere, hastighetstellere og økter. Bruk en helsesjekket omvendt proxy eller klientbasert
 failover for aktiv/passiv eller aktiv/aktiv tilgjengelighet, og monter aldri én SQLite-database
 i flere kjørende OmniRoute-instanser.
 
 ### Dedikerte leverandørruter
 
-Rute forespørsler direkte til en bestemt leverandør med modellvalidering:
+Rut forespørsler direkte til en bestemt leverandør med modellvalidering:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -758,79 +795,79 @@ Returnerer modeller gruppert etter leverandør med typer (`chat`, `embedding`, `
 ### Skysynkronisering
 
 - Synkroniser leverandører, kombinasjoner og innstillinger på tvers av enheter
-- Automatisk bakgrunnssynkronisering med tidsavbrudd og fail-fast
+- Automatisk bakgrunnssynkronisering med tidsavbrudd + rask avvisning
 - Foretrekk `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` på serversiden i produksjon
 
 ### Cloudflare Quick Tunnel
 
-- Tilgjengelig i **Kontrollpanel → Endepunkter** for Docker og andre egenadministrerte distribusjoner
+- Tilgjengelig i **Kontrollpanel → Endepunkter** for Docker og andre egenhostede distribusjoner
 - Oppretter en midlertidig `https://*.trycloudflare.com`-URL som videresender til det gjeldende OpenAI-kompatible `/v1`-endepunktet ditt
 - Første aktivering installerer `cloudflared` bare ved behov; senere omstarter gjenbruker den samme administrerte binærfilen
-- Quick Tunnels gjenopprettes ikke automatisk etter omstart av OmniRoute eller beholderen; aktiver dem på nytt fra kontrollpanelet ved behov
-- Tunnel-URL-er er midlertidige og endres hver gang du stopper eller starter tunnelen
+- Quick Tunnels gjenopprettes ikke automatisk etter en omstart av OmniRoute eller beholderen; aktiver dem på nytt fra kontrollpanelet ved behov
+- Tunnel-URL-er er midlertidige og endres hver gang du stopper/starter tunnelen
 - Administrerte Quick Tunnels bruker HTTP/2-transport som standard for å unngå støyende advarsler om QUIC UDP-buffere i beholdere med begrensede ressurser
 - Angi `CLOUDFLARED_PROTOCOL=quic` eller `auto` hvis du vil overstyre det administrerte transportvalget
 - Angi `CLOUDFLARED_BIN` hvis du foretrekker å bruke en forhåndsinstallert `cloudflared`-binærfil i stedet for den administrerte nedlastingen
-- Panelene for Cloudflare Quick Tunnel, Tailscale Funnel og ngrok Tunnel kan vises eller skjules under **Innstillinger → Utseende**. Å skjule et panel stopper ikke en tunnel som kjører.
+- Panelene for Cloudflare Quick Tunnel, Tailscale Funnel og ngrok Tunnel kan vises eller skjules under **Innstillinger → Utseende**. Det å skjule et panel stopper ikke en tunnel som kjører.
 
 ### LLM-gatewayintelligens (fase 9)
 
-- **Semantisk hurtigbuffer** — Hurtigbufrer automatisk ikke-strømmende svar med temperature=0 (omgå med `X-OmniRoute-No-Cache: true`)
-- **Idempotens for forespørsler** — Fjerner duplikate forespørsler innen 5 sekunder via headeren `Idempotency-Key` eller `X-Request-Id`
-- **Fremdriftssporing** — Valgfrie SSE-`event: progress`-hendelser via headeren `X-OmniRoute-Progress: true`
+- **Semantisk hurtigbuffer** — Hurtigbufrer automatisk ikke-strømmede svar med temperature=0 (omgå med `X-OmniRoute-No-Cache: true`)
+- **Idempotens for forespørsler** — Fjerner dupliserte forespørsler innen 5s via `Idempotency-Key`- eller `X-Request-Id`-headeren
+- **Fremdriftssporing** — Valgfrie SSE-`event: progress`-hendelser via `X-OmniRoute-Progress: true`-headeren
 
 ---
 
-### Testområde for oversetteren
+### Lekeplass for oversettelse
 
 Åpnes via **Kontrollpanel → Oversetter**. Feilsøk og visualiser hvordan OmniRoute oversetter API-forespørsler mellom leverandører.
 
-| Modus                 | Formål                                                                                             |
-| --------------------- | -------------------------------------------------------------------------------------------------- |
-| **Testområde**        | Velg kilde-/målformater, lim inn en forespørsel og se det oversatte resultatet umiddelbart         |
-| **Chat-tester**       | Send direkte chatmeldinger gjennom proxyen og inspiser hele forespørsels-/svarsyklusen             |
-| **Testbenk**          | Kjør gruppetester på tvers av flere formatkombinasjoner for å bekrefte at oversettelsen er korrekt |
-| **Direkteovervåking** | Se oversettelser i sanntid mens forespørsler går gjennom proxyen                                   |
+| Modus                 | Formål                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Lekeplass**         | Velg kilde-/målformater, lim inn en forespørsel og se det oversatte resultatet umiddelbart           |
+| **Chat-tester**       | Send direkte chatmeldinger gjennom proxyen og inspiser hele forespørsels-/svarsyklusen               |
+| **Testbenk**          | Kjør batchtester på tvers av flere formatkombinasjoner for å kontrollere at oversettelsen er korrekt |
+| **Direkteovervåking** | Følg oversettelser i sanntid mens forespørsler flyter gjennom proxyen                                |
 
 **Bruksområder:**
 
 - Feilsøk hvorfor en bestemt kombinasjon av klient og leverandør mislykkes
-- Bekreft at tenketagger, verktøykall og systeminstruksjoner oversettes riktig
-- Sammenlign formatforskjeller mellom OpenAI-, Claude-, Gemini- og Responses API-formatene
+- Kontroller at tenketagger, verktøykall og systeminstruksjoner oversettes riktig
+- Sammenlign formatforskjeller mellom formatene til OpenAI, Claude, Gemini og Responses API
 
 ---
 
 ### Rutingsstrategier
 
-Konfigurer via **Kontrollpanel → Innstillinger → Ruting**. Kontrollpanelet viser de seks mest brukte strategiene. Kombinasjoner og autoruteren støtter internt et større utvalg.
+Konfigureres via **Kontrollpanel → Innstillinger → Ruting**. Kontrollpanelet viser de seks mest brukte strategiene; kombinasjoner og den automatiske ruteren støtter internt et bredere utvalg.
 
 **Strategier som vises i kontrollpanelet (ruting på kontonivå):**
 
-| Strategi                       | Beskrivelse                                                                                                    |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| **Fyll første**                | Bruker kontoer i prioritert rekkefølge — primærkontoen håndterer alle forespørsler til den er utilgjengelig    |
-| **Rundgang**                   | Veksler mellom alle kontoer med en konfigurerbar grense for øktbinding (standard: 3 kall per konto)            |
-| **P2C (velg den beste av to)** | Velger 2 tilfeldige kontoer og ruter til den med best tilstand — balanserer belastning med hensyn til tilstand |
-| **Tilfeldig**                  | Velger en tilfeldig konto for hver forespørsel ved hjelp av Fisher-Yates-blanding                              |
-| **Minst brukt**                | Ruter til kontoen med det eldste `lastUsedAt`-tidsstempelet og fordeler trafikken jevnt                        |
-| **Kostnadsoptimalisert**       | Ruter til kontoen med den laveste prioritetsverdien for å optimalisere for leverandørene med lavest kostnad    |
+| Strategi                       | Beskrivelse                                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Fyll først**                 | Bruker kontoer i prioritert rekkefølge — hovedkontoen håndterer alle forespørsler til den blir utilgjengelig     |
+| **Round Robin**                | Veksler mellom alle kontoer med en konfigurerbar grense for fastholding (standard: 3 kall per konto)             |
+| **P2C (Power of Two Choices)** | Velger 2 tilfeldige kontoer og ruter til den med best tilstand — balanserer belastningen med hensyn til tilstand |
+| **Tilfeldig**                  | Velger en tilfeldig konto for hver forespørsel ved hjelp av Fisher-Yates-stokking                                |
+| **Minst brukt**                | Ruter til kontoen med det eldste `lastUsedAt`-tidsstempelet, slik at trafikken fordeles jevnt                    |
+| **Kostnadsoptimalisert**       | Ruter til kontoen med den laveste prioritetsverdien, optimalisert for leverandører med lavest kostnad            |
 
 **Avanserte kombinasjons- og autostrategier** (kan konfigureres per kombinasjon eller via `auto/*`-prefikser — se [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — fast rekkefølge, bruker aldri rundgang
-- `weighted` — proporsjonal trafikkfordeling basert på vekter per modell
+- `priority` — streng rekkefølge, bruker aldri round-robin
+- `weighted` — proporsjonal trafikkfordeling etter vekter per modell
 - `fill-first` — bruker den første modellen til grensene nås
 - `round-robin` / `strict-random` / `random`
-- `p2c` (velg den beste av to)
+- `p2c` (Power of Two Choices)
 - `least-used` og `cost-optimized`
-- `auto` — poengbasert valg blant alle kandidater
-- `lkgp` (sist fungerende leverandør) — låser til den siste vellykkede leverandøren og bruker deretter reglene som reserve
+- `auto` — poengdrevet valg blant alle kandidater
+- `lkgp` (Last Known Good Provider) — låser til den siste vellykkede leverandøren og går deretter tilbake til reglene ved feil
 - `context-optimized` — velger modellen med det største ledige kontekstvinduet
-- `context-relay` — kjeder modeller med lang kontekst for oppfølgingsrunder
+- `context-relay` — kjeder sammen modeller med lang kontekst for oppfølgingsrunder
 
-#### Ekstern topptekst for øktbinding
+#### Ekstern header for fast økt
 
-For ekstern økttilhørighet (for eksempel Claude Code-/Codex-agenter bak reverse proxyer), send:
+For ekstern økttilhørighet (for eksempel Claude Code/Codex-agenter bak reverse proxyer), send:
 
 ```http
 X-Session-Id: your-session-key
@@ -838,13 +875,13 @@ X-Session-Id: your-session-key
 
 OmniRoute godtar også `x_session_id` og returnerer den gjeldende øktnøkkelen i `X-OmniRoute-Session-Id`.
 
-Hvis du bruker Nginx og sender topptekster med understrek, aktiver:
+Hvis du bruker Nginx og sender headere med understrek, aktiver:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Modellaliaser med jokertegn
+#### Jokertegnaliaser for modeller
 
 Opprett mønstre med jokertegn for å tilordne modellnavn på nytt:
 
@@ -868,58 +905,57 @@ Kjede: production-fallback
 
 ---
 
-### Robusthet og sikringer
+### Robusthet og kretsbrytere
 
-Konfigurer via **Kontrollpanel → Innstillinger → Robusthet**.
+Konfigureres via **Kontrollpanel → Innstillinger → Robusthet**.
 
 OmniRoute implementerer robusthet på leverandørnivå med fem komponenter:
 
-1. **Forespørselskø og hastighetsstyring** — Forespørselsstyring på systemnivå:
+1. **Forespørselskø og hastighetsstyring** — Forespørselsregulering på systemnivå:
    - **Forespørsler per minutt (RPM)** — Maksimalt antall forespørsler per minutt per konto
-   - **Minste tid mellom forespørsler** — Minste mellomrom i millisekunder mellom forespørsler
+   - **Minimumstid mellom forespørsler** — Minste tidsrom i millisekunder mellom forespørsler
    - **Maksimalt antall samtidige forespørsler** — Maksimalt antall samtidige forespørsler per konto
-
-2. **Nedkjøling av tilkobling** — Konfigurasjon per autentiseringstype for én enkelt tilkobling etter feil som kan forsøkes på nytt:
+2. **Tilkoblingsnedkjøling** — Konfigurasjon per autentiseringstype for én enkelt tilkobling etter feil som kan forsøkes på nytt:
    - **Grunnleggende nedkjøling** — Standard nedkjølingsperiode for oppstrømsfeil som kan forsøkes på nytt
-   - **Bruk oppstrøms hint for nye forsøk** — Følger autoritative `Retry-After`- eller tilbakestillingshint når de oppgis
-   - **Maksimalt antall tilbakekoblingstrinn** — Maksimalt eksponentielt tilbakekoblingsnivå ved gjentatte feil
+   - **Bruk oppstrøms hint om nytt forsøk** — Respekterer autoritative `Retry-After`- eller tilbakestillingshint når de oppgis
+   - **Maksimalt antall tilbakekoblingstrinn** — Maksimalt eksponentielt tilbakekoblingsnivå for gjentatte feil
 
-3. **Leverandørsikring** — Sporer ende-til-ende-feil hos leverandøren, merker en leverandør som svekket ved den konfigurerte varselterskelen og åpner sikringen når den konfigurerte feilterskelen nås:
-   - **Terskel for svekkelse** — Antall påfølgende leverandørfeil før tilstanden `DEGRADED` aktiveres
+3. **Sikringsmekanisme for leverandør** — Sporer ende-til-ende-feil hos leverandøren, markerer en leverandør som svekket ved den konfigurerte varselterskelen og åpner sikringsmekanismen når den konfigurerte feilterskelen nås:
+   - **Svekkelsesterskel** — Antall påfølgende leverandørfeil før tilstanden `DEGRADED` aktiveres
    - **Feilterskel** — Antall påfølgende leverandørfeil før tilstanden `OPEN` aktiveres
-   - **Tidsavbrudd for tilbakestilling** — Tidsrom før leverandøren testes på nytt
+   - **Tidsavbrudd for tilbakestilling** — Tidsperiode før leverandøren testes på nytt
    - **CLOSED** (Frisk) — Forespørsler flyter normalt
-   - **DEGRADED** — Forespørsler flyter fortsatt mens det økte antallet feil spores
+   - **DEGRADED** — Forespørsler fortsetter å flyte mens det økte feilnivået spores
    - **OPEN** — Leverandøren blokkeres midlertidig etter gjentatte feil
    - **HALF_OPEN** — Tester om leverandøren er gjenopprettet
 
-   Tilkoblingsspesifikke `429`-hastighetsbegrensninger forblir i **Nedkjøling av tilkobling** og teller ikke med i leverandørsikringen.
+   Tilkoblingsspesifikke `429`-hastighetsgrenser forblir i **Tilkoblingsnedkjøling** og teller ikke med i leverandørens sikringsmekanisme.
 
-   Kjøringstilstanden for leverandørsikringen vises bare under **Kontrollpanel → Tilstand**.
+   Kjøretidstilstanden for leverandørens sikringsmekanisme vises bare under **Kontrollpanel → Tilstand**.
 
-4. **Vent på nedkjøling** — Hvis alle kandidattilkoblinger allerede kjøles ned, kan OmniRoute vente til den første nedkjølingen er ferdig og automatisk prøve den samme klientforespørselen på nytt.
+4. **Vent på nedkjøling** — Hvis alle aktuelle tilkoblinger allerede kjøles ned, kan OmniRoute vente på den første nedkjølingen og automatisk prøve den samme klientforespørselen på nytt.
 
-5. **Automatisk registrering av hastighetsbegrensninger** — Når oppstrømsleverandører returnerer eksplisitte venteperioder, overstyrer disse hintene den lokale nedkjølingen av tilkoblingen når innstillingen er aktivert.
+5. **Automatisk registrering av hastighetsgrenser** — Når oppstrømsleverandører returnerer eksplisitte venteperioder, overstyrer disse hintene den lokale tilkoblingsnedkjølingen når innstillingen er aktivert.
 
-**Profftips:** Bruk siden **Tilstand** til å inspisere og tilbakestille aktive leverandørsikringer etter et avbrudd. Siden Robusthet endrer bare konfigurasjonen.
+**Profftips:** Bruk siden **Tilstand** til å inspisere og tilbakestille aktive sikringsmekanismer for leverandører etter et driftsavbrudd. Siden Robusthet endrer bare konfigurasjonen.
 
 ---
 
 ### Eksport/import av database
 
-Administrer databasesikkerhetskopier under **Kontrollpanel → Innstillinger → System og lagring**.
+Administrer sikkerhetskopier av databasen under **Kontrollpanel → Innstillinger → System og lagring**.
 
-| Handling                    | Beskrivelse                                                                                                                                                                     |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Eksporter database**      | Laster ned den gjeldende SQLite-databasen som en `.sqlite`-fil                                                                                                                  |
-| **Eksporter alt (.tar.gz)** | Laster ned et komplett sikkerhetskopiarkiv som inkluderer: database, innstillinger, kombinasjoner, leverandørtilkoblinger (uten påloggingsinformasjon), metadata for API-nøkler |
-| **Importer database**       | Laster opp en `.sqlite`-fil som erstatter den gjeldende databasen. En sikkerhetskopi opprettes automatisk før import, med mindre `DISABLE_SQLITE_AUTO_BACKUP=true`              |
+| Handling                    | Beskrivelse                                                                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Eksporter database**      | Laster ned den gjeldende SQLite-databasen som en `.sqlite`-fil                                                                                                            |
+| **Eksporter alt (.tar.gz)** | Laster ned et fullstendig sikkerhetskopiarkiv som inkluderer: database, innstillinger, kombinasjoner, leverandørtilkoblinger (uten legitimasjon), metadata for API-nøkler |
+| **Importer database**       | Laster opp en `.sqlite`-fil for å erstatte den gjeldende databasen. En sikkerhetskopi før import opprettes automatisk med mindre `DISABLE_SQLITE_AUTO_BACKUP=true`        |
 
 ```bash
 # API: Eksporter database
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Eksporter alt (komplett arkiv)
+# API: Eksporter alt (fullstendig arkiv)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
 # API: Importer database
@@ -927,11 +963,11 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Importvalidering:** Den importerte filens integritet valideres (SQLite-pragma-kontroll), sammen med obligatoriske tabeller (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) og størrelse (maks. 100 MB).
+**Importvalidering:** Den importerte filen valideres med hensyn til integritet (SQLite-pragma-sjekk), nødvendige tabeller (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) og størrelse (maks. 100 MB).
 
 **Bruksområder:**
 
-- Migrer OmniRoute mellom maskiner
+- Flytt OmniRoute mellom maskiner
 - Opprett eksterne sikkerhetskopier for gjenoppretting etter katastrofer
 - Del konfigurasjoner mellom teammedlemmer (eksporter alt → del arkivet)
 
@@ -941,31 +977,31 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 Innstillingssiden er organisert i **7 faner** for enkel navigering:
 
-| Fane          | Innhold                                                                                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Generelt**  | Verktøy for systemlagring, standardatferd, synlighet for endepunkttunneler                                                                                                                |
-| **Utseende**  | Temakontroller (lyst/mørkt/system), synlighet for sidefeltet, panelbrytere for tunnelkortene Cloudflare/Tailscale/ngrok                                                                   |
-| **KI**        | Tenkebudsjett (videresending / automatisk fjerning / egendefinert / adaptivt — se [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global systeminstruks, statistikk for instruksbuffer       |
-| **Sikkerhet** | Innstillinger for innlogging/passord, IP-tilgangskontroll, API-autentisering for `/models`, leverandørblokkering, beskyttelse mot instruksinjeksjon                                       |
-| **Ruting**    | Global rutingsstrategi (Fyll først / round robin / P2C / tilfeldig / minst brukt / kostnadsoptimalisert), jokertegnaliaser for modeller, reservekjeder, standardverdier for kombinasjoner |
-| **Robusthet** | Forespørselskø, nedkjøling av tilkoblinger, konfigurasjon av leverandørbryter og atferd for venting på nedkjøling                                                                         |
-| **Avansert**  | Global proxy-konfigurasjon (HTTP/SOCKS5), proxy-overstyringer per leverandør                                                                                                              |
+| Fane          | Innhold                                                                                                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Generelt**  | Verktøy for systemlagring, standardatferd, synlighet for endepunkttunneler                                                                                                             |
+| **Utseende**  | Temakontroller (lys/mørk/system), synlighet for sidefeltet, panelbrytere for tunnelkort for Cloudflare/Tailscale/ngrok                                                                 |
+| **KI**        | Tenkebudsjett (videresending / automatisk fjerning / egendefinert / adaptivt — se [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global systemledetekst, statistikk for ledetekstbuffer  |
+| **Sikkerhet** | Innstillinger for innlogging/passord, IP-tilgangskontroll, API-autentisering for `/models`, blokkering av leverandører, beskyttelse mot ledetekstinjeksjon                             |
+| **Ruting**    | Global rutingsstrategi (fyll først / rundgang / P2C / tilfeldig / minst brukt / kostnadsoptimalisert), jokertegnaliaser for modeller, reservekjeder, standardverdier for kombinasjoner |
+| **Robusthet** | Forespørselskø, tilkoblingsnedkjøling, konfigurasjon av leverandørens sikringsmekanisme og atferd for venting på nedkjøling                                                            |
+| **Avansert**  | Global mellomtjenerkonfigurasjon (HTTP/SOCKS5), mellomtjeneroverstyringer per leverandør                                                                                               |
 
 Generelt dupliserer ikke lenger skrivebeskyttede merknader om logging og hurtigbuffer. Innstillinger for databaseoppbevaring og
 -optimalisering lagres via `/api/settings/database`; manuell tømming av hurtigbufferen bruker
-`DELETE /api/cache`. Maksimalt antall rader i forespørsels- og proxy-loggene styres av
+`DELETE /api/cache`. Maksimalt antall rader i forespørsels- og mellomtjenerloggene styres av
 `CALL_LOGS_TABLE_MAX_ROWS` og `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
-### Kostnads- og budsjettstyring
+### Kostnads- og budsjettadministrasjon
 
 Åpnes via **Kontrollpanel → Kostnader**.
 
 | Fane         | Formål                                                                                              |
 | ------------ | --------------------------------------------------------------------------------------------------- |
 | **Budsjett** | Angi forbruksgrenser per API-nøkkel med daglige/ukentlige/månedlige budsjetter og sporing i sanntid |
-| **Priser**   | Vis og rediger modellprisoppføringer — kostnad per 1 000 inn-/utdatatoken per leverandør            |
+| **Priser**   | Vis og rediger modellpriser — kostnad per 1 000 inndata-/utdata-tokener per leverandør              |
 
 ```bash
 # API: Angi et budsjett
@@ -977,7 +1013,7 @@ curl -X POST http://localhost:20128/api/usage/budget \
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Kostnadssporing:** Hver forespørsel logger tokenbruk og beregner kostnaden ved hjelp av pristabellen. Se detaljert statistikk i **Kontrollpanel → Bruk** etter leverandør, modell og API-nøkkel.
+**Kostnadssporing:** Hver forespørsel logger tokenbruk og beregner kostnaden ved hjelp av pristabellen. Se detaljert oversikt i **Kontrollpanel → Bruk** etter leverandør, modell og API-nøkkel.
 
 ---
 
@@ -1031,52 +1067,52 @@ Støttede lydformater for transkripsjon: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `we
 
 ---
 
-### Strategier for balansering av kombinasjoner
+### Balanseringsstrategier for kombinasjoner
 
-Konfigurer balansering per kombinasjon i **Kontrollpanel → Kombinasjoner → Opprett/rediger → Strategi**.
+Konfigurer balansering per kombinasjon i **Kontrollpanel → Kombinasjoner → Opprett/Rediger → Strategi**.
 
 | Strategi                 | Beskrivelse                                                                      |
 | ------------------------ | -------------------------------------------------------------------------------- |
 | **Round-Robin**          | Roterer sekvensielt mellom modellene                                             |
-| **Prioritet**            | Prøver alltid den første modellen; bruker reserve kun ved feil                   |
+| **Prioritet**            | Prøver alltid den første modellen; bruker bare reserveløsning ved feil           |
 | **Tilfeldig**            | Velger en tilfeldig modell fra kombinasjonen for hver forespørsel                |
 | **Vektet**               | Ruter proporsjonalt basert på tilordnede vekter per modell                       |
 | **Minst brukt**          | Ruter til modellen med færrest nylige forespørsler (bruker kombinasjonsmålinger) |
 | **Kostnadsoptimalisert** | Ruter til den billigste tilgjengelige modellen (bruker pristabellen)             |
 
-Globale standardinnstillinger for kombinasjoner kan angis under **Kontrollpanel → Innstillinger → Ruting → Standardinnstillinger for kombinasjoner**.
+Globale standardverdier for kombinasjoner kan angis i **Kontrollpanel → Innstillinger → Ruting → Standardverdier for kombinasjoner**.
 Tidsavbrudd for kombinasjonsmål arver som standard tidsavbruddet for den gjeldende forespørselen. Bruk **Tidsavbrudd for mål
-(sekunder)** i standardinnstillingene for kombinasjoner eller i en enkelt kombinasjon bare når en kortere grense per mål skal
-utløse raskere bruk av reserve.
+(sekunder)** i standardverdiene for kombinasjoner eller for en enkelt kombinasjon bare når en kortere grense per mål skal
+utløse raskere reserveløsning.
 
-Kombinasjonsoptimaliseringer uten ventetid må aktiveres eksplisitt. La **Optimaliseringer uten ventetid** være deaktivert for å
-forhindre at disse ventetidsfunksjonene konkurrerer mot reservemål, hopper over mål basert på TTFT-
-historikk eller komprimerer reserveforespørsler. Aktivering tillater konfigurert sikring, prediktive TTFT-
-hopp og proaktiv komprimering av reserveforespørsler for å bytte rutings-/forespørselsnøyaktighet mot lavere
-haletid.
+Kombinasjonsoptimaliseringer uten ventetid er valgfrie. La **Optimaliseringer uten ventetid** være deaktivert for å
+forhindre at disse funksjonene konkurrerer med reservemål, hopper over mål basert på TTFT-
+historikk eller komprimerer reserveforespørsler. Aktivering tillater konfigurert parallell sikring, prediktive TTFT-
+hopp og proaktiv komprimering av reserveløsninger for å bytte rutings-/forespørselsnøyaktighet mot lavere
+haleforsinkelse.
 
-Deaktiver **Buffer for resonneringstokener** når oppstrømsleverandører krever strenge grenser for
-`max_tokens` / `maxOutputTokens`. Når dette er aktivert, legger kombinasjonsruting bare til ekstra kapasitet for resonneringsmodeller
-for modeller med en kjent utdata-grense, og lar klientens tokengrense være uendret når den
-trygge bufrede verdien ville overskride denne grensen. Hvis klientgrensen allerede er over en kjent grense,
-reduserer OmniRoute den til denne grensen før oppstrømsforespørselen sendes.
+Deaktiver **Buffring av resonneringstokener** når oppstrømsleverandører krever strenge
+`max_tokens`- / `maxOutputTokens`-grenser. Når dette er aktivert, legger kombinasjonsruting bare til ekstra kapasitet for resonneringsmodeller
+for modeller med en kjent utdatakapasitet og lar klientens tokengrense være uendret når den
+trygge bufrede verdien ville overskride denne kapasiteten. Hvis klientgrensen allerede er over en kjent kapasitet,
+reduserer OmniRoute den til denne kapasiteten før forespørselen sendes oppstrøms.
 
 ---
 
-### Helsekontrollpanel
+### Tilstandskontrollpanel
 
-Åpnes via **Kontrollpanel → Helse**. Sanntidsoversikt over systemtilstanden med 6 kort:
+Åpnes via **Kontrollpanel → Tilstand**. Sanntidsoversikt over systemtilstanden med 6 kort:
 
-| Kort                   | Hva det viser                                                              |
-| ---------------------- | -------------------------------------------------------------------------- |
-| **Systemstatus**       | Oppetid, versjon, minnebruk, datakatalog                                   |
-| **Leverandørhelse**    | Kjøretidstilstand for den globale kretsbryteren for leverandører           |
-| **Hastighetsgrenser**  | Aktive nedkjølingsperioder for tilkoblinger per konto, med gjenværende tid |
-| **Aktive sperringer**  | Aktive modellspesifikke sperringer og midlertidige ekskluderinger          |
-| **Signaturbuffer**     | Statistikk for dedupliseringsbufferen (aktive nøkler, treffrate)           |
-| **Ventetidstelemetri** | Aggregering av p50/p95/p99-ventetid per leverandør                         |
+| Kort                      | Hva det viser                                                             |
+| ------------------------- | ------------------------------------------------------------------------- |
+| **Systemstatus**          | Oppetid, versjon, minnebruk, datakatalog                                  |
+| **Leverandørtilstand**    | Kjøretidstilstand for global kretsbryter for leverandører                 |
+| **Hastighetsgrenser**     | Aktive nedkjølingsperioder for tilkoblinger per konto med gjenværende tid |
+| **Aktive sperringer**     | Aktive modellspesifikke sperringer og midlertidige ekskluderinger         |
+| **Signaturbuffer**        | Statistikk for dedupliseringsbuffer (aktive nøkler, treffprosent)         |
+| **Forsinkelsestelemetri** | Aggregert p50-/p95-/p99-forsinkelse per leverandør                        |
 
-**Profftips:** Helsesiden oppdateres automatisk hvert 10. sekund. Bruk kretsbryterkortet til å identifisere hvilke leverandører som har problemer.
+**Profftips:** Tilstandssiden oppdateres automatisk hvert 10. sekund. Bruk kretsbryterkortet til å identifisere hvilke leverandører som opplever problemer.
 
 ---
 

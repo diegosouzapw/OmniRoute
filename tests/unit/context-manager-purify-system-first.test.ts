@@ -40,7 +40,7 @@ test("purify_history merges dropped-notice into existing leading system message"
   const first = messages[0];
   assert.equal(first.role, "system");
   const text = String(first.content);
-  assert.match(text, /Context compressed: \d+ earlier messages removed/);
+  assert.match(text, /Context compressed: earlier messages removed/);
   assert.match(text, /You are a helpful assistant\./);
 });
 
@@ -53,7 +53,7 @@ test("purify_history prepends a single system notice when no system message exis
   assert.equal(result.compressed, true);
   const messages = (result.body as { messages: Array<Record<string, unknown>> }).messages;
   assert.deepEqual(systemIndices(messages as Array<{ role: string }>), [0]);
-  assert.match(String(messages[0].content), /Context compressed: \d+ earlier messages removed/);
+  assert.match(String(messages[0].content), /Context compressed: earlier messages removed/);
 });
 
 test("purify_history merges into leading developer message without adding a second one", () => {
@@ -72,7 +72,7 @@ test("purify_history merges into leading developer message without adding a seco
     1,
     "exactly one developer message"
   );
-  assert.match(String(messages[0].content), /Context compressed: \d+ earlier messages removed/);
+  assert.match(String(messages[0].content), /Context compressed: earlier messages removed/);
   assert.match(String(messages[0].content), /dev instructions/);
 });
 

@@ -392,17 +392,17 @@ Sumulat ng mga unit test sa `tests/unit/` na sumasaklaw, bilang minimum, sa:
 - [ ] Pumapasa ang mga test (`npm test`)
 - [ ] Pumapasa ang linting (`npm run lint`)
 - [ ] Matagumpay ang build (`npm run build`)
-- [ ] Naidagdag ang mga TypeScript type para sa mga bagong pampublikong function at interface
-- [ ] Walang mga naka-hardcode na secret o fallback value
-- [ ] Naka-embed ang mga pampublikong upstream credential sa pamamagitan ng `resolvePublicCred()` (tingnan ang [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), at hindi kailanman bilang mga literal
-- [ ] Dumadaan ang mga tugon sa error sa `buildErrorBody()` / `sanitizeErrorMessage()` — walang mga raw stack trace sa mga response body (tingnan ang [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Ipinapasa ng mga shell command (`exec` / `spawn`) ang mga runtime value sa pamamagitan ng `env`, hindi sa pamamagitan ng string interpolation
-- [ ] Na-validate ang lahat ng input gamit ang mga Zod schema
-- [ ] Nagdagdag ng **fragment** ng changelog sa ilalim ng `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para sa mga pagbabagong nakikita ng user (tingnan ang [`changelog.d/README.md`](./changelog.d/README.md)) — **huwag** direktang i-edit ang `CHANGELOG.md`; pinagsasama-sama ang mga fragment sa oras ng release at hindi kailanman nagkakaroon ng conflict sa pagitan ng mga PR
+- [ ] Nagdagdag ng mga TypeScript type para sa mga bagong pampublikong function at interface
+- [ ] Walang naka-hardcode na mga secret o fallback value
+- [ ] Ang mga pampublikong upstream credential ay naka-embed sa pamamagitan ng `resolvePublicCred()` (tingnan ang [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), at hindi kailanman bilang mga literal
+- [ ] Ang mga error response ay dumaraan sa `buildErrorBody()` / `sanitizeErrorMessage()` — walang mga raw stack trace sa mga response body (tingnan ang [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Ang mga shell command (`exec` / `spawn`) ay nagpapasa ng mga runtime value sa pamamagitan ng `env`, hindi sa pamamagitan ng string interpolation
+- [ ] Napatunayan ang bisa ng lahat ng input gamit ang mga Zod schema
+- [ ] Nagdagdag ng **fragment** ng changelog sa ilalim ng `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para sa mga pagbabagong nakikita ng user (tingnan ang [`changelog.d/README.md`](./changelog.d/README.md)) — **huwag** direktang i-edit ang `CHANGELOG.md`; pinagsasama-sama ang mga fragment sa oras ng release at hindi kailanman nagkakasalungatan sa pagitan ng mga PR
 - [ ] Na-update ang dokumentasyon (kung naaangkop)
-- [ ] Walang bagong nabuksang alerto mula sa CodeQL / Secret-Scanning, o na-dismiss ang bawat isa nang may teknikal na katwirang tumutukoy sa nauugnay na dokumento sa `docs/security/`
+- [ ] Walang bagong nabuksang alerto mula sa CodeQL / Secret-Scanning, o ang bawat isa ay na-dismiss nang may teknikal na katwiran na tumutukoy sa nauugnay na dokumento sa `docs/security/`
 - [ ] Ang mga route na naglulunsad ng mga child process (`/api/mcp/`, `/api/cli-tools/runtime/`) ay inuri bilang `isLocalOnlyPath()` sa `src/server/authz/routeGuard.ts` — tingnan ang [Mahigpit na Panuntunan #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Walang mga trailer na `Co-Authored-By` sa mga commit message — dapat lumabas ang mga commit sa ilalim lamang ng Git identity ng may-ari ng repository (Mahigpit na Panuntunan #16)
+- [ ] Walang mga AI/bot na `Co-authored-by` trailer sa mga commit message (Mahigpit na Panuntunan #16) — ang mga taong collaborator na muling ginamit ang gawa ay kinikilala gamit ang karaniwang `Co-authored-by: Name <email>` na mga trailer
 
 ---
 
@@ -412,11 +412,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Pagkuha ng Tulong
+## Paghingi ng Tulong
 
 - **Arkitektura**: Tingnan ang [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Sanggunian ng API**: Tingnan ang [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Mga dokumento sa seguridad**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Mga dokumento sa operasyon**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Mga isyu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Mga ADR**: Tingnan ang `docs/adr/` para sa mga talaan ng desisyong pang-arkitektura

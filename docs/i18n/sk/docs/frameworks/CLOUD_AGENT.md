@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 nadradeného poskytovateľa — v `CloudAgentBase` nie je žiadne RPC na prerušenie. Ak chcete zastaviť
 účtovanie nadradenej služby, ukončite úlohu vo vlastnej konzole poskytovateľa.
 
-## REST API — infraštruktúra cloudových poskytovateľov
+## REST API — Integrácia poskytovateľov cloudu
 
-Tieto pomocné koncové body v adresári `src/app/api/cloud/` používajú vzdialení klienti
+Tieto pomocné koncové body v `src/app/api/cloud/` používajú vzdialení klienti
 (CLI, aplikácia Electron alebo synchronizačné procesy) na čítanie metadát pripojenia
-poskytovateľov a rozpoznávanie aliasov modelov. Overujú sa pomocou **bežného API kľúča**
-(prostredníctvom `validateApiKey`), nie pomocou správcovského overenia používaného koncovými bodmi úloh.
+k poskytovateľom a preklad aliasov modelov. Autentifikujú sa pomocou **API kľúča**
+(prostredníctvom `validateApiKey`), nie pomocou správcovskej autentifikácie používanej koncovými bodmi úloh; obsah,
+ktorý `/api/cloud/auth` vráti, závisí od rozsahu kľúča (pozri nižšie).
 
-| Metóda | Cesta                           | Účel                                                                                |
-| ------ | ------------------------------- | ----------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | Overiť API kľúč a vrátiť maskované metadáta pripojenia + aliasy modelov             |
-| PUT    | `/api/cloud/credentials/update` | Obnoviť `accessToken` / `refreshToken` / `expiresAt`                                |
-| POST   | `/api/cloud/model/resolve`      | Rozpoznať alias modelu na `{ provider, model }`                                     |
-| GET    | `/api/cloud/models/alias`       | Vypísať všetky aliasy modelov                                                       |
-| PUT    | `/api/cloud/models/alias`       | Nastaviť alias modelu (a automaticky ho synchronizovať do Cloud, ak je to povolené) |
+| Metóda | Cesta                           | Účel                                                                                 |
+| ------ | ------------------------------- | ------------------------------------------------------------------------------------ |
+| POST   | `/api/cloud/auth`               | Overiť API kľúč, vrátiť maskované metadáta pripojenia + aliasy modelov               |
+| PUT    | `/api/cloud/credentials/update` | Obnoviť `accessToken` / `refreshToken` / `expiresAt`                                 |
+| POST   | `/api/cloud/model/resolve`      | Preložiť alias modelu na `{ provider, model }`                                       |
+| GET    | `/api/cloud/models/alias`       | Zobraziť zoznam všetkých aliasov modelov                                             |
+| PUT    | `/api/cloud/models/alias`       | Nastaviť alias modelu (a automaticky ho synchronizovať s cloudom, ak je to povolené) |
 
 `/api/cloud/auth` nikdy nevracia nespracované hodnoty `apiKey` / `accessToken` / `refreshToken`.
-Vracia `hasApiKey`, `hasAccessToken`, `hasRefreshToken` a maskovaný náhľad
-(`maskedApiKey`: prvé 4 + `****` + posledné 4).
+Vracia `hasApiKey`, `hasAccessToken`, `hasRefreshToken` pre aktívne pripojenia, ktoré môže kľúč
+používať (kľúč obmedzený pomocou `allowedConnections` vidí iba tieto pripojenia). Pre API kľúč
+s rozsahom `manage` alebo `admin`, vrátane nasadzovacieho kľúča z `OMNIROUTE_API_KEY`, vracia aj
+maskovaný náhľad (`maskedApiKey`: najviac 4 znaky na každom konci, menej pri krátkom kľúči,
+žiadne pri 8 alebo menej znakoch) a `projectId` pripojenia. Obe polia sú z odpovede
+pre akýkoľvek iný kľúč vynechané.
 
 ## Rozpoznávanie prihlasovacích údajov
 

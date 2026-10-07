@@ -4,12 +4,12 @@
 
 ---
 
-> **Pinagmumulan ng katotohanan:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Huling na-update:** 2026-06-28 — v3.8.40
+> **Pinagmulan ng katotohanan:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Huling na-update:** 2026-09-22 — ang mga namespace ng saklaw ay tumuturo sa MCP-SERVER.md
 
-Ang OmniRoute ay may pipeline ng awtorisasyon na nakabatay sa route at kumokontrol sa bawat kahilingan sa API. Ang pag-uuri ay **deterministiko** at **fail-closed** — anumang hindi maiuri ay mapupunta sa `MANAGEMENT` at mangangailangan ng session o management-grade na token. Ipinapaliwanag ng pahinang ito ang modelo para sa mga engineer na nagpapanatili ng mga route o nagdidisenyo ng mga bagong endpoint.
+Ang OmniRoute ay may pipeline ng awtorisasyon na may kamalayan sa ruta na nagbabantay sa bawat kahilingan ng API. Ang klasipikasyon ay **deterministic** at **fail-closed** — anumang hindi maiklasipika ay nagtatapos bilang `MANAGEMENT` at nangangailangan ng session o token na pang-pamamahala. Ipinaliliwanag ng pahinang ito ang modelo para sa mga inhinyero na nagpapanatili ng mga ruta o nagdidisenyo ng mga bagong endpoint.
 
-![Pipeline ng AuthZ (3 klase ng route + pagsusuri ng patakaran)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 klase ng ruta + pagsusuri ng patakaran)](../diagrams/exported/authz-pipeline.svg)
 
 > Pinagmulan: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,59 +17,61 @@ Ang OmniRoute ay may pipeline ng awtorisasyon na nakabatay sa route at kumokontr
 
 ### 1. API Key (Bearer)
 
-Ginagamit para sa mga client API na compatible sa OpenAI/Anthropic/Gemini at sa ilang management route kapag may `manage` scope ang key.
+Ginagamit para sa mga client API na compatible sa OpenAI/Anthropic/Gemini at ilang management route kapag may scope na `manage` ang key.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Bine-validate ng `isValidApiKey()` / `extractApiKey()` sa `src/sse/services/auth.ts` at muling ine-export sa pamamagitan ng `src/shared/utils/apiAuth.ts`. Tinatanggap din ng validator ang mga env var na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bilang mga persistent passthrough key (isyu #1350).
+Bine-validate ng `isValidApiKey()` / `extractApiKey()` sa `src/sse/services/auth.ts` at muling ini-export sa pamamagitan ng `src/shared/utils/apiAuth.ts`. Tinatanggap din ng validator ang mga env var na `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bilang mga persistent passthrough key (isyu #1350).
 
 ### 2. Dashboard Session (auth_token cookie)
 
-Para sa mga pahina ng dashboard at mga operasyong pang-admin.
+Para sa mga dashboard page at admin operation.
 
 ```
 Cookie: auth_token=<JWT na nilagdaan gamit ang JWT_SECRET>
 ```
 
-Ang isang cookie ay maituturing lamang na session kapag napatunayan ang JWT **at** naglalaman ito ng `authenticated: true`
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Ang bawat
-gumagamit ng cookie (route guard, pag-refresh ng authz pipeline, WebSocket handshake, live
+Session lamang ang isang cookie kapag na-verify ang JWT **at** taglay nito ang `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Bawat
+gumagamit ng cookie (dashboard route guard (`isDashboardSessionAuthenticated()`), pag-refresh ng authz pipeline, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) ay dumaraan sa helper na iyon.
-May iba pang JWT na nilagdaan gamit ang `JWT_SECRET` — ang Cursor CLI passthrough ay lumilikha ng
-mga token na `iss "omniroute" / aud "cursor-cli"` para sa mga may hawak ng key — at hindi kailanman
-itinuturing na mga session (#13298).
+May iba pang JWT na nilagdaan gamit ang `JWT_SECRET` — ang Cursor CLI passthrough ay gumagawa ng
+mga token na `iss "omniroute" / aud "cursor-cli"` para sa mga may hawak ng key — at hindi kailanman itinuturing na mga session
+(#13298).
 
-Bine-verify ng `isDashboardSessionAuthenticated()` sa `src/shared/utils/apiAuth.ts`. Awtomatikong nire-refresh ng pipeline ang JWT kapag wala pang 7 araw ang natitira sa 30-araw nitong bisa.
+Bine-verify ng `isDashboardSessionAuthenticated()` sa `src/shared/utils/apiAuth.ts`. Awtomatikong nire-refresh ng pipeline ang JWT kapag wala pang 7 araw ang natitira sa 30-araw na bisa nito.
 
-Tumatanggap ang ilang management route ng **alinman** sa dalawang mode: cookie O `Bearer <key>` kapag may `manage` (o `admin`) scope ang API key. Ito ang nagbibigay-daan sa workflow na "nako-configure sa pamamagitan ng mga API call" na idinagdag sa v3.8.
+Maaari ring matapos ang isang session bago makumpleto ang 30 araw nito, dahil ang bawat tagagawa ng token ay dumaraan sa `mintDashboardSessionToken` (may issue time na `iat` at id na `jti`) at sinusuri ng verifier ang dalawang setting: `sessionsValidAfter`, na itinatakda kapag binago ang password upang hindi na ma-verify ang lahat ng session na inilabas bago nito (makakatanggap ng bagong cookie ang browser na ginamit sa pagpapalit ng password), at `revokedDashboardSessions`, kung saan idinaragdag ng `POST /api/auth/logout` ang `jti` ng session na nag-sign out. Ang mga session na ginawa ng mas lumang release ay walang alinman sa mga claim na ito at mananatiling valid hanggang sa unang pagpapalit ng password. Kung hindi mabasa ang mga setting, hindi pagkakatiwalaan ang session.
+
+Tinatanggap ng ilang management route ang **alinman** sa dalawang mode: cookie O `Bearer <key>` kapag may scope na `manage` (o `admin`) ang API key. Ito ang nagbibigay-daan sa workflow na "nako-configure sa pamamagitan ng mga API call" na idinagdag sa v3.8.
 
 #### Opsyonal na OIDC login gate (#6973)
 
-Sinusuportahan din ng dashboard admin login ang isang **opt-in** na daloy ng OIDC (OpenID Connect)
+Sinusuportahan din ng dashboard admin login ang isang **opt-in** na OIDC (OpenID Connect) flow
 kasabay ng default na password login — hindi kailanman inaalis ang password login, dinaragdagan
 lamang ito:
 
-- Naka-disable maliban kung `settings.oidcEnabled === true` **at** naka-configure ang lahat ng
-  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` (Settings → Auth).
-  Kung hindi, nagbabalik ang `GET /api/auth/oidc/login` ng `400`.
+- Naka-disable maliban kung `settings.oidcEnabled === true` **at** naka-configure ang lahat ng `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Settings → Auth).
+  Kung hindi, magbabalik ang `GET /api/auth/oidc/login` ng `400`.
 - Tinutuklas ng `GET /api/auth/oidc/login` ang `authorization_endpoint` mula sa
-  `/.well-known/openid-configuration` ng issuer (bumabalik sa
-  `<issuer>/authorize` bilang fallback), binubuo ang redirect URI mula sa papasok na kahilingan
+  `/.well-known/openid-configuration` ng issuer (gagamitin ang
+  `<issuer>/authorize` bilang fallback), binubuo ang redirect URI mula sa papasok na request
   (isinasaalang-alang ang `x-forwarded-proto`), at nagre-redirect sa IdP gamit ang random na `state`
   na nakaimbak sa isang `httpOnly` na `oidc_state` cookie.
 - Bine-validate ng `GET /api/auth/oidc/callback` ang `state`, ipinagpapalit ang authorization
   code, at bine-verify ang signature ng ID token sa pamamagitan ng JWKS ng issuer
-  (`createRemoteJWKSet` ng `jose`, naka-cache bawat JWKS URI) na may mga pagsusuri sa `issuer`/`audience`.
-  Itinutugma ng isang opsyonal na allowlist na `oidcAllowedSubjects` ang `sub` claim
-  ng token o ang `email` claim nito — kinikilala lamang ang email claim kapag
-  `email_verified === true`, kaya hindi kailanman makalalampas sa gate ang isang hindi na-verify
-  na email sa IdP.
-- Kapag matagumpay, lumilikha ito ng **eksaktong kaparehong** 30-araw na `auth_token` JWT na ibinibigay
-  ng password login (`src/app/api/auth/login/route.ts`), kaya nananatiling hindi nagbabago ang iba pang
-  bahagi ng dashboard session pipeline (awtomatikong pag-refresh, mga cookie flag) —
-  pinapalitan lamang ng OIDC kung paano nalilikha ang cookie, hindi kung ano ang mga pahintulot na ibinibigay nito.
+  (`createRemoteJWKSet` ng `jose`, naka-cache ayon sa JWKS URI) gamit ang mga check sa `issuer`/`audience`.
+  Itinutugma ng opsyonal na allowlist na `oidcAllowedSubjects` ang
+  `sub` claim o `email` claim ng token — kikilalanin lamang ang email claim kapag
+  `email_verified === true`, kaya hindi kailanman makakalampas sa
+  gate ang isang hindi na-verify na email sa IdP.
+- Kapag matagumpay, gumagawa ito ng **eksaktong kaparehong** 30-araw na `auth_token` JWT na inilalabas ng password
+  login (`src/app/api/auth/login/route.ts`), kaya hindi nagbabago ang natitirang bahagi ng
+  dashboard session pipeline (auto-refresh, mga cookie flag) —
+  pinapalitan lamang ng OIDC ang paraan ng paggawa ng cookie, hindi ang mga pahintulot na ibinibigay nito.
 
 ## Mga Klase ng Route
 
@@ -198,28 +200,24 @@ Nagbabalik ng true ang `hasManageScope(scopes)` para sa `"manage"` o `"admin"`.
 
 Piliin ang set ayon sa hugis, hindi ayon sa kaginhawaan. Ang isang route ay inilalagay sa `PUBLIC_API_ROUTES_EXACT` (o sa `PUBLIC_READONLY_CORS_API_ROUTES` kung GET-only); isang tunay na subtree lamang ang inilalagay sa `PUBLIC_API_ROUTE_PREFIXES`, at **dapat itong magtapos sa `/`**. Kapag naglagay ng isang indibidwal na route sa listahan ng prefix, nailalantad din sa publiko ang bawat katabing path na may kaparehong mga panimulang character — kabilang ang mga kapatid na dynamic-segment na idadagdag sa hinaharap (GHSA-74g9-q8f6-793h). I-update ang mga unit test sa `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts`, at `tests/unit/authz/classify.test.ts`.
 
-## Mga Scope
+## Mga Saklaw
 
-Ang mga API key ay may `scopes` array (nakaimbak bilang JSON sa `api_keys.scopes`; tingnan ang `src/lib/db/apiKeys.ts`).
+Tatlong namespace. Bawat checker ay nagbabasa lamang ng sarili nitong string. Ang paghahambing, kasama ang dahilan kung bakit nabigo ang `manage` sa `scopeMatches` para sa `read:compression` at kung bakit ang isang `read` access token ay hindi maaaring `PATCH /api/keys/{id}`, ay [Tatlong namespace ng saklaw](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scope ng pamamahala
+Ang mga API key ay nagdadala ng `scopes` array (nakaimbak bilang JSON sa `api_keys.scopes`, tingnan ang `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — nagbibigay sa key ng access sa mga management API endpoint kapag ipinadala bilang Bearer.
+### Saklaw ng Pamamahala
 
-### Mga MCP scope (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer access sa mga ruta ng management API.
+- Ang `mcp:connect`, `self:usage`, `self:account-quota`, at `policy:bypass-provider-quota` ay mga additive exact-match scope. Ang mga ito ay nasa labas ng `MANAGEMENT_API_KEY_SCOPES`. Binubuksan lamang ng `mcp:connect` ang `/api/mcp/` non-loopback carve-out.
 
-Nangangailangan ang bawat MCP tool ng mga partikular na scope sa pamamagitan ng `MCP_TOOL_SCOPES`. Kumpletong listahan (`MCP_SCOPE_LIST`):
+### Mga saklaw ng tool ng MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalogo at mga panuntunan sa pagtutugma (magkaparehong string, o isang ibinigay na scope na nagtatapos sa `*`): [Mga saklaw ng tool ng MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). Ang `MCP_SCOPE_LIST` sa `src/shared/constants/mcpScopes.ts` ay ang orihinal na typed subset, hindi ang buong katalogo. Ang pagpapatupad ay tumatakbo sa `open-sse/mcp-server/scopeEnforcement.ts` pagkatapos ma-resolve ng `resolveCallerScopeContext()` ang mga scope mula sa MCP auth info, request metadata, o `OMNIROUTE_MCP_SCOPES`. Mananatili itong naka-off maliban kung `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Ipinapasa ng pagpapatupad ng scope sa `open-sse/mcp-server/server.ts` ang listahan ng scope ng bawat tool sa
-`evaluateToolScopes()` pagkatapos matukoy ng `resolveCallerScopeContext()` ang mga scope mula sa impormasyon ng MCP auth,
-metadata ng request, o `OMNIROUTE_MCP_SCOPES`.
+### Mga saklaw ng access-token
+
+`read` / `write` / `admin` sa `oma_live_…` na mga token, na niraranggo ng `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). Ang ranggong ito ay nalalapat lamang sa credential ng access-token. Tingnan ang [Pagpapatunay ng Pamamahala](../guides/MANAGEMENT-AUTH.md).
 
 ## Toggle na Kinakailangan ang Auth
 
@@ -267,7 +265,7 @@ Gamitin ang `assertAuth(req, expectedClass)` sa loob ng mga handler — naglalab
 
 ## Tingnan Din
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marker ng auth sa bawat endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — audit log para sa mga event ng auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — mga detalye ng pagpapatupad ng saklaw ng MCP
-- Source: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — pananda ng pagpapatunay bawat endpoint
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — audit log para sa mga kaganapan ng pagpapatunay
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tatlong scope namespace at MCP tool-scope catalog
+- Pinagmulan: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

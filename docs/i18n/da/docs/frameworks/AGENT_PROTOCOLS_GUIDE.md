@@ -69,31 +69,35 @@ Se [A2A-SERVER.md](./A2A-SERVER.md) for transportdetaljer, agentkortets struktur
 
 ## 2. ACP — register over CLI-agenter
 
-**OmniRoute-endpoint:** `GET /api/acp/agents`
+**OmniRoute-slutpunkt:** `GET /api/acp/agents`
 **Kilde:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Hvad det er
 
-ACP er OmniRoutes **lokale oversigt over CLI-agenter**. Det registrerer, hvilke kodnings-CLI'er der er installeret på værten (Cursor, Cline, Claude Code, Codex CLI, Continue osv.), fastslår deres versioner og viser dem i kontrolpanelet, så brugeren kan konfigurere hver CLI til at pege på OmniRoute.
+ACP er OmniRoutes **lokale oversigt over CLI-agenter**. Det registrerer, hvilke kodnings-CLI'er der er installeret på værten (Cursor, Cline, Claude Code, Codex CLI, Continue osv.), finder deres versioner og viser dem i kontrolpanelet, så brugeren kan konfigurere hver CLI til at pege på OmniRoute.
 
-Dette er IKKE en ekstern protokol — det er et internt register, som driver brugergrænsefladen "CLI Tools" og sporingen af CLI-fingeraftryk (se [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP-grænsefladen er en intern oversigt, som driver brugergrænsefladen "CLI Tools" og
+sporing af CLI-fingeraftryk (se [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Separat
+understøtter den interne procesadministrator den oprindelige Agent Client Protocol for den
+registrerede Gemini-starter samt ældre stdio-adaptere til andre kontrakter.
+Se [ACP-register og startere](./ACP.md) for oplysninger om disse separate tilstande og begrænsninger.
 
 ### Hvad det gør
 
 - Undersøger værten for installerede CLI-binærfiler (bruger `which` / `where` afhængigt af operativsystemet)
-- Aflæser hver CLI's version (kalder `<bin> --version`)
+- Læser versionen for hver CLI (kalder `<bin> --version`)
 - Accepterer valgfrit brugerdefinerede agenter (sti til binærfil + versionskontrol + startargumenter)
 - Gemmer brugerdefinerede agenter i indstillingerne
 - Returnerer den samlede liste til kontrolpanelet
 
 ### REST-API
 
-| Endpoint          | Metode | Beskrivelse                                                              | Godkendelse |
-| ----------------- | ------ | ------------------------------------------------------------------------ | ----------- |
-| `/api/acp/agents` | GET    | Vis registrerede + brugerdefinerede agenter (installeret/antal i alt)    | API-nøgle   |
-| `/api/acp/agents` | POST   | Tilføj/opdater/fjern brugerdefineret agent (handlingsfelt i brødteksten) | API-nøgle   |
+| Slutpunkt         | Metode | Beskrivelse                                                          | Godkendelse |
+| ----------------- | ------ | -------------------------------------------------------------------- | ----------- |
+| `/api/acp/agents` | GET    | Vis registrerede + brugerdefinerede agenter (installeret/antal)      | API-nøgle   |
+| `/api/acp/agents` | POST   | Tilføj/opdater/fjern brugerdefineret agent (handling angivet i body) | API-nøgle   |
 
-Brødtekstformat for POST (`customAgentBodySchema` i `src/app/api/acp/agents/route.ts`):
+Body-format for POST (`customAgentBodySchema` i `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -112,11 +116,14 @@ Brødtekstformat for POST (`customAgentBodySchema` i `src/app/api/acp/agents/rou
 
 - Siden "CLI Tools" i kontrolpanelet viser, hvad der er installeret, og hjælper dig med at konfigurere hvert værktøj til at pege på OmniRoute
 - Brugerdefinerede agenter giver superbrugere mulighed for at registrere interne/proprietære CLI'er, som OmniRoute ikke kender som standard
-- Registreringsresultatet bruges til fingeraftryksmatricen `cli-tools`
+- Registreringsresultatet bruges som datagrundlag for fingeraftryksmatricen `cli-tools`
 
 ### Hvornår ACP IKKE skal bruges
 
-- ACP _kører_ ikke opgaver. Det registrerer og konfigurerer kun CLI'er. For faktisk at aktivere en CLI skal du selv starte den med de miljøvariabler, som OmniRoute leverer (`OPENAI_BASE_URL`, `OPENAI_API_KEY` osv.).
+- HTTP-registeret accepterer ikke opgaver og tilbyder ikke start af processer. Den interne
+  administrator kan starte en registreret CLI, men er ikke forbundet som en automatisk
+  reserveudbyder. Ved almindelig interaktiv brug skal du selv starte den konfigurerede CLI eller
+  bruge `omniroute run`.
 
 ## 3. Cloud-agenter
 

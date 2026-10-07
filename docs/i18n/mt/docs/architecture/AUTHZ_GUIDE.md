@@ -4,72 +4,74 @@
 
 ---
 
-> **Sors ewlieni tal-verità:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Aġġornat l-aħħar:** 2026-06-28 — v3.8.40
+> **Sors ta' verità:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Aġġornat l-aħħar:** 2026-09-22 — in-namespaces tal-iskop jindikaw MCP-SERVER.md
 
-OmniRoute għandu pipeline ta’ awtorizzazzjoni konxju tar-rotot li jikkontrolla kull talba API. Il-klassifikazzjoni hija **deterministika** u **tingħalaq f’każ ta’ falliment** — kull ħaġa li ma tistax tiġi kklassifikata tispiċċa bħala `MANAGEMENT` u teħtieġ sessjoni jew token ta’ livell ta’ ġestjoni. Din il-paġna tispjega l-mudell għall-inġiniera li jżommu r-rotot jew jiddisinjaw endpoints ġodda.
+OmniRoute għandu pipeline ta' awtorizzazzjoni konxju mir-rotta li jikkontrolla kull talba tal-API. Il-klassifikazzjoni hija **deterministika** u **fail-closed** — kull ħaġa li ma tistax tiġi kklassifikata tispiċċa bħala `MANAGEMENT` u teħtieġ sessjoni jew token ta' grad ta' ġestjoni. Din il-paġna tispjega l-mudell għall-inġiniera li jżommu rotot jew jiddisinjaw endpoints ġodda.
 
-![Pipeline tal-AuthZ (3 klassijiet ta’ rotot + evalwazzjoni tal-politika)](../diagrams/exported/authz-pipeline.svg)
+![Pipeline ta' AuthZ (3 klassijiet ta' rotta + evalwazzjoni tal-politika)](../diagrams/exported/authz-pipeline.svg)
 
 > Sors: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Żewġ Modi ta’ Awtentikazzjoni
 
-### 1. API Key (Bearer)
+### 1. Ċavetta tal-API (Bearer)
 
-Tintuża għall-APIs tal-klijent kompatibbli ma’ OpenAI/Anthropic/Gemini u għal ftit rotot ta’ ġestjoni meta ċ-ċavetta jkollha l-ambitu `manage`.
+Jintuża għall-APIs tal-klijenti kompatibbli ma’ OpenAI/Anthropic/Gemini u għal xi rotot ta’ ġestjoni meta ċ-ċavetta jkollha l-ambitu `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Tiġi vvalidata minn `isValidApiKey()` / `extractApiKey()` f’`src/sse/services/auth.ts` u esportata mill-ġdid permezz ta’ `src/shared/utils/apiAuth.ts`. Il-validatur jaċċetta wkoll il-varjabbli tal-ambjent `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bħala ċwievet passthrough persistenti (kwistjoni #1350).
+Ivvalidat minn `isValidApiKey()` / `extractApiKey()` f’`src/sse/services/auth.ts` u esportat mill-ġdid permezz ta’ `src/shared/utils/apiAuth.ts`. Il-validatur jaċċetta wkoll il-varjabbli tal-ambjent `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` bħala ċwievet persistenti ta’ passthrough (kwistjoni #1350).
 
 ### 2. Sessjoni tad-Dashboard (cookie auth_token)
 
-Għall-paġni tad-dashboard u l-operazzjonijiet amministrattivi.
+Għall-paġni tad-dashboard u l-operazzjonijiet tal-amministratur.
 
 ```
-Cookie: auth_token=<JWT iffirmat b’JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Cookie tkun sessjoni biss meta l-JWT jiġi vverifikat **u** jkollu `authenticated: true`
+Cookie titqies bħala sessjoni biss meta l-JWT jiġi vverifikat **u** jkollu `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kull
-konsumatur tal-cookie (il-gwardja tar-rotta, l-aġġornament tal-pipeline tal-authz, il-handshake
-tal-WebSocket, is-server live, `/api/settings/require-login`, `/api/auth/status`) jgħaddi
-minn dak il-helper. Jeżistu JWTs oħra ffirmati b’`JWT_SECRET` — il-passthrough tas-CLI
-ta’ Cursor joħloq tokens `iss "omniroute" / aud "cursor-cli"` għad-detenturi taċ-ċwievet —
-u dawn qatt ma jkunu sessjonijiet (#13298).
+konsumatur tal-cookie (il-gwardja tar-rotta tad-dashboard (`isDashboardSessionAuthenticated()`), l-aġġornament tal-pipeline tal-awtorizzazzjoni, il-handshake tal-WebSocket, is-server
+live, `/api/settings/require-login`, `/api/auth/status`) jgħaddi minn dak il-helper.
+Jeżistu JWTs oħra ffirmati b’`JWT_SECRET` — il-passthrough tal-Cursor CLI joħloq
+tokens `iss "omniroute" / aud "cursor-cli"` għad-detenturi taċ-ċwievet — u dawn qatt ma jitqiesu bħala sessjonijiet
+(#13298).
 
-Tiġi vverifikata minn `isDashboardSessionAuthenticated()` f’`src/shared/utils/apiAuth.ts`. Il-pipeline jaġġorna l-JWT awtomatikament meta jkun fadallu inqas minn 7 ijiem mill-ħajja tiegħu ta’ 30 jum.
+Ivverifikat minn `isDashboardSessionAuthenticated()` f’`src/shared/utils/apiAuth.ts`. Il-pipeline jaġġorna l-JWT awtomatikament meta jkun fadallu inqas minn 7 ijiem mill-ħajja tiegħu ta’ 30 jum.
 
-Xi rotot ta’ ġestjoni jaċċettaw **kwalunkwe wieħed** miż-żewġ modi: cookie JEW `Bearer <key>` meta l-API key ikollha l-ambitu `manage` (jew `admin`). Dan huwa dak li jippermetti l-fluss tax-xogħol “konfigurabbli permezz ta’ sejħiet API” miżjud f’v3.8.
+Sessjoni tista’ tintemm ukoll qabel ma jgħaddu t-30 jum tagħha, għax kull min joħloq token jgħaddi minn `mintDashboardSessionToken` (ħin tal-ħruġ `iat` u identifikatur `jti`) u l-verifikatur jiċċekkja żewġ settings: `sessionsValidAfter`, issettjat meta tinbidel password sabiex kull sessjoni maħruġa qablu ma tibqax tiġi vverifikata (il-browser li biddel il-password jirċievi cookie ġdida), u `revokedDashboardSessions`, li magħha `POST /api/auth/logout` iżid il-`jti` tas-sessjoni li minnha jkun sar sign-out. Sessjonijiet maħluqa minn rilaxx eqdem ma jkollhom l-ebda waħda minn dawn il-claims u jibqgħu validi sal-ewwel bidla tal-password. Jekk is-settings ma jkunux jistgħu jinqraw, is-sessjoni ma titqiesx affidabbli.
 
-#### Gate fakultattiv tal-login OIDC (#6973)
+Xi rotot ta’ ġestjoni jaċċettaw **kwalunkwe wieħed** miż-żewġ modi: cookie JEW `Bearer <key>` meta ċ-ċavetta tal-API jkollha l-ambitu `manage` (jew `admin`). Dan huwa dak li jippermetti l-fluss tax-xogħol “konfigurabbli permezz ta’ sejħiet tal-API” miżjud f’v3.8.
 
-Il-login tal-amministratur tad-dashboard jappoġġja wkoll fluss OIDC (OpenID Connect)
-**fakultattiv** flimkien mal-login standard bil-password — il-login bil-password qatt
-ma jitneħħa, iżda jiġi biss issupplimentat:
+#### Kontroll fakultattiv tal-login permezz ta’ OIDC (#6973)
+
+Il-login tal-amministratur tad-dashboard jappoġġa wkoll fluss OIDC (OpenID Connect) **fakultattiv**
+flimkien mal-login predefinit bil-password — il-login bil-password qatt ma jitneħħa, iżda
+jiġi biss issupplimentat:
 
 - Ikun diżattivat sakemm `settings.oidcEnabled === true` **u** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ma jkunux kollha kkonfigurati (Settings → Auth).
   Inkella, `GET /api/auth/oidc/login` jirritorna `400`.
 - `GET /api/auth/oidc/login` jiskopri l-`authorization_endpoint` mill-
-  `/.well-known/openid-configuration` tal-issuer (u juża
-  `<issuer>/authorize` bħala alternattiva), jibni l-URI tar-ridirezzjoni mit-talba
-  li tkun dieħla (konxju ta’ `x-forwarded-proto`), u jirridirezzjona lejn l-IdP bi `state`
+  `/.well-known/openid-configuration` tal-issuer (jinqaleb għal
+  `<issuer>/authorize` jekk dan ifalli), jibni r-redirect URI mit-talba dieħla
+  (konxju ta’ `x-forwarded-proto`), u jirridirezzjona lejn l-IdP bi `state`
   każwali maħżun f’cookie `oidc_state` `httpOnly`.
-- `GET /api/auth/oidc/callback` jivvalida `state`, jibdel il-kodiċi tal-awtorizzazzjoni,
-  u jivverifika l-firma tat-token tal-ID permezz tal-JWKS tal-issuer
-  (`createRemoteJWKSet` ta’ `jose`, miżmum fil-cache għal kull URI tal-JWKS) b’kontrolli
-  ta’ `issuer`/`audience`. Lista fakultattiva ta’ suġġetti permessi,
-  `oidcAllowedSubjects`, tqabbel il-claim `sub` tat-token jew il-claim `email` tiegħu —
-  il-claim tal-email tiġi aċċettata biss meta `email_verified === true`, għalhekk email
-  mhux ivverifikata fl-IdP qatt ma tista’ tgħaddi mill-gate.
-- Meta jirnexxi, joħloq **eżattament l-istess** JWT `auth_token` ta’ 30 jum li joħloq
-  il-login bil-password (`src/app/api/auth/login/route.ts`), għalhekk il-bqija
-  tal-pipeline tas-sessjoni tad-dashboard (aġġornament awtomatiku, flags tal-cookie)
-  jibqa’ l-istess — OIDC jibdel biss kif tinħoloq il-cookie, mhux x’permessi tagħti.
+- `GET /api/auth/oidc/callback` jivvalida `state`, jibdel il-kodiċi tal-awtorizzazzjoni
+  ma’ token, u jivverifika l-firma tal-ID token permezz tal-JWKS tal-issuer
+  (`createRemoteJWKSet` ta’ `jose`, miżmum fil-cache għal kull JWKS URI) b’kontrolli
+  ta’ `issuer`/`audience`. Allowlist fakultattiva `oidcAllowedSubjects` tqabbel il-claim
+  `sub` tat-token jew il-claim `email` tiegħu — il-claim tal-email tiġi aċċettata biss meta
+  `email_verified === true`, għalhekk email mhux ivverifikata għand l-IdP qatt ma tista’
+  tgħaddi mill-kontroll.
+- Meta jirnexxi, joħloq **eżattament l-istess** JWT `auth_token` ta’ 30 jum li joħroġ
+  il-login bil-password (`src/app/api/auth/login/route.ts`), għalhekk il-bqija tal-
+  pipeline tas-sessjoni tad-dashboard (aġġornament awtomatiku, flags tal-cookie) jibqa’ l-istess —
+  OIDC jibdel biss kif tinħoloq il-cookie, mhux dak li tagħti permess għalih.
 
 ## Klassijiet tar-Rotot
 
@@ -198,28 +200,24 @@ export async function POST(request: Request) {
 
 Agħżel is-sett skont il-forma, mhux skont il-konvenjenza. Rotta waħda tidħol f’`PUBLIC_API_ROUTES_EXACT` (jew f’`PUBLIC_READONLY_CORS_API_ROUTES` jekk hija GET-only); sottosiġra ġenwina biss tidħol f’`PUBLIC_API_ROUTE_PREFIXES`, u **trid tispiċċa b’`/`**. Jekk tpoġġi rotta individwali fil-lista tal-prefissi, tkun qiegħed tippubblika wkoll kull mogħdija biswitu li taqsam magħha l-karattri inizjali — inklużi rotot aħwa b’segmenti dinamiċi li jiżdiedu aktar tard (GHSA-74g9-q8f6-793h). Aġġorna t-testijiet tal-unità f’`tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` u `tests/unit/authz/classify.test.ts`.
 
-## Ambiti
+## Scopes
 
-Iċ-ċwievet tal-API jinkludu array `scopes` (maħżuna bħala JSON f’`api_keys.scopes`, ara `src/lib/db/apiKeys.ts`).
+Tliet namespaces. Kull checker jaqra biss is-strings tiegħu stess. Il-paragun, inkluż għaliex `manage` ifalli `scopeMatches` għal `read:compression` u għaliex access token ta' `read` ma jistax `PATCH /api/keys/{id}`, jinsab f'[Tliet namespaces ta' scope](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Ambitu ta’ ġestjoni
+API keys iġorru array ta' `scopes` (maħżun bħala JSON f'`api_keys.scopes`, ara `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — jagħti liċ-ċavetta aċċess għall-endpoints tal-API tal-ġestjoni meta tintbagħat bħala Bearer.
+### Scope tal-ġestjoni
 
-### Ambiti tal-MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Aċċess bearer għar-rotot tal-API tal-ġestjoni.
+- `mcp:connect`, `self:usage`, `self:account-quota`, u `policy:bypass-provider-quota` huma scopes addittivi ta' tqabbil eżatt. Dawn jinsabu barra `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` jiftaħ biss il-`/api/mcp/` carve-out mhux loopback.
 
-Kull għodda tal-MCP teħtieġ ambiti speċifiċi permezz ta’ `MCP_TOOL_SCOPES`. Lista sħiħa (`MCP_SCOPE_LIST`):
+### Scopes tal-għodda MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalogu u regoli ta' tqabbil (string identika, jew scope mogħti li jispiċċa b'`*`): [Scopes tal-għodda MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `MCP_SCOPE_LIST` f'`src/shared/constants/mcpScopes.ts` huwa s-subsett oriġinali tat-tip, mhux dak il-katalogu sħiħ. L-infurzar jaħdem f'`open-sse/mcp-server/scopeEnforcement.ts` wara li `resolveCallerScopeContext()` jsolvi l-scopes mill-informazzjoni tal-awtentikazzjoni tal-MCP, il-metadata tat-talba, jew `OMNIROUTE_MCP_SCOPES`. Jibqa' mitfi sakemm `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-L-infurzar tal-ambiti f’`open-sse/mcp-server/server.ts` jgħaddi l-lista tal-ambiti ta’ kull għodda lil
-`evaluateToolScopes()` wara li `resolveCallerScopeContext()` jirriżolvi l-ambiti mill-informazzjoni tal-awtentikazzjoni tal-MCP,
-mill-metadata tat-talba, jew minn `OMNIROUTE_MCP_SCOPES`.
+### Scopes tal-access-token
+
+`read` / `write` / `admin` fuq tokens `oma_live_…`, ikklassifikati minn `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). Din il-klassifikazzjoni tapplika għall-kredenzjali tal-access token biss. Ara [Awtentikazzjoni tal-Ġestjoni](../guides/MANAGEMENT-AUTH.md).
 
 ## Swiċċ tar-Rekwiżit tal-Awtentikazzjoni
 
@@ -265,9 +263,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 Uża `assertAuth(req, expectedClass)` ġewwa l-handlers — din tarmi `AuthzAssertionError` bil-kodiċi `AUTHZ_NOT_INITIALIZED` jekk il-middleware jkun ġie evitat (utli biex jinqabdu regressjonijiet fil-konfigurazzjoni waqt it-testijiet).
 
-## Ara Wkoll
+## Ara wkoll
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — markatur tal-awtentikazzjoni għal kull endpoint
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — reġistru tal-awditjar għall-avvenimenti tal-awtentikazzjoni
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — dettalji dwar l-infurzar tal-ambitu tal-MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tliet spazji tal-ismijiet tal-ambitu u katalgu tal-ambitu tal-għodda tal-MCP
 - Sors: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

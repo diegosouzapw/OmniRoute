@@ -43,11 +43,10 @@ ACP Agents (ìṣàn ìdásílẹ̀ òdìkejì):
 
 ---
 
-## Ṣe àgbékalẹ̀ aládàáṣe pẹ̀lú `setup-*`
+## Ṣe atunto laifọwọyi pẹlu `setup-*`
 
-O kò nílò láti kọ àgbékalẹ̀ irinṣẹ́ kọ̀ọ̀kan pẹ̀lú ọwọ́. OmniRoute ní àṣẹ `setup-*`
-kan fún CLI kọ̀ọ̀kan tí a ṣe àtìlẹ́yìn fún, èyí tó ń ka àkójọ awoṣe **tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́** láti inú
-OmniRoute tó ń ṣiṣẹ́ (ní agbègbè tàbí ní jíjìn), tó sì ń kọ àgbékalẹ̀ irinṣẹ́ náà fúnra rẹ̀ sórí ẹ̀rọ rẹ:
+O ko nilo lati kọ atunto irinṣẹ kọọkan pẹlu ọwọ. OmniRoute n pese aṣẹ `setup-*`
+fun CLI kọọkan ti o ni atilẹyin ti o ka katalogi awoṣe **laaye** lati OmniRoute ti n ṣiṣẹ (agbegbe tabi latọna jijin) ati kọ atunto irinṣẹ funrararẹ sori ẹrọ rẹ:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +56,22 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Ọ̀kọ̀ọ̀kan gba `--remote <url> --api-key <key>` (ṣètò irinṣẹ́ agbègbè kan láti lo
-OmniRoute jíjìn), `--dry-run` (ṣàgbéyẹ̀wò láìkọ ohunkóhun), àti `--port`. Àwọn irinṣẹ́
-tí kò ní ìṣàwárí awoṣe aládàáṣe (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) gba
-`--model <id>` (àti `--yes` fún ìṣiṣẹ́ tí kò nílò ìbáṣepọ̀). `setup-5dive` ni
-ìlànà kan ṣoṣo tí kì í kọ sábẹ́ `$HOME`: ó ń ṣètò ẹgbẹ́ àwọn aṣojú 5dive nípasẹ̀
-kíkọ prófáìlì ìfàṣẹsí tí root ni lórí olupin ẹgbẹ́ náà, nítorí náà ó tún ara rẹ̀ ṣiṣẹ́ nípasẹ̀ `sudo`
-kò sì ní ipò jíjìn tirẹ̀. Láti ṣe ìfilọ́lẹ̀ CLI kan pẹ̀lú
-env tó yẹ tí a ti fi sínú rẹ̀ láìkọ àgbékalẹ̀ kankan rárá, lo olùfilọ́lẹ̀ gbogbogbò
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — àwọn ibi-àfojúsùn àti àwọn orúkọ ìnagijẹ wá láti `bin/cli/cli-manifest.mjs`); àwọn
-olùfilọ́lẹ̀ irinṣẹ́-kọ̀ọ̀kan àtijọ́ `omniroute launch` (Claude Code) àti `omniroute launch-codex`
-(Codex) ṣì wà. Gemini CLI jẹ́ fún ìfilọ́lẹ̀ nìkan: ó jẹ́ ibi-àfojúsùn `omniroute run`
-ṣùgbọ́n kò ní ìlànà `setup-*`/`configure`.
+Ọkọọkan gba `--remote <url> --api-key <key>` (ṣeto irinṣẹ agbegbe kan si OmniRoute latọna jijin), `--dry-run` (wo tẹlẹ laisi kikọ), ati `--port`. Awọn irinṣẹ laisi wiwa awoṣe laifọwọyi (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) gba `--model <id>` (ati `--yes` fun awọn ṣiṣe ti kii ṣe ibaraenisepo). `setup-5dive` jẹ ohunelo kanṣoṣo ti ko kọ labẹ `$HOME`: o ṣeto ọkọ oju-omi aṣoju 5dive nipa kikọ profaili ijẹrisi ti gbongbo ni agbalejo ọkọ oju-omi, nitorinaa o tun ṣe nipasẹ `sudo` ati pe ko ni ipo latọna jijin tirẹ. Lati ṣe ifilọlẹ CLI pẹlu env ti o tọ ti a fi sii ati pe ko si atunto ti a kọ rara, lo ifilọlẹ gbogbogbo `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — awọn ibi-afẹde ati awọn orukọ apeso wa lati `bin/cli/cli-manifest.mjs`); awọn ifilọlẹ atijọ fun irinṣẹ kọọkan `omniroute launch` (Claude Code) ati `omniroute launch-codex` (Codex) wa sibẹ. Gemini CLI jẹ ifilọlẹ nikan: o jẹ ibi-afẹde `omniroute run` ṣugbọn ko ni ohunelo `setup-*`/`configure`.
 
-> **Ìtọ́kasí kíkún:** tábìlì àkọ́kọ́ — ohun tí àṣẹ kọ̀ọ̀kan ń kọ, gbogbo àsìá,
-> ti agbègbè sí ti jíjìn, àti àwọn irinṣẹ́ wo ló nílò ìfikún `/v1` — wà nínú
-> **[Àwọn Ìṣopọ̀ CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Itọkasi kikun:** tabili akọkọ — ohun ti aṣẹ kọọkan kọ, gbogbo asia,
+> agbegbe vs latọna jijin, ati iru awọn irinṣẹ ti o fẹ suffix `/v1` — wa ninu
+> **[Awọn Isopọ CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Ṣíṣe àwọn wọ̀nyí nínú container kan
+### Ṣiṣe iwọnyi ninu apoti kan
 
-Àṣẹ `setup-*` tí a ṣe nínú container OmniRoute máa ń kọ sínú
-home ti container náà fúnra rẹ̀, èyí tí kò sí CLI kankan lórí host tó máa kà, tí yóò sì pòórá pẹ̀lú
-container náà. OmniRoute máa ń ṣàwárí èyí, yóò sì jáde pẹ̀lú `2` àti àwọn ìtọ́nisọ́nà dípò
-kíkọ. Ọ̀nà méjì tí a ṣe àtìlẹ́yìn fún láti tẹ̀síwájú ni — fi CLI sori host kí o sì lo
-`omniroute connect` láti sopọ̀ mọ́ container náà, tàbí ṣe bind-mount àwọn àkójọpọ̀ àgbékalẹ̀ kí o sì ṣètò
-`CLI_CONFIG_HOME` (prófáìlì compose `host`). Gbogbo àṣẹ `setup-*`, pẹ̀lú
-`omniroute configure` àti `omniroute config set`, gba
-`--allow-container-write` nígbà tí ṣíṣe àgbékalẹ̀ àwọn CLI ti container náà fúnra rẹ̀ ni ohun tí o
-túmọ̀ sí gan-an; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ṣe ohun kan náà fún
-olupin náà. Wo
-[Ìtọ́sọ́nà Docker → Ṣíṣe àgbékalẹ̀ àwọn irinṣẹ́ CLI host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Aṣẹ `setup-*` ti a ṣe ninu apoti OmniRoute kọ sinu ile ti apoti funrararẹ, eyiti ko si CLI agbalejo ti o ka ati eyiti o parẹ pẹlu apoti naa. OmniRoute ṣe awari iyẹn o si jade `2` pẹlu awọn ilana dipo kikọ. Awọn ọna meji ti o ni atilẹyin siwaju — fi CLI sori ẹrọ agbalejo ati `omniroute connect` si apoti, tabi so-gbe awọn itọsọna atunto ati ṣeto `CLI_CONFIG_HOME` (profaili `host` ti o ṣajọ). Gbogbo aṣẹ `setup-*`, pẹlu `omniroute configure` ati `omniroute config set`, gba `--allow-container-write` nigbati ṣiṣeto awọn CLI ti apoti funrararẹ jẹ ohun ti o tumọ si gangan; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ṣe kanna fun olupin naa. Wo
+[Itọsọna Docker → Ṣiṣeto awọn irinṣẹ CLI agbalejo](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Ojú-ọ̀nà ìmúlò** dasibodu náà (`POST /api/cli-tools/apply`) ń fipá mú
-ààbò kan náà: nínú container kan, ìkọ̀wé tí ibi-àfojúsùn rẹ̀ kò jẹ́ bind-mounted láti
-host máa dáhùn pẹ̀lú **`422`** àti `containerEphemeralTarget: true`, ọ̀rọ̀ àṣìṣe
-ààbò náà àti — fún àwọn irinṣẹ́ tó ní ìlànà host (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` kan (fún àpẹẹrẹ `omniroute setup-opencode`) láti ṣiṣẹ́
-lórí host dípò rẹ̀; kò sí ohun tí a kọ. `dryRun: true` ṣì ń ṣiṣẹ́ ní ipò container
-ó sì máa ń dá àkóónú tí a ṣẹ̀dá + ọ̀nà ibi-àfojúsùn padà láìfọwọ́ kan disiki, kí
-o lè ṣàgbéyẹ̀wò láti dasibodu kí o sì fi sílò lórí host. Ìhùwàsí yìí jẹ́
-ìmọ̀ọ́mọ̀, a sì ń dáàbò bo ó lọ́wọ́ ìpadàsẹ́yìn nípasẹ̀
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — má ṣe “tún” 422 ṣe
-nípa yíyọ ààbò náà kúrò.
+Ipari **ohun elo** dasibodu (`POST /api/cli-tools/apply`) n fi ipa mu aabo kanna: ninu apoti kan, kikọ ti ibi-afẹde rẹ ko ni asopọ-gbe lati agbalejo dahun **`422`** pẹlu `containerEphemeralTarget: true`, ọrọ aṣiṣe ailewu ati — fun awọn irinṣẹ pẹlu ohunelo agbalejo (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (fun apẹẹrẹ `omniroute setup-opencode`) lati ṣiṣe lori agbalejo dipo; ko si ohun ti a kọ. `dryRun: true` tẹsiwaju lati ṣiṣẹ ni ipo apoti ati da pada awotẹlẹ ti a ti yọkuro + ọna ibi-afẹde laisi fifọwọkan disiki. Akoonu awotẹlẹ kii ṣe atunto ti o ni ijẹrisi lati daakọ tabi gbe wọle. Waye pẹlu irinṣẹ atilẹba/URL ipilẹ/bọtini API/awọn igbewọle awoṣe lori agbalejo, tabi lo aṣẹ iṣeto ẹgbẹ agbalejo ti a tọka. Wo [aabo atunto CLI](../security/CLI-CONFIGURATION.md)
+fun akọsori awotẹlẹ ati adehun ibeere. Ihuwasi yii jẹ
+ipinnu ati aabo idinku nipasẹ
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — maṣe "ṣe atunṣe" 422
+nipa yiyọ aabo naa kuro.
 
 ---
 
@@ -142,9 +114,9 @@ ojú-ọ̀nà kan láì ṣàfikún rẹ̀ sí àwọn yòókù yóò mú kí à
 
 ---
 
-## 1. Àkójọ irinṣẹ́ CLI Code (irinṣẹ́ 26)
+## 1. Àtòjọ Koodu CLI (irinṣẹ́ 26)
 
-Gbogbo irinṣẹ́ tó hàn nínú `/dashboard/cli-code`. Àwọn tó ní `baseUrlSupport: none` ni a so pọ̀ nípasẹ̀ MITM tàbí ìtọ́sọ́nà àfọwọ́ṣe dípò URL ìpìlẹ̀ àkànṣe:
+Gbogbo àwọn irinṣẹ́ tí ó farahàn ní `/dashboard/cli-code`. Àwọn tí ó ní `baseUrlSupport: none` ni a so pọ̀ nípasẹ̀ MITM tàbí ìtọ́sọ́nà àfọwọ́kọ dípò URL ìpìlẹ̀ àṣà:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -175,7 +147,7 @@ Gbogbo irinṣẹ́ tó hàn nínú `/dashboard/cli-code`. Àwọn tó ní `base
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Àwọn irinṣẹ́ tó ní `baseUrlSupport: "partial"` máa ń fi báàjì "⚠ URL ìpìlẹ̀ lápá kan" hàn lórí káàdì dashboard.
+Àwọn irinṣẹ́ tí ó ní `baseUrlSupport: "partial"` máa ń fi àmì kan hàn "⚠ Base URL parcial" nínú káàdì dasíbọ́ọ̀dù.
 ---
 
 ## 2. Àkójọ Àwọn Aṣojú CLI (irinṣẹ́ 10)

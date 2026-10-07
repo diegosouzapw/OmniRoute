@@ -4,12 +4,12 @@
 
 ---
 
-> **Tõeallikas:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Viimati uuendatud:** 2026-06-28 — v3.8.40
+> **Tõe allikas:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Viimati uuendatud:** 2026-09-22 — skoobi nimeruumid viitavad MCP-SERVER.md
 
-OmniRoute'il on marsruuditeadlik autoriseerimiskonveier, mis kontrollib iga API-päringut. Klassifitseerimine on **deterministlik** ja **tõrke korral suletud** — kõik, mida ei saa klassifitseerida, määratakse klassi `MANAGEMENT` ning nõuab seanssi või haldustaseme luba. Sellel lehel selgitatakse mudelit inseneridele, kes hooldavad marsruute või kavandavad uusi lõpp-punkte.
+OmniRoute'il on marsruuditundlik autoriseerimistorustik, mis valvab iga API päringut. Klassifikatsioon on **deterministlik** ja **fail-closed** — kõik, mida ei saa klassifitseerida, lõpeb `MANAGEMENT`ina ja nõuab seanssi või haldustaseme tokenit. See leht selgitab mudelit inseneridele, kes hooldavad marsruute või kujundavad uusi lõpp-punkte.
 
-![AuthZ-konveier (3 marsruudiklassi + poliitika hindamine)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ torustik (3 marsruudiklassi + poliitika hindamine)](../diagrams/exported/authz-pipeline.svg)
 
 > Allikas: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,13 +17,13 @@ OmniRoute'il on marsruuditeadlik autoriseerimiskonveier, mis kontrollib iga API-
 
 ### 1. API-võti (Bearer)
 
-Kasutatakse OpenAI/Anthropicu/Gemini ühilduvate kliendi-API-de ja mõne haldusmarsruudi puhul, kui võtmel on ulatus `manage`.
+Kasutatakse OpenAI/Anthropicu/Gemini-ühilduvate kliendi-API-de ja mõne haldusmarsruudi jaoks, kui võtmel on `manage`-ulatus.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Seda valideerivad `isValidApiKey()` / `extractApiKey()` failis `src/sse/services/auth.ts` ning need eksporditakse uuesti faili `src/shared/utils/apiAuth.ts` kaudu. Valideerija aktsepteerib ka keskkonnamuutujaid `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` püsivate läbipääsuvõtmetena (probleem #1350).
+Seda valideerivad `isValidApiKey()` / `extractApiKey()` failis `src/sse/services/auth.ts` ning see reeksporditakse faili `src/shared/utils/apiAuth.ts` kaudu. Valideerija aktsepteerib püsivate läbivate võtmetena ka keskkonnamuutujaid `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` (probleem #1350).
 
 ### 2. Töölaua seanss (auth_token-küpsis)
 
@@ -33,41 +33,43 @@ Töölaua lehtede ja administraatoritoimingute jaoks.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Küpsis on seanss ainult siis, kui JWT kontrollimine õnnestub **ja** see sisaldab väärtust `authenticated: true`
+Küpsis on seanss ainult siis, kui JWT valideerimine õnnestub **ja** see sisaldab välja `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Iga
-küpsise kasutaja (marsruudivalvur, AuthZ-konveieri värskendamine, WebSocketi käepigistus, reaalajas
+küpsise kasutaja (töölaua marsruudivalvur (`isDashboardSessionAuthenticated()`), autoriseerimiskonveieri värskendamine, WebSocketi käepigistus, reaalajas
 server, `/api/settings/require-login`, `/api/auth/status`) kasutab seda abifunktsiooni.
-On olemas ka teisi võtmega `JWT_SECRET` allkirjastatud JWT-sid — Cursor CLI läbipääsumehhanism väljastab
-võtmeomanikele lubasid väärtustega `iss "omniroute" / aud "cursor-cli"` — ning neid ei käsitleta kunagi seanssidena
+Eksisteerib ka teisi võtmega `JWT_SECRET` allkirjastatud JWT-sid — Cursor CLI läbiv edastus väljastab
+võtmeomanikele tokeneid väljadega `iss "omniroute" / aud "cursor-cli"` — ja need ei ole kunagi seansid
 (#13298).
 
 Seda kontrollib `isDashboardSessionAuthenticated()` failis `src/shared/utils/apiAuth.ts`. Konveier värskendab JWT-d automaatselt, kui selle 30-päevasest kehtivusajast on jäänud vähem kui 7 päeva.
 
-Mõned haldusmarsruudid aktsepteerivad **mõlemat** režiimi: küpsist VÕI `Bearer <key>`, kui API-võtmel on ulatus `manage` (või `admin`). See võimaldab versioonis v3.8 lisatud töövoogu „konfigureeritav API-kutsete kaudu“.
+Seanss võib lõppeda ka enne 30 päeva möödumist, sest iga väljastaja kasutab funktsiooni `mintDashboardSessionToken` (väljastamisaeg `iat` ja ID `jti`) ning valideerija kontrollib kahte sätet: `sessionsValidAfter`, mis määratakse parooli muutmisel, et kõik enne seda väljastatud seansid lõpetaksid valideerimise (parooli muutnud brauser saab uue küpsise), ja `revokedDashboardSessions`, kuhu `POST /api/auth/logout` lisab välja logitud seansi `jti`. Vanema versiooniga väljastatud seansid ei sisalda kumbagi väidet ja jäävad kehtima kuni esimese paroolimuudatuseni. Kui sätteid ei saa lugeda, ei peeta seanssi usaldusväärseks.
 
-#### Valikuline OIDC sisselogimisvärav (#6973)
+Mõned haldusmarsruudid aktsepteerivad **kumbagi** režiimi: küpsist VÕI `Bearer <key>`, kui API-võtmel on `manage`- (või `admin`-) ulatus. See võimaldab versioonis v3.8 lisatud töövoogu „API-kutsete kaudu seadistatav“.
 
-Töölaua administraatori sisselogimine toetab lisaks vaikimisi parooliga sisselogimisele ka **valikulist** OIDC (OpenID Connecti) voogu — parooliga sisselogimist ei eemaldata kunagi, seda ainult
+#### Valikuline OIDC-sisselogimisvärav (#6973)
+
+Töölaua administraatori sisselogimine toetab vaikimisi parooliga sisselogimise kõrval ka **vabatahtlikult kasutatavat** OIDC (OpenID Connecti) voogu — parooliga sisselogimist ei eemaldata kunagi, seda üksnes
 täiendatakse:
 
-- See on keelatud, välja arvatud juhul, kui `settings.oidcEnabled === true` **ja** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` on kõik konfigureeritud (Settings → Auth).
-  Vastasel juhul tagastab `GET /api/auth/oidc/login` olekukoodi `400`.
+- See on keelatud, kui `settings.oidcEnabled === true` **ja** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` pole kõik seadistatud (Sätted → Autentimine).
+  Vastasel juhul tagastab `GET /api/auth/oidc/login` vastuse `400`.
 - `GET /api/auth/oidc/login` tuvastab väljaandja
   `/.well-known/openid-configuration` kaudu `authorization_endpoint`-i (varuvariandina kasutatakse
   `<issuer>/authorize`), koostab ümbersuunamise URI sissetuleva päringu põhjal
-  (arvestades `x-forwarded-proto` väärtust) ning suunab kasutaja ümber IdP-sse juhusliku `state`-väärtusega,
-  mis salvestatakse `httpOnly`-atribuudiga `oidc_state`-küpsisesse.
-- `GET /api/auth/oidc/callback` valideerib `state`-väärtuse, vahetab autoriseerimiskoodi
-  ning kontrollib ID-loa allkirja väljaandja JWKS-i kaudu
-  (`jose` funktsioon `createRemoteJWKSet`, vahemällu salvestatud iga JWKS-i URI kohta), kontrollides väärtusi `issuer`/`audience`.
-  Valikuline `oidcAllowedSubjects` lubatud väärtuste loend võrdleb loa
-  `sub`-nõuet või selle `email`-nõuet — e-posti nõuet arvestatakse ainult siis, kui
+  (arvestades päist `x-forwarded-proto`) ja suunab kasutaja IdP-sse juhusliku `state`-väärtusega,
+  mis salvestatakse `httpOnly`-küpsisesse `oidc_state`.
+- `GET /api/auth/oidc/callback` valideerib `state`-väärtuse, vahetab autoriseerimis-
+  koodi ning kontrollib ID-tokeni allkirja väljaandja JWKS-i kaudu
+  (`jose`-i `createRemoteJWKSet`, puhverdatud iga JWKS-i URI kohta), kontrollides `issuer`- ja `audience`-väärtusi.
+  Valikuline lubatud väärtuste loend `oidcAllowedSubjects` võrdleb tokeni
+  `sub`-väidet või selle `email`-väidet — e-posti aadressi väidet arvestatakse ainult siis, kui
   `email_verified === true`, mistõttu ei saa IdP-s kinnitamata e-posti aadress kunagi
   väravat läbida.
-- Õnnestumise korral väljastatakse **täpselt sama** 30-päevane `auth_token` JWT, mille väljastab parooliga
-  sisselogimine (`src/app/api/auth/login/route.ts`), seega jääb ülejäänud
-  töölaua seansikonveier (automaatne värskendamine, küpsise lipud) muutumatuks —
+- Õnnestumise korral väljastatakse **täpselt sama** 30-päevane `auth_token`-JWT, mille väljastab parooliga
+  sisselogimine (`src/app/api/auth/login/route.ts`), nii et ülejäänud
+  töölaua seansikonveier (automaatne värskendamine, küpsise lipud) jääb muutumatuks —
   OIDC asendab ainult küpsise väljastamise viisi, mitte selle antavaid õigusi.
 
 ## Marsruudiklassid
@@ -197,28 +199,38 @@ export async function POST(request: Request) {
 
 Valige kogum kuju, mitte mugavuse järgi. Üks marsruut lisatakse kogumisse `PUBLIC_API_ROUTES_EXACT` (või ainult GET-i jaoks kogumisse `PUBLIC_READONLY_CORS_API_ROUTES`); kogumisse `PUBLIC_API_ROUTE_PREFIXES` lisatakse üksnes tegelik alampuu ning see **peab lõppema märgiga `/`**. Üksiku marsruudi lisamine prefiksiloendisse avalikustab ka kõik külgnevad teed, mille algusmärgid on samad — sealhulgas hiljem lisatud dünaamilise segmendiga sõsarmarsruudid (GHSA-74g9-q8f6-793h). Uuendage ühikteste failides `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ja `tests/unit/authz/classify.test.ts`.
 
-## Ulatused
+## Skoobid
 
-API-võtmed sisaldavad massiivi `scopes` (talletatud JSON-ina väljal `api_keys.scopes`, vt `src/lib/db/apiKeys.ts`).
+Kolm nimeruumi. Iga kontrollija loeb ainult oma stringe. Kõrvuti võrdlus,
+sealhulgas miks `manage` ebaõnnestub `scopeMatches` puhul `read:compression` jaoks ja miks `read`
+ligipääsutoken ei saa `PATCH /api/keys/{id}`, on
+[Kolm skoobi nimeruumi](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Haldusulatus
+API võtmed sisaldavad `scopes` massiivi (salvestatud JSON-ina `api_keys.scopes` all, vt `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — annab võtmele juurdepääsu haldus-API lõpp-punktidele, kui see saadetakse Bearer-võtmena.
+### Halduse skoop
 
-### MCP ulatused (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Kandja ligipääs halduse API marsruutidele.
+- `mcp:connect`, `self:usage`, `self:account-quota` ja
+  `policy:bypass-provider-quota` on aditiivsed täpselt vastavad skoobid. Need
+  asuvad väljaspool `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` avab ainult
+  `/api/mcp/` mitte-tagasiside erandi.
 
-Iga MCP tööriist nõuab `MCP_TOOL_SCOPES` kaudu kindlaid ulatusi. Täielik loend (`MCP_SCOPE_LIST`):
+### MCP tööriista skoobid
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Kataloog ja vastavusreeglid (identne string või antud skoop, mis lõpeb `*`-ga):
+[MCP tööriista skoobid](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` failis `src/shared/constants/mcpScopes.ts` on algne tüübitud
+alamhulk, mitte see täielik kataloog. Jõustamine toimub
+`open-sse/mcp-server/scopeEnforcement.ts` pärast seda, kui `resolveCallerScopeContext()`
+lahendab skoobid MCP autentimisteabest, päringu metaandmetest või `OMNIROUTE_MCP_SCOPES`-ist.
+See jääb välja lülitatuks, välja arvatud juhul, kui `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Ulatuste jõustamisel failis `open-sse/mcp-server/server.ts` edastatakse iga tööriista ulatuste loend funktsioonile
-`evaluateToolScopes()` pärast seda, kui `resolveCallerScopeContext()` on tuvastanud ulatused MCP autentimisteabest,
-päringu metaandmetest või muutujast `OMNIROUTE_MCP_SCOPES`.
+### Ligipääsutokeni skoobid
+
+`read` / `write` / `admin` `oma_live_…` tokenitel, järjestatud `scopeSatisfies`
+järgi (`src/lib/accessTokens/scopes.ts`). See järjestus kehtib ainult
+ligipääsutokeni mandaadile. Vt [Halduse autentimine](../guides/MANAGEMENT-AUTH.md).
 
 ## Autentimisnõude lüliti
 
@@ -264,9 +276,9 @@ x-omniroute-auth-scopes:    komadega eraldatud loend
 
 Kasutage töötlejates funktsiooni `assertAuth(req, expectedClass)` — kui vahevara jäeti vahele, väljastab see vea `AuthzAssertionError` koodiga `AUTHZ_NOT_INITIALIZED` (kasulik konfiguratsiooni regressioonide tuvastamiseks testides).
 
-## Vaadake ka
+## Vaata ka
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentimise märge iga lõpp-punkti kohta
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentimissündmuste auditilogi
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ulatuste jõustamise üksikasjad
-- Lähtekood: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentimismärgis iga lõpp-punkti kohta
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — auditi logi autentimissündmuste jaoks
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — kolm skoobi nimeruumi ja MCP tööriista-skoobi kataloog
+- Allikas: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

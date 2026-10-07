@@ -78,7 +78,7 @@ async function fetchCursorAgentUrls(
       "content-type": "application/proto",
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
+      "x-cursor-client-version": formatCursorAgentClientVersion(await getCursorAgentCliVersion()),
     },
     body: Buffer.alloc(0),
     signal: signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal,

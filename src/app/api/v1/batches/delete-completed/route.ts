@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getApiKeyRequestScope, resolveEffectiveApiKeyId } from "@/app/api/v1/_helpers/apiKeyScope";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { ANONYMOUS_OWNER_ID } from "@/shared/constants/anonymousOwner";
 import * as log from "@/sse/utils/logger";
 
 const LOG_ROUTE = "batches/delete-completed";
@@ -55,7 +56,18 @@ export async function DELETE(request: Request) {
   // never sets scope.apiKeyId — fall back to the id enforceApiKeyPolicy()
   // independently resolved, so that key sweeps its OWN completed batches
   // instead of falling through to 401 (LEDGER-27, omni-code-sec round 3).
-  const effectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+  //
+  // A genuinely anonymous caller now resolves to the shared
+  // ANONYMOUS_OWNER_ID sentinel here (#14332 option (b), so it can read/
+  // delete the individual files/batches it created), but this destructive
+  // BULK sweep endpoint keeps its own, stricter, pre-existing contract
+  // (GHSA-wvxc-jp3v-5mg5): an anonymous caller is never authenticated enough
+  // to trigger it. Fold the sentinel back to null so the branch below still
+  // 401s instead of silently running a (harmless but contract-breaking)
+  // key-scoped sweep for "every anonymous caller's completed batches".
+  const rawEffectiveApiKeyId = resolveEffectiveApiKeyId(scope, policy.apiKeyInfo);
+  const effectiveApiKeyId =
+    rawEffectiveApiKeyId === ANONYMOUS_OWNER_ID ? null : rawEffectiveApiKeyId;
 
   // A presented API key always scopes the sweep to that key — even when the
   // request also carries a dashboard session cookie — the same rule the list

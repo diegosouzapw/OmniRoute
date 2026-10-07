@@ -5,7 +5,16 @@
  * output) must not immediately cool the account and rotate. One jittered
  * same-account retry absorbs brief proxy blips and keeps Codex prompt-cache
  * affinity. A second failure then takes a short cooldown and may rotate.
+ *
+ * A 502 whose `error.type` is UPSTREAM_RESPONDED_ERROR_TYPE is NOT a transport
+ * failure: chatCore builds it after the upstream already answered HTTP 200 with
+ * a body that translated into no usable output (`upstream_empty_response`,
+ * `upstream_response_failed`, `upstream_fake_success`). The upstream call was
+ * already made (and most likely billed), so replaying it on the same account only
+ * pays twice for the same verdict.
  */
+
+import { UPSTREAM_RESPONDED_ERROR_TYPE } from "@omniroute/open-sse/utils/diagnostics.ts";
 
 export const SAME_ACCOUNT_TRANSPORT_RETRY_MAX = 1;
 export const SAME_ACCOUNT_TRANSPORT_RETRY_MIN_DELAY_MS = 2000;
@@ -25,7 +34,11 @@ const RETRYABLE_TRANSPORT_TEXT = [
   /und_err_socket/i,
 ];
 
-const NON_RETRYABLE_ERROR_TYPES = new Set(["lease_error", "account_semaphore_capacity"]);
+const NON_RETRYABLE_ERROR_TYPES = new Set([
+  "lease_error",
+  "account_semaphore_capacity",
+  UPSTREAM_RESPONDED_ERROR_TYPE,
+]);
 
 export function isRetryableTransportStatus(status: unknown): boolean {
   const numeric = Number(status);

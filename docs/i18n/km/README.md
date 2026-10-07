@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — ច្រកទ្វារ AI ឥតគិតថ្លៃ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — កុំឈប់សរសេរកូដ។ រាល់ឧបករណ៍ AI → អ្នកផ្តល់សេវា 359 — ឥតគិតថ្លៃ 150+ — តាមរយៈ endpoint តែមួយ។ Claude Code, Codex, Cursor, Cline, Copilot និង Antigravity ទៅកាន់ Claude / GPT / Gemini ឥតគិតថ្លៃ ជាមួយការប្តូរបម្រុងដោយស្វ័យប្រវត្តិ។ ការបង្ហាប់រួមបញ្ចូលគ្នា RTK + Caveman សន្សំ token 15–95% (~89% ជាមធ្យម) — មិនឈានដល់ដែនកំណត់ឡើយ។ អ្នកផ្តល់សេវា AI 359 · កម្រិតឥតគិតថ្លៃ 150+ · token ឥតគិតថ្លៃ ~1.62B/ខែ · យុទ្ធសាស្ត្រកំណត់ផ្លូវ 19 · ចាប់ផ្តើមដោយ $0។"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — កុំឈប់សរសេរកូដ។ រាល់ឧបករណ៍ AI → អ្នកផ្តល់សេវា 358 — ឥតគិតថ្លៃជាង 150 — តាមរយៈចំណុចបញ្ចប់តែមួយ។ Claude Code, Codex, Cursor, Cline, Copilot & Antigravity ទៅកាន់ Claude / GPT / Gemini ឥតគិតថ្លៃ ជាមួយនឹងការបម្រុងទុកដោយស្វ័យប្រវត្តិ។ ការបង្ហាប់ RTK + Caveman stacked compression រក្សាទុក 15–95% tokens (ជាមធ្យម ~89%) — មិនដែលប៉ះដែនកំណត់ឡើយ។ អ្នកផ្តល់សេវា AI 358 · កម្រិតឥតគិតថ្លៃជាង 150 · ~1.62 ពាន់លាន tokens ឥតគិតថ្លៃ/ខែ · យុទ្ធសាស្ត្រកំណត់ផ្លូវ 19 · ចាប់ផ្តើមដោយ $0។"/>
 
 </div>
 
@@ -214,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — មិនត្រូវការសោ មិនត្រូវការកំណត់រចនាសម្ព័ន្ធ
+## 🆓 ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — គ្មានគន្លឹះ គ្មានការកំណត់រចនាសម្ព័ន្ធ
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — មិនត្រូវការកំណត់រចនាសម្ព័ន្ធ។ បីជំហាន៖ 1. ដំឡើង — npm i -g omniroute ម៉ាស៊ីនមេចាប់ផ្ដើមនៅលើ localhost:20128។ 2. កំណត់ឱ្យឧបករណ៍របស់អ្នកប្រើ http://localhost:20128/v1 — ឧបករណ៍ណាមួយដែលត្រូវគ្នាជាមួយ OpenAI (Claude Code, Cursor, Cline)។ 3. វាឆ្លើយតប — ហៅម៉ូដែល auto ដើម្បីទទួលបានការឆ្លើយតបភ្លាមៗ ដោយមិនត្រូវការ API key មិនត្រូវចុះឈ្មោះ និងមិនត្រូវកំណត់រចនាសម្ព័ន្ធ។ អ្នកផ្ដល់សេវាដែលមិនត្រូវការសោ OpenCode Free ត្រូវបានភ្ជាប់ជាមុនទៅក្នុងបន្សំ auto ដូច្នេះការដំឡើងថ្មីអាចឆ្លើយតបបានភ្លាមៗតាំងពីដំបូង។"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — គ្មានការកំណត់រចនាសម្ព័ន្ធ។ បីជំហាន៖ 1. ដំឡើង — npm i -g omniroute, server ចាប់ផ្ដើមនៅលើ localhost:20128។ 2. ចង្អុលឧបករណ៍របស់អ្នកទៅកាន់ http://localhost:20128/v1 — ឧបករណ៍ណាមួយដែលត្រូវគ្នាជាមួយ OpenAI (Claude Code, Cursor, Cline)។ 3. វាឆ្លើយតប — ហៅ model auto សម្រាប់ការឆ្លើយតបភ្លាមៗ ដោយគ្មាន API key គ្មានការចុះឈ្មោះ គ្មានការកំណត់រចនាសម្ព័ន្ធ។ អ្នកផ្តល់សេវាគ្មានគន្លឹះ OpenCode Free ត្រូវបានភ្ជាប់ជាមុនទៅក្នុង auto combo ដូច្នេះការដំឡើងថ្មីនឹងឆ្លើយតបភ្លាមៗ។"/>
 
 ```bash
-# ការដំឡើងថ្មី ដោយមិនត្រូវការព័ត៌មានសម្គាល់អត្តសញ្ញាណ — `auto` ដំណើរការរួចជាស្រេច៖
+# ការដំឡើងថ្មី គ្មានព័ត៌មានសម្ងាត់ — `auto` ដំណើរការរួចហើយ:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>ចង់ប្រើ backend ឥតគិតថ្លៃជាក់លាក់មួយមែនទេ? ហៅ `oc/…` (OpenCode Free) ដោយផ្ទាល់។ បន្ទាប់មកប្ដូរទៅ `auto` ហើយទុកឱ្យ OmniRoute ជ្រើសរើស។</sub>
+<sub>ចូលចិត្ត backend ឥតគិតថ្លៃជាក់លាក់មួយ? ហៅ `oc/…` (OpenCode Free) ដោយផ្ទាល់។ បន្ទាប់មកប្តូរទៅ `auto` ហើយអនុញ្ញាតឱ្យ OmniRoute ជ្រើសរើស។</sub>
 
-<sub>📦 ស្គ្រីបចាប់ផ្ដើមរហ័សដែលអាចចម្លងនិងបិទភ្ជាប់បានសម្រាប់ **Python, Node.js, PHP និង cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 ចម្លង-បិទភ្ជាប់ស្គ្រីបចាប់ផ្ដើមរហ័សសម្រាប់ **Python, Node.js, PHP, និង cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,22 +239,22 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ការសន្យា — endpoint តែមួយ និងអ្នកផ្ដល់សេវា 359។ fallback ស្វ័យប្រវត្តិបន្តការកំណត់ផ្លូវ ដរាបណានៅមានគោលដៅដែលដំណើរការល្អមួយទៀត។ សសរស្តម្ភប្រាំមួយ៖ fallback ដែលធន់ទ្រាំនៅទូទាំងអ្នកផ្ដល់សេវា 359 · សន្សំ token បានរហូតដល់ 95% សម្រាប់បន្ទុកការងារដែលមានសិទ្ធិ · ចាប់ផ្ដើមដោយចំណាយ $0 ជាមួយកម្រិតឥតគិតថ្លៃជាង 150 និងអ្នកផ្ដល់សេវាឥតគិតថ្លៃជារៀងរហូតចំនួន 54 ដែលផ្ដល់ឡើងវិញជាប្រចាំ/មិនត្រូវការសោ · ការរួមបញ្ចូល CLI/agent ចំនួន 36 តាមរយៈការកំណត់រចនាសម្ព័ន្ធតែមួយ · ភាពត្រូវគ្នាជាមួយ OpenAI, Claude, Gemini និង Responses API នៅ /v1 · មុខងារគ្រប់គ្រងកម្រិតផលិតកម្ម រួមមាន circuit breakers, TLS stealth, MCP 110 tools, A2A, memory, guardrails, evals និងសេចក្ដីប្រកាសតេស្ត static ជាង 39,000 នៅទូទាំងឯកសារតេស្តដែលបានតាមដានជាង 5,100។"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ការសន្យា — ចំណុចបញ្ចប់មួយ និងអ្នកផ្តល់សេវា 358 នាក់។ ការបម្រុងទុកដោយស្វ័យប្រវត្តិរក្សាការបញ្ជូនបន្តដរាបណាគោលដៅដែលមានសុខភាពល្អផ្សេងទៀតមាន។ សសរស្តម្ភប្រាំមួយ៖ ការបម្រុងទុកប្រកបដោយភាពធន់ទូទាំងអ្នកផ្តល់សេវា 358 នាក់ · សន្សំ token រហូតដល់ 95% លើបន្ទុកការងារដែលមានសិទ្ធិ · $0 ដើម្បីចាប់ផ្តើមជាមួយកម្រិតឥតគិតថ្លៃ 150+ និងអ្នកផ្តល់សេវាឥតគិតថ្លៃជារៀងរហូត 54 នាក់ (recurring/keyless) · ការរួមបញ្ចូល CLI/agent ចំនួន 36 តាមរយៈការកំណត់រចនាសម្ព័ន្ធមួយ · ភាពត្រូវគ្នាជាមួយ OpenAI, Claude, Gemini និង Responses API នៅ /v1 · ការគ្រប់គ្រងផលិតកម្មរួមមាន circuit breakers, TLS stealth, ឧបករណ៍ MCP 110, A2A, memory, guardrails, evals និងការប្រកាសតេស្តឋិតិវន្ត 39,000+ លើឯកសារតេស្តដែលបានតាមដាន 5,100+។"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 ហេតុអ្វីត្រូវប្រើ OmniRoute?
+# 🤔 ហេតុអ្វី OmniRoute?
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="ហេតុអ្វីត្រូវប្រើ OmniRoute — ឈប់គ្រប់គ្រង dashboard 10 ផ្សេងៗគ្នា API key ដែលលែងដំណើរការ និងវិក្កយបត្រដែលលេចឡើងដោយមិនបានរំពឹងទុក។ បញ្ហាប្រចាំថ្ងៃដប់យ៉ាង និងដំណោះស្រាយ៖ quota ផុតកំណត់ដោយមិនបានប្រើ → ប្រើប្រាស់ការជាវឱ្យបានអតិបរមា; rate limit កើតឡើងកណ្ដាលពេលសរសេរកូដ → auto-fallback 4 កម្រិត (Subscription → API → Cheap → Free); លទ្ធផលពីឧបករណ៍ប្រើ token ច្រើន → ការបង្ហាប់ RTK + Caveman (15–95%); API មានតម្លៃថ្លៃ → ការកំណត់ផ្លូវដែលបង្កើនប្រសិទ្ធភាពចំណាយ; ឧបករណ៍នីមួយៗត្រូវការការរៀបចំដោយឡែក → endpoint មួយ dashboard មួយ; AI ត្រូវបានរារាំង → proxy 3 កម្រិត + TLS stealth; សោដែលលែងដំណើរការ → ភាពធន់ទ្រាំ 3 ស្រទាប់ (circuit breakers, key cooldown, model lockout); ក្រុមចែករំលែកការជាវតែមួយ → key pools ជាមួយ quota ដែលបែងចែកដោយយុត្តិធម៌; prompt ឆ្លងកាត់ cloud របស់អ្នកដទៃ → ផ្ដោតលើ local ជាចម្បង ជាមួយសោដែលបានអ៊ិនគ្រីបដោយ AES-256-GCM; មើលមិនឃើញការចំណាយ → ការវិភាគផ្ទាល់ (ការប្រើប្រាស់, quota, ការសន្សំ, p95 latency)។"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="ហេតុអ្វី OmniRoute — បញ្ឈប់ការគ្រប់គ្រងផ្ទាំងគ្រប់គ្រង 10, API key ដែលមិនដំណើរការ និងវិក្កយបត្រដែលមិនបានរំពឹងទុក។ បញ្ហាប្រចាំថ្ងៃដប់ធៀបនឹងដំណោះស្រាយ៖ កូតាផុតកំណត់ដែលមិនបានប្រើ → ធ្វើឱ្យការជាវមានប្រសិទ្ធភាពបំផុត; ដែនកំណត់អត្រាពេលកំពុងសរសេរកូដ → ការបម្រុងទុកដោយស្វ័យប្រវត្តិ 4 កម្រិត (Subscription → API → Cheap → Free); លទ្ធផលឧបករណ៍ដុត token → RTK + ការបង្ហាប់ Caveman (15–95%); APIs ថ្លៃ → ការបញ្ជូនបន្តដែលប្រសើរសម្រាប់ថ្លៃដើម; ឧបករណ៍នីមួយៗមានការដំឡើងផ្ទាល់ខ្លួន → ចំណុចបញ្ចប់មួយ ផ្ទាំងគ្រប់គ្រងមួយ; AI ត្រូវបានបិទ → proxy 3 កម្រិត + TLS stealth; key ដែលមិនដំណើរការ → ភាពធន់ 3 ស្រទាប់ (circuit breakers, key cooldown, model lockout); ក្រុមចែករំលែកការជាវមួយ → key pools ជាមួយកូតាចែករំលែកស្មើៗគ្នា; prompts តាមរយៈ cloud របស់នរណាម្នាក់ → local-first ជាមួយ key ដែលបានអ៊ិនគ្រីប AES-256-GCM; គ្មានការមើលឃើញការចំណាយ → ការវិភាគផ្ទាល់ (ការប្រើប្រាស់, កូតា, ការសន្សំ, p95 latency)។"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="លំហូរសំណើរបស់ OmniRoute៖ IDE ឬ CLI របស់អ្នក (Claude Code, Cursor, Cline…) ហៅ endpoint local តែមួយ (http://localhost:20128/v1); OmniRoute Smart Router (ការបង្ហាប់ RTK + Caveman, យុទ្ធសាស្ត្រកំណត់ផ្លូវ 19, circuit breakers, TLS stealth, MCP, A2A, guardrails) អាចធ្វើ fallback ឆ្លងកាត់កម្រិតអ្នកផ្ដល់សេវា 4 ដរាបណានៅមានគោលដៅដែលមានសិទ្ធិ និងដំណើរការល្អ — កម្រិត 1 Subscription, កម្រិត 2 API Key, កម្រិត 3 Cheap និងកម្រិត 4 Free។"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="លំហូរការស្នើសុំ OmniRoute៖ IDE ឬ CLI របស់អ្នក (Claude Code, Cursor, Cline…) ហៅចំណុចបញ្ចប់ក្នុងស្រុកមួយ (http://localhost:20128/v1); OmniRoute Smart Router (RTK + ការបង្ហាប់ Caveman, យុទ្ធសាស្រ្តបញ្ជូនបន្ត 19, circuit breakers, TLS stealth, MCP, A2A, guardrails) អាចបម្រុងទុកឆ្លងកាត់កម្រិតអ្នកផ្តល់សេវា 4 ខណៈពេលដែលគោលដៅដែលមានសុខភាពល្អនៅតែមាន — កម្រិត 1 ការជាវ, កម្រិត 2 API Key, កម្រិត 3 ថោក និង កម្រិត 4 ឥតគិតថ្លៃ។"/>
 
 </div>
 
@@ -268,11 +268,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — បញ្ញាជួរមុខបើកចំហ · 2.8T ប៉ារ៉ាម៉ែត្រ · បរិបទ 1M-token"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — បញ្ញាព្រំដែនបើកចំហ · ប៉ារ៉ាម៉ែត្រ 2.8T · បរិបទ 1M-token"/>
   </a>
 </p>
 
-> **ចង់ចូលរួមជាមិត្តភក្តិប្រភពបើកចំហមែនទេ?** ទាំងនេះគឺជាក្រុមហ៊ុនដែលគាំទ្រប្រភពបើកចំហ និងជួយឱ្យ OmniRoute បន្តដំណើរការ — ហើយយើងប្រកាសជាសាធារណៈថា token ទាំងអស់ដែលពួកគេផ្តល់ឱ្យយើងត្រូវបានប្រើប្រាស់ទៅលើអ្វីខ្លះ។ សូមទាក់ទង៖ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ចង់ចូលរួមជាមិត្តភក្តិប្រភពបើកចំហទេ?** ទាំងនេះគឺជាក្រុមហ៊ុនដែលគាំទ្រប្រភពបើកចំហ និងជួយរក្សា OmniRoute ឱ្យដំណើរការ — ហើយយើងប្រកាសជាសាធារណៈថាគ្រប់ token ដែលពួកគេផ្តល់ឱ្យយើងទៅណា។ ទាក់ទងមក៖ [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -287,9 +287,9 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="មិត្តភក្តិប្រភពបើកចំហស្ថាបនិក"/>
     </td>
     <td>
-      សូមអរគុណដល់ <b>Kimi (Moonshot AI)</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហស្ថាបនិករបស់យើង សម្រាប់ការគាំទ្រគម្រោងនេះ! Kimi គឺជាមន្ទីរពិសោធន៍ AI នៅពីក្រោយគ្រួសារម៉ូដែល open-weight K2 និង K3 — <b>Kimi K3</b> ផ្តល់នូវបង្អួចបរិបទ 1M-token, សមត្ថភាពមើលឃើញដើម និងសមត្ថភាពសរសេរកូដកម្រិតជួរមុខក្នុងតម្លៃមួយចំណែកតូចនៃម៉ូដែលបិទ ព្រមទាំងអាចដំណើរការបានភ្លាមៗជាមួយ Claude Code, Codex និងគ្រប់ឧបករណ៍សរសេរកូដដែល OmniRoute បម្រើ។
+      សូមអរគុណដល់ <b>Kimi (Moonshot AI)</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហស្ថាបនិករបស់យើង សម្រាប់ការគាំទ្រគម្រោងនេះ! Kimi គឺជាមន្ទីរពិសោធន៍ AI នៅពីក្រោយគ្រួសារម៉ូដែល K2 និង K3 ដែលមានទម្ងន់បើកចំហ — <b>Kimi K3</b> ផ្តល់នូវបង្អួចបរិបទ 1M-token, ចក្ខុវិស័យដើម និងការសរសេរកូដកម្រិតព្រំដែនក្នុងតម្លៃមួយភាគនៃតម្លៃម៉ូដែលបិទជិត ហើយដំណើរការចេញពីប្រអប់ជាមួយ Claude Code, Codex និងឧបករណ៍សរសេរកូដទាំងអស់ដែល OmniRoute ផ្តល់ជូន។
       <br/><br/>
-      <b>អ្វីដែលការគាំទ្ររបស់ Kimi ផ្តល់ថាមពលឱ្យ៖</b> ឥណទាន API របស់ Kimi ផ្តល់ថាមពលដល់បំពង់ដំណើរការចេញផ្សាយដែលផ្ទៀងផ្ទាត់ដោយ AI របស់ OmniRoute — ដំណាក់កាល <i>ផ្ទៀងផ្ទាត់ការបញ្ចូលបញ្ចូលគ្នាដោយប្រើ Kimi K3</i> ដែលពិនិត្យគ្រប់ pull request មុនពេលចេញផ្សាយ — រួមទាំងការអភិវឌ្ឍមុខងារប្រចាំថ្ងៃ។ ការគាំទ្រកម្រិតទីមួយសម្រាប់ Kimi ត្រូវបានផ្តល់ជូនតាមផ្លូវទាំងពីរ៖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> ដោយផ្ទាល់ (<code>kimi-k3</code>) និង <a href="https://www.kimi.com/code?aff=omniroute">គម្រោងសរសេរកូដ Kimi Code</a> (OAuth និង API key)។ OmniRoute ក៏ជាគម្រោងប្រភពបើកចំហរបស់ប្រេស៊ីលដំបូងគេក្នុងកម្មវិធីគាំទ្ររបស់ Kimi ផងដែរ។ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>ទទួលយក Kimi API key ជាមួយឥណទានបន្ថែម 15% →</b></a>
+      <b>អ្វីដែលការគាំទ្ររបស់ Kimi ផ្តល់ថាមពល៖</b> ឥណទាន API របស់ Kimi ផ្តល់ថាមពលដល់បំពង់បង្ហូរចេញដែលបានផ្ទៀងផ្ទាត់ដោយ AI របស់ OmniRoute — ដំណាក់កាល <i>ការផ្ទៀងផ្ទាត់ការបញ្ចូលគ្នាដែលផ្តល់ថាមពលដោយ Kimi K3</i> ដែលពិនិត្យមើលរាល់សំណើសុំទាញមុនពេលវាចេញផ្សាយ — បូករួមទាំងការអភិវឌ្ឍន៍មុខងារប្រចាំថ្ងៃ។ ការគាំទ្រ Kimi លំដាប់ទីមួយត្រូវបានដឹកជញ្ជូនលើផ្លូវដែកទាំងពីរ៖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> ដោយផ្ទាល់ (<code>kimi-k3</code>) និង <a href="https://www.kimi.ai/code?aff=omniroute">គម្រោងសរសេរកូដ Kimi Code</a> (OAuth និង API key)។ OmniRoute ក៏ជាគម្រោងប្រភពបើកចំហរបស់ប្រេស៊ីលដំបូងគេនៅក្នុងកម្មវិធីគាំទ្ររបស់ Kimi ផងដែរ។ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>ទទួលបាន Kimi API key ជាមួយនឹងឥណទានបន្ថែម 15% →</b></a>
     </td>
   </tr>
   <tr>
@@ -301,21 +301,21 @@ curl http://localhost:20128/v1/chat/completions \
       <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="មិត្តភក្តិប្រភពបើកចំហ"/>
     </td>
     <td>
-      សូមអរគុណដល់ <b>Cheaper Inference</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហរបស់ OmniRoute សម្រាប់ការគាំទ្រគម្រោងនេះ! Cheaper Inference គឺជា gateway ដែលចាត់ថ្នាក់តាមតម្លៃ ហើយលក់បន្តម៉ូដែលជួរមុខចំនួន 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok និង MiniMax — នៅពីក្រោយ endpoint តែមួយដែលឆបគ្នាជាមួយ OpenAI ដោយបញ្ជូនសំណើនីមួយៗទៅកាន់អ្នកផ្តល់សេវាដែលមានតម្លៃថោកបំផុត និងមានសិទ្ធិ ដោយមិនដែលគិតថ្លៃលើសពីតម្លៃរាយរបស់អ្នកបង្កើតម៉ូដែលឡើយ។
+      សូមអរគុណដល់ <b>Cheaper Inference</b> ដែលជាមិត្តភក្តិប្រភពបើកចំហរបស់ OmniRoute សម្រាប់ការគាំទ្រគម្រោងនេះ! Cheaper Inference គឺជាច្រកទ្វារដែលត្រូវបានចាត់ថ្នាក់តាមតម្លៃដែលលក់បន្តម៉ូដែលព្រំដែនចំនួន 42 — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok និង MiniMax — នៅពីក្រោយចុងចំណុចដែលត្រូវគ្នាជាមួយ OpenAI មួយ ដោយបញ្ជូនសំណើនិមួយៗទៅកាន់អ្នកផ្តល់សេវាដែលមានសិទ្ធិថោកបំផុតដោយមិនគិតថ្លៃលើសពីតម្លៃបញ្ជីរបស់អ្នកបង្កើតម៉ូដែលឡើយ។
       <br/><br/>
-      <b>ការគាំទ្រកម្រិតទីមួយក្នុង OmniRoute៖</b> Chat Completions, endpoint ដើម <code>/v1/responses</code>, សមត្ថភាពមើលឃើញ, ការហៅឧបករណ៍ និងម៉ូដែលរូបភាពចំនួន 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code> ដែលអាចចូលប្រើជា <code>cheaperinference/&lt;model&gt;</code>)។ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ទទួលយក API key →</b></a>
+      <b>ការគាំទ្រលំដាប់ទីមួយនៅក្នុង OmniRoute៖</b> Chat Completions, ចុងចំណុច <code>/v1/responses</code> ដើម, ចក្ខុវិស័យ, ការហៅឧបករណ៍ និងម៉ូដែលរូបភាព 3 (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, អាចទៅដល់បានជា <code>cheaperinference/&lt;model&gt;</code>)។ <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ទទួលបាន API key →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>តំណដែលមានស្លាក <code>aff=omniroute</code> គឺជាតំណដៃគូ។ តំណទាំងនេះជួយផ្តល់មូលនិធិដល់គម្រោងដោយមិនបន្ថែមការចំណាយណាមួយសម្រាប់អ្នកឡើយ។</sub>
+<sub>តំណភ្ជាប់ដែលបានដាក់ស្លាក <code>aff=omniroute</code> គឺជាតំណភ្ជាប់ដៃគូ។ ពួកគេផ្តល់មូលនិធិដល់គម្រោងដោយមិនគិតថ្លៃបន្ថែមសម្រាប់អ្នក។</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ ប្រូម៉ូសិនសម្ព័ន្ធ</b> — គូប៉ុងចុះឈ្មោះឥតគិតថ្លៃពីអ្នកផ្តល់សេវាដែលយើងមិនបានឧបត្ថម្ភ (ចុចដើម្បីពង្រីក)</sub></summary>
+<summary><sub><b>🎟️ ការផ្សព្វផ្សាយរបស់សាខា</b> — ប័ណ្ណចុះឈ្មោះឥតគិតថ្លៃពីអ្នកផ្តល់សេវាដែលយើងមិនឧបត្ថម្ភ (ចុចដើម្បីពង្រីក)</sub></summary>
 
-<sub><i>ផ្នែកនេះគឺសម្រាប់តែលេខកូដយោង/គូប៉ុងប៉ុណ្ណោះ។ ភាពជាដៃគូដែលមានការឧបត្ថម្ភស្ថិតនៅក្នុងផ្នែក <b>🤝 គាំទ្រដោយមិត្តភក្តិប្រភពបើកចំហរបស់យើង</b> ខាងលើ។ OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវាដែលបានរាយនៅទីនេះទេ — ទាំងនេះគឺជាគូប៉ុងសាធារណៈដែលអ្នកណាក៏អាចប្រើបាន។</i></sub>
+<sub><i>ផ្នែកនេះគឺសម្រាប់តែកូដយោង/ប័ណ្ណប៉ុណ្ណោះ។ ភាពជាដៃគូដែលបានឧបត្ថម្ភមាននៅក្នុង <b>🤝 គាំទ្រដោយមិត្តភក្តិប្រភពបើកចំហរបស់យើង</b> ខាងលើ។ OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវាដែលបានរាយបញ្ជីនៅទីនេះទេ — ទាំងនេះគឺជាប័ណ្ណសាធារណៈដែលនរណាម្នាក់អាចប្រើបាន។</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ការចុះឈ្មោះតាមរយៈសម្ព័ន្ធ · <b>ឥណទានឥតគិតថ្លៃ $100</b> នៅពេលចុះឈ្មោះ (ម៉ាស៊ីនមេឥតគិតថ្លៃ ដូច្នេះអាចមានភាពយឺតយ៉ាវខ្ពស់ជាងមុន — សមស្របបំផុតសម្រាប់ការធ្វើតេស្ត មិនមែនសម្រាប់ប្រព័ន្ធផលិតកម្មទេ)។ មានការគាំទ្រកម្រិតទីមួយក្នុង OmniRoute ចាប់តាំងពី <b>v3.8.50</b>៖ Chat Completions, wire format ដែលឆបគ្នាជាមួយ Anthropic និងផ្លូវដែលឆបគ្នាជាមួយ OpenAI។ ម៉ូដែលដែលអាចប្រើបានរួមមាន <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> និងច្រើនទៀត។ <b><a href="https://agentrouter.org/register?aff=70LM">ទទួលយក $100 របស់អ្នក →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ការចុះឈ្មោះសាខា · <b>ឥណទានឥតគិតថ្លៃ $100</b> នៅពេលចុះឈ្មោះ (ម៉ាស៊ីនមេឥតគិតថ្លៃ រំពឹងថាមានភាពយឺតយ៉ាវខ្ពស់ — ល្អបំផុតសម្រាប់ការធ្វើតេស្ត មិនមែនសម្រាប់ការផលិតទេ)។ ការគាំទ្រលំដាប់ទីមួយនៅក្នុង OmniRoute ចាប់តាំងពី <b>v3.8.50</b>៖ Chat Completions, ទម្រង់ខ្សែដែលត្រូវគ្នាជាមួយ Anthropic និងផ្លូវដែលត្រូវគ្នាជាមួយ OpenAI។ ម៉ូដែលដែលមានរួមមាន <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> និងច្រើនទៀត។ <b><a href="https://agentrouter.org/register?aff=70LM">ចាប់យក $100 របស់អ្នក →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>តំណសម្ព័ន្ធ — OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវានេះទេ។</i></sub>
+      <sub>⚠️ <i>តំណភ្ជាប់សាខា — OmniRoute មិនមានការឧបត្ថម្ភ ឬភាពជាដៃគូជាមួយអ្នកផ្តល់សេវានេះទេ។</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>ស្គាល់អ្នកផ្តល់សេវាផ្សេងទៀតដែលមានគូប៉ុងចុះឈ្មោះឥតគិតថ្លៃដ៏សប្បុរស ដែលផ្តល់អត្ថប្រយោជន៍ដល់អ្នកប្រើ OmniRoute ដែរឬទេ? បើក issue មួយ ហើយយើងនឹងបន្ថែមវានៅទីនេះ។</sub>
+<sub>ដឹងពីអ្នកផ្តល់សេវាផ្សេងទៀតដែលមានប័ណ្ណចុះឈ្មោះឥតគិតថ្លៃដ៏សប្បុរសដែលផ្តល់អត្ថប្រយោជន៍ដល់អ្នកប្រើប្រាស់ OmniRoute ទេ? បើកបញ្ហាហើយយើងនឹងបន្ថែមវានៅទីនេះ។</sub>
 
 </details>
 
@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Combo — មុខងារស្នូល
+## 🎯 Combo — មុខងារចម្បង
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="យុទ្ធសាស្ត្របញ្ជូន combo ទាំង 19 ដែលមានចលនា — មួយក្រឡាសម្រាប់យុទ្ធសាស្ត្រនីមួយៗ៖ priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline។ សូមមើលតារាងខាងលើសម្រាប់អ្វីដែលយុទ្ធសាស្ត្រនីមួយៗធ្វើ។"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="យុទ្ធសាស្ត្រកំណត់ផ្លូវ combo ទាំង 19 ដែលមានចលនា — មួយក្រឡាសម្រាប់យុទ្ធសាស្ត្រនីមួយៗ៖ priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline។ សូមមើលតារាងខាងលើដើម្បីដឹងថាយុទ្ធសាស្ត្រនីមួយៗធ្វើអ្វី។"/>
 
-> **Combo** គឺជាខ្សែសង្វាក់នៃម៉ូដែលដែល OmniRoute បញ្ជូនឆ្លងកាត់ដោយ **ស្វ័យប្រវត្តិ**។ ប្រសិនបើកូតាអស់ អ្នកផ្ដល់សេវាមានបញ្ហា ឬថ្លៃចំណាយកើនឡើងខ្លាំង Combo អាចប្ដូរទៅម៉ូដែលល្អដែលមានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់បន្ទាប់។ 🛡️
+> **Combo** គឺជាខ្សែសង្វាក់នៃម៉ូដែលដែល OmniRoute កំណត់ផ្លូវឆ្លងកាត់ដោយ **ស្វ័យប្រវត្តិ**។ ប្រសិនបើកូតាត្រូវបានប្រើអស់ អ្នកផ្តល់សេវាបរាជ័យ ឬតម្លៃកើនឡើង Combo អាចប្តូរទៅម៉ូដែលដែលមានសុខភាពល្អ និងមានលក្ខណៈសម្បត្តិសមស្របបន្ទាប់។ 🛡️
 
-### ⚡ មិនបាច់កំណត់រចនាសម្ព័ន្ធ — គ្រាន់តែប្រើ `auto`
+### ⚡ មិនត្រូវការការកំណត់រចនាសម្ព័ន្ធ — គ្រាន់តែប្រើ `auto`
 
-មិនចាំបាច់បង្កើត Combo ទេ។ កំណត់ម៉ូដែលរបស់អ្នកទៅជា `auto` (ឬបំរែបំរួលណាមួយ) ហើយ OmniRoute នឹងបង្កើត Combo និម្មិតពីអ្នកផ្ដល់សេវាដែលអ្នកបានភ្ជាប់ ដោយដាក់ពិន្ទុផ្ទាល់៖
+មិនចាំបាច់បង្កើត Combo ទេ។ កំណត់ម៉ូដែលរបស់អ្នកជា `auto` (ឬវ៉ារ្យ៉ង់ណាមួយ) ហើយ OmniRoute នឹងបង្កើត Combo និម្មិតពីអ្នកផ្តល់សេវាដែលអ្នកបានភ្ជាប់ ដោយដាក់ពិន្ទុជាក់ស្តែង៖
 
 <table>
-  <tr><th align="left">ID ម៉ូដែល</th><th align="left">អ្វីដែលវាបង្កើនប្រសិទ្ធភាព</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 លំនាំដើមដែលមានតុល្យភាព (LKGP — បន្តប្រើអ្នកផ្ដល់សេវាល្អចុងក្រោយរបស់អ្នក)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 ទម្ងន់ដែលផ្ដល់អាទិភាពដល់គុណភាពសម្រាប់ការបង្កើតកូដ</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ ផ្ដល់អាទិភាពដល់រយៈពេលរង់ចាំទាបបំផុត</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 ផ្ដល់អាទិភាពដល់តម្លៃថោកបំផុតក្នុងមួយ token</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 ផ្ដល់អាទិភាពដល់កូតា / ចន្លោះសមត្ថភាពនៃកម្រិតអត្រាដែលនៅសល់ច្រើនបំផុត</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 ផ្ដល់អាទិភាពដល់គុណភាព + ការសាកល្បង 10% ដើម្បីស្វែងរកម៉ូដែលដែលប្រសើរជាង</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 បន្តប្រើអ្នកផ្ដល់សេវាល្អដែលបានស្គាល់ចុងក្រោយយ៉ាងជាក់លាក់</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 ទម្ងន់ចាក់បញ្ចូលកំហុសសម្រាប់ការសាកល្បងភាពធន់ (វិស្វកម្មភាពចលាចល)</td></tr>
+  <tr><th align="left">លេខសម្គាល់ម៉ូដែល</th><th align="left">អ្វីដែលវាបង្កើនប្រសិទ្ធភាព</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 លំនាំដើមដែលមានតុល្យភាព (LKGP — បន្តប្រើអ្នកផ្តល់សេវាល្អចុងក្រោយរបស់អ្នក)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 ទម្ងន់ដែលផ្តល់អាទិភាពដល់គុណភាពសម្រាប់ការបង្កើតកូដ</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ ផ្តល់អាទិភាពដល់ភាពយឺតយ៉ាវទាបបំផុត</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 ផ្តល់អាទិភាពដល់តម្លៃថោកបំផុតក្នុងមួយ token</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 ផ្តល់អាទិភាពដល់កូតា / គម្លាតដែនកំណត់អត្រាដែលនៅសល់ច្រើនបំផុត</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 ផ្តល់អាទិភាពដល់គុណភាព + ការសាកល្បង 10% ដើម្បីស្វែងរកម៉ូដែលដែលប្រសើរជាង</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 បន្តប្រើអ្នកផ្តល់សេវាល្អដែលបានស្គាល់ចុងក្រោយដោយជាក់លាក់</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 ចែកសំណើស្របគ្នាទៅក្រុមម៉ូដែល (មួយក្នុងអ្នកផ្តល់សេវានីមួយៗ និង 5 តាមលំនាំដើម) ហើយត្រឡប់ចម្លើយមួយ; ការហៅទៅប្រភពខាងលើមួយក្នុងមួយម៉ូដែលនៃក្រុម មិនមែនជាការបញ្ចូលកំហុសទេ</td></tr>
 </table>
 
 ##
 
-### 🔀 ឬបង្កើតដោយខ្លួនឯង — យុទ្ធសាស្ត្របញ្ជូន 19
+### 🔀 ឬបង្កើតដោយខ្លួនឯង — យុទ្ធសាស្ត្រកំណត់ផ្លូវ 19
 
-យុទ្ធសាស្ត្រ **19** ទាំងអស់ — លាយបញ្ចូលគ្នាតាមជំហាននីមួយៗរបស់ Combo៖
+យុទ្ធសាស្ត្រទាំង **19** — លាយបញ្ចូល និងផ្គូផ្គងតាមជំហាន Combo នីមួយៗ៖
 
 <table>
   <tr>
@@ -380,62 +380,62 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>បញ្ជីដែលបានតម្រៀបដោយផ្ដល់អាទិភាពដល់គោលដៅដំបូង — ប្រើគោលដៅនីមួយៗឱ្យអស់ មុននឹងបន្តទៅគោលដៅបន្ទាប់ 🥇</td>
+    <td>បញ្ជីគោលដៅដែលបានតម្រៀបតាមគោលដៅទីមួយ — ប្រើគោលដៅនីមួយៗរហូតអស់ មុនបន្តទៅគោលដៅបន្ទាប់ 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>ប្រើកូតារបស់គោលដៅនីមួយៗឱ្យពេញ មុននឹងបន្តទៅគោលដៅបន្ទាប់</td>
+    <td>ប្រើកូតារបស់គោលដៅនីមួយៗឱ្យពេញលេញ មុនពេលបន្តទៅគោលដៅបន្ទាប់</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>ជ្រើសរើសដោយចៃដន្យតាមទម្ងន់របស់គោលដៅនីមួយៗ</td>
+    <td>ជ្រើសដោយចៃដន្យតាមទម្ងន់របស់គោលដៅនីមួយៗ</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>បង្វិលឆ្លងកាត់គោលដៅតាមលំដាប់</td>
+    <td>ប្តូរវេនឆ្លងកាត់គោលដៅតាមលំដាប់</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>ធ្វើតុល្យភាពបន្ទុកដោយចៃដន្យតាមវិធីជ្រើសរើសពីរជម្រើស</td>
+    <td>តុល្យភាពបន្ទុកដោយជ្រើសចៃដន្យតាមវិធីជម្រើសពីរ</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>ជ្រើសរើសគោលដៅដែលមានបន្ទុកបច្ចុប្បន្នទាបបំផុត</td>
+    <td>ជ្រើសគោលដៅដែលមានបន្ទុកបច្ចុប្បន្នទាបបំផុត</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>ជ្រើសរើសដោយចៃដន្យស្មើៗគ្នា (លុបធាតុស្ទួន)</td>
+    <td>ជ្រើសដោយចៃដន្យស្មើៗគ្នា (បានលុបធាតុស្ទួន)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>ជ្រើសរើសដោយចៃដន្យដោយមិនលុបធាតុដែលកើតឡើងម្ដងទៀត 🎲</td>
+    <td>ជ្រើសដោយចៃដន្យដោយមិនលុបការជ្រើសស្ទួន 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>កាត់បន្ថយ $ ក្នុងមួយសំណើ ដោយផ្អែកលើតម្លៃក្នុងកាតាឡុកផ្ទាល់ 💸</td>
+    <td>កាត់បន្ថយ $ ក្នុងមួយសំណើដោយផ្អែកលើតម្លៃកាតាឡុកជាក់ស្តែង 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>ជ្រើសរើសគោលដៅដែលមានកូតានៅសល់ច្រើនបំផុត</td>
+    <td>ជ្រើសគោលដៅដែលមានកូតានៅសល់ច្រើនបំផុត</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>ផ្ដល់អាទិភាពដល់គោលដៅដែលចន្លោះពេលកូតានឹងកំណត់ឡើងវិញមុនគេ</td>
+    <td>ផ្តល់អាទិភាពដល់គោលដៅដែលចន្លោះពេលកូតារបស់វានឹងកំណត់ឡើងវិញមុនគេ</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>ដាក់ចំណាត់ថ្នាក់តាមពេលវេលាកំណត់កូតាឡើងវិញ — ចន្លោះពេលខ្លីមុនគេ 📊</td>
+    <td>ចាត់ថ្នាក់តាមពេលវេលាកំណត់កូតាឡើងវិញ — ចន្លោះពេលខ្លីមុន 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
@@ -445,56 +445,56 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>ជ្រើសរើសគោលដៅដែលសមស្របបំផុតសម្រាប់ទំហំបរិបទបច្ចុប្បន្ន</td>
+    <td>ជ្រើសជម្រើសដែលសមស្របបំផុតសម្រាប់ទំហំបរិបទបច្ចុប្បន្ន</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>ភ្ជាប់បុព្វបទ prompt ដែលអាចប្រើឡើងវិញនីមួយៗទៅគណនីដដែល — បង្កើនចំនួនការរកឃើញក្នុង prompt-cache ឱ្យបានអតិបរមា 🎯</td>
+    <td>ភ្ជាប់បុព្វបទ prompt ដែលអាចប្រើឡើងវិញនីមួយៗទៅគណនីដដែល — បង្កើនចំនួន prompt-cache hit ឱ្យអតិបរមា 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>ផ្លូវល្អដែលបានស្គាល់ចុងក្រោយ — ភ្ជាប់ទៅអ្នកផ្ដល់សេវាដែលជោគជ័យចុងក្រោយ បន្ទាប់មកប្ដូរទៅច្បាប់បម្រុង</td>
+    <td>ផ្លូវល្អដែលបានស្គាល់ចុងក្រោយ — ភ្ជាប់ទៅអ្នកផ្តល់សេវាដែលជោគជ័យចុងក្រោយ បន្ទាប់មកប្តូរទៅប្រើច្បាប់បម្រុង</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>ការដាក់ពិន្ទុផ្ទាល់ដោយផ្អែកលើកត្តា 16 នៅគ្រប់ការតភ្ជាប់ 🤖</td>
+    <td>ការដាក់ពិន្ទុជាក់ស្តែងតាមកត្តា 16 នៅគ្រប់ការតភ្ជាប់ 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>បញ្ជូនទៅក្រុមម៉ូដែលជាច្រើន + ម៉ូដែលវិនិច្ឆ័យសំយោគជាចម្លើយតែមួយ 🧬</td>
+    <td>ចែកសំណើទៅក្រុមម៉ូដែល + ម៉ូដែលវិនិច្ឆ័យសំយោគចម្លើយតែមួយ 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>ភ្ជាប់ជំហានជាខ្សែសង្វាក់ — លទ្ធផលរបស់គោលដៅនីមួយៗត្រូវបានបញ្ជូនទៅគោលដៅបន្ទាប់ 🔗</td>
+    <td>តភ្ជាប់ជំហានជាខ្សែសង្វាក់ — លទ្ធផលរបស់គោលដៅនីមួយៗត្រូវបានបញ្ជូនទៅគោលដៅបន្ទាប់ 🔗</td>
   </tr>
 </table>
 
-<sub>ម៉ាស៊ីន Auto-Combo ដាក់ពិន្ទុបេក្ខភាពនីមួយៗដោយផ្អែកលើ **កត្តា 16** (ស្ថានភាពដំណើរការ កូតា ថ្លៃចំណាយ រយៈពេលរង់ចាំ ភាពសមស្របនឹងកិច្ចការ គុណភាព ភាពអាចប្រើបាននៃ session…) — សូមមើល [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)។</sub>
+<sub>ម៉ាស៊ីន Auto-Combo ដាក់ពិន្ទុបេក្ខភាពនីមួយៗតាម **កត្តា 16** (ស្ថានភាពប្រព័ន្ធ កូតា តម្លៃ ភាពយឺតយ៉ាវ ភាពសមស្របនឹងកិច្ចការ គុណភាព ភាពអាចប្រើបាននៃ session…) — សូមមើល [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)។</sub>
 
 ##
 
-### 🧱 ភាពធន់ត្រូវបានរួមបញ្ចូលជាស្រេច (3 ស្រទាប់ឯករាជ្យ)
+### 🧱 ភាពធន់ទ្រាំត្រូវបានបង្កប់មកជាស្រេច (3 ស្រទាប់ឯករាជ្យ)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="ភាពធន់របស់ OmniRoute — ស្រទាប់ស្ដារខ្លួនឯងឯករាជ្យចំនួន 3 ដោយប្រើស្រទាប់ត្រឹមត្រូវសម្រាប់ការបរាជ័យនីមួយៗ។ ស្រទាប់ទី 1 ឧបករណ៍ផ្ដាច់សៀគ្វីរបស់អ្នកផ្ដល់សេវា (អ្នកផ្ដល់សេវាទាំងមូល)៖ ដំណើរការផ្ដាច់តែលើ 408/5xx ប៉ុណ្ណោះ កម្រិតកំណត់ OAuth 8× / API-key 12× / local 2× កំណត់ឡើងវិញក្នុងរយៈពេល 60s/30s/15s ទៅជាការសាកល្បង HALF-OPEN និងការស្ដារឡើងវិញបែបខ្ជិល; ខណៈពេល OPEN បន្សំនឹងបង្វែរផ្លូវទៅអ្នកផ្ដល់សេវាបន្ទាប់។ ស្រទាប់ទី 2 រយៈពេលរង់ចាំរបស់ការតភ្ជាប់ (សោ/គណនីមួយ)៖ គោល 5s សម្រាប់ OAuth / 3s សម្រាប់ API-key ការពន្យារពេលថយក្រោយអិចស្ប៉ូណង់ស្យែល ×2 ជាមួយយន្តការការពារការសម្រុកស្នើសុំក្នុងពេលតែមួយ 429 គោរពតាម Retry-After ហើយភាពជោគជ័យសម្អាតស្ថានភាពកំហុសទាំងអស់; សោមួយដែលកំពុងស្ថិតក្នុងរយៈពេលរង់ចាំនឹងត្រូវបានរំលង ខណៈសោដទៃទៀតនៅតែបន្តបម្រើ។ ស្រទាប់ទី 3 ការចាក់សោម៉ូដែល (ម៉ូដែលមួយ)៖ 429 តាមម៉ូដែលនីមួយៗ 404 ក្នុងមូលដ្ឋាន ឬការបដិសេធរបៀប នឹងចាក់សោតែម៉ូដែលនោះប៉ុណ្ណោះ — មិនចាក់សោការតភ្ជាប់ទាំងមូលឡើយ។ ស្ថានភាពបញ្ចប់ (ត្រូវបានហាមឃាត់ ផុតកំណត់ ឥណទានអស់) គឺសម្រាប់ប្រតិបត្តិករដោះស្រាយ មិនមែនជារយៈពេលរង់ចាំទេ។"/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="ភាពធន់របស់ OmniRoute — ស្រទាប់ស្ដារខ្លួនឯងឯករាជ្យចំនួន 3 ដោយប្រើស្រទាប់ត្រឹមត្រូវសម្រាប់ការបរាជ័យនីមួយៗ។ ស្រទាប់ទី 1 ឧបករណ៍ផ្ដាច់សៀគ្វីរបស់អ្នកផ្ដល់សេវា (អ្នកផ្ដល់សេវាទាំងមូល)៖ ដំណើរការផ្ដាច់តែលើ 408/5xx ប៉ុណ្ណោះ ដោយមានកម្រិត OAuth 8× / API-key 12× / local 2× និងកំណត់ឡើងវិញក្រោយ 60s/30s/15s ទៅជាការសាកល្បង HALF-OPEN ជាមួយការស្ដារឡើងវិញតាមតម្រូវការ; ខណៈពេលស្ថិតក្នុងស្ថានភាព OPEN បន្សំនឹងប្ដូរផ្លូវទៅកាន់អ្នកផ្ដល់សេវាបន្ទាប់។ ស្រទាប់ទី 2 រយៈពេលរង់ចាំរបស់ការតភ្ជាប់ (សោ/គណនីមួយ)៖ រយៈពេលគោល 5s សម្រាប់ OAuth / 3s សម្រាប់ API-key, ការពន្យារពេលត្រឡប់ថយក្រោយជាអិចស្ប៉ូណង់ស្យែល ×2 ជាមួយរបាំងការពារការស្នើសុំព្រមគ្នាច្រើន, 429 គោរពតាម Retry-After ហើយភាពជោគជ័យសម្អាតស្ថានភាពកំហុសទាំងអស់; សោមួយដែលកំពុងស្ថិតក្នុងរយៈពេលរង់ចាំត្រូវបានរំលង ខណៈដែលសោផ្សេងទៀតបន្តបម្រើ។ ស្រទាប់ទី 3 ការចាក់សោម៉ូដែល (ម៉ូដែលមួយ)៖ 429 សម្រាប់ម៉ូដែលនីមួយៗ, 404 ក្នុង local ឬការបដិសេធ mode នឹងចាក់សោតែម៉ូដែលនោះប៉ុណ្ណោះ — មិនដែលចាក់សោការតភ្ជាប់ទាំងមូលឡើយ។ ស្ថានភាពចុងក្រោយ (ត្រូវបានហាមឃាត់, ផុតកំណត់, ឥណទានអស់) គឺសម្រាប់ប្រតិបត្តិករដោះស្រាយ មិនមែនសម្រាប់រយៈពេលរង់ចាំទេ។"/>
 
-<sub>📖 [ម៉ាស៊ីន Auto-Combo](docs/routing/AUTO-COMBO.md) · [មគ្គុទ្ទេសក៍ស្តីពីភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [ម៉ាស៊ីន Auto-Combo](docs/routing/AUTO-COMBO.md) · [មគ្គុទ្ទេសក៍អំពីភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🏆 អ្វីដែលធ្វើឱ្យ OmniRoute ខុសប្លែកពីគេ
+## 🏆 អ្វីដែលធ្វើឱ្យ OmniRoute លេចធ្លោ
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="អ្វីដែលធ្វើឱ្យ OmniRoute ខុសប្លែកពីគេ — ទិដ្ឋភាពសង្ខេបមុខងារតាមកាលបរិច្ឆេទ ប្រៀបធៀបជាមួយ 9router, OpenRouter, CLIProxyAPI និង LiteLLM លើសមត្ថភាពចំនួន 13។ OmniRoute៖ អ្នកផ្តល់សេវាចំនួន 359, កម្រិតប្រើប្រាស់ឥតគិតថ្លៃជាង 150 ដែលបានបង្កប់មកជាស្រេច, យុទ្ធសាស្ត្របញ្ជូនផ្លូវចំនួន 19, ការបង្ហាប់ token ដោយម៉ាស៊ីនចំនួន 12, ម៉ាស៊ីនមេ MCP ដែលមានស្រាប់ជាមួយឧបករណ៍ចំនួន 110, ពិធីការភ្នាក់ងារ A2A, អង្គចងចាំអចិន្ត្រៃយ៍, របាំងការពារ, ភ្នាក់ងារ cloud, ការលាក់បាំង TLS fingerprint, Desktop/Termux/PWA និងទីតាំងភាសា UI ចំនួន 42។ OmniRoute ប្រើអាជ្ញាបណ្ណ MIT និងអាចដាក់ដំណើរការលើម៉ាស៊ីនមេផ្ទាល់ខ្លួនបាន។ សមត្ថភាព និងចំនួនរបស់គូប្រកួតប្រជែងអាចផ្លាស់ប្តូរ សូមមើលវិធីសាស្ត្រដែលបានភ្ជាប់។"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="អ្វីដែលធ្វើឱ្យ OmniRoute លេចធ្លោ — រូបថតលក្ខណៈពិសេសចាស់មួយធៀបនឹង 9router, OpenRouter, CLIProxyAPI និង LiteLLM លើសមត្ថភាពចំនួន 13។ OmniRoute: អ្នកផ្តល់សេវា 358, កម្រិតឥតគិតថ្លៃជាង 150+ ដែលបានបង្កើតឡើង, យុទ្ធសាស្ត្រកំណត់ផ្លូវ 19, ការបង្ហាប់ថូខឹន 12-engine, ម៉ាស៊ីនមេ MCP ដែលបានបង្កើតឡើងជាមួយឧបករណ៍ 110, ពិធីការភ្នាក់ងារ A2A, អង្គចងចាំជាប់លាប់, របាំងការពារ, ភ្នាក់ងារពពក, ការលាក់បាំងស្នាមម្រាមដៃ TLS, Desktop/Termux/PWA និង 42 ភាសាក្នុងចំណោមភាសា UI i18n។ OmniRoute ត្រូវបានផ្តល់អាជ្ញាប័ណ្ណ MIT និងអាចបង្ហោះដោយខ្លួនឯងបាន។ សមត្ថភាព និងចំនួនគូប្រជែងអាចផ្លាស់ប្តូរបាន។ សូមមើលវិធីសាស្ត្រដែលបានភ្ជាប់។"/>
 
-<sub>📊 វិធីសាស្ត្រពេញលេញ &amp; ព័ត៌មានលម្អិតតាមមុខងារ ប្រៀបធៀបជាមួយ 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 វិធីសាស្ត្រពេញលេញ &amp; លម្អិតតាមលក្ខណៈពិសេស ធៀបនឹង 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -558,33 +558,33 @@ Radar គឺជាមុខងារដែលត្រូវជ្រើសរ�
 
 <div align="center">
 
-## ✨ មានអ្វីថ្មី
+## ✨ អ្វីដែលថ្មី
 
 </div>
 
 > ចំណុចលេចធ្លោថ្មីៗពី **v3.8.20 → v3.8.50**។ ប្រវត្តិពេញលេញមាននៅក្នុង [`CHANGELOG.md`](CHANGELOG.md)។
 
 - **🎛️ OmniConductor** — ការផ្ទេរភារកិច្ច A2A ចូលទៅកាន់ក្រុម agent របស់អ្នក, ជំនាញ Conductor នៅលើ Agent Card និងផ្ទាំង dashboard ដែលមានការជជែកជាសំឡេងបែបចុចដើម្បីនិយាយរបស់ Faro។ → [ម៉ាស៊ីនបម្រើ A2A](docs/frameworks/A2A-SERVER.md)
-- **🛂 ការអនុញ្ញាតបែបសម្របខ្លួន និងការការពារពីបន្ទុកលើស** — សំណើជជែកដែលប្រើធនធានច្រើននឹងចូលជួររង់ចាំ ជំនួសឱ្យការឆ្លើយតប 503 ដោយមានការជួលរំកិល RPM បែប atomic សម្រាប់ connection នីមួយៗ។ → [មគ្គុទ្ទេសក៍ភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ លំដាប់ `/v1/models` ស្តង់ដារ** — ប្លុកជាប់គ្នាមួយដែលដាក់ជាក្រុមតាម provider នីមួយៗ (combos ត្រូវបានខ្ទាស់មុនគេ) និងមានស្ថិរភាពនៅគ្រប់ប្រភព catalog។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
-- **🗜️ ការពង្រឹង compression** — inflation guard ដែលបើកតាមលំនាំដើម, Caveman packs សម្រាប់ DE / FR / JA + Chinese (wényán), និង RTK filters សម្រាប់ Gradle & .NET។ → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 តម្លៃថេរដែលបង្ហាញត្រឹមត្រូវ** — provider ប្រភេទ subscription / coding-plan បង្ហាញថ្លៃ **$0** ក្នុងការវិភាគថ្លៃចំណាយ ខណៈ budget, quota និង routing នៅតែបន្តប៉ាន់ស្មាន។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
-- **⚖️ ការកំណត់ផ្លូវតាមចំណែក Quota** — បែងចែក quota របស់ account រួមដោយយុត្តិធម៌រវាង keys ដែលបានដាក់ជាក្រុម និងរក្សាការប្រើប្រាស់ឱ្យមានប្រសិទ្ធភាព ដោយផ្តល់ចំណែកទំនេរឱ្យខ្ចីទៅកន្លែងផ្សេង។ → [មគ្គុទ្ទេសក៍ភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 ការដំឡើង CLI/agent ដោយពាក្យបញ្ជាតែមួយ** — ពាក្យបញ្ជា `setup-*` ដែលបានចុះបញ្ជីចំនួន 13; `omniroute run` ដំណើរការ CLI ចំនួន 7 (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` គាំទ្រ target ចំនួន 10 ដោយមានឧបករណ៍ជ្រើស provider+model បែបអន្តរកម្ម និង favorites តាម context នីមួយៗ។ → [ការរួមបញ្ចូល CLI](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ មុខងារពីចម្ងាយ** — គ្រប់គ្រង OmniRoute ពីចម្ងាយដោយប្រើ token ដែលកំណត់ scope (`connect` / `contexts` / `tokens`) + OAuth helper `antigravity` សម្រាប់ការដំឡើងលើ VPS។ → [មុខងារពីចម្ងាយ](docs/guides/REMOTE-MODE.md)
-- **🧭 ការកំណត់ផ្លូវស្វ័យប្រវត្តិដែលឆ្លាតវៃជាងមុន** — combos `auto/<category>:<tier>`, **Fusion** (model panel + judge), ការកំណត់ផ្លូវដែលយល់ដឹងអំពី task និងការកំណត់ជំនួស model / mode / USD-budget តាមសំណើនីមួយៗ។ → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Compression ដែលអាចដោតបន្ថែមបាន** — engine ដែលអាចផ្សំគ្នាបានចំនួន 12 + Compression Studios៖ LLMLingua-2, Ultra ពីរថ្នាក់, omniglyph, fidelity gate តាមជំហាននីមួយៗ, GCF v3.2 និង editor ដែលអាចអូសដើម្បីរៀបលំដាប់ឡើងវិញ។ → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ ការឌិគ្រីប MITM ដោយតម្លាភាព (TPROXY)** — ចាប់យក CLI ដែលមិនអើពើនឹង proxy env vars ដោយមាន CA តាម SNI នីមួយៗ + trust-store installer។ → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 ទិន្នន័យ telemetry អំពីថ្លៃចំណាយនៅគ្រប់ទីកន្លែង** — headers ថ្លៃចំណាយ/ការប្រើប្រាស់ `X-OmniRoute-*` នៅលើ endpoint នីមួយៗ, header សន្សំសំចៃពី cache-HIT និង quota ចំណាយជា USD តាម key នីមួយៗ។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
-- **🧠 Memory ដែលអ្នកគ្រប់គ្រងបាន** — បិទតាមលំនាំដើម, int8 vector quantization + typed decay ដែលត្រូវជ្រើសបើក និង `x-omniroute-no-memory` តាមសំណើនីមួយៗ។ → [Memory](docs/frameworks/MEMORY.md)
-- **🛡️ សុវត្ថិភាព** — prompt-injection guard នៅលើគ្រប់ LLM route (red-team suite), credential-masking guardrail ដែលត្រូវជ្រើសបើក (លាក់ API keys/secrets ដែលលេចធ្លាយក្នុងទិសដៅទាំងពីរ), ការស្វែងរកលើបណ្ដាញ DuckDuckGo ឥតគិតថ្លៃជាជម្រើសចុងក្រោយ និង OIDC login gate ជាជម្រើសសម្រាប់ dashboard (ការចូលដោយ password នៅតែអាចប្រើបានជានិច្ច)។ → [Guardrails](docs/security/GUARDRAILS.md)
-- **🖼️ Endpoints ថ្មី** — `/v1/ocr` (Mistral OCR) និង `/v1/audio/translations` (បែប Whisper) បំពេញសមត្ថភាព media ឱ្យកាន់តែគ្រប់ជ្រុងជ្រោយ។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
-- **🎨 ការបង្កើតរូបភាព / វីដេអូ / សំឡេង** — API តែមួយសម្រាប់ media៖ xAI Grok Imagine & Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind និង provider សំឡេងដូចជា ElevenLabs។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
-- **🌍 ការដាក់ឱ្យប្រើប្រាស់ និងប្រតិបត្តិការ** — reverse-proxy `basePath`, ការរកឃើញភាសា browser ដោយស្វ័យប្រវត្តិ, ការតាមដានឧបករណ៍តាម key នីមួយៗ, MITM trust ដោយមិនត្រូវការ root និងការធ្វើមូលដ្ឋានីយកម្ម zh-TW។ → [Environment](docs/reference/ENVIRONMENT.md)
-- **🤝 Provider និង agent កាន់តែច្រើន** — cloud agents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) ជាមួយ browser + OAuth login, Ollama first-class card, Claude Opus 5 & Sonnet 5, ភាពជាដៃគូផ្លូវការជាមួយ Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… និង **catalog ដែលមាន provider ចំនួន 352** ដែលបានធ្វើបច្ចុប្បន្នភាព។ → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 តម្លាភាពនៃការកំណត់ផ្លូវ** — រាល់ response មាន header `X-OmniRoute-Decision` ដែលបញ្ជាក់ strategy/provider/latency ដែលបានបម្រើវា, strategy ថ្មី `cache-optimized` សម្រាប់ combo + កត្តា Auto-Combo `cacheAffinity` កំណត់ផ្លូវសំណើម្តងទៀតត្រឡប់ទៅ connection ដែលរក្សាទុក cached prefix ហើយ endpoint `/v1/auto-combo/{channel}/candidates` ដែលបានតែអាន បង្ហាញ live candidate pool របស់ channel `auto/*`។ → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ ប្រសិទ្ធភាព និងហេដ្ឋារចនាសម្ព័ន្ធក្នុងមូលដ្ឋាន** — Redis ក្នុងមូលដ្ឋានដោយចុចតែមួយដង, relay deployers សម្រាប់ Cloudflare Workers / Deno Deploy និង Bifrost & Mux ជា embedded services ដែលមានការត្រួតពិនិត្យ។ → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 មានរួមបញ្ចូលផងដែរ** — plugin framework + marketplace, Omni/Agent/GitHub skills frameworks, ការរួមបញ្ចូល Obsidian vault (ឧបករណ៍ MCP ចំនួន 22), Batch & Files APIs ដែលត្រូវគ្នាជាមួយ OpenAI, semantic response cache, gamification ជាមួយ leaderboards, ការរកឃើញ ACP agent (agents ដែលភ្ជាប់មកជាមួយចំនួន 15), ការនាំចេញ log តាមកាលវិភាគទៅ BigQuery, fault injection `auto/chaos`, Telegram bot bridge, version manager ក្នុងកម្មវិធី និងចំណាត់ថ្នាក់ free-provider របស់ LMArena-ELO។ → [ឯកសារ](docs/README.md)
+- **🛂 ការអនុញ្ញាតឱ្យចូលបែបសម្របខ្លួន និងការការពារពីបន្ទុកលើស** — សំណើ chat ដែលប្រើធនធានច្រើននឹងត្រូវតម្រង់ជួរ ជំនួសឱ្យការឆ្លើយតប 503 ដោយមានការជួលបង្វិល RPM បែបអាតូមិកសម្រាប់ connection នីមួយៗ។ → [មគ្គុទ្ទេសក៍ភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ លំដាប់ `/v1/models` ស្តង់ដារ** — block ជាប់គ្នាមួយដែលដាក់ជាក្រុមតាម provider សម្រាប់ provider នីមួយៗ (combos ត្រូវបានដាក់ថេរនៅមុខគេ) និងមានស្ថិរភាពនៅគ្រប់ប្រភព catalog។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
+- **🗜️ ការពង្រឹង compression** — inflation guard ដែលបើកតាមលំនាំដើម, Caveman packs សម្រាប់ DE / FR / JA + ភាសាចិន (wényán), និង RTK filters សម្រាប់ Gradle និង .NET។ → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 តម្លៃថេរដែលឆ្លុះបញ្ចាំងត្រឹមត្រូវ** — providers ប្រភេទ subscription / coding-plan បង្ហាញតម្លៃ **$0** ក្នុងការវិភាគចំណាយ ខណៈដែល budget, quota និង routing នៅតែបន្តធ្វើការប៉ាន់ស្មាន។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share routing** — បែងចែក quota របស់គណនីរួមដោយយុត្តិធម៌រវាង keys ក្នុង pool ដោយរក្សាការប្រើប្រាស់ធនធានឱ្យមានប្រសិទ្ធភាព ដូច្នេះចំណែកដែលនៅទំនេរត្រូវបានផ្តល់ឱ្យអ្នកផ្សេងប្រើបណ្តោះអាសន្ន។ → [មគ្គុទ្ទេសក៍ភាពធន់](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 ការដំឡើង CLI/agent ដោយប្រើ command តែមួយ** — មាន command `setup-*` ដែលបានចុះឈ្មោះចំនួន 13; `omniroute run` ដំណើរការ CLI ចំនួន 7 (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` គាំទ្រគោលដៅ 10 ជាមួយឧបករណ៍ជ្រើស provider+model បែបអន្តរកម្ម និងបញ្ជីចំណូលចិត្តសម្រាប់ context នីមួយៗ។ → [ការរួមបញ្ចូល CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ របៀបពីចម្ងាយ** — គ្រប់គ្រង OmniRoute ពីចម្ងាយដោយប្រើ token ដែលកំណត់វិសាលភាព (`connect` / `contexts` / `tokens`) + ឧបករណ៍ជំនួយ OAuth `antigravity` សម្រាប់ការដំឡើងលើ VPS។ → [របៀបពីចម្ងាយ](docs/guides/REMOTE-MODE.md)
+- **🧭 Auto-routing កាន់តែឆ្លាតវៃ** — combos `auto/<category>:<tier>`, **Fusion** (model panel + judge), routing ដែលយល់ដឹងអំពី task និងការកំណត់ជំនួស model / mode / USD-budget តាមសំណើនីមួយៗ។ → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Compression ដែលអាចដោតបន្ថែមបាន** — engine ដែលអាចផ្សំគ្នាបានចំនួន 12 + Compression Studios៖ LLMLingua-2, Ultra ពីរថ្នាក់, omniglyph, fidelity gate សម្រាប់ជំហាននីមួយៗ, GCF v3.2 និងកម្មវិធីកែសម្រួលដែលអាចអូសដើម្បីរៀបលំដាប់ឡើងវិញ។ → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ ការឌិគ្រីប MITM ប្រកបដោយតម្លាភាព (TPROXY)** — ចាប់យក CLI ដែលមិនអើពើនឹង proxy env vars ដោយមាន CA សម្រាប់ SNI នីមួយៗ + កម្មវិធីដំឡើង trust-store។ → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 ទិន្នន័យ telemetry នៃចំណាយគ្រប់ទីកន្លែង** — headers `X-OmniRoute-*` សម្រាប់ចំណាយ/ការប្រើប្រាស់នៅគ្រប់ endpoint, header បង្ហាញការសន្សំដោយ cache-HIT និង quota ចំណាយជា USD សម្រាប់ key នីមួយៗ។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
+- **🧠 Memory ដែលអ្នកគ្រប់គ្រងបាន** — បិទតាមលំនាំដើម, អាចជ្រើសបើក int8 vector quantization + typed decay និង `x-omniroute-no-memory` សម្រាប់សំណើនីមួយៗ។ → [Memory](docs/frameworks/MEMORY.md)
+- **🛡️ សុវត្ថិភាព** — prompt-injection guard នៅលើគ្រប់ route របស់ LLM (red-team suite), guardrail សម្រាប់បិទបាំងព័ត៌មានសម្ងាត់ដែលអាចជ្រើសបើកបាន (លុបបាំង API keys/secrets ដែលលេចធ្លាយក្នុងទិសដៅទាំងពីរ), ការស្វែងរកតាមវេប DuckDuckGo ឥតគិតថ្លៃជាជម្រើសចុងក្រោយ និងច្រកចូល OIDC ជាជម្រើសសម្រាប់ dashboard (ការចូលដោយ password នៅតែអាចប្រើបានជានិច្ច)។ → [Guardrails](docs/security/GUARDRAILS.md)
+- **🖼️ Endpoints ថ្មី** — `/v1/ocr` (Mistral OCR) និង `/v1/audio/translations` (បែប Whisper) បំពេញមុខងារ media ឱ្យកាន់តែគ្រប់ជ្រុងជ្រោយ។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
+- **🎨 ការបង្កើតរូបភាព / វីដេអូ / សំឡេង** — API តែមួយសម្រាប់ media៖ វីដេអូ xAI Grok Imagine និង Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind និង speech providers ដូចជា ElevenLabs។ → [ឯកសារយោង API](docs/reference/API_REFERENCE.md)
+- **🌍 ការដាក់ឱ្យដំណើរការ និងប្រតិបត្តិការ** — reverse-proxy `basePath`, ការរកឃើញភាសា browser ដោយស្វ័យប្រវត្តិ, ការតាមដាន device សម្រាប់ key នីមួយៗ, MITM trust ដែលមិនត្រូវការ root និងការធ្វើមូលដ្ឋានីយកម្ម zh-TW។ → [បរិស្ថាន](docs/reference/ENVIRONMENT.md)
+- **🤝 Providers និង agents កាន់តែច្រើន** — cloud agents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) ជាមួយ browser + ការចូលតាម OAuth, card ពេញលេញសម្រាប់ Ollama, Claude Opus 5 និង Sonnet 5, ភាពជាដៃគូផ្លូវការជាមួយ Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… និង **catalog ដែលមាន 352 providers** ដែលបានធ្វើបច្ចុប្បន្នភាព។ → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 តម្លាភាពនៃ routing** — រាល់ response មាន header `X-OmniRoute-Decision` ដែលបញ្ជាក់ strategy/provider/latency ដែលបានបម្រើវា, strategy ថ្មី `cache-optimized` សម្រាប់ combo + កត្តា Auto-Combo `cacheAffinity` បញ្ជូនសំណើដដែលៗត្រឡប់ទៅ connection ដែលកាន់ cached prefix ហើយ endpoint ដែលអាចអានបានតែប៉ុណ្ណោះ `/v1/auto-combo/{channel}/candidates` បង្ហាញ candidate pool ផ្ទាល់របស់ channel `auto/*`។ → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ ប្រសិទ្ធភាព local និងហេដ្ឋារចនាសម្ព័ន្ធ** — Redis local ដោយចុចតែមួយដង, ឧបករណ៍ deploy relay សម្រាប់ Cloudflare Workers / Deno Deploy និង Bifrost និង Mux ជា embedded services ដែលមានការត្រួតពិនិត្យ។ → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 មានរួមបញ្ចូលផងដែរ** — plugin framework + marketplace, frameworks សម្រាប់ជំនាញ Omni/Agent/GitHub, ការរួមបញ្ចូល Obsidian vault (ឧបករណ៍ MCP ចំនួន 22), Batch និង Files APIs ដែលត្រូវគ្នាជាមួយ OpenAI, semantic response cache, gamification ជាមួយ leaderboards, ការស្វែងរក agent តាម ACP (agents ភ្ជាប់មកជាស្រេចចំនួន 15), ការនាំចេញ log តាមកាលវិភាគទៅ BigQuery, `auto/chaos` សម្រាប់ការបំបែកសំណើប៉ារ៉ាឡែលទៅកាន់ model ច្រើន, ស្ពានភ្ជាប់ Telegram bot, កម្មវិធីគ្រប់គ្រង version ក្នុង app និងចំណាត់ថ្នាក់ free-provider របស់ LMArena-ELO។ → [ឯកសារ](docs/README.md)
 
 <br/>
 
@@ -1256,7 +1256,7 @@ process ដូចគ្នានៅលើ port តែមួយ ដូច្ន�
 <br/>
 <div align="center">
 
-## 🛠️ បច្ចេកវិទ្យាដែលប្រើ
+## 🛠️ បច្ចេកវិទ្យាដែលប្រើប្រាស់
 
 </div>
 
@@ -1264,21 +1264,21 @@ process ដូចគ្នានៅលើ port តែមួយ ដូច្ន�
   <tr><th align="left">ស្រទាប់</th><th align="left">បច្ចេកវិទ្យា</th></tr>
   <tr><td nowrap><b>បរិស្ថានដំណើរការ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ភាសា</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> នៅទូទាំង <code>src/</code> និង <code>open-sse/</code> (គ្មាន <code>any</code> នៅក្នុងស្នូលចាប់តាំងពី v2.0)</td></tr>
-  <tr><td nowrap><b>ក្របខណ្ឌ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, ការកត់ត្រាបែប WAL) + LowDB (កេរដំណែល JSON) — ម៉ូឌុលដែន 122, ការផ្ទេរទិន្នន័យ 178</td></tr>
-  <tr><td nowrap><b>អង្គចងចាំ</b></td><td>ការស្វែងរកអត្ថបទពេញលេញ SQLite FTS5 + ការបង្កប់វ៉ិចទ័រដែលបានធ្វើបរិមាណកម្មជា int8, ការថយចុះដែលមានប្រភេទ</td></tr>
-  <tr><td nowrap><b>គ្រោងការណ៍</b></td><td>Zod 4 — សុពលកម្មធាតុចូល/ចេញរបស់ឧបករណ៍ MCP + កិច្ចសន្យា API</td></tr>
+  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, ការកត់ត្រាបែប WAL) + LowDB (JSON ចាស់) — ម៉ូឌុលដែន 137, ការធ្វើចំណាកស្រុក 193</td></tr>
+  <tr><td nowrap><b>អង្គចងចាំ</b></td><td>ការស្វែងរកអត្ថបទពេញលេញ SQLite FTS5 + ការបង្កប់វ៉ិចទ័រដែលបានកំណត់បរិមាណជា int8, ការថយចុះដែលមានប្រភេទ</td></tr>
+  <tr><td nowrap><b>Schema</b></td><td>Zod 4 — ការផ្ទៀងផ្ទាត់ I/O របស់ឧបករណ៍ MCP + កិច្ចសន្យា API</td></tr>
   <tr><td nowrap><b>ពិធីការ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>ការផ្សាយស្ទ្រីម</b></td><td>Server-Sent Events (SSE) + ស្ពាន WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>ការបង្ហាប់</b></td><td>បំពង់ដំណើរការ 12 ម៉ាស៊ីន — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ &amp; សុវត្ថិភាព</b></td><td>OAuth 2.0 (PKCE) + JWT + សោ API + ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណតាមវិសាលភាព MCP · AES-256-GCM សម្រាប់ទិន្នន័យដែលបានរក្សាទុក · DOMPurify</td></tr>
-  <tr><td nowrap><b>ការលាក់បាំង</b></td><td>wreq-js — ការក្លែងបន្លំស្នាមម្រាមដៃ JA3 / JA4 TLS, ប្រូកស៊ី 3 កម្រិត</td></tr>
-  <tr><td nowrap><b>ភាពធន់</b></td><td>ឧបករណ៍ផ្តាច់សៀគ្វី, ការពន្យារពេលកើនឡើងជាអិចស្ប៉ូណង់ស្យែល, ការទប់ស្កាត់សំណើសម្រុកក្នុងពេលតែមួយ, ការព្យាបាលដោយខ្លួនឯងតាមរយៈការផ្សំដោយស្វ័យប្រវត្តិ</td></tr>
-  <tr><td nowrap><b>ការកត់ត្រា</b></td><td>pino — កំណត់ហេតុ JSON ដែលមានរចនាសម្ព័ន្ធ និងបរិបទសំណើ</td></tr>
-  <tr><td nowrap><b>ការធ្វើតេស្ត</b></td><td>កម្មវិធីដំណើរការតេស្ត Node.js + Vitest — <b>សេចក្តីប្រកាសតេស្តឋិតិវន្តជាង 39,000</b> នៅក្នុងឯកសារតេស្តដែលបានតាមដានជាង 5,100 (ឯកតា, សមាហរណកម្ម, E2E, សុវត្ថិភាព, ប្រព័ន្ធអេកូឡូស៊ី)</td></tr>
+  <tr><td nowrap><b>ការបង្ហាប់</b></td><td>ខ្សែដំណើរការម៉ាស៊ីន 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ &amp; សុវត្ថិភាព</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ MCP តាមវិសាលភាព · AES-256-GCM សម្រាប់ទិន្នន័យដែលរក្សាទុក · DOMPurify</td></tr>
+  <tr><td nowrap><b>ភាពលាក់លៀម</b></td><td>wreq-js — ការក្លែងស្នាមម្រាមដៃ JA3 / JA4 TLS, ប្រូកស៊ី 3 កម្រិត</td></tr>
+  <tr><td nowrap><b>ភាពធន់</b></td><td>ឧបករណ៍ផ្ដាច់សៀគ្វី, ការពន្យារពេលថយក្រោយអិចស្ប៉ូណង់ស្យែល, ការទប់ស្កាត់ thundering herd, ការស្ដារដោយខ្លួនឯងតាម auto-combo</td></tr>
+  <tr><td nowrap><b>ការកត់ត្រា</b></td><td>pino — កំណត់ហេតុ JSON ដែលមានរចនាសម្ព័ន្ធ ជាមួយបរិបទសំណើ</td></tr>
+  <tr><td nowrap><b>ការធ្វើតេស្ត</b></td><td>កម្មវិធីដំណើរការតេស្ត Node.js + Vitest — <b>សេចក្ដីប្រកាសតេស្តឋិតិវន្ត 39,000+</b> នៅទូទាំងឯកសារតេស្តដែលបានតាមដាន 5,100+ (ឯកតា, សមាហរណកម្ម, E2E, សុវត្ថិភាព, ប្រព័ន្ធអេកូឡូស៊ី)</td></tr>
   <tr><td nowrap><b>វេទិកា</b></td><td>កុំព្យូទ័រលើតុ (Electron) · Android (Termux) · PWA (កម្មវិធីរុករកណាមួយ)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — បោះផ្សាយទៅ npm និង Docker Hub ដោយស្វ័យប្រវត្តិនៅពេលចេញកំណែ</td></tr>
-  <tr><td nowrap><b>តំណ</b></td><td><a href="https://omniroute.online">គេហទំព័រ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — បោះផ្សាយទៅ npm និង Docker Hub ដោយស្វ័យប្រវត្តិនៅពេលចេញផ្សាយ</td></tr>
+  <tr><td nowrap><b>តំណភ្ជាប់</b></td><td><a href="https://omniroute.online">គេហទំព័រ</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
@@ -1729,7 +1729,7 @@ OmniRoute ឈរនៅលើស្មារបស់អ្នកជំនាញ�
 
 **[⬆ ត្រឡប់ទៅផ្នែកខាងលើ](#-omniroute)** · បង្កើតឡើងដោយ ❤️ សម្រាប់សហគមន៍ AI ប្រភពបើកចំហ។
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · អាជ្ញាបណ្ណ MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · អាជ្ញាបណ្ណ MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- បានបើកដំណើរការ GitHub Discussions សម្រាប់សំណួរ និងចម្លើយរបស់សហគមន៍ -->

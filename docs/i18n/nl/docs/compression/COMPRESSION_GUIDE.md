@@ -187,16 +187,16 @@ Met Stacked:       10K-2.5K tokens verzonden     (78-95% geschikt RTK+Caveman-be
 
 ### Dashboard
 
-Ga naar `Dashboard → Context & Cache`:
+Navigeer naar `Dashboard → Context & Cache`:
 
-- **Caveman** — modusselectie, taalpakketten, voorbeeldweergave en algemene standaardinstellingen
-- **RTK** — voorbeeldweergave van opdrachtfilters, RTK-veiligheidsinstellingen en filtercatalogus
-- **Compression Combos** — benoemde enginepipelines die aan routeringscombinaties zijn toegewezen
-- **Auto-Trigger Threshold** — activeert automatisch compressie wanneer het aantal tokens de drempel overschrijdt
+- **Caveman** — modusselectie, taalpakken, preview en globale standaardinstellingen
+- **RTK** — command-filter preview, RTK veiligheidsinstellingen en filtercatalogus
+- **Compression Combos** — benoemde engine-pipelines toegewezen aan routing-combo's
+- **Auto-Trigger Threshold** — schakelt automatisch compressie in wanneer het aantal tokens de drempel overschrijdt
 
-### Overschrijving per combinatie
+### Per-Combo Override
 
-Wijs in `Dashboard → Context & Cache → Compression Combos` een compressiecombinatie toe aan een routeringscombinatie:
+Wijs in `Dashboard → Context & Cache → Compression Combos` een compressie-combo toe aan een routing-combo:
 
 ```txt
 Combo: "free-tier-fallback"
@@ -207,22 +207,26 @@ Combo: "free-tier-fallback"
     2. if/qwen3.8-max-preview
 ```
 
-Hiermee kun je gestapelde compressie gebruiken voor gratis programmeerproviders, terwijl je de lite-modus behoudt voor betaalde abonnementen.
+Dit stelt u in staat om gestapelde compressie te gebruiken op gratis/coderingsproviders, terwijl de lite-modus behouden blijft voor betaalde abonnementen.
 
-Deze toewijzing via "Per-Combo Override" is een andere instelling dan de overschrijving van de **compressiemodus voor routeringscombinaties** (Default/Off/Lite/Standard/Aggressive/Ultra) — die overschrijving selecteert geen benoemde pipeline voor een compressiecombinatie, maar stelt alleen het veld `compressionMode` in dat door `resolveCompressionPlan` wordt geraadpleegd. Dit kan worden ingesteld op de combinatiekaart (`Dashboard → Combos`) of, sinds #6760, per routeringscombinatie in de lijst "Assign to routing" onder `Dashboard → Context & Cache → Compression Combos`, direct naast het hierboven beschreven selectievakje voor pipelinetoewijzing. Beide interfaces slaan de instelling op via hetzelfde `PUT /api/combos/{id}`-endpoint.
+Deze "Per-Combo Override"-toewijzing is een andere controle dan de **routing-combo compressiemodus** override (Standaard/Uit/Lite/Standaard/Agressief/Ultra) — die override kiest geen benoemde compressie-combo pipeline; het stelt alleen het `compressionMode`-veld in dat wordt geraadpleegd door `resolveCompressionPlan`. Het kan worden ingesteld op de combo-kaart (`Dashboard → Combos`) of, sinds #6760, per routing-combo in de "Toewijzen aan routing"-lijst op `Dashboard → Context & Cache → Compression Combos`, direct naast het hierboven gedocumenteerde selectievakje voor pipeline-toewijzing. Beide interfaces blijven behouden via hetzelfde `PUT /api/combos/{id}`-eindpunt.
 
-### Overschrijving per aanvraag
+### Per-verzoek override
 
-Stuur de requestheader `x-omniroute-compression` om het compressieplan voor één aanvraag te overschrijven. Deze heeft de hoogste prioriteit — boven de overschrijving voor routeringscombinaties, het actieve profiel, de automatische activering en de Default-instelling van het paneel. Onbekende waarden worden genegeerd (de aanvraag wordt nooit afgewezen) en de algemene hoofdschakelaar blijft altijd bepalend: wanneer compressie algemeen is uitgeschakeld, kan de header deze niet inschakelen. Waarden:
+Stuur de `x-omniroute-compression` verzoekheader om het compressieplan voor een enkel verzoek te overschrijven. Het heeft de hoogste prioriteit — het overtreft de routing-combo override, het actieve profiel, auto-trigger en de paneelstandaard. Onbekende waarden worden genegeerd (het verzoek wordt nooit afgewezen) en de globale hoofdschakelaar regelt nog steeds alles: wanneer compressie globaal is uitgeschakeld, kan de header het niet inschakelen. Waarden:
 
-| Waarde        | Effect                                                                                  |
-| ------------- | --------------------------------------------------------------------------------------- |
-| `off`         | Geen compressie voor deze aanvraag.                                                     |
-| `default`     | Het van het paneel afgeleide Default-profiel (negeert het actieve profiel).             |
-| `engine:<id>` | Eén engine, indien ingeschakeld, bijvoorbeeld `engine:rtk`.                             |
-| `<combo>`     | Een benoemde combinatie, eerst gezocht op naam (hoofdletterongevoelig) en daarna op id. |
+| Waarde        | Effect                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `off`         | Geen compressie voor dit verzoek.                                                                             |
+| `default`     | Het paneel-afgeleide standaardprofiel (negeert het actieve profiel). Lossy engines blijven uit.               |
+| `safe`        | Hetzelfde als het weglaten van de header: alleen dedup en witruimte vouwen.                                   |
+| `allow-lossy` | Behoud het operatorplan van dit verzoek, inclusief samenvattingen, relevantiefilters en stijlherschrijvingen. |
+| `engine:<id>` | Een enkele engine wanneer ingeschakeld, bijv. `engine:rtk`. Dit is de per-verzoek opt-in voor die engine.     |
+| `<combo>`     | Een benoemde combo, eerst gematcht op naam (hoofdletterongevoelig), daarna op id.                             |
 
-Het toegepaste plan wordt teruggestuurd in de responseheader `X-OmniRoute-Compression: <mode>; source=<source>`, waarbij `<source>` een van `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` of `off` is.
+Zonder `allow-lossy`, `engine:<id>` of een benoemde combo worden lossy engines niet toegepast. Het verzoek krijgt nog steeds sessie-dedup en witruimte vouwen wanneer compressie is ingeschakeld.
+
+Het toegepaste plan wordt teruggestuurd in de `X-OmniRoute-Compression: <mode>; source=<source>` antwoordheader, waarbij `<source>` een van `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` of `off` is.
 
 ### API
 
@@ -235,15 +239,15 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Een specifieke RTK-/gestapelde payload vooraf bekijken
+# Een specifieke RTK/gestapelde payload bekijken
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
-# RTK-filterpakketten weergeven
+# RTK filterpakketten weergeven
 curl http://localhost:20128/api/context/rtk/filters
 
-# RTK rechtstreeks testen met optionele opdrachtmetadata
+# RTK direct testen met optionele commandometadata
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -288,15 +292,15 @@ Elke gecomprimeerde aanvraag bevat statistieken in de serverlogboeken:
 
 ---
 
-## Roadmap per fase
+## Fasenoverzicht
 
-| Fase    | Modi                                                                                                                                                              | Status         |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Fase 1  | Off, Lite                                                                                                                                                         | ✅ Uitgebracht |
-| Fase 2  | Standard, Aggressive, Ultra                                                                                                                                       | ✅ Uitgebracht |
-| Fase 3  | RTK, Stacked, Compression Combos                                                                                                                                  | ✅ Uitgebracht |
-| Fase 4  | Output Styles, SLM-tier Ultra, evaluatieframework                                                                                                                 | ✅ Uitgebracht |
-| Fase 4C | Adaptief contextbudget ("dial") — rekenengine + API (`contextBudget` op `PUT /api/settings/compression`) + besturingselementen voor modus/beleid in het dashboard | ✅ Uitgebracht |
+| Fase    | Modi                                                                                                                                            | Status       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Fase 1  | Uit, Lite                                                                                                                                       | ✅ Verzonden |
+| Fase 2  | Standaard, Agressief, Ultra                                                                                                                     | ✅ Verzonden |
+| Fase 3  | RTK, Gestapeld, Compressiecombinaties                                                                                                           | ✅ Verzonden |
+| Fase 4  | Uitvoerstijlen, SLM-tier Ultra, eval-harnas                                                                                                     | ✅ Verzonden |
+| Fase 4C | Adaptief contextbudget ("draaiknop") — rekenengine + API (`contextBudget` op `PUT /api/settings/compression`) + dashboardmodus/beleidscontroles | ✅ Verzonden |
 
 ---
 
@@ -310,13 +314,13 @@ De RTK-modus is geïnspireerd op **[RTK - Rust Token Killer](https://github.com/
 
 ## Geavanceerde compressiesystemen
 
-Naast de 7 standaardmodi bevat OmniRoute verschillende geavanceerde compressiesystemen
+Naast de 7 standaardmodi bevat OmniRoute diverse geavanceerde compressiesystemen
 die automatisch werken op basis van de context.
 
 ### Cachebewuste compressie
 
 Sommige providers (zoals Anthropic met promptcaching) ondersteunen **promptcaching**,
-waarmee ze delen van de prompt in de cache kunnen opslaan om kosten en latentie te verlagen. Wanneer
+waarmee ze delen van de prompt kunnen cachen om kosten en latentie te verlagen. Wanneer
 caching is ingeschakeld, kan agressieve compressie de prestaties juist **verslechteren**,
 omdat hierdoor de gecachte tokens veranderen en de cache ongeldig wordt.
 
@@ -325,11 +329,11 @@ De module `cachingAware.ts` lost dit op door **de cachingcontext te detecteren**
 
 #### Hoe het werkt
 
-1. **Cachingcontext detecteren** — Scant de aanvraagbody op `cache_control`-markeringen
+1. **Cachingcontext detecteren** — Scant de requestbody op `cache_control`-markeringen
 2. **Cachingproviders identificeren** — Controleert of de doelprovider caching ondersteunt
-3. **Strategie aanpassen** — Schakelt `aggressive`/`ultra` terug naar `standard` voor cachingproviders
-4. **Systeemprompt overslaan** — Systeemprompts worden doorgaans gecacht, dus comprimeer ze niet
-5. **Deterministische transformaties gebruiken** — Gebruik alleen transformaties die consistente uitvoer produceren
+3. **Strategie aanpassen** — Schakelt voor cachingproviders terug van `aggressive`/`ultra` naar `standard`
+4. **Systeemprompt overslaan** — Systeemprompts worden meestal gecacht, dus comprimeer ze niet
+5. **Deterministische transformaties gebruiken** — Gebruikt alleen transformaties die consistente uitvoer produceren
 
 #### Codevoorbeeld
 
@@ -354,20 +358,20 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Wanneer te gebruiken
 
-Cachebewuste compressie staat **altijd aan** — er is geen configuratie nodig. Deze wordt alleen actief
-wanneer:
+Cachebewuste compressie is **altijd actief** — er is geen configuratie nodig. Deze wordt
+alleen geactiveerd wanneer:
 
-- De aanvraag `cache_control`-markeringen bevat
+- De request `cache_control`-markeringen bevat
 - De doelprovider promptcaching ondersteunt (Anthropic, OpenAI enz.)
 
 ### Progressieve veroudering
 
-Lange gesprekken stapelen veel gespreksbeurten op, maar oudere beurten worden minder
-relevant. De module `progressiveAging.ts` **vermindert de gedetailleerdheid van berichten op basis van de afstand in gespreksbeurten**:
+Lange gesprekken verzamelen veel berichtbeurten, maar oudere beurten worden minder
+relevant. De module `progressiveAging.ts` **reduceert berichten op basis van de afstand in beurten**:
 
-- **Recente beurten (0-3)**: Ongewijzigd behouden (volledige details)
-- **Middellange beurten (4-8)**: Lite-compressie (opschonen van witruimte en opmaak)
-- **Oude beurten (9+)**: Caveman-compressie (verwijderen van opvulling, samenvatten)
+- **Recente beurten (0-3)**: Ongewijzigd behouden (volledig detail)
+- **Middellange beurten (4-8)**: Lichte compressie (opschonen van witruimte en opmaak)
+- **Oude beurten (9+)**: Holbewonercompressie (stopwoorden verwijderen, samenvatten)
 - **Zeer oude beurten (20+)**: Sterk samengevat of verwijderd
 
 #### Codevoorbeeld
@@ -379,13 +383,13 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... nog 50 beurten ...
+  // ... Nog 50 beurten ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
   verbatim: 3, // Eerste 3 beurten: ongewijzigd
-  light: 8, // Beurten 4-8: lite-compressie
-  moderate: 20, // Beurten 9-20: caveman-compressie
+  light: 8, // Beurten 4-8: lichte compressie
+  moderate: 20, // Beurten 9-20: holbewonercompressie
   // Beurten 21+: sterke samenvatting
 });
 
@@ -394,33 +398,33 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Wanneer te gebruiken
 
-Progressieve veroudering staat **altijd aan** voor de modi `aggressive` en `ultra`. Dit is
+Progressieve veroudering is **altijd actief** voor de modi `aggressive` en `ultra`. Dit is
 met name effectief voor:
 
-- Langdurige programmeersessies
+- Langlopende programmeersessies
 - Gesprekken die meerdere dagen duren
 - Agentische workflows met veel toolaanroepen
 
-### Caveman-uitvoermodus
+### Holbewoneruitvoermodus
 
-De module `outputMode.ts` injecteert **systeempromptinstructies** om het
-model zelf gecomprimeerde, beknopte uitvoer te laten produceren (een "caveman"-stijl).
+De module `outputMode.ts` injecteert **systeempromptinstructies** om het model
+zelf gecomprimeerde, bondige uitvoer te laten produceren (een ‘holbewonerstijl’).
 
 #### Hoe het werkt
 
-In plaats van de invoer te comprimeren, voegt deze modus een systeemprompt zoals deze toe:
+In plaats van de invoer te comprimeren, voegt deze modus een systeemprompt toe zoals:
 
 > "Antwoord met zo min mogelijk woorden. Sla beleefdheden over. Gebruik korte zinnen."
 
-Dit werkt met name goed voor:
+Dit werkt bijzonder goed voor:
 
 - Codegeneratie (beknoptere uitvoer = minder tokens)
 - Snelle vragen en antwoorden (geen uitgebreide uitleg nodig)
-- Batchverwerking (maximaliseert de doorvoer)
+- Batchverwerking (maximale doorvoer)
 
 #### Wanneer te gebruiken
 
-De Caveman-uitvoermodus is **optioneel** — stel deze in via de comboconfiguratie:
+De holbewoneruitvoermodus is **optioneel** — stel deze in via de comboconfiguratie:
 
 ```json
 {
@@ -435,39 +439,58 @@ De Caveman-uitvoermodus is **optioneel** — stel deze in via de comboconfigurat
 
 ### Uitvoerstijlen (catalogus)
 
-De bovenstaande Caveman-uitvoermodus is het **verouderde pad met één stijl**. Fase 4 heeft dit
-veralgemeniseerd tot een catalogus met combineerbare uitvoerstijlen: `OUTPUT_STYLE_CATALOG` in
+De bovenstaande holbewoneruitvoermodus is het **verouderde pad met één stijl**. Fase 4 heeft dit
+gegeneraliseerd tot een catalogus van combineerbare uitvoerstijlen: `OUTPUT_STYLE_CATALOG` in
 `open-sse/services/compression/outputStyles/catalog.ts`. Elke stijl is een systeempromptinstructie
 die het model zelf goedkopere uitvoer laat produceren; stijlen kunnen samen worden ingeschakeld
-en worden in catalogusvolgorde geïnjecteerd.
+en worden in de volgorde van de catalogus geïnjecteerd.
 
-| Stijl                                    | `id`          | Wat deze doet                                                                                                                                                                                                                      | Instructietalen                                                             |
-| ---------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Beknopt proza                            | `terse-prose` | Verwijdert opvulling/lidwoorden/voorbehouden; houdt de technische inhoud exact. Dezelfde tekst als de verouderde Caveman-uitvoermodus (ernaar verwezen, niet opnieuw uitgeschreven).                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Minder code                              | `less-code`   | YAGNI-ladder: kleinste werkende wijziging, geen niet-gevraagde abstracties.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Paardenstaart (luie senior ontwikkelaar) | `ponytail`    | "De beste code is code die nooit is geschreven": hergebruik > herschrijven, hoofdoorzaak > symptoom, kortste werkende diff.                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Ik heb ADHD (actie eerst)                | `i-have-adhd` | Actie eerst (opdracht/pad/fragment vóór proza), genummerde begrensde stappen, ÉÉN concrete volgende stap, geen inleiding/samenvatting/afsluiting. Aangepast van [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Beknopt CJK (文言)                       | `terse-cjk`   | Ultrakorte klassiek-Chinese stijl.                                                                                                                                                                                                 | zh (locale-beperkt: alleen aangeboden wanneer de vastgestelde taal `zh` is) |
+| Stijl                                    | `id`          | Wat het doet                                                                                                                                                                                                                      | Instructietalen                                                         |
+| ---------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Beknopt proza                            | `terse-prose` | Laat opvulling/lidwoorden/voorbehouden weg; behoud de technische inhoud exact. Dezelfde tekst als de verouderde holbewonermodus (waarnaar wordt verwezen, niet opnieuw uitgeschreven).                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Minder code                              | `less-code`   | YAGNI-ladder: kleinste werkende wijziging, geen niet-gevraagde abstracties.                                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Paardenstaart (luie senior ontwikkelaar) | `ponytail`    | "De beste code is code die nooit is geschreven": hergebruik > herschrijven, hoofdoorzaak > symptoom, kortste werkende diff.                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Ik heb ADHD (actie eerst)                | `i-have-adhd` | Actie eerst (opdracht/pad/fragment vóór proza), genummerde begrensde stappen, ÉÉN concrete volgende stap, geen inleiding/samenvatting/afsluiting. Gebaseerd op [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Beknopt CJK (文言)                       | `terse-cjk`   | Ultrakorte klassiek-Chinese stijl.                                                                                                                                                                                                | zh (localegebonden: alleen aangeboden wanneer de bepaalde taal `zh` is) |
 
 Elke stijl wordt geleverd met drie intensiteitsniveaus — `lite`, `full`, `ultra` — en elk niveau
-eindigt met de gedeelde grensclausule, die codeblokken, bestandspaden, opdrachten,
-foutteksten, URL's en identifiers letterlijk behoudt.
+eindigt met de gedeelde begrenzingsclausule, die codeblokken, bestandspaden, opdrachten,
+foutmeldingen, URL's en identificatoren ongewijzigd laat.
 
 #### Hoe injectie werkt
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) vergelijkt
-de selectie met de catalogus (onbekende ids en stijlen met een niet-overeenkomende locale worden
-weggelaten, nooit als fout behandeld), voegt de geselecteerde instructies in catalogusvolgorde samen,
-voegt de grensclausule **eenmaal** toe en plaatst het resultaat vooraan in de systeemprompt
-achter één idempotentiemarkering (`[OmniRoute Output Styles]`) — opnieuw toepassen
-doet niets. Wanneer er een vertaling voor de gedetecteerde taal van de aanvraag bestaat, wordt
-de gelokaliseerde instructie geïnjecteerd in plaats van de Engelse.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) toetst
+de selectie aan de catalogus (onbekende id's en stijlen die niet bij de locale passen
+worden verwijderd, nooit als fout behandeld), voegt de geselecteerde instructies in catalogusvolgorde samen,
+voegt de begrenzingsclausule **eenmaal** toe en begint het blok met één idempotentiemarkering
+(`[OmniRoute Output Styles]`), zodat opnieuw toepassen niets doet. Wanneer voor de bepaalde
+taal (zie Taalselectie hieronder) een vertaling beschikbaar is, wordt de gelokaliseerde instructie
+geïnjecteerd in plaats van de Engelse.
 
-#### Hoe in te schakelen
+Bij een body met `messages` controleert een inhoudsbypass (`shouldBypassCavemanOutputMode()` in
+`open-sse/services/compression/outputMode.ts`) de laatste drie berichten en slaat
+de stijlen voor de hele beurt over wanneer deze overeenkomen met trefwoorden voor beveiliging,
+onomkeerbare acties, verduidelijking of volgordegevoeligheid. De bypass wordt uitgevoerd zolang de schakelaar **Automatische duidelijkheidsbypass** (`cavemanOutputMode.autoClarity`) in het dashboard aan staat, wat de standaard is; met de schakelaar uit gelden de gekozen stijlen ook voor die beurten.
+
+Wanneer de bypass de beurt doorlaat, plaatst `placeSystemInstruction()` (hetzelfde bestand), dat
+nooit een nieuwe `messages[0]` aanmaakt, het blok op de eerste van deze gevonden locaties:
+
+1. Een vooraanstaand systeembericht met tekenreeksinhoud: het blok wordt na de tekst toegevoegd.
+2. Het `system`-veld op het hoogste niveau: het blok wordt na de tekst van een tekenreeks toegevoegd, of
+   als een nieuw tekstblok aan een array met inhoudsblokken toegevoegd.
+3. Het eerste latere systeembericht met tekenreeksinhoud: het blok wordt na de
+   tekst toegevoegd.
+4. Geen van bovenstaande: het blok wordt in een nieuw systeembericht aan het einde van `messages` geplaatst.
+
+Bij een body zonder `messages` wordt het blok toegevoegd aan een `instructions`-veld met een tekenreeks,
+of wordt het `instructions` wanneer de body `input` bevat (een tekenreeks of een array). Een body
+zonder `instructions` én zonder `input` wordt overgeslagen als `no_messages`.
+
+#### Inschakelen
 
 In het dashboard: **Context → Instellingen → Compressie** — één rij per stijl met een
-aan/uit-schakelaar en een niveaukiezer. Programmatisch slaat de compressieconfiguratie
-de selectie als volgt op:
+aan/uit-schakelaar en een niveaukiezer. Programmatisch bewaart de compressieconfiguratie
+de selectie als:
 
 ```json
 {
@@ -478,47 +501,47 @@ de selectie als volgt op:
 }
 ```
 
-Achterwaartse compatibiliteit: de verouderde combo-instelling `outputMode: "caveman"` werkt nog steeds en wordt gekoppeld aan
+Achterwaartse compatibiliteit: de verouderde combinatie-instelling `outputMode: "caveman"` werkt nog steeds en wordt toegewezen aan
 `terse-prose`, byte-identiek aan de oude injectie in elke verouderde taal.
 
-Taalselectie: wanneer `languageConfig.enabled` is ingeschakeld, kiest `autoDetect` de
+Taalselectie: als `languageConfig.enabled` is ingeschakeld, kiest `autoDetect` de
 taal van het meest recente gebruikersbericht (dezelfde detector als de invoerengines);
-als `autoDetect` wordt uitgeschakeld, wordt `defaultLanguage` vastgezet. Uit → Engels.
+als `autoDetect` wordt uitgeschakeld, wordt `defaultLanguage` vastgezet. Uitgeschakeld → Engels.
 
-De stijl × taal-matrix wordt vastgelegd door
+De stijl-×-taalmatrix wordt vastgelegd door
 `tests/unit/compression/output-styles-i18n-matrix.test.ts`: een nieuwe stijl kan niet worden uitgebracht
-zonder ten minste een pt-BR-vertaling (of een expliciet bijgehouden uitzonderingsgeval), en een
-bestaande stijl kan niet ongemerkt een locale verliezen. Raadpleeg voor het toevoegen van een stijl
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+zonder ten minste een pt-BR-vertaling (of een expliciet bijgehouden uitzondering), en een
+bestaande stijl kan niet stilzwijgend een locale verliezen. Zie
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) om een stijl toe te voegen.
 
 ### Compressie van toolresultaten
 
 De module `toolResultCompressor.ts` biedt **5 gespecialiseerde compressiestrategieën**
-voor toolresultaten (functieaanroepen, agentuitvoer, zoekresultaten enz.):
+voor toolresultaten (functieaanroepen, agentuitvoer, zoekresultaten, enz.):
 
-1. **Compressie van zoekresultaten** — Verwijdert redundante resultaten en behoudt de top-N
-2. **Compressie van ingelezen bestanden** — Kapt grote bestanden af en behoudt headers/imports
+1. **Compressie van zoekresultaten** — Verwijdert redundante resultaten, behoudt de beste N
+2. **Compressie van gelezen bestanden** — Kapt grote bestanden af, behoudt headers/imports
 3. **Compressie van code-uitvoering** — Behoudt alleen essentiële stdout/stderr
-4. **Compressie van databasequery's** — Beperkt rijen en verwijdert uitgebreide metadata
-5. **Compressie van API-responsen** — Verwijdert null-velden en comprimeert arrays
+4. **Compressie van databasequery's** — Beperkt rijen, verwijdert uitgebreide metadata
+5. **Compressie van API-responsen** — Verwijdert null-velden, verkort arrays
 
 #### Wanneer te gebruiken
 
-Compressie van toolresultaten staat **altijd aan** wanneer toolaanroepen aanwezig zijn. Er is geen
+Compressie van toolresultaten staat **altijd aan** wanneer er toolaanroepen aanwezig zijn. Er is geen
 configuratie nodig.
 
-### Gestapelde pipeline
+### Gestapelde pijplijn
 
-De gestapelde modus voert **meerdere engines na elkaar** uit — meestal eerst RTK
+De gestapelde modus voert **meerdere engines na elkaar uit** — doorgaans eerst RTK
 (60-90% besparing op tooluitvoer), gevolgd door Caveman (30% extra besparing op de
-resterende tekst). Hiermee wordt een **totale besparing van 78-95%** bereikt.
+resterende tekst). Dit levert een **totale besparing van 78-95%** op.
 
 #### Hoe het werkt
 
 ```
 Invoer (1000 tokens)
-  → RTK (opdrachtbewust filter) → 200 tokens
-    → Caveman (verwijdering van opvulling) → 140 tokens
+  → RTK (opdrachtherkennend filter) → 200 tokens
+    → Caveman (verwijdering van opvultekst) → 140 tokens
   → Uitvoer (140 tokens, 86% besparing)
 ```
 
@@ -526,9 +549,9 @@ Invoer (1000 tokens)
 
 Gebruik de gestapelde modus voor:
 
-- Workflows met veel toolgebruik (agentisch programmeren, onderzoek)
+- Workflows met veel toolgebruik (agentgestuurd programmeren, onderzoek)
 - Kostengevoelige batchverwerking
-- Wanneer u maximale tokenbesparing nodig hebt
+- Wanneer je maximale tokenbesparing nodig hebt
 
 Configureer via combo:
 

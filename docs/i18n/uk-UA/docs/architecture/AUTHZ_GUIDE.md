@@ -5,72 +5,73 @@
 ---
 
 > **Джерело істини:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Останнє оновлення:** 2026-06-28 — v3.8.40
+> **Останнє оновлення:** 22.09.2026 — простори імен області вказують на MCP-SERVER.md
 
-OmniRoute має конвеєр авторизації з урахуванням маршрутів, який контролює кожен API-запит. Класифікація є **детермінованою** та **закритою за замовчуванням** — усе, що неможливо класифікувати, отримує клас `MANAGEMENT` і вимагає сесії або токена рівня керування. На цій сторінці пояснюється модель для інженерів, які супроводжують маршрути або проєктують нові кінцеві точки.
+OmniRoute має конвеєр авторизації, що враховує маршрути та захищає кожен запит API. Класифікація є **детермінованою** та **закривається при збої** — все, що не може бути класифіковано, стає `MANAGEMENT` і вимагає сесії або токена рівня управління. Ця сторінка пояснює модель для інженерів, які підтримують маршрути або розробляють нові кінцеві точки.
 
-![Конвеєр AuthZ (3 класи маршрутів + оцінювання політик)](../diagrams/exported/authz-pipeline.svg)
+![Конвеєр AuthZ (3 класи маршрутів + оцінка політики)](../diagrams/exported/authz-pipeline.svg)
 
 > Джерело: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Два режими автентифікації
 
-### 1. API-ключ (Bearer)
+### 1. Ключ API (Bearer)
 
-Використовується для клієнтських API, сумісних з OpenAI/Anthropic/Gemini, а також для деяких маршрутів керування, коли ключ має область дії `manage`.
+Використовується для клієнтських API, сумісних з OpenAI/Anthropic/Gemini, а також для деяких маршрутів керування, коли ключ має область доступу `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Перевіряється функціями `isValidApiKey()` / `extractApiKey()` у `src/sse/services/auth.ts` і повторно експортується через `src/shared/utils/apiAuth.ts`. Валідатор також приймає змінні середовища `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` як постійні ключі наскрізного доступу (issue #1350).
+Перевіряється функціями `isValidApiKey()` / `extractApiKey()` у `src/sse/services/auth.ts` і повторно експортується через `src/shared/utils/apiAuth.ts`. Валідатор також приймає змінні середовища `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` як постійні ключі наскрізного доступу (задача #1350).
 
-### 2. Сесія панелі керування (cookie auth_token)
+### 2. Сеанс панелі керування (cookie auth_token)
 
-Для сторінок панелі керування та адміністративних операцій.
+Для сторінок панелі керування й адміністративних операцій.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Cookie є сесією лише тоді, коли JWT успішно перевірено **і** він містить `authenticated: true`
+Cookie вважається сеансом лише тоді, коли JWT успішно перевірено **і** він містить `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Кожен
-споживач цього cookie (захисник маршруту, оновлення конвеєра авторизації, встановлення
-з’єднання WebSocket, сервер даних у реальному часі, `/api/settings/require-login`,
-`/api/auth/status`) використовує цей допоміжний засіб. Існують й інші JWT, підписані
-за допомогою `JWT_SECRET`: механізм наскрізного доступу Cursor CLI створює для власників
-ключів токени `iss "omniroute" / aud "cursor-cli"`, які ніколи не є сесіями
+споживач cookie (захисник маршрутів панелі керування (`isDashboardSessionAuthenticated()`), оновлення в конвеєрі авторизації, рукостискання WebSocket, сервер трансляції,
+`/api/settings/require-login`, `/api/auth/status`) використовує цей допоміжний засіб.
+Існують й інші JWT, підписані за допомогою `JWT_SECRET`: механізм наскрізного доступу Cursor CLI створює
+токени `iss "omniroute" / aud "cursor-cli"` для власників ключів, і вони ніколи не вважаються сеансами
 (#13298).
 
-Перевіряється функцією `isDashboardSessionAuthenticated()` у `src/shared/utils/apiAuth.ts`. Конвеєр автоматично оновлює JWT, коли до завершення його 30-денного терміну дії залишається менше ніж 7 днів.
+Перевіряється функцією `isDashboardSessionAuthenticated()` у `src/shared/utils/apiAuth.ts`. Конвеєр автоматично оновлює JWT, коли до завершення його 30-денного строку дії залишається менше ніж 7 днів.
 
-Деякі маршрути керування приймають **будь-який** із цих режимів: cookie АБО `Bearer <key>`, якщо API-ключ має область дії `manage` (або `admin`). Саме це забезпечує робочий процес «налаштування через API-виклики», доданий у v3.8.
+Сеанс також може завершитися до закінчення 30 днів, оскільки кожен засіб створення використовує `mintDashboardSessionToken` (час випуску `iat` та ідентифікатор `jti`), а засіб перевірки перевіряє два параметри: `sessionsValidAfter`, який установлюється після зміни пароля, через що всі сеанси, випущені до цього моменту, перестають проходити перевірку (браузер, у якому було змінено пароль, отримує новий cookie), і `revokedDashboardSessions`, до якого `POST /api/auth/logout` додає `jti` завершеного сеансу. Сеанси, створені старішим випуском, не містять жодного з цих тверджень і залишаються дійсними до першої зміни пароля. Якщо прочитати налаштування неможливо, сеанс не вважається надійним.
 
-#### Необов’язковий шлюз входу OIDC (#6973)
+Деякі маршрути керування приймають **будь-який** режим: cookie АБО `Bearer <key>`, коли ключ API має область доступу `manage` (або `admin`). Саме це уможливлює робочий процес «налаштування через виклики API», доданий у v3.8.
 
-Адміністративний вхід до панелі керування також підтримує **опціональний** процес OIDC (OpenID Connect)
-поряд зі стандартним входом за паролем — вхід за паролем ніколи не вилучається, а лише
+#### Необов’язкова перевірка входу через OIDC (#6973)
+
+Адміністративний вхід до панелі керування також підтримує **явно ввімкнений** процес OIDC (OpenID Connect)
+разом зі стандартним входом за паролем — вхід за паролем ніколи не видаляється, а лише
 доповнюється:
 
-- Вимкнено, якщо `settings.oidcEnabled !== true` **або** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` налаштовано не всі (Налаштування → Автентифікація).
+- Вимкнено, якщо `settings.oidcEnabled !== true` **або** не налаштовано хоча б один із параметрів `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Налаштування → Автентифікація).
   Інакше `GET /api/auth/oidc/login` повертає `400`.
-- `GET /api/auth/oidc/login` визначає `authorization_endpoint` із
-  `/.well-known/openid-configuration` емітента (у разі невдачі використовує
-  `<issuer>/authorize`), формує URI перенаправлення на основі вхідного запиту
+- `GET /api/auth/oidc/login` виявляє `authorization_endpoint` через
+  `/.well-known/openid-configuration` постачальника
+  (із резервним переходом до `<issuer>/authorize`), формує URI перенаправлення з вхідного запиту
   (з урахуванням `x-forwarded-proto`) і перенаправляє до IdP із випадковим значенням `state`,
   збереженим у cookie `oidc_state` з атрибутом `httpOnly`.
 - `GET /api/auth/oidc/callback` перевіряє `state`, обмінює код авторизації
-  та перевіряє підпис ID-токена через JWKS емітента
-  (`createRemoteJWKSet` із `jose`, кешований для кожного URI JWKS) із перевірками
-  `issuer`/`audience`. Необов’язковий список дозволених значень `oidcAllowedSubjects`
-  зіставляється з твердженням `sub` токена або його твердженням `email` — твердження
-  електронної пошти враховується лише тоді, коли `email_verified === true`, тому
-  неперевірена адреса електронної пошти в IdP ніколи не зможе пройти цей шлюз.
-- У разі успіху створюється **точно такий самий** 30-денний JWT `auth_token`, який
-  видається під час входу за паролем (`src/app/api/auth/login/route.ts`), тому решта
-  конвеєра сесії панелі керування (автоматичне оновлення, атрибути cookie) залишається
-  без змін — OIDC замінює лише спосіб створення cookie, а не права, які він надає.
+  та перевіряє підпис ID-токена через JWKS постачальника
+  (`createRemoteJWKSet` із `jose`, кешований окремо для кожного URI JWKS) із перевірками `issuer`/`audience`.
+  Необов’язковий список дозволених значень `oidcAllowedSubjects` зіставляється з твердженням
+  `sub` токена або його твердженням `email` — твердження email враховується лише тоді, коли
+  `email_verified === true`, тому непідтверджена адреса електронної пошти в IdP ніколи не зможе пройти
+  перевірку.
+- У разі успіху створюється **точно такий самий** 30-денний JWT `auth_token`, який видається під час входу
+  за паролем (`src/app/api/auth/login/route.ts`), тому решта
+  конвеєра сеансу панелі керування (автоматичне оновлення, атрибути cookie) залишається незмінною —
+  OIDC замінює лише спосіб створення cookie, а не надані ним права.
 
 ## Класи маршрутів
 
@@ -199,28 +200,38 @@ export async function POST(request: Request) {
 
 Вибирайте набір за формою, а не за зручністю. Один маршрут слід додавати до `PUBLIC_API_ROUTES_EXACT` (або до `PUBLIC_READONLY_CORS_API_ROUTES`, якщо він призначений лише для GET); лише справжнє піддерево слід додавати до `PUBLIC_API_ROUTE_PREFIXES`, і воно **має закінчуватися на `/`**. Додавання окремого маршруту до списку префіксів також робить публічним кожен суміжний шлях, що має такі самі початкові символи, — включно зі спорідненими маршрутами з динамічними сегментами, доданими пізніше (GHSA-74g9-q8f6-793h). Оновіть модульні тести в `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` і `tests/unit/authz/classify.test.ts`.
 
-## Області доступу
+## Області видимості (Scopes)
 
-Ключі API містять масив `scopes` (зберігається у форматі JSON у `api_keys.scopes`, див. `src/lib/db/apiKeys.ts`).
+Три простори імен. Кожен перевіряльник читає лише власні рядки. Порівняння,
+включно з тим, чому `manage` не проходить `scopeMatches` для `read:compression` і чому
+токен доступу `read` не може `PATCH /api/keys/{id}`, знаходиться в
+[Три простори імен областей видимості](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Область керування
+Ключі API містять масив `scopes` (зберігається як JSON у `api_keys.scopes`, див. `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — надає ключу доступ до кінцевих точок API керування, коли його надіслано як Bearer-токен.
+### Область видимості управління
 
-### Області MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Доступ Bearer до маршрутів API управління.
+- `mcp:connect`, `self:usage`, `self:account-quota` та
+  `policy:bypass-provider-quota` є адитивними областями видимості з точним збігом. Вони знаходяться
+  поза `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` відкриває лише
+  не-зворотний виріз `/api/mcp/`.
 
-Кожен інструмент MCP потребує певних областей доступу через `MCP_TOOL_SCOPES`. Повний список (`MCP_SCOPE_LIST`):
+### Області видимості інструментів MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Каталог та правила відповідності (ідентичний рядок або надана область видимості, що закінчується на `*`):
+[Області видимості інструментів MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` у `src/shared/constants/mcpScopes.ts` є оригінальною типізованою
+підмножиною, а не повним каталогом. Примусове виконання відбувається в
+`open-sse/mcp-server/scopeEnforcement.ts` після того, як `resolveCallerScopeContext()`
+розв'язує області видимості з інформації про автентифікацію MCP, метаданих запиту або `OMNIROUTE_MCP_SCOPES`.
+Воно залишається вимкненим, якщо `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Під час перевірки областей доступу в `open-sse/mcp-server/server.ts` список областей кожного інструмента передається до
-`evaluateToolScopes()` після того, як `resolveCallerScopeContext()` визначить області доступу з інформації автентифікації MCP,
-метаданих запиту або `OMNIROUTE_MCP_SCOPES`.
+### Області видимості токенів доступу
+
+`read` / `write` / `admin` на токенах `oma_live_…`, ранжовані за `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Цей ранг застосовується лише до облікових даних токена доступу.
+Див. [Автентифікація управління](../guides/MANAGEMENT-AUTH.md).
 
 ## Перемикач обов’язкової автентифікації
 
@@ -269,6 +280,6 @@ x-omniroute-auth-scopes:    список, розділений комами
 ## Дивіться також
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — маркер автентифікації для кожної кінцевої точки
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — журнал аудиту подій автентифікації
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — подробиці перевірки областей доступу MCP
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — журнал аудиту для подій автентифікації
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — три простори імен області видимості та каталог MCP tool-scope
 - Джерело: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

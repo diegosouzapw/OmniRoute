@@ -7,45 +7,45 @@
 Tá comhbhrú OmniRoute bunaithe ar chonarthaí innill. Is féidir le mód inneall amháin a rith go díreach
 (`caveman` nó `rtk`) nó píblíne chruachta chinntitheach a ritheann innill iolracha in ord.
 
-## Móid
+## Módanna
 
-| Mód          | Conair innill                                     | Ionchur beartaithe                                       |
-| ------------ | ------------------------------------------------- | -------------------------------------------------------- |
-| `off`        | gan inneall                                       | Caomhnú beacht an leid                                   |
-| `lite`       | Cúntóirí lite Caveman                             | Glanadh ísealriosca atá ar siúl i gcónaí                 |
-| `standard`   | Caveman                                           | Comhdhlúthú leidí teanga nádúrtha                        |
-| `aggressive` | Caveman + achoimreoirí staire/uirlisí             | Seisiúin fhada chomhrá                                   |
-| `ultra`      | Caveman + cúntóirí bearrtha                       | Téarnamh ó theorainn chomhthéacs                         |
-| `rtk`        | RTK                                               | Aschur teirminéil, blaoisce, tógála, tástála agus git    |
-| `omniglyph`  | OmniGlyph                                         | Comhthéacs mar íomhá ar shreang dhúchasach an tsoláthraí |
-| `stacked`    | Píblíne, `rtk -> caveman` de réir réamhshocraithe | Logaí measctha uirlisí agus prós, an coigilteas is mó    |
+| Mód          | Conair an innill                                                                             | Ionchur beartaithe                                     |
+| ------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `off`        | ar bith                                                                                      | Caomhnú beacht an phrasa                               |
+| `lite`       | Cúntóirí éadroma Caveman                                                                     | Glanadh i gcónaí le riosca íseal                       |
+| `standard`   | Caveman                                                                                      | Comhdhlúthú pras teanga nádúrtha                       |
+| `aggressive` | Caveman + achoimritheoirí staire/uirlisí                                                     | Seisiúin chomhrá fada                                  |
+| `ultra`      | Caveman + cúntóirí bearrtha                                                                  | Aisghabháil teorainn comhthéacs                        |
+| `rtk`        | RTK                                                                                          | Aschur teirminéil, sliogáin, tógála, tástála, agus git |
+| `omniglyph`  | OmniGlyph                                                                                    | Comhthéacs mar íomhá ar shreang an tsoláthraí dúchais  |
+| `stacked`    | Píblíne. Is é `session-dedup -> lite` an réamhshocrú iarratais. Is rogha é `rtk -> caveman`. | Logaí uirlisí measctha agus prós, an coigilt is mó     |
 
-### Próifílí comhbhrúite OmniGlyph
+### Próifílí comhbhrú OmniGlyph
 
-Glacann an t-inneall `omniglyph` (pacáiste `omniglyph`, 1.4.0+) le próifíl shéimeantach ainmnithe, a shocraítear
-go domhanda trí `omniglyph.profile` sna socruithe comhbhrúite nó do gach céim trí chumraíocht céime na
-píblíne cruachta:
+Glacann an t-inneall `omniglyph` (pacáiste `omniglyph`, 1.4.0+) le próifíl sheiminteach ainmnithe, atá socraithe
+go domhanda trí `omniglyph.profile` sna socruithe comhbhrú nó in aghaidh an chéim tríd an
+cumraíocht chéim den phíblíne chruachta:
 
-| Próifíl       | Teorainn                                                                                                                                     |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Réamhshocrú. An polasaí a tomhaiseadh sna hadmhálacha foilsithe — déanann sé íomhánna den chóras, de dhoiciméid uirlisí agus de stair dhlúth |
-| `balanced`    | Coinníonn sé staid bheo dúchasach, cosnaíonn sé na 8 seal dheireanacha, agus crapann sé seanstair dhúnta                                     |
-| `coding-safe` | Coinníonn sé údarás, scéimeanna uirlisí agus aschur beo uirlisí dúchasach, agus cosnaíonn sé na 12 sheal dheireanacha                        |
-| `passthrough` | Déanann sé ródú gan claochlú; scipeáiltear an t-inneall                                                                                      |
+| Próifíl       | Teorainn                                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Réamhshocrú. An polasaí a tomhaiseadh na hadmhálacha foilsithe — córas íomhánna, doiciméid uirlisí agus stair dhlúth |
+| `balanced`    | Coinníonn sé staid bheo dúchasach, cosnaíonn sé na 8 seal deireanacha, titeann sé stair níos sine dúnta              |
+| `coding-safe` | Coinníonn sé údarás, scéimeanna uirlisí agus aschur uirlisí beo dúchasach, cosnaíonn sé na 12 seal deireanacha       |
+| `passthrough` | Bealaí gan claochlú; scipeáiltear an t-inneall                                                                       |
 
-Is **uasteorainn, ní íosteorainn** í an phróifíl: diúltaíonn `mergeCompressionProfileOptions` sa phacáiste
-ligean do shárú ón nglaoiteoir lána caillteach a dhún an phróifíl a athoscailt, mar sin ní féidir le
-`preserveSystemPrompt: false` in aghaidh na céime comhbhrú an chórais a athchumasú faoi `coding-safe`.
+Is **uasteorainn, ní urlár**, an phróifíl: diúltaíonn `mergeCompressionProfileOptions` sa phacáiste
+ligean do ghlaoiteoir lána caillteanach a dhún an phróifíl a athoscailt, mar sin ní féidir le
+`preserveSystemPrompt: false` in aghaidh an chéim comhbhrú córais a athchumasú faoi `coding-safe`.
 
-De réir tomhais ar an mbunachar cód seo: ardaíonn `coding-safe` agus `balanced` `minCompressChars` go dtí a
-uasmhéid agus coinníonn siad an córas, scéimeanna uirlisí agus torthaí uirlisí dúchasach, mar sin stopann seisiún
-nach bhfuil stair carntha aige fós ag `below_min_chars` agus ní chlaochlaíonn an t-inneall aon rud. Sin é an fáth
-gurb é `aggressive` an réamhshocrú seachas an phróifíl is sábháilte.
+Tomhaiste ar an gcódchóras seo: ardaíonn `coding-safe` agus `balanced` `minCompressChars` go dtí a
+uasmhéid agus coinníonn siad córas, scéimeanna uirlisí agus torthaí uirlisí dúchasach, mar sin seisiún nach bhfuil
+stair carntha aige fós stopann sé ag `below_min_chars` agus ní chlaochlaíonn an t-inneall aon rud. Sin
+an fáth go bhfuil an réamhshocrú `aggressive` seachas an phróifíl is sábháilte.
 
-Réitíonn an pacáiste a raon samhla agus a phróifíl féin óna chumraíocht timpeallachta.
-Ní tharmligeann OmniRoute an cinneadh choíche: socraíonn an cuibheoir geata na samhla ag an raon is sriantaí
-sa phacáiste, ionas nach féidir le socruithe timpeallachta an óstaigh ach an liosta ceadaithe a chúngú, agus nach
-féidir leo riamh é a leathnú thar admhálacha tomhaiste OmniRoute.
+Réitíonn an pacáiste a scóip mhúnla féin agus a phróifíl óna chumraíocht timpeallachta.
+Ní tharmligeann OmniRoute an cinneadh riamh: cuireann an t-oiriúnóir an geata múnla chuig an scóip is sriantaí den phacáiste,
+mar sin ní féidir le socruithe timpeallachta óstach ach an liosta ceadaithe a chúngú, ní féidir leo é a leathnú
+riamh thar admhálacha tomhaiste OmniRoute.
 
 ## Clárlann na nInneall
 
@@ -400,7 +400,7 @@ atá íogair don taisce, etc.).
 
 ## Bailíochtú
 
-Seo iad na geataí spriocdhírithe don réimse seo:
+Is iad na geataí dírithe don réimse seo:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

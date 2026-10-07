@@ -461,6 +461,44 @@ export function applySystemTransformPipeline(
   return applyTransformPipeline(body, providerConfig.pipeline);
 }
 
+/**
+ * Providers whose executor already runs the transforms pipeline on its own wire
+ * body: native `claude` (executors/base.ts) and the Claude-Code bridge
+ * (services/claudeCodeCompatible.ts) + every `anthropic-compatible-cc-*`
+ * provider sharing that config. The generic chatCore entry point must skip
+ * them so their configured ops never run twice for a single request.
+ */
+export function isSystemTransformsHandledDownstream(providerId: string): boolean {
+  if (!providerId) return false;
+  return (
+    providerId === PROVIDER_CLAUDE ||
+    providerId === PROVIDER_CC_BRIDGE ||
+    providerId.startsWith(`${PROVIDER_CC_BRIDGE}-`)
+  );
+}
+
+/**
+ * Generic per-provider entry point for providers whose executor does NOT apply
+ * the pipeline itself — the "any other provider key" case the module docstring
+ * covers (e.g. `kiro`, `antigravity`). No-op unless that exact provider key has
+ * an enabled pipeline in `systemTransforms.providers`.
+ *
+ * Claude-native and the Claude-Code bridge are intentionally skipped: their own
+ * wire paths already apply the same config downstream.
+ */
+export function applyProviderSystemTransforms(
+  providerId: string,
+  body: RequestBody,
+  config?: SystemTransformsConfig
+): ApplyPipelineResult {
+  if (isSystemTransformsHandledDownstream(providerId)) {
+    return { body, appliedOpKinds: [] };
+  }
+  return config === undefined
+    ? applySystemTransformPipeline(providerId, body)
+    : applySystemTransformPipeline(providerId, body, config);
+}
+
 function resolveProviderConfig(
   providerId: string,
   config: SystemTransformsConfig

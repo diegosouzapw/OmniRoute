@@ -350,67 +350,60 @@ opencode -m omniroute/glm/glm-5.2 "..."          # trước tiên hãy export OM
 
 ---
 
-## Quản lý context (chuyển đổi giữa các máy chủ)
+## Quản lý ngữ cảnh (chuyển đổi giữa các máy chủ)
 
-Một **context** là một máy chủ đã lưu (baseUrl + thông tin xác thực + phạm vi). `omniroute connect`
-tạo một context và đặt nó làm context đang hoạt động; từ thời điểm đó, mọi lệnh đều nhắm đến context này. Quản lý và
-chuyển đổi giữa các context bằng `omniroute contexts`:
+Một **ngữ cảnh** là một máy chủ đã lưu (baseUrl + thông tin xác thực + phạm vi). `omniroute connect`
+tạo một ngữ cảnh và kích hoạt nó; từ đó trở đi, mọi lệnh sẽ nhắm mục tiêu vào ngữ cảnh đó. Quản lý và
+chuyển đổi giữa chúng bằng `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # tất cả context; context đang hoạt động được đánh dấu ●
+omniroute contexts list            # tất cả các ngữ cảnh; ngữ cảnh đang hoạt động được đánh dấu ●
 omniroute contexts current         # máy chủ đang hoạt động, trạng thái xác thực, phạm vi
 ```
 
 ```text
-  | Tên     | URL cơ sở                 | Xác thực | Phạm vi | Mô tả
-● | vps     | http://100.67.86.91:20128 | token    | admin   | OmniRoute từ xa (…)
-  | default | http://localhost:20128    | ✗        |         |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Chuyển đổi máy chủ** — mọi lệnh tiếp theo đều sử dụng context đang hoạt động:
+**Chuyển đổi máy chủ** — mọi lệnh tiếp theo sẽ tuân theo ngữ cảnh đang hoạt động:
 
 ```bash
-omniroute contexts use vps         # → tất cả lệnh giờ đây đều truy cập VPS từ xa
+omniroute contexts use vps         # → tất cả các lệnh bây giờ sẽ nhắm vào VPS từ xa
 omniroute tokens list              #   (chạy trên VPS)
 
 omniroute contexts use default     # → quay lại localhost
 omniroute tokens list              #   (chạy trên máy chủ cục bộ)
 ```
 
-**Thêm context theo cách thủ công** (thay vì `connect`), xem chi tiết hoặc đổi tên:
+**Thêm ngữ cảnh thủ công** (thay vì `connect`), kiểm tra hoặc đổi tên:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "máy staging"
-omniroute contexts show staging    # toàn bộ thông tin chi tiết của một context
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # chi tiết đầy đủ cho một ngữ cảnh
 omniroute contexts rename staging stg
 ```
 
-**Xóa một context** — yêu cầu xác nhận; truyền `--yes` để bỏ qua
-(bắt buộc đối với script / shell không tương tác, nếu không thao tác sẽ được từ chối một cách an toàn):
+**Xóa một ngữ cảnh** — sẽ nhắc xác nhận; truyền `--yes` để bỏ qua (cần thiết cho các script / shell không tương tác, nếu không sẽ từ chối một cách an toàn):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Không thể xóa `default` (localhost). Khi xóa context đang hoạt động, hệ thống sẽ quay về
-> `default`. Mẹo: việc xóa một context chỉ loại bỏ thông tin xác thực đã lưu **cục bộ** —
-> hãy thu hồi token trên máy chủ bằng `omniroute tokens revoke <id>` để thực sự
-> vô hiệu hóa quyền truy cập.
+> `default` (localhost) không thể bị xóa. Xóa ngữ cảnh đang hoạt động sẽ quay về `default`. Mẹo: việc xóa một ngữ cảnh chỉ loại bỏ thông tin xác thực đã lưu **cục bộ** — hãy thu hồi token trên máy chủ bằng `omniroute tokens revoke <id>` để thực sự chấm dứt quyền truy cập.
 
-**Xuất / nhập** các context (ví dụ: để di chuyển chúng giữa các máy). Các context mới chỉ lưu
-tham chiếu đến chuỗi khóa; thông tin xác thực không được sao chép vào bản xuất khi chuỗi khóa
-của hệ điều hành khả dụng:
+**Xuất / nhập** ngữ cảnh (ví dụ: để di chuyển chúng giữa các máy). Theo mặc định, các bản xuất sẽ bỏ qua thông tin xác thực, bao gồm cả thông tin xác thực được lưu trữ bởi cơ chế dự phòng tệp. Sử dụng `--include-secrets` một cách rõ ràng khi cần một bản sao lưu chứa thông tin xác thực có thể di chuyển được:
 
 ```bash
-omniroute contexts export --out contexts.json     # mặc định: stdout
-omniroute contexts import contexts.json            # ghi đè; dùng --merge để giữ lại các context hiện có
-omniroute contexts migrate --yes                  # di chuyển các token dạng văn bản thuần cũ sang chuỗi khóa
+omniroute contexts export --out contexts.json     # đã ẩn thông tin; đích mặc định: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # ghi đè; --merge để giữ lại các mục hiện có
+omniroute contexts migrate --yes                  # di chuyển các token văn bản thuần túy cũ sang keychain
 ```
 
-Trên các hệ thống không giao diện không có chuỗi khóa hệ điều hành khả dụng, CLI sẽ chuyển sang dùng
-`config.json` với chế độ `0600` và hiển thị cảnh báo một lần. Hãy coi các bản xuất từ
-cơ chế dự phòng đó (và mọi cấu hình cũ trước khi di chuyển) là dữ liệu bí mật.
+`--include-secrets` giải quyết các tham chiếu keychain trước khi xuất và sẽ thất bại nếu bất kỳ thông tin xác thực được tham chiếu nào không thể đọc được. `--no-secrets` luôn được ưu tiên. Các tệp xuất được ghi một cách nguyên tử với chế độ `0600`. Hãy coi một bản xuất chứa bí mật rõ ràng là tài liệu bí mật. Trên các hệ thống không có giao diện đồ họa (headless systems) mà không có keychain hệ điều hành khả dụng, CLI sẽ quay về sử dụng `config.json` với chế độ `0600` và in ra một cảnh báo một lần; một bản xuất mặc định vẫn sẽ bị ẩn thông tin trong chế độ này.
 
 ---
 

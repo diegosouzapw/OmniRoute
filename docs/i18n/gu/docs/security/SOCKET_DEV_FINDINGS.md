@@ -205,13 +205,13 @@ rawBody)`) ચકાસે છે. જો સિક્રેટ સેટ કર
 
 ## બિલ્ડ પ્રોફાઇલ: `minimal`
 
-જે વપરાશકર્તાઓને Socket-અનુકૂળ આર્ટિફેક્ટની જરૂર હોય તેઓ આ રીતે બિલ્ડ કરે:
+જે વપરાશકર્તાઓને Socket-અનુકૂળ આર્ટિફેક્ટની જરૂર હોય, તેમણે આ રીતે બિલ્ડ કરવું:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpackનું `NormalModuleReplacementPlugin` ચાર મોડ્યુલને સ્ટબ્સ સાથે એલિયાસ કરે છે:
+webpack `NormalModuleReplacementPlugin` ચાર મોડ્યુલોને સ્ટબ સાથે એલિયાસ કરે છે:
 
 | મોડ્યુલ                                     | સ્ટબ                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -220,12 +220,12 @@ webpackનું `NormalModuleReplacementPlugin` ચાર મોડ્યુલ
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-દરેક સ્ટબ સમાન ઇન્ટરફેસ એક્સપોર્ટ કરે છે, પરંતુ દરેક ફંક્શન રનટાઇમ પર
-`featureDisabledError(name)` થ્રો કરે છે. અક્ષમ કરેલા મોડ્યુલ પર આધારિત રૂટ્સ
-સંવેદનશીલ કોડ પાથને સક્રિય કરવાને બદલે સ્પષ્ટ સંદેશ સાથે HTTP 503 પરત કરે છે.
+દરેક સ્ટબ સમાન સરફેસ નિકાસ કરે છે, પરંતુ દરેક ફંક્શન રનટાઇમ પર
+`featureDisabledError(name)` થ્રો કરે છે. નિષ્ક્રિય કરેલા મોડ્યુલ પર આધારિત
+રૂટ્સ સંવેદનશીલ કોડ પાથને સક્રિય કરવાને બદલે સ્પષ્ટ સંદેશ સાથે HTTP 503
+પરત કરે છે.
 
-પરિણામી બંડલને `omniroute-secure` તરીકે પ્રકાશિત કરવા માટે બનાવવામાં આવ્યું છે.
-પ્રકાશનની રીત માટે `docs/ops/PUBLISHING_SECURE.md` જુઓ.
+પરિણામી બંડલને `omniroute-secure` તરીકે પ્રકાશિત કરવાનો હેતુ છે.
 
 ---
 

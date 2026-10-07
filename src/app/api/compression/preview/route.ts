@@ -160,6 +160,11 @@ async function dispatchCompression(
   // When the client/settings carry a headroom detail sub-object, thread it so
   // buildStepOptions can merge minRows into the headroom engine stepConfig (#8056).
   const { headroomDetail, headroomStepDetail } = resolveHeadroomDetail(opts.config);
+  // The Aggressive/Ultra engine pages send their form values as config.aggressive /
+  // config.ultra (EngineConfigPage handlePreview) and the engines read
+  // options.config.<engine>, so thread them into the synthesized config like headroom —
+  // otherwise single-engine/pipeline previews silently run on built-in defaults.
+  const sentConfig = (opts.config ?? {}) as Partial<CompressionConfig>;
 
   if (opts.engineId) {
     const q = quantumExtras(opts.quantumLock);
@@ -173,6 +178,8 @@ async function dispatchCompression(
           ),
         ],
         ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        ...(sentConfig.aggressive ? { aggressive: sentConfig.aggressive } : {}),
+        ...(sentConfig.ultra ? { ultra: sentConfig.ultra } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,
@@ -188,6 +195,8 @@ async function dispatchCompression(
           buildStep(engine, opts.fuzzyDedup, engine === "headroom" ? headroomStepDetail : undefined)
         ),
         ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        ...(sentConfig.aggressive ? { aggressive: sentConfig.aggressive } : {}),
+        ...(sentConfig.ultra ? { ultra: sentConfig.ultra } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,
@@ -226,8 +235,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId: rawEngineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
-    parsed.data;
+  const {
+    messages,
+    mode,
+    engineId: rawEngineId,
+    pipeline,
+    config,
+    fidelityGate,
+    fuzzyDedup,
+    riskGate,
+    quantumLock,
+    heatmap: heatmapMode,
+  } = parsed.data;
   // Alias: `mode: "caveman"` is a synonym for `engineId: "caveman"` (single-engine stacked run).
   // The caveman engine is not a top-level CompressionMode, but it IS a registered engine.
   const engineId = mode === "caveman" && !rawEngineId ? "caveman" : rawEngineId;
@@ -238,7 +257,13 @@ export async function POST(req: Request) {
 
   try {
     const start = Date.now();
-    const requestBody = { messages };
+    // #14983 made fuzzy dedup run only for callers that advertise omniroute_ccr_retrieve
+    // (its marker is otherwise unresolvable). The studio is a dry run with no real caller, so
+    // with the fuzzy toggle on it simulates a CCR-capable one (same as the compression
+    // benchmark harness) — without this the toggle is a silent no-op.
+    const requestBody = fuzzyDedup?.enabled
+      ? { messages, tools: [{ type: "function", function: { name: "omniroute_ccr_retrieve" } }] }
+      : { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
       engineId,
       pipeline,

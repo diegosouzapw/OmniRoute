@@ -1,561 +1,126 @@
-# ACP (Agent Client Protocol) (Српски)
+# ACP registry and registered CLI launchers (Српски)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇲🇲 [my](../../../my/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
 
 ---
 
-> **Укратко**: ACP омогућава OmniRoute-у да покреће CLI агенте (као што су Claude Code и Codex) као подређене процесе уместо коришћења HTTP API-ја. Тиме добијате транспорт типа „CLI као позадински систем“.
+OmniRoute раздваја **откривање CLI алата**, **изворни Agent Client Protocol** и
+**застареле stdio адаптере**. Проналажење инсталиране бинарне датотеке не доказује њену
+аутентификацију, компатибилност модела нити спремност да обради упит.
 
----
+Контролна табла користи `GET /api/acp/agents` и `POST /api/acp/agents` за инвентар
+и регистрацију прилагођених агената. То су управљачке руте доступне само локално, а не
+јавни API за покретање процеса или слање упита. Интерни
+`AcpManager` не постаје аутоматски резервни HTTP провајдер.
 
-## Шта је ACP?
+## Регистровани уговори
 
-ACP (Agent Client Protocol) је **транспорт типа „CLI као позадински систем“** за OmniRoute. Уместо пресретања HTTP API позива ка добављачима AI услуга, ACP **покреће CLI агенте као подређене процесе** и прослеђује им упите преко њиховог изворног интерфејса.
+`config/cli-tools-manifest.json` је меродаван извор за уграђене бинарне датотеке за
+покретање, аргументе и режиме позадинског система. Регистар изводи своје дефиниције
+из тог манифеста. Резултат откривања се кешира 60 секунди.
 
-### Зашто користити ACP?
+- `acp`: Gemini уговор покреће `gemini --experimental-acp` и комуницира путем
+  ACP JSON-RPC порука раздвојених новим редовима, користећи званични TypeScript SDK.
+- `stdio-adapter`: остали регистровани уговори задржавају застарели адаптер са улазом
+  раздвојеним новим редовима и излазом преко stdout-а. Период неактивности излаза од
+  две секунде завршава одговор. Овај адаптер **не** потврђује изворну ACP подршку
+  за те CLI алате.
 
-| Предност                      | Опис                                                    |
-| ----------------------------- | ------------------------------------------------------- |
-| **Нису потребни API кључеви** | Користи вашу постојећу CLI аутентификацију              |
-| **Изворни протокол**          | Користи изворни улазно-излазни формат сваког CLI алата  |
-| **Аутоматско откривање**      | Открива CLI алате инсталиране на вашем систему          |
-| **15 уграђених агената**      | Унапред конфигурисано за популарне CLI алате            |
-| **Прилагођени агенти**        | Додајте сопствене CLI алате путем подешавања            |
-| **Управљање процесима**       | Управља животним циклусом (покретање, слање, прекидање) |
+Gemini документује заставицу за покретање у својој [CLI референци](https://geminicli.com/docs/cli/cli-reference/).
+Клијент користи [званични ACP SDK](https://github.com/agentclientprotocol/typescript-sdk)
+за иницијализацију, креирање сесије, захтеве са упитима, обавештења и отказивање.
 
----
+Дефиниције прилагођених агената остају уговори о покретању под контролом администратора.
+Регистровање бинарне датотеке и аргумената додељује том процесу локалне привилегије
+извршавања серверског корисника; регистрација није изоловано окружење. Провере верзије
+прихватају само регистровану извршну датотеку и препознату заставицу верзије.
 
-## Подржани CLI агенти
-
-ACP подразумевано подржава **15 уграђених CLI агената**:
-
-| ID агента     | Назив за приказ    | Бинарна датотека | Протокол |
-| ------------- | ------------------ | ---------------- | -------- |
-| `codex`       | OpenAI Codex CLI   | `codex`          | stdio    |
-| `claude`      | Claude Code CLI    | `claude`         | stdio    |
-| `goose`       | Goose CLI          | `goose`          | stdio    |
-| `openclaw`    | OpenClaw           | `openclaw`       | stdio    |
-| `aider`       | Aider              | `aider`          | stdio    |
-| `opencode`    | OpenCode           | `opencode`       | stdio    |
-| `cline`       | Cline              | `cline`          | stdio    |
-| `qwen`        | Qwen Code          | `qwen --acp`     | stdio    |
-| `forge`       | ForgeCode          | `forge`          | stdio    |
-| `amazon-q`    | Amazon Q Developer | `q`              | stdio    |
-| `interpreter` | Open Interpreter   | `interpreter`    | stdio    |
-| `cursor-cli`  | Cursor CLI         | `cursor`         | stdio    |
-| `warp`        | Warp AI            | `warp`           | stdio    |
-| `gemini`      | Gemini CLI         | `gemini`         | stdio    |
-| `zcode`       | ZCode              | `zcode`          | stdio    |
-
-### Прилагођени агенти
-
-Можете додати сопствене CLI агенте путем подешавања. Прилагођени агенти подржавају исте функције као и уграђени агенти.
-
----
-
-## Брзи почетак
-
-### 1. корак: Инсталирајте CLI агента
-
-```bash
-# Пример: Инсталирајте Claude Code CLI
-npm install -g @anthropic-ai/claude-code
-
-# Проверите инсталацију
-claude --version
-```
-
-### 2. корак: ACP аутоматско откривање
-
-ACP аутоматски открива CLI агенте инсталиране на вашем систему. Конфигурација није потребна!
-
-### 3. корак: Користите ACP транспорт
-
-Када буде откривен, ACP се може користити као транспорт за било ког подржаног добављача. OmniRoute ће аутоматски користити ACP када је CLI доступан.
-
----
-
-## Како ACP функционише
-
-### Архитектура
-
-```
-┌─────────────────┐
-│  OmniRoute      │
-│  (HTTP прокси)  │
-└────────┬────────┘
-         │
-         │ spawn()
-         ▼
-┌─────────────────┐
-│ Подређени процес│
-│  (CLI агент)    │
-│                 │
-│  stdin  ◄──────┤  Слање упита
-│  stdout ──────►│  Пријем одговора
-│  stderr ──────►│  Пријем грешака
-└─────────────────┘
-```
-
-### Животни циклус процеса
-
-1. **Покретање** — ACP креира подређени процес за CLI агента
-2. **Слање** — ACP уписује упите у stdin процеса
-3. **Пријем** — ACP чита одговоре из stdout/stderr
-4. **Откривање неактивности** — ACP чека 2 секунде неактивности пре него што одговор сматра потпуним
-5. **Прекидање** — ACP прекида процес (SIGTERM, а затим SIGKILL након 5 секунди)
-
-### Комуникациони протокол
-
-ACP користи **stdio** (стандардни улаз/излаз) за комуникацију са CLI агентима. Протокол је следећи:
-
-1. **Слање упита** — Уписивање у stdin са новим редом
-2. **Чекање одговора** — Читање из stdout до неактивности (2 секунде без излаза)
-3. **Истек времена** — Подразумевано 120 секунди (може се конфигурисати)
-
----
-
-## Референца API-ја
-
-### Функције регистра
-
-#### `detectInstalledAgents()`
-
-Открива све инсталиране CLI агенте на систему. Резултати се кеширају 60 секунди.
+## Интерни API за покретање
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { acpManager } from "@/lib/acp";
 
-const agents = detectInstalledAgents();
-// Враћа: CliAgentInfo[]
-
-interface CliAgentInfo {
-  id: string; // нпр. „codex“, „claude“
-  name: string; // Назив за приказ
-  binary: string; // Назив бинарне датотеке која се покреће
-  versionCommand: string; // Команда за откривање верзије
-  version: string | null; // Откривена верзија (null ако није инсталиран)
-  installed: boolean; // Да ли је агент инсталиран
-  providerAlias: string; // ID добављача у OmniRoute-у
-  spawnArgs: string[]; // Аргументи који се прослеђују приликом покретања
-  protocol: "stdio" | "http"; // Комуникациони протокол
-  isCustom?: boolean; // Да ли је ово прилагођени агент који је дефинисао корисник
-}
-```
-
-#### `getAvailableAgents()`
-
-Преузима само агенте који су инсталирани и доступни за ACP.
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// Враћа: CliAgentInfo[] (само инсталирани агенти)
-```
-
-#### `getAgentById(id)`
-
-Преузима одређеног агента према ID-у.
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// Враћа: CliAgentInfo | undefined
-```
-
-#### `setCustomAgents(agents)`
-
-Поставља дефиниције прилагођених агената из подешавања.
-
-```typescript
-import { setCustomAgents } from "@/lib/acp";
-
-setCustomAgents([
-  {
-    id: "my-custom-cli",
-    name: "My Custom CLI",
-    binary: "mycli",
-    versionCommand: "mycli --version",
-    providerAlias: "my-provider",
-    spawnArgs: [],
-    protocol: "stdio",
+const session = acpManager.spawn("gemini", {
+  cwd: process.cwd(),
+  // Проследите само променљиве провајдера које су намерно додељене овом агенту.
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-]);
-```
-
-### Функције менаџера
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-Покреће нови процес CLI агента.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* прилагођене променљиве окружења */
 });
-// Враћа: AcpSession
-```
 
-**Дозвољени ID-ови агената**: `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-Шаље упит CLI агенту и прикупља одговор.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // Временско ограничење од 2 минута
-);
-// Враћа: Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-Прекида сесију и обавља чишћење.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// Враћа: boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-Преузима све активне сесије.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// Враћа: AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-Прекида све сесије.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### Интерфејс сесије
-
-```typescript
-interface AcpSession {
-  id: string; // Јединствени ID сесије
-  agentId: string; // ID агента (нпр. „claude“)
-  process: ChildProcess; // Референца на подређени процес
-  alive: boolean; // Да ли је процес активан
-  stdoutBuffer: string; // Акумулирани stdout бафер
-  stderrBuffer: string; // Акумулирани stderr бафер
-  createdAt: Date; // Временска ознака креирања
-}
-```
-
-### Догађаји
-
-`AcpManager` проширује `EventEmitter` и емитује следеће догађаје:
-
-#### `stdout`
-
-Емитује се када CLI агент уписује у stdout.
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-Емитује се када CLI агент уписује у stderr.
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-Емитује се када се процес CLI агента заврши.
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-Емитује се када дође до грешке у процесу CLI агента.
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
-## Конфигурација
-
-### Променљиве окружења
-
-ACP наслеђује све променљиве окружења од родитељског процеса и може се проширити прилагођеним променљивама окружења:
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
-
-### Аргументи за покретање
-
-Сваки агент има подразумеване аргументе за покретање дефинисане у регистру. Можете их заменити:
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### Временска ограничења
-
-Подразумевано временско ограничење за упит је **120 секунди** (2 минута). Можете га променити:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 минута
-```
-
-### Кеш детекције
-
-Детекција агената се кешира **60 секунди** како би се избегла захтевна скенирања система датотека. Принудно освежавање:
-
-```typescript
-import { refreshAgentCache } from "@/lib/acp";
-
-refreshAgentCache();
-```
-
----
-
-## Безбедност
-
-### Спречавање уметања команди
-
-ACP проверава команде за верзију како би спречио нападе уметањем команди:
-
-```typescript
-const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
-```
-
-Команде за верзију које садрже ове знакове се одбијају:
-
-- `;` — Раздвајач команди
-- `&` — Позадински процес
-- `|` — Цевовод
-- `<`, `>` — Преусмеравање
-- `` ` `` — Замена команде
-- `$` — Проширивање променљиве
-- `\r`, `\n` — Преломи редова
-
-### Провера назива бинарне датотеке
-
-ACP проверава да ли се бинарна датотека команде за верзију подудара са очекиваним називом бинарне датотеке (осим ако је у питању прилагођени агент).
-
-### Изолација процеса
-
-Свака ACP сесија се извршава у сопственом подређеном процесу. Процес се прекида када се сесија заврши или истекне временско ограничење.
-
----
-
-## Перформансе
-
-### Перформансе детекције
-
-- **Први позив**: ~50-200ms (покреће команду `version` за сваког агента)
-- **Кеширани позиви**: <1ms (враћа резултат из кеша)
-- **TTL кеша**: 60 секунди
-
-### Перформансе упита
-
-- **Покретање**: ~50-100ms
-- **Слање упита**: ~10-50ms
-- **Чекање одговора**: Зависи од CLI агента (обично 1-30 секунди)
-- **Прекид**: ~5 секунди (SIGTERM) + одмах (SIGKILL)
-
-### Употреба ресурса
-
-- **Меморија по сесији**: ~10-50MB (зависи од CLI агента)
-- **CPU**: Минимално (ограничено улазно-излазним операцијама)
-- **Диск**: Не користи се
-
----
-
-## Решавање проблема
-
-### Грешка „Unknown agent“
-
-**Проблем**: `acpManager.spawn()` пријављује грешку `Unknown agent: <id>`
-
-**Решење**: У функцији `spawn()` дозвољени су само ови агенти:
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-Остали агенти морају бити покренути ручно или преко дефиниција прилагођених агената.
-
-### Грешка „Session not alive“
-
-**Проблем**: `acpManager.sendPrompt()` пријављује грешку `Session ${sessionId} is not alive`
-
-**Решење**: Сесија се можда завршила или је прекинута. Проверите статус сесије:
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // Поново покрените сесију
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### Грешка „ACP timeout“
-
-**Проблем**: `acpManager.sendPrompt()` пријављује грешку `ACP timeout after 120000ms`
-
-**Решење**: Повећајте временско ограничење:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 минута
-```
-
-### CLI није откривен
-
-**Проблем**: `detectInstalledAgents()` не проналази ваш CLI
-
-**Решења**:
-
-1. **Проверите PATH**: Уверите се да је CLI у системској променљивој PATH
-2. **Проверите команду за верзију**: Ручно покрените `claude --version`
-3. **Проверите дозволе**: Уверите се да CLI може да се изврши
-4. **Прилагођени агент**: Додајте дефиницију прилагођеног агента за нестандардне CLI-јеве
-
-### Приступ одбијен
-
-**Проблем**: ACP не може да изврши CLI
-
-**Решења**:
-
-1. **Проверите дозволе датотеке**: `chmod +x /usr/local/bin/claude`
-2. **Проверите власништво**: Уверите се да OmniRoute има дозволе за читање/извршавање
-3. **Проверите SELinux/AppArmor**: Могу блокирати покретање процеса
-
----
-
-## Примери
-
-### Пример 1: Покретање и коришћење Claude Code-а
-
-```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
-
-// Откриј инсталиране агенте
-const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // Покрени нову сесију
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // Пошаљи упит
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "Explain quantum computing in 100 words"
-  );
-
-  console.log("Claude's response:", response);
-
-  // Очисти ресурсе
+try {
+  const response = await acpManager.sendPrompt(session.id, "Објасни овај пројекат", 120_000);
+  // Обрадите одговор у апликацији која позива ову функцију.
+} finally {
   acpManager.kill(session.id);
 }
 ```
 
-### Пример 2: Аутоматско откривање са резервном опцијом
+`spawn(agentId, options)` одређује извршну датотеку и аргументе из
+регистроване дефиниције. Једине опције позиваоца су `cwd` и `env`; стари
+потпис `spawn(agentId, binary, args, env)` и замене извршне датотеке се
+одбијају. Овај менаџер не подржава HTTP уговоре за покретање.
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
+Подређени процес наслеђује исти оперативни систем, терминал, локал и листу
+дозвољених сертификата као CLI покретачи. Тајне сервера/провајдера не копирају се из
+окружења родитељског процеса. Акредитиви потребни изабраном CLI алату морају бити
+прослеђени изричито или обезбеђени путем сопствене локалне аутентификације тог CLI алата.
+Подређени процес и даље има дозволе локалног корисника за систем датотека и може да чита
+сопствену конфигурацију.
 
-const available = getAvailableAgents();
+## Изворни животни циклус и ограничења
 
-// Прво покушај са Claude-ом, а затим користи Codex као резервну опцију
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("No ACP-compatible CLI agent found");
-  }
-}
+1. Покрените регистровану бинарну датотеку, иницијализујте ACP и креирајте сесију чији је
+   корен у изабраном радном директоријуму. Иницијализација има ограничење од десет секунди.
+2. Пошаљите упит и прикупите текстуална обавештења само за ту сесију.
+   Завршетак одређује RPC одговор на упит, а не период без активности на stdout-у.
+3. Користите један крајњи рок за упит, укључујући сваку незавршену иницијализацију;
+   подразумевана вредност је 120 секунди. Истовремени упити у истом процесу се одбијају.
+4. При истеку времена у изворном режиму, покушајте `session/cancel` и окончајте процес.
+   Ограничени период од 100 ms омогућава слање обавештења пре окончања.
+5. Затворите стање транспорта и уклоните сесију када иницијализација не успе, када се
+   веза затвори, процес заврши или га позивалац прекине.
 
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
+Захтеви за дозволе алата се одбијају. Не оглашавају се клијентске могућности
+система датотека или терминала. Ова ограничења не изолују саму подређену бинарну
+датотеку нити замењују сопствена подешавања ауторизације CLI алата.
 
-const response = await acpManager.sendPrompt(session.id, "Hello!");
+И изворни текст и застарели stdout/stderr задржавају највише 1 MiB знакова,
+чувајући најновији излаз уз обавештење о скраћивању. Појединачни изворни оквир
+на преносном слоју ограничен је на 2 MiB бајтова пре SDK рашчлањивања. Бафери
+се ресетују за сваки упит.
 
-acpManager.kill(session.id);
-```
+`kill(sessionId)` шаље SIGTERM, а затим SIGKILL после пет секунди ако се процес
+није завршио. Истек времена за застарели упит ослобађа ослушкиваче и тајмере, али
+оставља сесију доступном за други упит; позиваоци су и даље одговорни да по завршетку
+позову `kill()` или `killAll()`.
 
-### Пример 3: Прилагођени агент
+## Догађаји и преглед
 
-```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+Менаџер емитује `stdout`, `stderr` и `exit`, сваки са `sessionId`.
+`sessionError` пријављује очишћену грешку транспорта. Догађај `error` ради
+компатибилности емитује се само када има претплатника, тако да бинарна датотека
+која недостаје не може изазвати необрађену EventEmitter грешку.
 
-// Региструј прилагођени CLI агент
-setCustomAgents([
-  {
-    id: "my-llm-cli",
-    name: "My LLM CLI",
-    binary: "myllm",
-    versionCommand: "myllm --version",
-    providerAlias: "my-llm-provider",
-    spawnArgs: ["--format", "json"],
-    protocol: "stdio",
-  },
-]);
+- `getSession(sessionId)` враћа управљану сесију или `undefined`.
+- `getActiveSessions()` изоставља заустављене сесије и сесије које се заустављају.
+- `sendInput(sessionId, input)` доступан је само за активан застарели адаптер;
+  изворни ACP одбија сиров улаз како би заштитио свој JSON-RPC ток.
+- `killAll()` окончава сваку сесију којом управља та инстанца.
 
-// detectInstalledAgents() ће сада укључивати "my-llm-cli"
-const agents = detectInstalledAgents();
-```
+## Границе валидације
 
----
+Детерминистичке фикстуре покривају изворно успостављање везе, текстуални излаз, одбијене
+дозволе, отказивање, истовремене упите, неуспелу иницијализацију, завршетак процеса,
+ограничења излаза и изолацију тајни. Постојеће регресије застарелих бафера/ослушкивача
+остају покривене. Ови тестови не доказују активно пријављивање на Gemini нити успешно
+извођење закључака код провајдера; за то је потребан засебно ауторизован основни тест
+у циљном окружењу.
 
-## Шта је следеће?
+## Повезана документација
 
-- **[API референца](../reference/API_REFERENCE.md)** — Крајње тачке REST API-ја
-- **[Референца провајдера](../reference/PROVIDER_REFERENCE.md)** — Свих 352 провајдера
-- **[MCP сервер](./MCP-SERVER.md)** — Интеграција протокола Model Context Protocol
-- **[A2A сервер](./A2A-SERVER.md)** — Протокол између агената
-- **[Агент у облаку](./CLOUD_AGENT.md)** — Агенти засновани на облаку
-
----
-
-## Референце
-
-- [Пројекат AionUi](https://github.com/iOfficeAI/AionUi) — Инспирација за аутоматско откривање ACP-а
-- [Изворни код ACP-а](../../src/lib/acp/) — Детаљи имплементације
-  - `manager.ts` — Управљање животним циклусом процеса
-  - `registry.ts` — Откривање и регистрација агената
-  - `index.ts` — Извози јавног API-ја
+- [Протоколи агената](./AGENT_PROTOCOLS_GUIDE.md)
+- [Уговори за покретање CLI алата](../guides/CLI-LAUNCH-CONTRACTS.md)
+- [CLI алати](../reference/CLI-TOOLS.md)
+- [A2A сервер](./A2A-SERVER.md)
+- [Агенти у облаку](./CLOUD_AGENT.md)

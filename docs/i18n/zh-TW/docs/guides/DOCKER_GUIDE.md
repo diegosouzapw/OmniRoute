@@ -43,7 +43,7 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-## 搭配環境變數檔案
+## 搭配環境設定檔
 
 ```bash
 # 請先複製並編輯 .env
@@ -232,14 +232,14 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile 階段
 
-此儲存庫提供多階段 Dockerfile（`Dockerfile`）。共有四個公開階段；請依據您的使用情境選擇正確的 `target`。
+此儲存庫提供多階段 Dockerfile（`Dockerfile`）。共有四個可用階段；請依據您的使用情境選擇正確的 `target`。
 
 | 階段          | 基礎映像檔            | 用途                                                                                                                                                                                                                                                  |
 | ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | 安裝相依套件（`npm ci --legacy-peer-deps`）並執行 `npm run build`（預設使用 Turbopack——請參閱下方的建置階段資源）                                                                                                                                     |
-| `runner-base` | `node:26-trixie-slim` | 包含 Next.js 獨立輸出的正式環境執行階段。**不包含任何提供者 CLI。**                                                                                                                                                                                   |
-| `runner-cli`  | `runner-base`         | 加入 `git`、`docker.io`、`docker-compose`，以及全域 CLI：`@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw`。**代理式工作流程請選擇此階段。**                                                                                          |
-| `runner-web`  | `runner-base`         | 加入 Playwright 與 Chromium 瀏覽器（`--with-deps`），供網頁工作階段提供者使用：`gemini-web`、`claude-web`、`claude-turnstile`。**使用這些提供者時請選擇此階段**——一般映像檔若未包含這些元件，會在請求時失敗（請參閱發行通道下方關於 `-web` 的說明）。 |
+| `builder`     | `node:26-trixie-slim` | 安裝相依套件（`npm ci --legacy-peer-deps`）並執行 `npm run build`（預設使用 Turbopack——請參閱下方的建置時資源）                                                                                                                                       |
+| `runner-base` | `node:26-trixie-slim` | 包含 Next.js 獨立輸出的正式環境執行階段。**未隨附任何提供者 CLI。**                                                                                                                                                                                   |
+| `runner-cli`  | `runner-base`         | 新增 `git`、`docker.io`、`docker-compose`，以及全域 CLI：`@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw`。**代理式工作流程請選擇此階段。**                                                                                          |
+| `runner-web`  | `runner-base`         | 新增 Playwright 與 Chromium 瀏覽器（`--with-deps`），供網頁工作階段提供者使用：`gemini-web`、`claude-web`、`claude-turnstile`。**使用這些提供者時請選擇此階段**——一般映像檔若未包含這些元件，會在提出要求時失敗（請參閱發行通道下方的 `-web` 說明）。 |
 
 手動建置特定目標：
 
@@ -249,79 +249,87 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### 建置階段資源
+### 建置時資源
 
-三個建置引數會控制 `builder` 階段的資源成本。它們僅在建置階段生效——
-`OMNIROUTE_MEMORY_MB`（如下）則是另一個獨立的執行階段調整參數。
+三個建置引數可控制 `builder` 階段的資源消耗。這些引數僅在建置時生效——
+`OMNIROUTE_MEMORY_MB`（如下）則是另一個執行階段調整項目。
 
 | 建置引數                    | 預設值 | 效果                                                                            |
 | --------------------------- | ------ | ------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | 設為 `0` 時改用 webpack 建置。尖峰記憶體較低，但速度較慢。                      |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | 所啟動之 `next build` 的 V8 堆積上限（`--max-old-space-size`）。                |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | 提供 `CIRCLE_NODE_TOTAL`；Next 會據此推導 `workers = N - 1`，用於收集頁面資料。 |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` 使用 webpack 建置：尖峰記憶體較低，但速度較慢。`1` 則選用 Turbopack。       |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | 為衍生出的 `next build` 設定 V8 堆積上限（`--max-old-space-size`）。            |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | 提供給 `CIRCLE_NODE_TOTAL`；Next 會推導出 `workers = N - 1`，用於收集頁面資料。 |
 
-`OMNIROUTE_BUILD_WORKERS` 是在大型建置主機上應提高的參數，也是受限環境中的建置在
-`✓ Compiled successfully` **之後**失敗時應優先懷疑的參數。每個
-頁面資料工作程序都是獨立程序，父層 `next build` 本身亦然；
-在實際 VPS 上重現（議題 #7518）時，測得每個程序的尖峰 RSS
-約為 4.5 GB，且不受 `NODE_OPTIONS` 堆積旗標影響（Turbopack 會在
-V8 堆積之外使用原生/Rust 記憶體進行編譯）。預設值 `2`（→ 1 個工作程序，共 2 個
-程序）是依據發布管線所使用的 16 GB / 4 vCPU GitHub 託管執行器
-而設定。設為 `8`（→ 7 個工作程序）時，該執行器會耗盡記憶體，
-buildkit 並以 `ResourceExhausted: ... cannot allocate memory`
-使該步驟失敗；在直接測量每個程序的 RSS 而非透過推斷得出後，
-`3`（→ 2 個工作程序）仍然無法容納。`tests/unit/docker-build-memory-budget.test.ts`
-會根據測量值進行計算，若任一參數超出執行器的承受範圍，測試便會失敗。
+在效能強大的建置器上，應提高的是 `OMNIROUTE_BUILD_WORKERS`；而當資源受限的建置在
+`✓ Compiled successfully` **之後**中止時，也應優先懷疑此設定。每個
+頁面資料工作程序都是獨立程序，父層 `next build` 本身也同樣如此；
+一次實際 VPS 重現（issue #7518）測得每個程序的尖峰 RSS
+約為 4.5 GB，且不受 `NODE_OPTIONS` 堆積旗標影響（Turbopack 會使用
+V8 堆積以外的原生/Rust 記憶體進行編譯）。預設值 `2`（→ 1 個工作程序，共 2 個
+程序）是依照發布管線所使用、配備 16 GB / 4 vCPU 的 GitHub 託管執行器
+而設定。設為 `8`（→ 7 個工作程序）時，該執行器會耗盡記憶體，而
+buildkit 會以 `ResourceExhausted: ... cannot allocate memory`
+導致該步驟失敗；在直接測量每個程序的 RSS，而非透過推算之後，
+發現設為 `3`（→ 2 個工作程序）仍然無法容納。
+`tests/unit/docker-build-memory-budget.test.ts`
+會根據測得的數值進行計算，若任一調整項目的設定超出執行器容量，
+測試便會失敗。
 
-Turbopack 會使用位於 V8 堆積**之外**的原生 Rust 記憶體進行編譯，因此
-`OMNIROUTE_BUILD_MEMORY_MB` 無法限制該記憶體。在設有記憶體上限的主機上，
-建置程序會被 OOM 終止器以 SIGKILL 終止，且完全不會顯示錯誤文字——它只會
-在 `Creating an optimized production build` 進行到一半時停止，看起來像是
-當機，而非記憶體不足。若建置主機資源受限，請切換打包工具：
+Turbopack 會使用位於 V8 堆積**以外**的原生 Rust 記憶體進行編譯，因此
+`OMNIROUTE_BUILD_MEMORY_MB` 無法限制這部分的使用量。在設有記憶體上限的主機上，
+建置程序隨後會被 OOM 終止程式透過 SIGKILL 終止，且完全不會顯示任何錯誤文字——它只會
+在 `Creating an optimized production build` 進行到一半時停止，因此看起來更像是
+停滯，而非記憶體不足。這就是為什麼 `Dockerfile` 預設使用 webpack
+（`OMNIROUTE_USE_TURBOPACK=0`），不同於 `npm run dev` / `npm run build`，
+後兩者在程式碼中預設使用 Turbopack：未提供任何建置引數的單純 `docker build .`
+（Railway 和其他一鍵式託管平台會執行的方式）不得在記憶體受限的建置器上
+無聲無息地中止。已發布的映像檔也已在 `docker-publish.yml` 中明確傳入
+`OMNIROUTE_USE_TURBOPACK=0`。若建置器有充足的 RAM，可選用
+Turbopack 以加快建置速度：
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
 `webpackBuildWorker` 已啟用，因此 `next build` 會執行一個父程序**以及**一個工作
-程序，且兩者會分別遵循 `OMNIROUTE_BUILD_MEMORY_MB`。容器上限應設為大約該值的
-兩倍以上，而非一倍。
+程序，而且每個程序都會分別遵循 `OMNIROUTE_BUILD_MEMORY_MB`。容器上限應設定為
+大約超過該值的兩倍，而非僅超過一次該值。
 
-在此程式碼樹上測量（`--target runner-base`、`OMNIROUTE_BUILD_MEMORY_MB=6144`）：
+在此程式碼樹上測得的結果（`--target runner-base`、`OMNIROUTE_BUILD_MEMORY_MB=6144`）：
 
-| 打包工具  | 容器上限       | 結果                            |
-| --------- | -------------- | ------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | 兩者皆被 OOM 終止，且無任何訊息 |
-| webpack   | 8 GiB          | 建置工作程序被 SIGKILL 終止     |
-| webpack   | 12 GiB         | 成功，尖峰值為 11.1 GiB         |
+| 打包工具  | 容器上限       | 結果                        |
+| --------- | -------------- | --------------------------- |
+| Turbopack | 8 GiB / 16 GiB | 兩種情況皆遭 OOM 無聲終止   |
+| webpack   | 8 GiB          | 建置工作程序遭 SIGKILL 終止 |
+| webpack   | 12 GiB         | 成功，尖峰值為 11.1 GiB     |
 
 ### 執行階段預設值
 
-`runner-base` 匯出的預設值：`PORT=20128`、`HOSTNAME=0.0.0.0`、`OMNIROUTE_MEMORY_MB=1024`、`NODE_OPTIONS=--max-old-space-size=1024`、`DATA_DIR=/app/data`、`OMNIROUTE_MIGRATIONS_DIR=/app/migrations`。
+由 `runner-base` 匯出的預設值：`PORT=20128`、`HOSTNAME=0.0.0.0`、`OMNIROUTE_MEMORY_MB=1024`、`NODE_OPTIONS=--max-old-space-size=1024`、`DATA_DIR=/app/data`、`OMNIROUTE_MIGRATIONS_DIR=/app/migrations`。
 
 Docker 中的記憶體行為：
 
-- 映像檔會設定 `OMNIROUTE_MEMORY_MB=1024`，並由此衍生出 `NODE_OPTIONS=--max-old-space-size=1024`。
+- 映像會設定 `OMNIROUTE_MEMORY_MB=1024`，並據此衍生出 `NODE_OPTIONS=--max-old-space-size=1024`。
 - 實際的伺服器程序由獨立啟動器啟動；該啟動器會讀取 `OMNIROUTE_MEMORY_MB`，並附加 `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`。
-- Node 會採用最後一個重複的 `--max-old-space-size` 值，因此設定 `OMNIROUTE_MEMORY_MB` 即可控制 Docker 的實際堆積記憶體上限。
-- 由於映像檔一律會設定此值，因此在 Docker 下，啟動器本身依 RAM 校準的備援值永遠不會生效。請根據工作負載明確提高此值（見下表）。對程式設計代理的 `/v1/responses` 而言，`2048` 仍然太小。
+- Node 會使用最後一個重複出現的 `--max-old-space-size` 值，因此設定 `OMNIROUTE_MEMORY_MB` 即可控制 Docker 的實際堆積限制。
+- 由於映像一律會設定此值，因此啟動器本身依 RAM 校準的備援機制在 Docker 下永遠不會套用。請根據工作負載明確提高此值（如下表）。對程式設計代理的 `/v1/responses` 而言，`2048` 仍然太小。
 
 ### 程式設計代理的執行階段 RAM
 
-Docker 預設的 1 GiB 僅是儀表板／輕量聊天的最低需求，並非正式環境的配置。較長的 `POST /v1/responses` 主體（數百則訊息、數十個工具）在壓縮期間會保留多個記憶體內圖形結構。兩個重疊的約 3 MiB／約 75 萬 token 請求，曾在 **12 GiB** 舊生代空間下導致 V8 中止（`FATAL ERROR: Reached heap limit`），也曾觸發 16 GiB cgroup OOM。請參閱 [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)。
+Docker 預設的 1 GiB 僅是儀表板／輕量聊天的最低需求，並非正式環境規格。較長的 `POST /v1/responses` 主體（數百則訊息、數十個工具）會在壓縮期間於記憶體中保留多個圖狀結構。兩個重疊、各約 3 MiB／約 750k token 的請求，曾在 **12 GiB** old-space 下導致 V8 中止（`FATAL ERROR: Reached heap limit`），也曾觸發 16 GiB cgroup OOM。請參閱 [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)。
 
-請將 **cgroup `--memory` 設定得高於堆積記憶體**——原生緩衝區、SQLite 與壓縮過程的中間資料都位於 V8 之外。
+請將 **cgroup `--memory` 設定得高於堆積大小**——原生緩衝區、SQLite 與壓縮中間資料都位於 V8 之外。
 
-| 工作負載                              | `OMNIROUTE_MEMORY_MB`  | 容器／cgroup     | 備註                                                                               |
-| ------------------------------------- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------- |
-| 儀表板、單一輕量聊天                  | `1024`（映像檔預設值） | ≥2 GiB           |                                                                                    |
-| 單一程式設計代理（Claude/Codex/Grok） | `8192`                 | ≥10 GiB          | 一般單一工作階段的 `/v1/responses`                                                 |
-| 兩個並行的長篇 `/v1/responses`        | `10240`–`12288`        | ≥12–16 GiB       | 實測在約 12 GiB 堆積記憶體時發生 V8 中止                                           |
-| 三個以上並行的長上下文                | 請勿在單一程序上執行   | 序列化／更多 RAM | 預設重量級准入限制為 1 個進行中請求；在未增加 RAM 的情況下提高限制，會再次導致中止 |
+| 工作負載                              | `OMNIROUTE_MEMORY_MB` | 容器／cgroup     | 備註                                                                             |
+| ------------------------------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------- |
+| 儀表板、一次輕量聊天                  | `1024`（映像預設值）  | ≥2 GiB           |                                                                                  |
+| 一個程式設計代理（Claude/Codex/Grok） | `8192`                | ≥10 GiB          | 典型的單一工作階段 `/v1/responses`                                               |
+| 兩個並行的長 `/v1/responses`          | `10240`–`12288`       | ≥12–16 GiB       | 實測在約 12 GiB 堆積時發生 V8 中止                                               |
+| 三個以上並行的長上下文                | 不要在單一程序上執行  | 序列化／更多 RAM | 預設的重量級准入限制為 1 個進行中請求；若未增加 RAM 就提高此限制，將再次引發中止 |
 
-當 `OMNIROUTE_MEMORY_MB` **未設定**時，裸機上的 `omniroute serve` 會校準為約 35% 的 RAM（限制在 `[512, 4096]` 範圍內）。Docker 一律設定為 `1024`，因此官方映像檔永遠不會執行該校準。
+在裸機上執行 `omniroute serve` 時，如果**未設定** `OMNIROUTE_MEMORY_MB`，會校準為 RAM 的約 35%（限制於 `[512, 4096]`）。Docker 一律會設定 `1024`，因此官方映像永遠不會執行該校準。
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

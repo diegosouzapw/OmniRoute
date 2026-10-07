@@ -237,14 +237,14 @@ Produkcijski skup izvodi se paralelno s razvojnim compose okruženjem (različit
 
 ## Faze Dockerfilea
 
-Repozitorij isporučuje višefazni Dockerfile (`Dockerfile`). Dostupne su četiri faze; odaberite odgovarajući `target` za svoj slučaj uporabe.
+Repozitorij uključuje višefazni Dockerfile (`Dockerfile`). Dostupne su četiri faze; odaberite odgovarajući `target` za svoj slučaj upotrebe.
 
-| Faza          | Osnovna slika         | Namjena                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Instalira ovisnosti (`npm ci --legacy-peer-deps`) i pokreće `npm run build` (Turbopack prema zadanim postavkama — pogledajte Resursi tijekom izgradnje u nastavku)                                                                                                                       |
-| `runner-base` | `node:26-trixie-slim` | Produkcijsko izvršno okruženje sa samostalnim izlazom Next.js-a. **Ne uključuje CLI-je pružatelja.**                                                                                                                                                                                     |
-| `runner-cli`  | `runner-base`         | Dodaje `git`, `docker.io`, `docker-compose` i globalne CLI-je: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Odaberite ovo za agentske radne tijekove.**                                                                                                          |
-| `runner-web`  | `runner-base`         | Dodaje Playwright i preglednik Chromium (`--with-deps`) za pružatelje web-sesija: `gemini-web`, `claude-web`, `claude-turnstile`. **Odaberite ovo kada koristite te pružatelje** — obična slika bez toga ne uspijeva tijekom zahtjeva (pogledajte napomenu o `-web` pod Kanali izdanja). |
+| Faza          | Osnovna slika         | Namjena                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Instalira ovisnosti (`npm ci --legacy-peer-deps`) i pokreće `npm run build` (Turbopack prema zadanim postavkama — pogledajte Resursi tijekom izgradnje u nastavku)                                                                                                                                        |
+| `runner-base` | `node:26-trixie-slim` | Produkcijsko izvršno okruženje sa samostalnim izlazom Next.js-a. **Ne uključuje CLI-je pružatelja.**                                                                                                                                                                                                      |
+| `runner-cli`  | `runner-base`         | Dodaje `git`, `docker.io`, `docker-compose` i globalne CLI-je: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Odaberite ovo za agentske tijekove rada.**                                                                                                                            |
+| `runner-web`  | `runner-base`         | Dodaje Playwright i preglednik Chromium (`--with-deps`) za pružatelje web-sesija: `gemini-web`, `claude-web`, `claude-turnstile`. **Odaberite ovo kada koristite te pružatelje** — obična slika otkazuje tijekom zahtjeva ako to nije uključeno (pogledajte napomenu o `-web` u odjeljku Kanali izdanja). |
 
 Ručno izgradite određeni cilj:
 
@@ -256,52 +256,62 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Resursi tijekom izgradnje
 
-Tri argumenta izgradnje određuju zahtjevnost faze `builder`. Primjenjuju se samo tijekom izgradnje —
+Tri argumenta izgradnje određuju resurse koje faza `builder` troši. Primjenjuju se samo tijekom izgradnje —
 `OMNIROUTE_MEMORY_MB` (u nastavku) zasebna je postavka za vrijeme izvođenja.
 
-| Argument izgradnje          | Zadano | Učinak                                                                                                                 |
-| --------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | Vrijednost `0` umjesto toga gradi s webpackom. Manja vršna potrošnja memorije, sporije.                                |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Ograničenje V8 heap memorije (`--max-old-space-size`) za pokrenuti `next build`.                                       |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Prosljeđuje vrijednost varijabli `CIRCLE_NODE_TOTAL`; Next izvodi `workers = N - 1` za prikupljanje podataka stranica. |
+| Argument izgradnje          | Zadano | Učinak                                                                                          |
+| --------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` gradi pomoću webpacka: manja vršna potrošnja memorije, sporije. `1` uključuje Turbopack.    |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Ograničenje V8 gomile (`--max-old-space-size`) za pokrenuti `next build`.                       |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Postavlja `CIRCLE_NODE_TOTAL`; Next izvodi `workers = N - 1` za prikupljanje podataka stranica. |
 
-`OMNIROUTE_BUILD_WORKERS` treba povećati na snažnom sustavu za izgradnju, a na njega treba
-posumnjati kada izgradnja s ograničenim resursima ne uspije **nakon** poruke `✓ Compiled successfully`. Svaki
-radni proces za podatke stranica zaseban je proces, kao i nadređeni proces `next build`;
-reprodukcija na aktivnom VPS-u (problem #7518) izmjerila je vršni RSS svakog procesa na
-~4,5 GB neovisno o zastavici heap memorije `NODE_OPTIONS` (Turbopack kompilira u
-nativnoj/Rust memoriji izvan V8 heap memorije). Zadana vrijednost `2` (→ 1 radni proces, ukupno 2
-procesa) prilagođena je GitHubovim hostiranim izvršiteljima sa 16 GB / 4 vCPU-a koje
-koristi proces objavljivanja. Pri vrijednosti `8` (→ 7 radnih procesa) tom je izvršitelju ponestalo memorije i
-buildkit nije uspio izvršiti korak uz poruku `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 radna procesa) i dalje nije stalo nakon što je RSS po procesu izravno izmjeren
-umjesto da bude procijenjen. `tests/unit/docker-build-memory-budget.test.ts`
-izvodi izračun na temelju izmjerene vrijednosti i ne uspijeva ako bilo koja postavka
-preraste kapacitet izvršitelja.
+`OMNIROUTE_BUILD_WORKERS` treba povećati na velikom sustavu za izgradnju, a na
+njega treba posumnjati kada izgradnja s ograničenim resursima prekine **nakon**
+`✓ Compiled successfully`. Svaki proces za obradu podataka stranica zaseban je
+proces, kao i sam nadređeni proces `next build`; reprodukcija na aktivnom VPS-u
+(problem #7518) izmjerila je vršni RSS svakog procesa na ~4.5 GB, neovisno o
+zastavici gomile `NODE_OPTIONS` (Turbopack prevodi u izvornoj/Rust memoriji
+izvan V8 gomile). Zadana vrijednost `2` (→ 1 radni proces, ukupno 2 procesa)
+prilagođena je GitHubovim izvršnim okruženjima s 16 GB / 4 vCPU-a koja koristi
+cjevovod za objavljivanje. Pri vrijednosti `8` (→ 7 radnih procesa) to je
+izvršno okruženje ostalo bez memorije, a buildkit je prekinuo korak pogreškom
+`ResourceExhausted: ... cannot allocate memory`; čak ni `3` (→ 2 radna procesa)
+nije stalo nakon što je RSS po procesu izravno izmjeren umjesto procijenjen.
+`tests/unit/docker-build-memory-budget.test.ts` provodi izračun na temelju
+izmjerene vrijednosti i prijavljuje neuspjeh ako bilo koja postavka preraste
+kapacitet izvršnog okruženja.
 
-Turbopack kompilira u nativnoj Rust memoriji koja se nalazi **izvan** V8 heap memorije, pa je
-`OMNIROUTE_BUILD_MEMORY_MB` ne ograničava. Na hostu s ograničenjem memorije OOM killer tada
-prekida izgradnju signalom SIGKILL bez ikakvog teksta pogreške — ona se jednostavno
-zaustavi usred poruke `Creating an optimized production build`, što izgleda kao zastoj, a
-ne kao nedostatak memorije. Ako host za izgradnju ima ograničene resurse, promijenite alat za pakiranje:
+Turbopack prevodi u izvornoj Rust memoriji koja se nalazi **izvan** V8 gomile,
+pa je `OMNIROUTE_BUILD_MEMORY_MB` ne ograničava. Na računalu s ograničenjem
+memorije OOM killer tada prekida izgradnju signalom SIGKILL bez ikakvog teksta
+pogreške — izgradnja se jednostavno zaustavi usred koraka
+`Creating an optimized production build`, što djeluje kao zastoj, a ne kao
+nedostatak memorije. Zato `Dockerfile` prema zadanim postavkama koristi webpack
+(`OMNIROUTE_USE_TURBOPACK=0`), za razliku od `npm run dev` / `npm run build`,
+gdje je Turbopack zadana postavka u kodu: osnovni `docker build .` bez
+argumenata izgradnje (što pokreću Railway i drugi pružatelji implementacije
+jednim klikom) ne smije se tiho prekinuti na sustavu za izgradnju s ograničenom
+memorijom. Objavljene slike već izričito prosljeđuju
+`OMNIROUTE_USE_TURBOPACK=0` u datoteci `docker-publish.yml`. Na sustavu za
+izgradnju s mnogo RAM-a uključite Turbopack radi brže izgradnje:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
 `webpackBuildWorker` je omogućen, pa `next build` pokreće nadređeni **i** radni
-proces, a svaki zasebno poštuje `OMNIROUTE_BUILD_MEMORY_MB`. Ograničenje spremnika
-postavite na približno dvostruku vrijednost, a ne jednaku vrijednost.
+proces, a svaki zasebno poštuje `OMNIROUTE_BUILD_MEMORY_MB`. Ograničenje
+spremnika postavite na približno dvostruku vrijednost, a ne na samo jednu.
 
 Izmjereno na ovom stablu (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Alat za pakiranje | Ograničenje spremnika | Rezultat                                         |
-| ----------------- | --------------------- | ------------------------------------------------ |
-| Turbopack         | 8 GiB / 16 GiB        | OOM prekid pri oba, bez poruke                   |
-| webpack           | 8 GiB                 | radni proces izgradnje prekinut signalom SIGKILL |
-| webpack           | 12 GiB                | uspjelo, vršna potrošnja 11,1 GiB                |
+| Alat za objedinjavanje | Ograničenje spremnika | Rezultat                                         |
+| ---------------------- | --------------------- | ------------------------------------------------ |
+| Turbopack              | 8 GiB / 16 GiB        | OOM prekid na oba, bez poruke                    |
+| webpack                | 8 GiB                 | radni proces izgradnje prekinut signalom SIGKILL |
+| webpack                | 12 GiB                | uspješno, vršna potrošnja 11.1 GiB               |
 
 ### Zadane postavke tijekom izvođenja
 
@@ -310,24 +320,24 @@ Zadane vrijednosti koje izvozi `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, 
 Ponašanje memorije u Dockeru:
 
 - Slika postavlja `OMNIROUTE_MEMORY_MB=1024` i iz te vrijednosti izvodi `NODE_OPTIONS=--max-old-space-size=1024`.
-- Stvarni poslužiteljski proces pokreće samostalni pokretač, koji čita `OMNIROUTE_MEMORY_MB` i dodaje `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node upotrebljava posljednju ponovljenu vrijednost `--max-old-space-size`, pa postavljanje varijable `OMNIROUTE_MEMORY_MB` određuje efektivno Dockerovo ograničenje memorijske hrpe.
-- Budući da je slika uvijek postavlja, pokretačeva rezervna vrijednost kalibrirana prema RAM-u nikada se ne primjenjuje unutar Dockera. Izričito je povećajte u skladu s radnim opterećenjem (tablica u nastavku). `2048` je i dalje premalo za `/v1/responses` agenata za programiranje.
+- Stvarni poslužiteljski proces pokreće samostalni pokretač koji čita `OMNIROUTE_MEMORY_MB` i dodaje `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node upotrebljava posljednju ponovljenu vrijednost `--max-old-space-size`, pa postavljanje varijable `OMNIROUTE_MEMORY_MB` određuje efektivno ograničenje heap memorije u Dockeru.
+- Budući da je slika uvijek postavlja, vlastita rezervna vrijednost pokretača, prilagođena dostupnom RAM-u, nikada se ne primjenjuje u Dockeru. Izričito je povećajte u skladu s radnim opterećenjem (tablica u nastavku). `2048` je i dalje premalo za `/v1/responses` agenata za programiranje.
 
-### Radna memorija za agente za programiranje
+### RAM tijekom izvođenja za agente za programiranje
 
-Dockerova zadana vrijednost od 1 GiB minimum je za nadzornu ploču i lagani razgovor, a ne veličina za produkcijsko okruženje. Duga tijela zahtjeva `POST /v1/responses` (stotine poruka, deseci alata) tijekom kompresije zadržavaju više grafova u memoriji. Dva preklapajuća zahtjeva veličine ~3 MiB / ~750k tokena prekinula su V8 uz **12 GiB** old-space memorije (`FATAL ERROR: Reached heap limit`), a također su dosegnula OOM ograničenje cgroupa od 16 GiB. Pogledajte [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Zadana Docker vrijednost od 1 GiB donja je granica za nadzornu ploču i kratke razgovore, a ne veličina za produkcijsko okruženje. Duga tijela zahtjeva `POST /v1/responses` (stotine poruka, deseci alata) tijekom kompresije zadržavaju više grafova u memoriji. Dva preklapajuća zahtjeva veličine ~3 MiB / ~750k tokena uzrokovala su prekid V8 pri **12 GiB** old-space memorije (`FATAL ERROR: Reached heap limit`) te također dosegnula OOM ograničenje cgroupa od 16 GiB. Pogledajte [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Postavite **cgroup `--memory` iznad veličine memorijske hrpe** — izvorni međuspremnici, SQLite i privremeni podaci kompresije nalaze se izvan V8.
+Postavite **cgroup `--memory` iznad veličine heapa** — izvorni međuspremnici, SQLite i međurezultati kompresije nalaze se izvan V8.
 
-| Radno opterećenje                                | `OMNIROUTE_MEMORY_MB`     | Spremnik / cgroup            | Napomene                                                                                                                           |
-| ------------------------------------------------ | ------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Nadzorna ploča, jedan lagani razgovor            | `1024` (zadano u slici)   | ≥2 GiB                       |                                                                                                                                    |
-| Jedan agent za programiranje (Claude/Codex/Grok) | `8192`                    | ≥10 GiB                      | Uobičajena pojedinačna sesija `/v1/responses`                                                                                      |
-| Dva istodobna duga zahtjeva `/v1/responses`      | `10240`–`12288`           | ≥12–16 GiB                   | Izmjeren prekid V8 pri memorijskoj hrpi od ~12 GiB                                                                                 |
-| Tri ili više istodobnih dugih konteksta          | nemojte na jednom procesu | serijalizirajte / više RAM-a | Zadano ograničenje zahtjevnog opterećenja iznosi 1 aktivan zahtjev; njegovo povećavanje bez dodatnog RAM-a ponovno uzrokuje prekid |
+| Radno opterećenje                                | `OMNIROUTE_MEMORY_MB`     | Kontejner / cgroup           | Napomene                                                                                                               |
+| ------------------------------------------------ | ------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Nadzorna ploča, jedan kratak razgovor            | `1024` (zadano u slici)   | ≥2 GiB                       |                                                                                                                        |
+| Jedan agent za programiranje (Claude/Codex/Grok) | `8192`                    | ≥10 GiB                      | Tipičan `/v1/responses` s jednom sesijom                                                                               |
+| Dva istodobna duga zahtjeva `/v1/responses`      | `10240`–`12288`           | ≥12–16 GiB                   | Izmjeren prekid V8 pri heapu od ~12 GiB                                                                                |
+| Tri ili više istodobnih dugih konteksta          | nemojte na jednom procesu | serijalizirajte / više RAM-a | Zadano ograničenje zahtjevnih zadataka jest 1 zahtjev u obradi; povećavanje bez dodatnog RAM-a ponovno uzrokuje prekid |
 
-`omniroute serve` na fizičkom sustavu kalibrira približno 35 % RAM-a (ograničeno na `[512, 4096]`) kada `OMNIROUTE_MEMORY_MB` **nije postavljen**. Docker uvijek postavlja vrijednost `1024`, pa se ta kalibracija nikada ne izvršava u službenoj slici.
+`omniroute serve` na fizičkom sustavu kalibrira približno 35% RAM-a (ograničeno na `[512, 4096]`) kada `OMNIROUTE_MEMORY_MB` **nije postavljen**. Docker uvijek postavlja `1024`, pa se ta kalibracija nikada ne izvršava u službenoj slici.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

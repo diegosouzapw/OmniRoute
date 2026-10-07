@@ -4,133 +4,131 @@
 
 ---
 
-# Vodič za uvođenje u OmniRoute Antigravity (Google One AI)
-
-> **Šta dobijate**: Pristup Gemini 3.1 Pro, Gemini 3.7 Flash, Claude Sonnet 4.6 i drugim modelima putem vaše Google One AI Pro pretplate — usmjereno kroz OmniRoute kao jedinstveni gateway.
+> **Šta dobijate**: Pristup modelima Gemini 3.1 Pro, Gemini 3.7 Flash, Claude Sonnet 4.6 i drugim modelima putem pretplate Google One AI Pro — usmjerenim kroz OmniRoute kao objedinjeni pristupni prolaz.
 
 **Zvanične reference**:
 
 - [Google Antigravity](https://antigravity.google) — početna stranica proizvoda
-- [Antigravity Plans & Pricing](https://antigravity.google/pricing) — nivoi pretplate
-- [Antigravity Docs: Plans](https://antigravity.google/docs/plans) — detalji osnovne kvote
-- [Google One AI Plans](https://one.google.com/about/google-ai-plans/) — poređenje Google One pretplata
-- [Antigravity CLI Blog](https://antigravity.google/blog/introducing-google-antigravity-cli) — najava CLI-ja
+- [Antigravity planovi i cijene](https://antigravity.google/pricing) — nivoi pretplate
+- [Antigravity dokumentacija: Planovi](https://antigravity.google/docs/plans) — osnovni detalji o kvotama
+- [Google One AI planovi](https://one.google.com/about/google-ai-plans/) — poređenje Google One pretplata
+- [Blog o Antigravity CLI-ju](https://antigravity.google/blog/introducing-google-antigravity-cli) — najava CLI-ja
 
 ---
 
-## 1. Antigravity vs Antigravity CLI (agy)
+## 1. Antigravity naspram Antigravity CLI-ja (agy)
 
-Oba provajdera dijele **isti Google backend** — identičan OAuth klijent, osvježavanje tokena, krajnje tačke (endpoints) i Google naloge. Razlika je u tome koje modele vidite.
+Oba pružatelja koriste **isti Google backend** — identičan OAuth klijent, osvježavanje tokena, krajnje tačke i Google račune. Razlika je u tome koje modele vidite.
 
-> Pogledajte [najavu Antigravity CLI-ja](https://antigravity.google/blog/introducing-google-antigravity-cli) za zvanično Google-ovo poređenje.
+> Pogledajte [najavu Antigravity CLI-ja](https://antigravity.google/blog/introducing-google-antigravity-cli) za Googleovo zvanično poređenje.
 
-| Aspekt                              | `antigravity` (IDE)                              | `agy` (CLI)                                                |
-| ----------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| **Google proizvod**                 | Antigravity 2.0 / Antigravity IDE                | Antigravity CLI                                            |
-| **Backend**                         | Isti Google Cloud Code API                       | Isti Google Cloud Code API                                 |
-| **OAuth / Token**                   | Isti klijent, isto osvježavanje                  | Isti klijent, isto osvježavanje                            |
-| **Katalog modela**                  | Statička odabrana lista (OmniRoute hardkodirano) | Provjereno uživo sa Google-a putem `:fetchAvailableModels` |
-| **Claude modeli**                   | Sonnet 4.6, Opus 4.6 (po 4 varijante)            | Sonnet 4.6, Opus 4.6 (po 4 varijante)                      |
-| **Gemini imenovanje**               | Čiste oznake (Low/Medium/High)                   | Upstream ID-ovi (extra-low/low/agent)                      |
-| **Dodatni modeli**                  | `gpt-oss-120b-medium`                            | Može uključivati dodatne modele sa Google-a                |
-| **Podrazumijevani slučaj upotrebe** | IDE integracija (VS Code, JetBrains)             | CLI / API pristup                                          |
-| **Kvota**                           | Dijeljena sa agy (isti Google nalog)             | Dijeljena sa antigravity (isti Google nalog)               |
+| Aspekt                       | `antigravity` (IDE)                                      | `agy` (CLI)                                                       |
+| ---------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Googleov proizvod**        | Antigravity 2.0 / Antigravity IDE                        | Antigravity CLI                                                   |
+| **Backend**                  | Isti Google Cloud Code API                               | Isti Google Cloud Code API                                        |
+| **OAuth / token**            | Isti klijent, isto osvježavanje                          | Isti klijent, isto osvježavanje                                   |
+| **Katalog modela**           | Statička odabrana lista (fiksno definirana u OmniRouteu) | Dinamički se provjerava kod Googlea putem `:fetchAvailableModels` |
+| **Claude modeli**            | Sonnet 4.6, Opus 4.6 (po 4 varijante)                    | Sonnet 4.6, Opus 4.6 (po 4 varijante)                             |
+| **Imenovanje Gemini modela** | Jasne oznake (Low/Medium/High)                           | Izvorni ID-ovi (extra-low/low/agent)                              |
+| **Dodatni modeli**           | `gpt-oss-120b-medium`                                    | Može uključivati dodatne Googleove modele                         |
+| **Zadani slučaj upotrebe**   | Integracija s IDE-om (VS Code, JetBrains)                | Pristup putem CLI-ja / API-ja                                     |
+| **Kvota**                    | Dijeli se s agy-jem (isti Google račun)                  | Dijeli se s antigravity-jem (isti Google račun)                   |
 
-**Dostupni modeli (verifikovano eksperimentom, 29.07.2026.)**:
+**Dostupni modeli (potvrđeno eksperimentom, 2026-07-29)**:
 
 - Gemini: 3.6 Flash, 3.5 Flash, 3.1 Pro, 3 Flash, 2.5 Flash (različiti nivoi razmišljanja)
-- Claude: Sonnet 4.6, Opus 4.6 (svaki sa default/low/medium/high varijantama)
-- Ostalo: GPT-OSS 120B Medium
-- **Claude Sonnet 5 NIJE dostupan** — podržane su samo 4.6 varijante
+- Claude: Sonnet 4.6, Opus 4.6 (svaki s varijantama default/low/medium/high)
+- Ostali: GPT-OSS 120B Medium
+- **Claude Sonnet 5 NIJE dostupan** — podržane su samo varijante 4.6
 
-**Zašto se katalog modela razlikuje**: Google-ov CLI je „optimizovan za brzinu i niske režijske troškove“ i „ko-optimizovan sa Gemini modelima“ (prema zvaničnom Google blogu). Web/IDE proizvod je „optimizovan za sveobuhvatnost“. CLI koristi `:fetchAvailableModels` za dinamičko otkrivanje modela, dok IDE koristi statičku odabranu listu.
+**Zašto se katalog modela razlikuje**: Googleov CLI je „optimiziran za brzinu i mala sistemska opterećenja“ i „zajednički optimiziran s Gemini modelima“ (prema Googleovom zvaničnom blogu). Web/IDE proizvod je „optimiziran za sveobuhvatnost“. CLI koristi `:fetchAvailableModels` za dinamičko otkrivanje modela, dok IDE koristi statičku odabranu listu.
 
-**U praksi**: Koristite `agy/` prefiks za Gemini modele (npr. `agy/gemini-3.7-flash-high`). Koristite `antigravity/` za statičku odabranu listu. Oba pogađaju isti Google backend, ali izlažu različito imenovanje modela. Kvota je zajednička — korišćenje bilo kog provajdera se računa u ograničenja istog Google naloga.
+**U praksi**: Koristite prefiks `agy/` za Gemini modele (npr. `agy/gemini-3.7-flash-high`). Koristite `antigravity/` za statičku odabranu listu. Oba pristupaju istom Google backendu, ali koriste različito imenovanje modela. Kvota je zajednička — korištenje bilo kojeg pružatelja računa se u ograničenja istog Google računa.
 
 ---
 
 ## 2. Google One AI Pro: Sistem kvota
 
-> Pogledajte [Antigravity dokumentaciju: Planovi](https://antigravity.google/docs/plans) za zvanične detalje o kvotama i [Promjene u Antigravity planovima](https://antigravity.google/blog/changes-to-antigravity-plans) za najnovija ažuriranja cijena.
+> Pogledajte [Antigravity dokumentaciju: Planovi](https://antigravity.google/docs/plans) za službene detalje o kvotama i [Promjene Antigravity planova](https://antigravity.google/blog/changes-to-antigravity-plans) za najnovije izmjene cijena.
 
-Google Antigravity koristi **dvoslojnu kvotu** zasnovanu na "Obavljenom poslu" (računarska težina), a ne na broju poruka.
+Google Antigravity koristi **dvoslojnu kvotu** zasnovanu na „obavljenom radu“ (računarskom opterećenju), a ne na broju poruka.
 
 ### Dva sloja
 
-| Sloj                | Šta je to                        | Ciklus osvježavanja                                                                       |
-| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
-| **5-satni sprint**  | Trenutni fond "obavljenog posla" | Resetuje se 5 sati nakon prvog zahtjeva u sesiji                                          |
-| **7-dnevna osnova** | Sedmični tvrdi limit             | Nadjačava 5-satno osvježavanje ako se dostigne; zaključava do sljedećeg 7-dnevnog perioda |
+| Sloj                  | Šta predstavlja                              | Ciklus obnavljanja                                                                                    |
+| --------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **5-satni period**    | Trenutno dostupna količina „obavljenog rada“ | Resetuje se 5 sati nakon prvog zahtjeva u sesiji                                                      |
+| **7-dnevna osnovica** | Sedmično strogo ograničenje                  | Ima prednost nad 5-satnim obnavljanjem ako se dosegne; blokira pristup do sljedećeg 7-dnevnog perioda |
 
-**Kako se izračunava "Obavljeni posao"**: Zadaci koji zahtijevaju intenzivan rad agenata (npr. "Refaktoriši cijeli ovaj repozitorij") troše kvotu mnogo brže od jednostavnih zadataka (npr. "Popravi ovu funkciju"). Ne postoji kontrolna tabla u realnom vremenu koja prikazuje potrošnju.
+**Kako se izračunava „obavljeni rad“**: Zadaci koji intenzivno koriste agente (npr. „Refaktoriši cijeli ovaj repozitorij“) troše kvotu mnogo brže od jednostavnih zadataka (npr. „Ispravi ovu funkciju“). Ne postoji kontrolna ploča koja prikazuje potrošnju u stvarnom vremenu.
 
 ### Nivoi planova
 
-| Plan         | Cijena     | Kvota                                           | Sedmični limit                         |
-| ------------ | ---------- | ----------------------------------------------- | -------------------------------------- |
-| Besplatno    | $0         | Smislena kvota, osvježava se sedmično           | Da                                     |
-| AI Pro       | $19.99/mj  | Visoka kvota, 5-satno kontinuirano osvježavanje | Da (nadjačava 5-satno ako se dostigne) |
-| AI Ultra 5x  | $99.99/mj  | 5x Pro kvota                                    | Bez sedmičnog limita                   |
-| AI Ultra 20x | $199.99/mj | 20x Pro kvota                                   | Bez sedmičnog limita                   |
+| Plan         | Cijena      | Kvota                                   | Sedmično ograničenje                                   |
+| ------------ | ----------- | --------------------------------------- | ------------------------------------------------------ |
+| Besplatni    | $0          | Značajna kvota, obnavlja se sedmično    | Da                                                     |
+| AI Pro       | $19.99/mj.  | Visoka kvota, obnavlja se svakih 5 sati | Da (ima prednost nad 5-satnim periodom ako se dosegne) |
+| AI Ultra 5x  | $99.99/mj.  | 5x Pro kvota                            | Nema sedmičnog ograničenja                             |
+| AI Ultra 20x | $199.99/mj. | 20x Pro kvota                           | Nema sedmičnog ograničenja                             |
 
-### Gemini vs Non-Gemini modeli
+### Gemini naspram modela koji nisu Gemini
 
-- **Gemini modeli** (Flash + Pro): Dijele jedno ograničenje stope (rate limit), koje se smanjuje prema API cijenama. Ako je Flash 8x jeftiniji od Pro, dobijate 8x više Flash tokena.
-- **Non-Gemini modeli** (Claude, GPT-OSS): Imaju **zasebna** ograničenja stope. Mogu ostati dostupni čak i kada je Gemini zaključan.
+- **Gemini modeli** (Flash + Pro): Dijele jedno ograničenje učestalosti, koje se troši prema cijenama API-ja. Ako je Flash 8x jeftiniji od modela Pro, dobijate 8x više Flash tokena.
+- **Modeli koji nisu Gemini** (Claude, GPT-OSS): Imaju **zasebna** ograničenja učestalosti. Mogu ostati dostupni čak i kada je Gemini blokiran.
 
-### AI krediti (Prekoračenje)
+### AI krediti (prekoračenje)
 
-> Pogledajte [Google One AI kredite](https://support.google.com/googleone/answer/14534406) kako biste saznali kako krediti funkcionišu.
+> Pogledajte [Google One AI krediti](https://support.google.com/googleone/answer/14534406) da biste saznali kako krediti funkcionišu.
 
-Kada se osnovna kvota iscrpi:
+Kada se osnovna kvota potroši:
 
-- **Nikada**: Sačekajte da se kvota osvježi; prikazuje "Dostignuta kvota osnovnog modela"
-- **Uvijek**: Automatski koristi AI kredite; vraća se na osnovnu kvotu kada se ona osvježi
+- **Nikada**: Čeka da se kvota obnovi; prikazuje „Dosegnuta je osnovna kvota modela“
+- **Uvijek**: Automatski koristi AI kredite; vraća se na osnovnu kvotu kada se ona obnovi
 
-Krediti se kupuju odvojeno i odbijaju se prema standardnim API cijenama.
+Krediti se kupuju zasebno i oduzimaju prema standardnim cijenama API-ja.
 
 ### Ključni detalji
 
-- Kvota se **dijeli na nivou naloga** — isti Google nalog u Antigravity IDE-u, CLI-u i OmniRoute-u dijeli jedan fond kvota
-- Svaki Google nalog ima svoju nezavisnu kvotu — više naloga = više fondova kvota
-- AI Pro korisnici su prijavili **7-dnevna zaključavanja** umjesto 5-satnih resetovanja kada se dostigne sedmična osnova (Google je potvrdio da je ovo namjerno zbog velike potražnje)
+- Kvota se **dijeli na nivou računa** — isti Google račun u Antigravity IDE-u, CLI-ju i OmniRouteu dijeli jednu kvotu
+- Svaki Google račun ima vlastitu nezavisnu kvotu — više računa = više kvota
+- Korisnici plana AI Pro prijavili su **7-dnevne blokade** umjesto resetovanja nakon 5 sati kada se dosegne sedmična osnovica (Google je potvrdio da je to namjerno zbog velike potražnje)
 
-**Kada je vaš nalog iscrpljen**: OmniRoute automatski pokušava ponovo sa sljedećim dostupnim nalogom u kombinovanoj ruti. Nije potrebna ručna intervencija.
+**Kada se kvota vašeg računa potroši**: OmniRoute automatski ponavlja pokušaj sa sljedećim dostupnim računom u kombinovanoj ruti. Nije potrebna ručna intervencija.
 
 ---
 
 ## 3. Kako dobiti projectId
 
-Svaka antigravity/agy veza zahtijeva Google Cloud Code `projectId`. Bez njega, krajnja tačka (endpoint) `/v1internal:models` vraća 404.
+Svaka antigravity/agy veza zahtijeva Google Cloud Code `projectId`. Bez njega, krajnja tačka `/v1internal:models` vraća 404.
 
-### Metoda A: Automatska (Preporučeno)
+### Metoda A: Automatski (preporučeno)
 
-OmniRoute ovo rješava automatski. Kada dodate novi Google nalog putem Dashboard OAuth-a:
+OmniRoute ovo obavlja automatski. Kada dodate novi Google račun putem OAuth-a na kontrolnoj ploči:
 
 1. OmniRoute osvježava token
-2. Poziva `loadCodeAssist` da otkrije `projectId`
-3. Ako projekat ne postoji, poziva `onboardUser` da ga kreira
-4. Ponovo pokušava `loadCodeAssist` da dobije novokreirani `projectId`
+2. Poziva `loadCodeAssist` kako bi otkrio projectId
+3. Ako projekt ne postoji, poziva `onboardUser` kako bi ga kreirao
+4. Ponovo poziva `loadCodeAssist` kako bi dobio novokreirani projectId
 5. Sprema ga u bazu podataka
 
-**Ovo radi za većinu naloga** — nisu potrebni ručni koraci.
+**Ovo funkcioniše za većinu računa** — nisu potrebni ručni koraci.
 
-### Metoda B: Ručno putem agy CLI
+### Metoda B: Ručno putem agy CLI-ja
 
-Ako automatsko otkrivanje ne uspije (pogledajte Odjeljak 5 za situacije kada se ovo dešava):
+Ako automatsko otkrivanje ne uspije (pogledajte Odjeljak 5 da biste saznali kada se to dešava):
 
 ```bash
-# Instalirajte agy CLI (ako već niste)
+# Instalirajte agy CLI (ako već nije instaliran)
 npm install -g @anthropic-ai/agy
 
-# Prijavite se sa svojim Google nalogom
+# Prijavite se svojim Google računom
 agy login
 
-# Odaberite nalog kojem je potrebno uključivanje (onboarding)
-# Ovo pokreće Cloud Code registraciju i dodjeljuje projectId
+# Odaberite račun koji treba uključiti
+# Ovo pokreće registraciju za Cloud Code i dodjeljuje projectId
 ```
 
-Nakon što `agy login` uspije, osvježite token na OmniRoute Dashboard-u. `projectId` će biti automatski otkriven.
+Nakon što `agy login` uspije, osvježite token na OmniRoute kontrolnoj ploči. projectId će biti automatski otkriven.
 
 ### Kako provjeriti
 
@@ -144,7 +142,7 @@ node -e "const db=require('better-sqlite3')('/app/data/storage.sqlite'); \
   ).all(), null, 2))"
 ```
 
-Ili provjerite logove:
+Ili provjerite zapise:
 
 ```
 podman logs omniroute 2>&1 | grep "projectId discovered"
@@ -152,125 +150,127 @@ podman logs omniroute 2>&1 | grep "projectId discovered"
 
 ---
 
-## 4. OAuth Redirect URI
+## 4. OAuth URI za preusmjeravanje
 
 ### Problem
 
-Google OAuth zahtijeva validan redirect URI. OmniRoute-ova zadana vrijednost koristi `http://127.0.0.1:20128/callback` (loopback). Ovo radi za lokalne verzije, ali **ne radi za udaljena raspoređivanja** (npr. server kojem se pristupa putem LAN IP adrese).
+Google OAuth zahtijeva važeći URI za preusmjeravanje. OmniRoute prema zadanim postavkama koristi `http://127.0.0.1:20128/callback` (loopback). Ovo funkcioniše za lokalne verzije, ali **ne funkcioniše za udaljene implementacije** (npr. server kojem se pristupa putem LAN IP adrese).
 
-Google odbija redirect URI-je koji:
+Google odbija URI-je za preusmjeravanje koji:
 
-- Koriste IP adrese (mora biti domen koji završava na `.com`, `.org`, itd.)
-- Se ne podudaraju sa registrovanim redirect URI-jima u konfiguraciji OAuth klijenta
+- Koriste IP adrese (mora se koristiti domena koja završava na `.com`, `.org` itd.)
+- Ne odgovaraju registrovanim URI-jima za preusmjeravanje u konfiguraciji OAuth klijenta
 
 ### Rješenje
 
 **Opcija A: Koristite ugrađeni OAuth tok (zadano)**
 
-- Radi kada pristupate OmniRoute-u sa `localhost` ili `127.0.0.1`
+- Funkcioniše kada OmniRouteu pristupate putem `localhost` ili `127.0.0.1`
 - Nije potrebna konfiguracija
 
-**Opcija B: Prilagođeni OAuth kredencijali**
+**Opcija B: Prilagođeni OAuth pristupni podaci**
 
 - Postavite `ANTIGRAVITY_OAUTH_CLIENT_TYPE=web` u svom okruženju
-- Navedite svoje Google OAuth kredencijale:
+- Navedite vlastite Google OAuth pristupne podatke:
   ```
   GOOGLE_OAUTH_CLIENT_ID=your-client-id
   GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
   ```
-- Registrujte `https://your-domain.com/callback` kao autorizovani redirect URI u Google Cloud konzoli
+- Registrujte `https://your-domain.com/callback` kao ovlašteni URI za preusmjeravanje u konzoli Google Cloud
 
 **Opcija C: Koristite agy CLI za početnu prijavu**
 
-- Pokrenite `agy login` na mašini koja će pristupati OmniRoute-u
-- OAuth tok se završava lokalno, tokeni se pohranjuju
-- Uvezite vezu u OmniRoute putem Dashboard-a
+- Pokrenite `agy login` na računaru koji će pristupati OmniRouteu
+- OAuth tok se završava lokalno i tokeni se pohranjuju
+- Uvezite vezu u OmniRoute putem kontrolne ploče
 
 ### Ograničenja
 
-- Prilagođeni OAuth kredencijali zahtijevaju ime domena (Google ne prihvata IP adrese kao redirect URI-je)
-- Ako nemate domen, umjesto toga koristite Opciju A ili C
+- Prilagođeni OAuth pristupni podaci zahtijevaju naziv domene (Google ne prihvata IP adrese kao URI-je za preusmjeravanje)
+- Ako nemate domenu, koristite opciju A ili C
 
 ---
 
-## 5. Rješavanje problema: Kada automatsko podešavanje ne uspije
+## 5. Rješavanje problema: Kada automatsko postavljanje ne uspije
 
-OmniRoute automatski rješava otkrivanje `projectId`-a i onboarding za većinu naloga. Kada ne uspije, osnovni uzrok je obično jedan od sljedećih:
+OmniRoute automatski obavlja pronalaženje projectId-a i uvođenje za većinu računa. Kada to ne uspije, osnovni uzrok je obično jedan od sljedećih:
 
-### Region naloga je blokiran
+### Regija računa je blokirana
 
-**Simptom**: `agy login` vraća "Eligibility check failed: Your current account is not eligible for Antigravity, because it is not currently available in your location."
+**Simptom**: `agy login` vraća poruku „Provjera podobnosti nije uspjela: Vaš trenutni račun ne ispunjava uslove za Antigravity jer trenutno nije dostupan na vašoj lokaciji.“
 
-**Osnovni uzrok**: Google nalozi imaju pozadinsko polje "Country Association" postavljeno u trenutku registracije. `agy CLI` i Cloud Code API strogo provjeravaju ovo polje — za razliku od web Gemini-ja koji provjerava samo vašu trenutnu IP adresu.
+**Osnovni uzrok**: Google računi imaju pozadinsko polje „Country Association“ koje se postavlja prilikom registracije. agy CLI i Cloud Code API strogo provjeravaju ovo polje — za razliku od web-verzije Geminija, koja provjerava samo vašu trenutnu IP adresu.
 
-> Da provjerite ili promijenite region povezan sa vašim nalogom, posjetite [Google Country Association Form](https://policies.google.com/country-association-form).
+> Da biste provjerili ili promijenili regiju povezanu s vašim računom, posjetite [Google obrazac za povezivanje sa zemljom](https://policies.google.com/country-association-form).
 
-**Zašto web Gemini radi, a agy ne**:
+**Zašto web-verzija Geminija funkcioniše, ali agy ne funkcioniše**:
 
-- Web Gemini / Google One: provjerava samo trenutnu IP adresu (proxy prolazi)
-- `agy CLI` / Cloud Code API: čita pozadinsko polje Country Association (proxy ne pomaže)
+- Web Gemini / Google One: provjerava samo trenutnu IP adresu (proxy omogućava prolaz)
+- agy CLI / Cloud Code API: čita pozadinsko polje Country Association (proxy ne pomaže)
 
 **Rješenje**:
 
-1. Posjetite [Google Country Association Form](https://policies.google.com/country-association-form) dok ste na US IP adresi
-2. Podnesite zahtjev za promjenu regiona (odaberite "I live in a different country")
-3. Sačekajte 1-24 sata da Google obradi + obavještenje putem e-pošte
-4. Tada bi `agy login` trebao uspjeti
+1. Posjetite [Google obrazac za povezivanje sa zemljom](https://policies.google.com/country-association-form) dok koristite IP adresu iz SAD-a
+2. Pošaljite zahtjev za promjenu regije (odaberite „Živim u drugoj zemlji“)
+3. Sačekajte 1–24 sata da Google obradi zahtjev i pošalje obavijest e-poštom
+4. Nakon toga bi `agy login` trebao uspjeti
 
-### Nalog nema Cloud Code projekat
+### Račun nema Cloud Code projekt
 
-**Simptom**: Logovi pokazuju `loadCodeAssist returned no project id` i `onboardUser failed (400)`.
+**Simptom**: Zapisi prikazuju `loadCodeAssist returned no project id` i `onboardUser failed (400)`.
 
-**Osnovni uzrok**: Nalog nikada nije registrovan sa Google Cloud Code-om, a automatski onboarding nije uspio.
+**Osnovni uzrok**: Račun nikada nije bio registrovan u servisu Google Cloud Code, a automatsko uvođenje nije uspjelo.
 
-**Rješenje**: Pokrenite `agy login` ručno da pokrenete Cloud Code registraciju, a zatim osvježite token na OmniRoute Dashboard-u.
+**Rješenje**: Ručno pokrenite `agy login` kako biste aktivirali registraciju u servisu Cloud Code, a zatim osvježite token na kontrolnoj ploči OmniRoutea.
 
-### Token je istekao ili opozvan
+### Token je istekao ili je opozvan
 
-**Simptom**: 401 greške u logovima, ili "Token has expired" poruke.
+**Simptom**: Greške 401 u zapisima ili poruke „Token je istekao“.
 
-**Rješenje**: Osvježite token u Dashboard → Providers → agy → Kliknite na ikonu za osvježavanje. Ako je sam refresh token opozvan, morat ćete se ponovo autentifikovati putem OAuth-a.
+**Rješenje**: Osvježite token putem Kontrolna ploča → Pružaoci usluga → agy → Kliknite ikonu za osvježavanje. Ako je sam token za osvježavanje opozvan, morat ćete se ponovo autentificirati putem OAutha.
+
+---
 
 ## Dijagram toka odluka
 
 ```
 Račun ne radi?
 │
-├─ Da li ima projectId u bazi podataka?
-│  ├─ DA → Problem je negdje drugdje (token istekao, ograničenje stope, itd.)
+├─ Ima li projectId u bazi podataka?
+│  ├─ DA → Problem je negdje drugo (token je istekao, ograničenje brzine itd.)
 │  └─ NE ↓
 │
-├─ Da li je povezanost zemlje (Country Association) računa postavljena na ograničenu regiju?
-│  ├─ DA → Promijenite regiju na Google obrascu za povezanost zemlje
+├─ Je li Povezanost zemlje računa postavljena na ograničenu regiju?
+│  ├─ DA → Promijenite regiju putem Google obrasca za povezivanje zemlje
 │  │         (https://policies.google.com/country-association-form)
-│  │         Sačekajte 1-24 sata, pa pokušajte ponovo
+│  │         Sačekajte 1–24 sata, a zatim pokušajte ponovo
 │  └─ NE ↓
 │
-├─ Da li račun ima Google One AI Pro pretplatu?
+├─ Ima li račun pretplatu na Google One AI Pro?
 │  ├─ NE → Prvo se pretplatite na one.google.com
 │  └─ DA ↓
 │
 ├─ Pokušajte automatsko otkrivanje (osvježite token na kontrolnoj tabli)
 │  ├─ Radi → Gotovo
-│  └─ I dalje ne radi ↓
+│  └─ I dalje ne uspijeva ↓
 │
-└─ Ručno: Pokrenite `agy login` na mašini
-   ├─ Radi → Osvježite token na kontrolnoj tabli, projectId otkriven
-   └─ Ne radi → Provjerite poruku o grešci, vjerovatno problem sa regijom ili pretplatom
+└─ Ručno: Pokrenite `agy login` na uređaju
+   ├─ Radi → Osvježite token na kontrolnoj tabli, projectId je otkriven
+   └─ Ne uspijeva → Provjerite poruku o grešci; vjerovatno je problem u regiji ili pretplati
 ```
 
 ---
 
-## Brza referenca
+## Brzi pregled
 
-| Zadatak                   | Komanda / URL                                                                           |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| Promjena regije računa    | [Google Country Association Form](https://policies.google.com/country-association-form) |
-| agy CLI prijava           | `agy login`                                                                             |
-| Provjera projectId u bazi | `SELECT email,project_id FROM provider_connections WHERE provider='agy'`                |
-| Provjera logova           | `podman logs omniroute 2>&1 \| grep projectId`                                          |
-| Osvježavanje tokena       | Kontrolna tabla → Provajderi → agy → Kliknite na ikonu za osvježavanje                  |
+| Zadatak                            | Naredba / URL                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| Promjena regije računa             | [Google obrazac za povezivanje zemlje](https://policies.google.com/country-association-form) |
+| Prijava putem agy CLI-ja           | `agy login`                                                                                  |
+| Provjera projectId u bazi podataka | `SELECT email,project_id FROM provider_connections WHERE provider='agy'`                     |
+| Provjera zapisnika                 | `podman logs omniroute 2>&1 \| grep projectId`                                               |
+| Osvježavanje tokena                | Kontrolna tabla → Pružatelji usluga → agy → Kliknite ikonu za osvježavanje                   |
 
 ---
 
-_Posljednje ažurirano: 2026-07-31. Na osnovu OmniRoute v3.8.50._
+_Posljednje ažuriranje: 2026-07-31. Zasnovano na OmniRoute v3.8.50._

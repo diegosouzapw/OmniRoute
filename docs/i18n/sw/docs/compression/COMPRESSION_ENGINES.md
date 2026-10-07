@@ -7,45 +7,35 @@
 Ukandamizaji wa OmniRoute umejengwa kuzunguka mikataba ya injini. Modi inaweza kuendesha injini moja moja kwa moja
 (`caveman` au `rtk`) au bomba lililopangwa kwa njia bainifu linalotekeleza injini nyingi kwa mpangilio.
 
-## Modi
+## Njia
 
-| Modi         | Njia ya injini                          | Ingizo lililokusudiwa                                          |
-| ------------ | --------------------------------------- | -------------------------------------------------------------- |
-| `off`        | hakuna                                  | Kuhifadhi prompt kama ilivyo kabisa                            |
-| `lite`       | Visaidizi vyepesi vya Caveman           | Usafishaji wa hatari ndogo unaowashwa daima                    |
-| `standard`   | Caveman                                 | Ufupishaji wa prompt ya lugha asilia                           |
-| `aggressive` | Caveman + vifupishaji vya historia/zana | Vipindi virefu vya gumzo                                       |
-| `ultra`      | Caveman + visaidizi vya upogoaji        | Urejeshaji baada ya kufikia kikomo cha muktadha                |
-| `rtk`        | RTK                                     | Towe la terminali, shell, build, test na git                   |
-| `omniglyph`  | OmniGlyph                               | Muktadha-kama-picha kwenye njia asilia ya mtoa huduma          |
-| `stacked`    | Bomba, chaguomsingi `rtk -> caveman`    | Kumbukumbu mchanganyiko za zana na nathari, akiba ya juu zaidi |
+| Njia         | Njia ya injini                                                                         | Ingizo lililokusudiwa                                    |
+| ------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `off`        | hakuna                                                                                 | Uhifadhi kamili wa kidokezo                              |
+| `lite`       | Visadia vya Caveman lite                                                               | Usafishaji usio na hatari, unaoendelea kila wakati       |
+| `standard`   | Caveman                                                                                | Ufupishaji wa kidokezo cha lugha asilia                  |
+| `aggressive` | Caveman + vifupishaji vya historia/zana                                                | Vikao virefu vya gumzo                                   |
+| `ultra`      | Caveman + visadia vya kupunguza                                                        | Urejeshaji wa kikomo cha muktadha                        |
+| `rtk`        | RTK                                                                                    | Pato la terminal, shell, build, test, na git             |
+| `omniglyph`  | OmniGlyph                                                                              | Muktadha kama picha kwenye waya asilia wa mtoa huduma    |
+| `stacked`    | Bomba. Chaguo-msingi la ombi ni `session-dedup -> lite`. `rtk -> caveman` ni ya hiari. | Logi za zana mchanganyiko na nathari, akiba ya juu zaidi |
 
-### Wasifu wa ukandamizaji wa OmniGlyph
+### Wasifu wa mgandamizo wa OmniGlyph
 
-Injini ya `omniglyph` (kifurushi `omniglyph`, 1.4.0+) inakubali wasifu wa kisemantiki wenye jina, unaowekwa
-kwa jumla kupitia `omniglyph.profile` katika mipangilio ya ukandamizaji au kwa kila hatua kupitia usanidi wa
-hatua wa bomba lililopangwa:
+Injini ya `omniglyph` (kifurushi `omniglyph`, 1.4.0+) inakubali wasifu wa kisemantiki uliotajwa, uliowekwa kimataifa kupitia `omniglyph.profile` katika mipangilio ya mgandamizo au kwa kila hatua kupitia usanidi wa hatua wa bomba lililopangwa:
 
-| Wasifu        | Mpaka                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `aggressive`  | Chaguomsingi. Sera iliyopimwa na risiti zilizochapishwa — huunda picha za mfumo, nyaraka za zana na historia nzito |
-| `balanced`    | Huweka hali hai katika muundo asilia, hulinda zamu 8 za mwisho, hukusanya historia ya zamani iliyofungwa           |
-| `coding-safe` | Huweka mamlaka, skima za zana na towe hai la zana katika muundo asilia, hulinda zamu 12 za mwisho                  |
-| `passthrough` | Hupitisha bila kubadilisha; injini inarukwa                                                                        |
+| Wasifu        | Mpaka                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Chaguo-msingi. Sera ambayo risiti zilizochapishwa zilipima — mfumo wa picha, nyaraka za zana na historia mnene |
+| `balanced`    | Huacha hali hai ikiwa asilia, hulinda zamu 8 za mwisho, huangusha historia ya zamani iliyofungwa               |
+| `coding-safe` | Huacha mamlaka, skimu za zana na pato la zana hai zikiwa asilia, hulinda zamu 12 za mwisho                     |
+| `passthrough` | Hupitisha bila kubadilisha; injini inarukwa                                                                    |
 
-Wasifu ni **kikomo cha juu, si cha chini**: `mergeCompressionProfileOptions` katika kifurushi
-hukataa kuruhusu ubatilishaji wa mpigaji kufungua tena njia yenye upotevu ambayo wasifu ulifunga, kwa hivyo
-`preserveSystemPrompt: false` ya hatua mahususi haiwezi kuwezesha tena ukandamizaji wa mfumo chini ya `coding-safe`.
+Wasifu ni **dari, si sakafu**: `mergeCompressionProfileOptions` katika kifurushi inakataa kumruhusu mpigaji simu kubatilisha kufungua tena njia yenye hasara ambayo wasifu uliifunga, kwa hivyo `preserveSystemPrompt: false` kwa kila hatua haiwezi kuwezesha tena mgandamizo wa mfumo chini ya `coding-safe`.
 
-Kama ilivyopimwa kwenye hifadhidata hii ya msimbo: `coding-safe` na `balanced` huongeza `minCompressChars` hadi
-kiwango chake cha juu na kuweka mfumo, skima za zana na matokeo ya zana katika muundo asilia, kwa hivyo kipindi ambacho bado
-hakijakusanya historia husimama kwenye `below_min_chars` na injini haibadilishi chochote. Hiyo
-ndiyo sababu chaguomsingi ni `aggressive` badala ya wasifu salama zaidi.
+Imepimwa kwenye msingi huu wa msimbo: `coding-safe` na `balanced` huongeza `minCompressChars` hadi kiwango chake cha juu na huweka mfumo, skimu za zana na matokeo ya zana yakiwa asilia, kwa hivyo kikao ambacho bado hakijakusanya historia huishia kwenye `below_min_chars` na injini haibadilishi chochote. Ndiyo maana chaguo-msingi ni `aggressive` badala ya wasifu salama zaidi.
 
-Kifurushi huamua mawanda yake yenyewe ya modeli na wasifu kutoka kwenye usanidi wake wa mazingira.
-OmniRoute haikabidhi kamwe uamuzi huo: adapta hubanisha lango la modeli kwenye mawanda yenye
-vizuizi vikali zaidi ya kifurushi, kwa hivyo mipangilio ya mazingira ya seva inaweza tu kupunguza orodha ya yanayoruhusiwa, lakini haiwezi
-kuipanua kupita risiti zilizopimwa za OmniRoute.
+Kifurushi hutatua upeo wake wa modeli na wasifu kutoka kwa usanidi wake wa mazingira. OmniRoute haikabidhi uamuzi kamwe: adapta huweka lango la modeli kwenye upeo mkali zaidi wa kifurushi, kwa hivyo mipangilio ya mazingira ya mwenyeji inaweza tu kupunguza orodha ya kuruhusiwa, kamwe haipanui zaidi ya risiti zilizopimwa za OmniRoute.
 
 ## Sajili ya Injini
 
@@ -387,7 +377,7 @@ vinavyoathiriwa na akiba, n.k.).
 
 ## Uthibitishaji
 
-Vizuizi mahususi vya eneo hili ni:
+Milango inayolengwa kwa eneo hili ni:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

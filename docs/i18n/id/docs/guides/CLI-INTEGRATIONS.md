@@ -4,27 +4,33 @@
 
 ---
 
-OmniRoute menyediakan serangkaian perintah `setup-*` yang mengonfigurasi CLI
-pemrograman (Codex, Claude Code, OpenCode, Cline, …) agar menggunakan OmniRoute sebagai backend-nya — sehingga
-alat tersebut berkomunikasi dengan **satu** endpoint dan OmniRoute merutekannya ke penyedia yang tepat dengan
-fallback otomatis. Setiap perintah membaca katalog model **langsung** dari OmniRoute yang sedang berjalan
-(lokal atau jarak jauh) dan menulis file konfigurasi milik alat tersebut di mesin **Anda**.
-Kunci API direferensikan melalui variabel lingkungan apabila alat tersebut mendukungnya. Perintah yang menyimpan
-file lingkungan lokal milik alat dicatat di bawah ini.
+Untuk manifes executable bersama, environment child yang dibatasi, dan penyiapan
+Gemini persisten, lihat [kontrak peluncuran CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Tersedia juga peluncur generik — `omniroute run <target>` — yang menjalankan
+OmniRoute menyediakan serangkaian perintah `setup-*` yang mengonfigurasi CLI
+pemrograman (Codex, Claude Code, OpenCode, Cline, …) agar menggunakan OmniRoute
+sebagai backend-nya — sehingga alat tersebut berkomunikasi dengan **satu**
+endpoint dan OmniRoute merutekannya ke provider yang tepat dengan fallback
+otomatis. Setiap perintah membaca katalog model **aktif** dari OmniRoute yang
+sedang berjalan (lokal atau jarak jauh) dan menulis file konfigurasi milik alat
+tersebut di mesin **Anda**. API key direferensikan melalui environment variable
+jika alat tersebut mendukungnya. Perintah yang menyimpan file environment lokal
+untuk alat tersebut dicatat di bawah ini.
+
+Tersedia juga launcher generik — `omniroute run <target>` — yang menjalankan
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, atau `gemini` dengan
-lingkungan yang tepat disuntikkan, tanpa menulis konfigurasi apa pun. Target dan
-aliasnya berasal dari manifes kanonis `bin/cli/cli-manifest.mjs`
+environment yang sesuai, tanpa menulis konfigurasi apa pun. Target dan aliasnya
+berasal dari manifes kanonis `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
 `open-code`, `qwen-code`, `gemini-cli`), dan `omniroute completion` menawarkan
-kata target yang sama, yang berasal dari manifes tersebut. Peluncur lama per alat —
+kata target yang sama, yang diturunkan dari manifes. Launcher lama per alat —
 `omniroute launch` (Claude Code) dan `omniroute launch-codex` (Codex) — tetap
 tersedia.
 
-Orientasi penyedia tersedia dari konteks lokal/jarak jauh yang sama. Perintah
-yang mengutamakan API di bawah ini memisahkan autentikasi pengelolaan dari kredensial penyedia
-dan tidak pernah mencetak kredensial dalam keluaran terstruktur:
+Onboarding provider tersedia dari konteks lokal/jarak jauh yang sama.
+Perintah yang mengutamakan API di bawah ini memisahkan autentikasi manajemen
+dari kredensial provider dan tidak pernah mencetak kredensial dalam output
+terstruktur:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,10 +40,19 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Untuk skrip, utamakan `--credential-stdin` atau `--credential-env`; `--credential`
-tetap dipertahankan untuk penggunaan lokal yang terkontrol. `providers remove` memerlukan `--yes` pada
-terminal noninteraktif, dan kelima perintah tersebut mengikuti konteks aktif atau
-opsi global `--base-url`/`--api-key`.
+Untuk skrip, utamakan `--credential-stdin` atau `--credential-env`;
+`--credential` tetap tersedia untuk penggunaan lokal yang terkontrol.
+`providers remove` memerlukan `--yes` pada terminal noninteraktif, dan kelima
+perintah tersebut mematuhi konteks aktif atau opsi global
+`--base-url`/`--api-key`.
+
+Pemilih provider menolak prefiks ID, nama, atau nama provider yang ambigu;
+gunakan ID koneksi lengkap jika beberapa koneksi cocok. Perintah pembuatan dan
+pengeditan membaca kembali koneksi yang disimpan, sedangkan penghapusan
+memverifikasi bahwa koneksi tersebut tidak lagi dapat dibaca. Proses impor
+melewati pasangan provider/nama yang sudah ada. Entri yang diimpor tidak dapat
+menimpa endpoint manajemen, konteks, atau kredensial manajemen yang diberikan
+kepada CLI.
 
 Untuk penyiapan dasar manual satu kali bagi dua integrasi terlengkap, lihat
 pembahasan mendalam per alat:

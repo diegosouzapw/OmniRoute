@@ -9,43 +9,43 @@ OmniRoute saspiešanas pamatā ir dziņu līgumi. Režīms var tieši darbināt 
 
 ## Režīmi
 
-| Režīms       | Dziņa ceļš                                   | Paredzētā ievade                                    |
-| ------------ | -------------------------------------------- | --------------------------------------------------- |
-| `off`        | nav                                          | Precīza uzvednes saglabāšana                        |
-| `lite`       | Caveman vieglie palīgrīki                    | Zema riska, vienmēr aktīva tīrīšana                 |
-| `standard`   | Caveman                                      | Dabiskās valodas uzvedņu saīsināšana                |
-| `aggressive` | Caveman + vēstures/rīku apkopotāji           | Ilgas tērzēšanas sesijas                            |
-| `ultra`      | Caveman + apgriešanas palīgrīki              | Atkopšana pēc konteksta ierobežojuma sasniegšanas   |
-| `rtk`        | RTK                                          | Termināļa, čaulas, būvēšanas, testu un git izvade   |
-| `omniglyph`  | OmniGlyph                                    | Konteksts kā attēls pakalpojumu sniedzēja protokolā |
-| `stacked`    | Konveijers, pēc noklusējuma `rtk -> caveman` | Jaukti rīku žurnāli un proza, maksimāls ietaupījums |
+| Režīms       | Dzinēja ceļš                                                                                          | Paredzētā ievade                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `off`        | nav                                                                                                   | Precīza uzvednes saglabāšana                           |
+| `lite`       | Caveman lite palīgi                                                                                   | Zema riska pastāvīga tīrīšana                          |
+| `standard`   | Caveman                                                                                               | Dabiskās valodas uzvednes kondensācija                 |
+| `aggressive` | Caveman + vēstures/rīku apkopotāji                                                                    | Garās tērzēšanas sesijas                               |
+| `ultra`      | Caveman + apgriešanas palīgi                                                                          | Konteksta ierobežojuma atjaunošana                     |
+| `rtk`        | RTK                                                                                                   | Termināļa, čaulas, būvēšanas, testēšanas un git izvade |
+| `omniglyph`  | OmniGlyph                                                                                             | Konteksts kā attēls vietējā nodrošinātāja vadā         |
+| `stacked`    | Cauruļvads. Pieprasījuma noklusējums ir `session-dedup -> lite`. `rtk -> caveman` ir izvēles iespēja. | Jaukti rīku žurnāli un proza, maksimāli ietaupījumi    |
 
-### OmniGlyph saspiešanas profili
+### OmniGlyph kompresijas profili
 
-`omniglyph` dzinis (pakotne `omniglyph`, 1.4.0+) pieņem nosauktu semantisko profilu, kas tiek iestatīts
-globāli, izmantojot `omniglyph.profile` saspiešanas iestatījumos, vai katram solim atsevišķi, izmantojot
-saliktā konveijera soļa konfigurāciju:
+`omniglyph` dzinējs (pakotne `omniglyph`, 1.4.0+) pieņem nosauktu semantisko profilu, kas iestatīts
+globāli, izmantojot `omniglyph.profile` kompresijas iestatījumos, vai katram solim, izmantojot
+sakrautā cauruļvada soļa konfigurāciju:
 
-| Profils       | Robeža                                                                                                                        |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Noklusējums. Publicētajos mērījumos izmantotā politika — sistēma, rīku dokumentācija un blīva vēsture tiek pārveidota attēlos |
-| `balanced`    | Saglabā aktīvo stāvokli sākotnējā formā, aizsargā pēdējos 8 dialoga gājienus un sakļauj senāku pabeigto vēsturi               |
-| `coding-safe` | Saglabā pilnvarojumu, rīku shēmas un aktīvo rīku izvadi sākotnējā formā, aizsargā pēdējos 12 dialoga gājienus                 |
-| `passthrough` | Maršrutē bez pārveidošanas; dzinis tiek izlaists                                                                              |
+| Profils       | Robeža                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Noklusējums. Politika, ko mēra publicētie kvītis — attēlu sistēma, rīku dokumentācija un blīva vēsture |
+| `balanced`    | Saglabā tiešo stāvokli vietējā formātā, aizsargā pēdējos 8 gājienus, sabrūk vecāku slēgto vēsturi      |
+| `coding-safe` | Saglabā autoritāti, rīku shēmas un tiešo rīku izvadi vietējā formātā, aizsargā pēdējos 12 gājienus     |
+| `passthrough` | Maršrutē bez transformācijas; dzinējs tiek izlaists                                                    |
 
-Profils ir **augšējā, nevis apakšējā robeža**: pakotnes `mergeCompressionProfileOptions`
-neļauj izsaucēja pārrakstījumam no jauna atvērt zudumradošu kanālu, kuru profils ir aizvēris, tāpēc
-vienam solim norādīts `preserveSystemPrompt: false` nevar atkārtoti iespējot sistēmas saspiešanu profilā `coding-safe`.
+Profils ir **griesti, nevis grīda**: `mergeCompressionProfileOptions` pakotnē
+neļauj izsaucējam atcelt zaudējošu joslu, ko profils ir aizvēris, tāpēc katra soļa
+`preserveSystemPrompt: false` nevar atkārtoti iespējot sistēmas kompresiju zem `coding-safe`.
 
-Šajā kodu bāzē veiktie mērījumi rāda: `coding-safe` un `balanced` palielina `minCompressChars` līdz tā
-maksimālajai vērtībai un saglabā sistēmu, rīku shēmas un rīku rezultātus sākotnējā formā, tāpēc sesija, kurā
-vēl nav uzkrāta vēsture, apstājas pie `below_min_chars`, un dzinis neko nepārveido. Tāpēc noklusējuma profils
-ir `aggressive`, nevis visdrošākais profils.
+Mērīts šajā koda bāzē: `coding-safe` un `balanced` paaugstina `minCompressChars` līdz tā
+maksimumam un saglabā sistēmu, rīku shēmas un rīku rezultātus vietējā formātā, tāpēc sesija, kas vēl nav
+uzkrājusi vēsturi, apstājas pie `below_min_chars`, un dzinējs neko netransformē. Tāpēc
+noklusējums ir `aggressive`, nevis drošākais profils.
 
-Pakotne nosaka sava modeļa tvērumu un profilu no savas vides konfigurācijas.
-OmniRoute nekad nedeleģē šo lēmumu: adapteris fiksē modeļa ierobežojumu atbilstoši pakotnes
-visstingrākajam tvērumam, tāpēc resursdatora vides iestatījumi var tikai sašaurināt atļauto sarakstu, bet
-nekad to nepaplašināt ārpus OmniRoute mērījumos apstiprinātā tvēruma.
+Pakotne atrisina savu modeļa tvērumu un profilu no savas vides konfigurācijas.
+OmniRoute nekad nedeleģē lēmumu: adapteris piesaista modeļa vārtus pakotnes
+visierobežojošākajam tvērumam, tāpēc resursdatora vides iestatījumi var tikai sašaurināt atļauto sarakstu, nekad
+to nepaplašinot aiz OmniRoute mērītajām kvītīm.
 
 ## Dzinēju reģistrs
 
@@ -375,7 +375,7 @@ prefiksi u.c.).
 
 ## Validācija
 
-Šīs jomas mērķētās pārbaudes ir:
+Šīs jomas galvenie pārbaudes punkti ir:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

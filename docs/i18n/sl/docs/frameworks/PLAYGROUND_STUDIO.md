@@ -190,14 +190,14 @@ Preverjanje pristnosti: izbirno (`REQUIRE_API_KEY`). Napake prek `buildErrorBody
 
 ## Odpravljanje težav
 
-| Simptom                                         | Vzrok                                 | Rešitev                                                                                             |
-| ----------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Urejevalnik Monaco se ne prikaže na zavihku API | SSR je naložil Monaco                 | Preverite, ali `ApiTab` uporablja `dynamic(..., { ssr: false })`                                    |
-| Primerjalni tokovi se izvajajo zaporedno        | Napačna uporaba `Promise.all`         | Vsi tokovi se morajo zagnati z enim klicem `Promise.all`                                            |
-| Metrike za TTFT prikazujejo `null`              | Obdelovalnik prvega dela ni povezan   | Preverite, ali je `useStreamMetrics.onFirstChunk()` poklican v bralni zanki SSE                     |
-| Prednastavitev se ne ohrani                     | Migracija zbirke podatkov ni izvedena | Zaženite `npm run db:migrate` ali znova zaženite strežnik (migracija se samodejno izvede ob zagonu) |
-| Izboljšava poziva vrne 502                      | Model ni nastavljen v konfiguraciji   | Uporabnik mora pred izboljšavo vnesti ime modela v podokno za konfiguracijo                         |
-| Izvožena koda prikazuje `MISSING_API_KEY`       | Nadomestni niz ni vstavljen           | `codeExport.ts` vedno uporablja `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                        |
+| Simptom                                         | Vzrok                                      | Rešitev                                                                        |
+| ----------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| Urejevalnik Monaco se ne prikaže na zavihku API | SSR je naložil Monaco                      | Preverite, ali `ApiTab` uporablja `dynamic(..., { ssr: false })`               |
+| Primerjalni tokovi se sprožajo zaporedno        | Napačna uporaba `Promise.all`              | Vsi začetki tokov morajo biti sproženi v enem klicu `Promise.all`              |
+| Metrike za TTFT prikazujejo `null`              | Obravnavalnik prvega kosa ni povezan       | Preverite, ali se `useStreamMetrics.onFirstChunk()` kliče v zanki bralnika SSE |
+| Prednastavitev se ne ohrani                     | Migracija zbirke podatkov ni bila izvedena | Znova zaženite strežnik: migracije se ob zagonu izvedejo samodejno             |
+| Izboljšanje poziva vrne 502                     | Model ni nastavljen v konfiguraciji        | Uporabnik mora pred izboljšanjem vnesti ime modela v podokno Config            |
+| Izvožena koda prikazuje `MISSING_API_KEY`       | Nadomestni označevalnik ni vstavljen       | `codeExport.ts` vedno uporablja `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`   |
 
 ---
 

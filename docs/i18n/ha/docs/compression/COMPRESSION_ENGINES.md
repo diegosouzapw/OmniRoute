@@ -7,45 +7,45 @@
 Matsewar OmniRoute an gina ta ne bisa kwangilolin injuna. Wani yanayi na iya tafiyar da injin guda ɗaya kai tsaye
 (`caveman` ko `rtk`) ko kuma tsayayyen jerin matakai da aka tara wanda ke aiwatar da injuna da yawa bisa tsari.
 
-## Yanayoyi
+## Hanyoyi
 
-| Yanayi       | Hanyar injin                             | Shigarwar da aka nufa                                             |
-| ------------ | ---------------------------------------- | ----------------------------------------------------------------- |
-| `off`        | babu                                     | Kiyaye saƙon umarni yadda yake                                    |
-| `lite`       | Ƙananan mataimakan Caveman               | Tsabtacewa mai ƙarancin haɗari koyaushe                           |
-| `standard`   | Caveman                                  | Taƙaita saƙon umarni na harshe na halitta                         |
-| `aggressive` | Caveman + masu taƙaita tarihi/kayan aiki | Dogayen zaman tattaunawa                                          |
-| `ultra`      | Caveman + mataimakan ragewa              | Maidowa daga iyakar mahallin                                      |
-| `rtk`        | RTK                                      | Fitowar terminal, shell, build, test, da git                      |
-| `omniglyph`  | OmniGlyph                                | Mahalli-a-matsayin-hoto a kan layin sadarwar mai samarwa na asali |
-| `stacked`    | Jerin matakai, tsoho `rtk -> caveman`    | Haɗaɗɗun rajistan kayan aiki da rubutu, mafi girman tanadi        |
+| Hanyar       | Hanyar injin                                                                                                                                | Shigarwa da aka yi niyya                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `off`        | babu                                                                                                                                        | Kiyaye umarni daidai                                        |
+| `lite`       | Caveman lite helpers                                                                                                                        | Tsaftacewa mai ƙarancin haɗari koyaushe                     |
+| `standard`   | Caveman                                                                                                                                     | Takaita umarni na harshe na halitta                         |
+| `aggressive` | Caveman + history/tool summarizers                                                                                                          | Zaman tattaunawa mai tsawo                                  |
+| `ultra`      | Caveman + pruning helpers                                                                                                                   | Maido da iyakokin mahallin                                  |
+| `rtk`        | RTK                                                                                                                                         | Terminal, shell, gini, gwaji, da fitarwa na git             |
+| `omniglyph`  | OmniGlyph                                                                                                                                   | Mahalli a matsayin hoto akan wayar mai ba da sabis na asali |
+| `stacked`    | Pipeline. Tsohon buƙata shine `session-dedup -> lite`. `rtk -> caveman` zaɓi ne. Haɗaɗɗen rajistan kayan aiki da rubutu, mafi girman tanadi |
 
-### Bayanan tsarin matsewar OmniGlyph
+### Fasalin matsewa na OmniGlyph
 
-Injin `omniglyph` (kunshin `omniglyph`, 1.4.0+) yana karɓar bayanin tsarin ma’ana mai suna, wanda ake saita shi
-gaba ɗaya ta `omniglyph.profile` a cikin saitunan matsewa ko kuma ga kowane mataki ta hanyar
-saitin matakin jerin matakan da aka tara:
+Injin `omniglyph` (kunshin `omniglyph`, 1.4.0+) yana karɓar fasalin ma'ana mai suna, wanda aka saita
+a duniya ta hanyar `omniglyph.profile` a cikin saitunan matsewa ko kowane mataki ta hanyar
+saitin mataki na pipeline mai tarin yawa:
 
-| Bayanin tsari | Iyaka                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `aggressive`  | Tsoho. Manufofin da rasitocin da aka wallafa suka auna — yana mai da tsarin, takardun kayan aiki da tarihin mai yawa zuwa hotuna |
-| `balanced`    | Yana barin halin da ke gudana a tsarin asali, yana kare juyoyi 8 na ƙarshe, yana haɗa tsohon tarihin da aka rufe                 |
-| `coding-safe` | Yana barin iko, tsarin kayan aiki da fitowar kayan aiki mai gudana a tsarin asali, yana kare juyoyi 12 na ƙarshe                 |
-| `passthrough` | Yana tura bayanai ba tare da sauyawa ba; ana tsallake injin                                                                      |
+| Fasali        | Iyaka                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `aggressive`  | Tsoho. Manufar da aka auna rasit ɗin da aka buga — tsarin hotuna, takardun kayan aiki da tarihin mai yawa |
+| `balanced`    | Yana kiyaye yanayin rayuwa na asali, yana kare juyawa 8 na ƙarshe, yana rufe tsohon tarihin da aka rufe   |
+| `coding-safe` | Yana kiyaye iko, tsarin kayan aiki da fitarwa na kayan aiki kai tsaye, yana kare juyawa 12 na ƙarshe      |
+| `passthrough` | Hanyoyi ba tare da canzawa ba; an tsallake injin                                                          |
 
-Bayanin tsarin **iyakar sama ne, ba iyakar ƙasa ba**: `mergeCompressionProfileOptions` a cikin kunshin
-yana hana sauyin da mai kira ya yi sake buɗe hanyar da ke jawo asara wadda bayanin tsarin ya rufe, saboda haka
-`preserveSystemPrompt: false` na wani mataki ba zai iya sake kunna matsewar tsarin a ƙarƙashin `coding-safe` ba.
+Fasalin shine **rufi, ba bene ba**: `mergeCompressionProfileOptions` a cikin kunshin
+yana ƙin barin mai kira ya sake buɗe hanyar da fasalin ya rufe, don haka `preserveSystemPrompt: false`
+na kowane mataki ba zai iya sake kunna matsewar tsarin a ƙarƙashin `coding-safe` ba.
 
-An auna a kan wannan codebase: `coding-safe` da `balanced` suna ɗaga `minCompressChars` zuwa
-matsakaicinsa mafi girma kuma suna barin tsarin, tsarin kayan aiki da sakamakon kayan aiki a yanayinsu na asali, don haka zaman da bai
-tara tarihi ba tukuna yana tsayawa a `below_min_chars` kuma injin ba ya sauya komai. Wannan
-shi ya sa tsohon zaɓi yake `aggressive` maimakon bayanin tsarin mafi aminci.
+An auna akan wannan codebase: `coding-safe` da `balanced` suna ɗaga `minCompressChars` zuwa iyakar sa
+kuma suna kiyaye tsarin, tsarin kayan aiki da sakamakon kayan aiki na asali, don haka zaman da bai tara
+tarihi ba tukuna yana tsayawa a `below_min_chars` kuma injin baya canza komai. Wannan shine dalilin
+da yasa tsoho shine `aggressive` maimakon mafi aminci fasalin.
 
-Kunshin yana tantance iyakar model da bayanin tsarinsa daga saitin environment nasa.
-OmniRoute ba ya taɓa miƙa wannan shawarar ga wani: adapter yana ɗaure ƙofar model zuwa
-iyaka mafi tsauri ta kunshin, saboda haka saitunan environment na host za su iya ƙara taƙaita allowlist kawai, amma ba za su taɓa
-faɗaɗa shi fiye da rasitocin da OmniRoute ya auna ba.
+Kunshin yana warware iyakar samfurin sa da fasalin sa daga saitin muhallin sa. OmniRoute baya taɓa
+ba da ikon yanke shawara: adaftar yana haɗa ƙofar samfurin zuwa mafi ƙuntatawar iyakar kunshin,
+don haka saitunan muhallin mai masaukin baki na iya iyakance jerin izini kawai, ba zai taɓa faɗaɗa shi
+fiye da rasit ɗin da OmniRoute ya auna ba.
 
 ## Rijistar Injin
 
@@ -387,7 +387,7 @@ masu tasirin cache, da sauransu).
 
 ## Tabbatarwa
 
-Focused gates na wannan ɓangaren su ne:
+Ƙofofin da aka fi mayar da hankali a wannan yanki sune:
 
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts

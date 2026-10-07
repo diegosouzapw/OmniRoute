@@ -4,70 +4,71 @@
 
 ---
 
-> **உண்மையின் மூல ஆதாரம்:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **கடைசியாகப் புதுப்பிக்கப்பட்டது:** 2026-06-28 — v3.8.40
+> **உண்மையின் ஆதாரம்:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **கடைசியாகப் புதுப்பிக்கப்பட்டது:** 2026-09-22 — ஸ்கோப் நேம்ஸ்பேஸ்கள் MCP-SERVER.md ஐக் குறிக்கின்றன
 
-ஒவ்வொரு API கோரிக்கையையும் கட்டுப்படுத்தும், வழித்தடத்தை அறிந்த அங்கீகாரச் செயலாக்கத் தொடர் OmniRoute-இல் உள்ளது. வகைப்படுத்தல் **நிர்ணயிக்கப்பட்டது** மற்றும் **தவறினால் மூடப்படுவது** — வகைப்படுத்த முடியாத எதுவும் `MANAGEMENT` ஆகக் கருதப்பட்டு, அமர்வு அல்லது மேலாண்மைத் தரத்திலான டோக்கனைக் கோரும். வழித்தடங்களைப் பராமரிக்கும் அல்லது புதிய முனைப்புள்ளிகளை வடிவமைக்கும் பொறியாளர்களுக்காக இந்தப் பக்கம் மாதிரியை விளக்குகிறது.
+OmniRoute ஆனது ஒவ்வொரு API கோரிக்கையையும் கட்டுப்படுத்தும் ஒரு வழித்தட-அறிந்த அங்கீகாரப் பைப்லைனைக் கொண்டுள்ளது. வகைப்பாடு **நிர்ணயிக்கக்கூடியது** மற்றும் **தோல்வியுற்றால் மூடும்** — வகைப்படுத்த முடியாத எதுவும் `MANAGEMENT` ஆக முடிவடைகிறது மற்றும் ஒரு அமர்வு அல்லது மேலாண்மை-தர டோக்கனைக் கோருகிறது. இந்த பக்கம் வழித்தடங்களை பராமரிக்கும் அல்லது புதிய இறுதிப்புள்ளிகளை வடிவமைக்கும் பொறியாளர்களுக்கான மாதிரியை விளக்குகிறது.
 
-![AuthZ செயலாக்கத் தொடர் (3 வழித்தட வகைகள் + கொள்கை மதிப்பீடு)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
-> மூலம்: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> ஆதாரம்: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## இரண்டு அங்கீகார முறைகள்
 
 ### 1. API விசை (Bearer)
 
-OpenAI/Anthropic/Gemini-இணக்கமான கிளையன்ட் API-களுக்கும், விசையில் `manage` வரம்பு இருக்கும்போது சில மேலாண்மை வழித்தடங்களுக்கும் பயன்படுத்தப்படுகிறது.
+OpenAI/Anthropic/Gemini-இணக்கமான கிளையன்ட் API-களுக்கும், விசைக்கு `manage` scope இருக்கும்போது சில மேலாண்மை route-களுக்கும் பயன்படுத்தப்படுகிறது.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts`-இல் உள்ள `isValidApiKey()` / `extractApiKey()` மூலம் சரிபார்க்கப்பட்டு, `src/shared/utils/apiAuth.ts` வழியாக மீண்டும் ஏற்றுமதி செய்யப்படுகிறது. சரிபார்ப்பி, `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` சூழல் மாறிகளையும் நிலையான நேரடி-கடத்தல் விசைகளாக ஏற்கிறது (சிக்கல் #1350).
+`src/sse/services/auth.ts`-இல் உள்ள `isValidApiKey()` / `extractApiKey()` மூலம் சரிபார்க்கப்பட்டு, `src/shared/utils/apiAuth.ts` வழியாக மீண்டும் export செய்யப்படுகிறது. நிலையான passthrough விசைகளாக `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` சூழல் மாறிகளையும் validator ஏற்றுக்கொள்கிறது (issue #1350).
 
-### 2. கட்டுப்பாட்டுப் பலகை அமர்வு (auth_token குக்கீ)
+### 2. Dashboard அமர்வு (auth_token cookie)
 
-கட்டுப்பாட்டுப் பலகைப் பக்கங்கள் மற்றும் நிர்வாகச் செயல்பாடுகளுக்கானது.
+Dashboard பக்கங்களுக்கும் admin செயல்பாடுகளுக்கும்.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT சரிபார்ப்பில் வெற்றிபெற்று, **மேலும்** `authenticated: true`-ஐக் கொண்டிருக்கும்போது மட்டுமே ஒரு குக்கீ அமர்வாகும்
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). குக்கீயைப்
-பயன்படுத்தும் ஒவ்வொரு கூறும் (வழித்தடக் காவலர், AuthZ செயலாக்கத் தொடர் புதுப்பிப்பு, WebSocket கைகுலுக்கல், நேரடி
-சேவையகம், `/api/settings/require-login`, `/api/auth/status`) அந்த உதவிச் செயல்பாட்டின் வழியாகச் செல்கிறது.
-`JWT_SECRET` கொண்டு கையொப்பமிடப்பட்ட பிற JWT-களும் உள்ளன — Cursor CLI நேரடி-கடத்தல்,
-விசை வைத்திருப்போருக்காக `iss "omniroute" / aud "cursor-cli"` டோக்கன்களை உருவாக்குகிறது — அவை ஒருபோதும் அமர்வுகளாகாது
+JWT சரிபார்க்கப்பட்டு **மேலும்** அதில் `authenticated: true` இருந்தால் மட்டுமே ஒரு cookie அமர்வாகக் கருதப்படும்
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). அந்த cookie-ஐப் பயன்படுத்தும் ஒவ்வொரு
+consumer-உம் (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh, WebSocket handshake, live
+server, `/api/settings/require-login`, `/api/auth/status`) அந்த helper வழியாகவே செல்கிறது.
+`JWT_SECRET` கொண்டு கையொப்பமிடப்பட்ட பிற JWT-களும் உள்ளன — விசை வைத்திருப்பவர்களுக்காக Cursor CLI passthrough,
+`iss "omniroute" / aud "cursor-cli"` token-களை உருவாக்குகிறது — அவை ஒருபோதும் அமர்வுகளாகக் கருதப்படுவதில்லை
 (#13298).
 
-`src/shared/utils/apiAuth.ts`-இல் உள்ள `isDashboardSessionAuthenticated()` மூலம் சரிபார்க்கப்படுகிறது. JWT-யின் 30 நாள் ஆயுட்காலத்தில் 7 நாட்களுக்கும் குறைவாக மீதமிருக்கும்போது, செயலாக்கத் தொடர் அதைத் தானாகப் புதுப்பிக்கிறது.
+`src/shared/utils/apiAuth.ts`-இல் உள்ள `isDashboardSessionAuthenticated()` மூலம் சரிபார்க்கப்படுகிறது. JWT-யின் 30 நாள் ஆயுட்காலத்தில் 7 நாட்களுக்கும் குறைவாக மீதமிருக்கும்போது pipeline அதைத் தானாகப் புதுப்பிக்கிறது.
 
-சில மேலாண்மை வழித்தடங்கள் **இரண்டு** முறைகளில் ஏதேனும் ஒன்றை ஏற்கின்றன: குக்கீ அல்லது API விசையில் `manage` (அல்லது `admin`) வரம்பு இருக்கும்போது `Bearer <key>`. இதுவே v3.8-இல் சேர்க்கப்பட்ட “API அழைப்புகள் வழியாக உள்ளமைக்கக்கூடியது” என்ற பணிப்போக்கைச் சாத்தியமாக்குகிறது.
+ஒரு அமர்வு அதன் 30 நாட்கள் முடிவதற்கு முன்பே முடிவடையவும் முடியும். ஏனெனில் ஒவ்வொரு token உருவாக்கும் செயல்பாடும் `mintDashboardSessionToken` வழியாகச் செல்கிறது (வழங்கப்பட்ட நேரத்திற்கான `iat` மற்றும் ஓர் அடையாளத்திற்கான `jti`), மேலும் verifier இரண்டு settings-ஐச் சரிபார்க்கிறது: கடவுச்சொல் மாற்றப்படும்போது அமைக்கப்படும் `sessionsValidAfter`; இதனால் அதற்கு முன் வழங்கப்பட்ட ஒவ்வொரு அமர்வும் சரிபார்ப்பில் தோல்வியடையும் (கடவுச்சொல்லை மாற்றிய browser ஒரு புதிய cookie-ஐப் பெறும்), மற்றும் `revokedDashboardSessions`; இதில் `POST /api/auth/logout`, வெளியேறிய அமர்வின் `jti`-ஐச் சேர்க்கிறது. பழைய release மூலம் உருவாக்கப்பட்ட அமர்வுகளில் இந்த இரண்டு claim-களும் இருக்காது; அவை முதல் கடவுச்சொல் மாற்றம் வரை செல்லுபடியாக இருக்கும். settings-ஐப் படிக்க முடியாவிட்டால், அமர்வு நம்பகமானதாகக் கருதப்படாது.
 
-#### விருப்பத்தேர்வு OIDC உள்நுழைவு வாயில் (#6973)
+சில மேலாண்மை route-கள் **இரண்டு** முறைகளில் ஏதேனும் ஒன்றை ஏற்கின்றன: cookie அல்லது API விசைக்கு `manage` (அல்லது `admin`) scope இருக்கும்போது `Bearer <key>`. v3.8-இல் சேர்க்கப்பட்ட "API அழைப்புகள் மூலம் உள்ளமைக்கக்கூடியது" என்ற பணிப்பாய்வை இதுவே செயல்படுத்துகிறது.
 
-இயல்புநிலை கடவுச்சொல் உள்நுழைவுடன் சேர்த்து, கட்டுப்பாட்டுப் பலகை நிர்வாகி உள்நுழைவு ஒரு **விருப்பத்தேர்வு** OIDC (OpenID Connect) ஓட்டத்தையும் ஆதரிக்கிறது — கடவுச்சொல் உள்நுழைவு ஒருபோதும் அகற்றப்படாது; அது கூடுதல் முறையால் மட்டுமே நிறைவு செய்யப்படுகிறது:
+#### விருப்பத்திற்குரிய OIDC உள்நுழைவு வாயில் (#6973)
 
-- `settings.oidcEnabled === true` ஆகவும், `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` அனைத்தும் உள்ளமைக்கப்பட்டிருக்கவும் வேண்டும் (அமைப்புகள் → அங்கீகாரம்);
-  இல்லையெனில் இது முடக்கப்பட்டிருக்கும். இல்லையெனில் `GET /api/auth/oidc/login`, `400`-ஐத் திருப்பி அனுப்பும்.
-- `GET /api/auth/oidc/login`, வழங்குநரின்
-  `/.well-known/openid-configuration`-இலிருந்து `authorization_endpoint`-ஐக் கண்டறிந்து (`<issuer>/authorize`-ஐ
-  மாற்றுவழியாகப் பயன்படுத்தும்), உள்வரும் கோரிக்கையிலிருந்து திருப்பிவிடும் URI-ஐ உருவாக்கி
-  (`x-forwarded-proto`-வை உணர்ந்து), `httpOnly` `oidc_state` குக்கீயில் சேமிக்கப்பட்ட சீரற்ற `state` உடன்
-  IdP-க்கு திருப்பிவிடுகிறது.
-- `GET /api/auth/oidc/callback`, `state`-ஐச் சரிபார்த்து, அங்கீகாரக்
-  குறியீட்டைப் பரிமாற்றி, வழங்குநரின் JWKS மூலம் ID டோக்கனின் கையொப்பத்தைச் சரிபார்க்கிறது
-  (`jose`-இன் `createRemoteJWKSet`, ஒவ்வொரு JWKS URI-க்கும் தற்காலிகச் சேமிப்புடன்), மேலும் `issuer`/`audience`
-  சோதனைகளையும் மேற்கொள்கிறது. விருப்பத்தேர்வான `oidcAllowedSubjects` அனுமதிப்பட்டியல், டோக்கனின்
-  `sub` உரிமைக்கூறு அல்லது அதன் `email` உரிமைக்கூறுடன் பொருத்துகிறது — `email_verified === true` ஆக
-  இருக்கும்போது மட்டுமே மின்னஞ்சல் உரிமைக்கூறு ஏற்கப்படும்; எனவே IdP-இல் சரிபார்க்கப்படாத மின்னஞ்சல் ஒருபோதும்
-  வாயிலைக் கடக்க முடியாது.
-- வெற்றிபெற்றால், கடவுச்சொல் உள்நுழைவு வழங்கும் **அதே** 30 நாள் `auth_token` JWT-ஐ இது
-  உருவாக்குகிறது (`src/app/api/auth/login/route.ts`); எனவே கட்டுப்பாட்டுப் பலகை அமர்வுச்
-  செயலாக்கத் தொடரின் மீதிப்பகுதி (தானியங்குப் புதுப்பிப்பு, குக்கீக் கொடிகள்) மாறாமல் இருக்கும் —
-  குக்கீ எவ்வாறு உருவாக்கப்படுகிறது என்பதை மட்டுமே OIDC மாற்றுகிறது, அது வழங்கும் அனுமதிகளை அல்ல.
+இயல்புநிலை கடவுச்சொல் உள்நுழைவுடன் சேர்த்து, dashboard admin உள்நுழைவு ஒரு **தேர்வுசெய்தால் மட்டும் செயல்படும்** OIDC (OpenID Connect) flow-ஐயும் ஆதரிக்கிறது — கடவுச்சொல் உள்நுழைவு ஒருபோதும் அகற்றப்படுவதில்லை; அதற்கு ஒரு கூடுதல் விருப்பம் மட்டுமே சேர்க்கப்படுகிறது:
+
+- `settings.oidcEnabled === true` ஆக இருந்து **மேலும்** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` அனைத்தும் உள்ளமைக்கப்பட்டிருந்தால் மட்டுமே இது இயக்கப்படும் (Settings → Auth).
+  இல்லையெனில் `GET /api/auth/oidc/login`, `400`-ஐத் திருப்பியனுப்பும்.
+- `GET /api/auth/oidc/login`, issuer-இன் `/.well-known/openid-configuration`-இலிருந்து
+  `authorization_endpoint`-ஐக் கண்டறிந்து (`<issuer>/authorize`-ஐ fallback ஆகப் பயன்படுத்தி),
+  உள்வரும் request-இலிருந்து redirect URI-ஐ உருவாக்கி
+  (`x-forwarded-proto`-ஐக் கருத்தில் கொண்டு), `httpOnly` `oidc_state` cookie-இல் சேமிக்கப்பட்டுள்ள சீரற்ற `state` உடன் IdP-க்கு redirect செய்கிறது.
+- `GET /api/auth/oidc/callback`, `state`-ஐச் சரிபார்த்து, authorization
+  code-ஐப் பரிமாற்றி, issuer-இன் JWKS வழியாக ID token-இன் கையொப்பத்தை
+  (`jose`-இன் `createRemoteJWKSet`, ஒவ்வொரு JWKS URI-க்கும் cache செய்யப்பட்டது) `issuer`/`audience`
+  சரிபார்ப்புகளுடன் உறுதிப்படுத்துகிறது. விருப்பத்திற்குரிய `oidcAllowedSubjects` allowlist, token-இன்
+  `sub` claim அல்லது அதன் `email` claim உடன் பொருத்திப் பார்க்கிறது — `email_verified === true` ஆக இருக்கும்போது மட்டுமே
+  email claim ஏற்றுக்கொள்ளப்படும்; எனவே IdP-இல் சரிபார்க்கப்படாத email ஒருபோதும்
+  இந்த வாயிலைக் கடக்க முடியாது.
+- வெற்றியடைந்ததும், கடவுச்சொல் உள்நுழைவு வழங்கும் **அதே** 30 நாள் `auth_token` JWT-ஐ இது உருவாக்குகிறது
+  (`src/app/api/auth/login/route.ts`); எனவே dashboard அமர்வு pipeline-இன் மீதமுள்ள பகுதிகள்
+  (தானியங்கி refresh, cookie flags) மாறாமல் இருக்கும் — cookie எவ்வாறு உருவாக்கப்படுகிறது என்பதை மட்டுமே
+  OIDC மாற்றுகிறது; அது வழங்கும் அனுமதிகளை மாற்றுவதில்லை.
 
 ## வழித்தட வகுப்புகள்
 
@@ -198,26 +199,24 @@ export async function POST(request: Request) {
 
 வசதியின் அடிப்படையில் அல்லாமல், வடிவத்தின் அடிப்படையில் set-ஐத் தேர்ந்தெடுக்கவும். ஒரு route, `PUBLIC_API_ROUTES_EXACT`-இல் (அல்லது GET-only எனில் `PUBLIC_READONLY_CORS_API_ROUTES`-இல்) சேர்க்கப்பட வேண்டும்; உண்மையான subtree மட்டுமே `PUBLIC_API_ROUTE_PREFIXES`-இல் சேர்க்கப்பட வேண்டும், மேலும் அது **`/`-இல் முடிய வேண்டும்**. ஒரு தனிப்பட்ட route-ஐ prefix பட்டியலில் சேர்ப்பது, அதன் தொடக்க எழுத்துகளைப் பகிரும் அருகிலுள்ள ஒவ்வொரு path-ஐயும் பொது அணுகலுக்கு வெளியிடும் — பின்னர் சேர்க்கப்படும் dynamic-segment sibling routes உட்பட (GHSA-74g9-q8f6-793h). `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` மற்றும் `tests/unit/authz/classify.test.ts` ஆகியவற்றிலுள்ள unit tests-ஐப் புதுப்பிக்கவும்.
 
-## ஸ்கோப்புகள்
+## ஸ்கோப்கள்
 
-API விசைகள் ஒரு `scopes` வரிசையைக் கொண்டுள்ளன (`api_keys.scopes`-இல் JSON ஆகச் சேமிக்கப்படுகிறது; `src/lib/db/apiKeys.ts`-ஐப் பார்க்கவும்).
+மூன்று நேம்ஸ்பேஸ்கள். ஒவ்வொரு செக்கரும் அதன் சொந்த ஸ்ட்ரிங்குகளை மட்டுமே படிக்கிறது. `manage` ஏன் `read:compression` க்கான `scopeMatches` ஐத் தவறவிடுகிறது மற்றும் ஒரு `read` அணுகல் டோக்கன் ஏன் `PATCH /api/keys/{id}` ஐச் செய்ய முடியாது என்பது உட்பட, பக்கவாட்டு ஒப்பீடு [மூன்று ஸ்கோப் நேம்ஸ்பேஸ்கள்](../frameworks/MCP-SERVER.md#three-scope-namespaces) ஆகும்.
+
+API கீகள் ஒரு `scopes` வரிசையைக் கொண்டுள்ளன (`api_keys.scopes` இல் JSON ஆக சேமிக்கப்படும், `src/lib/db/apiKeys.ts` ஐப் பார்க்கவும்).
 
 ### மேலாண்மை ஸ்கோப்
 
-- `manage` / `admin` — Bearer ஆக அனுப்பப்படும்போது, மேலாண்மை API எண்ட்பாயிண்டுகளை அணுகுவதற்கான அனுமதியை விசைக்கு வழங்குகிறது.
+- `manage` / `admin` — `hasManageScope`. மேலாண்மை API ரூட்டுகளுக்கான பியரர் அணுகல்.
+- `mcp:connect`, `self:usage`, `self:account-quota`, மற்றும் `policy:bypass-provider-quota` ஆகியவை சேர்க்கக்கூடிய துல்லியமான-பொருந்தும் ஸ்கோப்கள் ஆகும். அவை `MANAGEMENT_API_KEY_SCOPES` க்கு வெளியே உள்ளன. `mcp:connect` ஆனது `/api/mcp/` நான்-லூப் பேக் கார்வ்-அவுட்டை மட்டுமே திறக்கிறது.
 
-### MCP ஸ்கோப்புகள் (`src/shared/constants/mcpScopes.ts`)
+### MCP கருவி ஸ்கோப்கள்
 
-ஒவ்வொரு MCP கருவிக்கும் `MCP_TOOL_SCOPES` வழியாகக் குறிப்பிட்ட ஸ்கோப்புகள் தேவைப்படுகின்றன. முழுப் பட்டியல் (`MCP_SCOPE_LIST`):
+கேட்டலாக் மற்றும் பொருந்தும் விதிகள் (ஒரே மாதிரியான ஸ்ட்ரிங், அல்லது `*` இல் முடிவடையும் ஒரு வழங்கப்பட்ட ஸ்கோப்): [MCP கருவி ஸ்கோப்கள்](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `src/shared/constants/mcpScopes.ts` இல் உள்ள `MCP_SCOPE_LIST` என்பது அசல் டைப் செய்யப்பட்ட துணைக்குழு ஆகும், முழு கேட்டலாக் அல்ல. MCP அங்கீகாரத் தகவல், கோரிக்கை மெட்டாடேட்டா அல்லது `OMNIROUTE_MCP_SCOPES` இலிருந்து ஸ்கோப்களை `resolveCallerScopeContext()` தீர்த்த பிறகு, `open-sse/mcp-server/scopeEnforcement.ts` இல் அமலாக்கம் செயல்படுகிறது. `OMNIROUTE_MCP_ENFORCE_SCOPES=true` ஆக இல்லாவிட்டால் அது அணைக்கப்படும்.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### அணுகல்-டோக்கன் ஸ்கோப்கள்
 
-`resolveCallerScopeContext()` ஆனது MCP அங்கீகாரத் தகவல், கோரிக்கை மெட்டாடேட்டா அல்லது `OMNIROUTE_MCP_SCOPES` ஆகியவற்றிலிருந்து ஸ்கோப்புகளைத் தீர்மானித்த பிறகு, `open-sse/mcp-server/server.ts`-இல் உள்ள ஸ்கோப் அமலாக்கம் ஒவ்வொரு கருவியின் ஸ்கோப் பட்டியலையும் `evaluateToolScopes()`-க்கு அனுப்புகிறது.
+`oma_live_…` டோக்கன்களில் `read` / `write` / `admin`, `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`) மூலம் தரவரிசைப்படுத்தப்பட்டுள்ளது. இந்த தரவரிசை அணுகல்-டோக்கன் நற்சான்றிதழுக்கு மட்டுமே பொருந்தும். [மேலாண்மை அங்கீகாரம்](../guides/MANAGEMENT-AUTH.md) ஐப் பார்க்கவும்.
 
 ## அங்கீகாரம் தேவை நிலைமாற்றி
 
@@ -265,7 +264,7 @@ x-omniroute-auth-scopes:    காற்புள்ளியால் பிர
 
 ## மேலும் காண்க
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ஒவ்வொரு எண்ட்பாயிண்டுக்குமான அங்கீகாரக் குறியீடு
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — அங்கீகார நிகழ்வுகளுக்கான தணிக்கைப் பதிவு
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ஸ்கோப் அமலாக்க விவரங்கள்
-- மூலம்: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ஒவ்வொரு இறுதிப்புள்ளிக்கும் அங்கீகார குறிப்பான்
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — அங்கீகார நிகழ்வுகளுக்கான தணிக்கை பதிவு
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — மூன்று ஸ்கோப் நேம்ஸ்பேஸ்கள் மற்றும் MCP கருவி-ஸ்கோப் பட்டியல்
+- ஆதாரம்: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

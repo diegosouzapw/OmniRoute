@@ -45,25 +45,25 @@ ACP 代理（反向生成流程）：
 
 ## 使用 `setup-*` 自动配置
 
-您无需手动编写每个工具的配置。OmniRoute 为每个支持的 CLI 提供一个 `setup-*` 命令，该命令从正在运行的 OmniRoute（本地或远程）读取 **实时** 模型目录，并在您的机器上写入工具自己的配置：
+您无需手动编写每个工具的配置。OmniRoute 为每个支持的 CLI 提供一个 `setup-*` 命令，该命令从正在运行的 OmniRoute（本地或远程）读取**实时**模型目录，并在您的机器上写入该工具自己的配置：
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-每个命令接受 `--remote <url> --api-key <key>`（将本地工具配置为远程 OmniRoute），`--dry-run`（预览而不写入）和 `--port`。没有模型自动发现的工具（Cline、Kilo、Roo、Goose、Aider、Qwen）需要 `--model <id>`（并且 `--yes` 用于非交互式运行）。要启动一个 CLI，并注入正确的环境而不写入任何配置，请使用通用的 `omniroute run <target>` 启动器（claude、codex、aider、goose、opencode、qwen、gemini — 目标和别名来自 `bin/cli/cli-manifest.mjs`）；遗留的每个工具启动器 `omniroute launch`（Claude Code）和 `omniroute launch-codex`（Codex）仍然可用。Gemini CLI 仅用于启动：它是一个 `omniroute run` 目标，但没有 `setup-*`/`configure` 配方。
+每个命令都接受 `--remote <url> --api-key <key>`（针对远程 OmniRoute 配置本地工具）、`--dry-run`（预览而不写入）和 `--port`。没有模型自动发现功能的工具（Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive）接受 `--model <id>`（以及用于非交互式运行的 `--yes`）。`setup-5dive` 是唯一一个不写入 `$HOME` 的配方：它通过在舰队主机上写入一个由 root 拥有的认证配置文件来配置 5dive 代理舰队，因此它通过 `sudo` 重新执行，并且没有自己的远程模式。要启动一个注入了正确环境变量且完全没有写入配置的 CLI，请使用通用的 `omniroute run <target>` 启动器（claude, codex, aider, goose, opencode, qwen, gemini — 目标和别名来自 `bin/cli/cli-manifest.mjs`）；传统的每个工具启动器 `omniroute launch` (Claude Code) 和 `omniroute launch-codex` (Codex) 仍然可用。Gemini CLI 仅支持启动：它是一个 `omniroute run` 目标，但没有 `setup-*`/`configure` 配方。
 
-> **完整参考：** 主表 — 每个命令写入的内容、每个标志、本地与远程，以及哪些工具需要 `/v1` 后缀 — 位于 **[CLI 集成](../guides/CLI-INTEGRATIONS.md)**。
+> **完整参考：** 主表——每个命令写入的内容、每个标志、本地与远程的区别，以及哪些工具需要 `/v1` 后缀——位于 **[CLI 集成](../guides/CLI-INTEGRATIONS.md)** 中。
 
 ### 在容器内运行这些命令
 
-在 OmniRoute 容器内执行的 `setup-*` 命令会写入容器自己的主目录，主机 CLI 无法读取，并且随着容器的消失而消失。OmniRoute 检测到这一点并以 `2` 退出，给出说明而不是写入。前进的两种支持方式 — 在主机上安装 CLI 并 `omniroute connect` 到容器，或绑定挂载配置目录并设置 `CLI_CONFIG_HOME`（compose `host` 配置文件）。每个 `setup-*` 命令，以及 `omniroute configure` 和 `omniroute config set`，在配置容器自己的 CLI 时接受 `--allow-container-write`；`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` 对服务器也有相同效果。请参见
-[Docker 指南 → 配置主机 CLI 工具](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)。
+在 OmniRoute 容器内部执行的 `setup-*` 命令会写入容器自己的主目录，而主机 CLI 无法读取该目录，并且该目录会随容器一起消失。OmniRoute 会检测到这种情况，并以 `2` 退出并给出指示，而不是进行写入。有两种支持的解决方案——在主机上安装 CLI 并 `omniroute connect` 到容器，或者绑定挂载配置目录并设置 `CLI_CONFIG_HOME`（compose `host` 配置文件）。当您确实打算配置容器自己的 CLI 时，每个 `setup-*` 命令，以及 `omniroute configure` 和 `omniroute config set`，都接受 `--allow-container-write`；`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` 对服务器也起同样的作用。请参阅 [Docker 指南 → 配置主机 CLI 工具](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)。
 
-仪表板的 **应用端点** (`POST /api/cli-tools/apply`) 强制执行相同的保护：在容器中，目标不是从主机绑定挂载的写入会返回 **`422`**，并带有 `containerEphemeralTarget: true`，安全错误文本，以及对于具有主机配方的工具（claude、codex、opencode、cline、kilo、continue） — 一个 `hostSetupCommand`（例如 `omniroute setup-opencode`）以便在主机上运行；不会写入任何内容。`dryRun: true` 在容器模式下继续工作，并返回生成的内容 + 目标路径而不触及磁盘，因此您可以从仪表板预览并在主机上应用。此行为是故意的，并通过 `tests/unit/api/cli-tools/apply-container-guard.test.ts` 进行回归保护 — 永远不要通过移除保护来“修复” 422。
+仪表板的 **应用端点** (`POST /api/cli-tools/apply`) 强制执行相同的防护措施：在容器中，如果写入的目标未从主机绑定挂载，则会返回 **`422`** 错误，并附带 `containerEphemeralTarget: true`、安全错误文本，以及——对于具有主机配方的工具（claude, codex, opencode, cline, kilo, continue）——一个 `hostSetupCommand`（例如 `omniroute setup-opencode`）以代替在主机上运行；不会写入任何内容。`dryRun: true` 在容器模式下仍然有效，并返回一个经过编辑的预览 + 目标路径，而不会触及磁盘。预览内容不是包含凭据的配置，不能复制或导入。在主机上使用原始工具/基本 URL/API 密钥/模型输入进行应用，或使用指示的主机端设置命令。有关预览头和请求契约，请参阅 [CLI 配置安全](../security/CLI-CONFIGURATION.md)。此行为是故意的，并通过 `tests/unit/api/cli-tools/apply-container-guard.test.ts` 进行回归保护——切勿通过移除防护来“修复”422 错误。
 
 ---
 

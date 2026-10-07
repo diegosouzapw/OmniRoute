@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 ผู้ให้บริการ upstream เนื่องจากไม่มี abort RPC ใน `CloudAgentBase` หากต้องการหยุดการเรียกเก็บเงิน
 จาก upstream ให้ยุติงานผ่านคอนโซลของผู้ให้บริการโดยตรง
 
-## REST API — การเชื่อมต่อกับผู้ให้บริการคลาวด์
+## REST API — การเชื่อมต่อกับผู้ให้บริการ Cloud
 
-ปลายทางเสริมเหล่านี้ภายใต้ `src/app/api/cloud/` ถูกใช้โดยไคลเอนต์ระยะไกล
-(CLI, แอป Electron หรือเวิร์กเกอร์ซิงค์) เพื่ออ่านข้อมูลเมตาของการเชื่อมต่อผู้ให้บริการ
-และแปลงชื่อแทนของโมเดล ปลายทางเหล่านี้ตรวจสอบสิทธิ์ด้วย **API key ปกติ**
-(ผ่าน `validateApiKey`) ไม่ใช่การตรวจสอบสิทธิ์สำหรับการจัดการที่ใช้โดยปลายทางงาน
+endpoint เสริมเหล่านี้ภายใต้ `src/app/api/cloud/` ถูกใช้โดยไคลเอนต์ระยะไกล
+(เช่น CLI, แอป Electron หรือ worker สำหรับซิงค์) เพื่ออ่านข้อมูลเมตาการเชื่อมต่อของผู้ให้บริการ
+และแปลง alias ของโมเดล endpoint เหล่านี้ตรวจสอบสิทธิ์ด้วย **API key**
+(ผ่าน `validateApiKey`) ไม่ใช่การตรวจสอบสิทธิ์สำหรับการจัดการที่ endpoint ของงานใช้ โดยข้อมูลที่
+`/api/cloud/auth` ส่งกลับจะขึ้นอยู่กับ scope ของ key (ดูด้านล่าง)
 
 | เมธอด | พาธ                             | วัตถุประสงค์                                                                    |
 | ----- | ------------------------------- | ------------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | ตรวจสอบ API key และส่งคืนข้อมูลเมตาการเชื่อมต่อที่ปกปิดแล้วพร้อมชื่อแทนของโมเดล |
+| POST  | `/api/cloud/auth`               | ตรวจสอบ API key และส่งคืนข้อมูลเมตาการเชื่อมต่อที่ปกปิดแล้วพร้อม alias ของโมเดล |
 | PUT   | `/api/cloud/credentials/update` | รีเฟรช `accessToken` / `refreshToken` / `expiresAt`                             |
-| POST  | `/api/cloud/model/resolve`      | แปลงชื่อแทนของโมเดลเป็น `{ provider, model }`                                   |
-| GET   | `/api/cloud/models/alias`       | แสดงชื่อแทนของโมเดลทั้งหมด                                                      |
-| PUT   | `/api/cloud/models/alias`       | กำหนดชื่อแทนของโมเดล (และซิงค์ไปยัง Cloud โดยอัตโนมัติหากเปิดใช้งาน)            |
+| POST  | `/api/cloud/model/resolve`      | แปลง alias ของโมเดลเป็น `{ provider, model }`                                   |
+| GET   | `/api/cloud/models/alias`       | แสดงรายการ alias ของโมเดลทั้งหมด                                                |
+| PUT   | `/api/cloud/models/alias`       | ตั้งค่า alias ของโมเดล (และซิงค์ไปยัง Cloud โดยอัตโนมัติหากเปิดใช้งาน)          |
 
-`/api/cloud/auth` จะไม่ส่งคืน `apiKey` / `accessToken` / `refreshToken` แบบไม่ปกปิด โดยจะ
-ส่งคืน `hasApiKey`, `hasAccessToken`, `hasRefreshToken` และตัวอย่างแบบปกปิด
-(`maskedApiKey`: 4 ตัวแรก + `****` + 4 ตัวสุดท้าย)
+`/api/cloud/auth` จะไม่ส่งคืน `apiKey` / `accessToken` / `refreshToken` แบบดิบ
+แต่จะส่งคืน `hasApiKey`, `hasAccessToken`, `hasRefreshToken` สำหรับการเชื่อมต่อที่ใช้งานอยู่ซึ่ง key
+สามารถใช้ได้ (key ที่ถูกจำกัดด้วย `allowedConnections` จะมองเห็นเฉพาะการเชื่อมต่อเหล่านั้น) สำหรับ API key ที่มี
+scope เป็น `manage` หรือ `admin` ซึ่งรวมถึง deployment key จาก `OMNIROUTE_API_KEY` ระบบจะ
+ส่งคืนตัวอย่างที่ปกปิดแล้ว (`maskedApiKey`: สูงสุด 4 อักขระที่แต่ละด้าน โดยจะน้อยกว่านี้สำหรับ
+key ที่สั้น และจะไม่แสดงเลยหากมีความยาวไม่เกิน 8 อักขระ) และ `projectId` ของการเชื่อมต่อด้วย ฟิลด์ทั้งสองจะไม่ถูก
+รวมอยู่ในการตอบกลับสำหรับ key อื่นใด
 
 ## การค้นหาข้อมูลประจำตัว
 

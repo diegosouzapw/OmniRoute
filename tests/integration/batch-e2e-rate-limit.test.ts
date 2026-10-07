@@ -7,6 +7,7 @@ import http from "node:http";
 import net from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { stopTestProcess } from "../_helpers/stopTestProcess.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-e2e-rl-"));
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -165,7 +166,11 @@ function createServerProcess() {
   const stderrLines: string[] = [];
   let exitInfo: { code: number | null; signal: NodeJS.Signals | null } | null = null;
 
-  const child = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
+  // The management calls below (provider node + API key) only stay open in bootstrap mode for a
+  // loopback peer, and locality comes from the TCP-peer stamp that only the custom server in
+  // run-next.mjs writes. Bare `next dev` (run-next-playwright.mjs) has no stamp, so they fail
+  // closed with 401 — the same trap #11535 and #14403 fixed in the protocol and ecosystem harnesses.
+  const child = spawn(process.execPath, ["scripts/dev/run-next.mjs", "dev"], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,
@@ -252,19 +257,6 @@ async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServ
   );
 }
 
-async function stopProcess(child: ReturnType<typeof spawn>) {
-  if (child.killed) return;
-  child.kill("SIGTERM");
-  const exited = await Promise.race([
-    new Promise<boolean>((resolve) => child.once("exit", () => resolve(true))),
-    sleep(5_000).then(() => false),
-  ]);
-  if (!exited && !child.killed) {
-    child.kill("SIGKILL");
-    await new Promise<void>((resolve) => child.once("exit", () => resolve()));
-  }
-}
-
 async function removeDirWithRetry(dir: string) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -328,13 +320,13 @@ test.before(async () => {
 
 test.after(async () => {
   try {
-    await stopProcess(app.child);
-  } catch {}
-  try {
-    await relay.stop();
-  } catch {}
-  if (fs.existsSync(TEST_DATA_DIR)) {
-    await removeDirWithRetry(TEST_DATA_DIR);
+    if (app) await stopTestProcess(app.child);
+  } finally {
+    try {
+      await relay.stop();
+    } finally {
+      if (fs.existsSync(TEST_DATA_DIR)) await removeDirWithRetry(TEST_DATA_DIR);
+    }
   }
 });
 

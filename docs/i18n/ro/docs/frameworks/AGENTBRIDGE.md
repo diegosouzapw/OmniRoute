@@ -189,18 +189,18 @@ lista comună de excludere pentru antetele hop-by-hop/încadrare (inclusiv auten
 
 Utilizați cardul AgentBridge Server de la `/dashboard/tools/agent-bridge`:
 
-| Acțiune                           | Descriere                                                                                       |
-| --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Pornire server                    | Lansează `src/mitm/server.cjs` pe portul 443                                                    |
-| Oprire server                     | Oprește controlat procesul copil                                                                |
-| Repornire server                  | Oprire + pornire (preia modificările destinației)                                               |
-| Acordare încredere certificatului | Instalează `DATA_DIR/mitm/ca.crt` în depozitul de încredere al sistemului de operare            |
-| Descărcare certificat             | Descarcă `ca.crt` pentru instalare manuală                                                      |
-| Regenerare certificat             | Creează o nouă pereche de chei CA (toate certificatele existente pentru agenți sunt invalidate) |
+| Acțiune                           | Descriere                                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Pornire server                    | Lansează `src/mitm/server.cjs` pe portul 443                                                        |
+| Oprire server                     | Oprește în siguranță procesul copil                                                                 |
+| Repornire server                  | Oprire + pornire (preia modificările țintelor)                                                      |
+| Acordare încredere certificatului | Instalează `DATA_DIR/mitm/ca.crt` în depozitul de certificate de încredere al sistemului de operare |
+| Descărcare certificat             | Descarcă `ca.crt` pentru instalare manuală                                                          |
+| Regenerare certificat             | Creează o nouă pereche de chei CA (toate certificatele existente pentru agenți sunt invalidate)     |
 
 ### 3.2 Acordarea încrederii certificatului
 
-Certificatul CA AgentBridge trebuie să fie considerat de încredere de către sistemul de operare înainte ca IDE-urile să accepte conexiunea MITM.
+Certificatul CA AgentBridge trebuie să fie considerat de încredere de sistemul de operare înainte ca IDE-urile să accepte conexiunea MITM.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -223,32 +223,32 @@ certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 
 Alternativ, utilizați butonul „Acordare încredere certificatului” din panoul de control (rulează comanda corespunzătoare sistemului dvs. de operare, solicitând parola sudo dacă este necesar).
 
-#### IDE-urile bazate pe Electron ignoră depozitul de încredere al sistemului de operare (`NODE_EXTRA_CA_CERTS`)
+#### IDE-urile bazate pe Electron ignoră depozitul de certificate de încredere al sistemului de operare (`NODE_EXTRA_CA_CERTS`)
 
 Unele IDE-uri — în special **Antigravity IDE** și alte aplicații derivate din Electron / VS Code — includ
-propriul lor mediu de execuție Node.js, care **nu consultă depozitul de încredere al sistemului de operare** pentru cererile
-`fetch`/HTTPS de ieșire. Acordarea încrederii CA la nivelul sistemului de operare/NSS este suficientă pentru **backendul** nativ
-al IDE-ului (de exemplu, un server de limbaj Go, care utilizează pachetul CA al sistemului de operare), însă **frontendul Electron**
-va eșua în continuare la negocierea TLS — acest lucru se manifestă prin faptul că aplicația apare ca fiind _deconectată_ sau afișează o
-_„eroare de conexiune”_, chiar dacă jurnalul MITM arată că apelurile de inițializare ale backendului returnează `200`. Sunt necesari
-doi pași, iar ambii sunt importanți:
+propriul lor runtime Node.js, care **nu consultă depozitul de certificate de încredere al sistemului de operare** pentru cererile
+`fetch`/HTTPS de ieșire. Acordarea încrederii CA-ului la nivel de sistem de operare/NSS este suficientă pentru **backendul** nativ al IDE-ului
+(de exemplu, un server de limbaj Go, care utilizează pachetul CA al sistemului de operare), însă **frontendul Electron**
+va eșua în continuare la TLS — acest lucru se manifestă prin _deconectarea_ aplicației sau afișarea unei
+_„erori de conexiune”_, chiar dacă jurnalul MITM arată că apelurile de inițializare ale backendului returnează `200`. Sunt
+necesari doi pași și ambii sunt importanți:
 
-1. Indicați explicit mediului de execuție certificatul CA:
+1. Indicați explicit CA-ul runtime-ului:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
 2. **Lansați IDE-ul din acel shell.** Pornirea acestuia din pictograma de pe desktop / Dock / meniul Start
-   **nu** moștenește variabilele exportate din shell, iar `~/.config/environment.d/*.conf` se aplică numai după
-   o nouă autentificare în mediul grafic. Închideți mai întâi complet IDE-ul — mecanismul de blocare pentru o singură instanță din Electron face ca o a doua
-   lansare doar să aducă în prim-plan procesul existent, iar noul mediu să fie ignorat.
+   **nu** moștenește exporturile shell-ului, iar `~/.config/environment.d/*.conf` se aplică numai după
+   o nouă autentificare în mediul grafic. Închideți complet mai întâi IDE-ul — blocarea pentru instanță unică din Electron înseamnă că o a doua
+   lansare doar focalizează procesul existent, iar noul mediu este ignorat.
 
-Pasul de mai sus privind încrederea la nivelul sistemului de operare + NSS rămâne necesar (stiva de rețea Chromium utilizată de unele fluxuri
+Pasul de acordare a încrederii la nivel de sistem de operare + NSS de mai sus rămâne necesar (stiva de rețea Chromium utilizată de unele fluxuri
 de autentificare citește depozitul NSS al utilizatorului și are propriile fixări statice pentru `*.googleapis.com`, pe care un
 CA considerat de încredere local le suprascrie). `NODE_EXTRA_CA_CERTS` acoperă suplimentar calea Node `fetch`.
 
-### 3.3 Rutarea DNS
+### 3.3 Rutare DNS
 
-Pentru fiecare agent pe care doriți să-l interceptați, gazda sau gazdele sale API trebuie să se rezolve la `127.0.0.1`. AgentBridge gestionează automat intrările din `/etc/hosts` atunci când activați DNS pentru un agent în expertul de configurare.
+Pentru fiecare agent pe care doriți să îl interceptați, gazda sau gazdele API ale acestuia trebuie să se rezolve la `127.0.0.1`. AgentBridge gestionează automat intrările din `/etc/hosts` atunci când activați DNS-ul pentru un agent în expertul de configurare.
 
 Exemple de intrări `/etc/hosts` pentru GitHub Copilot:
 
@@ -259,65 +259,74 @@ Exemple de intrări `/etc/hosts` pentru GitHub Copilot:
 
 ### 3.4 Maparea modelelor
 
-Utilizați tabelul de mapare a modelelor din cardul fiecărui agent pentru a defini mapările sursă → destinație:
+Utilizați tabelul de mapare a modelelor din fiecare card de agent pentru a defini mapările sursă → țintă:
 
-| Model sursă (nativ agentului) | Model destinație (OmniRoute) |
-| ----------------------------- | ---------------------------- |
-| `gpt-4o`                      | `claude-sonnet-4.7`          |
-| `*` (metacaracter)            | `claude-haiku-4.7`           |
+| Model sursă (nativ agentului) | Model țintă (OmniRoute) |
+| ----------------------------- | ----------------------- |
+| `gpt-4o`                      | `claude-sonnet-4.7`     |
+| `*` (metacaracter)            | `claude-haiku-4.7`      |
 
-Metacaracterul `*` mapează orice model nerecunoscut la destinația specificată. Mapările sunt păstrate în tabelul `agent_bridge_mappings`.
+Metacaracterul `*` mapează orice model nerecunoscut la ținta specificată. Datele sunt păstrate în tabelul `agent_bridge_mappings`.
 
-> **Sfat — identificați ID-urile reale ale modelelor agentului.** Un IDE poate trimite nume de modele care diferă de
+> **Sfat — descoperiți ID-urile reale ale modelelor agentului.** Un IDE poate trimite nume de modele care diferă de
 > etichetele din interfața sa și care se schimbă între versiunile majore. De exemplu, **Antigravity 2** trimite
 > `gemini-3.1-pro-low`, `gemini-pro-agent` și `gemini-3.1-flash-lite` prin rețea — nu
 > `gemini-2.5-pro`, afișat în documentația mai veche. Trimiteți un mesaj de chat fără să existe o mapare corespunzătoare: MITM
-> înregistrează valoarea exactă primită în `model:` și lasă cererea să treacă mai departe. Mapați acea valoare literală, iar
-> următoarea cerere va fi interceptată și rutată către destinația dvs.
+> înregistrează valoarea exactă primită pentru `model:` și transmite cererea mai departe. Mapați acea valoare literală, iar
+> următoarea cerere va fi interceptată și rutată către ținta dvs.
 
 ### 3.5 Notificare privind riscurile
 
-AgentBridge interceptează acreditările (tokenuri OAuth, chei API) pe care IDE-ul le utilizează pentru autentificarea la furnizorii din amonte. Acestea sunt **mascate înainte de înregistrarea în jurnal** (consultați §2.7), dar sunt vizibile pentru nivelul MITM al OmniRoute. La prima activare a fiecărui agent este afișată o fereastră modală cu o notificare privind riscurile, care poate fi închisă.
+AgentBridge interceptează datele de autentificare (tokenuri OAuth, chei API) pe care IDE-ul le utilizează pentru autentificarea la furnizorii din amonte. Acestea sunt **mascate înainte de înregistrarea în jurnal** (consultați §2.7), dar sunt vizibile pentru nivelul MITM al OmniRoute. Prima activare a fiecărui agent afișează o fereastră modală cu o notificare privind riscurile, care poate fi închisă.
 
 ### 3.6 Întreținere și diagnosticare
 
-Panoul de control include un card **Întreținere și diagnosticare** (`AgentBridgeMaintenanceCard`, în `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) care prezintă rutele MITM operaționale ce anterior nu aveau interfață de utilizare. Subtitlul său: _„Testați automat fluxul de captură, anulați starea reziduală a sistemului și transferați configurația între dispozitive.”_ Funcțiile auxiliare pentru client ale cardului se află în `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Panoul de control include un card **Întreținere și diagnosticare** (`AgentBridgeMaintenanceCard`, în `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) care expune rutele MITM operaționale care anterior nu aveau interfață de utilizator. Subtitlul acestuia este: _„Testați automat conducta de captură, anulați starea de sistem reziduală și mutați configurația între dispozitive.”_ Funcțiile auxiliare pentru client ale cardului se află în `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Buton                      | Rută                                   | Ce face                                                                                                                                                                                                                                    |
-| -------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Diagnosticare**          | `GET /api/tools/agent-bridge/diagnose` | Rulează autotestul fluxului de captură și afișează un raport pentru fiecare verificare (✓/✗ + sugestie de remediere).                                                                                                                      |
-| **Reparare**               | `POST /api/tools/agent-bridge/repair`  | Anulează starea MITM orfană din sistem (intrări DNS false, CA rădăcină, proxy de sistem) rămasă în urma unei blocări sau a unui SIGKILL. Idempotent — raportează „Nimic de reparat” când starea este curată.                               |
-| **Eliminare CA**           | `DELETE /api/tools/agent-bridge/cert`  | Revocă încrederea și elimină CA-ul rădăcină MITM din depozitul de încredere al sistemului de operare (explicit, idempotent). Este afișat numai când CA-ul este considerat de încredere; necesită o confirmare în linie „Eliminați CA-ul?”. |
-| **Exportare configurație** | `GET /api/tools/agent-bridge/config`   | Descarcă configurația JSON portabilă (consultați §3.7).                                                                                                                                                                                    |
-| **Importare configurație** | `POST /api/tools/agent-bridge/config`  | Încarcă o configurație JSON exportată anterior (consultați §3.7).                                                                                                                                                                          |
+| Buton                   | Rută                                   | Ce face                                                                                                                                                                                                                                    |
+| ----------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Diagnosticare**       | `GET /api/tools/agent-bridge/diagnose` | Rulează autotestul fluxului de captură și afișează un raport pentru fiecare verificare (✓/✗ + sugestie de remediere).                                                                                                                      |
+| **Reparare**            | `POST /api/tools/agent-bridge/repair`  | Anulează starea MITM orfană din sistem (intrări DNS falsificate, CA rădăcină, proxy de sistem) rămasă în urma unei blocări sau a unui SIGKILL. Idempotent — raportează „Nimic de reparat” când starea este curată.                         |
+| **Eliminare CA**        | `DELETE /api/tools/agent-bridge/cert`  | Revocă încrederea și elimină CA-ul rădăcină MITM din depozitul de încredere al sistemului de operare (explicit, idempotent). Este afișat numai când CA-ul este considerat de încredere; necesită o confirmare în linie „Eliminați CA-ul?”. |
+| **Export configurație** | `GET /api/tools/agent-bridge/config`   | Descarcă configurația JSON portabilă (consultați §3.7).                                                                                                                                                                                    |
+| **Import configurație** | `POST /api/tools/agent-bridge/config`  | Încarcă o configurație JSON exportată anterior (consultați §3.7).                                                                                                                                                                          |
 
-**Verificări de diagnosticare** (`summarizeDiagnostics()` din `src/mitm/inspector/diagnostics.ts`). Ruta rulează verificarea cu efecte pentru fiecare element și transmite valorile booleene către funcția pură de sintetizare; sunt returnate un singur verdict `healthy` și o sugestie pentru fiecare eșec:
+Fiecare card de agent are și propriul buton **Restabilire valori implicite** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — o anulare cu un singur clic, specifică fiecărui agent, care elimină falsificarea numai pentru gazdele
+agentului respectiv, șterge mapările de modele salvate și îi resetează starea `dns_enabled`/`setup_completed`,
+astfel încât IDE-ul să comunice din nou cu serviciul upstream real după repornirea completă. Acesta **nu** afectează
+serverul MITM partajat sau CA-ul rădăcină (este posibil ca alți agenți să depindă încă de acestea) — acestea rămân accesibile
+prin cardul Server și acțiunea **Eliminare CA** de mai sus. Pe Windows, încearcă, de asemenea, fără a garanta reușita, să ruleze
+`ipconfig /flushdns`, deoarece clientul DNS Windows memorează în cache intrările din fișierul hosts și, în caz contrar, nu elimină
+o falsificare tocmai ștearsă.
 
-| Numele verificării | Ce verifică                                                 | Sugestie în caz de eșec                                                                                                                                                                       |
-| ------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Procesul serverului MITM este activ                         | „Serverul MITM nu rulează. Porniți-l din fila AgentBridge.”                                                                                                                                   |
-| `server-reachable` | Serverul MITM acceptă conexiuni pe portul său (sondă TCP)   | „Serverul MITM nu acceptă conexiuni pe portul său. Verificați dacă portul este liber și dacă aveți privilegii pentru a-l asocia.”                                                             |
-| `cert-exists`      | Certificatul MITM a fost generat pe disc                    | „Nu a fost generat încă niciun certificat MITM. Generați unul din fila AgentBridge.”                                                                                                          |
-| `cert-trusted`     | CA-ul rădăcină MITM se află în depozitul de încredere al SO | „CA-ul rădăcină MITM nu este considerat de încredere de către depozitul SO, astfel încât interceptarea TLS va eșua. Acordați încredere certificatului din fila AgentBridge.”                  |
-| `dns-configured`   | Numele de gazdă țintă sunt falsificate în `/etc/hosts`      | „Numele de gazdă țintă nu sunt falsificate în /etc/hosts, astfel încât traficul nu ajunge niciodată la proxy. Activați DNS pentru agentul sau agenții al căror trafic doriți să-l capturați.” |
+**Verificări de diagnosticare** (`summarizeDiagnostics()` în `src/mitm/inspector/diagnostics.ts`). Ruta rulează proba cu efecte pentru fiecare verificare și transmite valorile booleene funcției pure de rezumare; este returnat un singur verdict `healthy`, împreună cu o sugestie pentru fiecare eșec:
 
-**Banner pentru starea orfană:** când pagina detectează o stare rămasă în urma unei blocări (falsificare DNS / CA / proxy de sistem), cardul afișează un banner portocaliu — _„O sesiune anterioară a lăsat în urmă o stare de sistem (falsificare DNS, CA sau proxy de sistem). Rulați Reparare pentru a o curăța.”_ — și evidențiază butonul **Reparare**. `Repair` este echivalentul la nivelul aplicației al opțiunii `--cleanup` din ProxyBridge (delegă către `repairMitm()` din `src/mitm/manager.ts`).
+| Numele verificării | Ce verifică                                                 | Sugestie în caz de eșec                                                                                                                                                        |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server-running`   | Procesul serverului MITM este activ                         | „Serverul MITM nu rulează. Porniți-l din fila AgentBridge.”                                                                                                                    |
+| `server-reachable` | Serverul MITM acceptă conexiuni pe portul său (probă TCP)   | „Serverul MITM nu acceptă conexiuni pe portul său. Verificați dacă portul este liber și dacă aveți privilegiile necesare pentru a-l asocia.”                                   |
+| `cert-exists`      | Certificatul MITM a fost generat pe disc                    | „Nu a fost generat încă niciun certificat MITM. Generați unul din fila AgentBridge.”                                                                                           |
+| `cert-trusted`     | CA-ul rădăcină MITM se află în depozitul de încredere al SO | „CA-ul rădăcină MITM nu este considerat de încredere de către depozitul SO, astfel că interceptarea TLS va eșua. Acordați încredere certificatului din fila AgentBridge.”      |
+| `dns-configured`   | Numele de gazdă țintă sunt falsificate în `/etc/hosts`      | „Numele de gazdă țintă nu sunt falsificate în /etc/hosts, astfel că traficul nu ajunge niciodată la proxy. Activați DNS pentru agenții al căror trafic doriți să-l capturați.” |
 
-> CA-ul rădăcină MITM rămâne instalat între opriri și porniri pentru a evita solicitările
-> sudo repetate (același comportament ca mitmproxy/Charles), astfel încât eliminarea sa este o acțiune
-> explicită **Eliminare CA**, în loc să se producă automat la oprire.
+**Banner pentru starea orfană:** când pagina detectează o stare rămasă în urma unei blocări (falsificare DNS / CA / proxy de sistem), cardul afișează un banner chihlimbariu — _„O sesiune anterioară a lăsat în urmă o stare de sistem (falsificare DNS, CA sau proxy de sistem). Rulați Reparare pentru a o curăța.”_ — și evidențiază butonul **Reparare**. `Repair` este echivalentul la nivelul aplicației al opțiunii `--cleanup` din ProxyBridge (delegă operația către `repairMitm()` din `src/mitm/manager.ts`).
 
-### 3.7 Importarea/exportarea configurației portabile
+> CA-ul rădăcină MITM rămâne instalat între opriri și porniri pentru a evita solicitările sudo
+> repetate (același comportament ca în mitmproxy/Charles), astfel că eliminarea sa este o acțiune
+> explicită **Eliminare CA**, în loc să se efectueze automat la oprire.
 
-AgentBridge poate serializa starea **configurabilă de către operator** într-un obiect JSON cu versiune, astfel încât o configurație să poată fi reprodusă pe mai multe sisteme. Serializatorul este `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validat de `AgentBridgeConfigSchema`.
+### 3.7 Importul/exportul configurației portabile
 
-Exportul include exact trei componente (valorile implicite integrate **NU** sunt exportate în mod intenționat, astfel încât importarea să nu le dubleze și să nu intre niciodată în conflict cu acestea):
+AgentBridge poate serializa starea **configurabilă de operator** într-un obiect JSON versionat, astfel încât o configurare să poată fi reprodusă pe mai multe mașini. Serializatorul este `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validat de `AgentBridgeConfigSchema`.
+
+Exportul include exact trei elemente (valorile implicite încorporate **NU** sunt exportate în mod intenționat, astfel încât importarea să nu le dubleze și să nu intre niciodată în conflict cu acestea):
 
 | Câmp             | Sursă                                                            | Note                                                                       |
 | ---------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `bypassPatterns` | modele de ocolire definite de utilizator (`agent_bridge_bypass`) | modelele implicite pentru bănci/administrații publice/okta sunt excluse    |
+| `bypassPatterns` | modele de ocolire definite de utilizator (`agent_bridge_bypass`) | modelele implicite pentru bănci/guvern/okta sunt excluse                   |
 | `customHosts`    | gazde personalizate Traffic Inspector (`inspector_custom_hosts`) | fiecare: `{ host, kind: "llm"\|"app"\|"custom", label? }`                  |
-| `agentMappings`  | mapări de modele pentru fiecare agent (`agent_bridge_mappings`)  | `{ [agentId]: [{ source, target }] }` pentru fiecare agent care are mapări |
+| `agentMappings`  | mapări de modele per agent (`agent_bridge_mappings`)             | `{ [agentId]: [{ source, target }] }` pentru fiecare agent care are mapări |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Exportul include exact trei componente (valorile implicite integrate **NU** sunt
 }
 ```
 
-**Comportamentul la importare** (`POST /api/tools/agent-bridge/config`): modelele de ocolire și mapările pentru fiecare agent sunt **înlocuite integral**; gazdele personalizate sunt adăugate **idempotent** (`INSERT OR IGNORE`). Răspunsul raportează câte elemente din fiecare categorie au fost aplicate:
+**Comportamentul la import** (`POST /api/tools/agent-bridge/config`): modelele de ocolire și mapările per agent **se înlocuiesc integral**; gazdele personalizate sunt adăugate **idempotent** (`INSERT OR IGNORE`). Răspunsul indică numărul de elemente aplicate din fiecare categorie:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Ce **NU** se află în configurație: starea de funcționare a serverului, căile certificatelor, starea DNS pentru fiecare agent, calea către CA-ul din amonte și setările TPROXY — acestea reprezintă starea gazdei/a mediului de execuție, nu preferințe portabile.
+Ce **NU** este inclus în configurație: starea de funcționare a serverului, căile certificatelor, starea DNS per agent, calea către CA-ul din amonte și setările TPROXY — acestea reprezintă starea gazdei/la rulare, nu preferințe portabile.
 
 ---
 
@@ -497,37 +506,38 @@ Dacă AgentBridge interceptează, dar toate solicitările eșuează:
 
 ## §7 Referință API
 
-Toate rutele sunt `LOCAL_ONLY` (numai loopback, impus înainte de autentificare) și `SPAWN_CAPABLE`. Consultați `src/server/authz/routeGuard.ts`.
+Toate rutele sunt `LOCAL_ONLY` (doar loopback, impus înainte de autentificare) și `SPAWN_CAPABLE`. Consultați `src/server/authz/routeGuard.ts`.
 
-Cale de bază: `/api/tools/agent-bridge/`
+Calea de bază: `/api/tools/agent-bridge/`
 
-| Metodă              | Cale                                           | Descriere                                                                                                                                                 |
-| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Starea globală a serverului + detectarea/starea fiecărui agent                                                                                            |
-| GET                 | `/api/tools/agent-bridge/agents`               | Listează agenții înregistrați (id, nume, gazde, viabilitate, stare)                                                                                       |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Starea unui agent (configurația țintă + detectare + starea stocată)                                                                                       |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Actualizează `setup_completed` pentru agent                                                                                                               |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Rulează sonda de detectare pentru agent (`installed`, `version?`, `path?`)                                                                                |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Activează/dezactivează DNS pentru agent (`{enabled: boolean}`)                                                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapările modelelor pentru agent                                                                                                                           |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Înlocuiește mapările modelelor                                                                                                                            |
-| POST                | `/api/tools/agent-bridge/server`               | Pornește/oprește/repornește serverul (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                                              |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Starea certificatului (`exists`, `trusted`, `path`)                                                                                                       |
-| POST                | `/api/tools/agent-bridge/cert`                 | Acordă încredere CA-ului rădăcină MITM (îl instalează)                                                                                                    |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Revocă încrederea CA-ului rădăcină MITM (îl elimină) — operație idempotentă (consultați §3.6)                                                             |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerează certificatul MITM autosemnat                                                                                                                  |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Transmite în flux certificatul PEM pentru descărcare                                                                                                      |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Listează tiparele de ocolire (`default` + `user`)                                                                                                         |
-| POST                | `/api/tools/agent-bridge/bypass`               | Înlocuiește integral tiparele de ocolire definite de utilizator                                                                                           |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Elimină un singur tipar de ocolire definit de utilizator                                                                                                  |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Autotest al fluxului de captură (consultați §3.6)                                                                                                         |
-| POST                | `/api/tools/agent-bridge/repair`               | Anulează starea MITM orfană din sistem (consultați §3.6)                                                                                                  |
-| GET                 | `/api/tools/agent-bridge/config`               | Exportă configurația portabilă în format JSON (consultați §3.7)                                                                                           |
-| POST                | `/api/tools/agent-bridge/config`               | Importă configurația portabilă în format JSON (consultați §3.7)                                                                                           |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Obține calea configurată a CA-ului din amonte                                                                                                             |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validează + persistă calea CA-ului din amonte                                                                                                             |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validează fără a aplica modificările (dry-run) o cale a CA-ului din amonte — nu o persistă                                                                |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Modul de captură TPROXY cu decriptare transparentă — consultați `docs/security/MITM-TPROXY-DECRYPT.md` (git; neinclus în versiunea compilată din `/docs`) |
+| Metodă              | Cale                                           | Descriere                                                                                                                               |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Starea globală a serverului + detectarea/starea fiecărui agent                                                                          |
+| GET                 | `/api/tools/agent-bridge/agents`               | Listează agenții înregistrați (id, nume, gazde, viabilitate, stare)                                                                     |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Starea unui agent (configurația țintă + detectare + starea stocată)                                                                     |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Actualizează `setup_completed` pentru agent                                                                                             |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Rulează sondarea de detectare pentru agent (`installed`, `version?`, `path?`)                                                           |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Activează/dezactivează DNS pentru agent (`{enabled: boolean}`)                                                                          |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapările modelelor pentru agent                                                                                                         |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Înlocuiește mapările modelelor                                                                                                          |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Restabilește valorile implicite: anulează falsificarea DNS pentru acest agent, șterge mapările și îi resetează starea (consultați §3.6) |
+| POST                | `/api/tools/agent-bridge/server`               | Pornește/oprește/repornește serverul (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                            |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Starea certificatului (`exists`, `trusted`, `path`)                                                                                     |
+| POST                | `/api/tools/agent-bridge/cert`                 | Acordă încredere (instalează) CA-ul rădăcină MITM                                                                                       |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Revocă încrederea (elimină) CA-ul rădăcină MITM — operație idempotentă (consultați §3.6)                                                |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerează certificatul MITM autosemnat                                                                                                |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Transmite certificatul PEM pentru descărcare                                                                                            |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Listează tiparele de ocolire (`default` + `user`)                                                                                       |
+| POST                | `/api/tools/agent-bridge/bypass`               | Înlocuiește integral tiparele de ocolire definite de utilizator                                                                         |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Elimină un singur tipar de ocolire definit de utilizator                                                                                |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Autotest al fluxului de captură (consultați §3.6)                                                                                       |
+| POST                | `/api/tools/agent-bridge/repair`               | Anulează starea MITM orfană din sistem (consultați §3.6)                                                                                |
+| GET                 | `/api/tools/agent-bridge/config`               | Exportă configurația JSON portabilă (consultați §3.7)                                                                                   |
+| POST                | `/api/tools/agent-bridge/config`               | Importă configurația JSON portabilă (consultați §3.7)                                                                                   |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Obține calea CA upstream configurată                                                                                                    |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validează + salvează calea CA upstream                                                                                                  |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validează doar (rulare de test) o cale CA upstream — nu o salvează                                                                      |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Modul de captură TPROXY cu decriptare transparentă — consultați `docs/security/MITM-TPROXY-DECRYPT.md` (git; neinclus în `/docs`)       |
 
 Scheme OpenAPI complete: `docs/openapi.yaml` → eticheta `AgentBridge`.
 

@@ -311,8 +311,9 @@ upstream, terminate the task in the provider's own console.
 
 These auxiliary endpoints under `src/app/api/cloud/` are used by remote clients
 (the CLI, the Electron app, or sync workers) to read provider connection metadata
-and resolve model aliases. They are authenticated with a **regular API key**
-(via `validateApiKey`), not the management auth used by the task endpoints.
+and resolve model aliases. They are authenticated with an **API key**
+(via `validateApiKey`), not the management auth used by the task endpoints; what
+`/api/cloud/auth` returns depends on the key's scope (see below).
 
 | Method | Path                            | Purpose                                                             |
 | ------ | ------------------------------- | ------------------------------------------------------------------- |
@@ -323,8 +324,12 @@ and resolve model aliases. They are authenticated with a **regular API key**
 | PUT    | `/api/cloud/models/alias`       | Set a model alias (and auto-sync to Cloud if enabled)               |
 
 `/api/cloud/auth` never returns raw `apiKey` / `accessToken` / `refreshToken`. It
-returns `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, and a masked preview
-(`maskedApiKey`: first 4 + `****` + last 4).
+returns `hasApiKey`, `hasAccessToken`, `hasRefreshToken` for the active connections the key
+may use (a key restricted with `allowedConnections` only sees those). For an API key with
+the `manage` or `admin` scope, including the deployment key from `OMNIROUTE_API_KEY`, it also
+returns a masked preview (`maskedApiKey`: up to 4 characters at each end, fewer for a short
+key, none for 8 characters or fewer) and the connection's `projectId`. Both fields are left
+out of the response for any other key.
 
 ## Credentials Resolution
 

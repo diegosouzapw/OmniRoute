@@ -4,17 +4,27 @@
 
 ---
 
-OmniRoute סורק תגובות שגיאה משירותים במעלה הזרם לאיתור סימנים המעידים ש**החשבון אצל הספק מושבת לצמיתות** (מושעה / מושבת / חסום עקב הפרת תנאי השירות), וכאשר נמצאת התאמה, מעביר את החיבור ל**מצב סופי `banned`**, כך שהוא לא ייבחר עוד לבקשות. זוהי ההגדרה שכרטיס ההגדרות **Security → Banned Keywords** מגדיר ("מילות מפתח נוספות שמפעילות זיהוי של חסימת חשבון לצמיתות. מילות המפתח המובנות חלות תמיד.").
+OmniRoute סורק תגובות שגיאה משירותים במעלה הזרם לאיתור סימנים המעידים שחשבון
+**אצל ספק אינו פעיל לצמיתות** (מושעה / מושבת / נחסם עקב הפרת תנאי השירות), וכאשר
+נמצאת התאמה, מעביר חיבור זה למצב **סופי `banned`**, כך שלא ייבחר עוד
+לבקשות. זהו התפקיד של כרטיס ההגדרות **אבטחה ← מילות מפתח לחסימה**
+("מילות מפתח נוספות שמפעילות זיהוי של חסימת חשבון לצמיתות. מילות המפתח
+המובנות חלות תמיד.").
 
-דף זה מתעד את הרשימה המובנית, את תהליך הזיהוי, את תחולתו, כיצד להוסיף מילות מפתח מותאמות אישית בבטחה וכיצד לשחזר חיבור שסומן. המצב הסופי עצמו הוא חלק ממודל העמידות — ראו
+דף זה מתעד את הרשימה המובנית, את תהליך הזיהוי, את היקף תחולתו, כיצד להוסיף
+מילות מפתח מותאמות אישית באופן בטוח וכיצד לשחזר חיבור שסומן. המצב הסופי
+עצמו הוא חלק ממודל החוסן — ראו
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("מצבים סופיים").
 
 **מקור האמת:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+וכן `open-sse/services/errorClassifier.ts` עבור מחלקת האימות שאינה סופית
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) ועבור
+הענף של 403 שמשתמש בה.
 
 ## מילות מפתח מובנות
 
-8 תת-המחרוזות האלה חלות תמיד (ללא תלות ברישיות), ללא קשר לרשימה מותאמת אישית כלשהי:
+7 מחרוזות המשנה האלה חלות תמיד (ללא תלות ברישיות), ללא קשר לרשימה מותאמת אישית כלשהי:
 
 ```
 account_deactivated
@@ -22,22 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> רשימה זו מתפתחת כאשר ספקים משנים את נוסח הודעות החסימה שלהם. העותק המוסמך
-> הוא `ACCOUNT_DEACTIVATED_SIGNALS` בתוך `open-sse/services/accountFallback.ts`;
-> יש להתייחס לבלוק שלעיל כאל תמונת מצב.
+> רשימה זו מתפתחת ככל שספקים משנים את נוסח החסימה שלהם. העותק הקובע
+> הוא `ACCOUNT_DEACTIVATED_SIGNALS` בקובץ `open-sse/services/accountFallback.ts`;
+> יש להתייחס לבלוק שלעיל כתמונת מצב.
 
-באותו קובץ קיימות בסמוך שתי טבלאות סימנים **נפרדות**, והן _אינן_ חלק מזיהוי מילות המפתח לחסימה:
+### לא חסימה: בקשות אימות שניתנות לטיפול על ידי המפעיל
+
+`verify your account to continue` **הופיע בעבר** ברשימה שלעיל. הוא אינו אות חסימה
+וכעת נמצא ב-`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, שמסווג אותו כ-`PROJECT_ROUTE_ERROR`
+הניתן להתאוששות, במקום לסיים את החיבור לצמיתות.
+
+Google Cloud Code / Antigravity מחזירים אותו בתור `403 VALIDATION_REQUIRED`. הוא
+**זמני ומופיע בחשבונות תקינים בעלי מכסה מלאה** — כפי שנמדד בפריסה פעילה
+(2026-09-25, `proxy_logs`): חיבור Antigravity אחד החזיר 33 תגובות 403 כאלה
+בתוך 10 דקות ונשאר `active`, בעוד שחיבור מקביל שהחזיק 100 % מהמכסה שלו
+בכל 17 החלונות נחסם לצמיתות בעקבות תגובה **יחידה** כזו. ההבדל היחיד
+היה איזו בקשה קיבלה במקרה את התגובה.
+
+ההבחנה חשובה משום שהתאמה סופית היא `permanent: true` (תקופת צינון של שנה,
+ללא התאוששות אוטומטית), בעוד שהמפעיל יכול להסיר בקשת אימות בדפדפן.
+השארת הביטוי ברשימת החסימות גם הפכה את ענף 403 של cloud-code הניתן להתאוששות
+ב-`classifyProviderError` לבלתי נגיש עבור ניסוח זה, משום ש-`accountDeactivated`
+נבדק ראשון — ולכן מנגנון ההתאוששות של נתיב הפרויקט שנוסף עבור Gemini Code Assist
+ב-[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) וב-
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) לא היה יכול לפעול לעולם.
+
+שלוש טבלאות האותות הסמוכות וה**נפרדות** הבאות _אינן_ חלק מזיהוי מילות מפתח לחסימה:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — החיוב/המכסה אזלו (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → מצב סופי `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **לא סופי**; רענון האסימון עשוי לאפשר התאוששות.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **לא סופי**; רענון אסימון יכול לאפשר התאוששות.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **לא סופי**; על המפעיל
+  לאמת מחדש את החשבון אצל הספק. נמצא ב-`open-sse/services/errorClassifier.ts`
+  (השניים האחרים נמצאים ב-`accountFallback.ts`). ראו את הסעיף שלעיל.
 
-הערה: ביטויים זמניים נפוצים כגון **`rate limit`** / `429` מטופלים באמצעות מנגנון הגבלת הקצב / תקופת הצינון של החיבור, ו**אינם** סימני חסימה.
+הערה: ביטויים זמניים נפוצים כגון **`rate limit`** / `429` מטופלים באמצעות
+נתיב הגבלת הקצב / תקופת הצינון של החיבור, ו**אינם** אותות חסימה.
 
 ## תהליך הזיהוי
 

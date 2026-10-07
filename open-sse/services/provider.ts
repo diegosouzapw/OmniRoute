@@ -6,6 +6,7 @@ import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   joinClaudeCodeCompatibleUrl,
+  maybeAppendSkillsBeta,
 } from "./claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
@@ -348,7 +349,6 @@ export function buildProviderUrl(
 
 // Build provider headers
 export function buildProviderHeaders(provider, credentials, stream = true, body = null) {
-  void body;
   const config = getProviderConfig(provider);
   const entry = getRegistryEntry(provider);
   const headers = {
@@ -383,6 +383,9 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
         ccHeaders["Authorization"] = `Bearer ${token}`;
       }
     }
+    // For CC-compatible providers returning early, ensure skills beta is conditionally applied
+    // (within this block, isClaudeCodeCompatible(provider) is guaranteed true):
+    maybeAppendSkillsBeta(ccHeaders, provider, body, true);
     return ccHeaders;
   }
   if (isAnthropicCompatible(provider)) {
@@ -446,6 +449,9 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
     headers["Accept"] = "text/event-stream";
   }
 
+  // For standard/compatible provider paths, ensure skills beta is conditionally applied
+  maybeAppendSkillsBeta(headers, provider, body);
+
   return headers;
 }
 
@@ -487,9 +493,10 @@ export function hasThinkingConfig(body) {
 
 // Normalize thinking config based on last message role
 // - If lastMessage is not user → remove Claude/Gemini-style thinking config
+// - Preserve an explicit Claude opt-out; it is request-level intent, not a thinking turn
 // - Keep OpenAI Chat Completions reasoning_effort as a request-level option.
 export function normalizeThinkingConfig(body) {
-  if (!isLastMessageFromUser(body)) {
+  if (!isLastMessageFromUser(body) && body.thinking?.type !== "disabled") {
     delete body.thinking;
   }
   return body;

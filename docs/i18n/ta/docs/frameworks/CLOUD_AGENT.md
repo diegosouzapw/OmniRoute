@@ -305,23 +305,30 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 மேல்நிலை வழங்குநரை அழைப்பதில்லை — `CloudAgentBase`-இல் abort RPC இல்லை. மேல்நிலையில்
 கட்டணம் விதிக்கப்படுவதை நிறுத்த, வழங்குநரின் சொந்த console-இல் பணியை நிறுத்தவும்.
 
-## REST API — Cloud வழங்குநர் இணைப்பமைப்பு
+## REST API — Cloud வழங்குநர் ஒருங்கிணைப்பு
 
-`src/app/api/cloud/` என்பதன் கீழுள்ள இந்தத் துணை endpoint-கள், வழங்குநர் இணைப்பு metadata-வைப் படிக்கவும் model alias-களைத் தீர்மானிக்கவும் தொலைநிலை client-களால்
-(CLI, Electron app அல்லது sync worker-கள்) பயன்படுத்தப்படுகின்றன. இவை task endpoint-கள் பயன்படுத்தும் management auth-ஐ அல்லாமல், **வழக்கமான API key**-ஐ
-(`validateApiKey` வழியாக) கொண்டு அங்கீகரிக்கப்படுகின்றன.
+`src/app/api/cloud/`-இன் கீழுள்ள இந்தத் துணை endpoint-கள், வழங்குநர் இணைப்பு metadata-ஐப் படிக்கவும் model alias-களைத் தீர்மானிக்கவும் தொலைநிலை client-களால்
+(CLI, Electron app அல்லது sync worker-கள்) பயன்படுத்தப்படுகின்றன.
+இவை task endpoint-கள் பயன்படுத்தும் management auth மூலம் அல்லாமல், **API key**
+(`validateApiKey` வழியாக) மூலம் அங்கீகரிக்கப்படுகின்றன; `/api/cloud/auth`
+எதைத் திருப்பித் தருகிறது என்பது key-இன் scope-ஐப் பொறுத்தது (கீழே காண்க).
 
-| முறை | பாதை                            | நோக்கம்                                                                            |
-| ---- | ------------------------------- | ---------------------------------------------------------------------------------- |
-| POST | `/api/cloud/auth`               | API key-ஐச் சரிபார்த்து, மறைக்கப்பட்ட இணைப்பு metadata + model alias-களை வழங்குதல் |
-| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` ஆகியவற்றைப் புதுப்பித்தல்             |
-| POST | `/api/cloud/model/resolve`      | ஒரு model alias-ஐ `{ provider, model }` ஆகத் தீர்மானித்தல்                         |
-| GET  | `/api/cloud/models/alias`       | அனைத்து model alias-களையும் பட்டியலிடுதல்                                          |
-| PUT  | `/api/cloud/models/alias`       | ஒரு model alias-ஐ அமைத்தல் (இயக்கப்பட்டிருந்தால் Cloud உடன் தானாக sync செய்தல்)    |
+| முறை | பாதை                            | நோக்கம்                                                                                      |
+| ---- | ------------------------------- | -------------------------------------------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | API key-ஐச் சரிபார்த்து, மறைக்கப்பட்ட இணைப்பு metadata + model alias-களைத் திருப்பித் தருதல் |
+| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` ஆகியவற்றைப் புதுப்பித்தல்                       |
+| POST | `/api/cloud/model/resolve`      | model alias ஒன்றை `{ provider, model }` ஆகத் தீர்மானித்தல்                                   |
+| GET  | `/api/cloud/models/alias`       | அனைத்து model alias-களையும் பட்டியலிடுதல்                                                    |
+| PUT  | `/api/cloud/models/alias`       | model alias ஒன்றை அமைத்தல் (மேலும் செயல்படுத்தப்பட்டிருந்தால் Cloud உடன் தானாக sync செய்தல்) |
 
-`/api/cloud/auth`, மூல `apiKey` / `accessToken` / `refreshToken` மதிப்புகளை ஒருபோதும் வழங்காது. இது
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` மற்றும் மறைக்கப்பட்ட முன்னோட்டம்
-(`maskedApiKey`: முதல் 4 + `****` + கடைசி 4) ஆகியவற்றை வழங்குகிறது.
+`/api/cloud/auth` ஒருபோதும் அசல் `apiKey` / `accessToken` / `refreshToken` மதிப்புகளைத் திருப்பித் தராது. அந்த key பயன்படுத்தக்கூடிய செயலில் உள்ள இணைப்புகளுக்கு
+`hasApiKey`, `hasAccessToken`, `hasRefreshToken` ஆகியவற்றை இது திருப்பித் தருகிறது
+(`allowedConnections` மூலம் கட்டுப்படுத்தப்பட்ட key, அவற்றை மட்டுமே பார்க்கும்). `manage`
+அல்லது `admin` scope கொண்ட API key-க்கு, `OMNIROUTE_API_KEY`-இலிருந்து பெறப்படும் deployment key உட்பட,
+மறைக்கப்பட்ட முன்னோட்டத்தையும் (`maskedApiKey`: ஒவ்வொரு முனையிலும் அதிகபட்சம் 4 எழுத்துகள்; குறுகிய
+key-க்கு அதைவிடக் குறைவு; 8 அல்லது அதற்கும் குறைவான எழுத்துகள் கொண்ட key-க்கு எதுவுமில்லை) இணைப்பின்
+`projectId`-ஐயும் இது திருப்பித் தருகிறது. மற்ற எந்த key-க்கும் இந்த இரு புலங்களும் response-இல்
+சேர்க்கப்படுவதில்லை.
 
 ## நற்சான்றுத் தீர்மானம்
 

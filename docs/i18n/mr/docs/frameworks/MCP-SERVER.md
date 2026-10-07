@@ -284,12 +284,74 @@ LLM प्रदात्यांसाठी वापरल्या जा�
 
 ---
 
-## प्रमाणीकरण आणि स्कोप्स
+## प्रमाणीकरण आणि स्कोप
 
-MCP साधनांचे प्रमाणीकरण API की स्कोप्सद्वारे केले जाते. स्कोपची अंमलबजावणी
-`open-sse/mcp-server/scopeEnforcement.ts` मध्ये केंद्रीकृत केली आहे. प्रत्येक साधनासाठी विशिष्ट स्कोप्स आवश्यक आहेत:
+MCP साधन कॉलरकडून स्कोप स्ट्रिंग वाचते. ती तपासणी तीन स्वतंत्र नेमस्पेसपैकी एक आहे. एका तपासणीकर्त्याकडून पास होणे म्हणजे इतरांकडून पास होणे नव्हे. नियम [तीन स्कोप नेमस्पेस](#three-scope-namespaces) आहेत. साधनांची कॅटलॉग [MCP साधन स्कोप](#mcp-tool-scopes) आहे.
 
-| व्याप्ती              | साधने                                                                                                                                                                        |
+### तीन स्कोप नेमस्पेस
+
+एका API की वर `manage`, MCP साधनावर `read:compression`, आणि `oma_live_…` ॲक्सेस टोकनवर `read` या तीन वेगवेगळ्या परवानग्या आहेत. जे कॉलर म्युटेटिंग मॅनेजमेंट रूटला `read` ॲक्सेस टोकन पाठवतात त्यांना HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` मिळतो. तो रँक `scopeSatisfies` आहे. तो MCP टेबलचा सल्ला घेत नाही, आणि MCP मॅचर त्याचा सल्ला घेत नाही.
+
+| नेमस्पेस          | क्रेडेंशियल                                                 | तपासणीकर्ता      | पास झाल्यास याची परवानगी मिळते                                 |
+| :---------------- | :---------------------------------------------------------- | :--------------- | :------------------------------------------------------------- |
+| API-की व्यवस्थापन | `api_keys.scopes`                                           | `hasManageScope` | त्या बेअरर की साठी व्यवस्थापन REST                             |
+| API-की ॲडिटिव्ह   | समान ॲरे, एक अचूक स्ट्रिंग                                  | खालील मदतनीस     | फक्त ती एक क्षमता                                              |
+| MCP साधन स्कोप    | समान ॲरे, अन्यथा MCP `_meta`, अन्यथा `OMNIROUTE_MCP_SCOPES` | `scopeMatches`   | ते साधन, एकदा अंमलबजावणी चालू झाल्यावर                         |
+| ॲक्सेस टोकन       | `oma_live_…`                                                | `scopeSatisfies` | ज्या व्यवस्थापन रूटला त्याची पद्धत आणि मार्ग तो रँक आवश्यक आहे |
+
+प्रत्येक क्रेडेंशियल तयार करणे [व्यवस्थापन प्रमाणीकरण](../guides/MANAGEMENT-AUTH.md) मध्ये समाविष्ट आहे.
+
+#### API-की स्कोप
+
+एक `api_keys.scopes` ॲरे दोन कामांना फीड करतो. ते भिन्न फंक्शन्स वापरतात.
+
+**व्यवस्थापन REST.** `manage` आणि `admin` हे `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) चे सदस्य आहेत. `hasManageScope` हे त्या की साठी व्यवस्थापन मार्गांना अधिकृत करते. `admin` त्या मार्गांवर व्यवस्थापन-सक्षम आहे. येथे `admin` हा शब्द ॲक्सेस-टोकन रँक नाही आणि तो MCP साधन स्कोपमध्ये विस्तारत नाही.
+
+**ॲडिटिव्ह स्ट्रिंग.** प्रत्येक एक अचूक सदस्यत्व तपासणी आहे, आणि प्रत्येक `MANAGEMENT_API_KEY_SCOPES` च्या बाहेर राहते.
+
+| स्कोप                          | पास झाल्यास याची परवानगी मिळते                                                                                                                                 |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | नॉन-लूपबॅक `/api/mcp/` LOCAL_ONLY कार्व-आउट फक्त (`hasMcpConnectOrManageScope`). `manage` किंवा `admin` असलेली की तरीही तो कार्व-आउट पास करते.                 |
+| `self:usage`                   | या की साठी `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` तयार करताना हा स्कोप जोडतो (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | त्या स्थिती पेलोडमधील अपस्ट्रीम खाते कोटा (`src/lib/usage/apiKeySelfService.ts`). स्थिती मार्गाला अजूनही `self:usage` आवश्यक आहे.                              |
+| `policy:bypass-provider-quota` | या की चे अनुमान कॉल प्रदाता-कोटा धोरण वगळतात (`src/sse/handlers/chat.ts` मध्ये `hasProviderQuotaBypassScope`).                                                 |
+
+#### जुळणी
+
+कॅटलॉग [MCP साधन स्कोप](#mcp-tool-scopes) अंतर्गत टेबल आहे. `src/shared/constants/mcpScopes.ts` मधील `MCP_SCOPE_LIST` ला तो कॅटलॉग मानू नका: तो मूळ टाइप केलेला उपसंच आहे. नंतरची साधने त्याच्या बाजूला आणखी स्कोप घोषित करतात (`read:notion`, `read:skills`, `read:local-corpus`, आणि बाकीचे टेबल).
+
+`open-sse/mcp-server/scopeEnforcement.ts` मधील `evaluateToolScopes` कॉलला परवानगी देते जेव्हा प्रत्येक आवश्यक स्कोप काही मंजूर स्कोपशी जुळतो:
+
+- `*` प्रत्येक आवश्यक स्कोपशी जुळतो.
+- `*` मध्ये संपणारा मंजूर स्कोप, स्टारच्या आधीच्या उपसर्गने सुरू होणाऱ्या आवश्यक स्कोपशी जुळतो. `read:*` `read:compression` शी जुळतो.
+- इतर प्रत्येक मंजूर स्कोप फक्त समान आवश्यक स्ट्रिंगशी जुळतो.
+
+ज्या की चे स्कोप `["manage"]` आहेत ती `read:compression` साठी `scopeMatches` मध्ये अयशस्वी होते. जेव्हा `admin`, `mcp:connect`, `read`, आणि `write` हे एकमेव मंजूर स्ट्रिंग असतात तेव्हा तोच कॉल अयशस्वी होतो. ट्रेलिंग `*` च्या पलीकडे MCP साधन स्कोपमध्ये कोणतीही पदानुक्रम नाही.
+
+अंमलबजावणी बंद आहे जोपर्यंत `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (डीफॉल्ट `false`). जेव्हा ती बंद असते, तेव्हा `evaluateToolScopes` कॉलला परवानगी देते आणि कॅटलॉग वगळते. जेव्हा ती चालू असते, तेव्हा HTTP बेअरर की चे `api_keys.scopes` `authInfo` म्हणून वापरते (पहा [प्रति-की HTTP स्कोप बंधन](#per-key-http-scope-binding-7895)). जेव्हा कोणतीही की स्कोप निराकरण होत नाही, तेव्हा मंजूर संच MCP `_meta` मध्ये, नंतर `OMNIROUTE_MCP_SCOPES` मध्ये जातो.
+
+#### ॲक्सेस-टोकन स्कोप
+
+`oma_live_…` टोकन (`src/lib/accessTokens/scopes.ts`) `read`, `write`, किंवा `admin` घेऊन जातात. `scopeSatisfies` हा एक रँक आहे: `admin` मध्ये `write` आणि `read` समाविष्ट आहे, आणि `write` मध्ये `read` समाविष्ट आहे. अज्ञात स्कोप काहीही समाविष्ट करत नाहीत.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) तो रँक `inferRequiredScope` (`src/server/authz/accessScopes.ts`) शी तुलना करतो:
+
+- `GET`, `HEAD`, आणि `OPTIONS` साठी `read` आवश्यक आहे.
+- इतर प्रत्येक पद्धतीसाठी `write` आवश्यक आहे.
+- `ADMIN_SCOPE_PREFIXES` मधील मार्गांसाठी प्रत्येक पद्धतीसाठी `admin` आवश्यक आहे. `/api/mcp` त्या यादीत आहे, त्यामुळे `write` ॲक्सेस टोकन अजूनही MCP HTTP पृष्ठभागाला कॉल करू शकत नाही.
+- `ADMIN_MUTATION_PREFIXES` मधील मार्गांसाठी फक्त म्युटेशनसाठी `admin` आवश्यक आहे.
+
+`PATCH /api/keys/{id}` ही एक बदल करणारी क्रिया आहे आणि ती त्या ॲडमिन सूचीमध्ये नाही, त्यामुळे 'read' टोकनला 403 मिळते
+`Access token scope 'read' is insufficient; 'write' required.`
+'write' किंवा 'admin' ॲक्सेस टोकन त्या राउटसाठी पुरेसे आहे. डॅशबोर्ड JWT, लूपबॅक CLI मशीन-आयडी टोकन, आणि 'manage' किंवा 'admin' असलेले API की इतर मार्गांनी जातात आणि या रँकने मर्यादित नाहीत.
+
+'/api/mcp' साठी 'scopeSatisfies' उत्तीर्ण करणाऱ्या ॲक्सेस टोकनने केवळ व्यवस्थापन गेट पार केले आहे. टूल कॉल्स अजूनही API-की स्कोप्स विरुद्ध 'scopeMatches' चालवतात. ॲक्सेस-टोकन रँक 'scopeMatches' साठी इनपुट नाही.
+
+### MCP टूल स्कोप्स
+
+स्कोप अंमलबजावणी `open-sse/mcp-server/scopeEnforcement.ts` मध्ये केंद्रीकृत आहे. प्रत्येक टूलला विशिष्ट स्कोप्सची आवश्यकता असते:
+
+| कार्यक्षेत्र          | साधने                                                                                                                                                                        |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
@@ -321,40 +383,19 @@ MCP साधनांचे प्रमाणीकरण API की स्क
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
-| `read:obsidian`       | 13 वाचन साधने — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 लेखन साधने — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:obsidian`       | 13 read tools — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 write tools — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
 
-वाइल्डकार्ड स्कोप्स समर्थित आहेत: `read:*` सर्व read-scopes प्रदान करते, तर `*` पूर्ण प्रवेश प्रदान करते.
+वाइल्डकार्ड स्कोप्स समर्थित आहेत: `read:*` सर्व रीड-स्कोप्स मंजूर करते, `*` पूर्ण प्रवेश मंजूर करते.
 
-### `mcp:connect` — मर्यादित रूट क्षमता (#7895)
+### `mcp:connect` — अरुंद मार्ग क्षमता (#7895)
 
-नॉन-लूपबॅकवरून HTTP/SSE MCP ट्रान्सपोर्ट (`/api/mcp/*`) पर्यंत पोहोचण्यासाठी
-`/api/mcp/` LOCAL_ONLY अपवाद आवश्यक आहे (`docs/security/ROUTE_GUARD_TIERS.md` पहा). ऐतिहासिकदृष्ट्या,
-हा अपवाद केवळ पूर्ण `manage`/`admin`-scope API की स्वीकारत असे — केवळ MCP शी संवाद साधण्याची
-गरज असलेल्या कॉलरसाठी हे अनावश्यकपणे व्यापक होते. `src/shared/constants/managementScopes.ts` आता
-`MCP_CONNECT_SCOPE = "mcp:connect"` एक्सपोर्ट करते: हा एक अतिरिक्त, मर्यादित स्कोप आहे (`SELF_USAGE_SCOPE`
-प्रमाणेच पूर्वप्रथा असलेला), जो `src/server/authz/policies/management.ts` मधील केवळ
-`/api/mcp/` बायपासला अधिकृत करतो — तो इतर कोणत्याही मॅनेजमेंट-रूटचा प्रवेश प्रदान करत नाही
-आणि हेतुपुरस्सर `MANAGEMENT_API_KEY_SCOPES` च्या बाहेर ठेवला आहे. `manage`/`admin` असलेली की
-अजूनही कोणताही बदल न होता हा अपवाद पार करते; `mcp:connect` हा केवळ रिमोट MCP कॉलर्ससाठी
-कमी विशेषाधिकार असलेला पर्याय आहे, जो `hasMcpConnectOrManageScope()` द्वारे तपासला जातो.
+नॉन-लूपबॅकवरून HTTP/SSE MCP ट्रान्सपोर्ट (`/api/mcp/*`) पर्यंत पोहोचण्यासाठी `/api/mcp/` LOCAL_ONLY कार्व्ह-आउट आवश्यक आहे (पहा `docs/security/ROUTE_GUARD_TIERS.md`). ऐतिहासिकदृष्ट्या, तो कार्व्ह-आउट फक्त पूर्ण `manage`/`admin`-स्कोप API की स्वीकारत असे — MCP शी बोलण्याची गरज असलेल्या कॉलरसाठी खूप विस्तृत. `src/shared/constants/managementScopes.ts` आता `MCP_CONNECT_SCOPE = "mcp:connect"` निर्यात करते: एक अतिरिक्त, अरुंद स्कोप (`SELF_USAGE_SCOPE` सारखाच पूर्ववर्ती) जो `src/server/authz/policies/management.ts` मधील `/api/mcp/` बायपासलाच अधिकृत करतो — तो इतर कोणत्याही व्यवस्थापन-मार्ग प्रवेशास परवानगी देत नाही आणि तो हेतुपुरस्सर `MANAGEMENT_API_KEY_SCOPES` मधून बाहेर ठेवला आहे. `manage`/`admin` असलेली की अजूनही कार्व्ह-आउटमध्ये बदल न करता पास होते; `mcp:connect` हे रिमोट MCP-फक्त कॉलरसाठी कमी-विशेषाधिकार असलेला पर्याय आहे, जो `hasMcpConnectOrManageScope()` द्वारे तपासला जातो.
 
-### प्रत्येक कीसाठी HTTP स्कोप बाइंडिंग (#7895)
+### प्रति-की HTTP स्कोप बाइंडिंग (#7895)
 
-HTTP/SSE वर, `open-sse/mcp-server/httpTransport.ts` आता
-`resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) द्वारे कॉलरचे वास्तविक
-`api_keys.scopes` रिझॉल्व्ह करते आणि ते MCP SDK च्या `transport.handleRequest(req, { authInfo })`
-कडे पाठवते, त्यामुळे प्रत्येक टूल कॉलपर्यंत पोहोचणारे `extra.authInfo.scopes` हे Bearer कीचे
-स्वतःचे स्कोप्स दर्शवते. `scopeEnforcement.ts` मधील `resolveCallerScopeContext()` आधीपासूनच
-`_meta` आणि `OMNIROUTE_MCP_SCOPES` env फॉलबॅकपेक्षा `authInfo` ला प्राधान्य देत होते — हा बदल
-फक्त त्या पहिल्या, सर्वोच्च-प्राधान्य स्रोताला भरतो, ज्याला यापूर्वी HTTP वरून माहिती पुरवली जात
-नव्हती. कोणतीही API की रिझॉल्व्ह होत नसल्यास (हेडर नसणे, अवैध की), `authInfo` हे `undefined`
-राहते आणि रिझॉल्यूशन कोणताही बदल न होता विद्यमान `meta`/env साखळीवर फॉलबॅक होते. यामुळे
-`OMNIROUTE_MCP_ENFORCE_SCOPES` चे डीफॉल्ट बदलत नाही — अंमलबजावणी अजूनही स्पष्टपणे सक्षम
-करावी लागते; हा बदल केवळ ती सक्षम केल्यानंतर प्रत्येक-की मार्गाला प्राधान्य देतो. stdio मध्ये
-प्रत्येक कॉलरसाठी स्वतंत्र ओळख नसते (`mcpCallerIdentity.ts` पहा) आणि त्यावर कोणताही परिणाम
-होत नाही — ते `_meta`/env फॉलबॅक साखळीच वापरत राहते.
+HTTP/SSE वर, `open-sse/mcp-server/httpTransport.ts` आता कॉलरचे वास्तविक `api_keys.scopes` `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) द्वारे सोडवते आणि ते MCP SDK च्या `transport.handleRequest(req, { authInfo })` ला पास करते, जेणेकरून प्रत्येक टूल कॉलपर्यंत पोहोचणारे `extra.authInfo.scopes` बेअरर कीच्या स्वतःच्या स्कोप्सना प्रतिबिंबित करते. `scopeEnforcement.ts` चे `resolveCallerScopeContext()` आधीच `_meta` आणि `OMNIROUTE_MCP_SCOPES` env फॉलबॅकवर `authInfo` ला प्राधान्य देत होते — हे फक्त ते पहिले, सर्वोच्च-प्राधान्य स्त्रोत भरते, जे पूर्वी HTTP वर अनफेड होते. जेव्हा कोणतीही API की सोडवली जात नाही (हेडर नाही, अवैध की), तेव्हा `authInfo` `undefined` राहते आणि रिझोल्यूशन विद्यमान `meta`/env साखळीवर बदल न करता खाली येते. हे `OMNIROUTE_MCP_ENFORCE_SCOPES` चे डीफॉल्ट बदलत नाही — अंमलबजावणी अजूनही स्पष्टपणे सक्षम करावी लागते; हा बदल फक्त एकदा सक्षम झाल्यावर प्रति-की मार्ग प्राधान्य घेतो. stdio मध्ये प्रति-कॉलर ओळख नाही (पहा `mcpCallerIdentity.ts`) आणि ते अप्रभावित आहे — ते `_meta`/env फॉलबॅक साखळीवर राहते.
 
 ---
 

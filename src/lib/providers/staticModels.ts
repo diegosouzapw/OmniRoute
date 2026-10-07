@@ -43,6 +43,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
     { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
+    { id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
     { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },
     { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
@@ -170,6 +171,9 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
     return searchFallback;
   }
 
+  // "Import from /models" posts these rows to POST /api/provider-models, so each
+  // apiFormat must be a value providerModelMutationSchema accepts — "audio" /
+  // "images" were rejected with 400 and nothing got imported.
   const specialtyModels: LocalCatalogModel[] = [];
   const appendModels = (
     models: Array<{ id: string; name?: string }>,
@@ -211,7 +215,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   const imageProvider = getImageProvider(provider);
   if (imageProvider && !hasChatRegistry) {
     appendModels(imageProvider.models, {
-      apiFormat: "images",
+      apiFormat: "images-generations",
       supportedEndpoints: ["images"],
     });
   }
@@ -227,7 +231,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
     appendModels(speechProvider.models, {
-      apiFormat: "audio",
+      apiFormat: "audio-speech",
       supportedEndpoints: ["audio-speech"],
     });
   }
@@ -235,7 +239,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
     appendModels(transcriptionProvider.models, {
-      apiFormat: "audio",
+      apiFormat: "audio-transcriptions",
       supportedEndpoints: ["audio-transcriptions"],
     });
   }

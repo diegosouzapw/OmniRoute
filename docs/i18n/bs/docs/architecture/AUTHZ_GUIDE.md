@@ -4,51 +4,74 @@
 
 ---
 
-# Vodič za autorizaciju
-
 > **Izvor istine:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Posljednje ažurirano:** 2026-06-28 — v3.8.40
+> **Posljednje ažuriranje:** 2026-09-22 — prostori imena opsega upućuju na MCP-SERVER.md
 
-OmniRoute posjeduje cjevovod za autorizaciju svjestan ruta koji kontroliše svaki API zahtjev. Klasifikacija je **deterministička** i **fail-closed** — sve što se ne može klasifikovati završava kao `MANAGEMENT` i zahtijeva sesiju ili token upravljačkog nivoa. Ova stranica objašnjava model za inženjere koji održavaju rute ili dizajniraju nove krajnje tačke.
+OmniRoute ima sistem autorizacije svjestan ruta koji štiti svaki API zahtjev. Klasifikacija je **deterministička** i **zatvorena u slučaju greške** — sve što se ne može klasificirati završava kao `MANAGEMENT` i zahtijeva sesiju ili token upravljačkog nivoa. Ova stranica objašnjava model inženjerima koji održavaju rute ili dizajniraju nove krajnje tačke.
 
-![AuthZ cjevovod (3 klase ruta + evaluacija politika)](../diagrams/exported/authz-pipeline.svg)
+![Sistem AuthZ-a (3 klase ruta + procjena pravila)](../diagrams/exported/authz-pipeline.svg)
 
 > Izvor: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Dva načina autorizacije
+## Dva načina autentifikacije
 
 ### 1. API ključ (Bearer)
 
-Koristi se za klijentske API-je kompatibilne sa OpenAI/Anthropic/Gemini i nekoliko upravljačkih ruta kada ključ ima `manage` opseg.
+Koristi se za klijentske API-je kompatibilne s OpenAI/Anthropic/Gemini servisima i nekoliko ruta za upravljanje kada ključ ima opseg `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Validirano pomoću `isValidApiKey()` / `extractApiKey()` u `src/sse/services/auth.ts` i ponovo izvezeno kroz `src/shared/utils/apiAuth.ts`. Validator takođe prihvata `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` varijable okruženja kao trajne prolazne ključeve (issue #1350).
+Provjerava se pomoću `isValidApiKey()` / `extractApiKey()` u `src/sse/services/auth.ts` i ponovo se izvozi kroz `src/shared/utils/apiAuth.ts`. Validator također prihvata varijable okruženja `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kao trajne ključeve za direktno prosljeđivanje (problem #1350).
 
-### 2. Sesija kontrolne table (auth_token kolačić)
+### 2. Sesija kontrolne ploče (auth_token kolačić)
 
-Za stranice kontrolne table i administratorske operacije.
+Za stranice kontrolne ploče i administratorske operacije.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Kolačić je sesija samo kada se JWT verifikuje **i** nosi `authenticated: true` (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Svaki potrošač kolačića (čuvar rute, osvježavanje authz cjevovoda, WebSocket rukovanje, live server, `/api/settings/require-login`, `/api/auth/status`) prolazi kroz tog pomoćnika. Postoje i drugi JWT-ovi potpisani sa `JWT_SECRET` — Cursor CLI passthrough kreira `iss "omniroute" / aud "cursor-cli"` tokene za vlasnike ključeva — i oni nikada nisu sesije (#13298).
+Kolačić predstavlja sesiju samo kada JWT prođe provjeru **i** sadrži `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Svaki
+potrošač kolačića (čuvar rute kontrolne ploče (`isDashboardSessionAuthenticated()`), osvježavanje authz cjevovoda, WebSocket rukovanje, aktivni
+server, `/api/settings/require-login`, `/api/auth/status`) koristi taj pomoćni alat.
+Postoje i drugi JWT-ovi potpisani pomoću `JWT_SECRET` — direktno prosljeđivanje kroz Cursor CLI izdaje
+tokene `iss "omniroute" / aud "cursor-cli"` vlasnicima ključeva — i oni nikada nisu sesije
+(#13298).
 
-Verifikovano pomoću `isDashboardSessionAuthenticated()` u `src/shared/utils/apiAuth.ts`. Cjevovod automatski osvježava JWT kada mu ostane manje od 7 dana do isteka njegovog 30-dnevnog životnog vijeka.
+Provjerava se pomoću `isDashboardSessionAuthenticated()` u `src/shared/utils/apiAuth.ts`. Cjevovod automatski osvježava JWT kada mu preostane manje od 7 dana od njegovog 30-dnevnog roka trajanja.
 
-Neke upravljačke rute prihvataju **bilo koji** način: kolačić ILI `Bearer <key>` kada API ključ ima `manage` (ili `admin`) opseg. Ovo omogućava radni tok "konfigurabilno putem API poziva" dodan u v3.8.
+Sesija se može završiti i prije isteka 30 dana jer svaki izdavatelj koristi `mintDashboardSessionToken` (vrijeme izdavanja `iat` i identifikator `jti`), a verifikator provjerava dvije postavke: `sessionsValidAfter`, koja se postavlja promjenom lozinke tako da svaka sesija izdana prije toga prestaje prolaziti provjeru (preglednik u kojem je lozinka promijenjena dobija novi kolačić), i `revokedDashboardSessions`, kojoj `POST /api/auth/logout` dodaje `jti` odjavljene sesije. Sesije koje je izdala starija verzija ne sadrže nijednu od tih tvrdnji i ostaju važeće do prve promjene lozinke. Ako se postavke ne mogu pročitati, sesija se ne smatra pouzdanom.
 
-#### Opciona OIDC kapija za prijavu (#6973)
+Neke rute za upravljanje prihvataju **bilo koji** način: kolačić ILI `Bearer <key>` kada API ključ ima opseg `manage` (ili `admin`). To omogućava tok rada „konfigurabilno putem API poziva“ dodan u v3.8.
 
-Administratorska prijava na kontrolnu tablu takođe podržava **opt-in** OIDC (OpenID Connect) tok uz podrazumevanu prijavu lozinkom — prijava lozinkom se nikada ne uklanja, samo dopunjuje:
+#### Opcionalna OIDC kontrola prijave (#6973)
 
-- Onemogućeno osim ako `settings.oidcEnabled === true` **i** `oidcIssuer` / `oidcClientId` / `oidcClientSecret` nisu svi konfigurisani (Postavke → Autorizacija). `GET /api/auth/oidc/login` u suprotnom vraća `400`.
-- `GET /api/auth/oidc/login` otkriva `authorization_endpoint` iz izdavačevog `/.well-known/openid-configuration` (vraća se na `<issuer>/authorize`), gradi URI za preusmjeravanje iz dolaznog zahtjeva (`x-forwarded-proto`-svjestan) i preusmjerava na IdP sa nasumičnim `state` pohranjenim u `httpOnly` `oidc_state` kolačiću.
-- `GET /api/auth/oidc/callback` validira `state`, razmjenjuje autorizacioni kod i verifikuje potpis ID tokena putem izdavačevog JWKS (`jose`-ov `createRemoteJWKSet`, keširan po JWKS URI) sa `issuer`/`audience` provjerama. Opciona `oidcAllowedSubjects` lista dozvoljenih podudara se sa `sub` zahtjevom tokena ili njegovim `email` zahtjevom — `email` zahtjev se uvažava samo kada je `email_verified === true`, tako da neprovjerena e-pošta na IdP-u nikada ne može proći kroz kapiju.
-- U slučaju uspjeha, kreira **potpuno isti** 30-dnevni `auth_token` JWT koji izdaje prijava lozinkom (`src/app/api/auth/login/route.ts`), tako da ostatak cjevovoda sesije kontrolne table (automatsko osvježavanje, zastavice kolačića) ostaje nepromijenjen — OIDC samo zamjenjuje način na koji se kolačić kreira, a ne ono što on odobrava.
+Administratorska prijava na kontrolnu ploču također podržava **opcioni** OIDC (OpenID Connect) tok
+uz zadanu prijavu lozinkom — prijava lozinkom nikada se ne uklanja, već se samo
+dopunjuje:
+
+- Onemogućeno je osim ako je `settings.oidcEnabled === true` **i** ako su `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` svi konfigurirani (Postavke → Autentifikacija).
+  `GET /api/auth/oidc/login` u suprotnom vraća `400`.
+- `GET /api/auth/oidc/login` otkriva `authorization_endpoint` iz
+  `/.well-known/openid-configuration` izdavatelja (rezervno koristi
+  `<issuer>/authorize`), izrađuje URI za preusmjeravanje iz dolaznog zahtjeva
+  (uz podršku za `x-forwarded-proto`) i preusmjerava na IdP s nasumičnim `state`
+  pohranjenim u `httpOnly` kolačiću `oidc_state`.
+- `GET /api/auth/oidc/callback` provjerava `state`, razmjenjuje autorizacijski
+  kod i provjerava potpis ID tokena putem JWKS-a izdavatelja
+  (`createRemoteJWKSet` iz paketa `jose`, keširan po JWKS URI-ju), uz provjere
+  `issuer`/`audience`. Opcionalna lista dozvoljenih vrijednosti `oidcAllowedSubjects` podudara se s
+  tvrdnjom `sub` tokena ili njegovom tvrdnjom `email` — tvrdnja e-pošte uzima se u obzir samo kada je
+  `email_verified === true`, tako da nepotvrđena adresa e-pošte kod IdP-a nikada ne može proći
+  kontrolu.
+- Nakon uspjeha izdaje se **potpuno isti** 30-dnevni `auth_token` JWT koji izdaje
+  prijava lozinkom (`src/app/api/auth/login/route.ts`), tako da ostatak
+  cjevovoda sesije kontrolne ploče (automatsko osvježavanje, oznake kolačića) ostaje nepromijenjen —
+  OIDC samo zamjenjuje način izdavanja kolačića, a ne ovlaštenja koja on daje.
 
 ## Klase ruta
 
@@ -179,24 +202,36 @@ Odaberite skup prema obliku, a ne prema pogodnosti. Jedna ruta ide u `PUBLIC_API
 
 ## Opsezi
 
+Tri imenska prostora. Svaki provjerivač čita samo vlastite nizove. Usporedni prikaz,
+uključujući zašto `manage` ne zadovoljava `scopeMatches` za `read:compression` i zašto
+pristupni token s opsegom `read` ne može izvršiti `PATCH /api/keys/{id}`, nalazi se u
+[Tri imenska prostora opsega](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
 API ključevi sadrže niz `scopes` (pohranjen kao JSON u `api_keys.scopes`, pogledajte `src/lib/db/apiKeys.ts`).
 
-### Upravljački opseg
+### Opseg upravljanja
 
-- `manage` / `admin` — dodjeljuje ključu pristup upravljačkim API krajnjim tačkama kada se šalje kao Bearer.
+- `manage` / `admin` — `hasManageScope`. Bearer pristup rutama upravljačkog API-ja.
+- `mcp:connect`, `self:usage`, `self:account-quota` i
+  `policy:bypass-provider-quota` su dodatni opsezi s tačnim podudaranjem. Nalaze se
+  izvan `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otvara samo
+  izuzetak za `/api/mcp/` koji nije povratna petlja.
 
-### MCP opsezi (`src/shared/constants/mcpScopes.ts`)
+### Opsezi MCP alata
 
-Svaki MCP alat zahtijeva specifične opsege putem `MCP_TOOL_SCOPES`. Puna lista (`MCP_SCOPE_LIST`):
+Katalog i pravila podudaranja (identičan niz ili dodijeljeni opseg koji završava znakom `*`):
+[Opsezi MCP alata](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` u `src/shared/constants/mcpScopes.ts` je izvorni tipizirani
+podskup, a ne cijeli katalog. Provođenje se izvršava u
+`open-sse/mcp-server/scopeEnforcement.ts` nakon što `resolveCallerScopeContext()`
+razriješi opsege iz MCP autentifikacijskih podataka, metapodataka zahtjeva ili `OMNIROUTE_MCP_SCOPES`.
+Ostaje isključeno osim ako je `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Opsezi pristupnih tokena
 
-Sprovođenje opsega u `open-sse/mcp-server/server.ts` prosljeđuje listu opsega svakog alata u `evaluateToolScopes()` nakon što `resolveCallerScopeContext()` razriješi opsege iz MCP informacija o autorizaciji, metapodataka zahtjeva ili `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` na tokenima `oma_live_…`, rangirani pomoću `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ovo rangiranje primjenjuje se samo na
+vjerodajnicu pristupnog tokena. Pogledajte [Autentifikacija za upravljanje](../guides/MANAGEMENT-AUTH.md).
 
 ## Prekidač za obaveznu autorizaciju
 
@@ -242,9 +277,9 @@ x-omniroute-auth-scopes:    lista razdvojena zarezima
 
 Koristite `assertAuth(req, expectedClass)` unutar handlera — on izbacuje `AuthzAssertionError` sa kodom `AUTHZ_NOT_INITIALIZED` ako je middleware zaobiđen (korisno za hvatanje regresija konfiguracije u testovima).
 
-## Vidi takođe
+## Pogledajte također
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — auth marker po endpointu
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — audit log za auth događaje
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — detalji o primjeni MCP opsega
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — oznaka autentifikacije po krajnjoj tački
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — zapisnik revizije za događaje autentifikacije
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tri prostora imena opsega i MCP katalog opsega alata
 - Izvor: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

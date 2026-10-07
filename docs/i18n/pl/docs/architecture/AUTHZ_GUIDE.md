@@ -4,53 +4,48 @@
 
 ---
 
-title: "Przewodnik po autoryzacji"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+> **Źródło prawdy:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Ostatnia aktualizacja:** 2026-09-22 — przestrzenie nazw zakresu wskazują na MCP-SERVER.md
 
-# Przewodnik po autoryzacji
+OmniRoute posiada potok autoryzacji świadomy tras, który kontroluje każde żądanie API. Klasyfikacja jest **deterministyczna** i **zamknięta w przypadku awarii** — wszystko, co nie może zostać sklasyfikowane, trafia jako `MANAGEMENT` i wymaga sesji lub tokenu o uprawnieniach zarządzania. Ta strona wyjaśnia model dla inżynierów utrzymujących trasy lub projektujących nowe punkty końcowe.
 
-> **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Last updated:** 2026-06-28 — v3.8.40
+![Potok AuthZ (3 klasy tras + ocena polityki)](../diagrams/exported/authz-pipeline.svg)
 
-OmniRoute ma potok autoryzacji zależny od trasy, który bramkuje każde żądanie API. Klasyfikacja jest **deterministyczna** i **fail-closed** — wszystko, czego nie da się sklasyfikować, trafia do `MANAGEMENT` i wymaga sesji albo tokenu klasy management. Ta strona opisuje model dla inżynierów utrzymujących trasy lub projektujących nowe endpointy.
-
-![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
-
-> Source: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+> Źródło: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Dwa tryby uwierzytelniania
 
 ### 1. Klucz API (Bearer)
 
-Używany przez interfejsy API klienta zgodne z OpenAI/Anthropic/Gemini oraz kilka tras zarządzania, gdy klucz ma zakres `manage`.
+Używany przez interfejsy API klientów zgodnych z OpenAI/Anthropic/Gemini oraz kilka tras zarządzania, gdy klucz ma zakres `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Walidowany przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i ponownie eksportowany przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje również zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze przekazywane bez zmian (zgłoszenie #1350).
+Weryfikowany przez `isValidApiKey()` / `extractApiKey()` w `src/sse/services/auth.ts` i ponownie eksportowany przez `src/shared/utils/apiAuth.ts`. Walidator akceptuje również zmienne środowiskowe `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trwałe klucze przekazywane bezpośrednio (zgłoszenie #1350).
 
-### 2. Sesja panelu (plik cookie auth_token)
+### 2. Sesja panelu administracyjnego (plik cookie auth_token)
 
-Dla stron panelu i operacji administracyjnych.
+Dla stron panelu administracyjnego i operacji administracyjnych.
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT podpisany za pomocą JWT_SECRET>
 ```
 
-Plik cookie jest sesją tylko wtedy, gdy token JWT przejdzie weryfikację **i** zawiera `authenticated: true`
+Plik cookie jest sesją tylko wtedy, gdy JWT przejdzie weryfikację **i** zawiera `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Każdy
-konsument pliku cookie (strażnik trasy, odświeżanie potoku autoryzacji, uzgadnianie połączenia WebSocket, serwer
-na żywo, `/api/settings/require-login`, `/api/auth/status`) korzysta z tego pomocnika.
-Istnieją również inne tokeny JWT podpisane za pomocą `JWT_SECRET` — mechanizm przekazywania Cursor CLI generuje
-dla posiadaczy kluczy tokeny `iss "omniroute" / aud "cursor-cli"` — i nigdy nie są one sesjami
+konsument tego pliku cookie (mechanizm ochrony tras panelu (`isDashboardSessionAuthenticated()`), odświeżanie potoku autoryzacji, uzgadnianie połączenia WebSocket, serwer
+na żywo, `/api/settings/require-login`, `/api/auth/status`) korzysta z tej funkcji pomocniczej.
+Istnieją inne tokeny JWT podpisane za pomocą `JWT_SECRET` — mechanizm bezpośredniego przekazywania Cursor CLI generuje
+dla posiadaczy kluczy tokeny z `iss "omniroute" / aud "cursor-cli"` — i nigdy nie są one sesjami
 (#13298).
 
-Weryfikacja odbywa się za pomocą `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża token JWT, gdy do końca jego 30-dniowego okresu ważności pozostało mniej niż 7 dni.
+Weryfikacja odbywa się za pomocą `isDashboardSessionAuthenticated()` w `src/shared/utils/apiAuth.ts`. Potok automatycznie odświeża JWT, gdy do końca jego 30-dniowego okresu ważności pozostało mniej niż 7 dni.
 
-Niektóre trasy zarządzania akceptują **dowolny** z tych trybów: plik cookie LUB `Bearer <key>`, gdy klucz API ma zakres `manage` (lub `admin`). Umożliwia to przepływ pracy „konfigurowalny za pomocą wywołań API”, dodany w v3.8.
+Sesja może również zakończyć się przed upływem 30 dni, ponieważ każdy mechanizm generujący token korzysta z `mintDashboardSessionToken` (czas wydania `iat` i identyfikator `jti`), a weryfikator sprawdza dwa ustawienia: `sessionsValidAfter`, ustawiane po zmianie hasła, dzięki czemu każda sesja wydana wcześniej przestaje przechodzić weryfikację (przeglądarka, w której zmieniono hasło, otrzymuje nowy plik cookie), oraz `revokedDashboardSessions`, do którego `POST /api/auth/logout` dodaje `jti` wylogowanej sesji. Sesje wygenerowane przez starszą wersję nie zawierają żadnego z tych pól i pozostają ważne do pierwszej zmiany hasła. Jeśli nie można odczytać ustawień, sesja nie jest uznawana za zaufaną.
+
+Niektóre trasy zarządzania akceptują **dowolny** z tych trybów: plik cookie LUB `Bearer <key>`, gdy klucz API ma zakres `manage` (lub `admin`). Umożliwia to przepływ pracy „konfigurowalny za pomocą wywołań API”, dodany w wersji v3.8.
 
 #### Opcjonalna brama logowania OIDC (#6973)
 
@@ -58,24 +53,24 @@ Logowanie administratora do panelu obsługuje również **opcjonalny** przepływ
 obok domyślnego logowania za pomocą hasła — logowanie hasłem nigdy nie jest usuwane, a jedynie
 uzupełniane:
 
-- Jest wyłączone, chyba że `settings.oidcEnabled === true` **oraz** wszystkie wartości `oidcIssuer` /
+- Funkcja jest wyłączona, chyba że `settings.oidcEnabled === true` **oraz** wszystkie wartości `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` są skonfigurowane (Ustawienia → Uwierzytelnianie).
   W przeciwnym razie `GET /api/auth/oidc/login` zwraca `400`.
 - `GET /api/auth/oidc/login` wykrywa `authorization_endpoint` na podstawie
-  `/.well-known/openid-configuration` wystawcy (awaryjnie używa
-  `<issuer>/authorize`), tworzy identyfikator URI przekierowania na podstawie przychodzącego żądania
-  (z uwzględnieniem `x-forwarded-proto`) i przekierowuje do dostawcy tożsamości z losową wartością `state`
-  zapisaną w pliku cookie `oidc_state` z flagą `httpOnly`.
+  `/.well-known/openid-configuration` wystawcy (w razie niepowodzenia używa
+  `<issuer>/authorize`), tworzy URI przekierowania na podstawie przychodzącego żądania
+  (z uwzględnieniem `x-forwarded-proto`) i przekierowuje do IdP z losową wartością `state`
+  przechowywaną w pliku cookie `oidc_state` z flagą `httpOnly`.
 - `GET /api/auth/oidc/callback` weryfikuje `state`, wymienia kod autoryzacyjny
-  i weryfikuje podpis tokenu ID przy użyciu JWKS wystawcy
-  (`createRemoteJWKSet` z pakietu `jose`, buforowane osobno dla każdego identyfikatora URI JWKS), sprawdzając
-  `issuer`/`audience`. Opcjonalna lista dozwolonych wartości `oidcAllowedSubjects` dopasowuje
-  deklarację `sub` tokenu lub jego deklarację `email` — deklaracja adresu e-mail jest uwzględniana tylko wtedy, gdy
-  `email_verified === true`, dlatego niezweryfikowany adres e-mail u dostawcy tożsamości nigdy nie umożliwi
-  przejścia przez bramę.
-- Po pomyślnym zakończeniu generowany jest **dokładnie taki sam** 30-dniowy token JWT `auth_token`, jaki wystawia
-  logowanie hasłem (`src/app/api/auth/login/route.ts`), dzięki czemu pozostała część
-  potoku sesji panelu (automatyczne odświeżanie, flagi plików cookie) pozostaje niezmieniona —
+  i weryfikuje podpis tokenu ID za pomocą JWKS wystawcy
+  (`createRemoteJWKSet` z pakietu `jose`, buforowane osobno dla każdego URI JWKS), sprawdzając
+  `issuer`/`audience`. Opcjonalna lista dozwolonych `oidcAllowedSubjects` dopasowuje
+  oświadczenie `sub` tokenu lub jego oświadczenie `email` — oświadczenie adresu e-mail jest
+  uwzględniane tylko wtedy, gdy `email_verified === true`, dlatego niezweryfikowany adres
+  e-mail u IdP nigdy nie pozwala przejść przez bramę.
+- Po pomyślnym zakończeniu generowany jest **dokładnie taki sam** 30-dniowy JWT `auth_token`, jaki wystawia
+  logowanie za pomocą hasła (`src/app/api/auth/login/route.ts`), dzięki czemu pozostała część
+  potoku sesji panelu (automatyczne odświeżanie, flagi plików cookie) pozostaje bez zmian —
   OIDC zastępuje jedynie sposób generowania pliku cookie, a nie przyznawane przez niego uprawnienia.
 
 ## Klasy tras
@@ -183,28 +178,24 @@ export async function POST(request: Request) {
 
 Dodaj prefiks do `PUBLIC_API_ROUTE_PREFIXES` (lub `PUBLIC_READONLY_API_ROUTE_PREFIXES` dla GET-only). Zaktualizuj testy jednostkowe w `tests/unit/public-api-routes.test.ts` i `tests/unit/authz/classify.test.ts`.
 
-## Scope'y
+## Zakresy
 
-Klucze API niosą tablicę `scopes` (przechowywaną jako JSON w `api_keys.scopes`, zob. `src/lib/db/apiKeys.ts`).
+Trzy przestrzenie nazw. Każdy moduł sprawdzający odczytuje tylko własne ciągi znaków. Porównanie, w tym dlaczego `manage` nie przechodzi `scopeMatches` dla `read:compression` i dlaczego token dostępu `read` nie może `PATCH /api/keys/{id}`, znajduje się w [Trzy przestrzenie nazw zakresów](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Scope management
+Klucze API zawierają tablicę `scopes` (przechowywaną jako JSON w `api_keys.scopes`, zobacz `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — daje kluczowi dostęp do endpointów management API przy wysyłce jako Bearer.
+### Zakres zarządzania
 
-### Scope'y MCP (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Dostęp typu Bearer do tras API zarządzania.
+- `mcp:connect`, `self:usage`, `self:account-quota` i `policy:bypass-provider-quota` to addytywne zakresy o dokładnym dopasowaniu. Znajdują się poza `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` otwiera tylko wydzieloną, nieloopbackową część `/api/mcp/`.
 
-Każde narzędzie MCP wymaga określonych scope'ów przez `MCP_TOOL_SCOPES`. Pełna lista (`MCP_SCOPE_LIST`):
+### Zakresy narzędzi MCP
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Katalog i reguły dopasowania (identyczny ciąg znaków lub przyznany zakres kończący się na `*`): [Zakresy narzędzi MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes). `MCP_SCOPE_LIST` w `src/shared/constants/mcpScopes.ts` to oryginalny, typowany podzbiór, a nie pełny katalog. Wymuszanie odbywa się w `open-sse/mcp-server/scopeEnforcement.ts` po tym, jak `resolveCallerScopeContext()` rozpozna zakresy z informacji uwierzytelniających MCP, metadanych żądania lub `OMNIROUTE_MCP_SCOPES`. Pozostaje wyłączone, chyba że `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Egzekwowanie scope w `open-sse/mcp-server/server.ts` przekazuje listę scope'ów każdego narzędzia do
-`evaluateToolScopes()` po tym, jak `resolveCallerScopeContext()` rozwiąże scope'y z informacji auth MCP,
-metadanych żądania lub `OMNIROUTE_MCP_SCOPES`.
+### Zakresy tokenów dostępu
+
+`read` / `write` / `admin` na tokenach `oma_live_…`, uszeregowane według `scopeSatisfies` (`src/lib/accessTokens/scopes.ts`). Ta ranga dotyczy wyłącznie poświadczeń tokenu dostępu. Zobacz [Uwierzytelnianie zarządzania](../guides/MANAGEMENT-AUTH.md).
 
 ## Przełącznik wymagania auth
 
@@ -250,9 +241,9 @@ x-omniroute-auth-scopes:    comma-separated list
 
 Używaj `assertAuth(req, expectedClass)` wewnątrz handlerów — rzuca `AuthzAssertionError` z kodem `AUTHZ_NOT_INITIALIZED`, jeśli middleware zostało ominięte (przydatne do łapania regresji konfiguracji w testach).
 
-## Zobacz także
+## Zobacz również
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — znacznik auth per endpoint
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — log audytu zdarzeń auth
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — szczegóły egzekwowania scope MCP
-- Source: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — znacznik autoryzacji dla każdego punktu końcowego
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — dziennik audytu dla zdarzeń autoryzacji
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trzy przestrzenie nazw zakresów i katalog zakresów narzędzi MCP
+- Źródło: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

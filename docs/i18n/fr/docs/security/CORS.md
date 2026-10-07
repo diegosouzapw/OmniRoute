@@ -132,23 +132,26 @@ Origines CORS autorisées**, sans redémarrage.
 
 ## Exemple : proxy inverse devant OmniRoute
 
-CORS est appliqué par OmniRoute lui-même ; le proxy ne doit donc généralement **pas**
-ajouter ou réécrire les en-têtes `Access-Control-*` (les en-têtes en double perturbent
-les navigateurs). Terminez TLS et transférez les requêtes : laissez OmniRoute répondre
-aux requêtes préliminaires :
+CORS est appliqué par OmniRoute lui-même ; le proxy ne doit donc généralement **pas** ajouter ni
+réécrire les en-têtes `Access-Control-*` (les en-têtes en double perturbent les navigateurs). Terminez TLS
+et transférez les requêtes — laissez OmniRoute répondre aux requêtes préliminaires :
 
 ```nginx
-# nginx — transférer vers OmniRoute ; ne PAS injecter Access-Control-* ici
+# nginx — transfert vers OmniRoute ; n’injectez PAS d’en-têtes Access-Control-* ici
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Ne définissez PAS X-Forwarded-For sur 127.0.0.1 : cela neutralise la protection des routes limitée à l’interface de bouclage.
+    # Conservez les en-têtes de transfert : un proxy sur le même hôte se connecte depuis l’adresse de bouclage,
+    # et ce sont eux qui indiquent à OmniRoute que l’appelant n’est pas l’opérateur local. Un proxy qui n’en ajoute aucun
+    # fait apparaître chaque appelant distant comme local. Ne définissez jamais non plus X-Forwarded-For sur 127.0.0.1.
 }
 ```
 
-Définissez les origines de navigateur autorisées dans OmniRoute
-(`CORS_ALLOWED_ORIGINS` ou l’onglet Sécurité), et non dans le proxy.
+Définissez les origines autorisées pour les navigateurs dans OmniRoute (`CORS_ALLOWED_ORIGINS` ou
+l’onglet Sécurité), et non dans le proxy.
 
 ## Fichiers sources
 

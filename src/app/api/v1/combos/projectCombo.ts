@@ -14,13 +14,18 @@
  * capabilities (multimodal / reasoning / caching) so importing clients enable
  * those features instead of requiring manual config after import.
  */
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
-  resolveNestedComboTargets,
-  type ComboCollectionLike,
-  type ComboLike,
-  type ResolvedComboTarget,
-} from "@omniroute/open-sse/services/combo/comboStructure.ts";
+  createModelCapabilityResolutionSnapshot,
+  getResolvedModelCapabilities,
+} from "@/lib/modelCapabilities";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo/comboStructure.ts";
+// The shapes live in the combo type module; comboStructure.ts only re-uses them
+// internally, so importing them from there is a TS2459/TS2724 at build time.
+import type {
+  ComboCollectionLike,
+  ComboLike,
+  ResolvedComboTarget,
+} from "@omniroute/open-sse/services/combo/types.ts";
 
 export interface PublicComboStep {
   kind: "model" | "combo-ref";
@@ -200,4 +205,26 @@ export function projectCombo(
   }
 
   return out;
+}
+
+/** Project one request's combo collection with a single bulk capability snapshot. */
+export function projectComboCollectionWithCapabilities(combos: readonly unknown[]): PublicCombo[] {
+  const allCombos = combos.filter(
+    (combo): combo is Record<string, unknown> => Boolean(combo) && typeof combo === "object"
+  );
+  const snapshot = createModelCapabilityResolutionSnapshot();
+  const resolveCapabilities: ComboCapabilityResolver = (model) => {
+    const caps = getResolvedModelCapabilities(model, undefined, snapshot);
+    return { supportsVision: caps.supportsVision, reasoning: caps.reasoning };
+  };
+
+  return allCombos
+    .map((combo) =>
+      projectCombo(combo, {
+        includeCapabilities: true,
+        resolveCapabilities,
+        allCombos,
+      })
+    )
+    .filter((combo): combo is PublicCombo => combo !== null);
 }

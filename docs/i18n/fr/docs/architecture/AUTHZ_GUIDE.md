@@ -4,12 +4,12 @@
 
 ---
 
-> **Source de référence :** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Dernière mise à jour :** 2026-06-28 — v3.8.40
+> **Source de vérité :** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Dernière mise à jour :** 2026-09-22 — les espaces de noms de portée pointent vers MCP-SERVER.md
 
-OmniRoute dispose d’un pipeline d’autorisation tenant compte des routes, qui contrôle chaque requête API. La classification est **déterministe** et **fermée par défaut** — tout ce qui ne peut pas être classifié finit dans `MANAGEMENT` et exige une session ou un jeton de niveau gestion. Cette page explique le modèle aux ingénieurs chargés de maintenir les routes ou de concevoir de nouveaux points de terminaison.
+OmniRoute dispose d'un pipeline d'autorisation sensible aux routes qui filtre chaque requête API. La classification est **déterministe** et **fermée par défaut** — tout ce qui ne peut pas être classifié est considéré comme `MANAGEMENT` et exige une session ou un jeton de niveau gestion. Cette page explique le modèle aux ingénieurs qui maintiennent des routes ou conçoivent de nouveaux points de terminaison.
 
-![Pipeline AuthZ (3 classes de routes + évaluation des politiques)](../diagrams/exported/authz-pipeline.svg)
+![Pipeline d'autorisation (3 classes de routes + évaluation des politiques)](../diagrams/exported/authz-pipeline.svg)
 
 > Source : [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,13 +17,13 @@ OmniRoute dispose d’un pipeline d’autorisation tenant compte des routes, qui
 
 ### 1. Clé API (Bearer)
 
-Utilisée pour les API clientes compatibles avec OpenAI/Anthropic/Gemini et pour quelques routes de gestion lorsque la clé possède la portée `manage`.
+Utilisé pour les API clientes compatibles avec OpenAI/Anthropic/Gemini et quelques routes de gestion lorsque la clé possède la portée `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Validée par `isValidApiKey()` / `extractApiKey()` dans `src/sse/services/auth.ts` et réexportée via `src/shared/utils/apiAuth.ts`. Le validateur accepte également les variables d’environnement `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` comme clés de relais persistantes (problème #1350).
+Validée par `isValidApiKey()` / `extractApiKey()` dans `src/sse/services/auth.ts` et réexportée via `src/shared/utils/apiAuth.ts`. Le validateur accepte également les variables d’environnement `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` comme clés persistantes transmises telles quelles (ticket #1350).
 
 ### 2. Session du tableau de bord (cookie auth_token)
 
@@ -33,43 +33,45 @@ Pour les pages du tableau de bord et les opérations d’administration.
 Cookie: auth_token=<JWT signé avec JWT_SECRET>
 ```
 
-Un cookie est considéré comme une session uniquement lorsque le JWT est vérifié **et** contient `authenticated: true`
+Un cookie constitue une session uniquement lorsque le JWT est vérifié **et** contient `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Chaque
-consommateur du cookie (garde de route, actualisation du pipeline AuthZ, négociation WebSocket, serveur
-temps réel, `/api/settings/require-login`, `/api/auth/status`) passe par cet utilitaire.
-Il existe d’autres JWT signés avec `JWT_SECRET` — le relais de la CLI Cursor émet
-des jetons `iss "omniroute" / aud "cursor-cli"` pour les détenteurs de clés — qui ne sont jamais considérés comme des sessions
+composant utilisant le cookie (garde de route du tableau de bord (`isDashboardSessionAuthenticated()`), actualisation du pipeline d’autorisation, négociation WebSocket, serveur
+en direct, `/api/settings/require-login`, `/api/auth/status`) passe par cette fonction d’assistance.
+Il existe d’autres JWT signés avec `JWT_SECRET` — la transmission directe de la CLI Cursor génère
+des jetons `iss "omniroute" / aud "cursor-cli"` pour les détenteurs de clés — qui ne constituent jamais des sessions
 (#13298).
 
-Vérifiée par `isDashboardSessionAuthenticated()` dans `src/shared/utils/apiAuth.ts`. Le pipeline actualise automatiquement le JWT lorsqu’il lui reste moins de 7 jours sur sa durée de vie de 30 jours.
+Vérifiée par `isDashboardSessionAuthenticated()` dans `src/shared/utils/apiAuth.ts`. Le pipeline actualise automatiquement le JWT lorsqu’il reste moins de 7 jours sur sa durée de validité de 30 jours.
 
-Certaines routes de gestion acceptent **l’un ou l’autre** mode : cookie OU `Bearer <key>` lorsque la clé API possède la portée `manage` (ou `admin`). C’est ce qui rend possible le flux de travail « configurable par des appels API » ajouté dans la v3.8.
+Une session peut également prendre fin avant l’expiration de ses 30 jours, car chaque émetteur passe par `mintDashboardSessionToken` (avec une heure d’émission `iat` et un identifiant `jti`) et le vérificateur contrôle deux paramètres : `sessionsValidAfter`, défini lors d’un changement de mot de passe afin que toute session émise antérieurement ne soit plus validée (le navigateur ayant modifié le mot de passe reçoit un nouveau cookie), et `revokedDashboardSessions`, auquel `POST /api/auth/logout` ajoute le `jti` de la session déconnectée. Les sessions générées par une ancienne version ne contiennent aucune de ces revendications et restent valides jusqu’au premier changement de mot de passe. Si les paramètres ne peuvent pas être lus, la session n’est pas considérée comme fiable.
 
-#### Barrière de connexion OIDC facultative (#6973)
+Certaines routes de gestion acceptent **l’un ou l’autre** mode : cookie OU `Bearer <key>` lorsque la clé API possède la portée `manage` (ou `admin`). C’est ce qui permet le flux de travail « configurable via des appels API » ajouté dans v3.8.
 
-La connexion administrateur au tableau de bord prend également en charge un flux OIDC (OpenID Connect) **facultatif**
-en complément de la connexion par mot de passe par défaut — la connexion par mot de passe n’est jamais supprimée, seulement
+#### Contrôle de connexion OIDC facultatif (#6973)
+
+La connexion d’administration au tableau de bord prend également en charge un flux OIDC (OpenID Connect) **facultatif**
+en plus de la connexion par mot de passe par défaut — la connexion par mot de passe n’est jamais supprimée, seulement
 complétée :
 
 - Désactivé sauf si `settings.oidcEnabled === true` **et** si `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` sont tous configurés (Paramètres → Auth).
-  `GET /api/auth/oidc/login` renvoie `400` dans le cas contraire.
-- `GET /api/auth/oidc/login` découvre le `authorization_endpoint` à partir de
+  Sinon, `GET /api/auth/oidc/login` renvoie `400`.
+- `GET /api/auth/oidc/login` découvre le `authorization_endpoint` à partir du
   `/.well-known/openid-configuration` de l’émetteur (avec repli sur
   `<issuer>/authorize`), construit l’URI de redirection à partir de la requête entrante
-  (en tenant compte de `x-forwarded-proto`) et redirige vers l’IdP avec un `state`
-  aléatoire stocké dans un cookie `oidc_state` `httpOnly`.
+  (en tenant compte de `x-forwarded-proto`) et redirige vers l’IdP avec une valeur `state`
+  aléatoire stockée dans un cookie `oidc_state` `httpOnly`.
 - `GET /api/auth/oidc/callback` valide `state`, échange le code d’autorisation
-  et vérifie la signature du jeton d’identité au moyen du JWKS de l’émetteur
-  (`createRemoteJWKSet` de `jose`, mis en cache par URI JWKS), avec des contrôles `issuer`/`audience`.
-  Une liste d’autorisation `oidcAllowedSubjects` facultative vérifie la correspondance avec la revendication
-  `sub` ou la revendication `email` du jeton — la revendication d’adresse e-mail n’est prise en compte que lorsque
+  et vérifie la signature du jeton d’identité via le JWKS de l’émetteur
+  (`createRemoteJWKSet` de `jose`, mis en cache par URI JWKS), avec des contrôles
+  `issuer`/`audience`. Une liste d’autorisation facultative `oidcAllowedSubjects` recherche une correspondance avec la
+  revendication `sub` du jeton ou sa revendication `email` — la revendication d’adresse e-mail n’est prise en compte que lorsque
   `email_verified === true`, de sorte qu’une adresse e-mail non vérifiée auprès de l’IdP ne puisse jamais franchir
-  la barrière.
-- En cas de succès, il émet **exactement le même** JWT `auth_token` valable 30 jours que celui émis par la connexion
-  par mot de passe (`src/app/api/auth/login/route.ts`) ; le reste du
-  pipeline de session du tableau de bord (actualisation automatique, attributs du cookie) demeure donc inchangé —
-  OIDC remplace uniquement la manière dont le cookie est émis, et non les droits qu’il accorde.
+  le contrôle.
+- En cas de succès, il génère **exactement le même** JWT `auth_token` de 30 jours que celui émis par la connexion
+  par mot de passe (`src/app/api/auth/login/route.ts`), de sorte que le reste du
+  pipeline de session du tableau de bord (actualisation automatique, attributs du cookie) reste inchangé —
+  OIDC remplace uniquement la manière dont le cookie est généré, et non les autorisations qu’il accorde.
 
 ## Classes de routes
 
@@ -200,26 +202,33 @@ Choisissez l’ensemble en fonction de la forme, et non par commodité. Une rout
 
 ## Portées
 
-Les clés d’API comportent un tableau `scopes` (stocké au format JSON dans `api_keys.scopes`, voir `src/lib/db/apiKeys.ts`).
+Trois espaces de noms. Chaque vérificateur ne lit que ses propres chaînes. La comparaison côte à côte, y compris pourquoi `manage` échoue `scopeMatches` pour `read:compression` et pourquoi un jeton d'accès `read` ne peut pas `PATCH /api/keys/{id}`, se trouve dans [Trois espaces de noms de portée](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+Les clés API contiennent un tableau `scopes` (stocké au format JSON dans `api_keys.scopes`, voir `src/lib/db/apiKeys.ts`).
 
 ### Portée de gestion
 
-- `manage` / `admin` — accorde à la clé l’accès aux points de terminaison de l’API de gestion lorsqu’elle est transmise comme jeton Bearer.
+- `manage` / `admin` — `hasManageScope`. Accès Bearer aux routes de l'API de gestion.
+- `mcp:connect`, `self:usage`, `self:account-quota`, et
+  `policy:bypass-provider-quota` sont des portées additives à correspondance exacte. Elles se situent
+  en dehors de `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` ouvre uniquement la
+  découpe non-loopback `/api/mcp/`.
 
-### Portées MCP (`src/shared/constants/mcpScopes.ts`)
+### Portées des outils MCP
 
-Chaque outil MCP nécessite des portées spécifiques via `MCP_TOOL_SCOPES`. Liste complète (`MCP_SCOPE_LIST`) :
+Catalogue et règles de correspondance (chaîne identique, ou une portée accordée se terminant par `*`) :
+[Portées des outils MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` dans `src/shared/constants/mcpScopes.ts` est le sous-ensemble typé original,
+et non le catalogue complet. L'application s'exécute dans
+`open-sse/mcp-server/scopeEnforcement.ts` après que `resolveCallerScopeContext()`
+résolve les portées à partir des informations d'authentification MCP, des métadonnées de requête ou de `OMNIROUTE_MCP_SCOPES`.
+Elle reste désactivée à moins que `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Portées des jetons d'accès
 
-L’application des portées dans `open-sse/mcp-server/server.ts` transmet la liste des portées de chaque outil à
-`evaluateToolScopes()` après que `resolveCallerScopeContext()` a résolu les portées à partir des informations d’authentification MCP,
-des métadonnées de la requête ou de `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` sur les jetons `oma_live_…`, classés par `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ce classement s'applique uniquement aux identifiants
+du jeton d'accès. Voir [Authentification de gestion](../guides/MANAGEMENT-AUTH.md).
 
 ## Option d’authentification obligatoire
 
@@ -267,7 +276,7 @@ Utilisez `assertAuth(req, expectedClass)` dans les gestionnaires — cette fonct
 
 ## Voir aussi
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marqueur d’authentification par point de terminaison
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — journal d’audit des événements d’authentification
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — détails sur l’application des portées MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marqueur d'authentification par point d'accès
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — journal d'audit pour les événements d'authentification
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trois espaces de noms de portée et catalogue de portée d'outil MCP
 - Source : `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

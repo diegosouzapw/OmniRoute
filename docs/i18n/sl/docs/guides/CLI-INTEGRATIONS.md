@@ -4,26 +4,29 @@
 
 ---
 
-OmniRoute ponuja družino ukazov `setup-*`, ki konfigurirajo programski
-CLI (Codex, Claude Code, OpenCode, Cline, …) za uporabo OmniRoute kot zaledja — tako
+Za skupni manifest izvršljivih datotek, omejena podrejena okolja in trajno
+nastavitev Gemini glejte [pogodbe za zagon CLI](./CLI-LAUNCH-CONTRACTS.md).
+
+OmniRoute vključuje družino ukazov `setup-*`, ki konfigurirajo programski
+CLI (Codex, Claude Code, OpenCode, Cline, …), da uporablja OmniRoute kot svoje zaledje — tako
 orodje komunicira z **eno** končno točko, OmniRoute pa zahteve usmerja k ustreznemu ponudniku s
-samodejnim preklopom ob nedosegljivosti. Vsak ukaz prebere **aktualni** katalog modelov iz delujočega
-OmniRoute (lokalnega ali oddaljenega) in zapiše konfiguracijsko datoteko orodja na **vaš**
-računalnik. Ključ API je naveden prek okoljske spremenljivke, kjer koli orodje
-to podpira. Ukazi, ki shranijo lokalno okoljsko datoteko orodja, so navedeni spodaj.
+samodejnim preklopom ob napaki. Vsak ukaz prebere **trenutni** katalog modelov iz delujočega
+sistema OmniRoute (lokalnega ali oddaljenega) in zapiše lastno konfiguracijsko datoteko orodja v
+**vaš** računalnik. Ključ API je naveden prek spremenljivke okolja, kjer koli orodje
+to podpira. Ukazi, ki trajno shranijo lokalno datoteko okolja za orodje, so navedeni spodaj.
 
 Na voljo je tudi splošni zaganjalnik — `omniroute run <target>` — ki zažene
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ali `gemini` z
-ustrezno nastavljenim okoljem, ne da bi zapisal kakršno koli konfiguracijo. Cilji in njihovi
+vstavljenimi ustreznimi spremenljivkami okolja, ne da bi sploh zapisal konfiguracijo. Cilji in njihovi
 vzdevki izvirajo iz kanoničnega manifesta `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
 `open-code`, `qwen-code`, `gemini-cli`), ukaz `omniroute completion` pa ponuja
-iste ciljne besede, izpeljane iz manifesta. Podedovani zaganjalniki za posamezna orodja —
-`omniroute launch` (Claude Code) in `omniroute launch-codex` (Codex) — ostajajo
+iste ciljne besede, izpeljane iz manifesta. Starejša zaganjalnika za posamezni orodji —
+`omniroute launch` (Claude Code) in `omniroute launch-codex` (Codex) — ostajata
 na voljo.
 
-Dodajanje ponudnikov je na voljo v istem lokalnem/oddaljenem kontekstu. Spodnji
-ukazi, zasnovani predvsem za API, ohranjajo overjanje upravljanja ločeno od poverilnic
+Začetna nastavitev ponudnikov je na voljo iz istega lokalnega/oddaljenega konteksta. Spodnji
+ukazi, osredotočeni na API, ohranjajo preverjanje pristnosti za upravljanje ločeno od poverilnic
 ponudnikov in poverilnic nikoli ne izpišejo v strukturiranem izhodu:
 
 ```bash
@@ -34,19 +37,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Za skripte dajte prednost možnostma `--credential-stdin` ali `--credential-env`; možnost `--credential`
-je ohranjena za nadzorovano lokalno uporabo. Ukaz `providers remove` zahteva možnost `--yes` v
+Za skripte dajte prednost možnostma `--credential-stdin` ali `--credential-env`; možnost
+`--credential` je ohranjena za nadzorovano lokalno uporabo. Ukaz `providers remove` zahteva `--yes` v
 neinteraktivnem terminalu, vseh pet ukazov pa upošteva aktivni kontekst ali
 globalni možnosti `--base-url`/`--api-key`.
 
-Za enkratno, ročno osnovno nastavitev dveh najbogatejših integracij si oglejte
-podrobna navodila za posamezno orodje:
+Izbirniki ponudnikov zavrnejo dvoumne predpone ID-jev, imena ali imena ponudnikov; kadar se
+ujema več povezav, uporabite polni ID povezave. Ukazi za ustvarjanje in urejanje
+znova preberejo shranjeno povezavo, odstranitev pa preveri, da je ni več mogoče prebrati.
+Uvoz preskoči obstoječi par ponudnika in imena. Uvoženi vnosi ne morejo preglasiti
+končne točke za upravljanje, konteksta ali poverilnic za upravljanje, posredovanih CLI-ju.
+
+Za enkratno, ročno osnovno nastavitev dveh najbogatejših integracij glejte
+podrobna vodnika za posamezni orodji:
 
 - [Konfiguracija Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfiguracija Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Oddaljeni način](./REMOTE-MODE.md) — upravljajte oddaljeni OmniRoute (VPS / Tailnet) s svojega prenosnika
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — razširitev OmniCopilot; te
-  ukaze `setup-*` lahko namesto vas izvede tudi znotraj urejevalnika
+- [Oddaljeni način](./REMOTE-MODE.md) — upravljajte oddaljeni OmniRoute (VPS / Tailnet) iz svojega prenosnika
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — razširitev OmniCopilot; te ukaze
+  `setup-*` lahko namesto vas zažene tudi znotraj urejevalnika
 
 ---
 

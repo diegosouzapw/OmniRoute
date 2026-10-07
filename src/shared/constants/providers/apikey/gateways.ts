@@ -739,6 +739,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/zen",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -749,6 +754,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/go",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   dahl: {
     id: "dahl",
@@ -779,11 +789,13 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "hub",
     color: "#22C55E",
     textIcon: "FTA",
-    website: "https://freetheai.xyz",
+    website: "https://freetheai.org",
     hasFree: true,
-    freeNote: "Free OpenAI-compatible gateway — sign up via Discord for an API key.",
+    freeNote:
+      "Free OpenAI-compatible gateway — sign up at freetheai.org for a free API key; a daily check-in unlocks the free models.",
     passthroughModels: true,
-    authHint: "Join the FreeTheAi Discord to get your free API key.",
+    authHint:
+      "Sign up at https://freetheai.org/signup for a free API key. A daily check-in unlocks the free models; linking Discord is optional and only raises the daily limit.",
   },
   "g4f-groq": {
     id: "g4f-groq",

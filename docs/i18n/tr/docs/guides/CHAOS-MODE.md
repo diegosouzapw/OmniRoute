@@ -4,22 +4,46 @@
 
 ---
 
-> **Kontrol Paneli:** **Kaos Modu** (kenar çubuğu) → `/dashboard/chaos`  
+> **Kontrol Paneli:** **Chaos Mode** (kenar çubuğu) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (kontrol paneli oturumu) · `POST /api/skills/collect/chaos` (API anahtarı)  
 > **Kaynak:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Kaos Modu, **tek bir görevi aynı anda birden fazla sağlayıcıya gönderir** — katılan her sağlayıcı
-bir model örneğiyle katkıda bulunur ve tüm yanıtları yan yana (veya zincirlenmiş olarak) alırsınız.
-Bu, bir yönlendirme stratejisi değil, çok modelli bir yürütme yüzeyidir: normal
-`/v1/chat/completions` trafiğiniz bundan hiçbir zaman etkilenmez.
+Chaos Mode, **bir görevi aynı anda birden fazla sağlayıcıya gönderir** — katılan her sağlayıcı
+bir model örneğiyle katkıda bulunur ve tüm yanıtları yan yana (veya zincirlenmiş olarak) alırsınız. Bu,
+bir yönlendirme stratejisi değil, çok modelli bir yürütme yüzeyidir: normal `/v1/chat/completions`
+trafiğiniz bundan hiçbir zaman etkilenmez.
 
-**Açıklama — adında "chaos" geçen üç farklı şey sunulur:**
+**Açıklama — adında "chaos" bulunan üç farklı şey sunulur:**
 
-| Şey                        | Nedir                                                                                                                                    | Belgelendiği yer                             |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Kaos Modu**              | Burada açıklanan kontrol paneli sayfası + API: tek görevi birçok sağlayıcıya dağıtır (paralel veya iş birlikli).                         | Bu kılavuz                                   |
-| `auto/chaos`               | Dayanıklılık testi için hata enjeksiyonu puanlama ağırlıklarına sahip bir Auto-Combo model kimliği. Yapılandırılacak bir şey yoktur.     | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo yapılandırması | `config.chaos.enabled` ayarıyla, isteği isteğe bağlı bir değerlendirici model içeren bir panele dağıtan kalıcı bir combo (yalnızca API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Şey                        | Nedir                                                                                                                                                                                  | Nerede belgelenmiştir                        |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**             | Burada açıklanan kontrol paneli sayfası + API: bir görevi birçok sağlayıcıya dağıtır (paralel veya iş birlikçi).                                                                       | Bu kılavuz                                   |
+| `auto/chaos`               | Auto-Combo model kimliği: paralel dağıtım, sağlayıcı başına bir model ve her biri için bir yukarı akış çağrısı. Hata enjeksiyonu değildir ([ayrıntılar](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo yapılandırması | `config.chaos.enabled` içeren kalıcı bir combo, aynı şekilde dağıtım yapar (yalnızca API); `judgeModel` yalnızca nihai yanıtı seçer, sentez çağrısı yapılmaz.                          | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralel dağıtım
+
+`auto/chaos`, bir hata enjeksiyonu veya dayanıklılık testi ayarı **değildir**.
+`/v1/chat/completions` üzerinde `model: "auto/chaos"` isteğinde bulunulduğunda:
+
+1. **Sağlayıcı başına bir modelden** oluşan bir panel oluşturur: bağlı her
+   sağlayıcının aday havuzu sırasındaki ilk adayı; en fazla 5 üye
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, üst sınır 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode` ağırlık
+   paketi yalnızca her üyenin `weight` değerini ayarlar; dağıtım bunu okumaz.
+2. Aynı isteği tüm panel üyelerine **paralel olarak** gönderir; dolayısıyla bir
+   istek, panel üyesi başına bir yukarı akış çağrısına mal olur
+   (`open-sse/services/autoCombo/chaosEngine.ts`, çağrı
+   `open-sse/services/combo.ts` üzerinden yapılır).
+3. Her panel üyesi ulaştığında üye başına bir durum satırı akışla gönderilir:
+   varsayılan olarak bir SSE yorumu (`: chaos <index> ok|fail <model>`) ve istekte
+   `stream_options.include_chaos_parts: true` ayarlandığında ek olarak bir
+   `omni-chaos-part` olayı (`model`, `index`, `ok`, `error`). Bunlar yanıt metni
+   içermez.
+4. Nihai OpenAI tarzı parça olarak **bir** panel yanıtı gönderir: başarılı olması
+   durumunda ilk panel üyesinin yanıtı (`auto/chaos` bunu `judgeModel` olarak
+   ayarlar), aksi takdirde son başarılı üyenin yanıtı. Diğer panel yanıtları
+   döndürülmez; dolayısıyla N çağrı için ödeme yapar ve tek bir tamamlama alırsınız.
 
 ## Kurulum
 

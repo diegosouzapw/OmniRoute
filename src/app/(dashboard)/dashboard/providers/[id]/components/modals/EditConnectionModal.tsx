@@ -39,8 +39,10 @@ import {
   getLocalProviderMetadata,
   normalizeAndValidateHttpBaseUrl,
   getCodexFingerprintMode,
+  getCodexPromptCacheKeyScope,
   getCodexRequestDefaults,
   type CodexFingerprintModeValue,
+  type CodexPromptCacheKeyScopeValue,
   getClaudeCodeCompatibleRequestDefaults,
   providerText,
   ERROR_TYPE_LABELS,
@@ -142,6 +144,7 @@ export default function EditConnectionModal({
     codexReasoningEffort: "medium",
     codexServiceTier: "default" as CodexServiceTier,
     codexFingerprintMode: "session" as CodexFingerprintModeValue,
+    codexPromptCacheKeyScope: "client" as CodexPromptCacheKeyScopeValue,
     codexOpenaiStoreEnabled: false,
     openaiResponsesStoreEnabled: false,
     preserveEncryptedReasoning: false,
@@ -369,6 +372,7 @@ export default function EditConnectionModal({
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexFingerprintMode: getCodexFingerprintMode(connection.providerSpecificData),
+        codexPromptCacheKeyScope: getCodexPromptCacheKeyScope(connection.providerSpecificData),
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         openaiResponsesStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         preserveEncryptedReasoning:
@@ -665,7 +669,13 @@ export default function EditConnectionModal({
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(validationPsd || {}),
-          ...(isCodex ? { codexFingerprintMode: null, codex_fingerprint_mode: null } : {}),
+          ...(isCodex
+            ? {
+                codexFingerprintMode: null,
+                codex_fingerprint_mode: null,
+                codexPromptCacheKeyScope: null,
+              }
+            : {}),
         };
         assignEditApiKeyProviderSpecificData({
           provider,
@@ -704,6 +714,7 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
           updates.providerSpecificData.codexFingerprintMode = formData.codexFingerprintMode;
+          updates.providerSpecificData.codexPromptCacheKeyScope = formData.codexPromptCacheKeyScope;
         }
         if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
@@ -831,6 +842,7 @@ export default function EditConnectionModal({
             reasoningEffort={formData.codexReasoningEffort}
             serviceTier={formData.codexServiceTier}
             fingerprintMode={formData.codexFingerprintMode}
+            promptCacheKeyScope={formData.codexPromptCacheKeyScope}
             openaiStoreEnabled={formData.codexOpenaiStoreEnabled}
             showFingerprintMode={isOAuth}
             onChange={(patch) => setFormData({ ...formData, ...patch })}

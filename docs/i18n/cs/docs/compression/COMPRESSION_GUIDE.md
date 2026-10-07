@@ -184,54 +184,59 @@ Se Stacked:          10K-2.5K tokenů odeslaných  (rozsah 78-95% pro způsobil�
 
 ## Konfigurace
 
-### Řídicí panel
+### Ovládací panel
 
-Přejděte do `Řídicí panel → Kontext a mezipaměť`:
+Přejděte do `Dashboard → Context & Cache`:
 
 - **Caveman** — výběr režimu, jazykové balíčky, náhled a globální výchozí nastavení
 - **RTK** — náhled filtrování příkazů, bezpečnostní nastavení RTK a katalog filtrů
-- **Kombinace komprese** — pojmenované pipeline enginů přiřazené ke kombinacím směrování
-- **Prahová hodnota automatické aktivace** — automaticky aktivuje kompresi, když počet tokenů překročí prahovou hodnotu
+- **Compression Combos** — pojmenované kanály enginů přiřazené ke směrovacím kombinacím
+- **Auto-Trigger Threshold** — automaticky aktivuje kompresi, když počet tokenů překročí prahovou hodnotu
 
-### Přepsání pro jednotlivé kombinace
+### Přepsání pro konkrétní kombinaci
 
-V části `Řídicí panel → Kontext a mezipaměť → Kombinace komprese` přiřaďte kombinaci komprese ke kombinaci
-směrování:
+V `Dashboard → Context & Cache → Compression Combos` přiřaďte kompresní kombinaci ke směrovací
+kombinaci:
 
 ```txt
 Kombinace: "free-tier-fallback"
-  Kombinace komprese: "coding-agent-stack"
-  Pipeline: RTK -> Caveman
+  Kompresní kombinace: "coding-agent-stack"
+  Kanál: RTK -> Caveman
   Cíle:
     1. if/kimi-k2.7-code
     2. if/qwen3.8-max-preview
 ```
 
-To umožňuje používat vrstvenou kompresi u bezplatných poskytovatelů a poskytovatelů zaměřených na programování, zatímco u placených
-předplatných zůstane zachován odlehčený režim.
+To umožňuje používat vrstvenou kompresi u bezplatných/programátorských poskytovatelů a současně zachovat odlehčený režim u placených
+předplatných.
 
-Toto přiřazení „Přepsání pro jednotlivé kombinace“ představuje jiný ovládací prvek než přepsání **režimu komprese kombinace
-směrování** (Výchozí/Vypnuto/Odlehčený/Standardní/Agresivní/Ultra) — toto přepsání nevybírá pojmenovanou
-pipeline kombinace komprese; pouze nastavuje pole `compressionMode`, které používá
-`resolveCompressionPlan`. Lze je nastavit buď na kartě kombinace (`Řídicí panel → Kombinace`), nebo od verze
-#6760 pro jednotlivé kombinace směrování v seznamu „Přiřadit ke směrování“ v části
-`Řídicí panel → Kontext a mezipaměť → Kombinace komprese`, přímo vedle zaškrtávacího políčka pro přiřazení pipeline
-popsaného výše. Nastavení z obou míst se ukládají prostřednictvím stejného endpointu `PUT /api/combos/{id}`.
+Toto přiřazení „Přepsání pro konkrétní kombinaci“ je jiný ovládací prvek než přepsání **režimu komprese směrovací
+kombinace** (Default/Off/Lite/Standard/Aggressive/Ultra) — toto přepsání nevybírá pojmenovaný kanál
+kompresní kombinace; pouze nastavuje pole `compressionMode`, které používá
+`resolveCompressionPlan`. Lze jej nastavit buď na kartě kombinace (`Dashboard → Combos`), nebo od verze
+#6760 pro jednotlivé směrovací kombinace v seznamu „Assign to routing“ na stránce
+`Dashboard → Context & Cache → Compression Combos`, přímo vedle zaškrtávacího políčka pro přiřazení kanálu
+popsaného výše. Obě rozhraní ukládají nastavení prostřednictvím stejného koncového bodu `PUT /api/combos/{id}`.
 
-### Přepsání pro jednotlivé požadavky
+### Přepsání pro jednotlivý požadavek
 
 Odešlete hlavičku požadavku `x-omniroute-compression`, chcete-li přepsat plán komprese pro jeden
-požadavek. Má nejvyšší prioritu — má přednost před přepsáním kombinace směrování, aktivním profilem,
-automatickou aktivací i výchozím nastavením panelu. Neznámé hodnoty jsou ignorovány (požadavek není nikdy odmítnut) a
-globální hlavní přepínač stále řídí veškerou kompresi: pokud je komprese globálně vypnutá, hlavička ji nemůže
+požadavek. Má nejvyšší prioritu — přebíjí přepsání směrovací kombinace, aktivní profil,
+automatické spuštění i výchozí nastavení panelu. Neznámé hodnoty jsou ignorovány (požadavek není nikdy odmítnut) a
+globální hlavní přepínač stále řídí vše: pokud je komprese globálně vypnutá, hlavička ji nemůže
 zapnout. Hodnoty:
 
 | Hodnota       | Účinek                                                                                                  |
 | ------------- | ------------------------------------------------------------------------------------------------------- |
-| `off`         | Pro tento požadavek nebude použita žádná komprese.                                                      |
-| `default`     | Výchozí profil odvozený z panelu (ignoruje aktivní profil).                                             |
-| `engine:<id>` | Jeden engine, pokud je povolen, např. `engine:rtk`.                                                     |
-| `<combo>`     | Pojmenovaná kombinace, nejprve porovnávaná podle názvu (bez rozlišení velikosti písmen), poté podle id. |
+| `off`         | Pro tento požadavek se nepoužije žádná komprese.                                                        |
+| `default`     | Výchozí profil odvozený z panelu (ignoruje aktivní profil). Ztrátové enginy zůstanou vypnuté.           |
+| `safe`        | Stejné jako vynechání hlavičky: pouze deduplikace a sloučení bílých znaků.                              |
+| `allow-lossy` | Zachová operátorský plán tohoto požadavku včetně souhrnů, filtrů relevance a přepisů stylu.             |
+| `engine:<id>` | Jeden engine, pokud je povolen, např. `engine:rtk`. Tímto se engine aktivuje pro daný požadavek.        |
+| `<combo>`     | Pojmenovaná kombinace, nejprve porovnávaná podle názvu (bez rozlišení velikosti písmen), poté podle ID. |
+
+Bez `allow-lossy`, `engine:<id>` nebo pojmenované kombinace se ztrátové enginy nepoužijí.
+Pokud je komprese zapnutá, požadavek přesto využije deduplikaci relace a sloučení bílých znaků.
 
 Použitý plán se vrací v hlavičce odpovědi `X-OmniRoute-Compression: <mode>; source=<source>`,
 kde `<source>` je jedna z hodnot `request-header`, `routing-override`, `active-profile`,
@@ -248,7 +253,7 @@ curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Náhled konkrétního payloadu RTK / vrstvené komprese
+# Náhled konkrétní datové části RTK/stacked
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
@@ -256,7 +261,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 # Výpis balíčků filtrů RTK
 curl http://localhost:20128/api/context/rtk/filters
 
-# Přímý test RTK s volitelnými metadaty příkazu
+# Přímé testování RTK s volitelnými metadaty příkazu
 curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
@@ -303,13 +308,13 @@ Každý komprimovaný požadavek zahrnuje statistiky v protokolech serveru:
 
 ## Plán jednotlivých fází
 
-| Fáze    | Režimy                                                                                                                                                                | Stav      |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Fáze 1  | Vypnuto, Lite                                                                                                                                                         | ✅ Vydáno |
-| Fáze 2  | Standard, Aggressive, Ultra                                                                                                                                           | ✅ Vydáno |
-| Fáze 3  | RTK, Stacked, kombinace komprese                                                                                                                                      | ✅ Vydáno |
-| Fáze 4  | Styly výstupu, Ultra na úrovni SLM, evaluační nástroj                                                                                                                 | ✅ Vydáno |
-| Fáze 4C | Adaptivní rozpočet kontextu („ovladač“) — výpočetní engine + API (`contextBudget` na `PUT /api/settings/compression`) + ovládací prvky režimu/zásad na řídicím panelu | ✅ Vydáno |
+| Fáze    | Režimy                                                                                                                                                            | Stav      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Fáze 1  | Off, Lite                                                                                                                                                         | ✅ Vydáno |
+| Fáze 2  | Standard, Aggressive, Ultra                                                                                                                                       | ✅ Vydáno |
+| Fáze 3  | RTK, Stacked, kombinace komprese                                                                                                                                  | ✅ Vydáno |
+| Fáze 4  | Styly výstupu, Ultra na úrovni SLM, evaluační sada                                                                                                                | ✅ Vydáno |
+| Fáze 4C | Adaptivní rozpočet kontextu („volič“) — výpočetní jádro + API (`contextBudget` v `PUT /api/settings/compression`) + ovládací prvky režimu/zásad na řídicím panelu | ✅ Vydáno |
 
 ---
 
@@ -324,25 +329,25 @@ Režim RTK je inspirován projektem **[RTK - Rust Token Killer](https://github.c
 ## Pokročilé kompresní systémy
 
 Kromě 7 standardních režimů OmniRoute obsahuje několik pokročilých kompresních
-systémů, které pracují automaticky na základě kontextu.
+systémů, které fungují automaticky na základě kontextu.
 
-### Komprese zohledňující mezipaměť
+### Komprese s ohledem na cache
 
-Někteří poskytovatelé (například Anthropic s ukládáním promptů do mezipaměti) podporují **ukládání promptů do mezipaměti**,
-což jim umožňuje ukládat části promptu do mezipaměti a snižovat tak náklady a latenci. Když je
-ukládání do mezipaměti povoleno, agresivní komprese může výkon ve skutečnosti **zhoršit**,
-protože mění tokeny uložené v mezipaměti, a tím zneplatňuje mezipaměť.
+Někteří poskytovatelé (například Anthropic s prompt caching) podporují **prompt caching**,
+který jim umožňuje ukládat části promptu do cache, aby snížili náklady a latenci. Když
+je caching povolen, agresivní komprese může ve skutečnosti **poškodit** výkon,
+protože mění tokeny v cache a tím ji zneplatňuje.
 
-Modul `cachingAware.ts` tento problém řeší **detekcí kontextu ukládání do mezipaměti** a
-odpovídající **úpravou strategie komprese**.
+Modul `cachingAware.ts` to řeší **detekcí kontextu cachování** a
+**úpravou kompresní strategie** podle toho.
 
 #### Jak to funguje
 
-1. **Detekce kontextu ukládání do mezipaměti** — Prohledá tělo požadavku a hledá značky `cache_control`
-2. **Identifikace poskytovatelů s podporou mezipaměti** — Ověří, zda cílový poskytovatel podporuje ukládání do mezipaměti
-3. **Úprava strategie** — Pro poskytovatele s podporou mezipaměti sníží `aggressive`/`ultra` na `standard`
-4. **Přeskočení systémového promptu** — Systémové prompty se obvykle ukládají do mezipaměti, proto je nekomprimuje
-5. **Použití deterministických transformací** — Použije pouze transformace, které vytvářejí konzistentní výstup
+1. **Detekce kontextu cachování** — Prohledává tělo požadavku na značky `cache_control`
+2. **Identifikace poskytovatelů cachování** — Kontroluje, zda cílový poskytovatel podporuje cachování
+3. **Úprava strategie** — Snižuje `aggressive`/`ultra` na `standard` pro poskytovatele cachování
+4. **Přeskočení systémového promptu** — Systémové prompty jsou obvykle cachovány, takže je nekomprimujte
+5. **Použití deterministických transformací** — Používejte pouze transformace, které produkují konzistentní výstup
 
 #### Příklad kódu
 
@@ -355,7 +360,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Značka mezipaměti
+  cache_control: { type: "ephemeral" }, // ← Značka cache
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -367,21 +372,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kdy použít
 
-Komprese zohledňující mezipaměť je **vždy zapnutá** — není potřeba žádná konfigurace. Aktivuje se pouze
-tehdy, když:
+Komprese s ohledem na cache je **vždy zapnutá** – není potřeba žádná konfigurace. Aktivuje se
+pouze tehdy, když:
 
 - Požadavek obsahuje značky `cache_control`
-- Cílový poskytovatel podporuje ukládání promptů do mezipaměti (Anthropic, OpenAI atd.)
+- Cílový poskytovatel podporuje prompt caching (Anthropic, OpenAI atd.)
 
 ### Progresivní stárnutí
 
-Dlouhé konverzace shromažďují mnoho kol zpráv, ale starší kola postupně ztrácejí
-relevanci. Modul `progressiveAging.ts` **redukuje zprávy podle vzdálenosti jednotlivých kol**:
+Dlouhé konverzace hromadí mnoho zpráv, ale starší zprávy se stávají méně
+relevantními. Modul `progressiveAging.ts` **degraduje zprávy podle vzdálenosti tahu**:
 
-- **Nedávná kola (0-3)**: Zachována doslovně (všechny podrobnosti)
-- **Středně stará kola (4-8)**: Komprese Lite (mezery, úprava formátování)
-- **Stará kola (9+)**: Komprese Caveman (odstranění výplňových slov, shrnutí)
-- **Velmi stará kola (20+)**: Výrazně shrnuta nebo odstraněna
+- **Nedávné tahy (0-3)**: Zachovány doslovně (plné detaily)
+- **Střední tahy (4-8)**: Lehká komprese (mezery, vyčištění formátování)
+- **Staré tahy (9+)**: Jaskyňská komprese (odstranění výplně, shrnutí)
+- **Velmi staré tahy (20+)**: Silně shrnuté nebo vynechané
 
 #### Příklad kódu
 
@@ -392,14 +397,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... dalších 50 kol ...
+  // ... 50 dalších tahů ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // První 3 kola: doslovně
-  light: 8, // Kola 4–8: komprese Lite
-  moderate: 20, // Kola 9–20: komprese Caveman
-  // Kola 21+: výrazné shrnutí
+  verbatim: 3, // První 3 tahy: doslovně
+  light: 8, // Tahy 4-8: lehká komprese
+  moderate: 20, // Tahy 9-20: jaskyňská komprese
+  // Tahy 21+: silné shrnutí
 });
 
 // saved = počet ušetřených tokenů
@@ -407,33 +412,33 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Kdy použít
 
-Progresivní stárnutí je **vždy zapnuté** pro režimy `aggressive` a `ultra`. Je
-obzvlášť účinné pro:
+Progresivní stárnutí je **vždy zapnuto** pro režimy `aggressive` a `ultra`. Je
+zvláště účinné pro:
 
-- Dlouhé programovací relace
+- Dlouhotrvající kódovací sezení
 - Vícedenní konverzace
 - Agentní pracovní postupy s mnoha voláními nástrojů
 
-### Režim výstupu Caveman
+### Režim výstupu "Caveman"
 
-Modul `outputMode.ts` vkládá **instrukce systémové výzvy**, aby samotný
-model vytvářel komprimovaný, stručný výstup (v „jeskynním“ stylu).
+Modul `outputMode.ts` vkládá **instrukce systémového promptu**, aby samotný
+model produkoval komprimovaný, stručný výstup (styl „caveman“).
 
-#### Jak funguje
+#### Jak to funguje
 
-Místo komprimace vstupu tento režim přidá systémovou výzvu, například:
+Místo komprimace vstupu tento režim přidává systémový prompt jako:
 
-> „Odpovídej minimem slov. Vynech zdvořilosti. Používej krátké věty.“
+> "Odpovězte minimálním počtem slov. Vynechejte zdvořilosti. Použijte krátké věty."
 
-Funguje obzvlášť dobře pro:
+To funguje obzvláště dobře pro:
 
 - Generování kódu (stručnější výstup = méně tokenů)
-- Rychlé otázky a odpovědi (nejsou potřeba podrobná vysvětlení)
+- Rychlé otázky a odpovědi (není potřeba složitých vysvětlení)
 - Dávkové zpracování (maximalizace propustnosti)
 
-#### Kdy jej použít
+#### Kdy použít
 
-Režim výstupu Caveman je **volitelný** — nastavte jej prostřednictvím kombinované konfigurace:
+Režim výstupu Caveman je **volitelný** – nastavte jej pomocí kombinované konfigurace:
 
 ```json
 {
@@ -448,39 +453,54 @@ Režim výstupu Caveman je **volitelný** — nastavte jej prostřednictvím kom
 
 ### Styly výstupu (katalog)
 
-Výše uvedený režim výstupu Caveman představuje **starší cestu s jediným stylem**. Fáze 4 jej zobecnila
-do katalogu kombinovatelných stylů výstupu: `OUTPUT_STYLE_CATALOG` v
-`open-sse/services/compression/outputStyles/catalog.ts`. Každý styl je instrukcí systémové výzvy,
-která přiměje samotný model vytvářet úspornější výstup; styly lze zapnout
-současně a vkládají se v pořadí katalogu.
+Režim výstupu Caveman výše je **starší cesta s jedním stylem**. Fáze 4 jej zobecnila
+do katalogu kompozitních stylů výstupu: `OUTPUT_STYLE_CATALOG` v
+`open-sse/services/compression/outputStyles/catalog.ts`. Každý styl je instrukce systémového promptu,
+která samotnému modelu umožňuje produkovat levnější výstup; styly lze povolit
+společně a jsou vkládány v pořadí katalogu.
 
-| Styl                          | `id`          | Co dělá                                                                                                                                                                                                                                  | Jazyky instrukcí                                                                              |
-| ----------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Stručná próza                 | `terse-prose` | Odstraňuje výplňová slova, členy a nejisté formulace; zachovává přesný technický obsah. Stejný text jako ve starším režimu výstupu Caveman (odkazuje se na něj, není znovu uveden).                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Méně kódu                     | `less-code`   | Hierarchie YAGNI: nejmenší funkční změna, žádné nevyžádané abstrakce.                                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Culík (líný seniorní vývojář) | `ponytail`    | „Nejlepší kód je ten, který nikdy nebyl napsán“: opětovné použití > přepisování, základní příčina > příznak, nejkratší funkční rozdíl.                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Mám ADHD (nejprve akce)       | `i-have-adhd` | Nejprve akce (příkaz/cesta/úryvek před vysvětlením), očíslované kroky s omezeným rozsahem, JEDEN konkrétní další krok, žádný úvod, rekapitulace ani závěr. Převzato z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                 |
-| Stručné CJK (文言)            | `terse-cjk`   | Ultr stručný styl klasické čínštiny.                                                                                                                                                                                                     | zh (omezeno podle národního prostředí: nabízí se pouze tehdy, když je výsledným jazykem `zh`) |
+| Styl                            | `id`          | Co dělá                                                                                                                                                                                                                   | Jazyky instrukcí                                                     |
+| :------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------- |
+| Stručný text                    | `terse-prose` | Vynechává výplňová slova/členy/zdráhání; zachovává přesnou technickou podstatu. Stejný text jako starší režim výstupu caveman (odkazováno, nepřepisováno).                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Méně kódu                       | `less-code`   | Žebříček YAGNI: nejmenší funkční změna, žádné nevyžádané abstrakce.                                                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Culík (líný seniorní vývojář)   | `ponytail`    | "Nejlepší kód je kód, který nikdy nebyl napsán": znovupoužití > přepisování, hlavní příčina > symptom, nejkratší funkční rozdíl.                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Mám ADHD (akce na prvním místě) | `i-have-adhd` | Akce na prvním místě (příkaz/cesta/úryvek před textem), číslované ohraničené kroky, JEDEN konkrétní další krok, žádný úvod/shrnutí/závěr. Adaptováno z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                        |
+| Stručný CJK (文言)              | `terse-cjk`   | Ultra-stručný styl klasické čínštiny.                                                                                                                                                                                     | zh (omezeno lokalizací: nabízeno pouze, když je vyřešený jazyk `zh`) |
 
 Každý styl nabízí tři úrovně intenzity — `lite`, `full`, `ultra` — a každá úroveň
-končí sdílenou klauzulí o hranicích, která zachovává bloky kódu, cesty k souborům, příkazy,
-chybové řetězce, adresy URL a identifikátory beze změny.
+končí společnou klauzulí o hranicích, která zachovává bloky kódu, cesty k souborům, příkazy,
+chybové řetězce, URL a identifikátory doslovně.
 
-#### Jak funguje vkládání
+#### Jak funguje injekce
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) porovná
-výběr s katalogem (neznámá ID a styly neodpovídající národnímu prostředí jsou
-vyřazeny, nikdy nezpůsobí chybu), zřetězí vybrané instrukce v pořadí katalogu,
-připojí klauzuli o hranicích **jednou** a vloží výsledek na začátek systémové
-výzvy za jedinou značku idempotence (`[OmniRoute Output Styles]`) — opětovné
-použití neprovede žádnou akci. Pokud pro zjištěný jazyk požadavku existuje překlad,
-vloží se lokalizovaná instrukce namísto anglické.
+Funkce `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) vyhodnotí
+výběr proti katalogu (neznámá ID a styly neodpovídající lokalizaci jsou vynechány, nikdy to není chyba), zřetězí vybrané instrukce v pořadí katalogu,
+připojí klauzuli o hranicích **jednou** a začne blok jedním idempotentním markerem (`[OmniRoute Output Styles]`), takže opětovné použití je no-op. Pokud má vyřešený
+jazyk (viz výběr jazyka níže) překlad, je místo angličtiny vložena lokalizovaná instrukce.
+
+U těla s `messages` kontroluje obcházení obsahu (`shouldBypassCavemanOutputMode()` v
+`open-sse/services/compression/outputMode.ts`) poslední tři zprávy a přeskočí
+styly pro celé kolo, pokud odpovídají jeho klíčovým slovům pro bezpečnost, nevratnou akci,
+objasnění nebo citlivost na pořadí. Obcházení se spustí, dokud je přepínač **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na ovládacím panelu zapnutý, což je výchozí nastavení; při vypnutém přepínači se vybrané styly použijí i v těchto kolech.
+
+Když obcházení povolí průchod, `placeSystemInstruction()` (stejný soubor), která
+nikdy nevytvoří novou `messages[0]`, umístí blok do prvního z následujících, které najde:
+
+1. Úvodní systémová zpráva s řetězcovým obsahem: blok je připojen za její text.
+2. Pole `system` nejvyšší úrovně: blok je připojen za text řetězce, nebo
+   přidán jako nový textový blok do pole bloků obsahu.
+3. První pozdější systémová zpráva s řetězcovým obsahem: blok je připojen za její text.
+4. Nic z výše uvedeného: blok se vloží do nové systémové zprávy na konci `messages`.
+
+U těla bez `messages` je blok připojen k řetězci v poli `instructions`,
+nebo se stane `instructions`, když tělo obsahuje `input` (řetězec nebo pole). Tělo
+bez `instructions` ani `input` je přeskočeno jako `no_messages`.
 
 #### Jak povolit
 
-Na ovládacím panelu: **Kontext → Nastavení → Komprese** — jeden řádek pro každý styl
-s přepínačem zapnutí/vypnutí a voličem úrovně. Programově konfigurace komprese uchovává
-výběr takto:
+Na ovládacím panelu: **Kontext → Nastavení → Komprese** — jeden řádek pro každý styl s
+přepínačem zapnutí/vypnutí a voličem úrovně. Programově konfigurace komprese uchovává
+výběr jako:
 
 ```json
 {
@@ -492,58 +512,55 @@ výběr takto:
 ```
 
 Zpětná kompatibilita: starší kombinované nastavení `outputMode: "caveman"` stále funguje a mapuje se na
-`terse-prose`, přičemž je v každém starším jazyce bajtově identické s původním vloženým obsahem.
+`terse-prose`, byte-identické se starou injekcí v každém starším jazyce.
 
-Výběr jazyka: je-li zapnuto `languageConfig.enabled`, `autoDetect` vybere
-jazyk nejnovější zprávy uživatele (stejný detektor jako u vstupních enginů);
-vypnutí `autoDetect` napevno nastaví `defaultLanguage`. Vypnuto → angličtina.
+Výběr jazyka: s `languageConfig.enabled` zapnutým, `autoDetect` vybere
+jazyk poslední uživatelské zprávy (stejný detektor jako vstupní enginy);
+vypnutí `autoDetect` zafixuje `defaultLanguage`. Vypnuto → Angličtina.
 
-Matice styl × jazyk je ukotvena testem
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový styl nelze vydat
-bez alespoň překladu do pt-BR (nebo explicitní sledované výjimky) a
-existující styl nemůže bez upozornění přijít o národní prostředí. Informace o přidání stylu najdete v
+Matice styl × jazyk je pevně stanovena souborem
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový styl nemůže být dodán
+bez alespoň pt-BR překladu (nebo explicitní sledované výjimky), a
+existující styl nemůže tiše ztratit lokalizaci. Pro přidání stylu viz
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Komprese výsledků nástrojů
 
-Modul `toolResultCompressor.ts` poskytuje **5 specializovaných strategií komprese**
+Modul `toolResultCompressor.ts` poskytuje **5 specializovaných kompresních strategií**
 pro výsledky nástrojů (volání funkcí, výstupy agentů, výsledky vyhledávání atd.):
 
-1. **Komprese výsledků vyhledávání** — Odstraňuje nadbytečné výsledky a zachovává nejlepších N
-2. **Komprese čtení souborů** — Zkracuje velké soubory a zachovává hlavičky/importy
-3. **Komprese spouštění kódu** — Zachovává pouze nezbytný stdout/stderr
-4. **Komprese databázových dotazů** — Omezuje počet řádků a odstraňuje příliš podrobná metadata
-5. **Komprese odpovědí API** — Odstraňuje pole s hodnotou null a zhušťuje pole
+1.  **Komprese výsledků vyhledávání** — Odstraňuje redundantní výsledky, zachovává top-N
+2.  **Komprese čtení souborů** — Zkracuje velké soubory, zachovává hlavičky/importy
+3.  **Komprese spouštění kódu** — Zachovává pouze podstatný stdout/stderr
+4.  **Komprese databázových dotazů** — Omezuje řádky, odstraňuje podrobná metadata
+5.  **Komprese odpovědí API** — Odstraňuje nulová pole, zahušťuje pole
 
-#### Kdy ji použít
+#### Kdy použít
 
-Komprese výsledků nástrojů je **vždy zapnutá**, pokud jsou přítomna volání nástrojů. Není
-potřeba žádná konfigurace.
+Komprese výsledků nástrojů je **vždy zapnutá**, když jsou přítomna volání nástrojů. Není potřeba žádná konfigurace.
 
-### Zřetězený kanál zpracování
+### Skládaný pipeline
 
-Zřetězený režim spouští **více enginů po sobě** — obvykle nejprve RTK
-(úspora 60–90 % u výstupu nástrojů) a poté Caveman (další 30% úspora u
-zbývajícího textu). Tím se dosáhne **celkové úspory 78–95 %**.
+Skládaný režim spouští **více enginů v sekvenci** — obvykle nejprve RTK (60-90% úspora na výstupu nástroje), poté Caveman (30% dodatečná úspora na zbývajícím textu). Tím se dosáhne **celkové úspory 78-95%**.
 
-#### Jak funguje
+#### Jak to funguje
 
 ```
 Vstup (1000 tokenů)
-  → RTK (filtr zohledňující příkazy) → 200 tokenů
+  → RTK (filtr citlivý na příkazy) → 200 tokenů
     → Caveman (odstranění výplňových slov) → 140 tokenů
-  → Výstup (140 tokenů, úspora 86 %)
+  → Výstup (140 tokenů, 86% úspora)
 ```
 
-#### Kdy jej použít
+#### Kdy použít
 
-Zřetězený režim použijte pro:
+Použijte skládaný režim pro:
 
-- Pracovní postupy s intenzivním využitím nástrojů (agentní programování, výzkum)
+- Pracovní postupy náročné na nástroje (agentní kódování, výzkum)
 - Dávkové zpracování citlivé na náklady
-- Situace, kdy potřebujete maximální úsporu tokenů
+- Když potřebujete maximální úsporu tokenů
 
-Nakonfigurujte jej prostřednictvím kombinované konfigurace:
+Konfigurujte pomocí kombinace:
 
 ```json
 {

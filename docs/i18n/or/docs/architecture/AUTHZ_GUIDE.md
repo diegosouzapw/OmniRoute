@@ -4,26 +4,26 @@
 
 ---
 
-> **ପ୍ରାମାଣିକ ଉତ୍ସ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **ଶେଷ ଅଦ୍ୟତନ:** 2026-06-28 — v3.8.40
+> **ସତ୍ୟର ଉତ୍ସ:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **ଶେଷ ଅପଡେଟ୍:** 2026-09-22 — ସ୍କୋପ୍ ନାମସ୍ପେସ୍ MCP-SERVER.md କୁ ସୂଚାଏ
 
-OmniRoute ପାଖରେ ଏକ ରୁଟ୍-ସଚେତନ ପ୍ରାଧିକରଣ ପାଇପ୍ଲାଇନ୍ ଅଛି, ଯାହା ପ୍ରତ୍ୟେକ API ଅନୁରୋଧକୁ ନିୟନ୍ତ୍ରଣ କରେ। ବର୍ଗୀକରଣ **ନିର୍ଦ୍ଧାରଣାତ୍ମକ** ଏବଂ **ବିଫଳତାରେ-ବନ୍ଦ** — ଯାହାକୁ ବର୍ଗୀକୃତ କରାଯାଇପାରେ ନାହିଁ, ତାହା ଶେଷରେ `MANAGEMENT` ଭାବେ ଗଣାଯାଏ ଏବଂ ଏକ ସେସନ୍ କିମ୍ବା ପରିଚାଳନା-ସ୍ତରୀୟ ଟୋକନ୍ ଆବଶ୍ୟକ କରେ। ରୁଟ୍ଗୁଡ଼ିକର ରକ୍ଷଣାବେକ୍ଷଣ କରୁଥିବା କିମ୍ବା ନୂଆ ଏଣ୍ଡପଏଣ୍ଟ ଡିଜାଇନ୍ କରୁଥିବା ଇଞ୍ଜିନିୟରମାନଙ୍କ ପାଇଁ ଏହି ପୃଷ୍ଠା ମଡେଲ୍ଟି ବ୍ୟାଖ୍ୟା କରେ।
+OmniRoute ରେ ଏକ ରୁଟ୍-ସଚେତନ ଅନୁମତି ପାଇପଲାଇନ୍ ଅଛି ଯାହା ପ୍ରତ୍ୟେକ API ଅନୁରୋଧକୁ ଗେଟ୍ କରେ। ବର୍ଗୀକରଣ **ନିର୍ଣ୍ଣାୟକ** ଏବଂ **ଫେଲ୍-କ୍ଲୋଜ୍ଡ** — ଯାହା ବର୍ଗୀକୃତ ହୋଇପାରିବ ନାହିଁ ତାହା `MANAGEMENT` ଭାବରେ ଶେଷ ହୁଏ ଏବଂ ଏକ ସେସନ୍ କିମ୍ବା ମ୍ୟାନେଜମେଣ୍ଟ-ଗ୍ରେଡ୍ ଟୋକେନ୍ ଆବଶ୍ୟକ କରେ। ଏହି ପୃଷ୍ଠାଟି ରୁଟ୍ ରକ୍ଷଣାବେକ୍ଷଣ କରୁଥିବା କିମ୍ବା ନୂତନ ଏଣ୍ଡପଏଣ୍ଟ୍ ଡିଜାଇନ୍ କରୁଥିବା ଇଞ୍ଜିନିୟରମାନଙ୍କ ପାଇଁ ମଡେଲ୍ ବ୍ୟାଖ୍ୟା କରେ।
 
-![AuthZ ପାଇପ୍ଲାଇନ୍ (3ଟି ରୁଟ୍ ଶ୍ରେଣୀ + ନୀତି ମୂଲ୍ୟାୟନ)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > ଉତ୍ସ: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## ଦୁଇଟି ପ୍ରାମାଣିକରଣ ମୋଡ୍
+## ଦୁଇଟି ପ୍ରମାଣୀକରଣ ମୋଡ୍
 
-### 1. API କି (ବିୟରର୍)
+### 1. API କି (Bearer)
 
-OpenAI/Anthropic/Gemini-ସୁସଙ୍ଗତ କ୍ଲାଏଣ୍ଟ API ଏବଂ କିଛି ପରିଚାଳନା ରୁଟ୍ ପାଇଁ ବ୍ୟବହୃତ ହୁଏ, ଯେତେବେଳେ କି’ରେ `manage` ସ୍କୋପ୍ ଥାଏ।
+OpenAI/Anthropic/Gemini-ସୁସଙ୍ଗତ କ୍ଲାଏଣ୍ଟ APIଗୁଡ଼ିକ ଏବଂ କିଟିର `manage` ସ୍କୋପ୍ ଥିବାବେଳେ କିଛି ପରିଚାଳନା ରୁଟ୍ ପାଇଁ ବ୍ୟବହୃତ ହୁଏ।
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` ଭିତରେ ଥିବା `isValidApiKey()` / `extractApiKey()` ଦ୍ୱାରା ବୈଧତା ଯାଞ୍ଚ କରାଯାଏ ଏବଂ `src/shared/utils/apiAuth.ts` ମାଧ୍ୟମରେ ପୁନଃ-ରପ୍ତାନି କରାଯାଏ। ବୈଧତା ଯାଞ୍ଚକାରୀ ସ୍ଥାୟୀ ପାସ୍ଥ୍ରୁ କି ଭାବେ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env varsକୁ ମଧ୍ୟ ଗ୍ରହଣ କରେ (issue #1350)।
+`src/sse/services/auth.ts`ରେ ଥିବା `isValidApiKey()` / `extractApiKey()` ଦ୍ୱାରା ଏହା ବୈଧୀକୃତ ହୁଏ ଏବଂ `src/shared/utils/apiAuth.ts` ମାଧ୍ୟମରେ ପୁନଃ-ରପ୍ତାନି କରାଯାଏ। ବୈଧୀକର୍ତ୍ତା ସ୍ଥାୟୀ ପାସ୍ଥ୍ରୁ କି ଭାବରେ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ପରିବେଶ ଭେରିଏବଲ୍ଗୁଡ଼ିକୁ ମଧ୍ୟ ଗ୍ରହଣ କରେ (ସମସ୍ୟା #1350)।
 
 ### 2. ଡ୍ୟାସ୍ବୋର୍ଡ ସେସନ୍ (auth_token କୁକି)
 
@@ -33,43 +33,43 @@ Authorization: Bearer <api-key>
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-ଏକ କୁକି କେବଳ ସେତେବେଳେ ସେସନ୍ ହୁଏ, ଯେତେବେଳେ JWT ସଫଳତାର ସହ ଯାଞ୍ଚ ହୁଏ **ଏବଂ** ସେଥିରେ `authenticated: true`
-ଥାଏ (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। କୁକିର ପ୍ରତ୍ୟେକ
-ଉପଭୋକ୍ତା (ରୁଟ୍ ଗାର୍ଡ, authz ପାଇପ୍ଲାଇନ୍ ରିଫ୍ରେଶ୍, WebSocket ହ୍ୟାଣ୍ଡଶେକ୍, ଲାଇଭ୍
+JWT ବୈଧୀକୃତ ହେବା **ଏବଂ** ସେଥିରେ `authenticated: true` ଥିବାବେଳେ ମାତ୍ର ଏକ କୁକିକୁ ସେସନ୍ ଭାବେ ଗ୍ରହଣ କରାଯାଏ
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। କୁକିର ପ୍ରତ୍ୟେକ
+ଉପଭୋକ୍ତା (ଡ୍ୟାସ୍ବୋର୍ଡ ରୁଟ୍ ଗାର୍ଡ (`isDashboardSessionAuthenticated()`), authz ପାଇପ୍ଲାଇନ୍ ରିଫ୍ରେଶ୍, WebSocket ହ୍ୟାଣ୍ଡଶେକ୍, ଲାଇଭ୍
 ସର୍ଭର୍, `/api/settings/require-login`, `/api/auth/status`) ସେହି ସହାୟକ ମାଧ୍ୟମରେ ଯାଏ।
-`JWT_SECRET` ସହ ସ୍ୱାକ୍ଷରିତ ଅନ୍ୟ JWTଗୁଡ଼ିକ ମଧ୍ୟ ରହିଛି — Cursor CLI ପାସ୍ଥ୍ରୁ କି ଧାରକମାନଙ୍କ ପାଇଁ
-`iss "omniroute" / aud "cursor-cli"` ଟୋକନ୍ ତିଆରି କରେ — ଏବଂ ସେଗୁଡ଼ିକ କେବେବି ସେସନ୍ ନୁହେଁ
+`JWT_SECRET` ସହିତ ସ୍ୱାକ୍ଷରିତ ଅନ୍ୟ JWTଗୁଡ଼ିକ ମଧ୍ୟ ରହିଛି — Cursor CLI ପାସ୍ଥ୍ରୁ
+କି ଧାରକମାନଙ୍କ ପାଇଁ `iss "omniroute" / aud "cursor-cli"` ଟୋକନ୍ ତିଆରି କରେ — ଏବଂ ସେଗୁଡ଼ିକୁ କେବେବି ସେସନ୍ ଭାବେ ଗ୍ରହଣ କରାଯାଏ ନାହିଁ
 (#13298)।
 
-`src/shared/utils/apiAuth.ts` ଭିତରେ ଥିବା `isDashboardSessionAuthenticated()` ଦ୍ୱାରା ଯାଞ୍ଚ କରାଯାଏ। JWTର 30-ଦିନିଆ ଆୟୁଷରେ 7 ଦିନରୁ କମ୍ ସମୟ ବାକି ଥିଲେ, ପାଇପ୍ଲାଇନ୍ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଏହାକୁ ରିଫ୍ରେଶ୍ କରେ।
+`src/shared/utils/apiAuth.ts`ରେ ଥିବା `isDashboardSessionAuthenticated()` ଦ୍ୱାରା ଏହା ବୈଧୀକୃତ ହୁଏ। JWTର 30-ଦିନିଆ ଆୟୁଷ ମଧ୍ୟରୁ 7 ଦିନରୁ କମ୍ ସମୟ ବାକି ଥିଲେ ପାଇପ୍ଲାଇନ୍ ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ରିଫ୍ରେଶ୍ କରେ।
 
-କିଛି ପରିଚାଳନା ରୁଟ୍ **ଉଭୟ ମଧ୍ୟରୁ ଯେକୌଣସି** ମୋଡ୍ ଗ୍ରହଣ କରେ: କୁକି କିମ୍ବା `Bearer <key>`, ଯେତେବେଳେ API କି’ରେ `manage` (କିମ୍ବା `admin`) ସ୍କୋପ୍ ଥାଏ। ଏହାହିଁ v3.8ରେ ଯୋଡ଼ାଯାଇଥିବା "API କଲ୍ ମାଧ୍ୟମରେ ବିନ୍ୟାସଯୋଗ୍ୟ" କାର୍ଯ୍ୟପ୍ରବାହକୁ ସକ୍ଷମ କରେ।
+ଏକ ସେସନ୍ର 30 ଦିନ ପୂରଣ ହେବା ପୂର୍ବରୁ ମଧ୍ୟ ଏହା ସମାପ୍ତ ହୋଇପାରେ, କାରଣ ପ୍ରତ୍ୟେକ ମିଣ୍ଟର୍ `mintDashboardSessionToken` ମାଧ୍ୟମରେ ଯାଏ (ଏକ ଜାରି ସମୟ `iat` ଏବଂ ଏକ ID `jti`) ଏବଂ ବୈଧୀକର୍ତ୍ତା ଦୁଇଟି ସେଟିଂ ଯାଞ୍ଚ କରେ: `sessionsValidAfter`, ଯାହା ପାସ୍ୱାର୍ଡ ପରିବର୍ତ୍ତନ ଦ୍ୱାରା ସେଟ୍ ହୁଏ, ଫଳରେ ତାହା ପୂର୍ବରୁ ଜାରି ହୋଇଥିବା ପ୍ରତ୍ୟେକ ସେସନ୍ ବୈଧୀକୃତ ହେବା ବନ୍ଦ କରେ (ପାସ୍ୱାର୍ଡ ପରିବର୍ତ୍ତନ କରିଥିବା ବ୍ରାଉଜର୍ ଏକ ନୂତନ କୁକି ପାଏ), ଏବଂ `revokedDashboardSessions`, ଯେଉଁଥିରେ `POST /api/auth/logout` ସାଇନ୍-ଆଉଟ୍ ହୋଇଥିବା ସେସନ୍ର `jti` ଯୋଡ଼େ। ପୁରୁଣା ରିଲିଜ୍ରେ ତିଆରି ହୋଇଥିବା ସେସନ୍ଗୁଡ଼ିକରେ ଏହି ଦୁଇଟି ମଧ୍ୟରୁ କୌଣସି କ୍ଲେମ୍ ନଥାଏ ଏବଂ ପ୍ରଥମ ପାସ୍ୱାର୍ଡ ପରିବର୍ତ୍ତନ ପର୍ଯ୍ୟନ୍ତ ବୈଧ ରହେ। ସେଟିଂଗୁଡ଼ିକ ପଢ଼ିହେଉ ନଥିଲେ, ସେସନ୍କୁ ବିଶ୍ୱସ୍ତ ଧରାଯାଏ ନାହିଁ।
 
-#### ଇଚ୍ଛାଧୀନ OIDC ଲଗଇନ୍ ଗେଟ୍ (#6973)
+କିଛି ପରିଚାଳନା ରୁଟ୍ **ଯେକୌଣସି ଗୋଟିଏ** ମୋଡ୍ ଗ୍ରହଣ କରେ: API କିରେ `manage` (କିମ୍ବା `admin`) ସ୍କୋପ୍ ଥିଲେ କୁକି କିମ୍ବା `Bearer <key>`। v3.8ରେ ଯୋଡ଼ାଯାଇଥିବା "API କଲ୍ଗୁଡ଼ିକ ମାଧ୍ୟମରେ ବିନ୍ୟାସଯୋଗ୍ୟ" କାର୍ଯ୍ୟପ୍ରବାହକୁ ଏହା ହିଁ ସକ୍ରିୟ କରେ।
 
-ଡ୍ୟାସ୍ବୋର୍ଡ ଆଡ୍ମିନ୍ ଲଗଇନ୍ ଡିଫଲ୍ଟ ପାସ୍ୱାର୍ଡ ଲଗଇନ୍ ସହିତ ଏକ **ଇଚ୍ଛାଧୀନ**
-OIDC (OpenID Connect) ପ୍ରବାହକୁ ମଧ୍ୟ ସମର୍ଥନ କରେ — ପାସ୍ୱାର୍ଡ ଲଗଇନ୍ କେବେବି ଅପସାରିତ ହୁଏ ନାହିଁ, କେବଳ
-ପରିପୂରକ ଭାବେ ଯୋଡ଼ାଯାଏ:
+#### ଇଚ୍ଛାଧୀନ OIDC ଲଗ୍ଇନ୍ ଗେଟ୍ (#6973)
 
-- `settings.oidcEnabled === true` ଥିବା **ଏବଂ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` ସବୁ ବିନ୍ୟାସିତ ହୋଇଥିବା ବ୍ୟତୀତ ଏହା ଅକ୍ଷମ ରହେ (Settings → Auth)।
+ଡ୍ୟାସ୍ବୋର୍ଡ ଆଡ୍ମିନ୍ ଲଗ୍ଇନ୍ ଡିଫଲ୍ଟ ପାସ୍ୱାର୍ଡ ଲଗ୍ଇନ୍ ସହିତ ଏକ **ଇଚ୍ଛାଧୀନ** OIDC (OpenID Connect) ପ୍ରବାହକୁ ମଧ୍ୟ ସମର୍ଥନ କରେ — ପାସ୍ୱାର୍ଡ ଲଗ୍ଇନ୍ କେବେବି ଅପସାରିତ ହୁଏ ନାହିଁ, କେବଳ ଏହାର ପରିପୂରକ ଭାବେ ଯୋଡ଼ାଯାଏ:
+
+- `settings.oidcEnabled === true` ହେବା **ଏବଂ** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` ସବୁଗୁଡ଼ିକ ବିନ୍ୟାସିତ ହୋଇଥିବା ବ୍ୟତୀତ ଏହା ଅକ୍ଷମ ରହେ (Settings → Auth)।
   ଅନ୍ୟଥା `GET /api/auth/oidc/login` `400` ଫେରାଏ।
-- `GET /api/auth/oidc/login`, ଇସ୍ୟୁଅର୍ର
-  `/.well-known/openid-configuration`ରୁ `authorization_endpoint` ଆବିଷ୍କାର କରେ (ବିକଳ୍ପ ଭାବେ
-  `<issuer>/authorize` ବ୍ୟବହାର କରେ), ଆଗତ ଅନୁରୋଧରୁ ରିଡାଇରେକ୍ଟ URI ନିର୍ମାଣ କରେ
+- `GET /api/auth/oidc/login` ଇସ୍ୟୁଅର୍ର
+  `/.well-known/openid-configuration`ରୁ `authorization_endpoint` ଆବିଷ୍କାର କରେ (`<issuer>/authorize`କୁ
+  ଫଲ୍ବ୍ୟାକ୍ କରେ), ଆସୁଥିବା ଅନୁରୋଧରୁ ରିଡାଇରେକ୍ଟ URI ନିର୍ମାଣ କରେ
   (`x-forwarded-proto`-ସଚେତନ), ଏବଂ ଏକ `httpOnly` `oidc_state` କୁକିରେ ସଂରକ୍ଷିତ ଯାଦୃଚ୍ଛିକ `state`
   ସହିତ IdPକୁ ରିଡାଇରେକ୍ଟ କରେ।
-- `GET /api/auth/oidc/callback`, `state`କୁ ବୈଧ କରେ, ପ୍ରାଧିକରଣ
-  କୋଡ୍ ବିନିମୟ କରେ, ଏବଂ ଇସ୍ୟୁଅର୍ର JWKS ମାଧ୍ୟମରେ ID ଟୋକନ୍ର ସ୍ୱାକ୍ଷର
-  (`jose`ର `createRemoteJWKSet`, ପ୍ରତ୍ୟେକ JWKS URI ପାଇଁ କ୍ୟାଶ୍ କରାଯାଇଥିବା) `issuer`/`audience`
-  ଯାଞ୍ଚ ସହିତ ସତ୍ୟାପନ କରେ। ଏକ ଇଚ୍ଛାଧୀନ `oidcAllowedSubjects` ଅନୁମତି-ତାଲିକା ଟୋକନ୍ର
-  `sub` କ୍ଲେମ୍ କିମ୍ବା ଏହାର `email` କ୍ଲେମ୍ ସହ ମେଳ ଖାଏ — `email` କ୍ଲେମ୍କୁ କେବଳ
-  `email_verified === true` ଥିଲେ ଗ୍ରହଣ କରାଯାଏ, ତେଣୁ IdPରେ ଥିବା ଏକ ଅଯାଞ୍ଚିତ ଇମେଲ୍ କେବେବି
+- `GET /api/auth/oidc/callback` `state`କୁ ବୈଧୀକୃତ କରେ, ପ୍ରାଧିକରଣ
+  କୋଡ୍ ବିନିମୟ କରେ ଏବଂ ଇସ୍ୟୁଅର୍ର JWKS ମାଧ୍ୟମରେ ID ଟୋକନ୍ର ସ୍ୱାକ୍ଷର
+  (`jose`ର `createRemoteJWKSet`, ପ୍ରତ୍ୟେକ JWKS URI ପାଇଁ କ୍ୟାଶ୍ ହୋଇଥିବା)କୁ `issuer`/`audience`
+  ଯାଞ୍ଚ ସହିତ ବୈଧୀକୃତ କରେ। ଏକ ଇଚ୍ଛାଧୀନ `oidcAllowedSubjects` ଅନୁମତି-ତାଲିକା ଟୋକନ୍ର
+  `sub` କ୍ଲେମ୍ କିମ୍ବା ଏହାର `email` କ୍ଲେମ୍ ସହିତ ମେଳ କରେ — `email_verified === true` ଥିଲେ ମାତ୍ର
+  ଇମେଲ୍ କ୍ଲେମ୍କୁ ସ୍ୱୀକାର କରାଯାଏ, ତେଣୁ IdPରେ ଏକ ଅବୈଧୀକୃତ ଇମେଲ୍ କେବେବି
   ଗେଟ୍ ଅତିକ୍ରମ କରିପାରିବ ନାହିଁ।
-- ସଫଳ ହେଲେ ଏହା ପାସ୍ୱାର୍ଡ ଲଗଇନ୍ ଦ୍ୱାରା ଜାରି କରାଯାଉଥିବା **ଠିକ୍ ସେହି** 30-ଦିନିଆ `auth_token` JWT
+- ସଫଳ ହେଲେ, ଏହା ପାସ୍ୱାର୍ଡ ଲଗ୍ଇନ୍ ଦ୍ୱାରା ଜାରି ହେଉଥିବା **ଠିକ୍ ସେହି** 30-ଦିନିଆ `auth_token` JWT
   ତିଆରି କରେ (`src/app/api/auth/login/route.ts`), ତେଣୁ ଡ୍ୟାସ୍ବୋର୍ଡ
-  ସେସନ୍ ପାଇପ୍ଲାଇନ୍ର ଅବଶିଷ୍ଟ ଅଂଶ (ସ୍ୱୟଂଚାଳିତ ରିଫ୍ରେଶ୍, କୁକି ଫ୍ଲାଗ୍ଗୁଡ଼ିକ) ଅପରିବର୍ତ୍ତିତ ରହେ —
-  OIDC କେବଳ କୁକି କିପରି ତିଆରି ହୁଏ ତାହାକୁ ବଦଳାଏ, ଏହା କେଉଁ ଅନୁମତି ପ୍ରଦାନ କରେ ତାହାକୁ ନୁହେଁ।
+  ସେସନ୍ ପାଇପ୍ଲାଇନ୍ର ବାକି ଅଂଶ (ସ୍ୱୟଂଚାଳିତ ରିଫ୍ରେଶ୍, କୁକି ଫ୍ଲାଗ୍ଗୁଡ଼ିକ) ଅପରିବର୍ତ୍ତିତ ରହେ —
+  OIDC କେବଳ କୁକିଟି କିପରି ତିଆରି ହୁଏ ତାହାକୁ ବଦଳାଏ, ଏହା କେଉଁ ଅନୁମତି ପ୍ରଦାନ କରେ ତାହାକୁ ନୁହେଁ।
 
 ## ରୁଟ୍ କ୍ଲାସ୍ଗୁଡ଼ିକ
 
@@ -200,28 +200,35 @@ export async function POST(request: Request) {
 
 ସୁବିଧା ଅନୁସାରେ ନୁହେଁ, ଆକୃତି ଅନୁସାରେ ସେଟ୍ ବାଛନ୍ତୁ। ଗୋଟିଏ ରୁଟ୍ `PUBLIC_API_ROUTES_EXACT`ରେ ଯାଏ (କିମ୍ବା କେବଳ-GET ପାଇଁ `PUBLIC_READONLY_CORS_API_ROUTES`ରେ); କେବଳ ଏକ ପ୍ରକୃତ ଉପବୃକ୍ଷ `PUBLIC_API_ROUTE_PREFIXES`ରେ ଯାଏ, ଏବଂ ଏହା **`/`ରେ ଶେଷ ହେବା ଆବଶ୍ୟକ**। ଉପସର୍ଗ ତାଲିକାରେ ଗୋଟିଏ ଏକକ ରୁଟ୍ ରଖିବା ଦ୍ୱାରା ଏହାର ପ୍ରାରମ୍ଭିକ ଅକ୍ଷରଗୁଡ଼ିକ ସମାନ ଥିବା ପ୍ରତ୍ୟେକ ସଂଲଗ୍ନ ପଥ ମଧ୍ୟ ସାର୍ବଜନୀନ ହୋଇଯାଏ — ଏଥିରେ ପରେ ଯୋଡ଼ାଯାଇଥିବା ଡାଇନାମିକ୍-ସେଗମେଣ୍ଟ ସହୋଦର ରୁଟ୍ଗୁଡ଼ିକ ମଧ୍ୟ ଅନ୍ତର୍ଭୁକ୍ତ (GHSA-74g9-q8f6-793h)। `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ଏବଂ `tests/unit/authz/classify.test.ts`ରେ ଥିବା ୟୁନିଟ୍ ପରୀକ୍ଷାଗୁଡ଼ିକୁ ଅଦ୍ୟତନ କରନ୍ତୁ।
 
-## ସ୍କୋପ୍ଗୁଡ଼ିକ
+## ସ୍କୋପ୍ସ
 
-API କୀଗୁଡ଼ିକ ଏକ `scopes` ଆରେ ବହନ କରେ (`api_keys.scopes`ରେ JSON ଭାବେ ସଂରକ୍ଷିତ, `src/lib/db/apiKeys.ts` ଦେଖନ୍ତୁ)।
+ତିନୋଟି ନାମସ୍ପେସ୍। ପ୍ରତ୍ୟେକ ଚେକର୍ କେବଳ ନିଜର ଷ୍ଟ୍ରିଙ୍ଗ୍ ପଢ଼େ। `manage` କାହିଁକି `read:compression` ପାଇଁ `scopeMatches` ରେ ବିଫଳ ହୁଏ ଏବଂ `read` ଆକ୍ସେସ୍ ଟୋକେନ୍ କାହିଁକି `PATCH /api/keys/{id}` କରିପାରିବ ନାହିଁ, ତାହା ସହିତ ପାର୍ଶ୍ୱ-ପାର୍ଶ୍ୱ ତୁଳନା [ତିନୋଟି ସ୍କୋପ୍ ନାମସ୍ପେସ୍](../frameworks/MCP-SERVER.md#three-scope-namespaces) ରେ ଦିଆଯାଇଛି।
+
+API କି'ଗୁଡ଼ିକ ଏକ `scopes` ଆରେ ଧାରଣ କରନ୍ତି (JSON ଭାବରେ `api_keys.scopes` ରେ ସଂରକ୍ଷିତ, `src/lib/db/apiKeys.ts` ଦେଖନ୍ତୁ)।
 
 ### ପରିଚାଳନା ସ୍କୋପ୍
 
-- `manage` / `admin` — Bearer ଭାବେ ପଠାଯିବାବେଳେ କୀକୁ ପରିଚାଳନା API ଏଣ୍ଡପଏଣ୍ଟଗୁଡ଼ିକରେ ପ୍ରବେଶ ଅନୁମତି ଦିଏ।
+- `manage` / `admin` — `hasManageScope`। ପରିଚାଳନା API ରୁଟ୍ଗୁଡ଼ିକୁ ବେୟରର୍ ଆକ୍ସେସ୍।
+- `mcp:connect`, `self:usage`, `self:account-quota`, ଏବଂ
+  `policy:bypass-provider-quota` ହେଉଛି ଯୋଗାତ୍ମକ ସଠିକ୍-ମେଳ ସ୍କୋପ୍ସ। ସେଗୁଡ଼ିକ
+  `MANAGEMENT_API_KEY_SCOPES` ବାହାରେ ରୁହନ୍ତି। `mcp:connect` କେବଳ
+  `/api/mcp/` ନନ୍-ଲୁପ୍ବ୍ୟାକ୍ କାର୍ଭ-ଆଉଟ୍ ଖୋଲିଥାଏ।
 
-### MCP ସ୍କୋପ୍ଗୁଡ଼ିକ (`src/shared/constants/mcpScopes.ts`)
+### MCP ଟୁଲ୍ ସ୍କୋପ୍ସ
 
-ପ୍ରତ୍ୟେକ MCP ଟୁଲ୍ ପାଇଁ `MCP_TOOL_SCOPES` ମାଧ୍ୟମରେ ନିର୍ଦ୍ଦିଷ୍ଟ ସ୍କୋପ୍ ଆବଶ୍ୟକ। ସମ୍ପୂର୍ଣ୍ଣ ତାଲିକା (`MCP_SCOPE_LIST`):
+କାଟାଲଗ୍ ଏବଂ ମେଳ ଖାଉଥିବା ନିୟମ (ସମାନ ଷ୍ଟ୍ରିଙ୍ଗ୍, କିମ୍ବା `*` ରେ ଶେଷ ହେଉଥିବା ଏକ ଅନୁମତିପ୍ରାପ୍ତ ସ୍କୋପ୍):
+[MCP ଟୁଲ୍ ସ୍କୋପ୍ସ](../frameworks/MCP-SERVER.md#mcp-tool-scopes)।
+`src/shared/constants/mcpScopes.ts` ରେ ଥିବା `MCP_SCOPE_LIST` ହେଉଛି ମୂଳ ଟାଇପ୍ କରାଯାଇଥିବା ସବ୍ସେଟ୍,
+ସମ୍ପୂର୍ଣ୍ଣ କାଟାଲଗ୍ ନୁହେଁ। `resolveCallerScopeContext()` MCP ଅଥ୍ ସୂଚନା, ଅନୁରୋଧ ମେଟାଡାଟା,
+କିମ୍ବା `OMNIROUTE_MCP_SCOPES` ରୁ ସ୍କୋପ୍ସ ସମାଧାନ କରିବା ପରେ
+`open-sse/mcp-server/scopeEnforcement.ts` ରେ ଏନଫୋର୍ସମେଣ୍ଟ ଚାଲିଥାଏ।
+`OMNIROUTE_MCP_ENFORCE_SCOPES=true` ନହେବା ପର୍ଯ୍ୟନ୍ତ ଏହା ବନ୍ଦ ରୁହେ।
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### ଆକ୍ସେସ୍-ଟୋକେନ୍ ସ୍କୋପ୍ସ
 
-`open-sse/mcp-server/server.ts`ରେ ସ୍କୋପ୍ ପ୍ରବର୍ତ୍ତନ, `resolveCallerScopeContext()` ଦ୍ୱାରା MCP ପ୍ରମାଣୀକରଣ ସୂଚନା,
-ଅନୁରୋଧ ମେଟାଡାଟା କିମ୍ବା `OMNIROUTE_MCP_SCOPES`ରୁ ସ୍କୋପ୍ଗୁଡ଼ିକ ସମାଧାନ କରାଯିବା ପରେ, ପ୍ରତ୍ୟେକ ଟୁଲ୍ର ସ୍କୋପ୍ ତାଲିକାକୁ
-`evaluateToolScopes()`କୁ ପଠାଏ।
+`oma_live_…` ଟୋକେନ୍ଗୁଡ଼ିକ ଉପରେ `read` / `write` / `admin`, `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`) ଦ୍ୱାରା ମାନ୍ୟତାପ୍ରାପ୍ତ। ଏହି ମାନ୍ୟତା କେବଳ
+ଆକ୍ସେସ୍-ଟୋକେନ୍ କ୍ରେଡେନ୍ସିଆଲ୍ ପାଇଁ ପ୍ରଯୁଜ୍ୟ। [ପରିଚାଳନା ପ୍ରମାଣୀକରଣ](../guides/MANAGEMENT-AUTH.md) ଦେଖନ୍ତୁ।
 
 ## ପ୍ରମାଣୀକରଣ ଆବଶ୍ୟକ ଟଗଲ୍
 
@@ -269,7 +276,7 @@ x-omniroute-auth-scopes:    comma-separated list
 
 ## ଏହା ମଧ୍ୟ ଦେଖନ୍ତୁ
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ପ୍ରତ୍ୟେକ ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ ପ୍ରମାଣୀକରଣ ଚିହ୍ନକ
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — ପ୍ରମାଣୀକରଣ ଇଭେଣ୍ଟଗୁଡ଼ିକ ପାଇଁ ଅଡିଟ୍ ଲଗ୍
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP ସ୍କୋପ୍ ପ୍ରବର୍ତ୍ତନ ବିବରଣୀ
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — ପ୍ରତି ଏଣ୍ଡପଏଣ୍ଟ ପାଇଁ ଅଥ୍ ମାର୍କର୍
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — ଅଥ୍ ଇଭେଣ୍ଟଗୁଡ଼ିକ ପାଇଁ ଅଡିଟ୍ ଲଗ୍
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — ତିନୋଟି ସ୍କୋପ୍ ନେମସ୍ପେସ୍ ଏବଂ MCP ଟୁଲ୍-ସ୍କୋପ୍ କାଟାଲଗ୍
 - ଉତ୍ସ: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

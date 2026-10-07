@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **Cache-hit ကုန်ကျစရိတ် အဓိပ္ပာယ်သတ်မှတ်ချက်:** semantic-cache HIT (`X-OmniRoute-Cache-Hit: true`) ဖြစ်သည့်အခါ upstream ခေါ်ဆိုမှု မပြုလုပ်သောကြောင့် `X-OmniRoute-Response-Cost` သည် `0.0000000000` ဖြစ်သည် (hit ကို ဝန်ဆောင်မှုပေးရန် ကုန်ကျသည့် **ထပ်တိုး** ကုန်ကျစရိတ်)။ မူလကုန်ကျစရိတ်/ဖြစ်လာနိုင်ခဲ့သည့် ကုန်ကျစရိတ်ကို `X-OmniRoute-Cost-Saved` တွင် သီးခြားဖော်ပြသည်။ ငွေတောင်းခံမှုကို အသုံးပြုသည့်စနစ်များသည် `X-OmniRoute-Response-Cost` ကို စုစုပေါင်းတွက်ချက်သင့်သည် (hit များအတွက် ကုန်ကျစရိတ်မရှိပါ)။ cache ခွဲခြမ်းစိတ်ဖြာမှုများတွင် `X-OmniRoute-Cost-Saved` ကို စုစည်းတွက်ချက်နိုင်သည်။
 
-## သီးသန့် စီမံခန့်ခွဲထားသော Session Lease များ
+## သီးသန့်စီမံခန့်ခွဲထားသော Session Leases များ
 
-သီးသန့် စီမံခန့်ခွဲထားသော session leasing သည် ရွေးချယ်အသုံးပြုနိုင်ပြီး client နှင့် မသက်ဆိုင်သည့် routing contract တစ်ခုဖြစ်သည်။ လက်ရှိ owner တစ်ဦးသည် သတ်မှတ်ချက်နှင့် ကိုက်ညီသော OmniRoute connection တစ်ခုကို ထိန်းသိမ်းထားသည်။ ၎င်းသည် model တစ်ခုကို lease လုပ်ခြင်းမဟုတ်သကဲ့သို့ OAuth ကိုလည်း မလိုအပ်ပါ၊ သီးခြား client တစ်ခုကိုလည်း ဖော်ထုတ်သတ်မှတ်ခြင်းမရှိသလို သီးခြား provider တစ်ခုကိုလည်း မလိုအပ်ပါ။
+သီးသန့်စီမံခန့်ခွဲထားသော session leasing သည် ရွေးချယ်နိုင်သော၊ client-ကြားနေ routing စာချုပ်တစ်ခုဖြစ်သည်- တက်ကြွသောပိုင်ရှင်တစ်ဦးသည် အရည်အချင်းပြည့်မီသော OmniRoute ချိတ်ဆက်မှုတစ်ခုကို ပိုင်ဆိုင်သည်။ ၎င်းသည် မော်ဒယ်တစ်ခုကို ငှားရမ်းခြင်း၊ OAuth လိုအပ်ခြင်း၊ သီးခြား client တစ်ခုကို ခွဲခြားသတ်မှတ်ခြင်း သို့မဟုတ် သီးခြား provider တစ်ခုကို လိုအပ်ခြင်း မရှိပါ။
 
-အထောက်အထားစိစစ်ရန် အသုံးပြုသော API key တွင် scope `lease:exclusive` နှင့် အလွတ်မဟုတ်ကြောင်း အတိအလင်း သတ်မှတ်ထားသော `allowedConnections` စာရင်း ရှိရမည်။ Database mutation boundary သည် key ဖန်တီးမှုနှင့် တစ်စိတ်တစ်ပိုင်း update များတွင် field နှစ်ခုစလုံးကို တွဲဖက်၍ မဖြစ်မနေ သတ်မှတ်ထားစေသည်။
+စစ်မှန်ကြောင်းအထောက်အထားပြ API key တွင် `lease:exclusive` scope နှင့် ရှင်းလင်းသော အချည်းနှီးမဟုတ်သော `allowedConnections` စာရင်းရှိရမည်။ ဒေတာဘေ့စ်ပြောင်းလဲမှု နယ်နိမိတ်သည် key ဖန်တီးမှုနှင့် တစ်စိတ်တစ်ပိုင်း အပ်ဒိတ်များတွင် အကွက်နှစ်ခုလုံးကို အတူတကွ အကောင်အထည်ဖော်သည်။
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-အောင်မြင်သော acquire၊ renew နှင့် release response များသည် timestamp များ၊ `state` နှင့် အတိအကျ အပေါင်းတန်ဖိုးရှိသော `generation` ကို ဖော်ပြပေးသော်လည်း ရွေးချယ်ထားသည့် connection သို့မဟုတ် credential များကို မည်သည့်အခါမျှ မဖော်ပြပါ။ Renew နှင့် release တို့သည် generation ကို JSON body ထဲတွင် ပေးပို့သည်-
+အောင်မြင်စွာ ရယူခြင်း၊ သက်တမ်းတိုးခြင်းနှင့် ထုတ်ပြန်ခြင်း တုံ့ပြန်မှုများသည် အချိန်တံဆိပ်များ၊ `state` နှင့် တိကျသော အပြုသဘောဆောင်သော `generation` ကို ဖော်ပြသော်လည်း ရွေးချယ်ထားသော ချိတ်ဆက်မှု သို့မဟုတ် အထောက်အထားများကို မည်သည့်အခါမျှ မဖော်ပြပါ။ သက်တမ်းတိုးခြင်းနှင့် ထုတ်ပြန်ခြင်းတို့သည် JSON body တွင် generation ကို ပံ့ပိုးပေးသည်-
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-လက်ရှိ lease owner သည် ၎င်း၏ လက်ရှိ binding အတွက် privacy-safe display metadata ကို အတိအလင်း တောင်းဆိုနိုင်သည်-
+တက်ကြွသော lease ပိုင်ရှင်တစ်ဦးသည် ၎င်း၏လက်ရှိ binding အတွက် privacy-safe display metadata ကို ရှင်းလင်းစွာ တောင်းဆိုနိုင်သည်။
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-ဤရွေးချယ်အသုံးပြုရသော status action ကို database transaction တစ်ခုတည်းအတွင်း opaque owner၊ အထောက်အထားစိစစ်ပြီးသော managed API key နှင့် အတိအကျ လက်ရှိအသုံးပြုနေသော generation တို့ဖြင့် fence လုပ်ထားသည်။ `displayName` သည် အစနှင့်အဆုံး whitespace များကို ဖြတ်တောက်ထားသော configured connection name သာဖြစ်ပြီး လုံခြုံစွာ အသုံးပြုနိုင်သည့် configured name မရှိသောအခါ `null` ဖြစ်သည်။ OmniRoute သည် email သို့မဟုတ် ထုတ်လုပ်ဖန်တီးထားသော account identity ကို မည်သည့်အခါမျှ အစားထိုးအသုံးမပြုပါ။ Provider value သည် sensitive မဖြစ်သော display label တစ်ခုဖြစ်ပြီး ထုတ်လုပ်ဖန်တီးထားသော compatible-provider identifier မဟုတ်ပါ။ Credential များ၊ token များ၊ cookie များ၊ မူရင်း connection သို့မဟုတ် API key id များ၊ owner hash များ၊ fencing secret များနှင့် internal routing data များကို ထည့်သွင်းမထားပါ။
+ဤရွေးချယ်နိုင်သော status လုပ်ဆောင်ချက်ကို ပိုင်ရှင်၊ စစ်မှန်ကြောင်းအထောက်အထားပြထားသော စီမံခန့်ခွဲထားသော API key နှင့် ဒေတာဘေ့စ် transaction တစ်ခုတည်းရှိ တိကျသော တက်ကြွသော generation တို့ဖြင့် ကာရံထားသည်။ `displayName` သည် ဖြတ်တောက်ထားသော စီစဉ်သတ်မှတ်ထားသော ချိတ်ဆက်မှုအမည်သာဖြစ်သည်။ ဘေးကင်းသော စီစဉ်သတ်မှတ်ထားသော အမည်မရှိပါက ၎င်းသည် `null` ဖြစ်သည်။ OmniRoute သည် အီးမေးလ် သို့မဟုတ် ထုတ်လုပ်ထားသော အကောင့်အထောက်အထားကို မည်သည့်အခါမျှ အစားထိုးခြင်းမရှိပါ။ provider တန်ဖိုးသည် အထိခိုက်မခံသော display label ဖြစ်ပြီး ထုတ်လုပ်ထားသော တွဲဖက်သုံးနိုင်သော-provider identifier မဟုတ်ပါ။ အထောက်အထားများ၊ တိုကင်များ၊ ကွတ်ကီးများ၊ ကုန်ကြမ်းချိတ်ဆက်မှု သို့မဟုတ် API key id များ၊ ပိုင်ရှင် hashes များ၊ fencing secrets များနှင့် အတွင်းပိုင်း routing ဒေတာများကို ချန်လှပ်ထားသည်။
 
-မှားယွင်းသော key၊ မှားယွင်းသော owner၊ သက်တမ်းနောက်ကျနေသော generation၊ မရှိတော့သော၊ သက်တမ်းကုန်ဆုံးသော၊ release လုပ်ထားသောနှင့် invalidate လုပ်ထားသော lookup များအားလုံးသည် connection metadata မပါဘဲ တူညီသော `409 LEASE_FENCE_STALE` error ကို ပြန်ပေးသည်။ Capacity-wait response ကို ရရှိထားသော client တွင် စစ်ဆေးကြည့်ရှုနိုင်သည့် လက်ရှိ binding မရှိပါ။ Routing က လက်ရှိ lease တစ်ခုကို ပြောင်းလဲသောအခါ တူညီသော generation သည် ဆက်လက်အကျုံးဝင်ပြီး status က binding အသစ်ကို atomically ပြန်ပေးကာ အဟောင်းကို မည်သည့်အခါမျှ ပြန်မပေးပါ။ Acquire၊ renew၊ release နှင့် waiting response များသည် ၎င်းတို့၏ ယခင်ပုံစံများကို ဆက်လက်ထိန်းသိမ်းထားသောကြောင့် ရှိပြီးသား client များမှာ မပြောင်းလဲပါ။
+မှားယွင်းသော key၊ မှားယွင်းသော ပိုင်ရှင်၊ ခေတ်နောက်ကျနေသော generation၊ ပျောက်ဆုံးနေသော၊ သက်တမ်းကုန်ဆုံးနေသော၊ ထုတ်ပြန်ထားသော၊ နှင့် အတည်မပြုနိုင်သော ရှာဖွေမှုများအားလုံးသည် ချိတ်ဆက်မှု metadata မပါဘဲ တူညီသော `409 LEASE_FENCE_STALE` အမှားကို ပြန်ပေးသည်။ capacity-wait တုံ့ပြန်မှုကို လက်ခံရရှိသော client တွင် စစ်ဆေးရန် တက်ကြွသော binding မရှိပါ။ routing သည် တက်ကြွသော lease ကို ပြောင်းလဲသောအခါ၊ တူညီသော generation သည် ဆက်လက်မှန်ကန်နေပြီး status သည် အသစ်သော binding ကို အလိုအလျောက် ပြန်ပေးသည်၊ အဟောင်းကို မည်သည့်အခါမျှ မပြန်ပေးပါ။ ရှိပြီးသား client များသည် မပြောင်းလဲဘဲ ရှိနေသည်၊ အဘယ်ကြောင့်ဆိုသော် ရယူခြင်း၊ သက်တမ်းတိုးခြင်း၊ ထုတ်ပြန်ခြင်းနှင့် စောင့်ဆိုင်းနေသော တုံ့ပြန်မှုများသည် ၎င်းတို့၏ ယခင်ပုံစံများကို ထိန်းသိမ်းထားသောကြောင့်ဖြစ်သည်။
 
-ဤ server contract သည် မူရင်း OpenAI Codex `/status` ကို မပြောင်းလဲပါ။ လက်ရှိ မူရင်း Codex သည် ၎င်း၏ model provider နှင့် ထည့်သွင်းပေးထားသော authentication/account state ကို အစီရင်ခံသော်လည်း မည်သည့် arbitrary custom provider account metadata ကိုမဆို ပြသပေးခြင်းမရှိပါ။ နောင် client integration တစ်ခုသည် ဤ action ကို ခေါ်ယူပြီး `connection.displayName` ကို မည်သို့ပြသရမည်ကို ဆုံးဖြတ်ရမည်။
+ဤဆာဗာစာချုပ်သည် စတော့ခ် OpenAI Codex `/status` ကို မပြောင်းလဲပါ။ စတော့ခ် Codex သည် ၎င်း၏မော်ဒယ် provider နှင့် built-in authentication/account state ကို လက်ရှိတွင် အစီရင်ခံသော်လည်း မည်သည့်စိတ်ကြိုက် provider account metadata ကိုမျှ မဖော်ပြပါ။ နောက်ပိုင်း client ပေါင်းစည်းမှုတစ်ခုသည် ဤလုပ်ဆောင်ချက်ကို ခေါ်ဆိုပြီး `connection.displayName` ကို မည်သို့ပြသရမည်ကို ဆုံးဖြတ်ရမည်ဖြစ်သည်။
 
-ထို့နောက် managed inference request တိုင်းသည် control header နှစ်ခုလုံးကို ပေးပို့သည်-
+စီမံခန့်ခွဲထားသော inference တောင်းဆိုမှုတိုင်းသည် ထိန်းချုပ်မှုခေါင်းစီးနှစ်ခုလုံးကို ပံ့ပိုးပေးသည်-
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-အတိအကျ owner၊ generation၊ လက်ရှိ connection နှင့် အထောက်အထားစိစစ်ပြီးသော API key တို့ကို ပံ့ပိုးထားသည့် upstream attempt တစ်ခုစီမတိုင်မီ ချက်ချင်း fence လုပ်သည်။ အခြား key က တူညီသော connection ကို ခွင့်ပြုထားသည့်တိုင် ထို key ဖြင့် owner နှင့် generation ကို ပြန်လည်အသုံးပြုခြင်းသည် မအောင်မြင်ပါ။ မူရင်း owner များကို အမြဲတမ်းသိမ်းဆည်းခြင်း၊ log မှတ်တမ်းတင်ခြင်း၊ request snapshot တွင် ထိန်းသိမ်းထားခြင်း သို့မဟုတ် upstream သို့ လွှဲပို့ခြင်း မပြုပါ။
+တိကျသောပိုင်ရှင်၊ generation၊ တက်ကြွသောချိတ်ဆက်မှုနှင့် စစ်မှန်ကြောင်းအထောက်အထားပြထားသော API key တို့ကို ပံ့ပိုးထားသော upstream ကြိုးပမ်းမှုတစ်ခုစီမတိုင်မီ ချက်ချင်းကာရံထားသည်။ အခြား key တစ်ခုဖြင့် ပိုင်ရှင်နှင့် generation ကို ပြန်လည်ဖွင့်ခြင်းသည် ထို key သည် တူညီသောချိတ်ဆက်မှုကို ခွင့်ပြုသည့်တိုင် မအောင်မြင်ပါ။ ကုန်ကြမ်းပိုင်ရှင်များကို မသိမ်းဆည်းထားပါ၊ မှတ်တမ်းတင်ထားခြင်းမရှိပါ၊ တောင်းဆိုမှု snapshot တွင် ထိန်းသိမ်းထားခြင်းမရှိပါ သို့မဟုတ် upstream သို့ ပေးပို့ခြင်းမရှိပါ။
 
-ယာယီ အပြိုင်အသုံးပြုမှု ပဋိပက္ခဖြစ်ခြင်းအတွက် HTTP `429` ကို `Retry-After` နှင့်အတူ ပြန်ပေးသည်-
+ယာယီပြိုင်ဆိုင်မှုသည် HTTP `429` ကို `Retry-After` နှင့်အတူ ပြန်ပေးသည်-
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-ဤ response သည် ပုံမှန် သတ်မှတ်ချက်နှင့်ကိုက်ညီသော set သည် အလွတ်မဟုတ်ခဲ့ပြီး လွတ်နေသော candidate တိုင်းကို အခြား active lease တစ်ခုက ထိန်းသိမ်းထားသည်ဟုသာ ဆိုလိုသည်။ ပံ့ပိုးမထားသော model/provider များ၊ policy မကိုက်ညီမှု၊ cooldown၊ quota၊ health နှင့် အခြားပုံမှန် eligibility failure များသည် ၎င်းတို့၏ ရှိပြီးသား OmniRoute response များကို ဆက်လက်ထိန်းသိမ်းထားသည်။
+ဤတုံ့ပြန်မှုသည် သာမန်အရည်အချင်းပြည့်မီသော အစုံသည် အချည်းနှီးမဟုတ်ဘဲ လွတ်လပ်သော ကိုယ်စားလှယ်လောင်းတိုင်းကို ပြင်ပတက်ကြွသော lease တစ်ခုက ပိုင်ဆိုင်ထားကြောင်းသာ ဆိုလိုသည်။ ပံ့ပိုးမထားသော မော်ဒယ်များ/ပံ့ပိုးသူများ၊ မူဝါဒမကိုက်ညီမှု၊ cooldown၊ quota၊ ကျန်းမာရေးနှင့် အခြားသာမန်အရည်အချင်းပြည့်မီမှု ပျက်ကွက်မှုများသည် ၎င်းတို့၏ရှိပြီးသား OmniRoute တုံ့ပြန်မှုများကို ထိန်းသိမ်းထားသည်။
 
 ### `x-omniroute-compression`
 
-Request တစ်ခုချင်းစီအလိုက် compression plan ကို override လုပ်ခြင်းဖြစ်သည်။ ဦးစားပေးမှု အမြင့်ဆုံးဖြစ်ပြီး routing-combo override၊ active profile၊ auto-trigger နှင့် panel Default တို့ထက် ဦးစားပေးသည်။ Value များ-
+compression plan ကို တောင်းဆိုမှုတစ်ခုစီအတွက် ပြန်လည်ပြင်ဆင်ခြင်း။ အမြင့်ဆုံးဦးစားပေး — routing-combo override၊ active profile၊ auto-trigger နှင့် panel Default တို့ကို ကျော်လွန်သည်။ တန်ဖိုးများ-
 
-| Value         | အကျိုးသက်ရောက်မှု                                                                                                              |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `off`         | ဤ request အတွက် compression မပြုပါ။                                                                                            |
-| `default`     | Panel မှ ဆင်းသက်လာသော Default profile ဖြစ်သည် (active profile ကို လျစ်လျူရှုသည်)။                                              |
-| `engine:<id>` | ဖွင့်ထားသောအခါ engine တစ်ခုတည်း၊ ဥပမာ `engine:rtk`။                                                                            |
-| `<combo>`     | အမည်ပေးထားသော combo တစ်ခုဖြစ်ပြီး ပထမဦးစွာ name ဖြင့် (စာလုံးအကြီးအသေးမခွဲဘဲ) တိုက်ဆိုင်စစ်ဆေးကာ ထို့နောက် id ဖြင့် စစ်ဆေးသည်။ |
+| တန်ဖိုး       | အကျိုးသက်ရောက်မှု                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `off`         | ဤတောင်းဆိုမှုအတွက် compression မရှိပါ။                                                                           |
+| `default`     | panel-derived Default profile (active profile ကို လျစ်လျူရှုသည်)။ Lossy engines များကို ပိတ်ထားသည်။              |
+| `safe`        | Dedup နှင့် whitespace folding သာ။                                                                               |
+| `allow-lossy` | ဤတောင်းဆိုမှုအတွက် operator plan ကို ထိန်းသိမ်းထားပါ၊ အကျဉ်းချုပ်များနှင့် style rewrites များအပါအဝင်။           |
+| `engine:<id>` | ဖွင့်ထားသည့်အခါ engine တစ်ခုတည်း၊ ဥပမာ `engine:rtk`။ ထို engine အတွက် တောင်းဆိုမှုတစ်ခုစီအတွက် ရွေးချယ်နိုင်သော။ |
+| `<combo>`     | အမည်ဖြင့် ကိုက်ညီသော combo တစ်ခု (case-insensitive) ဦးစွာ၊ ထို့နောက် id ဖြင့်။                                   |
 
-မှတ်ချက်များ-
+မှတ်စုများ-
 
-- မသိသော value များကို လျစ်လျူရှုသည် (request ကို မည်သည့်အခါမျှ ပယ်ချမည်မဟုတ်ပါ)။ Resolution သည် ပုံမှန် operator precedence သို့ ဆက်လက်ကျသွားသည်။
-- Combo အများအပြားသည် တူညီသော name ကို မျှဝေထားပါက တိကျသေချာစွာ တိုက်ဆိုင်မှုရရှိရန် combo **id** ကို ပေးပို့ပါ။
-- Name က `off` သို့မဟုတ် `default` ဖြစ်သော combo ကို name ဖြင့် ရွေးချယ်၍မရပါ (ထို keyword များကို ပထမဦးစွာ အဓိပ္ပာယ်ဖော်သည်)။ ထိုသို့သော combo ကို ၎င်း၏ id ဖြင့် ကိုးကားပါ။
-- Master compression switch သည် မဖြစ်မနေဖြတ်သန်းရသော gate ဖြစ်သည်။ Compression ကို global အဆင့်တွင် ပိတ်ထားပါက ဤ header က ၎င်းကို ဖွင့်၍မရပါ။
+- မသိသောတန်ဖိုးများကို လျစ်လျူရှုသည် (တောင်းဆိုမှုကို မည်သည့်အခါမျှ ပယ်ချခြင်းမရှိပါ)။ ဖြေရှင်းချက်သည် ပုံမှန် operator ဦးစားပေးသို့ ကျရောက်သည်။
+- combo များစွာသည် အမည်တစ်ခုကို မျှဝေပါက၊ တိကျသော ကိုက်ညီမှုအတွက် combo **id** ကို ပေးပါ။
+- အမည် `off` သို့မဟုတ် `default` ဖြစ်သော combo တစ်ခုကို အမည်ဖြင့် ရွေးချယ်၍မရပါ (ထိုသော့ချက်စာလုံးများကို ဦးစွာ အဓိပ္ပာယ်ဖွင့်ဆိုသည်)။ ထိုကဲ့သို့သော combo ကို ၎င်း၏ id ဖြင့် ရည်ညွှန်းပါ။
+- master compression switch သည် ခက်ခဲသော gate တစ်ခုဖြစ်သည်- compression ကို ကမ္ဘာလုံးဆိုင်ရာ ပိတ်ထားသောအခါ၊ ဤခေါင်းစီးသည် ၎င်းကို ဖွင့်၍မရပါ။
 
-အသုံးပြုထားသော plan ကို response header တွင် ပြန်လည်ဖော်ပြသည်-
+အသုံးပြုထားသော plan ကို တုံ့ပြန်မှုခေါင်းစီးတွင် ပြန်လည်ဖော်ပြသည်-
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-ဤနေရာတွင် `<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊ `auto-trigger`၊ `default` သို့မဟုတ် `off` တို့ထဲမှ တစ်ခုဖြစ်သည်။
+`<source>` သည် `request-header`၊ `routing-override`၊ `active-profile`၊ `auto-trigger`၊ `default` သို့မဟုတ် `off` တို့မှ တစ်ခုဖြစ်သည်။
 
 ---
 
@@ -417,86 +419,90 @@ Sidecar တစ်ခုသည် out-of-process အနေဖြင့် လည�
 
 ## ကိုက်ညီမှုရှိသော Endpoint များ
 
-| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                               |
-| -------- | ----------------------------------------- | ------------------------------------- |
-| POST     | `/v1/chat/completions`                    | OpenAI                                |
-| POST     | `/v1/messages`                            | Anthropic                             |
-| POST     | `/v1/responses`                           | OpenAI Responses                      |
-| POST     | `/v1/embeddings`                          | OpenAI                                |
-| POST     | `/v1/images/generations`                  | OpenAI Images                         |
-| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint) |
-| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုထုတ်လုပ်ခြင်း     |
-| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတထုတ်လုပ်ခြင်း      |
-| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                    |
-| POST     | `/v1/audio/speech`                        | OpenAI TTS (အသံ body ကို ပြန်ပေးသည်)  |
-| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ rerank            |
-| POST     | `/v1/classify`                            | Jina classify (`api.jina.ai`)         |
-| POST     | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)    |
-| POST     | `/v1/moderations`                         | OpenAI Moderations                    |
-| GET      | `/v1/models`                              | OpenAI                                |
-| POST     | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET      | `/v1beta/models`                          | Gemini                                |
-| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST     | `/v1/api/chat`                            | Ollama                                |
-| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                  |
-| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                   |
-| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI tokenized alias                |
-| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses tokenized alias      |
-| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama tokenized alias                |
-| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags tokenized alias           |
+| နည်းလမ်း | လမ်းကြောင်း                               | ဖော်မတ်                                     |
+| -------- | ----------------------------------------- | ------------------------------------------- |
+| POST     | `/v1/chat/completions`                    | OpenAI                                      |
+| POST     | `/v1/messages`                            | Anthropic                                   |
+| POST     | `/v1/responses`                           | OpenAI Responses                            |
+| POST     | `/v1/embeddings`                          | OpenAI                                      |
+| POST     | `/v1/images/generations`                  | OpenAI Images                               |
+| POST     | `/v1/images/edits`                        | OpenAI Images (တည်းဖြတ်ခြင်း/inpaint)       |
+| POST     | `/v1/videos/generations`                  | OpenAI ပုံစံ ဗီဒီယိုဖန်တီးခြင်း             |
+| POST     | `/v1/music/generations`                   | OpenAI ပုံစံ တေးဂီတဖန်တီးခြင်း              |
+| POST     | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                          |
+| POST     | `/v1/audio/speech`                        | OpenAI TTS (အသံ body ကို ပြန်ပေးသည်)        |
+| POST     | `/v1/rerank`                              | Cohere/Voyage ပုံစံ အဆင့်ပြန်စီခြင်း        |
+| POST     | `/v1/classify`                            | Jina အမျိုးအစားခွဲခြားခြင်း (`api.jina.ai`) |
+| POST     | `/v1/segment`                             | Jina အပိုင်းခွဲစနစ် (`segment.jina.ai`)     |
+| POST     | `/v1/moderations`                         | OpenAI Moderations                          |
+| GET      | `/v1/models`                              | OpenAI                                      |
+| POST     | `/v1/messages/count_tokens`               | Anthropic                                   |
+| GET      | `/v1beta/models`                          | Gemini                                      |
+| POST     | `/v1beta/models/{...path}`                | Gemini generateContent                      |
+| POST     | `/v1/api/chat`                            | Ollama                                      |
+| GET      | `/api/v1/vscode/{token}/`                 | OpenAI catalog alias                        |
+| GET      | `/api/v1/vscode/{token}/models`           | OpenAI models alias                         |
+| POST     | `/api/v1/vscode/{token}/chat/completions` | OpenAI token ပါသော alias                    |
+| POST     | `/api/v1/vscode/{token}/responses`        | OpenAI Responses token ပါသော alias          |
+| POST     | `/api/v1/vscode/{token}/api/chat`         | Ollama token ပါသော alias                    |
+| GET      | `/api/v1/vscode/{token}/api/tags`         | Ollama tags token ပါသော alias               |
 
-POST လမ်းကြောင်းအားလုံးသည် တူညီသောပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် အတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကို ကြည့်ပါ)။ Schema အတည်ပြုမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
+POST route အားလုံးသည် တူညီသောပုံစံကို လိုက်နာသည်- `Bearer your-api-key` + Zod ဖြင့် အတည်ပြုထားသော JSON body (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` စသည်တို့၊ `src/shared/validation/schemas.ts` ကိုကြည့်ပါ)။ Schema အတည်ပြုမှု မအောင်မြင်ပါက 4xx ကို ပြန်ပေးသည်။
 
-`Authorization: Bearer ...` ကို ထည့်သွင်းမပေးပို့နိုင်သော client များအတွက် OmniRoute သည် query-string ကိုက်ညီမှု (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL အတွင်း API key များကိုလည်း လက်ခံသည်။
+`Authorization: Bearer ...` ကို ထည့်သွင်း၍မရသော client များအတွက် OmniRoute သည် query-string ကိုက်ညီမှုပုံစံ (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) သို့မဟုတ် အောက်တွင် မှတ်တမ်းတင်ထားသော သီးသန့် `/api/v1/vscode/{token}/...` endpoint များမှတစ်ဆင့် URL ထဲရှိ API key များကိုလည်း လက်ခံသည်။
 
 ```bash
-# Rerank (cloud registry provider သို့မဟုတ် "<prefix>/<model>" အဖြစ် OpenAI နှင့် ကိုက်ညီသော provider node)
+# အဆင့်ပြန်စီခြင်း (cloud registry provider သို့မဟုတ် "<prefix>/<model>" ပုံစံဖြင့် OpenAI-compatible provider node)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina classify (Foundation API အထောက်အထားများ)
+# Jina အမျိုးအစားခွဲခြားခြင်း (Foundation API အထောက်အထားများ)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina segmenter
+# Jina အပိုင်းခွဲစနစ်
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina search (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
+# Jina ရှာဖွေမှု (s.jina.ai; provider alias များ- jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# Moderations
+# အကြောင်းအရာစိစစ်ခြင်း
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — audio/mpeg (သို့မဟုတ် တောင်းဆိုထားသော ဖော်မတ်) body ကို ပြန်ပေးသည်
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
+# Soniox TTS အတွက် ဘာသာစကားနှင့် အသံတစ်ခု လိုအပ်သည်- `language` သည် မူလအတိုင်း "en" ဖြစ်သည်။ အသံမပါရှိပါက
+# သို့မဟုတ် OpenAI ၏ ပုံသေ အသံအမည် (alloy, nova, …) ဖြစ်ပါက "Adrian" အဖြစ် ပြောင်းလဲသတ်မှတ်သည်
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
 # ပုံတည်းဖြတ်ခြင်း (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# ဗီဒီယို / တေးဂီတ ထုတ်လုပ်ခြင်း (provider prefix ပါသော model id)
+# ဗီဒီယို / တေးဂီတ ဖန်တီးခြင်း (provider prefix ပါသော model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Rerank provider node များ:** `POST /v1/rerank` သည် `<node-prefix>/<model>` အဖြစ် လိပ်စာသတ်မှတ်ထားသော OpenAI နှင့် ကိုက်ညီသည့် provider node များ
-> (oMLX, vLLM, Infinity, gateway နောက်ကွယ်ရှိ TEI၊ …) သို့လည်း route လုပ်ပေးသည်။ Loopback
+> **အဆင့်ပြန်စီသည့် provider node များ:** `POST /v1/rerank` သည် `<node-prefix>/<model>` ဖြင့် လိပ်စာသတ်မှတ်ထားသော
+> OpenAI-compatible provider node များ (oMLX, vLLM, Infinity၊ gateway နောက်ကွယ်ရှိ TEI၊ …) သို့လည်း route လုပ်ပေးသည်။ Loopback
 > node များ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ကို အမြဲတမ်း အသုံးပြုနိုင်သည်။ အခြား
 > host တစ်ခုခုရှိ node များ — LAN စက်တစ်လုံး သို့မဟုတ် Tailscale peer — ကို operator က
 > `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ဖွင့်ထားပြီး node ၏ base URL သည် provider
 > outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) ကို ဖြတ်သန်းနိုင်မှသာ အသုံးပြုနိုင်သည်။
-> cloud-metadata host များသို့မူ မည်သည့်အခါမျှ route မလုပ်ပါ။ Memory engine ၏ rerank အဆင့်သည် ဤ route ကို
-> loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့် Memory ဆက်တင်များရှိ `rerankProviderModel` ကိုလည်း တူညီသောစည်းမျဉ်းက ထိန်းချုပ်သည်။
+> cloud-metadata host များသို့ မည်သည့်အခါမျှ route မလုပ်ပါ။ Memory engine ၏ အဆင့်ပြန်စီသည့်အဆင့်သည် ဤ route ကို
+> loopback မှတစ်ဆင့် ခေါ်ဆိုသောကြောင့် Memory ဆက်တင်များရှိ `rerankProviderModel` ကိုလည်း အလားတူစည်းမျဉ်းဖြင့် ထိန်းချုပ်သည်။
 >
-> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး 404 ဖြစ်ပါက `<base>/rerank`
-> (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ Upstream body သည် Cohere/OpenAI စာလုံးပေါင်း (`documents`,
-> `return_documents`) နှင့် TEI စာလုံးပေါင်း (`texts`, `return_text`) နှစ်မျိုးလုံးကို သယ်ဆောင်ပြီး upstream response ကို
-> Cohere envelope သို့ စံညှိပေးသည်- TEI ၏ ရိုးရိုး `[{index, score, text}]`၊ ပါးလွှာသော gateway များမှ
-> `{results: [{index, score}]}` နှင့် Voyage ပုံစံ `{data: [...]}` အားလုံးသည် client ထံသို့
-> `{results: [{index, relevance_score, document?}]}` အဖြစ် ပြန်ရောက်လာပြီး score အလိုက် စီထားကာ `top_n` ဖြင့် အရေအတွက်ကန့်သတ်ထားသည်။
+> **Local server ပုံစံများ:** node ကို `<base>/v1/rerank` တွင် ခေါ်ဆိုပြီး 404 ရရှိပါက `<base>/rerank`
+> (Infinity, TEI) တွင် ခေါ်ဆိုသည်။ Upstream body တွင် Cohere/OpenAI စာလုံးပေါင်းပုံစံ (`documents`,
+> `return_documents`) နှင့် TEI စာလုံးပေါင်းပုံစံ (`texts`, `return_text`) နှစ်မျိုးစလုံး ပါဝင်ပြီး upstream response ကို
+> Cohere envelope အဖြစ် စံပြုသည်- TEI ၏ ရိုးရိုး `[{index, score, text}]`၊ ပေါ့ပါးသော gateway များမှ `{results: [{index, score}]}`
+> နှင့် Voyage ပုံစံ `{data: [...]}` အားလုံးကို client ထံ
+> `{results: [{index, relevance_score, document?}]}` ပုံစံဖြင့် ပြန်ပေးပြီး score အလိုက် စီကာ `top_n` ဖြင့် အရေအတွက်ကန့်သတ်သည်။
 
-> **Provider-node ရှာဖွေတွေ့ရှိမှု:** OpenAI နှင့် ကိုက်ညီသော provider node ပေါ်ရှိ model များသည် `GET /v1/models`
-> တွင် node prefix အောက်၌ ပေါ်လာသည်။ Endpoint metadata မပါဝင်သော row များ (local `/v1/models` စာရင်းများတွင် တွေ့ရလေ့ရှိသည်)
-> သည် node ၏ `apiType` ကို ဆက်ခံသောကြောင့် `embeddings` node တစ်ခု၏ model များသည် `type: "embedding"` ဖြစ်ပြီး
-> `rerank` node တစ်ခု၏ model များသည် chat အဖြစ် ပုံသေသတ်မှတ်ခံရမည့်အစား `type: "rerank"` ဖြစ်သည်။ Sync လုပ်ထားသော သို့မဟုတ် ကိုယ်တိုင်ထည့်ထားသော row တစ်ခုရှိ
-> အတိအလင်းသတ်မှတ်ထားသည့် `supportedEndpoints` သည် ဆက်လက်၍ ဦးစားပေးခံရသည်။
+> **Provider-node ရှာဖွေခြင်း:** OpenAI နှင့် တွဲဖက်အသုံးပြုနိုင်သော provider node တစ်ခုပေါ်ရှိ model များသည် `GET /v1/models`
+> တွင် node prefix အောက်၌ ပေါ်လာသည်။ Endpoint metadata မပါရှိသော row များ (local `/v1/models` စာရင်းများတွင် အများအားဖြင့် တွေ့ရသည်)
+> သည် node ၏ `apiType` ကို ဆက်ခံသဖြင့် `embeddings` node ၏ model များသည် မူလသတ်မှတ်ချက်အရ chat ဖြစ်သွားမည့်အစား `type: "embedding"` ဖြစ်ပြီး
+> `rerank` node ၏ model များသည် `type: "rerank"` ဖြစ်သည်။ Sync လုပ်ထားသော သို့မဟုတ် ကိုယ်တိုင်ထည့်သွင်းထားသော row တစ်ခုရှိ အတိအလင်းသတ်မှတ်ထားသည့်
+> `supportedEndpoints` သည် ဦးစားပေးအဖြစ် ဆက်လက်သက်ရောက်သည်။
 
 ### သီးသန့် Provider Route များ
 
@@ -506,7 +512,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Provider prefix မပါရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
+Provider prefix မပါရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ ကိုက်ညီမှုမရှိသော model များသည် `400` ကို ပြန်ပေးသည်။
 
 ---
 
@@ -799,205 +805,205 @@ X-OmniRoute-No-Cache: true
 
 ## ဒက်ရှ်ဘုတ်နှင့် စီမံခန့်ခွဲမှု
 
-စီမံခန့်ခွဲမှု route များ (`/api/*`၊ အများသုံး auth/login မှအပ) ကို
-သာမန် inference API key များဖြင့် ခွင့်ပြုထားခြင်း **မရှိပါ**။ Credential အမျိုးအစားများ၊ scope များနှင့် curl နမူနာများ-
-[စီမံခန့်ခွဲမှုဆိုင်ရာ အထောက်အထားစိစစ်ခြင်း](../guides/MANAGEMENT-AUTH.md)။
+စီမံခန့်ခွဲမှုလမ်းကြောင်းများ (`/api/*`၊ အများသုံး auth/login မှအပ) ကို သာမန် inference API key များဖြင့် **ခွင့်ပြုချက်မပေးပါ**။ အထောက်အထားအမျိုးအစားများ၊ scope များနှင့် curl နမူနာများကို အောက်တွင် ကြည့်ပါ-
+[စီမံခန့်ခွဲမှုဆိုင်ရာ အထောက်အထားစစ်ဆေးခြင်း](../guides/MANAGEMENT-AUTH.md)။
 
-### အထောက်အထားစိစစ်ခြင်း
+### အထောက်အထားစစ်ဆေးခြင်း
 
-| Endpoint                      | Method  | ဖော်ပြချက်                            |
-| ----------------------------- | ------- | ------------------------------------- |
-| `/api/auth/login`             | POST    | အကောင့်ဝင်ရန်                         |
-| `/api/auth/logout`            | POST    | အကောင့်ထွက်ရန်                        |
-| `/api/settings/require-login` | GET/PUT | အကောင့်ဝင်ရန် လိုအပ်မှုကို ပြောင်းရန် |
+| Endpoint                      | နည်းလမ်း | ဖော်ပြချက်                                         |
+| ----------------------------- | -------- | -------------------------------------------------- |
+| `/api/auth/login`             | POST     | အကောင့်ဝင်ရန်                                      |
+| `/api/auth/logout`            | POST     | အကောင့်ထွက်ရန်                                     |
+| `/api/settings/require-login` | GET/PUT  | အကောင့်ဝင်ရန် လိုအပ်မှုကို အဖွင့်/အပိတ် ပြုလုပ်ရန် |
 
 ### Provider စီမံခန့်ခွဲမှု
 
-| Endpoint                     | Method                | ဖော်ပြချက်                                                                                                                                           |
-| ---------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Provider များကို စာရင်းပြုစုရန် / ဖန်တီးရန်                                                                                                          |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Provider တစ်ခုကို စီမံခန့်ခွဲရန်                                                                                                                     |
-| `/api/providers/[id]/test`   | POST                  | Provider ချိတ်ဆက်မှုကို စမ်းသပ်ရန်                                                                                                                   |
-| `/api/providers/[id]/models` | GET                   | Provider ၏ model များကို စာရင်းပြုစုရန်                                                                                                              |
-| `/api/providers/validate`    | POST                  | Provider config ကို အတည်ပြုစစ်ဆေးရန်                                                                                                                 |
-| `/api/providers/bulk`        | POST                  | Provider တစ်ခုတည်းအတွက် API key များကို အစုလိုက်ထည့်ရန်                                                                                              |
-| `/api/providers/import`      | POST                  | Parse လုပ်ထားသော CSV/JSON ဖိုင်မှ မတူညီသည့် provider စာရင်းကို import လုပ်ရန် (#6836)၊ row တစ်ခုချင်းစီအလိုက် တစ်စိတ်တစ်ပိုင်း မအောင်မြင်မှုရလဒ်များ |
-| `/api/provider-nodes*`       | အမျိုးမျိုး           | Provider node စီမံခန့်ခွဲမှု                                                                                                                         |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | စိတ်ကြိုက် model များ (ထည့်ရန်၊ အပ်ဒိတ်လုပ်ရန်၊ ဖျောက်ရန်/ပြရန်၊ ဖျက်ရန်)                                                                            |
+| Endpoint                                | နည်းလမ်း              | ဖော်ပြချက်                                                                                                                                                                                                                 |
+| --------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | Provider များကို စာရင်းပြုစုရန် / ဖန်တီးရန်                                                                                                                                                                                |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Provider တစ်ခုကို စီမံခန့်ခွဲရန်                                                                                                                                                                                           |
+| `/api/providers/[id]/test`              | POST                  | Provider ချိတ်ဆက်မှုကို စမ်းသပ်ရန်                                                                                                                                                                                         |
+| `/api/providers/[id]/models`            | GET                   | Provider model များကို စာရင်းပြုစုရန်                                                                                                                                                                                      |
+| `/api/providers/validate`               | POST                  | Provider config ကို မှန်ကန်ကြောင်း စစ်ဆေးရန်                                                                                                                                                                               |
+| `/api/providers/bulk`                   | POST                  | Provider တစ်ခုတည်းအတွက် API key များကို အစုလိုက်ထည့်ရန်                                                                                                                                                                    |
+| `/api/providers/import`                 | POST                  | ခွဲခြမ်းဖတ်ရှုပြီးသော CSV/JSON ဖိုင်မှ မတူညီသည့် provider များ၏ စာရင်းကို တင်သွင်းရန် (#6836)၊ အတန်းတစ်တန်းချင်းစီအတွက် တစ်စိတ်တစ်ပိုင်း မအောင်မြင်မှုရလဒ်များကို ဖော်ပြပေးသည်                                             |
+| `/api/provider-nodes*`                  | အမျိုးမျိုး           | Provider node စီမံခန့်ခွဲမှု                                                                                                                                                                                               |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | စိတ်ကြိုက် model များ (ထည့်ရန်၊ အပ်ဒိတ်လုပ်ရန်၊ ဖျောက်ရန်/ပြရန်၊ ဖျက်ရန်)                                                                                                                                                  |
+| `/api/provider-models/validate-and-add` | POST                  | စီမံခန့်ခွဲမှုအထောက်အထား စစ်ဆေးထားသော၊ အသုံးပြုရန် ကိုယ်တိုင်ရွေးချယ်ရသည့် တင်းကျပ်သောချိတ်ဆက်မှု စစ်ဆေးခြင်းနှင့် atomic စိတ်ကြိုက် model မှတ်ပုံတင်ခြင်း၊ [Model စစ်ဆေးခြင်း](../guides/MODEL-VALIDATION.md) ကို ကြည့်ပါ |
 
 ### OAuth လုပ်ငန်းစဉ်များ
 
-| Endpoint                         | Method      | ဖော်ပြချက်                    |
-| -------------------------------- | ----------- | ----------------------------- |
-| `/api/oauth/[provider]/[action]` | အမျိုးမျိုး | Provider အလိုက် သီးခြား OAuth |
+| Endpoint                         | နည်းလမ်း    | ဖော်ပြချက်            |
+| -------------------------------- | ----------- | --------------------- |
+| `/api/oauth/[provider]/[action]` | အမျိုးမျိုး | Provider အလိုက် OAuth |
 
 ### Routing နှင့် Config
 
-| Endpoint              | Method      | ဖော်ပြချက်                                    |
+| Endpoint              | နည်းလမ်း    | ဖော်ပြချက်                                    |
 | --------------------- | ----------- | --------------------------------------------- |
 | `/api/models/alias`   | GET/POST    | Model alias များ                              |
 | `/api/models/catalog` | GET         | Provider နှင့် အမျိုးအစားအလိုက် model အားလုံး |
 | `/api/combos*`        | အမျိုးမျိုး | Combo စီမံခန့်ခွဲမှု                          |
 | `/api/keys*`          | အမျိုးမျိုး | API key စီမံခန့်ခွဲမှု                        |
-| `/api/pricing`        | GET         | Model စျေးနှုန်းများ                          |
+| `/api/pricing`        | GET         | Model ဈေးနှုန်း                               |
 
-### အသုံးပြုမှုနှင့် ပိုင်းခြားစိတ်ဖြာမှု
+### အသုံးပြုမှုနှင့် ခွဲခြမ်းစိတ်ဖြာမှု
 
-| Endpoint                         | Method          | Description                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | အသုံးပြုမှုမှတ်တမ်း                                                                                                                                                                                                                                                                                                                                                                     |
-| `/api/usage/logs`                | GET             | အသုံးပြုမှုမှတ်တမ်းများ                                                                                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/request-logs`        | GET             | တောင်းဆိုမှုအဆင့် မှတ်တမ်းများ                                                                                                                                                                                                                                                                                                                                                          |
-| `/api/usage/[connectionId]`      | GET             | ချိတ်ဆက်မှုတစ်ခုချင်းစီအလိုက် အသုံးပြုမှု                                                                                                                                                                                                                                                                                                                                               |
-| `/api/usage/token-limits`        | GET/POST/DELETE | API key တစ်ခုချင်းစီအလိုက် token ကန့်သတ်ချက် ဘတ်ဂျက်များ                                                                                                                                                                                                                                                                                                                                |
-| `/api/usage/model-latency-stats` | GET             | Provider/model တစ်ခုချင်းစီအလိုက် ရွေ့လျား latency စုစည်းကိန်းများ (ပျမ်းမျှ/p50/p95/p99၊ အောင်မြင်မှုနှုန်း)၊ စစ်ထုတ်မှုများ- `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                          |
-| `/api/usage/cache-health`        | GET             | `call_logs` အပေါ်အခြေခံသည့် prompt-cache အခြေအနေ အနှစ်ချုပ် — ရေးသားမှု/ဖတ်ရှုမှု အချိုး၊ p50/p90/p99 ရေးသားမှုအရွယ်အစား ဖြန့်ဝေမှု၊ ကြီးမားသောရေးသားမှု စုစည်းနေမှု၊ model တစ်ခုချင်းစီအလိုက် ခွဲခြားမှုနှင့် `healthy`/`degraded`/`thrash`/`no-data` အကဲဖြတ်ချက်၊ query parameter များမှာ `range` (`1h`\|`24h`\|`7d`\|`30d`၊ မူလတန်ဖိုး `24h`) နှင့် ရွေးချယ်နိုင်သော `model` (#8827) |
+| Endpoint                         | Method          | Description                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | အသုံးပြုမှုမှတ်တမ်း                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/logs`                | GET             | အသုံးပြုမှုမှတ်တမ်းများ                                                                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/request-logs`        | GET             | တောင်းဆိုမှုအဆင့် မှတ်တမ်းများ                                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/[connectionId]`      | GET             | ချိတ်ဆက်မှုတစ်ခုချင်းအလိုက် အသုံးပြုမှု                                                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/token-limits`        | GET/POST/DELETE | API key တစ်ခုချင်းအလိုက် token ကန့်သတ်ချက် ဘတ်ဂျက်များ                                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/model-latency-stats` | GET             | provider/model တစ်ခုချင်းအလိုက် ရွေ့လျားကာလ latency စုစည်းကိန်းဂဏန်းများ (ပျမ်းမျှ/p50/p95/p99၊ အောင်မြင်မှုနှုန်း)၊ စစ်ထုတ်မှုများ- `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                      |
+| `/api/usage/cache-health`        | GET             | `call_logs` အပေါ် အခြေခံသည့် prompt-cache အခြေအနေ အကျဉ်းချုပ် — ရေး/ဖတ် အချိုး၊ p50/p90/p99 ရေးသားမှုအရွယ်အစား ဖြန့်ဝေမှု၊ အများအပြားရေးသားမှု စုဝေးမှု၊ model တစ်ခုချင်းအလိုက် ခွဲခြားမှုနှင့် `healthy`/`degraded`/`thrash`/`no-data` ဆုံးဖြတ်ချက်၊ query parameter များမှာ `range` (`1h`\|`24h`\|`7d`\|`30d`၊ မူလတန်ဖိုး `24h`) နှင့် ရွေးချယ်နိုင်သော `model` (#8827) |
 
 ### ဆက်တင်များ
 
-| Endpoint                              | Method        | Description                                                                                                                                                                                                       |
-| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | အထွေထွေ ဆက်တင်များ                                                                                                                                                                                                |
-| `/api/settings/proxy`                 | GET/PUT       | ကွန်ရက် proxy ဖွဲ့စည်းမှု                                                                                                                                                                                         |
-| `/api/settings/proxy/test`            | POST          | Proxy ချိတ်ဆက်မှုကို စမ်းသပ်ရန်                                                                                                                                                                                   |
-| `/api/settings/ip-filter`             | GET/PUT       | IP ခွင့်ပြုစာရင်း/ပိတ်ပင်စာရင်း                                                                                                                                                                                   |
-| `/api/settings/thinking-budget`       | GET/PUT       | တွေးခေါ်မှု/ဆင်ခြင်မှု **တောင်းဆိုချက်** ပြန်လည်ရေးသားသည့် mode (passthrough / auto-strip / custom / adaptive)။ Compression နှင့် သီးခြားဖြစ်သည်။ [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) ကို ကြည့်ပါ။ |
-| `/api/settings/system-prompt`         | GET/PUT       | ကမ္ဘာလုံးဆိုင်ရာ system prompt                                                                                                                                                                                    |
-| `/api/settings/compression`           | GET/PUT       | ကမ္ဘာလုံးဆိုင်ရာ compression ဖွဲ့စည်းမှု                                                                                                                                                                          |
-| `/api/settings/purge-request-history` | POST          | တောင်းဆိုမှုမှတ်တမ်း row များနှင့် စက်တွင်း call-log artifact များကို ရှင်းလင်းရန်                                                                                                                                |
+| Endpoint                              | Method        | Description                                                                                                                                                                                                                     |
+| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | အထွေထွေ ဆက်တင်များ                                                                                                                                                                                                              |
+| `/api/settings/proxy`                 | GET/PUT       | ကွန်ရက် proxy ဖွဲ့စည်းမှု                                                                                                                                                                                                       |
+| `/api/settings/proxy/test`            | POST          | proxy ချိတ်ဆက်မှုကို စမ်းသပ်ရန်                                                                                                                                                                                                 |
+| `/api/settings/ip-filter`             | GET/PUT       | IP ခွင့်ပြုစာရင်း/ပိတ်ပင်စာရင်း                                                                                                                                                                                                 |
+| `/api/settings/thinking-budget`       | GET/PUT       | စဉ်းစားခြင်း/ကျိုးကြောင်းဆင်ခြင်ခြင်း **တောင်းဆိုမှု** ပြန်လည်ရေးသားသည့် mode (passthrough / auto-strip / custom / adaptive)။ compression နှင့် သီးခြားဖြစ်သည်။ [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) ကို ကြည့်ပါ။ |
+| `/api/settings/system-prompt`         | GET/PUT       | ကမ္ဘာလုံးဆိုင်ရာ system prompt                                                                                                                                                                                                  |
+| `/api/settings/compression`           | GET/PUT       | ကမ္ဘာလုံးဆိုင်ရာ compression ဖွဲ့စည်းမှု                                                                                                                                                                                        |
+| `/api/settings/purge-request-history` | POST          | တောင်းဆိုမှုမှတ်တမ်း row များနှင့် local call-log artifact များကို ရှင်းလင်းရန်                                                                                                                                                 |
 
 ### Context နှင့် Compression
 
-| အဆုံးမှတ်                              | နည်းလမ်း       | ဖော်ပြချက်                                                                                      |
-| -------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked ချုံ့ခြင်းကို အစမ်းကြည့်ရှုရန်                   |
-| `/api/compression/language-packs`      | GET            | ရရှိနိုင်သော Caveman ဘာသာစကားပက်ကေ့ချ်များကို စာရင်းပြုစုရန်                                    |
-| `/api/compression/rules`               | GET            | Caveman စည်းမျဉ်း မက်တာဒေတာကို စာရင်းပြုစုရန်                                                   |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman သီးသန့် ဆက်တင်အမည်လွှဲ                                                                  |
-| `/api/context/rtk/config`              | GET/PUT        | စိတ်ကြိုက် စစ်ထုတ်ကိရိယာများနှင့် အကြမ်းထုတ်ပေးချက် ထိန်းသိမ်းမှုအပါအဝင် RTK သီးသန့် ဆက်တင်များ |
-| `/api/context/rtk/filters`             | GET            | RTK စစ်ထုတ်ကိရိယာ ကတ်တလောက်နှင့် စိတ်ကြိုက်စစ်ထုတ်ကိရိယာ စစ်ဆေးချက်များ                         |
-| `/api/context/rtk/test`                | POST           | စာသား payload တစ်ခုအပေါ် RTK အစမ်းကြည့်ရှုမှု/စမ်းသပ်မှုကို လုပ်ဆောင်ရန်                        |
-| `/api/context/rtk/raw-output/[id]`     | GET            | pointer id ဖြင့် ထိန်းသိမ်းထားသော ဖုံးကွယ်ပြင်ဆင်ပြီး အကြမ်းထုတ်ပေးချက်ကို ဖတ်ရန်               |
-| `/api/context/combos`                  | GET/POST       | ချုံ့ခြင်း combo စာရင်း/ဖန်တီးမှု                                                               |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | ချုံ့ခြင်း combo အသေးစိတ်/အပ်ဒိတ်/ဖျက်ခြင်း                                                     |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | routing combo များသို့ ချုံ့ခြင်း combo များ သတ်မှတ်ရန်                                         |
-| `/api/context/analytics`               | GET            | ချုံ့ခြင်း ဆန်းစစ်ချက် အမည်လွှဲ                                                                 |
+| Endpoint                               | Method         | Description                                                                                      |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked ချုံ့ခြင်းကို အစမ်းကြည့်ရှုရန်                    |
+| `/api/compression/language-packs`      | GET            | ရရှိနိုင်သော Caveman ဘာသာစကားပက်ကေ့ချ်များကို စာရင်းပြုစုရန်                                     |
+| `/api/compression/rules`               | GET            | Caveman စည်းမျဉ်းဆိုင်ရာ မက်တာဒေတာကို စာရင်းပြုစုရန်                                             |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman သီးသန့်ဆက်တင်များအတွက် အမည်ပွား                                                          |
+| `/api/context/rtk/config`              | GET/PUT        | စိတ်ကြိုက်စစ်ထုတ်ကိရိယာများနှင့် မူရင်းအထွက်ကို ထိန်းသိမ်းထားခြင်း အပါအဝင် RTK သီးသန့်ဆက်တင်များ |
+| `/api/context/rtk/filters`             | GET            | RTK စစ်ထုတ်ကိရိယာ ကတ်တလောက်နှင့် စိတ်ကြိုက်စစ်ထုတ်ကိရိယာ စစ်ဆေးရှာဖွေမှုများ                     |
+| `/api/context/rtk/test`                | POST           | စာသား payload တစ်ခုအပေါ် RTK အစမ်းကြည့်ရှုမှု/စမ်းသပ်မှုကို လုပ်ဆောင်ရန်                         |
+| `/api/context/rtk/raw-output/[id]`     | GET            | pointer id ဖြင့် ထိန်းသိမ်းထားသော ဖုံးကွယ်ပြင်ဆင်ထားသည့် မူရင်းအထွက်ကို ဖတ်ရန်                   |
+| `/api/context/combos`                  | GET/POST       | ချုံ့ခြင်း combo များကို စာရင်းပြုစုရန်/ဖန်တီးရန်                                                |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | ချုံ့ခြင်း combo အသေးစိတ်ကို ကြည့်ရန်/အပ်ဒိတ်လုပ်ရန်/ဖျက်ရန်                                     |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | ချုံ့ခြင်း combo များကို လမ်းကြောင်းရွေးချယ်ခြင်း combo များသို့ သတ်မှတ်ပေးရန်                   |
+| `/api/context/analytics`               | GET            | ချုံ့ခြင်းဆိုင်ရာ ခွဲခြမ်းစိတ်ဖြာမှုအတွက် အမည်ပွား                                               |
 
 ### စောင့်ကြည့်ခြင်း
 
-| အဆုံးမှတ်                            | နည်းလမ်း   | ဖော်ပြချက်                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | လက်ရှိအသုံးပြုနေသော session များကို ခြေရာခံခြင်း                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `/api/rate-limits`                   | GET        | အကောင့်တစ်ခုချင်းစီအလိုက် rate limit များ                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `/api/monitoring/health`             | GET        | ကျန်းမာရေးစစ်ဆေးမှု + provider အကျဉ်းချုပ် (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)။ စီမံခန့်ခွဲမှုမြင်ကွင်းတွင် `credentialHealth` ပါဝင်သည်- probe-cache scalar များ၊ `failed>0` ဖြစ်သည့်အခါ `failedConnections` နှင့် `staleDbNonOkCount` (gauge မဟုတ်ဘဲ SQLite တွင် ကပ်လျက်ရှိနေသော `test_status`)။ [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) ကို ကြည့်ပါ။ |
-| `/api/cache/stats`                   | GET/DELETE | Cache ကိန်းဂဏန်းများ / ရှင်းလင်းခြင်း                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `/api/modality-bridge/stats`         | GET        | Memory အတွင်းရှိ `attempts`၊ အောင်မြင်မှုများ/`bridged`၊ ကျရှုံးမှုများ၊ cache hit များ၊ `totalLatencyMs`၊ `latencySamples`၊ sample အရေအတွက်ကို ပိုင်းခြေအဖြစ် သုံးထားသော `averageLatencyMs` နှင့် နောက်ဆုံးအသုံးပြုချိန် (ပြန်လည်စတင်ချိန်တွင် reset ဖြစ်သည်၊ စီမံခန့်ခွဲမှု authentication လိုအပ်သည်)                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | စီမံခန့်ခွဲမှု authentication/probe မတိုင်မီ တင်းကျပ်သော ယုံကြည်ရသည့် loopback စစ်ဆေးမှု၊ သန့်စင်ထားသော FFmpeg/ffprobe ရရှိနိုင်မှုနှင့် version များ (no-store)                                                                                                                                                                                                                                                                                     |
-| `/api/modality-bridge/video/extract` | POST       | အတွင်းပိုင်း authentication ပြုလုပ်ထားသော ယုံကြည်ရသည့် loopback byte broker၊ 50 MiB input၊ ကန့်သတ်ထားသော queue/32 MiB output၊ capacity အတွက် `503`၊ ချိတ်ဆက်မှုပြတ်တောက်မှုအတွက် `499`၊ deadline အတွက် `504`၊ အများပြည်သူသုံး upload API မဟုတ်ပါ                                                                                                                                                                                                     |
+| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | အသုံးပြုနေဆဲ session များကို ခြေရာခံခြင်း                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `/api/rate-limits`                   | GET        | အကောင့်တစ်ခုချင်းအလိုက် အသုံးပြုနှုန်း ကန့်သတ်ချက်များ                                                                                                                                                                                                                                                                                                                                                                                            |
+| `/api/monitoring/health`             | GET        | စနစ်ကျန်းမာရေး စစ်ဆေးမှု + provider အကျဉ်းချုပ် (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)။ စီမံခန့်ခွဲမှုမြင်ကွင်းတွင် `credentialHealth` ပါဝင်သည်—probe cache scalar များ၊ `failed>0` ဖြစ်သည့်အခါ `failedConnections` နှင့် `staleDbNonOkCount` (gauge မဟုတ်ဘဲ SQLite ၏ ကပ်ငြိနေသော `test_status`)။ [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) ကို ကြည့်ပါ။ |
+| `/api/cache/stats`                   | GET/DELETE | Cache စာရင်းအင်းများ / ရှင်းလင်းရန်                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `/api/modality-bridge/stats`         | GET        | Memory အတွင်းရှိ `attempts`၊ အောင်မြင်မှုများ/`bridged`၊ မအောင်မြင်မှုများ၊ cache hit များ၊ `totalLatencyMs`၊ `latencySamples`၊ နမူနာအရေအတွက်ကို ပိုင်းခြေအဖြစ်သုံးသော `averageLatencyMs` နှင့် နောက်ဆုံးအသုံးပြုချိန် (ပြန်လည်စတင်သည့်အခါ ပြန်လည်သတ်မှတ်သည်၊ စီမံခန့်ခွဲမှုဆိုင်ရာ အထောက်အထားစိစစ်မှု လိုအပ်သည်)                                                                                                                                 |
+| `/api/modality-bridge/video/runtime` | GET        | စီမံခန့်ခွဲမှုဆိုင်ရာ အထောက်အထားစိစစ်မှု/probe မတိုင်မီ တင်းကျပ်သော ယုံကြည်ရသည့် loopback စစ်ဆေးမှု၊ သန့်စင်ထားသော FFmpeg/ffprobe ရရှိနိုင်မှုနှင့် version များ (သိမ်းဆည်းခြင်းမပြု)                                                                                                                                                                                                                                                             |
+| `/api/modality-bridge/video/extract` | POST       | အတွင်းပိုင်း အထောက်အထားစိစစ်ထားသော ယုံကြည်ရသည့် loopback byte broker၊ input 50 MiB၊ ကန့်သတ်ထားသော queue/output 32 MiB၊ စွမ်းဆောင်ရည်ပြည့်ပါက `503`၊ ချိတ်ဆက်မှုပြတ်ပါက `499`၊ သတ်မှတ်အချိန်ကျော်ပါက `504`၊ အများပြည်သူသုံး upload API မဟုတ်ပါ                                                                                                                                                                                                     |
 
-### အရန်သိမ်းခြင်းနှင့် Export/Import
+### အရန်သိမ်းဆည်းခြင်းနှင့် ထုတ်ယူခြင်း/ထည့်သွင်းခြင်း
 
-| Endpoint                    | Method | Description                                                           |
-| --------------------------- | ------ | --------------------------------------------------------------------- |
-| `/api/db-backups`           | GET    | ရရှိနိုင်သော အရန်သိမ်းဆည်းမှုများကို စာရင်းပြုစုရန်                   |
-| `/api/db-backups`           | PUT    | အရန်သိမ်းဆည်းမှုကို ကိုယ်တိုင်ဖန်တီးရန်                               |
-| `/api/db-backups`           | POST   | သတ်မှတ်ထားသော အရန်သိမ်းဆည်းမှုတစ်ခုမှ ပြန်လည်ရယူရန်                   |
-| `/api/db-backups/export`    | GET    | ဒေတာဘေ့စ်ကို .sqlite ဖိုင်အဖြစ် ဒေါင်းလုဒ်လုပ်ရန်                     |
-| `/api/db-backups/import`    | POST   | ဒေတာဘေ့စ်ကို အစားထိုးရန် .sqlite ဖိုင်ကို အပ်လုဒ်လုပ်ရန်              |
-| `/api/db-backups/exportAll` | GET    | အရန်သိမ်းဆည်းမှုအပြည့်အစုံကို .tar.gz archive အဖြစ် ဒေါင်းလုဒ်လုပ်ရန် |
+| Endpoint                    | Method | Description                                                                 |
+| --------------------------- | ------ | --------------------------------------------------------------------------- |
+| `/api/db-backups`           | GET    | ရရှိနိုင်သော အရန်သိမ်းဆည်းမှုများကို စာရင်းပြုစုရန်                         |
+| `/api/db-backups`           | PUT    | ကိုယ်တိုင် အရန်သိမ်းဆည်းမှုတစ်ခု ဖန်တီးရန်                                  |
+| `/api/db-backups`           | POST   | သတ်မှတ်ထားသော အရန်သိမ်းဆည်းမှုမှ ပြန်လည်ရယူရန်                              |
+| `/api/db-backups/export`    | GET    | ဒေတာဘေ့စ်ကို .sqlite ဖိုင်အဖြစ် ဒေါင်းလုဒ်လုပ်ရန်                           |
+| `/api/db-backups/import`    | POST   | ဒေတာဘေ့စ်ကို အစားထိုးရန် .sqlite ဖိုင်ကို အပ်လုဒ်လုပ်ရန်                    |
+| `/api/db-backups/exportAll` | GET    | အရန်သိမ်းဆည်းမှု အပြည့်အစုံကို .tar.gz မှတ်တမ်းဖိုင်အဖြစ် ဒေါင်းလုဒ်လုပ်ရန် |
 
-### Cloud Sync
+### Cloud စင့်ခ်လုပ်ခြင်း
 
-| Endpoint               | Method      | Description                  |
-| ---------------------- | ----------- | ---------------------------- |
-| `/api/sync/cloud`      | အမျိုးမျိုး | Cloud sync လုပ်ဆောင်ချက်များ |
-| `/api/sync/initialize` | POST        | Sync ကို စတင်သတ်မှတ်ရန်      |
-| `/api/cloud/*`         | အမျိုးမျိုး | Cloud စီမံခန့်ခွဲမှု         |
+| Endpoint               | Method      | Description                       |
+| ---------------------- | ----------- | --------------------------------- |
+| `/api/sync/cloud`      | အမျိုးမျိုး | Cloud စင့်ခ်လုပ်ဆောင်ချက်များ     |
+| `/api/sync/initialize` | POST        | စင့်ခ်လုပ်ခြင်းကို စတင်သတ်မှတ်ရန် |
+| `/api/cloud/*`         | အမျိုးမျိုး | Cloud စီမံခန့်ခွဲမှု              |
 
-### Tunnels
+### တန်နယ်များ
 
-| Endpoint                   | Method | Description                                                                      |
-| -------------------------- | ------ | -------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Dashboard အတွက် Cloudflare Quick Tunnel ၏ ထည့်သွင်းမှု/runtime အခြေအနေကို ဖတ်ရန် |
-| `/api/tunnels/cloudflared` | POST   | Cloudflare Quick Tunnel ကို ဖွင့်ရန် သို့မဟုတ် ပိတ်ရန် (`action=enable/disable`) |
-| `/api/tunnels/ngrok`       | GET    | Dashboard အတွက် ngrok Tunnel ၏ runtime အခြေအနေကို ဖတ်ရန်                         |
-| `/api/tunnels/ngrok`       | POST   | ngrok Tunnel ကို ဖွင့်ရန် သို့မဟုတ် ပိတ်ရန် (`action=enable/disable`)            |
+| Endpoint                   | Method | Description                                                                             |
+| -------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | ဒက်ရှ်ဘုတ်အတွက် Cloudflare Quick Tunnel ၏ ထည့်သွင်းမှု/လုပ်ဆောင်နေမှု အခြေအနေကို ဖတ်ရန် |
+| `/api/tunnels/cloudflared` | POST   | Cloudflare Quick Tunnel ကို ဖွင့်ရန် သို့မဟုတ် ပိတ်ရန် (`action=enable/disable`)        |
+| `/api/tunnels/ngrok`       | GET    | ဒက်ရှ်ဘုတ်အတွက် ngrok Tunnel ၏ လုပ်ဆောင်နေမှု အခြေအနေကို ဖတ်ရန်                         |
+| `/api/tunnels/ngrok`       | POST   | ngrok Tunnel ကို ဖွင့်ရန် သို့မဟုတ် ပိတ်ရန် (`action=enable/disable`)                   |
 
-### CLI Tools
+### CLI ကိရိယာများ
 
-| Endpoint                           | Method | Description          |
-| ---------------------------------- | ------ | -------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI အခြေအနေ   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI အခြေအနေ    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI အခြေအနေ    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI အခြေအနေ |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | ယေဘုယျ CLI runtime   |
+| Endpoint                           | Method | Description                        |
+| ---------------------------------- | ------ | ---------------------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Claude CLI အခြေအနေ                 |
+| `/api/cli-tools/codex-settings`    | GET    | Codex CLI အခြေအနေ                  |
+| `/api/cli-tools/droid-settings`    | GET    | Droid CLI အခြေအနေ                  |
+| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI အခြေအနေ               |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | ယေဘုယျ CLI လုပ်ဆောင်မှုပတ်ဝန်းကျင် |
 
 CLI တုံ့ပြန်ချက်များတွင် `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason` တို့ ပါဝင်သည်။
 
-### ACP Agents
+### ACP Agent များ
 
-| Endpoint          | Method | Description                                                                             |
-| ----------------- | ------ | --------------------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | ရှာဖွေတွေ့ရှိထားသော agent အားလုံးကို အခြေအနေနှင့်တကွ စာရင်းပြုစုရန် (built-in + custom) |
-| `/api/acp/agents` | POST   | စိတ်ကြိုက် agent ထည့်ရန် သို့မဟုတ် ရှာဖွေမှု cache ကို ပြန်လည်စတင်ရန်                   |
-| `/api/acp/agents` | DELETE | `id` query param ဖြင့် စိတ်ကြိုက် agent တစ်ခုကို ဖယ်ရှားရန်                             |
+| Endpoint          | Method | Description                                                                                |
+| ----------------- | ------ | ------------------------------------------------------------------------------------------ |
+| `/api/acp/agents` | GET    | တွေ့ရှိထားသော agent အားလုံးကို အခြေအနေနှင့်တကွ စာရင်းပြုစုရန် (အသင့်ပါဝင်သော + စိတ်ကြိုက်) |
+| `/api/acp/agents` | POST   | စိတ်ကြိုက် agent ထည့်ရန် သို့မဟုတ် ရှာဖွေတွေ့ရှိမှု cache ကို ပြန်လည်ဆန်းသစ်ရန်            |
+| `/api/acp/agents` | DELETE | `id` query param ဖြင့် စိတ်ကြိုက် agent တစ်ခုကို ဖယ်ရှားရန်                                |
 
 GET တုံ့ပြန်ချက်တွင် `agents[]` (id, name, binary, version, installed, protocol, isCustom) နှင့် `summary` (total, installed, notFound, builtIn, custom) တို့ ပါဝင်သည်။
 
-### ချို့ယွင်းမှုခံနိုင်ရည်နှင့် Rate Limits
+### ကြံ့ခိုင်ခံနိုင်ရည်နှင့် နှုန်းကန့်သတ်ချက်များ
 
-| Endpoint                          | Method    | Description                                                                                                                      |
-| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | တောင်းဆိုမှု queue၊ ချိတ်ဆက်မှု cooldown၊ provider breaker နှင့် စောင့်ဆိုင်းမှုဆိုင်ရာ သတ်မှတ်ချက်များကို ရယူရန်/အပ်ဒိတ်လုပ်ရန် |
-| `/api/resilience/reset`           | POST      | Provider circuit breaker များကို ပြန်လည်သတ်မှတ်ရန်                                                                               |
-| `/api/resilience/model-cooldowns` | GET       | လက်ရှိအသက်ဝင်နေသော (provider, connection, model) တစ်ခုချင်းအလိုက် lockout များကို ကျန်ရှိချိန်အလိုက် စီပြီး စာရင်းပြုစုရန်       |
-| `/api/resilience/model-cooldowns` | DELETE    | Model lockout တစ်ခုကို ရှင်းလင်းရန် — body `{provider, model}` သို့မဟုတ် အားလုံးကို ဖျက်ရန် `{all: true}`                        |
-| `/api/rate-limits`                | GET       | Account တစ်ခုချင်းအလိုက် rate limit အခြေအနေ                                                                                      |
-| `/api/rate-limit`                 | GET       | Global rate limit configuration                                                                                                  |
+| Endpoint                          | Method    | Description                                                                                                                            |
+| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | တောင်းဆိုမှုတန်းစီမှု၊ ချိတ်ဆက်မှု စောင့်ဆိုင်းကာလ၊ ဝန်ဆောင်မှုပေးသူ breaker နှင့် စောင့်ဆိုင်းမှု ဆက်တင်များကို ရယူရန်/အပ်ဒိတ်လုပ်ရန် |
+| `/api/resilience/reset`           | POST      | ဝန်ဆောင်မှုပေးသူ circuit breaker များကို ပြန်လည်သတ်မှတ်ရန်                                                                             |
+| `/api/resilience/model-cooldowns` | GET       | ကျန်ရှိသောအချိန်အလိုက် စီထားသည့် အသက်ဝင်နေသော (ဝန်ဆောင်မှုပေးသူ၊ ချိတ်ဆက်မှု၊ မော်ဒယ်) တစ်ခုချင်းစီ၏ လော့ခ်ချမှုများကို စာရင်းပြုစုရန် |
+| `/api/resilience/model-cooldowns` | DELETE    | မော်ဒယ် လော့ခ်ချမှုတစ်ခုကို ရှင်းလင်းရန် — body `{provider, model}` သို့မဟုတ် အားလုံးကို ရှင်းလင်းရန် `{all: true}`                    |
+| `/api/rate-limits`                | GET       | အကောင့်တစ်ခုချင်းစီ၏ နှုန်းကန့်သတ်မှု အခြေအနေ                                                                                          |
+| `/api/rate-limit`                 | GET       | ကမ္ဘာလုံးဆိုင်ရာ နှုန်းကန့်သတ်မှု စီစဉ်သတ်မှတ်ချက်                                                                                     |
 
-> `/api/resilience/*` route လေးခုစလုံးတွင် **စီမံခန့်ခွဲမှု authentication** (`requireManagementAuth`) လိုအပ်သည်။ Provider breaker၊ connection cooldown နှင့် model lockout တို့၏ အပြည့်အစုံ ခွဲခြားရှင်းလင်းချက်အတွက် [ချို့ယွင်းမှုခံနိုင်ရည် (အသေးစိတ်)](#resilience-extended) ကို ကြည့်ပါ။
+> `/api/resilience/*` လမ်းကြောင်း လေးခုစလုံးအတွက် **စီမံခန့်ခွဲမှု အထောက်အထားစိစစ်ခြင်း** (`requireManagementAuth`) လိုအပ်သည်။ ဝန်ဆောင်မှုပေးသူ breaker၊ ချိတ်ဆက်မှု စောင့်ဆိုင်းကာလနှင့် မော်ဒယ် လော့ခ်ချမှုတို့၏ အသေးစိတ်ကွာခြားချက်များကို [ကြံ့ခိုင်ခံနိုင်ရည် (တိုးချဲ့)](#resilience-extended) တွင် ကြည့်ပါ။
 
-### Evals
+### အကဲဖြတ်မှုများ
 
-| Endpoint     | Method   | Description                                                    |
-| ------------ | -------- | -------------------------------------------------------------- |
-| `/api/evals` | GET/POST | Eval suite များကို စာရင်းပြုစုရန် / အကဲဖြတ်မှုကို လုပ်ဆောင်ရန် |
+| Endpoint     | Method   | Description                                                       |
+| ------------ | -------- | ----------------------------------------------------------------- |
+| `/api/evals` | GET/POST | အကဲဖြတ်မှုအစုံများကို စာရင်းပြုစုရန် / အကဲဖြတ်မှုကို လုပ်ဆောင်ရန် |
 
 ### မူဝါဒများ
 
-| Endpoint        | Method          | Description                         |
-| --------------- | --------------- | ----------------------------------- |
-| `/api/policies` | GET/POST/DELETE | Routing မူဝါဒများကို စီမံခန့်ခွဲရန် |
+| Endpoint        | Method          | Description                                 |
+| --------------- | --------------- | ------------------------------------------- |
+| `/api/policies` | GET/POST/DELETE | လမ်းကြောင်းရွေးချယ်မှု မူဝါဒများကို စီမံရန် |
 
 ### စည်းမျဉ်းလိုက်နာမှု
 
-| Endpoint                    | Method | Description                                           |
-| --------------------------- | ------ | ----------------------------------------------------- |
-| `/api/compliance/audit-log` | GET    | စည်းမျဉ်းလိုက်နာမှုဆိုင်ရာ audit log (နောက်ဆုံး N ခု) |
+| Endpoint                    | Method | Description                                         |
+| --------------------------- | ------ | --------------------------------------------------- |
+| `/api/compliance/audit-log` | GET    | စည်းမျဉ်းလိုက်နာမှု စစ်ဆေးမှတ်တမ်း (နောက်ဆုံး N ခု) |
 
-### v1beta (Gemini နှင့် ကိုက်ညီသော)
+### v1beta (Gemini နှင့် သဟဇာတဖြစ်သော)
 
-| Endpoint                   | Method | Description                                      |
-| -------------------------- | ------ | ------------------------------------------------ |
-| `/v1beta/models`           | GET    | Model များကို Gemini format ဖြင့် စာရင်းပြုစုရန် |
-| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint                |
+| Endpoint                   | Method | Description                                       |
+| -------------------------- | ------ | ------------------------------------------------- |
+| `/v1beta/models`           | GET    | မော်ဒယ်များကို Gemini ဖော်မတ်ဖြင့် စာရင်းပြုစုရန် |
+| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint                 |
 
-ဤ endpoint များသည် မူရင်း Gemini SDK နှင့် ကိုက်ညီမှုကို မျှော်လင့်သည့် client များအတွက် Gemini ၏ API format ကို ထင်ဟပ်ပေးသည်။
+ဤ endpoint များသည် မူရင်း Gemini SDK နှင့် သဟဇာတဖြစ်မှုကို မျှော်လင့်သော client များအတွက် Gemini ၏ API ဖော်မတ်ကို ပုံတူပြုထားသည်။
 
-### အတွင်းပိုင်း / System API များ
+### အတွင်းပိုင်း / စနစ် API များ
 
-| Endpoint                 | Method | ဖော်ပြချက်                                                                    |
-| ------------------------ | ------ | ----------------------------------------------------------------------------- |
-| `/api/init`              | GET    | အပလီကေးရှင်း စတင်ခြင်း စစ်ဆေးမှု (ပထမဆုံး အသုံးပြုချိန်တွင် အသုံးပြုသည်)      |
-| `/api/tags`              | GET    | Ollama နှင့် တွဲဖက်အသုံးပြုနိုင်သော မော်ဒယ် တဂ်များ (Ollama client များအတွက်) |
-| `/api/restart`           | POST   | ဆာဗာကို ချောမွေ့စွာ ပြန်လည်စတင်ရန် လုပ်ဆောင်သည်                               |
-| `/api/shutdown`          | POST   | ဆာဗာကို ချောမွေ့စွာ ပိတ်ရန် လုပ်ဆောင်သည်                                      |
-| `/api/system/env/repair` | POST   | OAuth provider ပတ်ဝန်းကျင် variable များကို ပြုပြင်သည်                        |
+| Endpoint                 | Method | ဖော်ပြချက်                                                                      |
+| ------------------------ | ------ | ------------------------------------------------------------------------------- |
+| `/api/init`              | GET    | အပလီကေးရှင်း စတင်ပြင်ဆင်မှု စစ်ဆေးခြင်း (ပထမဆုံး အသုံးပြုချိန်တွင် အသုံးပြုသည်) |
+| `/api/tags`              | GET    | Ollama နှင့် တွဲဖက်အသုံးပြုနိုင်သော မော်ဒယ်တက်ဂ်များ (Ollama client များအတွက်)  |
+| `/api/restart`           | POST   | ဆာဗာကို ချောမွေ့စွာ ပြန်လည်စတင်ရန် လုပ်ဆောင်ချက်ကို အစပျိုးခြင်း                |
+| `/api/shutdown`          | POST   | ဆာဗာကို ချောမွေ့စွာ ပိတ်ရန် လုပ်ဆောင်ချက်ကို အစပျိုးခြင်း                       |
+| `/api/system/env/repair` | POST   | OAuth provider environment variable များကို ပြုပြင်ခြင်း                        |
 
-> **မှတ်ချက်:** ဤ endpoint များကို စနစ်အတွင်းပိုင်း၌ သို့မဟုတ် Ollama client နှင့် တွဲဖက်အသုံးပြုနိုင်ရန် အသုံးပြုသည်။ ပုံမှန်အားဖြင့် နောက်ဆုံးအသုံးပြုသူများက ၎င်းတို့ကို ခေါ်ယူအသုံးပြုခြင်း မရှိပါ။
+> **မှတ်ချက်:** ဤ endpoint များကို စနစ်အတွင်းပိုင်းတွင် သို့မဟုတ် Ollama client နှင့် တွဲဖက်အသုံးပြုနိုင်ရန် အသုံးပြုသည်။ ပုံမှန်အားဖြင့် နောက်ဆုံးအသုံးပြုသူများက တိုက်ရိုက်ခေါ်ယူအသုံးပြုခြင်း မရှိပါ။
 
-### OAuth ပတ်ဝန်းကျင် ပြုပြင်ခြင်း _(v3.6.1+)_
+### OAuth Environment ပြုပြင်ခြင်း _(v3.6.1+)_
 
 ```bash
 POST /api/system/env/repair
@@ -1008,7 +1014,7 @@ Content-Type: application/json
 }
 ```
 
-သတ်မှတ်ထားသော provider တစ်ခုအတွက် ပျောက်ဆုံးနေသော သို့မဟုတ် ပျက်စီးနေသော OAuth ပတ်ဝန်းကျင် variable များကို ပြုပြင်သည်။ အောက်ပါတို့ကို ပြန်ပေးသည်-
+သတ်မှတ်ထားသော provider တစ်ခုအတွက် ပျောက်ဆုံးနေသော သို့မဟုတ် ပျက်စီးနေသော OAuth environment variable များကို ပြုပြင်ပေးသည်။ အောက်ပါတို့ကို ပြန်ပေးသည်-
 
 ```json
 {
@@ -1437,20 +1443,20 @@ GET /.well-known/agent.json
 
 ## Cloud၊ Evals နှင့် Assess
 
-| Method | Path | ဖော်ပြချက် |
+| နည်းလမ်း | လမ်းကြောင်း | ဖော်ပြချက် |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer key တစ်ခုကို အတည်ပြုပြီး cloud sync client များအတွက် ဖုံးကွယ်ထားသော provider connection များ + model alias များကို ပြန်ပေးသည် |
-| POST | `/api/cloud/credentials/update` | cloud နှင့် sync လုပ်ထားသော provider တစ်ခုအတွက် ကုဒ်ဝှက်ထားသည့် credential များကို အပ်ဒိတ်လုပ်သည် |
-| POST | `/api/cloud/model/resolve` | local routing table ကို အသုံးပြု၍ logical model id တစ်ခုကို တိကျသော provider/model အဖြစ် ဖြေရှင်းသတ်မှတ်သည် |
-| GET | `/api/cloud/models/alias` | cloud sync သို့ ဖော်ထုတ်ထားသည့် model alias များကို စာရင်းပြုစုသည် |
-| GET | `/api/assess` | နောက်ဆုံး assessment အမျိုးအစားခွဲခြားမှုများကို ဖတ်ရှုသည် (provider/model တစ်ခုချင်းစီအလိုက်) |
-| POST | `/api/assess` | assessment တစ်ခုကို လုပ်ဆောင်သည် — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | အသင့်ပါရှိသော eval suite များ + နောက်ဆုံး run များကို စာရင်းပြုစုသည် |
-| POST | `/api/evals` | eval run တစ်ခုကို စတင်စေသည် |
+| POST | `/api/cloud/auth` | Bearer key ကို အတည်ပြုပြီး cloud sync client များအတွက် ဖုံးကွယ်ထားသော provider connection များနှင့် model alias များကို ပြန်ပေးသည် |
+| POST | `/api/cloud/credentials/update` | Cloud နှင့် sync လုပ်ထားသော provider တစ်ခုအတွက် ကုဒ်ဝှက်ထားသည့် credential များကို အပ်ဒိတ်လုပ်သည် |
+| POST | `/api/cloud/model/resolve` | Local routing table ကို အသုံးပြု၍ logical model id တစ်ခုကို တိကျသော provider/model တစ်ခုအဖြစ် ဖြေရှင်းပေးသည် |
+| GET | `/api/cloud/models/alias` | Cloud sync သို့ ဖော်ပြထားသည့် model alias များကို စာရင်းပြုစုသည် |
+| GET | `/api/assess` | နောက်ဆုံး assessment အမျိုးအစားခွဲခြားမှုများကို ဖတ်ရှုသည် (provider/model တစ်ခုချင်းအလိုက်) |
+| POST | `/api/assess` | Assessment တစ်ခုကို လုပ်ဆောင်သည် — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | Built-in eval suite များနှင့် နောက်ဆုံးလုပ်ဆောင်ထားသည့် run များကို စာရင်းပြုစုသည် |
+| POST | `/api/evals` | Eval run တစ်ခုကို စတင်လုပ်ဆောင်သည် |
 | POST | `/api/evals/suites` | စိတ်ကြိုက် eval suite တစ်ခုကို ဖန်တီးသည် — body ကို `evalSuiteSaveSchema` ဖြင့် အတည်ပြုသည် |
 | GET | `/api/evals/suites/[id]` | စိတ်ကြိုက် eval suite တစ်ခုကို ရယူသည် |
 
-**Auth:** `/api/cloud/auth` သည် Bearer key တစ်ခုကို တိုက်ရိုက်အတည်ပြုသည်; အခြား `/api/cloud/*`, `/api/evals/*` နှင့် `/api/assess` route များတွင် management session/API key လိုအပ်သည်။ `/api/assess` POST သည် discriminated-union scope schema ပါသော `validateBody` ကို အသုံးပြုသည်။
+**Auth:** `/api/cloud/auth` သည် Bearer key တစ်ခုကို တိုက်ရိုက်အတည်ပြုပြီး `manage` / `admin` scope ပါရှိသော key အတွက်သာ connection တစ်ခုစီ၏ ဖုံးကွယ်ထားသော key နှင့် `projectId` ကို ပြန်ပေးသည်။ အခြား `/api/cloud/*`၊ `/api/evals/*` နှင့် `/api/assess` route များသည် management session/API key လိုအပ်သည်။ `/api/assess` POST သည် discriminated-union scope schema နှင့်အတူ `validateBody` ကို အသုံးပြုသည်။
 
 ---
 

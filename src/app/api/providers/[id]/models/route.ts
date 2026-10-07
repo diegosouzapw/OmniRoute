@@ -15,6 +15,7 @@ import { mergeModelsWithCustomPrecedence } from "@/lib/providers/modelMetadataPr
 import { addModelsSuffix } from "@/lib/providers/validation/urlHelpers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { resolveProxyForProvider } from "@/lib/db/proxies";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
@@ -95,9 +96,11 @@ import { buildProviderModelsUrl, getDiscoveryClientVersionOptions } from "./disc
 import { getAdobeModels } from "./adobeFireflyDiscovery";
 import { getSyncedAvailableModels, getCustomModels, getModelIsHidden } from "@/lib/db/models";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
+import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
+import { resolveCursorBearerToken } from "@omniroute/open-sse/services/cursorApiKeyAuth.ts";
 import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
 import {
   type JsonRecord,
@@ -135,6 +138,7 @@ import {
   reconcileCodexDiscoveryCatalog,
 } from "./discovery/codex";
 import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
+import { fetchClaudeDiscoveryModels } from "./discovery/claude";
 import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
 import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
 import { buildNoAuthModelsResponse, filterModelsForRoute } from "./modelRouteProjection";
@@ -862,10 +866,13 @@ export async function GET(
             lastErrorStatus = response.status;
             throw new Error("auth_failed");
           }
-        } catch (err: any) {
-          if (err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+        } catch (err: unknown) {
+          if (err instanceof Error && err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+          if (err instanceof SyntaxError) continue;
+          // Non-Safe errors must not abort catalogue sync — probe the next endpoint.
+          if (!(err instanceof SafeOutboundFetchError)) continue;
 
-          if (err?.code === "REDIRECT_BLOCKED") {
+          if (err.code === "REDIRECT_BLOCKED") {
             continue; // Try next endpoint
           }
 
@@ -1351,7 +1358,40 @@ export async function GET(
       return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
-    if (provider === "cursor") {
+    if (provider === "claude") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+      const disabledResponse = maybeReturnAutoFetchDisabled();
+      if (disabledResponse) return disabledResponse;
+      try {
+        const models = await fetchClaudeDiscoveryModels({
+          accessToken,
+          apiKey,
+          fetchImpl: (url, init) =>
+            safeOutboundFetch(url, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              proxyConfig: proxy,
+              ...init,
+            }),
+        });
+        return await buildApiDiscoveryResponse(models);
+      } catch (error) {
+        const detail =
+          error instanceof Error &&
+          /^Claude model discovery failed \(HTTP \d{3}\)$/.test(error.message)
+            ? ` (${error.message})`
+            : "";
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: `Claude API unavailable${detail} — using cached catalog`,
+          localWarning: `Claude API unavailable${detail} — using local catalog`,
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+    }
+
+    if (provider === "cursor" || provider === "cursor-api") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
@@ -1359,7 +1399,6 @@ export async function GET(
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
       const warnings: string[] = [];
-      const token = (accessToken || apiKey || "").trim();
       const machineId =
         typeof connection?.providerSpecificData === "object" &&
         connection.providerSpecificData &&
@@ -1367,39 +1406,81 @@ export async function GET(
           ? (connection.providerSpecificData as { machineId: string }).machineId
           : null;
 
+      let token = "";
+      try {
+        // cursor-api stores a crsr_ user key that api2.cursor.sh only accepts
+        // after exchange; IDE/OAuth connections already hold a session token.
+        token = await resolveCursorBearerToken({ apiKey, accessToken });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        warnings.push(`no usable Cursor session token (${sanitizeErrorMessage(message)})`);
+      }
+
       if (token) {
         try {
+          const cursorProxy = await resolveProxyForConnection(connectionId, undefined, provider);
           const models = await fetchCursorAvailableModels({
             accessToken: token,
             machineId,
+            fetchImpl: (url, init) =>
+              safeOutboundFetch(url, {
+                ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+                guard: getProviderOutboundGuard(),
+                proxyConfig: cursorProxy.proxy,
+                ...init,
+              }),
           });
           return buildApiDiscoveryResponse(models);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           console.log("[models] Cursor AvailableModels failed:", message);
-          warnings.push(`AvailableModels unavailable (${message})`);
+          warnings.push(`AvailableModels unavailable (${sanitizeErrorMessage(message)})`);
         }
-      } else {
-        warnings.push("no Cursor access token on connection");
       }
 
-      try {
-        const models = ensureCursorAutoCatalogEntry(await fetchCursorAgentModels());
-        return buildApiDiscoveryResponse(models);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.log("[models] cursor-agent fetch failed:", message);
-        const detail = [...warnings, `cursor-agent unavailable (${message})`].join("; ");
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `${detail} — using cached catalog`,
-          localWarning: `${detail} — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch Cursor models: ${detail}` },
-          { status: 502 }
-        );
+      // The host's cursor-agent login is a different account than an API-key
+      // connection, so only IDE/OAuth connections may borrow its catalog.
+      if (provider === "cursor") {
+        // Hard Rules #15 + #17 (audit #15159 S-01): fetchCursorAgentModels() -> runCursorAgent()
+        // -> spawn() at src/lib/providerModels/cursorAgent.ts:17. The `{id}` segment is a
+        // CONNECTION id, so this cannot be classified by path pattern in routeGuard.ts without
+        // also locking remote model discovery for every non-Cursor provider. Gate the spawn
+        // itself on the trusted peer-locality header stamped by the authz pipeline from the real
+        // TCP peer (never the spoofable Host header), mirroring cursorAgentImage.ts. Fail closed:
+        // an absent/unrecognized locality skips the spawn and serves the cached/local catalog, or an
+        // explicit 403 when neither exists — it never falls through to executing a child process.
+        if (request.headers.get(AUTHZ_HEADER_PEER_LOCALITY) !== "loopback") {
+          warnings.push(
+            "cursor-agent model discovery requires a local request; using cached catalog"
+          );
+          const localFallback = buildDiscoveryFallbackResponse({
+            cacheWarning: `${warnings.join("; ")} — using cached catalog`,
+            localWarning: `${warnings.join("; ")} — using local catalog`,
+          });
+          if (localFallback) return localFallback;
+          return errorResponse(403, "cursor-agent model discovery requires a local request");
+        }
+
+        try {
+          const models = ensureCursorAutoCatalogEntry(await fetchCursorAgentModels());
+          return buildApiDiscoveryResponse(models);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.log("[models] cursor-agent fetch failed:", message);
+          warnings.push(`cursor-agent unavailable (${sanitizeErrorMessage(message)})`);
+        }
       }
+
+      const detail = warnings.join("; ");
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: `${detail} — using cached catalog`,
+        localWarning: `${detail} — using local catalog`,
+      });
+      if (fallback) return fallback;
+      return NextResponse.json(
+        { error: `Failed to fetch Cursor models: ${detail}` },
+        { status: 502 }
+      );
     }
 
     if (provider === "inner-ai") {
