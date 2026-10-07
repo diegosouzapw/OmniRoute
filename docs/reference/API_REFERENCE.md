@@ -274,6 +274,12 @@ Provider translation (canonical items are never forwarded unchanged):
   top-level item.
 - Gemini Embedding 2 family: one top-level array becomes a single native
   `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, any model the local server loaded): canonical `text` items
+  become plain strings, and `image` / `audio` / `video` become one
+  `{"content": [part]}` object each, using llama-server's chat content parts (`image_url`,
+  `input_audio` with format `wav` / `mp3` / `flac`, `input_video`) with inline data; one vector
+  per top-level item. The server must run with `--embedding --mmproj …`; without a projector it
+  rejects media itself. `document` is not supported.
 - Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
