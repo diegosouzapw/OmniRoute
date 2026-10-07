@@ -452,8 +452,7 @@ em vez da inglesa.
 Num corpo com `messages`, uma exclusão baseada no conteúdo (`shouldBypassCavemanOutputMode()` em
 `open-sse/services/compression/outputMode.ts`) verifica as últimas três mensagens e ignora
 os estilos durante todo o turno quando correspondem às suas palavras-chave de segurança, ação irreversível,
-clarificação ou sensíveis à ordem. A exclusão é executada de acordo com a definição do botão
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) do painel.
+clarificação ou sensíveis à ordem. A exclusão é executada enquanto o botão **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) do painel estiver ativado, que é a predefinição; com o botão desativado, os estilos selecionados também se aplicam nesses turnos.
 
 Quando a exclusão permite a passagem do turno, `placeSystemInstruction()` (no mesmo ficheiro), que
 nunca cria um novo `messages[0]`, coloca o bloco no primeiro dos seguintes locais que encontrar:

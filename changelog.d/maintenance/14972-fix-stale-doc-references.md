@@ -1,1 +1,0 @@
-- **docs:** fix references to files and scripts that no longer exist: `docs/marketing/TIERS.md` (now `docs/guides/TIERS.md`), `docs/adr/`, `npm run db:migrate` and `docs/ops/PUBLISHING_SECURE.md` ([#14972](https://github.com/diegosouzapw/OmniRoute/pull/14972)) — thanks @tauanbinato

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import { isCloudEnabled, resolveProxyForConnection } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -1045,16 +1045,19 @@ export async function testSingleConnection(
     lockModelIfPerModelQuota(provider, connectionId, probedModelId, "credits", 60 * 60 * 1000);
   }
 
-  // Unsupported validation capability is neutral: the probe established that
-  // this provider cannot be verified through the generic test surface, not
-  // that its credential is invalid. Do not mutate persisted credential health
-  // (testStatus/lastError/etc.) — but DO activate it if it isn't already: a
-  // connection that can never be health-checked would otherwise stay hidden
-  // from /v1/models forever under the "only advertise tested connections"
-  // default (isActive starts false on creation — see POST /api/providers),
-  // silently regressing every provider without a test surface. Operator-disabled stays off.
+  // Activation/PSD writes use the row as it is NOW (uncached): an operator may have switched the
+  // connection off during the probe, and the pre-probe snapshot would switch it back on.
+  const latest = ((await getProviderConnectionById(connectionId)) ??
+    connection) as typeof connection;
+  const operatorDisabled = isOperatorDisabled(latest);
+
+  // Unsupported validation capability is neutral: the provider cannot be verified through the
+  // generic test surface, which says nothing about its credential. Do not mutate persisted
+  // credential health (testStatus/lastError/etc.) — but DO activate it if it isn't already: under
+  // the "only advertise tested connections" default (connections start isActive:false, see
+  // POST /api/providers) it would stay hidden from /v1/models forever. Operator-disabled stays off.
   if (result.skipped === true) {
-    if (connection.isActive !== true && !isOperatorDisabled(connection)) {
+    if (latest.isActive !== true && !operatorDisabled) {
       try {
         await updateProviderConnection(connectionId, { isActive: true });
       } catch (activateError) {
@@ -1108,14 +1111,12 @@ export async function testSingleConnection(
 
   const updateData: Record<string, any> = {
     testStatus: clearErrorState ? "active" : result.valid ? connection.testStatus : "error",
-    // A passing test is the sole activation signal under the "only advertise
-    // tested-working connections" default — see POST /api/providers, which
-    // now creates connections isActive:false. Only ever flips ON here: a
-    // failing test intentionally leaves isActive untouched (a transient
-    // failure on an already-active, already-working connection must not take
-    // it out of rotation — that's what the cooldown/rateLimitedUntil below is
-    // for), so this never deactivates anything, nor re-enables an operator-disabled one.
-    ...(result.valid && !isOperatorDisabled(connection) ? { isActive: true } : {}),
+    // A passing test is the sole activation signal under the "only advertise tested-working
+    // connections" default (POST /api/providers creates connections isActive:false). Only ever
+    // flips ON: a failing test leaves isActive untouched (a transient failure must not take a
+    // working connection out of rotation — the cooldown/rateLimitedUntil below handles that), so
+    // this never deactivates anything, nor re-enables an operator-disabled one.
+    ...(result.valid && !operatorDisabled ? { isActive: true } : {}),
     lastError: clearErrorState ? null : result.valid ? connection.lastError : result.error,
     lastErrorAt: clearErrorState ? null : result.valid ? connection.lastErrorAt : now,
     lastTested: now,
@@ -1144,7 +1145,7 @@ export async function testSingleConnection(
   }
 
   if (result.valid && (connection.apiKey || connection.accessToken)) {
-    const recovered = recoverKeyHealth(connectionId, "primary", connection.providerSpecificData);
+    const recovered = recoverKeyHealth(connectionId, "primary", latest.providerSpecificData);
     if (recovered) updateData.providerSpecificData = recovered;
   }
 

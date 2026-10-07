@@ -590,6 +590,36 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
+test("codex.enrichCodexModelsFromGithubCatalog uses the GitHub catalog when there is no live list", () => {
+  const catalog = enrichCodexModelsFromGithubCatalog(
+    [],
+    [
+      {
+        id: "gpt-5.6-luna",
+        name: "GitHub Luna",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "gpt-5.6-terra",
+        name: "GitHub Terra",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 272000,
+      },
+    ]
+  );
+
+  assert.deepEqual(
+    catalog.map((model) => model.id),
+    ["gpt-5.6-luna", "gpt-5.6-terra"]
+  );
+  assert.equal(catalog[0]?.name, "GitHub Luna");
+  assert.equal(catalog[1]?.inputTokenLimit, 272000);
+});
+
 test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conservatively (smaller wins)", () => {
   const merged = mergeCodexLiveModelsWithLocalCatalog(
     [

@@ -488,6 +488,12 @@ export const updateSettingsSchema = z.object({
   // the default (for providers that don't implement Anthropic's web_search server tool).
   // Empty/unset = disabled. Value is a model string ("provider,model" / alias / combo).
   webSearchRouteModel: z.string().max(200).optional(),
+  // Whole-request budget for /v1/search, in ms. Unset keeps the 15s constant.
+  // The floor matches the handler's minimum; the ceiling stops a typo from
+  // holding a worker for hours.
+  searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
+  // Per-provider timeout overrides in ms, keyed by search provider id.
+  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings

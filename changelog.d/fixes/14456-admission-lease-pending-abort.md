@@ -1,1 +1,0 @@
-- fix(resilience): release the admission lease immediately when a client aborts while the chat handler is still pending, not only after it eventually settles (#14456)

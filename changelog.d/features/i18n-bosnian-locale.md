@@ -1,1 +1,0 @@
-- **feat(i18n):** New locale — Bosnian (`bs`) — across the dashboard, docs mirrors, CLI, README and the site;

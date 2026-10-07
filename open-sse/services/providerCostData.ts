@@ -7,6 +7,9 @@ export interface ModelPricing {
   outputCostPer1M: number;
   isFree: boolean;
   freeQuotaLimit?: number;
+  // True only when the value is a conservative guess (final fallback path).
+  // Absent on legacy objects; explicit false on every catalog-sourced path.
+  isEstimated?: boolean;
 }
 
 export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
@@ -18,7 +21,8 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "claude-opus-4-8": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-4-7": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-sonnet-4-6": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
-  "claude-sonnet-5": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
+  "claude-sonnet-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
+  "claude-sonnet-5-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
   "claude-haiku-4-5": { inputCostPer1M: 0.8, outputCostPer1M: 4.0, isFree: false },
   "gemini-2.5-flash": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
   "gemini-2.5-pro": { inputCostPer1M: 1.25, outputCostPer1M: 5.0, isFree: false },
@@ -44,7 +48,7 @@ export function getModelPricing(provider: string, model: string): ModelPricing {
     .pop()!
     .toLowerCase();
   const providerHit = KNOWN_MODEL_PRICING[`${provider}/${normalized}`.toLowerCase()];
-  if (providerHit) return providerHit;
+  if (providerHit) return { ...providerHit, isEstimated: false };
   const defaultPricing = getDefaultPricingForModel(provider, model);
   if (defaultPricing) {
     const inputCostPer1M = Number(defaultPricing.input);
@@ -54,14 +58,15 @@ export function getModelPricing(provider: string, model: string): ModelPricing {
         inputCostPer1M,
         outputCostPer1M,
         isFree: inputCostPer1M === 0 && outputCostPer1M === 0,
+        isEstimated: false,
       };
     }
   }
   const genericHit = KNOWN_MODEL_PRICING[normalized];
-  if (genericHit) return genericHit;
+  if (genericHit) return { ...genericHit, isEstimated: false };
   if (isFreeModel(provider, { id: normalized }))
-    return { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true };
-  return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false };
+    return { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true, isEstimated: false };
+  return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false, isEstimated: true };
 }
 
 /** Input cost per 1M tokens a virtual auto-combo candidate is scored at. */

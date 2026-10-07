@@ -1,1 +1,0 @@
-- **feat(dashboard):** pool egress observation gains a per-exit failure breakdown by error family ([#14749](https://github.com/diegosouzapw/OmniRoute/pull/14749)) — thanks @maxmad64bis

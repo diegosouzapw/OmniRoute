@@ -51,6 +51,7 @@ import {
   formatComboOutcomes,
   redactConnectionLabel,
   resolveComboTerminalStatus,
+  resolveComboTerminalCode,
   type ComboErrorEntry,
 } from "./comboErrorAggregation.ts";
 import { isProviderInCooldown, recordProviderCooldown } from "../providerCooldownTracker.ts";
@@ -80,6 +81,7 @@ import {
   releaseRejectedQualityResponse,
   toRetryAfterDisplayValue,
 } from "./validateQuality.ts";
+import { isTrustedEmptyTurn } from "./emptyTurnTrust.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
   MAX_FALLBACK_WAIT_MS,
@@ -733,7 +735,9 @@ export async function handleRoundRobinCombo({
               rrClone,
               clientRequestedStream,
               log,
-              config.responseValidation
+              config.responseValidation,
+              null,
+              await isTrustedEmptyTurn(provider, result, targetForAttempt.connectionId)
             );
             releaseQualityClone(rrClone, result, quality);
             if (!quality.valid) {
@@ -1105,6 +1109,7 @@ export async function handleRoundRobinCombo({
             status: result.status,
             error: errorText || String(result.status),
             kind: classifyComboOutcome(result.status, errorText),
+            code: structuredError?.code,
           });
           if (offset > 0) fallbackCount++;
           log.warn("COMBO-RR", `${modelStr} failed, trying next model`, {
@@ -1269,8 +1274,7 @@ export async function handleRoundRobinCombo({
   }
 
   log.warn("COMBO-RR", `All models failed | ${msg}`);
-  return new Response(JSON.stringify({ error: { message: msg } }), {
-    status,
-    headers: { "Content-Type": "application/json" },
+  return errorResponse(status, msg, {
+    code: resolveComboTerminalCode(rrOutcomes, status),
   });
 }

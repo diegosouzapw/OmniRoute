@@ -1,1 +1,0 @@
-- **fix(opencode-plugin):** force sync (and the auto-sync tick) now fetches `/v1/models` before touching any cache, so a transient failure such as the 10s abort keeps the last good in-memory catalog and disk snapshot instead of deleting them ([#14943](https://github.com/diegosouzapw/OmniRoute/pull/14943)) — thanks @shipsfromrio

@@ -40,27 +40,23 @@ export const SAFETY_BOUNDARIES =
  * settings panel both enumerate this object, so no other file needs to change (D-A1).
  * Declaration order is the deterministic concatenation order used by the injector.
  */
+
+// The terse-prose text mirrors the legacy caveman table: en is the default `levels`,
+// every other language an `i18n` override. Derived rather than hand-copied, so a
+// language added to the legacy table cannot be missed here;
+// output-styles-legacy-parity.test.ts guards the mirror from the other side.
+const { en: TERSE_PROSE_LEVELS, ...TERSE_PROSE_I18N } = CAVEMAN_INSTRUCTION_BY_LANGUAGE;
+
 export const OUTPUT_STYLE_CATALOG: Record<string, OutputStyle> = {
   "terse-prose": {
     id: "terse-prose",
     label: "Terse prose",
     description: "Drop filler/articles/hedging; keep technical substance exact.",
-    // Migrated verbatim from the caveman output mode (outputMode.ts) — referenced (not
-    // re-typed) so the back-compat injection stays byte-identical across ALL languages,
-    // not just English (the legacy mode localized to en/pt-BR/ja/id).
-    levels: CAVEMAN_INSTRUCTION_BY_LANGUAGE.en,
-    i18n: {
-      "pt-BR": CAVEMAN_INSTRUCTION_BY_LANGUAGE["pt-BR"],
-      es: CAVEMAN_INSTRUCTION_BY_LANGUAGE.es,
-      de: CAVEMAN_INSTRUCTION_BY_LANGUAGE.de,
-      fr: CAVEMAN_INSTRUCTION_BY_LANGUAGE.fr,
-      it: CAVEMAN_INSTRUCTION_BY_LANGUAGE.it,
-      ru: CAVEMAN_INSTRUCTION_BY_LANGUAGE.ru,
-      zh: CAVEMAN_INSTRUCTION_BY_LANGUAGE.zh,
-      ja: CAVEMAN_INSTRUCTION_BY_LANGUAGE.ja,
-      id: CAVEMAN_INSTRUCTION_BY_LANGUAGE.id,
-      vi: CAVEMAN_INSTRUCTION_BY_LANGUAGE.vi,
-    },
+    // Referenced from the caveman output mode (outputMode.ts) so the back-compat injection
+    // matches the legacy text below the marker line in every language
+    // CAVEMAN_INSTRUCTION_BY_LANGUAGE covers.
+    levels: TERSE_PROSE_LEVELS,
+    i18n: TERSE_PROSE_I18N,
   },
   "less-code": {
     id: "less-code",

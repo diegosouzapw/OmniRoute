@@ -4,18 +4,18 @@
 
 ---
 
-> İstəyə bağlıdır, standart olaraq deaktivdir (`modelVisibilityAllowlist`/`modelVisibilityDenylist` hər ikisi boş olduqda
-> `/v1/models` kataloqu VƏ hər bir `auto/*` namizəd hovuzu bayt-bayt eyni qalır). Xərclə heç bir əlaqəsi olmayan
-> səbəblərə görə seçilmiş model siyahısı istəyən operatorlar üçün `hidePaidModels`/`hideAutoCombos`
-> (`src/lib/db/settings.ts`) ilə eyni səviyyəli ayardır.
+> Qoşulması tələb olunan, standart olaraq deaktivdir (`modelVisibilityAllowlist`/`modelVisibilityDenylist` hər ikisi boş olduqda
+> `/v1/models` kataloqu VƏ hər bir `auto/*` namizəd hovuzu bayt-bayt eyni qalır). Xərclə əlaqəsi
+> olmayan səbəblərə görə seçilmiş model siyahısı istəyən operatorlar üçün
+> `hidePaidModels`/`hideAutoCombos` (`src/lib/db/settings.ts`) ilə eyni səviyyəli seçimdir.
 
 ## Bu niyə mövcuddur
 
 `hidePaidModels` "bu model pulsuzdurmu?" sualına, `hideAutoCombos` isə "`auto/*`
-virtual id-ləri ümumiyyətlə elan edilməlidirmi?" sualına cavab verir — lakin bunların heç biri operatora
-modellərin ixtiyari alt çoxluğunu seçməyə imkan vermir (məsələn, qiymətləndirmədən asılı olmayaraq, verilmiş
-Claude Code / OpenCode müştərisinin görməli olduğu modelləri dəqiq təqdim etmək).
-#11481 bunu iki müstəqil, istifadəsi könüllü `string` massivi ayarı kimi əlavə edir.
+virtual id-ləri ümumiyyətlə elan edilməlidirmi?" sualına cavab verir — bunların heç biri operatora
+modellərin ixtiyari alt çoxluğunu seçməyə imkan vermir (məsələn, konkret Claude Code / OpenCode
+müştərisinin görməli olduğu modelləri qiymət siyasətindən asılı olmayaraq dəqiq təqdim etmək).
+#11481 bunu iki müstəqil, qoşulması tələb olunan sətir massivi ayarı kimi əlavə edir.
 
 ## Ayarlar
 
@@ -24,41 +24,44 @@ Claude Code / OpenCode müştərisinin görməli olduğu modelləri dəqiq təqd
 | `modelVisibilityDenylist`  | `string[]` | `[]`     | Namizədlə uyğun gələn qeydlər onu kataloqdan/namizəd hovuzundan gizlədir. |
 | `modelVisibilityAllowlist` | `string[]` | `[]`     | Boş olmadıqda, YALNIZ namizədlə uyğun gələn qeydlər görünən qalır.        |
 
-Hər ikisi hər biri 200 simvoladək olan maksimum 500 qeyd qəbul edir
-(`src/shared/validation/settingsSchemas.ts` daxilində Zod ilə doğrulanır). Qeyd aşağıdakılardan biridir:
+Hər ikisi hər biri ən çox 200 simvoldan ibarət maksimum 500 qeyd qəbul edir
+(`src/shared/validation/settingsSchemas.ts` daxilində Zod ilə yoxlanılır). Qeyd aşağıdakılardan biridir:
 
-- dəqiq kataloq id-si — `"gpt-4o"` (provayder prefiksi olmayan model id-si) və ya `"openai/gpt-4o"` (provayder prefiksli), yaxud
-- `*`/`?` istifadə edən glob nümunəsi — məsələn, `"openai/gpt-4*"` və ya `"anthropic/*"` — `ModelRoutingSection`-ın
-  hər model üzrə kombinasiya uyğunlaşdırmalarında və `freeModels.ts::matchesOnlyPaidModels`-də artıq istifadə olunan
-  eyni ortaq `globToRegex()` uyğunlaşdırıcısı (`src/shared/utils/globPattern.ts`) vasitəsilə həll edilir.
+- dəqiq kataloq id-si — `"gpt-4o"` (yalnız model id-si) və ya `"openai/gpt-4o"` (provayder prefiksli), yaxud
+- `*`/`?` istifadə edən glob nümunəsi — məsələn, `"openai/gpt-4*"` və ya `"anthropic/*"` — artıq
+  `ModelRoutingSection` modulunun model üzrə kombinasiya uyğunlaşdırmalarında və
+  `freeModels.ts::matchesOnlyPaidModels` daxilində istifadə edilən eyni ortaq `globToRegex()`
+  uyğunlaşdırıcısı (`src/shared/utils/globPattern.ts`) vasitəsilə emal olunur.
 
-Üstünlük qaydası: əvvəlcə qadağa siyahısı yoxlanılır (qadağan edilmiş qeyd icazə siyahısına da
-uyğun gəlsə belə, həmişə gizlədilir); icazə siyahısı boş olmadıqda yalnız onun uyğun gəldiyi qeydlər saxlanılır.
+Üstünlük sırası: əvvəlcə qadağa siyahısı yoxlanılır (qadağan edilmiş qeyd icazə siyahısına da
+uyğun gəlsə belə, həmişə gizlədilir); icazə siyahısı boş olmadıqda isə yalnız ona uyğun gələn
+qeydlər saxlanılır.
 
 ## Bir deyil, iki nəzarət nöqtəsi
 
-#6512-dən çıxarılan dərs (yalnız `hidePaidModels` kataloq filtri tətbiq edildikdə belə `auto/*` ödənişli
-modelə yönləndirilə bilirdi, çünki kombinasiya namizədləri hovuzu müstəqil şəkildə qurulurdu) burada da eyni
-dərəcədə keçərlidir. Uyğunlaşdırma predikatı `isModelExposureAllowed()`
-(`src/shared/utils/modelExposureList.ts`) HƏR İKİ yerdən çağırılır:
+#6512-dən əldə edilən nəticə (yalnız `hidePaidModels` əsasında kataloq filtri `auto/*`-ın ödənişli
+modelə yönləndirilməsinə yenə də imkan verirdi, çünki kombinasiya namizədləri hovuzu ayrıca
+qurulurdu) burada da eyni şəkildə keçərlidir. Uyğunlaşdırma predikatı
+`isModelExposureAllowed()` (`src/shared/utils/modelExposureList.ts`) HƏR İKİ yerdən çağırılır:
 
-- `src/app/api/v1/models/catalog.ts` — `/v1/models` siyahısının özündə, `shouldHidePaid()` funksiyasının artıq
-  nəzarət etdiyi mənbə üzrə eyni 5 nəzarət nöqtəsində (statik `PROVIDER_MODELS`, sinxronlaşdırılmış provayder sətirləri,
-  fərdi sətirlər, alias əsaslı sətirlər, idarə olunan ehtiyat sətirləri).
-- `open-sse/services/autoCombo/modelExposureFilter.ts::filterModelExposureCandidates()` — `virtualFactory.ts::buildPreparedPool`
-  daxilindən, ekvivalent `filterPaidOnlyCandidates()` çağırışından dərhal sonra çağırılır; beləliklə,
-  qadağan edilmiş model heç vaxt `auto/*` namizəd hovuzuna seçilə bilməz.
+- `src/app/api/v1/models/catalog.ts` — `/v1/models` siyahısının özündə, `shouldHidePaid()`-in
+  artıq nəzarət etdiyi eyni 5 mənbə üzrə nəzarət nöqtəsində (statik `PROVIDER_MODELS`, sinxronlaşdırılmış
+  provayder sətirləri, fərdi sətirlər, ləqəb əsaslı sətirlər, idarə olunan ehtiyat sətirləri).
+- `open-sse/services/autoCombo/modelExposureFilter.ts::filterModelExposureCandidates()` — ekvivalent
+  `filterPaidOnlyCandidates()` çağırışından dərhal sonra `virtualFactory.ts::buildPreparedPool`
+  daxilindən çağırılır; beləliklə, qadağan edilmiş model heç vaxt `auto/*` namizəd hovuzuna seçilə bilməz.
 
 ## Nələr filtrlənmir
 
-`hideAutoCombos`-un mövcud davranışını təkrarlayır: **açıq şəkildə** göndərilmiş model id-si (`auto/*`
-vasitəsilə deyil və kataloq siyahısından aşkarlanmayıb) göndəriş zamanı heç vaxt bloklanmır — yalnız
-elan edilmə/namizəd hovuzuna üzvlük filtrlənir. Bu, `hidePaidModels`-dən asılı deyil;
-operator xərclə heç bir əlaqəsi olmayan səbəblərə görə seçilmiş dəst istəyə bilər, buna görə də hər iki
-ayar `catalog.ts` daxilindəki mövcud çoxbayraqlı kompozisiyada olduğu kimi, müstəqil VƏ ilə birləşdirilmiş
-filtrlər şəklində tətbiq olunur.
+`hideAutoCombos`-un mövcud davranışını təkrarlayır: **açıq şəkildə** göndərilən model id-si
+(`auto/*` vasitəsilə olmayan və kataloq siyahısı üzərindən aşkarlanmayan) göndəriş zamanı heç vaxt
+bloklanmır — yalnız elan edilməsi/namizəd hovuzuna üzvlüyü filtrlənir. Bu, `hidePaidModels`-dən
+asılı deyil; operator xərclə əlaqəsi olmayan səbəblərə görə seçilmiş model dəsti istəyə bilər,
+buna görə də hər iki ayar `catalog.ts` daxilindəki mövcud çoxbayraqlı kompozisiyada olduğu kimi,
+müstəqil VƏ ilə birləşdirilmiş filtrlər kimi işləyir.
 
-Ayarların ixracına (`GET /api/settings/export-json`) digər ayar sahələrində olduğu kimi hər iki massiv
-dəyişdirilmədən daxil edilir — `hidePaidModels`-un kombinasiya addımı ixrac filtrindən fərqli olaraq, burada
-yenidən hidratasiya riski yoxdur: ixrac edilmiş kombinasiya addımına daxil edilmiş qadağan olunmuş id
-operatorun özünün açıq yönləndirmə seçimidir, ixrac sərhədinin silməli olduğu bir şey deyil.
+Ayarların ixracı (`GET /api/settings/export-json`) hər hansı digər ayar sahəsində olduğu kimi, hər
+iki massivi dəyişdirilmədən ehtiva edir — `hidePaidModels`-in kombinasiya addımı üçün ixrac
+filtrindən fərqli olaraq, burada yenidən hidratasiya riski yoxdur: ixrac edilmiş kombinasiya
+addımına daxil edilmiş qadağan olunmuş id operatorun öz açıq yönləndirmə seçimidir və ixrac
+sərhədində silinməli olan bir şey deyil.

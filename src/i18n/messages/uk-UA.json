@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Пули проксі та ротація opencode для кожного облікового запису тимчасово припиняють повторно використовувати проксі, який щойно дав збій (відхилена перевірка TCP або отримана через нього відповідь 429), на період у межах процесу, що подвоюється після кожного повторного збою, аж до встановленої межі. Статус проксі не записується; якщо всі кандидати відкладені, вибір залишається незмінним. За замовчуванням увімкнено; `false` відновлює звичайний вибір.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Для провайдерів, квота яких розподіляється за вихідною (egress) адресою, ставить учасника pool, що має спільну спостережувану egress-адресу з нещодавно відхиленим учасником, одразу нижче здорових учасників. Лише порядок, ніколи не виключає. Потребує PROXY_SKIP_RECENTLY_FAILED, який створює сигнал відмови, що його він зчитує. Типово вимкнено: порядок вибору — точно звичайна ротація.",
   "featureFlagProxyPoolEgressObservationDescription": "Показувати на інформаційній панелі під пулом проксі, скільки спостережуваних вихідних IP-адрес обслуговували його учасників протягом останніх 24 год, скільки з’єднань їх використовували та найбільшу кількість з’єднань через одну IP-адресу. Лише для читання, обчислюється з журналу проксі та ніколи не використовується для маршрутизації. За замовчуванням вимкнено: редактор пулу залишається без змін, а маршрут спостереження повертає null.",
+  "featureFlagProxyOperatorEgressDescription": "Приймати датовані спостережувані адреси, надані оператором для кожного учасника пулу, та об'єднувати їх із даними читання журналу для відображення та встановлення порядку пулів. За замовчуванням вимкнено: маршрут push повертає 404, а читання пулів працює так само, як і раніше.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Під час перевірки працездатності проксі дозволити перевірці, яку відхилила ціль (401/403/429: проксі передав запит, а місце призначення відхилило цю вихідну IP-адресу), скидати лічильник послідовних збоїв проксі, як у разі успішно обслугованої перевірки. За замовчуванням вимкнено: відмова залишається нейтральною та не скидає лічильник. Відповідь 5xx в обох випадках залишається невизначеною, а відмова ніколи не призводить до видалення, вимкнення чи повторної активації проксі.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Дозволити автоматичному очищенню видаляти завдання Batch API у кінцевому стані (завершені/невдалі/скасовані/прострочені), старші за OMNIROUTE_BATCH_RETENTION_DAYS, разом із їхніми контрольними точками для кожного рядка, а також очищати вміст BLOB завантажених файлів після настання їхнього власного expires_at. За замовчуванням вимкнено: кожна наявна інсталяція зберігатиме ці дані так само, як і раніше, доки оператор не ввімкне цю функцію. Маршрут DELETE /api/v1/batches/delete-completed, який запускає оператор, у будь-якому разі не змінюється — це окремий безумовний контракт публічного API.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Отримувати актуальний каталог моделей xAI для з’єднань xai-oauth із https://api.x.ai/v1/models за допомогою токена-носія OAuth замість незмінного статичного початкового набору. За замовчуванням вимкнено: xai-oauth продовжує без змін використовувати статичний початковий набір. У разі будь-якої помилки отримання каталогу використовується початковий набір.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Кінцева точка локального ядра проксі недійсна; вузли SS/VMess/Trojan/VLESS було проігноровано.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ця підписка містить вузли, які потребують локального ядра проксі (SS/VMess/Trojan/VLESS); вони не маршрутизуються, доки ви не налаштуєте кінцеву точку SOCKS5 локального ядра.",
         "NO_USABLE_NODES": "Підписка не повернула придатних для використання вузлів (http/https/socks5 або вузлів із кінцевою точкою локального ядра).",
-        "SELECTOR_SWITCH_FAILED": "Керівний виклик проксі-ядра не вдався; попередній маршрут лишається активним. Перевірте URL і секрет керування, потім оновіть."
+        "SELECTOR_SWITCH_FAILED": "Керівний виклик проксі-ядра не вдався; попередній маршрут лишається активним. Перевірте URL і секрет керування, потім оновіть.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Згенерований базовий файл конфігурації не зміг замінити прийнятий файл; натомість було збережено копію поруч.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Деякі записи були пропущено під час генерації. Перегляньте журнал сервера."
       },
       "description": "Вставте посилання на підписку на проксі. Після ввімкнення трафік направляється через пул проксі-серверів у глобальному режимі або режимі правила (вказаного постачальника). Вузли підписки автоматично синхронізуються з проксі-пулом і повторно використовують існуючі механізми опитування, перевірки працездатності та запобігання витокам.",
       "addSubscription": "Додати підписку",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Перемикань поки не записано",
       "lastSwitchMember": "Учасник, що обслуговує",
       "nextSwitch": "Наступне можливе перемикання",
-      "nextSwitchNow": "Зараз"
+      "nextSwitchNow": "Зараз",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Шлях до основного бінарного файлу",
+      "coreBinaryPathHelp": "Необов'язково: перевіряє згенерований файл основним бінарним файлом перед заміною прийнятого файлу. Залиште порожнім, щоб продовжувати запис поруч. Каталог створюється, якщо його немає.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Масова перевірка стану",
     "bulkHealthcheckDesc": "Надішліть тестові запити через усі налаштовані проксі-сервери до цільової URL-адреси, щоб з’ясувати, які з них працюють.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Стиснення опису MCP",
     "mcpAccessibilityTitle": "Вивід доступності MCP",
     "compressionSettingsCavemanIntensity": "Інтенсивність печерної людини",
-    "compressionSettingsCavemanOutputMode": "Режим виведення Caveman",
     "compressionSettingsOutputStyles": "Стилі виводу",
     "compressionStylesTileTitle": "Стилі виводу",
     "compressionSettingsOutputIntensity": "Вихідна інтенсивність",
-    "compressionSettingsAutoClarityBypass": "Автоматичний обхід чіткості",
     "compressionEffectivePipeline": "Фактичний конвеєр:",
     "compressionDerivedOff": "вимкнено",
     "compressionDerivedRuns": "запуски: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Що GET /v1/models показує для цього ключа. Звуження списку ніколи не змінює того, які моделі може викликати ключ.",
     "catalogScopeAll": "Обидва",
     "catalogScopeCombos": "Лише комбінації",
-    "catalogScopeModels": "Лише моделі"
+    "catalogScopeModels": "Лише моделі",
+    "resilienceTokenRefreshTitle": "Переривач оновлення токена",
+    "resilienceTokenRefreshDesc": "Припиняє спроби оновлення токена після повторних невдач. Обсяг одного з'єднання ізолює один мертвий обліковий запис, щоб здорові облікові записи на тому самому провайдері продовжували оновлюватися.",
+    "resilienceTokenRefreshScope": "Спроби оновлення маркера для одного провайдера",
+    "resilienceTokenRefreshTrigger": "Послідовні невдалі спроби оновлення",
+    "resilienceTokenRefreshEffect": "Призупиняє спроби оновлення на час очікування",
+    "resilienceTokenRefreshScopeLabel": "Обсяг",
+    "resilienceTokenRefreshScopeProvider": "Провайдер (усі облікові записи використовують один розривач)",
+    "resilienceTokenRefreshScopeConnection": "З'єднання (кожен обліковий запис має власний автомат)",
+    "resilienceTokenRefreshThreshold": "Помилки перед призупиненням",
+    "resilienceTokenRefreshCooldown": "Пауза після спрацювання"
   },
   "contextRtk": {
     "title": "Двигун RTK",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Мінімальна кількість рядків для компактності",
         "description": "Мінімальна кількість рядків в однорідному масиві JSON, необхідна для запуску табличного ущільнення. За замовчуванням: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Зберігати системний промпт"
       },
       "summarizerEnabled": {
         "label": "Увімкнути резюмувальник"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Коротші повідомлення не стискаються. Нижче = більше стиснення.",
     "tooltipMinSavings": "Стискайте лише якщо це зберігає принаймні таку кількість токенів.",
     "ultraSettings": "Ультра налаштування",
-    "ultraSettingsDesc": "Семантичне стиснення на основі SLM",
-    "preview": {
-      "lite": "Відповідайте стисло. Зберігайте технічні терміни, код, помилки, URL-адреси та ідентифікатори.",
-      "full": "Відповідайте лаконічно й компактно. Зберігайте всю технічну суть.",
-      "ultra": "Відповідайте максимально стисло, використовуючи загальноприйняті технічні скорочення. Зберігайте точні символи."
-    }
+    "ultraSettingsDesc": "Семантичне стиснення на основі SLM"
   },
   "translator": {
     "title": "Перекладач",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Збої без визначеного виходу: {count}",
     "poolMemberEgress": "{host}:{port} виходив через {egressIp} · останні {hours} год",
     "poolMemberEgressEmpty": "{host}:{port}: за останні {hours} год трафіку не виявлено",
+    "poolMemberEgressOperator": "{host}:{port} вийшов через {egressIp} · надано оператором, {date}",
     "poolMemberEgressHint": "Остання вихідна IP-адреса, зафіксована для цього учасника пулу протягом заданого періоду на основі журналу проксі. Для учасника, який не мав трафіку протягом цього періоду, відображається рядок про відсутність трафіку.",
     "poolRemove": "Видалити",
     "poolRemoveFailed": "Не вдалося видалити проксі з пулу",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "проксі недоступний",
     "poolSetAsideKindIpQuota429": "обмеження частоти за IP (429)",
     "poolSetAsideKindSlow": "повільні відповіді",
+    "poolSetAsideKindGeoBlocked": "заблоковано за регіоном (403/451)",
     "poolSetAsideUntil": "Знову в ротації {endsAt}",
     "poolSetAsideRepeat": "Відкладено {count, plural, one {# раз} other {# разів}}",
     "poolUnknownAddress": "Невідома адреса",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Порядок позицій",
     "poolHealthRankingOff": "Рейтинг здоровʼя вимкнено",
     "transportRate": "{rate}% транспорту",
+    "slowAbandoned": "{count} повільних відмов",
+    "clientAborted": "{count} відмов клієнта",
+    "slowAbandonedHint": "Відкинуто після порогу очікування заголовків, виключено з швидкості транспорту",
     "previousSuccessRate": "Раніше {rate}% успіху",
-    "upstreamRefusals": "{count} відмов апастріму",
     "connectionTestsCount": "{count} перевірок зʼєднання",
-    "notMeasured": "Не виміряно"
+    "notMeasured": "Не виміряно",
+    "upstream4xx": "{count} верхніх помилок клієнта",
+    "upstream5xx": "{count} помилки верхнього сервера",
+    "uniformEgressLine": "{affected} з {exits} виходів одночасно виходять з ладу на {provider} (останні {hours} год.) — це не проблема виходу"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Успадковує пул зʼєднань ({count})",
     "poolEmptyBlocked": "Пул порожній — запити не вдаються (не напряму)",
     "directEgress": "Напряму (без проксі)",
-    "ownProxy": "Власний проксі"
+    "ownProxy": "Власний проксі",
+    "freeTierPause": "Модель {model} призупинено (429), повернення о {time}",
+    "freeTierPauseProvider": "Призупинено (429), повернення о {time}",
+    "freeTierPauseNote": "Пауза в процесі на цьому екземплярі"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13082,10 @@
     "inactiveCount": "{count} неактивних",
     "dbOverrideCount": "{count} перевизначень БД",
     "searchPlaceholder": "Пошук прапорців...",
+    "descriptionModeLabel": "Перегляд опису",
+    "descriptionModeHint": "При наведенні: картки залишаються компактними, а наведення на опис показує повний текст. Повний текст: завжди показувати повний опис.",
+    "descriptionModeHover": "При наведенні",
+    "descriptionModeFull": "Повний текст",
     "categories": {
       "all": "Усі",
       "security": "Безпека",

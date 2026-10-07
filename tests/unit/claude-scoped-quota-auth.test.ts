@@ -380,6 +380,77 @@ test("Claude session preflight allows upstream recovery opt-ins without bypassin
   );
 });
 
+test("predictive critical weekly warning with quota remaining is not preflight exhaustion", async () => {
+  const connection = await seedConnection("claude", {
+    name: "claude-predictive-weekly-warning",
+    authType: "oauth",
+    accessToken: "claude-predictive-weekly-access",
+    refreshToken: "claude-predictive-weekly-refresh",
+  });
+  const now = Date.now();
+  const weeklyReset = new Date(now + 3 * 24 * 60 * 60 * 1000).toISOString();
+  const sessionReset = new Date(now + 4 * 60 * 60 * 1000).toISOString();
+  const { quotas, modelQuotas } = normalizeClaudeUsageQuotas({
+    limits: [
+      {
+        kind: "session",
+        percent: 3,
+        resets_at: sessionReset,
+        is_active: false,
+        severity: "normal",
+      },
+      {
+        kind: "weekly_all",
+        percent: 92,
+        resets_at: weeklyReset,
+        is_active: true,
+        severity: "critical",
+      },
+      {
+        kind: "weekly_scoped",
+        percent: 0,
+        resets_at: weeklyReset,
+        is_active: false,
+        severity: "normal",
+        scope: { model: { display_name: "Fable" } },
+      },
+    ],
+  });
+  quotaCache.setQuotaCache(connection.id, "claude", quotas, modelQuotas);
+
+  assert.equal(quotas["weekly (7d)"].remainingPercentage, 8);
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(connection.id, "claude", "claude-opus-5-5"),
+    false
+  );
+
+  const selected = await auth.getProviderCredentials("claude", null, null, "claude-opus-5-5");
+  assert.equal(selected?.connectionId, connection.id);
+  assert.notEqual(selected?.allRateLimited, true);
+  assert.equal(String(selected?.lastError ?? "").includes("reset after 5m"), false);
+
+  const exhausted = normalizeClaudeUsageQuotas({
+    limits: [
+      {
+        kind: "weekly_all",
+        percent: 100,
+        resets_at: weeklyReset,
+        is_active: true,
+        severity: "critical",
+      },
+    ],
+  });
+  quotaCache.setQuotaCache(connection.id, "claude", exhausted.quotas, exhausted.modelQuotas);
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(connection.id, "claude", "claude-opus-5-5"),
+    true
+  );
+  const blocked = await auth.getProviderCredentials("claude", null, null, "claude-opus-5-5");
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(String(blocked.lastError ?? "").includes("reset after 5m"), false);
+  assert.equal(blocked.retryAfter, weeklyReset);
+});
+
 test("active critical current limits route by upstream state without a percent threshold", () => {
   const connectionId = "claude-current-active-state";
   const now = Date.now();

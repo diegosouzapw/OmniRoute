@@ -1,1 +1,0 @@
-- **refactor(sse):** isolate the slow-stream deadline from the framework `Request` lifecycle and propagate cancellation explicitly through streaming admission/provider cleanup ([#15010](https://github.com/diegosouzapw/OmniRoute/pull/15010)) — thanks @mdigitalbh81

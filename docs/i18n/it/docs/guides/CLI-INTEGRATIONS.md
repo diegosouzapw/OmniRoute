@@ -4,30 +4,13 @@
 
 ---
 
-OmniRoute distribuisce una famiglia di comandi `setup-*` che configurano una
-CLI di codifica (Codex, Claude Code, OpenCode, Cline, …) per usare OmniRoute
-come backend — in modo che lo strumento comunichi con **un solo** endpoint e
-OmniRoute instradi al provider corretto con fallback automatico. Ogni comando
-legge il catalogo modelli **in tempo reale** da un OmniRoute in esecuzione
-(locale o remoto) e scrive il file di configurazione dello strumento sulla
-**tua** macchina. La chiave API è referenziata da una variabile d'ambiente
-ovunque lo strumento lo supporti. I comandi che persistono un file d'ambiente
-locale allo strumento sono indicati di seguito.
+Per il manifest condiviso degli eseguibili, gli ambienti figlio con restrizioni e la configurazione persistente di Gemini, consulta [Contratti di avvio della CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Esiste anche un launcher generico — `omniroute run <target>` — che avvia
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` o `gemini` con l'ambiente
-corretto iniettato, senza scrivere alcuna configurazione. I target e i loro
-alias provengono dal manifesto canonico `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), e `omniroute completion` offre le
-stesse parole target derivate dal manifesto. I launcher legacy per strumento —
-`omniroute launch` (Claude Code) e `omniroute launch-codex` (Codex) — rimangono
-disponibili.
+OmniRoute include una famiglia di comandi `setup-*` che configurano una CLI di programmazione (Codex, Claude Code, OpenCode, Cline, …) affinché utilizzi OmniRoute come backend, in modo che lo strumento comunichi con **un solo** endpoint e OmniRoute instradi le richieste verso il provider corretto con fallback automatico. Ogni comando legge il catalogo dei modelli **attivo** da un'istanza OmniRoute in esecuzione (locale o remota) e scrive il file di configurazione dello strumento sul **tuo** computer. La chiave API viene referenziata tramite una variabile d'ambiente, ovunque lo strumento lo supporti. I comandi che salvano in modo persistente un file di ambiente locale allo strumento sono indicati di seguito.
 
-L'onboarding dei provider è disponibile dallo stesso contesto locale/remoto. I
-comandi API-first qui sotto mantengono l'autenticazione di gestione separata
-dalle credenziali del provider e non stampano mai una credenziale nell'output
-strutturato:
+È disponibile anche un launcher generico — `omniroute run <target>` — che avvia `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` o `gemini` iniettando le variabili d'ambiente corrette, senza scrivere alcuna configurazione. I target e i relativi alias provengono dal manifest canonico `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) e `omniroute completion` offre le stesse parole target derivate dal manifest. I launcher legacy specifici per ciascuno strumento — `omniroute launch` (Claude Code) e `omniroute launch-codex` (Codex) — rimangono disponibili.
+
+L'onboarding dei provider è disponibile dallo stesso contesto locale/remoto. I comandi orientati all'API riportati di seguito mantengono separata l'autenticazione di gestione dalle credenziali dei provider e non stampano mai una credenziale nell'output strutturato:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -37,26 +20,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Per gli script, preferire `--credential-stdin` o `--credential-env`;
-`--credential` è mantenuto per un uso locale controllato. `providers remove`
-richiede `--yes` su un terminale non interattivo, e tutti e cinque i comandi
-rispettano il contesto attivo o le opzioni globali `--base-url`/`--api-key`.
+Per gli script, preferisci `--credential-stdin` o `--credential-env`; `--credential` viene mantenuto per l'uso locale controllato. `providers remove` richiede `--yes` su un terminale non interattivo e tutti e cinque i comandi rispettano il contesto attivo o le opzioni globali `--base-url`/`--api-key`.
 
-I selettori di provider rifiutano prefissi ID, nomi o nomi di provider ambigui;
-usare un ID di connessione completo quando diverse connessioni corrispondono. I
-comandi di creazione e modifica rileggono la connessione salvata, e la rimozione
-verifica che non sia più leggibile. Un'importazione salta una coppia
-provider/nome esistente. Le voci importate non possono sovrascrivere l'endpoint
-di gestione, il contesto o le credenziali di gestione fornite alla CLI.
+I selettori dei provider rifiutano prefissi di ID, nomi o nomi di provider ambigui; utilizza un ID di connessione completo quando più connessioni corrispondono. I comandi di creazione e modifica rileggono la connessione salvata, mentre la rimozione verifica che non sia più leggibile. Un'importazione ignora una coppia provider/nome già esistente. Le voci importate non possono sovrascrivere l'endpoint di gestione, il contesto o le credenziali di gestione forniti alla CLI.
 
-Per la configurazione di base, una tantum e scritta a mano, delle due
-integrazioni più ricche, consultare gli approfondimenti per strumento:
+Per la configurazione di base una tantum, scritta manualmente, delle due integrazioni più complete, consulta gli approfondimenti dedicati ai singoli strumenti:
 
 - [Configurazione di Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Configurazione di Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Modalità Remota](./REMOTE-MODE.md) — controlla un OmniRoute remoto (VPS / Tailnet) dal tuo laptop
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l'estensione OmniCopilot; può anche eseguire questi
-  comandi `setup-*` per te dall'interno dell'editor
+- [Configurazione della CLI di Codex](./CODEX-CLI-CONFIGURATION.md)
+- [Modalità remota](./REMOTE-MODE.md) — controlla un'istanza OmniRoute remota (VPS / Tailnet) dal tuo laptop
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l'estensione OmniCopilot; può anche eseguire questi comandi
+  `setup-*` per te direttamente dall'editor
 
 ---
 

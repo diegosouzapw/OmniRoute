@@ -433,8 +433,7 @@ injectée à la place de l'anglais.
 Sur un corps avec `messages`, un contournement de contenu (`shouldBypassCavemanOutputMode()` dans
 `open-sse/services/compression/outputMode.ts`) vérifie les trois derniers messages et ignore
 les styles pour tout le tour lorsque ceux-ci correspondent à ses mots-clés de sécurité, d'action irréversible,
-de clarification ou de sensibilité à l'ordre. Le contournement s'exécute quel que soit le réglage du
-bouton **Auto-Clarity Bypass** du tableau de bord (`cavemanOutputMode.autoClarity`).
+de clarification ou de sensibilité à l'ordre. Le contournement s'exécute tant que le bouton **Auto-Clarity Bypass** du tableau de bord (`cavemanOutputMode.autoClarity`) est activé, ce qui constitue le réglage par défaut ; lorsque le bouton est désactivé, les styles sélectionnés s'appliquent également à ces tours.
 
 Lorsque le contournement autorise le tour, `placeSystemInstruction()` (même fichier), qui
 ne crée jamais un nouveau `messages[0]`, place le bloc dans le premier de ces éléments qu'il trouve :

@@ -454,8 +454,7 @@ maimakon Turanci.
 A jiki mai `messages`, wucewar abun ciki (`shouldBypassCavemanOutputMode()` a cikin
 `open-sse/services/compression/outputMode.ts`) yana duba saƙonni uku na ƙarshe kuma yana tsallake
 salo don dukkan juyawar lokacin da suka dace da kalmomin tsaro, aiki maras juyawa,
-bayani, ko kalmomin da ke da mahimmancin tsari. Wucewar yana gudana komai abin da
-aka saita **Auto-Clarity Bypass** na dashboard (`cavemanOutputMode.autoClarity`) zuwa.
+bayani, ko kalmomin da ke da mahimmancin tsari. Wucewar tana gudana yayin da **Auto-Clarity Bypass** na dashboard (`cavemanOutputMode.autoClarity`) yake a kunnawa, wanda shine tsoho; idan an kashe shi, salon da aka zaɓa suna amfani a waɗancan juyawa ma.
 
 Lokacin da wucewar ya bar juyawar ta wuce, `placeSystemInstruction()` (fayil ɗaya), wanda
 baya taɓa ƙirƙirar sabon `messages[0]`, yana sanya toshewar a cikin na farko daga waɗannan da ya samu:

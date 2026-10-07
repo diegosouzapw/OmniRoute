@@ -1,1 +1,0 @@
-- **fix(sse):** Adobe Firefly and UC persona reference images are downloaded with the public-only, DNS-pinned, size-capped fetch, so an image URL on a loopback, private-network or metadata address is refused (the reason is logged, not returned); downloads through the pinned fetch no longer stall on bodies larger than about 64 KB

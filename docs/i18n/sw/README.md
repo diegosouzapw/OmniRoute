@@ -1196,21 +1196,21 @@ Vipimo kanuni vya 2026-08-24: **video 1.029 za kipekee** · **mitazamo 11.132.92
 <table>
   <tr><th align="left">Tabaka</th><th align="left">Teknolojia</th></tr>
   <tr><td nowrap><b>Mazingira ya utekelezaji</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Lugha</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kote katika <code>src/</code> na <code>open-sse/</code> (hakuna <code>any</code> katika kiini tangu v2.0)</td></tr>
-  <tr><td nowrap><b>Fremu</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, uandishi wa kumbukumbu wa WAL) + LowDB (JSON ya zamani) — moduli 136 za kikoa, uhamishaji 193</td></tr>
-  <tr><td nowrap><b>Kumbukumbu</b></td><td>Utafutaji wa matini kamili wa SQLite FTS5 + upachikaji wa vekta uliokwantishwa kwa int8, upunguzaji wenye aina</td></tr>
+  <tr><td nowrap><b>Lugha</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> katika <code>src/</code> na <code>open-sse/</code> (hakuna <code>any</code> katika kiini tangu v2.0)</td></tr>
+  <tr><td nowrap><b>Mfumo</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, uandishi wa jarida wa WAL) + LowDB (urithi wa JSON) — moduli 137 za kikoa, uhamishaji 193</td></tr>
+  <tr><td nowrap><b>Kumbukumbu</b></td><td>Utafutaji wa matini kamili wa SQLite FTS5 + upachikaji wa vekta uliokadiriwa kwa int8, ufifishaji wenye aina</td></tr>
   <tr><td nowrap><b>Skima</b></td><td>Zod 4 — uthibitishaji wa I/O wa zana za MCP + mikataba ya API</td></tr>
   <tr><td nowrap><b>Itifaki</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Utiririshaji</b></td><td>Server-Sent Events (SSE) + daraja la WebSocket (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Mfinyazo</b></td><td>Mtiririko wa injini 12 — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Uthibitishaji &amp; usalama</b></td><td>OAuth 2.0 (PKCE) + JWT + Funguo za API + uthibitishaji wa MCP wenye mawanda · AES-256-GCM wakati data imehifadhiwa · DOMPurify</td></tr>
+  <tr><td nowrap><b>Uthibitishaji &amp; usalama</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + uthibitishaji wa MCP wenye upeo · AES-256-GCM kwa data iliyohifadhiwa · DOMPurify</td></tr>
   <tr><td nowrap><b>Ufichaji</b></td><td>wreq-js — uigaji wa alama ya kidijitali ya JA3 / JA4 TLS, proksi ya viwango 3</td></tr>
-  <tr><td nowrap><b>Ustahimilivu</b></td><td>Kikatiza mzunguko, ucheleweshaji unaoongezeka kwa kasi, uzuiaji wa maombi mengi ya ghafla, kujirekebisha kiotomatiki kwa michanganyiko</td></tr>
+  <tr><td nowrap><b>Ustahimilivu</b></td><td>Kizuia hitilafu, usubiri unaoongezeka kwa kasi, kinga dhidi ya maombi mengi kwa wakati mmoja, ujirekebishaji wa auto-combo</td></tr>
   <tr><td nowrap><b>Uwekaji kumbukumbu</b></td><td>pino — kumbukumbu za JSON zilizopangwa zenye muktadha wa ombi</td></tr>
-  <tr><td nowrap><b>Upimaji</b></td><td>Kiendesha majaribio cha Node.js + Vitest — <b>matamko 39,000+ ya majaribio tuli</b> katika faili 5,100+ za majaribio yanayofuatiliwa (kitengo, ujumuishaji, E2E, usalama, mfumo-ikolojia)</td></tr>
-  <tr><td nowrap><b>Mifumo</b></td><td>Kompyuta ya mezani (Electron) · Android (Termux) · PWA (kivinjari chochote)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — uchapishaji wa kiotomatiki kwenye npm + Docker Hub wakati wa toleo</td></tr>
+  <tr><td nowrap><b>Majaribio</b></td><td>Kiendesha majaribio cha Node.js + Vitest — <b>matamko tuli 39,000+ ya majaribio</b> katika faili 5,100+ za majaribio zinazofuatiliwa (kitengo, ujumuishaji, E2E, usalama, mfumo ikolojia)</td></tr>
+  <tr><td nowrap><b>Majukwaa</b></td><td>Kompyuta ya mezani (Electron) · Android (Termux) · PWA (kivinjari chochote)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — uchapishaji otomatiki kwenye npm + Docker Hub wakati wa toleo</td></tr>
   <tr><td nowrap><b>Viungo</b></td><td><a href="https://omniroute.online">Tovuti</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1662,7 +1662,7 @@ Leseni ya MIT - tazama [LICENSE](LICENSE) kwa maelezo.
 
 **[⬆ Rudi juu](#-omniroute)** · Imetengenezwa kwa ❤️ kwa ajili ya jumuiya ya AI ya programu huria.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Leseni ya MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Leseni ya MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- Majadiliano ya GitHub yamewezeshwa kwa maswali na majibu ya jumuiya -->

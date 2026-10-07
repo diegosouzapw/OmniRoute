@@ -214,11 +214,25 @@ function tightenServerEnv(dataDir, serverEnvPath) {
   }
 }
 
+// Mirrors src/lib/dataPaths.ts::getDefaultDataDir (and scripts/build/bootstrap-env.mjs).
+// Electron's main process is CJS and cannot import those ESM modules, so the order is
+// copied verbatim: explicit DATA_DIR → an EXISTING legacy ~/.omniroute → %APPDATA%
+// (Windows) → $XDG_CONFIG_HOME (when set) → ~/.omniroute. Without the legacy check the
+// desktop app persisted server.env under $XDG_CONFIG_HOME while the server it spawns
+// opened ~/.omniroute/storage.sqlite.
 function resolveDataDir(overridePath, env = process.env) {
   if (overridePath && overridePath.trim()) return path.resolve(overridePath);
 
   const configured = env.DATA_DIR?.trim();
   if (configured) return path.resolve(configured);
+
+  // Preserve an existing legacy dir so an upgrade never splits secrets from the database.
+  const legacyDir = path.join(require("os").homedir(), ".omniroute");
+  try {
+    if (fs.statSync(legacyDir).isDirectory()) return legacyDir;
+  } catch {
+    // absent or unreadable — fall through to the platform default
+  }
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || path.join(require("os").homedir(), "AppData", "Roaming");
@@ -228,7 +242,7 @@ function resolveDataDir(overridePath, env = process.env) {
   const xdg = env.XDG_CONFIG_HOME?.trim();
   if (xdg) return path.join(path.resolve(xdg), "omniroute");
 
-  return path.join(require("os").homedir(), ".omniroute");
+  return legacyDir;
 }
 
 function getPreferredEnvFilePath(env = process.env) {
