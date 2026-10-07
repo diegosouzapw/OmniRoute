@@ -467,8 +467,7 @@ a ó fi sí i dípò Gẹ̀ẹ́sì.
 Lórí body tí ó ní `messages`, content bypass kan (`shouldBypassCavemanOutputMode()` nínú
 `open-sse/services/compression/outputMode.ts`) ń yẹ àwọn ìfiránṣẹ́ mẹ́ta tó kẹ́yìn wò, ó sì ń fò
 àwọn ara náà kọjá fún gbogbo turn náà nígbà tí wọ́n bá àwọn keyword tó jẹ mọ́ ààbò,
-ìgbésẹ̀ tí a kò lè dá padà, ìbéèrè ìṣàlàyé, tàbí ìtòlẹ́sẹẹsẹ tó ṣe pàtàkì mu. Bypass náà ń ṣiṣẹ́ ní ìbámu pẹ̀lú
-bí a ṣe ṣètò toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) lórí dashboard.
+ìgbésẹ̀ tí a kò lè dá padà, ìbéèrè ìṣàlàyé, tàbí ìtòlẹ́sẹẹsẹ tó ṣe pàtàkì mu. Bypass náà ń ṣiṣẹ́ nígbà tí toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) ṣí wà, èyí ni ààyò àkọ́kọ́; nígbà tí a bá pa á mọ́, àwọn ara tí a yàn náà ń ṣiṣẹ́ lórí àwọn turn yìí.
 
 Nígbà tí bypass bá jẹ́ kí turn náà kọjá, `placeSystemInstruction()` (fáìlì kan náà), èyí tí
 kò dá `messages[0]` tuntun sílẹ̀ láéláé, ń fi búlọ́ọ̀kù náà sí àkọ́kọ́ nínú àwọn wọ̀nyí tí ó bá rí:

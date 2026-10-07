@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Il-pools tal-proxy u r-rotazzjoni għal kull kont ta’ opencode jieqfu jerġgħu jservu proxy li jkun għadu kemm falla (sonda TCP miċħuda, jew 429 riċevut permezz tiegħu) għal perjodu għal kull proċess li jirdoppja ma’ kull ripetizzjoni, sa limitu massimu. Ma jinkiteb ebda status tal-proxy; meta kull kandidat jitwarrab, l-għażla tibqa’ l-istess. Mixgħul b’mod awtomatiku; `false` jerġa’ jġib l-għażla sempliċi.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Għall-fornituri li l-kwota tagħhom hija maqsuma skont l-indirizz tal-egress, jikklassifika membru tal-pool li jaqsam l-indirizz tal-egress osservat ta' membru li ġie rrifjutat reċentement eżatt taħt il-membri f'saħħithom. L-ordni biss, qatt ma jiġi eskluż. Jeħtieġ PROXY_SKIP_RECENTLY_FAILED, li jipproduċi s-sinjal ta' rifjut li jaqra. Mitfi b'mod predefinit: l-ordni tal-għażla hija eżattament ir-rotazzjoni sempliċi.",
   "featureFlagProxyPoolEgressObservationDescription": "Uri, taħt pool tal-proxy fid-dashboard, kemm-il IP ta’ ħruġ osservat serva lill-membri tiegħu matul l-aħħar 24 siegħa, kemm-il konnessjoni użathom u l-ogħla għadd osservat wara IP wieħed. Għall-qari biss, ikkalkulat mil-log tal-proxy, u qatt ma jintuża għar-routing. Mitfi b’mod awtomatiku: l-editur tal-pool ma jinbidilx u r-rotta tal-osservazzjoni twieġeb null.",
+  "featureFlagProxyOperatorEgressDescription": "Aċċetta l-indirizzi osservati b'data pushjati mill-operatur għal kull membru tal-pool u mergjahom mal-qari tal-ġurnal għar-ur u l-ordni tal-pool. Mhux attiv b'difault: ir-rotta tal-push tirrispondi 404 u l-qari tal-pool jiffunzjonaw eżattament kif qabel.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Fl-iskennjar tas-saħħa tal-proxy, ħalli sonda li l-mira tkun irrifjutat (401/403/429: il-proxy għadda t-talba, iżda d-destinazzjoni rrifjutat dan l-IP ta’ ħruġ) tirrisettja s-sensiela ta’ fallimenti konsekuttivi tal-proxy, bħal sonda moqdija. Mitfi b’mod awtomatiku: rifjut jibqa’ newtrali u jżomm is-sensiela. 5xx jibqa’ inkonklussiv fiż-żewġ każijiet, u rifjut qatt ma jneħħi, jiddiżattiva jew jerġa’ jattiva proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Ħalli t-tindif awtomatiku jħassar il-kompiti terminali (ikkompletati/falluti/ikkanċellati/skaduti) tal-Batch API li jkunu eqdem minn OMNIROUTE_BATCH_RETENTION_DAYS, flimkien mal-punti ta’ kontroll tagħhom għal kull linja, u jneħħi l-kontenut BLOB tal-fajls imtellgħin li jkunu qabżu l-expires_at tagħhom. Diżattivat b’mod awtomatiku: kull installazzjoni eżistenti żżomm din id-data eżattament bħal qabel sakemm operatur jagħżel li jattivah. Ir-rotta DELETE /api/v1/batches/delete-completed attivata mill-operatur ma tiġix affettwata fiż-żewġ każijiet — dan huwa kuntratt separat u inkundizzjonat tal-API pubblika.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ġib il-katalgu attwali tal-mudelli xAI għall-konnessjonijiet xai-oauth minn https://api.x.ai/v1/models billi tuża t-token bearer OAuth, minflok is-seed statiku ffriżat. Diżattivat b’mod awtomatiku: xai-oauth jibqa’ jservi s-seed statiku mingħajr tibdil. F’każ ta’ kwalunkwe żball fir-riżoluzzjoni, l-iskoperta terġa’ lura għas-seed.",
@@ -1797,19 +1798,19 @@
     "quickStartDesc": "Ibda fi 4 passi. Qabbad il-fornituri, idderieġi l-mudelli u mmonitorja kollox.",
     "fullDocs": "Dokumentazzjoni Sħiħa",
     "step1Title": "1. Oħloq ċavetta API",
-    "step1Desc": "Mur f'<endpoint>Ċwievet API</endpoint>. Iġġenera ċavetta waħda għal kull ambjent.",
+    "step1Desc": "Mur f’<endpoint>Ċwievet API</endpoint>. Iġġenera ċavetta waħda għal kull ambjent.",
     "step2Title": "2. Qabbad il-fornituri",
-    "step2Desc": "Żid il-kontijiet f'<providers>Fornituri</providers>. Jappoġġja OAuth, Ċavetta API u livelli bla ħlas.",
+    "step2Desc": "Żid il-kontijiet f’<providers>Fornituri</providers>. Jappoġġja OAuth, Ċavetta API u livelli bla ħlas.",
     "step3Title": "3. Iddirezzjona l-klijent tiegħek",
     "step3Desc": "Issettja l-URL bażi għal {url} fl-IDE jew fil-klijent API tiegħek.",
     "step4Title": "4. Immonitorja u ottimizza",
-    "step4Desc": "Segwi t-tokens, l-ispejjeż u l-iżbalji f'<logs>Reġistri tat-Talbiet</logs> u <analytics>Analitika</analytics>.",
+    "step4Desc": "Segwi t-tokens, l-ispejjeż u l-iżbalji f’<logs>Reġistri tat-Talbiet</logs> u <analytics>Analitika</analytics>.",
     "providersOverview": "Ħarsa Ġenerali lejn il-Fornituri",
     "configuredOf": "Fornituri kkonfigurati: {configured} minn {total} disponibbli",
     "noModelsAvailable": "M'hemm l-ebda mudell disponibbli għal dan il-fornitur.",
     "noProvidersConfigured": "Għad m'hemm l-ebda fornitur ikkonfigurat",
     "addProvider": "Żid fornitur",
-    "configureFirst": "L-ewwel ikkonfigura konnessjoni f'{providers}",
+    "configureFirst": "L-ewwel ikkonfigura konnessjoni f’{providers}",
     "configureProvider": "Ikkonfigura l-Fornitur",
     "modelAvailable": "{count} mudell disponibbli",
     "modelsAvailable": "{count} mudelli disponibbli",
@@ -2168,7 +2169,7 @@
     "retrying": "Qed jerġa' jipprova…",
     "retry": "Erġa' pprova",
     "providerUtilizationNoDataDescription": "Is-snapshots tal-kwoti tal-fornituri se jidhru hawn wara li tinġabar id-data dwar l-użu.",
-    "providerUtilizationStepConnect": "Qabbad il-fornituri permezz ta' OAuth jew ċwievet API f'<strong>Fornituri</strong>",
+    "providerUtilizationStepConnect": "Qabbad il-fornituri permezz ta' OAuth jew ċwievet API f’<strong>Fornituri</strong>",
     "providerUtilizationStepEnable": "Ippermetti t-traċċar tal-kwoti billi tuża l-fornitur f'combo jew f'talba diretta",
     "providerUtilizationStepAutomatic": "Id-data tidher awtomatikament hekk kif jinġabru s-snapshots tal-kwoti.",
     "statusExhausted": "Eżawrita",
@@ -3177,7 +3178,7 @@
     "copilotConfigGenerator": "Ġeneratur tal-Konfigurazzjoni ta' GitHub Copilot",
     "copilotGeneratorDescriptionPrefix": "Jiġġenera l-",
     "copilotGeneratorDescriptionSuffix": "blokka għal VS Code GitHub Copilot bl-użu tal-mudell tal-fornitur Azure. Agħżel il-mudelli li trid, imbagħad ikkopja l-JSON fil-fajl tal-konfigurazzjoni tiegħek.",
-    "copilotCompatibilityWarning": "Din il-konfigurazzjoni tuża s-soluzzjoni alternattiva tal-fornitur Azure għal listi ta' mudelli personalizzati. Ittestjata b'<vscode>VS Code ≥ 1.109</vscode> u <copilot>GitHub Copilot Chat ≥ v0.37</copilot>. Aġġornamenti futuri tal-estensjoni jistgħu jibdlu din l-imġiba.",
+    "copilotCompatibilityWarning": "Din il-konfigurazzjoni tuża s-soluzzjoni alternattiva tal-fornitur Azure għal listi ta' mudelli personalizzati. Ittestjata b’<vscode>VS Code ≥ 1.109</vscode> u <copilot>GitHub Copilot Chat ≥ v0.37</copilot>. Aġġornamenti futuri tal-estensjoni jistgħu jibdlu din l-imġiba.",
     "copilotApiKey": "Ċavetta tal-API",
     "copilotSelectModels": "Agħżel il-mudelli ({selected}/{total})",
     "selectAll": "Agħżel kollox",
@@ -4136,7 +4137,7 @@
     "apiKeyRequired": "Hija meħtieġa ċavetta tal-API għal dan l-endpoint.",
     "requestFailed": "It-talba falliet ({status})",
     "errorStatus": "Żball",
-    "catalogStats": "{endpoints} endpoints f'{categories} kategoriji",
+    "catalogStats": "{endpoints} endpoints f’{categories} kategoriji",
     "catalogUnavailableDescription": "L-ispeċifikazzjoni OpenAPI ma setgħetx titgħabba.",
     "openJsonResponse": "Iftaħ it-tweġiba JSON",
     "all": "Kollha",
@@ -4397,7 +4398,7 @@
     "a2aDisabledTitle": "A2A huwa diżattivat",
     "a2aDisabledDesc": "Attiva A2A hawn fuq biex tara t-telemetrija tal-kompiti, id-dettalji tal-aġent, u l-għodod ta' validazzjoni.",
     "a2aIntro": "Endpoint Agent2Agent JSON-RPC 2.0 — ibgħat kompiti, ibgħat it-tweġibiet b’mod kontinwu, u kkanċella xogħlijiet li għadhom għaddejjin.",
-    "a2aStep1": "Sib il-kard tal-aġent f'{code}.",
+    "a2aStep1": "Sib il-kard tal-aġent f’{code}.",
     "a2aStep2": "Ibgħat JSON-RPC lil {code1} billi tuża {code2} jew {code3}.",
     "a2aStep3": "Segwi u kkanċella l-kompiti permezz ta' {code1} u {code2}."
   },
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "L-endpoint lokali tal-proxy-core mhuwiex validu; in-nodi SS/VMess/Trojan/VLESS ġew injorati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dan l-abbonament għandu nodi li jeħtieġu proxy core lokali (SS/VMess/Trojan/VLESS); dawn ma jiġux direzzjonati sakemm tikkonfigura l-endpoint SOCKS5 tal-core lokali.",
         "NO_USABLE_NODES": "L-abbonament ma pproduċa l-ebda nodu li jista’ jintuża (http/https/socks5 jew nodi b’endpoint ta’ core lokali).",
-        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna."
+        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Il-konfigurazzjoni ċentrali mġenerata ma setgħetx tissostitixxi l-fajl adottat; in-nies kopja mit-taħt ġiet miżmuma minflok.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Xi entrati ġew injorati matul il-ġenerazzjoni. Ara l-log tal-server."
       },
       "description": "Waħħal il-link tal-abbonament tal-proxy tiegħek. Ladarba jiġi attivat, it-traffiku jiġi direzzjonat permezz tal-grupp ta’ proxies fil-modalità globali jew tar-regoli (Fornitur speċifikat). In-nodi tal-abbonament jiġu sinkronizzati awtomatikament mal-grupp ta’ proxies u jużaw mill-ġdid il-mekkaniżmi eżistenti ta’ polling, kontroll tas-saħħa u kontra t-tnixxija.",
       "addSubscription": "Żid Abbonament",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "L-ebda bidla rreġistrata s'issa",
       "lastSwitchMember": "Membru li qed iservi",
       "nextSwitch": "Il-bidla li jmiss possibbli",
-      "nextSwitchNow": "Issa"
+      "nextSwitchNow": "Issa",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Triq tal-binarju ċentrali",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm."
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompressjoni tad-deskrizzjoni MCP",
     "mcpAccessibilityTitle": "Output tal-aċċessibbiltà tal-MCP",
     "compressionSettingsCavemanIntensity": "Intensità tal-bniedem tal-għerien",
-    "compressionSettingsCavemanOutputMode": "Modalità tal-output tal-bniedem tal-għerien",
     "compressionSettingsOutputStyles": "Stili tal-output",
     "compressionStylesTileTitle": "Stili tal-output",
     "compressionSettingsOutputIntensity": "Intensità tal-output",
-    "compressionSettingsAutoClarityBypass": "Evitar awtomatiku abbażi taċ-ċarezza",
     "compressionEffectivePipeline": "Pipeline effettiv:",
     "compressionDerivedOff": "mitfi",
     "compressionDerivedRuns": "jitħaddem: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Dak li GET /v1/models jiddikjara għal din iċ-ċavetta. It-tidjiq tal-lista qatt ma jibdel dak li ċ-ċavetta tista' ssejjaħ.",
     "catalogScopeAll": "It-tnejn",
     "catalogScopeCombos": "Kombinazzjonijiet biss",
-    "catalogScopeModels": "Mudelli biss"
+    "catalogScopeModels": "Mudelli biss",
+    "resilienceTokenRefreshTitle": "Breaker tal-Refresh tat-Token",
+    "resilienceTokenRefreshDesc": "Jwaq l-iskjar tal-token wara fallimenti ripetuti. L-iskop għal kull-konnessjoni jisolva kont mejjeb wieħed biex kontijiet b'saħħithom fuq l-istess fornitur jibqgħu jiġu aġġornati.",
+    "resilienceTokenRefreshScope": "Tentativi ta' refresh tat-token għal provider wieħed",
+    "resilienceTokenRefreshTrigger": "Tentativi ta' refresh konsekuttivi falliti",
+    "resilienceTokenRefreshEffect": "Jieqaf l-attempts ta' refresh għall-cooldown",
+    "resilienceTokenRefreshScopeLabel": "Skop",
+    "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
+    "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
+    "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
   },
   "contextRtk": {
     "title": "Magna RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Qed jitgħabba…",
     "loadFailed": "It-tagħrif dwar il-magna ma setax jitgħabba.",
+    "settingsLoadFailed": "Ma rnexxiex jitgħabbew is-settings issejvjati. L-oqsma juru l-valuri predefiniti, u Issejvja jibqa’ diżattivat sakemm il-paġna terġa’ titgħabba.",
     "engineNotFound": "Il-magna \"{engine}\" ma nstabitx.",
     "saveFailed": "Il-konfigurazzjoni ma setgħetx tiġi ssejvjata.",
     "previewFailed": "Il-previżjoni falliet.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Għadd minimu ta' ringieli għall-kompattazzjoni",
         "description": "Għadd minimu ta' ringieli f'matriċi JSON omoġenja meħtieġ biex tinbeda l-kompattazzjoni tabulari. Valur predefinit: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Żomm il-prompt tas-sistema"
       },
       "summarizerEnabled": {
         "label": "Ippermetti s-sommarizzatur"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "Messaġġi iqsar minn dan ma jiġux ikkompressati. Inqas = aktar kompressjoni.",
     "tooltipMinSavings": "Ikkompressa biss jekk tiffranka mill-inqas dan l-għadd ta’ tokens.",
     "ultraSettings": "Konfigurazzjoni Ultra",
-    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM",
-    "preview": {
-      "lite": "Wieġeb fil-qosor. Ippreserva t-termini tekniċi, il-kodiċi, l-iżbalji, il-URLs, u l-identifikaturi.",
-      "full": "Wieġeb b’mod konċiż u kompatt. Ippreserva s-sustanza teknika kollha.",
-      "ultra": "Wieġeb bl-aktar mod konċiż possibbli b’abbrevjazzjonijiet tekniċi komuni. Ippreserva s-simboli eżatti."
-    }
+    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM"
   },
   "translator": {
     "title": "Traduttur",
@@ -10873,7 +10894,7 @@
     "gheUrlLabel": "URL ta' GitHub Enterprise",
     "gheUrlRequired": "Il-URL ta' GitHub Enterprise huwa meħtieġ",
     "gitlabDuoSetupTitle": "Konfigurazzjoni OAuth ta' GitLab Duo",
-    "gitlabDuoSetupMessage": "GitLab Duo OAuth mhuwiex ikkonfigurat. Irreġistra applikazzjoni OAuth f'{applicationsUrl} bl-URI ta' direzzjoni mill-ġdid {redirectUri} u bl-ambiti \"{scopes}\", imbagħad issettja {clientIdEnv} (u, jekk trid, {clientSecretEnv}) u erġa' ibda.",
+    "gitlabDuoSetupMessage": "GitLab Duo OAuth mhuwiex ikkonfigurat. Irreġistra applikazzjoni OAuth f’{applicationsUrl} bl-URI ta' direzzjoni mill-ġdid {redirectUri} u bl-ambiti \"{scopes}\", imbagħad issettja {clientIdEnv} (u, jekk trid, {clientSecretEnv}) u erġa' ibda.",
     "gitlabDuoSetupDescription": "Wara li l-applikazzjoni tiġi rreġistrata u l-varjabbli ambjentali jiġu ssettjati fuq din l-istanza ta' OmniRoute, ikklikkja Kompli biex tibda l-login OAuth.",
     "continue": "Kompli"
   },
@@ -10916,7 +10937,7 @@
     "title": "Konfigurazzjoni tal-Ipprezzar",
     "loading": "Qed titgħabba d-data tal-ipprezzar...",
     "pricingRatesFormat": "Format tar-Rati tal-Ipprezzar",
-    "ratesDescription": "Ir-rati kollha huma f'<strong>dollari għal kull miljun token</strong> ($/1M tokens). Eżempju: Rata ta' input ta' 2.50 tfisser $2.50 għal kull 1,000,000 token ta' input.",
+    "ratesDescription": "Ir-rati kollha huma f’<strong>dollari għal kull miljun token</strong> ($/1M tokens). Eżempju: Rata ta' input ta' 2.50 tfisser $2.50 għal kull 1,000,000 token ta' input.",
     "model": "Mudell",
     "input": "Dħul",
     "output": "Ħruġ",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Fallimenti mingħajr ħruġ attribwit: {count}",
     "poolMemberEgress": "{host}:{port} ħareġ permezz ta’ {egressIp} · l-aħħar {hours} sigħat",
     "poolMemberEgressEmpty": "{host}:{port}: ma ġie osservat ebda traffiku fl-aħħar {hours} sigħat",
+    "poolMemberEgressOperator": "{host}:{port} ħareġ permezz ta' {egressIp} · fornita mill-operatur, {date}",
     "poolMemberEgressHint": "L-aħħar indirizz IP tal-ħruġ osservat permezz ta’ dan il-membru tal-pool matul il-perjodu, moqri mir-reġistru tal-proxy. Membru mingħajr traffiku matul il-perjodu juri l-linja ta’ ebda traffiku.",
     "poolRemove": "Neħħi",
     "poolRemoveFailed": "Ma rnexxiex it-tneħħija tal-proxy mill-pool",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "il-proxy mhux raġġungibbli",
     "poolSetAsideKindIpQuota429": "limitu tar-rata tal-IP (429)",
     "poolSetAsideKindSlow": "risposti bil-mod",
+    "poolSetAsideKindGeoBlocked": "blokkat fir-reġjun (403/451)",
     "poolSetAsideUntil": "Lura fir-rotazzjoni {endsAt}",
     "poolSetAsideRepeat": "Imwarrab {count, plural, one {# darba} other {# darbiet}}",
     "poolUnknownAddress": "Indirizz mhux magħruf",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "Ordni tal-pożizzjoni",
     "poolHealthRankingOff": "Klassifika tas-saħħa mitfija",
     "transportRate": "{rate}% trasport",
+    "slowAbandoned": "{count} abbandonamenti tal‑mellieħ",
+    "clientAborted": "{count} kansellazzjonijiet tal‑klijent",
+    "slowAbandonedHint": "Abbandonat wara l‑threshold ta’ ħin ta’ ħruġ tal‑headers, eskluż mill‑rate tal‑trasport",
     "previousSuccessRate": "Qabel {rate}% suċċess",
-    "upstreamRefusals": "{count} rifjuti upstream",
     "connectionTestsCount": "{count} testijiet tal-konnessjoni",
-    "notMeasured": "Mhux imkejjel"
+    "notMeasured": "Mhux imkejjel",
+    "upstream4xx": "{count} għajn klijent erruri",
+    "upstream5xx": "{count} għajnħa server errors",
+    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",
@@ -11444,7 +11472,7 @@
     "loadingLogs": "Qed jitgħabbew ir-reġistri...",
     "noLogs": "Għad m'hemmx reġistri. Agħmel xi sejħiet tal-API biex tarahom hawn.",
     "noMatchingLogs": "M'hemm l-ebda reġistru li jaqbel mal-filtri attwali.",
-    "callLogsInfo": "Ir-reġistri tas-sejħiet jiġu ssejvjati wkoll bħala fajls JSON f'{dataDir} u jiġu rotati abbażi ta' {retentionDays} u {maxEntries}.",
+    "callLogsInfo": "Ir-reġistri tas-sejħiet jiġu ssejvjati wkoll bħala fajls JSON f’{dataDir} u jiġu rotati abbażi ta' {retentionDays} u {maxEntries}.",
     "loadMore": "Għabbi aktar",
     "loadingMore": "Qed jitgħabbew aktar...",
     "correlationId": "ID tal-korrelazzjoni",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "Jiret il-pool tal-konnessjonijiet ({count})",
     "poolEmptyBlocked": "Pool vojt — it-talbiet ifallu (mhux dirett)",
     "directEgress": "Dirett (bla proxy)",
-    "ownProxy": "Proxy proprju"
+    "ownProxy": "Proxy proprju",
+    "freeTierPause": "Il-mudell {model} ippawżat (429), lura fi {time}",
+    "freeTierPauseProvider": "Ippawżat (429), lura fi {time}",
+    "freeTierPauseNote": "Pawża fil-proċess fuq dan il-caż"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,9 +13083,9 @@
     "inactiveCount": "{count} inattivi",
     "dbOverrideCount": "{count} sostituzzjonijiet tad-DB",
     "searchPlaceholder": "Fittex fost il-flags...",
-    "descriptionModeLabel": "Dehra tad-deskrizzjoni",
-    "descriptionModeHint": "Meta tgħaddi l-maws fuqha: il-kards jibqgħu kompatti u meta tgħaddi l-maws fuq deskrizzjoni jintwera t-test sħiħ. Test sħiħ: dejjem uri d-deskrizzjoni kompluta.",
-    "descriptionModeHover": "Meta tgħaddi l-maws fuqha",
+    "descriptionModeLabel": "Vista ta' deskrizzjoni",
+    "descriptionModeHint": "Fuq l-iskur: il-karti jibqgħu kompatti u l-iskur fuq deskrizzjoni juri t-test sħiħ. Test sħiħ: uri dejjem id-deskrizzjoni sħiħa.",
+    "descriptionModeHover": "Fuq l-iskur",
     "descriptionModeFull": "Test sħiħ",
     "categories": {
       "all": "Kollha",
@@ -14128,12 +14159,12 @@
     "errorImportFailed": "L-importazzjoni falliet",
     "title": "Qabbad Trae SOLO",
     "authorizeDescription": "Awtorizza permezz ta' <code>trae.ai</code> f'popup. Il-popup jingħalaq waħdu ladarba t-token ikun ġie importat.",
-    "authorizeImportant": "<strong>Importanti:</strong> l-ewwel trid tkun illoggjat fuq <code>trae.ai</code> f'<em>dan</em> il-browser. Il-paġna tal-awtorizzazzjoni tikkonferma biss sessjoni eżistenti — ma tistax tilloggjak. Jekk tara \"Login Failed\", ikklikkja \"Iftaħ solo.trae.ai\", idħol, imbagħad erġa' lura hawn.",
+    "authorizeImportant": "<strong>Importanti:</strong> l-ewwel trid tkun illoggjat fuq <code>trae.ai</code> f’<em>dan</em> il-browser. Il-paġna tal-awtorizzazzjoni tikkonferma biss sessjoni eżistenti — ma tistax tilloggjak. Jekk tara \"Login Failed\", ikklikkja \"Iftaħ solo.trae.ai\", idħol, imbagħad erġa' lura hawn.",
     "waitingForAuthorization": "Qed nistennew risposta minn trae.ai…",
     "authorizeWithBrowser": "Awtorizza bil-browser",
     "openSoloTrae": "Iftaħ solo.trae.ai",
     "orPasteManually": "jew waħħal token manwalment",
-    "manualInstructions": "Idħol f'<code>solo.trae.ai</code>, iftaħ DevTools → Network, ibgħat kwalunkwe messaġġ fiċ-chat, u kkopja l-JWT mill-header tat-talba <code>Authorization: Cloud-IDE-JWT {tokenPlaceholder}</code>. It-tul tal-ħajja tal-JWT huwa ta' madwar 14-il jum. L-oqsma fakultattivi tal-identità jiġu minn <code>common_params</code> fil-body tal-istess talba.",
+    "manualInstructions": "Idħol f’<code>solo.trae.ai</code>, iftaħ DevTools → Network, ibgħat kwalunkwe messaġġ fiċ-chat, u kkopja l-JWT mill-header tat-talba <code>Authorization: Cloud-IDE-JWT {tokenPlaceholder}</code>. It-tul tal-ħajja tal-JWT huwa ta' madwar 14-il jum. L-oqsma fakultattivi tal-identità jiġu minn <code>common_params</code> fil-body tal-istess talba.",
     "accessTokenLabel": "Token ta' Aċċess (Cloud-IDE-JWT)",
     "webId": "ID tal-Web",
     "optional": "fakultattiv",

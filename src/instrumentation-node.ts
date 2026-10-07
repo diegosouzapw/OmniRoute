@@ -272,9 +272,13 @@ export async function warmAdaptiveVirtualLanesIntoRuntime(): Promise<void> {
  * fetcher.
  */
 export async function registerQuotaFetchers(): Promise<void> {
-  // Side-effect registrations for agentrouter, freeModel, grokCli, xaiOauth,
-  // firecrawl (same ordering as the legacy chat.ts path).
-  await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+  // Explicit call after the import resolves. A module-load side effect invokes
+  // registerQuotaFetcher while webpack is still binding that async export and
+  // throws "(0 , e.Zd) is not a function", caching an empty HTTP 500 on chat.
+  const { registerQuotaTrackersBatch } = await import(
+    "@omniroute/open-sse/services/quotaTrackersBatch.ts"
+  );
+  registerQuotaTrackersBatch();
 
   const [
     { registerCodexQuotaFetcher },

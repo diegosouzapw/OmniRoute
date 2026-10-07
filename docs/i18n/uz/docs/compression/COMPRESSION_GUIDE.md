@@ -454,9 +454,7 @@ inglizcha koʻrsatma oʻrniga mahalliylashtirilgan koʻrsatma kiritiladi.
 `messages` mavjud boʻlgan tanada kontentni chetlab oʻtish (`shouldBypassCavemanOutputMode()`
 `open-sse/services/compression/outputMode.ts` ichida) oxirgi uchta xabarni tekshiradi va
 ular xavfsizlik, qaytarib boʻlmaydigan amal, aniqlashtirish yoki tartibga bogʻliq kalit
-soʻzlarga mos kelsa, butun navbat uchun uslublarni oʻtkazib yuboradi. Chetlab oʻtish
-boshqaruv panelidagi **Avtomatik aniqlik uchun chetlab oʻtish** almashtirgichi
-(`cavemanOutputMode.autoClarity`) qanday sozlangan boʻlsa, shunga muvofiq ishlaydi.
+soʻzlarga mos kelsa, butun navbat uchun uslublarni oʻtkazib yuboradi. Chetlab oʻtish, boshqaruv panelidagi **Avtomatik aniqlik uchun chetlab oʻtish** almashtirgichi (`cavemanOutputMode.autoClarity`) yoqilgan boʻlsa ishlaydi — bu standart holat. Almashtirgich oʻchirilganda tanlangan uslublar bu navbatlarda ham qoʻllanadi.
 
 Chetlab oʻtish navbatni davom ettirishga ruxsat berganda, `placeSystemInstruction()`
 (xuddi shu faylda) hech qachon yangi `messages[0]` yaratmaydi va blokni quyidagilardan

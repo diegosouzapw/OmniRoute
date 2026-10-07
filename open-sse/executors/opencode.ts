@@ -84,8 +84,8 @@ import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 // contract applies), and existing importers keep resolving it from the executor.
 export { isPremiumOpencodeModel };
 import {
-  guardResponsesStall,
   isResponsesFirstByteTimeout,
+  makeStallGuardedCall,
   setupStallGuard,
 } from "./opencodeResponsesStall.ts";
 import { discardResponseBody } from "./opencodeResponseBody.ts";
@@ -213,6 +213,22 @@ export class OpencodeExecutor extends BaseExecutor {
   /** Delegates to `isPremiumOpencodeModel`. Exported for testability. */
   static isPremiumModel(model: string, provider: string): boolean {
     return isPremiumOpencodeModel(model, provider);
+  }
+
+  /**
+   * Note the outcome of a forced-stream response without reading its body: a success
+   * confirms the borrowed shape, anything else carries no verdict (the paths that hold
+   * the verdict note it explicitly where they already read it).
+   */
+  private noteForcedStreamOutcome(input: ExecuteInput, result: ExecutorExecuteResult): void {
+    const attempt = attemptFor(input.body);
+    const response =
+      result instanceof Response ? result : "response" in result ? result.response : null;
+    noteFreeTierOutcome(attempt, {
+      ok: !!response?.ok,
+      status: response?.ok ? (response.status ?? null) : null,
+      bodyText: null,
+    });
   }
 
   /**
@@ -351,14 +367,42 @@ export class OpencodeExecutor extends BaseExecutor {
     input: ExecuteInput,
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
-    noteFreeTierOutcome(attemptFor(input.body), "response" in result && !!result.response?.ok);
+    this.noteForcedStreamOutcome(input, result);
     if (input.stream) return result;
-    if (!("response" in result) || !result.response) return result;
+    if (!(result instanceof Response)) {
+      if (!("response" in result) || !result.response) return result;
+    }
     // Non-null exactly when the contract applied: stands in for the old surface/model guard.
     const model = attemptFor(input.body)?.model;
     if (!model) return result;
-    const response = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
-    return response === result.response ? result : { ...result, response };
+    if (result instanceof Response) {
+      const rebuilt = rebuildJsonFromForcedStream(result, this._requestFormat, model);
+      return rebuilt === result ? result : rebuilt;
+    }
+    const rebuilt = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
+    return rebuilt === result.response ? result : { ...result, response: rebuilt };
+  }
+
+  /**
+   * Count a refusal that says something about the borrowed tools, on a path
+   * that already holds the verdict. Only 403/451 carry that verdict, so only
+   * they pay for a body read — anything else leaves the store alone.
+   */
+  private async noteFreeTierRefusal(
+    input: ExecuteInput,
+    response: Response,
+    log: ExecuteInput["log"]
+  ): Promise<void> {
+    const attempt = attemptFor(input.body);
+    if (!attempt || !attempt.borrowed || attempt.probe) return;
+    if (response.status !== 403 && response.status !== 451) return;
+    let bodyText: string | null = null;
+    try {
+      bodyText = await response.clone().text();
+    } catch {
+      log?.debug?.("OPENCODE", "body read failed on borrowed-shape check");
+    }
+    noteFreeTierOutcome(attempt, { ok: false, status: response.status, bodyText });
   }
 
   private normalizeMuseSparkResponse(
@@ -562,7 +606,14 @@ export class OpencodeExecutor extends BaseExecutor {
       const hasProxies = accounts.some((a) => a.proxy !== null);
       // Opt-in Responses first-byte stall guard; 0 = no-op.
       const stallWindowMs = setupStallGuard(input.stream, this._requestFormat, log, cid).windowMs;
-      const guardStall = <T>(r: T) => guardResponsesStall(r, stallWindowMs, input.signal);
+      const guardStall = makeStallGuardedCall(
+        input.stream,
+        this._requestFormat,
+        stallWindowMs,
+        input.signal,
+        log,
+        cid
+      );
       const headersWait = headersWaitState(
         input,
         this._requestFormat,
@@ -598,10 +649,14 @@ export class OpencodeExecutor extends BaseExecutor {
             ) as unknown as Promise<HttpExecuteResult>
         );
         if (retryAfterRefusal) {
+          await this.noteFreeTierRefusal(input, retryAfterRefusal.response, log);
           return this.finalizeForcedStream(
             input,
             this.normalizeMuseSparkResponse(input, retryAfterRefusal)
           );
+        }
+        if (single.response.status === 403 || single.response.status === 451) {
+          await this.noteFreeTierRefusal(input, single.response, log);
         }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
@@ -705,7 +760,7 @@ export class OpencodeExecutor extends BaseExecutor {
         this.buildUrl(String(input.model ?? ""), Boolean(input.stream)),
         resolveProxyForRequest
       );
-      const { readAppliedKey, keyOfMember } = appliedEgress;
+      const { readAppliedKey, keyOfMember, noteRefused } = appliedEgress;
 
       for (let attempt = 0; attempt < accounts.length + emptyRejectionBudget; attempt++) {
         appliedEgress.resetAttempt();
@@ -832,7 +887,8 @@ export class OpencodeExecutor extends BaseExecutor {
           addedWait.causes.add("throttle");
           publishAddedWait();
         }
-        appliedEgress.rememberServed(account); // Served (post repick), never acquire-time.
+        appliedEgress.rememberServed(account); // Served (post repick); the attempt egress label reads it here.
+        const egress = egressPacing.egressLabel(account, readAppliedKey);
         let result: HttpExecuteResult;
         try {
           const { outcome, waitMs } = await headersWaitDispatch(
@@ -866,7 +922,7 @@ export class OpencodeExecutor extends BaseExecutor {
             }); // same settle as the stall arm
             log?.warn?.(
               "OPENCODE",
-              `${cid}no response headers within ${waitMs}ms on account ${masked}, rotating to next…`
+              `${cid}no response headers within ${waitMs}ms on account ${masked}, rotating to next… ${egress}`
             );
             continue;
           }
@@ -887,7 +943,7 @@ export class OpencodeExecutor extends BaseExecutor {
             });
             log?.warn?.(
               "OPENCODE",
-              `${cid}stream stalled on account ${masked}, ${rotate ? "rotating…" : "not rotating again"} (${reason})`
+              `${cid}stream stalled on account ${masked}, ${rotate ? "rotating…" : "not rotating again"} (${reason}) ${egress}`
             );
             if (!rotate) egressPacing.throwPacedError(egressRelease, err);
             continue;
@@ -906,21 +962,21 @@ export class OpencodeExecutor extends BaseExecutor {
               lastSharedEgressError = err;
               log?.warn?.(
                 "OPENCODE",
-                `${cid}network error on account ${masked} (no dedicated proxy, shared egress), cooldown — trying next… (${reason})`
+                `${cid}network error on account ${masked} (no dedicated proxy, shared egress), cooldown — trying next… (${reason}) ${egress}`
               );
               egressPacing.releasePacingSlot(egressRelease);
               continue;
             }
             log?.warn?.(
               "OPENCODE",
-              `${cid}network error on account ${masked} (no dedicated proxy, shared egress) — not rotating (${reason})`
+              `${cid}network error on account ${masked} (no dedicated proxy, shared egress) — not rotating (${reason}) ${egress}`
             );
             egressPacing.throwPacedError(egressRelease, err);
           }
           markCooldown(account);
           log?.warn?.(
             "OPENCODE",
-            `${cid}network error on account ${masked}, rotating to next… (${reason})`
+            `${cid}network error on account ${masked}, rotating to next… (${reason}) ${egress}`
           );
           egressPacing.releasePacingSlot(egressRelease);
           continue;
@@ -951,7 +1007,7 @@ export class OpencodeExecutor extends BaseExecutor {
               result.response,
               isOpencodeRateLimited429EarlyStopEnabled
             );
-            egressPacing.log429Outcome(log, cid, arm, masked, setAsideMs);
+            egressPacing.log429Outcome(log, cid, arm, masked, setAsideMs, egress);
             if (arm === "stop") {
               if (attributionOn && skippedCooldown.size > 0) {
                 this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
@@ -1032,7 +1088,7 @@ export class OpencodeExecutor extends BaseExecutor {
                 lastPoolKey = poolReselectKeyOf(next);
                 log?.warn?.(
                   "OPENCODE",
-                  `${cid}pool re-selected egress for account ${masked} after 429, retrying on another member…`
+                  `${cid}pool re-selected egress for account ${masked} after 429, retrying on another member… ${egressPacing.egressLabel({ proxy: next as ScopedAccount["proxy"], fingerprint: account.fingerprint })}`
                 );
               }
             }
@@ -1046,7 +1102,7 @@ export class OpencodeExecutor extends BaseExecutor {
             transientStreak = priorTransientStreak + 1;
             log?.warn?.(
               "OPENCODE",
-              `${cid}transient upstream ${status} on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
+              `${cid}transient upstream ${status} on account ${masked}, rotating to next… ${egress}`
             );
             // Deliberately a separate branch from the 400-empty arm below,
             // not one merged `if`: this arm never touches the body, the 400
@@ -1069,7 +1125,8 @@ export class OpencodeExecutor extends BaseExecutor {
               const key = proxyKeyOf(account.proxy);
               if (key !== null) geoTriedProxyKeys.add(key);
               else directTried = true;
-              log?.warn?.("OPENCODE", `${cid}geo-blocked on account ${masked}, rotating…`);
+              const setAsideMs = noteRefused(account, skipRecentlyFailed, "geo_blocked");
+              egressPacing.logRefusedOutcome(log, cid, masked, setAsideMs, "geo-blocked", egress);
               // Single account with a proxy: 0 retries (same egress = dead latency).
               // (The fast path above already covers single-without-proxy; here length===1 WITH proxy.)
               if (accounts.length === 1) {
@@ -1096,7 +1153,7 @@ export class OpencodeExecutor extends BaseExecutor {
               const rotate = userBlockedRotations === 0 && accounts.length > 1;
               log?.warn?.(
                 "OPENCODE",
-                `${cid}user_blocked ${status} on account ${masked} (proxy ${key ?? "direct"}), ${rotate ? "rotating to next account once…" : "returning the refusal"}`
+                `${cid}user_blocked ${status} on account ${masked}, ${rotate ? "rotating to next account once…" : "returning the refusal"} ${egress}`
               );
               if (!rotate) {
                 if (attributionOn && skippedCooldown.size > 0) {
@@ -1112,6 +1169,11 @@ export class OpencodeExecutor extends BaseExecutor {
             // request shape), not this account. Handled in opencodeFreeTierRetry.ts
             // (one bounded retry with observed tools appended, then unchanged return).
             if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+              noteFreeTierOutcome(attemptFor(input.body), {
+                ok: false,
+                status,
+                bodyText,
+              });
               if (attributionOn && skippedCooldown.size > 0) {
                 this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
               }
@@ -1154,7 +1216,7 @@ export class OpencodeExecutor extends BaseExecutor {
               transientStreak = priorTransientStreak + 1;
               log?.warn?.(
                 "OPENCODE",
-                `${cid}upstream empty rejection on account ${masked} (${chatcmplId}), rotating to next…`
+                `${cid}upstream empty rejection on account ${masked} (${chatcmplId}), rotating to next… ${egress}`
               );
               continue;
             }
@@ -1296,6 +1358,7 @@ export class OpencodeExecutor extends BaseExecutor {
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
         cliDefaults,
+        keepAgentUserAgent: this._surface() === "go" && !gatedScope, // #15311
         sessionBody: projectOpencodeSessionBody(body),
       });
     }

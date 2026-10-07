@@ -67,9 +67,15 @@ function runtimeAnchors(): string[] {
 export function resolveWorkerFile(): string {
   const anchors = runtimeAnchors();
 
-  // Prod first: the .js under the install root.
+  // The tracked .js file is only a Turbopack build-time placeholder in the source tree.
+  // A colocated bundle has its own ESM scope, written by colocate-standalone.mjs.
   const jsRoot = firstAncestorWith(anchors, WORKER_JS_REL);
-  if (jsRoot) return join(jsRoot, WORKER_JS_REL);
+  if (
+    jsRoot &&
+    (!existsSync(join(jsRoot, WORKER_TS_REL)) ||
+      existsSync(join(dirname(join(jsRoot, WORKER_JS_REL)), "package.json")))
+  )
+    return join(jsRoot, WORKER_JS_REL);
 
   // Dev: the .ts source.
   const tsRoot = firstAncestorWith(anchors, WORKER_TS_REL);

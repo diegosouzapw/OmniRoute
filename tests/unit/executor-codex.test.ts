@@ -184,10 +184,10 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.156.1");
+  assert.equal(standardHeaders.Version, "0.159.2");
   assert.equal(standardHeaders["Openai-Beta"], "responses_websockets=2026-02-06");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], undefined);
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.156.1 (Windows 10.0.26200; x64)");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.159.2 (Windows 10.0.26200; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -213,7 +213,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.156.1");
+      assert.equal(headers.Version, "0.159.2");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -1541,11 +1541,10 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
-test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
-  // Source intentionally returns null (not an error object) so that base.ts does
-  // not spread stale error fields onto activeCredentials. The upstream 401/403
-  // drives the proper re-auth / mark-expired path instead.
-  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
+test("CodexExecutor.refreshCredentials surfaces an unrecoverable sentinel for dead refresh tokens", async () => {
+  // A dead refresh token is terminal for this connection, not a provider
+  // outage: the unrecoverable sentinel skips retries and spares the breaker.
+  // Source: open-sse/executors/codex.ts — refreshCredentials().
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1556,7 +1555,8 @@ test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to 
 
   try {
     const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
-    assert.equal(result, null, "should return null to leave original credentials untouched");
+    assert.equal(result?.error, "unrecoverable_refresh_error");
+    assert.equal(result?.code, "invalid_grant");
   } finally {
     globalThis.fetch = originalFetch;
   }

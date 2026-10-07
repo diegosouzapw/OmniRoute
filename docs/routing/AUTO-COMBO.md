@@ -209,6 +209,17 @@ The Auto-Combo Engine dynamically selects the best provider/model for each reque
 | `quality`             | 0.03           | Feedback-driven output-quality signal from the routing-event quality tracker; candidates without observations receive a neutral 0.5                                                            |
 | `reliability`         | 0.00           | Observed success share, `1 - failureRate`, from 24h of usage history behind a ten-sample floor (real-time metrics otherwise); candidates with no observations read as 1.0. Disabled by default |
 
+> **Unreadable quota (#15347).** When a provider has a quota fetcher but it returns nothing
+> readable (failed fetch, missing credentials, message-only usage, or a malformed snapshot with no
+> parseable `windows` and no finite `percentUsed`, including `percentUsed: null`), the candidate
+> scores `0` on the `quota` axis and its final score is multiplied by
+> `UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR` (0.5, `autoStrategy.ts`), the same soft-penalty
+> pattern as the connection-status penalty. A failed usage read is evidence about the telemetry,
+> not the provider, so it ranks strictly below any real reading, including a confirmed 100%-used
+> one, but is never hard-blocked or evicted. A provider with no cap reports `unlimited: true` and
+> scores as full quota; a provider with no registered quota fetcher has no telemetry source at all
+> and keeps the default of `100`.
+
 **Sum:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` as declared in `DEFAULT_WEIGHTS`; user-configured weights are renormalized into a distribution by `normalizeScoringWeights()` before scoring.
 
 ## Mode Packs

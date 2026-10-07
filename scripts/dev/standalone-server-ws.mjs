@@ -27,15 +27,79 @@ installProcessCrashGuard();
 // service. No-op outside systemd (no NOTIFY_SOCKET).
 const systemdNotifier = createSystemdNotifier();
 let systemdReadySent = false;
-// NOTE: if an operator sets NEXT_MANUAL_SIG_HANDLE=1, Next never registers its
-// own signal cleanup and these once() handlers would suppress Node's default
-// signal exit (process lingers until systemd's stop-timeout SIGKILL). Nothing
-// in this repo sets that var; acceptable, documented behavior.
-process.once("SIGINT", () => systemdNotifier.stopping());
-process.once("SIGTERM", () => systemdNotifier.stopping());
 
 const originalCreateServer = http.createServer.bind(http);
 const proxiesByPort = new Map();
+/** Every server created through the patched factory (Next's main listener included). */
+const createdServers = new Set();
+
+// Shutdown ownership (same model as scripts/dev/run-next.mjs, #12074). Next's start-server
+// registers SIGINT/SIGTERM handlers that server.close() and then process.exit(143) as soon as no
+// connection is left. That raced OmniRoute's async cleanup (src/lib/gracefulShutdown.ts: spend
+// batch flush, call-log flush, DB checkpoint) and usually won, so a SIGTERM (docker stop,
+// systemctl stop, Ctrl+C) dropped that work. This wrapper owns process exit instead:
+//   - NEXT_MANUAL_SIG_HANDLE tells Next not to install its handlers. Next reads it once, in its
+//     'listening' handler; it is cleared right after (see the factory below) so spawned children
+//     (embedded services, some of them Next apps) do not inherit it and ignore SIGTERM.
+//   - __omnirouteCustomServerOwnsShutdown makes initGracefulShutdown() register its cleanup as
+//     globalThis.__omnirouteRequestShutdown instead of installing competing signal listeners.
+// Both must be set before ./server.js loads.
+// Consequence: Next's own SIGTERM handler is disabled in standalone, so its nextServer.close()
+// no longer runs and pending after() / waitUntil work is NOT awaited on shutdown. Anyone adding a
+// data-writing after() must flush it in OmniRoute's shutdown (src/lib/gracefulShutdown.ts).
+// Empty or unset counts as "not set" (an empty value is falsy for Next, which would install its
+// handler and bring back the exit-143 race).
+const ownsNextSignalEnv = !process.env.NEXT_MANUAL_SIG_HANDLE;
+if (ownsNextSignalEnv) process.env.NEXT_MANUAL_SIG_HANDLE = "1";
+globalThis.__omnirouteCustomServerOwnsShutdown = true;
+
+// Bounded: gracefulShutdown waits up to SHUTDOWN_TIMEOUT_MS for in-flight requests, then cleans
+// up; the margin covers the flush/checkpoint work.
+const SHUTDOWN_CLEANUP_MARGIN_MS = 5000;
+function resolveForceExitMs() {
+  const drainMs = Number.parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
+  return (Number.isFinite(drainMs) && drainMs >= 0 ? drainMs : 30000) + SHUTDOWN_CLEANUP_MARGIN_MS;
+}
+
+let shutdownStarted = false;
+async function shutdown(signal) {
+  // Duplicate signals are normal (a terminal Ctrl+C reaches both this process and the parent
+  // launcher, which forwards SIGTERM too); the force-exit timer bounds the whole sequence.
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  const forceExitMs = resolveForceExitMs();
+  const forceExitTimer = setTimeout(() => {
+    console.warn(`[Shutdown] Cleanup still running after ${forceExitMs}ms; forcing exit.`);
+    process.exit(0);
+  }, forceExitMs);
+  forceExitTimer.unref?.();
+  systemdNotifier.stopping();
+  try {
+    // Stop accepting connections; in-flight requests keep running until the drain below.
+    for (const server of createdServers) {
+      if (server.listening) server.close(() => {});
+      server.closeIdleConnections?.();
+    }
+  } catch (error) {
+    console.error("[Shutdown] Closing HTTP servers failed:", error?.message ?? error);
+  }
+  try {
+    // Undefined when instrumentation never got that far (signal during boot): just exit.
+    await globalThis.__omnirouteRequestShutdown?.(signal);
+  } catch (error) {
+    console.error("[Shutdown] Cleanup failed during", signal, error?.message ?? error);
+  } finally {
+    clearTimeout(forceExitTimer);
+    // One macrotask before exit (#13306: let sql.js/libuv teardown settle on Windows).
+    setTimeout(() => process.exit(0), 0);
+  }
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+// #8045: Windows maps console-window close to SIGHUP; gracefulShutdown used to handle it here.
+process.on("SIGHUP", () => void shutdown("SIGHUP"));
+
 const { wrapRequestListenerWithMethodGuard } = methodGuard;
 const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
 
@@ -183,6 +247,8 @@ http.createServer = function createServerWithResponsesWs(...args) {
   // listener); otherwise the original http.Server. The downstream .on/.addListener
   // patches below apply identically to both (https.Server extends http.Server).
   const server = createServerListener(args, tlsOptions, { createHttp: originalCreateServer });
+  createdServers.add(server);
+  server.once("close", () => createdServers.delete(server));
   // Node's http.Server default keepAliveTimeout (5_000ms) races pooled
   // keep-alive HTTP clients that idle longer than that between requests (e.g.
   // the JVM java.net.http.HttpClient used by JetBrains AI Assistant), which
@@ -237,6 +303,13 @@ http.createServer = function createServerWithResponsesWs(...args) {
   // sd_notify READY once the main listener is actually accepting, then arm
   // the watchdog keep-alive interval (unref'd — never keeps the process up).
   server.once("listening", () => {
+    // Next reads NEXT_MANUAL_SIG_HANDLE synchronously in its own 'listening' handler, which runs
+    // right after this one; clear it on the next turn so child processes never inherit it.
+    if (ownsNextSignalEnv) {
+      setImmediate(() => {
+        delete process.env.NEXT_MANUAL_SIG_HANDLE;
+      });
+    }
     if (systemdReadySent) return;
     systemdReadySent = true;
     systemdNotifier.ready();

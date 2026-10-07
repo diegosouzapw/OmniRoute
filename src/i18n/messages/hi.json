@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy पूल और opencode का प्रति-अकाउंट रोटेशन, हाल ही में विफल हुए Proxy (अस्वीकृत TCP प्रोब या उसके माध्यम से प्राप्त 429) को प्रति-प्रोसेस अवधि तक दोबारा उपयोग नहीं करता है। यह अवधि हर बार विफलता दोहराए जाने पर दोगुनी होती है, एक अधिकतम सीमा तक। Proxy की कोई स्थिति लिखी नहीं जाती; प्रत्येक उम्मीदवार को अलग रखे जाने पर चयन अपरिवर्तित रहता है। डिफ़ॉल्ट रूप से चालू; `false` सामान्य चयन बहाल करता है।",
   "featureFlagProxyPoolSharedEgressOrderDescription": "जिन प्रदाताओं का कोटा egress पते के अनुसार बाँटा जाता है, उनके लिए हाल ही में अस्वीकृत सदस्य का देखा गया egress पता साझा करने वाले pool सदस्य को स्वस्थ सदस्यों के ठीक नीचे रखता है। केवल क्रम, कभी बाहर नहीं किया जाता। PROXY_SKIP_RECENTLY_FAILED आवश्यक है, जो वह अस्वीकृति संकेत उत्पन्न करता है जिसे यह पढ़ता है। डिफ़ॉल्ट रूप से बंद: चयन क्रम बिल्कुल सामान्य रोटेशन है।",
   "featureFlagProxyPoolEgressObservationDescription": "डैशबोर्ड में किसी Proxy पूल के अंतर्गत दिखाएँ कि पिछले 24 घंटों में कितने देखे गए एग्रेस IP ने उसके सदस्यों को सेवा दी, कितने कनेक्शनों ने उनका उपयोग किया और एक IP के पीछे सबसे अधिक कितने कनेक्शन देखे गए। केवल पढ़ने योग्य, Proxy लॉग से परिकलित और रूटिंग के लिए कभी उपयोग नहीं किया जाता। डिफ़ॉल्ट रूप से बंद: पूल एडिटर अपरिवर्तित रहता है और ऑब्ज़र्वेशन रूट null लौटाता है।",
+  "featureFlagProxyOperatorEgressDescription": "ऑपरेटर द्वारा धकेले गए तिथि-युक्त अवलोकित पते को प्रत्येक पूल सदस्य के लिए स्वीकार करें और उन्हें प्रदर्शन और पूल क्रम के लिए जर्नल पढ़ने के साथ मर्ज करें। डिफ़ॉल्ट रूप से बंद: पुश रूट 404 का उत्तर देता है और पूल रीड्स पहले की तरह ही व्यवहार करते हैं।",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy हेल्थ स्वीप में, लक्ष्य द्वारा अस्वीकृत प्रोब (401/403/429: Proxy ने इसे रिले किया, लेकिन गंतव्य ने इस एग्रेस IP को अस्वीकार किया) को, सेवा दिए गए प्रोब की तरह, Proxy की लगातार-विफलता शृंखला रीसेट करने दें। डिफ़ॉल्ट रूप से बंद: अस्वीकृति तटस्थ रहती है और शृंखला को बनाए रखती है। 5xx दोनों ही स्थितियों में अनिर्णायक रहता है, और कोई अस्वीकृति कभी भी Proxy को हटाती, अक्षम या फिर से सक्रिय नहीं करती।",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "स्वचालित क्लीनअप स्वीप को OMNIROUTE_BATCH_RETENTION_DAYS से पुराने टर्मिनल (पूर्ण/विफल/रद्द/समय-सीमा समाप्त) Batch API जॉब्स को उनके प्रति-पंक्ति चेकपॉइंट्स सहित हटाने दें, और जिन अपलोड की गई फ़ाइलों का expires_at बीत चुका है उनकी BLOB सामग्री साफ़ करने दें। डिफ़ॉल्ट रूप से बंद: ऑपरेटर के इसे चालू करने तक प्रत्येक मौजूदा इंस्टॉलेशन इस डेटा को बिल्कुल पहले की तरह बनाए रखता है। ऑपरेटर द्वारा ट्रिगर किया गया DELETE /api/v1/batches/delete-completed रूट किसी भी स्थिति में अप्रभावित रहता है—यह एक अलग, बिना शर्त सार्वजनिक API अनुबंध है।",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "xai-oauth कनेक्शनों के लिए स्थिर स्टैटिक सीड के बजाय OAuth bearer token का उपयोग करके https://api.x.ai/v1/models से लाइव xAI मॉडल कैटलॉग प्राप्त करें। डिफ़ॉल्ट रूप से बंद: xai-oauth स्टैटिक सीड को बिना बदलाव के उपलब्ध कराता रहता है। मॉडल सूची निर्धारित करने में कोई भी त्रुटि होने पर, खोज प्रक्रिया वापस सीड का उपयोग करती है।",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "स्थानीय प्रॉक्सी-कोर एंडपॉइंट अमान्य है; SS/VMess/Trojan/VLESS नोड्स को अनदेखा कर दिया गया।",
         "NEEDS_CORE_NOT_CONFIGURED": "इस सदस्यता में ऐसे नोड्स हैं जिन्हें स्थानीय प्रॉक्सी कोर (SS/VMess/Trojan/VLESS) की आवश्यकता है; जब तक आप स्थानीय-कोर SOCKS5 एंडपॉइंट को कॉन्फ़िगर नहीं करते, तब तक उन्हें रूट नहीं किया जाएगा।",
         "NO_USABLE_NODES": "सदस्यता से कोई उपयोगी नोड्स प्राप्त नहीं हुए (http/https/socks5 या स्थानीय कोर एंडपॉइंट वाले नोड्स)।",
-        "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल विफल रहा; पिछला मार्ग सक्रिय रहता है। नियंत्रण URL और सीक्रेट जाँचें, फिर रीफ़्रेश करें।"
+        "SELECTOR_SWITCH_FAILED": "प्रॉक्सी-कोर नियंत्रण कॉल विफल रहा; पिछला मार्ग सक्रिय रहता है। नियंत्रण URL और सीक्रेट जाँचें, फिर रीफ़्रेश करें।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "उत्पन्न मूल कॉन्फ़िगरेशन अपनाई गई फ़ाइल को प्रतिस्थापित नहीं कर सका; इसके बजाय उसके बगल वाली प्रति बनाए रखी गई।",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "उत्पादन के दौरान कुछ प्रविष्टियाँ छोड़ दी गईं। सर्वर लॉग देखें।"
       },
       "description": "अपना प्रॉक्सी सदस्यता लिंक चिपकाएँ. एक बार सक्षम होने पर, ट्रैफ़िक को प्रॉक्सी पूल के माध्यम से वैश्विक या नियम (निर्दिष्ट प्रदाता) मोड में रूट किया जाता है। सदस्यता नोड्स स्वचालित रूप से प्रॉक्सी पूल में सिंक हो जाते हैं और मौजूदा मतदान, स्वास्थ्य-जांच और एंटी-लीक तंत्र का पुन: उपयोग करते हैं।",
       "addSubscription": "सदस्यता जोड़ें",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "अभी तक कोई स्विच दर्ज नहीं",
       "lastSwitchMember": "सेवारत सदस्य",
       "nextSwitch": "अगला संभावित स्विच",
-      "nextSwitchNow": "अभी"
+      "nextSwitchNow": "अभी",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "कोर बाइनरी पथ",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "वैकल्पिक: अपनाई गई फ़ाइल को प्रतिस्थापित करने से पहले कोर बाइनरी के साथ उत्पन्न फ़ाइल को सत्यापित करता है। इसके बगल में लिखते रहने के लिए खाली छोड़ें। न होने पर निर्देशिका बना दी जाती है।"
     },
     "bulkHealthcheck": "सामूहिक स्वास्थ्य जाँच",
     "bulkHealthcheckDesc": "यह पता लगाने के लिए कि कौन-से प्रॉक्सी काम करते हैं, सभी कॉन्फ़िगर किए गए प्रॉक्सी का लक्ष्य URL के विरुद्ध परीक्षण करें।",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "एमसीपी विवरण संपीड़न",
     "mcpAccessibilityTitle": "MCP एक्सेसिबिलिटी आउटपुट",
     "compressionSettingsCavemanIntensity": "गुफामानव तीव्रता",
-    "compressionSettingsCavemanOutputMode": "केवमैन आउटपुट मोड",
     "compressionSettingsOutputStyles": "आउटपुट शैलियाँ",
     "compressionStylesTileTitle": "आउटपुट शैलियाँ",
     "compressionSettingsOutputIntensity": "आउटपुट तीव्रता",
-    "compressionSettingsAutoClarityBypass": "ऑटो स्पष्टता बायपास",
     "compressionEffectivePipeline": "प्रभावी पाइपलाइन:",
     "compressionDerivedOff": "बंद",
     "compressionDerivedRuns": "रन: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "यह कुंजी GET /v1/models में क्या दिखाती है। सूची को सीमित करने से यह कभी नहीं बदलता कि कुंजी किन्हें कॉल कर सकती है।",
     "catalogScopeAll": "दोनों",
     "catalogScopeCombos": "केवल कॉम्बो",
-    "catalogScopeModels": "केवल मॉडल"
+    "catalogScopeModels": "केवल मॉडल",
+    "resilienceTokenRefreshTitle": "टोकन रिफ्रेश ब्रेकर",
+    "resilienceTokenRefreshDesc": "बार-बार विफल होने के बाद टोकन रिफ्रेश करने का प्रयास बंद कर देता है। प्रति-कनेक्शन स्कोप एक मृत खाते को अलग करता है, ताकि उसी प्रदाता पर स्वस्थ खाते रिफ्रेश होते रहें।",
+    "resilienceTokenRefreshScope": "एक प्रदाता के लिए टोकन रिफ्रेश प्रयास",
+    "resilienceTokenRefreshTrigger": "लगातार असफल रीफ्रेश प्रयास",
+    "resilienceTokenRefreshEffect": "ठंडन की अवधि के लिए रिफ्रेश प्रयासों को रोकता है",
+    "resilienceTokenRefreshScopeLabel": "दायरा",
+    "resilienceTokenRefreshScopeProvider": "प्रदाता (सभी खाते एक ही ब्रेकर साझा करते हैं)",
+    "resilienceTokenRefreshScopeConnection": "कनेक्शन (प्रत्येक खाते का अपना ब्रेकर है)",
+    "resilienceTokenRefreshThreshold": "रोकने से पहले विफलताएँ",
+    "resilienceTokenRefreshCooldown": "ट्रिप होने के बाद विराम"
   },
   "contextRtk": {
     "title": "RTK इंजन",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "लोड हो रहा है…",
     "loadFailed": "इंजन की जानकारी लोड करने में विफल।",
+    "settingsLoadFailed": "सहेजी गई सेटिंग लोड नहीं हो सकीं। फ़ील्ड डिफ़ॉल्ट मान दिखाते हैं, और पेज फिर से लोड होने तक सहेजें अक्षम रहता है।",
     "engineNotFound": "इंजन \"{engine}\" नहीं मिला।",
     "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल।",
     "previewFailed": "पूर्वावलोकन विफल रहा।",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "कॉम्पैक्ट करने के लिए न्यूनतम पंक्तियाँ",
         "description": "सारणीबद्ध कॉम्पैक्शन को ट्रिगर करने के लिए सजातीय JSON ऐरे में आवश्यक न्यूनतम पंक्तियाँ। डिफ़ॉल्ट: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "सिस्टम प्रॉम्प्ट सुरक्षित रखें"
       },
       "summarizerEnabled": {
         "label": "समराइज़र सक्षम करें"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "इससे छोटे संदेश संपीड़ित नहीं होते. कम = अधिक संपीड़न।",
     "tooltipMinSavings": "केवल तभी संपीड़ित करें यदि यह कम से कम इतने टोकन बचाता है।",
     "ultraSettings": "अल्ट्रा सेटिंग्स",
-    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न",
-    "preview": {
-      "lite": "संक्षिप्त उत्तर दें। तकनीकी शब्द, कोड, त्रुटियाँ, URLs और पहचानकर्ता अपरिवर्तित रखें।",
-      "full": "अत्यंत संक्षिप्त और सघन उत्तर दें। सभी तकनीकी तथ्य बनाए रखें।",
-      "ultra": "सामान्य तकनीकी संक्षेपों के साथ अत्यंत संक्षिप्त उत्तर दें। सटीक प्रतीकों को अपरिवर्तित रखें।"
-    }
+    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न"
   },
   "translator": {
     "title": "अनुवादक",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "बिना निर्धारित एग्ज़िट वाली विफलताएँ: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} के माध्यम से बाहर गया · पिछले {hours} घंटे",
     "poolMemberEgressEmpty": "{host}:{port}: पिछले {hours} घंटों में कोई ट्रैफ़िक नहीं देखा गया",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} के माध्यम से छोड़ा गया · ऑपरेटर द्वारा प्रदान किया गया, {date}",
     "poolMemberEgressHint": "निर्धारित अवधि के दौरान इस पूल सदस्य के माध्यम से देखा गया अंतिम इग्रेस IP, जिसे प्रॉक्सी लॉग से पढ़ा गया है। इस अवधि में कोई ट्रैफ़िक न होने पर सदस्य के लिए ‘कोई ट्रैफ़िक नहीं’ वाली पंक्ति दिखाई जाती है।",
     "poolRemove": "हटाएं",
     "poolRemoveFailed": "पूल से प्रॉक्सी को हटाने में विफल",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "प्रॉक्सी तक पहुँचा नहीं जा सका",
     "poolSetAsideKindIpQuota429": "IP दर सीमा (429)",
     "poolSetAsideKindSlow": "धीमी प्रतिक्रियाएँ",
+    "poolSetAsideKindGeoBlocked": "क्षेत्र अवरुद्ध (403/451)",
     "poolSetAsideUntil": "रोटेशन में वापस {endsAt}",
     "poolSetAsideRepeat": "अलग रखा गया {count, plural, one {# बार} other {# बार}}",
     "poolUnknownAddress": "अज्ञात पता",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "स्थिति क्रम",
     "poolHealthRankingOff": "स्वास्थ्य रैंकिंग बंद",
     "transportRate": "{rate}% ट्रांसपोर्ट",
+    "slowAbandoned": "{count} धीमी परित्यागें",
+    "clientAborted": "{count} क्लाइंट रद्दीकरण",
+    "slowAbandonedHint": "हेडर प्रतीक्षा सीमा के बाद परित्यक्त, परिवहन दर से बाहर रखा गया",
     "previousSuccessRate": "पहले {rate}% सफलता",
-    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृतियाँ",
     "connectionTestsCount": "{count} कनेक्शन परीक्षण",
-    "notMeasured": "मापा नहीं गया"
+    "notMeasured": "मापा नहीं गया",
+    "upstream4xx": "{count} उपरी क्लाइंट त्रुटियाँ",
+    "upstream5xx": "{count} उपरी सर्वर त्रुटियाँ",
+    "uniformEgressLine": "{exits} में से {affected} एग्ज़िट {provider} पर एक साथ विफल हो रहे हैं (पिछले {hours} घंटों में) — यह एग्ज़िट की समस्या नहीं है"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "कनेक्शन पूल से विरासत ({count})",
     "poolEmptyBlocked": "पूल खाली — अनुरोध विफल होते हैं (प्रत्यक्ष नहीं)",
     "directEgress": "प्रत्यक्ष (बिना प्रॉक्सी)",
-    "ownProxy": "अपना प्रॉक्सी"
+    "ownProxy": "अपना प्रॉक्सी",
+    "freeTierPause": "मॉडल {model} रोका गया (429), {time} पर वापस",
+    "freeTierPauseProvider": "रोका गया (429), {time} पर वापस",
+    "freeTierPauseNote": "इस इंस्टेंस पर इन-प्रोसेस पॉज़"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,9 +13084,9 @@
     "dbOverrideCount": "{count} DB ओवरराइड",
     "searchPlaceholder": "फ़्लैग खोजें...",
     "descriptionModeLabel": "विवरण दृश्य",
-    "descriptionModeHint": "होवर करने पर: कार्ड संक्षिप्त रहते हैं और किसी विवरण पर होवर करने से पूरा टेक्स्ट दिखाई देता है। पूरा टेक्स्ट: हमेशा संपूर्ण विवरण दिखाएँ।",
+    "descriptionModeHint": "होवर करने पर: कार्ड छोटे रहते हैं और किसी विवरण पर होवर करने पर पूरा पाठ दिखता है। पूरा पाठ: विवरण हमेशा पूरा दिखाएँ।",
     "descriptionModeHover": "होवर करने पर",
-    "descriptionModeFull": "पूरा टेक्स्ट",
+    "descriptionModeFull": "पूरा पाठ",
     "categories": {
       "all": "सभी",
       "security": "सुरक्षा",
