@@ -32,6 +32,7 @@ import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
 import { getInternalServiceAuthHeaders } from "../../src/lib/api/internalServiceAuth.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 /**
  * Read per-call, never at module load: a snapshot taken at import time silently drops a
@@ -60,7 +61,16 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
   const response = await fetch(url, { ...options, headers, signal });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
+    // S-02 (#15159): sanitize HERE rather than relying on every consumer to do it.
+    // The body is whatever OmniRoute's own API (and whatever IT forwarded from a
+    // provider) put in it — credentials, internal paths and stack frames included.
+    // Every current caller routes through toSafeMcpErrorMessage, so nothing leaks
+    // today, but that guarantee was spread across ~16 call sites: one new site
+    // interpolating `err.message` would re-open the leak across the whole MCP
+    // surface. Sanitizing at the throw makes it a property of the hop instead of a
+    // convention. The status is generated here, not upstream, so it always survives.
+    const rawText = await response.text().catch(() => "Unknown error");
+    const errorText = sanitizeErrorMessage(rawText) || "Unknown error";
     throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
   }
 
