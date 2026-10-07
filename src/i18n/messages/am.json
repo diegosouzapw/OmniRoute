@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "የፕሮክሲ ፑሎች እና የ opencode የየመለያው ዙር ምርጫ፣ አሁን ያልተሳካውን ፕሮክሲ (ውድቅ የተደረገ TCP ሙከራ ወይም በእሱ በኩል የተቀበለ 429) በድጋሚ እንዳያቀርቡ ያደርጋሉ፤ ይህም በእያንዳንዱ ድግግሞሽ እስከ ከፍተኛው ገደብ ድረስ በእጥፍ ለሚጨምር የየሂደቱ ጊዜ ነው። ምንም የፕሮክሲ ሁኔታ አይጻፍም፤ እያንዳንዱ እጩ ወደ ጎን ሲቀመጥ ምርጫው አይለወጥም። በነባሪ በርቷል፤ `false` ተራውን ምርጫ ይመልሳል።",
   "featureFlagProxyPoolSharedEgressOrderDescription": "ኮታቸው በegress አድራሻ ለሚከፋፈል አቅራቢዎች፣ በቅርቡ ውድቅ የተደረገ አባል የታየውን egress አድራሻ የሚጋራ የpool አባልን ከጤናማ አባላት በታች ብቻ ያስቀምጣል። ቅደም ተከተልን ብቻ ይቀይራል፣ በፍጹም አያስወግድም። PROXY_SKIP_RECENTLY_FAILED ያስፈልገዋል፤ እሱ የሚያነበውን የውድቅ ምልክት የሚያመነጨው እሱ ነው። በነባሪ ጠፍቷል፦ የምርጫ ቅደም ተከተሉ ልክ እንደ ተራው ዙር ነው።",
   "featureFlagProxyPoolEgressObservationDescription": "በዳሽቦርዱ ውስጥ ከፕሮክሲ ፑል ሥር፣ ባለፉት 24 ሰዓታት ምን ያህል የታዩ የመውጫ IPዎች አባላቱን እንዳገለገሉ፣ ምን ያህል ግንኙነቶች እንደተጠቀሙባቸው እና ከአንድ IP ጀርባ የታየውን ከፍተኛ ቁጥር አሳይ። ለንባብ ብቻ ነው፣ ከፕሮክሲ ሎጉ ይሰላል፣ ለማዞሪያም ፈጽሞ ጥቅም ላይ አይውልም። በነባሪ ጠፍቷል፦ የፑሉ አርታዒ አይለወጥም፣ የምልከታ መስመሩም null ይመልሳል።",
+  "featureFlagProxyOperatorEgressDescription": "የኦፕሬተር የገጠመውን ቀን ያለው የተገኘ አድራሻዎችን በፖል አባል እያንዳንዱ ተቀብሎ ለማሳያና ለፖል ሥርዓት ከጂርናል ንባብ ጋር ያዋህዳል. ነባሪ ሁኔታ ላይ አይደለም: የፓሽ ረውት 404 መልስ ይሰጣል እና የፖል ንባቦች እንደ ቀድሞው በትክክል ይሠራሉ.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "በፕሮክሲ ጤና ፍተሻ ውስጥ፣ ዒላማው ውድቅ ያደረገው ሙከራ (401/403/429፦ ፕሮክሲው አስተላልፏል፣ መዳረሻው ግን ይህን የመውጫ IP ውድቅ አድርጓል) ልክ እንደተሳካ ሙከራ የፕሮክሲውን ተከታታይ የውድቀት ቆጠራ ዳግም እንዲጀምር ፍቀድ። በነባሪ ጠፍቷል፦ ውድቅ መደረጉ ገለልተኛ ሆኖ ይቆያል እና ቆጠራውን እንዳለ ያቆያል። 5xx በሁለቱም ሁኔታ የማያረጋግጥ ሆኖ ይቆያል፣ እና ውድቅ መደረግ ፕሮክሲን ፈጽሞ አያስወግድም፣ አያሰናክልም ወይም ዳግም አያነቃም።",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ራስ-ሰር የማጽዳት ሂደቱ ከOMNIROUTE_BATCH_RETENTION_DAYS በላይ የቆዩ የተጠናቀቁ (completed/failed/cancelled/expired) Batch API ሥራዎችን ከየመስመራቸው ማረጋገጫ ነጥቦች ጋር እንዲሰርዝ እና የራሳቸው expires_at ያለፈባቸው የተሰቀሉ ፋይሎችን BLOB ይዘት እንዲያጸዳ ይፍቀዱ። በነባሪ የተሰናከለ ነው፦ ኦፕሬተር እስኪያነቃው ድረስ እያንዳንዱ ነባር ጭነት ይህን ውሂብ ልክ እንደበፊቱ ያቆያል። በኦፕሬተር የሚጀመረው DELETE /api/v1/batches/delete-completed መስመር በሁለቱም ሁኔታ አይነካም -- ይህ የተለየ፣ ቅድመ ሁኔታ የሌለው ይፋዊ API ውል ነው።",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "የቆመውን የማይለወጥ የመነሻ ዝርዝር ከመጠቀም ይልቅ፣ የOAuth bearer tokenን በመጠቀም ለxai-oauth ግንኙነቶች ቀጥታውን የxAI ሞዴል ካታሎግ ከhttps://api.x.ai/v1/models ያምጡ። በነባሪ የተሰናከለ ነው፦ xai-oauth ያልተለወጠውን የማይለወጥ የመነሻ ዝርዝር ማቅረቡን ይቀጥላል። በማንኛውም የመፍታት ስህተት ጊዜ፣ ግኝቱ ወደ መነሻ ዝርዝሩ ይመለሳል።",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "የአካባቢው proxy-core መዳረሻ ነጥብ ልክ አይደለም፤ የSS/VMess/Trojan/VLESS ኖዶች ችላ ተብለዋል።",
         "NEEDS_CORE_NOT_CONFIGURED": "ይህ ምዝገባ የአካባቢ proxy core (SS/VMess/Trojan/VLESS) የሚያስፈልጋቸው ኖዶች አሉት፤ የlocal-core SOCKS5 መዳረሻ ነጥቡን እስኪያዋቅሩ ድረስ አይዘዋወሩም።",
         "NO_USABLE_NODES": "ምዝገባው ጥቅም ላይ የሚውሉ ኖዶችን አላመጣም (http/https/socks5 ወይም የአካባቢ core መዳረሻ ነጥብ ያላቸው ኖዶች)።",
-        "SELECTOR_SWITCH_FAILED": "የፕሮክሲ-ኮር መቆጣጠሪያ ጥሪ አልተሳካም; የቀደመው መስመር ንቁ ሆኖ ይቆያል። የመቆጣጠሪያ URL እና ሚስጥር ያረጋግጡ፣ ከዚያ ያድሱ።"
+        "SELECTOR_SWITCH_FAILED": "የፕሮክሲ-ኮር መቆጣጠሪያ ጥሪ አልተሳካም; የቀደመው መስመር ንቁ ሆኖ ይቆያል። የመቆጣጠሪያ URL እና ሚስጥር ያረጋግጡ፣ ከዚያ ያድሱ።",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "የተፈጠረው ዋና ዋና ውሂብ አሰልጣኝ ተቀባይን ወርቀ ሊይዘው አልቻለም፤ ከዚያ በኋላ ያለው ቅጂ ተቀብሏል።",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ገንዘቦች አልገቡም። የአገልጋይ መዝገብን ይመልከቱ።"
       },
       "description": "የፕሮክሲ ምዝገባ አገናኝዎን ይለጥፉ። አንዴ ከነቃ፣ ትራፊክ በዓለም አቀፍ ወይም በደንብ (የተወሰነ Provider) ሁነታ በፕሮክሲ ስብስቡ በኩል ይዘዋወራል። የምዝገባ ኖዶች በራስ-ሰር ወደ ፕሮክሲ ስብስቡ ይመሳሰላሉ፣ እንዲሁም ነባሮቹን የየጊዜው ማጣሪያ፣ የጤና ፍተሻ እና ፍሳሽ መከላከያ ዘዴዎች እንደገና ይጠቀማሉ።",
       "addSubscription": "ምዝገባ ያክሉ",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "ገና ምንም መቀያየር አልተመዘገበም",
       "lastSwitchMember": "የሚያገለግል አባል",
       "nextSwitch": "ቀጣይ የሚቻል መቀያየር",
-      "nextSwitchNow": "አሁን"
+      "nextSwitchNow": "አሁን",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "የዋናውን መስርቀኛ መልዕክት መንገድ",
+      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "የMCP መግለጫ መጭመቅ",
     "mcpAccessibilityTitle": "የMCP ተደራሽነት ውጤት",
     "compressionSettingsCavemanIntensity": "የCaveman ጥንካሬ",
-    "compressionSettingsCavemanOutputMode": "የCaveman ውጤት ሁነታ",
     "compressionSettingsOutputStyles": "የውጤት ቅጦች",
     "compressionStylesTileTitle": "የውጤት ቅጦች",
     "compressionSettingsOutputIntensity": "የውጤት ጥንካሬ",
-    "compressionSettingsAutoClarityBypass": "ራስ-ሰር የግልጽነት ማለፊያ",
     "compressionEffectivePipeline": "ተግባራዊ የሂደት ቅደም ተከተል፦",
     "compressionDerivedOff": "ጠፍቷል",
     "compressionDerivedRuns": "ሂደቶች፦ {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "GET /v1/models ለዚህ ቁልፍ የሚያሳየው። ዝርዝሩን ማጥበብ ቁልፉ ሊጠራቸው የሚችላቸውን በፍጹም አይቀይርም።",
     "catalogScopeAll": "ሁለቱም",
     "catalogScopeCombos": "ጥምረቶች ብቻ",
-    "catalogScopeModels": "ሞዴሎች ብቻ"
+    "catalogScopeModels": "ሞዴሎች ብቻ",
+    "resilienceTokenRefreshTitle": "የቶክን እንደገና መሙላት ተቋራጭ",
+    "resilienceTokenRefreshDesc": "ከተደጋጋ መሳሰሎች በኋላ የቶከን እንደገና ማደስ ያቆማል። በአገናኝ ደረጃ የሚሰጠው አካባቢ አንድ የሞተ መለያን ይለያያል፣ በተመሳሳይ አቅራቢ ላይ ያሉ ጤናማ መለያዎች እንደገና ሲደሱ ይቀጥላሉ።",
+    "resilienceTokenRefreshScope": "አንድ ሰጪ ላለው የቶክን እንደገና መቀየር ሙከራዎች",
+    "resilienceTokenRefreshTrigger": "ተከታታይ የተሳሳቱ የማደስ ሙከራዎች",
+    "resilienceTokenRefreshEffect": "የመመለስ ሙከራዎችን ለአረፍት ጊዜ ያቁማል",
+    "resilienceTokenRefreshScopeLabel": "ክልው",
+    "resilienceTokenRefreshScopeProvider": "አቅራቢ (ሁሉም መለያዎች አንድ መበረታች ይጋራሉ)",
+    "resilienceTokenRefreshScopeConnection": "አገናኝ (እያንዳንዱ መለያ የራሱ መበረታቸው አለው)",
+    "resilienceTokenRefreshThreshold": "ማቆሚያዎ ከመጠበቅ በፊት የሚደረጉ መሳሮች",
+    "resilienceTokenRefreshCooldown": "ከመዘጋት በኋላ ይታቀኑ"
   },
   "contextRtk": {
     "title": "RTK ሞተር",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "ለማጠቃለል የሚያስፈልገው ዝቅተኛው የረድፎች ብዛት",
         "description": "የሰንጠረዥ ማጠቃለልን ለማስጀመር በተመሳሳይ መዋቅር ያለው JSON ድርድር ውስጥ የሚያስፈልገው ዝቅተኛው የረድፎች ብዛት። ነባሪ፦ 8።"
-      },
-      "preserveSystemPrompt": {
-        "label": "የስርዓት መመሪያውን ጠብቅ"
       },
       "summarizerEnabled": {
         "label": "ማጠቃለያ አመንጪውን አንቃ"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "ከዚህ ያጠሩ መልዕክቶች አይጨመቁም። ዝቅተኛ = የበለጠ ማመቂያ።",
     "tooltipMinSavings": "ቢያንስ ይህን ያህል ቶከኖች የሚቆጥብ ከሆነ ብቻ ይጨመቃል።",
     "ultraSettings": "እጅግ የላቁ ቅንብሮች",
-    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ",
-    "preview": {
-      "lite": "አጠር አድርገው ይመልሱ። ቴክኒካዊ ቃላትን፣ code፣ errors፣ URLs እና identifiers ሳይቀይሩ ያቆዩ።",
-      "full": "እጅግ አጭርና የታመቀ ምላሽ ይስጡ። ሁሉንም ቴክኒካዊ ይዘት ያቆዩ።",
-      "ultra": "የተለመዱ ቴክኒካዊ አህጽሮተ ቃላትን በመጠቀም እጅግ በጣም አጭር ምላሽ ይስጡ። ትክክለኛ ምልክቶችን ሳይቀይሩ ያቆዩ።"
-    }
+    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ"
   },
   "translator": {
     "title": "ተርጓሚ",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "መውጫ ያልተመደበላቸው ውድቀቶች፦ {count}",
     "poolMemberEgress": "{host}:{port} በ{egressIp} በኩል ወጥቷል · ያለፉት {hours} ሰዓታት",
     "poolMemberEgressEmpty": "{host}:{port}፦ ባለፉት {hours} ሰዓታት ምንም ትራፊክ አልታየም",
+    "poolMemberEgressOperator": "{host}:{port} በ{egressIp} አማካኝነት ወጣ · የኦፕሬተር የተሰጠ, {date}",
     "poolMemberEgressHint": "በዚህ የፑል አባል በኩል በጊዜ መስኮቱ ውስጥ የታየው የመጨረሻው የመውጫ IP፣ ከፕሮክሲ ምዝግብ ማስታወሻው የተነበበ። በጊዜ መስኮቱ ውስጥ ምንም ትራፊክ የሌለው አባል ትራፊክ-የለም መስመሩን ያሳያል።",
     "poolRemove": "አስወግድ",
     "poolRemoveFailed": "ፕሮክሲውን ከፑሉ ማስወገድ አልተሳካም",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "ፕሮክሲው ሊደረስበት አልቻለም",
     "poolSetAsideKindIpQuota429": "የIP ፍጥነት ገደብ (429)",
     "poolSetAsideKindSlow": "ዝግታ ምላሾች",
+    "poolSetAsideKindGeoBlocked": "ክልል ተቋርጧል (403/451)",
     "poolSetAsideUntil": "ወደ ሽክርክር ተመልሷል {endsAt}",
     "poolSetAsideRepeat": "ወደ ጎን ተቀምጧል {count, plural, one {# ጊዜ} other {# ጊዜ}}",
     "poolUnknownAddress": "ያልታወቀ አድራሻ",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "የአቀማመጥ ቅደም ተከተል",
     "poolHealthRankingOff": "የጤና ደረጃ አሰጣጥ ጠፍቷል",
     "transportRate": "{rate}% ትራንስፖርት",
+    "slowAbandoned": "{count} በቀስታ የሚተው ልውውጥ",
+    "clientAborted": "{count} የደንበኛ ማቆም",
+    "slowAbandonedHint": "የራስ ምልክቶች የመጠባበቅ ኪስ በላይ በኋላ ተተው, ከመጓጓዣ ፍጥነት ውጭ ተሰርዘዋል",
     "previousSuccessRate": "ከዚህ በፊት {rate}% ስኬት",
-    "upstreamRefusals": "{count} upstream ውድቅዎች",
     "connectionTestsCount": "{count} የግንኙነት ሙከራዎች",
-    "notMeasured": "አልተለካም"
+    "notMeasured": "አልተለካም",
+    "upstream4xx": "{count} ከላይ ደንበኛ ስህተቶች",
+    "upstream5xx": "{count} የላይ ሰርቨር ስህተቶች",
+    "uniformEgressLine": "{affected} የ{exits} ውጦች በ{provider} ላይ በአንድ ጊዜ ይተፋሉ (የቅርብ {hours}h) — የውጤት ችግኝ አይደለም"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "የግንኙነት ፑል ይወርሳል ({count})",
     "poolEmptyBlocked": "ፑል ባዶ — ጥያቄዎች ይሳናሉ (ቀጥተኛ አይደለም)",
     "directEgress": "ቀጥተኛ (ፕሮክሲ የሌለው)",
-    "ownProxy": "የራስ ፕሮክሲ"
+    "ownProxy": "የራስ ፕሮክሲ",
+    "freeTierPause": "ሞዴል {model} ተቋርጧል (429), በ {time} ይመለሳል",
+    "freeTierPauseProvider": "ተቋርጧል (429), በ {time} ይመለሳል",
+    "freeTierPauseNote": "በሂደት ላይ ያለ ላ ጊዜያዊ ማቁም"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} ንቁ ያልሆኑ",
     "dbOverrideCount": "{count} DB ልዩ ቅንብሮች",
     "searchPlaceholder": "ጠቋሚዎችን ይፈልጉ...",
+    "descriptionModeLabel": "መግለጫ እይታ",
+    "descriptionModeHint": "በማየት ላይ፦ ካርዶች ትንሽ ይቀሩ እና መግለጫን ማየት ሙሉ ጽሑፍ ያሳያል። ሙሉ ጽሑፍ፦ ሙሉ መግለጫውን ሁልጊዜ ያሳያል።",
+    "descriptionModeHover": "በማየት ላይ",
+    "descriptionModeFull": "ሙሉ ጽሑፍ",
     "categories": {
       "all": "ሁሉም",
       "security": "ደህንነት",

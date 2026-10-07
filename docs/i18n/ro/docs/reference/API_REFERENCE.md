@@ -800,17 +800,18 @@ Rutele de administrare (`/api/*`, cu excepția autentificării/conectării publi
 
 ### Administrarea furnizorilor
 
-| Endpoint                     | Metodă                | Descriere                                                                                                                    |
-| ---------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Listează / creează furnizori                                                                                                 |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Administrează un furnizor                                                                                                    |
-| `/api/providers/[id]/test`   | POST                  | Testează conexiunea furnizorului                                                                                             |
-| `/api/providers/[id]/models` | GET                   | Listează modelele furnizorului                                                                                               |
-| `/api/providers/validate`    | POST                  | Validează configurația furnizorului                                                                                          |
-| `/api/providers/bulk`        | POST                  | Adaugă în bloc chei API pentru UN SINGUR furnizor                                                                            |
-| `/api/providers/import`      | POST                  | Importă o LISTĂ eterogenă de furnizori dintr-un fișier CSV/JSON analizat (#6836); rezultate parțiale per rând în caz de eșec |
-| `/api/provider-nodes*`       | Diverse               | Administrarea nodurilor furnizorului                                                                                         |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Modele personalizate (adăugare, actualizare, ascundere/afișare, ștergere)                                                    |
+| Endpoint                                | Metodă                | Descriere                                                                                                                                                                                        |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/providers`                        | GET/POST              | Listează / creează furnizori                                                                                                                                                                     |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Administrează un furnizor                                                                                                                                                                        |
+| `/api/providers/[id]/test`              | POST                  | Testează conexiunea furnizorului                                                                                                                                                                 |
+| `/api/providers/[id]/models`            | GET                   | Listează modelele furnizorului                                                                                                                                                                   |
+| `/api/providers/validate`               | POST                  | Validează configurația furnizorului                                                                                                                                                              |
+| `/api/providers/bulk`                   | POST                  | Adaugă în bloc chei API pentru UN SINGUR furnizor                                                                                                                                                |
+| `/api/providers/import`                 | POST                  | Importă o LISTĂ eterogenă de furnizori dintr-un fișier CSV/JSON analizat (#6836); rezultate cu eșec parțial pentru fiecare rând                                                                  |
+| `/api/provider-nodes*`                  | Diverse               | Administrarea nodurilor furnizorilor                                                                                                                                                             |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Modele personalizate (adăugare, actualizare, ascundere/afișare, ștergere)                                                                                                                        |
+| `/api/provider-models/validate-and-add` | POST                  | Validare opțională și strictă a conexiunii, autentificată pentru administrare, și înregistrare atomică a modelului personalizat; consultați [Validarea modelelor](../guides/MODEL-VALIDATION.md) |
 
 ### Fluxuri OAuth
 
@@ -820,69 +821,69 @@ Rutele de administrare (`/api/*`, cu excepția autentificării/conectării publi
 
 ### Rutare și configurare
 
-| Endpoint              | Metodă   | Descriere                          |
-| --------------------- | -------- | ---------------------------------- |
-| `/api/models/alias`   | GET/POST | Aliasuri pentru modele             |
-| `/api/models/catalog` | GET      | Toate modelele după furnizor + tip |
-| `/api/combos*`        | Diverse  | Administrarea combinațiilor        |
-| `/api/keys*`          | Diverse  | Administrarea cheilor API          |
-| `/api/pricing`        | GET      | Tarifele modelelor                 |
+| Endpoint              | Metodă   | Descriere                           |
+| --------------------- | -------- | ----------------------------------- |
+| `/api/models/alias`   | GET/POST | Aliasuri de modele                  |
+| `/api/models/catalog` | GET      | Toate modelele după furnizor și tip |
+| `/api/combos*`        | Diverse  | Administrarea combinațiilor         |
+| `/api/keys*`          | Diverse  | Administrarea cheilor API           |
+| `/api/pricing`        | GET      | Prețurile modelelor                 |
 
 ### Utilizare și analiză
 
-| Endpoint                         | Metodă          | Descriere                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/usage/history`             | GET             | Istoricul utilizării                                                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/logs`                | GET             | Jurnale de utilizare                                                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/request-logs`        | GET             | Jurnale la nivel de solicitare                                                                                                                                                                                                                                                                                                                               |
-| `/api/usage/[connectionId]`      | GET             | Utilizare per conexiune                                                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Bugete pentru limita de tokenuri per cheie API                                                                                                                                                                                                                                                                                                               |
-| `/api/usage/model-latency-stats` | GET             | Agregare continuă a latenței per furnizor/model (medie/p50/p95/p99, rată de succes); filtre: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                                 |
-| `/api/usage/cache-health`        | GET             | Rezumatul stării cache-ului de prompturi pe baza `call_logs` — raport scriere/citire, distribuția p50/p90/p99 a dimensiunii scrierilor, concentrarea scrierilor intensive, defalcare per model și un verdict `healthy`/`degraded`/`thrash`/`no-data`; parametri de interogare `range` (`1h`\|`24h`\|`7d`\|`30d`, implicit `24h`) și opțional `model` (#8827) |
+| Endpoint                         | Metodă          | Descriere                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Istoricul utilizării                                                                                                                                                                                                                                                                                                                                           |
+| `/api/usage/logs`                | GET             | Jurnale de utilizare                                                                                                                                                                                                                                                                                                                                           |
+| `/api/usage/request-logs`        | GET             | Jurnale la nivel de solicitare                                                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/[connectionId]`      | GET             | Utilizare per conexiune                                                                                                                                                                                                                                                                                                                                        |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Bugete pentru limita de tokenuri per cheie API                                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/model-latency-stats` | GET             | Agregare continuă a latenței per furnizor/model (medie/p50/p95/p99, rată de succes); filtre: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                                   |
+| `/api/usage/cache-health`        | GET             | Rezumat al stării cache-ului pentru prompturi pe baza `call_logs` — raport scriere/citire, distribuția p50/p90/p99 a dimensiunii scrierilor, concentrarea scrierilor masive, defalcare per model și un verdict `healthy`/`degraded`/`thrash`/`no-data`; parametri de interogare `range` (`1h`\|`24h`\|`7d`\|`30d`, implicit `24h`) și opțional `model` (#8827) |
 
 ### Setări
 
-| Endpoint                              | Metodă        | Descriere                                                                                                                                                                                                                          |
-| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Setări generale                                                                                                                                                                                                                    |
-| `/api/settings/proxy`                 | GET/PUT       | Configurația proxy-ului de rețea                                                                                                                                                                                                   |
-| `/api/settings/proxy/test`            | POST          | Testarea conexiunii proxy                                                                                                                                                                                                          |
-| `/api/settings/ip-filter`             | GET/PUT       | Lista de adrese IP permise/blocate                                                                                                                                                                                                 |
-| `/api/settings/thinking-budget`       | GET/PUT       | Modul de rescriere a **solicitării** pentru gândire/raționament (transmitere nemodificată / eliminare automată / personalizat / adaptiv). Independent de compresie. Consultați [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Prompt de sistem global                                                                                                                                                                                                            |
-| `/api/settings/compression`           | GET/PUT       | Configurația globală de compresie                                                                                                                                                                                                  |
-| `/api/settings/purge-request-history` | POST          | Ștergerea rândurilor din jurnalul solicitărilor și a artefactelor locale din jurnalul apelurilor                                                                                                                                   |
+| Endpoint                              | Metodă        | Descriere                                                                                                                                                                                                                                   |
+| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Setări generale                                                                                                                                                                                                                             |
+| `/api/settings/proxy`                 | GET/PUT       | Configurarea proxy-ului de rețea                                                                                                                                                                                                            |
+| `/api/settings/proxy/test`            | POST          | Testarea conexiunii proxy                                                                                                                                                                                                                   |
+| `/api/settings/ip-filter`             | GET/PUT       | Lista de permisiuni/blocări pentru adrese IP                                                                                                                                                                                                |
+| `/api/settings/thinking-budget`       | GET/PUT       | Mod de rescriere a **solicitării** pentru bugetul de gândire/raționament (transmitere nemodificată / eliminare automată / personalizat / adaptiv). Independent de compresie. Consultați [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Prompt de sistem global                                                                                                                                                                                                                     |
+| `/api/settings/compression`           | GET/PUT       | Configurare globală a compresiei                                                                                                                                                                                                            |
+| `/api/settings/purge-request-history` | POST          | Ștergerea rândurilor din jurnalul solicitărilor și a artefactelor locale din jurnalul apelurilor                                                                                                                                            |
 
 ### Context și compresie
 
-| Endpoint                               | Metodă         | Descriere                                                                      |
+| Punct final                            | Metodă         | Descriere                                                                      |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------------ |
 | `/api/compression/preview`             | POST           | Previzualizarea compresiei off/lite/standard/aggressive/ultra/RTK/stacked      |
 | `/api/compression/language-packs`      | GET            | Listează pachetele lingvistice Caveman disponibile                             |
 | `/api/compression/rules`               | GET            | Listează metadatele regulilor Caveman                                          |
 | `/api/context/caveman/config`          | GET/PUT        | Alias pentru setările specifice Caveman                                        |
 | `/api/context/rtk/config`              | GET/PUT        | Setări specifice RTK, inclusiv filtre personalizate și păstrarea ieșirii brute |
-| `/api/context/rtk/filters`             | GET            | Catalogul de filtre RTK și diagnosticarea filtrelor personalizate              |
-| `/api/context/rtk/test`                | POST           | Rulează previzualizarea/testul RTK asupra unei încărcături utile textuale      |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Citește ieșirea brută redactată și păstrată, folosind ID-ul indicatorului      |
+| `/api/context/rtk/filters`             | GET            | Catalogul filtrelor RTK și diagnosticarea filtrelor personalizate              |
+| `/api/context/rtk/test`                | POST           | Rulează o previzualizare/un test RTK asupra unei sarcini utile textuale        |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Citește ieșirea brută anonimizată și păstrată după ID-ul indicatorului         |
 | `/api/context/combos`                  | GET/POST       | Listează/creează combinații de compresie                                       |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detalii/actualizare/ștergere pentru combinația de compresie                    |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detaliază/actualizează/șterge o combinație de compresie                        |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | Atribuie combinații de compresie combinațiilor de rutare                       |
 | `/api/context/analytics`               | GET            | Alias pentru analiza compresiei                                                |
 
 ### Monitorizare
 
-| Endpoint                             | Metodă     | Descriere                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Urmărirea sesiunilor active                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `/api/rate-limits`                   | GET        | Limite de rată pentru fiecare cont                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `/api/monitoring/health`             | GET        | Verificarea stării + rezumatul furnizorilor (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Vizualizarea de administrare include `credentialHealth`: valori scalare din memoria cache a sondelor, `failedConnections` când `failed>0` și `staleDbNonOkCount` (`test_status` persistent din SQLite, nu indicatorul). Consultați [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Statistici cache / golire                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `/api/modality-bridge/stats`         | GET        | Valorile din memorie pentru `attempts`, reușite/`bridged`, eșecuri, accesări ale memoriei cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` calculată pe baza numărului de eșantioane și ora ultimei utilizări (se resetează la repornire; necesită autentificare de administrare)                                                                                                                                                             |
-| `/api/modality-bridge/video/runtime` | GET        | Verificare strictă a buclei locale de încredere înainte de autentificarea/sondarea de administrare; disponibilitatea și versiunile FFmpeg/ffprobe igienizate (fără stocare)                                                                                                                                                                                                                                                                                |
-| `/api/modality-bridge/video/extract` | POST       | Broker intern de octeți, autentificat, pentru bucla locală de încredere; intrare de 50 MiB, coadă limitată/ieșire de 32 MiB, capacitate `503`, deconectare `499`, termen-limită `504`; nu este un API public de încărcare                                                                                                                                                                                                                                  |
+| Punct final                          | Metodă     | Descriere                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Urmărirea sesiunilor active                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `/api/rate-limits`                   | GET        | Limite de rată pentru fiecare cont                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/monitoring/health`             | GET        | Verificarea stării de funcționare + rezumatul furnizorilor (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Vizualizarea de administrare include `credentialHealth`: valori scalare ale cache-ului de sondare, `failedConnections` când `failed>0` și `staleDbNonOkCount` (`test_status` persistent din SQLite, nu indicatorul). Consultați [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Statistici cache / golire                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/api/modality-bridge/stats`         | GET        | Valorile din memorie `attempts`, reușite/`bridged`, eșecuri, accesări din cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` calculată pe baza numărului de eșantioane și ora ultimei utilizări (se resetează la repornire; necesită autentificare de administrare)                                                                                                                                                                                         |
+| `/api/modality-bridge/video/runtime` | GET        | Verificare strictă a buclei locale de încredere înaintea autentificării/sondării de administrare; disponibilitatea și versiunile FFmpeg/ffprobe, prezentate într-o formă sigură (fără stocare în cache)                                                                                                                                                                                                                                                                |
+| `/api/modality-bridge/video/extract` | POST       | Broker intern autentificat de octeți, accesibil prin bucla locală de încredere; intrare de 50 MiB, coadă limitată/ieșire de 32 MiB, `503` pentru capacitate, `499` pentru deconectare, `504` pentru expirarea termenului-limită; nu este un API public de încărcare                                                                                                                                                                                                    |
 
-### Copiere de rezervă și export/import
+### Copiere de siguranță și export/import
 
 | Endpoint                    | Metodă | Descriere                                               |
 | --------------------------- | ------ | ------------------------------------------------------- |
@@ -899,26 +900,26 @@ Rutele de administrare (`/api/*`, cu excepția autentificării/conectării publi
 | ---------------------- | ------- | ----------------------------------- |
 | `/api/sync/cloud`      | Diverse | Operațiuni de sincronizare în cloud |
 | `/api/sync/initialize` | POST    | Inițializează sincronizarea         |
-| `/api/cloud/*`         | Diverse | Gestionarea cloudului               |
+| `/api/cloud/*`         | Diverse | Gestionarea serviciilor cloud       |
 
 ### Tuneluri
 
 | Endpoint                   | Metodă | Descriere                                                                               |
 | -------------------------- | ------ | --------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Citește starea instalării și a rulării Cloudflare Quick Tunnel pentru panoul de control |
+| `/api/tunnels/cloudflared` | GET    | Citește starea de instalare/execuție a Cloudflare Quick Tunnel pentru panoul de control |
 | `/api/tunnels/cloudflared` | POST   | Activează sau dezactivează Cloudflare Quick Tunnel (`action=enable/disable`)            |
-| `/api/tunnels/ngrok`       | GET    | Citește starea de rulare a tunelului ngrok pentru panoul de control                     |
-| `/api/tunnels/ngrok`       | POST   | Activează sau dezactivează tunelul ngrok (`action=enable/disable`)                      |
+| `/api/tunnels/ngrok`       | GET    | Citește starea de execuție a ngrok Tunnel pentru panoul de control                      |
+| `/api/tunnels/ngrok`       | POST   | Activează sau dezactivează ngrok Tunnel (`action=enable/disable`)                       |
 
 ### Instrumente CLI
 
-| Endpoint                           | Metodă | Descriere                   |
-| ---------------------------------- | ------ | --------------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Starea CLI Claude           |
-| `/api/cli-tools/codex-settings`    | GET    | Starea CLI Codex            |
-| `/api/cli-tools/droid-settings`    | GET    | Starea CLI Droid            |
-| `/api/cli-tools/openclaw-settings` | GET    | Starea CLI OpenClaw         |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Mediu de rulare CLI generic |
+| Endpoint                           | Metodă | Descriere                     |
+| ---------------------------------- | ------ | ----------------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Starea Claude CLI             |
+| `/api/cli-tools/codex-settings`    | GET    | Starea Codex CLI              |
+| `/api/cli-tools/droid-settings`    | GET    | Starea Droid CLI              |
+| `/api/cli-tools/openclaw-settings` | GET    | Starea OpenClaw CLI           |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Mediu de execuție CLI generic |
 
 Răspunsurile CLI includ: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
@@ -928,28 +929,28 @@ Răspunsurile CLI includ: `installed`, `runnable`, `command`, `commandPath`, `ru
 | ----------------- | ------ | ------------------------------------------------------------------------------------- |
 | `/api/acp/agents` | GET    | Listează toți agenții detectați (încorporați + personalizați), împreună cu starea lor |
 | `/api/acp/agents` | POST   | Adaugă un agent personalizat sau reîmprospătează memoria cache de detectare           |
-| `/api/acp/agents` | DELETE | Elimină un agent personalizat prin parametrul de interogare `id`                      |
+| `/api/acp/agents` | DELETE | Elimină un agent personalizat folosind parametrul de interogare `id`                  |
 
 Răspunsul GET include `agents[]` (id, name, binary, version, installed, protocol, isCustom) și `summary` (total, installed, notFound, builtIn, custom).
 
 ### Reziliență și limite de rată
 
-| Endpoint                          | Metodă    | Descriere                                                                                                                 |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Obține/actualizează coada de cereri, perioada de pauză a conexiunii, întrerupătorul furnizorului și setările de așteptare |
-| `/api/resilience/reset`           | POST      | Resetează întrerupătoarele de circuit ale furnizorilor                                                                    |
-| `/api/resilience/model-cooldowns` | GET       | Listează blocările active per (furnizor, conexiune, model), sortate după timpul rămas                                     |
-| `/api/resilience/model-cooldowns` | DELETE    | Elimină o blocare de model — corpul `{provider, model}` sau `{all: true}` pentru a elimina totul                          |
-| `/api/rate-limits`                | GET       | Starea limitelor de rată per cont                                                                                         |
-| `/api/rate-limit`                 | GET       | Configurația globală a limitei de rată                                                                                    |
+| Endpoint                          | Metodă    | Descriere                                                                                                                     |
+| --------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Obține/actualizează coada de cereri, perioada de așteptare a conexiunii, întrerupătorul furnizorului și setările de așteptare |
+| `/api/resilience/reset`           | POST      | Resetează întrerupătoarele de circuit ale furnizorilor                                                                        |
+| `/api/resilience/model-cooldowns` | GET       | Listează blocările active per (furnizor, conexiune, model), sortate după timpul rămas                                         |
+| `/api/resilience/model-cooldowns` | DELETE    | Elimină o blocare a modelului — corpul `{provider, model}` sau `{all: true}` pentru a elimina totul                           |
+| `/api/rate-limits`                | GET       | Starea limitei de rată pentru fiecare cont                                                                                    |
+| `/api/rate-limit`                 | GET       | Configurarea globală a limitei de rată                                                                                        |
 
-> Toate cele patru rute `/api/resilience/*` necesită **autentificare de administrare** (`requireManagementAuth`). Consultați [Reziliență (extinsă)](#resilience-extended) pentru o prezentare completă a diferențelor dintre întrerupătorul furnizorului, perioada de pauză a conexiunii și blocarea modelului.
+> Toate cele patru rute `/api/resilience/*` necesită **autentificare de administrare** (`requireManagementAuth`). Consultați [Reziliență (extinsă)](#resilience-extended) pentru o prezentare completă a diferențelor dintre întrerupătorul furnizorului, perioada de așteptare a conexiunii și blocarea modelului.
 
 ### Evaluări
 
 | Endpoint     | Metodă   | Descriere                                        |
 | ------------ | -------- | ------------------------------------------------ |
-| `/api/evals` | GET/POST | Listează suitele de evaluare / rulează evaluarea |
+| `/api/evals` | GET/POST | Listează suitele de evaluare / execută evaluarea |
 
 ### Politici
 
@@ -977,12 +978,12 @@ Aceste endpointuri reproduc formatul API-ului Gemini pentru clienții care neces
 | Endpoint                 | Metodă | Descriere                                                        |
 | ------------------------ | ------ | ---------------------------------------------------------------- |
 | `/api/init`              | GET    | Verificarea inițializării aplicației (utilizată la prima rulare) |
-| `/api/tags`              | GET    | Etichete de model compatibile cu Ollama (pentru clienții Ollama) |
+| `/api/tags`              | GET    | Etichete de modele compatibile cu Ollama (pentru clienți Ollama) |
 | `/api/restart`           | POST   | Declanșează repornirea controlată a serverului                   |
 | `/api/shutdown`          | POST   | Declanșează oprirea controlată a serverului                      |
 | `/api/system/env/repair` | POST   | Repară variabilele de mediu ale furnizorului OAuth               |
 
-> **Notă:** Aceste endpoint-uri sunt utilizate intern de sistem sau pentru compatibilitatea cu clienții Ollama. De regulă, acestea nu sunt apelate de utilizatorii finali.
+> **Notă:** Aceste endpointuri sunt utilizate intern de sistem sau pentru compatibilitatea cu clienții Ollama. În mod obișnuit, acestea nu sunt apelate de utilizatorii finali.
 
 ### Repararea mediului OAuth _(v3.6.1+)_
 

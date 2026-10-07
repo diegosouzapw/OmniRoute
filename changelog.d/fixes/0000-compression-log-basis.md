@@ -1,1 +1,0 @@
-- fix(context): state the messages-only basis (and tools reserve) in the proactive-compression log lines so they read consistently next to the full-breakdown guard numbers (#14931 — thanks @skygunner)

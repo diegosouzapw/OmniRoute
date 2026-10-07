@@ -1,1 +1,0 @@
-- Add a bounded, request-correlated Auto candidate evaluation trace so pre-dispatch exclusions can be diagnosed without changing routing behavior or recording request content.

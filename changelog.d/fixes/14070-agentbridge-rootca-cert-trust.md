@@ -1,1 +1,0 @@
-- fix(mitm): resolve AgentBridge cert-trust check against the active cert model instead of hard-coded server.crt (#14070)

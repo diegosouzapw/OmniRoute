@@ -16,7 +16,7 @@
 import React, { useState } from "react";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
-import { extractImportWarning, resolveNoNewModelsPhase } from "./modelImportWarning";
+import { classifyModelImport, resolveNoNewModelsPhase } from "./modelImportWarning";
 
 interface NotifyStore {
   success: (message: string, title?: string) => number;
@@ -154,50 +154,57 @@ export function useModelImportHandlers({
       // Discovery persists its result even when no new models need importing.
       // Refresh the active listing so removals take effect without a page reload.
       await fetchProviderModelMeta();
-      const importWarning = extractImportWarning(data);
-      if (fetchedModels.length === 0) {
-        setImportProgress((prev) => ({
-          ...prev,
-          phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
-        }));
-        return;
-      }
-
       const existingIds = new Set([
         ...(modelMeta.customModels || []).map((m: any) => m.id),
         ...models.map((m: any) => m.id),
       ]);
-      const newModels = fetchedModels.filter(
-        (model: any) => !existingIds.has(model.id || model.name || model.model)
-      );
-
-      if (newModels.length === 0) {
-        // #15069: when the response came from the local catalog fallback (importWarning is set),
-        // the user should not see a success/done state — the remote endpoint was unreachable.
-        // resolveNoNewModelsPhase() returns "warning" when a fallback warning is present,
-        // "done" when the remote catalog was actually fetched.
-        const noNewModelsPhase = resolveNoNewModelsPhase(importWarning);
-        if (noNewModelsPhase === "warning") {
-          setImportProgress((prev) => ({
-            ...prev,
-            phase: "warning",
-            status:
-              t("localCatalogFallbackStatus") ||
-              "Couldn't reach the provider's model list — showing the built-in catalog",
-            logs: [importWarning!, t("noNewModelsToImport") || "No new models to import"],
-            importedCount: 0,
-            total: 0,
-            current: 0,
-          }));
-          return;
-        }
+      const classification = classifyModelImport({
+        modelsData: data,
+        fetchedModels,
+        isKnownModel: (id) => existingIds.has(id),
+      });
+      const importWarning = classification.warning;
+      // B-03 (#15159): when discovery fell back to a local/cache catalog the
+      // headline must not read as an authoritative "nothing to import". The
+      // server's warning becomes the status, with the success-flavoured line
+      // demoted to a log entry — the operator sees the real cause first instead
+      // of scrolling for it. Only keys that already exist in all 66 locales are
+      // used; no new translation is introduced.
+      if (classification.outcome === "no-models") {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: t("allModelsAlreadyImported") || "All models already imported",
-          logs: [t("noNewModelsToImport") || "No new models to import"],
+          status: classification.degraded && importWarning ? importWarning : t("noModelsFound"),
+          logs: [
+            ...(classification.degraded && importWarning ? [t("noModelsFound")] : []),
+            t("noModelsReturnedFromEndpoint"),
+          ],
+        }));
+        return;
+      }
+
+      const newModels = classification.newModels;
+
+      if (classification.outcome === "nothing-new") {
+        // #15069: a degraded (local-catalog fallback) result is a terminal "warning", not a
+        // success — the live provider API was never actually consulted.
+        const noNewModelsPhase = resolveNoNewModelsPhase(
+          classification.degraded ? importWarning : null
+        );
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: noNewModelsPhase,
+          status:
+            classification.degraded && importWarning
+              ? importWarning
+              : t("allModelsAlreadyImported") || "All models already imported",
+          logs: [
+            ...(classification.degraded && importWarning ? [t("allModelsAlreadyImported")] : []),
+            ...(importWarning && !(classification.degraded && importWarning)
+              ? [importWarning]
+              : []),
+            t("noNewModelsToImport") || "No new models to import",
+          ],
           importedCount: 0,
           total: 0,
           current: 0,

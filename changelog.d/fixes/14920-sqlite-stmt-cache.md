@@ -1,1 +1,0 @@
-- **perf(db):** cache prepared statements in the better-sqlite3 adapter (LRU 200, same as the node:sqlite adapter) instead of recompiling the call_logs/usage_history SQL on every request ([#14920](https://github.com/diegosouzapw/OmniRoute/pull/14920))

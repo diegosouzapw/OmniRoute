@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "প্রক্সি পুল এবং opencode-এর প্রতি-অ্যাকাউন্ট রোটেশন এমন কোনো প্রক্সিকে পুনরায় ব্যবহার করা বন্ধ রাখে, যা সদ্য ব্যর্থ হয়েছে (TCP প্রোব প্রত্যাখ্যাত হয়েছে অথবা সেটির মাধ্যমে 429 পাওয়া গেছে)। প্রতি-প্রসেসে এই বিরতির সময়কাল প্রতিবার পুনরাবৃত্তির সঙ্গে দ্বিগুণ হয়, সর্বোচ্চ সীমা পর্যন্ত। প্রক্সির কোনো স্ট্যাটাস লেখা হয় না; সব প্রার্থীকে সরিয়ে রাখলেও নির্বাচন অপরিবর্তিত থাকে। ডিফল্টভাবে চালু; `false` সাধারণ নির্বাচন ফিরিয়ে আনে।",
   "featureFlagProxyPoolSharedEgressOrderDescription": "যেসব প্রোভাইডারের কোটা egress ঠিকানা অনুযায়ী ভাগ করা হয়, সেগুলোর জন্য সম্প্রতি প্রত্যাখ্যাত সদস্যের পর্যবেক্ষিত egress ঠিকানা ভাগ করে নেওয়া pool সদস্যকে সুস্থ সদস্যদের ঠিক নিচে রাখে। শুধু ক্রম বদলায়, কখনো বাদ দেয় না। PROXY_SKIP_RECENTLY_FAILED প্রয়োজন, যা এটি যে প্রত্যাখ্যান সংকেত পড়ে তা তৈরি করে। ডিফল্টভাবে বন্ধ: নির্বাচনের ক্রম হুবহু সাধারণ রোটেশন।",
   "featureFlagProxyPoolEgressObservationDescription": "ড্যাশবোর্ডে একটি প্রক্সি পুলের অধীনে দেখান, গত ২৪ ঘণ্টায় পর্যবেক্ষিত কতটি egress IP তার সদস্যদের সেবা দিয়েছে, কতটি সংযোগ সেগুলো ব্যবহার করেছে এবং একটি IP-এর পেছনে সর্বাধিক কতজন সদস্য দেখা গেছে। এটি শুধু পাঠযোগ্য, প্রক্সি লগ থেকে গণনা করা হয় এবং রাউটিংয়ে কখনো ব্যবহার করা হয় না। ডিফল্টভাবে বন্ধ: পুল এডিটর অপরিবর্তিত থাকে এবং পর্যবেক্ষণ রুট null প্রদান করে।",
+  "featureFlagProxyOperatorEgressDescription": "অপারেটর-প্রেরিত তারিখযুক্ত পর্যবেক্ষিত ঠিকানাগুলি প্রতি পুল সদস্যের জন্য গ্রহণ করুন এবং সেগুলিকে প্রদর্শন ও পুল অর্ডারের জন্য জার্নাল রিডের সাথে মিশ্রিত করুন। ডিফল্টভাবে বন্ধ: পুশ রুট 404 উত্তর দেয় এবং পুল রিডগুলি আগের মতোই আচরণ করে।",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "প্রক্সি হেলথ সুইপে, টার্গেট প্রত্যাখ্যান করেছে এমন কোনো প্রোবকে (401/403/429: প্রক্সি রিলে করেছে, কিন্তু গন্তব্য এই egress IP প্রত্যাখ্যান করেছে) সফলভাবে পরিবেশিত প্রোবের মতো প্রক্সির ধারাবাহিক ব্যর্থতার ধারা রিসেট করতে দিন। ডিফল্টভাবে বন্ধ: প্রত্যাখ্যান নিরপেক্ষ থাকে এবং ধারাটি বজায় রাখে। উভয় ক্ষেত্রেই 5xx অনির্ণায়ক থাকে এবং কোনো প্রত্যাখ্যান কখনোই প্রক্সিকে সরায়, নিষ্ক্রিয় করে বা পুনরায় সক্রিয় করে না।",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "স্বয়ংক্রিয় ক্লিনআপ সুইপকে OMNIROUTE_BATCH_RETENTION_DAYS-এর চেয়ে পুরোনো টার্মিনাল (সম্পন্ন/ব্যর্থ/বাতিল/মেয়াদোত্তীর্ণ) Batch API জবগুলো তাদের প্রতি-লাইনের চেকপয়েন্টসহ মুছে ফেলতে এবং আপলোড করা ফাইলগুলোর নিজস্ব expires_at পেরিয়ে গেলে সেগুলোর BLOB কনটেন্ট মুছে দিতে দিন। ডিফল্টভাবে বন্ধ: কোনো অপারেটর এটি চালু না করা পর্যন্ত প্রতিটি বিদ্যমান ইনস্টলেশন আগের মতোই এই ডেটা সংরক্ষণ করবে। অপারেটর-ট্রিগার করা DELETE /api/v1/batches/delete-completed রুট উভয় ক্ষেত্রেই অপরিবর্তিত থাকবে — এটি একটি পৃথক, নিঃশর্ত পাবলিক API চুক্তি।",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "স্থির স্ট্যাটিক সিডের পরিবর্তে OAuth bearer token ব্যবহার করে https://api.x.ai/v1/models থেকে xai-oauth সংযোগগুলোর লাইভ xAI মডেল ক্যাটালগ আনুন। ডিফল্টভাবে বন্ধ: xai-oauth অপরিবর্তিত স্ট্যাটিক সিডই পরিবেশন করতে থাকবে। কোনো রেজোলিউশন ত্রুটি হলে ডিসকভারি সিডে ফিরে যাবে।",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "লোকাল প্রক্সি-কোর এন্ডপয়েন্ট অবৈধ; SS/VMess/Trojan/VLESS নোডগুলো উপেক্ষা করা হয়েছে।",
         "NEEDS_CORE_NOT_CONFIGURED": "এই সাবস্ক্রিপশনে এমন নোড রয়েছে যার জন্য একটি লোকাল প্রক্সি কোর (SS/VMess/Trojan/VLESS) প্রয়োজন; আপনি লোকাল-কোর SOCKS5 এন্ডপয়েন্ট কনফিগার না করা পর্যন্ত সেগুলো রাউট করা হবে না।",
         "NO_USABLE_NODES": "সাবস্ক্রিপশন থেকে কোনো ব্যবহারযোগ্য নোড পাওয়া যায়নি (http/https/socks5 বা লোকাল কোর এন্ডপয়েন্ট বিশিষ্ট নোড)।",
-        "SELECTOR_SWITCH_FAILED": "প্রক্সি-কোর নিয়ন্ত্রণ কল ব্যর্থ হয়েছে; আগের রুট সক্রিয় থাকে। নিয়ন্ত্রণ URL ও সিক্রেট পরীক্ষা করে রিফ্রেশ করুন।"
+        "SELECTOR_SWITCH_FAILED": "প্রক্সি-কোর নিয়ন্ত্রণ কল ব্যর্থ হয়েছে; আগের রুট সক্রিয় থাকে। নিয়ন্ত্রণ URL ও সিক্রেট পরীক্ষা করে রিফ্রেশ করুন।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "তৈরি করা কোর কনফিগারেশন গ্রহণকৃত ফাইলটি প্রতিস্থাপন করতে পারেনি; পাশে রাখা কপিটি রাখা হয়েছে।",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "জেনারেশনের সময় কিছু এন্ট্রি বাদ পড়েছে। সার্ভার লগ দেখুন।"
       },
       "description": "আপনার প্রক্সি সদস্যতা লিঙ্ক আটকান. একবার সক্ষম হলে, ট্রাফিককে প্রক্সি পুলের মাধ্যমে বিশ্বব্যাপী বা নিয়ম (নির্দিষ্ট প্রদানকারী) মোডে রুট করা হয়। সাবস্ক্রিপশন নোডগুলি স্বয়ংক্রিয়ভাবে প্রক্সি পুলে সিঙ্ক করা হয় এবং বিদ্যমান পোলিং, স্বাস্থ্য-পরীক্ষা এবং অ্যান্টি-লিক প্রক্রিয়াগুলি পুনরায় ব্যবহার করে।",
       "addSubscription": "সদস্যতা যোগ করুন",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "এখনও কোনো সুইচ রেকর্ড হয়নি",
       "lastSwitchMember": "সেবারত সদস্য",
       "nextSwitch": "পরবর্তী সম্ভাব্য সুইচ",
-      "nextSwitchNow": "এখন"
+      "nextSwitchNow": "এখন",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "কোর বাইনারি পাথ",
+      "coreBinaryPathHelp": "ঐচ্ছিক: গ্রহণকৃত ফাইলটি প্রতিস্থাপন করার আগে কোর বাইনারি দিয়ে তৈরি করা ফাইলটি যাচাই করে। পাশেই লেখা চালিয়ে যেতে হলে খালি রাখুন। ডিরেক্টরি না থাকলে তৈরি করা হয়।",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "বাল্ক স্বাস্থ্য পরীক্ষা",
     "bulkHealthcheckDesc": "কোনগুলো কাজ করে তা জানতে একটি লক্ষ্য URL-এর বিপরীতে কনফিগার করা সব প্রক্সি পরীক্ষা করুন।",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP বর্ণনা সংকোচন",
     "mcpAccessibilityTitle": "MCP অ্যাক্সেসিবিলিটি আউটপুট",
     "compressionSettingsCavemanIntensity": "গুহামানবের তীব্রতা",
-    "compressionSettingsCavemanOutputMode": "গুহামানব আউটপুট মোড",
     "compressionSettingsOutputStyles": "আউটপুট স্টাইল",
     "compressionStylesTileTitle": "আউটপুট স্টাইল",
     "compressionSettingsOutputIntensity": "আউটপুট তীব্রতা",
-    "compressionSettingsAutoClarityBypass": "স্বয়ংক্রিয় স্বচ্ছতা বাইপাস",
     "compressionEffectivePipeline": "কার্যকর পাইপলাইন:",
     "compressionDerivedOff": "বন্ধ",
     "compressionDerivedRuns": "রান: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "এই কী-এর জন্য GET /v1/models যা প্রদর্শন করে। তালিকা সীমিত করলেও কী-টি কী কল করতে পারবে তা কখনোই পরিবর্তিত হয় না।",
     "catalogScopeAll": "উভয়ই",
     "catalogScopeCombos": "শুধু কম্বো",
-    "catalogScopeModels": "শুধু মডেল"
+    "catalogScopeModels": "শুধু মডেল",
+    "resilienceTokenRefreshTitle": "টোকেন রিফ্রেশ ব্রেকার",
+    "resilienceTokenRefreshDesc": "বারবার ব্যর্থতার পর টোকেন রিফ্রেশ করার পুনরায় চেষ্টা বন্ধ করে। সংযোগ-প্রতি পরিধি একটি মৃত অ্যাকাউন্টকে বিচ্ছিন্ন করে, যাতে একই প্রোভাইডারের সুস্থ অ্যাকাউন্টগুলি রিফ্রেশ চালিয়ে যায়।",
+    "resilienceTokenRefreshScope": "একটি প্রদানকারীর জন্য টোকেন রিফ্রেশ প্রচেষ্টা",
+    "resilienceTokenRefreshTrigger": "পরপর ব্যর্থ রিফ্রেশ প্রচেষ্টা",
+    "resilienceTokenRefreshEffect": "কুলডাউনের জন্য রিফ্রেশ প্রচেষ্টা সাময়িকভাবে বন্ধ করে",
+    "resilienceTokenRefreshScopeLabel": "পরিধি",
+    "resilienceTokenRefreshScopeProvider": "প্রদানকারী (সমস্ত অ্যাকাউন্ট একটি ব্রেকার ভাগ করে নেয়)",
+    "resilienceTokenRefreshScopeConnection": "সংযোগ (প্রতিটি অ্যাকাউন্টের নিজস্ব ব্রেকার আছে)",
+    "resilienceTokenRefreshThreshold": "বিরতি নেওয়ার আগে ব্যর্থতা",
+    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "কম্প্যাক্ট করার জন্য ন্যূনতম সারি",
         "description": "ট্যাবুলার কম্প্যাকশন ট্রিগার করার জন্য একটি সমজাতীয় JSON অ্যারেতে প্রয়োজনীয় ন্যূনতম সারি। ডিফল্ট: 8।"
-      },
-      "preserveSystemPrompt": {
-        "label": "সিস্টেম প্রম্পট সংরক্ষণ করুন"
       },
       "summarizerEnabled": {
         "label": "সামারাইজার সক্ষম করুন"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "এর চেয়ে ছোট বার্তাগুলি সংকুচিত হয় না। নিম্ন = আরও সংকোচন।",
     "tooltipMinSavings": "শুধুমাত্র সংকুচিত করুন যদি এটি অন্তত এতগুলো টোকেন সংরক্ষণ করে।",
     "ultraSettings": "আল্ট্রা সেটিংস",
-    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন",
-    "preview": {
-      "lite": "সংক্ষেপে উত্তর দিন। প্রযুক্তিগত পরিভাষা, কোড, ত্রুটি, URLs এবং শনাক্তকারী অপরিবর্তিত রাখুন।",
-      "full": "সংক্ষিপ্ত ও আঁটসাঁটভাবে উত্তর দিন। সব প্রযুক্তিগত তথ্য অক্ষুণ্ণ রাখুন।",
-      "ultra": "প্রচলিত প্রযুক্তিগত সংক্ষিপ্ত রূপ ব্যবহার করে অত্যন্ত সংক্ষেপে উত্তর দিন। প্রতীকগুলো হুবহু অপরিবর্তিত রাখুন।"
-    }
+    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন"
   },
   "translator": {
     "title": "অনুবাদক",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "নির্ধারিত এক্সিট ছাড়া ব্যর্থতা: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} দিয়ে নির্গত হয়েছে · গত {hours} ঘণ্টা",
     "poolMemberEgressEmpty": "{host}:{port}: গত {hours} ঘণ্টায় কোনো ট্রাফিক দেখা যায়নি",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} দিয়ে বের হয়েছে · অপারেটর-প্রদত্ত, {date}",
     "poolMemberEgressHint": "সময়সীমার মধ্যে এই পুল সদস্যের মাধ্যমে সর্বশেষ পর্যবেক্ষিত নির্গমন IP, যা প্রক্সি লগ থেকে পড়া হয়েছে। সময়সীমার মধ্যে কোনো ট্রাফিক না থাকা সদস্যের জন্য ‘কোনো ট্রাফিক নেই’ লাইনটি দেখানো হয়।",
     "poolRemove": "সরান",
     "poolRemoveFailed": "পুল থেকে প্রক্সি সরাতে ব্যর্থ হয়েছে",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "প্রক্সিতে পৌঁছানো যাচ্ছে না",
     "poolSetAsideKindIpQuota429": "IP রেট সীমা (429)",
     "poolSetAsideKindSlow": "ধীর প্রতিক্রিয়া",
+    "poolSetAsideKindGeoBlocked": "অঞ্চল ব্লকড (403/451)",
     "poolSetAsideUntil": "রোটেশনে ফিরেছে {endsAt}",
     "poolSetAsideRepeat": "সরিয়ে রাখা হয়েছে {count, plural, one {# বার} other {# বার}}",
     "poolUnknownAddress": "অজানা ঠিকানা",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "অবস্থান ক্রম",
     "poolHealthRankingOff": "স্বাস্থ্য র‍্যাঙ্কিং বন্ধ",
     "transportRate": "{rate}% ট্রান্সপোর্ট",
+    "slowAbandoned": "{count} ধীর ত্যাগ",
+    "clientAborted": "{count} ক্লায়েন্ট বাতিল",
+    "slowAbandonedHint": "হেডার অপেক্ষা থ্রেশহোল্ডের পরে ত্যাগ করা হয়েছে, ট্রান্সপোর্ট রেট থেকে বাদ দেওয়া হয়েছে",
     "previousSuccessRate": "পূর্বে {rate}% সাফল্য",
-    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান",
     "connectionTestsCount": "{count} সংযোগ পরীক্ষা",
-    "notMeasured": "পরিমাপ করা হয়নি"
+    "notMeasured": "পরিমাপ করা হয়নি",
+    "upstream4xx": "{count} উপস্ট্রিম ক্লায়েন্ট ত্রুটি",
+    "upstream5xx": "{count} উপস্ট্রিম সার্ভার ত্রুটি",
+    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "সংযোগ পুল থেকে উত্তরাধিকার ({count})",
     "poolEmptyBlocked": "পুল খালি — অনুরোধ ব্যর্থ হয় (সরাসরি নয়)",
     "directEgress": "সরাসরি (প্রক্সি ছাড়া)",
-    "ownProxy": "নিজস্ব প্রক্সি"
+    "ownProxy": "নিজস্ব প্রক্সি",
+    "freeTierPause": "মডেল {model} বিরতিতে (429), {time} ফিরে আসবে",
+    "freeTierPauseProvider": "বিরতিতে (429), {time} ফিরে আসবে",
+    "freeTierPauseNote": "এই ইনস্ট্যান্সে ইন-প্রসেস পজ"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count}টি নিষ্ক্রিয়",
     "dbOverrideCount": "{count}টি DB ওভাররাইড",
     "searchPlaceholder": "ফ্ল্যাগ খুঁজুন...",
+    "descriptionModeLabel": "বিবরণ দৃশ্য",
+    "descriptionModeHint": "হোভার করলে: কার্ড কমপক্ষে থাকে এবং বিবরণের ওপর হোভার করলে সম্পূর্ণ লেখা দেখানো হয়। সম্পূর্ণ লেখা: সবসময় সম্পূর্ণ বিবরণ দেখান।",
+    "descriptionModeHover": "হোভার করলে",
+    "descriptionModeFull": "সম্পূর্ণ লেখা",
     "categories": {
       "all": "সব",
       "security": "নিরাপত্তা",

@@ -1,1 +1,0 @@
-- **test(images):** add regression coverage for Antigravity quota-exhausted 429 credential rotation (#14112) — thanks @Ardem2025

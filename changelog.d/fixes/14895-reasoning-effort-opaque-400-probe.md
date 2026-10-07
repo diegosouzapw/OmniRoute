@@ -1,1 +1,0 @@
-- **fix(sse):** recover from a `reasoning_effort` 4xx that names no accepted set — opt in per provider with `OMNIROUTE_REASONING_EFFORT_PROBE_PROVIDERS` and the reactive path probes one tier down, learning that single tier when the probe is answered so later requests clamp up front instead of 400ing on every attempt

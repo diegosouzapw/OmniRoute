@@ -39,6 +39,8 @@ function retryScopeApplies(ctx: RetryCtx, input: ExecutorInput, status: number):
   if (!isGatedFreeTierRequest(ctx.surface, ctx.provider, String(input.model ?? ""))) return false;
   // Borrowed tools are the store's own names coming back: the retry would add
   // nothing, and the refusal is already counted by noteFreeTierOutcome below.
+  // Only a refusal naming the model clears borrowed tools (#15475); other
+  // failures leave the streak untouched.
   if (ctx.borrowed) return false;
   return !!input.body && typeof input.body === "object" && !Array.isArray(input.body);
 }

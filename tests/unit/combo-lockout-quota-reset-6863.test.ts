@@ -91,10 +91,15 @@ test("combo 429 lockout prefers a SHORT parsed reset over the subscription fallb
   // while quotaResetHintMs carries the real parsed reset. A max() of the two
   // would over-lock (1h) — the lockout must follow the parsed value (~45m),
   // matching the single-model path in src/sse/services/auth.ts.
-  const provider = "claude"; // OAuth category → subscription-quota branch applies
-  const model = "claude-sonnet-4-6";
-  const shortResetMessage =
-    "429: Usage limit reached. Your Claude Pro usage limit resets in 45m0s.";
+  //
+  // Native `claude` is deliberately NOT used here: since #13888 an explicit Claude
+  // quota 429 without fresh per-model quota evidence is CONNECTION-scoped (the
+  // connection is exhausted, no model lockout — covered by
+  // tests/unit/claude-scoped-quota-auth.test.ts). Codex is another OAuth provider
+  // whose subscription "usage limit reached" 429 still takes this branch.
+  const provider = "codex"; // OAuth category → subscription-quota branch applies
+  const model = "gpt-5.3-codex";
+  const shortResetMessage = "429: Usage limit reached. Your usage limit resets in 45m0s.";
 
   const settings = {
     modelLockout: {

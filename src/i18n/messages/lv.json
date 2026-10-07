@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Starpniekserveru pūli un opencode konta līmeņa rotācija uz katru procesu uz noteiktu laiku pārtrauc atkārtoti izmantot starpniekserveri, kas tikko cieta kļūmi (noraidīta TCP pārbaude vai caur to saņemts 429); šis laiks pēc katras atkārtotas kļūmes dubultojas līdz noteiktajam maksimumam. Starpniekservera statuss netiek ierakstīts; ja visi kandidāti ir atlikti malā, izvēle paliek nemainīga. Pēc noklusējuma ieslēgts; `false` atjauno parasto atlasi.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Pakalpojumu sniedzējiem, kuru kvota tiek dalīta pēc izejošās (egress) adreses, pool dalībnieku, kuram ir kopīga nesen noraidīta dalībnieka novērotā egress adrese, ierindo tieši zem veselajiem dalībniekiem. Tikai secība, nekad netiek izslēgts. Nepieciešams PROXY_SKIP_RECENTLY_FAILED, kas rada tā nolasīto atteikuma signālu. Pēc noklusējuma izslēgts: atlases secība ir tieši parastā rotācija.",
   "featureFlagProxyPoolEgressObservationDescription": "Informācijas panelī zem starpniekserveru pūla rādīt, cik novēroto izejošo IP adrešu pēdējo 24 h laikā apkalpoja tā dalībniekus, cik savienojumu tās izmantoja un kāds bija lielākais aiz vienas IP adreses novērotais savienojumu skaits. Tikai lasāms, aprēķināts no starpniekserveru žurnāla un nekad netiek izmantots maršrutēšanai. Pēc noklusējuma izslēgts: pūla redaktors paliek nemainīgs, un novērojumu maršruts atgriež null.",
+  "featureFlagProxyOperatorEgressDescription": "Pieņemt operatora nosūtītās datētas novērotās adreses katram kopas loceklim un apvienot tās ar žurnāla lasīšanu, lai parādītu un kārtotu kopu. Noklusējuma gadījumā: push maršruts atbild ar 404, un kopas lasīšana darbojas tieši tāpat kā iepriekš.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Starpniekserveru darbspējas pārbaudē ļaut mērķa noraidītai pārbaudei (401/403/429: starpniekserveris pārsūtīja pieprasījumu, bet galamērķis noraidīja šo izejošo IP adresi) atiestatīt starpniekservera secīgo kļūmju sēriju tāpat kā apkalpotai pārbaudei. Pēc noklusējuma izslēgts: noraidījums paliek neitrāls un saglabā kļūmju sēriju. 5xx jebkurā gadījumā paliek nepārliecinošs, un noraidījums nekad neizraisa starpniekservera noņemšanu, atspējošanu vai atkārtotu aktivizēšanu.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Ļaut automātiskajai tīrīšanai dzēst pabeigtus, neizdevušos, atceltus vai beigušos Batch API uzdevumus, kas ir vecāki par OMNIROUTE_BATCH_RETENTION_DAYS, kopā ar to kontrolpunktiem katrai rindai, kā arī notīrīt BLOB saturu augšupielādētajiem failiem, kuru pašu expires_at termiņš ir beidzies. Pēc noklusējuma izslēgts: katra esošā instalācija turpina glabāt šos datus tieši tāpat kā iepriekš, līdz operators izvēlas šo funkciju ieslēgt. Operatora aktivizētais maršruts DELETE /api/v1/batches/delete-completed abos gadījumos netiek ietekmēts — tas ir atsevišķs, beznosacījumu publiskās API līgums.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Iegūt aktuālo xAI modeļu katalogu xai-oauth savienojumiem no https://api.x.ai/v1/models, izmantojot OAuth nesējtokenu, nevis fiksēto statisko sākotnējo kopu. Pēc noklusējuma izslēgts: xai-oauth turpina bez izmaiņām izmantot statisko sākotnējo kopu. Ja modeļu noteikšanas laikā rodas jebkāda kļūda, tiek izmantota sākotnējā kopa.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Vietējā proxy-core galapunkta adrese nav derīga; SS/VMess/Trojan/VLESS mezgli tika ignorēti.",
         "NEEDS_CORE_NOT_CONFIGURED": "Šajā abonementā ir mezgli, kuriem nepieciešams vietējais proxy core (SS/VMess/Trojan/VLESS); tie netiks maršrutēti, kamēr nebūs konfigurēts local-core SOCKS5 galapunkts.",
         "NO_USABLE_NODES": "Abonements nenodrošināja nevienu izmantojamu mezglu (http/https/socks5 vai mezglus ar vietējā kodola galapunktu).",
-        "SELECTOR_SWITCH_FAILED": "Starpniekservera kodola vadības izsaukums neizdevās; iepriekšējais maršruts paliek aktīvs. Pārbaudiet vadības URL un noslēpumu, pēc tam atsvaidziniet."
+        "SELECTOR_SWITCH_FAILED": "Starpniekservera kodola vadības izsaukums neizdevās; iepriekšējais maršruts paliek aktīvs. Pārbaudiet vadības URL un noslēpumu, pēc tam atsvaidziniet.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Ģenerēto pamatkonfigurāciju neizdevās aizstāt pieņemto failu; tā vietā tika saglabāta kopija blakus.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Dažieraksti tika izlaisti ģenerēšanas laikā. Skatiet servera žurnālu."
       },
       "description": "Ielīmējiet savu proxy abonementa saiti. Pēc iespējošanas datplūsma tiek maršrutēta caur proxy kopu globālajā vai kārtulu režīmā (norādītajiem pakalpojumu sniedzējiem). Abonementa mezgli tiek automātiski sinhronizēti ar proxy kopu un izmanto esošos aptaujas, darbspējas pārbaudes un aizsardzības pret noplūdēm mehānismus.",
       "addSubscription": "Pievienot abonementu",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Vēl nav reģistrētas pārslēgšanas",
       "lastSwitchMember": "Apkalpojošais dalībnieks",
       "nextSwitch": "Nākamā iespējamā pārslēgšana",
-      "nextSwitchNow": "Tagad"
+      "nextSwitchNow": "Tagad",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pamatbinārā fails",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Neobligāti: pārbauda ģenerēto failu ar pamatbināro failu pirms pieņemtā faila aizstāšanas. Atstājiet tukšu, lai turpinātu rakstīt blakus. Direktorijs, ja tā nav, tiek izveidots."
     },
     "bulkHealthcheck": "Masveida darbspējas pārbaude",
     "bulkHealthcheckDesc": "Pārbaudi visus konfigurētos starpniekserverus, izmantojot mērķa URL, lai noskaidrotu, kuri darbojas.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP aprakstu saspiešana",
     "mcpAccessibilityTitle": "MCP pieejamības izvade",
     "compressionSettingsCavemanIntensity": "Alu cilvēka intensitāte",
-    "compressionSettingsCavemanOutputMode": "Alu cilvēka izvades režīms",
     "compressionSettingsOutputStyles": "Izvades stili",
     "compressionStylesTileTitle": "Izvades stili",
     "compressionSettingsOutputIntensity": "Izvades intensitāte",
-    "compressionSettingsAutoClarityBypass": "Automātiskā skaidrības apiešana",
     "compressionEffectivePipeline": "Efektīvā apstrādes ķēde:",
     "compressionDerivedOff": "izslēgts",
     "compressionDerivedRuns": "darbojas: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Ko GET /v1/models uzrāda šai atslēgai. Saraksta sašaurināšana nekad nemaina to, ko atslēga var izsaukt.",
     "catalogScopeAll": "Abi",
     "catalogScopeCombos": "Tikai kombinācijas",
-    "catalogScopeModels": "Tikai modeļi"
+    "catalogScopeModels": "Tikai modeļi",
+    "resilienceTokenRefreshTitle": "Tokena atjaunošanas pārtraucējs",
+    "resilienceTokenRefreshDesc": "Pārtrauc mēģināt atjaunināt žetonu pēc atkārtotām neveiksmēm. Savienojuma mērogs izolē vienu mirušu kontu, lai veselīgie konti tajā pašā pakalpojuma sniedzējā turpinātu atjaunināšanu.",
+    "resilienceTokenRefreshScope": "Viena pakalpojuma sniedzēja žetona atjaunošanas mēģinājumi",
+    "resilienceTokenRefreshTrigger": "Secīgi neveiksmīgi atjaunošanas mēģinājumi",
+    "resilienceTokenRefreshEffect": "Aptur atjaunošanas mēģinājumus atdzesēšanas laikā",
+    "resilienceTokenRefreshScopeLabel": "Pārklājums",
+    "resilienceTokenRefreshScopeProvider": "Pakalpojuma sniedzējs (visi konti koplieto vienu pārtraucēju)",
+    "resilienceTokenRefreshScopeConnection": "Savienojums (katram kontam ir sava pārtraucēja)",
+    "resilienceTokenRefreshThreshold": "Neveiksmes pirms pauzes",
+    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas"
   },
   "contextRtk": {
     "title": "RTK dzinējs",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Minimālais rindu skaits saspiešanai",
         "description": "Minimālais rindu skaits homogēnā JSON masīvā, kas nepieciešams tabulārās saspiešanas aktivizēšanai. Noklusējums: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Saglabāt sistēmas uzvedni"
       },
       "summarizerEnabled": {
         "label": "Iespējot kopsavilkuma veidotāju"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Ziņas, kas īsākas par šo, netiek saspiestas. Zemāks = vairāk saspiešanas.",
     "tooltipMinSavings": "Saspiest tikai tad, ja tas ietaupa vismaz šo tokenu skaitu.",
     "ultraSettings": "Ultra iestatījumi",
-    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana",
-    "preview": {
-      "lite": "Atbildi kodolīgi. Saglabā tehniskos terminus, kodu, kļūdas, URL un identifikatorus.",
-      "full": "Atbildi lakoniski un kompakti. Saglabā visu tehnisko saturu.",
-      "ultra": "Atbildi īpaši lakoniski, izmantojot izplatītus tehniskos saīsinājumus. Saglabā precīzus simbolus."
-    }
+    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana"
   },
   "translator": {
     "title": "Tulkotājs",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Kļūmes bez piesaistītas izejas: {count}",
     "poolMemberEgress": "{host}:{port} izgāja caur {egressIp} · pēdējās {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: pēdējās {hours} h nav novērota datplūsma",
+    "poolMemberEgressOperator": "{host}:{port} izlaists caur {egressIp} · operatora nodrošināts, {date}",
     "poolMemberEgressHint": "Pēdējā izejošā IP adrese, kas šajā laika periodā novērota caur šo pūla dalībnieku un nolasīta no starpniekservera žurnāla. Dalībniekam, kuram šajā periodā nav bijusi datplūsma, tiek rādīta rinda par datplūsmas neesamību.",
     "poolRemove": "Noņemt",
     "poolRemoveFailed": "Neizdevās noņemt starpniekserveri no kopas",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "starpniekserveris nav sasniedzams",
     "poolSetAsideKindIpQuota429": "IP pieprasījumu ierobežojums (429)",
     "poolSetAsideKindSlow": "lēnas atbildes",
+    "poolSetAsideKindGeoBlocked": "reģiona bloķēts (403/451)",
     "poolSetAsideUntil": "Atpakaļ rotācijā {endsAt}",
     "poolSetAsideRepeat": "Nolikts malā {count, plural, one {# reizi} other {# reizes}}",
     "poolUnknownAddress": "Nezināma adrese",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Pozīciju secība",
     "poolHealthRankingOff": "Veselības ranžēšana izslēgta",
     "transportRate": "{rate} % transporta",
+    "slowAbandoned": "{count} lēnas atteikšanās",
+    "clientAborted": "{count} klienta pārtraukumi",
+    "slowAbandonedHint": "Atteikta pēc galvenes gaidīšanas sliekšņa, izslēgta no transporta likmes",
     "previousSuccessRate": "Iepriekš {rate} % sekmju",
-    "upstreamRefusals": "{count} augšupējos noraidījumus",
     "connectionTestsCount": "{count} savienojuma testus",
-    "notMeasured": "Nav izmērīts"
+    "notMeasured": "Nav izmērīts",
+    "upstream4xx": "{count} upstream klienta kļūdas",
+    "upstream5xx": "{count} upstream servera kļūdas",
+    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",
@@ -11523,8 +11550,8 @@
       "compressed": "Saspiests: {from} → {to} (ietaupīts {percent}%)",
       "output": "Izvade",
       "totalOut": "Kopā izvadē: {value}",
-      "reasoningObserved": "{value} · novērotas {chars} rakstzīmes",
       "reasoning": "Spriešana: {value}",
+      "reasoningObserved": "{value} · novērotas {chars} rakstzīmes",
       "requestedModel": "Pieprasītais modelis",
       "requestProtocol": "Pieprasījuma protokols",
       "cacheSource": "Kešatmiņas avots",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Manto savienojumu pūlu ({count})",
     "poolEmptyBlocked": "Pūls tukšs — pieprasījumi neizdodas (ne tieši)",
     "directEgress": "Tiešs (bez starpniekservera)",
-    "ownProxy": "Savs starpniekserveris"
+    "ownProxy": "Savs starpniekserveris",
+    "freeTierPause": "Modelis {model} pauzēts (429), atgriezīsies {time}",
+    "freeTierPauseProvider": "Pauzēts (429), atgriezīsies {time}",
+    "freeTierPauseNote": "Process pārtraukums šajā instancē"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "Neaktīvi: {count}",
     "dbOverrideCount": "DB pārrakstījumi: {count}",
     "searchPlaceholder": "Meklēt karodziņus...",
+    "descriptionModeLabel": "Apraksta skats",
+    "descriptionModeHint": "Novietojot kursoru: kartītes paliek kompaktas, un, novietojot kursoru virs apraksta, tiek parādīts pilns teksts. Pilns teksts: vienmēr rādīt visu aprakstu.",
+    "descriptionModeHover": "Novietojot kursoru",
+    "descriptionModeFull": "Pilns teksts",
     "categories": {
       "all": "Visi",
       "security": "Drošība",

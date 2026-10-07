@@ -1,5 +1,10 @@
 import { Memory, MemoryType } from "../types";
 
+// LIMIT bounds returned rows, not FTS5 expression parsing. Keep synchronous
+// lexical work bounded when retrieval receives an entire user prompt.
+const MAX_LEXICAL_QUERY_CHARS = 4096;
+const MAX_LEXICAL_QUERY_TERMS = 32;
+
 export interface MemoryRow {
   id: string;
   api_key_id?: string;
@@ -34,9 +39,12 @@ export function estimateTokens(text: string): number {
  */
 export function sanitizeFts5Query(query?: string): string {
   if (!query) return "";
-  const cleaned = query.replace(/[^\w\s\u00C0-\u024F\u1E00-\u1EFF]/g, " ").trim();
+  const cleaned = query
+    .slice(0, MAX_LEXICAL_QUERY_CHARS)
+    .replace(/[^\w\s\u00C0-\u024F\u1E00-\u1EFF]/g, " ")
+    .trim();
   if (!cleaned) return "";
-  const tokens = cleaned.split(/\s+/).filter(Boolean);
+  const tokens = cleaned.split(/\s+/, MAX_LEXICAL_QUERY_TERMS).filter(Boolean);
   if (tokens.length === 0) return "";
   return tokens.map((t) => `"${t}"`).join(" ");
 }
@@ -78,7 +86,7 @@ export function rowToMemory(row: MemoryRow): Memory {
  * so there is no ReDoS risk — no user input is passed to RegExp().
  */
 export function getRelevanceScore(memory: Memory, query: string): number {
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = query.slice(0, MAX_LEXICAL_QUERY_CHARS).trim().toLowerCase();
   if (!normalizedQuery) return 0;
 
   const haystacks = [
@@ -86,7 +94,7 @@ export function getRelevanceScore(memory: Memory, query: string): number {
     memory.key.toLowerCase(),
     JSON.stringify(memory.metadata).toLowerCase(),
   ];
-  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const tokens = normalizedQuery.split(/\s+/, MAX_LEXICAL_QUERY_TERMS).filter(Boolean);
 
   let score = 0;
   for (const haystack of haystacks) {

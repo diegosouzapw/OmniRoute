@@ -9,11 +9,12 @@
  * Unlike Cline, Kilo's openAi baseURL INCLUDES /v1 (it appends /chat/completions).
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { writePrivateFileAtomic } from "../private-file.mjs";
 import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 
 /** Ensure the URL ends with /v1 (Kilo appends /chat/completions to it). */
@@ -166,11 +167,10 @@ export async function runSetupKiloCommand(opts = {}) {
       `\n── [dry-run] ${vscodePath} ── ${vscodeExists ? "(would merge kilocode.* keys)" : "(skipped — file absent)"}`
     );
   } else {
-    mkdirSync(join(authPath, ".."), { recursive: true });
-    writeFileSync(authPath, JSON.stringify(auth, null, 2) + "\n", "utf8");
+    writePrivateFileAtomic(authPath, JSON.stringify(auth, null, 2) + "\n");
     printSuccess(`Wrote ${authPath}`);
     if (vscodeSettings) {
-      writeFileSync(vscodePath, JSON.stringify(vscodeSettings, null, 2) + "\n", "utf8");
+      writePrivateFileAtomic(vscodePath, JSON.stringify(vscodeSettings, null, 2) + "\n");
       printSuccess(`Updated ${vscodePath} (kilocode.customProvider + defaultModel)`);
     } else {
       printInfo(`Skipped VS Code settings (${vscodePath} not found).`);

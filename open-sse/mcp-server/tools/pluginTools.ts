@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { resolve, normalize, isAbsolute } from "path";
+import { toSafeMcpErrorMessage } from "../errorMessage";
 import { listPlugins, getPluginByName, updatePluginConfig } from "../../../src/lib/db/plugins";
 import { pluginManager } from "../../../src/lib/plugins/manager";
 import { validatePluginConfig, type ConfigField } from "../../../src/lib/plugins/manifest";
@@ -94,7 +95,7 @@ export const pluginTools = [
         await pluginManager.activate(args.name);
         return { success: true, message: `Plugin '${args.name}' activated` };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = toSafeMcpErrorMessage(err);
         return { success: false, error: msg };
       }
     },
@@ -112,7 +113,7 @@ export const pluginTools = [
         await pluginManager.deactivate(args.name);
         return { success: true, message: `Plugin '${args.name}' deactivated` };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = toSafeMcpErrorMessage(err);
         return { success: false, error: msg };
       }
     },
@@ -130,7 +131,7 @@ export const pluginTools = [
         await pluginManager.uninstall(args.name);
         return { success: true, message: `Plugin '${args.name}' uninstalled` };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = toSafeMcpErrorMessage(err);
         return { success: false, error: msg };
       }
     },
@@ -161,7 +162,10 @@ export const pluginTools = [
           const validation = validatePluginConfig(merged, rawSchema);
           if (!validation.valid) {
             // Return a generic message — do NOT leak raw field-level detail externally
-            return { success: false, error: "Config validation failed: one or more values are invalid" };
+            return {
+              success: false,
+              error: "Config validation failed: one or more values are invalid",
+            };
           }
         }
 
@@ -185,9 +189,8 @@ export const pluginTools = [
       limit: z.number().min(1).max(100).default(20).describe("Max results to return"),
     }),
     handler: async (args: { name?: string; limit?: number }) => {
-      const { getPluginAnalytics, getPluginAnalyticsSummary } = await import(
-        "../../../src/lib/db/plugins"
-      );
+      const { getPluginAnalytics, getPluginAnalyticsSummary } =
+        await import("../../../src/lib/db/plugins");
       const limit = args.limit || 20;
       if (args.name) {
         const rows = getPluginAnalytics(args.name).slice(0, limit);

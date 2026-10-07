@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "ಪ್ರಾಕ್ಸಿ ಪೂಲ್ಗಳು ಮತ್ತು opencode ನ ಪ್ರತಿ-ಖಾತೆ ರೊಟೇಶನ್, ಇತ್ತೀಚೆಗೆ ವಿಫಲವಾದ ಪ್ರಾಕ್ಸಿಯನ್ನು (TCP ಪ್ರೋಬ್ ನಿರಾಕರಿಸಲ್ಪಟ್ಟಿದ್ದರೆ ಅಥವಾ ಅದರ ಮೂಲಕ 429 ಬಂದಿದ್ದರೆ) ಪ್ರತಿ ಪ್ರಕ್ರಿಯೆಗೆ ಅನ್ವಯಿಸುವ ಅವಧಿಯವರೆಗೆ ಮತ್ತೆ ಬಳಸುವುದಿಲ್ಲ. ಪ್ರತಿ ಪುನರಾವರ್ತನೆಯಲ್ಲೂ ಈ ಅವಧಿ ದ್ವಿಗುಣಗೊಳ್ಳುತ್ತದೆ, ನಿಗದಿತ ಗರಿಷ್ಠ ಮಿತಿಯವರೆಗೆ. ಯಾವುದೇ ಪ್ರಾಕ್ಸಿ ಸ್ಥಿತಿಯನ್ನು ಬರೆಯಲಾಗುವುದಿಲ್ಲ; ಪ್ರತಿಯೊಂದು ಅಭ್ಯರ್ಥಿಯನ್ನೂ ಬದಿಗಿರಿಸಿದಾಗ ಆಯ್ಕೆಯು ಬದಲಾಗುವುದಿಲ್ಲ. ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಆನ್; `false` ಸರಳ ಆಯ್ಕೆಯನ್ನು ಮರುಸ್ಥಾಪಿಸುತ್ತದೆ.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress ವಿಳಾಸದ ಪ್ರಕಾರ ಕೋಟಾ ಹಂಚಲಾಗುವ ಪೂರೈಕೆದಾರರಿಗೆ, ಇತ್ತೀಚೆಗೆ ನಿರಾಕರಿಸಲ್ಪಟ್ಟ ಸದಸ್ಯನ ಗಮನಿಸಲಾದ egress ವಿಳಾಸವನ್ನು ಹಂಚಿಕೊಳ್ಳುವ pool ಸದಸ್ಯನನ್ನು ಆರೋಗ್ಯಕರ ಸದಸ್ಯರ ತಕ್ಷಣ ಕೆಳಗೆ ಇರಿಸುತ್ತದೆ. ಕ್ರಮ ಮಾತ್ರ, ಎಂದಿಗೂ ಹೊರಗಿಡುವುದಿಲ್ಲ. PROXY_SKIP_RECENTLY_FAILED ಅಗತ್ಯವಿದೆ, ಅದು ಓದುವ ನಿರಾಕರಣೆ ಸಂಕೇತವನ್ನು ಅದೇ ಉತ್ಪಾದಿಸುತ್ತದೆ. ಡೀಫಾಲ್ಟ್ ಆಗಿ ಆಫ್: ಆಯ್ಕೆ ಕ್ರಮವು ನಿಖರವಾಗಿ ಸಾಮಾನ್ಯ ರೊಟೇಶನ್ ಆಗಿದೆ.",
   "featureFlagProxyPoolEgressObservationDescription": "ಡ್ಯಾಶ್ಬೋರ್ಡ್ನಲ್ಲಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ನ ಅಡಿಯಲ್ಲಿ, ಕಳೆದ 24 ಗಂಟೆಗಳಲ್ಲಿ ಅದರ ಸದಸ್ಯರಿಗೆ ಸೇವೆ ನೀಡಿದ ಗಮನಿಸಲಾದ ಎಗ್ರೆಸ್ IPಗಳ ಸಂಖ್ಯೆ, ಅವುಗಳನ್ನು ಬಳಸಿದ ಸಂಪರ್ಕಗಳ ಸಂಖ್ಯೆ ಮತ್ತು ಒಂದೇ IPಯ ಹಿಂದೆ ಕಂಡುಬಂದ ಗರಿಷ್ಠ ಸಂಖ್ಯೆಯನ್ನು ತೋರಿಸಿ. ಇದು ಓದಲು ಮಾತ್ರ; ಪ್ರಾಕ್ಸಿ ಲಾಗ್ನಿಂದ ಲೆಕ್ಕ ಹಾಕಲಾಗುತ್ತದೆ ಮತ್ತು ರೂಟಿಂಗ್ಗಾಗಿ ಎಂದಿಗೂ ಬಳಸಲಾಗುವುದಿಲ್ಲ. ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಆಫ್: ಪೂಲ್ ಎಡಿಟರ್ ಬದಲಾಗುವುದಿಲ್ಲ ಮತ್ತು ವೀಕ್ಷಣಾ ರೂಟ್ null ಎಂದು ಉತ್ತರಿಸುತ್ತದೆ.",
+  "featureFlagProxyOperatorEgressDescription": "ಪೂಲ್ ಸದಸ್ಯರ ಮೂಲಕ ಅಧಿಕಾರಿ-ಹೊಂದಿಕೆಯಾದ ದಿನಾಂಕದ ಪರಿಶೀಲಿಸಲಾದ ವಿಳಾಸಗಳನ್ನು ಸ್ವೀಕರಿಸಿ, ಪ್ರದರ್ಶನ ಮತ್ತು ಪೂಲ್ ಆದೇಶಕ್ಕಾಗಿ ಜರ್ನಲ್ ಓದುವಿಕೆಯೊಂದಿಗೆ ಅವುಗಳನ್ನು ಮರುಸೇರಿಸಿ. ಡಿಫಾಲ್ಟ್ ಆಗಿರುತ್ತದೆ: ಪುಷ್ ಮಾರ್ಗವು 404 ಅನ್ನು ಉತ್ತರಿಸುತ್ತದೆ ಮತ್ತು ಪೂಲ್ ಓದುಗಳು ಮೊದಲಿನಂತೆ ವರ್ತಿಸುತ್ತವೆ.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "ಪ್ರಾಕ್ಸಿ ಆರೋಗ್ಯ ಪರಿಶೀಲನೆಯಲ್ಲಿ, ಗುರಿಯು ನಿರಾಕರಿಸಿದ ಪ್ರೋಬ್ (401/403/429: ಪ್ರಾಕ್ಸಿಯು ರಿಲೇ ಮಾಡಿದೆ, ಆದರೆ ಗಮ್ಯಸ್ಥಾನವು ಈ ಎಗ್ರೆಸ್ IPಯನ್ನು ನಿರಾಕರಿಸಿದೆ) ಸೇವೆ ಸಲ್ಲಿಸಿದ ಪ್ರೋಬ್ನಂತೆಯೇ ಪ್ರಾಕ್ಸಿಯ ಸತತ-ವೈಫಲ್ಯ ಸರಣಿಯನ್ನು ಮರುಹೊಂದಿಸಲು ಅನುಮತಿಸಿ. ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಆಫ್: ನಿರಾಕರಣೆಯು ತಟಸ್ಥವಾಗಿಯೇ ಉಳಿದು ಸರಣಿಯನ್ನು ಹಾಗೆಯೇ ಇಡುತ್ತದೆ. ಎರಡೂ ಸಂದರ್ಭಗಳಲ್ಲಿ 5xx ಅನಿರ್ಣಾಯಕವಾಗಿಯೇ ಉಳಿಯುತ್ತದೆ ಮತ್ತು ನಿರಾಕರಣೆಯು ಪ್ರಾಕ್ಸಿಯನ್ನು ಎಂದಿಗೂ ತೆಗೆದುಹಾಕುವುದಿಲ್ಲ, ನಿಷ್ಕ್ರಿಯಗೊಳಿಸುವುದಿಲ್ಲ ಅಥವಾ ಮರುಸಕ್ರಿಯಗೊಳಿಸುವುದಿಲ್ಲ.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ಸ್ವಯಂಚಾಲಿತ ಸ್ವಚ್ಛತಾ ಪ್ರಕ್ರಿಯೆಯು OMNIROUTE_BATCH_RETENTION_DAYS ಗಿಂತ ಹಳೆಯದಾದ ಅಂತಿಮ ಸ್ಥಿತಿಯ (ಪೂರ್ಣಗೊಂಡ/ವಿಫಲಗೊಂಡ/ರದ್ದುಗೊಂಡ/ಅವಧಿ ಮೀರಿದ) Batch API ಕೆಲಸಗಳನ್ನು, ಅವುಗಳ ಪ್ರತಿ-ಸಾಲಿನ ಚೆಕ್ಪಾಯಿಂಟ್ಗಳೊಂದಿಗೆ ಅಳಿಸಲು ಮತ್ತು ತಮ್ಮದೇ expires_at ಮೀರಿರುವ ಅಪ್ಲೋಡ್ ಮಾಡಿದ ಫೈಲ್ಗಳ BLOB ವಿಷಯವನ್ನು ತೆರವುಗೊಳಿಸಲು ಅನುಮತಿಸಿ. ಡೀಫಾಲ್ಟ್ ಆಗಿ ಆಫ್ ಆಗಿರುತ್ತದೆ: ನಿರ್ವಾಹಕರು ಆಯ್ಕೆಮಾಡಿ ಸಕ್ರಿಯಗೊಳಿಸುವವರೆಗೆ ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಪ್ರತಿಯೊಂದು ಸ್ಥಾಪನೆಯೂ ಈ ಡೇಟಾವನ್ನು ಮೊದಲಿನಂತೆಯೇ ಉಳಿಸಿಕೊಳ್ಳುತ್ತದೆ. ನಿರ್ವಾಹಕರು ಪ್ರಚೋದಿಸುವ DELETE /api/v1/batches/delete-completed ಮಾರ್ಗವು ಯಾವುದೇ ಸಂದರ್ಭದಲ್ಲೂ ಪರಿಣಾಮಗೊಳ್ಳುವುದಿಲ್ಲ — ಅದು ಪ್ರತ್ಯೇಕವಾದ, ಷರತ್ತುರಹಿತ ಸಾರ್ವಜನಿಕ API ಒಪ್ಪಂದವಾಗಿದೆ.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "ಸ್ಥಿರವಾಗಿ ಉಳಿಸಲಾದ ಸ್ಟ್ಯಾಟಿಕ್ ಸೀಡ್ ಬದಲಿಗೆ, OAuth bearer token ಬಳಸಿ https://api.x.ai/v1/models ನಿಂದ xai-oauth ಸಂಪರ್ಕಗಳಿಗಾಗಿ ಲೈವ್ xAI ಮಾಡೆಲ್ ಕ್ಯಾಟಲಾಗ್ ಅನ್ನು ಪಡೆಯಿರಿ. ಡೀಫಾಲ್ಟ್ ಆಗಿ ಆಫ್ ಆಗಿರುತ್ತದೆ: xai-oauth ಬದಲಾವಣೆಯಿಲ್ಲದ ಸ್ಟ್ಯಾಟಿಕ್ ಸೀಡ್ ಅನ್ನು ಒದಗಿಸುವುದನ್ನು ಮುಂದುವರಿಸುತ್ತದೆ. ಯಾವುದೇ ಪರಿಹಾರ ದೋಷ ಸಂಭವಿಸಿದರೆ, ಅನ್ವೇಷಣೆಯು ಸೀಡ್ಗೆ ಹಿಂತಿರುಗುತ್ತದೆ.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ಸ್ಥಳೀಯ proxy-core ಎಂಡ್ಪಾಯಿಂಟ್ ಅಮಾನ್ಯವಾಗಿದೆ; SS/VMess/Trojan/VLESS ನೋಡ್ಗಳನ್ನು ನಿರ್ಲಕ್ಷಿಸಲಾಗಿದೆ.",
         "NEEDS_CORE_NOT_CONFIGURED": "ಈ ಚಂದಾದಾರಿಕೆಯಲ್ಲಿ ಸ್ಥಳೀಯ ಪ್ರಾಕ್ಸಿ ಕೋರ್ ಅಗತ್ಯವಿರುವ ನೋಡ್ಗಳಿವೆ (SS/VMess/Trojan/VLESS); ನೀವು local-core SOCKS5 ಎಂಡ್ಪಾಯಿಂಟ್ ಅನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡುವವರೆಗೆ ಅವುಗಳ ಮೂಲಕ ರೂಟಿಂಗ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ.",
         "NO_USABLE_NODES": "ಚಂದಾದಾರಿಕೆಯಿಂದ ಬಳಸಬಹುದಾದ ಯಾವುದೇ ನೋಡ್ಗಳು ದೊರೆತಿಲ್ಲ (http/https/socks5 ಅಥವಾ ಸ್ಥಳೀಯ ಕೋರ್ ಎಂಡ್ಪಾಯಿಂಟ್ ಹೊಂದಿರುವ ನೋಡ್ಗಳು).",
-        "SELECTOR_SWITCH_FAILED": "ಪ್ರಾಕ್ಸಿ-ಕೋರ್ ನಿಯಂತ್ರಣ ಕರೆ ವಿಫಲವಾಯಿತು; ಹಿಂದಿನ ಮಾರ್ಗ ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ. ನಿಯಂತ್ರಣ URL ಮತ್ತು ರಹಸ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ರಿಫ್ರೆಶ್ ಮಾಡಿ."
+        "SELECTOR_SWITCH_FAILED": "ಪ್ರಾಕ್ಸಿ-ಕೋರ್ ನಿಯಂತ್ರಣ ಕರೆ ವಿಫಲವಾಯಿತು; ಹಿಂದಿನ ಮಾರ್ಗ ಸಕ್ರಿಯವಾಗಿರುತ್ತದೆ. ನಿಯಂತ್ರಣ URL ಮತ್ತು ರಹಸ್ಯವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ರಿಫ್ರೆಶ್ ಮಾಡಿ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ಉತ್ಪಾದಿಸಲಾದ ಕೋರ್ ಕಾನ್ಫಿಗರೇಶನ್ ಅಳವಡಿಸಲಾದ ಫೈಲ್ ಅನ್ನು ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ; ಬದಲಿಗೆ ಪಕ್ಕದಲ್ಲಿರುವ ಪ್ರತಿಯನ್ನು ಉಳಿಸಲಾಯಿತು.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ಉತ್ಪಾದನೆಯ ಸಮಯದಲ್ಲಿ ಕೆಲವು ನಮೂದುಗಳನ್ನು ಕೈಬಿಡಲಾಗಿದೆ. ಸರ್ವರ್ ಲಾಗ್ ನೋಡಿ."
       },
       "description": "ನಿಮ್ಮ ಪ್ರಾಕ್ಸಿ ಚಂದಾದಾರಿಕೆ ಲಿಂಕ್ ಅನ್ನು ಅಂಟಿಸಿ. ಸಕ್ರಿಯಗೊಳಿಸಿದ ನಂತರ, ಟ್ರಾಫಿಕ್ ಅನ್ನು ಜಾಗತಿಕ ಅಥವಾ ನಿಯಮ (ನಿರ್ದಿಷ್ಟ Provider) ಮೋಡ್ನಲ್ಲಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ ಮೂಲಕ ರೂಟ್ ಮಾಡಲಾಗುತ್ತದೆ. ಚಂದಾದಾರಿಕೆಯ ನೋಡ್ಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪ್ರಾಕ್ಸಿ ಪೂಲ್ಗೆ ಸಿಂಕ್ ಆಗುತ್ತವೆ ಮತ್ತು ಈಗಿರುವ ಪೋಲಿಂಗ್, ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ ಹಾಗೂ ಸೋರಿಕೆ-ವಿರೋಧಿ ಕಾರ್ಯವಿಧಾನಗಳನ್ನು ಮರುಬಳಕೆ ಮಾಡುತ್ತವೆ.",
       "addSubscription": "ಚಂದಾದಾರಿಕೆಯನ್ನು ಸೇರಿಸಿ",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "ಇನ್ನೂ ಯಾವುದೇ ಬದಲಾವಣೆ ದಾಖಲಾಗಿಲ್ಲ",
       "lastSwitchMember": "ಸೇವೆ ಸಲ್ಲಿಸುತ್ತಿರುವ ಸದಸ್ಯ",
       "nextSwitch": "ಮುಂದಿನ ಸಂಭಾವ್ಯ ಬದಲಾವಣೆ",
-      "nextSwitchNow": "ಈಗ"
+      "nextSwitchNow": "ಈಗ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "ಕೋರ್ ಬೈನರಿ ಮಾರ್ಗ",
+      "coreBinaryPathHelp": "ಐಚ್ಛಿಕ: ಅಳವಡಿಸಲಾದ ಫೈಲ್ ಅನ್ನು ಬದಲಾಯಿಸುವ ಮೊದಲು ಕೋರ್ ಬೈನರಿಯೊಂದಿಗೆ ಉತ್ಪಾದಿಸಲಾದ ಫೈಲ್ ಅನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ. ಪಕ್ಕದಲ್ಲೇ ಬರೆಯುವುದನ್ನು ಮುಂದುವರಿಸಲು ಖಾಲಿ ಬಿಡಿ. ಕಾಣೆದಾಗ ಕೋಶವನ್ನು ರಚಿಸಲಾಗುತ್ತದೆ.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "ಸಾಮೂಹಿಕ ಆರೋಗ್ಯ ಪರಿಶೀಲನೆ",
     "bulkHealthcheckDesc": "ಯಾವವು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಎಂಬುದನ್ನು ಕಂಡುಹಿಡಿಯಲು ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾದ ಎಲ್ಲಾ ಪ್ರಾಕ್ಸಿಗಳನ್ನು ಗುರಿ URL ವಿರುದ್ಧ ಪರೀಕ್ಷಿಸಿ.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP ವಿವರಣೆ ಸಂಕುಚನ",
     "mcpAccessibilityTitle": "MCP ಪ್ರವೇಶಸಾಧ್ಯತಾ ಔಟ್ಪುಟ್",
     "compressionSettingsCavemanIntensity": "ಕೇವ್ಮ್ಯಾನ್ ತೀವ್ರತೆ",
-    "compressionSettingsCavemanOutputMode": "ಕೇವ್ಮ್ಯಾನ್ ಔಟ್ಪುಟ್ ಮೋಡ್",
     "compressionSettingsOutputStyles": "ಔಟ್ಪುಟ್ ಶೈಲಿಗಳು",
     "compressionStylesTileTitle": "ಔಟ್ಪುಟ್ ಶೈಲಿಗಳು",
     "compressionSettingsOutputIntensity": "ಔಟ್ಪುಟ್ ತೀವ್ರತೆ",
-    "compressionSettingsAutoClarityBypass": "ಸ್ವಯಂ ಸ್ಪಷ್ಟತೆ ಬೈಪಾಸ್",
     "compressionEffectivePipeline": "ಪರಿಣಾಮಕಾರಿ ಪೈಪ್ಲೈನ್:",
     "compressionDerivedOff": "ಆಫ್",
     "compressionDerivedRuns": "ಚಾಲನೆಗಳು: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "ಈ ಕೀಲಿಗಾಗಿ GET /v1/models ಏನನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ. ಪಟ್ಟಿಯನ್ನು ಸೀಮಿತಗೊಳಿಸುವುದರಿಂದ ಕೀಲಿಯು ಯಾವುದನ್ನು ಕರೆ ಮಾಡಬಹುದು ಎಂಬುದು ಎಂದಿಗೂ ಬದಲಾಗುವುದಿಲ್ಲ.",
     "catalogScopeAll": "ಎರಡೂ",
     "catalogScopeCombos": "ಕಾಂಬೊಗಳು ಮಾತ್ರ",
-    "catalogScopeModels": "ಮಾದರಿಗಳು ಮಾತ್ರ"
+    "catalogScopeModels": "ಮಾದರಿಗಳು ಮಾತ್ರ",
+    "resilienceTokenRefreshTitle": "ಟೋಕನ್ ರೀಫ್ರೆಶ್ ಬ್ರೇಕರ್",
+    "resilienceTokenRefreshDesc": "ಪುನರಾವೃತ ವೈಫಲ್ಯಗಳ ನಂತರ ಟೋಕನ್ ರಿಫ್ರೆಶ್ ಮಾಡಲು ಮರುಪ್ರಯತ್ನಿಸುವುದನ್ನು ನಿಲ್ಲಿಸುತ್ತದೆ. ಪ್ರತಿ ಸಂಪರ್ಕದ ವ್ಯಾಪ್ತಿಯು ಒಂದು ಸತ್ತ ಖಾತೆಯನ್ನು ಬೇರ್ಪಡಿಸುತ್ತದೆ, ಆದ್ದರಿಂದ ಅದೇ ಪೂರೈಕೆದಾರರಲ್ಲಿ ಆರೋಗ್ಯಕರ ಖಾತೆಗಳು ಮುಂದುವರಿಯುತ್ತವೆ.",
+    "resilienceTokenRefreshScope": "ಒಂದು ಪೂರೈಕೆದಾರರಿಗಾಗಿ ಟೋಕನ್ ನವೀಕರಣ ಪ್ರಯತ್ನಗಳು",
+    "resilienceTokenRefreshTrigger": "ಸತತ ವಿಫಲ ನವೀಕರಣ ಪ್ರಯತ್ನಗಳು",
+    "resilienceTokenRefreshEffect": "ತಣಿಸುವ ಸಮಯದಲ್ಲಿ ರಿಫ್ರೆಶ್ ಪ್ರಯತ್ನಗಳನ್ನು ವಿರಾಮಗೊಳಿಸುತ್ತದೆ",
+    "resilienceTokenRefreshScopeLabel": "ವ್ಯಾಪ್ತಿ",
+    "resilienceTokenRefreshScopeProvider": "ಪೂರೈಕೆದಾರ (ಎಲ್ಲಾ ಖಾತೆಗಳು ಒಂದೇ ಬ್ರೇಕರ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತವೆ)",
+    "resilienceTokenRefreshScopeConnection": "ಸಂಪರ್ಕ (ಪ್ರತಿ ಖಾತೆಗೂ ತನ್ನದೇ ಆದ ಬ್ರೇಕರ್ ಇದೆ)",
+    "resilienceTokenRefreshThreshold": "ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವಿಫಲತೆಗಳು",
+    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ"
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "ಸಂಕುಚಿತಗೊಳಿಸಲು ಕನಿಷ್ಠ ಸಾಲುಗಳು",
         "description": "ಕೋಷ್ಟಕ ಸಂಕುಚನವನ್ನು ಪ್ರಚೋದಿಸಲು ಏಕರೂಪದ JSON ಅರೇಯಲ್ಲಿ ಅಗತ್ಯವಿರುವ ಕನಿಷ್ಠ ಸಾಲುಗಳು. ಪೂರ್ವನಿಯೋಜಿತ: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "ಸಿಸ್ಟಮ್ ಪ್ರಾಂಪ್ಟ್ ಅನ್ನು ಸಂರಕ್ಷಿಸಿ"
       },
       "summarizerEnabled": {
         "label": "ಸಾರಾಂಶಕಾರಕವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "ಇದಕ್ಕಿಂತ ಚಿಕ್ಕ ಸಂದೇಶಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುವುದಿಲ್ಲ. ಕಡಿಮೆ = ಹೆಚ್ಚು ಸಂಕುಚನ.",
     "tooltipMinSavings": "ಕನಿಷ್ಠ ಇಷ್ಟು ಟೋಕನ್ಗಳನ್ನು ಉಳಿಸಿದರೆ ಮಾತ್ರ ಸಂಕುಚಿಸಿ.",
     "ultraSettings": "ಅಲ್ಟ್ರಾ ಸೆಟ್ಟಿಂಗ್ಗಳು",
-    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ",
-    "preview": {
-      "lite": "ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ತಾಂತ್ರಿಕ ಪದಗಳು, code, errors, URLs ಮತ್ತು identifiers ಅನ್ನು ಉಳಿಸಿ.",
-      "full": "ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಮತ್ತು ಸಾಂದ್ರವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ಎಲ್ಲ ತಾಂತ್ರಿಕ ವಿಷಯವನ್ನು ಉಳಿಸಿ.",
-      "ultra": "ಸಾಮಾನ್ಯ ತಾಂತ್ರಿಕ ಸಂಕ್ಷೇಪಣಗಳೊಂದಿಗೆ ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ನಿಖರ ಚಿಹ್ನೆಗಳನ್ನು ಉಳಿಸಿ."
-    }
+    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ"
   },
   "translator": {
     "title": "ಅನುವಾದಕ",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "ನಿಗದಿತ ನಿರ್ಗಮನವಿಲ್ಲದ ವೈಫಲ್ಯಗಳು: {count}",
     "poolMemberEgress": "{host}:{port} ಮೂಲಕ {egressIp} ನಿರ್ಗಮಿಸಿದೆ · ಕಳೆದ {hours} ಗಂ.",
     "poolMemberEgressEmpty": "{host}:{port}: ಕಳೆದ {hours} ಗಂ.ಗಳಲ್ಲಿ ಯಾವುದೇ ಟ್ರಾಫಿಕ್ ಕಂಡುಬಂದಿಲ್ಲ",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} ಮೂಲಕ ಹೊರಗೆ ಹೋಗಿದೆ · ಅಧಿಕಾರಿ-ನೀಡಿದ, {date}",
     "poolMemberEgressHint": "ಈ ಅವಧಿಯಲ್ಲಿ ಈ ಪೂಲ್ ಸದಸ್ಯನ ಮೂಲಕ ಕೊನೆಯದಾಗಿ ಕಂಡುಬಂದ ನಿರ್ಗಮನ IP; ಇದನ್ನು ಪ್ರಾಕ್ಸಿ ಲಾಗ್ನಿಂದ ಓದಲಾಗಿದೆ. ಈ ಅವಧಿಯಲ್ಲಿ ಟ್ರಾಫಿಕ್ ಇಲ್ಲದ ಸದಸ್ಯನಿಗೆ ಟ್ರಾಫಿಕ್-ಇಲ್ಲ ಸಾಲು ತೋರಿಸಲಾಗುತ್ತದೆ.",
     "poolRemove": "ತೆಗೆದುಹಾಕಿ",
     "poolRemoveFailed": "ಪೂಲ್ನಿಂದ ಪ್ರಾಕ್ಸಿಯನ್ನು ತೆಗೆದುಹಾಕಲು ವಿಫಲವಾಗಿದೆ",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "ಪ್ರಾಕ್ಸಿ ತಲುಪಲಾಗುತ್ತಿಲ್ಲ",
     "poolSetAsideKindIpQuota429": "IP ದರ ಮಿತಿ (429)",
     "poolSetAsideKindSlow": "ಮಂದ ಪ್ರತಿಕ್ರಿಯೆಗಳು",
+    "poolSetAsideKindGeoBlocked": "ಪ್ರದೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ (403/451)",
     "poolSetAsideUntil": "ತಿರುಗುವಿಕೆಗೆ ಹಿಂತಿರುಗಿ {endsAt}",
     "poolSetAsideRepeat": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ {count, plural, one {# ಬಾರಿ} other {# ಬಾರಿ}}",
     "poolUnknownAddress": "ಅಜ್ಞಾತ ವಿಳಾಸ",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "ಸ್ಥಾನ ಕ್ರಮ",
     "poolHealthRankingOff": "ಆರೋಗ್ಯ ಶ್ರೇಯಾಂಕ ಆಫ್",
     "transportRate": "{rate}% ಸಾರಿಗೆ",
+    "slowAbandoned": "{count} ನಿಧಾನ ತ್ಯಜಿಸುವಿಕೆಗಳು",
+    "clientAborted": "{count} ಕ್ಲೈಂಟ್ ರದ್ದುಗೊಳಿಸುವಿಕೆಗಳು",
+    "slowAbandonedHint": "ಶೀರ್ಷಿಕೆಗಳ ನಿರೀಕ್ಷಾ ಮಿತಿ ನಂತರ ತ್ಯಜಿಸಲಾಗಿದೆ, ಸಾರಿಗೆ ದರದಿಂದ ಹೊರಗಿಡಲಾಗಿದೆ",
     "previousSuccessRate": "ಹಿಂದೆ {rate}% ಯಶಸ್ಸು",
-    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು",
     "connectionTestsCount": "{count} ಸಂಪರ್ಕ ಪರೀಕ್ಷೆಗಳು",
-    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ"
+    "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ",
+    "upstream4xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಕ್ಲೈಂಟ್ ದೋಷಗಳು",
+    "upstream5xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಸರ್ವರ್ ದೋಷಗಳು",
+    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "ಸಂಪರ್ಕ ಪೂಲ್ ಅನ್ನು ಆನುವಂಶಿಕವಾಗಿ ({count})",
     "poolEmptyBlocked": "ಪೂಲ್ ಖಾಲಿ — ವಿನಂತಿಗಳು ವಿಫಲವಾಗುತ್ತವೆ (ನೇರವಲ್ಲ)",
     "directEgress": "ನೇರ (ಪ್ರಾಕ್ಸಿ ಇಲ್ಲದೆ)",
-    "ownProxy": "ಸ್ವಂತ ಪ್ರಾಕ್ಸಿ"
+    "ownProxy": "ಸ್ವಂತ ಪ್ರಾಕ್ಸಿ",
+    "freeTierPause": "ಮಾಡೆಲ್ {model} ವಿರಾಮಗೊಂಡಿದೆ (429), {time} ಗೆ ಮರಳುತ್ತದೆ",
+    "freeTierPauseProvider": "ವಿರಾಮಗೊಂಡಿದೆ (429), {time} ಗೆ ಮರಳುತ್ತದೆ",
+    "freeTierPauseNote": "ಈ ಇನ್‌ಸ್ಟೆನ್ಸ್‌ನಲ್ಲಿ ಪ್ರಕ್ರಿಯೆಯೊಳಗಿನ ವಿರಾಮ"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} ನಿಷ್ಕ್ರಿಯ",
     "dbOverrideCount": "{count} DB ಓವರ್ರೈಡ್ಗಳು",
     "searchPlaceholder": "ಫ್ಲ್ಯಾಗ್ಗಳನ್ನು ಹುಡುಕಿ...",
+    "descriptionModeLabel": "ವಿವರಣೆ ನೋಟ",
+    "descriptionModeHint": "ಹಾವರ್ ಮಾಡಿದಾಗ: ಕಾರ್ಡ್‌ಗಳು ಸಣ್ಣದಾಗಿ ಉಳಿಯುತ್ತವೆ ಮತ್ತು ವಿವರಣೆಯ ಮೇಲೆ ಹಾವರ್ ಮಾಡಿದಾಗ ಪೂರ್ಣ ಪಠ್ಯ ಕಾಣಿಸುತ್ತದೆ. ಪೂರ್ಣ ಪಠ್ಯ: ಯಾವಾಗಲೂ ಸಂಪೂರ್ಣ ವಿವರಣೆಯನ್ನು ತೋರಿಸಿ.",
+    "descriptionModeHover": "ಹಾವರ್",
+    "descriptionModeFull": "ಪೂರ್ಣ ಪಠ್ಯ",
     "categories": {
       "all": "ಎಲ್ಲಾ",
       "security": "ಭದ್ರತೆ",

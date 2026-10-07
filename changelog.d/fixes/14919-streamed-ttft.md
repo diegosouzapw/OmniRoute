@@ -1,1 +1,0 @@
-- **fix(sse):** record streamed `ttft_ms` as request start → first chunk with text, reasoning or a tool call; translated streams stored `ttft = latency` and others ~0 ms, and the Codex Responses WebSocket bridge timed turns from connection open ([#14919](https://github.com/diegosouzapw/OmniRoute/pull/14919))

@@ -20,25 +20,34 @@ describe("catalogContentFingerprint", () => {
     const after = catalogContentFingerprint([{ id: "a2" }], combos);
     assert.notEqual(before, after);
   });
-  it("returns a different hash when the auto-combos set changes", () => {
+  it("takes exactly the models and combos entries", () => {
+    assert.equal(catalogContentFingerprint.length, 2);
     const models = [{ id: "a" }];
     const combos = [{ id: "combo-a" }];
-    const before = catalogContentFingerprint(models, combos, [{ id: "auto" }]);
-    const after = catalogContentFingerprint(models, combos, [
-      { id: "auto" },
-      { id: "auto/coding" },
-    ]);
-    assert.notEqual(before, after);
+    assert.equal(
+      catalogContentFingerprint(models, combos),
+      catalogContentFingerprint([...models], [...combos])
+    );
   });
 });
 
 describe("optionalTierFingerprint", () => {
+  it("takes providers, enrichment, then combos, with no legacy first entry", () => {
+    assert.equal(optionalTierFingerprint.length, 2);
+    const providers = [{ id: "c1", testStatus: "active", isActive: true }];
+    const priced = (input: number) =>
+      new Map([["example/model", { name: "Model One", pricing: { input, output: 1 } }]]);
+    const first = optionalTierFingerprint(providers, priced(3), [{ id: "combo-a" }]);
+    const moved = optionalTierFingerprint(providers, priced(99), [{ id: "combo-a" }]);
+    assert.notEqual(first, moved);
+  });
+
   it("moves on a pricing-only change, so stale prices reach the picker", () => {
     const priced = (input: number) =>
-      new Map([["cc/m1", { name: "M1", pricing: { input, output: 1 } }]]);
+      new Map([["example/model", { name: "Model One", pricing: { input, output: 1 } }]]);
     assert.notEqual(
-      optionalTierFingerprint([], [], priced(3)),
-      optionalTierFingerprint([], [], priced(99))
+      optionalTierFingerprint([], priced(3)),
+      optionalTierFingerprint([], priced(99))
     );
   });
 
@@ -46,8 +55,17 @@ describe("optionalTierFingerprint", () => {
     const one = [{ id: "combo-a", name: "A", models: [{ model: "m1" }] }];
     const two = [{ id: "combo-a", name: "A", models: [{ model: "m1" }, { model: "m2" }] }];
     assert.notEqual(
-      optionalTierFingerprint([], [], undefined, one),
-      optionalTierFingerprint([], [], undefined, two)
+      optionalTierFingerprint([], undefined, one),
+      optionalTierFingerprint([], undefined, two)
+    );
+  });
+
+  it("tells providers apart from enrichment by position, not just arity", () => {
+    const providers = [{ id: "c1", testStatus: "active", isActive: true }];
+    const enrichment = new Map([["example/model", { name: "Model One" }]]);
+    assert.notEqual(
+      optionalTierFingerprint(providers, undefined),
+      optionalTierFingerprint([], enrichment)
     );
   });
 
@@ -55,8 +73,8 @@ describe("optionalTierFingerprint", () => {
     const active = [{ id: "c1", testStatus: "active", isActive: true }];
     const quiet = [{ id: "c1", testStatus: "active", isActive: false }];
     assert.notEqual(
-      optionalTierFingerprint([], active, undefined),
-      optionalTierFingerprint([], quiet, undefined)
+      optionalTierFingerprint(active, undefined),
+      optionalTierFingerprint(quiet, undefined)
     );
   });
 });

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Puhverserverite kogumid ja opencode'i kontopõhine roteerimine väldivad äsja nurjunud puhverserveri (TCP-proovist keelduti või selle kaudu saadi vastus 429) uuesti kasutamist protsessipõhise ajavahemiku jooksul, mis iga korduva tõrke korral kahekordistub kuni ülempiirini. Puhverserveri olekut ei salvestata; kui kõik kandidaadid kõrvale jäetakse, valik ei muutu. Vaikimisi sees; `false` taastab tavalise valiku.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Teenusepakkujate puhul, kelle kvoot jagatakse väljuva (egress) aadressi järgi, paigutab pooli liikme, kes jagab hiljuti tagasi lükatud liikme täheldatud egress-aadressi, kohe tervete liikmete alla. Ainult järjestus, kunagi ei välistata. Vajab PROXY_SKIP_RECENTLY_FAILED-i, mis tekitab loetava keeldumissignaali. Vaikimisi väljas: valikujärjestus on täpselt tavaline rotatsioon.",
   "featureFlagProxyPoolEgressObservationDescription": "Kuva juhtpaneelil puhverserverite kogumi all, mitu vaadeldud väljuvat IP-aadressi teenindas selle liikmeid viimase 24 tunni jooksul, mitu ühendust neid kasutas ja kui palju ühendusi täheldati enim ühe IP-aadressi taga. Kirjutuskaitstud, arvutatakse puhverserveri logist ja seda ei kasutata kunagi marsruutimiseks. Vaikimisi väljas: kogumi redaktor ei muutu ja vaatlusmarsruut tagastab null.",
+  "featureFlagProxyOperatorEgressDescription": "Aktsepteeri operaatori saadetud dateeritud vaadeldud aadressid iga hoidla liikme kohta ja ühenda need ajaloost loetud andmetega kuvamiseks ja hoidla järjestuse jaoks. Vaikimisi väljas: saatmisruut tagastab 404 ja hoidla lugemised käituvad täpselt nii nagu enne.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Luba puhverserveri seisundi kontrollimisel sihtkoha poolt tagasi lükatud proovil (401/403/429: puhverserver vahendas päringu, sihtkoht keeldus sellest väljuvast IP-aadressist) lähtestada puhverserveri järjestikuste tõrgete jada nagu teenindatud proovi korral. Vaikimisi väljas: tagasilükkamine jääb neutraalseks ja säilitab jada. 5xx jääb mõlemal juhul ebaselgeks ning tagasilükkamine ei eemalda, keela ega taasaktiveeri kunagi puhverserverit.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Luba automaatsel puhastusel kustutada lõplikus olekus (lõpetatud/ebaõnnestunud/tühistatud/aegunud) Batch API tööd, mis on vanemad kui OMNIROUTE_BATCH_RETENTION_DAYS, koos nende reapõhiste kontrollpunktidega, ning kustutada oma expires_at tähtaja ületanud üleslaaditud failide BLOB-sisu. Vaikimisi väljas: kõik olemasolevad paigaldused säilitavad neid andmeid täpselt nagu varem, kuni operaator selle funktsiooni sisse lülitab. Operaatori käivitatavat marsruuti DELETE /api/v1/batches/delete-completed see valik ei mõjuta — tegemist on eraldiseisva ja tingimusteta avaliku API lepinguga.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Hangi xai-oauth ühenduste reaalajas xAI mudelikataloog aadressilt https://api.x.ai/v1/models, kasutades OAuthi kandjaluba, mitte fikseeritud staatilist algandmestikku. Vaikimisi väljas: xai-oauth jätkab staatilise algandmestiku muutmata kujul pakkumist. Mis tahes lahendamistõrke korral kasutatakse mudelite avastamisel algandmestikku.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Kohaliku puhverserverituuma lõpp-punkt on vigane; SS/VMess/Trojan/VLESS-sõlmi eirati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Sellel tellimusel on sõlmi, mis vajavad kohalikku puhverserverituuma (SS/VMess/Trojan/VLESS); neid ei marsruudita enne, kui konfigureerite kohaliku tuuma SOCKS5 lõpp-punkti.",
         "NO_USABLE_NODES": "Tellimus ei tagastanud ühtegi kasutatavat sõlme (http/https/socks5 või kohaliku tuuma lõpp-punktiga sõlmed).",
-        "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage."
+        "SELECTOR_SWITCH_FAILED": "Puhversüdamiku juhtkõne ebaõnnestus; eelmine marsruut jääb aktiivseks. Kontrollige juht-URL-i ja saladust, seejärel värskendage.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Genereeritud põhikonfiguratsioon ei suutnud vastuvõetud faili asendada; selle asemel jäeti kõrvalolev koopia alles.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Mõned kirjed jäid genereerimisel vahele. Vaata serverilogi."
       },
       "description": "Kleepige siia oma puhverserveri tellimuse link. Pärast lubamist marsruuditakse liiklus puhverserverite kogumi kaudu globaalses või reeglipõhises (määratud teenusepakkuja) režiimis. Tellimuse sõlmed sünkroonitakse automaatselt puhverserverite kogumisse ning nende puhul kasutatakse olemasolevaid küsitlus-, seisundikontrolli- ja lekkekaitsemehhanisme.",
       "addSubscription": "Lisa tellimus",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Ühtegi vahetust pole veel salvestatud",
       "lastSwitchMember": "Teenindav liige",
       "nextSwitch": "Järgmine võimalik vahetus",
-      "nextSwitchNow": "Nüüd"
+      "nextSwitchNow": "Nüüd",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Põhibinaari tee",
+      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kirjelduste tihendamine",
     "mcpAccessibilityTitle": "MCP ligipääsetavuse väljund",
     "compressionSettingsCavemanIntensity": "Koopainimese stiili intensiivsus",
-    "compressionSettingsCavemanOutputMode": "Koopainimese väljundrežiim",
     "compressionSettingsOutputStyles": "Väljundstiilid",
     "compressionStylesTileTitle": "Väljundstiilid",
     "compressionSettingsOutputIntensity": "Väljundi intensiivsus",
-    "compressionSettingsAutoClarityBypass": "Automaatne selgusekontrollist möödahiilimine",
     "compressionEffectivePipeline": "Rakenduv töötlusahel:",
     "compressionDerivedOff": "väljas",
     "compressionDerivedRuns": "käivitatakse: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Mida GET /v1/models selle võtme kohta avaldab. Loendi kitsendamine ei muuda kunagi seda, milliseid mudeleid võti saab kutsuda.",
     "catalogScopeAll": "Mõlemad",
     "catalogScopeCombos": "Ainult kombinatsioonid",
-    "catalogScopeModels": "Ainult mudelid"
+    "catalogScopeModels": "Ainult mudelid",
+    "resilienceTokenRefreshTitle": "Tokeni värskenduse katkesti",
+    "resilienceTokenRefreshDesc": "Peatab tokeni värskendamise korduva ebaõnnestumise korral. Ühenduse ulatus eraldab ühe surnud konto, et sama teenusepakkuja terved kontod jätkaksid värskendamist.",
+    "resilienceTokenRefreshScope": "Ühe pakkuja jaoks tehtavad tokeni värskenduskatsed",
+    "resilienceTokenRefreshTrigger": "Järjestikused nurjunud värskenduskatsed",
+    "resilienceTokenRefreshEffect": "Peatab värskenduskatsete ajaks jahutusaja",
+    "resilienceTokenRefreshScopeLabel": "Ulatus",
+    "resilienceTokenRefreshScopeProvider": "Pakkuja (kõik kontod jagavad ühte piirajat)",
+    "resilienceTokenRefreshScopeConnection": "Ühendus (igal kontol on oma katkesti)",
+    "resilienceTokenRefreshThreshold": "Tõrgete arv enne peatamist",
+    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Minimaalne tihendatavate ridade arv",
         "description": "Homogeense JSON-massiivi minimaalne ridade arv, mis on vajalik tabeltihenduse käivitamiseks. Vaikimisi: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Säilita süsteemiviip"
       },
       "summarizerEnabled": {
         "label": "Luba kokkuvõtja"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Sellest lühemaid sõnumeid ei tihendata. Väiksem = rohkem tihendamist.",
     "tooltipMinSavings": "Tihenda ainult siis, kui see säästab vähemalt nii palju tokeneid.",
     "ultraSettings": "Ultraseaded",
-    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine",
-    "preview": {
-      "lite": "Vasta lühidalt. Säilita tehnilised terminid, kood, vead, URL-id ja identifikaatorid.",
-      "full": "Vasta napilt ja kompaktselt. Säilita kogu tehniline sisu.",
-      "ultra": "Vasta ülilühidalt, kasutades levinud tehnilisi lühendeid. Säilita täpsed sümbolid."
-    }
+    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine"
   },
   "translator": {
     "title": "Tõlkija",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Tõrked ilma omistatud väljundita: {count}",
     "poolMemberEgress": "{host}:{port} liiklus väljus aadressi {egressIp} kaudu · viimased {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: viimase {hours} h jooksul liiklust ei tuvastatud",
+    "poolMemberEgressOperator": "{host}:{port} läks läbi {egressIp} · operaatori pakutud, {date}",
     "poolMemberEgressHint": "Viimane selle puuli liikme kaudu ajavahemiku jooksul tuvastatud väljuv IP-aadress, mis loeti puhverserveri logist. Kui liikmel ei olnud ajavahemiku jooksul liiklust, kuvatakse liikluseta rida.",
     "poolRemove": "Eemalda",
     "poolRemoveFailed": "Puhverserveri eemaldamine kogumist nurjus",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "puhverserver pole kättesaadav",
     "poolSetAsideKindIpQuota429": "IP päringupiirang (429)",
     "poolSetAsideKindSlow": "aeglased vastused",
+    "poolSetAsideKindGeoBlocked": "regiooniblokeeritud (403/451)",
     "poolSetAsideUntil": "Tagasi rotatsioonis {endsAt}",
     "poolSetAsideRepeat": "Kõrvale pandud {count, plural, one {# kord} other {# korda}}",
     "poolUnknownAddress": "Tundmatu aadress",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Positsioonijärjekord",
     "poolHealthRankingOff": "Tervise järjestus väljas",
     "transportRate": "{rate} % transporti",
+    "slowAbandoned": "{count} aeglased katkestused",
+    "clientAborted": "{count} kliendi katkestused",
+    "slowAbandonedHint": "Katkestatud pärast päiste oote läve ületamist, transpordimäärast välja arvatud",
     "previousSuccessRate": "Varem {rate} % edukust",
-    "upstreamRefusals": "{count} upstream-keeldumist",
     "connectionTestsCount": "{count} ühenduse testi",
-    "notMeasured": "Mõõtmata"
+    "notMeasured": "Mõõtmata",
+    "upstream4xx": "{count} ülespoole kliendivigad",
+    "upstream5xx": "{count} ülespoole serverivigad",
+    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem"
   },
   "playground": {
     "title": "Mudelite testkeskkond",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Pärib ühenduste kogumi ({count})",
     "poolEmptyBlocked": "Kogum tühi — päringud ebaõnnestuvad (mitte otse)",
     "directEgress": "Otse (puhverserverita)",
-    "ownProxy": "Oma puhverserver"
+    "ownProxy": "Oma puhverserver",
+    "freeTierPause": "Mudel {model} on pausil (429), tagasi {time}",
+    "freeTierPauseProvider": "Pausil (429), tagasi {time}",
+    "freeTierPauseNote": "Protsessisisene paus selles instantsis"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "Mitteaktiivseid: {count}",
     "dbOverrideCount": "DB-alistusi: {count}",
     "searchPlaceholder": "Otsi lippe...",
+    "descriptionModeLabel": "Kirjelduse vaade",
+    "descriptionModeHint": "Hiirega osutamisel: kaardid jäävad kompaktseks ja kirjeldusele osutamisel kuvatakse kogu tekst. Kogu tekst: kuvatakse alati täielik kirjeldus.",
+    "descriptionModeHover": "Hiirega osutamisel",
+    "descriptionModeFull": "Kogu tekst",
     "categories": {
       "all": "Kõik",
       "security": "Turvalisus",

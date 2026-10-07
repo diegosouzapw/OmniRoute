@@ -72,17 +72,21 @@ Féach ar [A2A-SERVER.md](./A2A-SERVER.md) le haghaidh sonraí iompair, strucht�
 **Críochphointe OmniRoute:** `GET /api/acp/agents`
 **Foinse:** `src/lib/acp/{index,manager,registry}.ts`
 
-### Cad é atá ann
+### Céard atá ann
 
-Is é ACP **fardal áitiúil gníomhairí CLI** OmniRoute. Aimsíonn sé cé na CLIanna códaithe atá suiteáilte ar an óstríomhaire (Cursor, Cline, Claude Code, Codex CLI, Continue, srl.), aimsíonn sé a leaganacha, agus cuireann sé ar fáil don deais iad ionas gur féidir leis an úsáideoir gach CLI a chumrú chun OmniRoute a úsáid.
+Is é ACP **fardal áitiúil gníomhairí CLI** OmniRoute. Aimsíonn sé cé na huirlisí CLI códaithe atá suiteáilte ar an óstríomhaire (Cursor, Cline, Claude Code, Codex CLI, Continue, srl.), cinneann sé a leaganacha, agus taispeánann sé iad ar an deais ionas gur féidir leis an úsáideoir gach CLI a chumrú chun OmniRoute a úsáid.
 
-NÍ prótacal seachtrach é seo — is clárlann inmheánach é a chumhachtaíonn comhéadan úsáideora "CLI Tools" agus rianú méarlorg CLI (féach [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Is fardal inmheánach é an comhéadan HTTP a chumhachtaíonn an Chomhéadain "CLI Tools" agus
+rianú méarloirg CLI (féach [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Ar leithligh uaidh sin,
+tacaíonn an bainisteoir próisis inmheánach leis an Agent Client Protocol dúchasach don
+tosaitheoir cláraithe Gemini agus le cuibheoirí stdio oidhreachta do chonarthaí eile.
+Féach [Clárlann agus tosaitheoirí ACP](./ACP.md) le haghaidh na módanna agus na dteorainneacha ar leith sin.
 
-### Cad a dhéanann sé
+### Céard a dhéanann sé
 
-- Scrúdaíonn sé an t-óstríomhaire le haghaidh dénártha CLI suiteáilte (úsáideann sé `which` / `where` de réir an chórais oibriúcháin)
+- Déanann sé iniúchadh ar an óstríomhaire le haghaidh dénárthaí CLI suiteáilte (úsáideann sé `which` / `where` de réir an chórais oibriúcháin)
 - Léann sé leagan gach CLI (glaonn sé `<bin> --version`)
-- Glacann sé, go roghnach, le gníomhairí saincheaptha arna sainiú ag an úsáideoir (conair dhénártha + tóireadóir leagain + argóintí sceite)
+- Glacann sé, go roghnach, le gníomhairí saincheaptha atá sainithe ag an úsáideoir (cosán dénártha + brathadóireacht leagain + argóintí tionscanta)
 - Coinníonn sé gníomhairí saincheaptha sna socruithe
 - Seolann sé an liosta aontaithe ar ais chuig an deais
 
@@ -90,10 +94,10 @@ NÍ prótacal seachtrach é seo — is clárlann inmheánach é a chumhachtaíon
 
 | Críochphointe     | Modh | Cur síos                                                                                 | Fíordheimhniú |
 | ----------------- | ---- | ---------------------------------------------------------------------------------------- | ------------- |
-| `/api/acp/agents` | GET  | Liosta de ghníomhairí aimsithe + saincheaptha (líon suiteáilte/iomlán)                   | Eochair API   |
+| `/api/acp/agents` | GET  | Liostaigh gníomhairí braite + saincheaptha (líon suiteáilte/iomlán)                      | Eochair API   |
 | `/api/acp/agents` | POST | Cuir gníomhaire saincheaptha leis/nuashonraigh/bain é (idirdhealaitheoir gnímh sa chorp) | Eochair API   |
 
-Cruth an choirp le haghaidh POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
+Cruth an choirp do POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ Cruth an choirp le haghaidh POST (`customAgentBodySchema` in `src/app/api/acp/ag
 
 ### Cásanna úsáide
 
-- Liostaíonn leathanach "CLI Tools" na deaise a bhfuil suiteáilte agus cabhraíonn sé leat gach ceann acu a dhíriú ar OmniRoute
-- Ligeann gníomhairí saincheaptha d’ardúsáideoirí CLIanna inmheánacha/dílseánaigh nach n-aithníonn OmniRoute de réir réamhshocraithe a chlárú
-- Cuireann toradh an bhraite sonraí ar fáil don mhaitrís méarlorg `cli-tools`
+- Liostaíonn leathanach "CLI Tools" na deaise a bhfuil suiteáilte agus cabhraíonn sé leat gach ceann acu a threorú chuig OmniRoute
+- Ligeann gníomhairí saincheaptha d’ardúsáideoirí uirlisí CLI inmheánacha/dílseánaigh nach bhfuil OmniRoute ar an eolas fúthu de réir réamhshocraithe a chlárú
+- Cuireann toradh an bhraite sonraí ar fáil don mhaitrís méarloirg `cli-tools`
 
 ### Cathain NÁ húsáid ACP
 
-- Ní _ritheann_ ACP tascanna. Ní dhéanann sé ach CLIanna a bhrath + a chumrú. Chun CLI a agairt i ndáiríre, seolann tú féin é leis na hathróga timpeallachta a chuireann OmniRoute ar fáil (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, srl.).
+- Ní ghlacann clárlann HTTP le tascanna ná ní nochtann sí tionscnamh próiseas. Is féidir leis an mbainisteoir
+  inmheánach CLI cláraithe a thosú, ach níl sé nasctha mar sholáthraí cúltaca
+  uathoibríoch. Le haghaidh gnáthúsáide idirghníomhaí, tosaigh an CLI cumraithe tú féin nó
+  úsáid `omniroute run`.
 
 ## 3. Gníomhairí Néalríomhaireachta
 

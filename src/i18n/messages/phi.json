@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Pinipigilan ng mga proxy pool at ng pag-ikot ng opencode sa bawat account na muling gumamit ng proxy na kabibigo lang (tinanggihan ang TCP probe, o nakatanggap ng 429 sa pamamagitan nito) sa loob ng isang panahon para sa bawat proseso na dumodoble sa bawat pag-ulit, hanggang sa itinakdang limitasyon. Walang isinusulat na status ng proxy; kapag isinantabi ang lahat ng kandidato, hindi nagbabago ang pagpili. Naka-on bilang default; ibinabalik ng `false` ang karaniwang pagpili.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Para sa mga provider na ang quota ay hinahati ayon sa egress address, inilalagay ang isang miyembro ng pool na kapareho ng naobserbahang egress address ng isang kamakailang tinanggihang miyembro sa ibaba mismo ng malulusog na miyembro. Pagkakasunod-sunod lamang, hindi kailanman inaalis. Kailangan ang PROXY_SKIP_RECENTLY_FAILED, na lumilikha ng signal ng pagtanggi na binabasa nito. Naka-off bilang default: ang pagkakasunod-sunod ng pagpili ay eksaktong ang karaniwang rotation.",
   "featureFlagProxyPoolEgressObservationDescription": "Ipakita sa ilalim ng isang proxy pool sa dashboard kung ilang naobserbahang egress IP ang ginamit ng mga miyembro nito sa nakalipas na 24 h, kung ilang koneksyon ang gumamit sa mga ito, at ang pinakamataas na bilang na nakita sa likod ng isang IP. Read-only, kinukuwenta mula sa proxy log, at hindi kailanman ginagamit sa pagruruta. Naka-off bilang default: hindi nagbabago ang editor ng pool at null ang isinasagot ng route ng obserbasyon.",
+  "featureFlagProxyOperatorEgressDescription": "Tanggapin ang mga address na naobserbahan na may petsa na itinulak ng operator para sa bawat miyembro ng pool at pagsamahin ang mga ito sa binasang journal para sa pagpapakita at pagkakasunod-sunod ng pool. Naka-off bilang default: ang push route ay sumasagot ng 404 at ang mga pagbasa ng pool ay kumikilos nang eksaktong tulad dati.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Sa pagsusuri sa kalagayan ng proxy, hayaan ang isang probe na tinanggihan ng target (401/403/429: ipinasa ito ng proxy, ngunit tinanggihan ng destinasyon ang egress IP na ito) na i-reset ang sunod-sunod na pagkabigo ng proxy, tulad ng isang naihatid na probe. Naka-off bilang default: nananatiling neutral ang pagtanggi at hindi nito binabago ang sunod-sunod na pagkabigo. Nananatiling walang tiyak na resulta ang isang 5xx sa alinmang paraan, at ang pagtanggi ay hindi kailanman nag-aalis, nagdi-disable, o muling nag-a-activate ng proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Payagan ang awtomatikong cleanup sweep na burahin ang mga terminal (completed/failed/cancelled/expired) na Batch API job na mas luma kaysa OMNIROUTE_BATCH_RETENTION_DAYS, kasama ang kanilang mga checkpoint sa bawat linya, at i-clear ang BLOB content ng mga na-upload na file na lumampas na sa sarili nilang expires_at. Naka-off bilang default: pananatilihin ng bawat kasalukuyang install ang data na ito nang eksaktong gaya ng dati hanggang sa mag-opt in ang isang operator. Hindi maaapektuhan sa alinmang paraan ang route na DELETE /api/v1/batches/delete-completed na pinapagana ng operator -- isa itong hiwalay at walang-kondisyong pampublikong API contract.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Kunin ang live na catalog ng modelo ng xAI para sa mga koneksyong xai-oauth mula sa https://api.x.ai/v1/models gamit ang OAuth bearer token, sa halip na ang hindi nagbabagong static seed. Naka-off bilang default: patuloy na ihahatid ng xai-oauth ang static seed nang walang pagbabago. Kapag may anumang error sa resolution, babalik ang discovery sa seed.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Hindi wasto ang lokal na proxy-core endpoint; binalewala ang mga SS/VMess/Trojan/VLESS node.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ang subscription na ito ay may mga node na nangangailangan ng lokal na proxy core (SS/VMess/Trojan/VLESS); hindi iruruta ang mga ito hanggang sa i-configure mo ang local-core SOCKS5 endpoint.",
         "NO_USABLE_NODES": "Walang naibigay na magagamit na mga node ang subscription (http/https/socks5 o mga node na may lokal na core endpoint).",
-        "SELECTOR_SWITCH_FAILED": "Nabigo ang control call ng proxy-core; nananatiling aktibo ang nakaraang ruta. Suriin ang control URL at secret, saka mag-refresh."
+        "SELECTOR_SWITCH_FAILED": "Nabigo ang control call ng proxy-core; nananatiling aktibo ang nakaraang ruta. Suriin ang control URL at secret, saka mag-refresh.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Hindi maipapalit ng nabuo na core configuration ang inadopt na file; halip, itinabi ang kopya sa tabi nito.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "May mga entry na nilaktawan habang nagbibigay. Tingnan ang log ng server."
       },
       "description": "I-paste ang link ng iyong proxy na subscription. Kapag na-enable na, iruruta ang trapiko sa proxy pool sa pandaigdigang mode o panuntunan (tinukoy na Provider). Awtomatikong sini-sync ang mga node ng subscription sa proxy pool at muling ginagamit ang mga umiiral nang mekanismo ng botohan, pagsusuri sa kalusugan, at anti-leak.",
       "addSubscription": "Magdagdag ng Subscription",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Wala pang naitalang paglipat",
       "lastSwitchMember": "Miyembrong naglilingkod",
       "nextSwitch": "Susunod na posibleng paglipat",
-      "nextSwitchNow": "Ngayon"
+      "nextSwitchNow": "Ngayon",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Path ng core binary",
+      "coreBinaryPathHelp": "Opsyonal: sinusuri ang nabuo na file gamit ang core binary bago palitan ang inadopt na file. Iwanang blangko upang magpatuloy ang pagsulat sa tabi nito. Ginagawa ang directory kung wala pa.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Maramihang Pagsusuri sa Kalagayan",
     "bulkHealthcheckDesc": "Subukan ang lahat ng naka-configure na proxy gamit ang isang target na URL upang malaman kung alin ang gumagana.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "compression ng paglalarawan ng MCP",
     "mcpAccessibilityTitle": "Output ng accessibility ng MCP",
     "compressionSettingsCavemanIntensity": "Ang intensity ng Caveman",
-    "compressionSettingsCavemanOutputMode": "Output mode ng Caveman",
     "compressionSettingsOutputStyles": "Mga istilo ng output",
     "compressionStylesTileTitle": "Mga istilo ng output",
     "compressionSettingsOutputIntensity": "Intensidad ng output",
-    "compressionSettingsAutoClarityBypass": "Awtomatikong pag-bypass batay sa kalinawan",
     "compressionEffectivePipeline": "Epektibong pipeline:",
     "compressionDerivedOff": "naka-off",
     "compressionDerivedRuns": "mga pagtakbo: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Kung ano ang inilalabas ng GET /v1/models para sa key na ito. Ang pagpapaliit ng listahan ay hindi kailanman nagbabago sa kung ano ang maaaring tawagin ng key.",
     "catalogScopeAll": "Pareho",
     "catalogScopeCombos": "Mga combo lamang",
-    "catalogScopeModels": "Mga modelo lamang"
+    "catalogScopeModels": "Mga modelo lamang",
+    "resilienceTokenRefreshTitle": "Token Refresh Breaker",
+    "resilienceTokenRefreshDesc": "Tumitigil sa pagsubok na i-refresh ang token pagkatapos ng paulit-ulit na kabiguan. Inihihiwalay ng saklaw bawat koneksyon ang isang patay na account upang manatiling nagre-refresh ang mga malusog na account sa parehong provider.",
+    "resilienceTokenRefreshScope": "Mga pagsusubik na i-refresh ang token para sa isang provider",
+    "resilienceTokenRefreshTrigger": "Sunod-sunod na nabibigong refresh attempts",
+    "resilienceTokenRefreshEffect": "Nagpapause ng mga refresh attempt para sa cooldown",
+    "resilienceTokenRefreshScopeLabel": "Saklaw",
+    "resilienceTokenRefreshScopeProvider": "Provider (lahat ng mga account ay nagbabahagi ng iisang breaker)",
+    "resilienceTokenRefreshScopeConnection": "Koneksyon (bawat account ay may sariling breaker)",
+    "resilienceTokenRefreshThreshold": "Mga kabiguan bago magpahinto",
+    "resilienceTokenRefreshCooldown": "Magpahinga pagkatapos ma-trigger"
   },
   "contextRtk": {
     "title": "Engine ng RTK",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Minimum na row na iko-compact",
         "description": "Minimum na row sa isang homogeneous na JSON array na kinakailangan upang ma-trigger ang tabular compaction. Default: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Panatilihin ang system prompt"
       },
       "summarizerEnabled": {
         "label": "Paganahin ang summarizer"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Ang mga mensaheng mas maikli kaysa dito ay hindi na-compress. Mas mababa = mas maraming compression.",
     "tooltipMinSavings": "I-compress lamang kung nakakatipid ito ng kahit gaano karaming token.",
     "ultraSettings": "Mga Ultra Setting",
-    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM",
-    "preview": {
-      "lite": "Sumagot nang maikli. Panatilihin ang mga teknikal na termino, code, error, URL, at identifier.",
-      "full": "Sumagot nang maigsi at siksik. Panatilihin ang lahat ng teknikal na nilalaman.",
-      "ultra": "Sumagot nang napakaigsi gamit ang mga karaniwang teknikal na daglat. Panatilihin ang eksaktong mga simbolo."
-    }
+    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM"
   },
   "translator": {
     "title": "Tagasalin",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Mga pagkabigong walang natukoy na exit: {count}",
     "poolMemberEgress": "Dumaan ang {host}:{port} sa {egressIp} · nakaraang {hours} oras",
     "poolMemberEgressEmpty": "{host}:{port}: walang naobserbahang trapiko sa nakaraang {hours} oras",
+    "poolMemberEgressOperator": "{host}:{port} lumabas sa pamamagitan ng {egressIp} · ibinigay ng operator, {date}",
     "poolMemberEgressHint": "Huling egress IP na naobserbahang ginamit ng miyembrong ito ng pool sa loob ng saklaw ng panahon, batay sa proxy log. Ipinapakita para sa miyembrong walang trapiko sa loob ng saklaw ng panahon ang linyang nagsasaad na walang trapiko.",
     "poolRemove": "Alisin",
     "poolRemoveFailed": "Hindi naalis ang proxy mula sa pool",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "hindi maabot ang proxy",
     "poolSetAsideKindIpQuota429": "limitasyon sa rate ng IP (429)",
     "poolSetAsideKindSlow": "mabagal na mga tugon",
+    "poolSetAsideKindGeoBlocked": "binalaan ng rehiyon (403/451)",
     "poolSetAsideUntil": "Balik sa pag-ikot {endsAt}",
     "poolSetAsideRepeat": "Isinantabi {count, plural, one {# beses} other {# beses}}",
     "poolUnknownAddress": "Hindi kilalang address",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Ayos ng posisyon",
     "poolHealthRankingOff": "Naka-off ang ranggo ng kalusugan",
     "transportRate": "{rate}% transport",
+    "slowAbandoned": "{count} mabagal na pag-abandona",
+    "clientAborted": "{count} abort ng kliyente",
+    "slowAbandonedHint": "Inabandona matapos ang threshold ng paghihintay ng mga header, hindi isinama sa rate ng transport",
     "previousSuccessRate": "Dati {rate}% tagumpay",
-    "upstreamRefusals": "{count} pagtanggi ng upstream",
     "connectionTestsCount": "{count} pagsubok ng koneksyon",
-    "notMeasured": "Hindi nasukat"
+    "notMeasured": "Hindi nasukat",
+    "upstream4xx": "{count} mga error ng upstream client",
+    "upstream5xx": "{count} mga error ng upstream server",
+    "uniformEgressLine": "{affected} sa {exits} na mga exit ay sabay-sabay na nabigo sa {provider} (huling {hours}h) — hindi problema ng exit"
   },
   "playground": {
     "title": "Title",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Nagmamana ng pool ng koneksyon ({count})",
     "poolEmptyBlocked": "Walang laman ang pool — nabibigo ang mga request (hindi direkta)",
     "directEgress": "Direkta (walang proxy)",
-    "ownProxy": "Sariling proxy"
+    "ownProxy": "Sariling proxy",
+    "freeTierPause": "Na-pause ang model {model} (429), babalik sa {time}",
+    "freeTierPauseProvider": "Na-pause (429), babalik sa {time}",
+    "freeTierPauseNote": "In-process na pagtigil sa instance na ito"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} hindi aktibo",
     "dbOverrideCount": "{count} na DB override",
     "searchPlaceholder": "Maghanap ng mga flag...",
+    "descriptionModeLabel": "View ng paglalarawan",
+    "descriptionModeHint": "Sa hover: compact pa rin ang mga card, at ang pag-hover sa isang paglalarawan ay nagpapakita ng buong teksto. Buong teksto: palaging ipakita ang kumpletong paglalarawan.",
+    "descriptionModeHover": "Sa hover",
+    "descriptionModeFull": "Buong teksto",
     "categories": {
       "all": "Lahat",
       "security": "Seguridad",

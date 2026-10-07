@@ -1,1 +1,0 @@
-- **fix(cursor):** ranged reads bridged from Cursor's native read tool keep their `offset`/`limit` instead of reaching the client as whole-file reads, which Claude Code answered with "file unchanged" and left the model re-reading the same file ([#15036](https://github.com/diegosouzapw/OmniRoute/pull/15036)).

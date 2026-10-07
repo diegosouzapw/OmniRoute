@@ -1,1 +1,0 @@
-- **fix(providers):** Soniox speech sends the `language` and `voice` fields its API requires (defaults `en` / `Adrian`; OpenAI stock voices fall back to the default) instead of failing every request with 400 ([#14974](https://github.com/diegosouzapw/OmniRoute/pull/14974))

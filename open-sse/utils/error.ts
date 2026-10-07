@@ -1134,23 +1134,20 @@ export function modelCooldownResponse({
       : typeof retryAfter === "string" && retryAfter.length > 0
         ? retryAfter
         : null;
-  return new Response(
-    JSON.stringify(
-      buildModelCooldownBody({
-        model,
-        retryAfterSec,
-        retryAfterAt: resolvedRetryAfterAt,
-        credentialsCoolingCount,
-      })
-    ),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(retryAfterSec),
-      },
-    }
-  );
+  const body = buildModelCooldownBody({
+    model,
+    retryAfterSec,
+    retryAfterAt: resolvedRetryAfterAt,
+    credentialsCoolingCount,
+  });
+  return new Response(JSON.stringify(body), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retryAfterSec),
+      "X-OmniRoute-Local-Cooldown": "model", // = LOCAL_MODEL_COOLDOWN_HEADER (#1731 vs #14190)
+    },
+  });
 }
 
 /**

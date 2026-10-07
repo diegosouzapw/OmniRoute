@@ -1,0 +1,1 @@
+- **test(api):** the chat completions keepalive correlation test now guards the route wiring for real — it reads the wrapper's buffer under the caller's `X-Correlation-Id` instead of re-recording the bytes itself (red without `correlationId: reqId`, green with it), and drops the 5 s real sleep ([#15254](https://github.com/diegosouzapw/OmniRoute/pull/15254)) — thanks @yourspraveen

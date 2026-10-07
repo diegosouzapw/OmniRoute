@@ -1,1 +1,0 @@
-- fix(providers): retire gemini-business — Google retired the StreamGenerate endpoint it depended on and the replacement protocol cannot be validated without a live enterprise account (#14217)

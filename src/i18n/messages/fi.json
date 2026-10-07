@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Välityspalvelinpoolit ja opencoden tilikohtainen kierto estävät juuri epäonnistuneen välityspalvelimen (hylätty TCP-tarkistus tai sen kautta saatu 429-vastaus) tarjoamisen uudelleen prosessikohtaisen ajanjakson ajan. Ajanjakso kaksinkertaistuu jokaisen toistuvan epäonnistumisen myötä enimmäisrajaan asti. Välityspalvelimen tilaa ei kirjata; jos kaikki ehdokkaat on siirretty sivuun, valinta pysyy ennallaan. Oletusarvoisesti käytössä; `false` palauttaa tavallisen valinnan.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Palveluntarjoajille, joiden kiintiö jaetaan lähtevän (egress) osoitteen mukaan, sijoittaa poolin jäsenen, joka jakaa äskettäin hylätyn jäsenen havaitun egress-osoitteen, heti terveiden jäsenten alapuolelle. Vain järjestys, ei koskaan poissulkemista. Vaatii PROXY_SKIP_RECENTLY_FAILED-asetuksen, joka tuottaa sen lukeman hylkäyssignaalin. Oletuksena pois päältä: valintajärjestys on täsmälleen tavallinen kierto.",
   "featureFlagProxyPoolEgressObservationDescription": "Näytä hallintapaneelissa välityspalvelinpoolin kohdalla, kuinka monta havaittua lähtevän liikenteen IP-osoitetta sen jäsenet käyttivät viimeisten 24 tunnin aikana, kuinka monta yhteyttä käytti niitä ja kuinka monta yhteyttä enimmillään havaittiin yhden IP-osoitteen takana. Vain luku -tieto, joka lasketaan välityspalvelinlokista ja jota ei koskaan käytetä reititykseen. Oletusarvoisesti poissa käytöstä: poolieditori säilyy ennallaan ja havaintoreitti palauttaa arvon null.",
+  "featureFlagProxyOperatorEgressDescription": "Hyväksy toimittajan lähettämät päiväysmerkityt havaitut osoitteet jokaiselle ryhmäjäsenelle ja yhdistä ne tiedostojen lukemiseen näyttöön ja ryhmäjärjestykseen. Pois päältä oletuksena: push-reitti vastaa 404 ja ryhmäluvut käyttäytyvät täysin samalla tavalla kuin ennen.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Salli välityspalvelinten kuntotarkistuksessa sellaisen tarkistuksen, jonka kohde hylkäsi (401/403/429: välityspalvelin välitti pyynnön, mutta kohde hylkäsi tämän lähtevän liikenteen IP-osoitteen), nollata välityspalvelimen peräkkäisten epäonnistumisten sarja onnistuneesti palvellun tarkistuksen tavoin. Oletusarvoisesti poissa käytöstä: hylkäys pysyy neutraalina eikä katkaise sarjaa. 5xx-vastaus pysyy kummassakin tapauksessa tuloksettomana, eikä hylkäys koskaan poista välityspalvelinta, poista sitä käytöstä tai aktivoi sitä uudelleen.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Anna automaattisen puhdistuksen poistaa OMNIROUTE_BATCH_RETENTION_DAYS-arvoa vanhemmat päättyneet (valmistuneet/epäonnistuneet/peruutetut/vanhentuneet) Batch API -työt sekä niiden rivikohtaiset tarkistuspisteet ja tyhjentää niiden ladattujen tiedostojen BLOB-sisältö, joiden oma expires_at-ajankohta on ohitettu. Oletusarvoisesti poissa käytöstä: jokainen nykyinen asennus säilyttää nämä tiedot täsmälleen kuten ennenkin, kunnes ylläpitäjä ottaa toiminnon käyttöön. Ylläpitäjän käynnistämään DELETE /api/v1/batches/delete-completed -reittiin tällä ei ole vaikutusta — se on erillinen, ehdoton julkinen API-sopimus.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Nouda ajantasainen xAI-malliluettelo xai-oauth-yhteyksille osoitteesta https://api.x.ai/v1/models käyttämällä OAuth-haltijatunnusta jäädytetyn staattisen alkuluettelon sijaan. Oletusarvoisesti poissa käytöstä: xai-oauth käyttää edelleen muuttumatonta staattista alkuluetteloa. Jos määrityksessä tapahtuu virhe, mallien haku käyttää alkuluetteloa varavaihtoehtona.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Paikallinen välityspalvelinytimen päätepiste on virheellinen; SS/VMess/Trojan/VLESS-solmut ohitettiin.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tässä tilauksessa on solmuja, jotka tarvitsevat paikallisen välityspalvelinytimen (SS/VMess/Trojan/VLESS); niitä ei reititetä ennen kuin määrität paikallisen ytimen SOCKS5-päätepisteen.",
         "NO_USABLE_NODES": "Tilaus ei tuottanut käyttökelpoisia solmuja (http/https/socks5 tai solmuja, joilla on paikallisen ytimen päätepiste).",
-        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten."
+        "SELECTOR_SWITCH_FAILED": "Välitysymen ohjauskutsu epäonnistui; edellinen reitti pysyy käytössä. Tarkista ohjaus-URL ja salaisuus ja päivitä sitten.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Generoitua ydinasetustiedostoa ei voitu korvata otetulla tiedostolla; viereinen kopio säilytettiin sen sijaan.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Jotkut merkinnät ohitettiin generoinnin aikana. Katso palvelinloki."
       },
       "description": "Liitä välityspalvelimen tilauslinkki. Kun tämä on otettu käyttöön, liikenne reititetään välityspalvelimen kautta yleisessä tai sääntötilassa (määritetty toimittaja). Tilaussolmut synkronoidaan automaattisesti välityspalvelinpooliin, ja ne käyttävät uudelleen olemassa olevia kysely-, kuntotarkastus- ja vuodonestomekanismeja.",
       "addSubscription": "Lisää tilaus",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Vaihtoja ei ole vielä kirjattu",
       "lastSwitchMember": "Palveleva jäsen",
       "nextSwitch": "Seuraava mahdollinen vaihto",
-      "nextSwitchNow": "Nyt"
+      "nextSwitchNow": "Nyt",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Ydinbinäärin polku",
+      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Kuntotarkistus joukkona",
     "bulkHealthcheckDesc": "Testaa kaikki määritetyt välityspalvelimet kohde-URL-osoitetta vasten selvittääksesi, mitkä niistä toimivat.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP-kuvauksen pakkaus",
     "mcpAccessibilityTitle": "MCP-saavutettavuustuloste",
     "compressionSettingsCavemanIntensity": "Luolamiesten intensiteetti",
-    "compressionSettingsCavemanOutputMode": "Caveman-lähtötila",
     "compressionSettingsOutputStyles": "Tulostetyylit",
     "compressionStylesTileTitle": "Tulostetyylit",
     "compressionSettingsOutputIntensity": "Tulostuksen intensiteetti",
-    "compressionSettingsAutoClarityBypass": "Automaattinen selkeyden ohitus",
     "compressionEffectivePipeline": "Voimassa oleva liukuhihna:",
     "compressionDerivedOff": "pois päältä",
     "compressionDerivedRuns": "ajot: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Mitä GET /v1/models ilmoittaa tälle avaimelle. Luettelon rajaaminen ei koskaan muuta sitä, mitä avain voi kutsua.",
     "catalogScopeAll": "Molemmat",
     "catalogScopeCombos": "Vain yhdistelmät",
-    "catalogScopeModels": "Vain mallit"
+    "catalogScopeModels": "Vain mallit",
+    "resilienceTokenRefreshTitle": "Tokenin päivityksen katkaisija",
+    "resilienceTokenRefreshDesc": "Lopettaa tokenin päivityksen yrittämisen toistuvien epäonnistumisten jälkeen. Yhteyden kohta-alue erottaa yhden kuolleen tilin, jotta saman palveluntarjoajan terveet tilit jatkavat päivitystä.",
+    "resilienceTokenRefreshScope": "Tokenin päivitysyritykset yhdelle palveluntarjoajalle",
+    "resilienceTokenRefreshTrigger": "Peräkkäiset epäonnistuneet päivitysyritykset",
+    "resilienceTokenRefreshEffect": "Keskeyttää päivitysyritykset jäähdytysajaksi",
+    "resilienceTokenRefreshScopeLabel": "Laajuus",
+    "resilienceTokenRefreshScopeProvider": "Palveluntarjoaja (kaikki tilit jakavat yhden katkaisijan)",
+    "resilienceTokenRefreshScopeConnection": "Yhteys (jokaisella tilillä on oma katkaisija)",
+    "resilienceTokenRefreshThreshold": "Virheitä ennen tauottamista",
+    "resilienceTokenRefreshCooldown": "Tauko laukeamisen jälkeen"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Tiivistettävien rivien vähimmäismäärä",
         "description": "Homogeenisen JSON-taulukon rivien vähimmäismäärä taulukkomaisen tiivistämisen käynnistämiseksi. Oletus: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Säilytä järjestelmäkehote"
       },
       "summarizerEnabled": {
         "label": "Ota tiivistäjä käyttöön"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Tätä lyhyempiä viestejä ei pakata. Alempi = enemmän pakkausta.",
     "tooltipMinSavings": "Pakkaa vain, jos se säästää vähintään näin monta merkkiä.",
     "ultraSettings": "Ultra-asetukset",
-    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus",
-    "preview": {
-      "lite": "Vastaa ytimekkäästi. Säilytä tekniset termit, koodi, virheet, URL-osoitteet ja tunnisteet.",
-      "full": "Vastaa lyhyesti ja tiiviisti. Säilytä kaikki tekninen asiasisältö.",
-      "ultra": "Vastaa erittäin lyhyesti käyttäen yleisiä teknisiä lyhenteitä. Säilytä symbolit täsmälleen."
-    }
+    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus"
   },
   "translator": {
     "title": "Kääntäjä",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Virheet ilman kohdistettua ulostuloa: {count}",
     "poolMemberEgress": "{host}:{port} poistui osoitteen {egressIp} kautta · viimeiset {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: liikennettä ei havaittu viimeisten {hours} tunnin aikana",
+    "poolMemberEgressOperator": "{host}:{port} lähtenyt läpi {egressIp} · toimittajan tarjoama, {date}",
     "poolMemberEgressHint": "Viimeisin tämän poolin jäsenen kautta havaittu ulostulo-IP valitulla aikavälillä välityspalvelimen lokin perusteella. Jos jäsenellä ei ole ollut liikennettä aikavälillä, näytetään Ei liikennettä -rivi.",
     "poolRemove": "Poista",
     "poolRemoveFailed": "Proxyn poistaminen poolista epäonnistui",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "välityspalvelin ei tavoitettavissa",
     "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideKindSlow": "hitaat vastaukset",
+    "poolSetAsideKindGeoBlocked": "alue estetty (403/451)",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Sijaintijärjestys",
     "poolHealthRankingOff": "Terveysjärjestys pois päältä",
     "transportRate": "{rate} % siirtoa",
+    "slowAbandoned": "{count} hidasta keskeytystä",
+    "clientAborted": "{count} asiakkaan keskeytystä",
+    "slowAbandonedHint": "Keskeytetty otsikoiden odotusajan rajan jälkeen, ei huomioida kuljetusnopeudessa",
     "previousSuccessRate": "Aiemmin {rate} % onnistumisia",
-    "upstreamRefusals": "{count} upstream-hylkäystä",
     "connectionTestsCount": "{count} yhteystestiä",
-    "notMeasured": "Ei mitattu"
+    "notMeasured": "Ei mitattu",
+    "upstream4xx": "{count} ylävirta-asiakasvirheet",
+    "upstream5xx": "{count} ylävirta-palvelinvirheet",
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
   },
   "playground": {
     "title": "Title",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Perii yhteyspoolin ({count})",
     "poolEmptyBlocked": "Pooli tyhjä — pyynnöt epäonnistuvat (ei suoraan)",
     "directEgress": "Suora (ei välityspalvelinta)",
-    "ownProxy": "Oma välityspalvelin"
+    "ownProxy": "Oma välityspalvelin",
+    "freeTierPause": "Malli {model} keskeytetty (429), palaa {time}",
+    "freeTierPauseProvider": "Keskeytetty (429), palaa {time}",
+    "freeTierPauseNote": "Prosessinsisäinen tauko tällä instanssilla"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} ei-aktiivista",
     "dbOverrideCount": "{count} tietokannan yliajoa",
     "searchPlaceholder": "Hae lippuja...",
+    "descriptionModeLabel": "Kuvausnäkymä",
+    "descriptionModeHint": "Vierailla: kortit pysyvät kompakteina ja kuvauksen vieressä näytetään koko teksti. Koko teksti: näytä aina koko kuvaus.",
+    "descriptionModeHover": "Vierailla",
+    "descriptionModeFull": "Koko teksti",
     "categories": {
       "all": "Kaikki",
       "security": "Tietoturva",

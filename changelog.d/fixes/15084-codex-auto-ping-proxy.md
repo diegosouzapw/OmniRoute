@@ -1,0 +1,1 @@
+- **fix(quota):** Keep Codex quota auto-ping usage reads and warm-up requests on the selected connection proxy without enabling direct fallback ([#15084](https://github.com/diegosouzapw/OmniRoute/pull/15084)) — thanks @xiaoyaner0201

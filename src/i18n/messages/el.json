@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Οι ομάδες διακομιστών μεσολάβησης και η εναλλαγή ανά λογαριασμό του opencode παύουν να χρησιμοποιούν ξανά έναν διακομιστή μεσολάβησης που μόλις απέτυχε (απορρίφθηκε η δοκιμή TCP ή λήφθηκε απόκριση 429 μέσω αυτού) για ένα χρονικό διάστημα ανά διεργασία, το οποίο διπλασιάζεται σε κάθε επανάληψη, έως ένα ανώτατο όριο. Δεν καταγράφεται καμία κατάσταση διακομιστή μεσολάβησης· όταν όλοι οι υποψήφιοι παραμερίζονται, η επιλογή παραμένει αμετάβλητη. Ενεργοποιημένο από προεπιλογή· το `false` επαναφέρει την απλή επιλογή.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Για παρόχους των οποίων το όριο χρήσης κατανέμεται ανά διεύθυνση εξόδου (egress), κατατάσσει ένα μέλος του pool που μοιράζεται την παρατηρούμενη διεύθυνση egress ενός μέλους που απορρίφθηκε πρόσφατα ακριβώς κάτω από τα υγιή μέλη. Μόνο σειρά, ποτέ αποκλεισμός. Απαιτεί το PROXY_SKIP_RECENTLY_FAILED, που παράγει το σήμα απόρριψης που διαβάζει. Απενεργοποιημένο από προεπιλογή: η σειρά επιλογής είναι ακριβώς η απλή εναλλαγή.",
   "featureFlagProxyPoolEgressObservationDescription": "Εμφάνιση, κάτω από μια ομάδα διακομιστών μεσολάβησης στον πίνακα ελέγχου, του αριθμού των παρατηρούμενων IP εξόδου που εξυπηρέτησαν τα μέλη της κατά τις τελευταίες 24 ώρες, του αριθμού των συνδέσεων που τις χρησιμοποίησαν και του μεγαλύτερου αριθμού συνδέσεων που παρατηρήθηκε πίσω από μία IP. Μόνο για ανάγνωση, υπολογίζεται από το αρχείο καταγραφής του διακομιστή μεσολάβησης και δεν χρησιμοποιείται ποτέ για δρομολόγηση. Απενεργοποιημένο από προεπιλογή: το πρόγραμμα επεξεργασίας της ομάδας παραμένει αμετάβλητο και η διαδρομή παρατήρησης επιστρέφει null.",
+  "featureFlagProxyOperatorEgressDescription": "Αποδέχεται ημερομηνιακές παρατηρούμενες διευθύνσεις που στέλνει ο διαχειριστής ανά μέλος ομάδας και τις συγχωνεύει με την καταγραφή ανάγνωσης για προβολή και τάξη ομάδας. Απενεργοποιημένο προεπιλογή: ο δρόμος που στέλνει απαντά 404 και οι αναγνώσεις της ομάδας συμπεριφέρονται ακριβώς όπως πριν.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Κατά τον έλεγχο εύρυθμης λειτουργίας των διακομιστών μεσολάβησης, να επιτρέπεται σε μια δοκιμή που απορρίφθηκε από τον προορισμό (401/403/429: ο διακομιστής μεσολάβησης προώθησε το αίτημα, αλλά ο προορισμός απέρριψε αυτήν την IP εξόδου) να μηδενίζει το συνεχόμενο σερί αποτυχιών του διακομιστή μεσολάβησης, όπως μια δοκιμή που εξυπηρετήθηκε. Απενεργοποιημένο από προεπιλογή: μια απόρριψη παραμένει ουδέτερη και διατηρεί το σερί. Μια απόκριση 5xx παραμένει ασαφής και στις δύο περιπτώσεις, ενώ μια απόρριψη δεν αφαιρεί, δεν απενεργοποιεί και δεν επανενεργοποιεί ποτέ έναν διακομιστή μεσολάβησης.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Να επιτρέπεται στην αυτόματη εκκαθάριση να διαγράφει οριστικές (ολοκληρωμένες/αποτυχημένες/ακυρωμένες/ληγμένες) εργασίες Batch API παλαιότερες από OMNIROUTE_BATCH_RETENTION_DAYS, μαζί με τα σημεία ελέγχου ανά γραμμή, και να διαγράφει το περιεχόμενο BLOB των μεταφορτωμένων αρχείων μετά το δικό τους expires_at. Απενεργοποιημένο από προεπιλογή: κάθε υπάρχουσα εγκατάσταση διατηρεί αυτά τα δεδομένα ακριβώς όπως πριν, έως ότου ένας διαχειριστής ενεργοποιήσει τη λειτουργία. Η διαδρομή DELETE /api/v1/batches/delete-completed που ενεργοποιείται από τον διαχειριστή παραμένει ανεπηρέαστη σε κάθε περίπτωση — αποτελεί ξεχωριστή, άνευ όρων δημόσια σύμβαση API.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ανάκτηση του τρέχοντος καταλόγου μοντέλων xAI για συνδέσεις xai-oauth από το https://api.x.ai/v1/models με χρήση του διακριτικού κομιστή OAuth, αντί για το στατικό προκαθορισμένο σύνολο. Απενεργοποιημένο από προεπιλογή: το xai-oauth συνεχίζει να παρέχει το στατικό προκαθορισμένο σύνολο χωρίς αλλαγές. Σε οποιοδήποτε σφάλμα επίλυσης, η ανακάλυψη επιστρέφει στο προκαθορισμένο σύνολο.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Το τοπικό τελικό σημείο proxy-core δεν είναι έγκυρο· οι κόμβοι SS/VMess/Trojan/VLESS αγνοήθηκαν.",
         "NEEDS_CORE_NOT_CONFIGURED": "Αυτή η συνδρομή έχει κόμβους που χρειάζονται τοπικό πυρήνα διακομιστή μεσολάβησης (SS/VMess/Trojan/VLESS)· δεν δρομολογούνται έως ότου ρυθμίσετε το τοπικό τελικό σημείο SOCKS5 του πυρήνα.",
         "NO_USABLE_NODES": "Η συνδρομή δεν απέδωσε χρησιμοποιήσιμους κόμβους (http/https/socks5 ή κόμβους με τοπικό τελικό σημείο πυρήνα).",
-        "SELECTOR_SWITCH_FAILED": "Η κλήση ελέγχου του proxy-core απέτυχε· η προηγούμενη διαδρομή παραμένει ενεργή. Ελέγξτε το URL και το μυστικό ελέγχου και ανανεώστε."
+        "SELECTOR_SWITCH_FAILED": "Η κλήση ελέγχου του proxy-core απέτυχε· η προηγούμενη διαδρομή παραμένει ενεργή. Ελέγξτε το URL και το μυστικό ελέγχου και ανανεώστε.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Το παραχθέν βασικό αρχείο ρυθμίσεων δεν ήταν δυνατό να αντικαταστήσει το υιοθετημένο αρχείο· διατηρήθηκε αντί αυτού το αντίγραφο δίπλα του.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Κάποιες καταχωρίσεις παραλείφθηκαν κατά τη δημιουργία. Δείτε το αρχείο καταγραφής του διακομιστή."
       },
       "description": "Επικολλήστε τον σύνδεσμο συνδρομής διακομιστή μεσολάβησης. Μόλις ενεργοποιηθεί, η κυκλοφορία δρομολογείται μέσω της δεξαμενής διακομιστών μεσολάβησης σε καθολική λειτουργία ή λειτουργία κανόνων (καθορισμένος Πάροχος). Οι κόμβοι συνδρομής συγχρονίζονται αυτόματα στη δεξαμενή και επαναχρησιμοποιούν τους υπάρχοντες μηχανισμούς κυκλικής εναλλαγής, ελέγχου εύρυθμης λειτουργίας και αποτροπής διαρροών.",
       "addSubscription": "Προσθήκη Συνδρομής",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Δεν έχει καταγραφεί εναλλαγή",
       "lastSwitchMember": "Μέλος που εξυπηρετεί",
       "nextSwitch": "Επόμενη δυνατή εναλλαγή",
-      "nextSwitchNow": "Τώρα"
+      "nextSwitchNow": "Τώρα",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Διαδρομή βασικής εκτελέσιμου",
+      "coreBinaryPathHelp": "Προαιρετικό: επαληθεύει το παραχθέν αρχείο με τη βασική εκτελέσιμο πριν από την αντικατάσταση του υιοθετημένου αρχείου. Αφήστε το κενό για να συνεχίσει η εγγραφή δίπλα του. Ο κατάλογος δημιουργείται αν δεν υπάρχει.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Μαζικός έλεγχος εύρυθμης λειτουργίας",
     "bulkHealthcheckDesc": "Δοκιμάστε όλους τους διαμορφωμένους διακομιστές μεσολάβησης με μια διεύθυνση URL-στόχο, για να βρείτε ποιοι λειτουργούν.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "Συμπίεση περιγραφής MCP",
     "mcpAccessibilityTitle": "Έξοδος προσβασιμότητας MCP",
     "compressionSettingsCavemanIntensity": "Ένταση Caveman",
-    "compressionSettingsCavemanOutputMode": "Λειτουργία εξόδου Caveman",
     "compressionSettingsOutputStyles": "Στυλ εξόδου",
     "compressionStylesTileTitle": "Στυλ εξόδου",
     "compressionSettingsOutputIntensity": "Ένταση εξόδου",
-    "compressionSettingsAutoClarityBypass": "Αυτόματη παράκαμψη σαφήνειας",
     "compressionEffectivePipeline": "Ενεργή αλυσίδα επεξεργασίας:",
     "compressionDerivedOff": "ανενεργό",
     "compressionDerivedRuns": "εκτελέσεις: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Τι εμφανίζει το GET /v1/models για αυτό το κλειδί. Ο περιορισμός της λίστας δεν αλλάζει ποτέ τα μοντέλα που μπορεί να καλέσει το κλειδί.",
     "catalogScopeAll": "Και τα δύο",
     "catalogScopeCombos": "Μόνο συνδυασμοί",
-    "catalogScopeModels": "Μόνο μοντέλα"
+    "catalogScopeModels": "Μόνο μοντέλα",
+    "resilienceTokenRefreshTitle": "Διακόπτης Ανανέωσης Εκπέμποντος",
+    "resilienceTokenRefreshDesc": "Σταματά τις επαναλαμβανόμενες προσπάθειες ανανέωσης του token μετά από επαναλαμβανόμενες αποτυχίες. Το πεδίο ανά σύνδεση απομονώνει έναν νεκρό λογαριασμό, ώστε οι υγιείς λογαριασμοί στον ίδιο πάροχο να συνεχίζουν την ανανέωση.",
+    "resilienceTokenRefreshScope": "Προσπάθειες ανανέωσης ενδείξεων για έναν πάροχο",
+    "resilienceTokenRefreshTrigger": "Διαδοχικές αποτυχημένες προσπάθειες ανανέωσης",
+    "resilienceTokenRefreshEffect": "Παύση των προσπαθειών ανανέωσης κατά τη διάρκεια της περιόδου κατάψυξης",
+    "resilienceTokenRefreshScopeLabel": "Περιοχή εφαρμογής",
+    "resilienceTokenRefreshScopeProvider": "Πάροχος (όλοι οι λογαριασμοί μοιράζονται έναν διακόπτη)",
+    "resilienceTokenRefreshScopeConnection": "Σύνδεση (κάθε λογαριασμός έχει τον δικό του διακόπτη)",
+    "resilienceTokenRefreshThreshold": "Αποτυχίες πριν από την παύση",
+    "resilienceTokenRefreshCooldown": "Παύση μετά την ενεργοποίηση"
   },
   "contextRtk": {
     "title": "Μηχανή RTK",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Ελάχιστες γραμμές για συμπαγοποίηση",
         "description": "Ελάχιστος αριθμός γραμμών σε έναν ομοιογενή πίνακα JSON που απαιτείται για την ενεργοποίηση της συμπαγοποίησης σε μορφή πίνακα. Προεπιλογή: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Διατήρηση του system prompt"
       },
       "summarizerEnabled": {
         "label": "Ενεργοποίηση σύνοψης"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Τα μηνύματα που είναι μικρότερα από αυτό το μήκος δεν συμπιέζονται. Χαμηλότερο = περισσότερη συμπίεση.",
     "tooltipMinSavings": "Συμπίεση μόνο αν εξοικονομείται τουλάχιστον αυτός ο αριθμός tokens.",
     "ultraSettings": "Ultra ρυθμίσεις",
-    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM",
-    "preview": {
-      "lite": "Απαντήστε συνοπτικά. Διατηρήστε τεχνικούς όρους, κώδικα, σφάλματα, URLs και αναγνωριστικά.",
-      "full": "Απαντήστε σύντομα και περιεκτικά. Διατηρήστε ακέραιο όλο το τεχνικό περιεχόμενο.",
-      "ultra": "Απαντήστε εξαιρετικά συνοπτικά με κοινές τεχνικές συντομογραφίες. Διατηρήστε τα ακριβή σύμβολα."
-    }
+    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM"
   },
   "translator": {
     "title": "Μεταφραστής",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Αποτυχίες χωρίς αποδοθείσα έξοδο: {count}",
     "poolMemberEgress": "{host}:{port} εξερχόταν μέσω της {egressIp} · τελευταίες {hours} ώρες",
     "poolMemberEgressEmpty": "{host}:{port}: δεν παρατηρήθηκε κίνηση τις τελευταίες {hours} ώρες",
+    "poolMemberEgressOperator": "{host}:{port} έφυγε από {egressIp} · που παρέχει ο διαχειριστής, {date}",
     "poolMemberEgressHint": "Η τελευταία IP εξόδου που παρατηρήθηκε μέσω αυτού του μέλους του pool κατά τη διάρκεια του χρονικού παραθύρου, όπως καταγράφηκε στο αρχείο καταγραφής του proxy. Για ένα μέλος χωρίς κίνηση στο χρονικό παράθυρο εμφανίζεται η γραμμή «χωρίς κίνηση».",
     "poolRemove": "Αφαίρεση",
     "poolRemoveFailed": "Αποτυχία αφαίρεσης του διακομιστή μεσολάβησης από την ομάδα",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "ο διακομιστής μεσολάβησης δεν είναι προσβάσιμος",
     "poolSetAsideKindIpQuota429": "όριο ρυθμού ανά IP (429)",
     "poolSetAsideKindSlow": "αργές απαντήσεις",
+    "poolSetAsideKindGeoBlocked": "αποκλεισμός περιοχής (403/451)",
     "poolSetAsideUntil": "Πίσω σε rotation {endsAt}",
     "poolSetAsideRepeat": "Στην άκρη {count, plural, one {# φορά} other {# φορές}}",
     "poolUnknownAddress": "Άγνωστη διεύθυνση",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Σειρά θέσης",
     "poolHealthRankingOff": "Η κατάταξη υγείας απενεργοποιημένη",
     "transportRate": "{rate} % μεταφορά",
+    "slowAbandoned": "{count} αργές εγκαταλείψεις",
+    "clientAborted": "{count} διακοπές πελάτη",
+    "slowAbandonedHint": "Εγκαταλείφθηκε μετά το όριο αναμονής επικεφαλίδων, εξαιρείται από το ποσοστό μεταφοράς",
     "previousSuccessRate": "Προηγουμένως {rate} % επιτυχία",
-    "upstreamRefusals": "{count} απορρίψεις upstream",
     "connectionTestsCount": "{count} δοκιμές σύνδεσης",
-    "notMeasured": "Δεν μετρήθηκε"
+    "notMeasured": "Δεν μετρήθηκε",
+    "upstream4xx": "{count} σφάλματα πελάτη πάνω από",
+    "upstream5xx": "{count} σφάλματα διακομιστή πάνω από",
+    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Κληρονομεί το pool συνδέσεων ({count})",
     "poolEmptyBlocked": "Το pool άδειο — τα αιτήματα αποτυγχάνουν (όχι απευθείας)",
     "directEgress": "Απευθείας (χωρίς proxy)",
-    "ownProxy": "Δικός σας διακομιστής μεσολάβησης"
+    "ownProxy": "Δικός σας διακομιστής μεσολάβησης",
+    "freeTierPause": "Το μοντέλο {model} σταμάτησε (429), θα επιστρέψει στις {time}",
+    "freeTierPauseProvider": "Σταμάτησε (429), θα επιστρέψει στις {time}",
+    "freeTierPauseNote": "Παύση εντός διεργασίας σε αυτό το στοιχείο"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} ανενεργές",
     "dbOverrideCount": "{count} παρακάμψεις ΒΔ",
     "searchPlaceholder": "Αναζήτηση σημαιών...",
+    "descriptionModeLabel": "Προβολή περιγραφής",
+    "descriptionModeHint": "Στο πέρασμα του ποντικιού: οι κάρτες παραμένουν συμπαγείς και το πέρασμα πάνω από μια περιγραφή εμφανίζει το πλήρες κείμενο. Πλήρες κείμενο: εμφάνιση πάντα της ολοκληρωμένης περιγραφής.",
+    "descriptionModeHover": "Στο πέρασμα του ποντικιού",
+    "descriptionModeFull": "Πλήρες κείμενο",
     "categories": {
       "all": "Όλα",
       "security": "Ασφάλεια",

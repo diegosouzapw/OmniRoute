@@ -441,7 +441,7 @@ const { messages: aged, saved } = applyAging(messages, {
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ምርጫውን ከካታሎግ ጋር ይፈታል (የማይታወቁ መለያዎች እና ከአካባቢ ጋር የማይጣጣሙ ቅጦች ይጣላሉ፣ ስህተት አይሆኑም)፣ የተመረጡትን መመሪያዎች በካታሎግ ቅደም ተከተል ያገናኛል፣ የወሰን አንቀጹን **አንድ ጊዜ** ያክላል፣ እና ብሎኩን በአንድ የአይደምፖቴንሲ ምልክት (`[OmniRoute Output Styles]`) ይጀምራል፣ ስለዚህ እንደገና መተግበር ምንም ውጤት የለውም። የተፈታው ቋንቋ (ከታች ያለውን የቋንቋ ምርጫ ይመልከቱ) ትርጉም ሲኖረው፣ የአካባቢው መመሪያ በእንግሊዝኛ ፋንታ ይገባል።
 
-መልዕክቶች ባለው አካል ላይ፣ የይዘት ማለፊያ (`shouldBypassCavemanOutputMode()` በ`open-sse/services/compression/outputMode.ts` ውስጥ) የመጨረሻዎቹን ሶስት መልዕክቶች ይፈትሻል እና የደህንነት፣ የማይቀለበስ-ድርጊት፣ ማብራሪያ፣ ወይም ቅደም ተከተል-ስሜታዊ ቁልፍ ቃላትን ሲያሟሉ ቅጦቹን ለመላው ዙር ይዘላል። ማለፊያው የዳሽቦርዱ **ራስ-ሰር-ግልጽነት ማለፊያ** መቀየሪያ (`cavemanOutputMode.autoClarity`) ምንም ቢሆን ይሰራል።
+መልዕክቶች ባለው አካል ላይ፣ የይዘት ማለፊያ (`shouldBypassCavemanOutputMode()` በ`open-sse/services/compression/outputMode.ts` ውስጥ) የመጨረሻዎቹን ሶስት መልዕክቶች ይፈትሻል እና የደህንነት፣ የማይቀለበስ-ድርጊት፣ ማብራሪያ፣ ወይም ቅደም ተከተል-ስሜታዊ ቁልፍ ቃላትን ሲያሟሉ ቅጦቹን ለመላው ዙር ይዘላል። ማለፊያው የዳሽቦርዱ **ራስ-ሰር-ግልጽነት ማለፊያ** መቀየሪያ (`cavemanOutputMode.autoClarity`) ሲበራ ነው የሚሰራው፣ ይህም ነባሪው ነው፤ መቀየሪያው ሲጠፋ ግን የተመረጡት ቅጦች በእነዚያ ዙሮችም ይተገበራሉ።
 
 ማለፊያው ዙሩን ሲያልፍ፣ `placeSystemInstruction()` (ተመሳሳይ ፋይል)፣ አዲስ `messages[0]` ፈጽሞ የማይፈጥር፣ ብሎኩን ከሚያገኛቸው የመጀመሪያዎቹ ውስጥ ያስቀምጣል፦
 

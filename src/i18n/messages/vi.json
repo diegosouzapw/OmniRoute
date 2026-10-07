@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Các pool proxy và cơ chế xoay vòng theo tài khoản của opencode ngừng dùng lại một proxy vừa thất bại (thăm dò TCP bị từ chối, hoặc nhận 429 qua proxy đó) trong một khoảng thời gian theo tiến trình, tăng gấp đôi sau mỗi lần lặp lại, tối đa đến một giới hạn. Không ghi trạng thái proxy nào; khi mọi ứng viên đều bị tạm gác, lựa chọn vẫn như cũ. Bật theo mặc định; `false` khôi phục lựa chọn thông thường.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Đối với các nhà cung cấp áp dụng hạn ngạch theo địa chỉ egress, xếp hạng thành viên pool có cùng địa chỉ egress quan sát được với thành viên vừa bị từ chối xuống dưới các thành viên khỏe mạnh. Chỉ sắp xếp thứ tự, không bao giờ loại trừ. Cần PROXY_SKIP_RECENTLY_FAILED, nguồn tín hiệu từ chối mà nó đọc. Mặc định tắt: thứ tự chọn đúng như vòng xoay thông thường.",
   "featureFlagProxyPoolEgressObservationDescription": "Hiển thị, bên dưới một nhóm proxy trong bảng điều khiển, số IP đầu ra quan sát được đã phục vụ các thành viên của nhóm trong 24 giờ qua, số kết nối đã sử dụng các IP đó và số thành viên nhiều nhất được ghi nhận phía sau một IP. Chỉ đọc, được tính từ nhật ký proxy và không bao giờ được dùng để định tuyến. Tắt theo mặc định: trình chỉnh sửa nhóm không thay đổi và tuyến quan sát trả về null.",
+  "featureFlagProxyOperatorEgressDescription": "Chấp nhận các địa chỉ đã được ghi nhận theo thời gian do người điều hành đẩy xuống cho từng thành viên cụm và kết hợp chúng với nhật ký đọc để hiển thị và thứ tự cụm. Tắt mặc định: phản hồi đường dẫn đẩy là 404 và các lần đọc cụm hoạt động giống hệt như trước đây.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Trong lượt kiểm tra sức khỏe proxy, cho phép một lần thăm dò bị đích từ chối (401/403/429: proxy đã chuyển tiếp, đích từ chối IP đầu ra này) đặt lại chuỗi lỗi liên tiếp của proxy, giống như một lần thăm dò được phục vụ. Tắt theo mặc định: lần từ chối vẫn trung lập và giữ nguyên chuỗi. Lỗi 5xx vẫn không kết luận trong mọi trường hợp, và lần từ chối không bao giờ xóa, vô hiệu hóa hay kích hoạt lại proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Cho phép lượt dọn dẹp tự động xóa các batch job ở trạng thái cuối (completed/failed/cancelled/expired) của Batch API cũ hơn OMNIROUTE_BATCH_RETENTION_DAYS, cùng với các checkpoint theo từng dòng của chúng, và xóa nội dung BLOB của các tệp đã tải lên quá hạn expires_at riêng. Mặc định tắt: mọi bản cài đặt hiện có giữ nguyên dữ liệu này cho đến khi người vận hành bật tùy chọn này. Tuyến DELETE /api/v1/batches/delete-completed do người vận hành kích hoạt không bị ảnh hưởng theo bất kỳ cách nào -- đây là một hợp đồng API công khai riêng biệt và vô điều kiện.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Lấy danh mục mô hình xAI trực tiếp cho các kết nối xai-oauth từ https://api.x.ai/v1/models bằng token bearer OAuth, thay vì dữ liệu khởi tạo tĩnh đã đóng băng. Tắt theo mặc định: xai-oauth tiếp tục cung cấp dữ liệu khởi tạo tĩnh không thay đổi. Khi có bất kỳ lỗi phân giải nào, quá trình khám phá sẽ quay lại dữ liệu khởi tạo.",
@@ -6874,7 +6875,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Điểm cuối proxy-core cục bộ không hợp lệ; các nút SS/VMess/Trojan/VLESS đã bị bỏ qua.",
         "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
         "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ).",
-        "SELECTOR_SWITCH_FAILED": "Lệnh gọi điều khiển proxy-core thất bại; tuyến hiện tại vẫn được giữ. Kiểm tra URL và secret điều khiển, rồi làm mới."
+        "SELECTOR_SWITCH_FAILED": "Lệnh gọi điều khiển proxy-core thất bại; tuyến hiện tại vẫn được giữ. Kiểm tra URL và secret điều khiển, rồi làm mới.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Cấu hình lõi được tạo ra không thể thay thế tệp đã chấp nhận; bản sao bên cạnh đã được giữ lại.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Một số mục đã bị bỏ qua trong quá trình tạo. Xem nhật ký máy chủ."
       },
       "description": "Dán liên kết đăng ký proxy của bạn. Sau khi được bật, lưu lượng truy cập sẽ được định tuyến qua nhóm proxy ở chế độ chung hoặc quy tắc (Nhà cung cấp được chỉ định). Các nút đăng ký được tự động đồng bộ hóa vào nhóm proxy và sử dụng lại các cơ chế bỏ phiếu, kiểm tra tình trạng và chống rò rỉ hiện có.",
       "addSubscription": "Thêm đăng ký",
@@ -6960,7 +6966,21 @@
       "lastSwitchNever": "Chưa ghi nhận lần chuyển nào",
       "lastSwitchMember": "Thành viên đang phục vụ",
       "nextSwitch": "Lần chuyển kế tiếp có thể",
-      "nextSwitchNow": "Ngay bây giờ"
+      "nextSwitchNow": "Ngay bây giờ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Đường dẫn tệp nhị phân lõi",
+      "coreBinaryPathHelp": "Tùy chọn: xác minh tệp được tạo bằng tệp nhị phân lõi trước khi thay thế tệp đã chấp nhận. Để trống để tiếp tục ghi bên cạnh. Thư mục sẽ được tạo nếu chưa tồn tại.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Kiểm tra tình trạng hàng loạt",
     "bulkHealthcheckDesc": "Kiểm tra tất cả proxy đã cấu hình với một URL đích để xác định proxy nào hoạt động.",
@@ -7896,11 +7916,9 @@
     "compressionSettingsMcpDescriptionCompression": "Nén mô tả MCP",
     "mcpAccessibilityTitle": "Đầu ra trợ năng MCP",
     "compressionSettingsCavemanIntensity": "Cường độ Caveman",
-    "compressionSettingsCavemanOutputMode": "Chế độ đầu ra Caveman",
     "compressionSettingsOutputStyles": "Kiểu đầu ra",
     "compressionStylesTileTitle": "Kiểu đầu ra",
     "compressionSettingsOutputIntensity": "Cường độ đầu ra",
-    "compressionSettingsAutoClarityBypass": "Bỏ qua tính năng tự động làm rõ",
     "compressionEffectivePipeline": "Quy trình có hiệu lực:",
     "compressionDerivedOff": "đã tắt",
     "compressionDerivedRuns": "chạy: {pipeline}",
@@ -8456,7 +8474,17 @@
     "catalogScopeDesc": "Những gì GET /v1/models hiển thị cho khóa này. Thu hẹp danh sách không làm thay đổi những gì khóa có thể gọi.",
     "catalogScopeAll": "Cả hai",
     "catalogScopeCombos": "Chỉ combo",
-    "catalogScopeModels": "Chỉ mô hình"
+    "catalogScopeModels": "Chỉ mô hình",
+    "resilienceTokenRefreshTitle": "Cầu dao làm mới Token",
+    "resilienceTokenRefreshDesc": "Dừng việc thử làm mới token sau nhiều lần thất bại. Phạm vi mỗi kết nối sẽ cách ly một tài khoản chết để các tài khoản khỏe mạnh trên cùng nhà cung cấp vẫn tiếp tục được làm mới.",
+    "resilienceTokenRefreshScope": "Các lần thử làm mới mã thông báo cho một nhà cung cấp",
+    "resilienceTokenRefreshTrigger": "Các lần làm mới liên tiếp thất bại",
+    "resilienceTokenRefreshEffect": "Tạm dừng các lần thử làm mới trong thời gian chờ",
+    "resilienceTokenRefreshScopeLabel": "Phạm vi",
+    "resilienceTokenRefreshScopeProvider": "Nhà cung cấp (tất cả tài khoản dùng chung một cầu chì)",
+    "resilienceTokenRefreshScopeConnection": "Kết nối (mỗi tài khoản có cầu chì riêng)",
+    "resilienceTokenRefreshThreshold": "Lỗi trước khi tạm dừng",
+    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt"
   },
   "contextRtk": {
     "title": "Công cụ RTK",
@@ -8639,9 +8667,6 @@
       "minRows": {
         "label": "Số hàng tối thiểu để nén",
         "description": "Số hàng tối thiểu trong một mảng JSON đồng nhất để kích hoạt nén dạng bảng. Mặc định: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Giữ nguyên prompt hệ thống"
       },
       "summarizerEnabled": {
         "label": "Bật trình tóm tắt"
@@ -9030,12 +9055,7 @@
     "tooltipMinLength": "Tin nhắn ngắn hơn mức này sẽ không được nén. Thấp hơn = nén nhiều hơn.",
     "tooltipMinSavings": "Chỉ nén nếu tiết kiệm được ít nhất ngần này token.",
     "ultraSettings": "Cài đặt tối đa",
-    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM",
-    "preview": {
-      "lite": "Phản hồi ngắn gọn. Giữ nguyên thuật ngữ kỹ thuật, mã, lỗi, URL và mã định danh.",
-      "full": "Phản hồi cực ngắn và gọn. Giữ nguyên toàn bộ nội dung kỹ thuật.",
-      "ultra": "Phản hồi siêu ngắn gọn với các từ viết tắt kỹ thuật phổ biến. Giữ nguyên các ký hiệu chính xác."
-    }
+    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM"
   },
   "translator": {
     "title": "Trình dịch",
@@ -11074,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Lỗi không xác định được lối ra: {count}",
     "poolMemberEgress": "{host}:{port} đã đi qua {egressIp} · {hours} giờ qua",
     "poolMemberEgressEmpty": "{host}:{port}: không ghi nhận lưu lượng trong {hours} giờ qua",
+    "poolMemberEgressOperator": "{host}:{port} đã rời qua {egressIp} · do nhà điều hành cung cấp, {date}",
     "poolMemberEgressHint": "IP đầu ra quan sát được lần cuối qua thành viên nhóm này trong khoảng thời gian, đọc từ nhật ký proxy. Thành viên không có lưu lượng hiển thị dòng không có lưu lượng.",
     "poolRemove": "Gỡ bỏ",
     "poolRemoveFailed": "Không thể gỡ proxy khỏi nhóm",
@@ -11087,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "không thể kết nối proxy",
     "poolSetAsideKindIpQuota429": "giới hạn tốc độ theo IP (429)",
     "poolSetAsideKindSlow": "phản hồi chậm",
+    "poolSetAsideKindGeoBlocked": "bị chặn theo khu vực (403/451)",
     "poolSetAsideUntil": "Trở lại {endsAt}",
     "poolSetAsideRepeat": "Đã tạm ngưng {count} lần",
     "poolUnknownAddress": "Địa chỉ không xác định",
@@ -11095,10 +11117,15 @@
     "poolSignalPosition": "Thứ tự vị trí",
     "poolHealthRankingOff": "Xếp hạng tình trạng tắt",
     "transportRate": "{rate}% vận chuyển",
+    "slowAbandoned": "{count} lần hủy bỏ chậm",
+    "clientAborted": "{count} lần hủy bỏ bởi client",
+    "slowAbandonedHint": "Hủy bỏ sau ngưỡng chờ tiêu đề, không được tính vào tỷ lệ vận chuyển",
     "previousSuccessRate": "Trước đây {rate}% thành công",
-    "upstreamRefusals": "{count} từ chối từ máy chủ",
     "connectionTestsCount": "{count} kiểm tra kết nối",
-    "notMeasured": "Chưa đo"
+    "notMeasured": "Chưa đo",
+    "upstream4xx": "{count} lỗi phía client",
+    "upstream5xx": "{count} lỗi máy chủ",
+    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",
@@ -12872,7 +12899,10 @@
     "inheritedPool": "Kế thừa nhóm proxy của kết nối ({count})",
     "poolEmptyBlocked": "Nhóm proxy trống — yêu cầu thất bại (không phải trực tiếp)",
     "directEgress": "Kết nối trực tiếp (không dùng proxy)",
-    "ownProxy": "Proxy riêng"
+    "ownProxy": "Proxy riêng",
+    "freeTierPause": "Mô hình {model} đã tạm dừng (429), quay lại lúc {time}",
+    "freeTierPauseProvider": "Đã tạm dừng (429), quay lại lúc {time}",
+    "freeTierPauseNote": "Tạm dừng trong tiến trình trên phiên bản này"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,6 +13083,10 @@
     "inactiveCount": "{count} không hoạt động",
     "dbOverrideCount": "{count} ghi đè DB",
     "searchPlaceholder": "Tìm kiếm cờ...",
+    "descriptionModeLabel": "Chế độ xem mô tả",
+    "descriptionModeHint": "Khi di chuột: thẻ vẫn gọn và di chuột lên mô tả sẽ hiển thị toàn bộ văn bản. Toàn bộ văn bản: luôn hiển thị mô tả đầy đủ.",
+    "descriptionModeHover": "Khi di chuột",
+    "descriptionModeFull": "Toàn bộ văn bản",
     "categories": {
       "all": "Tất cả",
       "security": "Bảo mật",

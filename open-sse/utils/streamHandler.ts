@@ -6,6 +6,10 @@ import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 import { createCompletedResponsesToolHandoffWatcher } from "./responsesToolHandoff.ts";
 import { createStreamContentWatcher, type StreamContentWatcher } from "./streamReadiness.ts";
 import { hasOpenReasoning } from "./emptyTurnRetry.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
+} from "./responsesSequence.ts";
 
 // Stream handler with disconnect detection - shared for all providers
 
@@ -472,8 +476,13 @@ export function buildStreamErrorChunks(
   if (isResponsesClientFormat(clientResponseFormat)) {
     const errorEvent = {
       type: "response.failed",
+      // #15202: synthesized response.failed frames must satisfy the Responses event
+      // union — a string `response.id` and a numeric `sequence_number`. The 3.8.51
+      // fix set both fields on the other synthetic sites but left this one as
+      // `id: null` with no sequence, so a strict decoder aborts here too.
+      sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
       response: {
-        id: null,
+        id: buildSyntheticResponsesFailureId(),
         status: "failed",
         error: {
           message: publicErrorMessage,

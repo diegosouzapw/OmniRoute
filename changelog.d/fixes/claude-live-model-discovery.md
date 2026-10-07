@@ -1,1 +1,0 @@
-- **fix:** Claude model discovery now follows Anthropic's has_more/last_id pagination and preserves published input/output token limits. Empty, malformed, failed or incomplete responses retain the previous catalog with an explicit fallback warning instead of replacing it with partial data. ([#14827](https://github.com/diegosouzapw/OmniRoute/pull/14827) — thanks @JxnLexn)

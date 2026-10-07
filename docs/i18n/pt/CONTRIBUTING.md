@@ -390,19 +390,19 @@ Escreva testes unitários em `tests/unit/` que abranjam, no mínimo:
 ## Lista de verificação do Pull Request
 
 - [ ] Os testes passam (`npm test`)
-- [ ] A análise de lint passa (`npm run lint`)
-- [ ] A compilação é concluída com sucesso (`npm run build`)
-- [ ] Tipos TypeScript adicionados para novas funções e interfaces públicas
-- [ ] Sem segredos codificados diretamente ou valores de recurso
-- [ ] Credenciais públicas de upstream incorporadas através de `resolvePublicCred()` (consulte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nunca como literais
-- [ ] As respostas de erro são encaminhadas através de `buildErrorBody()` / `sanitizeErrorMessage()` — sem stack traces em bruto nos corpos das respostas (consulte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Os comandos shell (`exec` / `spawn`) passam valores de runtime através de `env`, não através de interpolação de strings
+- [ ] A verificação de lint passa (`npm run lint`)
+- [ ] A compilação é concluída com êxito (`npm run build`)
+- [ ] Foram adicionados tipos TypeScript para novas funções e interfaces públicas
+- [ ] Não existem segredos ou valores de recurso codificados diretamente
+- [ ] As credenciais públicas de upstream são incorporadas através de `resolvePublicCred()` (consulte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nunca como literais
+- [ ] As respostas de erro são encaminhadas através de `buildErrorBody()` / `sanitizeErrorMessage()` — sem rastreios de pilha em bruto nos corpos das respostas (consulte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Os comandos de shell (`exec` / `spawn`) transmitem valores de tempo de execução através de `env`, não através de interpolação de strings
 - [ ] Todas as entradas são validadas com esquemas Zod
-- [ ] **Fragmento** de changelog adicionado em `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para alterações visíveis ao utilizador (consulte [`changelog.d/README.md`](./changelog.d/README.md)) — **não** edite `CHANGELOG.md` diretamente; os fragmentos são agregados no momento do lançamento e nunca entram em conflito entre PRs
-- [ ] Documentação atualizada (se aplicável)
-- [ ] Nenhum novo alerta do CodeQL / Secret-Scanning aberto, ou cada alerta foi dispensado com uma justificação técnica que referencia o documento relevante em `docs/security/`
-- [ ] Rotas que iniciam processos-filho (`/api/mcp/`, `/api/cli-tools/runtime/`) classificadas como `isLocalOnlyPath()` em `src/server/authz/routeGuard.ts` — consulte a [Regra Rígida n.º 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Sem trailers `Co-Authored-By` nas mensagens de commit — os commits devem aparecer exclusivamente sob a identidade Git do proprietário do repositório (Regra Rígida n.º 16)
+- [ ] Foi adicionado um **fragmento** de registo de alterações em `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para alterações visíveis para o utilizador (consulte [`changelog.d/README.md`](./changelog.d/README.md)) — **não** edite `CHANGELOG.md` diretamente; os fragmentos são agregados aquando do lançamento e nunca entram em conflito entre PRs
+- [ ] A documentação foi atualizada (se aplicável)
+- [ ] Não foram abertos novos alertas do CodeQL / Secret-Scanning, ou cada um foi dispensado com uma justificação técnica que referencia o documento relevante em `docs/security/`
+- [ ] As rotas que iniciam processos filhos (`/api/mcp/`, `/api/cli-tools/runtime/`) estão classificadas como `isLocalOnlyPath()` em `src/server/authz/routeGuard.ts` — consulte a [Regra Rígida n.º 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Não existem trailers `Co-authored-by` de IA/bots nas mensagens de commit (Regra Rígida n.º 16) — os colaboradores humanos cujo trabalho é reutilizado são creditados com trailers padrão `Co-authored-by: Name <email>`
 
 ---
 

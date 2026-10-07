@@ -215,3 +215,33 @@ test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
+
+test("successful switch persists the refusal kind that fired it", async () => {
+  reset();
+  const fake = await startFakeCore({ failPut: false });
+  const { id, feedClose } = await seedWarnSubscription(fake.base);
+  try {
+    trigger.__resetSelectorTriggerForTesting();
+    // The kind propagates from the caller that set the member aside (fusion
+    // with the set-aside record); the trigger never re-reads it here.
+    const good = await trigger.maybeSwitchOnSetAside(KEY_NODE1, { kind: "transport" });
+    assert.equal(good.switched, true, JSON.stringify(good));
+    const row = core
+      .getDbInstance()
+      .prepare(
+        "SELECT selector_last_switch_kind, selector_last_switch_member FROM proxy_subscriptions WHERE id = ?"
+      )
+      .get(id) as {
+      selector_last_switch_kind: string | null;
+      selector_last_switch_member: string | null;
+    };
+    assert.equal(row.selector_last_switch_kind, "transport");
+    assert.ok(row.selector_last_switch_member, "member recorded alongside the kind");
+    const listed = await sub.getSubscriptionById(id);
+    assert.equal(listed?.selectorLastSwitchKind, "transport");
+    await sub.deleteSubscription(id);
+  } finally {
+    await feedClose();
+    await fake.close();
+  }
+});

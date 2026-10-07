@@ -1,1 +1,0 @@
-- **fix(providers):** strip unsupported GLM thinking parameters and reject test-all requests when a provider has no active connections

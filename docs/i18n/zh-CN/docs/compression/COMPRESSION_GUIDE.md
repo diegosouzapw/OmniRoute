@@ -443,8 +443,7 @@ const { messages: aged, saved } = applyAging(messages, {
 对于包含 `messages` 的请求体，内容绕过机制（
 `open-sse/services/compression/outputMode.ts` 中的 `shouldBypassCavemanOutputMode()`）会检查最后三条消息，并在
 消息匹配安全性、不可逆操作、澄清或顺序敏感关键词时，跳过整个轮次的样式。
-是否运行该绕过机制取决于仪表板中的 **Auto-Clarity Bypass** 开关
-（`cavemanOutputMode.autoClarity`）设置。
+该绕过机制在仪表板中的 **Auto-Clarity Bypass** 开关（`cavemanOutputMode.autoClarity`）处于开启状态时运行，这也是默认设置；开关关闭时，所选样式同样会应用到这些轮次。
 
 当绕过机制允许该轮次继续时，`placeSystemInstruction()`（同一文件）不会
 创建新的 `messages[0]`，而是将该块放置在以下首个符合条件的位置：
