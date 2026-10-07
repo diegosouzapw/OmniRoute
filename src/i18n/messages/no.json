@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Søkesti til kjernebinærfilen",
-      "coreBinaryPathHelp": "Valgfritt: verifiserer den genererte filen med kjernebinærfilen før den adopterte filen erstattes. La stå tomt for å fortsette å skrive ved siden av. Mappen opprettes hvis den mangler.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valgfritt: verifiserer den genererte filen med kjernebinærfilen før den adopterte filen erstattes. La stå tomt for å fortsette å skrive ved siden av. Mappen opprettes hvis den mangler."
     },
     "bulkHealthcheck": "Samlet tilstandskontroll",
     "bulkHealthcheckDesc": "Test alle konfigurerte proxyer mot en mål-URL for å finne ut hvilke som fungerer.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laster inn…",
     "loadFailed": "Kunne ikke laste inn motorinformasjon.",
+    "settingsLoadFailed": "Kunne ikke laste inn de lagrede innstillingene. Feltene viser standardverdier, og Lagre forblir deaktivert til siden lastes inn på nytt.",
     "engineNotFound": "Motoren \"{engine}\" ble ikke funnet.",
     "saveFailed": "Kunne ikke lagre konfigurasjonen.",
     "previewFailed": "Forhåndsvisningen mislyktes.",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cesta k základnému binárnemu súboru",
-      "coreBinaryPathHelp": "Voliteľné: overí vygenerovaný súbor základným binárnym súborom pred nahradením prevzatého súboru. Ponechajte prázdne, aby sa pokračovalo v zápise vedľa neho. Priečinok sa vytvorí, ak neexistuje.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Voliteľné: overí vygenerovaný súbor základným binárnym súborom pred nahradením prevzatého súboru. Ponechajte prázdne, aby sa pokračovalo v zápise vedľa neho. Priečinok sa vytvorí, ak neexistuje."
     },
     "bulkHealthcheck": "Hromadná kontrola dostupnosti",
     "bulkHealthcheckDesc": "Otestujte všetky nakonfigurované proxy voči cieľovej URL a zistite, ktoré fungujú.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Načítava sa…",
     "loadFailed": "Nepodarilo sa načítať informácie o engine.",
+    "settingsLoadFailed": "Načítanie uložených nastavení zlyhalo. Polia zobrazujú predvolené hodnoty a tlačidlo Uložiť zostane deaktivované, kým sa stránka znova nenačíta.",
     "engineNotFound": "Engine \"{engine}\" nebol nájdený.",
     "saveFailed": "Nepodarilo sa uložiť konfiguráciu.",
     "previewFailed": "Náhľad zlyhal.",

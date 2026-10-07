@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pad van kernbinaire bestand",
-      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt."
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laden…",
     "loadFailed": "Laden van engine-informatie mislukt.",
+    "settingsLoadFailed": "Laden van de opgeslagen instellingen is mislukt. De velden tonen standaardwaarden en Opslaan blijft uitgeschakeld totdat de pagina opnieuw wordt geladen.",
     "engineNotFound": "Engine \"{engine}\" niet gevonden.",
     "saveFailed": "Opslaan van configuratie mislukt.",
     "previewFailed": "Voorvertoning mislukt.",

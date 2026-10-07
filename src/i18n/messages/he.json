@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "נתיב קובץ הבינארי של הליבה",
-      "coreBinaryPathHelp": "אופציונלי: מאמת את הקובץ שנוצר מול קובץ הבינארי של הליבה לפני החלפת הקובץ שאומץ. השאר ריק כדי להמשיך לכתוב לידו. התיקייה נוצרת אם אינה קיימת.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "אופציונלי: מאמת את הקובץ שנוצר מול קובץ הבינארי של הליבה לפני החלפת הקובץ שאומץ. השאר ריק כדי להמשיך לכתוב לידו. התיקייה נוצרת אם אינה קיימת."
     },
     "bulkHealthcheck": "בדיקת תקינות מרוכזת",
     "bulkHealthcheckDesc": "בדיקת כל שרתי ה-proxy שהוגדרו מול כתובת URL יעד כדי לגלות אילו מהם פועלים.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "טוען…",
     "loadFailed": "טעינת פרטי המנוע נכשלה.",
+    "settingsLoadFailed": "טעינת ההגדרות השמורות נכשלה. השדות מציגים ערכי ברירת מחדל, וכפתור השמירה נותר מושבת עד לטעינה מחדש של הדף.",
     "engineNotFound": "המנוע \"{engine}\" לא נמצא.",
     "saveFailed": "שמירת התצורה נכשלה.",
     "previewFailed": "התצוגה המקדימה נכשלה.",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Sti til kernebinærfil",
-      "coreBinaryPathHelp": "Valgfrit: verificerer den genererede fil med kernebinærfilen, før den adopterede fil erstattes. Lad feltet stå tomt for fortsat at skrive ved siden af. Mappen oprettes, hvis den mangler.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valgfrit: verificerer den genererede fil med kernebinærfilen, før den adopterede fil erstattes. Lad feltet stå tomt for fortsat at skrive ved siden af. Mappen oprettes, hvis den mangler."
     },
     "bulkHealthcheck": "Samlet sundhedstjek",
     "bulkHealthcheckDesc": "Test alle konfigurerede proxyer mod en destinations-URL for at finde ud af, hvilke der virker.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Indlæser…",
     "loadFailed": "Kunne ikke indlæse motoroplysninger.",
+    "settingsLoadFailed": "De gemte indstillinger kunne ikke indlæses. Felterne viser standardværdier, og Gem forbliver deaktiveret, indtil siden genindlæses.",
     "engineNotFound": "Motoren \"{engine}\" blev ikke fundet.",
     "saveFailed": "Kunne ikke gemme konfigurationen.",
     "previewFailed": "Forhåndsvisning mislykkedes.",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Sökväg till kärnbinären",
-      "coreBinaryPathHelp": "Valfritt: verifierar den genererade filen med kärnbinären innan den antagna filen ersätts. Lämna tomt för att fortsätta skriva bredvid. Katalogen skapas om den saknas.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valfritt: verifierar den genererade filen med kärnbinären innan den antagna filen ersätts. Lämna tomt för att fortsätta skriva bredvid. Katalogen skapas om den saknas."
     },
     "bulkHealthcheck": "Samlad hälsokontroll",
     "bulkHealthcheckDesc": "Testa alla konfigurerade proxyservrar mot en mål-URL för att se vilka som fungerar.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laddar…",
     "loadFailed": "Misslyckades med att ladda motorinformation.",
+    "settingsLoadFailed": "Det gick inte att läsa in de sparade inställningarna. Fälten visar standardvärden och Spara förblir inaktiverat tills sidan läses in igen.",
     "engineNotFound": "Motorn \"{engine}\" hittades inte.",
     "saveFailed": "Misslyckades med att spara konfigurationen.",
     "previewFailed": "Förhandsvisningen misslyckades.",

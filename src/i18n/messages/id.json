@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Jalur binari inti",
-      "coreBinaryPathHelp": "Opsional: memverifikasi file yang dihasilkan dengan binari inti sebelum mengganti file yang diadopsi. Biarkan kosong untuk terus menulis di sebelahnya. Direktori dibuat jika tidak ada.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opsional: memverifikasi file yang dihasilkan dengan binari inti sebelum mengganti file yang diadopsi. Biarkan kosong untuk terus menulis di sebelahnya. Direktori dibuat jika tidak ada."
     },
     "bulkHealthcheck": "Pemeriksaan Kesehatan Massal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasi terhadap URL target untuk mengetahui mana yang berfungsi.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Memuat…",
     "loadFailed": "Gagal memuat informasi engine.",
+    "settingsLoadFailed": "Gagal memuat pengaturan tersimpan. Kolom menampilkan nilai bawaan, dan Simpan tetap nonaktif hingga halaman dimuat ulang.",
     "engineNotFound": "Engine \"{engine}\" tidak ditemukan.",
     "saveFailed": "Gagal menyimpan konfigurasi.",
     "previewFailed": "Pratinjau gagal.",

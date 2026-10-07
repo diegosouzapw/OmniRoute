@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ọ̀nà ẹrọ àkókò pàtàkì",
-      "coreBinaryPathHelp": "Àìṣe: yẹrí àwọn fáìlì tí a ṣe pẹ̀lú ẹrọ àkókò pàtàkì kí ọ yí iwe tó ti hàn padà. Fi òótó sí i láti tẹ̀síwájú kí o kọ̀ síbẹ̀. A ṣàkójọ tẹ́nu díẹ̀ bí ó bá kù.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Àìṣe: yẹrí àwọn fáìlì tí a ṣe pẹ̀lú ẹrọ àkókò pàtàkì kí ọ yí iwe tó ti hàn padà. Fi òótó sí i láti tẹ̀síwájú kí o kọ̀ síbẹ̀. A ṣàkójọ tẹ́nu díẹ̀ bí ó bá kù."
     },
     "bulkHealthcheck": "Ìṣàyẹ̀wò ìlera ọ̀pọ̀lọpọ̀",
     "bulkHealthcheckDesc": "Ṣàyẹ̀wò gbogbo àwọn aṣojú tí a ti ṣètò pẹ̀lú URL àfojúsùn kan láti mọ àwọn tó ń ṣiṣẹ́.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ń gbé wọlé…",
     "loadFailed": "Kò ṣeé ṣe láti gbé ìwífún ẹ́ńjìnnì wọlé.",
+    "settingsLoadFailed": "Kò ṣeé ṣàkójọpọ̀ àwọn ààtò tí a fipamọ́. Àwọn ààyè náà ń ṣàfihàn àwọn iye àiyipada, Fipamọ́ sì wà ní àìṣiṣẹ́ títí tí ojúewé yóò fi tún ṣàkójọpọ̀.",
     "engineNotFound": "A kò rí ẹ́ńjìnnì \"{engine}\".",
     "saveFailed": "Kò ṣeé ṣe láti fi ìṣètò pamọ́.",
     "previewFailed": "Àyẹ̀wò àkọ́kọ́ kùnà.",
