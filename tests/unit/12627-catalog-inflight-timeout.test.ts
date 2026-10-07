@@ -10,6 +10,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-12627-"))
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const catalogCache = await import("../../src/app/api/v1/models/catalogCache.ts");
+const { invalidateModelCatalogCache } = await import("../../src/lib/db/readCache.ts");
 
 function request() {
   return new Request("http://localhost/v1/models");
@@ -61,6 +62,25 @@ test("#12627 timeout serves last-good 200 when a prior build succeeded", async (
   assert.equal(second.status, 200);
   assert.equal(await second.text(), "good");
   assert.equal(second.headers.get("x-omniroute-catalog"), "last-good");
+});
+
+test("catalog state invalidation never serves a pre-write last-good response", async () => {
+  const first = await catalogCache.resolveCachedCatalogResponse(
+    request(),
+    { corsHeaders: {}, diagnosticHeaders: {} },
+    async () => payload("visible-before-hide")
+  );
+  assert.equal(await first.text(), "visible-before-hide");
+
+  invalidateModelCatalogCache();
+  const second = await catalogCache.resolveCachedCatalogResponse(
+    request(),
+    { corsHeaders: {}, diagnosticHeaders: {} },
+    neverResolves as (req: Request) => Promise<catalogCache.CatalogPayload>
+  );
+
+  assert.equal(second.status, 503);
+  assert.equal(second.headers.get("x-omniroute-catalog"), "build-timeout");
 });
 
 test("cold real build error still rejects (never masked as 503)", async () => {
