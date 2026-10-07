@@ -1,1 +1,1 @@
-- **fix(api):** `GET /api/usage/provider-limits` no longer serves cached quota entries for deleted provider connections — all three connection-delete paths now purge the connection's `providerLimitsCache` entry ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM))
+- **fix(api):** `GET /api/usage/provider-limits` no longer serves cached quota entries for deleted provider connections — all three connection-delete paths now purge the connection's `providerLimitsCache` entry ([#15699](https://github.com/diegosouzapw/OmniRoute/pull/15699))
