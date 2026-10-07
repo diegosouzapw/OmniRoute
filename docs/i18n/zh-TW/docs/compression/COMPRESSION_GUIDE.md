@@ -434,8 +434,7 @@ const { messages: aged, saved } = applyAging(messages, {
 對於含有 `messages` 的主體，內容略過機制（位於
 `open-sse/services/compression/outputMode.ts` 的 `shouldBypassCavemanOutputMode()`）會檢查
 最後三則訊息，若符合安全性、不可逆操作、釐清或順序敏感關鍵字，
-便會略過整個回合的樣式。略過機制是否執行，取決於儀表板的
-**Auto-Clarity Bypass** 開關（`cavemanOutputMode.autoClarity`）設定。
+便會略過整個回合的樣式。略過機制會在儀表板的 **Auto-Clarity Bypass** 開關（`cavemanOutputMode.autoClarity`）開啟時執行，這也是預設值；開關關閉時，所選樣式同樣會套用到那些回合。
 
 當略過機制允許該回合繼續時，`placeSystemInstruction()`（同一檔案）
 絕不會建立新的 `messages[0]`，而會將區塊放入以下第一個找到的位置：

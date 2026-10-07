@@ -1,0 +1,1 @@
+- **fix(kiro):** Kiro model discovery no longer stamps a 200k context window when `tokenLimits.maxInputTokens` is missing, so the reconciler cannot pin a fake `auto:discovery` override over the registry / models.dev window ([#15413](https://github.com/diegosouzapw/OmniRoute/pull/15413))

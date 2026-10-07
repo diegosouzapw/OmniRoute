@@ -394,22 +394,22 @@ Napišite unit testove u `tests/unit/` koji pokrivaju najmanje:
 
 ---
 
-## Pull Request Checklist
+## Kontrolna lista za Pull Request
 
 - [ ] Testovi prolaze (`npm test`)
-- [ ] Linting prolazi (`npm run lint`)
-- [ ] Build uspijeva (`npm run build`)
-- [ ] TypeScript tipovi su dodani za nove javne funkcije i interfejse
-- [ ] Nema hardkodiranih tajni (secrets) ili fallback vrijednosti
-- [ ] Javni upstream kredencijali su ugrađeni putem `resolvePublicCred()` (vidi [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikada kao literali
-- [ ] Odgovori o greškama prolaze kroz `buildErrorBody()` / `sanitizeErrorMessage()` — bez sirovih stack trace-ova u tijelima odgovora (vidi [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell komande (`exec` / `spawn`) prenose runtime vrijednosti putem `env`, a ne putem string interpolacije
-- [ ] Svi inputi su validirani Zod shemama
-- [ ] **Fragment** changeloga je dodan pod `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` za promjene vidljive korisnicima (vidi [`changelog.d/README.md`](./changelog.d/README.md)) — **nemojte** direktno uređivati `CHANGELOG.md`; fragmenti se agregiraju prilikom release-a i nikada ne dolazi do konflikata između PR-ova
+- [ ] Provjera lintinga prolazi (`npm run lint`)
+- [ ] Build je uspješan (`npm run build`)
+- [ ] Dodani su TypeScript tipovi za nove javne funkcije i interfejse
+- [ ] Nema hardkodiranih tajni ili rezervnih vrijednosti
+- [ ] Javni pristupni podaci uzvodnog sistema ugrađeni su putem `resolvePublicCred()` (pogledajte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikada kao literali
+- [ ] Odgovori s greškama prolaze kroz `buildErrorBody()` / `sanitizeErrorMessage()` — nema neobrađenih stack traceova u tijelima odgovora (pogledajte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell komande (`exec` / `spawn`) prosljeđuju vrijednosti tokom izvršavanja putem `env`, a ne putem interpolacije stringova
+- [ ] Svi ulazi validirani su pomoću Zod schema
+- [ ] **Fragment** dnevnika promjena dodan je u `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` za promjene vidljive korisnicima (pogledajte [`changelog.d/README.md`](./changelog.d/README.md)) — **nemojte** direktno uređivati `CHANGELOG.md`; fragmenti se objedinjuju prilikom izdavanja i nikada ne uzrokuju konflikte između PR-ova
 - [ ] Dokumentacija je ažurirana (ako je primjenjivo)
-- [ ] Nema novih CodeQL / Secret-Scanning upozorenja, ili je svako od njih odbijeno uz tehničko obrazloženje koje referencira relevantni `docs/security/` dokument
-- [ ] Rute koje pokreću child procese (`/api/mcp/`, `/api/cli-tools/runtime/`) su klasifikovane kao `isLocalOnlyPath()` u `src/server/authz/routeGuard.ts` — vidi [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Nema `Co-Authored-By` trailera u commit porukama — commitovi moraju pojaviti se isključivo pod Git identitetom vlasnika repozitorija (Hard Rule #16)
+- [ ] Nisu otvorena nova CodeQL upozorenja / upozorenja skeniranja tajni ili je svako od njih odbačeno uz tehničko obrazloženje koje upućuje na relevantni dokument u `docs/security/`
+- [ ] Rute koje pokreću podređene procese (`/api/mcp/`, `/api/cli-tools/runtime/`) klasificirane su kao `isLocalOnlyPath()` u `src/server/authz/routeGuard.ts` — pogledajte [Strogo pravilo #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Nema AI/bot `Co-authored-by` završnih redova u porukama commita (Strogo pravilo #16) — ljudski saradnici čiji se rad ponovo koristi navode se standardnim `Co-authored-by: Name <email>` završnim redovima
 
 ---
 

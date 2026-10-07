@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { MUSE_SPARK_PATTERN } from "./base/reasoningEffort.ts";
+import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { REGISTRY } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   isResponsesShapedBody,
   projectResponsesForCli,
@@ -949,8 +951,11 @@ export class CommandCodeExecutor extends BaseExecutor {
     super(provider, REGISTRY["command-code"]);
   }
 
-  buildUrl() {
+  buildUrl(model?: string) {
     const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
+    if (model && getModelTargetFormat("command-code", model) === "claude") {
+      return `${baseUrl}/provider/v1/messages`;
+    }
     return `${baseUrl}${this.config.chatPath || "/provider/v1/chat/completions"}`;
   }
 
@@ -1063,13 +1068,18 @@ export class CommandCodeExecutor extends BaseExecutor {
     // Route by body shape: a Responses-shaped body (targetFormat openai-responses)
     // must hit /provider/v1/responses, where `reasoning: {"effort":"none"}` is
     // honored; the chat endpoint silently drops it.
-    const url = isResponsesShapedBody(transformedBody) ? this.buildResponsesUrl() : this.buildUrl();
+    const url = isResponsesShapedBody(transformedBody)
+      ? this.buildResponsesUrl()
+      : this.buildUrl(model);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       Accept: stream ? "text/event-stream" : "application/json",
     };
+    if (getModelTargetFormat("command-code", model) === "claude") {
+      headers["anthropic-version"] = ANTHROPIC_VERSION_HEADER;
+    }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     let upstream = await fetch(url, {

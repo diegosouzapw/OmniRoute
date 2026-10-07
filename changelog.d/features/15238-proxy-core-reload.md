@@ -1,0 +1,1 @@
+- **feat(proxy-subscription):** reload the local proxy core after a verified config replacement, paced at most once per 60 s per subscription ([#15238](https://github.com/diegosouzapw/OmniRoute/pull/15238)) — thanks @maxmad64bis

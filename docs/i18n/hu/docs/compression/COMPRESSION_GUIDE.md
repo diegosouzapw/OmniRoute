@@ -453,8 +453,7 @@ kerül injektálásra az angol helyett.
 A `messages` mezővel rendelkező törzsön egy tartalom-átugrás (`shouldBypassCavemanOutputMode()` a
 `open-sse/services/compression/outputMode.ts` fájlban) ellenőrzi az utolsó három üzenetet, és kihagyja
 a stílusokat az egész fordulóra, ha azok megfelelnek a biztonsági, visszafordíthatatlan műveleti,
-pontosítási vagy sorrendérzékeny kulcsszavainak. Az átugrás attól függetlenül fut, hogy a műszerfal
-**Automatikus Tisztaság Átugrás** kapcsolója (`cavemanOutputMode.autoClarity`) mire van állítva.
+pontosítási vagy sorrendérzékeny kulcsszavainak. Az átugrás akkor fut, amíg a műszerfal **Automatikus Tisztaság Átugrás** kapcsolója (`cavemanOutputMode.autoClarity`) be van kapcsolva, ami az alapértelmezés; kikapcsolt kapcsolónál a kiválasztott stílusok ezeken a fordulókon is érvényesülnek.
 
 Amikor az átugrás engedélyezi a fordulatot, a `placeSystemInstruction()` (ugyanaz a fájl), amely
 soha nem hoz létre új `messages[0]`-t, a blokkot az alábbiak közül az elsőbe helyezi, amit talál:

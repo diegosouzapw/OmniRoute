@@ -265,3 +265,41 @@ test(
     }
   }
 );
+
+test("reset-aware ranks OpenCode Go accounts by monthly quota after shorter windows tie", async () => {
+  const provider = "opencode-go";
+  const depletedMonthly = await db.createProviderConnection({
+    provider,
+    name: "depleted monthly quota",
+    isActive: true,
+    testStatus: "active",
+    authType: "apikey",
+  });
+  const healthyMonthly = await db.createProviderConnection({
+    provider,
+    name: "healthy monthly quota",
+    isActive: true,
+    testStatus: "active",
+    authType: "apikey",
+  });
+  const resetAt = new Date(Date.now() + 86_400_000).toISOString();
+  registerQuotaFetcher(provider, async (id) => ({
+    percentUsed: 0.5,
+    limitReached: false,
+    window5h: { percentUsed: 0.5, resetAt },
+    windowWeekly: { percentUsed: 0.5, resetAt },
+    windowMonthly: {
+      percentUsed: id === depletedMonthly.id ? 0.9 : 0.1,
+      resetAt: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+    },
+  }));
+
+  const ordered = await orderTargetsByResetAwareQuota(
+    [target(provider, depletedMonthly.id), target(provider, healthyMonthly.id)],
+    randomUUID(),
+    {},
+    log
+  );
+
+  assert.equal(ordered[0]?.connectionId, healthyMonthly.id);
+});

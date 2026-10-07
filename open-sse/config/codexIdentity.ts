@@ -20,6 +20,15 @@ export const CODEX_FINGERPRINT_MODES = ["off", "device", "session", "full"] as c
 export type CodexFingerprintMode = (typeof CODEX_FINGERPRINT_MODES)[number];
 export const CODEX_FINGERPRINT_MODE_KEY = "codexFingerprintMode";
 /**
+ * Opt-in scope of the outbound `prompt_cache_key` under session-mode convergence.
+ * `client` (default) forwards the client's key unchanged. `thread` replaces a key that is
+ * provably the client's session id with the converged thread id, so the cache key matches
+ * the thread id (as a real Codex client sends them) and stays per account.
+ */
+export const CODEX_PROMPT_CACHE_KEY_SCOPES = ["client", "thread"] as const;
+export type CodexPromptCacheKeyScope = (typeof CODEX_PROMPT_CACHE_KEY_SCOPES)[number];
+export const CODEX_PROMPT_CACHE_KEY_SCOPE_KEY = "codexPromptCacheKeyScope";
+/**
  * System-managed per-connection random seed used as the fingerprint
  * derivation source. Never sent upstream, stripped from API responses, and
  * preserved across connection updates (sub2api `codex_fingerprint_seed`).
@@ -181,6 +190,38 @@ export function getCodexFingerprintMode(
   return (CODEX_FINGERPRINT_MODES as readonly string[]).includes(raw)
     ? (raw as CodexFingerprintMode)
     : "session";
+}
+
+export function getCodexPromptCacheKeyScope(
+  providerSpecificData?: Record<string, unknown> | null
+): CodexPromptCacheKeyScope {
+  const raw = (
+    nonEmptyString(providerSpecificData?.[CODEX_PROMPT_CACHE_KEY_SCOPE_KEY]) || ""
+  ).toLowerCase();
+  return (CODEX_PROMPT_CACHE_KEY_SCOPES as readonly string[]).includes(raw)
+    ? (raw as CodexPromptCacheKeyScope)
+    : "client";
+}
+
+/**
+ * The thread-scoped outbound `prompt_cache_key`, or null to leave the body unchanged.
+ * Only acts under the opt-in `thread` scope with session-mode convergence, and only when
+ * the key derives the very thread id already chosen for this account — i.e. it is the
+ * client's own session id, not a key the caller picked. The thread id is per
+ * (account, client session), so caching stays per conversation within an account.
+ */
+export function resolveCodexThreadScopedPromptCacheKey(
+  promptCacheKey: unknown,
+  identity: CodexClientIdentity | null | undefined,
+  providerSpecificData?: Record<string, unknown> | null,
+  accountKey?: string | null
+): string | null {
+  if (getCodexPromptCacheKeyScope(providerSpecificData) !== "thread") return null;
+  if (!identity || identity.mode !== "session" || !identity.threadId) return null;
+  const clientKey = normalizeCodexSessionId(promptCacheKey);
+  if (!clientKey || clientKey === identity.threadId) return null;
+  const derived = getCodexConvergedThreadId(clientKey, providerSpecificData, accountKey);
+  return derived === identity.threadId ? identity.threadId : null;
 }
 
 export function getCodexInstallationId(

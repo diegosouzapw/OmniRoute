@@ -439,7 +439,7 @@ const { messages: aged, saved } = applyAging(messages, {
 
 `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) は、カタログに対して選択を解決し（不明な `id` やロケールが一致しないスタイルは破棄され、エラーにはなりません）、選択された指示をカタログ順に連結し、境界句を**一度だけ**追加し、単一の冪等性マーカー (`[OmniRoute Output Styles]`) でブロックを開始します。これにより、再適用は何も行いません。解決された言語（下記の「言語選択」を参照）に翻訳がある場合、英語の代わりにローカライズされた指示が注入されます。
 
-`messages` を含むボディの場合、コンテンツバイパス (`open-sse/services/compression/outputMode.ts` 内の `shouldBypassCavemanOutputMode()`) は、最後の3つのメッセージをチェックし、それらがセキュリティ、不可逆的なアクション、明確化、または順序に敏感なキーワードと一致する場合、そのターン全体のスタイルをスキップします。このバイパスは、ダッシュボードの**自動明瞭化バイパス**トグル (`cavemanOutputMode.autoClarity`) の設定に関わらず実行されます。
+`messages` を含むボディの場合、コンテンツバイパス (`open-sse/services/compression/outputMode.ts` 内の `shouldBypassCavemanOutputMode()`) は、最後の3つのメッセージをチェックし、それらがセキュリティ、不可逆的なアクション、明確化、または順序に敏感なキーワードと一致する場合、そのターン全体のスタイルをスキップします。このバイパスは、ダッシュボードの**自動明瞭化バイパス**トグル (`cavemanOutputMode.autoClarity`) がオンの間実行されます。これは既定の設定です。トグルがオフのときは、選択したスタイルがそれらのターンでも適用されます。
 
 バイパスがターンを通過させた場合、`messages[0]` を新しく作成することのない `placeSystemInstruction()` (同じファイル内) は、見つかった以下の最初の場所にブロックを配置します。
 

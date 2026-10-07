@@ -467,8 +467,7 @@ injetada em vez da versão em inglês.
 Em um corpo com `messages`, um desvio de conteúdo (`shouldBypassCavemanOutputMode()` em
 `open-sse/services/compression/outputMode.ts`) verifica as três últimas mensagens e ignora
 os estilos durante todo o turno quando elas correspondem às palavras-chave de segurança, ação irreversível,
-esclarecimento ou sensíveis à ordem. O desvio é executado conforme a configuração do botão
-**Desvio de Clareza Automática** (`cavemanOutputMode.autoClarity`) no painel.
+esclarecimento ou sensíveis à ordem. O desvio é executado enquanto o botão **Desvio de Clareza Automática** (`cavemanOutputMode.autoClarity`) no painel estiver ativado, que é o padrão; com o botão desativado, os estilos selecionados também se aplicam nesses turnos.
 
 Quando o desvio permite que o turno prossiga, `placeSystemInstruction()` (no mesmo arquivo), que
 nunca cria um novo `messages[0]`, coloca o bloco no primeiro destes locais que encontrar:
