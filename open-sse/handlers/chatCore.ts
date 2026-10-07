@@ -282,7 +282,7 @@ import {
   recordCoreOwnedAntigravityQuotaState,
   shouldDeferAntigravityQuotaStateToCaller,
 } from "../services/accountFallback.ts";
-import { saveIdempotency } from "@/lib/idempotencyLayer";
+import { saveIdempotencyWithConfiguredWindow } from "@/lib/idempotencyLayer";
 
 import { computeRequestHash, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
@@ -3754,7 +3754,7 @@ async function handleChatCoreInner({
       runPluginOnResponseHook,
       sanitizeErrorMessage,
       sanitizeUpstreamDetails,
-      saveIdempotency,
+      saveIdempotency: saveIdempotencyWithConfiguredWindow,
       scheduleQuotaShareConsumption,
       semanticCacheEnabled,
       sessionAffinityKey,
