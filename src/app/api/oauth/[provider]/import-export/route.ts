@@ -173,11 +173,14 @@ export async function POST(
       // Antigravity) — the same finalize path as paste-credentials.
       const tokenData: any = await finalizeTokens(provider, norm.tokens);
 
-      // postExchange fetches userinfo live, but an export record's declared
-      // email/name are the reliable fallback when that fetch fails — and
-      // persistOAuthConnection's dedup match depends on email being present.
-      if (!tokenData.email && norm.email) tokenData.email = norm.email;
-      if (!tokenData.name && norm.name) tokenData.name = norm.name;
+      // Only upstream-verified identity may participate in email-based dedup.
+      // Export metadata must never overwrite an existing account when lookup fails.
+      if (typeof tokenData.email !== "string" || !tokenData.email.trim()) {
+        throw new Error("Account identity could not be verified");
+      }
+      if (norm.email && norm.email.toLowerCase() !== tokenData.email.toLowerCase()) {
+        throw new Error("Export identity does not match the authenticated account");
+      }
 
       const connection = await persistOAuthConnection(provider, tokenData);
       imported += 1;
