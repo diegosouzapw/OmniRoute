@@ -25,6 +25,7 @@
 - [`DELETE /api/provider-nodes/{id}`](#delete-apiprovider-nodesid)
 - [`POST /api/provider-nodes/validate`](#post-apiprovider-nodesvalidate)
 - [`GET /api/provider-models`](#get-apiprovider-models)
+- [`POST /api/provider-models/validate-and-add`](#post-apiprovider-modelsvalidate-and-add)
 - [`GET /api/providers/{id}/cc-alias`](#get-apiprovidersidcc-alias)
 - [`PUT /api/providers/{id}/cc-alias`](#put-apiprovidersidcc-alias)
 - [`GET /api/providers/{id}/chatgpt-web-codex-doctor`](#get-apiprovidersidchatgpt-web-codex-doctor)
@@ -171,6 +172,8 @@ curl -X POST https://localhost:20128/api/providers/test-batch \
 
 Validate provider credentials
 
+Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
+
 ```bash
 curl -X POST https://localhost:20128/api/providers/validate \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
@@ -289,6 +292,19 @@ List provider models
 ```bash
 curl https://localhost:20128/api/provider-models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/provider-models/validate-and-add
+
+Validate and add a custom chat model on one exact connection
+
+Always requires management authentication and explicit inference consent. Runs bounded generation, streamed synthetic tool-call and continuation proofs through the chat core; no real tool is executed. Configuration changes, alternate connections, retries and proxy executor fallback fail closed. Only after all proofs pass is a previously absent custom model inserted and read back atomically. Every response is Cache-Control no-store. Requests can incur upstream charges. The validation receipt is informational, not redeemable. Initial strict support is limited to native Base/Default execution for OpenAI and canonical OpenAI-compatible nodes using a single Bearer credential and an exact JSON model field. Specialized executors and other providers are unsupported; session pools, extra-key rotation, HTTP redirects and credential refresh are refused. Active runtime plugins also fail closed; plugin policies are not silently skipped.
+
+```bash
+curl -X POST https://localhost:20128/api/provider-models/validate-and-add \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
 ### GET /api/providers/{id}/cc-alias
@@ -480,6 +496,8 @@ curl -X POST https://localhost:20128/api/providers/{id}/sync-models \
 ### POST /api/providers/bulk
 
 POST providers › bulk
+
+Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
 curl -X POST https://localhost:20128/api/providers/bulk \
@@ -679,6 +697,8 @@ curl https://localhost:20128/api/providers/health-matrix \
 ### POST /api/providers/import
 
 POST providers › import
+
+Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
 curl -X POST https://localhost:20128/api/providers/import \

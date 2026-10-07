@@ -457,9 +457,7 @@ yapmaz. Çözümlenen dilin (aşağıdaki Dil seçimi bölümüne bakın) bir ç
 `messages` içeren bir gövdede, `open-sse/services/compression/outputMode.ts` içindeki
 bir içerik atlama denetimi (`shouldBypassCavemanOutputMode()`) son üç mesajı kontrol eder
 ve bunlar güvenlik, geri döndürülemez eylem, açıklama isteme veya sıraya duyarlı anahtar
-sözcüklerle eşleştiğinde tüm tur için stilleri atlar. Atlama işlemi, panodaki
-**Auto-Clarity Bypass** anahtarı (`cavemanOutputMode.autoClarity`) hangi değere
-ayarlanmışsa ona göre çalışır.
+sözcüklerle eşleştiğinde tüm tur için stilleri atlar. Atlama işlemi, panodaki **Auto-Clarity Bypass** anahtarı (`cavemanOutputMode.autoClarity`) açık olduğu sürece çalışır; bu varsayılan durumdur. Anahtar kapalıyken seçilen stiller bu turlarda da uygulanır.
 
 Atlama denetimi turun geçmesine izin verdiğinde, aynı dosyadaki ve hiçbir zaman yeni bir
 `messages[0]` oluşturmayan `placeSystemInstruction()`, bloğu bulduğu ilk uygun konuma

@@ -55,6 +55,8 @@ export const claudeProvider: RegistryEntry = {
       name: "Claude Opus 5",
       contextLength: 1000000,
       maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
       supportsXHighEffort: true,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
@@ -106,6 +108,17 @@ export const claudeProvider: RegistryEntry = {
       supportsXHighEffort: true,
       // Sonnet 5 rejects non-default temperature/top_p/top_k with a 400 (adaptive-only;
       // reasoning steered by output_config.effort). Mirrors the Opus/Fable entries.
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
+      id: "claude-sonnet-5-5",
+      name: "Claude Sonnet 5.5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsXHighEffort: true,
+      // Sonnet 5.5 caps effort at xhigh. Listing the tiers here makes the
+      // executor lower a requested "max" to "xhigh" instead of forwarding it.
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {

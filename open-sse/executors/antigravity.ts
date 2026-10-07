@@ -834,6 +834,7 @@ export class AntigravityExecutor extends BaseExecutor {
       enable_thinking: _enableThinking,
       thinking_budget: _thinkingBudget,
       enabledCreditTypes: _enabledCreditTypes,
+      stream: _streamField,
       ...passthroughFields
     } = normalizedBody;
 

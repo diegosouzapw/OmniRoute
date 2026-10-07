@@ -481,7 +481,7 @@ jazyk (viz výběr jazyka níže) překlad, je místo angličtiny vložena lokal
 U těla s `messages` kontroluje obcházení obsahu (`shouldBypassCavemanOutputMode()` v
 `open-sse/services/compression/outputMode.ts`) poslední tři zprávy a přeskočí
 styly pro celé kolo, pokud odpovídají jeho klíčovým slovům pro bezpečnost, nevratnou akci,
-objasnění nebo citlivost na pořadí. Obcházení se spustí bez ohledu na to, jak je nastaven přepínač **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na ovládacím panelu.
+objasnění nebo citlivost na pořadí. Obcházení se spustí, dokud je přepínač **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na ovládacím panelu zapnutý, což je výchozí nastavení; při vypnutém přepínači se vybrané styly použijí i v těchto kolech.
 
 Když obcházení povolí průchod, `placeSystemInstruction()` (stejný soubor), která
 nikdy nevytvoří novou `messages[0]`, umístí blok do prvního z následujících, které najde:

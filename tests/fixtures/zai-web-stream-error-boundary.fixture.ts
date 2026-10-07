@@ -155,6 +155,7 @@ function assertFailureWasPersisted(result: PipelineResult): void {
       message: "Z.ai stream failed: stream aborted upstream",
       code: "stream_pipeline_error",
       type: "stream_error",
+      outputEmitted: false,
     },
   ]);
 }

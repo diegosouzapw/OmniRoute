@@ -67,24 +67,28 @@ Você precisa que um serviço na nuvem execute trabalho fora desta máquina (Cod
 
 Consulte [A2A-SERVER.md](./A2A-SERVER.md) para obter detalhes sobre o transporte, a estrutura do cartão do agente, a configuração de TTL das tarefas e o modelo para adicionar novas habilidades.
 
-## 2. ACP — Registro de agentes CLI
+## 2. ACP — Registro de Agentes CLI
 
 **Endpoint do OmniRoute:** `GET /api/acp/agents`
 **Código-fonte:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### O que é
 
-O ACP é o **inventário local de agentes CLI** do OmniRoute. Ele detecta quais CLIs de programação estão instaladas no host (Cursor, Cline, Claude Code, Codex CLI, Continue etc.), identifica suas versões e as apresenta no painel para que o usuário possa configurar cada CLI para apontar para o OmniRoute.
+O ACP é o **inventário local de agentes CLI** do OmniRoute. Ele detecta quais CLIs de programação estão instaladas no host (Cursor, Cline, Claude Code, Codex CLI, Continue etc.), identifica suas versões e as exibe no dashboard para que o usuário possa configurar cada CLI para apontar para o OmniRoute.
 
-Este NÃO é um protocolo externo — é um registro interno que alimenta a interface de "Ferramentas CLI" e o rastreamento de impressões digitais das CLIs (consulte [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+A interface HTTP é um inventário interno que alimenta a interface de "Ferramentas CLI" e
+o rastreamento de impressões digitais das CLIs (consulte [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Separadamente,
+o gerenciador interno de processos oferece suporte ao Agent Client Protocol nativo para o
+inicializador registrado do Gemini e a adaptadores stdio legados para outros contratos.
+Consulte [Registro e inicializadores ACP](./ACP.md) para conhecer esses modos distintos e suas limitações.
 
 ### O que faz
 
-- Verifica o host em busca de binários de CLI instalados (usa `which` / `where`, conforme o sistema operacional)
+- Verifica o host em busca de binários CLI instalados (usa `which` / `where`, dependendo do sistema operacional)
 - Lê a versão de cada CLI (executa `<bin> --version`)
 - Opcionalmente, aceita agentes personalizados definidos pelo usuário (caminho do binário + verificação de versão + argumentos de inicialização)
-- Persiste agentes personalizados nas configurações
-- Retorna a lista unificada ao painel
+- Persiste os agentes personalizados nas configurações
+- Retorna a lista unificada ao dashboard
 
 ### API REST
 
@@ -93,7 +97,7 @@ Este NÃO é um protocolo externo — é um registro interno que alimenta a inte
 | `/api/acp/agents` | GET    | Lista agentes detectados + personalizados (contagens instalados/total)    | Chave de API |
 | `/api/acp/agents` | POST   | Adiciona/atualiza/remove um agente personalizado (ação definida no corpo) | Chave de API |
 
-Formato do corpo para POST (`customAgentBodySchema` em `src/app/api/acp/agents/route.ts`):
+Formato do corpo da solicitação POST (`customAgentBodySchema` em `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ Formato do corpo para POST (`customAgentBodySchema` em `src/app/api/acp/agents/r
 
 ### Casos de uso
 
-- A página "Ferramentas CLI" do painel lista o que está instalado e ajuda você a configurar cada ferramenta para apontar para o OmniRoute
-- Agentes personalizados permitem que usuários avançados registrem CLIs internas/proprietárias que o OmniRoute não reconhece por padrão
+- A página "Ferramentas CLI" do dashboard lista o que está instalado e ajuda você a apontar cada ferramenta para o OmniRoute
+- Os agentes personalizados permitem que usuários avançados registrem CLIs internas/proprietárias que o OmniRoute não reconhece por padrão
 - O resultado da detecção alimenta a matriz de impressões digitais `cli-tools`
 
 ### Quando NÃO usar o ACP
 
-- O ACP não _executa_ tarefas. Ele apenas detecta e configura CLIs. Para realmente invocar uma CLI, você deve iniciá-la por conta própria com as variáveis de ambiente fornecidas pelo OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY` etc.).
+- O registro HTTP não aceita tarefas nem expõe a inicialização de processos. O gerenciador
+  interno pode iniciar uma CLI registrada, mas não está conectado como fallback automático
+  de provedor. Para uso interativo comum, inicie você mesmo a CLI configurada ou
+  use `omniroute run`.
 
 ## 3. Agentes de nuvem
 

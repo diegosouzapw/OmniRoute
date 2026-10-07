@@ -124,6 +124,8 @@ import {
 import { markAntigravityMissingCloudCodeProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { wrapResponseWithOAuthSessionRelease } from "@omniroute/open-sse/services/oauthSessionOccupancy.ts";
+import { inheritProviderProbeResponse } from "@/shared/utils/providerProbeResult";
+import { resolveProviderId } from "@/shared/constants/providers";
 import {
   extractReasoningIntent,
   type ExtractedReasoningIntent,
@@ -136,6 +138,7 @@ import {
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 import { getComboFailureLogError } from "./comboFailureLogging";
+import { logAdmissionRejection } from "./admissionRejectionLog";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -194,7 +197,7 @@ import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/ope
 import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGrokWebQuotaFetcher } from "@omniroute/open-sse/services/grokQuotaFetcher.ts";
 import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/genericQuotaFetcher.ts";
-import "@omniroute/open-sse/services/quotaTrackersBatch.ts";
+import { registerQuotaTrackersBatch } from "@omniroute/open-sse/services/quotaTrackersBatch.ts";
 import {
   disableCooldownAwareRetry,
   getCooldownAwareRetryDecision,
@@ -219,7 +222,7 @@ import {
 } from "../services/leaseContext";
 
 registerCodexQuotaFetcher();
-
+registerQuotaTrackersBatch();
 // Register Bailian Coding Plan quota fetcher at module load (once per server start).
 // This hooks into the quotaPreflight + quotaMonitor systems so that combos
 // can proactively switch accounts before quota is exhausted.
@@ -466,14 +469,6 @@ async function handleChatImplementation(
     delete body._omniroutePreviousResponseResumed;
   }
 
-  // Feature #6241: fold the canonical `effort` / `thinking` request params onto the
-  // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) that the
-  // existing translators already consume. Done here — right after the body is first
-  // resolved, before any reasoning field is read below — so it flows uniformly into every
-  // downstream mapper (Anthropic / Gemini / xAI / Responses). An explicit client
-  // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
-  body = normalizeReasoningRequest(body);
-
   const sourceFormat = detectFormatFromUrl(body, request.url);
 
   // Early guard: an invalid `messages` field is rejected here with a clear
@@ -626,6 +621,11 @@ async function handleChatImplementation(
   // Freeze the client-facing model and reasoning intent before automatic routers
   // mutate the working request. Reasoning policies always match this stable input.
   const reasoningIntent = extractReasoningIntent(modelStr, body);
+
+  // Fold canonical and OpenRouter-style controls onto the common effort carriers only
+  // after routing captures the raw intent. This keeps a Codex model suffix stronger than
+  // the fallback `reasoning.enabled:false`, matching the Codex executor's precedence.
+  body = normalizeReasoningRequest(body);
 
   // Align body.model with the routing model immediately (see applyRoutingModelAlignment).
   body = RoutingModelOps.align(body, modelStr, log);
@@ -788,7 +788,17 @@ async function handleChatImplementation(
   }
 
   const admissionRejection = await admissionContext.acquire(apiKeyInfo?.id, { signal }, body);
-  if (admissionRejection) return admissionRejection;
+  if (admissionRejection) {
+    void logAdmissionRejection(admissionRejection, {
+      path: new URL(request.url).pathname,
+      model: typeof body?.model === "string" && body.model ? body.model : "-",
+      requestBody: body ?? null,
+      apiKeyId: apiKeyInfo?.id ?? null,
+      apiKeyName: apiKeyInfo?.name ?? null,
+      correlationId: reqId,
+    });
+    return admissionRejection;
+  }
   clientRawRequest = chatAdmission.resolveClientRawAfterAdmission(clientRawRequest, () =>
     deferredClientRawBody.withClientBody((b) => buildClientRawRequest(request, b, signal))
   );
@@ -1507,7 +1517,7 @@ async function handleSingleModelChat(
           {
             sessionId: "", // safety-net redirect doesn't have session context
             forceLiveComboTest: false,
-            forcedConnectionId: null,
+            forcedConnectionId: runtimeOptions?.forcedConnectionId ?? null,
             allowedConnectionIds: null,
             comboStepId: null,
             comboExecutionKey: null,
@@ -1618,11 +1628,10 @@ async function handleSingleModelChat(
     provider,
     (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
   );
-  const breaker = getCircuitBreaker(provider, {
+  const breaker = getCircuitBreaker(resolveProviderId(provider), {
     failureThreshold: providerProfile.failureThreshold,
     resetTimeout: providerProfile.resetTimeoutMs,
-    // #4602: a local WS-bridge "Controller is already closed" throw is not an
-    // upstream outage — keep it from tripping the whole-provider breaker.
+    // A local stream lifecycle error never reached the provider.
     isFailure: (e) => !isLocalStreamLifecycleError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
@@ -1797,7 +1806,7 @@ async function handleSingleModelChat(
           }
         }
 
-        const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
+        const breakerFailureStatus = Number(lastStatus);
         // lastError is a string here — check for the proxy_unreachable tag embedded by
         // tagProxyUnreachable (proxyFetch.ts) and OmniRoute's own queue timeouts. Both mean
         // we never reached the provider, so they must not trip the provider breaker.
@@ -2052,17 +2061,18 @@ async function handleSingleModelChat(
         agyLease.release(leaseId);
         return execution.localResourcePressureResult.response;
       }
-      const { result, tlsFingerprintUsed } = execution;
+      const { result, tlsFingerprintUsed, wasProviderProbe } = execution;
       if (!result.success) releaseOAuthSession();
-      // Hand the lease to the SSE body's terminal lifecycle; anything else frees it now.
       if (result.success && agyLease.isStreamingAntigravityResponse(result.response))
-        result.response = agyLease.holdAntigravityLeaseThroughResponse(
+        result.response = inheritProviderProbeResponse(
           result.response,
-          leaseId,
-          clientRawRequest?.signal
+          agyLease.holdAntigravityLeaseThroughResponse(
+            result.response,
+            leaseId,
+            clientRawRequest?.signal
+          )
         );
       else agyLease.release(leaseId);
-
       const proxyLatency = Date.now() - proxyStartTime;
       const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
       const effectiveTargetFormat =
@@ -2070,12 +2080,7 @@ async function handleSingleModelChat(
         getTargetFormat(provider, credentials.providerSpecificData) ||
         targetFormat;
 
-      // 5. Log proxy + translation events (fire-and-forget; never blocks the response)
-      // #5217: reflect the proxy the executor actually applied (per-account rotation).
-      // Rotation attribution (single flag read per request — the DB override
-      // lookup is synchronous SQLite): forward the masked serving-account id
-      // and the request correlation id, or null when the flag is off so the
-      // new columns stay NULL on legacy-behavior requests.
+      // Log the applied proxy and optional rotation attribution without blocking the response.
       const rotationAttributionOn = isRotationAttributionEnabled();
       void safeLogEvents({
         result,
@@ -2095,11 +2100,12 @@ async function handleSingleModelChat(
 
       if (result.success) {
         clearModelLock(provider, credentials.connectionId, model);
-        // #14359 — a real upstream success is authoritative: arm the healthy override.
         markQuotaHealthy(credentials.connectionId);
-        // #12254: exactly-once breaker accounting — combo successes are recorded by
-        // combo.ts (recordProviderSuccess); live combo tests never touch the breaker.
-        if (classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "success") {
+        // Acquired probes were settled inside execute(); other successes settle here or in combo.
+        if (
+          !wasProviderProbe &&
+          classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "success"
+        ) {
           breaker._onSuccess();
         }
         if (injectedHandoff && runtimeOptions.sessionId && comboName) {
@@ -2112,15 +2118,16 @@ async function handleSingleModelChat(
           credentials?.connectionId
         );
         if (requestBody.stream === true) {
-          return wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession);
+          return inheritProviderProbeResponse(
+            successResponse,
+            wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession)
+          );
         }
         releaseOAuthSession();
         return successResponse;
       }
 
-      // A final hard-lease fence rejection is authoritative. It must never mutate
-      // connection health/cooldown state or fall through to ordinary account/model
-      // fallback, which could turn a stale lifecycle into unmanaged dispatch.
+      // A hard-lease rejection must not mutate account state or retry.
       if (
         runtimeOptions.managedLease &&
         (result.errorType === "lease_error" || String(result.errorCode || "").startsWith("LEASE_"))
@@ -2570,9 +2577,9 @@ async function handleSingleModelChat(
         continue;
       }
 
-      // T-PROBE: a probe failure must not degrade the provider-wide circuit
-      // breaker for real traffic (#9817).
+      // Isolate probe-origin failures from real-traffic breaker accounting (#9817).
       if (
+        !wasProviderProbe &&
         !(await shouldIsolateProbeFailures()) &&
         classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "failure"
       ) {

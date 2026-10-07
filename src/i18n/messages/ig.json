@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Ọdọ proxy na ntụgharị opencode nke akaụntụ ọ bụla na-akwụsị iji proxy dara ugbu a ọzọ (nnyocha TCP a jụrụ, ma ọ bụ nzaghachi 429 e nwetara site na ya) ruo oge nke usoro ọ bụla nke na-amụba okpukpu abụọ mgbe ọdịda ahụ megharịrị, ruo n'ókè kachasị. A naghị ede ọkwa proxy ọ bụla; mgbe e wepụrụ ndị niile a ga-ahọrọ n'akụkụ, nhọrọ ahụ anaghị agbanwe. A gbanyere ya na ndabara; `false` na-eweghachi nhọrọ nkịtị.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Maka ndị na-enye ọrụ ndị a na-ekesa quota ha site na adreesị egress, ọ na-etinye onye otu pool nke na-ekerịta adreesị egress a hụrụ nke onye otu a jụrụ n'oge na-adịbeghị anya n'okpuru ndị otu dị mma ozugbo. Naanị usoro, a naghị ewepụ ya ma ọlị. Ọ chọrọ PROXY_SKIP_RECENTLY_FAILED, nke na-emepụta akara ịjụ ọ na-agụ. Agbanyụrụ na ndabara: usoro nhọrọ bụ kpọmkwem ntụgharị nkịtị.",
   "featureFlagProxyPoolEgressObservationDescription": "Gosi, n'okpuru ọdọ proxy na dashboard, IP ọpụpụ ole a hụrụ jere ndị otu ya ozi n'ime awa 24 gara aga, njikọ ole jiri ha, na ọnụ ọgụgụ kachasị a hụrụ n'azụ otu IP. Ọ bụ naanị maka ọgụgụ, a na-agbakọ ya site na ndekọ proxy, a naghị eji ya eme routing. A gbanyụrụ ya na ndabara: editọ ọdọ ahụ anaghị agbanwe, route nlele ahụ na-azaghachi null.",
+  "featureFlagProxyOperatorEgressDescription": "Nwee ụzọ nke ịmụrụ nke operator na ụzọ nke ụbọchị nke mme nke pool, na ịmụrụ nke journal na ụzọ nke pool. N'ụzọ ọ dị mma: push route ịmụrụ 404 na ịmụrụ nke pool nwere ịmụrụ dị ka ọ dị.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "N'oge nyocha ahụike proxy, kwe ka nyocha ebumnuche jụrụ (401/403/429: proxy ahụ zigara ya, ebe njedebe ahụ jụrụ IP ọpụpụ a) tọgharịa usoro ọdịda na-aga n'ihu nke proxy ahụ, dịka nyocha e jere ozi. A gbanyụrụ ya na ndabara: ọjụjụ na-anọpụ iche ma na-edobe usoro ahụ. 5xx ka na-enweghị nkwubi okwu n'ọnọdụ ọ bụla, ọjụjụ anaghị ewepụ, gbanyụọ, ma ọ bụ mee ka proxy rụọ ọrụ ọzọ.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Kwe ka nhichapụ akpaka hichapụ ọrụ Batch API ndị nọ n’ọnọdụ njedebe (completed/failed/cancelled/expired) ma gafee OMNIROUTE_BATCH_RETENTION_DAYS, tinyere checkpoints nke ahịrị nke ọ bụla, ma kpochapụ ọdịnaya BLOB nke faịlụ ebugoro nke gafere expires_at nke ha. Agbanyụrụ ya na ndabara: nrụnye niile dị ugbu a ga-edobe data a kpọmkwem dịka ọ dị na mbụ ruo mgbe onye njikwa họrọ ịgbanye ya. Ụzọ DELETE /api/v1/batches/delete-completed nke onye njikwa na-akpalite agaghị emetụta n’ụzọ ọ bụla -- ọ bụ nkwekọrịta API ọha dị iche nke na-arụ ọrụ mgbe niile.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Weta katalọgụ ụdị xAI dị ugbu a maka njikọ xai-oauth site na https://api.x.ai/v1/models, jiri OAuth bearer token, kama iji mkpụrụ static a kpọnwụrụ akpọnwụ. Agbanyụrụ ya na ndabara: xai-oauth ga-aga n’ihu inye mkpụrụ static ahụ n’enweghị mgbanwe. Ọ bụrụ na njehie ọ bụla emee mgbe a na-achọpụta ya, nchọpụta ahụ ga-alaghachi n’iji mkpụrụ ahụ.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Endpoint proxy-core mpaghara adịghị mma; e leghaara node SS/VMess/Trojan/VLESS anya.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ndenye aha a nwere node ndị chọrọ proxy core mpaghara (SS/VMess/Trojan/VLESS); agaghị ebugharị ha ruo mgbe ị haziri endpoint SOCKS5 nke local-core.",
         "NO_USABLE_NODES": "Ndenye aha ahụ enyeghị node ọ bụla enwere ike iji (http/https/socks5 ma ọ bụ node nwere endpoint core mpaghara).",
-        "SELECTOR_SWITCH_FAILED": "Oku njikwa proxy-core dara; ụzọ gara aga na-anọgide na-arụ ọrụ. Lelee URL na nzuzo njikwa, wee mee ka ọ dị ọhụrụ."
+        "SELECTOR_SWITCH_FAILED": "Oku njikwa proxy-core dara; ụzọ gara aga na-anọgide na-arụ ọrụ. Lelee URL na nzuzo njikwa, wee mee ka ọ dị ọhụrụ.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "E weghachite ihe nchekwa e mepụtara ahụ iji gbanwee faịlụ e zụtara ya; e debanyaa n'akụkụ ya tinyere e.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "E gbanwere ọtụtụ ebe na mmepụta. Lee logi nke sava ahụ."
       },
       "description": "Mado njikọ ndenye aha proxy gị. Ozugbo enyere ya ohere, a ga-ebufe okporo ụzọ site na nchịkọta proxy n'ọnọdụ zuru ụwa ọnụ ma ọ bụ ọnọdụ iwu (Provider akọwapụtara). A na-emekọrịta node ndenye aha na-akpaghị aka n'ime nchịkọta proxy, a na-ejikwa usoro polling, nyocha ahụike, na mgbochi ntapu ndị dịbu adị.",
       "addSubscription": "Tinye ndenye aha",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Enwebeghị mgbanwe ọ bụla",
       "lastSwitchMember": "Onye otu na-eje ozi",
       "nextSwitch": "Mgbanwe ọzọ enwere ike",
-      "nextSwitchNow": "Ugbu a"
+      "nextSwitchNow": "Ugbu a",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Uzuzu ọrụ mkpanaka",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla."
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Mkpakọ nkọwa MCP",
     "mcpAccessibilityTitle": "Mmepụta nnweta MCP",
     "compressionSettingsCavemanIntensity": "Ike ụdị onye ọgba",
-    "compressionSettingsCavemanOutputMode": "Ụdị mmepụta onye ọgba",
     "compressionSettingsOutputStyles": "Ụdịdị mmepụta",
     "compressionStylesTileTitle": "Ụdịdị mmepụta",
     "compressionSettingsOutputIntensity": "Ike mmepụta",
-    "compressionSettingsAutoClarityBypass": "Ngafe idoanya akpaka",
     "compressionEffectivePipeline": "Pipeline dị irè:",
     "compressionDerivedOff": "agbanyụrụ",
     "compressionDerivedRuns": "ngagharị: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Ihe GET /v1/models na-egosi maka igodo a. Ibelata ndepụta ahụ anaghị agbanwe ụdịdị igodo ahụ nwere ike ịkpọ.",
     "catalogScopeAll": "Ha abụọ",
     "catalogScopeCombos": "Ngwakọta naanị",
-    "catalogScopeModels": "Ụdịdị naanị"
+    "catalogScopeModels": "Ụdịdị naanị",
+    "resilienceTokenRefreshTitle": "Mgbaji Igbanwe Token",
+    "resilienceTokenRefreshDesc": "Kwụsị ịnwale ịhazharị token mgbe ndọghachi egbuola n'otu n'otu. Njikọta nke nke bụrụ na-akwado otu akara dị mgbagwoju anya ka akara dị mma na nke ahụ na-ahazharị.",
+    "resilienceTokenRefreshScope": "Njikwa njikwa ịhazharị token maka onye nnye otu",
+    "resilienceTokenRefreshTrigger": "Njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ njikọ",
+    "resilienceTokenRefreshEffect": "Na-egosi mmemme ọhụrụ maka oge mkpachi",
+    "resilienceTokenRefreshScopeLabel": "Nkpokọta",
+    "resilienceTokenRefreshScopeProvider": "Onye nnye (akkaunt niile dabere na otu breaker)",
+    "resilienceTokenRefreshScopeConnection": "Njikọ (ọ bụrụ na ngwaọrụ ọ bụla nwere ya nke ya)",
+    "resilienceTokenRefreshThreshold": "Njefọ n'ihu ka a ga-egbu oge",
+    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere"
   },
   "contextRtk": {
     "title": "Injin RTK",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Na-ebunye…",
     "loadFailed": "Nbudata ozi injin dara ada.",
+    "settingsLoadFailed": "Enweghị ike ibu ntọala echekwara. Oghere ndị ahụ na-egosi ụkpụrụ ndabara, Chekwaa anaghị arụ ọrụ ruo mgbe ebugharịrị ibe ahụ ọzọ.",
     "engineNotFound": "Ahụghị injin \"{engine}\".",
     "saveFailed": "Ịchekwa nhazi dara ada.",
     "previewFailed": "Nlele mbụ dara ada.",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "Ahịrị kacha nta a ga-akpakọ",
         "description": "Ọnụọgụ ahịrị kacha nta achọrọ n'ime usoro JSON nwere otu nhazi iji malite mkpakọ tebụl. Ndabara: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Chekwaa system prompt"
       },
       "summarizerEnabled": {
         "label": "Kwado summarizer"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "A naghị eme mkpakọ n’ozi ndị dị mkpụmkpụ karịa nke a. Nke dị ala = mkpakọ karịa.",
     "tooltipMinSavings": "Mee mkpakọ naanị ma ọ bụrụ na ọ na-echekwa opekata mpe token ole a.",
     "ultraSettings": "Ntọala Ultra",
-    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado",
-    "preview": {
-      "lite": "Zaa nkenke. Debe okwu teknụzụ, code, njehie, URLs, na ihe njirimara.",
-      "full": "Zaa nkenke ma dị mkpụmkpụ. Debe ọdịnaya teknụzụ niile.",
-      "ultra": "Zaa n’ụzọ dị nnọọ nkenke site na iji ndebiri teknụzụ ndị a na-ahụkarị. Debe akara niile otu ha dị."
-    }
+    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado"
   },
   "translator": {
     "title": "Onye Ntụgharị",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Ọdịda na-enweghị ụzọ ọpụpụ ekenyere: {count}",
     "poolMemberEgress": "{host}:{port} si na {egressIp} pụọ · awa {hours} gara aga",
     "poolMemberEgressEmpty": "{host}:{port}: ahụghị okporo ụzọ n’ime awa {hours} gara aga",
+    "poolMemberEgressOperator": "{host}:{port} nyepu na {egressIp} · ọ dị mma na operator, {date}",
     "poolMemberEgressHint": "Adreesị IP egress ikpeazụ a hụrụ site n’aka onye otu pool a n’ime oge ahụ, nke e si na ndekọ proxy gụọ. Onye otu na-enweghị okporo ụzọ n’ime oge ahụ ga-egosi ahịrị enweghị-okporo-ụzọ.",
     "poolRemove": "Wepụ",
     "poolRemoveFailed": "Enweghị ike iwepụ proksi na pool",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "enweghị ike iru proxy",
     "poolSetAsideKindIpQuota429": "oke ọsọ IP (429)",
     "poolSetAsideKindSlow": "nzaghachi nwayọ",
+    "poolSetAsideKindGeoBlocked": "egbochiri mpaghara (403/451)",
     "poolSetAsideUntil": "Laghachi na ntụgharị {endsAt}",
     "poolSetAsideRepeat": "E wepụrụ {count, plural, one {# ugboro} other {# ugboro}}",
     "poolUnknownAddress": "Adreesị amaghị",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "Usoro ọnọdụ",
     "poolHealthRankingOff": "Ogo ahụike agbanyụrụ",
     "transportRate": "{rate}% mbugharị",
+    "slowAbandoned": "{count} nke na-ewu oge na-eche echiche",
+    "clientAborted": "{count} ndị ahịa na-eme ka o kwụsị",
+    "slowAbandonedHint": "Eche echiche ka o kwụsị mgbe o chee oge nke isiokwu, na-ekpughe na ọnụ ọgụgụ nke ịgwọ ụgbọ",
     "previousSuccessRate": "Na mbụ {rate}% ịga nke ọma",
-    "upstreamRefusals": "{count} ọjụjụ upstream",
     "connectionTestsCount": "{count} nnwale njikọ",
-    "notMeasured": "A tụghị"
+    "notMeasured": "A tụghị",
+    "upstream4xx": "{count} njehie onye ahịa n'elu",
+    "upstream5xx": "{count} njehie sava n'elu",
+    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ"
   },
   "playground": {
     "title": "Ebe Nnwale Model",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "Na-eketa ọdọ njikọ ({count})",
     "poolEmptyBlocked": "Ọdọ tọgbọrọ — arịrịọ na-ada (ọ bụghị ozugbo)",
     "directEgress": "Ozugbo (enweghị proxy)",
-    "ownProxy": "Proxy nke gị"
+    "ownProxy": "Proxy nke gị",
+    "freeTierPause": "Model {model} edagbakwuru (429), ga-alọta {time}",
+    "freeTierPauseProvider": "Edagbakwuru (429), ga-alọta {time}",
+    "freeTierPauseNote": "Njikwa ọganihu na usoro a na nke a"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count} anaghị arụ ọrụ",
     "dbOverrideCount": "{count} ntọala DB ndị nọchiri ndabara",
     "searchPlaceholder": "Chọọ ọkọlọtọ...",
+    "descriptionModeLabel": "Ebe lekwa nkọwa",
+    "descriptionModeHint": "Mgbe ị na-ele anya: kaa dị mfe, a ga-egosi nkọwa zuru ezu mgbe ị na-ele ya. NKọwa zuru ezu: gosi nkọwa zuru ezu mgbe niile.",
+    "descriptionModeHover": "Mgbe ị na-ele anya",
+    "descriptionModeFull": "NKọwa zuru ezu",
     "categories": {
       "all": "Ha niile",
       "security": "Nchedo",

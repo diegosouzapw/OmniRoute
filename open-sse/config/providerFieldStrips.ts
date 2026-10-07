@@ -71,13 +71,76 @@ export function detectUnsupportedParam(bodyText: string): string | null {
   return name && !NON_STRIPPABLE_PARAMS.has(name.toLowerCase()) ? name : null;
 }
 
+/**
+ * Anthropic's 400 message when a request carries an `advisor_redacted_result` whose
+ * `encrypted_content` was produced by a different organization.
+ */
+export const ADVISOR_UNDECRYPTABLE_MESSAGE = "Advisor tool result content could not be processed.";
+
+/** True when a 400 body is Anthropic's undecryptable-advisor-result error. */
+export function isAdvisorUndecryptableError(bodyText: string): boolean {
+  if (typeof bodyText !== "string" || !bodyText) return false;
+  try {
+    const parsed = JSON.parse(bodyText) as { error?: { message?: unknown } };
+    return parsed?.error?.message === ADVISOR_UNDECRYPTABLE_MESSAGE;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Replace the content of every `advisor_tool_result` block that holds an encrypted
+ * `advisor_redacted_result` with an `advisor_tool_result_error` (`unavailable`). The
+ * paired `server_tool_use` and every other block stay as they are, so the message
+ * structure is unchanged. Returns the same body when nothing was replaced.
+ */
+export function replaceRedactedAdvisorResults<T>(body: T): { body: T; replaced: number } {
+  const messages = (body as { messages?: unknown } | null)?.messages;
+  if (!Array.isArray(messages)) return { body, replaced: 0 };
+  let replaced = 0;
+  const nextMessages = messages.map((message) => {
+    const content = (message as { content?: unknown } | null)?.content;
+    if (!Array.isArray(content)) return message;
+    let changed = false;
+    const nextContent = content.map((block) => {
+      const b = block as { type?: unknown; content?: { type?: unknown } } | null;
+      if (b?.type !== "advisor_tool_result" || b.content?.type !== "advisor_redacted_result") {
+        return block;
+      }
+      changed = true;
+      replaced += 1;
+      return {
+        ...b,
+        content: { type: "advisor_tool_result_error", error_code: "unavailable" },
+      };
+    });
+    return changed ? { ...(message as object), content: nextContent } : message;
+  });
+  if (replaced === 0) return { body, replaced: 0 };
+  return { body: { ...(body as object), messages: nextMessages } as T, replaced };
+}
 /** Immutably drop request fields Groq rejects with a 400. */
-export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(body: T): T {
+export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(
+  body: T,
+  model?: string,
+  forcedEffort?: string
+): T {
   if (!body || typeof body !== "object") return body;
   const next: Record<string, unknown> = { ...body };
   delete next.logprobs;
   delete next.logit_bias;
   delete next.top_logprobs;
+  // Groq Chat Completions accepts reasoning_effort, not the other protocol envelopes.
+  const requestedEffort =
+    forcedEffort ??
+    next.reasoning_effort ??
+    (next.reasoning as Record<string, unknown> | undefined)?.effort ??
+    (next.output_config as Record<string, unknown> | undefined)?.effort;
+  if (model === "openai/gpt-oss-20b" && (requestedEffort === "none" || requestedEffort === "low")) {
+    next.reasoning_effort = "low";
+  }
+  delete next.reasoning;
+  delete next.output_config;
   if (Array.isArray(next.messages)) {
     next.messages = next.messages.map((m) => {
       if (m && typeof m === "object") {

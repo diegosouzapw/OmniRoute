@@ -29,6 +29,8 @@ import { isProxyAvoided, proxyEgressKey } from "../utils/proxyRefusalMemory.ts";
  * stores in `providerSpecificData.fingerprints`). */
 export interface AccountProxyConfig {
   fingerprint: string;
+  /** A configured by-id proxy could not be resolved to a live registry entry. */
+  proxyUnavailable?: boolean;
   proxy: {
     type: string;
     host: string;

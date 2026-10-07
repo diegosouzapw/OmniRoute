@@ -4,10 +4,10 @@
 
 ---
 
-1. Kinnitage olemasoleva ühe võtmega semafori leping ja uus atomaarne mitme võtmega leping sihitud testidega: osaliste reserveeringute puudumine, FIFO-järjekord, katkestamine, ajalõpp, järjekorra täitumine, idempotentne vabastamine, statistika ja puhastamine.
-2. Üldistage olemasolev konto semafor kohapeal. Säilitage `acquire()` ühilduvusümbrisena `acquireMany()` ümber; ärge lisage teist ajastajat ega sõltuvust.
-3. Asendage ainult kontot hõlmav hõivamine moodulis `chatCore` ühe kumulatiivse globaalse/pakkuja/konto hõivamisega vahetult enne `withRateLimit`-it. Kui konto vahetamine muudab ühendust, hõivake kogu komplekt uuesti ning hoidke seda kuni voogedastuse lõpuleviimise järel vabastamiseni.
-4. Laiendage olemasolevat tõrkekindluse seadete konveierit (tüübid, vaikeväärtused, normaliseerimine, skeem, API vastus, kasutajaliides ja tõlked) globaalsete ja pakkuja piirmääradega. Nimetage vana Bottlenecki samaaegsuse juhtelement ümber ühenduse/kvoodiala samaaegsuseks, et selle tegelik ulatus oleks selgesõnaline.
-5. Käivitage sihitud testid, lintimine, tüübikontroll, staatilised kontrollid ja kogu testikomplekt; dokumenteerige käitumise muudatus muudatuste logis.
+1. Kinnitage olemasolev ühe võtmega semafori leping ja uus atomaarne mitme võtmega leping sihttestidega: osalised reserveeringud puuduvad, FIFO-järjekord, katkestamine, ajalõpp, järjekorra täitumine, idempotentne vabastamine, statistika ja puhastamine.
+2. Üldistage olemasolev konto semafor kohapeal. Säilitage `acquire()` ühilduvusümbrisena `acquireMany()` ümber; ärge lisage teist plaanurit ega sõltuvust.
+3. Asendage ainult konto põhine hõivamine moodulis `chatCore` ühe kumulatiivse globaalse/pakkuja/konto hõivamisega vahetult enne `withRateLimit`-it. Kui konto vahetamine muudab ühendust, hõivake kogu komplekt uuesti ning hoidke reserveeringut kuni voogedastuse lõpuleviimiseni.
+4. Laiendage olemasolevat töökindluse seadistuste konveierit (tüübid, vaikeväärtused, normaliseerimine, skeem, API vastus, kasutajaliides ja tõlked) globaalsete ja pakkujapõhiste piirangutega. Nimetage vana Bottlenecki samaaegsuse juhtimine ümber ühenduse-/kvoodiala samaaegsuseks, et selle tegelik ulatus oleks selgesõnaline.
+5. Käivitage sihttestid, lintimine, tüübikontroll, staatilised kontrollid ja täielik testikomplekt; dokumenteerige käitumise muudatus muudatuste logis.
 
-Tahtlikult säilitatud käitumine: nulliga võrdne või `null`-väärtusega samaaegsus möödub piirajast, ainult kontot kasutavad kutsujad jätkavad `acquire()` kasutamist, blokeeritud kontode juhtelemendid säilitavad oma võtmevormingu ja API ning pakkuja kiiruspiirangu järjekorra käitumine jääb muutmata.
+Tahtlikult säilitatud käitumine: nullväärtusega või puuduva samaaegsuse korral jäetakse piirang vahele, ainult kontot kasutavad kutsujad jätkavad `acquire()` kasutamist, blokeeritud kontode juhtelemendid säilitavad oma võtmevormingu ja API ning pakkuja kiiruspiirangu järjekorra käitumine jääb muutumatuks.

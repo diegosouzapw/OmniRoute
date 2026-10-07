@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { CodexExecutor } from "../../open-sse/executors/codex.ts";
 import { setThinkingBudgetConfig, ThinkingMode } from "../../open-sse/services/thinkingBudget.ts";
+import { normalizeReasoningRequest } from "../../src/shared/reasoning/effortStandardization.ts";
 
 // The Codex Responses API accepts only `effort` and `summary` inside
 // `reasoning`. Client ecosystems send OpenRouter-style keys (`enabled`,
@@ -60,7 +61,8 @@ test("client-provided summary is preserved", () => {
 });
 
 test("model suffix effort still wins over enabled:false", () => {
-  const r = reasoningOf(transform({ reasoning: { enabled: false } }, "gpt-6-astra-high"));
+  const normalized = normalizeReasoningRequest({ reasoning: { enabled: false } });
+  const r = reasoningOf(transform(normalized, "gpt-6-astra-high"));
   assert.ok(r, "reasoning object should be present");
   assert.equal(r.effort, "high");
 });

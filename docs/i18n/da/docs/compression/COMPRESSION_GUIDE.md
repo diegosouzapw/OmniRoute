@@ -454,8 +454,7 @@ i stedet for engelsk.
 På en krop med `messages` kontrollerer en indholdsbypass (`shouldBypassCavemanOutputMode()` i
 `open-sse/services/compression/outputMode.ts`) de sidste tre meddelelser og springer
 stilarterne over for hele turen, når de matcher dens sikkerheds-, irreversibel-handling-,
-afklaring- eller rækkefølge-følsomme nøgleord. Bypassen kører uanset hvad dashboardets
-**Auto-Clarity Bypass**-skifte (`cavemanOutputMode.autoClarity`) er indstillet til.
+afklaring- eller rækkefølge-følsomme nøgleord. Bypassen kører, mens dashboardets **Auto-Clarity Bypass**-skifte (`cavemanOutputMode.autoClarity`) er slået til, hvilket er standarden; med skiftet slået fra gælder de valgte stilarter også på de ture.
 
 Når bypassen tillader turen at passere, placerer `placeSystemInstruction()` (samme fil), som
 aldrig opretter en ny `messages[0]`, blokken i den første af disse, den finder:

@@ -1,0 +1,1 @@
+- **fix(providers):** isolate tool-only model catalogs so TinyFish/web-fetch providers stay out of MCP discovery and the LLM list, and one unavailable catalog no longer aborts aggregate listing ([#14286](https://github.com/diegosouzapw/OmniRoute/pull/14286)) — thanks @seanford

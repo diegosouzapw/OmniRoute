@@ -4,11 +4,30 @@
 
 ---
 
-Az OmniRoute egy `setup-*` parancscsaládot tartalmaz, amely konfigurálja a kódoló CLI-t (Codex, Claude Code, OpenCode, Cline, …), hogy az OmniRoute-ot használja háttérrendszerként — így az eszköz **egy** végponthoz beszél, és az OmniRoute a megfelelő szolgáltatóhoz irányít automatikus tartalékkel. Minden parancs beolvassa az **élő** modellkatalógust egy futó OmniRoute-ból (helyi vagy távoli), és a saját konfigurációs fájlját az **Ön** gépére írja. Az API kulcsra egy környezeti változó hivatkozik, ahol az eszköz támogatja. Azok a parancsok, amelyek egy eszköz-specifikus környezeti fájlt tárolnak, alább vannak megjegyezve.
+A megosztott végrehajtható manifesttel, a korlátozott gyermekfolyamat-környezetekkel és a tartós
+Gemini-beállítással kapcsolatban lásd: [CLI-indítási szerződések](./CLI-LAUNCH-CONTRACTS.md).
 
-Létezik egy általános indító is — `omniroute run <target>` —, amely elindítja a `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vagy `gemini` alkalmazásokat a megfelelő környezet befecskendezésével, anélkül, hogy bármilyen konfigurációt írna. A célok és azok aliasai a kanonikus `bin/cli/cli-manifest.mjs` manifesztből származnak (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), és az `omniroute completion` ugyanazokat a manifesztből származó cél szavakat kínálja. A régi, eszközönkénti indítók — `omniroute launch` (Claude Code) és `omniroute launch-codex` (Codex) — továbbra is elérhetők.
+Az OmniRoute `setup-*` parancsok egész családját kínálja, amelyek úgy konfigurálnak egy kódolási
+CLI-t (Codex, Claude Code, OpenCode, Cline, …), hogy az OmniRoute-ot használja háttérrendszerként — így
+az eszköz **egyetlen** végponttal kommunikál, az OmniRoute pedig automatikus tartalékra váltással
+a megfelelő szolgáltatóhoz irányítja a kéréseket. Minden parancs egy futó
+OmniRoute (helyi vagy távoli) **élő** modellkatalógusát olvassa be, és az eszköz saját konfigurációs fájlját írja ki az
+**Ön** gépén. Az API-kulcsra környezeti változón keresztül történik hivatkozás minden olyan esetben, amikor ezt az eszköz
+támogatja. Az alábbiakban külön jelezzük azokat a parancsokat, amelyek tartós, eszközspecifikus környezeti fájlt hoznak létre.
 
-A szolgáltatók bevezetése ugyanabból a helyi/távoli kontextusból érhető el. Az alábbi API-első parancsok elkülönítik a felügyeleti hitelesítést a szolgáltatói hitelesítő adatoktól, és soha nem nyomtatnak hitelesítő adatot strukturált kimenetbe:
+Egy általános indító is rendelkezésre áll — `omniroute run <target>` —, amely a megfelelő
+környezeti változók átadásával indítja el a `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` vagy `gemini`
+eszközt, bármilyen konfiguráció kiírása nélkül. A célok és
+álneveik a kanonikus `bin/cli/cli-manifest.mjs` manifestből származnak
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), és az `omniroute completion` ugyanezeket, a
+manifestből származó célszavakat kínálja fel. A korábbi eszközspecifikus indítók —
+az `omniroute launch` (Claude Code) és az `omniroute launch-codex` (Codex) — továbbra is
+elérhetők.
+
+A szolgáltatók beállítása ugyanebből a helyi vagy távoli környezetből végezhető el. Az
+alábbi, API-központú parancsok elkülönítik a felügyeleti hitelesítést a szolgáltatói
+hitelesítő adatoktól, és soha nem jelenítenek meg hitelesítő adatot strukturált kimenetben:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +37,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Szkriptekhez előnyben részesítse a `--credential-stdin` vagy `--credential-env` opciót; a `--credential` megmarad az ellenőrzött helyi használatra. A `providers remove` megköveteli a `--yes` opciót nem interaktív terminálon, és mind az öt parancs figyelembe veszi az aktív kontextust vagy a globális `--base-url`/`--api-key` opciókat.
+Szkriptekhez lehetőleg a `--credential-stdin` vagy a `--credential-env` kapcsolót használja; a `--credential`
+ellenőrzött helyi használathoz továbbra is elérhető. A `providers remove` parancshoz nem interaktív
+terminálon kötelező a `--yes` kapcsoló, és mind az öt parancs figyelembe veszi az aktív környezetet vagy a
+globális `--base-url`/`--api-key` beállításokat.
 
-A szolgáltatóválasztók elutasítják az egyértelműtlen azonosító előtagokat, neveket vagy szolgáltatóneveket; használjon teljes kapcsolati azonosítót, ha több kapcsolat is egyezik. A létrehozási és szerkesztési parancsok visszaolvassák a mentett kapcsolatot, és az eltávolítás ellenőrzi, hogy az már nem olvasható. Az importálás kihagyja a már létező szolgáltató/név párt. Az importált bejegyzések nem írhatják felül a felügyeleti végpontot, a kontextust vagy a CLI-nek megadott felügyeleti hitelesítő adatokat.
+A szolgáltatóválasztók elutasítják a nem egyértelmű azonosító-előtagokat, neveket vagy szolgáltatóneveket; használjon
+teljes kapcsolatazonosítót, ha több kapcsolat is egyezik. A létrehozási és szerkesztési parancsok
+visszaolvassák a mentett kapcsolatot, az eltávolítás pedig ellenőrzi, hogy az többé nem olvasható.
+Az importálás kihagyja a már létező szolgáltató-/névpárokat. Az importált bejegyzések nem írhatják felül
+a CLI számára megadott felügyeleti végpontot, környezetet vagy felügyeleti hitelesítő adatokat.
 
-A két leggazdagabb integráció egyszeri, kézzel írt alapbeállításához lásd az eszközönkénti részletes leírásokat:
+A két leggazdagabb integráció egyszeri, kézzel megírt alapbeállításáról az
+eszközspecifikus részletes útmutatókban olvashat:
 
-- [Claude Code konfiguráció](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI konfiguráció](./CODEX-CLI-CONFIGURATION.md)
-- [Távoli mód](./REMOTE-MODE.md) — távoli OmniRoute (VPS / Tailnet) vezérlése laptopjáról
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — az OmniCopilot kiterjesztés; ez is futtathatja ezeket a `setup-*` parancsokat Önnek a szerkesztőből
+- [A Claude Code konfigurálása](./CLAUDE-CODE-CONFIGURATION.md)
+- [A Codex CLI konfigurálása](./CODEX-CLI-CONFIGURATION.md)
+- [Távoli mód](./REMOTE-MODE.md) — távoli OmniRoute (VPS / Tailnet) vezérlése a laptopjáról
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — az OmniCopilot bővítmény; ezeket a
+  `setup-*` parancsokat közvetlenül a szerkesztőből is futtathatja Ön helyett
 
 ---
 

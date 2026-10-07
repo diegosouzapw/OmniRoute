@@ -1,0 +1,1 @@
+- **fix(cache):** API keys configured with `cache_default_mode=bypass` now skip semantic-cache writes as well as reads, including streaming responses. The persisted database `semanticCacheEnabled` toggle now gates the request path alongside the general settings toggle.

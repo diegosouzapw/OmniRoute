@@ -59,12 +59,12 @@ export default function DenoRelayModal({ isOpen, onClose, onDeployed }: DenoRela
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="deno-relay-title"
     >
-      <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-md space-y-4">
+      <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4">
         <div className="flex items-center justify-between">
           <h2 id="deno-relay-title" className="text-lg font-bold flex items-center gap-2">
             <span className="material-symbols-outlined text-primary" aria-hidden="true">

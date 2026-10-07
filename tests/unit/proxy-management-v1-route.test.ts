@@ -273,7 +273,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
   );
   assert.equal(inUseDeleteRes.status, 409);
   const inUseDeleteBody = (await inUseDeleteRes.json()) as any;
-  assert.match(inUseDeleteBody.error.message, /remove assignments first/i);
+  assert.match(inUseDeleteBody.error.message, /remove assignments or account references first/i);
 
   const forceDeleteRes = await proxyV1Route.DELETE(
     new Request(`http://localhost/api/v1/management/proxies?id=${created.id}&force=1`, {

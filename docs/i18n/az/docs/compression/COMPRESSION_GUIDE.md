@@ -465,8 +465,7 @@ tərcüməsi olduqda, İngilis dili əvəzinə lokallaşdırılmış təlimat da
 `messages` olan bir gövdədə, məzmun bypassı (`shouldBypassCavemanOutputMode()`
 `open-sse/services/compression/outputMode.ts` faylında) son üç mesajı yoxlayır və
 təhlükəsizlik, geri dönməz hərəkət, aydınlaşdırma və ya sifarişə həssas açar sözlərinə uyğun gəldikdə
-bütün növbə üçün stilləri atlayır. Bypass, idarə panelinin **Avtomatik Aydınlıq Bypassı**
-keçidi (`cavemanOutputMode.autoClarity`) nəyə təyin olunmasından asılı olmayaraq işləyir.
+bütün növbə üçün stilləri atlayır. Bypass, idarə panelinin **Avtomatik Aydınlıq Bypassı** keçidi (`cavemanOutputMode.autoClarity`) yandırıldıqda işləyir — bu standart haldır; keçid söndürüldükdə seçilmiş stillər həmin növbələrdə də tətbiq olunur.
 
 Bypass növbəni keçməyə icazə verdikdə, `placeSystemInstruction()` (eyni fayl),
 heç vaxt yeni `messages[0]` yaratmır, bloku tapdığı ilk yerə qoyur:

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy 集區以及 opencode 的每帳戶輪替機制，會在每個處理程序的一段期間內，停止再次使用剛失敗的 Proxy（TCP 探測遭拒，或透過該 Proxy 收到 429）。每次重複失敗時，這段期間都會加倍，直到達到上限。不會寫入任何 Proxy 狀態；即使所有候選項目都被暫時擱置，選擇結果仍維持不變。預設開啟；設為 `false` 可恢復一般選擇。",
   "featureFlagProxyPoolSharedEgressOrderDescription": "對於依 egress 位址分配配額的提供者，將與最近被拒絕成員共用已觀測 egress 位址的 pool 成員排在健康成員之後。僅調整順序，絕不排除。需要 PROXY_SKIP_RECENTLY_FAILED，它會產生本功能讀取的拒絕訊號。預設關閉：選擇順序與一般輪替完全相同。",
   "featureFlagProxyPoolEgressObservationDescription": "在儀表板的 Proxy 集區下方，顯示過去 24 小時內觀察到多少個出口 IP 為其成員提供服務、使用這些 IP 的連線數，以及單一 IP 後方觀察到的最高數量。唯讀，根據 Proxy 記錄計算，絕不會用於路由。預設關閉：集區編輯器維持不變，觀察路由會回傳 null。",
+  "featureFlagProxyOperatorEgressDescription": "接受每個池成員的運營商推送的已過期觀察地址，並與日誌讀取合併以供顯示和池順序。預設關閉：推送路由回應 404，池讀取行為與之前完全相同。",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "在 Proxy 健康狀態掃描中，讓遭目標拒絕的探測（401/403/429：Proxy 已轉送，但目的地拒絕此出口 IP）能像已提供服務的探測一樣，重設 Proxy 的連續失敗次數。預設關閉：拒絕仍視為中性，並保留目前的連續失敗次數。無論此設定為何，5xx 仍視為無法判定，而且拒絕絕不會移除、停用或重新啟用 Proxy。",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "允許自動清理程序刪除早於 OMNIROUTE_BATCH_RETENTION_DAYS 且處於最終狀態（已完成／失敗／已取消／已過期）的 Batch API 作業及其逐行檢查點，並清除已超過各自 expires_at 的上傳檔案 BLOB 內容。預設關閉：在操作員選擇啟用前，所有現有安裝都會完全比照以往保留這些資料。無論是否啟用，操作員觸發的 DELETE /api/v1/batches/delete-completed 路由都不受影響——它是獨立且無條件的公開 API 合約。",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "使用 OAuth bearer token，從 https://api.x.ai/v1/models 擷取 xai-oauth 連線的即時 xAI 模型目錄，而非固定不變的靜態種子。預設關閉：xai-oauth 會繼續提供未變更的靜態種子。發生任何解析錯誤時，探索功能會回退至該種子。",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "本機 proxy-core 端點無效；已忽略 SS/VMess/Trojan/VLESS 節點。",
         "NEEDS_CORE_NOT_CONFIGURED": "此訂閱包含需要本機 proxy core 的節點（SS/VMess/Trojan/VLESS）；在設定本機 core SOCKS5 端點之前，這些節點不會被路由。",
         "NO_USABLE_NODES": "訂閱未產生可用節點（http/https/socks5 或具有本機 core 端點的節點）。",
-        "SELECTOR_SWITCH_FAILED": "代理核心控制呼叫失敗；上一條路由保持有效。請檢查控制 URL 和密鑰，然後重新整理。"
+        "SELECTOR_SWITCH_FAILED": "代理核心控制呼叫失敗；上一條路由保持有效。請檢查控制 URL 和密鑰，然後重新整理。",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "產生的核心設定無法取代已採用的檔案；因此保留了其旁的副本。",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "產生期間略過了部分項目。請參閱伺服器日誌。"
       },
       "description": "貼上您的代理訂閱連結。啟用後，流量將透過代理程式池以全域或規則（指定提供者）模式路由。訂閱節點會自動同步到代理程式池中，並重複使用現有的輪詢、健康檢查和防洩漏機制。",
       "addSubscription": "新增訂閱",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "尚未記錄切換",
       "lastSwitchMember": "服務中的成員",
       "nextSwitch": "下次可切換",
-      "nextSwitchNow": "現在"
+      "nextSwitchNow": "現在",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "核心二進位檔路徑",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP描述壓縮",
     "mcpAccessibilityTitle": "MCP 無障礙輸出",
     "compressionSettingsCavemanIntensity": "穴居人強度",
-    "compressionSettingsCavemanOutputMode": "穴居人輸出模式",
     "compressionSettingsOutputStyles": "輸出樣式",
     "compressionStylesTileTitle": "輸出樣式",
     "compressionSettingsOutputIntensity": "輸出強度",
-    "compressionSettingsAutoClarityBypass": "自動清晰度旁路",
     "compressionEffectivePipeline": "有效管線：",
     "compressionDerivedOff": "關閉",
     "compressionDerivedRuns": "執行：{pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "GET /v1/models 針對此金鑰所列出的內容。縮小列表範圍絕不會變更此金鑰可呼叫的模型。",
     "catalogScopeAll": "兩者",
     "catalogScopeCombos": "僅組合",
-    "catalogScopeModels": "僅模型"
+    "catalogScopeModels": "僅模型",
+    "resilienceTokenRefreshTitle": "Token 刷新斷路器",
+    "resilienceTokenRefreshDesc": "多次失敗後停止重試重新整理權杖。按連線範圍隔離一個失效帳戶，使同一提供者上的健康帳戶繼續重新整理。",
+    "resilienceTokenRefreshScope": "針對單一提供者的權杖重新整理嘗試",
+    "resilienceTokenRefreshTrigger": "連續失敗的重新整理嘗試",
+    "resilienceTokenRefreshEffect": "在冷卻期間暫停重新整理嘗試",
+    "resilienceTokenRefreshScopeLabel": "範圍",
+    "resilienceTokenRefreshScopeProvider": "提供者（所有帳戶共用一個斷路器）",
+    "resilienceTokenRefreshScopeConnection": "連線（每個帳戶各有自己的斷路器）",
+    "resilienceTokenRefreshThreshold": "暫停前的失敗次數",
+    "resilienceTokenRefreshCooldown": "觸發後暫停"
   },
   "contextRtk": {
     "title": "RTK 引擎",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "載入中…",
     "loadFailed": "無法載入引擎資訊。",
+    "settingsLoadFailed": "無法載入已儲存的設定。欄位會顯示預設值，且在頁面重新載入前，「儲存」會維持停用。",
     "engineNotFound": "找不到引擎「{engine}」。",
     "saveFailed": "設定儲存失敗。",
     "previewFailed": "預覽失敗。",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "最小壓縮行數",
         "description": "觸發表格壓縮所需的同質 JSON 陣列最小行數。預設值：8。"
-      },
-      "preserveSystemPrompt": {
-        "label": "保留系統提示詞"
       },
       "summarizerEnabled": {
         "label": "啟用摘要器"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "比這短的訊息不會被壓縮。更低=更多壓縮。",
     "tooltipMinSavings": "僅當至少儲存這麼多權杖時才進行壓縮。",
     "ultraSettings": "超級設定",
-    "ultraSettingsDesc": "SLM 支援的語義壓縮",
-    "preview": {
-      "lite": "回覆要簡潔。保留技術術語、程式碼、錯誤、URL 和識別符號。",
-      "full": "回覆要簡短緊湊。保留所有技術實質。",
-      "ultra": "用常見技術縮寫進行極簡回覆。保留精確符號。"
-    }
+    "ultraSettingsDesc": "SLM 支援的語義壓縮"
   },
   "translator": {
     "title": "翻譯器",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "未歸屬出口的失敗：{count}",
     "poolMemberEgress": "{host}:{port} 經由 {egressIp} 對外連線 · 過去 {hours} 小時",
     "poolMemberEgressEmpty": "{host}:{port}：過去 {hours} 小時內未觀察到流量",
+    "poolMemberEgressOperator": "{host}:{port} 通過 {egressIp} · 由運營商提供，{date}",
     "poolMemberEgressHint": "在此時間範圍內，透過此集區成員觀察到的最新出口 IP（讀取自 Proxy 日誌）。若成員在此時間範圍內沒有流量，則會顯示無流量訊息。",
     "poolRemove": "移除",
     "poolRemoveFailed": "從池中移除代理失敗",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "代理無法連線",
     "poolSetAsideKindIpQuota429": "IP 速率限制 (429)",
     "poolSetAsideKindSlow": "回應緩慢",
+    "poolSetAsideKindGeoBlocked": "區域封鎖 (403/451)",
     "poolSetAsideUntil": "{endsAt}恢復輪換",
     "poolSetAsideRepeat": "已擱置{count, plural, one {#次} other {#次}}",
     "poolUnknownAddress": "未知位址",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "位置順序",
     "poolHealthRankingOff": "健康排名已關閉",
     "transportRate": "{rate}%傳輸",
+    "slowAbandoned": "{count} 緩慢放棄",
+    "clientAborted": "{count} 客戶端中止",
+    "slowAbandonedHint": "在標頭等待閾值之後被放棄，未計入傳輸速率",
     "previousSuccessRate": "此前{rate}%成功",
-    "upstreamRefusals": "{count}次上游拒絕",
     "connectionTestsCount": "{count}次連線測試",
-    "notMeasured": "未測量"
+    "notMeasured": "未測量",
+    "upstream4xx": "{count} 上游客戶端錯誤",
+    "upstream5xx": "{count} 上游伺服器錯誤",
+    "uniformEgressLine": "{affected} 中的 {exits} 個出口在 {provider} 上同時失敗 (最後 {hours} 小時) — 不是出口問題"
   },
   "playground": {
     "title": "模型演練場",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "繼承連線集區({count})",
     "poolEmptyBlocked": "集區為空——請求將失敗(非直連)",
     "directEgress": "直連(無代理)",
-    "ownProxy": "自有代理"
+    "ownProxy": "自有代理",
+    "freeTierPause": "模型 {model} 已暫停 (429)，將於 {time} 恢復",
+    "freeTierPauseProvider": "已暫停 (429)，將於 {time} 恢復",
+    "freeTierPauseNote": "此實例上的進程暫停"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count} 個未啟用",
     "dbOverrideCount": "{count} 個資料庫覆寫",
     "searchPlaceholder": "搜尋旗標...",
+    "descriptionModeLabel": "描述檢視",
+    "descriptionModeHint": "滑鼠懸停時：卡片保持精簡，將游標移到描述上方會顯示完整文字。完整文字：一律顯示完整描述。",
+    "descriptionModeHover": "滑鼠懸停時",
+    "descriptionModeFull": "完整文字",
     "categories": {
       "all": "全部",
       "security": "安全性",

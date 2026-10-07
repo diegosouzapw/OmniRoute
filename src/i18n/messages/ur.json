@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "پراکسی پولز اور opencode کی فی اکاؤنٹ روٹیشن کسی ایسی پراکسی کو دوبارہ پیش کرنے سے عارضی طور پر روکتی ہے جو ابھی ناکام ہوئی ہو (TCP پروب مسترد ہوا ہو، یا اس کے ذریعے 429 موصول ہوا ہو)۔ یہ فی پروسیس مدت ہر بار ناکامی دہرائے جانے پر دگنی ہوتی ہے، ایک مقررہ حد تک۔ پراکسی کا کوئی اسٹیٹس نہیں لکھا جاتا؛ تمام امیدواروں کو ایک طرف رکھ دیے جانے کی صورت میں انتخاب میں کوئی تبدیلی نہیں آتی۔ بطور ڈیفالٹ فعال؛ `false` سادہ انتخاب بحال کرتا ہے۔",
   "featureFlagProxyPoolSharedEgressOrderDescription": "جن فراہم کنندگان کا کوٹا egress پتے کے لحاظ سے تقسیم ہوتا ہے، ان کے لیے حال ہی میں مسترد کیے گئے رکن کا مشاہدہ شدہ egress پتہ شیئر کرنے والے pool رکن کو صحت مند اراکین کے عین نیچے رکھتا ہے۔ صرف ترتیب، کبھی خارج نہیں کیا جاتا۔ PROXY_SKIP_RECENTLY_FAILED درکار ہے، جو وہ مسترد ہونے کا سگنل پیدا کرتا ہے جسے یہ پڑھتا ہے۔ بطور ڈیفالٹ بند: انتخاب کی ترتیب بالکل سادہ گردش ہے۔",
   "featureFlagProxyPoolEgressObservationDescription": "ڈیش بورڈ میں کسی پراکسی پول کے تحت دکھائیں کہ گزشتہ 24 گھنٹوں کے دوران کتنے مشاہدہ شدہ ایگریس IPs نے اس کے اراکین کو سروس فراہم کی، کتنے کنکشنز نے انہیں استعمال کیا، اور ایک IP کے پیچھے سب سے زیادہ کتنے اراکین دیکھے گئے۔ صرف پڑھنے کے لیے، پراکسی لاگ سے شمار شدہ، اور روٹنگ کے لیے کبھی استعمال نہیں ہوتا۔ بطور ڈیفالٹ بند: پول ایڈیٹر میں کوئی تبدیلی نہیں ہوتی اور مشاہدے کا روٹ null واپس کرتا ہے۔",
+  "featureFlagProxyOperatorEgressDescription": "ہر پول ممبر کے لیے آپریٹر کی طرف سے بھیجے گئے تاریخی مشاہدہ کردہ ایڈریس قبول کریں اور انہیں ڈیسپلے اور پول آرڈر کے لیے جرنل ریڈ کے ساتھ ملائیں۔ ڈیفالٹ طور پر بند: پش رائٹ کا 404 جواب دیا جاتا ہے اور پول ریڈز پہلے کی طرح ہی کام کرتے ہیں۔",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "پراکسی ہیلتھ سویپ میں، ہدف کی جانب سے مسترد کردہ پروب (401/403/429: پراکسی نے اسے آگے پہنچایا، مگر منزل نے اس ایگریس IP کو مسترد کر دیا) کو پراکسی کی مسلسل ناکامیوں کا سلسلہ اسی طرح ری سیٹ کرنے دیں جیسے پیش کیا گیا پروب کرتا ہے۔ بطور ڈیفالٹ بند: مسترد ہونا غیر جانب دار رہتا ہے اور سلسلے کو برقرار رکھتا ہے۔ 5xx دونوں صورتوں میں غیر فیصلہ کن رہتا ہے، اور مسترد ہونا کبھی بھی کسی پراکسی کو ہٹاتا، غیر فعال کرتا یا دوبارہ فعال نہیں کرتا۔",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "خودکار صفائی کے عمل کو OMNIROUTE_BATCH_RETENTION_DAYS سے زیادہ پرانی اختتامی حالت والی (مکمل/ناکام/منسوخ/میعاد ختم شدہ) Batch API جابز، ان کے ہر سطر کے چیک پوائنٹس سمیت، حذف کرنے دیں اور ان اپ لوڈ شدہ فائلوں کا BLOB مواد صاف کر دیں جن کی اپنی expires_at گزر چکی ہو۔ بطور ڈیفالٹ بند: آپریٹر کے فعال کرنے تک ہر موجودہ انسٹالیشن یہ ڈیٹا بالکل پہلے کی طرح برقرار رکھتی ہے۔ آپریٹر کی جانب سے شروع کیا جانے والا DELETE /api/v1/batches/delete-completed روٹ دونوں صورتوں میں غیر متاثر رہتا ہے — یہ ایک الگ، غیر مشروط عوامی API معاہدہ ہے۔",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "منجمد جامد سیڈ کے بجائے OAuth بیئرر ٹوکن استعمال کرتے ہوئے https://api.x.ai/v1/models سے xai-oauth کنکشنز کے لیے لائیو xAI ماڈل کیٹلاگ حاصل کریں۔ بطور ڈیفالٹ بند: xai-oauth جامد سیڈ کو بغیر تبدیلی کے پیش کرتا رہتا ہے۔ ریزولیوشن میں کسی بھی خرابی کی صورت میں، دریافت دوبارہ سیڈ استعمال کرتی ہے۔",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "لوکل proxy-core اینڈ پوائنٹ غلط ہے؛ SS/VMess/Trojan/VLESS نوڈز کو نظر انداز کر دیا گیا۔",
         "NEEDS_CORE_NOT_CONFIGURED": "اس سبسکرپشن میں ایسے نوڈز ہیں جنہیں لوکل پراکسی کور (SS/VMess/Trojan/VLESS) کی ضرورت ہے؛ جب تک آپ local-core SOCKS5 اینڈ پوائنٹ کنفیگر نہیں کرتے، انہیں روٹ نہیں کیا جائے گا۔",
         "NO_USABLE_NODES": "سبسکرپشن سے کوئی قابل استعمال نوڈز حاصل نہیں ہوئے (http/https/socks5 یا لوکل کور اینڈ پوائنٹ والے نوڈز)۔",
-        "SELECTOR_SWITCH_FAILED": "پروکسی-کور کنٹرول کال ناکام رہی؛ پچھلا راستہ فعال رہتا ہے۔ کنٹرول URL اور سیکرٹ چیک کریں، پھر ریفریش کریں۔"
+        "SELECTOR_SWITCH_FAILED": "پروکسی-کور کنٹرول کال ناکام رہی؛ پچھلا راستہ فعال رہتا ہے۔ کنٹرول URL اور سیکرٹ چیک کریں، پھر ریفریش کریں۔",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "تیار کردہ بنیادی ترتیب اپنائی گئی فائل کی جگہ نہیں لے سکی؛ اس کے بجائے ساتھ والی نقل برقرار رکھی گئی۔",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "پیداوار کے دوران کچھ اندراجات چھوڑ دیے گئے۔ سرور لاگ دیکھیں۔"
       },
       "description": "اپنا پراکسی سبسکرپشن لنک چسپاں کریں۔ ایک بار فعال ہونے کے بعد، ٹریفک کو پراکسی پول کے ذریعے عالمی یا اصول (مخصوص فراہم کنندہ) موڈ میں روٹ کیا جاتا ہے۔ سبسکرپشن نوڈس خود بخود پراکسی پول میں مطابقت پذیر ہو جاتے ہیں اور موجودہ پولنگ، ہیلتھ چیک، اور اینٹی لیک میکانزم کو دوبارہ استعمال کرتے ہیں۔",
       "addSubscription": "سبسکرپشن شامل کریں۔",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "ابھی تک کوئی تبدیلی درج نہیں",
       "lastSwitchMember": "خدمت انجام دینے والا رکن",
       "nextSwitch": "اگلی ممکنہ تبدیلی",
-      "nextSwitchNow": "ابھی"
+      "nextSwitchNow": "ابھی",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "بنیائی بائنیری کا پاتھ",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "اختیاری: تبدیلی سے پہلے تیار کردہ فائل کو بنیائی بائنیری سے تصدیق کرتی ہے۔ ساتھ لکھنا جاری رکھنے کے لیے خالی چھوڑیں۔ فولڈر موجود نہ ہونے پر بنایا جاتا ہے۔"
     },
     "bulkHealthcheck": "اجتماعی ہیلتھ چیک",
     "bulkHealthcheckDesc": "تمام ترتیب شدہ پراکسیز کو ہدف URL پر جانچیں تاکہ معلوم ہو سکے کہ کون سی کام کرتی ہیں۔",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP تفصیل کمپریشن",
     "mcpAccessibilityTitle": "MCP رسائی آؤٹ پٹ",
     "compressionSettingsCavemanIntensity": "کیو مین کی شدت",
-    "compressionSettingsCavemanOutputMode": "کیو مین آؤٹ پٹ موڈ",
     "compressionSettingsOutputStyles": "آؤٹ پٹ اسٹائلز",
     "compressionStylesTileTitle": "آؤٹ پٹ اسٹائلز",
     "compressionSettingsOutputIntensity": "آؤٹ پٹ کی شدت",
-    "compressionSettingsAutoClarityBypass": "آٹو کلیئرٹی بائی پاس",
     "compressionEffectivePipeline": "مؤثر پائپ لائن:",
     "compressionDerivedOff": "بند",
     "compressionDerivedRuns": "رنز: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "یہ کلید GET /v1/models میں کیا ظاہر کرتی ہے۔ فہرست محدود کرنے سے کبھی بھی اس بات پر اثر نہیں پڑتا کہ کلید کن ماڈلز کو کال کر سکتی ہے۔",
     "catalogScopeAll": "دونوں",
     "catalogScopeCombos": "صرف کومبوز",
-    "catalogScopeModels": "صرف ماڈلز"
+    "catalogScopeModels": "صرف ماڈلز",
+    "resilienceTokenRefreshTitle": "ٹوکن ریفریش بریکر",
+    "resilienceTokenRefreshDesc": "بار بار ناکامیوں کے بعد ٹوکن کی تازہ کوششیں بند کر دیتا ہے۔ فی کنکشن کے دائرے میں ایک مردہ اکاؤنٹ کو الگ کر دیتا ہے تاکہ اسی پروویڈر پر صحت مند اکاؤنٹس تازہ ہوتے رہیں۔",
+    "resilienceTokenRefreshScope": "ایک فراہم کنندے کے لیے ٹوکن ریفریش کی کوششیں",
+    "resilienceTokenRefreshTrigger": "مسلسلہ ناکام تازہ کرنے کی کوششیں",
+    "resilienceTokenRefreshEffect": "کول ڈاؤن کے دوران ریفریش کی کوششوں کو روک دیتا ہے",
+    "resilienceTokenRefreshScopeLabel": "حصہ",
+    "resilienceTokenRefreshScopeProvider": "فراہم کنندہ (تمام اکاؤنٹس ایک ہی بریکر کا اشتراک کرتے ہیں)",
+    "resilienceTokenRefreshScopeConnection": "کنکشن (ہر اکاؤنٹ کا اپنا بریکر ہوتا ہے)",
+    "resilienceTokenRefreshThreshold": "روکنے سے پہلے ناکامیاں",
+    "resilienceTokenRefreshCooldown": "ٹرپ ہونے کے بعد وقفہ"
   },
   "contextRtk": {
     "title": "RTK انجن",
@@ -8544,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "لوڈ ہو رہا ہے…",
     "loadFailed": "انجن کی معلومات لوڈ کرنے میں ناکامی۔",
+    "settingsLoadFailed": "محفوظ کردہ ترتیبات لوڈ نہیں ہو سکیں۔ فیلڈز میں طے شدہ اقدار دکھائی دیتی ہیں، اور صفحہ دوبارہ لوڈ ہونے تک محفوظ کریں غیر فعال رہتا ہے۔",
     "engineNotFound": "انجن \"{engine}\" نہیں ملا۔",
     "saveFailed": "کنفیگریشن محفوظ کرنے میں ناکامی۔",
     "previewFailed": "پیش نظارہ ناکام ہو گیا۔",
@@ -8638,9 +8667,6 @@
       "minRows": {
         "label": "کمپیکٹ کرنے کے لیے کم از کم قطاریں",
         "description": "ٹیبلر کمپیکشن کو متحرک کرنے کے لیے ایک یکساں JSON اری میں مطلوبہ کم از کم قطاریں۔ ڈیفالٹ: 8۔"
-      },
-      "preserveSystemPrompt": {
-        "label": "سسٹم پرامپٹ کو محفوظ رکھیں"
       },
       "summarizerEnabled": {
         "label": "سمرائزر کو فعال کریں"
@@ -9029,12 +9055,7 @@
     "tooltipMinLength": "اس سے چھوٹے پیغامات کو کمپریس نہیں کیا جاتا ہے۔ کم = زیادہ کمپریشن۔",
     "tooltipMinSavings": "صرف اس صورت میں کمپریس کریں جب یہ کم از کم اتنے ٹوکن بچاتا ہے۔",
     "ultraSettings": "الٹرا سیٹنگز",
-    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن",
-    "preview": {
-      "lite": "مختصر جواب دیں۔ تکنیکی اصطلاحات، کوڈ، خرابیوں، URLs اور شناخت کنندگان کو برقرار رکھیں۔",
-      "full": "انتہائی مختصر اور جامع جواب دیں۔ تمام تکنیکی مواد برقرار رکھیں۔",
-      "ultra": "عام تکنیکی مخففات کے ساتھ انتہائی مختصر جواب دیں۔ علامات کو جوں کا توں برقرار رکھیں۔"
-    }
+    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن"
   },
   "translator": {
     "title": "مترجم",
@@ -11073,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "بغیر متعین ایگزٹ کے ناکامیاں: {count}",
     "poolMemberEgress": "{host}:{port} سے {egressIp} کے ذریعے اخراج ہوا · گزشتہ {hours} گھنٹے",
     "poolMemberEgressEmpty": "{host}:{port}: گزشتہ {hours} گھنٹوں میں کوئی ٹریفک مشاہدہ نہیں ہوا",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} کے ذریعے گزر گیا · آپریٹر کی طرف سے فراہم کی گئی، {date}",
     "poolMemberEgressHint": "اس دورانیے میں اس پول رکن کے ذریعے مشاہدہ کیا گیا آخری ایگریس IP، جو پراکسی لاگ سے پڑھا گیا۔ دورانیے میں کوئی ٹریفک نہ رکھنے والے رکن کے لیے بغیر ٹریفک والی سطر دکھائی جاتی ہے۔",
     "poolRemove": "ہٹائیں",
     "poolRemoveFailed": "پول سے پروکسی کو ہٹانے میں ناکامی",
@@ -11086,6 +11108,7 @@
     "poolSetAsideKindProxyUnreachable": "پراکسی تک رسائی نہیں ہو سکی",
     "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideKindSlow": "سست جوابات",
+    "poolSetAsideKindGeoBlocked": "علاقہ مسدود (403/451)",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",
@@ -11094,10 +11117,15 @@
     "poolSignalPosition": "مقام کی ترتیب",
     "poolHealthRankingOff": "ہیلتھ رینکنگ آف",
     "transportRate": "{rate}% ٹرانسپورٹ",
+    "slowAbandoned": "{count} سست ترکیاں",
+    "clientAborted": "{count} کلائنٹ منسوخیاں",
+    "slowAbandonedHint": "ہیڈرز کے انتظار کی حد کے بعد ترک کر دیا گیا، ٹرانسپورٹ کی شرح سے خارج",
     "previousSuccessRate": "پہلے {rate}% کامیابی",
-    "upstreamRefusals": "{count} اپ اسٹریم مسترد",
     "connectionTestsCount": "{count} کنکشن ٹیسٹ",
-    "notMeasured": "پیمائش نہیں ہوئی"
+    "notMeasured": "پیمائش نہیں ہوئی",
+    "upstream4xx": "{count} اپسٹریم کلائنٹ کی خرابیاں",
+    "upstream5xx": "{count} اپسٹریم سرور کی خرابیاں",
+    "uniformEgressLine": "{affected} آؤٹ میں سے {exits} آؤٹ {provider} پر ایک ساتھ ناکام ہو جاتے ہیں (آخری {hours} گھنٹے) — ایک آؤٹ مسئلہ نہیں ہے"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",
@@ -12871,7 +12899,10 @@
     "inheritedPool": "کنکشن پول وراثت میں ({count})",
     "poolEmptyBlocked": "پول خالی — درخواستیں ناکام ہوتی ہیں (براہ راست نہیں)",
     "directEgress": "براہ راست (بغیر پراکسی)",
-    "ownProxy": "اپنی پراکسی"
+    "ownProxy": "اپنی پراکسی",
+    "freeTierPause": "ماڈل {model} جاری (429), {time} پر واپس آئے گا",
+    "freeTierPauseProvider": "جاری (429), {time} پر واپس آئے گا",
+    "freeTierPauseNote": "اس انسٹینس پر ان پراسیس پاز"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,6 +13083,10 @@
     "inactiveCount": "{count} غیر فعال",
     "dbOverrideCount": "{count} DB اوور رائیڈز",
     "searchPlaceholder": "فلیگز تلاش کریں...",
+    "descriptionModeLabel": "تفصیل کا منظر",
+    "descriptionModeHint": "hover کرنے پر: کارڈز مختصر رہتے ہیں اور تفصیل پر hover کرنے سے مکمل متن نظر آتا ہے۔ مکمل متن: تفصیل ہمیشہ مکمل دکھائیں۔",
+    "descriptionModeHover": "hover کرنے پر",
+    "descriptionModeFull": "مکمل متن",
     "categories": {
       "all": "تمام",
       "security": "سیکیورٹی",

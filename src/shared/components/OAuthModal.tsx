@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { isCallbackStateAcceptable } from "./oauthCallbackState";
 import { useTranslations } from "next-intl";
 
 import Modal from "./Modal";
@@ -744,7 +745,7 @@ export default function OAuthModal({
 
       const { code, state, error: callbackError, errorDescription } = data;
 
-      if (authData?.state && state && state !== authData.state) {
+      if (!isCallbackStateAcceptable(authData?.state, state)) {
         callbackProcessedRef.current = true;
         setError(t("errorStateMismatch"));
         setStep("error");

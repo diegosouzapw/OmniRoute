@@ -87,7 +87,7 @@ export function filterResilienceBlockedCandidates<T extends ResilienceFilterCand
       // synthetic candidate for a short TTL (never model lockout / cooldown).
       if (
         isModelLocked(candidate.provider, SYNTHETIC_NOAUTH_CONNECTION_ID, candidate.model) ||
-        isOpencodeFreeTierSkipped(candidate.provider)
+        isOpencodeFreeTierSkipped(candidate.provider, Date.now(), candidate.model)
       ) {
         changed = true;
         recordAutoExclusion(

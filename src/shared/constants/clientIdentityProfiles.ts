@@ -16,6 +16,7 @@
 
 import { getClaudeCodeUserAgent } from "./claudeCodeClient";
 import { getCodexCliRsHeaders } from "./codexClient";
+import { getGeminiCliUserAgent } from "./geminiCliClient";
 
 export interface ClientIdentityProfile {
   readonly id: string;
@@ -48,7 +49,7 @@ const GEMINI_CLI_PROFILE: ClientIdentityProfile = Object.freeze({
   id: "gemini-cli",
   label: "Gemini CLI",
   headers: Object.freeze({
-    "User-Agent": "GeminiCLI/0.1.0 (linux; x64)",
+    "User-Agent": getGeminiCliUserAgent(),
   }),
 });
 const MUSE_CLI_PROFILE: ClientIdentityProfile = Object.freeze({

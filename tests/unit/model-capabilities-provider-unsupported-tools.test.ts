@@ -32,6 +32,16 @@ test("a statically-catalogued aihorde model keeps its explicit per-model toolCal
   assert.equal(caps.toolCalling, false);
 });
 
+test("Devin CLI routes tool calls only through the agentic provider", () => {
+  const legacy = getResolvedModelCapabilities("devin-cli/swe-1-7-lightning");
+  const agentic = getResolvedModelCapabilities("devin-cli-agentic/swe-1-7-lightning");
+
+  assert.equal(legacy.toolCalling, false);
+  assert.equal(legacy.supportsTools, false);
+  assert.equal(agentic.toolCalling, true);
+  assert.equal(agentic.supportsTools, true);
+});
+
 test("the provider-level fallback does not affect providers with no unsupportedParams declaration", () => {
   const caps = getResolvedModelCapabilities("mistral/mistral-small-latest");
   // Mistral's real models genuinely support tools; heuristic default (true)
