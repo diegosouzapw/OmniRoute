@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy-puljer og rotationen pr. konto for opencode undgår i en periode pr. proces, der fordobles ved hver gentagelse op til en øvre grænse, at genbruge en proxy, som netop har fejlet (afvist TCP-probe eller en 429 modtaget gennem den). Der skrives ingen proxy-status; hvis alle kandidater sættes til side, forbliver valget uændret. Aktiveret som standard; `false` gendanner det almindelige valg.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "For udbydere, hvis kvote opdeles efter egress-adresse, rangeres et pool-medlem, der deler den observerede egress-adresse med et nyligt afvist medlem, lige under de sunde medlemmer. Kun rækkefølge, aldrig udelukket. Kræver PROXY_SKIP_RECENTLY_FAILED, som producerer det afvisningssignal, den læser. Slået fra som standard: udvælgelsesrækkefølgen er præcis den almindelige rotation.",
   "featureFlagProxyPoolEgressObservationDescription": "Vis under en proxy-pulje i dashboardet, hvor mange observerede udgående IP-adresser der har betjent dens medlemmer inden for de seneste 24 timer, hvor mange forbindelser der brugte dem, og det højeste antal observeret bag én IP-adresse. Skrivebeskyttet, beregnet ud fra proxy-loggen og aldrig brugt til routing. Deaktiveret som standard: puljeeditoren er uændret, og observationsruten returnerer null.",
+  "featureFlagProxyOperatorEgressDescription": "Acceptér operatørtilsendte datoobserverede adresser per poolmedlem og flet dem med journal-læsningen til visning og poolrækkefølge. Slået fra som standard: push-ruten returnerer 404 og pool-læsninger opfører sig præcis som før.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Lad en probe, som målet afviste (401/403/429: proxyen videresendte anmodningen, men destinationen afviste denne udgående IP-adresse), nulstille proxyens række af fortløbende fejl i proxyens helbredskontrol, ligesom en besvaret probe. Deaktiveret som standard: En afvisning forbliver neutral og bevarer rækken. En 5xx forbliver uafklaret i begge tilfælde, og en afvisning fjerner, deaktiverer eller genaktiverer aldrig en proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Lad den automatiske oprydningskørsel slette afsluttede (gennemførte/mislykkede/annullerede/udløbne) Batch API-job, der er ældre end OMNIROUTE_BATCH_RETENTION_DAYS, sammen med deres kontrolpunkter pr. linje, og rydde BLOB-indholdet i uploadede filer, hvis deres expires_at er overskredet. Slået fra som standard: Alle eksisterende installationer beholder disse data præcis som før, indtil en operatør aktivt slår funktionen til. Den operatørudløste rute DELETE /api/v1/batches/delete-completed påvirkes ikke uanset indstillingen – den er en separat, ubetinget offentlig API-kontrakt.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Hent det aktuelle xAI-modelkatalog for xai-oauth-forbindelser fra https://api.x.ai/v1/models ved hjælp af OAuth-bærertokenet i stedet for det fastlåste statiske udgangspunkt. Slået fra som standard: xai-oauth fortsætter uændret med at levere det statiske udgangspunkt. Ved enhver fejl under opslaget falder modelregistreringen tilbage til udgangspunktet.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokalt proxy-core-slutpunkt er ugyldigt; SS/VMess/Trojan/VLESS-noder blev ignoreret.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dette abonnement har noder, der kræver en lokal proxy-core (SS/VMess/Trojan/VLESS); de routes ikke, før du konfigurerer local-core SOCKS5-slutpunktet.",
         "NO_USABLE_NODES": "Abonnementet gav ingen brugbare noder (http/https/socks5 eller noder med et lokalt core-slutpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styreopkald mislykkedes; den forrige rute forbliver aktiv. Kontrollér styre-URL og hemmelighed, og opdatér derefter."
+        "SELECTOR_SWITCH_FAILED": "Proxy-coreens styreopkald mislykkedes; den forrige rute forbliver aktiv. Kontrollér styre-URL og hemmelighed, og opdatér derefter.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Den genererede kernekonfiguration kunne ikke erstatte den adopterede fil; kopien ved siden af blev i stedet bevaret.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Nogle poster blev sprunget over under generering. Se serverloggen."
       },
       "description": "Indsæt dit proxy-abonnementslink. Når den er aktiveret, dirigeres trafik gennem proxypuljen i global tilstand eller regel (specificeret udbyder). Abonnementsnoder synkroniseres automatisk til proxypuljen og genbruger eksisterende polling-, sundhedstjek- og anti-lækagemekanismer.",
       "addSubscription": "Tilføj abonnement",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Ingen skift registreret endnu",
       "lastSwitchMember": "Betjenende medlem",
       "nextSwitch": "Næste mulige skift",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Sti til kernebinærfil",
+      "coreBinaryPathHelp": "Valgfrit: verificerer den genererede fil med kernebinærfilen, før den adopterede fil erstattes. Lad feltet stå tomt for fortsat at skrive ved siden af. Mappen oprettes, hvis den mangler.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Samlet sundhedstjek",
     "bulkHealthcheckDesc": "Test alle konfigurerede proxyer mod en destinations-URL for at finde ud af, hvilke der virker.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Hvad GET /v1/models viser for denne nøgle. En begrænsning af listen ændrer aldrig, hvad nøglen kan kalde.",
     "catalogScopeAll": "Begge",
     "catalogScopeCombos": "Kun kombinationer",
-    "catalogScopeModels": "Kun modeller"
+    "catalogScopeModels": "Kun modeller",
+    "resilienceTokenRefreshTitle": "Tokenopdateringsafbryder",
+    "resilienceTokenRefreshDesc": "Stopper forsøg på at forny token efter gentagne fejl. Omfang pr. forbindelse isolerer én død konto, så sunde konti på den samme udbyder fortsætter med at forny.",
+    "resilienceTokenRefreshScope": "Forsøg på at forny token for én udbyder",
+    "resilienceTokenRefreshTrigger": "Succesive mislykkede forsøg på fornyelse",
+    "resilienceTokenRefreshEffect": "Sætter forsøg på opdatering på pause i nedkølingsperioden",
+    "resilienceTokenRefreshScopeLabel": "Omfang",
+    "resilienceTokenRefreshScopeProvider": "Udbyder (alle konti deler én afbryder)",
+    "resilienceTokenRefreshScopeConnection": "Forbindelse (hver konto har sin egen afbryder)",
+    "resilienceTokenRefreshThreshold": "Fejl før pause",
+    "resilienceTokenRefreshCooldown": "Pause efter udløsning"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Fejl uden tilknyttet udgang: {count}",
     "poolMemberEgress": "{host}:{port} gik ud via {egressIp} · seneste {hours} t",
     "poolMemberEgressEmpty": "{host}:{port}: ingen trafik observeret inden for de seneste {hours} t",
+    "poolMemberEgressOperator": "{host}:{port} afgik via {egressIp} · operatørangivet, {date}",
     "poolMemberEgressHint": "Seneste udgående IP observeret via dette poolmedlem i perioden, aflæst fra proxyloggen. Et medlem uden trafik i perioden viser linjen om ingen trafik.",
     "poolRemove": "Fjern",
     "poolRemoveFailed": "Kunne ikke fjerne proxyen fra poolen",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Arver forbindelsespulje ({count})",
     "poolEmptyBlocked": "Pulje tom — anmodninger mislykkes (ikke direkte)",
     "directEgress": "Direkte (ingen proxy)",
-    "ownProxy": "Egen proxy"
+    "ownProxy": "Egen proxy",
+    "freeTierPause": "Model {model} pauset (429), tilbage kl. {time}",
+    "freeTierPauseProvider": "Pauset (429), tilbage kl. {time}",
+    "freeTierPauseNote": "Pause i processen på denne instans"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,8 +13083,8 @@
     "dbOverrideCount": "{count} DB-tilsidesættelser",
     "searchPlaceholder": "Søg i flag...",
     "descriptionModeLabel": "Beskrivelsesvisning",
-    "descriptionModeHint": "Ved markering: Kortene forbliver kompakte, og når markøren holdes over en beskrivelse, vises hele teksten. Fuld tekst: Vis altid hele beskrivelsen.",
-    "descriptionModeHover": "Ved markering",
+    "descriptionModeHint": "Ved hover: kort forbliver kompakte, og hover over en beskrivelse viser den fulde tekst. Fuld tekst: vis altid den komplette beskrivelse.",
+    "descriptionModeHover": "Ved hover",
     "descriptionModeFull": "Fuld tekst",
     "categories": {
       "all": "Alle",

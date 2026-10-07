@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "تمنع مجموعات الوكلاء والتناوب لكل حساب في opencode إعادة استخدام وكيل فشل للتو (رفض فحص TCP، أو تم تلقي 429 من خلاله) لمدة خاصة بكل عملية تتضاعف مع كل تكرار، حتى حد أقصى. لا تُكتب أي حالة للوكيل؛ وعند استبعاد جميع المرشحين، يظل الاختيار دون تغيير. مفعّل افتراضيًا؛ تعيد القيمة `false` الاختيار العادي.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "بالنسبة للمزوّدين الذين تُحتسب حصتهم حسب عنوان الخروج (egress)، يضع عضو الـ pool الذي يشارك عنوان الخروج المرصود لعضو رُفض مؤخرًا مباشرةً أسفل الأعضاء السليمين. يغيّر الترتيب فقط، ولا يستبعد أبدًا. يتطلب PROXY_SKIP_RECENTLY_FAILED، الذي يُنتج إشارة الرفض التي يقرؤها. معطّل افتراضيًا: يكون ترتيب الاختيار مطابقًا تمامًا للتدوير العادي.",
   "featureFlagProxyPoolEgressObservationDescription": "اعرض، أسفل مجموعة وكلاء في لوحة المعلومات، عدد عناوين IP الصادرة المرصودة التي خدمت أعضاءها خلال آخر 24 ساعة، وعدد الاتصالات التي استخدمتها، وأكبر عدد شوهد خلف عنوان IP واحد. للقراءة فقط، ويُحتسب من سجل الوكيل، ولا يُستخدم مطلقًا للتوجيه. معطّل افتراضيًا: يظل محرر المجموعة دون تغيير ويُرجع مسار الرصد null.",
+  "featureFlagProxyOperatorEgressDescription": "قبول عناوين الملاحظات المؤرخة المُرصَدة التي يدفعها المشغل لكل عضو في مجموعة التجمع، ودمجها مع بيانات قراءة السجل للعرض وترتيب مجموعة التجمع. معطل افتراضياً: يرد مسار الدفع برمز 404، وتتصرف عمليات قراءة مجموعة التجمع تماماً كما كانت من قبل.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "في فحص سلامة الوكلاء، اسمح للفحص الذي رفضه الهدف (401/403/429: قام الوكيل بالترحيل، لكن الوجهة رفضت عنوان IP الصادر هذا) بإعادة تعيين سلسلة حالات الفشل المتتالية للوكيل، كما لو كان فحصًا تمت خدمته. معطّل افتراضيًا: يظل الرفض محايدًا ويحافظ على السلسلة. تظل استجابة 5xx غير حاسمة في كلتا الحالتين، ولا يؤدي الرفض مطلقًا إلى إزالة وكيل أو تعطيله أو إعادة تنشيطه.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "اسمح لعملية التنظيف التلقائي بحذف مهام Batch API النهائية (المكتملة/الفاشلة/الملغاة/منتهية الصلاحية) الأقدم من OMNIROUTE_BATCH_RETENTION_DAYS، إلى جانب نقاط التحقق الخاصة بكل سطر، ومسح محتوى BLOB للملفات المرفوعة التي تجاوزت قيمة expires_at الخاصة بها. معطّل افتراضيًا: يحتفظ كل تثبيت حالي بهذه البيانات كما كان تمامًا إلى أن يفعّله أحد المشغّلين. لا يتأثر المسار DELETE /api/v1/batches/delete-completed الذي يشغّله المشغّل في كلتا الحالتين — فهو عقد API عام منفصل وغير مشروط.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "اجلب كتالوج نماذج xAI المباشر لاتصالات xai-oauth من https://api.x.ai/v1/models باستخدام رمز OAuth المميز من نوع bearer، بدلًا من البيانات الأولية الثابتة. معطّل افتراضيًا: يواصل xai-oauth تقديم البيانات الأولية الثابتة دون تغيير. عند حدوث أي خطأ في تحديد النماذج، يعود الاكتشاف إلى البيانات الأولية.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "نقطة نهاية نواة الوكيل المحلي غير صالحة؛ تم تجاهل عقد SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "يحتوي هذا الاشتراك على عقد تحتاج إلى نواة وكيل محلي (SS/VMess/Trojan/VLESS)؛ لن يتم توجيهها حتى تقوم بتكوين نقطة نهاية SOCKS5 للنواة المحلية.",
         "NO_USABLE_NODES": "لم ينتج عن الاشتراك أي عقد صالحة للاستخدام (http/https/socks5 أو عقد تحتوي على نقطة نهاية للنواة المحلية).",
-        "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث."
+        "SELECTOR_SWITCH_FAILED": "فشل استدعاء التحكم في نواة الوكيل؛ ويظل المسار السابق نشطًا. تحقق من عنوان URL والسر الخاص بالتحكم، ثم حدّث.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "تعذر على الإعداد الأساسي المولَّد استبدال الملف المعتمد؛ تم الاحتفاظ بالنسخة المجاورة بدلاً منه.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "تم تخطي بعض الإدخالات أثناء الإنشاء. راجع سجل الخادم."
       },
       "description": "الصق رابط اشتراك الوكيل الخاص بك. بمجرد التمكين، يتم توجيه حركة المرور عبر تجمع الوكيل في الوضع العام أو وضع القاعدة (الموفر المحدد). تتم مزامنة عقد الاشتراك تلقائيًا في تجمع الوكيل وإعادة استخدام آليات الاستقصاء والفحص الصحي ومكافحة التسرب الموجودة.",
       "addSubscription": "إضافة الاشتراك",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "لم يُسجَّل أي تبديل بعد",
       "lastSwitchMember": "العضو الذي يخدم",
       "nextSwitch": "التبديل التالي الممكن",
-      "nextSwitchNow": "الآن"
+      "nextSwitchNow": "الآن",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "مسار ثنائي النواة",
+      "coreBinaryPathHelp": "اختياري: يتحقق من الملف المولَّد باستخدام ثنائي النواة قبل استبدال الملف المعتمد. اتركه فارغًا للاستمرار في الكتابة بجانبه. يتم إنشاء الدليل إذا كان مفقودًا.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "الفحص الصحي بالجملة",
     "bulkHealthcheckDesc": "اختبر جميع الوكلاء الذين تم تكوينهم مقابل عنوان URL المستهدف للعثور على الوكلاء الذين يعملون.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "ما تعرضه GET /v1/models لهذا المفتاح. لا يؤدي تضييق القائمة مطلقًا إلى تغيير ما يمكن للمفتاح استدعاؤه.",
     "catalogScopeAll": "كلاهما",
     "catalogScopeCombos": "التركيبات فقط",
-    "catalogScopeModels": "النماذج فقط"
+    "catalogScopeModels": "النماذج فقط",
+    "resilienceTokenRefreshTitle": "قاطع تحديث الرمز",
+    "resilienceTokenRefreshDesc": "يوقف إعادة محاولة تحديث الرمز بعد فشل متكرر. يعزل نطاق لكل اتصال حسابًا ميتًا واحدًا حتى تستمر الحسابات السليمة على نفس المزود في التحديث.",
+    "resilienceTokenRefreshScope": "محاولات تحديث الرمز لأحد المزودين",
+    "resilienceTokenRefreshTrigger": "محاولات تحديث فاشلة متتالية",
+    "resilienceTokenRefreshEffect": "يوقف محاولات التحديث لمدة التهدئة",
+    "resilienceTokenRefreshScopeLabel": "النطاق",
+    "resilienceTokenRefreshScopeProvider": "المزوّد (جميع الحسابات تشترك في قاطع واحد)",
+    "resilienceTokenRefreshScopeConnection": "الاتصال (لكل حساب قاطع خاص به)",
+    "resilienceTokenRefreshThreshold": "عدد الفشل قبل الإيقاف",
+    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "إخفاقات دون مخرج منسوب: {count}",
     "poolMemberEgress": "خرج {host}:{port} عبر {egressIp} · آخر {hours} ساعة",
     "poolMemberEgressEmpty": "{host}:{port}: لم تُرصد أي حركة مرور خلال آخر {hours} ساعة",
+    "poolMemberEgressOperator": "{host}:{port} غادر عبر {egressIp} · مقدمة من المشغل، {date}",
     "poolMemberEgressHint": "آخر عنوان IP للخروج تم رصده عبر عضو مجموعة الوكلاء هذا خلال الفترة الزمنية، كما ورد في سجل الوكيل. يظهر للعضو الذي لم يشهد أي حركة مرور خلال الفترة سطر عدم وجود حركة مرور.",
     "poolRemove": "إزالة",
     "poolRemoveFailed": "فشل إزالة الوكيل من التجمع",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "يرث تجمع الاتصالات ({count})",
     "poolEmptyBlocked": "التجمع فارغ — تفشل الطلبات (ليس مباشرًا)",
     "directEgress": "مباشر (بدون وكيل)",
-    "ownProxy": "وكيل خاص"
+    "ownProxy": "وكيل خاص",
+    "freeTierPause": "تم إيقاف النموذج {model} مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseProvider": "تم الإيقاف مؤقتًا (429)، وسيعود في {time}",
+    "freeTierPauseNote": "إيقاف مؤقت داخل العملية على هذه النسخة"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,7 +13083,7 @@
     "dbOverrideCount": "{count} من تجاوزات قاعدة البيانات",
     "searchPlaceholder": "البحث في العلامات...",
     "descriptionModeLabel": "عرض الوصف",
-    "descriptionModeHint": "عند التمرير: تظل البطاقات مضغوطة، ويؤدي تمرير المؤشر فوق الوصف إلى عرض النص كاملًا. النص الكامل: عرض الوصف كاملًا دائمًا.",
+    "descriptionModeHint": "عند التمرير: تبقى البطاقات مضغورة ويُعرض النص الكامل عند التمرير فوق وصف ما. النص الكامل: إظهار الوصف الكامل دائمًا.",
     "descriptionModeHover": "عند التمرير",
     "descriptionModeFull": "النص الكامل",
     "categories": {

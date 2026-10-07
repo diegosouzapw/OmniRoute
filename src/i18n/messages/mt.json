@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Il-pools tal-proxy u r-rotazzjoni għal kull kont ta’ opencode jieqfu jerġgħu jservu proxy li jkun għadu kemm falla (sonda TCP miċħuda, jew 429 riċevut permezz tiegħu) għal perjodu għal kull proċess li jirdoppja ma’ kull ripetizzjoni, sa limitu massimu. Ma jinkiteb ebda status tal-proxy; meta kull kandidat jitwarrab, l-għażla tibqa’ l-istess. Mixgħul b’mod awtomatiku; `false` jerġa’ jġib l-għażla sempliċi.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Għall-fornituri li l-kwota tagħhom hija maqsuma skont l-indirizz tal-egress, jikklassifika membru tal-pool li jaqsam l-indirizz tal-egress osservat ta' membru li ġie rrifjutat reċentement eżatt taħt il-membri f'saħħithom. L-ordni biss, qatt ma jiġi eskluż. Jeħtieġ PROXY_SKIP_RECENTLY_FAILED, li jipproduċi s-sinjal ta' rifjut li jaqra. Mitfi b'mod predefinit: l-ordni tal-għażla hija eżattament ir-rotazzjoni sempliċi.",
   "featureFlagProxyPoolEgressObservationDescription": "Uri, taħt pool tal-proxy fid-dashboard, kemm-il IP ta’ ħruġ osservat serva lill-membri tiegħu matul l-aħħar 24 siegħa, kemm-il konnessjoni użathom u l-ogħla għadd osservat wara IP wieħed. Għall-qari biss, ikkalkulat mil-log tal-proxy, u qatt ma jintuża għar-routing. Mitfi b’mod awtomatiku: l-editur tal-pool ma jinbidilx u r-rotta tal-osservazzjoni twieġeb null.",
+  "featureFlagProxyOperatorEgressDescription": "Aċċetta l-indirizzi osservati b'data pushjati mill-operatur għal kull membru tal-pool u mergjahom mal-qari tal-ġurnal għar-ur u l-ordni tal-pool. Mhux attiv b'difault: ir-rotta tal-push tirrispondi 404 u l-qari tal-pool jiffunzjonaw eżattament kif qabel.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Fl-iskennjar tas-saħħa tal-proxy, ħalli sonda li l-mira tkun irrifjutat (401/403/429: il-proxy għadda t-talba, iżda d-destinazzjoni rrifjutat dan l-IP ta’ ħruġ) tirrisettja s-sensiela ta’ fallimenti konsekuttivi tal-proxy, bħal sonda moqdija. Mitfi b’mod awtomatiku: rifjut jibqa’ newtrali u jżomm is-sensiela. 5xx jibqa’ inkonklussiv fiż-żewġ każijiet, u rifjut qatt ma jneħħi, jiddiżattiva jew jerġa’ jattiva proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Ħalli t-tindif awtomatiku jħassar il-kompiti terminali (ikkompletati/falluti/ikkanċellati/skaduti) tal-Batch API li jkunu eqdem minn OMNIROUTE_BATCH_RETENTION_DAYS, flimkien mal-punti ta’ kontroll tagħhom għal kull linja, u jneħħi l-kontenut BLOB tal-fajls imtellgħin li jkunu qabżu l-expires_at tagħhom. Diżattivat b’mod awtomatiku: kull installazzjoni eżistenti żżomm din id-data eżattament bħal qabel sakemm operatur jagħżel li jattivah. Ir-rotta DELETE /api/v1/batches/delete-completed attivata mill-operatur ma tiġix affettwata fiż-żewġ każijiet — dan huwa kuntratt separat u inkundizzjonat tal-API pubblika.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ġib il-katalgu attwali tal-mudelli xAI għall-konnessjonijiet xai-oauth minn https://api.x.ai/v1/models billi tuża t-token bearer OAuth, minflok is-seed statiku ffriżat. Diżattivat b’mod awtomatiku: xai-oauth jibqa’ jservi s-seed statiku mingħajr tibdil. F’każ ta’ kwalunkwe żball fir-riżoluzzjoni, l-iskoperta terġa’ lura għas-seed.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "L-endpoint lokali tal-proxy-core mhuwiex validu; in-nodi SS/VMess/Trojan/VLESS ġew injorati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dan l-abbonament għandu nodi li jeħtieġu proxy core lokali (SS/VMess/Trojan/VLESS); dawn ma jiġux direzzjonati sakemm tikkonfigura l-endpoint SOCKS5 tal-core lokali.",
         "NO_USABLE_NODES": "L-abbonament ma pproduċa l-ebda nodu li jista’ jintuża (http/https/socks5 jew nodi b’endpoint ta’ core lokali).",
-        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna."
+        "SELECTOR_SWITCH_FAILED": "Is-sejħa ta' kontroll tal-proxy-core falliet; ir-rotta ta' qabel tibqa attiva. Iċċekkja l-URL u s-sigriet tal-kontroll, imbagħad aġġorna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Il-konfigurazzjoni ċentrali mġenerata ma setgħetx tissostitixxi l-fajl adottat; in-nies kopja mit-taħt ġiet miżmuma minflok.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Xi entrati ġew injorati matul il-ġenerazzjoni. Ara l-log tal-server."
       },
       "description": "Waħħal il-link tal-abbonament tal-proxy tiegħek. Ladarba jiġi attivat, it-traffiku jiġi direzzjonat permezz tal-grupp ta’ proxies fil-modalità globali jew tar-regoli (Fornitur speċifikat). In-nodi tal-abbonament jiġu sinkronizzati awtomatikament mal-grupp ta’ proxies u jużaw mill-ġdid il-mekkaniżmi eżistenti ta’ polling, kontroll tas-saħħa u kontra t-tnixxija.",
       "addSubscription": "Żid Abbonament",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "L-ebda bidla rreġistrata s'issa",
       "lastSwitchMember": "Membru li qed iservi",
       "nextSwitch": "Il-bidla li jmiss possibbli",
-      "nextSwitchNow": "Issa"
+      "nextSwitchNow": "Issa",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Triq tal-binarju ċentrali",
+      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Dak li GET /v1/models jiddikjara għal din iċ-ċavetta. It-tidjiq tal-lista qatt ma jibdel dak li ċ-ċavetta tista' ssejjaħ.",
     "catalogScopeAll": "It-tnejn",
     "catalogScopeCombos": "Kombinazzjonijiet biss",
-    "catalogScopeModels": "Mudelli biss"
+    "catalogScopeModels": "Mudelli biss",
+    "resilienceTokenRefreshTitle": "Breaker tal-Refresh tat-Token",
+    "resilienceTokenRefreshDesc": "Jwaq l-iskjar tal-token wara fallimenti ripetuti. L-iskop għal kull-konnessjoni jisolva kont mejjeb wieħed biex kontijiet b'saħħithom fuq l-istess fornitur jibqgħu jiġu aġġornati.",
+    "resilienceTokenRefreshScope": "Tentativi ta' refresh tat-token għal provider wieħed",
+    "resilienceTokenRefreshTrigger": "Tentativi ta' refresh konsekuttivi falliti",
+    "resilienceTokenRefreshEffect": "Jieqaf l-attempts ta' refresh għall-cooldown",
+    "resilienceTokenRefreshScopeLabel": "Skop",
+    "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
+    "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
+    "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
   },
   "contextRtk": {
     "title": "Magna RTK",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Fallimenti mingħajr ħruġ attribwit: {count}",
     "poolMemberEgress": "{host}:{port} ħareġ permezz ta’ {egressIp} · l-aħħar {hours} sigħat",
     "poolMemberEgressEmpty": "{host}:{port}: ma ġie osservat ebda traffiku fl-aħħar {hours} sigħat",
+    "poolMemberEgressOperator": "{host}:{port} ħareġ permezz ta' {egressIp} · fornita mill-operatur, {date}",
     "poolMemberEgressHint": "L-aħħar indirizz IP tal-ħruġ osservat permezz ta’ dan il-membru tal-pool matul il-perjodu, moqri mir-reġistru tal-proxy. Membru mingħajr traffiku matul il-perjodu juri l-linja ta’ ebda traffiku.",
     "poolRemove": "Neħħi",
     "poolRemoveFailed": "Ma rnexxiex it-tneħħija tal-proxy mill-pool",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Jiret il-pool tal-konnessjonijiet ({count})",
     "poolEmptyBlocked": "Pool vojt — it-talbiet ifallu (mhux dirett)",
     "directEgress": "Dirett (bla proxy)",
-    "ownProxy": "Proxy proprju"
+    "ownProxy": "Proxy proprju",
+    "freeTierPause": "Il-mudell {model} ippawżat (429), lura fi {time}",
+    "freeTierPauseProvider": "Ippawżat (429), lura fi {time}",
+    "freeTierPauseNote": "Pawża fil-proċess fuq dan il-caż"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13048,9 +13082,9 @@
     "inactiveCount": "{count} inattivi",
     "dbOverrideCount": "{count} sostituzzjonijiet tad-DB",
     "searchPlaceholder": "Fittex fost il-flags...",
-    "descriptionModeLabel": "Dehra tad-deskrizzjoni",
-    "descriptionModeHint": "Meta tgħaddi l-maws fuqha: il-kards jibqgħu kompatti u meta tgħaddi l-maws fuq deskrizzjoni jintwera t-test sħiħ. Test sħiħ: dejjem uri d-deskrizzjoni kompluta.",
-    "descriptionModeHover": "Meta tgħaddi l-maws fuqha",
+    "descriptionModeLabel": "Vista ta' deskrizzjoni",
+    "descriptionModeHint": "Fuq l-iskur: il-karti jibqgħu kompatti u l-iskur fuq deskrizzjoni juri t-test sħiħ. Test sħiħ: uri dejjem id-deskrizzjoni sħiħa.",
+    "descriptionModeHover": "Fuq l-iskur",
     "descriptionModeFull": "Test sħiħ",
     "categories": {
       "all": "Kollha",

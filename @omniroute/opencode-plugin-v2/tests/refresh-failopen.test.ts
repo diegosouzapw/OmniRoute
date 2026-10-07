@@ -68,7 +68,7 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         ok: modelsStatus === 200,
         status: modelsStatus,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
   }
@@ -169,7 +169,7 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     try {

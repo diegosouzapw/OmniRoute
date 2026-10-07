@@ -233,6 +233,7 @@
       "tests/unit/combo-quota-exhaustion-only-fallback.test.ts",
       "tests/unit/combo-quota-share-cooldown-wait.test.ts",
       "tests/unit/combo-quota-soft-penalty.test.ts",
+      "tests/unit/combo-quota-unreadable-15347.test.ts",
       "tests/unit/combo-resource-404-health.test.ts",
       "tests/unit/combo-responses-sse-failure-fallback.test.ts",
       "tests/unit/combo-round-robin-streaming-lock-3811.test.ts",

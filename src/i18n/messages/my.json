@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy pool များနှင့် opencode ၏ အကောင့်တစ်ခုချင်းစီအလိုက် အလှည့်ကျရွေးချယ်မှုသည် ပျက်ကွက်ခဲ့သည့် proxy (TCP probe ကို ငြင်းပယ်ခဲ့ခြင်း သို့မဟုတ် ၎င်းမှတစ်ဆင့် 429 တုံ့ပြန်မှုရရှိခြင်း) ကို process တစ်ခုချင်းစီအလိုက် သတ်မှတ်ကာလအတွင်း ပြန်လည်အသုံးမပြုတော့ပါ။ ထပ်မံဖြစ်ပွားတိုင်း ထိုကာလသည် နှစ်ဆတိုးလာပြီး သတ်မှတ်အများဆုံးပမာဏအထိသာ တိုးပါမည်။ Proxy အခြေအနေကို မှတ်တမ်းတင်မည်မဟုတ်ပါ။ Candidate အားလုံးကို ဘေးဖယ်ထားရသည့်အခါ ရွေးချယ်မှုသည် မပြောင်းလဲပါ။ မူလအားဖြင့် ဖွင့်ထားသည်။ `false` သည် ရိုးရိုးရွေးချယ်မှုကို ပြန်လည်ထားရှိပေးသည်။",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress လိပ်စာအလိုက် ကိုတာခွဲဝေသော ပံ့ပိုးသူများအတွက် မကြာသေးမီက ငြင်းပယ်ခံရသော အဖွဲ့ဝင်၏ တွေ့ရှိထားသော egress လိပ်စာကို မျှဝေသည့် pool အဖွဲ့ဝင်ကို ကျန်းမာသော အဖွဲ့ဝင်များ၏ အောက်တွင် ချက်ချင်း နေရာချသည်။ အစီအစဉ်သာ၊ ဘယ်တော့မှ ဖယ်ထုတ်မည်မဟုတ်ပါ။ ၎င်းဖတ်သော ငြင်းပယ်မှုအချက်ပြကို ထုတ်ပေးသည့် PROXY_SKIP_RECENTLY_FAILED လိုအပ်သည်။ မူလအားဖြင့် ပိတ်ထားသည်- ရွေးချယ်မှုအစီအစဉ်သည် ပုံမှန်အလှည့်ကျအတိုင်း အတိအကျဖြစ်သည်။",
   "featureFlagProxyPoolEgressObservationDescription": "Dashboard ရှိ proxy pool တစ်ခု၏အောက်တွင် လွန်ခဲ့သော 24 နာရီအတွင်း ၎င်း၏ member များအတွက် အသုံးပြုခဲ့သည့် စောင့်ကြည့်တွေ့ရှိထားသော egress IP အရေအတွက်၊ ထို IP များကို အသုံးပြုခဲ့သည့် connection အရေအတွက်နှင့် IP တစ်ခုတည်း၏နောက်ကွယ်တွင် အများဆုံးတွေ့ရှိရသည့် အရေအတွက်တို့ကို ပြသပါ။ ၎င်းသည် ဖတ်ရှုရန်သာဖြစ်ပြီး proxy log မှ တွက်ချက်ထားကာ routing အတွက် မည်သည့်အခါမျှ အသုံးမပြုပါ။ မူလအားဖြင့် ပိတ်ထားသည်။ Pool editor သည် မပြောင်းလဲဘဲ observation route က null ကို ပြန်ပေးသည်။",
+  "featureFlagProxyOperatorEgressDescription": "ပေးပို့သူ အုပ်ချုပ်သူ ပေးထားသော ရက်စွဲထုတ်ပြန်ထားသော အိမ်ရှိ လုပ်ဆောင်ချက်များကို ပူးတွဲပေးသော ဂျူးနယ် ဖတ်မှတ်တမ်းကို ပူးပေါင်းပြီး ပြသရန် နှင့် ပူးတွဲပေးသော အမှာစာကို ပေါင်းစပ်ပါ။ အစောပိုင်းတွင် ပိတ်ထားသည်။ ပေးပို့သူ လမ်းကြောင်း အဖြေ 404 ဖြစ်ပြီး ပူးတွဲပေးသော ဖတ်မှတ်တမ်းများသည် မှန်ကန်စွာ အရေအတွက် အတိအကျ အလုပ်လုပ်သည်။",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy health sweep တွင် target က ငြင်းပယ်ခဲ့သော probe (401/403/429—proxy က လက်ဆင့်ကမ်းပေးခဲ့သော်လည်း destination က ဤ egress IP ကို ငြင်းပယ်ခြင်း) ကို အောင်မြင်စွာ ဆောင်ရွက်ခဲ့သည့် probe ကဲ့သို့ proxy ၏ ဆက်တိုက်ပျက်ကွက်မှုအရေအတွက်ကို ပြန်လည်သတ်မှတ်ခွင့်ပြုပါ။ မူလအားဖြင့် ပိတ်ထားသည်။ ငြင်းပယ်မှုသည် သက်ရောက်မှုမရှိဘဲ streak ကို ဆက်လက်ထိန်းထားသည်။ မည်သည့်အခြေအနေတွင်မဆို 5xx သည် အတည်မပြုနိုင်သည့်အခြေအနေအဖြစ် ဆက်ရှိနေပြီး ငြင်းပယ်မှုတစ်ခုကြောင့် proxy ကို ဖယ်ရှားခြင်း၊ ပိတ်ခြင်း သို့မဟုတ် ပြန်လည်အသက်သွင်းခြင်း မည်သည့်အခါမျှ မပြုလုပ်ပါ။",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "အလိုအလျောက် ရှင်းလင်းရေးလုပ်ငန်းစဉ်ကို OMNIROUTE_BATCH_RETENTION_DAYS ထက် ပိုဟောင်းသော အဆုံးသတ်အခြေအနေ (ပြီးဆုံး/မအောင်မြင်/ပယ်ဖျက်/သက်တမ်းကုန်) ရှိသည့် Batch API အလုပ်များနှင့် ၎င်းတို့၏ စာကြောင်းတစ်ကြောင်းချင်းဆိုင်ရာ checkpoint များကို ဖျက်ခွင့်ပြုပြီး၊ ၎င်းတို့၏ ကိုယ်ပိုင် expires_at ကျော်လွန်သွားသော အပ်လုဒ်ဖိုင်များ၏ BLOB အကြောင်းအရာကိုလည်း ရှင်းလင်းပါ။ ပုံသေအားဖြင့် ပိတ်ထားသည်။ အော်ပရေတာက ဖွင့်ရန် ရွေးချယ်သည့်အချိန်အထိ လက်ရှိထည့်သွင်းမှုတိုင်းသည် ဤဒေတာကို ယခင်အတိုင်း အတိအကျ ဆက်လက်ထိန်းသိမ်းထားမည်။ မည်သို့ဖွင့်ပိတ်ထားသည်ဖြစ်စေ အော်ပရေတာက စတင်လုပ်ဆောင်သည့် DELETE /api/v1/batches/delete-completed route အပေါ် သက်ရောက်မှုမရှိပါ — ၎င်းသည် သီးခြားဖြစ်ပြီး ခြွင်းချက်မရှိသော အများသုံး API စာချုပ်ဖြစ်သည်။",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "ပုံသေထည့်သွင်းထားသည့် မပြောင်းလဲသော စာရင်းအစား OAuth bearer token ကို အသုံးပြုပြီး https://api.x.ai/v1/models မှ xai-oauth ချိတ်ဆက်မှုများအတွက် လက်ရှိ xAI မော်ဒယ်ကတ်တလောက်ကို ရယူပါ။ ပုံသေအားဖြင့် ပိတ်ထားသည်။ xai-oauth သည် မပြောင်းလဲသော ပုံသေစာရင်းကို ဆက်လက်ပေးမည်။ ဖြေရှင်းမှုဆိုင်ရာ အမှားတစ်ခုခု ဖြစ်ပေါ်ပါက ရှာဖွေမှုသည် ပုံသေစာရင်းကို အစားထိုးအသုံးပြုမည်။",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "စက်တွင်း proxy-core endpoint မမှန်ကန်သောကြောင့် SS/VMess/Trojan/VLESS node များကို လျစ်လျူရှုထားသည်။",
         "NEEDS_CORE_NOT_CONFIGURED": "ဤစာရင်းသွင်းမှုတွင် စက်တွင်း proxy core လိုအပ်သည့် node များ (SS/VMess/Trojan/VLESS) ပါရှိသည်။ local-core SOCKS5 endpoint ကို သတ်မှတ်မပြီးမချင်း ၎င်းတို့မှတစ်ဆင့် လမ်းကြောင်းမပို့ပါ။",
         "NO_USABLE_NODES": "စာရင်းသွင်းမှုမှ အသုံးပြုနိုင်သော node များ မရရှိပါ (http/https/socks5 သို့မဟုတ် စက်တွင်း core endpoint ပါသော node များ)။",
-        "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။"
+        "SELECTOR_SWITCH_FAILED": "proxy-core ထိန်းချုပ်ခေါ်ဆိုမှု မအောင်မြင်ပါ။ ယခင်လမ်းကြောင်းဆက်လက်အသက်ဝင်နေသည်။ ထိန်းချုပ် URL နှင့် လျှို့ဝှက်ချက်စစ်ဆေးပြီး ပြန်လည်ဆန်းသစ်ပါ။",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ဖန်တီးထားသော အခြေခံ ပြင်ဆင်ချက်သည် လက်ခံထားသော ဖိုင်ကို အစားမထိုးနိုင်ခဲ့ပါ။ ၎င်းအစား ဘေးနားရှိ မိတ္တူကို သိမ်းဆည်းထားပါသည်။",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "မျိုးစုံ စာရင်းများ ဖန်တီးနေစဉ်အတွင်း ချန်ထားခဲ့ပါသည်။ ဆာဗာ မှတ်တမ်းကို ကြည့်ပါ။"
       },
       "description": "သင့် proxy စာရင်းသွင်းမှုလင့်ခ်ကို ကူးထည့်ပါ။ ဖွင့်ပြီးသည်နှင့် အသွားအလာကို ကမ္ဘာလုံးဆိုင်ရာ သို့မဟုတ် စည်းမျဉ်း (သတ်မှတ်ထားသော Provider) မုဒ်တွင် proxy အစုမှတစ်ဆင့် လမ်းကြောင်းပို့မည်။ စာရင်းသွင်းမှု node များကို proxy အစုထဲသို့ အလိုအလျောက် ထပ်တူပြုပြီး လက်ရှိ polling၊ အခြေအနေစစ်ဆေးမှုနှင့် ယိုစိမ့်မှုတားဆီးရေး ယန္တရားများကို ပြန်လည်အသုံးပြုမည်။",
       "addSubscription": "စာရင်းသွင်းမှု ထည့်ရန်",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "မှတ်တမ်းတင်ထားသောအပြောင်းအလဲမရှိသေးပါ",
       "lastSwitchMember": "ဝန်ဆောင်မှုပေးနေသောအဖွဲ့ဝင်",
       "nextSwitch": "နောက်ဖြစ်နိုင်သောအပြောင်းအလဲ",
-      "nextSwitchNow": "ယခု"
+      "nextSwitchNow": "ယခု",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "အခြေခံ binary လမ်းကြောင်း",
+      "coreBinaryPathHelp": "ရွေးချယ်နိုင်သည်: လက်ခံထားသော ဖိုင်ကို အစားမထိုးမီ အခြေခံ binary ဖြင့် ဖန်တီးထားသော ဖိုင်ကို စစ်ဆေးပါသည်။ ဘေးနားတွင် ဆက်လက် ရေးသားရန် ကွက်လပ်ထားပါ။ ဖိုင်တွဲမရှိပါက ဖန်တီးပါမည်။",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "အစုလိုက် အခြေအနေစစ်ဆေးမှု",
     "bulkHealthcheckDesc": "အလုပ်လုပ်သည့် ပရောက်စီများကို ရှာဖွေရန် စီစဉ်သတ်မှတ်ထားသော ပရောက်စီအားလုံးကို ပစ်မှတ် URL တစ်ခုဖြင့် စမ်းသပ်ပါ။",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "ဤ key အတွက် GET /v1/models က ဖော်ပြပေးသည့်အရာ။ စာရင်းကို ကျဉ်းမြောင်းစေခြင်းသည် key က ခေါ်ဆိုနိုင်သည့်အရာကို မည်သည့်အခါမျှ ပြောင်းလဲစေမည်မဟုတ်ပါ။",
     "catalogScopeAll": "နှစ်မျိုးလုံး",
     "catalogScopeCombos": "ပေါင်းစပ်မှုများသာ",
-    "catalogScopeModels": "Models များသာ"
+    "catalogScopeModels": "Models များသာ",
+    "resilienceTokenRefreshTitle": "တိုကင် ပြန်လည်သစ်မှု ဖြတ်တောက်သူ",
+    "resilienceTokenRefreshDesc": "တကြိမ်ပြီးတကြိမ် မအောင်မြင်ပြီးနောက် တိုကင် ပြန်လည်သစ်မှု ပြုလုပ်ခြင်းကို ရပ်တန့်ပါသည်။ ချိတ်ဆက်မှုတစ်ခုချင်းစီ၏ အတိုင်းအတာက သေဆုံးနေသော အကောင့်တစ်ခုကို ခွဲခြားထားပြီး၊ တူညီသော ပံ့ပိုးသူပေါ်တွင် ကျန်းမာသော အကောင့်များ ဆက်လက် ပြန်လည်သစ်မှု ရရှိစေပါသည်။",
+    "resilienceTokenRefreshScope": "ပံ့ပိုးသူတစ်ခုအတွက် တိုကင် ပြန်လည်သစ်မြှောက်ရန် ကြိုးစားမှုများ",
+    "resilienceTokenRefreshTrigger": "ဆက်တိုက် မအောင်မြင်သော ပြန်လည်သစ်ဆန်း ကြိုးစားမှုများ",
+    "resilienceTokenRefreshEffect": "အေးချမ်းစဉ် ပြန်လည်သစ်မြည်းကြည့်ခြင်းကို ရပ်တန့်စေသည်",
+    "resilienceTokenRefreshScopeLabel": "အတိုင်းအတာ",
+    "resilienceTokenRefreshScopeProvider": "ပေးသွင်းသူ (အကောင့်အားလုံးသည် တစ်ခုတည်းသော ပြတ်တောက်စက်ကို မျှဝေသည်)",
+    "resilienceTokenRefreshScopeConnection": "ချိတ်ဆက်မှု (အကောင့်တိုင်းတွင် ၎င်း၏ breaker ရှိသည်)",
+    "resilienceTokenRefreshThreshold": "ရပ်တန့်မှုမပြုမီ မအောင်မြင်မှုများ",
+    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "သတ်မှတ်ထားသော ထွက်ပေါက်မရှိသည့် မအောင်မြင်မှုများ- {count}",
     "poolMemberEgress": "{host}:{port} မှ အသွားအလာသည် {egressIp} မှတစ်ဆင့် ထွက်ခဲ့သည် · နောက်ဆုံး {hours} နာရီအတွင်း",
     "poolMemberEgressEmpty": "{host}:{port} — နောက်ဆုံး {hours} နာရီအတွင်း အသွားအလာ မတွေ့ရှိပါ",
+    "poolMemberEgressOperator": "{host}:{port} သည် {egressIp} မှ ထွက်ခွာသွားသည် · အုပ်ချုပ်သူ ပေးထားသော၊ {date}",
     "poolMemberEgressHint": "သတ်မှတ်ကာလအတွင်း ဤ pool အဖွဲ့ဝင်မှတစ်ဆင့် နောက်ဆုံးတွေ့ရှိခဲ့သော အထွက် IP ဖြစ်ပြီး ပရောက်စီမှတ်တမ်းမှ ဖတ်ယူထားသည်။ သတ်မှတ်ကာလအတွင်း အသွားအလာမရှိသော အဖွဲ့ဝင်အတွက် အသွားအလာမရှိကြောင်း စာကြောင်းကို ပြသသည်။",
     "poolRemove": "ဖယ်ရှားရန်",
     "poolRemoveFailed": "ပရောက်စီကို ပူးလ်မှ ဖယ်ရှား၍ မရပါ",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "ချိတ်ဆက်မှု pool ကို အမွေခံသည် ({count})",
     "poolEmptyBlocked": "Pool လွတ်နေသည် — တောင်းဆိုမှုများ ကျရှုံးမည် (တိုက်ရိုက်မဟုတ်)",
     "directEgress": "တိုက်ရိုက် (proxy မပါ)",
-    "ownProxy": "ကိုယ်ပိုင် proxy"
+    "ownProxy": "ကိုယ်ပိုင် proxy",
+    "freeTierPause": "မော်ဒယ် {model} ကို ရပ်ထားပါသည် (429)，{time} တွင် ပြန်လည်စတင်ပါမည်",
+    "freeTierPauseProvider": "ရပ်ထားပါသည် (429)，{time} တွင် ပြန်လည်စတင်ပါမည်",
+    "freeTierPauseNote": "ဤဖြစ်စဉ်အတွင်း ခေတ္တရပ်နားခြင်း"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,9 +13083,9 @@
     "dbOverrideCount": "DB အစားထိုးသတ်မှတ်ချက် {count} ခု",
     "searchPlaceholder": "အလံများကို ရှာဖွေပါ...",
     "descriptionModeLabel": "ဖော်ပြချက် မြင်ကွင်း",
-    "descriptionModeHint": "မောက်စ်တင်သည့်အခါ- ကတ်များကို ကျစ်လျစ်စွာထားပြီး ဖော်ပြချက်တစ်ခုပေါ် မောက်စ်တင်ပါက စာသားအပြည့်အစုံကို ပြသသည်။ စာသားအပြည့်အစုံ- ဖော်ပြချက်အပြည့်အစုံကို အမြဲပြသသည်။",
-    "descriptionModeHover": "မောက်စ်တင်သည့်အခါ",
-    "descriptionModeFull": "စာသားအပြည့်အစုံ",
+    "descriptionModeHint": "ခြေရာခံသောအခါ: ကတ်များ ကျစ်လစ်နေပြီး ဖော်ပြချက်တစ်ခုကို ခြေရာခံသောအခါ အပြည့်အစုံ စာသားကို ပြပါမည်။ အပြည့်အစုံ စာသား: ဖော်ပြချက်ကို အမြဲတမ်း အပြည့်အစုံ ပြပါ။",
+    "descriptionModeHover": "ခြေရာခံသောအခါ",
+    "descriptionModeFull": "အပြည့်အစုံ စာသား",
     "categories": {
       "all": "အားလုံး",
       "security": "လုံခြုံရေး",

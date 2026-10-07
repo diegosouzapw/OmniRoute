@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy పూల్లు మరియు opencode యొక్క ఒక్కో ఖాతా రొటేషన్లో, అప్పుడే విఫలమైన Proxyని (TCP ప్రోబ్ తిరస్కరించబడటం లేదా దాని ద్వారా 429 అందుకోవడం) ప్రతి పునరావృతంతో రెట్టింపయ్యే, గరిష్ఠ పరిమితి వరకు ఉండే ఒక్కో ప్రాసెస్ వ్యవధిలో మళ్లీ అందించకుండా ఆపుతుంది. Proxy స్థితి ఏదీ వ్రాయబడదు; ప్రతి అభ్యర్థినీ పక్కన పెడితే ఎంపికలో మార్పు ఉండదు. డిఫాల్ట్‌గా ఆన్‌లో ఉంటుంది; `false` సాధారణ ఎంపికను పునరుద్ధరిస్తుంది.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress చిరునామా ప్రకారం కోటా విభజించబడే ప్రొవైడర్ల కోసం, ఇటీవల తిరస్కరించబడిన సభ్యుని గమనించిన egress చిరునామాను పంచుకునే pool సభ్యుడిని ఆరోగ్యకరమైన సభ్యుల కంటే వెంటనే కింద ఉంచుతుంది. క్రమం మాత్రమే, ఎప్పుడూ మినహాయించదు. ఇది చదివే తిరస్కరణ సంకేతాన్ని ఉత్పత్తి చేసే PROXY_SKIP_RECENTLY_FAILED అవసరం. డిఫాల్ట్‌గా ఆఫ్: ఎంపిక క్రమం సరిగ్గా సాధారణ రొటేషనే.",
   "featureFlagProxyPoolEgressObservationDescription": "డ్యాష్బోర్డ్లోని Proxy పూల్ కింద, గత 24 గంటల్లో దాని సభ్యులకు సేవలందించిన గమనించిన ఎగ్రెస్ IPల సంఖ్య, వాటిని ఉపయోగించిన కనెక్షన్ల సంఖ్య మరియు ఒకే IP వెనుక అత్యధికంగా కనిపించిన సంఖ్యను చూపండి. ఇది చదవడానికి మాత్రమే, Proxy లాగ్ నుండి గణించబడుతుంది, రూటింగ్ కోసం ఎప్పుడూ ఉపయోగించబడదు. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: పూల్ ఎడిటర్ మారదు మరియు పరిశీలన రూట్ null అని సమాధానమిస్తుంది.",
+  "featureFlagProxyOperatorEgressDescription": "ప్రతి పూల్ మెంబర్ కు ఓపరేటర్ పుష్ చేసిన తేదీ పూర్వక పరిశీలించిన విధంగా అనుమతించండి మరియు ప్రదర్శన కోసం జర్నల్ చదివే విధంగా మరియు పూల్ ఆర్డర్ కోసం వాటిని కలపండి. డిఫాల్ట్ గా ఆఫ్: పుష్ రూట్ 404 కు సమాధానం ఇస్తుంది మరియు పూల్ చదివే విధంగా ముందు వలె ప్రవర్తిస్తుంది.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy ఆరోగ్య స్వీప్లో, లక్ష్యం తిరస్కరించిన ప్రోబ్ (401/403/429: Proxy ప్రసారం చేసింది, గమ్యస్థానం ఈ ఎగ్రెస్ IPని తిరస్కరించింది) విజయవంతంగా సేవలందించిన ప్రోబ్లాగే Proxy యొక్క వరుస వైఫల్యాల పరంపరను రీసెట్ చేయనివ్వండి. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: తిరస్కరణ తటస్థంగానే ఉండి పరంపరను అలాగే ఉంచుతుంది. ఏ విధంగానైనా 5xx అనిశ్చితంగానే ఉంటుంది, అలాగే తిరస్కరణ ఎప్పుడూ Proxyని తొలగించదు, నిలిపివేయదు లేదా మళ్లీ సక్రియం చేయదు.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "OMNIROUTE_BATCH_RETENTION_DAYS కంటే పాతవైన టెర్మినల్ (పూర్తయిన/విఫలమైన/రద్దయిన/గడువు ముగిసిన) Batch API జాబ్లను, వాటి ప్రతి-లైన్ చెక్పాయింట్లతో సహా ఆటోమేటిక్ క్లీనప్ స్వీప్ తొలగించేలా చేయండి; అలాగే వాటి స్వంత expires_at దాటిన అప్లోడ్ చేసిన ఫైల్ల BLOB కంటెంట్ను క్లియర్ చేయండి. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: ఆపరేటర్ దీన్ని ఎంచుకునే వరకు ప్రతి ప్రస్తుత ఇన్స్టాలేషన్ ఈ డేటాను మునుపటిలాగే ఉంచుతుంది. ఆపరేటర్ ప్రారంభించే DELETE /api/v1/batches/delete-completed రూట్పై ఏ విధంగానూ ప్రభావం ఉండదు — అది ప్రత్యేకమైన, షరతులు లేని పబ్లిక్ API ఒప్పందం.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "స్థిరమైన స్టాటిక్ సీడ్కు బదులుగా, OAuth బేరర్ టోకెన్ను ఉపయోగించి https://api.x.ai/v1/models నుండి xai-oauth కనెక్షన్ల కోసం లైవ్ xAI మోడల్ కేటలాగ్ను పొందండి. డిఫాల్ట్గా ఆఫ్లో ఉంటుంది: xai-oauth మార్పులేమీ లేకుండా స్టాటిక్ సీడ్నే అందిస్తుంది. ఏదైనా రిజల్యూషన్ లోపం సంభవిస్తే, డిస్కవరీ తిరిగి సీడ్ను ఉపయోగిస్తుంది.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "లోకల్ ప్రోక్సీ-కోర్ ఎండ్‌పాయింట్ చెల్లదు; SS/VMess/Trojan/VLESS నోడ్‌లు విస్మరించబడ్డాయి.",
         "NEEDS_CORE_NOT_CONFIGURED": "ఈ సబ్‌స్క్రిప్షన్‌లో లోకల్ ప్రోక్సీ కోర్ (SS/VMess/Trojan/VLESS) అవసరమైన నోడ్‌లు ఉన్నాయి; మీరు లోకల్-కోర్ SOCKS5 ఎండ్‌పాయింట్‌ను కాన్ఫిగర్ చేసే వరకు అవి రూట్ చేయబడవు.",
         "NO_USABLE_NODES": "సబ్‌స్క్రిప్షన్ ఉపయోగించదగిన నోడ్‌లను దేనినీ అందించలేదు (http/https/socks5 లేదా లోకల్ కోర్ ఎండ్‌పాయింట్ కలిగిన నోడ్‌లు).",
-        "SELECTOR_SWITCH_FAILED": "ప్రాక్సీ-కోర్ నియంత్రణ కాల్ విఫలమైంది; మునుపటి మార్గం చురుకుగా ఉంటుంది. నియంత్రణ URL మరియు రహస్యాన్ని తనిఖీ చేసి రిఫ్రెష్ చేయండి."
+        "SELECTOR_SWITCH_FAILED": "ప్రాక్సీ-కోర్ నియంత్రణ కాల్ విఫలమైంది; మునుపటి మార్గం చురుకుగా ఉంటుంది. నియంత్రణ URL మరియు రహస్యాన్ని తనిఖీ చేసి రిఫ్రెష్ చేయండి.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ఉత్పత్తి చేయబడిన కోర్ కాన్ఫిగరేషన్ స్వీకరించిన ఫైల్‌ను భర్తీ చేయలేకపోయింది; బదులుగా పక్కన ఉన్న కాపీని ఉంచింది.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "సృష్టి సమయంలో కొన్ని ఎంట్రీలు దాటవేయబడ్డాయి. సర్వర్ లాగ్ చూడండి."
       },
       "description": "మీ ప్రాక్సీ సబ్‌స్క్రిప్షన్ లింక్‌ను అతికించండి. ప్రారంభించిన తర్వాత, ట్రాఫిక్ గ్లోబల్ లేదా రూల్ (పేర్కొన్న ప్రొవైడర్) మోడ్‌లో ప్రాక్సీ పూల్ ద్వారా మళ్లించబడుతుంది. సబ్‌స్క్రిప్షన్ నోడ్‌లు స్వయంచాలకంగా ప్రాక్సీ పూల్‌లోకి సమకాలీకరించబడతాయి మరియు ఇప్పటికే ఉన్న పోలింగ్, ఆరోగ్య తనిఖీ మరియు యాంటీ లీక్ మెకానిజమ్‌లను మళ్లీ ఉపయోగిస్తాయి.",
       "addSubscription": "సభ్యత్వాన్ని జోడించండి",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "ఇంకా మార్పు నమోదు కాలేదు",
       "lastSwitchMember": "సేవలందిస్తున్న సభ్యుడు",
       "nextSwitch": "తదుపరి సాధ్యమైన మార్పు",
-      "nextSwitchNow": "ఇప్పుడు"
+      "nextSwitchNow": "ఇప్పుడు",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "కోర్ బైనరీ పాత",
+      "coreBinaryPathHelp": "ఐచ్ఛికం: స్వీకరించిన ఫైల్‌ను భర్తీ చేయడానికి ముందు కోర్ బైనరీతో ఉత్పత్తి చేసిన ఫైల్‌ను ధృవీకరిస్తుంది. దాని పక్కనే వ్రాయడం కొనసాగించడానికి ఖాళీగా వదిలేయండి. డైరెక్టరీ లేకపోతే సృష్టించబడుతుంది.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "బల్క్ హెల్త్చెక్",
     "bulkHealthcheckDesc": "పనిచేసే ప్రాక్సీలను గుర్తించడానికి కాన్ఫిగర్ చేసిన అన్ని ప్రాక్సీలను లక్ష్య URLతో పరీక్షించండి.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "ఈ కీ కోసం GET /v1/models చూపించేవి. జాబితాను పరిమితం చేయడం వల్ల ఈ కీ కాల్ చేయగలిగేవి ఎప్పటికీ మారవు.",
     "catalogScopeAll": "రెండూ",
     "catalogScopeCombos": "కాంబోలు మాత్రమే",
-    "catalogScopeModels": "మోడళ్లు మాత్రమే"
+    "catalogScopeModels": "మోడళ్లు మాత్రమే",
+    "resilienceTokenRefreshTitle": "టోకెన్ రిఫ్రెష్ బ్రేకర్",
+    "resilienceTokenRefreshDesc": "పదే పదే విఫలమైన తర్వాత టోకెన్ రీఫ్రెష్‌ను పునరావృతం చేయడం ఆపివేస్తుంది. ఒక్కో కనెక్షన్ పరిధి ఒక చనిపోయిన ఖాతాను వేరు చేస్తుంది, అదే ప్రొవైడర్‌లో ఆరోగ్యకరమైన ఖాతాలు కొనసాగి రీఫ్రెష్ అవుతాయి.",
+    "resilienceTokenRefreshScope": "ఒక ప్రొవైడర్ కోసం టోకెన్ రిఫ్రెష్ ప్రయత్నాలు",
+    "resilienceTokenRefreshTrigger": "వరుసగా విఫలమైన రీఫ్రెష్ ప్రయత్నాలు",
+    "resilienceTokenRefreshEffect": "కూల్‌డౌన్ కోసం రీఫ్రెష్ ప్రయత్నాలను నిలిపివేస్తుంది",
+    "resilienceTokenRefreshScopeLabel": "పరిధి",
+    "resilienceTokenRefreshScopeProvider": "ప్రొవైడర్ (అన్ని ఖాతాలు ఒకే బ్రేకర్‌ను పంచుకుంటాయి)",
+    "resilienceTokenRefreshScopeConnection": "కనెక్షన్ (ప్రతి ఖాతాకు దాని సొంత బ్రేకర్ ఉంటుంది)",
+    "resilienceTokenRefreshThreshold": "నిలిపివేయడానికి ముందు వైఫల్యాలు",
+    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం"
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "కేటాయించిన నిష్క్రమణ లేని వైఫల్యాలు: {count}",
     "poolMemberEgress": "{host}:{port} నుంచి {egressIp} ద్వారా వెళ్లింది · గత {hours} గం.",
     "poolMemberEgressEmpty": "{host}:{port}: గత {hours} గం.లో ట్రాఫిక్ ఏదీ గమనించబడలేదు",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} ద్వారా పాస్ అయిన · ప్రాప్తి చేసిన, {date}",
     "poolMemberEgressHint": "ఈ సమయ విండోలో ఈ పూల్ సభ్యుడి ద్వారా చివరిగా గమనించిన ఎగ్రెస్ IP, ప్రాక్సీ లాగ్ నుండి చదవబడింది. విండోలో ట్రాఫిక్ లేని సభ్యుడికి ట్రాఫిక్-లేదు అనే పంక్తి చూపబడుతుంది.",
     "poolRemove": "తొలగించు",
     "poolRemoveFailed": "పూల్ నుండి ప్రాక్సీని తొలగించడం విఫలమైంది",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "కనెక్షన్ పూల్ వారసత్వం ({count})",
     "poolEmptyBlocked": "పూల్ ఖాళీ — అభ్యర్థనలు విఫలమవుతాయి (ప్రత్యక్షం కాదు)",
     "directEgress": "ప్రత్యక్షం (ప్రాక్సీ లేకుండా)",
-    "ownProxy": "సొంత ప్రాక్సీ"
+    "ownProxy": "సొంత ప్రాక్సీ",
+    "freeTierPause": "మోడల్ {model} నిలిపివేయబడింది (429), {time} న తిరిగి వస్తుంది",
+    "freeTierPauseProvider": "నిలిపివేయబడింది (429), {time} న తిరిగి వస్తుంది",
+    "freeTierPauseNote": "ఈ ఇన్‌స్టన్స్‌లో ప్రక్రియలోపు పాజ్"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13048,10 +13082,10 @@
     "inactiveCount": "{count} ఇన్‌యాక్టివ్",
     "dbOverrideCount": "{count} DB ఓవర్‌రైడ్‌లు",
     "searchPlaceholder": "ఫ్లాగ్‌లను శోధించండి...",
-    "descriptionModeLabel": "వివరణ వీక్షణ",
-    "descriptionModeHint": "హోవర్ చేసినప్పుడు: కార్డ్లు సంక్షిప్తంగా ఉంటాయి మరియు వివరణపై హోవర్ చేస్తే పూర్తి వచనం కనిపిస్తుంది. పూర్తి వచనం: ఎల్లప్పుడూ సంపూర్ణ వివరణను చూపుతుంది.",
-    "descriptionModeHover": "హోవర్ చేసినప్పుడు",
-    "descriptionModeFull": "పూర్తి వచనం",
+    "descriptionModeLabel": "వివరణ దృశ్యం",
+    "descriptionModeHint": "కర్సర్ పైకి తీసుకెళ్లినప్పుడు: కార్డులు సంక్షిప్తంగా ఉంటాయి, వివరణపై కర్సర్ పెడితే పూర్తి టెక్స్ట్ కనిపిస్తుంది. పూర్తి టెక్స్ట్: ఎల్లప్పుడూ పూర్తి వివరణను చూపించండి.",
+    "descriptionModeHover": "కర్సర్ పైకి తీసుకెళ్లినప్పుడు",
+    "descriptionModeFull": "పూర్తి టెక్స్ట్",
     "categories": {
       "all": "అన్నీ",
       "security": "భద్రత",

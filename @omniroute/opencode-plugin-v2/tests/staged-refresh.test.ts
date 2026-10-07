@@ -97,7 +97,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as typeof fetch;
   }
 
@@ -226,7 +226,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-ttl", reloads);
@@ -322,7 +322,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       }
       if (href.includes("/api/pricing")) return ok({});
       if (href.includes("/api/free-tier/summary")) return ok({});
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added, ctx } = setupCtx("staged-enrich-down", reloads);
@@ -377,7 +377,7 @@ describe("plugin-v2 staged refresh: optional sources never gate the publish", ()
       if (down) {
         return { ok: false, status: 500, statusText: "Down", json: async () => ({}) };
       }
-      return ok({ data: [{ id: "m1" }] });
+      return ok({ data: [{ id: "m1", capabilities: { tool_calling: true } }] });
     }) as unknown as typeof fetch;
     const reloads = { count: 0 };
     const { added: _addedU, ctx } = setupCtx("staged-unreachable", reloads);

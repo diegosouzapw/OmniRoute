@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy pools and the per-account rotation of opencode stop re-serving a proxy that just failed (refused TCP probe, or a 429 received through it) for a per-process period that doubles on each repeat, up to a cap. No proxy status is written; with every candidate set aside the choice is unchanged. On by default; `false` restores plain selection.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "For providers whose quota is bucketed by egress address, rank a pool member sharing a recently refused member's observed egress address just below healthy members. Order only, never excluded. Needs PROXY_SKIP_RECENTLY_FAILED, which produces the refusal signal it reads. Off by default: selection order is exactly the plain rotation.",
   "featureFlagProxyPoolEgressObservationDescription": "Show, under a proxy pool in the dashboard, how many observed egress IPs served its members over the last 24 h, how many connections used them and the most seen behind one IP. Read-only, computed from the proxy log, never used for routing. Off by default: the pool editor is unchanged and the observation route answers null.",
+  "featureFlagProxyOperatorEgressDescription": "Accept operator-pushed dated observed addresses per pool member and merge them with the journal read for display and pool order. Off by default: the push route answers 404 and pool reads behave exactly as before.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "In the proxy health sweep, let a probe the target refused (401/403/429: the proxy relayed, the destination refused this egress IP) reset the consecutive-failure streak of the proxy, like a served probe. Off by default: a refusal stays neutral and keeps the streak. A 5xx stays inconclusive either way, and a refusal never removes, disables or re-activates a proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Let the automatic cleanup sweep delete terminal (completed/failed/cancelled/expired) Batch API jobs older than OMNIROUTE_BATCH_RETENTION_DAYS, along with their per-line checkpoints, and clear the BLOB content of uploaded files past their own expires_at. Off by default: every existing install keeps this data exactly as before until an operator opts in. The operator-triggered DELETE /api/v1/batches/delete-completed route is unaffected either way -- it is a separate, unconditional public API contract.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Fetch the live xAI model catalog for xai-oauth connections from https://api.x.ai/v1/models using the OAuth bearer token, instead of the frozen static seed. Off by default: xai-oauth keeps serving the static seed unchanged. On any resolution error, discovery falls back to the seed.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Local proxy-core endpoint is invalid; SS/VMess/Trojan/VLESS nodes were ignored.",
         "NEEDS_CORE_NOT_CONFIGURED": "This subscription has nodes that need a local proxy core (SS/VMess/Trojan/VLESS); they are not routed until you configure the local-core SOCKS5 endpoint.",
         "NO_USABLE_NODES": "Subscription yielded no usable nodes (http/https/socks5 or nodes with a local core endpoint).",
-        "SELECTOR_SWITCH_FAILED": "The proxy-core control call failed; the previous route stays active. Check the control URL and secret, then refresh."
+        "SELECTOR_SWITCH_FAILED": "The proxy-core control call failed; the previous route stays active. Check the control URL and secret, then refresh.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "The generated core configuration could not replace the adopted file; the beside copy was kept instead.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Some entries were skipped during generation. See the server log."
       },
       "description": "Paste your proxy subscription link. Once enabled, traffic is routed through the proxy pool in global or rule (specified Provider) mode. Subscription nodes are automatically synced into the proxy pool and reuse existing polling, health-check, and anti-leak mechanisms.",
       "addSubscription": "Add Subscription",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "No switch recorded yet",
       "lastSwitchMember": "Serving member",
       "nextSwitch": "Next switch possible",
-      "nextSwitchNow": "Now"
+      "nextSwitchNow": "Now",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Core binary path",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Optional: verifies the generated file with the core binary before replacing the adopted file. Leave empty to keep writing beside it. The directory is created when missing."
     },
     "bulkHealthcheck": "Bulk Healthcheck",
     "bulkHealthcheckDesc": "Test all configured proxies against a target URL to find which ones work.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "What GET /v1/models advertises for this key. Narrowing the list never changes what the key can call.",
     "catalogScopeAll": "Both",
     "catalogScopeCombos": "Combos only",
-    "catalogScopeModels": "Models only"
+    "catalogScopeModels": "Models only",
+    "resilienceTokenRefreshTitle": "Token Refresh Breaker",
+    "resilienceTokenRefreshDesc": "Stops retrying token refresh after repeated failures. Per-connection scope isolates one dead account so healthy accounts on the same provider keep refreshing.",
+    "resilienceTokenRefreshScope": "Token refresh attempts for one provider",
+    "resilienceTokenRefreshTrigger": "Consecutive failed refresh attempts",
+    "resilienceTokenRefreshEffect": "Pauses refresh attempts for the cooldown",
+    "resilienceTokenRefreshScopeLabel": "Scope",
+    "resilienceTokenRefreshScopeProvider": "Provider (all accounts share one breaker)",
+    "resilienceTokenRefreshScopeConnection": "Connection (each account has its own breaker)",
+    "resilienceTokenRefreshThreshold": "Failures before pausing",
+    "resilienceTokenRefreshCooldown": "Pause after tripping"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11064,6 +11094,7 @@
     "poolEgressFailuresUnattributed": "Failures with no attributed exit: {count}",
     "poolMemberEgress": "{host}:{port} left through {egressIp} · last {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: no traffic observed in the last {hours} h",
+    "poolMemberEgressOperator": "{host}:{port} left through {egressIp} · operator-provided, {date}",
     "poolMemberEgressHint": "Last egress IP observed through this pool member over the window, read from the proxy log. A member with no traffic in the window shows the no-traffic line.",
     "poolRemove": "Remove",
     "poolRemoveFailed": "Failed to remove the proxy from the pool",
@@ -12868,7 +12899,10 @@
     "inheritedPool": "Inherits connection pool ({count})",
     "poolEmptyBlocked": "Pool empty — requests fail (not direct)",
     "directEgress": "Direct (no proxy)",
-    "ownProxy": "Own proxy"
+    "ownProxy": "Own proxy",
+    "freeTierPause": "Model {model} paused (429), back at {time}",
+    "freeTierPauseProvider": "Paused (429), back at {time}",
+    "freeTierPauseNote": "In-process pause on this instance"
   },
   "gamification": {
     "leaderboardScopes": {

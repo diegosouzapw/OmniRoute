@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxypools en de rotatie per account van opencode zorgen ervoor dat een proxy die zojuist is mislukt (geweigerde TCP-probe of een 429 die via de proxy is ontvangen) gedurende een periode per proces niet opnieuw wordt aangeboden. Deze periode verdubbelt bij elke herhaling, tot een maximum. Er wordt geen proxystatus opgeslagen; wanneer elke kandidaat terzijde is geschoven, blijft de keuze ongewijzigd. Standaard ingeschakeld; `false` herstelt de gewone selectie.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Voor providers waarvan het quotum per egress-adres wordt verdeeld, wordt een pool-lid dat het waargenomen egress-adres deelt met een recent geweigerd lid direct onder de gezonde leden gerangschikt. Alleen volgorde, nooit uitgesloten. Vereist PROXY_SKIP_RECENTLY_FAILED, dat het weigeringssignaal produceert dat het leest. Standaard uit: de selectievolgorde is precies de gewone rotatie.",
   "featureFlagProxyPoolEgressObservationDescription": "Toon onder een proxypool in het dashboard hoeveel waargenomen uitgaande IP-adressen de leden ervan in de afgelopen 24 uur hebben gebruikt, hoeveel verbindingen daarvan gebruikmaakten en hoeveel verbindingen maximaal achter één IP zijn waargenomen. Alleen-lezen, berekend op basis van het proxylogboek en nooit gebruikt voor routering. Standaard uitgeschakeld: de pooleditor blijft ongewijzigd en de observatieroute antwoordt met null.",
+  "featureFlagProxyOperatorEgressDescription": "Accepteer operator-pushed gedateerde waargenomen adressen per pool-lid en voeg ze samen met de journaal-lezing voor weergave en poolvolgorde. Uitgeschakeld standaard: de push-route geeft 404 terug en pool-lezingen gedragen zich precies zoals eerder.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Laat bij de proxygezondheidscontrole een probe die door het doel is geweigerd (401/403/429: de proxy heeft doorgestuurd, maar de bestemming heeft dit uitgaande IP-adres geweigerd) de reeks opeenvolgende fouten van de proxy resetten, net als een geslaagde probe. Standaard uitgeschakeld: een weigering blijft neutraal en behoudt de reeks. Een 5xx blijft in beide gevallen onbeslist, en een weigering verwijdert, deactiveert of heractiveert een proxy nooit.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Laat de automatische opschoonactie definitieve (voltooide/mislukte/geannuleerde/verlopen) Batch API-taken verwijderen die ouder zijn dan OMNIROUTE_BATCH_RETENTION_DAYS, samen met hun controlepunten per regel, en laat de BLOB-inhoud wissen van geüploade bestanden waarvan de eigen expires_at is verstreken. Standaard uitgeschakeld: elke bestaande installatie bewaart deze gegevens precies zoals voorheen, totdat een beheerder dit inschakelt. De door de beheerder geactiveerde route DELETE /api/v1/batches/delete-completed wordt in beide gevallen niet beïnvloed; dit is een afzonderlijk, onvoorwaardelijk openbaar API-contract.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Haal voor xai-oauth-verbindingen de actuele xAI-modelcatalogus op van https://api.x.ai/v1/models met behulp van het OAuth-bearertoken, in plaats van de bevroren statische basisset. Standaard uitgeschakeld: xai-oauth blijft de statische basisset ongewijzigd aanbieden. Bij elke fout bij het bepalen van de modellen valt de detectie terug op de basisset.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaal proxy-core-eindpunt is ongeldig; SS/VMess/Trojan/VLESS-nodes zijn genegeerd.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dit abonnement bevat nodes die een lokale proxy-core vereisen (SS/VMess/Trojan/VLESS); ze worden niet gerouteerd totdat u het SOCKS5-eindpunt van de lokale core configureert.",
         "NO_USABLE_NODES": "Abonnement heeft geen bruikbare nodes opgeleverd (http/https/socks5 of nodes met een lokaal core-eindpunt).",
-        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna."
+        "SELECTOR_SWITCH_FAILED": "De besturingsaanroep van de proxy-core is mislukt; de vorige route blijft actief. Controleer de besturings-URL en het geheim en vernieuw daarna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "De gegenereerde kernconfiguratie kon het overgenomen bestand niet vervangen; in plaats daarvan is de ernaast gemaakte kopie behouden.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Sommige items zijn overgeslagen tijdens het genereren. Zie de serverlog."
       },
       "description": "Plak uw proxy-abonnementslink. Eenmaal ingeschakeld, wordt het verkeer door de proxypool gerouteerd in de globale of regelmodus (gespecificeerde provider). Abonnementknooppunten worden automatisch gesynchroniseerd met de proxypool en hergebruiken bestaande polling-, statuscheck- en anti-lekmechanismen.",
       "addSubscription": "Abonnement toevoegen",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Nog geen wisseling vastgelegd",
       "lastSwitchMember": "Bedienend lid",
       "nextSwitch": "Volgende mogelijke wisseling",
-      "nextSwitchNow": "Nu"
+      "nextSwitchNow": "Nu",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pad van kernbinaire bestand",
+      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Wat GET /v1/models voor deze sleutel weergeeft. Het beperken van de lijst verandert nooit welke modellen met de sleutel kunnen worden aangeroepen.",
     "catalogScopeAll": "Beide",
     "catalogScopeCombos": "Alleen combo's",
-    "catalogScopeModels": "Alleen modellen"
+    "catalogScopeModels": "Alleen modellen",
+    "resilienceTokenRefreshTitle": "Tokenvernieuwingsonderbreker",
+    "resilienceTokenRefreshDesc": "Stopt met het opnieuw proberen van tokenvernieuwing na herhaalde mislukkingen. Bereik per verbinding isoleert één dood account, zodat gezonde accounts bij dezelfde aanbieder blijven vernieuwen.",
+    "resilienceTokenRefreshScope": "Pogingen om tokens bij te werken voor één provider",
+    "resilienceTokenRefreshTrigger": "Opeenvolgende mislukte verversingspogingen",
+    "resilienceTokenRefreshEffect": "Pauzeert vernieuwingspogingen tijdens de cooldown",
+    "resilienceTokenRefreshScopeLabel": "Bereik",
+    "resilienceTokenRefreshScopeProvider": "Provider (alle accounts delen één breaker)",
+    "resilienceTokenRefreshScopeConnection": "Verbinding (elk account heeft zijn eigen breaker)",
+    "resilienceTokenRefreshThreshold": "Mislukkingen vóór pauzeren",
+    "resilienceTokenRefreshCooldown": "Pauzeer na het uitschakelen"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Fouten zonder toegewezen uitgang: {count}",
     "poolMemberEgress": "{host}:{port} verliet via {egressIp} · afgelopen {hours} u",
     "poolMemberEgressEmpty": "{host}:{port}: geen verkeer waargenomen in de afgelopen {hours} u",
+    "poolMemberEgressOperator": "{host}:{port} verlaten via {egressIp} · door de operator geleverd, {date}",
     "poolMemberEgressHint": "Het laatste uitgaande IP-adres dat binnen dit tijdsvenster via dit poollid is waargenomen, afgelezen uit het proxylogboek. Voor een lid zonder verkeer binnen het tijdsvenster wordt de regel voor geen verkeer weergegeven.",
     "poolRemove": "Verwijderen",
     "poolRemoveFailed": "Kan de proxy niet uit de pool verwijderen",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Erft verbindingspool ({count})",
     "poolEmptyBlocked": "Pool leeg — verzoeken mislukken (niet direct)",
     "directEgress": "Direct (geen proxy)",
-    "ownProxy": "Eigen proxy"
+    "ownProxy": "Eigen proxy",
+    "freeTierPause": "Model {model} gepauzeerd (429), terug om {time}",
+    "freeTierPauseProvider": "Gepauzeerd (429), terug om {time}",
+    "freeTierPauseNote": "Pauze in proces op deze instantie"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13048,8 +13082,8 @@
     "inactiveCount": "{count} inactief",
     "dbOverrideCount": "{count} DB-overrides",
     "searchPlaceholder": "Flags zoeken...",
-    "descriptionModeLabel": "Beschrijvingweergave",
-    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en wanneer u de aanwijzer op een beschrijving plaatst, wordt de volledige tekst weergegeven. Volledige tekst: toon altijd de complete beschrijving.",
+    "descriptionModeLabel": "Beschrijvingsweergave",
+    "descriptionModeHint": "Bij aanwijzen: kaarten blijven compact en het aanwijzen van een beschrijving toont de volledige tekst. Volledige tekst: toon altijd de volledige beschrijving.",
     "descriptionModeHover": "Bij aanwijzen",
     "descriptionModeFull": "Volledige tekst",
     "categories": {

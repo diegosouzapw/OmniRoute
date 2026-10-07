@@ -163,3 +163,56 @@ export function getOpencodeFreeTierSkipRemainingMs(
   }
   return longest;
 }
+const FREE_TIER_PAUSE_REASON = "Free-tier request refused (429)";
+
+/**
+ * Scan live entries that belong to one provider prefix. An entry belongs to
+ * the prefix when it equals it (provider-wide pause) or continues it after
+ * a newline (model-scoped pause), so `opencode-x` never matches `opencode`.
+ * An empty prefix matches every entry (stored keys are opencode* by
+ * construction of the writer above). Expired entries are dropped lazily,
+ * like `readEntry`. `visit` returns true to stop the scan, false to continue.
+ */
+function scanProviderEntries(
+  prefix: string,
+  now: number,
+  visit: (storedKey: string, until: number) => boolean
+): void {
+  for (const [storedKey, until] of skips) {
+    if (prefix !== "" && storedKey !== prefix && !storedKey.startsWith(`${prefix}\n`)) continue;
+    if (until <= now) {
+      skips.delete(storedKey);
+      continue;
+    }
+    if (visit(storedKey, until)) return;
+  }
+}
+
+/**
+ * Read-only list of the active free-tier pauses: provider, model (null for a
+ * provider-wide pause), pause end as an ISO string, and the refusal motive.
+ * An expired pause reads as absent. Without a provider, every active pause
+ * is listed; a provider outside the opencode family lists nothing.
+ */
+export function listOpencodeFreeTierPauses(
+  provider?: string | null,
+  now: number = Date.now()
+): Array<{ provider: string; model: string | null; until: string; reason: string }> {
+  if (provider !== undefined && provider !== null && !isOpencodeProvider(provider)) return [];
+  const prefix = provider === undefined || provider === null ? "" : String(provider).toLowerCase();
+  const pauses: Array<{ provider: string; model: string | null; until: string; reason: string }> =
+    [];
+  scanProviderEntries(prefix, now, (storedKey, until) => {
+    const cut = storedKey.lastIndexOf("\n");
+    const head = cut === -1 ? storedKey : storedKey.slice(0, cut);
+    if (!isOpencodeProvider(head)) return false;
+    pauses.push({
+      provider: head,
+      model: cut === -1 ? null : normalizeModel(storedKey.slice(cut + 1)),
+      until: new Date(until).toISOString(),
+      reason: FREE_TIER_PAUSE_REASON,
+    });
+    return false;
+  });
+  return pauses;
+}

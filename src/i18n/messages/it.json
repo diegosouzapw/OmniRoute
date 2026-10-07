@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "I pool di proxy e la rotazione per account di opencode smettono temporaneamente di riproporre un proxy che ha appena avuto un errore (sonda TCP rifiutata o risposta 429 ricevuta tramite il proxy) per un periodo per processo che raddoppia a ogni ripetizione, fino a un limite massimo. Non viene registrato alcuno stato del proxy; se tutti i candidati vengono messi da parte, la scelta rimane invariata. Attivato per impostazione predefinita; `false` ripristina la selezione normale.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Per i provider la cui quota è ripartita per indirizzo di egress, colloca un membro del pool che condivide l'indirizzo di egress osservato di un membro rifiutato di recente subito sotto i membri sani. Solo ordinamento, mai escluso. Richiede PROXY_SKIP_RECENTLY_FAILED, che produce il segnale di rifiuto che legge. Disattivato per impostazione predefinita: l'ordine di selezione è esattamente la rotazione semplice.",
   "featureFlagProxyPoolEgressObservationDescription": "Mostra, sotto un pool di proxy nella dashboard, quanti IP di uscita osservati hanno servito i suoi membri nelle ultime 24 ore, quante connessioni li hanno utilizzati e il numero massimo di connessioni osservate dietro un singolo IP. In sola lettura, calcolato dal log dei proxy e mai utilizzato per l'instradamento. Disattivato per impostazione predefinita: l'editor dei pool rimane invariato e la route di osservazione restituisce null.",
+  "featureFlagProxyOperatorEgressDescription": "Accetta gli indirizzi osservati inviati dall'operatore per ogni membro del pool e uniscili alla lettura del registro per la visualizzazione e l'ordinamento del pool. Disattivato per impostazione predefinita: le risposte della route di invio restituiscono 404 e le letture del pool si comportano esattamente come prima.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Durante la scansione dello stato dei proxy, consente a una sonda rifiutata dalla destinazione (401/403/429: il proxy ha inoltrato la richiesta, ma la destinazione ha rifiutato questo IP di uscita) di azzerare la serie di errori consecutivi del proxy, come una sonda completata con successo. Disattivato per impostazione predefinita: un rifiuto rimane neutro e mantiene la serie. Una risposta 5xx rimane inconcludente in entrambi i casi e un rifiuto non rimuove, disabilita o riattiva mai un proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Consenti alla pulizia automatica di eliminare i processi Batch API terminati (completati/non riusciti/annullati/scaduti) più vecchi di OMNIROUTE_BATCH_RETENTION_DAYS, insieme ai relativi checkpoint per riga, e di cancellare il contenuto BLOB dei file caricati che hanno superato il proprio expires_at. Disattivata per impostazione predefinita: ogni installazione esistente conserva questi dati esattamente come prima finché un operatore non abilita l'opzione. La route DELETE /api/v1/batches/delete-completed attivata dall'operatore non è interessata in alcun caso: è un contratto API pubblico distinto e incondizionato.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Recupera il catalogo live dei modelli xAI per le connessioni xai-oauth da https://api.x.ai/v1/models utilizzando il token bearer OAuth, anziché il seed statico invariabile. Disattivata per impostazione predefinita: xai-oauth continua a fornire il seed statico senza modifiche. In caso di errore di risoluzione, il rilevamento ripiega sul seed.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "L'endpoint del core proxy locale non è valido; i nodi SS/VMess/Trojan/VLESS sono stati ignorati.",
         "NEEDS_CORE_NOT_CONFIGURED": "Questa sottoscrizione contiene nodi che richiedono un core proxy locale (SS/VMess/Trojan/VLESS); non verranno instradati finché non configuri l'endpoint SOCKS5 del core locale.",
         "NO_USABLE_NODES": "La sottoscrizione non ha prodotto nodi utilizzabili (http/https/socks5 o nodi con un endpoint del core locale).",
-        "SELECTOR_SWITCH_FAILED": "La chiamata di controllo del proxy-core non è riuscita; il percorso precedente resta attivo. Controlla URL e secret di controllo, quindi aggiorna."
+        "SELECTOR_SWITCH_FAILED": "La chiamata di controllo del proxy-core non è riuscita; il percorso precedente resta attivo. Controlla URL e secret di controllo, quindi aggiorna.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "La configurazione di base generata non ha potuto sostituire il file adottato; è stata mantenuta invece la copia affiancata.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Alcune voci sono state ignorate durante la generazione. Consulta il log del server."
       },
       "description": "Incolla il link di iscrizione al proxy. Una volta abilitato, il traffico viene instradato attraverso il pool proxy in modalità globale o regola (provider specificato). I nodi di sottoscrizione vengono automaticamente sincronizzati nel pool proxy e riutilizzano i meccanismi di polling, controllo dello stato e anti-leak esistenti.",
       "addSubscription": "Aggiungi abbonamento",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Nessun cambio registrato",
       "lastSwitchMember": "Membro in servizio",
       "nextSwitch": "Prossimo cambio possibile",
-      "nextSwitchNow": "Adesso"
+      "nextSwitchNow": "Adesso",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Percorso del binario di base",
+      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Ciò che GET /v1/models mostra per questa chiave. Limitare l'elenco non modifica mai ciò che la chiave può chiamare.",
     "catalogScopeAll": "Entrambi",
     "catalogScopeCombos": "Solo combo",
-    "catalogScopeModels": "Solo modelli"
+    "catalogScopeModels": "Solo modelli",
+    "resilienceTokenRefreshTitle": "Interruttore di aggiornamento token",
+    "resilienceTokenRefreshDesc": "Smette di riprovare ad aggiornare il token dopo ripetuti fallimenti. L'ambito per connessione isola un account morto in modo che gli account sani sullo stesso provider continuino ad aggiornarsi.",
+    "resilienceTokenRefreshScope": "Tentativi di aggiornamento del token per un provider",
+    "resilienceTokenRefreshTrigger": "Tentativi di aggiornamento consecutivi falliti",
+    "resilienceTokenRefreshEffect": "Sospende i tentativi di aggiornamento durante il periodo di attesa",
+    "resilienceTokenRefreshScopeLabel": "Ambito",
+    "resilienceTokenRefreshScopeProvider": "Provider (tutti gli account condividono un unico interruttore)",
+    "resilienceTokenRefreshScopeConnection": "Connessione (ogni account ha il proprio circuit breaker)",
+    "resilienceTokenRefreshThreshold": "Fallimenti prima della pausa",
+    "resilienceTokenRefreshCooldown": "Pausa dopo l'attivazione"
   },
   "contextRtk": {
     "title": "Motore RTK",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Errori senza uscita attribuita: {count}",
     "poolMemberEgress": "{host}:{port} è uscito tramite {egressIp} · ultime {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: nessun traffico osservato nelle ultime {hours} h",
+    "poolMemberEgressOperator": "{host}:{port} ha lasciato attraverso {egressIp} · fornito dall'operatore, {date}",
     "poolMemberEgressHint": "Ultimo IP di uscita osservato tramite questo membro del pool nell'intervallo, rilevato dal log del proxy. Per un membro senza traffico nell'intervallo viene mostrata la riga relativa all'assenza di traffico.",
     "poolRemove": "Rimuovi",
     "poolRemoveFailed": "Impossibile rimuovere il proxy dal pool",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Eredita il pool di connessioni ({count})",
     "poolEmptyBlocked": "Pool vuoto — le richieste falliscono (non diretto)",
     "directEgress": "Diretto (senza proxy)",
-    "ownProxy": "Proxy proprio"
+    "ownProxy": "Proxy proprio",
+    "freeTierPause": "Modello {model} in pausa (429), torna alle {time}",
+    "freeTierPauseProvider": "In pausa (429), torna alle {time}",
+    "freeTierPauseNote": "Pausa in corso su questa istanza"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,7 +13083,7 @@
     "dbOverrideCount": "{count} override del DB",
     "searchPlaceholder": "Cerca flag...",
     "descriptionModeLabel": "Vista descrizione",
-    "descriptionModeHint": "Al passaggio del mouse: le schede rimangono compatte e passando il mouse su una descrizione viene mostrato il testo completo. Testo completo: mostra sempre la descrizione completa.",
+    "descriptionModeHint": "Al passaggio del mouse: le schede restano compatte e il passaggio del mouse su una descrizione mostra il testo completo. Testo completo: mostra sempre la descrizione intera.",
     "descriptionModeHover": "Al passaggio del mouse",
     "descriptionModeFull": "Testo completo",
     "categories": {

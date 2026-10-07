@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy ਪੂਲ ਅਤੇ opencode ਦੀ ਪ੍ਰਤੀ-ਖਾਤਾ ਰੋਟੇਸ਼ਨ ਉਸ Proxy ਨੂੰ ਮੁੜ ਵਰਤਣਾ ਬੰਦ ਕਰ ਦਿੰਦੇ ਹਨ ਜੋ ਹੁਣੇ ਅਸਫਲ ਹੋਇਆ ਹੈ (TCP ਪ੍ਰੋਬ ਅਸਵੀਕਾਰ ਹੋਈ, ਜਾਂ ਇਸ ਰਾਹੀਂ 429 ਮਿਲਿਆ), ਇੱਕ ਪ੍ਰਤੀ-ਪ੍ਰਕਿਰਿਆ ਮਿਆਦ ਲਈ ਜੋ ਹਰ ਦੁਹਰਾਅ ਨਾਲ ਦੁੱਗਣੀ ਹੁੰਦੀ ਹੈ, ਇੱਕ ਅਧਿਕਤਮ ਹੱਦ ਤੱਕ। ਕੋਈ Proxy ਸਥਿਤੀ ਲਿਖੀ ਨਹੀਂ ਜਾਂਦੀ; ਹਰ ਉਮੀਦਵਾਰ ਨੂੰ ਪਾਸੇ ਰੱਖਣ ’ਤੇ ਚੋਣ ਬਦਲਦੀ ਨਹੀਂ ਹੈ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਚਾਲੂ; `false` ਸਧਾਰਨ ਚੋਣ ਨੂੰ ਬਹਾਲ ਕਰਦਾ ਹੈ।",
   "featureFlagProxyPoolSharedEgressOrderDescription": "ਜਿਨ੍ਹਾਂ ਪ੍ਰਦਾਤਾਵਾਂ ਦਾ ਕੋਟਾ egress ਪਤੇ ਅਨੁਸਾਰ ਵੰਡਿਆ ਜਾਂਦਾ ਹੈ, ਉਨ੍ਹਾਂ ਲਈ ਹਾਲ ਹੀ ਵਿੱਚ ਰੱਦ ਕੀਤੇ ਮੈਂਬਰ ਦਾ ਦੇਖਿਆ ਗਿਆ egress ਪਤਾ ਸਾਂਝਾ ਕਰਨ ਵਾਲੇ pool ਮੈਂਬਰ ਨੂੰ ਤੰਦਰੁਸਤ ਮੈਂਬਰਾਂ ਦੇ ਬਿਲਕੁਲ ਹੇਠਾਂ ਰੱਖਦਾ ਹੈ। ਸਿਰਫ਼ ਕ੍ਰਮ, ਕਦੇ ਵੀ ਬਾਹਰ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ। PROXY_SKIP_RECENTLY_FAILED ਲੋੜੀਂਦਾ ਹੈ, ਜੋ ਉਹ ਰੱਦ ਸੰਕੇਤ ਪੈਦਾ ਕਰਦਾ ਹੈ ਜੋ ਇਹ ਪੜ੍ਹਦਾ ਹੈ। ਡਿਫ਼ਾਲਟ ਰੂਪ ਵਿੱਚ ਬੰਦ: ਚੋਣ ਕ੍ਰਮ ਬਿਲਕੁਲ ਸਧਾਰਨ ਰੋਟੇਸ਼ਨ ਹੈ।",
   "featureFlagProxyPoolEgressObservationDescription": "ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਕਿਸੇ Proxy ਪੂਲ ਹੇਠ ਦਿਖਾਓ ਕਿ ਪਿਛਲੇ 24 ਘੰਟਿਆਂ ਦੌਰਾਨ ਕਿੰਨੇ ਦੇਖੇ ਗਏ egress IPs ਨੇ ਇਸ ਦੇ ਮੈਂਬਰਾਂ ਨੂੰ ਸੇਵਾ ਦਿੱਤੀ, ਕਿੰਨੇ ਕਨੈਕਸ਼ਨਾਂ ਨੇ ਉਨ੍ਹਾਂ ਨੂੰ ਵਰਤਿਆ ਅਤੇ ਇੱਕ IP ਦੇ ਪਿੱਛੇ ਸਭ ਤੋਂ ਵੱਧ ਕਿੰਨੇ ਦੇਖੇ ਗਏ। ਕੇਵਲ ਪੜ੍ਹਨਯੋਗ, Proxy ਲੌਗ ਤੋਂ ਗਣਨਾ ਕੀਤੀ ਗਈ, ਰੂਟਿੰਗ ਲਈ ਕਦੇ ਨਹੀਂ ਵਰਤੀ ਜਾਂਦੀ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ: ਪੂਲ ਸੰਪਾਦਕ ਬਦਲਦਾ ਨਹੀਂ ਹੈ ਅਤੇ ਨਿਰੀਖਣ ਰੂਟ null ਜਵਾਬ ਦਿੰਦਾ ਹੈ।",
+  "featureFlagProxyOperatorEgressDescription": "ਪ੍ਰਤੀ ਪੂਲ ਮੈਂਬਰ ਓਪਰੇਟਰ-ਪੁਸ਼ ਕੀਤੇ ਤਾਰੀਖ ਵਾਲੇ ਨਿਰੀਖਤ ਐਡਰੈਸਾਂ ਨੂੰ ਸਵੀਕਾਰ ਕਰੋ ਅਤੇ ਜਰਨਲ ਰੀਡ ਨਾਲ ਮਿਲਾਓ ਅਤੇ ਪ੍ਰਦਰਸ਼ਨ ਅਤੇ ਪੂਲ ਆਰਡਰ ਲਈ। ਡਿਫਾਲਟ ਤੌਰ 'ਤੇ ਬੰਦ: ਪੁਸ਼ ਰਾਊਟ 404 ਦੇ ਜਵਾਬ ਦਿੰਦਾ ਹੈ ਅਤੇ ਪੂਲ ਰੀਡਜ਼ ਪਹਿਲਾਂ ਵਾਲੇ ਵਿਚਾਰ ਵਾਲੇ ਵਿਚ ਕੰਮ ਕਰਦੇ ਹਨ।",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy ਸਿਹਤ ਜਾਂਚ ਵਿੱਚ, ਟਾਰਗੇਟ ਵੱਲੋਂ ਅਸਵੀਕਾਰ ਕੀਤੀ ਪ੍ਰੋਬ (401/403/429: Proxy ਨੇ ਅੱਗੇ ਭੇਜਿਆ, ਮੰਜ਼ਿਲ ਨੇ ਇਸ egress IP ਨੂੰ ਅਸਵੀਕਾਰ ਕੀਤਾ) ਨੂੰ, ਸਫਲਤਾਪੂਰਵਕ ਸੇਵਾ ਕੀਤੀ ਪ੍ਰੋਬ ਵਾਂਗ, Proxy ਦੀ ਲਗਾਤਾਰ ਅਸਫਲਤਾ ਲੜੀ ਰੀਸੈੱਟ ਕਰਨ ਦਿਓ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ: ਅਸਵੀਕਾਰਤਾ ਨਿਰਪੱਖ ਰਹਿੰਦੀ ਹੈ ਅਤੇ ਲੜੀ ਨੂੰ ਕਾਇਮ ਰੱਖਦੀ ਹੈ। 5xx ਦੋਵਾਂ ਹਾਲਤਾਂ ਵਿੱਚ ਅਨਿਰਣਾਇਕ ਰਹਿੰਦਾ ਹੈ, ਅਤੇ ਅਸਵੀਕਾਰਤਾ ਕਦੇ ਵੀ ਕਿਸੇ Proxy ਨੂੰ ਹਟਾਉਂਦੀ, ਅਯੋਗ ਜਾਂ ਮੁੜ ਸਰਗਰਮ ਨਹੀਂ ਕਰਦੀ।",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "ਆਟੋਮੈਟਿਕ ਕਲੀਨਅੱਪ ਸਵੀਪ ਨੂੰ OMNIROUTE_BATCH_RETENTION_DAYS ਤੋਂ ਪੁਰਾਣੀਆਂ ਟਰਮੀਨਲ (ਪੂਰੀਆਂ/ਅਸਫਲ/ਰੱਦ/ਮਿਆਦ ਪੁੱਗੀਆਂ) Batch API ਜੌਬਾਂ ਨੂੰ, ਉਨ੍ਹਾਂ ਦੇ ਪ੍ਰਤੀ-ਲਾਈਨ ਚੈਕਪੌਇੰਟਾਂ ਸਮੇਤ, ਮਿਟਾਉਣ ਦਿਓ ਅਤੇ ਆਪਣੀ expires_at ਮਿਆਦ ਲੰਘਾ ਚੁੱਕੀਆਂ ਅੱਪਲੋਡ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਦੀ BLOB ਸਮੱਗਰੀ ਸਾਫ਼ ਕਰੋ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ: ਜਦੋਂ ਤੱਕ ਕੋਈ ਓਪਰੇਟਰ ਇਸਨੂੰ ਚਾਲੂ ਕਰਨ ਦੀ ਚੋਣ ਨਹੀਂ ਕਰਦਾ, ਹਰ ਮੌਜੂਦਾ ਇੰਸਟਾਲੇਸ਼ਨ ਇਹ ਡਾਟਾ ਬਿਲਕੁਲ ਪਹਿਲਾਂ ਵਾਂਗ ਹੀ ਰੱਖਦੀ ਹੈ। ਓਪਰੇਟਰ ਵੱਲੋਂ ਸ਼ੁਰੂ ਕੀਤਾ ਗਿਆ DELETE /api/v1/batches/delete-completed ਰੂਟ ਦੋਵਾਂ ਹਾਲਤਾਂ ਵਿੱਚ ਪ੍ਰਭਾਵਿਤ ਨਹੀਂ ਹੁੰਦਾ — ਇਹ ਇੱਕ ਵੱਖਰਾ, ਬਿਨਾਂ ਸ਼ਰਤ ਵਾਲਾ ਜਨਤਕ API ਇਕਰਾਰਨਾਮਾ ਹੈ।",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "ਸਥਿਰ ਸਟੈਟਿਕ ਸੀਡ ਦੀ ਬਜਾਏ, OAuth ਬੇਅਰਰ ਟੋਕਨ ਦੀ ਵਰਤੋਂ ਕਰਕੇ https://api.x.ai/v1/models ਤੋਂ xai-oauth ਕਨੈਕਸ਼ਨਾਂ ਲਈ ਲਾਈਵ xAI ਮਾਡਲ ਕੈਟਾਲਾਗ ਪ੍ਰਾਪਤ ਕਰੋ। ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ: xai-oauth ਬਿਨਾਂ ਕਿਸੇ ਬਦਲਾਅ ਦੇ ਸਟੈਟਿਕ ਸੀਡ ਹੀ ਪ੍ਰਦਾਨ ਕਰਦਾ ਰਹਿੰਦਾ ਹੈ। ਕਿਸੇ ਵੀ ਰਿਜ਼ੋਲਿਊਸ਼ਨ ਗਲਤੀ ਉੱਤੇ, ਡਿਸਕਵਰੀ ਮੁੜ ਸੀਡ ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ।",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ਲੋਕਲ proxy-core ਐਂਡਪੁਆਇੰਟ ਅਵੈਧ ਹੈ; SS/VMess/Trojan/VLESS ਨੋਡਾਂ ਨੂੰ ਅਣਡਿੱਠਾ ਕੀਤਾ ਗਿਆ।",
         "NEEDS_CORE_NOT_CONFIGURED": "ਇਸ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਵਿੱਚ ਅਜਿਹੇ ਨੋਡ ਹਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਲੋਕਲ ਪ੍ਰੌਕਸੀ ਕੋਰ (SS/VMess/Trojan/VLESS) ਦੀ ਲੋੜ ਹੈ; ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ local-core SOCKS5 ਐਂਡਪੁਆਇੰਟ ਕੌਂਫਿਗਰ ਨਹੀਂ ਕਰਦੇ, ਉਹ ਰੂਟ ਨਹੀਂ ਕੀਤੇ ਜਾਣਗੇ।",
         "NO_USABLE_NODES": "ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਤੋਂ ਕੋਈ ਵਰਤੋਂਯੋਗ ਨੋਡ ਨਹੀਂ ਮਿਲਿਆ (http/https/socks5 ਜਾਂ ਲੋਕਲ ਕੋਰ ਐਂਡਪੁਆਇੰਟ ਵਾਲੇ ਨੋਡ)।",
-        "SELECTOR_SWITCH_FAILED": "ਪ੍ਰੌਕਸੀ-ਕੋਰ ਕੰਟਰੋਲ ਕਾਲ ਅਸਫਲ ਰਹੀ; ਪਿਛਲਾ ਰਸਤਾ ਸਰਗਰਮ ਰਹਿੰਦਾ ਹੈ। ਕੰਟਰੋਲ URL ਅਤੇ ਸੀਕਰੇਟ ਜਾਂਚੋ, ਫਿਰ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ।"
+        "SELECTOR_SWITCH_FAILED": "ਪ੍ਰੌਕਸੀ-ਕੋਰ ਕੰਟਰੋਲ ਕਾਲ ਅਸਫਲ ਰਹੀ; ਪਿਛਲਾ ਰਸਤਾ ਸਰਗਰਮ ਰਹਿੰਦਾ ਹੈ। ਕੰਟਰੋਲ URL ਅਤੇ ਸੀਕਰੇਟ ਜਾਂਚੋ, ਫਿਰ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ।",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ਬਣਾਈ ਗਈ ਕੋਰ ਕੌਂਫ਼ਿਗਰੇਸ਼ਨ ਅਪਣਾਈ ਗਈ ਫ਼ਾਈਲ ਨੂੰ ਬਦਲ ਨਹੀਂ ਸਕੀ; ਇਸ ਦੀ ਬਜਾਏ ਉਸ ਦੇ ਨਾਲ ਵਾਲੀ ਕਾਪੀ ਰੱਖੀ ਗਈ।",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ਉਤਪਾਦਨ ਦੌਰਾਨ ਕੁਝ ਐਂਟਰੀਆਂ ਛੱਡ ਦਿੱਤੀਆਂ ਗਈਆਂ। ਸਰਵਰ ਲਾਗ ਵੇਖੋ।"
       },
       "description": "ਆਪਣਾ ਪ੍ਰੌਕਸੀ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਲਿੰਕ ਪੇਸਟ ਕਰੋ। ਸਮਰੱਥ ਹੋਣ ਤੋਂ ਬਾਅਦ, ਟ੍ਰੈਫਿਕ ਨੂੰ ਗਲੋਬਲ ਜਾਂ ਨਿਯਮ (ਨਿਰਧਾਰਤ Provider) ਮੋਡ ਵਿੱਚ ਪ੍ਰੌਕਸੀ ਪੂਲ ਰਾਹੀਂ ਰੂਟ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਨੋਡ ਆਪਣੇ ਆਪ ਪ੍ਰੌਕਸੀ ਪੂਲ ਵਿੱਚ ਸਿੰਕ ਹੋ ਜਾਂਦੇ ਹਨ ਅਤੇ ਮੌਜੂਦਾ ਪੋਲਿੰਗ, ਸਿਹਤ-ਜਾਂਚ ਅਤੇ ਐਂਟੀ-ਲੀਕ ਵਿਧੀਆਂ ਦੀ ਮੁੜ ਵਰਤੋਂ ਕਰਦੇ ਹਨ।",
       "addSubscription": "ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਜੋੜੋ",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "ਅਜੇ ਕੋਈ ਬਦਲਾਅ ਦਰਜ ਨਹੀਂ",
       "lastSwitchMember": "ਸੇਵਾ ਕਰ ਰਿਹਾ ਮੈਂਬਰ",
       "nextSwitch": "ਅਗਲਾ ਸੰਭਵ ਬਦਲਾਅ",
-      "nextSwitchNow": "ਹੁਣੇ"
+      "nextSwitchNow": "ਹੁਣੇ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "ਕੋਰ ਬਾਈਨਰੀ ਪਾਥ",
+      "coreBinaryPathHelp": "ਵਿਕਲਪਿਕ: ਅਪਣਾਈ ਗਈ ਫ਼ਾਈਲ ਨੂੰ ਬਦਲਣ ਤੋਂ ਪਹਿਲਾਂ ਕੋਰ ਬਾਈਨਰੀ ਨਾਲ ਬਣਾਈ ਗਈ ਫ਼ਾਈਲ ਦੀ ਪੁਸ਼ਟੀ ਕਰਦਾ ਹੈ। ਇਸ ਦੇ ਨਾਲ ਹੀ ਲਿਖਦੇ ਰਹਿਣ ਲਈ ਖਾਲੀ ਛੱਡੋ। ਮੌਜੂਦ ਨਾ ਹੋਣ 'ਤੇ ਡਾਇਰੈਕਟਰੀ ਬਣਾ ਦਿੱਤੀ ਜਾਂਦੀ ਹੈ।",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "ਸਮੂਹਿਕ ਸਿਹਤ ਜਾਂਚ",
     "bulkHealthcheckDesc": "ਇਹ ਪਤਾ ਲਗਾਉਣ ਲਈ ਕਿ ਕਿਹੜੇ ਕੰਮ ਕਰਦੇ ਹਨ, ਸਾਰੇ ਕੌਂਫਿਗਰ ਕੀਤੇ ਪ੍ਰੌਕਸੀ ਇੱਕ ਟਾਰਗੇਟ URL ਨਾਲ ਟੈਸਟ ਕਰੋ।",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "ਇਸ ਕੁੰਜੀ ਲਈ GET /v1/models ਕੀ ਦਰਸਾਉਂਦਾ ਹੈ। ਸੂਚੀ ਨੂੰ ਸੀਮਤ ਕਰਨ ਨਾਲ ਇਹ ਕਦੇ ਨਹੀਂ ਬਦਲਦਾ ਕਿ ਕੁੰਜੀ ਕਿਹੜੇ ਮਾਡਲ ਨੂੰ ਕਾਲ ਕਰ ਸਕਦੀ ਹੈ।",
     "catalogScopeAll": "ਦੋਵੇਂ",
     "catalogScopeCombos": "ਸਿਰਫ਼ ਕੌਂਬੋ",
-    "catalogScopeModels": "ਸਿਰਫ਼ ਮਾਡਲ"
+    "catalogScopeModels": "ਸਿਰਫ਼ ਮਾਡਲ",
+    "resilienceTokenRefreshTitle": "ਟੋਕਨ ਰਿਫਰੈਸ਼ ਬ੍ਰੇਕਰ",
+    "resilienceTokenRefreshDesc": "ਲਗਾਤਾਰ ਅਸਫਲਤਾਵਾਂ ਤੋਂ ਬਾਅਦ ਟੋਕਨ ਰੀਫ੍ਰੈਸ਼ ਦੀ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਨਾ ਬੰਦ ਕਰ ਦਿੰਦਾ ਹੈ। ਪ੍ਰਤੀ-ਕਨੈਕਸ਼ਨ ਸਕੋਪ ਇੱਕ ਮਰੇ ਹੋਏ ਖਾਤੇ ਨੂੰ ਵੱਖ ਕਰਦਾ ਹੈ, ਤਾਂ ਜੋ ਉਸੇ ਪ੍ਰੋਵਾਈਡਰ 'ਤੇ ਸਿਹਤਮੰਦ ਖਾਤੇ ਰੀਫ੍ਰੈਸ਼ ਹੁੰਦੇ ਰਹਿਣ।",
+    "resilienceTokenRefreshScope": "ਇੱਕ ਪ੍ਰੋਵਾਈਡਰ ਲਈ ਟੋਕਨ ਰੀਫ੍ਰੈਸ਼ ਦੀਆਂ ਕੋਸ਼ਿਸ਼ਾਂ",
+    "resilienceTokenRefreshTrigger": "ਲਗਾਤਾਰ ਅਸਫਲ ਰੀਫ੍ਰੈਸ਼ ਕੋਸ਼ਿਸ਼ਾਂ",
+    "resilienceTokenRefreshEffect": "ਕੂਲਡਾਊਨ ਲਈ ਰਿਫਰੇਸ਼ ਕੋਸ਼ਿਸ਼ਾਂ ਨੂੰ ਰੋਕਦਾ ਹੈ",
+    "resilienceTokenRefreshScopeLabel": "ਦਾਇਰਾ",
+    "resilienceTokenRefreshScopeProvider": "ਪ੍ਰੋਵਾਈਡਰ (ਸਾਰੇ ਖਾਤੇ ਇੱਕ ਬ੍ਰੇਕਰ ਸਾਂਝਾ ਕਰਦੇ ਹਨ)",
+    "resilienceTokenRefreshScopeConnection": "ਕਨੈਕਸ਼ਨ (ਹਰ ਖਾਤੇ ਦਾ ਆਪਣਾ ਬ੍ਰੇਕਰ ਹੈ)",
+    "resilienceTokenRefreshThreshold": "ਰੋਕਣ ਤੋਂ ਪਹਿਲਾਂ ਅਸਫਲਤਾਵਾਂ",
+    "resilienceTokenRefreshCooldown": "ਟ੍ਰਿੱਪ ਹੋਣ ਤੋਂ ਬਾਅਦ ਵਿਰਾਮ ਦਿਓ"
   },
   "contextRtk": {
     "title": "RTK ਇੰਜਣ",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "ਨਿਰਧਾਰਤ ਐਗਜ਼ਿਟ ਤੋਂ ਬਿਨਾਂ ਅਸਫਲਤਾਵਾਂ: {count}",
     "poolMemberEgress": "{host}:{port} ਤੋਂ {egressIp} ਰਾਹੀਂ ਟ੍ਰੈਫ਼ਿਕ ਬਾਹਰ ਗਿਆ · ਪਿਛਲੇ {hours} ਘੰਟੇ",
     "poolMemberEgressEmpty": "{host}:{port}: ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਦੇਖਿਆ ਗਿਆ",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} ਤੋਂ ਬਾਹਰ ਨਿਕਲ ਗਿਆ · ਓਪਰੇਟਰ-ਪ੍ਰਦਾਤਾ, {date}",
     "poolMemberEgressHint": "ਇਸ ਸਮਾਂ-ਅੰਤਰਾਲ ਦੌਰਾਨ ਇਸ ਪੂਲ ਮੈਂਬਰ ਰਾਹੀਂ ਦੇਖਿਆ ਗਿਆ ਆਖਰੀ ਐਗਰੈੱਸ IP, ਜੋ ਪ੍ਰੌਕਸੀ ਲੌਗ ਤੋਂ ਪੜ੍ਹਿਆ ਗਿਆ ਹੈ। ਜਿਸ ਮੈਂਬਰ ਲਈ ਇਸ ਸਮਾਂ-ਅੰਤਰਾਲ ਵਿੱਚ ਕੋਈ ਟ੍ਰੈਫ਼ਿਕ ਨਹੀਂ ਹੈ, ਉਸ ਲਈ ਟ੍ਰੈਫ਼ਿਕ ਨਾ ਹੋਣ ਵਾਲੀ ਲਾਈਨ ਦਿਖਾਈ ਜਾਂਦੀ ਹੈ।",
     "poolRemove": "ਹਟਾਓ",
     "poolRemoveFailed": "ਪੂਲ ਵਿੱਚੋਂ ਪ੍ਰੌਕਸੀ ਹਟਾਉਣ ਵਿੱਚ ਅਸਫਲ",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "ਕਨੈਕਸ਼ਨ ਪੂਲ ਵਿਰਾਸਤ ({count})",
     "poolEmptyBlocked": "ਪੂਲ ਖਾਲੀ — ਬੇਨਤੀਆਂ ਅਸਫਲ (ਸਿੱਧਾ ਨਹੀਂ)",
     "directEgress": "ਸਿੱਧਾ (ਬਿਨਾਂ ਪ੍ਰੌਕਸੀ)",
-    "ownProxy": "ਆਪਣੀ ਪ੍ਰੌਕਸੀ"
+    "ownProxy": "ਆਪਣੀ ਪ੍ਰੌਕਸੀ",
+    "freeTierPause": "ਮਾਡਲ {model} ਰੋਕਿਆ ਗਿਆ (429), {time} ਨੂੰ ਵਾਪਸ ਆਵੇਗਾ",
+    "freeTierPauseProvider": "ਰੋਕਿਆ ਗਿਆ (429), {time} ਨੂੰ ਵਾਪਸ ਆਵੇਗਾ",
+    "freeTierPauseNote": "ਇਸ ਇੰਸਟੰਸ 'ਤੇ ਪ੍ਰੋਸੈਸ ਅੰਦਰਲੀ ਰੁਕਾਵਟ"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,9 +13083,9 @@
     "dbOverrideCount": "{count} DB ਓਵਰਰਾਈਡ",
     "searchPlaceholder": "ਫਲੈਗ ਖੋਜੋ...",
     "descriptionModeLabel": "ਵੇਰਵਾ ਦ੍ਰਿਸ਼",
-    "descriptionModeHint": "ਹੋਵਰ ਕਰਨ 'ਤੇ: ਕਾਰਡ ਸੰਖੇਪ ਰਹਿੰਦੇ ਹਨ ਅਤੇ ਵੇਰਵੇ ਉੱਤੇ ਹੋਵਰ ਕਰਨ ਨਾਲ ਪੂਰਾ ਟੈਕਸਟ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ। ਪੂਰਾ ਟੈਕਸਟ: ਹਮੇਸ਼ਾਂ ਪੂਰਾ ਵੇਰਵਾ ਦਿਖਾਓ।",
+    "descriptionModeHint": "ਹੋਵਰ ਕਰਨ 'ਤੇ: ਕਾਰਡ ਛੋਟੇ ਰਹਿੰਦੇ ਹਨ ਅਤੇ ਕਿਸੇ ਵੇਰਵੇ ਉੱਤੇ ਹੋਵਰ ਕਰਨ ਨਾਲ ਪੂਰਾ ਪਾਠ ਦਿਖਦਾ ਹੈ। ਪੂਰਾ ਪਾਠ: ਵੇਰਵਾ ਹਮੇਸ਼ਾ ਪੂਰਾ ਦਿਖਾਓ।",
     "descriptionModeHover": "ਹੋਵਰ ਕਰਨ 'ਤੇ",
-    "descriptionModeFull": "ਪੂਰਾ ਟੈਕਸਟ",
+    "descriptionModeFull": "ਪੂਰਾ ਪਾਠ",
     "categories": {
       "all": "ਸਾਰੇ",
       "security": "ਸੁਰੱਖਿਆ",

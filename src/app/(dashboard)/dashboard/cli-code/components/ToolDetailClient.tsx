@@ -243,6 +243,7 @@ export default function ToolDetailClient({ toolId, category }: ToolDetailClientP
     hasActiveProviders,
     cloudEnabled,
     availableModels,
+    catalog: dynamicModels,
   };
 
   const renderCard = () => {

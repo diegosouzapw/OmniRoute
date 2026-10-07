@@ -1,0 +1,1 @@
+- **feat(proxy):** Add `OMNIROUTE_UPSTREAM_HTTP2_ENABLED=false` to force HTTP/1.1 on Undici direct, HTTP(S)/SOCKS proxy, relay, and retry dispatchers without disabling certificate verification. HTTP/2 remains enabled by default (#15318; closes #15313).

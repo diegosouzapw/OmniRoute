@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proksi-pullar va opencode’ning har bir hisob bo‘yicha aylantirish mexanizmi hozirgina ishlamay qolgan proksini (TCP tekshiruvini rad etgan yoki u orqali 429 javobi olingan) har bir jarayon uchun takroriy urinish sayin ikki baravar oshib, belgilangan chegaragacha yetadigan muddat davomida qayta taqdim etmaydi. Proksi holati yozib qo‘yilmaydi; barcha nomzodlar chetga surilsa, tanlov o‘zgarmaydi. Standart holatda yoqilgan; `false` oddiy tanlovni tiklaydi.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Kvotasi egress manziliga ko‘ra taqsimlanadigan provayderlar uchun yaqinda rad etilgan a’zoning kuzatilgan egress manzilini baham ko‘radigan pool a’zosini sog‘lom a’zolardan darhol pastga joylashtiradi. Faqat tartib, hech qachon chiqarib tashlanmaydi. U o‘qiydigan rad signalini hosil qiluvchi PROXY_SKIP_RECENTLY_FAILED talab qilinadi. Standart bo‘yicha o‘chiq: tanlash tartibi aynan oddiy rotatsiya.",
   "featureFlagProxyPoolEgressObservationDescription": "Boshqaruv panelida proksi-pul ostida so‘nggi 24 soat ichida uning a’zolariga nechta kuzatilgan chiquvchi IP xizmat ko‘rsatgani, ulardan nechta ulanish foydalangani va bitta IP ortida eng ko‘p nechta a’zo kuzatilganini ko‘rsating. Faqat o‘qish uchun mo‘ljallangan, proksi jurnalidan hisoblanadi va yo‘naltirish uchun hech qachon ishlatilmaydi. Standart holatda o‘chiq: pul muharriri o‘zgarmaydi va kuzatuv marshruti null javobini qaytaradi.",
+  "featureFlagProxyOperatorEgressDescription": "Har bir pool a'zosi uchun operator tomonidan push qilingan sanalangan kuzatilayotgan manzillarni qabul qiling va ularni ko'rsatish va pool tartibini uchun jurnal o'qish bilan birlashtiring. O'choz holatda: push yo'li 404 xatosini qaytaradi va pool o'qishlari oldingi kabi ishlaydi.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proksi holatini tekshirish jarayonida maqsad rad etgan tekshiruv (401/403/429: proksi uzatdi, manzil esa ushbu chiquvchi IP’ni rad etdi) muvaffaqiyatli xizmat ko‘rsatilgan tekshiruv kabi proksining ketma-ket muvaffaqiyatsizliklar hisoblagichini tiklashiga ruxsat bering. Standart holatda o‘chiq: rad etish neytral bo‘lib qoladi va hisoblagichni saqlaydi. 5xx har ikki holatda ham noaniq bo‘lib qoladi, rad etish esa proksini hech qachon olib tashlamaydi, o‘chirib qo‘ymaydi yoki qayta faollashtirmaydi.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Avtomatik tozalash jarayoniga OMNIROUTE_BATCH_RETENTION_DAYS muddatidan eski yakuniy holatdagi (completed/failed/cancelled/expired) Batch API vazifalarini ularning har bir qator uchun nazorat nuqtalari bilan birga oʻchirishga va oʻz expires_at muddatidan oʻtgan yuklangan fayllarning BLOB tarkibini tozalashga ruxsat bering. Odatiy holatda oʻchiq: operator bu imkoniyatni yoqmaguncha, barcha mavjud oʻrnatishlarda bu maʼlumotlar avvalgidek saqlanadi. Operator ishga tushiradigan DELETE /api/v1/batches/delete-completed marshrutiga bundan qatʼi nazar taʼsir qilinmaydi — u alohida, shartsiz ommaviy API shartnomasidir.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "xai-oauth ulanishlari uchun statik, oʻzgarmas boshlangʻich roʻyxat oʻrniga OAuth bearer tokenidan foydalanib https://api.x.ai/v1/models manzilidan amaldagi xAI modellar katalogini oling. Odatiy holatda oʻchiq: xai-oauth statik boshlangʻich roʻyxatni oʻzgartirmasdan taqdim etishda davom etadi. Aniqlashda har qanday xatolik yuz bersa, tizim statik boshlangʻich roʻyxatga qaytadi.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Mahalliy proxy-core endpoint noto‘g‘ri; SS/VMess/Trojan/VLESS tugunlari e’tiborga olinmadi.",
         "NEEDS_CORE_NOT_CONFIGURED": "Bu obunada mahalliy proksi yadrosini talab qiladigan tugunlar mavjud (SS/VMess/Trojan/VLESS); mahalliy yadro uchun SOCKS5 endpoint sozlanmaguncha ular orqali trafik yo‘naltirilmaydi.",
         "NO_USABLE_NODES": "Obunada foydalanish mumkin bo‘lgan tugunlar topilmadi (http/https/socks5 yoki mahalliy yadro endpointiga ega tugunlar).",
-        "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang."
+        "SELECTOR_SWITCH_FAILED": "Proxy-core boshqaruv chaqiruvi bajarilmadi; avvalgi marshrut faol qoladi. Boshqaruv URL va sirrini tekshirib, yangilang.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Yaratilgan asosiy konfiguratsiya qabul qilingan faylni almashtira olmadi; o'rniga yonidagi nusxa saqlanib qoldi.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Ba'zi yozuvlar yaratish davomida tashlab yuborildi. Server jurnaliga qarang."
       },
       "description": "Proksi obunangiz havolasini kiriting. Yoqilgach, trafik global yoki qoida (belgilangan Provider) rejimida proksi havzasi orqali yo‘naltiriladi. Obuna tugunlari avtomatik ravishda proksi havzasiga sinxronlanadi hamda mavjud davriy so‘rov, ishlash holatini tekshirish va sizib chiqishga qarshi mexanizmlardan foydalanadi.",
       "addSubscription": "Obuna qo‘shish",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Hali qayd etilgan o'tish yo'q",
       "lastSwitchMember": "Xizmat ko'rsatuvchi a'zo",
       "nextSwitch": "Keyingi mumkin bo'lgan o'tish",
-      "nextSwitchNow": "Hozir"
+      "nextSwitchNow": "Hozir",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Asosiy binar fayl yo'li",
+      "coreBinaryPathHelp": "Ixtiyoriy: almashtirishdan oldin yaratilgan faylni asosiy binar fayl bilan tekshiradi. Yonida yozishda davom etish uchun bo'sh qoldiring. Katalog mavjud bo'lmasa yaratiladi.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "GET /v1/models ushbu kalit uchun nimalarni koʻrsatishi. Roʻyxatni qisqartirish kalit qaysi modellarni chaqira olishiga taʼsir qilmaydi.",
     "catalogScopeAll": "Ikkalasi ham",
     "catalogScopeCombos": "Faqat kombinatsiyalar",
-    "catalogScopeModels": "Faqat modellar"
+    "catalogScopeModels": "Faqat modellar",
+    "resilienceTokenRefreshTitle": "Token yangilash uzgichi",
+    "resilienceTokenRefreshDesc": "Bir necha marta muvaffaqiyatsizlikdan so'ng tokenni yangilash urinishlarini to'xtatadi. Ulanish doirasi bitta o'lik hisobni ajratib turadi, shu provayderdagi sog'lom hisoblar yangilanishda davom etishi uchun.",
+    "resilienceTokenRefreshScope": "Bir ta'minotchi uchun token yangilash urinishlari",
+    "resilienceTokenRefreshTrigger": "Ketma-ket muvaffaqiyatsiz yangilash urinishlari",
+    "resilienceTokenRefreshEffect": "Sovutish davri davomida yangilash urinishlarini to'xtatadi",
+    "resilienceTokenRefreshScopeLabel": "Qamrov",
+    "resilienceTokenRefreshScopeProvider": "Taʼminotchi (barcha hisoblar bitta kesgichni ulashadi)",
+    "resilienceTokenRefreshScopeConnection": "Ulanish (har bir hisobning o'z uzgichi bor)",
+    "resilienceTokenRefreshThreshold": "To'xtatishdan oldingi xatolar",
+    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza"
   },
   "contextRtk": {
     "title": "RTK mexanizmi",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Chiqishi aniqlanmagan nosozliklar: {count}",
     "poolMemberEgress": "{host}:{port} {egressIp} orqali chiqdi · so‘nggi {hours} soat",
     "poolMemberEgressEmpty": "{host}:{port}: so‘nggi {hours} soat ichida trafik kuzatilmadi",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} orqali o'tgan · operator tomonidan taqdim etilgan, {date}",
     "poolMemberEgressHint": "Belgilangan vaqt oralig‘ida ushbu pul a’zosi orqali kuzatilgan oxirgi chiquvchi IP manzil, proksi jurnalidan o‘qilgan. Bu vaqt oralig‘ida trafik bo‘lmagan a’zo uchun trafik yo‘qligi haqidagi qator ko‘rsatiladi.",
     "poolRemove": "Olib tashlash",
     "poolRemoveFailed": "Proksini puldan olib tashlab bo‘lmadi",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Ulanishlar hovuzini meros oladi ({count})",
     "poolEmptyBlocked": "Hovuz bo‘sh — so‘rovlar muvaffaqiyatsiz (to‘g‘ridan-to‘g‘ri emas)",
     "directEgress": "To‘g‘ridan-to‘g‘ri (proksisiz)",
-    "ownProxy": "Shaxsiy proksi"
+    "ownProxy": "Shaxsiy proksi",
+    "freeTierPause": "{model} modeli to'xtatildi (429), {time} da qaytadi",
+    "freeTierPauseProvider": "To'xtatildi (429), {time} da qaytadi",
+    "freeTierPauseNote": "Ushbu instance ichidagi jarayonni to‘xtatish"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13048,10 +13082,10 @@
     "inactiveCount": "{count} ta faol emas",
     "dbOverrideCount": "{count} ta DB ustuvor sozlamasi",
     "searchPlaceholder": "Bayroqlarni qidirish...",
-    "descriptionModeLabel": "Tavsif ko‘rinishi",
-    "descriptionModeHint": "Kursor olib borilganda: kartalar ixchamligicha qoladi va tavsif ustiga kursor olib borilganda to‘liq matn ko‘rsatiladi. To‘liq matn: har doim tavsifni to‘liq ko‘rsatadi.",
-    "descriptionModeHover": "Kursor olib borilganda",
-    "descriptionModeFull": "To‘liq matn",
+    "descriptionModeLabel": "Tavsif ko'rinishi",
+    "descriptionModeHint": "Sichqoncha ustiga olinganda: kartalar ixcham qoladi va tavsif ustiga olinganda to'liq matn ko'rsatiladi. To'liq matn: har doim to'liq tavsifni ko'rsating.",
+    "descriptionModeHover": "Sichqoncha ustiga olinganda",
+    "descriptionModeFull": "To'liq matn",
     "categories": {
       "all": "Barchasi",
       "security": "Xavfsizlik",

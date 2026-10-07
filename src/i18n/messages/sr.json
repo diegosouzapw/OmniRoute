@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Прокси скупови и ротација по налогу у opencode престају да поново користе прокси који је управо отказао (одбијена TCP провера или одговор 429 примљен преко њега) током периода на нивоу процеса који се удвостручује при сваком понављању, до задате горње границе. Статус проксија се не уписује; када су сви кандидати издвојени, избор остаје непромењен. Подразумевано је укључено; `false` враћа обичан избор.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "За провајдере чија се квота расподељује по излазној (egress) адреси, рангира члана pool-а који дели уочену egress адресу недавно одбијеног члана одмах испод здравих чланова. Само редослед, никада искључење. Захтева PROXY_SKIP_RECENTLY_FAILED, који производи сигнал одбијања који чита. Подразумевано искључено: редослед избора је тачно обична ротација.",
   "featureFlagProxyPoolEgressObservationDescription": "У контролној табли, испод прокси скупа, прикажите колико је уочених излазних IP адреса опслуживало његове чланове током последња 24 ч, колико веза их је користило и највећи број веза забележен иза једне IP адресе. Само за читање, израчунава се из евиденције проксија и никада се не користи за усмеравање. Подразумевано је искључено: уређивач скупа остаје непромењен, а рута за посматрање враћа null.",
+  "featureFlagProxyOperatorEgressDescription": "Прими оператор-пушене дате набљудене адресе по члану поула и спој их са читањем дневника за приказ и редослед поула. Исключено по подразумеваној вредности: пут пуштања одговара 404, а читање поула понаша се тачно као раније.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "У провери исправности проксија омогућите да провера коју је циљ одбио (401/403/429: прокси је проследио захтев, а одредиште је одбило ову излазну IP адресу) ресетује низ узастопних неуспеха проксија, као и успешно опслужена провера. Подразумевано је искључено: одбијање остаје неутрално и задржава низ. Одговор 5xx у оба случаја остаје неодређен, а одбијање никада не уклања, не онемогућава нити поново активира прокси.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Дозволи аутоматском чишћењу да избрише завршене (успешне/неуспешне/отказане/истекле) Batch API послове старије од вредности OMNIROUTE_BATCH_RETENTION_DAYS, заједно са њиховим контролним тачкама по редовима, и да обрише BLOB садржај отпремљених датотека након њиховог сопственог expires_at. Подразумевано је искључено: свака постојећа инсталација наставља да чува ове податке потпуно исто као раније док оператер не омогући ову опцију. Рута DELETE /api/v1/batches/delete-completed коју покреће оператер ни у једном случају није погођена — она представља засебан, безуслован уговор јавног API-ја.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Преузимај актуелни каталог xAI модела за xai-oauth везе са https://api.x.ai/v1/models користећи OAuth токен носиоца, уместо замрзнутог статичког почетног скупа. Подразумевано је искључено: xai-oauth наставља да без измена користи статички почетни скуп. Ако дође до било какве грешке при разрешавању, откривање се враћа на почетни скуп.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Локална крајња тачка за proxy-core није важећа; SS/VMess/Trojan/VLESS чворови су игнорисани.",
         "NEEDS_CORE_NOT_CONFIGURED": "Ова претплата садржи чворове који захтевају локално proxy језгро (SS/VMess/Trojan/VLESS); они се не рутирају док не подесите локалну SOCKS5 крајњу тачку језгра.",
         "NO_USABLE_NODES": "Претплата није дала употребљиве чворове (http/https/socks5 или чворове са локалном крајњом тачком језгра).",
-        "SELECTOR_SWITCH_FAILED": "Управљачки позив proxy-core-а није успео; претходна рута остаје активна. Проверите управљачки URL и тајну, па освежите."
+        "SELECTOR_SWITCH_FAILED": "Управљачки позив proxy-core-а није успео; претходна рута остаје активна. Проверите управљачки URL и тајну, па освежите.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Генерисана основна конфигурација није могла да замени усвојену датотеку; уместо тога, сачувана је копија поред ње.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Неке ставке су прескочене приликом генерисања. Погледајте серверски лог."
       },
       "description": "Налепите везу за прокси претплату. Када се активира, саобраћај се рутира кроз прокси пул у глобалном режиму или режиму правила (одабрани провајдер). Чворови из претплате се аутоматски синхронизују у прокси пул и користе постојеће механизме циклирања, провере исправности и заштите од цурења.",
       "addSubscription": "Додај претплату",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Још нема евидентираног пребацивања",
       "lastSwitchMember": "Члан који опслужује",
       "nextSwitch": "Следеће могуће пребацивање",
-      "nextSwitchNow": "Сада"
+      "nextSwitchNow": "Сада",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Путања основног бинарног фајла",
+      "coreBinaryPathHelp": "Опционално: провера генерисане датотеке основним бинарним фајлом пре замене усвојене датотеке. Оставите празно да се и даље пише поред ње. Директоријум се ствара ако не постоји.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Масовна провера исправности",
     "bulkHealthcheckDesc": "Тестирајте све конфигурисане проксије на циљном URL-у да бисте открили који раде.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Шта GET /v1/models приказује за овај кључ. Сужавање листе никада не мења шта кључ може да позове.",
     "catalogScopeAll": "Оба",
     "catalogScopeCombos": "Само комбинације",
-    "catalogScopeModels": "Само модели"
+    "catalogScopeModels": "Само модели",
+    "resilienceTokenRefreshTitle": "Прекидач освежавања токена",
+    "resilienceTokenRefreshDesc": "Зауставља поновљене покушаје освежавања токена после више неуспеха. Обим per-connection изолира један мртви налог, тако да здрави налози код истог провајдера настављају да се освежавају.",
+    "resilienceTokenRefreshScope": "Покушаји освежавања токена за једног провајдера",
+    "resilienceTokenRefreshTrigger": "Узастопни неуспели покушаји освежавања",
+    "resilienceTokenRefreshEffect": "Привремено заустава покушаје освежавања током периода хлађења",
+    "resilienceTokenRefreshScopeLabel": "Област",
+    "resilienceTokenRefreshScopeProvider": "Провајдер (сви налогови деле један прекидач)",
+    "resilienceTokenRefreshScopeConnection": "Веза (сваки налог има свој прекидач)",
+    "resilienceTokenRefreshThreshold": "Неуспеси пре паузирања",
+    "resilienceTokenRefreshCooldown": "Пауза после активирања"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Неуспеси без приписаног излаза: {count}",
     "poolMemberEgress": "{host}:{port} је излазио преко {egressIp} · последњих {hours} ч",
     "poolMemberEgressEmpty": "{host}:{port}: није забележен саобраћај у последњих {hours} ч",
+    "poolMemberEgressOperator": "{host}:{port} оставио кроз {egressIp} · предостављено оператором, {date}",
     "poolMemberEgressHint": "Последња излазна IP адреса забележена преко овог члана скупа током датог периода, прочитана из евиденције проксија. За члана без саобраћаја у том периоду приказује се порука да нема саобраћаја.",
     "poolRemove": "Уклони",
     "poolRemoveFailed": "Уклањање проксија из групе није успело",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Наслеђује базен веза ({count})",
     "poolEmptyBlocked": "Базен празан — захтеви не успевају (не директно)",
     "directEgress": "Директно (без проксија)",
-    "ownProxy": "Сопствени прокси"
+    "ownProxy": "Сопствени прокси",
+    "freeTierPause": "Модел {model} паузиран (429), назад у {time}",
+    "freeTierPauseProvider": "Паузирано (429), назад у {time}",
+    "freeTierPauseNote": "Пауза у процесу на овој инстанци"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,8 +13083,8 @@
     "dbOverrideCount": "{count} прегажених вредности у DB",
     "searchPlaceholder": "Претражите ознаке...",
     "descriptionModeLabel": "Приказ описа",
-    "descriptionModeHint": "При преласку курсором: картице остају сажете, а прелазак курсором преко описа приказује цео текст. Цео текст: увек приказује комплетан опис.",
-    "descriptionModeHover": "При преласку курсором",
+    "descriptionModeHint": "При лежењу миша: картице остају мале, а лежење миша над описом приказује цео текст. Цео текст: увек прикажи комплетан опис.",
+    "descriptionModeHover": "При лежењу миша",
     "descriptionModeFull": "Цео текст",
     "categories": {
       "all": "Све",

@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Makundi ya proksi na uzungushaji wa kila akaunti wa opencode huacha kutumia tena proksi iliyoshindwa hivi punde (jaribio la TCP lilikataliwa, au 429 ilipokelewa kupitia proksi hiyo) kwa kipindi maalumu kwa kila mchakato, ambacho huongezeka maradufu kila kushindwa kunaporudiwa, hadi kikomo fulani. Hakuna hali ya proksi inayoandikwa; kila chaguo linalowezekana likiwekwa kando, uteuzi hubaki bila kubadilika. Imewashwa kwa chaguo-msingi; `false` hurejesha uteuzi wa kawaida.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Kwa watoa huduma ambao mgao wao hugawanywa kwa anwani ya egress, humweka mwanachama wa pool anayeshiriki anwani ya egress iliyoonekana ya mwanachama aliyekataliwa hivi karibuni chini kidogo ya wanachama wenye afya. Mpangilio tu, kamwe haondolewi. Inahitaji PROXY_SKIP_RECENTLY_FAILED, ambayo huzalisha ishara ya kukataliwa inayoisoma. Imezimwa kwa chaguomsingi: mpangilio wa uteuzi ni mzunguko wa kawaida kabisa.",
   "featureFlagProxyPoolEgressObservationDescription": "Onyesha, chini ya kundi la proksi kwenye dashibodi, idadi ya anwani za IP za kutoka zilizozingatiwa ambazo zilitumiwa na wanachama wake katika saa 24 zilizopita, idadi ya miunganisho iliyozitumia, na idadi kubwa zaidi iliyoonekana nyuma ya anwani moja ya IP. Ni ya kusoma pekee, huhesabiwa kutoka kwenye kumbukumbu ya proksi, na haitumiki kamwe kuelekeza trafiki. Imezimwa kwa chaguo-msingi: kihariri cha kundi hakibadiliki na njia ya uchunguzi hujibu null.",
+  "featureFlagProxyOperatorEgressDescription": "Kubali anwani zilizochunguliwa zilizo na tarehe ambazo mwenye operesheni amezisambaza kwa kila mwanachama wa hifadhi, na uziunganishe na usomaji wa jarida kwa ajili ya maonyesho na mpangilio wa hifadhi. Imefungwa kwa chaguo-msingi: njia ya kusambaza inajibu 404, na usomaji wa hifadhi unatenda kama ilivyokuwa hapo awali.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Katika ukaguzi wa afya ya proksi, ruhusu jaribio lililokataliwa na lengwa (401/403/429: proksi ilisambaza ombi, lakini lengwa lilikataa anwani hii ya IP ya kutoka) liweke upya mfululizo wa kushindwa kwa proksi, kama jaribio lililohudumiwa. Imezimwa kwa chaguo-msingi: kukataliwa hubaki bila upande na hudumisha mfululizo huo. 5xx hubaki bila hitimisho kwa vyovyote vile, na kukataliwa kamwe hakuondoi, hakuzima wala kuwezesha tena proksi.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Ruhusu usafishaji wa kiotomatiki ufute kazi za Batch API zilizo katika hali ya mwisho (zilizokamilika/zilizoshindwa/zilizoghairiwa/zilizopitwa na muda) ambazo ni za zamani kuliko OMNIROUTE_BATCH_RETENTION_DAYS, pamoja na vituo vyake vya ukaguzi vya kila mstari, na ufute maudhui ya BLOB ya faili zilizopakiwa ambazo muda wake wa expires_at umepita. Huzimwa kwa chaguo-msingi: kila usakinishaji uliopo utaendelea kuhifadhi data hii kama hapo awali hadi mwendeshaji atakapochagua kuwasha kipengele hiki. Njia ya DELETE /api/v1/batches/delete-completed inayoanzishwa na mwendeshaji haiathiriwi kwa vyovyote vile — ni mkataba tofauti wa API ya umma usio na masharti.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Leta katalogi ya moja kwa moja ya modeli za xAI kwa miunganisho ya xai-oauth kutoka https://api.x.ai/v1/models ukitumia tokeni ya OAuth bearer, badala ya data tuli ya mwanzo isiyobadilika. Huzimwa kwa chaguo-msingi: xai-oauth huendelea kutoa data tuli ya mwanzo bila mabadiliko. Hitilafu yoyote ya utatuzi ikitokea, ugunduzi hurudi kutumia data ya mwanzo.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Mwisho wa proxy-core ya ndani si halali; nodi za SS/VMess/Trojan/VLESS zilipuuzwa.",
         "NEEDS_CORE_NOT_CONFIGURED": "Usajili huu una nodi zinazohitaji proxy core ya ndani (SS/VMess/Trojan/VLESS); hazitaelekezwa hadi usanidi mwisho wa SOCKS5 wa local-core.",
         "NO_USABLE_NODES": "Usajili haukutoa nodi zozote zinazoweza kutumika (http/https/socks5 au nodi zilizo na mwisho wa local core).",
-        "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya."
+        "SELECTOR_SWITCH_FAILED": "Mwito wa kudhibiti wa proxy-core umeshindwa; njia iliyotangulia inaendelea kufanya kazi. Angalia URL na siri ya kudhibiti, kisha onyesha upya.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Mwesti uliozalishwa wa msingi haukuweza kubadilisha faili iliyotumika; badala yake nakala iliyo karibu nayo ilihifadhiwa.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Baadhi ya maingilio hayakuengwa wakati wa kuzalisha. Angalia kumbukumbu za seva."
       },
       "description": "Bandika kiungo cha usajili wako wa wakala. Mara baada ya kuwezeshwa, trafiki hupitishwa kupitia hifadhi ya seva mbadala katika hali ya kimataifa au sheria (Mtoa huduma aliyebainishwa). Nodi za usajili husawazishwa kiotomatiki kwenye hifadhi ya seva mbadala na kutumia tena mbinu zilizopo za upigaji kura, ukaguzi wa afya na kuzuia kuvuja.",
       "addSubscription": "Ongeza Usajili",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Hakuna mabadiliko yaliyorekodiwa bado",
       "lastSwitchMember": "Mwanachama anayehudumu",
       "nextSwitch": "Mabadiliko yajayo yanayowezekana",
-      "nextSwitchNow": "Sasa"
+      "nextSwitchNow": "Sasa",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Njia ya kiunzi cha msingi",
+      "coreBinaryPathHelp": "Hiari: huthibitisha faili iliyozalishwa kwa kiunzi cha msingi kabla ya kubadilisha faili iliyotumika. IACHE wazi ili kuendelea kuandika iliyo karibu nayo. Faili la husika hufunguliwa likitokuwepo.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Ukaguzi wa Afya kwa Wingi",
     "bulkHealthcheckDesc": "Jaribu proksi zote zilizosanidiwa dhidi ya URL lengwa ili kubaini zinazofanya kazi.",
@@ -8453,7 +8473,17 @@
     "catalogScopeDesc": "Kile ambacho GET /v1/models hutangaza kwa ufunguo huu. Kupunguza orodha hakubadilishi kamwe kile ambacho ufunguo unaweza kuita.",
     "catalogScopeAll": "Zote mbili",
     "catalogScopeCombos": "Mijumuisho pekee",
-    "catalogScopeModels": "Modeli pekee"
+    "catalogScopeModels": "Modeli pekee",
+    "resilienceTokenRefreshTitle": "Kikata cha Kusasisha Tokeni",
+    "resilienceTokenRefreshDesc": "Inasimisha majaribio ya kusasisha tokeni baada ya kushindwa mara kwa mara. Upeo wa kwa muunganisho hutenganisha akaunti moisha ili akaunti zenye afya kwa mtoaji ule ule ziendelee kusasishwa.",
+    "resilienceTokenRefreshScope": "Majaribio ya kusasisha tokeni kwa mtoaji mmoja",
+    "resilienceTokenRefreshTrigger": "Majaribio mfululizo yaliyoshindwa ya kusasisha",
+    "resilienceTokenRefreshEffect": "Inasimamisha majaribio ya kusasisha wakati wa kipindi cha kugandisha",
+    "resilienceTokenRefreshScopeLabel": "Upeo",
+    "resilienceTokenRefreshScopeProvider": "Mtoaji (akaunti zote zinashiriki kipochi kimoja)",
+    "resilienceTokenRefreshScopeConnection": "Muunganisho (kila akaunti ina kipochi chake cha kuzima)",
+    "resilienceTokenRefreshThreshold": "Kushindwa kabla ya kusimamisha",
+    "resilienceTokenRefreshCooldown": "Mapumziko baada ya kuamilishwa"
   },
   "contextRtk": {
     "title": "Injini ya RTK",
@@ -11063,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Hitilafu bila njia ya kutoka iliyohusishwa: {count}",
     "poolMemberEgress": "{host}:{port} ilitoka kupitia {egressIp} · saa {hours} zilizopita",
     "poolMemberEgressEmpty": "{host}:{port}: hakuna trafiki iliyoonekana katika saa {hours} zilizopita",
+    "poolMemberEgressOperator": "{host}:{port} zimetoka kupitia {egressIp} · zimetolewa na mwenye operesheni, {date}",
     "poolMemberEgressHint": "IP ya mwisho ya kutoka iliyoonekana kupitia mshiriki huyu wa kundi katika kipindi hiki, ikisomwa kutoka kwenye logi ya proksi. Mshiriki asiye na trafiki katika kipindi hicho huonyesha mstari wa kutokuwepo kwa trafiki.",
     "poolRemove": "Ondoa",
     "poolRemoveFailed": "Imeshindwa kuondoa proksi kwenye dimbwi",
@@ -12867,7 +12898,10 @@
     "inheritedPool": "Inarithi dimbwi la miunganisho ({count})",
     "poolEmptyBlocked": "Dimbwi tupu — maombi yanashindwa (siyo moja kwa moja)",
     "directEgress": "Moja kwa moja (bila proksi)",
-    "ownProxy": "Proksi yako"
+    "ownProxy": "Proksi yako",
+    "freeTierPause": "Modeli {model} imesimamishwa (429), itarudi {time}",
+    "freeTierPauseProvider": "Imesisitishwa (429), itarudi saa {time}",
+    "freeTierPauseNote": "Susamisho la mchakato katika mfano huu"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13049,9 +13083,9 @@
     "dbOverrideCount": "Ubatilishaji {count} wa DB",
     "searchPlaceholder": "Tafuta bendera...",
     "descriptionModeLabel": "Mwonekano wa maelezo",
-    "descriptionModeHint": "Unapoelea juu: kadi hubaki fupi na kuelea juu ya maelezo huonyesha maandishi yote. Maandishi yote: huonyesha maelezo kamili kila wakati.",
-    "descriptionModeHover": "Unapoelea juu",
-    "descriptionModeFull": "Maandishi yote",
+    "descriptionModeHint": "Ukipita: kadi hubaki fupi na kupita juu ya maelezo huonyesha maandishi kamili. Maandishi kamili: onyesha maelezo yote daima.",
+    "descriptionModeHover": "Ukipita juu",
+    "descriptionModeFull": "Maandishi kamili",
     "categories": {
       "all": "Zote",
       "security": "Usalama",
