@@ -41,6 +41,7 @@ permissions:
 
 jobs:
   prepare:
+    if: github.repository == 'diegosouzapw/OmniRoute'
     name: Resolve Docker release metadata
     runs-on: ubuntu-latest
     outputs:

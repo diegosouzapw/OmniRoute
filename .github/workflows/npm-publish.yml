@@ -57,6 +57,7 @@ env:
 
 jobs:
   publish:
+    if: github.repository == 'diegosouzapw/OmniRoute'
     # Same dynamic-runner rule as ci.yml's `build`/`test-unit`: `build:cli` falls back to a
     # full `next build`, whose working set outgrew the 16 GB hosted runner during the
     # v3.8.49 cycle — the publish died with "The runner has received a shutdown signal"

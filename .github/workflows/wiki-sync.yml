@@ -33,6 +33,7 @@ concurrency:
 
 jobs:
   sync-wiki:
+    if: github.repository == 'diegosouzapw/OmniRoute'
     name: Sync wiki with docs
     runs-on: ubuntu-latest
     steps:

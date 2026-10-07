@@ -12,7 +12,8 @@ permissions:
 jobs:
   deploy:
     if: >-
-      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      github.repository == 'diegosouzapw/OmniRoute'
+      && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
       && vars.DEPLOY_ENABLED == 'true'
     name: Deploy OmniRoute to VPS
     runs-on: ubuntu-latest
