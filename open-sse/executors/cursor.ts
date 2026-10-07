@@ -375,6 +375,21 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
   return ctx;
 }
 
+export function ctxProducedSignal(ctx: StreamCtx): boolean {
+  return (
+    ctx.receivedText ||
+    ctx.thinkingText.length > 0 ||
+    // A tool call only counts as usable signal if it carried arguments. cursor
+    // truncates tool calls under load (finish_reason:"tool_calls" with
+    // arguments:"" and 0 completion tokens); treating a bare name as signal let
+    // that empty turn finalize into a clean 200 the quality gate passes, and the
+    // client then can't execute the argument-less call. Empty argumentsJson ===
+    // no usable content, so the hop fails over instead.
+    ctx.toolCalls.some((tc) => tc.argumentsJson && tc.argumentsJson.trim().length > 0) ||
+    ctx.tokenDelta > 0
+  );
+}
+
 function emitChunk(ctx: StreamCtx, delta: object, finishReason: string | null = null) {
   const payload = {
     id: ctx.responseId,
@@ -1405,6 +1420,20 @@ export class CursorExecutor extends BaseExecutor {
         } else {
           hadFailure = true;
           break;
+        }
+      }
+      // Extra: the translator's converted `<tool_result>` user-message shape
+      // carries results that never appear as role:"tool" messages, so the
+      // loop above never sees them. Send any that are still pending.
+      if (!hadFailure) {
+        for (const { toolCallId, result } of convertedToolResults) {
+          if (!session.pendingToolCalls.has(toolCallId)) continue;
+          if (cursorSessionManager.sendToolResult(session, toolCallId, result, false)) {
+            matched++;
+          } else {
+            hadFailure = true;
+            break;
+          }
         }
       }
       debugLog(`[cursor-agent] resume matched=${matched} failed=${hadFailure}`);
