@@ -75,6 +75,37 @@ test("malformed JSON cannot enable import", async () => {
   );
 });
 
+test("camel-case refresh token is previewed and file replacement is disabled during import", async () => {
+  let complete!: (response: Response) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          complete = resolve;
+        })
+    )
+  );
+  show();
+  upload({
+    accounts: [
+      {
+        email: "camel@example.com",
+        token: { accessToken: "test-access", refreshToken: "test-refresh" },
+      },
+    ],
+  });
+  await screen.findByText("camel@example.com");
+  expect(screen.getByText("yes")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: /Import 1 account/ }));
+  expect(screen.getByRole("button", { name: /Choose.*file/i }).hasAttribute("disabled")).toBe(true);
+  complete(Response.json({ success: true, imported: 1, failed: 0, total: 1 }));
+  await screen.findByText(/Imported 1\/1/);
+  expect(screen.getByRole("button", { name: /Choose.*file/i }).hasAttribute("disabled")).toBe(
+    false
+  );
+});
+
 test("closing clears account preview before reopening", async () => {
   const view = show();
   upload({ accounts: [{ email: "clear@example.com", token: { access_token: "test-one" } }] });

@@ -75,6 +75,41 @@ test("rejects empty and oversized account arrays", async () => {
   );
 });
 
+test("rejects oversized bodies with or without a declared content length", async () => {
+  for (const declared of [false, true]) {
+    const headers = new Headers({ "Content-Type": "application/json" });
+    const body = JSON.stringify({ padding: "x".repeat(5 * 1024 * 1024) });
+    if (declared) headers.set("Content-Length", String(Buffer.byteLength(body)));
+    const response = await route.POST(
+      new Request("http://localhost/api/oauth/antigravity/import-export", {
+        method: "POST",
+        headers,
+        body,
+      }),
+      { params: Promise.resolve({ provider: "antigravity" }) }
+    );
+    assert.equal(response.status, 413);
+  }
+});
+
+test("verified identity must match the export email before persistence", async () => {
+  await withFakeUpstream(async () => {
+    const before = (await providersDb.getProviderConnections({ provider: "antigravity" })).length;
+    const result = await (
+      await post("antigravity", {
+        email: "different@example.com",
+        token: { access_token: "test-stale-access", refresh_token: "test-refresh" },
+      })
+    ).json();
+    assert.equal(result.imported, 0);
+    assert.equal(result.failed, 1);
+    assert.equal(
+      (await providersDb.getProviderConnections({ provider: "antigravity" })).length,
+      before
+    );
+  });
+});
+
 test("invalid and mismatched records return partial failure without credentials", async () => {
   const response = await post("antigravity", {
     accounts: [{ provider: "codex", access_token: "test-secret-not-for-response" }, {}],

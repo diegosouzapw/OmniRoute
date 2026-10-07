@@ -6,6 +6,10 @@ import { PASTE_CREDENTIAL_PROVIDERS } from "@/lib/oauth/pasteCredentials";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { normalizeImportRecord } from "@/lib/oauth/accountExport";
 import { ANTIGRAVITY_CONFIG } from "@/lib/oauth/constants/oauth";
+import {
+  readRequestBodyWithLimit,
+  RequestBodyTooLargeError,
+} from "@/shared/middleware/bodySizeGuard";
 
 /**
  * Access tokens in third-party manager exports are usually stale — Google
@@ -101,8 +105,16 @@ export async function POST(
 
   let rawBody: unknown;
   try {
-    rawBody = await request.json();
-  } catch {
+    rawBody = JSON.parse(
+      new TextDecoder().decode(await readRequestBodyWithLimit(request, 5 * 1024 * 1024))
+    );
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { error: "Account export exceeds the 5 MiB limit" },
+        { status: 413 }
+      );
+    }
     return NextResponse.json({ error: "Invalid or empty JSON body" }, { status: 400 });
   }
 

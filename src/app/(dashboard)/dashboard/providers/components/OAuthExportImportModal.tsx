@@ -53,7 +53,8 @@ function accountEmail(account: Record<string, unknown>): string {
 
 function accountHasRefreshToken(account: Record<string, unknown>): boolean {
   const token = (account.token as Record<string, unknown> | undefined) ?? account;
-  return typeof token.refresh_token === "string" && token.refresh_token.length > 0;
+  const refreshToken = token.refresh_token ?? token.refreshToken;
+  return typeof refreshToken === "string" && refreshToken.length > 0;
 }
 
 /** Label for the preview table: the export's own provider field if present. */
@@ -267,6 +268,7 @@ export function OAuthExportImportModal({
             size="sm"
             variant="secondary"
             icon="upload_file"
+            disabled={importing}
             onClick={() => fileInputRef.current?.click()}
           >
             {t("oauthExportChoose")}
