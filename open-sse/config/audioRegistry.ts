@@ -36,6 +36,16 @@ export interface AudioProvider {
 }
 
 export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
+  gemini: {
+    id: "gemini",
+    baseUrl:
+      "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
+    format: "gemini-live",
+    models: [{ id: "gemini-3.5-transcribe-live", name: "Gemini 3.5 Transcribe Live" }],
+  },
+
   vertex: {
     id: "vertex",
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
