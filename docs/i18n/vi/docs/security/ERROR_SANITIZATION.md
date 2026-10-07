@@ -134,7 +134,41 @@ const safe = String(err).split("\n")[0];
 - `sanitizeErrorMessage` xử lý an toàn các đầu vào là `null`/`undefined`/instance của `Error`.
 - `buildErrorBody` không bao giờ để lộ stack trace trong trường `message`.
 
-Khi thêm route hoặc executor mới, hãy sao chép mẫu assertion từ tệp này. Cổng kiểm soát độ bao phủ (`npm run test:coverage`) yêu cầu ≥60% đối với câu lệnh/dòng/hàm/nhánh — các đường dẫn lỗi phải được kiểm thử.
+Khi thêm route hoặc executor mới, hãy sao chép mẫu assertion từ file này. Ngưỡng phạm vi kiểm thử (`npm run test:coverage`) yêu cầu ≥60% đối với statements/lines/functions/branches — các nhánh lỗi phải được kiểm thử.
+
+### Cổng kiểm tra tĩnh: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` quét `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` và mọi `src/app/api/**/route.ts` để tìm lỗi thô đã được bắt (`err.message` / `err.stack`) hoặc `body.error.message` thô từ upstream được đưa vào body trả về cho client.
+
+**Mức độ tin cậy được xác định theo từng lời gọi, không bao giờ theo toàn bộ file** (G-03, #15159). Trước đây, cổng kiểm tra bỏ qua toàn bộ file ngay khi thấy bất kỳ import nào từ đường dẫn `utils/error` — một ngoại lệ ở phạm vi file được áp dụng cho một rủi ro ở phạm vi lời gọi. Một `import { sanitizeErrorMessage }` hợp lệ sẽ miễn kiểm tra vĩnh viễn cho mọi sink khác trong file, và đó là lý do một lỗi rò rỉ thực tế đã vượt qua kiểm tra. Giờ đây, một dòng chỉ được tin cậy khi nó thực sự đi qua builder hoặc sanitizer được phê duyệt:
+
+| Dạng dòng                                                                                               | Được tin cậy?       |
+| ------------------------------------------------------------------------------------------------------- | ------------------- |
+| gọi `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …       | có                  |
+| gọi một builder chuẩn **mà file này import** từ `open-sse/utils/error` hoặc `src/lib/api/errorResponse` | có                  |
+| một builder được phê duyệt được gọi trên **nhiều dòng**, nên trường `message:` nằm ở dòng sau           | có                  |
+| gọi `function errorResponse(...)` cục bộ trong file mà phần thân của nó thực hiện làm sạch              | có                  |
+| chuyển tiếp `err.message` / `err.stack` ở bất kỳ nơi nào khác                                           | **không — vi phạm** |
+
+Hai hệ quả cần biết:
+
+- Việc import `errorResponse` _không_ đồng nghĩa với tin cậy toàn bộ. Một file tự định nghĩa `errorResponse` vẫn bị gắn cờ tại vị trí gọi, vì cổng kiểm tra xác định mức độ tin cậy theo từng symbol, không phải theo từng file. Điều tương tự cũng áp dụng cho `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` theo sau bởi `error: body.error.message` là cách viết **đã được làm sạch** được sử dụng trong các executor `*-fetch.ts` và không bị gắn cờ.
+
+Cả hai module builder được phê duyệt đều được tính: `open-sse/utils/error.ts` và `src/lib/api/errorResponse.ts`. Module thứ hai được khoảng 54 route handler bên ngoài `open-sse` sử dụng, và nó làm sạch cả hai export của mình.
+
+Hai dạng sau **không** phải là vi phạm, dù trước đây cổng kiểm tra từng báo cáo chúng là lỗi rò rỉ:
+
+- lỗi thô bên trong một **bản ghi audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, hoặc một logger nhận message trước (`log.error("BATCHES", "sweep failed", { error: err.message })`). Response trả về cho client ở các dòng tiếp theo hoàn toàn có thể là một `buildErrorBody` tĩnh.
+- lời gọi builder được phê duyệt trên **nhiều dòng**, trong đó trường `message:` hoàn toàn không nêu tên builder:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` đóng băng các vi phạm tồn tại từ trước để cổng kiểm tra chỉ chặn các vi phạm _mới_. `assertNoStale` tự động loại bỏ một mục sau khi vi phạm tương ứng được sửa, vì vậy danh sách đóng băng không thể trở nên cứng nhắc. Các cơ chế bảo vệ chống hồi quy: `tests/unit/check-error-helper.test.ts` và `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Các biện pháp kiểm soát liên quan
 
