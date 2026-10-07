@@ -470,8 +470,7 @@ geïnjecteerd in plaats van de Engelse.
 Bij een body met `messages` controleert een inhoudsbypass (`shouldBypassCavemanOutputMode()` in
 `open-sse/services/compression/outputMode.ts`) de laatste drie berichten en slaat
 de stijlen voor de hele beurt over wanneer deze overeenkomen met trefwoorden voor beveiliging,
-onomkeerbare acties, verduidelijking of volgordegevoeligheid. De bypass wordt uitgevoerd volgens de instelling van
-de schakelaar **Automatische duidelijkheidsbypass** (`cavemanOutputMode.autoClarity`) in het dashboard.
+onomkeerbare acties, verduidelijking of volgordegevoeligheid. De bypass wordt uitgevoerd zolang de schakelaar **Automatische duidelijkheidsbypass** (`cavemanOutputMode.autoClarity`) in het dashboard aan staat, wat de standaard is; met de schakelaar uit gelden de gekozen stijlen ook voor die beurten.
 
 Wanneer de bypass de beurt doorlaat, plaatst `placeSystemInstruction()` (hetzelfde bestand), dat
 nooit een nieuwe `messages[0]` aanmaakt, het blok op de eerste van deze gevonden locaties:

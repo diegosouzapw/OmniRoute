@@ -468,8 +468,7 @@ tagubilin ang ini-inject sa halip na Ingles.
 Sa body na may `messages`, sinusuri ng content bypass (`shouldBypassCavemanOutputMode()` sa
 `open-sse/services/compression/outputMode.ts`) ang huling tatlong mensahe at nilalaktawan ang
 mga estilo para sa buong turn kapag tumugma ang mga ito sa mga keyword nito para sa seguridad,
-hindi mababawi na aksyon, paglilinaw, o pagkakasunod-sunod. Tumatakbo ang bypass ayon sa anumang
-setting ng **Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) sa dashboard.
+hindi mababawi na aksyon, paglilinaw, o pagkakasunod-sunod. Tumatakbo ang bypass habang naka-on ang **Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) sa dashboard, na siyang default; kapag naka-off ang toggle, ang mga napiling estilo ay may bisa rin sa mga turn na iyon.
 
 Kapag pinahintulutan ng bypass ang turn, inilalagay ng `placeSystemInstruction()` (parehong file),
 na hindi kailanman gumagawa ng bagong `messages[0]`, ang block sa una nitong makita sa mga sumusunod:

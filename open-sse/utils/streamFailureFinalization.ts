@@ -23,6 +23,8 @@ export type StreamFailurePayload = {
   message: string;
   code?: string;
   type?: string;
+  /** The stream had already forwarded text/reasoning/tool output to the client. */
+  outputEmitted?: boolean;
 };
 
 export type PipelineStreamErrorHandler = (event: {
@@ -150,12 +152,14 @@ export function createStreamFailureFinalizers({
   onStreamComplete,
   persistFailureUsage,
   onStreamFailure,
+  hasEmittedOutput = () => false,
 }: {
   isFailureCompletionRecorded: () => boolean;
   isStreamCompletionRecorded?: () => boolean;
   onStreamComplete: (payload: StreamCompletionPayload) => void;
   persistFailureUsage: (status: number, errorCode?: string) => void;
   onStreamFailure?: ((failure: StreamFailurePayload) => void) | null;
+  hasEmittedOutput?: () => boolean;
 }) {
   const handleStreamFailure = (failure: StreamFailurePayload) => {
     if (isStreamCompletionRecorded()) {
@@ -184,7 +188,7 @@ export function createStreamFailureFinalizers({
 
     persistFailureUsage(status, projectedCode);
     try {
-      onStreamFailure?.(failure);
+      onStreamFailure?.({ ...failure, outputEmitted: hasEmittedOutput() });
     } catch {
       // Best-effort fallback state update only.
     }

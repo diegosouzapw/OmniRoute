@@ -888,12 +888,18 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "function_call") {
     const callId = toString(itemRecord.call_id) || toString(itemRecord.id) || `call_${index}`;
+    const namespace = toString(itemRecord.namespace);
     return {
       id: toString(itemRecord.id) || `fc_${callId}`,
       type: "function_call",
       call_id: callId,
       name: toString(itemRecord.name) || "",
       arguments: stripZeroWidthToolArgumentJson(itemRecord.arguments),
+      ...(namespace ? { namespace } : {}),
+      ...(itemRecord.status !== undefined ? { status: itemRecord.status } : {}),
+      ...(itemRecord.encrypted_function_args !== undefined
+        ? { encrypted_function_args: itemRecord.encrypted_function_args }
+        : {}),
     };
   }
 

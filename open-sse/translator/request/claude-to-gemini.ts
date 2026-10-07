@@ -1,6 +1,10 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { DEFAULT_SAFETY_SETTINGS, cleanJSONSchemaForAntigravity } from "../helpers/geminiHelper.ts";
+import {
+  DEFAULT_SAFETY_SETTINGS,
+  buildGeminiThinkingConfig,
+  cleanJSONSchemaForAntigravity,
+} from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import {
   buildGeminiThoughtSignatureKey,
@@ -316,14 +320,12 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     // but thinkingBudgetCap:24576, meaning it supports thinking via budget).
     // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
     if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: cappedBudget,
-        // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
-        // sentinel, not an off-switch — includeThoughts stays true regardless of the
-        // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
-        // paths below treat a resulting budget of 0 as "thinking disabled".
-        includeThoughts: true,
-      };
+      // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
+      // sentinel, not an off-switch — includeThoughts stays true regardless of the
+      // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
+      // paths below treat a resulting budget of 0 as "thinking disabled".
+      // Flash-Lite models 400 on thinkingBudget 0, so it is omitted for them.
+      result.generationConfig.thinkingConfig = buildGeminiThinkingConfig(model, cappedBudget, true);
     }
   } else if (typeof body.output_config?.effort === "string") {
     const effort = body.output_config.effort.toLowerCase();

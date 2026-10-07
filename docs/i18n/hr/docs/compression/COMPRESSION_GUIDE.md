@@ -454,8 +454,7 @@ ubrizgava umjesto engleske.
 Na tijelu s `messages`, zaobilaznica sadržaja (`shouldBypassCavemanOutputMode()` u
 `open-sse/services/compression/outputMode.ts`) provjerava posljednje tri poruke i preskače
 stilove za cijeli krug kada se podudaraju s njezinim ključnim riječima za sigurnost, nepovratne radnje,
-pojašnjenje ili osjetljive na redoslijed. Zaobilaznica se pokreće bez obzira na to kako je postavljena
-preklopka **Auto-Clarity Bypass** na nadzornoj ploči (`cavemanOutputMode.autoClarity`).
+pojašnjenje ili osjetljive na redoslijed. Zaobilaznica se pokreće dok je preklopka **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na nadzornoj ploči uključena, što je zadana postavka; kad je preklopka isključena, odabrani stilovi primjenjuju se i na tim krugovima.
 
 Kada zaobilaznica propusti krug, `placeSystemInstruction()` (ista datoteka), koja
 nikada ne stvara novu `messages[0]`, postavlja blok u prvu od ovih koje pronađe:

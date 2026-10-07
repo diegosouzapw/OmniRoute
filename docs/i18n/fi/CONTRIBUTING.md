@@ -388,20 +388,20 @@ Kirjoita hakemistoon `tests/unit/` yksikkötestit, jotka kattavat vähintään s
 
 ## Pull Request -tarkistuslista
 
-- [ ] Testit läpäisty (`npm test`)
-- [ ] Linttaus läpäisty (`npm run lint`)
+- [ ] Testit läpäisevät (`npm test`)
+- [ ] Linttaus läpäisee (`npm run lint`)
 - [ ] Koonti onnistuu (`npm run build`)
 - [ ] TypeScript-tyypit lisätty uusille julkisille funktioille ja rajapinnoille
-- [ ] Ei kovakoodattuja salaisuuksia tai varaarvoja
-- [ ] Julkiset upstream-tunnistetiedot upotettu `resolvePublicCred()`-funktion kautta (katso [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ei koskaan literaaleina
-- [ ] Virhevastaukset kulkevat `buildErrorBody()`- / `sanitizeErrorMessage()`-funktioiden kautta — vastausten sisällöissä ei ole käsittelemättömiä pinojäljityksiä (katso [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Komentotulkkikomennot (`exec` / `spawn`) välittävät suorituksenaikaiset arvot `env`-ympäristön kautta, eivät merkkijonointerpoloinnilla
+- [ ] Ei kovakoodattuja salaisuuksia tai varmistusarvoja
+- [ ] Julkiset upstream-tunnistetiedot upotettu `resolvePublicCred()`-funktion avulla (katso [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ei koskaan literaaleina
+- [ ] Virhevastaukset käsitellään `buildErrorBody()`- / `sanitizeErrorMessage()`-funktioiden kautta — vastausten sisältö ei sisällä käsittelemättömiä pinojälkiä (katso [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Komentotulkin komennot (`exec` / `spawn`) välittävät ajonaikaiset arvot `env`-muuttujan kautta, eivät merkkijonointerpolaatiolla
 - [ ] Kaikki syötteet validoitu Zod-skeemoilla
-- [ ] Käyttäjille näkyvistä muutoksista lisätty muutoslokin **fragmentti** hakemistoon `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (katso [`changelog.d/README.md`](./changelog.d/README.md)) — **älä** muokkaa tiedostoa `CHANGELOG.md` suoraan; fragmentit yhdistetään julkaisun yhteydessä, eivätkä ne koskaan aiheuta ristiriitoja PR:ien välillä
+- [ ] Käyttäjille näkyvistä muutoksista lisätty muutoslokin **katkelma** hakemistoon `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (katso [`changelog.d/README.md`](./changelog.d/README.md)) — älä muokkaa `CHANGELOG.md`-tiedostoa suoraan; katkelmat yhdistetään julkaisuhetkellä, eivätkä ne koskaan aiheuta ristiriitoja PR:ien välillä
 - [ ] Dokumentaatio päivitetty (tarvittaessa)
-- [ ] Uusia CodeQL- tai Secret-Scanning-hälytyksiä ei ole avattu, tai jokainen niistä on hylätty teknisin perusteluin ja viittauksin asiaankuuluvaan `docs/security/`-dokumenttiin
+- [ ] Uusia CodeQL- tai Secret-Scanning-hälytyksiä ei ole avattu, tai jokainen niistä on kuitattu teknisellä perustelulla, jossa viitataan asianmukaiseen `docs/security/`-dokumenttiin
 - [ ] Aliprosesseja käynnistävät reitit (`/api/mcp/`, `/api/cli-tools/runtime/`) luokiteltu `isLocalOnlyPath()`-funktion avulla tiedostossa `src/server/authz/routeGuard.ts` — katso [ehdoton sääntö #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Commit-viesteissä ei ole `Co-Authored-By`-trailereita — commitien on näyttävä yksinomaan repositorion omistajan Git-identiteetin alla (ehdoton sääntö #16)
+- [ ] Commit-viesteissä ei ole tekoäly-/bottiavustajien `Co-authored-by`-lopputunnisteita (ehdoton sääntö #16) — ihmiskollaboraattorit, joiden työtä hyödynnetään, mainitaan tavanomaisilla `Co-authored-by: Name <email>` -lopputunnisteilla
 
 ---
 

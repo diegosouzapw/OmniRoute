@@ -466,9 +466,7 @@ vietā tiek ievietota lokalizētā instrukcija.
 Pamattekstā ar `messages` satura apiešana (`shouldBypassCavemanOutputMode()` failā
 `open-sse/services/compression/outputMode.ts`) pārbauda pēdējos trīs ziņojumus un izlaiž
 stilus visam gājienam, ja tie atbilst drošības, neatgriezeniskas darbības,
-precizēšanas vai secības jutīguma atslēgvārdiem. Apiešana darbojas atbilstoši tam, kā
-vadības panelī ir iestatīts **Auto-Clarity Bypass** pārslēgs
-(`cavemanOutputMode.autoClarity`).
+precizēšanas vai secības jutīguma atslēgvārdiem. Apiešana darbojas, kamēr vadības panelī **Auto-Clarity Bypass** pārslēgs (`cavemanOutputMode.autoClarity`) ir ieslēgts, kas ir noklusējuma iestatījums; ja pārslēgs ir izslēgts, izvēlētie stili tiek piemēroti arī šajos gājienos.
 
 Ja apiešana ļauj apstrādāt gājienu, `placeSystemInstruction()` (tajā pašā failā), kas
 nekad neveido jaunu `messages[0]`, ievieto bloku pirmajā atrastajā vietā:

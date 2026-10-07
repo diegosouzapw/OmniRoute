@@ -119,11 +119,34 @@ interface SearchHandlerOptions {
   /** Connection ID (proxy resolution + call-log attribution) and API key ID (per-key proxy). */
   connectionId?: string;
   apiKeyId?: string;
+  /**
+   * Whole-request budget in ms. Replaces the 15s constant when set, and is
+   * also the ceiling for a provider's own timeout. Unset keeps both as they
+   * are, so a deployment that never touches it behaves exactly as before.
+   */
+  timeoutMs?: number;
+  /** Per-provider timeout overrides in ms, keyed by provider id. */
+  providerTimeoutsMs?: Record<string, number>;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────
 
-const GLOBAL_TIMEOUT_MS = 15_000;
+const DEFAULT_GLOBAL_TIMEOUT_MS = 15_000;
+const MIN_SEARCH_TIMEOUT_MS = 1_000;
+const MAX_SEARCH_TIMEOUT_MS = 120_000;
+
+function clampSearchTimeoutMs(
+  override: number | undefined,
+  fallback: number,
+  floor: number
+): number {
+  if (typeof override !== "number" || !Number.isFinite(override)) return fallback;
+  return Math.min(MAX_SEARCH_TIMEOUT_MS, Math.max(floor, Math.floor(override)));
+}
+
+function resolveGlobalTimeoutMs(override?: number): number {
+  return clampSearchTimeoutMs(override, DEFAULT_GLOBAL_TIMEOUT_MS, MIN_SEARCH_TIMEOUT_MS);
+}
 
 // Non-retriable HTTP status codes — fail immediately, don't try alternate
 const NON_RETRIABLE = new Set([400, 401, 403, 404]);
@@ -1254,11 +1277,12 @@ async function tryZaiMCPProvider(
   providerSpecificData: Record<string, unknown> | undefined,
   startTime: number,
   globalStartTime: number,
+  globalTimeoutMs: number,
   log?: any
 ): Promise<SearchHandlerResult> {
   const { query, searchType, maxResults } = params;
 
-  const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
+  const remainingGlobal = globalTimeoutMs - (Date.now() - globalStartTime);
   const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
@@ -1440,8 +1464,12 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     log,
     connectionId,
     apiKeyId,
+    timeoutMs,
+    providerTimeoutsMs,
   } = options;
   const startTime = Date.now();
+  const globalTimeoutMs = resolveGlobalTimeoutMs(timeoutMs);
+  const providerTimeoutOverride = clampSearchTimeoutMs(providerTimeoutsMs?.[providerId], 0, 1);
 
   // 1. Sanitize input
   const { clean: cleanQuery, error: sanitizeError } = sanitizeQuery(query);
@@ -1450,13 +1478,16 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
   }
 
   // 2. Use resolved provider from route (no re-resolution)
-  const primaryConfig = getSearchProvider(providerId);
+  let primaryConfig = getSearchProvider(providerId);
   if (!primaryConfig) {
     return {
       success: false,
       status: 400,
       error: `Unknown search provider: ${providerId}`,
     };
+  }
+  if (providerTimeoutOverride > 0) {
+    primaryConfig = { ...primaryConfig, timeoutMs: providerTimeoutOverride };
   }
   if (primaryConfig.disabled) {
     return {
@@ -1532,7 +1563,8 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
         startTime,
         log,
         alternateCredentials?.connectionId,
-        apiKeyId
+        apiKeyId,
+        globalTimeoutMs
       );
     }
     return {
@@ -1550,7 +1582,8 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     startTime,
     log,
     connectionId,
-    apiKeyId
+    apiKeyId,
+    globalTimeoutMs
   );
 
   if (result.success) return result;
@@ -1560,7 +1593,7 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     alternateConfig &&
     alternateCredentials &&
     !NON_RETRIABLE.has(result.status || 0) &&
-    Date.now() - startTime < GLOBAL_TIMEOUT_MS
+    Date.now() - startTime < globalTimeoutMs
   ) {
     if (log) {
       log.warn(
@@ -1577,7 +1610,8 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
       startTime,
       log,
       alternateCredentials?.connectionId,
-      apiKeyId
+      apiKeyId,
+      globalTimeoutMs
     );
 
     if (fallbackResult.success) return fallbackResult;
@@ -1596,13 +1630,14 @@ async function tryDuckDuckGoFreeProvider(
   params: Omit<SearchRequestParams, "token">,
   startTime: number,
   globalStartTime: number,
+  globalTimeoutMs: number,
   log?: {
     info?: (tag: string, message: string) => void;
     error?: (tag: string, message: string) => void;
   } | null
 ): Promise<SearchHandlerResult> {
   const { query, searchType, maxResults } = params;
-  const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
+  const remainingGlobal = globalTimeoutMs - (Date.now() - globalStartTime);
   const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
 
   if (log) {
@@ -1692,7 +1727,8 @@ async function tryProvider(
   globalStartTime: number,
   log?: any,
   connectionId?: string,
-  apiKeyId?: string
+  apiKeyId?: string,
+  globalTimeoutMs: number = DEFAULT_GLOBAL_TIMEOUT_MS
 ): Promise<SearchHandlerResult> {
   const startTime = Date.now();
   const providerSpecificData =
@@ -1712,7 +1748,14 @@ async function tryProvider(
   const { query, searchType, maxResults } = params;
 
   if (config.id === "duckduckgo-free") {
-    return tryDuckDuckGoFreeProvider(config, params, startTime, globalStartTime, log);
+    return tryDuckDuckGoFreeProvider(
+      config,
+      params,
+      startTime,
+      globalStartTime,
+      globalTimeoutMs,
+      log
+    );
   }
 
   if (config.id === "zai-search" && token) {
@@ -1723,6 +1766,7 @@ async function tryProvider(
       providerSpecificData,
       startTime,
       globalStartTime,
+      globalTimeoutMs,
       log
     );
   }
@@ -1744,7 +1788,7 @@ async function tryProvider(
   const { proxy, proxyLevel } = await resolveSearchProxy(connectionId, apiKeyId, config.id);
 
   // Timeout: min of provider timeout and remaining global timeout
-  const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
+  const remainingGlobal = globalTimeoutMs - (Date.now() - globalStartTime);
   const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);

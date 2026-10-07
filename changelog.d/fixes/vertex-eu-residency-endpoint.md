@@ -1,0 +1,1 @@
+- **fix(providers):** Vertex AI project-scoped execution now routes requests with region `eu` to the canonical EU residency endpoint `aiplatform.eu.rep.googleapis.com` instead of the global endpoint, allowing projects with `constraints/gcp.restrictEndpointUsage` organization policies to complete requests successfully — thanks @fabioluissilva

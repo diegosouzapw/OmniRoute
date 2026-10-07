@@ -67,23 +67,27 @@ Adakah anda memerlukan perkhidmatan awan untuk melakukan kerja di luar mesin ini
 
 Lihat [A2A-SERVER.md](./A2A-SERVER.md) untuk butiran pengangkutan, struktur kad ejen, konfigurasi TTL tugas dan templat bagi menambahkan kemahiran baharu.
 
-## 2. ACP — Pendaftaran Ejen CLI
+## 2. ACP — Daftar Ejen CLI
 
 **Titik akhir OmniRoute:** `GET /api/acp/agents`
 **Sumber:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Apakah itu
 
-ACP ialah **inventori ejen CLI setempat** OmniRoute. Ia mengesan CLI pengekodan yang dipasang pada hos (Cursor, Cline, Claude Code, Codex CLI, Continue, dll.), menentukan versinya dan memaparkannya pada papan pemuka supaya pengguna boleh mengkonfigurasi setiap CLI agar menghala ke OmniRoute.
+ACP ialah **inventori ejen CLI setempat** OmniRoute. Ia mengesan CLI pengekodan yang dipasang pada hos (Cursor, Cline, Claude Code, Codex CLI, Continue dan sebagainya), menentukan versinya dan memaparkannya pada papan pemuka supaya pengguna boleh mengkonfigurasi setiap CLI untuk menghala ke OmniRoute.
 
-Ini BUKAN protokol luaran — ia merupakan pendaftaran dalaman yang menggerakkan UI "Alat CLI" dan penjejakan cap jari CLI (lihat [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Antara muka HTTP ialah inventori dalaman yang menyokong UI "Alat CLI" dan
+penjejakan cap jari CLI (lihat [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Secara berasingan,
+pengurus proses dalaman menyokong Agent Client Protocol natif untuk pelancar
+Gemini yang didaftarkan dan penyesuai stdio legasi untuk kontrak lain.
+Lihat [daftar dan pelancar ACP](./ACP.md) untuk mod dan had berbeza tersebut.
 
 ### Fungsinya
 
-- Memeriksa hos untuk binari CLI yang dipasang (menggunakan `which` / `where` mengikut OS)
+- Memeriksa hos untuk mencari perduaan CLI yang dipasang (menggunakan `which` / `where` mengikut OS)
 - Membaca versi setiap CLI (memanggil `<bin> --version`)
-- Secara pilihan menerima ejen tersuai yang ditakrifkan pengguna (laluan binari + semakan versi + argumen pelancaran)
-- Menyimpan ejen tersuai secara berterusan dalam tetapan
+- Menerima ejen tersuai yang ditakrifkan pengguna secara pilihan (laluan perduaan + semakan versi + argumen pelancaran)
+- Menyimpan ejen tersuai dalam tetapan
 - Mengembalikan senarai bersepadu kepada papan pemuka
 
 ### API REST
@@ -110,13 +114,16 @@ Bentuk isi untuk POST (`customAgentBodySchema` dalam `src/app/api/acp/agents/rou
 
 ### Kes penggunaan
 
-- Halaman "Alat CLI" pada papan pemuka menyenaraikan alat yang dipasang dan membantu anda mengarahkan setiap alat tersebut ke OmniRoute
-- Ejen tersuai membolehkan pengguna mahir mendaftarkan CLI dalaman/proprietari yang tidak dikenali oleh OmniRoute secara lalai
+- Halaman "Alat CLI" pada papan pemuka menyenaraikan alat yang dipasang dan membantu anda menghalakan setiap satunya ke OmniRoute
+- Ejen tersuai membolehkan pengguna mahir mendaftarkan CLI dalaman/proprietari yang tidak diketahui oleh OmniRoute secara lalai
 - Hasil pengesanan membekalkan data kepada matriks cap jari `cli-tools`
 
 ### Bila ACP TIDAK patut digunakan
 
-- ACP tidak _menjalankan_ tugas. Ia hanya mengesan + mengkonfigurasi CLI. Untuk benar-benar menggunakan CLI, anda perlu melancarkannya sendiri dengan pemboleh ubah persekitaran yang disediakan oleh OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, dll.).
+- Daftar HTTP tidak menerima tugasan atau menyediakan fungsi pelancaran proses. Pengurus
+  dalaman boleh melancarkan CLI yang didaftarkan, tetapi tidak disambungkan sebagai sandaran
+  penyedia automatik. Untuk penggunaan interaktif biasa, lancarkan sendiri CLI yang telah
+  dikonfigurasi atau gunakan `omniroute run`.
 
 ## 3. Ejen Awan
 

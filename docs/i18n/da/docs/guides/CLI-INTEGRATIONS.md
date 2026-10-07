@@ -4,11 +4,30 @@
 
 ---
 
-OmniRoute leverer en familie af `setup-*` kommandoer, der konfigurerer en kodnings-CLI (Codex, Claude Code, OpenCode, Cline, …) til at bruge OmniRoute som sin backend – så værktøjet taler til **ét** endpoint, og OmniRoute router til den rigtige udbyder med automatisk fallback. Hver kommando læser det **live** modelkatalog fra en kørende OmniRoute (lokal eller fjern) og skriver værktøjets egen konfigurationsfil på **din** maskine. API-nøglen refereres af en miljøvariabel, hvor værktøjet understøtter det. Kommandoer, der gemmer en værktøjs-lokal miljøfil, er angivet nedenfor.
+For det delte eksekverbare manifest, begrænsede underordnede miljøer og vedvarende
+Gemini-opsætning, se [CLI-startkontrakter](./CLI-LAUNCH-CONTRACTS.md).
 
-Der er også en generisk launcher – `omniroute run <target>` – der starter `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` eller `gemini` med den rigtige env injiceret, uden at skrive nogen konfiguration overhovedet. Targets og deres aliasser kommer fra den kanoniske manifest `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), og `omniroute completion` tilbyder de samme manifest-afledte target-ord. De ældre per-værktøj launchere – `omniroute launch` (Claude Code) og `omniroute launch-codex` (Codex) – forbliver tilgængelige.
+OmniRoute leveres med en familie af `setup-*`-kommandoer, der konfigurerer en
+kodnings-CLI (Codex, Claude Code, OpenCode, Cline, …) til at bruge OmniRoute som backend — så
+værktøjet kommunikerer med **ét** slutpunkt, og OmniRoute dirigerer til den rette udbyder med
+automatisk fallback. Hver kommando læser det **aktive** modelkatalog fra en kørende
+OmniRoute (lokal eller ekstern) og skriver værktøjets egen konfigurationsfil på **din**
+maskine. API-nøglen refereres via en miljøvariabel, hvor værktøjet
+understøtter det. Kommandoer, der gemmer en lokal miljøfil for værktøjet, er angivet nedenfor.
 
-Udbyder-onboarding er tilgængelig fra den samme lokale/fjern kontekst. De API-første kommandoer nedenfor holder administrationsautentificering adskilt fra udbyderlegitimation og udskriver aldrig en legitimation i struktureret output:
+Der findes også en generisk starter — `omniroute run <target>` — som starter
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` eller `gemini` med de
+korrekte miljøvariabler indsat uden overhovedet at skrive nogen konfiguration. Mål og deres
+aliasser kommer fra det kanoniske manifest `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), og `omniroute completion` tilbyder de
+samme målord, der er afledt af manifestet. De ældre værktøjsspecifikke startere —
+`omniroute launch` (Claude Code) og `omniroute launch-codex` (Codex) — er fortsat
+tilgængelige.
+
+Onboarding af udbydere er tilgængelig fra den samme lokale eller eksterne kontekst. De
+API-orienterede kommandoer nedenfor holder administrationsgodkendelse adskilt fra
+udbyderlegitimationsoplysninger og udskriver aldrig legitimationsoplysninger i struktureret output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,17 +37,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Til scripts foretrækkes `--credential-stdin` eller `--credential-env`; `--credential` er bevaret til kontrolleret lokal brug. `providers remove` kræver `--yes` på en ikke-interaktiv terminal, og alle fem kommandoer respekterer den aktive kontekst eller de globale `--base-url`/`--api-key` indstillinger.
+Til scripts bør du foretrække `--credential-stdin` eller `--credential-env`; `--credential`
+bevares til kontrolleret lokal brug. `providers remove` kræver `--yes` i en
+ikke-interaktiv terminal, og alle fem kommandoer respekterer den aktive kontekst eller de
+globale indstillinger `--base-url`/`--api-key`.
 
-Udbydervælgere afviser tvetydige ID-præfikser, navne eller udbydernavne; brug et fuldt forbindelses-ID, når flere forbindelser matcher. Opret- og redigeringskommandoer læser den gemte forbindelse tilbage, og fjernelse verificerer, at den ikke længere er læsbar. En import springer et eksisterende udbyder/navn-par over. Importerede poster kan ikke tilsidesætte administrations-endpoint, kontekst eller administrationslegitimation, der leveres til CLI'en.
+Udbydervælgere afviser tvetydige ID-præfikser, navne eller udbydernavne; brug et
+fuldt forbindelses-ID, når flere forbindelser matcher. Oprettelses- og redigeringskommandoer læser
+den gemte forbindelse tilbage, og fjernelse bekræfter, at den ikke længere kan læses.
+En import springer et eksisterende udbyder/navn-par over. Importerede poster kan ikke tilsidesætte
+administrationsslutpunktet, konteksten eller administrationslegitimationsoplysningerne, der leveres til CLI'en.
 
-For den engangs, håndskrevne grundopsætning af de to rigeste integrationer, se de per-værktøj dybdegående gennemgange:
+For den indledende, manuelt skrevne basisopsætning af de to mest omfattende integrationer, se de
+værktøjsspecifikke dybdegående vejledninger:
 
-- [Claude Code-konfiguration](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI-konfiguration](./CODEX-CLI-CONFIGURATION.md)
-- [Fjern-tilstand](./REMOTE-MODE.md) — styr en fjern OmniRoute (VPS / Tailnet) fra din laptop
+- [Konfiguration af Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Konfiguration af Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Ekstern tilstand](./REMOTE-MODE.md) — styr en ekstern OmniRoute (VPS / Tailnet) fra din bærbare computer
 - [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-udvidelsen; den kan også køre disse
-  `setup-*` kommandoer for dig indefra editoren
+  `setup-*`-kommandoer for dig inde fra editoren
 
 ---
 
