@@ -14,7 +14,7 @@
 
 import {
   BaseExecutor,
-  mergeUpstreamExtraHeaders,
+x1:TypeError  mergeUpstreamExtraHeaders,
   mergeAbortSignals,
   type ExecuteInput,
   type ExecutorLog,
@@ -115,8 +115,8 @@ function randomString(length: number, alphanumeric = false): string {
 function generateStatsigId(): string {
   const msg =
     Math.random() < 0.5
-      ? `e:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
-      : `e:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
+      ? `x1:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
+      : `x1:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
   return btoa(msg);
 }
 
