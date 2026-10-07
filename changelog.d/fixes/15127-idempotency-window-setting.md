@@ -1,0 +1,1 @@
+- **fix(idempotency):** the `idempotencyWindowMs` setting (Settings → Cache) now actually sets the replay window — it was saved and shown by `/api/cache` but the store always used the 5s default ([#15127](https://github.com/diegosouzapw/OmniRoute/pull/15127)) — thanks @MumuTW

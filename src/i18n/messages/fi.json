@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ydinbinäärin polku",
-      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valinnainen: tarkistaa generoidun tiedoston ydinbinääriä ennen otetun tiedoston korvaamista. Jätä tyhjäksi, niin kirjoitetaan sen viereen. Puuttuva hakemisto luodaan."
     },
     "bulkHealthcheck": "Kuntotarkistus joukkona",
     "bulkHealthcheckDesc": "Testaa kaikki määritetyt välityspalvelimet kohde-URL-osoitetta vasten selvittääksesi, mitkä niistä toimivat.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ladataan…",
     "loadFailed": "Moottorin tietojen lataaminen epäonnistui.",
+    "settingsLoadFailed": "Tallennettujen asetusten lataaminen epäonnistui. Kentissä näkyvät oletusarvot, ja Tallenna pysyy poissa käytöstä, kunnes sivu ladataan uudelleen.",
     "engineNotFound": "Moottoria \"{engine}\" ei löytynyt.",
     "saveFailed": "Asetusten tallentaminen epäonnistui.",
     "previewFailed": "Esikatselu epäonnistui.",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ruta del binario principal",
-      "coreBinaryPathHelp": "Opcional: verifica el archivo generado con el binario principal antes de reemplazar el archivo adoptado. Déjelo vacío para seguir guardándolo junto a él. El directorio se crea si no existe.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcional: verifica el archivo generado con el binario principal antes de reemplazar el archivo adoptado. Déjelo vacío para seguir guardándolo junto a él. El directorio se crea si no existe."
     },
     "bulkHealthcheck": "Comprobación de estado masiva",
     "bulkHealthcheckDesc": "Prueba todos los proxies configurados con una URL de destino para determinar cuáles funcionan.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Cargando…",
     "loadFailed": "No se pudo cargar la información del motor.",
+    "settingsLoadFailed": "No se pudo cargar la configuración guardada. Los campos muestran los valores predeterminados y Guardar permanece desactivado hasta que se vuelve a cargar la página.",
     "engineNotFound": "No se encontró el motor «{engine}».",
     "saveFailed": "No se pudo guardar la configuración.",
     "previewFailed": "La vista previa falló.",

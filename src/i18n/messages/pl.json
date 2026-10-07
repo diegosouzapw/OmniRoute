@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ścieżka pliku binarnego rdzenia",
-      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje."
     },
     "bulkHealthcheck": "Zbiorczy Healthcheck",
     "bulkHealthcheckDesc": "Testowanie wszystkich skonfigurowanych proxy pod kątem docelowego URL w celu znalezienia działających.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Wczytywanie…",
     "loadFailed": "Nie udało się wczytać informacji o silniku.",
+    "settingsLoadFailed": "Nie udało się wczytać zapisanych ustawień. Pola pokazują wartości domyślne, a przycisk Zapisz pozostaje nieaktywny do czasu ponownego załadowania strony.",
     "engineNotFound": "Nie znaleziono silnika „{engine}”.",
     "saveFailed": "Nie udało się zapisać konfiguracji.",
     "previewFailed": "Podgląd nie powiódł się.",

@@ -990,9 +990,10 @@ export function pipeWithDisconnect(
   // sometimes 120s, sometimes 900s depending on the calling task, always
   // slower and less informative than OmniRoute failing this attempt itself
   // with a clear error the client's own retry/fallback logic can react to
-  // immediately. Armed ONCE at stream start (not re-armed by lifecycle-only
-  // bytes, unlike armStall above) and cleared permanently the first time
-  // real content is observed -- reuses the exact classifier
+  // immediately. Armed at stream start, never re-armed by lifecycle-only
+  // bytes (unlike armStall above), restarted by reasoning-progress frames
+  // (a model thinking for minutes before its first token is not stalled),
+  // and cleared permanently the first time real content is observed -- reuses the exact classifier
   // (createStreamContentWatcher) createDisconnectAwareStream already trusts
   // for its own end-of-stream #8649 empty-content check.
   let contentStallTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1078,7 +1079,7 @@ export function pipeWithDisconnect(
     }
   };
   const armContentStall = () => {
-    if (contentStallTimeoutMs <= 0) return;
+    if (contentStallTimeoutMs <= 0 || contentStallFired) return;
     contentStallTimer = setTimeout(() => {
       contentStallTimer = null;
       contentStallFired = true;
@@ -1140,7 +1141,11 @@ export function pipeWithDisconnect(
   // and (independently) clears the content-stall timer the first time a
   // chunk carries real output. Sits between the provider body and the SSE
   // transform so reasoning models that buffer many raw bytes into a single
-  // emitted event do not look stalled to either watchdog.
+  // emitted event do not look stalled to either watchdog. Reasoning frames
+  // with no visible output (Claude thinking/signature deltas, Responses
+  // reasoning items) restart the content-stall budget instead of clearing it:
+  // the model is still working, but a turn that stops reasoning and only
+  // sends heartbeats afterwards must still be caught.
   const upstreamTap = new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
       upstreamTapController = controller;
@@ -1156,8 +1161,14 @@ export function pipeWithDisconnect(
         const decoded = upstreamContentDecoder.decode(chunk, { stream: true });
         stallBytes += chunk.byteLength;
         noteStallText(decoded);
+        const reasoningBefore = upstreamContentWatcher.reasoningProgress();
         upstreamContentWatcher.note(decoded);
-        if (upstreamContentWatcher.sawContent()) clearContentStall();
+        if (upstreamContentWatcher.sawContent()) {
+          clearContentStall();
+        } else if (upstreamContentWatcher.reasoningProgress() > reasoningBefore) {
+          clearContentStall();
+          armContentStall();
+        }
       }
       controller.enqueue(chunk);
     },
