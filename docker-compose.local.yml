@@ -89,7 +89,13 @@ services:
     healthcheck:
       # Qdrant v1.12.4 image does not ship wget or curl.
       # Use bash /dev/tcp to verify the REST port is open and responding.
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e 'GET /readyz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '200' <&3"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e 'GET /readyz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '200' <&3",
+        ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -101,12 +107,13 @@ services:
     container_name: omniroute-local
     build:
       context: .
-      # runner-base: lean image, no Playwright/Chromium.
-      # Switch to runner-web if you need gemini-web / claude-web / claude-turnstile.
+      # runner-web includes Chromium/Playwright for gemini-web / claude-web / claude-turnstile.
+      # Switch to runner-base if browser-based providers are not needed.
       # Switch to runner-cli if you need embedded CLI providers (Claude Code, etc.)
-      target: runner-base
+      target: runner-web
       args:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-8192}
         # Turbopack (Rust binary) fails to fork on OrbStack due to a known
         # Rust/linux-aarch64 compat issue. Use webpack instead.
         # Remove this arg if you switch to Docker Desktop or a native Linux host.
@@ -158,7 +165,7 @@ services:
 volumes:
   omniroute-local-data:
     name: omniroute-local-data
-    external: true  # Created and populated manually from backup during migration
+    external: true # Created and populated manually from backup during migration
   omniroute-qdrant-data:
     name: omniroute-qdrant-data
   omniroute-redis-local-data:
