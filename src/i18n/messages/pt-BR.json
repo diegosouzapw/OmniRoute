@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Caminho do binário central",
-      "coreBinaryPathHelp": "Opcional: verifica o arquivo gerado com o binário central antes de substituir o arquivo adotado. Deixe vazio para continuar gravando ao lado dele. O diretório é criado se não existir.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcional: verifica o arquivo gerado com o binário central antes de substituir o arquivo adotado. Deixe vazio para continuar gravando ao lado dele. O diretório é criado se não existir."
     },
     "bulkHealthcheck": "Verificação de integridade em massa",
     "bulkHealthcheckDesc": "Teste todos os proxies configurados contra uma URL de destino para encontrar quais funcionam.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Carregando…",
     "loadFailed": "Falha ao carregar informações da engine.",
+    "settingsLoadFailed": "Falha ao carregar as configurações salvas. Os campos exibem os valores padrão, e Salvar permanece desativado até a página ser recarregada.",
     "engineNotFound": "Engine \"{engine}\" não encontrada.",
     "saveFailed": "Falha ao salvar configuração.",
     "previewFailed": "Falha na pré-visualização.",

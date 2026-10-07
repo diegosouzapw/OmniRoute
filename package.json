@@ -310,7 +310,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@lobehub/icons": "^5.16.0",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@monaco-editor/react": "^4.7.0",
     "@ngrok/ngrok": "^1.7.0",
     "@swc/helpers": "0.5.23",
@@ -320,6 +320,14 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "axios": "^1.20.0",
+    "katex": "^0.18.2",
+    "simple-git": "^4.0.1",
+    "shell-quote": "^1.11.0",
+    "proxy-addr": "^2.0.8",
+    "compression": "^1.8.2",
+    "source-map-js": "^1.2.2",
+    "postcss-selector-parser": "^7.1.6",
+    "fast-copy": "^4.1.0",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
     "clsx": "^2.1.1",
@@ -371,8 +379,8 @@
     "remark-gfm": "^4.0.1",
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
-    "sharp": "^0.35.4",
-    "smol-toml": "1.8.0",
+    "sharp": "^0.35.5",
+    "smol-toml": "1.9.0",
     "socks": "^2.8.7",
     "sql.js": "^1.14.2",
     "tailwind-merge": "^3.6.0",
@@ -491,11 +499,11 @@
   },
   "overrides": {
     "browserslist": "^4.28.8",
-    "joi": "^18.2.8",
+    "joi": "^18.2.9",
     "onnxruntime-node": "1.30.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "fast-xml-parser": "^5.10.1",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "postcss": "^8.5.18",
     "ip-address": "^10.7.2",
     "axios": "^1.20.0",
@@ -513,7 +521,7 @@
       "js-yaml": "^4.3.2"
     },
     "@openai/codex-security": {
-      "smol-toml": "^1.8.0"
+      "smol-toml": "^1.9.0"
     },
     "jsdom": {
       "undici": "^7.29.0"
@@ -527,7 +535,12 @@
     "adm-zip": "^0.6.1",
     "promptfoo": {
       "js-yaml": "^5.2.2",
-      "undici@7": "^7.29.0"
+      "undici@7": "^7.29.0",
+      "simple-git": "^4.0.1",
+      "@simple-git/argv-parser": "^2.0.1"
+    },
+    "mermaid": {
+      "katex": "^0.18.2"
     },
     "socket.io-parser": "^4.2.7",
     "tar": "^7.5.21",

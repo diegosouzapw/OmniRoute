@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pot osnovne izvorne datoteke",
-      "coreBinaryPathHelp": "Neobvezno: pred zamenjavo sprejete datoteke preveri generirano datoteko z osnovno izvorno datoteko. Pustite prazno, da bo še naprej pisalo ob njej. Imenik se ustvari, če ne obstaja.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Neobvezno: pred zamenjavo sprejete datoteke preveri generirano datoteko z osnovno izvorno datoteko. Pustite prazno, da bo še naprej pisalo ob njej. Imenik se ustvari, če ne obstaja."
     },
     "bulkHealthcheck": "Množično preverjanje stanja",
     "bulkHealthcheckDesc": "Preizkusite vse konfigurirane posredniške strežnike z dostopom do ciljnega URL-ja, da ugotovite, kateri delujejo.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Nalaganje…",
     "loadFailed": "Podatkov o mehanizmu ni bilo mogoče naložiti.",
+    "settingsLoadFailed": "Shranjenih nastavitev ni bilo mogoče naložiti. Polja prikazujejo privzete vrednosti, gumb Shrani pa ostane onemogočen, dokler se stran znova ne naloži.",
     "engineNotFound": "Mehanizma »{engine}« ni bilo mogoče najti.",
     "saveFailed": "Konfiguracije ni bilo mogoče shraniti.",
     "previewFailed": "Predogled ni uspel.",

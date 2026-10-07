@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Đường dẫn tệp nhị phân lõi",
-      "coreBinaryPathHelp": "Tùy chọn: xác minh tệp được tạo bằng tệp nhị phân lõi trước khi thay thế tệp đã chấp nhận. Để trống để tiếp tục ghi bên cạnh. Thư mục sẽ được tạo nếu chưa tồn tại.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Tùy chọn: xác minh tệp được tạo bằng tệp nhị phân lõi trước khi thay thế tệp đã chấp nhận. Để trống để tiếp tục ghi bên cạnh. Thư mục sẽ được tạo nếu chưa tồn tại."
     },
     "bulkHealthcheck": "Kiểm tra tình trạng hàng loạt",
     "bulkHealthcheckDesc": "Kiểm tra tất cả proxy đã cấu hình với một URL đích để xác định proxy nào hoạt động.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Đang tải…",
     "loadFailed": "Không thể tải thông tin bộ máy.",
+    "settingsLoadFailed": "Không thể tải cài đặt đã lưu. Các trường hiển thị giá trị mặc định và nút Lưu vẫn bị tắt cho đến khi trang được tải lại.",
     "engineNotFound": "Không tìm thấy bộ máy \"{engine}\".",
     "saveFailed": "Không thể lưu cấu hình.",
     "previewFailed": "Không thể tạo bản xem trước.",
@@ -11463,10 +11464,10 @@
       "compressed": "Nén",
       "tps": "TPS",
       "duration": "Thời lượng",
+      "addedWait": "Thời gian chờ thêm",
       "time": "Thời gian",
       "conversation": "Cuộc trò chuyện",
-      "ttft": "TTFT",
-      "addedWait": "Thời gian chờ thêm"
+      "ttft": "TTFT"
     },
     "loadingLogs": "Đang tải nhật ký...",
     "noLogs": "Chưa có nhật ký nào. Hãy thực hiện một số cuộc gọi API để xem chúng ở đây.",

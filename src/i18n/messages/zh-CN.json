@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "核心二进制文件路径",
-      "coreBinaryPathHelp": "可选：在替换已采纳的文件之前，使用核心二进制文件验证生成的文件。留空则继续写入到旁边。目录不存在时会自动创建。",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "可选：在替换已采纳的文件之前，使用核心二进制文件验证生成的文件。留空则继续写入到旁边。目录不存在时会自动创建。"
     },
     "bulkHealthcheck": "批量健康检查",
     "bulkHealthcheckDesc": "针对目标 URL 测试所有已配置代理，找出可用代理。",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "正在加载…",
     "loadFailed": "加载引擎信息失败。",
+    "settingsLoadFailed": "无法加载已保存的设置。字段显示默认值，并且在页面重新加载之前，“保存”将一直处于禁用状态。",
     "engineNotFound": "未找到引擎 \"{engine}\"。",
     "saveFailed": "保存配置失败。",
     "previewFailed": "预览失败。",

@@ -99,6 +99,11 @@ export function resolveCatalog(name = "ui") {
 }
 
 let MESSAGES_DIR = CATALOGS.ui.dir; // reassigned in main() from --catalog
+
+/** Points the catalog reads/writes at `dir` (main() passes the --catalog dir; tests pass a temp dir). */
+export function setMessagesDir(dir) {
+  MESSAGES_DIR = dir;
+}
 const SOURCE_LOCALE = "en";
 const PLACEHOLDER_PREFIX = "__MISSING__:";
 
@@ -701,7 +706,7 @@ export async function runLocaleChunks(plans, ctx) {
 
 // ----- Main ----------------------------------------------------------------
 
-async function processLocale(locale, source, config, opts, backend) {
+export async function processLocale(locale, source, config, opts, backend) {
   const { merged, addedPaths } = await loadMergedLocale(locale, source, opts);
   const placeholderCountBefore = countPlaceholders(merged);
 
@@ -723,33 +728,13 @@ async function processLocale(locale, source, config, opts, backend) {
     }
   }
 
-  const placeholderCountAfter = countPlaceholders(merged);
-  const totalMissing = addedPaths.length;
-  const stillPlaceholder = placeholderCountAfter;
-
-  const summary = `${locale}: +${totalMissing} missing keys (${stillPlaceholder} __MISSING__, ${translateStats.translated} translated${translateStats.failed ? `, ${translateStats.failed} failed` : ""})`;
-
-  if (opts.dryRun) {
-    logInfo(`[DRY] ${summary}`);
-    return { addedPaths, translated: translateStats.translated };
-  }
-
-  // Only write when something changed. (json-stable serialization)
-  const before = existsSync(localePath) ? await fs.readFile(localePath, "utf8") : "";
-  const after = JSON.stringify(merged, null, 2) + "\n";
-  if (before === after) {
-    logInfo(`${locale}: already in sync (no changes)`);
-    return { addedPaths, translated: translateStats.translated };
-  }
-  await fs.writeFile(localePath, after, "utf8");
-  logInfo(summary);
-  return { addedPaths, translated: translateStats.translated };
+  return writeLocaleResult(locale, merged, addedPaths, translateStats, opts);
 }
 
 async function main() {
   const opts = parseArgs(process.argv);
   const catalog = resolveCatalog(opts.catalog);
-  MESSAGES_DIR = catalog.dir;
+  setMessagesDir(catalog.dir);
   logInfo(`catalog: ${catalog.name} (${path.relative(ROOT, catalog.dir)})`);
   const config = await loadConfig();
 

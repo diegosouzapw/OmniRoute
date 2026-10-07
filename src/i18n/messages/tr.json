@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Çekirdek ikili dosya yolu",
-      "coreBinaryPathHelp": "İsteğe bağlı: benimsenmiş dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikili dosyasıyla doğrular. Yanında yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "İsteğe bağlı: benimsenmiş dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikili dosyasıyla doğrular. Yanında yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur."
     },
     "bulkHealthcheck": "Toplu Durum Denetimi",
     "bulkHealthcheckDesc": "Hangilerinin çalıştığını belirlemek için yapılandırılmış tüm proxy'leri bir hedef URL ile test edin.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Yükleniyor…",
     "loadFailed": "Motor bilgileri yüklenemedi.",
+    "settingsLoadFailed": "Kayıtlı ayarlar yüklenemedi. Alanlar varsayılan değerleri gösteriyor ve sayfa yeniden yüklenene kadar Kaydet devre dışı kalıyor.",
     "engineNotFound": "\"{engine}\" motoru bulunamadı.",
     "saveFailed": "Yapılandırma kaydedilemedi.",
     "previewFailed": "Önizleme başarısız oldu.",

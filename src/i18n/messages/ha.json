@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Hanyar bayanan tsarin",
-      "coreBinaryPathHelp": "Na zaɓi: yana tabbatar da fayil ɗin da aka ƙirƙira tare da bayanan tsarin kafin a maye gurbin fayil ɗin da aka karɓa. Bar shi da ruwan don ci gaba da rubuta shi a gefen shi. An ƙirƙiri da'ira idan babu.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Na zaɓi: yana tabbatar da fayil ɗin da aka ƙirƙira tare da bayanan tsarin kafin a maye gurbin fayil ɗin da aka karɓa. Bar shi da ruwan don ci gaba da rubuta shi a gefen shi. An ƙirƙiri da'ira idan babu."
     },
     "bulkHealthcheck": "Gwajin Lafiya na Gungu",
     "bulkHealthcheckDesc": "Gwada duk proxies da aka saita da URL da aka nufa domin gano waɗanda suke aiki.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ana lodawa…",
     "loadFailed": "An kasa loda bayanan injin.",
+    "settingsLoadFailed": "An kasa loda saitunan da aka ajiye. Filayen suna nuna tsoffin ƙimomi, kuma Ajiye yana ci gaba da kasancewa a kashe har sai an sake loda shafin.",
     "engineNotFound": "Ba a sami injin \"{engine}\" ba.",
     "saveFailed": "An kasa adana saitunan.",
     "previewFailed": "Samfoti ya gaza.",

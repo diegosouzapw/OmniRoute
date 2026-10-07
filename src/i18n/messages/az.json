@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Əsas ikili fayl yolu",
-      "coreBinaryPathHelp": "Seçimə görə: əsas ikili fayl ilə yaradılan faylı qəbul edilmiş fayl əvəz etməzdən əvvəl yoxlayır. Yanında yazmaqda davam etmək üçün boş buraxın. Qovluq yoxdursa, yaradılır.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Seçimə görə: əsas ikili fayl ilə yaradılan faylı qəbul edilmiş fayl əvəz etməzdən əvvəl yoxlayır. Yanında yazmaqda davam etmək üçün boş buraxın. Qovluq yoxdursa, yaradılır."
     },
     "bulkHealthcheck": "Toplu sağlamlıq yoxlaması",
     "bulkHealthcheckDesc": "Hansılarının işlədiyini müəyyən etmək üçün bütün konfiqurasiya edilmiş proksiləri hədəf URL-də sınaqdan keçirin.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Yüklənir…",
     "loadFailed": "Mühərrik məlumatlarını yükləmək mümkün olmadı.",
+    "settingsLoadFailed": "Saxlanmış parametrləri yükləmək alınmadı. Sahələrdə standart dəyərlər göstərilir və səhifə yenidən yüklənənədək Yadda saxla düyməsi deaktiv qalır.",
     "engineNotFound": "\"{engine}\" mühərriki tapılmadı.",
     "saveFailed": "Konfiqurasiyanı saxlamaq mümkün olmadı.",
     "previewFailed": "Önbaxış uğursuz oldu.",

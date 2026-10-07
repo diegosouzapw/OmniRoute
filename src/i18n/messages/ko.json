@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "코어 바이너리 경로",
-      "coreBinaryPathHelp": "선택 사항: 채택된 파일을 대체하기 전에 코어 바이너리로 생성된 파일을 확인합니다. 옆에 계속 쓰려면 비워 두세요. 디렉터리가 없으면 생성됩니다.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "선택 사항: 채택된 파일을 대체하기 전에 코어 바이너리로 생성된 파일을 확인합니다. 옆에 계속 쓰려면 비워 두세요. 디렉터리가 없으면 생성됩니다."
     },
     "bulkHealthcheck": "일괄 상태 확인",
     "bulkHealthcheckDesc": "구성된 모든 프록시를 대상 URL에 대해 테스트하여 작동하는 프록시를 찾습니다.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "로드 중…",
     "loadFailed": "엔진 정보를 로드하지 못했습니다.",
+    "settingsLoadFailed": "저장된 설정을 불러오지 못했습니다. 필드에는 기본값이 표시되며, 페이지를 새로고침할 때까지 저장이 비활성화됩니다.",
     "engineNotFound": "엔진 \"{engine}\"을(를) 찾을 수 없습니다.",
     "saveFailed": "구성을 저장하지 못했습니다.",
     "previewFailed": "미리보기에 실패했습니다.",

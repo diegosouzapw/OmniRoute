@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Laluan binari teras",
-      "coreBinaryPathHelp": "Pilihan: mengesahkan fail yang dijana dengan binari teras sebelum menggantikan fail yang diterima pakai. Biarkan kosong untuk terus menulis di sebelahnya. Direktori akan dicipta jika tiada.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Pilihan: mengesahkan fail yang dijana dengan binari teras sebelum menggantikan fail yang diterima pakai. Biarkan kosong untuk terus menulis di sebelahnya. Direktori akan dicipta jika tiada."
     },
     "bulkHealthcheck": "Pemeriksaan Kesihatan Pukal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasikan terhadap URL sasaran untuk mengenal pasti proksi yang berfungsi.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Memuatkan…",
     "loadFailed": "Gagal memuatkan maklumat enjin.",
+    "settingsLoadFailed": "Gagal memuatkan tetapan yang disimpan. Medan memaparkan nilai lalai, dan Simpan kekal dinyahaktifkan sehingga halaman dimuatkan semula.",
     "engineNotFound": "Enjin \"{engine}\" tidak ditemui.",
     "saveFailed": "Gagal menyimpan konfigurasi.",
     "previewFailed": "Pratonton gagal.",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "የዋናውን መስርቀኛ መልዕክት መንገድ",
-      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "በመጫን ላይ…",
     "loadFailed": "የሞተር መረጃን መጫን አልተሳካም።",
+    "settingsLoadFailed": "የተቀመጡትን ቅንብሮች መጫን አልተሳካም። መስኮቹ ነባሪ እሴቶችን ያሳያሉ፣ እና ገጹ እንደገና እስኪጫን ድረስ አስቀምጥ እንደቦዘነ ይቆያል።",
     "engineNotFound": "ሞተር \"{engine}\" አልተገኘም።",
     "saveFailed": "ውቅረቱን ማስቀመጥ አልተሳካም።",
     "previewFailed": "ቅድመ ዕይታው አልተሳካም።",

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Põhibinaari tee",
-      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse."
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Laadimine…",
     "loadFailed": "Mootori teabe laadimine nurjus.",
+    "settingsLoadFailed": "Salvestatud seadete laadimine ebaõnnestus. Väljadel kuvatakse vaikeväärtused ja Salvesta jääb keelatuks kuni lehe uuesti laadimiseni.",
     "engineNotFound": "Mootorit „{engine}” ei leitud.",
     "saveFailed": "Konfiguratsiooni salvestamine nurjus.",
     "previewFailed": "Eelvaate loomine nurjus.",
