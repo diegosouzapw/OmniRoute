@@ -84,6 +84,7 @@ const FAMILY_FALLBACK_TEMPLATES: Record<string, readonly string[]> = {
   "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
 
   // Claude Opus family
+  "claude-opus-5-5": ["claude-opus-5", "claude-opus-4-8", "claude-sonnet-5"],
   "claude-opus-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
   "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-5"],
   "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-5"],

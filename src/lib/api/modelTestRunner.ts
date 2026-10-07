@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prepareConnectionModelTest } from "@/lib/providerModels/prepareConnectionModelTest";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
@@ -489,6 +490,16 @@ export async function runSingleModelTest(
     };
   }
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
+
+  const catalogError = await prepareConnectionModelTest(providerId, connectionId, fullModelStr);
+  if (catalogError)
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: catalogError.status,
+      error: catalogError.message,
+    };
 
   const startTime = Date.now();
   const [customModel, nodeApiType] = await Promise.all([

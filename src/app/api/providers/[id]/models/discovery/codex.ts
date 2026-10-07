@@ -2,6 +2,8 @@ import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
   getCodexDefaultHeaders,
+  refreshCodexClientVersion,
+  type CodexClientVersionFetch,
 } from "@omniroute/open-sse/config/codexClient.ts";
 import {
   classifyCodexDiscoveryModel,
@@ -44,13 +46,7 @@ export type CodexDiscoveryModel = {
   compatibilityReason?: string;
 };
 
-export type CodexModelsFetch = (
-  input: string,
-  init: {
-    method: "GET";
-    headers: Record<string, string>;
-  }
-) => Promise<Response>;
+export type CodexModelsFetch = CodexClientVersionFetch;
 
 type CodexGithubCatalogCache = {
   models: CodexDiscoveryModel[];
@@ -535,6 +531,7 @@ export async function fetchCodexDiscoveryModels({
   if (!accessToken) return null;
 
   try {
+    await refreshCodexClientVersion(fetchImpl);
     const workspaceId =
       toNonEmptyString(providerSpecificData?.workspaceId) ||
       toNonEmptyString(providerSpecificData?.chatgptAccountId) ||
