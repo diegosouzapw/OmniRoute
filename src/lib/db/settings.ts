@@ -210,6 +210,7 @@ export async function getSettings() {
       enabled: false,
       supportedModels: [
         "claude-fable-5",
+        "claude-opus-5-5",
         "claude-opus-5",
         "claude-opus-4-8",
         "claude-opus-4-7",

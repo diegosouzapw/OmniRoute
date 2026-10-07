@@ -70,7 +70,11 @@ test("Anthropic token reset (RFC3339) is normalized to epoch ms", () => {
   const sig = getTokenHeaderSaturation("anthropic", "anth-conn-2");
   assert.ok(sig, "expected signal");
   const expected = Date.parse("2026-01-01T00:00:30Z");
-  assert.equal(sig!.resetAt, expected, `resetAt should be RFC3339 epoch ${expected}, got ${sig!.resetAt}`);
+  assert.equal(
+    sig!.resetAt,
+    expected,
+    `resetAt should be RFC3339 epoch ${expected}, got ${sig!.resetAt}`
+  );
   // fully exhausted → saturation 1.
   assert.equal(sig!.saturation, 1);
 });
@@ -273,6 +277,23 @@ test("getSaturation(openai) prefers real usage percent over token headers when u
 
   const val = await getSaturation("oai-gen-2", "openai", { unit: "tokens", window: "hourly" });
   assert.ok(Math.abs(val - 0.5) < 1e-9, `expected usage ≈0.5 to win, got ${val}`);
+});
+
+test("getSaturation(openai) still surfaces token-header saturation for an unlimited-only usage payload (#15347)", async () => {
+  _clearSaturationCache();
+  _clearRateLimitHeaders();
+  // An unlimited plan converts to a snapshot with percentUsed 0 and `unlimited: true`. That is
+  // "no usage cap", not "0% used": it must not short-circuit the token-header fallback, which
+  // still reflects real burst-limit pressure.
+  __setGenericUsageFetcherForTests(async () => ({ quotas: { plan: { unlimited: true } } }));
+  storeRateLimitHeaders("oai-gen-unl", "openai", {
+    "x-ratelimit-limit-tokens": "1000",
+    "x-ratelimit-remaining-tokens": "100",
+    "x-ratelimit-reset-tokens": "30s",
+  });
+
+  const val = await getSaturation("oai-gen-unl", "openai", { unit: "tokens", window: "hourly" });
+  assert.ok(Math.abs(val - 0.9) < 1e-9, `expected token-header ≈0.9, got ${val}`);
 });
 
 test("getSaturation(openai) fails open to 0 when neither usage nor token headers exist", async () => {

@@ -1,0 +1,1 @@
+- **feat(proxies):** Log refusal-store writes and show transport proof in pool visibility ([#15374](https://github.com/diegosouzapw/OmniRoute/pull/15374)) — thanks @maxmad64bis

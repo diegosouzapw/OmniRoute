@@ -8,6 +8,7 @@ import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mjs";
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
+import { createNextUpgradeRelay } from "./next-upgrade-relay.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
 import headResponseGuard from "./head-response-guard.cjs";
@@ -17,6 +18,7 @@ import { randomUUID } from "node:crypto";
 import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 import { createSystemdNotifier } from "./systemd-notify.mjs";
 import { attachRequestStreamGuards, installProcessCrashGuard } from "./httpClientAbortGuard.mjs";
+import { listenWithRetry } from "./listen-with-retry.mjs";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
 const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
@@ -143,6 +145,10 @@ ensurePeerStampToken();
 if (!useTurbopack) {
   delete process.env.TURBOPACK;
 }
+// Next attaches its own upgrade listener to `httpServer` (default: the server of the first
+// request), which would end upgrades the dispatcher below already owns (/v1/responses, /v1/ws).
+// See next-upgrade-relay.mjs.
+const nextUpgradeRelay = createNextUpgradeRelay();
 function createNextApp() {
   return next({
     dev,
@@ -151,6 +157,7 @@ function createNextApp() {
     port: dashboardPort,
     turbopack: useTurbopack,
     webpack: !useTurbopack,
+    httpServer: nextUpgradeRelay.target,
   });
 }
 
@@ -235,6 +242,8 @@ async function start() {
       if (responsesWsHandled) return;
       const handled = await wsBridge.handleUpgrade(req, socket, head);
       if (handled) return;
+      // Next's router upgrade handler (dev HMR) — only for upgrades nothing above claimed.
+      if (nextUpgradeRelay.forward(req, socket, head)) return;
       await upgradeHandler(req, socket, head);
     } catch (error) {
       if (!socket.destroyed) {
@@ -242,11 +251,6 @@ async function start() {
       }
       console.error("[WS] Upgrade handling failed:", error);
     }
-  });
-
-  server.on("error", (error) => {
-    console.error("[FATAL] Next custom server failed:", error);
-    process.exit(1);
   });
 
   let isShuttingDown = false;
@@ -281,14 +285,26 @@ async function start() {
   process.on("SIGINT", () => void shutdown("SIGINT"));
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
-  server.listen(dashboardPort, hostname, () => {
-    const bundler = dev ? (useTurbopack ? "turbopack" : "webpack") : "production";
-    console.log(
-      `[Next] ${mode} server listening on http://${hostname}:${dashboardPort} (${bundler})`
-    );
-    systemdNotifier.ready();
-    systemdNotifier.startWatchdog();
+  // Bind with a bounded EADDRINUSE retry: test harnesses pick this port with a
+  // bind(0)-release at module load, ~15-18s before prepare() finishes, so a
+  // transient occupant must not kill the boot (base-red #15306).
+  try {
+    await listenWithRetry(server, { port: dashboardPort, host: hostname });
+  } catch (error) {
+    console.error("[FATAL] Next custom server failed:", error);
+    process.exit(1);
+  }
+  // Post-listen server errors stay fatal — during-listen ones were the retry helper's.
+  server.on("error", (error) => {
+    console.error("[FATAL] Next custom server failed:", error);
+    process.exit(1);
   });
+  const bundler = dev ? (useTurbopack ? "turbopack" : "webpack") : "production";
+  console.log(
+    `[Next] ${mode} server listening on http://${hostname}:${dashboardPort} (${bundler})`
+  );
+  systemdNotifier.ready();
+  systemdNotifier.startWatchdog();
 }
 
 start().catch((error) => {

@@ -7,13 +7,154 @@ const {
   getPendingRequests,
   sweepStalePendingRequests,
   getMaxPendingRequestAgeMs,
+  getPendingRetainedBytes,
   finalizePendingRequestById,
   updatePendingRequestById,
+  updatePendingRequest,
   clearPendingRequests,
 } = await import("../../src/lib/usage/usageHistory.ts");
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
+
+test("pending map is bounded by RETAINED BYTES, not just the 5000-entry count cap", () => {
+  clearPendingRequests();
+  assert.equal(getPendingRetainedBytes(), 0, "cleared state retains nothing");
+
+  // Payloads pass through protectPendingPreview, so a retained entry is capped at
+  // the preview bounds: depth 6, 24 object keys, 12 array items, 1200-char
+  // strings. One worst-case entry is tens of KB, not the multi-MB of a raw
+  // request. Build entries at that shape so the test exercises the real ceiling
+  // rather than an unreachable one.
+  const worstCaseString = "x".repeat(1200);
+  const worstCaseArray = Array.from({ length: 12 }, () => ({
+    role: "user",
+    content: worstCaseString,
+  }));
+  const worstCaseObject = Object.fromEntries(
+    Array.from({ length: 24 }, (_, i) => [`key${i}`, worstCaseArray])
+  );
+  const meta = () => ({
+    clientRequest: worstCaseObject,
+    providerRequest: worstCaseObject,
+    providerResponse: worstCaseObject,
+    clientResponse: worstCaseObject,
+  });
+
+  const CEILING = 256 * 1024 * 1024;
+  const before = getPendingRetainedBytes();
+  trackPendingRequest("m", "p", "warm", true, meta());
+  const perEntry = getPendingRetainedBytes() - before;
+  assert.ok(perEntry > 4096, `a worst-case entry must retain >4KB (got ${perEntry})`);
+
+  // Enough entries to blow through 256 MB (past the 5000-entry count cap too).
+  const target = Math.ceil(CEILING / perEntry) + 200;
+  for (let i = 0; i < target; i++) {
+    trackPendingRequest("m", "p", `conn-${i}`, true, meta());
+  }
+
+  const retained = getPendingRetainedBytes();
+  assert.ok(
+    retained <= CEILING,
+    `retained bytes ${retained} must stay under the ${CEILING} ceiling`
+  );
+  assert.ok(
+    getPendingById().size < target,
+    `entries must be evicted under pressure (kept ${getPendingById().size}/${target})`
+  );
+  assert.ok(getPendingById().size > 0, "the ceiling must not wipe in-flight requests entirely");
+  // Counters self-heal: the map and the dashboard buckets stay consistent.
+  const counted = getPendingRequests().byModel["m (p)"];
+  assert.equal(counted, getPendingById().size, "pending counts must match the map after eviction");
+
+  clearPendingRequests();
+  assert.equal(getPendingRetainedBytes(), 0, "clear resets retained bytes");
+});
+
+test("pending ids are unique across a large burst (regression: 24-bit suffix collided ~52%)", () => {
+  clearPendingRequests();
+  // 5000 requests tracked inside one millisecond. With the old
+  // `${now}-${uuid.slice(0,6)}` id the 24-bit suffix collided by the birthday
+  // bound ~52% of the time, and `pendingById.set` overwrote a LIVE request's
+  // entry (the map lost one while its bucket kept both).
+  const COUNT = 5000;
+  const ids = new Set<string>();
+  for (let i = 0; i < COUNT; i++) {
+    const id = trackPendingRequest("m", "p", "c-burst", true);
+    assert.ok(id, "id returned");
+    ids.add(id);
+  }
+  assert.equal(ids.size, COUNT, "every insert must yield a unique id");
+  assert.equal(
+    getPendingById().size,
+    COUNT,
+    "one insert must be exactly one map entry (no silent overwrite)"
+  );
+  clearPendingRequests();
+});
+
+test("UPDATE path measures payloads (regression: the ceiling must not no-op in production)", () => {
+  clearPendingRequests();
+
+  const worstCaseString = "x".repeat(1200);
+  const worstCaseArray = Array.from({ length: 12 }, () => ({
+    role: "user",
+    content: worstCaseString,
+  }));
+  const worstCaseObject = Object.fromEntries(
+    Array.from({ length: 24 }, (_, i) => [`key${i}`, worstCaseArray])
+  );
+
+  // Path 1: updatePendingRequestById (targets one exact id).
+  const idA = trackPendingRequest("m", "p", "c-a", true);
+  assert.ok(idA, "id tracked");
+  const afterInsertA = getPendingRetainedBytes();
+  assert.ok(afterInsertA < 4096, `a bare entry retains almost nothing (got ${afterInsertA})`);
+  updatePendingRequestById(idA, { providerResponse: worstCaseObject });
+  const afterById = getPendingRetainedBytes();
+  assert.ok(
+    afterById > afterInsertA + 10_000,
+    `updatePendingRequestById must be measured (insert ${afterInsertA} -> ${afterById})`
+  );
+
+  // Path 2: updatePendingRequest (targets the LAST entry of one account/model
+  // bucket) — a different connection, so it is a genuinely different entry.
+  const idB = trackPendingRequest("m", "p", "c-b", true);
+  assert.ok(idB, "second id tracked");
+  const beforeBucket = getPendingRetainedBytes();
+  updatePendingRequest("m", "p", "c-b", { providerResponse: worstCaseObject });
+  const afterBucket = getPendingRetainedBytes();
+  assert.ok(
+    afterBucket > beforeBucket + 10_000,
+    `updatePendingRequest must be measured (${beforeBucket} -> ${afterBucket})`
+  );
+
+  // Replacing the same field with the same size must not double-count.
+  updatePendingRequest("m", "p", "c-b", { providerResponse: worstCaseObject });
+  assert.equal(getPendingRetainedBytes(), afterBucket, "replacing a payload must not accumulate");
+
+  // Enough entries to exceed the ceiling, each fattened through the update path.
+  const CEILING = 256 * 1024 * 1024;
+  const perEntry = afterById - afterInsertA;
+  const extra = Math.ceil(CEILING / perEntry) + 50;
+  for (let i = 0; i < extra; i++) {
+    const nextId = trackPendingRequest("m", "p", `c${i}`, true);
+    assert.ok(nextId);
+    updatePendingRequestById(nextId, { providerResponse: worstCaseObject });
+  }
+  assert.ok(
+    getPendingRetainedBytes() > CEILING,
+    `the map should now exceed the ceiling (retained ${getPendingRetainedBytes()})`
+  );
+  trackPendingRequest("m", "p", "c-trigger", true);
+  assert.ok(
+    getPendingRetainedBytes() <= CEILING,
+    `ceiling must reclaim on insert (retained ${getPendingRetainedBytes()})`
+  );
+
+  clearPendingRequests();
+  assert.equal(getPendingRetainedBytes(), 0, "clear resets retained bytes");
+});
 
 test("sweepStalePendingRequests marks over-age pending details and keeps counts", () => {
   clearPendingRequests();
@@ -150,8 +291,16 @@ test("trackPendingRequest reuses the same id across a combo's target-attempt ret
   });
 
   assert.equal(secondId, firstId, "retry attempt must reuse the first attempt's id");
-  assert.equal(getPendingById().has(firstId), true, "reused id is live again under the new attempt");
-  assert.equal(getPendingById().get(firstId)?.model, "model-b", "entry reflects the NEW attempt's target");
+  assert.equal(
+    getPendingById().has(firstId),
+    true,
+    "reused id is live again under the new attempt"
+  );
+  assert.equal(
+    getPendingById().get(firstId)?.model,
+    "model-b",
+    "entry reflects the NEW attempt's target"
+  );
 
   clearPendingRequests();
 });
@@ -256,11 +405,11 @@ test("entries without an account are marked in the map and still fall under the 
     for (let i = 0; i < 5000; i++) {
       trackPendingRequest("m", "p", "c-fresh-cap", true);
     }
-    assert.ok(getPendingById().size > 5000);
     const sizeBefore = getPendingById().size;
+    assert.ok(sizeBefore > 5000, `expected to exceed the cap, got ${sizeBefore}`);
     const removedByCap = sweepStalePendingRequests(now, HOUR_MS);
-    assert.equal(removedByCap, sizeBefore - 5000);
-    assert.equal(getPendingById().size, 5000);
+    assert.equal(removedByCap, sizeBefore - 5000, "sweep removes exactly the overflow");
+    assert.equal(getPendingById().size, 5000, "the cap holds after the sweep");
     assert.equal(getPendingById().has(requestId), false);
   } finally {
     clearPendingRequests();
@@ -334,11 +483,15 @@ test("marked entries are removed first when the pending map exceeds the cap", ()
     for (let i = 0; i < 5000; i++) {
       trackPendingRequest("m", "p", `c-fresh-${i}`, true);
     }
-    assert.ok(getPendingById().size > 5000);
+    const sizeBefore = getPendingById().size;
+    assert.ok(sizeBefore > 5000, `expected to exceed the cap, got ${sizeBefore}`);
 
+    // Derive the expectation from the ACTUAL pre-sweep size rather than
+    // hardcoding: every insert must be a distinct map entry, and the sweep
+    // removes exactly the overflow.
     const removed = sweepStalePendingRequests(now, HOUR_MS);
-    assert.equal(getPendingById().size, 5000);
-    assert.equal(removed, 3);
+    assert.equal(getPendingById().size, 5000, "the cap holds after the sweep");
+    assert.equal(removed, sizeBefore - 5000, "sweep removes exactly the overflow");
     for (const id of markedIds) assert.equal(getPendingById().has(id), false);
   } finally {
     clearPendingRequests();

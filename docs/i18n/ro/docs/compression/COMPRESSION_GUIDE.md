@@ -467,8 +467,7 @@ adaugă clauza privind limitele **o singură dată** și începe blocul cu un si
 Pentru un corp cu `messages`, ocolirea bazată pe conținut (`shouldBypassCavemanOutputMode()` din
 `open-sse/services/compression/outputMode.ts`) verifică ultimele trei mesaje și omite
 stilurile pentru întreaga interacțiune atunci când acestea corespund cuvintelor-cheie privind securitatea, acțiunile ireversibile,
-clarificarea sau ordinea operațiilor. Ocolirea rulează conform valorii comutatorului
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) din panoul de control.
+clarificarea sau ordinea operațiilor. Ocolirea rulează cât timp comutatorul **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) din panoul de control este activat, ceea ce reprezintă valoarea implicită; cu comutatorul dezactivat, stilurile selectate se aplică și în aceste interacțiuni.
 
 Când ocolirea permite procesarea interacțiunii, `placeSystemInstruction()` (același fișier), care
 nu creează niciodată un nou `messages[0]`, plasează blocul în primul dintre următoarele locuri pe care îl găsește:

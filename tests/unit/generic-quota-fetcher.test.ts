@@ -98,9 +98,18 @@ test("convertUsageToQuotaInfo skips unlimited and unmeasurable windows", () => {
   assert.deepEqual(Object.keys(result!.windows || {}), ["session"]);
 });
 
-test("convertUsageToQuotaInfo returns null when no windows are measurable", () => {
+test("convertUsageToQuotaInfo marks an unlimited-only provider as unlimited, not as a failed read (#15347)", () => {
+  // `null` from a fetcher means "could not read it" and is ranked below real readings in
+  // auto-combo; a provider with no cap is a real, known reading of full headroom.
   const result = convertUsageToQuotaInfo({
     quotas: { unlimited_thing: { unlimited: true } },
+  });
+  assert.deepEqual(result, { used: 0, total: 0, percentUsed: 0, unlimited: true });
+});
+
+test("convertUsageToQuotaInfo returns null when no window is measurable and none is unlimited", () => {
+  const result = convertUsageToQuotaInfo({
+    quotas: { unknown_shape: { resetAt: null }, unreported: { fractionReported: false } },
   });
   assert.equal(result, null);
 });

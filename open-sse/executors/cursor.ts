@@ -13,6 +13,7 @@ declare const EdgeRuntime: string | undefined;
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import {
   buildAgentRequestBody,
   decodeAgentServerMessage,
@@ -42,7 +43,7 @@ import {
 } from "../utils/usageTracking.ts";
 import {
   formatCursorAgentClientVersion,
-  getCursorAgentCliVersion,
+  getCursorAgentCliVersionSync,
 } from "../utils/cursorAgentCliVersion.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
@@ -1026,6 +1027,7 @@ export class CursorExecutor extends BaseExecutor {
     const cleanToken = stripCursorOAuthTokenPrefix(credentials.accessToken ?? "");
     const requestId = crypto.randomUUID();
     const traceParent = `00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01`;
+    const clientVersion = formatCursorAgentClientVersion(getCursorAgentCliVersionSync());
 
     // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
     // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.
@@ -1040,7 +1042,7 @@ export class CursorExecutor extends BaseExecutor {
       traceparent: traceParent,
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
+      "x-cursor-client-version": clientVersion,
       "x-ghost-mode": ghostMode ? "true" : "false",
       "x-original-request-id": requestId,
       "x-request-id": requestId,
@@ -1460,7 +1462,15 @@ export class CursorExecutor extends BaseExecutor {
         };
       }
       if (opened.status !== 200) {
-        const errBuf = await opened.consumeError();
+        // Publish the received status so proxy health counts it as upstream.
+        const sink = currentAppliedProxySink();
+        if (sink) sink.upstreamStatus = opened.status;
+        let errBuf: Buffer;
+        try {
+          errBuf = await opened.consumeError();
+        } catch {
+          errBuf = Buffer.alloc(0);
+        }
         const errText = errBuf.toString("utf8") || "Unknown error";
         if (opened.status === HTTP_STATUS.UNAUTHORIZED && isCursorApiKey(credentials.apiKey)) {
           invalidateCursorSessionToken(credentials.apiKey);

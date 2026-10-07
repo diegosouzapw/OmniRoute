@@ -454,8 +454,7 @@ wstrzykiwana jest instrukcja zlokalizowana.
 W treści zawierającej `messages` mechanizm pomijania na podstawie zawartości (`shouldBypassCavemanOutputMode()` w
 `open-sse/services/compression/outputMode.ts`) sprawdza trzy ostatnie wiadomości i pomija
 style dla całej tury, gdy pasują one do słów kluczowych związanych z bezpieczeństwem, nieodwracalnymi działaniami,
-wyjaśnieniami lub wrażliwością na kolejność. Mechanizm pomijania działa zgodnie z ustawieniem przełącznika
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) w panelu.
+wyjaśnieniami lub wrażliwością na kolejność. Mechanizm pomijania działa, dopóki przełącznik **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) w panelu jest włączony, co jest ustawieniem domyślnym; przy wyłączonym przełączniku wybrane style stosuje się także w tych turach.
 
 Gdy mechanizm pomijania przepuszcza turę, `placeSystemInstruction()` (ten sam plik), który
 nigdy nie tworzy nowego `messages[0]`, umieszcza blok w pierwszym znalezionym miejscu:

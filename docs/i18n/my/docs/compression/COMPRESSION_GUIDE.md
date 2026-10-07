@@ -452,8 +452,7 @@ marker တစ်ခုတည်း (`[OmniRoute Output Styles]`) ဖြင့်
 `messages` ပါသော body တစ်ခုတွင် content bypass (`shouldBypassCavemanOutputMode()` ကို
 `open-sse/services/compression/outputMode.ts` တွင် ကြည့်ပါ) သည် နောက်ဆုံး message သုံးခုကို စစ်ဆေးပြီး
 ၎င်းတို့သည် လုံခြုံရေး၊ ပြန်ပြင်မရသော လုပ်ဆောင်ချက်၊ ရှင်းလင်းချက်တောင်းခံမှု သို့မဟုတ် အစီအစဉ်အပေါ်မူတည်သော keyword များနှင့် ကိုက်ညီပါက
-အဆိုပါ turn တစ်ခုလုံးအတွက် စတိုင်များကို ကျော်သွားသည်။ Dashboard ၏
-**Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) ကို မည်သို့သတ်မှတ်ထားသည်ဖြစ်စေ bypass က လည်ပတ်သည်။
+အဆိုပါ turn တစ်ခုလုံးအတွက် စတိုင်များကို ကျော်သွားသည်။ Dashboard ၏ **Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) ဖွင့်ထားသရွေ့ bypass က လည်ပတ်သည်၊ ဤသည်မှာ ပုံသေနည်းဖြစ်သည်။ toggle ပိတ်ထားပါက ရွေးချယ်ထားသော စတိုင်များသည် ထို turn များတွင်လည်း အသုံးချပါသည်။
 
 bypass က turn ကို ဖြတ်သန်းခွင့်ပြုသောအခါ `placeSystemInstruction()` (ဖိုင်တူတူတွင်ရှိသည်) သည်
 `messages[0]` အသစ်ကို ဘယ်တော့မှ မဖန်တီးဘဲ block ကို အောက်ပါအစီအစဉ်အတိုင်း ပထမဆုံးတွေ့ရှိသည့်နေရာတွင် ထည့်သည်-

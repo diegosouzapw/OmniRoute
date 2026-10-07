@@ -44,3 +44,27 @@ test("still fills the floor when the client omitted the budget", () => {
   executor.ensureThinkingBudget(body, "kimi-k3");
   assert.equal(body.max_tokens, 4096);
 });
+
+test("keeps a caller max_tokens above the thinking floor (#14888)", () => {
+  const executor = new DefaultExecutor("moonshot");
+  const body = {
+    model: "kimi-k3",
+    reasoning_effort: "max",
+    max_tokens: 32000,
+  } as Record<string, unknown>;
+
+  executor.ensureThinkingBudget(body, "kimi-k3");
+  assert.equal(body.max_tokens, 32000);
+});
+
+test("keeps a tiny caller max_tokens instead of raising it (#14888)", () => {
+  const executor = new DefaultExecutor("moonshot");
+  const body = {
+    model: "kimi-k3",
+    reasoning_effort: "max",
+    max_tokens: 64,
+  } as Record<string, unknown>;
+
+  executor.ensureThinkingBudget(body, "kimi-k3");
+  assert.equal(body.max_tokens, 64);
+});

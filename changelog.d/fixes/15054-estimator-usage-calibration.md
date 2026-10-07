@@ -1,0 +1,1 @@
+- **fix(context):** calibrate the chars/4 guard estimate with provider-reported prompt_tokens ([#15054](https://github.com/diegosouzapw/OmniRoute/pull/15054)) — thanks @skygunner

@@ -20,6 +20,7 @@ export type FetchStartTimeoutPolicyInput = {
   /** Only streaming requests are capped — non-streaming keeps the flat default. */
   stream?: boolean | null;
   capMs?: number;
+  env?: Record<string, string | undefined>;
 };
 
 export type FetchStartTimeoutPolicyResult = {
@@ -34,6 +35,24 @@ export type FetchStartTimeoutPolicyResult = {
 // own headers-phase watchdog always fires before the client gives up on its own.
 export const CODEX_CLIENT_ABORT_MS = 120_000;
 export const DEFAULT_FETCH_START_TIMEOUT_CAP_MS = 110_000;
+const FETCH_START_TIMEOUT_CAP_ENV = "OMNIROUTE_FETCH_START_TIMEOUT_CAP_MS";
+let invalidFetchStartTimeoutCapWarned = false;
+
+function resolveConfiguredFetchStartTimeoutCapMs(env: Record<string, string | undefined>): number {
+  const raw = env[FETCH_START_TIMEOUT_CAP_ENV];
+  if (raw == null || raw.trim() === "") return DEFAULT_FETCH_START_TIMEOUT_CAP_MS;
+
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
+
+  if (!invalidFetchStartTimeoutCapWarned) {
+    console.warn(
+      `[TIMEOUT] Invalid ${FETCH_START_TIMEOUT_CAP_ENV}="${raw}". Using default ${DEFAULT_FETCH_START_TIMEOUT_CAP_MS}.`
+    );
+    invalidFetchStartTimeoutCapWarned = true;
+  }
+  return DEFAULT_FETCH_START_TIMEOUT_CAP_MS;
+}
 
 export function resolveFetchStartTimeout(
   input: FetchStartTimeoutPolicyInput
@@ -43,7 +62,9 @@ export function resolveFetchStartTimeout(
     return { timeoutMs: baseTimeoutMs, baseTimeoutMs, capped: false };
   }
 
-  const capMs = Math.max(0, Math.floor(input.capMs ?? DEFAULT_FETCH_START_TIMEOUT_CAP_MS));
+  const configuredCapMs =
+    input.capMs ?? resolveConfiguredFetchStartTimeoutCapMs(input.env ?? process.env);
+  const capMs = Math.max(0, Math.floor(configuredCapMs));
   if (capMs <= 0 || baseTimeoutMs <= capMs) {
     return { timeoutMs: baseTimeoutMs, baseTimeoutMs, capped: false };
   }
