@@ -14,7 +14,7 @@
 
 import {
   BaseExecutor,
-x1:TypeError  mergeUpstreamExtraHeaders,
+  mergeUpstreamExtraHeaders,
   mergeAbortSignals,
   type ExecuteInput,
   type ExecutorLog,
