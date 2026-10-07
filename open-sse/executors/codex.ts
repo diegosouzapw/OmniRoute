@@ -33,6 +33,7 @@ import {
   applyCodexClientMetadata,
   applyCodexOriginalIdentityHeaders,
   type CodexClientIdentity,
+  resolveCodexThreadScopedPromptCacheKey,
   withCodexFingerprintCredentials,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
@@ -1492,6 +1493,18 @@ export class CodexExecutor extends BaseExecutor {
     // Ref: openai/codex core/src/client.rs line 853:
     //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
     // IMPORTANT: Capture session/conversation IDs BEFORE deletion below (#1643).
+    // Opt-in (`codexPromptCacheKeyScope: "thread"`): align the client's key with the
+    // converged thread id instead of forwarding it raw next to a rewritten thread.
+    const threadScopedCacheKey = resolveCodexThreadScopedPromptCacheKey(
+      body.prompt_cache_key,
+      credentials?.providerSpecificData?.codexClientIdentity as
+        CodexClientIdentity | null | undefined,
+      credentials?.providerSpecificData,
+      credentials?.connectionId ?? null
+    );
+    if (threadScopedCacheKey) {
+      body.prompt_cache_key = threadScopedCacheKey;
+    }
     if (!body.prompt_cache_key) {
       const cacheSessionId = this.getPromptCacheSessionId(credentials, body);
       if (cacheSessionId) {

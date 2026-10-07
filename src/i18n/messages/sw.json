@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Njia ya kiunzi cha msingi",
-      "coreBinaryPathHelp": "Hiari: huthibitisha faili iliyozalishwa kwa kiunzi cha msingi kabla ya kubadilisha faili iliyotumika. IACHE wazi ili kuendelea kuandika iliyo karibu nayo. Faili la husika hufunguliwa likitokuwepo.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Hiari: huthibitisha faili iliyozalishwa kwa kiunzi cha msingi kabla ya kubadilisha faili iliyotumika. IACHE wazi ili kuendelea kuandika iliyo karibu nayo. Faili la husika hufunguliwa likitokuwepo."
     },
     "bulkHealthcheck": "Ukaguzi wa Afya kwa Wingi",
     "bulkHealthcheckDesc": "Jaribu proksi zote zilizosanidiwa dhidi ya URL lengwa ili kubaini zinazofanya kazi.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Inapakia…",
     "loadFailed": "Imeshindwa kupakia maelezo ya injini.",
+    "settingsLoadFailed": "Imeshindwa kupakia mipangilio iliyohifadhiwa. Sehemu zinaonyesha chaguo-msingi, na Hifadhi inasalia imezimwa hadi ukurasa upakiwe upya.",
     "engineNotFound": "Injini \"{engine}\" haijapatikana.",
     "saveFailed": "Imeshindwa kuhifadhi usanidi.",
     "previewFailed": "Onyesho la kukagua limefeli.",

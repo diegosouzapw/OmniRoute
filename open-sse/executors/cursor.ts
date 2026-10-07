@@ -43,7 +43,7 @@ import {
 } from "../utils/usageTracking.ts";
 import {
   formatCursorAgentClientVersion,
-  getCursorAgentCliVersion,
+  getCursorAgentCliVersionSync,
 } from "../utils/cursorAgentCliVersion.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
@@ -1022,12 +1022,12 @@ export class CursorExecutor extends BaseExecutor {
     }
   }
 
-  async buildHeaders(credentials) {
+  buildHeaders(credentials) {
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
     const cleanToken = stripCursorOAuthTokenPrefix(credentials.accessToken ?? "");
     const requestId = crypto.randomUUID();
     const traceParent = `00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01`;
-    const clientVersion = formatCursorAgentClientVersion(await getCursorAgentCliVersion());
+    const clientVersion = formatCursorAgentClientVersion(getCursorAgentCliVersionSync());
 
     // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
     // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.
@@ -1254,7 +1254,7 @@ export class CursorExecutor extends BaseExecutor {
       url = await resolveCursorAgentUrl(executionCredentials, signal);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const headers = await this.buildHeaders(executionCredentials);
+      const headers = this.buildHeaders(executionCredentials);
       return {
         response: new Response(
           JSON.stringify({
@@ -1274,7 +1274,7 @@ export class CursorExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
-    const headers = await this.buildHeaders(executionCredentials);
+    const headers = this.buildHeaders(executionCredentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     const messages: ChatMessage[] = body.messages || [];

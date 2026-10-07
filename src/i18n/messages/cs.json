@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cesta k binárnímu souboru jádra",
-      "coreBinaryPathHelp": "Volitelné: ověří vygenerovaný soubor binárním souborem jádra před nahrazením přijatého souboru. Ponechte prázdné pro zápis vedle něj. Adresář se vytvoří, pokud neexistuje.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Volitelné: ověří vygenerovaný soubor binárním souborem jádra před nahrazením přijatého souboru. Ponechte prázdné pro zápis vedle něj. Adresář se vytvoří, pokud neexistuje."
     },
     "bulkHealthcheck": "Hromadná kontrola stavu",
     "bulkHealthcheckDesc": "Otestovat všechny nakonfigurované proxy servery vůči cílové URL a zjistit, které fungují.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Načítání…",
     "loadFailed": "Nepodařilo se načíst informace o enginu.",
+    "settingsLoadFailed": "Uložená nastavení se nepodařilo načíst. Pole zobrazují výchozí hodnoty a tlačítko Uložit zůstane neaktivní, dokud se stránka znovu nenačte.",
     "engineNotFound": "Engine \"{engine}\" nebyl nalezen.",
     "saveFailed": "Nepodařilo se uložit konfiguraci.",
     "previewFailed": "Náhled selhal.",

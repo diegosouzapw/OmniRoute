@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Alapbináris elérési út",
-      "coreBinaryPathHelp": "Opcionális: ellenőrzi a generált fájlt a binárissal az elfogadott fájl cseréje előtt. Hagyja üresen, ha mellette szeretné továbbra is írni. A könyvtár hiányzóan jön létre.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcionális: ellenőrzi a generált fájlt a binárissal az elfogadott fájl cseréje előtt. Hagyja üresen, ha mellette szeretné továbbra is írni. A könyvtár hiányzóan jön létre."
     },
     "bulkHealthcheck": "Tömeges állapotellenőrzés",
     "bulkHealthcheckDesc": "Az összes beállított proxy tesztelése egy cél-URL-en annak megállapításához, hogy melyek működnek.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Betöltés…",
     "loadFailed": "Nem sikerült betölteni a motorinformációkat.",
+    "settingsLoadFailed": "Nem sikerült betölteni a mentett beállításokat. A mezők az alapértelmezett értékeket mutatják, és a Mentés letiltva marad az oldal újratöltéséig.",
     "engineNotFound": "A(z) \"{engine}\" motor nem található.",
     "saveFailed": "Nem sikerült menteni a konfigurációt.",
     "previewFailed": "Az előnézet sikertelen.",

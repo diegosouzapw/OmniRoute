@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateOpenAICompatibleProvider } =
+  await import("../../src/lib/providers/validation/openaiFormat.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -135,6 +137,215 @@ test("openai-compatible validation retries transient /models failures before suc
   assert.equal(result.valid, true);
   assert.equal(result.method, "models_endpoint");
   assert.equal(attempts, 2);
+});
+
+test("openai-compatible validation detects chat-template reasoning backends from /models", async () => {
+  for (const backend of ["vllm", "sglang", "llamacpp"]) {
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          object: "list",
+          data: [
+            { id: "model-a", object: "model", owned_by: backend },
+            { id: "model-b", object: "model", owned_by: backend.toUpperCase() },
+          ],
+        }),
+        { status: 200 }
+      );
+
+    const result = await validateProviderApiKey({
+      provider: `openai-compatible-${backend}`,
+      apiKey: "sk-test",
+      providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+    });
+
+    assert.equal(result.valid, true);
+    assert.deepEqual(
+      {
+        mode: result.detectedReasoningControl?.mode,
+        modelBackends: result.detectedReasoningControl?.modelBackends,
+        source: result.detectedReasoningControl?.source,
+        detectorVersion: result.detectedReasoningControl?.detectorVersion,
+      },
+      {
+        mode: "chat-template",
+        modelBackends: { "model-a": backend, "model-b": backend },
+        source: "models.data.effective_owned_by",
+        detectorVersion: 2,
+      }
+    );
+    assert.match(result.detectedReasoningControl?.observedAt ?? "", /^\d{4}-\d{2}-\d{2}T/);
+  }
+});
+
+test("openai-compatible validation records exact model evidence through transparent wrappers", async () => {
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        object: "list",
+        data: [
+          {
+            id: "Case/Sensitive-Model",
+            owned_by: "openai",
+            openai: {
+              owned_by: "openai",
+              openai: { owned_by: "VLLM" },
+            },
+          },
+          { id: "direct-model", owned_by: "sglang" },
+          { id: "__proto__", owned_by: "llamacpp" },
+          { id: "conflicting-model", owned_by: "vllm" },
+          { id: "conflicting-model", owned_by: "sglang" },
+          { id: "partially-known-model", owned_by: "vllm" },
+          { id: "partially-known-model", owned_by: "vendor-gateway" },
+          { id: "manual-alias", owned_by: "openai", openai: { id: "manual-alias" } },
+          { id: "unknown-model", owned_by: "vendor-gateway" },
+        ],
+      }),
+      { status: 200 }
+    );
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-transparent-wrapper",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(
+    result.detectedReasoningControl?.modelBackends,
+    Object.fromEntries([
+      ["Case/Sensitive-Model", "vllm"],
+      ["direct-model", "sglang"],
+      ["__proto__", "llamacpp"],
+    ])
+  );
+  assert.equal(
+    Object.hasOwn(result.detectedReasoningControl?.modelBackends ?? {}, "conflicting-model"),
+    false
+  );
+  assert.equal(
+    Object.hasOwn(result.detectedReasoningControl?.modelBackends ?? {}, "partially-known-model"),
+    false
+  );
+  assert.equal(result.detectedReasoningControl?.backend, undefined);
+  assert.equal(result.detectedReasoningControl?.detectorVersion, 2);
+});
+
+for (const responseBody of [
+  { object: "list", data: [] },
+  { object: "list", data: [{ id: "model-a" }] },
+  { object: "list", data: [{ id: "model-a", owned_by: "unknown-engine" }] },
+] as const) {
+  test(`openai-compatible validation abstains for unproven /models ownership: ${JSON.stringify(responseBody)}`, async () => {
+    globalThis.fetch = async () => new Response(JSON.stringify(responseBody), { status: 200 });
+
+    const result = await validateProviderApiKey({
+      provider: "openai-compatible-unproven-owner",
+      apiKey: "sk-test",
+      providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+    });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.detectedReasoningControl, null);
+  });
+}
+
+test("openai-compatible validation abstains when a successful /models body is malformed", async () => {
+  globalThis.fetch = async () => new Response("not-json", { status: 200 });
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-malformed-models",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.detectedReasoningControl, null);
+});
+
+test("openai-compatible validation keeps a 200 valid when its detection body read fails", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return new Response(
+      new ReadableStream({
+        pull(controller) {
+          controller.error(new Error("models body failed"));
+        },
+      }),
+      { status: 200 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-models-read-error",
+    apiKey: "sk-test",
+    providerSpecificData: {
+      baseUrl: "https://api.example.com/v1",
+      validationModelId: "must-not-trigger-chat-fallback",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.detectedReasoningControl, null);
+  assert.equal(calls, 1, "a successful /models response must not trigger a completion probe");
+});
+
+test("openai-compatible detection bounds a 200 response body that never closes", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return new Response(new ReadableStream({ start() {} }), { status: 200 });
+  };
+
+  const startedAt = Date.now();
+  const result = await validateOpenAICompatibleProvider({
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+    reasoningControlDetectionTimeoutMs: 20,
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.detectedReasoningControl, null);
+  assert.equal(calls, 1);
+  assert.ok(Date.now() - startedAt < 500, "body-read deadline should finish promptly");
+});
+
+test("openai-compatible validation keeps credentials valid when /models exceeds the detection cap", async () => {
+  globalThis.fetch = async () => new Response("x".repeat(2 * 1024 * 1024 + 1), { status: 200 });
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-oversized-models",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.detectedReasoningControl, null);
+});
+
+test("openai-compatible validation abstains when /models exceeds the detection row cap", async () => {
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        object: "list",
+        data: Array.from({ length: 10_001 }, (_, index) => ({
+          id: `model-${index}`,
+          owned_by: "vllm",
+        })),
+      }),
+      { status: 200 }
+    );
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-too-many-models",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://api.example.com/v1" },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.detectedReasoningControl, null);
 });
 
 test("openai-compatible validation forwards custom User-Agent", async () => {

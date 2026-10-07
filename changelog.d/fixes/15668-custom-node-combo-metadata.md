@@ -1,0 +1,1 @@
+- **fix(api):** Preserve token limits, modalities, and reasoning tiers for custom-provider combos saved with public model prefixes and internal node IDs ([#15668](https://github.com/diegosouzapw/OmniRoute/pull/15668)) — thanks @ekinnee

@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Conair an bhinary príomh",
-      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh."
     },
     "bulkHealthcheck": "Seiceáil Sláinte ar an Mórchóir",
     "bulkHealthcheckDesc": "Tástáil na seachfhreastalaithe cumraithe go léir i gcoinne URL sprice lena fháil amach cé na cinn a oibríonn.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ag lódáil…",
     "loadFailed": "Theip ar fhaisnéis faoin inneall a lódáil.",
+    "settingsLoadFailed": "Níorbh fhéidir na socruithe sábháilte a luchtú. Taispeánann na réimsí na luachanna réamhshocraithe, agus fanann Sábháil díchumasaithe go dtí go n-athlódálfar an leathanach.",
     "engineNotFound": "Ní aimsíodh an t-inneall \"{engine}\".",
     "saveFailed": "Theip ar an gcumraíocht a shábháil.",
     "previewFailed": "Theip ar an réamhamharc.",

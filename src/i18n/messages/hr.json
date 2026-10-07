@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Putanja osnovne izvršne datoteke",
-      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku pomoću osnovne izvršne datoteke prije zamjene prihvaćene datoteke. Ostavite prazno da se i dalje piše pokraj nje. Direktorij se stvara ako ne postoji.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku pomoću osnovne izvršne datoteke prije zamjene prihvaćene datoteke. Ostavite prazno da se i dalje piše pokraj nje. Direktorij se stvara ako ne postoji."
     },
     "bulkHealthcheck": "Skupna provjera stanja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurirane proxyje na ciljnom URL-u kako biste utvrdili koji rade.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Učitavanje…",
     "loadFailed": "Nije uspjelo učitavanje informacija o pogonu.",
+    "settingsLoadFailed": "Učitavanje spremljenih postavki nije uspjelo. Polja prikazuju zadane vrijednosti, a Spremi ostaje onemogućeno dok se stranica ponovno ne učita.",
     "engineNotFound": "Pogon \"{engine}\" nije pronađen.",
     "saveFailed": "Nije uspjelo spremanje konfiguracije.",
     "previewFailed": "Pregled nije uspio.",
