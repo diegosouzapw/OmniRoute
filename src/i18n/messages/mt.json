@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Triq tal-binarju ċentrali",
-      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm."
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Qed jitgħabba…",
     "loadFailed": "It-tagħrif dwar il-magna ma setax jitgħabba.",
+    "settingsLoadFailed": "Ma rnexxiex jitgħabbew is-settings issejvjati. L-oqsma juru l-valuri predefiniti, u Issejvja jibqa’ diżattivat sakemm il-paġna terġa’ titgħabba.",
     "engineNotFound": "Il-magna \"{engine}\" ma nstabitx.",
     "saveFailed": "Il-konfigurazzjoni ma setgħetx tiġi ssejvjata.",
     "previewFailed": "Il-previżjoni falliet.",

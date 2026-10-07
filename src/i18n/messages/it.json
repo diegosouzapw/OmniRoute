@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Percorso del binario di base",
-      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante."
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Caricamento in corso…",
     "loadFailed": "Impossibile caricare le informazioni sul motore.",
+    "settingsLoadFailed": "Impossibile caricare le impostazioni salvate. I campi mostrano i valori predefiniti e Salva rimane disattivato finché la pagina non viene ricaricata.",
     "engineNotFound": "Motore \"{engine}\" non trovato.",
     "saveFailed": "Impossibile salvare la configurazione.",
     "previewFailed": "Anteprima non riuscita.",

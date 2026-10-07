@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Chemin du binaire de base",
-      "coreBinaryPathHelp": "Facultatif : vérifie le fichier généré avec le binaire de base avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le dossier est créé s'il est absent.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Facultatif : vérifie le fichier généré avec le binaire de base avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le dossier est créé s'il est absent."
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Chargement…",
     "loadFailed": "Échec du chargement des informations sur le moteur.",
+    "settingsLoadFailed": "Échec du chargement des paramètres enregistrés. Les champs affichent les valeurs par défaut et le bouton Enregistrer reste désactivé jusqu’au rechargement de la page.",
     "engineNotFound": "Moteur \"{engine}\" introuvable.",
     "saveFailed": "Échec de l'enregistrement de la configuration.",
     "previewFailed": "Échec de l'aperçu.",

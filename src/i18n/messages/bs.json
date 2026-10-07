@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Učitavanje…",
     "loadFailed": "Neuspjelo učitavanje informacija o engine-u.",
+    "settingsLoadFailed": "Učitavanje sačuvanih postavki nije uspjelo. Polja prikazuju zadane vrijednosti, a Spremi ostaje onemogućeno dok se stranica ponovo ne učita.",
     "engineNotFound": "Engine \"{engine}\" nije pronađen.",
     "saveFailed": "Spremanje konfiguracije nije uspjelo.",
     "previewFailed": "Pregled nije uspio.",

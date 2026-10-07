@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cale binar de bază",
-      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește."
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Se încarcă…",
     "loadFailed": "Nu s-au putut încărca informațiile despre motor.",
+    "settingsLoadFailed": "Nu s-au putut încărca setările salvate. Câmpurile afișează valorile implicite, iar butonul Salvare rămâne dezactivat până la reîncărcarea paginii.",
     "engineNotFound": "Motorul \"{engine}\" nu a fost găsit.",
     "saveFailed": "Nu s-a putut salva configurația.",
     "previewFailed": "Previzualizarea a eșuat.",

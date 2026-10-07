@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "核心二進位檔路徑",
-      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "載入中…",
     "loadFailed": "無法載入引擎資訊。",
+    "settingsLoadFailed": "無法載入已儲存的設定。欄位會顯示預設值，且在頁面重新載入前，「儲存」會維持停用。",
     "engineNotFound": "找不到引擎「{engine}」。",
     "saveFailed": "設定儲存失敗。",
     "previewFailed": "預覽失敗。",

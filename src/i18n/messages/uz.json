@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Asosiy binar fayl yo'li",
-      "coreBinaryPathHelp": "Ixtiyoriy: almashtirishdan oldin yaratilgan faylni asosiy binar fayl bilan tekshiradi. Yonida yozishda davom etish uchun bo'sh qoldiring. Katalog mavjud bo'lmasa yaratiladi.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Ixtiyoriy: almashtirishdan oldin yaratilgan faylni asosiy binar fayl bilan tekshiradi. Yonida yozishda davom etish uchun bo'sh qoldiring. Katalog mavjud bo'lmasa yaratiladi."
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Yuklanmoqda…",
     "loadFailed": "Dvigatel maʼlumotlarini yuklab boʻlmadi.",
+    "settingsLoadFailed": "Saqlangan sozlamalarni yuklab bo‘lmadi. Maydonlarda standart qiymatlar ko‘rsatiladi va sahifa qayta yuklanmaguncha Saqlash o‘chiq qoladi.",
     "engineNotFound": "\"{engine}\" dvigateli topilmadi.",
     "saveFailed": "Konfiguratsiyani saqlab boʻlmadi.",
     "previewFailed": "Oldindan koʻrish amalga oshmadi.",

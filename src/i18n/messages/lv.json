@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Ielādē…",
     "loadFailed": "Neizdevās ielādēt dzinēja informāciju.",
+    "settingsLoadFailed": "Neizdevās ielādēt saglabātos iestatījumus. Laukos tiek rādītas noklusējuma vērtības, un poga Saglabāt paliek atspējota, līdz lapa tiek atkārtoti ielādēta.",
     "engineNotFound": "Dzinējs \"{engine}\" nav atrasts.",
     "saveFailed": "Neizdevās saglabāt konfigurāciju.",
     "previewFailed": "Priekšskatījums neizdevās.",

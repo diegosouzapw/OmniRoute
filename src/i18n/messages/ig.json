@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Uzuzu ọrụ mkpanaka",
-      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla."
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Na-ebunye…",
     "loadFailed": "Nbudata ozi injin dara ada.",
+    "settingsLoadFailed": "Enweghị ike ibu ntọala echekwara. Oghere ndị ahụ na-egosi ụkpụrụ ndabara, Chekwaa anaghị arụ ọrụ ruo mgbe ebugharịrị ibe ahụ ọzọ.",
     "engineNotFound": "Ahụghị injin \"{engine}\".",
     "saveFailed": "Ịchekwa nhazi dara ada.",
     "previewFailed": "Nlele mbụ dara ada.",

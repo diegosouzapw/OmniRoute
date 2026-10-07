@@ -6978,8 +6978,8 @@
       },
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Path ng core binary",
-      "coreBinaryPathHelp": "Opsyonal: sinusuri ang nabuo na file gamit ang core binary bago palitan ang inadopt na file. Iwanang blangko upang magpatuloy ang pagsulat sa tabi nito. Ginagawa ang directory kung wala pa.",
-      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
+      "coreBinaryPathHelp": "Opsyonal: sinusuri ang nabuo na file gamit ang core binary bago palitan ang inadopt na file. Iwanang blangko upang magpatuloy ang pagsulat sa tabi nito. Ginagawa ang directory kung wala pa."
     },
     "bulkHealthcheck": "Maramihang Pagsusuri sa Kalagayan",
     "bulkHealthcheckDesc": "Subukan ang lahat ng naka-configure na proxy gamit ang isang target na URL upang malaman kung alin ang gumagana.",
@@ -8572,6 +8572,7 @@
   "compressionEngineConfig": {
     "loading": "Naglo-load…",
     "loadFailed": "Hindi na-load ang impormasyon ng engine.",
+    "settingsLoadFailed": "Nabigong i-load ang mga naka-save na setting. Ipinapakita ng mga field ang mga default, at nananatiling naka-off ang I-save hanggang sa mag-reload ang pahina.",
     "engineNotFound": "Hindi nahanap ang engine na \"{engine}\".",
     "saveFailed": "Hindi na-save ang configuration.",
     "previewFailed": "Nabigo ang preview.",
