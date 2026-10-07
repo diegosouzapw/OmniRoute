@@ -89,6 +89,7 @@ import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 import { collectClaudeDelta } from "./streamClaudeDelta.ts";
 import { createStreamTiming, registerStreamTiming, type StreamTiming } from "./streamTiming.ts";
 import { buildUsageOnlyChunk } from "./usageOnlyChunk.ts";
+import { normalizeArrayContentChunk } from "./arrayContentDelta.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -2024,6 +2025,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const hadUpstreamReasoningContent =
                     typeof rawDelta?.reasoning_content === "string" &&
                     rawDelta.reasoning_content.length > 0;
+                  // Typed content-part arrays are folded into strings by
+                  // sanitizeStreamingChunk, so the raw line must not be forwarded.
+                  const hadArrayContent = Array.isArray(rawDelta?.content);
 
                   if (!projectedFailure) {
                     parsed = sanitizeStreamingChunk(parsed);
@@ -2094,6 +2098,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // force a re-serialize when sanitize added a reasoning_content that the
                   // upstream delta did not already carry.
                   const needsReserialization =
+                    hadArrayContent ||
                     splitMixedReasoningContent ||
                     thinkParsed ||
                     hadReasoningAlias ||
@@ -2307,6 +2312,10 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (upstreamErrorForwarded) continue;
 
           if (emitTranslatedFailureAndAbort(controller, parsed)) return;
+
+          // OpenAI-format upstreams may stream `delta.content` as typed part arrays
+          // (Mistral thinking chunks); translators expect a string.
+          if (targetFormat === FORMATS.OPENAI) normalizeArrayContentChunk(parsed);
 
           // #5786 — drop replayed Responses-API events (identical/lower sequence_number
           // re-sent on an upstream reconnect) so their deltas are not glued twice into
@@ -2941,6 +2950,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             const parsed = parseSSELine(buffer.trim());
             if (parsed && !parsed.done) {
               if (emitTranslatedFailureAndAbort(controller, parsed)) return;
+              if (targetFormat === FORMATS.OPENAI) normalizeArrayContentChunk(parsed);
               providerPayloadCollector.push(parsed);
               // Extract usage from remaining buffer — if the usage-bearing event
               // (e.g. response.completed) is the last SSE line, it ends up here
