@@ -32,7 +32,7 @@ test("Map rejects non-http URLs before selecting a provider", async () => {
 });
 
 test("Map uses the configured Firecrawl connection and returns its links", async () => {
-  providersDb.createProviderConnection({
+  await providersDb.createProviderConnection({
     provider: "firecrawl",
     authType: "apikey",
     name: "firecrawl-map-test",
@@ -65,7 +65,7 @@ test("Map uses the configured Firecrawl connection and returns its links", async
 });
 
 test("Map tries another Firecrawl connection after credits run out", async () => {
-  providersDb.createProviderConnection({
+  await providersDb.createProviderConnection({
     provider: "firecrawl",
     authType: "apikey",
     name: "firecrawl-map-second",
