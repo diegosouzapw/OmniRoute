@@ -52,7 +52,6 @@ import {
   noteResponseServed,
 } from "./opencodeAccountHealth.ts";
 import {
-  isOpencodeFreeTierRefusal,
   isOpencodeGeoBlocked,
   proxyKeyOf,
   poolReselectKeyOf,
@@ -76,6 +75,7 @@ import {
 import { currentRequestContext, runInRequestContext } from "./opencodeRequestContext.ts";
 import {
   handleLoopFreeTierRefusal,
+  isOwnToolsRetryableRefusal,
   retryFreeTierRefusalWithObservedTools,
 } from "./opencodeFreeTierRetry.ts";
 import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
@@ -1168,7 +1168,7 @@ export class OpencodeExecutor extends BaseExecutor {
             // Free-tier refusal: upstream rejected the REQUEST (client identity or
             // request shape), not this account. Handled in opencodeFreeTierRetry.ts
             // (one bounded retry with observed tools appended, then unchanged return).
-            if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+            if (bodyText !== null && isOwnToolsRetryableRefusal(status, bodyText)) {
               noteFreeTierOutcome(attemptFor(input.body), {
                 ok: false,
                 status,
