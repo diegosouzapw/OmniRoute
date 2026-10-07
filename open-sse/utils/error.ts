@@ -10,6 +10,9 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { resolveRetryAfterInstant } from "./retryAfterInstant.ts";
+
+export { parseRetryAfterHeader, resolveRetryAfterInstant } from "./retryAfterInstant.ts";
 
 export { redactSensitiveErrorText, sanitizeErrorMessage, sanitizeUpstreamDetails };
 
@@ -20,6 +23,10 @@ interface ErrorResponseBody {
     type?: string;
     code?: string;
     reason?: string;
+    /** Seconds until the caller may retry — only ever set for a resolved FUTURE instant. */
+    retry_after?: number;
+    /** ISO-8601 instant the underlying quota/limit resets — pairs with retry_after. */
+    reset_at?: string;
   };
   upstream_details?: Record<string, unknown> | null; // sanitized upstream provider body
 }
@@ -29,6 +36,8 @@ export type ErrorBodyClassification = {
   type?: string;
   code?: string;
   reason?: string;
+  /** ISO / epoch-ms / Date the underlying quota/limit resets — see resolveRetryAfterInstant(). */
+  retryAfter?: string | number | Date | null;
 };
 
 const PUBLIC_ERROR_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -50,7 +59,9 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "admission_shutdown",
   "admission_unavailable",
   "all_accounts_inactive",
+  "all_targets_cooling_down",
   "all_targets_skipped",
+  "antigravity_pool_busy",
   "antigravity_pre_response_timeout",
   "api_error",
   "auth_error",
@@ -65,6 +76,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "blackbox_subscription_required",
   "body_exceeds_budget",
   "browser_stream_inconsistent",
+  "budget_exceeded",
   "capability_mismatch",
   "cf_mitigated_challenge",
   "chat_admission_busy",
@@ -75,7 +87,6 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "chatgpt_subscription_unavailable",
   "chatgpt_web_codex_error",
   "chatgpt_web_codex_turn_failed",
-  "chipotle_error",
   "claude_web_protocol_error",
   "cli_not_found",
   "client_cancelled",
@@ -136,6 +147,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "invalid_api_key",
   "invalid_authentication",
   "invalid_connection_id",
+  "invalid_encrypted_content",
   "invalid_grant",
   "invalid_json",
   "invalid_kiro_tool_call",
@@ -173,6 +185,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "lease_unsupported_route",
   "lease_unsupported_transport",
   "lmarena_error",
+  "lmarena_stream_error",
   "message_limit",
   "meta_ai_empty_response",
   "meta_ai_mode_switch_failed",
@@ -254,6 +267,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "session_pool_exhausted",
   "spawn_failed",
   "storage_encryption_stale",
+  "stream_content_stall",
   "stream_disconnected",
   "stream_early_eof",
   "stream_error",
@@ -276,6 +290,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "token_required",
   "tool_calling_not_supported",
   "tools",
+  "turn_in_progress",
   "uc_auth_error",
   "uc_generation_failed",
   "uc_message_limit_exceeded",
@@ -319,6 +334,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "upstream_timeout",
   "upstream_websocket_connect_failed",
   "upstream_websocket_error",
+  "usage_limit_exceeded",
   "usage_limit_reached",
   "video_artifact_content_type_invalid",
   "video_artifact_download_failed",
@@ -359,7 +375,8 @@ export function projectPublicErrorIdentifier(value: unknown, fallback: unknown):
  * Optional third argument `upstreamDetails` (raw parsed provider body) is
  * sanitized by sanitizeUpstreamDetails before inclusion as `upstream_details`.
  * Optional fourth argument `classification` preserves an explicit type/code
- * instead of re-deriving both from the status-code table.
+ * instead of re-deriving both from the status-code table; a `retryAfter` on it
+ * populates `retry_after`/`reset_at` when it resolves to a future instant.
  */
 export function buildErrorBody(
   statusCode: number,
@@ -373,6 +390,7 @@ export function buildErrorBody(
     typeof classification?.reason === "string" && isSafePublicErrorIdentifier(classification.reason)
       ? classification.reason
       : undefined;
+  const retryAfterFields = resolveRetryAfterInstant(classification?.retryAfter);
 
   const body: ErrorResponseBody = {
     error: {
@@ -380,6 +398,7 @@ export function buildErrorBody(
       type: projectPublicErrorIdentifier(classification?.type, errorInfo.type),
       code: projectPublicErrorIdentifier(classification?.code, errorInfo.code),
       reason: safeReason,
+      ...retryAfterFields,
     },
   };
 
@@ -568,7 +587,7 @@ export function errorResponseWithComboDiagnostics(
   statusCode: number,
   message: string,
   diagnostics: ComboDiagnostics,
-  opts: { code?: string; type?: string } = {}
+  opts: { code?: string; type?: string; retryAfter?: ErrorBodyClassification["retryAfter"] } = {}
 ): Response {
   const safe = sanitizeComboDiagnostics(diagnostics);
   const body = buildErrorBody(statusCode, message, undefined, opts) as ErrorResponseBody & {
@@ -590,6 +609,9 @@ export function errorResponseWithComboDiagnostics(
     "x-omniroute-combo-excluded": excludedHeader,
     "x-omniroute-combo-terminal-reason": toHeaderSafeAscii(safe.terminalReason.slice(0, 200)),
   };
+  if (typeof body.error.retry_after === "number") {
+    headers["Retry-After"] = String(body.error.retry_after);
+  }
 
   if (safe.recovery) {
     headers["x-omniroute-recovery-action"] = safe.recovery.action;
@@ -624,17 +646,11 @@ export function errorResponse(
   message: string,
   classification?: ErrorBodyClassification
 ): Response {
-  return new Response(
-    JSON.stringify(
-      buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification)
-    ),
-    {
-      status: statusCode,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const body = buildErrorBody(statusCode, sanitizeErrorMessage(message), undefined, classification);
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof body.error.retry_after === "number")
+    headers["Retry-After"] = String(body.error.retry_after);
+  return new Response(JSON.stringify(body), { status: statusCode, headers });
 }
 
 /**
@@ -1013,21 +1029,31 @@ export function unavailableResponse(
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
   const safeRetryAfterHuman = retryAfterHuman ? sanitizeErrorMessage(retryAfterHuman) : "";
   const msg = safeRetryAfterHuman ? `${safeMessage} (${safeRetryAfterHuman})` : safeMessage;
-  const error = provenance
-    ? { message: msg, retry_after_provenance: retryAfterSec === null ? "none" : "signal" }
-    : { message: msg };
+  // Preserve unavailableResponse's established bare envelope; adding the generic
+  // type/code from buildErrorBody would be an unrelated API-shape change. Only a
+  // concrete future hint adds the two structured timing fields.
+  const retryFields = resolveRetryAfterInstant(retryAfter);
+  const error: {
+    message: string;
+    retry_after?: number;
+    reset_at?: string;
+    retry_after_provenance?: "none" | "signal";
+  } = { message: msg, ...retryFields };
+  if (provenance) error.retry_after_provenance = retryAfterSec === null ? "none" : "signal";
+  const effectiveRetryAfterSec = retryFields?.retry_after ?? retryAfterSec;
   return new Response(JSON.stringify({ error }), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      ...(retryAfterSec === null ? {} : { "Retry-After": String(retryAfterSec) }),
+      ...(effectiveRetryAfterSec === null ? {} : { "Retry-After": String(effectiveRetryAfterSec) }),
     },
   });
 }
 
 export function providerCircuitOpenResponse(
   provider: string,
-  retryAfter?: string | number | Date | null
+  retryAfter?: string | number | Date | null,
+  failureKind?: string | null
 ) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
   const safeProvider = projectPublicContextLabel(provider) ?? "unknown";
@@ -1039,6 +1065,7 @@ export function providerCircuitOpenResponse(
         code: "provider_circuit_open",
         provider: safeProvider,
         retry_after: retryAfterSec,
+        ...(failureKind ? { failure_kind: failureKind } : {}), // #14960 quota vs rate_limit
       },
     }),
     {
@@ -1107,23 +1134,20 @@ export function modelCooldownResponse({
       : typeof retryAfter === "string" && retryAfter.length > 0
         ? retryAfter
         : null;
-  return new Response(
-    JSON.stringify(
-      buildModelCooldownBody({
-        model,
-        retryAfterSec,
-        retryAfterAt: resolvedRetryAfterAt,
-        credentialsCoolingCount,
-      })
-    ),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(retryAfterSec),
-      },
-    }
-  );
+  const body = buildModelCooldownBody({
+    model,
+    retryAfterSec,
+    retryAfterAt: resolvedRetryAfterAt,
+    credentialsCoolingCount,
+  });
+  return new Response(JSON.stringify(body), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retryAfterSec),
+      "X-OmniRoute-Local-Cooldown": "model", // = LOCAL_MODEL_COOLDOWN_HEADER (#1731 vs #14190)
+    },
+  });
 }
 
 /**
@@ -1134,7 +1158,8 @@ export function makeExecutorErrorResult(
   status: number,
   message: string,
   body: unknown,
-  url: string
+  url: string,
+  extraResponseHeaders?: Record<string, string>
 ) {
   return {
     response: new Response(
@@ -1145,7 +1170,10 @@ export function makeExecutorErrorResult(
           code: `HTTP_${status}`,
         },
       }),
-      { status, headers: { "Content-Type": "application/json" } }
+      {
+        status,
+        headers: { "Content-Type": "application/json", ...extraResponseHeaders },
+      }
     ),
     url,
     headers: {} as Record<string, string>,

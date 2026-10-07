@@ -70,6 +70,34 @@ function isUnavailableModel(entry: Record<string, unknown>): boolean {
   );
 }
 
+function cursorContextLimit(entry: Record<string, unknown>): number | undefined {
+  const value = entry.contextTokenLimit ?? entry.context_token_limit;
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
+function cursorEffortValues(entry: Record<string, unknown>): string[] | undefined {
+  const definitions = entry.parameterDefinitions ?? entry.parameter_definitions;
+  if (!Array.isArray(definitions)) return undefined;
+  const efforts = new Set<string>();
+  for (const value of definitions) {
+    const definition = asRecord(value);
+    if (definition?.id !== "effort" && definition?.id !== "reasoning") continue;
+    const parameterType = asRecord(definition.parameterType ?? definition.parameter_type);
+    const enumerated = asRecord(parameterType?.enumParameter ?? parameterType?.enum_parameter);
+    if (!Array.isArray(enumerated?.values)) continue;
+    for (const item of enumerated.values) {
+      const option = asRecord(item);
+      if (option?.blockedByAdminAllowlist === true || option?.blocked_by_admin_allowlist === true) {
+        continue;
+      }
+      if (typeof option?.value === "string" && option.value.trim()) {
+        efforts.add(option.value.trim());
+      }
+    }
+  }
+  return efforts.size > 0 ? [...efforts] : undefined;
+}
+
 function normalizeModelCandidate(item: unknown): CursorAgentModelEntry | null {
   if (typeof item === "string") {
     const id = item.trim();
@@ -79,7 +107,16 @@ function normalizeModelCandidate(item: unknown): CursorAgentModelEntry | null {
   const entry = asRecord(item);
   if (!entry || isUnavailableModel(entry)) return null;
   const id = pickModelId(entry);
-  return id ? { id, name: pickModelName(entry, id), owned_by: "cursor" } : null;
+  if (!id) return null;
+  const contextLength = cursorContextLimit(entry);
+  const supportedThinkingEfforts = cursorEffortValues(entry);
+  return {
+    id,
+    name: pickModelName(entry, id),
+    owned_by: "cursor",
+    ...(contextLength ? { contextLength } : {}),
+    ...(supportedThinkingEfforts ? { supportedThinkingEfforts } : {}),
+  };
 }
 
 /**

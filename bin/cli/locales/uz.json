@@ -256,6 +256,7 @@
     "max_restarts": "Taslim bo‘lishdan oldin 30 soniya ichidagi nosozlikdan keyingi qayta ishga tushirishlarning maksimal soni (standart: 2)",
     "tray": "Tizim treyida ishga tushirish (faqat ish stoli versiyasida, ixtiyoriy)",
     "no_tray": "Tizim treyi belgisini o‘chirish",
+    "ready_timeout": "Tayyorlik tekshiruvi uchun kutish vaqti, ms (shuningdek OMNIROUTE_READY_TIMEOUT_MS, standart qiymat 60000)",
     "tls_cert": "HTTPS orqali xizmat ko‘rsatish uchun TLS sertifikati (PEM) yo‘li (shuningdek, OMNIROUTE_TLS_CERT)",
     "tls_key": "HTTPS orqali xizmat ko‘rsatish uchun TLS maxfiy kaliti (PEM) yo‘li (shuningdek, OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP serveri ishlamoqda ({transport})",
     "stopped": "MCP serveri toʻxtatildi.",
     "restarted": "MCP serveri qayta ishga tushirildi.",
+    "stoppedHint": "Uni yoqish uchun `omniroute mcp enable` buyrugʻini ishga tushiring.",
+    "enabled": "MCP serveri yoqildi.",
+    "disabled": "MCP serveri oʻchirildi.",
+    "enable": {
+      "description": "MCP serverini yoqish",
+      "transport": "Foydalaniladigan transport: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP serverini oʻchirish"
+    },
     "call": {
       "description": "MCP vositasini bevosita chaqirish",
       "args": "JSON argumentlar obyekti (ichki)",

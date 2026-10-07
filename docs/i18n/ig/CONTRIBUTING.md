@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -399,22 +399,22 @@ Dee unit tests na `tests/unit/` nke ga-ekpuchi ma ọ dịkarịa ala:
 
 ---
 
-## Ndepụta Nnyocha Pull Request
+## Ndepụta Nlele Pull Request
 
-- [ ] Tests gafere (`npm test`)
+- [ ] Nnwale gafere (`npm test`)
 - [ ] Linting gafere (`npm run lint`)
-- [ ] Build gara nke ọma (`npm run build`)
-- [ ] Agbakwunyere ụdị TypeScript maka functions na interfaces ọhaneze ọhụrụ
-- [ ] Enweghị secrets ma ọ bụ fallback values e dere ozugbo na koodu
-- [ ] E tinyere public upstream credentials site na `resolvePublicCred()` (lee [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ọ bụghị dịka literals
-- [ ] Error responses na-agafe na `buildErrorBody()` / `sanitizeErrorMessage()` — enweghị raw stack traces n'ime response bodies (lee [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell commands (`exec` / `spawn`) na-ebufe runtime values site na `env`, ọ bụghị site na string interpolation
-- [ ] E ji Zod schemas nyochaa inputs niile
-- [ ] Agbakwunyere **fragment** changelog n'okpuru `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` maka mgbanwe ndị users ga-ahụ (lee [`changelog.d/README.md`](./changelog.d/README.md)) — **edezigharịla** `CHANGELOG.md` ozugbo; a na-achịkọta fragments n'oge release, ha anaghịkwa enwe conflict n'etiti PRs
-- [ ] Emelitere documentation (ọ bụrụ na ọ dị mkpa)
-- [ ] Enweghị alerts ọhụrụ nke CodeQL / Secret-Scanning e mepere, ma ọ bụ a kagburu nke ọ bụla site na technical justification nke na-ezo aka na doc kwesịrị ekwesị dị na `docs/security/`
-- [ ] Routes ndị na-emepụta child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ka e kewara dịka `isLocalOnlyPath()` na `src/server/authz/routeGuard.ts` — lee [Iwu Siri Ike #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Enweghị trailers `Co-Authored-By` n'ime commit messages — commits ga-apụta naanị n'okpuru Git identity nke onye nwe repository (Iwu Siri Ike #16)
+- [ ] Nrụpụta gara nke ọma (`npm run build`)
+- [ ] Agbakwunyere ụdị TypeScript maka ọrụ na interface ọhụụ ndị ọha na-eji
+- [ ] Enweghị ihe nzuzo ma ọ bụ fallback values e dere kpọmkwem n'ime koodu
+- [ ] E tinyere credentials ọha nke upstream site na `resolvePublicCred()` (lee [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ọ bụghị dị ka literals
+- [ ] Nzaghachi njehie na-agafe na `buildErrorBody()` / `sanitizeErrorMessage()` — enweghị raw stack traces n'ime response bodies (lee [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Iwu shell (`exec` / `spawn`) na-ebufe runtime values site na `env`, ọ bụghị site na string interpolation
+- [ ] E jiri Zod schemas nyochaa inputs niile
+- [ ] Agbakwunyere **fragment** nke changelog n'okpuru `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` maka mgbanwe ndị ọrụ ga-ahụ (lee [`changelog.d/README.md`](./changelog.d/README.md)) — **edezila** `CHANGELOG.md` ozugbo; a na-achịkọta fragments n'oge release, ha anaghịkwa enwe esemokwu n'etiti PR dị iche iche
+- [ ] Emelitere documentation (ma ọ bụrụ na ọ dị mkpa)
+- [ ] Enweghị alerts ọhụrụ nke CodeQL / Secret-Scanning e mepere, ma ọ bụ a kagburu nke ọ bụla site na technical justification nke na-arụtụ aka na doc kwesịrị ekwesị dị na `docs/security/`
+- [ ] E kọwara routes ndị na-amalite child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) dị ka `isLocalOnlyPath()` n'ime `src/server/authz/routeGuard.ts` — lee [Iwu Siri Ike #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Enweghị trailers AI/bot `Co-authored-by` n'ime commit messages (Iwu Siri Ike #16) — a na-enye ndị mmadụ rụkọrọ ọrụ, ndị e ji ọrụ ha mee ihe ọzọ, otuto site na trailers ọkọlọtọ `Co-authored-by: Name <email>`
 
 ---
 
@@ -430,9 +430,8 @@ Mgbe ahụ, jiri skills `/deploy-vps-*-cc` ndị na-eji rsync ebuga `dist/` na d
 
 ## Inweta Enyemaka
 
-- **Ọdịdị sistemụ**: Lee [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Ntụaka API**: Lee [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Nhazi sistemụ**: Hụ [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Ntụaka API**: Hụ [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Akwụkwọ nchekwa**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Akwụkwọ arụmọrụ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Akwụkwọ ọrụ sistemụ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Nsogbu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Lee `docs/adr/` maka ndekọ mkpebi gbasara ọdịdị sistemụ

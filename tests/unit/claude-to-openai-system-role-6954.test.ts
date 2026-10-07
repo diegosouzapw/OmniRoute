@@ -5,17 +5,31 @@
  * "assistant", so a Claude message with `role: "system"` (e.g. an injected
  * system reminder mid-conversation) was forwarded to OpenAI-format upstreams
  * as an assistant turn — polluting the conversation history.
+ *
+ * SUPERSEDED (mid-system demotion): mid-conversation system roles are now
+ * demoted to "user" (content preserved) because OpenAI-compatible upstreams
+ * reject a system turn after index 0 (HCP-Vision-Latest vLLM: 400 "System
+ * message must be at the beginning."). The #6954 intent still holds — the
+ * turns are NOT attributed to the assistant — so these tests assert the
+ * demoted "user" shape. See
+ * tests/unit/claude-to-openai-mid-system-user-normalize.test.ts for the
+ * full demotion contract.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+
+// The bilingual system-append feature rewrites/unshifts the index-0 system
+// message; blank it so role/content assertions are deterministic regardless
+// of the operator environment running the suite.
+delete process.env.OMNIROUTE_SYSTEM_INSTRUCTION_APPEND;
 
 const { claudeToOpenAIRequest } =
   await import("../../open-sse/translator/request/claude-to-openai.ts");
 
 // ---------------------------------------------------------------------------
-// 1. system message mid-conversation keeps role: "system"
+// 1. system message mid-conversation is demoted to "user" (never "assistant")
 // ---------------------------------------------------------------------------
-test("mid-conversation system message preserves role:system (not assistant)", () => {
+test("mid-conversation system message is demoted to user (not assistant)", () => {
   const result = claudeToOpenAIRequest(
     "gpt-4o",
     {
@@ -30,13 +44,13 @@ test("mid-conversation system message preserves role:system (not assistant)", ()
   );
 
   const roles = result.messages.map((m: { role: string }) => m.role);
-  assert.deepEqual(roles, ["user", "assistant", "system", "user"]);
+  assert.deepEqual(roles, ["user", "assistant", "user", "user"]);
 });
 
 // ---------------------------------------------------------------------------
-// 2. system message with array content keeps role: "system"
+// 2. system message with array content keeps its content when demoted to "user"
 // ---------------------------------------------------------------------------
-test("system message with array content preserves role:system", () => {
+test("system message with array content is demoted to user, content preserved", () => {
   const result = claudeToOpenAIRequest(
     "gpt-4o",
     {
@@ -51,11 +65,12 @@ test("system message with array content preserves role:system", () => {
     false
   );
 
-  const sysMsg = result.messages.find((m: { role: string }) => m.role === "system");
-  assert.ok(sysMsg, "expected a system message in output");
-  // Array content with text blocks is flattened to a string for system role
+  const demoted = result.messages[1];
+  assert.ok(demoted, "expected a second message in output");
+  assert.equal(demoted.role, "user");
+  // Array content with text blocks is flattened to a string
   assert.equal(
-    typeof sysMsg.content === "string" ? sysMsg.content : JSON.stringify(sysMsg.content),
+    typeof demoted.content === "string" ? demoted.content : JSON.stringify(demoted.content),
     "System reminder text"
   );
 });

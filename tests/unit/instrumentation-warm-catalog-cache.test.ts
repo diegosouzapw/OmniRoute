@@ -39,7 +39,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { warmModelCatalogCache } = await import("../../src/instrumentation-node.ts");
+const { warmModelCatalogCache, isBackgroundServicesDisabled } =
+  await import("../../src/instrumentation-node.ts");
 const { getUnifiedModelsResponse } = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
@@ -164,4 +165,63 @@ test("warmModelCatalogCache never rejects, even when the OpenRouter fetch fails"
   } finally {
     restoreRealFetch();
   }
+});
+
+test("isBackgroundServicesDisabled correctly parses environment flag values", () => {
+  const originalEnv = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+  try {
+    for (const truthyVal of ["1", "true", "TRUE", "yes", "YES", "on", "ON", " true ", " 1 "]) {
+      process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = truthyVal;
+      assert.equal(
+        isBackgroundServicesDisabled(),
+        true,
+        `Expected "${truthyVal}" to be parsed as background services disabled`
+      );
+    }
+
+    for (const falsyVal of ["0", "false", "no", "off", "random", "", undefined]) {
+      if (falsyVal === undefined) {
+        delete process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+      } else {
+        process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = falsyVal;
+      }
+      assert.equal(
+        isBackgroundServicesDisabled(),
+        false,
+        `Expected "${falsyVal}" to NOT disable background services`
+      );
+    }
+  } finally {
+    if (originalEnv !== undefined) {
+      process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES = originalEnv;
+    } else {
+      delete process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+    }
+  }
+});
+
+// #14076 — registerNodejs() is too heavy to boot in a unit test, so this pins
+// the call-site structure instead: the startup warmup must sit INSIDE the
+// `if (!isBackgroundServicesDisabled())` block, otherwise
+// OMNIROUTE_DISABLE_BACKGROUND_SERVICES=1 still triggers the OpenRouter
+// catalog network fetch at boot.
+test("registerNodejs only warms the model catalog when background services are enabled", () => {
+  const source = fs.readFileSync(
+    path.join(import.meta.dirname, "../../src/instrumentation-node.ts"),
+    "utf8"
+  );
+  const registerStart = source.indexOf("export async function registerNodejs(");
+  assert.ok(registerStart >= 0, "registerNodejs() must exist");
+  const body = source.slice(registerStart);
+  const callIndex = body.indexOf("void warmModelCatalogCache();");
+  assert.ok(callIndex >= 0, "registerNodejs() must still warm the catalog");
+  const gate = "if (!isBackgroundServicesDisabled()) {";
+  const gateIndex = body.lastIndexOf(gate, callIndex);
+  assert.ok(gateIndex >= 0, "warmModelCatalogCache() must be preceded by the background gate");
+  let depth = 0;
+  for (let i = gateIndex + gate.length - 1; i < callIndex; i++) {
+    if (body[i] === "{") depth++;
+    else if (body[i] === "}") depth--;
+  }
+  assert.ok(depth > 0, "warmModelCatalogCache() must run inside the background-services gate");
 });

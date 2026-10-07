@@ -1,6 +1,6 @@
 # Security Policy (ಕನ್ನಡ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,34 +220,36 @@ docker run -d \
 10. **`env` ಆಯ್ಕೆಯ ಮೂಲಕ `exec()` / `spawn()` ರನ್ಟೈಮ್ ಮೌಲ್ಯಗಳು** — ಬಾಹ್ಯ ಪಥಗಳು ಅಥವಾ ವಿಶ್ವಾಸಾರ್ಹವಲ್ಲದ ಮೌಲ್ಯಗಳನ್ನು shell ಮೂಲಕ ರವಾನಿಸಲಾದ ಸ್ಕ್ರಿಪ್ಟ್ಗಳಲ್ಲಿ ಎಂದಿಗೂ string-interpolate ಮಾಡಬೇಡಿ. ಉಲ್ಲೇಖ: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **ಸುರಕ್ಷಿತ-ಡೀಫಾಲ್ಟ್ ಲೈಬ್ರರಿಗಳಿಗೆ ಆದ್ಯತೆ ನೀಡಿ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) ನೋಡಿ (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). ನಿಮ್ಮದೇ ಆದ ಪರಿಹಾರವನ್ನು ನಿರ್ಮಿಸುವ ಮೊದಲು ಅವುಗಳನ್ನು ಬಳಸಿ.
 
-## ಪೂರೈಕೆ-ಸರಪಳಿ ಸ್ಕ್ಯಾನರ್ ಪತ್ತೆಗಳು (Socket.dev / Snyk / ಇದೇ ರೀತಿಯವು)
+## ಪೂರೈಕೆ-ಸರಪಳಿ ಸ್ಕ್ಯಾನರ್ನ ಪತ್ತೆಗಳು (Socket.dev / Snyk / ಅಂತಹುದೇ ಪರಿಕರಗಳು)
+
+> **ವ್ಯಾಪ್ತಿಯ ಟಿಪ್ಪಣಿ:** ರೆಪೊಸಿಟರಿಯ ಮೂಲದಲ್ಲಿರುವ `socket.yml`, ಪ್ರಕಟಿಸಲಾದ npm ಆರ್ಟಿಫ್ಯಾಕ್ಟ್ನ Socket.dev ರಿಜಿಸ್ಟ್ರಿ-ಬದಿಯ ಪ್ರಕಟಣೋತ್ತರ ಸ್ಕ್ಯಾನ್ಗಾಗಿ `projectIgnorePaths` ಅನ್ನು ಮಾತ್ರ ರೂಪಿಸುತ್ತದೆ — ಇದು ಕಡ್ಡಾಯಗೊಳಿಸಲಾದ CI/PR ವಿಲೀನ ಗೇಟ್ ಅಲ್ಲ. `.github/workflows`ನಲ್ಲಿನ ಯಾವುದೇ ವರ್ಕ್ಫ್ಲೋ, ಯಾವುದೇ `package.json` ಸ್ಕ್ರಿಪ್ಟ್ ಮತ್ತು ಯಾವುದೇ `Makefile` ಟಾರ್ಗೆಟ್ Socket.dev ಅನ್ನು ಆಹ್ವಾನಿಸುವುದಿಲ್ಲ.
 
 ಪ್ರಕಟಿಸಲಾದ `omniroute` npm ಆರ್ಟಿಫ್ಯಾಕ್ಟ್ Next.js `output: "standalone"`
-ಬಿಲ್ಡ್ ಅನ್ನು ಒಳಗೊಂಡಿರುತ್ತದೆ. ಅಂದರೆ, ದಾಖಲಿತ ವಿಶೇಷಾಧಿಕಾರದ
-ವೈಶಿಷ್ಟ್ಯಗಳು (MITM, Zed ಆಮದು, Cloud Sync, ಎಂಬೆಡೆಡ್ ಸೇವಾ ಮೇಲ್ವಿಚಾರಕ) ಸೇರಿದಂತೆ ಪ್ರತಿಯೊಂದು ರೂಟ್ ಹ್ಯಾಂಡ್ಲರ್
+ಬಿಲ್ಡ್ ಅನ್ನು ಬಂಡಲ್ ಮಾಡುತ್ತದೆ; ಇದರರ್ಥ ದಾಖಲಿತ ವಿಶೇಷಾಧಿಕಾರವುಳ್ಳ
+ವೈಶಿಷ್ಟ್ಯಗಳು (MITM, Zed ಆಮದು, Cloud Sync, ಎಂಬೆಡ್ ಮಾಡಿದ ಸೇವಾ ಮೇಲ್ವಿಚಾರಕ) ಸೇರಿದಂತೆ ಪ್ರತಿಯೊಂದು ರೂಟ್ ಹ್ಯಾಂಡ್ಲರ್
 `.next/server/*.js` ಮಿನಿಫೈಡ್ ಚಂಕ್ಗಳಲ್ಲಿ ಸೇರುತ್ತದೆ. ಹ್ಯೂರಿಸ್ಟಿಕ್ ಪೂರೈಕೆ-ಸರಪಳಿ ಸ್ಕ್ಯಾನರ್ಗಳು
 ಆ ಚಂಕ್ಗಳನ್ನು ಮಾಲ್ವೇರ್ ಸಿಗ್ನೇಚರ್ಗಳೊಂದಿಗೆ ಆಗಾಗ್ಗೆ ಪ್ಯಾಟರ್ನ್-ಮ್ಯಾಚ್ ಮಾಡುತ್ತವೆ.
 
-ನಾವು ಬಳಸುವ ಸ್ಕ್ಯಾನರ್ ಸಂರಚನೆಯು ರೆಪೊಸಿಟರಿಯ ರೂಟ್ನಲ್ಲಿರುವ
-[`socket.yml`](socket.yml) ನಲ್ಲಿದೆ (Socket.dev GitHub App ಸ್ವರೂಪ v2 — ನೋಡಿ
-<https://docs.socket.dev/docs/socket-yml>). ಇದು ವಿತರಿಸಲಾಗದ
+ನಾವು ಬಳಸುವ ಸ್ಕ್ಯಾನರ್ ಕಾನ್ಫಿಗರೇಶನ್ ರೆಪೊಸಿಟರಿಯ ಮೂಲದಲ್ಲಿರುವ
+[`socket.yml`](socket.yml)ನಲ್ಲಿದೆ (Socket.dev GitHub App ಸ್ವರೂಪ v2 — ನೋಡಿ
+<https://docs.socket.dev/docs/socket-yml>). ಇದು ರವಾನೆಯಾಗದ
 ಡೈರೆಕ್ಟರಿಗಳನ್ನು (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/`, ಇತ್ಯಾದಿ) ಸ್ಪಷ್ಟವಾಗಿ ಹೊರಗಿಡುತ್ತದೆ. ಆದ್ದರಿಂದ ಸ್ಕ್ಯಾನರ್ ವಾಸ್ತವವಾಗಿ
-ಪ್ರಕಟಿಸಲಾದ ಬಳಕೆದಾರರನ್ನು ತಲುಪುವ ಕೋಡ್ ಪಥಗಳ ಕುರಿತು ಮಾತ್ರ ವರದಿ ಮಾಡುತ್ತದೆ — ಸ್ಕ್ಯಾನ್ ಅನ್ನು ಈ
-ಫೈಲ್ ಓದುವ Socket GitHub App ನಡೆಸುತ್ತದೆಯೇ ಹೊರತು, ಈ ರೆಪೊಸಿಟರಿಯಲ್ಲಿನ ವರ್ಕ್ಫ್ಲೋ ಅಲ್ಲ.
+`_mono_repo/`, `docs/`, ಇತ್ಯಾದಿ) ಸ್ಪಷ್ಟವಾಗಿ ಹೊರತುಪಡಿಸುತ್ತದೆ; ಹೀಗಾಗಿ ಸ್ಕ್ಯಾನರ್ ವಾಸ್ತವವಾಗಿ
+ಪ್ರಕಟಿತ ಬಳಕೆದಾರರನ್ನು ತಲುಪುವ ಕೋಡ್ ಪಥಗಳ ಕುರಿತು ಮಾತ್ರ ವರದಿ ಮಾಡುತ್ತದೆ — ಸ್ಕ್ಯಾನ್ ಅನ್ನು ನಡೆಸುವುದು
+ಈ ಫೈಲ್ ಅನ್ನು ಓದುವ Socket GitHub App ಆಗಿದ್ದು, ಈ ರೆಪೊಸಿಟರಿಯಲ್ಲಿನ ಯಾವುದೇ ವರ್ಕ್ಫ್ಲೋ ಅಲ್ಲ.
 
-ಪ್ರತಿಯೊಂದು ಪತ್ತೆ ವರ್ಗಕ್ಕೂ ನಾವು ಪ್ರತಿ-ಪತ್ತೆಯ ನಿರ್ವಹಣಾಕಾರರ ದೃಢೀಕರಣವನ್ನು ನಿರ್ವಹಿಸುತ್ತೇವೆ:
+ಪ್ರತಿಯೊಂದು ಪತ್ತೆ ವರ್ಗಕ್ಕೂ ನಾವು ಪ್ರತಿ-ಪತ್ತೆಯ ನಿರ್ವಹಕರ ದೃಢೀಕರಣವನ್ನು ನಿರ್ವಹಿಸುತ್ತೇವೆ:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  ಪ್ರತಿ-ಪತ್ತೆಯ ನಕ್ಷೆ: ಮೂಲ ಫೈಲ್ ↔ ಫ್ಲ್ಯಾಗ್ ಮಾಡಲಾದ ಚಂಕ್ ↔ ವರ್ತನೆ ↔ v3.8.6 ನಲ್ಲಿ
+  ಪ್ರತಿ-ಪತ್ತೆಯ ನಕ್ಷೆ: ಮೂಲ ಫೈಲ್ ↔ ಫ್ಲ್ಯಾಗ್ ಮಾಡಲಾದ ಚಂಕ್ ↔ ವರ್ತನೆ ↔ v3.8.6ನಲ್ಲಿ
   ಅನ್ವಯಿಸಲಾದ ತಗ್ಗಿಸುವಿಕೆ.
 - ಫ್ಲ್ಯಾಗ್ ಮಾಡಲಾದ ಪ್ರತಿಯೊಂದು ಫಂಕ್ಷನ್ನಲ್ಲಿರುವ ಮೂಲ-ಕೋಡ್ `SECURITY-AUDITOR-NOTE:` ಬ್ಲಾಕ್ಗಳು
-  ಅದೇ ಡಾಕ್ಯುಮೆಂಟ್ಗೆ ಮರಳಿ ಸೂಚಿಸುತ್ತವೆ.
+  ಅದೇ ಡಾಕ್ಯುಮೆಂಟ್ಗೆ ಉಲ್ಲೇಖಿಸುತ್ತವೆ.
 
-ತಮ್ಮ ಪೈಪ್ಲೈನ್ನಲ್ಲಿ ಎಚ್ಚರಿಕೆಯನ್ನು ಸಡಿಲಿಸಲಾಗದ ಬಳಕೆದಾರರು:
+ಪೈಪ್ಲೈನ್ನಲ್ಲಿ ಎಚ್ಚರಿಕೆಯನ್ನು ಸಡಿಲಿಸಲಾಗದ ಬಳಕೆದಾರರು:
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build` ಬಳಸಿ ಬಿಲ್ಡ್ ಮಾಡಿ. ಇದು ನಾಲ್ಕು
-ಸೂಕ್ಷ್ಮ ಮಾಡ್ಯೂಲ್ಗಳನ್ನು ರನ್ಟೈಮ್ನಲ್ಲಿ HTTP 503 `feature-disabled` ಅನ್ನು ಹಿಂದಿರುಗಿಸುವ
-ಸ್ಟಬ್ಗಳಿಂದ ಬದಲಾಯಿಸುತ್ತದೆ. ಹೀಗಾಗಿ ವಿಶೇಷಾಧಿಕಾರದ ಕೋಡ್ ಪಥಗಳು ಬಂಡಲ್ನಲ್ಲಿ ಭೌತಿಕವಾಗಿ ಇರುವುದಿಲ್ಲ.
+ಸೂಕ್ಷ್ಮ ಮಾಡ್ಯೂಲ್ಗಳನ್ನು ರನ್ಟೈಮ್ನಲ್ಲಿ HTTP 503 `feature-disabled` ಅನ್ನು
+ಹಿಂತಿರುಗಿಸುವ ಸ್ಟಬ್ಗಳಿಂದ ಬದಲಿಸುತ್ತದೆ; ಆದ್ದರಿಂದ ವಿಶೇಷಾಧಿಕಾರವುಳ್ಳ ಕೋಡ್ ಪಥಗಳು ಬಂಡಲ್ನಲ್ಲಿ ಭೌತಿಕವಾಗಿ ಇರುವುದಿಲ್ಲ.
 ಪ್ರಕಟಿಸುವ ವಿಧಾನಕ್ಕಾಗಿ [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 ನೋಡಿ.
 

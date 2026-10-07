@@ -32,11 +32,12 @@ export const NOAUTH_PROVIDERS = {
     noAuth: true,
     hasFree: true,
     serviceKinds: ["llm"],
-    authHint: "No API key required — uses OpenCode's public free endpoint.",
+    authHint:
+      "No API key required — OpenCode's free tier can only be used from within OpenCode (client-contract requests).",
     freeNote:
-      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
+      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models. Free tier only works from within OpenCode.",
     notice: {
-      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
+      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply. OpenCode's free tier can only be used from within OpenCode — requests that do not match the OpenCode client contract are refused with 403 FreeTierError.",
     },
   },
   "duckduckgo-web": {
@@ -73,22 +74,6 @@ export const NOAUTH_PROVIDERS = {
     notice: {
       text: "Cloudflare AI Playground uses a reverse-engineered anonymous WebSocket protocol (no official API). Requires Playwright with a Chromium browser on first request. Rate limits apply per IP (error 3021).",
     },
-  },
-  chipotle: {
-    id: "chipotle",
-    alias: "pepper",
-    name: "Chipotle Pepper AI (Free)",
-    icon: "restaurant",
-    color: "#C41230",
-    textIcon: "🌯",
-    website: "https://amelia.chipotle.com",
-    noAuth: true,
-    hasFree: true,
-    serviceKinds: ["llm"],
-    freeNote:
-      "Free — Chipotle's Pepper AI (IPsoft Amelia). Anonymous sessions, no API key. Rate-limited.",
-    authHint:
-      "No credentials required. Uses Chipotle's public support chatbot via reverse-engineered SockJS/STOMP protocol.",
   },
   "veoaifree-web": {
     id: "veoaifree-web",
@@ -179,7 +164,7 @@ export const NOAUTH_PROVIDERS = {
     passthroughModels: true,
     serviceKinds: ["llm"],
     authHint:
-      "No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: solidrust/Hermes-3-Llama-3.1-8B-AWQ.",
+      "No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: Lorbus/Qwen3.6-27B-int4-AutoRound.",
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     notice: {
       text: "UncloseAI needs no API key. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync.",

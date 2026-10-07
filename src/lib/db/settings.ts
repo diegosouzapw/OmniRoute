@@ -15,6 +15,7 @@ import { isProxySkipRecentlyFailedEnabled } from "@/shared/utils/featureFlags";
 import { invalidateDbCache } from "./readCache";
 import { encrypt, decrypt } from "./encryption";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
+import { isEgressBucketedLockScope } from "@omniroute/open-sse/config/providerErrorRules.ts";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
@@ -527,6 +528,41 @@ function isCachedPoolMemberSetAside(entry: ProxyResolutionCacheEntry): boolean {
   return isProxySkipRecentlyFailedEnabled();
 }
 
+// Providers that need a STABLE egress across requests, never rotated under them by this
+// cache-invalidation path (#13575): opencode's free-tier quota is bucketed by egress IP
+// (EGRESS_BUCKETED_LOCK_PROVIDERS — rotating would fragment one connection's quota across
+// several IPs), and grok-web's cf_clearance cookie is pinned to the IP/User-Agent/TLS
+// fingerprint that earned it (src/shared/providers/webSessionCredentials.ts "grok-web" —
+// rotating the egress would turn every subsequent request into a Cloudflare 403).
+function requiresStableEgress(provider: string | null): boolean {
+  if (!provider) return false;
+  return isEgressBucketedLockScope(provider) || provider.toLowerCase() === "grok-web";
+}
+
+// The chat-path cache (below) exists so a hot connection does not pay the full resolution
+// cascade on every request, but it must not FREEZE a rotating pool's choice: the registry
+// resolver (resolveProxyForScopeFromRegistry, called directly by every #6365 rotation test)
+// re-runs its strategy on every call and rotates correctly, while the cache here returned
+// the same first-resolved member forever (#13575). A cached member is stale whenever it came
+// from a live scope pool (source: "registry") and the connection is not in the two populations
+// above that need a pinned egress instead: the caller then falls through to the full cascade,
+// which re-invokes resolveProxyForScopeFromRegistry and applies the pool's own selection
+// strategy (round-robin advances, sticky holds until its window elapses, random reshuffles) —
+// no new strategy is introduced here.
+function isCachedPoolMemberDue(
+  entry: ProxyResolutionCacheEntry,
+  db: ReturnType<typeof getDbInstance>,
+  connectionId: string
+): boolean {
+  const { result } = entry;
+  if (result.source !== "registry" || result.proxy == null) return false;
+  const row = db
+    .prepare("SELECT provider FROM provider_connections WHERE id = ?")
+    .get(connectionId) as { provider?: string } | undefined;
+  const provider = typeof row?.provider === "string" ? row.provider : null;
+  return !requiresStableEgress(provider);
+}
+
 export async function resolveProxyForConnection(
   connectionId: string,
   apiKeyId?: string,
@@ -542,17 +578,17 @@ export async function resolveProxyForConnection(
     registryGeneration: getProxyRegistryGeneration(),
     refusalSeq: getProxyRefusalSeq(),
   };
+  const db = getDbInstance();
   const cached = proxyResolutionCache.get(cacheKey);
   if (
     cached &&
     cached.generation === stamp.generation &&
     cached.registryGeneration === stamp.registryGeneration &&
-    !isCachedPoolMemberSetAside(cached)
+    !isCachedPoolMemberSetAside(cached) &&
+    !isCachedPoolMemberDue(cached, db, connectionId)
   ) {
     return cached.result;
   }
-
-  const db = getDbInstance();
 
   // Step 1: Check global proxyEnabled setting
   // Read only the proxyEnabled key for performance instead of loading all settings.

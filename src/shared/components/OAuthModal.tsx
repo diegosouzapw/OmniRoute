@@ -23,6 +23,7 @@ import OAuthErrorStep from "@/shared/components/oauthModal/OAuthErrorStep";
 import OAuthWaitingStep from "@/shared/components/oauthModal/OAuthWaitingStep";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
 import { buildGoogleLoopbackHint } from "@/lib/oauth/utils/googleLoopbackHint";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 import {
   buildPkceLoopbackMismatchHint,
   type PkceLoopbackMismatchHint,
@@ -49,6 +50,7 @@ const DEVICE_CODE_PROVIDERS = new Set([
   "codebuddy-cn",
   "ghe-copilot",
   "grok-cli",
+  "muse-code",
 ]);
 
 const TOKEN_PASTE_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli"]);
@@ -109,7 +111,10 @@ async function pollDeviceCodeOnce(
     if (data.success) return { status: "success" };
     if (data.error === "slow_down") return { status: "slow_down" };
     if (data.error && !data.pending) {
-      return { status: "error", message: String(data.errorDescription || data.error) };
+      return {
+        status: "error",
+        message: String(data.errorDescription || errorMessageFromBody(data, fallbackErrorMessage)),
+      };
     }
     return { status: "pending" };
   } catch (error) {
@@ -374,11 +379,10 @@ export default function OAuthModal({
     [provider, onSuccess, reauthConnection, t]
   );
 
-  // Start OAuth flow. `opts.grokBrowser` lets the grok-cli method tabs force a
-  // specific branch synchronously (avoids reading a just-set state value through
-  // a stale closure); when omitted, falls back to the grokBrowserMode state.
+  // Start OAuth flow. Options let method buttons select a branch synchronously
+  // instead of reading a just-set state value through a stale closure.
   const startOAuthFlow = useCallback(
-    async (opts?: { grokBrowser?: boolean }) => {
+    async (opts?: { grokBrowser?: boolean; manualLoopback?: boolean }) => {
       if (!provider) return;
       try {
         setError(null);
@@ -519,7 +523,10 @@ export default function OAuthModal({
                 }
 
                 if (pollData.error && !pollData.pending) {
-                  throw new Error(pollData.errorDescription || pollData.error);
+                  throw new Error(
+                    pollData.errorDescription ||
+                      errorMessageFromBody(pollData, t("errorAuthorizationFailed"))
+                  );
                 }
               }
 
@@ -533,7 +540,7 @@ export default function OAuthModal({
               setPolling(false);
               forceManual = true;
             }
-          } else if (isLocalhost) {
+          } else if (isLocalhost && !opts?.manualLoopback) {
             setLoopbackHint(buildPkceLoopbackMismatchHint(provider, loopbackLocation));
             setStep("loopback-mismatch");
             return;
@@ -594,7 +601,7 @@ export default function OAuthModal({
         }
 
         if (!data.authUrl) {
-          throw new Error(data.error || t("errorBrowserUnavailable"));
+          throw new Error(errorMessageFromBody(data, t("errorBrowserUnavailable")));
         }
 
         setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
@@ -1160,6 +1167,7 @@ export default function OAuthModal({
           <OAuthLoopbackMismatchPanel
             providerName={providerInfo.name}
             hint={loopbackHint}
+            onManualInput={() => void startOAuthFlow({ manualLoopback: true })}
             onClose={handleClose}
           />
         )}

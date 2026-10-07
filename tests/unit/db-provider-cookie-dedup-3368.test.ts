@@ -109,7 +109,43 @@ test("#3368 cookie dedup: token-kind credential (no `cookie` key) also dedupes b
   assert.equal(conns.length, 1, "same token value must dedupe even without a cookie key");
 });
 
-test("#3368 cookie dedup: name-based upsert updates the same-named cookie connection", async () => {
+test("#3368 cookie dedup: a name-based upsert still applies when NEITHER side has a credential", async () => {
+  // INVERTED by #15159 / B-01 — read the note below before "restoring" this.
+  //
+  // This case used to be: same provider+name with cookie=FIRST then
+  // cookie=ROTATED, asserting one row ("name-based upsert must not duplicate").
+  // That assertion encoded a data-loss bug. `name` is a user-editable display
+  // label, so matching on it returned the wrong account's row, and the caller's
+  // `merged = { ...decryptedExisting, ...data }` then overwrote that account's
+  // stored cookie. Two accounts sharing a name is not an edge case; it is normal.
+  //
+  // The name lookup now survives only for rows with no derivable credential key,
+  // which is the case this test covers. A rotated *cookie* under a stable name
+  // deliberately gets its own row now — a caller can delete a stale row, but
+  // cannot recover a session that was already overwritten.
+  await providersDb.createProviderConnection({
+    provider: "qwen-ai",
+    authType: "cookie",
+    name: "Stable Name",
+    apiKey: null,
+    isActive: true,
+  });
+  await providersDb.createProviderConnection({
+    provider: "qwen-ai",
+    authType: "cookie",
+    name: "Stable Name",
+    apiKey: null,
+    isActive: true,
+  });
+
+  const conns = await providersDb.getProviderConnections({ provider: "qwen-ai" });
+  assert.equal(conns.length, 1, "with no credential on either side, the name is all there is");
+});
+
+test("#15159 B-01: same name + a rotated cookie is a NEW row, not an overwrite", async () => {
+  // The inverse of the case above, and the actual defect. Asserted explicitly so
+  // the trade-off is visible in the suite rather than only in the PR body: a
+  // rotated cookie under a stable name now leaves the original row intact.
   await providersDb.createProviderConnection({
     provider: "qwen-ai",
     authType: "cookie",
@@ -128,5 +164,9 @@ test("#3368 cookie dedup: name-based upsert updates the same-named cookie connec
   });
 
   const conns = await providersDb.getProviderConnections({ provider: "qwen-ai" });
-  assert.equal(conns.length, 1, "same provider+name must upsert, not duplicate");
+  assert.equal(
+    conns.length,
+    2,
+    "a different cookie is a different account; overwriting the first is unrecoverable"
+  );
 });

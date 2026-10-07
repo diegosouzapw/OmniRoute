@@ -19,6 +19,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "1";
 
 const core = await import("../../../src/lib/db/core.ts");
 const usageHistory = await import("../../../src/lib/usage/usageHistory.ts");
+const pendingScope = await import("../../../src/lib/usage/pendingRequestScope.ts");
+const { createRequestLogger } = await import("../../../open-sse/utils/requestLogger.ts");
 const logsRoute = await import("../../../src/app/api/logs/[id]/route.ts");
 const usageHistoryRoute = await import("../../../src/app/api/usage/history/route.ts");
 
@@ -85,6 +87,57 @@ test("management detail sanitizes completed error metadata and cached chunks", a
   assert.doesNotMatch(
     serializedDetail(detail),
     /management-cache-secret|srv\/private|completed-request\.ts|\bat finalize\b/i
+  );
+});
+
+test("observed video omits transcript echoes from active and completed management detail", async () => {
+  const secret = "video-management-private-sentinel";
+  const requestId = usageHistory.trackPendingRequest(
+    "video-model",
+    "provider",
+    "conn-video",
+    true,
+    {
+      providerRequest: pendingScope.initialPendingBody({ prompt: secret }, "video-model", true),
+    }
+  );
+  assert.ok(requestId);
+  const scope = {
+    id: requestId,
+    model: "video-model",
+    provider: "provider",
+    connectionId: "conn-video",
+    videoTranscriptSensitive: true,
+  };
+  pendingScope.updatePendingScope(scope, {
+    providerRequest: { prompt: secret },
+    providerResponse: { text: secret },
+    clientResponse: { text: secret },
+    error: secret,
+  });
+  const logger = await createRequestLogger("openai", "openai", "video-model", {
+    enabled: false,
+    captureStreamChunks: false,
+    requestId,
+    model: "video-model",
+    provider: "provider",
+    connectionId: "conn-video",
+  });
+  logger.appendProviderChunk(`data: ${secret}`);
+  assert.doesNotMatch(
+    serializedDetail(await readManagementDetail(requestId)),
+    /video-management-private-sentinel/
+  );
+
+  pendingScope.finalizePendingScope(scope, {
+    providerResponse: { text: secret },
+    clientResponse: { text: secret },
+    error: secret,
+    status: 200,
+  });
+  assert.doesNotMatch(
+    serializedDetail(await readManagementDetail(requestId)),
+    /video-management-private-sentinel/
   );
 });
 

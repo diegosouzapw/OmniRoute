@@ -256,6 +256,7 @@
     "max_restarts": "Ọnụọgụ mmalitegharị kachasị elu mgbe ọ dara n'ime 30s tupu ịkwụsị mbọ (ndabara: 2)",
     "tray": "Malite na tray sistemụ (naanị na desktọpụ, ma ọ bụrụ na ahọrọ ya)",
     "no_tray": "Gbanyụọ akara ngosi tray sistemụ",
+    "ready_timeout": "Oge njedebe nyocha ịdị njikere na ms (yana OMNIROUTE_READY_TIMEOUT_MS, ndabara bụ 60000)",
     "tls_cert": "Ụzọ gaa na asambodo TLS (PEM) iji nye HTTPS (nakwa OMNIROUTE_TLS_CERT)",
     "tls_key": "Ụzọ gaa na igodo nzuzo TLS (PEM) iji nye HTTPS (nakwa OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "Sava MCP na-arụ ọrụ ({transport})",
     "stopped": "Sava MCP akwụsịla.",
     "restarted": "Amalitegharịrị sava MCP.",
+    "stoppedHint": "Gbaa `omniroute mcp enable` iji gbanye ya.",
+    "enabled": "Agbanyela sava MCP.",
+    "disabled": "Agbanyụọla sava MCP.",
+    "enable": {
+      "description": "Gbanye sava MCP",
+      "transport": "Usoro mbufe a ga-eji: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Gbanyụọ sava MCP"
+    },
     "call": {
       "description": "Kpọọ ngwa MCP ozugbo",
       "args": "Ihe arụmụka JSON (n'ime ahịrị)",

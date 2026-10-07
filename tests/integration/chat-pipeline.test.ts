@@ -16,6 +16,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
 const { getLatestCallLog, getResponsesCallLogs } = await import("./_chatPipelineCallLogs.ts");
+const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
@@ -373,6 +374,15 @@ async function resetStorage() {
   readCacheDb.invalidateDbCache();
   invalidateMemorySettingsCache();
   await new Promise((resolve) => setTimeout(resolve, 20));
+  // Call-log persistence is fire-and-forget (persistAttemptLogs → saveCallLog with
+  // a .catch(() => {})), and the first cold artifact-worker spawn can take ~2.4s, so
+  // the previous test's saves may still be in flight here. Draining before the DB
+  // reset keeps those rows in the DB being torn down instead of letting them land
+  // in the next test's fresh database (#12780).
+  const drained = await waitForCallLogSaves(10_000);
+  if (!drained) {
+    console.warn("[chat-pipeline] call-log saves did not drain within 10s; resetting anyway");
+  }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -663,7 +673,13 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   );
 
   const json = (await response.json()) as any;
-  const callLog = await waitFor(() => getLatestCallLog());
+  // Wait specifically for THIS request's Codex /v1/responses row instead of taking
+  // whatever the latest row happens to be: an unfiltered read can surface a row from
+  // a previous test that landed late in this database (#12780).
+  const callLog = await waitFor(async () => {
+    const rows = await getResponsesCallLogs();
+    return rows.find((row) => row.provider === "codex") ?? null;
+  });
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -776,8 +792,8 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.equal(call.headers.Authorization, "Bearer codex-oauth-token");
   assert.equal(call.headers.Accept, "text/event-stream");
   assert.equal(call.headers.Version, getCodexClientVersion());
-  assert.equal(call.headers["Openai-Beta"], "responses=experimental");
-  assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
+  assert.equal(call.headers["Openai-Beta"], "responses_websockets=2026-02-06");
+  assert.equal(call.headers["X-Codex-Beta-Features"], undefined);
   // Derive from the same source the code reads (see getCodexClientVersion() two
   // lines above) instead of pinning the literal — #9323's version bump to 0.146.0
   // broke this assertion while the rest of the test kept passing.
@@ -1178,22 +1194,24 @@ test("chat pipeline converts Claude SSE streams into OpenAI SSE output", async (
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  // #13416: streaming responses declare an explicit charset (matches the rest of the
+  // codebase's streaming executors — see open-sse/executors/{uc,maxai,codex-app-server}.ts).
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.match(raw, /chat\.completion\.chunk/);
   assert.match(raw, /Streamed Claude chunk/);
   assert.match(raw, /\[DONE\]/);
 });
 
-test("chat pipeline rejects invalid API keys and malformed JSON bodies", async () => {
+test("chat pipeline surfaces upstream invalid-key errors and rejects malformed JSON", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-invalid-key-path" });
 
+  const invalidKeyMessage = "Incorrect API key provided";
+  const invalidKeyResponseInit = { status: 401, statusText: invalidKeyMessage };
+  globalThis.fetch = async () =>
+    Response.json({ error: { message: invalidKeyMessage } }, invalidKeyResponseInit);
   const invalidKeyResponse = await handleChat(
     buildRequest({
-      authKey: "does-not-exist",
-      body: {
-        model: "openai/gpt-4o-mini",
-        messages: [{ role: "user", content: "Hello" }],
-      },
+      body: { model: "openai/gpt-4o-mini", messages: [{ role: "user", content: "Hello" }] },
     })
   );
   const invalidKeyJson = (await invalidKeyResponse.json()) as any;
@@ -1271,7 +1289,9 @@ test("chat pipeline treats Accept text/event-stream as streaming mode and return
 
   const raw = await response.text();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  // #13416: streaming responses declare an explicit charset (matches the rest of the
+  // codebase's streaming executors — see open-sse/executors/{uc,maxai,codex-app-server}.ts).
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);

@@ -629,13 +629,111 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
   return result;
 }
 
+/**
+ * JSON Schema composition keywords Anthropic refuses at the *root* of a tool
+ * `input_schema`. Nested occurrences (inside `properties`, `items`, `$defs`, …)
+ * are valid and must be preserved.
+ */
+const CLAUDE_ROOT_UNION_KEYWORDS = ["anyOf", "oneOf", "allOf"] as const;
+
+/** Whether a union branch may contribute object properties to the flattened root. */
+function claudeUnionBranchCanBeObject(branch: JsonRecord): boolean {
+  const type = branch.type;
+  if (type === undefined) return true;
+  if (typeof type === "string") return type === "object";
+  if (Array.isArray(type)) return type.includes("object");
+  return false;
+}
+
+/** Append the string entries of `branchRequired` that are not recorded yet. */
+function mergeClaudeRequired(target: string[], seen: Set<string>, branchRequired: unknown): void {
+  if (!Array.isArray(branchRequired)) return;
+  for (const name of branchRequired) {
+    if (typeof name !== "string" || seen.has(name)) continue;
+    seen.add(name);
+    target.push(name);
+  }
+}
+
+/**
+ * Whether a tool schema carries a root-level `anyOf` / `oneOf` / `allOf`.
+ *
+ * @param schema - Candidate tool `input_schema` / `parameters` value.
+ * @returns `true` when Anthropic would reject the schema's root shape.
+ */
+export function hasRootLevelSchemaUnion(schema: unknown): boolean {
+  if (!isPlainObject(schema)) return false;
+  return CLAUDE_ROOT_UNION_KEYWORDS.some((keyword) => hasOwn(schema, keyword));
+}
+
+/**
+ * Flatten a root-level `anyOf` / `oneOf` / `allOf` into a plain object schema.
+ *
+ * Anthropic's Messages API rejects a tool whose `input_schema` root carries a
+ * composition keyword with
+ * `tools.N.custom.input_schema: input_schema does not support oneOf, allOf, or
+ * anyOf at the top level` (#13552). The request is refused *before* inference,
+ * so a single such tool from an MCP/agent client fails every request that
+ * carries the catalog — combo failover cannot recover from it either.
+ *
+ * The flattening mirrors the union handling CLIProxyAPI applies on the same
+ * wire hop: object-compatible branches contribute their `properties` (first
+ * branch wins on a name collision), the root is pinned to `type: "object"`, and
+ * only `allOf` — whose branches all apply at once — contributes `required`.
+ * `anyOf` / `oneOf` branch requirements are alternatives, so promoting them
+ * would refuse calls the original schema accepts.
+ *
+ * Schemas without a root union are returned untouched, and nested unions are
+ * never rewritten.
+ *
+ * @param schema - Tool `input_schema` as received from the client.
+ * @returns An Anthropic-compatible schema, or the input when nothing to do.
+ */
+export function normalizeClaudeToolInputSchema(schema: unknown): unknown {
+  if (!hasRootLevelSchemaUnion(schema)) return schema;
+
+  const source = schema as JsonRecord;
+  const result: JsonRecord = { ...source };
+  const properties: JsonRecord = isPlainObject(source.properties) ? { ...source.properties } : {};
+  const required: string[] = [];
+  const requiredSeen = new Set<string>();
+  mergeClaudeRequired(required, requiredSeen, source.required);
+
+  for (const keyword of CLAUDE_ROOT_UNION_KEYWORDS) {
+    if (!hasOwn(result, keyword)) continue;
+    const branches = result[keyword];
+    // Dropped even when malformed: the keyword itself is what Anthropic refuses.
+    delete result[keyword];
+    if (!Array.isArray(branches)) continue;
+
+    for (const branch of branches) {
+      if (!isPlainObject(branch) || !claudeUnionBranchCanBeObject(branch)) continue;
+      if (isPlainObject(branch.properties)) {
+        for (const [name, propertySchema] of Object.entries(branch.properties)) {
+          if (!hasOwn(properties, name)) properties[name] = propertySchema;
+        }
+      }
+      if (keyword === "allOf") mergeClaudeRequired(required, requiredSeen, branch.required);
+    }
+  }
+
+  result.type = "object";
+  result.properties = properties;
+  if (required.length > 0) result.required = required;
+
+  return result;
+}
+
 export function sanitizeClaudeToolSchema(schema: unknown): unknown {
   // stripInvalidSchemaConstructs now also coerces numeric-string constraints, so
   // it is the single pass for the Claude path. We deliberately do NOT compose
   // coerceSchemaNumericFields: it strips the valid `default` keyword (Fix #1782,
   // a translator concern) which on the native / passthrough surface would
   // silently alter tool schemas that were previously forwarded verbatim.
-  return stripInvalidSchemaConstructs(schema);
+  //
+  // The root-union flattening runs last so it sees the already-repaired shape
+  // (e.g. an index-keyed `anyOf` object coerced back into an array).
+  return normalizeClaudeToolInputSchema(stripInvalidSchemaConstructs(schema));
 }
 
 export function sanitizeClaudeToolSchemas(tools: unknown): unknown {

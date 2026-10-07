@@ -22,6 +22,8 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const { resolveComboTargetPipeline } =
   await import("../../open-sse/services/combo/targetResolution.ts");
+const { clearAllStickyBindings, recordStickyBinding } =
+  await import("../../open-sse/services/combo/sessionStickiness.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -35,6 +37,7 @@ test.after(() => {
 
 test.beforeEach(() => {
   clearModelsDevCapabilities();
+  clearAllStickyBindings();
 });
 
 const noopLog = { info() {}, warn() {}, error() {}, debug() {} } as never;
@@ -92,6 +95,36 @@ test("priority strategy resolves combo models into orderedTargets in declared or
     result.orderedTargets.map((t) => t.modelStr),
     ["openai/gpt-4o", "anthropic/claude-3"]
   );
+});
+
+test("#15241 priority pipeline keeps its declared head after a mid-list sticky success", async () => {
+  const priorityWithConnections = {
+    id: "c-sticky-priority",
+    name: "sticky-priority",
+    strategy: "priority",
+    models: [
+      { model: "openai/gpt-4o", connectionId: "conn-priority-a" },
+      { model: "anthropic/claude-3", connectionId: "conn-priority-b" },
+    ],
+    config: {},
+  };
+  const first = await resolveComboTargetPipeline(deps({ combo: priorityWithConnections }));
+  assert.ok(!("earlyResponse" in first));
+  if ("earlyResponse" in first) return;
+  assert.ok(first.sticky.messageHash, "pipeline derives the conversation stickiness key");
+  assert.ok(first.orderedTargets[1]?.connectionId, "second target has a connection id to pin");
+
+  recordStickyBinding(first.sticky.messageHash!, first.orderedTargets[1]!.connectionId!);
+
+  const repeated = await resolveComboTargetPipeline(deps({ combo: priorityWithConnections }));
+  assert.ok(!("earlyResponse" in repeated));
+  if ("earlyResponse" in repeated) return;
+  assert.deepEqual(
+    repeated.orderedTargets.map((target) => target.modelStr),
+    ["openai/gpt-4o", "anthropic/claude-3"],
+    "a prior mid-list success must not become runtime try-slot #1 for priority"
+  );
+  assert.equal(repeated.sticky.stuck, false);
 });
 
 test("returns the derived values the attempt loop consumes", async () => {

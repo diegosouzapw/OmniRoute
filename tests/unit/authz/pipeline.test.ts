@@ -102,6 +102,32 @@ test("runAuthzPipeline redirects root to dashboard before management auth", asyn
   assert.equal(response.headers.get("location"), "http://localhost/dashboard");
 });
 
+test("runAuthzPipeline forwards zed-hosted native-app callback from root to /callback preserving the query string (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/?user_id=abc123&access_token=tok-xyz"),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 307);
+  assert.equal(
+    response.headers.get("location"),
+    "http://localhost/callback?user_id=abc123&access_token=tok-xyz"
+  );
+});
+
+test("runAuthzPipeline still redirects root to dashboard when only one native-app callback param is present (#13140)", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/?user_id=abc123"), {
+    enforce: true,
+  });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/dashboard");
+});
+
 test("runAuthzPipeline redirects unauthenticated dashboard pages to login", async () => {
   await forceAuthRequired();
 
@@ -371,18 +397,37 @@ test("runAuthzPipeline allows dashboard sessions to read model catalog aliases",
   assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
 });
 
-test("runAuthzPipeline allows dashboard sessions to reach DB health management API", async () => {
+test("runAuthzPipeline gates the DB health API on loopback, not on the session alone", async () => {
   await forceAuthRequired();
 
-  const response = await pipeline.runAuthzPipeline(
+  // #13717 moved /api/db/health to Tier 1 LOCAL_ONLY: runManagedDbHealthCheck()
+  // forks native diagnostics into a child process (Hard Rules #15 + #17), and the
+  // route is NOT in LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES. So a dashboard session
+  // is no longer sufficient by itself — an unstamped peer fails closed, whatever the
+  // URL says, because requestPeerAddress() never reads the spoofable Host header.
+  const unstamped = await pipeline.runAuthzPipeline(
     request("http://localhost/api/db/health", {
       headers: { cookie: await dashboardCookie() },
     }),
     { enforce: true }
   );
+  assert.equal(unstamped.status, 403);
 
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  // The local operator — real TCP peer 127.0.0.1, stamped by the custom server —
+  // still reaches it with their session.
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "pipeline-test-peer-stamp-token";
+  const loopback = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/db/health", {
+      headers: {
+        cookie: await dashboardCookie(),
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|127.0.0.1",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|0",
+      },
+    }),
+    { enforce: true }
+  );
+  assert.equal(loopback.status, 200);
+  assert.equal(loopback.headers.get("x-omniroute-route-class"), "MANAGEMENT");
 });
 
 test("runAuthzPipeline accepts dashboard mutations from configured public origin", async () => {
@@ -635,4 +680,81 @@ test("runAuthzPipeline clears stale dashboard JWTs without error-stack noise", a
     console.error = originalError;
     console.warn = originalWarn;
   }
+});
+
+test("runAuthzPipeline throttles the stale-dashboard-cookie warning to once per process, not once per request (#13684 LEDGER-12)", async () => {
+  // Auth itself must succeed on every request so refreshDashboardSessionIfNeeded runs
+  // (it only fires for a MANAGEMENT dashboard route the auth gate already allowed) —
+  // requireLogin=false makes /dashboard anonymously allowed (it is not always-protected),
+  // independent of the foreign cookie below. getSettings() force-sets requireLogin back
+  // to true on first read whenever INITIAL_PASSWORD is set and setup isn't complete yet
+  // (the headless-deploy auto-onboarding branch), so INITIAL_PASSWORD must be unset for
+  // this explicit override to stick.
+  const originalInitialPassword = process.env.INITIAL_PASSWORD;
+  delete process.env.INITIAL_PASSWORD;
+  await settingsDb.updateSettings({ requireLogin: false });
+
+  // A foreign token: signed with the SAME secret the dashboard uses (so it is not
+  // an "invalid signature" case), but missing the `authenticated: true` claim — the
+  // shape of the Cursor CLI passthrough token from #13298. `verifyDashboardSessionToken`
+  // treats this as "not a session" (returns null) on every call, which is exactly the
+  // steady-state condition (e.g. a background dashboard tab with a foreign cookie)
+  // that must not flood the log once per request.
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const foreignToken = await new SignJWT({ iss: "omniroute", aud: "cursor-cli" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1h")
+    .sign(secret);
+
+  const warnCalls: unknown[][] = [];
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    warnCalls.push(args);
+  };
+
+  try {
+    for (let i = 0; i < 3; i++) {
+      const response = await pipeline.runAuthzPipeline(
+        request("http://localhost/dashboard", {
+          headers: { cookie: `auth_token=${foreignToken}` },
+        }),
+        { enforce: true }
+      );
+      assert.equal(response.status, 200);
+    }
+
+    const staleCookieWarnings = warnCalls.filter((args) =>
+      String(args[0]).includes("Dropped stale dashboard session cookie")
+    );
+    assert.equal(
+      staleCookieWarnings.length,
+      1,
+      `expected the stale-cookie warning to fire once across 3 requests, got ${staleCookieWarnings.length}`
+    );
+  } finally {
+    console.warn = originalWarn;
+    if (originalInitialPassword === undefined) delete process.env.INITIAL_PASSWORD;
+    else process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
+});
+
+test("authenticated remote dashboard page is not a login redirect that clears the session", async () => {
+  await forceAuthRequired();
+  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "pipeline-test-peer-stamp-token";
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://gateway.example.test/dashboard/resilience/connections", {
+      headers: {
+        cookie: await dashboardCookie(),
+        "x-omniroute-peer-ip": "pipeline-test-peer-stamp-token|203.0.113.8",
+        "x-omniroute-via-proxy": "pipeline-test-peer-stamp-token|1",
+      },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  const setCookie = response.headers.get("set-cookie") || "";
+  assert.doesNotMatch(setCookie, /Max-Age=0|Expires=Thu, 01 Jan 1970/i);
+  assert.equal(response.headers.get("location"), null);
 });

@@ -15,7 +15,7 @@ import {
 } from "../services/perplexityTlsClient.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { projectPublicErrorIdentifier, sanitizeErrorMessage } from "../utils/error.ts";
 import { buildSessionCookieHeader, mergeRefreshedCookie } from "../utils/nextAuthCookie.ts";
 import { formatTranslatedStreamError } from "../utils/streamErrorFormat.ts";
 import {
@@ -31,6 +31,23 @@ import {
   extractContent,
   sseChunk,
 } from "./perplexity-web/protocol.ts";
+
+const PPLX_PUBLIC_UPSTREAM_ERROR = "Perplexity upstream error";
+
+/** Project an unknown upstream failure onto a stable, public-safe message (Hard Rule #12). */
+function sanitizePerplexityUpstreamError(message: unknown): string {
+  const sanitized = sanitizeErrorMessage(message);
+  return sanitized.trim() && !/^(?:[A-Za-z_$][\w$]*)?Error:\s*$/.test(sanitized)
+    ? sanitized
+    : PPLX_PUBLIC_UPSTREAM_ERROR;
+}
+
+/** Project a provider-controlled error code onto the bounded public identifier vocabulary. */
+export function toPublicPerplexityErrorCode(errorCode: unknown, isQuota: boolean): string {
+  if (isQuota) return "quota_exhausted";
+  if (typeof errorCode !== "string" || errorCode.length > 64) return "PPLX_ERROR";
+  return projectPublicErrorIdentifier(errorCode, "PPLX_ERROR");
+}
 
 // ─── Session continuity ─────────────────────────────────────────────────────
 
@@ -347,10 +364,10 @@ async function buildNonStreamingResponse(
         /quota exhausted/i.test(chunk.error) ||
         (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0);
       const status = isQuota ? 429 : 502;
-      const code = chunk.errorCode || (isQuota ? "quota_exhausted" : "PPLX_ERROR");
+      const code = toPublicPerplexityErrorCode(chunk.errorCode, isQuota);
       const type = isQuota ? "quota_exhausted" : "upstream_error";
       const errBody: Record<string, unknown> = {
-        message: chunk.error,
+        message: sanitizePerplexityUpstreamError(chunk.error),
         type,
         code,
       };

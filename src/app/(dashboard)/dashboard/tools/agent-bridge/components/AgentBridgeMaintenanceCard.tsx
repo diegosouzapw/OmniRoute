@@ -90,10 +90,14 @@ export function AgentBridgeMaintenanceCard({
 
   const handleRepair = async (password = "") => {
     const { repaired } = await repairMitmState(password || undefined);
+    const repairedItems = repaired.join(", ");
     setNotice(
       repaired.length === 0
         ? t("repairNothing") || "Nothing to repair — system state is clean."
-        : (t("repairDone") || "Repaired: {items}").replace("{items}", repaired.join(", "))
+        : (t("repairDone", { items: repairedItems }) || "Repaired: {items}").replace(
+            "{items}",
+            repairedItems
+          )
     );
     await onRefresh();
   };
@@ -171,11 +175,19 @@ export function AgentBridgeMaintenanceCard({
         throw new Error(t("importInvalidJson") || "The selected file is not valid JSON.");
       }
       const result: ImportResult = await importAgentBridgeConfig(parsed as AgentBridgeConfig);
+      const importValues = {
+        bypass: String(result.bypassPatterns),
+        hosts: String(result.customHosts),
+        agents: String(result.agents),
+      };
       setNotice(
-        (t("importDone") || "Imported {bypass} bypass · {hosts} hosts · {agents} agents")
-          .replace("{bypass}", String(result.bypassPatterns))
-          .replace("{hosts}", String(result.customHosts))
-          .replace("{agents}", String(result.agents))
+        (
+          t("importDone", importValues) ||
+          "Imported {bypass} bypass · {hosts} hosts · {agents} agents"
+        )
+          .replace("{bypass}", importValues.bypass)
+          .replace("{hosts}", importValues.hosts)
+          .replace("{agents}", importValues.agents)
       );
       await onRefresh();
     });

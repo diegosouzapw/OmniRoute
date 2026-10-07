@@ -2,18 +2,30 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { parsePluginOptions, resolveTimeouts } from "../src/options.js";
 import { publishCatalog } from "../src/catalog.js";
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
+type BetaDraft = {
+  provider: {
+    list?: () => unknown[];
+    get?: (id: string) => unknown;
+    update: (id: string, fn: (p: Record<string, any>) => void) => void;
+    remove?: () => void;
+  };
+  model: {
+    get?: (...a: string[]) => unknown;
+    update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => void;
+    remove?: () => void;
+    default?: { get: () => undefined; set: () => void };
+  };
+};
 
-function fakeDraft(): CatalogDraft {
-  const providers = new Map<string, ProviderV2Info>();
-  const models = new Map<string, ModelV2Info>();
+function fakeDraft(): BetaDraft {
+  const providers = new Map<string, Record<string, any>>();
+  const models = new Map<string, Record<string, any>>();
   return {
     provider: {
       list: () => [],
       get: (id: string) => providers.get(id) as never,
-      update: (id: string, fn: (p: ProviderV2Info) => void) => {
-        const p = (providers.get(id) ?? { id }) as ProviderV2Info;
+      update: (id: string, fn: (p: Record<string, any>) => void) => {
+        const p = (providers.get(id) ?? { id }) as Record<string, any>;
         fn(p);
         providers.set(id, p);
       },
@@ -21,16 +33,16 @@ function fakeDraft(): CatalogDraft {
     },
     model: {
       get: () => undefined,
-      update: (pid: string, mid: string, fn: (m: ModelV2Info) => void) => {
+      update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => {
         const k = pid + "/" + mid;
-        const m = (models.get(k) ?? { id: mid, providerID: pid }) as ModelV2Info;
+        const m = (models.get(k) ?? { id: mid, providerID: pid }) as Record<string, any>;
         fn(m);
         models.set(k, m);
       },
       remove: () => {},
       default: { get: () => undefined, set: () => {} },
     },
-  } as CatalogDraft;
+  };
 }
 
 const BER = "https://gw.example.com";
@@ -46,22 +58,20 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
     assert.deepEqual(resolveTimeouts(opts), {
       models: 10000,
       combos: 10000,
-      autoCombos: 5000,
       enrichment: 10000,
     });
   });
 
-  it("endpoint overrides win over the global timeout", () => {
+  it("a retired per-endpoint timeout key still parses (ignored)", () => {
     const opts = parsePluginOptions({
       baseURL: BER,
       timeoutMs: 3000,
-      timeouts: { models: 1111, combos: 2222, autoCombos: 3333, enrichment: 4444 },
+      timeouts: { models: 1111, autoCombos: 3333 },
     });
     assert.deepEqual(resolveTimeouts(opts), {
       models: 1111,
-      combos: 2222,
-      autoCombos: 3333,
-      enrichment: 4444,
+      combos: 3000,
+      enrichment: 3000,
     });
   });
 
@@ -96,7 +106,7 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
         },
         { fetcher: slowModels, combosFetcher: async () => [] }
       );
-      assert.deepEqual(res, { models: 0, combos: 0, autoCombos: 0 });
+      assert.deepEqual(res, { models: 0, combos: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -124,7 +134,11 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
       };
       const ctx = {
         options,
-        catalog: {
+        provider: {
+          transform: () => Promise.resolve({ dispose: async () => {} }),
+          reload: async () => {},
+        },
+        model: {
           transform: () => Promise.resolve({ dispose: async () => {} }),
         },
         integration: {

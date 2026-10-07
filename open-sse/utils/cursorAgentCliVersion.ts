@@ -4,8 +4,8 @@
  * Wire header: `x-cursor-client-version: cli-${id}` where `id` is a dated
  * build like `2026.07.08-0c04a8a` (not the IDE `3.x` semver).
  *
- * Resolution: CURSOR_AGENT_CLI_VERSION env → local install detect →
- * disk-cached installer scrape (stale-while-revalidate) → pin.
+ * Resolution: CURSOR_AGENT_CLI_VERSION env, then local install detect,
+ * then a disk-cached installer scrape (stale-while-revalidate), then the pin.
  */
 
 import {
@@ -24,15 +24,14 @@ import { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersionPin.ts";
 export { CURSOR_AGENT_CLI_VERSION };
 
 const VERSION_ID_RE = /^\d{4}\.\d{2}\.\d{2}-[0-9a-f]+$/;
-const CACHE_TTL_MS = 60 * 60 * 1000;
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const INSTALL_URL = "https://cursor.com/install";
-const REMOTE_TIMEOUT_MS = 5_000;
+const REMOTE_TIMEOUT_MS = 20_000;
 const VERSION_CACHE_FILE = "cursor-agent-cli-version.json";
 
 let cachedVersion: string | null = null;
 let cachedAt = 0;
-let remoteRefreshInFlight: Promise<void> | null = null;
-let remoteRefreshScheduled = false;
+let remoteRefreshInFlight: Promise<string | null> | null = null;
 
 /** Test seam: override fetch for installer scrape. */
 let fetchImpl: typeof fetch = fetch;
@@ -41,6 +40,24 @@ let cacheDirOverride: string | null = null;
 
 export function isCursorAgentCliVersionId(value: string): boolean {
   return VERSION_ID_RE.test(value);
+}
+
+/** Calendar date embedded in a `YYYY.MM.DD-<hash>` build id, or null. */
+export function cursorAgentCliVersionDate(id: string): string | null {
+  if (!isCursorAgentCliVersionId(id)) return null;
+  return id.slice(0, 10);
+}
+
+/**
+ * Prefer `candidate` only when its date is strictly later than `floor`.
+ * A missing, invalid, or older-or-equal candidate keeps the floor (the pin).
+ */
+export function preferNewerCursorAgentCliVersion(floor: string, candidate: string | null): string {
+  if (!candidate || !isCursorAgentCliVersionId(candidate)) return floor;
+  const floorDate = cursorAgentCliVersionDate(floor);
+  const candidateDate = cursorAgentCliVersionDate(candidate);
+  if (!floorDate || !candidateDate || candidateDate <= floorDate) return floor;
+  return candidate;
 }
 
 export function formatCursorAgentClientVersion(id: string): string {
@@ -160,89 +177,101 @@ function writeDiskVersionCache(cache: DiskVersionCache): void {
 }
 
 async function fetchInstallerVersionId(): Promise<string | null> {
-  const response = await fetchImpl(INSTALL_URL, {
-    signal: AbortSignal.timeout(REMOTE_TIMEOUT_MS),
-  });
-  if (!response.ok) return null;
-  const text = await response.text();
-  return extractVersionIdFromInstallerScript(text);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REMOTE_TIMEOUT_MS);
+  try {
+    const response = await fetchImpl(INSTALL_URL, {
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return extractVersionIdFromInstallerScript(text);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
-function scheduleRemoteVersionRefresh(): void {
-  if (remoteRefreshInFlight || remoteRefreshScheduled) return;
-  // Defer so sync header resolution never starts network in the same turn.
-  remoteRefreshScheduled = true;
-  setTimeout(() => {
-    remoteRefreshScheduled = false;
-    if (remoteRefreshInFlight) return;
-    remoteRefreshInFlight = (async () => {
-      try {
-        const id = await fetchInstallerVersionId();
-        if (id) writeDiskVersionCache({ version: id, fetchedAt: Date.now() });
-      } catch {
-        // Ignore — pin / stale cache remain valid.
-      } finally {
-        remoteRefreshInFlight = null;
-      }
-    })();
-  }, 0);
+function ensureRemoteVersion(): Promise<string | null> {
+  if (remoteRefreshInFlight) return remoteRefreshInFlight;
+  remoteRefreshInFlight = (async () => {
+    const id = await fetchInstallerVersionId();
+    if (id) writeDiskVersionCache({ version: id, fetchedAt: Date.now() });
+    return id;
+  })().finally(() => {
+    remoteRefreshInFlight = null;
+  });
+  return remoteRefreshInFlight;
+}
+
+function resolveLocalCursorAgentCliVersion(now: number): string | null {
+  const fromEnv = process.env.CURSOR_AGENT_CLI_VERSION?.trim();
+  if (fromEnv && isCursorAgentCliVersionId(fromEnv)) return fromEnv;
+
+  const home = process.env.HOME || process.env.USERPROFILE || homedir();
+  const fromFs = detectCursorAgentCliVersionFromFs(home);
+  if (fromFs) return fromFs;
+
+  const disk = readDiskVersionCache();
+  if (disk && now - disk.fetchedAt < CACHE_TTL_MS) {
+    return preferNewerCursorAgentCliVersion(CURSOR_AGENT_CLI_VERSION, disk.version);
+  }
+  return null;
 }
 
 /**
- * Resolve CLI build id synchronously for request headers.
- * Env → local FS → disk cache (refresh in background if stale) → pin.
+ * CLI build id for `x-cursor-client-version`.
+ * Env and a local install win. Otherwise https://cursor.com/install is fetched
+ * (20s timeout, cached 6h) and used only when its date is strictly later than
+ * the pin. A rejected or unusable fetch keeps the pin.
  */
-export function getCursorAgentCliVersion(): string {
+export async function getCursorAgentCliVersion(): Promise<string> {
   const now = Date.now();
   if (cachedVersion && now - cachedAt < CACHE_TTL_MS) {
     return cachedVersion;
   }
 
-  const fromEnv = process.env.CURSOR_AGENT_CLI_VERSION?.trim();
-  if (fromEnv && isCursorAgentCliVersionId(fromEnv)) {
-    cachedVersion = fromEnv;
-    cachedAt = now;
-    return cachedVersion;
-  }
-
-  const home = process.env.HOME || process.env.USERPROFILE || homedir();
-  const fromFs = detectCursorAgentCliVersionFromFs(home);
-  if (fromFs) {
-    cachedVersion = fromFs;
+  const local = resolveLocalCursorAgentCliVersion(now);
+  if (local && local !== CURSOR_AGENT_CLI_VERSION) {
+    cachedVersion = local;
     cachedAt = now;
     return cachedVersion;
   }
 
   const disk = readDiskVersionCache();
-  if (disk) {
-    cachedVersion = disk.version;
-    cachedAt = now;
-    // Stale-while-revalidate (oakimov): always serve disk cache; refresh in
-    // background when fresh (keep warm) or stale.
-    scheduleRemoteVersionRefresh();
-    return cachedVersion;
+  if (disk && now - disk.fetchedAt < CACHE_TTL_MS) {
+    const cached = preferNewerCursorAgentCliVersion(CURSOR_AGENT_CLI_VERSION, disk.version);
+    if (cached !== CURSOR_AGENT_CLI_VERSION) {
+      cachedVersion = cached;
+      cachedAt = now;
+      return cached;
+    }
   }
 
-  scheduleRemoteVersionRefresh();
-  return CURSOR_AGENT_CLI_VERSION;
+  // Do not block the request on the installer scrape. Use the disk cache or
+  // the pin now, and let the fetch land for the next call.
+  if (!process.env.NODE_TEST_CONTEXT) void ensureRemoteVersion().catch(() => null);
+  const resolved = preferNewerCursorAgentCliVersion(
+    CURSOR_AGENT_CLI_VERSION,
+    disk?.version ?? null
+  );
+  cachedVersion = resolved;
+  cachedAt = Date.now();
+  return resolved;
 }
 
 /**
  * Await a remote installer scrape (tests / warm-up). Writes disk cache on success.
  */
 export async function refreshCursorAgentCliVersionFromInstaller(): Promise<string | null> {
-  try {
-    const id = await fetchInstallerVersionId();
-    if (id) {
-      writeDiskVersionCache({ version: id, fetchedAt: Date.now() });
-      cachedVersion = id;
-      cachedAt = Date.now();
-      return id;
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
+  const id = await fetchInstallerVersionId();
+  if (!id) return null;
+  const resolved = preferNewerCursorAgentCliVersion(CURSOR_AGENT_CLI_VERSION, id);
+  writeDiskVersionCache({ version: resolved, fetchedAt: Date.now() });
+  cachedVersion = resolved;
+  cachedAt = Date.now();
+  return resolved;
 }
 
 /** Exposed for testing: reset the in-memory cache. */
@@ -250,7 +279,6 @@ export function resetCursorAgentCliVersionCache(): void {
   cachedVersion = null;
   cachedAt = 0;
   remoteRefreshInFlight = null;
-  remoteRefreshScheduled = false;
 }
 
 /** Exposed for testing: inject fetch + cache dir. */

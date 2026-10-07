@@ -287,3 +287,41 @@ test("handleEmbedding strips content-encoding header on error path", async () =>
     globalThis.fetch = originalFetch;
   }
 });
+
+test("handleEmbedding clamps over-limit string input before it reaches the upstream body", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+  const oversized = "x".repeat(25_000);
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+    return new Response(
+      JSON.stringify({
+        data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+        usage: { prompt_tokens: 1, total_tokens: 1 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleEmbedding({
+      body: {
+        model: "openai/text-embedding-3-small",
+        input: [oversized, "short"],
+      },
+      credentials: { apiKey: "openai-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(captured.body.input[0].length, 20_000);
+    assert.equal(captured.body.input[1], "short");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -12,6 +12,7 @@ import {
 } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/db/models";
 import { getProviderNodeById } from "@/lib/db/providers";
+import { requiresWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 import {
@@ -285,12 +286,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     !isRerank &&
     (apiFormat === "embeddings" ||
       nodeType === "embeddings" ||
+      customModel?.modelType === "embedding" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
-      lowerModel.includes("colbert"));
+      lowerModel.includes("colbert") ||
+      lowerModel.includes("harrier-") ||
+      lowerModel.includes("nomic-embed"));
   // A Responses node answers on /v1/responses only. Without this the model fell
   // through to the chat branch below, which posts a Chat Completions body to
   // /v1/chat/completions: the route can still answer 200 while carrying nothing a
@@ -365,6 +369,8 @@ export interface SingleModelTestResult {
   isQuota?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
+  /** The probe was deliberately not dispatched (#14780) — not a model failure. */
+  skipped?: boolean;
 }
 
 export type ModelTestResponseText = {
@@ -470,6 +476,17 @@ export async function runSingleModelTest(
   let fullModelStr = modelId;
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
+  }
+  if (requiresWebSessionCredential(providerId)) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: 422,
+      skipped: true,
+      error:
+        "Skipped: web-session providers are excluded from chat probes to avoid creating provider conversations",
+    };
   }
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
 

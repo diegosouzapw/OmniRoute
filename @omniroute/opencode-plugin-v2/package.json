@@ -13,6 +13,7 @@
   },
   "files": [
     "dist",
+    "server.js",
     "README.md",
     "LICENSE"
   ],
@@ -26,7 +27,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "1.18.29",
+    "@opencode/plugin": "2.0.12",
     "@types/node": "^22.19.19",
     "tsup": "^8.5.1",
     "tsx": "^4.22.3",
@@ -62,7 +63,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@opencode-ai/plugin": ">=1.18.29 <2"
+    "@opencode/plugin": ">=2.0.12 <3"
   },
   "overrides": {
     "esbuild": "^0.28.1"

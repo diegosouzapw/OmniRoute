@@ -1,21 +1,12 @@
-# USER_GUIDE (မြန်မာ)
+# User Guide (မြန်မာ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-title: "အသုံးပြုသူလမ်းညွှန်"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
-# အသုံးပြုသူလမ်းညွှန်
-
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-ပံ့ပိုးသူများကို စီစဉ်သတ်မှတ်ခြင်း၊ combo များ ဖန်တီးခြင်း၊ CLI ကိရိယာများ ပေါင်းစည်းခြင်းနှင့် OmniRoute ကို ဖြန့်ကျက်အသုံးပြုခြင်းတို့အတွက် ပြည့်စုံသောလမ်းညွှန်။
+ပံ့ပိုးသူများကို စီစဉ်သတ်မှတ်ခြင်း၊ ပေါင်းစပ်မှုများ ဖန်တီးခြင်း၊ CLI ကိရိယာများ ချိတ်ဆက်အသုံးပြုခြင်းနှင့် OmniRoute ကို ဖြန့်ချထားခြင်းတို့အတွက် ပြည့်စုံသော လမ်းညွှန်။
 
 ---
 
@@ -684,7 +675,7 @@ curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# စာရင်း- curl http://localhost:20128/api/provider-models?provider=openai
+# စာရင်းပြရန်- curl http://localhost:20128/api/provider-models?provider=openai
 # ဖယ်ရှားရန်- curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
@@ -692,15 +683,52 @@ curl -X POST http://localhost:20128/api/provider-models \
 
 မှတ်ချက်များ-
 
-- OpenRouter နှင့် OpenAI/Anthropic-compatible provider များကို **Available Models** မှသာ စီမံခန့်ခွဲသည်။ ကိုယ်တိုင်ထည့်သွင်းခြင်း၊ import လုပ်ခြင်းနှင့် အလိုအလျောက် sync လုပ်ခြင်းအားလုံးသည် တူညီသော available-model စာရင်းထဲသို့ ရောက်ရှိသောကြောင့် ထို provider များအတွက် သီးခြား Custom Models အပိုင်း မရှိပါ။
-- **Custom Models** အပိုင်းသည် စီမံထားသော available-model import များကို မပံ့ပိုးသည့် provider များအတွက် ရည်ရွယ်ထားသည်။
+- OpenRouter နှင့် OpenAI/Anthropic-compatible provider များကို **Available Models** မှသာ စီမံခန့်ခွဲသည်။ ကိုယ်တိုင်ထည့်သွင်းခြင်း၊ import ပြုလုပ်ခြင်းနှင့် အလိုအလျောက် sync ပြုလုပ်ခြင်းအားလုံးသည် တူညီသော available-model စာရင်းထဲသို့ ဝင်ရောက်သောကြောင့် ထို provider များအတွက် သီးခြား Custom Models ကဏ္ဍ မရှိပါ။
+- **Custom Models** ကဏ္ဍသည် စီမံထားသော available-model import များကို မပံ့ပိုးသည့် provider များအတွက် ရည်ရွယ်ထားသည်။
 
-### OmniRoute Peer များကို ဆက်သွယ်ချိတ်ဆက်ခြင်း
+### စိတ်ကြိုက် OpenAI-Compatible Provider များ
+
+OpenAI API ကို အသုံးပြုဆက်သွယ်နိုင်သည့် မည်သည့် gateway ကိုမဆို (ကိုယ်တိုင် host လုပ်ထားသော proxy၊ vLLM သို့မဟုတ် ပြင်ပ aggregator)
+၎င်း၏ကိုယ်ပိုင် provider node အဖြစ် ထည့်သွင်းနိုင်သည်-
+
+1. **Providers → Add OpenAI Compatible**။
+2. **Name**: node အတွက် ပြသမည့် အညွှန်းအမည်။
+3. **Prefix**: routing အမည်။ Client များသည် model များကို `<prefix>/<model>` ပုံစံဖြင့် ခေါ်ဆိုသောကြောင့်
+   prefix `mygw` ပါသော node သည် `mygw/gpt-4o-mini` ကို ဝန်ဆောင်မှုပေးသည်။ မဖြစ်မနေလိုအပ်ပြီး စာလုံးကန့်သတ်ချက် မရှိပါ။
+4. **API Type**: gateway က ဝန်ဆောင်မှုပေးသည့် endpoint အမျိုးအစားစု (Chat Completions၊ Responses၊
+   Embeddings၊ audio၊ images)။
+5. **Base URL**: `/v1` အထိ ပါဝင်သည့် API root (ဥပမာ
+   `https://gateway.example.com/v1`) ဖြစ်ပြီး `/chat/completions` path အပြည့်အစုံ မဟုတ်ပါ။ ပုံမှန်မဟုတ်သော
+   path များရှိသည့် gateway များတွင် ၎င်းတို့ကို **Advanced Settings** (chat path၊ models path) အောက်၌ သတ်မှတ်ပါ။
+6. **API Key (for Check)** အကွက်သည် ချိတ်ဆက်မှုကိုသာ စမ်းသပ်သည်။ Node ကို ဖန်တီးပြီးနောက်
+   ၎င်းကိုဖွင့်၍ request များအသုံးပြုမည့် key ကို သိမ်းဆည်းရန် **Add Connection** ကို အသုံးပြုပါ။
+
+Node သည် `openai-compatible-<apiType>-<uuid>` ပုံစံရှိ internal id တစ်ခု ရရှိမည်ဖြစ်သည်။ ၎င်းကို မည်သည့်အခါမျှ
+ရိုက်ထည့်ရန် မလိုအပ်ဘဲ prefix သည် အများသုံးအမည် ဖြစ်သည်။
+
+#### သီးသန့်သတ်မှတ်ထားသော prefix များ
+
+Prefix သည် built-in provider တစ်ခု၏ id သို့မဟုတ် alias (ဥပမာ `openai`၊ `cf`) မဖြစ်ရသကဲ့သို့
+ရပ်ဆိုင်းထားသော provider တစ်ခု၏ id လည်း မဖြစ်ရပါ။ Model resolver သည် custom node များမတိုင်မီ
+built-in id နှင့် alias များကို စစ်ဆေးသောကြောင့် အဆိုပါ prefix များအနက် တစ်ခုကို အသုံးပြုသည့် node သည် traffic ကို မည်သည့်အခါမျှ လက်ခံရရှိမည် မဟုတ်ပါ-
+`<prefix>/model` သည် ထိုအစား built-in provider သို့ ရောက်သွားမည် သို့မဟုတ် ထို provider ကို
+ရပ်ဆိုင်းထားပါက လုံခြုံစွာ ပိတ်ပင်သွားမည်ဖြစ်သည်။ ထိုကဲ့သို့သော prefix ဖြင့် node တစ်ခုကို ဖန်တီးခြင်း သို့မဟုတ် ပြင်ဆင်ခြင်းကို အောက်ပါ error ဖြင့် ငြင်းပယ်မည်-
+
+```text
+prefix: "<prefix>" သည် သီးသန့်သတ်မှတ်ထားသော provider prefix ဖြစ်သည် — အခြား prefix တစ်ခုကို ရွေးချယ်ပါ (သီးသန့်သတ်မှတ်ထားသော ids/aliases များကို custom node များအတွက် အသုံးမပြုနိုင်ပါ၊ အဘယ်ကြောင့်ဆိုသော် <prefix>/model ကဲ့သို့ request များသည် built-in provider သို့ route လုပ်မည် သို့မဟုတ် ရပ်ဆိုင်းထားပါက လုံခြုံစွာ ပိတ်ပင်မည်ဖြစ်သောကြောင့် ဖြစ်သည်)
+```
+
+ကွဲပြားသော prefix (`mygw`၊ `acme-proxy`) တစ်ခုကို ရွေးချယ်ပါ။ Custom node တစ်ခုသို့ ပေးပို့သော request များသည်
+built-in provider သို့မဟုတ် ၎င်း၏ credential များကို ဖော်ပြသည့် error ဖြင့် မအောင်မြင်ပါက node ၏ prefix သည်
+သီးသန့်သတ်မှတ်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။ ဤစည်းမျဉ်း မရှိမီ သိမ်းဆည်းထားသော node များသည် ဆက်လက်သိမ်းဆည်းထားဆဲဖြစ်သော်လည်း ၎င်းတို့၏ prefix သည်
+built-in provider သို့ route လုပ်သည်။ Node ကို ပြင်ဆင်ပြီး prefix အသစ်တစ်ခု သတ်မှတ်ပါ။
+
+### OmniRoute Peer များကို ကွင်းဆက်ချိတ်ဆက်ခြင်း
 
 အခြား OmniRoute gateway တစ်ခုကို **Custom OpenAI-compatible** provider အဖြစ် ထည့်သွင်းနိုင်သည်။ Peer ၏
-`/v1` base URL နှင့် ထို peer မှ ထုတ်ပေးထားသော သီးသန့်၊ အနည်းဆုံးလိုအပ်သည့် အခွင့်အရေးသာရှိသော API key ကို အသုံးပြုပါ။
+`/v1` base URL နှင့် ထို peer က ထုတ်ပေးထားသော သီးသန့်၊ အနည်းဆုံးအခွင့်အရေးသာရှိသည့် API key ကို အသုံးပြုပါ။
 
-အပြန်အလှန် သို့မဟုတ် multi-hop ချိတ်ဆက်မှုများအတွက် gateway တိုင်းတွင် ရွေးချယ်ဖွင့်နိုင်သော loop guard ကို ဖွင့်ပါ-
+အပြန်အလှန် သို့မဟုတ် multi-hop ကွင်းဆက်များအတွက် gateway တိုင်းတွင် ကိုယ်တိုင်ဖွင့်ရသော loop guard ကို ဖွင့်ပါ-
 
 ```bash
 # gateway-a
@@ -716,14 +744,13 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-အတိအလင်း allowlist လုပ်ထားသော peer URL သို့ ပေးပို့သည့် request များသာ
-`X-OmniRoute-Peer-Trace` header ကို ရရှိသည်။ ထပ်နေသော instance ID သို့မဟုတ် hop
-အရေအတွက် ကုန်ဆုံးသွားပါက gateway သည် HTTP `508 Loop Detected` ဖြင့် ငြင်းပယ်ပြီး၊ ပုံမှန် upstream provider များသည် peer metadata ကို မရရှိပါ။
+အတိအလင်း allowlist ထဲ ထည့်ထားသော peer URL သို့ ပေးပို့သည့် request များသာ
+`X-OmniRoute-Peer-Trace` header ကို ရရှိသည်။ Gateway သည် ထပ်နေသော instance ID သို့မဟုတ် ကုန်ဆုံးသွားသော hop
+ကန့်သတ်ချက်ကို HTTP `508 Loop Detected` ဖြင့် ငြင်းပယ်သည်။ ပုံမှန် upstream provider များသည် peer metadata ကို မရရှိပါ။
 
-Peer chaining သည် database replication သို့မဟုတ် host failover မဟုတ်ပါ။ Gateway တစ်ခုစီသည် သီးခြား
-SQLite state၊ cache၊ rate counter နှင့် session များကို ထိန်းသိမ်းထားသည်။ Active/passive သို့မဟုတ် active/active availability အတွက် health check ပါသော reverse proxy သို့မဟုတ် client
-failover ကို အသုံးပြုပြီး၊ SQLite database တစ်ခုတည်းကို လည်ပတ်နေသော OmniRoute instance
-အများအပြားတွင် မည်သည့်အခါမျှ mount မလုပ်ပါနှင့်။
+Peer ကွင်းဆက်ချိတ်ဆက်ခြင်းသည် database replication သို့မဟုတ် host failover မဟုတ်ပါ။ Gateway တစ်ခုစီသည် သီးခြား
+SQLite state၊ cache များ၊ rate counter များနှင့် session များကို ထိန်းသိမ်းထားသည်။ Active/passive သို့မဟုတ် active/active availability အတွက် health-check ပြုလုပ်ထားသော reverse proxy သို့မဟုတ် client
+failover ကို အသုံးပြုပြီး လည်ပတ်နေသော OmniRoute instance အများအပြားထဲသို့ SQLite database တစ်ခုတည်းကို မည်သည့်အခါမျှ mount မလုပ်ပါနှင့်။
 
 ### သီးသန့် Provider Route များ
 
@@ -735,25 +762,25 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Provider prefix မရှိပါက အလိုအလျောက် ထည့်ပေးသည်။ မကိုက်ညီသော model များအတွက် `400` ကို ပြန်ပေးသည်။
+Provider prefix မရှိပါက အလိုအလျောက် ထည့်သွင်းပေးသည်။ ကိုက်ညီမှုမရှိသော model များသည် `400` ကို ပြန်ပေးသည်။
 
-### Network Proxy ဖွဲ့စည်းသတ်မှတ်မှု
+### Network Proxy ဖွဲ့စည်းသတ်မှတ်ခြင်း
 
 ```bash
 # Global proxy သတ်မှတ်ရန်
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Provider တစ်ခုချင်းစီအလိုက် proxy
+# Provider တစ်ခုချင်းစီအတွက် proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Proxy ကို စမ်းသပ်ရန်
+# Proxy စမ်းသပ်ရန်
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**ဦးစားပေးအစီအစဉ်-** Key-specific → Combo-specific → Provider-specific → Global → Environment။
+**ဦးစားပေးအစီအစဉ်:** Key-specific → Combo-specific → Provider-specific → Global → Environment။
 
 ### Model Catalog API
 
@@ -761,111 +788,111 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-အမျိုးအစားများ (`chat`, `embedding`, `image`) ပါဝင်ပြီး provider အလိုက် အုပ်စုဖွဲ့ထားသော model များကို ပြန်ပေးသည်။
+အမျိုးအစားများ (`chat`၊ `embedding`၊ `image`) နှင့်အတူ provider အလိုက် အုပ်စုဖွဲ့ထားသော model များကို ပြန်ပေးသည်။
 
 ### Cloud Sync
 
-- Provider များ၊ combo များနှင့် setting များကို device များအကြား sync လုပ်ခြင်း
-- Timeout + fail-fast ပါသော အလိုအလျောက် နောက်ခံ sync
-- Production တွင် server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` ကို ဦးစားပေးအသုံးပြုရန်
+- စက်ပစ္စည်းများအကြား provider များ၊ combo များနှင့် setting များကို sync လုပ်ခြင်း
+- Timeout နှင့် fail-fast ပါဝင်သော အလိုအလျောက် နောက်ခံ sync
+- Production တွင် server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` ကို ဦးစားပေးအသုံးပြုပါ
 
 ### Cloudflare Quick Tunnel
 
-- Docker နှင့် အခြား self-hosted deployment များအတွက် **Dashboard → Endpoints** တွင် ရရှိနိုင်သည်
-- လက်ရှိ OpenAI-compatible `/v1` endpoint သို့ forward လုပ်ပေးသည့် ယာယီ `https://*.trycloudflare.com` URL တစ်ခုကို ဖန်တီးသည်
-- ပထမဆုံးဖွင့်သည့်အခါ လိုအပ်မှသာ `cloudflared` ကို ထည့်သွင်းပြီး၊ နောက်ပိုင်း restart များတွင် စီမံထားသော binary တစ်ခုတည်းကို ပြန်လည်အသုံးပြုသည်
-- OmniRoute သို့မဟုတ် container ကို restart လုပ်ပြီးနောက် Quick Tunnel များကို အလိုအလျောက် ပြန်ဖွင့်မပေးပါ။ လိုအပ်သည့်အခါ dashboard မှ ပြန်ဖွင့်ပါ
-- Tunnel URL များသည် ယာယီဖြစ်ပြီး tunnel ကို ရပ်တန့်/စတင်သည့်အခါတိုင်း ပြောင်းလဲသည်
-- အရင်းအမြစ်ကန့်သတ်ထားသော container များတွင် ဆူညံသော QUIC UDP buffer သတိပေးချက်များကို ရှောင်ရှားရန် စီမံထားသော Quick Tunnel များသည် မူလအတိုင်း HTTP/2 transport ကို အသုံးပြုသည်
-- စီမံထားသော transport ရွေးချယ်မှုကို ပြောင်းလဲလိုပါက `CLOUDFLARED_PROTOCOL=quic` သို့မဟုတ် `auto` ကို သတ်မှတ်ပါ
-- စီမံထားသော download အစား ကြိုတင်ထည့်သွင်းထားသည့် `cloudflared` binary ကို အသုံးပြုလိုပါက `CLOUDFLARED_BIN` ကို သတ်မှတ်ပါ
-- Cloudflare Quick Tunnel၊ Tailscale Funnel နှင့် ngrok Tunnel panel များကို **Settings → Appearance** တွင် ပြသနိုင်သည် သို့မဟုတ် ဖျောက်ထားနိုင်သည်။ Panel တစ်ခုကို ဖျောက်ထားခြင်းသည် လည်ပတ်နေသော tunnel ကို မရပ်တန့်စေပါ။
+- Docker နှင့် အခြား ကိုယ်တိုင် host လုပ်ထားသော deployment များအတွက် **Dashboard → Endpoints** တွင် ရရှိနိုင်သည်
+- သင်၏ လက်ရှိ OpenAI-compatible `/v1` endpoint သို့ forward လုပ်ပေးသည့် ယာယီ `https://*.trycloudflare.com` URL တစ်ခုကို ဖန်တီးပေးသည်
+- ပထမဆုံး enable လုပ်သည့်အခါ လိုအပ်မှသာ `cloudflared` ကို install လုပ်ပေးပြီး နောက်ပိုင်း restart များတွင် စီမံထားပြီးဖြစ်သော binary တစ်ခုတည်းကို ပြန်လည်အသုံးပြုသည်
+- OmniRoute သို့မဟုတ် container ကို restart လုပ်ပြီးနောက် Quick Tunnels များကို အလိုအလျောက် restore မလုပ်ပါ။ လိုအပ်သည့်အခါ dashboard မှ ပြန်လည် enable လုပ်ပါ
+- Tunnel URL များသည် ယာယီဖြစ်ပြီး tunnel ကို stop/start လုပ်သည့်အကြိမ်တိုင်း ပြောင်းလဲသည်
+- ကန့်သတ်ချက်ရှိသော container များတွင် ဆူညံသော QUIC UDP buffer warning များကို ရှောင်ရှားရန် စီမံထားသော Quick Tunnels များသည် ပုံသေအားဖြင့် HTTP/2 transport ကို အသုံးပြုသည်
+- စီမံထားသော transport ရွေးချယ်မှုကို override လုပ်လိုပါက `CLOUDFLARED_PROTOCOL=quic` သို့မဟုတ် `auto` ဟု သတ်မှတ်ပါ
+- စီမံထားသော download ကို အသုံးပြုမည့်အစား ကြိုတင် install လုပ်ထားသော `cloudflared` binary ကို အသုံးပြုလိုပါက `CLOUDFLARED_BIN` ကို သတ်မှတ်ပါ
+- Cloudflare Quick Tunnel၊ Tailscale Funnel နှင့် ngrok Tunnel panel များကို **Settings → Appearance** တွင် ပြသခြင်း သို့မဟုတ် ဖျောက်ထားခြင်း ပြုလုပ်နိုင်သည်။ Panel တစ်ခုကို ဖျောက်ထားခြင်းသည် လည်ပတ်နေသော tunnel ကို မရပ်တန့်စေပါ။
 
-### LLM Gateway Intelligence (Phase 9)
+### LLM Gateway ထောက်လှမ်းနိုင်စွမ်း (အဆင့် 9)
 
-- **Semantic Cache** — Streaming မဟုတ်ဘဲ temperature=0 ဖြစ်သော response များကို အလိုအလျောက် cache လုပ်သည် (`X-OmniRoute-No-Cache: true` ဖြင့် ကျော်လွှားနိုင်သည်)
-- **Request Idempotency** — `Idempotency-Key` သို့မဟုတ် `X-Request-Id` header မှတစ်ဆင့် 5s အတွင်း request ထပ်နေမှုများကို ဖယ်ရှားပေးသည်
-- **Progress Tracking** — `X-OmniRoute-Progress: true` header မှတစ်ဆင့် ရွေးချယ်ဖွင့်နိုင်သော SSE `event: progress` event များကို ပံ့ပိုးသည်
+- **Semantic Cache** — Non-streaming နှင့် temperature=0 response များကို အလိုအလျောက် cache လုပ်သည် (`X-OmniRoute-No-Cache: true` ဖြင့် ကျော်လွှားနိုင်သည်)
+- **Request Idempotency** — `Idempotency-Key` သို့မဟုတ် `X-Request-Id` header မှတစ်ဆင့် 5s အတွင်း request ထပ်နေမှုများကို ဖယ်ရှားသည်
+- **Progress Tracking** — `X-OmniRoute-Progress: true` header မှတစ်ဆင့် စိတ်ကြိုက်ဖွင့်သုံးနိုင်သော SSE `event: progress` event များကို ပံ့ပိုးသည်
 
 ---
 
 ### Translator Playground
 
-**Dashboard → Translator** မှ ဝင်ရောက်ပါ။ OmniRoute က provider များအကြား API request များကို မည်သို့ ဘာသာပြန်ပြောင်းလဲပေးသည်ကို debug လုပ်ပြီး မြင်သာအောင် ကြည့်ရှုပါ။
+**Dashboard → Translator** မှတစ်ဆင့် ဝင်ရောက်ပါ။ OmniRoute က provider များကြား API request များကို မည်သို့ ဘာသာပြန်ပြောင်းလဲပေးသည်ကို debug လုပ်ပြီး မြင်သာအောင် ကြည့်ရှုပါ။
 
-| မုဒ်             | ရည်ရွယ်ချက်                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Playground**   | Source/target format များကို ရွေးချယ်ပြီး request တစ်ခုကို paste လုပ်ကာ ဘာသာပြန်ပြောင်းလဲထားသော output ကို ချက်ချင်းကြည့်ရှုပါ |
-| **Chat Tester**  | Proxy မှတစ်ဆင့် live chat message များ ပေးပို့ပြီး request/response cycle အပြည့်အစုံကို စစ်ဆေးပါ                               |
-| **Test Bench**   | ဘာသာပြန်ပြောင်းလဲမှု မှန်ကန်ကြောင်း စစ်ဆေးရန် format ပေါင်းစပ်မှုအမျိုးမျိုးတွင် batch test များကို လုပ်ဆောင်ပါ                |
-| **Live Monitor** | Request များ proxy မှတစ်ဆင့် စီးဆင်းနေချိန်တွင် အချိန်နှင့်တစ်ပြေးညီ ဘာသာပြန်ပြောင်းလဲမှုများကို စောင့်ကြည့်ပါ                 |
+| မုဒ်             | ရည်ရွယ်ချက်                                                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Playground**   | အရင်းအမြစ်/ပစ်မှတ် format များကို ရွေးချယ်ပြီး request တစ်ခုကို paste လုပ်ကာ ဘာသာပြန်ထားသော output ကို ချက်ချင်းကြည့်ရှုပါ |
+| **Chat Tester**  | Proxy မှတစ်ဆင့် live chat message များ ပေးပို့ပြီး request/response လည်ပတ်မှုတစ်ခုလုံးကို စစ်ဆေးပါ                         |
+| **Test Bench**   | ဘာသာပြန်မှု မှန်ကန်ကြောင်း စစ်ဆေးရန် format ပေါင်းစပ်မှုအမျိုးမျိုးတွင် batch test များကို လုပ်ဆောင်ပါ                     |
+| **Live Monitor** | Request များ proxy မှတစ်ဆင့် စီးဆင်းနေစဉ် အချိန်နှင့်တစ်ပြေးညီ ဘာသာပြန်မှုများကို စောင့်ကြည့်ပါ                            |
 
-**အသုံးပြုနိုင်သည့် အခြေအနေများ-**
+**အသုံးပြုနိုင်သည့် အခြေအနေများ:**
 
-- သတ်မှတ်ထားသော client/provider ပေါင်းစပ်မှုတစ်ခု မအောင်မြင်ရသည့် အကြောင်းရင်းကို debug လုပ်ရန်
-- Thinking tag များ၊ tool call များနှင့် system prompt များကို မှန်ကန်စွာ ဘာသာပြန်ပြောင်းလဲထားကြောင်း စစ်ဆေးရန်
-- OpenAI၊ Claude၊ Gemini နှင့် Responses API format များအကြား format ကွာခြားချက်များကို နှိုင်းယှဉ်ရန်
+- သီးခြား client/provider ပေါင်းစပ်မှုတစ်ခု အဘယ်ကြောင့် မအောင်မြင်သည်ကို debug လုပ်ရန်
+- Thinking tag များ၊ tool call များနှင့် system prompt များ မှန်ကန်စွာ ဘာသာပြန်ပြောင်းလဲကြောင်း စစ်ဆေးရန်
+- OpenAI၊ Claude၊ Gemini နှင့် Responses API format များကြား format ကွာခြားချက်များကို နှိုင်းယှဉ်ရန်
 
 ---
 
 ### Routing မဟာဗျူဟာများ
 
-**Dashboard → Settings → Routing** မှတစ်ဆင့် စီစဉ်သတ်မှတ်ပါ။ Dashboard တွင် အသုံးအများဆုံး နည်းဗျူဟာ ခြောက်မျိုးကို ဖော်ပြထားပြီး combos နှင့် auto-router တို့က အတွင်းပိုင်း၌ ပိုမိုကျယ်ပြန့်သော နည်းဗျူဟာအစုကို ပံ့ပိုးထားသည်။
+**Dashboard → Settings → Routing** မှတစ်ဆင့် configure လုပ်ပါ။ Dashboard တွင် အသုံးအများဆုံး မဟာဗျူဟာ ခြောက်ခုကို ဖော်ပြထားပြီး combo များနှင့် auto-router သည် အတွင်းပိုင်းတွင် ပိုမိုကျယ်ပြန့်သော မဟာဗျူဟာများကို ပံ့ပိုးသည်။
 
-**Dashboard တွင် မြင်နိုင်သော နည်းဗျူဟာများ (အကောင့်အဆင့် routing):**
+**Dashboard တွင် မြင်နိုင်သော မဟာဗျူဟာများ (account အဆင့် routing):**
 
-| နည်းဗျူဟာ                      | ဖော်ပြချက်                                                                                                                                                   |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | အကောင့်များကို ဦးစားပေးအစီအစဉ်အတိုင်း အသုံးပြုသည် — အဓိကအကောင့်သည် အသုံးမပြုနိုင်တော့သည့်အထိ request အားလုံးကို ကိုင်တွယ်သည်                                 |
-| **Round Robin**                | အကောင့်အားလုံးကို စီစဉ်သတ်မှတ်နိုင်သော sticky limit ဖြင့် အလှည့်ကျအသုံးပြုသည် (မူလသတ်မှတ်ချက်- အကောင့်တစ်ခုလျှင် 3 calls)                                    |
-| **P2C (Power of Two Choices)** | အကောင့် 2 ခုကို ကျပန်းရွေးချယ်ပြီး ပိုမိုကောင်းမွန်စွာ အလုပ်လုပ်နေသည့်တစ်ခုသို့ route လုပ်သည် — ကျန်းမာရေးအခြေအနေကို ထည့်သွင်းစဉ်းစားကာ load ကို ချိန်ညှိသည် |
-| **Random**                     | Fisher-Yates shuffle ကို အသုံးပြု၍ request တစ်ခုစီအတွက် အကောင့်တစ်ခုကို ကျပန်းရွေးချယ်သည်                                                                    |
-| **Least Used**                 | သက်တမ်းအကြာဆုံး `lastUsedAt` timestamp ရှိသည့် အကောင့်သို့ route လုပ်ကာ traffic ကို ညီမျှစွာ ဖြန့်ဝေသည်                                                      |
-| **Cost Optimized**             | အနိမ့်ဆုံး priority value ရှိသည့် အကောင့်သို့ route လုပ်ပြီး ကုန်ကျစရိတ်အနည်းဆုံး provider များအတွက် အကောင်းဆုံးဖြစ်အောင် ချိန်ညှိသည်                        |
+| မဟာဗျူဟာ                       | ဖော်ပြချက်                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fill First**                 | ဦးစားပေးအစီအစဉ်အတိုင်း account များကို အသုံးပြုသည် — အဓိက account သည် အသုံးမပြုနိုင်တော့သည့်အချိန်အထိ request အားလုံးကို ကိုင်တွယ်သည်         |
+| **Round Robin**                | Configure လုပ်နိုင်သော sticky ကန့်သတ်ချက်ဖြင့် account အားလုံးကို အလှည့်ကျ အသုံးပြုသည် (ပုံသေ: account တစ်ခုလျှင် call 3 ကြိမ်)               |
+| **P2C (Power of Two Choices)** | ကျပန်း account 2 ခုကို ရွေးချယ်ပြီး ကျန်းမာရေးအခြေအနေ ပိုကောင်းသည့်တစ်ခုဆီ route လုပ်သည် — အခြေအနေကို ထည့်သွင်းစဉ်းစားကာ load ကို ချိန်ညှိသည် |
+| **Random**                     | Fisher-Yates shuffle ကို အသုံးပြု၍ request တစ်ခုစီအတွက် account တစ်ခုကို ကျပန်းရွေးချယ်သည်                                                    |
+| **Least Used**                 | သက်တမ်းအရင့်ဆုံး `lastUsedAt` timestamp ရှိသည့် account ဆီ route လုပ်ပြီး traffic ကို ညီမျှစွာ ဖြန့်ဝေသည်                                     |
+| **Cost Optimized**             | ဦးစားပေးတန်ဖိုး အနိမ့်ဆုံးရှိသည့် account ဆီ route လုပ်ပြီး ကုန်ကျစရိတ်အနည်းဆုံး provider များအတွက် အကောင်းဆုံးဖြစ်အောင် လုပ်ဆောင်သည်         |
 
-**အဆင့်မြင့် combo နှင့် auto နည်းဗျူဟာများ** (combo တစ်ခုချင်းစီအလိုက် သို့မဟုတ် `auto/*` prefixes များမှတစ်ဆင့် စီစဉ်သတ်မှတ်နိုင်သည် — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ကို ကြည့်ပါ):
+**အဆင့်မြင့် combo နှင့် auto မဟာဗျူဟာများ** (combo တစ်ခုချင်းစီအလိုက် သို့မဟုတ် `auto/*` prefix များမှတစ်ဆင့် configure လုပ်နိုင်သည် — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ကို ကြည့်ပါ):
 
-- `priority` — တိကျသောအစီအစဉ်ကို လိုက်နာပြီး round-robin လုံးဝမလုပ်ပါ
-- `weighted` — model တစ်ခုချင်းစီ၏ weight များအလိုက် traffic ကို အချိုးကျခွဲဝေသည်
-- `fill-first` — ကန့်သတ်ချက်များပြည့်သည့်အထိ ပထမ model ကို ဆက်တိုက်အသုံးပြုသည်
+- `priority` — တင်းကျပ်သော အစီအစဉ်အတိုင်း လုပ်ဆောင်ပြီး round-robin လုံးဝမလုပ်ပါ
+- `weighted` — Model တစ်ခုချင်းစီ၏ weight အလိုက် traffic ကို အချိုးကျ ခွဲဝေသည်
+- `fill-first` — ကန့်သတ်ချက်သို့ ရောက်သည်အထိ ပထမ model ကို အပြည့်အဝ အသုံးပြုသည်
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
 - `least-used` နှင့် `cost-optimized`
-- `auto` — candidate အားလုံးကို score အခြေခံ၍ ရွေးချယ်သည်
-- `lkgp` (Last Known Good Provider) — နောက်ဆုံးအောင်မြင်ခဲ့သည့် provider ကို ဆက်လက်အသုံးပြုပြီး မအောင်မြင်ပါက rules များအတိုင်း fallback လုပ်သည်
-- `context-optimized` — လွတ်နေသော context window အကြီးဆုံးရှိသည့် model ကို ရွေးချယ်သည်
-- `context-relay` — နောက်ဆက်တွဲ turns များအတွက် long-context model များကို ချိတ်ဆက်အသုံးပြုသည်
+- `auto` — Candidate အားလုံးအကြား score ပေါ်မူတည်၍ ရွေးချယ်သည်
+- `lkgp` (နောက်ဆုံး အောင်မြင်ခဲ့သော Provider) — နောက်ဆုံး အောင်မြင်ခဲ့သည့် provider ကို ဆက်လက်အသုံးပြုပြီး မအောင်မြင်ပါက rule များသို့ fallback လုပ်သည်
+- `context-optimized` — နေရာလွတ်အများဆုံး context window ရှိသည့် model ကို ရွေးချယ်သည်
+- `context-relay` — နောက်ဆက်တွဲ turn များအတွက် long-context model များကို ကွင်းဆက်ချိတ်ဆက်သည်
 
-#### ပြင်ပ Sticky Session Header
+#### External Sticky Session Header
 
-ပြင်ပ session affinity အတွက် (ဥပမာ၊ reverse proxy များနောက်ကွယ်ရှိ Claude Code/Codex agents များ) အောက်ပါတို့ကို ပေးပို့ပါ:
+ပြင်ပ session affinity အတွက် (ဥပမာ၊ reverse proxy များနောက်ကွယ်ရှိ Claude Code/Codex agent များ) အောက်ပါတို့ကို ပေးပို့ပါ:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute သည် `x_session_id` ကိုလည်း လက်ခံပြီး အမှန်တကယ်အသုံးပြုထားသော session key ကို `X-OmniRoute-Session-Id` တွင် ပြန်ပေးသည်။
+OmniRoute သည် `x_session_id` ကိုလည်း လက်ခံပြီး အမှန်တကယ် အသုံးပြုထားသော session key ကို `X-OmniRoute-Session-Id` တွင် ပြန်ပေးသည်။
 
-Nginx ကို အသုံးပြုပြီး underscore ပုံစံ headers များ ပေးပို့ပါက အောက်ပါတို့ကို ဖွင့်ထားပါ:
+Nginx ကို အသုံးပြုပြီး underscore ပုံစံ header များ ပေးပို့ပါက အောက်ပါတို့ကို enable လုပ်ပါ:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Model Aliases
+#### Wildcard Model Alias များ
 
-Model အမည်များကို ပြန်လည်သတ်မှတ်ရန် wildcard patterns များ ဖန်တီးပါ:
+Model အမည်များကို remap လုပ်ရန် wildcard pattern များ ဖန်တီးပါ:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Wildcards များသည် `*` (မည်သည့် characters မဆို) နှင့် `?` (character တစ်လုံး) ကို ပံ့ပိုးသည်။
+Wildcard များသည် `*` (မည်သည့် character မဆို) နှင့် `?` (character တစ်လုံး) ကို ပံ့ပိုးသည်။
 
-#### Fallback Chains
+#### Fallback ကွင်းဆက်များ
 
-Request အားလုံးတွင် အကျုံးဝင်မည့် global fallback chains များကို သတ်မှတ်ပါ:
+Request အားလုံးတွင် သက်ရောက်မည့် global fallback ကွင်းဆက်များကို သတ်မှတ်ပါ:
 
 ```
 Chain: production-fallback
@@ -876,122 +903,121 @@ Chain: production-fallback
 
 ---
 
-### ခံနိုင်ရည်ရှိမှုနှင့် Circuit Breakers
+### ခံနိုင်ရည်နှင့် Circuit Breaker များ
 
-**Dashboard → Settings → Resilience** မှတစ်ဆင့် စီစဉ်သတ်မှတ်ပါ။
+**Dashboard → Settings → Resilience** မှတစ်ဆင့် configure လုပ်ပါ။
 
-OmniRoute သည် provider အဆင့် ခံနိုင်ရည်ရှိမှုကို အစိတ်အပိုင်း ငါးခုဖြင့် အကောင်အထည်ဖော်ထားသည်:
+OmniRoute သည် အစိတ်အပိုင်း ငါးခုပါဝင်သော provider အဆင့် ခံနိုင်ရည်ကို အကောင်အထည်ဖော်ထားသည်:
 
 1. **Request Queue & Pacing** — System အဆင့် request စီးဆင်းမှု ထိန်းညှိခြင်း:
-   - **Requests Per Minute (RPM)** — အကောင့်တစ်ခုလျှင် တစ်မိနစ်အတွင်း ခွင့်ပြုသည့် အများဆုံး request အရေအတွက်
-   - **Min Time Between Requests** — Request များအကြား အနည်းဆုံးခြားနားချိန်ကို milliseconds ဖြင့် သတ်မှတ်ခြင်း
-   - **Max Concurrent Requests** — အကောင့်တစ်ခုလျှင် တစ်ပြိုင်နက်တည်း လုပ်ဆောင်နိုင်သည့် အများဆုံး request အရေအတွက်
+   - **တစ်မိနစ်လျှင် Request အရေအတွက် (RPM)** — Account တစ်ခုစီအတွက် တစ်မိနစ်လျှင် အများဆုံး request အရေအတွက်
+   - **Request များအကြား အနည်းဆုံးအချိန်** — Request များအကြား millisecond ဖြင့် သတ်မှတ်ထားသော အနည်းဆုံး အချိန်ကွာဟချက်
+   - **တစ်ပြိုင်နက် Request အများဆုံးအရေအတွက်** — Account တစ်ခုစီအတွက် တစ်ပြိုင်နက် လုပ်ဆောင်နိုင်သော request အများဆုံးအရေအတွက်
+2. **ချိတ်ဆက်မှု ခေတ္တရပ်နားခြင်း** — ပြန်လည်ကြိုးစားနိုင်သော ချို့ယွင်းမှုများ ဖြစ်ပေါ်ပြီးနောက် ချိတ်ဆက်မှုတစ်ခုချင်းစီအတွက် အထောက်အထားစိစစ်မှုအမျိုးအစားအလိုက် သတ်မှတ်ချက်များ-
+   - **အခြေခံ ခေတ္တရပ်နားချိန်** — ပြန်လည်ကြိုးစားနိုင်သော upstream ချို့ယွင်းမှုများအတွက် မူလခေတ္တရပ်နားချိန်ကာလ
+   - **Upstream ပြန်လည်ကြိုးစားရန် အရိပ်အမြွက်များကို အသုံးပြုရန်** — ပံ့ပိုးပေးထားပါက အတည်ပြုနိုင်သော `Retry-After` သို့မဟုတ် ပြန်လည်သတ်မှတ်မှု အရိပ်အမြွက်များကို လိုက်နာသည်
+   - **အများဆုံး Backoff အဆင့်များ** — ထပ်တလဲလဲ ချို့ယွင်းမှုများအတွက် အမြင့်ဆုံး exponential backoff အဆင့်
 
-2. **Connection Cooldown** — ပြန်လည်ကြိုးစားနိုင်သော failure များဖြစ်ပြီးနောက် connection တစ်ခုတည်းအတွက် auth type အလိုက် စီစဉ်သတ်မှတ်ခြင်း:
-   - **Base Cooldown** — ပြန်လည်ကြိုးစားနိုင်သော upstream failure များအတွက် မူလသတ်မှတ်ထားသည့် cooldown အချိန်ကာလ
-   - **Use Upstream Retry Hints** — ပေးထားသည့်အခါ အတည်ပြုနိုင်သော `Retry-After` သို့မဟုတ် reset hints များကို လိုက်နာသည်
-   - **Max Backoff Steps** — ထပ်ခါတလဲလဲဖြစ်သော failure များအတွက် အများဆုံး exponential backoff အဆင့်
+3. **ဝန်ဆောင်မှုပေးသူ Circuit Breaker** — ဝန်ဆောင်မှုပေးသူ၏ အစမှအဆုံး ချို့ယွင်းမှုများကို ခြေရာခံပြီး သတ်မှတ်ထားသော သတိပေးချက်အဆင့်သို့ ရောက်သည့်အခါ ဝန်ဆောင်မှုပေးသူကို အားနည်းနေကြောင်း သတ်မှတ်ကာ၊ သတ်မှတ်ထားသော ချို့ယွင်းမှုအဆင့်သို့ ရောက်သည့်အခါ breaker ကို ဖွင့်သည်-
+   - **အားနည်းမှု အဆင့်သတ်မှတ်ချက်** — `DEGRADED` သို့ မဝင်မီ ဆက်တိုက်ဖြစ်ပေါ်သော ဝန်ဆောင်မှုပေးသူ ချို့ယွင်းမှုအရေအတွက်
+   - **ချို့ယွင်းမှု အဆင့်သတ်မှတ်ချက်** — `OPEN` သို့ မဝင်မီ ဆက်တိုက်ဖြစ်ပေါ်သော ဝန်ဆောင်မှုပေးသူ ချို့ယွင်းမှုအရေအတွက်
+   - **ပြန်လည်သတ်မှတ်ရန် အချိန်ကုန်ဆုံးကာလ** — ဝန်ဆောင်မှုပေးသူကို ထပ်မံစမ်းသပ်မည့်အချိန်မတိုင်မီ စောင့်ဆိုင်းရသော အချိန်ကာလ
+   - **CLOSED** (ကောင်းမွန်သည်) — တောင်းဆိုမှုများ ပုံမှန်အတိုင်း စီးဆင်းသည်
+   - **DEGRADED** — မြင့်တက်နေသော ချို့ယွင်းမှုများကို ခြေရာခံနေစဉ် တောင်းဆိုမှုများ ဆက်လက်စီးဆင်းသည်
+   - **OPEN** — ထပ်တလဲလဲ ချို့ယွင်းမှုများ ဖြစ်ပေါ်ပြီးနောက် ဝန်ဆောင်မှုပေးသူကို ယာယီပိတ်ဆို့ထားသည်
+   - **HALF_OPEN** — ဝန်ဆောင်မှုပေးသူ ပြန်လည်ကောင်းမွန်လာခြင်း ရှိမရှိ စမ်းသပ်နေသည်
 
-3. **Provider Circuit Breaker** — အစမှအဆုံး provider failure များကို ခြေရာခံကာ စီစဉ်သတ်မှတ်ထားသော warning threshold သို့ ရောက်သည့်အခါ provider ကို အားနည်းနေသည်ဟု မှတ်သားပြီး၊ စီစဉ်သတ်မှတ်ထားသော failure threshold သို့ ရောက်သည့်အခါ breaker ကို ဖွင့်သည်:
-   - **Degradation Threshold** — `DEGRADED` သို့ မဝင်မီ ဆက်တိုက်ဖြစ်နိုင်သည့် provider failure အရေအတွက်
-   - **Failure Threshold** — `OPEN` သို့ မဝင်မီ ဆက်တိုက်ဖြစ်နိုင်သည့် provider failure အရေအတွက်
-   - **Reset Timeout** — Provider ကို ထပ်မံစမ်းသပ်မည့်အချိန်မတိုင်မီ စောင့်ဆိုင်းရသော အချိန်ကာလ
-   - **CLOSED** (ကောင်းမွန်နေသည်) — Request များ ပုံမှန်အတိုင်း စီးဆင်းသည်
-   - **DEGRADED** — မြင့်တက်နေသော failure များကို ခြေရာခံနေစဉ် request များ ဆက်လက်စီးဆင်းသည်
-   - **OPEN** — ထပ်ခါတလဲလဲဖြစ်သော failure များကြောင့် provider ကို ယာယီပိတ်ဆို့ထားသည်
-   - **HALF_OPEN** — Provider ပြန်လည်ကောင်းမွန်လာခြင်း ရှိ၊ မရှိ စမ်းသပ်နေသည်
+   ချိတ်ဆက်မှုအလိုက် `429` နှုန်းကန့်သတ်ချက်များသည် **ချိတ်ဆက်မှု ခေတ္တရပ်နားခြင်း** ထဲတွင်သာ ဆက်ရှိနေပြီး ဝန်ဆောင်မှုပေးသူ breaker တွင် ထည့်သွင်းရေတွက်ခြင်းမရှိပါ။
 
-   Connection အလိုက်ဖြစ်သော `429` rate limit များသည် **Connection Cooldown** တွင်သာ ရှိနေပြီး provider breaker အတွက် ထည့်သွင်းရေတွက်ခြင်း မပြုပါ။
+   ဝန်ဆောင်မှုပေးသူ breaker ၏ လက်ရှိ runtime အခြေအနေကို **ဒက်ရှ်ဘုတ် → ကျန်းမာရေးအခြေအနေ** တွင်သာ ပြသသည်။
 
-   Provider breaker ၏ runtime state ကို **Dashboard → Health** တွင်သာ ပြသသည်။
+4. **ခေတ္တရပ်နားချိန်ကို စောင့်ဆိုင်းရန်** — ရွေးချယ်နိုင်သော ချိတ်ဆက်မှုအားလုံး ခေတ္တရပ်နားနေပြီးဖြစ်ပါက OmniRoute သည် အစောဆုံး ခေတ္တရပ်နားချိန် ပြီးဆုံးသည်အထိ စောင့်ဆိုင်းပြီး တူညီသော client တောင်းဆိုမှုကို အလိုအလျောက် ပြန်လည်ကြိုးစားနိုင်သည်။
 
-4. **Wait For Cooldown** — Candidate connection အားလုံးသည် cooldown ဝင်နေပြီးဖြစ်ပါက OmniRoute သည် အစောဆုံးပြီးဆုံးမည့် cooldown ကို စောင့်ဆိုင်းပြီး အလားတူ client request ကို အလိုအလျောက် ပြန်လည်ကြိုးစားနိုင်သည်။
+5. **နှုန်းကန့်သတ်ချက် အလိုအလျောက်သိရှိခြင်း** — Upstream ဝန်ဆောင်မှုပေးသူများက တိကျသော စောင့်ဆိုင်းချိန်ကာလများကို ပြန်ပေးသည့်အခါ ဤဆက်တင်ကို ဖွင့်ထားပါက ထိုအရိပ်အမြွက်များသည် စက်တွင်းချိတ်ဆက်မှု ခေတ္တရပ်နားချိန်ကို အစားထိုးအသုံးပြုသည်။
 
-5. **Rate Limit Auto-Detection** — Upstream provider များက တိကျသော စောင့်ဆိုင်းချိန်များကို ပြန်ပေးသည့်အခါ setting ကို ဖွင့်ထားပါက အဆိုပါ hints များက local connection cooldown ကို အစားထိုးသတ်မှတ်သည်။
-
-**ကျွမ်းကျင်သူ အကြံပြုချက်:** ပြတ်တောက်မှုဖြစ်ပြီးနောက် လက်ရှိအသုံးပြုနေသော provider breaker များကို စစ်ဆေးရန်နှင့် reset လုပ်ရန် **Health** စာမျက်နှာကို အသုံးပြုပါ။ Resilience စာမျက်နှာသည် configuration ကိုသာ ပြောင်းလဲပေးသည်။
+**ကျွမ်းကျင်သူ အကြံပြုချက်:** ပြတ်တောက်မှုဖြစ်ပြီးနောက် လက်ရှိအလုပ်လုပ်နေသော ဝန်ဆောင်မှုပေးသူ breaker များကို စစ်ဆေးရန်နှင့် ပြန်လည်သတ်မှတ်ရန် **ကျန်းမာရေးအခြေအနေ** စာမျက်နှာကို အသုံးပြုပါ။ Resilience စာမျက်နှာသည် သတ်မှတ်ချက်များကိုသာ ပြောင်းလဲပေးသည်။
 
 ---
 
-### Database Export / Import
+### ဒေတာဘေ့စ် ထုတ်ယူခြင်း / တင်သွင်းခြင်း
 
-Database backup များကို **Dashboard → Settings → System & Storage** တွင် စီမံခန့်ခွဲပါ။
+ဒေတာဘေ့စ် အရန်သိမ်းဆည်းမှုများကို **ဒက်ရှ်ဘုတ် → ဆက်တင်များ → စနစ်နှင့် သိုလှောင်မှု** တွင် စီမံပါ။
 
-| လုပ်ဆောင်ချက်                   | ဖော်ပြချက်                                                                                                                                                                              |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ဒေတာဘေ့စ် ထုတ်ယူရန်**         | လက်ရှိ SQLite ဒေတာဘေ့စ်ကို `.sqlite` ဖိုင်အဖြစ် ဒေါင်းလုဒ်လုပ်ပေးသည်                                                                                                                    |
-| **အားလုံး ထုတ်ယူရန် (.tar.gz)** | ဒေတာဘေ့စ်၊ ဆက်တင်များ၊ combo များ၊ provider ချိတ်ဆက်မှုများ (အထောက်အထားများ မပါဝင်) နှင့် API key metadata တို့ပါဝင်သည့် အရန်သိမ်းဆည်းမှု archive အပြည့်အစုံကို ဒေါင်းလုဒ်လုပ်ပေးသည်    |
-| **ဒေတာဘေ့စ် ထည့်သွင်းရန်**      | လက်ရှိဒေတာဘေ့စ်ကို အစားထိုးရန် `.sqlite` ဖိုင်တစ်ခုကို အပ်လုဒ်လုပ်ပေးသည်။ `DISABLE_SQLITE_AUTO_BACKUP=true` ဟု သတ်မှတ်မထားပါက မထည့်သွင်းမီ အရန်သိမ်းဆည်းမှုကို အလိုအလျောက် ဖန်တီးပေးသည် |
+| လုပ်ဆောင်ချက်                   | ဖော်ပြချက်                                                                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **ဒေတာဘေ့စ် ထုတ်ယူရန်**         | လက်ရှိ SQLite ဒေတာဘေ့စ်ကို `.sqlite` ဖိုင်အဖြစ် ဒေါင်းလုဒ်လုပ်သည်                                                                                                                    |
+| **အားလုံး ထုတ်ယူရန် (.tar.gz)** | ဒေတာဘေ့စ်၊ ဆက်တင်များ၊ combos၊ ဝန်ဆောင်မှုပေးသူ ချိတ်ဆက်မှုများ (အထောက်အထားများ မပါဝင်) နှင့် API key metadata တို့ပါဝင်သော အရန်သိမ်းဆည်းမှု archive အပြည့်အစုံကို ဒေါင်းလုဒ်လုပ်သည် |
+| **ဒေတာဘေ့စ် တင်သွင်းရန်**       | လက်ရှိဒေတာဘေ့စ်ကို အစားထိုးရန် `.sqlite` ဖိုင်တစ်ခုကို အပ်လုဒ်လုပ်သည်။ `DISABLE_SQLITE_AUTO_BACKUP=true` မသတ်မှတ်ထားပါက မတင်သွင်းမီ အရန်သိမ်းဆည်းမှုတစ်ခုကို အလိုအလျောက် ဖန်တီးသည်   |
 
 ```bash
-# API: ဒေတာဘေ့စ် ထုတ်ယူရန်
+# API: ဒေတာဘေ့စ်ကို ထုတ်ယူရန်
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: အားလုံး ထုတ်ယူရန် (archive အပြည့်အစုံ)
+# API: အားလုံးကို ထုတ်ယူရန် (archive အပြည့်အစုံ)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: ဒေတာဘေ့စ် ထည့်သွင်းရန်
+# API: ဒေတာဘေ့စ်ကို တင်သွင်းရန်
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**ထည့်သွင်းမှု စစ်ဆေးအတည်ပြုခြင်း:** ထည့်သွင်းထားသောဖိုင်ကို မှန်ကန်ပြည့်စုံမှု (SQLite pragma စစ်ဆေးမှု)၊ လိုအပ်သော ဇယားများ (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) နှင့် ဖိုင်အရွယ်အစား (အများဆုံး 100MB) တို့အတွက် စစ်ဆေးအတည်ပြုသည်။
+**တင်သွင်းမှု အတည်ပြုစစ်ဆေးခြင်း:** တင်သွင်းထားသောဖိုင်ကို ပြည့်စုံမှန်ကန်မှု (SQLite pragma စစ်ဆေးမှု)၊ လိုအပ်သော ဇယားများ (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) နှင့် အရွယ်အစား (အများဆုံး 100MB) တို့အတွက် စစ်ဆေးအတည်ပြုသည်။
 
 **အသုံးပြုနိုင်သည့် အခြေအနေများ:**
 
-- OmniRoute ကို စက်တစ်လုံးမှ အခြားစက်တစ်လုံးသို့ ရွှေ့ပြောင်းရန်
+- OmniRoute ကို စက်များအကြား ရွှေ့ပြောင်းရန်
 - ဘေးအန္တရာယ်ဖြစ်ပွားပြီးနောက် ပြန်လည်ရယူနိုင်ရန် ပြင်ပအရန်သိမ်းဆည်းမှုများ ဖန်တီးရန်
-- အဖွဲ့ဝင်များအကြား ဖွဲ့စည်းသတ်မှတ်ချက်များ မျှဝေရန် (အားလုံး ထုတ်ယူရန် → archive ကို မျှဝေရန်)
+- အဖွဲ့ဝင်များအကြား သတ်မှတ်ချက်များကို မျှဝေရန် (အားလုံးထုတ်ယူရန် → archive ကိုမျှဝေရန်)
 
 ---
 
-### ဆက်တင် Dashboard
+### ဆက်တင်များ ဒက်ရှ်ဘုတ်
 
-သွားလာအသုံးပြုရလွယ်ကူစေရန် ဆက်တင်စာမျက်နှာကို **တဘ် 7 ခု** ဖြင့် ဖွဲ့စည်းထားသည်-
+လွယ်ကူစွာ သွားလာနိုင်ရန် ဆက်တင်များစာမျက်နှာကို **တက်ဘ် 7 ခု** ဖြင့် စီစဉ်ထားသည်-
 
-| တဘ်                         | ပါဝင်သည့်အရာများ                                                                                                                                                                                                |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **အထွေထွေ**                 | စနစ်သိုလှောင်မှု ကိရိယာများ၊ မူလအပြုအမူ၊ Endpoint tunnel မြင်နိုင်မှု                                                                                                                                           |
-| **အသွင်အပြင်**              | Theme ထိန်းချုပ်မှုများ (အလင်း/အမှောင်/စနစ်)၊ sidebar မြင်နိုင်မှု၊ Cloudflare/Tailscale/ngrok tunnel ကတ်များအတွက် panel အဖွင့်အပိတ်များ                                                                        |
-| **AI**                      | စဉ်းစားမှု budget (တိုက်ရိုက်ဖြတ်သန်း / အလိုအလျောက်ဖယ်ရှား / စိတ်ကြိုက် / လိုက်လျောညီထွေ — [THINKING_BUDGET.md](./THINKING_BUDGET.md) ကို ကြည့်ပါ)၊ ကမ္ဘာလုံးဆိုင်ရာ system prompt၊ prompt cache စာရင်းအင်းများ |
-| **လုံခြုံရေး**              | အကောင့်ဝင်ခြင်း/စကားဝှက် ဆက်တင်များ၊ IP ဝင်ရောက်ခွင့်ထိန်းချုပ်မှု၊ `/models` အတွက် API အထောက်အထားစစ်ဆေးခြင်း၊ Provider ပိတ်ဆို့ခြင်း၊ prompt-injection ကာကွယ်မှု                                               |
-| **လမ်းကြောင်းသတ်မှတ်ခြင်း** | ကမ္ဘာလုံးဆိုင်ရာ လမ်းကြောင်းသတ်မှတ်မှုဗျူဟာ (ဦးစွာဖြည့် / အလှည့်ကျ / P2C / ကျပန်း / အသုံးပြုမှုအနည်းဆုံး / ကုန်ကျစရိတ်အကောင်းဆုံး)၊ wildcard model alias များ၊ fallback chain များ၊ combo မူလသတ်မှတ်ချက်များ    |
-| **ခံနိုင်ရည်ရှိမှု**        | တောင်းဆိုမှုတန်းစီစနစ်၊ ချိတ်ဆက်မှု cooldown၊ provider breaker ဖွဲ့စည်းသတ်မှတ်ချက်နှင့် cooldown ကို စောင့်ဆိုင်းသည့် အပြုအမူ                                                                                   |
-| **အဆင့်မြင့်**              | ကမ္ဘာလုံးဆိုင်ရာ proxy ဖွဲ့စည်းသတ်မှတ်ချက် (HTTP/SOCKS5)၊ provider တစ်ခုချင်းအလိုက် proxy override များ                                                                                                         |
+| တက်ဘ်                       | ပါဝင်သည့်အရာများ                                                                                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **အထွေထွေ**                 | စနစ်သိုလှောင်မှု ကိရိယာများ၊ မူလအပြုအမူ၊ Endpoint tunnel မြင်နိုင်မှု                                                                                                                            |
+| **အသွင်အပြင်**              | Theme ထိန်းချုပ်မှုများ (အလင်း/အမှောင်/စနစ်)၊ ဘေးဘား မြင်နိုင်မှု၊ Cloudflare/Tailscale/ngrok tunnel ကတ်များအတွက် panel အဖွင့်အပိတ်များ                                                          |
+| **AI**                      | စဉ်းစားမှုဘတ်ဂျက် (passthrough / auto-strip / custom / adaptive — [THINKING_BUDGET.md](./THINKING_BUDGET.md) ကိုကြည့်ပါ)၊ ကမ္ဘာလုံးဆိုင်ရာ စနစ် prompt၊ prompt cache စာရင်းအင်းများ              |
+| **လုံခြုံရေး**              | ဝင်ရောက်မှု/စကားဝှက် ဆက်တင်များ၊ IP ဝင်ရောက်ခွင့် ထိန်းချုပ်မှု၊ `/models` အတွက် API အထောက်အထားစိစစ်မှု၊ ဝန်ဆောင်မှုပေးသူ ပိတ်ဆို့ခြင်း၊ prompt-injection ကာကွယ်မှု                              |
+| **လမ်းကြောင်းသတ်မှတ်ခြင်း** | ကမ္ဘာလုံးဆိုင်ရာ လမ်းကြောင်းသတ်မှတ်နည်းဗျူဟာ (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized)၊ wildcard မော်ဒယ် alias များ၊ fallback chain များ၊ combo မူလသတ်မှတ်ချက်များ |
+| **ခံနိုင်ရည်ရှိမှု**        | တောင်းဆိုမှုတန်းစီမှု၊ ချိတ်ဆက်မှု ခေတ္တရပ်နားခြင်း၊ ဝန်ဆောင်မှုပေးသူ breaker သတ်မှတ်ချက်နှင့် ခေတ္တရပ်နားချိန်ကို စောင့်ဆိုင်းသည့် အပြုအမူ                                                      |
+| **အဆင့်မြင့်**              | ကမ္ဘာလုံးဆိုင်ရာ proxy သတ်မှတ်ချက် (HTTP/SOCKS5)၊ ဝန်ဆောင်မှုပေးသူတစ်ခုချင်းစီအတွက် proxy အစားထိုးသတ်မှတ်ချက်များ                                                                                |
 
-အထွေထွေတဘ်တွင် ဖတ်ရှုရန်သက်သက်ဖြစ်သော logging နှင့် cache မှတ်ချက်များကို ထပ်မံဖော်ပြတော့မည် မဟုတ်ပါ။ ဒေတာဘေ့စ် ထိန်းသိမ်းထားရှိမှုနှင့်
-ပိုမိုကောင်းမွန်အောင်ပြုလုပ်မှု ဆက်တင်များကို `/api/settings/database` မှတစ်ဆင့် အမြဲသိမ်းဆည်းထားပြီး cache ကို ကိုယ်တိုင်ရှင်းလင်းရန်
-`DELETE /api/cache` ကို အသုံးပြုသည်။ တောင်းဆိုမှုနှင့် proxy log အတန်းအရေအတွက် ကန့်သတ်ချက်များကို
-`CALL_LOGS_TABLE_MAX_ROWS` နှင့် `PROXY_LOGS_TABLE_MAX_ROWS` တို့ဖြင့် ထိန်းချုပ်သည်။
+အထွေထွေတွင် ဖတ်ရှုရန်သာဖြစ်သော logging နှင့် cache မှတ်ချက်များကို ထပ်မံဖော်ပြတော့မည်မဟုတ်ပါ။ ဒေတာဘေ့စ် ထိန်းသိမ်းကာလနှင့်
+ပိုမိုကောင်းမွန်အောင် ပြုလုပ်သည့် ဆက်တင်များကို `/api/settings/database` မှတစ်ဆင့် သိမ်းဆည်းထားသည်၊ cache ကို ကိုယ်တိုင်ရှင်းလင်းရန်
+`DELETE /api/cache` ကို အသုံးပြုသည်။ တောင်းဆိုမှုနှင့် proxy log အတန်းအရေအတွက် အများဆုံးကန့်သတ်ချက်များကို
+`CALL_LOGS_TABLE_MAX_ROWS` နှင့် `PROXY_LOGS_TABLE_MAX_ROWS` တို့က ထိန်းချုပ်သည်။
 
 ---
 
-### ကုန်ကျစရိတ်နှင့် Budget စီမံခန့်ခွဲမှု
+### ကုန်ကျစရိတ်များနှင့် ဘတ်ဂျက် စီမံခန့်ခွဲမှု
 
-**Dashboard → ကုန်ကျစရိတ်များ** မှတစ်ဆင့် ဝင်ရောက်ပါ။
+**ဒက်ရှ်ဘုတ် → ကုန်ကျစရိတ်များ** မှတစ်ဆင့် ဝင်ရောက်ပါ။
 
-| တဘ်           | ရည်ရွယ်ချက်                                                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Budget**    | နေ့စဉ်/အပတ်စဉ်/လစဉ် budget များနှင့် အချိန်နှင့်တစ်ပြေးညီ ခြေရာခံမှုကို အသုံးပြု၍ API key တစ်ခုချင်းအလိုက် သုံးစွဲမှုကန့်သတ်ချက်များ သတ်မှတ်ရန် |
-| **ဈေးနှုန်း** | Provider တစ်ခုချင်းအလိုက် input/output token 1K လျှင် ကုန်ကျစရိတ်ဖြစ်သော model ဈေးနှုန်းစာရင်းများကို ကြည့်ရှုပြင်ဆင်ရန်                        |
+| တက်ဘ်                      | ရည်ရွယ်ချက်                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **ဘတ်ဂျက်**                | API key တစ်ခုချင်းစီအတွက် နေ့စဉ်/အပတ်စဉ်/လစဉ် ဘတ်ဂျက်များဖြင့် သုံးစွဲမှုကန့်သတ်ချက်များ သတ်မှတ်ပြီး အချိန်နှင့်တစ်ပြေးညီ ခြေရာခံရန်  |
+| **စျေးနှုန်းသတ်မှတ်ခြင်း** | ဝန်ဆောင်မှုပေးသူတစ်ခုချင်းစီအတွက် input/output token 1K လျှင် ကုန်ကျစရိတ်ဖြစ်သော မော်ဒယ်စျေးနှုန်း မှတ်တမ်းများကို ကြည့်ရှုပြင်ဆင်ရန် |
 
 ```bash
-# API: Budget တစ်ခု သတ်မှတ်ရန်
+# API: ဘတ်ဂျက်တစ်ခု သတ်မှတ်ရန်
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: လက်ရှိ budget အခြေအနေကို ရယူရန်
+# API: လက်ရှိဘတ်ဂျက်အခြေအနေကို ရယူရန်
 curl http://localhost:20128/api/usage/budget
 ```
 
-**ကုန်ကျစရိတ် ခြေရာခံခြင်း:** တောင်းဆိုမှုတိုင်းသည် token အသုံးပြုမှုကို မှတ်တမ်းတင်ပြီး ဈေးနှုန်းဇယားကို အသုံးပြု၍ ကုန်ကျစရိတ်ကို တွက်ချက်သည်။ Provider၊ model နှင့် API key အလိုက် အသေးစိတ်ခွဲခြမ်းမှုများကို **Dashboard → အသုံးပြုမှု** တွင် ကြည့်ရှုပါ။
+**ကုန်ကျစရိတ် ခြေရာခံခြင်း:** တောင်းဆိုမှုတိုင်းသည် အသုံးပြုထားသော token ပမာဏကို မှတ်တမ်းတင်ပြီး ဈေးနှုန်းဇယားကို အသုံးပြု၍ ကုန်ကျစရိတ်ကို တွက်ချက်သည်။ Provider၊ model နှင့် API key အလိုက် အသေးစိတ်ခွဲခြမ်းချက်များကို **Dashboard → Usage** တွင် ကြည့်ရှုနိုင်သည်။
 
 ---
 
 ### အသံမှ စာသားသို့ ပြောင်းလဲခြင်း
 
-OmniRoute သည် OpenAI နှင့် ကိုက်ညီသော endpoint မှတစ်ဆင့် အသံမှ စာသားသို့ ပြောင်းလဲခြင်းကို ပံ့ပိုးသည်-
+OmniRoute သည် OpenAI နှင့် တွဲဖက်အသုံးပြုနိုင်သော endpoint မှတစ်ဆင့် အသံမှ စာသားသို့ ပြောင်းလဲခြင်းကို ပံ့ပိုးသည်-
 
 ```bash
 POST /v1/audio/transcriptions
@@ -1006,11 +1032,11 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 ```
 
 `deepgram/nova-3` သည် မူရင်း Deepgram route ဖြစ်ပြီး Deepgram API key တစ်ခု လိုအပ်သည်။
-OpenRouter ကိုသာ ဖွဲ့စည်းသတ်မှတ်ထားပါက `openrouter/deepgram/nova-3` ကို အသုံးပြုပါ။
+OpenRouter တစ်ခုတည်းကိုသာ စီစဉ်သတ်မှတ်ထားပါက `openrouter/deepgram/nova-3` ကို အသုံးပြုပါ။
 
-**အသံမှ စာသားသို့ (စာသားကူးပြောင်းခြင်း)** provider များ-
+**အသံမှ စာသားသို့ (ကူးယူရေးသားခြင်း)** provider များ-
 
-- `openai/` (whisper နှင့် ကိုက်ညီမှုရှိ)
+- `openai/` (whisper နှင့် တွဲဖက်အသုံးပြုနိုင်သည်)
 - `groq/` (Groq Whisper Turbo)
 - `deepgram/` (Nova မိသားစု)
 - `assemblyai/`
@@ -1035,54 +1061,54 @@ OpenRouter ကိုသာ ဖွဲ့စည်းသတ်မှတ်ထာ�
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-စာသားကူးပြောင်းခြင်းအတွက် ပံ့ပိုးထားသော အသံဖော်မတ်များမှာ `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm` တို့ဖြစ်သည်။ TTS output ဖော်မတ်များသည် provider ပေါ် မူတည်သည် (mp3, wav, opus, pcm, mulaw)။
+အသံမှ စာသားသို့ ပြောင်းလဲရာတွင် ပံ့ပိုးထားသော အသံ format များ- `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`။ TTS output format များသည် provider အလိုက် ကွာခြားသည် (mp3, wav, opus, pcm, mulaw)။
 
 ---
 
-### Combo ချိန်ညှိမှုဗျူဟာများ
+### Combo ချိန်ညှိဖြန့်ဝေမှု မဟာဗျူဟာများ
 
-Combo တစ်ခုချင်းအလိုက် ချိန်ညှိမှုကို **Dashboard → Combos → ဖန်တီးရန်/ပြင်ဆင်ရန် → ဗျူဟာ** တွင် ဖွဲ့စည်းသတ်မှတ်ပါ။
+Combo တစ်ခုချင်းစီ၏ ချိန်ညှိဖြန့်ဝေမှုကို **Dashboard → Combos → Create/Edit → Strategy** တွင် စီစဉ်သတ်မှတ်ပါ။
 
-| မဟာဗျူဟာ           | ဖော်ပြချက်                                                                                                     |
-| ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| **Round-Robin**    | မော်ဒယ်များကို အစဉ်လိုက် အလှည့်ကျ အသုံးပြုသည်                                                                  |
-| **Priority**       | ပထမမော်ဒယ်ကို အမြဲ ဦးစွာ စမ်းသပ်ပြီး အမှားဖြစ်သည့်အခါမှသာ အရန်မော်ဒယ်သို့ ပြောင်းသည်                           |
-| **Random**         | တောင်းဆိုမှုတစ်ခုစီအတွက် combo ထဲမှ မော်ဒယ်တစ်ခုကို ကျပန်းရွေးချယ်သည်                                          |
-| **Weighted**       | မော်ဒယ်တစ်ခုစီအတွက် သတ်မှတ်ထားသော အလေးချိန်များအပေါ် မူတည်၍ အချိုးကျ လမ်းကြောင်းခွဲပေးသည်                      |
-| **Least-Used**     | လတ်တလော တောင်းဆိုမှုအနည်းဆုံးရှိသော မော်ဒယ်ထံ လမ်းကြောင်းခွဲပေးသည် (combo တိုင်းတာချက်များကို အသုံးပြုသည်)     |
-| **Cost-Optimized** | ရရှိနိုင်သည့် မော်ဒယ်များအနက် ဈေးနှုန်းအနည်းဆုံး မော်ဒယ်ထံ လမ်းကြောင်းခွဲပေးသည် (ဈေးနှုန်းဇယားကို အသုံးပြုသည်) |
+| မဟာဗျူဟာ           | ဖော်ပြချက်                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **Round-Robin**    | Model များကို အစဉ်လိုက် လှည့်ပတ်အသုံးပြုသည်                                                       |
+| **Priority**       | ပထမ model ကို အမြဲတမ်း ဦးစွာကြိုးစားပြီး error ဖြစ်မှသာ နောက်တစ်ခုသို့ ပြောင်းသုံးသည်             |
+| **Random**         | တောင်းဆိုမှုတစ်ခုစီအတွက် combo ထဲမှ model တစ်ခုကို ကျပန်းရွေးချယ်သည်                              |
+| **Weighted**       | Model တစ်ခုစီအတွက် သတ်မှတ်ထားသော weight များအပေါ် အချိုးကျ route လုပ်သည်                          |
+| **Least-Used**     | လတ်တလောတောင်းဆိုမှု အနည်းဆုံးရှိသော model သို့ route လုပ်သည် (combo metric များကို အသုံးပြုသည်)   |
+| **Cost-Optimized** | ရရှိနိုင်သော model များအနက် ဈေးအသက်သာဆုံး model သို့ route လုပ်သည် (ဈေးနှုန်းဇယားကို အသုံးပြုသည်) |
 
-စနစ်တစ်ခုလုံးဆိုင်ရာ combo မူလသတ်မှတ်ချက်များကို **Dashboard → Settings → Routing → Combo Defaults** တွင် သတ်မှတ်နိုင်သည်။
-Combo ပစ်မှတ် အချိန်ကုန်ဆုံးမှုများသည် မူလအားဖြင့် လက်ရှိတောင်းဆိုမှု၏ အချိန်ကုန်ဆုံးမှုကို ဆက်ခံသည်။ ပစ်မှတ်တစ်ခုချင်းအတွက် ပိုတိုသော အချိန်ကန့်သတ်ချက်ကြောင့်
-အရန်မော်ဒယ်သို့ ပိုမြန်စွာ ပြောင်းစေလိုသည့်အခါမှသာ combo မူလသတ်မှတ်ချက်များ သို့မဟုတ် combo တစ်ခုချင်းတွင် **Target timeout
+Global combo မူလသတ်မှတ်ချက်များကို **Dashboard → Settings → Routing → Combo Defaults** တွင် သတ်မှတ်နိုင်သည်။
+ပုံမှန်အားဖြင့် combo target timeout များသည် လက်ရှိ request timeout ကို ဆက်ခံသည်။ Target တစ်ခုချင်းစီအတွက် ပိုတိုသော အချိန်ကန့်သတ်ချက်ကြောင့်
+fallback ကို ပိုမြန်စွာ စတင်စေလိုသည့်အခါမှသာ combo မူလသတ်မှတ်ချက်များ သို့မဟုတ် combo တစ်ခုချင်းစီတွင် **Target timeout
 (seconds)** ကို အသုံးပြုပါ။
 
-Zero-latency combo အကောင်းဆုံးဖြစ်အောင် ပြုလုပ်မှုများသည် ကိုယ်တိုင်ဖွင့်မှသာ အသုံးပြုနိုင်သည်။ ဤ latency လုပ်ဆောင်ချက်များက အရန်ပစ်မှတ်များနှင့် အပြိုင်လုပ်ဆောင်ခြင်း၊ TTFT
-မှတ်တမ်းအပေါ် အခြေခံ၍ ပစ်မှတ်များကို ကျော်ခြင်း သို့မဟုတ် အရန်တောင်းဆိုမှုများကို ချုံ့ခြင်းတို့ မပြုလုပ်စေရန် **Zero-latency optimizations** ကို ပိတ်ထားပါ။
-၎င်းကို ဖွင့်ထားပါက သတ်မှတ်ထားသော hedging၊ ကြိုတင်ခန့်မှန်းသည့် TTFT ကျော်ခြင်းများနှင့် ကြိုတင်အရန် ချုံ့ခြင်းတို့ကို အသုံးပြုနိုင်ပြီး လမ်းကြောင်းခွဲမှု/တောင်းဆိုမှု တိကျမှုကို
-အနည်းငယ် လျှော့ချကာ အမြင့်ဆုံးပိုင်း latency ကို လျှော့ချပေးနိုင်သည်။
+Zero-latency combo optimization များသည် ကိုယ်တိုင်ဖွင့်မှသာ အသုံးပြုမည်ဖြစ်သည်။ အဆိုပါ latency feature များက fallback target များနှင့် အပြိုင်လုပ်ဆောင်ခြင်း၊ TTFT
+မှတ်တမ်းအပေါ် အခြေခံ၍ target များကို ကျော်ခြင်း သို့မဟုတ် fallback request များကို ချုံ့ခြင်းတို့ မဖြစ်စေရန် **Zero-latency optimizations** ကို ပိတ်ထားပါ။
+၎င်းကို ဖွင့်ထားပါက စီစဉ်သတ်မှတ်ထားသော hedging၊ ကြိုတင်ခန့်မှန်းသည့် TTFT ကျော်ခြင်းနှင့် proactive fallback compression တို့ကို အသုံးပြုပြီး routing/request ၏ တိကျသစ္စာရှိမှုကို လျှော့ချကာ
+အမြင့်ဆုံးဘက် latency ကို လျှော့ချပေးနိုင်သည်။
 
 Upstream provider များက တိကျသော
-`max_tokens` / `maxOutputTokens` ကန့်သတ်ချက်များ လိုအပ်သည့်အခါ **Reasoning token buffer** ကို ပိတ်ပါ။ ၎င်းကို ဖွင့်ထားသည့်အခါ combo လမ်းကြောင်းခွဲမှုသည် သိရှိထားသော အထွက်ကန့်သတ်ချက်ရှိသည့် မော်ဒယ်များအတွက်သာ reasoning-model
-အပိုနေရာကို ထည့်ပေးပြီး လုံခြုံသော buffer တန်ဖိုးက အဆိုပါကန့်သတ်ချက်ကို ကျော်လွန်မည့်အခါ client token ကန့်သတ်ချက်ကို မပြောင်းလဲဘဲ ထားသည်။ Client ကန့်သတ်ချက်က သိရှိထားသော ကန့်သတ်ချက်ထက် မြင့်နေပြီးသားဖြစ်ပါက
-OmniRoute သည် upstream တောင်းဆိုမှုကို မပို့မီ အဆိုပါကန့်သတ်ချက်အထိ လျှော့ချပေးသည်။
+`max_tokens` / `maxOutputTokens` ကန့်သတ်ချက်များ လိုအပ်သည့်အခါ **Reasoning token buffer** ကို ပိတ်ပါ။ ၎င်းကို ဖွင့်ထားပါက combo routing သည် သိရှိထားသော output အများဆုံးကန့်သတ်ချက်ရှိသည့် reasoning model များအတွက်သာ
+အပိုပမာဏကို ထည့်ပေးပြီး လုံခြုံသော buffer တန်ဖိုးက ထိုကန့်သတ်ချက်ကို ကျော်လွန်မည့်အခါ client token ကန့်သတ်ချက်ကို မပြောင်းလဲဘဲ ထားရှိသည်။ Client ကန့်သတ်ချက်သည် သိရှိထားသော ကန့်သတ်ချက်ထက် ကျော်လွန်နေပြီးဖြစ်ပါက
+OmniRoute သည် upstream request ကို မပို့မီ ထိုကန့်သတ်ချက်အထိ လျှော့ချသည်။
 
 ---
 
-### စနစ်ကျန်းမာရေး ဒက်ရှ်ဘုတ်
+### စနစ်ကျန်းမာရေး Dashboard
 
-**Dashboard → Health** မှတစ်ဆင့် ဝင်ရောက်ပါ။ ကတ် ၆ ခုဖြင့် အချိန်နှင့်တစ်ပြေးညီ စနစ်ကျန်းမာရေး ခြုံငုံသုံးသပ်ချက်ကို ပြသသည်-
+**Dashboard → Health** မှတစ်ဆင့် ဝင်ရောက်ပါ။ Card ၆ ခုပါဝင်သော အချိန်နှင့်တစ်ပြေးညီ စနစ်ကျန်းမာရေး ခြုံငုံသုံးသပ်ချက်ဖြစ်သည်-
 
-| ကတ်                   | ပြသသည့်အရာ                                                                              |
-| --------------------- | --------------------------------------------------------------------------------------- |
-| **System Status**     | အလုပ်လုပ်နေသည့်ကြာချိန်၊ ဗားရှင်း၊ မှတ်ဉာဏ်အသုံးပြုမှု၊ ဒေတာလမ်းညွှန်                   |
-| **Provider Health**   | စနစ်တစ်ခုလုံးဆိုင်ရာ provider circuit breaker ၏ လက်ရှိလုပ်ဆောင်မှုအခြေအနေ               |
-| **Rate Limits**       | ကျန်ရှိချိန်နှင့်အတူ account တစ်ခုစီအတွက် လက်ရှိအသုံးပြုနေသော ချိတ်ဆက်မှု cooldown များ |
-| **Active Lockouts**   | လက်ရှိအသုံးပြုနေသော မော်ဒယ်အလိုက် lockout များနှင့် ယာယီဖယ်ထုတ်မှုများ                  |
-| **Signature Cache**   | မိတ္တူပွားမှုဖယ်ရှားရေး cache စာရင်းအင်းများ (အသုံးပြုနေသော key များ၊ hit rate)         |
-| **Latency Telemetry** | Provider တစ်ခုစီအတွက် p50/p95/p99 latency စုစည်းမှု                                     |
+| Card                  | ပြသသည့်အရာ                                                                     |
+| --------------------- | ------------------------------------------------------------------------------ |
+| **System Status**     | လည်ပတ်နေချိန်၊ version၊ memory အသုံးပြုမှု၊ data directory                     |
+| **Provider Health**   | Global provider circuit breaker ၏ runtime အခြေအနေ                              |
+| **Rate Limits**       | Account တစ်ခုချင်းစီ၏ အသုံးပြုနေသော connection cooldown များနှင့် ကျန်ရှိချိန် |
+| **Active Lockouts**   | အသုံးပြုနေသော model အလိုက် သတ်မှတ်ထားသည့် lockout များနှင့် ယာယီဖယ်ထုတ်မှုများ |
+| **Signature Cache**   | ထပ်နေမှုဖယ်ရှားသည့် cache ကိန်းဂဏန်းများ (အသုံးပြုနေသော key များ၊ hit rate)    |
+| **Latency Telemetry** | Provider တစ်ခုချင်းစီ၏ p50/p95/p99 latency စုစည်းချက်                          |
 
-**ကျွမ်းကျင်သူအကြံပြုချက်:** Health စာမျက်နှာသည် ၁၀ စက္ကန့်တိုင်း အလိုအလျောက် ပြန်လည်စတင်ပြသသည်။ ပြဿနာများ ကြုံတွေ့နေသော provider များကို ရှာဖွေရန် circuit breaker ကတ်ကို အသုံးပြုပါ။
+**ကျွမ်းကျင်သူ အကြံပြုချက်:** Health စာမျက်နှာသည် ၁၀ စက္ကန့်တိုင်း အလိုအလျောက် refresh လုပ်သည်။ ပြဿနာများကြုံတွေ့နေသည့် provider များကို ဖော်ထုတ်ရန် circuit breaker card ကို အသုံးပြုပါ။
 
 ---
 

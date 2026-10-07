@@ -1,21 +1,12 @@
-# USER_GUIDE (Gaeilge)
+# User Guide (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
-title: "Treoir Úsáideora"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
-# Treoir Úsáideora
-
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇪🇹 [am](../../../am/docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/guides/USER_GUIDE.md) · 🇰🇭 [km](../../../km/docs/guides/USER_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇲🇲 [my](../../../my/docs/guides/USER_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇮🇳 [or](../../../or/docs/guides/USER_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇱🇰 [si](../../../si/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-Treoir iomlán le soláthraithe a chumrú，cónaite a chruthú，uirlisí CLI a chomhtháthú，agus OmniRoute a dhéanamh imscartha.
+Treoir iomlán maidir le soláthraithe a chumrú, teaglamaí a chruthú, uirlisí CLI a chomhtháthú, agus OmniRoute a imscaradh.
 
 ---
 
@@ -667,52 +658,95 @@ Le haghaidh an tagarmharc iomlán athróga timpeallachta, féach an [README](../
 
 ### Samhlacha Saincheaptha
 
-Cuir aon aitheantas samhla le haon soláthraí gan fanacht le nuashonrú app:
+Cuir aon aitheantas samhla le haon soláthraí gan fanacht le nuashonrú ar an aip:
 
 ```bash
-# Trí API
+# Tríd an API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# Liostáil: curl http://localhost:20128/api/provider-models?provider=openai
+# Liosta: curl http://localhost:20128/api/provider-models?provider=openai
 # Bain: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Nó bain úsáid as an dashboard: **Soláthraithe → [Soláthraí] → Samhlacha Saincheaptha**.
+Nó úsáid an Deais: **Soláthraithe → [Soláthraí] → Samhlacha Saincheaptha**.
 
 Nótaí:
 
-- Soláthraithe atá comhoiriúnach le OpenRouter agus OpenAI/Anthropic, ní bhainistítear iad ach amháin ó **Samhlacha ar Fáil**. Teagmháil láimhe, iompórtáil, agus sioncronú uathoibríoch uile cruthaíonn an liosta céanna samhlacha ar fáil, mar sin níl aon rannán Samhlacha Saincheaptha ar leith ag na soláthraithe sin.
-- Tá rannán na **Samhlacha Saincheaptha** dírithe ar sholáthraithe nach nochtann iompórtálacha bainistíochta samhlacha ar fáil.
+- Déantar soláthraithe atá comhoiriúnach le OpenRouter agus OpenAI/Anthropic a bhainistiú ó **Samhlacha atá ar Fáil** amháin. Cuirtear samhlacha a chuirtear leis de láimh, a iompórtáiltear, agus a shioncronaítear go huathoibríoch sa liosta céanna de shamhlacha atá ar fáil, mar sin níl aon rannán ar leith Samhlacha Saincheaptha ann do na soláthraithe sin.
+- Tá an rannán **Samhlacha Saincheaptha** ceaptha do sholáthraithe nach gcuireann iompórtálacha bainistithe de shamhlacha atá ar fáil ar fáil.
 
-### Ceangail Comhpháirtithe OmniRoute
+### Soláthraithe Saincheaptha atá Comhoiriúnach le OpenAI
 
-Is féidir geata eile OmniRoute a chur leis mar sholáthraí **OpenAI-comhoiriúnach Saincheaptha**. Úsáid bun-URL `/v1` na comhpháirtithe agus eochair API speisialta, deich gcéim, eisithe ag an gcomhpháirtí sin.
+Is féidir aon gheata a úsáideann API OpenAI (seachfhreastalaí féinóstáilte, vLLM, comhbhailitheoir tríú páirtí)
+a chur leis mar nód soláthraí dá chuid féin:
 
-Chun ceangail idir a chéile nó ceangail il-hop a chumasú, cumasaigh an cosaint lúb roghnach ar gach geata:
+1. **Soláthraithe → Cuir Soláthraí Comhoiriúnach le OpenAI Leis**.
+2. **Ainm**: lipéad taispeána don nód.
+3. **Réimír**: an t-ainm ródaithe. Glaonn cliaint ar shamhlacha mar `<prefix>/<model>`, mar sin freastalaíonn nód leis an
+   réimír `mygw` ar `mygw/gpt-4o-mini`. Riachtanach; níl aon srian ar charachtair.
+4. **Cineál API**: an teaghlach críochphointí a bhfreastalaíonn an geata air (Comhlánuithe Comhrá, Freagraí,
+   Leabuithe, fuaim, íomhánna).
+5. **Bun-URL**: fréamh an API, suas go dtí `/v1` agus é sin san áireamh (mar shampla
+   `https://gateway.example.com/v1`), ní an chonair iomlán `/chat/completions`. Socraíonn geataí a bhfuil
+   conairí neamhchaighdeánacha acu iad faoi **Ardsocruithe** (conair chomhrá, conair samhlacha).
+6. Ní dhéanann an réimse **Eochair API (le Seiceáil)** ach an nasc a thástáil. Tar éis duit an nód a chruthú,
+   oscail é agus úsáid **Cuir Nasc Leis** chun an eochair a úsáidfidh iarratais a stóráil.
+
+Faigheann an nód aitheantas inmheánach den fhoirm `openai-compatible-<apiType>-<uuid>`; ní gá duit
+é a chlóscríobh choíche, is í an réimír an t-ainm poiblí.
+
+#### Réimíreanna forchoimeádta
+
+Ní féidir le réimír a bheith ina haitheantas ná ina hailias de sholáthraí ionsuite (mar shampla `openai`, `cf`), ná
+ina haitheantas de sholáthraí scortha. Seiceálann réiteoir na samhlacha aitheantais agus ailiasanna ionsuite roimh
+nóid shaincheaptha, mar sin ní bhfaigheadh nód a úsáideann ceann de na réimíreanna sin trácht choíche:
+rachadh `<prefix>/model` chuig an soláthraí ionsuite ina ionad sin, nó theipfeadh sé dúnta dá mbeadh an soláthraí sin
+scortha. Diúltaítear do chruthú nó d'eagarthóireacht nóid a bhfuil réimír den sórt sin aige leis seo:
+
+```text
+prefix: Is réimír sholáthraí fhorchoimeádta é "<prefix>" — roghnaigh réimír eile (ní féidir aitheantais/ailiasanna forchoimeádta a úsáid le haghaidh nóid shaincheaptha toisc go ndéantar iarratais amhail <prefix>/model a ródú chuig soláthraí ionsuite nó go dteipeann orthu dúnta nuair a bhíonn sé scortha)
+```
+
+Roghnaigh réimír ar leith (`mygw`, `acme-proxy`). Má theipeann ar iarratais chuig nód saincheaptha le
+hearráid a ainmníonn soláthraí ionsuite nó a dhintiúir, seiceáil an bhfuil réimír an nóid
+forchoimeádta: tá nóid a sábháladh sula raibh an riail seo ann fós stóráilte, ach ródálann a réimír chuig
+an soláthraí ionsuite. Cuir an nód in eagar agus tabhair réimír nua dó.
+
+### Piaraí OmniRoute a Shlabhrú
+
+Is féidir geata OmniRoute eile a chur leis mar sholáthraí **Saincheaptha atá comhoiriúnach le OpenAI**. Úsáid
+bun-URL `/v1` an phiara agus eochair API thiomnaithe leis na pribhléidí is lú, arna heisiúint ag an bpiara sin.
+
+Le haghaidh slabhraí cómhalartacha nó ilchéime, cumasaigh an garda lúibe roghnach ar gach geata:
 
 ```bash
-# geata-a
+# gateway-a
 OMNIROUTE_INSTANCE_ID=gateway-a
 OMNIROUTE_PEER_URLS=http://gateway-b:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
 ```bash
-# geata-b
+# gateway-b
 OMNIROUTE_INSTANCE_ID=gateway-b
 OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Ní fhaigheann ach iarratais a sheoltar chuig URL comhpháirtithe atá ar an liosta ceadaithe go sainráite ceanntásca `X-OmniRoute-Peer-Trace`. Diúltaíonn geata aitheantas cásála athdhéanta nó buiséad hopaí indéanta le HTTP `508 Loop Detected`; ní fhaigheann soláthraithe upstream gnáthmhéite comhpháirtithe.
+Ní fhaigheann ach iarratais a sheoltar chuig URL piara atá ar an liosta ceadaithe go sainráite an ceanntásc
+`X-OmniRoute-Peer-Trace`. Diúltaíonn geata d'aitheantas ásc athfhillteach nó do bhuiséad céimeanna
+ídithe le HTTP `508 Loop Detected`; ní fhaigheann gnáthsholáthraithe réamhtheachtacha aon mheiteashonraí piara.
 
-Níl ceangail comhpháirtithe ina atáilchóip bunachar sonraí ná teip freastalaí. Coinníonn gach geata stát SQLite neamhspleách, taisceanna, comhairlithe ráta agus seisiúin. Úsáid seachfhreastalaí polasaí sláinte nó teip chliant le haghaidh infhaighteachta gníomhach/pasach nó gníomhach/gníomhach, agus ná cuir bunachar sonraí SQLite amháin i mbeagnach insteacht OmniRoute atá ag rith.
+Ní macasamhlú bunachar sonraí ná teipaistriú óstaigh é slabhraiú piaraí. Coinníonn gach geata a staid
+SQLite, a thaiscí, a áiritheoirí rátaí agus a sheisiúin féin neamhspleách. Úsáid seachfhreastalaí droim ar ais a ndéantar seiceáil sláinte air nó
+teipaistriú cliaint le haghaidh infhaighteachta gníomhaí/éighníomhaí nó gníomhaí/gníomhaí, agus ná gléas aon bhunachar sonraí SQLite amháin
+i gcásanna iomadúla OmniRoute atá ag rith choíche.
 
-### Rithanna Soláthraí Speisialta
+### Bealaí Tiomnaithe Soláthraithe
 
-Rith iarratais go díreach chuig soláthraí ar leith le bailíochtú samhla:
+Ródáil iarratais go díreach chuig soláthraí sonrach le bailíochtú samhla:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -720,7 +754,7 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Cuirtear réimíre an tsoláthraí leis go huathoibríoch má easpaíonn. Seolann samhlacha mímhaitheas `400`.
+Cuirtear réimír an tsoláthraí leis go huathoibríoch má tá sí ar iarraidh. Tugann samhlacha neamh-chomhoiriúnacha `400` ar ais.
 
 ### Cumraíocht Seachfhreastalaí Líonra
 
@@ -733,124 +767,124 @@ curl -X PUT http://localhost:20128/api/settings/proxy \
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Tástáil seachfhreastalaí
+# Tástáil an seachfhreastalaí
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Tosaíocht:** Eochair-shainithe → Combo-shainithe → Soláthraí-shainithe → Domhanda → Timpeallacht.
+**Tosaíocht:** Sonrach don eochair → Sonrach don teaglaim → Sonrach don soláthraí → Domhanda → Timpeallacht.
 
-### API Catalóg Samhlacha
+### API Chatalóg na Samhlacha
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Tuairisceáil samhlacha grúpáilte de réir soláthraí le cineálacha (`chat`, `embedding`, `image`).
+Tugann sé samhlacha ar ais grúpáilte de réir soláthraí agus cineálacha (`chat`, `embedding`, `image`) ag gabháil leo.
 
-### Sioncronú Scáileáin
+### Sioncronú Néalbhunaithe
 
-- Sioncronigh soláthraithe, combos agus socruithe trasna gléasanna
-- Sioncronú uathoibríoch cúltaca le ham istigh + teip tapa
-- In ionad, úsáid `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` freastalaí sa táirgeadh
+- Sioncronaigh soláthraithe, teaglamaí agus socruithe thar ghléasanna
+- Sioncronú uathoibríoch sa chúlra le teorainn ama + teip thapa
+- Tabhair tús áite do `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` ar thaobh an fhreastalaí i dtáirgeadh
 
-### Tonn Cloudflare Tapa
+### Tollán Tapa Cloudflare
 
-- Ar fáil i **Dashboard → Críochfoirt** le haghaidh deploymentanna Docker agus eile a óstáiltear
-- Cruthaíonn sé URL sealadach `https://*.trycloudflare.com` a sheolann ar do chríochfoirt OpenAI-comhoiriúnach `/v1` reatha
-- Cuireann an chéad chumasú `cloudflared` in easnamh ach amháin nuair is gá; athúsáidtear an dénártha bainistithe céanna ag aththosú ina dhiaidh sin
-- Ní athchuirtear Tonnanna Tapa go huathoibríoch tar éis atosú OmniRoute nó coimeádáin; athchumasaigh iad ón dashboard nuair is gá
-- Tonnanna URL sealadach agus athraíonn gach uair a stopann/tosú tú an tonn
-- Réamhshocrú Tonnanna Tapa Bainistithe go hiompar HTTP/2 chun foláireamhanna torainn QUIC UDP a sheachaint i gcoimeádáin teoranta
-- Socraigh `CLOUDFLARED_PROTOCOL=quic` nó `auto` más mian leat rogha iompair bainistithe a thrasnú
-- Socraigh `CLOUDFLARED_BIN` má thaitníonn leat dénártha `cloudflared` réamhshuiteáilte a úsáid in ionad an íoslódáil bainistithe
-- Is féidir painéil Cloudflare Quick Tunnel, Tailscale Funnel agus ngrok Tunnel a thaispeáint nó a cheilt i **Socruithe → Cuma**. Ní stadann tonn ag rith má cheileann tú painéal.
+- Ar fáil in **Painéal → Críochphointí** le haghaidh Docker agus imscaradh eile féinóstáilte
+- Cruthaíonn sé URL sealadach `https://*.trycloudflare.com` a chuireann iarratais ar aghaidh chuig do chríochphointe reatha `/v1` atá comhoiriúnach le OpenAI
+- Nuair a chumasaítear den chéad uair é, suiteáiltear `cloudflared` ach amháin nuair is gá; úsáideann atosuití ina dhiaidh sin an dénártha bainistithe céanna arís
+- Ní athchóirítear Tolláin Thapa go huathoibríoch tar éis OmniRoute nó coimeádán a atosú; athchumasaigh iad ón bpainéal nuair is gá
+- Is URLanna sealadacha iad URLanna tolláin agus athraíonn siad gach uair a stopann nó a thosaíonn tú an tollán
+- Úsáideann Tolláin Thapa bhainistithe iompar HTTP/2 de réir réamhshocraithe chun rabhaidh fhothramacha faoi mhaoláin UDP QUIC i gcoimeádáin shrianta a sheachaint
+- Socraigh `CLOUDFLARED_PROTOCOL=quic` nó `auto` más mian leat rogha an iompair bhainistithe a shárú
+- Socraigh `CLOUDFLARED_BIN` más fearr leat dénártha `cloudflared` réamhshuiteáilte a úsáid in ionad an íoslódáil bhainistithe
+- Is féidir painéil Cloudflare Quick Tunnel, Tailscale Funnel, agus ngrok Tunnel a thaispeáint nó a chur i bhfolach in **Socruithe → Cuma**. Ní stopann cur painéil i bhfolach tollán atá ag rith.
 
-### Intleacht Geata LLM (Céim 9)
+### Éirim Gheata LLM (Céim 9)
 
-- **Taisce Séimeantach** — Taisceann freagraí neamh-shruthúcháin, teocht=0 go huathoibríoch (seachain le `X-OmniRoute-No-Cache: true`)
-- **Idempotence Iarratais** — Díshrianta iarratais laistigh de 5s trí ceanntásca `Idempotency-Key` nó `X-Request-Id`
-- **Rianú Dul Chun Cinn** — Roghnaigh SSE `event: progress` trí cheanntásca `X-OmniRoute-Progress: true`
+- **Taisce Shéimeantach** — Cuireann sé freagraí neamhshruthaithe ag a bhfuil temperature=0 sa taisce go huathoibríoch (seachain é le `X-OmniRoute-No-Cache: true`)
+- **Idéineacht Iarratais** — Dí-dhúblaíonn sé iarratais laistigh de 5s tríd an gceanntásc `Idempotency-Key` nó `X-Request-Id`
+- **Rianú Dul Chun Cinn** — Imeachtaí roghnacha SSE `event: progress` tríd an gceanntásc `X-OmniRoute-Progress: true`
 
 ---
 
-### Súgartha Aistritheoir
+### Clós Súgartha an Aistritheora
 
-Rochtain trí **Dashboard → Aistritheoir**. Dífhabht agus amhairc conas a aistríonn OmniRoute iarratais API idir soláthraithe.
+Faigh rochtain air trí **Painéal → Aistritheoir**. Dífhabhtaigh agus léirshamhlaigh an chaoi a n-aistríonn OmniRoute iarratais API idir soláthraithe.
 
 | Mód                 | Cuspóir                                                                                                          |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Súgartha**        | Roghnaigh formáidí/ionsaidh, greamaigh iarratais, agus feiceann an t-aschur aistrithe go tapa                    |
-| **Tástálaí Comhrá** | Seol teachtaireachtaí comhrá beo tríd an seachfhreastalaí agus scrúdaigh an timthriall iarratais/response iomlán |
-| **Binse Tástála**   | Rith tástálanna bileoga trasna meascáin formáidí chun ceartas an aistriúcháin a fhíorú                           |
-| **Monatóir Beo**    | Féach aistriúcháin fíor-ama de réir mar a rithann iarratais tríd an seachfhreastalaí                             |
+| **Clós Súgartha**   | Roghnaigh formáidí foinse/sprice, greamaigh iarratas, agus féach an t-aschur aistrithe láithreach                |
+| **Tástálaí Comhrá** | Seol teachtaireachtaí comhrá beo tríd an seachfhreastalaí agus scrúdaigh timthriall iomlán an iarratais/fhreagra |
+| **Binse Tástála**   | Rith baiscthástálacha thar roinnt teaglamaí formáide chun cruinneas an aistriúcháin a dheimhniú                  |
+| **Monatóir Beo**    | Breathnaigh ar aistriúcháin fíor-ama de réir mar a shreabhann iarratais tríd an seachfhreastalaí                 |
 
-**Cásanna Úsáide:**
+**Cásanna úsáide:**
 
-- Dífhabht cén fáth a dteipeann ar theaglaim shainiúil chliant/soláthraí
-- Fíoraigh go n-aistrítear clibeanna smaoinimh, glaonna uirlis, agus prontanna córas i gceart
-- Cuir formáidí idir chéile idir formáidí OpenAI, Claude, Gemini, agus API Freagraí
+- Dífhabhtaigh an fáth a dteipeann ar theaglaim shonrach cliaint/soláthraí
+- Deimhnigh go n-aistrítear clibeanna smaointeoireachta, glaonna uirlisí, agus leideanna córais i gceart
+- Déan comparáid idir na difríochtaí formáide in OpenAI, Claude, Gemini, agus formáidí Responses API
 
 ---
 
-### Rithanna Streatéigeacha
+### Straitéisí Ródúcháin
 
-Cumraigh trí **Dashboard → Socruithe → Rithanna**. Léiríonn an dashboard na sé streatéigeacha is úsáidí; cuireann combos agus an ró-threoiraithe tacar níos leithne ar fáil inmheánach.
+Cumraigh trí **Painéal → Socruithe → Ródúchán**. Taispeánann an painéal na sé straitéis is mó úsáid; tacaíonn teaglamaí agus an t-uathródaitheoir go hinmheánach le tacar níos leithne.
 
-**Streatéigeacha infheicthe dashboard (rithanna leibhéal chuntais):**
+**Straitéisí atá le feiceáil sa phainéal (ródúchán ar leibhéal an chuntais):**
 
-| Streatéige                         | Cur Síos                                                                                                                 |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Dúsigh Ardtús**                  | Úsáideann cuntais i dtreo tosaíochta — láimhseálann an príomhchuntas gach iarratas go dtí go bhfuil sé ar fáil           |
-| **Ciorcal Cearcal**                | Rothaíonn tríd na cuntais go léir le teorainn sreamtha inchoigeartaithe (réamhshocrú: 3 glao in aghaidh an chuntais)     |
-| **P2C (Cumhacht Dhá Roghnúcháin)** | Roghnaíonn 2 chuntas randamach agus rithann chuig an ceann níos sláintiúla — cothromaíonn ualach le feasacht ar shláinte |
-| **Randamach**                      | Roghnaíonn cuntas go randamach le haghaidh gach iarratais ag úsáid cumascóra Fisher-Yates                                |
-| **Is Lú Úsáidte**                  | Rithann chuig an cuntas le stampa ama `lastUsedAt` is sine, ag roinnt tráchta go cothrom                                 |
-| **Costas Optamaithe**              | Rithann chuig an cuntas le luach tosaíochta is ísle, ag optamú le haghaidh soláthraithe costas is ísle                   |
+| Straitéis                       | Cur Síos                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Líon an Chéad Cheann**        | Úsáideann sé cuntais in ord tosaíochta — láimhseálann an príomhchuntas gach iarratas go dtí nach mbíonn sé ar fáil                        |
+| **Babhtáil Chiorclach**         | Rothlaíonn sé trí gach cuntas le teorainn ghreamaitheach inchumraithe (réamhshocrú: 3 ghlao in aghaidh an chuntais)                       |
+| **P2C (Cumhacht Dhá Rogha)**    | Roghnaíonn sé 2 chuntas randamacha agus ródálann sé chuig an gceann is sláintiúla — cothromaíonn sé ualach agus sláinte á cur san áireamh |
+| **Randamach**                   | Roghnaíonn sé cuntas go randamach do gach iarratas trí shuaitheadh Fisher-Yates a úsáid                                                   |
+| **Is Lú Úsáidte**               | Ródálann sé chuig an gcuntas ag a bhfuil an stampa ama `lastUsedAt` is sine, agus dáileann sé trácht go cothrom                           |
+| **Optamaithe ó thaobh Costais** | Ródálann sé chuig an gcuntas ag a bhfuil an luach tosaíochta is ísle, agus optamaíonn sé do na soláthraithe is lú costas                  |
 
-**Streatéigeacha combo agus uathoibríoch casta** (inchoigeartaithe in aghaidh an combo nó trí réimíre `auto/*` — féach [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+**Ardteaglamaí agus uathstraitéisí** (inchumraithe de réir teaglama nó trí réimíreanna `auto/*` — féach [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
-- `priority` — ordadh dian, ní rothaíonn riamh
-- `weighted` — roinnt tráchta comhréireach de réir meáchan in aghaidh an samhla
-- `fill-first` – díluchtaigh an chéad samhla go dtí go sroicheann teorainneacha
+- `priority` — ord docht, ní úsáidtear babhtáil chiorclach riamh
+- `weighted` — scoilt chomhréireach tráchta de réir meáchain in aghaidh na samhla
+- `fill-first` — ídítear an chéad samhail go dtí go sroichtear na teorainneacha
 - `round-robin` / `strict-random` / `random`
-- `p2c` (Cumhacht Dhá Roghnúcháin)
+- `p2c` (Cumhacht Dhá Rogha)
 - `least-used` agus `cost-optimized`
-- `auto` — scóráil-treoraithe trasna gach iarrthóra
-- `lkgp` (Soláthraí Dea-Iontach Faisnéise) — stápláil leis an soláthraí rathúil deireanach, ansin tabhair ar ais go rialacha
-- `context-optimized` — roghnaigh an samhla leis an bhfuinneog comhthéacs saor is mó
-- `context-relay` — ceangail samhlacha comhthéacs fada le haghaidh babhtaí leanúna
+- `auto` — bunaithe ar scór thar gach iarrthóir
+- `lkgp` (An Soláthraí Deireanach ar Eol É a Bheith Maith) — ceanglaíonn sé leis an soláthraí rathúil deireanach, ansin téann sé siar chuig rialacha
+- `context-optimized` — roghnaíonn sé an tsamhail ag a bhfuil an fhuinneog chomhthéacs shaor is mó
+- `context-relay` — nascann sé samhlacha comhthéacs fhada le haghaidh babhtaí leantacha
 
-#### Céanntásca Seisiún Wildcard
+#### Ceanntásc Seachtrach Seisiúin Ghreamaithigh
 
-Le haghaidh greamaigh seisiún seachtrach (m.sh., gníomhairí Claude Code/Codex taobh thiar de sheachfhreastalaí), seol:
+Le haghaidh cleamhnais sheachtraigh seisiúin (mar shampla, gníomhairí Claude Code/Codex taobh thiar de sheachfhreastalaithe droim ar ais), seol:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-Glacann OmniRoute freisin le `x_session_id` agus tuairisceann sé eochair seisiún éifeachtach in `X-OmniRoute-Session-Id`.
+Glacann OmniRoute le `x_session_id` freisin agus tugann sé an eochair éifeachtach seisiúin ar ais in `X-OmniRoute-Session-Id`.
 
-Má úsáideann tú Nginx agus seolann tú ceanntásca le foirmíocht usce, cumasaigh:
+Má úsáideann tú Nginx agus má sheolann tú ceanntásca ina bhfuil fostríoca, cumasaigh:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Ailiasanna Samhla Wildcard
+#### Ailiasanna Samhla le Saoróga
 
-Cruthaigh patrúin wildcard chun ainmneacha samhla a atreorú:
+Cruthaigh patrúin saoróige chun ainmneacha samhlacha a athmhapáil:
 
 ```
-Pattern: claude-sonnet-*     →  Sprioc: cc/claude-sonnet-4-6
-Pattern: gpt-*               →  Sprioc: gh/gpt-5.3-codex
+Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
+Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Tacaíonn Wildcards le `*` (aon charachtair) agus `?` (carachtar amháin).
+Tacaíonn saoróga le `*` (carachtair ar bith) agus `?` (carachtar amháin).
 
-#### Ceangail Tuirlingte
+#### Slabhraí Cúltaca
 
-Déan cur síos ar cheangail tuirlingte domhanda a chuirtear i bhfeidhm ar gach iarratas:
+Sainigh slabhraí cúltaca domhanda a chuirtear i bhfeidhm ar gach iarratas:
 
 ```
 Chain: production-fallback
@@ -861,52 +895,51 @@ Chain: production-fallback
 
 ---
 
-### Atógáil & Briseadh Circithe
+### Athléimneacht & Scoradáin Chiorcaid
 
-Cumraigh trí **Dashboard → Socruithe → Atógáil**.
+Cumraigh trí **Painéal → Socruithe → Athléimneacht**.
 
-Cuireann OmniRoute atógáil leibhéal soláthraí i bhfeidhm le cúig chomhpháirt:
+Cuireann OmniRoute athléimneacht ar leibhéal an tsoláthraí i bhfeidhm le cúig chomhpháirt:
 
-1. **Líne Iarratais agus Rith** — Múnlú iarratais ar leibhéal an chórais:
-   - **Iarratais in aghaidh an nóiméid (RPM)** — Iarratais uasta in aghaidh an nóiméid in aghaidh an chuntais
-   - **Am Íosta idir Iarratais** — Bearna íosta i milleasoicindí idir iarratais
-   - **Iarratais Comhuaineacha Uasta** — Iarratais comhuaineacha uasta in aghaidh an chuntais
+1. **Ciú Iarratas & Rialú Luais** — Múnlú iarratas ar leibhéal an chórais:
+   - **Iarratais sa Nóiméad (RPM)** — Uasmhéid iarratas sa nóiméad in aghaidh an chuntais
+   - **Íosmhéid Ama Idir Iarratais** — Íosbhearna i milleasoicindí idir iarratais
+   - **Uasmhéid Iarratas Comhreathach** — Uasmhéid iarratas comhuaineach in aghaidh an chuntais
+2. **Tréimhse Mhaolaithe Ceangail** — Cumraíocht de réir cineáil fíordheimhnithe do cheangal aonair tar éis teipeanna in-atriailte:
+   - **Buntréimhse Mhaolaithe** — Fuinneog réamhshocraithe mhaolaithe do theipeanna réamhtheachtacha in-atriailte
+   - **Úsáid Leideanna Athiarrachta Réamhtheachtacha** — Cloíonn sé le leideanna údarásacha `Retry-After` nó athshocraithe nuair a chuirtear ar fáil iad
+   - **Uaschéimeanna Cúlaithe** — Uasleibhéal cúlaithe easpónantúil le haghaidh teipeanna arís agus arís eile
 
-2. **Fuarú Ceangail** — Cumraíocht in aghaidh an cineáil aitheantais le haghaidh ceangail amháin tar éis teipeanna inathchóirithe:
-   - **Bun-Fhuarú** -- Réamhshocrú fuarúcháin le haghaidh teipeanna upstream inathchóirithe
-   - **Úsáid Leideanna Athimirt Upstream** — Urramaíonn sé `Retry-After` údarásach nó leideanna athshocrú nuair a chuirtear ar fáil é
-   - **Céimeanna Uasta Cúlú** — Leibhéal cúlú easponálach uasta le haghaidh teipeanna athdhéanta
+3. **Scoradán Ciorcaid Soláthraí** — Rianaíonn sé teipeanna soláthraí ó cheann ceann, marcálann sé soláthraí mar dhíghrádaithe ag an tairseach rabhaidh chumraithe, agus osclaíonn sé an scoradán nuair a shroichtear an tairseach teipe cumraithe:
+   - **Tairseach Díghrádaithe** — Teipeanna comhleanúnacha soláthraí sula dtéitear isteach i `DEGRADED`
+   - **Tairseach Teipe** — Teipeanna comhleanúnacha soláthraí sula dtéitear isteach i `OPEN`
+   - **Teorainn Ama Athshocraithe** — Fuinneog ama sula ndéantar tástáil ar an soláthraí arís
+   - **CLOSED** (Sláintiúil) — Sreabhann iarratais mar is gnách
+   - **DEGRADED** — Leanann iarratais de bheith ag sreabhadh agus teipeanna méadaithe á rianú
+   - **OPEN** — Cuirtear bac sealadach ar an soláthraí tar éis teipeanna arís agus arís eile
+   - **HALF_OPEN** — Tástáil lena fháil amach an bhfuil an soláthraí téarnaithe
 
-3. **Briseadh Circithe Soláthraí** — Rianaíonn teip sholáthraí iomlán, marcálann soláthraí ídithe ag an tábhairde foláireamh cumraithe, agus osclaíonn an briseadh nuair a shroicheann an tábhairde teipe cumraithe:
-   - **Tábhairde Ídithe** — Teipe sholáthraí as a dtaobh sula dtéann sé i `DEGRADED`
-   - **Tábhairde Teipe** — Teipe sholáthraí as a dtaobh sula dtéann sé i `OPEN`
-   - **Am Athshocraithe** -- Fuinneog ama sula ndéantar tástáil ar an soláthraí arís
-   - **CLOSED** (Sláintiúil) — Rithann iarratais mar is gnách
-   - **DEGRADED** — Rithann iarratais fós agus teipeanna méadaithe á rianú
-   - **OPEN** — Tá an soláthraí cosanta go sealadach tar éis teipeanna athdhéanta
-   - **HALF_OPEN** — Tástáil an bhfuil an soláthraí tar éis téarnamh
+   Fanann teorainneacha ráta `429` a bhaineann go sonrach le ceangal sa **Tréimhse Mhaolaithe Ceangail** agus ní áirítear iad i leith scoradán an tsoláthraí.
 
-   Coinníonn teorainneacha ráta `400` scupte ceangailte ag **Fuarú Ceangail** agus ní chomháirítear iad i gcoinne an bhriseadh soláthraí.
+   Ní thaispeántar staid rite scoradán an tsoláthraí ach amháin ar **Painéal → Sláinte**.
 
-   Taispeántar stát rith beo an bhriseadh soláthraí ach amháin i **Dashboard → Sláinte**.
+4. **Fan leis an Tréimhse Mhaolaithe** — Má tá gach ceangal iarrthach i dtréimhse mhaolaithe cheana féin, is féidir le OmniRoute fanacht go dtí an tréimhse mhaolaithe is luaithe agus an t-iarratas céanna ón gcliant a atriail go huathoibríoch.
 
-4. **Fan le Fuarú** — Má tá gach ceangal iarrthóra ag fuarú cheana féin, is féidir le OmniRoute fanacht leis an fuarú is luaine agus athiarratas ar an iarratas cliant céanna go huathoibríoch.
+5. **Uathbhraite Teorann Ráta** — Nuair a chuireann soláthraithe réamhtheachtacha fuinneoga feithimh sainráite ar ais, sáraíonn na leideanna sin tréimhse mhaolaithe áitiúil an cheangail nuair atá an socrú cumasaithe.
 
-5. **Brath Uathoibríoch Ráta** — Nuair a thugann soláthraithe upstream fuinneoga feithimh sainráite ar ais, ionsaíonn na leideanna sin an fuarú ceangailte logánta nuair a chumasaítear an chumraíocht.
-
-**Leid Pro:** Úsáid an leathanach **Sláinte** chun briseadh soláthraí beo a scrúdú agus a athshocrú tar éis éagóró. Ní athraíonn an leathanach Atógáil ach cumraíocht.
+**Leid Ghairmiúil:** Úsáid an leathanach **Sláinte** chun scoradáin bheo soláthraithe a iniúchadh agus a athshocrú tar éis briste. Ní athraíonn an leathanach Athléimneachta ach an chumraíocht.
 
 ---
 
-### Easpórtáil / Iompórtáil Bunachar Sonraí
+### Easpórtáil / Iompórtáil Bunachair Sonraí
 
-Bainistigh cúltacaí bunachar sonraí i **Dashboard → Socruithe → Córas agus Stóráil**
+Bainistigh cúltacaí bunachair sonraí in **Painéal → Socruithe → Córas & Stóras**.
 
-| Gníomh                            | Cur Síos                                                                                                                                                                      |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Easpórtáil Bunachar Sonraí**    | Íoslódáil an bunachar sonraí SQLite reatha mar chomhad `.sqlite`                                                                                                              |
-| **Easpórtáil Gach Rud (.tar.gz)** | Íoslódáil cartlann cúltaca iomlán ag cur san áireamh: bunachar sonraí, socruithe, combos, ceangail sholáthraí (gan dintiúin), metadata eochracha API                          |
-| **Iompórtáil Bunachar Sonraí**    | Uaslódáil comhad `.sqlite` chun an bunachar sonraí reatha a athsholáthar. Cruthaítear cúltaca roimh iompórtáil go huathoibríoch mura bhfuil `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Gníomh                            | Cur Síos                                                                                                                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Easpórtáil Bunachar Sonraí**    | Íoslódálann sé bunachar sonraí reatha SQLite mar chomhad `.sqlite`                                                                                                          |
+| **Easpórtáil Gach Rud (.tar.gz)** | Íoslódálann sé cartlann iomlán chúltaca lena n-áirítear: bunachar sonraí, socruithe, teaglamaí, ceangail soláthraithe (gan dintiúir), meiteashonraí eochracha API           |
+| **Iompórtáil Bunachar Sonraí**    | Uaslódálann sé comhad `.sqlite` chun an bunachar sonraí reatha a ionadú. Cruthaítear cúltaca réamhiompórtála go huathoibríoch mura bhfuil `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
 # API: Easpórtáil bunachar sonraí
@@ -920,42 +953,45 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Bailíochtú Iompórtála:** Déantar bailíochtú ar an gcomhad istigh le haghaidh sláine (pragmataic SQLite), táblaí riachtanacha (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), agus méid (uasméid 100MB).
+**Bailíochtú Iompórtála:** Déantar sláine an chomhaid iompórtáilte a bhailíochtú (seiceáil pragma SQLite), chomh maith leis na táblaí riachtanacha (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) agus an méid (uasmhéid 100MB).
 
 **Cásanna Úsáide:**
 
-- Athlonnú OmniRoute idir meaisíní
-- Cruthaigh cúltacaí seachtracha le haghaidh aisghabhála tubaiste
-- Comhroinn cumraíochtaí idir baill foirne (easpórtáil gach rud → roinn cartlann)
+- OmniRoute a aistriú idir meaisíní
+- Cúltacaí seachtracha a chruthú le haghaidh athshlánú ó thubaiste
+- Cumraíochtaí a roinnt idir baill foirne (easpórtáil gach rud → roinn an chartlann)
 
 ---
 
 ### Painéal Socruithe
 
-Eagraítear an leathanach socruithe i **7 gcluaisín** le haghaidh nascleanúin éasca:
+Tá an leathanach socruithe eagraithe ina **7 gcluaisín** le haghaidh nascleanúint éasca:
 
-| Cluaisín       | Ábhar                                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Ginearálta** | Uirlisí stórála córais, iompar réamhshocraithe, infheictheacht tonn críochfoirt                                                                                                                  |
-| **Cuma**       | Rialuithe téama (éadrom/dorcha/córas), infheicteacht barra taoibh, táogáil painéil le haghaidh cártaí tonn Cloudflare/Tailscale/ngrok                                                            |
-| **AI**         | Buiséad smaointe (trasnú / seicheamh uathoibríoch / saincheaptha / oiriúnach — féach [THINKING_BUDGET.md](./THINKING_BUDGET.md)), pront córas domhanda, staitisticí taisce pront                 |
-| **Slándáil**   | Socruithe logála/pasfhocail, Rialú Rochtana IP, údarás API le haghaidh `/models`, Cosc Soláthraí, cosaint isteach pront                                                                          |
-| **Rithanna**   | Streatéigeacht rithanna domhanda (Dúsigh Ardtús / Ciorcal Cearcal / P2C / Randamach / Is Lú Úsáidte / Costas Optamaithe), ailiasanna samhla wildcard, ceangail tuirlingte, réamhshocruithe combo |
-| **Atógáil**    | Líne iarratais, fuarú ceangail, cumraíocht briseadh soláthraí, agus iompar fan le fuarú                                                                                                          |
-| **Casta**      | Cumraíocht seachfhreastalaí domhanda (HTTP/SOCKS5), díluchtuithe seachfhreastalaí in aghaidh an tsoláthraí                                                                                       |
+| Cluaisín          | Ábhar                                                                                                                                                                                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ginearálta**    | Uirlisí stórála córais, iompar réamhshocraithe, infheictheacht tolláin críochphointe                                                                                                                                    |
+| **Cuma**          | Rialuithe téama (geal/dorcha/córas), infheictheacht an bharra taoibh, scoránaigh painéil do chártaí tolláin Cloudflare/Tailscale/ngrok                                                                                  |
+| **IS**            | Buiséad machnaimh (pasáil tríd / uathbhaint / saincheaptha / oiriúnaitheach — féach [THINKING_BUDGET.md](./THINKING_BUDGET.md)), leid chórais dhomhanda, staitisticí taisce leid                                        |
+| **Slándáil**      | Socruithe logála isteach/focail faire, Rialú Rochtana IP, fíordheimhniú API do `/models`, Blocáil Soláthraithe, cosaint ar instealladh leid                                                                             |
+| **Ródú**          | Straitéis ródaithe dhomhanda (Líon an Chéad Cheann / Uainíocht Chiorclach / P2C / Randamach / Is Lú Úsáidte / Optamaithe ó thaobh Costais), ailiasanna samhlacha le saoróg, slabhraí cúltaca, réamhshocruithe teaglamaí |
+| **Athléimneacht** | Scuaine iarratas, tréimhse mhaolaithe ceangail, cumraíocht scoradáin soláthraí, agus iompar feithimh leis an tréimhse mhaolaithe                                                                                        |
+| **Ardsocruithe**  | Cumraíocht dhomhanda seachfhreastalaí (HTTP/SOCKS5), sáruithe seachfhreastalaí de réir soláthraí                                                                                                                        |
 
-Ní dhéanann Ginearálta macasamhlú nótaí logála agus taisce inléite amháin a thuilleadh. Coinnítear cumraíochtaí coinneála agus optamúcháin bunachar sonraí trí `/api/settings/database`; glanadh taisce láimhe úsáidteann `DELETE /api/cache`. Rialaítear tairisíoga sraitheanna loga iarratais agus seachfhreastalaí trí `CALL_LOGS_TABLE_MAX_ROWS` agus `PROXY_LOGS_TABLE_MAX_ROWS`.
+Ní dhéanann Ginearálta nótaí inléite amháin maidir le logáil agus taisce a dhúbailt a thuilleadh. Déantar socruithe coinneála agus
+optamaithe an bhunachair sonraí a bhuanú trí `/api/settings/database`; úsáidtear
+`DELETE /api/cache` chun an taisce a ghlanadh de láimh. Tá uasteorainneacha rónna logaí iarratas agus seachfhreastalaí á rialú ag
+`CALL_LOGS_TABLE_MAX_ROWS` agus `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
 ### Costais & Bainistíocht Buiséid
 
-Rochtain trí **Dashboard → Costais**.
+Faigh rochtain trí **Painéal → Costais**.
 
 | Cluaisín      | Cuspóir                                                                                                                                  |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Buiséad**   | Socraigh teorainneacha caiteachais in aghaidh na heochraca API le buiséid laethúil/seachtainiúil/míosúil agus rianú fíor-ama             |
-| **Praghsáil** | Féach agus cuir in eagar na hiontrálacha praghsála samhla — costas in aghaidh 1K comhartha ionchurtha/aschurtha in aghaidh an tsoláthraí |
+| **Buiséad**   | Socraigh teorainneacha caiteachais de réir eochair API le buiséid laethúla/seachtainiúla/míosúla agus rianú fíor-ama                     |
+| **Praghsáil** | Féach ar iontrálacha praghsála samhlacha agus cuir in eagar iad — costas in aghaidh gach 1K comhartha ionchuir/aschuir de réir soláthraí |
 
 ```bash
 # API: Socraigh buiséad
@@ -963,17 +999,17 @@ curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Faigh stádas buiséid reatha
+# API: Faigh stádas reatha an bhuiséid
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Rianú Costais:** Lогаíonn gach iarratas úsáid comharthaí agus ríomhann costas ag úsáid tábla praghsála. Féach tuairiscí in **Dashboard → Úsáid** de réir soláthraí, samhla, agus eochraca API.
+**Rianú Costais:** Logálann gach iarratas úsáid na dticeád agus ríomhann sé an costas de réir an tábla praghsála. Féach ar mhiondealuithe in **Painéal → Úsáid** de réir soláthraí, samhla agus eochrach API.
 
 ---
 
-### Transcríobh Fuaime
+### Tras-scríobh Fuaime
 
-Tacaíonn OmniRoute le transcríobh fuaime trí chríochfoirt OpenAI-comhoiriúnach:
+Tacaíonn OmniRoute le tras-scríobh fuaime tríd an gcríochphointe atá comhoiriúnach le OpenAI:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -987,10 +1023,10 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-Is é `deepgram/nova-3` an rith Deepgram dúchasach agus teastaíonn eochair API Deepgram uaidh.
-Más é an t-aon rogha atá cumraithe ná OpenRouter, úsáid `openrouter/deepgram/nova-3`.
+Is é `deepgram/nova-3` an bealach dúchasach Deepgram agus teastaíonn eochair API Deepgram uaidh.
+Mura bhfuil ach OpenRouter cumraithe, úsáid `openrouter/deepgram/nova-3`.
 
-**Soláthraithe Transcríobh Fuaime (Speech-to-Text)**:
+Soláthraithe **Urlabhra-go-Téacs (tras-scríobh)**:
 
 - `openai/` (comhoiriúnach le whisper)
 - `groq/` (Groq Whisper Turbo)
@@ -1000,7 +1036,7 @@ Más é an t-aon rogha atá cumraithe ná OpenRouter, úsáid `openrouter/deepgr
 - `huggingface/` (leaganacha whisper)
 - `qwen/`
 
-**Soláthraithe Téacs-go-Briathra (`POST /v1/audio/speech`)**:
+Soláthraithe **Téacs-go-hUrlabhra (`POST /v1/audio/speech`)**:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1017,46 +1053,55 @@ Más é an t-aon rogha atá cumraithe ná OpenRouter, úsáid `openrouter/deepgr
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Formáidí fuaime tacaithe le haghaidh transcríobh: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Braitheann formáidí aschur TTS ar an soláthraí (mp3, wav, opus, pcm, mulaw).
+Formáidí fuaime a dtacaítear leo le haghaidh tras-scríofa: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Braitheann formáidí aschuir TTS ar an soláthraí (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Streatéigeacha Cothromaíochta Combo
+### Straitéisí Cothromaithe Teaglama
 
-Cumraigh cothromaíocht in aghaidh an combo i **Dashboard → Combos → Cruthaigh/Eagar → Streatéigeacht**.
+Cumraigh cothromú do gach teaglaim ar leith in **Painéal → Teaglamaí → Cruthaigh/Cuir in Eagar → Straitéis**.
 
-| Streatéigeacht        | Cur Síos                                                                                |
-| --------------------- | --------------------------------------------------------------------------------------- |
-| **Ciorcal Cearcal**   | Rothaíonn trí shamhlacha in ord                                                         |
-| **Tosaíocht**         | Baineann sé i gcónaí leis an chéad samhla; tarraingíonn sé ar ais ar earráid amháin     |
-| **Randamach**         | Roghnaíonn samhla randamach ón combo le haghaidh gach iarratais                         |
-| **Meáchain**          | Rithann de réir cóimheasa de réir meáchan socraithe in aghaidh an samhla                |
-| **Is Lú Úsáidte**     | Rithann chuig an samhla leis na harratais is lú le déanaí (úsáideann méadrachtaí combo) |
-| **Costas Optamaithe** | Rithann chuig an samhla ar fáil is saoire (úsáideann tábla praghsála)                   |
+| Straitéis             | Cur Síos                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Babhta-Robain**     | Rothlaíonn sé trí na samhlacha ceann i ndiaidh a chéile                                                        |
+| **Tosaíocht**         | Baineann sé triail as an gcéad samhail i gcónaí; ní théann sé ar gcúl ach amháin má tharlaíonn earráid         |
+| **Randamach**         | Roghnaíonn sé samhail randamach ón teaglaim do gach iarratas                                                   |
+| **Ualaithe**          | Ródálann sé go comhréireach bunaithe ar na hualaí a shanntar do gach samhail                                   |
+| **Is Lú Úsáidte**     | Ródálann sé chuig an tsamhail a bhfuil an líon is lú iarratas aici le déanaí (úsáideann sé méadracht teaglama) |
+| **Costas-Optamaithe** | Ródálann sé chuig an tsamhail is saoire atá ar fáil (úsáideann sé an tábla praghsála)                          |
 
-Is féidir réamhshocruithe combo domhanda a shocrú i **Dashboard → Socruithe → Rithanna → Réamhshocruithe Combo**.
-Oidhreachann sprioc-ama combo teorainn ama iarratais reatha de réir réamhshocraithe. Úsáid **Ama sprioc (soicindí)** ar réamhshocruithe combo nó combo aonair ach amháin nuair ba cheart teorainn níos gaire a chur ar buile chun tuirlingte níos tapa a chur ar bun.
+Is féidir réamhshocruithe domhanda teaglama a shocrú in **Painéal → Socruithe → Ródú → Réamhshocruithe Teaglama**.
+Faigheann teorainneacha ama spriocanna teaglama teorainn ama an iarratais reatha le hoidhreacht de réir réamhshocraithe. Ná húsáid **Teorainn ama sprice
+(soicindí)** ar réamhshocruithe teaglama nó ar theaglaim aonair ach amháin nuair ba cheart do theorainn níos giorra in aghaidh na sprice
+aistriú níos tapúla chuig rogha chúltaca a spreagadh.
 
-Níl optimizationacha neamh-fhulaingt combo roghnach. Fág **Optimizationacha neamh-fhulaingt** díchumasaithe chun na gnéithe moille seo a chosc ó rith le spriocanna tuirlingte, spriocanna a sheachaint bunaithe ar stair TTFT, nó iarratais tuirlingte a chomhbhrú; má chumasaíonn é sin, cheadaítear doláimhsithe cumraithe, skip TTFT réamhshocraithe, agus comhbhrú tuirlingte réamhghníomhach chun ionchurtha/rath iarratais a thrádáil le haghaidh moille tarraing níos ísle.
+Is gnéithe roghnacha iad optamuithe teaglama gan mhoill. Fág **Optamuithe gan mhoill** díchumasaithe chun
+cosc a chur ar na gnéithe moille seo spriocanna cúltaca a rásáil, spriocanna a scipeáil bunaithe ar stair TTFT,
+nó iarratais chúltaca a chomhbhrú; má chumasaítear é, ceadaítear fálú cumraithe, scipeanna réamh-mheastacha TTFT,
+agus comhbhrú réamhghníomhach cúltaca chun dílseacht ródaithe/iarratais a mhalartú ar mhoill íochtair níos ísle.
 
-Díchumasaigh **Buiséad comharthaí réasúnúcháin** nuair a éilíonn soláthraithe upstream teorainneacha dian `max_tokens` / `maxOutputTokens`. Nuair a chumasaítear é, ní chuireann rithanna combo ach spás réasúnúcháin samhla le haghaidh samhlacha le teorainn aschurtha ar eolas agus fágann sé teorainn comharthaí cliant gan athrú nuas luach sábháilte buiséadaithe sárafeadh an teorainn sin. Má tá teorainn an chliant cheana féin os cionn teorainn ar eolas, cuireann OmniRoute síos go dtí an teorainn sin sula seoltar iarratas upstream.
+Díchumasaigh **Maolán ticeád réasúnaíochta** nuair a éilíonn soláthraithe réamhtheachtacha teorainneacha dochta
+`max_tokens` / `maxOutputTokens`. Nuair atá sé cumasaithe, ní chuireann ródú teaglama ach spás breise do shamhlacha
+réasúnaíochta le haghaidh samhlacha a bhfuil uasteorainn aitheanta aschuir acu agus fágann sé teorainn ticeád an chliaint gan athrú nuair a
+sháródh an luach sábháilte maolánaithe an uasteorainn sin. Má tá teorainn an chliaint os cionn uasteorainn aitheanta cheana féin,
+laghdaíonn OmniRoute í go dtí an uasteorainn sin sula seoltar an t-iarratas réamhtheachtach.
 
 ---
 
-### Dashboard Sláinte
+### Painéal Sláinte
 
-Rochtain trí **Dashboard → Sláinte**. Forbhreathnú ar shláinte an chórais fíor-ama le 6 chárta:
+Faigh rochtain air trí **Painéal → Sláinte**. Forléargas fíor-ama ar shláinte an chórais le 6 chárta:
 
-| Cárta                       | A thaispeáint                                                             |
-| --------------------------- | ------------------------------------------------------------------------- |
-| **Stádas Córais**           | Am ar feidhm, leagan, úsáid cuimhne, comhadlann sonraí                    |
-| **Sláinte Soláthraí**       | Stát rith beo briseadh circithe soláthraí domhanda                        |
-| **Teorainneacha Ráta**      | Fuaruithe ceangailtbeo in aghaidh an chuntais le hamlaghdaithe ama fágtha |
-| **Toirmeasacha Gníomhacha** | Toirmeasacha scópaithe samhla gníomhacha agus eisiamh sealadacha          |
-| **Taisce Sínithe**          | Staitisticí taisce díshrianta (eochracha gníomhacha, ráta bua)            |
-| **Teileamhochairt Moille**  | Aontú moille p50/p95/p99 in aghaidh an tsoláthraí                         |
+| Cárta                      | An Méid a Thaispeánann Sé                                                         |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| **Stádas an Chórais**      | Aga fónaimh, leagan, úsáid cuimhne, eolaire sonraí                                |
+| **Sláinte Soláthraithe**   | Staid rite dhomhanda scoradán ciorcaid na soláthraithe                            |
+| **Teorainneacha Ráta**     | Tréimhsí gníomhacha fuaraithe naisc in aghaidh an chuntais, leis an am atá fágtha |
+| **Frithdhúnadh Gníomhach** | Frithdhúnadh gníomhach atá teoranta do shamhail agus eisiaimh shealadacha         |
+| **Taisce Sínithe**         | Staitisticí taisce dí-dhúblála (eochracha gníomhacha, ráta amas)                  |
+| **Teiliméadracht Moille**  | Comhiomlánú moille p50/p95/p99 in aghaidh an tsoláthraí                           |
 
-**Leid Pro:** Athnuachann an leathanach Sláinte gach 10 soicind go huathoibríoch. Úsáid an cárta briseadh circithe chun aithint cén soláthraithe atá ag fulaingt fadhbanna.
+**Leid Ghairmiúil:** Athnuachan an leathanach Sláinte é féin gach 10 soicind. Úsáid cárta an scoradáin chiorcaid chun na soláthraithe a bhfuil fadhbanna acu a shainaithint.
 
 ---
 

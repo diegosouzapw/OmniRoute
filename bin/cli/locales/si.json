@@ -256,6 +256,7 @@
     "max_restarts": "අත්හැරීමට පෙර තත්පර 30ක් තුළ සිදු කළ හැකි උපරිම බිඳවැටීම්-පසු නැවත ආරම්භ කිරීම් ගණන (පෙරනිමිය: 2)",
     "tray": "පද්ධති ට්රේ තුළ ආරම්භ කරන්න (ඩෙස්ක්ටොප් සඳහා පමණි, කැමැත්තෙන් සක්රිය කළ යුතුය)",
     "no_tray": "පද්ධති ට්රේ නිරූපකය අක්රිය කරන්න",
+    "ready_timeout": "සූදානම්දැයි පරීක්ෂා කිරීමේ කල් ඉකුත්වීම ms වලින් (OMNIROUTE_READY_TIMEOUT_MS ද අදාළ වේ, පෙරනිමිය 60000)",
     "tls_cert": "HTTPS සේවය සැපයීම සඳහා TLS සහතිකයකට (PEM) ඇති මාර්ගය (OMNIROUTE_TLS_CERT ද අදාළ වේ)",
     "tls_key": "HTTPS සේවය සැපයීම සඳහා TLS පුද්ගලික යතුරට (PEM) ඇති මාර්ගය (OMNIROUTE_TLS_KEY ද අදාළ වේ)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP සේවාදායකය ක්රියාත්මකයි ({transport})",
     "stopped": "MCP සේවාදායකය නවතා ඇත.",
     "restarted": "MCP සේවාදායකය නැවත ආරම්භ කරන ලදී.",
+    "stoppedHint": "එය සක්රීය කිරීමට `omniroute mcp enable` ධාවනය කරන්න.",
+    "enabled": "MCP සේවාදායකය සක්රීය කර ඇත.",
+    "disabled": "MCP සේවාදායකය අක්රීය කර ඇත.",
+    "enable": {
+      "description": "MCP සේවාදායකය සක්රීය කරන්න",
+      "transport": "භාවිත කළ යුතු ප්රවාහන ක්රමය: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP සේවාදායකය අක්රීය කරන්න"
+    },
     "call": {
       "description": "MCP මෙවලමක් සෘජුවම කැඳවන්න",
       "args": "JSON තර්ක වස්තුව (පේළිය තුළ)",
@@ -1093,7 +1104,7 @@
     }
   },
   "combo": {
-    "title": "Combos",
+    "title": "සංයෝජන",
     "switched": "සක්රිය combo එක: {name}",
     "created": "Combo එක සාදන ලදී: {name}",
     "deleted": "Combo එක මකා දමන ලදී: {name}",

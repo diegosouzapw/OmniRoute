@@ -1,1 +1,0 @@
-- fix(docker): require a per-session token on the VNC browser CDP bridge and isolate it on a dedicated Docker network (#12571)

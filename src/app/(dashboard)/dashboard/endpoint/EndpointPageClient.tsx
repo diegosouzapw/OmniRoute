@@ -5,6 +5,7 @@ import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/sh
 import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { useTranslations } from "next-intl";
 import A2ADashboardPage from "./components/A2ADashboard";
 import McpDashboardPage from "./components/MCPDashboard";
@@ -168,7 +169,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
-  const [localApiUrl, setLocalApiUrl] = useState("http://localhost:20128/v1");
+  const [localApiUrl, setLocalApiUrl] = useState(
+    typeof window !== "undefined" ? `${window.location.origin}/v1` : "http://localhost:20128/v1"
+  );
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
   const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
@@ -461,9 +464,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     return DEFAULT_TUNNEL_VISIBILITY;
   };
 
-  // Moved below the loader/fetcher declarations it schedules — referencing them from
-  // an effect declared above their `const` bindings is a TDZ read the compiler rejects
-  // (react-hooks/immutability).
   useEffect(() => {
     let mounted = true;
 
@@ -706,8 +706,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
       if (!res.ok) {
         throw new Error(
-          data?.error ||
+          extractApiErrorMessage(
+            data,
             translateOrFallback("cloudflaredRequestFailed", "Failed to update Cloudflare tunnel")
+          )
         );
       }
 

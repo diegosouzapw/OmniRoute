@@ -16,36 +16,29 @@ test("(a) agy gemini-3.1-pro-low passes through to upstream unchanged (#3696)", 
   assert.equal(resolveAntigravityModelId("gemini-3.1-pro"), "gemini-3.1-pro");
 });
 
-test("(b) a non-ok upstream response becomes a generic error body", () => {
-  const secret = "should-not-reach-client";
+test("(b) a non-ok upstream response becomes a real error body, not an empty chat.completion", () => {
+  // #13591 (release/v3.8.52) deliberately surfaces the real upstream detail to the client, so
+  // the client envelope is no longer generic. What stays private is the RETAINED call log,
+  // which only ever receives the bounded projection (covered below and in the chatCore tests).
   const body = buildAntigravityUpstreamError(
     400,
-    "Bad Request containing provider text",
-    JSON.stringify({
-      error: {
-        code: 400,
-        message: `Invalid function_declarations schema: ${secret}`,
-        details: [{ prompt: secret }],
-      },
-    })
+    "Bad Request",
+    JSON.stringify({ error: { code: 400, message: "Invalid function_declarations schema" } })
   );
 
   assert.notEqual((body as { object?: string }).object, "chat.completion");
-  // Compare the SERIALIZED body: that is what the client actually receives, and it is the
-  // surface the privacy rule is about. buildErrorBody always defines an `error.reason` key
-  // (undefined here, so it never serializes); asserting on the in-memory object would pin an
-  // unrelated implementation detail instead of the wire contract.
-  assert.deepEqual(JSON.parse(JSON.stringify(body)), {
-    error: {
-      message: "Antigravity upstream error (400)",
-      type: "invalid_request_error",
-      code: "bad_request",
-    },
-  });
-  assert.doesNotMatch(JSON.stringify(body), new RegExp(secret));
+  assert.equal(
+    body.error.message,
+    "Antigravity upstream error (400): Invalid function_declarations schema"
+  );
+  assert.equal(body.error.type, "invalid_request_error");
+  // sanitized: no raw stack traces leaked (hard rule #12)
+  assert.ok(!body.error.message.includes("at /"));
 
+  // non-JSON upstream body still yields a valid error envelope with the generic template
   const body2 = buildAntigravityUpstreamError(503, "Service Unavailable", "<html>oops</html>");
-  assert.equal(body2.error.message, "Antigravity upstream error (503)");
+  assert.equal(body2.error.message, "Antigravity upstream error (503): Service Unavailable");
+  assert.notEqual((body2 as { object?: string }).object, "chat.completion");
   assert.equal("upstream_details" in body2, false);
 });
 

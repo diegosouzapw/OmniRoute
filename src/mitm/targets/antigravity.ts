@@ -22,6 +22,7 @@ const ENDPOINTS = [
   "/v1internal:streamGenerateContent",
   "/v1internal:loadCodeAssist",
   "/v1internal:onboardUser",
+  "/v1internal:fetchAvailableModels",
 ];
 
 const INSTRUCTIONS = [

@@ -55,6 +55,23 @@ import {
 const GROK_CHAT_API = "https://grok.com/rest/app-chat/conversations/new";
 const GROK_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+const GROK_PUBLIC_UPSTREAM_ERROR = "Grok upstream error";
+
+function sanitizeGrokUpstreamError(message: unknown): string {
+  const sanitized = sanitizeErrorMessage(message);
+  return sanitized.trim() && !/^(?:[A-Za-z_$][\w$]*)?Error:\s*$/.test(sanitized)
+    ? sanitized
+    : GROK_PUBLIC_UPSTREAM_ERROR;
+}
+
+function isTlsClientUnavailableError(error: unknown): error is TlsClientUnavailableError {
+  try {
+    return error instanceof TlsClientUnavailableError;
+  } catch {
+    // A rejected Proxy may throw while instanceof walks its prototype chain.
+    return false;
+  }
+}
 
 // ─── Model mappings ─────────────────────────────────────────────────────────
 // Grok Web exposes UI modes, not stable public model IDs. Keep OmniRoute model
@@ -637,7 +654,11 @@ async function buildNonStreamingResponse(
     if (chunk.error) {
       return new Response(
         JSON.stringify({
-          error: { message: chunk.error, type: "upstream_error", code: "GROK_ERROR" },
+          error: {
+            message: sanitizeGrokUpstreamError(chunk.error),
+            type: "upstream_error",
+            code: "GROK_ERROR",
+          },
         }),
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
@@ -1030,12 +1051,13 @@ export class GrokWebExecutor extends BaseExecutor {
         streamEofSymbol: "[DONE]",
       });
     } catch (err) {
-      if (err instanceof TlsClientUnavailableError) {
-        log?.error?.("GROK-WEB", `TLS client unavailable: ${err.message}`);
+      const publicError = sanitizeGrokUpstreamError(err);
+      if (isTlsClientUnavailableError(err)) {
+        log?.error?.("GROK-WEB", `TLS client unavailable: ${publicError}`);
         const errResp = new Response(
           JSON.stringify({
             error: {
-              message: sanitizeErrorMessage(`Grok TLS client unavailable: ${err.message}`),
+              message: `Grok TLS client unavailable: ${publicError}`,
               type: "upstream_error",
               code: "TLS_CLIENT_UNAVAILABLE",
             },
@@ -1044,13 +1066,11 @@ export class GrokWebExecutor extends BaseExecutor {
         );
         return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
       }
-      log?.error?.("GROK-WEB", `Fetch failed: ${err instanceof Error ? err.message : String(err)}`);
+      log?.error?.("GROK-WEB", `Fetch failed: ${publicError}`);
       const errResp = new Response(
         JSON.stringify({
           error: {
-            message: sanitizeErrorMessage(
-              `Grok connection failed: ${err instanceof Error ? err.message : String(err)}`
-            ),
+            message: `Grok connection failed: ${publicError}`,
             type: "upstream_error",
           },
         }),

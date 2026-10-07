@@ -5,8 +5,8 @@
 #  Profiles:
 #    base  → minimal image, no CLI tools
 #    web   → runner-web (+Chromium/Playwright) for web-cookie providers
-#    cli   → CLIs installed inside the container (portable)
-#    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#    cli   → bundled CLIs installed inside the container (portable)
+#    host  → runner-base + host-mounted CLI binaries (Linux-first; Linux only)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
 #    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
@@ -15,11 +15,17 @@
 #    docker compose --profile base up -d
 #    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
 #    docker compose --profile cli up -d
+#    # Windows Docker Desktop: use the bundled CLI image and rebuild it
+#    docker compose --profile cli up -d --build
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
 #    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
 #    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#
+#  Docker Compose uses `--profile <name> <command>`; `load profile` is not a
+#  valid command. The `base` profile has no CLI tools, and `host` is Linux-only.
+#  Windows Docker Desktop users who need the four bundled CLI packages should use `cli`.
 #
 #  See docs/architecture/cluster-decisions.md for the per-component rationale
 #  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).
@@ -142,11 +148,24 @@ services:
       - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
       - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+    # SECURITY (#13679): joins BOTH `default` (to keep reaching redis and the
+    # other sidecars) AND the dedicated `chatgpt-web-codex-net` (the one
+    # legitimate consumer of the CDP proxy below).
+    networks:
+      - default
+      - chatgpt-web-codex-net
     profiles:
       - web
 
   # Internal-only Chromium runtime for ChatGPT Web (Codex). No CDP or browser
   # UI port is published to the host.
+  #
+  # SECURITY (#13679): isolated onto its own `chatgpt-web-codex-net` network
+  # instead of the shared implicit default bridge — its cdp-proxy.mjs
+  # sidecar republishes Chromium's CDP on 0.0.0.0:9223, and CDP grants full
+  # control over a live browser session. Without this isolation, any
+  # compromised sibling container (redis, qdrant, bifrost, cliproxyapi,
+  # codex-app-server, ...) on the default network could reach it.
   chatgpt-web-codex-browser:
     build:
       context: .
@@ -154,8 +173,12 @@ services:
     image: omniroute:chatgpt-web-codex-browser
     restart: unless-stopped
     shm_size: "2gb"
+    environment:
+      - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
     volumes:
       - chatgpt-web-codex-browser-data:/browser-profile
+    networks:
+      - chatgpt-web-codex-net
     profiles:
       - web
 
@@ -370,13 +393,25 @@ services:
     # compose network by the omniroute app.
     healthcheck:
       test:
-        ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:1456/readyz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:1456/readyz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     profiles:
       - codex-app-server
+
+networks:
+  # SECURITY (#13679): dedicated network for the unauthenticated-by-default
+  # CDP proxy sidecar (docker/chatgpt-web-codex-browser/cdp-proxy.mjs) —
+  # shared only with omniroute-web, not with redis/qdrant/bifrost/cliproxyapi/
+  # codex-app-server or any other sibling on the implicit default network.
+  chatgpt-web-codex-net: {}
 
 volumes:
   chatgpt-web-codex-browser-data:

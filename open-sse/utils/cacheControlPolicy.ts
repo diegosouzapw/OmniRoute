@@ -216,7 +216,13 @@ export function providerSupportsCaching(
     return connectionCacheOverride.supportsPromptCaching;
   }
   if (!provider) return false;
-  if (CACHING_PROVIDERS.has(provider.toLowerCase())) return true;
+  const providerId = provider.toLowerCase();
+  // Vertex is a mixed-format provider. Only its Anthropic Claude path accepts
+  // cache_control; Gemini and OpenAI-format partner models use other mechanisms.
+  if (providerId === "vertex" || providerId === "vertex-partner") {
+    return targetFormat?.toLowerCase() === "claude";
+  }
+  if (CACHING_PROVIDERS.has(providerId)) return true;
   // All Claude-protocol providers support prompt caching
   if (targetFormat === "claude") return true;
   return false;

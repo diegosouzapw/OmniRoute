@@ -227,6 +227,8 @@ export class CircuitBreaker {
   successCount: number;
   lastFailureTime: number | null;
   halfOpenAllowed: number;
+  halfOpenProbeStartedAt: number | null;
+  halfOpenProbeGeneration: number;
   cooldownByKind: Partial<Record<FailureKind, number>>;
   classifyError: ((error: unknown) => FailureKind | undefined) | null;
   lastFailureKind: FailureKind | null;
@@ -257,6 +259,8 @@ export class CircuitBreaker {
     this.successCount = 0;
     this.lastFailureTime = null;
     this.halfOpenAllowed = 0;
+    this.halfOpenProbeStartedAt = null;
+    this.halfOpenProbeGeneration = 0;
     this.cooldownByKind = options.cooldownByKind ?? {};
     this.classifyError = options.classifyError ?? null;
     this.lastFailureKind = null;
@@ -362,16 +366,28 @@ export class CircuitBreaker {
       );
     }
 
+    const halfOpenProbeGeneration =
+      this.state === STATE.HALF_OPEN ? this.halfOpenProbeGeneration : null;
     if (this.state === STATE.HALF_OPEN) {
       this.halfOpenAllowed--;
+      this.halfOpenProbeStartedAt ??= Date.now();
     }
 
     try {
       const result = await fn();
-      this._recordResolvedResult(result, options?.classifyResult);
+      if (
+        halfOpenProbeGeneration === null ||
+        halfOpenProbeGeneration === this.halfOpenProbeGeneration
+      ) {
+        this._recordResolvedResult(result, options?.classifyResult);
+      }
       return result;
     } catch (error) {
-      if (this.isFailure(error)) {
+      if (
+        (halfOpenProbeGeneration === null ||
+          halfOpenProbeGeneration === this.halfOpenProbeGeneration) &&
+        this.isFailure(error)
+      ) {
         let kind: FailureKind | undefined;
         if (this.classifyError) {
           try {
@@ -551,13 +567,25 @@ export class CircuitBreaker {
     if (this.lastFailureKind !== null) {
       const override = this.cooldownByKind[this.lastFailureKind];
       if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
-        return override;
+        // #14960: the per-kind override replaces the BASE reset timeout but must
+        // still honor open-cycle escalation — otherwise a quota_exhausted
+        // provider re-probes at the same fixed interval forever while
+        // openCycleCount grows. Apply the same doubling the base timeout gets,
+        // capped at override * maxBackoffMultiplier.
+        if (this.openCycleCount <= this.backoffEscalationCount) {
+          return override;
+        }
+        const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
+        return Math.min(override * escalationFactor, override * this.maxBackoffMultiplier);
       }
     }
     return baseTimeout;
   }
 
   _timeUntilReset() {
+    if (this.state === STATE.HALF_OPEN && this.halfOpenProbeStartedAt !== null) {
+      return Math.max(0, this.resetTimeout - (Date.now() - this.halfOpenProbeStartedAt));
+    }
     if (!this.lastFailureTime) return 0;
     const cooldown = this._effectiveCooldown();
     return Math.max(0, cooldown - (Date.now() - this.lastFailureTime));
@@ -567,6 +595,15 @@ export class CircuitBreaker {
     if (this.state === STATE.OPEN && this._shouldAttemptReset()) {
       this._transition(STATE.HALF_OPEN, "timeout-elapsed");
       this._persistToDb();
+    } else if (
+      this.state === STATE.HALF_OPEN &&
+      this.halfOpenAllowed <= 0 &&
+      this.halfOpenProbeStartedAt !== null &&
+      Date.now() - this.halfOpenProbeStartedAt >= this.resetTimeout
+    ) {
+      this.halfOpenAllowed = this.halfOpenRequests;
+      this.halfOpenProbeStartedAt = null;
+      this.halfOpenProbeGeneration++;
     }
   }
 
@@ -577,7 +614,8 @@ export class CircuitBreaker {
     if (newState === STATE.HALF_OPEN) {
       this.halfOpenAllowed = this.halfOpenRequests;
     }
-
+    this.halfOpenProbeGeneration++;
+    this.halfOpenProbeStartedAt = null;
     // Record transition
     this.transitionHistory.push({
       from: oldState,

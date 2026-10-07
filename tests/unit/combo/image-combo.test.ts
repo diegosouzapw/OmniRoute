@@ -350,3 +350,7 @@ test("combo success keeps the OpenAI {created, data} wrapper and Codex defaults 
     globalThis.fetch = originalFetch;
   }
 });
+
+// ---------------------------------------------------------------------------
+// Parallel fan-out — a slow failing first target must not block a healthy one
+// ---------------------------------------------------------------------------

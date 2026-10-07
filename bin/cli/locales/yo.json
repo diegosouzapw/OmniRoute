@@ -256,6 +256,7 @@
     "max_restarts": "Iye ìtunbẹ̀rẹ̀ lẹ́yìn ìkọ̀lù tó pọ̀ jù láàárín 30s kí ó tó jáwọ́ (àìyípadà: 2)",
     "tray": "Bẹ̀rẹ̀ nínú atẹ eto (dẹ́sítọ́ọ̀pù nìkan, àṣàyàn ni)",
     "no_tray": "Pa àmì atẹ eto rẹ́",
+    "ready_timeout": "Àkókò ìdádúró tó pọ̀ jù fún àyẹ̀wò ìmúrasílẹ̀ ní ms (bákan náà OMNIROUTE_READY_TIMEOUT_MS, àìyípadà 60000)",
     "tls_cert": "Ọ̀nà sí ìwé-ẹ̀rí TLS kan (PEM) láti pèsè HTTPS (bákan náà OMNIROUTE_TLS_CERT)",
     "tls_key": "Ọ̀nà sí kọ́kọ́rọ́ àdáni TLS (PEM) láti pèsè HTTPS (bákan náà OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "Olùpín MCP ń ṣiṣẹ́ ({transport})",
     "stopped": "Olùpín MCP ti dá iṣẹ́ dúró.",
     "restarted": "A ti tún olùpín MCP bẹ̀rẹ̀.",
+    "stoppedHint": "Ṣe `omniroute mcp enable` láti mú un ṣiṣẹ́.",
+    "enabled": "A ti mú olupin MCP ṣiṣẹ́.",
+    "disabled": "A ti pa olupin MCP.",
+    "enable": {
+      "description": "Mú olupin MCP ṣiṣẹ́",
+      "transport": "Ọ̀nà ìgbéṣùmọ̀ tí a ó lò: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Pa olupin MCP"
+    },
     "call": {
       "description": "Pe ohun èlò MCP kan ní tààrà",
       "args": "Ohun àríyànjiyàn JSON (níbẹ̀-níbẹ̀)",

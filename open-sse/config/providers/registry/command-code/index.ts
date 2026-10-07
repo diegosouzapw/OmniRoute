@@ -17,6 +17,13 @@ export const command_codeProvider: RegistryEntry = {
   // The discovery response is a partial routing catalog; static registry
   // entries omitted from it can still be accepted by the gateway.
   liveCatalogAuthoritative: false,
+  // Reasoning models (e.g. z-ai/glm-5.3-flash) exhaust small client budgets on
+  // thinking before emitting content; default to a reasoning-safe budget.
+  requestDefaults: { maxTokens: 16_384 },
+  // Console Go / Command Code gateways buffer entire generations — no upstream
+  // bytes flow until the model finishes thinking. Streaming needs a headers-wait
+  // ceiling well above the 110s global cap for long reasoning generations.
+  fetchStartTimeoutCapMs: 600_000,
   authType: "apikey",
   authHeader: "Authorization",
   authPrefix: "Bearer ",
@@ -25,15 +32,22 @@ export const command_codeProvider: RegistryEntry = {
     {
       id: "claude-opus-4-7",
       name: "Claude Opus 4.7 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
       contextLength: 200000,
       maxOutputTokens: 32000,
+    },
+    {
+      id: "claude-fable-5",
+      name: "Claude Fable 5 (CC)",
+      targetFormat: "claude",
     },
     {
       id: "claude-opus-4-6",
       name: "Claude Opus 4.6 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
@@ -41,8 +55,14 @@ export const command_codeProvider: RegistryEntry = {
       maxOutputTokens: 32000,
     },
     {
+      id: "claude-sonnet-5-5",
+      name: "Claude Sonnet 5.5 (CC)",
+      targetFormat: "claude",
+    },
+    {
       id: "claude-sonnet-4-6",
       name: "Claude Sonnet 4.6 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
@@ -52,6 +72,7 @@ export const command_codeProvider: RegistryEntry = {
     {
       id: "claude-haiku-4-5-20251001",
       name: "Claude Haiku 4.5 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,

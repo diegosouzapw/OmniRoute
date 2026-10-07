@@ -256,6 +256,7 @@
     "max_restarts": "Matsakaicin sake farawa bayan rushewa cikin daƙiƙa 30 kafin a haƙura (tsoho: 2)",
     "tray": "Fara a tiren tsarin (na kwamfutar tebur kawai, sai an zaɓa)",
     "no_tray": "Kashe gunkin tiren tsarin",
+    "ready_timeout": "Lokacin ƙarewar gwajin shiri a ms (har ila yau OMNIROUTE_READY_TIMEOUT_MS, tsoho 60000)",
     "tls_cert": "Hanyar zuwa takardar shaidar TLS (PEM) don samar da HTTPS (haka kuma OMNIROUTE_TLS_CERT)",
     "tls_key": "Hanyar zuwa maɓallin sirri na TLS (PEM) don samar da HTTPS (haka kuma OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "Sabar MCP tana aiki ({transport})",
     "stopped": "An dakatar da sabar MCP.",
     "restarted": "An sake kunna sabar MCP.",
+    "stoppedHint": "Gudanar da `omniroute mcp enable` don kunna shi.",
+    "enabled": "An kunna sabar MCP.",
+    "disabled": "An kashe sabar MCP.",
+    "enable": {
+      "description": "Kunna sabar MCP",
+      "transport": "Hanyar jigilar da za a yi amfani da ita: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Kashe sabar MCP"
+    },
     "call": {
       "description": "Kira kayan aikin MCP kai tsaye",
       "args": "Abun hujjojin JSON (a cikin layi)",
@@ -475,7 +486,7 @@
     }
   },
   "tunnel": {
-    "title": "Tunnels",
+    "title": "Ramuka",
     "listDescription": "Jera tunnels masu aiki",
     "createDescription": "Ƙirƙiri tunnel",
     "created": "An ƙirƙiri tunnel: {url}",

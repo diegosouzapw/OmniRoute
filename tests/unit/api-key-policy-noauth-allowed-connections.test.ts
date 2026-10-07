@@ -62,6 +62,26 @@ test("#9057 LAYER1: unrestricted key still gets synthetic credentials for OpenCo
   );
 });
 
+// The auto combo pins keyless targets to the synthetic connection id, and
+// pin-fail-closed turns that pin into the allowlist ["noauth"]. An allowlist
+// that explicitly names the synthetic id must still receive it — otherwise
+// every OpenCode Free target of a fresh install is skipped as "availability".
+test("#9057 LAYER1: allowlist that names the synthetic noauth id still gets credentials", async () => {
+  const creds = await getProviderCredentials("opencode", null, ["noauth"], "big-pickle");
+  assert(creds, "a combo pin to the synthetic noauth connection must resolve");
+  assert.equal((creds as Record<string, unknown>)?.connectionId, "noauth");
+});
+
+test("#9057 LAYER1: allowlist mixing a real UUID and noauth still gets synthetic credentials", async () => {
+  const creds = await getProviderCredentials(
+    "opencode",
+    null,
+    [RESTRICTED_CONNECTION_UUID, "noauth"],
+    "big-pickle"
+  );
+  assert.equal((creds as Record<string, unknown>)?.connectionId, "noauth");
+});
+
 test("#9057 LAYER2: isModelAllowedForKey rejects keyless model for disableNonPublicModels key", async () => {
   // Create a key with disableNonPublicModels=true
   const created = await apiKeysDb.createApiKey("dnp-9057", "machine-dnp");

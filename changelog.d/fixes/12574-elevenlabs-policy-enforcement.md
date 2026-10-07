@@ -1,1 +1,0 @@
-- fix(api): enforce API key policy (budget/rate-limit/schedule/endpoint scoping) on the ElevenLabs speech-to-text, text-to-speech and voices proxy routes (#12574)

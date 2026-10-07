@@ -9,6 +9,7 @@ const LANGUAGE_HINTS: Record<string, RegExp[]> = {
   fr: [/\b(?:fichier|erreur|merci|peux|besoin)\b/i],
   ru: [/\b(?:\u044d\u0442\u043e|\u0447\u0442\u043e|\u043a\u0430\u043a|\u0435\u0441\u043b\u0438|\u0447\u0442\u043e\u0431\u044b|\u043a\u043e\u0442\u043e\u0440\u044b\u0439|\u043c\u043e\u0436\u0435\u0442|\u043d\u0443\u0436\u043d\u043e|\u0435\u0441\u0442\u044c|\u0431\u044b\u043b\u043e|\u0431\u0443\u0434\u0435\u0442|\u043c\u043e\u0436\u043d\u043e|\u0434\u043e\u043b\u0436\u0435\u043d|\u0444\u0430\u0439\u043b|\u043e\u0448\u0438\u0431\u043a\u0430|\u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430|\u0434\u0430\u043d\u043d\u044b\u0435)\b/i, /[\u0430-\u044f\u0451]/i],
   ja: [/[\u3040-\u30ff]/],
+  hu: [/\b(?:kérlek|tudnád|szeretném|magyarázd|mutasd|miért|hogyan|függvény|beállítás|adatbázis|következő|problémám|megoldani|hiba|fájl)\b/i],
   id: [/\b(?:saya|kamu|anda|dengan|untuk|yang|tidak|bisa|terima\s+kasih|dari)\b/i],
 };
 

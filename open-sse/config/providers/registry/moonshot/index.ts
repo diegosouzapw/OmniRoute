@@ -5,6 +5,12 @@ import { REASONING_UNSUPPORTED, type RegistryEntry, type RegistryModel } from ".
 export const KIMI_K3_MODEL: RegistryModel = {
   id: "kimi-k3",
   name: "Kimi K3",
+  // Moonshot's LIVE catalogue serves this model as `k3` and `k3-256k` (the
+  // 256K-context cut), NOT as `kimi-k3`. Both spellings must resolve to this
+  // entry or `getUnsupportedParams` returns [] and temperature reaches an
+  // upstream that hard-400s ("invalid temperature: only 1 is allowed for this
+  // model") — which silently drops the target out of every combo it sits in.
+  aliases: ["k3", "k3-256k"],
   contextLength: 1048576,
   maxOutputTokens: 1048576,
   supportsVision: true,

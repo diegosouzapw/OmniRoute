@@ -34,7 +34,9 @@ export class Assessor {
 
   constructor(
     apiKey: string,
-    baseUrl: string = "http://localhost:20128/v1",
+    baseUrl: string = process.env.OMNIROUTE_BASE_URL ??
+      process.env.BASE_URL ??
+      `http://localhost:${process.env.API_PORT ?? process.env.PORT ?? 20128}/v1`,
     config: Partial<AssessmentConfig> = {}
   ) {
     this.apiKey = apiKey;

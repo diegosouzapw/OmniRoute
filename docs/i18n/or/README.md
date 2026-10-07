@@ -1,6 +1,6 @@
 # README (ଓଡ଼ିଆ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇧🇦 [bs](../bs/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -13,23 +13,23 @@
 
 # 🚀 OmniRoute — ମାଗଣା AI ଗେଟୱେ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — କୋଡିଂ କେବେବି ବନ୍ଦ କରନ୍ତୁ ନାହିଁ। ପ୍ରତ୍ୟେକ AI ଟୁଲ୍ → 356 ପ୍ରଦାତା — 150+ ମାଗଣା — ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ ମାଧ୍ୟମରେ। Claude Code, Codex, Cursor, Cline, Copilot ଏବଂ Antigravityକୁ ସ୍ୱୟଂଚାଳିତ ଫଲ୍‌ବ୍ୟାକ୍ ସହିତ ମାଗଣା Claude / GPT / Gemini ସହ ଯୋଡ଼ନ୍ତୁ। RTK + Cavemanର ସ୍ତରୀକୃତ କମ୍ପ୍ରେସନ୍ 15–95% ଟୋକନ୍ (~89% ହାରାହାରି) ସଞ୍ଚୟ କରେ — କେବେବି ସୀମାରେ ପହଞ୍ଚନ୍ତୁ ନାହିଁ। 356 AI ପ୍ରଦାତା · 150+ ମାଗଣା ଟିଅର୍ · ~1.47B ମାଗଣା ଟୋକନ୍/ମାସ · 19 ରାଉଟିଂ କୌଶଳ · ଆରମ୍ଭ କରିବାକୁ $0।"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — କୋଡିଂ ବନ୍ଦ କରନ୍ତୁ ନାହିଁ। ପ୍ରତ୍ୟେକ AI ଟୁଲ୍ → ୩୫୮ ପ୍ରଦାନକାରୀ — ୧୫୦+ ମାଗଣା — ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ୍ ମାଧ୍ୟମରେ। Claude Code, Codex, Cursor, Cline, Copilot ଏବଂ Antigravity କୁ ମାଗଣା Claude / GPT / Gemini ରେ ସ୍ୱୟଂଚାଳିତ ଫଲବ୍ୟାକ୍ ସହିତ। RTK + Caveman ଷ୍ଟାକ୍ଡ୍ କମ୍ପ୍ରେସନ୍ ୧୫–୯୫% ଟୋକେନ୍ ସଞ୍ଚୟ କରେ (~୮୯% ହାରାହାରି) — କେବେ ସୀମା ଅତିକ୍ରମ କରେ ନାହିଁ। ୩୫୮ AI ପ୍ରଦାନକାରୀ · ୧୫୦+ ମାଗଣା ଟାୟର୍ · ~୧.୬୨ ବିଲିୟନ ମାଗଣା ଟୋକେନ୍/ମାସ · ୧୯ ରାଉଟିଂ ରଣନୀତି · ଆରମ୍ଭ କରିବାକୁ $0।"/>
 
 </div>
 
 <div align="center">
 
-## 💰 ~1.47B ମାଗଣା ଟୋକନ୍ / ମାସ
+## 💰 ପ୍ରତି ମାସରେ ~1.62B ମାଗଣା ଟୋକେନ୍
 
 </div>
 
-> ମାଗଣା ଟିଅର୍‌ଗୁଡ଼ିକୁ ହାତରେ ଏକତ୍ର କରିବା କଷ୍ଟକର — ଡଜନ୍‌ ଡଜନ୍‌ SDK, ଡଜନ୍‌ ଡଜନ୍‌ ରେଟ୍ ଲିମିଟ୍, ଏବଂ ପ୍ରକୃତରେ ଆପଣଙ୍କ ପାଖରେ କେତେ ଅଛି ତାହାର କୌଣସି ଧାରଣା ନାହିଁ। OmniRoute **34ଟି ପୁନରାବର୍ତ୍ତୀ ପୁଲ୍ କୀରେ 444ଟି ମାଗଣା-ଟିଅର୍ ଏଣ୍ଟ୍ରି** ତାଲିକାଭୁକ୍ତ କରେ ଏବଂ **ପ୍ରକାଶିତ ସକାରାତ୍ମକ ମାସିକ ବଜେଟ୍ ଥିବା 16ଟି ପୁଲ୍ ସହିତ ପାଞ୍ଚଟି ପ୍ରତି-ମଡେଲ୍ Groq ସୀମା** ଆଧାରରେ ଟୋକନ୍ ଶୀର୍ଷକ ଗଣନା କରେ, ଯେଉଁଥିରେ ସହଭାଗୀ ପୁଲ୍ ଅନୁସାରେ ଡିଡୁପ୍ଲିକେସନ୍ କରାଯାଏ। କେବଳ ଆଞ୍ଚଳିକ ପରିଚୟ ଯାଞ୍ଚ ପରେ ଉପଲବ୍ଧ ହେଉଥିବା କୋଟାଗୁଡ଼ିକୁ (ବର୍ତ୍ତମାନ: ModelScope) ଅଲଗା ଭାବରେ ଦର୍ଶାଯାଏ, ଆଞ୍ଚଳିକ ପରିଚୟ ଯାଞ୍ଚ ପଛରେ +~6M, ଏବଂ ସେଗୁଡ଼ିକୁ କେବେବି ଶୀର୍ଷକର ମୋଟରେ ଯୋଡ଼ାଯାଏ ନାହିଁ। ଫଳାଫଳଟି ଡ୍ୟାସବୋର୍ଡରେ (`/dashboard/free-tiers`) ଦୃଶ୍ୟମାନ ରହେ।
+> ମାଗଣା ଟିୟର୍ଗୁଡ଼ିକୁ ହାତରେ ଏକତ୍ର କରିବା କଷ୍ଟକର — ଡଜନ୍ ଡଜନ୍ SDK, ଡଜନ୍ ଡଜନ୍ ହାର ସୀମା, ଏବଂ ପ୍ରକୃତରେ ଆପଣଙ୍କ ପାଖରେ କେତେ ଅଛି ତାହାର କୌଣସି ଧାରଣା ନାହିଁ। OmniRoute **35ଟି ପୁନରାବୃତ୍ତିଶୀଳ ପୁଲ୍ କୀରେ 489ଟି ମାଗଣା-ଟିୟର୍ ଏଣ୍ଟ୍ରି** ତାଲିକାଭୁକ୍ତ କରେ ଏବଂ **ପ୍ରକାଶିତ ସକାରାତ୍ମକ ମାସିକ ବଜେଟ୍ ଥିବା 17ଟି ପୁଲ୍ ସହ ପ୍ରତି-ମଡେଲ୍ର ପାଞ୍ଚଟି Groq ସୀମା** ଆଧାରରେ ଟୋକେନ୍ ଶୀର୍ଷକ ଗଣନା କରେ, ଯେଉଁଥିରେ ସାଧାରଣ ପୁଲ୍ ଆଧାରରେ ନକଲଗୁଡ଼ିକୁ ବାଦ ଦିଆଯାଏ। କେବଳ ଆଞ୍ଚଳିକ ପରିଚୟ ଯାଞ୍ଚ ପରେ ଉପଲବ୍ଧ ହେଉଥିବା କୋଟାଗୁଡ଼ିକ (ବର୍ତ୍ତମାନ: ModelScope) ଅଲଗା ଭାବେ ଦର୍ଶାଯାଏ, ଆଞ୍ଚଳିକ ପରିଚୟ ଯାଞ୍ଚ ପଛରେ +~6M, ଏବଂ ସେଗୁଡ଼ିକୁ କେବେ ମଧ୍ୟ ଶୀର୍ଷକର ମୋଟରେ ଯୋଡ଼ାଯାଏ ନାହିଁ। ଫଳାଫଳଟି ଡ୍ୟାସବୋର୍ଡରେ (`/dashboard/free-tiers`) ଦୃଶ୍ୟମାନ ରହେ।
 
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute ମାଗଣା-ଟିଅର୍ ବଜେଟ୍ କାର୍ଡ: ସ୍ଥିର ଭାବରେ ପ୍ରତି ମାସ ~1.47B ମାଗଣା ଟୋକନ୍, ସାଇନ୍‌ଅପ୍ କ୍ରେଡିଟ୍ ସହିତ ପ୍ରଥମ ମାସରେ ~2.10B ପର୍ଯ୍ୟନ୍ତ, ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ ପଛରେ 444ଟି ତାଲିକାଭୁକ୍ତ ମାଗଣା-ଟିଅର୍ ଏଣ୍ଟ୍ରିକୁ ଅନ୍ତର୍ଭୁକ୍ତ କରୁଥିବା 34ଟି ଦଲିଲଭୁକ୍ତ ପୁନରାବର୍ତ୍ତୀ ପୁଲ୍ କୀରୁ। ସ୍ୱଚ୍ଛ ପୁଲ୍-ଡିଡୁପ୍ଲିକେଟେଡ୍ ଗଣନା — ପ୍ରତ୍ୟେକ ସହଭାଗୀ ପୁଲ୍‌କୁ କେବଳ ଥରେ ଗଣାଯାଏ, ଯେଉଁଥିରେ ପ୍ରକାଶିତ ସକାରାତ୍ମକ ମାସିକ ଟୋକନ୍ ବଜେଟ୍ ଥିବା 16ଟି ପୁନରାବର୍ତ୍ତୀ ପୁଲ୍ ସହିତ ପାଞ୍ଚଟି ପ୍ରତି-ମଡେଲ୍ Groq ସୀମା ଅନ୍ତର୍ଭୁକ୍ତ; ସର୍ତ୍ତାବଳୀ-ବିପଦ କ୍ୟାଟାଲଗ୍‌ରେ 13ଟି ପ୍ରଦାତାକୁ ଏଡ଼ାଇବା ପାଇଁ ଚିହ୍ନିତ କରାଯାଇଛି, ଯାହାଦ୍ୱାରା ଆପଣ ନିଷ୍ପତ୍ତି ନେଇପାରିବେ। ବଜେଟ୍ ବାର୍‌ରେ Mistral 1B, Nara 210M, LLM7 150M, Groq 30M (ପାଞ୍ଚଟି ପ୍ରତି-ମଡେଲ୍ ସୀମା) ଏବଂ ଛୋଟ ପୁଲ୍‌ଗୁଡ଼ିକ ଅନ୍ତର୍ଭୁକ୍ତ, ଏହା ସହିତ ପ୍ରଥମ ମାସର ସାଇନ୍‌ଅପ୍ କ୍ରେଡିଟ୍ ଏବଂ ସ୍ଥାୟୀ ଭାବରେ ମାଗଣା, ଟୋକନ୍-ସୀମା-ବିହୀନ ପ୍ରଦାତାମାନଙ୍କୁ ଅଲଗା ଭାବରେ ଦର୍ଶାଯାଏ, ଯାହାଦ୍ୱାରା ସେମାନେ କେବେବି ଶୀର୍ଷକ ସଂଖ୍ୟାକୁ କୃତ୍ରିମ ଭାବେ ବଢ଼ାଇ ନପାରନ୍ତି। `/dashboard/free-tiers`ରେ ବ୍ୟବହୃତ/ଅବଶିଷ୍ଟର ଲାଇଭ୍ ସ୍ଥିତି।"/>
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute ମାଗଣା-ଟିୟର୍ ବଜେଟ୍ କାର୍ଡ: ପ୍ରତି ମାସରେ ସ୍ଥିର ଭାବେ ~1.62B ମାଗଣା ଟୋକେନ୍, ସାଇନ୍ଅପ୍ କ୍ରେଡିଟ୍ ସହ ପ୍ରଥମ ମାସରେ ~2.22B ପର୍ଯ୍ୟନ୍ତ, ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ ପଛରେ 489ଟି ତାଲିକାଭୁକ୍ତ ମାଗଣା-ଟିୟର୍ ଏଣ୍ଟ୍ରିକୁ ଆବୃତ କରୁଥିବା 35ଟି ଦଲିଲଭୁକ୍ତ ପୁନରାବୃତ୍ତିଶୀଳ ପୁଲ୍ କୀରୁ। ସ୍ୱଚ୍ଛ ପୁଲ୍-ନକଲମୁକ୍ତ ଗଣନା — ପ୍ରତ୍ୟେକ ସାଧାରଣ ପୁଲ୍କୁ କେବଳ ଥରେ ଗଣାଯାଏ, ଯେଉଁଥିରେ ପ୍ରକାଶିତ ସକାରାତ୍ମକ ମାସିକ ଟୋକେନ୍ ବଜେଟ୍ ଥିବା 17ଟି ପୁନରାବୃତ୍ତିଶୀଳ ପୁଲ୍ ସହ ପ୍ରତି-ମଡେଲ୍ର ପାଞ୍ଚଟି Groq ସୀମା ଅନ୍ତର୍ଭୁକ୍ତ; ସର୍ତ୍ତାବଳୀ-ବିପଦ କ୍ୟାଟାଲଗ୍ରେ 13ଟି ପ୍ରଦାନକାରୀଙ୍କୁ ଏଡ଼ାଇବା ପାଇଁ ଚିହ୍ନିତ କରାଯାଇଛି, ତେଣୁ ନିଷ୍ପତ୍ତି ଆପଣଙ୍କର। ବଜେଟ୍ ବାର୍ରେ Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (ପ୍ରତି-ମଡେଲ୍ର ପାଞ୍ଚଟି ସୀମା) ଏବଂ ଛୋଟ ପୁଲ୍ଗୁଡ଼ିକ ଅନ୍ତର୍ଭୁକ୍ତ, ଏହା ସହ ପ୍ରଥମ ମାସର ସାଇନ୍ଅପ୍ କ୍ରେଡିଟ୍ ଏବଂ ସ୍ଥାୟୀ ଭାବେ ମାଗଣା, ଟୋକେନ୍-ସୀମା-ବିହୀନ ପ୍ରଦାନକାରୀମାନଙ୍କୁ ଅଲଗା ଭାବେ ଦର୍ଶାଯାଏ, ଯାହାଫଳରେ ସେମାନେ କେବେ ମଧ୍ୟ ଶୀର୍ଷକ ସଂଖ୍ୟାକୁ କୃତ୍ରିମ ଭାବେ ବଢ଼ାନ୍ତି ନାହିଁ। /dashboard/free-tiers ରେ ବ୍ୟବହୃତ/ଅବଶିଷ୍ଟର ସଜୀବ ତଥ୍ୟ।"/>
 
-> ଲାଇଭ୍ `/dashboard/free-tiers` ପୃଷ୍ଠାର ଆନିମେଟେଡ୍ ସାରାଂଶ। ସମ୍ପୂର୍ଣ୍ଣ ପଦ୍ଧତି (ପୁଲ୍ ଡିଡୁପ୍ଲିକେସନ୍, କ୍ରେଡିଟ୍ ଟିଅର୍, ପ୍ରଦାତାଙ୍କ ସର୍ତ୍ତାବଳୀ): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**।
+> ସଜୀବ `/dashboard/free-tiers` ପୃଷ୍ଠାର ଆନିମେଟେଡ୍ ସାରାଂଶ। ସମ୍ପୂର୍ଣ୍ଣ ପଦ୍ଧତି (ପୁଲ୍ର ନକଲ ବାଦ, କ୍ରେଡିଟ୍ ଟିୟର୍, ପ୍ରଦାନକାରୀଙ୍କ ସର୍ତ୍ତାବଳୀ): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**।
 >
-> <sub>ଏହି ସଂଖ୍ୟାଗୁଡ଼ିକୁ ପ୍ରତି ଦୁଇ ସପ୍ତାହରେ ଲାଇଭ୍ କ୍ୟାଟାଲଗ୍ ସହିତ ପୁନଃ ଅଡିଟ୍ କରାଯାଏ ଏବଂ ଏଗୁଡ଼ିକ **ଉଭୟ ଦିଗରେ ବଦଳେ** — କୌଣସି ପ୍ରଦାତା ମାଗଣା ଟିଅର୍ ବନ୍ଦ କଲେ ସଂଖ୍ୟା କମେ; ନୂଆ ଗୋଟିଏ ଯୋଡ଼ାଗଲେ ଏହା ବଢ଼େ। କ୍ୟାଟାଲଗ୍ ପ୍ରକୃତରେ ଯାହା ଗଣନା କରେ ଆମେ ତାହାହିଁ ପ୍ରକାଶ କରୁ, କେବେବି ଉପରକୁ ପୂର୍ଣ୍ଣାଙ୍କିତ ସର୍ବୋତ୍ତମ ପରିସ୍ଥିତି ନୁହେଁ।</sub>
+> <sub>ଏହି ପରିସଂଖ୍ୟାନଗୁଡ଼ିକୁ ପ୍ରତି ଦୁଇ ସପ୍ତାହରେ ସଜୀବ କ୍ୟାଟାଲଗ୍ ସହ ମେଳ କରି ପୁନଃଅଡିଟ୍ କରାଯାଏ ଏବଂ ସେଗୁଡ଼ିକ **ଉଭୟ ଦିଗକୁ ବଦଳେ** — କୌଣସି ପ୍ରଦାନକାରୀ ଏକ ମାଗଣା ଟିୟର୍ ବନ୍ଦ କଲେ ସଂଖ୍ୟା କମେ; ନୂତନ ଏକଟି ଯୋଡ଼ାଗଲେ ଏହା ବଢ଼େ। କ୍ୟାଟାଲଗ୍ ପ୍ରକୃତରେ ଯାହା ଗଣନା କରେ ଆମେ ତାହାହିଁ ପ୍ରକାଶ କରୁ, କେବେ ମଧ୍ୟ ପୂର୍ଣ୍ଣାଙ୍କକୁ ବଢ଼ାଯାଇଥିବା ସର୍ବୋତ୍ତମ ସମ୍ଭାବ୍ୟ ଆକଳନ ନୁହେଁ।</sub>
 
 <br/>
 
@@ -37,46 +37,46 @@
 
 <h3>
 
-⭐ OMNIROUTE ଯଦି ଆପଣଙ୍କ ଟଙ୍କା ସଞ୍ଚୟ କରିବାରେ ଏବଂ କାମକୁ ସହଜ କରିବାରେ ସାହାଯ୍ୟ କରିଛି, ତେବେ ରେପୋକୁ ଷ୍ଟାର୍ ଦିଅନ୍ତୁ।
+⭐ OMNIROUTE ଯଦି ଆପଣଙ୍କୁ ଅର୍ଥ ସଞ୍ଚୟ କରିବାରେ ଏବଂ କାମ ସହଜ କରିବାରେ ସାହାଯ୍ୟ କରିଛି, ତେବେ ରେପୋକୁ ଷ୍ଟାର୍ ଦିଅନ୍ତୁ।
 
 </h3>
 
-[![ଷ୍ଟାର୍‌ଗୁଡ଼ିକ](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+[![ଷ୍ଟାର୍ଗୁଡ଼ିକ](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-[![ଷ୍ଟାର୍ ଇତିହାସ ରାଙ୍କ](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
+[![ଷ୍ଟାର୍ ଇତିହାସ ମାନ୍ୟତା](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
 [![olud.ai](https://olud.ai/badge.php?tool=diegosouzapw-omniroute)](https://olud.ai/project/diegosouzapw-omniroute.html)
 
 ### 💬 ସମୁଦାୟରେ ଯୋଗ ଦିଅନ୍ତୁ
 
-**👋 ରକ୍ଷଣାବେକ୍ଷଣକାରୀଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ — ନୂଆ ପ୍ରଦାତା, ରିଲିଜ୍ ଏବଂ ପରାମର୍ଶ ସବୁଠାରୁ ପ୍ରଥମେ ପାଆନ୍ତୁ:**
+**👋 ରକ୍ଷଣାବେକ୍ଷକଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ — ନୂତନ ପ୍ରଦାନକାରୀ, ରିଲିଜ୍ ଏବଂ ପରାମର୍ଶ ସବୁଠାରୁ ପ୍ରଥମେ ପାଆନ୍ତୁ:**
 
-[![LinkedInରେ Diegoଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
-[![GitHubରେ @diegosouzapwଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
+[![LinkedIn ରେ Diegoଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
+[![GitHub ରେ @diegosouzapwଙ୍କୁ ଅନୁସରଣ କରନ୍ତୁ](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
 
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/U47eFqAXCn)
 [![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
-[![WhatsApp ଗ୍ଲୋବାଲ୍](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4)
-[![WhatsApp ବ୍ରାଜିଲ୍](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
+[![WhatsApp Global](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4)
+[![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
 [![ୱେବସାଇଟ୍](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
-**ପ୍ରଶ୍ନ, ପ୍ରଦାତା ସମ୍ପର୍କିତ ପରାମର୍ଶ, ରୋଡମ୍ୟାପ୍ ଏବଂ ସହାୟତା → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 ଗ୍ଲୋବାଲ୍](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 ବ୍ରାଜିଲ୍](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [ପୋର୍ଟାଲ୍](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
+**ପ୍ରଶ୍ନ, ପ୍ରଦାନକାରୀ ସମ୍ବନ୍ଧୀୟ ପରାମର୍ଶ, ରୋଡମ୍ୟାପ୍ ଏବଂ ସହାୟତା → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 ବିଶ୍ୱବ୍ୟାପୀ](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 ବ୍ରାଜିଲ୍](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [ପୋର୍ଟାଲ୍](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
 
 <br/>
 
-## 📈 ଗେଟୱେ କ୍ରମାଗତ ଭାବେ ବଢ଼ୁଛି
+## 📈 ଗେଟୱେ ନିରନ୍ତର ବୃଦ୍ଧି ପାଉଛି
 
 <div align="center">
 
-|                          | v3.8.49 |       **v3.8.50**       |  `v3.8.51+`   |
-| ------------------------ | :-----: | :---------------------: | :-----------: |
-| 🌐 ପ୍ରଦାନକାରୀ            |   290   |         **352**         | ଆହୁରି ଧାଡ଼ିରେ |
-| 🧠 ଅନନ୍ୟ ଚାଟ୍ ମଡେଲ୍ ID   |  1185   |        **1312**         |       —       |
-| 🖼️ ମୋଡାଲିଟି ବ୍ରିଜ୍       |    —    | 🆕 ଭିଜନ୍ + ଅଡିଓ + ଭିଡିଓ |       —       |
-| 📡 Radar ମାଗଣା କ୍ୟାଟାଲଗ୍ |    —    |       🆕 ଇଚ୍ଛାଧୀନ       |       —       |
-| ⚖️ କୋଟା-ସଚେତନ ସୂଚୀକରଣ    |    —    |     🆕 Quota-Share      |       —       |
-| 📊 କୋଟା ଟେଲିମେଟ୍ରି       |    —    |        🆕 ଲାଇଭ୍         |       —       |
+|                          | v3.8.49 |       **v3.8.50**       |      `v3.8.51+`      |
+| ------------------------ | :-----: | :---------------------: | :------------------: |
+| 🌐 ପ୍ରଦାନକାରୀ            |   290   |         **357**         | ଆହୁରି ଧାଡ଼ିରେ ଅଛନ୍ତି |
+| 🧠 ଅନନ୍ୟ ଚାଟ୍ ମଡେଲ୍ ID   |  1185   |        **1312**         |          —           |
+| 🖼️ ମୋଡାଲିଟି ବ୍ରିଜ୍       |    —    | 🆕 ଭିଜନ୍ + ଅଡିଓ + ଭିଡିଓ |          —           |
+| 📡 Radar ମାଗଣା କ୍ୟାଟାଲଗ୍ |    —    |       🆕 ଇଚ୍ଛାଧୀନ       |          —           |
+| ⚖️ କୋଟା-ସଚେତନ ସମୟସୂଚୀକରଣ |    —    |     🆕 Quota-Share      |          —           |
+| 📊 କୋଟା ଟେଲିମେଟ୍ରି       |    —    |        🆕 ଲାଇଭ୍         |          —           |
 
-**→ [ରୋଡମ୍ୟାପ୍](ROADMAP.md) — `v3.9.0 LTS` ଆଡ଼କୁ ଅଗ୍ରସର**
+**→ [ରୋଡମ୍ୟାପ୍](ROADMAP.md) — `v3.9.0 LTS` ଅଭିମୁଖେ ଯାତ୍ରା**
 
 </div>
 
@@ -94,58 +94,58 @@
 <table>
   <tr>
     <td align="right"><b>🚀 ଆରମ୍ଭ</b></td>
-    <td align="center"><a href="#-quick-start">🚀 ଶୀଘ୍ର ଆରମ୍ଭ</a></td>
-    <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 ଇନ୍‌ଷ୍ଟଲ୍ କରନ୍ତୁ</a></td>
+    <td align="center"><a href="#-quick-start">🚀 ଦ୍ରୁତ ଆରମ୍ଭ</a></td>
+    <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 ଇନ୍ଷ୍ଟଲ୍ କରନ୍ତୁ</a></td>
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 ଶୂନ୍ୟ-କନଫିଗ୍</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 ଶିଖନ୍ତୁ</b></td>
     <td align="center"><a href="#-the-promise">💥 ପ୍ରତିଶ୍ରୁତି</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 OmniRoute କାହିଁକି</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 କେଉଁ ବିଶେଷତା ଏହାକୁ ସ୍ୱତନ୍ତ୍ର କରେ</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 କ’ଣ ଏହାକୁ ସ୍ୱତନ୍ତ୍ର କରେ</a></td>
   </tr>
   <tr>
-    <td align="right"><b>⚙️ ବୈଶିଷ୍ଟ୍ୟ</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 କମ୍ବୋ</a></td>
-    <td align="center"><a href="#-352-ai-providers--154-catalog-marked-free">🌐 ପ୍ରଦାନକାରୀ</a></td>
-    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ଏବଂ MCP</a></td>
+    <td align="right"><b>⚙️ ବୈଶିଷ୍ଟ୍ୟଗୁଡ଼ିକ</b></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 କମ୍ବୋଗୁଡ଼ିକ</a></td>
+    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ପ୍ରଦାନକାରୀମାନେ</a></td>
+    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ ସଙ୍କୋଚନ</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ କେଉଁଠାରେ ଚାଲେ</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ଏହା କେଉଁଠି ଚାଲେ</a></td>
     <td align="center"><a href="#-private--local-first">🔒 ବ୍ୟକ୍ତିଗତ</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 ଦେଖନ୍ତୁ</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 କାର୍ଯ୍ୟରତ ଅବସ୍ଥାରେ</a></td>
-    <td align="center"><a href="#-whats-new">✨ ନୂଆ କ'ଣ</a></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 କାର୍ଯ୍ୟରେ</a></td>
+    <td align="center"><a href="#-whats-new">✨ ନୂଆ କ’ଣ</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 ସୁସଙ୍ଗତ CLIଗୁଡ଼ିକ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 ସମର୍ଥନ</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 ସମର୍ଥନ / ଦାନ କରନ୍ତୁ</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 ସମର୍ଥନ / ଦାନ</a></td>
     <td align="center"><a href="#-community--help">💬 ସମୁଦାୟ</a></td>
-    <td align="center"><a href="#-sponsors">💖 ପ୍ରାୟୋଜକ</a></td>
+    <td align="center"><a href="#-sponsors">💖 ପ୍ରାୟୋଜକମାନେ</a></td>
   </tr>
   <tr>
     <td align="right"><b>📦 ପ୍ରକଳ୍ପ</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ ପ୍ରଯୁକ୍ତି ଷ୍ଟାକ୍</a></td>
     <td align="center"><a href="#-documentation">📖 ଡକ୍ୟୁମେଣ୍ଟେସନ୍</a></td>
-    <td align="center"><a href="#-600-contributors">👥 ଅବଦାନକାରୀ</a></td>
+    <td align="center"><a href="#-600-contributors">👥 ଅବଦାନକାରୀମାନେ</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 ୫୩ଟି ଭାଷାରେ</b>
+  <b>🌐 66ଟି ଭାଷାରେ</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="ଇଂରାଜୀ (en)" title="ଇଂରାଜୀ (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="ପର୍ତ୍ତୁଗୀଜ୍ — ବ୍ରାଜିଲ୍ (pt-BR)" title="ପର୍ତ୍ତୁଗୀଜ୍ — ବ୍ରାଜିଲ୍ (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="ପର୍ତ୍ତୁଗୀଜ୍ (pt)" title="ପର୍ତ୍ତୁଗୀଜ୍ (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="ସ୍ପାନିଶ୍ (es)" title="ସ୍ପାନିଶ୍ (es)"></a>
-  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="ଫ୍ରେଞ୍ଚ୍ (fr)" title="ଫ୍ରେଞ୍ଚ୍ (fr)"></a>
+  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="ଫରାସୀ (fr)" title="ଫରାସୀ (fr)"></a>
   <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="ଇଟାଲୀୟ (it)" title="ଇଟାଲୀୟ (it)"></a>
   <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="ଜର୍ମାନ୍ (de)" title="ଜର୍ମାନ୍ (de)"></a>
   <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="ଡଚ୍ (nl)" title="ଡଚ୍ (nl)"></a>
@@ -181,19 +181,32 @@
   <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="ଆରବୀ (ar)" title="ଆରବୀ (ar)"></a>
   <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="ହିବ୍ରୁ (he)" title="ହିବ୍ରୁ (he)"></a>
   <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="ତୁର୍କୀ (tr)" title="ତୁର୍କୀ (tr)"></a>
-  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="ଆଜରବାଇଜାନୀ (az)" title="ଆଜରବାଇଜାନୀ (az)"></a>
-  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="ସ୍ୱାହିଲୀ (sw)" title="ସ୍ୱାହିଲୀ (sw)"></a>
+  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="ଆଜେରବାଇଜାନୀ (az)" title="ଆଜେରବାଇଜାନୀ (az)"></a>
+  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="ସ୍ୱାହିଲି (sw)" title="ସ୍ୱାହିଲି (sw)"></a>
   <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="ଗ୍ରୀକ୍ (el)" title="ଗ୍ରୀକ୍ (el)"></a>
   <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="କ୍ରୋଏସୀୟ (hr)" title="କ୍ରୋଏସୀୟ (hr)"></a>
   <a href="docs/i18n/sr/README.md"><img src="docs/assets/flags/rs.svg" width="30" alt="ସର୍ବୀୟ (sr)" title="ସର୍ବୀୟ (sr)"></a>
   <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="ଲିଥୁଆନୀୟ (lt)" title="ଲିଥୁଆନୀୟ (lt)"></a>
-  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="ଏଷ୍ଟୋନୀୟ (et)" title="ଏଷ୍ଟୋନୀୟ (et)"></a>
+  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="ଏସ୍ତୋନୀୟ (et)" title="ଏସ୍ତୋନୀୟ (et)"></a>
   <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="ଲାଟଭୀୟ (lv)" title="ଲାଟଭୀୟ (lv)"></a>
   <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="ସ୍ଲୋଭେନୀୟ (sl)" title="ସ୍ଲୋଭେନୀୟ (sl)"></a>
   <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="ମାଲ୍ଟୀୟ (mt)" title="ମାଲ୍ଟୀୟ (mt)"></a>
   <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="ଆଇରିଶ୍ (ga)" title="ଆଇରିଶ୍ (ga)"></a>
   <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="କନ୍ନଡ଼ (kn)" title="କନ୍ନଡ଼ (kn)"></a>
   <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ମାଲାୟାଲମ୍ (ml)" title="ମାଲାୟାଲମ୍ (ml)"></a>
+  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ଓଡ଼ିଆ (or)" title="ଓଡ଼ିଆ (or)"></a>
+  <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ପଞ୍ଜାବୀ (pa)" title="ପଞ୍ଜାବୀ (pa)"></a>
+  <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="ନେପାଳୀ (ne)" title="ନେପାଳୀ (ne)"></a>
+  <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="ସିଂହଳ (si)" title="ସିଂହଳ (si)"></a>
+  <a href="docs/i18n/my/README.md"><img src="docs/assets/flags/mm.svg" width="30" alt="ବର୍ମୀୟ (my)" title="ବର୍ମୀୟ (my)"></a>
+  <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="ଖମେର୍ (km)" title="ଖମେର୍ (km)"></a>
+  <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ହାଉସା (ha)" title="ହାଉସା (ha)"></a>
+  <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ୟୋରୁବା (yo)" title="ୟୋରୁବା (yo)"></a>
+  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ଇଗ୍ବୋ (ig)" title="ଇଗ୍ବୋ (ig)"></a>
+  <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="ଆମହାରିକ୍ (am)" title="ଆମହାରିକ୍ (am)"></a>
+  <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="ଉଜବେକ୍ (uz)" title="ଉଜବେକ୍ (uz)"></a>
+  <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ଜର୍ଜୀୟ (ka)" title="ଜର୍ଜୀୟ (ka)"></a>
+  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="ଆର୍ମେନୀୟ (hy)" title="ଆର୍ମେନୀୟ (hy)"></a>
 </div>
 
 <br/>
@@ -201,22 +214,22 @@
 
 <div align="center">
 
-## 🆓 ଇନ୍‌ଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — କୌଣସି କି, କୌଣସି କନ୍‌ଫିଗ୍ ନାହିଁ
+## 🆓 ଆପଣ ଏହାକୁ ଇନଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — କୌଣସି କି' ନାହିଁ, କୌଣସି କନଫିଗ୍ ନାହିଁ
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ଇନ୍‌ଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — ଶୂନ୍ୟ କନ୍‌ଫିଗ୍। ତିନୋଟି ପଦକ୍ଷେପ: 1. ଇନ୍‌ଷ୍ଟଲ୍ — npm i -g omniroute, ସର୍ଭର୍ localhost:20128 ରେ ବୁଟ୍ ହୁଏ। 2. ଆପଣଙ୍କ ଟୁଲ୍‌କୁ http://localhost:20128/v1 ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତୁ — ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍ (Claude Code, Cursor, Cline)। 3. ଏହା ଉତ୍ତର ଦିଏ — କୌଣସି API କି, ସାଇନ୍‌ଅପ୍ କିମ୍ବା କନ୍‌ଫିଗରେସନ୍ ବିନା ତୁରନ୍ତ ଉତ୍ତର ପାଇଁ model auto କୁ କଲ୍ କରନ୍ତୁ। କି-ବିହୀନ ପ୍ରଦାନକାରୀ OpenCode Free, auto କମ୍ବୋରେ ପୂର୍ବରୁ ସଂଯୋଜିତ ଅଛି, ତେଣୁ ଏକ ନୂଆ ଇନ୍‌ଷ୍ଟଲ୍ କୌଣସି ଅତିରିକ୍ତ ବ୍ୟବସ୍ଥା ବିନା ଉତ୍ତର ଦିଏ।"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ଆପଣ ଏହାକୁ ଇନଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — ଶୂନ୍ୟ କନଫିଗ୍। ତିନୋଟି ପଦକ୍ଷେପ: 1. ଇନଷ୍ଟଲ୍ କରନ୍ତୁ — npm i -g omniroute, ସର୍ଭର localhost:20128 ରେ ବୁଟ୍ ହୁଏ। 2. ଆପଣଙ୍କ ଟୁଲ୍ କୁ http://localhost:20128/v1 କୁ ପଏଣ୍ଟ କରନ୍ତୁ — ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍ (Claude Code, Cursor, Cline)। 3. ଏହା ଉତ୍ତର ଦିଏ — ତୁରନ୍ତ ଉତ୍ତର ପାଇଁ ମଡେଲ୍ auto କୁ କଲ୍ କରନ୍ତୁ, କୌଣସି API କି' ନାହିଁ, କୌଣସି ସାଇନ୍ ଅପ୍ ନାହିଁ, କୌଣସି କନଫିଗରେସନ୍ ନାହିଁ। କି'ଲେସ୍ ପ୍ରୋଭାଇଡର୍ OpenCode Free auto କମ୍ବୋରେ ପୂର୍ବରୁ ୱାୟାର୍ ହୋଇଛି, ତେଣୁ ଏକ ନୂତନ ଇନଷ୍ଟଲ୍ ବାକ୍ସରୁ ହିଁ ପ୍ରତିକ୍ରିୟା ଦିଏ।"/>
 
 ```bash
-# ନୂଆ ଇନ୍‌ଷ୍ଟଲ୍, ଶୂନ୍ୟ କ୍ରେଡେନ୍‌ସିଆଲ୍ — `auto` ପୂର୍ବରୁ କାମ କରେ:
+# ନୂତନ ଇନଷ୍ଟଲ୍, ଶୂନ୍ୟ କ୍ରେଡେନ୍ସିଆଲ୍ — `auto` ପୂର୍ବରୁ କାମ କରେ:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ମାଗଣା ବ୍ୟାକ୍‌ଏଣ୍ଡ୍ ପସନ୍ଦ କରନ୍ତି? ସିଧାସଳଖ `oc/…` (OpenCode Free) କଲ୍ କରନ୍ତୁ। ତା’ପରେ `auto` ବ୍ୟବହାର କରନ୍ତୁ ଏବଂ OmniRoute କୁ ବାଛିବାକୁ ଦିଅନ୍ତୁ।</sub>
+<sub>ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ମାଗଣା ବ୍ୟାକେଣ୍ଡ୍ ପସନ୍ଦ କରନ୍ତି କି? ସିଧାସଳଖ `oc/…` (OpenCode Free) କୁ କଲ୍ କରନ୍ତୁ। ତାପରେ `auto` କୁ ଅପଗ୍ରେଡ୍ କରନ୍ତୁ ଏବଂ OmniRoute କୁ ବାଛିବାକୁ ଦିଅନ୍ତୁ।</sub>
 
-<sub>📦 **Python, Node.js, PHP, ଏବଂ cURL** ପାଇଁ କପି-ପେଷ୍ଟ୍ କ୍ୱିକ୍‌ଷ୍ଟାର୍ଟ ସ୍କ୍ରିପ୍ଟ → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP, ଏବଂ cURL** ପାଇଁ କପି-ପେଷ୍ଟ କୁଇକଷ୍ଟାର୍ଟ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକ → [`examples/quickstart/`]</sub>
 
 <br/>
 
@@ -226,22 +239,22 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ପ୍ରତିଶ୍ରୁତି — ଗୋଟିଏ ଏଣ୍ଡ୍‌ପଏଣ୍ଟ ଏବଂ 356 ପ୍ରଦାନକାରୀ। ଅନ୍ୟ ଏକ ସୁସ୍ଥ ଟାର୍ଗେଟ୍ ଉପଲବ୍ଧ ଥିବା ପର୍ଯ୍ୟନ୍ତ ସ୍ୱୟଂଚାଳିତ ଫଲ୍‌ବ୍ୟାକ୍ ରାଉଟିଂ ଜାରି ରଖେ। ଛଅଟି ସ୍ତମ୍ଭ: 356 ପ୍ରଦାନକାରୀ ମଧ୍ୟରେ ସ୍ଥିତିସ୍ଥାପକ ଫଲ୍‌ବ୍ୟାକ୍ · ଯୋଗ୍ୟ ୱର୍କଲୋଡ୍‌ରେ 95% ପର୍ଯ୍ୟନ୍ତ ଟୋକନ୍ ସଞ୍ଚୟ · 150+ ମାଗଣା ଟିୟର୍ ଏବଂ 52ଟି ପୁନରାବୃତ୍ତ/କି-ବିହୀନ ସଦା-ମାଗଣା ପ୍ରଦାନକାରୀ ସହିତ ଆରମ୍ଭିକ ଖର୍ଚ୍ଚ $0 · ଗୋଟିଏ କନ୍‌ଫିଗ୍ ମାଧ୍ୟମରେ 36ଟି CLI/ଏଜେଣ୍ଟ୍ ଇଣ୍ଟିଗ୍ରେସନ୍ · /v1 ରେ OpenAI, Claude, Gemini ଏବଂ Responses API ସୁସଙ୍ଗତତା · ସର୍କିଟ୍ ବ୍ରେକର୍, TLS ଷ୍ଟେଲ୍ଥ୍, MCP 110 ଟୁଲ୍, A2A, ମେମୋରି, ଗାର୍ଡରେଲ୍, ଇଭାଲ୍ ଏବଂ 5,100+ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଟେଷ୍ଟ୍ ଫାଇଲ୍‌ରେ 39,000+ ଷ୍ଟାଟିକ୍ ଟେଷ୍ଟ୍ ଡିକ୍ଲାରେସନ୍ ସମେତ ପ୍ରଡକ୍ସନ୍ କଣ୍ଟ୍ରୋଲ୍।"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="ପ୍ରତିଶ୍ରୁତି — ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ ଏବଂ 358 ପ୍ରୋଭାଇଡର୍। ଅନ୍ୟ ଏକ ସୁସ୍ଥ ଟାର୍ଗେଟ୍ ଉପଲବ୍ଧ ଥିବାବେଳେ ସ୍ୱୟଂଚାଳିତ ଫଲବ୍ୟାକ୍ ରାଉଟିଂ ଜାରି ରଖେ। ଛଅଟି ସ୍ତମ୍ଭ: 358 ପ୍ରୋଭାଇଡର୍ ମଧ୍ୟରେ ସ୍ଥିର ଫଲବ୍ୟାକ୍ · ଯୋଗ୍ୟ ୱାର୍କଲୋଡ୍ ଉପରେ 95% ପର୍ଯ୍ୟନ୍ତ ଟୋକେନ୍ ସଞ୍ଚୟ · 150+ ମାଗଣା ଟାୟର୍ ଏବଂ 54 ପୁନରାବୃତ୍ତି/କି'ଲେସ୍ ସବୁଦିନ ପାଇଁ ମାଗଣା ପ୍ରୋଭାଇଡର୍ ସହିତ ଆରମ୍ଭ କରିବାକୁ $0 · ଗୋଟିଏ କନଫିଗ୍ ମାଧ୍ୟମରେ 36 CLI/ଏଜେଣ୍ଟ ଇଣ୍ଟିଗ୍ରେସନ୍ · /v1 ରେ OpenAI, Claude, Gemini ଏବଂ Responses API ସୁସଙ୍ଗତତା · ସର୍କିଟ୍ ବ୍ରେକର୍, TLS ଷ୍ଟେଲଥ୍, MCP 110 ଟୁଲ୍, A2A, ମେମୋରୀ, ଗାର୍ଡରେଲ୍, ଇଭାଲ୍ ଏବଂ 5,100+ ଟ୍ରାକ୍ ହୋଇଥିବା ଟେଷ୍ଟ ଫାଇଲ୍ ମଧ୍ୟରେ 39,000+ ଷ୍ଟାଟିକ୍ ଟେଷ୍ଟ ଡିକ୍ଲାରେସନ୍ ସହିତ ଉତ୍ପାଦନ ନିୟନ୍ତ୍ରଣ।"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 OmniRoute କାହିଁକି?
+# 🤔 କାହିଁକି OmniRoute?
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute କାହିଁକି — 10ଟି ଡ୍ୟାସ୍‌ବୋର୍ଡ୍, ଅଚଳ API କି ଏବଂ ଅପ୍ରତ୍ୟାଶିତ ବିଲ୍ ସମ୍ଭାଳିବା ବନ୍ଦ କରନ୍ତୁ। ଦୈନନ୍ଦିନ ଦଶଟି ସମସ୍ୟା ବନାମ ସମାଧାନ: ବ୍ୟବହାର ନ ହୋଇ କୋଟାର ମିଆଦ ଶେଷ → ସବ୍‌ସ୍କ୍ରିପ୍ସନ୍‌ର ସର୍ବାଧିକ ବ୍ୟବହାର; କୋଡିଂ ମଝିରେ ରେଟ୍ ଲିମିଟ୍ → 4-ଟିୟର୍ ସ୍ୱୟଂଚାଳିତ ଫଲ୍‌ବ୍ୟାକ୍ (Subscription → API → Cheap → Free); ଟୁଲ୍ ଆଉଟ୍‌ପୁଟ୍‌ରେ ଟୋକନ୍ ଅପଚୟ → RTK + Caveman କମ୍ପ୍ରେସନ୍ (15–95%); ମହଙ୍ଗା API → ଖର୍ଚ୍ଚ-ଅନୁକୂଳିତ ରାଉଟିଂ; ପ୍ରତ୍ୟେକ ଟୁଲ୍ ପାଇଁ ନିଜସ୍ୱ ସେଟ୍‌ଅପ୍ → ଗୋଟିଏ ଏଣ୍ଡ୍‌ପଏଣ୍ଟ, ଗୋଟିଏ ଡ୍ୟାସ୍‌ବୋର୍ଡ୍; AI ବ୍ଲକ୍ ହୋଇଛି → 3-ସ୍ତରୀୟ ପ୍ରକ୍ସି + TLS ଷ୍ଟେଲ୍ଥ୍; ଅଚଳ କି → 3-ସ୍ତରୀୟ ସ୍ଥିତିସ୍ଥାପକତା (ସର୍କିଟ୍ ବ୍ରେକର୍, କି କୁଲ୍‌ଡାଉନ୍, ମଡେଲ୍ ଲକ୍‌ଆଉଟ୍); ଗୋଟିଏ ସବ୍‌ସ୍କ୍ରିପ୍ସନ୍ ସେୟାର୍ କରୁଥିବା ଟିମ୍ → ନ୍ୟାୟସଙ୍ଗତ-ଅଂଶ କୋଟା ସହିତ କି ପୁଲ୍; ଅନ୍ୟ କାହାରି କ୍ଲାଉଡ୍ ମାଧ୍ୟମରେ ପ୍ରମ୍ପ୍ଟ୍ → AES-256-GCM ଏନ୍‌କ୍ରିପ୍ଟ୍ କି ସହିତ ଲୋକାଲ୍-ଫର୍ଷ୍ଟ୍; ଖର୍ଚ୍ଚର ଦୃଶ୍ୟମାନତା ନାହିଁ → ଲାଇଭ୍ ଆନାଲିଟିକ୍ସ (ବ୍ୟବହାର, କୋଟା, ସଞ୍ଚୟ, p95 ଲେଟେନ୍ସି)।"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="କାହିଁକି OmniRoute — 10 ଟି ଡ୍ୟାସବୋର୍ଡ, ମୃତ API କି' ଏବଂ ଆଶ୍ଚର୍ଯ୍ୟଜନକ ବିଲ୍ ସହିତ ସଂଘର୍ଷ କରିବା ବନ୍ଦ କରନ୍ତୁ। ଦଶଟି ଦୈନିକ ଯନ୍ତ୍ରଣା ବନାମ ସମାଧାନ: ବ୍ୟବହାର ନହୋଇ କୋଟା ଶେଷ ହେବା → ସବସ୍କ୍ରିପସନ୍ କୁ ସର୍ବାଧିକ କରିବା; କୋଡିଂ ମଝିରେ ରେଟ୍ ଲିମିଟ୍ → 4-ଟାୟର୍ ଅଟୋ-ଫଲବ୍ୟାକ୍ (ସବସ୍କ୍ରିପସନ୍ → API → ଶସ୍ତା → ମାଗଣା); ଟୁଲ୍ ଆଉଟପୁଟ୍ ଟୋକେନ୍ ଜାଳିବା → RTK + କେଭମ୍ୟାନ୍ କମ୍ପ୍ରେସନ୍ (15–95%); ମହଙ୍ଗା API ଗୁଡ଼ିକ → ମୂଲ୍ୟ-ଅପ୍ଟିମାଇଜ୍ଡ ରାଉଟିଂ; ପ୍ରତ୍ୟେକ ଟୁଲ୍ ର ନିଜସ୍ୱ ସେଟଅପ୍ → ଗୋଟିଏ ଏଣ୍ଡପଏଣ୍ଟ, ଗୋଟିଏ ଡ୍ୟାସବୋର୍ଡ; AI ବ୍ଲକ୍ ହେବା → 3-ସ୍ତରୀୟ ପ୍ରକ୍ସି + TLS ଷ୍ଟେଲଥ୍; ମୃତ କି' → 3-ସ୍ତରୀୟ ରେଜିଲିଏନ୍ସ (ସର୍କିଟ୍ ବ୍ରେକର୍, କି' କୁଲଡାଉନ୍, ମଡେଲ୍ ଲକଆଉଟ୍); ଗୋଟିଏ ସବସ୍କ୍ରିପସନ୍ ସେୟାର୍ କରୁଥିବା ଟିମ୍ → ଫେୟାର୍-ସେୟାର୍ କୋଟା ସହିତ କି' ପୁଲ୍; କାହାର କ୍ଲାଉଡ୍ ମାଧ୍ୟମରେ ପ୍ରମ୍ପ୍ଟ → AES-256-GCM ଏନକ୍ରିପ୍ଟେଡ୍ କି' ସହିତ ଲୋକାଲ୍-ଫାଷ୍ଟ; ଖର୍ଚ୍ଚ ଦୃଶ୍ୟମାନତା ନାହିଁ → ଲାଇଭ୍ ଆନାଲିଟିକ୍ସ (ବ୍ୟବହାର, କୋଟା, ସଞ୍ଚୟ, p95 ଲେଟେନ୍ସି)।"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ଅନୁରୋଧ ପ୍ରବାହ: ଆପଣଙ୍କ IDE କିମ୍ବା CLI (Claude Code, Cursor, Cline…) ଗୋଟିଏ ଲୋକାଲ୍ ଏଣ୍ଡ୍‌ପଏଣ୍ଟ୍‌କୁ (http://localhost:20128/v1) କଲ୍ କରେ; ଏକ ଯୋଗ୍ୟ ସୁସ୍ଥ ଟାର୍ଗେଟ୍ ଉପଲବ୍ଧ ଥିବା ପର୍ଯ୍ୟନ୍ତ OmniRoute Smart Router (RTK + Caveman କମ୍ପ୍ରେସନ୍, 19ଟି ରାଉଟିଂ କୌଶଳ, ସର୍କିଟ୍ ବ୍ରେକର୍, TLS ଷ୍ଟେଲ୍ଥ୍, MCP, A2A, ଗାର୍ଡରେଲ୍) 4ଟି ପ୍ରଦାନକାରୀ ଟିୟର୍ ମଧ୍ୟରେ ଫଲ୍‌ବ୍ୟାକ୍ କରିପାରେ — ଟିୟର୍ 1 Subscription, ଟିୟର୍ 2 API Key, ଟିୟର୍ 3 Cheap ଏବଂ ଟିୟର୍ 4 Free।"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ଅନୁରୋଧ ପ୍ରବାହ: ଆପଣଙ୍କ IDE କିମ୍ବା CLI (Claude Code, Cursor, Cline…) ଗୋଟିଏ ଲୋକାଲ୍ ଏଣ୍ଡପଏଣ୍ଟ (http://localhost:20128/v1) କୁ କଲ୍ କରେ; OmniRoute ସ୍ମାର୍ଟ ରାଉଟର୍ (RTK + କେଭମ୍ୟାନ୍ କମ୍ପ୍ରେସନ୍, 19 ଟି ରାଉଟିଂ ରଣନୀତି, ସର୍କିଟ୍ ବ୍ରେକର୍, TLS ଷ୍ଟେଲଥ୍, MCP, A2A, ଗାର୍ଡରେଲ୍) 4 ଟି ପ୍ରୋଭାଇଡର୍ ଟାୟର୍ ମଧ୍ୟରେ ଫଲବ୍ୟାକ୍ କରିପାରିବ ଯେତେବେଳେ ଏକ ଯୋଗ୍ୟ ସୁସ୍ଥ ଟାର୍ଗେଟ୍ ରହିବ — ଟାୟର୍ 1 ସବସ୍କ୍ରିପସନ୍, ଟାୟର୍ 2 API କି', ଟାୟର୍ 3 ଶସ୍ତା ଏବଂ ଟାୟର୍ 4 ମାଗଣା।"/>
 
 </div>
 
@@ -249,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 ଆମର ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁମାନଙ୍କ ଦ୍ୱାରା ସମର୍ଥିତ
+## 🤝 ଆମର ଓପନ୍ ସୋର୍ସ ବନ୍ଧୁମାନଙ୍କ ଦ୍ୱାରା ସମର୍ଥିତ
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — ଉନ୍ମୁକ୍ତ ସୀମାନ୍ତ ବୁଦ୍ଧିମତ୍ତା · 2.8T ପାରାମିଟର୍ · 1M-ଟୋକନ୍ କଣ୍ଟେକ୍ସ୍ଟ"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **ଜଣେ ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁ ଭାବେ ଯୋଗଦେବାକୁ ଚାହୁଁଛନ୍ତି କି?** ଏଗୁଡ଼ିକ ହେଉଛି ସେହି କମ୍ପାନୀ, ଯେଉଁମାନେ ମୁକ୍ତ ଉତ୍ସକୁ ସମର୍ଥନ କରନ୍ତି ଏବଂ OmniRouteକୁ ଆଗେଇ ନେବାରେ ସାହାଯ୍ୟ କରନ୍ତି — ଏବଂ ସେମାନେ ଆମକୁ ଦେଉଥିବା ପ୍ରତ୍ୟେକ ଟୋକନ୍ କେଉଁଠି ବ୍ୟବହୃତ ହୁଏ, ତାହା ଆମେ ସାର୍ବଜନୀନ ଭାବେ ଜଣାଉ। ଯୋଗାଯୋଗ କରନ୍ତୁ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **ଓପନ୍ ସୋର୍ସ ବନ୍ଧୁ ଭାବରେ ଯୋଗ ଦେବାକୁ ଚାହୁଁଛନ୍ତି କି?** ଏହି କମ୍ପାନୀଗୁଡ଼ିକ ଓପନ୍ ସୋର୍ସକୁ ସମର୍ଥନ କରନ୍ତି ଏବଂ OmniRoute କୁ ଚାଲୁ ରଖିବାରେ ସାହାଯ୍ୟ କରନ୍ତି — ଏବଂ ସେମାନେ ଆମକୁ ଦେଉଥିବା ପ୍ରତ୍ୟେକ ଟୋକେନ୍ କୁଆଡେ ଯାଏ ତାହା ଆମେ ସର୍ବସାଧାରଣରେ କହିଥାଉ। ଯୋଗାଯୋଗ କରନ୍ତୁ: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -271,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="ପ୍ରତିଷ୍ଠାତା ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁ"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      ଏହି ପ୍ରକଳ୍ପକୁ ସମର୍ଥନ କରିଥିବାରୁ ଆମର ପ୍ରତିଷ୍ଠାତା ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁ <b>Kimi (Moonshot AI)</b>ଙ୍କୁ ଧନ୍ୟବାଦ! Kimi ହେଉଛି ଓପନ୍-ୱେଟ୍ K2 ଏବଂ K3 ମଡେଲ୍ ପରିବାର ପଛରେ ଥିବା AI ଲ୍ୟାବ୍ — <b>Kimi K3</b> 1M-ଟୋକନ୍ କଣ୍ଟେକ୍ସ୍ଟ ୱିଣ୍ଡୋ, ନେଟିଭ୍ ଭିଜନ୍ ଏବଂ ବନ୍ଦ ମଡେଲ୍‌ଗୁଡ଼ିକର ମୂଲ୍ୟର ଏକ ଅଂଶରେ ଅତ୍ୟାଧୁନିକ କୋଡିଂ ପ୍ରଦାନ କରେ, ଏବଂ Claude Code, Codex ଓ OmniRoute ସେବା ଯୋଗାଉଥିବା ପ୍ରତ୍ୟେକ କୋଡିଂ ଟୁଲ୍ ସହିତ ବିନା ଅତିରିକ୍ତ ସେଟଅପ୍‌ରେ କାମ କରେ।
+      ଏହି ପ୍ରୋଜେକ୍ଟକୁ ସମର୍ଥନ କରିଥିବାରୁ ଆମର ପ୍ରତିଷ୍ଠାତା ଓପନ୍ ସୋର୍ସ ବନ୍ଧୁ <b>Kimi (Moonshot AI)</b> କୁ ଧନ୍ୟବାଦ! Kimi ହେଉଛି ଓପନ୍-ୱେଟ୍ K2 ଏବଂ K3 ମଡେଲ୍ ପରିବାର ପଛରେ ଥିବା AI ଲାବ୍ — <b>Kimi K3</b> 1M-ଟୋକେନ୍ କଣ୍ଟେକ୍ସଟ୍ ୱିଣ୍ଡୋ, ନେଟିଭ୍ ଭିଜନ୍ ଏବଂ ଫ୍ରଣ୍ଟିୟର୍-ସ୍ତରର କୋଡିଂକୁ ବନ୍ଦ-ମଡେଲ୍ ମୂଲ୍ୟର ଏକ ଅଂଶରେ ପ୍ରଦାନ କରେ, ଏବଂ Claude Code, Codex ଏବଂ OmniRoute ସେବା କରୁଥିବା ପ୍ରତ୍ୟେକ କୋଡିଂ ଉପକରଣ ସହିତ ବାକ୍ସରୁ ବାହାରି କାମ କରେ।
       <br/><br/>
-      <b>Kimiର ସମର୍ଥନ କେଉଁଗୁଡ଼ିକୁ ଶକ୍ତି ଯୋଗାଏ:</b> Kimiର API କ୍ରେଡିଟ୍‌ଗୁଡ଼ିକ OmniRouteର AI-ପ୍ରମାଣିତ ରିଲିଜ୍ ପାଇପଲାଇନ୍‌କୁ ଶକ୍ତି ଯୋଗାଏ — ଅର୍ଥାତ୍ ପ୍ରତ୍ୟେକ ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ ରିଲିଜ୍ ହେବା ପୂର୍ବରୁ ତାହାକୁ ସମୀକ୍ଷା କରୁଥିବା <i>Kimi K3 ଦ୍ୱାରା ପରିଚାଳିତ ମର୍ଜ୍ ପ୍ରମାଣୀକରଣ</i> ପର୍ଯ୍ୟାୟକୁ — ଏବଂ ଦୈନନ୍ଦିନ ଫିଚର୍ ବିକାଶକୁ ମଧ୍ୟ। ପ୍ରଥମ-ଶ୍ରେଣୀର Kimi ସମର୍ଥନ ଉଭୟ ମାର୍ଗରେ ଉପଲବ୍ଧ: ସିଧାସଳଖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ଏବଂ <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code କୋଡିଂ ପ୍ଲାନ୍</a> (OAuth ଏବଂ API କୀ)। Kimiର ସମର୍ଥନ କାର୍ଯ୍ୟକ୍ରମରେ OmniRoute ମଧ୍ୟ ପ୍ରଥମ ବ୍ରାଜିଲୀୟ ମୁକ୍ତ ଉତ୍ସ ପ୍ରକଳ୍ପ। <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% ଅତିରିକ୍ତ କ୍ରେଡିଟ୍ ସହିତ ଏକ Kimi API କୀ ପାଆନ୍ତୁ →</b></a>
+      <b>Kimi ର ସମର୍ଥନ କ'ଣ କ୍ଷମତା ପ୍ରଦାନ କରେ:</b> Kimi ର API କ୍ରେଡିଟ୍ OmniRoute ର AI-ପ୍ରମାଣିତ ରିଲିଜ୍ ପାଇପଲାଇନ୍ କୁ ଶକ୍ତି ପ୍ରଦାନ କରେ — <i>Kimi K3 ଦ୍ୱାରା ଚାଳିତ ମର୍ଜ୍ ଭାଲିଡେସନ୍</i> ପର୍ଯ୍ୟାୟ ଯାହା ପ୍ରତ୍ୟେକ ପୁଲ୍ ଅନୁରୋଧକୁ ପଠାଇବା ପୂର୍ବରୁ ସମୀକ୍ଷା କରେ — ଏବଂ ଦୈନନ୍ଦିନ ଫିଚର୍ ବିକାଶ। ପ୍ରଥମ ଶ୍ରେଣୀ Kimi ସମର୍ଥନ ଉଭୟ ରେଳରେ ପଠାଯାଏ: ସିଧାସଳଖ <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) ଏବଂ <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code କୋଡିଂ ପ୍ଲାନ୍</a> (OAuth ଏବଂ API କି)। OmniRoute ମଧ୍ୟ Kimi ର ସମର୍ଥନ କାର୍ଯ୍ୟକ୍ରମରେ ପ୍ରଥମ ବ୍ରାଜିଲୀୟ ଓପନ୍-ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ ଅଟେ। <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>15% ଅତିରିକ୍ତ କ୍ରେଡିଟ୍ ସହିତ ଏକ Kimi API କି ପାଆନ୍ତୁ →</b></a>
     </td>
   </tr>
   <tr>
@@ -285,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁ"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Friend"/>
     </td>
     <td>
-      ଏହି ପ୍ରକଳ୍ପକୁ ସମର୍ଥନ କରିଥିବାରୁ OmniRouteର ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁ <b>Cheaper Inference</b>ଙ୍କୁ ଧନ୍ୟବାଦ! Cheaper Inference ହେଉଛି ଏକ ମୂଲ୍ୟ-କ୍ରମାଙ୍କିତ ଗେଟୱେ, ଯାହା 42ଟି ଅତ୍ୟାଧୁନିକ ମଡେଲ୍ — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ଏବଂ MiniMax —କୁ ଏକ OpenAI-ସୁସଙ୍ଗତ ଏଣ୍ଡପଏଣ୍ଟ୍ ପଛରେ ପୁନଃବିକ୍ରୟ କରେ ଏବଂ ମଡେଲ୍ ନିର୍ମାତାଙ୍କ ସୂଚୀଭୁକ୍ତ ମୂଲ୍ୟଠାରୁ କେବେ ଅଧିକ ଶୁଳ୍କ ନ ନେଇ ପ୍ରତ୍ୟେକ ଅନୁରୋଧକୁ ସବୁଠାରୁ ଶସ୍ତା ଯୋଗ୍ୟ ପ୍ରଦାନକାରୀଙ୍କ ନିକଟକୁ ରୁଟ୍ କରେ।
+      ଏହି ପ୍ରୋଜେକ୍ଟକୁ ସମର୍ଥନ କରିଥିବାରୁ OmniRoute ଓପନ୍ ସୋର୍ସ ବନ୍ଧୁ <b>Cheaper Inference</b> କୁ ଧନ୍ୟବାଦ! Cheaper Inference ହେଉଛି ଏକ ମୂଲ୍ୟ-ଶ୍ରେଣୀଭୁକ୍ତ ଗେଟୱେ ଯାହା 42 ଫ୍ରଣ୍ଟିୟର୍ ମଡେଲ୍ — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok ଏବଂ MiniMax — କୁ ଗୋଟିଏ OpenAI-ସୁସଙ୍ଗତ ଏଣ୍ଡପଏଣ୍ଟ ପଛରେ ପୁନଃ ବିକ୍ରୟ କରେ, ପ୍ରତ୍ୟେକ ଅନୁରୋଧକୁ ସବୁଠାରୁ ଶସ୍ତା ଯୋଗ୍ୟ ପ୍ରଦାନକାରୀଙ୍କୁ ରାଉଟ୍ କରେ ବିନା ମଡେଲ୍ ନିର୍ମାତାଙ୍କ ତାଲିକା ମୂଲ୍ୟରୁ ଅଧିକ ଚାର୍ଜ କରି।
       <br/><br/>
-      <b>OmniRouteରେ ପ୍ରଥମ-ଶ୍ରେଣୀର ସମର୍ଥନ:</b> Chat Completions, ନେଟିଭ୍ <code>/v1/responses</code> ଏଣ୍ଡପଏଣ୍ଟ୍, ଭିଜନ୍, ଟୁଲ୍ କଲିଂ ଏବଂ 3ଟି ଇମେଜ୍ ମଡେଲ୍ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, ଯାହାକୁ <code>cheaperinference/&lt;model&gt;</code> ଭାବେ ଆକ୍ସେସ୍ କରାଯାଇପାରେ)। <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ଏକ API କୀ ପାଆନ୍ତୁ →</b></a>
+      <b>OmniRoute ରେ ପ୍ରଥମ ଶ୍ରେଣୀ ସମର୍ଥନ:</b> ଚାଟ୍ କମ୍ପ୍ଲିସନ୍, ନେଟିଭ୍ <code>/v1/responses</code> ଏଣ୍ଡପଏଣ୍ଟ, ଭିଜନ୍, ଟୁଲ୍ କଲିଂ ଏବଂ 3 ଇମେଜ୍ ମଡେଲ୍ (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, <code>cheaperinference/&lt;model&gt;</code> ଭାବରେ ପହଞ୍ଚିପାରିବ)। <a href="https://cheaperinference.com/?utm_source=omniroute"><b>ଏକ API କି ପାଆନ୍ତୁ →</b></a>
     </td>
   </tr>
 </table>
 
-<sub><code>aff=omniroute</code> ଟ୍ୟାଗ୍ ଥିବା ଲିଙ୍କ୍‌ଗୁଡ଼ିକ ପାର୍ଟନର୍ ଲିଙ୍କ୍। ଆପଣଙ୍କ ପାଇଁ କୌଣସି ଅତିରିକ୍ତ ଖର୍ଚ୍ଚ ବିନା ସେଗୁଡ଼ିକ ପ୍ରକଳ୍ପକୁ ଅର୍ଥ ଯୋଗାଏ।</sub>
+<sub><code>aff=omniroute</code> ଟ୍ୟାଗ୍ ହୋଇଥିବା ଲିଙ୍କଗୁଡ଼ିକ ସହଭାଗୀ ଲିଙ୍କ୍ ଅଟେ। ସେମାନେ ଆପଣଙ୍କୁ କୌଣସି ଅତିରିକ୍ତ ଖର୍ଚ୍ଚ ବିନା ପ୍ରୋଜେକ୍ଟକୁ ପାଣ୍ଠି ଯୋଗାନ୍ତି।</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ ଆଫିଲିଏଟ୍ ପ୍ରୋମୋ</b> — ଆମକୁ ପ୍ରାୟୋଜିତ ନ କରୁଥିବା ପ୍ରଦାନକାରୀଙ୍କଠାରୁ ମାଗଣା ସାଇନ୍‌ଅପ୍ କୁପନ୍ (ବିସ୍ତାର କରିବାକୁ କ୍ଲିକ୍ କରନ୍ତୁ)</sub></summary>
+<summary><sub><b>🎟️ ଆଫିଲିଏଟ୍ସ ପ୍ରୋମୋ</b> — ପ୍ରଦାନକାରୀମାନଙ୍କ ଠାରୁ ମାଗଣା ସାଇନ୍ଅପ୍ କୁପନ୍ ଯେଉଁମାନଙ୍କୁ ଆମେ ସ୍ପନସର କରୁନାହୁଁ (ବିସ୍ତାର କରିବାକୁ କ୍ଲିକ୍ କରନ୍ତୁ)</sub></summary>
 
-<sub><i>ଏହି ବିଭାଗ କେବଳ ରେଫରାଲ୍/କୁପନ୍ କୋଡ୍ ପାଇଁ। ପ୍ରାୟୋଜିତ ଭାଗୀଦାରିଗୁଡ଼ିକ ଉପରେ ଥିବା <b>🤝 ଆମର ମୁକ୍ତ ଉତ୍ସ ବନ୍ଧୁମାନଙ୍କ ଦ୍ୱାରା ସମର୍ଥିତ</b> ବିଭାଗରେ ଅଛି। ଏଠାରେ ତାଲିକାଭୁକ୍ତ ପ୍ରଦାନକାରୀଙ୍କ ସହ OmniRouteର କୌଣସି ପ୍ରାୟୋଜନ କିମ୍ବା ଭାଗୀଦାରି ନାହିଁ — ଏଗୁଡ଼ିକ ସାର୍ବଜନୀନ କୁପନ୍, ଯାହାକୁ ଯେକେହି ବ୍ୟବହାର କରିପାରିବେ।</i></sub>
+<sub><i>ଏହି ବିଭାଗ କେବଳ ରେଫରାଲ୍/କୁପନ୍ କୋଡ୍ ପାଇଁ ଅଟେ। ସ୍ପନସର ହୋଇଥିବା ସହଭାଗିତା ଉପରେ ଥିବା <b>🤝 ଆମର ଓପନ୍ ସୋର୍ସ ବନ୍ଧୁମାନଙ୍କ ଦ୍ୱାରା ସମର୍ଥିତ</b> ରେ ରହିଛି। OmniRoute ର ଏଠାରେ ତାଲିକାଭୁକ୍ତ ପ୍ରଦାନକାରୀମାନଙ୍କ ସହିତ କୌଣସି ସ୍ପନସରସିପ୍ କିମ୍ବା ସହଭାଗିତା ନାହିଁ — ଏଗୁଡ଼ିକ ସର୍ବସାଧାରଣ କୁପନ୍ ଯାହାକୁ ଯେକେହି ବ୍ୟବହାର କରିପାରିବେ।</i></sub>
 
 <table>
   <tr>
@@ -313,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ଆଫିଲିଏଟ୍ ସାଇନ୍‌ଅପ୍ · ସାଇନ୍‌ଅପ୍ କରିବା ସମୟରେ <b>$100 ମାଗଣା କ୍ରେଡିଟ୍</b> (ମାଗଣା ସର୍ଭର୍, ଅଧିକ ବିଳମ୍ବ ଆଶା କରନ୍ତୁ — ପ୍ରଡକ୍ସନ୍ ପାଇଁ ନୁହେଁ, ପରୀକ୍ଷଣ ପାଇଁ ସର୍ବୋତ୍ତମ)। <b>v3.8.50</b>ଠାରୁ OmniRouteରେ ପ୍ରଥମ-ଶ୍ରେଣୀର ସମର୍ଥନ: Chat Completions, Anthropic-ସୁସଙ୍ଗତ ୱାୟାର୍ ଫର୍ମାଟ୍ ଏବଂ OpenAI-ସୁସଙ୍ଗତ ପଥ। ଉପଲବ୍ଧ ମଡେଲ୍‌ଗୁଡ଼ିକ ମଧ୍ୟରେ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ଏବଂ ଆହୁରି ଅନେକ ଅନ୍ତର୍ଭୁକ୍ତ। <b><a href="https://agentrouter.org/register?aff=70LM">ଆପଣଙ୍କ $100 ନିଅନ୍ତୁ →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — ଆଫିଲିଏଟ୍ ସାଇନ୍ଅପ୍ · ସାଇନ୍ଅପ୍ ଉପରେ <b>$100 ମାଗଣା କ୍ରେଡିଟ୍</b> (ମାଗଣା ସର୍ଭର, ଅଧିକ ଲେଟେନ୍ସି ଆଶା କରନ୍ତୁ — ପରୀକ୍ଷା ପାଇଁ ସର୍ବୋତ୍ତମ, ଉତ୍ପାଦନ ପାଇଁ ନୁହେଁ)। OmniRoute ରେ <b>v3.8.50</b> ରୁ ପ୍ରଥମ ଶ୍ରେଣୀ ସମର୍ଥନ: ଚାଟ୍ କମ୍ପ୍ଲିସନ୍, Anthropic-ସୁସଙ୍ଗତ ୱାୟର୍ ଫର୍ମାଟ୍ ଏବଂ OpenAI-ସୁସଙ୍ଗତ ପଥ। ଉପଲବ୍ଧ ମଡେଲଗୁଡ଼ିକରେ <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> ଏବଂ ଅନ୍ୟାନ୍ୟ ଅନ୍ତର୍ଭୁକ୍ତ। <b><a href="https://agentrouter.org/register?aff=70LM">ଆପଣଙ୍କର $100 ପାଆନ୍ତୁ →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>ଆଫିଲିଏଟ୍ ଲିଙ୍କ୍ — ଏହି ପ୍ରଦାନକାରୀଙ୍କ ସହ OmniRouteର କୌଣସି ପ୍ରାୟୋଜନ କିମ୍ବା ଭାଗୀଦାରି ନାହିଁ।</i></sub>
+      <sub>⚠️ <i>ଆଫିଲିଏଟ୍ ଲିଙ୍କ୍ — OmniRoute ର ଏହି ପ୍ରଦାନକାରୀଙ୍କ ସହିତ କୌଣସି ସ୍ପନସରସିପ୍ କିମ୍ବା ସହଭାଗିତା ନାହିଁ।</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>OmniRoute ବ୍ୟବହାରକାରୀଙ୍କୁ ଲାଭ ଦେଉଥିବା ଉଦାର ମାଗଣା ସାଇନ୍‌ଅପ୍ କୁପନ୍ ସହିତ ଅନ୍ୟ କୌଣସି ପ୍ରଦାନକାରୀଙ୍କ ବିଷୟରେ ଜାଣନ୍ତି କି? ଏକ ଇସ୍ୟୁ ଖୋଲନ୍ତୁ ଏବଂ ଆମେ ତାହାକୁ ଏଠାରେ ଯୋଡ଼ିବୁ।</sub>
+<sub>OmniRoute ଉପଭୋକ୍ତାମାନଙ୍କୁ ଲାଭ ଦେଉଥିବା ଏକ ଉଦାର ମାଗଣା ସାଇନ୍ଅପ୍ କୁପନ୍ ସହିତ ଅନ୍ୟ କୌଣସି ପ୍ରଦାନକାରୀଙ୍କୁ ଜାଣିଛନ୍ତି କି? ଏକ ଇସ୍ୟୁ ଖୋଲନ୍ତୁ ଏବଂ ଆମେ ଏହାକୁ ଏଠାରେ ଯୋଡିବା।</sub>
 
 </details>
 
@@ -332,31 +345,31 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="ସମସ୍ତ 19ଟି କମ୍ବୋ ରାଉଟିଂ କୌଶଳର ଆନିମେଟେଡ୍ ରୂପ — ପ୍ରତ୍ୟେକ କୌଶଳ ପାଇଁ ଗୋଟିଏ ଟାଇଲ୍: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। ପ୍ରତ୍ୟେକଟି କ’ଣ କରେ ତାହା ପାଇଁ ଉପର ଟେବୁଲ୍‌ଟି ଦେଖନ୍ତୁ।"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="ସମସ୍ତ 19ଟି କମ୍ବୋ ରାଉଟିଂ କୌଶଳ ଆନିମେଟେଡ୍ — ପ୍ରତ୍ୟେକ କୌଶଳ ପାଇଁ ଗୋଟିଏ ଟାଇଲ୍: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। ପ୍ରତ୍ୟେକଟି କ’ଣ କରେ ତାହା ପାଇଁ ଉପର ସାରଣୀ ଦେଖନ୍ତୁ।"/>
 
-> ଏକ **କମ୍ବୋ** ହେଉଛି ମଡେଲ୍‌ଗୁଡ଼ିକର ଏକ ଶୃଙ୍ଖଳା, ଯାହା ମଧ୍ୟରେ OmniRoute **ସ୍ୱୟଂଚାଳିତ ଭାବେ** ରାଉଟ୍ କରେ। କୋଟା ଶେଷ ହୋଇଗଲେ, କୌଣସି ପ୍ରଦାନକାରୀ ବିଫଳ ହେଲେ, କିମ୍ବା ଖର୍ଚ୍ଚ ହଠାତ୍ ବଢ଼ିଗଲେ, କମ୍ବୋ ପରବର୍ତ୍ତୀ ଯୋଗ୍ୟ ଓ ସୁସ୍ଥ ମଡେଲ୍‌କୁ ଯାଇପାରିବ। 🛡️
+> ଗୋଟିଏ **କମ୍ବୋ** ହେଉଛି ମଡେଲ୍ଗୁଡ଼ିକର ଏକ ଶୃଙ୍ଖଳା, ଯାହା ମଧ୍ୟରେ OmniRoute **ସ୍ୱୟଂଚାଳିତ ଭାବରେ** ରାଉଟ୍ କରେ। ଯଦି କୋଟା ଶେଷ ହୋଇଯାଏ, କୌଣସି ପ୍ରଦାନକାରୀ ବିଫଳ ହୁଏ କିମ୍ବା ଖର୍ଚ୍ଚ ହଠାତ୍ ବଢ଼ିଯାଏ, ତେବେ କମ୍ବୋ ପରବର୍ତ୍ତୀ ଯୋଗ୍ୟ ଓ ସୁସ୍ଥ ମଡେଲ୍କୁ ଯାଇପାରେ। 🛡️
 
 ### ⚡ ଶୂନ୍ୟ-କନଫିଗ୍ — କେବଳ `auto` ବ୍ୟବହାର କରନ୍ତୁ
 
-କୌଣସି କମ୍ବୋ ସୃଷ୍ଟି କରିବାକୁ ପଡ଼ିବ ନାହିଁ। ଆପଣଙ୍କ ମଡେଲ୍‌କୁ `auto` (କିମ୍ବା ଏହାର ଏକ ଭାରିଆଣ୍ଟ) ଭାବେ ସେଟ୍ କରନ୍ତୁ ଏବଂ OmniRoute ଆପଣଙ୍କ ସଂଯୁକ୍ତ ପ୍ରଦାନକାରୀମାନଙ୍କୁ ନେଇ ଏକ ଭର୍ଚୁଆଲ୍ କମ୍ବୋ ତିଆରି କରିବ, ଯାହାକୁ ସଜୀବ ଭାବେ ସ୍କୋର୍ କରାଯାଏ:
+କୌଣସି କମ୍ବୋ ସୃଷ୍ଟି କରିବାକୁ ପଡ଼ିବ ନାହିଁ। ଆପଣଙ୍କ ମଡେଲ୍କୁ `auto` (କିମ୍ବା ଏହାର ଏକ ପ୍ରକାର) ଭାବେ ସେଟ୍ କରନ୍ତୁ ଏବଂ OmniRoute ଆପଣଙ୍କ ସଂଯୁକ୍ତ ପ୍ରଦାନକାରୀମାନଙ୍କଠାରୁ ଏକ ଭର୍ଚୁଆଲ୍ କମ୍ବୋ ନିର୍ମାଣ କରେ, ଯାହାକୁ ଲାଇଭ୍ରେ ସ୍କୋର୍ କରାଯାଏ:
 
 <table>
-  <tr><th align="left">ମଡେଲ୍ ID</th><th align="left">ଏହା କାହା ପାଇଁ ଅପ୍ଟିମାଇଜ୍ କରେ</th></tr>
+  <tr><th align="left">ମଡେଲ୍ ID</th><th align="left">ଏହା କେଉଁ ବିଷୟ ପାଇଁ ଅପ୍ଟିମାଇଜ୍ କରେ</th></tr>
   <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 ସନ୍ତୁଳିତ ଡିଫଲ୍ଟ (LKGP — ଆପଣଙ୍କ ଶେଷ ଭଲ ପ୍ରଦାନକାରୀ ସହିତ ରହେ)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑‍💻 କୋଡ୍ ଉତ୍ପାଦନ ପାଇଁ ଗୁଣବତ୍ତା-ପ୍ରଥମ ଭାର</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ ସର୍ବନିମ୍ନ ବିଳମ୍ବକୁ ପ୍ରଥମେ</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 ପ୍ରତି ଟୋକନ୍‌ର ସବୁଠାରୁ କମ୍ ମୂଲ୍ୟକୁ ପ୍ରଥମେ</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 ସର୍ବାଧିକ କୋଟା / ରେଟ୍-ଲିମିଟ୍ ଅବକାଶକୁ ପ୍ରଥମେ</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 ଗୁଣବତ୍ତା-ପ୍ରଥମ + ଉନ୍ନତ ମଡେଲ୍ ଆବିଷ୍କାର ପାଇଁ 10% ଅନ୍ୱେଷଣ</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 ଶେଷ-ଜଣାଶୁଣା-ଭଲ-ପ୍ରଦାନକାରୀ ସହିତ ସ୍ପଷ୍ଟ ଭାବେ ଲାଗି ରହିବା</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 ସ୍ଥିତିସ୍ଥାପକତା ପରୀକ୍ଷଣ ପାଇଁ ତ୍ରୁଟି-ପ୍ରବେଶ ଭାର (କେଅସ୍ ଇଞ୍ଜିନିୟରିଂ)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 କୋଡ୍ ଜେନେରେସନ୍ ପାଇଁ ଗୁଣବତ୍ତା-ପ୍ରଥମ ଓଜନ</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ ସର୍ବନିମ୍ନ ବିଳମ୍ବତା ପ୍ରଥମେ</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 ପ୍ରତି ଟୋକନ୍ରେ ସବୁଠାରୁ ଶସ୍ତାଟି ପ୍ରଥମେ</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 ସର୍ବାଧିକ କୋଟା / ରେଟ୍-ଲିମିଟ୍ ହେଡ୍ରୁମ୍ ପ୍ରଥମେ</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 ଗୁଣବତ୍ତା-ପ୍ରଥମ + ଉନ୍ନତ ମଡେଲ୍ ଖୋଜିବା ପାଇଁ 10% ଅନ୍ୱେଷଣ</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 ସ୍ପଷ୍ଟ ଶେଷ-ଜଣାଶୁଣା-ଭଲ-ପ୍ରଦାନକାରୀ ସ୍ଥିରତା</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 ମଡେଲ୍ଗୁଡ଼ିକର ଏକ ପ୍ୟାନେଲ୍କୁ ସମାନ୍ତରାଳ ଫ୍ୟାନ୍-ଆଉଟ୍ (ପ୍ରତ୍ୟେକ ପ୍ରଦାନକାରୀ ପାଇଁ ଗୋଟିଏ, ଡିଫଲ୍ଟ ଭାବେ 5ଟି), ଗୋଟିଏ ଉତ୍ତର ଫେରାଏ; ପ୍ରତ୍ୟେକ ପ୍ୟାନେଲ୍ ମଡେଲ୍ ପାଇଁ ଗୋଟିଏ ଅପ୍ଷ୍ଟ୍ରିମ୍ କଲ୍, ଫଲ୍ଟ ଇଞ୍ଜେକ୍ସନ୍ ନୁହେଁ</td></tr>
 </table>
 
 ##
 
-### 🔀 କିମ୍ବା ନିଜର ଗୋଟିଏ ତିଆରି କରନ୍ତୁ — 19ଟି ରାଉଟିଂ କୌଶଳ
+### 🔀 କିମ୍ବା ନିଜରଟି ନିର୍ମାଣ କରନ୍ତୁ — 19ଟି ରାଉଟିଂ କୌଶଳ
 
-ସମସ୍ତ **19ଟି** କୌଶଳ — ପ୍ରତ୍ୟେକ କମ୍ବୋ ପଦକ୍ଷେପରେ ମିଶାଇ ଓ ମେଳାଇ ବ୍ୟବହାର କରନ୍ତୁ:
+ସମସ୍ତ **19ଟି** କୌଶଳ — ପ୍ରତ୍ୟେକ କମ୍ବୋ ପଦକ୍ଷେପରେ ମିଶାନ୍ତୁ ଓ ମେଳ କରନ୍ତୁ:
 
 <table>
   <tr>
@@ -367,121 +380,121 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>ପ୍ରଥମ-ଲକ୍ଷ୍ୟ କ୍ରମିକ ତାଲିକା — ପରବର୍ତ୍ତୀକୁ ଯିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକଟିକୁ ସମ୍ପୂର୍ଣ୍ଣ ବ୍ୟବହାର କରେ 🥇</td>
+    <td>ପ୍ରଥମ-ଟାର୍ଗେଟ୍ କ୍ରମିକ ତାଲିକା — ପରବର୍ତ୍ତୀକୁ ଯିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକଟିକୁ ସମ୍ପୂର୍ଣ୍ଣ ବ୍ୟବହାର କରେ 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>ଆଗକୁ ଯିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକ ଲକ୍ଷ୍ୟର କୋଟାକୁ ସମ୍ପୂର୍ଣ୍ଣ ବ୍ୟବହାର କରେ</td>
+    <td>ଆଗକୁ ଯିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକ ଟାର୍ଗେଟ୍ର କୋଟାକୁ ସମ୍ପୂର୍ଣ୍ଣ ଭାବେ ପୂରଣ କରେ</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>ପ୍ରତ୍ୟେକ ଲକ୍ଷ୍ୟର ଭାର ଅନୁସାରେ ଭାରିତ ଯାଦୃଚ୍ଛିକ ଚୟନ</td>
+    <td>ପ୍ରତି-ଟାର୍ଗେଟ୍ ଓଜନ ଅନୁଯାୟୀ ଓଜନଯୁକ୍ତ ଯାଦୃଚ୍ଛିକ ଚୟନ</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>ଲକ୍ଷ୍ୟଗୁଡ଼ିକ ମଧ୍ୟରେ କ୍ରମାନୁସାରେ ଚକ୍ରାକାର ଭାବେ ଯାଏ</td>
+    <td>କ୍ରମାନୁସାରେ ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ଚକ୍ରାକାର ଭାବେ ଯାଏ</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>ଦୁଇଟି-ବିକଳ୍ପ-ମଧ୍ୟରୁ-ଚୟନ ଆଧାରିତ ଯାଦୃଚ୍ଛିକ ଲୋଡ୍ ସନ୍ତୁଳନ</td>
+    <td>ଦୁଇଟି-ବିକଳ୍ପର-ଶକ୍ତି ଆଧାରିତ ଯାଦୃଚ୍ଛିକ ଲୋଡ୍ ବାଲାନ୍ସିଂ</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>ସର୍ବନିମ୍ନ ବର୍ତ୍ତମାନର ଲୋଡ୍ ଥିବା ଲକ୍ଷ୍ୟକୁ ବାଛେ</td>
+    <td>ସର୍ବନିମ୍ନ ବର୍ତ୍ତମାନର ଲୋଡ୍ ଥିବା ଟାର୍ଗେଟ୍କୁ ବାଛେ</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>ସମାନ ସମ୍ଭାବନାର ଯାଦୃଚ୍ଛିକ ଚୟନ (ନକଲଗୁଡ଼ିକ ହଟାଯାଇଥାଏ)</td>
+    <td>ସମାନ ଯାଦୃଚ୍ଛିକ ଚୟନ (ନକଲଗୁଡ଼ିକ ହଟାଯାଇଥାଏ)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>ପୁନରାବୃତ୍ତିଗୁଡ଼ିକୁ ହଟାଇବା ବିନା ଯାଦୃଚ୍ଛିକ ଚୟନ 🎲</td>
+    <td>ପୁନରାବୃତ୍ତିଗୁଡ଼ିକୁ ନକଲମୁକ୍ତ ନକରି ଯାଦୃଚ୍ଛିକ ଚୟନ 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>ସଜୀବ କ୍ୟାଟାଲଗ୍ ମୂଲ୍ୟ ଆଧାରରେ ପ୍ରତି ଅନୁରୋଧର $ ଖର୍ଚ୍ଚକୁ ସର୍ବନିମ୍ନ କରେ 💸</td>
+    <td>ଲାଇଭ୍ କ୍ୟାଟାଲଗ୍ ମୂଲ୍ୟ ଆଧାରରେ ପ୍ରତି ଅନୁରୋଧର $ ଖର୍ଚ୍ଚ ସର୍ବନିମ୍ନ କରେ 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>ସର୍ବାଧିକ ଅବଶିଷ୍ଟ କୋଟା ଥିବା ଲକ୍ଷ୍ୟକୁ ବାଛେ</td>
+    <td>ସର୍ବାଧିକ ଅବଶିଷ୍ଟ କୋଟା ଥିବା ଟାର୍ଗେଟ୍କୁ ବାଛେ</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>ଯେଉଁ ଲକ୍ଷ୍ୟର କୋଟା ୱିଣ୍ଡୋ ସବୁଠାରୁ ଶୀଘ୍ର ରିସେଟ୍ ହୁଏ, ତାହାକୁ ପ୍ରାଥମିକତା ଦିଏ</td>
+    <td>ଯେଉଁ ଟାର୍ଗେଟ୍ର କୋଟା ୱିଣ୍ଡୋ ସବୁଠାରୁ ଶୀଘ୍ର ରିସେଟ୍ ହୁଏ, ତାହାକୁ ପ୍ରାଥମିକତା ଦିଏ</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>କୋଟା ରିସେଟ୍ ସମୟ ଅନୁସାରେ କ୍ରମାଙ୍କିତ କରେ — ଛୋଟ ୱିଣ୍ଡୋଗୁଡ଼ିକ ପ୍ରଥମେ 📊</td>
+    <td>କୋଟା ରିସେଟ୍ ସମୟ ଅନୁଯାୟୀ ର୍ୟାଙ୍କ୍ କରେ — ଛୋଟ ୱିଣ୍ଡୋ ପ୍ରଥମେ 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>ଦୀର୍ଘ ବାର୍ତ୍ତାଳାପ ପାଇଁ ଲକ୍ଷ୍ୟଗୁଡ଼ିକ ମଧ୍ୟରେ ପ୍ରସଙ୍ଗ ହସ୍ତାନ୍ତର କରେ 🧠</td>
+    <td>ଦୀର୍ଘ ବାର୍ତ୍ତାଳାପ ପାଇଁ ଟାର୍ଗେଟ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ କନ୍ଟେକ୍ସ୍ଟ ହସ୍ତାନ୍ତର କରେ 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>ବର୍ତ୍ତମାନର ପ୍ରସଙ୍ଗ ଆକାର ପାଇଁ ସର୍ବୋତ୍ତମ ମେଳକୁ ବାଛେ</td>
+    <td>ବର୍ତ୍ତମାନର କନ୍ଟେକ୍ସ୍ଟ ଆକାର ପାଇଁ ସର୍ବୋତ୍ତମ ଉପଯୁକ୍ତଟିକୁ ବାଛେ</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>ପୁନଃବ୍ୟବହାରଯୋଗ୍ୟ ପ୍ରତ୍ୟେକ ପ୍ରମ୍ପ୍ଟ ଉପସର୍ଗକୁ ସମାନ ଆକାଉଣ୍ଟ ସହିତ ସ୍ଥିର କରେ — ପ୍ରମ୍ପ୍ଟ-କ୍ୟାଶ୍ ହିଟ୍‌କୁ ସର୍ବାଧିକ କରେ 🎯</td>
+    <td>ପ୍ରତ୍ୟେକ ପୁନଃବ୍ୟବହାରଯୋଗ୍ୟ ପ୍ରମ୍ପ୍ଟ ପ୍ରିଫିକ୍ସକୁ ସେହି ଏକା ଆକାଉଣ୍ଟ୍ରେ ପିନ୍ କରେ — ପ୍ରମ୍ପ୍ଟ-କ୍ୟାଶ୍ ହିଟ୍ ସର୍ବାଧିକ କରେ 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>ଶେଷ-ଜଣାଶୁଣା-ଭଲ ପଥ — ଶେଷ ସଫଳ ପ୍ରଦାନକାରୀ ସହିତ ସ୍ଥିର ରହେ, ତା’ପରେ ନିୟମଗୁଡ଼ିକୁ ଫଲ୍‌ବ୍ୟାକ୍ କରେ</td>
+    <td>ଶେଷ-ଜଣାଶୁଣା-ଭଲ ପଥ — ଶେଷ ସଫଳ ପ୍ରଦାନକାରୀ ସହିତ ପିନ୍ କରେ, ତା’ପରେ ନିୟମଗୁଡ଼ିକୁ ଫଲ୍ବ୍ୟାକ୍ କରେ</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>ପ୍ରତ୍ୟେକ ସଂଯୋଗ ଉପରେ 16ଟି ଉପାଦାନର ସଜୀବ ସ୍କୋରିଂ 🤖</td>
+    <td>ପ୍ରତ୍ୟେକ ସଂଯୋଗରେ 16ଟି ଉପାଦାନର ଲାଇଭ୍ ସ୍କୋରିଂ 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>ମଡେଲ୍‌ଗୁଡ଼ିକର ଏକ ପ୍ୟାନେଲ୍‌କୁ ସମାନ୍ତରାଳ ଭାବେ ଅନୁରୋଧ ପଠାଏ + ଜଣେ ବିଚାରକ ଗୋଟିଏ ଉତ୍ତର ସଂଶ୍ଳେଷଣ କରନ୍ତି 🧬</td>
+    <td>ମଡେଲ୍ଗୁଡ଼ିକର ଏକ ପ୍ୟାନେଲ୍କୁ ଫ୍ୟାନ୍-ଆଉଟ୍ କରେ + ଜଣେ ବିଚାରକ ଗୋଟିଏ ଉତ୍ତର ସଂଶ୍ଳେଷଣ କରନ୍ତି 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>ପଦକ୍ଷେପଗୁଡ଼ିକୁ ଶୃଙ୍ଖଳିତ କରେ — ପ୍ରତ୍ୟେକ ଲକ୍ଷ୍ୟର ଆଉଟପୁଟ୍ ପରବର୍ତ୍ତୀଟିକୁ ଯୋଗାଯାଏ 🔗</td>
+    <td>ପଦକ୍ଷେପଗୁଡ଼ିକୁ ଶୃଙ୍ଖଳିତ କରେ — ପ୍ରତ୍ୟେକ ଟାର୍ଗେଟ୍ର ଆଉଟ୍ପୁଟ୍ ପରବର୍ତ୍ତୀଟିକୁ ଯୋଗାଯାଏ 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Combo ଇଞ୍ଜିନ୍ ପ୍ରତ୍ୟେକ ପ୍ରାର୍ଥୀକୁ **16ଟି ଉପାଦାନ** (ସ୍ୱାସ୍ଥ୍ୟ, କୋଟା, ଖର୍ଚ୍ଚ, ବିଳମ୍ବ, କାର୍ଯ୍ୟ ଉପଯୁକ୍ତତା, ଗୁଣବତ୍ତା, ସେସନ୍ ଉପଲବ୍ଧତା…) ଆଧାରରେ ସ୍କୋର୍ କରେ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) ଦେଖନ୍ତୁ।</sub>
+<sub>Auto-Combo ଇଞ୍ଜିନ୍ ପ୍ରତ୍ୟେକ ପ୍ରାର୍ଥୀକୁ **16ଟି ଉପାଦାନ** (ସ୍ୱାସ୍ଥ୍ୟ, କୋଟା, ଖର୍ଚ୍ଚ, ବିଳମ୍ବତା, କାର୍ଯ୍ୟ ଉପଯୁକ୍ତତା, ଗୁଣବତ୍ତା, ସେସନ୍ ଉପଲବ୍ଧତା…) ଆଧାରରେ ସ୍କୋର୍ କରେ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) ଦେଖନ୍ତୁ।</sub>
 
 ##
 
-### 🧱 ସ୍ଥିତିସ୍ଥାପକତା ଅନ୍ତର୍ନିହିତ ଅଟେ (3ଟି ସ୍ୱାଧୀନ ସ୍ତର)
+### 🧱 ସ୍ଥିତିସ୍ଥାପକତା ଅନ୍ତର୍ନିର୍ମିତ (3ଟି ସ୍ୱାଧୀନ ସ୍ତର)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute ସ୍ଥିତିସ୍ଥାପକତା — 3ଟି ସ୍ୱାଧୀନ ସ୍ୱୟଂ-ପୁନରୁଦ୍ଧାର ସ୍ତର, ଉପଯୁକ୍ତ ବିଫଳତା ପାଇଁ ଉପଯୁକ୍ତ ସ୍ତର। ସ୍ତର 1 ପ୍ରଦାତା ସର୍କିଟ୍ ବ୍ରେକର୍ (ସମଗ୍ର ପ୍ରଦାତା): କେବଳ 408/5xxରେ ଟ୍ରିପ୍ ହୁଏ, ଥ୍ରେଶୋଲ୍ଡଗୁଡ଼ିକ OAuth 8× / API-key 12× / ସ୍ଥାନୀୟ 2×, ଏକ HALF-OPEN ପ୍ରୋବ୍‌କୁ 60s/30s/15sରେ ରିସେଟ୍ ହୁଏ, ଚାହିଦା-ଭିତ୍ତିକ ପୁନରୁଦ୍ଧାର; OPEN ଥିବା ସମୟରେ କମ୍ବୋ ପରବର୍ତ୍ତୀ ପ୍ରଦାତାକୁ ପୁନଃରୁଟ୍ କରେ। ସ୍ତର 2 ସଂଯୋଗ କୁଲ୍‌ଡାଉନ୍ (ଗୋଟିଏ କି/ଆକାଉଣ୍ଟ): ମୂଳ 5s OAuth / 3s API-key, ଆଣ୍ଟି-ଥଣ୍ଡରିଂ-ହର୍ଡ ସୁରକ୍ଷା ସହିତ ଘାତୀୟ ×2 ବ୍ୟାକ୍‌ଅଫ୍, 429 Retry-Afterକୁ ସମ୍ମାନ କରେ, ସଫଳତା ସମସ୍ତ ତ୍ରୁଟି ସ୍ଥିତି ସଫା କରେ; ଗୋଟିଏ କୁଲ୍‌ଡାଉନ୍‌ରେ ଥିବା କିକୁ ଏଡ଼ାଇ ଦିଆଯାଏ, ଯେତେବେଳେ ସମାନ ଗୋଷ୍ଠୀର ଅନ୍ୟ କିଗୁଡ଼ିକ ସେବା ଜାରି ରଖନ୍ତି। ସ୍ତର 3 ମଡେଲ୍ ଲକ୍‌ଆଉଟ୍ (ଗୋଟିଏ ମଡେଲ୍): ପ୍ରତି-ମଡେଲ୍ 429, ସ୍ଥାନୀୟ 404 କିମ୍ବା ମୋଡ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ କେବଳ ସେହି ମଡେଲ୍‌କୁ ଲକ୍ କରେ — ସମଗ୍ର ସଂଯୋଗକୁ କେବେ ନୁହେଁ। ଟର୍ମିନାଲ୍ ସ୍ଥିତିଗୁଡ଼ିକ (ନିଷିଦ୍ଧ, ମିଆଦ ସମାପ୍ତ, କ୍ରେଡିଟ୍ ଶେଷ) ଅପରେଟର୍‌ଙ୍କ ପାଇଁ, କୁଲ୍‌ଡାଉନ୍ ପାଇଁ ନୁହେଁ।"/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute ସ୍ଥିତିସ୍ଥାପକତା — 3ଟି ସ୍ୱାଧୀନ ସ୍ୱୟଂ-ପୁନରୁଦ୍ଧାର ସ୍ତର, ଉପଯୁକ୍ତ ବିଫଳତା ପାଇଁ ଉପଯୁକ୍ତ ସ୍ତର। ସ୍ତର 1 ପ୍ରଦାତା ସର୍କିଟ୍ ବ୍ରେକର୍ (ସମ୍ପୂର୍ଣ୍ଣ ପ୍ରଦାତା): କେବଳ 408/5xxରେ ସକ୍ରିୟ ହୁଏ, ସୀମା OAuth 8× / API-key 12× / ସ୍ଥାନୀୟ 2×, ଏକ HALF-OPEN ପରୀକ୍ଷଣକୁ 60s/30s/15sରେ ପୁନଃସେଟ୍ କରେ, ଅଳସ ପୁନରୁଦ୍ଧାର; OPEN ଥିବା ସମୟରେ କମ୍ବୋ ପରବର୍ତ୍ତୀ ପ୍ରଦାତାକୁ ପୁନଃରୁଟ୍ କରେ। ସ୍ତର 2 ସଂଯୋଗ କୁଲ୍ଡାଉନ୍ (ଗୋଟିଏ କି/ଆକାଉଣ୍ଟ): ମୂଳ 5s OAuth / 3s API-key, ଆଣ୍ଟି-ଥଣ୍ଡରିଂ-ହର୍ଡ ସୁରକ୍ଷା ସହିତ ଘାତୀୟ ×2 ବ୍ୟାକଅଫ୍, 429 Retry-Afterକୁ ସମ୍ମାନ କରେ, ସଫଳତା ସମସ୍ତ ତ୍ରୁଟି ଅବସ୍ଥାକୁ ସଫା କରେ; ଶୀତଳୀକରଣରେ ଥିବା ଗୋଟିଏ କିକୁ ଏଡ଼ାଇ ଦିଆଯାଏ, ଯେତେବେଳେ ସହୋଦର କିଗୁଡ଼ିକ ସେବା ଜାରି ରଖନ୍ତି। ସ୍ତର 3 ମଡେଲ୍ ଲକ୍ଆଉଟ୍ (ଗୋଟିଏ ମଡେଲ୍): ପ୍ରତି-ମଡେଲ୍ 429, ସ୍ଥାନୀୟ 404 କିମ୍ବା ମୋଡ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ କେବଳ ସେହି ମଡେଲ୍କୁ ଲକ୍ କରେ — କେବେ ମଧ୍ୟ ସମ୍ପୂର୍ଣ୍ଣ ସଂଯୋଗକୁ ନୁହେଁ। ଟର୍ମିନାଲ୍ ଅବସ୍ଥାଗୁଡ଼ିକ (ନିଷିଦ୍ଧ, ମିଆଦ ସମାପ୍ତ, କ୍ରେଡିଟ୍ ଶେଷ) ଅପରେଟର୍ଙ୍କ ପାଇଁ, କୁଲ୍ଡାଉନ୍ ପାଇଁ ନୁହେଁ।"/>
 
-<sub>📖 [ଅଟୋ-କମ୍ବୋ ଇଞ୍ଜିନ୍](docs/routing/AUTO-COMBO.md) · [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Auto-Combo ଇଞ୍ଜିନ୍](docs/routing/AUTO-COMBO.md) · [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🏆 OmniRouteକୁ କ’ଣ ସ୍ୱତନ୍ତ୍ର କରେ
+## 🏆 ଓମ୍ନିରାଉଟ୍କୁ କ'ଣ ଅନନ୍ୟ କରେ
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRouteକୁ କ’ଣ ସ୍ୱତନ୍ତ୍ର କରେ — 13ଟି କ୍ଷମତାରେ 9router, OpenRouter, CLIProxyAPI ଏବଂ LiteLLM ସହ ତାରିଖଯୁକ୍ତ ବୈଶିଷ୍ଟ୍ୟ ତୁଳନା। OmniRoute: 356ଟି ପ୍ରଦାତା, 150+ଟି ଅନ୍ତର୍ନିର୍ମିତ ମାଗଣା ସ୍ତର, 19ଟି ରାଉଟିଂ କୌଶଳ, 12-ଇଞ୍ଜିନ୍ ଟୋକନ୍ ସଙ୍କୋଚନ, 110ଟି ଟୁଲ୍ ସହ ଅନ୍ତର୍ନିର୍ମିତ MCP ସର୍ଭର୍, A2A ଏଜେଣ୍ଟ ପ୍ରୋଟୋକଲ୍, ସ୍ଥାୟୀ ମେମୋରି, ସୁରକ୍ଷା ସୀମା, କ୍ଲାଉଡ୍ ଏଜେଣ୍ଟ, TLS ଫିଙ୍ଗରପ୍ରିଣ୍ଟ ଗୋପନୀୟତା, Desktop/Termux/PWA ଏବଂ 42ଟି i18n UI ଲୋକେଲ୍। OmniRoute MIT ଲାଇସେନ୍ସପ୍ରାପ୍ତ ଏବଂ ସ୍ୱ-ହୋଷ୍ଟଯୋଗ୍ୟ। ପ୍ରତିଦ୍ୱନ୍ଦ୍ୱୀଙ୍କ କ୍ଷମତା ଏବଂ ସଂଖ୍ୟା ପରିବର୍ତ୍ତିତ ହୋଇପାରେ; ଲିଙ୍କ୍ କରାଯାଇଥିବା ପଦ୍ଧତି ଦେଖନ୍ତୁ।"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="ଓମ୍ନିରାଉଟ୍କୁ କ'ଣ ଅନନ୍ୟ କରେ — ୧୩ଟି କ୍ଷମତା ମାଧ୍ୟମରେ ୯ରାଉଟର୍, ଓପନ୍ରାଉଟର୍, CLIProxyAPI ଏବଂ LiteLLM ବିରୁଦ୍ଧରେ ଏକ ପୁରୁଣା ଫିଚର୍ ସ୍ନାପସଟ୍। ଓମ୍ନିରାଉଟ୍: ୩୫୮ ପ୍ରଦାନକାରୀ, ୧୫୦+ ମାଗଣା ଟାୟର୍ ଅନ୍ତର୍ଭୁକ୍ତ, ୧୯ଟି ରାଉଟିଂ ରଣନୀତି, ୧୨-ଇଞ୍ଜିନ୍ ଟୋକେନ୍ କମ୍ପ୍ରେସନ୍, ୧୧୦ ଉପକରଣ ସହିତ ବିଲ୍ଟ-ଇନ୍ MCP ସର୍ଭର, A2A ଏଜେଣ୍ଟ ପ୍ରୋଟୋକଲ୍, ସ୍ଥାୟୀ ମେମୋରୀ, ଗାର୍ଡରେଲ୍, କ୍ଲାଉଡ୍ ଏଜେଣ୍ଟ୍, TLS ଫିଙ୍ଗରପ୍ରିଣ୍ଟ ଷ୍ଟେଲ୍ଥ, ଡେସ୍କଟପ୍/ଟର୍ମକ୍ସ/PWA ଏବଂ ୪୨ଟି i18n UI ଲୋକାଲ୍। ଓମ୍ନିରାଉଟ୍ MIT-ଲାଇସେନ୍ସପ୍ରାପ୍ତ ଏବଂ ସ୍ୱୟଂ-ହୋଷ୍ଟେବଲ୍। ପ୍ରତିଯୋଗୀଙ୍କ କ୍ଷମତା ଏବଂ ସଂଖ୍ୟା ପରିବର୍ତ୍ତନ ହୋଇପାରେ; ଲିଙ୍କ୍ ହୋଇଥିବା ପଦ୍ଧତି ଦେଖନ୍ତୁ।"/>
 
-<sub>📊 ସମ୍ପୂର୍ଣ୍ଣ ପଦ୍ଧତି &amp; 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM ସହ ପ୍ରତ୍ୟେକ ବୈଶିଷ୍ଟ୍ୟର ବିସ୍ତୃତ ତୁଳନା → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 ସମ୍ପୂର୍ଣ୍ଣ ପଦ୍ଧତି ଏବଂ ପ୍ରତି-ଫିଚର୍ ବିବରଣୀ ବନାମ ୯ରାଉଟର୍, ଓପନ୍ରାଉଟର୍, CLIProxyAPI ଏବଂ LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -533,22 +546,13 @@ Pix copia-e-cola:
 
 <p><strong>ଡେଭେଲପର୍ ଟିପ୍ପଣୀ:</strong> ଡେଭେଲପର୍‌ଙ୍କ ସୁବିଧା ପାଇଁ ପ୍ରକଳ୍ପଟି npm install/postinstall ସମୟରେ ଏକ ସ୍ଥାନୀୟ <code>.env</code> ଫାଇଲ୍ ସୃଷ୍ଟି କରିପାରେ। ଏହି ଫାଇଲ୍‌କୁ ଉଦ୍ଦେଶ୍ୟମୂଳକ ଭାବେ <code>.gitignore</code> ମାଧ୍ୟମରେ ଅଣଦେଖା କରାଯାଏ (<code>.gitignore</code> ଦେଖନ୍ତୁ) ଏବଂ ଏହାକୁ କେବେବି commit କରାଯିବା ଉଚିତ୍ ନୁହେଁ — ଯଦି ଭୁଲବଶତଃ commit ହୋଇଯାଏ, ତେବେ ପ୍ରକାଶିତ ହୋଇଥିବା ସମସ୍ତ secretକୁ ପରିବର୍ତ୍ତନ କରନ୍ତୁ ଏବଂ historyରୁ ଫାଇଲ୍‌ଟିକୁ ହଟାନ୍ତୁ। ସ୍ଥାନୀୟ environment ଫାଇଲ୍ ଏବଂ secret ପରିଚାଳନା ସମ୍ବନ୍ଧୀୟ ମାର୍ଗଦର୍ଶନ ପାଇଁ <a href="docs/DEVELOPER-ENVIRONMENT.md">docs/DEVELOPER-ENVIRONMENT.md</a> ଦେଖନ୍ତୁ।</p>
 
-## 📡 OmniRoute ରାଡାର
+## 📡 OmniRoute Radar
 
-ଉପରେ ଡକ୍ୟୁମେଣ୍ଟ କରାଯାଇଥିବା, ପୁଲ୍‌ରୁ ନକଲ ଅପସାରିତ କ୍ୟାଟାଲଗ୍ ଆଧାରରେ ମୁଖ୍ୟ ମାଗଣା-ସ୍ତର ସୀମା **~1.47B ଟୋକେନ୍/ମାସ** ରହିଛି।
-ଅସ୍ଥାୟୀ ପ୍ରଦାନକାରୀ ସାଇନ୍‌ଅପ୍ କ୍ରେଡିଟ୍ ପ୍ରଥମ ମାସର ସୀମାକୁ ପୃଥକ ଭାବରେ
-**~2.10B** ପର୍ଯ୍ୟନ୍ତ ବଢ଼ାଇପାରେ। OmniRoute ରିଲିଜ୍‌ଗୁଡ଼ିକ ମଧ୍ୟରେ ଅଧିକ ସଦ୍ୟତମ
-ମାଗଣା-ମଡେଲ୍ ଉପଲବ୍ଧତା ଚାହୁଁଥିବା ଲୋକଙ୍କ ପାଇଁ ରାଡାର ହେଉଛି ଏକ ବୈକଳ୍ପିକ, ସ୍ୱାକ୍ଷରିତ କ୍ୟାଟାଲଗ୍ ଓଭରଲେ; କମ୍ୟୁନିଟି କ୍ୟାଟାଲଗ୍ ଏବଂ ପୂର୍ବରୁ ଥିବା ପ୍ରତ୍ୟେକ ମାଗଣା
-ବୈଶିଷ୍ଟ୍ୟ ମାଗଣା ହିଁ ରହିବ।
+ଉପରେ ଦଲିଲଭୁକ୍ତ, ପୁଲ୍-ଡିଡୁପ୍ଲିକେଟ୍ କରାଯାଇଥିବା କ୍ୟାଟାଲଗ୍ରୁ ମୁଖ୍ୟ ମାଗଣା-ସ୍ତର ସୀମା **~1.62B ଟୋକେନ୍/ମାସ** ରହିଛି। ଅସ୍ଥାୟୀ ପ୍ରଦାନକାରୀ ସାଇନ୍ଅପ୍ କ୍ରେଡିଟ୍ ପ୍ରଥମ ମାସରେ ଏହାକୁ ପୃଥକ ଭାବେ **~2.22B** ପର୍ଯ୍ୟନ୍ତ ବଢ଼ାଇପାରେ। OmniRoute ରିଲିଜ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ଅଧିକ ସଦ୍ୟତମ ମାଗଣା-ମଡେଲ୍ ଉପଲବ୍ଧତା ଚାହୁଁଥିବା ଲୋକଙ୍କ ପାଇଁ Radar ହେଉଛି ଏକ ଇଚ୍ଛାଧୀନ, ସ୍ୱାକ୍ଷରିତ କ୍ୟାଟାଲଗ୍ ଓଭରଲେ; କମ୍ୟୁନିଟି କ୍ୟାଟାଲଗ୍ ଏବଂ ପୂର୍ବରୁ ଥିବା ପ୍ରତ୍ୟେକ ମାଗଣା ବୈଶିଷ୍ଟ୍ୟ ମାଗଣା ରହିବ।
 
-ସମର୍ଥକମାନେ ଲାଇଭ୍ କ୍ୟାଟାଲଗ୍ ଏବଂ ଅତିରିକ୍ତ ପ୍ରଦାନକାରୀ ସୁଯୋଗ ପାଇପାରିବେ। ପ୍ରଦାନକାରୀଙ୍କ ଉପଲବ୍ଧତା ଉପରେ ନିର୍ଭର କରି ଏହାର ପୃଥକ,
-ପରିବର୍ତ୍ତନଶୀଳ ସର୍ବୋଚ୍ଚ ସୀମା **ସର୍ବାଧିକ ପ୍ରାୟ 3B ଟୋକେନ୍/ମାସ** ଅଟେ।
-ଏହି ସର୍ବୋଚ୍ଚ ସୀମା ଏକ ନିଶ୍ଚିତତା ନୁହେଁ: ପ୍ରଦାନକାରୀମାନେ ଯେକୌଣସି
-ସମୟରେ କୋଟା, ଯୋଗ୍ୟତା, ମଡେଲ୍ କିମ୍ବା ଅଞ୍ଚଳ ପରିବର୍ତ୍ତନ କରିପାରନ୍ତି।
+ସମର୍ଥକମାନେ ଲାଇଭ୍ କ୍ୟାଟାଲଗ୍ ଏବଂ ଅତିରିକ୍ତ ପ୍ରଦାନକାରୀ ସୁଯୋଗ ପାଇପାରିବେ। ପ୍ରଦାନକାରୀଙ୍କ ଉପଲବ୍ଧତା ଉପରେ ନିର୍ଭର କରି, ଏହାର ପୃଥକ, ପରିବର୍ତ୍ତନଶୀଳ ସର୍ବୋଚ୍ଚ ସୀମା **ସର୍ବାଧିକ ପ୍ରାୟ 3B ଟୋକେନ୍/ମାସ**। ସେହି ସୀମା ନିଶ୍ଚିତ ନୁହେଁ: ପ୍ରଦାନକାରୀମାନେ ଯେକୌଣସି ସମୟରେ କୋଟା, ଯୋଗ୍ୟତା, ମଡେଲ୍ କିମ୍ବା ଅଞ୍ଚଳ ପରିବର୍ତ୍ତନ କରିପାରନ୍ତି।
 
-ରାଡାର ଇଚ୍ଛାଧୀନ ଏବଂ କେବଳ GET ପାଇଁ ଉଦ୍ଦିଷ୍ଟ। OmniRoute କ୍ଲାଏଣ୍ଟ ପ୍ରମ୍ପ୍ଟ, ଟ୍ରାଫିକ୍, ପ୍ରଦାନକାରୀ
-ବିନ୍ୟାସ, ବ୍ୟବହାର ଟେଲିମେଟ୍ରି କିମ୍ବା ସ୍ଥାନୀୟ ଘୋଷଣା-ଖାରଜ ସ୍ଥିତି ଅପଲୋଡ୍ କରେ ନାହିଁ। ଯୋଗ୍ୟତା ଏବଂ
-ବର୍ତ୍ତମାନର କ୍ୟାଟାଲଗ୍ ବିଷୟରେ **[radar.omniroute.online/planos](https://radar.omniroute.online/planos)** ରେ ଜାଣନ୍ତୁ।
+Radar ଇଚ୍ଛାଧୀନ ଏବଂ କେବଳ GET ପାଇଁ ଉଦ୍ଦିଷ୍ଟ। OmniRoute କ୍ଲାଏଣ୍ଟ ପ୍ରମ୍ପ୍ଟ୍, ଟ୍ରାଫିକ୍, ପ୍ରଦାନକାରୀ ବିନ୍ୟାସ, ବ୍ୟବହାର ଟେଲିମେଟ୍ରି କିମ୍ବା ସ୍ଥାନୀୟ ଘୋଷଣା-ଖାରଜ ସ୍ଥିତି ଅପଲୋଡ୍ କରେ ନାହିଁ। ଯୋଗ୍ୟତା ଏବଂ ବର୍ତ୍ତମାନର କ୍ୟାଟାଲଗ୍ ବିଷୟରେ **[radar.omniroute.online/planos](https://radar.omniroute.online/planos)** ଠାରେ ଜାଣନ୍ତୁ।
 
 <br/>
 
@@ -558,37 +562,37 @@ Pix copia-e-cola:
 
 </div>
 
-> **v3.8.20 → v3.8.50** ର ସାମ୍ପ୍ରତିକ ମୁଖ୍ୟାଂଶ। ସମ୍ପୂର୍ଣ୍ଣ ଇତିହାସ [`CHANGELOG.md`](CHANGELOG.md) ରେ ଉପଲବ୍ଧ।
+> **v3.8.20 → v3.8.50**ର ସାମ୍ପ୍ରତିକ ମୁଖ୍ୟ ବିଶେଷତାଗୁଡ଼ିକ। ସମ୍ପୂର୍ଣ୍ଣ ଇତିହାସ [`CHANGELOG.md`](CHANGELOG.md)ରେ ଅଛି।
 
-- **🎛️ OmniConductor** — ଆପଣଙ୍କ ଏଜେଣ୍ଟ ଫ୍ଲିଟ୍‌କୁ ଇନ୍‌ବାଉଣ୍ଡ A2A ପ୍ରତ୍ୟାୟୋଜନ, Agent Cardରେ Conductor ଦକ୍ଷତା, ଏବଂ Faro ପୁଶ୍-ଟୁ-ଟକ୍ ଭଏସ୍ ଚାଟ୍ ସହିତ ଏକ ଡ୍ୟାସ୍‌ବୋର୍ଡ ପ୍ୟାନେଲ୍। → [A2A ସର୍ଭର୍](docs/frameworks/A2A-SERVER.md)
-- **🛂 ଅନୁକୂଳନଶୀଳ ଅନୁମତି ଓ ଓଭର୍‌ଲୋଡ୍ ସୁରକ୍ଷା** — ଭାରୀ ଚାଟ୍ ଅନୁରୋଧଗୁଡ଼ିକ 503 ତ୍ରୁଟି ଦେବା ପରିବର୍ତ୍ତେ କ୍ୟୁରେ ରହେ, ପ୍ରତ୍ୟେକ ସଂଯୋଗ ପାଇଁ ଆଟୋମିକ୍ RPM ରୋଲିଂ ଲିଜ୍ ସହିତ। → [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ କ୍ୟାନୋନିକାଲ୍ `/v1/models` କ୍ରମ** — ପ୍ରତ୍ୟେକ ପ୍ରଦାତା ପାଇଁ ଗୋଟିଏ ସଂଲଗ୍ନ ପ୍ରଦାତା-ଗୋଷ୍ଠୀଭୁକ୍ତ ବ୍ଲକ୍ (ପ୍ରଥମେ ପିନ୍ ହୋଇଥିବା କମ୍ବୋଗୁଡ଼ିକ), ସମସ୍ତ କ୍ୟାଟାଲଗ୍ ଉତ୍ସରେ ସ୍ଥିର। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
-- **🗜️ କମ୍ପ୍ରେସନ୍ ସୁଦୃଢ଼ୀକରଣ** — ଡିଫଲ୍ଟ ଭାବେ ସକ୍ରିୟ ଇନ୍‌ଫ୍ଲେସନ୍ ଗାର୍ଡ, DE / FR / JA + ଚାଇନିଜ୍ (wényán) ପାଇଁ Caveman ପ୍ୟାକ୍, Gradle ଓ .NET ପାଇଁ RTK ଫିଲ୍ଟର୍। → [କମ୍ପ୍ରେସନ୍](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 ସ୍ୱଚ୍ଛ ଫ୍ଲାଟ୍-ରେଟ୍ ମୂଲ୍ୟ** — ସବ୍‌ସ୍କ୍ରିପ୍ସନ୍ / କୋଡିଂ-ପ୍ଲାନ୍ ପ୍ରଦାତାଙ୍କ ମୂଲ୍ୟ ଆନାଲିଟିକ୍ସରେ **$0** ଭାବେ ଦେଖାଯାଏ; ବଜେଟ୍, କୋଟା ଓ ରାଉଟିଂ ଅନୁମାନ ଜାରି ରଖେ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share ରାଉଟିଂ** — ପୁଲ୍ ହୋଇଥିବା କୀଗୁଡ଼ିକ ମଧ୍ୟରେ ଏକ ଅଂଶୀଦାର ଆକାଉଣ୍ଟର କୋଟାକୁ ନ୍ୟାୟସଙ୍ଗତ ଭାବେ ବାଣ୍ଟେ ଏବଂ ନିଷ୍କ୍ରିୟ ଅଂଶଗୁଡ଼ିକୁ ଧାର ଦେଇ କାର୍ଯ୍ୟ-ସଂରକ୍ଷକ ରହେ। → [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 ଏକକ-କମାଣ୍ଡ CLI/ଏଜେଣ୍ଟ ସେଟ୍‌ଅପ୍** — 13ଟି ପଞ୍ଜୀକୃତ `setup-*` କମାଣ୍ଡ; `omniroute run` 7ଟି CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) ଚାଲୁ କରେ; `omniroute configure` ଏକ ଇଣ୍ଟରାକ୍ଟିଭ୍ ପ୍ରଦାତା+ମଡେଲ୍ ପିକର୍ ଏବଂ ପ୍ରତ୍ୟେକ କଣ୍ଟେକ୍ସ୍ଟ ପାଇଁ ପସନ୍ଦ ସହିତ 10ଟି ଟାର୍ଗେଟ୍‌କୁ ସମର୍ଥନ କରେ। → [CLI ଇଣ୍ଟିଗ୍ରେସନ୍](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ ରିମୋଟ୍ ମୋଡ୍** — ସ୍କୋପ୍‌ଡ୍ ଟୋକେନ୍ (`connect` / `contexts` / `tokens`) ଏବଂ VPS ଇନ୍‌ଷ୍ଟଲ୍ ପାଇଁ ଏକ `antigravity` OAuth ସହାୟକ ଦ୍ୱାରା ଦୂରସ୍ଥ OmniRouteକୁ ପରିଚାଳନା କରନ୍ତୁ। → [ରିମୋଟ୍ ମୋଡ୍](docs/guides/REMOTE-MODE.md)
-- **🧭 ଅଧିକ ସ୍ମାର୍ଟ୍ ଅଟୋ-ରାଉଟିଂ** — `auto/<category>:<tier>` କମ୍ବୋ, **Fusion** (ମଡେଲ୍ ପ୍ୟାନେଲ୍ + ବିଚାରକ), ଟାସ୍କ-ସଚେତନ ରାଉଟିଂ, ପ୍ରତ୍ୟେକ ଅନୁରୋଧ ପାଇଁ ମଡେଲ୍ / ମୋଡ୍ / USD-ବଜେଟ୍ ଓଭର୍‌ରାଇଡ୍। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ ପ୍ଲଗ୍‌ଯୋଗ୍ୟ କମ୍ପ୍ରେସନ୍** — 12ଟି ସଂଯୋଜନଯୋଗ୍ୟ ଇଞ୍ଜିନ୍ + Compression Studios: LLMLingua-2, ଦ୍ୱି-ସ୍ତରୀୟ Ultra, omniglyph, ପ୍ରତ୍ୟେକ ପଦକ୍ଷେପର ଫିଡେଲିଟି ଗେଟ୍, GCF v3.2, ଡ୍ରାଗ୍ କରି ପୁନଃକ୍ରମବଦ୍ଧ କରିବା ଏଡିଟର୍। → [କମ୍ପ୍ରେସନ୍](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ ସ୍ୱଚ୍ଛ MITM ଡିକ୍ରିପ୍ସନ୍ (TPROXY)** — ପ୍ରତ୍ୟେକ SNI ପାଇଁ CA + ଟ୍ରଷ୍ଟ-ଷ୍ଟୋର୍ ଇନ୍‌ଷ୍ଟଲର୍ ସହିତ, ପ୍ରକ୍ସି env ଭେରିଏବଲ୍‌ଗୁଡ଼ିକୁ ଅଣଦେଖା କରୁଥିବା CLIଗୁଡ଼ିକୁ କ୍ୟାପ୍‌ଚର୍ କରନ୍ତୁ। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 ସବୁଠାରେ ମୂଲ୍ୟ ଟେଲିମେଟ୍ରି** — ପ୍ରତ୍ୟେକ ଏଣ୍ଡପଏଣ୍ଟରେ `X-OmniRoute-*` ମୂଲ୍ୟ/ବ୍ୟବହାର ହେଡର୍, କ୍ୟାଶ୍-HIT ସଞ୍ଚୟ ହେଡର୍ ଏବଂ ପ୍ରତ୍ୟେକ କୀ ପାଇଁ USD ଖର୍ଚ୍ଚ କୋଟା। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
-- **🧠 ଆପଣଙ୍କ ନିୟନ୍ତ୍ରଣାଧୀନ ମେମୋରି** — ଡିଫଲ୍ଟ ଭାବେ ବନ୍ଦ, ଇଚ୍ଛାଧୀନ int8 ଭେକ୍ଟର୍ କ୍ୱାଣ୍ଟାଇଜେସନ୍ + ଟାଇପ୍‌ଡ୍ ଡିକେ, ପ୍ରତ୍ୟେକ ଅନୁରୋଧ ପାଇଁ `x-omniroute-no-memory`। → [ମେମୋରି](docs/frameworks/MEMORY.md)
-- **🛡️ ସୁରକ୍ଷା** — ପ୍ରତ୍ୟେକ LLM ରୁଟ୍‌ରେ ପ୍ରମ୍ପ୍ଟ-ଇଞ୍ଜେକ୍ସନ୍ ଗାର୍ଡ (ରେଡ୍-ଟିମ୍ ସୁଇଟ୍), ଇଚ୍ଛାଧୀନ କ୍ରେଡେନ୍ସିଆଲ୍-ମାସ୍କିଂ ଗାର୍ଡରେଲ୍ (ଉଭୟ ଦିଗରେ ଲିକ୍ ହୋଇଥିବା API କୀ/ସିକ୍ରେଟ୍‌ଗୁଡ଼ିକୁ ଲୁଚାଏ), ମାଗଣା DuckDuckGo ଶେଷ-ବିକଳ୍ପ ୱେବ୍ ସନ୍ଧାନ ଏବଂ ଡ୍ୟାସ୍‌ବୋର୍ଡ ପାଇଁ ଏକ ଇଚ୍ଛାଧୀନ OIDC ଲଗ୍‌ଇନ୍ ଗେଟ୍ (ପାସ୍‌ୱାର୍ଡ ଲଗ୍‌ଇନ୍ ସର୍ବଦା ଉପଲବ୍ଧ ରହେ)। → [ଗାର୍ଡରେଲ୍](docs/security/GUARDRAILS.md)
-- **🖼️ ନୂତନ ଏଣ୍ଡପଏଣ୍ଟ** — `/v1/ocr` (Mistral OCR) ଏବଂ `/v1/audio/translations` (Whisper-ଶୈଳୀ) ମିଡିଆ କ୍ଷେତ୍ରକୁ ପୂର୍ଣ୍ଣ କରେ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
-- **🎨 ଚିତ୍ର / ଭିଡିଓ / ଅଡିଓ ଜେନେରେସନ୍** — ମିଡିଆ ପାଇଁ ଗୋଟିଏ API: xAI Grok Imagine ଓ Novita AI ଭିଡିଓ, ComfyUI, Magnific, Adobe Firefly, Segmind ଏବଂ ElevenLabs ପରି ସ୍ପିଚ୍ ପ୍ରଦାତା। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
-- **🌍 ଡିପ୍ଲୟମେଣ୍ଟ ଓ ଅପରେସନ୍ସ** — ରିଭର୍ସ-ପ୍ରକ୍ସି `basePath`, ବ୍ରାଉଜର୍-ଭାଷା ସ୍ୱୟଂଚାଳିତ ଚିହ୍ନଟ, ପ୍ରତ୍ୟେକ କୀ ପାଇଁ ଡିଭାଇସ୍ ଟ୍ରାକିଂ, root-ବିହୀନ MITM ଟ୍ରଷ୍ଟ, zh-TW ସ୍ଥାନୀୟକରଣ। → [ପରିବେଶ](docs/reference/ENVIRONMENT.md)
-- **🤝 ଅଧିକ ପ୍ରଦାତା ଓ ଏଜେଣ୍ଟ** — କ୍ଲାଉଡ୍ ଏଜେଣ୍ଟ (Codex Cloud, Cursor, Devin, Jules), ବ୍ରାଉଜର୍ + OAuth ଲଗ୍‌ଇନ୍ ସହିତ Grok Build (xAI), ପ୍ରଥମ-ଶ୍ରେଣୀ Ollama କାର୍ଡ, Claude Opus 5 ଓ Sonnet 5, Kimiର ଆଧିକାରିକ ସହଭାଗିତା (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… ଏବଂ ଏକ ନବୀକୃତ **352-ପ୍ରଦାତା କ୍ୟାଟାଲଗ୍**। → [ପ୍ରଦାତା](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 ରାଉଟିଂ ସ୍ୱଚ୍ଛତା** — ପ୍ରତ୍ୟେକ ପ୍ରତିକ୍ରିୟାରେ ତାହାକୁ ପରିବେଷଣ କରିଥିବା କୌଶଳ/ପ୍ରଦାତା/ଲେଟେନ୍ସିର ନାମ ସହିତ ଏକ `X-OmniRoute-Decision` ହେଡର୍ ଥାଏ; ଏକ ନୂତନ `cache-optimized` କମ୍ବୋ କୌଶଳ + Auto-Combo `cacheAffinity` ଫ୍ୟାକ୍ଟର୍ ପୁନରାବୃତ୍ତ ଅନୁରୋଧଗୁଡ଼ିକୁ କ୍ୟାଶ୍ ହୋଇଥିବା ପ୍ରିଫିକ୍ସ ଧାରଣ କରୁଥିବା ସଂଯୋଗକୁ ଫେରାଇ ରାଉଟ୍ କରେ, ଏବଂ ଏକ ରିଡ୍-ଓନ୍‌ଲି `/v1/auto-combo/{channel}/candidates` ଏଣ୍ଡପଏଣ୍ଟ ଏକ `auto/*` ଚ୍ୟାନେଲ୍‌ର ସକ୍ରିୟ ପ୍ରାର୍ଥୀ ପୁଲ୍‌କୁ ପ୍ରକାଶ କରେ। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ ସ୍ଥାନୀୟ କାର୍ଯ୍ୟଦକ୍ଷତା ଓ ଇନ୍‌ଫ୍ରା** — ଏକ-କ୍ଲିକ୍ ସ୍ଥାନୀୟ Redis, Cloudflare Workers / Deno Deploy ରିଲେ ଡିପ୍ଲୟର୍, ନିରୀକ୍ଷିତ ଏମ୍‌ବେଡେଡ୍ ସେବା ଭାବେ Bifrost ଓ Mux। → [ଏମ୍‌ବେଡେଡ୍ ସେବା](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 ବକ୍ସରେ ଆହୁରି ମଧ୍ୟ** — ପ୍ଲଗ୍‌ଇନ୍ ଫ୍ରେମ୍‌ୱାର୍କ + ମାର୍କେଟ୍‌ପ୍ଲେସ୍, Omni/Agent/GitHub ଦକ୍ଷତା ଫ୍ରେମ୍‌ୱାର୍କ, Obsidian vault ଇଣ୍ଟିଗ୍ରେସନ୍ (22ଟି MCP ଟୁଲ୍), OpenAI-ସୁସଙ୍ଗତ Batch ଓ Files API, ସେମାଣ୍ଟିକ୍ ପ୍ରତିକ୍ରିୟା କ୍ୟାଶ୍, ଲିଡର୍‌ବୋର୍ଡ ସହିତ ଗେମିଫିକେସନ୍, ACP ଏଜେଣ୍ଟ ଆବିଷ୍କାର (15ଟି ବିଲ୍ଟ-ଇନ୍ ଏଜେଣ୍ଟ), BigQueryକୁ ନିର୍ଦ୍ଧାରିତ ଲଗ୍ ଏକ୍ସପୋର୍ଟ, `auto/chaos` ଫଲ୍ଟ ଇଞ୍ଜେକ୍ସନ୍, ଏକ Telegram ବଟ୍ ବ୍ରିଜ୍, ଏକ ଇନ୍-ଆପ୍ ଭର୍ସନ୍ ମ୍ୟାନେଜର୍ ଏବଂ LMArena-ELO ମାଗଣା-ପ୍ରଦାତା ର୍ୟାଙ୍କିଙ୍ଗ୍। → [ଡକ୍ୟୁମେଣ୍ଟେସନ୍](docs/README.md)
+- **🎛️ OmniConductor** — ଆପଣଙ୍କ ଏଜେଣ୍ଟ ସମୂହକୁ ଇନ୍ବାଉଣ୍ଡ A2A କାର୍ଯ୍ୟ-ହସ୍ତାନ୍ତର, Agent Cardରେ Conductor ଦକ୍ଷତା, ଏବଂ Faro ପୁଶ୍-ଟୁ-ଟକ୍ ଭଏସ୍ ଚାଟ୍ ସହିତ ଏକ ଡ୍ୟାଶବୋର୍ଡ ପ୍ୟାନେଲ୍। → [A2A ସର୍ଭର୍](docs/frameworks/A2A-SERVER.md)
+- **🛂 ଅନୁକୂଳନଶୀଳ ଆଡ୍ମିଶନ୍ ଓ ଓଭରଲୋଡ୍ ସୁରକ୍ଷା** — ଭାରୀ ଚାଟ୍ ଅନୁରୋଧଗୁଡ଼ିକ 503 ଫେରାଇବା ପରିବର୍ତ୍ତେ ଧାଡ଼ିରେ ରହେ, ପ୍ରତ୍ୟେକ ସଂଯୋଗ ପାଇଁ ଆଟମିକ୍ RPM ରୋଲିଂ ଲିଜ୍ ସହିତ। → [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ ପ୍ରାମାଣିକ `/v1/models` କ୍ରମ** — ପ୍ରତ୍ୟେକ ପ୍ରଦାନକାରୀ ପାଇଁ ଗୋଟିଏ ସଂଲଗ୍ନ ପ୍ରଦାନକାରୀ-ଗୋଷ୍ଠୀଭୁକ୍ତ ବ୍ଲକ୍ (କମ୍ବୋଗୁଡ଼ିକ ପ୍ରଥମେ ପିନ୍ ହୋଇଥାଏ), ଯାହା ପ୍ରତ୍ୟେକ କ୍ୟାଟାଲଗ୍ ଉତ୍ସରେ ସ୍ଥିର ରହେ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
+- **🗜️ କମ୍ପ୍ରେସନ୍ ସୁଦୃଢ଼ୀକରଣ** — ଡିଫଲ୍ଟ ଭାବେ ସକ୍ରିୟ ଇନ୍ଫ୍ଲେସନ୍ ଗାର୍ଡ, DE / FR / JA + Chinese (wényán) ପାଇଁ Caveman ପ୍ୟାକ୍, Gradle ଓ .NET ପାଇଁ RTK ଫିଲ୍ଟର୍। → [କମ୍ପ୍ରେସନ୍](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 ସ୍ୱଚ୍ଛ ଫ୍ଲାଟ୍-ରେଟ୍ ମୂଲ୍ୟ** — ସବ୍ସ୍କ୍ରିପ୍ସନ୍ / କୋଡିଂ-ପ୍ଲାନ୍ ପ୍ରଦାନକାରୀମାନଙ୍କ ମୂଲ୍ୟ ବିଶ୍ଳେଷଣରେ **$0** ଦେଖାଯାଏ; ବଜେଟ୍, କୋଟା ଓ ରାଉଟିଂ ଅନୁମାନ ଜାରି ରଖେ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
+- **⚖️ କୋଟା-ଶେୟାର୍ ରାଉଟିଂ** — ସମୂହଭୁକ୍ତ କୀଗୁଡ଼ିକ ମଧ୍ୟରେ ଏକ ଅଂଶୀଦାର ଆକାଉଣ୍ଟର କୋଟାକୁ ନ୍ୟାୟସଙ୍ଗତ ଭାବେ ବିଭାଜନ କରେ, ଏବଂ କାର୍ଯ୍ୟ-ସଂରକ୍ଷକ ଥିବାରୁ ନିଷ୍କ୍ରିୟ ଅଂଶଗୁଡ଼ିକୁ ଧାର ଦିଆଯାଏ। → [ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 ଏକକ-କମାଣ୍ଡ CLI/ଏଜେଣ୍ଟ ସେଟ୍ଅପ୍** — 13ଟି ପଞ୍ଜିକୃତ `setup-*` କମାଣ୍ଡ; `omniroute run` 7ଟି CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) ଚାଲୁ କରେ; `omniroute configure` ଏକ ଇଣ୍ଟରାକ୍ଟିଭ୍ ପ୍ରଦାନକାରୀ+ମଡେଲ୍ ଚୟନକାରୀ ଏବଂ ପ୍ରତ୍ୟେକ କଣ୍ଟେକ୍ସ୍ଟ ପାଇଁ ପସନ୍ଦ ସହିତ 10ଟି ଲକ୍ଷ୍ୟକୁ ସମର୍ଥନ କରେ। → [CLI ଏକୀକରଣ](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ ରିମୋଟ୍ ମୋଡ୍** — ସ୍କୋପ୍ଯୁକ୍ତ ଟୋକେନ୍ (`connect` / `contexts` / `tokens`) ସହିତ ଏକ ରିମୋଟ୍ OmniRoute ପରିଚାଳନା କରନ୍ତୁ, ଏବଂ VPS ଇନ୍ଷ୍ଟଲେସନ୍ ପାଇଁ ଏକ `antigravity` OAuth ସହାୟକ। → [ରିମୋଟ୍ ମୋଡ୍](docs/guides/REMOTE-MODE.md)
+- **🧭 ଅଧିକ ସ୍ମାର୍ଟ ସ୍ୱୟଂଚାଳିତ ରାଉଟିଂ** — `auto/<category>:<tier>` କମ୍ବୋ, **Fusion** (ମଡେଲ୍ ପ୍ୟାନେଲ୍ + ବିଚାରକ), କାର୍ଯ୍ୟ-ସଚେତନ ରାଉଟିଂ, ଏବଂ ପ୍ରତ୍ୟେକ ଅନୁରୋଧ ପାଇଁ ମଡେଲ୍ / ମୋଡ୍ / USD-ବଜେଟ୍ ଓଭରରାଇଡ୍। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ ପ୍ଲଗ୍ଯୋଗ୍ୟ କମ୍ପ୍ରେସନ୍** — 12ଟି ସଂଯୋଜନଯୋଗ୍ୟ ଇଞ୍ଜିନ୍ + Compression Studios: LLMLingua-2, ଦୁଇ-ସ୍ତରୀୟ Ultra, omniglyph, ପ୍ରତ୍ୟେକ ପଦକ୍ଷେପ ପାଇଁ ଫିଡେଲିଟି ଗେଟ୍, GCF v3.2, ଡ୍ରାଗ୍-ରିଅର୍ଡର୍ ଏଡିଟର୍। → [କମ୍ପ୍ରେସନ୍](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ ସ୍ୱଚ୍ଛ MITM ଡିକ୍ରିପ୍ଟ (TPROXY)** — ପ୍ରକ୍ସି ପରିବେଶ ଭେରିଏବଲ୍ଗୁଡ଼ିକୁ ଅଣଦେଖା କରୁଥିବା CLIଗୁଡ଼ିକୁ, ପ୍ରତ୍ୟେକ SNI ପାଇଁ CA + ଟ୍ରଷ୍ଟ-ଷ୍ଟୋର୍ ଇନ୍ଷ୍ଟଲର୍ ସହିତ କ୍ୟାପ୍ଚର୍ କରେ। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 ସର୍ବତ୍ର ମୂଲ୍ୟ ଟେଲିମେଟ୍ରି** — ପ୍ରତ୍ୟେକ ଏଣ୍ଡପଏଣ୍ଟରେ `X-OmniRoute-*` ମୂଲ୍ୟ/ବ୍ୟବହାର ହେଡର୍, କ୍ୟାଶ୍-HIT ସଞ୍ଚୟ ହେଡର୍, ଏବଂ ପ୍ରତ୍ୟେକ କୀ ପାଇଁ USD ବ୍ୟୟ କୋଟା। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
+- **🧠 ଆପଣଙ୍କ ନିୟନ୍ତ୍ରଣାଧୀନ ମେମୋରି** — ଡିଫଲ୍ଟ ଭାବେ ବନ୍ଦ, ଇଚ୍ଛାଧୀନ int8 ଭେକ୍ଟର୍ କ୍ୱାଣ୍ଟାଇଜେସନ୍ + ଟାଇପ୍ଯୁକ୍ତ ଡିକେ, ଏବଂ ପ୍ରତ୍ୟେକ ଅନୁରୋଧ ପାଇଁ `x-omniroute-no-memory`। → [ମେମୋରି](docs/frameworks/MEMORY.md)
+- **🛡️ ସୁରକ୍ଷା** — ପ୍ରତ୍ୟେକ LLM ରୁଟ୍ରେ ପ୍ରମ୍ପ୍ଟ-ଇଞ୍ଜେକ୍ସନ୍ ଗାର୍ଡ (ରେଡ୍-ଟିମ୍ ସୁଇଟ୍), ଇଚ୍ଛାଧୀନ କ୍ରେଡେନ୍ସିଆଲ୍-ମାସ୍କିଂ ଗାର୍ଡରେଲ୍ (ଉଭୟ ଦିଗରେ ଲିକ୍ ହୋଇଥିବା API କୀ/ଗୁପ୍ତତଥ୍ୟକୁ ସମ୍ପାଦିତ କରେ), ମାଗଣା DuckDuckGo ଶେଷ-ବିକଳ୍ପ ୱେବ୍ ସନ୍ଧାନ, ଏବଂ ଡ୍ୟାଶବୋର୍ଡ ପାଇଁ ଏକ ବୈକଳ୍ପିକ OIDC ଲଗ୍ଇନ୍ ଗେଟ୍ (ପାସ୍ୱାର୍ଡ ଲଗ୍ଇନ୍ ସର୍ବଦା ଉପଲବ୍ଧ ରହେ)। → [ଗାର୍ଡରେଲ୍ଗୁଡ଼ିକ](docs/security/GUARDRAILS.md)
+- **🖼️ ନୂଆ ଏଣ୍ଡପଏଣ୍ଟ** — `/v1/ocr` (Mistral OCR) ଏବଂ `/v1/audio/translations` (Whisper-ଶୈଳୀ) ମିଡିଆ କ୍ଷମତାକୁ ସମ୍ପୂର୍ଣ୍ଣ କରେ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
+- **🎨 ଛବି / ଭିଡିଓ / ଅଡିଓ ଜେନେରେସନ୍** — ମିଡିଆ ପାଇଁ ଗୋଟିଏ API: xAI Grok Imagine ଓ Novita AI ଭିଡିଓ, ComfyUI, Magnific, Adobe Firefly, Segmind, ଏବଂ ElevenLabs ପରି ସ୍ପିଚ୍ ପ୍ରଦାନକାରୀ। → [API ସନ୍ଦର୍ଭ](docs/reference/API_REFERENCE.md)
+- **🌍 ଡିପ୍ଲୟମେଣ୍ଟ ଓ ଅପରେସନ୍ସ** — ରିଭର୍ସ-ପ୍ରକ୍ସି `basePath`, ବ୍ରାଉଜର୍-ଭାଷା ସ୍ୱୟଂଚାଳିତ ଚିହ୍ନଟ, ପ୍ରତ୍ୟେକ କୀ ପାଇଁ ଡିଭାଇସ୍ ଟ୍ରାକିଂ, ରୁଟ୍-ବିହୀନ MITM ଟ୍ରଷ୍ଟ, zh-TW ସ୍ଥାନୀୟକରଣ। → [ପରିବେଶ](docs/reference/ENVIRONMENT.md)
+- **🤝 ଅଧିକ ପ୍ରଦାନକାରୀ ଓ ଏଜେଣ୍ଟ** — କ୍ଲାଉଡ୍ ଏଜେଣ୍ଟ (Codex Cloud, Cursor, Devin, Jules), ବ୍ରାଉଜର୍ + OAuth ଲଗ୍ଇନ୍ ସହିତ Grok Build (xAI), ପ୍ରଥମ-ଶ୍ରେଣୀର Ollama କାର୍ଡ, Claude Opus 5 ଓ Sonnet 5, Kimi ଆଧିକାରିକ ସହଭାଗିତା (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… ଏବଂ ଏକ ନବୀକୃତ **352-ପ୍ରଦାନକାରୀ କ୍ୟାଟାଲଗ୍**। → [ପ୍ରଦାନକାରୀମାନେ](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 ରାଉଟିଂ ସ୍ୱଚ୍ଛତା** — ପ୍ରତ୍ୟେକ ପ୍ରତିକ୍ରିୟା ତାହାକୁ ସେବା ଦେଇଥିବା ରଣନୀତି/ପ୍ରଦାନକାରୀ/ବିଳମ୍ବର ନାମ ସହିତ ଏକ `X-OmniRoute-Decision` ହେଡର୍ ବହନ କରେ; ଏକ ନୂଆ `cache-optimized` କମ୍ବୋ ରଣନୀତି + Auto-Combo `cacheAffinity` ଫ୍ୟାକ୍ଟର୍ ପୁନରାବୃତ୍ତ ଅନୁରୋଧଗୁଡ଼ିକୁ କ୍ୟାଶ୍କୃତ ପ୍ରିଫିକ୍ସ ଧାରଣ କରୁଥିବା ସଂଯୋଗକୁ ପୁନଃ ରୁଟ୍ କରେ; ଏବଂ ଏକ କେବଳ-ପଠନୀୟ `/v1/auto-combo/{channel}/candidates` ଏଣ୍ଡପଏଣ୍ଟ `auto/*` ଚ୍ୟାନେଲ୍ର ସଜୀବ ପ୍ରାର୍ଥୀ ପୁଲ୍କୁ ଉନ୍ମୋଚନ କରେ। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ ସ୍ଥାନୀୟ କାର୍ଯ୍ୟଦକ୍ଷତା ଓ ଭିତ୍ତିଭୂମି** — ଏକ-କ୍ଲିକ୍ ସ୍ଥାନୀୟ Redis, Cloudflare Workers / Deno Deploy ରିଲେ ଡିପ୍ଲୟର୍, ଏବଂ ପର୍ଯ୍ୟବେକ୍ଷିତ ଏମ୍ବେଡେଡ୍ ସେବା ଭାବେ Bifrost ଓ Mux। → [ଏମ୍ବେଡେଡ୍ ସେବା](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 ବକ୍ସରେ ଆହୁରି ଅଛି** — ପ୍ଲଗ୍ଇନ୍ ଫ୍ରେମୱର୍କ + ମାର୍କେଟ୍ପ୍ଲେସ୍, Omni/Agent/GitHub ଦକ୍ଷତା ଫ୍ରେମୱର୍କ, Obsidian ଭଲ୍ଟ ଏକୀକରଣ (22ଟି MCP ଟୁଲ୍), OpenAI-ସୁସଙ୍ଗତ Batch ଓ Files API, ସିମାଣ୍ଟିକ୍ ପ୍ରତିକ୍ରିୟା କ୍ୟାଶ୍, ଲିଡର୍ବୋର୍ଡ ସହିତ ଗେମିଫିକେସନ୍, ACP ଏଜେଣ୍ଟ ଆବିଷ୍କାର (15ଟି ବିଲ୍ଟ-ଇନ୍ ଏଜେଣ୍ଟ), BigQueryକୁ ନିର୍ଦ୍ଧାରିତ ଲଗ୍ ରପ୍ତାନି, `auto/chaos` ସମାନ୍ତରାଳ ମଲ୍ଟି-ମଡେଲ୍ ଫ୍ୟାନ୍-ଆଉଟ୍, ଏକ Telegram ବଟ୍ ବ୍ରିଜ୍, ଏକ ଇନ୍-ଆପ୍ ସଂସ୍କରଣ ପରିଚାଳକ ଏବଂ LMArena-ELO ମାଗଣା-ପ୍ରଦାନକାରୀ ର୍ୟାଙ୍କିଙ୍ଗ୍। → [ଦଲିଲପତ୍ର](docs/README.md)
 
 <br/>
 
 <div align="center">
 
-## 🤖 ସୁସଙ୍ଗତ CLIଗୁଡ଼ିକ ଓ କୋଡିଂ ଏଜେଣ୍ଟଗୁଡ଼ିକ
+## 🤖 ସୁସଙ୍ଗତ CLI ଏବଂ କୋଡିଂ ଏଜେଣ୍ଟଗୁଡ଼ିକ
 
-> ଗୋଟିଏ କନଫିଗ୍‌ — `http://localhost:20128/v1` — ଏବଂ **ପ୍ରତ୍ୟେକ** AI IDE କିମ୍ବା CLI ମାଗଣା ଓ କମ୍ ମୂଲ୍ୟର ମଡେଲ୍‌ଗୁଡ଼ିକରେ ଚାଲେ।
+> ଗୋଟିଏ କନଫିଗ୍ — `http://localhost:20128/v1` — ଏବଂ **ପ୍ରତ୍ୟେକ** AI IDE କିମ୍ବା CLI ମାଗଣା ଏବଂ ସ୍ୱଳ୍ପ-ମୂଲ୍ୟର ମଡେଲ୍ଗୁଡ଼ିକରେ ଚାଲେ।
 
 <div align="center">
 <table>
@@ -622,23 +626,23 @@ Pix copia-e-cola:
     <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><sub>                           </sub></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><sub>                           </sub></td>
+    <td align="center" width="76"><a href="https://deyin.ai"><img src="./public/deyin.svg" width="40" alt="deyin.ai"/><br/><sub><b>deyin.ai</b></sub><br/><sub>                           </sub></a></td>
   </tr>
 </table>
 </div>
 
 <div align="center">
-<b>＋ ଏଗୁଡ଼ିକ ସହିତ ମଧ୍ୟ କାମ କରେ</b> · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍‌</b>
+<b>＋ ଏଗୁଡ଼ିକ ସହିତ ମଧ୍ୟ କାମ କରେ</b> · Agent Deck · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍</b>
 </div>
 
-<sub>📖 ସମସ୍ତ 36ଟି ଟୁଲ୍‌ ପାଇଁ ପ୍ରତି-ଟୁଲ୍ ସେଟଅପ୍ (26ଟି CLI Code + 10ଟି CLI Agent) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode ପ୍ଲଗଇନ୍ → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+<sub>📖 ସମସ୍ତ 36ଟି ଟୁଲ୍ ପାଇଁ ପ୍ରତି-ଟୁଲ୍ ସେଟଅପ୍ (26ଟି CLI Code + 10ଟି CLI Agent) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode ପ୍ଲଗଇନ୍ → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
 
 </div>
 
 <br/>
 
-**ଗୋଟିଏ କମାଣ୍ଡ୍‌ରେ OmniRoute ମାଧ୍ୟମରେ ଯେକୌଣସି ସମର୍ଥିତ CLI ଚଲାନ୍ତୁ** — କୌଣସି କନଫିଗ୍ ଫାଇଲ୍ ଲେଖାଯାଏ ନାହିଁ,
-ପ୍ରତ୍ୟେକ ପ୍ରକ୍ରିୟା ପାଇଁ ପରିଚୟପତ୍ର ଇଞ୍ଜେକ୍ଟ କରାଯାଏ, Qwen/Gemini ଏକ ଅସ୍ଥାୟୀ ପୃଥକୀକୃତ ହୋମ୍ ପାଆନ୍ତି:
+**ଗୋଟିଏ କମାଣ୍ଡରେ OmniRoute ମାଧ୍ୟମରେ ଯେକୌଣସି ସମର୍ଥିତ CLI ଚାଲୁ କରନ୍ତୁ** — କୌଣସି କନଫିଗ୍ ଫାଇଲ୍ ଲେଖାଯାଏ ନାହିଁ,
+ପ୍ରତ୍ୟେକ ପ୍ରୋସେସ୍ ପାଇଁ ପ୍ରମାଣପତ୍ର ଇଞ୍ଜେକ୍ଟ କରାଯାଏ, Qwen/Gemini ଏକ ଅସ୍ଥାୟୀ ପୃଥକ୍ home ପାଆନ୍ତି:
 
 ```bash
 omniroute run claude   --model openai/gpt-5.4          # Claude Code
@@ -649,23 +653,23 @@ omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
 omniroute run qwen     --model glm/glm-5.2 -- -p "reply OK"
 omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "reply OK"
 
-# କିମ୍ବା ପ୍ରଦାନକାରୀ+ମଡେଲ୍‌କୁ ଇଣ୍ଟରାକ୍ଟିଭ୍ ଭାବେ ବାଛନ୍ତୁ ଏବଂ ଟୁଲ୍‌ର ନିଜସ୍ୱ କନଫିଗ୍ ଲେଖନ୍ତୁ:
+# କିମ୍ବା provider+model ଇଣ୍ଟରାକ୍ଟିଭ୍ ଭାବେ ବାଛନ୍ତୁ ଏବଂ ଟୁଲ୍ର ନିଜସ୍ୱ କନଫିଗ୍ ଲେଖନ୍ତୁ:
 omniroute configure codex          # ଏଗୁଡ଼ିକ ମଧ୍ୟ: claude opencode qwen aider goose gemini cline continue kilo
 ```
 
-ପ୍ରତ୍ୟେକ କମାଣ୍ଡ୍ ସକ୍ରିୟ ରିମୋଟ୍ କଣ୍ଟେକ୍ସ୍ଟ (`omniroute connect <host>`)କୁ ସମ୍ମାନ କରେ, `--dry-run`
-ନିଷ୍ପାଦନ ନକରି ସଠିକ୍ env/argsର ପୂର୍ବାବଲୋକନ ଦେଖାଏ, ଏବଂ `--api-key-env NAME` ଗୁପ୍ତ ତଥ୍ୟକୁ
-ଆପଣଙ୍କ shell ଇତିହାସରୁ ଦୂରେଇ ରଖେ। → [CLI ଇଣ୍ଟିଗ୍ରେସନ୍‌ଗୁଡ଼ିକ](docs/guides/CLI-INTEGRATIONS.md)
+ପ୍ରତ୍ୟେକ କମାଣ୍ଡ ସକ୍ରିୟ ରିମୋଟ୍ କଣ୍ଟେକ୍ସ୍ଟ (`omniroute connect <host>`)କୁ ଅନୁସରଣ କରେ, `--dry-run`
+କାର୍ଯ୍ୟକାରୀ ନକରି ସଠିକ୍ env/argsର ପୂର୍ବାବଲୋକନ ଦେଖାଏ, ଏବଂ `--api-key-env NAME` ଗୁପ୍ତ ତଥ୍ୟକୁ
+ଆପଣଙ୍କ shell historyରୁ ଦୂରେଇ ରଖେ। → [CLI ଇଣ୍ଟିଗ୍ରେସନ୍ଗୁଡ଼ିକ](docs/guides/CLI-INTEGRATIONS.md)
 
 <br/>
 
 <div align="center">
 
-## 🌐 352 AI ପ୍ରଦାନକାରୀ — 152ଟି କ୍ୟାଟାଲଗ୍-ଚିହ୍ନିତ ମାଗଣା
+## 🌐 357 AI ପ୍ରଦାନକାରୀ — 152ଟି କ୍ୟାଟାଲଗ୍ରେ ମାଗଣା ଭାବେ ଚିହ୍ନିତ
 
 </div>
 
-> **352 ପଞ୍ଜୀକୃତ ପ୍ରଦାନକାରୀ** କ୍ୟାନୋନିକାଲ୍ ଚାଟ୍, ମିଡିଆ, ସନ୍ଧାନ, ସ୍ଥାନୀୟ, କ୍ଲାଉଡ୍-ଏଜେଣ୍ଟ ଏବଂ ସିଷ୍ଟମ୍ ସଂଗ୍ରହଗୁଡ଼ିକରେ ବ୍ୟାପ୍ତ, ଯେଉଁଥିରେ **152ଟିରେ `hasFree: true` ଡିସ୍କଭରି ମେଟାଡାଟା ରହିଛି**। ଚାଟ୍ ମଡେଲ୍ ରେଜିଷ୍ଟ୍ରିରେ **229 ପ୍ରଦାନକାରୀ / 2,554ଟି ସ୍ୱତନ୍ତ୍ର ପ୍ରଦାନକାରୀ-ମଡେଲ୍ ଯୁଗଳ / 1,283ଟି କଞ୍ଚା ମଡେଲ୍ ID** ଅନ୍ତର୍ଭୁକ୍ତ; ପୃଥକ ମାଗଣା-ବଜେଟ୍ କ୍ୟାଟାଲଗ୍‌ରେ **444ଟି ପ୍ରତି-ମଡେଲ୍ ଧାଡ଼ି**, **34ଟି ପୁନରାବୃତ୍ତ ପୁଲ୍** ଏବଂ **52ଟି ପୁନରାବୃତ୍ତ/କୀ-ବିହୀନ ଚିରକାଳ ମାଗଣା ପ୍ରଦାନକାରୀ** ରହିଛନ୍ତି। ଡିଜାଇନ୍ ଅନୁସାରେ ଏଗୁଡ଼ିକ ଭିନ୍ନ ହର; ସଂଜ୍ଞା ଏବଂ ପୁଲ୍‌ରୁ ନକଲ ଅପସାରିତ ଗଣନାଗୁଡ଼ିକ [ପ୍ରଦାନକାରୀ ସନ୍ଦର୍ଭ](docs/reference/PROVIDER_REFERENCE.md) ଏବଂ [ମାଗଣା ସ୍ତର](docs/reference/FREE_TIERS.md)ରେ ଉପଲବ୍ଧ।
+> କ୍ୟାନୋନିକାଲ୍ ଚାଟ୍, ମିଡିଆ, ସନ୍ଧାନ, ସ୍ଥାନୀୟ, କ୍ଲାଉଡ୍-ଏଜେଣ୍ଟ ଏବଂ ସିଷ୍ଟମ୍ ସଂଗ୍ରହଗୁଡ଼ିକରେ **357 ପଞ୍ଜୀକୃତ ପ୍ରଦାନକାରୀ** ରହିଛନ୍ତି, ଯେଉଁଥିରୁ **152ଟିରେ `hasFree: true` ଡିସ୍କଭରି ମେଟାଡାଟା ରହିଛି**। ଚାଟ୍ ମଡେଲ୍ ରେଜିଷ୍ଟ୍ରିରେ **229 ପ୍ରଦାନକାରୀ / 2,554ଟି ସ୍ୱତନ୍ତ୍ର ପ୍ରଦାନକାରୀ-ମଡେଲ୍ ଯୁଗଳ / 1,283ଟି କଞ୍ଚା ମଡେଲ୍ ID** ଅନ୍ତର୍ଭୁକ୍ତ; ପୃଥକ ମାଗଣା-ବଜେଟ୍ କ୍ୟାଟାଲଗ୍ରେ **491ଟି ପ୍ରତି-ମଡେଲ୍ ଧାଡ଼ି**, **35ଟି ପୁନରାବୃତ୍ତ ପୁଲ୍** ଏବଂ **54ଟି ପୁନରାବୃତ୍ତ/କି-ବିହୀନ ଚିରକାଳ-ମାଗଣା ପ୍ରଦାନକାରୀ** ରହିଛନ୍ତି। ଡିଜାଇନ୍ ଅନୁସାରେ ଏଗୁଡ଼ିକ ଭିନ୍ନ ହର; ସଂଜ୍ଞା ଏବଂ ପୁଲ୍-ଡିଡୁପ୍ଲିକେଟ୍ କରାଯାଇଥିବା ଗଣନାଗୁଡ଼ିକ [ପ୍ରଦାନକାରୀ ସନ୍ଦର୍ଭ](docs/reference/PROVIDER_REFERENCE.md) ଏବଂ [ମାଗଣା ସ୍ତର](docs/reference/FREE_TIERS.md)ରେ ଉପଲବ୍ଧ।
 
 <div align="center">
 
@@ -698,16 +702,16 @@ omniroute configure codex          # ଏଗୁଡ଼ିକ ମଧ୍ୟ: claude 
   </tr>
 </table>
 
-<sub>…ଏବଂ ଆହୁରି 330+ — ପ୍ରତ୍ୟେକ ଆଇକନ୍ ଡ୍ୟାସ୍‌ବୋର୍ଡର ପ୍ରଦାନକାରୀ କ୍ୟାଟାଲଗ୍‌ରୁ ସିଧାସଳଖ ଲୋଡ୍ ହୁଏ। 📖 [ପ୍ରଦାନକାରୀ ସନ୍ଦର୍ଭ](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…ଏବଂ ଆହୁରି 330+ — ପ୍ରତ୍ୟେକ ଆଇକନ୍ ଡ୍ୟାସ୍ବୋର୍ଡର ପ୍ରଦାନକାରୀ କ୍ୟାଟାଲଗ୍ରୁ ସିଧାସଳଖ ରିଜଲ୍ଭ ହୁଏ। 📖 [ପ୍ରଦାନକାରୀ ସନ୍ଦର୍ଭ](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 ଚିରକାଳ ମାଗଣା — $0, କୌଣସି କାର୍ଡ ଆବଶ୍ୟକ ନାହିଁ
+### 🆓 ଚିରକାଳ ମାଗଣା — $0, କୌଣସି କାର୍ଡ ନାହିଁ
 
 <table>
   <tr>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>କୌଣସି ଟୋକେନ୍ ସୀମା ନାହିଁ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ସ୍ୱୟଂଚାଳିତ ରାଉଟର୍, Tencent Hy3<br/>ସବୁଦିନ ପାଇଁ ମାଗଣା</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>କୌଣସି ଟୋକନ୍ ସୀମା ନାହିଁ</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ଅଟୋ-ରାଉଟର୍, Tencent Hy3<br/>ସବୁଦିନ ପାଇଁ ମାଗଣା</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>ସବୁଦିନ ପାଇଁ ମାଗଣା</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>ମାଗଣା ସ୍ତର</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>ସବୁଦିନ ପାଇଁ ମାଗଣା</sub></td>
@@ -715,15 +719,15 @@ omniroute configure codex          # ଏଗୁଡ଼ିକ ମଧ୍ୟ: claude 
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>ଅସୀମିତ ମାଗଣା</sub></td>
-    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>କୌଣସି କୀ ଆବଶ୍ୟକ ନାହିଁ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ ମଡେଲ୍<br/>ପ୍ରତିଦିନ 10K ନ୍ୟୁରନ୍</sub></td>
+    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>କୌଣସି କି’ ଆବଶ୍ୟକ ନାହିଁ</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ ମଡେଲ୍<br/>ଦିନକୁ 10K ନ୍ୟୁରନ୍</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM ମାଗଣା</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>ପ୍ରତିଦିନ 1M ଟୋକେନ୍</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free ମଡେଲ୍‌ଗୁଡ଼ିକ<br/>+$10 → ଅଧିକ RPM</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>ଦିନକୁ 1M ଟୋକନ୍</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free ମଡେଲ୍ଗୁଡ଼ିକ<br/>+$10 → ଅଧିକ RPM</sub></td>
   </tr>
 </table>
 
-📖 ସମ୍ପୂର୍ଣ୍ଣ ମେସିନ୍-ପଠନୀୟ କ୍ୟାଟାଲଗ୍ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 ସମ୍ପୂର୍ଣ୍ଣ ମେସିନ୍-ପଠନଯୋଗ୍ୟ କ୍ୟାଟାଲଗ୍ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>
@@ -1258,23 +1262,23 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
 
 <table>
   <tr><th align="left">ସ୍ତର</th><th align="left">ପ୍ରଯୁକ୍ତି</th></tr>
-  <tr><td nowrap><b>ରନ୍‌ଟାଇମ୍</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>ଭାଷା</b></td><td>TypeScript 6.0 — <code>src/</code> ଏବଂ <code>open-sse/</code> ସମଗ୍ରରେ <b>100% TypeScript</b> (v2.0 ପରଠାରୁ କୋର୍‌ରେ ଗୋଟିଏ ମଧ୍ୟ <code>any</code> ନାହିଁ)</td></tr>
-  <tr><td nowrap><b>ଫ୍ରେମ୍‌ୱାର୍କ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ନାଲିଂ) + LowDB (JSON ଲେଗେସି) — 122 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 172 ମାଇଗ୍ରେସନ୍</td></tr>
-  <tr><td nowrap><b>ମେମୋରି</b></td><td>SQLite FTS5 ପୂର୍ଣ୍ଣ-ଟେକ୍ସଟ୍ + int8-କ୍ୱାଣ୍ଟାଇଜ୍ଡ ଭେକ୍ଟର୍ ଏମ୍ବେଡିଂ, ଟାଇପ୍ଡ ଡିକେ</td></tr>
-  <tr><td nowrap><b>ସ୍କିମା</b></td><td>Zod 4 — MCP ଟୁଲ୍ I/O ବୈଧୀକରଣ + API ଚୁକ୍ତି</td></tr>
+  <tr><td nowrap><b>ରନ୍ଟାଇମ୍</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>ଭାଷା</b></td><td>TypeScript 6.0 — <code>src/</code> ଏବଂ <code>open-sse/</code> ସମଗ୍ରରେ <b>100% TypeScript</b> (v2.0 ପରଠାରୁ କୋର୍ରେ ଶୂନ୍ୟ <code>any</code>)</td></tr>
+  <tr><td nowrap><b>ଫ୍ରେମ୍ୱର୍କ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ଣ୍ଣାଲିଂ) + LowDB (JSON ଲିଗାସି) — 137 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 193 ମାଇଗ୍ରେସନ୍</td></tr>
+  <tr><td nowrap><b>ମେମୋରି</b></td><td>SQLite FTS5 ପୂର୍ଣ୍ଣ-ଟେକ୍ସ୍ଟ + int8-କ୍ୱାଣ୍ଟାଇଜ୍ଡ ଭେକ୍ଟର ଏମ୍ବେଡିଂ, ଟାଇପ୍ଡ ଡିକେ</td></tr>
+  <tr><td nowrap><b>ସ୍କିମା</b></td><td>Zod 4 — MCP ଟୁଲ୍ I/O ବୈଧତା ଯାଞ୍ଚ + API ଚୁକ୍ତି</td></tr>
   <tr><td nowrap><b>ପ୍ରୋଟୋକଲ୍</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ଷ୍ଟ୍ରିମିଂ</b></td><td>Server-Sent Events (SSE) + WebSocket ବ୍ରିଜ୍ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>କମ୍ପ୍ରେସନ୍</b></td><td>12-ଇଞ୍ଜିନ୍ ପାଇପ୍‌ଲାଇନ୍ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>ଷ୍ଟ୍ରିମିଂ</b></td><td>ସର୍ଭର୍-ସେଣ୍ଟ ଇଭେଣ୍ଟ୍ସ (SSE) + WebSocket ବ୍ରିଜ୍ (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>କମ୍ପ୍ରେସନ୍</b></td><td>12-ଇଞ୍ଜିନ୍ ପାଇପ୍ଲାଇନ୍ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
   <tr><td nowrap><b>ପ୍ରମାଣୀକରଣ &amp; ସୁରକ୍ଷା</b></td><td>OAuth 2.0 (PKCE) + JWT + API କୀ + MCP ସ୍କୋପ୍ଡ ପ୍ରମାଣୀକରଣ · ସଂରକ୍ଷିତ ଅବସ୍ଥାରେ AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>ଗୋପନୀୟତା</b></td><td>wreq-js — JA3 / JA4 TLS ଫିଙ୍ଗର୍‌ପ୍ରିଣ୍ଟ ଛଦ୍ମବେଶ, 3-ସ୍ତରୀୟ ପ୍ରକ୍ସି</td></tr>
-  <tr><td nowrap><b>ସ୍ଥିତିସ୍ଥାପକତା</b></td><td>ସର୍କିଟ୍ ବ୍ରେକର୍, ଏକ୍ସପୋନେନ୍ସିଆଲ୍ ବ୍ୟାକଅଫ୍, ଆଣ୍ଟି-ଥଣ୍ଡରିଂ-ହର୍ଡ, ଅଟୋ-କମ୍ବୋ ସ୍ୱୟଂ-ମରାମତି</td></tr>
-  <tr><td nowrap><b>ଲଗିଂ</b></td><td>pino — ଅନୁରୋଧ ପ୍ରସଙ୍ଗ ସହିତ ସଂରଚିତ JSON ଲଗ୍</td></tr>
-  <tr><td nowrap><b>ପରୀକ୍ଷଣ</b></td><td>Node.js ଟେଷ୍ଟ ରନର୍ + Vitest — 5,100+ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଟେଷ୍ଟ ଫାଇଲ୍‌ରେ <b>39,000+ ଷ୍ଟାଟିକ୍ ଟେଷ୍ଟ ଘୋଷଣା</b> (ୟୁନିଟ୍, ଇଣ୍ଟିଗ୍ରେସନ୍, E2E, ସୁରକ୍ଷା, ଇକୋସିଷ୍ଟମ୍)</td></tr>
+  <tr><td nowrap><b>ଷ୍ଟେଲ୍ଥ</b></td><td>wreq-js — JA3 / JA4 TLS ଫିଙ୍ଗରପ୍ରିଣ୍ଟ ଛଦ୍ମବେଶ, 3-ସ୍ତରୀୟ ପ୍ରକ୍ସି</td></tr>
+  <tr><td nowrap><b>ସ୍ଥିତିସ୍ଥାପକତା</b></td><td>ସର୍କିଟ୍ ବ୍ରେକର୍, ଏକ୍ସପୋନେନ୍ସିଆଲ୍ ବ୍ୟାକ୍ଅଫ୍, ଆଣ୍ଟି-ଥଣ୍ଡରିଂ-ହର୍ଡ, ଅଟୋ-କମ୍ବୋ ସ୍ୱୟଂ-ନିରାମୟ</td></tr>
+  <tr><td nowrap><b>ଲଗିଂ</b></td><td>pino — ଅନୁରୋଧ ପ୍ରସଙ୍ଗ ସହିତ ଗଠନବଦ୍ଧ JSON ଲଗ୍</td></tr>
+  <tr><td nowrap><b>ପରୀକ୍ଷଣ</b></td><td>Node.js ଟେଷ୍ଟ ରନର୍ + Vitest — 5,100+ ଟ୍ରାକ୍ ହୋଇଥିବା ଟେଷ୍ଟ ଫାଇଲ୍ରେ <b>39,000+ ଷ୍ଟାଟିକ୍ ଟେଷ୍ଟ ଘୋଷଣା</b> (ୟୁନିଟ୍, ଇଣ୍ଟିଗ୍ରେସନ୍, E2E, ସୁରକ୍ଷା, ଇକୋସିଷ୍ଟମ୍)</td></tr>
   <tr><td nowrap><b>ପ୍ଲାଟଫର୍ମ</b></td><td>ଡେସ୍କଟପ୍ (Electron) · Android (Termux) · PWA (ଯେକୌଣସି ବ୍ରାଉଜର୍)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — ରିଲିଜ୍ ସମୟରେ ସ୍ୱୟଂଚାଳିତ npm ପ୍ରକାଶନ + Docker Hub</td></tr>
-  <tr><td nowrap><b>ଲିଙ୍କ୍</b></td><td><a href="https://omniroute.online">ୱେବ୍‌ସାଇଟ୍</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+  <tr><td nowrap><b>ଲିଙ୍କ୍</b></td><td><a href="https://omniroute.online">ୱେବସାଇଟ୍</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
@@ -1285,73 +1289,73 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
 
 </div>
 
-### 📘 ଆରମ୍ଭ କରନ୍ତୁ
+### 📘 ଆରମ୍ଭ କରିବା
 
 <table>
   <tr><th align="left">ଡକ୍ୟୁମେଣ୍ଟ</th><th align="left">ବର୍ଣ୍ଣନା</th></tr>
-  <tr><td nowrap><b><a href="docs/guides/USER_GUIDE.md">ବ୍ୟବହାରକାରୀ ଗାଇଡ୍</a></b></td><td>ପ୍ରଦାନକାରୀ, କମ୍ବୋ, CLI ଇଣ୍ଟିଗ୍ରେସନ୍, ଡିପ୍ଲୟମେଣ୍ଟ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">ସେଟଅପ୍ ଗାଇଡ୍</a></b></td><td>ସମସ୍ତ ଇନ୍‌ଷ୍ଟଲ୍ ପଦ୍ଧତି, CLI ଟୁଲ୍ କନ୍‌ଫିଗ୍, ପ୍ରୋଟୋକଲ୍ ସେଟଅପ୍, ଟାଇମ୍‌ଆଉଟ୍ ଟ୍ୟୁନିଂ</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">CLI ଟୁଲ୍ ଗାଇଡ୍</a></b></td><td>Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot ପାଇଁ ପ୍ରତ୍ୟେକ ଟୁଲ୍‌ର ସେଟଅପ୍</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">ରିମୋଟ୍ ମୋଡ୍</a></b></td><td>ସ୍କୋପ୍ଡ ଆକ୍ସେସ୍ ଟୋକେନ୍ ମାଧ୍ୟମରେ ଆପଣଙ୍କ ଲାପ୍‌ଟପ୍ CLI ରୁ ଏକ ରିମୋଟ୍ OmniRoute (VPS) ଚଳାନ୍ତୁ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">Claude Code କନ୍‌ଫିଗ୍</a></b></td><td><code>launch</code> + ପ୍ରତି-ମଡେଲ୍ ପ୍ରୋଫାଇଲ୍ ସହିତ Claude Codeକୁ OmniRoute (ଲୋକାଲ୍/ରିମୋଟ୍) ଆଡ଼କୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତୁ</td></tr>
-  <tr><td nowrap><b><a href="README.md#-quick-start">ଦ୍ରୁତ ଆରମ୍ଭ</a></b></td><td>3-ପଦକ୍ଷେପୀୟ ଇନ୍‌ଷ୍ଟଲ୍ → ସଂଯୋଗ → କନ୍‌ଫିଗର୍</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/USER_GUIDE.md">ବ୍ୟବହାରକାରୀ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ପ୍ରଦାତା, କମ୍ବୋ, CLI ଏକୀକରଣ, ଡିପ୍ଲୟମେଣ୍ଟ</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">ସେଟଅପ୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ସମ୍ପୂର୍ଣ୍ଣ ଇନଷ୍ଟଲେସନ୍ ପଦ୍ଧତି, CLI ଟୁଲ୍ କନଫିଗରେସନ୍, ପ୍ରୋଟୋକଲ୍ ସେଟଅପ୍, ଟାଇମଆଉଟ୍ ସମନ୍ୱୟ</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">CLI ଟୁଲ୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot ପାଇଁ ପ୍ରତି-ଟୁଲ୍ ସେଟଅପ୍</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">ରିମୋଟ୍ ମୋଡ୍</a></b></td><td>ସୀମିତ-ପରିସର ଆକ୍ସେସ୍ ଟୋକନ୍ ମାଧ୍ୟମରେ ନିଜ ଲାପଟପ୍ CLIରୁ ଏକ ରିମୋଟ୍ OmniRoute (VPS) ପରିଚାଳନା କରନ୍ତୁ</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">Claude Code କନଫିଗରେସନ୍</a></b></td><td><code>launch</code> + ପ୍ରତି-ମଡେଲ୍ ପ୍ରୋଫାଇଲ୍ ସହିତ Claude Codeକୁ OmniRoute (ଲୋକାଲ୍/ରିମୋଟ୍) ଦିଗକୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତୁ</td></tr>
+  <tr><td nowrap><b><a href="README.md#-quick-start">ଦ୍ରୁତ ଆରମ୍ଭ</a></b></td><td>୩-ପଦକ୍ଷେପୀୟ ଇନଷ୍ଟଲ୍ → ସଂଯୋଗ → କନଫିଗରେସନ୍</td></tr>
 </table>
 
-### 🔧 ପରିଚାଳନା & ଡିପ୍ଲୟମେଣ୍ଟ
+### 🔧 ପରିଚାଳନା ଏବଂ ଡିପ୍ଲୟମେଣ୍ଟ
 
 <table>
   <tr><th align="left">ଡକ୍ୟୁମେଣ୍ଟ</th><th align="left">ବର୍ଣ୍ଣନା</th></tr>
-  <tr><td nowrap><b><a href="docs/guides/DOCKER_GUIDE.md">Docker ଗାଇଡ୍</a></b></td><td>Docker ଚାଳନା, Compose ପ୍ରୋଫାଇଲ୍, Caddy HTTPS, ଟନେଲ୍, ଇମେଜ୍ ଟ୍ୟାଗ୍</td></tr>
-  <tr><td nowrap><b><a href="contrib/podman/README.md">Podman ଗାଇଡ୍</a></b></td><td>Quadlet systemd ଇଣ୍ଟିଗ୍ରେସନ୍, podman-compose, SELinux</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/VM_DEPLOYMENT_GUIDE.md">VM ଡିପ୍ଲୟମେଣ୍ଟ</a></b></td><td>ସମ୍ପୂର୍ଣ୍ଣ ଗାଇଡ୍: VM + nginx + Cloudflare ସେଟଅପ୍</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/DOCKER_GUIDE.md">Docker ମାର୍ଗଦର୍ଶିକା</a></b></td><td>Docker ଚାଳନା, Compose ପ୍ରୋଫାଇଲ୍, Caddy HTTPS, ଟନେଲ୍, ଇମେଜ୍ ଟ୍ୟାଗ୍</td></tr>
+  <tr><td nowrap><b><a href="contrib/podman/README.md">Podman ମାର୍ଗଦର୍ଶିକା</a></b></td><td>Quadlet systemd ଏକୀକରଣ, podman-compose, SELinux</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/VM_DEPLOYMENT_GUIDE.md">VM ଡିପ୍ଲୟମେଣ୍ଟ</a></b></td><td>ସମ୍ପୂର୍ଣ୍ଣ ମାର୍ଗଦର୍ଶିକା: VM + nginx + Cloudflare ସେଟଅପ୍</td></tr>
   <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">Fly.io ଡିପ୍ଲୟମେଣ୍ଟ</a></b></td><td>ସ୍ଥାୟୀ ଷ୍ଟୋରେଜ୍ ସହିତ Fly.ioରେ ଡିପ୍ଲୟ କରନ୍ତୁ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/TERMUX_GUIDE.md">Termux ଗାଇଡ୍</a></b></td><td>Termux ମାଧ୍ୟମରେ Androidରେ OmniRoute ଚଲାନ୍ତୁ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">PWA ଗାଇଡ୍</a></b></td><td>ପ୍ରୋଗ୍ରେସିଭ୍ ୱେବ୍ ଆପ୍ ଇନ୍‌ଷ୍ଟଲ୍, କ୍ୟାସିଂ, ଆର୍କିଟେକ୍ଚର୍</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">ଅନ୍‌ଇନ୍‌ଷ୍ଟଲ୍ ଗାଇଡ୍</a></b></td><td>ସମସ୍ତ ଇନ୍‌ଷ୍ଟଲ୍ ପଦ୍ଧତି ପାଇଁ ସ୍ୱଚ୍ଛ ଅପସାରଣ</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">ପରିବେଶ କନ୍‌ଫିଗ୍</a></b></td><td>ସମ୍ପୂର୍ଣ୍ଣ <code>.env</code> ଭେରିଏବଲ୍ ଏବଂ ସନ୍ଦର୍ଭ</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/TERMUX_GUIDE.md">Termux ମାର୍ଗଦର୍ଶିକା</a></b></td><td>Termux ମାଧ୍ୟମରେ Androidରେ OmniRoute ଚଲାନ୍ତୁ</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">PWA ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ପ୍ରୋଗ୍ରେସିଭ୍ ୱେବ୍ ଆପ୍ ଇନଷ୍ଟଲେସନ୍, କ୍ୟାଶିଂ, ଆର୍କିଟେକ୍ଚର୍</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">ଅନଇନଷ୍ଟଲ୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ସମସ୍ତ ଇନଷ୍ଟଲେସନ୍ ପଦ୍ଧତି ପାଇଁ ପରିଷ୍କାର ଅପସାରଣ</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">ପରିବେଶ କନଫିଗରେସନ୍</a></b></td><td>ସମ୍ପୂର୍ଣ୍ଣ <code>.env</code> ଭେରିଏବଲ୍ ଏବଂ ସନ୍ଦର୍ଭ</td></tr>
 </table>
 
-### 🧠 ବୈଶିଷ୍ଟ୍ୟ & ଆର୍କିଟେକ୍ଚର୍
+### 🧠 ବୈଶିଷ୍ଟ୍ୟ ଏବଂ ଆର୍କିଟେକ୍ଚର୍
 
 <table>
-  <tr><th align="left">ଦଲିଲ</th><th align="left">ବିବରଣୀ</th></tr>
-  <tr><td nowrap><b><a href="docs/architecture/ARCHITECTURE.md">ସ୍ଥାପତ୍ୟ</a></b></td><td>ସିଷ୍ଟମ୍ ସ୍ଥାପତ୍ୟ, ଡାଟା ପ୍ରବାହ ଏବଂ ଆଭ୍ୟନ୍ତରୀଣ କାର୍ଯ୍ୟପ୍ରଣାଳୀ</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_GUIDE.md">ସଙ୍କୋଚନ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>7-ବିକଳ୍ପ ପାଇପଲାଇନ୍: ବନ୍ଦ / ହାଲୁକା / ମାନକ / ଆକ୍ରମଣାତ୍ମକ / ଅଲ୍ଟ୍ରା / RTK / ଷ୍ଟାକ୍‌ଡ୍</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/RTK_COMPRESSION.md">RTK ସଙ୍କୋଚନ</a></b></td><td>କମାଣ୍ଡ-ଆଉଟପୁଟ୍ ସଙ୍କୋଚନ, ଫିଲ୍ଟର୍, ବିଶ୍ୱାସ, ଯାଞ୍ଚ ଏବଂ ଅପରିବର୍ତ୍ତିତ ଆଉଟପୁଟ୍ ପୁନରୁଦ୍ଧାର</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_ENGINES.md">ସଙ୍କୋଚନ ଇଞ୍ଜିନ୍‌ଗୁଡ଼ିକ</a></b></td><td>Caveman, RTK, ଷ୍ଟାକ୍‌ଡ୍ ପାଇପଲାଇନ୍ ଏବଂ ଡ୍ୟାଶବୋର୍ଡ/API/MCP ପୃଷ୍ଠଗୁଡ଼ିକ</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_RULES_FORMAT.md">ସଙ୍କୋଚନ ନିୟମ ଫର୍ମାଟ୍</a></b></td><td>Caveman ଏବଂ RTK ଫିଲ୍ଟର୍ ପାଇଁ JSON ନିୟମ-ପ୍ୟାକ୍ ସ୍କିମା</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_LANGUAGE_PACKS.md">ସଙ୍କୋଚନ ଭାଷା ପ୍ୟାକ୍‌ଗୁଡ଼ିକ</a></b></td><td>ଭାଷା ଚିହ୍ନଟ ଏବଂ Caveman ନିୟମ-ପ୍ୟାକ୍ ରଚନା</td></tr>
-  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">ସ୍ଥିତିସ୍ଥାପକତା ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ସର୍କିଟ୍ ବ୍ରେକର୍, କୁଲଡାଉନ୍, କ୍ୟୁ, ଏକକାଳୀନ ଅତ୍ୟଧିକ ଅନୁରୋଧ ପ୍ରତିରୋଧ ଏବଂ TLS ସ୍ପୁଫିଂ</td></tr>
-  <tr><td nowrap><b><a href="docs/routing/AUTO-COMBO.md">ସ୍ୱୟଂଚାଳିତ-କମ୍ବୋ ଇଞ୍ଜିନ୍</a></b></td><td>16-ଉପାଦାନ ସ୍କୋରିଂ, ମୋଡ୍ ପ୍ୟାକ୍ ଏବଂ ସ୍ୱୟଂ-ମରାମତି</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">ପ୍ରକ୍ସି ମାର୍ଗଦର୍ଶିକା</a></b></td><td>3-ସ୍ତରୀୟ ପ୍ରକ୍ସି ସିଷ୍ଟମ୍, 1proxy ବଜାର ଏବଂ ରେଜିଷ୍ଟ୍ରି CRUD</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">ମାଗଣା ସ୍ତରଗୁଡ଼ିକ</a></b></td><td>ଏକୀକୃତ ନିର୍ଦ୍ଦେଶିକା: 34ଟି ଦଲିଲଭୁକ୍ତ ପୁନରାବୃତ୍ତିଶୀଳ ପୁଲ୍ / 444ଟି ସୂଚୀଭୁକ୍ତ ମାଗଣା-ସ୍ତର ଏଣ୍ଟ୍ରି</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">ବୈଶିଷ୍ଟ୍ୟ ଗ୍ୟାଲେରୀ</a></b></td><td>ସ୍କ୍ରିନ୍‌ସଟ୍ ସହିତ ଭିଜୁଆଲ୍ ଡ୍ୟାଶବୋର୍ଡ ପରିଦର୍ଶନ</td></tr>
-  <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">କୋଡ୍‌ବେସ୍ ଦଲିଲୀକରଣ</a></b></td><td>ନବାଗତଙ୍କ ପାଇଁ ସହଜ କୋଡ୍‌ବେସ୍ ପଦକ୍ରମିକ ପରିଚୟ</td></tr>
+  <tr><th align="left">ଡକ୍ୟୁମେଣ୍ଟ</th><th align="left">ବର୍ଣ୍ଣନା</th></tr>
+  <tr><td nowrap><b><a href="docs/architecture/ARCHITECTURE.md">ଆର୍କିଟେକ୍ଚର୍</a></b></td><td>ସିଷ୍ଟମ୍ ଆର୍କିଟେକ୍ଚର୍, ଡାଟା ପ୍ରବାହ ଏବଂ ଆଭ୍ୟନ୍ତରୀଣ ବ୍ୟବସ୍ଥା</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_GUIDE.md">କମ୍ପ୍ରେସନ୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>୭-ବିକଳ୍ପୀୟ ପାଇପଲାଇନ୍: ବନ୍ଦ / ହାଲୁକା / ମାନକ / ଆକ୍ରାମକ / ଅଲ୍ଟ୍ରା / RTK / ଷ୍ଟାକ୍ଡ</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/RTK_COMPRESSION.md">RTK କମ୍ପ୍ରେସନ୍</a></b></td><td>କମାଣ୍ଡ-ଆଉଟପୁଟ୍ କମ୍ପ୍ରେସନ୍, ଫିଲ୍ଟର୍, ବିଶ୍ୱାସ, ଯାଞ୍ଚ, କଞ୍ଚା-ଆଉଟପୁଟ୍ ପୁନରୁଦ୍ଧାର</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_ENGINES.md">କମ୍ପ୍ରେସନ୍ ଇଞ୍ଜିନ୍</a></b></td><td>Caveman, RTK, ଷ୍ଟାକ୍ଡ ପାଇପଲାଇନ୍, ଡ୍ୟାସବୋର୍ଡ/API/MCP ପୃଷ୍ଠଭାଗ</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_RULES_FORMAT.md">କମ୍ପ୍ରେସନ୍ ନିୟମ ଫର୍ମାଟ୍</a></b></td><td>Caveman ଏବଂ RTK ଫିଲ୍ଟର୍ ପାଇଁ JSON ରୁଲ୍-ପ୍ୟାକ୍ ସ୍କିମା</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_LANGUAGE_PACKS.md">କମ୍ପ୍ରେସନ୍ ଭାଷା ପ୍ୟାକ୍</a></b></td><td>ଭାଷା ଚିହ୍ନଟ ଏବଂ Caveman ରୁଲ୍-ପ୍ୟାକ୍ ରଚନା</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">ସହନଶୀଳତା ମାର୍ଗଦର୍ଶିକା</a></b></td><td>ସର୍କିଟ୍ ବ୍ରେକର୍, କୁଲଡାଉନ୍, କ୍ୟୁ, ଆଣ୍ଟି-ଥଣ୍ଡରିଂ ହର୍ଡ, TLS ସ୍ପୁଫିଂ</td></tr>
+  <tr><td nowrap><b><a href="docs/routing/AUTO-COMBO.md">ଅଟୋ-କମ୍ବୋ ଇଞ୍ଜିନ୍</a></b></td><td>୧୬-ଫ୍ୟାକ୍ଟର୍ ସ୍କୋରିଂ, ମୋଡ୍ ପ୍ୟାକ୍, ସ୍ୱୟଂ-ମରାମତି</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">ପ୍ରକ୍ସି ମାର୍ଗଦର୍ଶିକା</a></b></td><td>୩-ସ୍ତରୀୟ ପ୍ରକ୍ସି ସିଷ୍ଟମ୍, 1proxy ମାର୍କେଟପ୍ଲେସ୍, ରେଜିଷ୍ଟ୍ରି CRUD</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">ମାଗଣା ସ୍ତର</a></b></td><td>ଏକୀକୃତ ଡିରେକ୍ଟୋରୀ: ୩୫ଟି ଡକ୍ୟୁମେଣ୍ଟେଡ୍ ପୁନରାବୃତ୍ତିଶୀଳ ପୁଲ୍ / ୪୮୯ଟି କ୍ୟାଟାଲଗ୍ଭୁକ୍ତ ମାଗଣା-ସ୍ତର ଏଣ୍ଟ୍ରି</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">ବୈଶିଷ୍ଟ୍ୟ ଗ୍ୟାଲେରୀ</a></b></td><td>ସ୍କ୍ରିନସଟ୍ ସହିତ ଭିଜୁଆଲ୍ ଡ୍ୟାସବୋର୍ଡ ପରିଦର୍ଶନ</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">କୋଡବେସ୍ ଡକ୍ୟୁମେଣ୍ଟେସନ୍</a></b></td><td>ନବାଗତଙ୍କ ପାଇଁ ସହଜ କୋଡବେସ୍ ବିବରଣୀ</td></tr>
 </table>
 
-### 🤖 ପ୍ରୋଟୋକଲ୍ ଏବଂ APIଗୁଡ଼ିକ
+### 🤖 ପ୍ରୋଟୋକଲ୍ ଏବଂ API
 
 <table>
-  <tr><th align="left">ଦଲିଲ</th><th align="left">ବିବରଣୀ</th></tr>
+  <tr><th align="left">ଡକ୍ୟୁମେଣ୍ଟ</th><th align="left">ବର୍ଣ୍ଣନା</th></tr>
   <tr><td nowrap><b><a href="docs/reference/API_REFERENCE.md">API ସନ୍ଦର୍ଭ</a></b></td><td>ଉଦାହରଣ ସହିତ ସମସ୍ତ ଏଣ୍ଡପଏଣ୍ଟ</td></tr>
-  <tr><td nowrap><b><a href="docs/openapi.yaml">OpenAPI ବିବରଣ</a></b></td><td>OpenAPI 3.0 ନିର୍ଦ୍ଦିଷ୍ଟକରଣ</td></tr>
-  <tr><td nowrap><b><a href="open-sse/mcp-server/README.md">MCP ସର୍ଭର୍</a></b></td><td>110ଟି MCP ଉପକରଣ, IDE ବିନ୍ୟାସ ଏବଂ Python/TS/Go କ୍ଲାଏଣ୍ଟ</td></tr>
-  <tr><td nowrap><b><a href="docs/frameworks/MCP-SERVER.md">MCP ସର୍ଭର୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>MCP ସଂସ୍ଥାପନ, ପରିବହନ ଏବଂ ଉପକରଣ ସନ୍ଦର୍ଭ</td></tr>
-  <tr><td nowrap><b><a href="src/lib/a2a/README.md">A2A ସର୍ଭର୍</a></b></td><td>JSON-RPC 2.0 ପ୍ରୋଟୋକଲ୍, ଦକ୍ଷତା, ଷ୍ଟ୍ରିମିଂ ଏବଂ କାର୍ଯ୍ୟ ପରିଚାଳନା</td></tr>
-  <tr><td nowrap><b><a href="docs/frameworks/A2A-SERVER.md">A2A ସର୍ଭର୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>A2A ଏଜେଣ୍ଟ କାର୍ଡ, କାର୍ଯ୍ୟ, ଦକ୍ଷତା ଏବଂ ଷ୍ଟ୍ରିମିଂ</td></tr>
+  <tr><td nowrap><b><a href="docs/openapi.yaml">OpenAPI ସ୍ପେସିଫିକେସନ୍</a></b></td><td>OpenAPI 3.0 ସ୍ପେସିଫିକେସନ୍</td></tr>
+  <tr><td nowrap><b><a href="open-sse/mcp-server/README.md">MCP ସର୍ଭର୍</a></b></td><td>୧୧୦ଟି MCP ଟୁଲ୍, IDE କନଫିଗରେସନ୍, Python/TS/Go କ୍ଲାଏଣ୍ଟ</td></tr>
+  <tr><td nowrap><b><a href="docs/frameworks/MCP-SERVER.md">MCP ସର୍ଭର୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>MCP ଇନଷ୍ଟଲେସନ୍, ଟ୍ରାନ୍ସପୋର୍ଟ ଏବଂ ଟୁଲ୍ ସନ୍ଦର୍ଭ</td></tr>
+  <tr><td nowrap><b><a href="src/lib/a2a/README.md">A2A ସର୍ଭର୍</a></b></td><td>JSON-RPC 2.0 ପ୍ରୋଟୋକଲ୍, ଦକ୍ଷତା, ଷ୍ଟ୍ରିମିଂ, ଟାସ୍କ ପରିଚାଳନା</td></tr>
+  <tr><td nowrap><b><a href="docs/frameworks/A2A-SERVER.md">A2A ସର୍ଭର୍ ମାର୍ଗଦର୍ଶିକା</a></b></td><td>A2A ଏଜେଣ୍ଟ କାର୍ଡ, ଟାସ୍କ, ଦକ୍ଷତା ଏବଂ ଷ୍ଟ୍ରିମିଂ</td></tr>
 </table>
 
 ### 📋 ପ୍ରକଳ୍ପ ଏବଂ ଗୁଣବତ୍ତା
 
 <table>
-  <tr><th align="left">ଦଲିଲ</th><th align="left">ବିବରଣୀ</th></tr>
+  <tr><th align="left">ଦଲିଲ</th><th align="left">ବର୍ଣ୍ଣନା</th></tr>
   <tr><td nowrap><b><a href="CONTRIBUTING.md">ଅବଦାନ</a></b></td><td>ବିକାଶ ସେଟଅପ୍ ଏବଂ ନିର୍ଦ୍ଦେଶାବଳୀ</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">ବ୍ରାଞ୍ଚିଂ ଏବଂ ରିଲିଜ୍ ମଡେଲ୍</a></b></td><td>PRଗୁଡ଼ିକ କେଉଁଠାକୁ ଲକ୍ଷ୍ୟ କରେ (<code>release/*</code>), ଏବଂ <code>main</code> ଓ ଟ୍ୟାଗ୍‌ଗୁଡ଼ିକର ଅର୍ଥ କ’ଣ</td></tr>
-  <tr><td nowrap><b><a href="CHANGELOG.md">ପରିବର୍ତ୍ତନ ଲଗ୍</a></b></td><td>ପ୍ରତ୍ୟେକ ସଂସ୍କରଣର ସମ୍ପୂର୍ଣ୍ଣ ରିଲିଜ୍ ଇତିହାସ</td></tr>
-  <tr><td nowrap><b><a href="SECURITY.md">ସୁରକ୍ଷା ନୀତି</a></b></td><td>ଦୁର୍ବଳତା ରିପୋର୍ଟିଂ ଏବଂ ସୁରକ୍ଷା ଅଭ୍ୟାସ</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/I18N.md">i18n ମାର୍ଗଦର୍ଶିକା</a></b></td><td>42ଟି ଭାଷା ପାଇଁ ସମର୍ଥନ, ଅନୁବାଦ କାର୍ଯ୍ୟପ୍ରବାହ ଏବଂ RTL</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">ରିଲିଜ୍ ଯାଞ୍ଚତାଲିକା</a></b></td><td>ରିଲିଜ୍-ପୂର୍ବ ବୈଧୀକରଣ ପଦକ୍ଷେପ</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">କଭରେଜ୍ ଯୋଜନା</a></b></td><td>5,100+ଟି ଟ୍ରାକ୍ କରାଯାଇଥିବା ପରୀକ୍ଷଣ ଫାଇଲ୍‌ରେ 39,000+ଟି ସ୍ଥିର ପରୀକ୍ଷଣ ଘୋଷଣା ପାଇଁ ପରୀକ୍ଷଣ କଭରେଜ୍ କୌଶଳ</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">ବ୍ରାଞ୍ଚିଂ ଏବଂ ରିଲିଜ୍ ମଡେଲ୍</a></b></td><td>PRଗୁଡ଼ିକ କେଉଁଠାକୁ ଲକ୍ଷ୍ୟ କରନ୍ତି (<code>release/*</code>), ଏବଂ <code>main</code> ଓ ଟ୍ୟାଗ୍ଗୁଡ଼ିକର ଅର୍ଥ କ’ଣ</td></tr>
+  <tr><td nowrap><b><a href="CHANGELOG.md">ପରିବର୍ତ୍ତନ ତାଲିକା</a></b></td><td>ପ୍ରତ୍ୟେକ ସଂସ୍କରଣର ସମ୍ପୂର୍ଣ୍ଣ ରିଲିଜ୍ ଇତିହାସ</td></tr>
+  <tr><td nowrap><b><a href="SECURITY.md">ସୁରକ୍ଷା ନୀତି</a></b></td><td>ଦୁର୍ବଳତା ରିପୋର୍ଟିଂ ଏବଂ ସୁରକ୍ଷା ପ୍ରଥା</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/I18N.md">i18n ମାର୍ଗଦର୍ଶିକା</a></b></td><td>42ଟି ଭାଷା ପାଇଁ ସମର୍ଥନ, ଅନୁବାଦ କାର୍ଯ୍ୟପ୍ରବାହ, RTL</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">ରିଲିଜ୍ ଯାଞ୍ଚତାଲିକା</a></b></td><td>ରିଲିଜ୍ ପୂର୍ବବର୍ତ୍ତୀ ବୈଧତା ଯାଞ୍ଚ ପଦକ୍ଷେପ</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">କଭରେଜ୍ ଯୋଜନା</a></b></td><td>5,100+ଟି ଟ୍ରାକ୍ କରାଯାଇଥିବା ପରୀକ୍ଷା ଫାଇଲ୍ରେ 39,000+ଟି ସ୍ଥିର ପରୀକ୍ଷା ଘୋଷଣା ପାଇଁ ପରୀକ୍ଷା କଭରେଜ୍ କୌଶଳ</td></tr>
 </table>
 
 <br/>
@@ -1360,12 +1364,12 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
 
 # ⭐ ଶୀର୍ଷ ଅବଦାନକାରୀ
 
-> OmniRoute ଏକ ଉତ୍ସାହୀ ମୁକ୍ତ-ଉତ୍ସ ସମୁଦାୟ ଦ୍ୱାରା ଗଢ଼ାଯାଇଛି। ଏହି ବ୍ୟକ୍ତିମାନେ ଅସାଧାରଣ ଅବଦାନ ଦେଇଛନ୍ତି, ଯାହା ପ୍ରକଳ୍ପର ଗୁଣବତ୍ତା, ସ୍ଥିରତା ଏବଂ ପ୍ରସାରକୁ ସିଧାସଳଖ ପ୍ରଭାବିତ କରେ। **ଆପଣଙ୍କୁ ଧନ୍ୟବାଦ।**
+> OmniRoute ଏକ ଉତ୍ସାହୀ ଓପନ୍-ସୋର୍ସ ସମୁଦାୟ ଦ୍ୱାରା ଗଢ଼ିଉଠିଛି। ଏହି ବ୍ୟକ୍ତିମାନେ ଅସାଧାରଣ ଅବଦାନ ଦେଇଛନ୍ତି, ଯାହା ପ୍ରକଳ୍ପର ଗୁଣବତ୍ତା, ସ୍ଥିରତା ଏବଂ ପ୍ରସାର ଉପରେ ସିଧାସଳଖ ପ୍ରଭାବ ପକାଏ। **ଆପଣମାନଙ୍କୁ ଧନ୍ୟବାଦ।**
 
 ### ମର୍ଜ୍ ହୋଇଥିବା ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ ଅନୁଯାୟୀ ବାହ୍ୟ ଅବଦାନକାରୀ
 
 <table>
-  <tr><th align="center">ସ୍ଥାନ</th><th align="left">ଅବଦାନକାରୀ</th><th align="center">ମର୍ଜ୍ ହୋଇଥିବା PRଗୁଡ଼ିକ</th><th align="right">~ପରିବର୍ତ୍ତିତ ଧାଡ଼ିଗୁଡ଼ିକ</th></tr>
+  <tr><th align="center">କ୍ରମାଙ୍କ</th><th align="left">ଅବଦାନକାରୀ</th><th align="center">ମର୍ଜ୍ ହୋଇଥିବା PR</th><th align="right">~ପରିବର୍ତ୍ତିତ ଧାଡ଼ି</th></tr>
   <tr><td align="center">1</td><td align="left"><a href="https://github.com/backryun"><b>backryun</b></a></td><td align="center">190</td><td align="right">227,977</td></tr>
   <tr><td align="center">2</td><td align="left"><a href="https://github.com/oyi77"><b>oyi77</b></a></td><td align="center">180</td><td align="right">407,678</td></tr>
   <tr><td align="center">3</td><td align="left"><a href="https://github.com/rdself"><b>rdself</b></a></td><td align="center">145</td><td align="right">80,663</td></tr>
@@ -1389,9 +1393,9 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
   <tr><td align="center">20</td><td align="left"><a href="https://github.com/Prudhvivuda"><b>Prudhvivuda</b></a></td><td align="center">24</td><td align="right">6,312</td></tr>
 </table>
 
-<sub>ଲାଇଭ୍ <code>release/v3.8.50</code> ଟିପ୍ <code>dafb4ae808</code>ରେ ସ୍ଥିରୀକୃତ, 2026-08-24 05:26:03 UTC ପର୍ଯ୍ୟନ୍ତ ମର୍ଜ୍ ସହିତ। ପୃଷ୍ଠାଙ୍କିତ GitHub GraphQL ଗଣନାରେ 5,911ଟି ମର୍ଜ୍ ହୋଇଥିବା PR ଅଛି: ରିପୋଜିଟୋରି ମାଲିକଙ୍କ ଦ୍ୱାରା 2,707ଟି, Dependabot ଦ୍ୱାରା 179ଟି ଏବଂ <b>535 ଜଣ ଭିନ୍ନ ଅବଦାନକାରୀଙ୍କଠାରୁ 3,025ଟି ବାହ୍ୟ PR</b>। “ପରିବର୍ତ୍ତିତ ଧାଡ଼ି” ହେଉଛି GitHubର ଯୋଗ + ବିଲୋପ ଏବଂ ଏଥିରେ ଉତ୍ପାଦିତ ଫାଇଲ୍, ଲକ୍‌ଫାଇଲ୍, କ୍ୟାଟାଲଗ୍, ଅନୁବାଦ ଓ ଡକ୍ୟୁମେଣ୍ଟେସନ୍ ଅନ୍ତର୍ଭୁକ୍ତ; ଏହା ପରିବର୍ତ୍ତନର ପରିମାଣ, ରଚିତ LOC ନୁହେଁ। ସୀମାରେ ଥିବା ସମସ୍ଥାନଗୁଡ଼ିକୁ ରଖାଯାଇଛି।</sub>
+<sub>2026-08-24 05:26:03 UTC ପର୍ଯ୍ୟନ୍ତ ମର୍ଜ୍ଗୁଡ଼ିକ ସହିତ, ସଜୀବ <code>release/v3.8.50</code> ଟିପ୍ <code>dafb4ae808</code>ରେ ସ୍ଥିରୀକୃତ। ପୃଷ୍ଠାଙ୍କିତ GitHub GraphQL ଗଣନାରେ 5,911ଟି ମର୍ଜ୍ ହୋଇଥିବା PR ରହିଛି: ରିପୋଜିଟୋରି ମାଲିକଙ୍କ ଦ୍ୱାରା 2,707ଟି, Dependabot ଦ୍ୱାରା 179ଟି ଏବଂ <b>535 ଜଣ ସ୍ୱତନ୍ତ୍ର ଅବଦାନକାରୀଙ୍କଠାରୁ 3,025ଟି ବାହ୍ୟ PR</b>। “ପରିବର୍ତ୍ତିତ ଧାଡ଼ି” ହେଉଛି GitHubର ଯୋଗ + ବିଲୋପ ଏବଂ ଏଥିରେ ଉତ୍ପାଦିତ ଫାଇଲ୍, ଲକ୍ଫାଇଲ୍, କ୍ୟାଟାଲଗ୍, ଅନୁବାଦ ଏବଂ ଦଲିଲ ଅନ୍ତର୍ଭୁକ୍ତ; ଏହା ପରିବର୍ତ୍ତନର ପରିମାଣ, ଲେଖାଯାଇଥିବା LOC ନୁହେଁ। କଟଅଫ୍ରେ ସମାନ ସ୍ଥାନଗୁଡ଼ିକୁ ରଖାଯାଇଛି।</sub>
 
-### GitHub-ଆରୋପିତ କମିଟ୍‌ଗୁଡ଼ିକ
+### GitHub-ଦ୍ୱାରା ଆରୋପିତ କମିଟ୍ଗୁଡ଼ିକ
 
 <table>
   <tr>
@@ -1435,7 +1439,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
         <img src="https://github.com/hartmark.png" width="40" style="border-radius:50%" alt="Markus Hartung"/><br/>
         <b>Markus Hartung</b>
       </a><br/>
-      <sub>🏅 GitHub-ଆରୋପିତ 69ଟି କମିଟ୍ · ଯୁଗ୍ମ #6</sub>
+      <sub>🏅 GitHub-ଆରୋପିତ 69ଟି କମିଟ୍ · ଯୁଗ୍ମଭାବେ #6</sub>
     </td>
   </tr>
   <tr>
@@ -1444,7 +1448,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
         <img src="https://github.com/maxmad64bis.png" width="40" style="border-radius:50%" alt="Dizzle"/><br/>
         <b>Dizzle</b>
       </a><br/>
-      <sub>🏅 GitHub-ଆରୋପିତ 69ଟି କମିଟ୍ · ଯୁଗ୍ମ #6</sub>
+      <sub>🏅 GitHub-ଆରୋପିତ 69ଟି କମିଟ୍ · ଯୁଗ୍ମଭାବେ #6</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/JxnLexn">
@@ -1465,21 +1469,21 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
         <img src="https://github.com/HouMinXi.png" width="40" style="border-radius:50%" alt="Bob.Hou"/><br/>
         <b>Bob.Hou</b>
       </a><br/>
-      <sub>🏅 GitHub-ଆରୋପିତ 51ଟି କମିଟ୍ · ଯୁଗ୍ମ #10</sub>
+      <sub>🏅 GitHub-ଆରୋପିତ 51ଟି କମିଟ୍ · ଯୁଗ୍ମଭାବେ #10</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/xz-dev">
         <img src="https://github.com/xz-dev.png" width="40" style="border-radius:50%" alt="Xiangzhe"/><br/>
         <b>Xiangzhe</b>
       </a><br/>
-      <sub>🏅 GitHub-ଆରୋପିତ 51ଟି କମିଟ୍ · ଯୁଗ୍ମ #10</sub>
+      <sub>🏅 GitHub-ଆରୋପିତ 51ଟି କମିଟ୍ · ଯୁଗ୍ମଭାବେ #10</sub>
     </td>
   </tr>
 </table>
 
-<sub>2026-08-24 06:14:31 UTCରେ ପୁନଃଯାଞ୍ଚ କରାଯାଇଛି: <code>release/v3.8.50</code> ଡିଫଲ୍ଟ ବ୍ରାଞ୍ଚ ପାଇଁ ରିପୋଜିଟୋରୀ Contributors API ଦ୍ୱାରା ରିପୋର୍ଟ କରାଯାଇଥିବା GitHub-ଆରୋପିତ କମିଟ୍‌ଗୁଡ଼ିକ। API 525ଟି ପରିଚୟ (415 ଜଣ ବ୍ୟବହାରକାରୀ, 2ଟି ବଟ୍, 108 ଜଣ ଅଜ୍ଞାତ) ଫେରାଇଥିଲା; ଏହି ସାରଣୀରୁ ରକ୍ଷଣାବେକ୍ଷକ, ବଟ୍ ଓ ଅଜ୍ଞାତ ପରିଚୟଗୁଡ଼ିକୁ ବାଦ ଦିଆଯାଇଛି ଏବଂ ପ୍ରତିଯୋଗିତାମୂଳକ ଯୁଗ୍ମ ସ୍ଥାନଗୁଡ଼ିକୁ ବଜାୟ ରଖାଯାଇଛି। ଏହା ଉପରୋକ୍ତ ମର୍ଜ୍ ହୋଇଥିବା-PR ର‍୍ୟାଙ୍କିଙ୍ଗ୍ ଏବଂ ନିମ୍ନୋକ୍ତ 639-ଜଣିଆ Git-ମେଟାଡାଟା ଜନଗଣନା—ଉଭୟଠାରୁ ଭିନ୍ନ।</sub>
+<sub>2026-08-24 06:14:31 UTCରେ ପୁନଃଯାଞ୍ଚ କରାଯାଇଛି: <code>release/v3.8.50</code> ଡିଫଲ୍ଟ ବ୍ରାଞ୍ଚ ପାଇଁ ରିପୋଜିଟୋରି Contributors API ଦ୍ୱାରା ରିପୋର୍ଟ କରାଯାଇଥିବା GitHub-ଆରୋପିତ କମିଟ୍ଗୁଡ଼ିକ। API 525ଟି ପରିଚୟ (415 ଜଣ ବ୍ୟବହାରକାରୀ, 2ଟି ବଟ୍, 108 ଜଣ ଅଜ୍ଞାତ) ଫେରାଇଥିଲା; ଏହି ସାରଣୀରେ ରକ୍ଷଣାବେକ୍ଷକ, ବଟ୍ ଓ ଅଜ୍ଞାତ ପରିଚୟଗୁଡ଼ିକୁ ବାଦ ଦିଆଯାଇଛି ଏବଂ ପ୍ରତିଯୋଗିତାର ଯୁଗ୍ମ ସ୍ଥାନଗୁଡ଼ିକୁ ରଖାଯାଇଛି। ଏହା ଉପରୋକ୍ତ ମିଶ୍ରିତ-PR ର୍ୟାଙ୍କିଙ୍ଗ୍ ଏବଂ ନିମ୍ନୋକ୍ତ 639-ଜଣଙ୍କ Git-ମେଟାଡାଟା ଜନଗଣନା—ଉଭୟଠାରୁ ଭିନ୍ନ।</sub>
 
-> 🙏 ଏହି ଅବଦାନକାରୀମାନଙ୍କର ବୈଶିଷ୍ଟ୍ୟ, ବଗ୍ ସମାଧାନ ଏବଂ ଭିତ୍ତିଭୂମି ଉନ୍ନତିଗୁଡ଼ିକ OmniRouteକୁ ବିଶ୍ୱସନୀୟ ଓ ବୈଶିଷ୍ଟ୍ୟ-ସମୃଦ୍ଧ କରୁଥିବା ବିଷୟର ଏକ **ମୂଳ ଅଂଶ**। ପ୍ରତ୍ୟେକ ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ୍, ପ୍ରତ୍ୟେକ ପରୀକ୍ଷଣ କେସ୍ ଏବଂ ପ୍ରତ୍ୟେକ i18n ଅନୁବାଦ ଫାଇଲ୍ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ। ସେମାନଙ୍କ ଭଳି ଲୋକମାନଙ୍କ ଦ୍ୱାରା ଓପନ୍ ସୋର୍ସ ନିର୍ମିତ ହୁଏ।
+> 🙏 ଏହି ଅବଦାନକାରୀମାନଙ୍କର ବୈଶିଷ୍ଟ୍ୟ, ବଗ୍ ସମାଧାନ ଏବଂ ଭିତ୍ତିଭୂମି ଉନ୍ନତିଗୁଡ଼ିକ OmniRouteକୁ ବିଶ୍ୱସନୀୟ ଓ ବୈଶିଷ୍ଟ୍ୟ-ସମୃଦ୍ଧ କରୁଥିବା ବିଷୟର ଏକ **ମୂଳ ଅଂଶ**। ପ୍ରତ୍ୟେକ ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ, ପ୍ରତ୍ୟେକ ପରୀକ୍ଷଣ କେସ୍ ଏବଂ ପ୍ରତ୍ୟେକ i18n ଅନୁବାଦ ଫାଇଲ୍ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ। ସେମାନଙ୍କ ପରି ଲୋକମାନଙ୍କ ଦ୍ୱାରା ଓପନ୍ ସୋର୍ସ ନିର୍ମିତ ହୁଏ।
 
 </div>
 
@@ -1725,7 +1729,7 @@ MIT ଲାଇସେନ୍ସ - ବିବରଣୀ ପାଇଁ [LICENSE](LICENSE
 
 **[⬆ ଉପରକୁ ଫେରନ୍ତୁ](#-omniroute)** · ମୁକ୍ତ-ଉତ୍ସ AI ସମୁଦାୟ ପାଇଁ ❤️ ସହିତ ନିର୍ମିତ।
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT ଲାଇସେନ୍ସ · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT ଲାଇସେନ୍ସ · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- ସମୁଦାୟର ପ୍ରଶ୍ନୋତ୍ତର ପାଇଁ GitHub Discussions ସକ୍ଷମ କରାଯାଇଛି -->

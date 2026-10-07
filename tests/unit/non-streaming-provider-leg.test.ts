@@ -23,6 +23,54 @@ test("200 JSON: returns ok with usage and receipt", async () => {
   assert.equal(result.receipt.termination, "completed");
 });
 
+test("Responses custom tool metadata survives request-body translation in provider leg", async () => {
+  const upstreamBody = {
+    id: "resp_custom",
+    object: "response",
+    status: "completed",
+    output: [
+      {
+        id: "fc_call_1",
+        type: "function_call",
+        call_id: "call_1",
+        name: "functions__exec",
+        arguments: '{"input":"printf \'nonstream-ok\\\\n\'"}',
+      },
+    ],
+    usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
+  };
+  const result = await runNonStreamingProviderLeg(
+    baseInput({
+      // Request conversion has already downgraded the source declaration by this seam.
+      sourceBody: {
+        model: "gpt-5.6-sol",
+        tools: [{ type: "function", function: { name: "functions__exec" } }],
+      },
+      sourceFormat: "openai-responses",
+      targetFormat: "openai-responses",
+      clientResponseFormat: "openai-responses",
+      translatedBody: { model: "gpt-5.6-sol" },
+      customToolNames: new Set(["functions__exec"]),
+      requestToolIdentityMap: new Map([
+        ["functions__exec", { namespace: "functions", name: "exec" }],
+      ]),
+      executeProviderRequest: async () => makeExecutorResult(upstreamBody),
+    })
+  );
+
+  assert.equal(result.kind, "ok");
+  if (result.kind !== "ok") return;
+  assert.deepEqual(result.response.output[0], {
+    id: "fc_call_1",
+    type: "custom_tool_call",
+    call_id: "call_1",
+    name: "exec",
+    input: "printf 'nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
 test("runProviderExecution is called once with policy; first send skips executeProviderRequest", async () => {
   let pipelineCalls = 0;
   let executorCalls = 0;

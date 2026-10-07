@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { VertexExecutor } = await import("../../open-sse/executors/vertex.ts");
+const { VertexExecutor, parseSAFromApiKey } = await import("../../open-sse/executors/vertex.ts");
 
 const MIN_SA_JSON = JSON.stringify({
   project_id: "vertex-project-123",
@@ -20,13 +20,52 @@ test("T29: Vertex executor builds regional Gemini URL from Service Account proje
   );
 });
 
+test("T29: Vertex executor routes EU multi-region to aiplatform.eu.rep.googleapis.com", () => {
+  const executor = new VertexExecutor();
+  const claudeUrl = executor.buildUrl("claude-sonnet-5", false, 0, {
+    apiKey: MIN_SA_JSON,
+    providerSpecificData: { region: "eu" },
+  });
+
+  assert.equal(
+    claudeUrl,
+    "https://aiplatform.eu.rep.googleapis.com/v1/projects/vertex-project-123/locations/eu/publishers/anthropic/models/claude-sonnet-5:rawPredict"
+  );
+
+  const geminiUrl = executor.buildUrl("gemini-2.5-flash", false, 0, {
+    apiKey: MIN_SA_JSON,
+    providerSpecificData: { region: "eu" },
+  });
+
+  assert.equal(
+    geminiUrl,
+    "https://aiplatform.eu.rep.googleapis.com/v1/projects/vertex-project-123/locations/eu/publishers/google/models/gemini-2.5-flash:generateContent"
+  );
+});
+
 test("T29: Vertex executor routes partner models to global openapi endpoint", () => {
   const executor = new VertexExecutor();
-  const url = executor.buildUrl("DeepSeek-V4-Pro", false, 0, {
+  const url = executor.buildUrl("deepseek-ai/deepseek-v3.2-maas", false, 0, {
     apiKey: MIN_SA_JSON,
     providerSpecificData: { region: "us-central1" },
   });
 
+  assert.equal(
+    url,
+    "https://aiplatform.googleapis.com/v1/projects/vertex-project-123/locations/global/endpoints/openapi/chat/completions"
+  );
+});
+
+test("T29: EU-configured partner models stay on the global host (host/location must agree)", () => {
+  const executor = new VertexExecutor();
+  const url = executor.buildUrl("deepseek-ai/deepseek-v3.2-maas", false, 0, {
+    apiKey: MIN_SA_JSON,
+    providerSpecificData: { region: "eu" },
+  });
+
+  // Regression: the partner path is a `locations/global` route, so an EU-configured connection
+  // must NOT send it to aiplatform.eu.rep.googleapis.com (multi-region host + global location
+  // is not a valid pairing) — and this route's behaviour must not change for other regions.
   assert.equal(
     url,
     "https://aiplatform.googleapis.com/v1/projects/vertex-project-123/locations/global/endpoints/openapi/chat/completions"
@@ -69,6 +108,16 @@ test("T29: Vertex executor rejects incomplete Service Account JSON clearly", asy
         credentials: { apiKey: JSON.stringify({ project_id: "p" }) },
       }),
     /missing required fields/i
+  );
+});
+
+test("T29: Vertex distinguishes OAuth client JSON from a Service Account key", () => {
+  assert.throws(
+    () =>
+      parseSAFromApiKey(
+        JSON.stringify({ web: { client_id: "example.apps.googleusercontent.com" } })
+      ),
+    /OAuth client JSON is not a Service Account key/i
   );
 });
 

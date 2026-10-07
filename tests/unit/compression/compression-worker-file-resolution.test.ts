@@ -89,6 +89,17 @@ describe("resolveWorkerFile (runtime anchors)", () => {
     assert.equal(resolved, join(installRoot, WORKER_JS_REL));
   });
 
+  it("uses the .ts source when a build-time .js placeholder exists", () => {
+    const installRoot = makeSandbox();
+    makeInstallRoot(installRoot, "compressionWorker.js");
+    makeInstallRoot(installRoot, "compressionWorker.ts");
+    const elsewhere = makeSandbox();
+    const resolved = withRuntime(installRoot, join(elsewhere, "server.js"), () =>
+      resolveWorkerFile()
+    );
+    assert.equal(resolved, join(installRoot, WORKER_TS_REL));
+  });
+
   it("falls back to the .ts source when no .js exists (dev loader path)", () => {
     const installRoot = makeSandbox();
     makeInstallRoot(installRoot, "compressionWorker.ts");

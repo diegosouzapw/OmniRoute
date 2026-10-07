@@ -17,7 +17,10 @@ import {
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import { supportsProviderQuota, isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
+import {
+  supportsProviderQuota,
+  isProviderQuotaVisible,
+} from "@/shared/utils/providerQuotaVisibility";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -1110,6 +1113,7 @@ export default function ProviderLimits({
           credits={resetCreditRedemption.resetCreditPicker.credits}
           availableCount={resetCreditRedemption.resetCreditPicker.availableCount}
           loading={resetCreditRedemption.redeemingResetCreditId !== null}
+          provider={resetCreditRedemption.resetCreditPicker.provider}
           onClose={resetCreditRedemption.closeResetCreditPicker}
           onRedeem={resetCreditRedemption.redeemCodexResetCredit}
         />

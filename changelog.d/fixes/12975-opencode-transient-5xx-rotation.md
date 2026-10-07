@@ -1,1 +1,0 @@
-- **fix(sse):** transient opencode upstream failures rotate to the next account proxy instead of failing, so one flapping egress no longer aborts the whole chain ([#12975](https://github.com/diegosouzapw/OmniRoute/pull/12975)) — thanks @maxmad64bis

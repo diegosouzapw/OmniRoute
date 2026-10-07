@@ -1,1 +1,0 @@
-- fix(sse): surface the actionable "Auggie CLI not found" message when the shell reports a missing `auggie` binary via exit code instead of a spawn error (#12645)

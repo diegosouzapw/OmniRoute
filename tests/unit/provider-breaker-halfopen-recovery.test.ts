@@ -23,6 +23,7 @@ import {
   isProviderInCooldown,
   clearCooldownState,
 } from "../../open-sse/services/providerCooldownTracker.ts";
+import { connectionCircuitBreakerName } from "../../open-sse/services/connectionCircuitBreaker.ts";
 
 const uniqueProvider = (suffix: string) =>
   `halfopen-test-${suffix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
@@ -87,7 +88,7 @@ test("recordProviderSuccess does not reset cooldown when breaker is OPEN", () =>
     failureThreshold: 1,
     resetTimeoutMs: 60_000,
   });
-  const breaker = getCircuitBreaker(provider);
+  const breaker = getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId));
   assert.equal(breaker.state, "OPEN");
 
   // Success while OPEN should NOT reset cooldown (early-return guard)
@@ -242,7 +243,7 @@ test("recordProviderSuccess with connectionId transitions breaker and resets coo
     resetTimeoutMs: 100,
   });
 
-  const breaker = getCircuitBreaker(provider);
+  const breaker = getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId));
   assert.equal(breaker.state, "OPEN");
 
   // Build up cooldown with connectionId

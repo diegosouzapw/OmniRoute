@@ -26,7 +26,7 @@
     "testFailed": "Provider စမ်းသပ်မှု မအောင်မြင်ပါ: {error}",
     "loginEnabled": "လော့ဂ်အင်: ဖွင့်ထားသည် (စကားဝှက်ကို အပ်ဒိတ်လုပ်ပြီး)",
     "loginDisabled": "လော့ဂ်အင်: ပိတ်ထားသည်",
-    "providerInfo": "Provider: {info}",
+    "providerInfo": "ပံ့ပိုးသူ: {info}",
     "opencode": "OpenCode အတွက် တွဲဖက်ပါရှိသော @omniroute/opencode-plugin ကို ထည့်သွင်းပြီး စီစဉ်သတ်မှတ်ရန်"
   },
   "doctor": {
@@ -41,7 +41,7 @@
     "warnings": "သတိပေးချက် {count} ခု — အပေါ်တွင် ကြည့်ပါ။"
   },
   "providers": {
-    "title": "Providers",
+    "title": "ပံ့ပိုးသူများ",
     "noProviders": "မည်သည့် provider ကိုမျှ စီစဉ်သတ်မှတ်မထားပါ။ လုပ်ဆောင်ရန်: omniroute setup",
     "testing": "{name} ကို စမ်းသပ်နေသည်...",
     "available": "အသုံးပြုနိုင်သော provider {count} ခု",
@@ -86,7 +86,7 @@
     }
   },
   "keys": {
-    "title": "API Keys",
+    "title": "API သော့များ",
     "addDescription": "ဝန်ဆောင်မှုပေးသူတစ်ခုအတွက် API key ကို ထည့်ရန် သို့မဟုတ် အပ်ဒိတ်လုပ်ရန်",
     "listDescription": "ပြင်ဆင်သတ်မှတ်ထားသော API key အားလုံးကို စာရင်းပြုစုရန်",
     "removeDescription": "ဝန်ဆောင်မှုပေးသူတစ်ခုအတွက် API key ကို ဖယ်ရှားရန်",
@@ -152,7 +152,7 @@
     "file": "ဖိုင်မှ prompt ကို ဖတ်ပါ",
     "stdin": "stdin မှ prompt ကို ဖတ်ပါ",
     "model": "Model ID (မူလသတ်မှတ်ချက်: auto)",
-    "system": "System prompt",
+    "system": "စနစ်ညွှန်ကြားချက်",
     "combo": "သတ်မှတ်ထားသော combo တစ်ခုကို အမည်ဖြင့် မဖြစ်မနေ အသုံးပြုပါ",
     "max_tokens": "Response အတွင်း အများဆုံး token အရေအတွက်",
     "responses_api": "/v1/chat/completions အစား /v1/responses ကို အသုံးပြုပါ",
@@ -226,7 +226,7 @@
     "description": "OmniRoute သို့ တစ်ကြိမ်တည်းသုံး chat prompt ပို့ရန်",
     "file": "ဖိုင်မှ prompt ကို ဖတ်ရန်",
     "stdin": "stdin မှ prompt ကို ဖတ်ရန်",
-    "system": "System prompt",
+    "system": "စနစ်ညွှန်ကြားချက်",
     "model": "Model ID (မူလသတ်မှတ်ချက်: auto)",
     "max_tokens": "တုံ့ပြန်ချက်တွင် ပါဝင်မည့် token အရေအတွက် အများဆုံး",
     "temperature": "နမူနာရွေးချယ်မှု temperature (0–2)",
@@ -256,6 +256,7 @@
     "max_restarts": "လက်လျှော့မတိုင်မီ 30s အတွင်း ပျက်သွား၍ ပြန်လည်စတင်နိုင်သည့် အများဆုံးအကြိမ်ရေ (မူလသတ်မှတ်ချက်: 2)",
     "tray": "စနစ် tray တွင် စတင်ပါ (desktop အတွက်သာ၊ ရွေးချယ်ဖွင့်သုံးရန်)",
     "no_tray": "စနစ် tray အိုင်ကွန်ကို ပိတ်ပါ",
+    "ready_timeout": "အဆင်သင့်ဖြစ်မှု စစ်ဆေးချက်၏ အချိန်ကုန်ဆုံးကာလကို ms ဖြင့် သတ်မှတ်ပါ (OMNIROUTE_READY_TIMEOUT_MS လည်းဖြစ်ပြီး မူလတန်ဖိုးမှာ 60000 ဖြစ်သည်)",
     "tls_cert": "HTTPS ဖြင့် ဝန်ဆောင်မှုပေးရန် TLS certificate (PEM) သို့ လမ်းကြောင်း (OMNIROUTE_TLS_CERT လည်းဖြစ်သည်)",
     "tls_key": "HTTPS ဖြင့် ဝန်ဆောင်မှုပေးရန် TLS private key (PEM) သို့ လမ်းကြောင်း (OMNIROUTE_TLS_KEY လည်းဖြစ်သည်)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP ဆာဗာ လည်ပတ်နေသည် ({transport})",
     "stopped": "MCP ဆာဗာ ရပ်တန့်သွားပါပြီ။",
     "restarted": "MCP ဆာဗာကို ပြန်လည်စတင်ပြီးပါပြီ။",
+    "stoppedHint": "၎င်းကို ဖွင့်ရန် `omniroute mcp enable` ကို လုပ်ဆောင်ပါ။",
+    "enabled": "MCP ဆာဗာကို ဖွင့်ထားသည်။",
+    "disabled": "MCP ဆာဗာကို ပိတ်ထားသည်။",
+    "enable": {
+      "description": "MCP ဆာဗာကို ဖွင့်ရန်",
+      "transport": "အသုံးပြုမည့် ပို့ဆောင်မှုနည်းလမ်း: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP ဆာဗာကို ပိတ်ရန်"
+    },
     "call": {
       "description": "MCP ကိရိယာတစ်ခုကို တိုက်ရိုက် ခေါ်ယူအသုံးပြုရန်",
       "args": "JSON အငြင်းပွားဖွယ်ရာ အရာဝတ္ထု (စာကြောင်းအတွင်း)",
@@ -633,7 +644,7 @@
       "content": "Memory စာသားအကြောင်းအရာ",
       "file": "ဖိုင်မှ အကြောင်းအရာကို ဖတ်ရန်",
       "type": "Memory အမျိုးအစား (မူလသတ်မှတ်ချက်: user)",
-      "metadata": "JSON metadata object",
+      "metadata": "JSON မက်တာဒေတာ အရာဝတ္ထု",
       "api_key": "API key နှင့် ချိတ်ဆက်ရန်"
     },
     "clear": {
@@ -667,7 +678,7 @@
     },
     "start": {
       "description": "provider တစ်ခုအတွက် OAuth ခွင့်ပြုချက် flow ကို စတင်ရန်",
-      "provider": "Provider ID (gemini, copilot, cursor, …)",
+      "provider": "ပံ့ပိုးသူ ID (gemini, copilot, cursor, …)",
       "no_browser": "URL ကိုသာ ဖော်ပြရန် — browser ကို မဖွင့်ပါနှင့်",
       "import_system": "စက်တွင်း system config မှ အထောက်အထားများကို အလိုအလျောက် ထည့်သွင်းရန်",
       "social": "Social login provider (google|github) — kiro အတွက် လိုအပ်သည်",
@@ -704,7 +715,7 @@
         "prompt_file": "ဖိုင်မှ prompt ကို ဖတ်ရန်",
         "repo": "လုပ်ဆောင်စရာအတွက် clone ပြုလုပ်မည့် repository URL",
         "branch": "အသုံးပြုမည့် branch အမည်",
-        "metadata": "JSON metadata object"
+        "metadata": "JSON မက်တာဒေတာ အရာဝတ္ထု"
       },
       "list": {
         "description": "agent လုပ်ဆောင်စရာများကို စာရင်းပြုရန်",
@@ -1268,7 +1279,7 @@
     "description": "LLM ဖြင့် အပြန်အလှန် ဆွေးနွေးမှုအကြိမ်များစွာ ပြုလုပ်နိုင်သော REPL",
     "model": "အသုံးပြုမည့် မော်ဒယ် (ပုံသေ- auto)",
     "combo": "အသုံးပြုမည့် Combo အမည်",
-    "system": "System prompt",
+    "system": "စနစ်ညွှန်ကြားချက်",
     "resume": "သိမ်းဆည်းထားသော session ကို အမည်ဖြင့် ပြန်လည်စတင်ရန်"
   },
   "plugin": {

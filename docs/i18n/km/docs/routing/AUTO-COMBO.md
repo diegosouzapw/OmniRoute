@@ -1,57 +1,48 @@
-# AUTO-COMBO (ខ្មែរ)
+# OmniRoute Auto-Combo Engine (ខ្មែរ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
-title: "ម៉ាស៊ីន Auto-Combo របស់ OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+> **សម្រាប់អ្នកប្រើប្រាស់**៖ ចង់ចាប់ផ្តើមឱ្យបានរហ័សមែនទេ? សូមមើល [មគ្គុទ្ទេសក៍អ្នកប្រើប្រាស់ Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md) សម្រាប់ការពន្យល់ និងឧទាហរណ៍ងាយៗ។
 
-# ម៉ាស៊ីន Auto-Combo របស់ OmniRoute
+> ខ្សែសង្វាក់ម៉ូដែលដែលគ្រប់គ្រងដោយខ្លួនឯង ជាមួយការដាក់ពិន្ទុបែបសម្របខ្លួន + ការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិដោយមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ
 
-> **សម្រាប់អ្នកប្រើប្រាស់**៖ ចង់ចាប់ផ្ដើមឱ្យបានឆាប់រហ័សមែនទេ? សូមមើល [មគ្គុទ្ទេសក៍អ្នកប្រើប្រាស់ Auto-Combo](../getting-started/AUTO-COMBO-GUIDE.md) សម្រាប់ការពន្យល់ និងឧទាហរណ៍សាមញ្ញៗ។
+## ការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិដោយមិនបាច់កំណត់រចនាសម្ព័ន្ធ (`auto/` prefix)
 
-> ខ្សែសង្វាក់ម៉ូដែលដែលគ្រប់គ្រងខ្លួនឯង ជាមួយការដាក់ពិន្ទុបែបសម្របខ្លួន + ការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិដោយមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ
-
-## ការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិដោយមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ (បុព្វបទ `auto/`)
-
-> **ថ្មី៖** មិនចាំបាច់បង្កើត combo ទេ។ ប្រើបុព្វបទ `auto/` ដោយផ្ទាល់នៅក្នុង client ណាមួយ។
+> **ថ្មី៖** មិនចាំបាច់បង្កើត combo ទេ។ ប្រើ `auto/` prefix ដោយផ្ទាល់នៅក្នុង client ណាមួយ។
 
 ### ឧទាហរណ៍រហ័ស
 
-| ID ម៉ូដែល      | វ៉ារ្យ៉ង់ | ឥរិយាបថ                                                                            |
-| -------------- | --------- | ---------------------------------------------------------------------------------- |
-| `auto`         | លំនាំដើម  | provider ដែលបានភ្ជាប់ទាំងអស់ យុទ្ធសាស្ត្រ LKGP ទម្ងន់មានតុល្យភាព                   |
-| `auto/coding`  | coding    | ទម្ងន់ដែលផ្តល់អាទិភាពដល់គុណភាព សមស្របសម្រាប់ការបង្កើតកូដ                           |
-| `auto/fast`    | fast      | ការជ្រើសរើសតាមទម្ងន់ដែលមាន latency ទាប                                             |
-| `auto/cheap`   | cheap     | ការកំណត់ផ្លូវដែលធ្វើឱ្យថ្លៃដើមប្រសើរបំផុត (ថ្លៃដើមទាបបំផុតមុនគេ)                   |
-| `auto/offline` | offline   | ផ្តល់អាទិភាពដល់ provider ដែលមាន quota អាចប្រើបានខ្ពស់បំផុត                         |
-| `auto/smart`   | smart     | ផ្តល់អាទិភាពដល់គុណភាព + អត្រាស្វែងរកខ្ពស់ជាងមុន (10%) ដើម្បីស្វែងរកម៉ូដែលបានប្រសើរ |
-| `auto/lkgp`    | lkgp      | LKGP ជាក់លាក់ (ដូចគ្នានឹង `auto` លំនាំដើម)                                         |
-| `auto/chaos`   | chaos     | ទម្ងន់សម្រាប់ការបញ្ចូលកំហុស ដើម្បីសាកល្បងភាពធន់ (វិស្វកម្ម chaos)                  |
+| Model ID       | វ៉ារ្យ៉ង់   | ឥរិយាបថ                                                                                   |
+| -------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `auto`         | លំនាំដើម    | provider ដែលបានភ្ជាប់ទាំងអស់ យុទ្ធសាស្ត្រ LKGP និងទម្ងន់មានតុល្យភាព                       |
+| `auto/coding`  | ការសរសេរកូដ | ទម្ងន់ដែលផ្តល់អាទិភាពដល់គុណភាព សមស្របសម្រាប់ការបង្កើតកូដ                                  |
+| `auto/fast`    | លឿន         | ការជ្រើសរើសដោយផ្អែកលើទម្ងន់ ដែលមាន latency ទាប                                            |
+| `auto/cheap`   | ថោក         | ការកំណត់ផ្លូវដែលបង្កើនប្រសិទ្ធភាពថ្លៃដើម (ថ្លៃទាបបំផុតមុន)                                |
+| `auto/offline` | ក្រៅបណ្តាញ  | ផ្តល់អាទិភាពដល់ provider ដែលមានកូតាអាចប្រើបានខ្ពស់បំផុត                                   |
+| `auto/smart`   | ឆ្លាតវៃ     | ផ្តល់អាទិភាពដល់គុណភាព + អត្រាសាកល្បងខ្ពស់ជាង (10%) ដើម្បីស្វែងរក model បានប្រសើរជាងមុន    |
+| `auto/lkgp`    | lkgp        | LKGP ជាក់លាក់ (ដូចនឹង `auto` លំនាំដើម)                                                    |
+| `auto/chaos`   | chaos       | បញ្ជូនចេញស្របគ្នា ដោយមានមួយ model ក្នុង provider នីមួយៗ (មិនមែនជាការបញ្ចូលកំហុសសាកល្បងទេ) |
 
-### សមាសភាពប្រភេទ × ថ្នាក់ (`auto/<category>:<tier>`)
+### ការផ្សំ Category × Tier (`auto/<category>:<tier>`)
 
-បច្ច័យបែប OpenRouter បំបែក **ប្រភេទផ្លូវ** (ប្រភេទ) ចេញពី **របៀបបង្កើនប្រសិទ្ធភាពវា** (ថ្នាក់) ដូច្នេះអ្នកអាចផ្គុំវាបញ្ចូលគ្នាដោយសេរី (#4235 ដំណាក់កាល B, `open-sse/services/autoCombo/suffixComposition.ts`)៖
+suffix បែប OpenRouter បំបែក **ប្រភេទផ្លូវ** (category) ចេញពី **របៀបបង្កើនប្រសិទ្ធភាពរបស់វា** (tier) ដូច្នេះអ្នកអាចផ្សំពួកវាបានដោយសេរី (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`)៖
 
-- **ប្រភេទ** (ច្រោះក្រុម candidate តាមសមត្ថភាព)៖ `coding` · `reasoning` · `vision` · `chat` · `multimodal`។ `vision`/`multimodal` រក្សាទុកម៉ូដែលដែលមានសមត្ថភាព vision; `reasoning` រក្សាទុកម៉ូដែល reasoning/thinking។
-- **ថ្នាក់** (ជ្រើសរើសទម្ងន់នៃការដាក់ពិន្ទុ / តម្រងក្រុម)៖ `fast` (ដាក់ឱ្យប្រើបានរហ័ស) · `cheap` (ឈ្មោះក្លែងកាត់ `floor`, សន្សំថ្លៃដើម) · `reliable` (សុខភាព circuit-breaker + ស្ថិរភាព latency) · `free` / `pro` (ច្រោះក្រុមតាមថ្នាក់ម៉ូដែលតាមរយៈ `classifyTier` — ថ្នាក់ឥតគិតថ្លៃ ទល់នឹងថ្នាក់ premium)។
+- **Category** (ត្រងបណ្តុំ candidate តាមសមត្ថភាព)៖ `coding` · `reasoning` · `vision` · `chat` · `multimodal`។ `vision`/`multimodal` រក្សាទុក model ដែលគាំទ្រ vision; `reasoning` រក្សាទុក model សម្រាប់ reasoning/thinking។
+- **Tier** (ជ្រើសរើសទម្ងន់ដាក់ពិន្ទុ / តម្រងបណ្តុំ)៖ `fast` (ដាក់ឱ្យប្រើបានរហ័ស) · `cheap` (alias `floor` ដែលសន្សំថ្លៃដើម) · `reliable` (សុខភាព circuit-breaker + ស្ថិរភាព latency) · `free` / `pro` (ត្រងបណ្តុំតាម tier របស់ model តាមរយៈ `classifyTier` — free-tier ទល់នឹង premium)។
 
-| ឧទាហរណ៍                | ដោះស្រាយទៅជា                                                                |
-| ---------------------- | --------------------------------------------------------------------------- |
-| `auto/coding:fast`     | ក្រុម coding, ទម្ងន់ latency ទាប                                            |
-| `auto/coding:cheap`    | ក្រុម coding, បង្កើនប្រសិទ្ធភាពថ្លៃដើម (ឈ្មោះក្លែងកាត់ `auto/coding:floor`) |
-| `auto/reasoning:pro`   | តែម៉ូដែល reasoning/thinking ប៉ុណ្ណោះ, ថ្នាក់ premium                        |
-| `auto/vision`          | ម៉ូដែលដែលមានសមត្ថភាព vision (គ្មានថ្នាក់ → ទម្ងន់មានតុល្យភាព)               |
-| `auto/multimodal:free` | ម៉ូដែលដែលមានសមត្ថភាព multimodal, តែថ្នាក់ឥតគិតថ្លៃប៉ុណ្ណោះ                  |
+| ឧទាហរណ៍                | ត្រូវបានដោះស្រាយទៅជា                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `auto/coding:fast`     | បណ្តុំ coding និងទម្ងន់ latency ទាប                                   |
+| `auto/coding:cheap`    | បណ្តុំ coding ដែលបង្កើនប្រសិទ្ធភាពថ្លៃដើម (alias `auto/coding:floor`) |
+| `auto/reasoning:pro`   | តែ model សម្រាប់ reasoning/thinking និង premium tier                  |
+| `auto/vision`          | model ដែលគាំទ្រ vision (គ្មាន tier → ទម្ងន់មានតុល្យភាព)               |
+| `auto/multimodal:free` | model ដែលគាំទ្រ multimodal និងមានតែ free tier                         |
 
-`auto/<category>[:<tier>]` ត្រឹមត្រូវណាមួយត្រូវបានដោះស្រាយតាមតម្រូវការ; សំណុំរងដែលត្រូវបានជ្រើសសម្រិតសម្រាំងត្រូវបានផ្សព្វផ្សាយក្នុង `/v1/models` និង dashboard (`AUTO_SUFFIX_VARIANTS` ក្នុង `open-sse/services/autoCombo/builtinCatalog.ts`)។ ការច្រោះគឺ **fail-open** — ប្រសិនបើលក្ខខណ្ឌមួយមិនត្រូវនឹងម៉ូដែលដែលបានភ្ជាប់ណាមួយទេ ក្រុមទាំងមូលនឹងត្រូវបានប្រើ ដើម្បីកុំឱ្យការកំណត់ផ្លូវខូចដំណើរការ។ កម្មវិធីដាក់ពិន្ទុស្នូល (`combo.ts`) មិនផ្លាស់ប្តូរទេ; តម្រងប្រភេទ/ថ្នាក់ត្រូវបានអនុវត្តក្នុង `buildAutoCandidates`។
+`auto/<category>[:<tier>]` ដែលត្រឹមត្រូវណាមួយត្រូវបានដោះស្រាយតាមតម្រូវការ; សំណុំរងដែលបានជ្រើសរើសដោយប្រុងប្រយ័ត្នត្រូវបានបង្ហាញនៅក្នុង `/v1/models` និង dashboard (`AUTO_SUFFIX_VARIANTS` ក្នុង `open-sse/services/autoCombo/builtinCatalog.ts`)។ ការត្រងគឺ **fail-open** — ប្រសិនបើលក្ខខណ្ឌមួយមិនត្រូវនឹង model ដែលបានភ្ជាប់ណាមួយទេ បណ្តុំពេញលេញនឹងត្រូវបានប្រើ ដើម្បីកុំឱ្យការកំណត់ផ្លូវខូច។ core scorer (`combo.ts`) មិនត្រូវបានផ្លាស់ប្តូរទេ; តម្រង category/tier ត្រូវបានអនុវត្តក្នុង `buildAutoCandidates`។
 
-> **ព័ត៌មានឆ្លាតវៃអំពីម៉ូដែលតាមពេលជាក់ស្តែង៖** ភាពសមស្របនៃការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិទទួលព័ត៌មានពីចំណាត់ថ្នាក់ **Arena ELO** តាមពេលជាក់ស្តែង + ទិន្នន័យថ្នាក់ពី **models.dev** នៅពេល flag `ARENA_ELO_SYNC_ENABLED` បើក (បើមិនដូច្នោះទេ វានឹងត្រឡប់ទៅប្រើផែនទីភាពសមស្របថេរ)។
+> **ទិន្នន័យឆ្លាតវៃរបស់ model ជាក់ស្តែង៖** ភាពសមស្របនៃការកំណត់ផ្លូវដោយស្វ័យប្រវត្តិ ទទួលព័ត៌មានពីចំណាត់ថ្នាក់ **Arena ELO** ជាក់ស្តែង + ទិន្នន័យ tier របស់ **models.dev** នៅពេល flag `ARENA_ELO_SYNC_ENABLED` បើក (បើមិនដូច្នោះទេ នឹងត្រឡប់ទៅប្រើផែនទី fitness ថេរ)។
 
 **របៀបប្រើ៖**
 
@@ -60,81 +51,81 @@ lastUpdated: 2026-06-28
 Base URL: http://localhost:20128/v1
 API Key:  <your-endpoint-key>
 
-# ក្នុងកូដ/ការកំណត់រចនាសម្ព័ន្ធរបស់អ្នក កំណត់ model ជា៖
+# ក្នុងកូដ/ការកំណត់រចនាសម្ព័ន្ធរបស់អ្នក កំណត់ model ទៅជា៖
 model: "auto"                 # លំនាំដើមមានតុល្យភាព
 model: "auto/coding"          # ល្អបំផុតសម្រាប់កិច្ចការសរសេរកូដ
-model: "auto/fast"            # លឿនបំផុតដែលអាចប្រើបាន
+model: "auto/fast"            # ជម្រើសលឿនបំផុតដែលអាចប្រើបាន
 model: "auto/cheap"           # ថោកបំផុតក្នុងមួយ token
 ```
 
 **អ្វីដែលកើតឡើង៖**
 
-1. OmniRoute រកឃើញបុព្វបទ `auto/` ក្នុង `src/sse/handlers/chat.ts`
-2. សាកសួរ **ការតភ្ជាប់ provider ដែលសកម្ម** ទាំងអស់ពី database
-3. ច្រោះយកតែការតភ្ជាប់ដែលមានព័ត៌មានសម្ងាត់ត្រឹមត្រូវ (API key ឬ OAuth token)
-4. កំណត់ម៉ូដែលសម្រាប់ការតភ្ជាប់នីមួយៗ (`connection.defaultModel` ឬម៉ូដែលទីមួយរបស់ provider)
-5. បង្កើត **combo និម្មិត** ក្នុងអង្គចងចាំ (មិនរក្សាទុកក្នុង DB)
+1. OmniRoute រកឃើញ `auto/` prefix ក្នុង `src/sse/handlers/chat.ts`
+2. ស្វែងរក **ការតភ្ជាប់ provider សកម្ម** ទាំងអស់ពី database
+3. ត្រងយកការតភ្ជាប់ដែលមាន credential ត្រឹមត្រូវ (API key ឬ OAuth token)
+4. កំណត់ model ក្នុងមួយការតភ្ជាប់ (`connection.defaultModel` ឬ model ដំបូងរបស់ provider)
+5. បង្កើត **virtual combo** ក្នុង memory (មិនត្រូវបានរក្សាទុកក្នុង DB)
 6. កំណត់ផ្លូវដោយប្រើប្រវត្តិរូបទម្ងន់របស់វ៉ារ្យ៉ង់ដែលបានជ្រើសរើស + យុទ្ធសាស្ត្រ LKGP
 
 **លក្ខណៈសម្បត្តិសំខាន់ៗ៖**
 
-- ✅ **បើកជានិច្ច៖** មិនត្រូវការ toggle មិនត្រូវការបង្កើត combo និងមិនត្រូវការការកំណត់រចនាសម្ព័ន្ធ
-- ✅ **ថាមវន្ត៖** ឆ្លុះបញ្ចាំង provider ដែលបានភ្ជាប់បច្ចុប្បន្នដោយស្វ័យប្រវត្តិ
-- ✅ **ភាពជាប់លាប់នៃ session៖** LKGP ធានាថា provider ដែលបានជោគជ័យចុងក្រោយត្រូវបានផ្តល់អាទិភាព
-- ✅ **យល់ដឹងអំពីគណនីច្រើន៖** ការតភ្ជាប់ provider នីមួយៗក្លាយជា candidate ដាច់ដោយឡែក
-- ✅ **មិនសរសេរទៅ DB៖** combo និម្មិតមានសម្រាប់តែ request ប៉ុណ្ណោះ ដោយគ្មានបន្ទុក persistence
+- ✅ **ដំណើរការជានិច្ច៖** មិនចាំបាច់មាន toggle មិនចាំបាច់បង្កើត combo និងមិនចាំបាច់កំណត់រចនាសម្ព័ន្ធ
+- ✅ **Dynamic៖** ឆ្លុះបញ្ចាំង provider ដែលបានភ្ជាប់បច្ចុប្បន្នដោយស្វ័យប្រវត្តិ
+- ✅ **ភាពជាប់លាប់នៃ session៖** LKGP ធានាថា provider ដែលជោគជ័យចុងក្រោយត្រូវបានផ្តល់អាទិភាព
+- ✅ **គាំទ្រគណនីច្រើន៖** ការតភ្ជាប់ provider នីមួយៗក្លាយជា candidate ដាច់ដោយឡែក
+- ✅ **មិនសរសេរទៅ DB៖** Virtual combo មានតែសម្រាប់ request ប៉ុណ្ណោះ ដោយគ្មានបន្ទុកលើសពីការរក្សាទុក
 
-### ការគ្រប់គ្រង candidate តាម key នីមួយៗ (#7819, កម្រិត 1+2)
+### ការគ្រប់គ្រង candidate តាម key នីមួយៗ (#7819, Level 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = បច្ច័យនៅបន្ទាប់ពី `auto/` ឬ
-តម្លៃតាមតួអក្សរ `auto` សម្រាប់ channel មូលដ្ឋាន) គឺជា endpoint **បានតែអាន** ដែលរាយបញ្ជី
-ក្រុម candidate បច្ចុប្បន្នរបស់ channel `auto/*` ដែលត្រូវបានបន្ថែមព័ត៌មានអំពីលទ្ធភាពចូលដំណើរការតាមពេលជាក់ស្តែង ដោយប្រើឡើងវិញនូវ
-ការអានភាពធន់ដែលមានស្រាប់ (មិនដែលប្រើ `state` ដើមរបស់ breaker ទេ)៖
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = suffix ដែលនៅបន្ទាប់ពី `auto/` ឬ
+ពាក្យ `auto` ផ្ទាល់សម្រាប់ channel មូលដ្ឋាន) គឺជា endpoint **បានតែអាន** ដែលរាយបញ្ជី
+បណ្តុំ candidate បច្ចុប្បន្នរបស់ channel `auto/*` ដោយភ្ជាប់ជាមួយស្ថានភាពអាចចូលដល់បានជាក់ស្តែង និងប្រើឡើងវិញនូវ
+ការអាន resilience ដែលមានស្រាប់ (មិនដែលអាន breaker `state` ដោយផ្ទាល់ទេ)៖
 
 - circuit breaker របស់ provider — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- cooldown នៃការតភ្ជាប់ — `rateLimitedUntil` / `testStatus` លើ row
+- cooldown នៃការតភ្ជាប់ — `rateLimitedUntil` / `testStatus` នៅលើ row
   `provider_connections` ដែលបានដោះស្រាយ
-- ការចាក់សោម៉ូដែល — `isModelLocked(provider, connectionId, model)`
+- ការចាក់សោ model — `isModelLocked(provider, connectionId, model)`
 
-បេក្ខជននីមួយៗក៏មាន flag `excluded` របស់ API key នេះផងដែរ។ ការដកចេញត្រូវបានរក្សាទុក
-តាម API key នីមួយៗ (`auto_candidate_overrides` table, migration `128`) — OmniRoute គឺជា
-ប្រព័ន្ធ single-tenant ដែលមិនមាន `users` table ដូច្នេះ `apiKeyId` គឺជាអត្តសញ្ញាណពិតប្រាកដតាមអ្នកហៅ
-ដែលជិតបំផុត — ហើយត្រូវបានអនុវត្តនៅចំណុចរួមតែមួយនៃ candidate pool ក្នុង
-`open-sse/services/autoCombo/virtualFactory.ts` តាមរយៈ
-`filterExcludedCandidates()` ដែលជា pure function និងបានឆ្លងកាត់ unit test (`open-sse/services/autoCombo/candidateOverrides.ts`)។
-filter នេះគឺ **fail-open**៖ apiKeyId/channel ដែលមិនបានកំណត់ ឬការបរាជ័យក្នុងការស្វែងរក DB
-សុទ្ធតែទុកឱ្យ pool មិនត្រូវបាន filter ដូច្នេះ operator ដែលមិនបានកំណត់ override ណាមួយ
-នឹងឃើញ routing ដូចគ្នាបេះបិទកម្រិត byte បើធៀបនឹងមុនពេលមានមុខងារនេះ។
+candidate នីមួយៗក៏មាន flag `excluded` របស់ API key នេះផងដែរ។ ការដកចេញត្រូវបានរក្សាទុក
+តាម API key នីមួយៗ (table `auto_candidate_overrides`, migration `128`) — OmniRoute គឺជា
+single-tenant ដែលគ្មាន table `users` ដូច្នេះ `apiKeyId` គឺជាអត្តសញ្ញាណពិតប្រាកដតាម caller
+ដែលជិតបំផុត — ហើយត្រូវបានអនុវត្តនៅចំណុចត្រួតពិនិត្យកណ្តាលនៃបណ្តុំ candidate ក្នុង
+`open-sse/services/autoCombo/virtualFactory.ts` តាមរយៈ `filterExcludedCandidates()` ដែលសុទ្ធសាធ និងបានធ្វើ unit test
+(`open-sse/services/autoCombo/candidateOverrides.ts`)។
+តម្រងនេះគឺ **fail-open**៖ apiKeyId/channel ដែលមិនបានកំណត់ ឬការស្វែងរកក្នុង DB បរាជ័យ សុទ្ធតែ
+ទុកឱ្យបណ្តុំនៅដដែលដោយមិនត្រង ដូច្នេះ operator ដែលមិនបានកំណត់ override នឹងឃើញការកំណត់ផ្លូវ
+ដូចគ្នាជាក់លាក់តាម byte ទៅនឹងមុនពេលមានមុខងារនេះ។
 
-**បានពន្យារទៅ issue បន្ទាប់៖** weight តាមបេក្ខជននីមួយៗ + លំដាប់ដែលកំណត់ច្បាស់លាស់ (Level 3
-— បញ្ចូលទៅក្នុង weighted/priority strategy path ដែលមានស្រាប់) និងការចងភ្ជាប់ strategy
-`combo.ts` ជាក់លាក់មួយសម្រាប់ channel `auto/*` នីមួយៗ (Level 4)។ សូមមើលផែនការ #7819 សម្រាប់សំណួរ
-ដែលនៅបើកចំហថា តើ override គួរតែបន្តនៅតាម API key នីមួយៗ ឬក្លាយជា global ដោយសារតែ
-ម៉ូដែល single-tenant។
+**បានពន្យារទៅ issue បន្តបន្ទាប់៖** ទម្ងន់សម្រាប់ candidate នីមួយៗ + ការកំណត់លំដាប់ជាក់លាក់ (កម្រិត 3
+— បញ្ជូនចូលទៅក្នុងផ្លូវ strategy ដែលមានស្រាប់សម្រាប់ទម្ងន់/អាទិភាព) និងការភ្ជាប់ strategy
+`combo.ts` ជាក់លាក់មួយទៅនឹង channel `auto/*` នីមួយៗ (កម្រិត 4)។ សូមមើលផែនការ #7819 សម្រាប់សំណួរ
+ដែលនៅបើកចំហថា តើ overrides គួរតែនៅតាម API key នីមួយៗ ឬក្លាយជាសកល ដោយផ្អែកលើ
+គំរូ single-tenant។
 
-**នៅពីក្រោយប្រព័ន្ធ៖**
+**ដំណើរការនៅពីក្រោយ៖**
 
 ```txt
 សំណើ៖ { model: "auto/coding" }
    ↓
 src/sse/handlers/chat.ts រកឃើញ prefix
    ↓
-createVirtualAutoCombo('coding') → candidatePool ពី connection ដែលសកម្ម
+createVirtualAutoCombo('coding') → candidatePool ពី connections ដែលសកម្ម
    ↓
-handleComboChat (engine ដូចគ្នានឹង combo ដែលបានរក្សាទុក)
+handleComboChat (engine ដូចគ្នានឹង combos ដែលបានរក្សាទុក)
    ↓
-ការដាក់ពិន្ទុស្វ័យប្រវត្តិជ្រើសរើស provider/model ល្អបំផុតសម្រាប់សំណើនីមួយៗ
+ការដាក់ពិន្ទុដោយស្វ័យប្រវត្តិជ្រើសរើស provider/model ល្អបំផុតសម្រាប់សំណើនីមួយៗ
 ```
 
 **ឯកសារអនុវត្ត៖**
 
-| ឯកសារ                                                     | គោលបំណង                                         |
-| --------------------------------------------------------- | ----------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | ឧបករណ៍ញែក prefix (`parseAutoPrefix`)            |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | បង្កើត object `AutoComboConfig` និម្មិត         |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | test hook សម្រាប់ mock provider registry        |
-| `src/sse/handlers/chat.ts`                                | ការរួមបញ្ចូល៖ short-circuit សម្រាប់ auto prefix |
-| `src/shared/constants/providers.ts`                       | system entry `SYSTEM_PROVIDERS.auto`            |
+| ឯកសារ                                                     | គោលបំណង                                            |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | កម្មវិធីញែក prefix (`parseAutoPrefix`)             |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | បង្កើត objects `AutoComboConfig` និម្មិត           |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | test hook សម្រាប់ការធ្វើ mock លើ provider registry |
+| `src/sse/handlers/chat.ts`                                | ការរួមបញ្ចូល៖ auto prefix short-circuit            |
+| `src/shared/constants/providers.ts`                       | ធាតុប្រព័ន្ធ `SYSTEM_PROVIDERS.auto`               |
 
 ## ឈ្មោះ Combo ដែលត្រូវគ្នានឹង Model Id ពិតប្រាកដ
 
@@ -226,7 +217,7 @@ Auto-Combo Engine ជ្រើសរើស provider/model ដែលល្អប�
 
 ## កញ្ចប់របៀប
 
-មានទម្រង់ទម្ងន់ដែលបានកំណត់ជាមុនចំនួន 6 នៅក្នុង `open-sse/services/autoCombo/modePacks.ts`។ កញ្ចប់នីមួយៗជំនួសទម្ងន់លំនាំដើមទាំងស្រុង ដើម្បីលំអៀងការជ្រើសរើសទៅរកគោលដៅមួយ។ កញ្ចប់នីមួយៗមានផលបូកស្មើនឹង `1.0` រួចហើយ (`0.9999` នៅពេលបង្ហាញជាខ្ទង់ទសភាគបួន) ដូច្នេះ `normalizeScoringWeights()` មិនមានអ្វីសំខាន់ដែលត្រូវកែតម្រូវទេ នៅពេលកញ្ចប់មួយសកម្ម — តម្លៃខាងក្រោមនេះគឺជាតម្លៃដែលកម្មវិធីគណនាពិន្ទុអនុវត្ត បើគិតត្រឹមការបង្គត់។
+មានប្រវត្តិទម្ងន់ដែលបានកំណត់ជាមុនចំនួន 6 នៅក្នុង `open-sse/services/autoCombo/modePacks.ts`។ កញ្ចប់នីមួយៗជំនួសទម្ងន់លំនាំដើមទាំងស្រុង ដើម្បីផ្តោតលំអៀងការជ្រើសរើសទៅរកគោលដៅមួយ។ កញ្ចប់នីមួយៗមានផលបូកស្មើ `1.0` រួចហើយ (`0.9999` ដូចដែលបង្ហាញនៅខ្ទង់ទសភាគបួន) ដូច្នេះ `normalizeScoringWeights()` មិនមានអ្វីសំខាន់ត្រូវកែតម្រូវទេ នៅពេលកញ្ចប់មួយកំពុងសកម្ម — តម្លៃខាងក្រោមនេះ បើគិតតាមការបង្គត់ គឺជាតម្លៃដែលប្រព័ន្ធដាក់ពិន្ទុអនុវត្ត។
 
 | កត្តា                 | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -246,33 +237,34 @@ Auto-Combo Engine ជ្រើសរើស provider/model ដែលល្អប�
 | `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
 | `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
-ចំណាំ៖
+កំណត់សម្គាល់៖
 
-- **កញ្ចប់មាន `quality` និង `reliability` ភ្ជាប់មកជាមួយ** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ហើយជំនួសផែនទីទម្ងន់ទាំងមូល (`weights = pack` មិនមែនជាការបញ្ចូលគ្នាទេ)។ `DEFAULT_WEIGHTS` មាន `quality 0.03 / reliability 0`; ការជ្រើសរើស `balanced`/`default` រក្សាលំនាំដើមទាំងនោះ ខណៈការជ្រើសរើសកញ្ចប់នឹងប្រើតម្លៃរបស់កញ្ចប់ខាងលើ។ នៅលើ pool ដែលទើបចាប់ផ្ដើម (មិនទាន់មានទិន្នន័យសង្កេតទេ ដូច្នេះ `quality 0.5` និង `reliability 1`) កត្តាទាំងពីរនេះបន្ថែម `+0.04` ក្រោមកញ្ចប់ទូទៅ (`0.03 + 0.01`), `+0.045` ក្រោម `quality-first` និង `+0.05` ក្រោម `reliability-first`។
-- `tierAffinity`, `specificityMatch` និង `resetWindowAffinity` ត្រូវបានកំណត់យ៉ាងច្បាស់ជា `0` នៅក្នុងគ្រប់កញ្ចប់។
-- ចំណុចផ្ដោតរបស់កញ្ចប់នីមួយៗដោយសង្ខេប៖
+- **កញ្ចប់មានរួមបញ្ចូល `quality` និង `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) ហើយជំនួសផែនទីទម្ងន់ទាំងមូល (`weights = pack` មិនមែនជាការបញ្ចូលគ្នាទេ)។ `DEFAULT_WEIGHTS` មាន `quality 0.03 / reliability 0`; ការជ្រើសរើស `balanced`/`default` នឹងរក្សាលំនាំដើមទាំងនោះ ខណៈការជ្រើសរើសកញ្ចប់នឹងប្រើតម្លៃរបស់កញ្ចប់ខាងលើ។ នៅលើអាងដែលមិនទាន់មានទិន្នន័យ (មិនទាន់មានការសង្កេត ដូច្នេះ `quality 0.5` និង `reliability 1`) កត្តាទាំងពីរនេះបន្ថែម `+0.04` ក្រោមកញ្ចប់ទូទៅ (`0.03 + 0.01`), `+0.045` ក្រោម `quality-first` និង `+0.05` ក្រោម `reliability-first`។
+- `tierAffinity`, `specificityMatch` និង `resetWindowAffinity` ត្រូវបានកំណត់ជា `0` យ៉ាងច្បាស់នៅក្នុងកញ្ចប់ទាំងអស់។
+- ការផ្តោតសំខាន់របស់កញ្ចប់នីមួយៗដោយសង្ខេប៖
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (ការតភ្ជាប់ដែលមានភាពយឺតយ៉ាវទាប និងស្ថានភាពល្អ)
-  - **cost-saver** → costInv 0.3324 (ថូខឹនដែលថោកបំផុតឈ្នះ)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03 ដែលខ្ពស់បំផុតក្នុងចំណោមកញ្ចប់ទាំងអស់ (ម៉ូដែលល្អបំផុត និងមានស្ថិរភាពសម្រាប់កិច្ចការ)
-  - **offline-friendly** → quota 0.3324 + health 0.2667 (សមត្ថភាពបម្រុងអតិបរមា ដោយមិនគិតពីល្បឿន/តម្លៃ)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04 ដែលខ្ពស់បំផុតក្នុងចំណោមកញ្ចប់ទាំងអស់ (បញ្ហាដែលមិនបានរំពឹងទុកតិចបំផុត)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (ទម្រង់សម្រាប់ការបញ្ចូលកំហុសសាកល្បង)
+  - **cost-saver** → costInv 0.3324 (ថូខិនដែលថោកបំផុតឈ្នះ)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03 ដែលខ្ពស់បំផុតក្នុងចំណោមកញ្ចប់ទាំងអស់ (ម៉ូដែលល្អបំផុតសម្រាប់កិច្ចការ និងមានស្ថិរភាព)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (សមត្ថភាពទំនេរអតិបរមា ដោយមិនគិតពីល្បឿន/ថ្លៃចំណាយ)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04 ដែលខ្ពស់បំផុតក្នុងចំណោមកញ្ចប់ទាំងអស់ (មានបញ្ហាដែលមិនបានរំពឹងទុកតិចបំផុត)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (កញ្ចប់ទម្ងន់ដែល `auto/chaos` កំណត់ឱ្យសមាជិកផ្ទាំងរបស់វា; ការបំបែកចេញដំណើរការស្របគ្នាមិនអានទម្ងន់ទាំងនេះទេ ហើយនេះមិនមែនជាប្រវត្តិចាក់បញ្ចូលកំហុសទេ សូមមើល [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### ការគ្រប់គ្រងតាមសំណើនីមួយៗ (headers) — #6023 / #6024 / #6025 / #3470
+### ការគ្រប់គ្រងតាមសំណើនីមួយៗ (បឋមកថា) — #6023 / #6024 / #6025 / #3470
 
-combo `auto` អាចត្រូវបានដឹកនាំ **តាមសំណើនីមួយៗ** តាមរយៈ headers ចំនួនបី ដោយមិនកែប្រែ
-ការកំណត់រចនាសម្ព័ន្ធដែលបានរក្សាទុករបស់ combo។ ការកំណត់ទាំងនេះអនុវត្តតែចំពោះយុទ្ធសាស្ត្រ `auto` និងតែចំពោះសំណើ
-ដែលមាន headers ទាំងនោះប៉ុណ្ណោះ; `modePack`/`budgetCap`/`budgetFallback` ដែលបានរក្សាទុករបស់ combo ត្រូវបានប្រើ
-នៅពេលមិនមាន header។
+បន្សំ `auto` អាចត្រូវបានកំណត់ទិសដៅ **តាមសំណើនីមួយៗ** តាមរយៈបឋមកថាចំនួនបី ដោយមិនកែប្រែការកំណត់រចនាសម្ព័ន្ធដែលបានរក្សាទុករបស់
+បន្សំនោះទេ។ ទាំងនេះអនុវត្តតែចំពោះយុទ្ធសាស្ត្រ `auto` ប៉ុណ្ណោះ និងតែសម្រាប់សំណើ
+ដែលភ្ជាប់ពួកវាមកជាមួយ; `modePack`/`budgetCap`/`budgetFallback` ដែលបានរក្សាទុករបស់បន្សំ ត្រូវបានប្រើ
+នៅពេលមិនមានបឋមកថា។
 
-| បឋមកថា                        | ទទួលយក                                                                                                                                                                                        | ប្រសិទ្ធភាព                                                                                                                                                                                                                         |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | ឈ្មោះក្លែងកំណត់ជាមុនមួយ (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ឬឈ្មោះកញ្ចប់ដើម (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | ជំនួសទម្ងន់ពិន្ទុសម្រាប់សំណើនេះ។ `balanced`/`default` បង្ខំឱ្យប្រើទម្ងន់លំនាំដើម (គ្មានកញ្ចប់)។ តម្លៃដែលមិនស្គាល់ត្រូវបានមិនអើពើ (ការកំណត់រចនាសម្ព័ន្ធត្រូវបានរក្សាទុក)។                                                            |
-| `X-OmniRoute-Budget`          | ចំនួនវិជ្ជមានមួយ (អតិបរមា USD ក្នុងមួយសំណើ)                                                                                                                                                   | ពិដានថ្លៃដើមដាច់ខាត៖ បេក្ខភាពដែលមានថ្លៃដើមប៉ាន់ស្មានលើសពីវា នឹងត្រូវបានច្រោះចេញមុនពេលជ្រើសរើស។ អ្វីដែលកើតឡើងនៅពេលបេក្ខភាព **ទាំងអស់** លើសពីវា ត្រូវបានគ្រប់គ្រងដោយ `X-OmniRoute-Budget-Fallback` ខាងក្រោម។                          |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (លំនាំដើម ឈ្មោះក្លែង៖ `cheapest-viable`, `soft`) ឬ `strict` (ឈ្មោះក្លែង៖ `block`, `hard`)                                                                                          | `cheapest`៖ ត្រឡប់ទៅប្រើបេក្ខភាពដែលថោកបំផុតជាសកល ទោះបីជាវានៅតែលើសពីពិដានក៏ដោយ (ឥរិយាបថចាស់)។ `strict`៖ បដិសេធមិនជ្រើសរើស — សំណើនឹងបរាជ័យភ្លាមៗជាមួយ `HTTP 402` ជំនួសឱ្យការចំណាយលើសដោយស្ងៀមស្ងាត់។ តម្លៃដែលមិនស្គាល់ត្រូវបានមិនអើពើ។ |
+| បឋមកថា                        | ទទួលយក                                                                                                                                                                                        | ឥទ្ធិពល                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | ឈ្មោះក្លែងកំណត់ជាមុន (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ឬឈ្មោះកញ្ចប់ផ្ទាល់ (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | ជំនួសទម្ងន់ពិន្ទុសម្រាប់សំណើនេះ។ `balanced`/`default` បង្ខំឱ្យប្រើទម្ងន់លំនាំដើម (គ្មានកញ្ចប់)។ តម្លៃដែលមិនស្គាល់ត្រូវបានមិនអើពើ (ការកំណត់រចនាសម្ព័ន្ធត្រូវបានរក្សាទុក)។                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `X-OmniRoute-Budget`          | ចំនួនវិជ្ជមាន (USD អតិបរមាក្នុងមួយសំណើ)                                                                                                                                                       | ដែនកំណត់ថ្លៃដើមដាច់ខាត៖ បេក្ខជនដែលមានថ្លៃដើមប៉ាន់ស្មានលើសពីដែនកំណត់នេះ ត្រូវបានច្រោះចេញមុនពេលជ្រើសរើស។ អ្វីដែលកើតឡើងនៅពេលបេក្ខជន **ទាំងអស់** លើសពីដែនកំណត់នេះ ត្រូវបានគ្រប់គ្រងដោយ `X-OmniRoute-Budget-Fallback` ខាងក្រោម។                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (លំនាំដើម, ឈ្មោះក្លែង៖ `cheapest-viable`, `soft`) ឬ `strict` (ឈ្មោះក្លែង៖ `block`, `hard`)                                                                                         | `cheapest`៖ ត្រឡប់ទៅប្រើបេក្ខជនដែលថោកបំផុតជាសកល ទោះបីជាវានៅតែលើសពីដែនកំណត់ក៏ដោយ (ឥរិយាបថចាស់)។ `strict`៖ បដិសេធមិនជ្រើសរើស — សំណើបរាជ័យភ្លាមៗដោយប្រើ `HTTP 402` ជំនួសឱ្យការចំណាយលើសដោយស្ងៀមស្ងាត់។ តម្លៃដែលមិនស្គាល់ត្រូវបានមិនអើពើ។                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `X-OmniRoute-Effort`          | `auto` (តម្លៃផ្សេងទៀតត្រូវបានបម្រុងទុក)                                                                                                                                                       | កញ្ចប់ថវិកាសម្រាប់ការគិតដែលសម្របខ្លួន៖ នៅពេលសំណើមិនមានវាលហេតុផលក្នុងទម្រង់ណាមួយឡើយ (`reasoning_effort`, `reasoning`, `thinking`) gateway នឹងកំណត់ `auto` ទៅជា `low`/`medium`/`high` ដោយផ្អែកលើសញ្ញាកំណត់ជាក់លាក់ពីទម្រង់សំណើ (ប្រវែងសារចុងក្រោយរបស់អ្នកប្រើ ទំហំបរិបទរហូតដល់សារចុងក្រោយរបស់អ្នកប្រើ លទ្ធផលពី tool មុនៗ និងជម្រៅនៃ tool-loop)។ សញ្ញាទាំងនេះត្រូវបានកំណត់វិសាលភាពត្រឹម turn បច្ចុប្បន្នប៉ុណ្ណោះ — អ្វីៗទាំងអស់បន្ទាប់ពីសារចុងក្រោយរបស់អ្នកប្រើត្រូវបានមិនអើពើ — ដូច្នេះ រាល់សំណើនៅក្នុង tool loop នឹងត្រូវបានកំណត់ទៅកម្រិតដូចគ្នា (ការចងកម្រិតតាម turn ដោយគ្មាន state មិនមាន session state និងមិនមានការបង្កើនកម្រិតនៅពាក់កណ្តាល loop ដែលអាចបំបែក prefix របស់ upstream prompt-cache)។ វាលហេតុផលដែល client បញ្ជាក់យ៉ាងច្បាស់ តែងតែមានអាទិភាព។ វាត្រូវបានកំណត់វិសាលភាពចំពោះសំណើដែល upstream dispatch របស់វាត្រូវបានកំណត់ទៅទម្រង់ OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` គឺជាវាលទម្រង់ OpenAI ដូច្នេះ header នេះមិនមានឥទ្ធិពលលើសំណើដែលកំណត់គោលដៅទៅ Claude ឬ Gemini ទេ (សូមមើល `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`)។ |
 
 ```bash
-# បង្ខំឱ្យប្រើប្រូហ្វាល់ដែលលឿនបំផុត កំណត់ពិដានសំណើនេះត្រឹម $0.05 និងទប់ស្កាត់ទាំងស្រុងជំនួសឱ្យការចំណាយលើស
+# បង្ខំឱ្យប្រើប្រូហ្វាល់លឿនបំផុត កំណត់សំណើនេះឱ្យចំណាយមិនលើស $0.05 និងទប់ស្កាត់ទាំងស្រុងជំនួសឱ្យការចំណាយលើស
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -281,57 +273,105 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-ការដោះស្រាយគឺជាអនុគមន៍សុទ្ធ (`open-sse/services/autoCombo/requestControls.ts`); តម្លៃដែលបានដោះស្រាយ
-ត្រូវបានបញ្ជូនទៅកាន់ធាតុបញ្ចូល `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` ដែលមានស្រាប់របស់ម៉ាស៊ីន។ `config.budgetFallback` ("strict" |
-"cheapest") ដែលបានរក្សាទុករបស់បន្សំមួយ កំណត់គោលការណ៍អចិន្ត្រៃយ៍; បឋមកថាជំនួសវាសម្រាប់សំណើតែមួយ។
+ការកំណត់តម្លៃគឺជា pure function (`open-sse/services/autoCombo/requestControls.ts`); តម្លៃដែលបានកំណត់នឹងបញ្ចូលទៅក្នុង input ដែលមានស្រាប់របស់ engine គឺ `config.modePack` / `config.budgetCap` /
+`config.budgetFallback`។ `config.budgetFallback` ដែលបានរក្សាទុករបស់ combo មួយ ("strict" |
+"cheapest") កំណត់គោលការណ៍អចិន្ត្រៃយ៍។ header នឹងបដិសេធតម្លៃនោះសម្រាប់សំណើតែមួយ។
 
-## យុទ្ធសាស្ត្រកំណត់ទិសដៅទាំងអស់
+## យុទ្ធសាស្ត្រកំណត់ផ្លូវទាំងអស់
 
-ម៉ាស៊ីន combo របស់ OmniRoute គាំទ្រ **យុទ្ធសាស្ត្រកំណត់ទិសដៅចំនួន 19** (ប្រកាសនៅក្នុង `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`)។ ម៉ាស៊ីន Auto Combo ផ្ទាល់ត្រូវបានផ្ដល់ឱ្យប្រើក្រោមយុទ្ធសាស្ត្រ `auto` ខណៈយុទ្ធសាស្ត្រផ្សេងទៀតអាចប្រើបានសម្រាប់ combo ដែលបានរក្សាទុក។
+ម៉ាស៊ីន combo របស់ OmniRoute គាំទ្រ **យុទ្ធសាស្ត្រកំណត់ផ្លូវចំនួន 19** (បានប្រកាសនៅក្នុង `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`)។ ម៉ាស៊ីន Auto Combo ផ្ទាល់ត្រូវបានដាក់ឱ្យប្រើក្រោមយុទ្ធសាស្ត្រ `auto`; យុទ្ធសាស្ត្រផ្សេងទៀតអាចប្រើបានសម្រាប់ combo ដែលបានរក្សាទុក។
 
-| យុទ្ធសាស្ត្រ        | ការពិពណ៌នា                                                                                                                                                                                           |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | បញ្ជីមានលំដាប់ដោយផ្ដោតលើគោលដៅដំបូង និងមានអាទិភាពជាក់លាក់                                                                                                                                             |
-| `weighted`          | ជ្រើសរើសដោយចៃដន្យតាមទម្ងន់របស់គោលដៅនីមួយៗ                                                                                                                                                            |
-| `round-robin`       | ប្ដូរវេនឆ្លងកាត់គោលដៅតាមលំដាប់                                                                                                                                                                       |
-| `context-relay`     | ផ្ទេរបរិបទឆ្លងកាត់គោលដៅនានា (សម្រាប់ការសន្ទនាវែងៗ)                                                                                                                                                   |
-| `fill-first`        | ប្រើកូតារបស់គោលដៅនីមួយៗឱ្យអស់សិន មុននឹងបន្តទៅគោលដៅបន្ទាប់                                                                                                                                            |
-| `p2c`               | តុល្យភាពបន្ទុកដោយចៃដន្យតាមជម្រើស 2                                                                                                                                                                   |
-| `random`            | ការជ្រើសរើសដោយចៃដន្យស្មើៗគ្នា                                                                                                                                                                        |
-| `least-used`        | ជ្រើសរើសគោលដៅដែលមានបន្ទុកបច្ចុប្បន្នទាបបំផុត                                                                                                                                                         |
-| `cost-optimized`    | កាត់បន្ថយថ្លៃ $ ក្នុងមួយសំណើ ដោយផ្អែកលើតម្លៃក្នុងកាតាឡុក                                                                                                                                             |
-| `reset-aware` ⭐    | កំណត់អាទិភាពតាមពេលវេលាកំណត់កូតាឡើងវិញ — ចន្លោះពេលកំណត់ឡើងវិញខ្លីជាងត្រូវបានចាត់ថ្នាក់ខ្ពស់ជាង                                                                                                        |
-| `reset-window`      | ផ្ដល់អាទិភាពដល់គោលដៅដែលចន្លោះពេលកូតារបស់ពួកវានឹងកំណត់ឡើងវិញឆាប់បំផុត                                                                                                                                 |
-| `headroom`          | ជ្រើសរើសគោលដៅដែលមានកូតានៅសល់ច្រើនបំផុត                                                                                                                                                               |
-| `strict-random`     | ជ្រើសរើសដោយចៃដន្យដោយមិនលុបធាតុស្ទួន                                                                                                                                                                  |
-| `auto`              | ប្រើការដាក់ពិន្ទុរបស់ Auto Combo (16 កត្តា) — **បានណែនាំ**                                                                                                                                           |
-| `lkgp`              | ផ្លូវដែលល្អចុងក្រោយដែលបានដឹង (ភ្ជាប់ទៅអ្នកផ្ដល់សេវាដែលជោគជ័យចុងក្រោយ បន្ទាប់មកត្រឡប់ទៅប្រើច្បាប់បម្រុង)                                                                                              |
-| `context-optimized` | ជ្រើសរើសគោលដៅដែលសមបំផុតសម្រាប់ទំហំបរិបទបច្ចុប្បន្ន                                                                                                                                                   |
-| `cache-optimized`   | រៀបចំគោលដៅឡើងវិញតាមភាពស៊ីគ្នាជាមួយ prompt-cache — ការតភ្ជាប់ដែលទំនងជាមានបុព្វបទរបស់សំណើនេះនៅក្នុងឃ្លាំងសម្ងាត់រួចហើយ នឹងត្រូវបានសាកល្បងមុន (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | ផ្ញើសំណើទៅកាន់ក្រុមម៉ូដែលស្របពេលគ្នា បន្ទាប់មកសំយោគចម្លើយមួយតាមរយៈម៉ូដែលវិនិច្ឆ័យ (សូមមើលខាងក្រោម)                                                                                                   |
-| `pipeline`          | ដំណើរការគោលដៅតាមលំដាប់ ដោយបញ្ជូនលទ្ធផលរបស់ជំហាននីមួយៗទៅជាធាតុបញ្ចូលរបស់ជំហានបន្ទាប់ ហើយត្រឡប់តែចម្លើយចុងក្រោយប៉ុណ្ណោះ (#6396)                                                                        |
+| យុទ្ធសាស្ត្រ        | ការពិពណ៌នា                                                                                                                                                                                         |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | បញ្ជីដែលបានតម្រៀបតាមគោលដៅដំបូង ដោយមានអាទិភាពជាក់លាក់                                                                                                                                               |
+| `weighted`          | ការជ្រើសរើសចៃដន្យដោយផ្អែកលើទម្ងន់របស់គោលដៅនីមួយៗ                                                                                                                                                   |
+| `round-robin`       | ឆ្លាស់កាត់តាមគោលដៅតាមលំដាប់ (ជាបាច់; សូមមើលខាងក្រោម)                                                                                                                                               |
+| `context-relay`     | ផ្ទេរបរិបទឆ្លងកាត់គោលដៅនានា (ការសន្ទនាវែងៗ)                                                                                                                                                        |
+| `fill-first`        | បំពេញកូតារបស់គោលដៅនីមួយៗ មុននឹងបន្តទៅគោលដៅបន្ទាប់                                                                                                                                                  |
+| `p2c`               | ការធ្វើសមតុល្យបន្ទុកដោយជ្រើសរើសចៃដន្យតាម Power-of-2-choices                                                                                                                                        |
+| `random`            | ការជ្រើសរើសចៃដន្យស្មើគ្នា                                                                                                                                                                          |
+| `least-used`        | ជ្រើសរើសគោលដៅដែលមានបន្ទុកបច្ចុប្បន្នទាបបំផុត                                                                                                                                                       |
+| `cost-optimized`    | កាត់បន្ថយ $ ក្នុងមួយសំណើឱ្យទាបបំផុត ដោយផ្អែកលើតម្លៃក្នុងកាតាឡុក                                                                                                                                    |
+| `reset-aware` ⭐    | កំណត់អាទិភាពតាមពេលវេលាកំណត់កូតាឡើងវិញ — ចន្លោះពេលកំណត់ឡើងវិញខ្លី ត្រូវបានដាក់ចំណាត់ថ្នាក់ខ្ពស់ជាង                                                                                                  |
+| `reset-window`      | ផ្តល់អាទិភាពដល់គោលដៅដែលចន្លោះកូតារបស់វានឹងត្រូវកំណត់ឡើងវិញឆាប់បំផុត                                                                                                                                |
+| `headroom`          | ជ្រើសរើសគោលដៅដែលមានទំហំកូតានៅសល់ច្រើនបំផុត                                                                                                                                                         |
+| `strict-random`     | ជ្រើសរើសចៃដន្យដោយមិនលុបធាតុស្ទួន                                                                                                                                                                   |
+| `auto`              | ប្រើការដាក់ពិន្ទុ Auto Combo (16 កត្តា) — **ត្រូវបានណែនាំ**                                                                                                                                        |
+| `lkgp`              | Last-Known-Good Path (ភ្ជាប់ជាប់នឹងអ្នកផ្តល់សេវាដែលជោគជ័យចុងក្រោយ បន្ទាប់មកត្រឡប់ទៅប្រើច្បាប់ជំនួស)                                                                                                |
+| `context-optimized` | ជ្រើសរើសគោលដៅដែលស័ក្តិសមបំផុតនឹងទំហំបរិបទបច្ចុប្បន្ន                                                                                                                                               |
+| `cache-optimized`   | តម្រៀបគោលដៅឡើងវិញតាមភាពស៊ីគ្នាជាមួយ prompt-cache — ការតភ្ជាប់ដែលទំនងជាមានបុព្វបទដែលបានដាក់ cache របស់សំណើនេះរួចហើយ នឹងត្រូវបានសាកល្បងមុន (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | ផ្ញើទៅកាន់ក្រុមម៉ូដែលជាច្រើនស្របពេលគ្នា បន្ទាប់មកសំយោគចម្លើយតែមួយតាមរយៈអ្នកវិនិច្ឆ័យ (សូមមើលខាងក្រោម)                                                                                              |
+| `pipeline`          | ដំណើរការគោលដៅជាបន្តបន្ទាប់ ដោយបញ្ជូនលទ្ធផលនៃជំហាននីមួយៗចូលទៅក្នុងទិន្នន័យបញ្ចូលរបស់ជំហានបន្ទាប់; មានតែចម្លើយចុងក្រោយប៉ុណ្ណោះដែលត្រូវបានត្រឡប់ (#6396)                                              |
 
 ⭐ = ថ្មីក្នុង v3.8.0 · 🧬 = ថ្មីក្នុង v3.8.36
 
 ### អត្ថន័យរបស់ `weighted`
 
 `weighted` គឺជា **ការចាប់យកដោយចៃដន្យតាមសមាមាត្រសម្រាប់សំណើនីមួយៗ**
-(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`) មិនមែនជាយន្តការធ្វើឱ្យស្មើគ្នាទេ៖
+(`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`) មិនមែនជាឧបករណ៍ធ្វើឱ្យស្មើគ្នាទេ៖
 
-- សំណើនីមួយៗចាប់យក **មួយ** ជំហានដោយមានប្រូបាប៊ីលីតេ `weight / totalWeight`; ជំហានដែលនៅសល់
-  ត្រូវបានរៀបតាមទម្ងន់ពីធំទៅតូច ដើម្បីធ្វើជាខ្សែសង្រ្គោះបម្រុងសម្រាប់សំណើនោះ។
-- ជំហានដែលមានទម្ងន់ `0` (ឬមិនបានកំណត់) **នឹងមិនត្រូវបានចាប់យកឡើយ** ខណៈដែលមានជំហានផ្សេងទៀត
-  មានទម្ងន់ > 0 — វាអាចដំណើរការបានត្រឹមជាជម្រើសបម្រុង បន្ទាប់ពីជំហានដែលបានចាប់យកបរាជ័យប៉ុណ្ណោះ។ ការជ្រើសរើសនឹងក្លាយជាស្មើៗគ្នា លុះត្រាតែទម្ងន់ **ទាំងអស់**
+- សំណើនីមួយៗចាប់យកជំហាន **មួយ** ដែលមានប្រូបាប៊ីលីតេ `weight / totalWeight`; ជំហានដែលនៅសល់
+  ត្រូវបានតម្រៀបតាមទម្ងន់ពីខ្ពស់ទៅទាប ជាខ្សែជម្រើសបម្រុងសម្រាប់សំណើនោះ។
+- ជំហានដែលមានទម្ងន់ `0` (ឬមិនមានទម្ងន់) **មិនត្រូវបានចាប់យកឡើយ** ខណៈពេលដែលជំហានផ្សេងណាមួយមាន
+  ទម្ងន់ > 0 — វាអាចបម្រើបានត្រឹមជាជម្រើសបម្រុងបន្ទាប់ពីជំហានដែលបានចាប់យកបរាជ័យប៉ុណ្ណោះ។ ការជ្រើសរើសក្លាយជាស្មើគ្នា លុះត្រាតែទម្ងន់ **ទាំងអស់**
   ស្មើនឹង 0។
-- ជំហានដែលគោលដៅទាំងអស់មិនអាចប្រើបាន — circuit breaker របស់អ្នកផ្ដល់សេវាស្ថិតក្នុងស្ថានភាព `OPEN`, ការតភ្ជាប់
-  កំពុងស្ថិតក្នុងរយៈពេលផ្អាក, ម៉ូដែលត្រូវបានចាក់សោមិនឱ្យប្រើ — នឹងត្រូវបានដកចេញពីការចាប់យក មុនពេលវាកើតឡើង
-  (`open-sse/services/combo/targetResolution.ts`) ដូច្នេះជំហានដែលមានសុខភាពល្អតែមួយអាចឈ្នះគ្រប់សំណើជាបណ្ដោះអាសន្ន។
-- `stickyWeightedLimit` (ការកំណត់រចនាសម្ព័ន្ធ combo, លំនាំដើម `1` = បិទ) ភ្ជាប់ទៅជំហានដែលបានចាប់យកសម្រាប់ចំនួនជោគជ័យជាប់ៗគ្នានោះ
-  មុននឹងចាប់យកម្ដងទៀត។
+- ជំហានដែលគោលដៅទាំងអស់របស់វាមិនអាចប្រើបាន — circuit breaker របស់អ្នកផ្តល់សេវាស្ថិតក្នុងស្ថានភាព `OPEN`, ការតភ្ជាប់
+  ស្ថិតក្នុងរយៈពេលសម្រាក, ម៉ូដែលត្រូវបានចាក់សោ — ត្រូវបានដកចេញពីការចាប់យកមុនពេលវាកើតឡើង
+  (`open-sse/services/combo/targetResolution.ts`) ដូច្នេះជំហានដែលដំណើរការល្អតែមួយ អាចត្រូវបានជ្រើសរើសសម្រាប់គ្រប់សំណើជាបណ្តោះអាសន្ន។
+- `stickyWeightedLimit` (ការកំណត់រចនាសម្ព័ន្ធ combo, លំនាំដើម `1` = បិទ) ភ្ជាប់ជំហានដែលបានចាប់យកសម្រាប់ចំនួនជោគជ័យ
+  ជាប់គ្នានោះ មុននឹងចាប់យកឡើងវិញ។
 
-សម្រាប់ការប្ដូរវេនយ៉ាងតឹងរ៉ឹង សូមប្រើ `round-robin`; ទម្ងន់ស្មើគ្នានៅលើ `weighted` ផ្ដល់តុល្យភាពបែបស្ថិតិ — មិនមែន
-តុល្យភាពយ៉ាងតឹងរ៉ឹងទេ។
+សម្រាប់ការបង្វិលជុំយ៉ាងតឹងរ៉ឹង សូមប្រើ `round-robin`; ទម្ងន់ស្មើគ្នានៅលើ `weighted` ផ្តល់សមតុល្យតាមស្ថិតិ — មិនមែន
+តឹងរ៉ឹង — ទេ។
+
+### របៀប pipeline បែបភ្នាក់ងារ
+
+ការរួមបញ្ចូលគ្នា `pipeline` ពីរជំហានអាចជ្រើសរើសប្រើការបញ្ជូនទៅ planner/executor តាមរយៈ
+`config.agenticOrchestration.enabled`។ គោលដៅទីមួយទទួលខុសត្រូវលើការរៀបចំផែនការ និងចម្លើយចុងក្រោយ;
+គោលដៅទីពីរបញ្ចេញការហៅឧបករណ៍តាមទម្រង់ដើមរបស់ម៉ាស៊ីនភ្ញៀវ។ OmniRoute រកឃើញការបន្ត
+លទ្ធផលឧបករណ៍ពីពិធីការសំណើ សួរ planner ថាតើត្រូវការជុំឧបករណ៍មួយទៀតឬអត់
+ហើយកំណត់ដោយថាមវន្តឱ្យ executor ឬ planner ជាជំហានចុងក្រោយដែលបង្ហាញទៅ
+ម៉ាស៊ីនភ្ញៀវ។
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+executor អាចបញ្ចេញការហៅឯករាជ្យជាច្រើនក្នុងការឆ្លើយតបតែមួយ។ ការហៅដែលពឹងផ្អែកគ្នា
+ត្រូវបានដោះស្រាយក្នុងវេនលទ្ធផលឧបករណ៍របស់ម៉ាស៊ីនភ្ញៀវនៅពេលក្រោយ ដោយ planner ពិនិត្យរាល់លទ្ធផល។
+`maxToolRounds` មានតម្លៃលំនាំដើម `8` និងទទួលយក `1`–`32`; នៅពេលឈានដល់ដែនកំណត់ planner ត្រូវតែ
+បង្កើតចម្លើយចុងក្រោយល្អបំផុតដែលអាចធ្វើបាន។ ការសម្រេចចិត្តខាងក្នុងរបស់ planner ត្រូវបានរក្សាទុកក្នុងអង្គចងចាំបណ្ដោះអាសន្ន ខណៈដែល
+ការឆ្លើយតបដែលបានជ្រើសរើសសម្រាប់ម៉ាស៊ីនភ្ញៀវរក្សាចំណូលចិត្ត streaming ដើម។
+
+### បាច់ស្អិត `round-robin` និងការពង្រីកគណនី
+
+Round-robin ដំណើរការជាបាច់ មិនមែនមួយសំណើក្នុងមួយជំហានទេ៖
+
+- `stickyRoundRobinLimit` (កំណត់រចនាសម្ព័ន្ធនៃការរួមបញ្ចូលគ្នា បន្ទាប់មក `comboStickyRoundRobinLimit` បន្ទាប់មក
+  `settings.stickyRoundRobinLimit` លំនាំដើម **3**) រក្សាគោលដៅដដែលសម្រាប់
+  ជោគជ័យជាប់គ្នាតាមចំនួននោះ មុនពេលបង្វិល។ កំណត់ការបដិសេធតម្លៃរបស់ការរួមបញ្ចូលគ្នាទៅ `1` សម្រាប់ការបង្វិល
+  មួយសំណើម្តង។ កម្មវិធីកែសម្រួលការរួមបញ្ចូលគ្នាបង្ហាញតម្លៃដែលមានប្រសិទ្ធភាព និងស្រទាប់ដែលតម្លៃនោះបានមកពី។
+- `connectionAwareExpansion` (កំណត់រចនាសម្ព័ន្ធនៃការរួមបញ្ចូលគ្នា បន្ទាប់មក settings លំនាំដើម **false**) ពង្រីក
+  ជំហានកម្រិត provider នីមួយៗទៅជាគោលដៅតាមគណនី មុនពេលបង្វិល។ យុទ្ធសាស្ត្រ Group-B
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) រក្សាទិដ្ឋភាពកម្រិត provider រហូតទាល់តែវាត្រូវបានបើក។ កម្មវិធីកែសម្រួលការរួមបញ្ចូលគ្នាផ្ដល់ជម្រើស
+  inherit / on / off; inherit ប្រើតម្លៃលំនាំដើមសកល (off)។
+- ការបញ្ជូនតាមភាពនៅជិត prompt-cache (`promptCacheAffinityEnabled` លំនាំដើម **true**) រៀបលំដាប់
+  connection ដែលបានខ្ទាស់ឡើងវិញ ដើម្បីឱ្យ cache key ដែលត្រូវគ្នាបន្តស្ថិតនៅលើគណនីតែមួយ។ វាមានអាទិភាពលើ
+  ការបង្វិល round-robin និង weighted រវាងជំហានតាមគណនីដែលបានខ្ទាស់។ បិទវានៅក្រោម
+  Settings → Combo defaults ប្រសិនបើអ្នកត្រូវការការបង្វិលយ៉ាងតឹងរ៉ឹង។ មិនមានការបដិសេធតម្លៃតាមការរួមបញ្ចូលគ្នានីមួយៗទេ។
+
+សម្រាប់ការបង្វិលគណនីច្រើនលើ model តែមួយ គួរប្រើ **ជំហាន dynamic-account តែមួយ** (`connectionId` ទទេ
+ប្រើ pool ទាំងមូល) ជាមួយដែនកំណត់ស្អិត `1` ជំនួសឱ្យ `connectionId` ដែលបានខ្ទាស់ចំនួនបី។
+ជំហានដែលបានខ្ទាស់រួមជាមួយ affinity នឹងរួមផ្តុំទៅលើគណនីដដែល ទោះបីជា counter របស់ RR
+បន្តកើនឡើងក៏ដោយ។
 
 ## យុទ្ធសាស្ត្រ Fusion
 
@@ -722,18 +762,14 @@ registerStrategy("my-custom", new MyCustomStrategy());
 
 (`AutoVariant` ផ្ទាល់រាយតម្លៃចំនួន 6; ជម្រើសទី 7 គឺ "គ្មានវ៉ារ្យ៉ង់" — `auto` ដាច់ដោយឡែក — ដែលត្រូវបានដោះស្រាយដោយ `parseAutoPrefix()` ជា `variant: undefined`។)
 
-## របៀបដែលកម្រិតសម្របជាមួយ Auto-Combo
+## របៀបដែលកម្រិតត្រូវគ្នាជាមួយ Auto-Combo
 
-អនុគមន៍ដាក់ពិន្ទុដែលមានកត្តា 16 (`open-sse/services/autoCombo/scoring.ts`) ចាត់ទុកសមាជិកភាពតាមកម្រិតជាសញ្ញាពីរ៖ `tierPriority` (0.0476) និង `tierAffinity` (0.0476)។ សូមមើល
-[តារាងកត្តាដាក់ពិន្ទុ](#how-it-works-persisted-auto-combos) ស្តង់ដារខាងលើ សម្រាប់សំណុំ
-`DEFAULT_WEIGHTS` ពេញលេញ — ការកំណត់ជំនួសតាមកញ្ចប់នីមួយៗ (ship-fast/cost-saver/quality-first/
+មុខងារដាក់ពិន្ទុដែលមាន 16 កត្តា (`open-sse/services/autoCombo/scoring.ts`) ចាត់ទុកសមាជិកភាពកម្រិតជាសញ្ញាពីរ៖ `tierPriority` (0.0476) និង `tierAffinity` (0.0476)។ សូមមើល[តារាងកត្តាដាក់ពិន្ទុគោល](#how-it-works-persisted-auto-combos)ខាងលើ សម្រាប់សំណុំ `DEFAULT_WEIGHTS` ពេញលេញ — ការកំណត់ជំនួសតាមកញ្ចប់នីមួយៗ (ship-fast/cost-saver/quality-first/
 offline-friendly) ត្រូវបានរាយក្នុងតារាង "ទម្រង់ទម្ងន់តាមកញ្ចប់"។
 
-កម្រិតតែមួយមុខ **មិន** បង្ខំឱ្យ Tier 1 មកមុនទេ — ប្រសិនបើ latency របស់ Tier 1 មិនល្អ ឬ
-តម្លៃធៀបនឹងគុណភាពមិនសមស្រប នោះ Tier 2 នឹងឈ្នះ។ ដើម្បីបង្ខំលំដាប់កម្រិត សូមប្រើយុទ្ធសាស្ត្រ combo
-`priority` ហើយរៀបចំ providers តាមកម្រិត។
+កម្រិតតែមួយមុខ **មិន**បង្ខំឱ្យកម្រិតទី 1 មកមុនទេ — ប្រសិនបើភាពយឺតយ៉ាវរបស់កម្រិតទី 1 មិនល្អ ឬតម្លៃធៀបនឹងគុណភាពមិនល្អប្រសើរ នោះកម្រិតទី 2 នឹងឈ្នះ។ ដើម្បីបង្ខំលំដាប់កម្រិត សូមប្រើយុទ្ធសាស្ត្របន្សំ `priority` ហើយរៀបចំអ្នកផ្តល់សេវាតាមកម្រិត។
 
-ដើម្បីផ្តល់អាទិភាពខ្លាំងដល់ Tier 1 (ការជាវ) សូមបង្កើនទម្ងន់ `tierPriority`៖
+ដើម្បីផ្តល់អាទិភាពខ្លាំងដល់កម្រិតទី 1 (ការជាវ) សូមបង្កើនទម្ងន់ `tierPriority`៖
 
 ```json
 {
@@ -742,7 +778,7 @@ offline-friendly) ត្រូវបានរាយក្នុងតារា�
 }
 ```
 
-សូមមើល `docs/marketing/TIERS.md` សម្រាប់និយមន័យកម្រិត និងការចាត់ថ្នាក់ provider។
+សូមមើល [`docs/guides/TIERS.md`](../guides/TIERS.md) សម្រាប់និយមន័យកម្រិត និងការចាត់ថ្នាក់អ្នកផ្តល់សេវា។
 
 ## ការធ្វើតេស្ត និងវិសាលភាពគ្របដណ្តប់
 

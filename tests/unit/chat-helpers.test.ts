@@ -778,3 +778,32 @@ test("resolveModelOrError returns model_not_found error for unrecognised bare mo
   assert.match(json.error.message, /Unable to determine provider/i);
   assert.match(json.error.message, /completely-unknown-model-xyz/i);
 });
+
+test("handleNoCredentials names the API key's connection allowlist as the reason (#13832)", async () => {
+  // #13832: connections for the provider exist and are active, but the gateway API
+  // key's allowed_connections / quota scope filtered every one of them out, so the
+  // pool arrived empty. The old generic "No active credentials for provider: nvidia"
+  // is indistinguishable from "never configured" — the reporter had a key that
+  // passed /test and synced 82 models, and no message ever mentioned the allowlist.
+  const blocked = handleNoCredentials(
+    { blockedByKeyPolicy: true, blockedCount: 2 },
+    null,
+    "nvidia",
+    "nvidia/nemotron",
+    null,
+    null,
+    undefined,
+    /* isCombo */ false
+  );
+
+  assert.equal(blocked.status, 403);
+  const blockedJson = (await blocked.json()) as { error?: { message?: string } };
+  const message = blockedJson.error?.message ?? "";
+  assert.match(message, /nvidia/);
+  assert.match(message, /2 connection\(s\)/);
+  assert.match(
+    message,
+    /allowlist|quota scope/i,
+    "the operator must be told WHICH gate hid the connections"
+  );
+});

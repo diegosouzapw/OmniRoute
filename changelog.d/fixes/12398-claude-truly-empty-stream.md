@@ -1,1 +1,0 @@
-- fix(sse): surface an error instead of a silent empty 200 when a Claude stream closes with zero bytes (#12398)

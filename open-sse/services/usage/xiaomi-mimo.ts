@@ -27,13 +27,13 @@ const XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT = 4_100_000_000;
  * to the known Token Plan monthly limit. This reflects only traffic that went
  * through OmniRoute, not the provider's own dashboard figure.
  */
-export async function getXiaomiMimoUsage(connectionId: string) {
+export async function getXiaomiMimoUsage(connectionId: string, provider = "xiaomi-mimo") {
   if (!connectionId) {
     return { message: "Xiaomi MiMo: connection id unavailable for self-tracked quota." };
   }
   try {
     const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
-    const used = getMonthlyProviderTokensForConnection("xiaomi-mimo", connectionId);
+    const used = getMonthlyProviderTokensForConnection(provider, connectionId);
     const total = XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT;
     const now = new Date();
     const resetAt = new Date(

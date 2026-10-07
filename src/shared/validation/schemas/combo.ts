@@ -176,6 +176,10 @@ export const comboRuntimeConfigSchema = z
     fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
     targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
+    // Whole-combo wall-clock budget. 0 (default) means unlimited iteration;
+    // the 10-minute COMBO_LOOP_SAFETY_TIMEOUT_MS hang-stop still applies.
+    // A positive value replaces that safety net for this combo.
+    comboTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     // #3872: pre-cascade semaphore queue depth (round-robin). 0 = fail over immediately.
@@ -260,6 +264,15 @@ export const comboRuntimeConfigSchema = z
         // and buffered in memory concurrently before the container's heap ceiling
         // is at risk.
         maxPanel: z.coerce.number().int().min(1).max(200).optional(),
+      })
+      .strict()
+      .optional(),
+    // Opt-in planner/executor mode for the pipeline strategy. The first model
+    // owns reasoning/final answers; the second emits native client tool calls.
+    agenticOrchestration: z
+      .object({
+        enabled: z.boolean().optional(),
+        maxToolRounds: z.coerce.number().int().min(1).max(32).optional(),
       })
       .strict()
       .optional(),
@@ -350,6 +363,9 @@ export const createComboSchema = z
   .object({
     name: comboNameSchema,
     description: z.string().max(2000).optional(),
+    // Optional label advertised as `display_name` in /v1/models. Lets a combo
+    // carry a machine-oriented name while clients show something readable.
+    displayName: z.string().trim().max(200).optional(),
     models: z.array(comboModelEntry).min(1, "a combo requires at least one model"),
     strategy: comboStrategySchema.optional().default("priority"),
     config: comboRuntimeConfigSchema.optional(),
@@ -409,6 +425,7 @@ export const updateComboSchema = z
   .object({
     name: comboNameSchema.optional(),
     description: z.string().max(2000).optional().nullable(),
+    displayName: z.string().trim().max(200).optional().nullable(),
     // An update may not remove every model from a combo, or a working combo
     // loses every target. Creation refuses an empty list too: since the CLI
     // gained --models (#10954), an empty draft has no remaining legitimate path.
@@ -419,8 +436,14 @@ export const updateComboSchema = z
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
     isActive: z.boolean().optional(),
-    allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
-    allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
+    // Stored on the combo record and honoured by the readers — the builder's
+    // option list and the dashboard grid both filter on it — but omitted here,
+    // so the one endpoint a client can flip it through stripped the field and
+    // a visibility-only update was rejected as empty. #12836
+    isHidden: z.boolean().optional(),
+    allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional().nullable(),
+    allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional().nullable(),
+    overrideAllowedProviders: z.boolean().optional(),
     // Nullable like `description` and `context_length` above: an absent field means
     // "leave unchanged" because updateCombo merges over the stored record, so clearing
     // one needs an explicit null for updateCombo's null-means-delete pass (#12158).
@@ -439,10 +462,12 @@ export const updateComboSchema = z
     if (
       value.name === undefined &&
       value.description === undefined &&
+      value.displayName === undefined &&
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&
       value.isActive === undefined &&
+      value.isHidden === undefined &&
       value.allowedProviders === undefined &&
       value.allowedModelFamilies === undefined &&
       value.system_message === undefined &&

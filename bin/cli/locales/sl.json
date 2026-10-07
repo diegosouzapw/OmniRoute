@@ -256,6 +256,7 @@
     "max_restarts": "Največje število ponovnih zagonov po sesutju v 30 s, preden se poskušanje opusti (privzeto: 2)",
     "tray": "Zaženi v sistemski vrstici (samo za namizne sisteme, po izbiri)",
     "no_tray": "Onemogoči ikono sistemske vrstice",
+    "ready_timeout": "Časovna omejitev preverjanja pripravljenosti v ms (tudi OMNIROUTE_READY_TIMEOUT_MS, privzeto 60000)",
     "tls_cert": "Pot do potrdila TLS (PEM) za streženje prek HTTPS (tudi OMNIROUTE_TLS_CERT)",
     "tls_key": "Pot do zasebnega ključa TLS (PEM) za streženje prek HTTPS (tudi OMNIROUTE_TLS_KEY)"
   },
@@ -347,6 +348,16 @@
     "running": "Strežnik MCP deluje ({transport})",
     "stopped": "Strežnik MCP je ustavljen.",
     "restarted": "Strežnik MCP je znova zagnan.",
+    "stoppedHint": "Za vklop zaženite `omniroute mcp enable`.",
+    "enabled": "Strežnik MCP je omogočen.",
+    "disabled": "Strežnik MCP je onemogočen.",
+    "enable": {
+      "description": "Omogoči strežnik MCP",
+      "transport": "Prenos, ki naj se uporabi: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Onemogoči strežnik MCP"
+    },
     "call": {
       "description": "Neposredno prikliči orodje MCP",
       "args": "Objekt argumentov JSON (v vrstici)",

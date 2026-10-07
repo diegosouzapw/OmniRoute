@@ -13,6 +13,47 @@ import {
 } from "@/shared/hooks/useTimestampTitles";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
 import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
+import {
+  isPipelineSizeLimitMarker,
+  isSizeLimitOmissionMarker,
+} from "@/shared/constants/callLogSizeLimitMarkers";
+
+// ─── Size-limit omission detection (#13894) ─────────────────────────────────
+// A size-limited call-log artifact does not simply drop a payload -- it writes
+// an explicit marker in its place (see callLogArtifacts.ts's
+// omitOversizedPipeline()/buildMinimalArtifactForSizeLimit()). Before this fix
+// the detail view fed that marker straight into the generic JSON/`<pre>`
+// renderer, so a size-limit omission was indistinguishable from a real
+// upstream error or a genuinely empty payload -- a silent fallback. These
+// helpers turn the marker into an explicit, labeled notice instead.
+
+/** Builds the pipeline payload sections, replacing the `error` marker object
+ * left by a size-limited pipeline capture with an explicit notice entry
+ * instead of letting it render as if it were a real pipeline error. */
+export function buildPipelinePayloadSections(entries, pipelinePayloads) {
+  return entries
+    .map(([key, title]) => {
+      const value = pipelinePayloads?.[key];
+      if (key === "error" && isPipelineSizeLimitMarker(value)) {
+        return { key, title, json: null, notice: true };
+      }
+      if (value === null || value === undefined) return { key, title, json: null, notice: false };
+      let json;
+      try {
+        json = JSON.stringify(value, null, 2);
+      } catch {
+        json = String(value);
+      }
+      return { key, title, json, notice: false };
+    })
+    .filter((section) => section.json || section.notice);
+}
+
+/** True when a top-level requestBody/responseBody was replaced by the
+ * size-limit omission placeholder string rather than genuinely absent. */
+export function isBodySizeLimitOmission(value) {
+  return isSizeLimitOmissionMarker(value);
+}
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 // Renders parsed payloads as a collapsible JSON tree (react18-json-view) so
@@ -21,11 +62,15 @@ import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
 // the plain <pre> dump for anything that isn't valid JSON (e.g. a captured
 // error string), since json is display text sourced from JSON.stringify with
 // a String() fallback on failure -- it is not guaranteed parseable.
+// `notice`, when true, takes over rendering entirely: it means `json` is not a
+// real payload but a size-limit omission marker (#13894) that must be shown as
+// an explicit, labeled notice rather than a generic JSON/error dump.
 
 export function PayloadSection({
   title,
   sectionId,
   json,
+  notice = false,
   onCopy,
   collapsible = true,
   defaultOpen = true,
@@ -78,20 +123,28 @@ export function PayloadSection({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
-            aria-label={t("copyTitle", { title })}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {copied ? "check" : "content_copy"}
-            </span>
-            {copied ? t("copied") : t("copy")}
-          </button>
+          {!notice && (
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
+              aria-label={t("copyTitle", { title })}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {copied ? "check" : "content_copy"}
+              </span>
+              {copied ? t("copied") : t("copy")}
+            </button>
+          )}
           {parsedJson !== null && <JsonTreeExpandControls sectionId={resolvedSectionId} />}
         </div>
       </div>
-      {open && parsedJson !== null && (
+      {open && notice && (
+        <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+          <span className="material-symbols-outlined text-[16px] shrink-0">warning</span>
+          <span>{t("payloadSizeLimitOmitted")}</span>
+        </div>
+      )}
+      {open && !notice && parsedJson !== null && (
         <div
           ref={treeContainerRef}
           className="rounded-xl bg-black/5 dark:bg-black/30 border border-border max-h-150 overflow-auto p-4 text-xs font-mono"
@@ -105,7 +158,7 @@ export function PayloadSection({
           />
         </div>
       )}
-      {open && parsedJson === null && (
+      {open && !notice && parsedJson === null && (
         <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
           {json}
         </pre>

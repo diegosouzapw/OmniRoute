@@ -5,6 +5,7 @@ import {
 } from "../../shared/utils/circuitBreaker";
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors";
+import { TRANSLATION_FAILURE_CODE } from "@omniroute/open-sse/handlers/chatCore/translationFailure";
 
 export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
@@ -40,6 +41,8 @@ export function shouldTripProviderBreakerForResult(
     result.errorCode !== "proxy_unreachable" &&
     result.errorCode !== "RATE_LIMIT_QUEUE_TIMEOUT" &&
     result.errorCode !== "RATE_LIMIT_QUEUE_WEDGED" &&
+    // #14815: a request that failed translation never left OmniRoute.
+    result.errorCode !== TRANSLATION_FAILURE_CODE &&
     !isModelCapacityOverloadError(result.error) &&
     !isModelCapacityOverloadError(result.status) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))

@@ -17,6 +17,14 @@ const CODEX_CONFIG = {
   usageUrl: "https://chatgpt.com/backend-api/wham/usage",
 };
 
+type CodexUsageFetch = (input: string, init: RequestInit) => Promise<Response>;
+let codexUsageFetch: CodexUsageFetch = (input, init) => fetch(input, init);
+
+/** Test-only: replace the usage request. Pass null to restore global fetch. */
+export function setCodexUsageFetchForTests(fetchImpl: CodexUsageFetch | null): void {
+  codexUsageFetch = fetchImpl ?? ((input, init) => fetch(input, init));
+}
+
 /**
  * Codex (OpenAI) Usage - Fetch from ChatGPT backend API
  * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
@@ -46,7 +54,7 @@ export async function getCodexUsage(
       headers["chatgpt-account-id"] = accountId;
     }
 
-    const response = await fetch(CODEX_CONFIG.usageUrl, {
+    const response = await codexUsageFetch(CODEX_CONFIG.usageUrl, {
       method: "GET",
       headers,
     });

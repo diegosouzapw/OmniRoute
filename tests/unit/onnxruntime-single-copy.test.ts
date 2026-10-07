@@ -3,7 +3,7 @@
  * `onnxruntime-node` (and one `onnxruntime-common`).
  *
  * `@huggingface/transformers` pins `onnxruntime-node` to an EXACT version
- * (4.2.0 → "1.24.3"). Whenever the root range in package.json drifts off that
+ * (4.3.0 → "1.30.0"). Whenever the root range in package.json drifts off that
  * pin, npm nests a second copy under
  * `node_modules/@huggingface/transformers/node_modules/onnxruntime-node`.
  *

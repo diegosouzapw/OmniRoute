@@ -251,3 +251,100 @@ test("replaceImageParts handles mixed images and text", () => {
   assert.strictEqual(content[2].type, "text");
   assert.strictEqual(content[2].text, "[Image 2]: Second image");
 });
+
+test("replaceImageParts replaces an image nested inside tool_result content", () => {
+  const body = {
+    model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "toolu_01",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: "image/png", data: "AAA=" },
+              },
+            ],
+          },
+          { type: "text", text: "[Image description]" },
+        ],
+      },
+    ],
+  };
+
+  const result = replaceImageParts(body, ["[Image 1]: A screenshot of the OmniRoute dashboard"]);
+
+  const toolResult = result.messages[0].content[0] as {
+    type: string;
+    content: Array<{ type: string; text?: string }>;
+  };
+  assert.strictEqual(toolResult.type, "tool_result");
+  assert.deepStrictEqual(toolResult.content, [
+    { type: "text", text: "[Image 1]: A screenshot of the OmniRoute dashboard" },
+  ]);
+  // Sibling text preserved.
+  assert.strictEqual(result.messages[0].content[1].type, "text");
+  assert.strictEqual(result.messages[0].content[1].text, "[Image description]");
+});
+
+test("replaceImageParts consumes descriptions in document order for nested and top-level images", () => {
+  const body = {
+    model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "a",
+            content: [{ type: "image_url", image_url: { url: "https://x/a.png" } }],
+          },
+          { type: "image_url", image_url: { url: "https://x/b.png" } },
+          {
+            type: "tool_result",
+            tool_use_id: "c",
+            content: [{ type: "image_url", image_url: { url: "https://x/c.png" } }],
+          },
+        ],
+      },
+    ],
+  };
+
+  const result = replaceImageParts(body, ["DA", "DB", "DC"]);
+  const content = result.messages[0].content as Array<{
+    type: string;
+    content?: Array<{ type: string; text?: string }>;
+    text?: string;
+  }>;
+  // part[0] tool_result → nested a → DA
+  assert.strictEqual(content[0].content?.[0].text, "DA");
+  // part[1] top-level b → DB
+  assert.strictEqual(content[1].text, "DB");
+  // part[2] tool_result → nested c → DC
+  assert.strictEqual(content[2].content?.[0].text, "DC");
+});
+
+test("replaceImageParts keeps a nested image when its description is null (#4012)", () => {
+  const body = {
+    model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "a",
+            content: [{ type: "image_url", image_url: { url: "https://x/a.png" } }],
+          },
+        ],
+      },
+    ],
+  };
+
+  const result = replaceImageParts(body, [null]);
+  const toolResult = result.messages[0].content[0] as { content: Array<{ type: string }> };
+  assert.strictEqual(toolResult.content[0].type, "image_url");
+});

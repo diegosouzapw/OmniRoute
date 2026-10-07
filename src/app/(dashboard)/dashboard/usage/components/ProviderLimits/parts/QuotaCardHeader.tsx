@@ -119,7 +119,7 @@ export default function QuotaCardHeader({
           </span>
           {tokenExpiryLabel && (
             <span
-              className={`text-[10px] truncate ${tokenCountdown ? "text-sky-500" : "text-rose-500"}`}
+              className={`text-[10px] whitespace-normal [overflow-wrap:anywhere] leading-[1.4] ${tokenCountdown ? "text-sky-500" : "text-rose-500"}`}
               title={tokenExpiryTitle}
             >
               {tokenExpiryLabel}

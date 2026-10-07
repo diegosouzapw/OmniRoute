@@ -2,6 +2,8 @@
  * LMArena live model list parsing, catalog normalization, and name→UUID resolution.
  */
 
+import { sanitizeLMArenaError } from "./error.ts";
+
 export const LMARENA_API_BASE = "https://arena.ai";
 export const LMARENA_STREAM_URL = `${LMARENA_API_BASE}/nextjs-api/stream/create-evaluation`;
 /**
@@ -297,10 +299,9 @@ export async function resolveLMArenaModelId(model: string, log?: LogFn): Promise
     if (fromSeed) return fromSeed;
     return pickLMArenaModelId(requested, await getLMArenaModels(log));
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
     log?.warn?.(
       "LMArenaExecutor",
-      `Using raw model id after static catalog lookup failed: ${message}`
+      `Using raw model id after static catalog lookup failed: ${sanitizeLMArenaError(error, "Arena catalog lookup error")}`
     );
     return requested;
   }

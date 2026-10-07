@@ -23,6 +23,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/db/proxies";
+import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
 import { isProxyLogIncludeIps } from "@/lib/proxyLogger";
 import {
   getRecentEgressSharingSummary,
@@ -36,18 +37,44 @@ import {
 } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
 import {
+  applyCrossProbeEvidence,
+  buildTargetEvidenceMap,
+  classifyProbeError,
   classifyProbeStatus,
   decideProxyHealthAction,
   type ProxyProbeOutcome,
 } from "./decision.ts";
 import {
+  MAX_PROBE_CONCURRENCY,
   resolveProbeConcurrency,
   resolveProbeStaggerMs,
   resolveProbeTarget,
   waitForProbeSlot,
 } from "./probeTarget.ts";
 import { resolveProviderProbeTarget } from "./providerProbeTarget.ts";
-import { isProxyHealthBlockedResetsStreakEnabled } from "@/shared/utils/featureFlags";
+import {
+  noteProxyRecovered,
+  noteProxyRefusal,
+  proxyEgressKey,
+  type ProxyRefusalKind,
+} from "@omniroute/open-sse/utils/proxyRefusalMemory";
+import { deleteSweepVerdict, recordSweepVerdict, toSweepVerdict } from "./sweepVerdict.ts";
+import {
+  deleteBlockedHistory,
+  pruneBlockedHistory,
+  recordBlockedObservation,
+} from "./blockedHistory.ts";
+import {
+  isProxyHealthBlockedResetsStreakEnabled,
+  isProxySkipRecentlyFailedEnabled,
+} from "@/shared/utils/featureFlags";
+import {
+  hasProvenSuccessWithoutAttributedFailure,
+  isPassiveSweepSkipEnabled,
+  passiveVerdictKey,
+  resolvePassiveWindowMs,
+  type PassiveLogRow,
+} from "./passiveVerdict.ts";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
 // can exceed a few seconds; the old 5s ceiling produced false negatives that
@@ -63,11 +90,303 @@ const STAGGER_MS = resolveProbeStaggerMs();
 const INITIAL_DELAY_MS = 60_000;
 const DEFAULT_INTERVAL_MS = 600_000;
 const DEFAULT_REMOVE_AFTER = 3;
+// Opt-in, off by default. When on, a bounded recovery pass re-tests
+// proxies the sweep saw refused (429) before their set-aside expires.
+const RECOVERY_MAX_CANDIDATES = 10;
+const RECOVERY_DURATION_MS = 60_000;
 const LOG_PREFIX = "[ProxyHealth]";
+
+/** One entry eligible for a targeted recovery probe. */
+export interface RecoveryCandidate {
+  /** Egress key of the set-aside proxy; null (opaque entry) is never planned. */
+  key: string | null;
+  /** Refusal motive recorded for the key — only `ip_quota_429` is ever planned. */
+  kind: ProxyRefusalKind;
+  /** When the key was set aside (ms epoch); oldest first. */
+  setAsideAt: number;
+}
+
+/**
+ * A targeted recovery probe: given a set-aside egress key, re-test it.
+ * Keyed by string (not by registry id): the ledger only holds egress keys.
+ */
+export type RecoveryProbe = (key: string) => Promise<ProxyProbeOutcome>;
+
+export interface RecoveryProbeLimits {
+  maxCandidates: number;
+  durationMs: number;
+  concurrency: number;
+}
+
+/**
+ * PURE: pick the bounded set of targeted recovery probes. Motive-filtered,
+ * not status-filtered: only `ip_quota_429` entries are planned, so a
+ * `proxy_unreachable` entry is excluded even when a 429 was observed for the
+ * same key. Null keys are never tested.
+ */
+export function planRecoveryProbes(
+  candidates: RecoveryCandidate[],
+  limits: RecoveryProbeLimits
+): RecoveryCandidate[] {
+  const max =
+    Number.isFinite(limits.maxCandidates) && limits.maxCandidates > 0
+      ? Math.floor(limits.maxCandidates)
+      : 0;
+  if (max === 0) return [];
+  return candidates
+    .filter((c) => c.key !== null && c.kind === "ip_quota_429")
+    .sort((a, b) => a.setAsideAt - b.setAsideAt)
+    .slice(0, max);
+}
+
+/**
+ * Owned ledger of sweep-observed refusals. Written ONLY on a 429 the
+ * sweep itself observed, with a non-null key — never on fail/hang, never for
+ * `proxy_unreachable`. The hot path writes its own motives to the shared
+ * memory; this ledger only ever holds `ip_quota_429` by construction, while
+ * `planRecoveryProbes` keeps the kind filter as a defensive contract.
+ */
+const recoveryLedger = new Map<string, { setAsideAt: number }>();
+
+function noteSweepRefusal(key: string | null, status: number): void {
+  if (key === null || status !== 429) return;
+  if (!recoveryLedger.has(key)) recoveryLedger.set(key, { setAsideAt: Date.now() });
+}
+
+/**
+ * Answered-target evidence of the immediately previous sweep generation:
+ * URL → true when at least one probe received any HTTP status. Replaced
+ * wholesale at the end of every sweep (never merged) so a silent generation
+ * drops stale proof — an absent URL is no proof (no ghost evidence, no clock).
+ */
+const priorAnsweredTargetEvidence = new Map<string, boolean>();
+const MAX_TARGET_EVIDENCE_ENTRIES = 100;
+
+/** Test-only: forget the previous-generation target evidence. */
+export function __resetTargetEvidenceForTesting(): void {
+  priorAnsweredTargetEvidence.clear();
+}
+
+interface CollectedProbe {
+  id: string;
+  proxy: { id: string };
+  outcome: ProxyProbeOutcome;
+  status: number | null;
+  target: string | null;
+}
+
+/** Phase 1 of the sweep: probe every proxy in batches, decide nothing yet. */
+async function collectProbeResults(
+  proxies: Array<{ id: string }>,
+  probe: (proxy: { id: string }) => Promise<CollectedProbe>
+): Promise<CollectedProbe[]> {
+  const collected: CollectedProbe[] = [];
+  for (let i = 0; i < proxies.length; i += CONCURRENCY) {
+    const batch = proxies.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((proxy, indexInBatch) => probeBatchMember(proxy, indexInBatch, probe))
+    );
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue;
+      collected.push(result.value);
+    }
+  }
+  return collected;
+}
+
+async function probeBatchMember(
+  proxy: { id: string },
+  indexInBatch: number,
+  probe: (proxy: { id: string }) => Promise<CollectedProbe>
+): Promise<CollectedProbe> {
+  // Spread the departures: without this the whole batch leaves at the same tick and a
+  // shared egress IP hits the target with CONCURRENCY simultaneous requests.
+  await waitForProbeSlot(indexInBatch, STAGGER_MS);
+  return probe(proxy);
+}
+
+/** Refresh the previous-generation evidence wholesale (never merged). */
+function refreshTargetEvidence(collected: CollectedProbe[]): void {
+  priorAnsweredTargetEvidence.clear();
+  for (const [target, answered] of buildTargetEvidenceMap(collected)) {
+    if (priorAnsweredTargetEvidence.size >= MAX_TARGET_EVIDENCE_ENTRIES) break;
+    priorAnsweredTargetEvidence.set(target, answered);
+  }
+}
+
+export interface SweepTally {
+  tested: number;
+  alive: number;
+  inconclusive: number;
+  blocked: number;
+  hangs: number;
+  removed: number;
+  disabled: number;
+  promoted: number;
+}
+
+/** Phase 2 of the sweep: apply cross-proxy evidence, then decide per proxy. */
+async function decideCollectedResults(
+  collected: CollectedProbe[],
+  ctx: {
+    failureMap: Map<string, number>;
+    removeAfter: number;
+    autoRemove: boolean;
+    autoDisable: boolean;
+    blockedResetsStreak: boolean;
+  }
+): Promise<SweepTally> {
+  const tally: SweepTally = {
+    tested: 0,
+    alive: 0,
+    inconclusive: 0,
+    blocked: 0,
+    hangs: 0,
+    removed: 0,
+    disabled: 0,
+    promoted: 0,
+  };
+  const promoted = new Map<string, boolean>();
+  const evidenced = applyCrossProbeEvidence(collected, priorAnsweredTargetEvidence);
+  for (let i = 0; i < collected.length; i++) {
+    if (evidenced[i].outcome !== collected[i].outcome) {
+      promoted.set(collected[i].id, true);
+      tally.promoted++;
+    }
+  }
+  for (let i = 0; i < evidenced.length; i++) {
+    await decideOneResult(
+      collected[i],
+      evidenced[i],
+      promoted.get(collected[i].id) === true,
+      ctx,
+      tally
+    );
+  }
+  return tally;
+}
+
+export interface CollectedProbeForTesting {
+  id: string;
+  proxy: { id: string };
+  outcome: ProxyProbeOutcome;
+  status: number | null;
+  target: string | null;
+}
+
+/** Test-only: run one per-proxy decision with injected raw/final verdicts. */
+export async function __decideOneResultForTesting(
+  raw: CollectedProbeForTesting,
+  final: CollectedProbeForTesting,
+  wasPromoted: boolean,
+  ctx: {
+    failureMap: Map<string, number>;
+    removeAfter: number;
+    autoRemove: boolean;
+    autoDisable: boolean;
+    blockedResetsStreak: boolean;
+  },
+  tally: SweepTally
+): Promise<void> {
+  return decideOneResult(raw, final, wasPromoted, ctx, tally);
+}
+
+async function decideOneResult(
+  raw: CollectedProbe,
+  final: CollectedProbe,
+  wasPromoted: boolean,
+  ctx: {
+    failureMap: Map<string, number>;
+    removeAfter: number;
+    autoRemove: boolean;
+    autoDisable: boolean;
+    blockedResetsStreak: boolean;
+  },
+  tally: SweepTally
+): Promise<void> {
+  const { id, proxy, outcome: rawOutcome } = raw;
+  const { outcome, target } = final;
+  tally.tested++;
+  if (rawOutcome === "ok") tally.alive++;
+  else if (rawOutcome === "inconclusive") tally.inconclusive++;
+  else if (rawOutcome === "blocked") tally.blocked++;
+  else if (rawOutcome === "hang") tally.hangs++;
+
+  const decision = decideProxyHealthAction({
+    outcome: rawOutcome,
+    priorFailures: ctx.failureMap.get(id) ?? 0,
+    autoRemove: ctx.autoRemove,
+    autoDisable: ctx.autoDisable,
+    removeAfter: ctx.removeAfter,
+    blockedResetsStreak: ctx.blockedResetsStreak,
+  });
+
+  // Last sweep verdict (memory only, display): recorded for every probe
+  // after the decision so the screen explains dead/blocked proxies without
+  // triggering probes. Uses the final (possibly promoted) outcome, so a
+  // promoted fail shows as fail. The cause stays a sidecar: never branched on.
+  // The per-sweep tally is intentionally discarded after logging below — the
+  // observable blocked history (blockedHistory.ts) is the persisted aggregate.
+  const verdict = toSweepVerdict(outcome, final.status, Date.now());
+  recordSweepVerdict(id, verdict);
+  if (verdict.verdict === "blocked") {
+    recordBlockedObservation(id, verdict.cause, verdict.status, verdict.at);
+  } else if (verdict.verdict === "ok") {
+    // A healthy sweep ends the refusal streak (see blockedHistory.ts lifecycle).
+    deleteBlockedHistory(id);
+  }
+
+  if (decision.clearFailures) ctx.failureMap.delete(id);
+  else ctx.failureMap.set(id, decision.failures);
+
+  // #6246 (policy C) / auto-disable (policy D): only mutate the operator-owned
+  // status when the decision explicitly asks for it. With both flags off,
+  // setStatus is null, so a transient probe failure never flips a healthy
+  // proxy's status.
+  if (decision.setStatus) {
+    await updateProxy(id, { status: decision.setStatus }).catch(() => {});
+    if (decision.setStatus === "dead") tally.disabled++;
+  }
+
+  if (decision.remove) {
+    if (await deleteProxyById(id, { force: true }).catch(() => false)) {
+      ctx.failureMap.delete(id);
+      deleteSweepVerdict(id);
+      deleteBlockedHistory(id);
+      tally.removed++;
+      try {
+        clearDispatcherCache();
+      } catch {
+        /* non-critical */
+      }
+    }
+  }
+
+  // Only a PROMOTED fail follows the existing set-aside path:
+  // never a native fail (generic ECONNREFUSED, hang) and never an invalid
+  // config (target null). Same gate as the hot path (proxyHealth.ts).
+  if (wasPromoted && target !== null && outcome === "fail" && isProxySkipRecentlyFailedEnabled()) {
+    noteProxyRefusal(proxyEgressKey(proxy), "proxy_unreachable");
+  }
+}
+
+function isRecoveryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.PROXY_HEALTH_RECOVERY_ENABLED === "true";
+}
+
+function resolveRecoveryLimits(env: NodeJS.ProcessEnv = process.env): RecoveryProbeLimits {
+  return {
+    maxCandidates: RECOVERY_MAX_CANDIDATES,
+    durationMs: RECOVERY_DURATION_MS,
+    concurrency: Math.min(resolveProbeConcurrency(env), MAX_PROBE_CONCURRENCY),
+  };
+}
 
 declare global {
   var __proxyHealthInterval: ReturnType<typeof setInterval> | undefined;
   var __proxyHealthConsecutiveFailures: Map<string, number> | undefined;
+  // Recovery timer handle for the opt-in pass (own timer, off by default).
+  var __proxyHealthRecoveryInterval: ReturnType<typeof setInterval> | undefined;
 }
 
 function getFailureMap(): Map<string, number> {
@@ -142,7 +461,30 @@ function isBackgroundServicesDisabled(): boolean {
  *                      TARGET returned a 5xx (the proxy connected fine). Never
  *                      penalizes the proxy.
  *   - "fail"         — a proxy-level connection error (refused/unreachable/TLS).
+ *   - "hang"         — the host resolved but the handshake never completed before
+ *                      our own deadline. Counted exactly like "fail" in the
+ *                      decision layer, but observed separately in the sweep log.
  */
+export interface ProxyProbeResult {
+  outcome: ProxyProbeOutcome;
+  /** HTTP status when the target answered; null on connection-level errors. */
+  status: number | null;
+  /** URL actually probed (generic or provider-resolved); null when config invalid. */
+  target: string | null;
+}
+
+// Error codes that prove DNS never resolved the proxy host: not a hang (we
+// never reached the host), a frank failure of name resolution.
+const UNRESOLVED_DNS_CODES = new Set(["ENOTFOUND", "EAI_AGAIN"]);
+
+function probeErrorCode(error: unknown): string | null {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === "string" ? code : null;
+  }
+  return null;
+}
+
 async function testOneProxy(proxy: {
   id: string;
   type: string;
@@ -151,14 +493,14 @@ async function testOneProxy(proxy: {
   username?: string;
   password?: string;
   family?: string;
-}): Promise<ProxyProbeOutcome> {
+}): Promise<ProxyProbeResult> {
   let proxyUrl: string | null;
   try {
     proxyUrl = proxyConfigToUrl(proxy);
   } catch {
     proxyUrl = null;
   }
-  if (!proxyUrl) return "fail";
+  if (!proxyUrl) return { outcome: "fail", status: null, target: null };
   // A provider's models endpoint is a real GET-only API surface, unlike httpbin.org/ip: many
   // reject HEAD outright. HEAD stays the default for the generic target — this changes nothing
   // for a proxy with no eligible provider assignment.
@@ -175,19 +517,116 @@ async function testOneProxy(proxy: {
       dispatcher,
       headers: { "User-Agent": "OmniRoute/1.0" },
     });
-    return classifyProbeStatus(resp.status);
-  } catch {
-    // Our own deadline elapsed → inconclusive (slow, not necessarily dead).
-    if (controller.signal.aborted) return "inconclusive";
+    return { outcome: classifyProbeStatus(resp.status), status: resp.status, target };
+  } catch (error) {
+    // Our own deadline elapsed → hang when we had resolved the host but the
+    // handshake never completed; otherwise inconclusive (slow, not dead).
+    if (controller.signal.aborted) {
+      const code = probeErrorCode(error);
+      const verdict = classifyProbeError({
+        aborted: true,
+        resolved: code === null || !UNRESOLVED_DNS_CODES.has(code),
+        tlsNegotiated: false,
+      });
+      // A provider-resolved target's connection health is not proven the way the
+      // operator-configured generic target is — keep today's inconclusive there.
+      if (providerTarget) return { outcome: "inconclusive", status: null, target };
+      return { outcome: verdict, status: null, target };
+    }
     // A provider-resolved target's connection health is not proven the way the
     // operator-configured generic target is: a registry baseUrl can be a placeholder that
     // never resolves for anyone (e.g. databricks's default azuredatabricks.net host is
     // literally 16 zeros). A connection failure there says nothing about this proxy —
     // same principle as the 5xx case above, extended to connection-level errors.
-    return providerTarget ? "inconclusive" : "fail";
+    return providerTarget
+      ? { outcome: "inconclusive", status: null, target }
+      : { outcome: "fail", status: null, target };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Passive skip proof from production traffic, grouped by proxy endpoint.
+ * Filled from the persisted request log once per sweep: an endpoint whose
+ * window shows recent single-provider success and no attributed failure
+ * skips the redundant live probe. A recent failure never skips: it keeps
+ * the probe that alone can confirm it.
+ */
+interface EndpointVerdict {
+  skip: boolean;
+  /** Distinct providers observed for the endpoint; skips need exactly one. */
+  providers: string[];
+}
+
+function readPassiveVerdicts(
+  proxies: Array<{ host: string; port: number }>
+): Map<string, EndpointVerdict> {
+  const verdicts = new Map<string, EndpointVerdict>();
+  const windowMs = resolvePassiveWindowMs();
+  const now = Date.now();
+  const since = new Date(now - windowMs).toISOString();
+  let rows: Record<string, unknown>[] = [];
+  try {
+    // Bounded by the short window via idx_pl_timestamp; never let a DB
+    // hiccup fail the sweep — fall back to live probes (no skip anywhere).
+    rows = exportProxyLogsSince(since);
+  } catch (error) {
+    console.error(`${LOG_PREFIX} Passive verdicts skipped:`, error);
+    return verdicts;
+  }
+  const endpoints = new Set(proxies.map((p) => passiveVerdictKey(p.host, p.port)));
+  const byEndpoint = new Map<string, PassiveLogRow[]>();
+  for (const row of rows) {
+    const host = typeof row.proxy_host === "string" ? row.proxy_host : null;
+    const port = typeof row.proxy_port === "number" ? row.proxy_port : null;
+    if (!host || !port || !endpoints.has(passiveVerdictKey(host, port))) continue;
+    const key = passiveVerdictKey(host, port);
+    const list = byEndpoint.get(key) ?? [];
+    list.push(row as PassiveLogRow);
+    byEndpoint.set(key, list);
+  }
+  for (const [key, keyedRows] of byEndpoint) {
+    const providers = [...new Set(keyedRows.map((r) => r.provider).filter((p) => p))];
+    const skip = hasProvenSuccessWithoutAttributedFailure(keyedRows) && providers.length === 1;
+    verdicts.set(key, { skip, providers: providers as string[] });
+  }
+  return verdicts;
+}
+
+/** Test-only: skip lookup seam for sweep-level tests. */
+export type PassiveVerdictReader = (proxyId: string) => { skip: boolean; providers: string[] };
+
+let passiveReader: PassiveVerdictReader | null = null;
+
+/** Test-only: override the skip lookup. */
+export function __setPassiveVerdictReaderForTesting(fn: PassiveVerdictReader | null): void {
+  passiveReader = fn;
+}
+
+/**
+ * Passive skip check for one proxy: recent production traffic already proves
+ * this endpoint, so the live probe is redundant — but only when the window
+ * shows a single provider (a success for one provider never skips the probe
+ * another provider would need). A recent failure never skips: the live probe
+ * stays the one that can confirm it and feed auto-disable/auto-remove.
+ */
+function resolvePassiveSkip(
+  proxy: { id: string; host: string; port: number },
+  passiveVerdicts: Map<string, EndpointVerdict>
+): boolean {
+  const endpointVerdict = passiveReader
+    ? passiveReader(proxy.id)
+    : (passiveVerdicts.get(`${proxy.host}:${proxy.port}`) ?? {
+        skip: false,
+        providers: [] as string[],
+      });
+  return endpointVerdict.skip && isSingleProviderSkip(endpointVerdict);
+}
+
+/** A proven endpoint skips the probe only with exactly one observed provider. */
+function isSingleProviderSkip(endpointVerdict: EndpointVerdict): boolean {
+  return endpointVerdict.providers.length === 1;
 }
 
 async function sweep(): Promise<void> {
@@ -207,80 +646,157 @@ async function sweep(): Promise<void> {
   }
 
   const { items: proxies } = await listProxies({ includeSecrets: true });
+  // Before the empty-registry return, so deleting the last proxy prunes too.
+  pruneBlockedHistory(proxies.map((proxy) => proxy.id));
   if (proxies.length === 0) return;
 
+  // Passive verdicts from production traffic (opt-in): an endpoint already
+  // judged by recent traffic skips the live probe. Scheduling only — skips
+  // are partitioned before the probe phase, so they never touch the failure
+  // streak, the cross-proxy evidence, the promotion tally, or the sweep
+  // verdict display.
+  const passiveEnabled = isPassiveSweepSkipEnabled();
+  const passiveVerdicts = passiveEnabled ? readPassiveVerdicts(proxies) : new Map();
   const failureMap = getFailureMap();
   const removeAfter = getRemoveAfter();
   const autoRemove = isAutoRemoveEnabled();
   const autoDisable = isAutoDisableEnabled();
   const blockedResetsStreak = isProxyHealthBlockedResetsStreakEnabled();
 
-  let tested = 0;
-  let alive = 0;
-  let inconclusive = 0;
-  let blocked = 0;
-  let removed = 0;
-  let disabled = 0;
+  // Phase 1 — collect raw probe results across all batches WITHOUT deciding
+  // (cross-proxy evidence requires every response of the target first).
+  // Passive skips are partitioned before collecting: they never enter the
+  // batching, the failure streak, the cross-proxy evidence, the promotion
+  // tally, or the sweep verdict display — they are only counted apart below.
+  const skippedIds = new Set<string>();
+  if (passiveEnabled) {
+    for (const proxy of proxies) {
+      if (resolvePassiveSkip(proxy, passiveVerdicts)) skippedIds.add(proxy.id);
+    }
+  }
+  const toProbe = proxies.filter((proxy) => !skippedIds.has(proxy.id));
+  const passiveSkipped = skippedIds.size;
+  const collected = await collectProbeResults(toProbe, async (proxy) => {
+    const { outcome, status, target } = await testOneProxy(proxy);
+    // Ledger: only a sweep-observed 429 with a usable key is recorded.
+    // No memory write happens on fail/hang here, except a promoted
+    // fail in phase 2 (`proxy_unreachable` under the opt-in flag).
+    if (outcome === "blocked" && status === 429) {
+      noteSweepRefusal(proxyEgressKey(proxy), status);
+    }
+    return { id: proxy.id, proxy, outcome, status, target };
+  });
 
-  for (let i = 0; i < proxies.length; i += CONCURRENCY) {
-    const batch = proxies.slice(i, i + CONCURRENCY);
+  // Only live probes feed the decision phase and the evidence: skipped
+  // endpoints contribute nothing. Previous-generation evidence is replaced
+  // wholesale (never merged): the current sweep's answered targets become
+  // generation N-1 for the next sweep.
+  const { tested, alive, inconclusive, blocked, hangs, removed, disabled, promoted } =
+    await decideCollectedResults(collected, {
+      failureMap,
+      removeAfter,
+      autoRemove,
+      autoDisable,
+      blockedResetsStreak,
+    });
+  refreshTargetEvidence(collected);
+
+  console.log(
+    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ` +
+      `${blocked} refused by target, ${inconclusive} inconclusive, ${promoted} promoted, ` +
+      `${removed} auto-removed, ${disabled} auto-disabled` +
+      `${passiveSkipped > 0 ? `, ${passiveSkipped} passive-skipped (recent success)` : ""}`
+  );
+  if (hangs > 0) {
+    console.debug(`${LOG_PREFIX} stalled handshakes observed: ${hangs}`);
+  }
+}
+
+/**
+ * Targeted recovery pass: re-test set-aside proxies before their
+ * period expires, off the hot path. A success ends the set-aside now (the
+ * streak is kept, so a repeat still doubles); a refusal re-records it, and
+ * the existing doubling provides the longer repeat period. Never writes a
+ * proxy status, never redirects traffic — only the set-aside memory changes.
+ */
+export async function runRecoveryPass(
+  probe?: RecoveryProbe,
+  candidates?: RecoveryCandidate[],
+  limits?: RecoveryProbeLimits,
+  env?: NodeJS.ProcessEnv
+): Promise<{ planned: number; recovered: number; refused: number }> {
+  const empty = { planned: 0, recovered: 0, refused: 0 };
+  if (!isRecoveryEnabled(env)) return empty;
+  const active = limits ?? resolveRecoveryLimits(env);
+  const entries =
+    candidates ??
+    [...recoveryLedger.entries()].map(([key, { setAsideAt }]) => ({
+      key,
+      kind: "ip_quota_429" as const,
+      setAsideAt,
+    }));
+  const planned = planRecoveryProbes(entries, active);
+  if (planned.length === 0) return empty;
+  const concurrency = Math.max(
+    1,
+    Math.min(active.concurrency, MAX_PROBE_CONCURRENCY, planned.length)
+  );
+  const deadline = Date.now() + active.durationMs;
+  let recovered = 0;
+  let refused = 0;
+  const runProbe = probe ?? probeLedgerKey;
+  for (let i = 0; i < planned.length; i += concurrency) {
+    if (Date.now() >= deadline) break;
+    const batch = planned.slice(i, i + concurrency);
     const results = await Promise.allSettled(
-      batch.map(async (proxy, indexInBatch) => {
-        // Spread the departures: without this the whole batch leaves at the same tick and a
-        // shared egress IP hits the target with CONCURRENCY simultaneous requests.
+      batch.map(async (candidate, indexInBatch) => {
         await waitForProbeSlot(indexInBatch, STAGGER_MS);
-        const outcome = await testOneProxy(proxy);
-        return { id: proxy.id, outcome };
+        const outcome = await runProbe(candidate.key as string);
+        return { candidate, outcome };
       })
     );
-
     for (const result of results) {
       if (result.status !== "fulfilled") continue;
-      const { id, outcome } = result.value;
-      tested++;
-      if (outcome === "ok") alive++;
-      else if (outcome === "inconclusive") inconclusive++;
-      else if (outcome === "blocked") blocked++;
-
-      const decision = decideProxyHealthAction({
-        outcome,
-        priorFailures: failureMap.get(id) ?? 0,
-        autoRemove,
-        autoDisable,
-        removeAfter,
-        blockedResetsStreak,
-      });
-
-      if (decision.clearFailures) failureMap.delete(id);
-      else failureMap.set(id, decision.failures);
-
-      // #6246 (policy C) / auto-disable (policy D): only mutate the operator-owned
-      // status when the decision explicitly asks for it. With both flags off,
-      // setStatus is null, so a transient probe failure never flips a healthy
-      // proxy's status.
-      if (decision.setStatus) {
-        await updateProxy(id, { status: decision.setStatus }).catch(() => {});
-        if (decision.setStatus === "dead") disabled++;
-      }
-
-      if (decision.remove) {
-        if (await deleteProxyById(id, { force: true }).catch(() => false)) {
-          failureMap.delete(id);
-          removed++;
-          try {
-            clearDispatcherCache();
-          } catch {
-            /* non-critical */
-          }
-        }
+      const { candidate, outcome } = result.value;
+      const key = candidate.key as string;
+      recoveryLedger.delete(key);
+      if (outcome === "ok") {
+        noteProxyRecovered(key, "ip_quota_429");
+        recovered++;
+      } else if (outcome === "blocked" || outcome === "fail" || outcome === "hang") {
+        noteProxyRefusal(key, "ip_quota_429");
+        refused++;
       }
     }
   }
+  return { planned: planned.length, recovered, refused };
+}
 
-  console.log(
-    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${blocked} refused by target, ` +
-      `${inconclusive} inconclusive, ${removed} auto-removed, ${disabled} auto-disabled`
-  );
+/**
+ * Default recovery probe for a ledger key: resolve the registry entry behind
+ * the egress key and run the same reachability probe as the sweep. Keys with
+ * no registry entry resolve to `inconclusive` (opaque entry, never tested).
+ */
+export async function probeLedgerKey(key: string): Promise<ProxyProbeOutcome> {
+  try {
+    const { items } = await listProxies({ includeSecrets: true });
+    const entry = items.find((p) => proxyEgressKey(p) === key);
+    if (!entry) return "inconclusive";
+    const { outcome } = await testOneProxy(entry);
+    return outcome;
+  } catch {
+    return "inconclusive";
+  }
+}
+
+/** Test-only: clear the owned sweep-refusal ledger. */
+export function __resetRecoveryLedgerForTesting(): void {
+  recoveryLedger.clear();
+}
+
+/** Test-only: number of ledger entries held. */
+export function __recoveryLedgerSizeForTesting(): number {
+  return recoveryLedger.size;
 }
 
 function scheduleSweep(): void {
@@ -288,6 +804,20 @@ function scheduleSweep(): void {
   globalThis.__proxyHealthInterval = setInterval(() => {
     void sweep().catch((err) => {
       console.error(`${LOG_PREFIX} Sweep error:`, err);
+    });
+  }, interval);
+}
+
+function getRecoveryIntervalMs(): number {
+  const raw = parseInt(process.env.PROXY_HEALTH_RECOVERY_INTERVAL_MS ?? "", 10);
+  return Number.isFinite(raw) && raw >= 60_000 ? raw : DEFAULT_INTERVAL_MS;
+}
+
+function scheduleRecoveryPass(): void {
+  const interval = getRecoveryIntervalMs();
+  globalThis.__proxyHealthRecoveryInterval = setInterval(() => {
+    void runRecoveryPass().catch((err) => {
+      console.error(`${LOG_PREFIX} Recovery error:`, err);
     });
   }, interval);
 }
@@ -300,6 +830,9 @@ export function initProxyHealthCheck(): void {
     console.log(`${LOG_PREFIX} Starting proxy health scheduler (interval: ${getIntervalMs()}ms)`);
     void sweep().catch(() => {});
     scheduleSweep();
+    // The recovery pass runs on its own timer, off by default. The gate
+    // lives inside runRecoveryPass, so the timer is cheap when disabled.
+    if (!globalThis.__proxyHealthRecoveryInterval) scheduleRecoveryPass();
   }, INITIAL_DELAY_MS);
 }
 
@@ -307,6 +840,10 @@ export function stopProxyHealthCheck(): void {
   if (globalThis.__proxyHealthInterval) {
     clearInterval(globalThis.__proxyHealthInterval);
     globalThis.__proxyHealthInterval = undefined;
+  }
+  if (globalThis.__proxyHealthRecoveryInterval) {
+    clearInterval(globalThis.__proxyHealthRecoveryInterval);
+    globalThis.__proxyHealthRecoveryInterval = undefined;
   }
 }
 

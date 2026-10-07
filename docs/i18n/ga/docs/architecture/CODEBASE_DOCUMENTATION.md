@@ -1,30 +1,21 @@
-# CODEBASE_DOCUMENTATION (Gaeilge)
+# OmniRoute Codebase Documentation (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇹 [am](../../../am/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../../../ar/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇿 [az](../../../az/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../../../bg/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇩 [bn](../../../bn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇦 [bs](../../../bs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇿 [cs](../../../cs/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../../../da/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../../../de/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇷 [el](../../../el/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../../../es/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇪🇪 [et](../../../et/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇷 [fa](../../../fa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../../../fi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../../../fr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [gu](../../../gu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ha](../../../ha/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../../../he/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [hi](../../../hi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇷 [hr](../../../hr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../../../hu/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇦🇲 [hy](../../../hy/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../../../id/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [ig](../../../ig/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../../../it/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../../../ja/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇬🇪 [ka](../../../ka/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇭 [km](../../../km/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [kn](../../../kn/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../../../ko/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇹 [lt](../../../lt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇻 [lv](../../../lv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ml](../../../ml/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [mr](../../../mr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../../../ms/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇹 [mt](../../../mt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇲🇲 [my](../../../my/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇵 [ne](../../../ne/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../../../nl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../../../no/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [or](../../../or/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [pa](../../../pa/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../../../phi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../../../pl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../../../pt/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../../../ro/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../../../ru/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇱🇰 [si](../../../si/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../../../sk/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇮 [sl](../../../sl/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇷🇸 [sr](../../../sr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../../../sv/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇰🇪 [sw](../../../sw/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [ta](../../../ta/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [te](../../../te/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../../../th/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇷 [tr](../../../tr/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇵🇰 [ur](../../../ur/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇺🇿 [uz](../../../uz/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../../../vi/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇳🇬 [yo](../../../yo/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/CODEBASE_DOCUMENTATION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
-
-title: "Doiciméadú Cóid OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
-
-# Doiciméadú Cóid OmniRoute
 
 > **Leagan:** v3.8.51
-> **Nuashonraithe deireanach:** 2026-06-28
-> **Lucht féachana:** Innealtóirí a chuireann le OmniRoute nó a thógann comhtháthú air.
+> **Nuashonraithe go deireanach:** 2026-06-28
+> **Lucht léitheoireachta:** Innealtóirí atá ag cur le OmniRoute nó ag tógáil comhtháthuithe air.
 >
-> Le haghaidh léaráidí ailtireachta ardleibhéil agus an réasúnaíocht taobh thiar de gach fochóras, léigh
-> [ARCHITECTURE.md](./ARCHITECTURE.md). Le haghaidh tumthaí domhaine ar fhó-chórais aonair
-> (Auto Combo, freastalaí MCP, freastalaí A2A, Scileanna, Cuimhne, Gníomhairí Néal, Athléimneacht,
-> Comhbhrú, srl.) féach a gcomhaid thiomnaithe san eolaire `docs/` seo.
+> Le haghaidh léaráidí ardleibhéil den ailtireacht agus an réasúnaíocht taobh thiar de gach fochóras, léigh
+> [ARCHITECTURE.md](./ARCHITECTURE.md). Le haghaidh mionléargais ar fhochórais aonair
+> (Auto Combo, freastalaí MCP, freastalaí A2A, Skills, Memory, Cloud Agents, Resilience,
+> Compression, etc.) féach ar a gcomhaid thiomnaithe sa chomhadlann `docs/` seo.
 
 Déanann an comhad seo cur síos ar **a bhfuil sa stór inniu** ionas gur féidir le hinnealtóir nua
-an crann a nascleanúint, an cisealú rite ama a thuiscint, agus fios a bheith aige cá háit le cód a chur leis
-gan modúil nua a chumadh.
+an crann a nascleanúint, srathú an ama rite a thuiscint, agus fios a bheith aige cá háit le cód a chur
+gan modúil nua a cheapadh.
 
 ---
 
@@ -441,135 +432,136 @@ Roinnte i bhfochomhlaigh dírithe:
   `a11yAudit.ts`, chomh maith le croíreanna/comhpháirteanna deais faoi `services/`, `network/`,
   `middleware/`, `schemas/`, `hooks/`, `components/`.
 
-## 4. `open-sse/` — Spás oibre an innill srutha
+## 4. `open-sse/` — Spás oibre an innill sruthaithe
 
-Spás oibre npm deighlaithe a fhoilsítear mar `@omniroute/open-sse. Is é aige an phróiseáil iarratais, na forbróirí, na haistritheoirí, na seirbhísí, an t-iompóirteoir, agus an freastalaí MCP.
+Spás oibre npm ar leith a fhoilsítear mar `@omniroute/open-sse`. Tá sé freagrach as próiseáil
+iarratas, forghníomhaitheoirí, aistritheoirí, seirbhísí, an claochladán agus an freastalaí MCP.
 
 ```
 open-sse/
-├── index.ts                Easpórtáil phoiblí
-├── package.json            Lámhscríbhinn an spáis oibre
+├── index.ts                Easpórtálacha poiblí
+├── package.json            Forléiriú an spáis oibre
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Clárlanna soláthraithe, próifílí ceanntaigh, céannacht, …
-├── handlers/               Iarratais láimhseála (comhrá, leabú, fuaim, íomhá, …)
-├── executors/              108 forbróirí HTTanna ar son soláthraithe
+├── config/                 Clárlanna soláthraithe, próifílí ceanntásca, aitheantas, …
+├── handlers/               Láimhseálaithe iarratas (comhrá, leabuithe, fuaim, íomhá, …)
+├── executors/              108 bhforghníomhaitheoir HTTP a bhaineann go sonrach le soláthraithe
 ├── translator/             Tiontú formáide (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
-├── transformer/            Freagairt API ↔ Comhshuite Comhrá sruth-iompóirteoir
-├── services/               80+ modúil seirbhíse (combaí, aisghníomhú, cíosanna, céannacht, …)
-├── utils/                  Cuiditheoirí srutha, TLS cliant, AWS SigV4, ionadaíocht procsí, …
-└── mcp-server/             Freastalaí MCP (3 iompairt, 33 scóip, 110 uirlisí)
+├── transformer/            Claochladán srutha Responses API ↔ Chat Completions
+├── services/               Breis agus 80 modúl seirbhíse (teaglamaí, cúltaca, cuótaí, aitheantas, …)
+├── utils/                  Cúntóirí sruthaithe, cliant TLS, AWS SigV4, aisghabháil trí sheachfhreastalaí, …
+└── mcp-server/             Freastalaí MCP (3 iompar, 33 scóip, 110 uirlis)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Lámhseálaí              | Cuspóir                                                                     |
-| ----------------------- | --------------------------------------------------------------------------- |
-| `chatCore.ts`           | Príomhthreoir comhrá (cuimhne, teorann ráta, ródú comba, dáileadh forbróra) |
-| `responsesHandler.ts`   | Iontráil OpenAI Freagairt API                                               |
-| `embeddings.ts`         | Leabú                                                                       |
-| `imageGeneration.ts`    | Giniúint íomhá                                                              |
-| `audioSpeech.ts`        | Téacs-go-béal                                                               |
-| `audioTranscription.ts` | Béal-go-téacs                                                               |
-| `videoGeneration.ts`    | Giniúint físe                                                               |
-| `musicGeneration.ts`    | Giniúint ceoil                                                              |
-| `rerank.ts`             | Athrangu                                                                    |
-| `moderations.ts`        | Módúchán                                                                    |
-| `search.ts`             | Cuardach gréasáin                                                           |
-| `sseParser.ts`          | Parsálaí imeachta SSE                                                       |
-| `usageExtractor.ts`     | Tarraing comhaireamh comhartha as sruthaí upstream                          |
-| `responseSanitizer.ts`  | Bain torann ar leithligh soláthraithe                                       |
-| `responseTranslator.ts` | Greama idir freagairt soláthraithe agus ciseal aistriúcháin                 |
+| Láimhseálaí             | Cuspóir                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| `chatCore.ts`           | Príomh-phíblíne comhrá (taisce, teorainn ráta, ródú teaglamaí, seoladh forghníomhaitheora) |
+| `responsesHandler.ts`   | Pointe iontrála OpenAI Responses API                                                       |
+| `embeddings.ts`         | Leabuithe                                                                                  |
+| `imageGeneration.ts`    | Giniúint íomhánna                                                                          |
+| `audioSpeech.ts`        | Téacs-go-hurlabhra                                                                         |
+| `audioTranscription.ts` | Urlabhra-go-téacs                                                                          |
+| `videoGeneration.ts`    | Giniúint físeán                                                                            |
+| `musicGeneration.ts`    | Giniúint ceoil                                                                             |
+| `rerank.ts`             | Athrangú                                                                                   |
+| `moderations.ts`        | Modhnóireacht                                                                              |
+| `search.ts`             | Cuardach gréasáin                                                                          |
+| `sseParser.ts`          | Parsálaí teagmhas SSE                                                                      |
+| `usageExtractor.ts`     | Baintear comhairimh comharthaí as sruthanna réamhtheachtacha                               |
+| `responseSanitizer.ts`  | Baintear torann a bhaineann go sonrach le soláthraithe                                     |
+| `responseTranslator.ts` | Nasc idir freagra an tsoláthraí agus ciseal an aistritheora                                |
 
 ### 4.2 `open-sse/executors/`
 
-108 forbróirí, gach ceann ag síneadh le `BaseExecutor` (`base.ts`):
+108 bhforghníomhaitheoir soláthraí, agus gach ceann acu ag leathnú `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`, móide `claudeIdentity.ts`
-(cuiditheoir céannacht comhroinnte) agus `index.ts` (clárlann).
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, chomh maith le `claudeIdentity.ts`
+(cúntóir aitheantais comhroinnte) agus `index.ts` (clárlann).
 
-> Nóta: Ní chuirtear soláthraithe nach liostaithe anseo ar fáil ag `default.ts` ag úsáid an
-> forbróra comhchoiteann comhoiriúnach le OpenAI. Tá an catalóig iomlán soláthraithe (355 soláthraí) i
+> Nóta: freastalaíonn `default.ts` ar sholáthraithe nach bhfuil liostaithe anseo agus úsáid á baint as an
+> bhforghníomhaitheoir cineálach atá comhoiriúnach le OpenAI. Tá catalóg iomlán na soláthraithe (355 soláthraí) le fáil in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Aistriúchán lárnach-spoke (is hub é OpenAI).
+Aistriú moil agus spócaí (is é OpenAI an mol).
 
-- **9 aistritheoirí iarratais** (`translator/request/`):
+- **9 n-aistritheoir iarratais** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 aistritheoirí freagartha** (`translator/response/`):
+- **9 n-aistritheoir freagartha** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 cúntóirí** (`translator/helpers/`):
+- **9 gcúntóir** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
-  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, móide
-  tástálacha cúntóra.
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, chomh maith le
+  tástálacha cúntóirí.
 - **Cúntóirí íomhá** (`translator/image/sizeMapper.ts`).
-- Bonnleibhéal: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+- Barrleibhéal: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — Ionadaíocht `TransformStream`-bhunaithe Freagairt API ↔ Comhshuite Comhrá
-  tiompóra (úsáidtear ag an bealach freagartha `responses/`).
+- `responsesTransformer.ts` — Tiontaire Responses API ↔ Chat Completions atá bunaithe ar `TransformStream`
+  (úsáideann an bealach uileghabhálach `responses/` é).
 
 ### 4.5 `open-sse/services/`
 
-Gnéithe suntasacha (liost iomlán faoi `open-sse/services/`):
+Buaicphointí (an liosta iomlán faoi `open-sse/services/`):
 
-| Imní                 | Comhaid                                                                                                                                                                                                                                           |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ródú comba           | `combo.ts` (19 straitéis), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                              |
-| Inneall Auto Combo   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
-| Neartmhaireacht      | `accountFallback.ts` (fuarú + glasáil), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                                 |
-| Cíosanna             | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
-| Taisceadh            | `reasoning.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                          |
-| Intleacht ródaithe   | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
-| Láimhseáil samhail   | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
-| Comhbhrú             | `compression/` — sreangú innille comhbhrú iomlán                                                                                                                                                                                                  |
-| Comhartha + seisiún  | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
-| Leibhéal / léarsráid | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
-| IP / líonra          | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
-| Batches              | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| Úsáid                | `usage.ts`                                                                                                                                                                                                                                        |
+| Ábhar imní           | Comhaid                                                                                                                                                                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ródú Combo           | `combo.ts` (19 straitéis), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| Inneall Auto Combo   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Athléimneacht        | `accountFallback.ts` (tréimhse shuaimhnithe + frithdhúnadh), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                       |
+| Cuótaí               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Taisceadh            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Faisnéis ródaithe    | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Láimhseáil samhlacha | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Comhbhrú             | `compression/` — sreangú iomlán an innill chomhbhrúite                                                                                                                                                                                                   |
+| Comharthaí + seisiún | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Sraith / lastliosta  | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / líonra          | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Baisceanna           | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Úsáid                | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 uirlisí uathúla** sreangaithe i `server.ts` (45 canonical i `schemas/tools.ts` +
-  cuimhne, scileanna, scileanna-github, poll, cluichíocht, breiseán, Notion, Obsidian,
-  corpas-áitiúil agus modúil comhbhrú — aonán áireamh ag `countUniqueMcpTools`).
-- **3 iompairt**: stdio, HTTP Streamable, SSE.
-- **33 scóip** curtha i bhfeidhm ag am rith — liost bunlíreach i `src/shared/constants/mcpScopes.ts`, is é an tacar iomlán ná an t-aonán de na scóip a dhéanann gach modúl uirlise.
-- Tábla iniúchta: `mcp_tool_audit` ( líonadh ag `audit.ts`).
+- **110 uirlis uathúil** sreangaithe in `server.ts` (45 uirlis chanónach in `schemas/tools.ts` +
+  modúil chuimhne, scileanna, scileanna GitHub, díorma, cluichíocht, breiseán, Notion, Obsidian,
+  corpas áitiúil agus comhbhrú — an t-aontas arna chomhaireamh ag `countUniqueMcpTools`).
+- **3 mheán iompair**: stdio, HTTP Streamable, SSE.
+- **33 scóip** curtha i bhfeidhm ag am rite — bunliosta in `src/shared/constants/mcpScopes.ts`; is é an tacar iomlán aontas na scóip a dhearbhaíonn gach modúl uirlise.
+- Tábla iniúchóireachta: `mcp_tool_audit` (arna líonadh ag `audit.ts`).
 - Comhaid: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  móide tástálacha faoi `__tests__/`.
-- Féach [MCP-SERVER.md](../frameworks/MCP-SERVER.md) le haghaidh an chatalóig uirlise iomlán.
+  chomh maith le tástálacha faoi `__tests__/`.
+- Féach [MCP-SERVER.md](../frameworks/MCP-SERVER.md) le haghaidh chatalóg iomlán na n-uirlisí.
 
 ### 4.7 `open-sse/config/`
 
 Clárlanna soláthraithe (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), clárlanna samhlacha in aghaidh na formáide (`audioRegistry.ts`,
+`providerHeaderProfiles.ts`), clárlanna samhlacha de réir formáide (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-cuiditheoirí céannachta (`codexIdentity.ts`, `codexInstructions.ts`,
+áiseanna aitheantais (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-cuiditheoirí dentarachta (`credentialLoader.ts`, `codexClient.ts`), agus oiriúnóirí
-scála (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+áiseanna dintiúr (`credentialLoader.ts`, `codexClient.ts`), agus cuibheoirí
+néalríomhaireachta (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Príomhshnáitheanna srutha agus cuiditheoirí soláthraithe: `stream.ts`, `streamHandler.ts`,
+Primitíbh sruthaithe agus cúntóirí soláthraí: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

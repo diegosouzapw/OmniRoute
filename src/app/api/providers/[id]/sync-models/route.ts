@@ -22,6 +22,7 @@ import {
 } from "@/shared/services/modelSyncScheduler";
 import { autoSyncCodexProfilesFromLiveCatalog } from "@/lib/cli-helper/codexProfileAutoSync";
 import { autoSyncClaudeProfilesFromLiveCatalog } from "@/lib/cli-helper/claudeProfileAutoSync";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import {
   fetchVolcPlanModels,
@@ -508,7 +509,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
     }
 
-    if (providerUsesCuratedModelsOnly(logProvider)) {
+    const isSearchProvider = getSearchProvider(logProvider) !== null;
+    if (providerUsesCuratedModelsOnly(logProvider) || isSearchProvider) {
       const [removedSyncedLists, removedImportedModelIds] = await Promise.all([
         deleteSyncedAvailableModelsForProvider(logProvider),
         deleteImportedCustomModels(logProvider),
@@ -516,8 +518,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({
         provider: logProvider,
         connectionId: id,
-        source: "curated",
-        skipped: "curated-models-only",
+        source: isSearchProvider ? "search" : "curated",
+        skipped: isSearchProvider ? "search-provider" : "curated-models-only",
         syncedModels: 0,
         availableModelsCount: 0,
         models: [],

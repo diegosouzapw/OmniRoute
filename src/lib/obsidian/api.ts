@@ -1,4 +1,5 @@
 import { getDbInstance } from "@/lib/db/core";
+import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 
 const DEFAULT_OBSIDIAN_BASE_URL = "http://127.0.0.1:27123";
 const MAX_RETRIES = 2;
@@ -67,19 +68,28 @@ function obsidianFetch(
 
   const attempt = async (retryCount: number): Promise<unknown> => {
     try {
-      const response = await fetch(url, {
+      // GHSA-474q-g63r-w4rr: baseUrl is operator-controlled, so this is an outbound
+      // surface like provider validation (#5066). The Local REST API lives on
+      // loopback / LAN / Tailscale, hence "block-metadata" rather than public-only:
+      // private hosts stay reachable, cloud-metadata / link-local never is, and a
+      // redirect off the configured base is refused instead of followed.
+      const response = await safeOutboundFetch(url, {
         ...options,
         headers: {
           Authorization: `Bearer ${apiKey}`,
           ...(options.headers as Record<string, string>),
         },
         signal: mergedSignal,
+        guard: "block-metadata",
+        allowRedirect: false,
+        retry: false,
+        timeoutMs: TIMEOUT_MS,
       });
 
       clearTimeout(timeout);
 
       if (!response.ok) {
-        const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+        const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
         const msg = (body?.message as string) ?? `HTTP ${response.status}`;
         const error = classifyObsidianError(response.status, msg);
 
@@ -110,9 +120,9 @@ function obsidianFetch(
         clearTimeout(timeout);
         throw new ObsidianServerError(
           `Cannot reach Obsidian at ${baseUrl}. Ensure the Local REST API plugin is running ` +
-          `and using the correct port. The REST API uses HTTP on port 27123 — do not use ` +
-          `port 27124 (that is a separate MCP endpoint with HTTPS). If connecting via ` +
-          `Tailscale, use http://<tailscale-ip>:27123.`
+            `and using the correct port. The REST API uses HTTP on port 27123 — do not use ` +
+            `port 27124 (that is a separate MCP endpoint with HTTPS). If connecting via ` +
+            `Tailscale, use http://<tailscale-ip>:27123.`
         );
       }
       if (retryCount < MAX_RETRIES - 1) {
@@ -176,11 +186,7 @@ export function createObsidianClient(apiKey: string, baseUrl?: string) {
       });
     },
 
-    async readNote(
-      path: string,
-      targetType?: TargetType,
-      target?: string
-    ): Promise<unknown> {
+    async readNote(path: string, targetType?: TargetType, target?: string): Promise<unknown> {
       const headers: Record<string, string> = {};
       if (targetType) headers["Target-Type"] = targetType;
       if (target) headers["Target"] = encodeURIComponent(target);
@@ -314,25 +320,44 @@ const SYNC_TOKEN_KEY = "omniroute_sync_token";
 export function getSyncToken(): string | null {
   try {
     const db = getDbInstance();
-    const row = db.prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?").get("sync", SYNC_TOKEN_KEY) as { value?: string } | undefined;
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get("sync", SYNC_TOKEN_KEY) as { value?: string } | undefined;
     return typeof row?.value === "string" ? JSON.parse(row.value) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function setSyncToken(token: string | null): void {
   try {
     const db = getDbInstance();
     if (token === null) {
-      db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run("sync", SYNC_TOKEN_KEY);
+      db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(
+        "sync",
+        SYNC_TOKEN_KEY
+      );
     } else {
-      const existing = db.prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?").get("sync", SYNC_TOKEN_KEY);
+      const existing = db
+        .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+        .get("sync", SYNC_TOKEN_KEY);
       if (existing) {
-        db.prepare("UPDATE key_value SET value = ? WHERE namespace = ? AND key = ?").run(JSON.stringify(token), "sync", SYNC_TOKEN_KEY);
+        db.prepare("UPDATE key_value SET value = ? WHERE namespace = ? AND key = ?").run(
+          JSON.stringify(token),
+          "sync",
+          SYNC_TOKEN_KEY
+        );
       } else {
-        db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run("sync", SYNC_TOKEN_KEY, JSON.stringify(token));
+        db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+          "sync",
+          SYNC_TOKEN_KEY,
+          JSON.stringify(token)
+        );
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export interface SyncServerStatus {
@@ -372,13 +397,22 @@ export function createSyncServerClient(syncToken: string, baseUrl?: string) {
     async getStatus(): Promise<SyncServerStatus> {
       return request<SyncServerStatus>("/vault/sync/status");
     },
-    async triggerSync(): Promise<{ ok: boolean; pulled: number; pushed: number; deleted: number; conflicts: number }> {
+    async triggerSync(): Promise<{
+      ok: boolean;
+      pulled: number;
+      pushed: number;
+      deleted: number;
+      conflicts: number;
+    }> {
       return request("/vault/sync/trigger", { method: "POST" });
     },
     async getConflicts(): Promise<{ conflicts: SyncConflict[] }> {
       return request("/vault/sync/conflicts");
     },
-    async resolveConflict(path: string, resolution: "local" | "remote" | "keep-both"): Promise<unknown> {
+    async resolveConflict(
+      path: string,
+      resolution: "local" | "remote" | "keep-both"
+    ): Promise<unknown> {
       return request("/vault/sync/resolve", {
         method: "POST",
         body: JSON.stringify({ path, resolution }),

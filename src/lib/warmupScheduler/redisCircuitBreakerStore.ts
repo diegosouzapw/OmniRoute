@@ -18,7 +18,8 @@ type RedisLike = {
   persist: (key: string) => Promise<unknown>;
 };
 
-const KEY_PREFIX = "omniroute:warmup:cb:";
+// Same namespace as the rate limiter and quota store (REDIS_KEY_PREFIX, #11042).
+const KEY_PREFIX = `${process.env.REDIS_KEY_PREFIX?.trim() || "omniroute:"}warmup:cb:`;
 
 export class RedisCircuitBreakerStore implements CircuitBreakerStore {
   constructor(private redis: RedisLike) {}

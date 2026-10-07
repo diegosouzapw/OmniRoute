@@ -146,7 +146,7 @@ Cache, compression, 1proxy, memory, skills tools
 | DATA_DIR | Data directory | ~/.omniroute/ |
 | PORT | HTTP server port | 20128 |
 | REQUIRE_API_KEY | Force API key auth | false |
-| CREDENTIAL_HEALTH_CHECK_INTERVAL | Health check interval (ms) | 300000 |
+| CREDENTIAL_HEALTH_CHECK_INTERVAL | Health check interval (ms) | 3600000 |
 | CREDENTIAL_HEALTH_CACHE_TTL | Credential cache TTL (ms) | 300000 |
 | OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK | Disable health check | off |
 

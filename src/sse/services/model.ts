@@ -316,9 +316,46 @@ function buildRuntimeModelMeta(
   return metadata;
 }
 
+/**
+ * #14393: some live/synced catalogs expose an upstream model id that itself
+ * contains a "/" (e.g. logfare's "logfare/auto"). parseModel() unconditionally
+ * splits the client-addressed model string on the FIRST "/", so a request
+ * literally addressed as "logfare/auto" is split into provider "logfare" +
+ * model "auto", which never matches the real synced row id "logfare/auto".
+ *
+ * Try the primary (already-split) synced-catalog match first. When it misses
+ * and the caller supplied the pre-split original address, retry the SAME
+ * provider's synced catalog using that original string as the candidate id
+ * before declaring the model unavailable. This only adds a fallback match —
+ * it cannot regress a provider/model combo that already resolves via the
+ * primary lookup.
+ */
+function resolveSyncedMatch(
+  providerId: string,
+  requestedModelId: string,
+  resolvedModelId: string,
+  originalModelId: string | undefined,
+  syncedModels: unknown
+): { match: any; modelId: string } {
+  const primaryMatch = findLiveCatalogModelMeta(
+    providerId,
+    requestedModelId,
+    resolvedModelId,
+    syncedModels
+  );
+  if (primaryMatch) return { match: primaryMatch, modelId: resolvedModelId };
+
+  const canFallback = originalModelId !== undefined && originalModelId !== resolvedModelId;
+  const fallbackMatch = canFallback ? findSyncedModelMeta(syncedModels, originalModelId) : null;
+  if (fallbackMatch) return { match: fallbackMatch, modelId: originalModelId as string };
+
+  return { match: undefined, modelId: resolvedModelId };
+}
+
 async function lookupModelMeta(
   providerId: string,
-  modelId: string
+  modelId: string,
+  originalModelId?: string
 ): Promise<{
   modelId: string;
   metadata: RuntimeModelMeta;
@@ -370,12 +407,15 @@ async function lookupModelMeta(
     // Custom models remain explicit operator overrides even when live discovery
     // is authoritative for the provider.
     const customMatch = findCustomModelMeta(customModels, resolvedModelId);
-    const syncedMatch = findLiveCatalogModelMeta(
+    const syncedResolution = resolveSyncedMatch(
       providerId,
       modelId,
       resolvedModelId,
+      originalModelId,
       syncedModels
     );
+    resolvedModelId = syncedResolution.modelId;
+    const syncedMatch = syncedResolution.match;
     const registryMatch = findRegistryModel(providerId, resolvedModelId);
     const compatOverrideMatch = Array.isArray(compatOverrides)
       ? compatOverrides.find((m) => m.id === resolvedModelId || m.id === modelId)
@@ -466,7 +506,11 @@ export async function getModelInfo(modelStr) {
 
     const providerId = String(info.provider);
     const requestedModelId = String(info.model);
-    const { modelId, metadata, available } = await lookupModelMeta(providerId, requestedModelId);
+    const { modelId, metadata, available } = await lookupModelMeta(
+      providerId,
+      requestedModelId,
+      modelStr
+    );
 
     if (!available) {
       return {

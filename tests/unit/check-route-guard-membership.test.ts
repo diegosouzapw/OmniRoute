@@ -132,15 +132,34 @@ test("6A.8 findSpawnCapableRoutes: detects real spawn-capable route.ts files", (
 
 test("6A.8 P1 RESOLVED: spawn-capable system/db-backups routes are classified local-only, not frozen", () => {
   // RESOLVED 2026-06-13: these 2 spawn-capable routes were moved from KNOWN_UNCLASSIFIED
-  // into LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth). The freeze set must now
-  // be empty, and isLocalOnlyPath must match their api paths.
-  assert.equal(
-    Object.keys(KNOWN_UNCLASSIFIED_SOURCE_SPAWN).length,
-    0,
-    "KNOWN_UNCLASSIFIED_SOURCE_SPAWN must be empty once the routes are classified (stale-enforcement)"
-  );
+  // into LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth). isLocalOnlyPath must match
+  // their api paths, and they must NOT have been re-frozen as debt.
   assert.equal(isLocalOnlyPath("/api/system/version"), true);
   assert.equal(isLocalOnlyPath("/api/db-backups/exportAll"), true);
+  for (const rel of [
+    "src/app/api/system/version/route.ts",
+    "src/app/api/db-backups/exportAll/route.ts",
+  ]) {
+    assert.ok(
+      !(rel in KNOWN_UNCLASSIFIED_SOURCE_SPAWN),
+      `${rel} is classified local-only — it must never be re-frozen as unclassified debt`
+    );
+  }
+});
+
+test("every KNOWN_UNCLASSIFIED_SOURCE_SPAWN entry carries a non-empty justification", () => {
+  // The freeze set is a security-debt ledger, so an entry with an empty/blank justification
+  // would defeat it (and a stale entry is caught separately by the gate's stale-enforcement).
+  // S-01 (#15159) added one entry for /api/providers/{id}/models, whose cursor-agent spawn is
+  // provider-conditional and therefore not path-classifiable — it is gated at its call site on
+  // the trusted peer-locality header instead. The audit sanctions this ("freeze the known call
+  // chains", G-09), so the invariant is "every entry must be justified", not "must be empty".
+  for (const [rel, justification] of Object.entries(KNOWN_UNCLASSIFIED_SOURCE_SPAWN)) {
+    assert.ok(
+      typeof justification === "string" && justification.trim().length >= 40,
+      `freeze entry ${rel} needs a substantive justification (got: ${JSON.stringify(justification)})`
+    );
+  }
 });
 
 test("#7948: /api/acp/agents (transitive execFileSync via registry) is classified local-only", () => {
@@ -193,6 +212,16 @@ test("GHSA-jx89-f37j-pq89: /api/skills/install + /api/skills/executions (transit
       SPAWN_CAPABLE_ROUTE_ROOTS.includes(`src/app${r}`),
       `src/app${r} must be a SPAWN_CAPABLE_ROUTE_ROOT`
     );
+  }
+});
+
+test("/api/version-manager/* (CLIProxyAPI download + supervisor spawn) is classified local-only", () => {
+  assert.ok(
+    SPAWN_CAPABLE_ROUTE_ROOTS.includes("src/app/api/version-manager"),
+    "src/app/api/version-manager must be a SPAWN_CAPABLE_ROUTE_ROOT"
+  );
+  for (const r of ["install", "start", "restart", "stop", "status", "check-update"]) {
+    assert.equal(isLocalOnlyPath(`/api/version-manager/${r}`), true, `${r} must be local-only`);
   }
 });
 

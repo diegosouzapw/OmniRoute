@@ -188,6 +188,18 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "radar_local_model_state",
   },
   {
+    // npm omniroute@3.8.50 was built from main at dea6bb8 (per its provenance
+    // attestation), which shipped model_capabilities as 163. 70f5d4cbf then moved it
+    // to 169 so 163_radar_feed_cache_generated_at could keep its slot. Without this
+    // entry, a database first migrated by that npm build keeps its 163 ledger row,
+    // so the release's 163 is treated as applied and never runs: radar_feed_cache
+    // never gets generated_at, and every boot logs the renumbering CRITICAL.
+    fromVersion: "163",
+    fromName: "model_capabilities",
+    toVersion: "169",
+    toName: "model_capabilities",
+  },
+  {
     fromVersion: "056",
     fromName: "provider_default",
     toVersion: "056",
@@ -257,4 +269,8 @@ export const PHYSICAL_SCHEMA_SENTINELS = [
 ] as const;
 
 export const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
-export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023"]);
+// "178" added by #13717: migration 178 currently hard-fails on sql.js/no-FTS5
+// drivers. If #13331 (adds "180") lands before this, reconcile to the union
+// ({"022","023","178","180"}) and update the assertion in
+// tests/unit/db-migrationrunner-constants-split.test.ts accordingly.
+export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023", "178"]);

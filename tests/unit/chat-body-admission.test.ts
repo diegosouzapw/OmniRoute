@@ -792,10 +792,15 @@ test("external clients cannot use the bypass header without a trusted self-loop 
 
 // ── self-loop bearer resolution (env-key aware, #1350) ─────────────────
 
-test("resolveSelfLoopBearer falls back to sk_omniroute when no env key is set", () => {
+test("resolveSelfLoopBearer falls back to a random per-process secret when no env key is set (#13679)", () => {
   const restore = withSelfLoopEnv({});
   try {
-    assert.equal(resolveSelfLoopBearer(), "sk_omniroute");
+    // #13679 PR C: the fallback must NOT be the predictable checked-in literal
+    // "sk_omniroute" — it is a per-process random value (dedicated regression test:
+    // tests/unit/chat-admission-selfloop-random-bearer-13679.test.ts).
+    const bearer = resolveSelfLoopBearer();
+    assert.notEqual(bearer, "sk_omniroute");
+    assert.equal(bearer, resolveSelfLoopBearer(), "must be memoized for the process lifetime");
   } finally {
     restore();
   }

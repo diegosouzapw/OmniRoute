@@ -15,11 +15,11 @@ import {
 } from "./core";
 import { resetAllDbModuleState } from "./stateReset";
 import {
-  MAX_DB_BACKUPS,
-  DEFAULT_DB_BACKUP_RETENTION_DAYS,
-  parsePositiveInt,
-  parseNonNegativeInt,
+  DB_BACKUP_SETTINGS_NAMESPACE,
+  DB_BACKUP_MAX_FILES_KEY,
+  DB_BACKUP_RETENTION_DAYS_KEY,
   pruneBackupDirectory,
+  resolveDbBackupRetention,
 } from "./backupRetention";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
@@ -30,30 +30,6 @@ type CountRow = { cnt?: number };
 let _lastBackupAt = 0;
 const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes — high-churn pre-write (models.dev pricing) must not copy the whole SQLite file every call (#10351)
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
-
-// #3834: the "Keep latest backups" UI value is persisted here so it survives a page
-// refresh / the loadStorageHealth() refetch. A dedicated namespace avoids any
-// cross-talk with the databaseSettings key_value store (which rewrites all of its own
-// keys on every update). It is intentionally separate from the orphan
-// `databaseSettings.backup.keepLastNBackups` (default 5) so existing installs keep the
-// historical default of 20 until an operator explicitly changes it here.
-const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
-const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
-const DB_BACKUP_RETENTION_DAYS_KEY = "retentionDays";
-
-function getStoredDbBackupInteger(key: string, options: { min: number }): number | undefined {
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get(DB_BACKUP_SETTINGS_NAMESPACE, key) as { value?: string } | undefined;
-    if (!row?.value) return undefined;
-    const parsed = JSON.parse(row.value);
-    return Number.isInteger(parsed) && parsed >= options.min ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 function setStoredDbBackupInteger(key: string, value: number, options: { min: number }): void {
   if (!Number.isInteger(value) || value < options.min) return;
@@ -71,11 +47,7 @@ export function setDbBackupMaxFiles(value: number): void {
 }
 
 export function getDbBackupMaxFiles() {
-  // Precedence: DB_BACKUP_MAX_FILES env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_MAX_FILES) {
-    return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
-  }
-  return getStoredDbBackupInteger(DB_BACKUP_MAX_FILES_KEY, { min: 1 }) ?? MAX_DB_BACKUPS;
+  return resolveDbBackupRetention(getDbInstance()).maxFiles;
 }
 
 /** Persist the operator-chosen age-based backup retention window. */
@@ -84,17 +56,7 @@ export function setDbBackupRetentionDays(value: number): void {
 }
 
 export function getDbBackupRetentionDays() {
-  // Precedence: DB_BACKUP_RETENTION_DAYS env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_RETENTION_DAYS) {
-    return parseNonNegativeInt(
-      process.env.DB_BACKUP_RETENTION_DAYS,
-      DEFAULT_DB_BACKUP_RETENTION_DAYS
-    );
-  }
-  return (
-    getStoredDbBackupInteger(DB_BACKUP_RETENTION_DAYS_KEY, { min: 0 }) ??
-    DEFAULT_DB_BACKUP_RETENTION_DAYS
-  );
+  return resolveDbBackupRetention(getDbInstance()).retentionDays;
 }
 
 function getBackupDir() {

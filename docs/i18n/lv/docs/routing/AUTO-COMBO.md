@@ -1,140 +1,131 @@
-# AUTO-COMBO (Latviešu)
+# OmniRoute Auto-Combo Engine (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
-
----
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇪🇹 [am](../../../am/docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇧🇦 [bs](../../../bs/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ha](../../../ha/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇦🇲 [hy](../../../hy/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇳🇬 [ig](../../../ig/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇬🇪 [ka](../../../ka/docs/routing/AUTO-COMBO.md) · 🇰🇭 [km](../../../km/docs/routing/AUTO-COMBO.md) · 🇮🇳 [kn](../../../kn/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ml](../../../ml/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇲🇲 [my](../../../my/docs/routing/AUTO-COMBO.md) · 🇳🇵 [ne](../../../ne/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇮🇳 [or](../../../or/docs/routing/AUTO-COMBO.md) · 🇮🇳 [pa](../../../pa/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇱🇰 [si](../../../si/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇷🇸 [sr](../../../sr/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇺🇿 [uz](../../../uz/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇳🇬 [yo](../../../yo/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
-title: "OmniRoute Auto-Combo dzinējs"
-version: 3.8.40
-lastUpdated: 2026-06-28
----
+> **Lietotājiem**: Vai meklējat ātru darba sākšanu? Vienkāršus skaidrojumus un piemērus skatiet [Auto-Combo lietotāja rokasgrāmatā](../getting-started/AUTO-COMBO-GUIDE.md).
 
-# OmniRoute Auto-Combo dzinējs
+> Pašpārvaldošas modeļu ķēdes ar adaptīvu vērtēšanu + automātisku maršrutēšanu bez konfigurācijas
 
-> **Lietotājiem**: Meklējat ātru sākumu? Skatiet [Auto-Combo lietotāja rokasgrāmatu](../getting-started/AUTO-COMBO-GUIDE.md) vienkāršiem paskaidrojumiem un piemēriem.
+## Automātiskā maršrutēšana bez konfigurācijas (`auto/` prefikss)
 
-> Pašpārvaldītas modeļu ķēdes ar adaptīvu vērtējumu + nulles konfigurācijas auto-maršrutēšanu
+> **JAUNUMS:** Kombinācija nav jāveido. Izmantojiet `auto/` prefiksu tieši jebkurā klientā.
 
-## Nulles Konfigurācijas Auto-Maršrutēšana (`auto/` prefikss)
+### Īsi piemēri
 
-> **JAUNUMS:** Nav nepieciešama kombinācijas izveidošana. Izmantojiet `auto/` prefiksu jebkurā klientā.
+| Modeļa ID      | Variants | Darbība                                                                             |
+| -------------- | -------- | ----------------------------------------------------------------------------------- |
+| `auto`         | default  | Visi pievienotie nodrošinātāji, LKGP stratēģija, līdzsvaroti svari                  |
+| `auto/coding`  | coding   | Uz kvalitāti orientēti svari, piemēroti koda ģenerēšanai                            |
+| `auto/fast`    | fast     | Svērta atlase ar zemu latentumu                                                     |
+| `auto/cheap`   | cheap    | Izmaksu ziņā optimizēta maršrutēšana (vispirms zemākās izmaksas)                    |
+| `auto/offline` | offline  | Dod priekšroku nodrošinātājiem ar vislielāko pieejamo kvotu                         |
+| `auto/smart`   | smart    | Prioritāte kvalitātei + lielāks izpētes koeficients (10%) labākai modeļu atklāšanai |
+| `auto/lkgp`    | lkgp     | Nepārprotams LKGP (tas pats, kas noklusējuma `auto`)                                |
+| `auto/chaos`   | chaos    | Paralēla izsūtīšana, viens modelis katram nodrošinātājam (nevis kļūmju injicēšana)  |
 
-### Ātrie Piemēri
+### Kategorijas × līmeņa kompozīcija (`auto/<category>:<tier>`)
 
-| Modeļa ID      | Variants    | Uzvedība                                                                         |
-| -------------- | ----------- | -------------------------------------------------------------------------------- |
-| `auto`         | noklusējums | Visi pieslēgtie nodrošinātāji, LKGP stratēģija, līdzsvarots svars                |
-| `auto/coding`  | coding      | Kvalitāte pirmajā vietā, piemērots koda ģenerēšanai                              |
-| `auto/fast`    | fast        | Zemas latentuma svarota izvēle                                                   |
-| `auto/cheap`   | cheap       | Izmaksu optimizēta maršrutēšana (zemākās izmaksas pirmajā vietā)                 |
-| `auto/offline` | offline     | Dod priekšroku nodrošinātājiem ar augstāko kvotu pieejamību                      |
-| `auto/smart`   | smart       | Kvalitāte pirmajā vietā + augstāka izpētes likme (10%) labākai modeļu atklāšanai |
-| `auto/lkgp`    | lkgp        | Eksplicīts LKGP (tāds pats kā noklusējuma `auto`)                                |
-| `auto/chaos`   | chaos       | Svaru traucējumu injekcija noturības testēšanai (chaos inženierija)              |
+OpenRouter stila sufiksi nodala **maršruta veidu** (kategoriju) no **tā optimizācijas veida** (līmeņa), tāpēc tos var brīvi kombinēt (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-### Kategorija × Līmeņa Kompozīcija (`auto/<kategorija>:<līmenis>`)
+- **Kategorijas** (filtrē kandidātu kopu pēc iespējām): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` saglabā modeļus ar attēlu apstrādes iespējām; `reasoning` saglabā spriešanas/domāšanas modeļus.
+- **Līmeņi** (izvēlas vērtēšanas svarus / kopas filtru): `fast` (ātra piegāde) · `cheap` (aizstājvārds `floor`, izmaksu taupīšana) · `reliable` (ķēdes pārtraucēja stāvoklis + latentuma stabilitāte) · `free` / `pro` (filtrē kopu pēc modeļa līmeņa, izmantojot `classifyTier` — bezmaksas līmenis pret premium līmeni).
 
-OpenRouter stila sufiksi atdala **kāda veida maršrutu** (kategoriju) no **kā to optimizēt** (līmeni), tāpēc varat tos brīvi kombinēt (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+| Piemērs                | Tiek atrisināts kā                                                              |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `auto/coding:fast`     | programmēšanas kopa, zema latentuma svari                                       |
+| `auto/coding:cheap`    | programmēšanas kopa, optimizēta pēc izmaksām (aizstājvārds `auto/coding:floor`) |
+| `auto/reasoning:pro`   | tikai spriešanas/domāšanas modeļi, premium līmenis                              |
+| `auto/vision`          | modeļi ar attēlu apstrādes iespējām (bez līmeņa → līdzsvaroti svari)            |
+| `auto/multimodal:free` | modeļi ar multimodālām iespējām, tikai bezmaksas līmenis                        |
 
-- **Kategorijas** (filtrē kandidātu pūlu pēc spējām): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` saglabā redzes spējīgos modeļus; `reasoning` saglabā domāšanas/racionālās domāšanas modeļus.
-- **Līmeņi** (izvēlas vērtēšanas svarus / pūla filtru): `fast` (ātra piegāde) · `cheap` (aliases `floor`, izmaksu taupītājs) · `reliable` (slēdža veselība + latentuma stabilitāte) · `free` / `pro` (filtrē pūlu pēc modeļa līmeņa, izmantojot `classifyTier` — bezmaksas vs. premium).
+Jebkurš derīgs `auto/<category>[:<tier>]` tiek atrisināts pēc pieprasījuma; rūpīgi atlasīta apakškopa tiek piedāvāta `/v1/models` un informācijas panelī (`AUTO_SUFFIX_VARIANTS` failā `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrēšana ir **kļūmju gadījumā atvērta** — ja nevienam pievienotajam modelim ierobežojums neatbilst, tiek izmantota pilnā kopa, lai maršrutēšana nekad nepārtrūktu. Pamatvērtētājs (`combo.ts`) nav mainīts; kategorijas/līmeņa filtrs tiek lietots funkcijā `buildAutoCandidates`.
 
-| Piemērs                | Atrisina līdz                                                |
-| ---------------------- | ------------------------------------------------------------ |
-| `auto/coding:fast`     | coding pūls, zemas latentuma svari                           |
-| `auto/coding:cheap`    | coding pūls, izmaksu optimizēts (aliass `auto/coding:floor`) |
-| `auto/reasoning:pro`   | tikai domāšanas/racionālās domāšanas modeļi, premium līmenis |
-| `auto/vision`          | redzes spējīgi modeļi (nav līmeņa → līdzsvaroti svari)       |
-| `auto/multimodal:free` | multimodāli spējīgi modeļi, tikai bezmaksas līmenis          |
+> **Aktuāla modeļu informācija:** automātiskās maršrutēšanas piemērotības novērtēšanai tiek izmantoti aktuālie **Arena ELO** reitingi un **models.dev** līmeņu dati, ja ir ieslēgts karogs `ARENA_ELO_SYNC_ENABLED` (pretējā gadījumā tiek izmantota statiskā piemērotības karte).
 
-Jebkurš derīgs `auto/<kategorija>[:<līmenis>]` tiek atrisināts pēc pieprasījuma; izvēlēta apakškopa tiek reklamēta `/v1/models` un informācijas panelī (`AUTO_SUFFIX_VARIANTS` failā `open-sse/services/autoCombo/builtinCatalog.ts`). Filtrēšana ir **neatkarīga no kļūdām** — ja ierobežojums neatbilst nevienam pieslēgtajam modelim, tiek izmantots pilns pūls, lai maršrutēšana nekad nesalūzt. Galvenais vērtētājs (`combo.ts`) nav mainīts; kategorijas/līmeņa filtrs tiek piemērots `buildAutoCandidates`.
-
-> **Dzīvā modeļa informācija:** auto-maršrutēšanas piemērotību informē dzīvā **Arena ELO** reitinga + **models.dev** līmeņa dati, kad `ARENA_ELO_SYNC_ENABLED` karogs ir ieslēgts (citos gadījumos atgriežas pie statiskās piemērotības kartes).
-
-**Kā lietot:**
+**Lietošana:**
 
 ```bash
-# Jebkura IDE vai CLI rīks, kas atbalsta OpenAI formātu
+# Jebkura IDE vai CLI utilīta, kas atbalsta OpenAI formātu
 Base URL: http://localhost:20128/v1
-API Key:  <your-endpoint-key>
+API Key:  <jūsu-galapunkta-atslēga>
 
-# Savā kodā/konfigurācijā iestatiet modeli uz:
+# Savā kodā/konfigurācijā iestatiet modeli:
 model: "auto"                 # līdzsvarots noklusējums
-model: "auto/coding"          # labākais kodēšanas uzdevumiem
+model: "auto/coding"          # vispiemērotākais programmēšanas uzdevumiem
 model: "auto/fast"            # ātrākais pieejamais
-model: "auto/cheap"           # lētākais par tokenu
+model: "auto/cheap"           # lētākais uz marķieri
 ```
 
 **Kas notiek:**
 
-1. OmniRoute atklāj `auto/` prefiksu failā `src/sse/handlers/chat.ts`
-2. Izjautā visas **aktīvās nodrošinātāju savienojumus** no datubāzes
-3. Filtrē tos ar derīgiem akreditācijas datiem (API atslēga vai OAuth tokens)
-4. Nosaka modeli katram savienojumam (`connection.defaultModel` vai nodrošinātāja pirmais modelis)
-5. Atmiņā izveido **virtuālu kombināciju** (netiek saglabāta datubāzē)
-6. Maršrutē, izmantojot izvēlētā varianta svaru profilu + LKGP stratēģiju
+1. OmniRoute nosaka `auto/` prefiksu failā `src/sse/handlers/chat.ts`
+2. No datubāzes izgūst visus **aktīvos nodrošinātāju savienojumus**
+3. Atlasa savienojumus ar derīgiem akreditācijas datiem (API atslēgu vai OAuth pilnvaru)
+4. Nosaka katra savienojuma modeli (`connection.defaultModel` vai nodrošinātāja pirmo modeli)
+5. Atmiņā izveido **virtuālu kombināciju** (tā netiek glabāta DB)
+6. Maršrutē, izmantojot izvēlētā varianta svaru profilu un LKGP stratēģiju
 
 **Galvenās īpašības:**
 
-- ✅ **Vienmēr ieslēgts:** Nav slēdža, nav kombinācijas izveidošanas, nav nepieciešama konfigurācija
-- ✅ **Dinamisks:** Automātiski atspoguļo pašreizējos pieslēgtos nodrošinātājus
-- ✅ **Sesijas pielipšana:** LKGP nodrošina, ka pēdējam veiksmīgajam nodrošinātājam tiek dota priekšroka
-- ✅ **Vairāku kontu apzināšanās:** Katrs nodrošinātāja savienojums kļūst par atsevišķu kandidātu
-- ✅ **Nav rakstīšanas datubāzē:** Virtuālā kombinācija pastāv tikai pieprasījumam, nulles saglabāšanas izmaksas
+- ✅ **Vienmēr ieslēgts:** Nav nepieciešams slēdzis, kombinācijas izveide vai konfigurācija
+- ✅ **Dinamisks:** Automātiski atspoguļo pašlaik pievienotos nodrošinātājus
+- ✅ **Sesijas piesaiste:** LKGP nodrošina, ka prioritāte tiek piešķirta pēdējam veiksmīgajam nodrošinātājam
+- ✅ **Vairāku kontu atbalsts:** Katrs nodrošinātāja savienojums kļūst par atsevišķu kandidātu
+- ✅ **Nav DB ierakstu:** Virtuālā kombinācija pastāv tikai pieprasījuma laikā, neradot nekādas pastāvīgas glabāšanas papildu izmaksas
 
-### Atslēgas kandidātu kontrole (#7819, Level 1+2)
+### Kandidātu pārvaldība katrai atslēgai (#7819, Level 1+2)
 
-`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufikss pēc `auto/`, vai
-burtiskais `auto` bāzes kanālam) ir **tikai lasāms** galapunkts, kas uzskaita
-`auto/*` kanāla pašreizējo kandidātu pūlu, dekorētu ar dzīvo sasniedzamību, atkārtoti
-izmantojot esošos noturības nolasījumus (nekad neapstrādātu slēdža `stāvokli`):
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = sufikss pēc `auto/` vai
+literālā vērtība `auto` pamata kanālam) ir **tikai lasāms** galapunkts, kas uzskaita
+`auto/*` kanāla pašreizējo kandidātu kopu, papildinātu ar aktuālo sasniedzamības
+informāciju un atkārtoti izmantojot esošos noturības nolasījumus (nekad neapstrādāto
+pārtraucēja `state`):
 
-- nodrošinātāja slēdzis — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- savienojuma atdzesēšana — `rateLimitedUntil` / `testStatus` atrisinātajā
+- nodrošinātāja ķēdes pārtraucējs — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- savienojuma gaidīšanas periods — `rateLimitedUntil` / `testStatus` atrisinātajā
   `provider_connections` rindā
 - modeļa bloķēšana — `isModelLocked(provider, connectionId, model)`
 
-Katra kandidāta satur arī šīs API atslēgas `excluded` karogu. Izņēmumi tiek glabāti
-katrā API atslēgā (`auto_candidate_overrides` tabula, migrācija `128`) — OmniRoute ir
-viena nomnieka arhitektūra bez `users` tabulas, tāpēc `apiKeyId` ir tuvākā reālā izsaukēja
-identitāte — un tiek piemēroti kandidātu pūla sašaurināšanas punktā
-`open-sse/services/autoCombo/virtualFactory.ts`, izmantojot tīru, vienībām testētu
+Katram kandidātam ir arī šīs API atslēgas karogs `excluded`. Izņēmumi tiek glabāti
+katrai API atslēgai atsevišķi (`auto_candidate_overrides` tabula, migrācija `128`) — OmniRoute ir
+viena nomnieka sistēma bez `users` tabulas, tāpēc `apiKeyId` ir tuvākā reālā identitāte
+katram izsaucējam — un tie tiek piemēroti kandidātu kopas kontroles punktā
+`open-sse/services/autoCombo/virtualFactory.ts`, izmantojot tīro, ar vienībtestiem pārbaudīto
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Filtrs ir **neatkarīgs no kļūdām**: nenoteikts apiKeyId/channel vai datubāzes meklēšanas
-kļūda abos gadījumos atstāj pūlu nefiltrētu, tāpēc operators bez konfigurētiem izņēmumiem
-redz maršrutēšanu identisku šai funkcijai pirms tās ieviešanas.
+Filtrs ir **kļūmju gadījumā atvērts**: neiestatīts apiKeyId/kanāls vai DB uzmeklēšanas kļūme
+abos gadījumos atstāj kopu nefiltrētu, tāpēc operators bez konfigurētiem izņēmumiem saņem
+maršrutēšanu, kas baitu līmenī ir identiska darbībai pirms šīs funkcijas ieviešanas.
 
-**Atlikts uz sekojošo problēmu:** kandidātu svaru + eksplicīta kārtošana (Level 3
-— baro esošās svaru prioritātes stratēģijas ceļus) un specifiskas `combo.ts` stratēģijas
-piesaistīšana `auto/*` kanālam (Level 4). Skatiet #7819 plānu par atvērto
-jautājumu, vai izņēmumiem jāpaliek katram API atslēgai vai jākļūst par globāliem ņemot
-vērā viena nomnieka modeli.
+**Atlikts uz vēlāku papildu uzdevumu:** katra kandidāta svari + skaidri noteikta secība (3. līmenis
+— izmanto esošos svērto/prioritāro stratēģiju ceļus), kā arī konkrētas
+`combo.ts` stratēģijas piesaiste katram `auto/*` kanālam (4. līmenis). Skatiet #7819 plānu par neatrisināto
+jautājumu, vai viena nomnieka modeļa dēļ ignorēšanas iestatījumiem būtu jāpaliek katrai API atslēgai atsevišķi vai jākļūst globāliem.
 
 **Aizkulisēs:**
 
 ```txt
-Request: { model: "auto/coding" }
+Pieprasījums: { model: "auto/coding" }
    ↓
-src/sse/handlers/chat.ts atklā prefiksu
+src/sse/handlers/chat.ts nosaka prefiksu
    ↓
 createVirtualAutoCombo('coding') → candidatePool no aktīvajiem savienojumiem
    ↓
-handleComboChat (tāds pats dzinējs kā saglabātām kombinācijām)
+handleComboChat (tas pats dzinis, kas pastāvīgajām kombinācijām)
    ↓
-Auto-vērtēšana izvēlas labāko nodrošinātāju/modeli katram pieprasījumam
+Automātiskā vērtēšana katram pieprasījumam atlasa labāko nodrošinātāju/modeli
 ```
 
 **Implementācijas faili:**
 
-| Fails                                                     | Mērķis                                       |
-| --------------------------------------------------------- | -------------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiksa parsētājs (`parseAutoPrefix`)       |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Izveido virtuālus `AutoComboConfig` objektus |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testa āķis nodrošinātāju reģistra mocīšanai  |
-| `src/sse/handlers/chat.ts`                                | Integrācija: auto prefiksa īsslēgšana        |
-| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistēmas ieraksts    |
+| Fails                                                     | Nolūks                                                   |
+| --------------------------------------------------------- | -------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiksa parsētājs (`parseAutoPrefix`)                   |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Izveido virtuālus `AutoComboConfig` objektus             |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testēšanas āķis nodrošinātāju reģistra imitēšanai        |
+| `src/sse/handlers/chat.ts`                                | Integrācija: automātiskā prefiksa priekšlaicīga apstrāde |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistēmas ieraksts                |
 
 ## Kombināciju nosaukumi, kas atbilst reāliem modeļa identifikatoriem
 
@@ -176,79 +167,84 @@ Divas biežās kļūdas:
 
 Skatīt [sadaļu #7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) un [sadaļu #7111](https://github.com/diegosouzapw/OmniRoute/issues/7111) par sākotnējo pārpratumu, ko šis dokuments apraksta.
 
-## Kā tas darbojas (Saglabātas autokombo)
+## Kā tas darbojas (saglabātās automātiskās kombinācijas)
 
-Autokombo dzinējs dinamiski izvēlas labāko pakalpojumu sniedzēju/modeli katram pieprasījumam, izmantojot **16 faktoru vērtēšanas funkciju** (definēta `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Noklusējuma svars ir `1.0`; pielāgotus svars atkārtoti normalizē `normalizeScoringWeights()`. No sešpadsmit faktoriem trīs — `cacheAffinity`, `resetWindowAffinity` un `reliability` — pēc noklusējuma ir ar svaru `0`: tie joprojām tiek aprēķināti katram kandidātam, un `cacheAffinity` kontrolē prompt-cache dublikātu noņemšanu ārpus rezultāta, tāpēc tie tiek deklarēti kā faktori, kuri pēc noklusējuma nepiedalās balsošanā.
+Automātisko kombināciju dzinis katram pieprasījumam dinamiski atlasa labāko pakalpojumu sniedzēju/modeli, izmantojot **16 faktoru vērtēšanas funkciju** (definēta `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Noklusējuma svaru summa ir `1.0`; pielāgotie svari tiek atkārtoti normalizēti ar `normalizeScoringWeights()`. Diviem no sešpadsmit faktoriem — `cacheAffinity` un `resetWindowAffinity` — noklusējuma svars ir `0`; faktoram `reliability` vērtība ir `0` struktūrā `DEFAULT_WEIGHTS`, bet `0.03` vispārīgajās pakotnēs un `0.04` pakotnē `reliability-first`, savukārt faktoram `quality` pakotnēs vērtība ir `0.02` (`0.03` pakotnē `quality-first`): tie joprojām tiek aprēķināti katram kandidātam, un `cacheAffinity` ārpus vērtējuma kontrolē uzvednes kešatmiņas dublikātu novēršanu, tādēļ faktori ar nulles noklusējuma svaru pēc noklusējuma neietekmē rezultātu, bet pakotnēs tie to dara.
 
-![Autokombo 16 faktoru vērtēšana](../diagrams/exported/auto-combo-scoring.svg)
+![Automātisko kombināciju 16 faktoru vērtēšana](../diagrams/exported/auto-combo-scoring.svg)
 
-> Avots: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (atsjaunot, izmantojot `npm run docs:render-diagrams`). Faila nosaukums ir vēsturisks; avots un renderētā diagramma rāda visus 16 faktorus, kas deklarēti `DEFAULT_WEIGHTS`.
+> Avots: [diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd) (atkārtoti ģenerējiet, izmantojot `npm run docs:render-diagrams`). Faila nosaukums ir vēsturisks; avotā un atveidotajā diagrammā ir parādīti visi 16 faktori, kas deklarēti struktūrā `DEFAULT_WEIGHTS`.
 
-| Faktors               | Noklusējuma svars | Apraksts                                                                                                                                                                                                              |
-| :-------------------- | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `quota`               | 0.1429            | Atlikušais kvota / ātruma ierobežojuma vieta [0..1]                                                                                                                                                                   |
-| `health`              | 0.1605            | Veselības rādītājs no slēguma pārtraucēja (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                                                                                                                                       |
-| `costInv`             | 0.1429            | Apgriezta **sajaukta** cena (60% ievades + 40% izvades token cena, normalizēta) — lētāka = augstāks vērtējums                                                                                                         |
-| `latencyInv`          | 0.1143            | Apgriezta p95 aizture, normalizēta pret kopu — ātrāka = augstāks vērtējums                                                                                                                                            |
-| `taskFit`             | 0.0762            | Uzdevuma tipa piemērotība (kodēšana, pārskatīšana, plānošana, analīze, kļūdu novēršana, dokumentācija)                                                                                                                |
-| `stability`           | 0.0476            | Variances balstīta stabilitāte no aiztures standartnovirzes — kandidāts, kura atbildes laiks svārstās, saņem zemāku vērtējumu                                                                                         |
-| `tierPriority`        | 0.0476            | Konta līmeņa prioritāte — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                                |
-| `tierAffinity`        | 0.0476            | Piederība starp kandidāta līmeni un manifestā ieteikto līmeni                                                                                                                                                         |
-| `specificityMatch`    | 0.0476            | Atbilstība starp pieprasījuma specifiskumu (manifesta norāde) un modeļa līmeni                                                                                                                                        |
-| `contextAffinity`     | 0.0476            | Piederība starp pieprasījuma konteksta loga vajadzību un modeļa konteksta logu                                                                                                                                        |
-| `sessionAvailability` | 0.0476            | OAuth sesijas pieejamība šī savienojuma kandidātam šai sesijai (`getOAuthSessionAvailability()`; ne-OAuth savienojumi saņem 1.0)                                                                                      |
-| `connectionDensity`   | 0.0476            | Sadala slodzi starp tā paša pakalpojumu sniedzēja savienojumiem (pret koncentrēšanos)                                                                                                                                 |
-| `cacheAffinity`       | 0.00              | Rendezvous-hash piederība pret savienojumu, kas visdrīzāk jau satur šī pieprasījuma prompt-cache prefiksu (`open-sse/services/combo/promptCacheAffinity.ts`); pēc noklusējuma atspējots (#8008)                       |
-| `resetWindowAffinity` | 0.00              | Virziens pret savienojumiem, kuru kvotas atiestatīšanas logs ir labvēlīgs (pēc noklusējuma atspējots)                                                                                                                 |
-| `quality`             | 0.03              | Atgriezeniskās saites balstīts izvades kvalitātes signāls no maršrutēšanas notikumu kvalitātes izsekotāja; kandidāti bez novērojumiem saņem neitrālu 0.5                                                              |
-| `reliability`         | 0.00              | Novērotā veiksmes daļa, `1 - failureRate`, no 24 stundu lietojuma vēstures ar desmit paraugu griestu (pretējā gadījumā reāllaika metrika); kandidāti bez novērojumiem tiek nolasīti kā 1.0. Pēc noklusējuma atspējots |
+| Faktors               | Noklusējuma svars | Apraksts                                                                                                                                                                                                                            |
+| :-------------------- | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quota`               | 0.1429            | Atlikusī kvota / ātruma ierobežojuma rezerve [0..1]                                                                                                                                                                                 |
+| `health`              | 0.1605            | Veselības novērtējums no ķēdes pārtraucēja (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                                                                                                                                                    |
+| `costInv`             | 0.1429            | Apgrieztās **kombinētās** izmaksas (60% ievades + 40% izvades marķieru cenas, normalizētas) — lētāks = augstāks vērtējums                                                                                                           |
+| `latencyInv`          | 0.1143            | Apgrieztais p95 latentums, kas normalizēts attiecībā pret kopu — ātrāks = augstāks vērtējums                                                                                                                                        |
+| `taskFit`             | 0.0762            | Piemērotība uzdevuma veidam (kodēšana, pārskatīšana, plānošana, analīze, atkļūdošana, dokumentācija)                                                                                                                                |
+| `stability`           | 0.0476            | Uz dispersiju balstīta stabilitāte, kas iegūta no latentuma standartnovirzes — kandidāts, kura atbildes laiks svārstās, saņem zemāku vērtējumu                                                                                      |
+| `tierPriority`        | 0.0476            | Konta līmeņa prioritāte — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                                                                                                                                                              |
+| `tierAffinity`        | 0.0476            | Atbilstība starp kandidāta līmeni un manifesta ieteikto līmeni                                                                                                                                                                      |
+| `specificityMatch`    | 0.0476            | Atbilstība starp pieprasījuma specifiskumu (manifesta norādi) un modeļa līmeni                                                                                                                                                      |
+| `contextAffinity`     | 0.0476            | Atbilstība starp pieprasījumam nepieciešamo konteksta logu un modeļa konteksta logu                                                                                                                                                 |
+| `sessionAvailability` | 0.0476            | Kandidāta savienojuma OAuth sesijas pieejamība šai sesijai (`getOAuthSessionAvailability()`; savienojumi bez OAuth saņem vērtējumu 1.0)                                                                                             |
+| `connectionDensity`   | 0.0476            | Sadala slodzi starp viena pakalpojumu sniedzēja savienojumiem (pret koncentrāciju)                                                                                                                                                  |
+| `cacheAffinity`       | 0.00              | Rendezvous jaukšanas atbilstība savienojumam, kurā, visticamāk, jau atrodas šī pieprasījuma uzvednes kešatmiņas prefikss (`open-sse/services/combo/promptCacheAffinity.ts`); pēc noklusējuma atspējots (#8008)                      |
+| `resetWindowAffinity` | 0.00              | Dod priekšroku savienojumiem ar labvēlīgu kvotas atiestatīšanas logu (pēc noklusējuma atspējots)                                                                                                                                    |
+| `quality`             | 0.03              | Uz atsauksmēm balstīts izvades kvalitātes signāls no maršrutēšanas notikumu kvalitātes izsekotāja; kandidāti bez novērojumiem saņem neitrālu vērtējumu 0.5                                                                          |
+| `reliability`         | 0.00              | Novērotais sekmīgo izpildžu īpatsvars, `1 - failureRate`, no 24 stundu lietojuma vēstures ar vismaz desmit paraugiem (pretējā gadījumā — reāllaika metrika); kandidātiem bez novērojumiem vērtība ir 1.0. Pēc noklusējuma atspējots |
 
-**Summa:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0`, kā deklarēts `DEFAULT_WEIGHTS`; lietotāja konfigurētos svars pirms vērtēšanas atkārtoti normalizē par sadalījumu ar `normalizeScoringWeights()`.
+**Summa:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0`, kā deklarēts struktūrā `DEFAULT_WEIGHTS`; lietotāja konfigurētie svari pirms vērtēšanas tiek atkārtoti normalizēti sadalījumā ar `normalizeScoringWeights()`.
 
-## Režīmu komplekti
+## Režīmu pakotnes
 
-6 iepriekš definētas svaru profili `open-sse/services/autoCombo/modePacks.ts` failā. Katrs komplekts pilnībā aizstāj noklusējuma svarus, lai vēlēšanos novirzītu uz vienu mērķi. Katrs komplekts jau sasniedz `1.0` summu (`0.9999`, kā parādīts četros decimālos), tāpēc `normalizeScoringWeights()` neko būtiski nekoriģē, kad komplekts ir aktīvs – turpmāk minētās vērtības, ņemot vērā noapaļošanu, ir tās, kuras vērtētājs piemēro.
+6 iepriekš definēti svaru profili failā `open-sse/services/autoCombo/modePacks.ts`. Katra pakotne pilnībā aizstāj noklusējuma svarus, lai atlasi novirzītu uz vienu mērķi. Katras pakotnes summa jau ir `1.0` (`0.9999`, attēlojot ar četrām zīmēm aiz komata), tāpēc `normalizeScoringWeights()` nav nekā būtiska, ko koriģēt, kad pakotne ir aktīva — tālāk norādītās vērtības, ņemot vērā noapaļošanu, ir tās, ko vērtētājs izmanto.
 
 | Faktors               | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
-| `quota`               | 0.1333     | 0.1333     | 0.0952        | **0.3524**       | 0.1333            | 0.0476     |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
 | `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
-| `costInv`             | 0.0476     | **0.3524** | 0.0476        | 0.0952           | 0.0381            | 0.0190     |
-| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0286     |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
 | `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
 | `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
-| `tierPriority`        | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0190     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
 | `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
-| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0286     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
 | `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
 | `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
 Piezīmes:
 
-- **Neviens komplekts nenosaka `quality`, un komplekts pilnībā nomaina svaru karti** (`weights = pack`, nevis apvienošanu). `quality` nes `0.03` `DEFAULT_WEIGHTS`, bet jebkura režīma komplekta gadījumā tas tiek normalizēts līdz `0` – komplekta izvēle pilnībā izslēdz novērotās kvalitātes signālu. Ja vēlaties, lai kvalitātes atgriezeniskā saite ietekmētu maršrutēšanu, atstājiet `modePack` nedefinētu un pielāgojiet svarus tieši. (`cacheAffinity` arī katrā komplektā ir nedefinēts, bet pēc noklusējuma tas ir `0`, tāpēc tur nekas nemainās.)
-- `tierAffinity`, `specificityMatch` un `resetWindowAffinity` katrā komplektā ir skaidri norādīti kā `0`.
-- Katra komplekta uzsvars uzreiz:
+- **Pakotnes ietver `quality` un `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) un pilnībā aizstāj svaru karti (`weights = pack`, nevis apvienošana). `DEFAULT_WEIGHTS` ietver `quality 0.03 / reliability 0`; izvēloties `balanced`/`default`, šīs noklusējuma vērtības tiek saglabātas, savukārt, izvēloties pakotni, tiek izmantotas iepriekš norādītās pakotnes vērtības. Aukstā pūlā (vēl nav novērojumu, tāpēc `quality 0.5` un `reliability 1`) šie divi faktori pievieno `+0.04` ar vispārīgu pakotni (`0.03 + 0.01`), `+0.045` ar `quality-first` un `+0.05` ar `reliability-first`.
+- `tierAffinity`, `specificityMatch` un `resetWindowAffinity` katrā pakotnē ir nepārprotami iestatīti uz `0`.
+- Īss katras pakotnes uzsvara pārskats:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (zema latentuma, veselīgi savienojumi)
-  - **cost-saver** → costInv 0.3524 (lētākie tokeni uzvar)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 (labākais modelis uzdevumam, konsekvents)
-  - **offline-friendly** → quota 0.3524 + health 0.2667 (maksimāla galviņas telpa neatkarīgi no ātruma/cenas)
-  - **reliability-first** → health 0.3524 + stability 0.1905 (mazāk pārsteigumu)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (kļūdas injekcijas profils)
+  - **cost-saver** → costInv 0.3324 (uzvar lētākie marķieri)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, augstākā vērtība starp visām pakotnēm (labākais modelis uzdevumam, konsekvents)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (maksimāla rezerve neatkarīgi no ātruma/izmaksām)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, augstākā vērtība starp visām pakotnēm (vismazāk pārsteigumu)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (svaru pakotne, ko `auto/chaos` piešķir sava paneļa dalībniekiem; paralēlā izvēršana šos svarus nelasa, un šis nav kļūmju ievades profils; skatiet [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Pieprasījuma vadība (galvenes) — #6023 / #6024 / #6025 / #3470
+### Vadība katram pieprasījumam (galvenes) — #6023 / #6024 / #6025 / #3470
 
-`auto` kombināciju var vadīt **katrā pieprasījumā** ar trim galvenēm, nemainot kombinācijas saglabāto konfigurāciju. Tās attiecas tikai uz `auto` stratēģiju un tikai uz pieprasījumu, kas tās satur; kombinācijas saglabātā `modePack`/`budgetCap`/`budgetFallback` tiek izmantota, kad galvene nav norādīta.
+`auto` kombināciju var vadīt **katram pieprasījumam atsevišķi**, izmantojot trīs galvenes un nemainot
+kombinācijas saglabāto konfigurāciju. Tās attiecas tikai uz `auto` stratēģiju un tikai uz pieprasījumu,
+kurā tās ir iekļautas; ja galvenes nav, tiek izmantotas kombinācijas saglabātās `modePack`/`budgetCap`/`budgetFallback` vērtības.
 
-| Galvene                       | Pieņem                                                                                                                                                                                                              | Efekts                                                                                                                                                                                                                                    |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | iepriekš definētu aliāsu (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) vai neapstrādāta komplekta nosaukumu (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Pārklāj vērtēšanas svarus šim pieprasījumam. `balanced`/`default` piespiež noklusējuma svarus (nav komplekta). Nezināmas vērtības tiek ignorētas (konfigurācija saglabāta).                                                               |
-| `X-OmniRoute-Budget`          | pozitīvu skaitli (maks. USD par pieprasījumu)                                                                                                                                                                       | Stingra izmaksu griestus: kandidāti, kuru paredzamās izmaksas pārsniedz šo griestu, tiek filtrēti pirms izvēles. Kas notiek, ja **visi** kandidāti to pārsniedz, nosaka zemāk esošais `X-OmniRoute-Budget-Fallback`.                      |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (noklusējuma, aliāsi: `cheapest-viable`, `soft`) vai `strict` (aliāsi: `block`, `hard`)                                                                                                                  | `cheapest`: izmanto globāli lētāko kandidātu, pat ja tas joprojām pārsniedz griestus (vecā uzvedība). `strict`: atsakās izvēlēties – pieprasījums ātri neizdodas ar `HTTP 402` vietā klusas pārtēriņa. Nezināmas vērtības tiek ignorētas. |
+| Galvene                       | Pieņem                                                                                                                                                                                                                  | Ietekme                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | iepriekšdefinētu aizstājvārdu (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) vai neapstrādātu pakotnes nosaukumu (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Pārraksta šī pieprasījuma vērtēšanas svarus. `balanced`/`default` uzspiež noklusējuma svarus (bez pakotnes). Nezināmas vērtības tiek ignorētas (konfigurācija tiek saglabāta).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `X-OmniRoute-Budget`          | pozitīvu skaitli (maksimālā summa USD vienam pieprasījumam)                                                                                                                                                             | Stingrs izmaksu ierobežojums: kandidāti, kuru aplēstās izmaksas to pārsniedz, pirms atlases tiek izfiltrēti. Rīcību gadījumā, ja to pārsniedz **visi** kandidāti, nosaka tālāk aprakstītais `X-OmniRoute-Budget-Fallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (noklusējums, aizstājvārdi: `cheapest-viable`, `soft`) vai `strict` (aizstājvārdi: `block`, `hard`)                                                                                                          | `cheapest`: atkāpjas uz kopumā lētāko kandidātu, pat ja tas joprojām pārsniedz ierobežojumu (mantotā darbība). `strict`: atsakās veikt atlasi — pieprasījums nekavējoties beidzas ar `HTTP 402`, nevis nepamanīti pārtērē budžetu. Nezināmas vērtības tiek ignorētas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `X-OmniRoute-Effort`          | `auto` (citas vērtības ir rezervētas)                                                                                                                                                                                   | Adaptīvs domāšanas budžets: ja pieprasījumā nav **neviena** spriešanas lauka jebkādā formā (`reasoning_effort`, `reasoning`, `thinking`), vārteja nosaka `auto` kā `low`/`medium`/`high`, izmantojot deterministiskus pieprasījuma struktūras signālus (pēdējā lietotāja ziņojuma garumu, konteksta apjomu līdz pēdējam lietotāja ziņojumam, iepriekšējo rīku rezultātus, rīku cikla dziļumu). Signāli attiecas tikai uz pašreizējo gājienu — viss pēc pēdējā lietotāja ziņojuma tiek ignorēts —, tāpēc katram pieprasījumam rīku ciklā tiek noteikts vienāds līmenis (bezstāvokļa fiksācija katram gājienam, bez sesijas stāvokļa un bez līmeņa paaugstināšanas cikla vidū, kas izjauktu augšupstraumes uzvedņu kešatmiņas prefiksus). Klienta skaidri norādītam spriešanas laukam vienmēr ir prioritāte. Attiecas uz pieprasījumiem, kuru augšupstraumes nosūtīšana tiek atrisināta OpenAI Chat Completions formā (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` ir OpenAI formas lauks, tāpēc galvenei nav ietekmes uz pieprasījumu, kas adresēts Claude vai Gemini (skatiet `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Piespied ātrāko profilu, ierobežo šo pieprasījumu līdz $0.05 un bloķē stingri, nevis tērē vairāk
+# Piespiedu kārtā izmantot ātrāko profilu, ierobežot šī pieprasījuma izmaksas līdz $0.05 un stingri bloķēt, nevis pārsniegt budžetu
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -257,55 +253,113 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Izšķirtspēja ir tīra funkcija (`open-sse/services/autoCombo/requestControls.ts`); izšķirtās vērtības baro dzinēja esošos `config.modePack` / `config.budgetCap` / `config.budgetFallback` ievades. Kombinācijas saglabātā `config.budgetFallback` ("strict" | "cheapest") nosaka pastāvīgo politiku; galvene to pārklāj vienam pieprasījumam.
+Noteikšana ir tīra funkcija (`open-sse/services/autoCombo/requestControls.ts`); noteiktās
+vērtības tiek padotas dzinēja esošajām `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` ievadēm. Kombinācijas saglabātā `config.budgetFallback` ("strict" |
+"cheapest") nosaka pastāvīgo politiku; galvene to pārraksta vienam pieprasījumam.
 
 ## Visas maršrutēšanas stratēģijas
 
-OmniRoute kombinētājs atbalsta **19 maršrutēšanas stratēģijas** (deklarētas `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pašas Auto kombinētāja dzinējs ir pieejams zem `auto` stratēģijas; pārējās ir pieejamas saglabātām kombinācijām.
+OmniRoute kombināciju dzinis atbalsta **19 maršrutēšanas stratēģijas** (deklarētas `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats automātisko kombināciju dzinis ir pieejams ar stratēģiju `auto`; pārējās stratēģijas ir pieejamas saglabātajām kombinācijām.
 
-| Stratēģija          | Apraksts                                                                                                                                                                                                  |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Pirmais mērķis kārtotā sarakstā ar prioritāti                                                                                                                                                             |
-| `weighted`          | Svarīta nejaušība pēc katra mērķa svara                                                                                                                                                                   |
-| `round-robin`       | Pa kārtai iziet cauri mērķiem                                                                                                                                                                             |
-| `context-relay`     | Nodevīt kontekstu starp mērķiem (garas sarunas)                                                                                                                                                           |
-| `fill-first`        | Aizpildīt katra mērķa kvotu pirms pārejas uz nākamo                                                                                                                                                       |
-| `p2c`               | 2. pakāpes izvēles nejaušs slodzes līdzsvarošana                                                                                                                                                          |
-| `random`            | Vienmērīga nejauša izvēle                                                                                                                                                                                 |
-| `least-used`        | Izvēlēties mērķi ar zemāko pašreizējo slodzi                                                                                                                                                              |
-| `cost-optimized`    | Minimizēt izmaksas par pieprasījumu, ņemot vērā kataloga cenas                                                                                                                                            |
-| `reset-aware` ⭐    | Prioritizēt pēc kvotas atiestatīšanas laika — īsāki atiestatīšanas logi rangēti augstāk                                                                                                                   |
-| `reset-window`      | Dot priekšroku mērķiem, kuru kvotas logs atiestatās visdrīzāk                                                                                                                                             |
-| `headroom`          | Izvēlēties mērķi ar vislielāko atlikušo kvotas brīvo vietu                                                                                                                                                |
-| `strict-random`     | Nejauša, bez atkārtojumu deduplikācijas                                                                                                                                                                   |
-| `auto`              | Izmantot Auto kombinētāja vērtēšanu (16 faktoru) — **ieteicams**                                                                                                                                          |
-| `lkgp`              | Last-Known-Good Path (piesaista pie pēdējā veiksmīgā pakalpojuma sniedzēja, tad atkāpjas pēc noteikumiem)                                                                                                 |
-| `context-optimized` | Izvēlēties mērķi ar labāko atbilstību pašreizējam konteksta lielumam                                                                                                                                      |
-| `cache-optimized`   | Pārkārtot mērķus pēc pieprasījuma kešatmiņas afinitātes — vispirms mēģināt savienojumu, kas visdrīzāk jau satur šī pieprasījuma kešoto prefiksu (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Paralēli izplatīties uz modeļu paneli, pēc tam sintezēt vienu atbildi caur tiesnesi (skatīt zemāk)                                                                                                        |
-| `pipeline`          | Palaist mērķus secīgi, pavedot katra soļa izvadi nākamā soļa ievadē; tiek atgriezta tikai galīgā atbilde (#6396)                                                                                          |
+| Stratēģija          | Apraksts                                                                                                                                                                                                          |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Sakārtots saraksts ar pirmo mērķi un skaidri norādītu prioritāti                                                                                                                                                  |
+| `weighted`          | Svērta nejauša izvēle pēc katram mērķim piešķirtā svara                                                                                                                                                           |
+| `round-robin`       | Mērķu secīga cikliska izmantošana (paketēs; skatiet tālāk)                                                                                                                                                        |
+| `context-relay`     | Konteksta nodošana starp mērķiem (garām sarunām)                                                                                                                                                                  |
+| `fill-first`        | Vispirms izsmelt katra mērķa kvotu, pirms pāriet pie nākamā                                                                                                                                                       |
+| `p2c`               | Nejauša slodzes līdzsvarošana, izmantojot divu izvēļu principu                                                                                                                                                    |
+| `random`            | Vienmērīgi nejauša izvēle                                                                                                                                                                                         |
+| `least-used`        | Izvēlēties mērķi ar pašlaik vismazāko slodzi                                                                                                                                                                      |
+| `cost-optimized`    | Minimizēt izmaksas par pieprasījumu, ņemot vērā kataloga cenas                                                                                                                                                    |
+| `reset-aware` ⭐    | Noteikt prioritāti pēc kvotas atiestatīšanas laika — īsāki atiestatīšanas intervāli tiek ierindoti augstāk                                                                                                        |
+| `reset-window`      | Dot priekšroku mērķiem, kuru kvotas periods tiks atiestatīts visdrīzāk                                                                                                                                            |
+| `headroom`          | Izvēlēties mērķi ar vislielāko atlikušo kvotas rezervi                                                                                                                                                            |
+| `strict-random`     | Nejauša izvēle bez atkārtojumu novēršanas                                                                                                                                                                         |
+| `auto`              | Izmantot automātisko kombināciju novērtēšanu (16 faktori) — **ieteicams**                                                                                                                                         |
+| `lkgp`              | Pēdējais zināmais derīgais ceļš (piesaista pēdējam veiksmīgajam nodrošinātājam un pēc tam atkāpjas uz noteikumiem)                                                                                                |
+| `context-optimized` | Izvēlēties mērķi, kas vislabāk atbilst pašreizējam konteksta lielumam                                                                                                                                             |
+| `cache-optimized`   | Pārkārtot mērķus pēc uzvednes kešatmiņas atbilstības — vispirms tiek izmēģināts savienojums, kurā, visticamāk, jau ir šī pieprasījuma kešotais prefikss (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Paralēli nosūtīt pieprasījumu modeļu kopai un pēc tam ar vērtētāja palīdzību sintezēt vienu atbildi (skatiet tālāk)                                                                                               |
+| `pipeline`          | Secīgi izpildīt mērķus, katra soļa izvadi nododot kā nākamā soļa ievadi; tiek atgriezta tikai galīgā atbilde (#6396)                                                                                              |
 
-⭐ = Jauns v3.8.0 · 🧬 = Jauns v3.8.36
+⭐ = Jauns versijā v3.8.0 · 🧬 = Jauns versijā v3.8.36
 
 ### `weighted` semantika
 
-`weighted` ir **proporcionāla nejauša izvēle katram pieprasījumam**
+`weighted` ir **proporcionāla nejauša izloze katram pieprasījumam**
 (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), nevis izlīdzinātājs:
 
-- Katrs pieprasījums izvelk **vienu** soli ar varbūtību `weight / totalWeight`; atlikušie soļi
-  tiek kārtoti pēc svara dilstošā secībā kā šī pieprasījuma atkāpšanās ķēde.
-- Solis, kura svars ir `0` (vai trūkst), **netiek izvēlēts**, kamēr jebkuram citam solim ir
-  svars > 0 — tas var kalpot tikai kā atkāpšanās variants pēc izvēlētā soļa neveiksmes. Tikai tad, kad **visi**
-  svari ir 0, izvēle kļūst vienmērīga.
-- Soļi, kuru mērķi visi ir nepieejami — pakalpojuma sniedzēja ķēdes pārtraucējs `OPEN`, savienojuma
-  atdzesēšanas periods, modeļa bloķēšana — tiek noņemti no izlozes pirms tās notiek
-  (`open-sse/services/combo/targetResolution.ts`), tāpēc viens veselīgs solis var pagaidu
-  uzvarēt katru pieprasījumu.
-- `stickyWeightedLimit` (kombinētāja konfigurācija, noklusējums `1` = izslēgts) piesaista izvēlēto soli tik daudzām
-  secīgām veiksmēm pirms atkārtotas izlozes.
+- Katram pieprasījumam tiek izlozēts **viens** solis ar varbūtību `weight / totalWeight`; atlikušie soļi
+  tiek sakārtoti dilstošā svara secībā kā šā pieprasījuma atkāpšanās ķēde.
+- Solis, kura svars ir `0` (vai nav norādīts), **nekad netiek izlozēts**, kamēr kādam citam solim
+  svars ir > 0 — tas var kalpot tikai kā atkāpšanās variants pēc izlozētā soļa kļūmes. Tikai tad, ja **visi**
+  svari ir 0, izvēle kļūst vienmērīgi nejauša.
+- Soļi, kuru visi mērķi nav pieejami — nodrošinātāja ķēdes pārtraucējs ir `OPEN`, savienojumam
+  ir nogaidīšanas periods vai modelis ir bloķēts — pirms izlozes tiek no tās izņemti
+  (`open-sse/services/combo/targetResolution.ts`), tāpēc viens darbspējīgs solis īslaicīgi var
+  tikt izvēlēts katram pieprasījumam.
+- `stickyWeightedLimit` (kombinācijas konfigurācija, noklusējuma vērtība `1` = izslēgts) piesaista izlozēto soli uz attiecīgo
+  secīgo veiksmju skaitu, pirms tiek veikta jauna izloze.
 
-Precīzai rotācijai izmantojiet `round-robin`; vienādi svari `weighted` dod statistisku — nevis
-stingru — līdzsvaru.
+Stingrai rotācijai izmantojiet `round-robin`; vienādi svari stratēģijā `weighted` nodrošina statistisku, nevis
+stingru līdzsvaru.
+
+### Aģentiskais konveijera režīms
+
+Divu soļu `pipeline` kombinācijā var iespējot plānotāja/izpildītāja maršrutēšanu ar
+`config.agenticOrchestration.enabled`. Pirmais mērķis atbild par plānošanu un gala atbildēm;
+otrais mērķis ģenerē klientam raksturīgus rīku izsaukumus. OmniRoute nosaka rīku rezultātu
+turpinājumus no pieprasījuma protokola, jautā plānotājam, vai nepieciešama vēl viena rīku
+izpildes kārta, un dinamiski izvēlas izpildītāju vai plānotāju kā pēdējo, klientam redzamo
+soli.
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+Izpildītājs vienā atbildē var ģenerēt vairākus neatkarīgus izsaukumus. Atkarīgie izsaukumi
+tiek apstrādāti nākamajās klienta rīku rezultātu kārtās, plānotājam pārskatot katru
+rezultātu. `maxToolRounds` noklusējuma vērtība ir `8`, un tas pieņem vērtības no `1` līdz
+`32`; sasniedzot šo robežu, plānotājam jāsniedz labākā pieejamā gala atbilde. Plānotāja
+iekšējie lēmumi tiek buferēti, savukārt izvēlētajā, klientam redzamajā atbildē tiek
+saglabāta sākotnējā straumēšanas preference.
+
+### `round-robin` piesaistītā pakešu apstrāde un kontu izvēršana
+
+Round-robin apstrāde notiek paketēs, nevis pa vienam pieprasījumam katrā solī:
+
+- `stickyRoundRobinLimit` (kombinācijas konfigurācija, pēc tam
+  `comboStickyRoundRobinLimit`, tad `settings.stickyRoundRobinLimit`; noklusējums **3**)
+  saglabā to pašu mērķi norādītajam secīgo veiksmīgo izpildes reižu skaitam un tikai pēc
+  tam pāriet pie nākamā. Lai rotācija notiktu pēc katra pieprasījuma, kombinācijas
+  pārrakstīšanas vērtību iestatiet uz `1`. Kombināciju redaktors parāda faktisko vērtību
+  un slāni, no kura tā iegūta.
+- `connectionAwareExpansion` (kombinācijas konfigurācija, pēc tam iestatījumi;
+  noklusējums **false**) pirms rotācijas izvērš katru nodrošinātāja līmeņa soli atsevišķos
+  katra konta mērķos. B grupas stratēģijas (priority, weighted, round-robin, random, p2c,
+  least-used, cost-optimized, lkgp, fill-first, strict-random, context-optimized,
+  cache-optimized, context-relay, fusion, pipeline) saglabā nodrošinātāja līmeņa skatu,
+  līdz šī opcija tiek ieslēgta. Kombināciju redaktorā ir pieejamas opcijas
+  mantot / ieslēgt / izslēgt; mantošana izmanto globālo noklusējuma vērtību (izslēgts).
+- Uzvedņu kešatmiņas lokalitātes maršrutēšana (`promptCacheAffinityEnabled`;
+  noklusējums **true**) pārkārto piesaistītos savienojumus, lai atbilstošās kešatmiņas
+  atslēgas paliktu vienā kontā. Tai ir prioritāte pār round-robin un weighted rotāciju
+  starp piesaistītiem katra konta soļiem. Ja nepieciešama stingra rotācija, izslēdziet to
+  sadaļā Settings → Combo defaults. Katrai kombinācijai atsevišķa pārrakstīšanas opcija
+  nav pieejama.
+
+Vairāku kontu rotācijai vienā modelī ieteicams izmantot **vienu dinamiskā konta soli**
+(tukšs `connectionId`, viss pūls) ar piesaistes ierobežojumu `1`, nevis trīs piesaistītus
+`connectionId`. Piesaistītie soļi kopā ar afinitāti koncentrējas vienā un tajā pašā kontā
+pat tad, kad RR skaitītājs turpina palielināties.
 
 ## Fusijas stratēģija
 
@@ -679,19 +733,19 @@ Ieskaitot tukšo `auto` (noklusējuma) un 6 `AutoVariant` vērtības, kas deklar
 
 (`AutoVariant` pats uzskaita 6 vērtības; 7. iespēja ir "nav varianta" — tukšais `auto` — ko apstrādā `parseAutoPrefix()` kā `variant: undefined`.)
 
-## Kā slāņi iederas Auto-Kombinācijā
+## Kā līmeņi iekļaujas Auto-Combo
 
-16 faktoru vērtēšanas funkcija (`open-sse/services/autoCombo/scoring.ts`) apstrādā slāņa
-piederību kā divus signālus: `tierPriority` (0.0476) un `tierAffinity` (0.0476). Skatiet
-kanonisko [vērtēšanas faktoru tabulu](#how-it-works-persisted-auto-combos) iepriekš pilnam
-`DEFAULT_WEIGHTS` kopam — iepakojumu specifiskos pielāgojumus (ship-fast/cost-saver/quality-first/
-offline-friendly) varat atrast "Svaru profili katram iepakojumam" tabulā.
+16 faktoru vērtēšanas funkcija (`open-sse/services/autoCombo/scoring.ts`) līmeņa
+piederību izmanto kā divus signālus: `tierPriority` (0.0476) un `tierAffinity` (0.0476). Pilnu
+`DEFAULT_WEIGHTS` kopu skatiet iepriekš esošajā kanoniskajā [vērtēšanas faktoru tabulā](#how-it-works-persisted-auto-combos) —
+atsevišķu pakotņu pārrakstījumi (ship-fast/cost-saver/quality-first/
+offline-friendly) ir norādīti tabulā "Svaru profili katrai pakotnei".
 
-Slānis pats par sevi **nespiež** Tier 1 pirmais — ja Tier 1 aiztures laiks ir slikts vai
-izmaksas-kvalitātes attiecība ir neoptimāla, uzvar Tier 2. Lai piespiestu slāņa secību, izmantojiet kombinēšanas
-stratēģiju `priority` un sakārtojiet sniedzējus pēc slāņa.
+Līmenis pats par sevi **nenodrošina**, ka 1. līmenis būs pirmais — ja 1. līmeņa latentums ir pārāk liels vai
+izmaksu un kvalitātes attiecība nav optimāla, uzvar 2. līmenis. Lai uzspiestu līmeņu secību, izmantojiet kombinācijas
+stratēģiju `priority` un sakārtojiet nodrošinātājus pēc līmeņa.
 
-Lai stipri favorizētu Tier 1 (abonements), palieliniet `tierPriority` svaru:
+Lai izteikti dotu priekšroku 1. līmenim (abonementam), palieliniet `tierPriority` svaru:
 
 ```json
 {
@@ -700,7 +754,7 @@ Lai stipri favorizētu Tier 1 (abonements), palieliniet `tierPriority` svaru:
 }
 ```
 
-Skatiet `docs/marketing/TIERS.md` par slāņu definīcijām un sniedzēju klasifikāciju.
+Līmeņu definīcijas un nodrošinātāju klasifikāciju skatiet failā [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
 ## Testēšana un pārklājums
 

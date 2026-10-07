@@ -43,6 +43,7 @@ export const AUTO_TEMPLATE_VARIANTS: Record<string, AutoVariant | undefined> = {
   "auto/smart": "smart",
   "auto/claude-opus": "smart",
   "auto/claude-sonnet": "coding",
+  "auto/claude-haiku": "fast",
   "auto/best-free": "cheap",
   // Subscription-first routing (see `subscriptionLadder.ts`). `auto/subscription`
   // maps to no weight variant on purpose: its pool is already restricted to

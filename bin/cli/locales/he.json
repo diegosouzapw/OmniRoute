@@ -1,5 +1,1340 @@
 {
+  "common": {
+    "error": "שגיאה: {message}",
+    "serverOffline": "שרת OmniRoute אינו מקוון. הפעילו אותו באמצעות: omniroute serve",
+    "authRequired": "נדרש אימות. הגדירו את OMNIROUTE_API_KEY או הריצו: omniroute setup",
+    "rateLimited": "חריגה ממגבלת הקצב. נסו שוב בעוד {seconds} שניות.",
+    "timeout": "תם הזמן שהוקצב לבקשה לאחר {ms} אלפיות השנייה.",
+    "success": "הושלם.",
+    "yes": "כן",
+    "no": "לא",
+    "confirm": "האם אתם בטוחים? (כן/לא)",
+    "dryRun": "[הרצה-יבשה] הפעולה שהייתה מתבצעת: {action}",
+    "cancelled": "בוטל.",
+    "jsonOpt": "פלט בפורמט JSON",
+    "yesOpt": "דילוג על בקשת האישור"
+  },
+  "setup": {
+    "title": "הגדרת OmniRoute",
+    "passwordPrompt": "סיסמת מנהל מערכת",
+    "providerPrompt": "ספק ברירת מחדל (השאירו ריק כדי לדלג)",
+    "done": "ההגדרה הושלמה",
+    "passwordSet": "סיסמת מנהל המערכת הוגדרה",
+    "providerSet": "הספק הוגדר: {name}",
+    "testingProvider": "בדיקת החיבור לספק: {name}",
+    "testPassed": "בדיקת הספק הצליחה",
+    "testFailed": "בדיקת הספק נכשלה: {error}",
+    "loginEnabled": "כניסה: מופעלת (הסיסמה עודכנה)",
+    "loginDisabled": "כניסה: מושבתת",
+    "providerInfo": "ספק: {info}",
+    "opencode": "התקנה והגדרה של @omniroute/opencode-plugin המצורף עבור OpenCode"
+  },
+  "doctor": {
+    "title": "אבחון OmniRoute",
+    "dbOk": "מסד הנתונים: תקין ({path})",
+    "dbMissing": "מסד הנתונים: לא אותחל — הריצו `omniroute setup`",
+    "portOk": "יציאה {port}: זמינה",
+    "portConflict": "יציאה {port}: נמצאת בשימוש על ידי תהליך אחר",
+    "encryptionOk": "מפתח הצפנה: מוגדר",
+    "encryptionMissing": "מפתח ההצפנה חסר — הריצו `omniroute setup`",
+    "allGood": "כל הבדיקות עברו בהצלחה.",
+    "warnings": "{count} אזהרות — ראו לעיל."
+  },
+  "providers": {
+    "title": "ספקים",
+    "noProviders": "לא הוגדרו ספקים. הריצו: omniroute setup",
+    "testing": "מתבצעת בדיקה של {name}...",
+    "available": "{count} ספקים זמינים",
+    "connected": "מחובר",
+    "disconnected": "מנותק",
+    "validationFailed": "האימות נכשל: {error}",
+    "metrics": {
+      "description": "הצגת מדדי ביצועים של ספקים (זמן השהיה, שיעור הצלחה, עלות)",
+      "provider": "סינון לפי מזהה ספק",
+      "connection_id": "סינון לפי מזהה חיבור",
+      "period": "פרק זמן: 1h|6h|24h|7d|30d (ברירת מחדל: 24h)",
+      "metric": "התמקדות בשדה מדד מסוים",
+      "sort": "מיון לפי שדה (בסדר יורד)",
+      "limit": "מספר שורות מרבי (ברירת מחדל: 50)",
+      "watch": "רענון כל 5s (מצב חי)",
+      "compare": "מזהי ספקים מופרדים בפסיקים להשוואה זה לצד זה"
+    },
+    "metric_single": {
+      "description": "קבלת ערך מדד יחיד עבור חיבור מסוים"
+    },
+    "rotate": {
+      "description": "החלפת מפתח ה-API במעלה הזרם עבור חיבור לספק",
+      "newKeyOpt": "ערך מפתח API חדש (מומלץ להימנע: עדיף להשתמש ב---from-env)",
+      "fromEnvOpt": "קריאת המפתח החדש ממשתנה הסביבה VAR",
+      "oauthOpt": "הפעלת תהליך אימות מחדש באמצעות OAuth במקום זאת",
+      "skipTestOpt": "דילוג על בדיקת הקישוריות לאחר החלפת המפתח",
+      "dryRunOpt": "הצגת השינויים שהיו מתבצעים מבלי לכתוב אותם",
+      "confirmPrompt": "להחליף את מפתח ה-API עבור החיבור \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] המפתח עבור \"{name}\" ({id}) היה מוחלף. לא בוצעו שינויים.",
+      "oauthHint": "חיבור OAuth — יש להריץ: omniroute oauth {provider}",
+      "envVarEmpty": "משתנה הסביבה {var} אינו מוגדר או ריק.",
+      "success": "המפתח עבור \"{name}\" הוחלף. יש להריץ `providers test {id}` כדי לאמת.",
+      "testPassed": "הבדיקה שלאחר החלפת המפתח הצליחה.",
+      "testFailed": "הבדיקה שלאחר החלפת המפתח נכשלה: {error}"
+    },
+    "status": {
+      "description": "הצגת תקינות המפתחות עבור כל חיבורי הספקים (גיל, תפוגה, תקופת צינון)",
+      "providerOpt": "סינון לפי שם ספק",
+      "header": "מזהה      ספק           שם                      מצב תפוגה    מצב בדיקה    צינון עד",
+      "noData": "אין נתונים זמינים על חיבורי ספקים.",
+      "requiresServer": "הפקודה providers status מחייבת ששרת OmniRoute יהיה פעיל."
+    }
+  },
+  "keys": {
+    "title": "מפתחות API",
+    "addDescription": "הוספה או עדכון של מפתח API עבור ספק",
+    "listDescription": "הצגת כל מפתחות ה-API שהוגדרו",
+    "removeDescription": "הסרת מפתח API עבור ספק",
+    "regenerateDescription": "יצירה מחדש של מפתח API של OmniRoute",
+    "revokeDescription": "ביטול מפתח API של OmniRoute",
+    "revealDescription": "חשיפת הערך הלא מוסתר של מפתח ה-API",
+    "usageDescription": "הצגת השימוש האחרון במפתח API",
+    "usageLimitOpt": "מספר הבקשות האחרונות",
+    "rotateDescription": "יצירת מפתח חדש וביטול תוקף המפתח הישן",
+    "graceOpt": "תקופת חסד (מ״ש) לפני ביטול תוקפו של המפתח הישן",
+    "stdinOpt": "קריאת מפתח API מ-stdin במקום מארגומנט",
+    "added": "נוסף מפתח עבור {provider}.",
+    "removed": "המפתח הוסר.",
+    "listed": "{count} מפתחות.",
+    "noKeys": "לא הוגדרו מפתחות.",
+    "noUsage": "לא נמצאו נתוני שימוש.",
+    "confirmRemove": "להסיר את המפתח {id}?",
+    "confirmRegenerate": "ליצור מחדש את המפתח {id}?",
+    "confirmRevoke": "לבטל את המפתח {id}?",
+    "confirmRotate": "להחליף את המפתח {id}? (תוקף המפתח הישן יבוטל לאחר תקופת החסד)",
+    "regenerated": "נוצר מחדש. מפתח חדש: {key}",
+    "revoked": "המפתח {id} בוטל.",
+    "rotated": "המפתח {id} הוחלף. מזהה המפתח החדש: {newId}",
+    "revealWarning": "⚠  פעולה זו תציג את המפתח המלא ללא הסתרה. ודאו שהמסך שלכם פרטי.",
+    "providerRequired": "נדרש ספק.",
+    "keyRequired": "נדרש מפתח API.",
+    "stdinEmpty": "לא סופק מפתח API דרך stdin.",
+    "unknownProvider": "ספק לא מוכר: {provider}",
+    "policy": {
+      "title": "מדיניות מפתח",
+      "showDescription": "הצגת מדיניות קצב/עלות עבור מפתח",
+      "setDescription": "הגדרת מדיניות קצב/עלות עבור מפתח",
+      "rateLimitOpt": "מספר בקשות מרבי לדקה",
+      "maxCostOpt": "עלות מרבית ליום (USD)",
+      "allowedModelsOpt": "רשימה מופרדת בפסיקים של מודלים מורשים",
+      "nothingToSet": "לא סופקו שדות מדיניות. השתמשו ב---rate-limit, ב---max-cost או ב---allowed-models.",
+      "updated": "המדיניות עודכנה."
+    },
+    "expiration": {
+      "title": "תפוגת מפתח",
+      "listDescription": "הצגת מפתחות שתוקפם יפוג בקרוב",
+      "daysOpt": "הצגת מפתחות שתוקפם יפוג בתוך N ימים",
+      "none": "אין מפתחות שתוקפם יפוג בתוך {days} ימים.",
+      "listTitle": "מפתחות שתוקפם יפוג בתוך {days} ימים:"
+    }
+  },
+  "authExport": {
+    "description": "ייצוא פרטי גישה מפוענחים של ספקים (מקומי בלבד, פלט טקסט גלוי)",
+    "idOpt": "ייצוא החיבור בלבד שתואם למזהה/שם/ספק הזה",
+    "formatOpt": "פורמט פלט: json או env",
+    "outOpt": "כתיבת הפלט לקובץ במקום ל-stdout (עם הרשאות 0600)",
+    "forceOpt": "אישור שהבנתם שפעולה זו מדפיסה/כותבת סודות כטקסט גלוי",
+    "warning": "⚠ פעולה זו מדפיסה/כותבת מפתחות API ואסימוני OAuth מפוענחים כטקסט גלוי. ודאו שהמסך, היסטוריית המעטפת וכל קובץ פלט נשארים פרטיים.",
+    "confirmHeading": "⚠ אזהרה: פעולה זו מייצאת פרטי גישה מפוענחים של ספקים כטקסט גלוי",
+    "confirmBody": "פקודה זו מפענחת ומדפיסה/כותבת apiKey, accessToken, refreshToken ו-\nidToken עבור החיבורים שנבחרו. יש להתייחס לפלט כאל סוד.",
+    "confirmFooter": "לאישור, הריצו:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY נדרש לייצוא פרטי גישה.",
+    "notFound": "החיבור לא נמצא: {id}",
+    "invalidFormat": "פורמט לא תקין: {format}. השתמשו ב-json או ב-env."
+  },
+  "stream": {
+    "description": "הזרמת תגובת צ'אט עם מצבי בדיקת SSE",
+    "file": "קריאת הנחיה מקובץ",
+    "stdin": "קריאת הנחיה מ-stdin",
+    "model": "מזהה מודל (ברירת מחדל: auto)",
+    "system": "הנחיית מערכת",
+    "combo": "אילוץ שילוב מסוים לפי שם",
+    "max_tokens": "מספר האסימונים המרבי בתגובה",
+    "responses_api": "שימוש ב-/v1/responses במקום ב-/v1/chat/completions",
+    "raw": "הדפסת שורות SSE גולמיות כפי שהתקבלו",
+    "debug": "הדפסת פרטי תזמון לכל מקטע אל stderr",
+    "save": "שמירת כל אירועי SSE בקובץ .jsonl",
+    "error": {
+      "empty_prompt": "שגיאה: נדרשת הנחיה (ארגומנט מיקומי, --file או --stdin)"
+    }
+  },
+  "usage": {
+    "description": "ניתוח שימוש, תקציבים, מכסות ויומנים",
+    "analytics": {
+      "description": "הצגת ניתוח שימוש מצטבר",
+      "period": "טווח זמן: 1d|7d|30d|90d|ytd|all (ברירת מחדל: 30d)",
+      "provider": "סינון לפי מזהה ספק"
+    },
+    "budget": {
+      "description": "ניהול תקציבי עלויות",
+      "set": {
+        "scope": "תחום התקציב (ברירת מחדל: global)",
+        "period": "תקופת התקציב: daily|weekly|monthly (ברירת מחדל: monthly)"
+      }
+    },
+    "quota": {
+      "description": "הצגת ניצול מכסת הספק",
+      "provider": "סינון לפי מזהה ספק",
+      "check": "הצגה אם המכסה זמינה לבקשה חדשה"
+    },
+    "logs": {
+      "description": "הצגת יומני קריאות בקשות",
+      "limit": "מספר רשומות היומן שיוחזרו (ברירת מחדל: 100)",
+      "search": "שאילתת חיפוש לסינון יומנים",
+      "since": "החזרת יומנים מאז חותמת זמן זו",
+      "follow": "מעקב רציף אחר רשומות יומן חדשות",
+      "api_key": "סינון יומנים לפי מפתח API"
+    },
+    "utilization": {
+      "description": "הצגת מדדי ניצול של מפתח API",
+      "api_key": "סינון לפי מפתח API"
+    },
+    "history": {
+      "description": "הצגת היסטוריית בקשות",
+      "limit": "מספר רשומות ההיסטוריה (ברירת מחדל: 100)"
+    },
+    "proxy_logs": {
+      "description": "הצגת יומני בקשות ברמת ה-proxy",
+      "limit": "מספר רשומות יומן ה-proxy (ברירת מחדל: 100)"
+    }
+  },
+  "cost": {
+    "description": "הצגת דוח עלויות עם פירוט לפי ספק, מודל, שילוב או מפתח API",
+    "period": "טווח זמן: 1d|7d|30d|90d|ytd|all (ברירת מחדל: 30d)",
+    "since": "תאריך התחלה (בפורמט ISO, לדוגמה 2026-01-01) — עוקף את --period",
+    "until": "תאריך סיום (בפורמט ISO)",
+    "group_by": "קיבוץ תוצאות לפי: provider|model|api-key|combo|day (ברירת מחדל: provider)",
+    "api_key_filter": "סינון לפי מפתח API מסוים",
+    "limit": "מספר השורות המרבי להצגה (ברירת מחדל: 100)"
+  },
+  "simulate": {
+    "description": "הדמיית ניתוב בהרצה יבשה — הצגת הספקים שהיו נבחרים מבלי לפנות לשירותי upstream",
+    "file": "טעינת גוף הבקשה המלא מקובץ JSON",
+    "model": "מזהה מודל (ברירת מחדל: auto)",
+    "combo": "אילוץ combo מסוים לפי שם",
+    "reasoning": "רמת מאמץ החשיבה (low|medium|high)",
+    "thinking": "תקציב טוקנים לחשיבה מורחבת",
+    "explain": "הדפסת עץ הגיבויים וטווח העלויות אל stderr",
+    "noCombo": "לא נמצא combo תואם. ניתן להגדיר אחד באמצעות: omniroute combo create"
+  },
+  "chat": {
+    "description": "שליחת הנחיית צ׳אט חד-פעמית אל OmniRoute",
+    "file": "קריאת ההנחיה מקובץ",
+    "stdin": "קריאת ההנחיה מ-stdin",
+    "system": "הנחיית מערכת",
+    "model": "מזהה מודל (ברירת מחדל: auto)",
+    "max_tokens": "מספר הטוקנים המרבי בתגובה",
+    "temperature": "טמפרטורת דגימה (0–2)",
+    "top_p": "דגימת גרעין Top-p",
+    "reasoning_effort": "רמת מאמץ החשיבה (low|medium|high)",
+    "thinking_budget": "תקציב טוקנים לחשיבה מורחבת",
+    "combo": "אילוץ combo מסוים לפי שם",
+    "responses_api": "שימוש ב-/v1/responses במקום ב-/v1/chat/completions",
+    "stream": "הזרמת התגובה בהדרגה",
+    "no_history": "אין לשמור ב-~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "שגיאה: נדרשת הנחיה (ארגומנט מיקומי, --file או --stdin)"
+    }
+  },
+  "serve": {
+    "description": "הפעלת שרת OmniRoute (פעולת ברירת המחדל)",
+    "starting": "שרת OmniRoute מופעל ביציאה {port}...",
+    "ready": "מוכן בכתובת http://localhost:{port}",
+    "stopping": "השרת נעצר (PID {pid})...",
+    "stopped": "השרת נעצר.",
+    "notRunning": "השרת אינו פועל.",
+    "port": "יציאה להאזנה (ברירת מחדל: 20128)",
+    "no_open": "אין לפתוח את הדפדפן באופן אוטומטי",
+    "daemon": "הפעלת השרת כתהליך רקע",
+    "log": "הצגת יומני השרת בתוך הפלט",
+    "no_recovery": "השבתת הפעלה מחדש אוטומטית לאחר קריסה (מצב ניפוי שגיאות)",
+    "max_restarts": "מספר ההפעלות מחדש המרבי עקב קריסה בתוך 30 שניות לפני ויתור (ברירת מחדל: 2)",
+    "tray": "הפעלה במגש המערכת (שולחן עבודה בלבד, בהסכמה)",
+    "no_tray": "השבתת סמל מגש המערכת",
+    "ready_timeout": "זמן קצוב לבדיקת מוכנות באלפיות שנייה (גם OMNIROUTE_READY_TIMEOUT_MS, ברירת מחדל 60000)",
+    "tls_cert": "נתיב לאישור TLS‏ (PEM) לצורך אספקת HTTPS (גם OMNIROUTE_TLS_CERT)",
+    "tls_key": "נתיב למפתח TLS הפרטי (PEM) לצורך אספקת HTTPS (גם OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "גיבוי",
+    "description": "יצירת גיבוי של נתוני OmniRoute",
+    "creating": "הגיבוי נוצר...",
+    "done": "הגיבוי נשמר ב-{path}",
+    "noFiles": "אין קבצים לגיבוי (מסד הנתונים לא אותחל)",
+    "failed": "הגיבוי נכשל: {error}",
+    "restoring": "מתבצע שחזור מ-{path}...",
+    "restored": "השחזור הושלם.",
+    "restoreDescription": "שחזור מגיבוי",
+    "listTitle": "גיבויים זמינים",
+    "noBackups": "לא נמצאו גיבויים.",
+    "notFound": "הגיבוי לא נמצא: {name}",
+    "confirmRestore": "להחליף את הנתונים הנוכחיים בגיבוי מתאריך {ts}?",
+    "createDescription": "יצירת גיבוי של נתוני OmniRoute",
+    "nameOpt": "שם מותאם אישית לגיבוי",
+    "cloudOpt": "העלאת הגיבוי לאחסון בענן",
+    "encryptOpt": "הצפנת הגיבוי באמצעות AES-256-GCM",
+    "keyFileOpt": "נתיב לקובץ המכיל את ביטוי הסיסמה להצפנה",
+    "excludeOpt": "אי-הכללת קובץ התואם לתבנית (ניתן לחזור על האפשרות)",
+    "retentionOpt": "שמירת N הגיבויים האחרונים בלבד",
+    "passphrasePrompt": "ביטוי סיסמה להצפנה:",
+    "noPassphrase": "נדרש ביטוי סיסמה עבור גיבוי מוצפן.",
+    "cloudFailed": "אזהרה: ההעלאה לענן נכשלה. הגיבוי המקומי נשמר.",
+    "cloudUploaded": "הגיבוי הועלה לענן: {url}",
+    "auto": {
+      "title": "תזמון גיבויים",
+      "enableDescription": "הפעלת גיבויים אוטומטיים מתוזמנים",
+      "disableDescription": "השבתת גיבויים אוטומטיים מתוזמנים",
+      "statusDescription": "הצגת המצב הנוכחי של תזמון הגיבויים",
+      "cronOpt": "ביטוי Cron לתזמון (ברירת מחדל: מדי יום ב-3 לפנות בוקר)",
+      "enabled": "גיבוי אוטומטי הופעל (Cron: {cron}).",
+      "hint": "התזמון נקרא על ידי omniroute serve בעת ההפעלה.",
+      "disabled": "הגיבוי האוטומטי הושבת.",
+      "notConfigured": "לא הוגדר תזמון גיבויים."
+    }
+  },
+  "health": {
+    "description": "בדיקת תקינות השרת ומצב הרכיבים",
+    "noServer": "השרת אינו פועל. יש להפעיל אותו באמצעות: omniroute serve",
+    "title": "תקינות",
+    "status": "מצב: {status}",
+    "uptime": "זמן פעילות: {uptime}",
+    "requests": "בקשות (24 שעות): {count}",
+    "cost": "עלות (24 שעות): ${cost}"
+  },
+  "quota": {
+    "description": "הצגת ניצול המכסה של הספק",
+    "noServer": "השרת אינו פועל. יש להפעיל אותו באמצעות: omniroute serve",
+    "noData": "אין מידע זמין על המכסה."
+  },
+  "cache": {
+    "description": "ניהול מטמון התגובות",
+    "noServer": "השרת אינו פועל. יש להפעיל אותו באמצעות: omniroute serve",
+    "cleared": "המטמון נוקה.",
+    "clearFailed": "ניקוי המטמון נכשל."
+  },
   "redis": {
     "description": "הפעל מכולת Redis מקומית בלחיצה אחת (Podman או Docker) לשמירת מטמון ומעקב מכסות של OmniRoute"
+  },
+  "test": {
+    "description": "בדיקת חיבור לספק",
+    "noServer": "השרת אינו פועל. יש להפעיל אותו באמצעות: omniroute serve",
+    "testing": "מתבצעת בדיקה של {provider} / {model}...",
+    "passed": "החיבור הצליח!",
+    "failed": "החיבור נכשל: {error}",
+    "allProvidersOpt": "בדיקת כל הספקים שהוגדרו",
+    "latencyOpt": "הצגת מדידות השהיה (ממוצע/מינימום/מקסימום במילישניות)",
+    "repeatOpt": "חזרה על הבדיקה N פעמים ואיגוד התוצאות",
+    "compareOpt": "מודלים מופרדים בפסיקים להשוואה (למשל gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "שמירת התוצאות בקובץ JSON",
+    "saved": "התוצאות נשמרו ב-{path}",
+    "compareTitle": "השוואת מודלים",
+    "compareMinTwo": "נדרשים לפחות שני מודלים עבור --compare (מופרדים בפסיקים)",
+    "noProviders": "לא הוגדרו ספקים. ניתן להוסיף ספק באמצעות: omniroute keys add"
+  },
+  "update": {
+    "checking": "מתבצעת בדיקה אם קיימים עדכונים...",
+    "upToDate": "הגרסה כבר עדכנית ({version}).",
+    "available": "קיים עדכון: {current} → {latest}",
+    "installing": "מתבצעת התקנה של {latest}...",
+    "done": "עודכן לגרסה {latest}. יש להפעיל מחדש את השרת כדי להחיל את העדכון."
+  },
+  "mcp": {
+    "title": "שרת MCP",
+    "running": "שרת MCP פועל ({transport})",
+    "stopped": "שרת MCP נעצר.",
+    "restarted": "שרת MCP הופעל מחדש.",
+    "stoppedHint": "יש להריץ את `omniroute mcp enable` כדי להפעיל אותו.",
+    "enabled": "שרת MCP הופעל.",
+    "disabled": "שרת MCP הושבת.",
+    "enable": {
+      "description": "הפעלת שרת MCP",
+      "transport": "תעבורה לשימוש: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "השבתת שרת ה-MCP"
+    },
+    "call": {
+      "description": "הפעלת כלי MCP ישירות",
+      "args": "אובייקט ארגומנטים מסוג JSON (מוטבע)",
+      "args_file": "נתיב לקובץ ארגומנטים מסוג JSON",
+      "stream": "שימוש בנקודת קצה להזרמה (/api/mcp/stream)",
+      "scope": "הרשאה נדרשת (ניתנת לחזרה, לדוגמה read:health)"
+    },
+    "scopes": {
+      "description": "הצגת הרשאות ה-MCP הזמינות",
+      "tool": "הצגת ההרשאות הנדרשות על ידי כלי מסוים"
+    },
+    "tools": {
+      "description": "בדיקת כלי MCP",
+      "list": {
+        "description": "הצגת כל כלי ה-MCP",
+        "scope": "סינון לפי הרשאה"
+      },
+      "info": {
+        "description": "הצגת מטא-נתונים עבור כלי MCP"
+      },
+      "schema": {
+        "description": "הצגת סכמת JSON של הקלט/פלט עבור כלי MCP",
+        "io": "סוג סכמה: input|output (ברירת מחדל: input)"
+      }
+    },
+    "audit": {
+      "description": "יומן הביקורת של MCP (כינוי עבור audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "הצגת כישורי A2A הזמינים מכרטיס הסוכן"
+    },
+    "invoke": {
+      "description": "הפעלת כישור A2A והחזרת מזהה המשימה",
+      "input": "אובייקט קלט מסוג JSON",
+      "input_file": "נתיב לקובץ קלט מסוג JSON",
+      "wait": "המתנה להשלמת המשימה לפני החזרה",
+      "timeout": "זמן קצוב להמתנה להשלמה במילישניות (ברירת מחדל: 60000)"
+    },
+    "tasks": {
+      "description": "ניהול משימות A2A",
+      "list": {
+        "status": "סינון לפי סטטוס",
+        "skill": "סינון לפי מזהה כישור"
+      },
+      "watch": {
+        "description": "בדיקה מחזורית של סטטוס המשימה עד להשלמתה"
+      },
+      "stream": {
+        "description": "הזרמת אירועי ביצוע המשימה באמצעות SSE"
+      },
+      "logs": {
+        "description": "הצגת הודעות ותוצרים של המשימה"
+      }
+    }
+  },
+  "policy": {
+    "description": "ניהול מדיניות ההרשאות של OmniRoute",
+    "list": {
+      "description": "הצגת מדיניות",
+      "kind": "סינון לפי סוג (allow|deny|rate-limit|cost-cap)",
+      "scope": "סינון לפי תחום (global|api-key|provider)"
+    },
+    "get": {
+      "description": "קבלת פרטי מדיניות לפי מזהה"
+    },
+    "create": {
+      "description": "יצירת מדיניות מקובץ JSON",
+      "file": "נתיב לקובץ JSON של המדיניות"
+    },
+    "update": {
+      "description": "עדכון מדיניות מקובץ JSON",
+      "file": "נתיב לקובץ JSON של המדיניות"
+    },
+    "delete": {
+      "description": "מחיקת מדיניות לפי מזהה",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "evaluate": {
+      "description": "הערכת מדיניות בהרצה יבשה (יציאה 0=מותר, 4=נדחה)",
+      "api_key": "מפתח API להערכה",
+      "action": "פעולה לבדיקה (למשל chat, embed, admin)",
+      "resource": "נתיב או מזהה של המשאב",
+      "context": "הקשר נוסף כאובייקט JSON"
+    },
+    "export": {
+      "description": "ייצוא כל כללי המדיניות לקובץ JSON"
+    },
+    "import": {
+      "description": "ייבוא כללי מדיניות מקובץ JSON",
+      "overwrite": "דריסת כללי מדיניות קיימים בעלי אותו ID"
+    }
+  },
+  "compression": {
+    "description": "הגדרה ובדיקה של תהליך הדחיסה של OmniRoute",
+    "status": {
+      "description": "הצגת מצב הדחיסה וההגדרות הנוכחיים"
+    },
+    "configure": {
+      "description": "הגדרת אפשרויות הדחיסה",
+      "engine": "מנוע דחיסה (caveman|rtk|hybrid|none)",
+      "caveman_agg": "רמת האגרסיביות של Caveman‏ 0.0–1.0",
+      "rtk_budget": "תקציב הטוקנים של RTK",
+      "language_pack": "חבילת שפה להפעלה"
+    },
+    "engine": {
+      "description": "קבלה או הגדרה של מנוע הדחיסה הפעיל"
+    },
+    "combos": {
+      "description": "ניהול סטטיסטיקות של שילובי דחיסה"
+    },
+    "rules": {
+      "description": "ניהול כללי דחיסה",
+      "add": {
+        "pattern": "תבנית להתאמה (regex או field:pattern)",
+        "action": "פעולה: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "הצגת חבילות השפה הזמינות לדחיסה"
+    },
+    "preview": {
+      "description": "תצוגה מקדימה של השפעת הדחיסה על בקשה",
+      "file": "נתיב לקובץ JSON של הבקשה"
+    }
+  },
+  "tunnel": {
+    "title": "מנהרות",
+    "listDescription": "הצגת מנהרות פעילות",
+    "createDescription": "יצירת מנהרה",
+    "created": "המנהרה נוצרה: {url}",
+    "stopped": "המנהרה נעצרה.",
+    "confirmStop": "לעצור את המנהרה {id}?",
+    "stopDescription": "עצירת מנהרה",
+    "statusDescription": "הצגת מצב מפורט של מנהרה",
+    "logsDescription": "הצגת יומנים של מנהרה",
+    "infoDescription": "הצגת פרטי התצורה של מנהרה",
+    "rotateDescription": "יצירת כתובת URL חדשה למנהרה",
+    "tailOpt": "מספר שורות היומן להצגה",
+    "typeRequired": "יש לציין את סוג המנהרה.",
+    "noLogs": "אין יומנים זמינים.",
+    "notAvailable": "פרטי המנהרה אינם זמינים.",
+    "noTunnels": "אין מנהרות פעילות.",
+    "infoTitle": "פרטי המנהרה: {type}",
+    "rotated": "כתובת ה-URL של המנהרה הוחלפה: {url}",
+    "confirmRotate": "להחליף את כתובת המנהרה מסוג {type}? (תיווצר כתובת URL חדשה)"
+  },
+  "stop": {
+    "description": "עצירת שרת OmniRoute",
+    "stopping": "עוצר את השרת (PID {pid})...",
+    "stopped": "השרת נעצר.",
+    "notRunning": "אין שרת שפועל.",
+    "portFallback": "לא נמצא קובץ PID, מנסה לעצור לפי יציאה..."
+  },
+  "restart": {
+    "description": "הפעלת שרת OmniRoute מחדש",
+    "restarting": "מפעיל מחדש את שרת OmniRoute..."
+  },
+  "dashboard": {
+    "description": "פתיחת לוח הבקרה של OmniRoute בדפדפן",
+    "opening": "פותח את לוח הבקרה בכתובת {url}",
+    "urlOnly": "הדפסת כתובת ה-URL של לוח הבקרה מבלי לפתוח דפדפן",
+    "tui": "פתיחת לוח בקרה אינטראקטיבי בממשק TUI (ממשק מסוף, 7 כרטיסיות)"
+  },
+  "models": {
+    "description": "הצגת המודלים הזמינים (דורש שרת)",
+    "search": "סינון מודלים לפי מזהה, שם, ספק או תיאור",
+    "noServer": "השרת אינו פועל. יש להפעילו באמצעות: omniroute serve",
+    "noModels": "לא נמצאו מודלים."
+  },
+  "audit": {
+    "description": "גישה ליומני ביקורת של תאימות ו-MCP",
+    "source": "מקור היומן: all|compliance|mcp (ברירת מחדל: all)",
+    "since": "החזרת רשומות החל מחותמת זמן זו (ISO 8601)",
+    "until": "החזרת רשומות עד לחותמת זמן זו (ISO 8601)",
+    "tail": {
+      "description": "הצגת רשומות אחרונות מיומן הביקורת",
+      "follow": "מעקב רציף אחר רשומות חדשות (תשאול כל 2 שניות)",
+      "limit": "מספר הרשומות המרבי להצגה (ברירת מחדל: 100)"
+    },
+    "search": {
+      "description": "חיפוש רשומות ביומן הביקורת לפי מילת מפתח",
+      "limit": "מספר התוצאות המרבי (ברירת מחדל: 200)",
+      "actor": "סינון לפי מזהה גורם מבצע",
+      "action": "סינון לפי שם פעולה"
+    },
+    "export": {
+      "description": "ייצוא יומן הביקורת לקובץ",
+      "format": "תבנית פלט: jsonl|csv (ברירת מחדל: jsonl)"
+    },
+    "stats": {
+      "description": "הצגת נתונים סטטיסטיים של יומן הביקורת",
+      "period": "תקופת זמן: 1d|7d|30d (ברירת מחדל: 7d)"
+    },
+    "get": {
+      "description": "קבלת רשומה יחידה מיומן הביקורת לפי מזהה"
+    }
+  },
+  "skills": {
+    "description": "ניהול מיומנויות OmniRoute‏ (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "הצגת המיומנויות המותקנות",
+      "type": "סינון לפי סוג (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "הצגת מיומנויות מופעלות בלבד",
+      "disabled": "הצגת מיומנויות מושבתות בלבד",
+      "api_key": "סינון לפי מפתח API"
+    },
+    "get": {
+      "description": "קבלת פרטים על מיומנות לפי מזהה"
+    },
+    "install": {
+      "description": "התקנת מיומנות מקובץ או מכתובת URL",
+      "from_file": "נתיב לקובץ הגדרת המיומנות בפורמט JSON",
+      "from_url": "כתובת URL של הגדרת מיומנות מרוחקת",
+      "type": "סוג מיומנות (sandbox|custom|hybrid)",
+      "enable": "הפעלת המיומנות לאחר ההתקנה"
+    },
+    "enable": {
+      "description": "הפעלת מיומנות לפי מזהה"
+    },
+    "disable": {
+      "description": "השבתת מיומנות לפי מזהה",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "delete": {
+      "description": "מחיקת מיומנות לפי מזהה",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "execute": {
+      "description": "הרצת מיומנות לפי מזהה",
+      "input": "אובייקט קלט מסוג JSON",
+      "input_file": "נתיב לקובץ קלט מסוג JSON",
+      "timeout": "זמן קצוב להרצה במילישניות (ברירת מחדל: 30000)"
+    },
+    "executions": {
+      "description": "הצגת היסטוריית הרצות המיומנויות",
+      "skill": "סינון לפי מזהה מיומנות",
+      "limit": "מספר תוצאות מרבי (ברירת מחדל: 50)",
+      "status": "סינון לפי סטטוס (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "ניהול מיומנויות שהותקנו באמצעות SSH"
+    },
+    "marketplace": {
+      "description": "עיון במיומנויות והתקנתן מהמרקטפלייס"
+    },
+    "mp": {
+      "search": {
+        "description": "חיפוש חבילות במרקטפלייס",
+        "category": "סינון לפי קטגוריה",
+        "tag": "סינון לפי תגית",
+        "limit": "מספר תוצאות מרבי (ברירת מחדל: 30)",
+        "sort": "מיון לפי: downloads|rating|recent"
+      },
+      "info": {
+        "description": "הצגת פרטי החבילה וקובץ ה-readme"
+      },
+      "install": {
+        "description": "התקנת חבילה מהמרקטפלייס",
+        "version": "גרסת החבילה (ברירת מחדל: latest)",
+        "enable": "הפעלה לאחר ההתקנה",
+        "yes": "דילוג על בקשת האישור"
+      },
+      "categories": {
+        "description": "הצגת קטגוריות המרקטפלייס"
+      },
+      "featured": {
+        "description": "הצגת חבילות מומלצות מהמרקטפלייס"
+      }
+    }
+  },
+  "memory": {
+    "description": "ניהול הזיכרון השיחתי של OmniRoute‏ (FTS5 + vector)",
+    "search": {
+      "description": "חיפוש רשומות זיכרון באמצעות שאילתה סמנטית",
+      "type": "סינון לפי סוג זיכרון (user|feedback|project|reference)",
+      "limit": "מספר תוצאות מרבי (ברירת מחדל: 20)",
+      "api_key": "סינון לפי מפתח API",
+      "token_budget": "הגבלת מספר הטוקנים הכולל בתוצאות"
+    },
+    "add": {
+      "description": "הוספת רשומת זיכרון חדשה",
+      "content": "תוכן הטקסט של הזיכרון",
+      "file": "קריאת תוכן מקובץ",
+      "type": "סוג זיכרון (ברירת מחדל: user)",
+      "metadata": "אובייקט מטא-נתונים מסוג JSON",
+      "api_key": "שיוך למפתח API"
+    },
+    "clear": {
+      "description": "מחיקת רשומות זיכרון התואמות למסננים",
+      "type": "סינון לפי סוג",
+      "older": "מחיקת רשומות הישנות ממשך הזמן שצוין (30d, 6m, 1y)",
+      "api_key": "סינון לפי מפתח API",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "list": {
+      "description": "הצגת רשומות זיכרון ללא דירוג חיפוש",
+      "type": "סינון לפי סוג",
+      "limit": "מספר תוצאות מרבי (ברירת מחדל: 100)",
+      "api_key": "סינון לפי מפתח API"
+    },
+    "get": {
+      "description": "קבלת רשומת זיכרון יחידה לפי מזהה"
+    },
+    "delete": {
+      "description": "מחיקת רשומת זיכרון לפי מזהה",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "health": {
+      "description": "הצגת תקינותה של תת-מערכת הזיכרון (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "ניהול חיבורים לספקי OAuth",
+    "providers": {
+      "description": "הצגת ספקים התומכים ב-OAuth וסוגי תהליכי האימות שלהם"
+    },
+    "start": {
+      "description": "התחלת תהליך הרשאת OAuth עבור ספק",
+      "provider": "מזהה ספק (gemini, copilot, cursor, …)",
+      "no_browser": "הדפסת ה-URL בלבד — אין לפתוח דפדפן",
+      "import_system": "ייבוא אוטומטי של פרטי גישה מתצורת המערכת המקומית",
+      "social": "ספק התחברות באמצעות רשת חברתית (google|github) — נדרש עבור kiro",
+      "timeout": "זמן קצוב להמתנה להרשאה באלפיות שנייה (ברירת מחדל: 300000)"
+    },
+    "status": {
+      "description": "הצגת חיבורי OAuth פעילים",
+      "provider": "סינון לפי מזהה ספק"
+    },
+    "revoke": {
+      "description": "ביטול חיבור OAuth",
+      "provider": "מזהה הספק לביטול",
+      "connection_id": "ביטול חיבור מסוים לפי מזהה",
+      "yes": "דילוג על בקשת האישור"
+    }
+  },
+  "cloud": {
+    "description": "ניהול משימות של סוכני AI בענן (codex, devin, jules)",
+    "agents": {
+      "description": "הצגת סוכני הענן הזמינים"
+    },
+    "agent": {
+      "description": "ניהול משימות סוכן הענן {agent}",
+      "auth": {
+        "description": "הרשאת {agent} באמצעות OAuth"
+      }
+    },
+    "task": {
+      "description": "ניהול משימות של סוכני ענן",
+      "create": {
+        "description": "יצירת משימת סוכן חדשה",
+        "title": "כותרת המשימה (ברירת המחדל היא 80 התווים הראשונים של ההנחיה)",
+        "prompt": "טקסט ההנחיה למשימה",
+        "prompt_file": "קריאת ההנחיה מקובץ",
+        "repo": "כתובת ה-URL של המאגר לשכפול עבור המשימה",
+        "branch": "שם הענף לשימוש",
+        "metadata": "אובייקט מטא-נתונים של JSON"
+      },
+      "list": {
+        "description": "הצגת משימות סוכן",
+        "status": "סינון לפי סטטוס (running|completed|failed|cancelled)",
+        "limit": "מספר תוצאות מרבי (ברירת מחדל: 50)"
+      },
+      "get": {
+        "description": "קבלת פרטי משימה לפי ID"
+      },
+      "status": {
+        "description": "הצגת סטטוס המשימה (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "ביטול משימה פעילה",
+        "yes": "דילוג על בקשת האישור"
+      },
+      "approve": {
+        "description": "אישור תוכנית הסוכן כדי להתחיל בביצוע"
+      },
+      "message": {
+        "description": "שליחת הודעה למשימה פעילה"
+      }
+    },
+    "sources": {
+      "description": "הצגת קובצי המקור שהופקו על ידי משימה"
+    }
+  },
+  "eval": {
+    "description": "ניהול חבילות הערכה והרצות",
+    "suites": {
+      "description": "ניהול חבילות הערכה",
+      "list": {
+        "description": "הצגת חבילות הערכה"
+      },
+      "get": {
+        "description": "קבלת פרטי חבילת הערכה לפי ID"
+      },
+      "create": {
+        "description": "יצירת חבילת הערכה מקובץ JSON",
+        "file": "נתיב לקובץ JSON המגדיר את החבילה"
+      }
+    },
+    "run": {
+      "description": "התחלת הרצת הערכה עבור חבילה",
+      "model": "ID המודל להערכה (ברירת מחדל: auto)",
+      "combo": "אילוץ שילוב מסוים לפי שם",
+      "concurrency": "מספר דגימות מקבילות (ברירת מחדל: 4)",
+      "tag": "תיוג הרצה זו לצורך סינון מאוחר יותר",
+      "watch": "מעקב אחר התקדמות ההרצה עד להשלמתה"
+    },
+    "list": {
+      "description": "הצגת הרצות הערכה",
+      "suite": "סינון לפי ID החבילה",
+      "status": "סינון לפי סטטוס",
+      "since": "החזרת הרצות מאז חותמת זמן זו",
+      "limit": "מספר תוצאות מרבי (ברירת מחדל: 50)"
+    },
+    "get": {
+      "description": "קבלת פרטי הרצת הערכה לפי ID"
+    },
+    "results": {
+      "description": "הצגת תוצאות דגימות עבור הרצת הערכה",
+      "failed": "הצגת דגימות שנכשלו בלבד"
+    },
+    "cancel": {
+      "description": "ביטול הערכה פעילה",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "scorecard": {
+      "description": "הצגת כרטיס ניקוד עבור הרצת הערכה שהושלמה"
+    }
+  },
+  "webhooks": {
+    "description": "ניהול רכיבי webhook של OmniRoute",
+    "events": {
+      "description": "הצגת כל סוגי אירועי ה-webhook הזמינים"
+    },
+    "list": {
+      "description": "הצגת רכיבי webhook שהוגדרו"
+    },
+    "get": {
+      "description": "קבלת פרטי webhook לפי ID"
+    },
+    "add": {
+      "description": "רישום webhook חדש",
+      "url": "כתובת URL של היעד",
+      "events": "רשימה מופרדת בפסיקים של סוגי אירועים",
+      "secret": "סוד חתימת HMAC",
+      "header": "כותרת נוספת בפורמט key=value (ניתן לחזור עליה)",
+      "no_enabled": "יצירת webhook במצב מושבת"
+    },
+    "update": {
+      "description": "עדכון webhook קיים",
+      "enabled": "הגדרת מצב הפעלה (true|false)"
+    },
+    "remove": {
+      "description": "מחיקת webhook",
+      "yes": "דילוג על בקשת האישור"
+    },
+    "test": {
+      "description": "שליחת אירוע בדיקה ל-webhook",
+      "event": "סוג האירוע להדמיה (ברירת מחדל: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — נתב AI חכם עם מעבר אוטומטי לגיבוי",
+    "version": "הדפסת הגרסה ויציאה",
+    "output": "פורמט פלט (table, json, jsonl, csv)",
+    "quiet": "הסתרת פלט שאינו חיוני",
+    "no_color": "השבתת פלט צבעוני",
+    "timeout": "זמן קצוב לבקשת HTTP באלפיות שנייה",
+    "api_key": "מפתח API עבור שרת OmniRoute",
+    "base_url": "כתובת URL בסיסית של שרת OmniRoute",
+    "context": "הקשר/פרופיל שרת לשימוש עבור פקודה זו",
+    "lang": "הגדרת שפת התצוגה של CLI (דורסת את OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "ניהול קבצים (העלאה, הצגת רשימה, אחזור, הורדה, מחיקה)",
+    "list": {
+      "purpose": "סינון לפי מטרה",
+      "limit": "מספר תוצאות מרבי"
+    },
+    "get": {
+      "description": "אחזור מטא-נתונים של קובץ"
+    },
+    "upload": {
+      "description": "העלאת קובץ",
+      "purpose": "מטרת הקובץ (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "הורדת תוכן הקובץ",
+      "out": "שמירה לנתיב (ברירת מחדל: stdout)"
+    },
+    "delete": {
+      "yes": "דילוג על האישור"
+    }
+  },
+  "batches": {
+    "description": "ניהול משימות אצווה תואמות OpenAI",
+    "list": {
+      "status": "סינון לפי סטטוס",
+      "limit": "מספר תוצאות מרבי"
+    },
+    "create": {
+      "description": "יצירת משימת אצווה",
+      "inputFile": "מזהה קובץ הקלט",
+      "endpoint": "נקודת קצה יעד",
+      "window": "חלון זמן להשלמה",
+      "metadata": "הוספת מטא-נתונים key=value"
+    },
+    "submit": {
+      "description": "העלאת קובץ JSONL ויצירת אצווה",
+      "jsonl": "נתיב לקובץ JSONL",
+      "endpoint": "נקודת קצה יעד",
+      "wait": "המתנה להשלמה"
+    },
+    "cancel": {
+      "yes": "דילוג על אישור"
+    },
+    "wait": {
+      "timeout": "זמן קצוב באלפיות שנייה"
+    },
+    "output": {
+      "out": "שמירת הפלט בנתיב"
+    },
+    "errors": {
+      "out": "שמירת שגיאות בנתיב"
+    }
+  },
+  "translator": {
+    "description": "תרגום גופי בקשות בין פורמטים של LLM",
+    "detect": {
+      "description": "זיהוי פורמט הגוף"
+    },
+    "translate": {
+      "description": "המרת הגוף מפורמט אחד לאחר"
+    },
+    "send": {
+      "description": "תרגום ושליחה לשירות במעלה הזרם"
+    },
+    "stream": {
+      "description": "תרגום בהזרמה של גוף בקשה"
+    },
+    "from": "פורמט מקור (openai|anthropic|gemini|cohere)",
+    "to": "פורמט יעד (openai|anthropic|gemini|cohere)",
+    "file": "נתיב לקובץ JSON של גוף הבקשה",
+    "out": "שמירת הפלט בקובץ",
+    "model": "דריסת המודל",
+    "history": {
+      "limit": "מספר תוצאות מרבי"
+    }
+  },
+  "pricing": {
+    "description": "ניהול נתוני תמחור למודלים",
+    "sync": {
+      "description": "סנכרון מחירים ממקורות במעלה הזרם",
+      "provider": "סינון לפי ספק",
+      "force": "אילוץ סנכרון מחדש"
+    },
+    "list": {
+      "provider": "סינון לפי ספק",
+      "model": "סינון לפי מודל",
+      "limit": "מספר תוצאות מרבי"
+    },
+    "defaults": {
+      "description": "ניהול תמחור ברירת המחדל",
+      "input": "עלות קלט למיליון טוקנים (USD)",
+      "output": "עלות פלט למיליון טוקנים (USD)",
+      "cacheRead": "עלות קריאה מהמטמון למיליון טוקנים (USD)",
+      "cacheWrite": "עלות כתיבה למטמון למיליון טוקנים (USD)"
+    },
+    "diff": {
+      "description": "הצגת סטייה מהמחירים במעלה הזרם",
+      "model": "סינון לפי מודל"
+    }
+  },
+  "radar": {
+    "description": "בדיקה וסנכרון של הזנות קטלוג Radar המקומיות",
+    "status": "הצגת הגדרות Radar המקומיות ומצב מטמון ההזנות",
+    "sync": "סנכרון קטלוג, הפניות, הצעות ו-Intel דרך השרת המקומי"
+  },
+  "resilience": {
+    "description": "בדיקה וניהול של מנגנוני עמידות",
+    "status": {
+      "provider": "סינון לפי ספק"
+    },
+    "breakers": {
+      "provider": "סינון לפי ספק"
+    },
+    "cooldowns": {
+      "provider": "סינון לפי ספק",
+      "connectionId": "סינון לפי מזהה חיבור"
+    },
+    "lockouts": {
+      "provider": "סינון לפי ספק",
+      "model": "סינון לפי מודל"
+    },
+    "reset": {
+      "description": "איפוס מצב המפסק/הצינון",
+      "provider": "ספק לאיפוס",
+      "connectionId": "מזהה חיבור לאיפוס",
+      "model": "מודל לאיפוס הנעילה",
+      "allCooldowns": "איפוס כל זמני הצינון עבור הספק",
+      "yes": "דילוג על האישור"
+    },
+    "profile": {
+      "description": "ניהול פרופיל עמידות",
+      "name": "שם הפרופיל"
+    },
+    "config": {
+      "description": "ניהול תצורת העמידות",
+      "threshold": "סף כשלים",
+      "resetTimeout": "זמן איפוס באלפיות השנייה",
+      "baseCooldown": "זמן צינון בסיסי באלפיות השנייה"
+    }
+  },
+  "nodes": {
+    "description": "ניהול צומתי ספק (נקודות קצה)",
+    "list": {
+      "provider": "סינון לפי ספק",
+      "enabled": "הצגת צמתים מופעלים בלבד"
+    },
+    "add": {
+      "provider": "שם הספק",
+      "baseUrl": "כתובת URL בסיסית של הצומת",
+      "name": "שם הצומת",
+      "weight": "משקל איזון עומסים",
+      "region": "תג אזור",
+      "authHeader": "כותרת אימות מותאמת אישית (key=value)"
+    },
+    "update": {
+      "baseUrl": "כתובת URL בסיסית חדשה",
+      "name": "שם חדש",
+      "weight": "משקל חדש",
+      "region": "אזור חדש",
+      "enabled": "הפעלה או השבתה (true|false)"
+    },
+    "remove": {
+      "yes": "דילוג על האישור"
+    },
+    "validate": {
+      "baseUrl": "כתובת URL לאימות",
+      "provider": "ספק לביצוע האימות מולו"
+    },
+    "test": {
+      "description": "שליחת בקשת בדיקה לצומת"
+    },
+    "metrics": {
+      "description": "הצגת מדדי הצומת",
+      "period": "פרק זמן (למשל 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "הגדרת צינור עיבוד להנדסת הקשר (Caveman, RTK)",
+    "analytics": {
+      "period": "פרק זמן (למשל 7d, 30d)"
+    },
+    "caveman": {
+      "description": "ניהול דוחס ההקשר Caveman",
+      "config": {
+        "description": "הצגה או עדכון של תצורת Caveman",
+        "aggressiveness": "רמת אגרסיביות 0.0–1.0",
+        "maxShrinkPct": "אחוז הכיווץ המרבי",
+        "preserveTags": "תגים לשימור, מופרדים בפסיקים"
+      }
+    },
+    "rtk": {
+      "description": "ניהול ממטב ההקשר RTK",
+      "config": {
+        "description": "הצגה או עדכון של תצורת RTK",
+        "tokenBudget": "תקציב טוקנים עבור RTK",
+        "reservePct": "אחוז רזרבה"
+      },
+      "filters": {
+        "description": "ניהול מסנני RTK",
+        "pattern": "תבנית סינון (regex)",
+        "priority": "עדיפות המסנן (ברירת מחדל: 100)",
+        "action": "פעולת המסנן: drop|shrink|replace",
+        "yes": "דילוג על אישור"
+      },
+      "test": {
+        "file": "נתיב לקובץ JSON של הבקשה"
+      }
+    },
+    "combos": {
+      "description": "ניהול קומבינציות מודע-הקשר"
+    }
+  },
+  "sessions": {
+    "description": "בדיקה וניהול של הפעלות פעילות",
+    "list": {
+      "user": "סינון לפי משתמש",
+      "kind": "סינון לפי סוג (dashboard|api-key|mcp|a2a)",
+      "active": "הצגת הפעלות פעילות בלבד",
+      "limit": "מספר תוצאות מרבי (ברירת מחדל: 100)"
+    },
+    "expire": {
+      "yes": "דילוג על אישור"
+    },
+    "expireAll": {
+      "user": "המשתמש שתוקף ההפעלות שלו יפוג",
+      "yes": "דילוג על אישור"
+    }
+  },
+  "tags": {
+    "description": "ניהול תגיות משאבים",
+    "add": {
+      "color": "צבע התגית (hex או שם)",
+      "description": "תיאור התגית"
+    },
+    "remove": {
+      "yes": "דילוג על אישור"
+    },
+    "assign": {
+      "tag": "שם התגית",
+      "to": "משאב יעד בתבנית type:id (לדוגמה: provider:openai)"
+    },
+    "unassign": {
+      "tag": "שם התגית",
+      "from": "משאב מקור בתבנית type:id"
+    }
+  },
+  "openapi": {
+    "description": "גישה למפרט OpenAPI של OmniRoute ובדיקתו",
+    "dump": {
+      "description": "הפקת מפרט OpenAPI אל stdout או לקובץ",
+      "format": "פורמט פלט: yaml|json (ברירת מחדל: yaml)",
+      "out": "שמירה בנתיב קובץ"
+    },
+    "validate": {
+      "description": "אימות מפרט OpenAPI"
+    },
+    "try": {
+      "description": "בדיקת נקודת קצה של API באמצעות המפרט",
+      "method": "שיטת HTTP (ברירת מחדל: GET)",
+      "body": "נתיב לקובץ JSON של גוף הבקשה",
+      "query": "פרמטר שאילתה בתבנית key=value (ניתן לחזרה)",
+      "header": "כותרת בתבנית key=value (ניתן לחזרה)"
+    },
+    "endpoints": {
+      "description": "הצגת כל נקודות הקצה של ה-API",
+      "search": "סינון לפי נתיב או תקציר"
+    },
+    "paths": {
+      "description": "הצגת כל נתיבי ה-API"
+    }
+  },
+  "combo": {
+    "title": "קומבינציות",
+    "switched": "שילוב פעיל: {name}",
+    "created": "השילוב נוצר: {name}",
+    "deleted": "השילוב נמחק: {name}",
+    "noCombos": "לא הוגדרו שילובים.",
+    "confirmDelete": "למחוק את השילוב {name}?",
+    "suggest": {
+      "description": "הצעת השילוב הטוב ביותר למשימה באמצעות דירוג AI",
+      "task": "תיאור המשימה",
+      "maxCost": "עלות מרבית לבקשה ב-USD",
+      "maxLatencyMs": "זמן השהיה מרבי באלפיות השנייה",
+      "weights": "משקלי דירוג ב-JSON, למשל {\"latency\":0.7,\"cost\":0.3}",
+      "top": "מספר המועמדים המובילים להצגה (ברירת מחדל: 5)",
+      "explain": "הדפסת הנימוקים אל stderr",
+      "switch": "הפעלת השילוב המדורג במקום הראשון"
+    }
+  },
+  "oneproxy": {
+    "description": "ניהול מאגר שרתי המקור של OneProxy",
+    "stats": {
+      "provider": "סינון לפי ספק",
+      "period": "תקופת זמן (ברירת מחדל: 24h)"
+    },
+    "fetch": {
+      "description": "משיכת שרתי Proxy מהמאגר",
+      "count": "מספר שרתי ה-Proxy למשיכה (ברירת מחדל: 1)",
+      "type": "סוג Proxy: http|socks5 (ברירת מחדל: http)"
+    },
+    "rotate": {
+      "description": "אילוץ החלפת Proxy",
+      "provider": "הספק שעבורו תתבצע ההחלפה",
+      "connectionId": "מזהה חיבור ספציפי להחלפה"
+    },
+    "config": {
+      "description": "הצגה או עדכון של תצורת OneProxy",
+      "enabled": "הפעלת מאגר Proxy‏ (true|false)",
+      "poolSize": "גודל המאגר",
+      "providerSource": "כתובת URL של ספק ה-Proxy",
+      "rotationPolicy": "מדיניות החלפה: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "הצגת מאגר ה-Proxy הנוכחי עם מדדים"
+    }
+  },
+  "open": {
+    "description": "פתיחת דף ספציפי בלוח הבקרה של OmniRoute בדפדפן",
+    "url": "הדפסת כתובת URL בלבד, ללא פתיחת הדפדפן"
+  },
+  "telemetry": {
+    "description": "גישה לנתוני טלמטריה מצטברים",
+    "summary": {
+      "description": "הצגת סיכום טלמטריה מצטבר",
+      "period": "תקופת זמן: 24h|7d|30d (ברירת מחדל: 24h)",
+      "compareTo": "השוואה לתקופה הקודמת"
+    },
+    "export": {
+      "description": "ייצוא אירועי טלמטריה אל JSONL",
+      "out": "נתיב קובץ הפלט (ברירת מחדל: telemetry.jsonl)",
+      "period": "תקופת זמן לייצוא (ברירת מחדל: 7d)"
+    }
+  },
+  "sync": {
+    "description": "סנכרון התצורה בין מופעי OmniRoute",
+    "push": {
+      "description": "דחיפת התצורה לענן או למופע מרוחק",
+      "target": "יעד (cloud או context:name)",
+      "bundle": "חלקי חבילה לסנכרון",
+      "dryRun": "תצוגה מקדימה ללא החלה"
+    },
+    "pull": {
+      "description": "משיכת תצורה מהענן או ממקור מרוחק",
+      "source": "מקור (ענן או context:name)",
+      "merge": "מיזוג עם התצורה הקיימת",
+      "replace": "החלפת התצורה הקיימת",
+      "dryRun": "תצוגה מקדימה ללא החלה"
+    },
+    "diff": {
+      "source": "הקשר מקור",
+      "target": "הקשר יעד"
+    },
+    "bundle": {
+      "description": "ייצוא התצורה כקובץ חבילה",
+      "include": "חלקים להכללה (מופרדים בפסיקים)"
+    },
+    "import": {
+      "description": "ייבוא קובץ חבילה",
+      "dryRun": "אימות ללא החלה"
+    },
+    "initialize": {
+      "fromCloud": "אתחול מגיבוי בענן"
+    },
+    "tokens": {
+      "description": "ניהול אסימוני סנכרון",
+      "create": {
+        "name": "שם האסימון",
+        "scope": "היקף האסימון",
+        "ttl": "משך חיי האסימון (למשל 30d)"
+      },
+      "revoke": {
+        "yes": "דילוג על אישור"
+      }
+    },
+    "resolve": {
+      "description": "פתרון התנגשויות סנכרון באופן אינטראקטיבי"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "ניהול הקשרים/פרופילים של שרת (הוספה, שימוש, הצגת רשימה, הצגת פרטים, הסרה, שינוי שם, ייצוא, ייבוא)"
+    },
+    "lang": {
+      "description": "ניהול שפת התצוגה של ממשק שורת הפקודה",
+      "getDescription": "הצגת קוד השפה הפעילה כעת",
+      "setDescription": "הגדרת שפת התצוגה ושמירתה בתצורה",
+      "listDescription": "הצגת כל השפות הזמינות",
+      "listTitle": "שפות זמינות",
+      "current": "שפה: {code} ({name})",
+      "saved": "השפה הוגדרה ל-{code} ({name}).",
+      "noCode": "נדרש קוד שפה. יש להריץ 'omniroute config lang list' כדי לראות את הקודים הזמינים.",
+      "unknown": "קוד שפה לא מוכר: {code}. יש להריץ 'omniroute config lang list' כדי לראות את הקודים הזמינים.",
+      "alreadySet": "השפה כבר מוגדרת ל-{code}.",
+      "envHint": "טיפ: ניתן גם להגדיר OMNIROUTE_LANG={code} בסביבה שלך."
+    }
+  },
+  "completion": {
+    "description": "יצירה או התקנה של סקריפטים להשלמה במעטפת",
+    "zsh": "הדפסת סקריפט השלמה עבור zsh",
+    "bash": "הדפסת סקריפט השלמה עבור bash",
+    "fish": "הדפסת סקריפט השלמה עבור fish",
+    "install": "התקנה גלובלית של סקריפט ההשלמה עבור המעטפת שזוהתה",
+    "refresh": "רענון המטמון של שילובים/ספקים/מודלים"
+  },
+  "logs": {
+    "description": "הזרמה או ייצוא של יומני בקשות",
+    "follow": "הזרמת יומנים בזמן אמת",
+    "filter": "סינון לפי רמה (error,warn,info) — מופרד בפסיקים",
+    "lines": "מספר השורות לאחזור",
+    "timeout": "זמן קצוב לחיבור באלפיות השנייה",
+    "baseUrl": "כתובת ה-URL הבסיסית של OmniRoute API",
+    "requestId": "סינון לפי מזהה בקשה",
+    "apiKey": "סינון לפי מפתח API",
+    "combo": "סינון לפי שם קומבו",
+    "status": "סינון לפי קוד מצב HTTP",
+    "durationMin": "משך בקשה מינימלי באלפיות השנייה",
+    "durationMax": "משך בקשה מרבי באלפיות השנייה",
+    "export": "שמירת יומנים לקובץ (json/jsonl/csv)",
+    "exported": "היומנים נשמרו ב-{path}",
+    "stopped": "הזרמת היומנים הופסקה.",
+    "streamError": "שגיאה בהזרמת היומנים: {message}"
+  },
+  "tray": {
+    "description": "שליטה בסמל מגש המערכת",
+    "show": "הצגת סמל מגש המערכת (אם השרת פועל עם --tray)",
+    "hide": "הסתרת סמל מגש המערכת",
+    "quit": "יציאה מ-OmniRoute דרך מגש המערכת"
+  },
+  "autostart": {
+    "description": "ניהול ההפעלה האוטומטית של OmniRoute בעת האתחול (Linux: שירות משתמש של systemd)",
+    "enable": "הפעלת הפעלה אוטומטית בעת האתחול",
+    "disable": "השבתת הפעלה אוטומטית בעת האתחול",
+    "toggle": "החלפת מצב ההפעלה האוטומטית בעת האתחול",
+    "status": "הצגת מצב ההפעלה האוטומטית"
+  },
+  "runtime": {
+    "description": "ניהול תלויות זמן ריצה מקוריות",
+    "check": "בדיקת מצב התלויות המקוריות בספריית זמן הריצה",
+    "repair": "התקנה מחדש של התלויות המקוריות בספריית זמן הריצה",
+    "repair_force": "אילוץ התקנה מחדש גם אם הן תקינות",
+    "clean": "הסרת ספריית זמן הריצה (מפנה שטח בדיסק)",
+    "clean_yes": "דילוג על האישור"
+  },
+  "repl": {
+    "description": "REPL אינטראקטיבי רב-שלבי עם LLM",
+    "model": "המודל לשימוש (ברירת מחדל: auto)",
+    "combo": "שם הקומבו לשימוש",
+    "system": "הנחיית מערכת",
+    "resume": "חידוש הפעלה שמורה לפי שם"
+  },
+  "plugin": {
+    "description": "ניהול תוספי CLI‏ (omniroute-cmd-*)",
+    "list": "הצגת התוספים המותקנים",
+    "install": "התקנת תוסף מ-npm או מנתיב מקומי",
+    "remove": "הסרת תוסף מותקן",
+    "info": "הצגת פרטים על תוסף מותקן",
+    "search": "חיפוש תוספים זמינים במאגר npm",
+    "update": "עדכון תוספים מותקנים",
+    "scaffold": "יצירת שלד בסיסי לתוסף חדש"
+  },
+  "launch": {
+    "description": "הפעלת Claude Code כשהוא מופנה אל OmniRoute (מקומי או מרוחק, עם --profile)",
+    "token": "האסימון שעל לקוח Claude לשלוח (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute אינו נגיש ביציאה {port}. הפעילו אותו באמצעות 'omniroute serve'.",
+    "notFound": "כלי שורת הפקודה 'claude' לא נמצא ב-PATH."
+  },
+  "run": {
+    "description": "הפעלת יעד CLI נתמך דרך OmniRoute"
+  },
+  "setupClaude": {
+    "description": "יצירת פרופילי Claude Code תחת ~/.claude/profiles מקטלוג המודלים של OmniRoute"
+  },
+  "connect": {
+    "description": "התחברות לשרת OmniRoute מרוחק ומעבר למצב מרוחק"
+  },
+  "tokens": {
+    "description": "ניהול אסימוני גישה מוגדרי-היקף ל-CLI (מצב מרוחק)"
+  },
+  "configure": {
+    "description": "בחירת ספק ומודל מהשרת הפעיל והגדרת CLI מקומי נתמך"
+  },
+  "launchCodex": {
+    "description": "הפעלת Codex CLI כשהוא מופנה אל OmniRoute (מקומי או VPS מרוחק)"
+  },
+  "setupCodex": {
+    "description": "יצירת קובצי פרופיל תחת ~/.codex מקטלוג המודלים הפעיל של OmniRoute"
+  },
+  "packs": {
+    "description": "ניהול חבילות זמן ריצה אופציונליות (ML / אוטומציית דפדפן)",
+    "listDescription": "הצגת החבילות האופציונליות ומצב ההתקנה שלהן",
+    "installDescription": "התקנת חבילה אופציונלית בתוך DATA_DIR",
+    "verifyDescription": "אימות החבילות המותקנות מול אינדקס סיכומי הביקורת המצורף",
+    "removeDescription": "הסרת חבילה אופציונלית מותקנת",
+    "sourceOpt": "התיקייה המכילה את מטעני החבילות ואת אינדקס החבילות",
+    "warnNoIndex": "optional-packs.index.json לא נמצא — התקנה ואימות אינם זמינים בעותק זה (חבילות שולחן העבודה כוללות אותו)",
+    "errUnknown": "חבילה לא מוכרת: {name}",
+    "errNoIndex": "אינדקס החבילות לא נמצא; העבירו --source <dir> שמכיל את מטען החבילה (חבילות שולחן העבודה כוללות אותו לצד היישום)",
+    "installed": "החבילה \"{name}\" הותקנה ואומתה ב-{dir}",
+    "restartHint": "הפעילו מחדש את שרת OmniRoute (או את יישום שולחן העבודה) כדי שסביבת זמן הריצה תטען את החבילה",
+    "removed": "החבילה \"{name}\" הוסרה",
+    "notInstalled": "החבילה \"{name}\" לא הייתה מותקנת",
+    "verifyOk": "כל החבילות המותקנות אומתו",
+    "verifyFailed": "האימות נכשל עבור {count} חבילות",
+    "noneInstalled": "לא מותקנות חבילות אופציונליות"
   }
 }

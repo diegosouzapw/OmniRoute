@@ -15,6 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SignJWT } from "jose";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-playground-key-3503-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -47,8 +48,8 @@ function req(headers: Record<string, string>) {
   } as unknown as Request;
 }
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("#3503 — authenticated session + key-id header resolves the key secret server-side", async () => {

@@ -1,64 +1,51 @@
 # Contributor Covenant Code of Conduct (తెలుగు)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇪🇹 [am](../am/CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇦🇿 [az](../az/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇧🇦 [bs](../bs/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇬🇷 [el](../el/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇪🇪 [et](../et/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇪 [ga](../ga/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇳🇬 [ha](../ha/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇷 [hr](../hr/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇦🇲 [hy](../hy/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇳🇬 [ig](../ig/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇬🇪 [ka](../ka/CODE_OF_CONDUCT.md) · 🇰🇭 [km](../km/CODE_OF_CONDUCT.md) · 🇮🇳 [kn](../kn/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇱🇹 [lt](../lt/CODE_OF_CONDUCT.md) · 🇱🇻 [lv](../lv/CODE_OF_CONDUCT.md) · 🇮🇳 [ml](../ml/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇲🇹 [mt](../mt/CODE_OF_CONDUCT.md) · 🇲🇲 [my](../my/CODE_OF_CONDUCT.md) · 🇳🇵 [ne](../ne/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇮🇳 [or](../or/CODE_OF_CONDUCT.md) · 🇮🇳 [pa](../pa/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇱🇰 [si](../si/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇮 [sl](../sl/CODE_OF_CONDUCT.md) · 🇷🇸 [sr](../sr/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇺🇿 [uz](../uz/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇳🇬 [yo](../yo/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md) · 🇹🇼 [zh-TW](../zh-TW/CODE_OF_CONDUCT.md)
 
 ---
 
-## Our Pledge
+## మా ప్రతిజ్ఞ
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+వయస్సు, శరీర పరిమాణం, కనిపించే లేదా కనిపించని వైకల్యం, జాతి నేపథ్యం, లైంగిక లక్షణాలు, లింగ గుర్తింపు మరియు వ్యక్తీకరణ, అనుభవ స్థాయి, విద్య, సామాజిక-ఆర్థిక స్థితి, జాతీయత, వ్యక్తిగత రూపం, జాతి, మతం లేదా లైంగిక గుర్తింపు మరియు అభిముఖతతో సంబంధం లేకుండా, సభ్యులు, సహకారులు మరియు నాయకులుగా మా సముదాయంలో పాల్గొనడం ప్రతి ఒక్కరికీ వేధింపులు లేని అనుభవంగా ఉండేలా చేస్తామని మేము ప్రతిజ్ఞ చేస్తున్నాము.
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+బహిరంగమైన, స్వాగతపూర్వకమైన, వైవిధ్యభరితమైన, సమ్మిళితమైన మరియు ఆరోగ్యకరమైన సముదాయానికి దోహదపడే విధంగా ప్రవర్తిస్తామని, పరస్పరం సంభాషిస్తామని మేము ప్రతిజ్ఞ చేస్తున్నాము.
 
-## Our Standards
+## మా ప్రమాణాలు
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+మా కమ్యూనిటీకి సానుకూల వాతావరణాన్ని కల్పించడానికి దోహదపడే ప్రవర్తనకు ఉదాహరణలు:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- ఇతరుల పట్ల సహానుభూతి మరియు దయ చూపడం
+- భిన్నమైన అభిప్రాయాలు, దృక్కోణాలు మరియు అనుభవాలను గౌరవించడం
+- నిర్మాణాత్మక అభిప్రాయాన్ని ఇవ్వడం మరియు మర్యాదపూర్వకంగా స్వీకరించడం
+- మా తప్పులకు బాధ్యత వహించడం, వాటివల్ల ప్రభావితమైన వారికి క్షమాపణ చెప్పడం,
+  మరియు ఆ అనుభవం నుండి నేర్చుకోవడం
+- వ్యక్తులుగా మనకు ఏది ఉత్తమమో దానిపై మాత్రమే కాకుండా, మొత్తం
+  కమ్యూనిటీకి ఏది ఉత్తమమో దానిపై దృష్టి పెట్టడం
 
-Examples of unacceptable behavior include:
+ఆమోదయోగ్యం కాని ప్రవర్తనకు ఉదాహరణలు:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- లైంగికతను సూచించే భాష లేదా చిత్రాలను ఉపయోగించడం, అలాగే ఏ రకమైన లైంగిక శ్రద్ధ లేదా
+  లైంగిక ప్రయత్నాలు చేయడం
+- ట్రోలింగ్, అవమానకరమైన లేదా కించపరిచే వ్యాఖ్యలు, అలాగే వ్యక్తిగత లేదా రాజకీయ దాడులు
+- బహిరంగంగా లేదా వ్యక్తిగతంగా వేధించడం
+- స్పష్టమైన అనుమతి లేకుండా ఇతరుల ఇంటి చిరునామా లేదా ఇమెయిల్
+  చిరునామా వంటి వ్యక్తిగత సమాచారాన్ని ప్రచురించడం
+- వృత్తిపరమైన వాతావరణంలో సహేతుకంగా అనుచితమైనదిగా పరిగణించదగిన
+  ఇతర ప్రవర్తన
 
-## Enforcement Responsibilities
+## అమలు బాధ్యతలు
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+ఆమోదయోగ్యమైన ప్రవర్తనకు సంబంధించిన మా ప్రమాణాలను స్పష్టం చేసి, అమలు చేయడానికి సంఘ నాయకులు బాధ్యత వహిస్తారు. వారు అనుచితమైనది, బెదిరింపుతో కూడినది, అభ్యంతరకరమైనది లేదా హానికరమైనదిగా భావించే ఏ ప్రవర్తనకైనా ప్రతిస్పందనగా తగిన మరియు న్యాయమైన దిద్దుబాటు చర్యలు తీసుకుంటారు.
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+ఈ ప్రవర్తనా నియమావళికి అనుగుణంగా లేని వ్యాఖ్యలు, కమిట్లు, కోడ్, వికీ సవరణలు, సమస్యలు మరియు ఇతర సహకారాలను తొలగించడానికి, సవరించడానికి లేదా తిరస్కరించడానికి సంఘ నాయకులకు హక్కు మరియు బాధ్యత ఉన్నాయి. సముచితమైన సందర్భాల్లో, మోడరేషన్ నిర్ణయాలకు గల కారణాలను వారు తెలియజేస్తారు.
 
-## Scope
+## పరిధి
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+ఈ ప్రవర్తనా నియమావళి అన్ని కమ్యూనిటీ వేదికల్లో వర్తిస్తుంది. అలాగే, ఎవరైనా
+బహిరంగ వేదికల్లో అధికారికంగా కమ్యూనిటీకి ప్రాతినిధ్యం వహిస్తున్నప్పుడు కూడా ఇది
+వర్తిస్తుంది. అధికారిక ఇ-మెయిల్ చిరునామాను ఉపయోగించడం, అధికారిక సోషల్ మీడియా
+ఖాతా ద్వారా పోస్ట్ చేయడం లేదా ఆన్లైన్ లేదా ఆఫ్లైన్ కార్యక్రమంలో నియమిత
+ప్రతినిధిగా వ్యవహరించడం వంటివి మా కమ్యూనిటీకి ప్రాతినిధ్యం వహించడానికి ఉదాహరణలు.
 
 ## Enforcement
 
@@ -70,51 +57,33 @@ All complaints will be reviewed and investigated promptly and fairly.
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-## Enforcement Guidelines
+## అమలు మార్గదర్శకాలు
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+ఈ ప్రవర్తనా నియమావళిని ఉల్లంఘించినట్లు తాము భావించే ఏ చర్యకైనా పరిణామాలను నిర్ణయించేటప్పుడు కమ్యూనిటీ నాయకులు ఈ కమ్యూనిటీ ప్రభావ మార్గదర్శకాలను అనుసరిస్తారు:
 
-### 1. Correction
+### 1. దిద్దుబాటు
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+**కమ్యూనిటీపై ప్రభావం**: అనుచితమైన భాషను ఉపయోగించడం లేదా కమ్యూనిటీలో వృత్తిపరంగా లేదని లేదా ఆహ్వానించదగినది కాదని భావించే ఇతర ప్రవర్తన.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**పర్యవసానం**: ఉల్లంఘన స్వభావంపై స్పష్టతను అందిస్తూ, ఆ ప్రవర్తన ఎందుకు అనుచితమైనదో వివరిస్తూ కమ్యూనిటీ నాయకుల నుండి వ్యక్తిగతంగా వ్రాతపూర్వక హెచ్చరిక. బహిరంగ క్షమాపణను కోరవచ్చు.
 
-### 2. Warning
+### 2. హెచ్చరిక
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+**కమ్యూనిటీపై ప్రభావం**: ఒకే సంఘటన లేదా వరుస చర్యల ద్వారా జరిగిన ఉల్లంఘన.
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**పర్యవసానం**: ఆ ప్రవర్తన కొనసాగితే ఎదురయ్యే పర్యవసానాలతో కూడిన హెచ్చరిక. నిర్దిష్ట కాలవ్యవధిలో, ప్రవర్తనా నియమావళిని అమలు చేస్తున్న వారితో అనుమతి లేకుండా సంప్రదించడంతో సహా, సంబంధిత వ్యక్తులతో ఎలాంటి పరస్పర చర్య ఉండకూడదు. ఇందులో కమ్యూనిటీ ప్రదేశాలతో పాటు సామాజిక మాధ్యమాల వంటి బాహ్య ఛానెల్లలో కూడా పరస్పర చర్యలను నివారించడం ఉంటుంది. ఈ నిబంధనలను ఉల్లంఘిస్తే తాత్కాలిక లేదా శాశ్వత నిషేధం విధించవచ్చు.
 
-### 3. Temporary Ban
+### 3. తాత్కాలిక నిషేధం
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+**కమ్యూనిటీపై ప్రభావం**: నిరంతర అనుచిత ప్రవర్తనతో సహా, కమ్యూనిటీ ప్రమాణాల తీవ్రమైన ఉల్లంఘన.
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**పర్యవసానం**: నిర్దిష్ట కాలవ్యవధిలో కమ్యూనిటీతో ఏ రకమైన పరస్పర చర్య లేదా బహిరంగ సమాచార మార్పిడిపైనా తాత్కాలిక నిషేధం. ఈ కాలంలో, ప్రవర్తనా నియమావళిని అమలు చేస్తున్న వారితో అనుమతి లేకుండా సంప్రదించడంతో సహా, సంబంధిత వ్యక్తులతో బహిరంగంగా లేదా వ్యక్తిగతంగా ఎలాంటి పరస్పర చర్య అనుమతించబడదు. ఈ నిబంధనలను ఉల్లంఘిస్తే శాశ్వత నిషేధం విధించవచ్చు.
 
-### 4. Permanent Ban
+### 4. శాశ్వత నిషేధం
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+**కమ్యూనిటీపై ప్రభావం**: నిరంతర అనుచిత ప్రవర్తన, ఒక వ్యక్తిని వేధించడం లేదా వ్యక్తుల వర్గాల పట్ల దూకుడుగా వ్యవహరించడం లేదా వారిని అవమానించడం వంటి వాటితో సహా, కమ్యూనిటీ ప్రమాణాలను పదేపదే ఉల్లంఘించే ధోరణిని ప్రదర్శించడం.
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+**పర్యవసానం**: కమ్యూనిటీలో ఏ రకమైన బహిరంగ పరస్పర చర్యపైనా శాశ్వత నిషేధం.
 
 ## Attribution
 

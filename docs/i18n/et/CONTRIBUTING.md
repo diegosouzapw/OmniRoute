@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇳🇬 [ha](../ha/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -395,22 +395,22 @@ Kirjuta üksiktestid `tests/unit/` kataloogi, kattes vähemalt:
 
 ---
 
-## Pull requesti kontrollnimekiri
+## Tõmbetaotluse kontrollnimekiri
 
-- [ ] Testid läbivad (`npm test`)
-- [ ] Linting läbib (`npm run lint`)
-- [ ] Ehitamine õnnestub (`npm run build`)
-- [ ] TypeScripti tüübid lisatud uutele avalikele funktsioonidele ja liidestele
-- [ ] Pole peidetud salajasi väärtusi ega fallback väärtusi
-- [ ] Avalikud ülemised volikirjad sisestatud `resolvePublicCred()` kaudu (vaata [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), mitte kunagi sõna-sõnalt
-- [ ] Vigavastused suunatakse läbi `buildErrorBody()` / `sanitizeErrorMessage()` — vastuste kehades ei ole toored stack trace'id (vaata [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Käsurea käsud (`exec` / `spawn`) edastavad käitusväärtused `env` kaudu, mitte stringi interpoleerimise teel
-- [ ] Kõik sisendid valideeritud skeemidega
-- [ ] Muudatuste logi **fragment** lisatud `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` alla kasutajate suunatud muudatuste jaoks (vaata [`changelog.d/README.md`](./changelog.d/README.md)) — **ära** muuda `CHANGELOG.md` otse; fragmendid kogutakse väljaandmise ajal ja ei tekki kunagi konflikte
-- [ ] Dokumentatsioon uuendatud (kohaldatavatel juhtudel)
-- [ ] Uusi CodeQL / Secret-Scanning hoiatusi ei avatud, või iga neist lükati tagasi tehnilise põhjendusega, viidates asjakohasele `docs/security/` dokumendile
-- [ ] Marsruudid, mis käivitavad lapseprotsesse (`/api/mcp/`, `/api/cli-tools/runtime/`), on klassifitseeritud `isLocalOnlyPath()` abil `src/server/authz/routeGuard.ts` failis — vaata [Rangedreegel nr 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Kommitedetsioonides pole `Co-Authored-By` trailerid — kommid peavad ilmuma ainult hoidla omaniku Git identiteedi all (Rangedreegel nr 16)
+- [ ] Testid läbivad edukalt (`npm test`)
+- [ ] Lintimine läbib edukalt (`npm run lint`)
+- [ ] Järk õnnestub (`npm run build`)
+- [ ] Uutele avalikele funktsioonidele ja liidestele on lisatud TypeScripti tüübid
+- [ ] Puuduvad kõvakodeeritud saladused või varuväärtused
+- [ ] Avalikud ülesvoolu pääsutunnused on manustatud `resolvePublicCred()` kaudu (vt [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), mitte kunagi literaalidena
+- [ ] Veavastused läbivad `buildErrorBody()` / `sanitizeErrorMessage()` — vastuste kehades pole töötlemata pinujälgi (vt [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Kestakäsud (`exec` / `spawn`) edastavad käitusaegsed väärtused `env` kaudu, mitte stringinterpolatsiooni abil
+- [ ] Kõik sisendid on valideeritud Zodi skeemidega
+- [ ] Kasutajale nähtavate muudatuste jaoks on lisatud muudatuste logi **fragment** asukohta `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (vt [`changelog.d/README.md`](./changelog.d/README.md)) — ärge muutke faili `CHANGELOG.md` otse; fragmendid koondatakse väljalaske ajal ega lähe tõmbetaotluste vahel kunagi konflikti
+- [ ] Dokumentatsioon on värskendatud (kui kohaldatav)
+- [ ] Uusi CodeQL-i / saladuste skannimise hoiatusi pole avatud või iga hoiatus on tagasi lükatud tehnilise põhjendusega, mis viitab asjakohasele dokumendile kataloogis `docs/security/`
+- [ ] Alamprotsesse käivitavad marsruudid (`/api/mcp/`, `/api/cli-tools/runtime/`) on failis `src/server/authz/routeGuard.ts` liigitatud funktsiooniga `isLocalOnlyPath()` — vt [ranget reeglit nr 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Sissekannete sõnumites pole tehisintellekti/roboti `Co-authored-by` järelridu (range reegel nr 16) — inimkaastöötajaid, kelle tööd taaskasutatakse, tunnustatakse standardsete `Co-authored-by: Name <email>` järelridadega
 
 ---
 
@@ -426,9 +426,8 @@ Seejärel kasuta töövooge `/deploy-vps-*-cc`, mis kasutavad rsync-i `dist/` ed
 
 ## Abi saamine
 
-- **Arhitektuur**: Vaata [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API viide**: Vaata [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Turvadokumendid**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Toimingute dokumendid**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Arhitektuur**: Vaadake faili [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API viitedokumentatsioon**: Vaadake faili [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Turbedokumentatsioon**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Käitlusdokumentatsioon**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Probleemid**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitektuurilised otsused**: Vaata kausta `docs/adr/` arhitektuuriliste otsuste kirjelduste jaoks

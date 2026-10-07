@@ -1,1 +1,0 @@
-- **test(compression):** cover idle worker eviction at the resource level — the pool must call `terminate()` and must not retain the worker's `MessagePort`, complementing the `exit`-event assertion added with the fix

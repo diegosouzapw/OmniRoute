@@ -1,1 +1,0 @@
-- **fix(combos):** dashboard combo test uses a short prompt, serial probes, and a 60s timeout so reasoning models and rate-limited free pools do not fail the health check

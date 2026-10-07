@@ -6,8 +6,11 @@ import {
   TRANSLATION_SYSTEM,
   backendConfig,
   callChat,
+  multiLocaleBatchSystem,
   parseBatchResponse,
+  parseMultiLocaleBatchResponse,
   translateBatch,
+  translateMultiLocaleBatch,
   translateString,
 } from "../../scripts/i18n/lib/translate-backend.mjs";
 
@@ -35,6 +38,7 @@ type ChatBody = {
   messages: Array<{ role: string; content: string }>;
   temperature: number;
   stream: boolean;
+  reasoning_effort?: string;
 };
 
 /** Swaps `globalThis.fetch` for the duration of `fn`, recording every call. */
@@ -72,6 +76,7 @@ const ENV_KEYS = [
   "OMNIROUTE_TRANSLATION_API_KEY",
   "OMNIROUTE_TRANSLATION_MODEL",
   "OMNIROUTE_TRANSLATION_TIMEOUT_MS",
+  "OMNIROUTE_TRANSLATION_REASONING_EFFORT",
 ] as const;
 
 /** Runs `fn` with exactly `values` set for the backend env vars, then restores the shell's. */
@@ -371,6 +376,240 @@ test("backendConfig fails fast with the documented message when a var is missing
     },
     () => {
       assert.throws(() => backendConfig(), /Missing required env var: OMNIROUTE_TRANSLATION_MODEL/);
+    }
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Multi-locale batch mode — one request for N locales, one line per locale.
+// Exported from translate-backend.mjs (see design symbols 1-3).
+// ---------------------------------------------------------------------------
+
+const FR = { code: "fr", english: "French", native: "Francais", name: "Francais" };
+const DE = { code: "de", english: "German", native: "Deutsch", name: "Deutsch" };
+
+test("multiLocaleBatchSystem names every target locale and pins the line format", () => {
+  const sys = multiLocaleBatchSystem([
+    { code: "fr", english: "French", native: "Francais" },
+    { code: "de", english: "German", native: "Deutsch" },
+  ]);
+  assert.match(sys, /fr/);
+  assert.match(sys, /de/);
+  assert.match(sys, /one JSON object per line/);
+  assert.match(sys, /\{"<code>":\{"<id>":"<translation>"\}\}/);
+});
+
+test("parseMultiLocaleBatchResponse assigns values by locale code, not line order", () => {
+  const text = ['{"de":{"1":"Abbrechen"}}', '{"fr":{"1":"Annuler"}}'].join("\n");
+  const out = parseMultiLocaleBatchResponse(text, ["fr", "de"], ["1"]);
+  assert.equal(out.perLocale.get("fr").get("1"), "Annuler");
+  assert.equal(out.perLocale.get("de").get("1"), "Abbrechen");
+  assert.deepEqual(out.failedLocales, []);
+});
+
+test("parseMultiLocaleBatchResponse returns the same assignment for reordered lines", () => {
+  const a = parseMultiLocaleBatchResponse(
+    '{"fr":{"1":"Annuler"}}\n{"de":{"1":"Abbrechen"}}',
+    ["fr", "de"],
+    ["1"]
+  );
+  const b = parseMultiLocaleBatchResponse(
+    '{"de":{"1":"Abbrechen"}}\n{"fr":{"1":"Annuler"}}',
+    ["fr", "de"],
+    ["1"]
+  );
+  assert.equal(a.perLocale.get("fr").get("1"), b.perLocale.get("fr").get("1"));
+  assert.equal(a.perLocale.get("de").get("1"), b.perLocale.get("de").get("1"));
+});
+
+test("parseMultiLocaleBatchResponse reports an empty answer as fully failed", () => {
+  const out = parseMultiLocaleBatchResponse("", ["fr", "de"], ["1"]);
+  assert.equal(out.perLocale.size, 0);
+  assert.deepEqual([...out.failedLocales].sort(), ["de", "fr"]);
+});
+
+test("parseMultiLocaleBatchResponse fails only the broken locale line", () => {
+  const text = ['{"fr":{"1":"Annuler"}}', "not-json{{{", '{"de":{"1":"Abbrechen"}}'].join("\n");
+  const out = parseMultiLocaleBatchResponse(text, ["fr", "de"], ["1"]);
+  assert.equal(out.perLocale.get("fr").get("1"), "Annuler");
+  assert.equal(out.perLocale.get("de").get("1"), "Abbrechen");
+  assert.deepEqual(out.failedLocales, []);
+});
+
+test("parseMultiLocaleBatchResponse marks a locale with a missing id as failed", () => {
+  const text = ['{"fr":{"2":"Annuler"}}', '{"de":{"1":"Abbrechen"}}'].join("\n");
+  const out = parseMultiLocaleBatchResponse(text, ["fr", "de"], ["1"]);
+  assert.ok(!out.perLocale.has("fr"));
+  assert.equal(out.perLocale.get("de").get("1"), "Abbrechen");
+  assert.deepEqual(out.failedLocales, ["fr"]);
+});
+
+test("parseMultiLocaleBatchResponse ignores unknown locale codes and keeps full quotes intact", () => {
+  const text = [
+    `{"fr":{"1":"Ouvrir '<name>' {count} OmniRoute"}}`,
+    '{"xx":{"1":"junk"}}',
+    '{"de":{"1":"Abbrechen"}}',
+  ].join("\n");
+  const out = parseMultiLocaleBatchResponse(text, ["fr", "de"], ["1"]);
+  assert.equal(out.perLocale.get("fr").get("1"), `Ouvrir '<name>' {count} OmniRoute`);
+  assert.equal(out.perLocale.get("de").get("1"), "Abbrechen");
+  assert.deepEqual(out.failedLocales, []);
+});
+
+test("translateMultiLocaleBatch sends one request for several locales", async () => {
+  await withFetch(
+    () => chatCompletion('{"fr":{"1":"Annuler"}}\n{"de":{"1":"Abbrechen"}}'),
+    async (calls) => {
+      const out = await translateMultiLocaleBatch(
+        [{ id: "greet", text: "Cancel" }],
+        [FR, DE],
+        BACKEND
+      );
+      assert.equal(calls.length, 1);
+      const body = requestBody(calls[0]);
+      const user = JSON.parse(body.messages[1].content);
+      assert.deepEqual(user, { 1: "Cancel" });
+      assert.equal(out.perLocale.get("fr").get("greet"), "Annuler");
+      assert.equal(out.perLocale.get("de").get("greet"), "Abbrechen");
+      assert.deepEqual(out.failedLocales, []);
+    }
+  );
+});
+
+test("translateMultiLocaleBatch returns a partial result when one locale line breaks", async () => {
+  await withFetch(
+    () => chatCompletion('{"fr":{"1":"Annuler"}}\nnot-json{{{'),
+    async (calls) => {
+      const out = await translateMultiLocaleBatch(
+        [{ id: "greet", text: "Cancel" }],
+        [FR, DE],
+        BACKEND
+      );
+      assert.equal(calls.length, 1);
+      assert.equal(out.perLocale.get("fr").get("greet"), "Annuler");
+      assert.deepEqual(out.failedLocales, ["de"]);
+    }
+  );
+});
+
+test("translateMultiLocaleBatch restores literal quotes around angle spans per value", async () => {
+  await withFetch(
+    () => chatCompletion('{"fr":{"1":"Ouvrir <name>"}}\n{"de":{"1":"Abbrechen"}}'),
+    async () => {
+      const out = await translateMultiLocaleBatch(
+        [{ id: "open", text: "Open '<name>'" }],
+        [FR, DE],
+        BACKEND
+      );
+      assert.equal(out.perLocale.get("fr").get("open"), "Ouvrir '<name>'");
+    }
+  );
+});
+
+test("translateMultiLocaleBatch throws when every locale line fails", async () => {
+  await withFetch(
+    () => chatCompletion("not-json{{{"),
+    async () => {
+      await assert.rejects(
+        translateMultiLocaleBatch([{ id: "greet", text: "Cancel" }], [FR, DE], BACKEND),
+        /no locale translated/
+      );
+    }
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Optional reasoning control — off unless the operator sets the variable
+// ---------------------------------------------------------------------------
+
+test("backendConfig omits the key when the variable is unset, empty or blank", () => {
+  const base = {
+    OMNIROUTE_TRANSLATION_API_URL: "http://translation.test/v1",
+    OMNIROUTE_TRANSLATION_API_KEY: "sk-test",
+    OMNIROUTE_TRANSLATION_MODEL: "test-model",
+  };
+  withEnv(base, () => {
+    assert.deepEqual(backendConfig(), {
+      apiUrl: "http://translation.test/v1",
+      apiKey: "sk-test",
+      model: "test-model",
+      timeoutMs: 60000,
+    });
+  });
+  for (const value of ["", "   "]) {
+    withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: value }, () => {
+      assert.deepEqual(backendConfig(), {
+        apiUrl: "http://translation.test/v1",
+        apiKey: "sk-test",
+        model: "test-model",
+        timeoutMs: 60000,
+      });
+    });
+  }
+});
+
+test("backendConfig forwards the trimmed value when the variable is set", () => {
+  const base = {
+    OMNIROUTE_TRANSLATION_API_URL: "http://translation.test/v1",
+    OMNIROUTE_TRANSLATION_API_KEY: "sk-test",
+    OMNIROUTE_TRANSLATION_MODEL: "test-model",
+  };
+  withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: "none" }, () => {
+    assert.equal(backendConfig().reasoningEffort, "none");
+  });
+  withEnv({ ...base, OMNIROUTE_TRANSLATION_REASONING_EFFORT: " none " }, () => {
+    assert.equal(backendConfig().reasoningEffort, "none");
+  });
+});
+
+test("callChat omits the field when the backend carries none", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  await withFetch(
+    () => chatCompletion("ok"),
+    async (calls) => {
+      await callChat(messages, BACKEND);
+      assert.equal(calls.length, 1);
+      assert.equal(
+        String(calls[0].init.body),
+        '{"model":"test-model","messages":[{"role":"user","content":"x"}],"temperature":0.15,"stream":false}'
+      );
+      assert.equal("reasoning_effort" in requestBody(calls[0]), false);
+    }
+  );
+});
+
+test("callChat forwards the field when the backend carries one", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  await withFetch(
+    () => chatCompletion("ok"),
+    async (calls) => {
+      await callChat(messages, { ...BACKEND, reasoningEffort: "none" });
+      assert.equal(calls.length, 1);
+      const body = requestBody(calls[0]);
+      assert.equal(body.reasoning_effort, "none");
+      assert.deepEqual(Object.keys(body), [
+        "model",
+        "messages",
+        "temperature",
+        "stream",
+        "reasoning_effort",
+      ]);
+    }
+  );
+});
+
+test("callChat keeps the field on retry after a transient failure", async () => {
+  const messages = [{ role: "user", content: "x" }];
+  let n = 0;
+  await withFetch(
+    () => (++n === 1 ? new Response("busy", { status: 500 }) : chatCompletion("ok")),
+    async (calls) => {
+      const out = await callChat(messages, { ...BACKEND, reasoningEffort: "none" });
+      assert.equal(out, "ok");
+      assert.equal(calls.length, 2);
+      for (const call of calls) {
+        assert.equal(requestBody(call).reasoning_effort, "none");
+      }
     }
   );
 });

@@ -557,9 +557,23 @@ test("a reworded or deleted sentence fails, instead of passing as absent", () =>
 test("the live page actually satisfies both required gates", () => {
   // A unit test on synthetic strings proves the validator; this one proves the
   // document. Without it, the two could drift apart and both stay green.
+  // The expected counts come from the catalog itself rather than a literal: the
+  // page tracks the live flags, so a hard-coded number goes stale the moment a
+  // batch of rows lands (it did, at 5, when the 39 xKiro rows were added).
+  const catalog = readFileSync(
+    path.resolve(here, "../../open-sse/config/freeModelCatalog.data.ts"),
+    "utf8"
+  );
+  const countFlag = (flag: string): number =>
+    catalog.split("\n").filter((l) => l.includes(`${flag}: true`)).length;
+  const hardStop = countFlag("hardStopGuaranteed");
+  const training = countFlag("trainsOnPrompts");
+  assert.ok(hardStop > 0, "catalog should carry at least one hardStopGuaranteed row");
+  assert.ok(training > 0, "catalog should carry at least one trainsOnPrompts row");
+
   const page = readFileSync(path.resolve(here, "../../docs/reference/FREE_TIERS.md"), "utf8");
-  assert.equal(makeValidator(5, { ...HARD_STOP_CLAIM, requireClaim: true })(page).ok, true);
-  assert.equal(makeValidator(13, { ...TRAINING_CLAIM, requireClaim: true })(page).ok, true);
+  assert.equal(makeValidator(hardStop, { ...HARD_STOP_CLAIM, requireClaim: true })(page).ok, true);
+  assert.equal(makeValidator(training, { ...TRAINING_CLAIM, requireClaim: true })(page).ok, true);
 });
 
 test("neither claim fires on the other numbers the page is full of", () => {

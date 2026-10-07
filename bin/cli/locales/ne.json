@@ -226,11 +226,11 @@
     "description": "OmniRoute मा एकपटकको chat prompt पठाउनुहोस्",
     "file": "file बाट prompt पढ्नुहोस्",
     "stdin": "stdin बाट prompt पढ्नुहोस्",
-    "system": "System prompt",
+    "system": "प्रणाली प्रम्प्ट",
     "model": "Model ID (पूर्वनिर्धारित: auto)",
     "max_tokens": "response मा अधिकतम tokens",
     "temperature": "sampling temperature (0–2)",
-    "top_p": "Top-p nucleus sampling",
+    "top_p": "Top-p न्युक्लियस नमुना चयन",
     "reasoning_effort": "तर्क प्रयासको स्तर (low|medium|high)",
     "thinking_budget": "विस्तारित सोचाइको token बजेट",
     "combo": "नामद्वारा कुनै विशिष्ट combo प्रयोग गर्न बाध्य पार्नुहोस्",
@@ -256,6 +256,7 @@
     "max_restarts": "प्रयास छोड्नुअघि 30s भित्र क्र्यासपछि पुनः सुरु गर्ने अधिकतम सङ्ख्या (पूर्वनिर्धारित: 2)",
     "tray": "सिस्टम ट्रेमा सुरु गर्नुहोस् (डेस्कटपमा मात्र, स्वैच्छिक)",
     "no_tray": "सिस्टम ट्रे आइकन असक्षम गर्नुहोस्",
+    "ready_timeout": "मिलिसेकेन्डमा तत्परता प्रोबको समयसीमा (OMNIROUTE_READY_TIMEOUT_MS पनि, पूर्वनिर्धारित 60000)",
     "tls_cert": "HTTPS सेवा दिन TLS प्रमाणपत्र (PEM) को पथ (OMNIROUTE_TLS_CERT पनि)",
     "tls_key": "HTTPS सेवा दिन TLS निजी कुञ्जी (PEM) को पथ (OMNIROUTE_TLS_KEY पनि)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP सर्भर चलिरहेको छ ({transport})",
     "stopped": "MCP सर्भर रोकियो।",
     "restarted": "MCP सर्भर पुनः सुरु गरियो।",
+    "stoppedHint": "यसलाई सक्रिय गर्न `omniroute mcp enable` चलाउनुहोस्।",
+    "enabled": "MCP सर्भर सक्रिय गरियो।",
+    "disabled": "MCP सर्भर निष्क्रिय गरियो।",
+    "enable": {
+      "description": "MCP सर्भर सक्रिय गर्नुहोस्",
+      "transport": "प्रयोग गर्ने ट्रान्सपोर्ट: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP सर्भर निष्क्रिय गर्नुहोस्"
+    },
     "call": {
       "description": "MCP उपकरणलाई सिधै आह्वान गर्नुहोस्",
       "args": "JSON आर्गुमेन्ट अब्जेक्ट (इनलाइन)",

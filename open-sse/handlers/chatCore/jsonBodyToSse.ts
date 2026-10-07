@@ -15,6 +15,7 @@
  */
 import { withBodyTimeout as defaultWithBodyTimeout } from "../../utils/stream.ts";
 import { synthesizeOpenAiSseFromJson as defaultSynthesize } from "../../utils/jsonToSse.ts";
+import { prependBufferedChunks } from "../../utils/streamReadiness.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
@@ -27,36 +28,6 @@ const DEFAULT_DEPS: JsonBodyToSseDeps = {
   withBodyTimeout: defaultWithBodyTimeout,
   synthesizeOpenAiSseFromJson: defaultSynthesize,
 };
-
-function prependBufferedChunks(
-  chunks: Uint8Array[],
-  reader: ReadableStreamDefaultReader<Uint8Array>
-): ReadableStream<Uint8Array> {
-  let index = 0;
-  return new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      if (index < chunks.length) {
-        controller.enqueue(chunks[index++]);
-        return;
-      }
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          controller.close();
-        } else {
-          controller.enqueue(value);
-        }
-      } catch (error) {
-        controller.error(error);
-      }
-    },
-    async cancel(reason) {
-      try {
-        await reader.cancel(reason);
-      } catch {}
-    },
-  });
-}
 
 function classifyBodyPrefix(text: string): "sse" | "non-sse" | "unknown" {
   const trimmed = text.replace(/^\uFEFF/, "").trimStart();

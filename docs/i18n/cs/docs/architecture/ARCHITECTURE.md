@@ -1,149 +1,185 @@
 # OmniRoute Architecture (Čeština)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
 ---
 
-_Last updated: 2026-04-15_
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇪🇹 [am](../../../am/docs/architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/ARCHITECTURE.md) · 🇰🇭 [km](../../../km/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇲🇲 [my](../../../my/docs/architecture/ARCHITECTURE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [or](../../../or/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇱🇰 [si](../../../si/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
-## Executive Summary
+_Naposledy aktualizováno: 2026-06-28_
 
-OmniRoute is a local AI routing gateway and dashboard built on Next.js.
-It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
+## Shrnutí pro vedení
 
-Core capabilities:
+OmniRoute je lokální směrovací brána a řídicí panel pro AI, vytvořené pomocí Next.js.
+Poskytuje jeden koncový bod kompatibilní s OpenAI (`/v1/*`) a směruje provoz mezi více upstream poskytovateli s překladem, záložními variantami, obnovováním tokenů a sledováním využití.
 
-- OpenAI-compatible API surface for CLI/tools (329 provider catalog entries, 89 executor implementation modules)
-- Request/response translation across provider formats
-- Model combo fallback (multi-model sequence)
-- Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
-- Account-level fallback (multi-account per provider)
-- Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (23 OAuth catalog entries backed by 21 provider modules)
-- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
-- Image generation via `/v1/images/generations` (10+ providers, 20+ models)
-- Audio transcription via `/v1/audio/transcriptions` (7 providers)
-- Text-to-speech via `/v1/audio/speech` (10 providers)
-- Video generation via `/v1/videos/generations` (ComfyUI + SD WebUI)
-- Music generation via `/v1/music/generations` (ComfyUI)
-- Web search via `/v1/search` (12 providers)
-- Moderations via `/v1/moderations`
-- Reranking via `/v1/rerank`
-- Think tag parsing (`<think>...</think>`) for reasoning models
-- Response sanitization for strict OpenAI SDK compatibility
-- Role normalization (developer→system, system→user) for cross-provider compatibility
-- Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing (110 top-level DB modules)
-- Usage/cost tracking and request logging
-- Optional cloud sync for multi-device/state sync
-- IP allowlist/blocklist for API access control
-- Thinking budget management (passthrough/auto/custom/adaptive)
-- Global system prompt injection
-- Session tracking and fingerprinting
-- Per-account enhanced rate limiting with provider-specific profiles
-- Circuit breaker pattern for provider resilience
-- Anti-thundering herd protection with mutex locking
-- Signature-based request deduplication cache
-- Domain layer: cost rules, fallback policy, lockout policy
-- Context Relay: session handoff summaries for account rotation continuity
-- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
-- Policy engine for centralized request evaluation (lockout → budget → fallback)
-- Request telemetry with p50/p95/p99 latency aggregation
-- Combo target telemetry and historical combo target health via `combo_execution_key` / `combo_step_id`
-- Correlation ID (X-Request-Id) for end-to-end tracing
-- Compliance audit logging with opt-out per API key
-- Eval framework for LLM quality assurance
-- Health dashboard with real-time provider circuit breaker status
-- MCP Server (107 unique tools, 32 scopes) with 3 transports (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
-- Memory system (extraction, injection, retrieval, summarization)
-- Skills system (registry, executor, sandbox, built-in skills)
-- MITM proxy with certificate management and DNS handling
-- Prompt injection guard middleware
-- ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (21 implementation modules under `src/lib/oauth/providers/`)
-- Uninstall/full-uninstall scripts
-- OAuth environment repair action
-- WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
-- Sync token management (issue/revoke, ETag-versioned config bundle download)
-- GLM Thinking (`glmt`) first-class provider preset
-- Hybrid token counting (provider-side `/messages/count_tokens` with estimation fallback)
-- Model alias auto-seeding (30+ cross-proxy dialect normalizations at startup)
-- Safe outbound fetch with SSRF guard, private URL blocking, and configurable retry
-- Cooldown-aware chat retries with configurable `requestRetry` and `maxRetryIntervalSec`
-- Runtime environment validation with Zod at startup
-- Compliance audit v2 with pagination, provider CRUD events, and SSRF-blocked validation logging
+Klíčové funkce:
 
-Primary runtime model:
+- API rozhraní kompatibilní s OpenAI pro CLI/nástroje (355 poskytovatelů, 108 executorů)
+- Překlad požadavků a odpovědí mezi formáty poskytovatelů
+- Záložní varianty kombinací modelů (sekvence více modelů)
+- Strukturované kroky kombinací (`provider + model + connection`) s pořadím za běhu podle `compositeTiers`
+- Záložní varianty na úrovni účtů (více účtů na poskytovatele)
+- Předběžná kontrola kvót a výběr účtu P2C s ohledem na kvóty v hlavní cestě chatu
+- Správa připojení k poskytovatelům pomocí OAuth a API klíčů (22 modulů poskytovatelů OAuth)
+- Generování embeddingů prostřednictvím `/v1/embeddings` (18 poskytovatelů)
+- Generování obrázků prostřednictvím `/v1/images/generations` (10+ poskytovatelů, 20+ modelů)
+- Přepis zvuku prostřednictvím `/v1/audio/transcriptions` (18 poskytovatelů)
+- Převod textu na řeč prostřednictvím `/v1/audio/speech` (24 vestavěných poskytovatelů)
+- Generování videa prostřednictvím `/v1/videos/generations` (ComfyUI + SD WebUI)
+- Generování hudby prostřednictvím `/v1/music/generations` (ComfyUI)
+- Vyhledávání na webu prostřednictvím `/v1/search` (20 poskytovatelů)
+- Moderování prostřednictvím `/v1/moderations`
+- Změna pořadí výsledků prostřednictvím `/v1/rerank`
+- Zpracování značek pro uvažování (`<think>...</think>`) u modelů s logickým uvažováním
+- Sanitizace odpovědí pro striktní kompatibilitu se sadou OpenAI SDK
+- Normalizace rolí (developer→system, system→user) pro kompatibilitu mezi poskytovateli
+- Převod strukturovaného výstupu (json_schema → Gemini responseSchema)
+- Lokální perzistence poskytovatelů, klíčů, aliasů, kombinací, nastavení a cen (122 databázových modulů)
+- Sledování využití a nákladů a protokolování požadavků
+- Volitelná cloudová synchronizace pro synchronizaci mezi více zařízeními a synchronizaci stavu
+- Seznam povolených/blokovaných IP adres pro řízení přístupu k API
+- Správa rozpočtu pro uvažování (předání beze změny/automatický/vlastní/adaptivní)
+- Globální vkládání systémového promptu
+- Sledování relací a vytváření otisků
+- Rozšířené omezování četnosti požadavků pro jednotlivé účty s profily specifickými pro poskytovatele
+- Vzor jističe pro odolnost vůči výpadkům poskytovatelů
+- Ochrana proti efektu lavinového náporu pomocí zamykání mutexem
+- Deduplicační mezipaměť požadavků založená na signaturách
+- Doménová vrstva: pravidla nákladů, zásady záložních variant, zásady uzamčení
+- Context Relay: souhrny předání relací pro zachování kontinuity při střídání účtů
+- Perzistence doménového stavu (průběžně zapisovaná mezipaměť SQLite pro záložní varianty, rozpočty, uzamčení a jističe)
+- Modul zásad pro centralizované vyhodnocování požadavků (uzamčení → rozpočet → záložní varianta)
+- Telemetrie požadavků s agregací latence p50/p95/p99
+- Telemetrie cílů kombinací a historický stav cílů kombinací prostřednictvím `combo_execution_key` / `combo_step_id`
+- ID korelace (X-Request-Id) pro komplexní trasování
+- Auditní protokolování souladu s možností deaktivace pro jednotlivé API klíče
+- Evaluační framework pro zajištění kvality LLM
+- Řídicí panel stavu s aktuálním stavem jističů poskytovatelů
+- Server MCP (110 nástrojů) se 3 transporty (stdio/SSE/Streamable HTTP)
+- Server A2A (JSON-RPC 2.0 + SSE) s dovednostmi a životním cyklem úloh
+- Paměťový systém (extrakce, vkládání, načítání, sumarizace)
+- Systém dovedností (registr, executor, sandbox, vestavěné dovednosti)
+- MITM proxy se správou certifikátů a zpracováním DNS
+- Middleware chránící před vkládáním škodlivých promptů
+- Pipeline komprese promptů s Caveman, RTK, skládanými pipelines, kompresními kombinacemi, jazykovými balíčky a analytikou
+- Registr ACP (Agent Communication Protocol)
+- Modulární poskytovatelé OAuth (22 samostatných modulů v `src/lib/oauth/providers/`)
+- Skripty pro odinstalaci a úplnou odinstalaci
+- Akce pro opravu prostředí OAuth
+- Most WebSocket pro klienty WS kompatibilní s OpenAI (`/v1/ws`)
+- Správa synchronizačních tokenů (vydávání/odvolávání, stahování konfiguračního balíčku s verzováním pomocí ETag)
+- GLM Thinking (`glmt`) jako plnohodnotná předvolba poskytovatele
+- Hybridní počítání tokenů (`/messages/count_tokens` na straně poskytovatele se záložním odhadem)
+- Automatické předvyplnění aliasů modelů (30+ normalizací dialektů mezi proxy při spuštění)
+- Bezpečné odchozí načítání s ochranou proti SSRF, blokováním privátních URL a konfigurovatelnými opakovanými pokusy
+- Opakování požadavků chatu s ohledem na dobu čekání a konfigurovatelnými parametry `requestRetry` a `maxRetryIntervalSec`
+- Ověření běhového prostředí pomocí Zod při spuštění
+- Audit souladu v2 se stránkováním, událostmi CRUD poskytovatelů a protokolováním ověření zablokovaných kvůli SSRF
 
-- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
-- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+Primární běhový model:
 
-## Scope and Boundaries
+- Trasy aplikace Next.js v `src/app/api/*` implementují jak API řídicího panelu, tak kompatibilní API
+- Sdílené jádro SSE/směrování v `src/sse/*` + `open-sse/*` zajišťuje spouštění poskytovatelů, překlad, streamování, záložní varianty a využití
 
-### In Scope
+## Referenční diagramy
 
-- Local gateway runtime
-- Dashboard management APIs
-- Provider authentication and token refresh
-- Request translation and SSE streaming
-- Local state + usage persistence
-- Optional cloud sync orchestration
+Kanonické, verzované zdrojové soubory Mermaid pro platformu v3.8.0 se nacházejí v
+[`docs/diagrams/`](../diagrams/README.md). Dva z nich jsou pro orientaci uvedeny níže;
+ostatní jsou odkazovány z příruček pro konkrétní oblasti.
 
-### Out of Scope
+![Zpracování požadavku (/v1/chat/completions)](../diagrams/exported/request-pipeline.svg)
 
-- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
-- Provider SLA/control plane outside local process
-- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
+> Zdroj: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
-## Dashboard Surface (Current)
+![Třívrstvý model odolnosti](../diagrams/exported/resilience-3layers.svg)
 
-Main pages under `src/app/(dashboard)/dashboard/`:
+> Zdroj: [diagrams/resilience-3layers.mmd](../diagrams/resilience-3layers.mmd) — odkazuje na něj také
+> [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) a referenční dokumentace k odolnosti v souboru `CLAUDE.md`.
 
-- `/dashboard` — quick start + provider overview
-- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
-- `/dashboard/providers` — provider connections and credentials
-- `/dashboard/combos` — combo strategies, templates, step-based builder, model routing rules, manual persisted ordering
-- `/dashboard/costs` — cost aggregation and pricing visibility
-- `/dashboard/analytics` — usage analytics, evaluations, combo target health
-- `/dashboard/limits` — quota/rate controls
-- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
-- `/dashboard/agents` — detected ACP agents + custom agent registration
-- `/dashboard/media` — image/video/music playground
-- `/dashboard/search-tools` — search provider testing and history
-- `/dashboard/health` — uptime, circuit breakers, rate limits, quota-monitored sessions
-- `/dashboard/logs` — request/proxy/audit/console logs
-- `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
-- `/dashboard/api-manager` — API key lifecycle and model permissions
+## Rozsah a hranice
 
-## High-Level System Context
+### Zahrnuto
+
+- Lokální běhové prostředí brány
+- Rozhraní API pro správu prostřednictvím řídicího panelu
+- Ověřování u poskytovatelů a obnovování tokenů
+- Překlad požadavků a streamování SSE
+- Lokální stav a ukládání údajů o využití
+- Volitelná orchestrace synchronizace s cloudem
+
+### Nezahrnuto
+
+- Implementace cloudové služby za `NEXT_PUBLIC_CLOUD_URL`
+- SLA/řídicí vrstva poskytovatele mimo lokální proces
+- Samotné externí binární soubory CLI (Claude CLI, Codex CLI atd.)
+
+## Rozhraní řídicího panelu (aktuální)
+
+Hlavní stránky v `src/app/(dashboard)/dashboard/`:
+
+- `/dashboard` — rychlý start a přehled poskytovatelů
+- `/dashboard/endpoint` — proxy koncových bodů a karty MCP, A2A a koncových bodů API
+- `/dashboard/providers` — připojení k poskytovatelům a přihlašovací údaje
+- `/dashboard/combos` — kombinované strategie, šablony, nástroj pro sestavení založený na krocích, pravidla směrování modelů a ručně uložené pořadí
+- `/dashboard/auto-combo` — modul Auto Combo Engine: váhy hodnocení, balíčky režimů, předvolby virtuálních továren a telemetrie
+- `/dashboard/costs` — agregace nákladů a přehled cen
+- `/dashboard/analytics` — analýza využití, vyhodnocení a stav cílů kombinací
+- `/dashboard/limits` — řízení kvót a rychlostních limitů
+- `/dashboard/cli-tools` — úvodní nastavení CLI, detekce běhového prostředí a generování konfigurace
+- `/dashboard/agents` — detekovaní agenti ACP a registrace vlastních agentů
+- `/dashboard/cloud-agents` — úlohy agentů hostovaných v cloudu (Codex Cloud, Devin, Jules) a životní cyklus úloh
+- `/dashboard/skills` — registr dovedností A2A, spouštění v sandboxu a katalog vestavěných dovedností
+- `/dashboard/memory` — kontrola a načítání trvalé konverzační paměti
+- `/dashboard/webhooks` — odběry odchozích webhooků, rotace tajných klíčů a statistiky opakovaných pokusů
+- `/dashboard/batch` — odesílání dávkových úloh a sledování průběhu
+- `/dashboard/cache` — statistiky mezipaměti pro průběžné čtení a uvažování a ovládací prvky vyprazdňování
+- `/dashboard/playground` — interaktivní chatovací prostředí pro libovolnou nakonfigurovanou kombinaci či model
+- `/dashboard/changelog` — prohlížeč přehledu změn v aplikaci (vykresluje `CHANGELOG.md`)
+- `/dashboard/system` — diagnostika běhového prostředí, informace o verzi a rozhraní pro ověření prostředí
+- `/dashboard/onboarding` — průvodce prvotním nastavením pro nové instalace
+- `/dashboard/media` — prostředí pro práci s obrázky, videi a hudbou
+- `/dashboard/search-tools` — testování poskytovatelů vyhledávání a historie
+- `/dashboard/health` — doba provozu, jističe, rychlostní limity a relace sledované z hlediska kvót
+- `/dashboard/logs` — protokoly požadavků, proxy, auditu a konzole
+- `/dashboard/settings` — karty systémových nastavení (obecná nastavení, směrování, výchozí hodnoty kombinací atd.)
+- `/dashboard/context/caveman` — pravidla komprese Caveman, jazykové balíčky, náhled a výstupní režim
+- `/dashboard/context/rtk` — filtry výstupu příkazů RTK, náhled a nastavení bezpečnosti běhového prostředí
+- `/dashboard/context/combos` — pojmenované kompresní kanály přiřazené ke směrovacím kombinacím
+- `/dashboard/translator` — kontrola překladače a náhled převodu formátu požadavků
+- `/dashboard/audit` — prohlížeč protokolu auditu souladu s předpisy se stránkováním a strukturovanými metadaty
+- `/dashboard/usage` — prohlížeč využití jednotlivých požadavků propojený s `usage_history`
+- `/dashboard/compression` — analýza a statistiky komprese a přiřazování kanálů
+- `/dashboard/api-manager` — životní cyklus klíčů API a oprávnění modelů
+
+## Kontext systému na vysoké úrovni
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[Vývojářští klienti]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[Vlastní klienti kompatibilní s OpenAI]
+        BROWSER[Řídicí panel v prohlížeči]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[Lokální proces OmniRoute]
+        API[Kompatibilní API V1\n/v1/*]
+        DASH[Řídicí panel + API pro správu\n/api/*]
+        CORE[Jádro SSE + překladů\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(tabulky využití + artefakty protokolů)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[Poskytovatelé upstreamu]
+        P1[Poskytovatelé OAuth\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[Poskytovatelé s API klíčem\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[Kompatibilní uzly\nKompatibilní s OpenAI / kompatibilní s Anthropic]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[Volitelná cloudová synchronizace]
+        CLOUD[Koncový bod cloudové synchronizace\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -164,313 +200,504 @@ flowchart LR
     DASH --> CLOUD
 ```
 
-## Core Runtime Components
+## Hlavní komponenty běhového prostředí
 
-## 1) API and Routing Layer (Next.js App Routes)
+## 1) Vrstva API a směrování (trasy aplikace Next.js)
 
-Main directories:
+Hlavní adresáře:
 
-- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
-- `src/app/api/*` for management/configuration APIs
-- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
+- `src/app/api/v1/*` a `src/app/api/v1beta/*` pro kompatibilní API
+- `src/app/api/*` pro API správy a konfigurace
+- Přepisy Next v `next.config.mjs` mapují `/v1/*` na `/api/v1/*`
 
-Important compatibility routes:
+Důležité kompatibilní trasy:
 
 - `src/app/api/v1/chat/completions/route.ts`
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
-- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
-- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
-- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
+- `src/app/api/v1/models/route.ts` — zahrnuje vlastní modely s `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — generování embeddingů (6 poskytovatelů)
+- `src/app/api/v1/images/generations/route.ts` — generování obrázků (4+ poskytovatelů včetně Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
-- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — vyhrazený chat pro jednotlivé poskytovatele
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — vyhrazené embeddingy pro jednotlivé poskytovatele
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — vyhrazené obrázky pro jednotlivé poskytovatele
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
-Management domains:
+Oblasti správy:
 
-- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
-- Providers/connections: `src/app/api/providers*`
-- Provider nodes: `src/app/api/provider-nodes*`
-- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
-- Model catalog: `src/app/api/models/route.ts` (GET)
-- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
+- Ověřování/nastavení: `src/app/api/auth/*`, `src/app/api/settings/*`
+- Poskytovatelé/připojení: `src/app/api/providers*`
+- Uzly poskytovatelů: `src/app/api/provider-nodes*`
+- Vlastní modely: `src/app/api/provider-models` (GET/POST/DELETE)
+- Katalog modelů: `src/app/api/models/route.ts` (GET)
+- Konfigurace proxy: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
-- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
-- Usage: `src/app/api/usage/*`
-- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- CLI tooling helpers: `src/app/api/cli-tools/*`
-- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
-- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
-- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
-- Sessions: `src/app/api/sessions` (GET)
-- Rate limits: `src/app/api/rate-limits` (GET)
-- Resilience: `src/app/api/resilience` (GET/PATCH) — request queue, connection cooldown, provider breaker, wait-for-cooldown config
-- Resilience reset: `src/app/api/resilience/reset` (POST) — reset provider breakers
-- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
-- Telemetry: `src/app/api/telemetry/summary` (GET)
-- Budget: `src/app/api/usage/budget` (GET/POST)
-- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
-- Compliance audit: `src/app/api/compliance/audit-log` (GET, with pagination + structured metadata)
-- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
-- Policies: `src/app/api/policies` (GET/POST)
-- Sync tokens: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
-- Config bundle: `src/app/api/sync/bundle` (GET, ETag-versioned snapshot of settings/providers/combos/keys)
-- WebSocket: `src/app/api/v1/ws/route.ts` — Upgrade handler for OpenAI-compatible WS clients
+- Klíče/aliasy/kombinace/ceny: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
+- Využití: `src/app/api/usage/*`
+- Synchronizace/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
+- Pomocné nástroje CLI: `src/app/api/cli-tools/*`
+- Filtr IP adres: `src/app/api/settings/ip-filter` (GET/PUT)
+- Rozpočet pro uvažování: `src/app/api/settings/thinking-budget` (GET/PUT)
+- Systémová výzva: `src/app/api/settings/system-prompt` (GET/PUT)
+- Komprese: `src/app/api/settings/compression`, `src/app/api/compression/*` a
+  `src/app/api/context/*`
+- Relace: `src/app/api/sessions` (GET)
+- Omezení rychlosti: `src/app/api/rate-limits` (GET)
+- Odolnost: `src/app/api/resilience` (GET/PATCH) — fronta požadavků, prodleva připojení, jistič poskytovatele, konfigurace čekání na ukončení prodlevy
+- Resetování odolnosti: `src/app/api/resilience/reset` (POST) — resetování jističů poskytovatelů
+- Statistiky mezipaměti: `src/app/api/cache/stats` (GET/DELETE)
+- Telemetrie: `src/app/api/telemetry/summary` (GET)
+- Rozpočet: `src/app/api/usage/budget` (GET/POST)
+- Řetězce záložních variant: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Audit souladu: `src/app/api/compliance/audit-log` (GET, se stránkováním + strukturovanými metadaty)
+- Vyhodnocení: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Zásady: `src/app/api/policies` (GET/POST)
+- Synchronizační tokeny: `src/app/api/sync/tokens` (GET/POST), `src/app/api/sync/tokens/[id]` (GET/DELETE)
+- Konfigurační balíček: `src/app/api/sync/bundle` (GET, snímek nastavení/poskytovatelů/kombinací/klíčů verzovaný pomocí ETag)
+- WebSocket: `src/app/api/v1/ws/route.ts` — obslužná rutina upgradu pro klienty WS kompatibilní s OpenAI
 
-## 2) SSE + Translation Core
+## 2) SSE + jádro překladu
 
-Main flow modules:
+Hlavní moduly toku:
 
-- Entry: `src/sse/handlers/chat.ts`
-- Core orchestration: `open-sse/handlers/chatCore.ts`
-- Provider execution adapters: `open-sse/executors/*`
-- Format detection/provider config: `open-sse/services/provider.ts`
-- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Account fallback logic: `open-sse/services/accountFallback.ts`
-- Translation registry: `open-sse/translator/index.ts`
-- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
-- Think tag parser: `open-sse/utils/thinkTagParser.ts`
-- Embedding handler: `open-sse/handlers/embeddings.ts`
-- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
-- Image generation handler: `open-sse/handlers/imageGeneration.ts`
-- Image provider registry: `open-sse/config/imageRegistry.ts`
-- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
-- Role normalization: `open-sse/services/roleNormalizer.ts`
+- Vstupní bod: `src/sse/handlers/chat.ts`
+- Základní orchestrace: `open-sse/handlers/chatCore.ts`
+- Adaptéry pro spouštění poskytovatelů: `open-sse/executors/*`
+- Detekce formátu / konfigurace poskytovatele: `open-sse/services/provider.ts`
+- Parsování / rozlišení modelu: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Logika záložního účtu: `open-sse/services/accountFallback.ts`
+- Registr překladů: `open-sse/translator/index.ts`
+- Transformace streamů: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Extrakce / normalizace využití: `open-sse/utils/usageTracking.ts`
+- Parser značek pro přemýšlení: `open-sse/utils/thinkTagParser.ts`
+- Obsluha embeddingů: `open-sse/handlers/embeddings.ts`
+- Registr poskytovatelů embeddingů: `open-sse/config/embeddingRegistry.ts`
+- Obsluha generování obrázků: `open-sse/handlers/imageGeneration.ts`
+- Registr poskytovatelů obrázků: `open-sse/config/imageRegistry.ts`
+- Sanitizace odpovědí: `open-sse/handlers/responseSanitizer.ts`
+- Normalizace rolí: `open-sse/services/roleNormalizer.ts`
 
-Services (business logic):
+Služby (obchodní logika):
 
-- Account selection/scoring: `open-sse/services/accountSelector.ts`
-- Context lifecycle management: `open-sse/services/contextManager.ts`
-- IP filter enforcement: `open-sse/services/ipFilter.ts`
-- Session tracking: `open-sse/services/sessionManager.ts`
-- Request deduplication: `open-sse/services/signatureCache.ts`
-- System prompt injection: `open-sse/services/systemPrompt.ts`
-- Thinking budget management: `open-sse/services/thinkingBudget.ts`
-- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
-- Rate limit management: `open-sse/services/rateLimitManager.ts`
-- Circuit breaker: `open-sse/services/circuitBreaker.ts`
-- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
-- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
-- Cooldown-aware retry: `src/sse/services/cooldownAwareRetry.ts` — per-model cooldown retries with configurable `requestRetry` / `maxRetryIntervalSec`
-- Safe outbound fetch: `src/shared/network/safeOutboundFetch.ts` — guarded provider/model fetch with SSRF guard, private-URL blocking, retry, and timeout
-- Outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — validates provider URLs against private/localhost CIDR ranges
-- Provider request defaults: `open-sse/services/providerRequestDefaults.ts` — provider-level `maxTokens`, `temperature`, `thinkingBudgetTokens` defaults
-- GLM provider constants: `open-sse/config/glmProvider.ts` — shared GLM models, quota URLs, GLMT timeout/defaults
-- Antigravity upstream: `open-sse/config/antigravityUpstream.ts` — base URL and discovery path constants
-- Codex client constants: `open-sse/config/codexClient.ts` — versioned user-agent and client-version values
-- Model alias seed: `src/lib/modelAliasSeed.ts` — seeds 30+ cross-proxy dialect aliases at startup
+- Výběr / hodnocení účtů: `open-sse/services/accountSelector.ts`
+- Správa životního cyklu kontextu: `open-sse/services/contextManager.ts`
+- Vynucování filtru IP adres: `open-sse/services/ipFilter.ts`
+- Sledování relací: `open-sse/services/sessionManager.ts`
+- Deduplikace požadavků: `open-sse/services/signatureCache.ts`
+- Vkládání systémových promptů: `open-sse/services/systemPrompt.ts`
+- Správa rozpočtu na přemýšlení: `open-sse/services/thinkingBudget.ts`
+- Směrování modelů pomocí zástupných znaků: `open-sse/services/wildcardRouter.ts`
+- Správa limitů četnosti požadavků: `open-sse/services/rateLimitManager.ts`
+- Jistič: `src/shared/utils/circuitBreaker.ts`
+- Předávání kontextu: `open-sse/services/contextHandoff.ts` — generování a vkládání souhrnu pro předávání kontextu ve strategii předávání kontextu
+- Komprese: `open-sse/services/compression/*` — proaktivní komprese před překladem pro poskytovatele;
+  zahrnuje pravidla Caveman, filtry RTK, zřetězené pipeline, kombinace komprese, statistiky a validaci
+- Načítání kvóty Codex: `open-sse/services/codexQuotaFetcher.ts` — načítá kvótu Codex pro rozhodování o předávání kontextu
+- Opakování zohledňující dobu blokování: `src/sse/services/cooldownAwareRetry.ts` — opakované pokusy pro jednotlivé modely s konfigurovatelnými hodnotami `requestRetry` / `maxRetryIntervalSec`
+- Bezpečné odchozí načítání: `src/shared/network/safeOutboundFetch.ts` — chráněné načítání poskytovatele/modelu s ochranou proti SSRF, blokováním privátních URL, opakováním a časovým limitem
+- Ochrana odchozích URL: `src/shared/network/outboundUrlGuard.ts` — ověřuje URL poskytovatelů vůči privátním rozsahům CIDR a rozsahům localhost
+- Výchozí hodnoty požadavků poskytovatele: `open-sse/services/providerRequestDefaults.ts` — výchozí hodnoty `maxTokens`, `temperature`, `thinkingBudgetTokens` na úrovni poskytovatele
+- Konstanty poskytovatele GLM: `open-sse/config/glmProvider.ts` — sdílené modely GLM, URL kvót, časový limit a výchozí hodnoty GLMT
+- Nadřazená služba Antigravity: `open-sse/config/antigravityUpstream.ts` — základní URL a konstanty cest pro zjišťování
+- Konstanty klienta Codex: `open-sse/config/codexClient.ts` — verzované hodnoty user-agent a verze klienta
+- Počáteční aliasy modelů: `src/lib/modelAliasSeed.ts` — při spuštění vytvoří více než 30 aliasů dialektů napříč proxy
 
-Domain layer modules:
+Moduly doménové vrstvy:
 
-- Cost rules/budgets: `src/lib/domain/costRules.ts`
-- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
-- Combo resolver: `src/lib/domain/comboResolver.ts`
-- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
-- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.ts`
-- Request ID: `src/lib/domain/requestId.ts`
-- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
-- Request telemetry: `src/lib/domain/requestTelemetry.ts`
-- Compliance/audit: `src/lib/domain/compliance/index.ts`
-- Eval runner: `src/lib/domain/evalRunner.ts`
-- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
+- Pravidla nákladů / rozpočty: `src/domain/costRules.ts`
+- Zásady záložního postupu: `src/domain/fallbackPolicy.ts`
+- Překladač kombinací: `src/domain/comboResolver.ts`
+- Zásady blokování: `src/domain/lockoutPolicy.ts`
+- Modul zásad: `src/domain/policyEngine.ts` — centralizované vyhodnocování v pořadí blokování → rozpočet → záložní postup
+- Katalog chybových kódů: `src/shared/constants/errorCodes.ts`
+- ID požadavku: `src/shared/utils/requestId.ts`
+- Časový limit načítání: `src/shared/utils/fetchTimeout.ts`
+- Telemetrie požadavků: `src/shared/utils/requestTelemetry.ts`
+- Soulad s předpisy / audit: `src/lib/compliance/index.ts`
+- Spouštěč vyhodnocení: `src/lib/evals/evalRunner.ts`
+- Perzistence stavu domény: `src/lib/db/domainState.ts` — operace SQLite CRUD pro řetězce záložních postupů, rozpočty, historii nákladů, stav blokování a jističe
 
-OAuth provider modules (21 implementation modules under `src/lib/oauth/providers/`):
+Moduly poskytovatelů OAuth (22 samostatných souborů v `src/lib/oauth/providers/`):
 
-- Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
-- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
+- Index registru: `src/lib/oauth/providers/index.ts`
+- Jednotliví poskytovatelé: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Tenká obalová vrstva: `src/lib/oauth/providers.ts` — reexportuje z jednotlivých modulů
 
-## 3) Persistence Layer
+## 5) Vestavěné služby (v3.8.4)
 
-Primary state DB (SQLite):
+OmniRoute dokáže instalovat, spravovat a směrovat požadavky na lokálně spuštěné procesy nástrojů AI
+nazývané **vestavěné služby**. Dodává se jich pět: 9Router, CLIProxyAPI, Bifrost, Mux a Dario.
 
-- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
-- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
-- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
-- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
+Vrstvy architektury:
 
-Usage persistence:
+- **Uživatelské rozhraní** (`/dashboard/providers/services`) — stránka se dvěma kartami, ovládacími prvky životního cyklu,
+  živým streamováním protokolů, správou klíčů API a (pro 9Router) vestavěným nativním uživatelským rozhraním
+  prostřednictvím interní reverzní proxy.
+- **API** (`/api/services/{name}/*`) — 11 koncových bodů pro 9Router, 10 pro CLIProxyAPI, po 8 pro Bifrost / Mux / Dario,
+  všechny klasifikované jako **LOCAL_ONLY** (pevné pravidlo č. 17). Sdílený koncový bod SSE `GET /api/services/[name]/logs`
+  obsluhuje obě služby.
+- **Supervizor** (`src/lib/services/`) — obecná třída `ServiceSupervisor` obaluje
+  `child_process.spawn`, udržuje kruhovou vyrovnávací paměť o velikosti 5 MB pro streamování protokolů přes SSE, smyčku
+  kontrol stavu, atomický zámek operací a korektní ukončení SIGTERM→SIGKILL.
+  `bootstrap.ts` propojuje všechny nakonfigurované služby při spuštění procesu.
+- **Poskytovatel/executor** (`open-sse/executors/ninerouter.ts`) — 9Router je zpřístupněn jako
+  skutečný poskytovatel. Modely mají předponu `9router/{sub}/{model}` a každých 5 minut se synchronizují
+  z koncového bodu `/v1/models` služby 9Router.
 
-- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
-- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
-- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- legacy JSON files are migrated to SQLite by startup migrations when present
+Podrobný rozbor: `docs/frameworks/EMBEDDED-SERVICES.md`
 
-Domain State DB (SQLite):
+## Hlavní subsystémy (v3.8.0)
 
-- `src/lib/db/domainState.ts` — CRUD operations for domain state
-- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
-- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
+### A. Modul Auto Combo
 
-## 4) Auth + Security Surfaces
+Auto Combo dynamicky vyhodnocuje a vybírá cíle směrování v okamžiku požadavku namísto
+spoléhání se na statickou definici kombinace. Zajišťuje fungování rodiny předpon modelů `auto/*`.
 
-- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
-- API key generation/verification: `src/shared/utils/apiKey.ts`
-- Provider secrets persisted in `providerConnections` entries
-- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
-- SSRF / outbound URL guard: `src/shared/network/outboundUrlGuard.ts` — blocks private/loopback/link-local ranges for all provider calls
-- Runtime env validation: `src/lib/env/runtimeEnv.ts` — Zod schema for all environment variables, surfaced as startup errors/warnings
-- Sync tokens: `src/lib/db/syncTokens.ts` — scoped tokens for config bundle download endpoints; backed by `sync_tokens` SQLite table (migration `024_create_sync_tokens.sql`)
-- WebSocket handshake auth: `src/lib/ws/handshake.ts` — validates WS upgrade requests via API key or session cookie
+- Vstupní bod modulu: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
+  `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
+- Resolver: `src/domain/comboResolver.ts` (automatická detekce předpony `auto/`)
+- Řídicí panel: `/dashboard/auto-combo`
+- Telemetrie: tabulka SQLite `auto_combo_decisions`
 
-## 5) Cloud Sync
+Klíčové funkce:
 
-- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
-- Periodic task: `src/shared/services/modelSyncScheduler.ts`
-- Control route: `src/app/api/sync/cloud/route.ts`
+- **19 strategií směrování** (prioritní, vážená, nejprve zaplnit, round-robin, P2C, náhodná,
+  nejméně používaná, nákladově optimalizovaná, zohledňující reset, okno resetu, rezerva, striktně náhodná,
+  **automatická**, lkgp, kontextově optimalizovaná, předávání kontextu, **fúze** a záložní cesta) —
+  automatická strategie je hlavní novinkou ve v3.8.0; `fusion` (rozeslání panelu + syntéza hodnotitelem,
+  `open-sse/services/fusion.ts`) je novinkou ve v3.8.36.
+- **Vyhodnocování podle 16 faktorů**: kvóta, stav, převrácená hodnota nákladů, převrácená hodnota latence, vhodnost pro úlohu a
+  deset dalších. Kanonická tabulka faktorů a jejich výchozích vah se nachází v
+  [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — její zopakování zde by
+  vytvořilo druhé místo, kde by mohla zastarat.
+- **Virtuální továrna** vytváří dočasné kombinace, pokud neexistuje žádná odpovídající pojmenovaná kombinace,
+  přičemž kandidáty získává z aktivních a funkčních připojení poskytovatelů.
+- **Automatické předpony**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
+  `auto/smart`, `auto/lkgp` — každá je založena na vyladěném profilu vah.
+- **6 balíčků režimů**: `ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`,
+  `reliability-first` a `chaos-mode` — přednastavené konfigurace vah, které lze vyvolat z
+  řídicího panelu. (Nezaměňujte s výše uvedenými předponami `auto/*`, které představují
+  varianty používané v okamžiku požadavku.)
 
-## Request Lifecycle (`/v1/chat/completions`)
+Úplné podrobnosti o algoritmu (vzorce faktorů, ladění vah) najdete v
+[`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
+
+### B. Cloudoví agenti
+
+Cloud Agents sjednocuje hostované platformy agentů pro práci s kódem od třetích stran (Codex Cloud, Devin,
+Jules) za jednotným životním cyklem úloh podporovaným databází. Všechny koncové body pro vytváření a kontrolu
+úloh vyžadují ověření pro správu.
+
+- Kořen modulu: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
+  `types.ts`, `db.ts` a podadresáře jednotlivých agentů v `agents/`)
+- Implementace jednotlivých agentů: `agents/codex/`, `agents/devin/`, `agents/jules/`
+- Veřejné koncové body: `/api/v1/agents/tasks/*` (výpis/vytvoření/získání/zrušení)
+- Koncové body pro správu: `/api/cloud/*` (zřizování, stav, dávkové operace)
+- Řídicí panel: `/dashboard/cloud-agents`
+- Úložiště: tabulka `cloud_agent_tasks`
+
+Podrobnosti o zřizování jednotlivých agentů a specifikách OAuth najdete v
+[`docs/frameworks/CLOUD_AGENT.md`](../frameworks/CLOUD_AGENT.md).
+
+### C. Ochranná opatření
+
+Modul ochranných opatření je vrstva middlewaru podporující opětovné načtení za běhu, která kontroluje požadavky
+a odpovědi na osobní identifikační údaje, injektáž promptů a nebezpečný obrazový obsah. Porušení pravidel
+okamžitě ukončí požadavek s HTTP **503** a strukturovaným kódem chyby, což
+navazujícím volajícím umožňuje požadavek opakovat nebo zvolit jinou větev.
+
+- Kořen modulu: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
+  `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
+- Opětovné načtení za běhu: registr sleduje změny konfigurace a za běhu znovu sestavuje řetězec
+- Body zapojení: vstup obslužné rutiny chatu, obslužná rutina generování obrázků, sanitizér odpovědí
+- Kontrakt HTTP: porušení se projeví jako `503` s `error.code = "GUARDRAIL_VIOLATION"`
+
+Informace o tvorbě sad pravidel a ladění prahových hodnot najdete v
+[`docs/security/GUARDRAILS.md`](../security/GUARDRAILS.md).
+
+### D. Doménová vrstva
+
+Jmenný prostor `src/domain/` centralizuje rozhodování o zásadách, takže obslužné rutiny tras nemusí
+samy sestavovat logiku uzamčení/rozpočtu/záložního řešení.
+
+- Modul zásad: `src/domain/policyEngine.ts` — jediný vstupní bod pro
+  vyhodnocení před spuštěním (pořadí: uzamčení → rozpočet → záložní řešení)
+- Pravidla nákladů: `src/domain/costRules.ts`
+- Zásady záložního řešení: `src/domain/fallbackPolicy.ts`
+- Zásady uzamčení: `src/domain/lockoutPolicy.ts`
+- Směrování založené na značkách: `src/domain/tagRouter.ts`
+- Resolver kombinací: `src/domain/comboResolver.ts` — převádí názvy kombinací, předpony auto/\*
+  a cíle modelů se zástupnými znaky na konkrétní plány spuštění
+- Propojování pravidel připojení/modelů: `src/domain/connectionModelRules.ts`
+- Snímky dostupnosti modelů: `src/domain/modelAvailability.ts`
+- Sledování vypršení platnosti poskytovatelů: `src/domain/providerExpiration.ts`
+- Mezipaměť kvót: `src/domain/quotaCache.ts`
+- Stav degradace: `src/domain/degradation.ts`
+- Audit konfigurace: `src/domain/configAudit.ts`
+- Generátor metadat odpovědí OmniRoute: `src/domain/omnirouteResponseMeta.ts`
+- Subsystém hodnocení: `src/domain/assessment/` — úlohy pravidelného vyhodnocování
+
+### E. Autorizační pipeline
+
+Autorizační pipeline klasifikuje každý příchozí požadavek a před jeho
+předáním aplikuje příslušný řetězec zásad.
+
+- Vstupní bod pipeline: `src/server/authz/pipeline.ts`
+- Klasifikátor požadavků: `src/server/authz/classify.ts` — rozlišuje veřejné
+  trasy kompatibility od tras pro správu
+- Seznam veřejných tras: `src/shared/constants/publicApiRoutes.ts`
+- Zásady: `src/server/authz/policies/` — skládací predikáty
+  (`requireApiKey`, `requireManagement`, `requireFreshAuth` atd.)
+- Nástroje pro hlavičky: `src/server/authz/headers.ts`
+- Pomocná funkce pro aserce: `src/server/authz/assertAuth.ts`
+- Kontext požadavku: `src/server/authz/context.ts`
+
+Veřejné trasy a trasy pro správu jsou striktně oddělené: API agenta/cooldownu a
+změny poskytovatelů vyžadují ověření pro správu (HTTP 401, pokud chybí).
+
+Úplná pravidla klasifikace tras naleznete v dokumentu
+[`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md).
+
+### F. FSM pracovního postupu a router zohledňující úlohy
+
+Router řízený konečným stavovým automatem, který tvoří vrstvu nad výběrem kombinace
+a směruje provoz podle zjištěné fáze pracovního postupu (plánování, provádění,
+kontrola) a afinity k úlohám na pozadí.
+
+- FSM pracovního postupu: `open-sse/services/workflowFSM.ts`
+- Router zohledňující úlohy: `open-sse/services/taskAwareRouter.ts`
+- Detektor úloh na pozadí: `open-sse/services/backgroundTaskDetector.ts`
+- Klasifikátor záměru: `open-sse/services/intentClassifier.ts`
+
+Přechody FSM vstupují do hodnocení Auto Combo, přičemž u úloh na
+pozadí či automatizačních úloh upřednostňují levnější modely a u interaktivních
+kroků plánování a kontroly výkonnější modely.
+
+### G. Odolnost specifická pro jednotlivé poskytovatele
+
+Několik poskytovatelů nabízí specializované moduly odolnosti a utajení, které
+využívají globální vrstvy jističe, cooldownu připojení a uzamčení modelu:
+
+- Antigravity 429 engine: `open-sse/services/antigravity429Engine.ts` (rotuje
+  identitu, odstraňuje citlivé údaje z hlaviček odpovědí a prostřednictvím
+  `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
+  `antigravityIdentity.ts`, `antigravityVersion.ts` zajišťuje sledování kreditů a verzí)
+- Zásady kvót ModelScope: `open-sse/services/modelscopePolicy.ts`
+- Claude Code CCH (handshake kompatibilního kanálu): `open-sse/services/claudeCodeCCH.ts`,
+  společně s `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
+  `claudeCodeToolRemapper.ts`
+- Tvarování otisku Claude Code: `open-sse/services/claudeCodeFingerprint.ts`
+- Obfuskace Claude Code: `open-sse/services/claudeCodeObfuscation.ts`
+
+Kompletní příručku k utajení a provozní pokyny naleznete v
+`docs/security/STEALTH_GUIDE.md` (git; není zahrnuto do sestavení `/docs`).
+
+### H. Webhooky, mezipaměť uvažování, mezipaměť čtení
+
+- **Webhooky** — odchozí odesílání událostí poskytovatelů, účtů a úloh.
+  - Dispečer: `src/lib/webhookDispatcher.ts`
+  - Úložiště: tabulka SQLite `webhooks` (prostřednictvím `src/lib/db/webhooks.ts`)
+  - Řídicí panel: `/dashboard/webhooks` (odběry, tajné klíče, historie opakovaných pokusů)
+  - Taxonomii událostí a sémantiku opakovaných pokusů naleznete v dokumentu [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
+- **Mezipaměť uvažování** — opakovaně přehratelné bloky uvažování pro poskytovatele,
+  kteří generují tokeny přemýšlení (Claude, GLMT atd.), aby po sobě jdoucí interakce
+  nemusely uvažování opakovat.
+  - Databázová vrstva: `src/lib/db/reasoningCache.ts`
+  - Vrstva služeb: `open-sse/services/reasoningCache.ts`
+  - Sémantiku přehrávání naleznete v dokumentu [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md).
+- **Mezipaměť čtení** — krátkodobá mezipaměť odpovědí, jejímž klíčem je signatura
+  a která se používá ke sloučení identických opakovaných pokusů pocházejících z nefunkčních nadřazených SDK.
+  - Databázová vrstva: `src/lib/db/readCache.ts`
+  - Koncový bod statistik: `GET /api/cache/stats`, řídicí panel na `/dashboard/cache`
+
+## 3) Vrstva perzistence
+
+Primární stavová DB (SQLite):
+
+- Základní infrastruktura: `src/lib/db/core.ts` (better-sqlite3, migrace, WAL)
+- Přístup k DB: importujte přímo konkrétní moduly `src/lib/db/*` (původní sjednocující modul `localDb.ts` byl odstraněn)
+- soubor: `${DATA_DIR}/storage.sqlite` (nebo `$XDG_CONFIG_HOME/omniroute/storage.sqlite`, pokud je nastaveno, jinak `~/.omniroute/storage.sqlite`)
+- entity (tabulky + jmenné prostory KV): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
+
+Perzistence využití:
+
+- fasáda: `src/lib/usageDb.ts` (rozdělené moduly v `src/lib/usage/*`)
+- Tabulky SQLite v `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
+- volitelné souborové artefakty zůstávají kvůli kompatibilitě a ladění (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
+- starší soubory JSON jsou při spuštění migrovány do SQLite, pokud existují
+
+DB stavu domén (SQLite):
+
+- `src/lib/db/domainState.ts` — operace CRUD pro stav domén
+- Tabulky (vytvořené v `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Vzor mezipaměti s průběžným zápisem: mapy v paměti jsou za běhu autoritativní; změny se zapisují synchronně do SQLite; při studeném startu se stav obnoví z DB
+
+## 4) Rozhraní pro ověřování a zabezpečení
+
+- Ověřování řídicího panelu pomocí cookies: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- Generování/ověřování klíčů API: `src/shared/utils/apiKey.ts`
+- Tajné údaje poskytovatelů jsou uloženy v záznamech `providerConnections`
+- Podpora odchozího proxy prostřednictvím `open-sse/utils/proxyFetch.ts` (proměnné prostředí) a `open-sse/utils/networkProxy.ts` (konfigurovatelné pro jednotlivé poskytovatele nebo globálně)
+- Ochrana proti SSRF / kontrola odchozích URL: `src/shared/network/outboundUrlGuard.ts` — blokuje privátní rozsahy, loopback a link-local rozsahy pro všechna volání poskytovatelů
+- Ověřování běhového prostředí: `src/lib/env/runtimeEnv.ts` — schéma Zod pro všechny proměnné prostředí, jehož chyby a varování se zobrazují při spuštění
+- Synchronizační tokeny: `src/lib/db/syncTokens.ts` — tokeny s omezeným rozsahem oprávnění pro koncové body stahování konfiguračních balíčků; ukládají se v tabulce SQLite `sync_tokens` (migrace `024_create_sync_tokens.sql`)
+- Ověřování navázání spojení WebSocket: `src/lib/ws/handshake.ts` — ověřuje požadavky na upgrade WS pomocí klíče API nebo cookie relace
+
+## 5) Synchronizace s cloudem
+
+- Inicializace plánovače: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
+- Pravidelná úloha: `src/shared/services/cloudSyncScheduler.ts`
+- Pravidelná úloha: `src/shared/services/modelSyncScheduler.ts`
+- Řídicí trasa: `src/app/api/sync/cloud/route.ts`
+
+## Životní cyklus požadavku (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as Klient CLI/SDK
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as Překladač modelů
+    participant Auth as Výběr přihlašovacích údajů
+    participant Exec as Vykonavatel poskytovatele
+    participant Prov as Nadřazený poskytovatel
+    participant Stream as Překladač streamu
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: analýza/překlad modelu nebo kombinace
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt Kombinovaný model
+        Chat->>Chat: iterace kombinovaných modelů (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: aktivní účet + tokeny/klíč API
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: detekce zdrojového formátu
+    Core->>Core: převod požadavku do cílového formátu
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: volání nadřazeného API
+    Prov-->>Exec: odpověď SSE/JSON
+    Exec-->>Core: odpověď + metadata
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: aktualizované tokeny
+        Core->>Exec: opakování požadavku
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: převod/normalizace streamu do formátu klienta
+    Stream-->>Client: bloky SSE / odpověď JSON
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: extrakce využití + uložení historie/protokolu
 ```
 
-## Combo + Account Fallback Flow
+## Tok kombinace + záložních účtů
 
 ```mermaid
 flowchart TD
-    A[Incoming model string] --> B{Is combo name?}
-    B -- Yes --> C[Load combo models sequence]
-    B -- No --> D[Single model path]
+    A[Příchozí řetězec modelu] --> B{Jde o název kombinace?}
+    B -- Ano --> C[Načíst posloupnost modelů kombinace]
+    B -- Ne --> D[Cesta jednoho modelu]
 
-    C --> E[Try model N]
-    E --> F[Resolve provider/model]
+    C --> E[Vyzkoušet model N]
+    E --> F[Přeložit poskytovatele/model]
     D --> F
 
-    F --> G[Select account credentials]
-    G --> H{Credentials available?}
-    H -- No --> I[Return provider unavailable]
-    H -- Yes --> J[Execute request]
+    F --> G[Vybrat přihlašovací údaje účtu]
+    G --> H{Jsou přihlašovací údaje k dispozici?}
+    H -- Ne --> I[Vrátit informaci o nedostupnosti poskytovatele]
+    H -- Ano --> J[Provést požadavek]
 
-    J --> K{Success?}
-    K -- Yes --> L[Return response]
-    K -- No --> M{Fallback-eligible error?}
+    J --> K{Úspěch?}
+    K -- Ano --> L[Vrátit odpověď]
+    K -- Ne --> M{Chyba umožňující použití záložní varianty?}
 
-    M -- No --> N[Return error]
-    M -- Yes --> O[Mark account unavailable cooldown]
-    O --> P{Another account for provider?}
-    P -- Yes --> G
-    P -- No --> Q{In combo with next model?}
-    Q -- Yes --> E
-    Q -- No --> R[Return all unavailable]
+    M -- Ne --> N[Vrátit chybu]
+    M -- Ano --> O[Označit účet jako dočasně nedostupný]
+    O --> P{Existuje pro poskytovatele jiný účet?}
+    P -- Ano --> G
+    P -- Ne --> Q{Je v kombinaci další model?}
+    Q -- Ano --> E
+    Q -- Ne --> R[Vrátit informaci, že vše je nedostupné]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
+Rozhodování o použití záložní varianty řídí `open-sse/services/accountFallback.ts` pomocí stavových kódů a heuristik založených na chybových zprávách. Směrování kombinací přidává jednu další kontrolu: chyby 400 omezené na poskytovatele, například blokování obsahu nadřazenou službou a selhání ověření rolí, jsou považovány za selhání lokální pro daný model, takže lze stále spustit následující cíle kombinace.
 
-## OAuth Onboarding and Token Refresh Lifecycle
+## Životní cyklus úvodního nastavení OAuth a obnovení tokenů
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant UI as Dashboard UI
+    participant UI as Uživatelské rozhraní ovládacího panelu
     participant OAuth as /api/oauth/[provider]/[action]
-    participant ProvAuth as Provider Auth Server
+    participant ProvAuth as Autorizační server poskytovatele
     participant DB as localDb
     participant Test as /api/providers/[id]/test
-    participant Exec as Provider Executor
+    participant Exec as Vykonavatel poskytovatele
 
-    UI->>OAuth: GET authorize or device-code
-    OAuth->>ProvAuth: create auth/device flow
-    ProvAuth-->>OAuth: auth URL or device code payload
-    OAuth-->>UI: flow data
+    UI->>OAuth: GET autorizace nebo kódu zařízení
+    OAuth->>ProvAuth: vytvořit autorizační/zařízení tok
+    ProvAuth-->>OAuth: autorizační URL nebo datová část kódu zařízení
+    OAuth-->>UI: data toku
 
-    UI->>OAuth: POST exchange or poll
-    OAuth->>ProvAuth: token exchange/poll
-    ProvAuth-->>OAuth: access/refresh tokens
-    OAuth->>DB: createProviderConnection(oauth data)
-    OAuth-->>UI: success + connection id
+    UI->>OAuth: POST výměny nebo dotazování
+    OAuth->>ProvAuth: výměna tokenů/dotazování
+    ProvAuth-->>OAuth: přístupové/obnovovací tokeny
+    OAuth->>DB: createProviderConnection(data oauth)
+    OAuth-->>UI: úspěch + ID připojení
 
     UI->>Test: POST /api/providers/[id]/test
-    Test->>Exec: validate credentials / optional refresh
-    Exec-->>Test: valid or refreshed token info
-    Test->>DB: update status/tokens/errors
-    Test-->>UI: validation result
+    Test->>Exec: ověřit přihlašovací údaje / volitelně obnovit
+    Exec-->>Test: informace o platném nebo obnoveném tokenu
+    Test->>DB: aktualizovat stav/tokeny/chyby
+    Test-->>UI: výsledek ověření
 ```
 
-Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+Obnovení během živého provozu se provádí v `open-sse/handlers/chatCore.ts` prostřednictvím metody vykonavatele `refreshCredentials()`.
 
-## Cloud Sync Lifecycle (Enable / Sync / Disable)
+## Životní cyklus cloudové synchronizace (povolení / synchronizace / zakázání)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant UI as Endpoint Page UI
+    participant UI as Uživatelské rozhraní stránky koncového bodu
     participant Sync as /api/sync/cloud
     participant DB as localDb
-    participant Cloud as External Cloud Sync
+    participant Cloud as Externí cloudová synchronizace
     participant Claude as ~/.claude/settings.json
 
     UI->>Sync: POST action=enable
-    Sync->>DB: set cloudEnabled=true
-    Sync->>DB: ensure API key exists
-    Sync->>Cloud: POST /sync/{machineId} (providers/aliases/combos/keys)
-    Cloud-->>Sync: sync result
+    Sync->>DB: nastavit cloudEnabled=true
+    Sync->>DB: zajistit existenci klíče API
+    Sync->>Cloud: POST /sync/{machineId} (poskytovatelé/aliasy/kombinace/klíče)
+    Cloud-->>Sync: výsledek synchronizace
     Sync->>Cloud: GET /{machineId}/v1/verify
-    Sync-->>UI: enabled + verification status
+    Sync-->>UI: povoleno + stav ověření
 
     UI->>Sync: POST action=sync
     Sync->>Cloud: POST /sync/{machineId}
-    Cloud-->>Sync: remote data
-    Sync->>DB: update newer local tokens/status
-    Sync-->>UI: synced
+    Cloud-->>Sync: vzdálená data
+    Sync->>DB: aktualizovat novější místní tokeny/stav
+    Sync-->>UI: synchronizováno
 
     UI->>Sync: POST action=disable
-    Sync->>DB: set cloudEnabled=false
+    Sync->>DB: nastavit cloudEnabled=false
     Sync->>Cloud: DELETE /sync/{machineId}
-    Sync->>Claude: switch ANTHROPIC_BASE_URL back to local (if needed)
-    Sync-->>UI: disabled
+    Sync->>Claude: přepnout ANTHROPIC_BASE_URL zpět na místní adresu (je-li potřeba)
+    Sync-->>UI: zakázáno
 ```
 
-Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+Pravidelnou synchronizaci spouští `CloudSyncScheduler`, když je cloud povolen.
 
-## Data Model and Storage Map
+## Datový model a mapa úložišť
 
 ```mermaid
 erDiagram
@@ -571,14 +798,14 @@ erDiagram
     }
 ```
 
-Physical storage files:
+Soubory fyzického úložiště:
 
-- primary runtime DB: `${DATA_DIR}/storage.sqlite`
-- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
-- structured call payload archives: `${DATA_DIR}/call_logs/`
-- optional translator/request debug sessions: `<repo>/logs/...`
+- primární běhová databáze: `${DATA_DIR}/storage.sqlite`
+- řádky protokolu požadavků: `${DATA_DIR}/log.txt` (artefakt pro kompatibilitu a ladění)
+- archivy strukturovaných dat volání: `${DATA_DIR}/call_logs/`
+- volitelné relace pro ladění překladače a požadavků: `<repo>/logs/...`
 
-## Deployment Topology
+## Topologie nasazení
 
 ```mermaid
 flowchart LR
@@ -609,126 +836,176 @@ flowchart LR
     Next --> SyncCloud
 ```
 
-## Module Mapping (Decision-Critical)
+## Mapování modulů (zásadní pro rozhodování)
 
-### Route and API Modules
+### Moduly tras a API
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
-- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
-- `src/app/api/providers*`: provider CRUD, validation, testing
-- `src/app/api/provider-nodes*`: custom compatible node management
-- `src/app/api/provider-models`: custom model management (CRUD)
-- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
-- `src/app/api/oauth/*`: OAuth/device-code flows
-- `src/app/api/keys*`: local API key lifecycle
-- `src/app/api/models/alias`: alias management
-- `src/app/api/combos*`: fallback combo management
-- `src/app/api/pricing`: pricing overrides for cost calculation
-- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
-- `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
-- `src/app/api/usage/*`: usage and logs APIs
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
-- `src/app/api/cli-tools/*`: local CLI config writers/checkers
-- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
-- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
-- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
-- `src/app/api/sessions`: active session listing (GET)
-- `src/app/api/rate-limits`: per-account rate limit status (GET)
-- `src/app/api/sync/tokens`: sync token CRUD (GET/POST)
-- `src/app/api/sync/tokens/[id]`: sync token get/delete (GET/DELETE)
-- `src/app/api/sync/bundle`: config bundle download (GET, ETag versioning)
-- `src/app/api/v1/ws`: WebSocket upgrade handler for OpenAI-compatible WS clients
+- `src/app/api/v1/*`, `src/app/api/v1beta/*`: API pro kompatibilitu
+- `src/app/api/v1/providers/[provider]/*`: vyhrazené trasy pro jednotlivé poskytovatele (chat, vkládání, obrázky)
+- `src/app/api/providers*`: CRUD poskytovatelů, ověřování a testování
+- `src/app/api/provider-nodes*`: správa vlastních kompatibilních uzlů
+- `src/app/api/provider-models`: správa vlastních modelů (CRUD)
+- `src/app/api/models/route.ts`: API katalogu modelů (aliasy + vlastní modely)
+- `src/app/api/oauth/*`: toky OAuth a kódu zařízení
+- `src/app/api/keys*`: životní cyklus místních klíčů API
+- `src/app/api/models/alias`: správa aliasů
+- `src/app/api/combos*`: správa záložních kombinací
+- `src/app/api/pricing`: přepsání cen pro výpočet nákladů
+- `src/app/api/settings/proxy`: konfigurace proxy (GET/PUT/DELETE)
+- `src/app/api/settings/proxy/test`: test odchozího připojení přes proxy (POST)
+- `src/app/api/usage/*`: API pro využití a protokoly
+- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloudová synchronizace a pomocné funkce orientované na cloud
+- `src/app/api/cli-tools/*`: místní nástroje pro zápis a kontrolu konfigurace CLI
+- `src/app/api/settings/ip-filter`: seznam povolených/blokovaných IP adres (GET/PUT)
+- `src/app/api/settings/thinking-budget`: konfigurace rozpočtu tokenů pro uvažování (GET/PUT)
+- `src/app/api/settings/system-prompt`: globální systémová výzva (GET/PUT)
+- `src/app/api/settings/compression`: globální nastavení komprese (GET/PUT)
+- `src/app/api/compression/*`: náhled komprese, metadata pravidel a jazykové balíčky
+- `src/app/api/context/caveman/config`: alias nastavení Caveman (GET/PUT)
+- `src/app/api/context/rtk/*`: konfigurace RTK, katalog filtrů, testovací koncový bod a obnovení nezpracovaného výstupu
+- `src/app/api/context/combos*`: CRUD kombinací komprese a přiřazení směrovacích kombinací
+- `src/app/api/context/analytics`: alias analytiky komprese
+- `src/app/api/sessions`: výpis aktivních relací (GET)
+- `src/app/api/rate-limits`: stav omezení rychlosti pro jednotlivé účty (GET)
+- `src/app/api/sync/tokens`: CRUD synchronizačních tokenů (GET/POST)
+- `src/app/api/sync/tokens/[id]`: načtení/odstranění synchronizačního tokenu (GET/DELETE)
+- `src/app/api/sync/bundle`: stažení konfiguračního balíčku (GET, verzování pomocí ETag)
+- `src/app/api/v1/ws`: obslužná rutina upgradu WebSocket pro klienty WS kompatibilní s OpenAI
 
-### Routing and Execution Core
+### Jádro směrování a provádění
 
-- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
-- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
-- `open-sse/executors/*`: provider-specific network and format behavior
+- `src/sse/handlers/chat.ts`: analýza požadavku, zpracování kombinací a smyčka výběru účtu
+- `open-sse/handlers/chatCore.ts`: překlad, předání vykonavateli, zpracování opakovaných pokusů/obnovení a nastavení streamu
+- `open-sse/executors/*`: chování sítě a formátu specifické pro poskytovatele
 
-### Translation Registry and Format Converters
+### Registr překladů a převodníky formátů
 
-- `open-sse/translator/index.ts`: translator registry and orchestration
-- Request translators: `open-sse/translator/request/*`
-- Response translators: `open-sse/translator/response/*`
-- Format constants: `open-sse/translator/formats.ts`
+- `open-sse/translator/index.ts`: registr překladačů a orchestrace
+- Překladače požadavků: `open-sse/translator/request/*` (9 modulů — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
+- Překladače odpovědí: `open-sse/translator/response/*` (11 modulů — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`, `openai-to-gemini`, `openai-to-gemini-sse`, `responsesToolItem`)
+- Pomocné moduly: `open-sse/translator/helpers/*` (12 modulů — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `jsonUtil`, `markdownBoundary`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `strictSystemHoist`, `toolCallHelper`, `toolCallShim`)
+- Konstanty formátů: `open-sse/translator/formats.ts`
+- Inicializace a registr: `open-sse/translator/bootstrap.ts`, `open-sse/translator/registry.ts`
+- Pomocné moduly pro formáty obrázků: `open-sse/translator/image/`
 
-### Persistence
+### Perzistence
 
-- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
-- `src/lib/localDb.ts`: compatibility re-export for DB modules
-- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
+- `src/lib/db/*`: trvalá konfigurace/stav a perzistence doménových dat v SQLite
+- `src/lib/db/*`: importujte konkrétní moduly přímo — bez souhrnného modulu (stará reexportní vrstva `localDb.ts` byla odstraněna)
+- `src/lib/usageDb.ts`: fasáda pro historii využití/protokoly volání nad tabulkami SQLite
 
-## Provider Executor Coverage (Strategy Pattern)
+## Pokrytí exekutorů poskytovatelů (návrhový vzor Strategy)
 
-Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
+Každý poskytovatel má specializovaný exekutor rozšiřující `BaseExecutor` (v `open-sse/executors/base.ts`), který zajišťuje sestavování URL, vytváření hlaviček, opakování pokusů s exponenciálním prodlužováním intervalů, hooky pro obnovení přihlašovacích údajů a orchestrační metodu `execute()`.
 
-| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
-| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                      |
-| `CliProxyApiExecutor`  | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
-| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
-| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
-| `CursorExecutor`       | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
-| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
-| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
-| `QoderExecutor`        | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
-| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
+| Executor                  | Poskytovatel(é)                                                                                                                                            | Speciální zpracování                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA atd. | Dynamická konfigurace URL/hlaviček podle poskytovatele                            |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                         | Vlastní ID projektů/relací, zpracování Retry-After, maskování 429                 |
+| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                               | Směrování podle nasazení, vynucení parametru dotazu api-version                   |
+| `BlackboxWebExecutor`     | Blackbox AI (webový režim)                                                                                                                                 | Reverzní komunikace s webovou relací s emulací otisku TLS                         |
+| `ClaudeIdentityExecutor`  | Claude.ai (cesta CCH)                                                                                                                                      | Kanály omezení a přemapování nástrojů, tvarování otisku                           |
+| `CliProxyApiExecutor`     | Poskytovatelé kompatibilní s CLIProxyAPI                                                                                                                   | Vlastní zpracování ověřování a protokolu                                          |
+| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                      | Vkládání ID účtu, sledování využití založené na Neurons                           |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                               | Vkládá systémové instrukce, vynucuje míru úsilí při uvažování                     |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                        | Přemostění Responses API přes relaci prohlížeče s připnutím vlákna/tahu           |
+| `CommandCodeExecutor`     | Command Code                                                                                                                                               | OAuth + rotace hlaviček pro jednotlivé relace                                     |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                                 | Protokol ConnectRPC, kódování Protobuf, podepisování požadavků kontrolním součtem |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                  | Přemostění životního cyklu úloh Devin prostřednictvím modulu cloudového agenta    |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                             | Obnovení tokenu Copilot, hlavičky napodobující VSCode                             |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                                 | GitLab OAuth + směrování v rozsahu projektu                                       |
+| `GlmExecutor`             | Z.AI GLM (vč. předvolby `glmt`)                                                                                                                            | Zohlednění rozpočtu na uvažování, konstanty předvolby GLMT                        |
+| `GrokWebExecutor`         | web xAI Grok                                                                                                                                               | Reverzní komunikace s webovou relací, výběr režimu (uvažování/standardní)         |
+| `KieExecutor`             | KIE                                                                                                                                                        | Vlastní vydávání tokenů s rotujícími kotvami relací                               |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                     | Binární formát AWS EventStream → převod na SSE                                    |
+| `MuseSparkWebExecutor`    | Muse Spark (web)                                                                                                                                           | Reverzní komunikace s webovou relací s přemostěním obrazových zpráv               |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                  | Tvar těla požadavku specifický pro poskytovatele                                  |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                                   | Nastavení poskytovatele kompatibilní s AI SDK                                     |
+| `PerplexityWebExecutor`   | web Perplexity                                                                                                                                             | Reverzní komunikace s webovou relací pro pokračování chatu                        |
+| `PetalsExecutor`          | Distribuovaná inference Petals                                                                                                                             | Směrování v decentralizovaném roji                                                |
+| `PollinationsExecutor`    | Pollinations AI                                                                                                                                            | Není vyžadován klíč API, požadavky s omezenou frekvencí                           |
+| `QoderExecutor`           | Qoder AI                                                                                                                                                   | Podpora PAT a OAuth, bezplatná úroveň s více modely                               |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                           | Ověřování pomocí servisního účtu, koncové body podle regionu                      |
+| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                              | Importovaný klíč API + streamování chatu přes Connect-protobuf                    |
 
-All other providers (including custom compatible nodes) use the `DefaultExecutor`.
+Všichni ostatní poskytovatelé (včetně vlastních kompatibilních uzlů) používají `DefaultExecutor`.
 
-## Provider Compatibility Matrix
+## Matice kompatibility poskytovatelů
 
-| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
-| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Qoder            | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Kilo Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Cline            | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding      | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI    | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations     | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| LongCat          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud     | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Nebius           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI        | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+> **Poznámka:** Níže uvedená matice je reprezentativním vzorkem z 351 registrovaných poskytovatelů v
+> OmniRoute v3.8.0. Úplný a průběžně aktualizovaný seznam naleznete v
+> [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (automaticky generováno) nebo ve zdroji
+> pravdivých dat v `src/shared/constants/providers.ts` (ověřováno pomocí Zod při načtení).
 
-## Format Translation Coverage
+| Poskytovatel        | Formát           | Ověřování                  | Streamování      | Bez streamování | Obnovení tokenu | API využití         |
+| ------------------- | ---------------- | -------------------------- | ---------------- | --------------- | --------------- | ------------------- |
+| Claude              | claude           | Klíč API / OAuth           | ✅               | ✅              | ✅              | ⚠️ Pouze správce    |
+| Gemini              | gemini           | Klíč API / OAuth           | ✅               | ✅              | ✅              | ⚠️ Cloud Console    |
+| Antigravity         | antigravity      | OAuth                      | ✅               | ✅              | ✅              | ✅ API úplné kvóty  |
+| OpenAI              | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Codex               | openai-responses | OAuth                      | ✅ vynuceno      | ❌              | ✅              | ✅ Limity požadavků |
+| ChatGPT Web (Codex) | openai-responses | Relace prohlížeče          | ✅ vynuceno      | ❌              | ❌              | ❌                  |
+| GitHub Copilot      | openai           | OAuth + token Copilot      | ✅               | ✅              | ✅              | ✅ Snímky kvót      |
+| Cursor              | cursor           | Vlastní kontrolní součet   | ✅               | ✅              | ❌              | ❌                  |
+| Kiro                | kiro             | AWS SSO OIDC               | ✅ (EventStream) | ❌              | ✅              | ✅ Limity využití   |
+| Qoder               | openai           | OAuth / PAT                | ✅               | ✅              | ✅              | ⚠️ Za požadavek     |
+| Kilo Code           | openai           | OAuth                      | ✅               | ✅              | ✅              | ❌                  |
+| Cline               | openai           | OAuth                      | ✅               | ✅              | ✅              | ❌                  |
+| Kimi Coding         | openai           | OAuth                      | ✅               | ✅              | ✅              | ❌                  |
+| OpenRouter          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| GLM/Kimi/MiniMax    | claude           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| DeepSeek            | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Groq                | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| xAI (Grok)          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Mistral             | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Perplexity          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Together AI         | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Fireworks AI        | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Cerebras            | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Cohere              | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| NVIDIA NIM          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Cloudflare AI       | openai           | Token API + ID účtu        | ✅               | ✅              | ❌              | ❌                  |
+| Pollinations        | openai           | Žádné (bez klíče)          | ✅               | ✅              | ❌              | ❌                  |
+| Scaleway AI         | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| LongCat             | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Ollama Cloud        | openai           | Klíč API (volitelný)       | ✅               | ✅              | ❌              | ❌                  |
+| HuggingFace         | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Nebius              | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| SiliconFlow         | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Hyperbolic          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Vertex AI           | gemini           | Účet služby                | ✅               | ✅              | ✅              | ⚠️ Cloud Console    |
+| Command Code        | openai           | OAuth                      | ✅               | ✅              | ✅              | ⚠️ Za požadavek     |
+| Z.AI / GLM          | openai           | Klíč API / OAuth           | ✅               | ✅              | ❌              | ❌                  |
+| GLMT (předvolba)    | claude           | Klíč API                   | ✅               | ✅              | ❌              | ⚠️ Za požadavek     |
+| Kimi Coding         | openai           | OAuth / klíč API           | ✅               | ✅              | ✅              | ❌                  |
+| KIE                 | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Devin Desktop       | openai           | Importovaný klíč API       | ✅ (Connect→SSE) | ✅              | ❌              | ⚠️ Za požadavek     |
+| GitLab Duo          | openai           | OAuth (GitLab)             | ✅               | ✅              | ✅              | ❌                  |
+| Devin CLI           | openai           | Místní přihlášení CLI      | ✅               | ✅              | ❌              | ✅ API úloh         |
+| Codex Cloud         | openai-responses | OAuth                      | ✅               | ❌              | ✅              | ✅ Limity požadavků |
+| Jules               | openai           | OAuth                      | ✅               | ✅              | ✅              | ✅ API úloh         |
+| AgentRouter         | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Grok-Web            | openai           | Soubor cookie relace       | ✅               | ✅              | ❌              | ❌                  |
+| Perplexity-Web      | openai           | Soubor cookie relace       | ✅               | ✅              | ❌              | ❌                  |
+| BlackBox-Web        | openai           | Soubor cookie relace + TLS | ✅               | ✅              | ❌              | ❌                  |
+| Muse-Spark-Web      | openai           | Soubor cookie relace       | ✅               | ✅              | ❌              | ❌                  |
+| ModelScope          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ⚠️ Zásady kvót      |
+| BazaarLink          | openai           | Klíč API                   | ✅               | ✅              | ❌              | ❌                  |
+| Petals              | openai           | Žádné                      | ✅               | ✅              | ❌              | ❌                  |
+| Qoder               | openai           | OAuth / PAT                | ✅               | ✅              | ✅              | ⚠️ Za požadavek     |
+| OpenCode (Go/Zen)   | openai           | OAuth                      | ✅               | ✅              | ✅              | ❌                  |
+| CLIProxyAPI         | openai           | Vlastní                    | ✅               | ✅              | ❌              | ❌                  |
 
-Detected source formats include:
+## Pokrytí převodu formátů
+
+Detekované zdrojové formáty zahrnují:
 
 - `openai`
 - `openai-responses`
 - `claude`
 - `gemini`
 
-Target formats include:
+Cílové formáty zahrnují:
 
 - OpenAI chat/Responses
 - Claude
@@ -736,152 +1013,151 @@ Target formats include:
 - Kiro
 - Cursor
 
-Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+Převody používají **OpenAI jako centrální formát** — všechny převody probíhají přes OpenAI jako meziformát:
 
 ```
-Source Format → OpenAI (hub) → Target Format
+Zdrojový formát → OpenAI (centrální formát) → Cílový formát
 ```
 
-Translations are selected dynamically based on source payload shape and provider target format.
+Převody jsou vybírány dynamicky podle struktury zdrojového payloadu a cílového formátu poskytovatele.
 
-Additional processing layers in the translation pipeline:
+Další vrstvy zpracování v procesu převodu:
 
-- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
-- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
-- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
-- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
+- **Sanitizace odpovědí** — Odstraňuje nestandardní pole z odpovědí ve formátu OpenAI (streamovaných i nestreamovaných), aby byla zajištěna striktní kompatibilita se sadou SDK
+- **Normalizace rolí** — Převádí `developer` → `system` pro cíle jiné než OpenAI; slučuje `system` → `user` pro modely, které odmítají systémovou roli (GLM, ERNIE)
+- **Extrakce značek think** — Parsuje bloky `<think>...</think>` z obsahu do pole `reasoning_content`
+- **Strukturovaný výstup** — Převádí OpenAI `response_format.json_schema` na Gemini `responseMimeType` + `responseSchema`
 
-## Supported API Endpoints
+## Podporované koncové body API
 
-| Endpoint                                           | Format             | Handler                                                             |
-| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
-| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
-| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
-| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
-| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
-| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
-| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
-| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
-| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
-| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
-| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
-| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
-| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
-| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
-| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
+| Koncový bod                                        | Formát               | Obslužná rutina                                                        |
+| -------------------------------------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | OpenAI Chat          | `src/sse/handlers/chat.ts`                                             |
+| `POST /v1/messages`                                | Claude Messages      | Stejná obslužná rutina (automatická detekce)                           |
+| `POST /v1/responses`                               | OpenAI Responses     | `open-sse/handlers/responsesHandler.ts`                                |
+| `POST /v1/embeddings`                              | OpenAI Embeddings    | `open-sse/handlers/embeddings.ts`                                      |
+| `GET /v1/embeddings`                               | Seznam modelů        | Trasa API                                                              |
+| `POST /v1/images/generations`                      | OpenAI Images        | `open-sse/handlers/imageGeneration.ts`                                 |
+| `GET /v1/images/generations`                       | Seznam modelů        | Trasa API                                                              |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat          | Vyhrazený koncový bod pro každého poskytovatele s validací modelu      |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings    | Vyhrazený koncový bod pro každého poskytovatele s validací modelu      |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images        | Vyhrazený koncový bod pro každého poskytovatele s validací modelu      |
+| `POST /v1/messages/count_tokens`                   | Počet tokenů Claude  | Trasa API                                                              |
+| `GET /v1/models`                                   | Seznam modelů OpenAI | Trasa API (chatovací + embeddingové + obrazové + vlastní modely)       |
+| `GET /api/models/catalog`                          | Katalog              | Všechny modely seskupené podle poskytovatele + typu                    |
+| `POST /v1beta/models/*:streamGenerateContent`      | Nativní Gemini       | Trasa API                                                              |
+| `GET/PUT/DELETE /api/settings/proxy`               | Konfigurace proxy    | Konfigurace síťové proxy                                               |
+| `POST /api/settings/proxy/test`                    | Konektivita proxy    | Koncový bod pro test stavu/konektivity proxy                           |
+| `GET/POST/DELETE /api/provider-models`             | Modely poskytovatelů | Metadata modelů poskytovatelů pro vlastní a spravované dostupné modely |
 
-## Bypass Handler
+## Obsluha obcházení
 
-The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+Obsluha obcházení (`open-sse/utils/bypassHandler.ts`) zachytává známé „jednorázové“ požadavky z Claude CLI — inicializační pingy, extrakce názvů a počítání tokenů — a vrací **falešnou odpověď**, aniž by spotřebovávala tokeny nadřazeného poskytovatele. Aktivuje se pouze tehdy, když `User-Agent` obsahuje `claude-cli`.
 
-## Request Logging and Artifacts
+## Protokolování požadavků a artefakty
 
-The older file-based request logger (`open-sse/utils/requestLogger.ts`) is retained only for
-legacy compatibility. The current runtime contract uses:
+Starší souborový protokolovač požadavků (`open-sse/utils/requestLogger.ts`) je zachován pouze kvůli
+zpětné kompatibilitě. Aktuální běhový kontrakt používá:
 
-- `APP_LOG_TO_FILE=true` for application and audit logs written under `<repo>/logs/`
-- SQLite-backed call log records in `call_logs`
-- `${DATA_DIR}/call_logs/YYYY-MM-DD/...` artifacts when the call log pipeline is enabled
+- `APP_LOG_TO_FILE=true` pro aplikační a auditní protokoly zapisované do `<repo>/logs/`
+- záznamy protokolu volání uložené v SQLite v tabulce `call_logs`
+- artefakty v `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, když je povolena pipeline protokolování volání
 
-## Failure Modes and Resilience
+## Režimy selhání a odolnost
 
-## 1) Account/Provider Availability
+## 1) Dostupnost účtu/poskytovatele
 
-- connection cooldown on retryable upstream failures
-- account fallback before failing request
-- combo model fallback when current model/provider path is exhausted
+- dočasné pozastavení připojení při opakovatelných selháních nadřazené služby
+- přechod na záložní účet před odmítnutím požadavku
+- přechod na záložní kombinaci modelu, když je aktuální cesta přes model/poskytovatele vyčerpána
 
-## 2) Token Expiry
+## 2) Vypršení platnosti tokenu
 
-- pre-check and refresh with retry for refreshable providers
-- 401/403 retry after refresh attempt in core path
+- předběžná kontrola a obnovení s opakováním u poskytovatelů podporujících obnovení
+- opakování po pokusu o obnovení při odpovědi 401/403 v hlavní cestě
 
-## 3) Stream Safety
+## 3) Bezpečnost streamu
 
-- disconnect-aware stream controller
-- translation stream with end-of-stream flush and `[DONE]` handling
-- usage estimation fallback when provider usage metadata is missing
+- řadič streamu zohledňující odpojení
+- transformační stream s vyprázdněním na konci streamu a zpracováním `[DONE]`
+- záložní odhad využití, když chybí metadata poskytovatele o využití
 
-## 4) Cloud Sync Degradation
+## 4) Omezená funkčnost cloudové synchronizace
 
-- sync errors are surfaced but local runtime continues
-- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
+- chyby synchronizace jsou hlášeny, ale místní běhové prostředí pokračuje
+- plánovač obsahuje logiku podporující opakování, ale pravidelné spouštění ve výchozím nastavení aktuálně provádí synchronizaci pouze jednou
 
-## 5) Data Integrity
+## 5) Integrita dat
 
-- SQLite schema migrations and auto-upgrade hooks at startup
-- legacy JSON → SQLite migration compatibility path
+- migrace schématu SQLite a mechanismy automatického upgradu při spuštění
+- cesta kompatibility pro migraci ze staršího formátu JSON → SQLite
 
-## 6) SSRF / Outbound URL Guard
+## 6) Ochrana před SSRF / odchozími URL
 
-- `src/shared/network/outboundUrlGuard.ts` blocks all private/loopback/link-local target URLs before they reach provider executors
-- Provider model discovery and validation routes use `src/shared/network/safeOutboundFetch.ts` which applies the guard before every outbound request
-- Guard errors surface as `URL_GUARD_BLOCKED` with HTTP 422 and are logged to the compliance audit trail via `providerAudit.ts`
+- `src/shared/network/outboundUrlGuard.ts` blokuje všechny soukromé, loopback a link-local cílové adresy URL dříve, než se dostanou k vykonavatelům poskytovatele
+- trasy pro vyhledávání a ověřování modelů poskytovatelů používají `src/shared/network/safeOutboundFetch.ts`, který aplikuje ochranu před každým odchozím požadavkem
+- chyby ochrany jsou hlášeny jako `URL_GUARD_BLOCKED` s HTTP 422 a zaznamenávány do auditní stopy souladu prostřednictvím `providerAudit.ts`
 
-## Observability and Operational Signals
+## Pozorovatelnost a provozní signály
 
-Runtime visibility sources:
+Zdroje informací o běhovém prostředí:
 
-- console logs from `src/sse/utils/logger.ts`
-- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
-- four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
-- textual request status log in `log.txt` (optional/compat)
-- optional application log files under `logs/` when `APP_LOG_TO_FILE=true`
-- optional request artifacts under `${DATA_DIR}/call_logs/` when the call log pipeline is enabled
-- dashboard usage endpoints (`/api/usage/*`) for UI consumption
+- konzolové protokoly z `src/sse/utils/logger.ts`
+- agregované údaje o využití pro jednotlivé požadavky v SQLite (`usage_history`, `call_logs`, `proxy_logs`)
+- podrobné záznamy dat ve čtyřech fázích v SQLite (`request_detail_logs`), když je `settings.detailed_logs_enabled=true`
+- textový protokol stavu požadavků v `log.txt` (volitelný/kompatibilní)
+- volitelné soubory aplikačních protokolů v `logs/`, když je `APP_LOG_TO_FILE=true`
+- volitelné artefakty požadavků v `${DATA_DIR}/call_logs/`, když je povolena pipeline protokolování volání
+- endpointy využití pro řídicí panel (`/api/usage/*`) určené pro uživatelské rozhraní
 
-Detailed request payload capture stores up to four JSON payload stages per routed call:
+Podrobný záznam dat požadavku ukládá až čtyři fáze dat ve formátu JSON pro každé směrované volání:
 
-- raw request received from the client
-- translated request actually sent upstream
-- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
-- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
+- nezpracovaný požadavek přijatý od klienta
+- transformovaný požadavek skutečně odeslaný nadřazené službě
+- odpověď poskytovatele rekonstruovaná jako JSON; streamované odpovědi jsou zhuštěny do závěrečného souhrnu spolu s metadaty streamu
+- konečná odpověď klientovi vrácená službou OmniRoute; streamované odpovědi jsou uloženy ve stejné zhuštěné podobě souhrnu
 
-## Security-Sensitive Boundaries
+## Hranice citlivé z hlediska zabezpečení
 
-- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
-- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
-- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
-- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
-- Cloud sync endpoints rely on API key auth + machine id semantics
+- Tajný klíč JWT (`JWT_SECRET`) zabezpečuje ověřování a podepisování relačních cookies řídicího panelu
+- Počáteční heslo (`INITIAL_PASSWORD`) by mělo být explicitně nakonfigurováno pro prvotní zprovoznění
+- Tajný klíč HMAC pro API klíče (`API_KEY_SECRET`) zabezpečuje formát generovaných lokálních API klíčů
+- Tajné údaje poskytovatelů (API klíče/tokeny) jsou uloženy v lokální databázi a měly by být chráněny na úrovni souborového systému
+- Koncové body cloudové synchronizace spoléhají na ověřování pomocí API klíče a sémantiku ID zařízení
 
-## Environment and Runtime Matrix
+## Matice prostředí a běhového prostředí
 
-Environment variables actively used by code:
+Proměnné prostředí aktivně používané kódem:
 
-- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
-- Storage: `DATA_DIR`
-- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
-- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Logging: `APP_LOG_TO_FILE`, `APP_LOG_RETENTION_DAYS`, `CALL_LOG_RETENTION_DAYS`
-- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
-- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
-- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
-- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+- Aplikace/ověřování: `JWT_SECRET`, `INITIAL_PASSWORD`
+- Úložiště: `DATA_DIR`
+- Volitelné přepsání základního umístění úložiště (Linux/macOS, když `DATA_DIR` není nastavena): `XDG_CONFIG_HOME`
+- Bezpečnostní hashování: `API_KEY_SECRET`, `MACHINE_ID_SALT`
+- Protokolování: `APP_LOG_TO_FILE`, `APP_LOG_RETENTION_DAYS`, `CALL_LOG_RETENTION_DAYS`
+- Adresy URL synchronizace/cloudu: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
+- Odchozí proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` a varianty s malými písmeny
+- Příznaky funkcí SOCKS5: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- Pomocné proměnné platformy/běhového prostředí (nejde o konfiguraci specifickou pro aplikaci): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
 
-## Known Architectural Notes
+## Známé poznámky k architektuře
 
-1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
-2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
-3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
-4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
-5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
-6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
-7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 7 tabs: General, Appearance, AI, Security, Routing, Resilience, Advanced. The Resilience page only configures request queue, connection cooldown, provider breaker, and wait-for-cooldown behavior; live breaker runtime state is shown on the Health page.
-9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
-10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
-11. **Node.js runtime policy detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime falls outside the supported secure Node.js lines.
+1. `usageDb` a `localDb` sdílejí stejné zásady pro základní adresář (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) včetně migrace starších souborů.
+2. `/api/v1/route.ts` deleguje na stejný jednotný nástroj pro sestavení katalogu, který používá `/api/v1/models` (`src/app/api/v1/models/catalog.ts`), aby se zabránilo sémantickým odchylkám.
+3. Protokolovací nástroj požadavků při aktivaci zapisuje kompletní hlavičky i tělo; s adresářem protokolů zacházejte jako s citlivým.
+4. Chování cloudu závisí na správné hodnotě `NEXT_PUBLIC_BASE_URL` a dostupnosti cloudového koncového bodu.
+5. Adresář `open-sse/` je publikován jako **balíček pracovního prostoru npm `@omniroute/open-sse`**. Zdrojový kód jej importuje prostřednictvím `@omniroute/open-sse/...` (překládaného pomocí `transpilePackages` v Next.js). Cesty k souborům v tomto dokumentu nadále kvůli konzistenci používají název adresáře `open-sse/`.
+6. Grafy v řídicím panelu používají **Recharts** (založené na SVG) pro přístupné interaktivní vizualizace analytických dat (sloupcové grafy využití modelů, tabulky rozdělení podle poskytovatelů s mírami úspěšnosti).
+7. E2E testy používají **Playwright** (`tests/e2e/`) a spouštějí se pomocí `npm run test:e2e`. Jednotkové testy používají **testovací nástroj Node.js** (`tests/unit/`) a spouštějí se pomocí `npm run test:unit`. Zdrojový kód v `src/` je v jazyce **TypeScript** (`.ts`/`.tsx`); pracovní prostor `open-sse/` zůstává v jazyce JavaScript (`.js`).
+8. Stránka nastavení je uspořádána do 7 karet: Obecné, Vzhled, AI, Zabezpečení, Směrování, Odolnost, Pokročilé. Stránka Odolnost konfiguruje pouze frontu požadavků, dobu zklidnění připojení, pojistku poskytovatele a chování při čekání na ukončení doby zklidnění; aktuální běhový stav pojistky se zobrazuje na stránce Stav.
+9. Strategie **Context Relay** (`context-relay`) je rozdělena do dvou vrstev: `combo.ts` rozhoduje, zda má být vygenerováno předání, a `chat.ts` vloží předání po vyřešení účtu. Data předání jsou uložena v tabulce SQLite `context_handoffs`. Toto rozdělení je záměrné, protože pouze `chat.ts` ví, zda se skutečný účet změnil.
+10. **Vynucování proxy** je nyní komplexní: `tokenHealthCheck.ts` určuje proxy pro každé připojení, `/api/providers/validate` používá `runWithProxyContext` a `proxyFetch.ts` používá `undici.fetch()`, aby byla zachována kompatibilita dispečeru v Node 22.
+11. **Detekce zásad běhového prostředí Node.js**: `/api/settings/require-login` vrací pole `nodeVersion` a `nodeCompatible`. Přihlašovací stránka zobrazí varovný banner, pokud běhové prostředí nepatří mezi podporované bezpečné řady Node.js.
 
-## Operational Verification Checklist
+## Kontrolní seznam provozního ověření
 
-- Build from source: `npm run build`
-- Build Docker image: `docker build -t omniroute .`
-- Start service and verify:
+- Sestavení ze zdrojového kódu: `npm run build`
+- Sestavení Docker image: `docker build -t omniroute .`
+- Spuštění služby a ověření:
 - `GET /api/settings`
 - `GET /api/v1/models`
-- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`
+- Základní cílová URL rozhraní CLI by měla být `http://<host>:20128/v1`, když `PORT=20128`

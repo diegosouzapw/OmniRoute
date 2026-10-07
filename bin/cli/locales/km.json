@@ -86,7 +86,7 @@
     }
   },
   "keys": {
-    "title": "API Keys",
+    "title": "សោ API",
     "addDescription": "បន្ថែម ឬធ្វើបច្ចុប្បន្នភាព API key សម្រាប់អ្នកផ្តល់សេវា",
     "listDescription": "រាយ API keys ដែលបានកំណត់រចនាសម្ព័ន្ធទាំងអស់",
     "removeDescription": "លុប API key សម្រាប់អ្នកផ្តល់សេវា",
@@ -226,7 +226,7 @@
     "description": "ផ្ញើ chat prompt មួយលើកទៅ OmniRoute",
     "file": "អាន prompt ពីឯកសារ",
     "stdin": "អាន prompt ពី stdin",
-    "system": "System prompt",
+    "system": "ប្រូមប្រព័ន្ធ",
     "model": "Model ID (លំនាំដើម៖ auto)",
     "max_tokens": "ចំនួន token អតិបរមាក្នុងការឆ្លើយតប",
     "temperature": "សីតុណ្ហភាព sampling (0–2)",
@@ -256,6 +256,7 @@
     "max_restarts": "ចំនួនអតិបរមានៃការចាប់ផ្តើមឡើងវិញបន្ទាប់ពីគាំងក្នុងរយៈពេល 30s មុនពេលបោះបង់ (លំនាំដើម៖ 2)",
     "tray": "ចាប់ផ្ដើមក្នុងថាសប្រព័ន្ធ (សម្រាប់កុំព្យូទ័រលើតុប៉ុណ្ណោះ និងត្រូវជ្រើសរើសបើក)",
     "no_tray": "បិទរូបតំណាងថាសប្រព័ន្ធ",
+    "ready_timeout": "រយៈពេលអស់ពេលនៃការត្រួតពិនិត្យភាពរួចរាល់ គិតជាមិល្លីវិនាទី (ក៏អាចប្រើ OMNIROUTE_READY_TIMEOUT_MS ផងដែរ, លំនាំដើម 60000)",
     "tls_cert": "ផ្លូវទៅកាន់វិញ្ញាបនបត្រ TLS (PEM) សម្រាប់បម្រើ HTTPS (ក៏ជា OMNIROUTE_TLS_CERT ផងដែរ)",
     "tls_key": "ផ្លូវទៅកាន់សោឯកជន TLS (PEM) សម្រាប់បម្រើ HTTPS (ក៏ជា OMNIROUTE_TLS_KEY ផងដែរ)"
   },
@@ -347,6 +348,16 @@
     "running": "ម៉ាស៊ីនមេ MCP កំពុងដំណើរការ ({transport})",
     "stopped": "ម៉ាស៊ីនមេ MCP បានឈប់ដំណើរការ។",
     "restarted": "ម៉ាស៊ីនមេ MCP បានចាប់ផ្តើមឡើងវិញ។",
+    "stoppedHint": "ដំណើរការ `omniroute mcp enable` ដើម្បីបើកវា។",
+    "enabled": "ម៉ាស៊ីនមេ MCP ត្រូវបានបើក។",
+    "disabled": "ម៉ាស៊ីនមេ MCP ត្រូវបានបិទ។",
+    "enable": {
+      "description": "បើកម៉ាស៊ីនមេ MCP",
+      "transport": "មធ្យោបាយបញ្ជូនដែលត្រូវប្រើ៖ stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "បិទម៉ាស៊ីនមេ MCP"
+    },
     "call": {
       "description": "ហៅប្រើឧបករណ៍ MCP ដោយផ្ទាល់",
       "args": "អាប់ជិចអាគុយម៉ង់ JSON (ក្នុងបន្ទាត់)",

@@ -66,21 +66,28 @@ test("AntigravityExecutor.execute sanitizes streaming and non-streaming error bo
   const streamingJson = await executeWithBody(true, sensitiveBody);
   const nonStreamingJson = await executeWithBody(false, sensitiveBody);
 
-  for (const { bodyText } of [
-    streamingBinary,
-    nonStreamingBinary,
-    streamingJson,
-    nonStreamingJson,
-  ]) {
-    assert.doesNotMatch(bodyText, /\x1f\x8b|prompt-secret|credential-secret|tool-secret/);
+  // Raw provider BYTES must never reach the client (the original #2461 bug): a non-UTF8 body
+  // yields the clean templated envelope in both paths.
+  for (const { bodyText } of [streamingBinary, nonStreamingBinary]) {
+    assert.doesNotMatch(bodyText, /\x1f\x8b/);
     assert.deepEqual(JSON.parse(bodyText), {
       error: {
-        message: "Antigravity upstream error (403)",
+        message: "Antigravity upstream error (403): Forbidden provider detail",
         type: "permission_error",
-        code: "insufficient_quota",
+        code: "permission_denied",
       },
     });
   }
+
+  // #13591 (release/v3.8.52) surfaces the real upstream message to the client, so the JSON case
+  // carries it; streaming and non-streaming must agree. What stays private is the RETAINED
+  // diagnostic asserted below, which is the allowlisted projection only.
+  const [streamingEnvelope, nonStreamingEnvelope] = [streamingJson, nonStreamingJson].map(
+    ({ bodyText }) => JSON.parse(bodyText) as { error: { message: string; type: string } }
+  );
+  assert.deepEqual(streamingEnvelope, nonStreamingEnvelope);
+  assert.match(streamingEnvelope.error.message, /^Antigravity upstream error \(403\): /);
+  assert.equal(streamingEnvelope.error.type, "permission_error");
 
   // #3229: the executor also hands chatCore an internal-only classification. It is a projection,
   // not a sanitizer — non-JSON bodies yield status only, and a JSON body contributes nothing

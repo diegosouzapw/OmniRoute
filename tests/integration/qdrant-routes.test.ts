@@ -446,6 +446,40 @@ test("GET /api/settings/qdrant/embedding-models — includes an active local no-
   );
 });
 
+test("GET /api/settings/qdrant/embedding-models — keeps curated models for configured providers only", async () => {
+  await localDb.createProviderConnection({
+    provider: "cohere",
+    authType: "apikey",
+    name: "configured-curated",
+    apiKey: "sk-test-cohere-embedding",
+    isActive: true,
+  });
+  await localDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "inactive-with-key",
+    apiKey: "sk-test-inactive-embedding",
+    isActive: false,
+  });
+  const req = await makeAuthRequest("GET", "http://localhost/api/settings/qdrant/embedding-models");
+  const res = await qdrantEmbeddingModelsRoute.GET(asNextRequest(req));
+  assert.equal(res.status, 200);
+  const { models } = (await res.json()) as { models: EmbeddingModelOptionLike[] };
+  assert.ok(
+    models.some((model) => model.value === "cohere/embed-v4.0"),
+    "retain the curated-catalog feature from #11390"
+  );
+  assert.ok(
+    models.every((model) => model.value.startsWith("cohere/")),
+    "unconfigured or inactive providers must not be offered"
+  );
+  assert.equal(
+    new Set(models.map((model) => model.value)).size,
+    models.length,
+    "merged catalog stays deduplicated"
+  );
+});
+
 test("GET /api/settings/qdrant/embedding-models — still excludes a remote provider with no key", async () => {
   // A remote provider that DOES require a key must stay excluded when the
   // connection was created/left without one — regression guard for the fix

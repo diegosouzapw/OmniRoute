@@ -61,17 +61,17 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
     assert.deepEqual(INITIAL_SCHEMA_SENTINELS, ["provider_connections", "combos", "call_logs"]);
   });
 
-  it("OPTIONAL_FTS5_MIGRATION_VERSIONS is exactly {022, 023}", () => {
+  it("OPTIONAL_FTS5_MIGRATION_VERSIONS includes dependent FTS migrations", () => {
     assert.ok(OPTIONAL_FTS5_MIGRATION_VERSIONS instanceof Set);
-    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023"]);
+    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023", "178"]);
   });
 });
 
 // ── large tables — count + shape + spot-checks (corruption guard) ─────────────
 
 describe("migrationRunner/constants — large-table integrity", () => {
-  it("RENAMED_MIGRATION_COMPATIBILITY has 32 well-formed entries", () => {
-    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 32);
+  it("RENAMED_MIGRATION_COMPATIBILITY has 33 well-formed entries", () => {
+    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 33);
     for (const e of RENAMED_MIGRATION_COMPATIBILITY) {
       assert.equal(typeof e.fromVersion, "string");
       assert.equal(typeof e.fromName, "string");
@@ -124,23 +124,30 @@ describe("migrationRunner/constants — large-table integrity", () => {
         toName: "inspector_custom_hosts",
       }
     );
-    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-7), {
+    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-8), {
       fromVersion: "134",
       fromName: "ccr_blocks",
       toVersion: "139",
       toName: "ccr_blocks",
     });
-    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-6), {
+    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-7), {
       fromVersion: "139",
       fromName: "job_registry",
       toVersion: "146",
       toName: "job_registry",
     });
-    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-5), {
+    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-6), {
       fromVersion: "143",
       fromName: "radar_local_model_state",
       toVersion: "153",
       toName: "radar_local_model_state",
+    });
+    // npm 3.8.50 shipped model_capabilities as 163; it now lives at 169
+    assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-5), {
+      fromVersion: "163",
+      fromName: "model_capabilities",
+      toVersion: "169",
+      toName: "model_capabilities",
     });
     // #12036: renamed migrations 056/073/077/101 appended as compatibility renames
     assert.deepEqual(RENAMED_MIGRATION_COMPATIBILITY.at(-4), {

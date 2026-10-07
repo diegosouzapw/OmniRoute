@@ -1,6 +1,6 @@
 # Security Policy (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,18 +220,38 @@ Dawn ir-regoli jiġu infurzati permezz ta' għodod u rreveduri:
 10. **`exec()` / `spawn()` valuri tal-ħin tal-mewt permezz tal-għażla `env`** — qatt interpolla b'stringu toroq esterni jew valuri mhux fdata fil-kripti mogħtija lill-shell. Referenza: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Ippreferixxi libreriji b'base sigur** — ara [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Waqfas qabel tagħmel tiegħek stess.
 
-## Sorsi ta' ħruġ mill-pipeline tal-provvista (Socket.dev / Snyk / simili)
+## Sejbiet tal-iskaner tal-katina tal-provvista (Socket.dev / Snyk / simili)
 
-L-arti tal-npm `omniroute` ippubblikat fih il-bini tal-Next.js `output: "standalone"`, li jfisser li kull maniġer tal-rotta - inkluż il-funzjonijiet privileġġati deskritti (MITM, importazzjoni Zed, Sema Sincronizzata, superviżur tas-servizz integrated) - jintwera f'biċċiet `.next/server/*.js` minifika. Is-skenners heuristiċi tal-provvista ta' ħruġ spiss jgħaqqdu dik il-kurġata mal-firxat tal-malware.
+> **Nota dwar l-ambitu:** `socket.yml` fl-għerq tar-repożitorju jikkonfigura biss `projectIgnorePaths` għall-iskan ta’ wara l-pubblikazzjoni min-naħa tar-reġistru ta’ Socket.dev tal-artefatt npm ippubblikat — mhuwiex ostaklu obbligatorju għall-inkorporazzjoni f’CI/PR. L-ebda workflow f’`.github/workflows`, l-ebda script ta’ `package.json`, u l-ebda target ta’ `Makefile` ma jinvoka Socket.dev.
 
-Għal kull kategorija ta' ħruġ inżommu attestazzjoni tal-maniġer għal dak l-ħruġ:
+L-artefatt npm `omniroute` ippubblikat jiġbor fih il-build ta’ Next.js b’`output: "standalone"`,
+li jfisser li kull handler tar-rotta — inklużi l-funzjonalitajiet privileġġati
+dokumentati (MITM, importazzjoni minn Zed, Cloud Sync, superviżur tas-servizz integrat) — jispiċċa
+f’partijiet minimizzati `.next/server/*.js`. L-iskaners euristiċi tal-katina tal-provvista
+spiss iqabblu l-mudelli f’dawk il-partijiet ma’ firem ta’ malware.
+
+Il-konfigurazzjoni tal-iskaner li nużaw tinsab f’[`socket.yml`](socket.yml) fl-għerq
+tar-repożitorju (format v2 tal-GitHub App ta’ Socket.dev — ara
+<https://docs.socket.dev/docs/socket-yml>). Din teskludi b’mod espliċitu
+direttorji li ma jiġux distribwiti (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, eċċ.) sabiex l-iskaner jirrapporta biss dwar mogħdijiet tal-kodiċi li
+fil-fatt jaslu għand l-utenti tal-verżjoni ppubblikata — l-iskan innifsu jitħaddem mill-GitHub
+App ta’ Socket billi jaqra dak il-fajl, mhux minn workflow f’dan ir-repożitorju.
+
+Għal kull kategorija ta’ sejba nżommu attestazzjoni mill-manutentur għal kull sejba:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mappa għal kull ħruġ: fajl sors ↔ chunk immarkat ↔ imġiba ↔ mitigazzjoni applikata fil-v3.8.6.
-- Blocchi `SECURITY-AUDITOR-NOTE:` fil-kodiċi stess fi kull funzjoni immarkata jirreferixxu lura għad-dokument l-istess.
+  mappa għal kull sejba: fajl tas-sors ↔ parti mmarkata ↔ imġiba ↔ mitigazzjoni
+  applikata f’v3.8.6.
+- Blokki `SECURITY-AUDITOR-NOTE:` fil-kodiċi tas-sors f’kull punt ta’ funzjoni mmarkat
+  jirreferu lura għall-istess dokument.
 
-Għall-utenti li l-pipeline tagħhom ma jistax ifaqqar l-allert, ibnu bħala profili:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jibdel l-erba 'moduli sensittivi bi sinkopaturi li jirritornaw HTTP 530 "feature-disabled" matul ir-runtim, sabiex il-ħġieġ tal-kodiċi privileġġat huma fiżikament assenti mill-kurġata. Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) għar-riċetta tal-pubblikazzjoni.
+Għall-utenti li l-pipeline tagħhom ma jistax jillaxka t-twissija: ibnu b’
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jissostitwixxi l-erba’
+moduli sensittivi bi stubs li jirritornaw HTTP 503 `feature-disabled` waqt
+it-tħaddim, sabiex il-mogħdijiet privileġġati tal-kodiċi jkunu fiżikament assenti mill-bundle.
+Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+għar-riċetta tal-pubblikazzjoni.
 
 ## Riferenzi
 

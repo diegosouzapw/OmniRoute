@@ -461,6 +461,31 @@ test("config: fetchers throw → warn + emit stub entry with models: {}", async 
 // 6. Combos fetcher throws → models-only catalog (no combos in models block)
 // ────────────────────────────────────────────────────────────────────────────
 
+test("config: features.combos=false skips /api/combos fetch", async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([COMBO_CLAUDE_TIER]);
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { combos: false } },
+    { readAuthJson, fetcher, combosFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  assert.equal(fetcher.callCount(), 1, "models fetch still runs");
+  assert.equal(combosFetcher.callCount(), 0, "combos fetch suppressed by feature flag");
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
+    "opencode-omniroute"
+  ];
+  assert.ok(entry);
+  assert.equal(entry.models["claude-tier"], undefined, "no combo entry when combos are off");
+  assert.ok(entry.models["claude-sonnet-4-6"]);
+});
+
 test("config: combos fetcher throws → emit models-only catalog (no combos in models block)", async () => {
   const readAuthJson = stubReadAuthJson({
     "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
@@ -481,10 +506,7 @@ test("config: combos fetcher throws → emit models-only catalog (no combos in m
   ];
   assert.ok(entry);
   const ids = Object.keys(entry.models).sort();
-  assert.deepEqual(ids, [
-    "claude-sonnet-4-6",
-    "gemini-3-flash",
-  ]);
+  assert.deepEqual(ids, ["claude-sonnet-4-6", "gemini-3-flash"]);
   assert.equal(entry.models["claude-tier"], undefined, "no combo entry");
   assert.ok(
     logger.entries.some((e) => String(e[0]).includes("/api/combos fetch failed")),
@@ -1041,11 +1063,7 @@ test("config: features.enrichment=false skips enrichment fetch + keeps raw-id na
   ];
   assert.ok(entry);
   assert.equal(enrichmentFetcher.callCount(), 0, "enrichment fetch suppressed by feature flag");
-  assert.equal(
-    entry.models["claude-sonnet-4-6"].name,
-    "claude-sonnet-4-6",
-    "raw id retained"
-  );
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
 });
 
 test("config: enrichment fetcher throws → soft-fail (warn + raw-id static catalog)", async () => {
@@ -1068,11 +1086,7 @@ test("config: enrichment fetcher throws → soft-fail (warn + raw-id static cata
     "opencode-omniroute"
   ];
   assert.ok(entry, "static block still published on enrichment failure");
-  assert.equal(
-    entry.models["claude-sonnet-4-6"].name,
-    "claude-sonnet-4-6",
-    "raw id retained"
-  );
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
   assert.equal(enrichmentFetcher.callCount(), 1);
   assert.ok(
     logger.entries.some((e) => String(e[0]).includes("/api/pricing/models fetch failed")),
@@ -1270,10 +1284,7 @@ test("config: diskCache hydrates stale snapshot when /v1/models throws", async (
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
     "opencode-omniroute"
   ];
-  assert.ok(
-    entry.models["claude-sonnet-4-6"],
-    "stale snapshot hydrated into static block"
-  );
+  assert.ok(entry.models["claude-sonnet-4-6"], "stale snapshot hydrated into static block");
   assert.equal(
     entry.models["claude-sonnet-4-6"].name,
     "Claude Sonnet 4.6 (cached)",
@@ -1281,11 +1292,149 @@ test("config: diskCache hydrates stale snapshot when /v1/models throws", async (
   );
   assert.equal(writes, 0, "disk write skipped when live fetch failed");
   assert.ok(
-    logger.entries.some((e) =>
-      String(e[0]).includes("using stale disk cache") ||
-      String(e[0]).includes("warm startup from disk snapshot")
+    logger.entries.some(
+      (e) =>
+        String(e[0]).includes("using stale disk cache") ||
+        String(e[0]).includes("warm startup from disk snapshot")
     ),
     "disk-cache hydration breadcrumb emitted"
+  );
+});
+
+// The stale-fallback branch (`modelsFetchThrew && wantDiskCache && !warmSnapshot`)
+// only runs when the warm-startup read found nothing — a snapshot can appear on
+// disk between that first read and the live fetch failing (e.g. another OC
+// process instance wrote one concurrently). A stateful reader simulates that:
+// empty on the warm-startup read, populated by the time the fallback re-reads.
+function emptyThenSnapshotReader(
+  snapshot: Omit<
+    Awaited<ReturnType<typeof import("../src/index.js").defaultDiskSnapshotReader>> & object,
+    never
+  >
+): typeof import("../src/index.js").defaultDiskSnapshotReader {
+  let calls = 0;
+  return (async () => {
+    calls++;
+    return calls === 1 ? undefined : snapshot;
+  }) as typeof import("../src/index.js").defaultDiskSnapshotReader;
+}
+
+test("config: stale-fallback warning reports the disk snapshot age in hours", async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = throwingModelsFetcher();
+  const combosFetcher = stubCombosFetcher([]);
+  const logger = captureWarn();
+
+  const writtenAt = Date.now() - 2 * 3_600_000; // 2h old
+  const diskSnapshotReader = emptyThenSnapshotReader({
+    rawModels: [MODEL_CLAUDE],
+    rawCombos: [],
+    rawEnrichment: new Map(),
+    rawCompressionCombos: [],
+    rawConnections: [],
+    writtenAt,
+  });
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { diskCache: true } },
+    { readAuthJson, fetcher, combosFetcher, diskSnapshotReader, logger }
+  );
+
+  await hook(makeInput());
+
+  assert.ok(
+    logger.entries.some((e) => String(e[0]).includes("using stale disk cache (1 models, age 2h)")),
+    "stale-fallback warning includes the computed snapshot age"
+  );
+});
+
+test('config: stale-fallback warning falls back to "unknown" age without writtenAt', async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = throwingModelsFetcher();
+  const combosFetcher = stubCombosFetcher([]);
+  const logger = captureWarn();
+
+  const diskSnapshotReader = emptyThenSnapshotReader({
+    rawModels: [MODEL_CLAUDE],
+    rawCombos: [],
+    rawEnrichment: new Map(),
+    rawCompressionCombos: [],
+    rawConnections: [],
+  });
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { diskCache: true } },
+    { readAuthJson, fetcher, combosFetcher, diskSnapshotReader, logger }
+  );
+
+  await hook(makeInput());
+
+  assert.ok(
+    logger.entries.some((e) =>
+      String(e[0]).includes("using stale disk cache (1 models, age unknown)")
+    ),
+    'stale-fallback warning falls back to "unknown" when writtenAt is absent'
+  );
+});
+
+test("config: diskCacheMaxAgeMs escalates the fallback log but still serves the snapshot", async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = throwingModelsFetcher();
+  const combosFetcher = stubCombosFetcher([]);
+  const levels: string[] = [];
+  const logger = {
+    warn: (message: string) => {
+      levels.push(`warn:${message}`);
+    },
+    error: (message: string) => {
+      levels.push(`error:${message}`);
+    },
+  };
+  const writtenAt = 1_700_000_000_000;
+  const maxAgeMs = 24 * 3_600_000;
+  const diskSnapshotReader = emptyThenSnapshotReader({
+    rawModels: [MODEL_CLAUDE],
+    rawCombos: [],
+    rawEnrichment: new Map([["claude-sonnet-4-6", { name: "Claude Sonnet 4.6 (cached)" }]]),
+    rawCompressionCombos: [],
+    rawConnections: [],
+    writtenAt,
+  });
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { diskCache: true, diskCacheMaxAgeMs: maxAgeMs } },
+    {
+      readAuthJson,
+      fetcher,
+      combosFetcher,
+      diskSnapshotReader,
+      logger,
+      now: () => writtenAt + 48 * 3_600_000,
+    }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
+    "opencode-omniroute"
+  ];
+  assert.ok(entry.models["claude-sonnet-4-6"], "snapshot past the bound is still served");
+  assert.ok(
+    levels.some(
+      (line) => line.startsWith("error:") && line.includes(`past diskCacheMaxAgeMs=${maxAgeMs}`)
+    ),
+    "past-bound fallback escalates to error"
+  );
+  assert.equal(
+    levels.some((line) => line.startsWith("warn:") && line.includes("using stale disk cache")),
+    false,
+    "past-bound fallback is not only a warning"
   );
 });
 
@@ -1376,10 +1525,7 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
     "opencode-omniroute"
   ];
   assert.ok(entry);
-  assert.equal(
-    entry.models["claude-sonnet-4-6"].name,
-    "Claude - Claude Sonnet 4.6"
-  );
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
   assert.equal(entry.models["gemini-3-flash"].name, "Gemini - Gemini 3 Flash");
   // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
   assert.equal(entry.models["claude-tier"].name, "Claude Tier");
@@ -1495,10 +1641,7 @@ test("config: providerTag is idempotent — second hook call doesn't double-suff
   const entryA = (inputA as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
     "opencode-omniroute"
   ];
-  assert.equal(
-    entryA.models["claude-sonnet-4-6"].name,
-    "Claude - Claude Sonnet 4.6"
-  );
+  assert.equal(entryA.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
 
   // Second invocation (cache hit) — name must still be single-suffixed.
   const inputB = makeInput();
@@ -1506,10 +1649,7 @@ test("config: providerTag is idempotent — second hook call doesn't double-suff
   const entryB = (inputB as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
     "opencode-omniroute"
   ];
-  assert.equal(
-    entryB.models["claude-sonnet-4-6"].name,
-    "Claude - Claude Sonnet 4.6"
-  );
+  assert.equal(entryB.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
 });
 
 // ────────────────────────────────────────────────────────────────────────────

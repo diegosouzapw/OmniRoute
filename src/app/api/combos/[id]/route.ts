@@ -6,6 +6,7 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
+import { resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { requiresQuotaOnlyComboRefExecute } from "@/shared/validation/schemas/combo";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -137,6 +138,32 @@ export async function PUT(request, { params }) {
           }),
         }
       : normalizedUpdate;
+
+    if (body.overrideAllowedProviders === true) {
+      delete body.overrideAllowedProviders;
+      const currentProviders = Array.isArray(currentCombo.allowedProviders)
+        ? currentCombo.allowedProviders
+        : [];
+      // Only widen an EXISTING restriction (#13951/COMBO_008). When the combo
+      // currently has no allowedProviders restriction, currentProviders is
+      // empty and unioning it with the new step providers would synthesize a
+      // brand-new allowlist out of nothing — the opposite of "no restriction".
+      if (body.models && body.allowedProviders === undefined && currentProviders.length > 0) {
+        const stepProviders = (
+          body.models as Array<{ providerId?: string; provider?: string; model?: string }>
+        )
+          .map((m) => {
+            if (m.providerId) return m.providerId;
+            if (m.provider) return m.provider;
+            if (typeof m.model !== "string" || !m.model.includes("/")) return "";
+            const [aliasOrProvider, ...rest] = m.model.split("/");
+            return resolveCanonicalProviderModel(aliasOrProvider, rest.join("/")).provider || "";
+          })
+          .filter((p): p is string => Boolean(p));
+        body.allowedProviders = Array.from(new Set([...currentProviders, ...stepProviders]));
+      }
+    }
+
     const nextComboState = {
       ...currentCombo,
       ...body,

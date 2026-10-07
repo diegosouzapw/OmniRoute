@@ -4,7 +4,14 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile, waitForServer, resolveReadyTimeoutMs } from "../utils/pid.mjs";
+import {
+  writePidFile,
+  cleanupPidFile,
+  waitForServer,
+  findListeningPids,
+  probePortFree,
+  resolveReadyTimeoutMs,
+} from "../utils/pid.mjs";
 import {
   ServerSupervisor,
   detectMitmCrash,
@@ -235,6 +242,17 @@ export async function runServe(opts = {}) {
     process.exit(1);
   }
 
+  // Refuse to start a second instance on a port something else already owns,
+  // BEFORE any pid file is written or any child is spawned. Otherwise the
+  // doomed child's EADDRINUSE arrives only after this process has rewritten
+  // the pid files of the healthy instance that actually owns the port.
+  const serverHost = resolveServerHost();
+  const busyPids = await resolveServeBusyPids(dashboardPort, { host: serverHost });
+  if (busyPids.length > 0) {
+    reportPortInUse(dashboardPort, busyPids);
+    process.exit(1);
+  }
+
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
   // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
@@ -259,7 +277,7 @@ export async function runServe(opts = {}) {
     // #10492: HOSTNAME is standard shell state on Unix-like systems, not an
     // OmniRoute bind setting. The resolver only keeps its legacy meaning on
     // Windows; OMNIROUTE_SERVER_HOST is the cross-platform explicit setting.
-    HOSTNAME: resolveServerHost(),
+    HOSTNAME: serverHost,
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated
@@ -281,7 +299,8 @@ export async function runServe(opts = {}) {
     return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort);
   }
 
-  if (opts.noRecovery) {
+  // Commander stores `--no-recovery` as `recovery === false`, never as `noRecovery`.
+  if (opts.recovery === false || opts.noRecovery === true) {
     return runWithoutRecovery(
       serverJs,
       env,
@@ -304,15 +323,70 @@ export async function runServe(opts = {}) {
     opts.maxRestarts ?? 2,
     startedAt,
     useTray,
-    { trayReadyPort: opts.trayReadyPort, trayReadyToken: opts.trayReadyToken }
+    {
+      trayReadyPort: opts.trayReadyPort,
+      trayReadyToken: opts.trayReadyToken,
+      readyTimeoutMs: resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout }),
+    }
   );
+}
+
+/**
+ * Listeners blocking `serve` on `port`. Discovery returning null means the
+ * tool is missing (#14518); the bind probe then decides. A free port is an
+ * empty list — leaving null throws on the caller's `.length` (#14800).
+ *
+ * @param {number} port
+ * @param {object} [deps]
+ * @param {typeof findListeningPids} [deps.findListeningPids]
+ * @param {typeof probePortFree} [deps.probePortFree]
+ * @returns {Promise<Array<number|null>>}
+ */
+export async function resolveServeBusyPids(port, deps = {}) {
+  const discover = deps.findListeningPids ?? findListeningPids;
+  const probe = deps.probePortFree ?? probePortFree;
+  // findListeningPids() returning null means the discovery tool itself is
+  // missing or unusable (Termux, slim containers, #14518) — fall back to a
+  // bind probe so the guard still answers before spawning the doomed child.
+  let busyPids = await discover(port, { host: deps.host });
+  if (busyPids === null) {
+    // Discovery tool missing/unusable (#14518): the bind probe is the guard.
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
+    else busyPids = [];
+  } else if (busyPids.length === 0) {
+    // Discovery ran and saw nothing, but that window can race a starting
+    // instance; a bind probe costs nothing and doubles as confirmation.
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
+  }
+  return busyPids;
+}
+
+/**
+ * Explain a port conflict in terms the operator can act on: who owns the port,
+ * and the two ways out. Exported for unit tests.
+ */
+export function reportPortInUse(port, pids = []) {
+  const known = pids.filter((pid) => Number.isFinite(pid) && pid > 0);
+  const owner =
+    known.length === 0
+      ? "an unknown process"
+      : known.length === 1
+        ? `PID ${known[0]}`
+        : `PIDs ${known.join(", ")}`;
+  console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
+  console.error(
+    `  Another OmniRoute is most likely already serving there, so open` +
+      ` ${urlScheme}://localhost:${port} before starting a second one.`
+  );
+  console.error(`  To replace it:    \x1b[36momniroute stop\x1b[0m, then start again`);
+  console.error(`  To run alongside: \x1b[36momniroute serve --port <other-port>\x1b[0m\n`);
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -337,7 +411,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -418,7 +492,7 @@ async function runWithSupervisor(
   maxRestarts,
   startedAt,
   useTray = false,
-  { trayReadyPort, trayReadyToken } = {}
+  { trayReadyPort, trayReadyToken, readyTimeoutMs = resolveReadyTimeoutMs() } = {}
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
   writePidFile("supervisor", process.pid);
@@ -457,8 +531,12 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    const readyTimeoutMs = resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout });
-    waitForServer(dashboardPort, readyTimeoutMs).then(async (up) => {
+    let lastProbeOutcome = null;
+    waitForServer(dashboardPort, readyTimeoutMs, {
+      onOutcome: (outcome) => {
+        lastProbeOutcome = outcome;
+      },
+    }).then(async (up) => {
       if (up) {
         if (useTray) {
           const trayReady = await maybeStartTray(dashboardPort, apiPort, supervisor);
@@ -482,7 +560,7 @@ async function runWithSupervisor(
         }
         onReady(dashboardPort, apiPort, noOpen, startedAt);
       } else {
-        reportReadinessTimeout(dashboardPort, supervisor);
+        reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome);
       }
     });
   }
@@ -494,13 +572,28 @@ async function runWithSupervisor(
 // stuck (issue reports show the server sometimes actually comes up later, or is
 // reachable directly while the CLI still looks hung). Surface a clear diagnostic
 // plus whatever stdout/stderr the child buffered instead of going silent.
-export function reportReadinessTimeout(dashboardPort, supervisor) {
+export function reportReadinessTimeout(dashboardPort, supervisor, lastProbeOutcome = null) {
   const readyTimeoutMs = resolveReadyTimeoutMs();
   const seconds = Math.round(readyTimeoutMs / 1000);
   console.error(
     `\n\x1b[33m⚠ Server did not respond within ${seconds}s.\x1b[0m It may still be starting, or may` +
       ` have failed silently.`
   );
+  // The last probe classification separates a real boot failure (nothing ever
+  // bound the port, so the buffered output below is the reason) from a server
+  // that IS listening and merely did not answer the health route in time:
+  // very likely usable already, with only the readiness signal timed out.
+  if (lastProbeOutcome === "hanging" || lastProbeOutcome === "fast-reject") {
+    console.error(
+      `  Port ${dashboardPort} IS accepting connections, so the server is probably up and` +
+        ` still warming up. Check the dashboard before restarting it.`
+    );
+  } else if (lastProbeOutcome === "not-listening") {
+    console.error(
+      `  Nothing is listening on port ${dashboardPort}, so the server never bound it and the` +
+        ` output below is the reason.`
+    );
+  }
   console.error(
     `  Tip:  set OMNIROUTE_READY_TIMEOUT_MS=${readyTimeoutMs * 2} or --ready-timeout ${readyTimeoutMs * 2} for slower cold starts.`
   );

@@ -256,6 +256,7 @@
     "max_restarts": "ಬಿಟ್ಟುಕೊಡುವ ಮೊದಲು 30s ಒಳಗೆ ಕ್ರ್ಯಾಶ್ನಿಂದ ಗರಿಷ್ಠ ಮರುಪ್ರಾರಂಭಗಳ ಸಂಖ್ಯೆ (ಡೀಫಾಲ್ಟ್: 2)",
     "tray": "ಸಿಸ್ಟಮ್ ಟ್ರೇಯಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ (ಡೆಸ್ಕ್ಟಾಪ್ ಮಾತ್ರ, ಆಯ್ಕೆ ಮಾಡಿದಲ್ಲಿ)",
     "no_tray": "ಸಿಸ್ಟಮ್ ಟ್ರೇ ಐಕಾನ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
+    "ready_timeout": "ಸಿದ್ಧತಾ ಪ್ರೋಬ್ ಕಾಲಮಿತಿ ಮಿಲಿಸೆಕೆಂಡುಗಳಲ್ಲಿ (OMNIROUTE_READY_TIMEOUT_MS ಕೂಡ, ಡೀಫಾಲ್ಟ್ 60000)",
     "tls_cert": "HTTPS ಒದಗಿಸಲು TLS ಪ್ರಮಾಣಪತ್ರದ (PEM) ಪಥ (OMNIROUTE_TLS_CERT ಸಹ)",
     "tls_key": "HTTPS ಒದಗಿಸಲು TLS ಖಾಸಗಿ ಕೀಲಿಯ (PEM) ಪಥ (OMNIROUTE_TLS_KEY ಸಹ)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದೆ ({transport})",
     "stopped": "MCP ಸರ್ವರ್ ನಿಲ್ಲಿಸಲಾಗಿದೆ.",
     "restarted": "MCP ಸರ್ವರ್ ಮರುಪ್ರಾರಂಭಿಸಲಾಗಿದೆ.",
+    "stoppedHint": "ಇದನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು `omniroute mcp enable` ಅನ್ನು ಚಲಾಯಿಸಿ.",
+    "enabled": "MCP ಸರ್ವರ್ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
+    "disabled": "MCP ಸರ್ವರ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
+    "enable": {
+      "description": "MCP ಸರ್ವರ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+      "transport": "ಬಳಸಬೇಕಾದ ಟ್ರಾನ್ಸ್ಪೋರ್ಟ್: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP ಸರ್ವರ್ ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ"
+    },
     "call": {
       "description": "MCP ಟೂಲ್ ಅನ್ನು ನೇರವಾಗಿ ಆಹ್ವಾನಿಸಿ",
       "args": "JSON ಆರ್ಗ್ಯುಮೆಂಟ್ಗಳ ಆಬ್ಜೆಕ್ಟ್ (ಇನ್ಲೈನ್)",

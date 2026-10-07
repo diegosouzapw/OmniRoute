@@ -51,6 +51,7 @@ import {
   makeZaiChunkEmitter,
 } from "./zai-web/stream.ts";
 import { browserBackedChat } from "../services/browserBackedChat.ts";
+import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { CursorImageError, resolveCursorImages } from "../utils/cursorImages.ts";
 import {
   makeExecutorErrorResult as makeErrorResult,
@@ -424,9 +425,26 @@ export class ZaiWebExecutor extends BaseExecutor {
     try {
       result = await browserBackedChat(buildZaiBrowserChatOptions({ ...input, attachments }));
     } catch (error) {
-      const message = sanitizeErrorMessage(
-        error instanceof Error ? error.message : "browser transport unavailable"
-      );
+      const rawMessage = error instanceof Error ? error.message : "browser transport unavailable";
+      // #13232: a missing Playwright browser binary is a host/config problem, not a transient
+      // upstream fault (same class as #3516 in gemini-web.ts). Surface an actionable message and
+      // tag it with the connection-cooldown hint so accountFallback skips the whole-provider
+      // circuit breaker (502/500 would trip it) and applies a short, non-exponential cooldown
+      // instead.
+      if (isMissingBrowserExecutable(rawMessage)) {
+        return {
+          errorResult: makeErrorResult(
+            503,
+            "Z.ai requires the Playwright Chromium browser, which is not installed. " +
+              "Run `npx playwright install chromium` on the host (or rebuild the Docker image " +
+              "with browsers).",
+            input.body,
+            ZAI_CHAT_URL,
+            { "X-Omni-Fallback-Hint": "connection_cooldown" }
+          ),
+        };
+      }
+      const message = sanitizeErrorMessage(rawMessage);
       return {
         errorResult: makeErrorResult(
           502,

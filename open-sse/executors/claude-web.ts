@@ -39,6 +39,9 @@ const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
+const MAX_FORWARDED_RETRY_AFTER_SECONDS = 24 * 60 * 60;
+const HTTP_DATE_PATTERN =
+  /^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT$/;
 const CLAUDE_USER_AGENT = CLAUDE_WEB_FINGERPRINT.userAgent;
 
 type SendClaudeWebTransport = (
@@ -291,13 +294,35 @@ async function readTransportErrorText(result: ClaudeWebTransportResult): Promise
     output += decoder.decode();
     return output;
   } finally {
-    await reader.cancel().catch(() => {});
+    await reader.cancel().catch(() => {
+      // The bounded error body is already captured; cancel can race an upstream close.
+    });
     try {
       reader.releaseLock();
     } catch {
       // The reader may already be released by cancel().
     }
   }
+}
+
+function normalizeForwardedRetryAfter(value: string | null): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{1,9}$/.test(trimmed)) {
+    const seconds = Number(trimmed);
+    return Number.isSafeInteger(seconds) && seconds <= MAX_FORWARDED_RETRY_AFTER_SECONDS
+      ? String(seconds)
+      : null;
+  }
+
+  if (!HTTP_DATE_PATTERN.test(trimmed)) return null;
+  const timestamp = Date.parse(trimmed);
+  if (!Number.isFinite(timestamp)) return null;
+  const normalized = new Date(timestamp).toUTCString();
+  if (normalized !== trimmed) return null;
+  if (Math.abs(timestamp - Date.now()) > MAX_FORWARDED_RETRY_AFTER_SECONDS * 1000) return null;
+  return normalized;
 }
 
 async function errorResponseForTransport(
@@ -311,7 +336,7 @@ async function errorResponseForTransport(
   }
   if (result.status === 429) {
     const extraHeaders: Record<string, string> = {};
-    const upstreamRetryAfter = result.headers.get("retry-after");
+    const upstreamRetryAfter = normalizeForwardedRetryAfter(result.headers.get("retry-after"));
     if (upstreamRetryAfter) {
       extraHeaders["Retry-After"] = upstreamRetryAfter;
     }
@@ -349,6 +374,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
       const cookieHeader = normalizeClaudeSessionCookie(rawCookie);
       return verifyCookieValidity(cookieHeader, readClaudeWebDeviceId(credentials), signal);
     } catch {
+      // Connection checks deliberately collapse malformed credentials and transport failures to false.
       return false;
     }
   }

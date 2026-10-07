@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Hausa)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇪🇹 [am](../am/CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇧🇦 [bs](../bs/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇦🇲 [hy](../hy/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇳🇬 [ig](../ig/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇬🇪 [ka](../ka/CONTRIBUTING.md) · 🇰🇭 [km](../km/CONTRIBUTING.md) · 🇮🇳 [kn](../kn/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇱🇻 [lv](../lv/CONTRIBUTING.md) · 🇮🇳 [ml](../ml/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇲🇲 [my](../my/CONTRIBUTING.md) · 🇳🇵 [ne](../ne/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇮🇳 [or](../or/CONTRIBUTING.md) · 🇮🇳 [pa](../pa/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇱🇰 [si](../si/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇺🇿 [uz](../uz/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇳🇬 [yo](../yo/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -401,20 +401,20 @@ Rubuta unit tests a `tests/unit/` waɗanda aƙalla za su rufe:
 
 ## Jerin Dubawa na Pull Request
 
-- [ ] Tests sun yi nasara (`npm test`)
-- [ ] Linting ya yi nasara (`npm run lint`)
-- [ ] Build ya yi nasara (`npm run build`)
-- [ ] An ƙara TypeScript types don sabbin public functions da interfaces
-- [ ] Babu hardcoded secrets ko fallback values
-- [ ] An saka public upstream credentials ta hanyar `resolvePublicCred()` (duba [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ba a matsayin literals ba
-- [ ] Error responses suna bi ta `buildErrorBody()` / `sanitizeErrorMessage()` — babu ainihin stack traces a jikin responses (duba [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell commands (`exec` / `spawn`) suna tura runtime values ta `env`, ba ta string interpolation ba
-- [ ] An tabbatar da ingancin duk inputs da Zod schemas
-- [ ] An ƙara **fragment** na changelog a ƙarƙashin `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` don sauye-sauyen da masu amfani za su gani (duba [`changelog.d/README.md`](./changelog.d/README.md)) — **kar a** gyara `CHANGELOG.md` kai tsaye; ana haɗa fragments a lokacin release kuma ba sa taɓa samun rikici tsakanin PRs
-- [ ] An sabunta documentation (idan ya dace)
-- [ ] Babu sababbin faɗakarwar CodeQL / Secret-Scanning da aka buɗe, ko kuma an yi watsi da kowacce tare da hujjar fasaha mai nuni ga takardar `docs/security/` da ta dace
-- [ ] Routes da ke ƙaddamar da child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) an rarraba su a matsayin `isLocalOnlyPath()` a `src/server/authz/routeGuard.ts` — duba [Ƙa'ida Mai Tsauri #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Babu trailers na `Co-Authored-By` a cikin commit messages — dole commits su bayyana a ƙarƙashin Git identity na mai repository kawai (Ƙa'ida Mai Tsauri #16)
+- [ ] Gwaje-gwaje sun yi nasara (`npm test`)
+- [ ] Binciken lint ya yi nasara (`npm run lint`)
+- [ ] Gina ya yi nasara (`npm run build`)
+- [ ] An ƙara nau'ikan TypeScript don sabbin public functions da interfaces
+- [ ] Babu secrets ko fallback values da aka rubuta kai tsaye
+- [ ] An saka public upstream credentials ta hanyar `resolvePublicCred()` (duba [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ba a taɓa saka su kai tsaye a matsayin literals ba
+- [ ] Error responses suna bi ta `buildErrorBody()` / `sanitizeErrorMessage()` — babu raw stack traces a cikin response bodies (duba [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) suna aika runtime values ta `env`, ba ta hanyar string interpolation ba
+- [ ] An tantance dukkan inputs da Zod schemas
+- [ ] An ƙara **fragment** na changelog a ƙarƙashin `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` don canje-canjen da masu amfani za su gani (duba [`changelog.d/README.md`](./changelog.d/README.md)) — **kada** a gyara `CHANGELOG.md` kai tsaye; ana haɗa fragments lokacin release kuma ba sa taɓa cin karo tsakanin PRs
+- [ ] An sabunta takardu (idan ya dace)
+- [ ] Ba a buɗe sabbin faɗakarwar CodeQL / Secret-Scanning ba, ko kuma an yi watsi da kowannensu tare da hujjar fasaha mai nuni zuwa takardar `docs/security/` da ta dace
+- [ ] An rarraba routes da ke ƙaddamar da child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) a matsayin `isLocalOnlyPath()` a cikin `src/server/authz/routeGuard.ts` — duba [Ƙa'ida Mai Tsauri #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Babu trailers na AI/bot na `Co-authored-by` a cikin commit messages (Ƙa'ida Mai Tsauri #16) — ana yaba wa human collaborators waɗanda aka sake amfani da aikinsu da daidaitattun trailers na `Co-authored-by: Name <email>`
 
 ---
 
@@ -433,6 +433,5 @@ Daga nan sai a yi amfani da skills na `/deploy-vps-*-cc`, waɗanda ke amfani da 
 - **Tsarin Gine-gine**: Duba [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Manazartar API**: Duba [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Takardun tsaro**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Takardun ayyukan gudanarwa**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Takardun gudanarwa**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Matsaloli**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Duba `docs/adr/` don bayanan shawarwarin tsarin gine-gine

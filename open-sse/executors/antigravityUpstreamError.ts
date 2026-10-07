@@ -1,10 +1,11 @@
 /**
- * Build a generic client error and a privacy-safe diagnostic for non-ok
- * Antigravity/agy upstream responses (#3229).
+ * Build the client error and a privacy-safe retained diagnostic for non-ok
+ * Antigravity/agy upstream responses (#3229, #13591).
  *
- * The provider body is never forwarded or stored. Diagnostics use a fixed
- * allowlist of scalar envelope fields and classifications; arbitrary text,
- * nested details, identifiers, and request-derived values are discarded.
+ * The client envelope surfaces the real upstream detail (#13591); what is
+ * RETAINED in the call log is only the bounded diagnostic. Diagnostics use a
+ * fixed allowlist of scalar envelope fields and classifications; arbitrary
+ * text, nested details, identifiers, and request-derived values are discarded.
  */
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { isGeoBlockedError } from "../services/errorClassifier.ts";
@@ -236,17 +237,40 @@ export function projectAntigravityValidationDiagnostic(
   return diagnostic;
 }
 
-export function buildAntigravityUpstreamError(
-  status: number,
-  _statusText: string,
-  rawBody: string
-) {
-  // Keep provider-derived diagnostics internal. The client receives only fixed,
-  // sanitized text and the actual HTTP status; no upstream prose or details.
-  if (isGeoBlockedError(rawBody)) {
-    return buildErrorBody(status, `Antigravity upstream error (${status}). ${GEO_BLOCKED_HINT}`);
+/**
+ * Extract the real upstream error message (e.g. Google's Gemini-dialect field-path
+ * rejection) from a parsed Antigravity `upstream_details`-shaped body, so callers can
+ * surface it directly in `error.message` instead of only nesting it under
+ * `upstream_details` — the generic `parseUpstreamError()` re-parser used by the shared
+ * chatCore failure path only reads the outer `error.message` (#13591).
+ */
+function extractUpstreamMessage(details: unknown): string | null {
+  if (!details || typeof details !== "object") return null;
+  const err = (details as { error?: { message?: unknown } }).error;
+  const msg = err && typeof err.message === "string" ? err.message : null;
+  return msg && msg.trim() ? msg.trim() : null;
+}
+
+export function buildAntigravityUpstreamError(status: number, statusText: string, rawBody: string) {
+  let upstreamDetails: unknown;
+  try {
+    upstreamDetails = JSON.parse(rawBody);
+  } catch {
+    // upstream body is not JSON (e.g. HTML error page) — omit structured details
   }
-  return buildErrorBody(status, `Antigravity upstream error (${status})`);
+  const suffix = statusText ? `: ${statusText}` : "";
+  if (isGeoBlockedError(rawBody)) {
+    return buildErrorBody(
+      status,
+      `Antigravity upstream error (${status})${suffix}. ${GEO_BLOCKED_HINT}`,
+      upstreamDetails
+    );
+  }
+  const upstreamMessage = extractUpstreamMessage(upstreamDetails);
+  const message = upstreamMessage
+    ? `Antigravity upstream error (${status}): ${upstreamMessage}`
+    : `Antigravity upstream error (${status})${suffix}`;
+  return buildErrorBody(status, message, upstreamDetails);
 }
 
 /**
@@ -254,7 +278,8 @@ export function buildAntigravityUpstreamError(
  *
  * Google's Gemini / Code-Assist errors are free-form and can echo request content — schema
  * fragments, tool names, occasionally prompt text — so for Antigravity the raw body must
- * reach neither the persisted call log nor the client error envelope, and its response
+ * not reach the persisted call log (the client envelope is a separate surface, see
+ * buildAntigravityUpstreamError), and its response
  * headers are account/project scoped so they stay out of the log too. Rate-limit and quota
  * parsing still read the body in memory; only what is RETAINED changes.
  */

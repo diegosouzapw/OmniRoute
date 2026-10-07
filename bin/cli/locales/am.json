@@ -30,7 +30,7 @@
     "opencode": "ከOpenCode ጋር የተካተተውን @omniroute/opencode-plugin ጫን እና አዋቅር"
   },
   "doctor": {
-    "title": "OmniRoute Doctor",
+    "title": "OmniRoute ዶክተር",
     "dbOk": "የውሂብ ጎታ፦ ደህና ({path})",
     "dbMissing": "የውሂብ ጎታ፦ አልተጀመረም — `omniroute setup` ያስኪዱ",
     "portOk": "ወደብ {port}፦ ይገኛል",
@@ -256,6 +256,7 @@
     "max_restarts": "ከመተው በፊት በ30s ውስጥ የሚፈቀደው ከፍተኛ የብልሽት ዳግም መጀመር ብዛት (ነባሪ፦ 2)",
     "tray": "በስርዓት ትሪ ውስጥ አስጀምር (ለዴስክቶፕ ብቻ፣ በፈቃድ)",
     "no_tray": "የስርዓት ትሪ አዶን አሰናክል",
+    "ready_timeout": "የዝግጁነት ምርመራ ጊዜ ማብቂያ በሚሊሰከንድ (እንዲሁም OMNIROUTE_READY_TIMEOUT_MS፣ ነባሪ 60000)",
     "tls_cert": "HTTPSን ለማቅረብ የTLS ሰርተፍኬት (PEM) ዱካ (OMNIROUTE_TLS_CERTም ጭምር)",
     "tls_key": "HTTPSን ለማቅረብ የTLS የግል ቁልፍ (PEM) ዱካ (OMNIROUTE_TLS_KEYም ጭምር)"
   },
@@ -347,6 +348,16 @@
     "running": "MCP ሰርቨር እየሰራ ነው ({transport})",
     "stopped": "MCP ሰርቨር ቆሟል።",
     "restarted": "MCP ሰርቨር እንደገና ተጀምሯል።",
+    "stoppedHint": "ለማብራት `omniroute mcp enable`ን ያሂዱ።",
+    "enabled": "MCP አገልጋይ ነቅቷል።",
+    "disabled": "MCP አገልጋይ ተሰናክሏል።",
+    "enable": {
+      "description": "MCP አገልጋዩን አንቃ",
+      "transport": "ጥቅም ላይ የሚውል ማጓጓዣ፦ stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP አገልጋዩን አሰናክል"
+    },
     "call": {
       "description": "የMCP መሣሪያን በቀጥታ ይጥሩ",
       "args": "የJSON ነጋሪ እሴቶች ኦብጀክት (በቦታው)",

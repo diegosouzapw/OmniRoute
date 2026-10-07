@@ -1,0 +1,1 @@
+- Electron release: `electron/package-lock.json` regained the optional `electron-builder-squirrel-windows` subtree (13 entries) that `npm ci` had been refusing as out of sync — the Linux desktop leg died on it — and `electron-release.yml` gained a `build_ref` dispatch input so a release whose tag was cut with the broken lock can have its assets rebuilt from the repaired line

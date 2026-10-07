@@ -30,9 +30,13 @@ const IMAGE_PROVIDER_VALIDATION_ENDPOINTS: Record<
     path: "/account/v1/credits/balance",
   },
   magnific: {
-    // GET /v1/ai/mystic lists tasks and does not start a paid generation.
+    // GET /v1/ai/mystic is POST-only (task submission); once a key authenticates,
+    // routing to that unhandled GET 404s, reporting every valid key as invalid
+    // (#12927). GET /v1/ai/flows is a genuine read-only route that returns 200 for
+    // valid keys (team AND personal accounts) and 401 for invalid/missing keys,
+    // verified against a real Premium+ personal account by the issue reporter.
     baseUrl: "https://api.magnific.com",
-    path: "/v1/ai/mystic",
+    path: "/v1/ai/flows",
   },
 };
 

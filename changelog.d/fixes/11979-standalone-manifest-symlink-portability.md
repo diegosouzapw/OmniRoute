@@ -1,1 +1,0 @@
-- fix(electron): relativize standalone-bundle symlink targets so Stage 8 manifest verification stops failing on Windows (#11979)

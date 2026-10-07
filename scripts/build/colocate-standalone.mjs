@@ -16,7 +16,7 @@
  *
  * Run manually after a build, or automatically via the `postbuild` npm hook.
  */
-import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { runBuildTool } from "./buildToolRunner.mjs";
@@ -95,6 +95,22 @@ function main() {
     return;
   }
 
+  const healthWorkerDest = join(STANDALONE, "src/lib/db/healthCheckWorker.js");
+  mkdirSync(dirname(healthWorkerDest), { recursive: true });
+  runBuildTool(
+    "esbuild",
+    "esbuild",
+    [
+      join(ROOT, "src/lib/db/healthCheckWorker.ts"),
+      "--bundle",
+      "--platform=node",
+      "--packages=external",
+      "--format=esm",
+      `--outfile=${healthWorkerDest}`,
+    ],
+    { stdio: "inherit" }
+  );
+
   const callLogWorkerDest = join(STANDALONE, CALL_LOG_WORKER_REL);
   mkdirSync(dirname(callLogWorkerDest), { recursive: true });
   // Never spawn `node_modules/.bin/esbuild` directly: that extensionless path is
@@ -134,9 +150,16 @@ function main() {
 
   // The call-log worker is always present; scope it to ESM immediately. The
   // optional LLMLingua worker dir is added below only when its deps are installed.
-  const workerDirs = [dirname(callLogWorkerDest), dirname(compressionWorkerDest)];
+  const workerDirs = [
+    dirname(healthWorkerDest),
+    dirname(callLogWorkerDest),
+    dirname(compressionWorkerDest),
+  ];
 
+  const workerDest = join(STANDALONE, WORKER_REL);
   if (!hasOptionals) {
+    // Turbopack may trace the source placeholder into standalone; never ship it as a worker.
+    rmSync(workerDest, { force: true });
     console.log(
       "[colocate-standalone] optional SLM deps absent at root node_modules — LLMLingua stays fail-open (slim install)."
     );
@@ -145,39 +168,7 @@ function main() {
   }
 
   // 1) Bundle the worker the resolver expects: <standalone>/open-sse/.../onnxWorker.js
-  const workerDest = join(STANDALONE, WORKER_REL);
-  if (!existsSync(workerDest)) {
-    mkdirSync(dirname(workerDest), { recursive: true });
-    try {
-      runBuildTool(
-        "esbuild",
-        "esbuild",
-        [
-          join(
-            ROOT,
-            "open-sse",
-            "services",
-            "compression",
-            "engines",
-            "llmlingua",
-            "onnxWorker.ts"
-          ),
-          "--bundle",
-          "--platform=node",
-          "--packages=external",
-          "--format=esm",
-          `--outfile=${workerDest}`,
-        ],
-        { stdio: "inherit" }
-      );
-      console.log("[colocate-standalone] ✅ LLMLingua worker bundled into standalone tree");
-    } catch (err) {
-      console.warn("[colocate-standalone] ⚠️  worker bundle error:", err.message);
-    }
-  } else {
-    console.log("[colocate-standalone] worker already present (skipping bundle)");
-  }
-  workerDirs.push(dirname(workerDest));
+  if (bundleOptionalWorker(workerDest)) workerDirs.push(dirname(workerDest));
 
   // 2) Co-locate the optional-dep closure (NO-CLOBBER, same semantics as colocateOptionals.mjs)
   const srcNm = join(ROOT, "node_modules");
@@ -199,6 +190,37 @@ function main() {
 
   // 3) Give each esbuild'd ESM worker its own "type":"module" scope (see helper doc).
   writeEsmWorkerScopes(workerDirs);
+}
+
+/**
+ * Bundle the optional LLMLingua worker over any traced source placeholder.
+ *
+ * On failure the destination is removed, so the runtime resolver cannot pick an
+ * empty placeholder and LLMLingua stays on its missing-worker fail-open path.
+ */
+export function bundleOptionalWorker(workerDest, build = runBuildTool) {
+  mkdirSync(dirname(workerDest), { recursive: true });
+  try {
+    build(
+      "esbuild",
+      "esbuild",
+      [
+        join(ROOT, "open-sse", "services", "compression", "engines", "llmlingua", "onnxWorker.ts"),
+        "--bundle",
+        "--platform=node",
+        "--packages=external",
+        "--format=esm",
+        `--outfile=${workerDest}`,
+      ],
+      { stdio: "inherit" }
+    );
+    console.log("[colocate-standalone] ✅ LLMLingua worker bundled into standalone tree");
+    return true;
+  } catch (err) {
+    rmSync(workerDest, { force: true });
+    console.warn("[colocate-standalone] ⚠️  worker bundle error:", err.message);
+    return false;
+  }
 }
 
 // Run as a script (npm `postbuild` hook), but stay importable for unit tests.

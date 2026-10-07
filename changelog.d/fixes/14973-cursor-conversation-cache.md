@@ -1,0 +1,1 @@
+- **fix(sse):** keep Cursor's prompt cache across agentic turns by sending a session-stable `conversation_id` (derived from the client session or conversation fingerprint) instead of a random one per request, and report Cursor's metered usage including cache reads/writes.

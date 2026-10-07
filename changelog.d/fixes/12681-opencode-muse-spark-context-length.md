@@ -1,1 +1,0 @@
-- fix(models): declare the real ~1M contextLength for OpenCode Zen's Muse Spark 1.2 models instead of falling back to the 200000 provider default (#12681)

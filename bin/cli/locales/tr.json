@@ -14,6 +14,812 @@
     "jsonOpt": "JSON olarak çıktı",
     "yesOpt": "Onayı atla"
   },
+  "setup": {
+    "title": "OmniRoute Kurulumu",
+    "passwordPrompt": "Yönetici parolası",
+    "providerPrompt": "Varsayılan sağlayıcı (atlamak için boş bırakın)",
+    "done": "Kurulum tamamlandı",
+    "passwordSet": "Yönetici parolası yapılandırıldı",
+    "providerSet": "Sağlayıcı yapılandırıldı: {name}",
+    "testingProvider": "Sağlayıcı bağlantısı test ediliyor: {name}",
+    "testPassed": "Sağlayıcı testi başarılı",
+    "testFailed": "Sağlayıcı testi başarısız: {error}",
+    "loginEnabled": "Oturum açma: etkin (parola güncellendi)",
+    "loginDisabled": "Oturum açma: devre dışı",
+    "providerInfo": "Sağlayıcı: {info}",
+    "opencode": "OpenCode için paketle birlikte gelen @omniroute/opencode-plugin eklentisini yükleyip yapılandırın"
+  },
+  "doctor": {
+    "title": "OmniRoute Tanılama",
+    "dbOk": "Veritabanı: Tamam ({path})",
+    "dbMissing": "Veritabanı: başlatılmamış — `omniroute setup` komutunu çalıştırın",
+    "portOk": "Port {port}: kullanılabilir",
+    "portConflict": "Port {port}: başka bir işlem tarafından kullanılıyor",
+    "encryptionOk": "Şifreleme anahtarı: yapılandırıldı",
+    "encryptionMissing": "Şifreleme anahtarı eksik — `omniroute setup` komutunu çalıştırın",
+    "allGood": "Tüm kontroller başarılı.",
+    "warnings": "{count} uyarı — yukarıya bakın."
+  },
+  "providers": {
+    "title": "Sağlayıcılar",
+    "noProviders": "Yapılandırılmış sağlayıcı yok. Şunu çalıştırın: omniroute setup",
+    "testing": "{name} test ediliyor...",
+    "available": "{count} sağlayıcı kullanılabilir",
+    "connected": "Bağlı",
+    "disconnected": "Bağlantı kesildi",
+    "validationFailed": "Doğrulama başarısız: {error}",
+    "metrics": {
+      "description": "Sağlayıcı performans metriklerini göster (gecikme, başarı oranı, maliyet)",
+      "provider": "Sağlayıcı kimliğine göre filtrele",
+      "connection_id": "Bağlantı kimliğine göre filtrele",
+      "period": "Zaman aralığı: 1h|6h|24h|7d|30d (varsayılan: 24h)",
+      "metric": "Belirli bir metrik alanına odaklan",
+      "sort": "Alana göre sırala (azalan)",
+      "limit": "Maksimum satır sayısı (varsayılan: 50)",
+      "watch": "Her 5 saniyede bir yenile (canlı mod)",
+      "compare": "Yan yana karşılaştırılacak, virgülle ayrılmış sağlayıcı kimlikleri"
+    },
+    "metric_single": {
+      "description": "Belirli bir bağlantı için tek bir metrik değeri al"
+    },
+    "rotate": {
+      "description": "Bir sağlayıcı bağlantısının yukarı akış API anahtarını yenile",
+      "newKeyOpt": "Yeni API anahtarı değeri (kaçının: tercihen --from-env kullanın)",
+      "fromEnvOpt": "Yeni anahtarı VAR ortam değişkeninden oku",
+      "oauthOpt": "Bunun yerine OAuth yeniden kimlik doğrulama akışını tetikle",
+      "skipTestOpt": "Rotasyon sonrası bağlantı testini atla",
+      "dryRunOpt": "Yazmadan nelerin değişeceğini göster",
+      "confirmPrompt": "\"{name}\" ({id}) bağlantısının API anahtarı değiştirilsin mi? [y/N]",
+      "dryRunResult": "[dry-run] \"{name}\" ({id}) için anahtar döndürülecekti. Hiçbir değişiklik yapılmadı.",
+      "oauthHint": "OAuth bağlantısı — çalıştırın: omniroute oauth {provider}",
+      "envVarEmpty": "{var} ortam değişkeni ayarlanmamış veya boş.",
+      "success": "\"{name}\" için anahtar döndürüldü. Doğrulamak için `providers test {id}` komutunu çalıştırın.",
+      "testPassed": "Rotasyon sonrası test başarılı.",
+      "testFailed": "Rotasyon sonrası test başarısız: {error}"
+    },
+    "status": {
+      "description": "Tüm sağlayıcı bağlantılarının anahtar durumunu göster (yaş, süre sonu, bekleme süresi)",
+      "providerOpt": "Sağlayıcı adına göre filtrele",
+      "header": "Kimlik     Sağlayıcı      Ad                       Süre Sonu Durumu  Test Durumu  Bekleme Bitişi",
+      "noData": "Kullanılabilir sağlayıcı bağlantısı verisi yok.",
+      "requiresServer": "providers status için OmniRoute sunucusunun çalışıyor olması gerekir."
+    }
+  },
+  "keys": {
+    "title": "API Anahtarları",
+    "addDescription": "Bir sağlayıcı için API anahtarı ekle veya güncelle",
+    "listDescription": "Yapılandırılmış tüm API anahtarlarını listele",
+    "removeDescription": "Bir sağlayıcının API anahtarını kaldır",
+    "regenerateDescription": "Bir OmniRoute API anahtarını yeniden oluştur",
+    "revokeDescription": "Bir OmniRoute API anahtarını iptal et",
+    "revealDescription": "Maskelenmemiş API anahtarı değerini göster",
+    "usageDescription": "Bir API anahtarının son kullanımını göster",
+    "usageLimitOpt": "Son isteklerin sayısı",
+    "rotateDescription": "Yeni bir anahtar oluştur ve eski anahtarı geçersiz kıl",
+    "graceOpt": "Eski anahtar geçersiz kılınmadan önceki ek süre (ms)",
+    "stdinOpt": "API anahtarını argüman yerine stdin'den oku",
+    "added": "{provider} için anahtar eklendi.",
+    "removed": "Anahtar kaldırıldı.",
+    "listed": "{count} anahtar.",
+    "noKeys": "Yapılandırılmış anahtar yok.",
+    "noUsage": "Kullanım verisi bulunamadı.",
+    "confirmRemove": "{id} anahtarı kaldırılsın mı?",
+    "confirmRegenerate": "{id} anahtarı yeniden oluşturulsun mu?",
+    "confirmRevoke": "{id} anahtarı iptal edilsin mi?",
+    "confirmRotate": "{id} anahtarı döndürülsün mü? (eski anahtar ek sürenin ardından geçersiz kılınacak)",
+    "regenerated": "Yeniden oluşturuldu. Yeni anahtar: {key}",
+    "revoked": "{id} anahtarı iptal edildi.",
+    "rotated": "Anahtar {id} yenilendi. Yeni anahtar kimliği: {newId}",
+    "revealWarning": "⚠  Bu işlem, maskelenmemiş anahtarın tamamını gösterecektir. Ekranınızın gizli olduğundan emin olun.",
+    "providerRequired": "Sağlayıcı gereklidir.",
+    "keyRequired": "API anahtarı gereklidir.",
+    "stdinEmpty": "stdin aracılığıyla API anahtarı sağlanmadı.",
+    "unknownProvider": "Bilinmeyen sağlayıcı: {provider}",
+    "policy": {
+      "title": "Anahtar Politikası",
+      "showDescription": "Bir anahtarın hız/maliyet politikasını göster",
+      "setDescription": "Bir anahtar için hız/maliyet politikası ayarla",
+      "rateLimitOpt": "Dakika başına maksimum istek sayısı",
+      "maxCostOpt": "Günlük maksimum maliyet (USD)",
+      "allowedModelsOpt": "İzin verilen modellerin virgülle ayrılmış listesi",
+      "nothingToSet": "Hiçbir politika alanı sağlanmadı. --rate-limit, --max-cost veya --allowed-models kullanın.",
+      "updated": "Politika güncellendi."
+    },
+    "expiration": {
+      "title": "Anahtar Süre Sonu",
+      "listDescription": "Yakında süresi dolacak anahtarları listele",
+      "daysOpt": "N gün içinde süresi dolacak anahtarları göster",
+      "none": "{days} gün içinde süresi dolacak anahtar yok.",
+      "listTitle": "{days} gün içinde süresi dolacak anahtarlar:"
+    }
+  },
+  "authExport": {
+    "description": "ŞİFRESİ ÇÖZÜLMÜŞ sağlayıcı kimlik bilgilerini dışa aktar (yalnızca yerel, düz metin çıktısı)",
+    "idOpt": "Yalnızca bu kimlik/ad/sağlayıcıyla eşleşen bağlantıyı dışa aktar",
+    "formatOpt": "Çıktı biçimi: json veya env",
+    "outOpt": "Çıktıyı stdout yerine bir dosyaya yaz (0600 izinleriyle yazılır)",
+    "forceOpt": "Bunun düz metin sırları görüntülediğini/yazdığını anladığınızı onaylayın",
+    "warning": "⚠ Bu işlem, ŞİFRESİ ÇÖZÜLMÜŞ düz metin API anahtarlarını ve OAuth belirteçlerini görüntüler/yazar. Ekranınızın, kabuk geçmişinizin ve tüm çıktı dosyalarının gizli kaldığından emin olun.",
+    "confirmHeading": "⚠ UYARI: Bu işlem, ŞİFRESİ ÇÖZÜLMÜŞ sağlayıcı kimlik bilgilerini düz metin olarak dışa aktarır",
+    "confirmBody": "Bu komut, seçilen bağlantıların apiKey, accessToken, refreshToken ve\nidToken değerlerinin şifresini çözer ve bunları görüntüler/yazar. Çıktıyı gizli bilgi olarak değerlendirin.",
+    "confirmFooter": "Onaylamak için şunu çalıştırın:\n  omniroute auth export --force",
+    "missingKey": "Kimlik bilgilerini dışa aktarmak için STORAGE_ENCRYPTION_KEY gereklidir.",
+    "notFound": "Bağlantı bulunamadı: {id}",
+    "invalidFormat": "Geçersiz biçim: {format}. json veya env kullanın."
+  },
+  "stream": {
+    "description": "SSE inceleme modlarıyla bir sohbet yanıtını akış halinde al",
+    "file": "İstemi dosyadan oku",
+    "stdin": "İstemi stdin'den oku",
+    "model": "Model kimliği (varsayılan: auto)",
+    "system": "Sistem istemi",
+    "combo": "Ada göre belirli bir kombinasyonu zorunlu kıl",
+    "max_tokens": "Yanıttaki maksimum belirteç sayısı",
+    "responses_api": "/v1/chat/completions yerine /v1/responses kullan",
+    "raw": "Alınan ham SSE satırlarını yazdır",
+    "debug": "Her parça için zamanlama bilgilerini stderr'e yazdır",
+    "save": "Tüm SSE olaylarını bir .jsonl dosyasına kaydet",
+    "error": {
+      "empty_prompt": "Hata: istem gerekli (konumsal argüman, --file veya --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Kullanım analizleri, bütçeler, kotalar ve günlükler",
+    "analytics": {
+      "description": "Toplu kullanım analizlerini göster",
+      "period": "Zaman aralığı: 1d|7d|30d|90d|ytd|all (varsayılan: 30d)",
+      "provider": "Sağlayıcı ID'sine göre filtrele"
+    },
+    "budget": {
+      "description": "Maliyet bütçelerini yönet",
+      "set": {
+        "scope": "Bütçe kapsamı (varsayılan: global)",
+        "period": "Bütçe dönemi: daily|weekly|monthly (varsayılan: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Sağlayıcı kota kullanımını göster",
+      "provider": "Sağlayıcı ID'sine göre filtrele",
+      "check": "Yeni bir istek için kota olup olmadığını göster"
+    },
+    "logs": {
+      "description": "İstek çağrısı günlüklerini göster",
+      "limit": "Döndürülecek günlük girdisi sayısı (varsayılan: 100)",
+      "search": "Günlükleri filtrelemek için arama sorgusu",
+      "since": "Bu zaman damgasından sonraki günlükleri döndür",
+      "follow": "Yeni günlük girdilerini sürekli takip et",
+      "api_key": "Günlükleri API anahtarına göre filtrele"
+    },
+    "utilization": {
+      "description": "API anahtarı kullanım metriklerini göster",
+      "api_key": "API anahtarına göre filtrele"
+    },
+    "history": {
+      "description": "İstek geçmişini göster",
+      "limit": "Geçmiş girdisi sayısı (varsayılan: 100)"
+    },
+    "proxy_logs": {
+      "description": "Proxy düzeyindeki istek günlüklerini göster",
+      "limit": "Proxy günlük girdisi sayısı (varsayılan: 100)"
+    }
+  },
+  "cost": {
+    "description": "Sağlayıcı, model, kombinasyon veya API anahtarına göre dökümlü maliyet raporunu göster",
+    "period": "Zaman aralığı: 1d|7d|30d|90d|ytd|all (varsayılan: 30d)",
+    "since": "Başlangıç tarihi (ISO biçimi, ör. 2026-01-01) — --period değerini geçersiz kılar",
+    "until": "Bitiş tarihi (ISO biçimi)",
+    "group_by": "Sonuçları şuna göre grupla: provider|model|api-key|combo|day (varsayılan: provider)",
+    "api_key_filter": "Belirli bir API anahtarına göre filtrele",
+    "limit": "Gösterilecek maksimum satır sayısı (varsayılan: 100)"
+  },
+  "simulate": {
+    "description": "Deneme çalıştırması yönlendirme simülasyonu — üst servisi çağırmadan hangi sağlayıcıların seçileceğini göster",
+    "file": "Tam istek gövdesini JSON dosyasından yükle",
+    "model": "Model ID'si (varsayılan: auto)",
+    "combo": "Belirli bir kombinasyonu adına göre zorla",
+    "reasoning": "Akıl yürütme çabası düzeyi (low|medium|high)",
+    "thinking": "Genişletilmiş düşünme token bütçesi",
+    "explain": "Yedekleme ağacını ve maliyet aralığını stderr'e yazdır",
+    "noCombo": "Eşleşen kombinasyon bulunamadı. Şu komutla yapılandırın: omniroute combo create"
+  },
+  "chat": {
+    "description": "OmniRoute'a tek seferlik bir sohbet istemi gönder",
+    "file": "İstemi dosyadan oku",
+    "stdin": "İstemi stdin'den oku",
+    "system": "Sistem istemi",
+    "model": "Model kimliği (varsayılan: auto)",
+    "max_tokens": "Yanıttaki maksimum token sayısı",
+    "temperature": "Örnekleme sıcaklığı (0–2)",
+    "top_p": "Top-p çekirdek örneklemesi",
+    "reasoning_effort": "Akıl yürütme çabası düzeyi (low|medium|high)",
+    "thinking_budget": "Genişletilmiş düşünme token bütçesi",
+    "combo": "Ada göre belirli bir kombinasyonu zorunlu kıl",
+    "responses_api": "/v1/chat/completions yerine /v1/responses kullan",
+    "stream": "Yanıtı kademeli olarak aktar",
+    "no_history": "~/.omniroute/cli-history.jsonl dosyasına kaydetme",
+    "error": {
+      "empty_prompt": "Hata: istem gerekli (konumsal argüman, --file veya --stdin)"
+    }
+  },
+  "serve": {
+    "description": "OmniRoute sunucusunu başlat (varsayılan eylem)",
+    "starting": "OmniRoute sunucusu {port} portunda başlatılıyor...",
+    "ready": "http://localhost:{port} adresinde hazır",
+    "stopping": "Sunucu durduruluyor (PID {pid})...",
+    "stopped": "Sunucu durduruldu.",
+    "notRunning": "Sunucu çalışmıyor.",
+    "port": "Dinlenecek port (varsayılan: 20128)",
+    "no_open": "Tarayıcıyı otomatik olarak açma",
+    "daemon": "Sunucuyu arka plan hizmeti olarak çalıştır",
+    "log": "Sunucu günlüklerini satır içinde göster",
+    "no_recovery": "Çökme durumunda otomatik yeniden başlatmayı devre dışı bırak (hata ayıklama modu)",
+    "max_restarts": "Vazgeçmeden önce 30 saniye içinde izin verilen en fazla çökme sonrası yeniden başlatma sayısı (varsayılan: 2)",
+    "tray": "Sistem tepsisinde başlat (yalnızca masaüstü, isteğe bağlı)",
+    "no_tray": "Sistem tepsisi simgesini devre dışı bırak",
+    "ready_timeout": "Hazır olma denetimi zaman aşımı, ms cinsinden (ayrıca OMNIROUTE_READY_TIMEOUT_MS, varsayılan 60000)",
+    "tls_cert": "HTTPS sunmak için TLS sertifikasının yolu (PEM) (ayrıca OMNIROUTE_TLS_CERT)",
+    "tls_key": "HTTPS sunmak için TLS özel anahtarının yolu (PEM) (ayrıca OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Yedekleme",
+    "description": "OmniRoute verilerinin yedeğini oluştur",
+    "creating": "Yedek oluşturuluyor...",
+    "done": "Yedek {path} konumuna kaydedildi",
+    "noFiles": "Yedeklenecek dosya yok (veritabanı başlatılmamış)",
+    "failed": "Yedekleme başarısız oldu: {error}",
+    "restoring": "{path} konumundan geri yükleniyor...",
+    "restored": "Geri yükleme tamamlandı.",
+    "restoreDescription": "Bir yedekten geri yükle",
+    "listTitle": "Kullanılabilir Yedekler",
+    "noBackups": "Yedek bulunamadı.",
+    "notFound": "Yedek bulunamadı: {name}",
+    "confirmRestore": "Mevcut verilerin üzerine {ts} tarihli yedek yazılsın mı?",
+    "createDescription": "OmniRoute verilerinin yedeğini oluştur",
+    "nameOpt": "Özel yedek adı",
+    "cloudOpt": "Yedeği bulut depolama alanına yükle",
+    "encryptOpt": "Yedeği AES-256-GCM ile şifrele",
+    "keyFileOpt": "Şifreleme parolasını içeren dosyanın yolu",
+    "excludeOpt": "Desenle eşleşen dosyaları hariç tut (tekrarlanabilir)",
+    "retentionOpt": "Yalnızca son N yedeği sakla",
+    "passphrasePrompt": "Şifreleme parolası:",
+    "noPassphrase": "Şifrelenmiş yedek için parola gereklidir.",
+    "cloudFailed": "Uyarı: Buluta yükleme başarısız oldu. Yerel yedek kaydedildi.",
+    "cloudUploaded": "Bulut yedeği yüklendi: {url}",
+    "auto": {
+      "title": "Yedekleme Zamanlaması",
+      "enableDescription": "Zamanlanmış otomatik yedeklemeleri etkinleştir",
+      "disableDescription": "Zamanlanmış otomatik yedeklemeleri devre dışı bırak",
+      "statusDescription": "Mevcut yedekleme zamanlamasının durumunu göster",
+      "cronOpt": "Zamanlama için cron ifadesi (varsayılan: her gün saat 03.00'te)",
+      "enabled": "Otomatik yedekleme etkinleştirildi (cron: {cron}).",
+      "hint": "Zamanlama, başlangıçta omniroute serve tarafından okunur.",
+      "disabled": "Otomatik yedekleme devre dışı bırakıldı.",
+      "notConfigured": "Yedekleme zamanlaması yapılandırılmamış."
+    }
+  },
+  "health": {
+    "description": "Sunucu sağlığını ve bileşen durumunu kontrol et",
+    "noServer": "Sunucu çalışmıyor. Şununla başlatın: omniroute serve",
+    "title": "Sağlık",
+    "status": "Durum: {status}",
+    "uptime": "Çalışma süresi: {uptime}",
+    "requests": "İstekler (24 sa.): {count}",
+    "cost": "Maliyet (24 sa.): ${cost}"
+  },
+  "quota": {
+    "description": "Sağlayıcı kota kullanımını göster",
+    "noServer": "Sunucu çalışmıyor. Şununla başlatın: omniroute serve",
+    "noData": "Kota bilgisi mevcut değil."
+  },
+  "cache": {
+    "description": "Yanıt önbelleğini yönet",
+    "noServer": "Sunucu çalışmıyor. Şununla başlatın: omniroute serve",
+    "cleared": "Önbellek temizlendi.",
+    "clearFailed": "Önbellek temizlenemedi."
+  },
+  "redis": {
+    "description": "OmniRoute önbelleği ve kota takibi için tek tıkla yerel Redis konteyneri (Podman veya Docker) başlatın"
+  },
+  "test": {
+    "description": "Bir sağlayıcı bağlantısını test et",
+    "noServer": "Sunucu çalışmıyor. Şununla başlatın: omniroute serve",
+    "testing": "{provider} / {model} test ediliyor...",
+    "passed": "Bağlantı başarılı!",
+    "failed": "Bağlantı başarısız: {error}",
+    "allProvidersOpt": "Yapılandırılmış tüm sağlayıcıları test et",
+    "latencyOpt": "Gecikme ölçümlerini göster (ort./min./maks. ms)",
+    "repeatOpt": "Testi N kez tekrarla ve sonuçları birleştir",
+    "compareOpt": "Karşılaştırılacak, virgülle ayrılmış modeller (ör. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Sonuçları bir JSON dosyasına kaydet",
+    "saved": "Sonuçlar {path} konumuna kaydedildi",
+    "compareTitle": "Model Karşılaştırması",
+    "compareMinTwo": "--compare için en az iki model gereklidir (virgülle ayrılmış)",
+    "noProviders": "Yapılandırılmış sağlayıcı yok. Şununla bir tane ekleyin: omniroute keys add"
+  },
+  "update": {
+    "checking": "Güncellemeler kontrol ediliyor...",
+    "upToDate": "Zaten güncel ({version}).",
+    "available": "Güncelleme mevcut: {current} → {latest}",
+    "installing": "{latest} yükleniyor...",
+    "done": "{latest} sürümüne güncellendi. Uygulamak için sunucuyu yeniden başlatın."
+  },
+  "mcp": {
+    "title": "MCP Sunucusu",
+    "running": "MCP sunucusu çalışıyor ({transport})",
+    "stopped": "MCP sunucusu durduruldu.",
+    "restarted": "MCP sunucusu yeniden başlatıldı.",
+    "stoppedHint": "Etkinleştirmek için `omniroute mcp enable` komutunu çalıştırın.",
+    "enabled": "MCP sunucusu etkinleştirildi.",
+    "disabled": "MCP sunucusu devre dışı bırakıldı.",
+    "enable": {
+      "description": "MCP sunucusunu etkinleştir",
+      "transport": "Kullanılacak aktarım: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "MCP sunucusunu devre dışı bırak"
+    },
+    "call": {
+      "description": "Bir MCP aracını doğrudan çağır",
+      "args": "JSON bağımsız değişkenleri nesnesi (satır içi)",
+      "args_file": "JSON bağımsız değişkenleri dosyasının yolu",
+      "stream": "Akış uç noktasını kullan (/api/mcp/stream)",
+      "scope": "Gerekli kapsam (tekrarlanabilir, ör. read:health)"
+    },
+    "scopes": {
+      "description": "Kullanılabilir MCP kapsamlarını listele",
+      "tool": "Belirli bir aracın gerektirdiği kapsamları göster"
+    },
+    "tools": {
+      "description": "MCP araçlarını incele",
+      "list": {
+        "description": "Tüm MCP araçlarını listele",
+        "scope": "Kapsama göre filtrele"
+      },
+      "info": {
+        "description": "Bir MCP aracının meta verilerini göster"
+      },
+      "schema": {
+        "description": "Bir MCP aracının giriş/çıkış JSON şemasını göster",
+        "io": "Şema türü: input|output (varsayılan: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP denetim günlüğü (audit --source mcp için diğer ad)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Aracı kartındaki kullanılabilir A2A becerilerini listele"
+    },
+    "invoke": {
+      "description": "Bir A2A becerisini çağır ve görev kimliğini döndür",
+      "input": "JSON girdi nesnesi",
+      "input_file": "JSON girdi dosyasının yolu",
+      "wait": "Dönmeden önce görevin tamamlanmasını bekle",
+      "timeout": "Tamamlanmayı bekleme zaman aşımı, ms cinsinden (varsayılan: 60000)"
+    },
+    "tasks": {
+      "description": "A2A görevlerini yönet",
+      "list": {
+        "status": "Duruma göre filtrele",
+        "skill": "Beceri kimliğine göre filtrele"
+      },
+      "watch": {
+        "description": "Tamamlanana kadar görev durumunu sorgula"
+      },
+      "stream": {
+        "description": "Görev yürütme olaylarını SSE üzerinden akışla aktar"
+      },
+      "logs": {
+        "description": "Görev mesajlarını ve yapıtlarını göster"
+      }
+    }
+  },
+  "policy": {
+    "description": "OmniRoute yetkilendirme politikalarını yönet",
+    "list": {
+      "description": "Politikaları listele",
+      "kind": "Türe göre filtrele (allow|deny|rate-limit|cost-cap)",
+      "scope": "Kapsama göre filtrele (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Kimliğe göre politika ayrıntılarını al"
+    },
+    "create": {
+      "description": "Bir JSON dosyasından politika oluştur",
+      "file": "Politika JSON dosyasının yolu"
+    },
+    "update": {
+      "description": "Bir politikayı JSON dosyasından güncelle",
+      "file": "Politika JSON dosyasının yolu"
+    },
+    "delete": {
+      "description": "Kimliğe göre politika sil",
+      "yes": "Onay istemini atla"
+    },
+    "evaluate": {
+      "description": "Politika değerlendirmesini deneme amaçlı çalıştır (çıkış 0=izin verildi, 4=reddedildi)",
+      "api_key": "Değerlendirilecek API anahtarı",
+      "action": "Denetlenecek eylem (ör. chat, embed, admin)",
+      "resource": "Kaynak yolu veya tanımlayıcısı",
+      "context": "JSON nesnesi olarak ek bağlam"
+    },
+    "export": {
+      "description": "Tüm politikaları bir JSON dosyasına aktar"
+    },
+    "import": {
+      "description": "Politikaları bir JSON dosyasından içe aktar",
+      "overwrite": "Aynı kimliğe sahip mevcut politikaların üzerine yaz"
+    }
+  },
+  "compression": {
+    "description": "OmniRoute sıkıştırma işlem hattını yapılandır ve incele",
+    "status": {
+      "description": "Geçerli sıkıştırma durumunu ve ayarlarını göster"
+    },
+    "configure": {
+      "description": "Sıkıştırma ayarlarını yapılandır",
+      "engine": "Sıkıştırma motoru (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman agresifliği 0.0–1.0",
+      "rtk_budget": "RTK token bütçesi",
+      "language_pack": "Etkinleştirilecek dil paketi"
+    },
+    "engine": {
+      "description": "Etkin sıkıştırma motorunu al veya ayarla"
+    },
+    "combos": {
+      "description": "Sıkıştırma kombinasyonu istatistiklerini yönet"
+    },
+    "rules": {
+      "description": "Sıkıştırma kurallarını yönet",
+      "add": {
+        "pattern": "Eşleştirilecek desen (regex veya field:pattern)",
+        "action": "Eylem: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Kullanılabilir sıkıştırma dil paketlerini listele"
+    },
+    "preview": {
+      "description": "Bir istek üzerindeki sıkıştırma etkisini önizle",
+      "file": "İstek JSON dosyasının yolu"
+    }
+  },
+  "tunnel": {
+    "title": "Tüneller",
+    "listDescription": "Etkin tünelleri listele",
+    "createDescription": "Bir tünel oluştur",
+    "created": "Tünel oluşturuldu: {url}",
+    "stopped": "Tünel durduruldu.",
+    "confirmStop": "{id} tüneli durdurulsun mu?",
+    "stopDescription": "Bir tüneli durdur",
+    "statusDescription": "Bir tünelin ayrıntılı durumunu göster",
+    "logsDescription": "Bir tünelin günlüklerini göster",
+    "infoDescription": "Bir tünelin yapılandırma ayrıntılarını göster",
+    "rotateDescription": "Yeni bir tünel URL'si oluştur",
+    "tailOpt": "Gösterilecek günlük satırı sayısı",
+    "typeRequired": "Tünel türü gereklidir.",
+    "noLogs": "Kullanılabilir günlük yok.",
+    "notAvailable": "Tünel bilgisi kullanılamıyor.",
+    "noTunnels": "Etkin tünel yok.",
+    "infoTitle": "Tünel bilgisi: {type}",
+    "rotated": "Tünel URL'si yenilendi: {url}",
+    "confirmRotate": "{type} tüneli yenilensin mi? (yeni bir URL oluşturulacak)"
+  },
+  "stop": {
+    "description": "OmniRoute sunucusunu durdur",
+    "stopping": "Sunucu durduruluyor (PID {pid})...",
+    "stopped": "Sunucu durduruldu.",
+    "notRunning": "Çalışan sunucu yok.",
+    "portFallback": "PID dosyası bulunamadı, bağlantı noktası üzerinden durdurma deneniyor..."
+  },
+  "restart": {
+    "description": "OmniRoute sunucusunu yeniden başlat",
+    "restarting": "OmniRoute sunucusu yeniden başlatılıyor..."
+  },
+  "dashboard": {
+    "description": "OmniRoute panosunu bir tarayıcıda aç",
+    "opening": "Pano {url} adresinde açılıyor",
+    "urlOnly": "Tarayıcıyı açmadan pano URL'sini yazdır",
+    "tui": "Etkileşimli TUI panosunu aç (terminal kullanıcı arayüzü, 7 sekme)"
+  },
+  "models": {
+    "description": "Kullanılabilir modelleri listele (sunucu gerektirir)",
+    "search": "Modelleri kimliğe, ada, sağlayıcıya veya açıklamaya göre filtrele",
+    "noServer": "Sunucu çalışmıyor. Şununla başlatın: omniroute serve",
+    "noModels": "Model bulunamadı."
+  },
+  "audit": {
+    "description": "Uyumluluk ve MCP denetim günlüklerine erişin",
+    "source": "Günlük kaynağı: all|compliance|mcp (varsayılan: all)",
+    "since": "Bu zaman damgasından (ISO 8601) sonraki kayıtları döndür",
+    "until": "Bu zaman damgasına (ISO 8601) kadarki kayıtları döndür",
+    "tail": {
+      "description": "Son denetim günlüğü kayıtlarını göster",
+      "follow": "Yeni kayıtları sürekli takip et (2 sn. yoklama)",
+      "limit": "Gösterilecek maksimum kayıt sayısı (varsayılan: 100)"
+    },
+    "search": {
+      "description": "Denetim günlüğü kayıtlarında anahtar kelimeyle arama yap",
+      "limit": "Maksimum sonuç sayısı (varsayılan: 200)",
+      "actor": "Aktör kimliğine göre filtrele",
+      "action": "Eylem adına göre filtrele"
+    },
+    "export": {
+      "description": "Denetim günlüğünü dosyaya aktar",
+      "format": "Çıktı biçimi: jsonl|csv (varsayılan: jsonl)"
+    },
+    "stats": {
+      "description": "Denetim günlüğü istatistiklerini göster",
+      "period": "Zaman aralığı: 1d|7d|30d (varsayılan: 7d)"
+    },
+    "get": {
+      "description": "Kimliğe göre tek bir denetim günlüğü kaydı al"
+    }
+  },
+  "skills": {
+    "description": "OmniRoute becerilerini yönetin (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Yüklü becerileri listele",
+      "type": "Türe göre filtrele (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Yalnızca etkin becerileri göster",
+      "disabled": "Yalnızca devre dışı becerileri göster",
+      "api_key": "API anahtarına göre filtrele"
+    },
+    "get": {
+      "description": "Kimliğe göre bir becerinin ayrıntılarını al"
+    },
+    "install": {
+      "description": "Dosyadan veya URL'den bir beceri yükle",
+      "from_file": "Beceri JSON tanım dosyasının yolu",
+      "from_url": "Uzak beceri tanımının URL'si",
+      "type": "Beceri türü (sandbox|custom|hybrid)",
+      "enable": "Yüklemeden sonra beceriyi etkinleştir"
+    },
+    "enable": {
+      "description": "Kimliğe göre bir beceriyi etkinleştir"
+    },
+    "disable": {
+      "description": "Kimliğe göre bir beceriyi devre dışı bırak",
+      "yes": "Onay istemini atla"
+    },
+    "delete": {
+      "description": "Kimliğe göre bir beceriyi sil",
+      "yes": "Onay istemini atla"
+    },
+    "execute": {
+      "description": "Kimliğe göre bir beceriyi çalıştır",
+      "input": "JSON giriş nesnesi",
+      "input_file": "JSON giriş dosyasının yolu",
+      "timeout": "Milisaniye cinsinden yürütme zaman aşımı (varsayılan: 30000)"
+    },
+    "executions": {
+      "description": "Beceri yürütme geçmişini listele",
+      "skill": "Yetenek kimliğine göre filtrele",
+      "limit": "Maksimum sonuç sayısı (varsayılan: 50)",
+      "status": "Duruma göre filtrele (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "SSH aracılığıyla yüklenen yetenekleri yönet"
+    },
+    "marketplace": {
+      "description": "Pazar yerindeki yeteneklere göz at ve yükle"
+    },
+    "mp": {
+      "search": {
+        "description": "Pazar yeri paketlerinde ara",
+        "category": "Kategoriye göre filtrele",
+        "tag": "Etikete göre filtrele",
+        "limit": "Maksimum sonuç sayısı (varsayılan: 30)",
+        "sort": "Sıralama ölçütü: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Paket ayrıntılarını ve readme dosyasını göster"
+      },
+      "install": {
+        "description": "Bir pazar yeri paketi yükle",
+        "version": "Paket sürümü (varsayılan: latest)",
+        "enable": "Yüklemeden sonra etkinleştir",
+        "yes": "Onay istemini atla"
+      },
+      "categories": {
+        "description": "Pazar yeri kategorilerini listele"
+      },
+      "featured": {
+        "description": "Öne çıkan pazar yeri paketlerini göster"
+      }
+    }
+  },
+  "memory": {
+    "description": "OmniRoute konuşma belleğini yönet (FTS5 + vector)",
+    "search": {
+      "description": "Bellek girdilerini anlamsal sorguyla ara",
+      "type": "Bellek türüne göre filtrele (user|feedback|project|reference)",
+      "limit": "Maksimum sonuç sayısı (varsayılan: 20)",
+      "api_key": "API anahtarına göre filtrele",
+      "token_budget": "Sonuçlardaki toplam token sayısını sınırla"
+    },
+    "add": {
+      "description": "Yeni bir bellek girdisi ekle",
+      "content": "Bellek metin içeriği",
+      "file": "İçeriği dosyadan oku",
+      "type": "Bellek türü (varsayılan: user)",
+      "metadata": "JSON meta veri nesnesi",
+      "api_key": "API anahtarıyla ilişkilendir"
+    },
+    "clear": {
+      "description": "Filtrelerle eşleşen bellek girdilerini sil",
+      "type": "Türe göre filtrele",
+      "older": "Belirtilen süreden daha eski girdileri sil (30d, 6m, 1y)",
+      "api_key": "API anahtarına göre filtrele",
+      "yes": "Onay istemini atla"
+    },
+    "list": {
+      "description": "Bellek girdilerini arama sıralaması olmadan listele",
+      "type": "Türe göre filtrele",
+      "limit": "Maksimum sonuç sayısı (varsayılan: 100)",
+      "api_key": "API anahtarına göre filtrele"
+    },
+    "get": {
+      "description": "Kimliğe göre tek bir bellek girdisi getir"
+    },
+    "delete": {
+      "description": "Kimliğe göre bir bellek girdisini sil",
+      "yes": "Onay istemini atla"
+    },
+    "health": {
+      "description": "Bellek alt sisteminin durumunu göster (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "OAuth sağlayıcı bağlantılarını yönet",
+    "providers": {
+      "description": "OAuth destekli sağlayıcıları ve akış türlerini listele"
+    },
+    "start": {
+      "description": "Bir sağlayıcı için OAuth yetkilendirme akışını başlat",
+      "provider": "Sağlayıcı kimliği (gemini, copilot, cursor, …)",
+      "no_browser": "Yalnızca URL'yi yazdır — tarayıcıyı açma",
+      "import_system": "Kimlik bilgilerini yerel sistem yapılandırmasından otomatik olarak içe aktar",
+      "social": "Sosyal oturum açma sağlayıcısı (google|github) — kiro için gerekli",
+      "timeout": "Yetkilendirme için beklenecek zaman aşımı, ms cinsinden (varsayılan: 300000)"
+    },
+    "status": {
+      "description": "Etkin OAuth bağlantılarını listele",
+      "provider": "Sağlayıcı kimliğine göre filtrele"
+    },
+    "revoke": {
+      "description": "Bir OAuth bağlantısını iptal et",
+      "provider": "İptal edilecek sağlayıcı kimliği",
+      "connection_id": "Belirli bir bağlantıyı kimliğine göre iptal et",
+      "yes": "Onay istemini atla"
+    }
+  },
+  "cloud": {
+    "description": "Bulut yapay zekâ aracısı görevlerini yönet (codex, devin, jules)",
+    "agents": {
+      "description": "Kullanılabilir bulut aracılarını listele"
+    },
+    "agent": {
+      "description": "{agent} bulut aracısı görevlerini yönet",
+      "auth": {
+        "description": "{agent} için OAuth üzerinden yetkilendirme yap"
+      }
+    },
+    "task": {
+      "description": "Bulut aracısı görevlerini yönet",
+      "create": {
+        "description": "Yeni bir aracı görevi oluştur",
+        "title": "Görev başlığı (varsayılan olarak istemin ilk 80 karakteri kullanılır)",
+        "prompt": "Görev istemi metni",
+        "prompt_file": "İstemi dosyadan oku",
+        "repo": "Görev için klonlanacak depo URL'si",
+        "branch": "Kullanılacak dal adı",
+        "metadata": "JSON meta veri nesnesi"
+      },
+      "list": {
+        "description": "Aracı görevlerini listele",
+        "status": "Duruma göre filtrele (running|completed|failed|cancelled)",
+        "limit": "Maksimum sonuç sayısı (varsayılan: 50)"
+      },
+      "get": {
+        "description": "Görev ayrıntılarını kimliğe göre getir"
+      },
+      "status": {
+        "description": "Görev durumunu yazdır (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Çalışan bir görevi iptal et",
+        "yes": "Onay istemini atla"
+      },
+      "approve": {
+        "description": "Yürütmeyi başlatmak için aracı planını onayla"
+      },
+      "message": {
+        "description": "Çalışan bir göreve mesaj gönder"
+      }
+    },
+    "sources": {
+      "description": "Bir görev tarafından oluşturulan kaynak dosyaları listele"
+    }
+  },
+  "eval": {
+    "description": "Değerlendirme paketlerini ve çalıştırmalarını yönet",
+    "suites": {
+      "description": "Değerlendirme paketlerini yönet",
+      "list": {
+        "description": "Değerlendirme paketlerini listele"
+      },
+      "get": {
+        "description": "Kimliğe göre değerlendirme paketi ayrıntılarını getir"
+      },
+      "create": {
+        "description": "Bir JSON dosyasından değerlendirme paketi oluştur",
+        "file": "Paket tanımı JSON dosyasının yolu"
+      }
+    },
+    "run": {
+      "description": "Bir paket için değerlendirme çalıştırması başlat",
+      "model": "Değerlendirilecek model kimliği (varsayılan: auto)",
+      "combo": "Ada göre belirli bir kombinasyonu zorunlu kıl",
+      "concurrency": "Eşzamanlı örnek sayısı (varsayılan: 4)",
+      "tag": "Daha sonra filtrelemek için bu çalıştırmayı etiketle",
+      "watch": "Çalıştırma ilerlemesini tamamlanana kadar izle"
+    },
+    "list": {
+      "description": "Değerlendirme çalıştırmalarını listele",
+      "suite": "Paket kimliğine göre filtrele",
+      "status": "Duruma göre filtrele",
+      "since": "Bu zaman damgasından sonraki çalıştırmaları döndür",
+      "limit": "Azami sonuç sayısı (varsayılan: 50)"
+    },
+    "get": {
+      "description": "Kimliğe göre değerlendirme çalıştırması ayrıntılarını getir"
+    },
+    "results": {
+      "description": "Bir değerlendirme çalıştırmasının örnek sonuçlarını göster",
+      "failed": "Yalnızca başarısız örnekleri göster"
+    },
+    "cancel": {
+      "description": "Çalışan bir değerlendirmeyi iptal et",
+      "yes": "Onay istemini atla"
+    },
+    "scorecard": {
+      "description": "Tamamlanmış bir değerlendirme çalıştırmasının puan kartını göster"
+    }
+  },
+  "webhooks": {
+    "description": "OmniRoute webhook'larını yönet",
+    "events": {
+      "description": "Kullanılabilir tüm webhook olay türlerini listele"
+    },
+    "list": {
+      "description": "Yapılandırılmış webhook'ları listele"
+    },
+    "get": {
+      "description": "Kimliğe göre webhook ayrıntılarını getir"
+    },
+    "add": {
+      "description": "Yeni bir webhook kaydet",
+      "url": "Hedef URL",
+      "events": "Virgülle ayrılmış olay türleri listesi",
+      "secret": "HMAC imzalama gizli anahtarı",
+      "header": "key=value biçiminde ek başlık (tekrarlanabilir)",
+      "no_enabled": "Webhook'u devre dışı durumda oluştur"
+    },
+    "update": {
+      "description": "Mevcut bir webhook'u güncelle",
+      "enabled": "Etkin durumunu ayarla (true|false)"
+    },
+    "remove": {
+      "description": "Bir webhook'u sil",
+      "yes": "Onay istemini atla"
+    },
+    "test": {
+      "description": "Bir webhook'a test olayı gönder",
+      "event": "Simüle edilecek olay türü (varsayılan: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Otomatik Fallback ile Akıllı AI Yönlendirici",
     "version": "Sürümü yazdır ve çık",
@@ -26,7 +832,509 @@
     "context": "Bu komut için sunucu bağlamı/profili",
     "lang": "CLI görüntüleme dilini ayarla (OMNIROUTE_LANG'ı geçersiz kılar)"
   },
-  "redis": {
-    "description": "OmniRoute önbelleği ve kota takibi için tek tıkla yerel Redis konteyneri (Podman veya Docker) başlatın"
+  "files": {
+    "description": "Dosyaları yönet (yükle, listele, getir, indir, sil)",
+    "list": {
+      "purpose": "Amaca göre filtrele",
+      "limit": "Azami sonuç sayısı"
+    },
+    "get": {
+      "description": "Dosya meta verilerini al"
+    },
+    "upload": {
+      "description": "Bir dosya yükle",
+      "purpose": "Dosya amacı (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Dosya içeriğini indir",
+      "out": "Yola kaydet (varsayılan: stdout)"
+    },
+    "delete": {
+      "yes": "Onayı atla"
+    }
+  },
+  "batches": {
+    "description": "OpenAI uyumlu toplu işleri yönet",
+    "list": {
+      "status": "Duruma göre filtrele",
+      "limit": "Maksimum sonuç sayısı"
+    },
+    "create": {
+      "description": "Bir toplu iş oluştur",
+      "inputFile": "Girdi dosyası kimliği",
+      "endpoint": "Hedef uç nokta",
+      "window": "Tamamlama aralığı",
+      "metadata": "Meta veri ekle: anahtar=değer"
+    },
+    "submit": {
+      "description": "JSONL dosyası yükle ve toplu iş oluştur",
+      "jsonl": "JSONL dosyasının yolu",
+      "endpoint": "Hedef uç nokta",
+      "wait": "Tamamlanmasını bekle"
+    },
+    "cancel": {
+      "yes": "Onayı atla"
+    },
+    "wait": {
+      "timeout": "Zaman aşımı (ms)"
+    },
+    "output": {
+      "out": "Çıktıyı yola kaydet"
+    },
+    "errors": {
+      "out": "Hataları yola kaydet"
+    }
+  },
+  "translator": {
+    "description": "İstek gövdelerini LLM biçimleri arasında dönüştür",
+    "detect": {
+      "description": "Gövde biçimini algıla"
+    },
+    "translate": {
+      "description": "Gövdeyi bir biçimden diğerine dönüştür"
+    },
+    "send": {
+      "description": "Dönüştür ve üst akışa gönder"
+    },
+    "stream": {
+      "description": "İstek gövdesini akış sırasında dönüştür"
+    },
+    "from": "Kaynak biçim (openai|anthropic|gemini|cohere)",
+    "to": "Hedef biçim (openai|anthropic|gemini|cohere)",
+    "file": "İstek gövdesi JSON dosyasının yolu",
+    "out": "Çıktıyı dosyaya kaydet",
+    "model": "Modeli geçersiz kıl",
+    "history": {
+      "limit": "Maksimum sonuç sayısı"
+    }
+  },
+  "pricing": {
+    "description": "Modellerin fiyatlandırma verilerini yönet",
+    "sync": {
+      "description": "Fiyatları üst akış kaynaklarından eşitle",
+      "provider": "Sağlayıcıya göre filtrele",
+      "force": "Yeniden eşitlemeyi zorla"
+    },
+    "list": {
+      "provider": "Sağlayıcıya göre filtrele",
+      "model": "Modele göre filtrele",
+      "limit": "Maksimum sonuç sayısı"
+    },
+    "defaults": {
+      "description": "Varsayılan fiyatlandırmayı yönet",
+      "input": "1 milyon token başına girdi maliyeti (USD)",
+      "output": "1 milyon token başına çıktı maliyeti (USD)",
+      "cacheRead": "1 milyon token başına önbellek okuma maliyeti (USD)",
+      "cacheWrite": "1 milyon token başına önbellek yazma maliyeti (USD)"
+    },
+    "diff": {
+      "description": "Üst kaynak fiyatlarından sapmayı göster",
+      "model": "Modele göre filtrele"
+    }
+  },
+  "radar": {
+    "description": "Yerel Radar katalog akışlarını incele ve senkronize et",
+    "status": "Yerel Radar ayarlarını ve akış önbelleği durumunu göster",
+    "sync": "Kataloğu, yönlendirmeleri, teklifleri ve Intel'i yerel sunucu üzerinden senkronize et"
+  },
+  "resilience": {
+    "description": "Dayanıklılık mekanizmalarını incele ve yönet",
+    "status": {
+      "provider": "Sağlayıcıya göre filtrele"
+    },
+    "breakers": {
+      "provider": "Sağlayıcıya göre filtrele"
+    },
+    "cooldowns": {
+      "provider": "Sağlayıcıya göre filtrele",
+      "connectionId": "Bağlantı kimliğine göre filtrele"
+    },
+    "lockouts": {
+      "provider": "Sağlayıcıya göre filtrele",
+      "model": "Modele göre filtrele"
+    },
+    "reset": {
+      "description": "Devre kesici/bekleme süresi durumunu sıfırla",
+      "provider": "Sıfırlanacak sağlayıcı",
+      "connectionId": "Sıfırlanacak bağlantı kimliği",
+      "model": "Kilidi sıfırlanacak model",
+      "allCooldowns": "Sağlayıcının tüm bekleme sürelerini sıfırla",
+      "yes": "Onayı atla"
+    },
+    "profile": {
+      "description": "Dayanıklılık profilini yönet",
+      "name": "Profil adı"
+    },
+    "config": {
+      "description": "Dayanıklılık yapılandırmasını yönet",
+      "threshold": "Hata eşiği",
+      "resetTimeout": "Sıfırlama zaman aşımı (ms)",
+      "baseCooldown": "Temel bekleme süresi (ms)"
+    }
+  },
+  "nodes": {
+    "description": "Sağlayıcı düğümlerini (uç noktaları) yönet",
+    "list": {
+      "provider": "Sağlayıcıya göre filtrele",
+      "enabled": "Yalnızca etkin düğümleri göster"
+    },
+    "add": {
+      "provider": "Sağlayıcı adı",
+      "baseUrl": "Düğümün temel URL'si",
+      "name": "Düğüm adı",
+      "weight": "Yük dengeleme ağırlığı",
+      "region": "Bölge etiketi",
+      "authHeader": "Özel kimlik doğrulama başlığı (key=value)"
+    },
+    "update": {
+      "baseUrl": "Yeni temel URL",
+      "name": "Yeni ad",
+      "weight": "Yeni ağırlık",
+      "region": "Yeni bölge",
+      "enabled": "Etkinleştir veya devre dışı bırak (true|false)"
+    },
+    "remove": {
+      "yes": "Onayı atla"
+    },
+    "validate": {
+      "baseUrl": "Doğrulanacak URL",
+      "provider": "Karşılaştırılarak doğrulama yapılacak sağlayıcı"
+    },
+    "test": {
+      "description": "Düğüme test isteği gönder"
+    },
+    "metrics": {
+      "description": "Düğüm metriklerini göster",
+      "period": "Zaman aralığı (ör. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Bağlam mühendisliği işlem hattını yapılandır (Caveman, RTK)",
+    "analytics": {
+      "period": "Zaman aralığı (ör. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Caveman bağlam sıkıştırıcısını yönet",
+      "config": {
+        "description": "Caveman yapılandırmasını göster veya güncelle",
+        "aggressiveness": "Agresiflik 0.0–1.0",
+        "maxShrinkPct": "Maksimum küçültme yüzdesi",
+        "preserveTags": "Korunacak virgülle ayrılmış etiketler"
+      }
+    },
+    "rtk": {
+      "description": "RTK bağlam iyileştiricisini yönet",
+      "config": {
+        "description": "RTK yapılandırmasını göster veya güncelle",
+        "tokenBudget": "RTK için token bütçesi",
+        "reservePct": "Ayrılacak yüzde"
+      },
+      "filters": {
+        "description": "RTK filtrelerini yönet",
+        "pattern": "Filtre deseni (regex)",
+        "priority": "Filtre önceliği (varsayılan: 100)",
+        "action": "Filtre eylemi: drop|shrink|replace",
+        "yes": "Onayı atla"
+      },
+      "test": {
+        "file": "İstek JSON dosyasının yolu"
+      }
+    },
+    "combos": {
+      "description": "Bağlama duyarlı kombinasyon yönetimi"
+    }
+  },
+  "sessions": {
+    "description": "Etkin oturumları incele ve yönet",
+    "list": {
+      "user": "Kullanıcıya göre filtrele",
+      "kind": "Türe göre filtrele (dashboard|api-key|mcp|a2a)",
+      "active": "Yalnızca etkin oturumları göster",
+      "limit": "Maksimum sonuç sayısı (varsayılan: 100)"
+    },
+    "expire": {
+      "yes": "Onayı atla"
+    },
+    "expireAll": {
+      "user": "Oturumları sonlandırılacak kullanıcı",
+      "yes": "Onayı atla"
+    }
+  },
+  "tags": {
+    "description": "Kaynak etiketlerini yönet",
+    "add": {
+      "color": "Etiket rengi (hex veya ad)",
+      "description": "Etiket açıklaması"
+    },
+    "remove": {
+      "yes": "Onayı atla"
+    },
+    "assign": {
+      "tag": "Etiket adı",
+      "to": "Hedef kaynak, type:id biçiminde (örn. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Etiket adı",
+      "from": "Kaynak, type:id biçiminde"
+    }
+  },
+  "openapi": {
+    "description": "OmniRoute OpenAPI spesifikasyonuna erişin ve test edin",
+    "dump": {
+      "description": "OpenAPI spesifikasyonunu stdout'a veya dosyaya dökün",
+      "format": "Çıktı biçimi: yaml|json (varsayılan: yaml)",
+      "out": "Dosya yoluna kaydet"
+    },
+    "validate": {
+      "description": "OpenAPI spesifikasyonunu doğrula"
+    },
+    "try": {
+      "description": "Spesifikasyon üzerinden bir API uç noktasını test et",
+      "method": "HTTP yöntemi (varsayılan: GET)",
+      "body": "İstek gövdesi JSON dosyasının yolu",
+      "query": "key=value biçiminde sorgu parametresi (tekrarlanabilir)",
+      "header": "key=value biçiminde başlık (tekrarlanabilir)"
+    },
+    "endpoints": {
+      "description": "Tüm API uç noktalarını listele",
+      "search": "Yola veya özete göre filtrele"
+    },
+    "paths": {
+      "description": "Tüm API yollarını listele"
+    }
+  },
+  "combo": {
+    "title": "Kombinasyonlar",
+    "switched": "Etkin kombinasyon: {name}",
+    "created": "Kombinasyon oluşturuldu: {name}",
+    "deleted": "Kombinasyon silindi: {name}",
+    "noCombos": "Yapılandırılmış kombinasyon yok.",
+    "confirmDelete": "{name} kombinasyonu silinsin mi?",
+    "suggest": {
+      "description": "Yapay zekâ puanlamasını kullanarak bir görev için en iyi kombinasyonu öner",
+      "task": "Görev açıklaması",
+      "maxCost": "İstek başına USD cinsinden maksimum maliyet",
+      "maxLatencyMs": "Milisaniye cinsinden maksimum gecikme",
+      "weights": "JSON puanlama ağırlıkları, örn. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Gösterilecek en iyi adayların sayısı (varsayılan: 5)",
+      "explain": "Gerekçeyi stderr'e yazdır",
+      "switch": "En yüksek sıralamalı kombinasyonu etkinleştir"
+    }
+  },
+  "oneproxy": {
+    "description": "OneProxy üst sunucu havuzunu yönet",
+    "stats": {
+      "provider": "Sağlayıcıya göre filtrele",
+      "period": "Zaman aralığı (varsayılan: 24h)"
+    },
+    "fetch": {
+      "description": "Havuzdan proxy'leri getir",
+      "count": "Getirilecek proxy sayısı (varsayılan: 1)",
+      "type": "Proxy türü: http|socks5 (varsayılan: http)"
+    },
+    "rotate": {
+      "description": "Proxy rotasyonunu zorla",
+      "provider": "Rotasyon yapılacak sağlayıcı",
+      "connectionId": "Rotasyon yapılacak belirli bağlantı kimliği"
+    },
+    "config": {
+      "description": "OneProxy yapılandırmasını göster veya güncelle",
+      "enabled": "Proxy havuzunu etkinleştir (true|false)",
+      "poolSize": "Havuz boyutu",
+      "providerSource": "Proxy sağlayıcısının URL'si",
+      "rotationPolicy": "Döndürme ilkesi: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Geçerli proxy havuzunu metriklerle listele"
+    }
+  },
+  "open": {
+    "description": "Belirli bir OmniRoute kontrol paneli sayfasını tarayıcıda aç",
+    "url": "Yalnızca URL'yi yazdır, tarayıcıyı açma"
+  },
+  "telemetry": {
+    "description": "Toplu telemetri verilerine eriş",
+    "summary": {
+      "description": "Toplu telemetri özetini göster",
+      "period": "Zaman aralığı: 24h|7d|30d (varsayılan: 24h)",
+      "compareTo": "Önceki dönemle karşılaştır"
+    },
+    "export": {
+      "description": "Telemetri olaylarını JSONL biçiminde dışa aktar",
+      "out": "Çıktı dosyası yolu (varsayılan: telemetry.jsonl)",
+      "period": "Dışa aktarma zaman aralığı (varsayılan: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Yapılandırmayı OmniRoute örnekleri arasında eşitle",
+    "push": {
+      "description": "Yapılandırmayı buluta veya uzak örneğe gönder",
+      "target": "Hedef (cloud veya context:name)",
+      "bundle": "Eşitlenecek paket bölümleri",
+      "dryRun": "Uygulamadan önizle"
+    },
+    "pull": {
+      "description": "Yapılandırmayı buluttan veya uzak örnekten çek",
+      "source": "Kaynak (cloud veya context:name)",
+      "merge": "Mevcut yapılandırmayla birleştir",
+      "replace": "Mevcut yapılandırmayı değiştir",
+      "dryRun": "Uygulamadan önizle"
+    },
+    "diff": {
+      "source": "Kaynak bağlam",
+      "target": "Hedef bağlam"
+    },
+    "bundle": {
+      "description": "Yapılandırmayı paket dosyası olarak dışa aktar",
+      "include": "Dahil edilecek bölümler (virgülle ayrılmış)"
+    },
+    "import": {
+      "description": "Bir paket dosyasını içe aktar",
+      "dryRun": "Uygulamadan doğrula"
+    },
+    "initialize": {
+      "fromCloud": "Bulut yedeğinden başlat"
+    },
+    "tokens": {
+      "description": "Eşitleme belirteçlerini yönet",
+      "create": {
+        "name": "Belirteç adı",
+        "scope": "Belirteç kapsamı",
+        "ttl": "Belirteç TTL'si (örn. 30d)"
+      },
+      "revoke": {
+        "yes": "Onayı atla"
+      }
+    },
+    "resolve": {
+      "description": "Eşitleme çakışmalarını etkileşimli olarak çöz"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Sunucu bağlamlarını/profillerini yönet (ekle, kullan, listele, göster, kaldır, yeniden adlandır, dışa aktar, içe aktar)"
+    },
+    "lang": {
+      "description": "CLI görüntüleme dilini yönet",
+      "getDescription": "Şu anda etkin olan dil kodunu göster",
+      "setDescription": "Görüntüleme dilini ayarla ve yapılandırmaya kaydet",
+      "listDescription": "Kullanılabilir tüm dilleri listele",
+      "listTitle": "Kullanılabilir Diller",
+      "current": "Dil: {code} ({name})",
+      "saved": "Dil {code} ({name}) olarak ayarlandı.",
+      "noCode": "Dil kodu gerekli. Kullanılabilir kodları görmek için 'omniroute config lang list' komutunu çalıştırın.",
+      "unknown": "Bilinmeyen dil kodu: {code}. Kullanılabilir kodları görmek için 'omniroute config lang list' komutunu çalıştırın.",
+      "alreadySet": "Dil zaten {code} olarak ayarlı.",
+      "envHint": "İpucu: Ortamınızda OMNIROUTE_LANG={code} değişkenini de ayarlayabilirsiniz."
+    }
+  },
+  "completion": {
+    "description": "Kabuk otomatik tamamlama betiklerini oluştur veya yükle",
+    "zsh": "zsh otomatik tamamlama betiğini yazdır",
+    "bash": "bash otomatik tamamlama betiğini yazdır",
+    "fish": "fish otomatik tamamlama betiğini yazdır",
+    "install": "Otomatik tamamlama betiğini algılanan kabuk için sistem genelinde yükle",
+    "refresh": "Kombinasyonların/sağlayıcıların/modellerin önbelleğini yenile"
+  },
+  "logs": {
+    "description": "İstek günlüklerini gerçek zamanlı aktar veya dışa aktar",
+    "follow": "Günlükleri gerçek zamanlı aktar",
+    "filter": "Düzeye göre filtrele (error,warn,info) — virgülle ayrılmış",
+    "lines": "Getirilecek satır sayısı",
+    "timeout": "Bağlantı zaman aşımı (ms)",
+    "baseUrl": "OmniRoute API temel URL'si",
+    "requestId": "İstek kimliğine göre filtrele",
+    "apiKey": "API anahtarına göre filtrele",
+    "combo": "Kombinasyon adına göre filtrele",
+    "status": "HTTP durum koduna göre filtrele",
+    "durationMin": "Minimum istek süresi (ms)",
+    "durationMax": "Maksimum istek süresi (ms)",
+    "export": "Günlükleri dosyaya kaydet (json/jsonl/csv)",
+    "exported": "Günlükler {path} konumuna kaydedildi",
+    "stopped": "Günlük akışı durduruldu.",
+    "streamError": "Günlük akışı hatası: {message}"
+  },
+  "tray": {
+    "description": "Sistem tepsisi simgesini kontrol et",
+    "show": "Tepsi simgesini göster (sunucu --tray ile çalışıyorsa)",
+    "hide": "Tepsi simgesini gizle",
+    "quit": "OmniRoute'tan tepsi üzerinden çık"
+  },
+  "autostart": {
+    "description": "OmniRoute'un açılışta otomatik başlatılmasını yönet (Linux: systemd kullanıcı hizmeti)",
+    "enable": "Açılışta otomatik başlatmayı etkinleştir",
+    "disable": "Açılışta otomatik başlatmayı devre dışı bırak",
+    "toggle": "Açılışta otomatik başlatmayı aç/kapat",
+    "status": "Otomatik başlatma durumunu göster"
+  },
+  "runtime": {
+    "description": "Yerel çalışma zamanı bağımlılıklarını yönet",
+    "check": "Çalışma zamanı dizinindeki yerel bağımlılıkların durumunu kontrol et",
+    "repair": "Çalışma zamanı dizinindeki yerel bağımlılıkları yeniden yükle",
+    "repair_force": "Geçerli olsalar bile yeniden yüklemeyi zorla",
+    "clean": "Çalışma zamanı dizinini kaldır (disk alanı açar)",
+    "clean_yes": "Onayı atla"
+  },
+  "repl": {
+    "description": "LLM ile etkileşimli, çok turlu REPL",
+    "model": "Kullanılacak model (varsayılan: auto)",
+    "combo": "Kullanılacak kombinasyon adı",
+    "system": "Sistem istemi",
+    "resume": "Kaydedilmiş bir oturumu adına göre sürdür"
+  },
+  "plugin": {
+    "description": "CLI eklentilerini (omniroute-cmd-*) yönet",
+    "list": "Yüklü eklentileri listele",
+    "install": "npm'den veya yerel yoldan bir eklenti yükle",
+    "remove": "Yüklü bir eklentiyi kaldır",
+    "info": "Yüklü bir eklentinin ayrıntılarını göster",
+    "search": "Kullanılabilir eklentiler için npm kayıt defterinde ara",
+    "update": "Yüklü eklentileri güncelle",
+    "scaffold": "Yeni bir eklenti için başlangıç şablonu oluştur"
+  },
+  "launch": {
+    "description": "OmniRoute'u hedefleyen Claude Code'u başlat (yerel veya uzak, --profile ile)",
+    "token": "Claude istemcisinin göndermesi gereken token (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute'a {port} üzerinden erişilemiyor. 'omniroute serve' ile başlatın.",
+    "notFound": "'claude' CLI, PATH içinde bulunamadı."
+  },
+  "run": {
+    "description": "Desteklenen bir CLI hedefini OmniRoute üzerinden başlat"
+  },
+  "setupClaude": {
+    "description": "OmniRoute model kataloğundan ~/.claude/profiles Claude Code profilleri oluştur"
+  },
+  "connect": {
+    "description": "Uzak bir OmniRoute sunucusuna bağlan ve uzak moda geç"
+  },
+  "tokens": {
+    "description": "Kapsamlı CLI erişim token'larını yönet (uzak mod)"
+  },
+  "configure": {
+    "description": "Etkin sunucudan bir sağlayıcı+model seç ve desteklenen bir yerel CLI'ı yapılandır"
+  },
+  "launchCodex": {
+    "description": "OmniRoute'u hedefleyen Codex CLI'ı başlat (yerel veya uzak VPS)"
+  },
+  "setupCodex": {
+    "description": "OmniRoute canlı model kataloğundan ~/.codex profil dosyaları oluştur"
+  },
+  "packs": {
+    "description": "İsteğe bağlı çalışma zamanı paketlerini yönet (ML / tarayıcı otomasyonu)",
+    "listDescription": "İsteğe bağlı paketleri ve yüklenme durumlarını listele",
+    "installDescription": "İsteğe bağlı bir paketi DATA_DIR içine yükle",
+    "verifyDescription": "Yüklü paketleri dağıtımla gelen sağlama toplamı dizinine göre doğrula",
+    "removeDescription": "Yüklü bir isteğe bağlı paketi kaldır",
+    "sourceOpt": "Paket içeriklerini ve paket dizinini barındıran dizin",
+    "warnNoIndex": "optional-packs.index.json bulunamadı — bu sürümde yükleme/doğrulama kullanılamıyor (masaüstü paketleri bu dosyayı içerir)",
+    "errUnknown": "bilinmeyen paket: {name}",
+    "errNoIndex": "paket dizini bulunamadı; paket içeriğini barındıran --source <dir> parametresini iletin (masaüstü paketleri bunu uygulamanın yanında içerir)",
+    "installed": "\"{name}\" paketi {dir} konumuna yüklendi ve doğrulandı",
+    "restartHint": "çalışma zamanının paketi algılaması için OmniRoute sunucusunu (veya masaüstü uygulamasını) yeniden başlatın",
+    "removed": "\"{name}\" paketi kaldırıldı",
+    "notInstalled": "\"{name}\" paketi yüklü değildi",
+    "verifyOk": "yüklü tüm paketler doğrulandı",
+    "verifyFailed": "{count} paket doğrulamadan geçemedi",
+    "noneInstalled": "isteğe bağlı paket yüklü değil"
   }
 }

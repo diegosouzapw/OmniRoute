@@ -1,1 +1,0 @@
-- fix(dashboard): make the compression "Effective pipeline" preview honor the active profile and warn when the master switch is off (#12063)

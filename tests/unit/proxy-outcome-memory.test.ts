@@ -91,8 +91,8 @@ test("a second note while the proxy is already set aside changes nothing", () =>
   assert.equal(memory.isProxyAvoided(KEY, start + periodMs + 1000), false);
 });
 
-test("with the flag at its default (off) a received refusal writes nothing", () => {
-  delete process.env.PROXY_SKIP_RECENTLY_FAILED;
+test("with the flag opted out a received refusal writes nothing", () => {
+  process.env.PROXY_SKIP_RECENTLY_FAILED = "false";
   for (const provider of egressBucketedLockProviders()) {
     noteProxyOutcome(provider, { proxy: PROXY, upstreamStatus: 429 });
   }
