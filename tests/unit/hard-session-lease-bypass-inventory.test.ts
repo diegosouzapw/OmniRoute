@@ -202,6 +202,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // fallback in the three write-path functions): not introduced by this PR.
     "src/lib/db/providers.ts": 3,
     "src/lib/db/readCache.ts": 2,
+    // Local embedding providers: reads the active rows only to build the allowlist of
+    // connections whose default model does not conflict with the requested one; the
+    // connection itself is still selected by getProviderCredentials (class C).
+    "src/lib/embeddings/service.ts": 1,
     "src/lib/freeProviderRankings.ts": 1,
     "src/lib/guardrails/visionBridgeCredentials.ts": 2,
     "src/lib/kimi/tokenRefresh.ts": 1,
