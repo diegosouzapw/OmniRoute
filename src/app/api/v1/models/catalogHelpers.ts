@@ -8,6 +8,7 @@ import {
   extendCodexGpt56EffortValues,
   extendDeepSeekEffortValues,
 } from "@/shared/reasoning/effortStandardization";
+import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 
 export interface CustomModelEntry {
   id?: string;
@@ -174,19 +175,23 @@ export function getThinkingCapabilityFields(
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
   const hasDeclaredTiers = supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
+  const syncedEfforts = hasDeclaredTiers
+    ? null
+    : (getSyncedCapabilities()[providerId]?.[modelId]?.reasoning_efforts ?? null);
+  const tiers = hasDeclaredTiers
+    ? [...supportedThinkingEfforts!]
+    : syncedEfforts && syncedEfforts.length > 0
+      ? [...syncedEfforts]
+      : extendDeepSeekEffortValues(
+          providerId,
+          modelId,
+          extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
+        );
   return {
     thinking: supportsThinking,
     supportsThinking,
-    ...(supportsThinking && (hasDeclaredTiers || !skipCanonicalEffortFallback)
-      ? {
-          effort_tiers: hasDeclaredTiers
-            ? [...supportedThinkingEfforts!]
-            : extendDeepSeekEffortValues(
-                providerId,
-                modelId,
-                extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES)
-              ),
-        }
+    ...(supportsThinking && (hasDeclaredTiers || syncedEfforts || !skipCanonicalEffortFallback)
+      ? { effort_tiers: tiers }
       : {}),
   };
 }
