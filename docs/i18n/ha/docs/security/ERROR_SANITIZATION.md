@@ -134,17 +134,51 @@ const safe = String(err).split("\n")[0];
 a cikin saƙonnin kuskure. Mai tsabtacewa yana rufe cikakkun hanyoyi a matsayin ƙarin matakin kariya, amma masu kira ba dole su
 ƙirƙiri saƙonnin da ke bayyana tsarin muhalli tun da farko ba.
 
-## Rufewa a CI
+## Rufin gwaji a CI
 
 `tests/unit/error-message-sanitization.test.ts` yana tabbatar da cewa:
 
-- Kowace hanya ƙarƙashin `/api/model-combo-mappings/*` tana mayar da jikin amsa da aka tsabtace a kan 4xx/5xx.
-- `sanitizeErrorMessage` yana cire bayanan bin diddigin stack masu layuka da yawa.
+- Kowace hanya da ke ƙarƙashin `/api/model-combo-mappings/*` tana mayar da ƙunshiya da aka tsabtace a kan 4xx/5xx.
+- `sanitizeErrorMessage` yana cire sawun stack mai layuka da yawa.
 - `sanitizeErrorMessage` yana maye gurbin cikakkun hanyoyin POSIX da Windows da `<path>`.
 - `sanitizeErrorMessage` yana sarrafa shigarwar `null`/`undefined`/misalin `Error` cikin aminci.
-- `buildErrorBody` ba ya taɓa bayyana bayanan bin diddigin stack a filin `message` nasa.
+- `buildErrorBody` ba ya taɓa bayyana sawun stack a filin `message` nasa.
 
-Lokacin ƙara sabuwar hanya ko executor, kwafi tsarin assertion daga wannan fayil. Ƙofar rufewa (`npm run test:coverage`) tana tilasta ≥60% na statements/lines/functions/branches — dole ne a rufe hanyoyin kuskure.
+Lokacin ƙara sabuwar hanya ko mai aiwatarwa, kwafi tsarin assertion daga wannan fayil. Ƙofar rufi (`npm run test:coverage`) tana tilasta ≥60% na statements/lines/functions/branches — dole ne a rufe hanyoyin kuskure da gwaji.
+
+### Ƙofar tsaye: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` yana binciken `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` da kowane `src/app/api/**/route.ts` domin gano ɗanyen kuskuren da aka kama (`err.message` / `err.stack`) ko ɗanyen `body.error.message` daga upstream da ke isa ga ƙunshiyar da abokin ciniki ke gani.
+
+**Amincewa tana iyakance ga kira, ba ga fayil ba** (G-03, #15159). A baya, ƙofar tana tsallake fayil gaba ɗaya da zarar ta ga duk wani import daga hanyar `utils/error` — keɓewar matakin fayil da aka yi amfani da ita ga haɗarin matakin kira. Ingantaccen `import { sanitizeErrorMessage }` guda ɗaya yana ba wa duk sauran wuraren fitarwa a fayil ɗin uzuri na dindindin, wanda hakan ne ya sa aka fitar da zubewar bayanai kai-tsaye duk da gwaje-gwajen sun nuna kore. Yanzu ana amincewa da layi ne kawai idan a zahiri ya bi ta cikin builder ko sanitizer da aka amince da shi:
+
+| Siffar layi                                                                                                              | An amince?       |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| yana kiran `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                 | eh               |
+| yana kiran canonical builder **wanda wannan fayil ya import** daga `open-sse/utils/error` ko `src/lib/api/errorResponse` | eh               |
+| an kira builder da aka amince da shi a **layuka da yawa**, don haka filin `message:` yana kan wani layi na gaba          | eh               |
+| yana kiran `function errorResponse(...)` na cikin fayil wanda jikinsa ke yin tsabtacewa                                  | eh               |
+| yana tura `err.message` / `err.stack` zuwa ko’ina dabam                                                                  | **a’a — saɓawa** |
+
+Akwai sakamako biyu da ya kamata a sani:
+
+- Yin import na `errorResponse` ba amincewa ce ta gama-gari ba. Fayil da ke ayyana nasa `errorResponse` har yanzu za a yi masa alama a wurin kira, saboda ƙofar tana tantance amincewa bisa kowace alama, ba bisa fayil ba. Haka ma yake ga `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` sannan `error: body.error.message` shi ne salon da aka **tsabtace** da ake amfani da shi a duk masu aiwatarwa na `*-fetch.ts`, kuma ba a yi masa alama.
+
+Dukkan modules na builder da aka amince da su suna ƙirguwa: `open-sse/utils/error.ts` da `src/lib/api/errorResponse.ts`. Na biyun shi ne abin da kusan masu sarrafa hanyoyi 54 da ke wajen `open-sse` suke amfani da shi, kuma yana tsabtace duka exports nasa.
+
+Siffofi biyu da **ba** saɓawa ba ne, waɗanda a baya ƙofar ta taɓa bayar da rahotonsu a matsayin zubewar bayanai:
+
+- ɗanyen kuskure a cikin **layin audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, ko logger da ke karɓar saƙo da farko (`log.error("BATCHES", "sweep failed", { error: err.message })`). Amsa da abokin ciniki ke gani a layukan da ke gaba tana iya zama tsayayyen `buildErrorBody`.
+- kiran builder da aka amince da shi mai **layuka da yawa**, inda filin `message:` bai ambaci kowane builder ba:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` yana daskarar da saɓawar da ta riga ta kasance domin ƙofar ta toshe sababbi kawai. `assertNoStale` yana cire shigarwa ta atomatik da zarar an gyara saɓawarta, don haka daskararwar ba za ta dawwama ba. Masu kariya daga koma-baya: `tests/unit/check-error-helper.test.ts` da `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Matakan sarrafawa masu alaƙa
 
