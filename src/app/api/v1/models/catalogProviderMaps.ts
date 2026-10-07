@@ -155,6 +155,18 @@ export function getProviderPrefixes(
   );
 }
 
+function normalizeProviderNodeModelPrefix(
+  modelStr: string,
+  providerId: string,
+  providerNodeIdByPrefix: Record<string, string>
+): string {
+  const slashIndex = modelStr.indexOf("/");
+  if (slashIndex > 0 && providerNodeIdByPrefix[modelStr.slice(0, slashIndex)] === providerId) {
+    return `${providerId}${modelStr.slice(slashIndex)}`;
+  }
+  return modelStr;
+}
+
 /**
  * Strip a provider/alias prefix off a combo target's `modelStr` and resolve its
  * canonical providerId, so downstream registry/spec/synced-capability lookups
@@ -183,10 +195,7 @@ export function getComboTargetModelId(
   // Builder steps retain the node ID for connection selection but use its public
   // model prefix. Normalize only a prefix whose selected node matches that ID.
   // Keep the model qualified so the existing resolver strips exactly one prefix.
-  const slashIndex = modelStr.indexOf("/");
-  if (slashIndex > 0 && providerNodeIdByPrefix[modelStr.slice(0, slashIndex)] === rawProvider) {
-    modelStr = `${rawProvider}${modelStr.slice(slashIndex)}`;
-  }
+  modelStr = normalizeProviderNodeModelPrefix(modelStr, rawProvider, providerNodeIdByPrefix);
 
   const providerId = resolveCanonicalProviderId(maps.aliasToProviderId, rawProvider);
   if (!providerId || providerId === "unknown") return null;
