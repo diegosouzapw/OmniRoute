@@ -567,7 +567,16 @@ export class CircuitBreaker {
     if (this.lastFailureKind !== null) {
       const override = this.cooldownByKind[this.lastFailureKind];
       if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
-        return override;
+        // #14960: the per-kind override replaces the BASE reset timeout but must
+        // still honor open-cycle escalation — otherwise a quota_exhausted
+        // provider re-probes at the same fixed interval forever while
+        // openCycleCount grows. Apply the same doubling the base timeout gets,
+        // capped at override * maxBackoffMultiplier.
+        if (this.openCycleCount <= this.backoffEscalationCount) {
+          return override;
+        }
+        const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
+        return Math.min(override * escalationFactor, override * this.maxBackoffMultiplier);
       }
     }
     return baseTimeout;

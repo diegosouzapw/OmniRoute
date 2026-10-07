@@ -185,18 +185,18 @@ jerin hana hop-by-hop/framing na gama-gari (ciki har da tantancewar wakili), yan
 
 ## §3 Saiti
 
-### 3.1 Fara/tsayar da sabar MITM
+### 3.1 Kunna/kashe sabar MITM
 
 Yi amfani da Katin Sabar AgentBridge da ke `/dashboard/tools/agent-bridge`:
 
-| Aiki                          | Bayani                                                                                         |
-| ----------------------------- | ---------------------------------------------------------------------------------------------- |
-| Fara Sabar                    | Yana ƙaddamar da `src/mitm/server.cjs` a tashar 443                                            |
-| Tsayar da Sabar               | Yana rufe tsarin yaro cikin tsari mai kyau                                                     |
-| Sake Fara Sabar               | Tsayar + fara (yana ɗaukar sauye-sauyen maƙasudi)                                              |
-| Amince da Takardar Shaida     | Yana shigar da `DATA_DIR/mitm/ca.crt` cikin ma'ajiyar amincewar OS                             |
-| Sauke Takardar Shaida         | Yana sauke `ca.crt` don shigarwa da hannu                                                      |
-| Sake Ƙirƙirar Takardar Shaida | Yana ƙirƙirar sabon maɓallan CA (duk takardun shaidar kowane wakili na yanzu za su daina aiki) |
+| Aiki                          | Bayani                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| Kunna Saba                    | Yana ƙaddamar da `src/mitm/server.cjs` a tashar 443                                          |
+| Kashe Saba                    | Yana rufe aikin ɗan-tsari cikin tsari mai kyau                                               |
+| Sake Kunna Saba               | Kashe + kunna (yana ɗaukar sauye-sauyen manufa)                                              |
+| Amince da Takardar Shaida     | Yana shigar da `DATA_DIR/mitm/ca.crt` cikin ma'ajiyar amincewar OS                           |
+| Sauke Takardar Shaida         | Yana sauke `ca.crt` domin shigarwa da hannu                                                  |
+| Sake Samar da Takardar Shaida | Yana ƙirƙirar sabon maɓallan CA (duk takardun shaidar wakilai da ake da su za su daina aiki) |
 
 ### 3.2 Amince da takardar shaida
 
@@ -223,32 +223,33 @@ certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 
 Ko kuma yi amfani da maɓallin "Amince da Takardar Shaida" a dashboard (yana gudanar da umarnin da ya dace da OS ɗinka, tare da neman izinin sudo idan ana buƙata).
 
-#### IDE masu tushen Electron suna yin biris da ma'ajiyar amincewar OS (`NODE_EXTRA_CA_CERTS`)
+#### IDE masu tushen Electron suna yin watsi da ma'ajiyar amincewar OS (`NODE_EXTRA_CA_CERTS`)
 
-Wasu IDE — musamman **Antigravity IDE**, da sauran manhajojin da aka samo daga Electron / VS Code — suna kunshe
-da muhallin gudanar da Node.js nasu wanda **ba ya duba ma'ajiyar amincewar OS** don `fetch`/HTTPS
-mai fita. Amincewa da CA a matakin OS/NSS ya isa ga **backend** na asali na IDE
-(misali sabar harshen Go, wadda ke amfani da tarin CA na OS), amma **frontend na Electron** har yanzu
-zai gaza TLS — wannan yana bayyana kamar an _fitar da mai amfani_ daga manhajar ko kuma ana nuna
-_"kuskuren haɗi"_ duk da cewa log ɗin MITM yana nuna kiran bootstrap na backend suna dawo da `200`.
-Ana buƙatar matakai biyu, kuma duka suna da muhimmanci:
+Wasu IDE — musamman **Antigravity IDE**, da sauran manhajojin da aka samo daga Electron / VS Code — suna zuwa
+da nasu yanayin gudanar da Node.js wanda **ba ya duba ma'ajiyar amincewar OS** don haɗin
+`fetch`/HTTPS masu fita. Amincewa da CA a matakin OS/NSS ya isa ga **backend** na asali na IDE
+(misali, sabar harshen Go, wadda ke amfani da tarin CA na OS), amma **frontend na Electron** zai
+ci gaba da kasa yin TLS — wannan yana bayyana kamar an _fitar da mai amfani_ daga manhajar ko ana nuna
+_"kuskuren haɗi"_ duk da cewa log ɗin MITM yana nuna kiran bootstrap na backend suna dawo da `200`. Ana
+buƙatar matakai biyu, kuma dukansu suna da muhimmanci:
 
-1. Nuna wa muhallin gudanarwa CA kai tsaye:
+1. Nuna wa yanayin gudanarwar inda CA yake kai tsaye:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Ƙaddamar da IDE daga wannan shell.** Fara shi daga alamar desktop / Dock / menu na Start
-   **ba ya** gadon exports na shell, kuma `~/.config/environment.d/*.conf` ba ya aiki sai bayan
-   sabon shiga na muhalli mai zane. Da farko, rufe IDE gaba ɗaya — makullin singleton na Electron yana nufin ƙaddamarwa
-   ta biyu kawai za ta mayar da hankali ga tsarin da yake gudana, kuma za a yi biris da sabon environment.
+2. **Ƙaddamar da IDE daga wannan shell ɗin.** Kunna shi daga alamar desktop / Dock / menu na Start
+   **ba ya** gado da exports na shell, kuma `~/.config/environment.d/*.conf` yana aiki ne kawai bayan
+   sabon shiga na hoto. Ka rufe IDE gaba ɗaya da farko — makullin singleton na Electron yana nufin
+   ƙaddamarwa ta biyu za ta mayar da hankali ne kawai ga tsarin da yake gudana, kuma za a yi watsi da sabon yanayin.
 
-Matakin amincewar OS + NSS na sama har yanzu ya zama dole (tarin hanyar sadarwar Chromium da wasu hanyoyin
-tantancewa ke amfani da shi yana karanta ma'ajiyar NSS ta kowane mai amfani, kuma yana da nasa tsayayyun pins na `*.googleapis.com` waɗanda
-CA da aka amince da ita a gida ke maye gurbinsu). `NODE_EXTRA_CA_CERTS` yana ƙara rufe hanyar `fetch` ta Node a samansa.
+Matakin amincewar OS + NSS da ke sama har yanzu ya zama dole (tarin hanyar sadarwar Chromium da wasu hanyoyin
+tantancewa ke amfani da shi yana karanta ma'ajiyar NSS ta kowane mai amfani, kuma yana da nasa tsayayyun pins na
+`*.googleapis.com` waɗanda CA da aka amince da shi a gida ke maye gurbinsu). `NODE_EXTRA_CA_CERTS` yana
+rufe hanyar `fetch` ta Node a samansa.
 
 ### 3.3 Tura DNS
 
-Ga kowane wakili da kake son katsewa, dole ne host ɗin API ɗinsa ya warware zuwa `127.0.0.1`. AgentBridge yana sarrafa shigarwar `/etc/hosts` ta atomatik lokacin da ka kunna ko kashe DNS na wani wakili a Mayen Saiti.
+Ga kowane wakili da kake son kutsewa, dole ne host ɗin API ɗinsa ya warware zuwa `127.0.0.1`. AgentBridge yana sarrafa shigarwar `/etc/hosts` kai tsaye lokacin da ka kunna ko kashe DNS na wani wakili a cikin Mayen Saiti.
 
 Misalin shigarwar `/etc/hosts` don GitHub Copilot:
 
@@ -257,70 +258,79 @@ Misalin shigarwar `/etc/hosts` don GitHub Copilot:
 127.0.0.1 copilot-proxy.githubusercontent.com
 ```
 
-### 3.4 Daidaita samfuri
+### 3.4 Daidaita samfurori
 
-Yi amfani da Teburin Daidaita Samfuri a kowane katin wakili don ayyana daidaitawar tushe → maƙasudi:
+Yi amfani da Teburin Daidaita Samfuri a cikin kowane katin wakili don ayyana daidaitawar tushe → manufa:
 
-| Samfurin tushe (na asalin wakili) | Samfurin maƙasudi (OmniRoute) |
-| --------------------------------- | ----------------------------- |
-| `gpt-4o`                          | `claude-sonnet-4.7`           |
-| `*` (wildcard)                    | `claude-haiku-4.7`            |
+| Samfurin tushe (na asalin wakili) | Samfurin manufa (OmniRoute) |
+| --------------------------------- | --------------------------- |
+| `gpt-4o`                          | `claude-sonnet-4.7`         |
+| `*` (wildcard)                    | `claude-haiku-4.7`          |
 
-Wildcard `*` yana daidaita duk wani samfurin da ba a gane ba zuwa maƙasudin da aka ayyana. Ana adana shi a teburin `agent_bridge_mappings`.
+Wildcard `*` yana daidaita duk wani samfurin da ba a gane ba zuwa manufa da aka ayyana. Ana adana shi a teburin `agent_bridge_mappings`.
 
-> **Shawara — gano ainihin ID na samfuran wakilin.** Wani IDE na iya aika sunayen samfura da suka bambanta da
-> alamomin UI ɗinsa, kuma waɗanda ke canzawa tsakanin manyan nau'ikan siga. Misali **Antigravity 2** yana aika
+> **Shawara — gano ainihin ID na samfuran wakilin.** IDE na iya aika sunayen samfura waɗanda suka bambanta da
+> alamomin UI ɗinsa kuma suke canzawa tsakanin manyan nau'uka. Misali **Antigravity 2** yana aika
 > `gemini-3.1-pro-low`, `gemini-pro-agent`, da `gemini-3.1-flash-lite` ta hanyar sadarwa — ba
-> `gemini-2.5-pro` da aka nuna a tsofaffin takardu ba. Aika saƙon taɗi ɗaya ba tare da daidaitawa mai dacewa ba: MITM
-> zai yi log na ainihin `model:` mai shigowa sannan ya bar buƙatar ta wuce. Daidaita wannan ƙimar kai tsaye, sannan
-> za a katse buƙata ta gaba kuma a tura ta zuwa maƙasudinka.
+> `gemini-2.5-pro` da aka nuna a tsofaffin takardu ba. Aika tattaunawa guda ɗaya ba tare da daidaitawa mai dacewa ba: MITM
+> zai rubuta ainihin `model:` mai shigowa a log sannan ya bari buƙatar ta wuce. Daidaita wannan ƙimar kai tsaye, sannan
+> za a kutsa buƙata ta gaba kuma a tura ta zuwa manufarka.
 
 ### 3.5 Sanarwar haɗari
 
-AgentBridge yana katse bayanan sirri (alamomin OAuth, maɓallan API) waɗanda IDE ke amfani da su don tabbatar da kansa ga masu samarwa na sama. Ana **ɓoye su kafin yin log** (duba §2.7), amma sashen MITM na OmniRoute yana iya ganinsu. Kunna kowane wakili a karon farko yana nuna taga ta sanarwar haɗari wadda za a iya rufewa.
+AgentBridge yana kutse bayanan sirri (tokens na OAuth, maɓallan API) waɗanda IDE ke amfani da su don tabbatar da kansa ga masu samarwa na sama. Ana **ɓoye su kafin rubuta log** (duba §2.7), amma matakin MITM na OmniRoute yana iya ganinsu. Kunna kowane wakili a karon farko yana nuna taga ta sanarwar haɗari da za a iya rufewa.
 
 ### 3.6 Kulawa & Binciken Matsala
 
-Dashboard yana samar da katin **Kulawa & Binciken Matsala** (`AgentBridgeMaintenanceCard`, a cikin `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) wanda ke bayyana hanyoyin MITM na aiki waɗanda a baya ba su da UI. Ƙaramin takensa: _"Gwada tsarin ɗauka da kansa, warware ragowar yanayin tsarin, sannan ka matsar da saitinka tsakanin na'urori."_ Mataimakan client na katin suna cikin `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Dashboard yana nuna katin **Kulawa & Binciken Matsala** (`AgentBridgeMaintenanceCard`, a cikin `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) wanda ke bayyana hanyoyin MITM na aiki waɗanda a baya ba su da UI. Ƙaramin takensa: _"Yi gwajin-kai na tsarin kama bayanai, soke ragowar yanayin tsarin, sannan ka matsar da saitinka tsakanin na'urori."_ Mataimakan client na katin suna cikin `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Maɓalli            | Hanya                                  | Abin da yake yi                                                                                                                                                                                                                               |
-| ------------------ | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Bincika**        | `GET /api/tools/agent-bridge/diagnose` | Yana gudanar da gwajin-kai na tsarin ɗaukar bayanai kuma ya nuna rahoton kowane bincike (✓/✗ + shawarar gyarawa).                                                                                                                             |
-| **Gyara**          | `POST /api/tools/agent-bridge/repair`  | Yana warware ragowar yanayin tsarin MITM marar mai kula (shigarwar yaudarar DNS, tushen CA, wakilin tsarin) da rushewa ko SIGKILL ya bari. Ana iya maimaitawa — yana ba da rahoton "Babu abin da za a gyara" idan yanayin yana da tsabta.     |
-| **Cire CA**        | `DELETE /api/tools/agent-bridge/cert`  | Yana cire amincewa da tushen CA na MITM sannan ya cire shi daga ma'ajiyar amincewa ta OS (a bayyane, ana iya maimaitawa). Ana nuna shi ne kawai lokacin da ake amincewa da CA a halin yanzu; yana buƙatar tabbacin kai-tsaye na "A cire CA?". |
-| **Fitar da saiti** | `GET /api/tools/agent-bridge/config`   | Yana sauke JSON na saiti mai sauƙin ɗauka (duba §3.7).                                                                                                                                                                                        |
-| **Shigo da saiti** | `POST /api/tools/agent-bridge/config`  | Yana loda JSON na saiti da aka fitar a baya (duba §3.7).                                                                                                                                                                                      |
+| Maɓalli             | Hanya                                  | Abin da yake yi                                                                                                                                                                                                                            |
+| ------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Bincika**         | `GET /api/tools/agent-bridge/diagnose` | Yana gudanar da gwajin-kai na capture-pipeline kuma yana nuna rahoton kowane bincike (✓/✗ + shawarar gyarawa).                                                                                                                             |
+| **Gyara**           | `POST /api/tools/agent-bridge/repair`  | Yana warware ragowar yanayin tsarin MITM marar mai kula (shigarwar kwaikwayon DNS, tushen CA, proxy na tsarin) da rushewa ko SIGKILL ya bari. Idempotent ne — yana bayar da rahoton "Babu abin da za a gyara" idan yanayin yana da tsabta. |
+| **Cire CA**         | `DELETE /api/tools/agent-bridge/cert`  | Yana cire amincewa da kuma goge tushen CA na MITM daga ma'ajiyar amincewa ta OS (a bayyane, idempotent). Ana nuna shi ne kawai idan ana amincewa da CA a halin yanzu; yana buƙatar tabbatarwar "A cire CA?" a wurin.                       |
+| **Fitar da config** | `GET /api/tools/agent-bridge/config`   | Yana sauke config JSON mai ɗaukuwa (duba §3.7).                                                                                                                                                                                            |
+| **Shigo da config** | `POST /api/tools/agent-bridge/config`  | Yana loda config JSON da aka fitar a baya (duba §3.7).                                                                                                                                                                                     |
 
-**Binciken gano matsala** (`summarizeDiagnostics()` a cikin `src/mitm/inspector/diagnostics.ts`). Hanyar tana gudanar da gwajin da ke haifar da tasiri ga kowanne sannan ta shigar da ƙimomin boolean cikin mai taƙaitawa mara tasiri; ana dawo da hukunci guda na `healthy` tare da shawara ga kowace gazawa:
+Kowane katin agent kuma yana da nasa maɓallin **Mayar da tsoho** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — warwarewa ta dannawa ɗaya ga kowane agent, wadda ke cire kwaikwayon hosts na wannan
+agent kawai, tana share model mappings ɗinsa da aka adana, sannan tana sake saita yanayin `dns_enabled`/`setup_completed`
+nasa, domin IDE ya sake sadarwa da ainihin upstream bayan an sake kunna shi gaba ɗaya. Wannan **ba ya** taɓa
+MITM server ko tushen CA da ake amfani da su tare (wataƙila sauran agents har yanzu suna dogaro da su) — ana ci gaba da samun damar su
+ta hanyar Server Card da aikin **Cire CA** da ke sama. A Windows, yana kuma ƙoƙarin gudanar da
+`ipconfig /flushdns`, domin Windows DNS Client yana adana shigarwar hosts-file a cache kuma ba zai yar da
+kwaikwayon da aka cire yanzu ba in ba haka ba.
 
-| Sunan bincike      | Abin da yake tabbatarwa                                      | Shawara idan an gaza                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Tsarin sabar MITM yana aiki                                  | "Sabar MITM ba ta aiki. Fara ta daga shafin AgentBridge."                                                                                                                             |
-| `server-reachable` | Sabar MITM tana karɓar haɗi a tasharta (gwajin TCP)          | "Sabar MITM ba ta karɓar haɗi a tasharta. Tabbatar cewa tashar ba ta da wani mai amfani kuma kana da izinin ɗaure ta."                                                                |
-| `cert-exists`      | An samar da takardar shaidar MITM a kan faifai               | "Har yanzu ba a samar da takardar shaidar MITM ba. Samar da guda daga shafin AgentBridge."                                                                                            |
-| `cert-trusted`     | Tushen CA na MITM yana cikin ma'ajiyar amincewa ta OS        | "Ma'ajiyar OS ba ta amince da tushen CA na MITM ba, saboda haka kutse cikin TLS zai gaza. Amince da takardar shaidar daga shafin AgentBridge."                                        |
-| `dns-configured`   | An yi wa sunayen masaukin da ake nufi yaudara a `/etc/hosts` | "Ba a yi wa sunayen masaukin da ake nufi yaudara a /etc/hosts ba, saboda haka zirga-zirga ba ta taɓa isa ga wakilin. Kunna DNS ga wakilin/wakilan da kake son ɗaukar zirga-zirgarsu." |
+**Binciken matsaloli** (`summarizeDiagnostics()` a cikin `src/mitm/inspector/diagnostics.ts`). Hanyar tana gudanar da binciken da ke haifar da tasiri ga kowannensu sannan ta shigar da ƙimomin boolean cikin tsantsar mai taƙaitawa; ana dawo da hukuncin `healthy` guda ɗaya tare da shawara ga kowace gazawa:
 
-**Tutocin yanayin marar mai kula:** lokacin da shafin ya gano yanayin da rushewa ya bari (yaudarar DNS / CA / wakilin tsarin), katin yana nuna tutar launin amber — _"Wani zama na baya ya bar yanayin tsarin a baya (yaudarar DNS, CA, ko wakilin tsarin). Gudanar da Gyara don tsaftace shi."_ — kuma yana haskaka maɓallin **Gyara**. `Repair` shi ne makamancin tutar `--cleanup` ta ProxyBridge a matakin manhaja (yana miƙa aikin ga `repairMitm()` a cikin `src/mitm/manager.ts`).
+| Sunan bincike      | Abin da yake tabbatarwa                                       | Shawara idan an samu gazawa                                                                                                                                |
+| ------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | Tsarin aikin MITM server yana aiki                            | "MITM server ba ya aiki. Kunna shi daga shafin AgentBridge."                                                                                               |
+| `server-reachable` | MITM server yana karɓar haɗin kai a port ɗinsa (binciken TCP) | "MITM server ba ya karɓar haɗin kai a port ɗinsa. Tabbatar cewa port ɗin ba a amfani da shi kuma kana da izinin yin bind a kansa."                         |
+| `cert-exists`      | An ƙirƙiri takardar shaidar MITM a kan disk                   | "Har yanzu ba a ƙirƙiri takardar shaidar MITM ba. Ƙirƙiri ɗaya daga shafin AgentBridge."                                                                   |
+| `cert-trusted`     | Tushen CA na MITM yana cikin ma'ajiyar amincewa ta OS         | "Ma'ajiyar OS ba ta amince da tushen CA na MITM ba, saboda haka kutsen TLS zai gaza. Amince da takardar shaidar daga shafin AgentBridge."                  |
+| `dns-configured`   | An kwaikwayi target hostnames a cikin `/etc/hosts`            | "Ba a kwaikwayi target hostnames a cikin /etc/hosts` ba, saboda haka zirga-zirga ba za ta taɓa isa ga proxy ba. Kunna DNS ga agent(s) da kake son kamawa." |
 
-> Ana barin tushen CA na MITM a shigar a tsakanin tsayawa/farawa don kauce wa yawan
-> buƙatun sudo (irin halin mitmproxy/Charles), saboda haka cire shi aikin
-> **Cire CA** ne na musamman maimakon wani abu da ke faruwa ta atomatik lokacin tsayawa.
+**Banner na ragowar yanayi:** lokacin da shafin ya gano yanayin da rushewa ya bari (kwaikwayon DNS / CA / proxy na tsarin), katin yana nuna banner mai launin amber — _"Wani zaman da ya gabata ya bar yanayin tsarin a baya (kwaikwayon DNS, CA, ko proxy na tsarin). Gudanar da Gyara domin tsaftace shi."_ — kuma yana haskaka maɓallin **Gyara**. `Repair` shi ne kwatankwacin tutar `--cleanup` ta ProxyBridge a matakin application (yana miƙa aikin ga `repairMitm()` a cikin `src/mitm/manager.ts`).
 
-### 3.7 Shigo/fitar da saiti mai sauƙin ɗauka
+> Ana barin tushen CA na MITM a girke yayin dakatarwa/kunna wa domin kauce wa maimaita
+> buƙatun sudo (irin halayen mitmproxy/Charles), saboda haka cire shi aiki ne na
+> **Cire CA** da ake yi da gangan maimakon wani abu da ke faruwa kai tsaye lokacin dakatarwa.
 
-AgentBridge na iya jeranta yanayin da **mai gudanarwa zai iya daidaitawa** zuwa wani tarin JSON mai sigar da aka ayyana domin a iya maimaita saiti a na'urori daban-daban. Mai jerantawar shi ne `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), kuma `AgentBridgeConfigSchema` ne ke inganta shi.
+### 3.7 Shigo da/fitar da config mai ɗaukuwa
 
-Abin da ake fitarwa ya ƙunshi sassa uku kacal (da gangan **BA** a fitar da tsoffin ƙimomin da aka gina a ciki, don haka shigo da su ba zai taɓa kwafi ko yin karo da su ba):
+AgentBridge na iya mayar da yanayin da **operator zai iya daidaitawa** zuwa blob na JSON mai version domin a iya kwaikwayon setup a kan na'urori daban-daban. Serializer ɗin shi ne `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), wanda `AgentBridgeConfigSchema` ke inganta shi.
 
-| Fili             | Tushe                                                                | Bayanan kula                                                              |
-| ---------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `bypassPatterns` | tsarin ketarewa da mai amfani ya ayyana (`agent_bridge_bypass`)      | an cire tsoffin tsarin bank/gov/okta                                      |
-| `customHosts`    | masaukai na musamman na Traffic Inspector (`inspector_custom_hosts`) | kowanne: `{ host, kind: "llm"\|"app"\|"custom", label? }`                 |
-| `agentMappings`  | taswirar samfurin kowane wakili (`agent_bridge_mappings`)            | `{ [agentId]: [{ source, target }] }` ga kowane wakili da yake da taswira |
+Abin da ake fitarwa ya ƙunshi ɓangarori uku kacal (da gangan **BA** a fitar da tsoffin ƙimomin da ke ciki, don haka shigo da su ba zai taɓa maimaita su ko cin karo da su ba):
+
+| Fili             | Tushe                                                             | Bayani                                                               |
+| ---------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `bypassPatterns` | tsarin tsallakewa da mai amfani ya ayyana (`agent_bridge_bypass`) | an cire tsoffin tsarin banki/gov/okta                                |
+| `customHosts`    | keɓaɓɓun rundunonin Traffic Inspector (`inspector_custom_hosts`)  | kowanne: `{ host, kind: "llm"\|"app"\|"custom", label? }`            |
+| `agentMappings`  | taswirar samfurori na kowane wakili (`agent_bridge_mappings`)     | `{ [agentId]: [{ source, target }] }` ga kowane wakili mai taswirori |
 
 ```jsonc
-// GET /api/tools/agent-bridge/config
+// SAMU /api/tools/agent-bridge/config
 {
   "version": 1,
   "bypassPatterns": ["*.internal.example.com"],
@@ -331,13 +341,13 @@ Abin da ake fitarwa ya ƙunshi sassa uku kacal (da gangan **BA** a fitar da tsof
 }
 ```
 
-**Halin shigo da saiti** (`POST /api/tools/agent-bridge/config`): tsarin ketarewa da taswirar kowane wakili suna **maye gurbin komai gaba ɗaya**; ana ƙara masaukai na musamman ta hanyar da **za a iya maimaitawa** (`INSERT OR IGNORE`). Amsar tana bayar da rahoton adadin kowanne da aka aiwatar:
+**Halayyar shigo da bayanai** (`POST /api/tools/agent-bridge/config`): tsarin tsallakewa da taswirar kowane wakili suna **maye gurbin komai gaba ɗaya**; ana ƙara keɓaɓɓun rundunoni ta hanya mai **idempotent** (`INSERT OR IGNORE`). Amsar tana ba da rahoton adadin kowanne da aka aiwatar:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Abin da **BA YA CIKI** a cikin saitin: yanayin gudana na sabar, hanyoyin fayilolin takardar shaida, yanayin DNS na kowane agent, hanyar upstream CA, da saitunan TPROXY — waɗannan yanayin host/runtime ne, ba zaɓuɓɓukan da za a iya ɗauka zuwa wani wuri ba.
+Abubuwan da **BA SA CIKIN** saitin: yanayin aikin sabar, hanyoyin takardar shaida, yanayin DNS na kowane wakili, hanyar CA ta sama, da saitunan TPROXY — waɗannan yanayin masauki/lokacin aiki ne, ba zaɓuɓɓukan da za a iya ɗauka ba.
 
 ---
 
@@ -495,41 +505,42 @@ Idan AgentBridge yana katsewa amma duk buƙatun suna gaza:
 
 ---
 
-## §7 Bayani game da API
+## §7 Manazartar API
 
-Duk routes ɗin `LOCAL_ONLY` ne (loopback kawai, ana tilasta shi kafin auth) kuma `SPAWN_CAPABLE` ne. Duba `src/server/authz/routeGuard.ts`.
+Duk hanyoyin su ne `LOCAL_ONLY` (loopback kawai, ana tilasta shi kafin auth) da kuma `SPAWN_CAPABLE`. Duba `src/server/authz/routeGuard.ts`.
 
-Tushen path: `/api/tools/agent-bridge/`
+Tushen hanya: `/api/tools/agent-bridge/`
 
-| Hanya               | Path                                           | Bayani                                                                                                                                              |
-| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Yanayin uwar garke gaba ɗaya + ganowa/matsayin kowane agent                                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents`               | Jera agent da aka yi wa rajista (id, suna, hosts, yiwuwar aiki, yanayi)                                                                             |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Yanayin agent guda ɗaya (daidaitawar manufa + ganowa + yanayin da aka adana)                                                                        |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Sabunta `setup_completed` na agent                                                                                                                  |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Gudanar da binciken ganowa ga agent (`installed`, `version?`, `path?`)                                                                              |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Kunna/kashe DNS na agent (`{enabled: boolean}`)                                                                                                     |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Taswirorin model na agent                                                                                                                           |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Sauya taswirorin model                                                                                                                              |
-| POST                | `/api/tools/agent-bridge/server`               | Fara/tsayar/sake kunna uwar garke (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                                           |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Matsayin cert (`exists`, `trusted`, `path`)                                                                                                         |
-| POST                | `/api/tools/agent-bridge/cert`                 | Amince da (shigar da) tushen CA na MITM                                                                                                             |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Janye amincewa da (cire) tushen CA na MITM — aikin maimaituwa ba tare da tasiri ba (duba §3.6)                                                      |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Sake samar da cert na MITM mai sa-hannu da kansa                                                                                                    |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Watsa cert na PEM don saukewa                                                                                                                       |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Jera tsarin ketarewa (`default` + `user`)                                                                                                           |
-| POST                | `/api/tools/agent-bridge/bypass`               | Sauya duk tsarin ketarewa da mai amfani ya ayyana                                                                                                   |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Cire tsarin ketarewa guda ɗaya da mai amfani ya ayyana                                                                                              |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Gwajin kai na tsarin ɗaukar bayanai (duba §3.6)                                                                                                     |
-| POST                | `/api/tools/agent-bridge/repair`               | Warware yanayin tsarin MITM da ya zama marar mai kula (duba §3.6)                                                                                   |
-| GET                 | `/api/tools/agent-bridge/config`               | Fitar da daidaitawar JSON mai sauƙin ɗauka (duba §3.7)                                                                                              |
-| POST                | `/api/tools/agent-bridge/config`               | Shigo da daidaitawar JSON mai sauƙin ɗauka (duba §3.7)                                                                                              |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Sami path na upstream CA da aka daidaita                                                                                                            |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Tabbatar + adana path na upstream CA                                                                                                                |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Tabbatar kawai (gwajin busasshe) da path na upstream CA — ba ya adanawa                                                                             |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Yanayin ɗaukar bayanai na TPROXY mai buɗe-rufin asiri a bayyane — duba `docs/security/MITM-TPROXY-DECRYPT.md` (git; ba a haɗa shi cikin `/docs` ba) |
+| Hanya               | Path                                           | Bayani                                                                                                                                    |
+| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Matsayin sabar gaba ɗaya + ganowa/matsayin kowane agent                                                                                   |
+| GET                 | `/api/tools/agent-bridge/agents`               | Jerin agent da aka yi wa rajista (id, suna, hosts, dacewa, matsayi)                                                                       |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Matsayin agent guda ɗaya (saitin target + ganowa + matsayin da aka adana)                                                                 |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Sabunta `setup_completed` na agent                                                                                                        |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Gudanar da binciken ganowa ga agent (`installed`, `version?`, `path?`)                                                                    |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Kunna/kashe DNS ga agent (`{enabled: boolean}`)                                                                                           |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Daidaitawar model na agent                                                                                                                |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Maye gurbin daidaitawar model                                                                                                             |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Mayar da tsohon saiti: cire kwaikwayon DNS na wannan agent, share daidaitawarsa, sake saita matsayinsa (duba §3.6)                        |
+| POST                | `/api/tools/agent-bridge/server`               | Fara/tsayar/sake fara sabar (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                                       |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Matsayin cert (`exists`, `trusted`, `path`)                                                                                               |
+| POST                | `/api/tools/agent-bridge/cert`                 | Amince da (girke) tushen CA na MITM                                                                                                       |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Cire amincewa da (cire) tushen CA na MITM — idempotent (duba §3.6)                                                                        |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Sake ƙirƙirar cert na MITM mai sa hannu da kansa                                                                                          |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Yaɗa cert na PEM don saukewa                                                                                                              |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Jera tsarin bypass (`default` + `user`)                                                                                                   |
+| POST                | `/api/tools/agent-bridge/bypass`               | Maye gurbin dukkan tsarin bypass da mai amfani ya ayyana                                                                                  |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Cire tsarin bypass guda ɗaya da mai amfani ya ayyana                                                                                      |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Gwajin kai na tsarin capture-pipeline (duba §3.6)                                                                                         |
+| POST                | `/api/tools/agent-bridge/repair`               | Warware matsayin tsarin MITM marar mai kula (duba §3.6)                                                                                   |
+| GET                 | `/api/tools/agent-bridge/config`               | Fitar da config JSON mai ɗaukuwa (duba §3.7)                                                                                              |
+| POST                | `/api/tools/agent-bridge/config`               | Shigo da config JSON mai ɗaukuwa (duba §3.7)                                                                                              |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Samu path na upstream CA da aka saita                                                                                                     |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Tabbatar + adana path na upstream CA                                                                                                      |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Tabbatar kawai (dry-run) da path na upstream CA — ba ya adanawa                                                                           |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Yanayin kama bayanai na transparent-decrypt na TPROXY — duba `docs/security/MITM-TPROXY-DECRYPT.md` (git; ba a haɗa shi cikin `/docs` ba) |
 
-Cikakkun tsare-tsaren OpenAPI: `docs/openapi.yaml` → tag `AgentBridge`.
+Cikakkun OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

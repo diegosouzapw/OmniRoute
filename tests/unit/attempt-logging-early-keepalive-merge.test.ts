@@ -17,7 +17,7 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-keepalive-merge-
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
+const { getCallLogById, getCallLogs } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
 const { recordEarlyKeepaliveBytes, takeEarlyKeepaliveBytes } =
   await import("../../open-sse/utils/earlyKeepaliveByteBuffer.ts");
@@ -57,11 +57,14 @@ function baseCtx(overrides: Record<string, unknown> = {}) {
 // Same budget and rationale as tests/unit/video-bridge-log-redaction.test.ts.
 const POLL_DEADLINE_MS = 30_000;
 
-async function pollForCallLog(id: string, deadlineMs = POLL_DEADLINE_MS) {
+async function pollForCallLog(traceId: string, deadlineMs = POLL_DEADLINE_MS) {
   const deadline = Date.now() + deadlineMs;
   for (;;) {
-    const row = await getCallLogById(id);
-    if (row) return row as Record<string, unknown>;
+    const rows = await getCallLogs({ correlationId: traceId, limit: 5 });
+    if (rows[0]?.id) {
+      const row = await getCallLogById(rows[0].id);
+      if (row) return row as Record<string, unknown>;
+    }
     if (Date.now() >= deadline) return null;
     await new Promise((r) => setTimeout(r, 20));
   }
@@ -98,7 +101,7 @@ test("bytes recorded before persistAttemptLogs are prepended into pipeline.strea
     })
   );
 
-  const row = await pollForCallLog(id);
+  const row = await pollForCallLog(correlationId);
   assert.ok(row, "call log row should be persisted");
   const pipeline = row.pipelinePayloads as { streamChunks?: { client?: string[] } };
   assert.deepEqual(pipeline.streamChunks?.client, [
@@ -157,7 +160,7 @@ test("detailedLoggingEnabled=false skips the merge even when early bytes are buf
     })
   );
 
-  const row = await pollForCallLog(id);
+  const row = await pollForCallLog(correlationId);
   assert.ok(row);
   // Buffer must still hold the entry — a disabled-detailed-logging attempt
   // must not silently drain another (later, detailed-logging-enabled) attempt's

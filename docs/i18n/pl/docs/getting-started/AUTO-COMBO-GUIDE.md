@@ -1,26 +1,30 @@
-# Auto-Combo: niech OmniRoute wybierze najlepsze AI za Ciebie
+# Auto-Combo: Let OmniRoute Pick the Best AI for You (Polski)
 
-> **TL;DR**: Ustaw model na `auto`, a OmniRoute automatycznie wybierze najlepszego providera AI dla każdego żądania. Nie wymaga konfiguracji.
+🌐 **Languages:** 🇺🇸 [English](../../../../getting-started/AUTO-COMBO-GUIDE.md) · 🇪🇹 [am](../../../am/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇦🇿 [az](../../../az/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇩🇰 [da](../../../da/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇩🇪 [de](../../../de/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇬🇷 [el](../../../el/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇪🇸 [es](../../../es/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇪🇪 [et](../../../et/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇱 [he](../../../he/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇩 [id](../../../id/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇹 [it](../../../it/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇰🇭 [km](../../../km/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇲🇲 [my](../../../my/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇴 [no](../../../no/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [or](../../../or/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇱🇰 [si](../../../si/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇮🇳 [te](../../../te/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇹🇭 [th](../../../th/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/getting-started/AUTO-COMBO-GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/getting-started/AUTO-COMBO-GUIDE.md)
 
 ---
 
-## Co robi
+> **TL;DR**: Ustaw model na `auto`, a OmniRoute automatycznie wybierze najlepszego dostawcę AI dla każdego żądania. Nie jest wymagana żadna konfiguracja.
 
-Zamiast wybierać konkretny model AI (np. GPT-4o lub Claude), możesz pozwolić OmniRoute **automatycznie wybrać najlepszy** dla każdego żądania. Bierze pod uwagę:
+---
 
-- **Health** — Czy provider działa w tej chwili?
-- **Speed** — Jak szybko odpowiada?
-- **Cost** — Ile kosztuje?
-- **Quality** — Czy dobrze radzi sobie z tym typem zadania?
-- **Capacity** — Czy ma jeszcze dostępny limit (quota)?
+## Jak to działa
 
-OmniRoute ocenia wszystkich podłączonych providerów i wybiera najlepszego. Jeśli ten zawiedzie, automatycznie próbuje kolejnego.
+Zamiast wybierać konkretny model AI (np. GPT-4o lub Claude), możesz pozwolić OmniRoute **automatycznie wybierać najlepszy model** dla każdego żądania. Uwzględniane są następujące czynniki:
+
+- **Stan** — Czy dostawca obecnie działa?
+- **Szybkość** — Jak szybko odpowiada?
+- **Koszt** — Ile kosztuje?
+- **Jakość** — Czy dobrze radzi sobie z zadaniami tego typu?
+- **Dostępność** — Czy ma jeszcze dostępny limit?
+
+OmniRoute ocenia wszystkich połączonych dostawców i wybiera najlepszego. Jeśli żądanie się nie powiedzie, automatycznie próbuje skorzystać z kolejnego.
 
 ---
 
 ## Szybki start
 
-**Krok 1**: Ustaw model na `auto` w IDE lub CLI:
+**Krok 1**: Ustaw model na `auto` w środowisku IDE lub interfejsie CLI:
 
 ```
 model: "auto"
@@ -28,41 +32,41 @@ model: "auto"
 
 **Krok 2**: To wszystko! OmniRoute zajmie się resztą.
 
-**Krok 3** (opcjonalnie): Użyj wariantu pod konkretne zadania:
+**Krok 3** (opcjonalnie): Użyj wariantu przeznaczonego do konkretnych zadań:
 
 ```
-model: "auto/coding"    # Best for code
-model: "auto/fast"      # Fastest response
-model: "auto/cheap"     # Cheapest option
+model: "auto/coding"    # Najlepszy do kodu
+model: "auto/fast"      # Najszybsza odpowiedź
+model: "auto/cheap"     # Najtańsza opcja
 ```
 
 ---
 
-## Którego „auto” użyć?
+## Którego wariantu „auto” użyć?
 
-| Jeśli chcesz...          | Użyj           | Najlepsze do                       | Jak działa                                         |
-| ------------------------ | -------------- | ---------------------------------- | -------------------------------------------------- |
-| **Ogólnie najlepszy**    | `auto`         | Ogólne pytania, chat               | Równoważy szybkość, koszt i jakość                 |
-| **Najlepszy do kodu**    | `auto/coding`  | Pisanie kodu, debugowanie          | Wybiera modele dobre w zadaniach programistycznych |
-| **Najszybsza odpowiedź** | `auto/fast`    | Szybkie odpowiedzi, niska latencja | Priorytetem jest szybkość ponad wszystko           |
-| **Najtańsza opcja**      | `auto/cheap`   | Oszczędzanie pieniędzy             | Wybiera najtańszego providera                      |
-| **Najmądrzejszy model**  | `auto/smart`   | Złożone zadania                    | Najpierw jakość + eksploracja nowych modeli        |
-| **Najbardziej dostępny** | `auto/offline` | Gdy providerzy są zajęci           | Wybiera providerów z największą pojemnością        |
+| Jeśli zależy Ci na...            | Użyj tego      | Najlepsze zastosowanie              | Jak to działa                                            |
+| -------------------------------- | -------------- | ----------------------------------- | -------------------------------------------------------- |
+| **Najlepszym ogólnie**           | `auto`         | Ogólne pytania, czat                | Równoważy szybkość, koszt i jakość                       |
+| **Najlepszym kodzie**            | `auto/coding`  | Pisanie kodu, debugowanie           | Wybiera modele dobre w zadaniach związanych z kodowaniem |
+| **Najszybszej odpowiedzi**       | `auto/fast`    | Szybkie odpowiedzi, małe opóźnienia | Przedkłada szybkość nad wszystko inne                    |
+| **Najtańszej opcji**             | `auto/cheap`   | Oszczędzanie pieniędzy              | Wybiera najtańszego dostawcę                             |
+| **Najinteligentniejszym modelu** | `auto/smart`   | Złożone zadania                     | Stawia jakość na pierwszym miejscu i testuje nowe modele |
+| **Największej dostępności**      | `auto/offline` | Gdy dostawcy są przeciążeni         | Wybiera dostawców z największą dostępną przepustowością  |
 
 ### Przykłady
 
 ```bash
-# General chat — balanced
+# Ogólny czat — zrównoważone ustawienia
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 
-# Code generation — quality-first
+# Generowanie kodu — jakość na pierwszym miejscu
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/coding","messages":[{"role":"user","content":"Write a Python function"}]}'
 
-# Quick answer — speed-first
+# Szybka odpowiedź — szybkość na pierwszym miejscu
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/fast","messages":[{"role":"user","content":"What is 2+2?"}]}'
@@ -74,30 +78,30 @@ curl http://localhost:20128/v1/chat/completions \
 
 Gdy wysyłasz żądanie z `model: "auto"`, OmniRoute:
 
-1. **Przegląda wszystkich podłączonych providerów** — każdego, którego dodałeś (OpenAI, Anthropic, Google itd.)
-2. **Ocenia każdego** według 5 czynników:
-   - Czy działa? (health)
-   - Czy ma pojemność? (quota)
-   - Ile kosztuje? (price)
-   - Jak szybko działa? (speed)
-   - Czy dobrze radzi sobie z tym zadaniem? (quality)
-3. **Wybiera najlepszego** — provider z najwyższym wynikiem dostaje Twoje żądanie
-4. **Automatycznie odzyskuje się** — jeśli ten zawiedzie, OmniRoute automatycznie próbuje kolejnego
+1. **Sprawdza wszystkich połączonych dostawców** — Każdego dodanego dostawcę (OpenAI, Anthropic, Google itd.)
+2. **Ocenia każdego z nich**, uwzględniając między innymi:
+   - Czy działa? (stan)
+   - Czy ma dostępną przepustowość? (limit)
+   - Ile kosztuje? (cena)
+   - Jak szybko odpowiada? (szybkość)
+   - Czy dobrze radzi sobie z tym zadaniem? (jakość)
+3. **Wybiera najlepszego** — Żądanie trafia do dostawcy z najwyższym wynikiem
+4. **Automatycznie odzyskuje sprawność** — Jeśli żądanie się nie powiedzie, OmniRoute automatycznie próbuje skorzystać z kolejnego dostawcy
 
 ### System punktacji
 
-Każdy provider dostaje wynik od 0 do 1. Im wyższy wynik, tym lepsze dopasowanie.
+Każdy dostawca otrzymuje wynik od 0 do 1. Im wyższy wynik, tym lepsze dopasowanie.
 
-| Czynnik   | Waga | Co oznacza                                        |
-| --------- | ---- | ------------------------------------------------- |
-| Health    | 20%  | Czy provider działa? (stan circuit breakera)      |
-| Quota     | 15%  | Czy ma jeszcze dostępną pojemność?                |
-| Cost      | 15%  | Jak drogi jest? (tańszy = wyższy wynik)           |
-| Speed     | 12%  | Jak szybki jest? (niższa latencja = wyższy wynik) |
-| Task Fit  | 8%   | Czy dobrze radzi sobie z tym typem zadania?       |
-| Stability | 5%   | Czy jest stabilny? (niski wskaźnik błędów)        |
-| Tier      | 5%   | Poziom konta (Ultra > Pro > Free)                 |
-| Other     | 20%  | Afinity kontekstu, gęstość połączeń itd.          |
+| Czynnik                | Waga | Znaczenie                                                  |
+| ---------------------- | ---- | ---------------------------------------------------------- |
+| Stan                   | 20%  | Czy dostawca działa? (stan wyłącznika automatycznego)      |
+| Limit                  | 15%  | Czy ma jeszcze dostępną przepustowość?                     |
+| Koszt                  | 15%  | Jak drogi jest? (taniej = wyższy wynik)                    |
+| Szybkość               | 12%  | Jak szybko odpowiada? (mniejsze opóźnienie = wyższy wynik) |
+| Dopasowanie do zadania | 8%   | Czy dobrze radzi sobie z zadaniami tego typu?              |
+| Stabilność             | 5%   | Czy działa niezawodnie? (niski współczynnik błędów)        |
+| Poziom                 | 5%   | Poziom konta (Ultra > Pro > Free)                          |
+| Inne                   | 20%  | Powiązanie kontekstu, gęstość połączeń itd.                |
 
 ### Jak warianty zmieniają punktację
 
@@ -105,111 +109,111 @@ Każdy wariant używa innych wag:
 
 | Wariant        | Priorytet            | Kluczowe wagi                   |
 | -------------- | -------------------- | ------------------------------- |
-| `auto`         | Zrównoważony         | health=20%, quota=15%, cost=15% |
+| `auto`         | Równowaga            | health=20%, quota=15%, cost=15% |
 | `auto/coding`  | Jakość               | taskFit=37%, stability=15%      |
 | `auto/fast`    | Szybkość             | latency=32%, health=28%         |
 | `auto/cheap`   | Koszt                | cost=37%                        |
 | `auto/smart`   | Jakość + eksploracja | taskFit=37%, exploration=10%    |
-| `auto/offline` | Pojemność            | quota=37%, health=28%           |
+| `auto/offline` | Dostępność           | quota=37%, health=28%           |
 
 ---
 
 ## Jak obsługuje awarie
 
-OmniRoute ma **trzy warstwy ochrony**:
+OmniRoute zapewnia **trzy warstwy ochrony**:
 
-### 1. Auto-Fallback
+### 1. Automatyczne przełączanie awaryjne
 
-Jeśli najlepszy provider zawiedzie, OmniRoute automatycznie próbuje kolejnego. Nie musisz nic robić.
+Jeśli najlepszy dostawca zawiedzie, OmniRoute automatycznie wypróbuje kolejnego. Nie musisz nic robić.
 
-### 2. Self-Healing
+### 2. Samonaprawianie
 
-Jeśli provider wciąż zawodzi:
+Jeśli dostawca wielokrotnie zawodzi:
 
-- **Wynik < 0.2** → wykluczony na 5 minut
-- **Circuit breaker open** → automatycznie wykluczony
-- **Ponad 50% providerów niedostępnych** → tryb incydentu (bez eksploracji)
+- **Wynik < 0.2** → Wykluczenie na 5 minut
+- **Otwarty wyłącznik obwodu** → Automatyczne wykluczenie
+- **Ponad 50% dostawców nie działa** → Tryb incydentu (bez eksploracji)
 
-### 3. Emergency Fallback
+### 3. Awaryjny dostawca rezerwowy
 
-Jeśli wszyscy providerzy zawiodą, OmniRoute jako ostateczność kieruje ruch do stabilnych darmowych providerów (np. Kiro lub Qoder).
+Jeśli wszyscy dostawcy zawiodą, OmniRoute w ostateczności kieruje żądania do stabilnych, bezpłatnych dostawców (takich jak Kiro lub Qoder).
 
 ---
 
 ## Obsługa wielu kont
 
-Jeśli masz wiele kont u tego samego providera (np. dwa klucze OpenAI), OmniRoute traktuje każde jako **osobnego kandydata**. To oznacza:
+Jeśli masz wiele kont u tego samego dostawcy (np. dwa klucze OpenAI), OmniRoute traktuje każde z nich jako **oddzielnego kandydata**. Oznacza to, że:
 
-- Konto A ma jeszcze quota → użyj go
-- Konto B jest ograniczone rate limitem → pomiń
+- Konto A ma pozostały limit → użyj go
+- Konto B ma ograniczoną częstotliwość żądań → pomiń je
 - Konto C jest tańsze → preferuj je
 
-Każde konto jest oceniane niezależnie na podstawie własnego health, quota i szybkości.
+Każde konto jest oceniane niezależnie na podstawie jego kondycji, limitu i szybkości.
 
 ---
 
-## Eksploracja banditowa
+## Eksploracja metodą bandytową
 
-OmniRoute od czasu do czasu **eksploruje** nowych providerów, żeby odkryć lepsze opcje:
+OmniRoute od czasu do czasu **eksploruje** nowych dostawców, aby znaleźć lepsze opcje:
 
-- **Domyślnie**: 5% żądań idzie do losowych providerów
-- **Auto/smart**: 10% eksploracji
-- **Wyłączone**, gdy ponad 50% providerów jest niezdrowych
+- **Domyślnie**: 5% żądań trafia do losowych dostawców
+- **Auto/smart**: współczynnik eksploracji wynosi 10%
+- **Wyłączona**, gdy ponad 50% dostawców jest w złej kondycji
 
-Dzięki temu OmniRoute uczy się, którzy providerzy najlepiej pasują do Twojego wzorca użycia.
+Pomaga to OmniRoute ustalić, którzy dostawcy najlepiej odpowiadają Twoim wzorcom użycia.
 
 ---
 
 ## Częste pytania
 
-### „Czy zawsze wybierze najdroższy model?”
+### „Czy zawsze wybierany będzie najdroższy model?”
 
-**Nie.** Koszt to domyślnie tylko 15% wyniku. Tani, szybki i zdrowy provider może pokonać drogi. Użyj `auto/cheap`, jeśli chcesz jeszcze mocniej priorytetyzować koszt.
+**Nie.** Koszt domyślnie stanowi tylko 15% wyniku. Tani, szybki i niezawodny dostawca może uzyskać lepszy wynik niż drogi. Użyj `auto/cheap`, jeśli chcesz nadać kosztowi jeszcze wyższy priorytet.
 
-### „Co jeśli provider padnie?”
+### „Co się stanie, jeśli dostawca przestanie działać?”
 
-OmniRoute automatycznie go pomija i próbuje kolejnego. Jeśli provider wciąż zawodzi, jest tymczasowo wykluczany (5–30 minut). Nie musisz nic robić.
+OmniRoute automatycznie go pomija i próbuje skorzystać z kolejnego. Jeśli dostawca wielokrotnie zawodzi, zostaje tymczasowo wykluczony (na 5–30 minut). Nie musisz nic robić.
 
-### „Czy mogę zobaczyć, który provider został użyty?”
+### „Czy mogę sprawdzić, który dostawca został użyty?”
 
-Sprawdź nagłówki odpowiedzi — OmniRoute dołącza użytego providera i model w każdej odpowiedzi.
+Sprawdź nagłówki odpowiedzi — OmniRoute dołącza do każdej odpowiedzi informacje o użytym dostawcy i modelu.
 
-### „Czy uczy się z mojego użycia?”
+### „Czy system uczy się na podstawie mojego sposobu użycia?”
 
-Tak! System punktacji korzysta z danych historycznych (latencja, wskaźniki błędów, wskaźniki sukcesu), żeby z czasem podejmować lepsze decyzje.
+Tak! System oceny wykorzystuje dane historyczne (opóźnienia, wskaźniki błędów i wskaźniki powodzenia), aby z czasem podejmować lepsze decyzje.
 
 ### „Jaka jest różnica między `auto` a `auto/smart`?”
 
-- `auto` — zrównoważony, 5% eksploracji
-- `auto/smart` — najpierw jakość (te same wagi co `auto/coding`), 10% eksploracji
+- `auto` — Zrównoważony tryb, 5% eksploracji
+- `auto/smart` — Jakość na pierwszym miejscu (te same wagi co w `auto/coding`), 10% eksploracji
 
-Użyj `auto/smart`, gdy chcesz najlepszą jakość i akceptujesz okazjonalną eksplorację.
+Użyj `auto/smart`, jeśli zależy Ci na najwyższej jakości i akceptujesz sporadyczną eksplorację.
 
-### „Czy mogę wymusić konkretnego providera?”
+### „Czy mogę wymusić określonego dostawcę?”
 
-Tak! Użyj combo ze strategią `priority` zamiast `auto`. Szczegóły w [dokumentacji technicznej](../routing/AUTO-COMBO.md).
+Tak! Zamiast `auto` użyj kombinacji ze strategią `priority`, a następnie prześlij **dokładną nazwę** kombinacji w polu `model` (np. `model: "my-combo"` — nie `auto`). Szczegółowe informacje znajdziesz w [dokumentacji technicznej](../routing/AUTO-COMBO.md).
 
-### „Czym to się różni od round-robin?”
+### „Czym różni się to od strategii round-robin?”
 
-Round-robin przechodzi providerów po kolei. Auto-combo **ocenia każdego providera** i wybiera najlepszego. Jest mądrzejszy — uwzględnia health, szybkość, koszt i jakość.
+Strategia round-robin przechodzi kolejno przez dostawców. Funkcja Auto-combo **ocenia każdego dostawcę** i wybiera najlepszego. Jest inteligentniejsza — uwzględnia kondycję, szybkość, koszt i jakość.
 
 ---
 
 ## Co dalej?
 
-- **[Podłącz providera](./PROVIDERS-GUIDE.md)** — dodaj pierwszego providera AI
-- **[Przewodnik po darmowych poziomach](./FREE-TIERS-GUIDE.md)** — darmowe AI bez karty kredytowej
-- **[Rozwiązywanie problemów](./TROUBLESHOOTING.md)** — naprawa typowych problemów
-- **[Dokumentacja techniczna](../routing/AUTO-COMBO.md)** — dogłębny opis algorytmu punktacji
+- **[Połącz dostawcę](./PROVIDERS-GUIDE.md)** — Dodaj swojego pierwszego dostawcę AI
+- **[Przewodnik po bezpłatnych planach](./FREE-TIERS-GUIDE.md)** — Uzyskaj bezpłatny dostęp do AI bez karty kredytowej
+- **[Rozwiązywanie problemów](../guides/TROUBLESHOOTING.md)** — Rozwiąż typowe problemy
+- **[Dokumentacja techniczna](../routing/AUTO-COMBO.md)** — Szczegółowe omówienie algorytmu oceny
 
 ---
 
 ## Dowiedz się więcej
 
-Dla deweloperów i kontrybutorów zobacz [Auto-Combo Technical Reference](../routing/AUTO-COMBO.md), gdzie znajdziesz:
+Deweloperzy i współtwórcy mogą zapoznać się z [dokumentacją techniczną Auto-Combo](../routing/AUTO-COMBO.md), która zawiera:
 
-- Pełny 13-czynnikowy algorytm punktacji
-- Tabele wag pakietów trybów (mode pack)
+- Pełny 16-czynnikowy algorytm punktacji
+- Tabele wag pakietów trybów
 - Ścieżki plików implementacji
-- Endpointy API
-- Szczegóły algorytmu self-healing
+- Punkty końcowe API
+- Szczegóły algorytmu samonaprawiania

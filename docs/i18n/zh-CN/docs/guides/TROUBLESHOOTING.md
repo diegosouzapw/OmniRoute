@@ -39,31 +39,31 @@ OmniRoute 的常见问题及解决方案。
 
 ### 免费提供者的速率限制（429 / 400 / 401）
 
-**症状**：通过免费/无需身份验证的提供者（opencode、auggie 等）使用 `model: "auto"` 时，会间歇性收到 `HTTP 429`、`400` 或 `401`，而不是正常回答。稍后使用相同提示词重试时请求可以成功，但自动化任务（cron 作业、智能体、脚本）会在第一次失败时中断。
+**症状**：使用带有免费/免认证提供者（opencode、auggie 等）的 `model: "auto"` 时，会间歇性地收到 `HTTP 429`、`400` 或 `401`，而不是正常响应。稍后使用相同提示词重试时，请求可以成功，但自动化任务（cron 作业、代理、脚本）会在第一次失败时中断。
 
 **根本原因**：三个相互独立的故障模式叠加在一起：
 
-1. **提供者速率限制（`429`）**：免费套餐可能会针对每个时间窗口实施配额限制。大量并行调用会耗尽配额，因此在时间窗口重置之前，后续请求都会被拒绝。
-2. **直通模式中的失效模型（`400`/`401`）**：`auto/*` 池中可能包含来自 `opencode` 的直通模型，这些模型已在目录中注册，但没有有效凭据（例如 `oc/north-mini-code-free` → `401`）。自动路由器尝试调用其中一个模型并失败，错误会在回退机制启动前向上传播。
-3. **并发放大效应（负载下出现 `429`）**：当多个智能体/cron 会话同时调用 `auto` 时，总请求速率会超过免费提供者的承受能力，导致正常调用被标记为滥用。
+1. **提供者速率限制（`429`）**：免费套餐可能会对每个时间窗口实施配额限制。突发的并行调用会耗尽配额，因此后续请求会被拒绝，直到时间窗口重置。
+2. **直通模式中的模型不可用（`400`/`401`）**：`auto/*` 池可能包含来自 `opencode` 的直通模型，这些模型虽然已在目录中注册，但没有有效凭据（例如 `oc/north-mini-code-free` → `401`）。自动路由器尝试其中一个模型后失败，并且错误会在回退机制启动之前向上传播。
+3. **并发放大（负载下出现 `429`）**：当多个代理/cron 会话同时访问 `auto` 时，聚合请求速率会超过免费提供者可容忍的范围，导致正常调用被标记为滥用。
 
-**已验证的修复方案（社区报告，2026-08-10）**：调整三个环境变量，使轮换、并发控制和回退机制能够消化免费套餐的不稳定性，而不是因此直接失败：
+**已验证的修复方案（社区报告，2026-08-10）**：调整三个环境变量，使轮换、并发控制和回退机制能够消化免费套餐的不稳定情况，而不是因此直接失败：
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 遇到 400/401 时跳转到其他模型/提供者（跳过失效的直通模型）
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # 明确设置重量级请求准入上限（默认未设置：不限制请求数量，参见下方说明）
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # 在等待重量级请求容量时采用更长但有上限的等待时间，而不是立即返回可重试的 503
+export OMNIROUTE_ROTATE_ON_400=true           # 遇到 400/401 时切换到其他模型/提供者（跳过不可用的直通模型）
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # 明确设置重量级请求的准入上限（默认未设置：无请求数量上限，参见下方说明）
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # 将有界等待时间提高到超过 RATE_LIMIT_MAX_WAIT_MS 的默认值，以适应较慢的上游
 ```
 
-在 OmniRoute 进程环境中设置这些变量（即守护进程，例如通过 LaunchAgent plist 或 `systemctl edit`），然后重新启动 OmniRoute。轮换标志是效果最显著的单项设置：它可以将硬性失败转换为对池中健康提供者的透明重试。
+请在 OmniRoute 进程环境中设置这些变量（即守护进程，例如通过 LaunchAgent plist 或 `systemctl edit`），然后重启 OmniRoute。轮换标志是效果最显著的单项配置：它会将硬失败转换为对池中健康提供者的透明重试。
 
-**注意**：`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 用于限制同时运行的重量级（即长上下文）请求数量；该限制是准入门控，而不是提供者速率限制器。**#503 扇出更新：**此变量默认不再设置（现在只有像上面那样显式配置时才会生效）——重量级请求准入将改由自动推导的字节预算（`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`）进行控制，该预算会根据主机的实际内存上限自动调整，因此全新部署即使完全不设置此变量，也应该会遇到明显更少的 `503 chat_admission_busy` 拒绝；在此处显式设置它仍会完全按照文档所述工作。显式字节预算覆盖值会被限制在 8 MiB–2 GiB 之间。`413 body_exceeds_budget` 并非暂时性错误：请提高该字节预算、降低 `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`，或提高进程内存上限。`inflight_bytes_budget` 导致的请求卸载属于暂时性资源争用，仍可重试。每个提供者的速率限制（`open-sse/services/rateLimitManager.ts`）由 `RATE_LIMIT_MAX_WAIT_MS`、`RATE_LIMIT_MAX_QUEUE_DEPTH` 和 `RATE_LIMIT_AUTO_ENABLE` 单独控制——请参阅 `.env.example`。
+**说明**：`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` 限制可同时运行的重量级（长上下文）请求数量；该限制是准入门控，而不是提供者速率限制器。**#503-扇出更新：**此变量默认不再设置（现在仅在显式配置时生效，如上所示）——重量级请求准入现在改由自动推导的字节预算（`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`）进行控制，该预算会根据主机的实际内存上限自动缩放，因此全新部署即使完全不设置此变量，也应该会遇到少得多的 `503 chat_admission_busy` 拒绝；在此处显式设置它仍会完全按照文档说明工作。显式字节预算覆盖值会被限制在 8 MiB–2 GiB 范围内。`413 body_exceeds_budget` 不是暂时性错误：请提高该字节预算、降低 `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`，或提高进程内存上限。`inflight_bytes_budget` 导致的负载卸除属于暂时性争用，仍可重试。每个提供者的速率限制（`open-sse/services/rateLimitManager.ts`）由 `RATE_LIMIT_MAX_WAIT_MS`、`RATE_LIMIT_MAX_QUEUE_DEPTH` 和 `RATE_LIMIT_AUTO_ENABLE` 单独控制——请参阅 `.env.example`。
 
-**如何验证修复是否生效**：快速连续运行两次你的代理/cron，并确认两次都成功。修复前，第二次运行通常会抛出 `429`/`401`。修复后，失败（如果有）会自动重试，并最终完成调用。你也可以执行 `curl /monitoring/health`，观察提供者连接中的 `rateLimitedUntil` 字段，以及受影响提供者对应的 `circuitBreakers.providerBreakers[].state`——状态可能是 `CLOSED`、`DEGRADED`、`OPEN` 或 `HALF_OPEN`（参见 `src/shared/utils/circuitBreaker.ts`）；持续失败的提供者会依次从 `CLOSED → DEGRADED → OPEN` 切换，之后重置窗口会允许一次探测请求通过（`HALF_OPEN`）。
+**如何验证修复是否生效**：快速连续运行代理/cron 两次，并确认两次都成功。修复前，第二次运行通常会抛出 `429`/`401`。修复后，失败（如果有）会被透明重试，并最终完成调用。你还可以运行 `curl /monitoring/health`，观察提供者连接上的 `rateLimitedUntil` 字段，以及受影响提供者对应的 `circuitBreakers.providerBreakers[].state`——其状态为 `CLOSED`、`DEGRADED`、`OPEN` 或 `HALF_OPEN` 之一（参见 `src/shared/utils/circuitBreaker.ts`）。持续失败的提供者会依次切换为 `CLOSED → DEGRADED → OPEN`，直到重置窗口允许探测请求通过（`HALF_OPEN`）。
 
-**如果仍然看到 429**：该提供者的当前活跃账户确实已耗尽其_配额_（而不仅仅是触发速率限制）。请在 OmniRoute 控制面板中依次进入 Providers → Accounts，为同一提供者添加第二个账户；或者混合使用另一个免费提供者（例如 `routeway`、`auggie`）。轮换仅有助于处理暂时性的速率限制/400/401；如果配额已彻底耗尽，则需要第二组凭据或改用其他提供者。
+**如果仍然看到 429**：该提供者的当前账户确实已耗尽其_配额_（而不仅仅是达到速率限制）。请在 OmniRoute 控制面板 → 提供者 → 账户中为同一提供者添加第二个账户，或混合使用另一个免费提供者（例如 `routeway`、`auggie`）。轮换仅对暂时性的速率限制/400/401 有效；硬性配额耗尽需要使用第二组凭据或其他提供者。
 
-**如果在视觉模型（`auto/vision`、`bazaarlink/*`）上看到 403**：已连接的账户没有包含视觉功能的付费套餐，或者 API 密钥权限不足。请在提供者控制面板中确认该密钥的权限范围包含视觉/多模态功能，或者连接一个付费层级账户，并将其继续用作视觉任务的目标账户。
+**如果在视觉模型（`auto/vision`、`bazaarlink/*`）上看到 403**：所连接的账户没有包含视觉功能的付费套餐，或 API 密钥权限不足。请在提供者控制面板中确认密钥作用域包含视觉/多模态权限，或连接一个付费套餐账户并将其保留为视觉任务目标。
 
 ---
 
@@ -513,7 +513,7 @@ curl http://localhost:20128/api/monitoring/health
 ### 自动速率限制未触发
 
 - 自动速率限制仅适用于 API 密钥提供者（不适用于 OAuth/订阅）
-- 验证 **设置 → 弹性 → 提供者配置文件** 是否已启用自动速率限制
+- 确认已在 **设置 → 弹性 → 提供者配置文件** 中启用自动速率限制
 - 检查提供者是否返回 `429` 状态码或 `Retry-After` 标头
 
 ### 调整指数退避
@@ -521,12 +521,12 @@ curl http://localhost:20128/api/monitoring/health
 提供者配置文件支持以下设置：
 
 - **基础延迟** — 首次失败后的初始等待时间（默认值：1s）
-- **最大延迟** — 最长等待时间上限（默认值：30s）
-- **乘数** — 每次连续失败后延迟增加的倍数（默认值：2x）
+- **最大延迟** — 等待时间上限（默认值：30s）
+- **倍数** — 每次连续失败时延迟的增长倍数（默认值：2x）
 
 ### 防止惊群效应
 
-当大量并发请求访问受到速率限制的提供者时，OmniRoute 会使用互斥锁 + 自动速率限制来串行化请求并防止级联故障。对于 API 密钥提供者，此机制会自动启用。
+当大量并发请求访问受到速率限制的提供者时，OmniRoute 会使用互斥锁 + 自动速率限制来串行化请求并防止级联故障。对于 API 密钥提供者，此机制会自动生效。
 
 ### 聊天请求失败并返回 503 / chat_admission_busy
 
@@ -534,16 +534,14 @@ curl http://localhost:20128/api/monitoring/health
 
 - 聊天补全端点返回可重试的 `503` 响应，其错误代码为
   `chat_admission_busy`。
-- 响应包含 `Retry-After`。自 #12135 起，该值根据观测到的
-  占用情况计算得出——取请求已经等待的 `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` 窗口
-  与当前重量级租约已持有时间中的较大值——向上舍入到整秒，
-  并以 60 秒为上限。在空闲准入门控上，它会保留历史下限：基于字节的路径为 2 秒，
-  基于结构的路径为 1 秒（后者还会包含
+- 响应包含 `Retry-After`。从 #12135 开始，该值根据观测到的占用情况计算得出：
+  取请求已经等待的 `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` 时间窗口与当前重量级租约
+  已持有时间中的较大值，向上取整为整数秒，并以 60 秒为上限。在准入门控空闲时，
+  它会保留历史下限：基于字节的路径为 2 秒，基于结构的路径为 1 秒（后者还包含
   `reason: "structure_limit"`）。
-- 当另一个重量级聊天请求或长时间运行的流式响应仍在
-  处理中时，可能会发生这种情况。
+- 当另一个重量级聊天请求或长时间运行的流式响应仍在处理中时，可能会发生这种情况。
 
-基于字节的响应正文为：
+基于字节的响应正文如下：
 
 ```json
 {
@@ -558,45 +556,43 @@ curl http://localhost:20128/api/monitoring/health
 基于结构的响应使用相同的类型和代码，其消息为
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 并包含 `reason: "structure_limit"`。
-在默认阈值下，如果请求包含至少 `200` 条消息、
-至少 `64` 个工具或至少 `32,000` 个估算令牌，或者有界结构估算
-耗尽了 `10,000` 个已访问节点或深度 `12` 的限制，则该请求会被视为结构重量级请求。
+在默认阈值下，如果请求至少包含 `200` 条消息、至少 `64` 个工具或至少 `32,000` 个估算令牌，
+或者有界结构估算耗尽了其 `10,000` 个已访问节点或深度 `12` 的限制，则该请求会被视为结构上的重量级请求。
 
-**原因：** 这是 OmniRoute 内部有意执行的负载卸除，而不是上游提供者故障。
-每个进程都会使用进程本地守卫，在保留并解析大型请求正文之前预留有限的
-重量级容量。重量级租约会在 SSE 响应的整个生命周期内保持占用。
+**原因：** 这是 OmniRoute 内部有意执行的负载卸载，而不是上游提供者故障。
+每个进程都会使用进程本地保护机制，在保留和解析大型请求正文之前预留有限的重量级处理容量。
+重量级租约会在 SSE 响应的整个生命周期内一直保持。
 
-**#503 扇出：** 在此修复之前，无论主机内存如何，守卫都会将并发限制为固定的请求数量
-（`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`，默认值为 `1`），因此编码代理的
-扇出（多个子代理/CLI，请求正文通常 > 256 KB）会使有效并发量骤降至约 1，
-并在完全正常的负载下返回 503。现在，守卫会进行自我调优：它由自动推导的
-摄取字节预算（`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`）控制，该预算根据进程的
-实际内存上限确定；同时还会参考实时资源压力信号——因此，它只会在主机确实
-面临内存压力时卸除负载，而不会仅仅因为同时到达多个重量级请求就这样做。
-旧的计数上限（`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`）仍然有效，但仅在你显式设置它时生效。
+**#503 扇出：** 在此修复之前，保护机制会将并发数限制为固定的请求**数量**
+（`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`，默认值为 `1`），而不考虑主机内存，因此编码智能体的
+扇出（多个子智能体/CLI，正文通常 > 256 KB）会使有效并发数下降到约 1，并在完全正常的负载下
+返回 503。现在，保护机制会自动调优：它由根据进程实际内存上限自动推导出的摄取**字节**预算
+（`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`）控制，同时还会参考实时资源压力信号——因此，只有当主机
+确实承受内存压力时才会卸载请求，而不会仅仅因为同时到达了多个重量级请求就执行卸载。
+旧的数量上限（`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`）仍会生效，但仅限于你显式设置它的情况。
 
-当容量繁忙时，重量级请求会先等待最多
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`（默认值为 `2000`，设置为 `0` 将禁用等待），以便等待空位释放，
-然后才返回可重试的 `503`。这种有界等待机制可让扇出并发重量级子请求的代理类客户端
-（OpenCode、Claude Code、Cursor）将突发请求串行化，
-而不是因立即遭到拒绝而耗尽全部重试预算并在任务中途终止。
-当前重量级租约占用情况、解析后的字节预算和实时压力严重程度可在
+当容量繁忙时，重量级请求会先等待最长
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`（默认为 `RATE_LIMIT_MAX_WAIT_MS`；`0` 表示禁用等待），
+以便等待空位释放，然后才返回可重试的 `503`。有界等待机制使以智能体方式工作的客户端
+（OpenCode、Claude Code、Cursor）能够在并发扇出重量级子请求时将突发请求串行化，而不是因请求
+立即被拒绝而耗尽全部重试预算并在任务中途失败。
+当前重量级租约占用情况、解析后的字节预算和实时压力严重程度会在
 `GET /api/monitoring/health` → `chatAdmission`（`inflightBytes`、`maxInflightBytes`、
-`budgetSource`、`pressureSeverity`、`countCapEnabled`）中查看——在修改任何环境变量之前，请先检查这些值。
-设置 → 弹性 → 请求队列 → 并发请求并不控制此机制；该设置
-控制的是另一个独立的提供者请求队列机制。
+`budgetSource`、`pressureSeverity`、`countCapEnabled`）中公开——在修改任何环境变量之前，
+请先检查这些信息。
+设置 → 弹性 → 请求队列 → 并发请求并不控制此机制；该设置管理的是独立的提供者请求队列机制。
 
 **修复方法：**
 
-1. 首先重试。客户端应遵循 `Retry-After` 并使用退避，而不是立即
+1. 首先重试。客户端应遵循 `Retry-After` 并使用退避机制，而不是立即
    重复请求。
 2. 在调整任何设置之前，请检查 `/api/monitoring/health` → `chatAdmission`。`countCapEnabled:
-false` 且 `maxInflightBytes` 足够大，意味着自动推导的预算已经在正常
-   工作；如果 `pressureSeverity` 为 `high`/`critical`，则表示主机确实内存不足——
-   这种情况无法通过准入环境变量修复，需要增加 RAM 或减少工作负载。
-3. 仅当 `/api/monitoring/health` 显示自动推导的预算对于你的
-   主机确实过小（这种情况很少见——它已经可以从容器扩展到裸机）时，才应直接使用
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 覆盖该预算，而不是退回使用旧版请求数量上限。
+false` 且 `maxInflightBytes` 足够大，意味着自动推导的预算已经正常工作；
+   `pressureSeverity` 为 `high`/`critical` 意味着主机确实内存不足——
+   这无法通过准入环境变量解决，需要增加 RAM 或减小工作负载。
+3. 仅当 `/api/monitoring/health` 显示自动推导的预算对于你的主机确实过小时
+   （这种情况很少见——它已经可以从容器扩展到裸机），才应直接使用
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` 覆盖该预算，而不是退回到旧版请求数量上限。
 
 有关权威的准入设置，请参阅[环境变量参考](../reference/ENVIRONMENT.md#4-security--authentication)。
 

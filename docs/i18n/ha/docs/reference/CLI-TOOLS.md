@@ -43,11 +43,10 @@ ACP Agents (gudanar ƙaddamarwa ta akasin hanya):
 
 ---
 
-## Saita ta atomatik da `setup-*`
+## Saita kai da kansa tare da `setup-*`
 
-Ba sai ka rubuta config na kowane kayan aiki da hannu ba. OmniRoute yana zuwa da umarnin `setup-*`
-ga kowane CLI da ake tallafawa, wanda ke karanta kundin model na **kai tsaye** daga OmniRoute
-mai gudana (na gida ko na nesa), sannan ya rubuta config na kayan aikin a kan na'urarka:
+Ba lallai ne ku rubuta kowane tsarin kayan aiki da hannu ba. OmniRoute yana jigilar umarnin `setup-*`
+ga kowane CLI mai goyan baya wanda ke karanta kundin samfurin **rayuwa** daga OmniRoute mai gudana (na gida ko na nesa) kuma yana rubuta tsarin kayan aikin a kan injin ku:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,52 +56,52 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Kowannensu yana karɓar `--remote <url> --api-key <key>` (saita kayan aiki na gida
-don amfani da OmniRoute na nesa), `--dry-run` (duba abin da zai faru ba tare da
-rubutawa ba), da `--port`. Kayan aikin da ba su da gano model ta atomatik (Cline,
-Kilo, Roo, Goose, Aider, Qwen, 5dive) suna karɓar `--model <id>` (da `--yes` don
-gudanarwa mara hulɗa). `setup-5dive` ne kaɗai tsarin da ba ya rubutawa ƙarƙashin
-`$HOME`: yana saita rundunar wakilan 5dive ta hanyar rubuta auth profile mallakin
-root a kan host na rundunar, don haka yana sake aiwatar da kansa ta `sudo`
-kuma ba shi da nasa yanayin nesa. Don ƙaddamar da CLI tare da shigar da
-env da ya dace ba tare da rubuta wani config kwata-kwata ba, yi amfani da
-babban mai ƙaddamarwa `omniroute run <target>` (claude, codex, aider, goose,
-opencode, qwen, gemini — targets da aliases suna fitowa daga
-`bin/cli/cli-manifest.mjs`); tsofaffin masu ƙaddamarwa na kowane kayan aiki,
-`omniroute launch` (Claude Code) da `omniroute launch-codex` (Codex), har yanzu
-suna samuwa. Gemini CLI na ƙaddamarwa kaɗai ne: yana cikin targets na
-`omniroute run`, amma ba shi da tsarin `setup-*`/`configure`.
+Kowane yana karɓar `--remote <url> --api-key <key>` (saita kayan aiki na gida akan
+OmniRoute mai nisa), `--dry-run` (duba ba tare da rubutawa ba), da `--port`. Kayan aiki
+ba tare da gano samfurin kai tsaye ba (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) suna ɗaukar
+`--model <id>` (da `--yes` don gudanarwa mara mu'amala). `setup-5dive` shine kawai
+girke-girke wanda baya rubutawa a ƙarƙashin `$HOME`: yana saita rundunar wakili na 5dive ta
+rubuta bayanin martaba na mallakar tushen akan mai masaukin rundunar, don haka yana sake aiwatarwa ta hanyar `sudo`
+kuma bashi da yanayin nesa na kansa. Don ƙaddamar da CLI tare da
+ingantaccen yanayin da aka saka kuma ba a rubuta tsari ba kwata-kwata, yi amfani da mai ƙaddamarwa na gabaɗaya
+`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
+gemini — manufofin da sunaye na zuwa daga `bin/cli/cli-manifest.mjs`); tsofaffin
+masu ƙaddamarwa na kowane kayan aiki `omniroute launch` (Claude Code) da `omniroute launch-codex`
+(Codex) suna nan. Gemini CLI yana ƙaddamarwa ne kawai: manufa ce ta `omniroute run`
+amma bashi da girke-girke na `setup-*`/`configure`.
 
-> **Cikakken bayani:** babban tebur — abin da kowane umarni ke rubutawa, dukkan flags,
-> na gida da na nesa, da waɗanne kayan aiki ke buƙatar ƙarin `/v1` — yana cikin
-> **[Haɗe-haɗen CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Cikakken bayani:** babban tebur — abin da kowane umarni ke rubutawa, kowane tuta,
+> na gida vs na nesa, da kuma waɗanne kayan aiki ke buƙatar kari na `/v1` — yana cikin
+> **[Haɗin CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### Gudanar da waɗannan a cikin container
+### Gudanar da waɗannan a cikin akwati
 
-Umarnin `setup-*` da aka aiwatar a cikin container na OmniRoute yana rubutawa cikin
-home na container ɗin kansa, wanda babu wani CLI na host da ke karantawa kuma wanda
-ke ɓacewa tare da container ɗin. OmniRoute yana gano hakan kuma ya fita da `2` tare
-da umarni maimakon yin rubutu. Akwai hanyoyi biyu da ake tallafawa — shigar da CLI
-a kan host sannan a yi `omniroute connect` zuwa container, ko a bind-mount
-config dirs sannan a saita `CLI_CONFIG_HOME` (compose profile na `host`). Kowane
-umarnin `setup-*`, tare da `omniroute configure` da `omniroute config set`, yana
-karɓar `--allow-container-write` idan abin da kake nufi a zahiri shi ne saita CLI
-na container ɗin kansa; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` yana yin
-haka ga server. Duba
-[Jagorar Docker → Saita kayan aikin CLI na host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Umarnin `setup-*` da aka aiwatar a cikin akwati na OmniRoute yana rubutawa cikin
+gidan akwatin, wanda babu wani CLI mai masaukin baki da ke karantawa kuma wanda ke ɓacewa tare da
+akwatin. OmniRoute yana gano hakan kuma yana fita `2` tare da umarni maimakon
+rubutawa. Hanyoyi biyu masu goyan baya gaba — shigar da CLI akan mai masaukin baki kuma
+`omniroute connect` zuwa akwatin, ko haɗa-haɗa kundin tsarin kuma saita
+`CLI_CONFIG_HOME` (tsarin `host` na haɗawa). Kowane umarnin `setup-*`, da kuma
+`omniroute configure` da `omniroute config set`, yana karɓar
+`--allow-container-write` lokacin da saita CLIs na akwatin shine abin da kuke
+nufi; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` yana yin daidai ga
+sabar. Duba
+[Jagorar Docker → Saita kayan aikin CLI na mai masaukin baki](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**apply endpoint** na dashboard (`POST /api/cli-tools/apply`) yana aiwatar da
-wannan kariyar iri ɗaya: a cikin container, rubutun da target ɗinsa ba a bind-mount
-daga host ba yana amsawa da **`422`** tare da `containerEphemeralTarget: true`,
-saƙon kuskure mai aminci da kuma — ga kayan aikin da suke da tsarin host (claude,
-codex, opencode, cline, kilo, continue) — `hostSetupCommand` (misali
-`omniroute setup-opencode`) da za a gudanar a kan host maimakon haka; ba a rubuta
-komai. `dryRun: true` yana ci gaba da aiki a yanayin container kuma yana mayar da
-abubuwan da aka samar + target path ba tare da taɓa disk ba, don haka za ka iya
-yin samfoti daga dashboard sannan ka aiwatar a kan host. Wannan halayyar ganganci
-ce kuma regression guard na
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` yana kare ta — kada a taɓa
-"gyara" 422 ta hanyar cire kariyar.
+**Ma'aunin aikace-aikacen** na dashboard (`POST /api/cli-tools/apply`) yana aiwatar da
+daidai kariya: a cikin akwati, rubutu wanda manufarsa ba a haɗa-haɗa daga
+mai masaukin baki ba yana amsa **`422`** tare da `containerEphemeralTarget: true`, kuskuren
+lafiya da — ga kayan aikin da ke da girke-girke na mai masaukin baki (claude, codex, opencode, cline,
+kilo, ci gaba) — `hostSetupCommand` (misali `omniroute setup-opencode`) don gudanarwa
+akan mai masaukin baki maimakon; ba a rubuta komai ba. `dryRun: true` yana ci gaba da aiki a yanayin akwati
+kuma yana dawo da samfoti da aka gyara + hanyar manufa ba tare da taɓa diski ba. Abun ciki na samfoti
+ba tsari ne mai ɗauke da takardun shaida don kwafa ko shigo da shi ba. Aiwatar da
+asalin kayan aiki/tushen URL/API key/samfurin shigarwa akan mai masaukin baki, ko amfani da umarnin
+saitawa na gefen mai masaukin baki da aka nuna. Duba [tsaron tsarin CLI](../security/CLI-CONFIGURATION.md)
+don kanun samfoti da kwangilar buƙata. Wannan hali
+yana da niyya kuma an kiyaye shi daga koma baya ta
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — kada ku taɓa "gyara" 422
+ta hanyar cire kariya.
 
 ---
 

@@ -37,13 +37,15 @@ Cookie: auth_token=<JWT signed with JWT_SECRET>
 
 A cookie is a session only when the JWT verifies **and** carries `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Every
-consumer of the cookie (route guard, authz pipeline refresh, WebSocket handshake, live
+consumer of the cookie (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh, WebSocket handshake, live
 server, `/api/settings/require-login`, `/api/auth/status`) goes through that helper.
 Other JWTs signed with `JWT_SECRET` exist — the Cursor CLI passthrough mints
 `iss "omniroute" / aud "cursor-cli"` tokens for key holders — and are never sessions
 (#13298).
 
 Verified by `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. The pipeline auto-refreshes the JWT when it has fewer than 7 days left in its 30-day lifetime.
+
+A session can also end before its 30 days are up, because every minter goes through `mintDashboardSessionToken` (an issue time `iat` and an id `jti`) and the verifier checks two settings: `sessionsValidAfter`, set by a password change so every session issued before it stops verifying (the browser that changed the password gets a fresh cookie), and `revokedDashboardSessions`, to which `POST /api/auth/logout` adds the signed-out session's `jti`. Sessions minted by an older release carry neither claim and stay valid until the first password change. If the settings cannot be read, the session is not trusted.
 
 Some management routes accept **either** mode: cookie OR `Bearer <key>` when the API key has the `manage` (or `admin`) scope. This is what enables the "configurable via API calls" workflow added in v3.8.
 
@@ -64,10 +66,11 @@ supplemented:
 - `GET /api/auth/oidc/callback` validates `state`, exchanges the authorization
   code, and verifies the ID token's signature via the issuer's JWKS
   (`jose`'s `createRemoteJWKSet`, cached per JWKS URI) with `issuer`/`audience`
-  checks. An optional `oidcAllowedSubjects` allowlist matches the token's
-  `sub` claim or its `email` claim — the email claim is only honored when
-  `email_verified === true`, so an unverified email at the IdP can never pass
-  the gate.
+  checks. The `oidcAllowedSubjects` allowlist is required: it matches the
+  token's `sub` claim or its `email` claim — the email claim is only honored
+  when `email_verified === true`, so an unverified email at the IdP can never
+  pass the gate — and with no entries the callback refuses every login
+  (`not_configured`).
 - On success it mints the **exact same** 30-day `auth_token` JWT the password
   login issues (`src/app/api/auth/login/route.ts`), so the rest of the
   dashboard session pipeline (auto-refresh, cookie flags) is unchanged —

@@ -130,22 +130,26 @@ sake kunnawa ba.
 
 ## Misali: reverse proxy a gaban OmniRoute
 
-OmniRoute da kansa ne ke tilasta CORS, don haka gabaɗaya bai kamata proxy ya ƙara ko
-sake rubuta headers na `Access-Control-*` ba (headers biyu suna hana browsers aiki). Ƙare TLS
-sannan ka tura buƙatar — bari OmniRoute ya amsa preflight:
+OmniRoute da kansa ne ke aiwatar da CORS, don haka gabaɗaya bai kamata proxy ya ƙara ko
+ya sake rubuta headers na `Access-Control-*` ba (headers biyu suna hana browsers aiki). Ƙare TLS
+sannan a tura — a bar OmniRoute ya amsa preflight:
 
 ```nginx
-# nginx — tura zuwa OmniRoute; KADA KA saka Access-Control-* a nan
+# nginx — tura zuwa OmniRoute; KADA a saka Access-Control-* a nan
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # KADA KA saita X-Forwarded-For zuwa 127.0.0.1 — hakan yana karya kariyar hanyar loopback.
+    # A riƙe headers na turawa: proxy da ke kan host ɗaya yana haɗawa daga loopback, kuma su ne
+    # ke sanar da OmniRoute cewa mai kiran ba local operator ba ne. Proxy da bai ƙara ko ɗaya daga cikinsu ba
+    # yana sa kowane mai kira daga nesa ya bayyana a matsayin na cikin gida. Haka kuma, kada a taɓa saita X-Forwarded-For zuwa 127.0.0.1.
 }
 ```
 
-Saita asalan browser da aka amince da su a cikin OmniRoute (`CORS_ALLOWED_ORIGINS` ko
-shafin Security), ba a cikin proxy ba.
+Saita browser origins da aka yarda da su a cikin OmniRoute (`CORS_ALLOWED_ORIGINS` ko
+Security tab), ba a cikin proxy ba.
 
 ## Fayilolin tushe
 

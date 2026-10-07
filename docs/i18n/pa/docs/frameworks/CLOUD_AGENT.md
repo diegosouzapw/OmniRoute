@@ -109,15 +109,24 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // ਅਨੁਮਾਨ-ਆਧਾਰਿਤ ਅੱਪਸਟ੍ਰੀਮ ਸਟ੍ਰਿੰਗ → enum
+  protected mapStatus(raw: string): CloudAgentStatus; // ਹਿਊਰਿਸਟਿਕ ਅੱਪਸਟ੍ਰੀਮ-ਸਟ੍ਰਿੰਗ → enum
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` ਜਾਣਬੁੱਝ ਕੇ ਤਰੁੱਟੀ ਸੁੱਟਦਾ ਹੈ — Codex Cloud ਆਪਣੇ-ਆਪ ਯੋਜਨਾ ਬਣਾਉਂਦਾ ਹੈ ਅਤੇ ਇਸ ਵਿੱਚ ਕੋਈ ਮਨਜ਼ੂਰੀ ਗੇਟ ਨਹੀਂ ਹੈ। `CodexCloudAgent.listSources`, `[]` ਵਾਪਸ ਕਰਦਾ ਹੈ।
+`CodexCloudAgent.approvePlan` ਜਾਣਬੁੱਝ ਕੇ ਅਪਵਾਦ ਸੁੱਟਦਾ ਹੈ — Codex Cloud ਆਪਣੇ-ਆਪ ਯੋਜਨਾ ਬਣਾਉਂਦਾ ਹੈ ਅਤੇ
+ਇਸ ਵਿੱਚ ਮਨਜ਼ੂਰੀ ਗੇਟ ਨਹੀਂ ਹੈ। `CodexCloudAgent.listSources`, `[]` ਵਾਪਸ ਕਰਦਾ ਹੈ।
 
-`CursorCloudAgent`, **ਵਰਤੋਂਕਾਰ ਜਾਂ ਸਰਵਿਸ-ਅਕਾਊਂਟ API ਕੁੰਜੀ** ਰਾਹੀਂ Cursor ਦੀ ਅਧਿਕਾਰਤ REST API (`api.cursor.com/v0`) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਉਸਦੇ Background / Cloud Agents ਨੂੰ ਚਲਾਉਂਦਾ ਹੈ — ਇਹ Cursor IDE ਦੇ OAuth ਸੈਸ਼ਨ (ਪ੍ਰਦਾਤਾ `cursor`, ਜਿਸ ਨਾਲ ਪਾਬੰਦੀ ਲੱਗਣ ਦੇ ਜੋਖ਼ਮ ਦੀ ਚੇਤਾਵਨੀ ਜੁੜੀ ਹੈ) ਨੂੰ ਮੁੜ ਵਰਤਣ ਦੇ ਮੁਕਾਬਲੇ ਵਧੇਰੇ ਸੁਰੱਖਿਅਤ, ਪਹਿਲੀ-ਧਿਰ ਵਾਲਾ ਵਿਕਲਪ ਹੈ। ਇਹ ਇੱਕ ਸਧਾਰਨ REST ਅਡੈਪਟਰ ਹੈ (ਕੋਈ `@cursor/sdk` ਮੂਲ ਡਿਪੈਂਡੈਂਸੀ ਨਹੀਂ)। `approvePlan` ਤਰੁੱਟੀ ਸੁੱਟਦਾ ਹੈ (Cursor ਏਜੰਟ ਖੁਦਮੁਖਤਿਆਰੀ ਨਾਲ ਚੱਲਦੇ ਹਨ); `listSources` ਕੁੰਜੀ ਰਾਹੀਂ ਪਹੁੰਚਯੋਗ ਰਿਪੋਜ਼ਟਰੀਆਂ ਦੀ ਸੂਚੀ ਦਿੰਦਾ ਹੈ। Cursor ਵੱਡੇ ਅੱਖਰਾਂ ਵਾਲੇ ਸਥਿਤੀ enum (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) ਵਾਪਸ ਕਰਦਾ ਹੈ, ਜਿਨ੍ਹਾਂ ਨੂੰ ਸਪਸ਼ਟ ਤੌਰ 'ਤੇ ਸਾਂਝੇ `CloudAgentStatus` ਨਾਲ ਮੈਪ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। `baseUrl` ਨੂੰ ਹਰ ਕ੍ਰੀਡੈਂਸ਼ਲ ਲਈ ਓਵਰਰਾਈਡ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ, ਤਾਂ ਜੋ API ਵਰਜਨ/ਪਾਥ ਨੂੰ ਕੋਡ ਬਦਲੇ ਬਿਨਾਂ ਠੀਕ ਕੀਤਾ ਜਾ ਸਕੇ।
+`CursorCloudAgent`, Cursor ਦੇ Background / Cloud Agents ਨੂੰ ਇਸ ਦੀ ਅਧਿਕਾਰਤ REST
+API (`api.cursor.com/v0`) ਰਾਹੀਂ ਇੱਕ **ਯੂਜ਼ਰ ਜਾਂ ਸਰਵਿਸ-ਅਕਾਊਂਟ API ਕੁੰਜੀ** ਨਾਲ ਚਲਾਉਂਦਾ ਹੈ — ਇਹ Cursor IDE ਦੇ OAuth ਸੈਸ਼ਨ ਨੂੰ ਮੁੜ ਵਰਤਣ ਦੇ ਮੁਕਾਬਲੇ ਵਧੇਰੇ ਸੁਰੱਖਿਅਤ,
+ਪਹਿਲੀ-ਧਿਰ ਵਿਕਲਪ ਹੈ (ਪ੍ਰਦਾਤਾ `cursor`,
+ਜਿਸ ਨਾਲ ਪਾਬੰਦੀ ਲੱਗਣ ਦੇ ਜੋਖਮ ਦੀ ਚੇਤਾਵਨੀ ਜੁੜੀ ਹੈ)। ਇਹ ਇੱਕ ਸਧਾਰਨ REST ਐਡਾਪਟਰ ਹੈ (ਕੋਈ `@cursor/sdk` ਨੇਟਿਵ
+ਨਿਰਭਰਤਾ ਨਹੀਂ)। `approvePlan` ਅਪਵਾਦ ਸੁੱਟਦਾ ਹੈ (Cursor ਏਜੰਟ ਖੁਦਮੁਖਤਿਆਰ ਢੰਗ ਨਾਲ ਚੱਲਦੇ ਹਨ); `listSources` ਉਹਨਾਂ
+ਰਿਪੋਜ਼ਟਰੀਆਂ ਨੂੰ ਸੂਚੀਬੱਧ ਕਰਦਾ ਹੈ ਜਿਨ੍ਹਾਂ ਤੱਕ ਕੁੰਜੀ ਦੀ ਪਹੁੰਚ ਹੈ। Cursor ਵੱਡੇ ਅੱਖਰਾਂ ਵਾਲੇ ਸਥਿਤੀ enum
+(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) ਵਾਪਸ ਕਰਦਾ ਹੈ, ਜਿਨ੍ਹਾਂ ਨੂੰ ਸਪਸ਼ਟ ਤੌਰ 'ਤੇ ਸਾਂਝੇ
+`CloudAgentStatus` ਨਾਲ ਮੈਪ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। `baseUrl` ਨੂੰ ਹਰੇਕ ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਲਈ ਓਵਰਰਾਈਡ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ, ਤਾਂ ਜੋ API ਵਰਜਨ/ਪਾਥ ਨੂੰ
+ਕੋਡ ਬਦਲੇ ਬਿਨਾਂ ਠੀਕ ਕੀਤਾ ਜਾ ਸਕੇ।
 
 ## ਡੋਮੇਨ ਕਿਸਮਾਂ
 
@@ -294,24 +303,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 ਅੱਪਸਟ੍ਰੀਮ ਪ੍ਰਦਾਤਾ ਨੂੰ ਕਾਲ **ਨਹੀਂ** ਕਰਦਾ — `CloudAgentBase` ਵਿੱਚ ਕੋਈ abort RPC ਨਹੀਂ ਹੈ। ਅੱਪਸਟ੍ਰੀਮ
 ਬਿਲਿੰਗ ਰੋਕਣ ਲਈ, ਪ੍ਰਦਾਤਾ ਦੇ ਆਪਣੇ ਕੰਸੋਲ ਵਿੱਚ ਟਾਸਕ ਨੂੰ ਸਮਾਪਤ ਕਰੋ।
 
-## REST API — ਕਲਾਉਡ ਪ੍ਰੋਵਾਈਡਰ ਪਲੰਬਿੰਗ
+## REST API — ਕਲਾਉਡ ਪ੍ਰਦਾਤਾ ਪਲੰਬਿੰਗ
 
-`src/app/api/cloud/` ਅਧੀਨ ਇਹ ਸਹਾਇਕ ਐਂਡਪੌਇੰਟ ਰਿਮੋਟ ਕਲਾਇੰਟਾਂ
-(CLI, Electron ਐਪ, ਜਾਂ ਸਿੰਕ ਵਰਕਰਾਂ) ਵੱਲੋਂ ਪ੍ਰੋਵਾਈਡਰ ਕਨੈਕਸ਼ਨ ਮੈਟਾਡਾਟਾ ਪੜ੍ਹਨ
-ਅਤੇ ਮਾਡਲ ਉਪਨਾਮਾਂ ਨੂੰ ਰਿਜ਼ਾਲਵ ਕਰਨ ਲਈ ਵਰਤੇ ਜਾਂਦੇ ਹਨ। ਇਨ੍ਹਾਂ ਨੂੰ ਟਾਸਕ ਐਂਡਪੌਇੰਟਾਂ ਵੱਲੋਂ ਵਰਤੀ ਜਾਂਦੀ ਮੈਨੇਜਮੈਂਟ ਪ੍ਰਮਾਣਿਕਤਾ ਦੀ ਬਜਾਏ ਇੱਕ **ਨਿਯਮਤ API ਕੁੰਜੀ**
-(`validateApiKey` ਰਾਹੀਂ) ਨਾਲ ਪ੍ਰਮਾਣਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
+`src/app/api/cloud/` ਹੇਠਾਂ ਦਿੱਤੇ ਇਹ ਸਹਾਇਕ ਐਂਡਪੌਇੰਟ ਰਿਮੋਟ ਕਲਾਇੰਟਾਂ
+(CLI, Electron ਐਪ, ਜਾਂ ਸਿੰਕ ਵਰਕਰਾਂ) ਵੱਲੋਂ ਪ੍ਰਦਾਤਾ ਕਨੈਕਸ਼ਨ ਮੈਟਾਡੇਟਾ ਪੜ੍ਹਨ
+ਅਤੇ ਮਾਡਲ ਉਪਨਾਮ ਹੱਲ ਕਰਨ ਲਈ ਵਰਤੇ ਜਾਂਦੇ ਹਨ। ਇਨ੍ਹਾਂ ਦੀ ਪ੍ਰਮਾਣਿਕਤਾ ਪ੍ਰਬੰਧਨ ਪ੍ਰਮਾਣਿਕਤਾ
+ਦੀ ਬਜਾਏ ਇੱਕ **API ਕੁੰਜੀ** (`validateApiKey` ਰਾਹੀਂ) ਨਾਲ ਕੀਤੀ ਜਾਂਦੀ ਹੈ; `/api/cloud/auth`
+ਵੱਲੋਂ ਵਾਪਸ ਕੀਤਾ ਜਾਣ ਵਾਲਾ ਡੇਟਾ ਕੁੰਜੀ ਦੇ ਸਕੋਪ 'ਤੇ ਨਿਰਭਰ ਕਰਦਾ ਹੈ (ਹੇਠਾਂ ਵੇਖੋ)।
 
 | ਵਿਧੀ | ਪਾਥ                             | ਉਦੇਸ਼                                                                    |
 | ---- | ------------------------------- | ------------------------------------------------------------------------ |
-| POST | `/api/cloud/auth`               | API ਕੁੰਜੀ ਪ੍ਰਮਾਣਿਤ ਕਰੋ, ਮਾਸਕ ਕੀਤਾ ਕਨੈਕਸ਼ਨ ਮੈਟਾਡਾਟਾ + ਮਾਡਲ ਉਪਨਾਮ ਵਾਪਸ ਕਰੋ |
+| POST | `/api/cloud/auth`               | API ਕੁੰਜੀ ਪ੍ਰਮਾਣਿਤ ਕਰੋ, ਮਾਸਕ ਕੀਤਾ ਕਨੈਕਸ਼ਨ ਮੈਟਾਡੇਟਾ + ਮਾਡਲ ਉਪਨਾਮ ਵਾਪਸ ਕਰੋ |
 | PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` ਨੂੰ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ            |
-| POST | `/api/cloud/model/resolve`      | ਮਾਡਲ ਉਪਨਾਮ ਨੂੰ `{ provider, model }` ਵਿੱਚ ਰਿਜ਼ਾਲਵ ਕਰੋ                    |
-| GET  | `/api/cloud/models/alias`       | ਸਾਰੇ ਮਾਡਲ ਉਪਨਾਮਾਂ ਦੀ ਸੂਚੀ ਦਿਓ                                            |
-| PUT  | `/api/cloud/models/alias`       | ਮਾਡਲ ਉਪਨਾਮ ਸੈੱਟ ਕਰੋ (ਅਤੇ ਸਮਰੱਥ ਹੋਣ 'ਤੇ Cloud ਨਾਲ ਆਪਣੇ ਆਪ ਸਿੰਕ ਕਰੋ)       |
+| POST | `/api/cloud/model/resolve`      | ਮਾਡਲ ਉਪਨਾਮ ਨੂੰ `{ provider, model }` ਵਿੱਚ ਹੱਲ ਕਰੋ                        |
+| GET  | `/api/cloud/models/alias`       | ਸਾਰੇ ਮਾਡਲ ਉਪਨਾਮ ਸੂਚੀਬੱਧ ਕਰੋ                                              |
+| PUT  | `/api/cloud/models/alias`       | ਮਾਡਲ ਉਪਨਾਮ ਸੈੱਟ ਕਰੋ (ਅਤੇ ਸਮਰੱਥ ਹੋਣ 'ਤੇ Cloud ਨਾਲ ਆਪਣੇ-ਆਪ ਸਿੰਕ ਕਰੋ)       |
 
 `/api/cloud/auth` ਕਦੇ ਵੀ ਕੱਚੇ `apiKey` / `accessToken` / `refreshToken` ਵਾਪਸ ਨਹੀਂ ਕਰਦਾ। ਇਹ
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken`, ਅਤੇ ਇੱਕ ਮਾਸਕ ਕੀਤਾ ਪੂਰਵਦਰਸ਼ਨ
-(`maskedApiKey`: ਪਹਿਲੇ 4 + `****` + ਆਖਰੀ 4) ਵਾਪਸ ਕਰਦਾ ਹੈ।
+ਉਨ੍ਹਾਂ ਸਰਗਰਮ ਕਨੈਕਸ਼ਨਾਂ ਲਈ `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ਵਾਪਸ ਕਰਦਾ ਹੈ ਜਿਨ੍ਹਾਂ ਨੂੰ
+ਕੁੰਜੀ ਵਰਤ ਸਕਦੀ ਹੈ (`allowedConnections` ਨਾਲ ਸੀਮਿਤ ਕੁੰਜੀ ਸਿਰਫ਼ ਉਹੀ ਕਨੈਕਸ਼ਨ ਵੇਖਦੀ ਹੈ)। `manage`
+ਜਾਂ `admin` ਸਕੋਪ ਵਾਲੀ API ਕੁੰਜੀ ਲਈ, ਜਿਸ ਵਿੱਚ `OMNIROUTE_API_KEY` ਤੋਂ ਡਿਪਲੌਇਮੈਂਟ ਕੁੰਜੀ ਵੀ ਸ਼ਾਮਲ ਹੈ,
+ਇਹ ਮਾਸਕ ਕੀਤਾ ਪੂਰਵਦਰਸ਼ਨ (`maskedApiKey`: ਹਰ ਸਿਰੇ 'ਤੇ ਵੱਧ ਤੋਂ ਵੱਧ 4 ਅੱਖਰ, ਛੋਟੀ ਕੁੰਜੀ ਲਈ ਘੱਟ,
+ਅਤੇ 8 ਜਾਂ ਇਸ ਤੋਂ ਘੱਟ ਅੱਖਰਾਂ ਲਈ ਕੋਈ ਨਹੀਂ) ਅਤੇ ਕਨੈਕਸ਼ਨ ਦਾ `projectId` ਵੀ ਵਾਪਸ ਕਰਦਾ ਹੈ। ਕਿਸੇ ਵੀ
+ਹੋਰ ਕੁੰਜੀ ਲਈ ਦੋਵੇਂ ਫ਼ੀਲਡ ਜਵਾਬ ਵਿੱਚੋਂ ਛੱਡ ਦਿੱਤੇ ਜਾਂਦੇ ਹਨ।
 
 ## ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਰਿਜ਼ੋਲਿਊਸ਼ਨ
 

@@ -13,27 +13,23 @@ declare const EdgeRuntime: string | undefined;
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import {
   buildAgentRequestBody,
   decodeAgentServerMessage,
   decodeExecServerEvent,
   decodeKvServerEvent,
   encodeRequestContextResponse,
+  encodeMcpStateResponse,
+  OMNIROUTE_MCP_SERVER_IDENTIFIER,
   encodeKvGetBlobResult,
   encodeKvSetBlobResult,
-  encodeExecReadRejected,
-  encodeExecWriteRejected,
-  encodeExecDeleteRejected,
-  encodeExecLsRejected,
-  encodeExecShellRejected,
-  encodeExecBackgroundShellSpawnRejected,
-  encodeExecGrepError,
-  encodeExecFetchError,
-  encodeExecWriteShellStdinError,
-  encodeExecDiagnosticsResult,
+  encodeExecListMcpResourcesResult,
   flattenMessages,
+  messageContentToText,
   openAIToolsToMcpDefs,
   type ChatMessage,
+  type CursorTurnUsage,
   type EncodedImage,
   type ExecServerEvent,
   type McpToolDefinition,
@@ -58,6 +54,7 @@ import {
   type StreamingState as ComposerStreamingState,
 } from "../utils/composerToolCalls.ts";
 import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
+import { isPiExecEvent, type PiExecEvent } from "../utils/cursorAgentProtobuf/pi.ts";
 import {
   CursorApiKeyExchangeError,
   invalidateCursorSessionToken,
@@ -66,12 +63,11 @@ import {
   stripCursorOAuthTokenPrefix,
 } from "../services/cursorApiKeyAuth.ts";
 import crypto from "crypto";
-import * as fs from "node:fs";
-import * as zlib from "node:zlib";
-import { promisify } from "node:util";
 import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
 import {
   bridgeCursorBuiltinTool,
+  bridgeCursorGitDiff,
+  bridgeCursorPiTool,
   bridgeCursorNativeTodoWrite,
   extractLatestTodoHistory,
   selectCursorBridgeTools,
@@ -84,12 +80,18 @@ import {
   composerReasoningRemainder,
 } from "./cursor/composer.ts";
 import { CursorServerConfigError, resolveCursorAgentUrl } from "./cursor/agentEndpoint.ts";
+import { driveCursorH2 } from "./cursor/streamDriver.ts";
+import { buildExecRejection } from "./cursor/execRejections.ts";
+import { openCursorH2 } from "./cursor/h2AgentStream.ts";
 import {
   classifyCursorError,
   isCursorBenignCancelError,
   resolveCursorEmptyTurnError,
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
+import { resolveCursorWireConversationId } from "./cursor/conversationId.ts";
+import type { CursorReportedUsage } from "../services/cursorSessionManager.ts";
+import type { CursorTtftBreakdown } from "../utils/cursorAgentProtobuf/ttft.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
 import {
   createNarrationStreamScrubber,
@@ -102,13 +104,6 @@ export {
   visibleComposerContentFromThinking,
   composerReasoningRemainder,
 } from "./cursor/composer.ts";
-
-// Reject reason text aligned with kaitranntt/CLIProxyAPIPlus — proven to
-// keep cursor's model from retrying the same built-in tool indefinitely.
-// The model adapts and either answers from context or uses declared MCP tools.
-const BUILTIN_TOOL_REJECT_REASON =
-  "Tool not available in this environment. Use the MCP tools provided instead.";
-const gunzipAsync = promisify(zlib.gunzip);
 
 // Tool-commit directive — adapted from composer-api's TOOL_SYSTEM_DIRECTIVE.
 // composer-2.5 otherwise narrates intent ("Checking the weather...") and ends
@@ -135,75 +130,22 @@ const TOOL_COMMIT_DIRECTIVE = [
  * to inject MCP tools in Phase 3) and for exec_mcp (model is invoking a
  * declared MCP tool — Phase 5 surfaces this as an OpenAI tool_calls delta).
  */
-function buildExecRejection(event: ExecServerEvent): Buffer | null {
-  switch (event.kind) {
-    case "exec_request_context":
-    case "exec_mcp":
-      return null;
-    case "exec_read":
-      return encodeExecReadRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_write":
-      return encodeExecWriteRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_delete":
-      return encodeExecDeleteRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_ls":
-      return encodeExecLsRejected(
-        event.execMsgId,
-        event.execId,
-        event.path,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_grep":
-      return encodeExecGrepError(event.execMsgId, event.execId, BUILTIN_TOOL_REJECT_REASON);
-    case "exec_diagnostics":
-      // Diagnostics has no rejection variant — return an empty success.
-      return encodeExecDiagnosticsResult(event.execMsgId, event.execId);
-    case "exec_shell":
-    case "exec_shell_stream":
-      return encodeExecShellRejected(
-        event.execMsgId,
-        event.execId,
-        event.command,
-        event.workingDir,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_bg_shell":
-      return encodeExecBackgroundShellSpawnRejected(
-        event.execMsgId,
-        event.execId,
-        event.command,
-        event.workingDir,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_fetch":
-      return encodeExecFetchError(
-        event.execMsgId,
-        event.execId,
-        event.url,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-    case "exec_write_shell_stdin":
-      return encodeExecWriteShellStdinError(
-        event.execMsgId,
-        event.execId,
-        BUILTIN_TOOL_REJECT_REASON
-      );
-  }
+/**
+ * Built-in execs whose result can be expressed as a typed success once the
+ * client answers. Everything else keeps the fail-closed rejection.
+ */
+function heldExecKind(
+  kind: ExecServerEvent["kind"]
+): "read" | "shell" | "shell_stream" | "mini_swe_bash" | "write" | "grep" | "ls" | "fetch" | null {
+  if (kind === "exec_read") return "read";
+  if (kind === "exec_write") return "write";
+  if (kind === "exec_grep") return "grep";
+  if (kind === "exec_ls") return "ls";
+  if (kind === "exec_fetch") return "fetch";
+  if (kind === "exec_shell") return "shell";
+  if (kind === "exec_shell_stream") return "shell_stream";
+  if (kind === "exec_mini_swe_bash") return "mini_swe_bash";
+  return null;
 }
 
 // Detect cloud environment (Edge runtime, Cloudflare Workers, etc.)
@@ -230,33 +172,6 @@ const CURSOR_DEBUG = process.env.CURSOR_DEBUG === "1" || process.env.CURSOR_STRE
 const debugLog = (...args: unknown[]) => {
   if (CURSOR_DEBUG) console.log(...args);
 };
-
-// Phase 8: max wall-clock time before we give up on the upstream and abort
-// the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded. A malformed env
-// value (NaN / non-positive) falls back to the default rather than breaking
-// setTimeout.
-const CURSOR_STREAM_TIMEOUT_MS = (() => {
-  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
-})();
-
-// Grace window after a composer kv_after_text soft terminator when bytes
-// remain buffered: gives a trailing exec_mcp tool call time to complete its
-// frame without letting plain-chat latency regress to the full stream
-// timeout. 2s covers every exec_mcp-behind-kv ordering observed live.
-const KV_GRACE_MS = (() => {
-  const parsed = parseInt(process.env.CURSOR_KV_GRACE_MS || "2000", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 2000;
-})();
-
-// Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
-// declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
-// that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
-// for bytes that never arrive. Real cursor frames are well under 1 MiB
-// (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
-// turns the failure into a clean stream error instead of memory exhaustion.
-const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 function tryParseJsonError(payload: Buffer): { message: string; status: number } | null {
   if (payload.length < 2 || payload[0] !== 0x7b) return null;
@@ -309,9 +224,22 @@ export type StreamCtx = {
   totalText: string;
   thinkingText: string;
   tokenDelta: number;
+  // Cursor's metered counts from TurnEndedUpdate (unset until turn_ended carries them).
+  // They total the whole run, including segments reported by earlier HTTP requests.
+  turnUsage?: CursorTurnUsage;
+  // Usage earlier segments of this run already reported (inline tool resume).
+  priorReportedUsage: CursorReportedUsage | null;
+  // Usage this segment reported, set by buildCursorUsage.
+  reportedUsage: CursorReportedUsage | null;
+  // Cursor's server-side TTFT split (AgentServerMessage.ttft_breakdown), when sent.
+  ttftBreakdown: CursorTtftBreakdown | null;
   // End-signal tracking (Phase 8 hardens this further).
   receivedText: boolean;
   kvAfterTextSeen: boolean;
+  // A tool call (Cursor-internal such as composer's get_mcp_tools, or a client
+  // tool still streaming) started after the last text/thinking delta. A KV
+  // checkpoint in that window is not the end of the turn.
+  toolActivitySinceText: boolean;
   endReason: "turn_ended" | "kv_after_text" | "tool_calls" | "server_end" | null;
   // Mid-stream JSON error (rare; emitted once with the error code).
   midStreamError: { message: string; status: number } | null;
@@ -331,6 +259,45 @@ export type StreamCtx = {
   // role:"tool" message can be answered on the open h2 stream via
   // encodeExecMcpResult.
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
+  /**
+   * Bytes received but not yet consumed when the turn settled. Cursor often
+   * puts the start of the next frame in the same TCP segment as the frame that
+   * ends the turn; dropping them made the NEXT run read the stream from the
+   * middle of a frame, so nothing decoded and it stalled until the safety
+   * timeout. Carried into the session and replayed as the next run's prefix.
+   */
+  leftoverBytes: Buffer;
+  /** Field number of the most recent exec variant this build cannot handle. */
+  unknownExecField: number | null;
+  lastUnknownUpdateField: number | null;
+  pendingBuiltinExecs: Map<
+    string,
+    {
+      execMsgId: number;
+      execId: string;
+      kind:
+        | "read"
+        | "shell"
+        | "shell_stream"
+        | "mini_swe_bash"
+        | "git_diff"
+        | "write"
+        | "grep"
+        | "ls"
+        | "fetch"
+        | PiExecEvent["kind"];
+      path: string;
+      command: string;
+      workingDir: string;
+      fileText: string;
+      returnFileContentAfterWrite?: boolean;
+      /** The offset/limit of a held read that was forwarded to the client. */
+      readRange?: { offset?: number; limit?: number };
+      pattern: string;
+      outputMode?: string;
+      url?: string;
+    }
+  >;
   // Built-in Cursor tools are bridged to external OpenAI tool calls by first
   // rejecting the native request. Their result therefore cannot resume on the
   // same h2 stream and must use the existing full-history cold-resume path.
@@ -365,13 +332,21 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     totalText: "",
     thinkingText: "",
     tokenDelta: 0,
+    priorReportedUsage: null,
+    reportedUsage: null,
+    ttftBreakdown: null,
     receivedText: false,
     kvAfterTextSeen: false,
+    toolActivitySinceText: false,
     endReason: null,
     midStreamError: null,
     emittedToolCallIndex: 0,
     toolCalls: [],
     pendingToolCalls: new Map(),
+    leftoverBytes: Buffer.alloc(0),
+    unknownExecField: null,
+    lastUnknownUpdateField: null,
+    pendingBuiltinExecs: new Map(),
     requiresColdResume: false,
     composerVisibleEmittedLength: 0,
     composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
@@ -433,23 +408,90 @@ export function emitCursorSseError(ctx: StreamCtx, classified: ClassifiedCursorE
 }
 
 export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
+  const metered = ctx.turnUsage;
+  if (metered?.inputTokens !== undefined && metered.outputTokens !== undefined) {
+    // Cursor's TurnEndedUpdate `input` already includes the cache reads (live:
+    // input 56201 with cache_read 56192 on a ~57k prompt), which matches OpenAI's
+    // prompt_tokens / prompt_tokens_details.cached_tokens. It totals the whole
+    // run, so subtract what earlier tool-resume segments of the same run
+    // reported; the segments then sum to Cursor's metering.
+    const cacheRead = metered.cacheReadTokens ?? 0;
+    const cacheWrite = metered.cacheWriteTokens ?? 0;
+    const prior = ctx.priorReportedUsage ?? { prompt: 0, completion: 0, cached: 0 };
+    const runInput = Math.max(metered.inputTokens, cacheRead + cacheWrite);
+    const prompt = Math.max(0, runInput - prior.prompt);
+    const completion = Math.max(0, metered.outputTokens - prior.completion);
+    const cached = Math.min(prompt, Math.max(0, cacheRead - prior.cached));
+    ctx.reportedUsage = { prompt, completion, cached };
+    const usage: Record<string, unknown> = {
+      prompt_tokens: prompt,
+      completion_tokens: completion,
+      total_tokens: prompt + completion,
+      prompt_tokens_details: {
+        cached_tokens: cached,
+        ...(cacheWrite > 0 ? { cache_creation_tokens: cacheWrite } : {}),
+      },
+    };
+    if (metered.reasoningTokens) {
+      usage.completion_tokens_details = { reasoning_tokens: metered.reasoningTokens };
+    }
+    return addBufferToUsage(usage);
+  }
   const promptTokens = estimateInputTokens(body);
   const completionTokens =
-    ctx.tokenDelta > 0
+    metered?.outputTokens ??
+    (ctx.tokenDelta > 0
       ? ctx.tokenDelta
-      : estimateOutputTokens(ctx.totalText.length + ctx.thinkingText.length);
+      : estimateOutputTokens(ctx.totalText.length + ctx.thinkingText.length));
+  ctx.reportedUsage = { prompt: promptTokens, completion: completionTokens, cached: 0 };
   const usage: Record<string, unknown> = {
     prompt_tokens: promptTokens,
     completion_tokens: completionTokens,
     total_tokens: promptTokens + completionTokens,
     estimated: true,
   };
-  if (ctx.thinkingText.length > 0) {
+  if (metered?.cacheReadTokens !== undefined || metered?.cacheWriteTokens !== undefined) {
+    usage.prompt_tokens_details = {
+      ...(metered.cacheReadTokens !== undefined ? { cached_tokens: metered.cacheReadTokens } : {}),
+      ...(metered.cacheWriteTokens !== undefined
+        ? { cache_creation_tokens: metered.cacheWriteTokens }
+        : {}),
+    };
+  }
+  if (metered?.reasoningTokens !== undefined || ctx.thinkingText.length > 0) {
     usage.completion_tokens_details = {
-      reasoning_tokens: estimateOutputTokens(ctx.thinkingText.length),
+      reasoning_tokens: metered?.reasoningTokens ?? estimateOutputTokens(ctx.thinkingText.length),
     };
   }
   return addBufferToUsage(usage);
+}
+
+/**
+ * One log line per turn with Cursor's own TTFT split and metered cache usage,
+ * so a slow turn can be attributed to the router or to Cursor. Null when
+ * Cursor sent neither.
+ */
+export function formatCursorTurnMetrics(ctx: StreamCtx): string | null {
+  const t = ctx.ttftBreakdown;
+  const u = ctx.turnUsage;
+  if (!t && !u) return null;
+  const parts: string[] = [];
+  if (t) {
+    parts.push(
+      `server_first_token=${Math.round(t.serverFirstTokenMs)}ms`,
+      `provider_ttft=${Math.round(t.providerTtftMs)}ms`,
+      `pre_stream=${Math.round(t.preStreamSetupMs)}ms`,
+      `slow_pool=${Math.round(t.slowPoolWaitMs)}ms`
+    );
+  }
+  if (u) {
+    parts.push(
+      `in=${u.inputTokens ?? 0}`,
+      `cache_read=${u.cacheReadTokens ?? 0}`,
+      `out=${u.outputTokens ?? 0}`
+    );
+  }
+  return `[CURSOR] ${ctx.model} turn: ${parts.join(" ")}`;
 }
 
 function emitUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
@@ -603,15 +645,61 @@ export function processFrame(
     // "already ended". Under load the exec_mcp can arrive in the same TCP
     // segment as the KV checkpoint — the tool call must still be surfaced.
     const reopensTurn = !!ctx.endReason;
+    debugLog(`[cursor-agent] exec kind=${event.kind} end=${ctx.endReason ?? "none"}`);
     if (event.kind === "exec_request_context") {
       if (opts.h2Req) {
         try {
-          // Cursor receives tools via AgentRunRequest.mcp_tools (request body)
-          // — sending them again in the request_context ack causes the
-          // server to stall silently. Empty ack only.
-          opts.h2Req.write(encodeRequestContextResponse(event.execMsgId, event.execId));
+          // The ack carries the tool set on RequestContext.tools (field 7) plus
+          // the McpMetaToolOptions descriptors that make it discoverable through
+          // Cursor's GetDynamicTools meta tool. An empty ack was previously
+          // required only because the tools were being written to field 2
+          // (`rules`), which the server silently stalled on.
+          opts.h2Req.write(
+            encodeRequestContextResponse(event.execMsgId, event.execId, opts.mcpTools ?? [])
+          );
         } catch (e) {
           console.debug(`[CURSOR] request_context ack write failed:`, e);
+        }
+      }
+    } else if (event.kind === "exec_unknown") {
+      // Name the field so a new Cursor variant shows up as a clear log line
+      // (and, via the idle watchdog below, a 502 that names it) instead of a
+      // five-minute silent hang. Suggested by @QuangBlue on #14737.
+      ctx.unknownExecField = event.variantField;
+      debugLog(
+        `[cursor-agent] unhandled exec variant field=${event.variantField} — no handler in this build`
+      );
+    } else if (event.kind === "exec_list_mcp_resources") {
+      // Blocking exec: answer with an empty success (OmniRoute exposes tools,
+      // not MCP resources) so the turn can finish.
+      if (opts.h2Req) {
+        try {
+          opts.h2Req.write(encodeExecListMcpResourcesResult(event.execMsgId, event.execId));
+        } catch (e) {
+          console.debug(`[CURSOR] list_mcp_resources ack write failed:`, e);
+        }
+      }
+    } else if (event.kind === "exec_mcp_state") {
+      // mcp_state_exec_args (field 36) is a blocking request: the server asks
+      // which MCP servers exist and emits only heartbeats until it is answered.
+      if (opts.h2Req) {
+        try {
+          const serverIdentifier =
+            event.serverIdentifiers.find((id) => id.trim().length > 0) ??
+            OMNIROUTE_MCP_SERVER_IDENTIFIER;
+          opts.h2Req.write(
+            encodeMcpStateResponse(
+              event.execMsgId,
+              event.execId,
+              serverIdentifier,
+              opts.mcpTools ?? []
+            )
+          );
+          debugLog(
+            `[cursor-agent] answered mcp_state server=${serverIdentifier} tools=[${(opts.mcpTools ?? []).map((t) => t.name).join(",")}]`
+          );
+        } catch (e) {
+          console.debug(`[CURSOR] mcp_state ack write failed:`, e);
         }
       }
     } else if (event.kind === "exec_mcp") {
@@ -642,10 +730,36 @@ export function processFrame(
       // Cursor/Fable frequently chooses its native Shell tool even when the
       // OpenAI client declared external tools. If a schema-compatible shell
       // tool exists, surface the native request as a structured OpenAI call.
-      // We still send the typed rejection upstream, then close this h2 stream;
-      // the role:"tool" follow-up is resumed cold from the full history.
-      const bridge = bridgeCursorBuiltinTool(event, opts.mcpTools ?? [], opts.clientPlatform);
-      const rejection = buildExecRejection(event);
+      // Held execs receive the client tool's result on this h2 stream; tools
+      // without a compatible result use a rejection and cold resume.
+      const bridge =
+        event.kind === "exec_git_diff"
+          ? bridgeCursorGitDiff(event, opts.mcpTools ?? [])
+          : isPiExecEvent(event)
+            ? bridgeCursorPiTool(event, opts.mcpTools ?? [])
+            : bridgeCursorBuiltinTool(event, opts.mcpTools ?? [], opts.clientPlatform);
+      const heldKind = bridge
+        ? event.kind === "exec_git_diff"
+          ? "git_diff"
+          : isPiExecEvent(event)
+            ? event.kind
+            : heldExecKind(event.kind)
+        : null;
+      if (
+        (event.kind === "exec_git_diff" && !bridge) ||
+        (event.kind === "exec_execute_hook" && !event.hookField)
+      ) {
+        ctx.unknownExecField = event.kind === "exec_git_diff" ? 44 : 27;
+      }
+      debugLog(
+        `[cursor-agent] builtin kind=${event.kind} bridge=${bridge?.toolName ?? "none"} held=${heldKind ?? "no"}`
+      );
+      if (event.kind === "exec_grep") {
+        debugLog(
+          `[cursor-agent] grep mode=${event.outputMode || "unspecified"} patternLength=${event.pattern.length} pathPresent=${!!event.path}`
+        );
+      }
+      const rejection = heldKind ? null : buildExecRejection(event);
       if (rejection && opts.h2Req) {
         try {
           opts.h2Req.write(rejection);
@@ -654,8 +768,38 @@ export function processFrame(
         }
       }
       if (bridge) {
-        emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
-        ctx.requiresColdResume = true;
+        const openAIToolCallId = emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
+        if (heldKind) {
+          // Hold the exec open: the client's output comes back as a
+          // role:"tool" message and is returned to Cursor as this exec's
+          // SUCCESS. Telling Cursor the exec was rejected instead makes the
+          // model believe its own tool never ran, so it retries the same step
+          // forever (observed: an agent re-reading a missing file in a loop).
+          ctx.pendingBuiltinExecs.set(openAIToolCallId, {
+            execMsgId: event.execMsgId,
+            execId: event.execId,
+            kind: heldKind,
+            path: "path" in event ? event.path : "",
+            command: "command" in event ? event.command : "",
+            workingDir: "workingDir" in event ? event.workingDir : "",
+            fileText: "fileText" in event ? event.fileText : "",
+            readRange:
+              event.kind === "exec_read" &&
+              ("offset" in bridge.arguments || "limit" in bridge.arguments)
+                ? {
+                    offset: "offset" in bridge.arguments ? event.offset : undefined,
+                    limit: "limit" in bridge.arguments ? event.limit : undefined,
+                  }
+                : undefined,
+            returnFileContentAfterWrite:
+              event.kind === "exec_write" ? event.returnFileContentAfterWrite : undefined,
+            pattern: "pattern" in event ? event.pattern : "",
+            outputMode: event.kind === "exec_grep" ? event.outputMode : undefined,
+            url: event.kind === "exec_fetch" ? event.url : undefined,
+          });
+        } else {
+          ctx.requiresColdResume = true;
+        }
         ctx.endReason = "tool_calls";
       }
     }
@@ -667,7 +811,7 @@ export function processFrame(
     deltas = decodeAgentServerMessage(payload);
   } catch (err) {
     debugLog("[cursor-agent] decode failed:", (err as Error).message);
-    return;
+    throw err;
   }
   for (const d of deltas) {
     if (d.kind === "native_todo_write") {
@@ -694,6 +838,7 @@ export function processFrame(
       // totalText must equal what the client actually received.
       const safeDelta = ctx.narrationScrubber.feed(d.text);
       ctx.receivedText = true;
+      ctx.toolActivitySinceText = false;
       if (safeDelta) {
         ctx.totalText += safeDelta;
         emitChunk(ctx, { content: safeDelta });
@@ -705,6 +850,7 @@ export function processFrame(
       }
       ctx.thinkingText += d.text;
       ctx.receivedText = true;
+      ctx.toolActivitySinceText = false;
       // Composer (decolua/9router#1310) encodes the visible reply inside the
       // thinking field, after a final `</think>` marker. Emit the post-marker
       // suffix as plain `content` (so OpenAI-compatible clients see the reply)
@@ -767,7 +913,21 @@ export function processFrame(
     } else if (d.kind === "token_delta") {
       ctx.tokenDelta += d.tokens;
     } else if (d.kind === "turn_ended") {
+      if (d.usage) ctx.turnUsage = d.usage;
       if (ctx.endReason !== "tool_calls") ctx.endReason = "turn_ended";
+    } else if (d.kind === "ttft_breakdown") {
+      const { kind: _kind, ...breakdown } = d;
+      ctx.ttftBreakdown = breakdown;
+    } else if (d.kind === "unknown") {
+      // Field 7 is partial_tool_call: it streams a tool call before
+      // tool_call_started, and Cursor can save KV blobs in between.
+      if (d.field === 7) ctx.toolActivitySinceText = true;
+      if (ctx.lastUnknownUpdateField !== d.field) {
+        debugLog(`[cursor-agent] unhandled interaction update field=${d.field}`);
+      }
+      ctx.lastUnknownUpdateField = d.field;
+    } else if (d.kind === "tool_call_started") {
+      ctx.toolActivitySinceText = true;
     } else if (d.kind === "tool_call_completed" && ctx.toolCalls.length > 0) {
       // Phase 6: model paused awaiting tool result. driveH2 returns but the
       // h2 stream stays open — the session manager keeps it alive for the
@@ -783,11 +943,10 @@ export function processFrame(
       // turn. Phase 8 keeps both signals as defense-in-depth.
       //
       // Safe vs tool calls (composer family only): when the model invokes a
-      // tool, the exec_mcp event always arrives at or before this kv
-      // checkpoint (verified across many live composer-2.5 trials — a tool call
-      // never follows kv_after_text), so endReason is already "tool_calls" by
-      // the time we get here. Ending on kv_after_text therefore never truncates
-      // a pending tool call on composer.
+      // tool straight after text, the exec_mcp event always arrives at or
+      // before this kv checkpoint (verified across many live composer-2.5
+      // trials), so endReason is already "tool_calls" by the time we get here.
+      // The exception is a Cursor-internal tool call in between (below).
       //
       // Non-composer models (cursor/grok-4.5-high, auto, ...) emit the KV
       // checkpoint as a blob-store side-channel frame (envelope field 4,
@@ -798,11 +957,32 @@ export function processFrame(
       // this family only the real terminal signals (turn_ended,
       // tool_call_completed, server_end) decide — kvAfterTextSeen is kept purely
       // as an observational flag, never as the turn terminator.
+      //
+      // Composer also runs Cursor-internal tools mid-turn (get_mcp_tools, served
+      // through exec mcp_state) and saves KV blobs before it sends the exec_mcp
+      // for the client tool. A KV checkpoint after such a tool, with no
+      // text since, is that save — not the end of the turn.
       ctx.kvAfterTextSeen = true;
-      if (isComposerModel(ctx.model)) {
+      if (isComposerModel(ctx.model) && !ctx.toolActivitySinceText) {
         ctx.endReason = "kv_after_text";
       }
     }
+  }
+}
+
+/** Custom aliases are routing names, not exact wire ids reported by Cursor. */
+export async function loadCursorWireModelIds(
+  provider: string,
+  loadCatalog: (
+    id: string,
+    includeCustomModels: boolean
+  ) => Promise<{ models: Array<{ id: string }> }> = getActiveSyncedCatalog
+): Promise<ReadonlySet<string> | undefined> {
+  try {
+    const catalog = await loadCatalog(provider, false);
+    return catalog.models.length ? new Set(catalog.models.map((model) => model.id)) : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -842,11 +1022,12 @@ export class CursorExecutor extends BaseExecutor {
     }
   }
 
-  buildHeaders(credentials) {
+  async buildHeaders(credentials) {
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
     const cleanToken = stripCursorOAuthTokenPrefix(credentials.accessToken ?? "");
     const requestId = crypto.randomUUID();
     const traceParent = `00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01`;
+    const clientVersion = formatCursorAgentClientVersion(await getCursorAgentCliVersion());
 
     // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
     // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.
@@ -861,7 +1042,7 @@ export class CursorExecutor extends BaseExecutor {
       traceparent: traceParent,
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
+      "x-cursor-client-version": clientVersion,
       "x-ghost-mode": ghostMode ? "true" : "false",
       "x-original-request-id": requestId,
       "x-request-id": requestId,
@@ -894,7 +1075,10 @@ export class CursorExecutor extends BaseExecutor {
     max_completion_tokens?: unknown;
     stop?: unknown;
     response_format?: unknown;
-  }): { userText: string; tools: OpenAITool[] | undefined } {
+    reasoning_effort?: unknown;
+    reasoning?: { effort?: unknown };
+    output_config?: { effort?: unknown };
+  }): { userText: string; tools: OpenAITool[] | undefined; reasoningEffort?: string } {
     const messages: ChatMessage[] = body.messages || [];
     const declaredTools: OpenAITool[] | undefined = Array.isArray(body.tools)
       ? (body.tools as OpenAITool[])
@@ -921,7 +1105,12 @@ export class CursorExecutor extends BaseExecutor {
     // max_tokens / stop) as trailing prompt constraints.
     userText += buildCursorOutputConstraints(body);
 
-    return { userText, tools };
+    const effort = body.reasoning_effort ?? body.reasoning?.effort ?? body.output_config?.effort;
+    return {
+      userText,
+      tools,
+      reasoningEffort: typeof effort === "string" ? effort : undefined,
+    };
   }
 
   /**
@@ -951,13 +1140,7 @@ export class CursorExecutor extends BaseExecutor {
    * undefined so resolveRequestedModel keeps #7289 offline splitting.
    */
   private async loadLiveCatalogIds(): Promise<ReadonlySet<string> | undefined> {
-    try {
-      const catalog = await getActiveSyncedCatalog(this.provider);
-      if (!catalog.models.length) return undefined;
-      return new Set(catalog.models.map((model) => model.id));
-    } catch {
-      return undefined;
-    }
+    return loadCursorWireModelIds(this.provider);
   }
 
   private async buildRequest(
@@ -971,9 +1154,13 @@ export class CursorExecutor extends BaseExecutor {
       max_completion_tokens?: unknown;
       stop?: unknown;
       response_format?: unknown;
-    }
+      reasoning_effort?: unknown;
+      reasoning?: { effort?: unknown };
+      output_config?: { effort?: unknown };
+    },
+    wireConversationId?: string
   ): Promise<{ body: Uint8Array; blobStore: Map<string, Buffer> }> {
-    const { userText, tools } = this.assembleTextAndTools(body);
+    const { userText, tools, reasoningEffort } = this.assembleTextAndTools(body);
     const [images, liveCatalogIds] = await Promise.all([
       this.resolveRequestImages(body),
       this.loadLiveCatalogIds(),
@@ -982,8 +1169,9 @@ export class CursorExecutor extends BaseExecutor {
     const blobStore = new Map<string, Buffer>();
     const requestBody = buildAgentRequestBody({
       modelId: model,
+      reasoningEffort,
       userText,
-      conversationId: body.conversation_id,
+      conversationId: wireConversationId ?? body.conversation_id,
       tools,
       blobStore,
       images,
@@ -995,28 +1183,17 @@ export class CursorExecutor extends BaseExecutor {
   transformRequest(model, body, _stream, _credentials) {
     // Sync interface method (not used by cursor's own execute() path, which
     // uses the async buildRequest). Text-only — image resolution is async.
-    const { userText, tools } = this.assembleTextAndTools(body);
+    const { userText, tools, reasoningEffort } = this.assembleTextAndTools(body);
     const blobStore = new Map<string, Buffer>();
     return buildAgentRequestBody({
       modelId: model,
+      reasoningEffort,
       userText,
       conversationId: body.conversation_id,
       tools,
       blobStore,
     });
   }
-
-  // ─── h2 lifecycle: open + drive (Phase 4 streaming refactor) ─────────────
-  //
-  // openH2 establishes the bidirectional stream and waits for the response
-  // headers (so we can decide whether to commit to a streaming SSE Response
-  // or return an error). driveH2 then consumes data events incrementally,
-  // dispatching frames through processFrame so SSE chunks land on the
-  // ReadableStream controller as the upstream produces them.
-  //
-  // The fetch fallback (cloud envs without http2) preserves the legacy
-  // buffer-then-decode behavior — Connect-RPC bidirectional ack-on-same-stream
-  // can't run over a one-shot fetch anyway.
 
   private async openH2(
     url: string,
@@ -1032,125 +1209,10 @@ export class CursorExecutor extends BaseExecutor {
     consumeError: () => Promise<Buffer>;
   }> {
     if (!http2) throw new Error("http2 module not available");
-
-    return new Promise((resolve, reject) => {
-      const urlObj = new URL(url);
-      const client = http2!.connect(`https://${urlObj.host}`);
-      const earlyChunks: Buffer[] = [];
-      let resolved = false;
-
-      client.on("error", (err) => {
-        if (!resolved) reject(err);
-      });
-
-      const req = client.request({
-        ":method": "POST",
-        ":path": urlObj.pathname,
-        ":authority": urlObj.host,
-        ":scheme": "https",
-        ...headers,
-      });
-
-      const onAbort = () => {
-        try {
-          req.close();
-          client.close();
-        } catch {
-          // Expected: connection may already be closed
-        }
-        if (!resolved) {
-          resolved = true;
-          reject(new Error("aborted"));
-        }
-      };
-      if (signal) signal.addEventListener("abort", onAbort);
-
-      req.on("response", (h) => {
-        if (resolved) return;
-        resolved = true;
-        const status = Number(h[":status"] ?? HTTP_STATUS.SERVER_ERROR);
-        // For non-200 statuses, drain the remaining body for an error message.
-        // The caller calls consumeError() to await the full body.
-        const consumeError = () =>
-          new Promise<Buffer>((res) => {
-            const out = [...earlyChunks];
-            req.on("data", (c) => out.push(Buffer.from(c)));
-            req.on("end", () => {
-              try {
-                req.close();
-                client.close();
-              } catch {
-                // Expected: connection may already be closed
-              }
-              if (signal) signal.removeEventListener("abort", onAbort);
-              res(Buffer.concat(out));
-            });
-            req.on("error", () => {
-              try {
-                req.close();
-                client.close();
-              } catch {
-                // Expected: connection may already be closed
-              }
-              if (signal) signal.removeEventListener("abort", onAbort);
-              res(Buffer.concat(out));
-            });
-          });
-        resolve({
-          status,
-          headers: h as Record<string, string | number>,
-          client,
-          req,
-          initialBytes: Buffer.concat(earlyChunks),
-          consumeError,
-        });
-      });
-
-      // Buffer any data that arrives before the response event resolves.
-      // (In practice the response event fires first, but this guards against
-      // implementation differences in node:http2.)
-      req.on("data", (chunk) => {
-        if (!resolved) earlyChunks.push(Buffer.from(chunk));
-      });
-
-      req.on("error", (err) => {
-        if (!resolved) {
-          resolved = true;
-          if (signal) signal.removeEventListener("abort", onAbort);
-          reject(err);
-        }
-      });
-
-      // Bidirectional streaming: write the init message but DO NOT send
-      // END_STREAM — cursor's server stops responding once we close our side.
-      // Guard the write like every h2Req.write in processFrame: a synchronous
-      // failure here (e.g. stream already torn down) would otherwise leave the
-      // request hung until the safety timeout instead of failing fast.
-      try {
-        req.write(body);
-      } catch (err) {
-        if (!resolved) {
-          resolved = true;
-          if (signal) signal.removeEventListener("abort", onAbort);
-          try {
-            req.close();
-            client.close();
-          } catch {
-            // Expected: connection may already be closed
-          }
-          reject(err instanceof Error ? err : new Error(String(err)));
-        }
-      }
-    });
+    return openCursorH2(http2, url, headers, body, signal);
   }
 
-  /**
-   * Drive an open h2 stream to completion. processFrame populates ctx as
-   * each Connect-RPC frame is decoded; the loop closes when ctx.endReason
-   * is set (turn_ended, kv_after_text, server_end) or the stream errors.
-   *
-   * Phase 8 will add a max-stream safety timeout here.
-   */
+  /** Drive one Cursor turn while retaining the h2 stream for tool-result follow-ups. */
   private driveH2(
     h2: {
       req: import("http2").ClientHttp2Stream;
@@ -1164,176 +1226,19 @@ export class CursorExecutor extends BaseExecutor {
     todoHistory: CursorTodoHistoryItem[] | undefined,
     signal?: AbortSignal
   ): Promise<void> {
-    const ackedExecIds = new Set<string>();
-    // Rolling buffer: chunks arrive on `data`, get appended, and consumed
-    // frames are sliced off so we don't re-scan + re-concat on every event
-    // (avoids O(N²) for long-running streams).
-    let buf: Buffer = h2.initialBytes.length > 0 ? h2.initialBytes : Buffer.alloc(0);
-
-    return new Promise((resolve, reject) => {
-      let scanning = false;
-      let settled = false;
-      // Grace window after a soft kv_after_text terminator with buffered
-      // bytes still pending: if no further frame completes in this window,
-      // the turn ends anyway — bounded latency, no dependence on the full
-      // safety timeout.
-      let kvGraceTimer: NodeJS.Timeout | null = null;
-      // Phase 8: safety timeout. If neither turn_ended, kv_after_text, nor
-      // server-end fires within CURSOR_STREAM_TIMEOUT_MS, abort the stream
-      // so a stuck upstream doesn't keep the response open indefinitely.
-      const safetyTimer = setTimeout(() => {
-        if (ctx.endReason) return;
-        debugLog("[cursor-agent] stream safety timeout fired");
-        teardown();
-        reject(new Error("cursor-agent stream timed out"));
-      }, CURSOR_STREAM_TIMEOUT_MS);
-
-      const onData = (chunk: Buffer) => {
-        if (CURSOR_DEBUG && process.env.CURSOR_DUMP_FILE) {
-          fs.appendFileSync(process.env.CURSOR_DUMP_FILE, chunk);
-        }
-        buf = buf.length === 0 ? Buffer.from(chunk) : Buffer.concat([buf, chunk]);
-        void tryScan();
-      };
-      const onEnd = () => {
-        if (settled) return;
-        settled = true;
-        if (!ctx.endReason) ctx.endReason = "server_end";
-        detachListeners();
-        resolve();
-      };
-      const onErr = (err: Error) => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(err);
-      };
-      const onAbort = () => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(new Error("aborted"));
-      };
-
-      // detachListeners removes data/end/error/abort handlers and clears the
-      // safety timer. Called on successful resolve when the caller keeps the
-      // h2 alive (Phase 6 session reuse).
-      const detachListeners = () => {
-        clearTimeout(safetyTimer);
-        if (kvGraceTimer) clearTimeout(kvGraceTimer);
-        h2.req.off("data", onData);
-        h2.req.off("end", onEnd);
-        h2.req.off("error", onErr);
-        if (signal) signal.removeEventListener("abort", onAbort);
-      };
-      // teardown additionally closes the h2 stream. Used on error / abort /
-      // safety-timeout — the connection isn't worth keeping at that point.
-      const teardown = () => {
-        detachListeners();
-        try {
-          h2.req.close();
-          h2.client.close();
-        } catch {
-          // Expected: connection may already be closed during teardown
-        }
-      };
-
-      if (signal) signal.addEventListener("abort", onAbort);
-
-      const hasCompleteFrame = () => buf.length >= 5 && buf.length >= 5 + buf.readUInt32BE(1);
-
-      const tryScan = async () => {
-        if (scanning || settled) return;
-        scanning = true;
-        try {
-          let pos = 0;
-          while (!settled && pos + 5 <= buf.length) {
-            const length = buf.readUInt32BE(pos + 1);
-            if (length > CURSOR_MAX_FRAME_BYTES) {
-              // Refuse to buffer an implausibly large frame — fail fast instead
-              // of letting the rolling buffer grow toward OOM.
-              settled = true;
-              teardown();
-              reject(new Error(`cursor-agent frame too large (${length} bytes)`));
-              return;
-            }
-            if (pos + 5 + length > buf.length) break; // partial frame; wait
-            const flag = buf[pos];
-            const raw = buf.subarray(pos + 5, pos + 5 + length);
-            // Per-frame error isolation: if gunzip or processFrame throws on
-            // one frame, log and skip past it instead of getting stuck on
-            // the same offset and hanging until the safety timer fires.
-            try {
-              const payload = flag & 0x1 ? await gunzipAsync(raw) : raw;
-              if (settled) return;
-              processFrame(payload, ctx, ackedExecIds, {
-                h2Req: h2.req,
-                mcpTools,
-                blobStore,
-                clientPlatform,
-                todoHistory,
-              });
-            } catch (err) {
-              debugLog(
-                "[cursor-agent] frame decode failed at pos",
-                pos,
-                ":",
-                (err as Error).message
-              );
-            }
-            pos += 5 + length;
-            if (ctx.endReason) {
-              // kv_after_text is a speculative terminator (Phase 8): under
-              // load the exec_mcp tool call shares the TCP segment with — or
-              // trails by a partial frame — the KV checkpoint. Settling here
-              // would splice it off as leftover and drop the tool call
-              // (#10215 follow-up: empty content, zero tool_calls). Only
-              // settle when the buffer ends at a clean frame boundary; bytes
-              // already in flight belong to this run and are processed by
-              // the next scan pass. A bounded grace window (not the full
-              // safety timeout) still ends the work if no further frame
-              // completes, so plain-chat latency can't regress.
-              const softKv = ctx.endReason === "kv_after_text";
-              const nextFrameStarted = pos < buf.length;
-              if (softKv && nextFrameStarted) {
-                if (!kvGraceTimer) {
-                  kvGraceTimer = setTimeout(() => {
-                    if (settled || !ctx.endReason) return;
-                    settled = true;
-                    detachListeners();
-                    resolve();
-                  }, KV_GRACE_MS);
-                }
-              } else {
-                buf = buf.subarray(pos);
-                settled = true;
-                detachListeners();
-                resolve();
-                return;
-              }
-            }
-          }
-          // Splice off processed bytes so the buffer stays bounded.
-          if (pos > 0) buf = buf.subarray(pos);
-        } finally {
-          scanning = false;
-        }
-
-        if (!settled && hasCompleteFrame()) {
-          void tryScan();
-        }
-      };
-
-      h2.req.on("data", onData);
-      h2.req.on("end", onEnd);
-      h2.req.on("error", onErr);
-
-      // Process any bytes already buffered from openH2.
-      void tryScan();
+    return driveCursorH2(h2, ctx, {
+      mcpTools,
+      blobStore,
+      clientPlatform,
+      todoHistory,
+      signal,
+      debugEnabled: CURSOR_DEBUG,
+      debugLog,
+      onFrame: (payload, ids, opts) => processFrame(payload, ctx, ids, opts),
     });
   }
 
-  async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }) {
+  async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders, clientHeaders }) {
     const fallbackUrl = this.buildUrl();
     const executionCredentials = await this.resolveExecutionCredentials(credentials);
     if (executionCredentials instanceof Response) {
@@ -1349,7 +1254,7 @@ export class CursorExecutor extends BaseExecutor {
       url = await resolveCursorAgentUrl(executionCredentials, signal);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const headers = this.buildHeaders(executionCredentials);
+      const headers = await this.buildHeaders(executionCredentials);
       return {
         response: new Response(
           JSON.stringify({
@@ -1369,7 +1274,7 @@ export class CursorExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
-    const headers = this.buildHeaders(executionCredentials);
+    const headers = await this.buildHeaders(executionCredentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     const messages: ChatMessage[] = body.messages || [];
@@ -1377,8 +1282,37 @@ export class CursorExecutor extends BaseExecutor {
       typeof body.conversation_id === "string" && body.conversation_id
         ? body.conversation_id
         : crypto.randomUUID();
+    // conversationId above stays the per-request session-manager key; Cursor
+    // gets a session-stable id so it keeps the prompt cache.
+    const wireConversationId = resolveCursorWireConversationId(
+      body,
+      clientHeaders,
+      credentials?.connectionId
+    );
     const lastMessage = messages[messages.length - 1];
-    const isToolFollowUp = lastMessage?.role === "tool";
+    // A tool follow-up is "this request carries tool results we may still owe
+    // Cursor", not "the last message happens to be role:tool". The Responses
+    // API path translates function_call_output into a role:"tool" message that
+    // is NOT last (a user turn follows it), so keying off the last message
+    // alone skipped session lookup entirely: every follow-up fell back to a
+    // cold resume, the held exec was never answered, and the model kept
+    // retrying the same built-in tool.
+    const isToolFollowUp =
+      lastMessage?.role === "tool" ||
+      messages.some(
+        (m) => m.role === "tool" && typeof m.tool_call_id === "string" && m.tool_call_id
+      );
+    if (isToolFollowUp) {
+      debugLog(
+        `[cursor-agent] history tail=${messages
+          .slice(-8)
+          .map(
+            (m) =>
+              `${m.role}:${messageContentToText(m.content).length}:${m.tool_call_id ? "tool-id" : "no-id"}`
+          )
+          .join(" ")}`
+      );
+    }
 
     // Tools embedded in the RequestContext ack throughout the turn —
     // synced with mcp_tools in the encoded request body.
@@ -1462,15 +1396,18 @@ export class CursorExecutor extends BaseExecutor {
       for (const msg of messages) {
         if (msg.role !== "tool") continue;
         const id = msg.tool_call_id ?? "";
-        if (!session.pendingToolCalls.has(id)) continue;
-        const content = typeof msg.content === "string" ? msg.content : "";
-        if (cursorSessionManager.sendToolResult(session, id, content, false)) {
+        if (!session.pendingToolCalls.has(id) && !session.pendingBuiltinExecs.has(id)) continue;
+        debugLog(
+          `[cursor-agent] tool result kind=${session.pendingBuiltinExecs.get(id)?.kind ?? "mcp"} contentType=${Array.isArray(msg.content) ? "parts" : typeof msg.content} textLength=${messageContentToText(msg.content).length}`
+        );
+        if (cursorSessionManager.sendToolResult(session, id, msg.content, false)) {
           matched++;
         } else {
           hadFailure = true;
           break;
         }
       }
+      debugLog(`[cursor-agent] resume matched=${matched} failed=${hadFailure}`);
       if (matched === 0 || hadFailure) {
         cursorSessionManager.close(session);
         session = undefined;
@@ -1478,8 +1415,9 @@ export class CursorExecutor extends BaseExecutor {
         h2 = {
           client: session.h2Client,
           req: session.h2Req,
-          initialBytes: Buffer.alloc(0),
+          initialBytes: session.leftoverBytes,
         };
+        session.leftoverBytes = Buffer.alloc(0);
       }
     }
 
@@ -1490,7 +1428,7 @@ export class CursorExecutor extends BaseExecutor {
       // parts (base64 / remote) into inlined cursor images.
       let built;
       try {
-        built = await this.buildRequest(model, body);
+        built = await this.buildRequest(model, body, wireConversationId);
       } catch (err) {
         // Image resolution failures (invalid / oversized / SSRF-blocked) are
         // client errors — return a sanitized 400 rather than a 500.
@@ -1524,7 +1462,15 @@ export class CursorExecutor extends BaseExecutor {
         };
       }
       if (opened.status !== 200) {
-        const errBuf = await opened.consumeError();
+        // Publish the received status so proxy health counts it as upstream.
+        const sink = currentAppliedProxySink();
+        if (sink) sink.upstreamStatus = opened.status;
+        let errBuf: Buffer;
+        try {
+          errBuf = await opened.consumeError();
+        } catch {
+          errBuf = Buffer.alloc(0);
+        }
         const errText = errBuf.toString("utf8") || "Unknown error";
         if (opened.status === HTTP_STATUS.UNAUTHORIZED && isCursorApiKey(credentials.apiKey)) {
           invalidateCursorSessionToken(credentials.apiKey);
@@ -1543,13 +1489,33 @@ export class CursorExecutor extends BaseExecutor {
     // Closure to share the post-drive lifecycle between stream/non-stream paths.
     const sessionToUse = session;
     const finishLifecycle = (ctx: StreamCtx, errored: boolean) => {
+      const turnMetrics = formatCursorTurnMetrics(ctx);
+      if (turnMetrics) console.log(turnMetrics);
       // Persist any new pendingToolCalls from this turn into the session.
       for (const [id, info] of ctx.pendingToolCalls) {
         sessionToUse.pendingToolCalls.set(id, info);
       }
+      // Held built-in execs must survive into the session too, or the client's
+      // role:"tool" follow-up has nothing to answer and the exec stays open.
+      for (const [id, info] of ctx.pendingBuiltinExecs) {
+        sessionToUse.pendingBuiltinExecs.set(id, info);
+      }
+      sessionToUse.leftoverBytes = ctx.leftoverBytes;
+      debugLog(
+        `[cursor-agent] finish error=${errored} end=${ctx.endReason ?? "none"} cold=${ctx.requiresColdResume} held=${ctx.pendingBuiltinExecs.size} mcp=${ctx.pendingToolCalls.size}`
+      );
       if (errored || ctx.endReason !== "tool_calls" || ctx.requiresColdResume) {
         cursorSessionManager.close(sessionToUse);
       } else {
+        const prior = sessionToUse.reportedUsage;
+        const now = ctx.reportedUsage;
+        if (now) {
+          sessionToUse.reportedUsage = {
+            prompt: (prior?.prompt ?? 0) + now.prompt,
+            completion: (prior?.completion ?? 0) + now.completion,
+            cached: (prior?.cached ?? 0) + now.cached,
+          };
+        }
         cursorSessionManager.release(sessionToUse, "awaiting_tool_result");
       }
     };
@@ -1561,6 +1527,7 @@ export class CursorExecutor extends BaseExecutor {
         {
           start: async (controller) => {
             const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
+            ctx.priorReportedUsage = sessionToUse.reportedUsage ?? null;
             try {
               await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, todoHistory, signal);
               this.finalizeSseStream(ctx, body);
@@ -1602,6 +1569,7 @@ export class CursorExecutor extends BaseExecutor {
 
     // Non-streaming: drive to completion, return chat.completion JSON.
     const ctx = newStreamCtx(model, () => {});
+    ctx.priorReportedUsage = sessionToUse.reportedUsage ?? null;
     try {
       await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, todoHistory, signal);
     } catch (err) {
@@ -1627,9 +1595,11 @@ export class CursorExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
+    // Build first: buildCursorUsage records ctx.reportedUsage for finishLifecycle.
+    const response = this.buildResponseFromCtx(ctx, body);
     finishLifecycle(ctx, false);
     return {
-      response: this.buildResponseFromCtx(ctx, body),
+      response,
       url,
       headers,
       transformedBody: body,

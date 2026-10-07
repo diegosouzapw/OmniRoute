@@ -8,6 +8,8 @@ const {
   readBoundedResponseOutcome,
   judgeBufferedTurn,
   FLUSH_EMPTY_RETRY_MAX_BYTES,
+  pickEmptyTurnRetryCredentials,
+  swapCredentialsInPlace,
 } = await import("../../open-sse/utils/emptyTurnRetry.ts");
 const { isEmptyTurnCore } = await import("../../open-sse/utils/streamEmptyChoices.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
@@ -152,8 +154,14 @@ test("bounded read abandons past the cap without buffering everything", async ()
   assert.equal(out, null, "past-cap body must be abandoned, not buffered");
 });
 
+// #14691: a turn that already carries content or a tool call stops the bounded read at its
+// first useful chunk (`early-pass`); only content-free turns are drained to the end. The
+// "intact body" contract therefore applies to a content-free (reasoning-only) turn.
+const contentFreeBody = () =>
+  sse(chatChunk({ reasoning_content: "thinking" }), chatChunk({}, "stop"));
+
 test("bounded read returns small bodies intact", async () => {
-  const body = sse(chatChunk({ content: "hi" }));
+  const body = contentFreeBody();
   const res = new Response(body, { status: 200 });
   const out = await readBoundedResponseText(res, FLUSH_EMPTY_RETRY_MAX_BYTES);
   assert.equal(out, body);
@@ -183,12 +191,48 @@ test("bounded read outcome tells a read failure apart from an over-cap body", as
   );
   assert.equal(skipped.kind, "skipped", "an over-cap body is passed through, not retried");
 
-  const body = sse(chatChunk({ content: "hi" }));
+  const body = contentFreeBody();
   const ok = await readBoundedResponseOutcome(
     new Response(body, { status: 200 }),
     FLUSH_EMPTY_RETRY_MAX_BYTES
   );
   assert.deepEqual(ok, { kind: "text", text: body });
+
+  const useful = await readBoundedResponseOutcome(
+    new Response(sse(chatChunk({ content: "hi" })), { status: 200 }),
+    FLUSH_EMPTY_RETRY_MAX_BYTES
+  );
+  assert.deepEqual(
+    useful,
+    { kind: "early-pass" },
+    "a content turn stops at its first useful chunk"
+  );
+});
+
+test("bounded read returns skipped without awaiting a tee clone cancel", async () => {
+  const BUDGET_MS = 2000;
+  const neverClosing = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("x".repeat(FLUSH_EMPTY_RETRY_MAX_BYTES + 1)));
+    },
+  });
+  let res: Response | undefined;
+  const start = Date.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    res = new Response(neverClosing, { status: 200 });
+    const outcome = await Promise.race([
+      readBoundedResponseOutcome(res, FLUSH_EMPTY_RETRY_MAX_BYTES),
+      new Promise<never>((_, rej) => {
+        timer = setTimeout(() => rej(new Error("bounded read timed out")), BUDGET_MS);
+      }),
+    ]);
+    assert.equal(outcome.kind, "skipped");
+    assert.ok(Date.now() - start < BUDGET_MS, `expected bounded skipped well under ${BUDGET_MS}ms`);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+    await res?.body?.cancel().catch(() => undefined);
+  }
 });
 
 test("buffered turn verdict: a dropped stream retries unless the client went away", () => {
@@ -251,13 +295,141 @@ test("a stalled stream that already carries content is passed through, not repla
     FLUSH_EMPTY_RETRY_MAX_BYTES,
     50
   );
-  assert.equal(out.kind, "idle");
+  // #14691: the content chunk ends the read before the stall is ever observed.
+  assert.equal(out.kind, "early-pass");
   const verdict = judgeBufferedTurn(out, FORMATS.OPENAI, FORMATS.OPENAI, false);
   assert.equal(verdict.kind, "pass", "content already produced is worth keeping");
 });
 
 test("bounded read keeps no budget when the idle budget is zero", async () => {
-  const body = sse(chatChunk({ content: "hi" }));
+  const body = contentFreeBody();
   const out = await readBoundedResponseOutcome(new Response(body, { status: 200 }), 256_000, 0);
   assert.deepEqual(out, { kind: "text", text: body }, "a disabled budget must not change reads");
+});
+
+function recordingSelector(results: Record<string, unknown>) {
+  const calls: Array<{ exclude: string | null; allowed: string[] | null }> = [];
+  const select = async (
+    _provider: string,
+    excludeConnectionId: string | null,
+    allowedConnections: string[] | null,
+    _model: string | null
+  ) => {
+    calls.push({ exclude: excludeConnectionId, allowed: allowedConnections });
+    return results[String(excludeConnectionId)] ?? null;
+  };
+  return { calls, select };
+}
+
+const unconstrained = { leased: false, forcedConnectionId: null, apiKey: null };
+
+test("retry credentials exclude the connection that returned the empty turn", async () => {
+  const { calls, select } = recordingSelector({ "conn-a": { connectionId: "conn-b" } });
+  const next = await pickEmptyTurnRetryCredentials(select, {
+    ...unconstrained,
+    provider: "gemini",
+    model: "gemini-2.5-flash",
+    current: { connectionId: "conn-a" },
+  });
+  assert.deepEqual(next, { connectionId: "conn-b" });
+  assert.deepEqual(calls, [{ exclude: "conn-a", allowed: null }]);
+});
+
+test("retry credentials fall back to the normal selection when nothing else is eligible", async () => {
+  const { calls, select } = recordingSelector({
+    "conn-a": { allRateLimited: true, retryAfter: "later" },
+    null: { connectionId: "conn-a" },
+  });
+  const next = await pickEmptyTurnRetryCredentials(select, {
+    ...unconstrained,
+    provider: "gemini",
+    model: "gemini-2.5-flash",
+    current: { connectionId: "conn-a" },
+  });
+  assert.deepEqual(next, { connectionId: "conn-a" }, "a single slot replays itself");
+  assert.deepEqual(calls, [
+    { exclude: "conn-a", allowed: null },
+    { exclude: null, allowed: null },
+  ]);
+});
+
+test("both retry selections stay inside the key's connection allowlist", async () => {
+  const { calls, select } = recordingSelector({
+    "conn-a": { blockedByKeyPolicy: true, blockedCount: 1 },
+    null: { connectionId: "conn-a" },
+  });
+  const next = await pickEmptyTurnRetryCredentials(select, {
+    ...unconstrained,
+    apiKey: { allowedConnections: ["conn-a", 7, " "] },
+    provider: "gemini",
+    model: null,
+    current: { connectionId: "conn-a" },
+  });
+  assert.deepEqual(next, { connectionId: "conn-a" });
+  assert.deepEqual(calls, [
+    { exclude: "conn-a", allowed: ["conn-a"] },
+    { exclude: null, allowed: ["conn-a"] },
+  ]);
+});
+
+test("retry credentials are null when no selection yields a connection", async () => {
+  const { calls, select } = recordingSelector({});
+  const next = await pickEmptyTurnRetryCredentials(select, {
+    ...unconstrained,
+    provider: "gemini",
+    model: null,
+    current: {},
+  });
+  assert.equal(next, null);
+  assert.deepEqual(calls, [{ exclude: null, allowed: null }], "no current connection: one pick");
+  const failing = async () => {
+    throw new Error("selection failed");
+  };
+  const afterThrow = await pickEmptyTurnRetryCredentials(failing, {
+    ...unconstrained,
+    provider: "gemini",
+    model: null,
+    current: { connectionId: "conn-a" },
+  });
+  assert.equal(afterThrow, null);
+});
+
+test("a lease, a pinned connection or a quota key replays without a selection", async () => {
+  const cases = [
+    { ...unconstrained, leased: true },
+    { ...unconstrained, forcedConnectionId: "conn-a" },
+    { ...unconstrained, apiKey: { allowedQuotas: ["pool-1"] } },
+  ];
+  for (const routing of cases) {
+    const { calls, select } = recordingSelector({ "conn-a": { connectionId: "conn-b" } });
+    const current = { connectionId: "conn-a" };
+    const next = await pickEmptyTurnRetryCredentials(select, {
+      ...routing,
+      provider: "gemini",
+      model: null,
+      current,
+    });
+    assert.equal(next, current, JSON.stringify(routing));
+    assert.deepEqual(calls, [], JSON.stringify(routing));
+  }
+});
+
+test("the credential swap undoes overwritten and added fields in place", () => {
+  const target: Record<string, unknown> = { connectionId: "conn-a", apiKey: "key-a" };
+  const restore = swapCredentialsInPlace(target, {
+    connectionId: "conn-b",
+    apiKey: "key-b",
+    projectId: "project-b",
+  });
+  assert.deepEqual(target, { connectionId: "conn-b", apiKey: "key-b", projectId: "project-b" });
+  restore();
+  assert.deepEqual(target, { connectionId: "conn-a", apiKey: "key-a" });
+});
+
+test("swapping credentials onto themselves is a no-op", () => {
+  const target: Record<string, unknown> = { connectionId: "conn-a" };
+  const restore = swapCredentialsInPlace(target, target);
+  target.accessToken = "refreshed";
+  restore();
+  assert.deepEqual(target, { connectionId: "conn-a", accessToken: "refreshed" });
 });

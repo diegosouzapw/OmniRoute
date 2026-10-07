@@ -45,38 +45,27 @@ ACP Agents (معکوس پیداوار کا بہاؤ):
 
 ## `setup-*` کے ساتھ خودکار ترتیب
 
-آپ کو ہر ٹول کی ترتیب ہاتھ سے لکھنے کی ضرورت نہیں ہے۔ OmniRoute ایک `setup-*`
-کمانڈ فراہم کرتا ہے جو ایک چلتے ہوئے
-OmniRoute (مقامی یا دور) سے **زندہ** ماڈل کی کیٹلاگ پڑھتا ہے اور آپ کے مشین پر ٹول کی اپنی ترتیب لکھتا ہے:
+آپ کو ہر ٹول کی ترتیب دستی طور پر لکھنے کی ضرورت نہیں ہے۔ OmniRoute ہر تعاون یافتہ CLI کے لیے ایک `setup-*` کمانڈ فراہم کرتا ہے جو چل رہے OmniRoute (مقامی یا ریموٹ) سے **لائیو** ماڈل کیٹلاگ پڑھتا ہے اور آپ کی مشین پر ٹول کی اپنی ترتیب لکھتا ہے:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-ہر ایک `--remote <url> --api-key <key>` قبول کرتا ہے (ایک مقامی ٹول کو دور OmniRoute کے خلاف ترتیب دینا)، `--dry-run` (لکھے بغیر پیش نظارہ)، اور `--port`۔ ماڈل خودکار دریافت نہ کرنے والے ٹولز (Cline، Kilo، Roo، Goose، Aider، Qwen) `--model <id>` لیتے ہیں (اور غیر تعاملاتی چلانے کے لیے `--yes`)۔ CLI کو صحیح ماحول کے ساتھ شروع کرنے کے لیے اور بالکل کوئی ترتیب نہ لکھنے کے لیے، عمومی
-`omniroute run <target>` لانچر استعمال کریں (claude، codex، aider، goose، opencode، qwen،
-gemini — ہدف اور عرفیات `bin/cli/cli-manifest.mjs` سے آتی ہیں)؛ ماضی کے
-ہر ٹول کے لانچر `omniroute launch` (Claude Code) اور `omniroute launch-codex`
-(Codex) دستیاب رہتے ہیں۔ Gemini CLI صرف لانچ کے لیے ہے: یہ ایک `omniroute run`
-ہدف ہے لیکن اس کے پاس `setup-*`/`configure` ترکیب نہیں ہے۔
+ہر ایک `--remote <url> --api-key <key>` (ایک ریموٹ OmniRoute کے خلاف مقامی ٹول کو ترتیب دیں)، `--dry-run` (لکھے بغیر پیش نظارہ)، اور `--port` کو قبول کرتا ہے۔ ماڈل آٹو-ڈسکوری کے بغیر ٹولز (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (اور غیر انٹرایکٹو رن کے لیے `--yes`) لیتے ہیں۔ `setup-5dive` وہ واحد ترکیب ہے جو `$HOME` کے تحت نہیں لکھتی: یہ فلیٹ ہوسٹ پر روٹ کے زیر ملکیت auth پروفائل لکھ کر 5dive ایجنٹ فلیٹ کو ترتیب دیتی ہے، لہذا یہ `sudo` کے ذریعے دوبارہ چلتی ہے اور اس کا اپنا کوئی ریموٹ موڈ نہیں ہے۔ صحیح env کے ساتھ CLI کو لانچ کرنے کے لیے اور کوئی ترتیب بالکل بھی نہ لکھی جائے، عام `omniroute run <target>` لانچر استعمال کریں (claude, codex, aider, goose, opencode, qwen, gemini — اہداف اور عرفی نام `bin/cli/cli-manifest.mjs` سے آتے ہیں)؛ پرانے فی ٹول لانچرز `omniroute launch` (Claude Code) اور `omniroute launch-codex` (Codex) اب بھی دستیاب ہیں۔ Gemini CLI صرف لانچ کے لیے ہے: یہ ایک `omniroute run` ہدف ہے لیکن اس میں کوئی `setup-*`/`configure` ترکیب نہیں ہے۔
 
-> **مکمل حوالہ:** ماسٹر ٹیبل — ہر کمانڈ کیا لکھتا ہے، ہر جھنڈا،
-> مقامی بمقابلہ دور، اور کون سے ٹولز `/v1` لاحقہ چاہتے ہیں — موجود ہے
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**۔
+> **مکمل حوالہ:** ماسٹر ٹیبل — ہر کمانڈ کیا لکھتی ہے، ہر فلیگ،
+> مقامی بمقابلہ ریموٹ، اور کون سے ٹولز کو `/v1` لاحقہ درکار ہے —
+> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** میں موجود ہے۔
 
-### کنٹینر کے اندر یہ چلانا
+### انہیں کنٹینر کے اندر چلانا
 
-ایک `setup-*` کمانڈ جو OmniRoute کنٹینر کے اندر چلائی جاتی ہے، کنٹینر کے اپنے ہوم میں لکھتی ہے، جسے کوئی میزبان CLI نہیں پڑھتا اور جو کنٹینر کے ساتھ غائب ہو جاتا ہے۔ OmniRoute اس کا پتہ لگاتا ہے اور لکھنے کے بجائے ہدایات کے ساتھ `2` کے ساتھ باہر نکلتا ہے۔ آگے بڑھنے کے دو سپورٹ شدہ طریقے — CLI کو میزبان پر انسٹال کریں اور
-`omniroute connect` کنٹینر سے، یا کنفیگریشن ڈائریکٹریز کو بائنڈ ماؤنٹ کریں اور `CLI_CONFIG_HOME` سیٹ کریں (کمپوز `host` پروفائل)۔ ہر `setup-*` کمانڈ، ساتھ ہی `omniroute configure` اور `omniroute config set`، قبول کرتا ہے
-`--allow-container-write` جب کنٹینر کے اپنے CLIs کی ترتیب دینا آپ کا اصل مطلب تھا؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` سرور کے لیے یہی کرتا ہے۔ دیکھیں
-[Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)۔
+OmniRoute کنٹینر کے اندر چلائی گئی ایک `setup-*` کمانڈ کنٹینر کے اپنے ہوم میں لکھتی ہے، جسے کوئی ہوسٹ CLI نہیں پڑھتا اور جو کنٹینر کے ساتھ غائب ہو جاتا ہے۔ OmniRoute اس کا پتہ لگاتا ہے اور لکھنے کے بجائے ہدایات کے ساتھ `2` پر باہر نکل جاتا ہے۔ آگے بڑھنے کے دو معاون طریقے — CLI کو ہوسٹ پر انسٹال کریں اور کنٹینر سے `omniroute connect` کریں، یا کنفیگ ڈائریکٹریز کو بائنڈ-ماؤنٹ کریں اور `CLI_CONFIG_HOME` (کمپوز `host` پروفائل) سیٹ کریں۔ ہر `setup-*` کمانڈ، نیز `omniroute configure` اور `omniroute config set`، `--allow-container-write` کو قبول کرتی ہے جب کنٹینر کے اپنے CLIs کو ترتیب دینا ہی آپ کا اصل مطلب ہو؛ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` سرور کے لیے بھی یہی کام کرتا ہے۔ مزید دیکھیں [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)۔
 
-ڈیش بورڈ کا **اپلائی اینڈ پوائنٹ** (`POST /api/cli-tools/apply`) اسی حفاظتی اصول کو نافذ کرتا ہے: ایک کنٹینر میں، ایک لکھائی جس کا ہدف میزبان سے بائنڈ ماؤنٹ نہیں ہے **`422`** کے ساتھ جواب دیتی ہے جس میں `containerEphemeralTarget: true`، محفوظ غلطی کا متن اور — ان ٹولز کے لیے جن کے پاس میزبان کی ترکیب ہے (claude، codex، opencode، cline،
-kilo، continue) — ایک `hostSetupCommand` (جیسے `omniroute setup-opencode`) جو میزبان پر چلانا ہے؛ کچھ بھی نہیں لکھا جاتا۔ `dryRun: true` کنٹینر موڈ میں کام کرتا رہتا ہے اور پیدا کردہ مواد + ہدف کے راستے کو بغیر ڈسک کو چھوئے واپس کرتا ہے، تاکہ آپ ڈیش بورڈ سے پیش نظارہ کر سکیں اور میزبان پر لاگو کر سکیں۔ یہ رویہ جان بوجھ کر ہے اور
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` کے ذریعے ریگریشن سے محفوظ ہے — کبھی بھی "ٹھیک" نہ کریں 422 کو حفاظتی اصول کو ہٹانے سے۔
+ڈیش بورڈ کا **اپلائی اینڈ پوائنٹ** (`POST /api/cli-tools/apply`) بھی یہی گارڈ نافذ کرتا ہے: ایک کنٹینر میں، ایک ایسی تحریر جس کا ہدف ہوسٹ سے بائنڈ-ماؤنٹ نہیں ہے، **`422`** کے ساتھ `containerEphemeralTarget: true`، محفوظ ایرر ٹیکسٹ اور — ہوسٹ ریسیپی والے ٹولز (claude, codex, opencode, cline, kilo, continue) کے لیے — ایک `hostSetupCommand` (مثلاً `omniroute setup-opencode`) کا جواب دیتی ہے جسے ہوسٹ پر چلایا جائے؛ کچھ بھی نہیں لکھا جاتا۔ `dryRun: true` کنٹینر موڈ میں کام کرتا رہتا ہے اور ڈسک کو چھوئے بغیر ایک ترمیم شدہ پیش نظارہ + ہدف کا راستہ واپس کرتا ہے۔ پیش نظارہ کا مواد کاپی یا امپورٹ کرنے کے لیے کوئی اسناد پر مشتمل ترتیب نہیں ہے۔ ہوسٹ پر اصل ٹول/بیس URL/API کی/ماڈل ان پٹس کے ساتھ اپلائی کریں، یا اشارہ کردہ ہوسٹ-سائیڈ سیٹ اپ کمانڈ استعمال کریں۔ پیش نظارہ ہیڈر اور درخواست کے معاہدے کے لیے [CLI configuration security](../security/CLI-CONFIGURATION.md) دیکھیں۔ یہ رویہ جان بوجھ کر ہے اور `tests/unit/api/cli-tools/apply-container-guard.test.ts` کے ذریعے ریگریشن سے محفوظ ہے — کبھی بھی گارڈ کو ہٹا کر 422 کو "ٹھیک" نہ کریں۔
 
 ---
 
@@ -119,11 +108,11 @@ kilo، continue) — ایک `hostSetupCommand` (جیسے `omniroute setup-openco
 
 ---
 
-## 1. CLI Code کا کیٹلاگ (26 ٹولز)
+## 1. سی ایل آئی کوڈ کا کیٹلاگ (26 ٹولز)
 
-وہ تمام ٹولز جو `/dashboard/cli-code` میں ظاہر ہوتے ہیں۔ جن کے لیے `baseUrlSupport: none` ہے، وہ حسبِ ضرورت بیس URL کے بجائے MITM یا دستی رہنما کے ذریعے منسلک کیے جاتے ہیں:
+تمام ٹولز جو `/dashboard/cli-code` میں ظاہر ہوتے ہیں۔ وہ جن میں `baseUrlSupport: none` ہے، کسٹم بیس یو آر ایل کے بجائے MITM یا دستی گائیڈ کے ذریعے منسلک ہوتے ہیں:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| id           | نام                     | وینڈر               | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -152,7 +141,7 @@ kilo، continue) — ایک `hostSetupCommand` (جیسے `omniroute setup-openco
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"` والے ٹولز کے ڈیش بورڈ کارڈ پر "⚠ جزوی بیس URL" بیج دکھائی دیتا ہے۔
+وہ ٹولز جن میں `baseUrlSupport: "partial"` ہے، ڈیش بورڈ کارڈ میں "⚠ Base URL parcial" کا بیج دکھاتے ہیں۔
 ---
 
 ## 2. CLI ایجنٹس کی فہرست (8 ٹولز)

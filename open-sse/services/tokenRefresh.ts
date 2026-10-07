@@ -192,6 +192,20 @@ const refreshPromiseCache = new Map();
 // Primary dedup when credentials.connectionId is present; refreshPromiseCache is fallback.
 const connectionRefreshMutex = new Map();
 
+// #14970: upper bound on a shared refresh entry's lifetime. Provider refresh
+// fetches do not all carry an AbortSignal, so one hung upstream (e.g. a
+// blackholed proxy during an outage window) would otherwise keep the entry —
+// and every waiter joining it — stuck until process restart. 90s ≈ 3× the
+// 30s per-attempt budget used by refreshWithRetry, generous for a slow but
+// healthy refresh and short enough to unwedge a wedged connection.
+const REFRESH_MUTEX_MAX_MS_DEFAULT = 90_000;
+let refreshMutexMaxMs = REFRESH_MUTEX_MAX_MS_DEFAULT;
+
+/** Test seam: shrink the #14970 bound so unit tests do not wait 90s. */
+export function setRefreshMutexMaxMsForTest(ms: number | null) {
+  refreshMutexMaxMs = typeof ms === "number" ? ms : REFRESH_MUTEX_MAX_MS_DEFAULT;
+}
+
 // Token Rotation Map (codex-multi-auth pattern) lives in
 // ./tokenRefresh/rotationMap.ts — see that leaf for the in-memory rotation
 // cache + getRefreshCacheKey. Imported above and re-exported for tests.
@@ -553,7 +567,12 @@ export async function getAccessToken(
     }
 
     const entry = { promise: null, waiters: 0 };
-    entry.promise = (async () => {
+    // The underlying work runs un-raced so a late-settling refresh can still
+    // reach onPersist (the CAS guard keeps a late write safe). The SHARED
+    // promise is what gets bounded: if it never settles, the race resolves
+    // null (refresh failure), the entry is evicted, and the next caller starts
+    // a fresh refresh instead of rejoining the wedge.
+    const work = (async () => {
       const result = await _getAccessTokenWithStalenessCheck(
         provider,
         credentials,
@@ -580,7 +599,22 @@ export async function getAccessToken(
         }
       }
       return result;
-    })().finally(() => {
+    })();
+    let mutexTimer: ReturnType<typeof setTimeout> | null = null;
+    entry.promise = Promise.race([
+      work,
+      new Promise((resolve) => {
+        mutexTimer = setTimeout(() => {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            `Refresh for ${provider}/${connectionId} exceeded ${refreshMutexMaxMs}ms inside the per-connection mutex — evicting wedged entry (upstream fetch may still be hanging)`
+          );
+          resolve(null);
+        }, refreshMutexMaxMs);
+        (mutexTimer as { unref?: () => void })?.unref?.();
+      }),
+    ]).finally(() => {
+      if (mutexTimer) clearTimeout(mutexTimer);
       connectionRefreshMutex.delete(connectionId);
     });
     connectionRefreshMutex.set(connectionId, entry);
@@ -647,8 +681,10 @@ export async function getAccessToken(
  * consumed token and burns the family (Claude/Anthropic, Auth0 Codex).
  */
 async function _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig) {
-  return serializeRefresh(provider, () =>
-    _refreshWithFreshCredentials(provider, credentials, log, proxyConfig)
+  return serializeRefresh(
+    provider,
+    () => _refreshWithFreshCredentials(provider, credentials, log, proxyConfig),
+    log
   );
 }
 

@@ -325,28 +325,23 @@ Režim RTK je inšpirovaný projektom **[RTK - Rust Token Killer](https://github
 
 ---
 
-## Pokročilé kompresné systémy
+## Pokročilé systémy kompresie
 
-Okrem 7 štandardných režimov OmniRoute zahŕňa niekoľko pokročilých kompresných
-systémov, ktoré fungujú automaticky na základe kontextu.
+Okrem 7 štandardných režimov obsahuje OmniRoute niekoľko pokročilých systémov kompresie, ktoré fungujú automaticky podľa kontextu.
 
-### Kompresia s ohľadom na cache
+### Kompresia zohľadňujúca vyrovnávaciu pamäť
 
-Niektorí poskytovatelia (ako Anthropic s prompt caching) podporujú **prompt caching**,
-ktoré im umožňuje ukladať časti promptu do cache, aby sa znížili náklady a latencia. Keď
-je caching povolený, agresívna kompresia môže v skutočnosti **poškodiť** výkon,
-pretože mení tokeny v cache, čím cache zneplatňuje.
+Niektorí poskytovatelia (napríklad Anthropic s ukladaním promptov do vyrovnávacej pamäte) podporujú **ukladanie promptov do vyrovnávacej pamäte**, ktoré im umožňuje ukladať časti promptu, čím sa znižujú náklady a latencia. Keď je ukladanie do vyrovnávacej pamäte povolené, agresívna kompresia môže v skutočnosti **zhoršiť** výkon, pretože mení uložené tokeny, čím zneplatňuje vyrovnávaciu pamäť.
 
-Modul `cachingAware.ts` to rieši **detekciou kontextu cache** a
-**prispôsobením stratégie kompresie** podľa toho.
+Modul `cachingAware.ts` tento problém rieši **zisťovaním kontextu ukladania do vyrovnávacej pamäte** a zodpovedajúcou **úpravou stratégie kompresie**.
 
 #### Ako to funguje
 
-1.  **Detekcia kontextu cache** — Skenuje telo požiadavky na značky `cache_control`
-2.  **Identifikácia poskytovateľov s cachingom** — Kontroluje, či cieľový poskytovateľ podporuje caching
-3.  **Prispôsobenie stratégie** — Znižuje `aggressive`/`ultra` na `standard` pre poskytovateľov s cachingom
-4.  **Preskočenie systémového promptu** — Systémové prompty sú zvyčajne v cache, takže ich nekomprimujte
-5.  **Použitie deterministických transformácií** — Používajte iba transformácie, ktoré produkujú konzistentný výstup
+1. **Zistenie kontextu ukladania do vyrovnávacej pamäte** — Prehľadá telo požiadavky a vyhľadá značky `cache_control`
+2. **Identifikácia poskytovateľov podporujúcich ukladanie do vyrovnávacej pamäte** — Skontroluje, či cieľový poskytovateľ podporuje ukladanie do vyrovnávacej pamäte
+3. **Úprava stratégie** — Pre poskytovateľov podporujúcich ukladanie do vyrovnávacej pamäte zníži úroveň `aggressive`/`ultra` na `standard`
+4. **Vynechanie systémového promptu** — Systémové prompty sa zvyčajne ukladajú do vyrovnávacej pamäte, preto ich nekomprimuje
+5. **Použitie deterministických transformácií** — Používa iba transformácie, ktoré vytvárajú konzistentný výstup
 
 #### Príklad kódu
 
@@ -359,7 +354,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache marker
+  cache_control: { type: "ephemeral" }, // ← Značka vyrovnávacej pamäte
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -371,21 +366,19 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kedy použiť
 
-Kompresia s ohľadom na cache je **vždy zapnutá** — nevyžaduje žiadnu konfiguráciu. Aktivuje sa
-iba vtedy, keď:
+Kompresia zohľadňujúca vyrovnávaciu pamäť je **vždy zapnutá** — nie je potrebná žiadna konfigurácia. Aktivuje sa iba vtedy, keď:
 
 - Požiadavka obsahuje značky `cache_control`
-- Cieľový poskytovateľ podporuje prompt caching (Anthropic, OpenAI atď.)
+- Cieľový poskytovateľ podporuje ukladanie promptov do vyrovnávacej pamäte (Anthropic, OpenAI atď.)
 
 ### Progresívne starnutie
 
-Dlhé konverzácie akumulujú mnoho správ, ale staršie správy sa stávajú menej
-relevantnými. Modul `progressiveAging.ts` **degraduje správy podľa vzdialenosti ťahu**:
+V dlhých konverzáciách sa hromadí veľa komunikačných kôl, ale staršie kolá sú čoraz menej relevantné. Modul `progressiveAging.ts` **redukuje správy podľa vzdialenosti komunikačného kola**:
 
-- **Nedávne ťahy (0-3)**: Zachované doslovne (plné detaily)
-- **Stredné ťahy (4-8)**: Ľahká kompresia (medzery, vyčistenie formátovania)
-- **Staré ťahy (9+)**: Jaskynná kompresia (odstránenie výplní, zhrnutie)
-- **Veľmi staré ťahy (20+)**: Silne zhrnuté alebo vynechané
+- **Nedávne kolá (0-3)**: Zachovajú sa doslovne (úplné detaily)
+- **Stredne staré kolá (4-8)**: Ľahká kompresia (vyčistenie medzier a formátovania)
+- **Staré kolá (9+)**: Telegrafická kompresia (odstránenie výplňových slov, sumarizácia)
+- **Veľmi staré kolá (20+)**: Výrazne sa zosumarizujú alebo odstránia
 
 #### Príklad kódu
 
@@ -396,14 +389,14 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... ďalších 50 kôl ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Prvé 3 ťahy: doslovne
-  light: 8, // Ťahy 4-8: ľahká kompresia
-  moderate: 20, // Ťahy 9-20: jaskynná kompresia
-  // Ťahy 21+: silné zhrnutie
+  verbatim: 3, // Prvé 3 kolá: doslovne
+  light: 8, // Kolá 4-8: ľahká kompresia
+  moderate: 20, // Kolá 9-20: telegrafická kompresia
+  // Kolá 21+: výrazná sumarizácia
 });
 
 // saved = počet ušetrených tokenov
@@ -411,33 +404,31 @@ const { messages: aged, saved } = applyAging(messages, {
 
 #### Kedy použiť
 
-Progresívne starnutie je **vždy zapnuté** pre režimy `aggressive` a `ultra`. Je
-obzvlášť účinné pre:
+Progresívne starnutie je **vždy zapnuté** v režimoch `aggressive` a `ultra`. Je obzvlášť účinné pri:
 
-- Dlhotrvajúce kódovacie relácie
-- Viacdňové konverzácie
-- Agentné pracovné postupy s mnohými volaniami nástrojov
+- Dlhodobých programovacích reláciách
+- Viacdňových konverzáciách
+- Agentných pracovných postupoch s mnohými volaniami nástrojov
 
-### Režim výstupu "Jaskynný človek" (Caveman Output Mode)
+### Režim telegrafického výstupu
 
-Modul `outputMode.ts` vkladá **inštrukcie do systémového promptu**, aby samotný
-model produkoval komprimovaný, stručný výstup (štýl "jaskynného človeka").
+Modul `outputMode.ts` vkladá **inštrukcie systémového promptu**, aby samotný model vytváral komprimovaný, stručný výstup (v „telegrafickom“ štýle).
 
 #### Ako to funguje
 
-Namiesto kompresie vstupu tento režim pridá systémový prompt ako:
+Namiesto kompresie vstupu tento režim pridá systémový prompt, napríklad:
 
-> "Odpovedajte minimálnymi slovami. Vynechajte zdvorilosti. Používajte krátke vety."
+> „Odpovedaj s minimom slov. Vynechaj zdvorilostné frázy. Používaj krátke vety.“
 
-To funguje obzvlášť dobre pre:
+Funguje to obzvlášť dobre pri:
 
-- Generovanie kódu (stručnejší výstup = menej tokenov)
-- Rýchle otázky a odpovede (nie je potrebné rozsiahle vysvetľovanie)
-- Dávkové spracovanie (maximalizácia priepustnosti)
+- Generovaní kódu (stručnejší výstup = menej tokenov)
+- Rýchlych otázkach a odpovediach (nie sú potrebné podrobné vysvetlenia)
+- Dávkovom spracovaní (maximalizácia priepustnosti)
 
 #### Kedy použiť
 
-Režim výstupu "jaskynný človek" je **voliteľný** — nastavte ho prostredníctvom kombinovanej konfigurácie:
+Režim telegrafického výstupu je **voliteľný** — nastavte ho prostredníctvom kombinovanej konfigurácie:
 
 ```json
 {
@@ -452,39 +443,53 @@ Režim výstupu "jaskynný človek" je **voliteľný** — nastavte ho prostredn
 
 ### Štýly výstupu (katalóg)
 
-Vyššie uvedený režim výstupu "jaskynný človek" je **stará cesta s jedným štýlom**. Fáza 4 ho zovšeobecnila
-do katalógu skladateľných štýlov výstupu: `OUTPUT_STYLE_CATALOG` v
-`open-sse/services/compression/outputStyles/catalog.ts`. Každý štýl je inštrukcia v systémovom promtpte,
-ktorá prinúti samotný model produkovať lacnejší výstup; štýly môžu byť povolené spoločne a sú vkladané
-v poradí podľa katalógu.
+Vyššie uvedený režim telegrafického výstupu predstavuje **pôvodný spôsob s jediným štýlom**. Fáza 4 ho zovšeobecnila na katalóg kombinovateľných štýlov výstupu: `OUTPUT_STYLE_CATALOG` v súbore `open-sse/services/compression/outputStyles/catalog.ts`. Každý štýl je inštrukciou systémového promptu, ktorá vedie model k vytváraniu úspornejšieho výstupu; štýly možno povoliť súčasne a vkladajú sa v poradí uvedenom v katalógu.
 
-| Štýl                         | `id`          | Čo robí                                                                                                                                                                                                                      | Jazyky inštrukcií                                                           |
-| :--------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------- |
-| Stručná próza                | `terse-prose` | Vypúšťa výplňové slová/články/zdržiavanie; zachováva presnú technickú podstatu. Rovnaký text ako starý výstupný režim caveman (odkazovaný, nie prepísaný).                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Menej kódu                   | `less-code`   | YAGNI rebrík: najmenšia funkčná zmena, žiadne nevyžiadané abstrakcie.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Ponytail (lenivý senior dev) | `ponytail`    | "Najlepší kód je kód, ktorý nikdy nebol napísaný": opätovné použitie > prepísanie, hlavná príčina > symptóm, najkratší funkčný rozdiel.                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Mám ADHD (akcia-prvá)        | `i-have-adhd` | Akcia prvá (príkaz/cesta/úryvok pred prózou), číslované ohraničené kroky, JEDEN konkrétny ďalší krok, žiadna preambula/rekapitulácia/závery. Adaptované z [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                               |
-| Stručné CJK (文言)           | `terse-cjk`   | Klasický čínsky ultra-stručný štýl.                                                                                                                                                                                          | zh (obmedzené na lokalitu: ponúkané len vtedy, keď je rozlíšený jazyk `zh`) |
+| Štýl                            | `id`          | Čo robí                                                                                                                                                                                                                      | Jazyky pokynov                                                             |
+| ------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Stručná próza                   | `terse-prose` | Odstraňuje výplňové slová/členy/váhanie; zachováva presný technický obsah. Rovnaký text ako v staršom režime výstupu caveman (odkazuje sa naň, neopakuje sa).                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Menej kódu                      | `less-code`   | Rebríček YAGNI: najmenšia funkčná zmena, žiadne nevyžiadané abstrakcie.                                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Copík (lenivý seniorný vývojár) | `ponytail`    | „Najlepší kód je ten, ktorý nebol nikdy napísaný“: opätovné použitie > prepisovanie, koreňová príčina > symptóm, najkratší funkčný diff.                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Mám ADHD (najprv akcia)         | `i-have-adhd` | Najprv akcia (príkaz/cesta/úryvok pred prózou), očíslované kroky s jasným rozsahom, JEDEN konkrétny ďalší krok, bez úvodu/zhrnutia/záveru. Upravené podľa [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Stručná CJK (文言)              | `terse-cjk`   | Mimoriadne stručný štýl klasickej čínštiny.                                                                                                                                                                                  | zh (obmedzené podľa locale: ponúka sa iba vtedy, keď je určený jazyk `zh`) |
 
-Každý štýl obsahuje tri úrovne intenzity — `lite`, `full`, `ultra` — a každá úroveň
-končí spoločnou klauzulou o hraniciach, ktorá zachováva bloky kódu, cesty k súborom, príkazy,
-chybové reťazce, URL a identifikátory doslovne.
+Každý štýl sa dodáva v troch úrovniach intenzity — `lite`, `full`, `ultra` — a každá úroveň
+sa končí spoločnou klauzulou o hraniciach, ktorá ponecháva bloky kódu, cesty k súborom, príkazy,
+chybové reťazce, URL adresy a identifikátory bez zmien.
 
-#### Ako funguje injekcia
+#### Ako funguje vkladanie
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) rozrieši
-výber voči katalógu (neznáme ID a štýly s nesúladom lokality sú
-vynechané, nikdy nejde o chybu), zreťazí vybrané inštrukcie v poradí katalógu,
-pripojí klauzulu o hraniciach **raz** a vloží výsledok na začiatok
-systémovej výzvy za jediným markerom idempotencie (`[OmniRoute Output Styles]`) — opätovné použitie
-je no-op. Keď má detekovaný jazyk požiadavky preklad,
-namiesto angličtiny sa vloží lokalizovaná inštrukcia.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) porovná
+výber s katalógom (neznáme id a štýly nezodpovedajúce locale sa vynechajú, nikdy nejde
+o chybu), spojí vybrané pokyny v poradí podľa katalógu, **raz** pridá klauzulu
+o hraniciach a blok začne jedinou značkou idempotencie
+(`[OmniRoute Output Styles]`), takže opätovné použitie nič nezmení. Ak existuje pre určený
+jazyk (pozri Výber jazyka nižšie) preklad, namiesto angličtiny sa vloží lokalizovaný pokyn.
+
+V tele s `messages` kontroluje obídenie podľa obsahu (`shouldBypassCavemanOutputMode()` v
+`open-sse/services/compression/outputMode.ts`) posledné tri správy a preskočí
+štýly pre celý ťah, ak zodpovedajú kľúčovým slovám týkajúcim sa bezpečnosti, nezvratných
+akcií, objasnenia alebo citlivosti na poradie. Obídenie sa vykonáva, kým je prepínač **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na ovládacom paneli zapnutý, čo je predvolené nastavenie; pri vypnutom prepínači sa vybrané štýly použijú aj v týchto ťahoch.
+
+Keď obídenie umožní spracovanie ťahu, `placeSystemInstruction()` (rovnaký súbor), ktorý
+nikdy nevytvára nový `messages[0]`, umiestni blok na prvé z týchto nájdených miest:
+
+1. Úvodná systémová správa s reťazcovým obsahom: blok sa pridá za jej text.
+2. Pole najvyššej úrovne `system`: blok sa pridá za text reťazca alebo sa
+   pridá ako nový textový blok do poľa blokov obsahu.
+3. Prvá neskoršia systémová správa s reťazcovým obsahom: blok sa pridá za jej
+   text.
+4. Nič z uvedeného: blok sa vloží do novej systémovej správy na konci `messages`.
+
+V tele bez `messages` sa blok pridá do reťazcového poľa `instructions`
+alebo sa z neho stane `instructions`, keď telo obsahuje `input` (reťazec alebo pole). Telo,
+ktoré neobsahuje ani `instructions`, ani `input`, sa preskočí ako `no_messages`.
 
 #### Ako povoliť
 
-Na paneli: **Context → Settings → Compression** — jeden riadok pre každý štýl s
-prepínačom zapnutia/vypnutia a voličom úrovne. Programovo, konfigurácia kompresie
-uchováva výber ako:
+Na ovládacom paneli: **Context → Settings → Compression** — jeden riadok pre každý štýl
+s prepínačom zapnutia/vypnutia a výberom úrovne. Programovo konfigurácia kompresie ukladá
+výber takto:
 
 ```json
 {
@@ -495,17 +500,18 @@ uchováva výber ako:
 }
 ```
 
-Spätná kompatibilita: staré kombinované nastavenie `outputMode: "caveman"` stále funguje a mapuje sa na
-`terse-prose`, bajtovo identické so starou injekciou v každom staršom jazyku.
+Spätná kompatibilita: staršie kombinované nastavenie `outputMode: "caveman"` naďalej funguje
+a mapuje sa na `terse-prose`, pričom je v každom staršom jazyku bajtovo identické
+so starým vloženým obsahom.
 
-Výber jazyka: s povoleným `languageConfig.enabled` `autoDetect` vyberie
-jazyk poslednej správy používateľa (rovnaký detektor ako vstupné enginy);
-vypnutie `autoDetect` pripne `defaultLanguage`. Vypnuté → Angličtina.
+Výber jazyka: keď je `languageConfig.enabled` zapnuté, `autoDetect` vyberie
+jazyk najnovšej správy používateľa (rovnaký detektor ako vstupné mechanizmy);
+vypnutie `autoDetect` pevne nastaví `defaultLanguage`. Vypnuté → angličtina.
 
-Matica štýl × jazyk je pripnutá pomocou
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový štýl nemôže byť dodaný
-bez aspoň pt-BR prekladu (alebo explicitnej sledovanej výnimky) a
-existujúci štýl nemôže potichu stratiť lokalitu. Ak chcete pridať štýl, pozrite si
+Matica štýl × jazyk je pevne určená testom
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: nový štýl nemožno vydať
+bez aspoň prekladu do pt-BR (alebo explicitne sledovanej výnimky) a
+existujúci štýl nemôže bez upozornenia stratiť locale. Postup pridania štýlu nájdete v
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Kompresia výsledkov nástrojov
@@ -513,41 +519,41 @@ existujúci štýl nemôže potichu stratiť lokalitu. Ak chcete pridať štýl,
 Modul `toolResultCompressor.ts` poskytuje **5 špecializovaných stratégií kompresie**
 pre výsledky nástrojov (volania funkcií, výstupy agentov, výsledky vyhľadávania atď.):
 
-1.  **Kompresia výsledkov vyhľadávania** — Odstraňuje redundantné výsledky, ponecháva top-N
-2.  **Kompresia čítania súborov** — Skracuje veľké súbory, zachováva hlavičky/importy
-3.  **Kompresia vykonávania kódu** — Ponecháva len podstatné stdout/stderr
-4.  **Kompresia databázových dotazov** — Obmedzuje riadky, odstraňuje podrobné metadáta
-5.  **Kompresia odpovedí API** — Odstraňuje nulové polia, zhusťuje polia
+1. **Kompresia výsledkov vyhľadávania** — Odstraňuje nadbytočné výsledky, ponecháva najlepších N
+2. **Kompresia čítania súborov** — Skracuje veľké súbory, zachováva hlavičky/importy
+3. **Kompresia vykonávania kódu** — Ponecháva iba nevyhnutný stdout/stderr
+4. **Kompresia databázových dopytov** — Obmedzuje počet riadkov, odstraňuje rozvláčne metadáta
+5. **Kompresia odpovedí API** — Odstraňuje polia s hodnotou null, skracuje polia
 
 #### Kedy použiť
 
-Kompresia výsledkov nástrojov je **vždy zapnutá**, keď sú prítomné volania nástrojov. Nie je
+Kompresia výsledkov nástrojov je pri použití volaní nástrojov **vždy zapnutá**. Nie je
 potrebná žiadna konfigurácia.
 
-### Skladaný pipeline
+### Reťazený kanál spracovania
 
-Skladaný režim spúšťa **viacero enginov v sekvencii** — zvyčajne najprv RTK
-(60-90% úspora na výstupe nástroja), potom Caveman (ďalších 30% úspora na
-zostávajúcom texte). Tým sa dosiahne **celková úspora 78-95%**.
+Reťazený režim spúšťa **viacero jadier za sebou** — zvyčajne najprv RTK
+(úspora 60 – 90 % vo výstupe nástroja) a potom Caveman (dodatočná úspora 30 %
+zo zostávajúceho textu). Tým sa dosiahne **celková úspora 78 – 95 %**.
 
 #### Ako to funguje
 
 ```
 Vstup (1000 tokenov)
-  → RTK (filter s vedomím príkazu) → 200 tokenov
-    → Caveman (odstránenie výplne) → 140 tokenov
-  → Výstup (140 tokenov, 86% úspora)
+  → RTK (filter zohľadňujúci príkazy) → 200 tokenov
+    → Caveman (odstránenie výplňového textu) → 140 tokenov
+  → Výstup (140 tokenov, úspora 86 %)
 ```
 
-#### Kedy použiť
+#### Kedy ho použiť
 
-Skladaný režim použite pre:
+Reťazený režim použite na:
 
-- Pracovné postupy náročné na nástroje (agentné kódovanie, výskum)
+- Pracovné postupy s intenzívnym využívaním nástrojov (agentné programovanie, výskum)
 - Nákladovo citlivé dávkové spracovanie
-- Keď potrebujete maximálnu úsporu tokenov
+- Situácie, keď potrebujete maximálnu úsporu tokenov
 
-Konfigurujte pomocou kombinácie:
+Nakonfigurujte ho prostredníctvom kombinácie:
 
 ```json
 {

@@ -4,22 +4,45 @@
 
 ---
 
-> **Dashboard:** **Modo Chaos** (barra lateral) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sessão do dashboard) · `POST /api/skills/collect/chaos` (chave de API)  
+> **Painel:** **Chaos Mode** (barra lateral) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sessão do painel) · `POST /api/skills/collect/chaos` (chave de API)  
 > **Código-fonte:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-O Modo Chaos envia **uma tarefa para vários provedores de uma só vez** — cada provedor participante
-contribui com uma instância de modelo, e você recebe todas as respostas lado a lado (ou encadeadas). Ele é uma
-superfície de execução multimodelo, não uma estratégia de roteamento: seu tráfego normal de `/v1/chat/completions`
+O Chaos Mode envia **uma tarefa para vários provedores ao mesmo tempo** — cada provedor participante
+contribui com uma instância de modelo, e você recebe todas as respostas lado a lado (ou encadeadas). Trata-se de uma
+superfície de execução multimodelo, não de uma estratégia de roteamento: o tráfego normal de `/v1/chat/completions`
 nunca é afetado por ele.
 
-**Esclarecimento — há três recursos diferentes com "chaos" no nome:**
+**Esclarecimento — três recursos diferentes incluem "chaos" no nome:**
 
-| Recurso                     | O que é                                                                                                                                 | Onde está documentado                        |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Modo Chaos**              | A página do dashboard + a API descrita aqui: distribui uma tarefa entre vários provedores (em paralelo ou de forma colaborativa).       | Este guia                                    |
-| `auto/chaos`                | Um ID de modelo Auto-Combo com pesos de pontuação para injeção de falhas, destinado a testes de resiliência. Nada a configurar.         | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Configuração de combo Chaos | Um combo persistido com `config.chaos.enabled` que distribui a tarefa para um painel com um modelo julgador opcional (somente via API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Recurso                     | O que é                                                                                                                                                                            | Onde está documentado                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**              | A página do painel + a API descrita aqui: distribui uma tarefa entre vários provedores (em paralelo ou de forma colaborativa).                                                     | Este guia                                    |
+| `auto/chaos`                | ID de modelo Auto-Combo: distribuição paralela, um modelo por provedor, uma chamada upstream para cada um. Não é injeção de falhas ([detalhes](#autochaos-distribuição-paralela)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Configuração de combo chaos | Um combo persistido com `config.chaos.enabled` realiza a distribuição da mesma forma (somente via API); `judgeModel` apenas escolhe a resposta final, sem chamada de síntese.      | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: distribuição paralela
+
+`auto/chaos` **não** é um mecanismo de injeção de falhas nem de teste de resiliência. Solicitar
+`model: "auto/chaos"` em `/v1/chat/completions`:
+
+1. Monta um painel com **um modelo por provedor**: o primeiro candidato de cada
+   provedor conectado, na ordem do pool de candidatos, com até 5 membros
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, limitado a 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). O pacote de pesos `chaos-mode`
+   apenas define o `weight` de cada membro; a distribuição não consulta esse valor.
+2. Envia a mesma solicitação a todos os membros do painel **em paralelo**, portanto uma solicitação
+   custa uma chamada upstream por membro do painel
+   (`open-sse/services/autoCombo/chaosEngine.ts`, despachada a partir de
+   `open-sse/services/combo.ts`).
+3. Transmite uma linha de status por membro do painel à medida que cada resposta chega: um comentário SSE
+   (`: chaos <index> ok|fail <model>`) por padrão, além de um evento `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) quando a solicitação define
+   `stream_options.include_chaos_parts: true`. Esses dados não contêm o texto da resposta.
+4. Envia **uma** resposta do painel como o chunk final no estilo OpenAI: a do primeiro
+   membro do painel (`auto/chaos` o define como `judgeModel`) quando ela é bem-sucedida; caso contrário,
+   a do último membro bem-sucedido. As outras respostas do painel não são retornadas, portanto
+   você paga por N chamadas e recebe uma conclusão.
 
 ## Configuração
 

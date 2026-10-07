@@ -187,16 +187,16 @@ AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 
 ### 3.1 啟動／停止 MITM 伺服器
 
-使用位於 `/dashboard/tools/agent-bridge` 的 AgentBridge 伺服器卡片：
+使用 `/dashboard/tools/agent-bridge` 中的 AgentBridge 伺服器卡片：
 
-| 動作           | 說明                                                     |
+| 操作           | 說明                                                     |
 | -------------- | -------------------------------------------------------- |
-| 啟動伺服器     | 在連接埠 443 上啟動 `src/mitm/server.cjs`                |
-| 停止伺服器     | 正常關閉子程序                                           |
-| 重新啟動伺服器 | 停止 + 啟動（套用目標變更）                              |
+| 啟動伺服器     | 在連接埠 443 上產生 `src/mitm/server.cjs` 處理程序       |
+| 停止伺服器     | 正常關閉子處理程序                                       |
+| 重新啟動伺服器 | 停止後再啟動（套用目標變更）                             |
 | 信任憑證       | 將 `DATA_DIR/mitm/ca.crt` 安裝至作業系統信任存放區       |
 | 下載憑證       | 下載 `ca.crt` 以供手動安裝                               |
-| 重新產生憑證   | 建立新的 CA 金鑰對（所有現有的個別代理程式憑證都將失效） |
+| 重新產生憑證   | 建立新的 CA 金鑰組（所有現有的個別代理程式憑證都將失效） |
 
 ### 3.2 信任憑證
 
@@ -221,34 +221,33 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-或者，使用儀表板中的「信任憑證」按鈕（會針對您的作業系統執行適當的命令，並在需要時顯示 sudo 提示）。
+或者使用儀表板中的「信任憑證」按鈕（會針對您的作業系統執行適當的命令，並在需要時顯示 sudo 提示）。
 
-#### 以 Electron 為基礎的 IDE 會忽略作業系統信任存放區（`NODE_EXTRA_CA_CERTS`）
+#### 基於 Electron 的 IDE 會忽略作業系統信任存放區（`NODE_EXTRA_CA_CERTS`）
 
-某些 IDE——尤其是 **Antigravity IDE**，以及其他衍生自 Electron / VS Code 的應用程式——內建
-自己的 Node.js 執行環境，該環境在發出 `fetch`/HTTPS 請求時**不會查詢作業系統信任存放區**。
-在作業系統／NSS 層級信任 CA，足以讓 IDE 的原生**後端**接受憑證
-（例如使用作業系統 CA 套件組合的 Go 語言伺服器），但 **Electron 前端**仍然會
-發生 TLS 失敗——其表現可能是應用程式顯示為_已登出_或顯示_「連線錯誤」_，
-即使 MITM 記錄顯示後端的啟動呼叫傳回 `200`。必須完成以下兩個步驟，
-且兩者都很重要：
+某些 IDE（尤其是 **Antigravity IDE**，以及其他衍生自 Electron／VS Code 的應用程式）內建
+自己的 Node.js 執行環境，而該環境在對外進行 `fetch`/HTTPS 時**不會查詢作業系統信任存放區**。
+在作業系統／NSS 層級信任 CA，對 IDE 的原生**後端**而言已經足夠
+（例如使用作業系統 CA 組合包的 Go 語言伺服器），但 **Electron 前端**仍會
+發生 TLS 失敗；即使 MITM 記錄顯示後端的啟動呼叫傳回 `200`，應用程式仍可能顯示為
+_已登出_或出現_「連線錯誤」_。必須完成以下兩個步驟，兩者缺一不可：
 
 1. 明確將執行環境指向 CA：
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **從該 shell 啟動 IDE。** 從桌面圖示／Dock／開始功能表啟動
-   **不會**繼承 shell 匯出的環境變數，而 `~/.config/environment.d/*.conf` 只會在
-   全新的圖形介面登入工作階段後生效。請先完全結束 IDE——Electron 的單一實例鎖定機制會讓第二次
-   啟動僅聚焦於現有程序，而忽略新的環境設定。
+2. **從該 shell 啟動 IDE。** 從桌面圖示／Dock／開始功能表啟動時，
+   **不會**繼承 shell 的匯出變數，而 `~/.config/environment.d/*.conf` 只會在
+   重新進行圖形介面登入後套用。請先完全結束 IDE——Electron 的單一執行個體鎖定機制意味著，
+   第二次啟動只會將焦點切換至現有處理程序，新的環境變數將被忽略。
 
-上述作業系統信任 + NSS 步驟仍然有其必要性（某些驗證
-流程使用的 Chromium 網路堆疊會讀取各使用者的 NSS 存放區，且對 `*.googleapis.com` 設有自己的靜態憑證釘選，
-而本機信任的 CA 可覆寫該設定）。`NODE_EXTRA_CA_CERTS` 則在此基礎上涵蓋 Node `fetch` 路徑。
+上述作業系統信任與 NSS 步驟仍然必要（某些驗證流程使用的 Chromium 網路堆疊會讀取
+每位使用者的 NSS 存放區，且對 `*.googleapis.com` 設有自己的靜態憑證釘選，本機信任的 CA
+可覆寫該設定）。`NODE_EXTRA_CA_CERTS` 則額外涵蓋 Node 的 `fetch` 路徑。
 
 ### 3.3 DNS 路由
 
-對於每個要攔截的代理程式，其 API 主機必須解析至 `127.0.0.1`。當您在設定精靈中切換代理程式的 DNS 設定時，AgentBridge 會自動管理 `/etc/hosts` 項目。
+對於每個要攔截的代理程式，其 API 主機都必須解析至 `127.0.0.1`。當您在設定精靈中切換某個代理程式的 DNS 時，AgentBridge 會自動管理 `/etc/hosts` 項目。
 
 GitHub Copilot 的 `/etc/hosts` 項目範例：
 
@@ -259,65 +258,74 @@ GitHub Copilot 的 `/etc/hosts` 項目範例：
 
 ### 3.4 模型對應
 
-使用每個代理程式卡片中的模型對應表，定義來源 → 目標對應：
+使用每張代理程式卡片中的模型對應表來定義來源 → 目標對應：
 
 | 來源模型（代理程式原生） | 目標模型（OmniRoute） |
 | ------------------------ | --------------------- |
 | `gpt-4o`                 | `claude-sonnet-4.7`   |
 | `*`（萬用字元）          | `claude-haiku-4.7`    |
 
-萬用字元 `*` 會將任何無法辨識的模型對應至指定目標。設定會保存在 `agent_bridge_mappings` 資料表中。
+萬用字元 `*` 會將任何無法辨識的模型對應至指定目標。資料會保存於 `agent_bridge_mappings` 資料表中。
 
-> **提示——找出代理程式實際使用的模型 ID。** IDE 傳送的模型名稱可能與
-> 其 UI 標籤不同，且可能在主要版本之間變更。例如，**Antigravity 2** 實際傳送的是
-> `gemini-3.1-pro-low`、`gemini-pro-agent` 和 `gemini-3.1-flash-lite`——而不是較舊文件中
-> 顯示的 `gemini-2.5-pro`。在沒有相符對應的情況下傳送一則聊天訊息：MITM
-> 會記錄收到的確切 `model:`，並讓請求直接通過。對應該字面值後，
-> 下一個請求就會被攔截並路由至您的目標。
+> **提示——找出代理程式實際使用的模型 ID。** IDE 傳送的模型名稱可能不同於
+> 其 UI 標籤，而且可能隨主要版本變更。例如，**Antigravity 2** 實際傳送的是
+> `gemini-3.1-pro-low`、`gemini-pro-agent` 與 `gemini-3.1-flash-lite`，而不是
+> 舊版文件中顯示的 `gemini-2.5-pro`。請在沒有相符對應的情況下傳送一則聊天訊息：
+> MITM 會記錄確切傳入的 `model:`，並讓請求直接通過。對應該字面值後，
+> 下一個請求便會被攔截並路由至您的目標。
 
 ### 3.5 風險通知
 
-AgentBridge 會攔截 IDE 用來向上游提供者進行驗證的認證資訊（OAuth 權杖、API 金鑰）。這些資訊在記錄前**會先遮罩**（請參閱 §2.7），但 OmniRoute 的 MITM 層仍可看到它們。每個代理程式首次啟用時，都會顯示一個可關閉的風險通知對話方塊。
+AgentBridge 會攔截 IDE 用於向上游提供者驗證身分的認證資訊（OAuth 權杖、API 金鑰）。這些資訊在寫入記錄前會**經過遮罩處理**（請參閱 §2.7），但 OmniRoute 的 MITM 層仍可看到它們。首次啟用每個代理程式時，會顯示可關閉的風險通知對話方塊。
 
 ### 3.6 維護與診斷
 
-儀表板提供一張**維護與診斷**卡片（`AgentBridgeMaintenanceCard`，位於 `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`），其中呈現先前沒有 UI 的 MITM 操作路由。其副標題為：_「自行測試擷取管線、復原殘留的系統狀態，並在不同機器之間移轉您的設定。」_ 此卡片的用戶端輔助程式位於 `src/lib/inspector/agentBridgeMaintenanceApi.ts`。
+儀表板提供一張**維護與診斷**卡片（`AgentBridgeMaintenanceCard`，位於 `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`），用來呈現先前沒有 UI 的 MITM 操作路由。其副標題為：_「自我測試擷取管線、復原殘留的系統狀態，並在不同電腦之間移轉您的設定。」_ 卡片的用戶端輔助程式位於 `src/lib/inspector/agentBridgeMaintenanceApi.ts`。
 
 | 按鈕         | 路由                                   | 功能                                                                                                                                   |
 | ------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **診斷**     | `GET /api/tools/agent-bridge/diagnose` | 執行擷取管線的自我測試，並顯示各項檢查的報告（✓/✗ + 修復提示）。                                                                       |
-| **修復**     | `POST /api/tools/agent-bridge/repair`  | 復原當機或 SIGKILL 所遺留的孤立 MITM 系統狀態（DNS 欺騙項目、根 CA、系統代理伺服器）。此操作具冪等性——當狀態乾淨時會回報「無需修復」。 |
-| **移除 CA**  | `DELETE /api/tools/agent-bridge/cert`  | 取消信任 MITM 根 CA，並將其從作業系統信任存放區中移除（明確執行、具冪等性）。僅在 CA 目前受信任時顯示；需要在介面內確認「移除 CA？」。 |
+| **診斷**     | `GET /api/tools/agent-bridge/diagnose` | 執行擷取管線自我測試，並顯示各項檢查的報告（✓/✗ + 修復提示）。                                                                         |
+| **修復**     | `POST /api/tools/agent-bridge/repair`  | 復原因當機或 SIGKILL 而殘留的孤立 MITM 系統狀態（DNS 欺騙項目、根 CA、系統代理）。此操作具冪等性——當狀態乾淨時會回報「無需修復」。     |
+| **移除 CA**  | `DELETE /api/tools/agent-bridge/cert`  | 取消信任 MITM 根 CA，並將其從作業系統信任存放區中移除（明確操作，具冪等性）。僅在 CA 目前受信任時顯示；需要進行行內「移除 CA？」確認。 |
 | **匯出設定** | `GET /api/tools/agent-bridge/config`   | 下載可攜式設定 JSON（請參閱 §3.7）。                                                                                                   |
 | **匯入設定** | `POST /api/tools/agent-bridge/config`  | 上傳先前匯出的設定 JSON（請參閱 §3.7）。                                                                                               |
 
-**診斷檢查**（`src/mitm/inspector/diagnostics.ts` 中的 `summarizeDiagnostics()`）。該路由會對每個項目執行具副作用的探測，並將布林值傳入純摘要器；其會傳回單一 `healthy` 判定，以及各項失敗的提示：
+每張代理程式卡片也都有自己的**還原預設值**按鈕（`POST
+/api/tools/agent-bridge/agents/{id}/reset`）——只需按一下，即可針對個別代理程式復原：僅取消該
+代理程式主機的欺騙、清除其已儲存的模型對應，並重設其 `dns_enabled`/`setup_completed`
+狀態，使 IDE 在完全重新啟動後再次與真正的上游通訊。它**不會**變更
+共用的 MITM 伺服器或根 CA（其他代理程式可能仍依賴它們）——這些項目仍可
+透過伺服器卡片及上述的**移除 CA**動作進行存取。在 Windows 上，它也會盡力執行
+`ipconfig /flushdns`，因為 Windows DNS Client 會快取 hosts 檔案項目，否則不會清除
+剛移除的欺騙項目。
 
-| 檢查名稱           | 驗證內容                                      | 失敗時的提示                                                                                                 |
-| ------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `server-running`   | MITM 伺服器處理程序是否正在執行               | 「MITM 伺服器未執行。請從 AgentBridge 分頁啟動它。」                                                         |
-| `server-reachable` | MITM 伺服器是否在其連接埠接受連線（TCP 探測） | 「MITM 伺服器未在其連接埠接受連線。請確認該連接埠可用，且您擁有繫結該連接埠的權限。」                        |
-| `cert-exists`      | MITM 憑證是否已在磁碟上產生                   | 「尚未產生 MITM 憑證。請從 AgentBridge 分頁產生憑證。」                                                      |
-| `cert-trusted`     | MITM 根 CA 是否位於作業系統信任存放區中       | 「作業系統信任存放區不信任 MITM 根 CA，因此 TLS 攔截將會失敗。請從 AgentBridge 分頁信任該憑證。」            |
-| `dns-configured`   | 目標主機名稱是否在 `/etc/hosts` 中遭到欺騙    | 「目標主機名稱未在 /etc/hosts 中遭到欺騙，因此流量永遠不會到達代理伺服器。請為您要擷取的代理程式啟用 DNS。」 |
+**診斷檢查**（`src/mitm/inspector/diagnostics.ts` 中的 `summarizeDiagnostics()`）。該路由會針對每個項目執行有副作用的探測，並將布林值傳入純摘要器；傳回單一 `healthy` 判定，以及各失敗項目的提示：
 
-**孤立狀態橫幅：**當頁面偵測到當機所遺留的狀態（DNS 欺騙 / CA / 系統代理伺服器）時，卡片會顯示琥珀色橫幅——*「先前的工作階段遺留了系統狀態（DNS 欺騙、CA 或系統代理伺服器）。請執行「修復」以將其清除。」*——並醒目標示**修復**按鈕。`Repair` 是 ProxyBridge `--cleanup` 旗標在應用程式層的對應機制（其會委派給 `src/mitm/manager.ts` 中的 `repairMitm()`）。
+| 檢查名稱           | 驗證內容                                    | 失敗時的提示                                                                                                   |
+| ------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM 伺服器程序正在執行                     | 「MITM 伺服器未執行。請從 AgentBridge 分頁啟動它。」                                                           |
+| `server-reachable` | MITM 伺服器在其連接埠上接受連線（TCP 探測） | 「MITM 伺服器未在其連接埠上接受連線。請檢查該連接埠是否可用，以及您是否具備繫結該連接埠的權限。」              |
+| `cert-exists`      | MITM 憑證已在磁碟上產生                     | 「尚未產生 MITM 憑證。請從 AgentBridge 分頁產生憑證。」                                                        |
+| `cert-trusted`     | MITM 根 CA 位於作業系統信任存放區中         | 「作業系統信任存放區並不信任 MITM 根 CA，因此 TLS 攔截將會失敗。請從 AgentBridge 分頁信任該憑證。」            |
+| `dns-configured`   | 目標主機名稱已在 `/etc/hosts` 中遭到欺騙    | 「目標主機名稱未在 /etc/hosts 中遭到欺騙，因此流量永遠不會抵達代理伺服器。請為您想要擷取的代理程式啟用 DNS。」 |
+
+**孤立狀態橫幅：**當頁面偵測到當機後殘留的狀態（DNS 欺騙 / CA / 系統代理）時，卡片會顯示琥珀色橫幅——*「先前的工作階段留下了系統狀態（DNS 欺騙、CA 或系統代理）。請執行「修復」以將其清除。」*——並醒目標示**修復**按鈕。`Repair` 是應用程式層中對應於 ProxyBridge `--cleanup` 旗標的功能（它會委派給 `src/mitm/manager.ts` 中的 `repairMitm()`）。
 
 > MITM 根 CA 會在停止／啟動之間保持安裝狀態，以避免重複出現 sudo
-> 提示（行為與 mitmproxy/Charles 相同），因此移除它是一項明確的
-> **移除 CA** 操作，而不是停止時自動執行的動作。
+> 提示（行為與 mitmproxy/Charles 相同），因此移除它必須透過明確的
+> **移除 CA**動作，而不是在停止時自動執行。
 
 ### 3.7 可攜式設定匯入／匯出
 
-AgentBridge 可將**操作人員可調整的**狀態序列化為具有版本資訊的 JSON Blob，讓設定可複製到不同機器。序列化器為 `src/lib/inspector/configPortability.ts`（`exportConfig()` / `importConfig()`），並由 `AgentBridgeConfigSchema` 驗證。
+AgentBridge 可將**操作人員可調整的**狀態序列化為具版本資訊的 JSON Blob，以便在不同機器上複製設定。序列化程式為 `src/lib/inspector/configPortability.ts`（`exportConfig()` / `importConfig()`），並由 `AgentBridgeConfigSchema` 驗證。
 
-匯出內容恰好包含三個部分（內建預設值刻意**不會**匯出，因此匯入時絕不會重複這些值或與之衝突）：
+匯出內容僅包含三個部分（刻意**不會**匯出內建預設值，因此匯入絕不會複製它們或與其衝突）：
 
-| 欄位             | 來源                                             | 備註                                                                    |
-| ---------------- | ------------------------------------------------ | ----------------------------------------------------------------------- |
-| `bypassPatterns` | 使用者定義的略過模式（`agent_bridge_bypass`）    | 排除預設的銀行／政府／Okta 模式                                         |
-| `customHosts`    | 流量檢查器的自訂主機（`inspector_custom_hosts`） | 每個項目：`{ host, kind: "llm"\|"app"\|"custom", label? }`              |
-| `agentMappings`  | 各代理程式的模型對應（`agent_bridge_mappings`）  | 每個具有對應的代理程式皆使用 `{ [agentId]: [{ source, target }] }` 格式 |
+| 欄位             | 來源                                                   | 備註                                                                  |
+| ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
+| `bypassPatterns` | 使用者定義的略過模式（`agent_bridge_bypass`）          | 不包含預設的銀行／政府／Okta 模式                                     |
+| `customHosts`    | Traffic Inspector 自訂主機（`inspector_custom_hosts`） | 每個項目：`{ host, kind: "llm"\|"app"\|"custom", label? }`            |
+| `agentMappings`  | 各代理程式的模型對應（`agent_bridge_mappings`）        | 針對每個具有對應設定的代理程式：`{ [agentId]: [{ source, target }] }` |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +339,13 @@ AgentBridge 可將**操作人員可調整的**狀態序列化為具有版本資�
 }
 ```
 
-**匯入行為**（`POST /api/tools/agent-bridge/config`）：略過模式和各代理程式的對應會**整批取代**；自訂主機則以**冪等方式**新增（`INSERT OR IGNORE`）。回應會回報每種類型套用的數量：
+**匯入行為**（`POST /api/tools/agent-bridge/config`）：略過模式和各代理程式的對應設定會**整批取代**；自訂主機則以**冪等方式**新增（`INSERT OR IGNORE`）。回應會回報各類別已套用的數量：
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-設定中**不包含**的內容：伺服器執行狀態、憑證路徑、各代理程式的 DNS 狀態、上游 CA 路徑，以及 TPROXY 設定——這些屬於主機／執行階段狀態，而非可攜式偏好設定。
+設定中**不包含**：伺服器執行狀態、憑證路徑、各代理程式的 DNS 狀態、上游 CA 路徑，以及 TPROXY 設定——這些屬於主機／執行階段狀態，而非可攜式偏好設定。
 
 ---
 
@@ -497,37 +505,38 @@ ipconfig /flushdns
 
 ## §7 API 參考
 
-所有路由均為 `LOCAL_ONLY`（僅限迴路位址，於驗證前強制執行）及 `SPAWN_CAPABLE`。請參閱 `src/server/authz/routeGuard.ts`。
+所有路由皆為 `LOCAL_ONLY`（僅限迴路位址，並於驗證前強制執行）及 `SPAWN_CAPABLE`。請參閱 `src/server/authz/routeGuard.ts`。
 
 基礎路徑：`/api/tools/agent-bridge/`
 
-| 方法                | 路徑                                           | 說明                                                                                                |
-| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | 全域伺服器狀態 + 各代理程式的偵測結果／狀態                                                         |
-| GET                 | `/api/tools/agent-bridge/agents`               | 列出已註冊的代理程式（id、名稱、主機、可用性、狀態）                                                |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | 單一代理程式的狀態（目標設定 + 偵測結果 + 已儲存狀態）                                              |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | 更新代理程式的 `setup_completed`                                                                    |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | 執行代理程式的偵測探查（`installed`、`version?`、`path?`）                                          |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | 啟用／停用代理程式的 DNS（`{enabled: boolean}`）                                                    |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 代理程式的模型對應                                                                                  |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 取代模型對應                                                                                        |
-| POST                | `/api/tools/agent-bridge/server`               | 啟動／停止／重新啟動伺服器（`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`） |
-| GET                 | `/api/tools/agent-bridge/cert`                 | 憑證狀態（`exists`、`trusted`、`path`）                                                             |
-| POST                | `/api/tools/agent-bridge/cert`                 | 信任（安裝）MITM 根 CA                                                                              |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | 取消信任（移除）MITM 根 CA — 冪等操作（請參閱 §3.6）                                                |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | 重新產生自我簽署的 MITM 憑證                                                                        |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | 以串流方式傳送 PEM 憑證以供下載                                                                     |
-| GET                 | `/api/tools/agent-bridge/bypass`               | 列出略過模式（`default` + `user`）                                                                  |
-| POST                | `/api/tools/agent-bridge/bypass`               | 完整取代使用者定義的略過模式                                                                        |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | 移除單一使用者定義的略過模式                                                                        |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | 擷取管線自我測試（請參閱 §3.6）                                                                     |
-| POST                | `/api/tools/agent-bridge/repair`               | 復原殘留的 MITM 系統狀態（請參閱 §3.6）                                                             |
-| GET                 | `/api/tools/agent-bridge/config`               | 匯出可攜式設定 JSON（請參閱 §3.7）                                                                  |
-| POST                | `/api/tools/agent-bridge/config`               | 匯入可攜式設定 JSON（請參閱 §3.7）                                                                  |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | 取得已設定的上游 CA 路徑                                                                            |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | 驗證並持久保存上游 CA 路徑                                                                          |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | 僅驗證（試運行）上游 CA 路徑 — 不會持久保存                                                         |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY 透明解密擷取模式 — 請參閱 `docs/security/MITM-TPROXY-DECRYPT.md`（git；未編譯至 `/docs`）    |
+| 方法                | 路徑                                           | 說明                                                                                                     |
+| ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | 全域伺服器狀態 + 各代理程式的偵測結果／狀態                                                              |
+| GET                 | `/api/tools/agent-bridge/agents`               | 列出已註冊的代理程式（id、名稱、主機、可用性、狀態）                                                     |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | 單一代理程式的狀態（目標設定 + 偵測結果 + 儲存的狀態）                                                   |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | 更新代理程式的 `setup_completed`                                                                         |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | 執行代理程式偵測探查（`installed`、`version?`、`path?`）                                                 |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | 啟用／停用代理程式的 DNS（`{enabled: boolean}`）                                                         |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 代理程式的模型對應                                                                                       |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 取代模型對應                                                                                             |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | 還原預設值：取消此代理程式的 DNS 偽裝、清除其對應，並重設其狀態（請參閱 §3.6）                           |
+| POST                | `/api/tools/agent-bridge/server`               | 啟動／停止／重新啟動伺服器（`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`）      |
+| GET                 | `/api/tools/agent-bridge/cert`                 | 憑證狀態（`exists`、`trusted`、`path`）                                                                  |
+| POST                | `/api/tools/agent-bridge/cert`                 | 信任（安裝）MITM 根 CA                                                                                   |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | 取消信任（移除）MITM 根 CA — 冪等操作（請參閱 §3.6）                                                     |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | 重新產生自我簽署的 MITM 憑證                                                                             |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | 以串流方式傳送 PEM 憑證供下載                                                                            |
+| GET                 | `/api/tools/agent-bridge/bypass`               | 列出略過模式（`default` + `user`）                                                                       |
+| POST                | `/api/tools/agent-bridge/bypass`               | 整批取代使用者定義的略過模式                                                                             |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | 移除單一使用者定義的略過模式                                                                             |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | 擷取管線自我測試（請參閱 §3.6）                                                                          |
+| POST                | `/api/tools/agent-bridge/repair`               | 復原殘留的 MITM 系統狀態（請參閱 §3.6）                                                                  |
+| GET                 | `/api/tools/agent-bridge/config`               | 匯出可攜式設定 JSON（請參閱 §3.7）                                                                       |
+| POST                | `/api/tools/agent-bridge/config`               | 匯入可攜式設定 JSON（請參閱 §3.7）                                                                       |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | 取得已設定的上游 CA 路徑                                                                                 |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | 驗證並保存上游 CA 路徑                                                                                   |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | 僅驗證（試執行）上游 CA 路徑 — 不會保存                                                                  |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY 透明解密擷取模式 — 請參閱 `docs/security/MITM-TPROXY-DECRYPT.md`（位於 git 中；未編譯至 `/docs`） |
 
 完整的 OpenAPI 結構描述：`docs/openapi.yaml` → 標籤 `AgentBridge`。
 

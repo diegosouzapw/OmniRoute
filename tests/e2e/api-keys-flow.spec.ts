@@ -1045,6 +1045,12 @@ test.describe("API keys flow", () => {
     expect(denyAllPatch.modelAccessMode).toBe("restricted");
     expect(denyAllPatch.allowedModels).toEqual([]);
 
+    // The PATCH is recorded before the page finishes its post-save refetch and closes
+    // the modal. Reopening while it is still mounted makes the forced click land on the
+    // overlay (closeOnOverlay → onClose), so no dialog ever reappears. Wait for the
+    // close first, exactly as the first reopen above does.
+    await expect(reopened).not.toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+
     await keyRow.locator('button[title="Edit permissions"]').click({ force: true });
     const denyAllReopened = page.getByRole("dialog", {
       name: /permissions: provider scope key/i,

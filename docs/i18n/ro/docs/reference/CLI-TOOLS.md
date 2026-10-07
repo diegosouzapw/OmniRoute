@@ -43,57 +43,30 @@ ACP Agents (flux de generare invers):
 
 ---
 
-## Configurare automată cu `setup-*`
+## Auto-configurare cu `setup-*`
 
-Nu trebuie să scrieți manual configurația fiecărui instrument. OmniRoute oferă un `setup-*`
-comandă pentru fiecare CLI suportat care citește catalogul de modele **live** de la un
-OmniRoute în funcțiune (local sau remote) și scrie configurația proprie a instrumentului pe mașina dumneavoastră:
+Nu trebuie să scrieți manual configurația fiecărui instrument. OmniRoute include o comandă `setup-*` pentru fiecare CLI acceptat, care citește catalogul de modele **live** dintr-un OmniRoute în execuție (local sau la distanță) și scrie propria configurație a instrumentului pe mașina dumneavoastră:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Fiecare acceptă `--remote <url> --api-key <key>` (configurează un instrument local împotriva unui
-OmniRoute remote), `--dry-run` (previzualizare fără a scrie), și `--port`. Instrumentele
-fără descoperire automată a modelului (Cline, Kilo, Roo, Goose, Aider, Qwen) necesită
-`--model <id>` (și `--yes` pentru execuții non-interactive). Pentru a lansa un CLI cu
-variabila de mediu corect injectată și fără a scrie deloc configurația, folosiți generic
-`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — țintele și aliasurile provin din `bin/cli/cli-manifest.mjs`); launcher-urile vechi
-per-instrument `omniroute launch` (Claude Code) și `omniroute launch-codex`
-(Codex) rămân disponibile. CLI-ul Gemini este doar pentru lansare: este un `omniroute run`
-țintă dar nu are rețetă `setup-*`/`configure`.
+Fiecare acceptă `--remote <url> --api-key <key>` (configurează un instrument local față de un OmniRoute la distanță), `--dry-run` (previzualizare fără scriere) și `--port`. Instrumentele fără auto-descoperire a modelului (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) acceptă `--model <id>` (și `--yes` pentru rulări non-interactive). `setup-5dive` este singura rețetă care nu scrie sub `$HOME`: configurează o flotă de agenți 5dive scriind un profil de autentificare deținut de root pe gazda flotei, deci se re-execută prin `sudo` și nu are propriul mod la distanță. Pentru a lansa un CLI cu mediul corect injectat și fără nicio configurație scrisă, utilizați lansatorul generic `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — țintele și aliasurile provin din `bin/cli/cli-manifest.mjs`); lansatoarele vechi per-instrument `omniroute launch` (Claude Code) și `omniroute launch-codex` (Codex) rămân disponibile. Gemini CLI este doar pentru lansare: este o țintă `omniroute run`, dar nu are o rețetă `setup-*`/`configure`.
 
-> **Referință completă:** tabelul principal — ce scrie fiecare comandă, fiecare flag,
-> local vs remote, și care instrumente necesită un sufix `/v1` — se află în
-> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
+> **Referință completă:** tabelul principal — ce scrie fiecare comandă, fiecare flag, local vs. la distanță și ce instrumente necesită un sufix `/v1` — se găsește în
+> **[Integrări CLI](../guides/CLI-INTEGRATIONS.md)**.
 
 ### Rularea acestora într-un container
 
-O comandă `setup-*` executată în interiorul containerului OmniRoute scrie în
-home-ul propriu al containerului, pe care niciun CLI gazdă nu îl citește și care dispare odată cu
-containerul. OmniRoute detectează acest lucru și iese cu `2` cu instrucțiuni în loc să scrie. Două moduri suportate de a continua — instalați CLI-ul pe gazdă și
-`omniroute connect` la container, sau montați direct directoarele de configurare și setați
-`CLI_CONFIG_HOME` (profilul gazdă al compose-ului). Fiecare comandă `setup-*`, plus
-`omniroute configure` și `omniroute config set`, acceptă
-`--allow-container-write` atunci când configurați CLI-urile proprii ale containerului, ceea ce ați
-vrut de fapt; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` face același lucru pentru
-server. Consultați
-[Docker Guide → Configurarea instrumentelor CLI gazdă](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+O comandă `setup-*` executată în interiorul containerului OmniRoute scrie în propriul director home al containerului, pe care niciun CLI gazdă nu-l citește și care dispare odată cu containerul. OmniRoute detectează acest lucru și iese cu codul `2` cu instrucțiuni, în loc să scrie. Două modalități de a continua — instalați CLI-ul pe gazdă și `omniroute connect` la container, sau montați directorul de configurare și setați `CLI_CONFIG_HOME` (profilul `host` din compose). Fiecare comandă `setup-*`, plus `omniroute configure` și `omniroute config set`, acceptă `--allow-container-write` atunci când configurarea propriilor CLI-uri ale containerului este ceea ce ați intenționat de fapt; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` face același lucru pentru server. Consultați
+[Ghid Docker → Configurarea instrumentelor CLI gazdă](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-Endpoint-ul de **aplicare** al tabloului (`POST /api/cli-tools/apply`) impune
-aceleași restricții: într-un container, o scriere a cărei țintă nu este montată direct de la
-gazdă răspunde **`422`** cu `containerEphemeralTarget: true`, textul de eroare sigur și — pentru instrumentele cu o rețetă gazdă (claude, codex, opencode, cline,
-kilo, continue) — un `hostSetupCommand` (de exemplu, `omniroute setup-opencode`) care să fie rulat
-pe gazdă în schimb; nimic nu este scris. `dryRun: true` continuă să funcționeze în modul
-container și returnează conținutul generat + calea țintă fără a atinge discul, astfel
-încât să puteți previzualiza din tablou și aplica pe gazdă. Acest comportament este
-intenționat și protejat împotriva regresiilor de
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nu "reparați" niciodată un 422
-prin eliminarea restricției.
+**Endpoint-ul de aplicare** al tabloului de bord (`POST /api/cli-tools/apply`) impune aceeași protecție: într-un container, o scriere a cărei țintă nu este montată de pe gazdă răspunde cu **`422`** cu `containerEphemeralTarget: true`, textul de eroare sigur și — pentru instrumentele cu o rețetă gazdă (claude, codex, opencode, cline, kilo, continue) — o `hostSetupCommand` (de ex. `omniroute setup-opencode`) de rulat pe gazdă; nimic nu este scris. `dryRun: true` continuă să funcționeze în modul container și returnează o previzualizare redactată + calea țintă fără a atinge discul. Conținutul previzualizării nu este o configurație purtătoare de credențiale de copiat sau importat. Aplicați cu instrumentul original/URL-ul de bază/cheia API/intrările modelului pe gazdă, sau utilizați comanda de configurare indicată pe partea gazdă. Consultați [Securitatea configurației CLI](../security/CLI-CONFIGURATION.md) pentru antetul previzualizării și contractul cererii. Acest comportament este intenționat și protejat împotriva regresiei de
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nu "reparați" niciodată un 422 prin eliminarea protecției.
 
 ---
 

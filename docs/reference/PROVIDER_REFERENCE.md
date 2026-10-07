@@ -1,14 +1,14 @@
 ---
 title: "Provider Reference"
-version: 3.8.51
-lastUpdated: 2026-09-24
+version: 3.8.52
+lastUpdated: 2026-10-04
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-09-24
+> **Last generated:** 2026-10-04
 
 Total providers: **358**. See category breakdown below.
 
@@ -44,7 +44,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `codex-app-server` | `cxa` | OpenAI Codex (App-Server) | No-auth | [link](https://developers.openai.com/codex/cli) | No token stored by OmniRoute. The Codex CLI app-server manages its own ChatGPT sign-in (~/.codex/auth.json, auto-refreshed). Use “Sign in with ChatGPT” if the CLI is not yet authenticated. | — |
 | `devin-cli-agentic` | `dva` | Devin CLI Agentic Bridge | No-auth | [link](https://docs.devin.ai/work-with-devin/devin-cli) | Authentication is owned by the official Devin CLI in its isolated bridge volume. | emulated |
 | `duckduckgo-web` | `ddgw` | DuckDuckGo AI Chat | No-auth | [link](https://duckduckgo.com/duckchat) | No credentials required — DuckDuckGo AI Chat is anonymous and free. | emulated |
-| `opencode` | `oc` | OpenCode Free | No-auth | [link](https://opencode.ai) | No API key required — uses OpenCode's public free endpoint. | — |
+| `opencode` | `oc` | OpenCode Free | No-auth | [link](https://opencode.ai) | No API key required — OpenCode's free tier can only be used from within OpenCode (client-contract requests). | — |
 | `uncloseai` | `unc` | UncloseAI | No-auth | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: Lorbus/Qwen3.6-27B-int4-AutoRound. | — |
 | `veoaifree-web` | `veo-free` | Veo AI Free | No-auth, video | [link](https://veoaifree.com) | No auth required. Rate limited to 6 requests/hour per IP. | — |
 | `zcode` | `zc` | ZCode (GLM Coding Plan) | No-auth | [link](https://zcode.z.ai) | No API key stored by OmniRoute. The local ZCode app-server uses the existing builtin:zai-coding-plan login. | — |
@@ -194,7 +194,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `freebuff` | `freebuff` | Freebuff | API key | [link](https://freebuff.com) | Enter Freebuff / Codebuff Auth Token (obtained via CLI login or automated harvester). |
 | `freeinference` | `freeinference` | FreeInference | API key, aggregator | [link](https://freeinference.org) | Free research access without a card; non-Harvard applicants require manual approval and no numeric quota is publicly guaranteed. |
 | `freemodel-dev` | `fmd` | FreeModel.dev | API key | [link](https://freemodel.dev) | $300 free credits on signup — no credit card required. Access GPT-5.4 and GPT-5.5 (OpenAI's latest flagship models) through an OpenAI-compatible API. |
-| `freetheai` | `fta` | FreeTheAi | API key, aggregator | [link](https://freetheai.xyz) | Join the FreeTheAi Discord to get your free API key. |
+| `freetheai` | `fta` | FreeTheAi | API key, aggregator | [link](https://freetheai.org) | Sign up at https://freetheai.org/signup for a free API key. A daily check-in unlocks the free models; linking Discord is optional and only raises the daily limit. |
 | `friendliai` | `friendli` | FriendliAI | API key | [link](https://friendli.ai) | Free tier for serverless inference — no credit card required |
 | `g4f-gemini` | `g4fgem` | g4f.space — Gemini | API key, aggregator | [link](https://g4f.space) | Bake anonymous cake credits at g4f.dev/chat, or use a g4f.dev member key (create one at g4f.dev/members.html). |
 | `g4f-groq` | `g4fgroq` | g4f.space — Groq | API key, aggregator | [link](https://g4f.space) | Bake anonymous cake credits at g4f.dev/chat, or use a g4f.dev member key (create one at g4f.dev/members.html). |
@@ -289,7 +289,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `perplexity` | `pplx` | Perplexity | API key | [link](https://www.perplexity.ai) | — |
 | `perplexity-agent` | `pplx-agent` | Perplexity Agent | API key | [link](https://www.perplexity.ai) | Use your Perplexity API key. OmniRoute routes Agent API model IDs through Perplexity's Responses-compatible endpoint. |
 | `piapi` | `pi` | PiAPI | API key, aggregator | [link](https://piapi.ai) | — |
-| `pioneer` | `pn` | Pioneer AI | API key | [link](https://pioneer.ai) | $75 free usage credits — no credit card required |
+| `pioneer` | `pn` | Pioneer AI | API key | [link](https://pioneer.ai) | — |
 | `plamo` | `plamo` | PLaMo | API key | [link](https://plamo.preferredai.jp/api) | — |
 | `poe` | `poe` | Poe | API key, aggregator | [link](https://creator.poe.com/api-reference) | Bearer API key for the Poe OpenAI-compatible API. |
 | `poixe-ai` | `poixe-ai` | Poixe AI | API key, aggregator | [link](https://poixe.com) | Current public free limits are small and model-group specific: 2 RPM/5 RPD for large-cup models and 20 RPM/50 RPD for small-cup models. |
@@ -446,7 +446,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 - Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../../open-sse/executors/) (127 implementations)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (136 implementations)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also

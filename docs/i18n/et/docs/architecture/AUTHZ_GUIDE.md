@@ -17,13 +17,13 @@ OmniRoute'il on marsruuditundlik autoriseerimistorustik, mis valvab iga API pär
 
 ### 1. API-võti (Bearer)
 
-Kasutatakse OpenAI/Anthropicu/Gemini ühilduvate kliendi-API-de ja mõne haldusmarsruudi puhul, kui võtmel on ulatus `manage`.
+Kasutatakse OpenAI/Anthropicu/Gemini-ühilduvate kliendi-API-de ja mõne haldusmarsruudi jaoks, kui võtmel on `manage`-ulatus.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Seda valideerivad `isValidApiKey()` / `extractApiKey()` failis `src/sse/services/auth.ts` ning need eksporditakse uuesti faili `src/shared/utils/apiAuth.ts` kaudu. Valideerija aktsepteerib ka keskkonnamuutujaid `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` püsivate läbipääsuvõtmetena (probleem #1350).
+Seda valideerivad `isValidApiKey()` / `extractApiKey()` failis `src/sse/services/auth.ts` ning see reeksporditakse faili `src/shared/utils/apiAuth.ts` kaudu. Valideerija aktsepteerib püsivate läbivate võtmetena ka keskkonnamuutujaid `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` (probleem #1350).
 
 ### 2. Töölaua seanss (auth_token-küpsis)
 
@@ -33,41 +33,43 @@ Töölaua lehtede ja administraatoritoimingute jaoks.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Küpsis on seanss ainult siis, kui JWT kontrollimine õnnestub **ja** see sisaldab väärtust `authenticated: true`
+Küpsis on seanss ainult siis, kui JWT valideerimine õnnestub **ja** see sisaldab välja `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Iga
-küpsise kasutaja (marsruudivalvur, AuthZ-konveieri värskendamine, WebSocketi käepigistus, reaalajas
+küpsise kasutaja (töölaua marsruudivalvur (`isDashboardSessionAuthenticated()`), autoriseerimiskonveieri värskendamine, WebSocketi käepigistus, reaalajas
 server, `/api/settings/require-login`, `/api/auth/status`) kasutab seda abifunktsiooni.
-On olemas ka teisi võtmega `JWT_SECRET` allkirjastatud JWT-sid — Cursor CLI läbipääsumehhanism väljastab
-võtmeomanikele lubasid väärtustega `iss "omniroute" / aud "cursor-cli"` — ning neid ei käsitleta kunagi seanssidena
+Eksisteerib ka teisi võtmega `JWT_SECRET` allkirjastatud JWT-sid — Cursor CLI läbiv edastus väljastab
+võtmeomanikele tokeneid väljadega `iss "omniroute" / aud "cursor-cli"` — ja need ei ole kunagi seansid
 (#13298).
 
 Seda kontrollib `isDashboardSessionAuthenticated()` failis `src/shared/utils/apiAuth.ts`. Konveier värskendab JWT-d automaatselt, kui selle 30-päevasest kehtivusajast on jäänud vähem kui 7 päeva.
 
-Mõned haldusmarsruudid aktsepteerivad **mõlemat** režiimi: küpsist VÕI `Bearer <key>`, kui API-võtmel on ulatus `manage` (või `admin`). See võimaldab versioonis v3.8 lisatud töövoogu „konfigureeritav API-kutsete kaudu“.
+Seanss võib lõppeda ka enne 30 päeva möödumist, sest iga väljastaja kasutab funktsiooni `mintDashboardSessionToken` (väljastamisaeg `iat` ja ID `jti`) ning valideerija kontrollib kahte sätet: `sessionsValidAfter`, mis määratakse parooli muutmisel, et kõik enne seda väljastatud seansid lõpetaksid valideerimise (parooli muutnud brauser saab uue küpsise), ja `revokedDashboardSessions`, kuhu `POST /api/auth/logout` lisab välja logitud seansi `jti`. Vanema versiooniga väljastatud seansid ei sisalda kumbagi väidet ja jäävad kehtima kuni esimese paroolimuudatuseni. Kui sätteid ei saa lugeda, ei peeta seanssi usaldusväärseks.
 
-#### Valikuline OIDC sisselogimisvärav (#6973)
+Mõned haldusmarsruudid aktsepteerivad **kumbagi** režiimi: küpsist VÕI `Bearer <key>`, kui API-võtmel on `manage`- (või `admin`-) ulatus. See võimaldab versioonis v3.8 lisatud töövoogu „API-kutsete kaudu seadistatav“.
 
-Töölaua administraatori sisselogimine toetab lisaks vaikimisi parooliga sisselogimisele ka **valikulist** OIDC (OpenID Connecti) voogu — parooliga sisselogimist ei eemaldata kunagi, seda ainult
+#### Valikuline OIDC-sisselogimisvärav (#6973)
+
+Töölaua administraatori sisselogimine toetab vaikimisi parooliga sisselogimise kõrval ka **vabatahtlikult kasutatavat** OIDC (OpenID Connecti) voogu — parooliga sisselogimist ei eemaldata kunagi, seda üksnes
 täiendatakse:
 
-- See on keelatud, välja arvatud juhul, kui `settings.oidcEnabled === true` **ja** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` on kõik konfigureeritud (Settings → Auth).
-  Vastasel juhul tagastab `GET /api/auth/oidc/login` olekukoodi `400`.
+- See on keelatud, kui `settings.oidcEnabled === true` **ja** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` pole kõik seadistatud (Sätted → Autentimine).
+  Vastasel juhul tagastab `GET /api/auth/oidc/login` vastuse `400`.
 - `GET /api/auth/oidc/login` tuvastab väljaandja
   `/.well-known/openid-configuration` kaudu `authorization_endpoint`-i (varuvariandina kasutatakse
   `<issuer>/authorize`), koostab ümbersuunamise URI sissetuleva päringu põhjal
-  (arvestades `x-forwarded-proto` väärtust) ning suunab kasutaja ümber IdP-sse juhusliku `state`-väärtusega,
-  mis salvestatakse `httpOnly`-atribuudiga `oidc_state`-küpsisesse.
-- `GET /api/auth/oidc/callback` valideerib `state`-väärtuse, vahetab autoriseerimiskoodi
-  ning kontrollib ID-loa allkirja väljaandja JWKS-i kaudu
-  (`jose` funktsioon `createRemoteJWKSet`, vahemällu salvestatud iga JWKS-i URI kohta), kontrollides väärtusi `issuer`/`audience`.
-  Valikuline `oidcAllowedSubjects` lubatud väärtuste loend võrdleb loa
-  `sub`-nõuet või selle `email`-nõuet — e-posti nõuet arvestatakse ainult siis, kui
+  (arvestades päist `x-forwarded-proto`) ja suunab kasutaja IdP-sse juhusliku `state`-väärtusega,
+  mis salvestatakse `httpOnly`-küpsisesse `oidc_state`.
+- `GET /api/auth/oidc/callback` valideerib `state`-väärtuse, vahetab autoriseerimis-
+  koodi ning kontrollib ID-tokeni allkirja väljaandja JWKS-i kaudu
+  (`jose`-i `createRemoteJWKSet`, puhverdatud iga JWKS-i URI kohta), kontrollides `issuer`- ja `audience`-väärtusi.
+  Valikuline lubatud väärtuste loend `oidcAllowedSubjects` võrdleb tokeni
+  `sub`-väidet või selle `email`-väidet — e-posti aadressi väidet arvestatakse ainult siis, kui
   `email_verified === true`, mistõttu ei saa IdP-s kinnitamata e-posti aadress kunagi
   väravat läbida.
-- Õnnestumise korral väljastatakse **täpselt sama** 30-päevane `auth_token` JWT, mille väljastab parooliga
-  sisselogimine (`src/app/api/auth/login/route.ts`), seega jääb ülejäänud
-  töölaua seansikonveier (automaatne värskendamine, küpsise lipud) muutumatuks —
+- Õnnestumise korral väljastatakse **täpselt sama** 30-päevane `auth_token`-JWT, mille väljastab parooliga
+  sisselogimine (`src/app/api/auth/login/route.ts`), nii et ülejäänud
+  töölaua seansikonveier (automaatne värskendamine, küpsise lipud) jääb muutumatuks —
   OIDC asendab ainult küpsise väljastamise viisi, mitte selle antavaid õigusi.
 
 ## Marsruudiklassid

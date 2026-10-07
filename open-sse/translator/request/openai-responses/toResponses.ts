@@ -4,7 +4,10 @@
  * Extracted verbatim from openai-responses.ts. Registration stays in the host.
  */
 import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
-import { isInternalReasoningPlaceholder } from "../../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  requiresReasoningContentPresence,
+} from "../../../utils/reasoningPlaceholder.ts";
 import { getReadableReasoningValue } from "../../../utils/reasoningFields.ts";
 import { generateToolCallId } from "../../helpers/toolCallHelper.ts";
 import {
@@ -233,6 +236,25 @@ export function openaiToOpenAIResponsesRequest(
           // for opaque items in reasoningInputPolicy.ts (#11108).
           summary: [],
         });
+      } else if (
+        isInternalReasoningPlaceholder(reasoning) &&
+        requiresReasoningContentPresence(credentialRecord._provider, model)
+      ) {
+        // Reasoning-presence validation on strict Responses upstreams (opencode
+        // console gateways) rejects thinking-mode history whose assistant turns
+        // lack a reasoning_text item — even when OmniRoute's replay cache missed
+        // and the history only carries the internal sentinel (see
+        // replayOpenAIReasoningMessage's requiresExplicitReasoningReplay branch).
+        // Emit the sentinel text: it satisfies presence validation, and the
+        // response translators suppress the sentinel again on echo (#9573).
+        // Gated to presence-enforcing upstreams only: everywhere else (e.g.
+        // DeepSeek) the sentinel is never promoted, since models echo it as
+        // their own reasoning and stop (#9573/#9610).
+        input.push({
+          type: "reasoning",
+          content: [{ type: "reasoning_text", text: reasoning }],
+          summary: [],
+        });
       }
 
       // Thinking blocks remain display-only here. They do not prove that the
@@ -344,12 +366,42 @@ export function openaiToOpenAIResponsesRequest(
       )
       .map((item: { type?: string; call_id?: string }) => item.call_id)
   );
-  result.input = input.filter((item: { type?: string; call_id?: string }) => {
+  const orphanFilteredInput = input.filter((item: { type?: string; call_id?: string }) => {
     if (item.type === "function_call_output" && item.call_id) {
       return knownCallIds.has(item.call_id);
     }
     return true;
   });
+  result.input = orphanFilteredInput;
+
+  // Mirror of the filter above: a `function_call` whose output never arrived
+  // (truncated history, client crash mid-tool-loop) makes strict Responses
+  // upstreams reject the whole request with 400 "No tool output found for
+  // function call <id>". Pair every unpaired call with a synthesized empty
+  // output in place rather than dropping the call, so the model still sees
+  // that the call happened and the caller's history stays intact (#15216).
+  const pairedOutputCallIds = new Set(
+    orphanFilteredInput
+      .filter(
+        (item: { type?: string; call_id?: string }) =>
+          item.type === "function_call_output" && item.call_id
+      )
+      .map((item: { type?: string; call_id?: string }) => item.call_id)
+  );
+  const pairedInput: JsonRecord[] = [];
+  for (const item of orphanFilteredInput as Array<{ type?: string; call_id?: string }>) {
+    pairedInput.push(item);
+    if (item.type === "function_call" && item.call_id && !pairedOutputCallIds.has(item.call_id)) {
+      pairedInput.push({
+        type: "function_call_output",
+        call_id: item.call_id,
+        output: "",
+        status: "completed",
+      });
+      pairedOutputCallIds.add(item.call_id);
+    }
+  }
+  result.input = pairedInput;
 
   // If no system message, keep empty instructions
   if (!hasSystemMessage) {
@@ -404,6 +456,30 @@ export function openaiToOpenAIResponsesRequest(
   }
   if (root.conversation_id !== undefined) {
     result.conversation_id = root.conversation_id;
+  }
+
+  // GitHub Copilot /responses (and OpenAI) reject a body that has neither a
+  // non-empty `input` nor previous_response_id / prompt / conversation:
+  //   400 One of "input" or "previous_response_id" or 'prompt' or 'conversation'
+  //       must be provided.
+  // System-only turns, empty messages, and orphan-filtered tool results can all
+  // leave input:[] here. Inject a placeholder user item unless a continuity
+  // field already satisfies the validator (mirrors the reverse direction in
+  // openai-responses.ts — 9router#419).
+  if (Array.isArray(result.input) && result.input.length === 0) {
+    const hasContinuity =
+      (typeof result.previous_response_id === "string" && result.previous_response_id.length > 0) ||
+      (typeof result.conversation_id === "string" && result.conversation_id.length > 0) ||
+      (typeof result.prompt === "string" && result.prompt.length > 0);
+    if (!hasContinuity) {
+      result.input = [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "..." }],
+        },
+      ];
+    }
   }
   if (root.service_tier !== undefined) result.service_tier = root.service_tier;
   if (root.temperature !== undefined) result.temperature = root.temperature;

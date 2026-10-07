@@ -4,56 +4,53 @@
 
 ---
 
-OmniRoute huchapisha vizalia vya npm + Docker. Vizuizi hivi hutoa uthibitisho wa asili,
-orodha ya vipengele (SBOM) na uchanganuzi wa CVE, vyote vikiwa OSS, na vimeunganishwa katika mitiririko ya kazi ya utoaji.
-Msimamo wa **ushauri-kwanza** — vinatoa ripoti kwa sasa, na vitabadilishwa kuwa vya kuzuia baada ya toleo la kwanza
-lenye mafanikio.
+OmniRoute huchapisha bidhaa za npm + Docker. Milango hii hutoa uthibitisho wa asili, orodha (SBOM) na uchunguzi wa CVE, zote zikiwa OSS, zimeunganishwa kwenye mtiririko wa kazi wa kutolewa. Msimamo wa **Ushauri-kwanza** — huripoti sasa, na kupandishwa hadhi ya kuzuia baada ya toleo la kwanza lililofaulu.
 
-| Kizuizi                            | Zana                                           | Mahali                              | Huzuia?                         | Tokeo                                                |
-| ---------------------------------- | ---------------------------------------------- | ----------------------------------- | ------------------------------- | ---------------------------------------------------- |
-| Uthibitisho wa asili wa SLSA (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`                   | ikiwa tu uchapishaji utashindwa | beji ya npmjs / `npm audit signatures`               |
-| SBOM ya npm                        | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`                   | ikiwa tu uundaji utashindwa     | Kipengee cha toleo + kizalia                         |
-| SBOM ya taswira                    | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (uunganishaji) | ushauri                         | Kizalia cha CycloneDX                                |
-| CVE za Trivy (SARIF)               | `aquasecurity/trivy-action`                    | `docker-publish.yml` (uunganishaji) | ushauri                         | SARIF (HIGH+CRITICAL) → kichupo cha Security         |
-| Kizuizi cha Trivy CRITICAL         | `aquasecurity/trivy-action`                    | `docker-publish.yml` (uunganishaji) | **huzuia**                      | `exit-code: '1'` kwa CRITICAL inayoweza kurekebishwa |
-| vulnCount ya osv                   | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`)       | **huzuia**                      | hubana `metrics.vulnCount` (mwelekeo: chini)         |
-| OpenSSF Scorecard                  | `ossf/scorecard-action`                        | `scorecard.yml` (cron)              | ushauri                         | SARIF → Security + beji                              |
+| Lango                 | Zana                                           | Wapi                          | Inazuia?                        | Matokeo                                                 |
+| :-------------------- | :--------------------------------------------- | :---------------------------- | :------------------------------ | :------------------------------------------------------ |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | tu ikiwa uchapishaji utashindwa | beji npmjs / `npm audit signatures`                     |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | tu ikiwa uzalishaji utashindwa  | Mali ya Toleo + bidhaa                                  |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | ushauri                         | Bidhaa ya CycloneDX                                     |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | ushauri                         | SARIF (HIGH+CRITICAL) → Kichupo cha Usalama             |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **inazuia**                     | `exit-code: '1'` kwenye CRITICAL inayoweza kurekebishwa |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **inazuia**                     | hurekebisha `metrics.vulnCount` (mwelekeo:chini)        |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | ushauri                         | SARIF → Usalama + beji                                  |
 
-Ubanaji wa CVE za taswira hutumia **hatua mbili** katika `docker-publish.yml`: hatua ya SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) huweka HIGH+CRITICAL zikionekana katika kichupo cha Security
-bila kuzuia; hatua ya _kizuizi cha CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) husababisha utoaji kushindwa kwa CVE ya CRITICAL **ambayo ina rekebisho linalopatikana**. `ignore-unfixed`
-huzuia kuzuiwa kwa utoaji kutokana na CVE ya taswira ya msingi ambayo haina kiraka kutoka kwa chanzo chake.
+Marekebisho ya CVE ya picha hutumia **hatua mbili** katika `docker-publish.yml`: hatua ya SARIF (`HIGH,CRITICAL`, `exit-code: 0`) huweka HIGH+CRITICAL ionekane kwenye kichupo cha Usalama bila kuzuia; hatua ya _lango la CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) hushindwa kutoa toleo kutokana na CVE ya CRITICAL **yenye suluhisho linalopatikana**. `ignore-unfixed` huzuia kuzuia toleo kwa CVE ya picha ya msingi isiyo na kiraka kutoka kwa chanzo kikuu.
 
-## ⚠️ Ubadilikaji wa CVE (vizuizi vinavyozuia vya osv/Trivy)
+## ⚠️ Tofauti ya CVE (ikizuia milango ya osv/Trivy)
 
-osv na Trivy hulinganisha vitegemezi dhidi ya hifadhidata za CVE ambazo **hukua kila wakati**. PR
-ambayo **haigusi vitegemezi vyovyote** inaweza ghafla kuwa nyekundu kwa sababu CVE mpya
-imefichuliwa katika kitegemezi kilichopo (osv: `vulnCount` iliyopimwa > msingi; Trivy: CRITICAL mpya
-inayoweza kurekebishwa katika taswira). **Hii ni TABIA YA KAWAIDA inayotarajiwa ya uendeshaji wa kizuizi cha CVE
-kinachozuia, wala si hitilafu ya bidhaa.**
+osv na Trivy hulinganisha vitegemezi dhidi ya hifadhidata za CVE ambazo **zinaendelea kukua**. PR ambayo **haigusi vitegemezi vyovyote** inaweza ghafla kugeuka nyekundu kwa sababu CVE mpya ilifichuliwa katika tegemezi lililopo (osv: `vulnCount` iliyopimwa > msingi; Trivy: CRITICAL mpya inayoweza kurekebishwa kwenye picha). **Huu ni tabia INAYOTARAJIWA ya uendeshaji wa lango la CVE linalozuia, si udhaifu wa bidhaa.**
 
-osv au Trivy zinapokuwa nyekundu kwa sababu ya CVE iliyofichuliwa hivi karibuni, suluhisho ni:
+Wakati osv au Trivy zinageuka nyekundu kutokana na CVE mpya iliyofichuliwa, suluhisho ni:
 
-1. **Pandisha toleo la kitegemezi kilichoathiriwa** (inapendekezwa) — sasisha hadi toleo lenye kiraka kupitia `package.json`
-   `overrides` (vitegemezi visivyo vya moja kwa moja) au unda upya taswira kwa kutumia msingi wenye kiraka.
-2. **Ikiwa hakuna rekebisho kutoka kwa chanzo chake:**
-   - **osv:** weka upya msingi wa `metrics.vulnCount` katika `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` haijumuishi vizuizi maalumu — hariri thamani
-     mwenyewe, `direction:down`) pamoja na maelezo ya uhalalishaji + suala la ufuatiliaji.
-   - **Trivy:** ongeza ingizo katika `.trivyignore` (CVE-ID moja kwa kila mstari) pamoja na maoni
-     ya uhalalishaji + suala la ufuatiliaji. `ignore-unfixed: true` tayari hushughulikia kiotomatiki CVE zisizo na
-     viraka.
+1.  **Pandisha tegemezi lililoathirika** (inayopendelewa) — sasisha hadi toleo lililorekebishwa kupitia `package.json` `overrides` (vitegemezi vya mpito) au jenga upya picha kwenye msingi uliorekebishwa.
+2.  **Ikiwa hakuna suluhisho kutoka kwa chanzo kikuu:**
+    - **osv:** weka upya msingi wa `metrics.vulnCount` katika `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` haijumuishi milango maalum — hariri thamani kwa mkono, `direction:down`) na noti ya uhalali + suala la kufuatilia.
+    - **Trivy:** ongeza kiingilio katika `.trivyignore` (CVE-ID kwa kila mstari) na maoni ya uhalali + suala la kufuatilia. `ignore-unfixed: true` tayari inashughulikia CVEs zisizo na viraka kiotomatiki.
 
-Vizuizi vyote viwili **HURUKA bila hitilafu** (exit 0) wakati zana haipo au kipimo
-kinashindwa (osv-scanner haipo katika PATH, osv.dev/mtandao haufikiki, JSON batili) — kushindwa kwa
-**kipimo** hakuzuii kamwe; ni tu **zoroto iliyopimwa** ndiyo huzuia.
+Milango yote miwili **huruka kwa upole** (exit 0) wakati zana haipo au kipimo kinashindwa (osv-scanner haipo kwenye PATH, osv.dev/network haipatikani, JSON batili) — kushindwa kwa **kipimo** hakuzuii kamwe, ni udhaifu **uliopimwa** tu ndio unaozuia.
 
-## Orodha ya kazi: Ushauri wa Scorecard → kuzuia
+## Hatari Zinazojulikana na Kukubalika
 
-Baada ya toleo la kwanza lenye mafanikio ambalo Scorecard inatoa ripoti:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: ubanaji wa alama (hufungia alama iliyopimwa; haiwezi kupungua).
+`extract-zip@2.0.1` ina ushauri mbili za usalama wa kiwango cha juu zisizorekebishwa kuhusu symlink-traversal.
+Kulingana na tawi la "hakuna marekebisho ya chanzo" la suluhisho la Tofauti ya CVE hapo juu, hii ni **hatari iliyokubalika**, si nyongeza:
 
-Hukamilisha vizuizi vya Awamu ya 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-hukagua mitiririko ya kazi yenyewe; Scorecard hupima hali ya hazina kwa ujumla.
+- **Mfuatano:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Imethibitishwa kupitia `package-lock.json` — ni kifurushi kimoja tu katika mti mzima wa utegemezi (`@openai/codex-security`) kinachotangaza `extract-zip`, na ni kifurushi kimoja tu (`promptfoo`) kinachotangaza `@openai/codex-security`.
+- **Hakuna toleo lililorekebishwa lililopo popote kwenye mfuatano.** `extract-zip@2.0.1` (iliyochapishwa 2020) ni toleo la mwisho la kifurushi — halitunzwi. Toleo la sasa la npm-latest la `@openai/codex-security` (`0.1.29`) bado linatumia `extract-zip@2.0.1`.
+- **Haiwezi kufikiwa kutoka uzalishishaji.** `promptfoo` ni devDependency-only (haijawahi kuorodheshwa chini ya `dependencies`), na hakuna faili chini ya `src/`, `open-sse/`, au `bin/` inayoingiza kifurushi cha npm cha `extract-zip` — msaidizi wa OmniRoute mwenyewe `extractZip()` (`src/lib/versionManager/binaryManager.ts:93`) hutumia `unzip`/`tar` asilia na haihusiani. `@openai/codex-security` pia inajumuisha ulinzi wake wa symlink-traversal juu ya onEntry callback ya extract-zip.
+- **Usifanye** alias ya `extract-zip` kupitia `package.json` `overrides` — mbadala pekee unaofaa ni Electron-org-internal na haioani na API ya ukaguzi wa `@openai/codex-security` mwenyewe wa onEntry/defaultDirMode/defaultFileMode; kuibadilisha kungesababisha ukaguzi wa usalama wa kifurushi hicho kuvunjika kimya kimya.
+- **Msingi:** `vulnCount` (3) iliyopimwa ya osv tayari iko chini sana ya msingi uliogandishwa wa `config/quality/quality-baseline.json` (27) — hakuna mabadiliko ya ratchet yanayohitajika.
+- **Ulinzi wa Regression:** `tests/unit/extract-zip-14482-exposure.test.ts` inathibitisha mfuatano na invariant ya kutokuwa na import ya uzalishaji hapo juu; inashindwa CI ikiwa mojawapo itavunjika (k.m. PR ya baadaye inafanya `extract-zip` kufikiwa kutoka uzalishaji).
+- **Ufuatiliaji:** suala #14482.
+
+## Backlog: Ushauri wa Scorecard → kuzuia
+
+Baada ya toleo la kwanza la kijani kibichi lenye ripoti ya Scorecard:
+
+- Scorecard: score ratchet (hugandisha alama iliyopimwa; haiwezi kupungua).
+
+Inakamilisha milango ya Awamu ya 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor inakagua workflows zenyewe; Scorecard inapima mkao wa repo kwa ujumla.

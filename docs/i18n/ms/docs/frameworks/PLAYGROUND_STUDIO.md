@@ -188,14 +188,14 @@ Pengesahan: pilihan (`REQUIRE_API_KEY`). Ralat melalui `buildErrorBody()` (Perat
 
 ## Penyelesaian Masalah
 
-| Gejala                                         | Punca                                         | Penyelesaian                                                                                                     |
-| ---------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Editor Monaco tidak dipaparkan dalam tab API   | SSR memuatkan Monaco                          | Pastikan `ApiTab` menggunakan `dynamic(..., { ssr: false })`                                                     |
-| Strim perbandingan dicetuskan secara berurutan | Penggunaan `Promise.all` yang salah           | Semua permulaan strim mesti dihantar dalam satu panggilan `Promise.all`                                          |
-| Metrik menunjukkan TTFT `null`                 | Pengendali cebisan pertama tidak disambungkan | Pastikan `useStreamMetrics.onFirstChunk()` dipanggil dalam gelung pembaca SSE                                    |
-| Pratetap tidak disimpan secara berterusan      | Migrasi DB tidak dijalankan                   | Jalankan `npm run db:migrate` atau mulakan semula pelayan (migrasi dijalankan secara automatik semasa permulaan) |
-| Penambahbaikan gesaan mengembalikan 502        | Model tidak ditetapkan dalam Config           | Pengguna mesti memasukkan nama model dalam anak tetingkap Config sebelum membuat penambahbaikan                  |
-| Kod eksport menunjukkan `MISSING_API_KEY`      | Pemegang tempat tidak disisipkan              | `codeExport.ts` sentiasa menggunakan `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                |
+| Gejala                                         | Punca                                         | Penyelesaian                                                                           |
+| ---------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Editor Monaco tidak dipaparkan dalam tab API   | SSR memuatkan Monaco                          | Sahkan `ApiTab` menggunakan `dynamic(..., { ssr: false })`                             |
+| Strim perbandingan dijalankan secara berurutan | Penggunaan `Promise.all` yang salah           | Semua strim mesti dimulakan dalam satu panggilan `Promise.all`                         |
+| Metrik menunjukkan TTFT `null`                 | Pengendali cebisan pertama tidak disambungkan | Pastikan `useStreamMetrics.onFirstChunk()` dipanggil dalam gelung pembaca SSE          |
+| Pratetap tidak dikekalkan                      | Migrasi DB belum dijalankan                   | Mulakan semula pelayan: migrasi dijalankan secara automatik semasa permulaan           |
+| Penambahbaikan gesaan mengembalikan 502        | Model belum ditetapkan dalam Config           | Pengguna mesti memasukkan nama model dalam anak tetingkap Config sebelum menambah baik |
+| Kod eksport menunjukkan `MISSING_API_KEY`      | Ruang letak tidak disisipkan                  | `codeExport.ts` sentiasa menggunakan `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`      |
 
 ---
 

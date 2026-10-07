@@ -2,7 +2,11 @@ import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCostDetailed } from "./costCalculator";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  resolveRetryAfterInstant,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -587,13 +591,26 @@ export function buildApiKeyUsageLimitRejection(
   options: { showUsd?: boolean } = {}
 ): Response {
   const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
+  // Whichever window actually tripped drives the reset timing below (daily is
+  // checked first, matching buildUsageLimitExceededMessage's own precedence).
+  const trippedResetAtIso = status.dailyExceeded
+    ? status.dailyResetAtIso
+    : status.weeklyExceeded
+      ? status.weeklyResetAtIso
+      : null;
   if (isAnthropicMessagesRequest(request)) {
+    // Claude Code treats a non-400 /v1/messages error as an auth failure and triggers
+    // a re-login prompt — this branch's status MUST stay 400 (see the "does not trigger
+    // login" regression test). The reset timing is still worth surfacing, so it rides
+    // along as extra fields on the same Anthropic-shaped error envelope.
+    const resolved = resolveRetryAfterInstant(trippedResetAtIso);
     return new Response(
       JSON.stringify({
         type: "error",
         error: {
           type: "invalid_request_error",
           message,
+          ...resolved,
         },
       }),
       {
@@ -603,9 +620,11 @@ export function buildApiKeyUsageLimitRejection(
     );
   }
 
-  return new Response(JSON.stringify(buildErrorBody(400, message)), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
+  // Non-Anthropic clients: 429 is the semantically correct status for a quota/rate
+  // condition (every sibling budget/token/rate-limit check already uses it).
+  return errorResponse(429, message, {
+    code: "usage_limit_exceeded",
+    retryAfter: trippedResetAtIso,
   });
 }
 

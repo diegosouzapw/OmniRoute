@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { projectCompletedStreamError } from "../../utils/streamErrorFormat.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
+import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalStatus.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import { resolveResponsesCacheUsageDetails } from "../../utils/resolveResponsesCacheUsageDetails.ts";
@@ -354,6 +355,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
   // Handle finish_reason
   if (choice.finish_reason) {
+    state.finishReason = choice.finish_reason; // read by sendCompleted() → finalizeResponsesTerminalStatus
     for (const i in state.msgItemAdded) closeMessage(state, emit, i);
     closeReasoning(state, emit);
     for (const i in state.funcCallIds) closeToolCall(state, emit, i);
@@ -466,7 +468,30 @@ function closeReasoning(state, emit) {
   }
 }
 
+// Some upstreams (deepseek-v4, Kimi-style) interleave plain text deltas AFTER
+// a real tool_call has closed the message item. Emitting those onto the
+// already-done output_index violates the Responses item lifecycle (#13693):
+// Codex CLI aborts on "OutputTextDelta without active item" and the tail text
+// is silently dropped from response.completed. Re-home post-close content onto
+// a FRESH message item at the next free output_index instead — the text keeps
+// flowing and every done item stays immutable. The fresh index must also stay
+// clear of the tool-call block (toolCallOutputIndexBase), hence the scan past
+// reasoning/message AND allocated function-call indexes.
+function nextFreeMessageIndex(state, requestedIdx) {
+  let candidate = normalizeOutputIndex(requestedIdx);
+  const allocatedToolIndexes = state.funcAllocatedOutputIndexes || {};
+  const claimed = (i) =>
+    state.msgItemAdded[i] ||
+    allocatedToolIndexes[i] !== undefined ||
+    (state.reasoningId && i === normalizeOutputIndex(state.reasoningIndex));
+  while (claimed(candidate)) candidate += 1;
+  return candidate;
+}
+
 function emitTextContent(state, emit, idx, content) {
+  if (state.msgItemDone[idx]) {
+    idx = nextFreeMessageIndex(state, idx);
+  }
   if (!state.msgItemAdded[idx]) {
     state.msgItemAdded[idx] = true;
     const msgId = `msg_${state.responseId}_${idx}`;
@@ -561,6 +586,10 @@ function toolCallOutputIndexBase(state) {
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
   const outputIndex = toolCallOutputIndexBase(state) + resolveLocalToolCallIndex(state, tcIdx);
+  // Record every allocated tool-call output_index so a post-close text
+  // relocation (nextFreeMessageIndex) can never collide with it.
+  if (!state.funcAllocatedOutputIndexes) state.funcAllocatedOutputIndexes = {};
+  state.funcAllocatedOutputIndexes[outputIndex] = true;
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
@@ -785,7 +814,7 @@ function sendCompleted(state, emit) {
     const output = buildDenseOutput(state);
 
     // Surface upstream mid-stream errors (e.g. Gemini 503) in the
-    // Responses-API `response.completed` event instead of silently emitting
+    // Responses-API `response.failed` event instead of silently emitting
     // `status: "completed"`. The error is set by the Gemini-to-OpenAI
     // translator or the OpenAI-Responses translator itself when the upstream
     // SSE stream emits a JSON error object after partial content.
@@ -811,10 +840,8 @@ function sendCompleted(state, emit) {
       response.usage = state.usage;
     }
 
-    emit("response.completed", {
-      type: "response.completed",
-      response,
-    });
+    const eventType = finalizeResponsesTerminalStatus(response, state.finishReason, !!upstreamErr);
+    emit(eventType, { type: eventType, response });
   }
 }
 
@@ -822,6 +849,17 @@ function flushEvents(state) {
   if (state.completedSent) return [];
 
   const { events, emit } = createEventEmitter(state);
+
+  // EOF is not a Chat Completions finish signal. Preserve partial items, but
+  // surface the missing upstream terminal instead of manufacturing success.
+  if (!state.finishReason && !state.upstreamError) {
+    state.upstreamError = {
+      status: 502,
+      type: "server_error",
+      code: "stream_early_eof",
+      message: "Upstream stream ended without a terminal marker",
+    };
+  }
 
   for (const i in state.msgItemAdded) closeMessage(state, emit, i);
   closeReasoning(state, emit);

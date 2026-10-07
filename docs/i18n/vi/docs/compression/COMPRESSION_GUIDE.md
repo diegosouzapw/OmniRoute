@@ -271,7 +271,7 @@ mật khẩu, token và thông tin bí mật trước khi bất kỳ dữ liệu
 
 ## Thống kê nén
 
-Mỗi yêu cầu đã nén đều bao gồm các số liệu thống kê trong nhật ký máy chủ:
+Mỗi yêu cầu được nén đều bao gồm số liệu thống kê trong nhật ký máy chủ:
 
 ```json
 {
@@ -309,23 +309,28 @@ Chế độ RTK được lấy cảm hứng từ **[RTK - Rust Token Killer](htt
 
 ---
 
-## Hệ thống nén nâng cao
+## Các hệ thống nén nâng cao
 
-Ngoài 7 chế độ tiêu chuẩn, OmniRoute còn bao gồm một số hệ thống nén nâng cao hoạt động tự động dựa trên ngữ cảnh.
+Ngoài 7 chế độ tiêu chuẩn, OmniRoute còn bao gồm một số hệ thống nén nâng cao
+hoạt động tự động dựa trên ngữ cảnh.
 
-### Nén nhận biết bộ nhớ đệm (Cache-Aware Compression)
+### Nén nhận biết bộ nhớ đệm
 
-Một số nhà cung cấp (như Anthropic với tính năng prompt caching) hỗ trợ **prompt caching**, cho phép họ lưu trữ các phần của prompt để giảm chi phí và độ trễ. Khi tính năng caching được bật, việc nén mạnh có thể thực sự **làm giảm** hiệu suất vì nó thay đổi các token đã được lưu vào bộ nhớ đệm, làm mất hiệu lực của bộ nhớ đệm.
+Một số nhà cung cấp (như Anthropic với tính năng lưu lời nhắc vào bộ nhớ đệm) hỗ trợ **lưu lời nhắc vào bộ nhớ đệm**,
+cho phép họ lưu các phần của lời nhắc để giảm chi phí và độ trễ. Khi
+tính năng lưu vào bộ nhớ đệm được bật, việc nén mạnh thực tế có thể **làm giảm** hiệu năng
+vì nó thay đổi các token đã được lưu, khiến bộ nhớ đệm mất hiệu lực.
 
-Mô-đun `cachingAware.ts` giải quyết vấn đề này bằng cách **phát hiện ngữ cảnh caching** và **điều chỉnh chiến lược nén** cho phù hợp.
+Mô-đun `cachingAware.ts` giải quyết vấn đề này bằng cách **phát hiện ngữ cảnh lưu vào bộ nhớ đệm** và
+**điều chỉnh chiến lược nén** cho phù hợp.
 
 #### Cách hoạt động
 
-1.  **Phát hiện ngữ cảnh caching** — Quét phần thân yêu cầu để tìm các dấu hiệu `cache_control`
-2.  **Xác định nhà cung cấp hỗ trợ caching** — Kiểm tra xem nhà cung cấp mục tiêu có hỗ trợ caching hay không
-3.  **Điều chỉnh chiến lược** — Hạ cấp `aggressive`/`ultra` xuống `standard` cho các nhà cung cấp hỗ trợ caching
-4.  **Bỏ qua prompt hệ thống** — Các prompt hệ thống thường được lưu vào bộ nhớ đệm, vì vậy không nén chúng
-5.  **Sử dụng các phép biến đổi xác định** — Chỉ sử dụng các phép biến đổi tạo ra đầu ra nhất quán
+1. **Phát hiện ngữ cảnh lưu vào bộ nhớ đệm** — Quét phần thân yêu cầu để tìm các dấu hiệu `cache_control`
+2. **Xác định nhà cung cấp hỗ trợ lưu vào bộ nhớ đệm** — Kiểm tra xem nhà cung cấp đích có hỗ trợ lưu vào bộ nhớ đệm hay không
+3. **Điều chỉnh chiến lược** — Hạ `aggressive`/`ultra` xuống `standard` đối với các nhà cung cấp hỗ trợ lưu vào bộ nhớ đệm
+4. **Bỏ qua lời nhắc hệ thống** — Lời nhắc hệ thống thường được lưu vào bộ nhớ đệm, vì vậy không nén chúng
+5. **Sử dụng các phép biến đổi xác định** — Chỉ sử dụng các phép biến đổi tạo ra đầu ra nhất quán
 
 #### Ví dụ mã
 
@@ -338,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache marker
+  cache_control: { type: "ephemeral" }, // ← Dấu hiệu bộ nhớ đệm
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -348,21 +353,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Khi nào sử dụng
+#### Khi nào nên sử dụng
 
-Nén nhận biết bộ nhớ đệm (Cache-aware compression) **luôn bật** — không cần cấu hình. Nó chỉ hoạt động khi:
+Tính năng nén nhận biết bộ nhớ đệm **luôn được bật** — không cần cấu hình. Tính năng này chỉ được kích hoạt
+khi:
 
 - Yêu cầu có các dấu hiệu `cache_control`
-- Nhà cung cấp mục tiêu hỗ trợ prompt caching (Anthropic, OpenAI, v.v.)
+- Nhà cung cấp đích hỗ trợ lưu lời nhắc vào bộ nhớ đệm (Anthropic, OpenAI, v.v.)
 
-### Lão hóa lũy tiến (Progressive Aging)
+### Giảm chi tiết lũy tiến
 
-Các cuộc hội thoại dài tích lũy nhiều lượt tin nhắn, nhưng các lượt cũ hơn trở nên ít liên quan hơn. Mô-đun `progressiveAging.ts` **giảm chất lượng tin nhắn theo khoảng cách lượt**:
+Các cuộc hội thoại dài tích lũy nhiều lượt tin nhắn, nhưng các lượt cũ dần trở nên ít
+liên quan hơn. Mô-đun `progressiveAging.ts` **giảm mức độ chi tiết của tin nhắn theo khoảng cách lượt**:
 
-- **Các lượt gần đây (0-3)**: Giữ nguyên (chi tiết đầy đủ)
-- **Các lượt trung bình (4-8)**: Nén nhẹ (xóa khoảng trắng, dọn dẹp định dạng)
-- **Các lượt cũ (9+)**: Nén kiểu "người tiền sử" (Caveman compression) (loại bỏ từ đệm, tóm tắt)
-- **Các lượt rất cũ (20+)**: Tóm tắt rất nhiều hoặc bị loại bỏ
+- **Các lượt gần đây (0-3)**: Được giữ nguyên văn (đầy đủ chi tiết)
+- **Các lượt trung gian (4-8)**: Nén nhẹ (dọn dẹp khoảng trắng và định dạng)
+- **Các lượt cũ (9+)**: Nén kiểu người tiền sử (loại bỏ từ thừa, tóm tắt)
+- **Các lượt rất cũ (20+)**: Được tóm tắt mạnh hoặc loại bỏ
 
 #### Ví dụ mã
 
@@ -373,46 +380,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... Thêm 50 lượt nữa ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // First 3 turns: verbatim
-  light: 8, // Turns 4-8: lite compression
-  moderate: 20, // Turns 9-20: caveman compression
-  // Turns 21+: heavy summarization
+  verbatim: 3, // 3 lượt đầu tiên: giữ nguyên văn
+  light: 8, // Các lượt 4-8: nén nhẹ
+  moderate: 20, // Các lượt 9-20: nén kiểu người tiền sử
+  // Các lượt 21+: tóm tắt mạnh
 });
 
-// saved = number of tokens saved
+// saved = số lượng token tiết kiệm được
 ```
 
-#### Khi nào sử dụng
+#### Khi nào nên sử dụng
 
-Lão hóa lũy tiến (Progressive aging) **luôn bật** cho các chế độ `aggressive` và `ultra`. Nó đặc biệt hiệu quả cho:
+Tính năng giảm chi tiết lũy tiến **luôn được bật** cho các chế độ `aggressive` và `ultra`. Tính năng này
+đặc biệt hiệu quả đối với:
 
-- Các phiên viết mã kéo dài
-- Các cuộc hội thoại kéo dài nhiều ngày
-- Các quy trình làm việc của tác nhân (agentic workflows) với nhiều lệnh gọi công cụ
+- Các phiên lập trình kéo dài
+- Các cuộc hội thoại diễn ra trong nhiều ngày
+- Các quy trình tác nhân có nhiều lệnh gọi công cụ
 
-### Chế độ đầu ra Caveman (Caveman Output Mode)
+### Chế độ đầu ra kiểu người tiền sử
 
-Mô-đun `outputMode.ts` chèn **hướng dẫn prompt hệ thống** để làm cho chính mô hình tạo ra đầu ra nén, ngắn gọn (kiểu "người tiền sử").
+Mô-đun `outputMode.ts` chèn **các chỉ dẫn vào lời nhắc hệ thống** để khiến
+mô hình tự tạo đầu ra ngắn gọn, cô đọng (phong cách "người tiền sử").
 
 #### Cách hoạt động
 
-Thay vì nén đầu vào, chế độ này thêm một prompt hệ thống như:
+Thay vì nén đầu vào, chế độ này thêm một lời nhắc hệ thống như:
 
-> "Trả lời bằng ít từ nhất. Bỏ qua những lời xã giao. Sử dụng câu ngắn."
+> "Trả lời bằng ít từ nhất. Bỏ qua lời xã giao. Sử dụng câu ngắn."
 
-Điều này hoạt động đặc biệt tốt cho:
+Chế độ này đặc biệt phù hợp với:
 
-- Tạo mã (đầu ra ngắn gọn hơn = ít token hơn)
-- Hỏi & Đáp nhanh (không cần giải thích phức tạp)
+- Tạo mã (đầu ra súc tích hơn = ít token hơn)
+- Hỏi đáp nhanh (không cần giải thích dài dòng)
 - Xử lý hàng loạt (tối đa hóa thông lượng)
 
-#### Khi nào sử dụng
+#### Khi nào nên sử dụng
 
-Chế độ đầu ra Caveman (Caveman output mode) là **tùy chọn** — hãy đặt nó thông qua cấu hình kết hợp:
+Chế độ đầu ra kiểu người tiền sử là tính năng **tùy chọn bật** — hãy thiết lập thông qua cấu hình kết hợp:
 
 ```json
 {
@@ -427,25 +436,58 @@ Chế độ đầu ra Caveman (Caveman output mode) là **tùy chọn** — hãy
 
 ### Các kiểu đầu ra (danh mục)
 
-Chế độ đầu ra Caveman ở trên là **đường dẫn kiểu đơn kế thừa**. Giai đoạn 4 đã khái quát hóa nó thành một danh mục các kiểu đầu ra có thể kết hợp: `OUTPUT_STYLE_CATALOG` trong `open-sse/services/compression/outputStyles/catalog.ts`. Mỗi kiểu là một hướng dẫn prompt hệ thống làm cho chính mô hình tạo ra đầu ra rẻ hơn; các kiểu có thể được bật cùng nhau và được chèn theo thứ tự danh mục.
+Chế độ đầu ra kiểu người tiền sử ở trên là **cơ chế một kiểu cũ**. Giai đoạn 4 đã khái quát hóa cơ chế này
+thành một danh mục các kiểu đầu ra có thể kết hợp: `OUTPUT_STYLE_CATALOG` trong
+`open-sse/services/compression/outputStyles/catalog.ts`. Mỗi kiểu là một chỉ dẫn trong lời nhắc hệ thống
+khiến mô hình tự tạo đầu ra ít tốn kém hơn; có thể bật nhiều kiểu
+cùng lúc và chúng được chèn theo thứ tự trong danh mục.
 
-| Kiểu                              | `id`          | Chức năng                                                                                                                                                                                                                                       | Ngôn ngữ hướng dẫn                                                                  |
-| --------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Văn xuôi súc tích                 | `terse-prose` | Bỏ các từ đệm/mạo từ/cách nói vòng vo; giữ nội dung kỹ thuật chính xác. Văn bản giống hệt chế độ đầu ra `caveman` cũ (được tham chiếu, không gõ lại).                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Ít code hơn                       | `less-code`   | Thang YAGNI: thay đổi nhỏ nhất có thể hoạt động, không có các trừu tượng không được yêu cầu.                                                                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Ponytail (dev cấp cao lười biếng) | `ponytail`    | "Code tốt nhất là code không bao giờ được viết": tái sử dụng > viết lại, nguyên nhân gốc rễ > triệu chứng, diff hoạt động ngắn nhất.                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| Tôi bị ADHD (hành động trước)     | `i-have-adhd` | Hành động trước (lệnh/đường dẫn/đoạn mã trước văn xuôi), các bước được đánh số giới hạn, MỘT bước tiếp theo cụ thể, không có lời mở đầu/tóm tắt/kết thúc. Được điều chỉnh từ [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                       |
-| CJK súc tích (文言)               | `terse-cjk`   | Phong cách cực kỳ súc tích theo kiểu Hán văn cổ điển.                                                                                                                                                                                           | zh (giới hạn theo ngôn ngữ: chỉ được cung cấp khi ngôn ngữ được giải quyết là `zh`) |
+| Phong cách                                   | `id`          | Chức năng                                                                                                                                                                                                                                   | Ngôn ngữ chỉ dẫn                                                                  |
+| -------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Văn phong súc tích                           | `terse-prose` | Loại bỏ từ thừa/mạo từ/cách diễn đạt dè dặt; giữ nguyên chính xác nội dung kỹ thuật. Cùng văn bản với chế độ đầu ra caveman cũ (được tham chiếu, không nhập lại).                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Ít mã hơn                                    | `less-code`   | Thang YAGNI: thay đổi hoạt động được nhỏ nhất, không tạo các lớp trừu tượng không được yêu cầu.                                                                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Đuôi ngựa (lập trình viên kỳ cựu lười biếng) | `ponytail`    | "Mã tốt nhất là mã không bao giờ được viết": tái sử dụng > viết lại, nguyên nhân gốc rễ > triệu chứng, diff hoạt động được ngắn nhất.                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| Tôi bị ADHD (hành động trước)                | `i-have-adhd` | Hành động trước (lệnh/đường dẫn/đoạn mã trước phần diễn giải), các bước được đánh số và có giới hạn, MỘT bước tiếp theo cụ thể, không mở đầu/tóm tắt/kết lời. Phỏng theo [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                     |
+| CJK súc tích (文言)                          | `terse-cjk`   | Phong cách Hán văn cổ siêu súc tích.                                                                                                                                                                                                        | zh (bị giới hạn theo locale: chỉ được cung cấp khi ngôn ngữ đã phân giải là `zh`) |
 
-Mỗi kiểu đi kèm ba mức độ cường độ — `lite`, `full`, `ultra` — và mỗi mức độ kết thúc bằng điều khoản giới hạn chung, giữ nguyên các khối mã, đường dẫn tệp, lệnh, chuỗi lỗi, URL và định danh.
+Mỗi phong cách cung cấp ba mức cường độ — `lite`, `full`, `ultra` — và mọi mức
+đều kết thúc bằng điều khoản ranh giới dùng chung, giữ nguyên từng ký tự của khối mã, đường dẫn tệp, lệnh,
+chuỗi lỗi, URL và định danh.
 
-#### Cách thức hoạt động của việc chèn
+#### Cách hoạt động của việc chèn
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) giải quyết lựa chọn dựa trên danh mục (các id không xác định và các kiểu không khớp ngôn ngữ sẽ bị loại bỏ, không bao giờ gây lỗi), nối các hướng dẫn đã chọn theo thứ tự danh mục, thêm điều khoản giới hạn **một lần**, và tải kết quả vào lời nhắc hệ thống phía sau một dấu hiệu bất biến duy nhất (`[OmniRoute Output Styles]`) — việc áp dụng lại sẽ không có tác dụng. Khi ngôn ngữ yêu cầu được phát hiện có bản dịch, hướng dẫn đã được bản địa hóa sẽ được chèn vào thay vì tiếng Anh.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) phân giải
+lựa chọn dựa trên danh mục (các id không xác định và phong cách không khớp locale sẽ bị
+loại bỏ, không bao giờ gây lỗi), nối các chỉ dẫn đã chọn theo thứ tự danh mục,
+nối thêm điều khoản ranh giới **một lần**, rồi bắt đầu khối bằng một dấu đánh dấu lũy đẳng
+duy nhất (`[OmniRoute Output Styles]`), vì vậy việc áp dụng lại không tạo ra thay đổi. Khi ngôn ngữ đã phân giải
+(xem phần Lựa chọn ngôn ngữ bên dưới) có bản dịch, chỉ dẫn đã bản địa hóa sẽ được
+chèn thay cho tiếng Anh.
+
+Trên nội dung có `messages`, cơ chế bỏ qua theo nội dung (`shouldBypassCavemanOutputMode()` trong
+`open-sse/services/compression/outputMode.ts`) kiểm tra ba tin nhắn gần nhất và bỏ qua
+các phong cách cho toàn bộ lượt khi chúng khớp với từ khóa về bảo mật, hành động không thể đảo ngược,
+làm rõ hoặc phụ thuộc thứ tự. Cơ chế bỏ qua hoạt động trong khi nút chuyển **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) trên bảng điều khiển đang bật, đây là giá trị mặc định; khi nút chuyển tắt, các phong cách đã chọn cũng được áp dụng trong những lượt đó.
+
+Khi cơ chế bỏ qua cho phép lượt tiếp tục, `placeSystemInstruction()` (cùng tệp), vốn
+không bao giờ tạo `messages[0]` mới, đặt khối vào vị trí đầu tiên tìm thấy trong các vị trí sau:
+
+1. Tin nhắn hệ thống ở đầu có nội dung dạng chuỗi: khối được nối sau văn bản của tin nhắn.
+2. Trường `system` cấp cao nhất: khối được nối sau văn bản nếu là chuỗi, hoặc
+   được thêm dưới dạng khối văn bản mới vào mảng khối nội dung.
+3. Tin nhắn hệ thống đầu tiên xuất hiện sau đó có nội dung dạng chuỗi: khối được nối sau
+   văn bản của tin nhắn.
+4. Không có trường hợp nào ở trên: khối được đưa vào một tin nhắn hệ thống mới ở cuối `messages`.
+
+Trên nội dung không có `messages`, khối được nối vào trường `instructions` dạng chuỗi,
+hoặc trở thành `instructions` khi nội dung có `input` (một chuỗi hoặc một mảng). Nội dung
+không có cả `instructions` lẫn `input` sẽ bị bỏ qua với lý do `no_messages`.
 
 #### Cách bật
 
-Trong bảng điều khiển: **Context → Settings → Compression** — mỗi kiểu một hàng với nút bật/tắt và bộ chọn mức độ. Theo chương trình, cấu hình nén lưu trữ lựa chọn dưới dạng:
+Trong bảng điều khiển: **Context → Settings → Compression** — mỗi phong cách có một hàng với
+nút bật/tắt và bộ chọn mức. Khi cấu hình bằng chương trình, cấu hình nén lưu lựa chọn
+như sau:
 
 ```json
 {
@@ -456,48 +498,59 @@ Trong bảng điều khiển: **Context → Settings → Compression** — mỗi
 }
 ```
 
-Tương thích ngược: cài đặt kết hợp `outputMode: "caveman"` cũ vẫn hoạt động và ánh xạ tới `terse-prose`, giống hệt về byte với cách chèn cũ trong mọi ngôn ngữ cũ.
+Khả năng tương thích ngược: thiết lập kết hợp `outputMode: "caveman"` cũ vẫn hoạt động và ánh xạ tới
+`terse-prose`, giống từng byte với nội dung chèn cũ trong mọi ngôn ngữ cũ.
 
-Chọn ngôn ngữ: khi `languageConfig.enabled` được bật, `autoDetect` sẽ chọn ngôn ngữ của tin nhắn người dùng gần nhất (cùng bộ phát hiện với các công cụ đầu vào); tắt `autoDetect` sẽ ghim `defaultLanguage`. Tắt → Tiếng Anh.
+Lựa chọn ngôn ngữ: khi bật `languageConfig.enabled`, `autoDetect` chọn
+ngôn ngữ của tin nhắn người dùng mới nhất (cùng bộ phát hiện với các công cụ đầu vào);
+tắt `autoDetect` sẽ cố định `defaultLanguage`. Tắt → tiếng Anh.
 
-Ma trận kiểu × ngôn ngữ được ghim bởi `tests/unit/compression/output-styles-i18n-matrix.test.ts`: một kiểu mới không thể được phát hành nếu không có ít nhất một bản dịch tiếng pt-BR (hoặc một ngoại lệ được theo dõi rõ ràng), và một kiểu hiện có không thể tự động mất một ngôn ngữ. Để thêm một kiểu, xem [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Ma trận phong cách × ngôn ngữ được cố định bởi
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: phong cách mới không thể được phát hành
+nếu chưa có ít nhất bản dịch pt-BR (hoặc một ngoại lệ được theo dõi rõ ràng), và một
+phong cách hiện có không thể âm thầm mất một locale. Để thêm phong cách, hãy xem
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Nén Kết Quả Công Cụ
+### Nén kết quả công cụ
 
-Mô-đun `toolResultCompressor.ts` cung cấp **5 chiến lược nén chuyên biệt** cho kết quả công cụ (gọi hàm, đầu ra tác nhân, kết quả tìm kiếm, v.v.):
+Mô-đun `toolResultCompressor.ts` cung cấp **5 chiến lược nén chuyên biệt**
+cho kết quả công cụ (lời gọi hàm, đầu ra của tác tử, kết quả tìm kiếm, v.v.):
 
-1.  **Nén kết quả tìm kiếm** — Loại bỏ các kết quả dư thừa, giữ lại N kết quả hàng đầu
-2.  **Nén đọc tệp** — Cắt bớt các tệp lớn, giữ lại tiêu đề/import
-3.  **Nén thực thi mã** — Chỉ giữ lại stdout/stderr thiết yếu
-4.  **Nén truy vấn cơ sở dữ liệu** — Giới hạn số hàng, loại bỏ siêu dữ liệu dài dòng
-5.  **Nén phản hồi API** — Loại bỏ các trường null, cô đọng các mảng
+1. **Nén kết quả tìm kiếm** — Loại bỏ kết quả dư thừa, giữ lại top-N
+2. **Nén nội dung đọc từ tệp** — Cắt bớt tệp lớn, giữ lại phần đầu/import
+3. **Nén kết quả thực thi mã** — Chỉ giữ lại stdout/stderr thiết yếu
+4. **Nén truy vấn cơ sở dữ liệu** — Giới hạn số hàng, loại bỏ siêu dữ liệu dài dòng
+5. **Nén phản hồi API** — Loại bỏ các trường null, thu gọn mảng
 
 #### Khi nào nên sử dụng
 
-Nén kết quả công cụ **luôn được bật** khi có các lệnh gọi công cụ. Không cần cấu hình.
+Nén kết quả công cụ **luôn được bật** khi có lệnh gọi công cụ. Không cần
+cấu hình.
 
 ### Pipeline xếp chồng
 
-Chế độ xếp chồng chạy **nhiều công cụ theo trình tự** — thường là RTK trước (tiết kiệm 60-90% trên đầu ra công cụ), sau đó là Caveman (tiết kiệm thêm 30% trên văn bản còn lại). Điều này đạt được **tổng mức tiết kiệm 78-95%**.
+Chế độ xếp chồng chạy **nhiều engine theo trình tự** — thường là RTK trước
+(tiết kiệm 60-90% đầu ra công cụ), sau đó là Caveman (tiết kiệm thêm 30% trên
+phần văn bản còn lại). Cách này giúp **tiết kiệm tổng cộng 78-95%**.
 
-#### Cách thức hoạt động
+#### Cách hoạt động
 
 ```
-Input (1000 tokens)
-  → RTK (bộ lọc nhận biết lệnh) → 200 tokens
-    → Caveman (loại bỏ từ đệm) → 140 tokens
-  → Output (140 tokens, tiết kiệm 86%)
+Đầu vào (1000 token)
+  → RTK (bộ lọc nhận biết lệnh) → 200 token
+    → Caveman (loại bỏ nội dung dư thừa) → 140 token
+  → Đầu ra (140 token, tiết kiệm 86%)
 ```
 
 #### Khi nào nên sử dụng
 
 Sử dụng chế độ xếp chồng cho:
 
-- Các quy trình làm việc nặng về công cụ (mã hóa tác nhân, nghiên cứu)
-- Xử lý hàng loạt nhạy cảm về chi phí
+- Quy trình làm việc sử dụng nhiều công cụ (lập trình tác nhân, nghiên cứu)
+- Xử lý hàng loạt chú trọng chi phí
 - Khi bạn cần tiết kiệm token tối đa
 
-Cấu hình qua kết hợp:
+Cấu hình thông qua combo:
 
 ```json
 {

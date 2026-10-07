@@ -8,6 +8,7 @@ export const perplexity_webProvider: RegistryEntry = {
   baseUrl: "https://www.perplexity.ai/rest/sse/perplexity_ask",
   authType: "apikey",
   authHeader: "cookie",
+  unsupportedParams: ["tools", "tool_choice", "parallel_tool_calls"],
   models: [
     { id: "pplx-auto", name: "Perplexity Best", toolCalling: false },
     { id: "pplx-sonar", name: "Sonar 2 (via Perplexity)", toolCalling: false },

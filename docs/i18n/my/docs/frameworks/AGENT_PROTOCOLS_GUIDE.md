@@ -67,33 +67,36 @@ OmniRoute သည် agent နှင့်သက်ဆိုင်သော မ�
 
 ဆက်သွယ်ပို့ဆောင်မှု အသေးစိတ်များ၊ agent card ဖွဲ့စည်းပုံ၊ task TTL စီစဉ်သတ်မှတ်မှုနှင့် skill အသစ်များ ထည့်သွင်းရန် template အတွက် [A2A-SERVER.md](./A2A-SERVER.md) ကို ကြည့်ပါ။
 
-## 2. ACP — CLI Agent များ၏ Registry
+## 2. ACP — CLI Agent Registry
 
 **OmniRoute endpoint:** `GET /api/acp/agents`
-**ရင်းမြစ်:** `src/lib/acp/{index,manager,registry}.ts`
+**Source:** `src/lib/acp/{index,manager,registry}.ts`
 
-### ၎င်းက ဘာလဲ
+### ၎င်းသည် ဘာလဲ
 
-ACP သည် OmniRoute ၏ **စက်တွင်း CLI agent စာရင်း** ဖြစ်သည်။ ၎င်းသည် host တွင် မည်သည့် coding CLI များ (Cursor၊ Cline၊ Claude Code၊ Codex CLI၊ Continue စသည်) ထည့်သွင်းထားသည်ကို ရှာဖွေစစ်ဆေးပြီး ၎င်းတို့၏ version များကို သတ်မှတ်ဖော်ထုတ်ကာ dashboard တွင် ပြသပေးသည်။ ထို့ကြောင့် အသုံးပြုသူသည် CLI တစ်ခုစီကို OmniRoute သို့ ညွှန်ပြရန် ချိတ်ဆက်သတ်မှတ်နိုင်သည်။
+ACP သည် OmniRoute ၏ **စက်တွင်း CLI agent စာရင်း** ဖြစ်သည်။ ၎င်းသည် host ပေါ်တွင် မည်သည့် coding CLI များ (Cursor၊ Cline၊ Claude Code၊ Codex CLI၊ Continue စသည်တို့) ထည့်သွင်းထားသည်ကို ရှာဖွေစစ်ဆေးပြီး ၎င်းတို့၏ version များကို သတ်မှတ်ဖော်ထုတ်ကာ CLI တစ်ခုစီအား OmniRoute သို့ ညွှန်ပြချိတ်ဆက်နိုင်စေရန် dashboard တွင် ဖော်ပြပေးသည်။
 
-၎င်းသည် ပြင်ပ protocol တစ်ခု မဟုတ်ပါ — "CLI Tools" UI နှင့် CLI fingerprint ခြေရာခံခြင်းကို ပံ့ပိုးပေးသည့် အတွင်းပိုင်း registry တစ်ခုဖြစ်သည် ([CLI-TOOLS.md](../reference/CLI-TOOLS.md) ကို ကြည့်ပါ)။
+HTTP မျက်နှာပြင်သည် "CLI Tools" UI နှင့်
+CLI fingerprint ခြေရာခံခြင်းကို ပံ့ပိုးပေးသော စက်တွင်းစာရင်းတစ်ခုဖြစ်သည် ([CLI-TOOLS.md](../reference/CLI-TOOLS.md) ကိုကြည့်ပါ)။ သီးခြားအနေဖြင့်၊
+စက်တွင်း process manager သည် စာရင်းသွင်းထားသော Gemini launcher အတွက် မူရင်း Agent Client Protocol ကိုလည်းကောင်း၊ အခြား contract များအတွက် အဟောင်း stdio adapter များကိုလည်းကောင်း ပံ့ပိုးပေးသည်။
+အဆိုပါ သီးခြား mode များနှင့် ကန့်သတ်ချက်များအတွက် [ACP registry နှင့် launcher များ](./ACP.md) ကိုကြည့်ပါ။
 
 ### ၎င်းက ဘာလုပ်သလဲ
 
-- ထည့်သွင်းထားသည့် CLI binary များကို host တွင် စမ်းသပ်ရှာဖွေသည် (OS အလိုက် `which` / `where` ကို အသုံးပြုသည်)
-- CLI တစ်ခုစီ၏ version ကို ဖတ်ယူသည် (`<bin> --version` ကို ခေါ်သည်)
-- အသုံးပြုသူသတ်မှတ်ထားသည့် custom agent များကို ရွေးချယ်လက်ခံနိုင်သည် (binary path + version probe + spawn args)
-- Custom agent များကို settings တွင် အမြဲတမ်းသိမ်းဆည်းထားသည်
-- ပေါင်းစည်းထားသည့် စာရင်းကို dashboard သို့ ပြန်ပေးသည်
+- ထည့်သွင်းထားသော CLI binary များကို host ပေါ်တွင် စစ်ဆေးရှာဖွေသည် (OS အလိုက် `which` / `where` ကို အသုံးပြုသည်)
+- CLI တစ်ခုစီ၏ version ကို ဖတ်ရှုသည် (`<bin> --version` ကို ခေါ်ဆိုသည်)
+- အသုံးပြုသူသတ်မှတ်ထားသော custom agent များကို ရွေးချယ်လက်ခံနိုင်သည် (binary path + version စစ်ဆေးမှု + spawn argument များ)
+- Custom agent များကို setting များတွင် အမြဲတမ်းသိမ်းဆည်းထားသည်
+- ပေါင်းစည်းထားသော စာရင်းကို dashboard သို့ ပြန်ပေးသည်
 
 ### REST API
 
-| Endpoint          | Method | ဖော်ပြချက်                                                                                           | Auth    |
-| ----------------- | ------ | ---------------------------------------------------------------------------------------------------- | ------- |
-| `/api/acp/agents` | GET    | ရှာဖွေတွေ့ရှိထားသော + custom agent များကို စာရင်းပြုစုသည် (ထည့်သွင်းထားသည့်/စုစုပေါင်း အရေအတွက်များ) | API key |
-| `/api/acp/agents` | POST   | Custom agent ကို ထည့်သွင်း/အပ်ဒိတ်လုပ်/ဖယ်ရှားသည် (body အတွင်းရှိ action discriminator)              | API key |
+| Endpoint          | Method | ဖော်ပြချက်                                                                                           | စစ်မှန်ကြောင်းအတည်ပြုမှု |
+| ----------------- | ------ | ---------------------------------------------------------------------------------------------------- | ------------------------ |
+| `/api/acp/agents` | GET    | ရှာဖွေတွေ့ရှိထားသော + custom agent များကို စာရင်းပြုစုသည် (ထည့်သွင်းထားသည့်/စုစုပေါင်း အရေအတွက်များ) | API key                  |
+| `/api/acp/agents` | POST   | Custom agent ကို ထည့်သွင်း/အပ်ဒိတ်/ဖယ်ရှားသည် (body အတွင်းရှိ action ခွဲခြားသတ်မှတ်ချက်)             | API key                  |
 
-POST အတွက် body ပုံစံ (`src/app/api/acp/agents/route.ts` ရှိ `customAgentBodySchema`)៖
+POST အတွက် body ပုံစံ (`src/app/api/acp/agents/route.ts` ရှိ `customAgentBodySchema`)—
 
 ```json
 {
@@ -108,15 +111,18 @@ POST အတွက် body ပုံစံ (`src/app/api/acp/agents/route.ts` ရ
 }
 ```
 
-### အသုံးပြုမှုများ
+### အသုံးပြုနိုင်သည့် အခြေအနေများ
 
-- Dashboard ၏ "CLI Tools" စာမျက်နှာသည် ထည့်သွင်းထားသည့်အရာများကို စာရင်းပြုစုပြီး တစ်ခုချင်းစီကို OmniRoute သို့ ညွှန်ပြရန် ကူညီပေးသည်
-- Custom agent များကြောင့် အဆင့်မြင့်အသုံးပြုသူများသည် OmniRoute က ပုံသေအားဖြင့် မသိရှိသော အတွင်းပိုင်း/မူပိုင် CLI များကို မှတ်ပုံတင်နိုင်သည်
-- ရှာဖွေတွေ့ရှိမှုရလဒ်သည် `cli-tools` fingerprint matrix ကို ဒေတာဖြည့်ပေးသည်
+- Dashboard ရှိ "CLI Tools" စာမျက်နှာသည် ထည့်သွင်းထားသည့်အရာများကို စာရင်းပြုပြီး တစ်ခုစီအား OmniRoute သို့ ညွှန်ပြချိတ်ဆက်နိုင်ရန် ကူညီပေးသည်
+- Custom agent များက အဆင့်မြင့်အသုံးပြုသူများအား OmniRoute က မူလအားဖြင့် မသိရှိထားသော စက်တွင်းသုံး/မူပိုင် CLI များကို စာရင်းသွင်းနိုင်စေသည်
+- ရှာဖွေတွေ့ရှိမှုရလဒ်သည် `cli-tools` fingerprint matrix အတွက် အချက်အလက်ပံ့ပိုးပေးသည်
 
-### ACP ကို မသုံးသင့်သည့်အချိန်
+### ACP ကို အသုံးမပြုသင့်သည့် အခြေအနေများ
 
-- ACP သည် task များကို _လုပ်ဆောင်ခြင်း_ မပြုပါ။ ၎င်းသည် CLI များကို ရှာဖွေခြင်း + စီစဉ်သတ်မှတ်ခြင်းသာ လုပ်ဆောင်သည်။ CLI တစ်ခုကို အမှန်တကယ် ခေါ်ယူအသုံးပြုရန် OmniRoute က ပေးသည့် env var များ (`OPENAI_BASE_URL`၊ `OPENAI_API_KEY` စသည်) ဖြင့် သင်ကိုယ်တိုင် စတင်ရမည်။
+- HTTP registry သည် task များကို လက်မခံသကဲ့သို့ process စတင်လုပ်ဆောင်ခြင်းကိုလည်း မဖော်ပြပေးပါ။ စက်တွင်း
+  manager သည် စာရင်းသွင်းထားသော CLI ကို စတင်နိုင်သော်လည်း အလိုအလျောက် provider
+  fallback အဖြစ် ချိတ်ဆက်ထားခြင်းမရှိပါ။ ပုံမှန် အပြန်အလှန်အသုံးပြုမှုအတွက် ပြင်ဆင်သတ်မှတ်ထားသော CLI ကို ကိုယ်တိုင်စတင်ပါ သို့မဟုတ်
+  `omniroute run` ကို အသုံးပြုပါ။
 
 ## 3. Cloud Agent များ
 

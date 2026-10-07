@@ -309,23 +309,28 @@ RTK režīmu iedvesmojis **[RTK - Rust Token Killer](https://github.com/rtk-ai/r
 
 ---
 
-## Uzlabotas kompresijas sistēmas
+## Uzlabotas saspiešanas sistēmas
 
-Papildus 7 standarta režīmiem, OmniRoute ietver vairākas uzlabotas kompresijas sistēmas, kas darbojas automātiski, pamatojoties uz kontekstu.
+Papildus 7 standarta režīmiem OmniRoute ietver vairākas uzlabotas saspiešanas
+sistēmas, kas darbojas automātiski atkarībā no konteksta.
 
-### Kešatmiņu apzinoša kompresija
+### Kešatmiņu ņemoša vērā saspiešana
 
-Daži pakalpojumu sniedzēji (piemēram, Anthropic ar uzvedņu kešatmiņu) atbalsta **uzvedņu kešatmiņu**, kas ļauj tiem kešot daļas no uzvednes, lai samazinātu izmaksas un latentumu. Kad kešatmiņa ir iespējota, agresīva kompresija faktiski var **pasliktināt** veiktspēju, jo tā maina kešotos žetonus, anulējot kešatmiņu.
+Daži pakalpojumu sniedzēji (piemēram, Anthropic ar uzvedņu kešošanu) atbalsta **uzvedņu kešošanu**,
+kas ļauj tiem saglabāt kešatmiņā uzvednes daļas, lai samazinātu izmaksas un aizkavi. Kad
+kešošana ir iespējota, agresīva saspiešana faktiski var **pasliktināt** veiktspēju,
+jo tā maina kešotos tokenus, padarot kešatmiņu nederīgu.
 
-Modulis `cachingAware.ts` to atrisina, **nosakot kešatmiņas kontekstu** un **attiecīgi pielāgojot kompresijas stratēģiju**.
+Modulis `cachingAware.ts` to atrisina, **nosakot kešošanas kontekstu** un
+**atbilstoši pielāgojot saspiešanas stratēģiju**.
 
 #### Kā tas darbojas
 
-1. **Nosaka kešatmiņas kontekstu** — Skenē pieprasījuma pamattekstu, meklējot `cache_control` marķierus
-2. **Identificē kešatmiņas pakalpojumu sniedzējus** — Pārbauda, vai mērķa pakalpojumu sniedzējs atbalsta kešatmiņu
-3. **Pielāgo stratēģiju** — Pazemina `aggressive`/`ultra` uz `standard` kešatmiņas pakalpojumu sniedzējiem
-4. **Izlaiž sistēmas uzvedni** — Sistēmas uzvednes parasti tiek kešotas, tāpēc tās netiek kompresētas
-5. **Izmanto deterministiskas transformācijas** — Izmanto tikai transformācijas, kas rada konsekventu izvadi
+1. **Nosaka kešošanas kontekstu** — Pārbauda, vai pieprasījuma pamattekstā ir `cache_control` marķieri
+2. **Identificē kešošanu atbalstošus pakalpojumu sniedzējus** — Pārbauda, vai mērķa pakalpojumu sniedzējs atbalsta kešošanu
+3. **Pielāgo stratēģiju** — Kešošanu atbalstošiem pakalpojumu sniedzējiem pazemina `aggressive`/`ultra` uz `standard`
+4. **Izlaiž sistēmas uzvedni** — Sistēmas uzvednes parasti tiek kešotas, tāpēc tās netiek saspiestas
+5. **Izmanto deterministiskas transformācijas** — Izmanto tikai transformācijas, kas rada konsekventu rezultātu
 
 #### Koda piemērs
 
@@ -350,19 +355,20 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kad izmantot
 
-Kešatmiņu apzinoša kompresija ir **vienmēr ieslēgta** — nav nepieciešama konfigurācija. Tā tiek aktivizēta tikai tad, ja:
+Kešatmiņu ņemoša vērā saspiešana ir **vienmēr ieslēgta** — konfigurācija nav nepieciešama. Tā tiek aktivizēta tikai tad, ja:
 
-- Pieprasījumam ir `cache_control` marķieri
-- Mērķa pakalpojumu sniedzējs atbalsta uzvedņu kešatmiņu (Anthropic, OpenAI utt.)
+- Pieprasījumā ir `cache_control` marķieri
+- Mērķa pakalpojumu sniedzējs atbalsta uzvedņu kešošanu (Anthropic, OpenAI utt.)
 
 ### Progresīva novecošana
 
-Garās sarunās uzkrājas daudz ziņojumu, taču vecāki ziņojumi kļūst mazāk aktuāli. Modulis `progressiveAging.ts` **degradē ziņojumus pēc pagrieziena attāluma**:
+Garās sarunās uzkrājas daudzi ziņojumu dialoga soļi, taču vecāki soļi kļūst mazāk
+nozīmīgi. Modulis `progressiveAging.ts` **pakāpeniski vienkāršo ziņojumus atkarībā no to attāluma dialogā**:
 
-- **Jaunākie pagriezieni (0-3)**: Saglabāti vārds vārdā (pilna detaļa)
-- **Vidējie pagriezieni (4-8)**: Viegla kompresija (atstarpes, formatējuma tīrīšana)
-- **Vecie pagriezieni (9+)**: Alvejas kompresija (aizpildītāju noņemšana, kopsavilkums)
-- **Ļoti veci pagriezieni (20+)**: Spēcīgi apkopoti vai izlaisti
+- **Nesenie dialoga soļi (0–3)**: Saglabāti nemainīti (pilna detalizācija)
+- **Vidēji seni dialoga soļi (4–8)**: Viegla saspiešana (atstarpju un formatējuma sakārtošana)
+- **Veci dialoga soļi (9+)**: „Alu cilvēka” saspiešana (liekvārdības noņemšana, apkopošana)
+- **Ļoti veci dialoga soļi (20+)**: Intensīvi apkopoti vai atmesti
 
 #### Koda piemērs
 
@@ -373,46 +379,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... vēl 50 pagriezieni ...
+  // ... vēl 50 dialoga soļi ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Pirmie 3 pagriezieni: vārds vārdā
-  light: 8, // Pagriezieni 4-8: viegla kompresija
-  moderate: 20, // Pagriezieni 9-20: alvejas kompresija
-  // Pagriezieni 21+: smags kopsavilkums
+  verbatim: 3, // Pirmie 3 dialoga soļi: nemainīti
+  light: 8, // 4.–8. dialoga solis: viegla saspiešana
+  moderate: 20, // 9.–20. dialoga solis: „alu cilvēka” saspiešana
+  // 21. un turpmākie dialoga soļi: intensīva apkopošana
 });
 
-// saved = ietaupīto žetonu skaits
+// saved = ietaupīto tokenu skaits
 ```
 
 #### Kad izmantot
 
-Progresīva novecošana ir **vienmēr ieslēgta** `aggressive` un `ultra` režīmiem. Tā ir īpaši efektīva:
+Progresīva novecošana ir **vienmēr ieslēgta** režīmiem `aggressive` un `ultra`. Tā ir
+īpaši efektīva:
 
-- Ilgstošām kodēšanas sesijām
-- Vairāku dienu sarunām
-- Aģentu darbplūsmām ar daudziem rīku izsaukumiem
+- Ilgstošās programmēšanas sesijās
+- Vairāku dienu sarunās
+- Aģentu darbplūsmās ar daudziem rīku izsaukumiem
 
-### Alvejas izvades režīms
+### „Alu cilvēka” izvades režīms
 
-Modulis `outputMode.ts` injicē **sistēmas uzvednes instrukcijas**, lai modelis pats radītu kompresētu, īsu izvadi ("alvejas" stilā).
+Modulis `outputMode.ts` ievieto **sistēmas uzvednes norādījumus**, lai pats
+modelis veidotu saspiestu, lakonisku izvadi („alu cilvēka” stilā).
 
 #### Kā tas darbojas
 
-Tā vietā, lai kompresētu ievadi, šis režīms pievieno sistēmas uzvedni, piemēram:
+Tā vietā, lai saspiestu ievadi, šis režīms pievieno šādu sistēmas uzvedni:
 
-> "Atbildiet ar minimāliem vārdiem. Izlaidiet pieklājības frāzes. Izmantojiet īsus teikumus."
+> „Atbildi ar minimālu vārdu skaitu. Izlaid pieklājības frāzes. Lieto īsus teikumus.”
 
-Tas īpaši labi darbojas:
+Tas ir īpaši piemērots:
 
-- Koda ģenerēšanai (īsāka izvade = mazāk žetonu)
-- Ātriem jautājumiem un atbildēm (nav nepieciešami sarežģīti paskaidrojumi)
-- Partijas apstrādei (maksimāla caurlaides spēja)
+- Koda ģenerēšanai (īsāka izvade = mazāk tokenu)
+- Ātriem jautājumiem un atbildēm (nav nepieciešami izvērsti skaidrojumi)
+- Pakešapstrādei (maksimālai caurlaidspējai)
 
 #### Kad izmantot
 
-Alvejas izvades režīms ir **izvēles** — iestatiet to, izmantojot kombinēto konfigurāciju:
+„Alu cilvēka” izvades režīms ir **jāiespējo manuāli** — iestatiet to kombinētajā konfigurācijā:
 
 ```json
 {
@@ -427,35 +435,59 @@ Alvejas izvades režīms ir **izvēles** — iestatiet to, izmantojot kombinēto
 
 ### Izvades stili (katalogs)
 
-Iepriekš minētais alvejas izvades režīms ir **mantotais viena stila ceļš**. 4. fāze to vispārināja par saliekamu izvades stilu katalogu: `OUTPUT_STYLE_CATALOG` failā `open-sse/services/compression/outputStyles/catalog.ts`. Katrs stils ir sistēmas uzvednes instrukcija, kas liek modelim pašam radīt lētāku izvadi; stilus var iespējot kopā un tie tiek injicēti kataloga secībā.
+Iepriekš aprakstītais „alu cilvēka” izvades režīms ir **mantotais viena stila risinājums**. 4. posmā tas tika vispārināts
+par kombinējamu izvades stilu katalogu: `OUTPUT_STYLE_CATALOG` failā
+`open-sse/services/compression/outputStyles/catalog.ts`. Katrs stils ir sistēmas uzvednes
+norādījums, kas liek pašam modelim veidot lētāku izvadi; stilus var iespējot
+kopā, un tie tiek ievietoti kataloga secībā.
 
-| Stils                                   | `id`          | Ko tas dara                                                                                                                                                                                                                         | Instrukciju valodas                                                           |
-| --------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Lakoniska proza                         | `terse-prose` | Izlaiž pildvielas/rakstus/norobežojumus; saglabā tehnisko būtību precīzu. Tas pats teksts, kas mantotajā caveman izvades režīmā (atsauces, nav pārrakstīts).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
-| Mazāk koda                              | `less-code`   | YAGNI kāpnes: mazākās strādājošās izmaiņas, bez nepieprasītām abstrakcijām.                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
-| Ponytail (slinks vecākais izstrādātājs) | `ponytail`    | "Labākais kods ir kods, kas nekad nav uzrakstīts": atkārtota izmantošana > pārrakstīšana, pamatcēlonis > simptoms, īsākā strādājošā atšķirība.                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
-| Man ir ADHD (darbība-pirms)             | `i-have-adhd` | Darbība pirms (komanda/ceļš/fragments pirms prozas), numurēti ierobežoti soļi, VIENS konkrēts nākamais solis, bez preambulas/atkārtojuma/noslēguma. Pielāgots no [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                 |
-| Lakonisks CJK (文言)                    | `terse-cjk`   | Klasiskās ķīniešu valodas ultra-lakonisks stils.                                                                                                                                                                                    | zh (lokāles ierobežots: tiek piedāvāts tikai tad, ja noteiktā valoda ir `zh`) |
+| Stils                                   | `id`          | Ko tas dara                                                                                                                                                                                                                            | Instrukciju valodas                                                                     |
+| --------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Lakoniska proza                         | `terse-prose` | Atmet liekvārdību/artikulus/izvairīgas frāzes; precīzi saglabā tehnisko būtību. Tas pats teksts, kas mantotajā alu cilvēka izvades režīmā (norādīts ar atsauci, nevis pārrakstīts).                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
+| Mazāk koda                              | `less-code`   | YAGNI pieeja: mazākās funkcionējošās izmaiņas, nekādu nepieprasītu abstrakciju.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
+| Zirgaste (slinks vecākais izstrādātājs) | `ponytail`    | "Labākais kods ir kods, kas nekad nav uzrakstīts": atkārtota izmantošana > pārrakstīšana, pamatcēlonis > simptoms, īsākais funkcionējošais diff.                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
+| Man ir ADHD (vispirms darbība)          | `i-have-adhd` | Vispirms darbība (komanda/ceļš/fragments pirms prozas), numurēti un ierobežoti soļi, VIENS konkrēts nākamais solis, bez ievada/kopsavilkuma/nobeiguma. Pielāgots no [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                           |
+| Lakonisks CJK (文言)                    | `terse-cjk`   | Īpaši lakonisks klasiskās ķīniešu valodas stils.                                                                                                                                                                                       | zh (ierobežots pēc lokalizācijas: tiek piedāvāts tikai tad, ja noteiktā valoda ir `zh`) |
 
-Katram stilam ir trīs intensitātes līmeņi — `lite`, `full`, `ultra` — un katrs līmenis
-beidzas ar kopīgu robežu klauzulu, kas saglabā koda blokus, failu ceļus, komandas,
-kļūdu virknes, URL un identifikatorus burtiski.
+Katram stilam ir trīs intensitātes līmeņi — `lite`, `full`, `ultra` —, un katrs līmenis
+beidzas ar kopīgo robežu klauzulu, kas saglabā koda blokus, failu ceļus, komandas,
+kļūdu virknes, URL un identifikatorus nemainītus.
 
-#### Kā darbojas injekcija
+#### Kā darbojas ievietošana
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) atrisina
-izvēli pret katalogu (nezināmi ID un lokālei neatbilstoši stili tiek
-atmesti, nekad nav kļūda), apvieno atlasītās instrukcijas kataloga secībā,
-pievieno robežu klauzulu **vienreiz** un ievieto rezultātu sistēmas
-uzvednē aiz viena idempotences marķiera (`[OmniRoute Output Styles]`) — atkārtota
-piemērošana ir bezdarbība. Ja noteiktajai pieprasījuma valodai ir tulkojums,
-tiek injicēta lokalizētā instrukcija angļu valodas vietā.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) salīdzina
+atlasi ar katalogu (nezināmi id un lokalizācijai neatbilstoši stili tiek atmesti, nekad
+neradot kļūdu), savieno atlasītās instrukcijas kataloga secībā, **vienreiz** pievieno
+robežu klauzulu un sāk bloku ar vienu idempotences marķieri
+(`[OmniRoute Output Styles]`), tāpēc atkārtota lietošana neko nemaina. Ja noteiktajai
+valodai (skatiet sadaļu Valodas atlase tālāk) ir tulkojums, angļu valodas instrukcijas
+vietā tiek ievietota lokalizētā instrukcija.
+
+Pamattekstā ar `messages` satura apiešana (`shouldBypassCavemanOutputMode()` failā
+`open-sse/services/compression/outputMode.ts`) pārbauda pēdējos trīs ziņojumus un izlaiž
+stilus visam gājienam, ja tie atbilst drošības, neatgriezeniskas darbības,
+precizēšanas vai secības jutīguma atslēgvārdiem. Apiešana darbojas, kamēr vadības panelī **Auto-Clarity Bypass** pārslēgs (`cavemanOutputMode.autoClarity`) ir ieslēgts, kas ir noklusējuma iestatījums; ja pārslēgs ir izslēgts, izvēlētie stili tiek piemēroti arī šajos gājienos.
+
+Ja apiešana ļauj apstrādāt gājienu, `placeSystemInstruction()` (tajā pašā failā), kas
+nekad neveido jaunu `messages[0]`, ievieto bloku pirmajā atrastajā vietā:
+
+1. Sākuma sistēmas ziņojums ar virknes saturu: bloks tiek pievienots aiz tā teksta.
+2. Augstākā līmeņa `system` lauks: bloks tiek pievienots aiz virknes teksta vai
+   pievienots kā jauns teksta bloks satura bloku masīvam.
+3. Pirmais nākamais sistēmas ziņojums ar virknes saturu: bloks tiek pievienots aiz tā
+   teksta.
+4. Nekas no iepriekš minētā: bloks tiek ievietots jaunā sistēmas ziņojumā `messages`
+   beigās.
+
+Pamattekstā bez `messages` bloks tiek pievienots virknes laukam `instructions` vai kļūst
+par `instructions`, ja pamattekstā ir `input` (virkne vai masīvs). Pamatteksts, kurā nav
+ne `instructions`, ne `input`, tiek izlaists kā `no_messages`.
 
 #### Kā iespējot
 
-Informācijas panelī: **Context → Settings → Compression** — viena rinda katram stilam ar
-ieslēgšanas/izslēgšanas slēdzi un līmeņa selektoru. Programmatiski kompresijas konfigurācija
-saglabā izvēli kā:
+Vadības panelī: **Context → Settings → Compression** — katram stilam viena rinda ar
+ieslēgšanas/izslēgšanas pārslēgu un līmeņa atlasītāju. Programmatiski kompresijas
+konfigurācija saglabā atlasi šādi:
 
 ```json
 {
@@ -466,59 +498,60 @@ saglabā izvēli kā:
 }
 ```
 
-Atpakaļsaderība: mantotais `outputMode: "caveman"` kombinētais iestatījums joprojām darbojas un atbilst
-`terse-prose`, baitiski identisks vecajai injekcijai katrā mantotajā valodā.
+Atpakaļsaderība: mantotais kombinācijas iestatījums `outputMode: "caveman"` joprojām
+darbojas un tiek kartēts uz `terse-prose`, katrā mantotajā valodā baitus pa baitam
+atbilstot vecajam ievietojumam.
 
-Valodu izvēle: ar `languageConfig.enabled` ieslēgtu, `autoDetect` izvēlas
-jaunākās lietotāja ziņas valodu (tas pats detektors, kas ievades dzinējiem);
-izslēdzot `autoDetect`, tiek fiksēta `defaultLanguage`. Izslēgts → angļu.
+Valodas atlase: ja `languageConfig.enabled` ir ieslēgts, `autoDetect` nosaka jaunākā
+lietotāja ziņojuma valodu (izmantojot to pašu noteicēju, ko ievades dziņi);
+izslēdzot `autoDetect`, tiek fiksēta `defaultLanguage`. Izslēgts → angļu valoda.
 
-Stila × valodu matrica ir fiksēta ar
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: jauns stils nevar tikt piegādāts
-bez vismaz pt-BR tulkojuma (vai skaidri izsekota izņēmuma), un
-esošs stils nevar klusi zaudēt lokāli. Lai pievienotu stilu, skatiet
+Stilu × valodu matrica ir fiksēta ar
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: jaunu stilu nevar izlaist
+bez vismaz pt-BR tulkojuma (vai skaidri izsekota izņēmuma), un esošs stils nevar
+nepamanīti zaudēt lokalizāciju. Lai pievienotu stilu, skatiet
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Rīka rezultātu kompresija
+### Rīku rezultātu kompresija
 
 Modulis `toolResultCompressor.ts` nodrošina **5 specializētas kompresijas stratēģijas**
-rīku rezultātiem (funkciju izsaukumi, aģentu izvades, meklēšanas rezultāti utt.):
+rīku rezultātiem (funkciju izsaukumiem, aģentu izvadei, meklēšanas rezultātiem utt.):
 
-1. **Meklēšanas rezultātu kompresija** — Noņem liekos rezultātus, saglabā top-N
-2. **Failu lasīšanas kompresija** — Saīsina lielus failus, saglabā galvenes/importus
-3. **Koda izpildes kompresija** — Saglabā tikai būtisko stdout/stderr
-4. **Datu bāzes vaicājumu kompresija** — Ierobežo rindas, noņem detalizētus metadatus
-5. **API atbildes kompresija** — Noņem nulles laukus, kondensē masīvus
+1. **Meklēšanas rezultātu kompresija** — noņem dublējošus rezultātus, saglabā labākos N
+2. **Failu lasīšanas kompresija** — saīsina lielus failus, saglabā galvenes/importus
+3. **Koda izpildes kompresija** — saglabā tikai būtisko stdout/stderr
+4. **Datubāzes vaicājumu kompresija** — ierobežo rindas, noņem izvērstus metadatus
+5. **API atbildes kompresija** — noņem null laukus, saīsina masīvus
 
 #### Kad izmantot
 
-Rīka rezultātu kompresija ir **vienmēr ieslēgta**, ja ir rīku izsaukumi. Nav
-nepieciešama konfigurācija.
+Rīku rezultātu saspiešana ir **vienmēr ieslēgta**, ja ir veikti rīku izsaukumi. Nekāda
+konfigurēšana nav nepieciešama.
 
-### Sakrauta cauruļvads
+### Secīgais konveijers
 
-Sakrautais režīms palaiž **vairākus dzinējus secīgi** — parasti vispirms RTK
-(60-90% ietaupījums rīka izvadei), tad Caveman (30% papildu ietaupījums
-atlikušajam tekstam). Tas nodrošina **78-95% kopējo ietaupījumu**.
+Secīgais režīms izpilda **vairākus dzinējus pēc kārtas** — parasti vispirms RTK
+(60–90% rīku izvades ietaupījums), pēc tam Caveman (papildu 30% ietaupījums
+atlikušajam tekstam). Tādējādi tiek panākts **78–95% kopējais ietaupījums**.
 
 #### Kā tas darbojas
 
 ```
-Ievade (1000 žetoni)
-  → RTK (komandu apzinīgs filtrs) → 200 žetoni
-    → Caveman (pildvielu noņemšana) → 140 žetoni
-  → Izvade (140 žetoni, 86% ietaupījums)
+Ievade (1000 marķieru)
+  → RTK (komandas ņemošs vērā filtrs) → 200 marķieru
+    → Caveman (liekvārdības noņemšana) → 140 marķieru
+  → Izvade (140 marķieru, 86% ietaupījums)
 ```
 
 #### Kad izmantot
 
-Izmantojiet sakrauto režīmu:
+Izmantojiet secīgo režīmu šādiem nolūkiem:
 
-- Rīku intensīvām darbplūsmām (aģentiska kodēšana, pētniecība)
-- Izmaksu jutīgai pakešu apstrādei
-- Kad nepieciešams maksimāls žetonu ietaupījums
+- Darbplūsmām ar intensīvu rīku izmantošanu (aģentiska programmēšana, izpēte)
+- Izmaksu ziņā jutīgai pakešapstrādei
+- Ja nepieciešams maksimāls marķieru ietaupījums
 
-Konfigurējiet, izmantojot kombināciju:
+Konfigurējiet, izmantojot kombinēto režīmu:
 
 ```json
 {

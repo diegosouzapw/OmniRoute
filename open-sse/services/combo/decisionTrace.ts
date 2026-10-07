@@ -32,6 +32,9 @@ export const COMBO_SKIP_REASONS = [
   "concurrency_cap",
   "admission_lane",
   "predictive_ttft",
+  "auto_resilience_filter",
+  "auto_strict_zero_cost",
+  "auto_constraint_filter",
 ] as const;
 
 export type ComboSkipReason = (typeof COMBO_SKIP_REASONS)[number];
@@ -54,18 +57,56 @@ export interface ComboTraceEntry {
   detail?: string;
 }
 
+export const AUTO_EVALUATION_STAGES = [
+  "resilience",
+  "paid_only",
+  "model_lockout",
+  "model_exposure",
+  "strict_zero_cost",
+  "tos",
+  "candidate_override",
+  "category_tier",
+  "subscription_ladder",
+] as const;
+
+export type AutoEvaluationStage = (typeof AUTO_EVALUATION_STAGES)[number];
+
+export interface AutoEvaluationCandidate {
+  target: string;
+  provider: string;
+  model: string;
+}
+
+export interface AutoEvaluationTransition {
+  target: string;
+  stage: AutoEvaluationStage;
+  outcome: "excluded" | "survived";
+  reason?: ComboSkipReason;
+  detail?: string;
+  ts: number;
+}
+
+export interface AutoEvaluationTrace {
+  schemaVersion: 1;
+  stages: AutoEvaluationStage[];
+  candidates: AutoEvaluationCandidate[];
+  transitions: AutoEvaluationTransition[];
+}
+
 export interface ComboTrace {
   invocationId: string;
   createdAt: number;
   strategy: string | null;
   comboName: string | null;
   decisions: ComboTraceEntry[];
+  autoEvaluation: AutoEvaluationTrace | null;
   terminal: { status: number | null; errorClass: string | null } | null;
 }
 
 const TRACE_TTL_MS = 30 * 60 * 1000;
 const MAX_TRACES = 2000;
 const traces = new Map<string, ComboTrace>();
+let forceAutoEvaluationWriteFailureForTests = false;
 
 export function createInvocationId(): string {
   return `combo-${randomUUID()}`;
@@ -78,6 +119,75 @@ function isComboSkipReason(value: unknown): value is ComboSkipReason {
 /** Test hook: clear the in-memory store. */
 export function resetComboTraceStore(): void {
   traces.clear();
+  forceAutoEvaluationWriteFailureForTests = false;
+}
+
+/** Test hook: force best-effort Auto evaluation writes to fail. */
+export function setAutoEvaluationWriteFailureForTests(enabled: boolean): void {
+  forceAutoEvaluationWriteFailureForTests = enabled;
+}
+
+function bestEffortAutoEvaluationWrite(write: () => void): void {
+  try {
+    if (forceAutoEvaluationWriteFailureForTests) {
+      throw new Error("forced Auto evaluation trace write failure");
+    }
+    write();
+  } catch {
+    // Diagnostic tracing is deliberately fail-open and must never affect routing.
+  }
+}
+
+export function startAutoEvaluationTrace(invocationId: string): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const trace = traces.get(invocationId);
+    if (!trace || trace.autoEvaluation) return;
+    trace.autoEvaluation = {
+      schemaVersion: 1,
+      stages: [...AUTO_EVALUATION_STAGES],
+      candidates: [],
+      transitions: [],
+    };
+  });
+}
+
+function autoCandidateKey(candidate: AutoEvaluationCandidate): string {
+  return [candidate.target, candidate.provider, candidate.model].join("\u0000");
+}
+
+export function recordAutoEvaluationCandidate(
+  invocationId: string,
+  candidate: AutoEvaluationCandidate
+): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const evaluation = traces.get(invocationId)?.autoEvaluation;
+    if (!evaluation) return;
+    const key = autoCandidateKey(candidate);
+    if (evaluation.candidates.some((existing) => autoCandidateKey(existing) === key)) return;
+    evaluation.candidates.push({ ...candidate });
+  });
+}
+
+export function recordAutoEvaluationTransition(
+  invocationId: string,
+  transition: Omit<AutoEvaluationTransition, "ts">
+): void {
+  bestEffortAutoEvaluationWrite(() => {
+    const evaluation = traces.get(invocationId)?.autoEvaluation;
+    if (!evaluation) return;
+    if (transition.reason !== undefined && !isComboSkipReason(transition.reason)) return;
+    if (
+      evaluation.transitions.some(
+        (existing) =>
+          existing.target === transition.target &&
+          existing.stage === transition.stage &&
+          existing.outcome === transition.outcome
+      )
+    ) {
+      return;
+    }
+    evaluation.transitions.push({ ...transition, ts: Date.now() });
+  });
 }
 
 export function startComboTrace(
@@ -108,6 +218,7 @@ export function startComboTrace(
       strategy: meta.strategy ?? null,
       comboName: meta.comboName ?? null,
       decisions: [],
+      autoEvaluation: null,
       terminal: null,
     });
   }

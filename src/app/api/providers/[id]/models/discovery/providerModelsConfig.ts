@@ -295,7 +295,16 @@ function getGrokBuildReasoningEfforts(
   const hasExplicitEffortList = effortLists.some((value) => Array.isArray(value));
   const discovered = effortLists
     .flatMap((value) => (Array.isArray(value) ? value : []))
-    .filter((value): value is string => typeof value === "string")
+    .map((value) => {
+      if (typeof value === "string") return value;
+      if (value && typeof value === "object") {
+        const record = value as { value?: unknown; id?: unknown };
+        const named = typeof record.value === "string" ? record.value.trim() : "";
+        if (named) return named;
+        return typeof record.id === "string" ? record.id : "";
+      }
+      return "";
+    })
     .map((value) => value.trim().toLowerCase())
     .filter((value) => supported.has(value));
   if (hasExplicitEffortList) return [...new Set(discovered)];
@@ -307,7 +316,9 @@ function getGrokBuildReasoningEfforts(
     metadata.reasoning_effort
   )?.toLowerCase();
   if (singleEffort && supported.has(singleEffort)) return [singleEffort];
-  return hasGrokBuildReasoning(model, metadata) ? [...GROK_BUILD_SUPPORTED_REASONING_EFFORTS] : [];
+  // No list in the payload. The boolean only proves reasoning exists.
+  // grok-4.5 advertises low/medium/high. xhigh is kept only when named.
+  return hasGrokBuildReasoning(model, metadata) ? ["low", "medium", "high"] : [];
 }
 
 function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
@@ -401,20 +412,35 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
 // xai-oauth is not registered in PROVIDER_MODELS_CONFIG below and stays on
 // its frozen static seed (open-sse/config/providers/registry/xai/index.ts)
 // unless the flag is explicitly turned on.
+// x.ai /v1/models lists Grok Imagine media models next to the chat models without a
+// type field. Tag them so they stay out of chat catalogs and auto/* pools.
+function tagXaiMediaModel(model: unknown) {
+  if (!model || typeof model !== "object") return model;
+  const id = typeof (model as { id?: unknown }).id === "string" ? (model as { id: string }).id : "";
+  if (/^grok-imagine-image/i.test(id)) {
+    return { ...model, supportedEndpoints: ["images"], modelType: "image" };
+  }
+  if (/^grok-imagine-video/i.test(id)) return { ...model, supportedEndpoints: ["videos"] };
+  return model;
+}
+
 export const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
   url: "https://api.x.ai/v1/models",
   method: "GET",
   headers: { "Content-Type": "application/json" },
   authHeader: "Authorization",
   authPrefix: "Bearer ",
-  parseResponse: (data) => data.data || data.models || [],
+  parseResponse: (data) => {
+    const models = data.data || data.models || [];
+    return Array.isArray(models) ? models.map(tagXaiMediaModel) : models;
+  },
 };
 
 /**
  * Resolve the live-discovery config for xai-oauth when the
  * XAI_OAUTH_LIVE_MODEL_DISCOVERY flag is on, or `undefined` when it is off
  * (or its resolution throws) so the caller falls back to the frozen static
- * seed — the flag defaults to "false" and fails closed on any error.
+ * seed — the flag defaults to "true" and fails closed on any error.
  */
 export function getXaiOauthLiveModelsConfig(): ProviderModelsConfigEntry | undefined {
   try {
@@ -429,7 +455,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
-    url: "https://api.anthropic.com/v1/models",
+    url: "https://api.anthropic.com/v1/models?limit=1000",
     method: "GET",
     headers: {
       "anthropic-version": "2023-06-01",

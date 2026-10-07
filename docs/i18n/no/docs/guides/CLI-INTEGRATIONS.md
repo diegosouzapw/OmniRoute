@@ -4,13 +4,16 @@
 
 ---
 
-OmniRoute leverer en familie med `setup-*`-kommandoer som konfigurerer en kode-
-CLI (Codex, Claude Code, OpenCode, Cline, …) til å bruke OmniRoute som bakserver — slik at
+For manifestet for delte kjørbare filer, begrensede underordnede miljøer og vedvarende
+Gemini-oppsett, se [CLI-oppstartskontrakter](./CLI-LAUNCH-CONTRACTS.md).
+
+OmniRoute leveres med en familie av `setup-*`-kommandoer som konfigurerer en kode-
+CLI (Codex, Claude Code, OpenCode, Cline, …) til å bruke OmniRoute som bakend — slik at
 verktøyet kommuniserer med **ett** endepunkt, mens OmniRoute ruter til riktig leverandør med
 automatisk reservevalg. Hver kommando leser den **aktive** modellkatalogen fra en kjørende
 OmniRoute-instans (lokal eller ekstern) og skriver verktøyets egen konfigurasjonsfil på **din**
-maskin. API-nøkkelen refereres via en miljøvariabel der verktøyet
-støtter dette. Kommandoer som lagrer en lokal miljøfil for verktøyet, er angitt nedenfor.
+maskin. API-nøkkelen refereres til via en miljøvariabel der verktøyet
+støtter det. Kommandoer som lagrer en verktøyspesifikk miljøfil permanent, er angitt nedenfor.
 
 Det finnes også en generell oppstarter — `omniroute run <target>` — som starter
 `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` eller `gemini` med de
@@ -18,13 +21,13 @@ riktige miljøvariablene satt, uten å skrive noen konfigurasjon. Mål og tilhø
 aliaser kommer fra det kanoniske manifestet `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
 `open-code`, `qwen-code`, `gemini-cli`), og `omniroute completion` tilbyr de
-samme manifestavledede målbetegnelsene. De eldre verktøyspesifikke oppstarterne —
+samme manifestavledede målordene. De eldre verktøyspesifikke oppstarterne —
 `omniroute launch` (Claude Code) og `omniroute launch-codex` (Codex) — er fortsatt
 tilgjengelige.
 
-Leverandøroppsett er tilgjengelig fra den samme lokale eller eksterne konteksten. De
-API-fokuserte kommandoene nedenfor holder administrasjonsautentisering adskilt fra leverandørens
-legitimasjon og skriver aldri ut legitimasjon i strukturert utdata:
+Introduksjon av leverandører er tilgjengelig fra den samme lokale eller eksterne konteksten. De
+API-baserte kommandoene nedenfor holder administrasjonsautentisering atskilt fra
+leverandørlegitimasjon og skriver aldri ut legitimasjon i strukturerte utdata:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -39,14 +42,20 @@ beholdes for kontrollert lokal bruk. `providers remove` krever `--yes` i en
 ikke-interaktiv terminal, og alle fem kommandoene respekterer den aktive konteksten eller de
 globale alternativene `--base-url`/`--api-key`.
 
-For det manuelle engangsgrunnoppsettet av de to mest omfattende integrasjonene, se de
-verktøyspesifikke detaljveiledningene:
+Leverandørselektorer avviser tvetydige ID-prefikser, navn eller leverandørnavn; bruk en
+fullstendig tilkoblings-ID når flere tilkoblinger samsvarer. Opprettings- og redigeringskommandoer leser
+den lagrede tilkoblingen tilbake, og fjerning kontrollerer at den ikke lenger kan leses.
+En import hopper over et eksisterende leverandør-/navnepar. Importerte oppføringer kan ikke overstyre
+administrasjonsendepunktet, konteksten eller administrasjonslegitimasjonen som er angitt for CLI-en.
 
-- [Konfigurasjon av Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Konfigurasjon av Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Ekstern modus](./REMOTE-MODE.md) — styr en ekstern OmniRoute (VPS / Tailnet) fra den bærbare datamaskinen din
+For det innledende, manuelt skrevne grunnoppsettet av de to mest omfattende integrasjonene, se de
+verktøyspesifikke fordypningene:
+
+- [Claude Code-konfigurasjon](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI-konfigurasjon](./CODEX-CLI-CONFIGURATION.md)
+- [Ekstern modus](./REMOTE-MODE.md) — styr en ekstern OmniRoute-instans (VPS / Tailnet) fra den bærbare datamaskinen din
 - [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-utvidelsen; den kan også kjøre disse
-  `setup-*`-kommandoene for deg fra redigeringsprogrammet
+  `setup-*`-kommandoene for deg fra selve redigeringsprogrammet
 
 ---
 

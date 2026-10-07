@@ -4,61 +4,68 @@
 
 ---
 
-Algunos servicios se integraron en OmniRoute y posteriormente se eliminaron porque las personas que los operan
-así lo solicitaron. Esta página es el registro permanente de esas eliminaciones. Su único propósito es
-evitar que vuelvan por accidente: un colaborador que encuentre un fork antiguo, un tarball de npm
-en caché, una incidencia archivada o una solicitud para «restaurar el proveedor X» necesita un lugar que indique **no
-reintroducir**.
+Algunos servicios se integraron en OmniRoute y luego se eliminaron porque las personas que los
+administran lo solicitaron. Esta página es el registro duradero de esas eliminaciones. Su único
+propósito es evitar que vuelvan por accidente: un colaborador que encuentre un fork antiguo, un
+tarball npm en caché, un problema archivado o una solicitud de "restaurar proveedor X" necesita
+un lugar que diga **no reintroducir**.
 
-Esta página **no** es una lista de servicios inactivos o discontinuados. Estos se registran en
-[`FREE_TIERS.md`](FREE_TIERS.md) («Eliminados/sin nivel gratuito») y pueden volver si el servicio
-también lo hace. Las entradas que aparecen a continuación solo pueden volver con el permiso por escrito del operador indicado en
-la solicitud, y dicho permiso debe estar enlazado desde la entrada.
+Esta página **no** es una lista de servicios muertos o descontinuados. Esos se rastrean en
+[`FREE_TIERS.md`](FREE_TIERS.md) ("Eliminados / sin nivel gratuito") y pueden volver si el
+servicio lo hace. Las entradas a continuación solo pueden volver con el permiso por escrito del
+operador nombrado en la solicitud, y ese permiso debe estar vinculado desde la entrada.
 
 ## Política
 
-1. **Una solicitud de retirada de un operador de servicio se respeta, no se negocia.** OmniRoute no está
-   afiliado a ningún servicio externo. Cuando el operador de un servicio solicita que se elimine la
-   integración, se elimina, independientemente de que la integración utilizara o no una API oficial.
-2. **«Eliminado» se aplica a todas las superficies que controla OmniRoute.** Ejecutor, entrada del registro, id y alias
-   del proveedor, lista de modelos, endpoints, variables de entorno, icono, tarjetas del panel,
-   referencia generada del proveedor, `FREE_TIERS.md`, referencia del entorno, recuentos del README,
-   réplicas de `llm.txt`, pruebas específicas e instantáneas de referencia, comentarios del código, viñetas del CHANGELOG
-   (con una conciliación registrada; consulte `config/release/changelog-reconciliations.json`),
-   notas de GitHub Releases, la wiki y las incidencias, discusiones y pull requests de GitHub cuyo
-   tema fuera ese proveedor (se eliminan las incidencias y discusiones; se cambian los títulos de los pull requests,
-   se reemplaza su descripción y se bloquea el hilo, porque GitHub no permite eliminar pull requests).
-3. **Nunca reintroduzca una entrada de esta página sin permiso por escrito.** Eso incluye
-   volver a añadir el id o el alias a cualquier catálogo de proveedores, añadir los dominios a un ejecutor,
-   aceptar un PR de un colaborador que lo «restaure», añadirlo al catálogo de modelos gratuitos o
-   documentar una forma manual de acceder a él mediante OmniRoute. Cierre dichos PR e incidencias con un
-   enlace a esta página.
-4. **Mantenga la entrada al mínimo.** Registre únicamente lo que un revisor necesite para reconocer una
-   reintroducción: identificadores, dominios, fechas y el pull request que realizó la eliminación.
-   No describa cómo funcionaba la integración.
-5. **La protección contra regresiones es `tests/unit/removed-providers-blocklist.test.ts`.** Falla cuando
-   cualquiera de los identificadores o dominios indicados a continuación vuelve a aparecer en los catálogos de proveedores, el mapa de ejecutores o
-   las fuentes del registro de proveedores. Añada los nuevos identificadores a esa prueba en el mismo PR que
-   añada una fila aquí.
+1. **Una solicitud de eliminación de un operador de servicio se respeta, no se negocia.**
+   OmniRoute no está afiliado a ningún servicio ascendente. Cuando el operador de un servicio
+   solicita que la integración se elimine, se elimina, ya sea que la integración utilizara una
+   API oficial o no.
+2. **"Eliminado" significa cada superficie que OmniRoute controla.** Ejecutor, entrada de
+   registro, ID y alias de proveedor, lista de modelos, puntos finales, variables de entorno,
+   icono, tarjetas de panel, la referencia de proveedor generada, `FREE_TIERS.md`, la referencia
+   de entorno, recuentos de README, espejos `llm.txt`, pruebas dedicadas y instantáneas doradas,
+   comentarios de código, viñetas de CHANGELOG (con una conciliación registrada, ver
+   `config/release/changelog-reconciliations.json`), notas de GitHub Releases, la wiki y los
+   problemas, discusiones y solicitudes de extracción de GitHub cuyo tema era ese proveedor
+   (problemas y discusiones eliminados; solicitudes de extracción retituladas, su descripción
+   reemplazada y el hilo bloqueado, porque GitHub no puede eliminar solicitudes de extracción).
+3. **Nunca reintroduzca una entrada en esta página sin permiso por escrito.** Esto incluye
+   volver a agregar la ID o el alias a cualquier catálogo de proveedores, agregar los dominios a
+   un ejecutor, aceptar una PR de colaborador que lo "restaure", agregarlo al catálogo de
+   modelos gratuitos o documentar una forma manual de acceder a él a través de OmniRoute. Cierre
+   dichas PRs y problemas con un enlace a esta página.
+4. **Mantenga la entrada mínima.** Registre solo lo que un revisor necesita para reconocer una
+   reintroducción: identificadores, dominios, fechas y la solicitud de extracción que realizó la
+   eliminación. No describa cómo funcionó la integración.
+5. **El guardián de regresión es `tests/unit/removed-providers-blocklist.test.ts`.** Falla
+   cuando cualquier identificador o dominio a continuación aparece nuevamente en los catálogos
+   de proveedores, el mapa del ejecutor o las fuentes del registro de proveedores. Agregue los
+   nuevos identificadores a esa prueba en la misma PR que agrega una fila aquí.
 
 ## Registro
 
-| Eliminado el | Id del proveedor | Alias  | Dominios                                | Solicitado por                            | PR de eliminación                                              | Notas                                                                                                                                                              |
-| ------------ | ---------------- | ------ | --------------------------------------- | ----------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-08-12   | `puter`          | `pu`   | `puter.com`                             | Propietario de Puter (Nariman Jelveh)     | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Proveedor con clave de API. La migración `152_remove_puter_provider.sql` limpia la configuración almacenada.                                                       |
-| 2026-09-02   | `theoldllm`      | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Operador del servicio (correo de soporte) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Proveedor sin clave. Solicitud por escrito recibida el 2026-08-30. Se eliminaron las incidencias y la discusión específicas, y se cambiaron los títulos de los PR. |
+| Eliminado el | ID de proveedor | Alias | Dominios | Solicitado por | PR de eliminación | Notas  
+The following table lists providers that have been removed from OmniRoute, or are scheduled for removal.
+
+| Removed on | Provider id       | Alias    | Domains                                          | Requested by                                                                                    | Removal PR                                                     | Notes                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------- | ----------------- | -------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-12 | `puter`           | `pu`     | `puter.com`                                      | Puter's owner (Nariman Jelveh)                                                                  | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-key provider. Migration `152_remove_puter_provider.sql` cleans stored config.                                                                                                                                                                                                                                                                                                                                   |
+| 2026-09-02 | `theoldllm`       | `tllm`   | `theoldllm.com`, `theoldllm.vercel.app`          | The service operator (support email)                                                            | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Keyless provider. Written request received 2026-08-30. Dedicated issues and discussion deleted, PRs retitled.                                                                                                                                                                                                                                                                                                       |
+| 2026-09-21 | `gemini-business` | `gembiz` | `business.gemini.google`                         | Project owner decision (issue [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Cookie-based web provider. Google retired the `BardFrontendService/StreamGenerate` endpoint the executor targeted; the replacement (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT bootstrapped from `__Secure-C_SES`/`csesidx`) cannot be built or validated without a live Gemini Enterprise/Workspace account, which the project does not have. Retired rather than rewritten unverified. |
+| 2026-09-21 | `suno`            | `suno`   | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Project owner decision (`#14224`)                                                               | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Cookie-auth provider, not an operator takedown. `studio-api.suno.ai` was suspended (503); the live host requires a Clerk JWT exchange plus a paid hCaptcha-solving dependency that OmniRoute chose not to add for one music provider. `kie/suno-v4.0` and `kie/suno-v3.5` (kie.ai-hosted) are unaffected and remain supported.                                                                                      |
 
 ## Añadir una entrada
 
-Cuando llegue una nueva solicitud de retirada:
+Cuando llegue una nueva solicitud de eliminación:
 
-1. Confirme que la solicitud procede del operador del servicio (su dirección de soporte o un
-   dominio que controle) y conserve el mensaje en privado.
-2. Elimine la integración siguiendo la lista de verificación del punto 2 de la política. Utilice
+1. Confirme que la solicitud proviene del operador del servicio (su dirección de soporte o un
+   dominio que controlan), y mantenga el mensaje en privado.
+2. Elimine la integración siguiendo la lista de verificación en el punto 2 de la política. Use
    [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) como referencia para un
    proveedor sin clave y [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) para un
-   proveedor con clave de API y conexiones almacenadas (añada una migración).
+   proveedor de clave API con conexiones almacenadas (añada una migración).
 3. Añada una fila a la tabla anterior y los identificadores a
-   `tests/unit/removed-providers-blocklist.test.ts`, en el mismo PR.
-4. Responda al operador una vez que se haya fusionado el PR, detallando qué se eliminó y qué no puede
-   cambiar OmniRoute (versiones de npm y Docker ya publicadas, historial de git y forks de terceros).
+   `tests/unit/removed-providers-blocklist.test.ts`, en la misma PR.
+4. Responda al operador una vez que la PR esté fusionada, enumerando lo que se eliminó y lo que OmniRoute
+   no puede cambiar (versiones de npm y Docker ya publicadas, historial de git, bifurcaciones de terceros).

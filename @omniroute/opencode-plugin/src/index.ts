@@ -772,8 +772,9 @@ export async function resolveOmniRouteRuntimeAuth(
 }
 
 /**
- * Force-refresh OmniRoute catalog: clear memory + disk cache, re-fetch /v1/models
- * (and optional management endpoints), and repopulate the shared cache.
+ * Force-refresh OmniRoute catalog: re-fetch /v1/models (and optional management
+ * endpoints) and, only once the models fetch succeeds, replace the memory and
+ * disk caches. A failed models fetch leaves both caches untouched (#14926).
  * OpenCode equivalent of Pi `/omni sync`.
  */
 export async function forceSyncOmniRouteModels(args: {
@@ -838,19 +839,36 @@ export async function forceSyncOmniRouteModels(args: {
     };
   }
 
-  const clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
-  // Clear residual entries from prior baseURL history as well.
-  const clearedAll = invalidateOmniRouteFetchCache(cache);
-  let clearedDisk = false;
-  if (wantDiskCache) {
-    clearedDisk = await clearDiskSnapshot(resolved.providerId);
-    if (resolved.omnirouteProviderId !== resolved.providerId) {
-      clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
-    }
+  // The models fetch is the only required call. Run it BEFORE touching any
+  // cache: invalidating memory or unlinking the disk snapshot first meant a
+  // single transient failure (e.g. the 10s abort) destroyed the last good
+  // catalog and left every later read hitting a server that was already
+  // slow (#14926). On failure both caches stay exactly as they were.
+  let rawModels: OmniRouteRawModelEntry[];
+  try {
+    rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn(
+      `force sync: /v1/models fetch failed providerId=${resolved.providerId}; ` +
+        `keeping existing memory and disk cache: ${message}`
+    );
+    return {
+      ok: false,
+      count: 0,
+      combos: 0,
+      provider: resolved.omnirouteProviderId,
+      baseURL: auth.baseURL,
+      clearedMemory: 0,
+      clearedDisk: false,
+      error: message,
+    };
   }
 
+  let clearedMemory = 0;
+  let clearedAll = 0;
+  let clearedDisk = false;
   try {
-    const rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
     let rawCombos: OmniRouteRawCombo[] = [];
     if (wantCombos) {
       try {
@@ -912,9 +930,15 @@ export async function forceSyncOmniRouteModels(args: {
       expiresAt: t + resolved.modelCacheTtl,
     };
     const cacheKey = modelsCacheKey(auth.baseURL, `${auth.apiKey}\0${auth.managementReadToken}`);
+    // Only now, with a fresh catalog in hand, drop the old entries.
+    clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
+    // Clear residual entries from prior baseURL history as well.
+    clearedAll = invalidateOmniRouteFetchCache(cache);
     cache.set(cacheKey, entry);
 
     if (wantDiskCache) {
+      // Overwrite the snapshot instead of unlinking it first, so the old file
+      // is only replaced once a fresh catalog exists. The writer soft-fails.
       try {
         const fingerprint = diskSnapshotIdentityFingerprint(
           auth.baseURL,
@@ -923,8 +947,12 @@ export async function forceSyncOmniRouteModels(args: {
         );
         const { expiresAt: _expiresAt, ...diskEntry } = entry;
         await defaultDiskSnapshotWriter(resolved.providerId, diskEntry, fingerprint);
+        clearedDisk = true;
       } catch {
         /* soft-fail disk write */
+      }
+      if (resolved.omnirouteProviderId !== resolved.providerId) {
+        clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
       }
     }
 
@@ -967,7 +995,8 @@ export function createOmniRouteSyncModelsTool(args: {
   return tool({
     description:
       "Force-refresh the OmniRoute model catalog (OpenCode equivalent of Pi `/omni sync`). " +
-      "Invalidates in-memory and disk caches, then re-fetches GET /v1/models (and combos when enabled).",
+      "Re-fetches GET /v1/models (and combos when enabled), then replaces the in-memory and disk " +
+      "caches; a failed fetch keeps the existing caches.",
     args: {
       reason: tool.schema
         .string()
@@ -5039,11 +5068,80 @@ export function debugLogSetEnabled(providerId: string, enabled: boolean): void {
   }
 }
 
+/**
+ * Header names whose values must never be written to the debug JSONL on disk.
+ *
+ * Audit #15159 O-05: `createDebugLoggingFetch` copies every request and response
+ * header into the captured entry, and the entry was serialized to disk verbatim —
+ * so enabling `features.debugLog` persisted live bearer tokens (and session
+ * cookies) in plaintext, contradicting the AES-256-GCM-at-rest guarantee. The
+ * feature defaults to off, which limits exposure but does not remove it.
+ *
+ * Matched list: the explicit credential headers plus anything whose name looks
+ * like a credential (`token` / `secret` / `key`). The broad tail is deliberate —
+ * a debug log is the wrong place to be clever about which credential slipped
+ * through, and a false positive only costs one redacted header in a log whose
+ * purpose is troubleshooting. Non-credential headers (`content-type`, `accept`,
+ * …) are preserved so the log stays useful.
+ *
+ * Case-insensitive: `fetch` lowercases header names, but `debugLogAppend` is
+ * exported and entries can also be appended directly with original casing.
+ */
+const DEBUG_LOG_REDACTED = "[REDACTED]";
+const DEBUG_LOG_SENSITIVE_HEADER =
+  /^(?:authorization|proxy-authorization|cookie|set-cookie|x-api-key)$|token|secret|key/i;
+
+/**
+ * Credential shapes scrubbed out of free-form text before it is persisted —
+ * the `error` field, which carries an untrusted upstream message that routinely
+ * echoes the rejected credential back ("invalid Authorization: Bearer sk-…").
+ *
+ * Covers the three shapes that actually occur: an auth-scheme value, a labeled
+ * assignment, and credentials embedded in a URL's userinfo. Deliberately NOT a
+ * blanket "any long random string" rule: the debug log's purpose is reading
+ * error text, and an over-broad matcher would redact the message away while
+ * still missing secret shapes it did not anticipate.
+ */
+const DEBUG_LOG_AUTH_SCHEME = /\b(bearer|basic)\s+[^\s"',;}]+/gi;
+const DEBUG_LOG_LABELED_SECRET =
+  /\b((?:x-)?(?:api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|secret|password|passwd|token|key))(\s*[:=]\s*)("?)[^\s"',;}]+\3/gi;
+const DEBUG_LOG_URL_USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^/\s@]+@/gi;
+
+/** Scrub credential-shaped substrings out of a free-form string (e.g. an error). */
+function redactDebugText(value: string): string {
+  return value
+    .replace(DEBUG_LOG_URL_USERINFO, `$1${DEBUG_LOG_REDACTED}@`)
+    .replace(DEBUG_LOG_AUTH_SCHEME, `$1 ${DEBUG_LOG_REDACTED}`)
+    .replace(DEBUG_LOG_LABELED_SECRET, `$1$2${DEBUG_LOG_REDACTED}`);
+}
+
+/**
+ * Copy a header map with every sensitive value replaced by `[REDACTED]`.
+ * Defensive about a missing map: this runs on the logging path, where throwing
+ * would silently drop the entry instead of writing it.
+ */
+function redactDebugHeaders(headers: Record<string, string> | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [name, value] of Object.entries(headers ?? {})) {
+    out[name] = DEBUG_LOG_SENSITIVE_HEADER.test(name) ? DEBUG_LOG_REDACTED : value;
+  }
+  return out;
+}
+
 export function debugLogAppend(entry: DebugLogEntry): void {
   try {
     const dir = debugLogDir();
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(entry) + "\n", "utf8");
+    // Redact here rather than at the call sites: this is the only choke point
+    // every captured entry passes through, so no future caller can reintroduce
+    // the leak by forgetting to sanitize its own headers.
+    const safe: DebugLogEntry = {
+      ...entry,
+      reqHeaders: redactDebugHeaders(entry.reqHeaders),
+      resHeaders: redactDebugHeaders(entry.resHeaders),
+      ...(typeof entry.error === "string" ? { error: redactDebugText(entry.error) } : {}),
+    };
+    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(safe) + "\n", "utf8");
   } catch (err) {
     console.warn(`[omniroute-plugin] debugLogAppend failed: ${(err as Error).message}`);
   }

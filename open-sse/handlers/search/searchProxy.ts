@@ -16,7 +16,7 @@ import { isSubscriptionQuotaText } from "../../services/quotaTextCooldowns.ts";
 import type { SearchProviderConfig } from "../../config/searchRegistry.ts";
 import type { SearchResult } from "../search.ts";
 
-const SEARCH_COOLDOWN_STATUSES = new Set([
+export const SEARCH_COOLDOWN_STATUSES = new Set([
   HTTP_STATUS.PAYMENT_REQUIRED,
   HTTP_STATUS.REQUEST_TIMEOUT,
   HTTP_STATUS.RATE_LIMITED,
@@ -27,9 +27,15 @@ const SEARCH_COOLDOWN_STATUSES = new Set([
   HTTP_STATUS.GATEWAY_TIMEOUT,
 ]);
 
+// Search-only credit-exhaustion wording (e.g. Exa answers 400 "Insufficient credits").
+// Kept out of the shared isSubscriptionQuotaText() so LLM chat fallback is unaffected.
+const SEARCH_CREDIT_EXHAUSTION_PHRASES = ["insufficient credits", "out of credits"];
+
 export function shouldCoolDownSearchConnection(status: number, errorText: string): boolean {
   if (SEARCH_COOLDOWN_STATUSES.has(status)) return true;
-  return isSubscriptionQuotaText(errorText.toLowerCase());
+  const lower = errorText.toLowerCase();
+  if (SEARCH_CREDIT_EXHAUSTION_PHRASES.some((phrase) => lower.includes(phrase))) return true;
+  return isSubscriptionQuotaText(lower);
 }
 
 /** Resolved proxy binding for a single provider attempt. */
@@ -265,6 +271,23 @@ export async function executeProviderFetch(
       responseBody: { results_count: results.length, cached: false },
     });
     await emitEvent("success", response.status);
+
+    // Mirror of the markAccountUnavailable() call above: a real success clears
+    // any recorded error (stale failed test, elapsed cooldown) so the dashboard
+    // stops painting a serving connection red. clearAccountError() is a no-op
+    // when the row is already clean.
+    if (connectionId) {
+      try {
+        const { getProviderConnectionById } = await import("@/lib/db/providers");
+        const current = await getProviderConnectionById(connectionId);
+        if (current) {
+          const { clearAccountError } = await import("@/sse/services/auth.ts");
+          await clearAccountError(connectionId, current as never);
+        }
+      } catch {
+        /* non-critical - clearing stale error state must not break the search response */
+      }
+    }
 
     return {
       success: true,

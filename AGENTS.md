@@ -18,7 +18,8 @@ npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
 npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
 npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm run check:cycles           # Detect circular dependencies (advisory — lists the SCCs)
+npm run check:cycles:ratchet   # Same scan, blocking above the quality-baseline ceiling
 npm run check:docs-all         # Run after changing documentation (includes fabricated-docs validation)
 ```
 
@@ -56,7 +57,7 @@ Repository map and Reference Documentation sections below.
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (182 migrations)                                                                                                                                    |
+| Database      | `src/lib/db/`           | SQLite domain modules (193 migrations)                                                                                                                                    |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
 | MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |

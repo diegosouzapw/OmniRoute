@@ -553,7 +553,10 @@ export function translateNonStreamingResponse(
   else if (targetFormat === FORMATS.CLAUDE) {
     const root = toRecord(responseBody);
     const contentBlocks = Array.isArray(root.content) ? root.content : [];
-    if (contentBlocks.length > 0) {
+    // A truncated completion arrives as content:[] with stop_reason max_tokens.
+    // Skipping the branch on an empty array drops the body untranslated, so the
+    // chat empty-output check sees the raw Claude spelling instead of length.
+    if (contentBlocks.length > 0 || root.stop_reason != null) {
       let textContent = "";
       let thinkingContent = "";
       const toolCalls: JsonRecord[] = [];
@@ -624,6 +627,10 @@ export function translateNonStreamingResponse(
       let finishReason = toString(root.stop_reason, "stop");
       if (finishReason === "end_turn") finishReason = "stop";
       if (finishReason === "tool_use") finishReason = "tool_calls";
+      // Streaming claude-to-openai already maps this (convertStopReason). Leaving
+      // the raw spelling here makes a truncated completion look like an unknown
+      // finish to the chat empty-output check.
+      if (finishReason === "max_tokens") finishReason = "length";
 
       const result: JsonRecord = {
         id: `chatcmpl-${toString(root.id, String(Date.now()))}`,

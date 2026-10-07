@@ -1,1 +1,0 @@
-- **feat(opencode-plugin):** `features.diskCacheMaxAgeMs` is an opt-in bound for the disk-cache fallback. Unset or `0` stays unbounded. Past a positive bound the snapshot is still served and the fallback log escalates from warn to error ([#14540](https://github.com/diegosouzapw/OmniRoute/pull/14540)) — thanks @RaviTharuma

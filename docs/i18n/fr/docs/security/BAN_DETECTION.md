@@ -7,21 +7,24 @@
 OmniRoute analyse les réponses d’erreur en amont afin d’y détecter des signaux indiquant qu’un
 **compte fournisseur est définitivement inutilisable** (suspendu / désactivé / banni pour violation des conditions d’utilisation) et, lorsqu’une
 correspondance est trouvée, place cette connexion dans un **état terminal `banned`** afin qu’elle ne soit
-plus sélectionnée pour les requêtes. C’est ce que configure la carte de paramètres
-**Sécurité → Mots-clés de bannissement** (« Mots-clés supplémentaires déclenchant la détection du
-bannissement permanent d’un compte. Les mots-clés intégrés s’appliquent toujours. »).
+plus sélectionnée pour les requêtes. C’est ce que configure la carte de paramètres **Sécurité → Mots-clés de bannissement**
+(« Mots-clés supplémentaires déclenchant la détection d’un bannissement permanent du
+compte. Les mots-clés intégrés s’appliquent toujours. »).
 
-Cette page documente la liste intégrée, le flux de détection, sa portée, la manière d’ajouter
-des mots-clés personnalisés en toute sécurité et la procédure de récupération d’une connexion signalée. L’état
-terminal lui-même fait partie du modèle de résilience — consultez
+Cette page documente la liste intégrée, le processus de détection, sa portée, la manière d’ajouter
+des mots-clés personnalisés en toute sécurité et de restaurer une connexion signalée. L’état terminal
+lui-même fait partie du modèle de résilience — consultez
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) (« États terminaux »).
 
 **Source de référence :** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+ainsi que `open-sse/services/errorClassifier.ts` pour la classe de vérification non terminale
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) et pour
+la branche 403 qui l’utilise.
 
 ## Mots-clés intégrés
 
-Ces 8 sous-chaînes s’appliquent toujours (sans distinction entre majuscules et minuscules), indépendamment de toute liste personnalisée :
+Ces 7 sous-chaînes s’appliquent toujours (sans distinction de casse), indépendamment de toute liste personnalisée :
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Cette liste évolue à mesure que les fournisseurs modifient la formulation de leurs messages de bannissement. La version
+> Cette liste évolue à mesure que les fournisseurs modifient la formulation de leurs bannissements. La copie
 > faisant autorité est `ACCOUNT_DEACTIVATED_SIGNALS` dans `open-sse/services/accountFallback.ts` ;
 > considérez le bloc ci-dessus comme un instantané.
 
-Deux tables de signaux adjacentes et **distinctes** se trouvent dans le même fichier et ne font _pas_ partie
-de la détection par mots-clés de bannissement :
+### Pas un bannissement : invites de vérification nécessitant l’intervention de l’opérateur
 
-- `CREDITS_EXHAUSTED_SIGNALS` — facturation/quota épuisé (`insufficient_quota`,
+`verify your account to continue` **figurait auparavant** dans la liste ci-dessus. Ce n’est pas un
+signal de bannissement et cette phrase se trouve désormais dans `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, qui la classe comme
+une erreur récupérable `PROJECT_ROUTE_ERROR` plutôt que de rendre la connexion terminale.
+
+Google Cloud Code / Antigravity la renvoient sous la forme `403 VALIDATION_REQUIRED`. Elle est
+**transitoire et se produit sur des comptes sains disposant de l’intégralité de leur quota** — constaté sur un
+déploiement réel (2026-09-25, `proxy_logs`) : une connexion Antigravity a renvoyé 33 de ces
+erreurs 403 en 10 minutes et est restée `active`, tandis qu’une connexion associée disposant de 100 % de
+son quota sur les 17 fenêtres a été définitivement bannie après **une seule** occurrence. La seule
+différence était la tentative qui avait été traitée.
+
+Cette distinction est importante, car une correspondance terminale est `permanent: true` (délai de récupération d’un an,
+aucune récupération automatique), tandis que l’opérateur peut résoudre une invite de vérification dans un navigateur.
+Le maintien de cette phrase dans la liste de bannissement rendait également inaccessible, pour cette formulation, la branche récupérable des erreurs 403 de cloud-code dans
+`classifyProviderError`, car `accountDeactivated` est
+évalué en premier — la récupération de la route de projet ajoutée pour Gemini Code Assist dans
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) et
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) ne pouvait donc jamais s’exécuter.
+
+Trois tables de signaux adjacentes et **distinctes** ne font _pas_ partie de la détection des mots-clés de bannissement :
+
+- `CREDITS_EXHAUSTED_SIGNALS` — facturation/crédit épuisé (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → état terminal `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **non terminal** ; une actualisation du jeton peut rétablir la connexion.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **non terminal** ; un actualisation du jeton peut permettre la récupération.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **non terminal** ; l’opérateur doit
+  vérifier à nouveau le compte auprès du fournisseur en amont. Se trouve dans `open-sse/services/errorClassifier.ts`
+  (les deux autres se trouvent dans `accountFallback.ts`). Consultez la section ci-dessus.
 
 Remarque : les expressions transitoires courantes comme **`rate limit`** / `429` sont gérées par le
-mécanisme de limitation de débit / délai de récupération de la connexion et ne constituent **pas** des signaux de bannissement.
+mécanisme de limitation de débit / délai de récupération de la connexion et ne sont **pas** des signaux de bannissement.
 
 ## Flux de détection
 

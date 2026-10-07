@@ -11,7 +11,15 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import crypto from "crypto";
 
-const correlationStore = new AsyncLocalStorage();
+const CORRELATION_STORE_KEY = Symbol.for("omniroute.correlationId.store");
+type GlobalWithCorrelationStore = typeof globalThis & {
+  [CORRELATION_STORE_KEY]?: AsyncLocalStorage<string | undefined>;
+};
+
+function getCorrelationStore(): AsyncLocalStorage<string | undefined> {
+  return ((globalThis as GlobalWithCorrelationStore)[CORRELATION_STORE_KEY] ??=
+    new AsyncLocalStorage<string | undefined>());
+}
 
 /**
  * Generate a unique correlation ID.
@@ -26,7 +34,7 @@ function generateCorrelationId() {
  * @returns {string|undefined}
  */
 export function getCorrelationId() {
-  return correlationStore.getStore();
+  return getCorrelationStore().getStore();
 }
 
 /**
@@ -39,5 +47,5 @@ export function getCorrelationId() {
  */
 export function runWithCorrelation(correlationId, fn) {
   const id = correlationId || generateCorrelationId();
-  return correlationStore.run(id, fn);
+  return getCorrelationStore().run(id, fn);
 }

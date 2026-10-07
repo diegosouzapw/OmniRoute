@@ -357,67 +357,59 @@ opencode -m omniroute/glm/glm-5.2 "..."          # easpórtáil OMNIROUTE_API_KE
 
 ---
 
-## Comhthéacsanna a bhainistiú (aistriú idir freastalaithe)
+## Bainistiú comhthéacsanna (athraigh idir freastalaithe)
 
-Is freastalaí sábháilte é **comhthéacs** (baseUrl + dintiúr + raon feidhme). Cruthaíonn `omniroute connect`
-ceann agus déanann sé gníomhach é; uaidh sin amach díríonn gach ordú air. Bainistigh iad agus
-aistrigh eatarthu le `omniroute contexts`:
+Is freastalaí sábháilte é **comhthéacs** (baseUrl + dintiúr + scóip). Cruthaíonn `omniroute connect` ceann amháin agus déanann sé gníomhach é; as sin amach díríonn gach ordú air. Bainistigh agus athraigh eatarthu le `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # gach comhthéacs; marcáiltear an ceann gníomhach le ●
-omniroute contexts current         # an freastalaí gníomhach, stádas fíordheimhnithe, raon feidhme
+omniroute contexts list            # gach comhthéacs; tá an ceann gníomhach marcáilte ●
+omniroute contexts current         # an freastalaí gníomhach, stádas fíordheimhnithe, scóip
 ```
 
 ```text
-  | Ainm    | Bun-URL                    | Fíordheimhniú | Raon feidhme | Cur síos
-● | vps     | http://100.67.86.91:20128 | token         | admin        | OmniRoute cianda (…)
-  | default | http://localhost:20128    | ✗             |              |
+  | Ainm    | URL Bunúsach              | Fíordheimhniú | Scóip | Cur Síos
+● | vps     | http://100.67.86.91:20128 | comhartha | riarthóir | OmniRoute cianda (…)
+  | réamhshocrú | http://localhost:20128    | ✗     |       |
 ```
 
-**Aistrigh freastalaithe** — leanann gach ordú ina dhiaidh sin an comhthéacs gníomhach:
+**Athraigh freastalaithe** — leanann gach ordú ina dhiaidh sin an comhthéacs gníomhach:
 
 ```bash
-omniroute contexts use vps         # → díríonn gach ordú anois ar an VPS cianda
-omniroute tokens list              #   (ritear é in aghaidh an VPS)
+omniroute contexts use vps         # → buaileann gach ordú an VPS cianda anois
+omniroute tokens list              #   (ritheann sé i gcoinne an VPS)
 
-omniroute contexts use default     # → ar ais go localhost
-omniroute tokens list              #   (ritear é in aghaidh an fhreastalaí logánta)
+omniroute contexts use default     # → ar ais chuig localhost
+omniroute tokens list              #   (ritheann sé i gcoinne an fhreastalaí áitiúil)
 ```
 
-**Cuir comhthéacs leis de láimh** (in ionad `connect`), scrúdaigh é, nó athainmnigh é:
+**Cuir comhthéacs leis de láimh** (in ionad `connect`), scrúdaigh, nó athainmnigh:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "staging box"
+  --access-token oma_live_xxxx --scope write --description "bosca stáitse"
 omniroute contexts show staging    # sonraí iomlána do chomhthéacs amháin
 omniroute contexts rename staging stg
 ```
 
-**Bain comhthéacs** — iarrtar deimhniú; tabhair `--yes` chun é a scipeáil
-(riachtanach do scripteanna / blaoscanna neamh-idirghníomhacha, a dhiúltaíonn go sábháilte murach sin):
+**Bain comhthéacs** — iarrann sé deimhniú; cuir `--yes` leis chun é a scipeáil
+(riachtanach do scripteanna / sliogáin neamh-idirghníomhacha, a dhiúltaíonn go sábháilte ar shlí eile):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Ní féidir `default` (localhost) a bhaint. Má bhaintear an comhthéacs gníomhach, filleann sé
-> ar `default`. Leid: ní bhaineann baint comhthéacs ach an dintiúr sábháilte **logánta** —
-> cúlghair an comhartha ar an bhfreastalaí le `omniroute tokens revoke <id>` chun rochtain a
-> scor i ndáiríre.
+> Ní féidir `default` (localhost) a bhaint. Má bhaintear an comhthéacs gníomhach, filleann sé ar `default`. Leid: ní bhaineann baint comhthéacs ach an dintiúr sábháilte **áitiúil** — cúlghair an comhartha ar an bhfreastalaí le `omniroute tokens revoke <id>` chun rochtain a mharú i ndáiríre.
 
-**Easpórtáil / iompórtáil** comhthéacsanna (m.sh. chun iad a aistriú idir ríomhairí). Ní choinníonn comhthéacsanna nua
-ach tagairt don eochairshlabhra; ní chóipeáiltear dintiúir isteach san easpórtáil nuair atá
-eochairshlabhra an OS ar fáil:
+**Easpórtáil / Iompórtáil** comhthéacsanna (m.sh. chun iad a bhogadh idir meaisíní). Fágann easpórtálacha dintiúir ar lár de réir réamhshocraithe, lena n-áirítear dintiúir atá stóráilte ag an gcúlchiste comhaid. Bain úsáid as `--include-secrets` go sainráite nuair a bhíonn cúltaca iniompartha a bhfuil dintiúir air ag teastáil:
 
 ```bash
-omniroute contexts export --out contexts.json     # réamhshocrú: stdout
-omniroute contexts import contexts.json            # forscríobh; --merge chun na cinn atá ann a choinneáil
-omniroute contexts migrate --yes                  # bog comharthaí gnáth-théacs oidhreachta chuig an eochairshlabhra
+omniroute contexts export --out contexts.json     # curtha in eagar; ceann scríbe réamhshocraithe: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # forscríobh; --merge chun na cinn atá ann cheana a choinneáil
+omniroute contexts migrate --yes                  # bog comharthaí téacs soiléir oidhreachta chuig an eochairchain
 ```
 
-Ar chórais gan chomhéadan grafach nach bhfuil eochairshlabhra OS inúsáidte acu, filleann an CLI ar
-`config.json` le mód `0600` agus priontálann sé rabhadh aonuaire. Caith le heaspórtálacha ón
-gcúltaca sin (agus le haon chumraíocht oidhreachta roimh an asc imirce) mar ábhar rúnda.
+Réitíonn `--include-secrets` tagairtí eochairchain sula n-easpórtálann sé agus teipeann air má theipeann ar aon dintiúr tagartha a léamh. Bíonn tosaíocht ag `--no-secrets` i gcónaí. Scríobhtar comhaid easpórtála go adamhach le mód `0600`. Caith le heaspórtáil shainráite a bhfuil rún aici mar ábhar rúnda. Ar chórais gan cheann gan eochairchain OS inúsáidte, filleann an CLI ar `config.json` le mód `0600` agus priontálann sé rabhadh aonuaire; fanann easpórtáil réamhshocraithe curtha in eagar sa mhodh seo.
 
 ---
 

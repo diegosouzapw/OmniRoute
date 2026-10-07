@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 provedor upstream — não há RPC de cancelamento em `CloudAgentBase`. Para interromper a cobrança
 no upstream, encerre a tarefa no console do próprio provedor.
 
-## API REST — Infraestrutura de Provedores de Nuvem
+## API REST — Integração com Provedores de Nuvem
 
 Esses endpoints auxiliares em `src/app/api/cloud/` são usados por clientes remotos
 (a CLI, o aplicativo Electron ou workers de sincronização) para ler metadados de conexão
-de provedores e resolver aliases de modelos. Eles são autenticados com uma **chave de API comum**
-(via `validateApiKey`), e não com a autenticação de gerenciamento usada pelos endpoints de tarefas.
+dos provedores e resolver aliases de modelos. Eles são autenticados com uma **chave de API**
+(por meio de `validateApiKey`), e não com a autenticação de gerenciamento usada pelos endpoints de tarefas; o que
+`/api/cloud/auth` retorna depende do escopo da chave (veja abaixo).
 
 | Método | Caminho                         | Finalidade                                                                              |
 | ------ | ------------------------------- | --------------------------------------------------------------------------------------- |
@@ -320,9 +321,13 @@ de provedores e resolver aliases de modelos. Eles são autenticados com uma **ch
 | GET    | `/api/cloud/models/alias`       | Listar todos os aliases de modelos                                                      |
 | PUT    | `/api/cloud/models/alias`       | Definir um alias de modelo (e sincronizá-lo automaticamente com a nuvem, se habilitado) |
 
-`/api/cloud/auth` nunca retorna `apiKey` / `accessToken` / `refreshToken` sem mascaramento. Ele
-retorna `hasApiKey`, `hasAccessToken`, `hasRefreshToken` e uma prévia mascarada
-(`maskedApiKey`: os 4 primeiros + `****` + os 4 últimos).
+`/api/cloud/auth` nunca retorna `apiKey` / `accessToken` / `refreshToken` brutos. Ele
+retorna `hasApiKey`, `hasAccessToken`, `hasRefreshToken` para as conexões ativas que a chave
+pode usar (uma chave restrita por `allowedConnections` vê apenas essas conexões). Para uma chave de API com
+o escopo `manage` ou `admin`, incluindo a chave de implantação de `OMNIROUTE_API_KEY`, ele também
+retorna uma visualização mascarada (`maskedApiKey`: até 4 caracteres em cada extremidade, menos para uma chave
+curta e nenhum para chaves com 8 caracteres ou menos) e o `projectId` da conexão. Ambos os campos são
+omitidos da resposta para qualquer outra chave.
 
 ## Resolução de Credenciais
 

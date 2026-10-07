@@ -28,6 +28,8 @@ import {
   unavailableResponse,
 } from "@omniroute/open-sse/utils/error.ts";
 import { inheritTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors.ts";
+import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
+import { isCodexNativeResponsesRequest } from "./requestShapeGuards";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getCachedProviderNodes } from "@/lib/db/readCache";
@@ -41,6 +43,7 @@ import {
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { hasBlockingProxyAssignment } from "@/lib/db/proxies";
 import {
+  type CircuitBreaker,
   CircuitBreakerOpenError,
   getCircuitBreaker,
   isLocalStreamLifecycleError,
@@ -49,10 +52,16 @@ import { classify429FromError, type FailureKind } from "../../shared/utils/class
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
 import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
-import { logProxyEvent } from "../../lib/proxyLogger";
 import { noteProxyOutcome } from "./proxyOutcomeMemory";
+import { logProxyJournal } from "./proxyJournal";
+import type { AttemptJournalEntry } from "./proxyJournal";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
+
+// #14960: circuit-open 503 that also names the breaker's classified failure kind.
+function breakerOpenResponse(provider: string, breaker: CircuitBreaker, retryAfterSec: number) {
+  return providerCircuitOpenResponse(provider, retryAfterSec, breaker.getStatus().lastFailureKind);
+}
 
 // Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
 // a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
@@ -80,38 +89,6 @@ type ExecuteChatWithBreakerOptions = {
 type ExecuteChatWithBreakerResult =
   | { result: any; tlsFingerprintUsed: boolean }
   | { localResourcePressureResult: ResourcePressureGuardResult; tlsFingerprintUsed: false };
-
-function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
-  if (!headers || typeof headers !== "object") return "";
-  const lowerName = name.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() !== lowerName) continue;
-    return Array.isArray(value) ? value.join(",") : String(value ?? "");
-  }
-  return "";
-}
-
-function isCodexNativeResponsesRequest(
-  body: any,
-  endpointPath: string,
-  headers: Record<string, unknown> | null | undefined
-) {
-  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  if (!/(^|\/)responses(?=\/|$)/i.test(normalizedEndpoint)) return false;
-  if (/\/responses\/compact$/i.test(normalizedEndpoint)) return true;
-
-  const userAgent = getHeaderValue(headers, "user-agent").toLowerCase();
-  if (userAgent.includes("codex")) return true;
-  if (getHeaderValue(headers, "x-codex-session-id")) return true;
-  if (getHeaderValue(headers, "x-codex-window-id")) return true;
-  if (getHeaderValue(headers, "x-codex-turn-metadata")) return true;
-
-  const metadataSource =
-    body && typeof body === "object" && body.metadata && typeof body.metadata === "object"
-      ? String(body.metadata.source || "")
-      : "";
-  return metadataSource.toLowerCase().includes("codex");
-}
 
 async function hasOnlyActiveCodexAccount() {
   try {
@@ -354,6 +331,19 @@ export async function resolveModelOrError(
   };
 }
 
+// Credential-provider override for a combo target. An explicit providerId wins;
+// otherwise the target's own provider still applies (#11840: an alias-prefixed
+// passthrough target such as kilocode/cline must keep routing to that provider),
+// except the "unknown" sentinel getTargetProvider() stamps on bare model ids,
+// which must never override the provider inferred from the model (#14743).
+export function comboTargetCredentialProviderId(
+  target?: { providerId?: string | null; provider?: string | null } | null
+): string | null {
+  if (target?.providerId != null) return target.providerId;
+  const provider = target?.provider;
+  return provider && provider !== "unknown" ? provider : null;
+}
+
 export async function checkPipelineGates(
   provider: string,
   model: string,
@@ -402,7 +392,7 @@ export async function checkPipelineGates(
     const retryAfterMs = breaker.getRetryAfterMs();
     const retryAfterSec = Math.max(Math.ceil(retryAfterMs / 1000), 1);
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
-    return providerCircuitOpenResponse(provider, retryAfterSec);
+    return breakerOpenResponse(provider, breaker, retryAfterSec);
   }
 
   return null;
@@ -462,6 +452,9 @@ export async function executeChatWithBreaker({
   videoBridgeLog = undefined,
   fallbackAttempts = undefined,
   forcedConnectionId = null,
+  // optional resume flag from a rehydrated previous_response_id —
+  // forwarded to handleChatCore, which notes it under the attempt store.
+  previousResponseResumed = undefined,
 }: ExecuteChatWithBreakerOptions): Promise<ExecuteChatWithBreakerResult> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -473,8 +466,21 @@ export async function executeChatWithBreaker({
   // #5217: capture the proxy actually applied during execution so the caller can
   // merge it into proxyInfo before the egress log (executors pinning a per-account
   // proxy internally otherwise leave the egress log reading "direct").
-  const capture = <T>(fn: () => T): T =>
-    appliedProxySink ? runWithAppliedProxyCapture(appliedProxySink, fn) : fn();
+  // Pool re-selection: when the resolved egress came from a live connection pool
+  // (source "registry"), publish a resolver on the sink so the executor may ask
+  // the pool for another member after a per-address refusal (see
+  // publishPoolReselectResolver below). Anything else (direct, pinned
+  // assignment) leaves the sink without a resolver and the executor keeps its
+  // current behavior.
+  const capture = <T>(fn: () => T): T => {
+    if (!appliedProxySink) return fn();
+    publishPoolReselectResolver(appliedProxySink, proxyInfo, {
+      connectionId: credentials?.connectionId,
+      apiKeyId: (apiKeyInfo as { id?: unknown } | null)?.id,
+      provider,
+    });
+    return runWithAppliedProxyCapture(appliedProxySink, fn);
+  };
 
   const pressureGuard = checkResourcePressureBeforeProviderWork();
   if (pressureGuard) {
@@ -523,6 +529,7 @@ export async function executeChatWithBreaker({
             reasoningTransportFallback,
             managedLease,
             videoBridgeLog,
+            previousResponseResumed,
             fallbackAttempts,
             forcedConnectionId,
             skipResourcePressureGuard: true,
@@ -561,6 +568,7 @@ export async function executeChatWithBreaker({
                 Number(failure?.status) === 499 ||
                 failure?.code === "client_disconnected" ||
                 failure?.type === "client_disconnected" ||
+                isRequestScopedUpstreamFailure(failure) ||
                 isLocalStreamLifecycleError(failure?.message ?? failure) // client abort, #4602
               ) {
                 return;
@@ -580,6 +588,7 @@ export async function executeChatWithBreaker({
                 );
                 return;
               }
+              const streamOutputEmitted = failure?.outputEmitted === true;
               await markAccountUnavailable(
                 credentials.connectionId,
                 Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
@@ -587,7 +596,7 @@ export async function executeChatWithBreaker({
                 provider,
                 model,
                 providerProfile,
-                buildExhaustionOptions(correlationId ?? null, { isCombo })
+                buildExhaustionOptions(correlationId ?? null, { isCombo, streamOutputEmitted })
               );
             },
           })
@@ -609,7 +618,7 @@ export async function executeChatWithBreaker({
         return {
           result: {
             success: false,
-            response: providerCircuitOpenResponse(provider, Math.ceil(retryAfterMs / 1000)),
+            response: breakerOpenResponse(provider, breaker, Math.ceil(retryAfterMs / 1000)),
             status: HTTP_STATUS.SERVICE_UNAVAILABLE,
           },
           tlsFingerprintUsed: false,
@@ -653,7 +662,7 @@ export async function executeChatWithBreaker({
       return {
         result: {
           success: false,
-          response: providerCircuitOpenResponse(provider, Math.ceil(cbErr.retryAfterMs / 1000)),
+          response: breakerOpenResponse(provider, breaker, Math.ceil(cbErr.retryAfterMs / 1000)),
           status: HTTP_STATUS.SERVICE_UNAVAILABLE,
         },
         tlsFingerprintUsed: false,
@@ -966,6 +975,22 @@ export function shouldRetryStreamEarlyEof(
   );
 }
 
+export const STREAM_READINESS_TIMEOUT_MAX_RETRIES = 1;
+
+export function shouldRetryStreamReadinessTimeout(
+  errorCode: string | null | undefined,
+  attempt: number,
+  isCombo: boolean,
+  clientAborted: boolean
+): boolean {
+  return (
+    !isCombo &&
+    !clientAborted &&
+    errorCode === "STREAM_READINESS_TIMEOUT" &&
+    attempt < STREAM_READINESS_TIMEOUT_MAX_RETRIES
+  );
+}
+
 // The sibling hop widens the terminal/failover boundary, so it ships off
 // behind STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED until observed live.
 export function isEarlyEofSiblingFailoverOn(): boolean {
@@ -1060,12 +1085,47 @@ export function withUpstreamStatus<T extends object>(
   return { ...(info || {}), upstreamStatus: sink.upstreamStatus };
 }
 
+/**
+ * Publish a pool-member resolver on the applied-proxy capture sink when the
+ * resolved egress came from a live connection pool (source "registry"). The
+ * executor calls it after a per-address 429 to serve the next attempt from
+ * another member. The pool's own selection (round-robin advance, sticky hold,
+ * set-aside order) decides what comes back, including repeating the same
+ * member when the pool holds it — the executor treats a repeat as "nothing
+ * else to offer". Never throws, never overwrites an existing resolver.
+ */
+export function publishPoolReselectResolver(
+  sink: AppliedProxySink | null | undefined,
+  proxyInfo: { proxy?: unknown; source?: unknown } | null | undefined,
+  ids: { connectionId?: unknown; apiKeyId?: unknown; provider?: unknown }
+): void {
+  try {
+    if (!sink || proxyInfo?.source !== "registry" || proxyInfo?.proxy == null) return;
+    if (typeof (sink as { reselectPoolMember?: unknown }).reselectPoolMember === "function") {
+      return;
+    }
+    const connectionId = typeof ids.connectionId === "string" ? ids.connectionId : null;
+    if (!connectionId) return;
+    const apiKeyId = typeof ids.apiKeyId === "string" ? ids.apiKeyId : undefined;
+    const providerId = typeof ids.provider === "string" ? ids.provider : undefined;
+    (sink as { reselectPoolMember?: () => Promise<unknown> }).reselectPoolMember = async () => {
+      const next = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
+      return (next as { proxy?: unknown } | null)?.proxy ?? null;
+    };
+  } catch {
+    /* resolver publication is best-effort; the executor falls back */
+  }
+}
+
 /** Merge both things the applied-proxy sink captured: the executor proxy, then the status. */
+export type { AttemptJournalEntry } from "./proxyJournal";
 export function mergeAppliedProxySink(
   proxyInfo: { proxy?: unknown; level?: string; levelId?: string | null } | null | undefined,
-  sink: { proxy: unknown; upstreamStatus?: number }
+  sink: { proxy: unknown; upstreamStatus?: number; attempts?: AttemptJournalEntry[] }
 ) {
-  return withUpstreamStatus(applyExecutorProxyToInfo(proxyInfo, sink.proxy), sink);
+  const merged = withUpstreamStatus(applyExecutorProxyToInfo(proxyInfo, sink.proxy), sink);
+  if (sink.attempts?.length) return { ...(merged || {}), attempts: sink.attempts };
+  return merged;
 }
 
 // Async because the egress-IP lookup lazy-imports proxyEgress; callers treat
@@ -1097,50 +1157,18 @@ export async function safeLogEvents({
   }
 
   try {
-    const rawIp =
-      clientRawRequest?.headers?.["x-forwarded-for"] ||
-      clientRawRequest?.headers?.["x-real-ip"] ||
-      clientRawRequest?.headers?.["cf-connecting-ip"] ||
-      null;
-    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
-    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
-
-    // Resolve the egress IP (the IP the upstream actually saw) from cache — never
-    // blocking the request. Warm it in the background for next time. null until
-    // the first warm completes; direct (no proxy) is also tracked.
-    let egressIp: string | null = null;
-    try {
-      const { getCachedEgressIp, warmEgressIp } = await import("../../lib/proxyEgress");
-      const { proxyConfigToUrl } = await import("@omniroute/open-sse/utils/proxyDispatcher.ts");
-      const proxyUrl = proxyInfo?.proxy ? proxyConfigToUrl(proxyInfo.proxy) : null;
-      egressIp = getCachedEgressIp(proxyUrl);
-      warmEgressIp(proxyUrl);
-    } catch {
-      // egress visibility is best-effort; never break the request path
-    }
-
-    logProxyEvent({
-      status: result.success
-        ? "success"
-        : result.status === 408 || result.status === 504
-          ? "timeout"
-          : "error",
-      proxy: proxyInfo?.proxy || null,
-      level: proxyInfo?.level || "direct",
-      levelId: proxyInfo?.levelId || null,
+    await logProxyJournal({
+      result,
+      proxyInfo,
+      proxyLatency,
       provider,
-      targetUrl: `${provider}/${model}`,
-      clientIp,
-      egressIp,
-      latencyMs: proxyLatency,
-      error: result.success ? null : result.error || null,
-      connectionId: credentials.connectionId,
-      comboId: comboName || null,
-      account: credentials.connectionId?.slice(0, 8) || null,
-      rotationAccount: rotationAccount || null,
-      correlationId: correlationId || null,
-      tlsFingerprint: tlsFingerprintUsed,
-      upstreamStatus: proxyInfo?.upstreamStatus ?? null,
+      model,
+      credentials,
+      comboName,
+      clientRawRequest,
+      tlsFingerprintUsed,
+      rotationAccount,
+      correlationId,
     });
   } catch {}
 

@@ -43,11 +43,11 @@ Gníomhairí ACP (sreabhadh seolta droim ar ais):
 
 ---
 
-## Uathchumrú le `setup-*`
+## Uathchumraigh le `setup-*`
 
-Ní gá duit cumraíocht gach uirlise a scríobh de láimh. Soláthraíonn OmniRoute ordú `setup-*`
-do gach CLI a dtacaítear leis, a léann catalóg **bheo** na samhlacha ó OmniRoute atá ag rith
-(go háitiúil nó go cianda) agus a scríobhann cumraíocht na huirlise féin ar do ríomhaire:
+Ní gá duit cumraíocht gach uirlis a scríobh de láimh. Seolann OmniRoute ordú `setup-*`
+in aghaidh gach CLI tacaithe a léann an chatalóg mhúnla **bheo** ó OmniRoute reatha
+(áitiúil nó cianda) agus a scríobhann cumraíocht na huirlise féin ar do mheaisín:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,49 +57,21 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Glacann gach ceann acu le `--remote <url> --api-key <key>` (chun uirlis áitiúil a chumrú le
-haghaidh OmniRoute chianda), `--dry-run` (réamhamharc gan scríobh), agus `--port`. Glacann uirlisí
-nach bhfuil uathfhionnachtain samhlacha acu (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) le
-`--model <id>` (agus `--yes` le haghaidh rite neamh-idirghníomhacha). Is é `setup-5dive` an t-aon
-oideas nach scríobhann faoi `$HOME`: cumraíonn sé cabhlach gníomhairí 5dive trí phróifíl fíordheimhnithe
-atá faoi úinéireacht root a scríobh ar óstach an chabhlaigh, mar sin athritear é trí `sudo`
-agus níl mód cianda dá chuid féin aige. Chun CLI a sheoladh agus an timpeallacht cheart
-insteallta ann gan aon chumraíocht a scríobh ar chor ar bith, úsáid an tosaitheoir cineálach
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — tagann na spriocanna agus na hailiasanna ó `bin/cli/cli-manifest.mjs`); tá na seantosaitheoirí
-sonracha d’uirlisí `omniroute launch` (Claude Code) agus `omniroute launch-codex`
-(Codex) fós ar fáil. Ní féidir Gemini CLI a úsáid ach trína sheoladh: is sprioc `omniroute run`
-é ach níl aon oideas `setup-*`/`configure` aige.
+Glacann gach ceann acu `--remote <url> --api-key <key>` (cumraigh uirlis áitiúil i gcoinne OmniRoute cianda), `--dry-run` (réamhamharc gan scríobh), agus `--port`. Glacann uirlisí gan uathaimsiú múnla (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (agus `--yes` le haghaidh rith neamh-idirghníomhach). Is é `setup-5dive` an t-aon oideas nach scríobhann faoi `$HOME`: cumraíonn sé cabhlach gníomhairí 5dive trí phróifíl údaraithe atá faoi úinéireacht an fhréamh a scríobh ar óstach an chabhlaigh, mar sin ath-fhorghníomhaíonn sé trí `sudo` agus níl aon mhodh cianda dá chuid féin aige. Chun CLI a sheoladh leis an env ceart insteallta agus gan aon chumraíocht scríofa ar chor ar bith, bain úsáid as an lainseálaí cineálach `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — tagann spriocanna agus ailiasanna ó `bin/cli/cli-manifest.mjs`); tá na lainseálaithe oidhreachta in aghaidh na huirlise `omniroute launch` (Claude Code) agus `omniroute launch-codex` (Codex) fós ar fáil. Níl Gemini CLI ach lainseáil-amháin: is sprioc `omniroute run` é ach níl aon oideas `setup-*`/`configure` aige.
 
-> **Tagairt iomlán:** tá an máistirthábla — an méid a scríobhann gach ordú, gach bratach,
-> áitiúil i gcomparáid le cianda, agus na huirlisí a dteastaíonn iarmhír `/v1` uathu — le fáil in
-> **[Comhtháthuithe CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Tagairt iomlán:** tá an príomhthábla — cad a scríobhann gach ordú, gach bratach,
+> áitiúil vs cianda, agus cé na huirlisí a theastaíonn iarmhír `/v1` — le fáil i
+> **[Comhtháthú CLI](../guides/CLI-INTEGRATIONS.md)**.
 
 ### Iad seo a rith laistigh de choimeádán
 
-Scríobhann ordú `setup-*` a ritear laistigh de choimeádán OmniRoute isteach i
-mbaile an choimeádáin féin, áit nach léann aon CLI ar an óstach é agus a imíonn leis an
-gcoimeádán. Aimsíonn OmniRoute é sin agus scoireann sé le `2` agus treoracha á dtabhairt aige seachas
-scríobh. Tá dhá bhealach chun cinn a dtacaítear leo — suiteáil an CLI ar an óstach agus
-úsáid `omniroute connect` chun ceangal leis an gcoimeádán, nó ceangail na comhadlanna cumraíochta le bind-mount agus socraigh
-`CLI_CONFIG_HOME` (próifíl compose `host`). Glacann gach ordú `setup-*`, chomh maith le
-`omniroute configure` agus `omniroute config set`, le
-`--allow-container-write` nuair is iad CLIanna an choimeádáin féin atá tú ag iarraidh
-a chumrú i ndáiríre; déanann `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` an rud céanna don
-fhreastalaí. Féach
-[Treoir Docker → Uirlisí CLI an óstaigh a chumrú](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+Scríobhann ordú `setup-*` a fhorghníomhaítear laistigh de choimeádán OmniRoute isteach i dteach an choimeádáin féin, nach léann aon CLI óstach agus a imíonn leis an gcoimeádán. Braitheann OmniRoute é sin agus scoirfidh sé `2` le treoracha seachas scríobh. Dhá bhealach tacaithe chun cinn — suiteáil an CLI ar an óstach agus `omniroute connect` leis an gcoimeádán, nó ceangail-mount na comhaid chumraíochta agus socraigh `CLI_CONFIG_HOME` (próifíl `host` an chumaisc). Glacann gach ordú `setup-*`, móide `omniroute configure` agus `omniroute config set`, `--allow-container-write` nuair is é cumraíocht CLIs an choimeádáin féin a bhí i gceist agat i ndáiríre; déanann `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` an rud céanna don fhreastalaí. Féach
+[Treoir Docker → Uirlisí CLI óstach a chumrú](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-Cuireann **críochphointe cur i bhfeidhm** na deaise (`POST /api/cli-tools/apply`) an
-chosaint chéanna i bhfeidhm: i gcoimeádán, freagraíonn scríobh nach bhfuil a sprioc ceangailte ón
-óstach le bind-mount le **`422`**, mar aon le `containerEphemeralTarget: true`, téacs sábháilte na hearráide
-agus — i gcás na n-uirlisí a bhfuil oideas óstaigh acu (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (m.sh. `omniroute setup-opencode`) le rith
-ar an óstach ina ionad; ní scríobhtar faic. Leanann `dryRun: true` de bheith ag obair i mód coimeádáin
-agus tugann sé an t-inneachar ginte + cosán na sprice ar ais gan teagmháil leis an diosca, ionas
-gur féidir leat réamhamharc a dhéanamh ón deais agus é a chur i bhfeidhm ar an óstach. Tá an t-iompar seo
-d’aon ghnó agus cosnaítear é ar aischéimniú le
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — ná déan iarracht riamh 422 a “dheisiú”
-tríd an gcosaint a bhaint.
+Forfheidhmíonn **pointe deiridh an fheidhmchláir** an deais (`POST /api/cli-tools/apply`) an garda céanna: i gcoimeádán, freagraíonn scríbhneoireacht nach bhfuil a sprioc ceangailte-mount ón óstach **`422`** le `containerEphemeralTarget: true`, an téacs earráide sábháilte agus — do na huirlisí le oideas óstach (claude, codex, opencode, cline, kilo, continue) — `hostSetupCommand` (m.sh. `omniroute setup-opencode`) le rith ar an óstach ina ionad; ní scríobhtar aon rud. Coinníonn `dryRun: true` ag obair i mód coimeádáin agus tugann sé réamhamharc redacted + cosán sprice ar ais gan teagmháil a dhéanamh leis an diosca. Ní cumraíocht atá ag iompar dintiúir é ábhar an réamhamhairc le cóipeáil nó le hiompórtáil. Cuir i bhfeidhm leis an uirlis bhunaidh/URL bunúsach/eochair API/ionchuir mhúnla ar an óstach, nó bain úsáid as an ordú socraithe ar thaobh an óstaigh a léirítear. Féach [slándáil cumraíochta CLI](../security/CLI-CONFIGURATION.md) le haghaidh an cheanntásca réamhamhairc agus an conradh iarratais. Tá an iompar seo
+d'aon ghnó agus cosanta ar ais ag
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — ná "deisigh" 422
+riamh trí an garda a bhaint.
 
 ---
 
@@ -135,40 +107,40 @@ Is é `bin/cli/cli-manifest.mjs` an léiriúchán inrite canónach do dhromchla�
 
 ---
 
-## 1. Catalóg CLI Code (26 uirlis)
+## 1. Catalóg Uirlisí CLI (26 uirlis)
 
-Na huirlisí uile atá le feiceáil in `/dashboard/cli-code`. Déantar iad siúd a bhfuil `baseUrlSupport: none` acu a nascadh trí MITM nó trí threoir de láimh seachas trí URL bonn saincheaptha:
+Gach uirlis a thaispeántar i `/dashboard/cli-code`. Déantar iad siúd a bhfuil `baseUrlSupport: none` acu a shreangú trí MITM nó trí threoir láimhe in ionad URL bunúsach saincheaptha:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | ainm                    | díoltóir            | Tacaíocht baseUrl | Cineál Cumraíochta | acpSpawnable |
+| ------------ | ----------------------- | ------------------- | ----------------- | ------------------ | ------------ |
+| claude       | Claude Code             | Anthropic           | full              | env                | true         |
+| codex        | OpenAI Codex CLI        | OpenAI              | full              | custom             | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none              | custom             | false        |
+| cline        | Cline                   | OSS (ex-Claude Dev) | full              | custom             | true         |
+| kilo         | Kilo Code               | Kilo-Org            | full              | custom             | false        |
+| roo          | Roo Code                | Roo (OSS)           | full              | guide              | false        |
+| continue     | Continue                | continue.dev        | full              | guide              | false        |
+| aider        | Aider                   | OSS (P. Gauthier)   | full              | guide              | true         |
+| forge        | ForgeCode               | Antinomy HQ         | full              | custom             | true         |
+| jcode        | jcode                   | 1jehuang (OSS)      | full              | custom             | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full              | custom             | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)        | full              | custom             | false        |
+| opencode     | OpenCode                | Anomaly (ex-SST)    | full              | guide              | true         |
+| droid        | Factory Droid           | Factory AI          | partial           | guide              | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS           | full              | custom             | false        |
+| cursor-cli   | Cursor CLI              | Anysphere           | partial           | guide              | true         |
+| smelt        | Smelt                   | leonardcser (OSS)   | full              | custom             | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full              | custom             | false        |
+| grok-build   | Grok Build              | xAI                 | full              | custom             | false        |
+| crush        | Crush                   | OSS (Charm)         | full              | custom             | false        |
+| qwen         | Qwen Code               | Alibaba             | full              | guide              | true         |
+| cursor       | Cursor                  | Anysphere           | none              | guide              | false        |
+| antigravity  | Antigravity             | Google              | none              | mitm               | false        |
+| hermes       | Hermes                  | Nous Research       | none              | guide              | false        |
+| kiro         | Kiro AI                 | Amazon              | none              | mitm               | false        |
+| custom       | Custom CLI              | —                   | full              | custom-builder     | false        |
 
-Taispeánann uirlisí a bhfuil `baseUrlSupport: "partial"` acu suaitheantas "⚠ URL bonn páirteach" ar chárta an deais.
+Taispeánann uirlisí a bhfuil `baseUrlSupport: "partial"` acu suaitheantas "⚠ URL Bunúsach Páirteach" sa chárta painéil.
 ---
 
 ## 2. Catalóg Gníomhairí CLI (10 n-uirlis)

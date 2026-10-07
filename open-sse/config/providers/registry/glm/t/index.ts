@@ -6,6 +6,7 @@ export const glmtProvider: RegistryEntry = {
   alias: "glmt",
   format: "openai",
   executor: "glm",
+  naiveResetTimezone: "+08:00",
   baseUrl: "https://api.z.ai/api/coding/paas/v4/chat/completions",
   defaultContextLength: 200000,
   authType: "apikey",

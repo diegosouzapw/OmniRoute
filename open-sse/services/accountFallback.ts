@@ -22,11 +22,8 @@ import {
   honorsRuleLockScope,
 } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
-import {
-  getPassthroughProviders,
-  getProviderCategory,
-  isLocalProvider,
-} from "../config/providerRegistry.ts";
+import { isRegistryPassthroughProvider } from "./passthroughRegistry.ts";
+import { getProviderCategory, isLocalProvider } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -48,7 +45,6 @@ import {
 } from "../../src/shared/utils/classify429";
 import { recordProviderSuccess as resetCooldownFailureCount } from "./providerCooldownTracker.ts";
 import {
-  getProviderById,
   resolveProviderId,
   isLocalProvider as isLocalProviderId,
   isSelfHostedChatProvider,
@@ -79,8 +75,6 @@ import { isTpdRateLimit, resolveTpdCooldownMs, nextConfiguredResetMs } from "./d
 // Pre-compiled regex constants for hot-path retry parsing (avoid per-call compilation)
 const RETRY_AFTER_RE = /retry\s+after\s+(\d+)\s*s/i;
 const PLEASE_RETRY_RE = /please retry in\s+([\d.]+\s*s)/i;
-const ISO_RETRY_RE =
-  /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i;
 const RESETS_AFTER_RE = /resets? after (\d+h)?(\d+m)?(\d+s)?/i;
 const WILL_RESET_AFTER_RE = /will reset after (\d+h)?(\d+m)?(\d+s)?/i;
 const RESETS_IN_RE = /resets? in (\d+h)?(\d+m)?(\d+s)?/i;
@@ -102,7 +96,11 @@ import {
   buildRolling24hQuotaFallback,
   SUBSCRIPTION_QUOTA_COOLDOWN_MS,
 } from "./quotaTextCooldowns.ts";
-import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import {
+  parseDayGranularityResetMs,
+  parseIsoDateTimeResetMs,
+  shouldPreserveQuotaSignals,
+} from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 export { hasPerModelFailureScope } from "./accountFallback/perModelFailureScope.ts";
@@ -214,8 +212,8 @@ export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "account has been disabled",
   "your account has been suspended",
   "this account is deactivated",
-  // AG (Antigravity/Google Cloud Code) permanent ban signals
-  "verify your account to continue",
+  // AG (Antigravity/Google Cloud Code) permanent ban signals. "verify your account to continue" is NOT
+  // a ban (operator-actionable) — see ACCOUNT_VERIFICATION_REQUIRED_SIGNALS in errorClassifier.ts.
   "this service has been disabled in this account for violation",
   "this service has been disabled in this account",
 ];
@@ -436,9 +434,7 @@ export function isProviderModelUnsupported400(status: number, errorText: string)
   return PROVIDER_MODEL_UNSUPPORTED_PATTERNS.some((p) => p.test(errorText));
 }
 
-// Malformed request patterns — the model rejected the message format but a different
-// provider/model in the combo may accept it.
-const MALFORMED_REQUEST_PATTERNS = [
+export const MALFORMED_REQUEST_PATTERNS = [
   /\bimproperly formed request\b/i,
   /\binvalid.*message.*format/i,
   /\bmessages must alternate\b/i,
@@ -464,12 +460,16 @@ export const RATE_LIMIT_TEXT_PATTERNS = [
 ];
 
 // Parameter validation errors — model-specific constraints (different models = different limits)
-const PARAM_VALIDATION_PATTERNS = [
+// #13757: include extra inputs and unrecognized field rejections from upstream schema validators
+export const PARAM_VALIDATION_PATTERNS = [
   /max_tokens.*illegal/i,
   /max_tokens.*must be/i,
   /max_tokens.*range/i,
   /parameter is illegal/i,
   /is illegal.*range/i,
+  /\b(?:extra|additional)\s+(?:input|inputs|propert(?:y|ies)|field|fields)\b.*(?:not permitted|not allowed)/i,
+  /\b(?:unknown|unrecognized|unexpected)\s+(?:field|fields|property|properties|parameter|parameters|input|inputs)\b/i,
+  /\binvalid\s+(?:field|fields|property|properties|parameter|parameters|input|inputs)\b/i,
 ];
 
 /**
@@ -935,6 +935,11 @@ export function clearModelLock(
   );
 }
 
+function isPassthroughCreditScope(provider: string | null | undefined): boolean {
+  const canonicalId = resolveProviderId(provider ?? "");
+  return isCompatibleProvider(canonicalId) || isRegistryPassthroughProvider(canonicalId);
+}
+
 /**
  * Whether a provider should use per-model lockouts instead of connection-wide cooldowns.
  * Compatible and passthrough providers multiplex multiple upstream models behind one
@@ -961,13 +966,12 @@ export function hasPerModelQuota(
   if (getCanonicalLockProvider(canonicalId) === "codex") return true;
   if (canonicalId === "gemini" || canonicalId === "github") return true;
   if (canonicalId === "antigravity" || canonicalId === "agy") return true;
-  if (getPassthroughProviders().has(canonicalId)) return true;
   // #11071: getPassthroughProviders() reads the open-sse REGISTRY. A provider can declare
   // passthroughModels:true in the SHARED registry (src/shared/constants/providers/) and be
   // absent from that set — 40 of them are, and they are neither local nor self-hosted, so the
   // branch below never reaches them either. Without this lookup a missing-model 404 on one of
   // those cools the whole connection instead of locking out the single model.
-  if (getProviderById(canonicalId)?.passthroughModels === true) return true;
+  if (isRegistryPassthroughProvider(canonicalId)) return true;
   if (isCompatibleProvider(canonicalId)) return true;
   if (isLocalProviderId(canonicalId) || isSelfHostedChatProvider(canonicalId)) return true;
   return false;
@@ -1242,9 +1246,7 @@ export function recordProviderFailure(
     const dedupKey = `${provider}:${connectionId}`;
     const now = Date.now();
     const lastFailure = lastConnectionFailure.get(dedupKey);
-    if (lastFailure && now - lastFailure < CONNECTION_FAILURE_DEDUP_MS) {
-      return;
-    }
+    if (lastFailure && now - lastFailure < CONNECTION_FAILURE_DEDUP_MS) return;
     lastConnectionFailure.delete(dedupKey);
     lastConnectionFailure.set(dedupKey, now);
     pruneConnectionFailureDedupeEntries();
@@ -1299,12 +1301,13 @@ export function recordProviderSuccess(
   // recordProviderCooldown which increments it on each failure.
   resetCooldownFailureCount(provider, connectionId ?? undefined);
 
-  // Clear failure-dedup windows so the next genuine failure is not suppressed.
-  lastNetworkErrorByProvider.delete(provider);
-  if (connectionId) lastConnectionFailure.delete(`${provider}:${connectionId}`);
-
-  // Transition breaker on success, matching execute()'s behavior:
-  // HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
+  if (connectionId) {
+    lastConnectionFailure.delete(`${provider}:${connectionId}`);
+    const providerBreaker = getProviderBreaker(provider);
+    if (providerBreaker && providerBreaker !== breaker && providerBreaker.canExecute()) {
+      providerBreaker._onSuccess();
+    }
+  }
   breaker._onSuccess();
 }
 
@@ -1312,12 +1315,10 @@ export function recordProviderSuccess(
  * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
-  // Also clear the network-error dedup so a fresh blip after a reset is counted (#13887).
-  if (provider) lastNetworkErrorByProvider.delete(provider);
+  if (provider) lastNetworkErrorByProvider.delete(provider); // #13887: fresh blip after reset counts
   for (const key of lastConnectionFailure.keys())
     if (provider && key.startsWith(`${provider}:`)) lastConnectionFailure.delete(key);
-  const breaker = getProviderBreaker(provider);
-  breaker?.reset();
+  getProviderBreaker(provider)?.reset();
 }
 
 /**
@@ -1430,7 +1431,11 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
 // Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
 
 // T07: parse retry time from error text body with combined "XhYmZs" format.
-export function parseRetryFromErrorText(errorText: unknown): number | null {
+export function parseRetryFromErrorText(
+  errorText: unknown,
+  provider?: string | null,
+  nowMs: number = Date.now()
+): number | null {
   if (!errorText || typeof errorText !== "string") return null;
   const msg: string = String(errorText);
 
@@ -1445,15 +1450,9 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
   }
 
-  // Issue #2321: parse embedded absolute ISO retry timestamps.
-  const isoMatch = ISO_RETRY_RE.exec(msg);
-  if (isoMatch) {
-    const parsedTs = Date.parse(isoMatch[1]);
-    if (Number.isFinite(parsedTs)) {
-      const waitMs = parsedTs - Date.now();
-      if (waitMs > 0) return waitMs;
-    }
-  }
+  // Issue #2321 / #14479: parse embedded absolute ISO retry timestamps.
+  const isoMs = parseIsoDateTimeResetMs(msg, MAX_PROVIDER_COOLDOWN_MS, nowMs, provider);
+  if (isoMs !== null) return isoMs;
 
   const match = RESETS_AFTER_RE.exec(msg);
   if (match?.[1] || match?.[2] || match?.[3]) return computeDurationMs(match);
@@ -1477,7 +1476,7 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     }
   }
 
-  return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS);
+  return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS, nowMs, provider);
 }
 
 /**
@@ -1803,7 +1802,7 @@ export function checkFallbackError(
       };
     }
 
-    const retryFromErrorText = parseRetryFromErrorText(errorStr);
+    const retryFromErrorText = parseRetryFromErrorText(errorStr, provider);
     if (retryFromErrorText && retryFromErrorText > 0) {
       return { retryAfterMs: retryFromErrorText, provenance: "body" };
     }
@@ -1977,18 +1976,18 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; per-model-quota providers stay model-scoped
     // unless the body is an account-level Open Platform empty wallet.
-    if (
-      shouldUseQuotaSignal &&
-      isCreditsExhausted(errorStr) &&
-      (!isCompatibleProvider(provider) || isMoonshotAccountBalanceExhausted(errorStr))
-    ) {
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
         reason: RateLimitReason.QUOTA_EXHAUSTED,
-        creditsExhausted: true,
+        // Only passthrough/aggregator + *-compatible-* keys stay model-scoped; per-model-lock
+        // providers (codex, gemini, github, antigravity) keep account-level credits_exhausted.
+        ...(!isPassthroughCreditScope(provider) || isMoonshotAccountBalanceExhausted(errorStr)
+          ? { creditsExhausted: true }
+          : {}),
       };
     }
 
@@ -2053,7 +2052,7 @@ export function checkFallbackError(
       );
       if (subResult) return subResult;
     }
-    const weeklyResult = buildWeeklyQuotaFallback(errorStr);
+    const weeklyResult = buildWeeklyQuotaFallback(errorStr, undefined, provider);
     if (weeklyResult) return weeklyResult;
     // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
     // runs UNCONDITIONALLY for the same reason: apikey-category providers
@@ -2064,7 +2063,8 @@ export function checkFallbackError(
     if (sessionResult) return sessionResult;
 
     const detectedRetryHint = detectRetryHint();
-    const quotaResetHintMs = detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr);
+    const quotaResetHintMs =
+      detectedRetryHint?.retryAfterMs ?? parseRetryFromErrorText(errorStr, provider);
     const quotaResetHintSource: RetryHintProvenance | undefined = detectedRetryHint
       ? detectedRetryHint.provenance
       : quotaResetHintMs
@@ -2108,6 +2108,11 @@ export function checkFallbackError(
         resolveRuleMatchBody(provider, structuredError ?? null, errorStr)
       );
       if (forbiddenMatch) return ruleScopedResult(forbiddenMatch);
+    }
+    // 429 reading "endpoint is unavailable" fails over to the rule-owned model cooldown.
+    if (status === HTTP_STATUS.RATE_LIMITED && provider) {
+      const unavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
+      if (unavailable) return ruleScopedResult(unavailable);
     }
 
     if (
@@ -2238,8 +2243,8 @@ export function checkFallbackError(
     };
   }
 
-  // 400 — context overflow / malformed request / model access denied
-  if (status === HTTP_STATUS.BAD_REQUEST) {
+  // 400/422 — context overflow / malformed or rejected request shape / model access denied
+  if (status === HTTP_STATUS.BAD_REQUEST || status === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
     const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
     if (modelUnavailable) return ruleScopedResult(modelUnavailable);
     // Check structured error codes first (more reliable, no false positives)

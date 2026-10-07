@@ -311,21 +311,26 @@ Modul RTK este inspirat de **[RTK - Rust Token Killer](https://github.com/rtk-ai
 
 ## Sisteme avansate de compresie
 
-Pe lângă cele 7 moduri standard, OmniRoute include mai multe sisteme avansate de compresie care funcționează automat în funcție de context.
+Pe lângă cele 7 moduri standard, OmniRoute include mai multe sisteme avansate de compresie
+care funcționează automat în funcție de context.
 
-### Compresie conștientă de cache
+### Compresie adaptată la cache
 
-Unii furnizori (cum ar fi Anthropic cu prompt caching) suportă **prompt caching**, ceea ce le permite să memoreze în cache părți ale promptului pentru a reduce costurile și latența. Când caching-ul este activat, compresia agresivă poate de fapt **dăuna** performanței, deoarece modifică token-urile memorate în cache, invalidând cache-ul.
+Unii furnizori (precum Anthropic, cu memorarea în cache a prompturilor) acceptă **memorarea în cache a prompturilor**,
+ceea ce le permite să memoreze în cache părți ale promptului pentru a reduce costurile și latența. Când
+memorarea în cache este activată, compresia agresivă poate, de fapt, să **afecteze negativ** performanța,
+deoarece modifică tokenurile memorate în cache, invalidând astfel cache-ul.
 
-Modulul `cachingAware.ts` rezolvă această problemă prin **detectarea contextului de caching** și **ajustarea strategiei de compresie** în consecință.
+Modulul `cachingAware.ts` rezolvă această problemă prin **detectarea contextului de memorare în cache** și
+**ajustarea corespunzătoare a strategiei de compresie**.
 
 #### Cum funcționează
 
-1. **Detectează contextul de caching** — Scanează corpul cererii pentru marcatori `cache_control`
-2. **Identifică furnizorii de caching** — Verifică dacă furnizorul țintă suportă caching
-3. **Ajustează strategia** — Retrogradează `aggressive`/`ultra` la `standard` pentru furnizorii de caching
-4. **Omite promptul de sistem** — Prompturile de sistem sunt de obicei memorate în cache, deci nu le comprima
-5. **Utilizează transformări deterministe** — Utilizează doar transformări care produc o ieșire consistentă
+1. **Detectează contextul de memorare în cache** — Scanează corpul cererii pentru marcaje `cache_control`
+2. **Identifică furnizorii cu suport pentru cache** — Verifică dacă furnizorul țintă acceptă memorarea în cache
+3. **Ajustează strategia** — Retrogradează `aggressive`/`ultra` la `standard` pentru furnizorii cu suport pentru cache
+4. **Omite promptul de sistem** — Prompturile de sistem sunt de obicei memorate în cache, deci nu le comprimă
+5. **Folosește transformări deterministe** — Folosește numai transformări care produc rezultate consecvente
 
 #### Exemplu de cod
 
@@ -338,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Marcator cache
+  cache_control: { type: "ephemeral" }, // ← Marcaj de cache
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -350,19 +355,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Când se utilizează
 
-Compresia conștientă de cache este **întotdeauna activă** — nu este necesară nicio configurare. Aceasta se activează doar atunci când:
+Compresia adaptată la cache este **întotdeauna activă** — nu este necesară nicio configurare. Aceasta intră în funcțiune
+numai când:
 
-- Cererea are marcatori `cache_control`
-- Furnizorul țintă suportă prompt caching (Anthropic, OpenAI, etc.)
+- Cererea conține marcaje `cache_control`
+- Furnizorul țintă acceptă memorarea în cache a prompturilor (Anthropic, OpenAI etc.)
 
-### Îmbătrânire progresivă
+### Învechire progresivă
 
-Conversațiile lungi acumulează multe rânduri de mesaje, dar rândurile mai vechi devin mai puțin relevante. Modulul `progressiveAging.ts` **degradează mesajele în funcție de distanța rândului**:
+Conversațiile lungi acumulează multe schimburi de mesaje, însă schimburile mai vechi devin mai puțin
+relevante. Modulul `progressiveAging.ts` **degradează mesajele în funcție de distanța dintre schimburi**:
 
-- **Rânduri recente (0-3)**: Păstrate ad litteram (detaliu complet)
-- **Rânduri medii (4-8)**: Compresie ușoară (spații albe, curățare formatare)
-- **Rânduri vechi (9+)**: Compresie de tip "om al peșterii" (eliminare umplutură, sumarizare)
-- **Rânduri foarte vechi (20+)**: Sumarizate puternic sau eliminate
+- **Schimburi recente (0-3)**: Păstrate textual (toate detaliile)
+- **Schimburi intermediare (4-8)**: Compresie ușoară (curățarea spațiilor albe și a formatării)
+- **Schimburi vechi (9+)**: Compresie telegrafică (eliminarea cuvintelor de umplutură, rezumare)
+- **Schimburi foarte vechi (20+)**: Rezumate semnificativ sau eliminate
 
 #### Exemplu de cod
 
@@ -373,46 +380,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... încă 50 de schimburi ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Primele 3 rânduri: ad litteram
-  light: 8, // Rândurile 4-8: compresie ușoară
-  moderate: 20, // Rândurile 9-20: compresie de tip "om al peșterii"
-  // Rândurile 21+: sumarizare puternică
+  verbatim: 3, // Primele 3 schimburi: textual
+  light: 8, // Schimburile 4-8: compresie ușoară
+  moderate: 20, // Schimburile 9-20: compresie telegrafică
+  // Schimburile 21+: rezumare intensivă
 });
 
-// saved = numărul de token-uri salvate
+// saved = numărul de tokenuri economisite
 ```
 
 #### Când se utilizează
 
-Îmbătrânirea progresivă este **întotdeauna activă** pentru modurile `aggressive` și `ultra`. Este deosebit de eficientă pentru:
+Învechirea progresivă este **întotdeauna activă** pentru modurile `aggressive` și `ultra`. Este
+deosebit de eficientă pentru:
 
-- Sesiuni lungi de codare
-- Conversații de mai multe zile
-- Fluxuri de lucru agentice cu multe apeluri de instrumente
+- Sesiuni de programare de lungă durată
+- Conversații desfășurate pe parcursul mai multor zile
+- Fluxuri de lucru agentice cu numeroase apeluri de instrumente
 
-### Modul de ieșire "Om al peșterii"
+### Modul de ieșire telegrafic
 
-Modulul `outputMode.ts` injectează **instrucțiuni de prompt de sistem** pentru a face ca modelul însuși să producă o ieșire comprimată, concisă (un stil "om al peșterii").
+Modulul `outputMode.ts` injectează **instrucțiuni în promptul de sistem** pentru ca
+modelul însuși să genereze rezultate comprimate și concise (un stil „telegrafic”).
 
 #### Cum funcționează
 
 În loc să comprime intrarea, acest mod adaugă un prompt de sistem precum:
 
-> "Răspunde în cuvinte minime. Omite amabilitățile. Folosește propoziții scurte."
+> „Răspunde folosind cât mai puține cuvinte. Omite formulele de politețe. Folosește propoziții scurte.”
 
-Acest lucru funcționează deosebit de bine pentru:
+Acesta funcționează deosebit de bine pentru:
 
-- Generarea de cod (ieșire mai concisă = mai puține token-uri)
-- Întrebări și răspunsuri rapide (nu este nevoie de explicații elaborate)
-- Procesare în lot (maximizarea debitului)
+- Generarea de cod (rezultat mai concis = mai puține tokenuri)
+- Întrebări și răspunsuri rapide (nu sunt necesare explicații elaborate)
+- Procesare în loturi (maximizează debitul)
 
 #### Când se utilizează
 
-Modul de ieșire "om al peșterii" este **opțional** — setați-l prin configurația combo:
+Modul de ieșire telegrafic este **opțional** — configurați-l prin configurația combinată:
 
 ```json
 {
@@ -427,35 +436,58 @@ Modul de ieșire "om al peșterii" este **opțional** — setați-l prin configu
 
 ### Stiluri de ieșire (catalog)
 
-Modul de ieșire "om al peșterii" de mai sus este **calea veche cu un singur stil**. Faza 4 a generalizat-o într-un catalog de stiluri de ieșire compozabile: `OUTPUT_STYLE_CATALOG` în `open-sse/services/compression/outputStyles/catalog.ts`. Fiecare stil este o instrucțiune de prompt de sistem care face ca modelul însuși să producă o ieșire mai ieftină; stilurile pot fi activate împreună și sunt injectate în ordinea catalogului.
+Modul de ieșire telegrafic de mai sus este **abordarea veche, cu un singur stil**. Faza 4 l-a generalizat
+într-un catalog de stiluri de ieșire combinabile: `OUTPUT_STYLE_CATALOG` din
+`open-sse/services/compression/outputStyles/catalog.ts`. Fiecare stil este o instrucțiune pentru promptul de sistem
+care face ca modelul însuși să genereze rezultate mai ieftine; stilurile pot fi activate
+împreună și sunt injectate în ordinea din catalog.
 
-| Stil                                | `id`          | Ce face                                                                                                                                                                                                                                    | Limbi de instruire                                                     |
-| :---------------------------------- | :------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
-| Proza concisă                       | `terse-prose` | Elimină umplutura/articolele/ezitările; păstrează substanța tehnică exactă. Același text ca modul de ieșire `caveman` vechi (referențiat, nu re-tastat).                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Mai puțin cod                       | `less-code`   | Scara YAGNI: cea mai mică modificare funcțională, fără abstracții nesolicitate.                                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Ponytail (dezvoltator senior leneș) | `ponytail`    | „Cel mai bun cod este codul care nu a fost scris niciodată”: reutilizare > rescriere, cauză principală > simptom, cea mai scurtă diferență funcțională.                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| Am ADHD (acțiune-prima)             | `i-have-adhd` | Acțiune-prima (comandă/cale/fragment înainte de proză), pași numerotați și delimitați, UN singur pas concret următor, fără preambul/recapitulare/încheieri. Adaptat din [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                          |
-| CJK concis (文言)                   | `terse-cjk`   | Stil ultra-concis chinezesc clasic.                                                                                                                                                                                                        | zh (limitat la localizare: oferit doar când limba rezolvată este `zh`) |
+| Stil                                    | `id`          | Ce face                                                                                                                                                                                                                                             | Limbile instrucțiunilor                                                                           |
+| --------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Proză concisă                           | `terse-prose` | Elimină umplutura/articolele/ezitările; păstrează exact conținutul tehnic. Același text ca în modul legacy de ieșire caveman (referențiat, nu rescris).                                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                     |
+| Mai puțin cod                           | `less-code`   | Ierarhie YAGNI: cea mai mică modificare funcțională, fără abstracții nesolicitate.                                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                     |
+| Coadă de cal (dezvoltator senior comod) | `ponytail`    | „Cel mai bun cod este codul care nu a fost scris niciodată”: reutilizare > rescriere, cauză principală > simptom, cel mai scurt diff funcțional.                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                     |
+| Am ADHD (acțiunea întâi)                | `i-have-adhd` | Acțiunea întâi (comandă/cale/fragment înaintea prozei), pași numerotați și limitați, UN singur pas următor concret, fără preambul/recapitulare/formule de încheiere. Adaptat din [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                                     |
+| CJK concis (文言)                       | `terse-cjk`   | Stil ultra-concis în chineza clasică.                                                                                                                                                                                                               | zh (restricționat în funcție de setarea regională: oferit numai când limba determinată este `zh`) |
 
-Fiecare stil oferă trei niveluri de intensitate — `lite`, `full`, `ultra` — și fiecare nivel
-se încheie cu clauza de limite comune, care păstrează blocurile de cod, căile de fișiere, comenzile,
-șirurile de eroare, URL-urile și identificatorii verbatim.
+Fiecare stil este livrat cu trei niveluri de intensitate — `lite`, `full`, `ultra` — și fiecare nivel
+se încheie cu clauza comună privind limitele, care păstrează blocurile de cod, căile fișierelor, comenzile,
+șirurile de eroare, URL-urile și identificatorii textual, fără modificări.
 
-#### Cum funcționează injecția
+#### Cum funcționează injectarea
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) rezolvă
-selecția în raport cu catalogul (ID-urile necunoscute și stilurile care nu se potrivesc cu localizarea sunt
-eliminate, niciodată o eroare), concatenează instrucțiunile selectate în ordinea catalogului,
-adaugă clauza de limite **o singură dată** și plasează rezultatul în promptul de sistem
-în spatele unui singur marcator de idempotență (`[OmniRoute Output Styles]`) — re-aplicarea
-este o operație nulă. Când limba detectată a cererii are o traducere, instrucțiunea localizată
-este injectată în locul celei în engleză.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) determină
+selecția pe baza catalogului (ID-urile necunoscute și stilurile care nu corespund setării regionale sunt
+eliminate, fără a genera vreodată o eroare), concatenează instrucțiunile selectate în ordinea din catalog,
+adaugă clauza privind limitele **o singură dată** și începe blocul cu un singur marcaj de idempotentă
+(`[OmniRoute Output Styles]`), astfel încât reaplicarea nu produce nicio modificare. Când limba determinată
+(consultați mai jos Selectarea limbii) are o traducere, este injectată instrucțiunea localizată
+în locul celei în limba engleză.
+
+Pentru un corp cu `messages`, ocolirea bazată pe conținut (`shouldBypassCavemanOutputMode()` din
+`open-sse/services/compression/outputMode.ts`) verifică ultimele trei mesaje și omite
+stilurile pentru întreaga interacțiune atunci când acestea corespund cuvintelor-cheie privind securitatea, acțiunile ireversibile,
+clarificarea sau ordinea operațiilor. Ocolirea rulează cât timp comutatorul **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) din panoul de control este activat, ceea ce reprezintă valoarea implicită; cu comutatorul dezactivat, stilurile selectate se aplică și în aceste interacțiuni.
+
+Când ocolirea permite procesarea interacțiunii, `placeSystemInstruction()` (același fișier), care
+nu creează niciodată un nou `messages[0]`, plasează blocul în primul dintre următoarele locuri pe care îl găsește:
+
+1. Un mesaj de sistem inițial cu conținut de tip șir: blocul este adăugat după textul acestuia.
+2. Câmpul `system` de nivel superior: blocul este adăugat după textul unui șir sau
+   adăugat ca bloc text nou într-o matrice de blocuri de conținut.
+3. Primul mesaj de sistem ulterior cu conținut de tip șir: blocul este adăugat după
+   textul acestuia.
+4. Niciuna dintre variantele de mai sus: blocul este introdus într-un mesaj de sistem nou la sfârșitul `messages`.
+
+Pentru un corp fără `messages`, blocul este adăugat la un câmp `instructions` de tip șir
+sau devine `instructions` când corpul conține `input` (un șir sau o matrice). Un corp
+care nu conține nici `instructions`, nici `input` este omis ca `no_messages`.
 
 #### Cum se activează
 
-În tabloul de bord: **Context → Setări → Compresie** — un rând pentru fiecare stil cu un
-comutator de activare/dezactivare și un selector de nivel. Programatic, configurația de compresie
-persistă selecția ca:
+În panoul de control: **Context → Settings → Compression** — câte un rând pentru fiecare stil, cu un
+comutator pornit/oprit și un selector de nivel. Programatic, configurația de compresie păstrează
+selecția astfel:
 
 ```json
 {
@@ -466,59 +498,58 @@ persistă selecția ca:
 }
 ```
 
-Compatibilitate inversă: setarea combinată `outputMode: "caveman"` veche funcționează în continuare și se mapează la
-`terse-prose`, identică la nivel de octet cu injecția veche în fiecare limbă veche.
+Compatibilitate retroactivă: setarea combinată legacy `outputMode: "caveman"` funcționează în continuare și este mapată la
+`terse-prose`, fiind identică la nivel de octet cu vechea injectare în fiecare limbă legacy.
 
-Selecția limbii: cu `languageConfig.enabled` activat, `autoDetect` alege
-limba ultimului mesaj al utilizatorului (același detector ca și motoarele de intrare);
-dezactivarea `autoDetect` fixează `defaultLanguage`. Dezactivat → Engleză.
+Selectarea limbii: când `languageConfig.enabled` este activat, `autoDetect` alege
+limba celui mai recent mesaj al utilizatorului (același detector ca pentru motoarele de intrare);
+dezactivarea `autoDetect` fixează limba la `defaultLanguage`. Dezactivat → engleză.
 
 Matricea stil × limbă este fixată de
 `tests/unit/compression/output-styles-i18n-matrix.test.ts`: un stil nou nu poate fi livrat
-fără cel puțin o traducere pt-BR (sau o excepție urmărită explicit), iar un
-stil existent nu poate pierde în tăcere o localizare. Pentru a adăuga un stil, consultați
+fără cel puțin o traducere pt-BR (sau o excepție explicită urmărită), iar un
+stil existent nu poate pierde în mod neobservat o setare regională. Pentru a adăuga un stil, consultați
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Compresia rezultatelor instrumentelor
+### Comprimarea rezultatelor instrumentelor
 
-Modulul `toolResultCompressor.ts` oferă **5 strategii specializate de compresie**
-pentru rezultatele instrumentelor (apeluri de funcții, ieșiri ale agenților, rezultate de căutare etc.):
+Modulul `toolResultCompressor.ts` oferă **5 strategii de compresie specializate**
+pentru rezultatele instrumentelor (apeluri de funcții, rezultate ale agenților, rezultate ale căutărilor etc.):
 
-1. **Compresia rezultatelor căutării** — Elimină rezultatele redundante, păstrează primele N
-2. **Compresia citirii fișierelor** — Trunchiază fișierele mari, păstrează anteturile/importurile
-3. **Compresia execuției codului** — Păstrează doar stdout/stderr esențial
-4. **Compresia interogărilor bazei de date** — Limitează rândurile, elimină metadatele verbose
-5. **Compresia răspunsurilor API** — Elimină câmpurile nule, condensează array-urile
+1. **Comprimarea rezultatelor căutării** — Elimină rezultatele redundante, păstrează primele N
+2. **Comprimarea citirii fișierelor** — Trunchiază fișierele mari, păstrează antetele/importurile
+3. **Comprimarea execuției codului** — Păstrează numai stdout/stderr esențiale
+4. **Comprimarea interogărilor bazei de date** — Limitează rândurile, elimină metadatele detaliate
+5. **Comprimarea răspunsurilor API** — Elimină câmpurile nule, compactează matricele
 
 #### Când se utilizează
 
-Compresia rezultatelor instrumentelor este **întotdeauna activă** atunci când sunt prezente apeluri de instrumente. Nu este
-necesară configurare.
+Comprimarea rezultatelor instrumentelor este **întotdeauna activată** atunci când sunt prezente apeluri de instrumente. Nu este necesară nicio configurare.
 
-### Pipeline-ul stivuit
+### Flux de procesare suprapus
 
-Modul stivuit rulează **mai multe motoare în secvență** — de obicei RTK mai întâi
-(economii de 60-90% la ieșirea instrumentului), apoi Caveman (economii suplimentare de 30% la
-textul rămas). Aceasta realizează **economii totale de 78-95%**.
+Modul suprapus rulează **mai multe motoare în secvență** — de obicei mai întâi RTK
+(economii de 60-90% pentru rezultatele instrumentelor), apoi Caveman (economii suplimentare de 30% pentru
+textul rămas). Astfel se obțin **economii totale de 78-95%**.
 
 #### Cum funcționează
 
 ```
-Intrare (1000 token-uri)
-  → RTK (filtru conștient de comandă) → 200 token-uri
-    → Caveman (eliminarea umpluturii) → 140 token-uri
-  → Ieșire (140 token-uri, 86% economii)
+Intrare (1000 de tokenuri)
+  → RTK (filtru care ține cont de comenzi) → 200 de tokenuri
+    → Caveman (eliminarea textului de umplutură) → 140 de tokenuri
+  → Ieșire (140 de tokenuri, economii de 86%)
 ```
 
 #### Când se utilizează
 
-Utilizați modul stivuit pentru:
+Utilizați modul suprapus pentru:
 
-- Fluxuri de lucru intensive cu instrumente (codare agentică, cercetare)
-- Procesare în loturi sensibilă la costuri
-- Când aveți nevoie de economii maxime de token-uri
+- Fluxuri de lucru care folosesc intensiv instrumente (programare cu agenți, cercetare)
+- Procesarea în loturi sensibilă la costuri
+- Situațiile în care aveți nevoie de economii maxime de tokenuri
 
-Configurați prin combo:
+Configurați prin combinație:
 
 ```json
 {

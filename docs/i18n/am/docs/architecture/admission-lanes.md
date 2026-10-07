@@ -7,50 +7,52 @@
 OmniRoute የተለያዩ ወሰኖች ያሏቸው በሂደት ውስጥ ብቻ የሚሰሩ **ሁለት** የመስመር ሥርዓቶች አሉት። እነዚህ
 እርስ በርሳቸው የሚደጋገፉ ናቸው፤ ኦፕሬተሮች የትኛውን እየተመለከቱ እንደሆነ ማወቅ አለባቸው።
 
-## 1. በባይት ደረጃ በመላው ሂደት የሚሰራ የመግቢያ ቁጥጥር (`chatBodyAdmission.ts`)
+## 1. በባይት ደረጃ በመላው ፕሮሰሱ ላይ የሚሠራ የመቀበያ ቁጥጥር (`chatBodyAdmission.ts`)
 
 - **ወሰን፦** ለ`POST /v1/chat/completions`፣
-  `/v1/messages`፣ `/v1/responses` እና ለሌሎች የውይይት ቅርጽ ላላቸው መስመሮች የሚያገለግለው የተከማቸ-ይዘት/heap መንገድ።
-  ከትላልቅ የኮዲንግ ወኪል ይዘቶች የሚመጣውን የheap ማባዛት ይከላከላል (#4380)።
-- **ለእያንዳንዱ ቁልፍ የተለዩ መስመሮች ሳይሆኑ፣ አንድ በመላው ሂደት የሚጋራ መቆጣጠሪያ (#10110)።** እያንዳንዱ API ቁልፍ
-  (hash የተደረገ) ወይም `anonymous` ክፍለ-ጊዜ በ**ተመሳሳዩ** የጋራ በጀት ላይ ተመስርቶ ይገባል —
-  hash የተደረገው የክፍለ-ጊዜ መለያ የሚያገለግለው እንደ ፍትሃዊ የጊዜ ሰሌዳ ቁልፍ ብቻ ነው (በተጠባባቂዎች መካከል
-  ዙር-በ-ዙር ስርጭት)፤ እንደ አቅም ክፍፍል ፈጽሞ አያገለግልም። የዚህ ሰነድ ቀዳሚ ስሪት
-  ነጻ አቅም ያላቸውን ለእያንዳንዱ ቁልፍ የተለዩ መስመሮች ይገልጽ ነበር፤ ያ ሞዴል
-  ማረጋገጫ የሌላቸው የሐሰት ምስክርነቶች የመላውን ሂደት ገደብ እንዲያባዙ ስለፈቀደ
-  በ#10110 ተወግዷል።
-- **መዝጊያ (#503-fanout)፦ በራስ-ሰር የሚወሰን የግብዓት BYTE በጀት እንጂ ቋሚ የጥያቄ
-  ብዛት አይደለም።** የቆየው የ`CHAT_MAX_HEAVY_IN_FLIGHT` የጥያቄ-ብዛት ገደብ (ከዚህ ማስተካከያ በፊት ነባሪው `1`)
-  የኮዲንግ ወኪል የተስፋፋ ስርጭትን (በርካታ ንዑስ ወኪሎች/CLIs፣
-  ዘወትር > 256 KB የሆኑ ይዘቶች) ወደ ~1 ውጤታማ ትይዩነት ያወርደው ነበር፣ ይህም
-  ፍጹም መደበኛ በሆነ ጭነት ላይ 503 እንዲመለስ ያደርግ ነበር። አሁን የሚያስገድደው ኦፕሬተሩ
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`ን በግልጽ ሲያዘጋጅ ብቻ ነው። ሳይዘጋጅ ሲቀር፣ መግቢያው በምትኩ
-  በ`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ይገደባል — ከሂደቱ እውነተኛ የማህደረ ትውስታ ጣሪያ
-  (`src/shared/middleware/admissionBudget.ts`) በራስ-ሰር የሚወሰን በጀት፦
-  ከV8 heap ገደብ እና ከማንኛውም cgroup/container ገደብ ውስጥ ይበልጥ ጥብቅ የሆነው 25%፣
-  በ8x ጊዜያዊ-ማባዣ መጠን ተካፍሎ፣ በ8 MiB እና
-  2 GiB መካከል ተገድቦ። ግልጽ መተኪያዎችም እነዚሁን ገደቦች ይጠቀማሉ። ይህ ያለምንም env ማስተካከያ ከ
-  512 MB container እስከ 32 GB desktop ድረስ ራሱን ያመጣጥናል። በውጤታማው በጀት ውስጥ
-  ሊገባ የማይችል ይዘት ወዲያውኑ `413 body_exceeds_budget` በሚል ይከሽፋል፤
-  በተናጠል ሊስተናገዱ በሚችሉ ይዘቶች መካከል ያለ ፉክክር ብቻ ወደ ውስን
-  የፍትሃዊነት ወረፋ ይገባል። ቀጥታ የሚሰራ ባለብዙ-ምልክት የሀብት-ጫና መከታተያ (የV8 heap ሬሾ፣
-  cgroup፣ PSI፣ OOM ክስተቶች — `open-sse/utils/resourcePressurePolicy.ts`) በ`high` ጫና ወቅት
-  ውስን የጥበቃ ጊዜውን ያሳጥራል፣ በ`critical` ጫና ወቅት ደግሞ ማንኛውም ባይት ከመግባቱ በፊት
-  ወዲያውኑ `503 resource_pressure` በሚል ጭነቱን ይቀንሳል። PSI በሚገኝበት ጊዜ ከዚህ አሃድ cgroup `memory.pressure`
-  (`open-sse/utils/resourcePressureSampler.ts`) ይነበባል፤ `/proc/pressure/memory`
-  የመላው host መረጃ ሲሆን በbare metal / cgroup v1 ላይ ብቻ እንደ መጠባበቂያ ያገለግላል፣ ስለዚህ swapping
-  የሚያደርግ host ስራ ፈት የሆነ container 503 እንዲመልስ ማድረግ አይችልም።
+  `/v1/messages`፣ `/v1/responses` እና ሌሎች የውይይት ቅርጽ ላላቸው መስመሮች የሚውለው የተከማቸ-body/heap መንገድ።
+  ከትላልቅ የኮድ ኤጀንት bodyዎች የሚመጣውን የheap ማባዛት ይከላከላል (#4380)።
+- **ለእያንዳንዱ ቁልፍ የተለዩ lanes ሳይሆኑ፣ አንድ የፕሮሰስ-አቀፍ መቆጣጠሪያ (#10110)።** እያንዳንዱ API ቁልፍ
+  (hash የተደረገ) ወይም `anonymous` ክፍለ ጊዜ በ**ተመሳሳዩ** የጋራ በጀት መሠረት ይቀበላል —
+  hash የተደረገው የክፍለ ጊዜ መታወቂያ እንደ ፍትሐዊነት የመርሐግብር ቁልፍ ብቻ ያገለግላል
+  (በተጠባባቂዎች መካከል የround-robin ስርጭት)፤ እንደ የአቅም ክፍልፋይ ፈጽሞ አያገለግልም።
+  የዚህ ሰነድ የቀድሞ ስሪት ነጻ አቅም ያላቸውን ለእያንዳንዱ ቁልፍ የተለዩ lanes ገልጾ ነበር፤
+  ያ ሞዴል ያልተረጋገጡ ሐሰተኛ ማረጋገጫዎች የፕሮሰሱን አጠቃላይ ገደብ እንዲያባዙ
+  ስለሚያስችል #10110 ላይ ተወግዷል።
+- **መግቢያ በር (#503-fanout)፦ በራስ-ሰር የሚወሰን የማስገቢያ BYTE በጀት እንጂ ቋሚ የጥያቄ
+  ብዛት አይደለም።** የቀድሞው `CHAT_MAX_HEAVY_IN_FLIGHT` የጥያቄ-ብዛት ገደብ (ከዚህ ማስተካከያ
+  በፊት ነባሪው `1`) የኮድ ኤጀንት fan-outን (በርካታ ንዑስ ኤጀንቶች/CLIዎች፣
+  በተለምዶ > 256 KB የሆኑ bodyዎች) ውጤታማ ተጓዳኝነቱ ~1 እንዲሆን በመገደብ፣
+  ሙሉ በሙሉ መደበኛ በሆነ ጭነት ሥር 503 እንዲመልስ ያደርግ ነበር። አሁን ይህ ገደብ
+  የሚተገበረው ኦፕሬተር `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`ን በግልጽ ሲያዘጋጅ ብቻ ነው።
+  ሳይዘጋጅ ሲቀር፣ መቀበያው በምትኩ በ`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ይገደባል —
+  ይህም ከፕሮሰሱ እውነተኛ የማህደረ ትውስታ ጣሪያ (`src/shared/middleware/admissionBudget.ts`) በራስ-ሰር
+  የሚወሰን በጀት ነው፦ ከV8 heap ገደብ እና ከማንኛውም cgroup/container ገደብ መካከል
+  ዝቅተኛው 25%፣ በ8x ጊዜያዊ የማባዛት ፋክተር ተከፍሎ፣ በ8 MiB እና
+  2 GiB መካከል የተገደበ። ግልጽ overrides ተመሳሳይ ገደቦችን ይጠቀማሉ። ይህ ያለምንም
+  የenv ማስተካከያ ከ512 MB container እስከ 32 GB desktop ድረስ ራሱን ያመጣጥናል።
+  በውጤታማው በጀት ውስጥ ሊገባ የማይችል body ወዲያውኑ `413 body_exceeds_budget` በማለት
+  ይከሽፋል፤ ወደ የተገደበው የፍትሐዊነት ወረፋ የሚገባው እያንዳንዳቸው ሊስተናገዱ
+  በሚችሉ bodyዎች መካከል ያለ የሀብት ፉክክር ብቻ ነው። ቀጥታ የሚሠራ ባለብዙ-ምልክት
+  የሀብት-ጫና መከታተያ (የV8 heap ጥምርታ፣ cgroup፣ PSI፣ OOM ክስተቶች —
+  `open-sse/utils/resourcePressurePolicy.ts`) በ`high` ጫና ጊዜ የተገደበውን የጥበቃ ጊዜ
+  ያሳጥራል፣ እና ማንኛውም ባይት ከመግባቱ በፊት በ`critical` ጫና ጊዜ
+  `503 resource_pressure` በማለት ወዲያውኑ ጭነቱን ይቀንሳል። PSI፣ ካለ፣ ከዚህ unit cgroup
+  `memory.pressure` ይነበባል (`open-sse/utils/resourcePressureSampler.ts`)፤
+  `/proc/pressure/memory` የመላው host መረጃ ሲሆን በbare metal / cgroup v1 ላይ ብቻ
+  እንደ አማራጭ ምንጭ ያገለግላል፤ ስለዚህ swapping የሚያደርግ host ስራ ፈት ለሆነ
+  container 503 እንዲመልስ ሊያደርገው አይችልም።
 - **ማስተካከያ፦**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — በራስ-ሰር ለሚወሰነው የባይት በጀት መተኪያ
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — የቆየ የጥያቄ-ብዛት ገደብ፣ በምርጫ ብቻ የሚነቃ
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 ከመመለሱ በፊት የወረፋ ጥበቃ ጊዜ (ነባሪ 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — የተሰለፉ-ባይቶች heap መቆጣጠሪያ (ነባሪ 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — ከ#10110 ጀምሮ ጥቅም ላይ የማይውሉ
-    ምንም-የማያደርጉ ቅንብሮች (ለውቅር ተኳኋኝነት ይቀበላሉ፣ ግን ችላ ይባላሉ)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — በራስ-ሰር ለሚወሰነው የባይት በጀት override
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — የቀድሞ የጥያቄ-ብዛት ገደብ፣ በምርጫ ብቻ የሚነቃ
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — 503 ከመመለሱ በፊት የወረፋ ጥበቃ ጊዜ (ነባሪው `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — ለወረፋ የገቡ ባይቶች የheap ቫልቭ (ነባሪው 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — ከ#10110 ጀምሮ የተቋረጡ
+    no-opዎች (ለውቅር ተኳኋኝነት ይቀበላሉ፣ ግን ችላ ይባላሉ)
 - **ሪፖርቶች፦** `GET /api/monitoring/health` → `chatAdmission` (#11244) — የ#503-fanout ተጨማሪዎችን
   `inflightBytes`፣ `maxInflightBytes`፣ `budgetSource`
   (`v8_heap` | `cgroup` | `override`)፣ `pressureSeverity` እና `countCapEnabled`ን ጨምሮ
-  (በነባሪ ስርጭት ላይ false — በተግባር እየገደበ ያለው የባይት በጀቱ እንጂ የቆየው
+  (በነባሪ deployment ላይ false — በተግባር የሚገድበው የባይት በጀት እንጂ የቀድሞው
   የብዛት ገደብ አለመሆኑን ያረጋግጣል)።
 
 ## 2. ተስማሚ የአሂድ ጊዜ ምናባዊ መስመሮች (`open-sse/services/admission`)

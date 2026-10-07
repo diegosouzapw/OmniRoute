@@ -4,11 +4,33 @@
 
 ---
 
-OmniRoute kodlaşdırma CLI-sini (Codex, Claude Code, OpenCode, Cline, …) OmniRoute-dan arxa xidmət kimi istifadə etmək üçün konfiqurasiya edən `setup-*` əmrləri ailəsini təqdim edir — beləliklə, alət **bir** son nöqtə ilə əlaqə saxlayır, OmniRoute isə avtomatik ehtiyat keçidi ilə sorğunu düzgün provayderə yönləndirir. Hər bir əmr işləyən OmniRoute instansiyasından (lokal və ya uzaq) **canlı** model kataloqunu oxuyur və alətin öz konfiqurasiya faylını **sizin** maşınınıza yazır. Alət bunu dəstəklədiyi hallarda API açarına mühit dəyişəni vasitəsilə istinad edilir. Alətə məxsus lokal mühit faylını saxlayan əmrlər aşağıda qeyd olunub.
+Paylaşılan icra olunan fayl manifesti, məhdudlaşdırılmış alt proses mühitləri və daimi
+Gemini quraşdırması üçün [CLI işə salma müqavilələri](./CLI-LAUNCH-CONTRACTS.md) bölməsinə baxın.
 
-Heç bir konfiqurasiya yazmadan, düzgün mühit dəyişənlərini ötürərək `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` və ya `gemini` prosesini başladan ümumi işəsalıcı da mövcuddur — `omniroute run <target>`. Hədəflər və onların alternativ adları kanonik `bin/cli/cli-manifest.mjs` manifestindən əldə edilir (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` isə manifestdən əldə edilən eyni hədəf sözlərini təklif edir. Hər alət üçün köhnə işəsalıcılar — `omniroute launch` (Claude Code) və `omniroute launch-codex` (Codex) — əlçatan olaraq qalır.
+OmniRoute kodlaşdırma üçün CLI-ni (Codex, Claude Code, OpenCode, Cline, …)
+arxa tərəf kimi OmniRoute-dan istifadə edəcək şəkildə konfiqurasiya edən `setup-*`
+əmrləri ailəsini təqdim edir — beləliklə, alət **bir** son nöqtə ilə əlaqə saxlayır,
+OmniRoute isə avtomatik ehtiyat keçidlə sorğunu düzgün provayderə yönləndirir. Hər
+əmr işləyən OmniRoute instansiyasından (lokal və ya uzaq) **canlı** model kataloqunu
+oxuyur və alətin öz konfiqurasiya faylını **sizin** kompüterinizə yazır. Alət bunu
+dəstəklədiyi hallarda API açarına mühit dəyişəni vasitəsilə istinad edilir. Alətə
+məxsus daimi mühit faylı yaradan əmrlər aşağıda qeyd olunub.
 
-Provayderin ilkin sazlanması eyni lokal/uzaq kontekstdən mümkündür. Aşağıdakı API-yönümlü əmrlər idarəetmə autentifikasiyasını provayder giriş məlumatlarından ayrı saxlayır və strukturlaşdırılmış çıxışda heç vaxt giriş məlumatını göstərmir:
+Həmçinin ümumi işəsalma vasitəsi — `omniroute run <target>` — mövcuddur; o, heç
+bir konfiqurasiya yazmadan, düzgün mühit dəyişənlərini ötürərək `claude`, `codex`,
+`aider`, `goose`, `opencode`, `qwen` və ya `gemini` proqramını alt proses kimi
+işə salır. Hədəflər və onların alternativ adları kanonik
+`bin/cli/cli-manifest.mjs` manifestindən götürülür
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), `omniroute completion` isə həmin
+manifestdən əldə edilən eyni hədəf sözlərini təklif edir. Hər alət üçün köhnə
+işəsalma vasitələri — `omniroute launch` (Claude Code) və
+`omniroute launch-codex` (Codex) — əlçatan olaraq qalır.
+
+Provayderin ilkin sazlanması eyni lokal/uzaq kontekstdən mümkündür. Aşağıdakı
+API-əsaslı əmrlər idarəetmə autentifikasiyasını provayder giriş məlumatlarından
+ayrı saxlayır və strukturlaşdırılmış çıxışda giriş məlumatlarını heç vaxt çap
+etmir:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,14 +40,27 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Skriptlər üçün `--credential-stdin` və ya `--credential-env` seçiminə üstünlük verin; `--credential` nəzarət edilən lokal istifadə üçün saxlanılıb. `providers remove` qeyri-interaktiv terminalda `--yes` tələb edir və beş əmrin hamısı aktiv kontekstə və ya qlobal `--base-url`/`--api-key` seçimlərinə əməl edir.
+Skriptlər üçün `--credential-stdin` və ya `--credential-env` seçiminə üstünlük
+verin; `--credential` nəzarət edilən lokal istifadə üçün saxlanılıb.
+`providers remove` qeyri-interaktiv terminalda `--yes` tələb edir və beş əmrin
+hamısı aktiv kontekstə və ya qlobal `--base-url`/`--api-key` seçimlərinə riayət
+edir.
 
-Ən zəngin iki inteqrasiyanın birdəfəlik, əl ilə yazılan əsas sazlanması üçün hər alətə dair ətraflı təlimatlara baxın:
+Provayder selektorları qeyri-müəyyən ID prefikslərini, adları və ya provayder
+adlarını rədd edir; bir neçə bağlantı uyğun gəldikdə tam bağlantı ID-sindən
+istifadə edin. Yaratma və redaktə əmrləri yadda saxlanmış bağlantını yenidən
+oxuyur, silmə isə onun artıq oxuna bilmədiyini yoxlayır. İdxal mövcud
+provayder/ad cütünü ötürür. İdxal edilmiş qeydlər CLI-yə təqdim olunan idarəetmə
+son nöqtəsini, konteksti və ya idarəetmə giriş məlumatlarını əvəz edə bilməz.
+
+Ən zəngin iki inteqrasiyanın birdəfəlik, əl ilə yazılan əsas sazlanması üçün
+hər alətə aid ətraflı təlimatlara baxın:
 
 - [Claude Code konfiqurasiyası](./CLAUDE-CODE-CONFIGURATION.md)
 - [Codex CLI konfiqurasiyası](./CODEX-CLI-CONFIGURATION.md)
-- [Uzaq rejim](./REMOTE-MODE.md) — noutbukunuzdan uzaq OmniRoute-u (VPS / Tailnet) idarə edin
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot genişlənməsi; o, bu `setup-*` əmrlərini sizin üçün birbaşa redaktorun daxilindən də işlədə bilər
+- [Uzaq rejim](./REMOTE-MODE.md) — noutbukunuzdan uzaq OmniRoute instansiyasını (VPS / Tailnet) idarə edin
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot genişlənməsi; o, bu
+  `setup-*` əmrlərini sizin üçün redaktor daxilindən də işlədə bilər
 
 ---
 

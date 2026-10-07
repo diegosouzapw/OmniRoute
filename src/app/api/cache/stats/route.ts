@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { clearMemoryCache, getMemoryCacheStats } from "@/lib/semanticCache";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isAuthenticated, isCacheScopedKey } from "@/shared/utils/apiAuth";
+import { CACHE_READ_SCOPE, CACHE_WRITE_SCOPE } from "@/shared/constants/managementScopes";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 export async function GET(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (!(await isAuthenticated(req)) && !(await isCacheScopedKey(req, CACHE_READ_SCOPE))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await isAuthenticated(req))) {
+  if (!(await isAuthenticated(req)) && !(await isCacheScopedKey(req, CACHE_WRITE_SCOPE))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

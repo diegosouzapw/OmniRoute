@@ -226,3 +226,20 @@ export function formatCachePercentage(
   if (!cacheRead || cacheRead <= 0) return 0;
   return Math.min(100, Math.round((cacheRead / tokensIn) * 100));
 }
+
+type TranslateFn = (key: string, values?: Record<string, string>) => string;
+
+/**
+ * Reasoning badge value for the request log detail. The token count is always the
+ * usage-reported one; when usage has none (or 0) but reasoning text was observed
+ * (#6187, Claude `thinking` blocks #13965), the observed CHARACTER count is appended
+ * so "reasoned but not metered" stays distinguishable. Chars never become tokens.
+ */
+export function formatReasoningStat(
+  stats: { reasoning?: number | null; reasoningChars?: number | null },
+  t: TranslateFn
+): string {
+  const value = stats.reasoning != null ? stats.reasoning.toLocaleString() : t("notAvailable");
+  if (stats.reasoning || !stats.reasoningChars || stats.reasoningChars <= 0) return value;
+  return t("reasoningObserved", { value, chars: stats.reasoningChars.toLocaleString() });
+}

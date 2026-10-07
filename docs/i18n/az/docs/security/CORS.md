@@ -102,23 +102,23 @@ bölməsində təyin edilə bilər.
 
 ## Nümunə: OmniRoute qarşısında əks proksi
 
-CORS OmniRoute-un özü tərəfindən tətbiq edilir, buna görə proksi ümumiyyətlə
-`Access-Control-*` başlıqlarını əlavə etməməli və ya yenidən yazmamalıdır (təkrarlanan
-başlıqlar brauzerlərin işini pozur). TLS-i sonlandırın və sorğunu yönləndirin —
-preflight sorğusuna OmniRoute-un cavab verməsinə imkan yaradın:
+CORS qaydaları OmniRoute tərəfindən tətbiq edilir, buna görə proksi, ümumiyyətlə, `Access-Control-*` başlıqlarını əlavə etməməli və ya yenidən yazmamalıdır (təkrarlanan başlıqlar brauzerlərin işini pozur). TLS-i sonlandırın və sorğunu yönləndirin — ilkin sorğuya OmniRoute cavab versin:
 
 ```nginx
 # nginx — OmniRoute-a yönləndirin; burada Access-Control-* əlavə ETMƏYİN
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For başlığını 127.0.0.1 olaraq təyin ETMƏYİN — bu, loopback marşrut qoruyucusunu təsirsiz edir.
+    # Yönləndirmə başlıqlarını saxlayın: eyni hostdakı proksi geridönüş interfeysi üzərindən qoşulur və
+    # məhz bu başlıqlar OmniRoute-a sorğunu göndərənin lokal operator olmadığını bildirir. Bu başlıqların
+    # heç birini əlavə etməyən proksi bütün uzaq istifadəçiləri lokal kimi göstərir. X-Forwarded-For başlığını da heç vaxt 127.0.0.1 olaraq təyin etməyin.
 }
 ```
 
-İcazə verilən brauzer mənbələrini proksidə deyil, OmniRoute-da
-(`CORS_ALLOWED_ORIGINS` və ya Security bölməsində) təyin edin.
+Brauzer üçün icazə verilən mənbələri proksidə deyil, OmniRoute-da (`CORS_ALLOWED_ORIGINS` və ya Security bölməsində) təyin edin.
 
 ## Mənbə faylları
 

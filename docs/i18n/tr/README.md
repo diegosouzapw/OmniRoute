@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Panosu" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Kontrol Paneli" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Ücretsiz AI Ağ Geçidi
+# 🚀 OmniRoute — Ücretsiz Yapay Zeka Ağ Geçidi
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Kodlamayı asla bırakmayın. Her AI aracı → 359 sağlayıcı — 150+ ücretsiz — tek bir uç nokta üzerinden. Claude Code, Codex, Cursor, Cline, Copilot ve Antigravity'yi otomatik yedeklemeyle ÜCRETSİZ Claude / GPT / Gemini'ye bağlayın. RTK + Caveman birleşik sıkıştırması token kullanımında %15–95 (~ortalama %89) tasarruf sağlar — sınırlara asla takılmayın. 359 AI sağlayıcısı · 150+ ücretsiz katman · ayda ~1,62 milyar ücretsiz token · 19 yönlendirme stratejisi · başlangıç maliyeti $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Kodlamayı asla bırakmayın. Her yapay zeka aracı → 358 sağlayıcı — 150'den fazlası ücretsiz — tek bir uç nokta üzerinden. Claude Code, Codex, Cursor, Cline, Copilot ve Antigravity'yi otomatik geri dönüş ile ÜCRETSİZ Claude / GPT / Gemini'ye dönüştürün. RTK + Caveman yığılmış sıkıştırma %15-95 token tasarrufu sağlar (ortalama ~%89) — asla limitlere takılmazsınız. 358 yapay zeka sağlayıcısı · 150'den fazla ücretsiz katman · ayda ~1.62 milyar ücretsiz token · 19 yönlendirme stratejisi · başlamak için 0 $."/>
 
 </div>
 
@@ -218,18 +218,18 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yüklediğiniz anda çalışır — sıfır yapılandırma. Üç adım: 1. Kurun — npm i -g omniroute, sunucu localhost:20128 üzerinde başlar. 2. Aracınızı http://localhost:20128/v1 adresine yönlendirin — OpenAI uyumlu herhangi bir araç (Claude Code, Cursor, Cline). 3. Yanıtlar — API anahtarı, kayıt veya yapılandırma olmadan anında yanıt almak için auto modelini çağırın. Anahtarsız sağlayıcı OpenCode Free, auto kombinasyonuna önceden bağlanmıştır; böylece yeni bir kurulum kutudan çıktığı anda yanıt verir."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yüklediğiniz anda çalışır — sıfır yapılandırma. Üç adım: 1. Kurulum — npm i -g omniroute, sunucu localhost:20128 üzerinde başlar. 2. Aracınızı http://localhost:20128/v1 adresine yönlendirin — herhangi bir OpenAI uyumlu araç (Claude Code, Cursor, Cline). 3. Cevap verir — anında yanıt için `auto` modelini çağırın, API anahtarı, kayıt veya yapılandırma yok. Anahtarsız sağlayıcı OpenCode Free, `auto` kombinasyonuna önceden bağlanmıştır, bu nedenle yeni bir kurulum kutudan çıktığı gibi yanıt verir."/>
 
 ```bash
-# Yeni kurulum, sıfır kimlik bilgisi — `auto` zaten çalışır:
+# Yeni kurulum, sıfır kimlik bilgisi — `auto` zaten çalışıyor:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Belirli bir ücretsiz arka ucu mu tercih ediyorsunuz? Doğrudan `oc/…` (OpenCode Free) çağırın. Ardından `auto` kullanımına geçin ve seçimi OmniRoute'a bırakın.</sub>
+<sub>Belirli bir ücretsiz arka ucu mu tercih ediyorsunuz? `oc/…` (OpenCode Free) adresini doğrudan çağırın. Ardından `auto`'ya geçin ve OmniRoute'un seçmesine izin verin.</sub>
 
-<sub>📦 **Python, Node.js, PHP ve cURL** için kopyalayıp yapıştırabileceğiniz hızlı başlangıç betikleri → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python, Node.js, PHP ve cURL** için kopyala-yapıştır hızlı başlangıç betikleri → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
@@ -239,7 +239,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Vaat — Tek uç nokta ve 359 sağlayıcı. Başka bir sağlıklı hedef kullanılabilir olduğu sürece otomatik yük devretme yönlendirmeyi sürdürür. Altı temel unsur: 359 sağlayıcı arasında dayanıklı yük devretme · uygun iş yüklerinde %95'e varan token tasarrufu · 150'den fazla ücretsiz katman ve düzenli olarak yenilenen/anahtarsız, sonsuza kadar ücretsiz 54 sağlayıcıyla başlangıç maliyeti $0 · tek bir yapılandırmayla 36 CLI/ajan entegrasyonu · /v1 üzerinde OpenAI, Claude, Gemini ve Responses API uyumluluğu · devre kesiciler, TLS gizleme, 110 araçlı MCP, A2A, bellek, koruma mekanizmaları, değerlendirmeler ve takip edilen 5.100'den fazla test dosyasında 39.000'den fazla statik test bildirimi dahil üretim denetimleri."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Vaat — Tek bir uç nokta ve 358 sağlayıcı. Başka sağlıklı bir hedef mevcutken otomatik geri dönüş yönlendirmeyi sürdürür. Altı temel ilke: 358 sağlayıcı arasında esnek geri dönüş · uygun iş yüklerinde %95'e varan token tasarrufu · 150'den fazla ücretsiz katman ve 54 tekrarlayan/anahtarsız sonsuza dek ücretsiz sağlayıcı ile başlamak için 0 $ · tek bir yapılandırma ile 36 CLI/ajan entegrasyonu · /v1 adresinde OpenAI, Claude, Gemini ve Responses API uyumluluğu · devre kesiciler, TLS gizliliği, MCP 110 araçları, A2A, bellek, koruma kalkanları, değerlendirmeler ve 5.100'den fazla takip edilen test dosyasında 39.000'den fazla statik test bildirimi dahil üretim kontrolleri."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Neden OmniRoute — 10 gösterge paneli, çalışmayan API anahtarları ve sürpriz faturalar arasında gidip gelmeye son verin. Günlük on sorun ve çözümü: kullanılmadan süresi dolan kota → aboneliklerden en iyi şekilde yararlanın; kodlama sırasında hız sınırları → 4 katmanlı otomatik yük devretme (Abonelik → API → Ucuz → Ücretsiz); araç çıktılarının token tüketmesi → RTK + Caveman sıkıştırması (%15–95); pahalı API'ler → maliyet odaklı yönlendirme; her aracın kendi kurulumu olması → tek uç nokta, tek gösterge paneli; yapay zekânın engellenmesi → 3 seviyeli proxy + TLS gizleme; çalışmayan anahtarlar → 3 katmanlı dayanıklılık (devre kesiciler, anahtar bekleme süresi, model kilitleme); ekibin tek aboneliği paylaşması → adil kullanım kotalarına sahip anahtar havuzları; istemlerin başkasının bulutundan geçmesi → AES-256-GCM ile şifrelenmiş anahtarlarla yerel öncelikli çalışma; harcama görünürlüğünün olmaması → canlı analizler (kullanım, kota, tasarruf, p95 gecikme)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Neden OmniRoute — 10 panoyu, ölü API anahtarlarını ve sürpriz faturaları dengelemeyi bırakın. On günlük sorun ve çözümleri: kullanılmayan kota sona eriyor → abonelikleri maksimize edin; kodlama sırasında hız limitleri → 4 katmanlı otomatik geri dönüş (Abonelik → API → Ucuz → Ücretsiz); araç çıktıları token yakıyor → RTK + Caveman sıkıştırma (%15–95); pahalı API'ler → maliyet optimize edilmiş yönlendirme; her aracın kendi kurulumu → tek uç nokta, tek pano; yapay zeka engellendi → 3 seviyeli proxy + TLS gizliliği; ölü anahtarlar → 3 katmanlı esneklik (devre kesiciler, anahtar soğutma, model kilitleme); tek aboneliği paylaşan ekip → adil paylaşımlı kotalara sahip anahtar havuzları; birinin bulutu üzerinden istemler → AES-256-GCM şifreli anahtarlarla yerel öncelikli; harcama görünürlüğü yok → canlı analizler (kullanım, kota, tasarruf, p95 gecikme)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute istek akışı: IDE'niz veya CLI'ınız (Claude Code, Cursor, Cline…) tek bir yerel uç noktayı (http://localhost:20128/v1) çağırır; OmniRoute Smart Router (RTK + Caveman sıkıştırması, 19 yönlendirme stratejisi, devre kesiciler, TLS gizleme, MCP, A2A, koruma mekanizmaları), uygun ve sağlıklı bir hedef kaldığı sürece 4 sağlayıcı katmanı arasında yük devredebilir — Katman 1 Abonelik, Katman 2 API Anahtarı, Katman 3 Ucuz ve Katman 4 Ücretsiz."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute istek akışı: IDE'niz veya CLI'nız (Claude Code, Cursor, Cline…) tek bir yerel uç noktayı (http://localhost:20128/v1) çağırır; OmniRoute Akıllı Yönlendirici (RTK + Caveman sıkıştırma, 19 yönlendirme stratejisi, devre kesiciler, TLS gizliliği, MCP, A2A, koruma kalkanları), uygun sağlıklı bir hedef kaldığı sürece 4 sağlayıcı katmanı arasında geri dönüş yapabilir — Katman 1 Abonelik, Katman 2 API Anahtarı, Katman 3 Ucuz ve Katman 4 Ücretsiz."/>
 
 </div>
 
@@ -345,29 +345,31 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="All 19 combo routing strategies animated — one tile per strategy: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. See the table above for what each one does."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="19 kombo yönlendirme stratejisinin tamamı animasyonlu olarak gösterilir — her strateji için bir kutucuk: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Her birinin ne yaptığını görmek için yukarıdaki tabloya bakın."/>
 
-> Bir **kombo**, OmniRoute'un **otomatik olarak** yönlendirme yaptığı model zinciridir. Kota bittiğinde, sağlayıcı çöktüğünde veya maliyetler fırladığında — kombo sessizce bir sonraki modele geçer. **OmniRoute'u kesintisiz kılan şey budur.** 🛡️
+> **Kombo**, OmniRoute'un **otomatik olarak** yönlendirme yaptığı bir model zinciridir. Kota biterse, bir sağlayıcı başarısız olursa veya maliyetler yükselirse kombo, uygun ve sağlıklı bir sonraki modele geçebilir. 🛡️
 
-### ⚡ Sıfır yapılandırma — sadece `auto` kullanın
+### ⚡ Sıfır yapılandırma — yalnızca `auto` kullanın
 
-Oluşturulacak bir kombo yok. Modelinizi `auto` (veya bir varyantı) olarak ayarlayın; OmniRoute bağlı sağlayıcılarınızdan canlı olarak puanlanan sanal bir kombo oluşturur:
+Kombo oluşturmanız gerekmez. Modelinizi `auto` (veya bir varyantı) olarak ayarlayın; OmniRoute, bağlı sağlayıcılarınızdan canlı olarak puanlanan sanal bir kombo oluşturur:
 
 <table>
-  <tr><th align="left">Model ID</th><th align="left">Neyi optimize eder</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Dengeli varsayılan (LKGP — son başarılı sağlayıcınıza sadık kalır)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑‍💻 Kod üretimi için kalite öncelikli ağırlıklar</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Öncelikli olarak en düşük gecikme süresi</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Öncelikli olarak token başına en ucuz model</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Öncelikli olarak en fazla kota / hız sınırı payı olan model</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Kalite öncelikli + daha iyi modeller keşfetmek için %10 keşif payı</td></tr>
+  <tr><th align="left">Model Kimliği</th><th align="left">Neyi optimize eder</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Dengeli varsayılan (LKGP — son iyi sağlayıcınıza bağlı kalır)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kod üretimi için kalite öncelikli ağırlıklar</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Önce en düşük gecikme</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Önce token başına en ucuz seçenek</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Önce en fazla kota / hız sınırı kapasitesi</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Daha iyi modeller keşfetmek için kalite önceliği + %10 keşif</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Bilinen son iyi sağlayıcıya açıkça bağlı kalma</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Bir model paneline paralel dağıtım (sağlayıcı başına bir tane, varsayılan olarak 5), tek bir yanıt döndürür; hata enjeksiyonu değil, paneldeki model başına bir üst akış çağrısıdır</td></tr>
 </table>
 
 ##
 
-### 🔀 Veya kendinizinkini oluşturun — 19 yönlendirme stratejisi
+### 🔀 Veya kendiniz oluşturun — 19 yönlendirme stratejisi
 
-Tüm **19** strateji — kombo adımı başına karıştırın ve eşleştirin:
+**19** stratejinin tamamı — her kombo adımında karıştırıp eşleştirin:
 
 <table>
   <tr>
@@ -378,7 +380,7 @@ Tüm **19** strateji — kombo adımı başına karıştırın ve eşleştirin:
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>İlk hedeften sıralı liste — sonrakine geçmeden önce her birini tüketir 🥇</td>
+    <td>İlk hedef öncelikli sıralı liste — bir sonrakine geçmeden önce her birini tüketir 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
@@ -393,12 +395,12 @@ Tüm **19** strateji — kombo adımı başına karıştırın ve eşleştirin:
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Hedefler arasında sırayla döner</td>
+    <td>Hedefler arasında sırayla döngü oluşturur</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>İki seçenekli güç (power-of-two-choices) rastgele yük dengeleme</td>
+    <td>İki seçenekli rastgele yük dengeleme</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -408,91 +410,91 @@ Tüm **19** strateji — kombo adımı başına karıştırın ve eşleştirin:
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Tekdüze rastgele seçim (tekilleştirilmiş)</td>
+    <td>Tekdüze rastgele seçim (yinelenenler kaldırılır)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Tekrarları tekilleştirmeden rastgele seçim 🎲</td>
+    <td>Tekrarları kaldırmadan rastgele seçim 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Canlı katalog fiyatlandırması üzerinden istek başına maliyeti ($) en aza indirir 💸</td>
+    <td>Canlı katalog fiyatlandırmasına göre istek başına $ maliyetini en aza indirir 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>En çok kalan kotası olan hedefi seçer</td>
+    <td>En fazla kalan kotaya sahip hedefi seçer</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Kota penceresi en erken sıfırlanacak hedefi tercih eder</td>
+    <td>Kota penceresi en kısa sürede sıfırlanacak hedefi tercih eder</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Kota sıfırlama süresine göre sıralar — kısa pencereler önce 📊</td>
+    <td>Kota sıfırlama zamanına göre sıralar — önce kısa pencereler 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Uzun konuşmalarda bağlamı hedefler arasında devreder 🧠</td>
+    <td>Uzun konuşmalar için bağlamı hedefler arasında aktarır 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>Mevcut bağlam boyutu için en uygun modeli seçer</td>
+    <td>Mevcut bağlam boyutuna en uygun hedefi seçer</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Her yeniden kullanılabilir istem önekini aynı hesaba sabitler — istem önbelleği (prompt-cache) isabetlerini maksimize eder 🎯</td>
+    <td>Yeniden kullanılabilir her istem ön ekini aynı hesaba sabitler — istem önbelleği isabetlerini en üst düzeye çıkarır 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Son Bilinen İyi Yol (Last-Known-Good Path) — son başarılı hedefe bağlı kalır</td>
+    <td>Bilinen Son İyi Yol — son başarılı sağlayıcıya sabitlenir, ardından kurallara geri döner</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Tüm bağlantılar arasında 14 faktörlü canlı puanlama 🤖</td>
+    <td>Her bağlantı genelinde 16 faktörlü canlı puanlama 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Bir model paneline paralel dağıtır + bir hakem model tek bir nihai yanıt sentezler 🧬</td>
+    <td>Bir model paneline dağıtım yapar + bir değerlendirici tek bir yanıt sentezler 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Adımları birbirine bağlar — her hedefin çıktısı sonrakini besler 🔗</td>
+    <td>Adımları zincirler — her hedefin çıktısı bir sonrakini besler 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Combo motoru her adayı **14 faktör** üzerinden puanlar (sağlık, kota, maliyet, gecikme, başarı oranı, tazelik…) — bkz. [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>Auto-Combo motoru her adayı **16 faktöre** (sağlık, kota, maliyet, gecikme, göreve uygunluk, kalite, oturum kullanılabilirliği…) göre puanlar — bkz. [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
 
-### 🧱 Dayanıklılık yerleşiktir (3 bağımsız katman)
+### 🧱 Dayanıklılık yerleşik olarak sunulur (3 bağımsız katman)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute resilience — 3 independent self-healing layers, the right layer for the right failure. Layer 1 provider circuit breaker (whole provider): trips only on 408/5xx, thresholds OAuth 10× / API-key 15× / local 2×, resets 60s/30s/15s into a HALF-OPEN probe, lazy recovery; while OPEN the combo reroutes to the next provider. Layer 2 connection cooldown (one key/account): base 5s OAuth / 3s API-key, exponential ×2 backoff with anti-thundering-herd guard, 429 honors Retry-After, success clears all error state; one cooling key is skipped while sibling keys keep serving. Layer 3 model lockout (one model): per-model 429, local 404 or mode denials lock just that model — never the whole connection. Terminal states (banned, expired, credits exhausted) are for the operator, not cooldowns."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute dayanıklılığı — 3 bağımsız kendi kendini iyileştirme katmanı; doğru arıza için doğru katman. Katman 1 sağlayıcı devre kesici (sağlayıcının tamamı): yalnızca 408/5xx durumlarında devreye girer; eşikler OAuth 8× / API anahtarı 12× / yerel 2×; 60 sn/30 sn/15 sn sonra bir HALF-OPEN yoklamasına sıfırlanır, gerektiğinde kurtarma uygulanır; OPEN durumundayken kombinasyon, trafiği bir sonraki sağlayıcıya yönlendirir. Katman 2 bağlantı bekleme süresi (tek bir anahtar/hesap): temel süre OAuth için 5 sn / API anahtarı için 3 sn; yoğun istek yığılmasını önleyen korumayla üstel ×2 geri çekilme, 429 durumunda Retry-After değerine uyulur, başarı tüm hata durumlarını temizler; bekleme süresindeki bir anahtar atlanırken diğer anahtarlar hizmet vermeyi sürdürür. Katman 3 model kilitleme (tek bir model): model başına 429, yerel 404 veya mod retleri yalnızca ilgili modeli kilitler — hiçbir zaman bağlantının tamamını değil. Sonlandırıcı durumlar (yasaklanmış, süresi dolmuş, kredileri tükenmiş) bekleme süreleriyle değil, operatör tarafından ele alınmalıdır."/>
 
-<sub>📖 [Auto-Combo Motoru](docs/routing/AUTO-COMBO.md) · [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Otomatik Kombinasyon Motoru](docs/routing/AUTO-COMBO.md) · [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🏆 OmniRoute'u Farklı Kılan Nedir?
+## 🏆 OmniRoute'u Farklı Kılan Nedir
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute'u farklı kılan özellikler — 13 yetenek kapsamında 9router, OpenRouter, CLIProxyAPI ve LiteLLM ile belirli bir tarihteki özellik karşılaştırması. OmniRoute: 359 sağlayıcı, yerleşik 150'den fazla ücretsiz katman, 19 yönlendirme stratejisi, 12 motorlu token sıkıştırma, 110 araç içeren yerleşik MCP sunucusu, A2A ajan protokolü, kalıcı bellek, koruma önlemleri, bulut ajanları, gizli TLS parmak izi, Desktop/Termux/PWA ve 42 yerelleştirilmiş kullanıcı arayüzü dili. OmniRoute, MIT lisanslıdır ve kendi sunucunuzda barındırılabilir. Rakiplerin yetenekleri ve sayıları değişebilir; bağlantıdaki metodolojiye bakın."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute'u farklı kılan nedir — 9router, OpenRouter, CLIProxyAPI ve LiteLLM'e karşı 13 yetenek üzerinden eski tarihli bir özellik anlık görüntüsü. OmniRoute: 358 sağlayıcı, 150'den fazla yerleşik ücretsiz katman, 19 yönlendirme stratejisi, 12 motorlu token sıkıştırma, 110 araçlı yerleşik MCP sunucusu, A2A aracı protokolü, kalıcı bellek, güvenlik önlemleri, bulut aracıları, TLS parmak izi gizliliği, Masaüstü/Termux/PWA ve 42 uluslararası kullanıcı arayüzü yerel ayarı. OmniRoute MIT lisanslıdır ve kendi kendine barındırılabilir. Rakip yetenekleri ve sayıları değişebilir; bağlantılı metodolojiye bakın."/>
 
-<sub>📊 9router, OpenRouter, CLIProxyAPI ve LiteLLM ile karşılaştırmalı tam metodoloji ve özellik bazında ayrıntılar → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Tam metodoloji ve özellik bazında detay vs 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -560,28 +562,29 @@ Radar isteğe bağlıdır ve yalnızca GET kullanır. OmniRoute istemcisi isteml
 
 </div>
 
-> **v3.8.20 → v3.8.50** sürümlerinden öne çıkan yenilikler. Tam geçmiş için: [`CHANGELOG.md`](CHANGELOG.md).
+> **v3.8.20 → v3.8.50** arasındaki son öne çıkanlar. Tam geçmiş [`CHANGELOG.md`](CHANGELOG.md) dosyasında.
 
-- **🎛️ OmniConductor** — Ajan filonuza gelen A2A yetkilendirmesi, Agent Card üzerinde Conductor yetenekleri ve Faro bas-konuş sesli sohbet içeren pano paneli. → [A2A Sunucusu](docs/frameworks/A2A-SERVER.md)
-- **🛂 Uyarlanabilir kabul ve aşırı yük koruması** — Ağır sohbet istekleri 503 hatası vermek yerine kuyruğa alınır; bağlantı başına atomik RPM kayan kiralamaları uygulanır. → [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Standart `/v1/models` sıralaması** — Sağlayıcı başına tek bir bitişik sağlayıcı gruplu blok (kombolar en başa sabitlenir), tüm katalog kaynaklarında kararlıdır. → [API Referansı](docs/reference/API_REFERENCE.md)
-- **🗜️ Sıkıştırma güçlendirmesi** — Varsayılan olarak açık şişirme koruması (inflation guard), DE / FR / JA + Çince (wényán) için Caveman paketleri, Gradle ve .NET için RTK filtreleri. → [Sıkıştırma](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Dürüst sabit maliyet** — Abonelik / kodlama planı sağlayıcıları maliyet analizlerinde **$0** olarak okunur; bütçe, kota ve yönlendirme tahmin yapmaya devam eder. → [API Referansı](docs/reference/API_REFERENCE.md)
-- **⚖️ Kota Paylaşımlı (Quota-Share) yönlendirme** — Paylaşılan bir hesabın kotasını havuzdaki anahtarlar arasında adil bir şekilde böler; boşta kalan dilimlerin ödünç verilmesini sağlar. → [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Tek komutla CLI/ajan kurulumu** — `setup-*` 12'den fazla kodlama aracını yapılandırır; `omniroute run` sıfır yapılandırma yazarak 7 CLI'yı (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) başlatır; `omniroute configure` bağlam başına favorilere sahip etkileşimli bir sağlayıcı+model seçicisidir. → [CLI Entegrasyonları](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Uzak mod** — Kapsamlı erişim tokenlarıyla (`connect` / `contexts` / `tokens`) uzak bir OmniRoute'u yönetin + VPS kurulumları için bir `antigravity` OAuth yardımcısı. → [Uzak Mod](docs/guides/REMOTE-MODE.md)
-- **🧭 Daha akıllı otomatik yönlendirme** — `auto/<kategori>:<katman>` komboları, **Fusion** (model paneli + hakem), görev duyarlı yönlendirme, istek başına model / mod / USD bütçesi geçersiz kılmaları. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Eklenebilir sıkıştırma** — 12 birleştirilebilir motor + Sıkıştırma Stüdyoları: LLMLingua-2, iki katmanlı Ultra, omniglyph, adım başına doğruluk kapısı, GCF v3.2, sürükle-bırak sıralama düzenleyicisi. → [Sıkıştırma](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Şeffaf MITM şifre çözme (TPROXY)** — SNI başına CA + güven deposu yükleyicisiyle proxy ortam değişkenlerini yoksayan CLI'ları yakalayın. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Her yerde maliyet telemetrisi** — Her uç noktada `X-OmniRoute-*` maliyet/kullanım başlıkları, önbellek İSABETİ (cache-HIT) tasarruf başlığı, anahtar başına USD harcama kotaları. → [API Referansı](docs/reference/API_REFERENCE.md)
-- **🧠 Kontrol ettiğiniz bellek** — Varsayılan olarak kapalı, isteğe bağlı int8 vektör niceleme + tipli sönümleme, istek başına `x-omniroute-no-memory`. → [Bellek](docs/frameworks/MEMORY.md)
-- **🛡️ Güvenlik** — Her LLM rotasında istem enjeksiyonu koruması (red-team paketi), isteğe bağlı kimlik bilgisi maskeleme koruması (her iki yönde de sızan API anahtarlarını/gizli bilgileri sansürler), ücretsiz DuckDuckGo son çare web araması ve pano için isteğe bağlı OIDC giriş kapısı (şifreyle giriş her zaman kullanılabilir kalır). → [Güvenlik Önlemleri (Guardrails)](docs/security/GUARDRAILS.md)
-- **🖼️ Yeni uç noktalar** — `/v1/ocr` (Mistral OCR) ve `/v1/audio/translations` (Whisper tarzı) medya yüzeyini tamamlar. → [API Referansı](docs/reference/API_REFERENCE.md)
-- **🎨 Görsel / video / ses üretimi** — Medya için tek bir API: xAI Grok Imagine ve Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind ve ElevenLabs gibi konuşma sağlayıcıları. → [API Referansı](docs/reference/API_REFERENCE.md)
-- **🌍 Dağıtım ve operasyonlar** — Ters proxy `basePath`, tarayıcı dili otomatik algılama, anahtar başına cihaz takibi, root gerektirmeyen MITM güveni, zh-TW yerelleştirmesi. → [Ortam Değişkenleri](docs/reference/ENVIRONMENT.md)
-- **🤝 Daha fazla sağlayıcı ve ajan** — Cursor Cloud Agent, tarayıcı + OAuth girişiyle Grok Build (xAI), Ollama birinci sınıf kartı, Claude Opus 5 ve Sonnet 5, Kimi resmi ortaklığı (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… ve yenilenen **350 sağlayıcılı katalog**. → [Sağlayıcılar](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Yönlendirme şeffaflığı** — Her yanıt, isteğe hizmet veren stratejiyi/sağlayıcıyı/gecikmeyi belirten bir `X-OmniRoute-Decision` başlığı taşır, yeni bir `cache-optimized` kombo stratejisi + Auto-Combo `cacheAffinity` faktörü yinelenen istekleri önbelleğe alınmış öneki tutan bağlantıya geri yönlendirir ve salt okunur bir `/v1/auto-combo/{channel}/candidates` uç noktası bir `auto/*` kanalının canlı aday havuzunu gösterir. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Yerel performans ve altyapı** — Tek tıkla yerel Redis, Cloudflare Workers / Deno Deploy röle dağıtıcıları, denetlenen yerleşik servisler olarak Bifrost ve Mux. → [Gömülü Servisler](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🎛️ OmniConductor** — aracı filonuza gelen A2A yetkilendirmesi, Agent Card üzerinde Conductor becerileri ve Faro bas-konuş sesli sohbet içeren bir pano paneli. → [A2A Sunucusu](docs/frameworks/A2A-SERVER.md)
+- **🛂 Uyarlanabilir kabul ve aşırı yük koruması** — yoğun sohbet istekleri 503 hatası vermek yerine sıraya alınır; bağlantı başına atomik RPM kayan kiralamaları kullanılır. → [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Standart `/v1/models` sıralaması** — sağlayıcı başına, sağlayıcıya göre gruplandırılmış tek ve kesintisiz bir blok (kombinasyonlar ilk sıraya sabitlenir); tüm katalog kaynaklarında kararlıdır. → [API Referansı](docs/reference/API_REFERENCE.md)
+- **🗜️ Sıkıştırma güçlendirmeleri** — varsayılan olarak etkin genişletme koruması, DE / FR / JA + Çince (wényán) için Caveman paketleri, Gradle ve .NET için RTK filtreleri. → [Sıkıştırma](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Gerçekçi sabit ücret maliyeti** — abonelik / kodlama planı sağlayıcıları, maliyet analizlerinde **$0** olarak gösterilir; bütçe, kota ve yönlendirme tahminleri sürdürülür. → [API Referansı](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share yönlendirmesi** — paylaşılan bir hesabın kotasını havuzlanmış anahtarlar arasında adil biçimde bölüştürür ve iş koruyucu yapısı sayesinde boşta kalan payları kullandırır. → [Dayanıklılık Kılavuzu](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Tek komutla CLI/aracı kurulumu** — kayıtlı 13 `setup-*` komutu; `omniroute run`, 7 CLI'ı (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) başlatır; `omniroute configure`, etkileşimli sağlayıcı+model seçici ve bağlam başına favorilerle 10 hedefi destekler. → [CLI Entegrasyonları](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Uzak mod** — kapsamlı belirteçlerle (`connect` / `contexts` / `tokens`) uzaktaki bir OmniRoute'u yönetin; VPS kurulumları için bir `antigravity` OAuth yardımcısı da sunulur. → [Uzak Mod](docs/guides/REMOTE-MODE.md)
+- **🧭 Daha akıllı otomatik yönlendirme** — `auto/<category>:<tier>` kombinasyonları, **Fusion** (model paneli + hakem), göreve duyarlı yönlendirme, istek başına model / mod / USD bütçesi geçersiz kılmaları. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Takılabilir sıkıştırma** — birleştirilebilir 12 motor + Compression Studios: LLMLingua-2, iki katmanlı Ultra, omniglyph, adım başına doğruluk geçidi, GCF v3.2, sürükleyerek yeniden sıralama düzenleyicisi. → [Sıkıştırma](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Şeffaf MITM şifre çözme (TPROXY)** — proxy ortam değişkenlerini yok sayan CLI'ları, SNI başına CA + güven deposu yükleyicisiyle yakalayın. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Her yerde maliyet telemetrisi** — her uç noktada `X-OmniRoute-*` maliyet/kullanım başlıkları, önbellek HIT tasarruf başlığı, anahtar başına USD harcama kotaları. → [API Referansı](docs/reference/API_REFERENCE.md)
+- **🧠 Kontrolünüzdeki bellek** — varsayılan olarak kapalıdır; isteğe bağlı int8 vektör niceleme + tür tabanlı azalma ve istek başına `x-omniroute-no-memory`. → [Bellek](docs/frameworks/MEMORY.md)
+- **🛡️ Güvenlik** — her LLM rotasında istem enjeksiyonu koruması (red-team paketi), isteğe bağlı kimlik bilgisi maskeleme koruması (sızdırılan API anahtarlarını/gizli bilgileri her iki yönde de sansürler), son çare olarak ücretsiz DuckDuckGo web araması ve pano için isteğe bağlı OIDC oturum açma geçidi (parolayla oturum açma her zaman kullanılabilir kalır). → [Korumalar](docs/security/GUARDRAILS.md)
+- **🖼️ Yeni uç noktalar** — `/v1/ocr` (Mistral OCR) ve `/v1/audio/translations` (Whisper tarzı) medya kapsamını tamamlıyor. → [API Referansı](docs/reference/API_REFERENCE.md)
+- **🎨 Görsel / video / ses üretimi** — medya için tek API: xAI Grok Imagine ve Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind ve ElevenLabs gibi konuşma sağlayıcıları. → [API Referansı](docs/reference/API_REFERENCE.md)
+- **🌍 Dağıtım ve operasyonlar** — ters proxy `basePath`, tarayıcı dilini otomatik algılama, anahtar başına cihaz takibi, root gerektirmeyen MITM güveni, zh-TW yerelleştirmesi. → [Ortam](docs/reference/ENVIRONMENT.md)
+- **🤝 Daha fazla sağlayıcı ve aracı** — bulut aracıları (Codex Cloud, Cursor, Devin, Jules), tarayıcı + OAuth oturum açma özellikli Grok Build (xAI), birinci sınıf Ollama kartı, Claude Opus 5 ve Sonnet 5, Kimi resmî ortaklığı (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… ve yenilenmiş **352 sağlayıcılı katalog**. → [Sağlayıcılar](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Yönlendirme şeffaflığı** — her yanıt, hizmeti sunan stratejiyi/sağlayıcıyı/gecikmeyi belirten bir `X-OmniRoute-Decision` başlığı taşır; yeni `cache-optimized` kombinasyon stratejisi + Auto-Combo `cacheAffinity` faktörü, yinelenen istekleri önbelleğe alınmış öneki barındıran bağlantıya geri yönlendirir ve salt okunur `/v1/auto-combo/{channel}/candidates` uç noktası, bir `auto/*` kanalının canlı aday havuzunu sunar. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Yerel performans ve altyapı** — tek tıklamayla yerel Redis, Cloudflare Workers / Deno Deploy aktarıcı dağıtıcıları, denetimli gömülü hizmetler olarak Bifrost ve Mux. → [Gömülü Hizmetler](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Pakete dâhil diğer özellikler** — eklenti çerçevesi + pazar yeri, Omni/Agent/GitHub beceri çerçeveleri, Obsidian kasa entegrasyonu (22 MCP aracı), OpenAI uyumlu Batch ve Files API'leri, anlamsal yanıt önbelleği, liderlik tablolarıyla oyunlaştırma, ACP aracı keşfi (yerleşik 15 aracı), BigQuery'ye zamanlanmış günlük dışa aktarımı, `auto/chaos` paralel çok modelli dağıtım, Telegram bot köprüsü, uygulama içi sürüm yöneticisi ve LMArena-ELO ücretsiz sağlayıcı sıralamaları. → [Belgeler](docs/README.md)
 
 <br/>
 
@@ -1256,20 +1259,20 @@ Doğrulama metrikleri: 1002 takip edilen video · 7.069.190 bilinen görüntüle
   <tr><th align="left">Katman</th><th align="left">Teknoloji</th></tr>
   <tr><td nowrap><b>Çalışma Zamanı</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Dil</b></td><td>TypeScript 6.0 — <code>src/</code> ve <code>open-sse/</code> genelinde <b>%100 TypeScript</b> (v2.0'dan beri çekirdekte sıfır <code>any</code>)</td></tr>
-  <tr><td nowrap><b>Çerçeve</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Veritabanı</b></td><td>better-sqlite3 (SQLite, WAL günlükleme) + LowDB (JSON eski) — 122 alan modülü, 182 geçiş</td></tr>
-  <tr><td nowrap><b>Bellek</b></td><td>SQLite FTS5 tam metin + int8-nicemlenmiş vektör gömüleri, tipli bozunma</td></tr>
-  <tr><td nowrap><b>Şemalar</b></td><td>Zod 4 — MCP araç G/Ç doğrulama + API sözleşmeleri</td></tr>
+  <tr><td nowrap><b>Çatı</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Veritabanı</b></td><td>better-sqlite3 (SQLite, WAL günlükleme) + LowDB (eski JSON) — 137 etki alanı modülü, 193 geçiş</td></tr>
+  <tr><td nowrap><b>Bellek</b></td><td>SQLite FTS5 tam metin + int8 nicemlenmiş vektör gömmeleri, türü belirlenmiş azalma</td></tr>
+  <tr><td nowrap><b>Şemalar</b></td><td>Zod 4 — MCP aracı G/Ç doğrulaması + API sözleşmeleri</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>Akış</b></td><td>Sunucu Tarafından Gönderilen Olaylar (SSE) + WebSocket köprüsü (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Sıkıştırma</b></td><td>12 motorlu boru hattı — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Kimlik Doğrulama ve Güvenlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API Anahtarları + MCP kapsamlı kimlik doğrulama · Beklemede AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>Akış</b></td><td>Sunucu Gönderimli Olaylar (SSE) + WebSocket köprüsü (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Sıkıştırma</b></td><td>12 motorlu işlem hattı — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Kimlik doğrulama ve güvenlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API Anahtarları + MCP kapsamlı kimlik doğrulama · depolama sırasında AES-256-GCM · DOMPurify</td></tr>
   <tr><td nowrap><b>Gizlilik</b></td><td>wreq-js — JA3 / JA4 TLS parmak izi taklidi, 3 seviyeli proxy</td></tr>
-  <tr><td nowrap><b>Esneklik</b></td><td>Devre kesici, üstel geri çekilme, anti-thundering-herd, otomatik-kombo kendi kendini iyileştirme</td></tr>
+  <tr><td nowrap><b>Dayanıklılık</b></td><td>Devre kesici, üstel geri çekilme, ani yüklenme önleme, otomatik kombinasyonlu kendi kendini iyileştirme</td></tr>
   <tr><td nowrap><b>Günlükleme</b></td><td>pino — istek bağlamıyla yapılandırılmış JSON günlükleri</td></tr>
-  <tr><td nowrap><b>Test</b></td><td>Node.js test çalıştırıcısı + Vitest — 5.100'den fazla takip edilen test dosyasında (birim, entegrasyon, E2E, güvenlik, ekosistem) <b>39.000'den fazla statik test bildirimi</b></td></tr>
+  <tr><td nowrap><b>Test</b></td><td>Node.js test çalıştırıcısı + Vitest — takip edilen 5.100'den fazla test dosyasında <b>39.000'den fazla statik test bildirimi</b> (birim, entegrasyon, E2E, güvenlik, ekosistem)</td></tr>
   <tr><td nowrap><b>Platformlar</b></td><td>Masaüstü (Electron) · Android (Termux) · PWA (herhangi bir tarayıcı)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — otomatik npm yayınlama + sürümde Docker Hub</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — sürüm yayımlandığında otomatik npm yayınlama + Docker Hub</td></tr>
   <tr><td nowrap><b>Bağlantılar</b></td><td><a href="https://omniroute.online">Web Sitesi</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

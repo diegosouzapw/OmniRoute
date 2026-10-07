@@ -309,30 +309,30 @@ Ipò RTK gba ìmísí láti ọ̀dọ̀ **[RTK - Rust Token Killer](https://gith
 
 ---
 
-## Àwọn Ètò Ìfúnpọ̀ Tí Ó Ti Gbajúmọ̀
+## Àwọn Ètò Fúnmorawon Tó Ti Gòkè
 
-Yàtọ̀ sí àwọn ipò ìfúnpọ̀ ìpele 7, OmniRoute ní àwọn ètò ìfúnpọ̀ tí ó ti gbajúmọ̀ púpọ̀
-tí ó ń ṣiṣẹ́ lára-ẹni nípa lílo àyíká.
+Ní àfikún sí àwọn módù boṣewa 7 náà, OmniRoute ní ọ̀pọ̀ àwọn ètò fúnmorawon tó ti gòkè
+tí ń ṣiṣẹ́ láìfọwọ́sí ní ìbámu pẹ̀lú àyíká.
 
-### Ìfúnpọ̀ Tí Ó Mọ Cache
+### Fúnmorawon Tó Mọ Ibi Ìpamọ́
 
-Àwọn olùpèsè kan (bíi Anthropic pẹ̀lú ìpamọ́ra àwọn ìbéèrè) ń ṣe àtìlẹ́yìn **ìpamọ́ra àwọn ìbéèrè**,
-èyí tí ó jẹ́ kí wọ́n pamọ́ra àwọn apá kan nínú ìbéèrè láti dín owó àti ìdádúró kù. Nígbà tí
-ìpamọ́ra bá wà ní àwọn, ìfúnpọ̀ líle lè **ṣe ìpalára** ìṣiṣẹ́ nítorí pé ó ń yí àwọn àmì-ọ̀rọ̀ tí a pamọ́ra padà,
-tí ó sì ń sọ ìpamọ́ra di aláìwúlò.
+Àwọn olùpèsè kan (bí Anthropic pẹ̀lú ìpamọ́ prompt) ṣe àtìlẹ́yìn fún **ìpamọ́ prompt**,
+èyí tó ń jẹ́ kí wọ́n fi àwọn apá prompt pamọ́ láti dín ìnáwó àti àkókò ìdádúró kù. Nígbà
+tí ìpamọ́ bá ṣiṣẹ́, fúnmorawon líle lè **ba** iṣẹ́ jẹ́ ní ti gidi
+nítorí pé ó ń yí àwọn token tí a fi pamọ́ padà, tó sì ń sọ ibi ìpamọ́ náà di aláìwúlò.
 
-Àkọsílẹ̀ `cachingAware.ts` yanjú èyí nípa **mímọ àyíká ìpamọ́ra** àti
-**ṣíṣe àtúnṣe ètò ìfúnpọ̀** ní ìbámu pẹ̀lú rẹ̀.
+Módù `cachingAware.ts` ń yanjú èyí nípa **ṣíṣàwárí àyíká ìpamọ́** àti
+**ṣíṣe àtúnṣe sí ọgbọ́n fúnmorawon** ní ìbámu pẹ̀lú rẹ̀.
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
-1. **Mọ àyíká ìpamọ́ra** — Ṣàyẹ̀wò ara ìbéèrè fún àwọn àmì `cache_control`
-2. **Ṣe ìdámọ̀ àwọn olùpèsè ìpamọ́ra** — Ṣàyẹ̀wò bóyá olùpèsè tí a fojú sí ń ṣe àtìlẹ́yìn ìpamọ́ra
-3. **Ṣe àtúnṣe ètò** — Dín `aggressive`/`ultra` kù sí `standard` fún àwọn olùpèsè ìpamọ́ra
-4. **Fò ìbéèrè ètò kọjá** — Àwọn ìbéèrè ètò sábà máa ń jẹ́ pamọ́ra, nítorí náà má ṣe fún wọn pọ̀
-5. **Lo àwọn ìyípadà tí ó dájú** — Kìkì lo àwọn ìyípadà tí ó ń mú èsì tí ó bámu jáde
+1. **Ṣàwárí àyíká ìpamọ́** — Ṣàyẹ̀wò ara ìbéèrè fún àwọn àmì `cache_control`
+2. **Dá àwọn olùpèsè ìpamọ́ mọ̀** — Ṣàyẹ̀wò bóyá olùpèsè àfojúsùn ṣe àtìlẹ́yìn fún ìpamọ́
+3. **Ṣàtúnṣe ọgbọ́n** — Sọ `aggressive`/`ultra` kalẹ̀ sí `standard` fún àwọn olùpèsè ìpamọ́
+4. **Fo prompt ètò kọjá** — A sábà máa ń fi àwọn prompt ètò pamọ́, nítorí náà má ṣe fún wọn pọ̀
+5. **Lo àwọn ìyípadà tó máa ń fúnni ní àbájáde kan náà** — Lo àwọn ìyípadà tó ń ṣe àbájáde tó dúró ṣinṣin nìkan
 
-#### Àpẹẹrẹ koodu
+#### Àpẹẹrẹ kóòdù
 
 ```ts
 import {
@@ -343,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Àmì ìpamọ́ra
+  cache_control: { type: "ephemeral" }, // ← Àmì ibi ìpamọ́
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -353,25 +353,25 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Nígbà wo ni a ó lò ó
+#### Ìgbà tí o yẹ kí o lò ó
 
-Ìfúnpọ̀ tí ó mọ cache **ń ṣiṣẹ́ nígbà gbogbo** — kò sí ìtòlẹ́sẹẹsẹ tí a nílò. Ó kìkì ń bẹ̀rẹ̀
-nígbà tí:
+Fúnmorawon tó mọ ibi ìpamọ́ **máa ń ṣiṣẹ́ ní gbogbo ìgbà** — kò nílò àtòpọ̀ kankan. Ó máa ń bẹ̀rẹ̀ iṣẹ́
+nìkan nígbà tí:
 
 - Ìbéèrè náà ní àwọn àmì `cache_control`
-- Olùpèsè tí a fojú sí ń ṣe àtìlẹ́yìn ìpamọ́ra ìbéèrè (Anthropic, OpenAI, bbl)
+- Olùpèsè àfojúsùn ṣe àtìlẹ́yìn fún ìpamọ́ prompt (Anthropic, OpenAI, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ.)
 
-### Ìgbàgbó Àgbékalẹ̀
+### Ìdínkù Ní Ṣísẹ̀-N-Tẹ̀lé
 
-Àwọn ìjíròrò gígùn ń kó ọ̀pọ̀lọpọ̀ ìyípadà ìránṣẹ́ jọ, ṣùgbọ́n àwọn ìyípadà àtijọ́ kò wúlò mọ́.
-Àkọsílẹ̀ `progressiveAging.ts` **ń dín àwọn ìránṣẹ́ kù nípa ìjìnnà ìyípadà**:
+Àwọn ìjíròrò gígùn máa ń kó ọ̀pọ̀ ìpele ìfiránṣẹ́ jọ, ṣùgbọ́n àwọn ìpele àtijọ́ máa ń dín
+ní ìbámu pẹ̀lú kókó ọ̀rọ̀. Módù `progressiveAging.ts` **ń dín àlàyé inú àwọn ìfiránṣẹ́ kù ní ìbámu pẹ̀lú bí ìpele náà ṣe jìnnà**:
 
-- **Àwọn ìyípadà tuntun (0-3)**: A pa wọ́n mọ́ gẹ́gẹ́ bí wọ́n ṣe wà (ìwọ̀nba ẹ̀kúnrẹ́rẹ́)
-- **Àwọn ìyípadà àárín (4-8)**: Ìfúnpọ̀ fẹ́ẹ́rẹ́ (ààyè òfo, ìtúnṣe àtòlẹ́sẹẹsẹ)
-- **Àwọn ìyípadà àtijọ́ (9+)**: Ìfúnpọ̀ Caveman (yíyọ àwọn ohun tí kò wúlò kúrò, àkópọ̀)
-- **Àwọn ìyípadà àtijọ́ púpọ̀ (20+)**: Àkópọ̀ líle tàbí yíyọ kúrò
+- **Àwọn ìpele tuntun (0-3)**: A pa wọ́n mọ́ gẹ́gẹ́ bí wọ́n ṣe rí (ẹ̀kúnrẹ́rẹ́ àlàyé)
+- **Àwọn ìpele àárín (4-8)**: Fúnmorawon kékeré (àlàfo funfun, ìmúdótó ìṣètò)
+- **Àwọn ìpele àtijọ́ (9+)**: Fúnmorawon caveman (yíyọ ọ̀rọ̀ àfikún kúrò, ṣíṣe àkópọ̀)
+- **Àwọn ìpele tó ti pẹ́ gan-an (20+)**: A ṣe àkópọ̀ wọn gidigidi tàbí a yọ wọ́n kúrò
 
-#### Àpẹẹrẹ koodu
+#### Àpẹẹrẹ kóòdù
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -380,48 +380,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... Àwọn ìpele 50 míì ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Àwọn ìyípadà 3 àkọ́kọ́: gẹ́gẹ́ bí wọ́n ṣe wà
-  light: 8, // Àwọn ìyípadà 4-8: ìfúnpọ̀ fẹ́ẹ́rẹ́
-  moderate: 20, // Àwọn ìyípadà 9-20: ìfúnpọ̀ caveman
-  // Àwọn ìyípadà 21+: àkópọ̀ líle
+  verbatim: 3, // Àwọn ìpele 3 àkọ́kọ́: gẹ́gẹ́ bí wọ́n ṣe rí
+  light: 8, // Àwọn ìpele 4-8: fúnmorawon kékeré
+  moderate: 20, // Àwọn ìpele 9-20: fúnmorawon caveman
+  // Àwọn ìpele 21+: àkópọ̀ líle
 });
 
-// saved = iye àwọn àmì-ọ̀rọ̀ tí a ti pamọ́
+// saved = iye àwọn token tí a fipamọ́
 ```
 
-#### Nígbà wo ni a ó lò ó
+#### Ìgbà tí o yẹ kí o lò ó
 
-Ìgbàgbó àgbékalẹ̀ **ń ṣiṣẹ́ nígbà gbogbo** fún àwọn ipò `aggressive` àti `ultra`. Ó
-wúlò púpọ̀ fún:
+Ìdínkù ní ṣísẹ̀-n-tẹ̀lé **máa ń ṣiṣẹ́ ní gbogbo ìgbà** fún àwọn módù `aggressive` àti `ultra`. Ó
+wúlò ní pàtàkì fún:
 
-- Àwọn ìgbà ìkọ̀wé koodu gígùn
-- Àwọn ìjíròrò ọjọ́ púpọ̀
-- Àwọn ìṣiṣẹ́ àwọn aṣojú pẹ̀lú ọ̀pọ̀lọpọ̀ ìpè irinṣẹ́
+- Àwọn sáà kíkọ kóòdù tó ń lọ fún ìgbà pípẹ́
+- Àwọn ìjíròrò tó gba ọ̀pọ̀ ọjọ́
+- Àwọn ìṣàn iṣẹ́ olùṣojú tó ní ọ̀pọ̀ ìpè irinṣẹ́
 
-### Ipò Ìjáde Caveman
+### Módù Àbájáde Caveman
 
-Àkọsílẹ̀ `outputMode.ts` ń fi **àwọn ìtọ́nisọ́nà ìbéèrè ètò** sínú láti jẹ́ kí
-àwòrán fúnra rẹ̀ mú ìjáde tí a fún pọ̀, tí ó kúrú (ìwọ̀nba "caveman") jáde.
+Módù `outputMode.ts` ń fi **àwọn ìtọ́nisọ́nà prompt ètò** sínú rẹ̀ láti mú kí
+model fúnra rẹ̀ ṣe àbájáde tó ti di fífúnpọ̀, tó sì ṣókí (ara "caveman").
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
-Dípò kí a fún ìjáde pọ̀, ipò yìí ń fi ìbéèrè ètò kan kún bíi:
+Dípò fífún input pọ̀, módù yìí ń fi prompt ètò kan kún un bíi:
 
-> "Dáhùn ní àwọn ọ̀rọ̀ díẹ̀. Fò àwọn ìkíni kọjá. Lo àwọn gbólóhùn kúkúrú."
+> "Dáhùn pẹ̀lú ọ̀rọ̀ díẹ̀ jù lọ. Fo àwọn ọ̀rọ̀ àṣàrò kọjá. Lo àwọn gbólóhùn kúkúrú."
 
-Èyí ń ṣiṣẹ́ dáadáa fún:
+Èyí wúlò ní pàtàkì fún:
 
-- Ìṣẹ̀dá koodu (ìjáde tí ó kúrú = àwọn àmì-ọ̀rọ̀ díẹ̀)
-- Q&A yára (kò sí àìní fún àwọn àlàyé tí ó gbòòrò)
-- Ìṣiṣẹ́ ìṣùpọ̀ (mú ìṣiṣẹ́ pọ̀ si)
+- Ṣíṣe kóòdù (àbájáde tó ṣókí sí i = token díẹ̀ sí i)
+- Ìbéèrè àti ìdáhùn kíákíá (kò nílò àwọn àlàyé gígùn)
+- Ṣíṣe ọ̀pọ̀ iṣẹ́ lẹ́ẹ̀kan (mú iye iṣẹ́ tó lè parí pọ̀ sí i)
 
-#### Nígbà wo ni a ó lò ó
+#### Ìgbà tí o yẹ kí o lò ó
 
-Ipò ìjáde Caveman jẹ́ **ìyànfẹ́** — ṣeto rẹ̀ nípasẹ̀ ìtòlẹ́sẹẹsẹ àpapọ̀:
+Módù àbájáde caveman jẹ́ **èyí tí a yàn láti lò** — ṣètò rẹ̀ nípasẹ̀ àtòpọ̀ combo:
 
 ```json
 {
@@ -434,31 +434,60 @@ Ipò ìjáde Caveman jẹ́ **ìyànfẹ́** — ṣeto rẹ̀ nípasẹ̀ ìtò
 }
 ```
 
-### Àwọn Ìṣàpẹẹrẹ Ìjáde (àtòjọ)
+### Àwọn Ara Àbájáde (àkójọ)
 
-Ipò ìjáde Caveman lókè jẹ́ **ọ̀nà ìṣàpẹẹrẹ kan ṣoṣo àtijọ́**. Ìpele 4 ṣe àkópọ̀ rẹ̀
-sínú àtòjọ àwọn ìṣàpẹẹrẹ ìjáde tí ó lè jẹ́ àpapọ̀: `OUTPUT_STYLE_CATALOG` nínú
-`open-sse/services/compression/outputStyles/catalog.ts`. Ìṣàpẹẹrẹ kọ̀ọ̀kan jẹ́ ìtọ́nisọ́nà ìbéèrè ètò
-tí ó ń mú kí àwòrán fúnra rẹ̀ mú ìjáde tí ó rọrùn jáde; àwọn ìṣàpẹẹrẹ lè jẹ́ àwọn pọ̀
-àti pé a fi wọ́n sínú ní àtòlẹ́sẹẹsẹ àtòjọ.
+Módù àbájáde caveman lókè ni **ọ̀nà ara-ẹyọ kan àtijọ́**. Phase 4 sọ ọ́ di
+àkójọ àwọn ara àbájáde tí a lè ṣàkójọpọ̀: `OUTPUT_STYLE_CATALOG` nínú
+`open-sse/services/compression/outputStyles/catalog.ts`. Ara kọ̀ọ̀kan jẹ́ ìtọ́nisọ́nà prompt ètò
+tó ń mú kí model fúnra rẹ̀ ṣe àbájáde tó dín owó kù; a lè mú àwọn ara ṣiṣẹ́
+papọ̀, a sì máa fi wọ́n sínú rẹ̀ ní ìtòlẹ́sẹẹsẹ àkójọ.
 
-| Ara                        | `id`          | Ohun tí ó ń ṣe                                                                                                                                                                                                         | Àwọn èdè ìtọ́ni                                                          |
-| -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Terse prose                | `terse-prose` | Mú àwọn ọ̀rọ̀ àfikún/àpilẹ̀kọ/ìfura kúrò; pa kókó ìmọ̀-ẹ̀rọ mọ́ gẹ́lẹ́. Ọ̀rọ̀ kan náà gẹ́gẹ́ bíi caveman output mode ti tẹ́lẹ̀ (tí a tọ́ka sí, tí a kò tún tẹ̀).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Less code                  | `less-code`   | Àtẹ̀gùn YAGNI: ìyípadà tó kéré jù tó ń ṣiṣẹ́, kò sí àwọn ìfòyemọ̀ tí a kò béèrè fún.                                                                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Ponytail (lazy senior dev) | `ponytail`    | "Kóòdù tó dára jùlọ ni èyí tí a kò kọ rárá": tún lò > tún kọ, gbòǹgbò ìṣòro > àmì ìṣòro, ìyàtọ̀ (diff) tó kéré jù tó ń ṣiṣẹ́.                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| I have ADHD (action-first) | `i-have-adhd` | Ìgbésẹ̀ àkọ́kọ́ (àṣẹ/ipá-ọ̀nà/snippet ṣáájú ọ̀rọ̀), ìgbésẹ̀ oní-nọ́mbà tí ó ní ààlà, ìgbésẹ̀ gidi KAN tó kàn, kò sí ọ̀rọ̀ àkọ́sọ/àtúnyẹ̀wò/ìparí. A mú u wá láti [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Terse CJK (文言)           | `terse-cjk`   | Ara Classical-Chinese tó kéré jùlọ.                                                                                                                                                                                    | zh (locale-gated: a máa ń fúnni nígbà tí èdè tí a yàn bá jẹ́ `zh` nìkan) |
+| Ara                      | `id`          | Ohun tí ó ń ṣe                                                                                                                                                                                                                                    | Àwọn èdè ìtọ́nisọ́nà                                                      |
+| ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Ọ̀rọ̀ ṣókí                 | `terse-prose` | Yọ àwọn ọ̀rọ̀ àfikún/àwọn article/ṣíṣe iyèméjì kúrò; pa kókó ìmọ̀ ẹ̀rọ mọ́ láìyípadà. Ọ̀rọ̀ kan náà pẹ̀lú módù àbájáde caveman àtijọ́ (tọ́ka sí i, a kò tún tẹ̀ ẹ́).                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Kóòdù díẹ̀                | `less-code`   | Àtẹ̀gùn YAGNI: ìyípadà kékeré jù lọ tí ó ṣiṣẹ́, kò sí àwọn abstraction tí a kò béèrè fún.                                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Ponytail (dev àgbà ọ̀lẹ)  | `ponytail`    | "Kóòdù tó dára jù ni kóòdù tí a kò kọ rárá": àtúnlò > àtúnkọ, ìdí pàtàkì > àmì àìsàn, diff tó kúrú jù lọ tí ó ṣiṣẹ́.                                                                                                                               | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| Mo ní ADHD (ìgbésẹ̀-kọ́kọ́) | `i-have-adhd` | Ìgbésẹ̀ kọ́kọ́ (àṣẹ/path/snippet ṣáájú ọ̀rọ̀), àwọn ìgbésẹ̀ onínọ́mbà tí a fi ààlà sí, ìgbésẹ̀ tó ṣe kedere KAN ṣoṣo tí ó kàn, kò sí ọ̀rọ̀ ìṣáájú/àkótán/ọ̀rọ̀ ìparí. A mú un bá a mu láti [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
+| CJK ṣókí (文言)          | `terse-cjk`   | Ara èdè Ṣáínà ìgbàanì tí ó ṣókí gan-an.                                                                                                                                                                                                           | zh (a fi locale dá a mọ́: a ń fúnni nígbà tí èdè tí a yàn jẹ́ `zh` nìkan) |
 
-Gbogbo ara (style) ló ní ìpele agbára mẹ́ta — `lite`, `full`, `ultra` — bẹ́ẹ̀ ni gbogbo ìpele ló ń parí pẹ̀lú gbólóhùn ààlà tí a pín, èyí tí ó ń pa àwọn code blocks, file paths, commands, error strings, URLs àti identifiers mọ́ gẹ́lẹ́ bí wọ́n ṣe rí.
+Ara kọ̀ọ̀kan ní àwọn ìpele okun mẹ́ta — `lite`, `full`, `ultra` — gbogbo ìpele sì
+parí pẹ̀lú gbólóhùn ààlà tí gbogbo wọn jọ lò, èyí tí ó pa àwọn búlọ́ọ̀kù kóòdù, àwọn path fáìlì, àwọn àṣẹ,
+àwọn ọ̀rọ̀ àṣìṣe, àwọn URL àti àwọn identifier mọ́ gẹ́gẹ́ bí wọ́n ṣe wà.
 
-#### Bí ìfisínú (injection) ṣe ń ṣiṣẹ́
+#### Bí injection ṣe ń ṣiṣẹ́
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ń yanjú àṣàyàn náà lòdì sí catalog (àwọn id tí a kò mọ̀ àti àwọn ara tí kò bá locale mu ni a ń jù nù, kì í ṣe àsìṣe), ó ń so àwọn ìtọ́ni tí a yàn pọ̀ ní tòtò catalog, ó ń fi gbólóhùn ààlà kún un ní **ẹ̀kan ṣoṣo**, ó sì ń gbé àbájáde rẹ̀ sí iwájú nínú system prompt lẹ́yìn àmì idempotency kan ṣoṣo (`[OmniRoute Output Styles]`) — títún lò jẹ́ no-op. Nígbà tí èdè ìbéèrè tí a rí bá ní ìtumọ̀, ìtọ́ni tí a túmọ̀ ni a ń fi sínú rẹ̀ dípò èdè Gẹ̀ẹ́sì.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ń yanjú
+àyàn náà sí catalog (a ń yọ àwọn id tí a kò mọ̀ àti àwọn ara tí locale wọn kò bá mu
+kúrò, kì í ṣe àṣìṣe láéláé), ó ń so àwọn ìtọ́nisọ́nà tí a yàn pọ̀ gẹ́gẹ́ bí ìtòlẹ́sẹẹsẹ catalog,
+ó ń fi gbólóhùn ààlà kún un **ẹ̀ẹ̀kan**, ó sì ń bẹ̀rẹ̀ búlọ́ọ̀kù náà pẹ̀lú àmì idempotency
+kan ṣoṣo (`[OmniRoute Output Styles]`), nítorí náà ṣíṣe é lẹ́ẹ̀kan sí i kò ní ipa kankan. Nígbà tí èdè tí a yàn
+(wo Àṣàyàn èdè ní ìsàlẹ̀) bá ní ìtumọ̀, ìtọ́nisọ́nà tí a túmọ̀ sí èdè agbègbè ni
+a ó fi sí i dípò Gẹ̀ẹ́sì.
 
-#### Bí a ṣe ń jẹ́ kí ó ṣiṣẹ́
+Lórí body tí ó ní `messages`, content bypass kan (`shouldBypassCavemanOutputMode()` nínú
+`open-sse/services/compression/outputMode.ts`) ń yẹ àwọn ìfiránṣẹ́ mẹ́ta tó kẹ́yìn wò, ó sì ń fò
+àwọn ara náà kọjá fún gbogbo turn náà nígbà tí wọ́n bá àwọn keyword tó jẹ mọ́ ààbò,
+ìgbésẹ̀ tí a kò lè dá padà, ìbéèrè ìṣàlàyé, tàbí ìtòlẹ́sẹẹsẹ tó ṣe pàtàkì mu. Bypass náà ń ṣiṣẹ́ nígbà tí toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) ṣí wà, èyí ni ààyò àkọ́kọ́; nígbà tí a bá pa á mọ́, àwọn ara tí a yàn náà ń ṣiṣẹ́ lórí àwọn turn yìí.
 
-Nínú dashboard: **Context → Settings → Compression** — ìlà kan fún ara kọ̀ọ̀kan pẹ̀lú bọ́tìnì on/off àti olùyàn ìpele. Nípa ti ètò (programmatically), ìṣètò compression ń tọ́jú àṣàyàn náà gẹ́gẹ́ bíi:
+Nígbà tí bypass bá jẹ́ kí turn náà kọjá, `placeSystemInstruction()` (fáìlì kan náà), èyí tí
+kò dá `messages[0]` tuntun sílẹ̀ láéláé, ń fi búlọ́ọ̀kù náà sí àkọ́kọ́ nínú àwọn wọ̀nyí tí ó bá rí:
+
+1. Ìfiránṣẹ́ system tó wà níwájú tí content rẹ̀ jẹ́ string: a fi búlọ́ọ̀kù náà kún un lẹ́yìn ọ̀rọ̀ rẹ̀.
+2. Field `system` tó wà ní top-level: a fi búlọ́ọ̀kù náà kún un lẹ́yìn ọ̀rọ̀ string, tàbí
+   a fi kún un gẹ́gẹ́ bí búlọ́ọ̀kù ọ̀rọ̀ tuntun sínú array content-block.
+3. Ìfiránṣẹ́ system àkọ́kọ́ tó wà lẹ́yìn tí content rẹ̀ jẹ́ string: a fi búlọ́ọ̀kù náà kún un lẹ́yìn
+   ọ̀rọ̀ rẹ̀.
+4. Bí kò bá sí èyíkéyìí nínú àwọn tó wà lókè: búlọ́ọ̀kù náà wọ inú ìfiránṣẹ́ system tuntun ní òpin `messages`.
+
+Lórí body tí kò ní `messages`, a fi búlọ́ọ̀kù náà kún field `instructions` tó jẹ́ string,
+tàbí ó di `instructions` nígbà tí body náà bá ní `input` (string tàbí array). A ń fò body
+tí kò ní `instructions` tàbí `input` kọjá gẹ́gẹ́ bí `no_messages`.
+
+#### Bí a ṣe lè mú un ṣiṣẹ́
+
+Nínú dashboard: **Context → Settings → Compression** — ìlà kan fún ara kọ̀ọ̀kan pẹ̀lú
+toggle on/off àti selector ìpele. Nípasẹ̀ ètò, config compression ń tọ́jú
+àyàn náà gẹ́gẹ́ bí:
 
 ```json
 {
@@ -469,46 +498,57 @@ Nínú dashboard: **Context → Settings → Compression** — ìlà kan fún ar
 }
 ```
 
-Back-compat: ìṣètò àpòpọ̀ `outputMode: "caveman"` ti tẹ́lẹ̀ ṣì ń ṣiṣẹ́, ó sì ń tọ́ka sí `terse-prose`, ó jẹ́ byte-identical sí ìfisínú àtijọ́ nínú gbogbo èdè àtijọ́.
+Ìbámu sẹ́yìn: àgbékalẹ̀ àkópọ̀ `outputMode: "caveman"` àtijọ́ ṣì ń ṣiṣẹ́, ó sì ń tọ́ka sí
+`terse-prose`, tó bá injection àtijọ́ mu dé byte kọ̀ọ̀kan nínú gbogbo èdè àtijọ́.
 
-Àṣàyàn èdè: pẹ̀lú `languageConfig.enabled` lórí, `autoDetect` ń mú èdè ìránṣẹ́ oníṣe tó kẹ́yìn (olùwárí kan náà pẹ̀lú àwọn input engines); títẹ `autoDetect` pa ń dín `defaultLanguage` mọ́lẹ̀. Off → Gẹ̀ẹ́sì.
+Àṣàyàn èdè: pẹ̀lú `languageConfig.enabled` tí ó wà ní on, `autoDetect` ń yan
+èdè ìfiránṣẹ́ olumulo tuntun jù lọ (detector kan náà bí àwọn engine input);
+pípa `autoDetect` mọ́ off ń fi `defaultLanguage` dúró ṣinṣin. Off → Gẹ̀ẹ́sì.
 
-Matrix ti style × èdè ni a dín mọ́lẹ̀ nípasẹ̀ `tests/unit/compression/output-styles-i18n-matrix.test.ts`: ara tuntun kò lè jáde láìní ó kéré tán ìtumọ̀ pt-BR (tàbí ìyàtọ̀ tí a tẹ̀lé ní pàtó), bẹ́ẹ̀ ni ara tó ti wà tẹ́lẹ̀ kò lè sọnù nínú locale kan láìjẹ́ pé a mọ̀. Láti fi ara kún un, wo [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Matrix ara × èdè ni
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` fi dúró ṣinṣin: ara tuntun kò lè jáde
+láìní ó kéré tán ìtumọ̀ pt-BR kan (tàbí exception tí a tọ́pinpin rẹ̀ ní kedere), ara
+tó sì ti wà tẹ́lẹ̀ kò lè pàdánù locale kan ní ìkọ̀kọ̀. Láti fi ara kan kún un, wo
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Tool Result Compression
+### Compression Àbájáde Tool
 
-Module `toolResultCompressor.ts` ń pèsè **ìlànà compression 5 pàtàkì** fún àwọn àbájáde irinṣẹ́ (function calls, agent outputs, search results, abbl.):
+Module `toolResultCompressor.ts` pèsè **àwọn ọ̀nà compression amọ̀jáde 5**
+fún àwọn àbájáde tool (àwọn function call, àwọn àbájáde agent, àwọn àbájáde ìṣàwárí, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ):
 
-1. **Search result compression** — Ó ń mú àwọn àbájáde tí ó pọ̀ jù kúrò, ó ń pa top-N mọ́
-2. **File read compression** — Ó ń gé àwọn fáìlì títóbi kúrò, ó ń pa headers/imports mọ́
-3. **Code execution compression** — Ó ń pa stdout/stderr tó ṣe kókó nìkan mọ́
-4. **Database query compression** — Ó ń dín àwọn ìlà kù, ó ń mú metadata tó pọ̀ jù kúrò
-5. **API response compression** — Ó ń yọ àwọn null fields kúrò, ó ń dín àwọn arrays kù
+1. **Compression àbájáde ìṣàwárí** — Yọ àwọn àbájáde àsọdùn kúrò, pa top-N mọ́
+2. **Compression kíkà fáìlì** — Gé àwọn fáìlì ńlá kúrú, pa àwọn header/import mọ́
+3. **Compression ṣíṣe kóòdù** — Pa stdout/stderr tó ṣe pàtàkì nìkan mọ́
+4. **Compression query database** — Fi ààlà sí àwọn row, yọ metadata tó pọ̀jù kúrò
+5. **Compression ìdáhùn API** — Yọ àwọn field null kúrò, sọ àwọn array di ṣókí
 
 #### Ìgbà tí a ó lò ó
 
-Tool result compression máa ń **wà ní titan nígbà gbogbo** nígbà tí tool calls bá wà. Kò sí ìṣètò kankan tí a nílò.
+Ìpọ́pọ̀ àbájáde irinṣẹ́ máa ń **ṣiṣẹ́ nígbà gbogbo** nígbà tí àwọn ìpè irinṣẹ́ bá wà. Kò sí
+àtúnṣe tí a nílò.
 
-### Stacked Pipeline
+### Pípiláìnì Onípele
 
-Stacked mode ń ṣiṣẹ́ **ọ̀pọ̀lọpọ̀ engines ní tòtò** — nígbà púpọ̀ RTK ni àkọ́kọ́ (60-90% ìfipamọ́ lórí tool output), lẹ́yìn náà Caveman (30% ìfipamọ́ àfikún lórí ọ̀rọ̀ tó kù). Èyí ń mú **78-95% ìfipamọ́ lápapọ̀** wá.
+Ìpo onípele ń ṣiṣẹ́ pẹ̀lú **ọ̀pọ̀ ẹ́ńjìnnì ní tẹ̀lé-tẹ̀lé** — RTK sábà máa ń kọ́kọ́ ṣiṣẹ́
+(ìfipamọ́ 60-90% lórí àbájáde irinṣẹ́), lẹ́yìn náà Caveman (àfikún ìfipamọ́ 30% lórí
+ọ̀rọ̀ tó kù). Èyí ń yọrí sí **àpapọ̀ ìfipamọ́ 78-95%**.
 
 #### Bí ó ṣe ń ṣiṣẹ́
 
 ```
-Input (1000 tokens)
-  → RTK (command-aware filter) → 200 tokens
-    → Caveman (filler removal) → 140 tokens
-  → Output (140 tokens, 86% savings)
+Àbáwọlé (1000 token)
+  → RTK (asẹ̀mọ́ àṣẹ) → 200 token
+    → Caveman (yíyọ ọ̀rọ̀ àfikún kúrò) → 140 token
+  → Àbájáde (140 token, ìfipamọ́ 86%)
 ```
 
-#### Ìgbà tí a ó lò ó
+#### Ìgbà tí o yẹ kí a lò ó
 
-Lo stacked mode fún:
+Lo ìpo onípele fún:
 
-- Àwọn iṣẹ́ tó lo irinṣẹ́ púpọ̀ (agentic coding, ìwádìí)
-- Ìṣiṣẹ́ batch tí ó nílò ìṣọ́ra lórí owó
-- Nígbà tí o bá nílò ìfipamọ́ token tó pọ̀ jùlọ
+- Àwọn ìṣàn iṣẹ́ tí irinṣẹ́ pọ̀ nínú wọn (kíkọ́ kóòdù aṣojú, ìwádìí)
+- Ṣíṣe àkójọpọ̀ tí ó ka iye owó sí pàtàkì
+- Nígbà tí o bá nílò ìfipamọ́ token tó pọ̀ jù lọ
 
 Ṣètò rẹ̀ nípasẹ̀ combo:
 

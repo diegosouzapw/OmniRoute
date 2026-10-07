@@ -345,64 +345,56 @@ opencode -m omniroute/glm/glm-5.2 "..."          # יש לייצא תחילה א
 
 ## ניהול הקשרים (מעבר בין שרתים)
 
-**הקשר** הוא שרת שמור (baseUrl + פרטי הזדהות + היקף הרשאות). `omniroute connect`
-יוצר הקשר והופך אותו לפעיל; מאותו רגע כל פקודה מופנית אליו. נהלו הקשרים
-ועברו ביניהם באמצעות `omniroute contexts`:
+**הקשר** הוא שרת שמור (baseUrl + אישור + טווח). `omniroute connect` יוצר אחד והופך אותו לפעיל; מאז כל פקודה מכוונת אליו. נהל ועבור ביניהם באמצעות `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # כל ההקשרים; ההקשר הפעיל מסומן ב־●
-omniroute contexts current         # השרת הפעיל, מצב האימות והיקף ההרשאות
+omniroute contexts list            # כל ההקשרים; הפעיל מסומן ב-●
+omniroute contexts current         # השרת הפעיל, סטטוס אימות, טווח
 ```
 
 ```text
-  | שם     | כתובת URL בסיסית          | אימות | היקף  | תיאור
+  | Name    | Base URL                  | Auth  | Scope | Description
 ● | vps     | http://100.67.86.91:20128 | token | admin | OmniRoute מרוחק (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**מעבר בין שרתים** — כל פקודה שתופעל לאחר מכן תשתמש בהקשר הפעיל:
+**החלף שרתים** — כל פקודה עוקבת תפעל לפי ההקשר הפעיל:
 
 ```bash
-omniroute contexts use vps         # → כל הפקודות מופנות כעת ל־VPS המרוחק
-omniroute tokens list              #   (מופעלת מול ה־VPS)
+omniroute contexts use vps         # ← כל הפקודות יופנו כעת ל-VPS המרוחק
+omniroute tokens list              #   (פועל מול ה-VPS)
 
-omniroute contexts use default     # → חזרה ל־localhost
-omniroute tokens list              #   (מופעלת מול השרת המקומי)
+omniroute contexts use default     # ← חזרה ל-localhost
+omniroute tokens list              #   (פועל מול השרת המקומי)
 ```
 
-**הוספת הקשר באופן ידני** (במקום `connect`), הצגת פרטיו או שינוי שמו:
+**הוסף הקשר ידנית** (במקום `connect`), בדוק, או שנה שם:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "שרת staging"
-omniroute contexts show staging    # פרטים מלאים של הקשר אחד
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # פרטים מלאים עבור הקשר אחד
 omniroute contexts rename staging stg
 ```
 
-**הסרת הקשר** — תוצג בקשת אישור; העבירו את `--yes` כדי לדלג עליה
-(נדרש עבור סקריפטים / מעטפות לא אינטראקטיביות, שאחרת מסרבות באופן בטוח):
+**הסר הקשר** — מבקש אישור; העבר `--yes` כדי לדלג עליו (נדרש עבור סקריפטים / מעטפות לא אינטראקטיביות, אשר אחרת ידחו בבטחה):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> לא ניתן להסיר את `default` (‏localhost). הסרת ההקשר הפעיל גורמת לחזרה
-> אל `default`. עצה: הסרת הקשר מוחקת רק את פרטי ההזדהות השמורים באופן **מקומי** —
-> כדי לבטל בפועל את הגישה, בטלו את האסימון בשרת באמצעות `omniroute tokens revoke <id>`.
+> `default` (localhost) לא ניתן להסיר. הסרת ההקשר הפעיל חוזרת ל-`default`. טיפ: הסרת הקשר רק משמיטה את האישור השמור **המקומי** — בטל את האסימון בשרת עם `omniroute tokens revoke <id>` כדי לבטל גישה בפועל.
 
-**ייצוא / ייבוא** של הקשרים (לדוגמה, כדי להעביר אותם בין מחשבים). עבור הקשרים חדשים נשמרת
-רק הפניה למחזיק המפתחות; פרטי ההזדהות אינם מועתקים לייצוא כאשר מחזיק המפתחות
-של מערכת ההפעלה זמין:
+**ייצוא / ייבוא הקשרים** (לדוגמה, כדי להעביר אותם בין מכונות). ייצוא משמיט אישורים כברירת מחדל, כולל אישורים שנשמרו על ידי גיבוי הקבצים. השתמש ב-`--include-secrets` במפורש כאשר נדרש גיבוי נייד הנושא אישורים:
 
 ```bash
-omniroute contexts export --out contexts.json     # ברירת מחדל: stdout
-omniroute contexts import contexts.json            # דריסה; השתמשו ב־--merge כדי לשמור על הקיימים
-omniroute contexts migrate --yes                  # העברת אסימונים ישנים בטקסט גלוי למחזיק המפתחות
+omniroute contexts export --out contexts.json     # מצונזר; יעד ברירת מחדל: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # דרוס; --merge כדי לשמור קיימים
+omniroute contexts migrate --yes                  # העבר אסימוני טקסט רגיל מדור קודם למחזיק מפתחות
 ```
 
-במערכות ללא ממשק משתמש שבהן אין מחזיק מפתחות שמיש של מערכת ההפעלה, ממשק שורת הפקודה חוזר להשתמש
-ב־`config.json` עם מצב `0600` ומציג אזהרה חד־פעמית. יש להתייחס לייצואים שנוצרו
-באמצעות מנגנון חלופי זה (ולכל תצורה ישנה מלפני ההעברה) כאל חומר סודי.
+`--include-secrets` פותר הפניות למחזיק מפתחות לפני הייצוא ונכשל אם לא ניתן לקרוא אישור מפנה כלשהו. `--no-secrets` תמיד מקבל עדיפות. קבצי ייצוא נכתבים באופן אטומי עם מצב `0600`. התייחס לייצוא מפורש הנושא סודות כחומר סודי. במערכות ללא ממשק משתמש גרפי (headless) ללא מחזיק מפתחות מערכת הפעלה שמיש, ה-CLI חוזר לשימוש ב-`config.json` עם מצב `0600` ומדפיס אזהרה חד-פעמית; ייצוא ברירת מחדל נשאר מצונזר במצב זה.
 
 ---
 

@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * Embedding Provider Registry
  *
@@ -607,7 +609,7 @@ export function parseEmbeddingModel(
   modelStr: string | null,
   dynamicProviders?: EmbeddingProvider[]
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
   modelStr = applyEmbeddingModelAliases(modelStr);
 
   // Check for "provider/model" format

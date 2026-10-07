@@ -404,17 +404,17 @@ Napišite teste enot v `tests/unit/`, ki zajemajo najmanj:
 - [ ] Testi so uspešni (`npm test`)
 - [ ] Preverjanje sloga kode je uspešno (`npm run lint`)
 - [ ] Gradnja je uspešna (`npm run build`)
-- [ ] Tipi TypeScript so dodani za nove javne funkcije in vmesnike
+- [ ] Za nove javne funkcije in vmesnike so dodani tipi TypeScript
 - [ ] Ni trdo kodiranih skrivnosti ali nadomestnih vrednosti
-- [ ] Javne poverilnice izvornega ponudnika so vdelane prek `resolvePublicCred()` (glejte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikoli kot literali
-- [ ] Odgovori o napakah potekajo skozi `buildErrorBody()` / `sanitizeErrorMessage()` — v telesih odgovorov ni neobdelanih skladovnih sledi (glejte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Lupinski ukazi (`exec` / `spawn`) posredujejo vrednosti izvajalnega okolja prek `env`, ne prek interpolacije nizov
+- [ ] Javne poverilnice nadrejenega projekta so vdelane prek `resolvePublicCred()` (glejte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikoli kot literali
+- [ ] Odgovori z napakami se obdelajo prek `buildErrorBody()` / `sanitizeErrorMessage()` — brez neobdelanih sledov sklada v telesih odgovorov (glejte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Lupinski ukazi (`exec` / `spawn`) posredujejo vrednosti med izvajanjem prek `env`, ne prek interpolacije nizov
 - [ ] Vsi vnosi so preverjeni s shemami Zod
-- [ ] **Fragment** dnevnika sprememb je za spremembe, vidne uporabnikom, dodan v `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (glejte [`changelog.d/README.md`](./changelog.d/README.md)) — datoteke `CHANGELOG.md` **ne** urejajte neposredno; fragmenti se združijo ob izdaji in med zahtevami za združitev nikoli ne povzročajo sporov
+- [ ] Za spremembe, vidne uporabnikom, je dodan **fragment** dnevnika sprememb v `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (glejte [`changelog.d/README.md`](./changelog.d/README.md)) — datoteke `CHANGELOG.md` **ne** urejajte neposredno; fragmenti se združijo ob izdaji in nikoli ne povzročajo sporov med zahtevami za združitev
 - [ ] Dokumentacija je posodobljena (če je ustrezno)
 - [ ] Ni novih opozoril CodeQL / Secret-Scanning oziroma je vsako zavrnjeno s tehnično utemeljitvijo, ki se sklicuje na ustrezen dokument v `docs/security/`
-- [ ] Poti, ki ustvarjajo podrejene procese (`/api/mcp/`, `/api/cli-tools/runtime/`), so razvrščene kot `isLocalOnlyPath()` v `src/server/authz/routeGuard.ts` — glejte [Strogo pravilo št. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] V sporočilih potrditev ni zaključnih vrstic `Co-Authored-By` — potrditve morajo biti prikazane izključno pod identiteto Git lastnika repozitorija (Strogo pravilo št. 16)
+- [ ] Poti, ki zaženejo podrejene procese (`/api/mcp/`, `/api/cli-tools/runtime/`), so v `src/server/authz/routeGuard.ts` razvrščene kot `isLocalOnlyPath()` — glejte [Strogo pravilo št. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] V sporočilih potrditev ni zaključnih vrstic `Co-authored-by` za UI/bote (Strogo pravilo št. 16) — človeški sodelavci, katerih delo je ponovno uporabljeno, so navedeni s standardnimi zaključnimi vrsticami `Co-authored-by: Name <email>`
 
 ---
 
@@ -435,4 +435,3 @@ Nato uporabite veščine `/deploy-vps-*-cc`, ki z rsync sinhronizirajo `dist/` z
 - **Varnostna dokumentacija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Operativna dokumentacija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Težave**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ji**: Zapise arhitekturnih odločitev najdete v `docs/adr/`

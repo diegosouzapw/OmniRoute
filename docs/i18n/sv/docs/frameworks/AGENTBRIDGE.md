@@ -189,18 +189,18 @@ delade blockeringslistan för hopp-för-hopp-/ramindelningsheaders (inklusive pr
 
 Använd AgentBridge-serverkortet på `/dashboard/tools/agent-bridge`:
 
-| Åtgärd               | Beskrivning                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| Starta server        | Startar `src/mitm/server.cjs` på port 443                                            |
-| Stoppa server        | Stänger ned underprocessen kontrollerat                                              |
-| Starta om server     | Stoppar + startar (läser in ändringar av mål)                                        |
-| Betro certifikat     | Installerar `DATA_DIR/mitm/ca.crt` i operativsystemets certifikatarkiv               |
-| Ladda ned certifikat | Laddar ned `ca.crt` för manuell installation                                         |
-| Återskapa certifikat | Skapar ett nytt CA-nyckelpar (alla befintliga certifikat per agent ogiltigförklaras) |
+| Åtgärd                 | Beskrivning                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| Starta servern         | Startar `src/mitm/server.cjs` på port 443                                            |
+| Stoppa servern         | Stänger ned den underordnade processen på ett kontrollerat sätt                      |
+| Starta om servern      | Stoppar + startar (läser in ändringar av mål)                                        |
+| Lita på certifikatet   | Installerar `DATA_DIR/mitm/ca.crt` i operativsystemets betrodda certifikatarkiv      |
+| Ladda ned certifikatet | Laddar ned `ca.crt` för manuell installation                                         |
+| Återskapa certifikatet | Skapar ett nytt CA-nyckelpar (alla befintliga certifikat per agent ogiltigförklaras) |
 
-### 3.2 Betro certifikatet
+### 3.2 Lita på certifikatet
 
-AgentBridge-CA-certifikatet måste vara betrott av operativsystemet innan IDE:er accepterar MITM-anslutningen.
+AgentBridge CA-certifikatet måste vara betrott av operativsystemet innan IDE:er accepterar MITM-anslutningen.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -221,34 +221,34 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Du kan också använda knappen "Betro certifikat" på instrumentpanelen (den kör lämpligt kommando för ditt operativsystem och visar en sudo-prompt vid behov).
+Du kan även använda knappen "Lita på certifikatet" på kontrollpanelen (den kör rätt kommando för ditt operativsystem och visar en sudo-prompt vid behov).
 
-#### Electron-baserade IDE:er ignorerar operativsystemets certifikatarkiv (`NODE_EXTRA_CA_CERTS`)
+#### Electron-baserade IDE:er ignorerar operativsystemets betrodda certifikatarkiv (`NODE_EXTRA_CA_CERTS`)
 
-Vissa IDE:er — i synnerhet **Antigravity IDE** och andra appar baserade på Electron/VS Code — paketerar
-sin egen Node.js-körmiljö som **inte använder operativsystemets certifikatarkiv** för utgående
-`fetch`/HTTPS. Att betro CA:n på OS-/NSS-nivå räcker för IDE:ns inbyggda **backend**
-(t.ex. en Go-språkserver som använder operativsystemets CA-paket), men **Electron-frontenddelen**
-kommer fortfarande att misslyckas med TLS — detta visar sig genom att appen verkar vara _utloggad_
-eller visar ett _"anslutningsfel"_, trots att MITM-loggen visar att backendens initieringsanrop returnerar `200`. Två steg
+Vissa IDE:er — särskilt **Antigravity IDE** och andra appar baserade på Electron/VS Code — paketerar
+sin egen Node.js-körmiljö som **inte använder operativsystemets betrodda certifikatarkiv** för utgående
+`fetch`/HTTPS. Att lita på CA:n på OS-/NSS-nivå räcker för IDE:ns inbyggda **backend**
+(t.ex. en Go-språkserver som använder operativsystemets CA-paket), men **Electron-frontendkomponenten**
+kommer fortfarande att misslyckas med TLS — detta visar sig genom att appen verkar vara _utloggad_ eller visar ett _"anslutningsfel"_,
+även om MITM-loggen visar att backendkomponentens bootstrap-anrop returnerar `200`. Två steg
 krävs, och båda är viktiga:
 
-1. Peka uttryckligen körmiljön mot CA:n:
+1. Ange CA:n explicit för körmiljön:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Starta IDE:n från det skalet.** Om du startar den via skrivbordsikonen, Dock eller Start-menyn
+2. **Starta IDE:n från det kommandoskalet.** Om du startar den från skrivbordsikonen/Dock/Start-menyn
    ärvs **inte** skalets exporterade variabler, och `~/.config/environment.d/*.conf` börjar gälla först efter
-   en ny grafisk inloggning. Avsluta först IDE:n helt — Electrons singleton-lås innebär att en andra
-   start bara fokuserar den befintliga processen och att den nya miljön ignoreras.
+   en ny grafisk inloggning. Avsluta IDE:n helt först — Electrons singleton-lås innebär att en andra
+   start endast fokuserar den befintliga processen och att den nya miljön ignoreras.
 
-Steget ovan med operativsystemets certifikatarkiv + NSS är fortfarande nödvändigt (Chromium-nätverksstacken som används av vissa autentiseringsflöden
-läser användarens NSS-arkiv och har egna statiska pinnade certifikat för `*.googleapis.com` som en
+Steget ovan för OS-tillit + NSS krävs fortfarande (Chromiums nätverksstack som används av vissa
+autentiseringsflöden läser användarens NSS-arkiv och har egna statiska pinningar för `*.googleapis.com` som en
 lokalt betrodd CA åsidosätter). `NODE_EXTRA_CA_CERTS` täcker dessutom Nodes `fetch`-sökväg.
 
 ### 3.3 DNS-dirigering
 
-För varje agent som du vill avlyssna måste dess API-värdnamn matcha `127.0.0.1`. AgentBridge hanterar automatiskt poster i `/etc/hosts` när du aktiverar eller inaktiverar DNS för en agent i konfigurationsguiden.
+För varje agent som du vill avlyssna måste dess API-värd eller API-värdar matchas mot `127.0.0.1`. AgentBridge hanterar poster i `/etc/hosts` automatiskt när du aktiverar eller inaktiverar DNS för en agent i konfigurationsguiden.
 
 Exempel på poster i `/etc/hosts` för GitHub Copilot:
 
@@ -259,65 +259,74 @@ Exempel på poster i `/etc/hosts` för GitHub Copilot:
 
 ### 3.4 Modellmappning
 
-Använd modellmappningstabellen på varje agentkort för att definiera mappningar från källa → mål:
+Använd tabellen för modellmappning i varje agentkort för att definiera mappningar från källa → mål:
 
-| Källmodell (agentens inbyggda) | Målmodell (OmniRoute) |
-| ------------------------------ | --------------------- |
-| `gpt-4o`                       | `claude-sonnet-4.7`   |
-| `*` (jokertecken)              | `claude-haiku-4.7`    |
+| Källmodell (agentens interna) | Målmodell (OmniRoute) |
+| ----------------------------- | --------------------- |
+| `gpt-4o`                      | `claude-sonnet-4.7`   |
+| `*` (jokertecken)             | `claude-haiku-4.7`    |
 
 Jokertecknet `*` mappar alla okända modeller till det angivna målet. Sparas i tabellen `agent_bridge_mappings`.
 
 > **Tips — identifiera agentens verkliga modell-ID:n.** En IDE kan skicka modellnamn som skiljer sig från
-> dess etiketter i användargränssnittet och som ändras mellan större versioner. **Antigravity 2** skickar till exempel
-> `gemini-3.1-pro-low`, `gemini-pro-agent` och `gemini-3.1-flash-lite` över nätverket — inte
+> etiketterna i användargränssnittet och som ändras mellan större versioner. **Antigravity 2** skickar till exempel
+> `gemini-3.1-pro-low`, `gemini-pro-agent` och `gemini-3.1-flash-lite` över nätverket — inte det
 > `gemini-2.5-pro` som visas i äldre dokumentation. Skicka ett chattmeddelande utan någon matchande mappning: MITM
-> loggar det exakta inkommande värdet för `model:` och vidarebefordrar begäran. Mappa det exakta värdet, så
+> loggar det exakta inkommande värdet för `model:` och vidarebefordrar begäran. Mappa detta exakta värde; därefter
 > avlyssnas nästa begäran och dirigeras till ditt mål.
 
 ### 3.5 Riskmeddelande
 
-AgentBridge avlyssnar autentiseringsuppgifter (OAuth-token, API-nycklar) som IDE:n använder för att autentisera sig hos externa leverantörer. Dessa **maskeras före loggning** (se §2.7), men är synliga för OmniRoutes MITM-lager. Vid den första aktiveringen av varje agent visas en modal riskvarning som kan stängas.
+AgentBridge avlyssnar autentiseringsuppgifter (OAuth-token och API-nycklar) som IDE:n använder för att autentisera sig hos uppströmsleverantörer. Dessa **maskeras före loggning** (se §2.7), men är synliga för OmniRoutes MITM-lager. Vid den första aktiveringen av varje agent visas en avfärdbar modal dialogruta med ett riskmeddelande.
 
 ### 3.6 Underhåll och diagnostik
 
-Instrumentpanelen innehåller ett kort för **Underhåll och diagnostik** (`AgentBridgeMaintenanceCard`, i `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) som visar operativa MITM-rutter som tidigare saknade användargränssnitt. Dess underrubrik: _"Självtesta insamlingsflödet, återställ kvarvarande systemtillstånd och flytta konfigurationen mellan datorer."_ Kortets klienthjälpfunktioner finns i `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Kontrollpanelen innehåller ett kort för **Underhåll och diagnostik** (`AgentBridgeMaintenanceCard`, i `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) som visar operativa MITM-rutter som tidigare saknade användargränssnitt. Dess underrubrik är: _"Självtesta insamlingsflödet, återställ kvarvarande systemtillstånd och flytta konfigurationen mellan datorer."_ Kortets klienthjälpfunktioner finns i `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Knapp                       | Rutt                                   | Vad den gör                                                                                                                                                                                                |
-| --------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnostisera**           | `GET /api/tools/agent-bridge/diagnose` | Kör självtestet för insamlingspipelinen och visar en rapport för varje kontroll (✓/✗ + åtgärdstips).                                                                                                       |
-| **Reparera**                | `POST /api/tools/agent-bridge/repair`  | Återställer kvarlämnat MITM-systemtillstånd (DNS-spoofposter, rot-CA, systemproxy) efter en krasch eller SIGKILL. Idempotent — rapporterar "Inget att reparera" när tillståndet är rent.                   |
-| **Ta bort CA**              | `DELETE /api/tools/agent-bridge/cert`  | Tar bort förtroendet för och raderar MITM-rot-CA:n från operativsystemets betrodda certifikatarkiv (explicit, idempotent). Visas endast när CA:n är betrodd; kräver en infogad bekräftelse: "Ta bort CA?". |
-| **Exportera konfiguration** | `GET /api/tools/agent-bridge/config`   | Hämtar den portabla konfigurationen som JSON (se §3.7).                                                                                                                                                    |
-| **Importera konfiguration** | `POST /api/tools/agent-bridge/config`  | Laddar upp en tidigare exporterad konfiguration som JSON (se §3.7).                                                                                                                                        |
+| Knapp                       | Route                                  | Vad den gör                                                                                                                                                                                                                 |
+| --------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagnostisera**           | `GET /api/tools/agent-bridge/diagnose` | Kör självtestet för insamlingspipelinen och visar en rapport för varje kontroll (✓/✗ + åtgärdsförslag).                                                                                                                     |
+| **Reparera**                | `POST /api/tools/agent-bridge/repair`  | Ångrar övergivet MITM-systemtillstånd (DNS-spoofningsposter, rot-CA, systemproxy) som lämnats kvar efter en krasch eller SIGKILL. Idempotent — rapporterar ”Inget att reparera” när tillståndet är rent.                    |
+| **Ta bort CA**              | `DELETE /api/tools/agent-bridge/cert`  | Tar bort förtroendet för och avlägsnar MITM-rot-CA:n från operativsystemets betrodda certifikatarkiv (explicit, idempotent). Visas endast när CA:n är betrodd för närvarande; kräver en infogad bekräftelse: ”Ta bort CA?”. |
+| **Exportera konfiguration** | `GET /api/tools/agent-bridge/config`   | Hämtar den portabla konfigurationen som JSON (se §3.7).                                                                                                                                                                     |
+| **Importera konfiguration** | `POST /api/tools/agent-bridge/config`  | Laddar upp en tidigare exporterad konfiguration som JSON (se §3.7).                                                                                                                                                         |
 
-**Diagnostikkontroller** (`summarizeDiagnostics()` i `src/mitm/inspector/diagnostics.ts`). Rutten kör den effektfulla kontrollen för var och en och matar de booleska värdena till den rena sammanfattningsfunktionen; ett enda `healthy`-utlåtande samt ett tips för varje fel returneras:
+Varje agentkort har också en egen knapp för **Återställ standardvärden** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — en återställning per agent med ett enda klick som endast tar bort spoofningen för den
+agentens värdar, rensar dess sparade modellmappningar och återställer dess tillstånd för `dns_enabled`/`setup_completed`,
+så att IDE:n kommunicerar med den verkliga uppströmsservern igen efter en fullständig omstart. Den påverkar **inte** den
+delade MITM-servern eller rot-CA:n (andra agenter kan fortfarande vara beroende av dem) — de förblir tillgängliga
+via serverkortet och åtgärden **Ta bort CA** ovan. I Windows görs även ett försök att köra
+`ipconfig /flushdns`, eftersom Windows DNS-klient cachelagrar poster i hosts-filen och annars inte tar bort en
+nyligen borttagen spoofning.
 
-| Kontrollnamn       | Vad den verifierar                                               | Tips vid fel                                                                                                                                                     |
-| ------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM-serverprocessen är aktiv                                    | "MITM-servern körs inte. Starta den från fliken AgentBridge."                                                                                                    |
-| `server-reachable` | MITM-servern accepterar anslutningar på sin port (TCP-kontroll)  | "MITM-servern accepterar inte anslutningar på sin port. Kontrollera att porten är ledig och att du har behörighet att binda den."                                |
-| `cert-exists`      | MITM-certifikatet har genererats på disken                       | "Inget MITM-certifikat har genererats ännu. Generera ett från fliken AgentBridge."                                                                               |
-| `cert-trusted`     | MITM-rot-CA:n finns i operativsystemets betrodda certifikatarkiv | "MITM-rot-CA:n är inte betrodd av operativsystemets certifikatarkiv, så TLS-avlyssning kommer att misslyckas. Gör certifikatet betrott från fliken AgentBridge." |
-| `dns-configured`   | Målvärdnamnen är spoofade i `/etc/hosts`                         | "Målvärdnamnen är inte spoofade i /etc/hosts, så trafiken når aldrig proxyn. Aktivera DNS för den eller de agenter vars trafik du vill samla in."                |
+**Diagnostikkontroller** (`summarizeDiagnostics()` i `src/mitm/inspector/diagnostics.ts`). Routen kör den effektskapande kontrollen för var och en och matar in de booleska värdena i den rena sammanfattningsfunktionen; ett enda `healthy`-resultat samt ett åtgärdsförslag för varje fel returneras:
 
-**Banderoll för kvarlämnat tillstånd:** när sidan upptäcker tillstånd som lämnats kvar efter en krasch (DNS-spoofning/CA/systemproxy) visar kortet en bärnstensfärgad banderoll — _"En tidigare session lämnade kvar systemtillstånd (DNS-spoofning, CA eller systemproxy). Kör Reparera för att rensa det."_ — och framhäver knappen **Reparera**. `Repair` är motsvarigheten till ProxyBridges flagga `--cleanup` på applikationsnivå (den delegerar till `repairMitm()` i `src/mitm/manager.ts`).
+| Kontrollnamn       | Vad den verifierar                                               | Förslag vid fel                                                                                                                                                       |
+| ------------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM-serverprocessen är aktiv                                    | ”MITM-servern körs inte. Starta den från fliken AgentBridge.”                                                                                                         |
+| `server-reachable` | MITM-servern accepterar anslutningar på sin port (TCP-kontroll)  | ”MITM-servern accepterar inte anslutningar på sin port. Kontrollera att porten är ledig och att du har behörighet att binda den.”                                     |
+| `cert-exists`      | MITM-certifikatet har genererats på disken                       | ”Inget MITM-certifikat har genererats ännu. Generera ett från fliken AgentBridge.”                                                                                    |
+| `cert-trusted`     | MITM-rot-CA:n finns i operativsystemets betrodda certifikatarkiv | ”MITM-rot-CA:n är inte betrodd av operativsystemets certifikatarkiv, så TLS-avlyssning kommer att misslyckas. Ange certifikatet som betrott från fliken AgentBridge.” |
+| `dns-configured`   | Målvärdnamnen är spoofade i `/etc/hosts`                         | ”Målvärdnamnen är inte spoofade i /etc/hosts, så trafiken når aldrig proxyn. Aktivera DNS för den eller de agenter vars trafik du vill samla in.”                     |
+
+**Banner för övergivet tillstånd:** när sidan upptäcker tillstånd som lämnats kvar efter en krasch (DNS-spoofning/CA/systemproxy) visar kortet en bärnstensfärgad banner — _”En tidigare session lämnade kvar systemtillstånd (DNS-spoofning, CA eller systemproxy). Kör Reparera för att rensa det.”_ — och markerar knappen **Reparera**. `Repair` är motsvarigheten på applikationslagret till ProxyBridges flagga `--cleanup` (den delegerar till `repairMitm()` i `src/mitm/manager.ts`).
 
 > MITM-rot-CA:n förblir installerad mellan stopp och start för att undvika upprepade sudo-
 > uppmaningar (samma beteende som mitmproxy/Charles), så borttagningen är en explicit
-> **Ta bort CA**-åtgärd i stället för något som sker automatiskt vid stopp.
+> åtgärd via **Ta bort CA** i stället för något som sker automatiskt vid stopp.
 
 ### 3.7 Import/export av portabel konfiguration
 
-AgentBridge kan serialisera det **operatörsjusterbara** tillståndet till ett versionshanterat JSON-objekt så att en konfiguration kan replikeras mellan datorer. Serialiseraren är `src/lib/inspector/configPortability.ts` (`exportConfig()`/`importConfig()`), validerad av `AgentBridgeConfigSchema`.
+AgentBridge kan serialisera det **operatörsjusterbara** tillståndet till ett versionshanterat JSON-objekt så att en konfiguration kan replikeras mellan datorer. Serialiseraren är `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) och valideras av `AgentBridgeConfigSchema`.
 
-Exporten innehåller exakt tre delar (inbyggda standardvärden exporteras avsiktligt **INTE**, så importen duplicerar dem aldrig eller orsakar konflikter med dem):
+Exporten innehåller exakt tre delar (inbyggda standardvärden exporteras avsiktligt **INTE**, så importen varken duplicerar dem eller skapar konflikter med dem):
 
-| Fält             | Källa                                                             | Anmärkningar                                                             |
+| Fält             | Källa                                                             | Anteckningar                                                             |
 | ---------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `bypassPatterns` | användardefinierade förbikopplingsmönster (`agent_bridge_bypass`) | standardmönster för bank/gov/okta exkluderas                             |
-| `customHosts`    | anpassade värdar i Traffic Inspector (`inspector_custom_hosts`)   | varje post: `{ host, kind: "llm"\|"app"\|"custom", label? }`             |
-| `agentMappings`  | modellsamband per agent (`agent_bridge_mappings`)                 | `{ [agentId]: [{ source, target }] }` för varje agent som har mappningar |
+| `bypassPatterns` | användardefinierade förbikopplingsmönster (`agent_bridge_bypass`) | standardmönster för banker/myndigheter/okta är exkluderade               |
+| `customHosts`    | anpassade värdar i Traffic Inspector (`inspector_custom_hosts`)   | vardera: `{ host, kind: "llm"\|"app"\|"custom", label? }`                |
+| `agentMappings`  | mod mappningar per agent (`agent_bridge_mappings`)                | `{ [agentId]: [{ source, target }] }` för varje agent som har mappningar |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ Exporten innehåller exakt tre delar (inbyggda standardvärden exporteras avsikt
 }
 ```
 
-**Importbeteende** (`POST /api/tools/agent-bridge/config`): förbikopplingsmönster och mappningar per agent **ersätts i sin helhet**; anpassade värdar läggs till **idempotent** (`INSERT OR IGNORE`). Svaret rapporterar hur många av varje som tillämpades:
+**Importbeteende** (`POST /api/tools/agent-bridge/config`): förbikopplingsmönster och mappningar per agent **ersätts i sin helhet**; anpassade värdar läggs till **idempotent** (`INSERT OR IGNORE`). Svaret anger hur många av varje som tillämpades:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Det som **INTE** finns i konfigurationen: serverns körningstillstånd, certifikatsökvägar, DNS-tillstånd per agent, sökväg till överordnad CA och TPROXY-inställningar — dessa är värd-/körningstillstånd, inte portabla inställningar.
+Det som **INTE** ingår i konfigurationen: serverns körningsstatus, certifikatsökvägar, DNS-status per agent, sökväg till överordnad CA och TPROXY-inställningar — dessa utgör värd-/körningsmiljötillstånd, inte portabla inställningar.
 
 ---
 
@@ -501,33 +510,34 @@ Alla rutter är `LOCAL_ONLY` (endast loopback, framtvingas före autentisering) 
 
 Bassökväg: `/api/tools/agent-bridge/`
 
-| Metod               | Sökväg                                         | Beskrivning                                                                                                                        |
-| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Global serverstatus + identifiering/status per agent                                                                               |
-| GET                 | `/api/tools/agent-bridge/agents`               | Lista registrerade agenter (id, namn, värdar, användbarhet, status)                                                                |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Status för en agent (målkonfiguration + identifiering + lagrad status)                                                             |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Uppdatera `setup_completed` för agenten                                                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Kör identifieringskontroll för agenten (`installed`, `version?`, `path?`)                                                          |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aktivera/inaktivera DNS för agenten (`{enabled: boolean}`)                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Modellmappningar för agenten                                                                                                       |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Ersätt modellmappningar                                                                                                            |
-| POST                | `/api/tools/agent-bridge/server`               | Starta/stoppa/starta om servern (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                            |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Certifikatstatus (`exists`, `trusted`, `path`)                                                                                     |
-| POST                | `/api/tools/agent-bridge/cert`                 | Betro (installera) MITM-rotcertifikatutfärdaren                                                                                    |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Sluta betro (ta bort) MITM-rotcertifikatutfärdaren — idempotent (se §3.6)                                                          |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Generera om det självsignerade MITM-certifikatet                                                                                   |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Strömma PEM-certifikatet för nedladdning                                                                                           |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Lista undantagsmönster (`default` + `user`)                                                                                        |
-| POST                | `/api/tools/agent-bridge/bypass`               | Ersätt alla användardefinierade undantagsmönster                                                                                   |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Ta bort ett enskilt användardefinierat undantagsmönster                                                                            |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Självtest av insamlingspipelinen (se §3.6)                                                                                         |
-| POST                | `/api/tools/agent-bridge/repair`               | Återställ kvarlämnat MITM-systemtillstånd (se §3.6)                                                                                |
-| GET                 | `/api/tools/agent-bridge/config`               | Exportera portabel konfiguration som JSON (se §3.7)                                                                                |
-| POST                | `/api/tools/agent-bridge/config`               | Importera portabel konfiguration som JSON (se §3.7)                                                                                |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Hämta sökvägen till den konfigurerade överordnade certifikatutfärdaren                                                             |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validera + spara sökvägen till den överordnade certifikatutfärdaren                                                                |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validera endast (testkörning) en sökväg till en överordnad certifikatutfärdare — sparas inte                                       |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY-insamlingsläge för transparent dekryptering — se `docs/security/MITM-TPROXY-DECRYPT.md` (git; kompileras inte till `/docs`) |
+| Metod               | Sökväg                                         | Beskrivning                                                                                                                          |
+| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| GET                 | `/api/tools/agent-bridge/state`                | Globalt servertillstånd + identifiering/status per agent                                                                             |
+| GET                 | `/api/tools/agent-bridge/agents`               | Lista registrerade agenter (id, namn, värdar, användbarhet, tillstånd)                                                               |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Tillstånd för en agent (målkonfiguration + identifiering + lagrat tillstånd)                                                         |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Uppdatera `setup_completed` för agenten                                                                                              |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Kör identifieringskontroll för agenten (`installed`, `version?`, `path?`)                                                            |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aktivera/inaktivera DNS för agenten (`{enabled: boolean}`)                                                                           |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Modellmappningar för agenten                                                                                                         |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Ersätt modellmappningar                                                                                                              |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Återställ standardinställningarna: upphäv DNS-förfalskning för agenten, rensa dess mappningar och återställ dess tillstånd (se §3.6) |
+| POST                | `/api/tools/agent-bridge/server`               | Starta/stoppa/starta om servern (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                              |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Certifikatstatus (`exists`, `trusted`, `path`)                                                                                       |
+| POST                | `/api/tools/agent-bridge/cert`                 | Betro (installera) MITM-rotcertifikatutfärdaren                                                                                      |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Ta bort förtroendet för (ta bort) MITM-rotcertifikatutfärdaren — idempotent (se §3.6)                                                |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Generera om det självsignerade MITM-certifikatet                                                                                     |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Strömma PEM-certifikatet för hämtning                                                                                                |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Lista förbikopplingsmönster (`default` + `user`)                                                                                     |
+| POST                | `/api/tools/agent-bridge/bypass`               | Ersätt alla användardefinierade förbikopplingsmönster                                                                                |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Ta bort ett enskilt användardefinierat förbikopplingsmönster                                                                         |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Självtest av insamlingspipelinen (se §3.6)                                                                                           |
+| POST                | `/api/tools/agent-bridge/repair`               | Ångra övergivet MITM-systemtillstånd (se §3.6)                                                                                       |
+| GET                 | `/api/tools/agent-bridge/config`               | Exportera portabel konfiguration som JSON (se §3.7)                                                                                  |
+| POST                | `/api/tools/agent-bridge/config`               | Importera portabel konfiguration från JSON (se §3.7)                                                                                 |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Hämta sökvägen till den konfigurerade överordnade certifikatutfärdaren                                                               |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validera + spara sökvägen till den överordnade certifikatutfärdaren                                                                  |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validera endast (provkörning) en sökväg till en överordnad certifikatutfärdare — sparas inte                                         |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY-insamlingsläge med transparent dekryptering — se `docs/security/MITM-TPROXY-DECRYPT.md` (git; kompileras inte in i `/docs`)   |
 
 Fullständiga OpenAPI-scheman: `docs/openapi.yaml` → taggen `AgentBridge`.
 

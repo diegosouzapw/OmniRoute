@@ -220,7 +220,7 @@ For brugere, der har brug for et Socket-venligt artefakt, skal der bygges med:
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpacks `NormalModuleReplacementPlugin` knytter fire moduler til stubs:
+Webpack-pluginet `NormalModuleReplacementPlugin` opretter aliasser for fire moduler til stubs:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -234,8 +234,7 @@ Hver stub eksporterer den samme grænseflade, men alle funktioner udløser en
 modul, returnerer HTTP 503 med en tydelig meddelelse i stedet for at aktivere den
 følsomme kodesti.
 
-Den resulterende pakke er beregnet til at blive udgivet som `omniroute-secure`. Se
-`docs/ops/PUBLISHING_SECURE.md` for udgivelsesvejledningen.
+Den resulterende bundle er beregnet til at blive udgivet som `omniroute-secure`.
 
 ---
 

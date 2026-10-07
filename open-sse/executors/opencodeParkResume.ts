@@ -11,9 +11,16 @@
  */
 
 import { sleepAbortable } from "./opencodeTransientFailure.ts";
+import { synthesizeOpenAiSseFromJson } from "../utils/jsonToSse.ts";
+import { buildErrorBody } from "../utils/error.ts";
+import { sanitizeErrorMessage } from "../utils/errorSanitization.ts";
+import { formatSSE } from "../utils/streamHelpers.ts";
+import { FORMATS } from "../translator/formats.ts";
+import { PARKED_STREAM_HEADER, PARKED_STREAM_VALUE } from "../utils/streamReadiness.ts";
 import { isProxyAvoided, proxyEgressKey, proxySetAsideSeq } from "../utils/proxyRefusalMemory.ts";
 import { maskAccountId, type RotatableAccount } from "./accountRotation.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { noteResilienceAction } from "@/lib/usage/resilienceActionsContext.ts";
 import type { ExecuteInput, ExecutorExecuteResult } from "./base.ts";
 
 /** Consecutive transient 429s before a request parks. */
@@ -140,16 +147,63 @@ export function parkWaitMs(ttlLeftMs: number | null): number {
  */
 export function replayCandidates<T extends RotatableAccount>(
   accounts: T[],
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  keyOfMember: (account: T) => string | null = (a) => proxyEgressKey(a.proxy)
 ): T[] {
-  return accounts
-    .filter((a) => a.cooldownUntil <= nowMs && !isProxyAvoided(proxyEgressKey(a.proxy)))
+  const ready = accounts.filter((a) => a.cooldownUntil <= nowMs);
+  const fresh = ready.filter((a) => !isProxyAvoided(keyOfMember(a)));
+  // Serve anyway when everything ready is set aside (never exclude).
+  return (fresh.length > 0 ? fresh : ready)
     .sort((x, y) => {
-      const sx = proxySetAsideSeq(proxyEgressKey(x.proxy)) ?? -1;
-      const sy = proxySetAsideSeq(proxyEgressKey(y.proxy)) ?? -1;
+      const sx = proxySetAsideSeq(keyOfMember(x)) ?? -1;
+      const sy = proxySetAsideSeq(keyOfMember(y)) ?? -1;
       return sx - sy;
     })
     .slice(0, PARK_PROBE_MAX);
+}
+
+/** Shared SSE comment frame emitted while parked (single literal, reused by tests). */
+export const PARK_PING_FRAME = ":ping\n\n";
+
+/**
+ * Copy the replayed final body into the parked stream as valid SSE frames:
+ * SSE bytes pass through untouched (ping-then-data order kept);
+ * chat-completion JSON converts via the existing normalizer; any other
+ * fallback is surfaced as a single error data frame, status included.
+ */
+async function copyFinalBodyAsValidFrames(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  finalBody: Response
+): Promise<void> {
+  const contentType = (finalBody.headers.get("content-type") || "").toLowerCase();
+  const status = finalBody.status;
+  if (contentType.includes("text/event-stream")) {
+    const text = await finalBody.text();
+    controller.enqueue(encoder.encode(text));
+    return;
+  }
+  const text = await finalBody.text();
+  // Chat-completion JSON fallback: convert to the equivalent SSE stream via
+  // the existing normalizer (same shape as the streaming pipeline's own
+  // JSON-to-SSE path — valid frames, order kept).
+  const synthesized = synthesizeOpenAiSseFromJson(text);
+  if (synthesized) {
+    controller.enqueue(encoder.encode(synthesized));
+    return;
+  }
+  // Non-convertible fallback (e.g. the last transient 429 error body):
+  // surface it as a single error data frame built with the shared error
+  // helpers, so the parked stream stays a valid SSE frame sequence.
+  const errorBody = buildErrorBody(
+    status >= 400 ? status : 502,
+    sanitizeErrorMessage(text) || "Upstream request failed"
+  );
+  try {
+    controller.enqueue(encoder.encode(formatSSE({ error: errorBody.error }, FORMATS.OPENAI)));
+  } catch {
+    /* consumer gone — the close below ends the stream */
+  }
 }
 
 /** Executor surface the park runner needs (kept injectable for tests). */
@@ -157,6 +211,7 @@ export interface ParkDriver<TAccount extends RotatableAccount = RotatableAccount
   execute: (input: ExecuteInput) => Promise<ExecutorExecuteResult & { response: Response }>;
   markSuccess: (account: TAccount) => void;
   sleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean>;
+  replayKeyOfMember?: (account: TAccount) => string | null;
 }
 
 /**
@@ -181,7 +236,7 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
       async start(controller) {
         const ping = (): void => {
           try {
-            controller.enqueue(encoder.encode(":ping\n\n"));
+            controller.enqueue(encoder.encode(PARK_PING_FRAME));
           } catch {
             /* consumer gone — the abort check below ends the park */
           }
@@ -197,10 +252,22 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
         }
         const probe = await replayOneLeg(driver, input, driver.accounts, log, cid);
         const finalBody = probe?.result.response ?? fallback.response;
+        // stream note: note only AFTER the recopy outcome is known. A stored 429
+        // fallback recopied into the 200 SSE envelope is still a stored
+        // error replay — flag alone decides at read time.
+        let recopied = true;
         try {
-          controller.enqueue(encoder.encode(await finalBody.text()));
+          await copyFinalBodyAsValidFrames(controller, encoder, finalBody);
         } catch {
-          /* unreadable body — close with the pings already sent */
+          // Unreadable body — the client got pings only, not the replay.
+          recopied = false;
+        }
+        if (probe == null && fallback.response.status === 429) {
+          noteResilienceAction({ stored429: true, replayed: false });
+        } else if (probe != null && recopied) {
+          noteResilienceAction({ replayed: true });
+        } else if (probe != null) {
+          noteResilienceAction({ replayed: false });
         }
         try {
           controller.close();
@@ -213,7 +280,10 @@ export async function runParkAndReplay<TAccount extends RotatableAccount>(
       ...fallback,
       response: new Response(stream, {
         status: 200,
-        headers: { "Content-Type": "text/event-stream" },
+        headers: {
+          "Content-Type": "text/event-stream",
+          [PARKED_STREAM_HEADER]: PARKED_STREAM_VALUE,
+        },
       }),
     };
   }
@@ -245,7 +315,7 @@ export async function replayOneLeg<TAccount extends RotatableAccount>(
     account: TAccount;
     result: ExecutorExecuteResult & { response: Response };
   } | null = null;
-  for (const account of replayCandidates(accounts)) {
+  for (const account of replayCandidates(accounts, Date.now(), driver.replayKeyOfMember)) {
     const masked = maskAccountId(account.fingerprint);
     const proxy = (account as { proxy?: { host?: string; port?: unknown } | null }).proxy;
     log?.info?.(

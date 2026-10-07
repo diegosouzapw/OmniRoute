@@ -310,25 +310,30 @@ Ang RTK mode ay hango sa **[RTK - Rust Token Killer](https://github.com/rtk-ai/r
 
 ---
 
-## Mga Advanced na Sistema ng Kompresyon
+## Mga Advanced na Sistema ng Compression
 
-Higit pa sa 7 karaniwang mode, kasama sa OmniRoute ang ilang advanced na sistema ng kompresyon na awtomatikong gumagana batay sa konteksto.
+Bukod sa 7 karaniwang mode, kabilang sa OmniRoute ang ilang advanced na sistema ng compression
+na awtomatikong gumagana batay sa konteksto.
 
-### Kompresyon na May Kamalayan sa Cache
+### Compression na Isinasaalang-alang ang Cache
 
-Ang ilang provider (tulad ng Anthropic na may prompt caching) ay sumusuporta sa **prompt caching**, na nagpapahintulot sa kanila na i-cache ang mga bahagi ng prompt upang mabawasan ang mga gastos at latency. Kapag naka-enable ang caching, ang agresibong kompresyon ay maaaring talagang **makasama** sa performance dahil binabago nito ang mga naka-cache na token, na nagpapawalang-bisa sa cache.
+Sinusuportahan ng ilang provider (tulad ng Anthropic na may prompt caching) ang **prompt caching**,
+na nagbibigay-daan sa kanilang i-cache ang mga bahagi ng prompt upang mabawasan ang gastos at latency. Kapag
+naka-enable ang caching, ang agresibong compression ay maaari talagang **makasama** sa performance
+dahil binabago nito ang mga naka-cache na token, kaya nawawalan ng bisa ang cache.
 
-Nilulutas ito ng `cachingAware.ts` module sa pamamagitan ng **pagtukoy sa konteksto ng caching** at **pagsasaayos ng diskarte sa kompresyon** nang naaayon.
+Nilulutas ito ng module na `cachingAware.ts` sa pamamagitan ng **pagtukoy sa konteksto ng caching** at
+**pag-aangkop ng diskarte sa compression** nang naaayon.
 
-#### Paano Ito Gumagana
+#### Paano ito gumagana
 
-1.  **Tukuyin ang konteksto ng caching** — Ini-scan ang request body para sa mga `cache_control` marker
-2.  **Tukuyin ang mga provider ng caching** — Sinusuri kung sinusuportahan ng target na provider ang caching
-3.  **Ayusin ang diskarte** — Ibinababa ang `aggressive`/`ultra` sa `standard` para sa mga provider ng caching
-4.  **Laktawan ang system prompt** — Karaniwang naka-cache ang mga system prompt, kaya huwag i-compress ang mga ito
-5.  **Gumamit ng mga deterministic na transpormasyon** — Gumamit lamang ng mga transpormasyon na gumagawa ng pare-parehong output
+1. **Tukuyin ang konteksto ng caching** — Sinusuri ang request body para sa mga marker na `cache_control`
+2. **Tukuyin ang mga provider ng caching** — Tinitingnan kung sinusuportahan ng target na provider ang caching
+3. **Iangkop ang diskarte** — Ibinababa ang `aggressive`/`ultra` sa `standard` para sa mga provider ng caching
+4. **Laktawan ang system prompt** — Karaniwang naka-cache ang mga system prompt, kaya huwag i-compress ang mga ito
+5. **Gumamit ng mga deterministikong pagbabago** — Gumamit lamang ng mga pagbabagong lumilikha ng pare-parehong output
 
-#### Halimbawa ng Code
+#### Halimbawa ng code
 
 ```ts
 import {
@@ -339,7 +344,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Marker ng Cache
+  cache_control: { type: "ephemeral" }, // ← Marker ng cache
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -349,23 +354,25 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Kailan Gagamitin
+#### Kailan gagamitin
 
-Ang kompresyon na may kamalayan sa cache ay **palaging naka-on** — walang kinakailangang configuration. Ito ay gumagana lamang kapag:
+Ang compression na isinasaalang-alang ang cache ay **palaging naka-on** — walang kinakailangang configuration. Umaandar lamang ito
+kapag:
 
-- Ang request ay may mga `cache_control` marker
+- May mga marker na `cache_control` ang request
 - Sinusuportahan ng target na provider ang prompt caching (Anthropic, OpenAI, atbp.)
 
-### Progresibong Pag-edad
+### Progresibong Pagtanda
 
-Ang mahabang pag-uusap ay nag-iipon ng maraming palitan ng mensahe, ngunit ang mga mas lumang palitan ay nagiging hindi gaanong mahalaga. Ang `progressiveAging.ts` module ay **nagpapababa ng kalidad ng mga mensahe batay sa distansya ng palitan**:
+Naiipon sa mahahabang pag-uusap ang maraming salitan ng mensahe, ngunit nagiging hindi gaanong
+mahalaga ang mga mas lumang salitan. **Unti-unting pinapababa ng module na `progressiveAging.ts` ang detalye ng mga mensahe batay sa layo ng salitan**:
 
-- **Mga kamakailang palitan (0-3)**: Pinananatiling verbatim (buong detalye)
-- **Mga katamtamang palitan (4-8)**: Lite compression (whitespace, paglilinis ng formatting)
-- **Mga lumang palitan (9+)**: Caveman compression (pagtanggal ng filler, pagbubuod)
-- **Mga napakalumang palitan (20+)**: Lubos na binubuod o tinatanggal
+- **Mga kamakailang salitan (0-3)**: Pinananatili nang eksakto (buong detalye)
+- **Mga katamtamang lumang salitan (4-8)**: Magaang compression (paglilinis ng whitespace at formatting)
+- **Mga lumang salitan (9+)**: Caveman compression (pag-aalis ng mga salitang palaman, pagbubuod)
+- **Mga napakalumang salitan (20+)**: Lubos na binubuod o inaalis
 
-#### Halimbawa ng Code
+#### Halimbawa ng code
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -374,46 +381,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... 50 pang salitan ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Unang 3 palitan: verbatim
-  light: 8, // Mga palitan 4-8: lite compression
-  moderate: 20, // Mga palitan 9-20: caveman compression
-  // Mga palitan 21+: mabigat na pagbubuod
+  verbatim: 3, // Unang 3 salitan: eksakto
+  light: 8, // Mga salitan 4-8: magaang compression
+  moderate: 20, // Mga salitan 9-20: caveman compression
+  // Mga salitan 21+: matinding pagbubuod
 });
 
-// saved = bilang ng mga token na na-save
+// saved = bilang ng mga token na natipid
 ```
 
-#### Kailan Gagamitin
+#### Kailan gagamitin
 
-Ang progresibong pag-edad ay **palaging naka-on** para sa `aggressive` at `ultra` na mga mode. Ito ay partikular na epektibo para sa:
+Ang progresibong pagtanda ay **palaging naka-on** para sa mga mode na `aggressive` at `ultra`. Ito ay
+partikular na epektibo para sa:
 
-- Mahabang sesyon ng coding
-- Mga pag-uusap na tumatagal ng ilang araw
-- Mga agentic workflow na may maraming tool call
+- Mga matagal na coding session
+- Mga pag-uusap na tumatagal nang maraming araw
+- Mga agentic workflow na maraming tool call
 
 ### Caveman Output Mode
 
-Ang `outputMode.ts` module ay nag-i-inject ng **mga tagubilin sa system prompt** upang ang modelo mismo ay makagawa ng compressed, maikling output (isang "caveman" na estilo).
+Nag-i-inject ang module na `outputMode.ts` ng **mga tagubilin sa system prompt** upang ang
+modelo mismo ay gumawa ng compressed at maikling output (isang istilong "caveman").
 
-#### Paano Ito Gumagana
+#### Paano ito gumagana
 
-Sa halip na i-compress ang input, ang mode na ito ay nagdaragdag ng system prompt tulad ng:
+Sa halip na i-compress ang input, nagdaragdag ang mode na ito ng system prompt tulad ng:
 
-> "Sumagot sa pinakakaunting salita. Laktawan ang mga pormalidad. Gumamit ng maiikling pangungusap."
+> "Sumagot gamit ang pinakakaunting salita. Laktawan ang mga pagbati. Gumamit ng maiikling pangungusap."
 
-Ito ay partikular na gumagana nang maayos para sa:
+Partikular itong mahusay para sa:
 
 - Pagbuo ng code (mas maikling output = mas kaunting token)
-- Mabilis na Q&A (hindi kailangan ng detalyadong paliwanag)
+- Mabilisang tanong at sagot (hindi kailangan ng detalyadong paliwanag)
 - Batch processing (i-maximize ang throughput)
 
-#### Kailan Gagamitin
+#### Kailan gagamitin
 
-Ang Caveman output mode ay **opt-in** — itakda ito sa pamamagitan ng combo config:
+Ang caveman output mode ay **opt-in** — itakda ito sa pamamagitan ng combo config:
 
 ```json
 {
@@ -426,35 +435,60 @@ Ang Caveman output mode ay **opt-in** — itakda ito sa pamamagitan ng combo con
 }
 ```
 
-### Mga Estilo ng Output (katalogo)
+### Mga Istilo ng Output (catalog)
 
-Ang Caveman output mode sa itaas ay ang **legacy single-style path**. Ginawa itong pangkalahatan ng Phase 4 sa isang katalogo ng mga composable output style: `OUTPUT_STYLE_CATALOG` sa `open-sse/services/compression/outputStyles/catalog.ts`. Ang bawat estilo ay isang tagubilin sa system-prompt na nagpapagawa sa modelo mismo ng mas murang output; ang mga estilo ay maaaring paganahin nang magkasama at ini-inject sa pagkakasunud-sunod ng katalogo.
+Ang caveman output mode sa itaas ang **legacy na landas na may iisang istilo**. Ginawa itong pangkalahatan ng Phase 4
+bilang isang catalog ng mga output style na maaaring pagsama-samahin: `OUTPUT_STYLE_CATALOG` sa
+`open-sse/services/compression/outputStyles/catalog.ts`. Ang bawat istilo ay isang tagubilin sa system prompt
+na nagtutulak sa modelo mismo na gumawa ng mas murang output; maaaring i-enable nang
+sabay-sabay ang mga istilo at ini-inject ang mga ito ayon sa pagkakasunod sa catalog.
 
-| Estilo                     | `id`          | Ginagawa nito                                                                                                                                                                                                                                  | Mga wika ng pagtuturo                                               |
-| -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Terse prose                | `terse-prose` | Tanggalin ang mga filler/articles/hedging; panatilihing eksakto ang teknikal na substansiya. Parehong teksto ng legacy caveman output mode (referenced, hindi re-typed).                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Less code                  | `less-code`   | YAGNI ladder: pinakamaliit na gumaganang pagbabago, walang hindi hiniling na abstractions.                                                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Ponytail (lazy senior dev) | `ponytail`    | "Ang pinakamahusay na code ay ang code na hindi kailanman isinulat": reuse > rewrite, root cause > symptom, pinakamaikling gumaganang diff.                                                                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| I have ADHD (action-first) | `i-have-adhd` | Aksyon muna (command/path/snippet bago ang prose), may bilang na nakabukod na hakbang, ISANG konkretong susunod na hakbang, walang preamble/recap/closers. Inangkop mula sa [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                       |
-| Terse CJK (文言)           | `terse-cjk`   | Classical-Chinese ultra-terse style.                                                                                                                                                                                                           | zh (locale-gated: inaalok lamang kapag ang nalutas na wika ay `zh`) |
+| Estilo                         | `id`          | Ginagawa nito                                                                                                                                                                                                                                     | Mga wika ng tagubilin                                                      |
+| ------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Maikling prosa                 | `terse-prose` | Alisin ang mga salitang pampuno/artikulo/pag-aalinlangan; panatilihing eksakto ang teknikal na nilalaman. Kaparehong teksto ng lumang caveman output mode (isinangguni, hindi muling itinipa).                                                    | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Mas kaunting code              | `less-code`   | YAGNI ladder: pinakamaliit na gumaganang pagbabago, walang mga abstraction na hindi hiniling.                                                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Ponytail (tamad na senior dev) | `ponytail`    | "Ang pinakamahusay na code ay ang code na hindi kailanman isinulat": reuse > rewrite, ugat na sanhi > sintomas, pinakamaikling gumaganang diff.                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| May ADHD ako (aksyon muna)     | `i-have-adhd` | Aksyon muna (command/path/snippet bago ang prosa), may bilang at limitadong mga hakbang, ISANG konkretong susunod na hakbang, walang preamble/recap/pangwakas. Hinango mula sa [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Maikling CJK (文言)            | `terse-cjk`   | Napakaikling estilo ng Klasikal na Tsino.                                                                                                                                                                                                         | zh (nakadepende sa locale: iniaalok lamang kapag `zh` ang natukoy na wika) |
 
-Ang bawat estilo ay may tatlong antas ng intensity — `lite`, `full`, `ultra` — at ang bawat antas
-ay nagtatapos sa shared boundaries clause, na nagpapanatili ng mga code block, file path, commands,
-error string, URL at identifier na verbatim.
+May tatlong antas ng intensity ang bawat estilo — `lite`, `full`, `ultra` — at ang bawat antas
+ay nagtatapos sa iisang boundaries clause, na nagpapanatili sa mga code block, file path, command,
+error string, URL, at identifier nang verbatim.
 
 #### Paano gumagana ang injection
 
-Ang `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ay nagre-resolve
-ng seleksyon laban sa catalog (ang mga hindi kilalang id at mga estilo na hindi tugma sa locale ay
-ibinababa, hindi kailanman isang error), pinagsasama ang mga napiling instruksyon sa pagkakasunud-sunod ng catalog,
-idinadagdag ang boundaries clause **minsan**, at inilalagay ang resulta sa system
-prompt sa likod ng isang idempotency marker (`[OmniRoute Output Styles]`) — ang muling pag-apply
-ay isang no-op. Kapag ang nakitang wika ng kahilingan ay may salin, ang localized
-na instruksyon ay ini-inject sa halip na Ingles.
+Nire-resolve ng `applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) ang
+napili laban sa catalog (inaalis ang mga hindi kilalang id at mga estilong hindi tugma sa locale,
+at hindi kailanman itinuturing na error), pinagsasama ang mga napiling tagubilin ayon sa pagkakasunod
+sa catalog, idinaragdag ang boundaries clause nang **isang beses**, at sinisimulan ang block gamit
+ang iisang idempotency marker (`[OmniRoute Output Styles]`), kaya walang epekto ang muling paglalapat.
+Kapag may salin ang natukoy na wika (tingnan ang Pagpili ng wika sa ibaba), ang naka-localize na
+tagubilin ang ini-inject sa halip na Ingles.
 
-#### Paano paganahin
+Sa body na may `messages`, sinusuri ng content bypass (`shouldBypassCavemanOutputMode()` sa
+`open-sse/services/compression/outputMode.ts`) ang huling tatlong mensahe at nilalaktawan ang
+mga estilo para sa buong turn kapag tumugma ang mga ito sa mga keyword nito para sa seguridad,
+hindi mababawi na aksyon, paglilinaw, o pagkakasunod-sunod. Tumatakbo ang bypass habang naka-on ang **Auto-Clarity Bypass** toggle (`cavemanOutputMode.autoClarity`) sa dashboard, na siyang default; kapag naka-off ang toggle, ang mga napiling estilo ay may bisa rin sa mga turn na iyon.
 
-Sa dashboard: **Context → Settings → Compression** — isang row bawat estilo na may on/off toggle at isang level selector. Programmatically, ang compression config ay nagpapanatili ng seleksyon bilang:
+Kapag pinahintulutan ng bypass ang turn, inilalagay ng `placeSystemInstruction()` (parehong file),
+na hindi kailanman gumagawa ng bagong `messages[0]`, ang block sa una nitong makita sa mga sumusunod:
+
+1. Isang system message sa unahan na may string content: idinaragdag ang block pagkatapos ng teksto nito.
+2. Ang top-level na `system` field: idinaragdag ang block pagkatapos ng teksto ng isang string, o
+   idinaragdag bilang bagong text block sa isang content-block array.
+3. Ang unang kasunod na system message na may string content: idinaragdag ang block pagkatapos ng
+   teksto nito.
+4. Wala sa mga nasa itaas: inilalagay ang block sa isang bagong system message sa dulo ng `messages`.
+
+Sa body na walang `messages`, idinaragdag ang block sa isang string na `instructions` field,
+o nagiging `instructions` kapag may `input` ang body (isang string o array). Nilalaktawan bilang
+`no_messages` ang body na walang `instructions` at `input`.
+
+#### Paano i-enable
+
+Sa dashboard: **Context → Settings → Compression** — isang row bawat estilo na may
+on/off toggle at level selector. Sa programmatic na paraan, pinapanatili ng compression config
+ang napili bilang:
 
 ```json
 {
@@ -465,57 +499,57 @@ Sa dashboard: **Context → Settings → Compression** — isang row bawat estil
 }
 ```
 
-Back-compat: ang legacy na `outputMode: "caveman"` combo setting ay gumagana pa rin at nagmamapa sa
-`terse-prose`, byte-identical sa lumang injection sa bawat legacy na wika.
+Back-compat: gumagana pa rin ang lumang combo setting na `outputMode: "caveman"` at nagma-map ito sa
+`terse-prose`, na byte-identical sa lumang injection sa bawat legacy na wika.
 
 Pagpili ng wika: kapag naka-on ang `languageConfig.enabled`, pinipili ng `autoDetect` ang
-wika ng pinakabagong mensahe ng user (parehong detector tulad ng mga input engine);
-ang pag-off ng `autoDetect` ay nagtatakda ng `defaultLanguage`. Off → Ingles.
+wika ng pinakabagong mensahe ng user (kaparehong detector ng mga input engine);
+kapag in-off ang `autoDetect`, naka-pin ang `defaultLanguage`. Off → Ingles.
 
-Ang style × language matrix ay nakatakda sa
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: ang isang bagong estilo ay hindi maaaring ipadala
-nang walang kahit isang pt-BR na pagsasalin (o isang tahasang sinusubaybayang exception), at ang isang
-umiiral na estilo ay hindi maaaring tahimik na mawalan ng locale. Upang magdagdag ng estilo, tingnan ang
+Naka-pin ang style × language matrix ng
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: hindi maaaring ilabas ang bagong estilo
+nang walang kahit man lang salin sa pt-BR (o tahasang sinusubaybayang exception), at hindi maaaring
+tahimik na mawalan ng locale ang isang umiiral na estilo. Para magdagdag ng estilo, tingnan ang
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Tool Result Compression
+### Compression ng Resulta ng Tool
 
-Ang `toolResultCompressor.ts` module ay nagbibigay ng **5 specialized compression strategies**
-para sa mga resulta ng tool (function calls, agent outputs, search results, atbp.):
+Nagbibigay ang `toolResultCompressor.ts` module ng **5 espesyalisadong diskarte sa compression**
+para sa mga resulta ng tool (mga function call, output ng agent, resulta ng paghahanap, atbp.):
 
-1. **Search result compression** — Tinatanggal ang mga kalabisan na resulta, pinapanatili ang top-N
-2. **File read compression** — Pinutol ang malalaking file, pinapanatili ang mga header/imports
-3. **Code execution compression** — Pinapanatili lamang ang mahahalagang stdout/stderr
-4. **Database query compression** — Nililimitahan ang mga row, tinatanggal ang verbose metadata
-5. **API response compression** — Tinatanggal ang mga null field, pinagsasama ang mga array
+1. **Compression ng resulta ng paghahanap** — Inaalis ang mga paulit-ulit na resulta, pinapanatili ang top-N
+2. **Compression ng pagbasa ng file** — Pinuputol ang malalaking file, pinapanatili ang mga header/import
+3. **Compression ng pagpapatupad ng code** — Pinapanatili lamang ang mahahalagang stdout/stderr
+4. **Compression ng database query** — Nililimitahan ang mga row, inaalis ang masyadong detalyadong metadata
+5. **Compression ng API response** — Inaalis ang mga null field, pinaiikli ang mga array
 
 #### Kailan gagamitin
 
-Ang tool result compression ay **palaging naka-on** kapag may mga tool call. Walang
-kinakailangang configuration.
+Ang compression ng resulta ng tool ay **palaging naka-on** kapag may mga tool call. Walang
+kailangang configuration.
 
-### Stacked Pipeline
+### Naka-stack na Pipeline
 
-Ang stacked mode ay nagpapatakbo ng **maraming engine nang sunud-sunod** — karaniwan ay RTK muna
-(60-90% savings sa tool output), pagkatapos ay Caveman (30% karagdagang savings sa
-natitirang teksto). Nakakamit nito ang **78-95% kabuuang savings**.
+Ang naka-stack na mode ay nagpapatakbo ng **maraming engine nang sunud-sunod** — karaniwang RTK muna
+(60-90% na pagtitipid sa output ng tool), pagkatapos ay Caveman (30% na karagdagang pagtitipid sa
+natitirang teksto). Nakakamit nito ang **78-95% na kabuuang pagtitipid**.
 
 #### Paano ito gumagana
 
 ```
-Input (1000 tokens)
-  → RTK (command-aware filter) → 200 tokens
-    → Caveman (filler removal) → 140 tokens
-  → Output (140 tokens, 86% savings)
+Input (1000 token)
+  → RTK (filter na nakauunawa sa command) → 200 token
+    → Caveman (pag-aalis ng filler) → 140 token
+  → Output (140 token, 86% na pagtitipid)
 ```
 
 #### Kailan gagamitin
 
-Gamitin ang stacked mode para sa:
+Gamitin ang naka-stack na mode para sa:
 
-- Mga workflow na mabigat sa tool (agentic coding, pananaliksik)
-- Pagproseso ng batch na sensitibo sa gastos
-- Kapag kailangan mo ng maximum na pagtitipid sa token
+- Mga workflow na maraming tool (agentic coding, pananaliksik)
+- Batch processing na sensitibo sa gastos
+- Kapag kailangan mo ng pinakamalaking pagtitipid sa token
 
 I-configure sa pamamagitan ng combo:
 

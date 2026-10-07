@@ -278,7 +278,7 @@ test("handleResponsesCore maps unsupported Kimi K3 xhigh effort to max", async (
   assert.deepEqual(call.body.output_config, { effort: "max" });
 });
 
-test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
+test("handleResponsesCore strips previous_response_id only when input is non-empty, and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
@@ -289,7 +289,10 @@ test("handleResponsesCore strips previous_response_id by default and handles emp
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, undefined);
+  // #14318-class fix: keep previous_response_id when input is empty so GitHub
+  // Copilot-style requests that rely on server-side continuation do not 400.
+  // Metadata is still stripped as an unknown field.
+  assert.equal(call.body.previous_response_id, "resp_prev_123");
   assert.equal(call.body.metadata, undefined);
   // Empty input[] now injects a placeholder user message to avoid upstream
   // "400: at least one message is required" rejections (9router#419).
@@ -582,7 +585,8 @@ test("handleResponsesCore injects SSE keepalive frames for Responses streams", a
 
     const sse = await result.response.text();
 
-    assert.match(sse, /data: \{"type":"response\.in_progress"\}/);
+    // #14572 (#14330) gives the synthesized frame a sequence_number (seed 1) and a response.
+    assert.match(sse, /data: \{"type":"response\.in_progress","sequence_number":1,/);
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
   } finally {

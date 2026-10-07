@@ -236,14 +236,14 @@ docker compose -f docker-compose.prod.yml down
 
 ## የDockerfile ደረጃዎች
 
-ማከማቻው ባለብዙ ደረጃ Dockerfile (`Dockerfile`) ይዟል። አራት ደረጃዎች ቀርበዋል፤ ለአጠቃቀምዎ ተገቢውን `target` ይምረጡ።
+ማከማቻው ባለብዙ ደረጃ Dockerfile (`Dockerfile`) ይዟል። አራት ደረጃዎች ተዘጋጅተዋል፤ ለአጠቃቀምዎ ተስማሚውን `target` ይምረጡ።
 
-| ደረጃ           | መሠረታዊ ምስል             | ዓላማ                                                                                                                                                                                                                           |
-| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | ጥገኞችን ይጭናል (`npm ci --legacy-peer-deps`) እና `npm run build` ያስኬዳል (በነባሪ Turbopack — ከታች ያለውን የግንባታ ጊዜ ሀብቶች ይመልከቱ)                                                                                                             |
-| `runner-base` | `node:26-trixie-slim` | የNext.js ራሱን የቻለ ውጤት ያለው የምርት አሂድ ጊዜ። **ምንም የአቅራቢ CLIዎች አልተካተቱም።**                                                                                                                                                            |
-| `runner-cli`  | `runner-base`         | `git`፣ `docker.io`፣ `docker-compose` እና አለምአቀፍ CLIዎችን ይጨምራል፦ `@openai/codex`፣ `@anthropic-ai/claude-code`፣ `droid`፣ `openclaw`። **ወኪል-ተኮር የሥራ ፍሰቶችን ለመጠቀም ይህን ይምረጡ።**                                                         |
-| `runner-web`  | `runner-base`         | ለድር-ክፍለ-ጊዜ አቅራቢዎች Playwright + Chromium አሳሽ (`--with-deps`) ይጨምራል፦ `gemini-web`፣ `claude-web`፣ `claude-turnstile`። **እነዚህን አቅራቢዎች ሲጠቀሙ ይህን ይምረጡ** — ያለዚህ ተራው ምስል ጥያቄ በሚቀርብበት ጊዜ ይሳካል (በልቀት ቻናሎች ስር ያለውን የ`-web` ማስታወሻ ይመልከቱ)። |
+| ደረጃ           | መሠረታዊ ምስል             | ዓላማ                                                                                                                                                                                                                                |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | ጥገኞችን (`npm ci --legacy-peer-deps`) ይጭናል እና `npm run build` ያስኬዳል (በነባሪ Turbopack — ከታች ያሉትን የግንባታ ጊዜ ሀብቶች ይመልከቱ)                                                                                                                  |
+| `runner-base` | `node:26-trixie-slim` | የNext.js standalone ውጤትን የያዘ የምርት አካባቢ runtime። **ምንም የአቅራቢ CLIዎች አልተካተቱም።**                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | `git`፣ `docker.io`፣ `docker-compose` እና ዓለም አቀፍ CLIዎችን ይጨምራል፦ `@openai/codex`፣ `@anthropic-ai/claude-code`፣ `droid`፣ `openclaw`። **ለወኪል-ተኮር የሥራ ፍሰቶች ይህን ይምረጡ።**                                                                   |
+| `runner-web`  | `runner-base`         | ለድር-ክፍለ-ጊዜ አቅራቢዎች Playwright + Chromium አሳሽ (`--with-deps`) ይጨምራል፦ `gemini-web`፣ `claude-web`፣ `claude-turnstile`። **እነዚህን አቅራቢዎች ሲጠቀሙ ይህን ይምረጡ** — ይህ ከሌለ መደበኛው ምስል ጥያቄ በሚቀርብበት ጊዜ ይከሽፋል (በልቀት ቻናሎች ሥር ያለውን የ`-web` ማስታወሻ ይመልከቱ)። |
 
 የተወሰነ targetን በእጅ ይገንቡ፦
 
@@ -255,78 +255,84 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### የግንባታ ጊዜ ሀብቶች
 
-የ`builder` ደረጃ የሚጠቀመውን ሀብት ሦስት የግንባታ ነጋሪ እሴቶች ይቆጣጠራሉ። እነሱ ለግንባታ ጊዜ ብቻ ናቸው —
-`OMNIROUTE_MEMORY_MB` (ከታች) የተለየ የአሂድ ጊዜ ማስተካከያ ነው።
+ሦስት build args የ`builder` ደረጃውን የሀብት ፍጆታ ይቆጣጠራሉ። እነዚህ ለግንባታ ጊዜ ብቻ ናቸው —
+`OMNIROUTE_MEMORY_MB` (ከታች) የተለየ የruntime መቆጣጠሪያ ነው።
 
-| የግንባታ ነጋሪ እሴት               | ነባሪ    | ተጽዕኖ                                                                    |
-| --------------------------- | ------ | ----------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` በምትኩ በwebpack ይገነባል። ከፍተኛው የማስታወሻ አጠቃቀም ዝቅተኛ ነው፣ ግን ቀርፋፋ ነው።        |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | ለሚጀመረው `next build` የV8 ሂፕ ጣሪያ (`--max-old-space-size`)።                |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL`ን ያቀርባል፤ Next ለገጽ-ውሂብ ስብስብ `workers = N - 1`ን ያስገኛል። |
+| Build arg                   | ነባሪ    | ተፅዕኖ                                                                                     |
+| --------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` በwebpack ይገነባል፦ ዝቅተኛ ከፍተኛው የማህደረ ትውስታ ፍጆታ፣ ነገር ግን ዘገምተኛ። `1` Turbopackን ለመጠቀም ይመርጣል። |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | ለሚነሳው `next build` የV8 heap ጣሪያ (`--max-old-space-size`)።                                |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | `CIRCLE_NODE_TOTAL`ን ያቀርባል፤ Next ለገጽ-ውሂብ ስብስብ `workers = N - 1`ን ያሰላል።                   |
 
-ትልቅ builder ላይ መጨመር ያለበት እና ሀብት የተገደበበት ግንባታ
-**ከ** `✓ Compiled successfully` በኋላ ሲቋረጥ መጠርጠር ያለበት `OMNIROUTE_BUILD_WORKERS` ነው። እያንዳንዱ
-የገጽ-ውሂብ worker የራሱ ሂደት ነው፣ ዋናው `next build` ራሱም እንዲሁ ነው፤
-በቀጥታ VPS ላይ የተደረገ ድጋሚ ሙከራ (issue #7518) የእያንዳንዱን ሂደት ከፍተኛ RSS
-ከ`NODE_OPTIONS` ሂፕ ጠቋሚ ነፃ ሆኖ ~4.5 GB እንደሆነ ለካ (Turbopack ከV8 ሂፕ
-ውጭ ባለ ቤተኛ/Rust ማስታወሻ ውስጥ ያጠናቅራል)። የ`2` ነባሪው (→ 1 worker፣ በአጠቃላይ 2
-ሂደቶች) የህትመት pipeline ለሚጠቀምባቸው 16 GB / 4 vCPU GitHub-hosted runners
-ተመጣጣኝ እንዲሆን ተወስኗል። `8` ላይ (→ 7 workers) ያ runner ማስታወሻ አልቆበት
-እና buildkit ደረጃውን `ResourceExhausted: ... cannot allocate memory` በሚል ስህተት አቋረጠው፤
-`3` (→ 2 workers) እንኳን የእያንዳንዱ ሂደት RSS በግምት ፈንታ
-በቀጥታ ከተለካ በኋላ አልተመጣጠነም። `tests/unit/docker-build-memory-budget.test.ts`
-በተለካው አሃዝ ላይ ስሌቱን ያከናውናል፣ ከሁለቱ ማስተካከያዎች አንዱ
-ከrunner አቅም በላይ ካደገም ይሳካል።
+`OMNIROUTE_BUILD_WORKERS` ትልቅ builder ላይ ከፍ ሊያደርጉት የሚገባው እና በሀብት የተገደበ ግንባታ **ከ** `✓ Compiled successfully` **በኋላ** ሲቋረጥ ሊጠረጠር የሚገባው ነው። እያንዳንዱ
+የገጽ-ውሂብ worker የራሱ የተለየ process ነው፣ ዋናው `next build`ም እንዲሁ ነው፤
+በቀጥታ VPS ላይ የተደረገ ሙከራ (issue #7518) የእያንዳንዱን process ከፍተኛ RSS
+ከ`NODE_OPTIONS` heap flag ነጻ በሆነ መልኩ ~4.5 GB እንደሆነ ለካ (Turbopack ከV8 heap
+ውጭ ባለው native/Rust ማህደረ ትውስታ ውስጥ ያጠናቅራል)። የ`2` ነባሪ ዋጋ (→ 1 worker፣ በድምሩ 2
+processes) የህትመት pipeline ለሚጠቀምባቸው 16 GB / 4 vCPU GitHub-hosted runners
+ተመጣጣኝ እንዲሆን ተወስኗል። `8` ላይ (→ 7 workers) ያ runner የማህደረ ትውስታ አጥቶ
+buildkit ደረጃውን `ResourceExhausted: ... cannot allocate memory` በሚል ስህተት አቋረጠው፤
+የእያንዳንዱ process RSS በግምት ፈንታ በቀጥታ ከተለካ በኋላ `3` (→ 2 workers) እንኳን
+አሁንም አልተመጣጠነም። `tests/unit/docker-build-memory-budget.test.ts`
+በተለካው አሃዝ ላይ በመመሥረት ስሌቱን ያከናውናል እና ከሁለቱ መቆጣጠሪያዎች አንዱ
+የrunnerን አቅም ካለፈ ይከሽፋል።
 
-Turbopack ከV8 ሂፕ **ውጭ** ባለ ቤተኛ Rust ማስታወሻ ውስጥ ያጠናቅራል፣ ስለዚህ
-`OMNIROUTE_BUILD_MEMORY_MB` አይገድበውም። የማስታወሻ ጣሪያ ባለው አስተናጋጅ ላይ ግንባታው
-ያለምንም የስህተት ጽሑፍ በOOM killer SIGKILL ይደረጋል — በ`Creating an optimized production build`
-መካከል በድንገት ብቻ ይቆማል፣ ይህም የማስታወሻ እጥረት ሳይሆን የተንጠለጠለ ያስመስለዋል።
-የግንባታ አስተናጋጁ ሀብት የተገደበ ከሆነ bundlerን ይቀይሩ፦
+Turbopack ከV8 heap **ውጭ** ባለው native Rust ማህደረ ትውስታ ውስጥ ያጠናቅራል፣ ስለዚህ
+`OMNIROUTE_BUILD_MEMORY_MB` ይህን አይገድበውም። የማህደረ ትውስታ ጣሪያ ባለው host ላይ
+ግንባታው ምንም የስህተት ጽሑፍ ሳያሳይ በOOM killer SIGKILL ይደረጋል — በቀላሉ
+በ`Creating an optimized production build` መሃል ላይ ይቆማል፣ ይህም የማህደረ ትውስታ
+እጥረት ከመምሰል ይልቅ እንደተንጠለጠለ ያስመስለዋል። ለዚህ ነው `Dockerfile`
+ከ`npm run dev` / `npm run build` በተለየ መልኩ webpackን
+(`OMNIROUTE_USE_TURBOPACK=0`) በነባሪ የሚጠቀመው፤ በእነዚህ ውስጥ Turbopack
+የኮዱ ነባሪ ነው፦ ምንም build args የሌለው መደበኛ `docker build .`
+(Railway እና ሌሎች በአንድ ጠቅታ የሚሠሩ hosts የሚያስኬዱት) የማህደረ ትውስታ
+ገደብ ባለው builder ላይ ያለምንም መልዕክት መቋረጥ የለበትም። የታተሙት ምስሎች
+`OMNIROUTE_USE_TURBOPACK=0`ን በ`docker-publish.yml` ውስጥ አስቀድመው በግልጽ
+ያስተላልፋሉ። በቂ RAM ባለው builder ላይ ለፈጣን ግንባታ Turbopackን ለመጠቀም ይምረጡ፦
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ነቅቷል፣ ስለዚህ `next build` ዋና **እና** worker
-ሂደት ያስኬዳል፣ እያንዳንዳቸውም `OMNIROUTE_BUILD_MEMORY_MB`ን ለየብቻ ያከብራሉ። የcontainer
-ጣሪያውን ከእሴቱ አንድ እጥፍ ሳይሆን በግምት ከሁለት እጥፉ በላይ ያድርጉ።
+`webpackBuildWorker` የነቃ ስለሆነ `next build` ዋና process **እና** worker
+process ያስኬዳል፣ እያንዳንዳቸውም `OMNIROUTE_BUILD_MEMORY_MB`ን በተናጠል ያከብራሉ። የcontainerን
+ጣሪያ ከዚያ ዋጋ አንድ እጥፍ ሳይሆን በግምት ከሁለት እጥፍ በላይ ያድርጉት።
 
 በዚህ tree ላይ የተለካ (`--target runner-base`፣ `OMNIROUTE_BUILD_MEMORY_MB=6144`)፦
 
-| Bundler   | የcontainer ጣሪያ | ውጤት                           |
-| --------- | -------------- | ----------------------------- |
-| Turbopack | 8 GiB / 16 GiB | በሁለቱም OOM ተደርጎ ተቋርጧል፣ ያለማሳወቂያ |
-| webpack   | 8 GiB          | build worker SIGKILL ተደርጓል    |
-| webpack   | 12 GiB         | ተሳክቷል፣ ከፍተኛው 11.1 GiB ደርሷል    |
+| Bundler   | የContainer ጣሪያ | ውጤት                            |
+| --------- | -------------- | ------------------------------ |
+| Turbopack | 8 GiB / 16 GiB | በሁለቱም ላይ ያለመልዕክት OOM-killed ሆነ |
+| webpack   | 8 GiB          | build worker SIGKILLed ሆነ      |
+| webpack   | 12 GiB         | ተሳካ፣ ከፍተኛው 11.1 GiB ደረሰ        |
 
-### የአሂድ ጊዜ ነባሪዎች
+### የRuntime ነባሪዎች
 
 በ`runner-base` የሚላኩ ነባሪዎች፦ `PORT=20128`፣ `HOSTNAME=0.0.0.0`፣ `OMNIROUTE_MEMORY_MB=1024`፣ `NODE_OPTIONS=--max-old-space-size=1024`፣ `DATA_DIR=/app/data`፣ `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`።
 
-በDocker ውስጥ የማስታወሻ ባህሪ፦
+በDocker ውስጥ የማህደረ ትውስታ ባህሪ፦
 
-- ምስሉ `OMNIROUTE_MEMORY_MB=1024` ያስቀምጣል፣ ከእሱም `NODE_OPTIONS=--max-old-space-size=1024` ያመነጫል።
-- ትክክለኛው የሰርቨር ፕሮሰስ `OMNIROUTE_MEMORY_MB`ን በሚያነብና `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`ን በሚያክል ራሱን የቻለ ማስጀመሪያ ይጀመራል።
-- Node የመጨረሻውን የተደጋገመ `--max-old-space-size` እሴት ይጠቀማል፣ ስለዚህ `OMNIROUTE_MEMORY_MB`ን ማስቀመጥ ተግባራዊውን የDocker heap ገደብ ይቆጣጠራል።
-- ምስሉ ሁልጊዜ ይህን ስለሚያስቀምጥ፣ የማስጀመሪያው የራሱ በRAM የተመጠነ አማራጭ በDocker ስር ፈጽሞ አይተገበርም። ለየስራ ጫናው በግልጽ ያሳድጉት (ከታች ያለውን ሰንጠረዥ ይመልከቱ)። `2048` እንኳን ለcoding-agent `/v1/responses` አሁንም በጣም ትንሽ ነው።
+- ኢሜጁ `OMNIROUTE_MEMORY_MB=1024`ን ያዘጋጃል፣ ከዚያም `NODE_OPTIONS=--max-old-space-size=1024`ን ይወስዳል።
+- ትክክለኛው የሰርቨር ፕሮሰስ የሚጀመረው `OMNIROUTE_MEMORY_MB`ን በሚያነብና `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`ን በሚጨምር ራሱን በቻለ ማስጀመሪያ ነው።
+- Node በተደጋጋሚ ከተገለጹት `--max-old-space-size` እሴቶች የመጨረሻውን ይጠቀማል፤ ስለዚህ `OMNIROUTE_MEMORY_MB`ን ማዘጋጀት ተግባራዊውን የDocker heap ገደብ ይቆጣጠራል።
+- ኢሜጁ ሁልጊዜ ስለሚያዘጋጀው፣ የማስጀመሪያው በRAM መጠን የሚስተካከለው የራሱ ተለዋጭ እሴት በDocker ስር ፈጽሞ ተግባራዊ አይሆንም። ለሥራው ጫና በግልጽ ሁኔታ ከፍ ያድርጉት (ከታች ያለውን ሰንጠረዥ ይመልከቱ)። `2048` እንኳን ለኮዲንግ ኤጀንት `/v1/responses` አሁንም በጣም ትንሽ ነው።
 
-### ለcoding agents የሚያስፈልግ የሩጫ ጊዜ RAM
+### ለኮዲንግ ኤጀንቶች የሩጫ ጊዜ RAM
 
-የ1 GiB Docker ነባሪ ለdashboard/ቀላል ውይይት ዝቅተኛ መነሻ ነው፣ የproduction መጠን አይደለም። ረጅም `POST /v1/responses` የጥያቄ ይዘቶች (በመቶዎች የሚቆጠሩ መልዕክቶች፣ በአስርዎች የሚቆጠሩ መሳሪያዎች) በመጭመቅ ወቅት በማህደረ ትውስታ ውስጥ በርካታ ግራፎችን ይይዛሉ። ሁለት ተደራራቢ ~3 MiB / ~750k-token ጥያቄዎች V8ን በ**12 GiB** old-space (`FATAL ERROR: Reached heap limit`) ላይ አቋርጠዋል፣ እንዲሁም የ16 GiB cgroup OOM ላይ ደርሰዋል። [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)ን ይመልከቱ።
+የ1 GiB Docker ነባሪ መጠን ለዳሽቦርድ/ቀላል ቻት ዝቅተኛው መነሻ እንጂ ለምርት አገልግሎት ተስማሚ መጠን አይደለም። ረጅም `POST /v1/responses` አካሎች (በመቶዎች የሚቆጠሩ መልዕክቶች፣ በአስርዎች የሚቆጠሩ መሣሪያዎች) በመጭመቅ ጊዜ በርካታ የማህደረ ትውስታ ውስጥ ያሉ ግራፎችን ይዘው ይቆያሉ። ሁለት ተደራራቢ ~3 MiB / ~750k-token ጥያቄዎች በ**12 GiB** old-space ላይ V8ን አቋርጠዋል (`FATAL ERROR: Reached heap limit`)፣ እንዲሁም የ16 GiB cgroup OOM ገደብን አልፈዋል። [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849)ን ይመልከቱ።
 
-የ**cgroup `--memory`ን ከheap በላይ ያስቀምጡ** — የnative buffers፣ SQLite እና የመጭመቂያ መካከለኛ ውጤቶች ከV8 ውጭ ይቀመጣሉ።
+የ**cgroup `--memory`ን ከheap በላይ ያድርጉ** — ቤተኛ buffers፣ SQLite እና የመጭመቂያ መካከለኛ ውጤቶች ከV8 ውጭ ይቀመጣሉ።
 
-| የስራ ጫና                               | `OMNIROUTE_MEMORY_MB` | Container / cgroup     | ማስታወሻዎች                                                                           |
-| ------------------------------------ | --------------------- | ---------------------- | --------------------------------------------------------------------------------- |
-| Dashboard፣ አንድ ቀላል ውይይት              | `1024` (የምስሉ ነባሪ)     | ≥2 GiB                 |                                                                                   |
-| አንድ coding agent (Claude/Codex/Grok) | `8192`                | ≥10 GiB                | የተለመደ ባለአንድ-session `/v1/responses`                                               |
-| ሁለት በአንድ ጊዜ የሚሄዱ ረጅም `/v1/responses` | `10240`–`12288`       | ≥12–16 GiB             | በ~12 GiB heap ላይ የተለካ የV8 መቋረጥ                                                    |
-| ሦስት+ በአንድ ጊዜ የሚሄዱ ረጅም contexts       | በአንድ process ላይ አያድርጉ | በተከታታይ ያስኬዱ / ተጨማሪ RAM | ነባሪው heavyweight admission 1 in-flight ነው፤ RAMን ሳያሳድጉ እሱን ማሳደግ መቋረጡን እንደገና ያስከትላል |
+| የሥራ ጫና                                | `OMNIROUTE_MEMORY_MB` | ኮንቴይነር / cgroup        | ማስታወሻዎች                                                                  |
+| ------------------------------------- | --------------------- | ---------------------- | ------------------------------------------------------------------------ |
+| ዳሽቦርድ፣ አንድ ቀላል ቻት                     | `1024` (የኢሜጁ ነባሪ)     | ≥2 GiB                 |                                                                          |
+| አንድ ኮዲንግ ኤጀንት (Claude/Codex/Grok)     | `8192`                | ≥10 GiB                | የተለመደ ነጠላ-ክፍለ ጊዜ `/v1/responses`                                         |
+| ሁለት በአንድ ጊዜ የሚካሄዱ ረጅም `/v1/responses` | `10240`–`12288`       | ≥12–16 GiB             | በ~12 GiB heap ላይ የV8 መቋረጥ ተለክቷል                                          |
+| ሦስት+ በአንድ ጊዜ የሚካሄዱ ረጅም ኮንቴክስቶች        | በአንድ ፕሮሰስ ላይ አያድርጉ    | ተራ በተራ ያስኪዱ / ተጨማሪ RAM | ነባሪው የከባድ ጫና መቀበያ ገደብ በአንድ ጊዜ 1 ነው፤ ያለ በቂ RAM ከፍ ማድረግ መቋረጡን እንደገና ያስከትላል |
 
-`OMNIROUTE_MEMORY_MB` **ካልተቀመጠ**፣ `omniroute serve` በbare metal ላይ ወደ ~35% RAM (`[512, 4096]` ውስጥ ተገድቦ) ያመጣጥናል። Docker ሁልጊዜ `1024`ን ስለሚያስቀምጥ፣ ያ ማመጣጠን በofficial image ውስጥ ፈጽሞ አይሰራም።
+`OMNIROUTE_MEMORY_MB` **ሳይዘጋጅ** ሲቀር፣ bare metal ላይ ያለው `omniroute serve` የRAMን ~35% ያስተካክላል (በ`[512, 4096]` ወሰን ውስጥ)። Docker ሁልጊዜ `1024`ን ስለሚያዘጋጅ፣ ያ ማስተካከያ በይፋዊው ኢሜጅ ውስጥ ፈጽሞ አይሠራም።
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

@@ -309,23 +309,28 @@ Modi ya RTK imechochewa na **[RTK - Rust Token Killer](https://github.com/rtk-ai
 
 ---
 
-## Mifumo ya Juu ya Mgandamizo
+## Mifumo ya Kina ya Mfinyazo
 
-Zaidi ya njia 7 za kawaida, OmniRoute inajumuisha mifumo kadhaa ya hali ya juu ya mgandamizo inayofanya kazi kiotomatiki kulingana na muktadha.
+Zaidi ya hali 7 za kawaida, OmniRoute inajumuisha mifumo kadhaa ya kina ya mfinyazo
+inayofanya kazi kiotomatiki kulingana na muktadha.
 
-### Mgandamizo Unaotambua Akiba
+### Mfinyazo Unaozingatia Akiba
 
-Watoa huduma wengine (kama Anthropic na uhifadhi wa haraka) wanaunga mkono **uhifadhi wa haraka (prompt caching)**, ambao unawaruhusu kuhifadhi sehemu za haraka ili kupunguza gharama na kuchelewa. Wakati uhifadhi umewashwa, mgandamizo mkali unaweza **kuharibu** utendaji kwa sababu unabadilisha tokeni zilizohifadhiwa, na hivyo kubatilisha akiba.
+Baadhi ya watoa huduma (kama Anthropic yenye uhifadhi wa vichocheo kwenye akiba) wanaunga mkono **uhifadhi wa vichocheo kwenye akiba**,
+ambao huwawezesha kuhifadhi sehemu za kichocheo kwenye akiba ili kupunguza gharama na muda wa kusubiri. Wakati
+uhifadhi kwenye akiba umewashwa, mfinyazo mkali unaweza kwa kweli **kuathiri vibaya** utendaji
+kwa sababu hubadilisha tokeni zilizohifadhiwa kwenye akiba, na hivyo kubatilisha akiba hiyo.
 
-Moduli ya `cachingAware.ts` inasuluhisha hili kwa **kutambua muktadha wa uhifadhi** na **kurekebisha mkakati wa mgandamizo** ipasavyo.
+Moduli ya `cachingAware.ts` hutatua hili kwa **kutambua muktadha wa uhifadhi kwenye akiba** na
+**kurekebisha mkakati wa mfinyazo** ipasavyo.
 
-#### Jinsi Inavyofanya Kazi
+#### Jinsi inavyofanya kazi
 
-1.  **Tambua muktadha wa uhifadhi** — Inachanganua mwili wa ombi kwa alama za `cache_control`
-2.  **Tambua watoa huduma wa uhifadhi** — Inachunguza kama mtoa huduma lengwa anaunga mkono uhifadhi
-3.  **Rekebisha mkakati** — Inashusha daraja `aggressive`/`ultra` hadi `standard` kwa watoa huduma wa uhifadhi
-4.  **Ruka haraka ya mfumo** — Haraka za mfumo kwa kawaida huhifadhiwa, kwa hivyo usizigandamize
-5.  **Tumia mabadiliko ya uhakika** — Tumia tu mabadiliko yanayotoa matokeo thabiti
+1. **Tambua muktadha wa uhifadhi kwenye akiba** — Huchanganua mwili wa ombi kutafuta viashirio vya `cache_control`
+2. **Tambua watoa huduma wenye uhifadhi kwenye akiba** — Hukagua ikiwa mtoa huduma anayelengwa anaunga mkono uhifadhi kwenye akiba
+3. **Rekebisha mkakati** — Hushusha `aggressive`/`ultra` hadi `standard` kwa watoa huduma wenye uhifadhi kwenye akiba
+4. **Ruka kichocheo cha mfumo** — Kwa kawaida vichocheo vya mfumo huhifadhiwa kwenye akiba, kwa hivyo usivifinyaze
+5. **Tumia ugeuzaji thabiti** — Tumia tu ugeuzaji unaotoa matokeo yanayofanana kila wakati
 
 #### Mfano wa msimbo
 
@@ -338,7 +343,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Cache marker
+  cache_control: { type: "ephemeral" }, // ← Kiashirio cha akiba
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -348,21 +353,23 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Lini kutumia
+#### Wakati wa kutumia
 
-Mgandamizo unaotambua akiba **huwaka kila wakati** — hakuna usanidi unaohitajika. Huwaka tu wakati:
+Mfinyazo unaozingatia akiba **umewashwa kila wakati** — hakuna usanidi unaohitajika. Huanza kufanya kazi tu
+wakati:
 
-- Ombi lina alama za `cache_control`
-- Mtoa huduma lengwa anaunga mkono uhifadhi wa haraka (Anthropic, OpenAI, n.k.)
+- Ombi lina viashirio vya `cache_control`
+- Mtoa huduma anayelengwa anaunga mkono uhifadhi wa vichocheo kwenye akiba (Anthropic, OpenAI, n.k.)
 
-### Kuzeeka kwa Maendeleo
+### Uchakavu wa Hatua kwa Hatua
 
-Mazungumzo marefu hujilimbikiza zamu nyingi za ujumbe, lakini zamu za zamani huwa hazina umuhimu sana. Moduli ya `progressiveAging.ts` **inashusha ubora wa ujumbe kulingana na umbali wa zamu**:
+Mazungumzo marefu hukusanya zamu nyingi za ujumbe, lakini zamu za zamani hupungua
+umuhimu. Moduli ya `progressiveAging.ts` **hupunguza ubora wa ujumbe kulingana na umbali wa zamu**:
 
-- **Zamu za hivi karibuni (0-3)**: Zimehifadhiwa kama zilivyo (maelezo kamili)
-- **Zamu za kati (4-8)**: Mgandamizo mwepesi (nafasi nyeupe, usafishaji wa umbizo)
-- **Zamu za zamani (9+)**: Mgandamizo wa Caveman (kuondoa vijazaji, muhtasari)
-- **Zamu za zamani sana (20+)**: Zimefupishwa sana au zimeachwa
+- **Zamu za hivi karibuni (0-3)**: Huhifadhiwa kama zilivyo (maelezo kamili)
+- **Zamu za kati (4-8)**: Mfinyazo mwepesi (kusafisha nafasi tupu na uumbizaji)
+- **Zamu za zamani (9+)**: Mfinyazo wa mtindo wa mtu wa pangoni (kuondoa maneno yasiyo muhimu na kufanya muhtasari)
+- **Zamu za zamani sana (20+)**: Hufupishwa sana au huondolewa
 
 #### Mfano wa msimbo
 
@@ -373,46 +380,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... zamu 50 zaidi ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // First 3 turns: verbatim
-  light: 8, // Turns 4-8: lite compression
-  moderate: 20, // Turns 9-20: caveman compression
-  // Turns 21+: heavy summarization
+  verbatim: 3, // Zamu 3 za kwanza: kama zilivyo
+  light: 8, // Zamu 4-8: mfinyazo mwepesi
+  moderate: 20, // Zamu 9-20: mfinyazo wa mtindo wa mtu wa pangoni
+  // Zamu 21+: ufupishaji mkubwa
 });
 
-// saved = number of tokens saved
+// saved = idadi ya tokeni zilizookolewa
 ```
 
-#### Lini kutumia
+#### Wakati wa kutumia
 
-Kuzeeka kwa maendeleo **huwaka kila wakati** kwa njia za `aggressive` na `ultra`. Ni bora sana kwa:
+Uchakavu wa hatua kwa hatua **umewashwa kila wakati** kwa hali za `aggressive` na `ultra`. Una
+ufanisi hasa kwa:
 
 - Vipindi virefu vya uandishi wa msimbo
 - Mazungumzo ya siku nyingi
-- Mifumo ya kazi ya wakala yenye simu nyingi za zana
+- Mitiririko ya kazi ya mawakala yenye miito mingi ya zana
 
-### Njia ya Pato ya Caveman
+### Hali ya Matokeo ya Mtindo wa Mtu wa Pangoni
 
-Moduli ya `outputMode.ts` inaingiza **maelekezo ya haraka ya mfumo** ili kufanya modeli yenyewe itoe pato lililogandamizwa, fupi ("mtindo wa caveman").
+Moduli ya `outputMode.ts` huingiza **maagizo ya kichocheo cha mfumo** ili kufanya
+modeli yenyewe itoe matokeo yaliyofinyazwa na mafupi (mtindo wa "mtu wa pangoni").
 
-#### Jinsi Inavyofanya Kazi
+#### Jinsi inavyofanya kazi
 
-Badala ya kugandamiza ingizo, njia hii inaongeza haraka ya mfumo kama vile:
+Badala ya kufinyaza ingizo, hali hii huongeza kichocheo cha mfumo kama:
 
-> "Jibu kwa maneno machache. Ruka salamu. Tumia sentensi fupi."
+> "Jibu kwa maneno machache iwezekanavyo. Ruka maneno ya heshima. Tumia sentensi fupi."
 
-Hii inafanya kazi vizuri sana kwa:
+Hii hufanya kazi vizuri hasa kwa:
 
-- Uzalishaji wa msimbo (pato fupi = tokeni chache)
-- Maswali na Majibu ya Haraka (hakuna haja ya maelezo marefu)
-- Usindikaji wa Kundi (ongeza ufanisi)
+- Uzalishaji wa msimbo (matokeo mafupi zaidi = tokeni chache zaidi)
+- Maswali na majibu ya haraka (hakuna haja ya maelezo marefu)
+- Uchakataji wa makundi (ongeza kiwango cha uchakataji)
 
-#### Lini kutumia
+#### Wakati wa kutumia
 
-Njia ya pato ya Caveman ni **hiari** — iweke kupitia usanidi wa combo:
+Hali ya matokeo ya mtindo wa mtu wa pangoni **lazima iwashwe kwa hiari** — iweke kupitia usanidi wa mchanganyiko:
 
 ```json
 {
@@ -425,37 +434,60 @@ Njia ya pato ya Caveman ni **hiari** — iweke kupitia usanidi wa combo:
 }
 ```
 
-### Mitindo ya Pato (katalogi)
+### Mitindo ya Matokeo (katalogi)
 
-Njia ya pato ya Caveman hapo juu ni **njia ya zamani ya mtindo mmoja**. Awamu ya 4 iliiboresha kuwa katalogi ya mitindo ya pato inayoweza kuunganishwa: `OUTPUT_STYLE_CATALOG` katika `open-sse/services/compression/outputStyles/catalog.ts`. Kila mtindo ni maelekezo ya haraka ya mfumo ambayo hufanya modeli yenyewe itoe pato la bei nafuu; mitindo inaweza kuwashwa pamoja na kuingizwa kwa mpangilio wa katalogi.
+Hali ya matokeo ya mtindo wa mtu wa pangoni iliyo hapo juu ndiyo **njia ya zamani ya mtindo mmoja**. Awamu ya 4 iliipanua
+kuwa katalogi ya mitindo ya matokeo inayoweza kuunganishwa: `OUTPUT_STYLE_CATALOG` katika
+`open-sse/services/compression/outputStyles/catalog.ts`. Kila mtindo ni agizo la kichocheo cha mfumo
+linalofanya modeli yenyewe itoe matokeo ya gharama nafuu zaidi; mitindo inaweza kuwashwa
+pamoja na huingizwa kwa mpangilio wa katalogi.
 
-| Mtindo                              | `id`          | Inachofanya                                                                                                                                                                                                                                         | Lugha za maelekezo                                                         |
-| :---------------------------------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------- |
-| Terse prose                         | `terse-prose` | Ondoa maneno yasiyo na maana/viambishi/maneno ya kujikinga; weka kiini cha kiufundi sawa. Maandishi sawa na hali ya zamani ya pato la caveman (iliyorejelewa, haijaandikwa upya).                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Less code                           | `less-code`   | Ngazi ya YAGNI: mabadiliko madogo zaidi yanayofanya kazi, hakuna dhana zisizoombwa.                                                                                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Ponytail (msanidi mwandamizi mvivu) | `ponytail`    | "Msimbo bora ni msimbo ambao haujaandikwa kamwe": tumia tena > andika upya, chanzo cha tatizo > dalili, tofauti fupi zaidi inayofanya kazi.                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| I have ADHD (action-first)          | `i-have-adhd` | Kitendo kwanza (amri/njia/kipande kabla ya maandishi), hatua zilizopangwa zenye namba, hatua MOJA thabiti inayofuata, hakuna utangulizi/muhtasari/hitimisho. Imechukuliwa kutoka [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
-| Terse CJK (文言)                    | `terse-cjk`   | Mtindo wa Kichina cha Kale mfupi sana.                                                                                                                                                                                                              | zh (imefungwa kwa lugha: inatolewa tu wakati lugha iliyochaguliwa ni `zh`) |
+| Mtindo                                       | `id`          | Unachofanya                                                                                                                                                                                                                                                | Lugha za maelekezo                                                           |
+| -------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Nathari fupi                                 | `terse-prose` | Ondoa maneno ya ziada/vibainishi/kauli za kusita; dumisha maudhui ya kiufundi kwa usahihi. Maandishi sawa na hali ya zamani ya matokeo ya caveman (yamerejelewa, hayajaandikwa upya).                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                |
+| Msimbo mchache                               | `less-code`   | Ngazi ya YAGNI: badiliko dogo zaidi linalofanya kazi, bila vifupisho vya dhana ambavyo havijaombwa.                                                                                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                |
+| Ponytail (msanidi programu mwandamizi mvivu) | `ponytail`    | "Msimbo bora ni msimbo ambao haujawahi kuandikwa": kutumia tena > kuandika upya, chanzo kikuu > dalili, diff fupi zaidi inayofanya kazi.                                                                                                                   | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                |
+| Nina ADHD (kitendo kwanza)                   | `i-have-adhd` | Kitendo kwanza (amri/njia/kijisehemu kabla ya nathari), hatua zenye mipaka na nambari, hatua MOJA madhubuti inayofuata, bila utangulizi/muhtasari/maneno ya kufunga. Imetoholewa kutoka [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                |
+| CJK fupi (文言)                              | `terse-cjk`   | Mtindo mfupi kupita kiasi wa Kichina cha kale.                                                                                                                                                                                                             | zh (inadhibitiwa na locale: hutolewa tu wakati lugha iliyobainishwa ni `zh`) |
 
-Kila mtindo huja na viwango vitatu vya ukali — `lite`, `full`, `ultra` — na kila kiwango
-kinaishia na kifungu cha mipaka kinachoshirikiwa, ambacho huweka vizuizi vya msimbo, njia za faili, amri,
-nyuzi za makosa, URL na vitambulisho kama vilivyo.
+Kila mtindo huja na viwango vitatu vya uzito — `lite`, `full`, `ultra` — na kila kiwango
+humalizika kwa kifungu cha pamoja cha mipaka, ambacho hudumisha vizuizi vya msimbo, njia za faili, amri,
+mifuatano ya hitilafu, URL na vitambulishi bila kubadilishwa.
 
-#### Jinsi sindano inavyofanya kazi
+#### Jinsi udungaji unavyofanya kazi
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) hutatua
-uteuzi dhidi ya katalogi (vitambulisho visivyojulikana na mitindo isiyolingana na lugha
-huondolewa, kamwe si kosa), huunganisha maelekezo yaliyochaguliwa kwa mpangilio wa katalogi,
-huongeza kifungu cha mipaka **mara moja**, na huweka matokeo mbele kwenye kidokezo cha mfumo
-nyuma ya alama moja ya idempotency (`[OmniRoute Output Styles]`) — kutumia tena
-hakuna athari. Wakati lugha ya ombi iliyogunduliwa ina tafsiri,
-maelekezo yaliyojanibishwa yanaingizwa badala ya Kiingereza.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) hubainisha
+uteuzi dhidi ya katalogi (id zisizojulikana na mitindo isiyolingana na locale
+huondolewa, bila kusababisha hitilafu), huunganisha maelekezo yaliyochaguliwa kwa mpangilio wa katalogi,
+huongeza kifungu cha mipaka **mara moja**, na huanza kizuizi kwa kialamisho kimoja cha kutorudia
+(`[OmniRoute Output Styles]`), hivyo kukitumia tena hakufanyi chochote. Wakati lugha iliyobainishwa
+(tazama Uteuzi wa lugha hapa chini) ina tafsiri, maelekezo yaliyotafsiriwa
+hudungwa badala ya Kiingereza.
+
+Kwenye body yenye `messages`, upitaji wa maudhui (`shouldBypassCavemanOutputMode()` katika
+`open-sse/services/compression/outputMode.ts`) hukagua jumbe tatu za mwisho na kuruka
+mitindo kwa turn nzima zinapolingana na maneno yake muhimu ya usalama, kitendo kisichoweza kutenduliwa,
+ufafanuzi, au yanayotegemea mpangilio. Upitaji hufanya kazi wakati kigeuzi cha **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) kwenye dashibodi kimewashwa, ambacho ni chaguo-msingi; kigeuzi kikizimwa, mitindo iliyochaguliwa hutumika katika turn hizo pia.
+
+Upitaji unaporuhusu turn kuendelea, `placeSystemInstruction()` (faili hiyo hiyo), ambayo
+haiundi kamwe `messages[0]` mpya, huweka kizuizi katika sehemu ya kwanza kati ya hizi inayopatikana:
+
+1. Ujumbe wa system wa mwanzo wenye maudhui ya string: kizuizi huongezwa baada ya maandishi yake.
+2. Sehemu ya kiwango cha juu `system`: kizuizi huongezwa baada ya maandishi ya string, au
+   huongezwa kama kizuizi kipya cha maandishi kwenye array ya vizuizi vya maudhui.
+3. Ujumbe wa kwanza wa system unaofuata wenye maudhui ya string: kizuizi huongezwa baada ya
+   maandishi yake.
+4. Hakuna kati ya yaliyo hapo juu: kizuizi huwekwa kwenye ujumbe mpya wa system mwishoni mwa `messages`.
+
+Kwenye body isiyo na `messages`, kizuizi huongezwa kwenye sehemu ya string `instructions`,
+au huwa `instructions` wakati body ina `input` (string au array). Body
+isiyo na `instructions` wala `input` hurukwa kama `no_messages`.
 
 #### Jinsi ya kuwezesha
 
-Kwenye dashibodi: **Context → Settings → Compression** — safu moja kwa kila mtindo na
-kibadilishaji cha kuwasha/kuzima na kiteuzi cha kiwango. Kwa programu, usanidi wa mgandamizo
-huhifadhi uteuzi kama:
+Kwenye dashibodi: **Muktadha → Mipangilio → Ufinyazaji** — safu mlalo moja kwa kila mtindo ikiwa na
+kigeuzi cha kuwasha/kuzima na kiteuzi cha kiwango. Kiprogramu, usanidi wa ufinyazaji huhifadhi
+uteuzi kama:
 
 ```json
 {
@@ -466,59 +498,59 @@ huhifadhi uteuzi kama:
 }
 ```
 
-Utangamano wa nyuma: mpangilio wa zamani wa `outputMode: "caveman"` bado unafanya kazi na unalingana na
-`terse-prose`, sawa kabisa na sindano ya zamani katika kila lugha ya zamani.
+Utangamano wa nyuma: mpangilio wa zamani wa mchanganyiko `outputMode: "caveman"` bado hufanya kazi na huunganishwa na
+`terse-prose`, ukiwa sawa kwa kila byte na udungaji wa zamani katika kila lugha ya zamani.
 
-Uteuzi wa lugha: na `languageConfig.enabled` ikiwa imewashwa, `autoDetect` huchagua
-lugha ya ujumbe wa hivi karibuni wa mtumiaji (kigunduzi sawa na injini za kuingiza);
-kuzima `autoDetect` huweka `defaultLanguage`. Zima → Kiingereza.
+Uteuzi wa lugha: `languageConfig.enabled` ikiwa imewashwa, `autoDetect` huchagua
+lugha ya ujumbe wa hivi karibuni wa mtumiaji (kitambuzi kilekile kama injini za ingizo);
+kuzima `autoDetect` hufunga `defaultLanguage`. Ikiwa imezimwa → Kiingereza.
 
-Matrix ya mtindo × lugha imewekwa na
-`tests/unit/compression/output-styles-i18n-matrix.test.ts`: mtindo mpya hauwezi kusafirishwa
-bila angalau tafsiri ya pt-BR (au ubaguzi uliofuatiliwa wazi), na
-mtindo uliopo hauwezi kupoteza lugha kimya kimya. Ili kuongeza mtindo, angalia
+Matriki ya mtindo × lugha imefungwa na
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: mtindo mpya hauwezi kutolewa
+bila angalau tafsiri ya pt-BR (au ubaguzi dhahiri unaofuatiliwa), na
+mtindo uliopo hauwezi kupoteza locale kimyakimya. Ili kuongeza mtindo, tazama
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Mgandamizo wa Matokeo ya Zana
+### Ufinyazaji wa Matokeo ya Zana
 
-Moduli ya `toolResultCompressor.ts` hutoa **mikakati 5 maalum ya mgandamizo**
-kwa matokeo ya zana (simu za kazi, matokeo ya wakala, matokeo ya utafutaji, n.k.):
+Moduli ya `toolResultCompressor.ts` hutoa **mikakati 5 maalumu ya ufinyazaji**
+kwa matokeo ya zana (miito ya functions, matokeo ya agents, matokeo ya utafutaji, n.k.):
 
-1. **Mgandamizo wa matokeo ya utafutaji** — Huondoa matokeo yasiyo ya lazima, huweka N-bora
-2. **Mgandamizo wa usomaji wa faili** — Hupunguza faili kubwa, huhifadhi vichwa/uagizaji
-3. **Mgandamizo wa utekelezaji wa msimbo** — Huweka tu stdout/stderr muhimu
-4. **Mgandamizo wa swala la hifadhidata** — Huweka kikomo safu, huondoa metadata yenye maneno mengi
-5. **Mgandamizo wa majibu ya API** — Huondoa sehemu zisizo na thamani, huunganisha safu
+1. **Ufinyazaji wa matokeo ya utafutaji** — Huondoa matokeo yanayojirudia, huhifadhi top-N
+2. **Ufinyazaji wa usomaji wa faili** — Hupunguza faili kubwa, huhifadhi headers/imports
+3. **Ufinyazaji wa utekelezaji wa msimbo** — Huhifadhi stdout/stderr muhimu pekee
+4. **Ufinyazaji wa query ya database** — Huweka kikomo cha rows, huondoa metadata yenye maelezo mengi
+5. **Ufinyazaji wa response ya API** — Huondoa fields za null, hufupisha arrays
 
-#### Lini kutumia
+#### Wakati wa kutumia
 
-Mgandamizo wa matokeo ya zana **huwashwa kila wakati** wakati simu za zana zipo. Hakuna
+Ukandamizaji wa matokeo ya zana huwa **umewashwa kila wakati** simu za zana zinapokuwepo. Hakuna
 usanidi unaohitajika.
 
-### Bomba Lililopangwa
+### Mnyororo Uliopangwa kwa Tabaka
 
-Hali iliyopangwa huendesha **injini nyingi kwa mfuatano** — kwa kawaida RTK kwanza
+Hali iliyopangwa kwa tabaka huendesha **injini nyingi kwa mfuatano** — kwa kawaida RTK kwanza
 (akiba ya 60-90% kwenye matokeo ya zana), kisha Caveman (akiba ya ziada ya 30% kwenye
-maandishi yaliyobaki). Hii inafikia **akiba ya jumla ya 78-95%**.
+maandishi yaliyosalia). Hii hufanikisha **akiba ya jumla ya 78-95%**.
 
 #### Jinsi inavyofanya kazi
 
 ```
 Ingizo (tokeni 1000)
-  → RTK (kichujio kinachojua amri) → tokeni 200
-    → Caveman (uondoaji wa maneno yasiyo na maana) → tokeni 140
-  → Pato (tokeni 140, akiba ya 86%)
+  → RTK (kichujio kinachotambua amri) → tokeni 200
+    → Caveman (uondoaji wa maneno ya kujazia) → tokeni 140
+  → Tokeo (tokeni 140, akiba ya 86%)
 ```
 
-#### Lini kutumia
+#### Wakati wa kutumia
 
-Tumia hali iliyopangwa kwa:
+Tumia hali iliyopangwa kwa tabaka kwa:
 
-- Mtiririko wa kazi unaotumia zana nyingi (usimbaji wa wakala, utafiti)
-- Usindikaji wa bechi unaozingatia gharama
-- Unapohitaji akiba kubwa ya tokeni
+- Mitiririko ya kazi inayotumia zana kwa wingi (uandishi wa msimbo wa kiwakilishi, utafiti)
+- Uchakataji wa makundi unaozingatia gharama
+- Unapohitaji akiba ya juu zaidi ya tokeni
 
-Sanidi kupitia mchanganyiko:
+Sanidi kupitia combo:
 
 ```json
 {

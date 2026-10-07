@@ -8,12 +8,13 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createServer } from "node:net";
-import { execFileSync } from "node:child_process";
+import { connect, createServer, type Socket } from "node:net";
+import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  PID_PROBES,
   parseLsofPid,
   parseNetstatPid,
   parseSsPid,
@@ -167,5 +168,58 @@ test("resolvePortPid still resolves a pid on a host without lsof", async (t) => 
     process.env.PATH = originalPath;
     await new Promise<void>((resolve) => server.close(() => resolve()));
     rmSync(shim, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("lsof probe table entry restricts to TCP listeners only (#14722)", () => {
+  const lsof = PID_PROBES.find((p) => p.command === "lsof");
+  assert.ok(lsof, "lsof probe must exist");
+  assert.deepEqual(lsof.args(20128), ["-nP", "-t", "-iTCP:20128", "-sTCP:LISTEN"]);
+});
+
+test("resolvePortPid ignores connected clients and returns only the listener pid (#14722)", async (t) => {
+  if (which("lsof") === null) {
+    t.skip("lsof is not installed on this host");
+    return;
+  }
+
+  // The listener runs in a CHILD process and the client connects from THIS
+  // process. The child's pid is higher, so a bare `lsof -ti :PORT` (which lists
+  // pids in ascending order and includes connected clients) would print this
+  // process's pid first and resolve to the client — exactly the #14722 bug.
+  const child = spawn(
+    process.execPath,
+    [
+      "-e",
+      'const s = require("node:net").createServer(() => {}); s.listen(0, "127.0.0.1", () => { process.stdout.write(s.address().port + "\\n"); }); setInterval(() => {}, 1000);',
+    ],
+    { stdio: ["ignore", "pipe", "inherit"] }
+  );
+  const exited = new Promise<void>((resolve) => child.once("exit", () => resolve()));
+  let client: Socket | undefined;
+
+  try {
+    const port = await new Promise<number>((resolve, reject) => {
+      let buf = "";
+      child.stdout.on("data", (chunk: Buffer) => {
+        buf += chunk.toString("utf8");
+        if (buf.includes("\n")) resolve(Number.parseInt(buf, 10));
+      });
+      child.once("error", reject);
+      child.once("exit", (code) => reject(new Error(`listener exited early (${code})`)));
+    });
+
+    client = await new Promise<Socket>((resolve, reject) => {
+      const socket = connect(port, "127.0.0.1", () => resolve(socket));
+      socket.once("error", reject);
+    });
+
+    const resolved = await resolvePortPid(port);
+    assert.equal(resolved, child.pid, "must return the listener (child) pid");
+    assert.notEqual(resolved, process.pid, "must not return the connected client pid");
+  } finally {
+    client?.destroy();
+    child.kill("SIGKILL");
+    await exited;
   }
 });

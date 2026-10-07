@@ -18,6 +18,16 @@ function createStatementMock() {
   };
 }
 
+// The production path must use runtimeRequire(): a dynamic node:module import is
+// compiled incorrectly in the standalone webpack bundle (`createRequire` becomes
+// a non-function), disabling every MCP audit write at runtime.
+it("uses the bundle-safe runtime loader for better-sqlite3", () => {
+  const source = fs.readFileSync(path.join(process.cwd(), "open-sse/mcp-server/audit.ts"), "utf8");
+  expect(source).toContain('runtimeRequire("better-sqlite3")');
+  expect(source).not.toContain('await import("node:module")');
+  expect(source).not.toContain("createRequire(import.meta.url)");
+});
+
 // The shutdown tests inject through the audit connection cache
 // (globalThis.__omnirouteMcpAuditDb), and the fallback test uses the
 // __setBetterSqliteLoaderForTests seam.
@@ -60,8 +70,7 @@ describe("MCP audit shutdown", () => {
     expect(mockDb.pragma).toHaveBeenCalledWith("wal_checkpoint(TRUNCATE)");
     expect(mockDb.close).toHaveBeenCalledTimes(1);
     expect(audit.closeAuditDb()).toBe(false);
-  }, // calls can exceed the default budget though the behavior is correct // CI-runner load, vi.resetModules() + a fresh dynamic import + mocked DB // Explicit generous timeout (vitest default is 5000ms): under contended
-  // (issue #6803).
+  }, // (issue #6803). // calls can exceed the default budget though the behavior is correct // CI-runner load, vi.resetModules() + a fresh dynamic import + mocked DB // Explicit generous timeout (vitest default is 5000ms): under contended
   30000);
 
   it("still closes the audit database when checkpoint fails", async () => {

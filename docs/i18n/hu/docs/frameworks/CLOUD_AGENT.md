@@ -311,21 +311,26 @@ A külső számlázás leállításához szüntesse meg a feladatot a szolgálta
 ## REST API — felhőszolgáltatói integráció
 
 A `src/app/api/cloud/` alatti kiegészítő végpontokat távoli kliensek
-(a CLI, az Electron-alkalmazás vagy a szinkronizálási feldolgozók) használják a szolgáltatói kapcsolat metaadatainak
-lekérésére és a modellálnevek feloldására. A hitelesítésük **normál API-kulccsal**
-(a `validateApiKey` használatával) történik, nem pedig a feladatvégpontok által használt adminisztrációs hitelesítéssel.
+(a CLI, az Electron-alkalmazás vagy a szinkronizálási feldolgozók) használják a szolgáltatói kapcsolatok metaadatainak beolvasására
+és a modellálnevek feloldására. A hitelesítésük **API-kulccsal**
+(a `validateApiKey` segítségével) történik, nem pedig a feladat-végpontok által használt adminisztrációs hitelesítéssel; az, hogy
+az `/api/cloud/auth` mit ad vissza, a kulcs hatókörétől függ (lásd alább).
 
-| Metódus | Útvonal                         | Cél                                                                                                  |
+| Metódus | Elérési út                      | Cél                                                                                                  |
 | ------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| POST    | `/api/cloud/auth`               | API-kulcs ellenőrzése, maszkolt kapcsolati metaadatok és modellálnevek visszaadása                   |
+| POST    | `/api/cloud/auth`               | Az API-kulcs ellenőrzése, maszkolt kapcsolati metaadatok és modellálnevek visszaadása                |
 | PUT     | `/api/cloud/credentials/update` | Az `accessToken` / `refreshToken` / `expiresAt` frissítése                                           |
-| POST    | `/api/cloud/model/resolve`      | Modellálnév feloldása `{ provider, model }` értékre                                                  |
+| POST    | `/api/cloud/model/resolve`      | Egy modellálnév feloldása `{ provider, model }` értékre                                              |
 | GET     | `/api/cloud/models/alias`       | Az összes modellálnév listázása                                                                      |
 | PUT     | `/api/cloud/models/alias`       | Modellálnév beállítása (és automatikus szinkronizálása a Cloud szolgáltatással, ha engedélyezve van) |
 
-Az `/api/cloud/auth` soha nem adja vissza a nyers `apiKey` / `accessToken` / `refreshToken` értékeket. Ehelyett
-a `hasApiKey`, `hasAccessToken`, `hasRefreshToken` mezőket és egy maszkolt előnézetet ad vissza
-(`maskedApiKey`: az első 4 karakter + `****` + az utolsó 4 karakter).
+Az `/api/cloud/auth` soha nem adja vissza nyersen az `apiKey` / `accessToken` / `refreshToken` értékeket. Ehelyett
+a `hasApiKey`, `hasAccessToken`, `hasRefreshToken` mezőket adja vissza azokhoz az aktív kapcsolatokhoz, amelyeket a kulcs
+használhat (az `allowedConnections` beállítással korlátozott kulcs csak ezeket látja). A `manage` vagy `admin`
+hatókörű API-kulcsok — beleértve az `OMNIROUTE_API_KEY` által megadott telepítési kulcsot is — esetén egy
+maszkolt előnézetet (`maskedApiKey`: legfeljebb 4 karakter mindkét végén, rövid
+kulcsnál kevesebb, 8 vagy annál kevesebb karakter esetén pedig egy sem), valamint a kapcsolat `projectId` értékét is
+visszaadja. Minden más kulcs esetén mindkét mező kimarad a válaszból.
 
 ## Hitelesítő adatok feloldása
 

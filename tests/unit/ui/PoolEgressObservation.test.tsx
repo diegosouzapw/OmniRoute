@@ -79,6 +79,74 @@ describe("PoolEgressObservation", () => {
     expect(element.textContent).toBe('poolEgressObservationEmpty:{"hours":24}');
   });
 
+  it("shows the per-exit failures and the unattributed remainder", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        connections: 4,
+        distinctExits: 2,
+        maxConnectionsOnOneExit: 3,
+        windowHours: 24,
+        failures: {
+          byExit: [
+            {
+              exit: "203.0.113.1",
+              failures: 3,
+              byFamily: [
+                { family: "server_error", count: 2 },
+                { family: "unknown", count: 1 },
+              ],
+            },
+          ],
+          byFamily: [
+            { family: "server_error", count: 2 },
+            { family: "unknown", count: 1 },
+          ],
+          unattributed: 2,
+        },
+      })
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolEgressFailuresByExit:{"exit":"203.0.113.1","count":3}');
+    expect(text).toContain("server_error: 2");
+    expect(text).toContain('poolEgressFailuresUnattributed:{"count":2}');
+    // The traffic sentence and the "no traffic" sentence must not be reused for failures:
+    // they would read "1 exit used by 3 connections" / "No traffic observed" for 3 / 2
+    // failed requests, contradicting the counts they display.
+    expect(text.match(/poolEgressObservation:/g)).toHaveLength(1);
+    expect(text).not.toContain("poolEgressObservationEmpty");
+  });
+
+  it("omits the unattributed line when every failure has an exit", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        connections: 1,
+        distinctExits: 1,
+        maxConnectionsOnOneExit: 1,
+        windowHours: 24,
+        failures: {
+          byExit: [{ exit: "203.0.113.9", failures: 1, byFamily: [] }],
+          byFamily: [],
+          unattributed: 0,
+        },
+      })
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolEgressFailuresByExit:{"exit":"203.0.113.9","count":1}');
+    expect(text).not.toContain("poolEgressFailuresUnattributed");
+  });
+
+  it("keeps the summary line when the route has no failures key", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        connections: 12,
+        distinctExits: 5,
+        maxConnectionsOnOneExit: 4,
+        windowHours: 24,
+      })
+    );
+    expect(element.textContent).toContain("poolEgressObservation");
+  });
+
   it("renders nothing when the route answers null", async () => {
     const { element } = await renderWith(() => jsonResponse(null));
     expect(element.textContent).toBe("");

@@ -347,32 +347,32 @@ opencode -m omniroute/glm/glm-5.2 "..."          # eksporter OMNIROUTE_API_KEY f
 
 ## Administrere kontekster (bytte mellom servere)
 
-En **kontekst** er en lagret server (baseUrl + påloggingsinformasjon + omfang). `omniroute connect`
-oppretter en og gjør den aktiv. Fra da av bruker alle kommandoer denne serveren. Administrer og
+En **kontekst** er en lagret server (baseUrl + legitimasjon + omfang). `omniroute connect`
+oppretter en og gjør den aktiv; fra da av vil hver kommando rette seg mot den. Administrer og
 bytt mellom dem med `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # alle kontekster; den aktive er merket med ●
+omniroute contexts list            # alle kontekster; den aktive er merket ●
 omniroute contexts current         # den aktive serveren, autentiseringsstatus, omfang
 ```
 
 ```text
-  | Navn    | Basis-URL                 | Autentisering | Omfang | Beskrivelse
-● | vps     | http://100.67.86.91:20128 | token         | admin  | Ekstern OmniRoute (…)
-  | default | http://localhost:20128    | ✗             |        |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Bytt server** — alle etterfølgende kommandoer bruker den aktive konteksten:
+**Bytt servere** — hver påfølgende kommando følger den aktive konteksten:
 
 ```bash
-omniroute contexts use vps         # → alle kommandoer bruker nå den eksterne VPS-en
-omniroute tokens list              #   (kjøres mot VPS-en)
+omniroute contexts use vps         # → alle kommandoer treffer nå den eksterne VPS-en
+omniroute tokens list              #   (kjører mot VPS-en)
 
 omniroute contexts use default     # → tilbake til localhost
-omniroute tokens list              #   (kjøres mot den lokale serveren)
+omniroute tokens list              #   (kjører mot den lokale serveren)
 ```
 
-**Legg til en kontekst manuelt** (i stedet for `connect`), vis detaljer eller endre navn:
+**Legg til en kontekst manuelt** (i stedet for `connect`), inspiser, eller gi nytt navn:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
@@ -381,31 +381,34 @@ omniroute contexts show staging    # fullstendige detaljer for én kontekst
 omniroute contexts rename staging stg
 ```
 
-**Fjern en kontekst** — ber om bekreftelse. Bruk `--yes` for å hoppe over dette
-(påkrevd for skript / ikke-interaktive skall, som ellers avviser handlingen på en trygg måte):
+**Fjern en kontekst** — ber om bekreftelse; bruk `--yes` for å hoppe over
+(nødvendig for skript / ikke-interaktive skall, som ellers trygt vil avvise):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) kan ikke fjernes. Hvis den aktive konteksten fjernes, brukes
-> `default` i stedet. Tips: Når en kontekst fjernes, slettes bare den **lokalt** lagrede påloggingsinformasjonen —
-> tilbakekall tokenet på serveren med `omniroute tokens revoke <id>` for å faktisk
-> oppheve tilgangen.
+> `default` (localhost) kan ikke fjernes. Fjerning av den aktive konteksten faller tilbake
+> til `default`. Tips: fjerning av en kontekst sletter kun den **lokalt** lagrede legitimasjonen —
+> tilbakekall tokenet på serveren med `omniroute tokens revoke <id>` for å faktisk avslutte tilgangen.
 
-**Eksporter / importer** kontekster (for eksempel for å flytte dem mellom maskiner). Nye kontekster lagrer
-bare en nøkkelringreferanse. Påloggingsinformasjon kopieres ikke til eksporten når operativsystemets
-nøkkelring er tilgjengelig:
+**Eksporter / importer** kontekster (f.eks. for å flytte dem mellom maskiner). Eksport utelater
+legitimasjon som standard, inkludert legitimasjon lagret av fil-fallback. Bruk
+`--include-secrets` eksplisitt når en bærbar sikkerhetskopi som inneholder legitimasjon er nødvendig:
 
 ```bash
-omniroute contexts export --out contexts.json     # standard: stdout
+omniroute contexts export --out contexts.json     # redigert; standard destinasjon: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
 omniroute contexts import contexts.json            # overskriv; --merge for å beholde eksisterende
-omniroute contexts migrate --yes                  # flytt eldre klarteksttoken til nøkkelringen
+omniroute contexts migrate --yes                  # flytt eldre klartekst-tokens til nøkkelring
 ```
 
-På skjermløse systemer uten en brukbar nøkkelring i operativsystemet bruker CLI-en i stedet
-`config.json` med modus `0600` og viser en engangsadvarsel. Behandle eksporter fra
-denne reserveløsningen (og eventuell eldre konfigurasjon før migrering) som hemmelig materiale.
+`--include-secrets` løser opp nøkkelringreferanser før eksport og mislykkes hvis en
+referert legitimasjon ikke kan leses. `--no-secrets` har alltid forrang.
+Eksportfiler skrives atomisk med modus `0600`. Behandle en eksplisitt
+hemmelighetsbærende eksport som hemmelig materiale. På hodeløse systemer uten en brukbar OS-nøkkelring,
+faller CLI tilbake til `config.json` med modus `0600` og skriver ut en
+engangsadvarsel; en standard eksport forblir redigert i denne modusen.
 
 ---
 

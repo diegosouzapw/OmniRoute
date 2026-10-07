@@ -397,22 +397,22 @@ docs/
 
 ---
 
-## ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ୍ ଯାଞ୍ଚତାଲିକା
+## ପୁଲ୍ ରିକ୍ୱେଷ୍ଟ ଯାଞ୍ଚତାଲିକା
 
-- [ ] ପରୀକ୍ଷାଗୁଡ଼ିକ ସଫଳ ହୁଏ (`npm test`)
-- [ ] ଲିଣ୍ଟିଂ ସଫଳ ହୁଏ (`npm run lint`)
-- [ ] ବିଲ୍ଡ୍ ସଫଳ ହୁଏ (`npm run build`)
-- [ ] ନୂତନ ସାର୍ବଜନୀନ ଫଙ୍କସନ୍ ଏବଂ ଇଣ୍ଟରଫେସ୍ଗୁଡ଼ିକ ପାଇଁ TypeScript ପ୍ରକାର ଯୋଡ଼ାଯାଇଛି
-- [ ] କୌଣସି ହାର୍ଡକୋଡ୍ କରାଯାଇଥିବା ଗୁପ୍ତ ତଥ୍ୟ କିମ୍ବା ଫଲ୍ବ୍ୟାକ୍ ମୂଲ୍ୟ ନାହିଁ
-- [ ] ସାର୍ବଜନୀନ ଅପ୍ଷ୍ଟ୍ରିମ୍ ପରିଚୟପତ୍ରଗୁଡ଼ିକ `resolvePublicCred()` ମାଧ୍ୟମରେ ଏମ୍ବେଡ୍ କରାଯାଇଛି ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ଦେଖନ୍ତୁ), କେବେବି ଲିଟେରାଲ୍ ଭାବେ ନୁହେଁ
-- [ ] ତ୍ରୁଟି ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ `buildErrorBody()` / `sanitizeErrorMessage()` ମାଧ୍ୟମରେ ଯାଏ — ପ୍ରତିକ୍ରିୟା ବଡିଗୁଡ଼ିକରେ କୌଣସି କଞ୍ଚା ଷ୍ଟାକ୍ ଟ୍ରେସ୍ ନାହିଁ ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ଦେଖନ୍ତୁ)
-- [ ] ଶେଲ୍ କମାଣ୍ଡ୍ଗୁଡ଼ିକ (`exec` / `spawn`) ଷ୍ଟ୍ରିଙ୍ଗ୍ ଇଣ୍ଟରପୋଲେସନ୍ ମାଧ୍ୟମରେ ନୁହେଁ, `env` ମାଧ୍ୟମରେ ରନ୍ଟାଇମ୍ ମୂଲ୍ୟଗୁଡ଼ିକ ପାସ୍ କରେ
-- [ ] ସମସ୍ତ ଇନ୍ପୁଟ୍ Zod ସ୍କିମାଗୁଡ଼ିକ ସହିତ ବୈଧତା ଯାଞ୍ଚ କରାଯାଇଛି
-- [ ] ବ୍ୟବହାରକାରୀଙ୍କୁ ପ୍ରଭାବିତ କରୁଥିବା ପରିବର୍ତ୍ତନ ପାଇଁ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ଅଧୀନରେ Changelog **ଖଣ୍ଡ** ଯୋଡ଼ାଯାଇଛି ([`changelog.d/README.md`](./changelog.d/README.md) ଦେଖନ୍ତୁ) — `CHANGELOG.md`କୁ ସିଧାସଳଖ ସମ୍ପାଦନା **କରନ୍ତୁ ନାହିଁ**; ଖଣ୍ଡଗୁଡ଼ିକ ରିଲିଜ୍ ସମୟରେ ଏକତ୍ରିତ କରାଯାଏ ଏବଂ PRଗୁଡ଼ିକ ମଧ୍ୟରେ କେବେବି ବିବାଦ ସୃଷ୍ଟି କରେ ନାହିଁ
-- [ ] ଡକ୍ୟୁମେଣ୍ଟେସନ୍ ଅଦ୍ୟତନ କରାଯାଇଛି (ଯଦି ପ୍ରଯୁଜ୍ୟ)
+- [ ] ପରୀକ୍ଷଣଗୁଡ଼ିକ ସଫଳ ହୋଇଛି (`npm test`)
+- [ ] ଲିଣ୍ଟିଂ ସଫଳ ହୋଇଛି (`npm run lint`)
+- [ ] ବିଲ୍ଡ ସଫଳ ହୋଇଛି (`npm run build`)
+- [ ] ନୂତନ ସାର୍ବଜନୀନ ଫଙ୍କସନ୍ ଏବଂ ଇଣ୍ଟରଫେସ୍ଗୁଡ଼ିକ ପାଇଁ TypeScript ଟାଇପ୍ ଯୋଡ଼ାଯାଇଛି
+- [ ] କୌଣସି ହାର୍ଡକୋଡ୍ କରାଯାଇଥିବା ସିକ୍ରେଟ୍ କିମ୍ବା ଫଲ୍ବ୍ୟାକ୍ ମୂଲ୍ୟ ନାହିଁ
+- [ ] ସାର୍ବଜନୀନ ଅପ୍ଷ୍ଟ୍ରିମ୍ କ୍ରେଡେନ୍ସିଆଲ୍ଗୁଡ଼ିକୁ `resolvePublicCred()` ମାଧ୍ୟମରେ ଏମ୍ବେଡ୍ କରାଯାଇଛି ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ଦେଖନ୍ତୁ), କେବେବି ଲିଟେରାଲ୍ ଭାବରେ ନୁହେଁ
+- [ ] ତ୍ରୁଟି ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକ `buildErrorBody()` / `sanitizeErrorMessage()` ମାଧ୍ୟମରେ ରୁଟ୍ ହୋଇଛି — ପ୍ରତିକ୍ରିୟା ବଡିରେ କୌଣସି ଅପରିବର୍ତ୍ତିତ ଷ୍ଟାକ୍ ଟ୍ରେସ୍ ନାହିଁ ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ଦେଖନ୍ତୁ)
+- [ ] ସେଲ୍ କମାଣ୍ଡଗୁଡ଼ିକ (`exec` / `spawn`) ଷ୍ଟ୍ରିଙ୍ଗ୍ ଇଣ୍ଟରପୋଲେସନ୍ ମାଧ୍ୟମରେ ନୁହେଁ, `env` ମାଧ୍ୟମରେ ରନ୍ଟାଇମ୍ ମୂଲ୍ୟ ପାସ୍ କରନ୍ତି
+- [ ] ସମସ୍ତ ଇନ୍ପୁଟ୍କୁ Zod ସ୍କିମା ସହିତ ବୈଧୀକରଣ କରାଯାଇଛି
+- [ ] ବ୍ୟବହାରକାରୀଙ୍କୁ ପ୍ରଭାବିତ କରୁଥିବା ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ପାଇଁ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ଅଧୀନରେ ଚେଞ୍ଜଲଗ୍ **ଫ୍ରାଗ୍ମେଣ୍ଟ୍** ଯୋଡ଼ାଯାଇଛି ([`changelog.d/README.md`](./changelog.d/README.md) ଦେଖନ୍ତୁ) — `CHANGELOG.md`କୁ ସିଧାସଳଖ ସମ୍ପାଦନା କରନ୍ତୁ **ନାହିଁ**; ରିଲିଜ୍ ସମୟରେ ଫ୍ରାଗ୍ମେଣ୍ଟ୍ଗୁଡ଼ିକୁ ଏକତ୍ର କରାଯାଏ ଏବଂ PRଗୁଡ଼ିକ ମଧ୍ୟରେ କେବେବି ଦ୍ୱନ୍ଦ୍ୱ ସୃଷ୍ଟି ହୁଏ ନାହିଁ
+- [ ] ଡକ୍ୟୁମେଣ୍ଟେସନ୍ ଅପଡେଟ୍ କରାଯାଇଛି (ଯଦି ପ୍ରଯୁଜ୍ୟ)
 - [ ] କୌଣସି ନୂତନ CodeQL / Secret-Scanning ସତର୍କତା ଖୋଲାଯାଇନାହିଁ, କିମ୍ବା ପ୍ରତ୍ୟେକଟିକୁ ସମ୍ପର୍କିତ `docs/security/` ଡକ୍ୟୁମେଣ୍ଟ୍ ଉଲ୍ଲେଖ କରୁଥିବା ବୈଷୟିକ ଯଥାର୍ଥତା ସହିତ ଖାରଜ କରାଯାଇଛି
-- [ ] ଚାଇଲ୍ଡ୍ ପ୍ରୋସେସ୍ ଆରମ୍ଭ କରୁଥିବା ରୁଟ୍ଗୁଡ଼ିକ (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts`ରେ `isLocalOnlyPath()` ଭାବେ ଶ୍ରେଣୀଭୁକ୍ତ କରାଯାଇଛି — [କଠୋର ନିୟମ #15](docs/security/ROUTE_GUARD_TIERS.md) ଦେଖନ୍ତୁ
-- [ ] କମିଟ୍ ସନ୍ଦେଶଗୁଡ଼ିକରେ କୌଣସି `Co-Authored-By` ଟ୍ରେଲର୍ ନାହିଁ — କମିଟ୍ଗୁଡ଼ିକ କେବଳ ରିପୋଜିଟୋରି ମାଲିକଙ୍କ Git ପରିଚୟ ଅଧୀନରେ ଦେଖାଯିବା ଆବଶ୍ୟକ (କଠୋର ନିୟମ #16)
+- [ ] ଚାଇଲ୍ଡ ପ୍ରୋସେସ୍ ସ୍ପନ୍ କରୁଥିବା ରୁଟ୍ଗୁଡ଼ିକ (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts`ରେ `isLocalOnlyPath()` ଭାବରେ ବର୍ଗୀକୃତ ହୋଇଛି — [କଠୋର ନିୟମ #15](docs/security/ROUTE_GUARD_TIERS.md) ଦେଖନ୍ତୁ
+- [ ] କମିଟ୍ ବାର୍ତ୍ତାଗୁଡ଼ିକରେ କୌଣସି AI/ବଟ୍ `Co-authored-by` ଟ୍ରେଲର୍ ନାହିଁ (କଠୋର ନିୟମ #16) — ଯେଉଁ ମାନବ ସହଯୋଗୀଙ୍କ କାର୍ଯ୍ୟ ପୁନଃବ୍ୟବହୃତ ହୋଇଛି, ସେମାନଙ୍କୁ ମାନକ `Co-authored-by: Name <email>` ଟ୍ରେଲର୍ ସହିତ ଶ୍ରେୟ ଦିଆଯାଇଛି
 
 ---
 
@@ -433,4 +433,3 @@ VPS ଡିପ୍ଲୟମେଣ୍ଟ ପାଇଁ, `npm run build` ପରିବ
 - **ସୁରକ୍ଷା ଡକ୍ୟୁମେଣ୍ଟଗୁଡ଼ିକ**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **ଅପରେସନ୍ସ ଡକ୍ୟୁମେଣ୍ଟଗୁଡ଼ିକ**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **ସମସ୍ୟାଗୁଡ଼ିକ**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: ଆର୍କିଟେକ୍ଚରାଲ୍ ନିଷ୍ପତ୍ତି ରେକର୍ଡଗୁଡ଼ିକ ପାଇଁ `docs/adr/` ଦେଖନ୍ତୁ

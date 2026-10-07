@@ -325,21 +325,26 @@ RTK režimą įkvėpė **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk
 
 ## Išplėstinės glaudinimo sistemos
 
-Be 7 standartinių režimų, „OmniRoute“ apima kelias pažangias glaudinimo sistemas, kurios automatiškai veikia atsižvelgiant į kontekstą.
+Be 7 standartinių režimų, „OmniRoute“ apima kelias išplėstines glaudinimo
+sistemas, kurios veikia automatiškai pagal kontekstą.
 
-### Talpyklą atpažįstantis glaudinimas
+### Į podėlį atsižvelgiantis glaudinimas
 
-Kai kurie teikėjai (pvz., „Anthropic“ su užklausų talpinimu) palaiko **užklausų talpinimą**, kuris leidžia jiems talpinti dalis užklausos, siekiant sumažinti išlaidas ir delsą. Kai talpinimas įjungtas, agresyvus glaudinimas iš tikrųjų gali **pakenkti** našumui, nes jis pakeičia talpintus žetonus, anuliuodamas talpyklą.
+Kai kurie paslaugų teikėjai (pvz., „Anthropic“ su užklausų podėliu) palaiko **užklausų podėlį**,
+kuris leidžia podėlyje saugoti užklausos dalis, kad būtų sumažintos sąnaudos ir delsa. Kai
+podėlis įjungtas, agresyvus glaudinimas iš tikrųjų gali **pabloginti** našumą,
+nes pakeičiami podėlyje laikomi prieigos raktai ir podėlis tampa nebegaliojantis.
 
-Modulis `cachingAware.ts` tai išsprendžia **aptikdamas talpinimo kontekstą** ir **atitinkamai koreguodamas glaudinimo strategiją**.
+Modulis `cachingAware.ts` išsprendžia šią problemą **aptikdamas podėlio kontekstą** ir
+atitinkamai **pakoreguodamas glaudinimo strategiją**.
 
 #### Kaip tai veikia
 
-1.  **Aptikti talpinimo kontekstą** – nuskaito užklausos turinį ieškodamas `cache_control` žymeklių
-2.  **Nustatyti talpinimą palaikančius teikėjus** – patikrina, ar tikslinis teikėjas palaiko talpinimą
-3.  **Koreguoti strategiją** – sumažina `aggressive`/`ultra` iki `standard` talpinimą palaikantiems teikėjams
-4.  **Praleisti sistemos užklausą** – sistemos užklausos paprastai yra talpinamos, todėl jų neglaudinti
-5.  **Naudoti deterministinius transformavimus** – naudoti tik tuos transformavimus, kurie sukuria nuoseklią išvestį
+1. **Aptinkamas podėlio kontekstas** — Užklausos turinyje ieškoma `cache_control` žymeklių
+2. **Nustatomi podėlį palaikantys paslaugų teikėjai** — Tikrinama, ar tikslinis paslaugų teikėjas palaiko podėlį
+3. **Koreguojama strategija** — Podėlį palaikantiems paslaugų teikėjams `aggressive`/`ultra` pakeičiama į `standard`
+4. **Praleidžiama sistemos užklausa** — Sistemos užklausos paprastai laikomos podėlyje, todėl jos neglaudinamos
+5. **Naudojamos deterministinės transformacijos** — Naudojamos tik nuoseklų rezultatą sukuriančios transformacijos
 
 #### Kodo pavyzdys
 
@@ -352,7 +357,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Talpyklos žymeklis
+  cache_control: { type: "ephemeral" }, // ← Podėlio žymeklis
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -364,19 +369,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Kada naudoti
 
-Talpyklą atpažįstantis glaudinimas yra **visada įjungtas** – nereikia jokios konfigūracijos. Jis įsijungia tik tada, kai:
+Į podėlį atsižvelgiantis glaudinimas yra **visada įjungtas** — konfigūruoti nereikia. Jis suaktyvinamas
+tik tada, kai:
 
-- Užklausa turi `cache_control` žymeklius
-- Tikslinis teikėjas palaiko užklausų talpinimą („Anthropic“, „OpenAI“ ir kt.)
+- Užklausoje yra `cache_control` žymeklių
+- Tikslinis paslaugų teikėjas palaiko užklausų podėlį („Anthropic“, „OpenAI“ ir kt.)
 
-### Progresyvus senėjimas
+### Progresyvus sendinimas
 
-Ilgos pokalbių sesijos sukaupia daug žinučių posūkių, tačiau senesni posūkiai tampa mažiau aktualūs. Modulis `progressiveAging.ts` **degraduoja žinutes pagal posūkio atstumą**:
+Ilguose pokalbiuose susikaupia daug pranešimų sekų, tačiau senesnės sekos tampa mažiau
+aktualios. Modulis `progressiveAging.ts` **supaprastina pranešimus pagal jų atstumą nuo naujausios sekos**:
 
-- **Naujausi posūkiai (0-3)**: paliekami pažodžiui (visa detalė)
-- **Vidutiniai posūkiai (4-8)**: lengvas glaudinimas (tarpų, formatavimo valymas)
-- **Seni posūkiai (9+)**: urvinio žmogaus glaudinimas (užpildų pašalinimas, apibendrinimas)
-- **Labai seni posūkiai (20+)**: stipriai apibendrinami arba atmetami
+- **Naujausios sekos (0–3)**: Išlaikomos pažodžiui (visas detalumas)
+- **Vidutinio senumo sekos (4–8)**: Lengvas glaudinimas (tarpų ir formatavimo sutvarkymas)
+- **Senos sekos (9+)**: „Urvinio žmogaus“ glaudinimas (nereikalingų žodžių pašalinimas, apibendrinimas)
+- **Labai senos sekos (20+)**: Intensyviai apibendrinamos arba pašalinamos
 
 #### Kodo pavyzdys
 
@@ -387,46 +394,48 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... dar 50 posūkių ...
+  // ... dar 50 sekų ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Pirmieji 3 posūkiai: pažodžiui
-  light: 8, // 4-8 posūkiai: lengvas glaudinimas
-  moderate: 20, // 9-20 posūkiai: urvinio žmogaus glaudinimas
-  // 21+ posūkiai: stiprus apibendrinimas
+  verbatim: 3, // Pirmosios 3 sekos: pažodžiui
+  light: 8, // 4–8 sekos: lengvas glaudinimas
+  moderate: 20, // 9–20 sekos: „urvinio žmogaus“ glaudinimas
+  // 21+ sekos: intensyvus apibendrinimas
 });
 
-// saved = sutaupytų žetonų skaičius
+// saved = sutaupytų prieigos raktų skaičius
 ```
 
 #### Kada naudoti
 
-Progresyvus senėjimas yra **visada įjungtas** `aggressive` ir `ultra` režimams. Jis ypač efektyvus:
+Progresyvus sendinimas yra **visada įjungtas** `aggressive` ir `ultra` režimams. Jis
+ypač veiksmingas:
 
-- Ilgalaikėms kodavimo sesijoms
-- Kelių dienų pokalbiams
-- Agentų darbo eigoms su daugybe įrankių iškvietimų
+- Ilgai trunkančiose programavimo sesijose
+- Kelias dienas trunkančiuose pokalbiuose
+- Agentinėse darbo eigose su daugybe įrankių iškvietimų
 
-### Urvinio žmogaus išvesties režimas
+### „Urvinio žmogaus“ išvesties režimas
 
-Modulis `outputMode.ts` įterpia **sistemos užklausos instrukcijas**, kad pats modelis sukurtų suglaudintą, glaustą išvestį („urvinio žmogaus“ stiliumi).
+Modulis `outputMode.ts` įterpia **sistemos užklausos instrukcijas**, kad pats
+modelis pateiktų suglaudintą, lakonišką išvestį („urvinio žmogaus“ stiliumi).
 
 #### Kaip tai veikia
 
-Užuot glaudinęs įvestį, šis režimas prideda sistemos užklausą, pvz.:
+Užuot glaudinus įvestį, šis režimas prideda tokią sistemos užklausą:
 
-> „Atsakykite minimaliais žodžiais. Praleiskite mandagumus. Naudokite trumpus sakinius.“
+> „Atsakyk kuo mažiau žodžių. Praleisk mandagumo frazes. Vartok trumpus sakinius.“
 
 Tai ypač gerai veikia:
 
-- Kodo generavimui (glaustesnė išvestis = mažiau žetonų)
-- Greitiems klausimams ir atsakymams (nereikia išsamių paaiškinimų)
-- Paketiniam apdorojimui (maksimalus pralaidumas)
+- Generuojant kodą (lakoniškesnė išvestis = mažiau prieigos raktų)
+- Pateikiant greitus klausimus ir atsakymus (nereikia išsamių paaiškinimų)
+- Atliekant paketinį apdorojimą (maksimalus pralaidumas)
 
 #### Kada naudoti
 
-Urvinio žmogaus išvesties režimas yra **pasirenkamas** – nustatykite jį per kombinacijos konfigūraciją:
+„Urvinio žmogaus“ išvesties režimą reikia **įjungti atskirai** — nustatykite jį jungtinėje konfigūracijoje:
 
 ```json
 {
@@ -441,35 +450,58 @@ Urvinio žmogaus išvesties režimas yra **pasirenkamas** – nustatykite jį pe
 
 ### Išvesties stiliai (katalogas)
 
-Aukščiau aprašytas urvinio žmogaus išvesties režimas yra **senasis vieno stiliaus kelias**. 4 etapas jį apibendrino į sudėtinių išvesties stilių katalogą: `OUTPUT_STYLE_CATALOG` faile `open-sse/services/compression/outputStyles/catalog.ts`. Kiekvienas stilius yra sistemos užklausos instrukcija, kuri priverčia patį modelį sukurti pigesnę išvestį; stiliai gali būti įjungiami kartu ir įterpiami katalogo tvarka.
+Aukščiau aprašytas „urvinio žmogaus“ išvesties režimas yra **senasis vieno stiliaus būdas**. 4-ajame etape jis buvo apibendrintas
+į komponuojamų išvesties stilių katalogą: `OUTPUT_STYLE_CATALOG`, esantį
+`open-sse/services/compression/outputStyles/catalog.ts`. Kiekvienas stilius yra sistemos užklausos
+instrukcija, skatinanti patį modelį pateikti pigesnę išvestį; kelis stilius galima įjungti
+kartu, o jie įterpiami katalogo tvarka.
 
-| Stilius                                | `id`          | Ką jis daro                                                                                                                                                                                                                                             | Instrukcijų kalbos                                               |
-| :------------------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------- |
-| Glausta proza                          | `terse-prose` | Pašalina užpildus/straipsnius/atsargumą; išlaiko tikslią techninę esmę. Tas pats tekstas kaip ir senasis „caveman“ išvesties režimas (nurodytas, ne perrašytas).                                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Mažiau kodo                            | `less-code`   | YAGNI laiptai: mažiausias veikiantis pakeitimas, jokių neprašytų abstrakcijų.                                                                                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| „Ponytail“ (tingus vyresnysis kūrėjas) | `ponytail`    | „Geriausias kodas yra niekada neparašytas kodas“: pakartotinis naudojimas > perrašymas, pagrindinė priežastis > simptomas, trumpiausias veikiantis skirtumas.                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Turiu ADHD (veiksmas pirmiausia)       | `i-have-adhd` | Veiksmas pirmiausia (komanda/kelias/fragmentas prieš prozą), sunumeruoti apriboti žingsniai, VIENAS konkretus kitas žingsnis, jokios preambulės/apibendrinimo/uždarymo. Adaptuota iš [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                    |
-| Glausta CJK (文言)                     | `terse-cjk`   | Klasikinės kinų kalbos itin glaustas stilius.                                                                                                                                                                                                           | zh (lokalizuota: siūloma tik tada, kai nustatyta kalba yra `zh`) |
+| Stilius                                          | `id`          | Ką jis daro                                                                                                                                                                                                                                                                      | Instrukcijų kalbos                                                         |
+| ------------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Glausta proza                                    | `terse-prose` | Pašalina perteklinius žodžius, artikelius ir abejones; tiksliai išlaiko techninę esmę. Tas pats tekstas kaip senajame urvinio žmogaus išvesties režime (nurodomas, o ne įvedamas iš naujo).                                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Mažiau kodo                                      | `less-code`   | YAGNI principas: mažiausias veikiantis pakeitimas, jokių neprašytų abstrakcijų.                                                                                                                                                                                                  | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Arklio uodega (tingus vyresnysis programuotojas) | `ponytail`    | „Geriausias kodas yra tas, kuris niekada nebuvo parašytas“: pakartotinis naudojimas > perrašymas, pagrindinė priežastis > simptomas, trumpiausias veikiantis pakeitimų rinkinys.                                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Turiu ADHD (pirmiausia veiksmas)                 | `i-have-adhd` | Pirmiausia veiksmas (komanda / kelias / fragmentas prieš paaiškinimą), numeruoti ribotos apimties veiksmai, VIENAS konkretus kitas veiksmas, be įžangos / apibendrinimo / baigiamųjų frazių. Pritaikyta pagal [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                              |
+| Glaustas CJK (文言)                              | `terse-cjk`   | Itin glaustas klasikinės kinų kalbos stilius.                                                                                                                                                                                                                                    | zh (ribojama pagal lokalę: siūloma tik tada, kai nustatyta kalba yra `zh`) |
 
-Kiekvienas stilius turi tris intensyvumo lygius – `lite`, `full`, `ultra` – ir kiekvienas lygis
-baigiasi bendra ribų išlyga, kuri išlaiko kodo blokus, failų kelius, komandas,
-klaidų eilutes, URL ir identifikatorius pažodžiui.
+Kiekvienas stilius pateikiamas su trimis intensyvumo lygiais — `lite`, `full`, `ultra` — ir kiekvienas lygis
+baigiamas bendra apribojimų sąlyga, kuri išlaiko kodo blokus, failų kelius, komandas,
+klaidų eilutes, URL ir identifikatorius nepakeistus.
 
 #### Kaip veikia įterpimas
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) išsprendžia
-pasirinkimą pagal katalogą (nežinomi ID ir kalbos neatitinkantys stiliai
-pašalinami, niekada nėra klaida), sujungia pasirinktas instrukcijas katalogo tvarka,
-prideda ribų išlygą **vieną kartą** ir įkelia rezultatą į sistemos
-raginimą už vieno idempotencijos žymeklio (`[OmniRoute Output Styles]`) – pakartotinis taikymas
-yra be operacijos. Kai aptikta užklausos kalba turi vertimą, lokalizuota
-instrukcija įterpiama vietoj anglų kalbos.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) suderina
+pasirinkimą su katalogu (nežinomi id ir lokalės neatitinkantys stiliai
+atmetami, tai niekada nelaikoma klaida), sujungia pasirinktas instrukcijas katalogo tvarka,
+**vieną kartą** prideda apribojimų sąlygą ir pradeda bloką vienu idempotentiškumo
+žymekliu (`[OmniRoute Output Styles]`), todėl pakartotinis taikymas nieko nepakeičia. Kai nustatyta
+kalba (žr. toliau pateiktą skiltį „Kalbos pasirinkimas“) turi vertimą, vietoje angliškos
+instrukcijos įterpiama lokalizuota instrukcija.
+
+Turinyje su `messages` turinio apėjimo funkcija (`shouldBypassCavemanOutputMode()`, esanti
+`open-sse/services/compression/outputMode.ts`) patikrina paskutinius tris pranešimus ir praleidžia
+stilių taikymą visam veiksmui, kai juose aptinkami saugumo, negrįžtamo veiksmo,
+patikslinimo arba tvarkai jautrūs raktažodžiai. Apėjimo funkcija veikia, kai valdymo skydelio **Auto-Clarity Bypass** jungiklis (`cavemanOutputMode.autoClarity`) įjungtas – tai numatytoji reikšmė; jungikliui išjungus, pasirinkti stiliai taikomi ir šiuose veiksmuose.
+
+Kai apėjimo funkcija leidžia apdoroti veiksmą, `placeSystemInstruction()` (tame pačiame faile), kuri
+niekada nesukuria naujo `messages[0]`, įterpia bloką pirmoje rastoje vietoje:
+
+1. Pradinis sistemos pranešimas su eilutės turiniu: blokas pridedamas po jo tekstu.
+2. Aukščiausio lygio laukas `system`: blokas pridedamas po eilutės tekstu arba
+   pridedamas kaip naujas teksto blokas į turinio blokų masyvą.
+3. Pirmas vėlesnis sistemos pranešimas su eilutės turiniu: blokas pridedamas po jo
+   tekstu.
+4. Nė vienas iš ankstesnių variantų: blokas įterpiamas į naują sistemos pranešimą `messages` pabaigoje.
+
+Turinyje be `messages` blokas pridedamas prie eilutės lauko `instructions`
+arba tampa `instructions`, kai turinyje yra `input` (eilutė arba masyvas). Turinys,
+kuriame nėra nei `instructions`, nei `input`, praleidžiamas kaip `no_messages`.
 
 #### Kaip įjungti
 
-Prietaisų skydelyje: **Context → Settings → Compression** – viena eilutė kiekvienam stiliui su
-įjungimo/išjungimo jungikliu ir lygio selektoriumi. Programiškai, suspaudimo konfigūracija išsaugo
-pasirinkimą kaip:
+Valdymo skydelyje: **Context → Settings → Compression** — kiekvienam stiliui skirta viena eilutė su
+įjungimo / išjungimo jungikliu ir lygio parinkikliu. Programiškai glaudinimo konfigūracijoje
+pasirinkimas išsaugomas taip:
 
 ```json
 {
@@ -480,59 +512,59 @@ pasirinkimą kaip:
 }
 ```
 
-Suderinamumas atgal: senasis `outputMode: "caveman"` kombinuotas nustatymas vis dar veikia ir atitinka
-`terse-prose`, baitas-identiškas senajam įterpimui kiekviena sena kalba.
+Atgalinis suderinamumas: senasis jungtinis nustatymas `outputMode: "caveman"` vis dar veikia ir susiejamas su
+`terse-prose`; visomis senosiomis kalbomis jis baitų lygmeniu identiškas ankstesniam įterpimui.
 
-Kalbos pasirinkimas: kai `languageConfig.enabled` įjungtas, `autoDetect` pasirenka
-naujausio vartotojo pranešimo kalbą (tas pats detektorius kaip ir įvesties varikliai);
-išjungus `autoDetect` priskiriama `defaultLanguage`. Išjungta → Anglų.
+Kalbos pasirinkimas: kai įjungta `languageConfig.enabled`, `autoDetect` parenka
+naujausio naudotojo pranešimo kalbą (naudojamas tas pats detektorius kaip įvesties moduliuose);
+išjungus `autoDetect`, naudojama `defaultLanguage`. Išjungta → anglų kalba.
 
-Stiliaus × kalbos matrica yra nustatyta
+Stilių × kalbų matrica fiksuojama faile
 `tests/unit/compression/output-styles-i18n-matrix.test.ts`: naujas stilius negali būti išleistas
-be bent jau pt-BR vertimo (arba aiškios stebimos išimties), o
-esamas stilius negali tyliai prarasti lokalės. Norėdami pridėti stilių, žr.
+be bent pt-BR vertimo (arba aiškiai registruotos išimties), o
+esamas stilius negali nepastebimai prarasti lokalės. Norėdami pridėti stilių, žr.
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
-### Įrankio rezultato suspaudimas
+### Įrankių rezultatų glaudinimas
 
-Modulis `toolResultCompressor.ts` teikia **5 specializuotas suspaudimo strategijas**
-įrankių rezultatams (funkcijų iškvietimai, agento išvestys, paieškos rezultatai ir kt.):
+Modulis `toolResultCompressor.ts` pateikia **5 specializuotas glaudinimo strategijas**
+įrankių rezultatams (funkcijų iškvietimams, agentų išvestims, paieškos rezultatams ir kt.):
 
-1. **Paieškos rezultatų suspaudimas** – Pašalina pasikartojančius rezultatus, išlaiko top-N
-2. **Failų skaitymo suspaudimas** – Sutrumpina didelius failus, išsaugo antraštes/importus
-3. **Kodo vykdymo suspaudimas** – Išlaiko tik esminius stdout/stderr
-4. **Duomenų bazės užklausų suspaudimas** – Apriboja eilutes, pašalina išsamius metaduomenis
-5. **API atsakymų suspaudimas** – Pašalina null laukus, sutrumpina masyvus
+1. **Paieškos rezultatų glaudinimas** — pašalina pasikartojančius rezultatus, palieka top-N
+2. **Failų skaitymo glaudinimas** — sutrumpina didelius failus, išsaugo antraštes / importus
+3. **Kodo vykdymo glaudinimas** — palieka tik būtiną stdout/stderr
+4. **Duomenų bazės užklausų glaudinimas** — riboja eilučių skaičių, pašalina išsamius metaduomenis
+5. **API atsakymų glaudinimas** — pašalina null laukus, sutraukia masyvus
 
 #### Kada naudoti
 
-Įrankio rezultato suspaudimas yra **visada įjungtas**, kai yra įrankio iškvietimų. Nereikia
-konfigūracijos.
+Įrankių rezultatų glaudinimas yra **visada įjungtas**, kai naudojami įrankių iškvietimai. Jokios
+konfigūracijos nereikia.
 
-### Sudėtinė grandinė
+### Nuoseklusis konvejeris
 
-Sudėtinis režimas paleidžia **kelis variklius nuosekliai** – dažniausiai pirmiausia RTK
-(60-90% sutaupoma įrankio išvestyje), tada Caveman (30% papildomai sutaupoma
-likusiame tekste). Taip pasiekiama **78-95% bendra sutaupyta suma**.
+Nuoseklusis režimas paleidžia **kelis variklius paeiliui** — paprastai pirmiausia RTK
+(60–90 % sumažinamas įrankių išvesties dydis), tada „Caveman“ (likęs tekstas
+sumažinamas dar 30 %). Taip pasiekiamas **bendras 78–95 % sumažinimas**.
 
 #### Kaip tai veikia
 
 ```
 Įvestis (1000 žetonų)
-  → RTK (komandą atpažįstantis filtras) → 200 žetonų
-    → Caveman (užpildų pašalinimas) → 140 žetonų
-  → Išvestis (140 žetonų, 86% sutaupyta)
+  → RTK (komandas atpažįstantis filtras) → 200 žetonų
+    → Caveman (užpildo šalinimas) → 140 žetonų
+  → Išvestis (140 žetonų, 86 % sumažinimas)
 ```
 
 #### Kada naudoti
 
-Naudokite sudėtinį režimą:
+Naudokite nuoseklųjį režimą:
 
-- Darbams, kuriuose gausu įrankių (agentinis kodavimas, tyrimai)
-- Ekonomiškai jautriam partijos apdorojimui
-- Kai reikia maksimaliai sutaupyti žetonų
+- Darbo eigoms, kuriose intensyviai naudojami įrankiai (agentinis programavimas, tyrimai)
+- Sąnaudoms jautriam paketiniam apdorojimui
+- Kai reikia maksimaliai sumažinti žetonų skaičių
 
-Konfigūruoti per kombinaciją:
+Konfigūruokite naudodami derinį:
 
 ```json
 {

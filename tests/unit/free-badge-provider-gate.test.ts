@@ -66,6 +66,22 @@ describe("A. flag off: historical badge rule unchanged", () => {
     assert.equal(legacy(PAID_REGISTERED, { id: "gpt-9:free" }), true);
   });
 
+  it("keeps the badge for explicit isFree evidence persisted by discovery", () => {
+    // Strict mode honors `isFree === true`; the default rule must be a superset of it,
+    // including on registered providers outside the static free catalog (e.g. a gateway
+    // whose live /models payload prices the model at 0).
+    assert.equal(legacy(PAID_REGISTERED, { id: "stealth/pixel-canary", isFree: true }), true);
+    assert.equal(
+      isModelFreeBadge(
+        PAID_REGISTERED,
+        { id: "stealth/pixel-canary", isFree: true },
+        { strict: true }
+      ),
+      true
+    );
+    assert.equal(legacy(PAID_REGISTERED, { id: "stealth/pixel-canary", isFree: "true" }), false);
+  });
+
   it("does not badge a plain paid model", () => {
     assert.equal(legacy(PAID_REGISTERED, { id: "gpt-9", name: "GPT 9" }), false);
     assert.equal(legacy(PAID_REGISTERED, { id: "gpt-9", name: "Freeform writer" }), false);

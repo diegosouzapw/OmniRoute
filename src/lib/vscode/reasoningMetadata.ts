@@ -17,7 +17,8 @@ export type VscodeCatalogModel = {
 };
 
 const STANDARD_EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
-const GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN = /^(.*gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/i;
+const CODEX_EXTENDED_EFFORT_SUFFIX_PATTERN =
+  /^(.*gpt-(?:5\.6-(?:sol|terra|luna)|6-(?:astra|sol|luna)))-(max|ultra)$/i;
 const DEFAULT_REASONING_EFFORT = "none";
 const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh", "max", "ultra"]);
 
@@ -41,7 +42,7 @@ export function getCatalogModelName(model: VscodeCatalogModel) {
 }
 
 function matchReasoningEffortSuffix(modelId: string) {
-  const extendedMatch = modelId.match(GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN);
+  const extendedMatch = modelId.match(CODEX_EXTENDED_EFFORT_SUFFIX_PATTERN);
   if (extendedMatch?.[1] && extendedMatch[2]) {
     return { baseModelId: extendedMatch[1], effort: extendedMatch[2].toLowerCase() };
   }
@@ -190,9 +191,10 @@ function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
     .trim()
     .toLowerCase();
   const match = providerModelId.match(
-    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+    /^gpt-(?:5\.6-(sol|terra|luna)|6-(?:astra|sol|luna))(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
   );
   if (!match) return undefined;
+  // The live catalog defaults GPT-5.6 Sol to low and every other model here to medium.
   return match[1] === "sol" ? "low" : "medium";
 }
 

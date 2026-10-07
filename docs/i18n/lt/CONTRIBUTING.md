@@ -400,22 +400,22 @@ Parašykite vienetinius testus kataloge `tests/unit/`, kurie apimtų bent:
 
 ---
 
-## Pull Request kontrolinis sąrašas
+## „Pull Request“ kontrolinis sąrašas
 
 - [ ] Testai sėkmingi (`npm test`)
-- [ ] Linting patikra sėkminga (`npm run lint`)
+- [ ] Statinė analizė sėkminga (`npm run lint`)
 - [ ] Kompiliavimas sėkmingas (`npm run build`)
-- [ ] Pridėti naujų viešųjų funkcijų ir sąsajų TypeScript tipai
-- [ ] Nėra kode įrašytų paslapčių ar atsarginių reikšmių
-- [ ] Vieši pirminio teikėjo prisijungimo duomenys įterpti naudojant `resolvePublicCred()` (žr. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), o ne kaip literalai
-- [ ] Klaidų atsakymai apdorojami naudojant `buildErrorBody()` / `sanitizeErrorMessage()` — atsakymų turinyje nėra neapdorotų dėklo išklotinių (žr. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Apvalkalo komandos (`exec` / `spawn`) vykdymo meto reikšmes perduoda per `env`, o ne naudodamos eilučių interpoliaciją
+- [ ] Naujoms viešosioms funkcijoms ir sąsajoms pridėti TypeScript tipai
+- [ ] Nėra kode tiesiogiai įrašytų paslapčių ar atsarginių reikšmių
+- [ ] Vieši išorinės sistemos prisijungimo duomenys įterpiami naudojant `resolvePublicCred()` (žr. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niekada nenaudojant literalų
+- [ ] Klaidų atsakymai apdorojami per `buildErrorBody()` / `sanitizeErrorMessage()` — atsakymų turinyje nėra neapdorotų dėklo trasų (žr. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Apvalkalo komandos (`exec` / `spawn`) vykdymo reikšmes perduoda per `env`, o ne naudodamos eilučių interpoliaciją
 - [ ] Visos įvestys patikrintos naudojant Zod schemas
-- [ ] Naudotojams matomiems pakeitimams pridėtas pakeitimų žurnalo **fragmentas** kataloge `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (žr. [`changelog.d/README.md`](./changelog.d/README.md)) — **neredaguokite** `CHANGELOG.md` tiesiogiai; fragmentai sujungiami leidimo metu ir niekada nesukelia konfliktų tarp PR
+- [ ] Naudotojams matomiems pakeitimams pridėtas pakeitimų žurnalo **fragmentas**, esantis `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (žr. [`changelog.d/README.md`](./changelog.d/README.md)) — **neredaguokite** `CHANGELOG.md` tiesiogiai; fragmentai sujungiami leidimo metu ir niekada nesukelia konfliktų tarp „Pull Request“ užklausų
 - [ ] Dokumentacija atnaujinta (jei taikoma)
-- [ ] Neatsirado naujų CodeQL / Secret-Scanning įspėjimų arba kiekvienas iš jų atmestas pateikus techninį pagrindimą su nuoroda į atitinkamą `docs/security/` dokumentą
-- [ ] Maršrutai, paleidžiantys antrinius procesus (`/api/mcp/`, `/api/cli-tools/runtime/`), faile `src/server/authz/routeGuard.ts` klasifikuojami kaip `isLocalOnlyPath()` — žr. [Griežtąją taisyklę Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Įvykdymo pranešimuose nėra `Co-Authored-By` galinių eilučių — įvykdymai turi būti rodomi tik su saugyklos savininko Git tapatybe (Griežtoji taisyklė Nr. 16)
+- [ ] Neatsirado naujų CodeQL / Secret-Scanning įspėjimų arba kiekvienas jų atmestas pateikus techninį pagrindimą su nuoroda į atitinkamą `docs/security/` dokumentą
+- [ ] Maršrutai, paleidžiantys antrinius procesus (`/api/mcp/`, `/api/cli-tools/runtime/`), faile `src/server/authz/routeGuard.ts` klasifikuoti kaip `isLocalOnlyPath()` — žr. [griežtą taisyklę Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Įvykdymo pranešimuose nėra DI / robotų `Co-authored-by` užbaigiamųjų eilučių (griežta taisyklė Nr. 16) — žmonės bendradarbiai, kurių darbas panaudojamas pakartotinai, nurodomi standartinėmis `Co-authored-by: Name <email>` užbaigiamosiomis eilutėmis
 
 ---
 
@@ -429,11 +429,10 @@ Tada naudokite `/deploy-vps-*-cc` įgūdžius, kurie per rsync nukopijuoja `dist
 
 ---
 
-## Pagalba
+## Pagalbos gavimas
 
 - **Architektūra**: žr. [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API dokumentacija**: žr. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Saugumo dokumentai**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Eksploatavimo dokumentai**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **API žinynas**: žr. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Saugumo dokumentacija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Eksploatavimo dokumentacija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problemos**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: architektūrinių sprendimų įrašus rasite `docs/adr/`

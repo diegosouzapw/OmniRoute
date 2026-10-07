@@ -314,27 +314,21 @@ RTK modu, **[RTK AI](https://github.com/rtk-ai)** tarafından geliştirilen **[R
 
 ## Gelişmiş Sıkıştırma Sistemleri
 
-7 standart modun ötesinde, OmniRoute bağlama göre otomatik olarak çalışan çeşitli
-gelişmiş sıkıştırma sistemleri içerir.
+OmniRoute, 7 standart modun ötesinde, bağlama göre otomatik olarak çalışan çeşitli gelişmiş sıkıştırma sistemleri içerir.
 
 ### Önbellek Duyarlı Sıkıştırma
 
-Bazı sağlayıcılar (Anthropic gibi, istem önbellekleme ile) **istem önbellekleme**
-desteği sunar, bu da maliyetleri ve gecikmeyi azaltmak için istemin bazı kısımlarını
-önbelleğe almalarını sağlar. Önbellekleme etkinleştirildiğinde, agresif sıkıştırma
-aslında performansı **olumsuz etkileyebilir** çünkü önbelleğe alınmış belirteçleri
-değiştirerek önbelleği geçersiz kılar.
+Bazı sağlayıcılar (istem önbelleğe alma özelliğine sahip Anthropic gibi), maliyetleri ve gecikmeyi azaltmak için istemin bazı bölümlerini önbelleğe almalarına olanak tanıyan **istem önbelleğe almayı** destekler. Önbelleğe alma etkinleştirildiğinde agresif sıkıştırma, önbelleğe alınmış tokenları değiştirerek önbelleği geçersiz kıldığı için performansa gerçekten **zarar verebilir**.
 
-`cachingAware.ts` modülü, **önbellekleme bağlamını algılayarak** ve sıkıştırma
-stratejisini buna göre **ayarlayarak** bu sorunu çözer.
+`cachingAware.ts` modülü, **önbelleğe alma bağlamını algılayarak** ve **sıkıştırma stratejisini** buna göre ayarlayarak bu sorunu çözer.
 
-#### Nasıl çalışır
+#### Nasıl çalışır?
 
-1. **Önbellekleme bağlamını algıla** — İstek gövdesini `cache_control` işaretleri için tarar
-2. **Önbellekleme sağlayıcılarını belirle** — Hedef sağlayıcının önbelleklemeyi destekleyip desteklemediğini kontrol eder
-3. **Stratejiyi ayarla** — Önbellekleme sağlayıcıları için `aggressive`/`ultra` modlarını `standard` moda düşürür
-4. **Sistem istemini atla** — Sistem istemleri genellikle önbelleğe alınır, bu yüzden onları sıkıştırma
-5. **Deterministik dönüşümler kullan** — Yalnızca tutarlı çıktı üreten dönüşümleri kullan
+1. **Önbelleğe alma bağlamını algılama** — İstek gövdesini `cache_control` işaretçileri için tarar
+2. **Önbelleğe alma sağlayıcılarını belirleme** — Hedef sağlayıcının önbelleğe almayı destekleyip desteklemediğini kontrol eder
+3. **Stratejiyi ayarlama** — Önbelleğe alma sağlayıcıları için `aggressive`/`ultra` modlarını `standard` moduna düşürür
+4. **Sistem istemini atlama** — Sistem istemleri genellikle önbelleğe alınır, bu nedenle bunları sıkıştırmaz
+5. **Belirlenimci dönüşümler kullanma** — Yalnızca tutarlı çıktı üreten dönüşümleri kullanır
 
 #### Kod örneği
 
@@ -347,7 +341,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Önbellek işareti
+  cache_control: { type: "ephemeral" }, // ← Önbellek işaretçisi
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -357,24 +351,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 // → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
 ```
 
-#### Ne zaman kullanılır
+#### Ne zaman kullanılmalı?
 
-Önbellek duyarlı sıkıştırma **her zaman açıktır** — yapılandırmaya gerek yoktur.
-Yalnızca şu durumlarda devreye girer:
+Önbellek duyarlı sıkıştırma **her zaman etkindir** — yapılandırma gerekmez. Yalnızca şu durumlarda devreye girer:
 
-- İstekte `cache_control` işaretleri varsa
-- Hedef sağlayıcı istem önbelleklemeyi destekliyorsa (Anthropic, OpenAI vb.)
+- İstekte `cache_control` işaretçileri bulunduğunda
+- Hedef sağlayıcı istem önbelleğe almayı desteklediğinde (Anthropic, OpenAI vb.)
 
-### Aşamalı Eskime
+### Aşamalı Eskitme
 
-Uzun konuşmalar birçok mesaj dönüşü biriktirir, ancak eski dönüşler daha az
-ilgili hale gelir. `progressiveAging.ts` modülü, **mesajları dönüş mesafesine
-göre derecelendirir**:
+Uzun konuşmalarda çok sayıda mesaj sırası birikir, ancak eski sıralar zamanla daha az ilgili hâle gelir. `progressiveAging.ts` modülü, **mesajları sıra mesafesine göre sadeleştirir**:
 
-- **Yakın dönüşler (0-3)**: Olduğu gibi korunur (tam detay)
-- **Orta dönüşler (4-8)**: Hafif sıkıştırma (boşluk, biçimlendirme temizliği)
-- **Eski dönüşler (9+)**: Mağara adamı sıkıştırması (doldurucu kaldırma, özetleme)
-- **Çok eski dönüşler (20+)**: Yoğun bir şekilde özetlenir veya düşürülür
+- **Yakın zamandaki sıralar (0-3)**: Olduğu gibi korunur (tüm ayrıntılarla)
+- **Orta uzaklıktaki sıralar (4-8)**: Hafif sıkıştırma (boşluk ve biçimlendirme temizliği)
+- **Eski sıralar (9+)**: İlkel sıkıştırma (dolgu ifadelerinin kaldırılması, özetleme)
+- **Çok eski sıralar (20+)**: Yoğun şekilde özetlenir veya kaldırılır
 
 #### Kod örneği
 
@@ -385,48 +376,46 @@ const messages = [
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
   { role: "assistant", content: "4" },
-  // ... 50 more turns ...
+  // ... 50 sıra daha ...
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // İlk 3 dönüş: olduğu gibi
-  light: 8, // 4-8. dönüşler: hafif sıkıştırma
-  moderate: 20, // 9-20. dönüşler: mağara adamı sıkıştırması
-  // 21+ dönüşler: yoğun özetleme
+  verbatim: 3, // İlk 3 sıra: olduğu gibi
+  light: 8, // 4-8. sıralar: hafif sıkıştırma
+  moderate: 20, // 9-20. sıralar: ilkel sıkıştırma
+  // 21. ve sonraki sıralar: yoğun özetleme
 });
 
-// saved = kaydedilen belirteç sayısı
+// saved = tasarruf edilen token sayısı
 ```
 
-#### Ne zaman kullanılır
+#### Ne zaman kullanılmalı?
 
-Aşamalı eskime, `aggressive` ve `ultra` modları için **her zaman açıktır**.
-Özellikle şunlar için etkilidir:
+Aşamalı eskitme, `aggressive` ve `ultra` modlarında **her zaman etkindir**. Özellikle şu durumlarda etkilidir:
 
 - Uzun süreli kodlama oturumları
-- Çok günlük konuşmalar
-- Birçok araç çağrısı içeren ajan tabanlı iş akışları
+- Birden fazla güne yayılan konuşmalar
+- Çok sayıda araç çağrısı içeren ajan tabanlı iş akışları
 
-### Mağara Adamı Çıktı Modu
+### İlkel Çıktı Modu
 
-`outputMode.ts` modülü, modelin kendisinin sıkıştırılmış, kısa çıktı (bir "mağara
-adamı" stili) üretmesini sağlamak için **sistem istemi talimatları** ekler.
+`outputMode.ts` modülü, modelin kendisinin sıkıştırılmış ve kısa çıktı üretmesini sağlamak için **sistem istemi talimatları** ekler ("ilkel" bir tarz).
 
-#### Nasıl çalışır
+#### Nasıl çalışır?
 
-Girdiyi sıkıştırmak yerine, bu mod şöyle bir sistem istemi ekler:
+Bu mod, girdiyi sıkıştırmak yerine şuna benzer bir sistem istemi ekler:
 
-> "Minimal kelimelerle yanıt ver. Nezaketleri atla. Kısa cümleler kullan."
+> "En az sayıda sözcükle yanıt ver. Nezaket ifadelerini atla. Kısa cümleler kullan."
 
-Bu özellikle şunlar için iyi çalışır:
+Bu, özellikle şu durumlarda iyi çalışır:
 
-- Kod üretimi (daha kısa çıktı = daha az belirteç)
-- Hızlı Soru-Cevap (ayrıntılı açıklamalara gerek yok)
-- Toplu işleme (verimi en üst düzeye çıkarın)
+- Kod üretimi (daha kısa çıktı = daha az token)
+- Hızlı soru-cevap (ayrıntılı açıklamalara gerek yoktur)
+- Toplu işleme (verimi en üst düzeye çıkarır)
 
-#### Ne zaman kullanılır
+#### Ne zaman kullanılmalı?
 
-Mağara adamı çıktı modu **isteğe bağlıdır** — bunu birleşik yapılandırma aracılığıyla ayarlayın:
+İlkel çıktı modu **isteğe bağlıdır** — birleşik yapılandırma aracılığıyla ayarlayın:
 
 ```json
 {
@@ -441,39 +430,56 @@ Mağara adamı çıktı modu **isteğe bağlıdır** — bunu birleşik yapılan
 
 ### Çıktı Stilleri (katalog)
 
-Yukarıdaki mağara adamı çıktı modu, **eski tek stil yoludur**. Aşama 4, bunu
-birleştirilebilir çıktı stilleri kataloğuna genelleştirdi: `open-sse/services/compression/outputStyles/catalog.ts`
-içindeki `OUTPUT_STYLE_CATALOG`. Her stil, modelin kendisinin daha ucuz çıktı
-üretmesini sağlayan bir sistem istemi talimatıdır; stiller birlikte etkinleştirilebilir
-ve katalog sırasına göre enjekte edilir.
+Yukarıdaki ilkel çıktı modu, **eski tek stilli yoldur**. 4. Aşama, bunu birleştirilebilir çıktı stillerinden oluşan bir katalog hâline getirmiştir: `open-sse/services/compression/outputStyles/catalog.ts` içindeki `OUTPUT_STYLE_CATALOG`. Her stil, modelin kendisinin daha düşük maliyetli çıktı üretmesini sağlayan bir sistem istemi talimatıdır; stiller birlikte etkinleştirilebilir ve katalog sırasına göre eklenir.
 
-| Stil                                    | `id`          | Ne işe yarar                                                                                                                                                                                                                       | Talimat dilleri                                                         |
-| :-------------------------------------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------- |
-| Kısa nesir                              | `terse-prose` | Dolgu/makale/kaçamak ifadeleri bırakır; teknik içeriği tam olarak korur. Eski caveman çıktı moduyla aynı metin (referans alınmış, yeniden yazılmamış).                                                                             | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Daha az kod                             | `less-code`   | YAGNI merdiveni: en küçük çalışan değişiklik, istenmeyen soyutlamalar yok.                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| At kuyruğu (tembel kıdemli geliştirici) | `ponytail`    | "En iyi kod, hiç yazılmayan koddur": yeniden kullanma > yeniden yazma, temel neden > semptom, en kısa çalışan fark.                                                                                                                | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| DEHB'im var (önce eylem)                | `i-have-adhd` | Önce eylem (nesirden önce komut/yol/kod parçacığı), numaralandırılmış sınırlı adımlar, BİR somut sonraki adım, giriş/özet/kapanış yok. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) adresinden uyarlanmıştır. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                           |
-| Kısa CJK (文言)                         | `terse-cjk`   | Klasik Çince ultra-kısa stil.                                                                                                                                                                                                      | zh (yerel ayar kısıtlı: yalnızca çözümlenen dil `zh` olduğunda sunulur) |
+| Stil                                    | `id`          | Ne yapar                                                                                                                                                                                                                      | Talimat dilleri                                                                       |
+| --------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Kısa ve öz anlatım                      | `terse-prose` | Dolgu sözcüklerini/tanımlıkları/kaçamak ifadeleri çıkarır; teknik içeriği eksiksiz korur. Eski mağara adamı çıktı moduyla aynı metindir (atıfta bulunulur, yeniden yazılmaz).                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| Daha az kod                             | `less-code`   | YAGNI basamakları: çalışan en küçük değişiklik, istenmemiş soyutlama yok.                                                                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| At kuyruğu (tembel kıdemli geliştirici) | `ponytail`    | "En iyi kod, hiç yazılmamış koddur": yeniden kullanma > yeniden yazma, temel neden > belirti, çalışan en kısa diff.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| ADHD'm var (önce eylem)                 | `i-have-adhd` | Önce eylem (düz yazıdan önce komut/yol/kod parçacığı), numaralı ve sınırlandırılmış adımlar, TEK somut sonraki adım, giriş/özet/kapanış yok. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) uyarlamasıdır. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                         |
+| Kısa CJK (文言)                         | `terse-cjk`   | Klasik Çince, son derece kısa stil.                                                                                                                                                                                           | zh (yerel ayarla sınırlandırılmıştır: yalnızca çözümlenen dil `zh` olduğunda sunulur) |
 
-Her stil üç yoğunluk seviyesiyle birlikte gelir — `lite`, `full`, `ultra` — ve her seviye
-paylaşılan sınırlar maddesiyle biter, bu da kod bloklarını, dosya yollarını, komutları,
-hata dizelerini, URL'leri ve tanımlayıcıları olduğu gibi korur.
+Her stil üç yoğunluk düzeyiyle sunulur — `lite`, `full`, `ultra` — ve her düzey,
+kod bloklarını, dosya yollarını, komutları, hata dizelerini, URL'leri ve tanımlayıcıları
+aynen koruyan ortak sınırlar maddesiyle sona erer.
 
-#### Enjeksiyon nasıl çalışır
+#### Enjeksiyon nasıl çalışır?
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`),
-seçimi kataloğa göre çözer (bilinmeyen kimlikler ve yerel ayar uyumsuz stiller
-bırakılır, asla hata olmaz), seçilen talimatları katalog sırasına göre birleştirir,
-sınırlar maddesini **bir kez** ekler ve sonucu tek bir idempontans işaretçisinin
-(`[OmniRoute Output Styles]`) arkasındaki sistem istemine önceden yükler — yeniden
-uygulama bir no-op'tur. Algılanan istek dilinin bir çevirisi olduğunda, İngilizce
-yerine yerelleştirilmiş talimat enjekte edilir.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`), seçimi
+kataloğa göre çözümler (bilinmeyen kimlikler ve yerel ayarla eşleşmeyen stiller
+çıkarılır, hiçbir zaman hata oluşturmaz), seçilen talimatları katalog sırasına göre
+birleştirir, sınırlar maddesini **bir kez** ekler ve bloğu tek bir eşgüçlülük
+işaretiyle (`[OmniRoute Output Styles]`) başlatır; böylece yeniden uygulama hiçbir işlem
+yapmaz. Çözümlenen dilin (aşağıdaki Dil seçimi bölümüne bakın) bir çevirisi varsa
+İngilizce yerine yerelleştirilmiş talimat enjekte edilir.
 
-#### Nasıl etkinleştirilir
+`messages` içeren bir gövdede, `open-sse/services/compression/outputMode.ts` içindeki
+bir içerik atlama denetimi (`shouldBypassCavemanOutputMode()`) son üç mesajı kontrol eder
+ve bunlar güvenlik, geri döndürülemez eylem, açıklama isteme veya sıraya duyarlı anahtar
+sözcüklerle eşleştiğinde tüm tur için stilleri atlar. Atlama işlemi, panodaki **Auto-Clarity Bypass** anahtarı (`cavemanOutputMode.autoClarity`) açık olduğu sürece çalışır; bu varsayılan durumdur. Anahtar kapalıyken seçilen stiller bu turlarda da uygulanır.
 
-Kontrol panelinde: **Bağlam → Ayarlar → Sıkıştırma** — her stil için bir açma/kapama
-düğmesi ve bir seviye seçici ile bir satır. Programatik olarak, sıkıştırma yapılandırması
-seçimi şu şekilde kalıcı hale getirir:
+Atlama denetimi turun geçmesine izin verdiğinde, aynı dosyadaki ve hiçbir zaman yeni bir
+`messages[0]` oluşturmayan `placeSystemInstruction()`, bloğu bulduğu ilk uygun konuma
+yerleştirir:
+
+1. Başta yer alan, dize içerikli bir sistem mesajı: blok, mesaj metninin sonuna eklenir.
+2. Üst düzey `system` alanı: blok, dizeyse metnin sonuna eklenir; içerik bloğu dizisiyse
+   yeni bir metin bloğu olarak eklenir.
+3. Daha sonra yer alan, dize içerikli ilk sistem mesajı: blok, mesaj metninin sonuna
+   eklenir.
+4. Yukarıdakilerin hiçbiri: blok, `messages` sonundaki yeni bir sistem mesajına
+   yerleştirilir.
+
+`messages` içermeyen bir gövdede blok, dize türündeki `instructions` alanının sonuna
+eklenir veya gövde `input` (bir dize ya da dizi) taşıyorsa `instructions` olur. Ne
+`instructions` ne de `input` içeren bir gövde `no_messages` olarak atlanır.
+
+#### Nasıl etkinleştirilir?
+
+Panoda: **Context → Settings → Compression** — her stil için açma/kapatma anahtarı ve
+düzey seçici içeren bir satır bulunur. Programlama yoluyla sıkıştırma yapılandırması
+seçimi şu şekilde kalıcılaştırır:
 
 ```json
 {
@@ -484,59 +490,57 @@ seçimi şu şekilde kalıcı hale getirir:
 }
 ```
 
-Geriye dönük uyumluluk: eski `outputMode: "caveman"` kombinasyon ayarı hala çalışır ve
-`terse-prose`'a eşlenir, her eski dilde eski enjeksiyonla bayt olarak aynıdır.
+Geriye dönük uyumluluk: eski `outputMode: "caveman"` birleşik ayarı hâlâ çalışır ve
+`terse-prose` stiline eşlenir; her eski dilde eski enjeksiyonla bayt düzeyinde aynıdır.
 
-Dil seçimi: `languageConfig.enabled` açıkken, `autoDetect` en son kullanıcı mesajının
-dilini seçer (giriş motorlarıyla aynı dedektör); `autoDetect`'i kapatmak
-`defaultLanguage`'ı sabitler. Kapalı → İngilizce.
+Dil seçimi: `languageConfig.enabled` açıkken `autoDetect`, en son kullanıcı mesajının
+dilini seçer (girdi motorlarıyla aynı algılayıcı); `autoDetect` kapatıldığında
+`defaultLanguage` sabitlenir. Kapalı → İngilizce.
 
-Stil × dil matrisi `tests/unit/compression/output-styles-i18n-matrix.test.ts`
-tarafından sabitlenmiştir: yeni bir stil en az bir pt-BR çevirisi (veya açıkça
-izlenen bir istisna) olmadan gönderilemez ve mevcut bir stil sessizce bir yerel
-ayarı kaybedemez. Bir stil eklemek için bkz.
-[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
+Stil × dil matrisi
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` tarafından sabitlenir: yeni
+bir stil, en azından bir pt-BR çevirisi (veya açıkça izlenen bir istisna) olmadan
+yayımlanamaz ve mevcut bir stil sessizce bir yerel ayarı kaybedemez. Stil eklemek için
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) belgesine
+bakın.
 
 ### Araç Sonucu Sıkıştırma
 
-`toolResultCompressor.ts` modülü, araç sonuçları (fonksiyon çağrıları, aracı
-çıktıları, arama sonuçları vb.) için **5 özel sıkıştırma stratejisi** sunar:
+`toolResultCompressor.ts` modülü, araç sonuçları (işlev çağrıları, aracı çıktıları,
+arama sonuçları vb.) için **5 özel sıkıştırma stratejisi** sağlar:
 
-1. **Arama sonucu sıkıştırma** — Gereksiz sonuçları kaldırır, ilk N'yi tutar
-2. **Dosya okuma sıkıştırma** — Büyük dosyaları keser, başlıkları/içe aktarmaları korur
-3. **Kod yürütme sıkıştırma** — Yalnızca temel stdout/stderr'i tutar
-4. **Veritabanı sorgu sıkıştırma** — Satırları sınırlar, ayrıntılı meta verileri kaldırır
-5. **API yanıt sıkıştırma** — Boş alanları kaldırır, dizileri yoğunlaştırır
+1. **Arama sonucu sıkıştırma** — Gereksiz sonuçları kaldırır, en iyi N sonucu korur
+2. **Dosya okuma sıkıştırması** — Büyük dosyaları kısaltır, başlıkları/içe aktarmaları korur
+3. **Kod yürütme sıkıştırması** — Yalnızca gerekli stdout/stderr içeriğini korur
+4. **Veritabanı sorgusu sıkıştırması** — Satırları sınırlar, ayrıntılı meta verileri kaldırır
+5. **API yanıtı sıkıştırması** — Null alanları çıkarır, dizileri yoğunlaştırır
 
-#### Ne zaman kullanılır
+#### Ne zaman kullanılmalı
 
-Araç çağrıları mevcut olduğunda araç sonucu sıkıştırma **her zaman açıktır**.
-Yapılandırma gerekmez.
+Araç çağrıları mevcut olduğunda araç sonucu sıkıştırması **her zaman açıktır**. Herhangi bir yapılandırma gerekmez.
 
 ### Yığılmış İşlem Hattı
 
-Yığılmış mod, **birden fazla motoru sırayla** çalıştırır — genellikle önce RTK
-(araç çıktısında %60-90 tasarruf), ardından Caveman (kalan metinde %30 ek tasarruf).
-Bu, **%78-95 toplam tasarruf** sağlar.
+Yığılmış mod, **birden fazla motoru sırayla** çalıştırır — genellikle önce RTK (araç çıktısında %60-90 tasarruf), ardından Caveman (kalan metinde ek %30 tasarruf). Bu, toplamda **%78-95 tasarruf** sağlar.
 
-#### Nasıl çalışır
+#### Nasıl çalışır?
 
 ```
-Giriş (1000 belirteç)
-  → RTK (komut farkında filtre) → 200 belirteç
-    → Caveman (dolgu kaldırma) → 140 belirteç
-  → Çıktı (140 belirteç, %86 tasarruf)
+Girdi (1000 token)
+  → RTK (komut duyarlı filtre) → 200 token
+    → Caveman (dolgu ifadelerini kaldırma) → 140 token
+  → Çıktı (140 token, %86 tasarruf)
 ```
 
-#### Ne zaman kullanılır
+#### Ne zaman kullanılmalı?
 
-Yığılmış modu şunlar için kullanın:
+Yığılmış modu şu durumlarda kullanın:
 
-- Araç ağırlıklı iş akışları (ajanlı kodlama, araştırma)
-- Maliyet duyarlı toplu işleme
-- Maksimum belirteç tasarrufu gerektiğinde
+- Araç ağırlıklı iş akışları (otonom kodlama, araştırma)
+- Maliyete duyarlı toplu işleme
+- Maksimum token tasarrufuna ihtiyaç duyduğunuzda
 
-Kombinasyon aracılığıyla yapılandırın:
+Combo aracılığıyla yapılandırın:
 
 ```json
 {

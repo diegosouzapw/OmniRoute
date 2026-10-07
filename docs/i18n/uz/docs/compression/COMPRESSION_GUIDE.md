@@ -311,23 +311,23 @@ RTK rejimi **[RTK AI](https://github.com/rtk-ai)** tomonidan yaratilgan **[RTK -
 
 ## Kengaytirilgan siqish tizimlari
 
-7 ta standart rejimdan tashqari, OmniRoute kontekstga qarab avtomatik ishlaydigan bir nechta ilg'or siqish tizimlarini o'z ichiga oladi.
+7 ta standart rejimdan tashqari, OmniRoute kontekstga qarab avtomatik ishlaydigan bir nechta kengaytirilgan siqish tizimlarini ham o‘z ichiga oladi.
 
-### Keshni hisobga olgan holda siqish
+### Keshni hisobga oluvchi siqish
 
-Ba'zi provayderlar (masalan, Anthropic prompt keshini ishlatish bilan) **prompt keshini** qo'llab-quvvatlaydi, bu ularga xarajatlarni va kechikishni kamaytirish uchun promptning qismlarini keshga olish imkonini beradi. Keshga olish yoqilgan bo'lsa, agressiv siqish aslida ishlashga **salbiy ta'sir ko'rsatishi** mumkin, chunki u keshga olingan tokenlarni o'zgartirib, keshni yaroqsiz holga keltiradi.
+Ba’zi provayderlar (masalan, promptlarni keshlash funksiyasiga ega Anthropic) **promptlarni keshlash**ni qo‘llab-quvvatlaydi. Bu ularga xarajatlar va kechikishni kamaytirish uchun promptning ayrim qismlarini keshlash imkonini beradi. Keshlash yoqilganida agressiv siqish amalda unumdorlikka **zarar yetkazishi** mumkin, chunki u keshlangan tokenlarni o‘zgartirib, keshni yaroqsiz holga keltiradi.
 
-`cachingAware.ts` moduli bu muammoni **keshlash kontekstini aniqlash** va **siqish strategiyasini mos ravishda sozlash** orqali hal qiladi.
+`cachingAware.ts` moduli bu muammoni **keshlash kontekstini aniqlash** va unga mos ravishda **siqish strategiyasini sozlash** orqali hal qiladi.
 
-#### Qanday ishlaydi
+#### U qanday ishlaydi
 
-1. **Keshga olish kontekstini aniqlash** — `cache_control` markerlari uchun so'rov tanasini skanerlaydi
-2. **Keshga olish provayderlarini aniqlash** — Maqsadli provayder keshga olishni qo'llab-quvvatlashini tekshiradi
-3. **Strategiyani sozlash** — Keshga olish provayderlari uchun `aggressive`/`ultra` ni `standard` ga tushiradi
-4. **Tizim promptini o'tkazib yuborish** — Tizim promptlari odatda keshga olinadi, shuning uchun ularni siqmang
-5. **Deterministik transformatsiyalardan foydalanish** — Faqat izchil natija beradigan transformatsiyalardan foydalaning
+1. **Keshlash kontekstini aniqlash** — So‘rov tanasida `cache_control` belgilarini qidiradi
+2. **Keshlashni qo‘llab-quvvatlovchi provayderlarni aniqlash** — Maqsadli provayder keshlashni qo‘llab-quvvatlashini tekshiradi
+3. **Strategiyani sozlash** — Keshlashni qo‘llab-quvvatlovchi provayderlar uchun `aggressive`/`ultra` rejimlarini `standard` rejimiga pasaytiradi
+4. **Tizim promptini o‘tkazib yuborish** — Tizim promptlari odatda keshlanadi, shuning uchun ularni siqmang
+5. **Deterministik o‘zgartirishlardan foydalanish** — Faqat izchil natija beradigan o‘zgartirishlardan foydalanadi
 
-#### Kod misoli
+#### Kod namunasi
 
 ```ts
 import {
@@ -338,7 +338,7 @@ import {
 const body = {
   model: "anthropic/claude-sonnet-4.5",
   messages: [{ role: "user", content: "Hello" }],
-  cache_control: { type: "ephemeral" }, // ← Kesh markeri
+  cache_control: { type: "ephemeral" }, // ← Kesh belgisi
 };
 
 const ctx = detectCachingContext(body, { provider: "anthropic" });
@@ -350,21 +350,21 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 #### Qachon foydalanish kerak
 
-Keshni hisobga olgan holda siqish **har doim yoqilgan** — hech qanday konfiguratsiya talab qilinmaydi. U faqat quyidagi hollarda ishga tushadi:
+Keshni hisobga oluvchi siqish **doimo yoqilgan** — hech qanday konfiguratsiya talab qilinmaydi. U faqat quyidagi holatlarda ishga tushadi:
 
-- So'rovda `cache_control` markerlari mavjud bo'lsa
-- Maqsadli provayder prompt keshini qo'llab-quvvatlasa (Anthropic, OpenAI va boshqalar)
+- So‘rovda `cache_control` belgilari mavjud bo‘lsa
+- Maqsadli provayder promptlarni keshlashni qo‘llab-quvvatlasa (Anthropic, OpenAI va boshqalar)
 
-### Progressiv qarish
+### Progressiv eskirish
 
-Uzoq suhbatlar ko'plab xabar almashinuvlarini to'playdi, ammo eski almashinuvlar kamroq dolzarb bo'lib qoladi. `progressiveAging.ts` moduli **xabarlarni almashinuv masofasi bo'yicha yomonlashtiradi**:
+Uzoq suhbatlarda ko‘plab xabar almashinuvi to‘planadi, biroq eski almashinuvlar vaqt o‘tishi bilan ahamiyatini yo‘qotadi. `progressiveAging.ts` moduli **xabarlarni almashinuv masofasiga qarab soddalashtiradi**:
 
-- **Yaqin almashinuvlar (0-3)**: So'zma-so'z saqlanadi (to'liq tafsilot)
-- **O'rta almashinuvlar (4-8)**: Yengil siqish (bo'sh joy, formatlashni tozalash)
-- **Eski almashinuvlar (9+)**: G'or odami siqishi (to'ldiruvchilarni olib tashlash, xulosalash)
-- **Juda eski almashinuvlar (20+)**: Kuchli xulosalangan yoki tashlab yuborilgan
+- **Yaqindagi almashinuvlar (0-3)**: O‘zgartirilmasdan saqlanadi (to‘liq tafsilotlar)
+- **O‘rtacha eski almashinuvlar (4-8)**: Yengil siqish (bo‘sh joylar va formatlashni tozalash)
+- **Eski almashinuvlar (9+)**: «G‘or odami» uslubida siqish (ortiqcha so‘zlarni olib tashlash, umumlashtirish)
+- **Juda eski almashinuvlar (20+)**: Kuchli tarzda umumlashtiriladi yoki tashlab yuboriladi
 
-#### Kod misoli
+#### Kod namunasi
 
 ```ts
 import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
@@ -377,42 +377,42 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3, // Dastlabki 3 ta almashinuv: so'zma-so'z
+  verbatim: 3, // Dastlabki 3 ta almashinuv: o‘zgartirilmaydi
   light: 8, // 4-8-almashinuvlar: yengil siqish
-  moderate: 20, // 9-20-almashinuvlar: g'or odami siqishi
-  // 21+ almashinuvlar: kuchli xulosalash
+  moderate: 20, // 9-20-almashinuvlar: «g‘or odami» uslubida siqish
+  // 21-almashinuvdan keyin: kuchli umumlashtirish
 });
 
-// saved = saqlangan tokenlar soni
+// saved = tejalgan tokenlar soni
 ```
 
 #### Qachon foydalanish kerak
 
-Progressiv qarish `aggressive` va `ultra` rejimlarida **har doim yoqilgan**. Bu ayniqsa quyidagilar uchun samarali:
+Progressiv eskirish `aggressive` va `ultra` rejimlari uchun **doimo yoqilgan**. U ayniqsa quyidagi holatlarda samarali:
 
-- Uzoq davom etadigan kodlash sessiyalari
+- Uzoq davom etadigan dasturlash seanslari
 - Bir necha kunlik suhbatlar
-- Ko'plab vosita chaqiruvlari bo'lgan agentlik ish oqimlari
+- Ko‘p vosita chaqiruvlariga ega agentli ish jarayonlari
 
-### G'or odami chiqish rejimi
+### «G‘or odami» chiqish rejimi
 
-`outputMode.ts` moduli modelning o'zi siqilgan, qisqa chiqish ( "g'or odami" uslubi) hosil qilish uchun **tizim prompt ko'rsatmalarini** kiritadi.
+`outputMode.ts` moduli modelning o‘zi siqilgan, qisqa chiqish («g‘or odami» uslubi) yaratishi uchun **tizim prompti ko‘rsatmalarini** kiritadi.
 
-#### Qanday ishlaydi
+#### U qanday ishlaydi
 
-Kirishni siqish o'rniga, bu rejim quyidagi kabi tizim promptini qo'shadi:
+Bu rejim kirishni siqish o‘rniga quyidagiga o‘xshash tizim promptini qo‘shadi:
 
-> "Minimal so'zlar bilan javob bering. Xushmuomalalikni o'tkazib yuboring. Qisqa jumlalardan foydalaning."
+> "Minimal so‘zlar bilan javob bering. Xushmuomalalik iboralarini tashlab ket­ing. Qisqa gaplardan foydalaning."
 
 Bu ayniqsa quyidagilar uchun yaxshi ishlaydi:
 
-- Kod yaratish (qisqa chiqish = kamroq tokenlar)
-- Tez savol-javob (murakkab tushuntirishlarga hojat yo'q)
-- Paketli ishlov berish (o'tkazuvchanlikni maksimal darajada oshirish)
+- Kod yaratish (qisqaroq chiqish = kamroq token)
+- Tezkor savol-javob (batafsil tushuntirishlarga ehtiyoj yo‘q)
+- Paketli qayta ishlash (o‘tkazuvchanlikni maksimal darajaga oshirish)
 
 #### Qachon foydalanish kerak
 
-G'or odami chiqish rejimi **ixtiyoriy** — uni combo konfiguratsiyasi orqali o'rnating:
+«G‘or odami» chiqish rejimi **ixtiyoriy** — uni kombinatsiyalangan konfiguratsiya orqali o‘rnating:
 
 ```json
 {
@@ -427,35 +427,55 @@ G'or odami chiqish rejimi **ixtiyoriy** — uni combo konfiguratsiyasi orqali o'
 
 ### Chiqish uslublari (katalog)
 
-Yuqoridagi g'or odami chiqish rejimi **eski yagona uslub yo'li** hisoblanadi. 4-bosqich uni `open-sse/services/compression/outputStyles/catalog.ts` dagi `OUTPUT_STYLE_CATALOG` nomli kompozitsion chiqish uslublari katalogiga umumlashtirdi. Har bir uslub modelning o'zi arzonroq chiqish hosil qilishiga imkon beruvchi tizim-prompt ko'rsatmasidir; uslublar birgalikda yoqilishi mumkin va katalog tartibida kiritiladi.
+Yuqoridagi «g‘or odami» chiqish rejimi **eskirgan yagona uslub yo‘li** hisoblanadi. 4-bosqich uni birlashtiriladigan chiqish uslublari katalogiga umumlashtirdi: `open-sse/services/compression/outputStyles/catalog.ts` faylidagi `OUTPUT_STYLE_CATALOG`. Har bir uslub modelning o‘zi tejamkorroq chiqish yaratishiga yordam beradigan tizim prompti ko‘rsatmasidir; uslublarni birgalikda yoqish mumkin va ular katalogdagi tartibda kiritiladi.
 
-| Uslub                              | `id`          | Nima qiladi                                                                                                                                                                                                                                                 | Koʻrsatma tillari                                                         |
-| :--------------------------------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
-| Qisqa nasr                         | `terse-prose` | Toʻldiruvchi/artikllar/toʻsiqlarni tashlab yuboring; texnik mohiyatni aniq saqlang. Eski caveman chiqish rejimidagi matn bilan bir xil (havola qilingan, qayta terilmagan).                                                                                 | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                             |
-| Kamroq kod                         | `less-code`   | YAGNI narvon: eng kichik ishlaydigan oʻzgarish, soʻralmagan abstraksiyalar yoʻq.                                                                                                                                                                            | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                             |
-| Ponytail (dangasa katta dasturchi) | `ponytail`    | "Eng yaxshi kod hech qachon yozilmagan koddir": qayta yozishdan koʻra qayta ishlatish, simptomdan koʻra asosiy sabab, eng qisqa ishlaydigan farq.                                                                                                           | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                             |
-| Menda DEHB bor (harakat-birinchi)  | `i-have-adhd` | Harakat birinchi (nasrdan oldin buyruq/yoʻl/snippet), raqamlangan chegaralangan qadamlar, Bitta aniq keyingi qadam, kirish/qayta koʻrib chiqish/yakunlovchilar yoʻq. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) dan moslashtirilgan. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                             |
-| Qisqa CJK (文言)                   | `terse-cjk`   | Klassik-xitoycha oʻta qisqa uslub.                                                                                                                                                                                                                          | zh (lokalga bogʻliq: faqat aniqlangan til `zh` boʻlganda taklif qilinadi) |
+| Uslub                             | `id`          | Nima qiladi                                                                                                                                                                                                                                               | Koʻrsatma tillari                                                                |
+| --------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Qisqa bayon                       | `terse-prose` | Ortiqcha soʻzlar/artikllar/ikkilanishlarni olib tashlaydi; texnik mazmunni aniq saqlaydi. Eski gʻor odami chiqish rejimidagi matn bilan bir xil (havola qilinadi, qayta yozilmaydi).                                                                      | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Kamroq kod                        | `less-code`   | YAGNI pogʻonasi: ishlaydigan eng kichik oʻzgarish, soʻralmagan abstraksiyalarsiz.                                                                                                                                                                         | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Ot dumi (dangasa katta dasturchi) | `ponytail`    | "Eng yaxshi kod — hech qachon yozilmagan kod": qayta foydalanish > qayta yozish, asosiy sabab > alomat, ishlaydigan eng qisqa diff.                                                                                                                       | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Menda ADHD bor (avval harakat)    | `i-have-adhd` | Avval harakat (bayondan oldin buyruq/yoʻl/parcha), raqamlangan va chegaralangan qadamlar, BITTA aniq keyingi qadam, kirish/qayta xulosa/yakunlovchi gaplarsiz. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) asosida moslashtirilgan. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                                    |
+| Qisqa CJK (文言)                  | `terse-cjk`   | Klassik xitoy tilidagi oʻta qisqa uslub.                                                                                                                                                                                                                  | zh (lokal bilan cheklangan: faqat aniqlangan til `zh` boʻlganda taklif qilinadi) |
 
-Har bir uslub uchta intensivlik darajasini — `lite`, `full`, `ultra` — taqdim etadi va har bir daraja
-umumiy chegaralar bandi bilan tugaydi, bu kod bloklarini, fayl yoʻllarini, buyruqlarni,
-xato satrlarini, URL manzillarini va identifikatorlarni oʻzgarishsiz qoldiradi.
+Har bir uslub uchta intensivlik darajasi — `lite`, `full`, `ultra` — bilan taqdim etiladi va har bir daraja
+kod bloklari, fayl yoʻllari, buyruqlar, xato satrlari, URL manzillar va identifikatorlarni
+aynan saqlaydigan umumiy chegaralar bandi bilan tugaydi.
 
-#### Inyeksiya qanday ishlaydi
+#### Kiritish qanday ishlaydi
 
-`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`)
-tanlovni katalogga qarshi hal qiladi (nomaʼlum identifikatorlar va lokalga mos kelmaydigan uslublar
-tashlab yuboriladi, hech qachon xato boʻlmaydi), tanlangan koʻrsatmalarni katalog tartibida birlashtiradi,
-chegaralar bandini **bir marta** qoʻshadi va natijani tizim
-soʻroviga bitta idempotensiya belgisi (`[OmniRoute Output Styles]`) ortidan joylashtiradi — qayta qoʻllash
-hech qanday operatsiya emas. Aniqlangan soʻrov tilida tarjima mavjud boʻlsa, lokalizatsiya qilingan
-koʻrsatma ingliz tili oʻrniga kiritiladi.
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) tanlovni
+katalog boʻyicha aniqlaydi (nomaʼlum id qiymatlari va lokalga mos kelmaydigan uslublar
+olib tashlanadi, hech qachon xato yuz bermaydi), tanlangan koʻrsatmalarni katalog tartibida
+birlashtiradi, chegaralar bandini **bir marta** qoʻshadi va blokni yagona idempotentlik
+belgisi (`[OmniRoute Output Styles]`) bilan boshlaydi, shuning uchun qayta qoʻllash hech qanday
+amal bajarmaydi. Aniqlangan til (quyidagi Til tanloviga qarang) tarjimaga ega boʻlsa,
+inglizcha koʻrsatma oʻrniga mahalliylashtirilgan koʻrsatma kiritiladi.
 
-#### Qanday yoqish kerak
+`messages` mavjud boʻlgan tanada kontentni chetlab oʻtish (`shouldBypassCavemanOutputMode()`
+`open-sse/services/compression/outputMode.ts` ichida) oxirgi uchta xabarni tekshiradi va
+ular xavfsizlik, qaytarib boʻlmaydigan amal, aniqlashtirish yoki tartibga bogʻliq kalit
+soʻzlarga mos kelsa, butun navbat uchun uslublarni oʻtkazib yuboradi. Chetlab oʻtish, boshqaruv panelidagi **Avtomatik aniqlik uchun chetlab oʻtish** almashtirgichi (`cavemanOutputMode.autoClarity`) yoqilgan boʻlsa ishlaydi — bu standart holat. Almashtirgich oʻchirilganda tanlangan uslublar bu navbatlarda ham qoʻllanadi.
 
-Boshqaruv panelida: **Context → Settings → Compression** — har bir uslub uchun bitta qator,
-yoqish/oʻchirish tugmasi va daraja tanlagichi bilan. Dasturiy jihatdan, siqish konfiguratsiyasi
-tanlovni quyidagicha saqlaydi:
+Chetlab oʻtish navbatni davom ettirishga ruxsat berganda, `placeSystemInstruction()`
+(xuddi shu faylda) hech qachon yangi `messages[0]` yaratmaydi va blokni quyidagilardan
+birinchi topilganiga joylashtiradi:
+
+1. Satrli kontentga ega boshlangʻich tizim xabari: blok uning matnidan keyin qoʻshiladi.
+2. Yuqori darajadagi `system` maydoni: blok satr matnidan keyin qoʻshiladi yoki
+   kontent bloklari massiviga yangi matn bloki sifatida kiritiladi.
+3. Keyinroq keladigan, satrli kontentga ega birinchi tizim xabari: blok uning
+   matnidan keyin qoʻshiladi.
+4. Yuqoridagilarning hech biri boʻlmasa: blok `messages` oxiridagi yangi tizim xabariga joylanadi.
+
+`messages` mavjud boʻlmagan tanada blok satrli `instructions` maydoniga qoʻshiladi
+yoki tanada `input` (satr yoki massiv) mavjud boʻlsa, `instructions` qiymatiga aylanadi.
+`instructions` ham, `input` ham mavjud boʻlmagan tana `no_messages` sifatida oʻtkazib yuboriladi.
+
+#### Qanday yoqiladi
+
+Boshqaruv panelida: **Kontekst → Sozlamalar → Siqish** — har bir uslub uchun
+yoqish/oʻchirish almashtirgichi va daraja tanlagichi mavjud boʻlgan alohida qator. Dasturiy
+tarzda siqish konfiguratsiyasi tanlovni quyidagicha saqlaydi:
 
 ```json
 {
@@ -466,58 +486,60 @@ tanlovni quyidagicha saqlaydi:
 }
 ```
 
-Orqaga moslik: eski `outputMode: "caveman"` kombinatsiyalangan sozlama hali ham ishlaydi va
-`terse-prose` ga mos keladi, har bir eski tilda eski inyeksiya bilan baytma-bayt bir xil.
+Orqaga muvofiqlik: eski `outputMode: "caveman"` kombinatsiyalangan sozlamasi hamon ishlaydi va
+`terse-prose` bilan bogʻlanadi; u har bir eski tilda avvalgi kiritish bilan baytma-bayt bir xil.
 
-Tilni tanlash: `languageConfig.enabled` yoqilgan boʻlsa, `autoDetect` eng soʻnggi foydalanuvchi
-xabarining tilini tanlaydi (kirish dvigatirlari bilan bir xil detektor);
-`autoDetect` ni oʻchirish `defaultLanguage` ni belgilaydi. Oʻchirilgan → Ingliz tili.
+Til tanlovi: `languageConfig.enabled` yoqilganida, `autoDetect` eng soʻnggi foydalanuvchi
+xabarining tilini tanlaydi (kirish mexanizmlaridagi detektor bilan bir xil);
+`autoDetect` oʻchirilsa, `defaultLanguage` belgilanadi. Oʻchirilgan → ingliz tili.
 
-Uslub × til matritsasi `tests/unit/compression/output-styles-i18n-matrix.test.ts`
-tomonidan belgilangan: yangi uslub kamida pt-BR tarjimasiz (yoki aniq kuzatilgan istisnosiz)
-chiqarilishi mumkin emas va mavjud uslub lokalni jimjit yoʻqota olmaydi. Uslub qoʻshish uchun
+Uslub × til matritsasi
+`tests/unit/compression/output-styles-i18n-matrix.test.ts` orqali qatʼiy belgilanadi: yangi uslub
+kamida pt-BR tarjimasisiz (yoki aniq kuzatiladigan istisnosiz) chiqarila olmaydi va mavjud
+uslub lokalni sezdirmasdan yoʻqota olmaydi. Uslub qoʻshish uchun
 [EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style) ga qarang.
 
-### Asbob Natijalarini Siqish
+### Vosita natijasini siqish
 
-`toolResultCompressor.ts` moduli asbob natijalari (funksiya chaqiruvlari, agent chiqishlari,
-qidiruv natijalari va boshqalar) uchun **5 ta ixtisoslashgan siqish strategiyasini** taqdim etadi:
+`toolResultCompressor.ts` moduli vosita natijalari (funksiya chaqiruvlari, agent
+chiqishlari, qidiruv natijalari va boshqalar) uchun **5 ta maxsus siqish strategiyasini**
+taqdim etadi:
 
-1.  **Qidiruv natijalarini siqish** — Ortiqcha natijalarni olib tashlaydi, eng yaxshi N ni saqlaydi
-2.  **Faylni oʻqishni siqish** — Katta fayllarni qisqartiradi, sarlavhalar/importlarni saqlaydi
-3.  **Kod bajarishni siqish** — Faqat muhim stdout/stderr ni saqlaydi
-4.  **Maʼlumotlar bazasi soʻrovini siqish** — Qatorlarni cheklaydi, batafsil metamaʼlumotlarni olib tashlaydi
-5.  **API javobini siqish** — Null maydonlarni olib tashlaydi, massivlarni ixchamlaydi
+1. **Qidiruv natijalarini siqish** — Takroriy natijalarni olib tashlaydi, eng yaxshi N tasini saqlaydi
+2. **Fayl oʻqishni siqish** — Katta fayllarni qisqartiradi, sarlavhalar/importlarni saqlaydi
+3. **Kod bajarilishini siqish** — Faqat zarur stdout/stderr ni saqlaydi
+4. **Maʼlumotlar bazasi soʻrovini siqish** — Qatorlar sonini cheklaydi, batafsil metamaʼlumotlarni olib tashlaydi
+5. **API javobini siqish** — null maydonlarni olib tashlaydi, massivlarni ixchamlaydi
 
 #### Qachon foydalanish kerak
 
-Asbob chaqiruvlari mavjud boʻlganda asbob natijalarini siqish **har doim yoqilgan** boʻladi.
-Hech qanday konfiguratsiya talab qilinmaydi.
+Vosita chaqiruvlari mavjud bo‘lganda, vosita natijalarini siqish **doimo yoqilgan** bo‘ladi. Hech qanday
+sozlash talab qilinmaydi.
 
-### Stacked Pipeline
+### Ketma-ket konveyer
 
-Stacked rejim **bir nechta dvigatellarni ketma-ket** ishga tushiradi — odatda avval RTK
-(asbob chiqishida 60-90% tejash), keyin Caveman (qolgan matnda qoʻshimcha 30% tejash).
-Bu **umumiy 78-95% tejashga** erishadi.
+Ketma-ket rejim **bir nechta mexanizmni ketma-ket** ishga tushiradi — odatda avval RTK
+(vosita natijasida 60–90% tejash), so‘ng Caveman (qolgan matnda qo‘shimcha 30%
+tejash). Bu **umumiy 78–95% tejash** imkonini beradi.
 
-#### Qanday ishlaydi
+#### U qanday ishlaydi
 
 ```
 Kirish (1000 token)
-  → RTK (buyruqni biladigan filtr) → 200 token
-    → Caveman (toʻldiruvchini olib tashlash) → 140 token
+  → RTK (buyruqlarni hisobga oluvchi filtr) → 200 token
+    → Caveman (ortiqcha matnni olib tashlash) → 140 token
   → Chiqish (140 token, 86% tejash)
 ```
 
 #### Qachon foydalanish kerak
 
-Stacked rejimdan quyidagilar uchun foydalaning:
+Ketma-ket rejimdan quyidagilar uchun foydalaning:
 
-- Asbobga boy ish oqimlari (agentli kodlash, tadqiqot)
-- Xarajatlarga sezgir partiyaviy ishlov berish
-- Maksimal token tejash kerak boʻlganda
+- Vositalardan ko‘p foydalaniladigan ish jarayonlari (agentli dasturlash, tadqiqot)
+- Xarajatlarga sezgir paketli qayta ishlash
+- Tokenlarni maksimal darajada tejash kerak bo‘lganda
 
-Kombinatsiya orqali sozlang:
+Combo orqali sozlang:
 
 ```json
 {

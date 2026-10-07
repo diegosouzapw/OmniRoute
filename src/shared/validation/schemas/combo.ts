@@ -267,6 +267,15 @@ export const comboRuntimeConfigSchema = z
       })
       .strict()
       .optional(),
+    // Opt-in planner/executor mode for the pipeline strategy. The first model
+    // owns reasoning/final answers; the second emits native client tool calls.
+    agenticOrchestration: z
+      .object({
+        enabled: z.boolean().optional(),
+        maxToolRounds: z.coerce.number().int().min(1).max(32).optional(),
+      })
+      .strict()
+      .optional(),
     // Context window requirements for combo target filtering and sorting.
     // minContextWindow: filters out models with context windows below this threshold.
     // maxContextWindow: filters out models with context windows above this threshold.

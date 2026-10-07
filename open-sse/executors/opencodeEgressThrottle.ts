@@ -18,7 +18,15 @@
 import { sleepAbortable } from "./opencodeTransientFailure.ts";
 import { classifyUpstream429, type RateLimit429Verdict } from "./opencodeRateLimited.ts";
 import { proxyKeyOf } from "./opencodeGeoBlock.ts";
-import { noteProxyRefusal, proxyEgressKey } from "../utils/proxyRefusalMemory.ts";
+import { pickAccount, type RotatableAccount } from "./accountRotation.ts";
+import {
+  hasSlowOverrunEvidence,
+  noteProxyRefusal,
+  proxyEgressKey,
+  recordSlowOverrun,
+  type ProxyRefusalKind,
+} from "../utils/proxyRefusalMemory.ts";
+import { stripIpv6Brackets } from "../utils/proxyFamily.ts";
 
 export const DIRECT_EGRESS_SENTINEL = "direct";
 
@@ -104,6 +112,163 @@ export function resolveEgressThrottleConfig(
 /** Egress key for an account proxy; `direct` accounts share one sentinel (shared egress). */
 export function egressKeyOf(proxy: { host: string; port: number } | null): string {
   return proxyEgressKey(proxy) ?? DIRECT_EGRESS_SENTINEL;
+}
+
+/** Port written in the authority, which `new URL()` drops at the scheme default. */
+function explicitEgressPortOf(url: string): string | null {
+  const start = url.indexOf("://");
+  if (start === -1) return null;
+  const rest = url.slice(start + 3);
+  const slash = rest.indexOf("/");
+  const authority = slash === -1 ? rest : rest.slice(0, slash);
+  const colon = authority.lastIndexOf(":");
+  if (colon === -1 || colon < authority.lastIndexOf("@") || colon < authority.lastIndexOf("]")) {
+    return null;
+  }
+  const port = authority.slice(colon + 1);
+  if (!/^\d+$/.test(port)) return null;
+  const n = Number(port);
+  return n >= 1 && n <= 65535 ? String(n) : null;
+}
+
+/**
+ * Log label for the egress really applied to one attempt: `(proxy <host>:<port>)`
+ * with host and port only, `(proxy direct)` when no proxy applies. Parses the
+ * applied key directly (it already holds `scheme://`); only the extracted
+ * hostname and port are ever printed, so member keys carrying user info cannot
+ * leak. Fail-open: any unusable key reports direct, never throws.
+ */
+export function egressLabel(
+  account: AppliedEgressAccount,
+  readApplied?: AppliedEgressReader | null
+): string {
+  let key: string;
+  try {
+    key = resolveAppliedEgressKey(account, readApplied);
+  } catch {
+    return "(proxy direct)";
+  }
+  if (!key || key === DIRECT_EGRESS_SENTINEL) return "(proxy direct)";
+  try {
+    const bare = key.replace(/\?family=(ipv4|ipv6)$/, "");
+    const parsed = new URL(bare);
+    const port = explicitEgressPortOf(bare) || parsed.port || null;
+    const host = stripIpv6Brackets(parsed.hostname).toLowerCase();
+    if (!host || !port || !/^\d+$/.test(port)) return "(proxy direct)";
+    return `(proxy ${host}:${port})`;
+  } catch {
+    return "(proxy direct)";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Applied egress key: pool-served accounts without their own proxy share the
+// `direct` sentinel above, although the request actually leaves through the
+// ambient pool proxy. The reader below resolves the key really applied to one
+// attempt; the default (no reader) keeps the historical behavior byte-identical.
+// ---------------------------------------------------------------------------
+
+/** Minimal account shape the applied-key seam needs (proxy + optional print). */
+export interface AppliedEgressAccount {
+  proxy: { host: string; port: number } | null;
+  fingerprint?: string;
+}
+
+/** Returns the normalized egress key applied to this account, or null. */
+export type AppliedEgressReader = (account: AppliedEgressAccount) => string | null;
+
+/**
+ * Key really applied to one attempt: dedicated proxies take the fast path
+ * (the reader is never called), proxyless accounts consult the reader and
+ * fall back to the shared sentinel (fail-open: absent/error/empty/throw).
+ */
+export function resolveAppliedEgressKey(
+  account: AppliedEgressAccount,
+  readApplied?: AppliedEgressReader | null
+): string {
+  if (account.proxy !== null) return egressKeyOf(account.proxy);
+  try {
+    const applied = readApplied?.(account);
+    if (applied && applied !== DIRECT_EGRESS_SENTINEL) return applied;
+  } catch {
+    /* best-effort: never break the request path */
+  }
+  return DIRECT_EGRESS_SENTINEL;
+}
+
+// ---------------------------------------------------------------------------
+// Attempt-scoped applied-key tracker: pool-served accounts without their own
+// proxy share one ambient context, so the per-fingerprint history below is the
+// only structure telling member A from member B apart.
+// ---------------------------------------------------------------------------
+
+/** Resolver shape of `resolveProxyForRequest` (injected — no import cycle). */
+export type AppliedProxyResolver = (targetUrl: string) => unknown;
+
+/** Attempt-scoped reader + member key + per-iteration memo control. */
+export interface AppliedEgressTracker {
+  readAppliedKey: AppliedEgressReader;
+  keyOfMember: (account: AppliedEgressAccount) => string | null;
+  resetAttempt: () => void;
+  rememberServed: (account: AppliedEgressAccount) => void;
+  noteRefused: (
+    account: AppliedEgressAccount,
+    skipRecentlyFailed: boolean,
+    kind?: ProxyRefusalKind
+  ) => number | null;
+}
+
+/**
+ * Track the egress key really applied to each attempt of one request. The
+ * ambient memo resets at the top of every iteration; served keys persist per
+ * fingerprint. Non-sentinel keys only — the sentinel means "no pool context".
+ */
+export function createAppliedEgressTracker(
+  dispatchUrl: string,
+  resolveProxy: AppliedProxyResolver
+): AppliedEgressTracker {
+  const byFingerprint = new Map<string, string>();
+  let attemptAmbientKey: string | null | undefined;
+  const resolveAmbientKey = (): string | null => {
+    let resolved: unknown;
+    try {
+      resolved = resolveProxy(dispatchUrl);
+    } catch {
+      return null;
+    }
+    if (!resolved || typeof resolved !== "object") return null;
+    const { source, proxyUrl } = resolved as { source?: unknown; proxyUrl?: unknown };
+    if (source !== "context" || typeof proxyUrl !== "string") return null;
+    return proxyEgressKey(proxyUrl);
+  };
+  const readAppliedKey: AppliedEgressReader = (a) => {
+    if (a.proxy !== null) return null;
+    if (typeof a.fingerprint === "string") {
+      const known = byFingerprint.get(a.fingerprint);
+      if (known) return known;
+    }
+    if (attemptAmbientKey === undefined) attemptAmbientKey = resolveAmbientKey();
+    return attemptAmbientKey;
+  };
+  const noteRefused = (
+    a: AppliedEgressAccount,
+    skipRecentlyFailed: boolean,
+    kind: ProxyRefusalKind = "ip_quota_429"
+  ) => noteRefusedMember(a.proxy, skipRecentlyFailed, readAppliedKey, a.fingerprint, kind);
+  return {
+    readAppliedKey,
+    keyOfMember: (a) => (a.proxy !== null ? proxyEgressKey(a.proxy) : readAppliedKey(a)),
+    resetAttempt: () => {
+      attemptAmbientKey = undefined;
+    },
+    rememberServed: (a) => {
+      if (a.proxy === null && typeof a.fingerprint === "string") {
+        const key = readAppliedKey(a);
+        if (key && key !== DIRECT_EGRESS_SENTINEL) byFingerprint.set(a.fingerprint, key);
+      }
+    },
+    noteRefused,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -333,12 +498,18 @@ export function initEgressPacingForRequest(env: NodeJS.ProcessEnv = process.env)
 export function acquirePacingSlot(
   pacing: EgressPacing,
   proxy: { host: string; port: number } | null,
-  signal: AbortSignal | null | undefined
+  signal: AbortSignal | null | undefined,
+  readApplied?: AppliedEgressReader | null,
+  fingerprint?: string
 ): Promise<(() => void) | null> {
   if (!pacing.config.enabled) return Promise.resolve(null);
-  return acquireEgressSlot(egressKeyOf(proxy), pacing.config, {
-    signal: signal ?? null,
-  });
+  return acquireEgressSlot(
+    resolveAppliedEgressKey({ proxy, fingerprint }, readApplied),
+    pacing.config,
+    {
+      signal: signal ?? null,
+    }
+  );
 }
 
 /**
@@ -348,15 +519,22 @@ export function acquirePacingSlot(
  * a dead account. Returns the release and the account to use.
  */
 export async function startPacedDispatch<
-  A extends { proxy: { host: string; port: number } | null },
+  A extends { proxy: { host: string; port: number } | null; fingerprint?: string },
 >(
   pacing: EgressPacing,
   account: A,
   isCandidate: (a: A) => boolean,
   repick: () => A,
-  signal: AbortSignal | null | undefined
+  signal: AbortSignal | null | undefined,
+  readApplied?: AppliedEgressReader | null
 ): Promise<{ release: (() => void) | null; account: A }> {
-  const release = await acquirePacingSlot(pacing, account.proxy, signal);
+  const release = await acquirePacingSlot(
+    pacing,
+    account.proxy,
+    signal,
+    readApplied,
+    account.fingerprint
+  );
   if (release !== null && !isCandidate(account)) {
     release();
     return { release: null, account: repick() };
@@ -370,10 +548,49 @@ export async function startPacedDispatch<
  */
 export function noteRefusedMember(
   proxy: { host: string; port: number } | null,
-  skipRecentlyFailed: boolean
+  skipRecentlyFailed: boolean,
+  readApplied?: AppliedEgressReader | null,
+  fingerprint?: string,
+  kind: ProxyRefusalKind = "ip_quota_429"
 ): number | null {
   if (!skipRecentlyFailed) return null;
-  return noteProxyRefusal(proxyEgressKey(proxy), "ip_quota_429");
+  const key =
+    proxy !== null
+      ? proxyEgressKey(proxy)
+      : resolveAppliedEgressKey({ proxy, fingerprint }, readApplied);
+  if (key === null || key === DIRECT_EGRESS_SENTINEL) return null;
+  return noteProxyRefusal(key, kind);
+}
+
+/**
+ * Set-aside note for one settled headers-wait overrun: records the overrun,
+ * then hands the refusal to the proxy memory only on repetition (three settled
+ * overruns through the same egress key inside five minutes) and only when the
+ * opt-in is on. A lone slow wait is the upstream queue, not the member.
+ * The key resolves through the same seam as the 429 note: the effective egress
+ * really applied to the attempt (dedicated proxy fast path, ambient reader for
+ * proxyless accounts, direct sentinel as no-op). Returns the set-aside
+ * duration for the log, or null when nothing was set aside.
+ */
+export function noteSlowOverrun(
+  account: AppliedEgressAccount,
+  skipRecentlyFailed: boolean,
+  readApplied?: AppliedEgressReader | null,
+  nowMs: number = Date.now()
+): number | null {
+  if (!skipRecentlyFailed) return null;
+  if (account.proxy !== null) {
+    const key = proxyEgressKey(account.proxy);
+    if (key === null) return null;
+    recordSlowOverrun(key, nowMs);
+    if (!hasSlowOverrunEvidence(key, nowMs)) return null;
+    return noteProxyRefusal(key, "slow", nowMs);
+  }
+  const key = resolveAppliedEgressKey(account, readApplied);
+  if (key === DIRECT_EGRESS_SENTINEL) return null;
+  recordSlowOverrun(key, nowMs);
+  if (!hasSlowOverrunEvidence(key, nowMs)) return null;
+  return noteProxyRefusal(key, "slow", nowMs);
 }
 
 /**
@@ -420,6 +637,32 @@ export function releasePacingSlot(release: (() => void) | null): void {
 }
 
 /**
+ * Log one refused-member outcome on the request logger. The wording lives
+ * here so each arm holds one call; the loop control stays at the seam.
+ */
+export function logRefusedOutcome(
+  log: { warn?: (tag: string, message: string) => void } | undefined,
+  cid: string,
+  masked: string,
+  setAsideMs: number | null,
+  refusal: "geo-blocked" | "burst 429",
+  egress = ""
+): void {
+  // Egress label position is pinned by tests/unit/opencode-egress-label.test.ts:
+  // after the account for a burst 429, at the very end for a geo-block.
+  const burst = refusal === "burst 429";
+  log?.warn?.(
+    "OPENCODE",
+    `${cid}${refusal} on account ${masked}` +
+      (burst && egress ? ` ${egress}` : "") +
+      (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
+      ", rotating" +
+      (burst ? " to next" : "") +
+      "…" +
+      (!burst && egress ? ` ${egress}` : "")
+  );
+}
+/**
  * Log one 429 outcome on the request logger. The stop/park/rotate wording
  * lives here so the arm holds one call; the loop control stays at the seam.
  */
@@ -428,22 +671,21 @@ export function log429Outcome(
   cid: string,
   arm: "stop" | "park" | "rotate",
   masked: string,
-  setAsideMs: number | null
+  setAsideMs: number | null,
+  label: string
 ): void {
   if (arm === "stop") {
-    log?.warn?.("OPENCODE", `${cid}rate-limited 429 on account ${masked}, stopping the wave`);
+    log?.warn?.(
+      "OPENCODE",
+      `${cid}rate-limited 429 on account ${masked} ${label}, stopping the wave`
+    );
   } else if (arm === "park") {
     log?.warn?.(
       "OPENCODE",
-      `${cid}fleet backing off: slot budget used, parking (returning last answer)`
+      `${cid}fleet backing off ${label}: slot budget used, parking (returning last answer)`
     );
   } else {
-    log?.warn?.(
-      "OPENCODE",
-      `${cid}burst 429 on account ${masked}` +
-        (setAsideMs ? `, member set aside for ${Math.round(setAsideMs / 1000)}s` : "") +
-        ", rotating to next…"
-    );
+    logRefusedOutcome(log, cid, masked, setAsideMs, "burst 429", label);
   }
 }
 /**
@@ -476,13 +718,15 @@ export function throwPacedError(release: (() => void) | null, err: unknown): nev
 /**
  * Rotation-loop wiring for the stall arm: the tried-set plus a mutable stall
  * counter, bundled so the arm holds one call. The loop owns `stalled` and the
- * helper reads-then-bumps it.
+ * helper reads-then-bumps it. The optional slow note records one settled
+ * headers-wait overrun per call; the stall arm never passes it.
  */
 export interface StallLoopWiring {
   tried: Set<string>;
   stalled: { attempts: number };
   cooldown: (account: { proxy: { host: string; port: number } | null }) => void;
   markDirect: () => void;
+  slow?: { account: AppliedEgressAccount; enabled: boolean; read: AppliedEgressReader | null };
 }
 
 /**
@@ -503,6 +747,8 @@ export function settleStalledDispatch(
   else loop.markDirect();
   const first = loop.stalled.attempts === 0;
   loop.stalled.attempts++;
+  const slow = loop.slow;
+  if (slow) noteSlowOverrun(slow.account, slow.enabled, slow.read ?? null);
   return first;
 }
 
@@ -540,4 +786,43 @@ export function _touchEgressKeyForTest(key: string, nowMs: number = Date.now()):
 /** Inject RNG for the suspect duration (deterministic tests). Tests only. */
 export function _setSuspectRandForTest(rand: (() => number) | null): void {
   suspectSeedRand = rand;
+}
+
+/**
+ * One real call after a 429 when no account is a candidate. The rotation guard
+ * skips a non-candidate without calling it, so members excluded only by state
+ * left by earlier requests (proxy set aside, account cooling down) were never
+ * tried and the request served the 429. `take` returns, once per request, an
+ * account whose proxy this request has not refused yet, or null; the caller
+ * lets that returned account through the guard.
+ *
+ * Proxy-less accounts are never handed out: a 429 on one records no key, so
+ * the request cannot tell whether the shared direct egress already refused it,
+ * and calling it could replay that 429. A rejected pick leaves the rotation
+ * cursor where it was.
+ */
+export function lastResort429<A extends RotatableAccount>(
+  accounts: A[],
+  cursor: { nextAccountIdx: number; lastHealthyFingerprint?: string },
+  ...refusedHere: Set<string>[]
+) {
+  let spent = false;
+  const isOpen = (account: A): boolean => {
+    const key = proxyKeyOf(account.proxy);
+    return key !== null && !refusedHere.some((keys) => keys.has(key));
+  };
+  return {
+    take(lastStatus: number | null, account: A, isCandidate: (a: A) => boolean): A | null {
+      if (spent || lastStatus !== 429 || isCandidate(account)) return null;
+      const saved = { ...cursor };
+      const spare = pickAccount(accounts, cursor, isOpen);
+      if (!isOpen(spare)) {
+        cursor.nextAccountIdx = saved.nextAccountIdx;
+        cursor.lastHealthyFingerprint = saved.lastHealthyFingerprint;
+        return null;
+      }
+      spent = true;
+      return spare;
+    },
+  };
 }

@@ -348,6 +348,30 @@ test("pipe-delimited line with an unknown STATUS is rejected", () => {
   assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
 });
 
+test("pipe-delimited line with STATUS=active keeps it", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.8|1080|||socks5|US|active|note");
+  assert.equal(errors.length, 0);
+  assert.equal(entries[0].status, "active");
+});
+
+test("pipe-delimited line with STATUS=Inactive keeps lowercase inactive", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.9|1080|||socks5|US|Inactive|note");
+  assert.equal(errors.length, 0);
+  assert.equal(entries[0].status, "inactive");
+});
+
+test("pipe-delimited line with STATUS=dead is rejected", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.10|1080|||socks5|US|dead|note");
+  assert.equal(entries.length, 0);
+  assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
+});
+
+test("pipe-delimited line with STATUS=error is rejected", () => {
+  const { entries, errors } = parseBulkImportText("p|10.0.0.11|1080|||socks5|US|error|note");
+  assert.equal(entries.length, 0);
+  assert.equal(errors[0].reason, "bulkImportErrorInvalidStatus");
+});
+
 // ── Dashboard send payload omits a missing status ───────────────────────────
 // Mirrors the item mapping in ProxyRegistryManager (bulk import send): a line
 // without a status must reach the API without a status key, so the stored one

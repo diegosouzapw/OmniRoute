@@ -1,1 +1,0 @@
-- **fix(usage):** requests stuck past the pending age limit stay visible on the dashboard with a distinct marked state instead of disappearing, and still count toward pending totals ([#14319](https://github.com/diegosouzapw/OmniRoute/pull/14319)) — thanks @maxmad64bis

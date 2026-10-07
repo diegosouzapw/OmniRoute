@@ -5,21 +5,44 @@
 ---
 
 > **ዳሽቦርድ:** **Chaos Mode** (የጎን አሞሌ) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (የዳሽቦርድ ክፍለ-ጊዜ) · `POST /api/skills/collect/chaos` (የAPI ቁልፍ)  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (የዳሽቦርድ ክፍለ ጊዜ) · `POST /api/skills/collect/chaos` (የAPI ቁልፍ)  
 > **ምንጭ:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode **አንድን ተግባር በአንድ ጊዜ ወደ በርካታ አቅራቢዎች ይልካል** — እያንዳንዱ ተሳታፊ አቅራቢ
-አንድ የሞዴል ኢንስታንስ ያቀርባል፣ እርስዎም ሁሉንም መልሶች ጎን ለጎን (ወይም በሰንሰለት) ያገኛሉ። ይህ
-ባለብዙ-ሞዴል የማስፈጸሚያ በይነገጽ እንጂ የማዘዋወሪያ ስልት አይደለም፦ መደበኛው `/v1/chat/completions`
-ትራፊክዎ በእሱ ፈጽሞ አይነካም።
+Chaos Mode **አንድን ተግባር በአንድ ጊዜ ለብዙ አቅራቢዎች ይልካል** — እያንዳንዱ ተሳታፊ አቅራቢ
+አንድ የሞዴል ኢንስታንስ ያቀርባል፣ እና ሁሉንም መልሶች ጎን ለጎን (ወይም በሰንሰለት) ያገኛሉ። ይህ
+የብዙ ሞዴሎች ማስፈጸሚያ በይነገጽ እንጂ የማዘዋወሪያ ስልት አይደለም፦ መደበኛው የ`/v1/chat/completions`
+ትራፊክዎ በዚህ ፈጽሞ አይነካም።
 
-**ማብራሪያ — "chaos" የሚለውን ስም የያዙ ሦስት የተለያዩ ነገሮች አሉ፦**
+**ማብራሪያ — "chaos" የሚለውን ስም የያዙ ሦስት የተለያዩ ነገሮች አብረው ይቀርባሉ:**
 
-| ነገር            | ምንድን ነው                                                                     | የተመዘገበበት ቦታ                                  |
-| -------------- | --------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode** | እዚህ የተገለጹት የዳሽቦርድ ገጽ + API፦ አንድን ተግባር ለብዙ አቅራቢዎች ያሰራጫል (በትይዩ ወይም በትብብር)።    | ይህ መመሪያ                                      |
-| `auto/chaos`   | ለጽናት ሙከራ፣ የስህተት-ማስገቢያ የውጤት ክብደቶች ያሉት የAuto-Combo ሞዴል id። የሚዋቀር ነገር የለም።     | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| የChaos ጥምር ውቅር | `config.chaos.enabled` ያለው የተቀመጠ ጥምር፣ ከአማራጭ ዳኛ ሞዴል ጋር ለፓነል ያሰራጫል (በAPI ብቻ)። | `open-sse/services/autoCombo/chaosEngine.ts` |
+| ነገር              | ምንነቱ                                                                                                                                     | የተመዘገበበት ቦታ                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**   | እዚህ የተገለጸው የዳሽቦርድ ገጽ + API፦ አንድን ተግባር ወደ ብዙ አቅራቢዎች በትይዩ ወይም በትብብር ማሰራጨት።                                                                 | ይህ መመሪያ                                      |
+| `auto/chaos`     | የAuto-Combo ሞዴል id፦ ትይዩ ማሰራጨት፣ ለእያንዳንዱ አቅራቢ አንድ ሞዴል፣ እያንዳንዳቸው አንድ upstream ጥሪ። የብልሽት ማስገቢያ አይደለም ([ዝርዝሮች](#autochaos-parallel-fan-out))። | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| የChaos combo ውቅር | `config.chaos.enabled` ያለው ቋሚ የተቀመጠ combo በተመሳሳይ መንገድ ያሰራጫል (በAPI ብቻ)፤ `judgeModel` የመጨረሻውን መልስ ብቻ ይመርጣል፣ የማዋሃድ ጥሪ የለም።                  | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: ትይዩ ማሰራጨት
+
+`auto/chaos` የብልሽት ማስገቢያ ወይም የጽናት ሙከራ ማስተካከያ **አይደለም**።
+በ`/v1/chat/completions` ላይ `model: "auto/chaos"` ሲጠየቅ፦
+
+1. **ለእያንዳንዱ አቅራቢ አንድ ሞዴል** ያለው ፓነል ይገነባል፦ ከእያንዳንዱ
+   የተገናኘ አቅራቢ የመጀመሪያው እጩ፣ በእጩዎች ስብስብ ቅደም ተከተል፣ እስከ 5 አባላት
+   (`OMNIROUTE_CHAOS_MAX_PANEL`፣ ከፍተኛው 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`)። የ`chaos-mode` weight
+   pack የእያንዳንዱን አባል `weight` ብቻ ያስቀምጣል፤ ማሰራጨቱ ይህን አያነብም።
+2. ተመሳሳዩን ጥያቄ ለእያንዳንዱ የፓነል አባል **በትይዩ** ይልካል፣ ስለዚህ አንድ ጥያቄ
+   ለእያንዳንዱ የፓነል አባል አንድ upstream ጥሪ ያስከፍላል
+   (`open-sse/services/autoCombo/chaosEngine.ts`፣ ከ
+   `open-sse/services/combo.ts` የተላከ)።
+3. ውጤቱ ሲደርስ ለእያንዳንዱ የፓነል አባል አንድ የሁኔታ መስመር በዥረት ይልካል፦ በነባሪ የSSE አስተያየት
+   (`: chaos <index> ok|fail <model>`)፣ በተጨማሪም ጥያቄው
+   `stream_options.include_chaos_parts: true` ሲያዘጋጅ `omni-chaos-part`
+   ክስተት (`model`, `index`, `ok`, `error`)። እነዚህ ምንም የመልስ ጽሑፍ አይይዙም።
+4. **አንድ** የፓነል መልስ እንደ የመጨረሻ OpenAI-ቅጥ chunk ይልካል፦ የመጀመሪያው የፓነል
+   አባል (`auto/chaos` እሱን `judgeModel` አድርጎ ያዘጋጀዋል) ሲሳካ፣ ካልሆነ ግን
+   በመጨረሻ የተሳካውን አባል። ሌሎቹ የፓነል መልሶች አይመለሱም፣ ስለዚህ
+   ለN ጥሪዎች ይከፍላሉ እና አንድ completion ይቀበላሉ።
 
 ## ማዋቀር
 

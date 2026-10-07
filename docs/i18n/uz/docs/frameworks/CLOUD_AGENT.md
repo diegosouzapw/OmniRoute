@@ -309,25 +309,32 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 yuqori oqim provayderini chaqirmaydi — `CloudAgentBase`da bekor qilish uchun RPC mavjud emas.
 Yuqori oqimdagi hisob-kitobni toʻxtatish uchun vazifani provayderning oʻz konsolida yakunlang.
 
-## REST API — Bulut provayderi integratsiyasi
+## REST API — bulut provayderi integratsiyasi
 
-`src/app/api/cloud/` ichidagi ushbu yordamchi endpointlardan masofaviy mijozlar
-(CLI, Electron ilovasi yoki sinxronlash worker'lari) provayder ulanish metamaʼlumotlarini
-oʻqish va model taxalluslarini aniqlash uchun foydalanadi. Ular vazifa endpointlarida
-ishlatiladigan boshqaruv autentifikatsiyasi bilan emas, balki **oddiy API kaliti**
-(`validateApiKey` orqali) bilan autentifikatsiya qilinadi.
+`src/app/api/cloud/` ostidagi ushbu yordamchi endpointlardan masofaviy mijozlar
+(CLI, Electron ilovasi yoki sinxronlash worker’lari) provayder ulanishi metamaʼlumotlarini
+oʻqish va model taxalluslarini aniqlash uchun foydalanadi. Ular vazifa endpointlarida ishlatiladigan
+boshqaruv autentifikatsiyasi bilan emas, balki **API kaliti** orqali
+(`validateApiKey` yordamida) autentifikatsiya qilinadi; `/api/cloud/auth`
+qaytaradigan maʼlumot kalit doirasiga bogʻliq (quyiga qarang).
 
 | Metod | Yoʻl                            | Maqsad                                                                                          |
 | ----- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
 | POST  | `/api/cloud/auth`               | API kalitini tekshirish, niqoblangan ulanish metamaʼlumotlari va model taxalluslarini qaytarish |
 | PUT   | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` qiymatlarini yangilash                             |
-| POST  | `/api/cloud/model/resolve`      | Model taxallusini `{ provider, model }` ko‘rinishiga aniqlash                                   |
+| POST  | `/api/cloud/model/resolve`      | Model taxallusini `{ provider, model }` ga aniqlash                                             |
 | GET   | `/api/cloud/models/alias`       | Barcha model taxalluslarini roʻyxatlash                                                         |
-| PUT   | `/api/cloud/models/alias`       | Model taxallusini belgilash (va yoqilgan boʻlsa, Cloud bilan avtomatik sinxronlash)             |
+| PUT   | `/api/cloud/models/alias`       | Model taxallusini oʻrnatish (va yoqilgan boʻlsa, Cloud bilan avtomatik sinxronlash)             |
 
 `/api/cloud/auth` hech qachon asl `apiKey` / `accessToken` / `refreshToken` qiymatlarini qaytarmaydi. U
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` va niqoblangan koʻrinishni
-(`maskedApiKey`: dastlabki 4 ta belgi + `****` + oxirgi 4 ta belgi) qaytaradi.
+kalit foydalanishi mumkin boʻlgan faol ulanishlar uchun `hasApiKey`, `hasAccessToken`,
+`hasRefreshToken` qiymatlarini qaytaradi (`allowedConnections` bilan cheklangan kalit faqat
+shu ulanishlarni koʻradi). `manage` yoki `admin` doirasiga ega API kaliti, jumladan,
+`OMNIROUTE_API_KEY` dagi joylashtirish kaliti uchun u niqoblangan koʻrinishni
+(`maskedApiKey`: har ikki uchidan koʻpi bilan 4 ta belgi, qisqa kalit uchun kamroq,
+8 ta yoki undan kam belgili kalit uchun esa hech biri) hamda ulanishning `projectId`
+qiymatini ham qaytaradi. Boshqa barcha kalitlar uchun ikkala maydon ham javobga
+kiritilmaydi.
 
 ## Hisob maʼlumotlarini aniqlash
 

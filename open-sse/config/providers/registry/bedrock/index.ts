@@ -26,6 +26,8 @@ export const bedrockProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
     },
     {
       id: "anthropic.claude-sonnet-4-5",
@@ -40,6 +42,8 @@ export const bedrockProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
     },
     {
       id: "anthropic.claude-opus-4-7",
@@ -47,6 +51,8 @@ export const bedrockProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
       contextLength: 1000000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
     },
     {
       id: "anthropic.claude-haiku-4-5",
