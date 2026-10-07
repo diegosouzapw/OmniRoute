@@ -98,6 +98,13 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Anti-thundering-herd guard:** prevents concurrent failures from over-extending cooldown or double-incrementing `backoffLevel`.
 
+**Stream content stalls do not cool the account.** When the content-stall watchdog
+(`open-sse/utils/streamHandler.ts`) gives up on a stream that sent no model output in
+time, `markAccountUnavailable()` records the error on the connection but sets no
+cooldown: the stall belongs to that request, most often a long reasoning turn with no
+output yet. Operators can opt back in with `resilienceSettings.streamStallCooldown.enabled`
+(default `false`).
+
 **Terminal states (NOT cooldowns):**
 
 - `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down

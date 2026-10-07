@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy പൂളുകളും opencode-ന്റെ ഓരോ അക്കൗണ്ടിലുമുള്ള റൊട്ടേഷനും, ഇപ്പോൾ പരാജയപ്പെട്ട ഒരു Proxy-യെ (നിരസിക്കപ്പെട്ട TCP പ്രോബ്, അല്ലെങ്കിൽ അതിലൂടെ ലഭിച്ച 429) ഓരോ ആവർത്തനത്തിലും ഇരട്ടിയാകുന്ന, ഒരു പരമാവധി പരിധിവരെയുള്ള ഓരോ പ്രോസസിനുമുള്ള കാലയളവിൽ വീണ്ടും ഉപയോഗിക്കുന്നത് നിർത്തുന്നു. Proxy നിലയൊന്നും രേഖപ്പെടുത്തില്ല; എല്ലാ സ്ഥാനാർഥികളെയും മാറ്റിവെച്ചാൽ തിരഞ്ഞെടുപ്പ് മാറ്റമില്ലാതെ തുടരും. ഡിഫോൾട്ടായി ഓണാണ്; `false` സാധാരണ തിരഞ്ഞെടുപ്പ് പുനഃസ്ഥാപിക്കുന്നു.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "egress വിലാസം അനുസരിച്ച് ക്വോട്ട വിഭജിക്കുന്ന ദാതാക്കൾക്കായി, അടുത്തിടെ നിരസിക്കപ്പെട്ട അംഗത്തിന്റെ നിരീക്ഷിച്ച egress വിലാസം പങ്കിടുന്ന pool അംഗത്തെ ആരോഗ്യമുള്ള അംഗങ്ങൾക്ക് തൊട്ടുതാഴെ സ്ഥാപിക്കുന്നു. ക്രമം മാത്രം, ഒരിക്കലും ഒഴിവാക്കില്ല. അത് വായിക്കുന്ന നിരസിക്കൽ സിഗ്നൽ ഉണ്ടാക്കുന്ന PROXY_SKIP_RECENTLY_FAILED ആവശ്യമാണ്. സ്ഥിരസ്ഥിതിയായി ഓഫ്: തിരഞ്ഞെടുപ്പ് ക്രമം കൃത്യമായും സാധാരണ റൊട്ടേഷൻ തന്നെ.",
   "featureFlagProxyPoolEgressObservationDescription": "ഡാഷ്ബോർഡിലെ ഒരു Proxy പൂളിന് കീഴിൽ, കഴിഞ്ഞ 24 മണിക്കൂറിനിടെ അതിലെ അംഗങ്ങൾക്ക് സേവനം നൽകിയതായി നിരീക്ഷിച്ച എത്ര എഗ്രസ് IP-കൾ ഉണ്ടായിരുന്നു, എത്ര കണക്ഷനുകൾ അവ ഉപയോഗിച്ചു, ഒരു IP-ക്ക് പിന്നിൽ കണ്ട ഏറ്റവും ഉയർന്ന എണ്ണം എത്ര എന്നിവ കാണിക്കുക. വായനയ്ക്ക് മാത്രം; Proxy ലോഗിൽനിന്ന് കണക്കാക്കുന്നതും റൂട്ടിംഗിനായി ഒരിക്കലും ഉപയോഗിക്കാത്തതുമാണ്. ഡിഫോൾട്ടായി ഓഫാണ്: പൂൾ എഡിറ്ററിൽ മാറ്റമില്ല, നിരീക്ഷണ റൂട്ട് null എന്ന് മറുപടി നൽകും.",
+  "featureFlagProxyOperatorEgressDescription": "പൂൾ മെമ്പർമാരുടെ ഓപ്പറേറ്റർ-പുഷ് ചെയ്ത തീയതിയുള്ള അഡ്രസ്സുകൾ സ്വീകരിക്കുക അതുവരെ ജേണൽ റീഡിനോടൊപ്പം മർജ് ചെയ്യുക എന്നതാണ്. ഡിഫോൾട്ടായി ഓഫ്: പുഷ് റൂട്ട് 404 നൽകുന്നു അതുവരെ പൂൾ റീഡുകൾ മുമ്പിനെപ്പോലെ പ്രവർത്തിക്കുന്നു.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Proxy ആരോഗ്യ പരിശോധനയിൽ, ലക്ഷ്യം നിരസിച്ച ഒരു പ്രോബ് (401/403/429: Proxy റിലേ ചെയ്തു, ലക്ഷ്യസ്ഥാനം ഈ എഗ്രസ് IP നിരസിച്ചു) സേവനം നൽകിയ പ്രോബിനെപ്പോലെ Proxy-യുടെ തുടർച്ചയായ പരാജയങ്ങളുടെ എണ്ണം പുനഃസജ്ജമാക്കാൻ അനുവദിക്കുക. ഡിഫോൾട്ടായി ഓഫാണ്: ഒരു നിരസിക്കൽ നിഷ്പക്ഷമായി തുടരുകയും പരാജയങ്ങളുടെ എണ്ണം നിലനിർത്തുകയും ചെയ്യും. ഏതുവിധമായാലും 5xx അനിശ്ചിതമായി തുടരും; ഒരു നിരസിക്കൽ ഒരിക്കലും Proxy-യെ നീക്കം ചെയ്യുകയോ പ്രവർത്തനരഹിതമാക്കുകയോ വീണ്ടും സജീവമാക്കുകയോ ചെയ്യില്ല.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "OMNIROUTE_BATCH_RETENTION_DAYS-നേക്കാൾ പഴക്കമുള്ള ടെർമിനൽ (പൂർത്തിയായ/പരാജയപ്പെട്ട/റദ്ദാക്കിയ/കാലഹരണപ്പെട്ട) Batch API ജോലികളും അവയുടെ ഓരോ വരിയിലുമുള്ള ചെക്ക്പോയിന്റുകളും സ്വയമേവയുള്ള ക്ലീനപ്പ് സ്വീപ്പിലൂടെ ഇല്ലാതാക്കാനും, സ്വന്തം expires_at കഴിഞ്ഞ അപ്ലോഡ് ചെയ്ത ഫയലുകളുടെ BLOB ഉള്ളടക്കം മായ്ക്കാനും അനുവദിക്കുക. ഡിഫോൾട്ടായി ഓഫാണ്: ഒരു ഓപ്പറേറ്റർ ഇത് പ്രവർത്തനക്ഷമമാക്കുന്നതുവരെ നിലവിലുള്ള എല്ലാ ഇൻസ്റ്റാളേഷനുകളും ഈ ഡാറ്റ മുമ്പത്തേതുപോലെ തന്നെ നിലനിർത്തും. ഓപ്പറേറ്റർ ട്രിഗർ ചെയ്യുന്ന DELETE /api/v1/batches/delete-completed റൂട്ടിനെ ഇത് ഒരു തരത്തിലും ബാധിക്കില്ല — അത് വേറിട്ടതും നിബന്ധനകളില്ലാത്തതുമായ ഒരു പൊതു API കരാറാണ്.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "സ്ഥിരമായി നിശ്ചയിച്ച സ്റ്റാറ്റിക് സീഡിന് പകരം OAuth ബെയറർ ടോക്കൺ ഉപയോഗിച്ച് https://api.x.ai/v1/models എന്നതിൽ നിന്ന് xai-oauth കണക്ഷനുകൾക്കായുള്ള തത്സമയ xAI മോഡൽ കാറ്റലോഗ് ലഭ്യമാക്കുക. ഡിഫോൾട്ടായി ഓഫാണ്: xai-oauth മാറ്റമില്ലാതെ സ്റ്റാറ്റിക് സീഡ് നൽകുന്നത് തുടരും. റിസല്യൂഷൻ പിശക് ഉണ്ടായാൽ, ഡിസ്കവറി സീഡിലേക്ക് മടങ്ങും.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "ലോക്കൽ proxy-core എൻഡ്പോയിന്റ് അസാധുവാണ്; SS/VMess/Trojan/VLESS നോഡുകൾ അവഗണിച്ചു.",
         "NEEDS_CORE_NOT_CONFIGURED": "ഈ സബ്സ്ക്രിപ്ഷനിൽ ലോക്കൽ പ്രോക്സി കോർ ആവശ്യമായ നോഡുകളുണ്ട് (SS/VMess/Trojan/VLESS); local-core SOCKS5 എൻഡ്പോയിന്റ് കോൺഫിഗർ ചെയ്യുന്നതുവരെ അവ റൂട്ട് ചെയ്യപ്പെടില്ല.",
         "NO_USABLE_NODES": "സബ്സ്ക്രിപ്ഷനിൽ ഉപയോഗയോഗ്യമായ നോഡുകളൊന്നും ലഭിച്ചില്ല (http/https/socks5 അല്ലെങ്കിൽ ലോക്കൽ കോർ എൻഡ്പോയിന്റുള്ള നോഡുകൾ).",
-        "SELECTOR_SWITCH_FAILED": "പ്രോക്സി-കോർ നിയന്ത്രണ വിളി പരാജയപ്പെട്ടു; മുൻപത്തെ വഴി സജീവമായി തുടരും. നിയന്ത്രണ URL-ഉം രഹസ്യവും പരിശോധിച്ച് പുതുക്കുക."
+        "SELECTOR_SWITCH_FAILED": "പ്രോക്സി-കോർ നിയന്ത്രണ വിളി പരാജയപ്പെട്ടു; മുൻപത്തെ വഴി സജീവമായി തുടരും. നിയന്ത്രണ URL-ഉം രഹസ്യവും പരിശോധിച്ച് പുതുക്കുക.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "ഉത്പാദിപ്പിച്ച കോർ കോൺഫിഗറേഷൻ സ്വീകരിച്ച ഫയൽ പകരമാക്കാൻ കഴിഞ്ഞില്ല; പകരം അടുത്തുള്ള കോപ്പി നിലനിർത്തി.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "ജനറേഷനിൽ ചില എൻട്രികൾ ഒഴിവാക്കപ്പെട്ടു. സെർവർ ലോഗ് കാണുക."
       },
       "description": "നിങ്ങളുടെ പ്രോക്സി സബ്സ്ക്രിപ്ഷൻ ലിങ്ക് ഒട്ടിക്കുക. പ്രവർത്തനക്ഷമമാക്കിയാൽ, ഗ്ലോബൽ അല്ലെങ്കിൽ റൂൾ (നിർദ്ദിഷ്ട Provider) മോഡിൽ ട്രാഫിക് പ്രോക്സി പൂളിലൂടെ റൂട്ട് ചെയ്യപ്പെടും. സബ്സ്ക്രിപ്ഷൻ നോഡുകൾ സ്വയമേവ പ്രോക്സി പൂളിലേക്ക് സമന്വയിപ്പിക്കുകയും നിലവിലുള്ള പോളിംഗ്, ഹെൽത്ത്-ചെക്ക്, ആന്റി-ലീക്ക് സംവിധാനങ്ങൾ തന്നെ ഉപയോഗിക്കുകയും ചെയ്യും.",
       "addSubscription": "സബ്സ്ക്രിപ്ഷൻ ചേർക്കുക",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "ഇതുവരെ മാറ്റമൊന്നും രേഖപ്പെടുത്തിയിട്ടില്ല",
       "lastSwitchMember": "സേവനം നൽകുന്ന അംഗം",
       "nextSwitch": "അടുത്ത സാധ്യമായ മാറ്റം",
-      "nextSwitchNow": "ഇപ്പോൾ"
+      "nextSwitchNow": "ഇപ്പോൾ",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "കോർ ബൈനറി പാത",
+      "coreBinaryPathHelp": "ഓപ്ഷണൽ: സ്വീകരിച്ച ഫയൽ പകരമാക്കുന്നതിന് മുമ്പ് ഉത്പാദിപ്പിച്ച ഫയൽ കോർ ബൈനറി ഉപയോഗിച്ച് പരിശോധിക്കുന്നു. അതിന് അടുത്ത് എഴുതുന്നത് തുടരാൻ ശൂന്യമായി വിടുക. ഡയറക്ടറി ഇല്ലെങ്കിൽ സൃഷ്ടിക്കുന്നു.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "ബൾക്ക് ഹെൽത്ത് ചെക്ക്",
     "bulkHealthcheckDesc": "പ്രവർത്തിക്കുന്നവ കണ്ടെത്താൻ കോൺഫിഗർ ചെയ്ത എല്ലാ പ്രോക്സികളും ഒരു ലക്ഷ്യ URL-നെതിരെ പരിശോധിക്കുക.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "MCP വിവരണ കംപ്രഷൻ",
     "mcpAccessibilityTitle": "MCP ആക്സസിബിലിറ്റി ഔട്ട്പുട്ട്",
     "compressionSettingsCavemanIntensity": "ഗുഹാമനുഷ്യ തീവ്രത",
-    "compressionSettingsCavemanOutputMode": "ഗുഹാമനുഷ്യ ഔട്ട്പുട്ട് മോഡ്",
     "compressionSettingsOutputStyles": "ഔട്ട്പുട്ട് ശൈലികൾ",
     "compressionStylesTileTitle": "ഔട്ട്പുട്ട് ശൈലികൾ",
     "compressionSettingsOutputIntensity": "ഔട്ട്പുട്ട് തീവ്രത",
-    "compressionSettingsAutoClarityBypass": "സ്വയമേവയുള്ള വ്യക്തത ബൈപാസ്",
     "compressionEffectivePipeline": "പ്രാബല്യത്തിലുള്ള പൈപ്പ്ലൈൻ:",
     "compressionDerivedOff": "ഓഫ്",
     "compressionDerivedRuns": "പ്രവർത്തനങ്ങൾ: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "ഈ കീയ്ക്കായി GET /v1/models പ്രദർശിപ്പിക്കുന്നത്. ലിസ്റ്റ് ചുരുക്കുന്നത് കീയ്ക്ക് വിളിക്കാനാകുന്നവയെ ഒരിക്കലും മാറ്റില്ല.",
     "catalogScopeAll": "രണ്ടും",
     "catalogScopeCombos": "കോംബോകൾ മാത്രം",
-    "catalogScopeModels": "മോഡലുകൾ മാത്രം"
+    "catalogScopeModels": "മോഡലുകൾ മാത്രം",
+    "resilienceTokenRefreshTitle": "ടോക്കൺ റിഫ്രഷ് ബ്രേക്കർ",
+    "resilienceTokenRefreshDesc": "തുടർച്ചയായ പരാജയങ്ങൾക്ക് ശേഷം ടോക്കൺ പുതുക്കൽ വീണ്ടും ശ്രമിക്കുന്നത് നിർത്തുന്നു. കണക്ഷൻ വിഭാഗം ഒരു മരണപ്പെട്ട അക്കൗണ്ടിനെ ഒറ്റപ്പെടുത്തുന്നു, അതേ പ്രൊവൈഡറിലെ ആരോഗ്യമുള്ള അക്കൗണ്ടുകൾ തുടർന്ന് പുതുക്കുന്നു.",
+    "resilienceTokenRefreshScope": "ഒരു പ്രൊവൈഡറിനുള്ള ടോക്കൺ റിഫ്രഷ് ശ്രമങ്ങൾ",
+    "resilienceTokenRefreshTrigger": "തുടർച്ചയായ പരാജയപ്പെട്ട പുനഃക്രമീകരണ ശ്രമങ്ങൾ",
+    "resilienceTokenRefreshEffect": "കൂളിംഗ് ഔട്ട് സമയത്ത് റിഫ്രഷ് ശ്രമങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നു",
+    "resilienceTokenRefreshScopeLabel": "പരിധി",
+    "resilienceTokenRefreshScopeProvider": "പ്രൊവൈഡർ (എല്ലാ അക്കൗണ്ടുകളും ഒരു ബ്രേക്കർ പങ്കിടുന്നു)",
+    "resilienceTokenRefreshScopeConnection": "കണക്ഷൻ (രോ അക്കൗണ്ടിനും സ്വന്തം ബ്രേക്കർ ഉണ്ട്)",
+    "resilienceTokenRefreshThreshold": "പരാജയങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നതിന് മുമ്പുള്ളവ",
+    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക"
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "കോംപാക്റ്റ് ചെയ്യാനുള്ള ഏറ്റവും കുറഞ്ഞ വരികൾ",
         "description": "ടാബുലാർ കോംപാക്ഷൻ പ്രവർത്തനക്ഷമമാക്കാൻ ഏകജാതീയ JSON അറേയിൽ ആവശ്യമായ ഏറ്റവും കുറഞ്ഞ വരികളുടെ എണ്ണം. ഡിഫോൾട്ട്: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "സിസ്റ്റം പ്രോംപ്റ്റ് സംരക്ഷിക്കുക"
       },
       "summarizerEnabled": {
         "label": "സംഗ്രഹ സംവിധാനം പ്രവർത്തനക്ഷമമാക്കുക"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "ഇതിലും ചെറുതായ സന്ദേശങ്ങൾ കംപ്രസ് ചെയ്യില്ല. കുറഞ്ഞ മൂല്യം = കൂടുതൽ കംപ്രഷൻ.",
     "tooltipMinSavings": "കുറഞ്ഞത് ഇത്രയും ടോക്കണുകൾ ലാഭിക്കുമെങ്കിൽ മാത്രം കംപ്രസ് ചെയ്യുക.",
     "ultraSettings": "അൾട്രാ ക്രമീകരണങ്ങൾ",
-    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ",
-    "preview": {
-      "lite": "സംക്ഷിപ്തമായി പ്രതികരിക്കുക. സാങ്കേതിക പദങ്ങൾ, കോഡ്, പിശകുകൾ, URLs, ഐഡന്റിഫയറുകൾ എന്നിവ മാറ്റമില്ലാതെ നിലനിർത്തുക.",
-      "full": "വളരെ ചുരുക്കമായും ഒതുക്കമായും പ്രതികരിക്കുക. എല്ലാ സാങ്കേതിക ഉള്ളടക്കവും നിലനിർത്തുക.",
-      "ultra": "സാധാരണ സാങ്കേതിക ചുരുക്കെഴുത്തുകൾ ഉപയോഗിച്ച് അത്യന്തം ചുരുക്കമായി പ്രതികരിക്കുക. കൃത്യമായ ചിഹ്നങ്ങൾ മാറ്റമില്ലാതെ നിലനിർത്തുക."
-    }
+    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ"
   },
   "translator": {
     "title": "പരിഭാഷകൻ",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "നിർണ്ണയിച്ച എക്സിറ്റ് ഇല്ലാത്ത പരാജയങ്ങൾ: {count}",
     "poolMemberEgress": "{host}:{port} വഴി {egressIp} ഉപയോഗിച്ച് പുറത്തുകടന്നു · കഴിഞ്ഞ {hours} മണിക്കൂർ",
     "poolMemberEgressEmpty": "{host}:{port}: കഴിഞ്ഞ {hours} മണിക്കൂറിൽ ട്രാഫിക്കൊന്നും കണ്ടെത്തിയില്ല",
+    "poolMemberEgressOperator": "{host}:{port} {egressIp} വഴി പുറത്തുകടന്നത് · ഓപ്പറേറ്റർ നൽകിയത്, {date}",
     "poolMemberEgressHint": "ഈ കാലയളവിൽ ഈ പൂൾ അംഗത്തിലൂടെ നിരീക്ഷിച്ച അവസാന എഗ്രെസ് IP, പ്രോക്സി ലോഗിൽ നിന്ന് വായിച്ചത്. ഈ കാലയളവിൽ ട്രാഫിക്കില്ലാത്ത അംഗത്തിന് ട്രാഫിക്കില്ലെന്ന വരി കാണിക്കും.",
     "poolRemove": "നീക്കം ചെയ്യുക",
     "poolRemoveFailed": "പൂളിൽ നിന്ന് പ്രോക്സി നീക്കം ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "പ്രോക്സിയിൽ എത്താനാകുന്നില്ല",
     "poolSetAsideKindIpQuota429": "IP നിരക്ക് പരിധി (429)",
     "poolSetAsideKindSlow": "മന്ദഗതിയുള്ള പ്രതികരണങ്ങൾ",
+    "poolSetAsideKindGeoBlocked": "പ്രദേശം നിരോധിച്ചത് (403/451)",
     "poolSetAsideUntil": "റൊട്ടേഷനിലേക്ക് തിരികെ {endsAt}",
     "poolSetAsideRepeat": "മാറ്റിവച്ചു {count, plural, one {# തവണ} other {# തവണ}}",
     "poolUnknownAddress": "അജ്ഞാത വിലാസം",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "സ്ഥാന ക്രമം",
     "poolHealthRankingOff": "ആരോഗ്യ റാങ്കിംഗ് ഓഫ്",
     "transportRate": "{rate}% ഗതാഗതം",
+    "slowAbandoned": "{count} മന്ദഗതിയിലുള്ള ഉപേക്ഷണങ്ങൾ",
+    "clientAborted": "{count} ക്ലയന്റ് റദ്ദാക്കലുകൾ",
+    "slowAbandonedHint": "ഹെഡറുകൾ കാത്തിരിപ്പ് പരിധിക്ക് ശേഷം ഉപേക്ഷിക്കപ്പെട്ടത്, ട്രാൻസ്പോർട്ട് നിരക്കിൽ നിന്ന് ഒഴിവാക്കിയിരിക്കുന്നു",
     "previousSuccessRate": "മുമ്പ് {rate}% വിജയം",
-    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ",
     "connectionTestsCount": "{count} കണക്ഷൻ പരിശോധനകൾ",
-    "notMeasured": "അളന്നിട്ടില്ല"
+    "notMeasured": "അളന്നിട്ടില്ല",
+    "upstream4xx": "{count} ഉപ്‌സ്‌ട്രീം ക്ലയന്റ് പിശകുകൾ",
+    "upstream5xx": "{count} ഉപ്‌സ്‌ട്രീം സെർവർ പിശകുകൾ",
+    "uniformEgressLine": "{provider}-ൽ {exits} എക്സിറ്റുകളിൽ {affected} എണ്ണം ഒരുമിച്ച് പരാജയപ്പെടുന്നു (കഴിഞ്ഞ {hours} മണിക്കൂറിൽ) — ഇത് എക്സിറ്റ് പ്രശ്നമല്ല"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "കണക്ഷൻ പൂൾ പാരമ്പര്യമായി ({count})",
     "poolEmptyBlocked": "പൂൾ ശൂന്യം — അഭ്യർത്ഥനകൾ പരാജയപ്പെടുന്നു (നேരിട്ടല്ല)",
     "directEgress": "നേരിട്ട് (പ്രോക്സി ഇല്ലാതെ)",
-    "ownProxy": "സ്വന്തം പ്രോക്സി"
+    "ownProxy": "സ്വന്തം പ്രോക്സി",
+    "freeTierPause": "മോഡൽ {model} തൽക്കാലം നിർത്തി (429), {time}-യിൽ തിരിച്ചെത്തും",
+    "freeTierPauseProvider": "തടഞ്ഞു (429), {time}-ൽ തിരിച்சെത്തും",
+    "freeTierPauseNote": "ഈ ഇൻസ്റ്റൻസിൽ പ്രോസസ്സ് ഇൻ-പ്രോസസ്സ് പോസ്"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,9 +13083,9 @@
     "dbOverrideCount": "{count} DB ഓവർറൈഡുകൾ",
     "searchPlaceholder": "ഫ്ലാഗുകൾ തിരയുക...",
     "descriptionModeLabel": "വിവരണ കാഴ്ച",
-    "descriptionModeHint": "ഹോവർ ചെയ്യുമ്പോൾ: കാർഡുകൾ ഒതുക്കമുള്ളതായി തുടരും, ഒരു വിവരണത്തിന് മുകളിൽ ഹോവർ ചെയ്യുമ്പോൾ പൂർണ്ണമായ വാചകം കാണിക്കും. പൂർണ്ണമായ വാചകം: എല്ലായ്പ്പോഴും സമ്പൂർണ്ണ വിവരണം കാണിക്കുക.",
+    "descriptionModeHint": "ഹോവർ ചെയ്യുമ്പോൾ: കാർഡുകൾ ചെറുതായി നിലനിൽക്കുകയും വിവരണത്തിൽ ഹോവർ ചെയ്യുമ്പോൾ പൂർണ്ണ ടെക്സ്റ്റ് ദൃശ്യമാകുകയും ചെയ്യും. പൂർണ്ണ ടെക്സ്റ്റ്: എപ്പോഴും പൂർണ്ണ വിവരണം കാണിക്കുക.",
     "descriptionModeHover": "ഹോവർ ചെയ്യുമ്പോൾ",
-    "descriptionModeFull": "പൂർണ്ണമായ വാചകം",
+    "descriptionModeFull": "പൂർണ്ണ ടെക്സ്റ്റ്",
     "categories": {
       "all": "എല്ലാം",
       "security": "സുരക്ഷ",

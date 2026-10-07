@@ -25,7 +25,13 @@ const {
   snapshotProxySetAside,
   snapshotMemberSetAside,
   REFUSAL_POLICIES,
+  countTransportEvidenceFor,
+  getRefusalStoreInstance,
+  recordTransportFailure,
+  recordTransportSuccess,
+  TRANSPORT_EVIDENCE_WINDOW_MS,
   __resetProxyRefusalMemoryForTesting,
+  __resetTransportEvidenceForTesting,
   __proxyRefusalMemorySizeForTesting,
 } = await import("../../open-sse/utils/proxyRefusalMemory.ts");
 const { GET } = await import("../../src/app/api/admin/proxy-pool-visibility/route.ts");
@@ -181,6 +187,74 @@ test("proxyEgressKey never carries a password", () => {
   });
   assert.ok(key);
   assert.ok(!String(key).includes("s3cret"));
+});
+
+test("pool visibility exposes transport proof and store instance additively", async () => {
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    const created = await proxiesDb.createProxy({
+      name: "transport proof fixture",
+      type: "http",
+      host: "203.0.113.41",
+      port: 8080,
+      username: "user",
+    });
+    try {
+      const key = proxyEgressKey(created);
+      assert.ok(key);
+      const peer = proxyEgressKey({ type: "http", host: "203.0.113.42", port: 8080 });
+      assert.ok(peer);
+      const t0 = Date.now();
+      const destination = "example.com";
+      recordTransportFailure(key, destination, t0);
+      recordTransportFailure(key, destination, t0 + 1);
+      recordTransportFailure(key, destination, t0 + 2);
+      recordTransportSuccess(destination, peer, t0 + 3);
+      const expected = countTransportEvidenceFor(key, Date.now());
+      assert.equal(expected.failures, 3);
+      assert.equal(expected.crossSuccesses, 1);
+      const res = await GET(req(`/api/admin/proxy-pool-visibility?proxyId=${created.id}`));
+      if (res.status === 401 || res.status === 403) return;
+      assert.equal(res.status, 200);
+      const body = (await jsonOf(res)) as {
+        members: Array<{
+          opaque: boolean;
+          display: string;
+          userMasked: string | null;
+          transportEvidence: { failures: number; crossSuccesses: number; windowMs: number };
+          storeInstance: string;
+        }>;
+      };
+      assert.equal(body.members.length, 1);
+      const member = body.members[0];
+      assert.equal(member.opaque, false);
+      assert.deepEqual(member.transportEvidence, {
+        failures: expected.failures,
+        crossSuccesses: expected.crossSuccesses,
+        windowMs: TRANSPORT_EVIDENCE_WINDOW_MS,
+      });
+      assert.equal(member.storeInstance, getRefusalStoreInstance());
+      // Existing fields unchanged: no key, no password, display stays user-free.
+      assert.ok(!("password" in member));
+      assert.ok(!String(member.display).includes("@"));
+      assert.ok(hasLeak(member.transportEvidence, ["s3cret", "user", "@"]) === null);
+      assert.match(member.storeInstance, /^[0-9a-f]{8}$/);
+      // The instance proof is stable across two reads.
+      const second = await GET(req(`/api/admin/proxy-pool-visibility?proxyId=${created.id}`));
+      if (second.status === 401 || second.status === 403) return;
+      const again = (await jsonOf(second)) as {
+        members: Array<{ transportEvidence: unknown; storeInstance: string }>;
+      };
+      assert.equal(again.members[0].storeInstance, member.storeInstance);
+      await proxiesDb.deleteProxyById(created.id);
+    } finally {
+      __resetProxyRefusalMemoryForTesting();
+      __resetTransportEvidenceForTesting();
+    }
+  } finally {
+    console.warn = warn;
+  }
 });
 
 test("GET single entry exposes selector member set-aside state", async () => {

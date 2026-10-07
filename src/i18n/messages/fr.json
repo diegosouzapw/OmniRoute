@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Les pools de proxys et la rotation par compte d’opencode cessent de réutiliser un proxy qui vient d’échouer (sonde TCP refusée ou réponse 429 reçue par son intermédiaire) pendant une durée propre au processus qui double à chaque nouvel échec, jusqu’à une limite maximale. Aucun état de proxy n’est enregistré ; lorsque tous les candidats sont écartés, le choix reste inchangé. Activé par défaut ; `false` rétablit la sélection simple.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Pour les fournisseurs dont le quota est réparti par adresse d'egress, classe un membre du pool partageant l'adresse d'egress observée d'un membre récemment refusé juste en dessous des membres sains. Ordre uniquement, jamais exclu. Nécessite PROXY_SKIP_RECENTLY_FAILED, qui produit le signal de refus qu'il lit. Désactivé par défaut : l'ordre de sélection est exactement la rotation simple.",
   "featureFlagProxyPoolEgressObservationDescription": "Afficher, sous un pool de proxys dans le tableau de bord, combien d’adresses IP de sortie observées ont servi ses membres au cours des dernières 24 h, combien de connexions les ont utilisées et le nombre maximal observé derrière une même adresse IP. En lecture seule, calculé à partir du journal du proxy, jamais utilisé pour le routage. Désactivé par défaut : l’éditeur de pool reste inchangé et la route d’observation renvoie null.",
+  "featureFlagProxyOperatorEgressDescription": "Accepter les adresses observées datées poussées par l'opérateur par membre de pool et les fusionner avec la lecture du journal pour l'affichage et l'ordre du pool. Désactivé par défaut : le routeur de poussée renvoie 404 et les lectures de pool se comportent exactement comme avant.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Lors du contrôle d’intégrité des proxys, permettez à une sonde refusée par la cible (401/403/429 : le proxy a relayé la requête, mais la destination a refusé cette adresse IP de sortie) de réinitialiser la série d’échecs consécutifs du proxy, comme une sonde traitée. Désactivé par défaut : un refus reste neutre et maintient la série. Une réponse 5xx reste non concluante dans les deux cas, et un refus ne supprime, ne désactive ni ne réactive jamais un proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Autoriser le nettoyage automatique à supprimer les tâches Batch API dans un état terminal (terminées/échouées/annulées/expirées) datant de plus de OMNIROUTE_BATCH_RETENTION_DAYS, ainsi que leurs points de contrôle par ligne, et à effacer le contenu BLOB des fichiers téléversés dont la valeur expires_at est dépassée. Désactivé par défaut : chaque installation existante conserve ces données exactement comme auparavant jusqu’à ce qu’un opérateur active cette option. La route DELETE /api/v1/batches/delete-completed déclenchée par l’opérateur n’est affectée dans aucun des cas : il s’agit d’un contrat d’API publique distinct et inconditionnel.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Récupérer le catalogue de modèles xAI en temps réel pour les connexions xai-oauth depuis https://api.x.ai/v1/models à l’aide du jeton d’accès OAuth, au lieu de la liste statique figée. Désactivé par défaut : xai-oauth continue d’utiliser la liste statique sans modification. En cas d’erreur de résolution, la découverte se rabat sur cette liste.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Le point de terminaison du proxy-core local est invalide ; les nœuds SS/VMess/Trojan/VLESS ont été ignorés.",
         "NEEDS_CORE_NOT_CONFIGURED": "Cet abonnement contient des nœuds qui nécessitent un proxy core local (SS/VMess/Trojan/VLESS) ; ils ne sont pas routés tant que vous n'avez pas configuré le point de terminaison SOCKS5 du local-core.",
         "NO_USABLE_NODES": "L'abonnement n'a renvoyé aucun nœud utilisable (http/https/socks5 ou nœuds avec un point de terminaison de core local).",
-        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez."
+        "SELECTOR_SWITCH_FAILED": "L'appel de contrôle du proxy-core a échoué ; la route précédente reste active. Vérifiez l'URL et le secret de contrôle, puis actualisez.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "La configuration de base générée n'a pas pu remplacer le fichier adopté ; la copie voisine a été conservée à la place.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Certaines entrées ont été ignorées pendant la génération. Consultez le journal du serveur."
       },
       "description": "Collez votre lien d'abonnement proxy. Une fois activé, le trafic est acheminé via le pool de proxy en mode global ou en mode règle (fournisseur spécifié). Les nœuds d'abonnement sont automatiquement synchronisés avec le pool de proxy et réutilisent les mécanismes d'interrogation, de contrôle de santé et anti-fuite existants.",
       "addSubscription": "Ajouter un abonnement",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Aucune bascule enregistrée",
       "lastSwitchMember": "Membre desservi",
       "nextSwitch": "Prochaine bascule possible",
-      "nextSwitchNow": "Maintenant"
+      "nextSwitchNow": "Maintenant",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Chemin du binaire de base",
+      "coreBinaryPathHelp": "Facultatif : vérifie le fichier généré avec le binaire de base avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le dossier est créé s'il est absent.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Compression des descriptions MCP",
     "mcpAccessibilityTitle": "Sortie d'accessibilité MCP",
     "compressionSettingsCavemanIntensity": "Intensité de l'homme des cavernes",
-    "compressionSettingsCavemanOutputMode": "Mode de sortie homme des cavernes",
     "compressionSettingsOutputStyles": "Styles de sortie",
     "compressionStylesTileTitle": "Styles de sortie",
     "compressionSettingsOutputIntensity": "Intensité de sortie",
-    "compressionSettingsAutoClarityBypass": "Contournement automatique de la clarté",
     "compressionEffectivePipeline": "Pipeline effectif :",
     "compressionDerivedOff": "désactivé",
     "compressionDerivedRuns": "exécutions : {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Ce que GET /v1/models annonce pour cette clé. Restreindre la liste ne modifie jamais ce que la clé peut appeler.",
     "catalogScopeAll": "Les deux",
     "catalogScopeCombos": "Combos uniquement",
-    "catalogScopeModels": "Modèles uniquement"
+    "catalogScopeModels": "Modèles uniquement",
+    "resilienceTokenRefreshTitle": "Disjoncteur de rafraîchissement de jeton",
+    "resilienceTokenRefreshDesc": "Arrête de réessayer le rafraîchissement du jeton après des échecs répétés. La portée par connexion isole un compte mort afin que les comptes sains du même fournisseur continuent d'être rafraîchis.",
+    "resilienceTokenRefreshScope": "Tentatives de rafraîchissement du jeton pour un fournisseur",
+    "resilienceTokenRefreshTrigger": "Tentatives de rafraîchissement consécutives échouées",
+    "resilienceTokenRefreshEffect": "Suspend les tentatives de rafraîchissement pendant le délai de refroidissement",
+    "resilienceTokenRefreshScopeLabel": "Portée",
+    "resilienceTokenRefreshScopeProvider": "Fournisseur (tous les comptes partagent un seul disjoncteur)",
+    "resilienceTokenRefreshScopeConnection": "Connexion (chaque compte a son propre disjoncteur)",
+    "resilienceTokenRefreshThreshold": "Échecs avant la mise en pause",
+    "resilienceTokenRefreshCooldown": "Pause après déclenchement"
   },
   "contextRtk": {
     "title": "Moteur RTK",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Lignes minimales à compacter",
         "description": "Nombre minimum de lignes dans un tableau JSON homogène requis pour déclencher le compactage tabulaire. Par défaut : 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Préserver le prompt système"
       },
       "summarizerEnabled": {
         "label": "Activer le résumeur"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Les messages plus courts ne sont pas compressés. Plus faible = plus de compression.",
     "tooltipMinSavings": "Compressez uniquement si vous enregistrez au moins autant de jetons.",
     "ultraSettings": "Paramètres ultra",
-    "ultraSettingsDesc": "Compression sémantique basée sur SLM",
-    "preview": {
-      "lite": "Répondez de manière concise. Préservez les termes techniques, le code, les erreurs, les URLs et les identifiants.",
-      "full": "Répondez de manière laconique et compacte. Préservez tout le contenu technique.",
-      "ultra": "Répondez de manière ultra-laconique avec des abréviations techniques courantes. Préservez les symboles exacts."
-    }
+    "ultraSettingsDesc": "Compression sémantique basée sur SLM"
   },
   "translator": {
     "title": "Traducteur",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Échecs sans sortie attribuée : {count}",
     "poolMemberEgress": "{host}:{port} est sorti via {egressIp} · dernières {hours} h",
     "poolMemberEgressEmpty": "{host}:{port} : aucun trafic observé au cours des dernières {hours} h",
+    "poolMemberEgressOperator": "{host}:{port} quitté via {egressIp} · fourni par l'opérateur, {date}",
     "poolMemberEgressHint": "Dernière adresse IP de sortie observée via ce membre du pool sur la période, d’après le journal du proxy. Un membre sans trafic sur la période affiche la ligne indiquant l’absence de trafic.",
     "poolRemove": "Retirer",
     "poolRemoveFailed": "Échec du retrait du proxy du pool",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy injoignable",
     "poolSetAsideKindIpQuota429": "limite de débit par IP (429)",
     "poolSetAsideKindSlow": "réponses lentes",
+    "poolSetAsideKindGeoBlocked": "région bloquée (403/451)",
     "poolSetAsideUntil": "De retour en rotation {endsAt}",
     "poolSetAsideRepeat": "Écarté {count, plural, one {# fois} other {# fois}}",
     "poolUnknownAddress": "Adresse inconnue",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Ordre de position",
     "poolHealthRankingOff": "Classement de santé désactivé",
     "transportRate": "{rate} % transport",
+    "slowAbandoned": "{count} abandons lents",
+    "clientAborted": "{count} annulations par le client",
+    "slowAbandonedHint": "Abandonné après dépassement du délai d'attente des en-têtes, exclu du taux de transport",
     "previousSuccessRate": "Précédemment {rate} % de réussite",
-    "upstreamRefusals": "{count} refus en amont",
     "connectionTestsCount": "{count} tests de connexion",
-    "notMeasured": "Non mesuré"
+    "notMeasured": "Non mesuré",
+    "upstream4xx": "{count} erreurs client en amont",
+    "upstream5xx": "{count} erreurs de serveur en amont",
+    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Hérite du pool de connexions ({count})",
     "poolEmptyBlocked": "Pool vide — les requêtes échouent (pas direct)",
     "directEgress": "Direct (sans proxy)",
-    "ownProxy": "Proxy personnel"
+    "ownProxy": "Proxy personnel",
+    "freeTierPause": "Modèle {model} en pause (429), retour à {time}",
+    "freeTierPauseProvider": "En pause (429), retour à {time}",
+    "freeTierPauseNote": "Pause en cours sur cette instance"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,10 +13082,10 @@
     "inactiveCount": "{count} inactifs",
     "dbOverrideCount": "{count} surcharges DB",
     "searchPlaceholder": "Rechercher des indicateurs...",
-    "descriptionModeLabel": "Affichage de la description",
-    "descriptionModeHint": "Au survol : les cartes restent compactes et le survol d’une description affiche le texte intégral. Texte intégral : affiche toujours la description complète.",
+    "descriptionModeLabel": "Vue de la description",
+    "descriptionModeHint": "Au survol : les cartes restent compactes et le survol d'une description affiche le texte complet. Texte complet : affiche toujours la description entière.",
     "descriptionModeHover": "Au survol",
-    "descriptionModeFull": "Texte intégral",
+    "descriptionModeFull": "Texte complet",
     "categories": {
       "all": "Tous",
       "security": "Sécurité",

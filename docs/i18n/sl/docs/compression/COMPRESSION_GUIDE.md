@@ -484,8 +484,7 @@ navodila vstavi lokalizirano navodilo.
 Pri telesu z `messages` obhod glede na vsebino (`shouldBypassCavemanOutputMode()` v
 `open-sse/services/compression/outputMode.ts`) preveri zadnja tri sporočila in preskoči
 sloge za celoten obrat, ko se ujemajo z njegovimi ključnimi besedami za varnost,
-nepovratna dejanja, pojasnjevanje ali občutljivost na vrstni red. Obhod se izvaja glede
-na nastavitev stikala **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na nadzorni plošči.
+nepovratna dejanja, pojasnjevanje ali občutljivost na vrstni red. Obhod se izvaja, dokler je stikalo **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) na nadzorni plošči vklopljeno, kar je privzeta nastavitev; ob izklopljenem stikalu velijo izbrani slogi tudi v teh obratih.
 
 Ko obhod dovoli obdelavo obrata, `placeSystemInstruction()` (ista datoteka), ki
 nikoli ne ustvari novega `messages[0]`, postavi blok na prvo najdeno mesto med naslednjimi:

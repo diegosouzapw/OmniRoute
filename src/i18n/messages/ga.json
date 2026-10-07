@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Cuireann linnte seachfhreastalaí agus rothlú opencode in aghaidh an chuntais cosc ar sheachfhreastalaí ar theip air díreach (diúltaíodh don tóireadóir TCP, nó fuarthas 429 tríd) a sheirbheáil arís ar feadh tréimhse in aghaidh an phróisis a dhúblaíonn le gach teip eile, suas le huasteorainn. Ní scríobhtar aon stádas seachfhreastalaí; má chuirtear gach iarrthóir ar leataobh, fanann an rogha gan athrú. Ar siúl de réir réamhshocraithe; athbhunaíonn `false` an gnáthroghnú.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Do sholáthraithe a roinntear a gcuóta de réir seoladh egress, rangaíonn sé ball den pool a roinneann an seoladh egress breathnaithe atá ag ball a diúltaíodh le déanaí díreach faoi bhun na mball sláintiúil. Ord amháin, ní eisiatar riamh. Teastaíonn PROXY_SKIP_RECENTLY_FAILED, a tháirgeann an comhartha diúltaithe a léann sé. As de réir réamhshocraithe: is é an t-ord roghnúcháin go díreach an gnáth-rothlú.",
   "featureFlagProxyPoolEgressObservationDescription": "Taispeáin, faoi linn seachfhreastalaí sa deais, cé mhéad seoladh IP amach a breathnaíodh a d’fhreastail ar a bhaill le 24 h anuas, cé mhéad nasc a d’úsáid iad agus an líon is mó a chonacthas taobh thiar d’aon IP amháin. Inléite amháin, ríofa ón loga seachfhreastalaí, agus ní úsáidtear riamh é le haghaidh ródúcháin. As de réir réamhshocraithe: fanann eagarthóir na linne gan athrú agus freagraíonn bealach na breathnóireachta le null.",
+  "featureFlagProxyOperatorEgressDescription": "Ceadaigh ábhar a tháinig ó oibritheoir le dátú agus a bhuailfidh i gcumaisc leis an leabharlann léithe agus an ordú púil. Dífholta de réir réamhshocraithe: téighidh an fáthúr oibritheoir chuig 404 agus cuirfidh púil léithe ar a chéile mar a bhí sé ina dhiaidh.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "I scuabadh sláinte an tseachfhreastalaí, lig do thóraíocht ar dhiúltaigh an sprioc di (401/403/429: rinne an seachfhreastalaí athsheoladh, ach dhiúltaigh an ceann scríbe don seoladh IP amach seo) stríoc teipeanna comhleanúnacha an tseachfhreastalaí a athshocrú, amhail tóraíocht a seirbheáladh. As de réir réamhshocraithe: fanann diúltú neodrach agus coinníonn sé an stríoc. Fanann 5xx neamhchinntitheach sa dá chás, agus ní bhaineann diúltú seachfhreastalaí choíche, ní dhíchumasaíonn sé é ná ní athghníomhachtaíonn sé é.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Lig don ghlanadh uathoibríoch jabanna teirminéil (críochnaithe/teipthe/curtha ar ceal/éagtha) Batch API atá níos sine ná OMNIROUTE_BATCH_RETENTION_DAYS a scriosadh, mar aon lena seicphointí in aghaidh na líne, agus inneachar BLOB na gcomhad uaslódáilte atá thar a expires_at féin a ghlanadh. Díchumasaithe de réir réamhshocraithe: coimeádann gach suiteáil atá ann cheana na sonraí seo díreach mar a rinneadh roimhe seo go dtí go roghnaíonn oibreoir é seo a chumasú. Ní dhéantar aon difear don bhealach DELETE /api/v1/batches/delete-completed a spreagann oibreoir i gceachtar cás — is conradh API poiblí ar leith agus neamhchoinníollach é.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Faigh catalóg bheo samhlacha xAI do naisc xai-oauth ó https://api.x.ai/v1/models ag úsáid an chomhartha iompróra OAuth, in ionad an tsíl stataigh reoite. Díchumasaithe de réir réamhshocraithe: leanann xai-oauth den síol statach a sholáthar gan athrú. Má tharlaíonn aon earráid réitigh, téann an aimsiú siar chuig an síol.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Tá críochphointe an chroí-seachfhreastalaí áitiúil neamhbhailí; rinneadh neamhaird de nóid SS/VMess/Trojan/VLESS.",
         "NEEDS_CORE_NOT_CONFIGURED": "Tá nóid sa tsíntiús seo a dteastaíonn croí-seachfhreastalaí áitiúil uathu (SS/VMess/Trojan/VLESS); ní dhéantar iad a ródú go dtí go gcumraíonn tú críochphointe SOCKS5 an chroí áitiúil.",
         "NO_USABLE_NODES": "Níor tháirg an síntiús aon nód inúsáidte (http/https/socks5 nó nód le críochphointe croí áitiúil).",
-        "SELECTOR_SWITCH_FAILED": "Theip ar an nglao rialaithe proxy-core; fanann an bealach roimhe seo gníomhach. Seiceáil an URL agus an rún rialaithe, ansin athnuaigh."
+        "SELECTOR_SWITCH_FAILED": "Theip ar an nglao rialaithe proxy-core; fanann an bealach roimhe seo gníomhach. Seiceáil an URL agus an rún rialaithe, ansin athnuaigh.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Níorbh in an príomhchumraíocht ghintithe an comhad ghlactaithe a athsholáthar; coinníodh an cóip atá ina dhiaidh ina áit.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Gearradh roinnt iontrálacha le linn na giniúna. Féach ar log an fhreastalaí."
       },
       "description": "Greamaigh do nasc síntiúis seachfhreastalaí. Nuair a chuirtear ar siúl é, déantar an trácht a ródú tríd an linn seachfhreastalaithe i mód domhanda nó i mód rialach (Soláthraí sonraithe). Déantar nóid síntiúis a shioncronú go huathoibríoch leis an linn seachfhreastalaithe agus athúsáideann siad na meicníochtaí pollála, seiceála sláinte agus frithsceite atá ann cheana.",
       "addSubscription": "Cuir Síntiús Leis",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Níl aon athrú taifeadta fós",
       "lastSwitchMember": "Ball ag freastal",
       "nextSwitch": "An chéad athrú eile is féidir",
-      "nextSwitchNow": "Anois"
+      "nextSwitchNow": "Anois",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Conair an bhinary príomh",
+      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Seiceáil Sláinte ar an Mórchóir",
     "bulkHealthcheckDesc": "Tástáil na seachfhreastalaithe cumraithe go léir i gcoinne URL sprice lena fháil amach cé na cinn a oibríonn.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Comhbhrú tuairiscí MCP",
     "mcpAccessibilityTitle": "Aschur inrochtaineachta MCP",
     "compressionSettingsCavemanIntensity": "Déine stíl an fhir uaimhe",
-    "compressionSettingsCavemanOutputMode": "Mód aschuir an fhir uaimhe",
     "compressionSettingsOutputStyles": "Stíleanna aschuir",
     "compressionStylesTileTitle": "Stíleanna aschuir",
     "compressionSettingsOutputIntensity": "Déine aschuir",
-    "compressionSettingsAutoClarityBypass": "Seachbhóthar soiléire uathoibríoch",
     "compressionEffectivePipeline": "Píblíne éifeachtach:",
     "compressionDerivedOff": "as",
     "compressionDerivedRuns": "ritheanna: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "An méid a fhógraíonn GET /v1/models don eochair seo. Ní athraíonn cúngú an liosta na samhlacha ar féidir leis an eochair glaoch orthu.",
     "catalogScopeAll": "An dá cheann",
     "catalogScopeCombos": "Teaglamaí amháin",
-    "catalogScopeModels": "Samhlacha amháin"
+    "catalogScopeModels": "Samhlacha amháin",
+    "resilienceTokenRefreshTitle": "Tosaíodh Athnuachan Token",
+    "resilienceTokenRefreshDesc": "Stadaidh sé iarracht athnuachan an tokain a dhéanamh tar éis teipthe arís is arís eile. Scarann scóip an naisc amach cuntas marbh amháin ionas go leanfaidh cuntais sláintiúla an soláthraí chéanna ag athnuachan.",
+    "resilienceTokenRefreshScope": "Iarrachtaí athnuachan toicin do sholáthraí amháin",
+    "resilienceTokenRefreshTrigger": "Iarrachtaí teagmhála as a chéile a dteipheadh orthu",
+    "resilienceTokenRefreshEffect": "Cuireann sé iarratais athnuachaithe ar moill le haghaidh an tréimhse fuaraithe",
+    "resilienceTokenRefreshScopeLabel": "Scóip",
+    "resilienceTokenRefreshScopeProvider": "Soláthraí (roinneann gach cuntas amháon bhriseoir)",
+    "resilienceTokenRefreshScopeConnection": "Ceangal (tá meitneoir féin ag gach cuntas)",
+    "resilienceTokenRefreshThreshold": "Teipimhí roimh an sos",
+    "resilienceTokenRefreshCooldown": "Sos tar éis an rith a thosú"
   },
   "contextRtk": {
     "title": "Inneall RTK",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Íoslíon sraitheanna le comhdhlúthú",
         "description": "Íoslíon sraitheanna a chaithfidh a bheith in eagar JSON aonchineálach chun comhdhlúthú táblaíoch a spreagadh. Réamhshocrú: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Caomhnaigh leid an chórais"
       },
       "summarizerEnabled": {
         "label": "Cumasaigh achoimreoir"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Ní chomhbhrúitear teachtaireachtaí atá níos giorra ná seo. Níos ísle = tuilleadh comhbhrúite.",
     "tooltipMinSavings": "Ná comhbhrú ach amháin má shábháiltear an líon seo comharthaí ar a laghad.",
     "ultraSettings": "Socruithe Ultra",
-    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM",
-    "preview": {
-      "lite": "Freagair go gonta. Caomhnaigh téarmaí teicniúla, cód, earráidí, URLanna agus aitheantóirí.",
-      "full": "Freagair go lom agus go dlúth. Caomhnaigh an t-ábhar teicniúil ar fad.",
-      "ultra": "Freagair go fíorghonta agus úsáid giorrúcháin theicniúla choitianta. Caomhnaigh na siombailí beachta."
-    }
+    "ultraSettingsDesc": "Comhbhrú séimeantach faoi thiomáint ag SLM"
   },
   "translator": {
     "title": "Aistritheoir",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Teipeanna gan slí amach sannta: {count}",
     "poolMemberEgress": "Chuaigh {host}:{port} amach trí {egressIp} · le {hours} u anuas",
     "poolMemberEgressEmpty": "{host}:{port}: níor breathnaíodh aon trácht le {hours} u anuas",
+    "poolMemberEgressOperator": "{host}:{port} thar {egressIp} · cuirtear leis an oibritheoir, {date}",
     "poolMemberEgressHint": "An seoladh IP imeachta is déanaí a breathnaíodh tríd an mball seo den chomhthiomsú le linn na tréimhse, arna léamh ón loga seachfhreastalaí. Taispeántar an líne gan trácht do bhall nach raibh aon trácht aige le linn na tréimhse.",
     "poolRemove": "Bain",
     "poolRemoveFailed": "Theip ar bhaint an seachfhreastalaí as an linn",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "níl teacht ar an seachfhreastalaí",
     "poolSetAsideKindIpQuota429": "teorainn ráta IP (429)",
     "poolSetAsideKindSlow": "freagraí mall",
+    "poolSetAsideKindGeoBlocked": "réigiún blocáilte (403/451)",
     "poolSetAsideUntil": "Ar ais sa rothlú {endsAt}",
     "poolSetAsideRepeat": "Curtha ar leataobh {count, plural, one {# uair} other {# uair}}",
     "poolUnknownAddress": "Seoladh anaithnid",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Ord suímh",
     "poolHealthRankingOff": "Rangú sláinte múchta",
     "transportRate": "{rate}% iompair",
+    "slowAbandoned": "{count} tréigtheann malla",
+    "clientAborted": "{count} cliant ag scor",
+    "slowAbandonedHint": "Tréigthe tar éis an tairseach fanadh ceannteideal, eisiata ón ráta iompair",
     "previousSuccessRate": "Roimhe seo {rate}% rath",
-    "upstreamRefusals": "{count} diúltú in aghaidh srutha",
     "connectionTestsCount": "{count} tástáil nasctha",
-    "notMeasured": "Gan tomhas"
+    "notMeasured": "Gan tomhas",
+    "upstream4xx": "{count} earráidí cliente ar an gceann chlé",
+    "upstream5xx": "{count} earráidí seirbhís ar an gceann chlé",
+    "uniformEgressLine": "{affected} de {exits} éits bailiú le chéile ar {provider} (deis {hours}h) — níl ceist éit"
   },
   "playground": {
     "title": "Clós Súgartha Múnlaí",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Oidhreacht linn nasc ({count})",
     "poolEmptyBlocked": "Linn folamh — teipeann ar iarratais (ní díreach)",
     "directEgress": "Díreach (gan seachfhreastalaí)",
-    "ownProxy": "Seachfhreastalaí féin"
+    "ownProxy": "Seachfhreastalaí féin",
+    "freeTierPause": "Múnla {model} ar scoradh (429), ar ais ag {time}",
+    "freeTierPauseProvider": "Ar scoradh (429), ar ais ag {time}",
+    "freeTierPauseNote": "Cúramóir i bpróiseas ar an sampla seo"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13052,9 +13082,9 @@
     "inactiveCount": "{count} neamhghníomhach",
     "dbOverrideCount": "{count} sárú DB",
     "searchPlaceholder": "Cuardaigh bratacha...",
-    "descriptionModeLabel": "Amharc tuairisce",
-    "descriptionModeHint": "Ar ainliú: fanann cártaí dlúth agus taispeántar an téacs iomlán nuair a ainlítear thar thuairisc. Téacs iomlán: taispeáin an tuairisc iomlán i gcónaí.",
-    "descriptionModeHover": "Ar ainliú",
+    "descriptionModeLabel": "Amharc tuairiscí",
+    "descriptionModeHint": "Ar tharraingt: fanann na cairtnídlógtha, agus léiríonn tarraingt ar thuairisc an téacs iomlán. Téacs iomlán: taispeáin an tuairisc iomlán i gcónaí.",
+    "descriptionModeHover": "Ar tharraingt",
     "descriptionModeFull": "Téacs iomlán",
     "categories": {
       "all": "Gach ceann",

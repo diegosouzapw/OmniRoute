@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Proxy-Pools und die kontobasierte Rotation von opencode verwenden einen Proxy, der gerade fehlgeschlagen ist (abgelehnte TCP-Prüfung oder darüber empfangener 429-Statuscode), für einen prozessbezogenen Zeitraum nicht erneut. Dieser Zeitraum verdoppelt sich bei jeder Wiederholung bis zu einer Obergrenze. Es wird kein Proxy-Status gespeichert; wenn alle Kandidaten zurückgestellt wurden, bleibt die Auswahl unverändert. Standardmäßig aktiviert; `false` stellt die einfache Auswahl wieder her.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Bei Anbietern, deren Kontingent nach Egress-Adresse aufgeteilt wird, wird ein Pool-Mitglied, das die beobachtete Egress-Adresse eines kürzlich abgewiesenen Mitglieds teilt, direkt unter den gesunden Mitgliedern eingereiht. Nur Reihenfolge, nie ausgeschlossen. Benötigt PROXY_SKIP_RECENTLY_FAILED, das das gelesene Ablehnungssignal erzeugt. Standardmäßig aus: Die Auswahlreihenfolge ist genau die einfache Rotation.",
   "featureFlagProxyPoolEgressObservationDescription": "Zeigt im Dashboard unter einem Proxy-Pool an, wie viele beobachtete Egress-IPs dessen Mitglieder in den letzten 24 h genutzt haben, wie viele Verbindungen über sie liefen und wie viele Verbindungen maximal hinter einer einzelnen IP beobachtet wurden. Schreibgeschützt, aus dem Proxy-Protokoll berechnet und niemals für das Routing verwendet. Standardmäßig deaktiviert: Der Pool-Editor bleibt unverändert und die Beobachtungsroute gibt null zurück.",
+  "featureFlagProxyOperatorEgressDescription": "Akzeptiere vom Operator gepushte, datierte beobachtete Adressen pro Pool-Member und führe sie mit dem Journal-Read für Anzeige und Pool-Reihenfolge zusammen. Standardmäßig deaktiviert: Die Push-Route gibt 404 zurück und Pool-Lesezugriffe verhalten sich genau wie zuvor.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Ermöglicht bei der Proxy-Zustandsprüfung, dass eine vom Ziel abgelehnte Prüfung (401/403/429: Der Proxy hat die Anfrage weitergeleitet, das Ziel hat diese Egress-IP abgelehnt) die Serie aufeinanderfolgender Fehler des Proxys zurücksetzt, wie bei einer erfolgreich beantworteten Prüfung. Standardmäßig deaktiviert: Eine Ablehnung bleibt neutral und die Serie wird beibehalten. Ein 5xx-Status bleibt in beiden Fällen nicht aussagekräftig, und eine Ablehnung entfernt, deaktiviert oder reaktiviert niemals einen Proxy.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Erlaubt dem automatischen Bereinigungslauf, beendete Batch-API-Aufträge (completed/failed/cancelled/expired), die älter als OMNIROUTE_BATCH_RETENTION_DAYS sind, zusammen mit ihren zeilenweisen Prüfpunkten zu löschen und den BLOB-Inhalt hochgeladener Dateien nach Ablauf ihres jeweiligen expires_at zu leeren. Standardmäßig deaktiviert: Jede bestehende Installation behält diese Daten genau wie bisher, bis ein Betreiber die Funktion aktiviert. Die vom Betreiber ausgelöste Route DELETE /api/v1/batches/delete-completed bleibt unabhängig davon unverändert – sie ist ein separater, bedingungslos geltender öffentlicher API-Vertrag.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Ruft für xai-oauth-Verbindungen den aktuellen xAI-Modellkatalog mit dem OAuth-Bearer-Token von https://api.x.ai/v1/models ab, anstatt den unveränderlichen statischen Ausgangsbestand zu verwenden. Standardmäßig deaktiviert: xai-oauth stellt weiterhin unverändert den statischen Ausgangsbestand bereit. Bei jedem Auflösungsfehler greift die Erkennung auf den Ausgangsbestand zurück.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokaler Proxy-Core-Endpunkt ist ungültig; SS/VMess/Trojan/VLESS-Knoten wurden ignoriert.",
         "NEEDS_CORE_NOT_CONFIGURED": "Dieses Abonnement enthält Knoten, die einen lokalen Proxy-Core benötigen (SS/VMess/Trojan/VLESS); sie werden nicht geroutet, bis Sie den lokalen Core-SOCKS5-Endpunkt konfigurieren.",
         "NO_USABLE_NODES": "Abonnement lieferte keine nutzbaren Knoten (http/https/socks5 oder Knoten mit einem lokalen Core-Endpunkt).",
-        "SELECTOR_SWITCH_FAILED": "Der Steueraufruf des Proxy-Cores ist fehlgeschlagen; die bisherige Route bleibt aktiv. Prüfen Sie Steuer-URL und Secret und aktualisieren Sie dann."
+        "SELECTOR_SWITCH_FAILED": "Der Steueraufruf des Proxy-Cores ist fehlgeschlagen; die bisherige Route bleibt aktiv. Prüfen Sie Steuer-URL und Secret und aktualisieren Sie dann.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Die generierte Kernkonfiguration konnte die übernommene Datei nicht ersetzen; stattdessen wurde die danebenliegende Kopie beibehalten.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Einige Einträge wurden bei der Generierung übersprungen. Siehe Serverprotokoll."
       },
       "description": "Fügen Sie Ihren Proxy-Abonnement-Link ein. Nach der Aktivierung wird der Datenverkehr im globalen Modus oder im Regelmodus (angegebener Anbieter) über den Proxy-Pool weitergeleitet. Abonnementknoten werden automatisch mit dem Proxy-Pool synchronisiert und nutzen vorhandene Abfrage-, Gesundheitsprüfungs- und Anti-Leak-Mechanismen wieder.",
       "addSubscription": "Abonnement hinzufügen",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Noch keine Umschaltung verzeichnet",
       "lastSwitchMember": "Bedienendes Mitglied",
       "nextSwitch": "Nächste mögliche Umschaltung",
-      "nextSwitchNow": "Jetzt"
+      "nextSwitchNow": "Jetzt",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Pfad zur Kern-Binary",
+      "coreBinaryPathHelp": "Optional: Überprüft die generierte Datei mit der Kern-Binary, bevor die übernommene Datei ersetzt wird. Leer lassen, um daneben zu schreiben. Das Verzeichnis wird bei Bedarf erstellt.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Massenprüfung des Zustands",
     "bulkHealthcheckDesc": "Alle konfigurierten Proxys anhand einer Ziel-URL testen, um festzustellen, welche funktionieren.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Komprimierung der MCP-Beschreibung",
     "mcpAccessibilityTitle": "MCP-Barrierefreiheitsausgabe",
     "compressionSettingsCavemanIntensity": "Höhlenmensch-Intensität",
-    "compressionSettingsCavemanOutputMode": "Caveman-Ausgabemodus",
     "compressionSettingsOutputStyles": "Ausgabestile",
     "compressionStylesTileTitle": "Ausgabestile",
     "compressionSettingsOutputIntensity": "Ausgangsintensität",
-    "compressionSettingsAutoClarityBypass": "Umgehung der automatischen Klarheit",
     "compressionEffectivePipeline": "Effektive Pipeline:",
     "compressionDerivedOff": "aus",
     "compressionDerivedRuns": "Ausführungen: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Was GET /v1/models für diesen Schlüssel ausgibt. Eine Einschränkung der Liste ändert niemals, welche Modelle der Schlüssel aufrufen kann.",
     "catalogScopeAll": "Beides",
     "catalogScopeCombos": "Nur Kombos",
-    "catalogScopeModels": "Nur Modelle"
+    "catalogScopeModels": "Nur Modelle",
+    "resilienceTokenRefreshTitle": "Token-Aktualisierungsunterbrecher",
+    "resilienceTokenRefreshDesc": "Stoppt erneute Versuche, das Token zu aktualisieren, nach wiederholten Fehlern. Der Bereich pro Verbindung isoliert ein totes Konto, sodass gesunde Konten beim selben Anbieter weiterhin aktualisiert werden.",
+    "resilienceTokenRefreshScope": "Token-Aktualisierungsversuche für einen Anbieter",
+    "resilienceTokenRefreshTrigger": "Aufeinanderfolgende fehlgeschlagene Aktualisierungsversuche",
+    "resilienceTokenRefreshEffect": "Pausiert Aktualisierungsversuche während der Abklingzeit",
+    "resilienceTokenRefreshScopeLabel": "Geltungsbereich",
+    "resilienceTokenRefreshScopeProvider": "Anbieter (alle Konten teilen sich einen Unterbrecher)",
+    "resilienceTokenRefreshScopeConnection": "Verbindung (jedes Konto hat eigenen Schutzschalter)",
+    "resilienceTokenRefreshThreshold": "Fehler vor der Pause",
+    "resilienceTokenRefreshCooldown": "Pause nach Auslösung"
   },
   "contextRtk": {
     "title": "RTK-Engine",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Minimale Zeilen zum Komprimieren",
         "description": "Mindestanzahl an Zeilen in einem homogenen JSON-Array, die erforderlich ist, um eine tabellarische Komprimierung auszulösen. Standard: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "System-Prompt beibehalten"
       },
       "summarizerEnabled": {
         "label": "Summarizer aktivieren"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Nachrichten, die kürzer sind, werden nicht komprimiert. Niedriger = mehr Komprimierung.",
     "tooltipMinSavings": "Komprimieren Sie nur, wenn dadurch mindestens so viele Token eingespart werden.",
     "ultraSettings": "Ultra-Einstellungen",
-    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung",
-    "preview": {
-      "lite": "Antworte prägnant. Behalte technische Begriffe, Code, Fehler, URLs und Bezeichner bei.",
-      "full": "Antworte knapp und kompakt. Behalte alle technischen Inhalte bei.",
-      "ultra": "Antworte extrem knapp und verwende gängige technische Abkürzungen. Behalte alle Symbole exakt bei."
-    }
+    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung"
   },
   "translator": {
     "title": "Übersetzer",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Fehler ohne zugeordneten Ausgang: {count}",
     "poolMemberEgress": "{host}:{port} ging über {egressIp} aus · letzte {hours} Std.",
     "poolMemberEgressEmpty": "{host}:{port}: in den letzten {hours} Std. kein Datenverkehr beobachtet",
+    "poolMemberEgressOperator": "{host}:{port} verlassen über {egressIp} · vom Operator bereitgestellt, {date}",
     "poolMemberEgressHint": "Die letzte über dieses Pool-Mitglied im Zeitraum beobachtete Egress-IP, aus dem Proxy-Protokoll ausgelesen. Für ein Mitglied ohne Datenverkehr im Zeitraum wird die Zeile „Kein Datenverkehr“ angezeigt.",
     "poolRemove": "Entfernen",
     "poolRemoveFailed": "Fehler beim Entfernen des Proxys aus dem Pool",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "Proxy nicht erreichbar",
     "poolSetAsideKindIpQuota429": "IP-Ratenlimit (429)",
     "poolSetAsideKindSlow": "langsame Antworten",
+    "poolSetAsideKindGeoBlocked": "regionen-blockiert (403/451)",
     "poolSetAsideUntil": "Zurück in Rotation {endsAt}",
     "poolSetAsideRepeat": "Zurückgestellt {count, plural, one {# Mal} other {# Mal}}",
     "poolUnknownAddress": "Unbekannte Adresse",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Positionsreihenfolge",
     "poolHealthRankingOff": "Health-Ranking aus",
     "transportRate": "{rate} % Transport",
+    "slowAbandoned": "{count} langsame Abbrüche",
+    "clientAborted": "{count} Client-Abbrüche",
+    "slowAbandonedHint": "Nach Erreichen der Wartezeit‑Grenze für Header abgebrochen, aus der Transportrate ausgeschlossen",
     "previousSuccessRate": "Zuvor {rate} % Erfolg",
-    "upstreamRefusals": "{count} Upstream-Ablehnungen",
     "connectionTestsCount": "{count} Verbindungstests",
-    "notMeasured": "Nicht gemessen"
+    "notMeasured": "Nicht gemessen",
+    "upstream4xx": "{count} Upstream-Client-Fehler",
+    "upstream5xx": "{count} Upstream-Server-Fehler",
+    "uniformEgressLine": "{affected} von {exits} Ausgängen fallen gemeinsam auf {provider} aus (letzte {hours}h) — kein Ausgangsproblem"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Erbt Verbindungspool ({count})",
     "poolEmptyBlocked": "Pool leer — Anfragen scheitern (nicht direkt)",
     "directEgress": "Direkt (kein Proxy)",
-    "ownProxy": "Eigener Proxy"
+    "ownProxy": "Eigener Proxy",
+    "freeTierPause": "Modell {model} pausiert (429), zurück um {time}",
+    "freeTierPauseProvider": "Pausiert (429), zurück um {time}",
+    "freeTierPauseNote": "Pause im Prozess auf dieser Instanz"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,9 +13083,9 @@
     "dbOverrideCount": "{count} DB-Überschreibungen",
     "searchPlaceholder": "Flags suchen...",
     "descriptionModeLabel": "Beschreibungsansicht",
-    "descriptionModeHint": "Beim Darüberfahren: Karten bleiben kompakt, und beim Darüberfahren über eine Beschreibung wird der vollständige Text angezeigt. Vollständiger Text: Zeigt immer die komplette Beschreibung an.",
-    "descriptionModeHover": "Beim Darüberfahren",
-    "descriptionModeFull": "Vollständiger Text",
+    "descriptionModeHint": "Beim Hovern: Karten bleiben kompakt, und das Hovern über eine Beschreibung zeigt den vollständigen Text. Voller Text: Beschreibung immer vollständig anzeigen.",
+    "descriptionModeHover": "Beim Hovern",
+    "descriptionModeFull": "Voller Text",
     "categories": {
       "all": "Alle",
       "security": "Sicherheit",

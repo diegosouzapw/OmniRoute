@@ -120,12 +120,27 @@ export function replaceRedactedAdvisorResults<T>(body: T): { body: T; replaced: 
   return { body: { ...(body as object), messages: nextMessages } as T, replaced };
 }
 /** Immutably drop request fields Groq rejects with a 400. */
-export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(body: T): T {
+export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(
+  body: T,
+  model?: string,
+  forcedEffort?: string
+): T {
   if (!body || typeof body !== "object") return body;
   const next: Record<string, unknown> = { ...body };
   delete next.logprobs;
   delete next.logit_bias;
   delete next.top_logprobs;
+  // Groq Chat Completions accepts reasoning_effort, not the other protocol envelopes.
+  const requestedEffort =
+    forcedEffort ??
+    next.reasoning_effort ??
+    (next.reasoning as Record<string, unknown> | undefined)?.effort ??
+    (next.output_config as Record<string, unknown> | undefined)?.effort;
+  if (model === "openai/gpt-oss-20b" && (requestedEffort === "none" || requestedEffort === "low")) {
+    next.reasoning_effort = "low";
+  }
+  delete next.reasoning;
+  delete next.output_config;
   if (Array.isArray(next.messages)) {
     next.messages = next.messages.map((m) => {
       if (m && typeof m === "object") {

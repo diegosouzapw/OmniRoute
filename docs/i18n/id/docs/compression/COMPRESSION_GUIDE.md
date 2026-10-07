@@ -454,8 +454,7 @@ disuntikkan alih-alih bahasa Inggris.
 Pada badan dengan `messages`, bypass konten (`shouldBypassCavemanOutputMode()` di
 `open-sse/services/compression/outputMode.ts`) memeriksa tiga pesan terakhir dan melewati
 gaya untuk seluruh giliran ketika pesan tersebut cocok dengan kata kunci keamanan, tindakan tidak dapat diubah,
-klarifikasi, atau sensitif urutan. Bypass ini berjalan terlepas dari pengaturan toggle
-**Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) di dasbor.
+klarifikasi, atau sensitif urutan. Bypass ini berjalan selama toggle **Auto-Clarity Bypass** (`cavemanOutputMode.autoClarity`) di dasbor aktif, yang merupakan default; dengan toggle nonaktif, gaya yang dipilih juga berlaku pada giliran tersebut.
 
 Ketika bypass mengizinkan giliran, `placeSystemInstruction()` (file yang sama), yang tidak pernah membuat `messages[0]` baru, menempatkan blok di salah satu dari yang pertama ditemukan:
 

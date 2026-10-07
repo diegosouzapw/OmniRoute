@@ -996,6 +996,7 @@
   "featureFlagProxySkipRecentlyFailedDescription": "Fondy proxy serverov a rotácia opencode pre jednotlivé účty prestanú počas obdobia platného pre daný proces opätovne používať proxy server, ktorý práve zlyhal (odmietnutá sonda TCP alebo odpoveď 429 prijatá cez tento proxy server). Toto obdobie sa pri každom opakovaní zdvojnásobí až po stanovený limit. Stav proxy servera sa nezapisuje; ak sú všetci kandidáti odložení bokom, výber zostáva nezmenený. Predvolene zapnuté; `false` obnoví bežný výber.",
   "featureFlagProxyPoolSharedEgressOrderDescription": "Pri poskytovateľoch, ktorých kvóta sa rozdeľuje podľa výstupnej (egress) adresy, zaradí člena poolu, ktorý zdieľa pozorovanú egress adresu nedávno odmietnutého člena, tesne pod zdravých členov. Iba poradie, nikdy nevylučuje. Vyžaduje PROXY_SKIP_RECENTLY_FAILED, ktorý vytvára signál odmietnutia, ktorý číta. Predvolene vypnuté: poradie výberu je presne obyčajná rotácia.",
   "featureFlagProxyPoolEgressObservationDescription": "V ovládacom paneli zobraziť pod fondom proxy serverov, cez koľko pozorovaných výstupných IP adries komunikovali jeho členovia za posledných 24 h, koľko pripojení ich použilo a aký najvyšší počet pripojení bol zaznamenaný za jednou IP adresou. Iba na čítanie, vypočítané z denníka proxy servera a nikdy nepoužívané na smerovanie. Predvolene vypnuté: editor fondu zostáva nezmenený a trasa pozorovania vracia null.",
+  "featureFlagProxyOperatorEgressDescription": "Prijať pushnuté operátorom dátumové pozorované adresy pre každého člena zásobníka a zlúčiť ich s čítaním denníka na zobrazenie a poradie zásobníka. Vypnuté predvolene: push cesta vráti 404 a čítanie zásobníka sa správa presne ako predtým.",
   "featureFlagProxyHealthBlockedResetsStreakDescription": "Pri kontrole stavu proxy serverov umožniť, aby sonda odmietnutá cieľom (401/403/429: proxy server ju preniesol, ale cieľ odmietol túto výstupnú IP adresu) vynulovala sériu po sebe nasledujúcich zlyhaní proxy servera rovnako ako obslúžená sonda. Predvolene vypnuté: odmietnutie zostáva neutrálne a zachováva sériu. Odpoveď 5xx zostáva v oboch prípadoch nejednoznačná a odmietnutie nikdy neodstráni, nezakáže ani znovu neaktivuje proxy server.",
   "featureFlagBatchAndFileAutoCleanupEnabledDescription": "Povoliť automatickému čisteniu odstraňovať ukončené (dokončené/neúspešné/zrušené/expirované) úlohy Batch API staršie než OMNIROUTE_BATCH_RETENTION_DAYS spolu s ich kontrolnými bodmi pre jednotlivé riadky a vymazať obsah BLOB nahraných súborov po uplynutí ich vlastného expires_at. Predvolene vypnuté: každá existujúca inštalácia uchováva tieto údaje presne ako doteraz, kým operátor túto funkciu nezapne. Trasa DELETE /api/v1/batches/delete-completed spúšťaná operátorom zostáva v oboch prípadoch nedotknutá – ide o samostatný, bezpodmienečný verejný kontrakt API.",
   "featureFlagXaiOauthLiveModelDiscoveryDescription": "Načítať aktuálny katalóg modelov xAI pre pripojenia xai-oauth z https://api.x.ai/v1/models pomocou nosného tokenu OAuth namiesto nemennej statickej počiatočnej množiny. Predvolene vypnuté: xai-oauth naďalej bez zmien poskytuje statickú počiatočnú množinu. Pri akejkoľvek chybe zisťovania sa použije počiatočná množina.",
@@ -6873,7 +6874,12 @@
         "LOCAL_CORE_ENDPOINT_INVALID": "Lokálny koncový bod proxy-core je neplatný; uzly SS/VMess/Trojan/VLESS boli ignorované.",
         "NEEDS_CORE_NOT_CONFIGURED": "Toto predplatné obsahuje uzly, ktoré vyžadujú lokálne proxy jadro (SS/VMess/Trojan/VLESS); nebudú smerované, kým nenakonfigurujete koncový bod SOCKS5 pre lokálne jadro.",
         "NO_USABLE_NODES": "Predplatné neposkytlo žiadne použiteľné uzly (http/https/socks5 alebo uzly s koncovým bodom lokálneho jadra).",
-        "SELECTOR_SWITCH_FAILED": "Riadiace volanie proxy-core zlyhalo; predchádzajúca trasa zostáva aktívna. Skontrolujte riadiacu URL a tajný kľúč a obnovte."
+        "SELECTOR_SWITCH_FAILED": "Riadiace volanie proxy-core zlyhalo; predchádzajúca trasa zostáva aktívna. Skontrolujte riadiacu URL a tajný kľúč a obnovte.",
+        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_APPLIED": "Vygenerovanú základnú konfiguráciu sa nepodahrilo nahradiť prevzatý súbor; namiesto toho bola zachovaná kópia vedľa neho.",
+        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
+        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_CONFIG_ENTRIES_SKIPPED": "Niektoré položky boli počas generovania preskočené. Pozri serverový log."
       },
       "description": "Prilepte odkaz na odber servera proxy. Po povolení je prevádzka smerovaná cez fond proxy v globálnom režime alebo režime pravidiel (špecifikovaný poskytovateľ). Uzly predplatného sa automaticky synchronizujú do fondu proxy a opätovne používajú existujúce mechanizmy výziev, kontroly stavu a ochrany proti úniku.",
       "addSubscription": "Pridať predplatné",
@@ -6959,7 +6965,21 @@
       "lastSwitchNever": "Zatiaľ žiadne zaznamenané prepnutie",
       "lastSwitchMember": "Obsluhujúci člen",
       "nextSwitch": "Ďalšie možné prepnutie",
-      "nextSwitchNow": "Teraz"
+      "nextSwitchNow": "Teraz",
+      "coreConfigPath": "Core config file",
+      "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
+      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
+      "lastSwitchKind": "Switch reason",
+      "switchKind": {
+        "ip_quota_429": "quota",
+        "proxy_unreachable": "unreachable",
+        "transport": "transport",
+        "slow": "slow"
+      },
+      "coreReloadAppliedBy": "Applied by: {mode}",
+      "coreBinaryPath": "Cesta k základnému binárnemu súboru",
+      "coreBinaryPathHelp": "Voliteľné: overí vygenerovaný súbor základným binárnym súborom pred nahradením prevzatého súboru. Ponechajte prázdne, aby sa pokračovalo v zápise vedľa neho. Priečinok sa vytvorí, ak neexistuje.",
+      "coreBinaryPathPlaceholder": "/usr/bin/sing-box"
     },
     "bulkHealthcheck": "Hromadná kontrola dostupnosti",
     "bulkHealthcheckDesc": "Otestujte všetky nakonfigurované proxy voči cieľovej URL a zistite, ktoré fungujú.",
@@ -7895,11 +7915,9 @@
     "compressionSettingsMcpDescriptionCompression": "Kompresia popisu MCP",
     "mcpAccessibilityTitle": "Výstup prístupnosti MCP",
     "compressionSettingsCavemanIntensity": "Intenzita jaskynného muža",
-    "compressionSettingsCavemanOutputMode": "Výstupný režim Caveman",
     "compressionSettingsOutputStyles": "Štýly výstupu",
     "compressionStylesTileTitle": "Štýly výstupu",
     "compressionSettingsOutputIntensity": "Výstupná intenzita",
-    "compressionSettingsAutoClarityBypass": "Obtok automatického jasu",
     "compressionEffectivePipeline": "Efektívna pipeline:",
     "compressionDerivedOff": "vypnuté",
     "compressionDerivedRuns": "spustenia: {pipeline}",
@@ -8455,7 +8473,17 @@
     "catalogScopeDesc": "Čo GET /v1/models uvádza pre tento kľúč. Zúženie zoznamu nikdy nemení, čo môže kľúč volať.",
     "catalogScopeAll": "Oboje",
     "catalogScopeCombos": "Iba kombinácie",
-    "catalogScopeModels": "Iba modely"
+    "catalogScopeModels": "Iba modely",
+    "resilienceTokenRefreshTitle": "Poistka obnovenia tokenu",
+    "resilienceTokenRefreshDesc": "Zastaví opakované obnovovanie tokenu po viacerých zlyhaniach. Rozsah per-connection izoluje jednu mŕtvu účet, aby zdravé účty u rovnakého poskytovateľa mohli naďalej obnovovať.",
+    "resilienceTokenRefreshScope": "Pokusy o obnovenie tokenu pre jedného poskytovateľa",
+    "resilienceTokenRefreshTrigger": "Po sebe idúce neúspešné pokusy o obnovenie",
+    "resilienceTokenRefreshEffect": "Pozastavuje pokusy o obnovenie počas ochladzovacej doby",
+    "resilienceTokenRefreshScopeLabel": "Rozsah",
+    "resilienceTokenRefreshScopeProvider": "Poskytovateľ (všetky účty zdieľajú jeden istič)",
+    "resilienceTokenRefreshScopeConnection": "Pripojenie (každý účet má vlastný vypínač)",
+    "resilienceTokenRefreshThreshold": "Zlyhania pred pozastavením",
+    "resilienceTokenRefreshCooldown": "Pauza po spustení"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8638,9 +8666,6 @@
       "minRows": {
         "label": "Minimálny počet riadkov na zhustenie",
         "description": "Minimálny počet riadkov v homogénnom JSON poli potrebný na spustenie tabuľkového zhustenia. Predvolené: 8."
-      },
-      "preserveSystemPrompt": {
-        "label": "Zachovať systémový prompt"
       },
       "summarizerEnabled": {
         "label": "Povoliť sumarizátor"
@@ -9029,12 +9054,7 @@
     "tooltipMinLength": "Správy kratšie ako toto nie sú komprimované. Nižšia = väčšia kompresia.",
     "tooltipMinSavings": "Komprimujte iba vtedy, ak uložíte aspoň toľko tokenov.",
     "ultraSettings": "Ultra nastavenia",
-    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM",
-    "preview": {
-      "lite": "Odpovedaj stručne. Zachovaj technické termíny, kód, chyby, adresy URL a identifikátory.",
-      "full": "Odpovedaj úsečne a kompaktne. Zachovaj všetok technický obsah.",
-      "ultra": "Odpovedaj maximálne úsečne s použitím bežných technických skratiek. Zachovaj presné symboly."
-    }
+    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM"
   },
   "translator": {
     "title": "Prekladateľ",
@@ -11073,6 +11093,7 @@
     "poolEgressFailuresUnattributed": "Zlyhania bez priradeného výstupu: {count}",
     "poolMemberEgress": "{host}:{port} odchádzal cez {egressIp} · za posledných {hours} h",
     "poolMemberEgressEmpty": "{host}:{port}: za posledných {hours} h nebola zaznamenaná žiadna prevádzka",
+    "poolMemberEgressOperator": "{host}:{port} opustil cez {egressIp} · poskytnuté operátorom, {date}",
     "poolMemberEgressHint": "Posledná výstupná IP adresa zaznamenaná cez tohto člena fondu v danom časovom intervale, načítaná z denníka proxy servera. Pri členovi bez prevádzky v tomto intervale sa zobrazí riadok informujúci o neprítomnosti prevádzky.",
     "poolRemove": "Odstrániť",
     "poolRemoveFailed": "Nepodarilo sa odstrániť proxy z poolu",
@@ -11086,6 +11107,7 @@
     "poolSetAsideKindProxyUnreachable": "proxy je nedostupná",
     "poolSetAsideKindIpQuota429": "obmedzenie rýchlosti podľa IP (429)",
     "poolSetAsideKindSlow": "pomalé odpovede",
+    "poolSetAsideKindGeoBlocked": "blokovaný región (403/451)",
     "poolSetAsideUntil": "Späť v rotácii {endsAt}",
     "poolSetAsideRepeat": "Odložené {count, plural, one {#krát} other {#krát}}",
     "poolUnknownAddress": "Neznáma adresa",
@@ -11094,10 +11116,15 @@
     "poolSignalPosition": "Poradie pozícií",
     "poolHealthRankingOff": "Hodnotenie stavu vypnuté",
     "transportRate": "{rate} % prenosu",
+    "slowAbandoned": "{count} pomalých opustení",
+    "clientAborted": "{count} klientských prerušení",
+    "slowAbandonedHint": "Opustené po prekročení limitu čakania na hlavičky, vynechané z miery prenosu",
     "previousSuccessRate": "Predtým {rate} % úspešnosť",
-    "upstreamRefusals": "{count} odmietnutí upstream",
     "connectionTestsCount": "{count} testov pripojenia",
-    "notMeasured": "Nemerané"
+    "notMeasured": "Nemerané",
+    "upstream4xx": "{count} chyby klienta",
+    "upstream5xx": "{count} chyby servera",
+    "uniformEgressLine": "{affected} z {exits} exitov zlyhávajú súčasne na {provider} (za posledných {hours} h) — nejde o problém exitu"
   },
   "playground": {
     "title": "Title",
@@ -12871,7 +12898,10 @@
     "inheritedPool": "Dedí fond pripojení ({count})",
     "poolEmptyBlocked": "Fond prázdny — požiadavky zlyhajú (nie priamo)",
     "directEgress": "Priamo (bez proxy)",
-    "ownProxy": "Vlastné proxy"
+    "ownProxy": "Vlastné proxy",
+    "freeTierPause": "Model {model} pozastavený (429), späť o {time}",
+    "freeTierPauseProvider": "Pozastavené (429), späť o {time}",
+    "freeTierPauseNote": "Pozastavenie vnútri procesu na tejto inštancii"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -13053,9 +13083,9 @@
     "dbOverrideCount": "{count} prepísaní DB",
     "searchPlaceholder": "Hľadať príznaky...",
     "descriptionModeLabel": "Zobrazenie popisu",
-    "descriptionModeHint": "Pri umiestnení kurzora: karty zostanú kompaktné a pri umiestnení kurzora na popis sa zobrazí celý text. Celý text: vždy sa zobrazí kompletný popis.",
-    "descriptionModeHover": "Pri umiestnení kurzora",
-    "descriptionModeFull": "Celý text",
+    "descriptionModeHint": "Pri prejdení kurzorom: karty zostávajú kompaktné a prejdenie kurzorom na popis zobrazí úplný text. Úplný text: vždy zobrazovať celý popis.",
+    "descriptionModeHover": "Pri prejdení kurzorom",
+    "descriptionModeFull": "Úplný text",
     "categories": {
       "all": "Všetky",
       "security": "Bezpečnosť",
