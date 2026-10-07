@@ -1,10 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import {
   detectSupportedThinkingEfforts,
   normalizeDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
 import { transformModelsDevToCapabilities } from "../../src/lib/modelsDevSync/transform.ts";
+import { getThinkingCapabilityFields } from "../../src/app/api/v1/models/catalogHelpers.ts";
 
 // Live upstreams publish reasoning tiers as objects, not strings, and each
 // vendor picked a different object. The generic discovery path only read
@@ -103,9 +106,7 @@ test("normalizeDiscoveredModels falls back to reasoning_options when no effort l
   const [model] = normalizeDiscoveredModels([
     {
       id: "z-ai/glm5",
-      reasoning_options: [
-        { type: "effort", values: ["low", "medium", "high"] },
-      ],
+      reasoning_options: [{ type: "effort", values: ["low", "medium", "high"] }],
     },
   ]);
   assert.deepEqual(model.supportedThinkingEfforts, ["low", "medium", "high"]);
@@ -128,6 +129,21 @@ test("sync deduplicates effort values repeated across reasoning_options entries"
     },
   } as never);
   assert.deepEqual(caps.openrouter["z-ai/glm5"].reasoning_efforts, ["low", "high", "max"]);
+});
+
+test("catalog thinking fields use supplied synced tiers and do not open SQLite", () => {
+  const dataDir = process.env.DATA_DIR;
+  assert.equal(typeof dataDir, "string");
+  const sqlitePath = path.join(dataDir as string, "storage.sqlite");
+  const existed = fs.existsSync(sqlitePath);
+  const supplied = getThinkingCapabilityFields("openai", "gpt-x", true, undefined, false, [
+    "low",
+    "max",
+  ]);
+  assert.deepEqual(supplied.effort_tiers, ["low", "max"]);
+  const canonical = getThinkingCapabilityFields("openai", "gpt-undeclared", true);
+  assert.deepEqual(canonical.effort_tiers, ["none", "low", "medium", "high", "xhigh", "max"]);
+  assert.equal(fs.existsSync(sqlitePath), existed);
 });
 
 test("a declared flat effort list wins over reasoning_options during normalization", () => {

@@ -8,7 +8,6 @@ import {
   extendCodexGpt56EffortValues,
   extendDeepSeekEffortValues,
 } from "@/shared/reasoning/effortStandardization";
-import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 
 export interface CustomModelEntry {
   id?: string;
@@ -170,18 +169,21 @@ export function getThinkingCapabilityFields(
   /** When true, skip the canonical effort-tier fallback — used for static registry
    * models that declare `supportsReasoning` but no explicit tier list, so the
    * catalog does not synthesize unresolvable `<prefix>/<model>-{tier}` ids. */
-  skipCanonicalEffortFallback = false
+  skipCanonicalEffortFallback = false,
+  /** Already-loaded synced tiers. This helper must not open SQLite to fetch them. */
+  syncedReasoningEfforts?: readonly string[] | null
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
   const hasDeclaredTiers = supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
-  const syncedEfforts = hasDeclaredTiers
-    ? null
-    : (getSyncedCapabilities()[providerId]?.[modelId]?.reasoning_efforts ?? null);
+  const syncedEfforts =
+    !hasDeclaredTiers && syncedReasoningEfforts && syncedReasoningEfforts.length > 0
+      ? [...syncedReasoningEfforts]
+      : null;
   const tiers = hasDeclaredTiers
     ? [...supportedThinkingEfforts!]
-    : syncedEfforts && syncedEfforts.length > 0
-      ? [...syncedEfforts]
+    : syncedEfforts
+      ? syncedEfforts
       : extendDeepSeekEffortValues(
           providerId,
           modelId,

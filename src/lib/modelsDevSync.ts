@@ -393,6 +393,17 @@ export function loadAllSyncedCapabilitiesUncached(): CapabilitiesByProvider {
 }
 
 /**
+ * Reasoning tiers already resident in this process. A catalog/discovery read
+ * must use this instead of `getSyncedCapabilities()` — that path opens SQLite
+ * and runs migrations.
+ */
+export function peekCachedReasoningEfforts(provider: string, modelId: string): string[] | null {
+  if (!cachedCapabilitiesLoadedAll || !cachedCapabilities) return null;
+  const efforts = cachedCapabilities[provider]?.[modelId]?.reasoning_efforts;
+  return efforts && efforts.length > 0 ? [...efforts] : null;
+}
+
+/**
  * Read synced capabilities from `model_capabilities` table.
  */
 export function getSyncedCapabilities(provider?: string, modelId?: string): CapabilitiesByProvider {
