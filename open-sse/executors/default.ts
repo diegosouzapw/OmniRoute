@@ -59,7 +59,7 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
-import { floorMuseOutputTokens, responsesUrlForModel } from "./default/museCode.ts";
+import { floorMuseOutputTokens } from "./default/museCode.ts";
 import { defaultPerplexityAgentMaxOutputTokens } from "./default/perplexityAgentDefaults.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { normalizePoolConfig, rejectStrictPool } from "./default/poolConfig.ts";
@@ -447,7 +447,7 @@ export class DefaultExecutor extends BaseExecutor {
             : null;
         const isOpenAIFormat = !this.config.format || this.config.format === "openai";
         if (customBaseUrl && isOpenAIFormat) {
-          return responsesUrlForModel(normalizeOpenAIChatUrl(customBaseUrl), this.provider, model);
+          return normalizeOpenAIChatUrl(customBaseUrl);
         }
         const url = this.config.baseUrl;
         const entry = getRegistryEntry(this.provider);
