@@ -80,6 +80,7 @@ import { getGrokCliUsage } from "./usage/grokCli.ts";
 import { getFirecrawlUsage } from "./usage/firecrawl.ts";
 import { getContext7Usage } from "./usage/context7.ts";
 import { getTavilyUsage } from "./usage/tavily.ts";
+import { getJinaUsage } from "./usage/jina.ts";
 import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
 import { getCommandCodeUsage } from "./usage/command-code.ts";
 import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
@@ -214,9 +215,9 @@ export async function getUsageForProvider(
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
-      return await getXiaomiMimoUsage(id || "");
+      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo", providerSpecificData);
     case "xiaomi-mimo-token-plan":
-      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo-token-plan");
+      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo-token-plan", providerSpecificData);
     case "xai":
       return await getXaiUsage(id || "");
     case "xai-oauth":
@@ -244,6 +245,11 @@ export async function getUsageForProvider(
     case "tavily-search":
     case "tavily":
       return await getTavilyUsage(id || "", apiKey, connection);
+    case "jina-search":
+    case "jina":
+    case "jina-ai":
+    case "jina-reader":
+      return await getJinaUsage(id || "", apiKey, connection);
     case "volcengine-agent-plan":
     case "volcengine-coding-plan":
       return await getVolcenginePlanUsage(apiKey || "", provider, providerSpecificData);
@@ -291,6 +297,7 @@ export const __testing = {
   getFirecrawlUsage,
   getContext7Usage,
   getTavilyUsage,
+  getJinaUsage,
   getCommandCodeUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,

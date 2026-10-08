@@ -373,6 +373,7 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   delete sanitized.qwenCloudSecToken;
   delete sanitized.alibabaConsoleCookie;
   delete sanitized.alibabaConsoleSecToken;
+  delete sanitized.xiaomiMimoConsoleCookie;
   delete sanitized.runtimeKey;
   delete sanitized.validationId;
   delete sanitized.volcConsoleCookie;

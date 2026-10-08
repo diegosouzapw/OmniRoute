@@ -776,6 +776,13 @@ test("getProviderCredentials refuses a forced pin outside allowedConnections ins
   assert.deepEqual(selected, { blockedByKeyPolicy: true, blockedCount: 1 });
 });
 
+test("an inactive allowed account is unavailable, not an API-key permission denial", async () => {
+  const inactive = await seedConnection("openai", { isActive: false });
+  await seedConnection("openai");
+  const selected = await auth.getProviderCredentials("openai", null, [inactive.id]);
+  assert.equal(selected, null);
+});
+
 test("getProviderCredentials retains rate-limited accounts when allowSuppressedConnections is enabled", async () => {
   const connection = await seedConnection("openai", {
     name: "suppressed-rate-limit",

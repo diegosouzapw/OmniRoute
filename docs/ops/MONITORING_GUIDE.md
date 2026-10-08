@@ -1,7 +1,7 @@
 ---
 title: "Monitoring & Observability Guide"
 version: 3.8.50
-lastUpdated: 2026-08-13
+lastUpdated: 2026-10-07
 ---
 
 # Monitoring & Observability Guide
@@ -226,6 +226,37 @@ livenessProbe:
 **Do not** point kubelet **liveness** at `/api/monitoring/health`. That path does real DB/monitoring work and will false-positive under load.
 
 Related: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (probes while the event loop is busy), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing hog), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count hog).
+
+### systemd watchdog (frozen event loop)
+
+On a systemd host, OmniRoute tells the service manager when it is ready and keeps pinging it, so a server whose event loop is stuck gets killed and restarted instead of staying up and silent. The pings come from the server's own event loop: when it blocks, they stop, and systemd restarts the service once `WatchdogSec` elapses without one.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) already writes a user unit with this. A unit you write yourself (the default `Type=simple`) gets no watchdog, so add these lines to its `[Service]` section:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+The generated unit sets `Restart=on-failure`, so add that line as well — without it the watchdog only kills the stuck service instead of restarting it.
+
+- `Type=notify`: the service is "started" when the server sends `READY=1`, not when the process forks. `TimeoutStartSec` bounds a slow start.
+- `NotifyAccess=all`: the pings are sent by the server process, which is a child of the `omniroute serve` supervisor.
+- `WatchdogSec`: pings go out every 60 seconds, so use **120 or more**. Smaller values would restart a healthy server.
+- Run `omniroute serve` in the foreground. `--daemon` detaches the server from the unit's cgroup and the notify handshake never completes.
+
+Check that it is active after a restart:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` shows the configured delay and `WatchdogTimestamp` moves forward every minute. A restart caused by the watchdog is recorded as `Result=watchdog`. To turn the pings off while keeping the unit as it is, set `OMNIROUTE_DISABLE_SD_NOTIFY=1`; without a `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows) nothing is sent.
+
+The watchdog only checks that the event loop keeps running. A server that is slow but still turning is not restarted.
 
 ### Optional request-path work (memory, skills, token refresh)
 

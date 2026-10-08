@@ -16,7 +16,7 @@
 import React, { useState } from "react";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
-import { classifyModelImport } from "./modelImportWarning";
+import { classifyModelImport, resolveNoNewModelsPhase } from "./modelImportWarning";
 
 interface NotifyStore {
   success: (message: string, title?: string) => number;
@@ -30,7 +30,7 @@ interface NotifyStore {
 export interface ImportProgress {
   current: number;
   total: number;
-  phase: "idle" | "fetching" | "importing" | "done" | "error";
+  phase: "idle" | "fetching" | "importing" | "done" | "warning" | "error";
   status: string;
   logs: string[];
   error: string;
@@ -186,9 +186,14 @@ export function useModelImportHandlers({
       const newModels = classification.newModels;
 
       if (classification.outcome === "nothing-new") {
+        // #15069: a degraded (local-catalog fallback) result is a terminal "warning", not a
+        // success — the live provider API was never actually consulted.
+        const noNewModelsPhase = resolveNoNewModelsPhase(
+          classification.degraded ? importWarning : null
+        );
         setImportProgress((prev) => ({
           ...prev,
-          phase: "done",
+          phase: noNewModelsPhase,
           status:
             classification.degraded && importWarning
               ? importWarning
