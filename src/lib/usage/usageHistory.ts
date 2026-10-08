@@ -867,8 +867,7 @@ export interface UsageEntry {
   cpaAuthIndex?: string | null;
   /** Coding-agent session and project of the request; attributes the row to an agent session. */
   agentContext?: sessions.AgentContext | null;
-  /** Simplified turn for the agent session; stored only for keyed requests that are not noLog. */
-  sessionTurn?: AgentSessionTurn | null;
+  sessionTurn?: AgentSessionTurn | null; // stored only for keyed, non-noLog requests
 }
 
 /**
@@ -945,7 +944,6 @@ export async function saveRequestUsage(entry: UsageEntry) {
       }
 
       const agentSessionId = sessions.recordAgentSession(db, sessionUsage);
-
       saveSessionTurn(db, agentSessionId, sessionTurn, entry, timestamp);
       db.prepare(
         `
