@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Režim služby Codex pre tento kľúč API",
+    "description": "Vzťahuje sa na požiadavky Codex vrátane modelov Codex v kombináciách. Vynútené režimy majú prednosť pred klientom, globálnymi nastaveniami a predvolenými nastaveniami pripojenia. Ostatní poskytovatelia zostávajú nezmenení.",
+    "label": "Režim služby",
+    "inherit": "Zdediť existujúce správanie",
+    "default": "Vynútiť Standard (predvolené)",
+    "priority": "Vynútiť Fast / Priority",
+    "flex": "Vynútiť Flex",
+    "warning": "Týmto sa neudeľuje prístup k poskytovateľovi. Dostupnosť, poplatky a čerpanie kvóty závisia od vášho účtu Codex a modelu. Vynútené režimy vyžadujú prenos cez HTTP alebo Responses WebSocket; požiadavky app-server sú odmietnuté.",
+    "confirm": "Použiť režim „{mode}“ pre tento kľúč API? Zmena sa prejaví pri nasledujúcich požiadavkách.",
+    "save": "Uložiť režim",
+    "retry": "Skúsiť znova",
+    "loadError": "Uložený režim služby sa nepodarilo načítať.",
+    "saveError": "Režim služby sa nepodarilo uložiť. Skúste to znova."
+  },
   "common": {
     "save": "Uložiť",
     "cancel": "Zrušiť",

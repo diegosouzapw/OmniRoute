@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Bu API açarı üçün Codex xidmət rejimi",
+    "description": "Kombinasiyalardakı Codex modelləri də daxil olmaqla, Codex sorğularına tətbiq olunur. Məcburi rejimlər müştəri, qlobal parametrlər və bağlantının standart parametrlərini üstələyir. Digər provayderlər dəyişməz qalır.",
+    "label": "Xidmət rejimi",
+    "inherit": "Mövcud davranışı miras al",
+    "default": "Standard rejimini məcburi et (standart)",
+    "priority": "Fast / Priority rejimini məcburi et",
+    "flex": "Flex rejimini məcburi et",
+    "warning": "Bu, provayderə giriş icazəsi vermir. Əlçatanlıq, ödənişlər və kvota istifadəsi Codex hesabınızdan və modeldən asılıdır. Məcburi rejimlər HTTP və ya Responses WebSocket nəqli tələb edir; app-server sorğuları rədd edilir.",
+    "confirm": "“{mode}” rejimi bu API açarına tətbiq edilsin? Bu dəyişiklik sonrakı sorğular üçün qüvvəyə minəcək.",
+    "save": "Rejimi yadda saxla",
+    "retry": "Yenidən cəhd et",
+    "loadError": "Yadda saxlanmış xidmət rejimini yükləmək mümkün olmadı.",
+    "saveError": "Xidmət rejimini yadda saxlamaq mümkün olmadı. Lütfən, yenidən cəhd edin."
+  },
   "common": {
     "save": "Yadda saxla",
     "cancel": "Ləğv et",

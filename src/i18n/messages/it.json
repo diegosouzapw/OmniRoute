@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modalità di servizio Codex per questa chiave API",
+    "description": "Si applica alle richieste Codex, inclusi i modelli Codex all'interno delle combinazioni. Le modalità forzate hanno la precedenza sul client, sulle impostazioni globali e sui valori predefiniti della connessione. Gli altri provider rimangono invariati.",
+    "label": "Modalità di servizio",
+    "inherit": "Eredita il comportamento esistente",
+    "default": "Forza Standard (predefinita)",
+    "priority": "Forza Fast / Priority",
+    "flex": "Forza Flex",
+    "warning": "Questa opzione non concede l'accesso al provider. La disponibilità, i costi e il consumo della quota dipendono dal tuo account Codex e dal modello. Le modalità forzate richiedono il trasporto HTTP o Responses WebSocket; le richieste app-server vengono rifiutate.",
+    "confirm": "Applicare “{mode}” a questa chiave API? La modifica avrà effetto sulle richieste successive.",
+    "save": "Salva modalità",
+    "retry": "Riprova",
+    "loadError": "Impossibile caricare la modalità di servizio salvata.",
+    "saveError": "Impossibile salvare la modalità di servizio. Riprova."
+  },
   "common": {
     "save": "Salva",
     "cancel": "Cancellare",

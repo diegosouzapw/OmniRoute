@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex service mode for this API key",
+    "description": "Applies to Codex requests, including Codex models inside combos. Forced modes override the client, global settings and connection defaults. Other providers remain unchanged.",
+    "label": "Service mode",
+    "inherit": "Inherit existing behavior",
+    "default": "Force Standard (default)",
+    "priority": "Force Fast / Priority",
+    "flex": "Force Flex",
+    "warning": "This does not grant provider access. Availability, charges and quota consumption depend on your Codex account and model. Forced modes require HTTP or Responses WebSocket transport; app-server requests are rejected.",
+    "confirm": "Apply “{mode}” to this API key? This takes effect for subsequent requests.",
+    "save": "Save mode",
+    "retry": "Retry",
+    "loadError": "Could not load the saved service mode.",
+    "saveError": "Could not save the service mode. Please try again."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

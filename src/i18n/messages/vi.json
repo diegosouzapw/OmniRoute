@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Chế độ dịch vụ Codex cho khóa API này",
+    "description": "Áp dụng cho các yêu cầu Codex, bao gồm các mô hình Codex bên trong các tổ hợp. Chế độ bắt buộc sẽ ghi đè thiết lập của ứng dụng khách, thiết lập chung và thiết lập mặc định của kết nối. Các nhà cung cấp khác không bị ảnh hưởng.",
+    "label": "Chế độ dịch vụ",
+    "inherit": "Kế thừa hành vi hiện có",
+    "default": "Buộc dùng Standard (mặc định)",
+    "priority": "Buộc dùng Fast / Priority",
+    "flex": "Buộc dùng Flex",
+    "warning": "Thiết lập này không cấp quyền truy cập nhà cung cấp. Khả năng sử dụng, phí và mức tiêu thụ hạn ngạch phụ thuộc vào tài khoản Codex và mô hình của bạn. Các chế độ bắt buộc yêu cầu phương thức truyền tải HTTP hoặc Responses WebSocket; các yêu cầu app-server sẽ bị từ chối.",
+    "confirm": "Áp dụng “{mode}” cho khóa API này? Thay đổi này sẽ có hiệu lực với các yêu cầu tiếp theo.",
+    "save": "Lưu chế độ",
+    "retry": "Thử lại",
+    "loadError": "Không thể tải chế độ dịch vụ đã lưu.",
+    "saveError": "Không thể lưu chế độ dịch vụ. Vui lòng thử lại."
+  },
   "common": {
     "save": "Lưu",
     "cancel": "Hủy bỏ",

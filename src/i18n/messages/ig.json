@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ọnọdụ ọrụ Codex maka igodo API a",
+    "description": "Ọ metụtara arịrịọ Codex, gụnyere ụdị Codex dị n'ime ngwakọta. Ọnọdụ amanyere iwu na-akagbu ntọala nke klayenti, ntọala zuru ụwa ọnụ na ndabara njikọ. Ndị na-eweta ọrụ ndị ọzọ agaghị agbanwe.",
+    "label": "Ọnọdụ ọrụ",
+    "inherit": "Keta omume dị ugbu a",
+    "default": "Manye Ọkọlọtọ (ndabara)",
+    "priority": "Manye Ọsọ Ọsọ / Ihe Mbụ",
+    "flex": "Manye Flex",
+    "warning": "Nke a anaghị enye ohere ịnweta onye na-eweta ọrụ. Nnweta, ụgwọ na ojiji oke na-adabere na akaụntụ Codex na ụdị gị. Ọnọdụ amanyere iwu chọrọ mbufe HTTP ma ọ bụ Responses WebSocket; a na-ajụ arịrịọ app-server.",
+    "confirm": "Tinye “{mode}” n'ọrụ na igodo API a? Nke a ga-amalite ịrụ ọrụ maka arịrịọ ndị na-esote.",
+    "save": "Chekwaa ọnọdụ",
+    "retry": "Nwaa ọzọ",
+    "loadError": "Enweghị ike ibunye ọnọdụ ọrụ echekwara.",
+    "saveError": "Enweghị ike ichekwa ọnọdụ ọrụ ahụ. Biko nwaa ọzọ."
+  },
   "common": {
     "save": "Chekwa",
     "cancel": "Kagbuo",

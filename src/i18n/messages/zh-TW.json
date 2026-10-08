@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "此 API 金鑰的 Codex 服務模式",
+    "description": "套用於 Codex 請求，包括組合中的 Codex 模型。強制模式會覆寫用戶端、全域設定和連線預設值。其他提供者不受影響。",
+    "label": "服務模式",
+    "inherit": "沿用現有行為",
+    "default": "強制使用標準模式（預設）",
+    "priority": "強制使用快速／優先模式",
+    "flex": "強制使用彈性模式",
+    "warning": "此設定不會授予提供者存取權限。可用性、費用和配額用量取決於您的 Codex 帳戶和模型。強制模式需要使用 HTTP 或 Responses WebSocket 傳輸；app-server 請求將遭拒絕。",
+    "confirm": "要將「{mode}」套用至此 API 金鑰嗎？此設定將於後續請求生效。",
+    "save": "儲存模式",
+    "retry": "重試",
+    "loadError": "無法載入已儲存的服務模式。",
+    "saveError": "無法儲存服務模式。請再試一次。"
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",

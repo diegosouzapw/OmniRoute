@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Način storitve Codex za ta ključ API",
+    "description": "Velja za zahteve Codex, vključno z modeli Codex znotraj kombinacij. Vsiljeni načini preglasijo odjemalca, globalne nastavitve in privzete nastavitve povezave. Drugi ponudniki ostanejo nespremenjeni.",
+    "label": "Način storitve",
+    "inherit": "Podeduj obstoječe vedenje",
+    "default": "Vsili Standard (privzeto)",
+    "priority": "Vsili Fast / Priority",
+    "flex": "Vsili Flex",
+    "warning": "To ne omogoča dostopa do ponudnika. Razpoložljivost, stroški in poraba kvote so odvisni od vašega računa Codex in modela. Vsiljeni načini zahtevajo prenos prek HTTP ali Responses WebSocket; zahteve app-server so zavrnjene.",
+    "confirm": "Želite za ta ključ API uporabiti »{mode}«? Sprememba začne veljati za naslednje zahteve.",
+    "save": "Shrani način",
+    "retry": "Poskusi znova",
+    "loadError": "Shranjenega načina storitve ni bilo mogoče naložiti.",
+    "saveError": "Načina storitve ni bilo mogoče shraniti. Poskusite znova."
+  },
   "common": {
     "save": "Shrani",
     "cancel": "Prekliči",

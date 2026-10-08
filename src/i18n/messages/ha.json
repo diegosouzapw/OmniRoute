@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Yanayin sabis na Codex don wannan maɓallin API",
+    "description": "Yana aiki ga buƙatun Codex, har da samfurorin Codex da ke cikin haɗaɗɗun tsare-tsare. Yanayin da aka tilasta suna rinjayar saitunan abokin hulɗa, saitunan gaba ɗaya da tsoffin saitunan haɗi. Sauran masu samarwa ba sa canzawa.",
+    "label": "Yanayin sabis",
+    "inherit": "Gaji halin da ake ciki",
+    "default": "Tilasta Standard (tsoho)",
+    "priority": "Tilasta Fast / Priority",
+    "flex": "Tilasta Flex",
+    "warning": "Wannan ba ya ba da damar shiga sabis na mai samarwa. Samuwa, kuɗaɗe da amfani da kaso sun dogara da asusun Codex ɗinka da samfurin. Yanayin da aka tilasta suna buƙatar jigilar HTTP ko Responses WebSocket; ana ƙin buƙatun app-server.",
+    "confirm": "Aiwatar da “{mode}” ga wannan maɓallin API? Wannan zai fara aiki ga buƙatu na gaba.",
+    "save": "Ajiye yanayi",
+    "retry": "Sake gwadawa",
+    "loadError": "Ba a iya loda yanayin sabis da aka ajiye ba.",
+    "saveError": "Ba a iya ajiye yanayin sabis ba. Da fatan za a sake gwadawa."
+  },
   "common": {
     "save": "Ajiye",
     "cancel": "Soke",

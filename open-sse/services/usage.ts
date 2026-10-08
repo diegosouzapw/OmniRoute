@@ -87,6 +87,7 @@ import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
 import { getCommandCodeUsage } from "./usage/command-code.ts";
 import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
 import { getConolUsage } from "./conolUsage.ts";
+import { getSyntxUsage } from "./usage/syntx.ts";
 import { getAgentrouterUsage } from "./usage/agentrouter.ts";
 import { getKilocodeUsage } from "./usage/kilocode.ts";
 import { getChatPlaygroundUsage } from "./usage/chatplayground.ts";
@@ -266,6 +267,9 @@ export async function getUsageForProvider(
     case "conol-web":
     case "cnl":
       return await getConolUsage(apiKey || accessToken, providerSpecificData);
+    case "syntx":
+    case "stx":
+      return await getSyntxUsage(apiKey || accessToken, providerSpecificData);
     case "agentrouter":
       return await getAgentrouterUsage(id, connection);
     case "kilocode":

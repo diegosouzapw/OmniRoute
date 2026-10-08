@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Režim usluge Codex za ovaj API ključ",
+    "description": "Primjenjuje se na Codex zahtjeve, uključujući Codex modele unutar kombinacija. Prisilni režimi nadjačavaju klijenta, globalne postavke i zadane postavke veze. Ostali pružaoci usluga ostaju nepromijenjeni.",
+    "label": "Režim usluge",
+    "inherit": "Naslijedi postojeće ponašanje",
+    "default": "Prisili Standardni (zadano)",
+    "priority": "Prisili Brzi / Prioritetni",
+    "flex": "Prisili Fleksibilni",
+    "warning": "Ovo ne omogućava pristup pružaocu usluge. Dostupnost, naknade i potrošnja kvote zavise od vašeg Codex računa i modela. Prisilni režimi zahtijevaju HTTP ili Responses WebSocket transport; app-server zahtjevi se odbijaju.",
+    "confirm": "Primijeniti „{mode}“ na ovaj API ključ? Ovo stupa na snagu za naredne zahtjeve.",
+    "save": "Sačuvaj režim",
+    "retry": "Pokušaj ponovo",
+    "loadError": "Nije moguće učitati sačuvani režim usluge.",
+    "saveError": "Nije moguće sačuvati režim usluge. Pokušajte ponovo."
+  },
   "common": {
     "save": "Sačuvaj",
     "cancel": "Otkaži",

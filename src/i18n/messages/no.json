@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-tjenestemodus for denne API-nøkkelen",
+    "description": "Gjelder Codex-forespørsler, inkludert Codex-modeller i kombinasjoner. Tvungne moduser overstyrer klienten, globale innstillinger og standardinnstillinger for tilkoblingen. Andre leverandører forblir uendret.",
+    "label": "Tjenestemodus",
+    "inherit": "Behold eksisterende virkemåte",
+    "default": "Tving Standard (standardinnstilling)",
+    "priority": "Tving Fast / Priority",
+    "flex": "Tving Flex",
+    "warning": "Dette gir ikke tilgang hos leverandøren. Tilgjengelighet, kostnader og kvotebruk avhenger av Codex-kontoen og modellen din. Tvungne moduser krever HTTP- eller Responses WebSocket-transport. Forespørsler via app-server avvises.",
+    "confirm": "Vil du bruke «{mode}» på denne API-nøkkelen? Dette trer i kraft for etterfølgende forespørsler.",
+    "save": "Lagre modus",
+    "retry": "Prøv på nytt",
+    "loadError": "Kunne ikke laste inn den lagrede tjenestemodusen.",
+    "saveError": "Kunne ikke lagre tjenestemodusen. Prøv på nytt."
+  },
   "common": {
     "save": "Lagre",
     "cancel": "Avbryt",

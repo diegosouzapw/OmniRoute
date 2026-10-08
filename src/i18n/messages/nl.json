@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-servicemodus voor deze API-sleutel",
+    "description": "Van toepassing op Codex-verzoeken, inclusief Codex-modellen in combinaties. Geforceerde modi overschrijven de client, algemene instellingen en standaardinstellingen voor verbindingen. Andere providers blijven ongewijzigd.",
+    "label": "Servicemodus",
+    "inherit": "Bestaand gedrag overnemen",
+    "default": "Standaard forceren (standaard)",
+    "priority": "Snel / Prioriteit forceren",
+    "flex": "Flex forceren",
+    "warning": "Dit verleent geen toegang tot de provider. Beschikbaarheid, kosten en quotaverbruik zijn afhankelijk van je Codex-account en model. Geforceerde modi vereisen HTTP- of Responses WebSocket-transport; app-server-verzoeken worden geweigerd.",
+    "confirm": "‘{mode}’ toepassen op deze API-sleutel? Dit wordt van kracht voor volgende verzoeken.",
+    "save": "Modus opslaan",
+    "retry": "Opnieuw proberen",
+    "loadError": "De opgeslagen servicemodus kon niet worden geladen.",
+    "saveError": "De servicemodus kon niet worden opgeslagen. Probeer het opnieuw."
+  },
   "common": {
     "save": "Opslaan",
     "cancel": "Annuleer",

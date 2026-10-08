@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codexi teenuserežiim selle API-võtme jaoks",
+    "description": "Kehtib Codexi päringutele, sealhulgas kombinatsioonides sisalduvatele Codexi mudelitele. Sundrežiimid alistavad kliendi, globaalsed sätted ja ühenduse vaikeseaded. Teiste teenusepakkujate sätted ei muutu.",
+    "label": "Teenuserežiim",
+    "inherit": "Päri olemasolev käitumine",
+    "default": "Sunni Standard (vaikimisi)",
+    "priority": "Sunni Fast / Priority",
+    "flex": "Sunni Flex",
+    "warning": "See ei anna juurdepääsu teenusepakkujale. Saadavus, tasud ja kvoodikasutus sõltuvad teie Codexi kontost ja mudelist. Sundrežiimid nõuavad HTTP- või Responses WebSocketi transporti; app-serveri päringud lükatakse tagasi.",
+    "confirm": "Kas rakendada „{mode}” sellele API-võtmele? See jõustub järgnevate päringute puhul.",
+    "save": "Salvesta režiim",
+    "retry": "Proovi uuesti",
+    "loadError": "Salvestatud teenuserežiimi ei õnnestunud laadida.",
+    "saveError": "Teenuserežiimi ei õnnestunud salvestada. Proovige uuesti."
+  },
   "common": {
     "save": "Salvesta",
     "cancel": "Tühista",

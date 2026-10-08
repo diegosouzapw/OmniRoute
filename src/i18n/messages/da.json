@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-servicetilstand for denne API-nøgle",
+    "description": "Gælder for Codex-anmodninger, herunder Codex-modeller i kombinationer. Tvungne tilstande tilsidesætter klienten, globale indstillinger og forbindelsens standardindstillinger. Andre udbydere forbliver uændrede.",
+    "label": "Servicetilstand",
+    "inherit": "Arv eksisterende adfærd",
+    "default": "Gennemtving Standard (standard)",
+    "priority": "Gennemtving Fast / Priority",
+    "flex": "Gennemtving Flex",
+    "warning": "Dette giver ikke adgang hos udbyderen. Tilgængelighed, priser og kvoteforbrug afhænger af din Codex-konto og model. Tvungne tilstande kræver HTTP- eller Responses WebSocket-transport; app-server-anmodninger afvises.",
+    "confirm": "Anvend “{mode}” på denne API-nøgle? Dette træder i kraft for efterfølgende anmodninger.",
+    "save": "Gem tilstand",
+    "retry": "Prøv igen",
+    "loadError": "Den gemte servicetilstand kunne ikke indlæses.",
+    "saveError": "Servicetilstanden kunne ikke gemmes. Prøv igen."
+  },
   "common": {
     "save": "Gem",
     "cancel": "Annuller",

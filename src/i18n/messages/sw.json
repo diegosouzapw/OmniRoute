@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Hali ya huduma ya Codex kwa ufunguo huu wa API",
+    "description": "Inatumika kwa maombi ya Codex, ikijumuisha miundo ya Codex iliyo ndani ya michanganyiko. Hali zilizolazimishwa hubatilisha mipangilio ya mteja, mipangilio ya jumla na chaguo-msingi za muunganisho. Watoa huduma wengine hawabadiliki.",
+    "label": "Hali ya huduma",
+    "inherit": "Tumia tabia iliyopo",
+    "default": "Lazimisha Standard (chaguo-msingi)",
+    "priority": "Lazimisha Fast / Priority",
+    "flex": "Lazimisha Flex",
+    "warning": "Hii haitoi idhini ya kufikia mtoa huduma. Upatikanaji, gharama na matumizi ya kiwango maalum hutegemea akaunti na muundo wako wa Codex. Hali zilizolazimishwa zinahitaji usafirishaji wa HTTP au Responses WebSocket; maombi ya app-server yanakataliwa.",
+    "confirm": "Ungependa kutumia “{mode}” kwa ufunguo huu wa API? Hii itaanza kutumika kwa maombi yanayofuata.",
+    "save": "Hifadhi hali",
+    "retry": "Jaribu tena",
+    "loadError": "Haikuwezekana kupakia hali ya huduma iliyohifadhiwa.",
+    "saveError": "Haikuwezekana kuhifadhi hali ya huduma. Tafadhali jaribu tena."
+  },
   "common": {
     "save": "Hifadhi",
     "cancel": "Ghairi",

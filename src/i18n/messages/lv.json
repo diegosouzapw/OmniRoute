@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex pakalpojuma režīms šai API atslēgai",
+    "description": "Attiecas uz Codex pieprasījumiem, tostarp Codex modeļiem kombinācijās. Piespiedu režīmi ignorē klienta, globālos iestatījumus un savienojuma noklusējuma iestatījumus. Citi pakalpojumu sniedzēji netiek ietekmēti.",
+    "label": "Pakalpojuma režīms",
+    "inherit": "Mantot pašreizējo darbību",
+    "default": "Piespiedu standarta režīms (noklusējums)",
+    "priority": "Piespiedu ātrais/prioritārais režīms",
+    "flex": "Piespiedu elastīgais režīms",
+    "warning": "Tas nepiešķir piekļuvi pakalpojumu sniedzējam. Pieejamība, maksa un kvotas patēriņš ir atkarīgi no jūsu Codex konta un modeļa. Piespiedu režīmiem nepieciešams HTTP vai Responses WebSocket transports; app-server pieprasījumi tiek noraidīti.",
+    "confirm": "Vai lietot režīmu “{mode}” šai API atslēgai? Tas stāsies spēkā turpmākajiem pieprasījumiem.",
+    "save": "Saglabāt režīmu",
+    "retry": "Mēģināt vēlreiz",
+    "loadError": "Neizdevās ielādēt saglabāto pakalpojuma režīmu.",
+    "saveError": "Neizdevās saglabāt pakalpojuma režīmu. Lūdzu, mēģiniet vēlreiz."
+  },
   "common": {
     "save": "Saglabāt",
     "cancel": "Atcelt",

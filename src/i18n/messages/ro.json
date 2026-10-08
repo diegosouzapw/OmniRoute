@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modul de serviciu Codex pentru această cheie API",
+    "description": "Se aplică solicitărilor Codex, inclusiv modelelor Codex din combinații. Modurile impuse suprascriu setările clientului, setările globale și valorile implicite ale conexiunii. Ceilalți furnizori rămân neschimbați.",
+    "label": "Mod de serviciu",
+    "inherit": "Moștenește comportamentul existent",
+    "default": "Impune Standard (implicit)",
+    "priority": "Impune Rapid / Prioritar",
+    "flex": "Impune Flex",
+    "warning": "Această opțiune nu acordă acces la furnizor. Disponibilitatea, costurile și consumul cotei depind de contul și modelul dvs. Codex. Modurile impuse necesită transport HTTP sau Responses WebSocket; solicitările app-server sunt respinse.",
+    "confirm": "Aplicați „{mode}” acestei chei API? Modificarea va intra în vigoare pentru solicitările ulterioare.",
+    "save": "Salvează modul",
+    "retry": "Reîncearcă",
+    "loadError": "Modul de serviciu salvat nu a putut fi încărcat.",
+    "saveError": "Modul de serviciu nu a putut fi salvat. Încercați din nou."
+  },
   "common": {
     "save": "Salvați",
     "cancel": "Anulează",

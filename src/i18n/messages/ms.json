@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mod perkhidmatan Codex untuk kunci API ini",
+    "description": "Terpakai pada permintaan Codex, termasuk model Codex dalam kombinasi. Mod paksa mengatasi tetapan klien, tetapan global dan lalai sambungan. Penyedia lain kekal tidak berubah.",
+    "label": "Mod perkhidmatan",
+    "inherit": "Warisi tingkah laku sedia ada",
+    "default": "Paksa Standard (lalai)",
+    "priority": "Paksa Fast / Priority",
+    "flex": "Paksa Flex",
+    "warning": "Ini tidak memberikan akses kepada penyedia. Ketersediaan, caj dan penggunaan kuota bergantung pada akaun dan model Codex anda. Mod paksa memerlukan pengangkutan HTTP atau Responses WebSocket; permintaan app-server akan ditolak.",
+    "confirm": "Gunakan “{mode}” pada kunci API ini? Perubahan ini berkuat kuasa untuk permintaan seterusnya.",
+    "save": "Simpan mod",
+    "retry": "Cuba lagi",
+    "loadError": "Tidak dapat memuatkan mod perkhidmatan yang disimpan.",
+    "saveError": "Tidak dapat menyimpan mod perkhidmatan. Sila cuba lagi."
+  },
   "common": {
     "save": "Jimat",
     "cancel": "Batal",

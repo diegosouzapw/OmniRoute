@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mód seirbhíse Codex don eochair API seo",
+    "description": "Baineann sé seo le hiarratais Codex, lena n-áirítear samhlacha Codex laistigh de chomhcheangail. Sáraíonn móid éigeantacha socruithe an chliaint, socruithe domhanda agus réamhshocruithe naisc. Ní athraítear soláthraithe eile.",
+    "label": "Mód seirbhíse",
+    "inherit": "Faigh an t-iompar reatha le hoidhreacht",
+    "default": "Cuir Standard i bhfeidhm (réamhshocrú)",
+    "priority": "Cuir Fast / Priority i bhfeidhm",
+    "flex": "Cuir Flex i bhfeidhm",
+    "warning": "Ní thugann sé seo rochtain ar an soláthraí. Braitheann infhaighteacht, táillí agus úsáid cuóta ar do chuntas Codex agus ar an tsamhail. Éilíonn móid éigeantacha iompar HTTP nó Responses WebSocket; diúltaítear d'iarratais app-server.",
+    "confirm": "An bhfuil fonn ort “{mode}” a chur i bhfeidhm ar an eochair API seo? Tiocfaidh sé seo i bhfeidhm ar iarratais ina dhiaidh seo.",
+    "save": "Sábháil an mód",
+    "retry": "Bain triail eile as",
+    "loadError": "Níorbh fhéidir an mód seirbhíse sábháilte a lódáil.",
+    "saveError": "Níorbh fhéidir an mód seirbhíse a shábháil. Bain triail eile as."
+  },
   "common": {
     "save": "Sábháil",
     "cancel": "Cealaigh",

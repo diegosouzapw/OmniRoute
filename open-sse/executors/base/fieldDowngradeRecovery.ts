@@ -36,6 +36,8 @@ export interface FieldDowngradeParams {
   serializeBody: (body: unknown) => string | Promise<string>;
   /** Fields already stripped in this execute() call (mutated). */
   strippedFields: Set<string>;
+  /** Fields that must never be stripped or auto-learned (e.g. a per-key forced Codex service_tier). */
+  protectedFields?: readonly string[];
   log?: FieldDowngradeLog;
 }
 
@@ -49,7 +51,12 @@ async function applyAutoLearnRecovery(
     params;
   let response: Response | null = null;
   const autoLearned = detectUnsupportedParam(errText);
-  if (autoLearned && !strippedFields.has(autoLearned) && record[autoLearned] !== undefined) {
+  if (
+    autoLearned &&
+    !params.protectedFields?.includes(autoLearned) &&
+    !strippedFields.has(autoLearned) &&
+    record[autoLearned] !== undefined
+  ) {
     try {
       const config = getParamFilterConfig(provider);
       const shouldAutoLearn = isAutoLearnGloballyEnabled() || config?.autoLearn === true;
@@ -116,7 +123,12 @@ export async function applyFieldDowngradeRecovery(params: FieldDowngradeParams):
     .text()
     .catch(() => "");
   const offending = findOffendingField(errText);
-  if (offending && !strippedFields.has(offending) && record[offending] !== undefined) {
+  if (
+    offending &&
+    !params.protectedFields?.includes(offending) &&
+    !strippedFields.has(offending) &&
+    record[offending] !== undefined
+  ) {
     strippedFields.add(offending);
     delete record[offending];
     const retryBody = await serializeBody(body);
