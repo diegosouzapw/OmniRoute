@@ -1,6 +1,6 @@
 # Resilience Guide (Igbo)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -71,92 +71,136 @@ Ihe nchebe megide regression: `tests/unit/provider-cooldown-window-gate.test.ts`
 
 **Oke:** otu njikọ/akaụntụ/igodo nke onye na-eweta ọrụ.
 
-**Ebumnuche:** ịwụli otu igodo nwere nsogbu ka njikọ ndị ọzọ nke otu onye na-eweta ọrụ ahụ wee gaa n’ihu na-enye ọrụ.
+**Ebumnuche:** ịgafe otu igodo na-adịghị arụ ọrụ ka njikọ ndị ọzọ nke otu onye na-eweta ọrụ ahụ gaa n'ihu na-enye ọrụ.
 
 **Mmejuputa:**
 
-- Kaa ya dị ka nke anaghị adị: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Nhọrọ: `getProviderCredentials*` n’otu faịlụ ahụ
+- Kanye akara na ọ dịghị: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Nhọrọ: `getProviderCredentials*` n'otu faịlụ ahụ
 - Mgbakọ oge nkwụsị: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Ntọala: `src/lib/resilience/settings.ts`
 
-**Mpaghara data maka njikọ ọ bụla:**
+**Ubi maka njikọ ọ bụla:**
 
-- `rateLimitedUntil` — timestamp ruo mgbe oge nkwụsị ga-agwụ
+- `rateLimitedUntil` — timestamp ruo mgbe oge nkwụsị gwụsịrị
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — ọnụọgụgụ nkwụsị na-abawanye n’ụzọ exponential
+- `backoffLevel` — ọnụ ọgụgụ ndaghachi azụ exponential
 
 **Oge nkwụsị ndabara:**
 
 - Ntọala OAuth: 5s
 - Ntọala API-key: 3s
-- API-key 429: na-ebute ụzọ nye `Retry-After` sitere na upstream/headers nrụgharị/ederede nrụgharị enwere ike ịtụgharị
-- Nkwụsị: `baseCooldownMs * 2 ** failureIndex`
+- API-key 429: na-ahọrọ `Retry-After`/reset headers/ederede reset sitere upstream nke enwere ike ịtụgharị
+- Ndaghachi azụ: `baseCooldownMs * 2 ** failureIndex`
 
-**Ihe nchebe megide ìgwè arịrịọ na-abata n’otu oge:** na-egbochi ọdịda ndị na-eme n’otu oge ịgbatị oge nkwụsị gabiga ókè ma ọ bụ ịgbakwunye `backoffLevel` ugboro abụọ.
+**Ihe nche megide thundering herd:** na-egbochi ọdịda ndị na-eme n'otu oge ịgbatị oge nkwụsị karịa oke ma ọ bụ ịgbakwunye `backoffLevel` ugboro abụọ.
 
-**Ọnọdụ ngwụcha (Ọ BỤGHỊ oge nkwụsị):**
+**Ọnọdụ njedebe (Ọ BỤGHỊ oge nkwụsị):**
 
-- `banned` — a na-etinye ya site na nchọpụta banned-keyword / account-ban (lee [BAN_DETECTION](../security/BAN_DETECTION.md)), nakwa site na ọjụjụ atọ na-esochi ibe ha sitere na upstream maka arịrịọ ọ bụla (`request_rejected`, dịka ọmụmaatụ Anthropic OAuth 403 "Anaghị ekwe arịrịọ a" — `open-sse/services/requestRejectedStreak.ts`); otu ọjụjụ naanị na-etinye njikọ ahụ n’oge nkwụsị
-- `expired` (na-agbanwe gaa n’ọnọdụ ngwụcha mgbe ọnụọgụ nnwale ọzọ a kpaara ókè gasịrị — `EXPIRED_RETRY_MAX = 3` nwere nkwụsị exponential — ka njehie OAuth na-adịru nwa oge nwee ike idozi onwe ya tupu e mechie akaụntụ ahụ kpamkpam)
+- `banned` — a na-esetị ya site na nchọpụta banned-keyword / account-ban (lee [BAN_DETECTION](../security/BAN_DETECTION.md)), nakwa site na ọjụjụ atọ sitere upstream n'usoro maka arịrịọ ọ bụla (`request_rejected`, dịka Anthropic OAuth 403 "Anaghị anabata arịrịọ" — `open-sse/services/requestRejectedStreak.ts`); otu ọjụjụ naanị na-etinye njikọ ahụ n'oge nkwụsị
+- `expired` (na-agbanwe gaa n'ọnọdụ njedebe mgbe ọnụọgụ nnwale ọzọ nwere oke gwụsịrị — `EXPIRED_RETRY_MAX = 3` yana ndaghachi azụ exponential — ka njehie OAuth nwa oge nwee ike ịgwọ onwe ya tupu egbanyụọ akaụntụ ahụ kpamkpam)
 - `credits_exhausted`
 
-Ndị a na-adịgide ruo mgbe nzere njirimara gbanwere ma ọ bụ onye njikwa tọgharịa ha. Ejila ọnọdụ nkwụsị na-adịru nwa oge dochie ọnọdụ ngwụcha.
+Ndị a na-adịgide ruo mgbe credentials gbanwere ma ọ bụ onye nchịkwa tọgharịrị ha. Ejila ọnọdụ oge nkwụsị nwa oge dochie ọnọdụ njedebe.
 
-**Mgbake mgbe achọrọ:** mgbe `rateLimitedUntil` gafere, njikọ ahụ ga-erukwa eru ọzọ. Mgbe ojiji gara nke ọma, `clearAccountError()` na-ehichapụ mpaghara njehie niile.
+**Mgbake mgbe achọrọ ya:** mgbe `rateLimitedUntil` gafere, njikọ ahụ tozuru oke ọzọ. Mgbe ojiji gara nke ọma, `clearAccountError()` na-ehichapụ ubi njehie niile.
 
-### Njikọ chiri anya nke nnọkọ (#7274)
+### Mgbidi ojiji Claude OAuth: ụzọ nwere mkpa dị ala + ntọgharị oke session
 
-**Oke:** otu nnọkọ onye ahịa (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) e jikọtara n’otu njikọ, maka onye na-eweta ọrụ **ọ bụla**.
+**Oke:** otu njikọ ndenye aha Claude (OAuth). Atụmatụ abụọ ahụ bụ **nhọrọ a ga-agbanye maka njikọ
+ọ bụla** (Dezie njikọ → ngalaba Claude → `lowPriorityMode` / `autoLimitReset` n'ime
+`providerSpecificData`, ha abụọ gbanyụrụ na ndabara) ma na-eṅomi iwu `/low-priority` na
+`/limit-reset` nke Claude Code (e depụtara nkwekọrịta wire site na Claude Code 2.1.263).
 
-**Ebumnuche:** idobe agent nwere ọtụtụ ntụgharị (Claude Code, aider, agent ahaziri iche) n’otu akaụntụ ahụ n’ofe arịrịọ, iji belata mfu context n’etiti akaụntụ na njehie 429 ugboro ugboro sitere na cold-start n’aka ndị na-eweta ọrụ nwere ọnọdụ nnọkọ maka akaụntụ ọ bụla.
+**Mmejuputa:**
+
+- State machine + nhazi nzaghachi: `open-sse/services/claudeLowPriority.ts`
+- Client maka status/claim nke reset: `open-sse/services/claudeLimitReset.ts`
+- Executor hook (ịtinye header + nnwale ọzọ n'otu akaụntụ): `open-sse/executors/base.ts::execute()`
+- Nchekwa nhọrọ agbanyere: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Ihe na-akpalite ya:** mgbidi ojiji awa 5 — `429` nke headers ya nwere
+`anthropic-ratelimit-unified-status: rejected` na, mgbe akaụntụ ahụ tozuru oke,
+`anthropic-ratelimit-unified-slow-offer: treatment`. A naghị eziga ihe ọ bụla tupu mgbidi
+429 mbụ ahụ; burst 429 na-enweghị unified headers na-agafe n'ụzọ oge nkwụsị nkịtị.
+
+**Ụzọ nwere mkpa dị ala** (`lowPriorityMode`):
+
+- Mgbe wall 429 mere, executor na-anabata onyinye ahụ ma nwalee **otu**
+  akaụntụ ahụ ọzọ ozugbo site na `anthropic-usage-limit: slow`; ụzọ ahụ na-anọgide n'ọrụ ruo
+  `anthropic-ratelimit-unified-reset` e kwupụtara (+60s grace), arịrịọ ọ bụla n'ime oge ahụ na-ebukwa
+  header ahụ. 429 e jidere anaghị erute `handleChatCore`, ya mere, a naghị
+  etinye njikọ ahụ n'oge nkwụsị, a naghịkwa atụgharị gaa na nke ọzọ.
+- `anthropic-ratelimit-unified-slow-status` na nzaghachi ndị na-esote: `active` / `not_needed`
+  na-edobe ụzọ ahụ; `slot_busy` (429) ma ọ bụ `529` na-echere
+  `anthropic-ratelimit-unified-slow-retry-after` nke server (ndabara 20s, clamp 5–600s, ±30% jitter)
+  wee nwalee ọzọ, nke `anthropic-ratelimit-unified-slow-max-wait` nwere oke (ndabara nkeji 20, clamp
+  nkeji 1–awa 6) — mgbe oge ahụ gafere, ụzọ ahụ na-akwụsị ma oge izu ike nkeji 10 na-egbochi nnabata ọzọ. A
+  na-agbakwụnyekwa oke n'oge nchere dabere n'ihe fọdụrụ n'ime upstream-start timeout nke arịrịọ ahụ
+  (`resolveFetchStartTimeout`, nkeji 10 na ndabara), e wepụ sekọnd 5 dịka oghere: ma ọ bụrụ na enweghị oke ahụ,
+  max-wait ndabara nke nkeji 20 ga-adị ogologo karịa arịrịọ ahụ, a ga-akwụsịkwa ụra ahụ
+  n'etiti nchere, na-eweta `TimeoutError` kama njedebe `max_wait` dị nro + oge izu ike.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, ntụgharị windo 5h, ma ọ bụ
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (nke na-eme ka ọ kwụsị dịka
+  `extra_usage` n'ọnọdụ ọ bụla, ebe ọ bụ na overage a kwụrụ ụgwọ na-ekpuchi mgbidi ahụ ugbu a) na-akwụsị ụzọ ahụ;
+  nzaghachi ahụ wee gafee n'ụzọ oge nkwụsị nkịtị. A na-echeta `budget_exhausted` ruo
+  reset budget e kwupụtara (≤ ụbọchị 8).
+- Nlele mgbidi na-eme mgbe executor mechara intra-attempt retries nke 400 kpalitere (context
+  editing, thinking/effort clamps, param auto-learn), ya mere a ka ga-ejide wall 429 nke pụtara naanị
+  n'otu n'ime retries ndị ahụ kama ikwe ka ọ ruo n'ụzọ oge nkwụsị.
+- State dị na memory maka njikọ ọ bụla (restart na-ebute naanị otu wall 429 ọzọ iji nabata ọzọ).
+
+**Ntọgharị oke session** (`autoLimitReset`, a na-anwale ya tupu ụzọ ahụ mgbe ha abụọ gbanyere):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → block `juniper_tide`;
+  mgbe `arm: "reset"` na `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` yana
+  `{ "program": "juniper_tide" }` (organization UUID sitere na
+  `providerSpecificData.organizationUUID`, bootstrap fallback).
+- `result: reset|not_limited` → a na-anwale arịrịọ ahụ ọzọ n'ọsọ zuru oke (enweghị slow header).
+  `already_used` / `not_offered` na-echekwa `next_available_at` na memory (ndabara otu izu); ọdịda
+  ọ bụla na-eme backoff nkeji 15. Reset ahụ bụ otu ugboro n'izu ma ọ ka na-agụnye n'oke
+  kwa izu.
+
+Ihe nche regression: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Njikọ session na otu ebe (#7274)
+
+**Oke:** otu session nke client (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) e kegidere n'otu njikọ, maka onye na-eweta ọrụ **ọ bụla**.
+
+**Ebumnuche:** idobe onye nnọchi anya na-arụ ọrụ n'ọtụtụ ntụgharị (Claude Code, aider, ndị nnọchi anya ahaziri ahazi) n'otu akaụntụ n'ofe arịrịọ, iji belata mfu ọnọdụ n'etiti akaụntụ na njehie 429 nke mmalite oyi ugboro ugboro n'aka ndị na-eweta ọrụ nwere ọnọdụ nnọkọ dabere na akaụntụ.
 
 **Mmejuputa:**
 
 - Mkpebi TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Nhọrọ/mmebe pin: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Mwepụta header (izugbe, onye na-eweta ọrụ ọ bụla): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tebụl pin echekwara: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Ntọala: `sessionAffinityTtlMs` (TTL zuru ụwa ọnụ na ms, `0` na-agbanyụ ya) — `src/lib/db/settings.ts`. Migration `124_generic_session_affinity_ttl.sql` gbanwere aha ya site na `codexSessionAffinityTtlMs` nke bụ naanị maka Codex, ma nyefee TTL Codex ọ bụla a haziburu ka ọ bụrụ ndabara ọhụrụ.
+- Nhọrọ/okike pin: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Iwepụta header (n'ozuzu, onye na-eweta ọrụ ọ bụla): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Tebụl pin echekwara na-adịgide: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Ntọala: `sessionAffinityTtlMs` (TTL zuru ụwa ọnụ na ms, `0` na-agbanyụ ya) — `src/lib/db/settings.ts`. Migration `124_generic_session_affinity_ttl.sql` gbanwere aha ya site na `codexSessionAffinityTtlMs`, nke bụ naanị maka Codex; migration a na-ebufe TTL Codex ọ bụla ahaziri na mbụ ka ọ bụrụ uru ndabara ọhụrụ.
 
-Tupu #7274, `resolveSessionAffinityTtlMs()` na-akwụsị ozugbo ma weghachite `0` maka onye na-eweta ọrụ ọ bụla ma e wezụga `codex`, ya mere ntọala TTL (na headers nnọkọ) enweghị mmetụta n’ebe ọ bụla ọzọ, n’agbanyeghị na usoro pinning na mwepụta header adabereghị na onye na-eweta ọrụ. Ndozi ahụ wepụrụ nlọghachi mbụ ahụ; ugbu a TTL na-emetụta ndị na-eweta ọrụ niile n’otu ụzọ ozugbo e debere ya n’ụwa niile karịa `0`.
+Tupu #7274, `resolveSessionAffinityTtlMs()` na-akwụsị ozugbo ma weghachite `0` maka onye na-eweta ọrụ ọ bụla ma e wezụga `codex`, ya mere ntọala TTL (na header nnọkọ ndị ahụ) enweghị mmetụta n'ebe ọ bụla ọzọ, n'agbanyeghị na usoro pinning na iwepụta header adabalarị n'onye na-eweta ọrụ ọ bụla. Ndozi ahụ wepụrụ nlọghachi mbụ ahụ; ugbu a, TTL na-emetụta onye na-eweta ọrụ ọ bụla n'otu ụzọ ozugbo edobere ya n'ụwa niile karịa `0`.
 
-A naghị eziga headers atọ nke njikọ chiri anya nke nnọkọ gaa upstream — executors na-ewu headers upstream nke ha site na mmalite kama iziga headers onye ahịa ozugbo, ya mere nke a na-anọ naanị dị ka internal correlation id.
+A naghị eziga header session-affinity atọ ahụ n'ihu upstream ma ọlị — executors na-ewu header upstream nke ha site na mbido kama ibufe header ndị ahịa ozugbo, ya mere nke a na-anọ naanị dị ka ID mmekọrịta nke ime.
 
-### Leases njikọ nnọkọ a na-achịkwa nke pụrụ iche
+### Lease njikọ nnọkọ jikwaara nke naanị otu onye nwere ike iji
 
-**Oke:** otu HTTP client/nnọkọ a na-achịkwa nke na-arụ ọrụ nwere otu njikọ OmniRoute ruru eru.
+**Oke:** otu HTTP client/nnọkọ jikwaara ma na-arụ ọrụ nwere otu njikọ OmniRoute tozuru oke.
 
-**Ebumnuche:** inye ikike nwe njikọ pụrụ iche na-adịgide adịgide maka clients chọrọ mgbochi routing siri ike
-n’ofe arịrịọ. Nke a dị iche na njikọ chiri anya nke nnọkọ, nke bụ nhọrọ dị nro maka ịga n’ihu:
-lease pụrụ iche na-echekwa ọnọdụ lifecycle na SQLite, na-amanye ịdị pụrụ iche nke active-owner na
-active-connection n’ụwa niile, ma jụ generation ochie tupu iziga ya nye onye na-eweta ọrụ.
+**Ebumnuche:** inye ndị ahịa chọrọ oke routing siri ike n'ofe arịrịọ ikike njikọ pụrụ iche na-adịgide adịgide. Nke a dị iche na session affinity, nke bụ mmasị dị nro maka ịga n'ihu: lease pụrụ iche na-echekwa ọnọdụ lifecycle na SQLite, na-amanye ịdị iche n'ụwa niile nke onye nwe na-arụ ọrụ na njikọ na-arụ ọrụ, ma na-ajụ generation emechiela tupu iziga ya n'aka onye na-eweta ọrụ.
 
-A ga-ahọrọ atụmatụ a maka API key ọ bụla n’otu n’otu. Igodo a na-achịkwa ga-enwerịrị scope `lease:exclusive` na
-ndepụta `allowedConnections` doro anya nke na-adịghị efu. HTTP client ọ bụla nwere ike iji lifecycle endpoint; ọ dịghị
-aha client, user-agent, onye na-eweta ọrụ, usoro OAuth, ma ọ bụ model achọrọ. Lease ahụ nwere njikọ,
-ọ bụghị model, ya mere mgbanwe model na-edobe njikọ ahụ ma ọ bụrụhaala na njikọ ahụ ka
-ruru eru dịka ọ na-adịkarị. Iwu nkịtị gbasara model, quota, ahụike, oge nkwụsị, na allowlist ka bụ
-ndị kacha nwee ikike, ma nwee ike ibuga otu generation ahụ gaa na njikọ ọzọ nweere onwe ya ma ruru eru.
+A na-ahọrọ njirimara a iche iche maka API key ọ bụla. Key jikwaara ga-enwerịrị scope `lease:exclusive` na ndepụta `allowedConnections` doro anya nke na-adịghị efu. HTTP client ọ bụla nwere ike iji endpoint lifecycle ahụ; achọghị aha onye ahịa, user-agent, onye na-eweta ọrụ, usoro OAuth, ma ọ bụ model. Lease ahụ nwere njikọ, ọ bụghị model, ya mere mgbanwe model na-edobe njikọ ahụ ma ọ bụrụhaala na njikọ ahụ ka tozuru oke dịka o kwesịrị. Iwu nkịtị gbasara model, quota, health, cooldown, na allowlist ka bụ ndị ikpeazụ, ha nwekwara ike ịkwaga otu generation ahụ gaa na njikọ ọzọ efu ma tozuo oke.
 
-Lifecycle ahụ bụ `POST /api/v1/session-leases` nwere omume JSON `acquire`, `renew`, na `release`.
-Arịrịọ inference a na-achịkwa na-ewepụta uru opaque `X-OmniRoute-Lease-Owner` na
-`X-OmniRoute-Lease-Generation` kpọmkwem. Owner na-eji `vlo_` nke mkpụrụedemede base64url 43 na-esochi; naanị
-hash SHA-256 ya ka a na-echekwa. Mgbochi iziga ikpeazụ ọ bụla na-ejikọkwa API key ID e gosipụtara njirimara ya na
-active connection ID. A na-ewepụ headers njikwa lease na logs, snapshots arịrịọ echekwara, na
-headers nke upstream executor.
+Lifecycle ahụ bụ `POST /api/v1/session-leases` nwere JSON actions `acquire`, `renew`, na `release`. Arịrịọ inference jikwaara na-eweta uru opaque `X-OmniRoute-Lease-Owner` na `X-OmniRoute-Lease-Generation` ziri ezi. Owner na-eji `vlo_` nke mkpụrụedemede base64url 43 na-esochi; naanị hash SHA-256 ya ka a na-echekwa. Fence dispatch ikpeazụ ọ bụla na-ejikọkwa ID API key akwadoro na ID njikọ na-arụ ọrụ. A na-ewepụ header njikwa lease na logs, snapshots arịrịọ echekwara, na header executor upstream.
 
-Ọ bụrụ na routing nkịtị nwere candidates a na-achịkwa ruru eru mana candidate ọ bụla nweere onwe ya dị n’okpuru
-lease na-arụ ọrụ nke onye ọzọ, OmniRoute na-eweghachi HTTP `429`, koodu lease-capacity-unavailable, ọnọdụ
-waiting-for-capacity, na `Retry-After` a kpaara ókè nke sitere na oge ngwụcha dị mkpa kacha nso.
-Enweghị ntozu nkịtị abụghị esemokwu lease, ọ na-edobekwa semantics njehie routing dịbu.
+Ọ bụrụ na routing nkịtị nwere managed candidates tozuru oke mana foreign active lease ejirila candidate efu niile, OmniRoute na-eweghachi HTTP `429`, code lease-capacity-unavailable, state waiting-for-capacity, na `Retry-After` nwere oke nke e si na expiry kacha nso metụtara ya nweta. Enweghị eligibility n'ụzọ nkịtị abụghị esemokwu lease, ọ na-ejigidekwa semantics njehie routing ya dị ugbu a.
 
 Usoro ndị metụtara ya ka dị iche:
 
-- Njide nnọkọ OAuth bụ nkesa dị nro maka akaụntụ OAuth nke na-arụ naanị n’ime process.
-- Semaphores akaụntụ na-enye ikike request-concurrency ma kwụsị mgbe arịrịọ mezuru.
-- Leases njikọ nnọkọ a na-achịkwa nke pụrụ iche bụ ikike nwe lifecycle na-adịgide adịgide nwere mgbochi generation.
+- OAuth session occupancy bụ nkesa dị nro nke dị naanị n'ime process maka akaụntụ OAuth.
+- Account semaphores na-enye ikike request-concurrency ma kwụsị mgbe arịrịọ zuru ezu.
+- Exclusive managed session leases bụ lifecycle ownership na-adịgide adịgide nke nwere generation fence.
 
 ---
 
@@ -286,48 +330,78 @@ ihe kpatara ya bụ `quota_exhausted` (akpọchiri ruo etiti abalị) ma ọ b�
 
 ---
 
-## 5. Njikwa Nnabata Ahịrị Arịrịọ (v3.8.49 · issue #6593)
+## 5. Njikwa Nnabata n'Ahịrị Arịrịọ (v3.8.49 · issue #6593)
 
-**Oke ọrụ**: ahịrị rate-limit mpaghara maka provider+connection ọ bụla (`open-sse/services/rateLimitManager.ts`,
-nke Bottleneck na-akwado), otu oyi akwa n'okpuru usoro atọ dị n'elu.
+**Oke ọrụ**: ahịrị mmachi-ọnụọgụ mpaghara maka provider+connection ọ bụla (`open-sse/services/rateLimitManager.ts`,
+nke Bottleneck na-akwado), otu ọkwa dị n'okpuru usoro atọ ndị dị n'elu.
 
-**`maxWaitMs` bụ aha ochie echekwara maka ngafe oge mmezu.**
-A na-enyefe `resilienceSettings.requestQueue.maxWaitMs` na Bottleneck dịka
-`expiration` nke job, nke timer ya na-amalite naanị mgbe dispatch gasịrị. Ya mere, ọ na-etinye oke na
-mmezu nke limiter na-achịkwa, ọ bụghị oge e nọrọ n'ahịrị mpaghara. A na-egosipụta
-ngafe oge dịka `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` mpaghara a tụkwasịrị obi (HTTP 504);
-a na-anabata aha code ochie nke queue-timeout naanị maka ndakọrịta azụ nke ime
-a tụkwasịrị obi. Ndabara bụ 15000ms; jiri
-`RATE_LIMIT_MAX_WAIT_MS` (env) ma ọ bụ dashboard (**Settings → Resilience**,
-oke UI 1–30000ms) dochie ya. Oge ịnọ n'ahịrị enweghị njedebe oge; jiri
-`maxQueueDepth` dị n'okpuru tinye oke na ndị na-arịọ arịrịọ nọ n'ahịrị.
+**`maxWaitMs` na-amachi oge ichere n'ahịrị; `executionMaxWaitMs` na-amachi oge mmezu.**
+E kewapụrụ ha abụọ n'ebumnuche, ọ dịghịkwa nke na-emetụta ibe ya.
 
-**`maxQueueDepth` — oke nnabata a na-ahọrọ ịgbanye (ọhụrụ).** `resilienceSettings.requestQueue.maxQueueDepth`
-na-etinye oke na ọnụ ọgụgụ arịrịọ nwere ike ịnọ n'ahịrị (nke a na-ezigabeghị) maka otu
-provider+connection n'otu oge. Mgbe ahịrị ahụ nwere `maxQueueDepth`
-arịrịọ, a na-ajụ arịrịọ ọhụrụ ozugbo site na njehie nwere ụdị
-`code: "RATE_LIMIT_QUEUE_FULL"` **tupu** ọ rute `limiter.schedule()`
-— ya mere, ọjụjụ ahụ anaghị eri nnukwu akụ ma na-eme tupu ọrụ
-mkpakọ prompt / ntụgharị asụsụ downstream ọ bụla maka arịrịọ ahụ. Ndabara `0` =
-agbanyụrụ, nke na-echekwa omume ahịrị enweghị oke dị ugbu a; oke kwadoro bụ 0–100000.
-Jiri `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) ma ọ bụ
-`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch) dochie ya.
+`resilienceSettings.requestQueue.maxWaitMs` bụ **oke oge ichere n'ahịrị**: ọ
+na-ekpuchi ichere oghere provider wee nọrọ n'ọnọdụ QUEUED, a na-ehichapụkwa
+ngụ oge ya ozugbo ọrụ ahụ hapụrụ QUEUED wee malite ịrụ ọrụ
+(`rateLimitManager.ts`, `wrappedFn`). Arịrịọ gafere oke a anaghị eru
+upstream ma ọlị. Ndabara ya bụ 30000ms, nke
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` dị na
+`src/lib/resilience/settings.ts` na-enye ma
+`tests/unit/ratelimit-admission-control-6593.test.ts` na-akwụgide, ya mere
+mgbanwe e mere na ya ga-eme ka ule ahụ daa kama ịhapụ paragraf a ka ọ bụrụ
+ihe ochie n'amaghị ama.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` bụ ihe Bottleneck
+na-anata dị ka `expiration` nke ọrụ, nke ngụ oge ya na-amalite naanị mgbe
+ezipụchara ọrụ ahụ. Ọ bụ nchekwa ikpeazụ maka executors ndị na-enweghị
+upstream timeout nke ha, a na-ebulikwa ya ruo fetch-start timeout nke
+executor ahụ ma ọ bụrụ na nke ahụ dị ogologo karịa, ka ọ ghara ịkwụsị
+nzaghachi in-flight nke na-arụ ọrụ nke ọma. Ndabara ya bụ 600000ms (nkeji 10).
+
+Itinye oke oge ahịrị n'ime `expiration` bụ ihe na-egbu gateways ndị na-abụghị
+incremental n'etiti ọrụ n'oge gara aga — n'ụzọ ziri ezi, ha na-arụ ọrụ ọtụtụ
+nkeji tupu bytes mbụ apụta — nke a bụkwa ihe mere e ji egosipụta expiration
+dị ka `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), ebe oke oge ahịrị
+na-eji koodu queue-timeout. Dochie nke ọ bụla site na
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) ma ọ bụ
+dashboard (**Settings → Resilience**). A na-amachi ha abụọ n'etiti 1ms–24h
+mgbe a na-eme normalisation.
+
+**Usoro ibu ụzọ, maka ha abụọ:** env var na-enye naanị _ndabara_. Uru echekwara
+na `resilienceSettings.requestQueue` (dashboard / API patch, nke echekwara
+na `key_value`) na-emeri ya, `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` nke otu connection na-emerikwa nke ahụ. Ya mere, ịtọ
+env var na deployment nke nwere uru echekwara ugbua anaghị agbanwe ihe ọ bụla
+— kama nke ahụ, hichapụ ma ọ bụ melite ntọala echekwara.
+
+`maxWaitMs` na-amachi ogologo oge ịnọ n'ahịrị; `maxQueueDepth` dị n'okpuru
+na-amachi ọnụ ọgụgụ ndị na-akpọ ọrụ nwere ike ịnọ n'ahịrị n'otu oge.
+
+**`maxQueueDepth` — oke nnabata a na-ahọrọ iji (ọhụrụ).** `resilienceSettings.requestQueue.maxQueueDepth`
+na-amachi ọnụ ọgụgụ arịrịọ nwere ike ịnọ n'ahịrị (nke a na-ezitebeghị) maka otu
+provider+connection n'otu oge. Mgbe ahịrị ahụ nwere arịrịọ ruru
+`maxQueueDepth`, a na-ajụ arịrịọ ọhụrụ ozugbo site na njehie nwere ụdị
+`code: "RATE_LIMIT_QUEUE_FULL"` **tupu** ọ rute `limiter.schedule()` ma ọlị
+— ya mere, njụ ahụ anaghị eri nnukwu akụrụngwa, ọ na-emekwa tupu ọrụ
+prompt-compression / translation ọ bụla dị downstream maka arịrịọ ahụ.
+Ndabara `0` = agbanyụghị ya, nke na-echekwa omume ahịrị na-enweghị oke dị
+ugbua; a na-amachi ya n'etiti 0–100000. Dochie ya site na
+`RATE_LIMIT_MAX_QUEUE_DEPTH` (env) ma ọ bụ
+`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch).
 
 Nlele nnabata ahụ n'onwe ya bụ pure function
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) ka
-e wee nwee ike iji unit test nwalee ya na-enweghị ezigbo limiter Bottleneck.
+e nwee ike ime ya unit-test n'enweghị ezigbo Bottleneck limiter.
 
-> RFC nke malitere #6593 tụkwara aro ọkọlọtọ `bypassCompressionOnRateLimit`.
-> Pipeline `open-sse/services/compression/` nke repo a bụ
-> mkpakọ prompt/context na arịrịọ LLM outbound (`chatCore.ts`,
-> gburugburu block `resolveCompressionSettings`/`selectCompressionStrategy`),
-> ọ bụghị mkpakọ nzaghachi HTTP na body 429 emepụtara — enweghị
-> code path kwekọrọ maka ọkọlọtọ bypass nkịtị. Nzọụkwụ mkpakọ prompt ahụ
-> na-agbakwa ugbu a _tupu_ `withRateLimit()` na pipeline arịrịọ, ya mere
-> ịhazigharị usoro ka a mafere ya mgbe a jụrụ arịrịọ n'ihi queue-full bụ mgbanwe
-> dị iche ma buru ibu karịa oke issue a; e kpachaara anya **ghara** imejuputa ya
-> ebe a, ma hapụ ya dịka ọrụ na-esote ma ọ bụrụ na uru nchekwa CPU bara uru karịa
-> ihe egwu dị na ịhazigharị usoro ahụ.
+> RFC nke meghere #6593 tụkwara aro maka flag `bypassCompressionOnRateLimit`.
+> Pipeline `open-sse/services/compression/` nke repo a bụ mkpakọ
+> prompt/context n'arịrịọ LLM outbound (`chatCore.ts`, n'akụkụ block
+> `resolveCompressionSettings`/`selectCompressionStrategy`), ọ bụghị mkpakọ
+> nzaghachi HTTP n'ahụ 429 ndị e mepụtara — ọ dịghị code path kwekọrọ maka
+> flag bypass kpọmkwem. Nzọụkwụ prompt-compression ahụ na-arụkwa ọrụ ugbu a
+> _tupu_ `withRateLimit()` n'ime pipeline arịrịọ ahụ, ya mere ịgbanwe usoro ya
+> iji wụfee ya mgbe e jụrụ arịrịọ n'ihi queue-full bụ mgbanwe ọzọ, nke ka ibu
+> karịa oke ọrụ issue a; e kpachaara anya **emeghị** ya ebe a, a hapụkwara ya
+> dị ka ọrụ a ga-esochi ma ọ bụrụ na uru nchekwa CPU ahụ bara ihe ize ndụ nke
+> ịgbanwe usoro ahụ.
 
 ---
 

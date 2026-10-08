@@ -87,50 +87,14 @@ export function extractResolvedProxyConfig(resolvedProxy: unknown) {
   return resolvedProxy ?? null;
 }
 
-const NUMERIC_STRING = /^\d+(\.\d+)?$/;
+import {
+  getEffectiveTokenExpiryIso,
+  getEffectiveTokenExpiryMs,
+  parseTokenExpiryMs,
+  shouldMarkRefreshCapableExpired,
+} from "@/lib/tokenHealthCheckExpiry";
 
-/**
- * Normalize any stored token-expiry value to epoch milliseconds.
- *
- * `provider_connections.expires_at` / `token_expires_at` are TEXT columns, so a
- * numeric epoch written by an external sync tool reads back as a *string* —
- * and `new Date("1789012345678")` is an Invalid Date. Both numeric shapes are
- * accepted here with the seconds/ms heuristic the Copilot path already used,
- * before falling back to `Date` for ISO 8601 and other date strings.
- *
- * @returns epoch ms, or 0 when the value carries no usable time
- */
-export function parseTokenExpiryMs(expiresAt: unknown): number {
-  if (typeof expiresAt === "number") {
-    if (!Number.isFinite(expiresAt) || expiresAt <= 0) return 0;
-    return expiresAt < 1e12 ? expiresAt * 1000 : expiresAt;
-  }
-
-  if (typeof expiresAt === "string") {
-    const trimmed = expiresAt.trim();
-    if (!trimmed) return 0;
-
-    if (NUMERIC_STRING.test(trimmed)) {
-      const numeric = Number(trimmed);
-      if (!Number.isFinite(numeric) || numeric <= 0) return 0;
-      return numeric < 1e12 ? numeric * 1000 : numeric;
-    }
-
-    const parsed = new Date(trimmed).getTime();
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
-
-function getEffectiveTokenExpiryIso(conn: any): string | null {
-  if (!conn || typeof conn !== "object") return null;
-  return conn.tokenExpiresAt || conn.expiresAt || null;
-}
-
-function getEffectiveTokenExpiryMs(conn: any): number {
-  return parseTokenExpiryMs(getEffectiveTokenExpiryIso(conn));
-}
+export { parseTokenExpiryMs, shouldMarkRefreshCapableExpired };
 
 const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
 
@@ -848,11 +812,29 @@ export async function checkConnection(conn) {
     //   - Cursor access-token-only imports (refresh is optional; deep-control stores one)
     //   - connections already in a terminal/specific state (expired/banned/credits_exhausted)
     //   - transient cooldown state (unavailable) owned by the request path
-    const refreshCapableNeedsReauth =
-      supportsTokenRefresh(conn.provider) &&
-      conn.provider !== "cursor" &&
-      (!conn.testStatus || conn.testStatus === "active") &&
-      !(conn.apiKey && conn.apiKey.length > 0); // API-key-only connections don't need refresh tokens
+    //   - long-lived credentials with no KNOWN expiry (#14261; see below)
+    //
+    // #14261: the missing piece was evidence. A refresh token is how a connection
+    // RECOVERS from expiry, not proof that it HAS expired, so its absence alone must
+    // not write a terminal state. Long-lived credentials of refresh-capable providers
+    // are legitimately refresh-less by design — `claude setup-token` mints a 1-year
+    // token with no refresh token — and those were condemned within one 60s tick of a
+    // successful request, then again after every self-heal.
+    //
+    // Gate on the SAME field the badge reads: this branch exists to stop testStatus
+    // from disagreeing with the badge, and the badge derives from
+    // tokenExpiresAt||expiresAt (getEffectiveTokenExpiryMs). When that expiry is
+    // unknown (0) the badge cannot claim "Token Expired" either, so there is no
+    // mismatch to correct and condemning the row is pure loss. Checking it here makes
+    // the two agree in BOTH directions instead of only one.
+    //
+    // Deliberately NOT a live probe: this path runs once per TICK_MS (60s) for every
+    // connection, so probing would add ~1440 upstream auth calls/day/connection — and
+    // Anthropic's own /api/oauth/usage rate-limits well below that.
+    const refreshCapableNeedsReauth = shouldMarkRefreshCapableExpired(
+      conn,
+      supportsTokenRefresh(conn.provider)
+    );
     if (refreshCapableNeedsReauth) {
       const now = new Date().toISOString();
       await updateProviderConnection(conn.id, {

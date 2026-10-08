@@ -70,19 +70,113 @@ test("verifyAccessToken stamps last_used_at", () => {
   assert.notEqual(at.getAccessToken(record.id)?.lastUsedAt, null);
 });
 
+test("verifyAccessToken writes last_used_at once per window", () => {
+  const { secret, record } = at.createAccessToken({ name: "throttle", scope: "read" });
+  const db = core.getDbInstance();
+  let writes = 0;
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = ((sql: string) => {
+    const statement = originalPrepare(sql);
+    if (/UPDATE\s+cli_access_tokens\s+SET\s+last_used_at/i.test(sql)) {
+      const originalRun = statement.run.bind(statement);
+      statement.run = ((...args: unknown[]) => {
+        writes += 1;
+        return originalRun(...args);
+      }) as typeof statement.run;
+    }
+    return statement;
+  }) as typeof db.prepare;
+
+  try {
+    assert.ok(at.verifyAccessToken(secret));
+    assert.ok(at.verifyAccessToken(secret));
+    assert.equal(writes, 1, "a repeat verify inside the window must not write again");
+    assert.notEqual(at.getAccessToken(record.id)?.lastUsedAt, null);
+
+    const stale = new Date(Date.now() - 61_000).toISOString();
+    originalPrepare("UPDATE cli_access_tokens SET last_used_at = ? WHERE id = ?").run(
+      stale,
+      record.id
+    );
+    assert.ok(at.verifyAccessToken(secret));
+    assert.equal(writes, 2, "a stamp older than the window must be refreshed");
+    assert.notEqual(at.getAccessToken(record.id)?.lastUsedAt, stale);
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
 test("revoked tokens fail verification", () => {
   const { secret, record } = at.createAccessToken({ name: "to-revoke", scope: "write" });
   assert.ok(at.verifyAccessToken(secret));
-  assert.equal(at.revokeAccessToken(record.id), true);
+  const first = at.revokeAccessToken(record.id);
+  assert.equal(first.revoked, true);
+  assert.equal(first.alreadyRevoked, false);
   assert.equal(at.verifyAccessToken(secret), null);
-  // idempotent: revoking again is a no-op
-  assert.equal(at.revokeAccessToken(record.id), false);
+  // A retry after a lost response must not look like a miss.
+  const second = at.revokeAccessToken(record.id);
+  assert.equal(second.revoked, true);
+  assert.equal(second.alreadyRevoked, true);
+  assert.notEqual(at.getAccessToken(record.id)?.revokedAt, null);
 });
 
 test("revokeAccessToken works by display prefix too", () => {
   const { secret, record } = at.createAccessToken({ name: "by-prefix", scope: "read" });
-  assert.equal(at.revokeAccessToken(record.tokenPrefix), true);
+  const result = at.revokeAccessToken(record.tokenPrefix);
+  assert.equal(result.revoked, true);
+  assert.equal(result.alreadyRevoked, false);
   assert.equal(at.verifyAccessToken(secret), null);
+});
+
+test("revoke by a shared prefix refuses instead of revoking every match", () => {
+  const first = at.createAccessToken({ name: "shared-a", scope: "read" });
+  const second = at.createAccessToken({ name: "shared-b", scope: "write" });
+  const db = core.getDbInstance();
+  db.prepare("UPDATE cli_access_tokens SET token_prefix = ? WHERE id = ?").run(
+    first.record.tokenPrefix,
+    second.record.id
+  );
+
+  const result = at.revokeAccessToken(first.record.tokenPrefix);
+  assert.equal(result.revoked, false);
+  assert.equal(result.ambiguous, true);
+  assert.equal(at.getAccessToken(first.record.id)?.revokedAt, null);
+  assert.equal(at.getAccessToken(second.record.id)?.revokedAt, null);
+  // The id is unique, so the same collision does not block an id revoke.
+  assert.equal(at.revokeAccessToken(first.record.id).revoked, true);
+  assert.equal(at.getAccessToken(second.record.id)?.revokedAt, null);
+});
+
+test("revoke by prefix ignores already-revoked siblings", () => {
+  const live = at.createAccessToken({ name: "live-sibling", scope: "read" });
+  const dead = at.createAccessToken({ name: "dead-sibling", scope: "write" });
+  const db = core.getDbInstance();
+  db.prepare("UPDATE cli_access_tokens SET token_prefix = ?, revoked_at = ? WHERE id = ?").run(
+    live.record.tokenPrefix,
+    new Date().toISOString(),
+    dead.record.id
+  );
+
+  const result = at.revokeAccessToken(live.record.tokenPrefix);
+  assert.equal(result.revoked, true);
+  assert.equal(result.ambiguous, false);
+  assert.notEqual(at.getAccessToken(live.record.id)?.revokedAt, null);
+});
+
+test("revoke by prefix of an already-revoked unique prefix reports alreadyRevoked", () => {
+  const { record } = at.createAccessToken({ name: "prefix-retry", scope: "read" });
+  assert.equal(at.revokeAccessToken(record.tokenPrefix).alreadyRevoked, false);
+  const retry = at.revokeAccessToken(record.tokenPrefix);
+  assert.equal(retry.revoked, true);
+  assert.equal(retry.alreadyRevoked, true);
+  assert.equal(retry.ambiguous, false);
+});
+
+test("revoke of an unknown id is not a success", () => {
+  const result = at.revokeAccessToken("tok_does_not_exist");
+  assert.equal(result.revoked, false);
+  assert.equal(result.alreadyRevoked, false);
+  assert.equal(result.ambiguous, false);
 });
 
 test("expired tokens fail verification", () => {

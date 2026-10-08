@@ -12,6 +12,21 @@ import { resolveBlockThreshold, shouldBlockDetections } from "@/shared/utils/inj
 
 // ─── Prompt Injection Patterns ───────────────────────────────────────
 
+// #14483 building blocks for the authority/educational-framing co-occurrence rule.
+// Kept as plain alternations of fixed phrases (single-word gaps only via \s+).
+const AUTHORITY_FRAMING =
+  "(?:safe\\s+(?:educational|research)\\s+context|as\\s+an?\\s+(?:researcher|red[-\\s]?teamer)" +
+  "|for\\s+(?:testing|research|educational)\\s+purposes\\s+only|controlled\\s+test\\s+scenario)";
+const BYPASS_REQUEST =
+  "(?:(?:ignore|bypass|disable|disregard|override|drop|turn\\s+off)\\s+(?:all\\s+)?(?:of\\s+)?" +
+  "(?:your|the|any)\\s+(?:safety\\s+|ethical\\s+|content\\s+)?" +
+  "(?:guidelines|restrictions|rules|filters|guardrails|safeguards|policies|limitations)" +
+  "|uncensored\\s+(?:outputs?|responses?|answers?|replies|content|mode)" +
+  "|update\\s+your\\s+behaviou?r" +
+  "|(?:respond|answer|reply|proceed|continue|operate|act)\\s+without\\s+(?:any\\s+)?" +
+  "(?:restrictions|limits|limitations|filters|censorship|guardrails))";
+const AUTHORITY_WINDOW = 300;
+
 /** @type {Array<{name: string, pattern: RegExp, severity: string}>} */
 const INJECTION_PATTERNS = [
   {
@@ -52,6 +67,26 @@ const INJECTION_PATTERNS = [
     name: "encoding_evasion",
     pattern:
       /\b(base64\s+decode|rot13|hex\s+decode|unicode\s+escape)\b.*\b(instruction|prompt|command)\b/i,
+    severity: "medium",
+  },
+  {
+    // #14483 (LEDGER-12): "authority / educational framing" jailbreak family from the
+    // 2026-09-21 live promptfoo red-team run. Attacks claim a fictional
+    // safety/research authority ("safe educational context", "as a researcher",
+    // "for testing purposes only") AND ask the model to drop its rules
+    // ("ignore your guidelines", "uncensored outputs", "update your behavior").
+    //
+    // Either half alone is ordinary traffic ("best uncensored model?", "as a
+    // researcher, summarize this paper"), so the rule is a CO-OCCURRENCE: the
+    // framing and the bypass request must both appear, in either order, within
+    // AUTHORITY_WINDOW characters. Every alternative is a fixed phrase and the only
+    // variable-length gap is a bounded, lazy `[\s\S]{0,N}?` (ReDoS rule).
+    name: "authority_educational_framing",
+    pattern: new RegExp(
+      `\\b(?:${AUTHORITY_FRAMING}\\b[\\s\\S]{0,${AUTHORITY_WINDOW}}?\\b${BYPASS_REQUEST}` +
+        `|${BYPASS_REQUEST}\\b[\\s\\S]{0,${AUTHORITY_WINDOW}}?\\b${AUTHORITY_FRAMING})\\b`,
+      "i"
+    ),
     severity: "medium",
   },
 ];

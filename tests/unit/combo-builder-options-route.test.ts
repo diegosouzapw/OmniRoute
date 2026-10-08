@@ -256,5 +256,9 @@ test("combo builder options route exposes compatible provider nodes with node me
   assert.equal(provider.source, "provider-node");
   assert.equal(provider.acceptsArbitraryModel, true);
   assert.ok(provider.models.some((model) => model.id === "gpt-custom"));
-  assert.equal(provider.models[0].qualifiedModel, "openai-compatible-demo/gpt-custom");
+  // #14135/#14143: when a provider node declares a routing prefix, qualifiedModel must
+  // carry that prefix, not the internal node id — `parseModel()` only resolves the alias.
+  // Asserted against the node's own prefix so the pair cannot drift apart again.
+  assert.equal(provider.models[0].qualifiedModel, `${provider.prefix}/gpt-custom`);
+  assert.equal(provider.models[0].qualifiedModel, "gd/gpt-custom");
 });

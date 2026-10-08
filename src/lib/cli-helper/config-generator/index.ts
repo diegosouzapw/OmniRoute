@@ -7,7 +7,7 @@ import { generateClineConfig } from "./cline";
 import { generateCodexConfig, findLegacyCodexYaml } from "./codex";
 import { generateContinueConfig } from "./continue";
 import { generateHermesConfig } from "./hermes";
-import { generateHermesAgentConfig, type HermesAgentConfigPayload } from "./hermes-agent";
+import { generateHermesAgentConfig } from "./hermes-agent";
 import { generateKilocodeConfig } from "./kilocode";
 import { generateOpencodeConfig } from "./opencode";
 import { resolveOpencodeConfigPath } from "../../../shared/services/opencodeConfigPath";
@@ -28,6 +28,8 @@ export interface GenerateResult {
   migration?: string;
 }
 
+export { redactGeneratedConfig } from "../configPreview";
+
 export function validateBaseUrl(url: string): boolean {
   try {
     const u = new URL(url);
@@ -35,11 +37,6 @@ export function validateBaseUrl(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-function expandHome(p: string): string {
-  const home = os.homedir();
-  return p.replace(/^~\//, home + "/");
 }
 
 // Static paths that do not depend on runtime env vars can stay eagerly computed.
@@ -132,11 +129,13 @@ export async function generateConfig(
   }
 }
 
+export const CONFIG_GENERATOR_IDS = Object.freeze(Object.keys(GENERATORS));
+
 export async function generateAllConfigs(options: GenerateOptions): Promise<GenerateResult[]> {
   // Keep the batch view derived from the actual generator registry. Hermes
   // Agent has a richer payload and is intentionally exposed by its dedicated
   // endpoint, not by this simple `{baseUrl, apiKey, model}` batch API.
-  const toolIds = Object.keys(GENERATORS).filter((id) => id !== "hermes-agent");
+  const toolIds = CONFIG_GENERATOR_IDS.filter((id) => id !== "hermes-agent");
   const results = await Promise.allSettled(toolIds.map((id) => generateConfig(id, options)));
 
   return results.map((r) =>

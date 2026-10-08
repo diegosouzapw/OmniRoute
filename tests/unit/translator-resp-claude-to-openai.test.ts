@@ -25,6 +25,23 @@ type OpenAIUsageResult = {
   };
 };
 
+type NonStreamChatResult = {
+  id: string;
+  model: string;
+  choices: Array<{
+    finish_reason: string;
+    message: {
+      content: string;
+      reasoning_content?: string;
+      tool_calls?: Array<{
+        id: string;
+        function: { name: string; arguments: string };
+      }>;
+    };
+  }>;
+  usage: OpenAIUsageResult["usage"];
+};
+
 test("Claude non-stream: text, thinking and tool_use become OpenAI assistant message", () => {
   const result = translateNonStreamingResponse(
     {
@@ -49,20 +66,20 @@ test("Claude non-stream: text, thinking and tool_use become OpenAI assistant mes
     FORMATS.CLAUDE,
     FORMATS.OPENAI,
     new Map([["proxy_read_file", "read_file"]])
-  );
+  ) as NonStreamChatResult;
 
-  assert.equal((result as any).id, "chatcmpl-msg_123");
-  (assert as any).equal((result as any).model, "claude-3-7-sonnet");
-  (assert as any).equal((result as any).choices[0].message.content, "Final answer");
-  assert.equal((result as any).choices[0].message.reasoning_content, "Plan first.");
-  assert.equal((result as any).choices[0].message.tool_calls[0].id, "tool_1");
-  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, "read_file");
-  (assert as any).equal(
-    (result as any).choices[0].message.tool_calls[0].function.arguments,
+  assert.equal(result.id, "chatcmpl-msg_123");
+  assert.equal(result.model, "claude-3-7-sonnet");
+  assert.equal(result.choices[0].message.content, "Final answer");
+  assert.equal(result.choices[0].message.reasoning_content, "Plan first.");
+  assert.equal(result.choices[0].message.tool_calls?.[0].id, "tool_1");
+  assert.equal(result.choices[0].message.tool_calls?.[0].function.name, "read_file");
+  assert.equal(
+    result.choices[0].message.tool_calls?.[0].function.arguments,
     JSON.stringify({ path: "/tmp/a" })
   );
-  assert.equal((result as any).choices[0].finish_reason, "tool_calls");
-  assert.deepEqual((result as any).usage, {
+  assert.equal(result.choices[0].finish_reason, "tool_calls");
+  assert.deepEqual(result.usage, {
     prompt_tokens: 10,
     completion_tokens: 4,
     total_tokens: 14,
@@ -79,12 +96,34 @@ test("Claude non-stream: end_turn becomes stop and empty text is preserved", () 
       usage: { input_tokens: 2, output_tokens: 1 },
     },
     FORMATS.CLAUDE,
-    (FORMATS as any).OPENAI
-  );
+    FORMATS.OPENAI
+  ) as NonStreamChatResult;
 
-  assert.equal(((result as any).choices[0] as any).message.content, "");
-  assert.equal((result as any).choices[0].finish_reason, "stop");
-  assert.equal((result as any).model, "claude-3-5-haiku");
+  assert.equal(result.choices[0].message.content, "");
+  assert.equal(result.choices[0].finish_reason, "stop");
+  assert.equal(result.model, "claude-3-5-haiku");
+});
+
+// Streaming claude-to-openai maps stop_reason max_tokens to finish_reason
+// length. The non-stream translator copied max_tokens through unchanged, so a
+// one-token probe (content:[] + stop_reason max_tokens) reached the chat
+// empty-output check as finish_reason max_tokens and was rejected as
+// empty_choices. The two spellings must agree.
+test("Claude non-stream: max_tokens becomes length", () => {
+  const result = translateNonStreamingResponse(
+    {
+      id: "msg_truncated",
+      model: "claude-opus-5-5",
+      content: [],
+      stop_reason: "max_tokens",
+      usage: { input_tokens: 3, output_tokens: 1 },
+    },
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI
+  ) as NonStreamChatResult;
+
+  assert.equal(result.choices[0].finish_reason, "length");
+  assert.equal(result.choices[0].message.content, "");
 });
 
 test("Claude non-stream: usage exposes thinking token details without inflating completion", () => {

@@ -112,6 +112,15 @@ test("isUpstreamNetworkError recognizes fetch failures and proxy unreachable", (
 
   const undiciSocket = Object.assign(new Error("other side closed"), { code: "UND_ERR_SOCKET" });
   assert.equal(isUpstreamNetworkError(undiciSocket), true);
+
+  // proxyFetch wraps the undici failure as PROXY_REQUEST_FAILED.
+  const proxyRequestFailed = Object.assign(
+    new Error("Proxy request failed: fetch failed (cause ERR_HTTP2_STREAM_ERROR)"),
+    { code: "PROXY_REQUEST_FAILED", causeCode: "ERR_HTTP2_STREAM_ERROR" }
+  );
+  assert.equal(isUpstreamNetworkError(proxyRequestFailed), true);
+  assert.equal(shouldSwallowUncaught(proxyRequestFailed, "uncaughtException"), true);
+  assert.equal(shouldSwallowUncaught(proxyRequestFailed, "unhandledRejection"), true);
 });
 
 test("isUpstreamNetworkError rejects genuine errors", () => {

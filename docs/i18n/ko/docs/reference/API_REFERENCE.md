@@ -1,10 +1,10 @@
 # API Reference (한국어)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute API의 핵심 참조 문서입니다. 공개 `/v1` 인터페이스와 가장 자주 사용되는 관리 엔드포인트를 다룹니다. 전체 내용은 기계 판독 가능한 [`docs/openapi.yaml`](../openapi.yaml)과 `src/app/api/` 아래의 라우트 트리를 참조하세요.
 
@@ -86,11 +86,11 @@ Content-Type: application/json
 
 > **캐시 적중 비용 의미:** 시맨틱 캐시 적중(`X-OmniRoute-Cache-Hit: true`) 시에는 업스트림 호출이 발생하지 않으므로 `X-OmniRoute-Response-Cost`는 `0.0000000000`입니다(적중 결과 제공에 따른 **증분** 비용). 원래 발생했거나 발생했을 비용은 `X-OmniRoute-Cost-Saved`에 별도로 보고됩니다. 청구 시스템에서는 `X-OmniRoute-Response-Cost`를 합산해야 하며(캐시 적중 비용은 없음), 캐시 분석에서는 `X-OmniRoute-Cost-Saved`를 집계할 수 있습니다.
 
-## 독점 관리형 세션 임대
+## 독점 관리 세션 리스
 
-독점 관리형 세션 임대는 선택적으로 사용하는 클라이언트 중립적 라우팅 계약입니다. 하나의 활성 소유자가 적격 OmniRoute 연결 하나를 점유합니다. 이는 모델을 임대하거나, OAuth를 요구하거나, 특정 클라이언트를 식별하거나, 특정 공급자를 요구하지 않습니다.
+독점 관리 세션 리스는 옵트인(opt-in) 방식의 클라이언트 중립적 라우팅 계약입니다. 즉, 하나의 활성 소유자가 하나의 적격 OmniRoute 연결을 보유합니다. 이는 모델을 임대하거나, OAuth를 요구하거나, 특정 클라이언트를 식별하거나, 특정 공급자를 요구하지 않습니다.
 
-인증에 사용하는 API 키에는 `lease:exclusive` 범위와 명시적인 비어 있지 않은 `allowedConnections` 목록이 있어야 합니다. 데이터베이스 변경 경계는 키 생성 및 부분 업데이트 시 두 필드가 함께 존재하도록 강제합니다.
+인증 API 키는 `lease:exclusive` 스코프와 명시적인 비어 있지 않은 `allowedConnections` 목록을 가지고 있어야 합니다. 데이터베이스 변경 경계는 키 생성 및 부분 업데이트 시 두 필드를 함께 적용합니다.
 
 ```http
 POST /api/v1/session-leases
@@ -101,7 +101,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 {"action":"acquire","model":"glm/glm-4.6"}
 ```
 
-성공한 획득, 갱신 및 해제 응답은 타임스탬프, `state`, 정확한 양의 `generation`을 노출하지만, 선택된 연결이나 자격 증명은 절대 노출하지 않습니다. 갱신 및 해제 시에는 JSON 본문에 generation을 제공합니다.
+성공적인 획득(acquire), 갱신(renew), 해제(release) 응답은 타임스탬프, `state`, 정확한 양의 `generation`을 노출하지만, 선택된 연결이나 자격 증명은 절대 노출하지 않습니다. 갱신 및 해제는 JSON 본문에 generation을 제공합니다.
 
 ```json
 { "action": "renew", "generation": 1 }
@@ -111,7 +111,7 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 { "action": "release", "generation": 1, "reason": "OWNER_EXIT" }
 ```
 
-활성 임대 소유자는 현재 바인딩에 대해 개인정보 보호에 안전한 표시 메타데이터를 명시적으로 요청할 수 있습니다.
+활성 리스 소유자는 현재 바인딩에 대한 개인 정보 보호에 안전한 표시 메타데이터를 명시적으로 요청할 수 있습니다.
 
 ```json
 { "action": "status", "generation": 1 }
@@ -131,22 +131,22 @@ X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 }
 ```
 
-이 선택적 상태 작업은 하나의 데이터베이스 트랜잭션에서 불투명한 소유자, 인증된 관리형 API 키 및 정확한 활성 generation으로 보호됩니다. `displayName`은 구성된 연결 이름에서 앞뒤 공백만 제거한 값이며, 안전한 구성 이름이 없으면 `null`입니다. OmniRoute는 이메일이나 생성된 계정 ID를 대신 사용하지 않습니다. 공급자 값은 민감하지 않은 표시 레이블이며, 생성된 호환 공급자 식별자가 아닙니다. 자격 증명, 토큰, 쿠키, 원시 연결 또는 API 키 ID, 소유자 해시, 펜싱 비밀 값 및 내부 라우팅 데이터는 제외됩니다.
+이 옵트인 상태 작업은 불투명한 소유자, 인증된 관리 API 키, 그리고 하나의 데이터베이스 트랜잭션 내에서 정확한 활성 generation에 의해 보호됩니다. `displayName`은 구성된 연결 이름의 잘린 부분일 뿐이며, 안전하게 구성된 이름이 없을 경우 `null`입니다. OmniRoute는 이메일이나 생성된 계정 ID를 절대 대체하지 않습니다. 공급자 값은 민감하지 않은 표시 레이블이며, 생성된 호환 공급자 식별자가 아닙니다. 자격 증명, 토큰, 쿠키, 원시 연결 또는 API 키 ID, 소유자 해시, 보호 비밀, 내부 라우팅 데이터는 제외됩니다.
 
-잘못된 키, 잘못된 소유자, 오래된 generation, 존재하지 않거나 만료되거나 해제되거나 무효화된 조회는 모두 연결 메타데이터 없이 동일한 `409 LEASE_FENCE_STALE` 오류를 반환합니다. 용량 대기 응답을 받은 클라이언트에는 검사할 수 있는 활성 바인딩이 없습니다. 라우팅이 활성 임대를 전환할 때는 동일한 generation이 계속 유효하며, 상태 조회는 이전 바인딩이 아닌 새 바인딩을 원자적으로 반환합니다. 획득, 갱신, 해제 및 대기 응답은 기존 형식을 유지하므로 기존 클라이언트에는 변경 사항이 없습니다.
+잘못된 키, 잘못된 소유자, 오래된 generation, 누락, 만료, 해제, 무효화된 조회는 모두 연결 메타데이터 없이 동일한 `409 LEASE_FENCE_STALE` 오류를 반환합니다. 용량 대기 응답을 받은 클라이언트는 검사할 활성 바인딩이 없습니다. 라우팅이 활성 리스를 전환할 때, 동일한 generation은 유효하게 유지되며 상태는 원자적으로 새 바인딩을 반환하고 이전 바인딩은 반환하지 않습니다. 획득, 갱신, 해제 및 대기 응답은 이전 형태를 유지하므로 기존 클라이언트는 변경되지 않습니다.
 
-이 서버 계약은 기본 OpenAI Codex `/status`를 변경하지 않습니다. 현재 기본 Codex는 모델 공급자와 기본 제공 인증/계정 상태를 보고하지만 임의의 사용자 지정 공급자 계정 메타데이터는 렌더링하지 않습니다. 향후 클라이언트 통합에서는 이 작업을 호출하고 `connection.displayName`을 표시할 방법을 결정해야 합니다.
+이 서버 계약은 기존 OpenAI Codex `/status`를 변경하지 않습니다. 기존 Codex는 현재 모델 공급자와 내장 인증/계정 상태를 보고하지만, 임의의 사용자 지정 공급자 계정 메타데이터를 렌더링하지 않습니다. 이후 클라이언트 통합은 이 작업을 호출하고 `connection.displayName`을 표시하는 방법을 결정해야 합니다.
 
-그런 다음 모든 관리형 추론 요청은 두 제어 헤더를 모두 제공합니다.
+모든 관리형 추론 요청은 다음 두 가지 제어 헤더를 제공합니다.
 
 ```http
 X-OmniRoute-Lease-Owner: vlo_<43-base64url-characters>
 X-OmniRoute-Lease-Generation: 1
 ```
 
-정확한 소유자, generation, 활성 연결 및 인증된 API 키는 지원되는 각 업스트림 시도 직전에 펜싱됩니다. 다른 키가 동일한 연결을 허용하더라도 해당 키를 사용해 소유자와 generation을 재사용하면 실패합니다. 원시 소유자 값은 영구 저장되거나, 로그에 기록되거나, 요청 스냅샷에 보존되거나, 업스트림으로 전달되지 않습니다.
+정확한 소유자, generation, 활성 연결 및 인증된 API 키는 지원되는 각 업스트림 시도 직전에 보호됩니다. 다른 키로 소유자와 generation을 재생하면 해당 키가 동일한 연결을 허용하더라도 실패합니다. 원시 소유자는 유지되거나, 로깅되거나, 요청 스냅샷에 보관되거나, 업스트림으로 전달되지 않습니다.
 
-일시적인 경합이 발생하면 HTTP `429`가 `Retry-After` 및 다음 내용과 함께 반환됩니다.
+일시적인 경합은 `Retry-After`와 함께 HTTP `429`를 반환하며 다음과 같습니다.
 
 ```json
 {
@@ -157,33 +157,35 @@ X-OmniRoute-Lease-Generation: 1
 }
 ```
 
-이 응답은 일반 적격 집합이 비어 있지 않았으며 모든 사용 가능한 후보가 다른 소유자의 활성 임대에 의해 점유되었다는 의미일 뿐입니다. 지원되지 않는 모델/공급자, 정책 불일치, 쿨다운, 할당량, 상태 및 기타 일반적인 적격성 실패에는 기존 OmniRoute 응답이 그대로 유지됩니다.
+이 응답은 일반적인 적격 세트가 비어 있지 않았고 모든 사용 가능한 후보가 외부 활성 리스에 의해 점유되었음을 의미할 뿐입니다. 지원되지 않는 모델/공급자, 정책 불일치, 쿨다운, 할당량, 상태 및 기타 일반적인 적격성 실패는 기존 OmniRoute 응답을 유지합니다.
 
 ### `x-omniroute-compression`
 
-요청별 압축 계획 재정의입니다. 우선순위가 가장 높으며 라우팅 조합 재정의, 활성 프로필, 자동 트리거 및 패널의 Default보다 우선합니다. 값은 다음과 같습니다.
+압축 계획에 대한 요청별 재정의. 가장 높은 우선순위를 가집니다. 라우팅-콤보 재정의, 활성 프로필, 자동 트리거 및 패널 기본값을 능가합니다. 값:
 
-| 값            | 효과                                                                                   |
-| ------------- | -------------------------------------------------------------------------------------- |
-| `off`         | 이 요청에는 압축을 적용하지 않습니다.                                                  |
-| `default`     | 패널에서 파생된 Default 프로필입니다(활성 프로필을 무시함).                            |
-| `engine:<id>` | 활성화된 경우 단일 엔진입니다(예: `engine:rtk`).                                       |
-| `<combo>`     | 먼저 이름으로 대소문자 구분 없이 일치시키고, 그다음 id로 일치시키는 명명된 조합입니다. |
+| 값            | 효과                                                                        |
+| ------------- | --------------------------------------------------------------------------- |
+| `off`         | 이 요청에 대한 압축 없음.                                                   |
+| `default`     | 패널에서 파생된 기본 프로필 (활성 프로필 무시). 손실 엔진은 비활성화됩니다. |
+| `safe`        | 중복 제거 및 공백 접기만.                                                   |
+| `allow-lossy` | 요약 및 스타일 재작성을 포함하여 이 요청에 대한 운영자 계획을 유지합니다.   |
+| `engine:<id>` | 활성화된 경우 단일 엔진, 예: `engine:rtk`. 해당 엔진에 대한 요청별 옵트인.  |
+| `<combo>`     | 이름으로 일치하는 명명된 콤보 (대소문자 구분 없음), 그 다음 ID로 일치.      |
 
 참고:
 
-- 알 수 없는 값은 무시되며 요청은 절대 거부되지 않습니다. 해석은 일반적인 연산자 우선순위에 따라 계속 진행됩니다.
-- 여러 조합이 같은 이름을 공유하는 경우 결정론적으로 일치시키려면 조합의 **id**를 전달하십시오.
-- 이름이 `off` 또는 `default`인 조합은 이름으로 선택할 수 없습니다. 해당 키워드가 먼저 해석되기 때문입니다. 이러한 조합은 id로 참조하십시오.
-- 마스터 압축 스위치는 절대적인 게이트입니다. 압축이 전역적으로 비활성화되어 있으면 이 헤더로 활성화할 수 없습니다.
+- 알 수 없는 값은 무시됩니다 (요청은 절대 거부되지 않습니다). 해결은 일반적인 운영자 우선순위에 따라 진행됩니다.
+- 여러 콤보가 이름을 공유하는 경우, 결정론적 일치를 위해 콤보 **ID**를 전달하십시오.
+- 이름이 `off` 또는 `default`인 콤보는 이름으로 선택할 수 없습니다 (해당 키워드가 먼저 해석됨). ID로 해당 콤보를 참조하십시오.
+- 마스터 압축 스위치는 하드 게이트입니다. 압축이 전역적으로 비활성화된 경우 이 헤더는 압축을 활성화할 수 없습니다.
 
-적용된 계획은 응답 헤더에 그대로 반환됩니다.
+적용된 계획은 응답 헤더에 다시 반영됩니다.
 
 ```
 X-OmniRoute-Compression: <mode>; source=<source>
 ```
 
-여기서 `<source>`는 `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default` 또는 `off` 중 하나입니다.
+여기서 `<source>`는 `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, 또는 `off` 중 하나입니다.
 
 ---
 
@@ -431,9 +433,9 @@ Bifrost, CLIProxyAPI 및 향후 사이드카 라우터에서 사용하는 JSON �
 | POST   | `/v1/music/generations`                   | OpenAI 스타일 음악 생성          |
 | POST   | `/v1/audio/transcriptions`                | OpenAI Audio(STT)                |
 | POST   | `/v1/audio/speech`                        | OpenAI TTS(오디오 본문 반환)     |
-| POST   | `/v1/rerank`                              | Cohere/Voyage 스타일 재순위화    |
+| POST   | `/v1/rerank`                              | Cohere/Voyage 스타일 재순위 지정 |
 | POST   | `/v1/classify`                            | Jina 분류(`api.jina.ai`)         |
-| POST   | `/v1/segment`                             | Jina 세그먼터(`segment.jina.ai`) |
+| POST   | `/v1/segment`                             | Jina 세그멘터(`segment.jina.ai`) |
 | POST   | `/v1/moderations`                         | OpenAI Moderations               |
 | GET    | `/v1/models`                              | OpenAI                           |
 | POST   | `/v1/messages/count_tokens`               | Anthropic                        |
@@ -447,38 +449,66 @@ Bifrost, CLIProxyAPI 및 향후 사이드카 라우터에서 사용하는 JSON �
 | POST   | `/api/v1/vscode/{token}/api/chat`         | Ollama 토큰화 별칭               |
 | GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama 태그 토큰화 별칭          |
 
-모든 POST 라우트는 `Bearer your-api-key` + Zod로 검증된 JSON 본문(`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` 등, `src/shared/validation/schemas.ts` 참조)이라는 동일한 형식을 따릅니다. 스키마 검증에 실패하면 4xx가 반환됩니다.
+모든 POST 경로는 동일한 형식을 따릅니다. `Bearer your-api-key` + Zod로 검증된 JSON 본문(`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` 등, `src/shared/validation/schemas.ts` 참조). 스키마 검증에 실패하면 4xx가 반환됩니다.
 
-`Authorization: Bearer ...`를 첨부할 수 없는 클라이언트를 위해 OmniRoute는 쿼리 문자열 호환 방식(`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`)이나 아래에 설명된 전용 `/api/v1/vscode/{token}/...` 엔드포인트를 통해 URL의 API 키도 허용합니다.
+`Authorization: Bearer ...`를 첨부할 수 없는 클라이언트를 위해 OmniRoute는 쿼리 문자열 호환 방식(`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) 또는 아래에 설명된 전용 `/api/v1/vscode/{token}/...` 엔드포인트를 통해 URL에 포함된 API 키도 허용합니다.
 
 ```bash
-# 재순위화
+# 재순위 지정(클라우드 레지스트리 제공자 또는 "<prefix>/<model>" 형식의 OpenAI 호환 제공자 노드)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina 분류(Foundation API 자격 증명)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina 세그먼터
+# Jina 세그멘터
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
 # Jina 검색(s.jina.ai; 제공자 별칭: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# 조정
+# 검토
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — audio/mpeg(또는 요청된 형식) 본문 반환
+# TTS — audio/mpeg(또는 요청한 형식) 본문 반환
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
+
+# Soniox TTS에는 언어와 음성이 필요합니다. `language`의 기본값은 "en"입니다. 음성이
+# 없거나 OpenAI 기본 음성 이름(alloy, nova, …)이면 "Adrian"으로 설정됩니다.
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # 이미지 편집(multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # 비디오/음악 생성(제공자 접두사가 붙은 모델 ID)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-### 전용 제공자 라우트
+> **재순위 지정 제공자 노드:** `POST /v1/rerank`는 `<node-prefix>/<model>`로 지정된
+> OpenAI 호환 제공자 노드(oMLX, vLLM, Infinity, 게이트웨이 뒤의 TEI 등)로도 요청을
+> 라우팅합니다. 루프백 노드(`localhost`, `127.0.0.1`, `172.16.0.0/12`)는 항상 사용할
+> 수 있습니다. 그 외 호스트의 노드(LAN 장비 또는 Tailscale 피어)는 운영자가
+> `RERANK_REMOTE_PROVIDER_NODES` 기능 플래그를 활성화하고 노드의 기본 URL이 제공자의
+> 아웃바운드 URL 정책(`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`)을
+> 통과하는 경우에만 사용할 수 있습니다. 클라우드 메타데이터 호스트로는 절대 라우팅되지
+> 않습니다. 메모리 엔진의 재순위 지정 단계는 루프백을 통해 이 경로를 호출하므로, Memory
+> 설정의 `rerankProviderModel`에도 동일한 규칙이 적용됩니다.
+>
+> **로컬 서버 형식:** 노드는 `<base>/v1/rerank`에서 호출되며, 404가 발생하면
+> `<base>/rerank`(Infinity, TEI)에서 호출됩니다. 업스트림 본문에는 Cohere/OpenAI 표기
+> (`documents`, `return_documents`)와 TEI 표기(`texts`, `return_text`)가 모두 포함되며,
+> 업스트림 응답은 Cohere 엔벌로프로 정규화됩니다. TEI의 단순 배열
+> `[{index, score, text}]`, 경량 게이트웨이의 `{results: [{index, score}]}`, Voyage 스타일의
+> `{data: [...]}`는 모두 클라이언트에 `{results: [{index, relevance_score, document?}]}`
+> 형식으로 반환되며, 점수순으로 정렬되고 `top_n`개로 제한됩니다.
+
+> **프로바이더 노드 검색:** OpenAI 호환 프로바이더 노드의 모델은 노드 접두사 아래의 `GET /v1/models`에 표시됩니다.
+> 엔드포인트 메타데이터가 없는 항목(로컬 `/v1/models` 목록에서 일반적)은
+> 노드의 `apiType`을 상속하므로, `embeddings` 노드의 모델은 기본적으로 채팅으로 설정되는 대신 `type: "embedding"`이 되고
+> `rerank` 노드의 모델은 `type: "rerank"`가 됩니다. 동기화되었거나 수동으로 추가된 항목에 명시적인
+> `supportedEndpoints`가 있으면 여전히 이것이 우선합니다.
+
+### 전용 프로바이더 라우트
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -486,7 +516,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-제공자 접두사가 없으면 자동으로 추가됩니다. 일치하지 않는 모델은 `400`을 반환합니다.
+프로바이더 접두사가 없으면 자동으로 추가됩니다. 일치하지 않는 모델은 `400`을 반환합니다.
 
 ---
 
@@ -769,7 +799,7 @@ X-OmniRoute-No-Cache: true
 
 ## 대시보드 및 관리
 
-관리 라우트(공개 인증/로그인을 제외한 `/api/*`)는 일반 추론 API 키로 **인증되지 않습니다**. 자격 증명 유형, 범위 및 curl 예시는 다음을 참조하세요.
+관리 경로(공개 인증/로그인을 제외한 `/api/*`)는 일반 추론 API 키로 **인증되지 않습니다**. 자격 증명 유형, 범위 및 curl 예시는 다음을 참조하세요:
 [관리 인증](../guides/MANAGEMENT-AUTH.md).
 
 ### 인증
@@ -780,60 +810,61 @@ X-OmniRoute-No-Cache: true
 | `/api/auth/logout`            | POST    | 로그아웃              |
 | `/api/settings/require-login` | GET/PUT | 로그인 필수 여부 전환 |
 
-### 공급자 관리
+### 제공자 관리
 
-| 엔드포인트                   | 메서드                | 설명                                                                                       |
-| ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------ |
-| `/api/providers`             | GET/POST              | 공급자 목록 조회/생성                                                                      |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | 공급자 관리                                                                                |
-| `/api/providers/[id]/test`   | POST                  | 공급자 연결 테스트                                                                         |
-| `/api/providers/[id]/models` | GET                   | 공급자 모델 목록 조회                                                                      |
-| `/api/providers/validate`    | POST                  | 공급자 구성 검증                                                                           |
-| `/api/providers/bulk`        | POST                  | 단일 공급자의 API 키 일괄 추가                                                             |
-| `/api/providers/import`      | POST                  | 파싱된 CSV/JSON 파일에서 여러 유형의 공급자 목록 가져오기(#6836), 행별 부분 실패 결과 제공 |
-| `/api/provider-nodes*`       | 다양함                | 공급자 노드 관리                                                                           |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | 사용자 지정 모델(추가, 업데이트, 숨기기/표시, 삭제)                                        |
+| 엔드포인트                              | 메서드                | 설명                                                                                                                    |
+| --------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | 제공자 목록 조회 / 생성                                                                                                 |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | 제공자 관리                                                                                                             |
+| `/api/providers/[id]/test`              | POST                  | 제공자 연결 테스트                                                                                                      |
+| `/api/providers/[id]/models`            | GET                   | 제공자 모델 목록 조회                                                                                                   |
+| `/api/providers/validate`               | POST                  | 제공자 구성 검증                                                                                                        |
+| `/api/providers/bulk`                   | POST                  | 하나의 제공자에 API 키 일괄 추가                                                                                        |
+| `/api/providers/import`                 | POST                  | 파싱된 CSV/JSON 파일에서 서로 다른 제공자로 구성된 목록 가져오기(#6836); 행별 부분 실패 결과                            |
+| `/api/provider-nodes*`                  | 다양한 메서드         | 제공자 노드 관리                                                                                                        |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | 사용자 지정 모델(추가, 업데이트, 숨기기/표시, 삭제)                                                                     |
+| `/api/provider-models/validate-and-add` | POST                  | 관리 인증을 거친 선택적 엄격 연결 검증 및 원자적 사용자 지정 모델 등록. [모델 검증](../guides/MODEL-VALIDATION.md) 참조 |
 
 ### OAuth 흐름
 
-| 엔드포인트                       | 메서드 | 설명           |
-| -------------------------------- | ------ | -------------- |
-| `/api/oauth/[provider]/[action]` | 다양함 | 공급자별 OAuth |
+| 엔드포인트                       | 메서드        | 설명           |
+| -------------------------------- | ------------- | -------------- |
+| `/api/oauth/[provider]/[action]` | 다양한 메서드 | 제공자별 OAuth |
 
 ### 라우팅 및 구성
 
-| 엔드포인트            | 메서드   | 설명                       |
-| --------------------- | -------- | -------------------------- |
-| `/api/models/alias`   | GET/POST | 모델 별칭                  |
-| `/api/models/catalog` | GET      | 공급자 및 유형별 모든 모델 |
-| `/api/combos*`        | 다양함   | 콤보 관리                  |
-| `/api/keys*`          | 다양함   | API 키 관리                |
-| `/api/pricing`        | GET      | 모델 요금                  |
+| 엔드포인트            | 메서드        | 설명                       |
+| --------------------- | ------------- | -------------------------- |
+| `/api/models/alias`   | GET/POST      | 모델 별칭                  |
+| `/api/models/catalog` | GET           | 제공자 및 유형별 모든 모델 |
+| `/api/combos*`        | 다양한 메서드 | 콤보 관리                  |
+| `/api/keys*`          | 다양한 메서드 | API 키 관리                |
+| `/api/pricing`        | GET           | 모델 가격                  |
 
 ### 사용량 및 분석
 
-| 엔드포인트                       | 메서드          | 설명                                                                                                                                                                                                                                                             |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | 사용량 기록                                                                                                                                                                                                                                                      |
-| `/api/usage/logs`                | GET             | 사용량 로그                                                                                                                                                                                                                                                      |
-| `/api/usage/request-logs`        | GET             | 요청 수준 로그                                                                                                                                                                                                                                                   |
-| `/api/usage/[connectionId]`      | GET             | 연결별 사용량                                                                                                                                                                                                                                                    |
-| `/api/usage/token-limits`        | GET/POST/DELETE | API 키별 토큰 한도 예산                                                                                                                                                                                                                                          |
-| `/api/usage/model-latency-stats` | GET             | 공급자/모델별 이동 지연 시간 집계(avg/p50/p95/p99, 성공률); 필터: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                |
-| `/api/usage/cache-health`        | GET             | `call_logs`에 대한 프롬프트 캐시 상태 요약 — 쓰기/읽기 비율, p50/p90/p99 쓰기 크기 분포, 대량 쓰기 집중도, 모델별 분석 및 `healthy`/`degraded`/`thrash`/`no-data` 판정; 쿼리 매개변수 `range` (`1h`\|`24h`\|`7d`\|`30d`, 기본값 `24h`) 및 선택적 `model` (#8827) |
+| 엔드포인트                       | 메서드          | 설명                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/usage/history`             | GET             | 사용량 기록                                                                                                                                                                                                                                                        |
+| `/api/usage/logs`                | GET             | 사용량 로그                                                                                                                                                                                                                                                        |
+| `/api/usage/request-logs`        | GET             | 요청 수준 로그                                                                                                                                                                                                                                                     |
+| `/api/usage/[connectionId]`      | GET             | 연결별 사용량                                                                                                                                                                                                                                                      |
+| `/api/usage/token-limits`        | GET/POST/DELETE | API 키별 토큰 한도 예산                                                                                                                                                                                                                                            |
+| `/api/usage/model-latency-stats` | GET             | 제공자/모델별 롤링 지연 시간 집계(avg/p50/p95/p99, 성공률); 필터: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                  |
+| `/api/usage/cache-health`        | GET             | `call_logs`에 대한 프롬프트 캐시 상태 요약 — 쓰기/읽기 비율, p50/p90/p99 쓰기 크기 분포, 대규모 쓰기 집중도, 모델별 분석 및 `healthy`/`degraded`/`thrash`/`no-data` 판정; 쿼리 매개변수 `range` (`1h`\|`24h`\|`7d`\|`30d`, 기본값 `24h`) 및 선택적 `model` (#8827) |
 
 ### 설정
 
-| 엔드포인트                            | 메서드        | 설명                                                                                                                                                                |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | 일반 설정                                                                                                                                                           |
-| `/api/settings/proxy`                 | GET/PUT       | 네트워크 프록시 구성                                                                                                                                                |
-| `/api/settings/proxy/test`            | POST          | 프록시 연결 테스트                                                                                                                                                  |
-| `/api/settings/ip-filter`             | GET/PUT       | IP 허용 목록/차단 목록                                                                                                                                              |
-| `/api/settings/thinking-budget`       | GET/PUT       | 사고/추론 **요청** 재작성 모드(passthrough / auto-strip / custom / adaptive). 압축과는 별개입니다. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)를 참조하세요. |
-| `/api/settings/system-prompt`         | GET/PUT       | 전역 시스템 프롬프트                                                                                                                                                |
-| `/api/settings/compression`           | GET/PUT       | 전역 압축 구성                                                                                                                                                      |
-| `/api/settings/purge-request-history` | POST          | 요청 로그 행 및 로컬 호출 로그 아티팩트 삭제                                                                                                                        |
+| 엔드포인트                            | 메서드        | 설명                                                                                                                                                                    |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | 일반 설정                                                                                                                                                               |
+| `/api/settings/proxy`                 | GET/PUT       | 네트워크 프록시 구성                                                                                                                                                    |
+| `/api/settings/proxy/test`            | POST          | 프록시 연결 테스트                                                                                                                                                      |
+| `/api/settings/ip-filter`             | GET/PUT       | IP 허용 목록/차단 목록                                                                                                                                                  |
+| `/api/settings/thinking-budget`       | GET/PUT       | 사고/추론 **요청** 재작성 모드(그대로 전달 / 자동 제거 / 사용자 지정 / 적응형). 압축과는 독립적입니다. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)를 참조하세요. |
+| `/api/settings/system-prompt`         | GET/PUT       | 전역 시스템 프롬프트                                                                                                                                                    |
+| `/api/settings/compression`           | GET/PUT       | 전역 압축 구성                                                                                                                                                          |
+| `/api/settings/purge-request-history` | POST          | 요청 로그 행 및 로컬 호출 로그 아티팩트 삭제                                                                                                                            |
 
 ### 컨텍스트 및 압축
 
@@ -846,7 +877,7 @@ X-OmniRoute-No-Cache: true
 | `/api/context/rtk/config`              | GET/PUT        | 사용자 지정 필터 및 원시 출력 보존을 포함한 RTK 전용 설정    |
 | `/api/context/rtk/filters`             | GET            | RTK 필터 카탈로그 및 사용자 지정 필터 진단                   |
 | `/api/context/rtk/test`                | POST           | 텍스트 페이로드를 대상으로 RTK 미리보기/테스트 실행          |
-| `/api/context/rtk/raw-output/[id]`     | GET            | 포인터 ID로 보존된 민감 정보 제거 원시 출력 읽기             |
+| `/api/context/rtk/raw-output/[id]`     | GET            | 포인터 ID로 보존된 수정 처리 원시 출력 읽기                  |
 | `/api/context/combos`                  | GET/POST       | 압축 조합 목록/생성                                          |
 | `/api/context/combos/[id]`             | GET/PUT/DELETE | 압축 조합 상세 정보/업데이트/삭제                            |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | 라우팅 조합에 압축 조합 할당                                 |
@@ -854,15 +885,15 @@ X-OmniRoute-No-Cache: true
 
 ### 모니터링
 
-| 엔드포인트                           | 메서드     | 설명                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | 활성 세션 추적                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `/api/rate-limits`                   | GET        | 계정별 요청 한도                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/monitoring/health`             | GET        | 상태 확인 + 제공자 요약(`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). 관리 보기에는 `credentialHealth`가 포함됩니다. 이는 프로브 캐시 스칼라, `failed>0`인 경우의 `failedConnections`, 그리고 `staleDbNonOkCount`(게이지가 아닌 SQLite 고정 `test_status`)로 구성됩니다. [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)를 참조하세요. |
-| `/api/cache/stats`                   | GET/DELETE | 캐시 통계 / 지우기                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `/api/modality-bridge/stats`         | GET        | 메모리 내 `attempts`, 성공 횟수/`bridged`, 실패 횟수, 캐시 적중 횟수, `totalLatencyMs`, `latencySamples`, 샘플 수를 분모로 계산한 `averageLatencyMs`, 마지막 사용 시간(재시작 시 초기화, 관리 인증 필요)                                                                                                                                                                                                           |
-| `/api/modality-bridge/video/runtime` | GET        | 관리 인증/프로브 전에 엄격한 신뢰된 루프백 검사 수행, 정제된 FFmpeg/ffprobe 가용성 및 버전(`no-store`)                                                                                                                                                                                                                                                                                                             |
-| `/api/modality-bridge/video/extract` | POST       | 내부 인증된 신뢰 루프백 바이트 브로커. 입력 50 MiB, 제한된 큐/출력 32 MiB, 용량 초과 시 `503`, 연결 해제 시 `499`, 기한 초과 시 `504`. 공개 업로드 API가 아님                                                                                                                                                                                                                                                      |
+| 엔드포인트                           | 메서드     | 설명                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/sessions`                      | GET        | 활성 세션 추적                                                                                                                                                                                                                                                                                                                                                                                         |
+| `/api/rate-limits`                   | GET        | 계정별 요청 한도                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/monitoring/health`             | GET        | 상태 확인 + 제공자 요약(`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). 관리 뷰에는 `credentialHealth`가 포함됩니다. 즉, 프로브 캐시 스칼라, `failed>0`일 때의 `failedConnections`, 그리고 `staleDbNonOkCount`(게이지가 아닌 SQLite 고정 `test_status`)입니다. [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)를 참조하세요. |
+| `/api/cache/stats`                   | GET/DELETE | 캐시 통계 / 지우기                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/modality-bridge/stats`         | GET        | 메모리 내 `attempts`, 성공 횟수/`bridged`, 실패 횟수, 캐시 적중 횟수, `totalLatencyMs`, `latencySamples`, 샘플 수를 분모로 계산한 `averageLatencyMs`, 마지막 사용 시간(재시작 시 초기화, 관리 인증 필요)                                                                                                                                                                                               |
+| `/api/modality-bridge/video/runtime` | GET        | 관리 인증/프로브 전에 엄격한 신뢰 루프백 검사 수행, 정제된 FFmpeg/ffprobe 가용성 및 버전(no-store)                                                                                                                                                                                                                                                                                                     |
+| `/api/modality-bridge/video/extract` | POST       | 내부 인증된 신뢰 루프백 바이트 브로커. 입력 제한 50 MiB, 제한된 큐/출력 제한 32 MiB, 용량 초과 시 `503`, 연결 해제 시 `499`, 기한 초과 시 `504`. 공개 업로드 API가 아님                                                                                                                                                                                                                                |
 
 ### 백업 및 내보내기/가져오기
 
@@ -900,7 +931,7 @@ X-OmniRoute-No-Cache: true
 | `/api/cli-tools/codex-settings`    | GET    | Codex CLI 상태    |
 | `/api/cli-tools/droid-settings`    | GET    | Droid CLI 상태    |
 | `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI 상태 |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | 일반 CLI 런타임   |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | 범용 CLI 런타임   |
 
 CLI 응답에는 `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`이 포함됩니다.
 
@@ -916,16 +947,16 @@ GET 응답에는 `agents[]`(id, name, binary, version, installed, protocol, isCu
 
 ### 복원력 및 속도 제한
 
-| 엔드포인트                        | 메서드    | 설명                                                                                               |
-| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | 요청 대기열, 연결 쿨다운, 제공자 차단기 및 대기 설정 조회/업데이트                                 |
-| `/api/resilience/reset`           | POST      | 제공자 회로 차단기 재설정                                                                          |
-| `/api/resilience/model-cooldowns` | GET       | 활성화된 (제공자, 연결, 모델)별 잠금 목록을 남은 시간순으로 조회                                   |
-| `/api/resilience/model-cooldowns` | DELETE    | 모델 잠금 해제 — 본문에 `{provider, model}`을 사용하거나 모든 항목을 삭제하려면 `{all: true}` 사용 |
-| `/api/rate-limits`                | GET       | 계정별 속도 제한 상태                                                                              |
-| `/api/rate-limit`                 | GET       | 전역 속도 제한 구성                                                                                |
+| 엔드포인트                        | 메서드    | 설명                                                                                     |
+| --------------------------------- | --------- | ---------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | 요청 큐, 연결 쿨다운, 제공자 차단기 및 대기 설정 조회/업데이트                           |
+| `/api/resilience/reset`           | POST      | 제공자 회로 차단기 재설정                                                                |
+| `/api/resilience/model-cooldowns` | GET       | 남은 시간순으로 정렬된 활성 (제공자, 연결, 모델)별 잠금 목록 조회                        |
+| `/api/resilience/model-cooldowns` | DELETE    | 모델 잠금 해제 — 본문에 `{provider, model}`을 사용하거나 전체 삭제 시 `{all: true}` 사용 |
+| `/api/rate-limits`                | GET       | 계정별 속도 제한 상태                                                                    |
+| `/api/rate-limit`                 | GET       | 전역 속도 제한 구성                                                                      |
 
-> 네 개의 `/api/resilience/*` 경로는 모두 **관리 인증**(`requireManagementAuth`)이 필요합니다. 제공자 차단기, 연결 쿨다운, 모델 잠금 간의 차이에 대한 전체 설명은 [복원력(확장)](#resilience-extended)을 참조하세요.
+> 네 개의 `/api/resilience/*` 경로에는 모두 **관리 인증**(`requireManagementAuth`)이 필요합니다. 제공자 차단기, 연결 쿨다운 및 모델 잠금에 대한 전체 설명은 [복원력(확장)](#resilience-extended)을 참조하세요.
 
 ### 평가
 
@@ -952,7 +983,7 @@ GET 응답에는 `agents[]`(id, name, binary, version, installed, protocol, isCu
 | `/v1beta/models`           | GET    | Gemini 형식으로 모델 목록 조회      |
 | `/v1beta/models/{...path}` | POST   | Gemini `generateContent` 엔드포인트 |
 
-이러한 엔드포인트는 네이티브 Gemini SDK 호환성을 요구하는 클라이언트를 위해 Gemini의 API 형식을 그대로 따릅니다.
+이 엔드포인트들은 네이티브 Gemini SDK 호환성을 요구하는 클라이언트를 위해 Gemini의 API 형식을 그대로 따릅니다.
 
 ### 내부 / 시스템 API
 
@@ -960,8 +991,8 @@ GET 응답에는 `agents[]`(id, name, binary, version, installed, protocol, isCu
 | ------------------------ | ------ | ------------------------------------------- |
 | `/api/init`              | GET    | 애플리케이션 초기화 확인(최초 실행 시 사용) |
 | `/api/tags`              | GET    | Ollama 호환 모델 태그(Ollama 클라이언트용)  |
-| `/api/restart`           | POST   | 정상적인 서버 재시작 실행                   |
-| `/api/shutdown`          | POST   | 정상적인 서버 종료 실행                     |
+| `/api/restart`           | POST   | 정상적인 서버 재시작 트리거                 |
+| `/api/shutdown`          | POST   | 정상적인 서버 종료 트리거                   |
 | `/api/system/env/repair` | POST   | OAuth 제공자 환경 변수 복구                 |
 
 > **참고:** 이러한 엔드포인트는 시스템 내부에서 사용되거나 Ollama 클라이언트와의 호환성을 위해 사용됩니다. 일반적으로 최종 사용자가 직접 호출하지 않습니다.
@@ -977,7 +1008,7 @@ Content-Type: application/json
 }
 ```
 
-특정 제공자의 누락되거나 손상된 OAuth 환경 변수를 복구합니다. 다음을 반환합니다.
+특정 제공자의 누락되거나 손상된 OAuth 환경 변수를 복구합니다. 반환값:
 
 ```json
 {
@@ -1103,7 +1134,7 @@ GET /api/telemetry/summary
 ## 예산
 
 ```bash
-# 모든 API 키의 예산 상태 가져오기
+# 모든 API 키의 예산 상태 조회
 GET /api/usage/budget
 
 # 예산 설정 또는 업데이트
@@ -1120,7 +1151,7 @@ Content-Type: application/json
 }
 ```
 
-> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수이며, `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상이 0보다 커야 합니다. 선택적 필드: `warningThreshold`(0~1), `resetInterval`(`daily` | `weekly` | `monthly`), `resetTime`(`HH:MM`). 레거시 `{keyId, limit, period}` 형식을 사용하면 `400 Bad Request`가 반환됩니다.
+> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수이며, `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상이 0보다 커야 합니다. 선택적 필드: `warningThreshold`(0–1), `resetInterval`(`daily` | `weekly` | `monthly`), `resetTime`(`HH:MM`). 기존 `{keyId, limit, period}` 형식은 `400 Bad Request`를 반환합니다.
 
 ## 토큰 한도
 
@@ -1408,18 +1439,18 @@ GET /.well-known/agent.json
 
 | 메서드 | 경로 | 설명 |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST | `/api/cloud/auth` | Bearer 키를 검증하고 클라우드 동기화 클라이언트용으로 마스킹된 제공자 연결 + 모델 별칭 반환 |
+| POST | `/api/cloud/auth` | Bearer 키를 검증하고 클라우드 동기화 클라이언트용으로 마스킹된 제공자 연결 및 모델 별칭 반환 |
 | POST | `/api/cloud/credentials/update` | 클라우드와 동기화된 제공자의 암호화된 자격 증명 업데이트 |
 | POST | `/api/cloud/model/resolve` | 로컬 라우팅 테이블을 사용하여 논리적 모델 ID를 구체적인 제공자/모델로 해석 |
-| GET | `/api/cloud/models/alias` | 클라우드 동기화에 노출되는 모델 별칭 목록 |
-| GET | `/api/assess` | 최신 진단 분류 결과 읽기(제공자/모델별) |
+| GET | `/api/cloud/models/alias` | 클라우드 동기화에 노출되는 모델 별칭 목록 조회 |
+| GET | `/api/assess` | 최신 진단 분류 결과 조회(제공자/모델별) |
 | POST | `/api/assess` | 진단 실행 — 본문: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET | `/api/evals` | 기본 제공 평가 스위트 + 최신 실행 목록 |
+| GET | `/api/evals` | 기본 제공 평가 스위트 및 최근 실행 목록 조회 |
 | POST | `/api/evals` | 평가 실행 트리거 |
 | POST | `/api/evals/suites` | 사용자 지정 평가 스위트 생성 — `evalSuiteSaveSchema`로 본문 검증 |
 | GET | `/api/evals/suites/[id]` | 사용자 지정 평가 스위트 조회 |
 
-**인증:** `/api/cloud/auth`는 Bearer 키를 직접 검증합니다. 그 외 `/api/cloud/*`, `/api/evals/*`, `/api/assess` 경로에는 관리 세션/API 키가 필요합니다. `/api/assess` POST는 판별 유니온 범위 스키마와 함께 `validateBody`를 사용합니다.
+**인증:** `/api/cloud/auth`는 Bearer 키를 직접 검증하며, `manage` / `admin` 범위가 있는 키에 한해서만 각 연결의 마스킹된 키와 `projectId`를 반환합니다. 그 외 `/api/cloud/*`, `/api/evals/*`, `/api/assess` 경로에는 관리 세션/API 키가 필요합니다. `/api/assess` POST는 판별 유니온 범위 스키마와 함께 `validateBody`를 사용합니다.
 
 ---
 

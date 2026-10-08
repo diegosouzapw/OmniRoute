@@ -1,6 +1,6 @@
 # CLI Tools — OmniRoute (አማርኛ)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/CLI-TOOLS.md) · 🇸🇦 [ar](../../../ar/docs/reference/CLI-TOOLS.md) · 🇦🇿 [az](../../../az/docs/reference/CLI-TOOLS.md) · 🇧🇬 [bg](../../../bg/docs/reference/CLI-TOOLS.md) · 🇧🇩 [bn](../../../bn/docs/reference/CLI-TOOLS.md) · 🇧🇦 [bs](../../../bs/docs/reference/CLI-TOOLS.md) · 🇨🇿 [cs](../../../cs/docs/reference/CLI-TOOLS.md) · 🇩🇰 [da](../../../da/docs/reference/CLI-TOOLS.md) · 🇩🇪 [de](../../../de/docs/reference/CLI-TOOLS.md) · 🇬🇷 [el](../../../el/docs/reference/CLI-TOOLS.md) · 🇪🇸 [es](../../../es/docs/reference/CLI-TOOLS.md) · 🇪🇪 [et](../../../et/docs/reference/CLI-TOOLS.md) · 🇮🇷 [fa](../../../fa/docs/reference/CLI-TOOLS.md) · 🇫🇮 [fi](../../../fi/docs/reference/CLI-TOOLS.md) · 🇫🇷 [fr](../../../fr/docs/reference/CLI-TOOLS.md) · 🇮🇪 [ga](../../../ga/docs/reference/CLI-TOOLS.md) · 🇮🇳 [gu](../../../gu/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ha](../../../ha/docs/reference/CLI-TOOLS.md) · 🇮🇱 [he](../../../he/docs/reference/CLI-TOOLS.md) · 🇮🇳 [hi](../../../hi/docs/reference/CLI-TOOLS.md) · 🇭🇷 [hr](../../../hr/docs/reference/CLI-TOOLS.md) · 🇭🇺 [hu](../../../hu/docs/reference/CLI-TOOLS.md) · 🇦🇲 [hy](../../../hy/docs/reference/CLI-TOOLS.md) · 🇮🇩 [id](../../../id/docs/reference/CLI-TOOLS.md) · 🇳🇬 [ig](../../../ig/docs/reference/CLI-TOOLS.md) · 🇮🇹 [it](../../../it/docs/reference/CLI-TOOLS.md) · 🇯🇵 [ja](../../../ja/docs/reference/CLI-TOOLS.md) · 🇬🇪 [ka](../../../ka/docs/reference/CLI-TOOLS.md) · 🇰🇭 [km](../../../km/docs/reference/CLI-TOOLS.md) · 🇮🇳 [kn](../../../kn/docs/reference/CLI-TOOLS.md) · 🇰🇷 [ko](../../../ko/docs/reference/CLI-TOOLS.md) · 🇱🇹 [lt](../../../lt/docs/reference/CLI-TOOLS.md) · 🇱🇻 [lv](../../../lv/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ml](../../../ml/docs/reference/CLI-TOOLS.md) · 🇮🇳 [mr](../../../mr/docs/reference/CLI-TOOLS.md) · 🇲🇾 [ms](../../../ms/docs/reference/CLI-TOOLS.md) · 🇲🇹 [mt](../../../mt/docs/reference/CLI-TOOLS.md) · 🇲🇲 [my](../../../my/docs/reference/CLI-TOOLS.md) · 🇳🇵 [ne](../../../ne/docs/reference/CLI-TOOLS.md) · 🇳🇱 [nl](../../../nl/docs/reference/CLI-TOOLS.md) · 🇳🇴 [no](../../../no/docs/reference/CLI-TOOLS.md) · 🇮🇳 [or](../../../or/docs/reference/CLI-TOOLS.md) · 🇮🇳 [pa](../../../pa/docs/reference/CLI-TOOLS.md) · 🇵🇭 [phi](../../../phi/docs/reference/CLI-TOOLS.md) · 🇵🇱 [pl](../../../pl/docs/reference/CLI-TOOLS.md) · 🇵🇹 [pt](../../../pt/docs/reference/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/CLI-TOOLS.md) · 🇷🇴 [ro](../../../ro/docs/reference/CLI-TOOLS.md) · 🇷🇺 [ru](../../../ru/docs/reference/CLI-TOOLS.md) · 🇱🇰 [si](../../../si/docs/reference/CLI-TOOLS.md) · 🇸🇰 [sk](../../../sk/docs/reference/CLI-TOOLS.md) · 🇸🇮 [sl](../../../sl/docs/reference/CLI-TOOLS.md) · 🇷🇸 [sr](../../../sr/docs/reference/CLI-TOOLS.md) · 🇸🇪 [sv](../../../sv/docs/reference/CLI-TOOLS.md) · 🇰🇪 [sw](../../../sw/docs/reference/CLI-TOOLS.md) · 🇮🇳 [ta](../../../ta/docs/reference/CLI-TOOLS.md) · 🇮🇳 [te](../../../te/docs/reference/CLI-TOOLS.md) · 🇹🇭 [th](../../../th/docs/reference/CLI-TOOLS.md) · 🇹🇷 [tr](../../../tr/docs/reference/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/CLI-TOOLS.md) · 🇵🇰 [ur](../../../ur/docs/reference/CLI-TOOLS.md) · 🇺🇿 [uz](../../../uz/docs/reference/CLI-TOOLS.md) · 🇻🇳 [vi](../../../vi/docs/reference/CLI-TOOLS.md) · 🇳🇬 [yo](../../../yo/docs/reference/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/CLI-TOOLS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -45,10 +45,7 @@ ACP Agents (የተቃራኒ ማስጀመሪያ ፍሰት):
 
 ## በ`setup-*` በራስ-ሰር ማዋቀር
 
-የእያንዳንዱን መሣሪያ ውቅር በእጅ መጻፍ አያስፈልግዎትም። OmniRoute እየሠራ
-ካለ OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** የሞዴል ካታሎግን የሚያነብና
-የመሣሪያውን የራሱን ውቅር በማሽንዎ ላይ የሚጽፍ ለእያንዳንዱ የሚደገፍ CLI የ`setup-*`
-ትዕዛዝ ይዞ ይመጣል፦
+የእያንዳንዱን መሳሪያ ውቅር በእጅዎ መጻፍ የለብዎትም። OmniRoute ለእያንዳንዱ የሚደገፍ CLI `setup-*` ትዕዛዝ ያቀርባል፣ ይህም ከሚሰራ OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** ሞዴል ካታሎግ ያነባል እና የመሳሪያውን የራሱን ውቅር በማሽንዎ ላይ ይጽፋል፡
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -58,48 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-እያንዳንዱ `--remote <url> --api-key <key>` (አካባቢያዊ መሣሪያን ከርቀት
-OmniRoute ጋር ማዋቀር)፣ `--dry-run` (ሳይጻፍ ቅድመ-ዕይታ) እና `--port`ን ይቀበላል። ራስ-ሰር
-የሞዴል ማግኘት የሌላቸው መሣሪያዎች (Cline፣ Kilo፣ Roo፣ Goose፣ Aider፣ Qwen፣ 5dive)
-`--model <id>`ን (እንዲሁም መስተጋብር ለሌላቸው አሂዶች `--yes`ን) ይቀበላሉ። `setup-5dive`
-በ`$HOME` ሥር የማይጽፍ ብቸኛው አሠራር ነው፦ በመንጋው አስተናጋጅ ላይ
-በroot ባለቤትነት የተያዘ የማረጋገጫ መገለጫ በመጻፍ የ5dive ወኪል መንጋን
-ያዋቅራል፤ ስለዚህ በ`sudo` በኩል ራሱን እንደገና ያስኬዳል እና የራሱ የርቀት
-ሁነታ የለውም። ትክክለኛው env ተካቶ ምንም ውቅር ሳይጻፍ CLIን ለማስጀመር፣ አጠቃላዩን
-`omniroute run <target>` ማስጀመሪያ ይጠቀሙ (claude፣ codex፣ aider፣ goose፣ opencode፣ qwen፣
-gemini — ዒላማዎችና ተለዋጭ ስሞች ከ`bin/cli/cli-manifest.mjs` ይመጣሉ)፤ የቆዩት
-ለየመሣሪያው የተዘጋጁ ማስጀመሪያዎች `omniroute launch` (Claude Code) እና `omniroute launch-codex`
-(Codex) አሁንም ይገኛሉ። Gemini CLI ለማስጀመር ብቻ ነው፦ የ`omniroute run`
-ዒላማ ነው፣ ነገር ግን የ`setup-*`/`configure` አሠራር የለውም።
+እያንዳንዱ `--remote <url> --api-key <key>` (አካባቢያዊ መሳሪያን ከርቀት OmniRoute ጋር ለማዋቀር)፣ `--dry-run` (ሳይጽፉ ቅድመ እይታ) እና `--port` ይቀበላል። ሞዴል ራስ-ሰር-ማግኛ የሌላቸው መሳሪያዎች (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (እና መስተጋብራዊ ላልሆኑ አሂዶች `--yes`) ይወስዳሉ። `setup-5dive` በ`$HOME` ስር የማይጽፍ ብቸኛው የምግብ አዘገጃጀት መመሪያ ነው፡ የ5dive ወኪል ፍሊትን የሚያዋቅረው በፍሊት አስተናጋጅ ላይ ስር-ባለቤት የሆነ የማረጋገጫ ፕሮፋይል በመጻፍ ነው፣ ስለዚህ በ`sudo` በኩል እንደገና ይፈጸማል እና የራሱ የርቀት ሁነታ የለውም። ትክክለኛው env ገብቶበት እና ምንም ውቅር ሳይጻፍ CLI ለማስጀመር፣ አጠቃላይ የሆነውን `omniroute run <target>` ማስጀመሪያን ይጠቀሙ (claude, codex, aider, goose, opencode, qwen, gemini — ኢላማዎች እና ቅጽል ስሞች ከ`bin/cli/cli-manifest.mjs` ይመጣሉ)፤ የቆዩት ለእያንዳንዱ መሳሪያ ማስጀመሪያዎች `omniroute launch` (Claude Code) እና `omniroute launch-codex` (Codex) አሁንም ይገኛሉ። Gemini CLI ማስጀመሪያ-ብቻ ነው፡ እሱ `omniroute run` ኢላማ ነው ነገር ግን `setup-*`/`configure` የምግብ አዘገጃጀት መመሪያ የለውም።
 
-> **ሙሉ ማጣቀሻ፦** ዋናው ሰንጠረዥ — እያንዳንዱ ትዕዛዝ ምን እንደሚጽፍ፣ ሁሉም ጥቆማዎች፣
-> አካባቢያዊ ከርቀት ጋር ሲነጻጸር፣ እና የትኞቹ መሣሪያዎች የ`/v1` ቅጥያ እንደሚፈልጉ — በ
-> **[የCLI ውህደቶች](../guides/CLI-INTEGRATIONS.md)** ውስጥ ይገኛል።
+> **ሙሉ ማጣቀሻ:** ዋናው ሰንጠረዥ — እያንዳንዱ ትዕዛዝ ምን እንደሚጽፍ፣ እያንዳንዱ ባንዲራ፣ አካባቢያዊ ከርቀት ጋር ሲነጻጸር፣ እና የትኞቹ መሳሪያዎች `/v1` ቅጥያ እንደሚፈልጉ — በ**[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** ውስጥ ይገኛል።
 
 ### እነዚህን በኮንቴይነር ውስጥ ማስኬድ
 
-በOmniRoute ኮንቴይነር ውስጥ የተፈጸመ የ`setup-*` ትዕዛዝ ወደ
-ኮንቴይነሩ የራሱ home ይጽፋል፤ ምንም የአስተናጋጅ CLI ይህን አያነበውም፣ እንዲሁም ከ
-ኮንቴይነሩ ጋር ይጠፋል። OmniRoute ይህን ፈልጎ ያውቅና ከመጻፍ ይልቅ
-ከመመሪያዎች ጋር በ`2` ይወጣል። ሁለት የሚደገፉ የቀጣይ እርምጃ መንገዶች አሉ — CLIን በአስተናጋጁ ላይ ጭነው
-`omniroute connect`ን ወደ ኮንቴይነሩ መጠቀም፣ ወይም የውቅር ማውጫዎቹን bind-mount አድርጎ
-`CLI_CONFIG_HOME`ን ማዘጋጀት (የcompose `host` መገለጫ)። እያንዳንዱ የ`setup-*` ትዕዛዝ፣ ከ
-`omniroute configure` እና `omniroute config set` ጋር፣ በእርግጥ ያሰቡት
-የኮንቴይነሩን የራሱን CLIዎች ማዋቀር ከሆነ `--allow-container-write`ን ይቀበላል፤
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ለአገልጋዩ ተመሳሳይ ነገር ያደርጋል።
-[የDocker መመሪያ → የአስተናጋጅ CLI መሣሪያዎችን ማዋቀር](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)ን ይመልከቱ።
+በOmniRoute ኮንቴይነር ውስጥ የሚፈጸም `setup-*` ትዕዛዝ ወደ ኮንቴይነሩ የራሱ ቤት ይጽፋል፣ ይህም ምንም አስተናጋጅ CLI የማያነበው እና ከኮንቴይነሩ ጋር አብሮ የሚጠፋ ነው። OmniRoute ይህንን አውቆ ከመጻፍ ይልቅ መመሪያዎችን በመስጠት በ`2` ይወጣል። ሁለት የሚደገፉ መንገዶች አሉ — CLI ን በአስተናጋጁ ላይ መጫን እና ከኮንቴይነሩ ጋር `omniroute connect` ማድረግ፣ ወይም የውቅር ማውጫዎችን bind-mount ማድረግ እና `CLI_CONFIG_HOME` (የcompose `host` ፕሮፋይል) ማዘጋጀት። እያንዳንዱ `setup-*` ትዕዛዝ፣ በተጨማሪም `omniroute configure` እና `omniroute config set`፣ የኮንቴይነሩን የራሱን CLIs ማዋቀር ሲፈልጉ `--allow-container-write` ይቀበላል፤ `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ለአገልጋዩም ተመሳሳይ ነገር ያደርጋል። ይመልከቱ [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)።
 
-የዳሽቦርዱ **የተግባራዊነት መጨረሻ ነጥብ** (`POST /api/cli-tools/apply`) ተመሳሳዩን
-ጥበቃ ያስገድዳል፦ በኮንቴይነር ውስጥ፣ ዒላማው ከአስተናጋጁ bind-mount ያልተደረገ
-የመጻፍ ሙከራ **`422`**ን ከ`containerEphemeralTarget: true`፣ ከአስተማማኙ የስህተት
-ጽሑፍ እና — የአስተናጋጅ አሠራር ላላቸው መሣሪያዎች (claude፣ codex፣ opencode፣ cline፣
-kilo፣ continue) — በአስተናጋጁ ላይ የሚኬድ `hostSetupCommand` (ለምሳሌ `omniroute setup-opencode`)
-ጋር ይመልሳል፤ ምንም ነገር አይጻፍም። `dryRun: true` በኮንቴይነር
-ሁነታ ውስጥ መሥራቱን ይቀጥላል፣ እና ዲስኩን ሳይነካ የተፈጠረውን ይዘት + የዒላማ ዱካ ይመልሳል፤ በዚህም
-ከዳሽቦርዱ ቅድመ-ዕይታ ማድረግና በአስተናጋጁ ላይ ተግባራዊ ማድረግ ይችላሉ። ይህ ባህሪ
-ሆን ተብሎ የተደረገ ሲሆን ተመልሶ እንዳይበላሽ በ
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` ይጠበቃል — ጥበቃውን
-በማስወገድ የ422 ስህተትን ፈጽሞ "አያስተካክሉ"።
+የዳሽቦርዱ **apply endpoint** (`POST /api/cli-tools/apply`) ተመሳሳይ ጥበቃን ያስፈጽማል፡ በኮንቴይነር ውስጥ፣ ኢላማው ከአስተናጋጁ bind-mount ያልተደረገለት ጽሁፍ **`422`** በ`containerEphemeralTarget: true`፣ ደህንነቱ የተጠበቀ የስህተት ጽሁፍ እና — አስተናጋጅ የምግብ አዘገጃጀት መመሪያ ላላቸው መሳሪያዎች (claude, codex, opencode, cline, kilo, continue) — በአስተናጋጁ ላይ የሚሰራ `hostSetupCommand` (ለምሳሌ `omniroute setup-opencode`) ይመልሳል፤ ምንም አይጻፍም። `dryRun: true` በኮንቴይነር ሁነታ መስራቱን ይቀጥላል እና ዲስክን ሳይነካ የተስተካከለ ቅድመ እይታ + ኢላማ መንገድ ይመልሳል። የቅድመ እይታ ይዘት ለመቅዳት ወይም ለማስመጣት የሚያገለግል ምስክርነት የያዘ ውቅር አይደለም። በአስተናጋጁ ላይ ባለው ኦሪጅናል መሳሪያ/መሰረታዊ URL/API ቁልፍ/ሞዴል ግብዓቶች ያመልክቱ፣ ወይም የተጠቀሰውን አስተናጋጅ-ጎን የማዋቀሪያ ትዕዛዝ ይጠቀሙ። ለቅድመ እይታ ራስጌ እና የጥያቄ ውል [CLI configuration security](../security/CLI-CONFIGURATION.md) ይመልከቱ። ይህ ባህሪ ሆን ተብሎ የተደረገ እና በ`tests/unit/api/cli-tools/apply-container-guard.test.ts` የተጠበቀ ነው — ጥበቃውን በማስወገድ 422ን በጭራሽ "አያስተካክሉ"።
 
 ---
 
@@ -142,11 +106,11 @@ kilo፣ continue) — በአስተናጋጁ ላይ የሚኬድ `hostSetupComman
 
 ---
 
-## 1. የCLI Code ካታሎግ (26 መሣሪያዎች)
+## 1. የCLI ኮድ ካታሎግ (26 መሳሪያዎች)
 
-በ`/dashboard/cli-code` ውስጥ የሚታዩ ሁሉም መሣሪያዎች። `baseUrlSupport: none` ያላቸው መሣሪያዎች ብጁ base URL ከመጠቀም ይልቅ በMITM ወይም በእጅ መመሪያ በኩል ይገናኛሉ፦
+በ`/dashboard/cli-code` ውስጥ የሚገኙ ሁሉም መሳሪያዎች። `baseUrlSupport: none` ያላቸው መሳሪያዎች ብጁ ቤዝ ዩአርኤል ከመጠቀም ይልቅ በMITM ወይም በእጅ መመሪያ አማካኝነት የተገናኙ ናቸው:
 
-| id           | ስም                      | አቅራቢ                | baseUrlSupport | configType     | acpSpawnable |
+| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
@@ -175,25 +139,25 @@ kilo፣ continue) — በአስተናጋጁ ላይ የሚኬድ `hostSetupComman
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"` ያላቸው መሣሪያዎች በዳሽቦርድ ካርዱ ላይ "⚠ ከፊል Base URL" የሚል ባጅ ያሳያሉ።
+`baseUrlSupport: "partial"` ያላቸው መሳሪያዎች በዳሽቦርድ ካርዱ ላይ "⚠ Base URL parcial" የሚል ባጅ ያሳያሉ።
 ---
 
 ## 2. የCLI ወኪሎች ካታሎግ (10 መሣሪያዎች)
 
 በ`/dashboard/cli-agents` ውስጥ የሚታዩ ራስ-ገዝ ወኪሎች፦
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| id           | ስም               | አቅራቢ                     | baseUrlSupport | acpSpawnable |
 | ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| hermes-agent | Hermes Agent     | Nous Research            | ሙሉ             | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | ሙሉ             | true         |
+| goose        | Goose            | Block / Linux Foundation | ሙሉ             | true         |
+| interpreter  | Open Interpreter | OSS                      | ሙሉ             | true         |
+| warp         | Warp AI          | Warp Inc.                | ከፊል            | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | ሙሉ             | false        |
+| omp          | Oh My Pi         | OSS                      | ሙሉ             | true         |
+| letta        | Letta CLI        | Letta                    | ሙሉ             | false        |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | ሙሉ             | false        |
+| 5dive        | 5dive            | OSS (5dive-ai)           | ሙሉ             | false        |
 
 ---
 
@@ -604,17 +568,17 @@ kiro-cli status
 
 ## 10. ውስጣዊ OmniRoute CLI
 
-የ`omniroute` binary ለሰርቨር የሕይወት ዑደት፣ ለማዋቀር፣ ለምርመራ እና ለአቅራቢ አስተዳደር ትዕዛዞችን ያቀርባል። የመግቢያ ነጥብ፦ `bin/omniroute.mjs`።
+የ`omniroute` ባይነሪ ለሰርቨር የሕይወት ዑደት፣ ማዋቀር፣ ምርመራ እና የአቅራቢ አስተዳደር ትዕዛዞችን ያቀርባል። የመግቢያ ነጥብ፦ `bin/omniroute.mjs`።
 
 ```bash
-omniroute                              # ሰርቨሩን አስጀምር (ነባሪ port 20128)
-omniroute setup                        # በይነተገናኝ የማዋቀሪያ አዋቂ
-omniroute doctor                       # config፣ DB፣ ports እና runtime ፈትሽ
+omniroute                              # ሰርቨሩን አስጀምር (ነባሪ ፖርት 20128)
+omniroute setup                        # በይነተገናኝ የማዋቀር አዋቂ
+omniroute doctor                       # ውቅርን፣ DBን፣ ፖርቶችን እና runtimeን ፈትሽ
 omniroute providers list               # የተዋቀሩ የአቅራቢ ግንኙነቶች
 omniroute providers test-all           # እያንዳንዱን ንቁ ግንኙነት ፈትሽ
 omniroute reset-password               # የአስተዳዳሪ የይለፍ ቃልን ዳግም አስጀምር
-omniroute logs                         # የጥያቄ ምዝግቦችን በቀጥታ አሰራጭ
-omniroute health                       # ዝርዝር የጤንነት ሁኔታ (breakers፣ cache፣ memory)
+omniroute logs                         # የጥያቄ ምዝግቦችን በቀጥታ አሳይ
+omniroute health                       # ዝርዝር የጤና ሁኔታ (breakers፣ cache፣ memory)
 omniroute --version                    # ስሪቱን አትም
 omniroute --help                       # ሁሉንም ትዕዛዞች አሳይ
 ```
@@ -622,8 +586,8 @@ omniroute --help                       # ሁሉንም ትዕዛዞች አሳይ
 ### ማዋቀር እና ማስጀመር
 
 ```bash
-omniroute setup                        # በይነተገናኝ የማዋቀሪያ አዋቂ
-omniroute setup --non-interactive      # የCI/አውቶሜሽን ሁነታ (env vars + flags ያነባል)
+omniroute setup                        # በይነተገናኝ የማዋቀር አዋቂ
+omniroute setup --non-interactive      # የCI/አውቶሜሽን ሁነታ (የአካባቢ ተለዋዋጮችን + flagsን ያነባል)
 omniroute setup --password '<value>'   # የአስተዳዳሪ የይለፍ ቃልን በቀጥታ አዘጋጅ
 omniroute setup --add-provider \
   --provider openai \
@@ -631,25 +595,25 @@ omniroute setup --add-provider \
   --test-provider                      # አቅራቢን በአንድ ጊዜ ጨምር እና ፈትሽ
 ```
 
-በይነተገናኝ ላልሆነ ማዋቀር የሚታወቁ environment variables፦
+በይነተገናኝ ላልሆነ ማዋቀር የሚታወቁ የአካባቢ ተለዋዋጮች፦
 
-| Var                 | ዓላማ                                                           |
+| ተለዋዋጭ               | ዓላማ                                                           |
 | ------------------- | ------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | የአቅራቢ API key (በCommander `.env()` በኩል ከ`--api-key` ጋር የተያያዘ) |
-| `DATA_DIR`          | የOmniRoute ውሂብ ማውጫን ይተካል                                      |
+| `OMNIROUTE_API_KEY` | የአቅራቢ API ቁልፍ (በCommander `.env()` በኩል ከ`--api-key` ጋር የተሳሰረ) |
+| `DATA_DIR`          | የOmniRoute ውሂብ ማውጫን ተካ                                        |
 
-ሌሎች በይነተገናኝ ያልሆኑ ግብዓቶች በሙሉ እንደ flags ይተላለፋሉ፤ environment variables አይደሉም፦
-`--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
+ሌሎች በይነተገናኝ ያልሆኑ ግብዓቶች እንደ የአካባቢ ተለዋዋጮች ሳይሆን እንደ flags ይተላለፋሉ፦
+`--password`፣ `--provider`፣ `--provider-name`፣ `--provider-base-url`፣ `--default-model`
 (ከላይ ያሉትን የ`omniroute setup` አማራጮች ይመልከቱ)።
 
-### ምርመራዎች
+### ምርመራ
 
 ```bash
-omniroute doctor                       # config፣ DB፣ ports፣ runtime፣ memory እና liveness ፈትሽ
+omniroute doctor                       # ውቅርን፣ DBን፣ ፖርቶችን፣ runtimeን፣ memoryን እና livenessን ፈትሽ
 omniroute doctor --json                # በማሽን ሊነበብ የሚችል JSON
-omniroute doctor --no-liveness         # የHTTP health probeን ዝለል
+omniroute doctor --no-liveness         # የHTTP ጤና ፍተሻውን ዝለል
 omniroute doctor --host 0.0.0.0        # የliveness hostን ተካ
-omniroute doctor --liveness-url <url>  # ሙሉውን የhealth endpoint URL ተካ
+omniroute doctor --liveness-url <url>  # ሙሉውን የጤና endpoint URL ተካ
 ```
 
 doctor እነዚህን ፍተሻዎች ያካሂዳል፦ `Config`፣ `Database`፣ `Storage/encryption`፣
@@ -661,7 +625,7 @@ doctor እነዚህን ፍተሻዎች ያካሂዳል፦ `Config`፣ `Database`
 ```bash
 omniroute providers available                       # የOmniRoute አቅራቢ ካታሎግ
 omniroute providers available --search openai       # ካታሎጉን በid/name/alias/category አጣራ
-omniroute providers available --category api-key    # በcategory አጣራ (api-key፣ oauth፣ free፣ ...)
+omniroute providers available --category api-key    # በምድብ አጣራ (api-key፣ oauth፣ free፣ ...)
 omniroute providers available --json                # በማሽን ሊነበብ የሚችል JSON
 
 omniroute providers list                            # የተዋቀሩ የአቅራቢ ግንኙነቶች
@@ -669,7 +633,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # አንድ የተዋቀረ ግንኙነት ፈትሽ
 omniroute providers test-all                        # እያንዳንዱን ንቁ ግንኙነት ፈትሽ
-omniroute providers validate                        # በአካባቢው ብቻ የሚደረግ መዋቅራዊ ማረጋገጫ
+omniroute providers validate                        # አካባቢያዊ-ብቻ መዋቅራዊ ማረጋገጫ
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # ነባር የOAuth ሂደት
@@ -677,83 +641,83 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` APIን ቅድሚያ የሚሰጡ በመሆናቸው በንቁው
-የአካባቢ ወይም የርቀት context ላይ ይሰራሉ። የማረጋገጫ መረጃ ግብዓት
-`--credential-stdin` ወይም `--credential-env`ን መጠቀም አለበት፤ `--dry-run --json` የተደበቀ
-መኖር/ቅርጽን ብቻ ዘገባ ያደርጋል። `providers available` የOmniRoute ካታሎግን ያነባል፤
-`providers list/test/test-all/validate` የአካባቢ SQLite ባህሪያቸውን ይዘው ይቆያሉ እና
-ሰርቨሩ እየሰራ እንዲሆን አያስፈልጋቸውም።
+`providers add/import/auth/edit/remove` API-ቀዳሚ ናቸው፤ ስለዚህም ንቁ በሆነው
+አካባቢያዊ ወይም የርቀት context ላይ ይሠራሉ። የማረጋገጫ መረጃ ግብዓት
+`--credential-stdin` ወይም `--credential-env`ን መጠቀም አለበት፤ `--dry-run --json`
+የተሰወረ የመኖር/ቅርጽ መረጃን ብቻ ያሳያል። `providers available` የOmniRoute ካታሎግን ያነባል፤
+`providers list/test/test-all/validate` አካባቢያዊ የSQLite ባህሪያቸውን ይይዛሉ እና
+ሰርቨሩ እየሠራ መሆንን አይጠይቁም።
 
 ### መልሶ ማግኘት እና ዳግም ማስጀመር
 
 ```bash
-omniroute reset-password                # የአስተዳዳሪ የይለፍ ቃልን ዳግም አስጀምር (በተጨማሪ፦ omniroute-reset-password)
-omniroute reset-encrypted-columns       # ለencrypted credential reset ማስጠንቀቂያ + dry-run አሳይ
-omniroute reset-encrypted-columns --force  # በSQLite ውስጥ encrypted credentialsን በእርግጥ null አድርግ
+omniroute reset-password                # የአስተዳዳሪ የይለፍ ቃልን ዳግም አስጀምር (እንዲሁም፦ omniroute-reset-password)
+omniroute reset-encrypted-columns       # ለተመሰጠሩ የማረጋገጫ መረጃዎች ዳግም ማስጀመር ማስጠንቀቂያ + dry-run አሳይ
+omniroute reset-encrypted-columns --force  # በSQLite ውስጥ የተመሰጠሩ የማረጋገጫ መረጃዎችን በእውነት null አድርግ
 ```
 
 ### የማረጋገጫ መረጃ ወደ ውጭ መላክ (⚠ በጥንቃቄ ይያዙ)
 
 ```bash
 omniroute auth export                                 # ማስጠንቀቂያ + የማረጋገጫ ደረጃ አሳይ — የDB መዳረሻ የለም
-omniroute auth export --force                          # የሁሉንም ግንኙነቶች DECRYPTED credentials እንደ JSON ወደ stdout ላክ
-omniroute auth export --force --id <id>                 # ተዛማጁን ግንኙነት ብቻ ወደ ውጭ ላክ
+omniroute auth export --force                          # የሁሉንም ግንኙነቶች የተፈቱ የማረጋገጫ መረጃዎች እንደ JSON ወደ stdout ላክ
+omniroute auth export --force --id <id>                 # የሚዛመደውን ግንኙነት ብቻ ወደ ውጭ ላክ
 omniroute auth export --force --format env               # የOMNIROUTE_<PROVIDER>_<FIELD>=<value> መስመሮችን አውጣ
-omniroute auth export --force --out creds.json           # ወደ ፋይል ጻፍ (በ0600 ፈቃዶች የሚፈጠር)
+omniroute auth export --force --out creds.json           # ወደ ፋይል ጻፍ (በ0600 ፈቃዶች ይፈጠራል)
 ```
 
-`auth export` **በአካባቢው ብቻ** የሚሰራ ነው (ቀጥተኛ የSQLite ንባብ፣ የHTTP route የለም) እና ሆን ብሎ
-**plaintext** የሆኑ `apiKey`/`accessToken`/`refreshToken`/`idToken` እሴቶችን ያትማል/ይጽፋል — ይህ ባህሪው ነው፣
-ስህተት አይደለም። `--force` ሳይኖር ከdatabase ምንም አይነበብም፣ እንዲሁም ምንም አይፈታም። ማንኛውም plaintext
-ከመውጣቱ በፊት የstderr ማስጠንቀቂያ ባነር ሁልጊዜ ይታተማል። `STORAGE_ENCRYPTION_KEY` መዘጋጀት
-ያስፈልገዋል። መፍታት ያልተሳካለት field (ጊዜው ያለፈ key፣ የተበላሸ ciphertext) ሙሉውን export ከማቋረጥ ወይም ዋናውን ስህተት ከማጋለጥ ይልቅ
-`<field>DecryptFailed: true` ተብሎ ይዘገባል።
+`auth export` **አካባቢያዊ-ብቻ** ነው (ቀጥተኛ የSQLite ንባብ፣ የHTTP route የለም) እና ሆን ብሎ
+**plaintext** የ`apiKey`/`accessToken`/`refreshToken`/`idToken` እሴቶችን ያትማል/ይጽፋል — ይህ ባህሪው እንጂ
+ስህተት አይደለም። `--force` ሳይኖር ከውሂብ ጎታው ምንም አይነበብም፣ ምንም አይፈታም። ማንኛውም plaintext
+ከመውጣቱ በፊት የማስጠንቀቂያ ሰንደቅ ሁልጊዜ ወደ stderr ይታተማል። `STORAGE_ENCRYPTION_KEY`
+መዘጋጀትን ይጠይቃል። መፍታት ያልተቻለው መስክ (ጊዜው ያለፈ ቁልፍ፣ የተበላሸ ciphertext) ሙሉውን ወደ ውጭ መላክ
+ከማቋረጥ ወይም ዋናውን ስህተት ከማጋለጥ ይልቅ እንደ `<field>DecryptFailed: true` ሪፖርት ይደረጋል።
 
 ### ሌሎች ንዑስ ትዕዛዞች
 
-በሌላ መልኩ ካልተገለጸ በስተቀር፣ እነዚህ እየሰራ ያለ OmniRoute ሰርቨር እንዳለ ይገምታሉ፦
+ሌላ ማስታወሻ ካልተሰጠ በስተቀር፣ እነዚህ እየሠራ ያለ OmniRoute ሰርቨር እንዳለ ይገምታሉ፦
 
 ```bash
-omniroute status                       # አጠቃላይ የአሂድ ጊዜ ሁኔታ
-omniroute logs                         # የጥያቄ ምዝግብ ማስታወሻዎችን ያለማቋረጥ አሳይ (--json, --search, --follow)
-omniroute config show                  # የአሁኑን ውቅር አሳይ
+omniroute status                       # ዝርዝር የአሂድ ጊዜ ሁኔታ
+omniroute logs                         # የጥያቄ ምዝግቦችን በቀጥታ አሳይ (--json, --search, --follow)
+omniroute config list                  # የተዋቀሩ የCLI መሣሪያዎችን አሳይ
 
-omniroute provider list                # የሚገኙ አቅራቢዎችን ዘርዝር (የ providers list ተለዋጭ ስም)
-omniroute provider add                 # OmniRouteን በአንድ መሣሪያ ላይ እንደ አቅራቢ ይመዝግቡ
-omniroute keys add | list | remove     # የAPI ቁልፎችን ያስተዳድሩ
+omniroute provider list                # የሚገኙ አቅራቢዎችን ዘርዝር (የproviders list ተለዋጭ ስም)
+omniroute provider add                 # OmniRouteን በአንድ መሣሪያ ላይ እንደ አቅራቢ መዝግብ
+omniroute keys add | list | remove     # የAPI ቁልፎችን አስተዳድር
 omniroute models [provider]            # ሞዴሎችን ዘርዝር (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # የውቅር + DB ቅጽበታዊ ቅጂ ይፍጠሩ
-omniroute restore                      # ከቀድሞ ቅጽበታዊ ቅጂ ወደነበረበት ይመልሱ
+omniroute backup                       # የውቅር + DB ቅጽበታዊ ቅጂ
+omniroute restore                      # ከቀዳሚ ቅጽበታዊ ቅጂ ወደነበረበት መልስ
 
-omniroute health                       # ዝርዝር የጤና ሁኔታ (የወረዳ መቋረጫዎች፣ መሸጎጫ፣ ማህደረ ትውስታ)
+omniroute health                       # ዝርዝር የጤና ሁኔታ (መቆራረጫዎች፣ መሸጎጫ፣ ማህደረ ትውስታ)
 omniroute quota                        # የአቅራቢ ኮታ አጠቃቀም
 omniroute cache                        # የመሸጎጫ ሁኔታ
-omniroute cache clear                  # የትርጉም + ፊርማ መሸጎጫዎችን አጽዳ
+omniroute cache clear                  # የትርጉም + የፊርማ መሸጎጫዎችን አጽዳ
 
-omniroute mcp status | restart         # የMCP አገልጋይ ሁኔታ / እንደገና ማስጀመር
+omniroute mcp status | restart         # የMCP አገልጋይ ሁኔታ / ዳግም ማስጀመር
 omniroute a2a status | card            # የA2A አገልጋይ ሁኔታ / የወኪል ካርድ
 
-omniroute tunnel list | create | stop  # ዋሻዎችን ያስተዳድሩ (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # የአካባቢ ተለዋዋጮችን ይመርምሩ / ያቀናብሩ (ጊዜያዊ)
+omniroute tunnel list | create | stop  # ቱነሎችን አስተዳድር (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # የአካባቢ ተለዋዋጮችን መርምር / አዘጋጅ (ጊዜያዊ)
 
 omniroute test                         # የአቅራቢ ግንኙነት መሠረታዊ ሙከራ
-omniroute update                       # ዝማኔዎችን ይፈትሹ
-omniroute completion                   # የshell ማጠናቀቂያ ይፍጠሩ
+omniroute update                       # ዝማኔዎችን ፈትሽ
+omniroute completion                   # የሼል ማጠናቀቂያ አመንጭ
 ```
 
 ### የተለመዱ አማራጮች
 
-| አማራጭ                | መግለጫ                                              |
-| ------------------- | ------------------------------------------------- |
-| `--no-open`         | ሲጀመር አሳሹን በራስ-ሰር አትክፈት                            |
-| `--port <n>`        | የAPI ወደቡን ቀይር (ነባሪው 20128)                        |
-| `--mcp`             | በstdio ላይ እንደ MCP አገልጋይ አሂድ (ለIDEዎች)              |
-| `--non-interactive` | የCI ሁነታ (ጥያቄዎች የሉም፤ ከአካባቢ ተለዋዋጮች/አማራጮች ያነባል)      |
-| `--json`            | በማሽን ሊነበብ የሚችል የJSON ውጤት (doctor፣ providers፣ ወዘተ) |
-| `--help`, `-h`      | ለትእዛዙ የተወሰነ እገዛ አሳይ                               |
-| `--version`, `-v`   | የተጫነውን ስሪት አትም                                    |
+| አማራጭ                | መግለጫ                                               |
+| ------------------- | -------------------------------------------------- |
+| `--no-open`         | ሲጀመር አሳሹን በራስ-ሰር አትክፈት                             |
+| `--port <n>`        | የAPI ወደብን ቀይር (ነባሪው 20128)                         |
+| `--mcp`             | በstdio ላይ እንደ MCP አገልጋይ አሂድ (ለIDEዎች)               |
+| `--non-interactive` | የCI ሁነታ (ጥያቄዎች የሉም፤ ከአካባቢ ተለዋዋጮች/አማራጮች ያነባል)       |
+| `--json`            | በማሽን ሊነበብ የሚችል የJSON ውጤት (doctor, providers፣ ወዘተ.) |
+| `--help`, `-h`      | ለትእዛዙ የተወሰነ እገዛ አሳይ                                |
+| `--version`, `-v`   | የተጫነውን ስሪት አትም                                     |
 
 ---
 

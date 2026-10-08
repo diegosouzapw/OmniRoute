@@ -18,6 +18,7 @@ import path from "node:path";
 
 import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
 import { deriveDefaultPlan } from "@omniroute/open-sse/services/compression/deriveDefaultPlan.ts";
+import { ENGINE_IDS } from "@omniroute/open-sse/services/compression/engineCatalog.ts";
 
 // ─── isolated temp DB ─────────────────────────────────────────────────────────
 
@@ -45,6 +46,14 @@ async function setupAuth(): Promise<void> {
   });
 }
 
+// An engines write merges over the engines the install already has, so a test that needs only
+// some engines on writes every engine id, with the rest off.
+function onlyEngines(
+  enabled: Record<string, { enabled: boolean; level?: string }>
+): Record<string, { enabled: boolean; level?: string }> {
+  return Object.fromEntries(ENGINE_IDS.map((id) => [id, enabled[id] ?? { enabled: false }]));
+}
+
 // ─── lifecycle ────────────────────────────────────────────────────────────────
 
 test.beforeEach(async () => {
@@ -66,7 +75,7 @@ test.after(() => {
 test("GET /api/context/combos/default returns the derived default plan (single-mode caveman)", async () => {
   await compressionDb.updateCompressionSettings({
     enabled: true,
-    engines: { caveman: { enabled: true, level: "full" } },
+    engines: onlyEngines({ caveman: { enabled: true, level: "full" } }),
   });
 
   const req = await makeManagementSessionRequest("http://localhost/api/context/combos/default");
@@ -88,10 +97,10 @@ test("GET /api/context/combos/default returns the derived default plan (single-m
 test("GET /api/context/combos/default returns the derived stacked pipeline (reflects enabled engines)", async () => {
   await compressionDb.updateCompressionSettings({
     enabled: true,
-    engines: {
+    engines: onlyEngines({
       caveman: { enabled: true, level: "full" },
       headroom: { enabled: true },
-    },
+    }),
   });
 
   const req = await makeManagementSessionRequest("http://localhost/api/context/combos/default");

@@ -86,3 +86,26 @@ async function resolvePrincipalFromEnv(): Promise<string | undefined> {
     return undefined;
   }
 }
+
+/**
+ * The owner id a tool that stores or reads per-tenant data must act as. The authenticated caller
+ * always wins over an id the caller wrote into the tool arguments; otherwise any MCP client could
+ * read, change or run another tenant's memories and skills, or the global ones, by naming them.
+ *
+ * `extra.authInfo.clientId` is the key id the transport resolved with the same extractor the route
+ * used to authenticate the request, so it covers every header form the route accepts. The
+ * request-header lookup is kept as a second source, and the explicit argument is honoured only when
+ * no caller can be resolved at all (a local process with no key, which is already trusted).
+ */
+export async function resolveMcpToolOwnerId(
+  extra: { authInfo?: { clientId?: string } } | undefined,
+  explicit?: string
+): Promise<string | undefined> {
+  const authenticated =
+    typeof extra?.authInfo?.clientId === "string" ? extra.authInfo.clientId.trim() : "";
+  if (authenticated) return authenticated;
+  const caller = await resolveMcpCallerApiKeyId().catch(() => undefined);
+  if (caller) return caller;
+  const requested = typeof explicit === "string" ? explicit.trim() : "";
+  return requested || undefined;
+}

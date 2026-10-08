@@ -1,15 +1,15 @@
 # Authorization Guide (Suomi)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
 > **Totuuden lähde:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Päivitetty viimeksi:** 2026-06-28 — v3.8.40
+> **Viimeksi päivitetty:** 2026-09-22 — laajuuden nimiavaruudet osoittavat tiedostoon MCP-SERVER.md
 
-OmniRoutessa on reittitietoinen valtuutusputki, joka suojaa jokaisen API-pyynnön. Luokittelu on **determinististä** ja **sulkeutuu turvallisesti** — kaikki, mitä ei voida luokitella, päätyy luokkaan `MANAGEMENT` ja edellyttää istuntoa tai hallintatason tunnistetta. Tällä sivulla selitetään malli reittejä ylläpitäville tai uusia päätepisteitä suunnitteleville kehittäjille.
+OmniRoutessa on reittitietoinen valtuutusputki, joka valvoo jokaista API-pyyntöä. Luokittelu on **deterministinen** ja **fail-closed** — kaikki, mitä ei voida luokitella, päätyy `MANAGEMENT`-luokkaan ja vaatii istunnon tai hallintatason tunnuksen. Tämä sivu selittää mallin insinööreille, jotka ylläpitävät reittejä tai suunnittelevat uusia päätepisteitä.
 
-![AuthZ-putki (3 reittiluokkaa + käytäntöjen arviointi)](../diagrams/exported/authz-pipeline.svg)
+![Valtuutusputki (3 reittiluokkaa + käytäntöjen arviointi)](../diagrams/exported/authz-pipeline.svg)
 
 > Lähde: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,56 +17,60 @@ OmniRoutessa on reittitietoinen valtuutusputki, joka suojaa jokaisen API-pyynnö
 
 ### 1. API-avain (Bearer)
 
-Käytetään OpenAI-/Anthropic-/Gemini-yhteensopivissa asiakas-API-rajapinnoissa sekä joillakin hallintareiteillä, kun avaimella on `manage`-käyttöoikeusalue.
+Käytetään OpenAI/Anthropic/Gemini-yhteensopivissa asiakasohjelmointirajapinnoissa sekä muutamissa hallintareiteissä, kun avaimella on `manage`-käyttöoikeusalue.
 
 ```
-Authorization: Bearer <api-avain>
+Authorization: Bearer <api-key>
 ```
 
-Validoinnin tekevät `isValidApiKey()` / `extractApiKey()` tiedostossa `src/sse/services/auth.ts`, ja ne viedään uudelleen tiedoston `src/shared/utils/apiAuth.ts` kautta. Validoija hyväksyy myös ympäristömuuttujat `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` pysyvinä läpivientiavaimina (ongelma #1350).
+Vahvistuksen suorittavat `isValidApiKey()` / `extractApiKey()` tiedostossa `src/sse/services/auth.ts`, ja ne viedään uudelleen tiedoston `src/shared/utils/apiAuth.ts` kautta. Vahvistin hyväksyy myös ympäristömuuttujat `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` pysyvinä läpivientiavaimina (ongelma #1350).
 
 ### 2. Hallintapaneelin istunto (auth_token-eväste)
 
 Hallintapaneelin sivuja ja ylläpitotoimintoja varten.
 
 ```
-Cookie: auth_token=<JWT, joka on allekirjoitettu JWT_SECRET-arvolla>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Eväste on istunto vain, kun JWT:n allekirjoitus varmistetaan **ja** se sisältää arvon `authenticated: true`
+Eväste on istunto vain, kun JWT:n allekirjoitus vahvistuu **ja** se sisältää arvon `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Jokainen
-evästeen käyttäjä (reittisuojaus, authz-putken päivitys, WebSocket-kättely, reaaliaikainen
+evästeen käyttäjä (hallintapaneelin reittisuojaus (`isDashboardSessionAuthenticated()`), valtuutusputken päivitys, WebSocket-kättely, reaaliaikainen
 palvelin, `/api/settings/require-login`, `/api/auth/status`) käyttää kyseistä apufunktiota.
-Muitakin `JWT_SECRET`-arvolla allekirjoitettuja JWT-tunnisteita on olemassa — Cursor CLI:n läpivienti luo
-avainten haltijoille tunnisteita, joiden arvot ovat `iss "omniroute" / aud "cursor-cli"` — eivätkä ne koskaan ole istuntoja
+Myös muita muuttujalla `JWT_SECRET` allekirjoitettuja JWT-tunnuksia on olemassa — Cursor CLI:n läpivienti luo
+avainten haltijoille tunnuksia, joissa on `iss "omniroute" / aud "cursor-cli"` — eikä niitä koskaan käsitellä istuntoina
 (#13298).
 
-Varmistuksen tekee `isDashboardSessionAuthenticated()` tiedostossa `src/shared/utils/apiAuth.ts`. Putki päivittää JWT:n automaattisesti, kun sen 30 päivän voimassaoloajasta on jäljellä alle 7 päivää.
+Vahvistuksen suorittaa `isDashboardSessionAuthenticated()` tiedostossa `src/shared/utils/apiAuth.ts`. Putki päivittää JWT:n automaattisesti, kun sen 30 päivän voimassaoloajasta on jäljellä alle 7 päivää.
 
-Jotkin hallintareitit hyväksyvät **kumman tahansa** tavan: evästeen TAI `Bearer <key>` -tunnisteen, kun API-avaimella on `manage`- (tai `admin`-) käyttöoikeusalue. Tämä mahdollistaa versiossa v3.8 lisätyn työnkulun, jossa määrityksiä voidaan tehdä API-kutsuilla.
+Istunto voi päättyä myös ennen 30 päivän täyttymistä, koska jokainen tunnuksen luoja käyttää funktiota `mintDashboardSessionToken` (myöntämisaika `iat` ja tunniste `jti`) ja vahvistin tarkistaa kaksi asetusta: `sessionsValidAfter`, joka asetetaan salasanan vaihdon yhteydessä niin, että kaikki sitä ennen myönnetyt istunnot lakkaavat vahvistumasta (salasanan vaihtanut selain saa uuden evästeen), sekä `revokedDashboardSessions`, johon `POST /api/auth/logout` lisää uloskirjautuneen istunnon `jti`-tunnisteen. Vanhemmalla versiolla luodut istunnot eivät sisällä kumpaakaan väitettä ja pysyvät voimassa ensimmäiseen salasanan vaihtoon asti. Jos asetuksia ei voida lukea, istuntoon ei luoteta.
 
-#### Valinnainen OIDC-kirjautumisrajoitus (#6973)
+Jotkin hallintareitit hyväksyvät **kumman tahansa** tavan: evästeen TAI `Bearer <key>` -tunnisteen, kun API-avaimella on `manage`- (tai `admin`-)käyttöoikeusalue. Tämä mahdollistaa versiossa v3.8 lisätyn ”määritettävissä API-kutsuilla” -työnkulun.
 
-Hallintapaneelin ylläpitäjäkirjautuminen tukee oletusarvoisen salasanakirjautumisen rinnalla myös **valinnaista** OIDC (OpenID Connect) -työnkulkua — salasanakirjautumista ei koskaan poisteta, vaan sitä ainoastaan täydennetään:
+#### Valinnainen OIDC-kirjautumisportti (#6973)
+
+Hallintapaneelin ylläpitäjäkirjautuminen tukee myös **erikseen käyttöön otettavaa** OIDC (OpenID Connect) -työnkulkua
+oletusarvoisen salasanakirjautumisen rinnalla — salasanakirjautumista ei koskaan poisteta, vaan sitä ainoastaan
+täydennetään:
 
 - Poissa käytöstä, ellei `settings.oidcEnabled === true` **ja** kaikkia asetuksia `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ole määritetty (Asetukset → Todennus).
   Muussa tapauksessa `GET /api/auth/oidc/login` palauttaa arvon `400`.
-- `GET /api/auth/oidc/login` hakee `authorization_endpoint`-päätepisteen myöntäjän
-  `/.well-known/openid-configuration`-määrityksestä (varavaihtoehtona
+- `GET /api/auth/oidc/login` selvittää `authorization_endpoint`-päätepisteen
+  myöntäjän `/.well-known/openid-configuration`-määrityksestä (varavaihtoehtona
   `<issuer>/authorize`), muodostaa uudelleenohjaus-URI:n saapuvasta pyynnöstä
   (`x-forwarded-proto` huomioiden) ja uudelleenohjaa IdP:hen satunnaisella `state`-arvolla,
   joka tallennetaan `httpOnly`-määritteen sisältävään `oidc_state`-evästeeseen.
-- `GET /api/auth/oidc/callback` validoi `state`-arvon, vaihtaa valtuutuskoodin
-  tunnisteisiin ja varmistaa ID-tunnisteen allekirjoituksen myöntäjän JWKS:n avulla
-  (`jose`-paketin `createRemoteJWKSet`, välimuistissa JWKS-URI-kohtaisesti) käyttäen `issuer`/`audience`-
-  tarkistuksia. Valinnainen `oidcAllowedSubjects`-sallittujen luettelo vertaa tunnisteen
+- `GET /api/auth/oidc/callback` vahvistaa `state`-arvon, vaihtaa valtuutuskoodin
+  ja vahvistaa ID-tunnuksen allekirjoituksen myöntäjän JWKS:n kautta
+  (`jose`-paketin `createRemoteJWKSet`, välimuistissa JWKS-URI-kohtaisesti) käyttäen `issuer`/`audience`-tarkistuksia.
+  Valinnainen `oidcAllowedSubjects`-sallittujen arvojen luettelo vertaa tunnuksen
   `sub`-väitettä tai sen `email`-väitettä — sähköpostiväite huomioidaan vain, kun
-  `email_verified === true`, joten IdP:n vahvistamaton sähköpostiosoite ei voi koskaan läpäistä
-  rajoitusta.
-- Onnistumisen yhteydessä luodaan **täsmälleen sama** 30 päivää voimassa oleva `auth_token`-JWT, jonka salasanalla
-  kirjautuminen luo (`src/app/api/auth/login/route.ts`), joten hallintapaneelin
-  istuntoputken muu toiminta (automaattinen päivitys, evästeiden määritteet) säilyy ennallaan —
+  `email_verified === true`, joten IdP:n vahvistamaton sähköpostiosoite ei koskaan läpäise
+  porttia.
+- Onnistumisen yhteydessä luodaan **täsmälleen sama** 30 päivän `auth_token`-JWT kuin salasanalla
+  kirjauduttaessa (`src/app/api/auth/login/route.ts`), joten hallintapaneelin
+  istuntoputken muut osat (automaattinen päivitys, evästemääritykset) säilyvät ennallaan —
   OIDC korvaa vain evästeen luontitavan, ei sen myöntämiä oikeuksia.
 
 ## Reittiluokat
@@ -198,28 +202,37 @@ export async function POST(request: Request) {
 
 Valitse joukko muodon, älä helppouden perusteella. Yksittäinen reitti lisätään joukkoon `PUBLIC_API_ROUTES_EXACT` (tai vain GET-pyynnöille joukkoon `PUBLIC_READONLY_CORS_API_ROUTES`); vain aito alipuu lisätään joukkoon `PUBLIC_API_ROUTE_PREFIXES`, ja sen **täytyy päättyä merkkiin `/`**. Yksittäisen reitin lisääminen etuliiteluetteloon julkaisee myös kaikki viereiset polut, joilla on samat alkumerkit — mukaan lukien myöhemmin lisättävät dynaamisten segmenttien sisarreitit (GHSA-74g9-q8f6-793h). Päivitä yksikkötestit tiedostoissa `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` ja `tests/unit/authz/classify.test.ts`.
 
-## Käyttöoikeusalueet
+## Laajuudet
 
-API-avaimet sisältävät `scopes`-taulukon (tallennetaan JSON-muodossa kenttään `api_keys.scopes`, katso `src/lib/db/apiKeys.ts`).
+Kolme nimiavaruutta. Jokainen tarkistaja lukee vain omat merkkijononsa. Vertailu,
+mukaan lukien miksi `manage` epäonnistuu `scopeMatches`-tarkistuksessa `read:compression`-kohdalla ja miksi `read`-käyttöoikeustunnus ei voi `PATCH /api/keys/{id}`, löytyy
+[Kolme laajuuden nimiavaruutta](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Hallinnan käyttöoikeusalue
+API-avaimet sisältävät `scopes`-taulukon (tallennetaan JSON-muodossa `api_keys.scopes`-kenttään, katso `src/lib/db/apiKeys.ts`).
 
-- `manage` / `admin` — antaa avaimelle pääsyn hallinta-API:n päätepisteisiin, kun avain lähetetään Bearer-tunnisteena.
+### Hallintalaajuus
 
-### MCP-käyttöoikeusalueet (`src/shared/constants/mcpScopes.ts`)
+- `manage` / `admin` — `hasManageScope`. Bearer-pääsy hallinnan API-reitteihin.
+- `mcp:connect`, `self:usage`, `self:account-quota` ja
+  `policy:bypass-provider-quota` ovat additiivisia tarkkoja vastaavuuslaajuuksia. Ne ovat
+  `MANAGEMENT_API_KEY_SCOPES`-ulkopuolella. `mcp:connect` avaa vain
+  `/api/mcp/`-reitin, joka on ei-loopback-poikkeus.
 
-Kukin MCP-työkalu edellyttää tiettyjä käyttöoikeusalueita `MCP_TOOL_SCOPES`-määrityksen mukaisesti. Täydellinen luettelo (`MCP_SCOPE_LIST`):
+### MCP-työkalun laajuudet
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+Luettelo ja vastaavuussäännöt (identtinen merkkijono tai myönnetty laajuus, joka päättyy `*`):
+[MCP-työkalun laajuudet](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` tiedostossa `src/shared/constants/mcpScopes.ts` on alkuperäinen tyypitetty
+osajoukko, ei koko luettelo. Täytäntöönpano tapahtuu
+`open-sse/mcp-server/scopeEnforcement.ts`-tiedostossa sen jälkeen, kun `resolveCallerScopeContext()`
+ratkaisee laajuudet MCP-todennustiedoista, pyynnön metatiedoista tai `OMNIROUTE_MCP_SCOPES`-muuttujasta.
+Se pysyy poissa käytöstä, ellei `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-Käyttöoikeusalueiden valvonta tiedostossa `open-sse/mcp-server/server.ts` välittää kunkin työkalun käyttöoikeusalueiden luettelon funktiolle
-`evaluateToolScopes()` sen jälkeen, kun `resolveCallerScopeContext()` on selvittänyt käyttöoikeusalueet MCP-todennustiedoista,
-pyynnön metatiedoista tai muuttujasta `OMNIROUTE_MCP_SCOPES`.
+### Käyttöoikeustunnuksen laajuudet
+
+`read` / `write` / `admin` `oma_live_…`-tunnuksissa, järjestetty `scopeSatisfies`-funktion mukaan
+(`src/lib/accessTokens/scopes.ts`). Tämä järjestys koskee vain käyttöoikeustunnuksen
+tunnistetietoja. Katso [Hallinnan todennus](../guides/MANAGEMENT-AUTH.md).
 
 ## Todennusvaatimuksen valitsin
 
@@ -267,7 +280,7 @@ Käytä käsittelijöissä funktiota `assertAuth(req, expectedClass)` — se hei
 
 ## Katso myös
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — todennusmerkintä päätepisteittäin
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — todennustapahtumien valvontaloki
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — MCP-käyttöoikeusalueiden valvonnan tiedot
-- Lähdekoodi: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — todennusmerkintä päätepistettä kohti
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — tarkastusloki todennustapahtumille
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — kolme laajuusnimiavaruutta ja MCP-työkalun laajuuskatalogi
+- Lähde: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

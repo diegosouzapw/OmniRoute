@@ -9,6 +9,7 @@
 
 import { getProviderAlias } from "@/shared/constants/providers";
 import { isLoopbackNodeHost } from "@/shared/network/loopbackNodeHost";
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 
 interface AudioModel {
   id: string;
@@ -366,7 +367,12 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "soniox-tts",
-    models: [{ id: "tts-rt-v1", name: "Soniox TTS RT v1" }],
+    // tts-rt-v1 is deprecated upstream (2026-08-31) and now served by tts-rt-v2;
+    // kept so existing clients that pin v1 still resolve.
+    models: [
+      { id: "tts-rt-v2", name: "Soniox TTS RT v2" },
+      { id: "tts-rt-v1", name: "Soniox TTS RT v1" },
+    ],
   },
 
   elevenlabs: {
@@ -671,7 +677,7 @@ function parseAudioModel(
   registry: Record<string, AudioProvider>,
   dynamicProviders?: AudioProvider[]
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   // Phase 1: prefix match in hardcoded registry
   for (const [providerId] of Object.entries(registry)) {

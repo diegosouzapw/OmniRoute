@@ -1,1 +1,0 @@
-- **fix(cli):** `omniroute restart` now comes back on the port set by `PORT` (shell or `<DATA_DIR>/.env`) instead of always 20128, like `serve` and `dashboard` ([#13327](https://github.com/diegosouzapw/OmniRoute/pull/13327))

@@ -1,15 +1,15 @@
 # Authorization Guide (Bahasa Melayu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Sumber rujukan utama:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Kemas kini terakhir:** 2026-06-28 — v3.8.40
+> **Sumber kebenaran:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Terakhir dikemas kini:** 2026-09-22 — ruang lingkup nama ruang merujuk kepada MCP-SERVER.md
 
-OmniRoute mempunyai saluran paip pengesahan kuasa yang peka terhadap laluan dan mengawal setiap permintaan API. Pengelasan adalah **deterministik** dan **gagal secara tertutup** — apa-apa yang tidak dapat dikelaskan akan dianggap sebagai `MANAGEMENT` dan memerlukan sesi atau token bertaraf pengurusan. Halaman ini menerangkan model tersebut untuk jurutera yang menyelenggara laluan atau mereka bentuk titik akhir baharu.
+OmniRoute mempunyai saluran paip kebenaran yang peka laluan yang mengawal setiap permintaan API. Pengelasan adalah **deterministik** dan **gagal-tertutup** — apa-apa yang tidak dapat dikelaskan akan berakhir sebagai `MANAGEMENT` dan memerlukan sesi atau token gred pengurusan. Halaman ini menerangkan model untuk jurutera yang menyelenggara laluan atau mereka bentuk titik akhir baharu.
 
-![Saluran paip AuthZ (3 kelas laluan + penilaian dasar)](../diagrams/exported/authz-pipeline.svg)
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
 > Sumber: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -23,7 +23,7 @@ Digunakan untuk API klien yang serasi dengan OpenAI/Anthropic/Gemini dan beberap
 Authorization: Bearer <api-key>
 ```
 
-Disahkan oleh `isValidApiKey()` / `extractApiKey()` dalam `src/sse/services/auth.ts` dan dieksport semula melalui `src/shared/utils/apiAuth.ts`. Pengesah juga menerima pemboleh ubah persekitaran `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci laluan terus kekal (isu #1350).
+Disahkan oleh `isValidApiKey()` / `extractApiKey()` dalam `src/sse/services/auth.ts` dan dieksport semula melalui `src/shared/utils/apiAuth.ts`. Pengesah turut menerima pemboleh ubah persekitaran `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci laluan terus berterusan (isu #1350).
 
 ### 2. Sesi Papan Pemuka (kuki auth_token)
 
@@ -33,43 +33,45 @@ Untuk halaman papan pemuka dan operasi pentadbir.
 Cookie: auth_token=<JWT ditandatangani dengan JWT_SECRET>
 ```
 
-Kuki hanya dianggap sebagai sesi apabila JWT berjaya disahkan **dan** membawa `authenticated: true`
+Kuki hanya dianggap sebagai sesi apabila JWT berjaya disahkan **dan** mengandungi `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Setiap
-pengguna kuki tersebut (pengawal laluan, muat semula saluran paip pengesahan kuasa, jabat
-tangan WebSocket, pelayan langsung, `/api/settings/require-login`, `/api/auth/status`) melalui pembantu tersebut.
-Terdapat JWT lain yang ditandatangani dengan `JWT_SECRET` — laluan terus Cursor CLI menjana
-token `iss "omniroute" / aud "cursor-cli"` untuk pemegang kunci — dan token tersebut tidak pernah dianggap sebagai sesi
+pengguna kuki tersebut (pengawal laluan papan pemuka (`isDashboardSessionAuthenticated()`), penyegaran saluran paip kebenaran, jabat tangan WebSocket, pelayan
+langsung, `/api/settings/require-login`, `/api/auth/status`) melalui pembantu tersebut.
+JWT lain yang ditandatangani dengan `JWT_SECRET` juga wujud — laluan terus Cursor CLI menjana
+token `iss "omniroute" / aud "cursor-cli"` untuk pemegang kunci — dan token ini tidak pernah dianggap sebagai sesi
 (#13298).
 
-Disahkan oleh `isDashboardSessionAuthenticated()` dalam `src/shared/utils/apiAuth.ts`. Saluran paip memuat semula JWT secara automatik apabila tempoh sahnya berbaki kurang daripada 7 hari daripada jangka hayat 30 harinya.
+Disahkan oleh `isDashboardSessionAuthenticated()` dalam `src/shared/utils/apiAuth.ts`. Saluran paip menyegarkan JWT secara automatik apabila tempoh yang tinggal kurang daripada 7 hari dalam jangka hayat 30 harinya.
+
+Sesi juga boleh tamat sebelum tempoh 30 harinya berakhir kerana setiap penjana melalui `mintDashboardSessionToken` (masa pengeluaran `iat` dan ID `jti`) dan pengesah menyemak dua tetapan: `sessionsValidAfter`, yang ditetapkan apabila kata laluan ditukar supaya setiap sesi yang dikeluarkan sebelum waktu tersebut tidak lagi dapat disahkan (pelayar yang menukar kata laluan menerima kuki baharu), dan `revokedDashboardSessions`, yang akan ditambahkan dengan `jti` sesi yang dilog keluar oleh `POST /api/auth/logout`. Sesi yang dijana oleh keluaran lama tidak mengandungi mana-mana tuntutan tersebut dan kekal sah sehingga kata laluan ditukar buat kali pertama. Jika tetapan tidak dapat dibaca, sesi tersebut tidak dipercayai.
 
 Sesetengah laluan pengurusan menerima **salah satu** mod: kuki ATAU `Bearer <key>` apabila kunci API mempunyai skop `manage` (atau `admin`). Inilah yang membolehkan aliran kerja "boleh dikonfigurasikan melalui panggilan API" yang ditambahkan dalam v3.8.
 
 #### Gerbang log masuk OIDC pilihan (#6973)
 
-Log masuk pentadbir papan pemuka turut menyokong aliran OIDC (OpenID Connect) secara **ikut serta**
-bersama log masuk kata laluan lalai — log masuk kata laluan tidak pernah dialih keluar, hanya
-dilengkapkan:
+Log masuk pentadbir papan pemuka turut menyokong aliran OIDC (OpenID Connect) yang **memerlukan pengaktifan**
+bersama-sama log masuk kata laluan lalai — log masuk kata laluan tidak pernah
+dialih keluar, hanya dilengkapi:
 
 - Dilumpuhkan melainkan `settings.oidcEnabled === true` **dan** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` semuanya telah dikonfigurasikan (Tetapan → Pengesahan).
+  `oidcClientId` / `oidcClientSecret` semuanya dikonfigurasikan (Tetapan → Pengesahan).
   `GET /api/auth/oidc/login` mengembalikan `400` jika tidak.
 - `GET /api/auth/oidc/login` menemui `authorization_endpoint` daripada
-  `/.well-known/openid-configuration` penerbit (dengan sandaran kepada
-  `<issuer>/authorize`), membina URI ubah hala daripada permintaan masuk
-  (peka terhadap `x-forwarded-proto`), dan mengubah hala ke IdP dengan `state` rawak
+  `/.well-known/openid-configuration` pengeluar (kembali menggunakan
+  `<issuer>/authorize` jika perlu), membina URI ubah hala daripada permintaan masuk
+  (mengambil kira `x-forwarded-proto`), dan mengubah hala ke IdP dengan `state` rawak
   yang disimpan dalam kuki `oidc_state` `httpOnly`.
 - `GET /api/auth/oidc/callback` mengesahkan `state`, menukar kod kebenaran,
-  dan mengesahkan tandatangan token ID melalui JWKS penerbit
+  dan mengesahkan tandatangan token ID melalui JWKS pengeluar
   (`createRemoteJWKSet` milik `jose`, dicache bagi setiap URI JWKS) dengan semakan `issuer`/`audience`.
   Senarai dibenarkan `oidcAllowedSubjects` pilihan memadankan tuntutan `sub`
-  token atau tuntutan `email` — tuntutan e-mel hanya diterima apabila
-  `email_verified === true`, maka e-mel yang belum disahkan di IdP tidak boleh melepasi
-  gerbang tersebut.
-- Jika berjaya, ia menjana JWT `auth_token` 30 hari yang **sama sepenuhnya** seperti yang
+  token atau tuntutan `email` token tersebut — tuntutan e-mel hanya diterima apabila
+  `email_verified === true`, maka e-mel yang tidak disahkan pada IdP tidak boleh
+  melepasi gerbang tersebut.
+- Apabila berjaya, ia menjana JWT `auth_token` 30 hari yang **sama sepenuhnya** seperti yang
   dikeluarkan oleh log masuk kata laluan (`src/app/api/auth/login/route.ts`), maka seluruh
-  saluran paip sesi papan pemuka yang selebihnya (muat semula automatik, bendera kuki) kekal tidak berubah —
-  OIDC hanya menggantikan cara kuki dijana, bukan kebenaran yang diberikannya.
+  saluran paip sesi papan pemuka yang lain (penyegaran automatik, bendera kuki) kekal tidak berubah —
+  OIDC hanya menggantikan cara kuki dijana, bukan keizinan yang diberikannya.
 
 ## Kelas Laluan
 
@@ -200,26 +202,35 @@ Pilih set berdasarkan bentuk, bukan kemudahan. Satu laluan dimasukkan ke dalam `
 
 ## Skop
 
+Tiga ruang nama. Setiap penyemak hanya membaca rentetan sendiri. Perbandingan bersebelahan,
+termasuk mengapa `manage` gagal `scopeMatches` untuk `read:compression` dan mengapa token akses `read` tidak boleh `PATCH /api/keys/{id}`, adalah
+[Tiga ruang nama skop](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
 Kunci API membawa tatasusunan `scopes` (disimpan sebagai JSON dalam `api_keys.scopes`, lihat `src/lib/db/apiKeys.ts`).
 
 ### Skop pengurusan
 
-- `manage` / `admin` — memberikan kunci akses kepada titik akhir API pengurusan apabila dihantar sebagai Bearer.
+- `manage` / `admin` — `hasManageScope`. Akses pembawa ke laluan API pengurusan.
+- `mcp:connect`, `self:usage`, `self:account-quota`, dan
+  `policy:bypass-provider-quota` adalah skop padanan tepat tambahan. Ia berada
+  di luar `MANAGEMENT_API_KEY_SCOPES`. `mcp:connect` hanya membuka laluan
+  `/api/mcp/` yang bukan gelung balik.
 
-### Skop MCP (`src/shared/constants/mcpScopes.ts`)
+### Skop alat MCP
 
-Setiap alat MCP memerlukan skop tertentu melalui `MCP_TOOL_SCOPES`. Senarai penuh (`MCP_SCOPE_LIST`):
+Katalog dan peraturan padanan (rentetan yang sama, atau skop yang diberikan berakhir dengan `*`):
+[Skop alat MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` dalam `src/shared/constants/mcpScopes.ts` adalah subset bertaip asal,
+bukan katalog penuh itu. Penguatkuasaan berjalan dalam
+`open-sse/mcp-server/scopeEnforcement.ts` selepas `resolveCallerScopeContext()`
+menyelesaikan skop daripada maklumat pengesahan MCP, metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+Ia kekal tidak aktif melainkan `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Skop token akses
 
-Penguatkuasaan skop dalam `open-sse/mcp-server/server.ts` menghantar senarai skop setiap alat kepada
-`evaluateToolScopes()` selepas `resolveCallerScopeContext()` menyelesaikan skop daripada maklumat pengesahan MCP,
-metadata permintaan, atau `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` pada token `oma_live_…`, disenaraikan mengikut `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Peringkat ini hanya terpakai pada
+kelayakan token akses. Lihat [Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
 
 ## Togol Pengesahan Diperlukan
 
@@ -269,5 +280,5 @@ Gunakan `assertAuth(req, expectedClass)` dalam pengendali — ia melontarkan `Au
 
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — penanda pengesahan bagi setiap titik akhir
 - [COMPLIANCE.md](../security/COMPLIANCE.md) — log audit untuk peristiwa pengesahan
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — butiran penguatkuasaan skop MCP
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — tiga ruang nama skop dan katalog skop alat MCP
 - Sumber: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

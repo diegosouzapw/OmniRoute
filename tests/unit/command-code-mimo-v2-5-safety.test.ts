@@ -35,14 +35,16 @@ for (const [modelId, desc, expected] of MIMO_V25_CASES) {
   });
 }
 
-test("mimo-v2.5 heuristic is correct (no false positive from mimo-vl fragment)", () => {
-  // mimo-vl matches "mimo-vl-a3b", not "mimo-v2.5"
+test("mimo-v2.5 heuristic is correct (base is vision, Pro siblings are not)", () => {
+  // mimo-vl matches "mimo-vl-a3b" on its own fragment
   assert.equal(isVisionModelId("mimo-vl-a3b"), true, "mimo-vl must be detected as vision");
-  assert.equal(
-    isVisionModelId("mimo-v2.5"),
-    false,
-    "mimo-v2.5 must NOT match the mimo-vl heuristic"
-  );
-  // But getResolvedModelCapabilities still returns true via ModelSpec
+  // #13863 (#13847): the base model is multimodal and is now in the shared heuristic
+  // itself, so provider-qualified and `:free` aliases get the same verdict without
+  // depending on a ModelSpec lookup. Xiaomi documents the Pro chat variants as
+  // text-only; they must stay excluded beside it.
+  assert.equal(isVisionModelId("mimo-v2.5"), true, "mimo-v2.5 is multimodal");
+  assert.equal(isVisionModelId("mimo-v2.5-pro"), false, "mimo-v2.5-pro is text-only");
+  assert.equal(isVisionModelId("xiaomi-mimo/mimo-v2.5:free"), true);
+  // And the resolved capability agrees.
   assert.equal(getResolvedModelCapabilities("mimo-v2.5").supportsVision, true);
 });

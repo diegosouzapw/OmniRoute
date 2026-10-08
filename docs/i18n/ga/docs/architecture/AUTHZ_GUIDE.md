@@ -1,15 +1,15 @@
 # Authorization Guide (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
 > **Foinse na fírinne:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Nuashonraithe go deireanach:** 2026-06-28 — v3.8.40
+> **Nuashonraithe go deireanach:** 2026-09-22 — dírithe ar MCP-SERVER.md
 
-Tá píblíne údaraithe ag OmniRoute atá feasach ar bhealaí agus a dhéanann rialú rochtana ar gach iarratas API. Tá an t-aicmiú **cinntitheach** agus **dúnta i gcás teipe** — déantar `MANAGEMENT` d'aon rud nach féidir a aicmiú agus éilítear seisiún nó comhartha ar ghrád bainistíochta. Mínítear ar an leathanach seo an tsamhail d'innealtóirí a chothaíonn bealaí nó a dhearann críochphointí nua.
+Tá píblíne údaraithe atá feasach ar bhealaí ag OmniRoute a chuireann bac ar gach iarratas API. Tá an aicmiú **cinntitheach** agus **teip-dúnta** — críochnaíonn aon rud nach féidir a aicmiú mar `MANAGEMENT` agus éilíonn sé seisiún nó comhartha grád bainistíochta. Míníonn an leathanach seo an tsamhail d'innealtóirí a chothabhálann bealaí nó a dhearann críochphointí nua.
 
-![Píblíne AuthZ (3 aicme bealaigh + measúnú beartais)](../diagrams/exported/authz-pipeline.svg)
+![Píblíne AuthZ (3 aicme bealaigh + meastóireacht beartais)](../diagrams/exported/authz-pipeline.svg)
 
 > Foinse: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
@@ -17,59 +17,61 @@ Tá píblíne údaraithe ag OmniRoute atá feasach ar bhealaí agus a dhéanann 
 
 ### 1. Eochair API (Bearer)
 
-Úsáidtear í le haghaidh APIanna cliaint atá comhoiriúnach le OpenAI/Anthropic/Gemini agus le haghaidh roinnt bealaí bainistíochta nuair atá an scóip `manage` ag an eochair.
+Úsáidtear é le haghaidh APIanna cliaint atá comhoiriúnach le OpenAI/Anthropic/Gemini agus roinnt bealaí bainistíochta nuair atá an scóip `manage` ag an eochair.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Déanann `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` í a bhailíochtú agus déantar í a ath-easpórtáil trí `src/shared/utils/apiAuth.ts`. Glacann an bailíochtóir freisin leis na hathróga timpeallachta `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` mar eochracha buana pas-trí (saincheist #1350).
+Déantar é a bhailíochtú le `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` agus déantar é a ath-easpórtáil trí `src/shared/utils/apiAuth.ts`. Glacann an bailíochtóir leis na hathróga timpeallachta `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` mar eochracha seasmhacha tríchuir freisin (fadhb #1350).
 
-### 2. Seisiún Deaise (fianán auth_token)
+### 2. Seisiún an Deais (fianán auth_token)
 
-Le haghaidh leathanaigh na deaise agus oibríochtaí riaracháin.
+Le haghaidh leathanaigh an deais agus oibríochtaí riaracháin.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Ní seisiún é fianán ach amháin nuair a fhíoraítear an JWT **agus** nuair atá `authenticated: true`
-ann (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Gach
-tomhaltóir den fhianán (garda bealaigh, athnuachan phíblíne authz, croitheadh láimhe WebSocket, freastalaí
-beo, `/api/settings/require-login`, `/api/auth/status`), téann sé tríd an gcúntóir sin.
-Tá JWTanna eile sínithe le `JWT_SECRET` ann — gineann pas-trí Cursor CLI
-comharthaí `iss "omniroute" / aud "cursor-cli"` do shealbhóirí eochrach — agus ní seisiúin iad
-riamh (#13298).
+Ní seisiún é fianán ach amháin nuair a fhíoraítear an JWT **agus** nuair atá `authenticated: true` ann
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Gach
+úsáideoir den fhianán (garda bhealach an deais (`isDashboardSessionAuthenticated()`), athnuachan na píblíne authz, croitheadh láimhe WebSocket, an freastalaí
+beo, `/api/settings/require-login`, `/api/auth/status`) téann sé tríd an gcúntóir sin.
+Tá JWTanna eile ann atá sínithe le `JWT_SECRET` — eisíonn tríchur Cursor CLI
+comharthaí `iss "omniroute" / aud "cursor-cli"` do shealbhóirí eochrach — agus ní seisiúin iad riamh
+(#13298).
 
-Déanann `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts` é a fhíorú. Athnuachan an phíblíne an JWT go huathoibríoch nuair atá níos lú ná 7 lá fágtha dá shaolré 30 lá.
+Déantar é a fhíorú le `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. Déanann an phíblíne an JWT a athnuachan go huathoibríoch nuair atá níos lú ná 7 lá fágtha dá shaolré 30 lá.
 
-Glacann roinnt bealaí bainistíochta le **ceachtar** mód: fianán NÓ `Bearer <key>` nuair atá an scóip `manage` (nó `admin`) ag an eochair API. Is é seo a chumasaíonn an sreabhadh oibre „inchumraithe trí ghlaonna API” a cuireadh leis in v3.8.
+Is féidir le seisiún críochnú sula mbíonn a 30 lá istigh freisin, toisc go dtéann gach eisitheoir trí `mintDashboardSessionToken` (am eisiúna `iat` agus aitheantas `jti`) agus seiceálann an fíoraitheoir dhá shocrú: `sessionsValidAfter`, a shocraítear nuair a athraítear pasfhocal ionas nach bhfíoraítear a thuilleadh aon seisiún a eisíodh roimhe sin (faigheann an brabhsálaí inar athraíodh an pasfhocal fianán úr), agus `revokedDashboardSessions`, a gcuireann `POST /api/auth/logout` `jti` an tseisiúin sínithe-amach leis. Ní bhíonn ceachtar éileamh i seisiúin a d'eisigh leagan níos sine agus fanann siad bailí go dtí an chéad athrú pasfhocail. Mura féidir na socruithe a léamh, ní chuirtear muinín sa seisiún.
 
-#### Geata logála isteach roghnach OIDC (#6973)
+Glacann roinnt bealaí bainistíochta le **ceachtar** mód: fianán NÓ `Bearer <key>` nuair atá an scóip `manage` (nó `admin`) ag an eochair API. Is é seo a chumasaíonn an sreabhadh oibre “inchumraithe trí ghlaonna API” a cuireadh leis in v3.8.
 
-Tacaíonn logáil isteach riarthóra na deaise freisin le sreabhadh OIDC (OpenID Connect) **roghnach**
-in éineacht leis an logáil isteach réamhshocraithe le pasfhocal — ní bhaintear an logáil isteach le pasfhocal riamh,
-ní dhéantar ach cur leis:
+#### Geata roghnach logála isteach OIDC (#6973)
 
-- Bíonn sé díchumasaithe mura bhfuil `settings.oidcEnabled === true` **agus** mura bhfuil `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` cumraithe ar fad (Socruithe → Fíordheimhniú).
-  Tugann `GET /api/auth/oidc/login` `400` ar ais murach sin.
+Tacaíonn logáil isteach riarthóra an deais le sreabhadh OIDC (OpenID Connect) **roghnach** freisin
+in éineacht leis an logáil isteach réamhshocraithe le pasfhocal — ní bhaintear logáil isteach le pasfhocal riamh, ní dhéantar ach
+é a fhorlíonadh:
+
+- Bíonn sé díchumasaithe mura bhfuil `settings.oidcEnabled === true` **agus** mura bhfuil
+  `oidcIssuer` / `oidcClientId` / `oidcClientSecret` uile cumraithe (Socruithe → Fíordheimhniú).
+  Seolann `GET /api/auth/oidc/login` `400` ar ais murach sin.
 - Aimsíonn `GET /api/auth/oidc/login` an `authorization_endpoint` ó
-  `/.well-known/openid-configuration` an eisitheora (agus titeann sé siar ar
-  `<issuer>/authorize`), tógann sé an URI atreoraithe ón iarratas isteach
+  `/.well-known/openid-configuration` an eisitheora (agus téann sé ar ais chuig
+  `<issuer>/authorize` mura n-éiríonn leis), tógann sé an URI atreoraithe ón iarratas isteach
   (agus `x-forwarded-proto` á chur san áireamh), agus atreoraíonn sé chuig an IdP le `state`
-  randamach stóráilte i bhfianán `oidc_state` `httpOnly`.
+  randamach stóráilte i bhfianán `httpOnly` `oidc_state`.
 - Bailíochtaíonn `GET /api/auth/oidc/callback` `state`, malartaíonn sé an cód údaraithe,
   agus fíoraíonn sé síniú an chomhartha ID trí JWKS an eisitheora
-  (`createRemoteJWKSet` de chuid `jose`, i dtaisce de réir URI JWKS) le seiceálacha
+  (`createRemoteJWKSet` de chuid `jose`, arna thaisceadh de réir URI JWKS) le seiceálacha
   `issuer`/`audience`. Meaitseálann liosta ceada roghnach `oidcAllowedSubjects`
-  éileamh `sub` an chomhartha nó a éileamh `email` — ní ghlactar leis an éileamh ríomhphoist
-  ach amháin nuair atá `email_verified === true`, mar sin ní féidir le ríomhphost neamhfhíoraithe
-  ag an IdP dul tríd an ngeata choíche.
-- Má éiríonn leis, gineann sé an JWT `auth_token` 30 lá **ceannann céanna** a eisíonn an logáil
-  isteach le pasfhocal (`src/app/api/auth/login/route.ts`), mar sin fanann an chuid eile de
-  phíblíne sheisiún na deaise (uath-athnuachan, bratacha fianáin) gan athrú —
-  ní athraíonn OIDC ach an chaoi a ngintear an fianán, ní na ceadanna a thugann sé.
+  éileamh `sub` an chomhartha nó a éileamh `email` — ní thugtar aitheantas don éileamh ríomhphoist ach amháin nuair atá
+  `email_verified === true`, mar sin ní féidir le ríomhphost neamhfhíoraithe ag an IdP dul tríd
+  an ngeata riamh.
+- Má éiríonn leis, eisíonn sé an JWT `auth_token` 30 lá **ceannann céanna** a eisíonn an logáil isteach
+  le pasfhocal (`src/app/api/auth/login/route.ts`), mar sin ní athraítear an chuid eile de
+  phíblíne sheisiún an deais (athnuachan uathoibríoch, bratacha fianán) —
+  ní athraíonn OIDC ach an chaoi a n-eisítear an fianán, seachas na ceadanna a thugann sé.
 
 ## Aicmí Bealaigh
 
@@ -202,26 +204,35 @@ Roghnaigh an tacar de réir crutha, ní de réir áisiúlachta. Cuirtear bealach
 
 ## Scóip
 
-Tá eagar `scopes` ag eochracha API (stóráilte mar JSON in `api_keys.scopes`, féach `src/lib/db/apiKeys.ts`).
+Trí spásainm. Ní léann gach seiceálaí ach a shreanga féin. Tá an taobh le taobh,
+lena n-áirítear cén fáth a dteipeann ar `manage` `scopeMatches` do `read:compression` agus cén fáth nach féidir le comhartha rochtana `read` `PATCH /api/keys/{id}`, le fáil anseo:
+[Trí spásainm scóip](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+Bíonn eochracha API ag iompar eagar `scopes` (stóráilte mar JSON i `api_keys.scopes`, féach `src/lib/db/apiKeys.ts`).
 
 ### Scóip bhainistíochta
 
-- `manage` / `admin` — tugann sé rochtain don eochair ar chríochphointí API bainistíochta nuair a sheoltar í mar Bearer.
+- `manage` / `admin` — `hasManageScope`. Rochtain iompróra ar bhealaí API bainistíochta.
+- `mcp:connect`, `self:usage`, `self:account-quota`, agus
+  `policy:bypass-provider-quota` is scóip bhreise, chomhfhreagracha iad. Tá siad
+  lasmuigh de `MANAGEMENT_API_KEY_SCOPES`. Ní osclaíonn `mcp:connect` ach an
+  gearradh amach neamh-lúbchúlaithe `/api/mcp/`.
 
-### Scóip MCP (`src/shared/constants/mcpScopes.ts`)
+### Scóip uirlisí MCP
 
-Teastaíonn scóip shonracha ó gach uirlis MCP trí `MCP_TOOL_SCOPES`. An liosta iomlán (`MCP_SCOPE_LIST`):
+Catalóg agus rialacha meaitseála (sreangán comhionann, nó scóip deonaithe ag críochnú le `*`):
+[Scóip uirlisí MCP](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+Is é `MCP_SCOPE_LIST` i `src/shared/constants/mcpScopes.ts` an fochuid chlóscríofa bhunaidh,
+ní an chatalóg iomlán sin. Ritheann forfheidhmiú i
+`open-sse/mcp-server/scopeEnforcement.ts` tar éis do `resolveCallerScopeContext()`
+scóip a réiteach ó fhaisnéis fíordheimhnithe MCP, meiteashonraí iarratais, nó `OMNIROUTE_MCP_SCOPES`.
+Fanann sé múchta mura bhfuil `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Scóip chomhartha rochtana
 
-Le linn fhorfheidhmiú na scóp in `open-sse/mcp-server/server.ts`, cuirtear liosta scóp gach uirlise ar aghaidh chuig
-`evaluateToolScopes()` tar éis do `resolveCallerScopeContext()` scóip a réiteach ó fhaisnéis fíordheimhnithe MCP,
-ó mheiteashonraí an iarratais, nó ó `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` ar chomharthaí `oma_live_…`, rangaithe de réir `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Ní bhaineann an rang seo ach leis an dintiúr
+comhartha rochtana. Féach [Fíordheimhniú Bainistíochta](../guides/MANAGEMENT-AUTH.md).
 
 ## Scorán Riachtanais Fíordheimhnithe
 
@@ -269,7 +280,7 @@ x-omniroute-auth-scopes:    comma-separated list
 
 ## Féach Freisin
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcóir fíordheimhnithe de réir críochphointe
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — loga iniúchóireachta le haghaidh teagmhais fíordheimhnithe
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — sonraí faoi fhorfheidhmiú scóip MCP
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — marcóir fíordheimhnithe in aghaidh an cheannphointe
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — logáil iniúchta d'imeachtaí fíordheimhnithe
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trí spásainm scóip agus catalóg scóip uirlise MCP
 - Foinse: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

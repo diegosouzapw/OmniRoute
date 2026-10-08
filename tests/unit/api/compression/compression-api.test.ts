@@ -123,7 +123,7 @@ describe("Compression Settings API Schema Validation", () => {
   });
 });
 
-// ─── Route round-trip: engines map + activeComboId ─────────────────────────
+// ─── Route round-trip: engines map, activeComboId, cavemanOutputMode ───────
 // Mirrors the mcp-accessibility-config test harness: allocate a temp DATA_DIR,
 // import route + DB modules, tear down in after().
 
@@ -136,7 +136,7 @@ function makeRequest(method: string, body?: unknown): Request {
   }) as any;
 }
 
-describe("settings/compression route — engines + activeComboId", () => {
+describe("settings/compression route — engines, activeComboId, cavemanOutputMode", () => {
   beforeEach(() => {
     core.resetDbInstance();
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
@@ -224,5 +224,27 @@ describe("settings/compression route — engines + activeComboId", () => {
 
     const putRes2 = await route.PUT(makeRequest("PUT", { enabled: false, enginesExplicit: false }));
     assert.equal(putRes2.status, 200);
+  });
+
+  it("PUT a partial cavemanOutputMode keeps the stored fields it omits", async () => {
+    await route.PUT(
+      makeRequest("PUT", {
+        cavemanOutputMode: { enabled: true, intensity: "ultra", autoClarity: true },
+      })
+    );
+    core.resetDbInstance();
+
+    const putRes = await route.PUT(
+      makeRequest("PUT", { cavemanOutputMode: { autoClarity: false } })
+    );
+    assert.equal(putRes.status, 200);
+    core.resetDbInstance();
+
+    const body = await (await route.GET(makeRequest("GET"))).json();
+    assert.deepEqual(body.cavemanOutputMode, {
+      enabled: true,
+      intensity: "ultra",
+      autoClarity: false,
+    });
   });
 });

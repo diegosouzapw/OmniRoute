@@ -1,53 +1,55 @@
 # Management Authentication (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/MANAGEMENT-AUTH.md) · 🇪🇹 [am](../../../am/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇦 [ar](../../../ar/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇿 [az](../../../az/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇬 [bg](../../../bg/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇩 [bn](../../../bn/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇦 [bs](../../../bs/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇿 [cs](../../../cs/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇰 [da](../../../da/docs/guides/MANAGEMENT-AUTH.md) · 🇩🇪 [de](../../../de/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇷 [el](../../../el/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇸 [es](../../../es/docs/guides/MANAGEMENT-AUTH.md) · 🇪🇪 [et](../../../et/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇷 [fa](../../../fa/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇮 [fi](../../../fi/docs/guides/MANAGEMENT-AUTH.md) · 🇫🇷 [fr](../../../fr/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇪 [ga](../../../ga/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [gu](../../../gu/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ha](../../../ha/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇱 [he](../../../he/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [hi](../../../hi/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇷 [hr](../../../hr/docs/guides/MANAGEMENT-AUTH.md) · 🇭🇺 [hu](../../../hu/docs/guides/MANAGEMENT-AUTH.md) · 🇦🇲 [hy](../../../hy/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇩 [id](../../../id/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [ig](../../../ig/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇹 [it](../../../it/docs/guides/MANAGEMENT-AUTH.md) · 🇯🇵 [ja](../../../ja/docs/guides/MANAGEMENT-AUTH.md) · 🇬🇪 [ka](../../../ka/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇭 [km](../../../km/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [kn](../../../kn/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇷 [ko](../../../ko/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇹 [lt](../../../lt/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇻 [lv](../../../lv/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ml](../../../ml/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [mr](../../../mr/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇾 [ms](../../../ms/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇹 [mt](../../../mt/docs/guides/MANAGEMENT-AUTH.md) · 🇲🇲 [my](../../../my/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇵 [ne](../../../ne/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇱 [nl](../../../nl/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇴 [no](../../../no/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [or](../../../or/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [pa](../../../pa/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇭 [phi](../../../phi/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇱 [pl](../../../pl/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇹 [pt](../../../pt/docs/guides/MANAGEMENT-AUTH.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇴 [ro](../../../ro/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇺 [ru](../../../ru/docs/guides/MANAGEMENT-AUTH.md) · 🇱🇰 [si](../../../si/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇰 [sk](../../../sk/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇮 [sl](../../../sl/docs/guides/MANAGEMENT-AUTH.md) · 🇷🇸 [sr](../../../sr/docs/guides/MANAGEMENT-AUTH.md) · 🇸🇪 [sv](../../../sv/docs/guides/MANAGEMENT-AUTH.md) · 🇰🇪 [sw](../../../sw/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [ta](../../../ta/docs/guides/MANAGEMENT-AUTH.md) · 🇮🇳 [te](../../../te/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇭 [th](../../../th/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/MANAGEMENT-AUTH.md) · 🇵🇰 [ur](../../../ur/docs/guides/MANAGEMENT-AUTH.md) · 🇺🇿 [uz](../../../uz/docs/guides/MANAGEMENT-AUTH.md) · 🇻🇳 [vi](../../../vi/docs/guides/MANAGEMENT-AUTH.md) · 🇳🇬 [yo](../../../yo/docs/guides/MANAGEMENT-AUTH.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/MANAGEMENT-AUTH.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/MANAGEMENT-AUTH.md)
 
 ---
 
 OmniRoute, yönetim rotalarını yetkilendirebilen **dört kimlik bilgisi ailesine** sahiptir.
-Bunlar birbirinin yerine kullanılamaz. Çıkarım API anahtarları (`sk-…`), açıkça `manage` veya `admin` kapsamı verilmediği sürece sunucuyu **yönetemez**.
+Bunlar birbirinin yerine kullanılamaz. Çıkarım API anahtarları (`sk-…`), açıkça `manage` veya `admin` kapsamı verilmedikçe sunucuyu yönetmez.
 
-Referans uygulama: `src/lib/api/requireManagementAuth.ts`.
+Kanonsal uygulama: `src/lib/api/requireManagementAuth.ts`.
 
-| Kimlik bilgisi               | Tipik biçim                             | Oluşturulduğu yer                                          | Amaçlanan kullanım         | Yönetim yeteneği                                                                 |
-| ---------------------------- | --------------------------------------- | ---------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------- |
-| Dashboard JWT oturumu        | `auth_token` çerezi                     | Dashboard girişi                                           | Tarayıcı kullanıcı arayüzü | CSRF, yerellik ve her zaman korunan rota kurallarına tabi tam dashboard yönetimi |
-| CLI makine kimliği belirteci | dahili / yerel                          | CLI ilk kurulumu (aynı makinede `omniroute`)               | Yerel CLI                  | Yalnızca yerel yönetim                                                           |
-| Kapsamlı Erişim Belirteci    | `oma_live_…`                            | **Ayarlar → Erişim Belirteçleri** veya `omniroute connect` | Uzak CLI ve yönetim API'si | Rotanın gerektirdiği `read`, `write` veya `admin` kapsamını karşılamalıdır       |
-| Çıkarım API anahtarı         | `sk-…` (ve diğer API anahtarı önekleri) | **API Yöneticisi / API Anahtarları**                       | `/v1/*` çıkarımı           | Anahtar meta verileri `manage` veya `admin` içermediği sürece **yoktur**         |
+| Kimlik Bilgisi               | Tipik biçim                             | Oluşturulduğu yer                                          | Amaçlanan kullanım         | Yönetim yeteneği                                                                      |
+| :--------------------------- | :-------------------------------------- | :--------------------------------------------------------- | :------------------------- | :------------------------------------------------------------------------------------ |
+| Kontrol Paneli JWT oturumu   | `auth_token` çerezi                     | Kontrol Paneli girişi                                      | Tarayıcı kullanıcı arayüzü | CSRF, yerellik ve her zaman korunan rota kurallarına tabi tam kontrol paneli yönetimi |
+| CLI makine kimliği belirteci | dahili / yerel                          | CLI önyüklemesi (aynı makinede `omniroute`)                | Yerel CLI                  | Yalnızca yerel yönetim                                                                |
+| Kapsamlı Erişim Belirteci    | `oma_live_…`                            | **Ayarlar → Erişim Belirteçleri** veya `omniroute connect` | Uzak CLI ve yönetim API'si | Rotanın gerekli `read`, `write` veya `admin` kapsamını karşılamalıdır                 |
+| Çıkarım API anahtarı         | `sk-…` (ve diğer API anahtarı önekleri) | **API Yöneticisi / API Anahtarları**                       | `/v1/*` çıkarım            | Anahtar meta verileri `manage` veya `admin` içermiyorsa **Yoktur**                    |
 
-`oma_` kimlik bilgileri, yönetim/CLI kimlik bilgileridir. Bunlar çıkarım API anahtarları **değildir**.
+`oma_` kimlik bilgileri yönetim/CLI kimlik bilgileridir. Bunlar çıkarım API anahtarları **değildir**.
 
-Sunucu için oturum açma/API anahtarı kimlik doğrulaması devre dışıysa bazı yönetim rotaları kimlik doğrulaması yapılmamış çağrıları kabul edebilir. Yalnızca yerel ve her zaman korunan rotalar yine kendi kurallarını uygular. Dolayısıyla bu kimlik bilgilerinden birini sunmak her durumda zorunlu olmadığı gibi, gerekli kapsam ve rota yerelliği olmadan bunlardan birine sahip olmak da her durumda yeterli değildir.
+Sunucu için oturum açma/API anahtarı kimlik doğrulaması devre dışı bırakılırsa, bazı yönetim rotaları kimliği doğrulanmamış çağrıları kabul edebilir. Yalnızca yerel ve her zaman korunan rotalar kendi kurallarını uygulamaya devam eder. Bu nedenle, bu kimlik bilgilerinden birini sunmak evrensel olarak zorunlu değildir ve birine sahip olmak, gerekli kapsam ve rota yerelliği olmadan evrensel olarak yeterli değildir.
 
-İlgili: [Uzak Mod](./REMOTE-MODE.md) (uzak bir CLI için `oma_live_…` belirtecinin nasıl oluşturulduğu).
+İlgili: [Uzak Mod](./REMOTE-MODE.md) (`oma_live_…` uzak bir CLI için nasıl oluşturulur).
 
 ---
 
 ## Kapsam matrisleri
 
-Bu iki kapsam sözlüğü **farklıdır**. Bunları karıştırmayın.
+API anahtarı yönetimi kapsamları ve erişim belirteci kapsamları farklı kelime dağarcıklarıdır.
+MCP aracı kapsamları, aşağıdaki tablolardaki işlevlerden ziyade `scopeMatches` ile kontrol edilen üçüncü bir kelime dağarcığıdır.
+Yan yana: [Üç kapsam ad alanı](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
 ### Erişim Belirteci kapsamları (`oma_live_…`)
 
-| Kapsam  | Tipik işlemler                                                                            |
-| ------- | ----------------------------------------------------------------------------------------- |
-| `read`  | Belirtecin görmesine izin verilen listeleme/durum GET istekleri                           |
-| `write` | Yönetici seviyesinin altındaki değişiklikler (oluşturma/güncelleme/silme)                 |
-| `admin` | Tam uzak CLI / bağlantı belirteci (parola ile ilk kurulumda varsayılan olarak kullanılır) |
+| Kapsam  | Tipik işlemler                                                                |
+| ------- | ----------------------------------------------------------------------------- |
+| `read`  | Belirtecin görmesine izin verilen listeleme/durum GET'leri                    |
+| `write` | Yöneticinin altındaki mutasyonlar (oluşturma/güncelleme/silme)                |
+| `admin` | Tam uzaktan CLI / bağlantı belirteci (parola önyükleme varsayılanları burada) |
 
-`read` kapsamına sahip bir belirteç, `write` rotasını çağıramaz. Çalışma zamanı ileti biçimi:
-`Access token scope '<have>' is insufficient; '<need>' required.`
+`read` yetkisine sahip bir belirteç, `write` rotasını çağıramaz. Çalışma zamanı mesajı şekli:
+`Erişim belirteci kapsamı '<have>' yetersiz; '<need>' gerekli.`
 
-### API anahtarı yönetim kapsamları
+### API anahtarı yönetimi kapsamları
 
-| Kapsam   | Anlamı                                                                                 |
-| -------- | -------------------------------------------------------------------------------------- |
-| (yok)    | Yalnızca çıkarım. Yönetim rotaları 403 döndürür.                                       |
-| `manage` | Yönetim API'si (`requireManagementAuth` API anahtarı dalıyla aynı denetim)             |
-| `admin`  | `hasManageScope` koşulunu da karşılar (yönetim yetkisine sahip olarak değerlendirilir) |
+| Kapsam   | Anlamı                                                                               |
+| -------- | ------------------------------------------------------------------------------------ |
+| (yok)    | Yalnızca çıkarım. Yönetim rotaları 403 döndürür.                                     |
+| `manage` | Yönetim API'si (`requireManagementAuth` API anahtarı dalı ile aynı geçit)            |
+| `admin`  | Ayrıca `hasManageScope`'u da karşılar (yönetim yeteneğine sahip olarak kabul edilir) |
 
-API Anahtarları / API Yöneticisi kullanıcı arayüzünde anahtar için `manage` kapsamını etkinleştirin. Bu kapsamı bilerek vermediğiniz sürece otomasyon için bir sohbet istemcisi anahtarını yeniden kullanmayın.
+API Anahtarları / API Yöneticisi kullanıcı arayüzünde anahtarda `manage` özelliğini etkinleştirin. Bu kapsamı bilerek vermediğiniz sürece, bir sohbet istemcisi anahtarını otomasyon için yeniden kullanmayın.
 
 ---
 
@@ -121,26 +123,26 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Mevcut çalışma zamanı hataları (gizli bilgileri yanıta dahil etmeyin)
+## Mevcut çalışma zamanı hataları (gizli bilgileri yansıtmayın)
 
-| Durum                                                 | Tipik durum kodu | İleti (temizlenmiş)                                                  |
-| ----------------------------------------------------- | ---------------- | -------------------------------------------------------------------- |
-| Kimlik bilgisi yok                                    | 401              | `Authentication required`                                            |
-| Geçersiz/süresi dolmuş `oma_live_…`                   | 401              | `Invalid or expired access token`                                    |
-| `manage`/`admin` kapsamı olmayan geçerli API anahtarı | 403              | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
-| Bir yönetim rotasında geçersiz sıradan API anahtarı   | 403              | `Invalid management token`                                           |
-| Erişim Belirteci kapsamı çok düşük                    | 403              | `Access token scope '<have>' is insufficient; '<need>' required.`    |
+| Durum                                           | Tipik durum | Mesaj (temizlenmiş)                                                  |
+| :---------------------------------------------- | :---------- | :------------------------------------------------------------------- |
+| Kimlik bilgisi yok                              | 401         | `Authentication required`                                            |
+| Geçersiz/süresi dolmuş `oma_live_…`             | 401         | `Invalid or expired access token`                                    |
+| `manage`/`admin` olmadan geçerli API anahtarı   | 403         | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Yönetim rotasında geçersiz sıradan API anahtarı | 403         | `Invalid management token`                                           |
+| Erişim Jetonu kapsamı çok düşük                 | 403         | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Invalid management token", bearer değerinin bir yönetim kimlik bilgisi olarak **kabul edilmediği** anlamına gelir. Bu ileti, hangi türden kimlik bilgisi oluşturmanız gerektiğini **belirtmez**. Yukarıdaki tabloyu kullanın: çıkarım anahtarları `manage` kapsamına ihtiyaç duyar; uzak CLI için `oma_live_…` gerekir; pano ise oturum çerezini kullanır.
+"Invalid management token" (Geçersiz yönetim jetonu) ifadesi, taşıyıcının bir yönetim kimlik bilgisi olarak kabul edilmediği anlamına gelir. Hangi ailenin basılacağını size söylemez. Yukarıdaki tabloyu kullanın: çıkarım anahtarları `manage` kapsamına ihtiyaç duyar; uzak CLI `oma_live_…`'ye ihtiyaç duyar; kontrol paneli oturum çerezini kullanır.
 
 ---
 
-## Önerilen en az ayrıcalıklı seçenek
+## Önerilen en az ayrıcalıklı seçim
 
-| Çağrıyı yapan                                                | Kullanılacak yöntem                                             |
-| ------------------------------------------------------------ | --------------------------------------------------------------- |
-| Tarayıcı                                                     | Pano oturumu                                                    |
-| Sunucu ana makinesindeki CLI                                 | Makine belirteci                                                |
-| Uzak bir sunucuyla iletişim kuran dizüstü bilgisayardaki CLI | `omniroute connect` tarafından sağlanan `oma_live_…`            |
-| CI / betikler (yalnızca yönetim)                             | Çalışan en küçük kapsama sahip `oma_live_…`                     |
-| Hem `/v1` hem de `/api` çağrısı yapması gereken CI           | `manage` kapsamlı API anahtarı **veya** iki ayrı kimlik bilgisi |
+| Arayan                                            | Kullanım                                               |
+| ------------------------------------------------- | ------------------------------------------------------ |
+| Tarayıcı                                          | Kontrol paneli oturumu                                 |
+| Sunucu ana bilgisayarındaki CLI                   | Makine belirteci                                       |
+| Uzak sunucuyla konuşan dizüstü bilgisayardaki CLI | `omniroute connect`'ten `oma_live_…`                   |
+| CI / betikler (yalnızca yönetim)                  | Çalışan en küçük kapsamlı `oma_live_…`                 |
+| Hem `/v1` hem de `/api` çağırması gereken CI      | `manage` **veya** iki kimlik bilgisi olan API anahtarı |

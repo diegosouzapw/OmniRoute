@@ -288,7 +288,7 @@ test("handleChat returns model_cooldown when every credential for the requested 
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
 });
 
-test("handleChat returns stream readiness timeout without entering cooldown-aware retry or account lockout", async () => {
+test("handleChat retries a direct stream readiness timeout once, without cooldown-aware retry or account lockout", async () => {
   const connection = await seedConnection("openai", {
     apiKey: "sk-openai-stream-readiness-timeout",
   });
@@ -315,7 +315,10 @@ test("handleChat returns stream readiness timeout without entering cooldown-awar
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 504);
-  assert.equal(fetchCalls, 1);
+  // #14209 (issue #14025): a direct (non-combo, non-forced, still-connected) request gets ONE
+  // bounded same-target retry of a readiness timeout before the 504 — so exactly two upstream
+  // calls, and still no cooldown-aware retry loop or account lockout.
+  assert.equal(fetchCalls, 2);
   assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
 
   const refreshedConnection = (await getProviderConnectionById((connection as any).id)) as any;

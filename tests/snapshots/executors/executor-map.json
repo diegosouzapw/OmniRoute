@@ -295,16 +295,6 @@
       "configSource": "grok-cli",
       "provider": "grok-cli"
     },
-    "gembiz": {
-      "className": "GeminiBusinessExecutor",
-      "configSource": "<custom-config>",
-      "provider": "gemini-business"
-    },
-    "gemini-business": {
-      "className": "GeminiBusinessExecutor",
-      "configSource": "<custom-config>",
-      "provider": "gemini-business"
-    },
     "gemini-web": {
       "className": "GeminiWebExecutor",
       "configSource": "<custom-config>",
@@ -666,6 +656,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 133,
+  "keyCount": 131,
   "sharedInstances": []
 }

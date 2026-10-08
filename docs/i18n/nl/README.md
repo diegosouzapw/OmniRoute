@@ -1,35 +1,35 @@
 # README (Nederlands)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇹 [am](../am/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇧🇦 [bs](../bs/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇳🇬 [ha](../ha/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇦🇲 [hy](../hy/README.md) · 🇮🇩 [id](../id/README.md) · 🇳🇬 [ig](../ig/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇬🇪 [ka](../ka/README.md) · 🇰🇭 [km](../km/README.md) · 🇮🇳 [kn](../kn/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [ml](../ml/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇲🇲 [my](../my/README.md) · 🇳🇵 [ne](../ne/README.md) · 🇳🇴 [no](../no/README.md) · 🇮🇳 [or](../or/README.md) · 🇮🇳 [pa](../pa/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇱🇰 [si](../si/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇺🇿 [uz](../uz/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇳🇬 [yo](../yo/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-dashboard" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — De gratis AI-gateway
+# 🚀 OmniRoute — De Gratis AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Stop nooit met programmeren. Elke AI-tool → 359 providers — 150+ gratis — via één endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity naar GRATIS Claude / GPT / Gemini met automatische fallback. Gecombineerde RTK- en Caveman-compressie bespaart 15–95% tokens (gemiddeld ~89%) — bereik nooit meer limieten. 359 AI-providers · 150+ gratis niveaus · ~1,62 mld. gratis tokens/maand · 19 routeringsstrategieën · starten voor $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Blijf altijd coderen. Elke AI-tool → 358 providers — 150+ gratis — via één eindpunt. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity naar GRATIS Claude / GPT / Gemini met automatische terugval. RTK + Caveman gestapelde compressie bespaart 15–95% tokens (~89% gemiddeld) — bereik nooit limieten. 358 AI-providers · 150+ gratis lagen · ~1,62 miljard gratis tokens/maand · 19 routeringsstrategieën · $0 om te beginnen."/>
 
 </div>
 
 <div align="center">
 
-## 💰 ~1,62 mld. gratis tokens / maand
+## 💰 ~1.62B gratis tokens / maand
 
 </div>
 
-> Het handmatig combineren van gratis niveaus is omslachtig — tientallen SDK's, tientallen snelheidslimieten en geen idee hoeveel je daadwerkelijk hebt. OmniRoute catalogiseert **491 gratis niveaus verdeeld over 35 terugkerende poolsleutels** en berekent het totale aantal tokens op basis van de **17 pools met een gepubliceerd positief maandelijks budget plus vijf Groq-limieten per model**, waarbij gedeelde pools worden gededupliceerd. Quota die pas beschikbaar worden na een regionale identiteitscontrole (momenteel: ModelScope) worden afzonderlijk weergegeven, +~6M achter regionale identiteitsverificatie, en worden nooit bij het totaal opgeteld. Het resultaat blijft zichtbaar op het dashboard (`/dashboard/free-tiers`).
+> Het handmatig combineren van gratis niveaus is frustrerend — tientallen SDK's, tientallen snelheidslimieten en geen idee hoeveel je daadwerkelijk hebt. OmniRoute catalogiseert **489 vermeldingen van gratis niveaus verdeeld over 35 terugkerende poolsleutels** en berekent het totale aantal tokens op basis van de **17 pools met een gepubliceerd positief maandelijks budget plus vijf Groq-limieten per model**, waarbij gedeelde pools worden gededupliceerd. Quota die pas beschikbaar worden na een regionale identiteitscontrole (momenteel: ModelScope), worden afzonderlijk weergegeven als +~6M achter regionale identiteitsverificatie en worden nooit bij het totaal opgeteld. Het resultaat blijft zichtbaar op het dashboard (`/dashboard/free-tiers`).
 
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute-budgetkaart voor gratis niveaus: structureel ~1,62 mld. gratis tokens per maand, oplopend tot ~2,22 mld. in de eerste maand met registratiecredits, afkomstig uit 35 gedocumenteerde terugkerende poolsleutels die 491 gecatalogiseerde gratis niveaus achter één endpoint omvatten. Eerlijke, per pool gededupliceerde berekening — elke gedeelde pool wordt één keer meegeteld, waaronder 17 terugkerende pools met een gepubliceerd positief maandelijks tokenbudget plus vijf Groq-limieten per model; 13 providers zijn in de catalogus voor voorwaardenrisico's gemarkeerd als te vermijden, zodat je zelf kunt beslissen. De budgetbalk omvat Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (vijf limieten per model) en kleinere pools, plus registratiecredits voor de eerste maand en permanent gratis providers zonder tokenlimiet, die afzonderlijk worden weergegeven zodat ze het totaal nooit kunstmatig verhogen. Live verbruikt/resterend op /dashboard/free-tiers."/>
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute-budgetkaart voor gratis niveaus: structureel ~1.62B gratis tokens per maand, oplopend tot ~2.22B in de eerste maand dankzij aanmeldtegoeden, afkomstig van 35 gedocumenteerde terugkerende poolsleutels die 489 gecatalogiseerde vermeldingen van gratis niveaus achter één endpoint omvatten. Eerlijke berekening met gededupliceerde pools — elke gedeelde pool wordt één keer meegeteld, inclusief 17 terugkerende pools met een gepubliceerd positief maandelijks tokenbudget plus vijf Groq-limieten per model; 13 providers zijn in de catalogus met voorwaardenrisico's gemarkeerd als te vermijden, zodat jij beslist. De budgetbalk omvat Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (vijf limieten per model) en kleinere pools, plus aanmeldtegoeden voor de eerste maand en permanent gratis providers zonder tokenlimiet die afzonderlijk worden weergegeven, zodat ze het totaal nooit kunstmatig verhogen. Live verbruik/resterend op /dashboard/free-tiers."/>
 
-> Geanimeerde samenvatting van de livepagina `/dashboard/free-tiers`. Volledige methodologie (pooldeduplicatie, creditniveaus, providervoorwaarden): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> Geanimeerde samenvatting van de livepagina `/dashboard/free-tiers`. Volledige methodologie (pooldeduplicatie, tegoedniveaus, providervoorwaarden): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
 >
-> <sub>Deze cijfers worden elke twee weken opnieuw gecontroleerd aan de hand van de livecatalogus en **kunnen beide kanten op bewegen** — beëindigt een provider een gratis niveau, dan daalt het aantal; komt er een nieuw niveau bij, dan stijgt het. We publiceren wat de catalogus daadwerkelijk berekent, nooit een naar boven afgerond gunstigste scenario.</sub>
+> <sub>Deze cijfers worden elke twee weken opnieuw gecontroleerd aan de hand van de livecatalogus en **kunnen beide kanten op bewegen** — beëindigt een provider een gratis niveau, dan daalt het aantal; komt er een nieuw niveau bij, dan stijgt het. We publiceren wat de catalogus daadwerkelijk berekent, nooit een naar boven afgerond bestcasescenario.</sub>
 
 <br/>
 
@@ -37,18 +37,18 @@
 
 <h3>
 
-⭐ Geef de repo een ster als OMNIROUTE je heeft geholpen geld te besparen en je werk gemakkelijker te maken.
+⭐ Geef de repo een ster als OMNIROUTE je heeft geholpen geld te besparen en je werk eenvoudiger te maken.
 
 </h3>
 
 [![Sterren](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-[![Rang in sterrengeschiedenis](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
+[![Rangschikking sterrengeschiedenis](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
 [![olud.ai](https://olud.ai/badge.php?tool=diegosouzapw-omniroute)](https://olud.ai/project/diegosouzapw-omniroute.html)
 
 ### 💬 Word lid van de community
 
-**👋 Volg de beheerder — ontvang als eerste nieuws over nieuwe providers, releases en tips:**
+**👋 Volg de beheerder — ontvang als eerste nieuwe providers, releases en tips:**
 
 [![Volg Diego op LinkedIn](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
 [![Volg @diegosouzapw op GitHub](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
@@ -214,32 +214,32 @@
 
 <div align="center">
 
-## 🆓 Werkt vanaf het moment dat je het installeert — geen sleutels, geen configuratie
+## 🆓 Werkt zodra je het installeert — geen sleutels, geen configuratie
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt vanaf het moment dat je het installeert — zonder configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, de server start op localhost:20128. 2. Verwijs je tool naar http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Je krijgt antwoord — roep model auto aan voor een onmiddellijk antwoord, zonder API-sleutel, registratie of configuratie. De sleutelloze provider OpenCode Free is vooraf opgenomen in de auto-combinatie, zodat een nieuwe installatie direct werkt."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, zonder aanmelding, zonder configuratie. Sleutelloze provider OpenCode Free is vooraf bedraad in de auto-combinatie, dus een verse installatie reageert direct."/>
 
 ```bash
-# Nieuwe installatie, zonder inloggegevens — `auto` werkt meteen:
+# Verse installatie, nul referenties — `auto` werkt al:
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Liever een specifieke gratis backend? Roep `oc/…` (OpenCode Free) rechtstreeks aan. Stap daarna over op `auto` en laat OmniRoute kiezen.</sub>
+<sub>Liever een specifieke gratis backend? Roep `oc/…` (OpenCode Free) direct aan. Stap dan over op `auto` en laat OmniRoute kiezen.</sub>
 
-<sub>📦 Kant-en-klare quickstart-scripts om te kopiëren en plakken voor **Python, Node.js, PHP en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 Kopieer-plak quickstart scripts voor **Python, Node.js, PHP, en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 De belofte
+# 💥 De Belofte
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="De belofte — één endpoint en 359 providers. Automatische fallback blijft routeren zolang er een ander gezond doel beschikbaar is. Zes pijlers: robuuste fallback over 359 providers · tot 95% tokenbesparing bij geschikte workloads · starten voor $0 met meer dan 150 gratis niveaus en 54 terugkerende/sleutelloze providers die blijvend gratis zijn · 36 CLI-/agentintegraties via één configuratie · compatibiliteit met OpenAI, Claude, Gemini en Responses API op /v1 · productiecontroles, waaronder circuit breakers, TLS-stealth, MCP met 110 tools, A2A, geheugen, guardrails, evaluaties en meer dan 39.000 statische testdeclaraties verspreid over meer dan 5.100 bijgehouden testbestanden."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="De Belofte — Eén endpoint en 358 providers. Automatische fallback houdt de routering in stand zolang er een ander gezond doel beschikbaar is. Zes pijlers: veerkrachtige fallback over 358 providers · tot 95% tokenbesparing op geschikte workloads · $0 om te beginnen met 150+ gratis lagen en 54 terugkerende/sleutelloze gratis-voor-altijd providers · 36 CLI/agent-integraties via één configuratie · OpenAI, Claude, Gemini en Responses API-compatibiliteit op /v1 · productiecontroles inclusief circuit breakers, TLS stealth, MCP 110 tools, A2A, geheugen, guardrails, evals en 39.000+ statische testdeclaraties over 5.100+ bijgehouden testbestanden."/>
 
 <br/>
 <br/>
@@ -250,11 +250,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Waarom OmniRoute — stop met jongleren tussen 10 dashboards, verlopen API-sleutels en onverwachte rekeningen. Tien dagelijkse problemen en oplossingen: quota vervalt ongebruikt → abonnementen maximaal benutten; snelheidslimieten tijdens het programmeren → automatische fallback met 4 niveaus (Abonnement → API → Goedkoop → Gratis); tooluitvoer verbruikt tokens → RTK + Caveman-compressie (15–95%); dure API's → kostengeoptimaliseerde routering; elke tool vereist een eigen installatie → één endpoint, één dashboard; AI geblokkeerd → proxy met 3 niveaus + TLS-stealth; verlopen sleutels → robuustheid met 3 lagen (circuit breakers, afkoelperiode voor sleutels, modelvergrendeling); team deelt één abonnement → sleutelgroepen met quota voor eerlijke verdeling; prompts via de cloud van iemand anders → local-first met AES-256-GCM-versleutelde sleutels; geen inzicht in uitgaven → live-analyses (gebruik, quota, besparingen, p95-latentie)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Waarom OmniRoute — stop met het jongleren met 10 dashboards, dode API-sleutels en verrassingsrekeningen. Tien dagelijkse pijnpunten vs. oplossingen: quotum verloopt ongebruikt → maximaliseer abonnementen; rate limits tijdens het coderen → 4-laags auto-fallback (Abonnement → API → Goedkoop → Gratis); tool-outputs verbruiken tokens → RTK + Caveman compressie (15–95%); dure API's → kosten-geoptimaliseerde routering; elke tool zijn eigen setup → één endpoint, één dashboard; AI geblokkeerd → 3-laags proxy + TLS stealth; dode sleutels → 3-laags veerkracht (circuit breakers, key cooldown, model lockout); team deelt één abonnement → sleutelpools met eerlijke quotums; prompts via iemands cloud → local-first met AES-256-GCM versleutelde sleutels; geen inzicht in uitgaven → live analytics (gebruik, quotum, besparingen, p95 latency)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-aanvraagstroom: je IDE of CLI (Claude Code, Cursor, Cline…) roept één lokaal endpoint aan (http://localhost:20128/v1); de OmniRoute Smart Router (RTK + Caveman-compressie, 19 routeringsstrategieën, circuit breakers, TLS-stealth, MCP, A2A, guardrails) kan terugvallen op 4 providerniveaus zolang er een geschikt en gezond doel beschikbaar blijft — Niveau 1 Abonnement, Niveau 2 API-sleutel, Niveau 3 Goedkoop en Niveau 4 Gratis."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute verzoekstroom: je IDE of CLI (Claude Code, Cursor, Cline…) roept één lokaal endpoint aan (http://localhost:20128/v1); de OmniRoute Smart Router (RTK + Caveman compressie, 19 routeringsstrategieën, circuit breakers, TLS stealth, MCP, A2A, guardrails) kan terugvallen over 4 providerlagen zolang er een geschikt gezond doel overblijft — Laag 1 Abonnement, Laag 2 API-sleutel, Laag 3 Goedkoop en Laag 4 Gratis."/>
 
 </div>
 
@@ -262,17 +262,17 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Ondersteund door onze Open Source-vrienden
+## 🤝 Ondersteund door onze Open Source Vrienden
 
 </div>
 
 <p align="center">
   <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open grensverleggende intelligentie · 2,8 biljoen parameters · context van 1 miljoen tokens"/>
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligentie · 2.8T parameters · 1M-token context"/>
   </a>
 </p>
 
-> **Wil je je aansluiten als Open Source-vriend?** Dit zijn de bedrijven die open source ondersteunen en OmniRoute vooruithelpen — en we maken openbaar waar elke token die ze ons geven naartoe gaat. Neem contact op: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+> **Wil je meedoen als Open Source Vriend?** Dit zijn de bedrijven die open source ondersteunen en OmniRoute draaiende houden — en we vermelden publiekelijk waar elke token die ze ons geven naartoe gaat. Neem contact op: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -284,12 +284,12 @@ curl http://localhost:20128/v1/chat/completions \
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Oprichtende Open Source-vriend"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Oprichter Open Source Vriend"/>
     </td>
     <td>
-      Dank aan <b>Kimi (Moonshot AI)</b>, onze oprichtende Open Source-vriend, voor de ondersteuning van dit project! Kimi is het AI-lab achter de open-weight-modelfamilies K2 en K3 — <b>Kimi K3</b> biedt een contextvenster van 1 miljoen tokens, native beeldverwerking en programmeermogelijkheden van grensverleggend niveau voor een fractie van de prijzen van gesloten modellen, en werkt direct met Claude Code, Codex en elke programmeertool die OmniRoute ondersteunt.
+      Dank aan <b>Kimi (Moonshot AI)</b>, onze oprichtende Open Source Vriend, voor het ondersteunen van dit project! Kimi is het AI-lab achter de open-weight K2 en K3 modelfamilies — <b>Kimi K3</b> levert een 1M-token contextvenster, native visie en grensverleggende codering tegen een fractie van de prijzen van gesloten modellen, en werkt direct met Claude Code, Codex en elke coderingstool die OmniRoute ondersteunt.
       <br/><br/>
-      <b>Wat de ondersteuning van Kimi mogelijk maakt:</b> De API-tegoeden van Kimi ondersteunen de door AI gevalideerde release-pijplijn van OmniRoute — de fase <i>samenvoegvalidatie, mogelijk gemaakt door Kimi K3</i>, die elke pull request beoordeelt voordat deze wordt uitgebracht — en de dagelijkse ontwikkeling van functies. Volwaardige ondersteuning voor Kimi wordt via beide kanalen geleverd: de directe <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) en het <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code-programmeerabonnement</a> (OAuth en API-sleutel). OmniRoute is tevens het eerste Braziliaanse opensourceproject in het ondersteuningsprogramma van Kimi. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ontvang een Kimi API-sleutel met 15% extra tegoed →</b></a>
+      <b>Wat Kimi's ondersteuning mogelijk maakt:</b> Kimi's API-credits voeden OmniRoute's AI-gevalideerde release-pijplijn — de <i>samenvoegvalidatie aangedreven door Kimi K3</i>-fase die elke pull request beoordeelt voordat deze wordt verzonden — plus dagelijkse functieontwikkeling. Eersteklas Kimi-ondersteuning wordt op beide manieren geleverd: de directe <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) en het <a href="https://www.kimi.ai/code?aff=omniroute">Kimi Code coderingsplan</a> (OAuth en API-sleutel). OmniRoute is ook het eerste Braziliaanse open-source project in Kimi's ondersteuningsprogramma. <a href="https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute"><b>Ontvang een Kimi API-sleutel met 15% extra credits →</b></a>
     </td>
   </tr>
   <tr>
@@ -298,24 +298,24 @@ curl http://localhost:20128/v1/chat/completions \
         <img src="./public/providers/cli-generic.svg" width="64" alt="Cheaper Inference"/>
       </a>
       <br/><b>Cheaper Inference</b><br/><sub>cheaperinference.com</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source-vriend"/>
+      <img src="https://img.shields.io/badge/Open_Source_Friend-31f889?style=flat-square&labelColor=04170d" alt="Open Source Vriend"/>
     </td>
     <td>
-      Dank aan <b>Cheaper Inference</b>, een Open Source-vriend van OmniRoute, voor de ondersteuning van dit project! Cheaper Inference is een op kosten gerangschikte gateway die 42 grensverleggende modellen doorverkoopt — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok en MiniMax — via één OpenAI-compatibel endpoint. Elk verzoek wordt doorgestuurd naar de goedkoopste geschikte provider, zonder ooit meer in rekening te brengen dan de catalogusprijs van de modelmaker.
+      Dank aan <b>Cheaper Inference</b>, een OmniRoute Open Source Vriend, voor het ondersteunen van dit project! Cheaper Inference is een op kosten gerangschikte gateway die 42 grensverleggende modellen — Claude, GPT-5.x, Gemini, Kimi K3, GLM, DeepSeek, Grok en MiniMax — doorverkoopt via één OpenAI-compatibel eindpunt, waarbij elke aanvraag naar de goedkoopste in aanmerking komende provider wordt gerouteerd zonder ooit meer te rekenen dan de catalogusprijs van de modelmaker.
       <br/><br/>
-      <b>Volwaardige ondersteuning in OmniRoute:</b> Chat Completions, het native <code>/v1/responses</code>-endpoint, beeldverwerking, toolaanroepen en 3 afbeeldingsmodellen (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, bereikbaar als <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ontvang een API-sleutel →</b></a>
+      <b>Eersteklas ondersteuning in OmniRoute:</b> Chat Completions, het native <code>/v1/responses</code> eindpunt, visie, tool calling en 3 afbeeldingsmodellen (<code>grok-imagine</code>, <code>nano-banana-pro</code>, <code>nano-banana-2</code>, bereikbaar als <code>cheaperinference/&lt;model&gt;</code>). <a href="https://cheaperinference.com/?utm_source=omniroute"><b>Ontvang een API-sleutel →</b></a>
     </td>
   </tr>
 </table>
 
-<sub>Links met de tag <code>aff=omniroute</code> zijn partnerlinks. Ze financieren het project zonder extra kosten voor jou.</sub>
+<sub>Links getagd met <code>aff=omniroute</code> zijn partnerlinks. Ze financieren het project zonder extra kosten voor jou.</sub>
 
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Affiliatepromoties</b> — gratis aanmeldcoupons van providers die ons niet sponsoren (klik om uit te vouwen)</sub></summary>
+<summary><sub><b>🎟️ Affiliates Promo</b> — gratis aanmeldingscoupons van providers die we niet sponsoren (klik om uit te vouwen)</sub></summary>
 
-<sub><i>Deze sectie is uitsluitend bedoeld voor verwijzings- en couponcodes. Gesponsorde samenwerkingen staan hierboven onder <b>🤝 Ondersteund door onze Open Source-vrienden</b>. OmniRoute heeft geen sponsor- of partnerrelatie met de hier vermelde providers — dit zijn openbare coupons die iedereen kan gebruiken.</i></sub>
+<sub><i>Deze sectie is alleen voor verwijzings-/couponcodes. Gesponsorde partnerschappen staan hierboven in <b>🤝 Ondersteund door onze Open Source Vrienden</b>. OmniRoute heeft geen sponsoring of partnerschap met de hier vermelde providers — dit zijn openbare coupons die iedereen kan gebruiken.</i></sub>
 
 <table>
   <tr>
@@ -326,14 +326,14 @@ curl http://localhost:20128/v1/chat/completions \
       <br/><sub><b>AgentRouter</b></sub><br/><sub>agentrouter.org</sub>
     </td>
     <td>
-      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — aanmelding via affiliate · <b>$100 gratis tegoed</b> bij aanmelding (gratis server, houd rekening met een hogere latentie — het meest geschikt voor tests, niet voor productie). Volwaardige ondersteuning in OmniRoute sinds <b>v3.8.50</b>: Chat Completions, het Anthropic-compatibele wire-format en het OpenAI-compatibele pad. Beschikbare modellen zijn onder andere <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> en meer. <b><a href="https://agentrouter.org/register?aff=70LM">Pak je $100 →</a></b></sub>
+      <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — affiliate aanmelding · <b>$100 gratis credits</b> bij aanmelding (gratis server, verwacht hogere latentie — het beste voor testen, niet voor productie). Eersteklas ondersteuning in OmniRoute sinds <b>v3.8.50</b>: Chat Completions, het Anthropic-compatibele wire format en het OpenAI-compatibele pad. Beschikbare modellen zijn onder andere <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> en meer. <b><a href="https://agentrouter.org/register?aff=70LM">Pak je $100 →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Affiliatelink — OmniRoute heeft geen sponsor- of partnerrelatie met deze provider.</i></sub>
+      <sub>⚠️ <i>Affiliate link — OmniRoute heeft geen sponsoring of partnerschap met deze provider.</i></sub>
     </td>
   </tr>
 </table>
 
-<sub>Ken je een andere provider met een royale gratis aanmeldcoupon waar OmniRoute-gebruikers van profiteren? Open een issue, dan voegen we die hier toe.</sub>
+<sub>Ken je een andere provider met een royale gratis aanmeldingscoupon die OmniRoute-gebruikers ten goede komt? Open een issue en we voegen het hier toe.</sub>
 
 </details>
 
@@ -345,31 +345,31 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Alle 19 strategieën voor combo-routering geanimeerd — één tegel per strategie: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Zie de bovenstaande tabel voor wat elke strategie doet."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Alle 19 routeringsstrategieën voor combo's geanimeerd — één tegel per strategie: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Zie de bovenstaande tabel voor wat elke strategie doet."/>
 
-> Een **combo** is een keten van modellen waartussen OmniRoute **automatisch** routeert. Als het quotum opraakt, een provider uitvalt of de kosten sterk stijgen, kan de combo doorgaan naar het volgende geschikte, gezonde model. 🛡️
+> Een **combo** is een reeks modellen waartussen OmniRoute **automatisch** routeert. Als het quotum opraakt, een provider uitvalt of de kosten sterk stijgen, kan de combo doorgaan naar het volgende geschikte, gezonde model. 🛡️
 
-### ⚡ Configuratievrij — gebruik gewoon `auto`
+### ⚡ Geen configuratie nodig — gebruik gewoon `auto`
 
 Je hoeft geen combo te maken. Stel je model in op `auto` (of een variant) en OmniRoute bouwt een virtuele combo op basis van je verbonden providers, die live worden beoordeeld:
 
 <table>
   <tr><th align="left">Model-ID</th><th align="left">Waarvoor het optimaliseert</th></tr>
   <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Gebalanceerde standaardinstelling (LKGP — blijft bij je laatst goed werkende provider)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kwaliteitsgerichte wegingen voor codegeneratie</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Kwaliteitsgerichte weging voor het genereren van code</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Laagste latentie eerst</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Goedkoopste per token eerst</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Meeste ruimte in quotum/snelheidslimiet eerst</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Meeste ruimte binnen quota-/snelheidslimieten eerst</td></tr>
   <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Kwaliteit eerst + 10% verkenning om betere modellen te ontdekken</td></tr>
   <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Blijft expliciet bij de laatst goed werkende provider</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Wegingen voor foutinjectie om veerkracht te testen (chaos-engineering)</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Parallelle fan-out naar een panel van modellen (één per provider, standaard 5), levert één antwoord op; één upstreamaanroep per panelmodel, geen foutinjectie</td></tr>
 </table>
 
 ##
 
 ### 🔀 Of bouw je eigen combo — 19 routeringsstrategieën
 
-Alle **19** strategieën — per combostap naar wens te combineren:
+Alle **19** strategieën — vrij te combineren per combostap:
 
 <table>
   <tr>
@@ -380,27 +380,27 @@ Alle **19** strategieën — per combostap naar wens te combineren:
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Geordende lijst met het eerste doel voorop — put elk doel uit voordat het volgende wordt gebruikt 🥇</td>
+    <td>Geordende lijst met het eerste doel voorop — gebruik elk doel volledig voordat je naar het volgende gaat 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>Benut het quotum van elk doel volledig voordat wordt doorgegaan</td>
+    <td>Gebruik het quotum van elk doel volledig voordat je doorgaat</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>Gewogen willekeurige keuze op basis van het gewicht per doel</td>
+    <td>Gewogen willekeurige selectie op basis van het gewicht per doel</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Doorloop de doelen op volgorde</td>
+    <td>Doorloop de doelen cyclisch in de opgegeven volgorde</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Willekeurige taakverdeling volgens het principe ‘power of two choices’</td>
+    <td>Willekeurige taakverdeling volgens het power-of-two-choices-principe</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -410,17 +410,17 @@ Alle **19** strategieën — per combostap naar wens te combineren:
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Uniforme willekeurige keuze (ontdubbeld)</td>
+    <td>Uniforme willekeurige selectie (ontdubbeld)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Willekeurige keuze zonder herhalingen te ontdubbelen 🎲</td>
+    <td>Willekeurig zonder herhalingen te ontdubbelen 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Minimaliseer de kosten per aanvraag op basis van live catalogusprijzen 💸</td>
+    <td>Minimaliseer de kosten per aanvraag op basis van actuele catalogusprijzen 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -440,7 +440,7 @@ Alle **19** strategieën — per combostap naar wens te combineren:
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Geef context door tussen doelen voor lange gesprekken 🧠</td>
+    <td>Draag context tussen doelen over voor lange gesprekken 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -455,22 +455,22 @@ Alle **19** strategieën — per combostap naar wens te combineren:
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Laatst bekende goede route — blijft bij de laatst succesvolle provider en valt vervolgens terug op regels</td>
+    <td>Laatst bekende goede route — blijft bij de laatst succesvolle provider en valt daarna terug op regels</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Live beoordeling op basis van 16 factoren voor elke verbinding 🤖</td>
+    <td>Livebeoordeling op basis van 16 factoren voor elke verbinding 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Stuurt de aanvraag naar een panel van modellen + een beoordelaar voegt de resultaten samen tot één antwoord 🧬</td>
+    <td>Fan-out naar een panel van modellen + een beoordelaar voegt de resultaten samen tot één antwoord 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Keten van stappen — de uitvoer van elk doel wordt doorgegeven aan het volgende 🔗</td>
+    <td>Koppel stappen — de uitvoer van elk doel dient als invoer voor het volgende 🔗</td>
   </tr>
 </table>
 
@@ -480,21 +480,21 @@ Alle **19** strategieën — per combostap naar wens te combineren:
 
 ### 🧱 Veerkracht is ingebouwd (3 onafhankelijke lagen)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute-veerkracht — 3 onafhankelijke zelfherstellende lagen, de juiste laag voor de juiste storing. Laag 1: circuitbreaker voor providers (volledige provider): wordt alleen geactiveerd bij 408/5xx, drempelwaarden OAuth 8× / API-sleutel 12× / lokaal 2×, wordt na 60s/30s/15s teruggezet naar een HALF-OPEN-test, passief herstel; zolang deze OPEN is, leidt de combinatie het verkeer om naar de volgende provider. Laag 2: afkoelperiode voor verbindingen (één sleutel/account): basisduur 5s voor OAuth / 3s voor API-sleutel, exponentiële ×2-back-off met bescherming tegen een gelijktijdige aanvraagpiek, 429 respecteert Retry-After, bij succes wordt alle foutstatus gewist; één afkoelende sleutel wordt overgeslagen terwijl verwante sleutels verzoeken blijven verwerken. Laag 3: modelblokkering (één model): 429 per model, lokale 404-fouten of modusweigeringen blokkeren alleen dat model — nooit de volledige verbinding. Eindstatussen (verbannen, verlopen, tegoed uitgeput) zijn bestemd voor de beheerder, niet voor afkoelperioden."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Veerkracht van OmniRoute — 3 onafhankelijke zelfherstellende lagen, met de juiste laag voor de juiste storing. Laag 1: circuitonderbreker voor providers (volledige provider): wordt alleen geactiveerd bij 408/5xx, drempelwaarden OAuth 8× / API-sleutel 12× / lokaal 2×, wordt na 60s/30s/15s gereset naar een HALF-OPEN-probe, herstel op aanvraag; zolang deze OPEN is, leidt de combinatie het verkeer om naar de volgende provider. Laag 2: afkoelperiode voor verbindingen (één sleutel/account): basisduur 5s voor OAuth / 3s voor API-sleutel, exponentiële ×2-back-off met bescherming tegen een gelijktijdige verzoekenpiek, bij 429 wordt Retry-After gerespecteerd, bij succes wordt alle foutstatus gewist; één afkoelende sleutel wordt overgeslagen terwijl andere sleutels actief blijven. Laag 3: modelblokkering (één model): een 429 per model, een lokale 404 of modusweigeringen blokkeren uitsluitend dat model — nooit de volledige verbinding. Eindstatussen (verbannen, verlopen, tegoed uitgeput) zijn bestemd voor de beheerder, niet voor afkoelperioden."/>
 
-<sub>📖 [Automatische combinatie-engine](docs/routing/AUTO-COMBO.md) · [Veerkrachthandleiding](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Auto-Combo-engine](docs/routing/AUTO-COMBO.md) · [Handleiding voor veerkracht](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🏆 Wat OmniRoute onderscheidt
+## 🏆 Wat OmniRoute Onderscheidt
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Wat OmniRoute onderscheidt — een momentopname van functies versus 9router, OpenRouter, CLIProxyAPI en LiteLLM voor 13 mogelijkheden. OmniRoute: 359 providers, meer dan 150 ingebouwde gratis niveaus, 19 routeringsstrategieën, tokencompressie met 12 engines, ingebouwde MCP-server met 110 tools, A2A-agentprotocol, permanent geheugen, beveiligingsregels, cloudagents, stealth voor TLS-fingerprinting, Desktop/Termux/PWA en 42 i18n-UI-locales. OmniRoute heeft een MIT-licentie en kan zelf worden gehost. De mogelijkheden en aantallen van concurrenten kunnen veranderen; zie de gekoppelde methodologie."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Wat OmniRoute onderscheidt — een gedateerde momentopname van functies versus 9router, OpenRouter, CLIProxyAPI en LiteLLM over 13 mogelijkheden. OmniRoute: 358 providers, 150+ ingebouwde gratis lagen, 19 routeringsstrategieën, 12-engine tokencompressie, ingebouwde MCP-server met 110 tools, A2A-agentprotocol, persistent geheugen, vangrails, cloud-agents, TLS-vingerafdrukstealth, Desktop/Termux/PWA en 42 i18n UI-talen. OmniRoute is MIT-gelicentieerd en zelf-hostbaar. Mogelijkheden en aantallen van concurrenten kunnen veranderen; zie de gekoppelde methodologie."/>
 
-<sub>📊 Volledige methodologie &amp; details per functie versus 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Volledige methodologie &amp; detail per functie versus 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -558,33 +558,33 @@ Radar is opt-in en gebruikt alleen GET. De OmniRoute-client uploadt geen prompts
 
 <div align="center">
 
-## ✨ Wat is er nieuw?
+## ✨ Wat is er nieuw
 
 </div>
 
 > Recente hoogtepunten van **v3.8.20 → v3.8.50**. De volledige geschiedenis staat in [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — inkomende A2A-delegatie naar je agentvloot, Conductor-skills op de Agent Card en een dashboardpaneel met Faro-spraakchat via push-to-talk. → [A2A-server](docs/frameworks/A2A-SERVER.md)
-- **🛂 Adaptieve toelating en overbelastingsbeveiliging** — zware chatverzoeken worden in een wachtrij geplaatst in plaats van een 503-fout te retourneren, met atomische voortschrijdende RPM-leases per verbinding. → [Handleiding voor veerkracht](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Canonieke volgorde van `/v1/models`** — één aaneengesloten, per provider gegroepeerd blok voor elke provider (combo's eerst vastgezet), consistent voor elke catalogusbron. → [API-referentie](docs/reference/API_REFERENCE.md)
-- **🗜️ Robuustere compressie** — standaard ingeschakelde beveiliging tegen inflatie, Caveman-pakketten voor DE / FR / JA + Chinees (wényán), RTK-filters voor Gradle en .NET. → [Compressie](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Eerlijke vaste kosten** — providers met een abonnement / programmeerplan worden in kostenanalyses als **$0** weergegeven; budget, quota en routering blijven ramingen maken. → [API-referentie](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share-routering** — verdeel het quotum van een gedeeld account eerlijk over samengevoegde sleutels, met werkbehoud zodat ongebruikte delen worden uitgeleend. → [Handleiding voor veerkracht](docs/architecture/RESILIENCE_GUIDE.md)
+- **🎛️ OmniConductor** — inkomende A2A-delegatie naar je agentenpark, Conductor-vaardigheden op de Agent Card en een dashboardpaneel met Faro-spraakchat via push-to-talk. → [A2A-server](docs/frameworks/A2A-SERVER.md)
+- **🛂 Adaptieve toelating en overbelastingsbeveiliging** — zware chatverzoeken worden in een wachtrij geplaatst in plaats van een 503-fout te retourneren, met atomaire voortschrijdende RPM-leases per verbinding. → [Gids voor veerkracht](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Canonieke volgorde voor `/v1/models`** — één aaneengesloten, per provider gegroepeerd blok voor elke provider (combo's eerst vastgezet), consistent voor elke catalogusbron. → [API-referentie](docs/reference/API_REFERENCE.md)
+- **🗜️ Versterkte compressie** — standaard ingeschakelde inflatiebeveiliging, Caveman-pakketten voor DE / FR / JA + Chinees (wényán), RTK-filters voor Gradle en .NET. → [Compressie](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Eerlijke kosten voor vaste tarieven** — providers met abonnementen/coderingsplannen tonen **$0** in de kostenanalyse; budget, quota en routering blijven schattingen maken. → [API-referentie](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share-routering** — verdeel het quotum van een gedeeld account eerlijk over gegroepeerde sleutels, waarbij ongebruikte delen beschikbaar worden gesteld. → [Gids voor veerkracht](docs/architecture/RESILIENCE_GUIDE.md)
 - **🤖 CLI-/agentconfiguratie met één opdracht** — 13 geregistreerde `setup-*`-opdrachten; `omniroute run` start 7 CLI's (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` ondersteunt 10 doelen met een interactieve provider- en modelkiezer en favorieten per context. → [CLI-integraties](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Externe modus** — bestuur een externe OmniRoute met tokens met een beperkt bereik (`connect` / `contexts` / `tokens`) + een `antigravity` OAuth-helper voor VPS-installaties. → [Externe modus](docs/guides/REMOTE-MODE.md)
-- **🧭 Slimmere automatische routering** — `auto/<category>:<tier>`-combo's, **Fusion** (modelpanel + beoordelaar), taakbewuste routering, overschrijvingen per verzoek voor model / modus / USD-budget. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Inplugbare compressie** — 12 combineerbare engines + Compression Studios: LLMLingua-2, Ultra met twee niveaus, omniglyph, getrouwheidspoort per stap, GCF v3.2, editor voor herschikking via slepen. → [Compressie](docs/compression/COMPRESSION_ENGINES.md)
+- **🛰️ Externe modus** — bestuur een externe OmniRoute met tokens met beperkt bereik (`connect` / `contexts` / `tokens`) + een `antigravity` OAuth-helper voor VPS-installaties. → [Externe modus](docs/guides/REMOTE-MODE.md)
+- **🧭 Slimmere automatische routering** — `auto/<category>:<tier>`-combo's, **Fusion** (modelpanel + beoordelaar), taakbewuste routering en overschrijvingen per verzoek voor model / modus / USD-budget. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Uitbreidbare compressie** — 12 combineerbare engines + Compression Studios: LLMLingua-2, Ultra met twee niveaus, omniglyph, getrouwheidspoort per stap, GCF v3.2 en een editor voor herschikking via slepen. → [Compressie](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparante MITM-ontsleuteling (TPROXY)** — onderschep CLI's die proxy-omgevingsvariabelen negeren, met een CA per SNI + installatieprogramma voor de vertrouwensopslag. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Kostentelemetrie overal** — `X-OmniRoute-*`-headers voor kosten/gebruik op elk eindpunt, besparingsheader voor cache-HIT's, USD-uitgavenquota per sleutel. → [API-referentie](docs/reference/API_REFERENCE.md)
-- **🧠 Geheugen waarover jij de controle hebt** — standaard uitgeschakeld, optionele int8-vectorkwantisatie + getypeerd verval, `x-omniroute-no-memory` per verzoek. → [Geheugen](docs/frameworks/MEMORY.md)
-- **🛡️ Beveiliging** — bescherming tegen promptinjectie op elke LLM-route (red-team-testsuite), optionele beveiliging voor het maskeren van inloggegevens (redigeert gelekte API-sleutels/geheimen in beide richtingen), gratis DuckDuckGo-webzoekfunctie als laatste redmiddel en een optionele OIDC-inlogpoort voor het dashboard (inloggen met een wachtwoord blijft altijd beschikbaar). → [Beveiligingsrails](docs/security/GUARDRAILS.md)
-- **🖼️ Nieuwe eindpunten** — `/v1/ocr` (Mistral OCR) en `/v1/audio/translations` (in Whisper-stijl) maken het media-aanbod compleet. → [API-referentie](docs/reference/API_REFERENCE.md)
-- **🎨 Generatie van afbeeldingen / video / audio** — één API voor media: xAI Grok Imagine en Novita AI-video, ComfyUI, Magnific, Adobe Firefly, Segmind en spraakproviders zoals ElevenLabs. → [API-referentie](docs/reference/API_REFERENCE.md)
-- **🌍 Implementatie en beheer** — reverse-proxy-`basePath`, automatische detectie van de browsertaal, apparaattracking per sleutel, rootloze MITM-vertrouwensconfiguratie, zh-TW-lokalisatie. → [Omgeving](docs/reference/ENVIRONMENT.md)
-- **🤝 Meer providers en agents** — cloudagents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) met browser- + OAuth-login, volwaardige Ollama-kaart, Claude Opus 5 en Sonnet 5, officieel partnerschap met Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… en een vernieuwde **catalogus met 352 providers**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Transparante routering** — elk antwoord bevat een `X-OmniRoute-Decision`-header met de strategie/provider/latentie waarmee het is afgehandeld, een nieuwe `cache-optimized`-combostrategie + de Auto-Combo-factor `cacheAffinity` routeren herhaalde verzoeken terug naar de verbinding die het gecachete voorvoegsel bevat, en een alleen-lezen eindpunt `/v1/auto-combo/{channel}/candidates` toont de actuele kandidatenpool van een `auto/*`-kanaal. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Lokale prestaties en infrastructuur** — lokale Redis met één klik, implementatieprogramma's voor Cloudflare Workers / Deno Deploy-relays, Bifrost en Mux als bewaakte ingebedde services. → [Ingebedde services](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Ook inbegrepen** — pluginframework + marktplaats, frameworks voor Omni-/Agent-/GitHub-skills, integratie met Obsidian-kluizen (22 MCP-tools), OpenAI-compatibele Batch- en Files-API's, semantische responscache, gamificatie met ranglijsten, ACP-agentdetectie (15 ingebouwde agents), geplande logexport naar BigQuery, `auto/chaos`-foutinjectie, een Telegram-botbridge, een ingebouwde versiebeheerder en ranglijsten voor gratis providers op basis van LMArena-ELO. → [Documentatie](docs/README.md)
+- **💸 Kostentelemetrie overal** — `X-OmniRoute-*`-headers voor kosten/gebruik op elk endpoint, een besparingsheader bij een cache-HIT en USD-uitgavenquota per sleutel. → [API-referentie](docs/reference/API_REFERENCE.md)
+- **🧠 Geheugen waarover jij de controle hebt** — standaard uitgeschakeld, optionele int8-vectorkwantisatie + getypeerd verval, en `x-omniroute-no-memory` per verzoek. → [Geheugen](docs/frameworks/MEMORY.md)
+- **🛡️ Beveiliging** — bescherming tegen promptinjectie op elke LLM-route (red-team-testsuite), optionele beveiliging voor het maskeren van inloggegevens (redigeert gelekte API-sleutels/geheimen in beide richtingen), gratis DuckDuckGo-zoekopdrachten als laatste redmiddel en een optionele OIDC-inlogpoort voor het dashboard (inloggen met een wachtwoord blijft altijd beschikbaar). → [Beveiligingsmaatregelen](docs/security/GUARDRAILS.md)
+- **🖼️ Nieuwe endpoints** — `/v1/ocr` (Mistral OCR) en `/v1/audio/translations` (in Whisper-stijl) vervolledigen de mediafunctionaliteit. → [API-referentie](docs/reference/API_REFERENCE.md)
+- **🎨 Generatie van afbeeldingen / video's / audio** — één API voor media: xAI Grok Imagine & Novita AI-video, ComfyUI, Magnific, Adobe Firefly, Segmind en spraakproviders zoals ElevenLabs. → [API-referentie](docs/reference/API_REFERENCE.md)
+- **🌍 Implementatie en beheer** — reverse-proxy-`basePath`, automatische detectie van de browsertaal, apparaattracering per sleutel, rootloze MITM-vertrouwensconfiguratie en zh-TW-lokalisatie. → [Omgeving](docs/reference/ENVIRONMENT.md)
+- **🤝 Meer providers en agenten** — cloudagenten (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) met browser- en OAuth-aanmelding, een volwaardige Ollama-kaart, Claude Opus 5 & Sonnet 5, officieel partnerschap met Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… en een vernieuwde **catalogus met 352 providers**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Transparante routering** — elk antwoord bevat een `X-OmniRoute-Decision`-header met de strategie/provider/latentie die het antwoord heeft geleverd, een nieuwe `cache-optimized`-combostrategie + de Auto-Combo-factor `cacheAffinity` stuurt herhaalde verzoeken terug naar de verbinding die het voorvoegsel in de cache heeft, en een alleen-lezen endpoint `/v1/auto-combo/{channel}/candidates` maakt de actuele kandidatenpool van een `auto/*`-kanaal zichtbaar. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Lokale prestaties en infrastructuur** — lokale Redis met één klik, implementatieprogramma's voor Cloudflare Workers / Deno Deploy-relays en Bifrost & Mux als bewaakte ingebedde services. → [Ingebedde services](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Ook inbegrepen** — pluginframework + marketplace, frameworks voor Omni-/Agent-/GitHub-vaardigheden, integratie met Obsidian-kluizen (22 MCP-tools), OpenAI-compatibele Batch- en Files-API's, semantische antwoordcache, gamificatie met klassementen, ACP-agentdetectie (15 ingebouwde agenten), geplande logexport naar BigQuery, parallelle multi-modeluitwaaiering met `auto/chaos`, een Telegram-botbridge, een ingebouwde versiebeheerder en LMArena-ELO-ranglijsten voor gratis providers. → [Documentatie](docs/README.md)
 
 <br/>
 
@@ -592,7 +592,7 @@ Radar is opt-in en gebruikt alleen GET. De OmniRoute-client uploadt geen prompts
 
 ## 🤖 Compatibele CLI's en programmeeragents
 
-> Eén configuratie — `http://localhost:20128/v1` — en **elke** AI-IDE of CLI werkt met gratis en voordelige modellen.
+> Eén configuratie — `http://localhost:20128/v1` — en **elke** AI-IDE of CLI draait op gratis en voordelige modellen.
 
 <div align="center">
 <table>
@@ -626,13 +626,13 @@ Radar is opt-in en gebruikt alleen GET. De OmniRoute-client uploadt geen prompts
     <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><sub>                           </sub></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><sub>                           </sub></td>
+    <td align="center" width="76"><a href="https://deyin.ai"><img src="./public/deyin.svg" width="40" alt="deyin.ai"/><br/><sub><b>deyin.ai</b></sub><br/><sub>                           </sub></a></td>
   </tr>
 </table>
 </div>
 
 <div align="center">
-<b>＋ werkt ook met</b> · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>elke OpenAI-compatibele tool</b>
+<b>＋ werkt ook met</b> · Agent Deck · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>elke OpenAI-compatibele tool</b>
 </div>
 
 <sub>📖 Configuratie per tool voor alle 36 tools (26 CLI-codetools + 10 CLI-agents) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode-plug-in → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
@@ -641,7 +641,7 @@ Radar is opt-in en gebruikt alleen GET. De OmniRoute-client uploadt geen prompts
 
 <br/>
 
-**Start elke ondersteunde CLI via OmniRoute met één opdracht** — er worden geen configuratiebestanden geschreven,
+**Start elke ondersteunde CLI met één opdracht via OmniRoute** — er worden geen configuratiebestanden geschreven,
 referenties worden per proces geïnjecteerd en Qwen/Gemini krijgen een tijdelijke, geïsoleerde thuismap:
 
 ```bash
@@ -659,7 +659,7 @@ omniroute configure codex          # ook: claude opencode qwen aider goose gemin
 
 Elke opdracht respecteert de actieve externe context (`omniroute connect <host>`), `--dry-run`
 toont vooraf de exacte omgevingsvariabelen/argumenten zonder iets uit te voeren, en `--api-key-env NAME` houdt geheimen buiten
-je shellgeschiedenis. → [CLI-integraties](docs/guides/CLI-INTEGRATIONS.md)
+de geschiedenis van je shell. → [CLI-integraties](docs/guides/CLI-INTEGRATIONS.md)
 
 <br/>
 
@@ -1256,26 +1256,26 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
 <br/>
 <div align="center">
 
-## 🛠️ Techstack
+## 🛠️ Technologiestack
 
 </div>
 
 <table>
   <tr><th align="left">Laag</th><th align="left">Technologie</th></tr>
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (sinds v2.0 geen enkele <code>any</code> in de kern)</td></tr>
+  <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (geen enkele <code>any</code> in de kern sinds v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journaling) + LowDB (verouderde JSON-opslag) — 122 domeinmodules, 176 migraties</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journaling) + LowDB (verouderde JSON-opslag) — 137 domeinmodules, 193 migraties</td></tr>
   <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5-volledige-tekstzoekfunctie + int8-gekwantiseerde vectorembeddings, getypeerd verval</td></tr>
   <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — validatie van MCP-tool-I/O + API-contracten</td></tr>
   <tr><td nowrap><b>Protocollen</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket-bridge (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Compressie</b></td><td>Pipeline met 12 engines — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Compressie</b></td><td>Pijplijn met 12 engines — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
   <tr><td nowrap><b>Authenticatie &amp; beveiliging</b></td><td>OAuth 2.0 (PKCE) + JWT + API-sleutels + MCP-authenticatie met scopes · AES-256-GCM voor opgeslagen gegevens · DOMPurify</td></tr>
-  <tr><td nowrap><b>Onopvallendheid</b></td><td>wreq-js — imitatie van JA3-/JA4-TLS-vingerafdrukken, proxy op 3 niveaus</td></tr>
+  <tr><td nowrap><b>Camouflage</b></td><td>wreq-js — imitatie van JA3-/JA4-TLS-fingerprints, proxy met 3 niveaus</td></tr>
   <tr><td nowrap><b>Veerkracht</b></td><td>Circuitbreaker, exponentiële back-off, bescherming tegen thundering herds, zelfherstel met automatische combinaties</td></tr>
-  <tr><td nowrap><b>Logging</b></td><td>pino — gestructureerde JSON-logboeken met aanvraagcontext</td></tr>
-  <tr><td nowrap><b>Testen</b></td><td>Node.js-testrunner + Vitest — <b>meer dan 39.000 statische testdeclaraties</b> verspreid over meer dan 5.100 bijgehouden testbestanden (unit-, integratie-, E2E-, beveiligings- en ecosysteemtests)</td></tr>
+  <tr><td nowrap><b>Logging</b></td><td>pino — gestructureerde JSON-logs met aanvraagcontext</td></tr>
+  <tr><td nowrap><b>Testen</b></td><td>Node.js-testrunner + Vitest — <b>39.000+ statische testdeclaraties</b> verspreid over 5.100+ bijgehouden testbestanden (unit-, integratie-, E2E-, beveiligings- en ecosysteemtests)</td></tr>
   <tr><td nowrap><b>Platformen</b></td><td>Desktop (Electron) · Android (Termux) · PWA (elke browser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatische publicatie naar npm + Docker Hub bij een release</td></tr>
   <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1294,11 +1294,11 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
 <table>
   <tr><th align="left">Document</th><th align="left">Beschrijving</th></tr>
   <tr><td nowrap><b><a href="docs/guides/USER_GUIDE.md">Gebruikershandleiding</a></b></td><td>Providers, combinaties, CLI-integratie, implementatie</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">Installatiehandleiding</a></b></td><td>Alle installatiemethoden, configuraties van CLI-tools, protocolinstellingen, afstemming van time-outs</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">Handleiding voor CLI-tools</a></b></td><td>Installatie per tool voor Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">Externe modus</a></b></td><td>Bedien een externe OmniRoute (VPS) vanuit de CLI op uw laptop via toegangstokens met een beperkt bereik</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">Claude Code-configuratie</a></b></td><td>Verbind Claude Code met OmniRoute (lokaal/extern) via <code>launch</code> + profielen per model</td></tr>
-  <tr><td nowrap><b><a href="README.md#-quick-start">Snelstart</a></b></td><td>Installeren → verbinden → configureren in 3 stappen</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/SETUP_GUIDE.md">Installatiehandleiding</a></b></td><td>Alle installatiemethoden, configuraties van CLI-tools, protocolconfiguratie, afstemming van time-outs</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/CLI-TOOLS.md">Handleiding voor CLI-tools</a></b></td><td>Configuratie per tool voor Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/REMOTE-MODE.md">Externe modus</a></b></td><td>Bestuur een externe OmniRoute (VPS) vanaf de CLI op uw laptop via toegangstokens met een beperkt bereik</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/CLAUDE-CODE-CONFIGURATION.md">Claude Code-configuratie</a></b></td><td>Verbind Claude Code met OmniRoute (lokaal/extern) via <code>launch</code> en profielen per model</td></tr>
+  <tr><td nowrap><b><a href="README.md#-quick-start">Snel aan de slag</a></b></td><td>Installeren → verbinden → configureren in 3 stappen</td></tr>
 </table>
 
 ### 🔧 Beheer en implementatie
@@ -1308,11 +1308,11 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   <tr><td nowrap><b><a href="docs/guides/DOCKER_GUIDE.md">Docker-handleiding</a></b></td><td>Docker run, Compose-profielen, Caddy HTTPS, tunnels, image-tags</td></tr>
   <tr><td nowrap><b><a href="contrib/podman/README.md">Podman-handleiding</a></b></td><td>Quadlet-systemd-integratie, podman-compose, SELinux</td></tr>
   <tr><td nowrap><b><a href="docs/ops/VM_DEPLOYMENT_GUIDE.md">VM-implementatie</a></b></td><td>Volledige handleiding: configuratie van VM + nginx + Cloudflare</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">Fly.io-implementatie</a></b></td><td>Implementeren op Fly.io met persistente opslag</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md">Fly.io-implementatie</a></b></td><td>Implementeren op Fly.io met permanente opslag</td></tr>
   <tr><td nowrap><b><a href="docs/guides/TERMUX_GUIDE.md">Termux-handleiding</a></b></td><td>Voer OmniRoute uit op Android via Termux</td></tr>
   <tr><td nowrap><b><a href="docs/guides/PWA_GUIDE.md">PWA-handleiding</a></b></td><td>Installatie, caching en architectuur van Progressive Web Apps</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">De-installatiehandleiding</a></b></td><td>Volledige verwijdering voor alle installatiemethoden</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">Omgevingsconfiguratie</a></b></td><td>Volledig overzicht van <code>.env</code>-variabelen en verwijzingen</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/UNINSTALL.md">De-installatiehandleiding</a></b></td><td>Schone verwijdering voor alle installatiemethoden</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">Omgevingsconfiguratie</a></b></td><td>Volledig overzicht van <code>.env</code>-variabelen en referenties</td></tr>
 </table>
 
 ### 🧠 Functies en architectuur
@@ -1324,12 +1324,12 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   <tr><td nowrap><b><a href="docs/compression/RTK_COMPRESSION.md">RTK-compressie</a></b></td><td>Compressie van opdrachtuitvoer, filters, vertrouwen, verificatie, herstel van onbewerkte uitvoer</td></tr>
   <tr><td nowrap><b><a href="docs/compression/COMPRESSION_ENGINES.md">Compressie-engines</a></b></td><td>Caveman, RTK, gestapelde pipelines, dashboard-/API-/MCP-interfaces</td></tr>
   <tr><td nowrap><b><a href="docs/compression/COMPRESSION_RULES_FORMAT.md">Indeling van compressieregels</a></b></td><td>JSON-schema's voor regelpakketten voor Caveman- en RTK-filters</td></tr>
-  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_LANGUAGE_PACKS.md">Taalpakketten voor compressie</a></b></td><td>Taaldetectie en het maken van Caveman-regelpakketten</td></tr>
-  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">Handleiding voor veerkracht</a></b></td><td>Circuitbreakers, afkoelperiodes, wachtrij, bescherming tegen gelijktijdige verzoekpieken, TLS-spoofing</td></tr>
+  <tr><td nowrap><b><a href="docs/compression/COMPRESSION_LANGUAGE_PACKS.md">Taalpakketten voor compressie</a></b></td><td>Taaldetectie en samenstelling van Caveman-regelpakketten</td></tr>
+  <tr><td nowrap><b><a href="docs/architecture/RESILIENCE_GUIDE.md">Handleiding voor veerkracht</a></b></td><td>Stroomonderbrekers, afkoelperiodes, wachtrij, bescherming tegen thundering-herd-problemen, TLS-spoofing</td></tr>
   <tr><td nowrap><b><a href="docs/routing/AUTO-COMBO.md">Auto-Combo-engine</a></b></td><td>Scoring met 16 factoren, moduspakketten, zelfherstel</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">Proxyhandleiding</a></b></td><td>Proxysysteem met 3 niveaus, 1proxy-marktplaats, CRUD voor het register</td></tr>
-  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">Gratis niveaus</a></b></td><td>Geconsolideerde directory: 35 gedocumenteerde terugkerende pools / 491 gecatalogiseerde vermeldingen in gratis niveaus</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">Functiegallerij</a></b></td><td>Visuele rondleiding door het dashboard met schermafbeeldingen</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/PROXY_GUIDE.md">Proxyhandleiding</a></b></td><td>Proxysysteem met 3 niveaus, 1proxy-marktplaats, register-CRUD</td></tr>
+  <tr><td nowrap><b><a href="docs/reference/FREE_TIERS.md">Gratis niveaus</a></b></td><td>Geconsolideerd overzicht: 35 gedocumenteerde terugkerende pools / 489 gecatalogiseerde gratis items</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/FEATURES.md">Functiegalerij</a></b></td><td>Visuele rondleiding door het dashboard met schermafbeeldingen</td></tr>
   <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">Codebase-documentatie</a></b></td><td>Beginnersvriendelijke rondleiding door de codebase</td></tr>
 </table>
 
@@ -1352,10 +1352,10 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   <tr><td nowrap><b><a href="CONTRIBUTING.md">Bijdragen</a></b></td><td>Ontwikkelomgeving en richtlijnen</td></tr>
   <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">Branch- en releasemodel</a></b></td><td>Op welke branches PR's zijn gericht (<code>release/*</code>) en wat <code>main</code> en tags betekenen</td></tr>
   <tr><td nowrap><b><a href="CHANGELOG.md">Wijzigingslogboek</a></b></td><td>Volledige releasegeschiedenis per versie</td></tr>
-  <tr><td nowrap><b><a href="SECURITY.md">Beveiligingsbeleid</a></b></td><td>Rapportage van kwetsbaarheden en beveiligingspraktijken</td></tr>
+  <tr><td nowrap><b><a href="SECURITY.md">Beveiligingsbeleid</a></b></td><td>Melden van kwetsbaarheden en beveiligingspraktijken</td></tr>
   <tr><td nowrap><b><a href="docs/guides/I18N.md">i18n-handleiding</a></b></td><td>Ondersteuning voor 42 talen, vertaalworkflow, RTL</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">Releasechecklist</a></b></td><td>Validatiestappen vóór de release</td></tr>
-  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">Dekkingsplan</a></b></td><td>Strategie voor testdekking van meer dan 39.000 statische testdeclaraties in meer dan 5.100 bijgehouden testbestanden</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">Releasechecklist</a></b></td><td>Validatiestappen vóór een release</td></tr>
+  <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">Dekkingsplan</a></b></td><td>Testdekkingsstrategie voor meer dan 39.000 statische testdeclaraties in meer dan 5.100 bijgehouden testbestanden</td></tr>
 </table>
 
 <br/>
@@ -1364,7 +1364,7 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
 
 # ⭐ Topbijdragers
 
-> OmniRoute wordt gevormd door een gepassioneerde opensourcecommunity. Deze personen hebben uitzonderlijke bijdragen geleverd die rechtstreeks van invloed zijn op de kwaliteit, stabiliteit en reikwijdte van het project. **Bedankt.**
+> OmniRoute wordt gevormd door een gepassioneerde opensourcecommunity. Deze personen hebben uitzonderlijke bijdragen geleverd die rechtstreeks van invloed zijn op de kwaliteit, stabiliteit en reikwijdte van het project. **Dank jullie wel.**
 
 ### Externe bijdragers op basis van samengevoegde pull requests
 
@@ -1393,7 +1393,7 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   <tr><td align="center">20</td><td align="left"><a href="https://github.com/Prudhvivuda"><b>Prudhvivuda</b></a></td><td align="center">24</td><td align="right">6,312</td></tr>
 </table>
 
-<sub>Vastgelegd op de actuele tip <code>dafb4ae808</code> van <code>release/v3.8.50</code>, met samenvoegingen tot en met 2026-08-24 05:26:03 UTC. De gepagineerde GitHub GraphQL-inventarisatie bevat 5.911 samengevoegde PR's: 2.707 van de eigenaar van de repository, 179 van Dependabot en <b>3.025 externe PR's van 535 verschillende bijdragers</b>. „Gewijzigde regels” is het aantal toevoegingen + verwijderingen volgens GitHub en omvat gegenereerde bestanden, lockfiles, catalogi, vertalingen en documentatie; het is de hoeveelheid wijzigingen, niet het aantal geschreven LOC. Gelijke scores op de grens zijn behouden.</sub>
+<sub>Vastgelegd op de actuele tip <code>dafb4ae808</code> van <code>release/v3.8.50</code>, met samenvoegingen tot en met 2026-08-24 05:26:03 UTC. De gepagineerde GitHub GraphQL-inventarisatie bevat 5.911 samengevoegde PR's: 2.707 van de repository-eigenaar, 179 van Dependabot en <b>3.025 externe PR's van 535 verschillende bijdragers</b>. “Gewijzigde regels” is de som van toevoegingen en verwijderingen volgens GitHub en omvat gegenereerde bestanden, lockfiles, catalogi, vertalingen en documentatie; het betreft wijzigingen, niet zelfgeschreven LOC. Gelijke standen rond de grens zijn behouden.</sub>
 
 ### Aan GitHub toegeschreven commits
 
@@ -1481,9 +1481,9 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   </tr>
 </table>
 
-<sub>Opnieuw gecontroleerd op 2026-08-24 06:14:31 UTC: aan GitHub toegeschreven commits die door de Contributors API van de repository zijn gerapporteerd voor de standaardbranch <code>release/v3.8.50</code>. De API retourneerde 525 identiteiten (415 gebruikers, 2 bots, 108 anonieme bijdragers); deze tabel sluit de beheerder, bots en anonieme identiteiten uit en behoudt gedeelde plaatsen. Deze ranglijst verschilt zowel van de ranglijst met samengevoegde PR's hierboven als van de inventarisatie van Git-metadata met 639 personen hieronder.</sub>
+<sub>Opnieuw gecontroleerd op 2026-08-24 06:14:31 UTC: aan GitHub toegeschreven commits zoals gerapporteerd door de Contributors API van de repository voor de standaardbranch <code>release/v3.8.50</code>. De API retourneerde 525 identiteiten (415 gebruikers, 2 bots, 108 anonieme identiteiten); deze tabel sluit de beheerder, bots en anonieme identiteiten uit en behoudt gedeelde plaatsen. Deze wijkt zowel af van de rangschikking van samengevoegde PR's hierboven als van de inventarisatie van 639 personen op basis van Git-metadata hieronder.</sub>
 
-> 🙏 De functies, bugfixes en infrastructuurverbeteringen van deze bijdragers vormen een **essentieel onderdeel** van wat OmniRoute betrouwbaar en functierijk maakt. Elke pull request, elke testcase en elk i18n-vertaalbestand telt. Open source wordt gebouwd door mensen zoals zij.
+> 🙏 De functies, bugfixes en infrastructuurverbeteringen van deze bijdragers vormen een **essentieel onderdeel** van wat OmniRoute betrouwbaar en functierijk maakt. Elke pull request, elke testcase en elk i18n-vertaalbestand is belangrijk. Open source wordt gebouwd door mensen zoals zij.
 
 </div>
 
@@ -1729,7 +1729,7 @@ MIT-licentie - zie [LICENSE](LICENSE) voor details.
 
 **[⬆ Terug naar boven](#-omniroute)** · Met ❤️ gebouwd voor de opensource-AI-community.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT-licentie · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT-licentie · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions ingeschakeld voor vragen en antwoorden vanuit de community -->

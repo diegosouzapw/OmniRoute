@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.51
+  version: 3.8.52
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -2257,6 +2257,8 @@ paths:
     post:
       tags: [Providers]
       summary: Validate provider credentials
+      description: "Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
+      x-loopback-only: true
       responses:
         "200":
           description: Validation result
@@ -2351,6 +2353,131 @@ paths:
       responses:
         "200":
           description: Provider model list
+
+  /api/provider-models/validate-and-add:
+    post:
+      tags: [Provider Nodes]
+      summary: Validate and add a custom chat model on one exact connection
+      description: >-
+        Always requires management authentication and explicit inference consent.
+        Runs bounded generation, streamed synthetic tool-call and continuation proofs
+        through the chat core; no real tool is executed. Configuration changes,
+        alternate connections, retries and proxy executor fallback fail closed.
+        Only after all proofs pass is a previously absent custom model inserted and
+        read back atomically. Every response is Cache-Control no-store. Requests can
+        incur upstream charges. The validation receipt is informational, not redeemable.
+        Initial strict support is limited to native Base/Default execution for OpenAI
+        and canonical OpenAI-compatible nodes using a single Bearer credential and an
+        exact JSON model field. Specialized executors and other providers are unsupported;
+        session pools, extra-key rotation, HTTP redirects and credential refresh are refused.
+        Active runtime plugins also fail closed; plugin policies are not silently skipped.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider, modelId, connectionId, allowInference]
+              properties:
+                provider:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                modelId:
+                  type: string
+                  minLength: 1
+                  maxLength: 240
+                connectionId:
+                  type: string
+                  minLength: 1
+                  maxLength: 160
+                allowInference:
+                  type: boolean
+                  enum: [true]
+                modelName:
+                  type: string
+                  minLength: 1
+                  maxLength: 240
+                max_input_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 9007199254740991
+                max_output_tokens:
+                  type: integer
+                  minimum: 1
+                  maximum: 9007199254740991
+                apiFormat:
+                  type: string
+                  enum: [chat-completions, responses]
+                  default: chat-completions
+      responses:
+        "201":
+          description: All three proofs passed and custom model persistence was read back
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schemaVersion, model, persistenceVerified, validation]
+                properties:
+                  schemaVersion:
+                    type: integer
+                    enum: [1]
+                  model:
+                    type: object
+                  persistenceVerified:
+                    type: boolean
+                    enum: [true]
+                  validation:
+                    type: object
+                    required: [id, status, provider, modelId, connectionId, validatedAt, stages]
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        enum: [passed]
+                      provider:
+                        type: string
+                      modelId:
+                        type: string
+                      connectionId:
+                        type: string
+                      validatedAt:
+                        type: string
+                        format: date-time
+                      stages:
+                        type: object
+                        required: [generation, toolCall, continuation]
+                        properties:
+                          generation:
+                            type: string
+                            enum: [passed]
+                          toolCall:
+                            type: string
+                            enum: [passed]
+                          continuation:
+                            type: string
+                            enum: [passed]
+        "400":
+          description: Invalid input or missing explicit inference consent
+        "401":
+          description: Management authentication required
+        "403":
+          description: Insufficient management authorization
+        "408":
+          description: Validation cancelled or deadline exceeded
+        "409":
+          description: Existing model, busy or unavailable connection, or changed configuration
+        "413":
+          description: Request body exceeds 16 KiB
+        "422":
+          description: Required model proofs did not pass
+        "500":
+          description: Sanitized internal validation failure
 
   /api/keys:
     get:
@@ -2628,6 +2755,11 @@ paths:
     put:
       tags: [Compression]
       summary: Update global compression settings
+      description: >-
+        Partial update: only the sent top-level keys change. `engines` merges by engine id —
+        an entry overwrites only the fields it sends, engines left out are kept as-is, and
+        until an engines row is stored the merge base is the map derived from the legacy
+        per-engine settings.
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -2648,6 +2780,19 @@ paths:
                 autoTriggerTokens:
                   type: integer
                   minimum: 0
+                engines:
+                  type: object
+                  description: >-
+                    Per-engine toggles, merged by engine id into the stored map. Each entry
+                    needs `enabled`; `level` survives an entry that omits it.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      level:
+                        type: string
+                    required: [enabled]
                 rtkConfig:
                   type: object
                   additionalProperties: true
@@ -3196,6 +3341,20 @@ paths:
                 localCoreEndpoint:
                   type: string
                   nullable: true
+                coreConfigPath:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Absolute adopted sing-box config path (lowercase .json).
+                    Empty means no generation; each sync writes
+                    `<path>.generated` beside it, never into it.
+                coreBinaryPath:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Absolute path of the core binary used to verify the
+                    generated file before replacing the adopted file.
+                    Empty means write beside it only.
                 updateIntervalMinutes:
                   type: integer
                   default: 60
@@ -3242,7 +3401,7 @@ paths:
       summary: Update a proxy subscription
       description: >-
         Partial update — only fields present in the body are changed
-        (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+        (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).
       security:
         - ManagementSessionAuth: []
       parameters:
@@ -3266,6 +3425,12 @@ paths:
                   items:
                     type: string
                 localCoreEndpoint:
+                  type: string
+                  nullable: true
+                coreConfigPath:
+                  type: string
+                  nullable: true
+                coreBinaryPath:
                   type: string
                   nullable: true
                 updateIntervalMinutes:
@@ -3435,6 +3600,17 @@ paths:
       responses:
         "200":
           description: Paginated call logs
+
+  /api/usage/call-logs/filters:
+    get:
+      tags: [Usage]
+      summary: Get call log filter options
+      description: >-
+        Distinct providers, models, accounts and API keys seen in call logs, plus every
+        configured API key (id and name only). Feeds the Logs tab filter dropdowns.
+      responses:
+        "200":
+          description: Filter options (providers, models, accounts, apiKeys, configuredKeys)
 
   /api/usage/call-logs/{id}:
     get:
@@ -3899,11 +4075,13 @@ paths:
           schema: { type: string }
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked (alreadyRevoked is true when it was already revoked)
         "403":
           description: Insufficient scope
         "404":
-          description: Token not found or already revoked
+          description: Token not found
+        "409":
+          description: Prefix matches more than one live token; nothing revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 
@@ -6083,9 +6261,9 @@ paths:
       summary: Complete OIDC login for the dashboard admin gate
       description: |
         Validates the `state` cookie, exchanges the authorization `code` for tokens,
-        verifies the ID token against the issuer's JWKS (audience = client id), and —
-        if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
-        that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+        verifies the ID token against the issuer's JWKS (audience = client id), and
+        checks the token's `sub`/`email` against `oidcAllowedSubjects`, which must hold at
+        least one entry (an empty list ends in `not_configured`). On success it mints the same 30-day `auth_token` dashboard-session
         JWT used by password login and redirects to `/dashboard`.
       parameters:
         - name: code
@@ -8976,6 +9154,11 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › apply"
+      description: >-
+        Submit the original toolId, apiKey, optional baseUrl/model and optional
+        dryRun in the JSON body. Returned content is a redacted, non-cacheable
+        preview, not an importable configuration. A non-dry-run request writes
+        the original generated configuration; the container write guard remains active.
       responses:
         "200":
           description: OK
@@ -8984,6 +9167,25 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › config"
+      description: >-
+        Returns redacted, non-cacheable previews. Send the configuration API key
+        in x-omniroute-config-api-key, separate from management authentication.
+        API keys in query strings are rejected. Preview content must not be
+        copied into a credential-bearing configuration or submitted as an apply payload.
+      parameters:
+        - in: header
+          name: x-omniroute-config-api-key
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - in: query
+          name: baseUrl
+          required: false
+          schema:
+            type: string
+            format: uri
+          description: Absolute HTTP(S) URL without embedded username/password credentials.
       responses:
         "200":
           description: OK
@@ -8991,6 +9193,11 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › config"
+      description: >-
+        Submit toolId, apiKey and optional baseUrl/model as JSON. Unknown fields
+        are rejected. Returned content is a redacted, non-cacheable preview,
+        not an importable configuration. To apply, submit the original inputs
+        to POST /api/cli-tools/apply instead of replaying the preview content.
       responses:
         "200":
           description: OK
@@ -10447,6 +10654,14 @@ paths:
       responses:
         "200":
           description: OK
+  /api/oauth/trae/authorize-state:
+    post:
+      tags:
+        - Oauth
+      summary: "POST oauth › trae › authorize state"
+      responses:
+        "200":
+          description: OK
   /api/oauth/trae/import:
     get:
       tags:
@@ -10771,6 +10986,8 @@ paths:
       tags:
         - Providers
       summary: "POST providers › bulk"
+      description: "Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -10922,6 +11139,8 @@ paths:
       tags:
         - Providers
       summary: "POST providers › import"
+      description: "Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -12718,9 +12937,17 @@ paths:
       tags:
         - Usage
       summary: "POST usage › token limits"
+      description: >-
+        Save a per-key token limit. A key holds one limit per scope and reset interval, so daily,
+        weekly and monthly limits for the same scope coexist. Without `id`, a new limit is added (or
+        the key's limit for the same scope and interval is updated); with `id`, that limit is updated.
       responses:
         "200":
           description: OK
+        "404":
+          description: No token limit with the given `id`.
+        "409":
+          description: The update would take another limit's scope and reset interval.
   /api/usage/utilization:
     get:
       tags:
@@ -13444,6 +13671,7 @@ paths:
       tags:
         - Version manager
       summary: "POST version manager › install"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -13452,6 +13680,7 @@ paths:
       tags:
         - Version manager
       summary: "POST version manager › restart"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -13460,6 +13689,7 @@ paths:
       tags:
         - Version manager
       summary: "POST version manager › start"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -13476,6 +13706,7 @@ paths:
       tags:
         - Version manager
       summary: "POST version manager › stop"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -15022,6 +15253,19 @@ components:
         localCoreEndpoint:
           type: string
           nullable: true
+        coreConfigPath:
+          type: string
+          nullable: true
+          description: >-
+            Absolute adopted sing-box config path (lowercase .json).
+            Empty means no generation.
+        coreBinaryPath:
+          type: string
+          nullable: true
+          description: >-
+            Absolute path of the core binary used to verify the generated
+            file before replacing the adopted file. Null means write
+            beside it only.
         updateIntervalMinutes:
           type: integer
         lastFetchedAt:
@@ -15151,3 +15395,20 @@ components:
             - context-optimized
             - fusion
           default: priority
+        universal_handoff:
+          type: object
+          nullable: true
+          description: >-
+            Per-combo universal handoff config (the runtime also accepts the camelCase
+            `universalHandoff` alias). Omit to fall back to the global/default config;
+            `enabled: false` stops session-model history writes for this combo.
+          additionalProperties: false
+          properties:
+            enabled: { type: boolean }
+            trigger: { type: string, enum: [on-switch, always, on-error] }
+            providerAllowlist: { type: array, items: { type: string } }
+            maxMessagesForSummary: { type: integer, minimum: 5, maximum: 100 }
+            handoffModel: { type: string }
+            ttlMinutes: { type: integer, minimum: 1, maximum: 10080 }
+            preserveSystemPrompt: { type: boolean }
+            relayMode: { type: string, enum: [schema-locked, standard] }

@@ -1,1 +1,0 @@
-- **fix(cli):** add the `serve.ready_timeout` string to the `en`, `zh-CN` and `zh-TW` CLI catalogs; `--ready-timeout` shipped calling `t("serve.ready_timeout")` without a catalog entry, which the CLI i18n key-coverage and parity tests report ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -1,6 +1,6 @@
 # Security Policy (Oʻzbekcha)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇧🇦 [bs](../bs/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -222,36 +222,37 @@ Ushbu qoidalarga rioya qilish vositalar va tekshiruvchilar tomonidan ta’minlan
 
 ## Taʼminot zanjiri skaneri aniqlagan holatlar (Socket.dev / Snyk / oʻxshash vositalar)
 
-Eʼlon qilingan `omniroute` npm artefakti Next.jsʼning `output: "standalone"`
-yigʻilmasini oʻz ichiga oladi, yaʼni har bir marshrut ishlov beruvchisi — jumladan,
-hujjatlashtirilgan imtiyozli funksiyalar (MITM, Zed importi, Cloud Sync,
-oʻrnatilgan xizmat supervizori) — `.next/server/*.js` ichidagi minimallashtirilgan
-fragmentlarga kiritiladi. Evristik taʼminot zanjiri skanerlari ushbu
-fragmentlarni zararli dastur imzolari bilan tez-tez andoza asosida solishtiradi.
+> **Qamrov eslatmasi:** Repozitoriy ildizidagi `socket.yml` faqat eʼlon qilingan npm artefaktining Socket.dev registri tomonida nashrdan keyin bajariladigan skanerlashi uchun `projectIgnorePaths` sozlamasini shakllantiradi — u majburiy CI/PR birlashtirish toʻsigʻi emas. `.github/workflows` ichidagi hech bir ish jarayoni, hech bir `package.json` skripti va hech bir `Makefile` maqsadi Socket.dev vositasini ishga tushirmaydi.
 
-Biz foydalanadigan skaner konfiguratsiyasi repozitoriy ildizidagi
+Eʼlon qilingan `omniroute` npm artefakti Next.js `output: "standalone"`
+qurilmasini paketga qoʻshadi, bu esa har bir marshrut ishlov beruvchisi — jumladan,
+hujjatlashtirilgan imtiyozli funksiyalar (MITM, Zed importi, Cloud Sync,
+oʻrnatilgan xizmat supervizori) — `.next/server/*.js` ichidagi minifikatsiya
+qilingan qismlarga kirishini anglatadi. Evristik taʼminot zanjiri skanerlari
+koʻpincha bu qismlarni zararli dastur imzolari bilan andoza asosida solishtiradi.
+
+Biz foydalanadigan skaner konfiguratsiyasi repo ildizidagi
 [`socket.yml`](socket.yml) faylida joylashgan (Socket.dev GitHub App formati v2 —
 <https://docs.socket.dev/docs/socket-yml> sahifasiga qarang). U tarqatilmaydigan
 kataloglarni (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`,
-`docs/` va hokazo) ochiq tarzda istisno qiladi, shu sababli skaner faqat
-amalda eʼlon qilingan versiya foydalanuvchilariga yetib boradigan kod yoʻllari
-haqida xabar beradi — skanerlashning oʻzi ushbu repozitoriydagi ish jarayoni
-orqali emas, balki shu faylni oʻqiydigan Socket GitHub App orqali bajariladi.
+`docs/` va boshqalar) aniq istisno qiladi, shunda skaner faqat amalda eʼlon
+qilingan versiya foydalanuvchilariga yetib boradigan kod yoʻllari haqida xabar
+beradi — skanerlashning oʻzi ushbu repozitoriydagi ish jarayoni tomonidan emas,
+balki shu faylni oʻqiydigan Socket GitHub App tomonidan boshqariladi.
 
-Har bir aniqlangan holat toifasi uchun qoʻllab-quvvatlovchining alohida tasdigʻini
-yuritib boramiz:
+Har bir aniqlangan holat toifasi uchun masʼul qoʻllab-quvvatlovchining alohida tasdigʻini yuritamiz:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  har bir aniqlangan holat xaritasi: manba fayli ↔ belgilangan fragment ↔ xatti-harakat ↔
-  v3.8.6 versiyasida qoʻllangan xavfni kamaytirish chorasi.
-- Har bir belgilangan funksiya yonidagi manba ichidagi `SECURITY-AUDITOR-NOTE:`
-  bloklari ayni hujjatga havola qiladi.
+  har bir aniqlangan holat xaritasi: manba fayli ↔ belgilangan qism ↔ xatti-harakat ↔
+  v3.8.6 da qoʻllangan xavfni kamaytirish chorasi.
+- Har bir belgilangan funksiya ichidagi `SECURITY-AUDITOR-NOTE:` bloklari
+  ayni hujjatga havola qiladi.
 
-Konveyeri ogohlantirish talablarini yumshata olmaydigan foydalanuvchilar uchun:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build` orqali yigʻing. Bu toʻrtta
-sezgir modulni ish vaqtida HTTP 503 `feature-disabled` javobini qaytaradigan
-oʻrinbosarlar bilan almashtiradi, natijada imtiyozli kod yoʻllari yigʻilmada
-jismonan mavjud boʻlmaydi. Eʼlon qilish tartibi uchun
+Quvuri ushbu ogohlantirishni yumshata olmaydigan foydalanuvchilar quyidagicha
+qurishlari mumkin: `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Bu toʻrtta
+sezgir modulni ish vaqtida HTTP 503 `feature-disabled` qaytaradigan zaglushkalar
+bilan almashtiradi, natijada imtiyozli kod yoʻllari paketdan jismonan chiqarib
+tashlanadi. Nashr qilish retsepti uchun
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
 hujjatiga qarang.
 

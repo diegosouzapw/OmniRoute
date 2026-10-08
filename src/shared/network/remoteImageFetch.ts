@@ -227,3 +227,29 @@ export async function fetchRemoteImage(
 ): Promise<RemoteImageFetchResult> {
   return fetchRemoteMedia(input, options);
 }
+
+/**
+ * Fetch an image from a URL that did NOT originate from an OmniRoute-controlled host: a
+ * caller-supplied `image_url` / `image` body field (any of the request-body aliases,
+ * `provider_options.*`, message parts) or a result URL echoed back by an upstream provider.
+ *
+ * GHSA-34rg-3pqj-35g9 / #13883: the SSRF-hardened policy is hard-coded here so it is no longer
+ * an opt-in every call site has to remember (omni-code-review LEDGER-32 / LEDGER-50):
+ *
+ * - `guard: "public-only"` — never the operator outbound policy (`block-metadata` on a
+ *   local-first default install), which would let a request body make the server fetch
+ *   loopback/LAN URLs and forward the bytes to an image provider. Every resolved DNS answer
+ *   is validated, not just the hostname string.
+ * - `pinDns: true` — closes the DNS-rebinding TOCTOU: without it, a second, un-pinned
+ *   resolution at connect time could answer differently than the validated lookup and bypass
+ *   the public-only guard.
+ *
+ * Any `guard` / `pinDns` the caller passes is overridden; the remaining options (`maxBytes`,
+ * `timeoutMs`, `signal`, test seams such as `lookup` / `fetchImpl`) pass through unchanged.
+ */
+export async function fetchUntrustedRemoteImage(
+  input: string | URL,
+  opts: RemoteImageFetchOptions = {}
+): Promise<RemoteImageFetchResult> {
+  return fetchRemoteImage(input, { ...opts, guard: "public-only", pinDns: true });
+}

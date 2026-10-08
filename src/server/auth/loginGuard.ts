@@ -110,12 +110,49 @@ export function recordLoginFailure(
   return { allowed: true };
 }
 
+// Password checks that have passed the guard but not yet reported a failure. `checkLoginGuard`
+// runs before an `await bcrypt` and `recordLoginFailure` after it, so a concurrent burst would
+// otherwise all pass the check against the same stale count. Each in-flight verification
+// reserves one slot of the failure budget until it resolves (GHSA-h872-cmwf-8q7v).
+const inFlight: Map<string, number> = new Map();
+
+/**
+ * Like `checkLoginGuard`, but also reserves a slot for the verification about to run. Callers
+ * that get `allowed: true` MUST call `endLoginAttempt` with the same key once it finishes.
+ */
+export function beginLoginAttempt(
+  rawIp: string | null | undefined,
+  options: { enabled: boolean }
+): GuardDecision {
+  const decision = checkLoginGuard(rawIp, options);
+  if (!decision.allowed || !options.enabled) return decision;
+  const key = clientKey(rawIp);
+  const state = attempts.get(key);
+  const now = nowMs();
+  const usedInWindow = state && now - state.firstAttemptAt <= WINDOW_MS ? state.count : 0;
+  const pending = inFlight.get(key) || 0;
+  // Only the attempts that could still fail count: a failure at index THRESHOLD locks.
+  if (usedInWindow + pending >= FAILURE_THRESHOLD) {
+    return { allowed: false, retryAfterSeconds: Math.ceil(LOCKOUT_MS / 1000) };
+  }
+  inFlight.set(key, pending + 1);
+  return { allowed: true };
+}
+
+export function endLoginAttempt(rawIp: string | null | undefined): void {
+  const key = clientKey(rawIp);
+  const pending = inFlight.get(key) || 0;
+  if (pending <= 1) inFlight.delete(key);
+  else inFlight.set(key, pending - 1);
+}
+
 export function clearLoginAttempts(rawIp: string | null | undefined): void {
   attempts.delete(clientKey(rawIp));
 }
 
 export function resetLoginGuardForTests(): void {
   attempts.clear();
+  inFlight.clear();
 }
 
 /** Test-only: current number of tracked IP entries. */

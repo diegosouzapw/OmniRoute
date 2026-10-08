@@ -1,6 +1,6 @@
 # Remote Mode (Oʻzbekcha)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇬🇷 [el](../../../el/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
 
 ---
 
@@ -353,66 +353,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # avval OMNIROUTE_API_KEY qiyma
 
 ---
 
-## Kontekstlarni boshqarish (serverlar oʻrtasida almashish)
+## Kontekstlarni boshqarish (serverlar orasida almashish)
 
-**Kontekst** — saqlangan server (baseUrl + hisob maʼlumotlari + qamrov). `omniroute connect`
-kontekst yaratadi va uni faol holatga keltiradi; shundan keyin har bir buyruq shu serverga yoʻnaltiriladi. Ularni
-`omniroute contexts` yordamida boshqaring va ular oʻrtasida almashing:
+Bir **kontekst** saqlangan server (baseUrl + credential + scope) hisoblanadi. `omniroute connect` uni yaratadi va faollashtiradi; shundan so'ng har bir buyruq unga yo'naltiriladi. Ularni `omniroute contexts` yordamida boshqaring va ular orasida almashing:
 
 ```bash
-omniroute contexts list            # barcha kontekstlar; faol kontekst ● bilan belgilangan
-omniroute contexts current         # faol server, autentifikatsiya holati, qamrov
+omniroute contexts list            # barcha kontekstlar; faol bo'lgani ● bilan belgilangan
+omniroute contexts current         # faol server, autentifikatsiya holati, doirasi
 ```
 
 ```text
-  | Nomi    | Asosiy URL                | Autent. | Qamrov | Tavsif
-● | vps     | http://100.67.86.91:20128 | token   | admin  | Masofaviy OmniRoute (…)
-  | default | http://localhost:20128    | ✗       |        |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Serverlarni almashtirish** — keyingi barcha buyruqlar faol kontekstga yoʻnaltiriladi:
+**Serverlarni almashtirish** — har bir keyingi buyruq faol kontekstga amal qiladi:
 
 ```bash
 omniroute contexts use vps         # → endi barcha buyruqlar masofaviy VPSga yuboriladi
-omniroute tokens list              #   (VPSga nisbatan bajariladi)
+omniroute tokens list              #   (VPSga qarshi ishlaydi)
 
 omniroute contexts use default     # → localhostga qaytish
-omniroute tokens list              #   (mahalliy serverga nisbatan bajariladi)
+omniroute tokens list              #   (mahalliy serverga qarshi ishlaydi)
 ```
 
-**Kontekstni qoʻlda qoʻshish** (`connect` oʻrniga), tekshirish yoki nomini oʻzgartirish:
+**Kontekstni qo'lda qo'shish** (`connect` o'rniga), tekshirish yoki qayta nomlash:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # bitta kontekstning toʻliq tafsilotlari
+  --access-token oma_live_xxxx --scope write --description "staging qutisi"
+omniroute contexts show staging    # bir kontekst uchun to'liq ma'lumotlar
 omniroute contexts rename staging stg
 ```
 
-**Kontekstni olib tashlash** — tasdiqlashni soʻraydi; uni oʻtkazib yuborish uchun `--yes` parametrini
-uzating (skriptlar / nointeraktiv qobiqlar uchun talab qilinadi, aks holda ular xavfsiz tarzda rad etadi):
+**Kontekstni o'chirish** — tasdiqlashni so'raydi; uni o'tkazib yuborish uchun `--yes` ni kiriting (skriptlar / interaktiv bo'lmagan qobiqlar uchun talab qilinadi, aks holda ular xavfsiz tarzda rad etiladi):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> `default` (localhost) kontekstini olib tashlab boʻlmaydi. Faol kontekst olib tashlansa,
-> `default` kontekstiga qaytiladi. Maslahat: kontekstni olib tashlash faqat **mahalliy** saqlangan hisob maʼlumotlarini oʻchiradi —
-> kirish imkoniyatini amalda bekor qilish uchun serverdagi tokenni `omniroute tokens revoke <id>` yordamida
-> bekor qiling.
+> `default` (localhost) o'chirilmaydi. Faol kontekstni o'chirish `default` ga qaytadi. Maslahat: kontekstni o'chirish faqat **mahalliy** saqlangan hisobga olish ma'lumotlarini o'chiradi — kirishni butunlay to'xtatish uchun serverdagi tokenni `omniroute tokens revoke <id>` yordamida bekor qiling.
 
-Kontekstlarni **eksport / import qilish** (masalan, ularni kompyuterlar oʻrtasida koʻchirish uchun). OS
-kalitlar zanjiri mavjud boʻlsa, yangi kontekstlarda faqat kalitlar zanjiriga havola saqlanadi; hisob maʼlumotlari eksportga koʻchirilmaydi:
+**Kontekstlarni eksport / import qilish** (masalan, ularni mashinalar orasida ko'chirish uchun). Eksportlar sukut bo'yicha hisobga olish ma'lumotlarini, shu jumladan fayl zaxirasi tomonidan saqlangan hisobga olish ma'lumotlarini ham o'tkazib yuboradi. Ko'chma, hisobga olish ma'lumotlarini o'z ichiga olgan zaxira nusxasi kerak bo'lganda `--include-secrets` dan aniq foydalaning:
 
 ```bash
-omniroute contexts export --out contexts.json     # standart: stdout
+omniroute contexts export --out contexts.json     # tahrirlangan; sukut bo'yicha manzil: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
 omniroute contexts import contexts.json            # ustiga yozish; mavjudlarini saqlash uchun --merge
-omniroute contexts migrate --yes                  # eski ochiq matnli tokenlarni kalitlar zanjiriga koʻchirish
+omniroute contexts migrate --yes                  # eski oddiy matnli tokenlarni kalit zanjiriga ko'chirish
 ```
 
-Foydalanish mumkin boʻlgan OS kalitlar zanjiri mavjud boʻlmagan monitor va interfeyssiz tizimlarda CLI
-`0600` rejimidagi `config.json` fayliga qaytadi va bir martalik ogohlantirishni chiqaradi. Ushbu
-zaxira usul orqali olingan eksportlarga (va migratsiyadan oldingi har qanday eski konfiguratsiyaga) maxfiy maʼlumot sifatida munosabatda boʻling.
+`--include-secrets` eksport qilishdan oldin kalit zanjiri havolalarini hal qiladi va agar biron bir havolali hisobga olish ma'lumotlari o'qib bo'lmasa, xatolik yuz beradi. `--no-secrets` har doim ustunlik qiladi. Eksport fayllari `0600` rejimida atomik tarzda yoziladi. Aniqlangan sirni o'z ichiga olgan eksportni maxfiy material sifatida qabul qiling. Foydalanish mumkin bo'lgan OS kalit zanjiri bo'lmagan boshsiz tizimlarda, CLI `config.json` ga `0600` rejimida qaytadi va bir martalik ogohlantirishni chop etadi; sukut bo'yicha eksport bu rejimda tahrirlangan holda qoladi.
 
 ---
 

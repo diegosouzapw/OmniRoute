@@ -186,7 +186,18 @@ describe("Integration: strategySelector → aggressive pipeline", () => {
       aggressive: DEFAULT_AGGRESSIVE_CONFIG,
     };
 
-    const mode = selectCompressionStrategy(config, null, 0);
+    // #14529: aggressive is lossy — it is selected when the request opts in, and header-less
+    // requests get the safe stacked pair instead.
+    const mode = selectCompressionStrategy(
+      config,
+      null,
+      0,
+      undefined,
+      undefined,
+      {},
+      "allow-lossy"
+    );
     assert.equal(mode, "aggressive");
+    assert.equal(selectCompressionStrategy(config, null, 0), "stacked");
   });
 });

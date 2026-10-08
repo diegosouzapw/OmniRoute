@@ -1,14 +1,14 @@
 # Embedded Services (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/EMBEDDED-SERVICES.md) · 🇪🇹 [am](../../../am/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇿 [az](../../../az/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇰 [da](../../../da/docs/frameworks/EMBEDDED-SERVICES.md) · 🇩🇪 [de](../../../de/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇷 [el](../../../el/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇸 [es](../../../es/docs/frameworks/EMBEDDED-SERVICES.md) · 🇪🇪 [et](../../../et/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇱 [he](../../../he/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/EMBEDDED-SERVICES.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇩 [id](../../../id/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇹 [it](../../../it/docs/frameworks/EMBEDDED-SERVICES.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/EMBEDDED-SERVICES.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇭 [km](../../../km/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇲🇲 [my](../../../my/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇴 [no](../../../no/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [or](../../../or/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/EMBEDDED-SERVICES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/EMBEDDED-SERVICES.md) · 🇱🇰 [si](../../../si/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/EMBEDDED-SERVICES.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/EMBEDDED-SERVICES.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/EMBEDDED-SERVICES.md) · 🇮🇳 [te](../../../te/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇭 [th](../../../th/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/EMBEDDED-SERVICES.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/EMBEDDED-SERVICES.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/EMBEDDED-SERVICES.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/EMBEDDED-SERVICES.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/EMBEDDED-SERVICES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/EMBEDDED-SERVICES.md)
 
 ---
 
 > **版本：** v3.8.44
-> **最后更新：** 2026-07-03
-> **适用对象：** 添加、维护或调试嵌入式服务（9Router、CLIProxyAPI、Mux、Bifrost）的工程师。
+> **最后更新：** 2026-09-09
+> **适用读者：** 添加、维护或调试嵌入式服务（9Router、CLIProxyAPI、Mux、Bifrost、open-wa）的工程师。
 
-嵌入式服务是安装在本地的进程伴生工具，由 OmniRoute 负责安装、监管，并将其作为一等路由目标公开。与通过互联网使用 API 密钥访问的外部提供者不同，嵌入式服务与 OmniRoute 运行在同一台计算机上，并通过环回接口通信。
+嵌入式服务是安装在本地的进程级边车工具，由 OmniRoute 负责安装、监管，并将其作为一等路由目标公开。与通过互联网使用 API 密钥访问的外部提供者不同，嵌入式服务与 OmniRoute 运行在同一台计算机上，并通过环回接口进行通信。
 
 ---
 
@@ -29,33 +29,34 @@
 
 ### 为什么使用嵌入式服务？
 
-内置了五项服务：
+嵌入了六项服务：
 
-| 服务            | npm 包                                | 默认端口 | 用途                                                                                                                                                                  |
-| --------------- | ------------------------------------- | :------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                             |  20130   | OmniRoute 可将其用作子提供者的 AI 路由器。模型以 `9router/{sub}/{model}` 的形式公开                                                                                   |
-| **CLIProxyAPI** | GitHub 发布版二进制文件（`cliproxy`） |   8317   | 用于 Anthropic CLI 身份验证流程的本地代理适配器。当 OAuth 令牌过期时提供故障转移路由                                                                                  |
-| **Mux**         | `mux`（无头模式 `mux server`）        |   8322   | 本地智能体编排守护进程（coder/mux）。仅对其生命周期进行管理，不作为路由目标（不代理 LLM）                                                                             |
-| **Bifrost**     | `@maximhq/bifrost`                    |   8080   | Go AI 网关中继后端。运行时，由中继路由（`/v1/relay/`）自动选用                                                                                                        |
-| **Dario**       | `@askalf/dario`                       |   3456   | Claude 订阅代理——针对 Claude-Code 形式的流量，可作为 CLIProxyAPI 的替代方案或故障转移方案；注入的密钥会成为 `DARIO_ADMIN_TOKEN`，用于保护其 `/admin/*` OAuth 控制平面 |
+| 服务            | npm 包                              | 默认端口 | 用途                                                                                                                                                                  |
+| --------------- | ----------------------------------- | :------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                           |  20130   | OmniRoute 可将其用作子提供者的 AI 路由器。模型以 `9router/{sub}/{model}` 的形式公开                                                                                   |
+| **CLIProxyAPI** | GitHub 发布二进制文件（`cliproxy`） |   8317   | 用于 Anthropic CLI 身份验证流程的本地代理适配器。当 OAuth 令牌过期时提供回退路由                                                                                      |
+| **Mux**         | `mux`（无头模式的 `mux server`）    |   8322   | 本地智能体编排守护进程（coder/mux）。仅管理其生命周期，不作为路由目标（不代理 LLM）。                                                                                 |
+| **Bifrost**     | `@maximhq/bifrost`                  |   8080   | Go AI 网关中继后端。运行时，中继路由（`/v1/relay/`）会自动选择该服务                                                                                                  |
+| **Dario**       | `@askalf/dario`                     |   3456   | Claude 订阅代理——对于 Claude-Code 形式的流量，可作为 CLIProxyAPI 的替代方案或故障转移方案；注入的密钥将成为 `DARIO_ADMIN_TOKEN`，用于保护其 `/admin/*` OAuth 控制平面 |
+| **open-wa**     | `@open-wa/wa-automate`              |   8323   | WhatsApp Web 自动化（通过 Puppeteer 使用无头 Chromium）。仅管理其生命周期，不作为路由目标。                                                                           |
 
-所有五项服务均遵循相同的监管模型：
+六项服务均遵循相同的监管模型：
 
 - OmniRoute 将它们安装在 `DATA_DIR/services/{name}/` 下（与 OmniRoute 自身的 `package.json` 隔离）
-- OmniRoute 将它们作为子进程启动并监控
-- OmniRoute 将临时 API 密钥注入子进程的环境，并在适用情况下实现无停机轮换
-- 所有管理路由（`/api/services/*`）均为 **LOCAL_ONLY**——只能通过环回接口访问（硬性规则 #17）
+- OmniRoute 将它们作为子进程启动并进行监控
+- OmniRoute 将临时 API 密钥注入子进程的环境，并在不停机的情况下轮换密钥（如适用）
+- 所有管理路由（`/api/services/*`）均为 **仅限本地（LOCAL_ONLY）**——只能从环回地址访问（硬性规则 #17）
 
 ### 关键决策（来自设计方案）
 
-| 决策                       | 取值                                                                    |
-| -------------------------- | ----------------------------------------------------------------------- |
-| 仪表板访问 9Router 原生 UI | 通过 `/dashboard/providers/services/9router/embed/*` 进行反向代理       |
-| 安装机制                   | 通过 `execFile` 执行 `npm install {package}`（不使用 shell 插值）       |
-| 使用模式                   | 在路由引擎中将提供者注册为 `9router/{sub}/{model}`                      |
-| API 密钥管理               | OmniRoute 生成密钥、对其进行静态加密（AES-256-GCM），并通过环境变量注入 |
-| 仪表板位置                 | `/dashboard/providers/services`（三个选项卡）                           |
-| 自动启动                   | 每项服务均可单独切换，默认关闭                                          |
+| 决策                       | 值                                                                  |
+| -------------------------- | ------------------------------------------------------------------- |
+| 仪表板访问 9Router 原生 UI | 位于 `/dashboard/providers/services/9router/embed/*` 的反向代理     |
+| 安装机制                   | 通过 `execFile` 执行 `npm install {package}`（不进行 shell 插值）   |
+| 使用模式                   | 在路由引擎中将提供者注册为 `9router/{sub}/{model}`                  |
+| API 密钥管理               | OmniRoute 生成密钥、进行静态加密（AES-256-GCM），并通过环境变量注入 |
+| 仪表板位置                 | `/dashboard/providers/services`（三个选项卡）                       |
+| 自动启动                   | 每项服务单独设置开关，默认关闭                                      |
 
 ---
 
@@ -63,20 +64,20 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  第 1 层 — UI                                                       │
+│  第 1 层 — UI                                                      │
 │  /dashboard/providers/services  （选项卡：CLIProxyAPI | 9Router | Mux）│
-│  实时日志 (SSE)、启动/停止/重启/更新、设置、安装                     │
+│  实时日志 (SSE)、启动/停止/重启/更新、设置、安装                    │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               外壳 + 通过 ?tab= 路由选项卡          │
+│    ├── page.tsx               外壳 + 通过 ?tab= 进行选项卡路由      │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
 │                               ServiceLogsPanel, ApiKeyCard, ...    │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ HTTP (Next.js fetch)
+                       │ HTTP（Next.js fetch）
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  第 2 层 — API（LOCAL_ONLY — 仅限环回接口）                         │
+│  第 2 层 — API（LOCAL_ONLY — 仅限回环地址）                         │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -87,50 +88,50 @@
 │  /dashboard/providers/services/9router/embed/[...path]             │
 │    （反向 HTTP + WebSocket 代理 → 9Router 上游）                    │
 │                                                                    │
-│  访问控制：LOCAL_ONLY_API_PREFIXES 包含 "/api/services/" 和         │
+│  门禁：LOCAL_ONLY_API_PREFIXES 包含 "/api/services/" 和            │
 │        "/dashboard/providers/services/*/embed/"                    │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ 进程内调用
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  第 3 层 — ServiceSupervisor (src/lib/services/)                   │
 │                                                                    │
-│  ServiceSupervisor.ts   通用监督器 (child_process.spawn)           │
+│  ServiceSupervisor.ts   通用监管器 (child_process.spawn)           │
 │    ├── 安装：      execFile('npm', ['install', pkg, '--prefix'])    │
 │    ├── 启动：      spawn(node, [entrypoint], {env, cwd})           │
 │    ├── API 密钥：  crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── 端口：      9Router 使用 20130（可配置）                     │
-│    ├── 日志：      stdio 环形缓冲区 5 MB → SSE 事件                 │
-│    ├── 健康检查：  每 2–5 秒 HTTP GET /health，惰性恢复             │
+│    ├── 端口：      9Router 使用 20130（可配置）                    │
+│    ├── 日志：      stdio 5 MB 环形缓冲区 → SSE 事件                │
+│    ├── 健康检查：  每 2–5 秒 HTTP GET /health，惰性恢复            │
 │    └── 生命周期：  SIGTERM 15 秒 → SIGKILL                         │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
 │  bootstrap.ts       在进程启动时引导所有 SERVICES[]                │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       定期 GET /v1/models → service_models 表        │
-│  ringBuffer.ts      循环日志缓冲区（每个服务 5 MB）                 │
+│  ringBuffer.ts      环形日志缓冲区（每个服务 5 MB）                │
 │  healthCheck.ts     轮询 HTTP 健康探测                             │
-│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
-│                      （安装程序适配器）                             │
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
+│                      （安装器适配器）                               │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ 兼容 OpenAI 的 HTTP（环回接口）
+                       │ OpenAI 兼容的 HTTP（回环地址）
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  第 4 层 — 提供者/路由                                              │
+│  第 4 层 — 提供者 / 路由                                           │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    每次请求都重新查找端口和 API 密钥（不缓存）。                    │
-│    代理前从模型 ID 中移除 "9router/" 前缀。                         │
-│    如果监督器不处于 "running" 状态，则返回 503 service_not_running。│
+│    每次请求都重新查找端口和 API 密钥（不缓存）。                   │
+│    在代理前从模型 ID 中移除 "9router/" 前缀。                      │
+│    如果监管器不处于 "running" 状态，则返回 503 service_not_running。│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    "9router" 的条目：isEmbeddedService: true                       │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    模型存储为 "9router/{sub}/{model}"（带前缀）。                   │
-│    由 modelSync.ts 每 5 分钟同步一次。                              │
+│    模型以 "9router/{sub}/{model}" 格式存储（带前缀）。             │
+│    由 modelSync.ts 每 5 分钟同步一次。                             │
 │                                                                    │
-│  Mux 仅受生命周期管理（第 1–3 层）— 它是一个智能体编排守护进程，    │
-│  而不是 LLM 代理，因此没有第 4 层执行器/提供者条目，                │
-│  也绝不会成为路由目标。                                            │
+│  Mux 仅受生命周期管理（第 1–3 层）— 它是一个智能体编排守护进程，  │
+│  而不是 LLM 代理，因此它没有第 4 层执行器/提供者条目，             │
+│  也绝不会成为路由目标。                                           │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -142,12 +143,13 @@
 | `src/lib/services/bootstrap.ts`             | 进程级注册和自动启动                       |
 | `src/lib/services/registry.ts`              | 单例映射 `tool → supervisor`               |
 | `src/lib/services/apiKey.ts`                | 密钥生成、AES-256-GCM 静态加密             |
-| `src/lib/services/modelSync.ts`             | 定期同步模型（每 5 分钟）+ 按需同步        |
-| `src/lib/services/ringBuffer.ts`            | 带 SSE 订阅功能的 5 MB 环形日志缓冲区      |
+| `src/lib/services/modelSync.ts`             | 定期同步模型（每 5 分钟）及按需同步        |
+| `src/lib/services/ringBuffer.ts`            | 具有 SSE 订阅功能的 5 MB 环形日志缓冲区    |
 | `src/lib/services/healthCheck.ts`           | HTTP 健康探测（间隔可配置）                |
-| `src/lib/services/installers/ninerouter.ts` | 通过 npm 安装/更新/卸载 9Router            |
-| `src/lib/services/installers/cliproxy.ts`   | 通过 npm 安装/更新/卸载 CLIProxyAPI        |
-| `src/lib/services/installers/mux.ts`        | 通过 npm 安装/更新/卸载 Mux                |
+| `src/lib/services/installers/ninerouter.ts` | 为 9Router 执行 npm 安装/更新/卸载         |
+| `src/lib/services/installers/cliproxy.ts`   | 为 CLIProxyAPI 执行 npm 安装/更新/卸载     |
+| `src/lib/services/installers/mux.ts`        | 为 Mux 执行 npm 安装/更新/卸载             |
+| `src/lib/services/installers/openwa.ts`     | 为 open-wa 执行 npm 安装/更新/卸载         |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` 辅助函数           |
 | `src/app/api/services/[name]/logs/route.ts` | 共享 SSE 日志端点                          |
 | `open-sse/executors/ninerouter.ts`          | 提供者执行器（第 4 层）                    |
@@ -205,15 +207,15 @@
 
 ## 4. API 参考
 
-`/api/services/` 下的所有路由均为 **LOCAL_ONLY**（仅限环回地址，硬性规则 #17）。
-无论是否提供身份验证令牌，非环回请求都会收到 `403 LOCAL_ONLY`。
+`/api/services/` 下的所有路由均为 **LOCAL_ONLY**（仅限回环地址，硬性规则 #17）。
+无论是否提供身份验证令牌，非回环请求都会收到 `403 LOCAL_ONLY`。
 
-### 4.1 9Router 端点（11 条路由）
+### 4.1 9Router 端点（11 个路由）
 
 #### `POST /api/services/9router/install`
 
-从 npm 安装 9Router。创建 `DATA_DIR/services/9router/`，其中包含独立的
-`package.json` 和 `node_modules/`。不会与 OmniRoute 自身的依赖项冲突。
+从 npm 安装 9Router。创建具有独立 `package.json` 和 `node_modules/` 的
+`DATA_DIR/services/9router/`。不会与 OmniRoute 自身的依赖项冲突。
 
 **请求正文**（全部可选）：
 
@@ -221,38 +223,38 @@
 { "version": "latest" }
 ```
 
-| 字段      | 类型     | 默认值     | 描述                           |
+| 字段      | 类型     | 默认值     | 说明                           |
 | --------- | -------- | ---------- | ------------------------------ |
 | `version` | `string` | `"latest"` | 要安装的 npm 版本标签或 semver |
 
 **响应：**
 
-| 状态码 | 描述                                                   |
+| 状态码 | 说明                                                   |
 | ------ | ------------------------------------------------------ |
 | `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }` |
 | `400`  | 请求正文无效（Zod 验证失败）                           |
 | `409`  | 已在安装（锁已被持有）                                 |
-| `500`  | npm 安装失败——请查看 `message` 了解友好错误信息        |
+| `500`  | npm 安装失败——有关易于理解的错误，请参阅 `message`     |
 
-**注意：** 使用 `execFile('npm', [...])`——不使用 shell，也不进行插值（硬性规则 #13）。
-EACCES 错误会以友好的消息形式呈现。
+**注意：** 使用 `execFile('npm', [...])`——无 shell、无插值（硬性规则 #13）。
+EACCES 错误会以易于理解的消息形式呈现。
 
 ---
 
 #### `POST /api/services/9router/start`
 
 启动 9Router。如果尚未注册 supervisor，则先进行注册，然后调用
-`supervisor.start()`。已在运行时，此操作具有幂等性。
+`supervisor.start()`。服务已运行时，此操作具有幂等性。
 
 **请求正文：** 无
 
 **响应：**
 
-| 状态码 | 描述                                        |
-| ------ | ------------------------------------------- |
-| `200`  | `ServiceStatus` 对象（参见下方 schema）     |
-| `409`  | 9Router 未安装（`status: "not_installed"`） |
-| `503`  | 启动失败（进程错误——请参阅 `lastError`）    |
+| 状态码 | 说明                                          |
+| ------ | --------------------------------------------- |
+| `200`  | `ServiceStatus` 对象（请参阅下方 schema）     |
+| `409`  | 9Router 尚未安装（`status: "not_installed"`） |
+| `503`  | 启动失败（进程错误——请参阅 `lastError`）      |
 
 **ServiceStatus schema：**
 
@@ -272,23 +274,23 @@ EACCES 错误会以友好的消息形式呈现。
 
 #### `POST /api/services/9router/stop`
 
-优雅地停止 9Router。发送 SIGTERM，等待 15 秒；如果进程仍然存活，则发送 SIGKILL。
-已停止时，此操作具有幂等性。
+正常停止 9Router。发送 SIGTERM，等待 15 秒；如果进程仍然存活，则发送 SIGKILL。
+服务已停止时，此操作具有幂等性。
 
 **请求正文：** 无
 
 **响应：**
 
-| 状态码 | 描述                                |
+| 状态码 | 说明                                |
 | ------ | ----------------------------------- |
 | `200`  | `ServiceStatus`（state: "stopped"） |
-| `503`  | 停止操作意外失败                    |
+| `503`  | 停止意外失败                        |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-等同于在操作锁内先执行 `stop()`，再执行 `start()`。
+等同于在操作锁下先调用 `stop()`，再调用 `start()`。
 
 **请求正文：** 无
 
@@ -299,7 +301,7 @@ EACCES 错误会以友好的消息形式呈现。
 #### `POST /api/services/9router/update`
 
 将 9Router 更新到较新的 npm 版本。如果服务正在运行，则先停止服务，
-然后运行 npm install（在原位置安装较新的版本），最后重新启动服务。
+然后运行 npm install（在原位置安装较新版本），随后重新启动服务。
 
 **请求正文**（全部可选）：
 
@@ -309,7 +311,7 @@ EACCES 错误会以友好的消息形式呈现。
 
 **响应：**
 
-| 状态码 | 描述                                                            |
+| 状态码 | 说明                                                            |
 | ------ | --------------------------------------------------------------- |
 | `200`  | `{ ok: true, previousVersion: "...", installedVersion: "..." }` |
 | `400`  | 请求正文无效                                                    |
@@ -319,35 +321,35 @@ EACCES 错误会以友好的消息形式呈现。
 
 #### `POST /api/services/9router/rotate-key`
 
-为 9Router 生成新的 API 密钥，对其进行静态加密，然后重启服务
-（如果正在运行），以便服务从环境中获取新密钥。旧密钥会立即失效。
+为 9Router 生成新的 API 密钥，对其进行静态加密，并重新启动服务
+（如果正在运行），以便服务从其环境中获取新密钥。旧密钥会立即失效。
 
 **请求正文：** 无
 
 **响应：**
 
-| 状态  | 描述                                       |
-| ----- | ------------------------------------------ |
-| `200` | `{ keyRotated: true, restarted: boolean }` |
-| `500` | 轮换失败                                   |
+| 状态码 | 说明                                       |
+| ------ | ------------------------------------------ |
+| `200`  | `{ keyRotated: true, restarted: boolean }` |
+| `500`  | 轮换失败                                   |
 
-**安全性：** 新密钥绝不会在响应中返回（避免凭据泄露）。
-它使用 AES-256-GCM 加密后存储在 `version_manager` 表中。
+**安全性：** 响应中绝不会返回新密钥（不会泄露凭据）。
+该密钥经过加密（AES-256-GCM）后存储在 `version_manager` 表中。
 
 ---
 
 #### `GET /api/services/9router/status`
 
-返回实时状态和数据库状态的组合信息，包括版本元数据和 API 密钥预览。
+返回合并后的实时状态和数据库状态，包括版本元数据和 API 密钥预览。
 
 **响应：**
 
-| 状态  | 描述           |
-| ----- | -------------- |
-| `200` | 请参阅下方架构 |
-| `500` | 状态读取失败   |
+| 状态码 | 说明              |
+| ------ | ----------------- |
+| `200`  | 请参阅下方 schema |
+| `500`  | 状态读取失败      |
 
-**响应架构：**
+**响应 schema：**
 
 ```json
 {
@@ -371,8 +373,8 @@ EACCES 错误会以友好的消息形式呈现。
 
 #### `POST /api/services/9router/auto-start`
 
-切换自动启动标志。当 `enabled: true` 时，下次 OmniRoute 启动时，
-该服务将自动启动（前提是该服务已安装）。
+切换自动启动标志。当 `enabled: true` 时，OmniRoute 下次启动时，
+该服务会自动启动（前提是服务已安装）。
 
 **请求正文：**
 
@@ -382,10 +384,10 @@ EACCES 错误会以友好的消息形式呈现。
 
 **响应：**
 
-| 状态  | 描述                  |
-| ----- | --------------------- |
-| `200` | `{ autoStart: true }` |
-| `400` | 请求正文无效          |
+| 状态码 | 说明                  |
+| ------ | --------------------- |
+| `200`  | `{ autoStart: true }` |
+| `400`  | 请求正文无效          |
 
 ---
 
@@ -395,20 +397,20 @@ EACCES 错误会以友好的消息形式呈现。
 
 **查询参数：**
 
-| 参数     | 类型      | 默认值 | 描述                                                           |
-| -------- | --------- | ------ | -------------------------------------------------------------- |
-| `tail`   | `integer` | 200    | 首先发送的历史日志行数（最多 1000 行）                         |
-| `filter` | `string`  | 无     | 不区分大小写的子字符串筛选器（不支持正则表达式，可防止 ReDoS） |
+| 参数     | 类型      | 默认值 | 说明                                                   |
+| -------- | --------- | ------ | ------------------------------------------------------ |
+| `tail`   | `integer` | 200    | 首先发送的历史日志行数（最大 1000）                    |
+| `filter` | `string`  | 无     | 不区分大小写的子字符串过滤器（不使用正则——可防 ReDoS） |
 
 **SSE 事件：**
 
-| 事件        | 数据        | 描述                     |
+| 事件        | 数据        | 说明                     |
 | ----------- | ----------- | ------------------------ |
-| `snapshot`  | `LogLine[]` | 初始历史日志末尾内容     |
+| `snapshot`  | `LogLine[]` | 初始历史日志尾部         |
 | `log`       | `LogLine`   | 实时日志行               |
 | `heartbeat` | `{}`        | 每 15 秒发送一次保活消息 |
 
-**LogLine 架构：**
+**LogLine schema：**
 
 ```json
 {
@@ -424,38 +426,39 @@ EACCES 错误会以友好的消息形式呈现。
 | ----- | --------------------------------- |
 | `200` | `text/event-stream`               |
 | `400` | `filter` 参数过长（> 200 个字符） |
-| `404` | 未找到服务（未注册监控程序）      |
+| `404` | 未找到服务（supervisor 未注册）   |
 
 ---
 
-### 4.2 CLIProxyAPI 端点（10 个路由）
+### 4.2 CLIProxyAPI 端点（10 条路由）
 
-CLIProxyAPI 的端点结构与 9Router 相同，但没有 `rotate-key`，并额外包含
+CLIProxyAPI 的端点结构与 9Router 相同，但不包含 `rotate-key`，并增加了
 `accounts`、`provider-expose` 和 `auto-restart-adopted`。现在，它会接收一个
-在进程生成时注入的专用数据平面 API 密钥（`bootstrap.ts` 中的
-`needsApiKey: true`，用于模型同步）；`status` 包含的字段更少。
+在启动时注入的专用数据平面 API 密钥（`bootstrap.ts` 中的 `needsApiKey: true`，
+用于模型同步）；`status` 包含的字段较少。
 
-| 方法   | 路径                                | 描述                                      |
-| ------ | ----------------------------------- | ----------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | 从 npm 安装 CLIProxyAPI                   |
-| `POST` | `/api/services/cliproxy/start`      | 启动 CLIProxyAPI                          |
-| `POST` | `/api/services/cliproxy/stop`       | 停止 CLIProxyAPI                          |
-| `POST` | `/api/services/cliproxy/restart`    | 重启 CLIProxyAPI                          |
-| `POST` | `/api/services/cliproxy/update`     | 更新到较新版本                            |
-| `GET`  | `/api/services/cliproxy/status`     | 实时状态和数据库状态（无 `apiKeyMasked`） |
-| `POST` | `/api/services/cliproxy/auto-start` | 切换自动启动                              |
+| 方法   | 路径                                | 描述                                       |
+| ------ | ----------------------------------- | ------------------------------------------ |
+| `POST` | `/api/services/cliproxy/install`    | 从 npm 安装 CLIProxyAPI                    |
+| `POST` | `/api/services/cliproxy/start`      | 启动 CLIProxyAPI                           |
+| `POST` | `/api/services/cliproxy/stop`       | 停止 CLIProxyAPI                           |
+| `POST` | `/api/services/cliproxy/restart`    | 重启 CLIProxyAPI                           |
+| `POST` | `/api/services/cliproxy/update`     | 更新到较新版本                             |
+| `GET`  | `/api/services/cliproxy/status`     | 实时状态 + 数据库状态（无 `apiKeyMasked`） |
+| `POST` | `/api/services/cliproxy/auto-start` | 切换自动启动                               |
 
 共享的 `GET /api/services/{name}/logs` 端点（参见 §4.1）通过 `[name]`
-动态段适用于所有四个服务。
+动态段适用于全部四项服务。
 
 ---
 
-### 4.3 Mux 端点（8 个路由）
+### 4.3 Mux 端点（8 条路由）
 
-Mux 的端点结构与 CLIProxyAPI 相同——API 接口中没有 `rotate-key` 路由
-（其持有者令牌的生成方式与 9Router 相同，即通过 `getOrCreateApiKey("mux")`
-生成，并通过 `MUX_SERVER_AUTH_TOKEN` 环境变量注入，但目前尚无专用的轮换端点）。
-Mux 仅受生命周期管理：与 9Router 不同，它没有第 4 层执行器，也从不会注册为路由提供方。
+Mux 的端点结构与 CLIProxyAPI 相同——API 层面没有 `rotate-key` 路由
+（其 bearer 令牌的生成方式与 9Router 相同，均通过
+`getOrCreateApiKey("mux")` 生成，并通过 `MUX_SERVER_AUTH_TOKEN` 环境变量注入，
+但目前还没有专用的轮换端点）。Mux 仅由生命周期管理：与 9Router 不同，
+它没有第 4 层执行器，也从不注册为路由提供者。
 
 | 方法   | 路径                           | 描述                           |
 | ------ | ------------------------------ | ------------------------------ |
@@ -464,46 +467,80 @@ Mux 仅受生命周期管理：与 9Router 不同，它没有第 4 层执行器�
 | `POST` | `/api/services/mux/stop`       | 停止 Mux                       |
 | `POST` | `/api/services/mux/restart`    | 重启 Mux                       |
 | `POST` | `/api/services/mux/update`     | 更新到较新的 npm 版本          |
-| `GET`  | `/api/services/mux/status`     | 实时状态和数据库状态           |
+| `GET`  | `/api/services/mux/status`     | 实时状态 + 数据库状态          |
 | `POST` | `/api/services/mux/auto-start` | 切换自动启动                   |
 
 ---
 
-### 4.4 Bifrost 端点（8 个路由）
+### 4.4 Bifrost 端点（8 条路由）
 
 Bifrost 是一个 Go AI 网关中继后端（`@maximhq/bifrost`）。它使用与
 CLIProxyAPI 相同的端点结构（没有 `rotate-key`——Bifrost 在其 `-app-dir`
-下的 `config.json` 中管理自己的提供方密钥）。
+下的 `config.json` 中管理自己的提供者密钥）。
 
-| 方法   | 路径                               | 描述                                              |
-| ------ | ---------------------------------- | ------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | 从 npm 安装 Bifrost（`@maximhq/bifrost`）         |
-| `POST` | `/api/services/bifrost/start`      | 在端口 8080（默认）上启动 Bifrost                 |
-| `POST` | `/api/services/bifrost/stop`       | 停止 Bifrost                                      |
-| `POST` | `/api/services/bifrost/restart`    | 重启 Bifrost                                      |
-| `POST` | `/api/services/bifrost/update`     | 更新到较新版本                                    |
-| `GET`  | `/api/services/bifrost/status`     | 实时状态 + 数据库状态                             |
-| `POST` | `/api/services/bifrost/auto-start` | 切换自动启动设置                                  |
-| `GET`  | `/api/services/bifrost/logs`       | SSE 日志尾随（通过共享的 `[name]/logs` 动态路由） |
+| 方法   | 路径                               | 描述                                                |
+| ------ | ---------------------------------- | --------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | 从 npm 安装 Bifrost（`@maximhq/bifrost`）           |
+| `POST` | `/api/services/bifrost/start`      | 在端口 8080（默认）上启动 Bifrost                   |
+| `POST` | `/api/services/bifrost/stop`       | 停止 Bifrost                                        |
+| `POST` | `/api/services/bifrost/restart`    | 重启 Bifrost                                        |
+| `POST` | `/api/services/bifrost/update`     | 更新到较新版本                                      |
+| `GET`  | `/api/services/bifrost/status`     | 实时状态 + 数据库状态                               |
+| `POST` | `/api/services/bifrost/auto-start` | 切换自动启动                                        |
+| `GET`  | `/api/services/bifrost/logs`       | SSE 日志尾部流（通过共享的 `[name]/logs` 动态路由） |
 
-**路由配置：** 当未设置 `BIFROST_BASE_URL` 且受监管的 Bifrost
-实例正在运行时，`getBifrostRoutingConfig()`（位于 `routingBackend.ts` 中）会自动
-使用 `http://127.0.0.1:{port}` 作为中继基础 URL。显式设置的 `BIFROST_BASE_URL` 环境变量
-始终具有更高优先级。
+**路由接线：** 当未设置 `BIFROST_BASE_URL` 且受监管的 Bifrost 实例正在运行时，
+`getBifrostRoutingConfig()`（位于 `routingBackend.ts` 中）会自动使用
+`http://127.0.0.1:{port}` 作为中继基础 URL。显式设置的 `BIFROST_BASE_URL`
+环境变量始终具有更高优先级。
 
 ---
 
-### 4.5 Dario 端点（12 个路由）
+### 4.5 Dario 端点（12 条路由）
 
 生命周期结构与其他服务相同（`install`、`start`、`stop`、`restart`、
-`update`、`status`、`auto-start`、`auto-restart-adopted`），此外还包括位于 `admin/` 下、由令牌保护的 OAuth
-控制平面：`admin/accounts`、`admin/import-from-omniroute`、
-`admin/login-start`、`admin/login-complete`（均受 `DARIO_ADMIN_TOKEN` 保护）。
+`update`、`status`、`auto-start`、`auto-restart-adopted`），此外还在
+`admin/` 下提供一个受令牌保护的 OAuth 控制平面：`admin/accounts`、
+`admin/import-from-omniroute`、`admin/login-start`、`admin/login-complete`
+（全部受 `DARIO_ADMIN_TOKEN` 保护）。
 
-### 4.6 反向代理（9Router 仪表板嵌入）
+### 4.6 open-wa 端点（7 条路由）
 
-仪表板通过以下内部反向代理，将 9Router Web UI 嵌入 iframe
-中：
+open-wa（`@open-wa/wa-automate`）通过 Puppeteer 驱动无头 Chromium 实例，
+以实现 WhatsApp Web 自动化。它使用与 Mux 相同的端点结构（目前没有
+`rotate-key` 路由）。它仅由生命周期管理——不是路由目标，也没有第 4 层
+执行器/提供者条目。
+
+| 方法   | 路径                              | 描述                                                |
+| ------ | --------------------------------- | --------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | 从 npm 安装 open-wa（`@open-wa/wa-automate`）       |
+| `POST` | `/api/services/openwa/start`      | 在端口 8323（默认）上启动 open-wa                   |
+| `POST` | `/api/services/openwa/stop`       | 停止 open-wa                                        |
+| `POST` | `/api/services/openwa/restart`    | 重启 open-wa                                        |
+| `POST` | `/api/services/openwa/update`     | 更新到较新版本                                      |
+| `GET`  | `/api/services/openwa/status`     | 实时状态 + 数据库状态                               |
+| `POST` | `/api/services/openwa/auto-start` | 切换自动启动                                        |
+| `GET`  | `/api/services/openwa/logs`       | SSE 日志尾部流（通过共享的 `[name]/logs` 动态路由） |
+
+**API 密钥：** 作为 `WA_KEY` 注入——open-wa 的通用 `WA_*` 前缀环境变量
+覆盖机制会将其映射到 `--key`/`-k` CLI 选项
+（`dist/cli/setup.js::envArgs()`，已针对安装的 4.76.0
+软件包进行验证）。由 `generateServiceApiKey()` 生成时添加 `ow_` 前缀。open-wa
+会从 `key`/`api_key` HTTP 请求头中读取该密钥（而非 `Authorization:
+Bearer`）；`/api-docs*` 已明确免于检查
+（`dist/cli/server.js` 中的 `setupAuthenticationLayer`），因此健康探测
+不需要身份验证请求头。
+
+**配对：** open-wa 是非官方项目，与 WhatsApp 无关联——
+所连接的号码存在因 WhatsApp 自身的自动化检测而被封禁的风险。
+首次启动时，配对二维码会打印到 stdout，并通过
+现有的日志面板/SSE 流展示——此集成目前尚无专用的二维码图像端点。
+
+---
+
+### 4.7 反向代理（9Router 仪表板嵌入）
+
+仪表板通过位于以下地址的内部反向代理，将 9Router Web UI 嵌入 iframe：
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -512,17 +549,16 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 此代理：
 
 - 将请求转发到 `http://127.0.0.1:{port}/{path}`（仅限环回地址）
-- 移除传入的 `cookie` 和 `authorization` 标头（避免 OmniRoute 会话泄露）
-- 注入用于 9Router 身份验证的 `Authorization: Bearer {apiKey}`
+- 移除传入的 `cookie` 和 `authorization` 请求头（避免 OmniRoute 会话泄露）
+- 注入 `Authorization: Bearer {apiKey}`，用于 9Router 身份验证
 - 从响应中移除 `set-cookie`、`content-security-policy`、`x-frame-options`、`cross-origin-*`
 - 重写 HTML 响应，以注入 `<base href>` 并规范化绝对路径（`/foo` → `/dashboard/.../embed/foo`）
 
-嵌入式仪表板的 WebSocket 升级由专用端口上的配套服务器处理（请参阅
-`src/lib/services/embedWsProxy.ts`）。
+嵌入式仪表板的 WebSocket 升级由专用端口上的配套服务器处理（请参阅 `src/lib/services/embedWsProxy.ts`）。
 
-**安全性：** 嵌入代理路由归类在 `LOCAL_ONLY_API_PREFIXES`
-之下，只能通过环回地址访问。即使攻击者通过
-Cloudflare/Ngrok 隧道获取了 JWT，也无法通过代理访问嵌入式服务。
+**安全性：** 嵌入代理路由归类于 `LOCAL_ONLY_API_PREFIXES`，
+只能从环回地址访问。即使攻击者通过 Cloudflare/Ngrok 隧道获得 JWT，
+也无法通过代理访问嵌入式服务。
 
 ---
 

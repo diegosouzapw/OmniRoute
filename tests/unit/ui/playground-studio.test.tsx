@@ -2,9 +2,16 @@
 import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
+
+// The next/dynamic mock below starts each tab's import without awaiting it. A
+// tab module graph (BuildTab → useToolsBuilder → schemas) can still be loading
+// when the synchronous tests finish, and vitest then reports an unhandled
+// EnvironmentTeardownError ("Cannot load … after the environment was torn
+// down"). Every started import is tracked and awaited in afterAll.
+const dynamicImports = vi.hoisted(() => [] as Promise<unknown>[]);
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) =>
@@ -25,9 +32,11 @@ vi.mock("next/dynamic", () => ({
   ) => {
     // Eagerly resolve the dynamic import in tests
     let Component: React.ComponentType<Record<string, unknown>> | null = null;
-    fn().then((m) => {
-      Component = m.default;
-    });
+    dynamicImports.push(
+      fn().then((m) => {
+        Component = m.default;
+      })
+    );
     return function DynamicWrapper(props: Record<string, unknown>) {
       if (!Component) return <div data-testid="dynamic-loading" />;
       return React.createElement(Component, props);
@@ -118,9 +127,14 @@ vi.mock("react-markdown", () => ({
 
 // ── Import under test ──────────────────────────────────────────────────────────
 
-const { PlaygroundStudio } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/PlaygroundStudio"
-);
+const { PlaygroundStudio } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/PlaygroundStudio");
+
+// Let every tab import started by the next/dynamic mock settle while the jsdom
+// environment is still alive (see dynamicImports above).
+afterAll(async () => {
+  await Promise.all(dynamicImports);
+});
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -141,8 +155,9 @@ function renderStudio(): HTMLDivElement {
 
 describe("PlaygroundStudio", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   afterEach(() => {
@@ -182,7 +197,8 @@ describe("PlaygroundStudio", () => {
   it("switches to API tab when clicked", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
-    const apiTab = Array.from(tabButtons).find((b) => b.textContent?.includes("tabApi")) as HTMLButtonElement | undefined;
+    const apiTab = Array.from(tabButtons).find((b) => b.textContent?.includes("tabApi")) as
+      HTMLButtonElement | undefined;
 
     expect(apiTab).toBeTruthy();
     act(() => {
@@ -196,9 +212,8 @@ describe("PlaygroundStudio", () => {
   it("switches to Compare tab and marks it active", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
-    const compareTab = Array.from(tabButtons).find((b) =>
-      b.textContent?.includes("tabCompare")
-    ) as HTMLButtonElement | undefined;
+    const compareTab = Array.from(tabButtons).find((b) => b.textContent?.includes("tabCompare")) as
+      HTMLButtonElement | undefined;
 
     act(() => {
       compareTab?.click();
@@ -212,9 +227,8 @@ describe("PlaygroundStudio", () => {
   it("switches to Build tab and marks it active", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
-    const buildTab = Array.from(tabButtons).find((b) =>
-      b.textContent?.includes("tabBuild")
-    ) as HTMLButtonElement | undefined;
+    const buildTab = Array.from(tabButtons).find((b) => b.textContent?.includes("tabBuild")) as
+      HTMLButtonElement | undefined;
 
     act(() => {
       buildTab?.click();
@@ -236,9 +250,8 @@ describe("PlaygroundStudio", () => {
 
     // Switch to API tab
     const tabButtons = el.querySelectorAll("[role='tab']");
-    const apiTab = Array.from(tabButtons).find((b) =>
-      b.textContent?.includes("API")
-    ) as HTMLButtonElement | undefined;
+    const apiTab = Array.from(tabButtons).find((b) => b.textContent?.includes("API")) as
+      HTMLButtonElement | undefined;
     act(() => {
       apiTab?.click();
     });
@@ -256,7 +269,9 @@ describe("PlaygroundStudio", () => {
 
   it("opens export modal when export button is clicked", () => {
     const el = renderStudio();
-    const exportBtn = el.querySelector("button[aria-label='exportCode']") as HTMLButtonElement | null;
+    const exportBtn = el.querySelector(
+      "button[aria-label='exportCode']"
+    ) as HTMLButtonElement | null;
 
     act(() => {
       exportBtn?.click();

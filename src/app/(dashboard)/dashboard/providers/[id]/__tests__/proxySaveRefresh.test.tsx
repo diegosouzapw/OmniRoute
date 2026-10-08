@@ -195,7 +195,11 @@ describe("provider page — proxy save refreshes per-connection proxy badges", (
         t: (key: string) => key,
       };
 
-      return <ProviderModalsPanel {...(panelProps as never)} />;
+      return (
+        <ProviderModalsPanel
+          {...(panelProps as unknown as React.ComponentProps<typeof ProviderModalsPanel>)}
+        />
+      );
     }
 
     await act(async () => {

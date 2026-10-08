@@ -174,3 +174,36 @@ test("isQuotaExhaustedForRequest does not skip Claude extra-usage connections", 
     true
   );
 });
+
+test("Antigravity 429 exhaustion expires after the fixed TTL", () => {
+  quotaCache.__clearForTests();
+  const originalNow = Date.now;
+  let now = 1_000_000;
+  Date.now = () => now;
+
+  try {
+    for (const [provider, model] of [
+      ["antigravity", "antigravity/claude-sonnet-4-6"],
+      ["agy", "agy/claude-sonnet-4-6"],
+    ] as const) {
+      const connectionId = `conn-${provider}-429-ttl`;
+      quotaCache.markAccountExhaustedFrom429(connectionId, provider);
+
+      assert.equal(
+        quotaCache.isQuotaExhaustedForRequest(connectionId, provider, model),
+        true,
+        `${provider} should be exhausted during the fixed TTL`
+      );
+
+      now += 5 * 60 * 1000 + 1;
+
+      assert.equal(
+        quotaCache.isQuotaExhaustedForRequest(connectionId, provider, model),
+        false,
+        `${provider} should recover after the fixed TTL`
+      );
+    }
+  } finally {
+    Date.now = originalNow;
+  }
+});

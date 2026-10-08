@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation (Oʻzbekcha)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/MCP-SERVER.md) · 🇪🇹 [am](../../../am/docs/frameworks/MCP-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/MCP-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/MCP-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/MCP-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/MCP-SERVER.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/MCP-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/MCP-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/MCP-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/MCP-SERVER.md) · 🇬🇷 [el](../../../el/docs/frameworks/MCP-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/MCP-SERVER.md) · 🇪🇪 [et](../../../et/docs/frameworks/MCP-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/MCP-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/MCP-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/MCP-SERVER.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/MCP-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/MCP-SERVER.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/MCP-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/MCP-SERVER.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/MCP-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/MCP-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/MCP-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/MCP-SERVER.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/MCP-SERVER.md) · 🇰🇭 [km](../../../km/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/MCP-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/MCP-SERVER.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/MCP-SERVER.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/MCP-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/MCP-SERVER.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/MCP-SERVER.md) · 🇲🇲 [my](../../../my/docs/frameworks/MCP-SERVER.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/MCP-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/MCP-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [or](../../../or/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/MCP-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/MCP-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/MCP-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/MCP-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/MCP-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/MCP-SERVER.md) · 🇱🇰 [si](../../../si/docs/frameworks/MCP-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/MCP-SERVER.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/MCP-SERVER.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/MCP-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/MCP-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/MCP-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/MCP-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/MCP-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/MCP-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/MCP-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/MCP-SERVER.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/MCP-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/MCP-SERVER.md)
 
 ---
 
@@ -290,10 +290,70 @@ Sozlamalarda MCP serveri yoqilmaguncha (`mcpEnabled`) va tegishli `mcpTransport`
 
 ---
 
-## Autentifikatsiya va ruxsat doiralari
+## Autentifikatsiya va doiralar
 
-MCP vositalari API kaliti ruxsat doiralari orqali autentifikatsiya qilinadi. Ruxsat doiralarini majburiy qoʻllash
-`open-sse/mcp-server/scopeEnforcement.ts` faylida markazlashtirilgan. Har bir vosita muayyan ruxsat doiralarini talab qiladi:
+MCP vositasi chaqiruvchidan doira satrlarini o'qiydi. Bu tekshiruv uchta mustaqil nom maydonidan biridir. Bir tekshiruvchidan o'tish boshqalardan o'tish degani emas. Qoidalar [Uchta doira nom maydoni](#uchta-doira-nom-maydoni) bo'limida keltirilgan. Vositalar katalogi [MCP vosita doiralari](#mcp-vosita-doiralari) bo'limida keltirilgan.
+
+### Uchta doira nom maydoni
+
+API kalitidagi `manage`, MCP vositasidagi `read:compression` va `oma_live_…` kirish tokenidagi `read` uch xil ruxsatdir. `read` kirish tokenini o'zgartiruvchi boshqaruv yo'liga yuboradigan chaqiruvchilar HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` xatosini oladi. Bu daraja `scopeSatisfies` deb ataladi. U MCP jadvaliga murojaat qilmaydi va MCP moslashtirgich ham unga murojaat qilmaydi.
+
+| Nom maydoni          | Hisobga olish ma'lumotlari                                                | Tekshiruvchi                      | Ruxsat beradi                                                     |
+| :------------------- | :------------------------------------------------------------------------ | :-------------------------------- | :---------------------------------------------------------------- |
+| API-kalit boshqaruvi | `api_keys.scopes`                                                         | `hasManageScope`                  | Ushbu Bearer kaliti uchun boshqaruv REST                          |
+| API-kalit qo'shimcha | xuddi shu massiv, bitta aniq satr                                         | quyida nomi keltirilgan yordamchi | Faqat shu bitta imkoniyat                                         |
+| MCP vosita doiralari | xuddi shu massiv, aks holda MCP `_meta`, aks holda `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                    | Ushbu vosita, majburlash yoqilganda                               |
+| Kirish tokeni        | `oma_live_…`                                                              | `scopeSatisfies`                  | Uning usuli va yo'li shu darajani talab qiladigan boshqaruv yo'li |
+
+Har bir hisobga olish ma'lumotlarini yaratish [Boshqaruv autentifikatsiyasi](../guides/MANAGEMENT-AUTH.md) bo'limida yoritilgan.
+
+#### API-kalit doiralari
+
+Bitta `api_keys.scopes` massivi ikkita ishni bajaradi. Ular turli funksiyalardan foydalanadilar.
+
+**Boshqaruv REST.** `manage` va `admin` `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) a'zolaridir. `hasManageScope` ushbu kalit uchun boshqaruv yo'llarini avtorizatsiya qiladi. `admin` ushbu yo'llarda boshqaruvga qodir. Bu yerda `admin` so'zi kirish tokeni darajasi emas va u MCP vosita doiralariga kengaymaydi.
+
+**Qo'shimcha satrlar.** Har biri aniq a'zolik tekshiruvi bo'lib, har biri `MANAGEMENT_API_KEY_SCOPES` tashqarisida qoladi.
+
+| Doira                          | Ruxsat beradi                                                                                                                                                             |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | Faqat loopback bo'lmagan `/api/mcp/` LOCAL_ONLY kesmasi (`hasMcpConnectOrManageScope`). `manage` yoki `admin` kaliti ham bu kesmadan o'tadi.                              |
+| `self:usage`                   | Ushbu kalit uchun `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` yaratishda bu doirani qo'shadi (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Ushbu holat yuklamasi ichidagi yuqori oqim hisob kvotalari (`src/lib/usage/apiKeySelfService.ts`). Holat yo'li hali ham `self:usage` ni talab qiladi.                     |
+| `policy:bypass-provider-quota` | Ushbu kalitning xulosa chaqiruvlari provayder-kvota siyosatini o'tkazib yuboradi (`src/sse/handlers/chat.ts` dagi `hasProviderQuotaBypassScope`).                         |
+
+#### Moslashtirish
+
+Katalog [MCP vosita doiralari](#mcp-vosita-doiralari) bo'limidagi jadvaldir. `src/shared/constants/mcpScopes.ts` dagi `MCP_SCOPE_LIST` ni bu katalog deb hisoblamang: bu asl terilgan kichik to'plamdir. Keyinchalik vositalar uning yonida qo'shimcha doiralarni e'lon qiladi (`read:notion`, `read:skills`, `read:local-corpus` va jadvalning qolgan qismi).
+
+`open-sse/mcp-server/scopeEnforcement.ts` dagi `evaluateToolScopes` har bir talab qilingan doira ba'zi berilgan doiraga mos kelganda chaqiruvga ruxsat beradi:
+
+- `*` har bir talab qilingan doiraga mos keladi.
+- `*` bilan tugaydigan berilgan doira yulduzdan oldingi prefiks bilan boshlanadigan talab qilingan doiraga mos keladi. `read:*` `read:compression` ga mos keladi.
+- Boshqa har bir berilgan doira faqat bir xil talab qilingan satrga mos keladi.
+
+Doiralari `["manage"]` bo'lgan kalit `read:compression` uchun `scopeMatches` dan o'ta olmaydi. Xuddi shu chaqiruv `admin`, `mcp:connect`, `read` va `write` uchun ham muvaffaqiyatsiz tugaydi, agar ular yagona berilgan satrlar bo'lsa. MCP vosita doiralari orasida oxirgi `*` dan tashqari ierarxiya yo'q.
+
+Majburlash `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (sukut bo'yicha `false`) bo'lmasa o'chirilgan bo'ladi. U o'chirilgan bo'lsa, `evaluateToolScopes` chaqiruvga ruxsat beradi va katalogdan o'tadi. U yoqilgan bo'lsa, HTTP Bearer kalitining `api_keys.scopes` ni `authInfo` sifatida ishlatadi ([Har bir kalit uchun HTTP doira bog'lanishi](#per-key-http-scope-binding-7895) ga qarang). Agar kalit doiralari aniqlanmasa, berilgan to'plam MCP `_meta` ga, keyin `OMNIROUTE_MCP_SCOPES` ga o'tadi.
+
+#### Kirish tokeni doiralari
+
+`oma_live_…` tokenlari (`src/lib/accessTokens/scopes.ts`) `read`, `write` yoki `admin` ni olib yuradi. `scopeSatisfies` daraja hisoblanadi: `admin` `write` va `read` ni qamrab oladi, `write` esa `read` ni qamrab oladi. Noma'lum doiralar hech narsani qamrab olmaydi.
+
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) bu darajani `inferRequiredScope` (`src/server/authz/accessScopes.ts`) bilan solishtiradi:
+
+- `GET`, `HEAD` va `OPTIONS` `read` ni talab qiladi.
+- Boshqa har bir usul `write` ni talab qiladi.
+- `ADMIN_SCOPE_PREFIXES` dagi yo'llar har bir usul uchun `admin` ni talab qiladi. `/api/mcp` bu ro'yxatda, shuning uchun `write` kirish tokeni MCP HTTP yuzasini chaqira olmaydi.
+- `ADMIN_MUTATION_PREFIXES` dagi yo'llar faqat mutatsiyalar uchun `admin` ni talab qiladi.
+
+`PATCH /api/keys/{id}` bu mutatsiya bo'lib, u ma'muriy ro'yxatlarda emas, shuning uchun `read` token 403 `Access token scope 'read' is insufficient; 'write' required.` xatosini oladi. `write` yoki `admin` kirish tokenlari ushbu marshrutni qondiradi. Dashboard JWT, loopback CLI `machine-id` tokeni va `manage` yoki `admin` huquqiga ega API kaliti boshqa tarmoqlarni oladi va bu daraja bilan cheklanmaydi.
+
+`/api/mcp` uchun `scopeSatisfies` dan o'tgan kirish tokeni faqat boshqaruv darvozasidan o'tgan hisoblanadi. Asbob chaqiruvlari hali ham API-kalit doiralariga qarshi `scopeMatches` ni ishga tushiradi. Kirish tokenining darajasi `scopeMatches` uchun kiritma emas.
+
+### MCP asbob doiralari
+
+Doira ijrosi `open-sse/mcp-server/scopeEnforcement.ts` da markazlashtirilgan. Har bir asbob o'ziga xos doiralarni talab qiladi:
 
 | Qamrov                | Vositalar                                                                                                                                                                            |
 | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -327,40 +387,19 @@ MCP vositalari API kaliti ruxsat doiralari orqali autentifikatsiya qilinadi. Rux
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                       |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                   |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                      |
-| `read:obsidian`       | 13 ta o‘qish vositasi — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `read:obsidian`       | 13 ta o'qish vositasi — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
 | `write:obsidian`      | 9 ta yozish vositasi — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                    |
 
-Wildcard scope’lar qoʻllab-quvvatlanadi: `read:*` barcha oʻqish scope’larini beradi, `*` esa toʻliq kirish huquqini beradi.
+Wildcard doiralar qo'llab-quvvatlanadi: `read:*` barcha o'qish doiralarini beradi, `*` to'liq kirishni beradi.
 
-### `mcp:connect` — tor doiradagi marshrut imkoniyati (#7895)
+### `mcp:connect` — tor yo'nalish imkoniyati (#7895)
 
-Loopback’dan tashqaridan HTTP/SSE MCP transportiga (`/api/mcp/*`) kirish uchun
-`/api/mcp/` LOCAL_ONLY istisnosi talab qilinadi (`docs/security/ROUTE_GUARD_TIERS.md` fayliga qarang). Avval
-bu istisno faqat toʻliq `manage`/`admin` scope’iga ega API kalitini qabul qilardi — bu
-faqat MCP bilan aloqa qilishi kerak boʻlgan chaqiruvchi uchun haddan tashqari keng edi.
-Endi `src/shared/constants/managementScopes.ts` fayli `MCP_CONNECT_SCOPE = "mcp:connect"` ni eksport
-qiladi: bu faqat `src/server/authz/policies/management.ts` ichidagi `/api/mcp/` chetlab oʻtishiga
-ruxsat beradigan qoʻshimcha, tor doiradagi scope (`SELF_USAGE_SCOPE` bilan bir xil yondashuv) — u
-boshqa hech qanday boshqaruv marshrutiga kirish huquqini bermaydi va ataylab
-`MANAGEMENT_API_KEY_SCOPES` tarkibiga KIRITILMAGAN. `manage`/`admin` ga ega kalit
-hali ham istisnodan oʻzgarishsiz oʻtadi; `mcp:connect` faqat masofaviy MCP chaqiruvchilari
-uchun kamroq imtiyozli muqobil boʻlib, `hasMcpConnectOrManageScope()` orqali tekshiriladi.
+HTTP/SSE MCP transportiga (`/api/mcp/*`) non-loopbackdan kirish `/api/mcp/` LOCAL_ONLY cheklovini talab qiladi (qarang: `docs/security/ROUTE_GUARD_TIERS.md`). Tarixan bu cheklov faqat to'liq `manage`/`admin` doirasidagi API kalitini qabul qilgan — bu faqat MCP bilan gaplashishi kerak bo'lgan chaqiruvchi uchun juda keng. `src/shared/constants/managementScopes.ts` endi `MCP_CONNECT_SCOPE = "mcp:connect"`ni eksport qiladi: bu qo'shimcha, tor doira (`SELF_USAGE_SCOPE` bilan bir xil pretsedent) bo'lib, `src/server/authz/policies/management.ts`dagi `/api/mcp/` aylanma yo'lini GINA avtorizatsiya qiladi — u boshqa boshqaruv yo'nalishlariga kirish huquqini bermaydi va ataylab `MANAGEMENT_API_KEY_SCOPES`dan tashqarida saqlanadi. `manage`/`admin`ga ega kalit hali ham cheklovdan o'zgarishsiz o'tadi; `mcp:connect` masofaviy faqat MCP chaqiruvchilari uchun pastroq imtiyozli alternativ bo'lib, `hasMcpConnectOrManageScope()` orqali tekshiriladi.
 
-### Har bir kalit uchun HTTP scope’ini bogʻlash (#7895)
+### Har bir kalit uchun HTTP doirasini bog'lash (#7895)
 
-HTTP/SSE orqali `open-sse/mcp-server/httpTransport.ts` endi chaqiruvchining haqiqiy
-`api_keys.scopes` qiymatini `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-orqali aniqlaydi va uni MCP SDK’ning `transport.handleRequest(req, { authInfo })` metodiga uzatadi, shuning uchun
-har bir vosita chaqiruviga yetib boradigan `extra.authInfo.scopes` Bearer kalitining oʻz scope’larini
-aks ettiradi. `scopeEnforcement.ts` ichidagi `resolveCallerScopeContext()` allaqachon `authInfo` ni
-`_meta` va `OMNIROUTE_MCP_SCOPES` muhit oʻzgaruvchisiga qaytish variantidan ustun qoʻyardi — bu oʻzgarish faqat
-ilgari HTTP orqali toʻldirilmagan birinchi, eng yuqori ustuvorlikdagi manbani toʻldiradi.
-Hech qanday API kaliti aniqlanmasa (sarlavha yoʻq, kalit yaroqsiz), `authInfo` `undefined` boʻlib qoladi va aniqlash
-jarayoni mavjud `meta`/muhit zanjiriga oʻzgarishsiz oʻtadi. Bu `OMNIROUTE_MCP_ENFORCE_SCOPES` ning
-standart qiymatini oʻZGARTIRMAYDI — majburiy tekshiruv hali ham aniq yoqilishi kerak; bu oʻzgarish faqat
-u yoqilgach, har bir kalitga xos yoʻlga ustuvorlik beradi. stdio’da har bir chaqiruvchiga xos identifikatsiya yoʻq
-(`mcpCallerIdentity.ts` fayliga qarang) va unga bu taʼsir qilmaydi — u `_meta`/muhitga qaytish zanjiridan foydalanishda davom etadi.
+HTTP/SSE orqali, `open-sse/mcp-server/httpTransport.ts` endi chaqiruvchining haqiqiy `api_keys.scopes`ini `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) orqali aniqlaydi va uni MCP SDKning `transport.handleRequest(req, { authInfo })` funksiyasiga uzatadi, shunda har bir vosita chaqiruviga yetib boradigan `extra.authInfo.scopes` Bearer kalitining o'z doiralarini aks ettiradi. `scopeEnforcement.ts`dagi `resolveCallerScopeContext()` allaqachon `authInfo`ni `_meta` va `OMNIROUTE_MCP_SCOPES` muhit zaxirasidan ustun qo'ygan edi — bu faqat birinchi, eng yuqori ustuvor manbani to'ldiradi, bu ilgari HTTP orqali ta'minlanmagan edi. Agar API kaliti aniqlanmasa (sarlavha yo'q, noto'g'ri kalit), `authInfo` `undefined` bo'lib qoladi va aniqlash mavjud `meta`/muhit zanjiriga o'zgarishsiz o'tadi. Bu `OMNIROUTE_MCP_ENFORCE_SCOPES`ning standart qiymatini o'zgartirmaydi — majburlash hali ham aniq yoqilishi kerak; bu o'zgarish faqat har bir kalit yo'lini ustunlikka ega qiladi, u yoqilgandan so'ng. stdio har bir chaqiruvchi uchun identifikatorga ega emas (qarang: `mcpCallerIdentity.ts`) va ta'sirlanmaydi — u `_meta`/muhit zaxira zanjirida qoladi.
 
 ---
 

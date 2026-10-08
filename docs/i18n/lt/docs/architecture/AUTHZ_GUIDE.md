@@ -1,21 +1,21 @@
 # Authorization Guide (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/AUTHZ_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/AUTHZ_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/AUTHZ_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/AUTHZ_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/AUTHZ_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/AUTHZ_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/AUTHZ_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/AUTHZ_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/AUTHZ_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/AUTHZ_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/AUTHZ_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/AUTHZ_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/AUTHZ_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/AUTHZ_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/AUTHZ_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/AUTHZ_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/AUTHZ_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/AUTHZ_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/AUTHZ_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/AUTHZ_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/AUTHZ_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/AUTHZ_GUIDE.md)
 
 ---
 
-> **Pirminis tiesos šaltinis:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Paskutinį kartą atnaujinta:** 2026-06-28 — v3.8.40
+> **Tiesos šaltinis:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
+> **Paskutinį kartą atnaujinta:** 2026-09-22 — aprėpties vardų sritys nurodo į MCP-SERVER.md
 
-OmniRoute turi maršrutus atpažįstančią autorizavimo seką, kuri kontroliuoja kiekvieną API užklausą. Klasifikavimas yra **deterministinis** ir **uždaras klaidos atveju** — viskas, ko nepavyksta klasifikuoti, priskiriama `MANAGEMENT` ir tam reikalinga sesija arba valdymo lygio prieigos raktas. Šiame puslapyje aprašomas modelis, skirtas maršrutus prižiūrintiems arba naujas galines prieigos vietas projektuojantiems inžinieriams.
+OmniRoute turi maršrutą atpažįstančią autorizacijos sistemą, kuri kontroliuoja kiekvieną API užklausą. Klasifikacija yra **deterministinė** ir **uždaroma gedimo atveju** — viskas, kas negali būti klasifikuota, tampa `MANAGEMENT` ir reikalauja sesijos arba valdymo lygio prieigos rakto. Šiame puslapyje paaiškinamas modelis inžinieriams, prižiūrintiems maršrutus arba kuriantiems naujus galinius taškus.
 
-![AuthZ seka (3 maršrutų klasės + strategijos vertinimas)](../diagrams/exported/authz-pipeline.svg)
+![Autorizacijos sistema (3 maršrutų klasės + politikos vertinimas)](../diagrams/exported/authz-pipeline.svg)
 
 > Šaltinis: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
 ## Du autentifikavimo režimai
 
-### 1. API raktas (Bearer)
+### 1. API raktas („Bearer“)
 
 Naudojamas su OpenAI / Anthropic / Gemini suderinamoms kliento API ir keliems valdymo maršrutams, kai raktas turi `manage` aprėptį.
 
@@ -25,29 +25,33 @@ Authorization: Bearer <api-key>
 
 Tikrinamas naudojant `isValidApiKey()` / `extractApiKey()`, esančias `src/sse/services/auth.ts`, ir pakartotinai eksportuojamas per `src/shared/utils/apiAuth.ts`. Tikrintuvas taip pat priima `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` aplinkos kintamuosius kaip nuolatinius tiesioginio perdavimo raktus (problema #1350).
 
-### 2. Valdymo skydelio sesija (auth_token slapukas)
+### 2. Valdymo skydelio seansas (`auth_token` slapukas)
 
-Skirta valdymo skydelio puslapiams ir administravimo operacijoms.
+Skirtas valdymo skydelio puslapiams ir administravimo operacijoms.
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Slapukas laikomas sesija tik tada, kai JWT patikrinamas **ir** turi `authenticated: true`
+Slapukas laikomas seansu tik tada, kai JWT sėkmingai patikrinamas **ir** turi `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kiekvienas
-slapuko naudotojas (maršruto apsauga, authz sekos atnaujinimas, WebSocket ryšio užmezgimas, tiesioginis
+slapuko naudotojas (valdymo skydelio maršruto apsauga (`isDashboardSessionAuthenticated()`), autorizavimo konvejerio atnaujinimas, WebSocket prisijungimo užmezgimas, tiesioginis
 serveris, `/api/settings/require-login`, `/api/auth/status`) naudoja šią pagalbinę funkciją.
-Egzistuoja ir kitų JWT, pasirašytų naudojant `JWT_SECRET` — Cursor CLI tiesioginis perdavimas raktų
-turėtojams išduoda žetonus su `iss "omniroute" / aud "cursor-cli"` — tačiau jie niekada nelaikomi sesijomis
+Yra ir kitų JWT, pasirašytų naudojant `JWT_SECRET` — Cursor CLI tiesioginis perdavimas raktų
+turėtojams išduoda prieigos raktus su `iss "omniroute" / aud "cursor-cli"` — tačiau jie niekada nelaikomi seansais
 (#13298).
 
-Tikrinama naudojant `isDashboardSessionAuthenticated()`, esančią `src/shared/utils/apiAuth.ts`. Seka automatiškai atnaujina JWT, kai iš jo 30 dienų galiojimo laikotarpio lieka mažiau nei 7 dienos.
+Tikrinama naudojant `isDashboardSessionAuthenticated()`, esančią `src/shared/utils/apiAuth.ts`. Konvejeris automatiškai atnaujina JWT, kai iki jo 30 dienų galiojimo pabaigos lieka mažiau nei 7 dienos.
 
-Kai kurie valdymo maršrutai priima **bet kurį** režimą: slapuką ARBA `Bearer <key>`, kai API raktas turi `manage` (arba `admin`) aprėptį. Būtent tai suteikia galimybę naudoti „konfigūravimo per API iškvietimus“ darbo eigą, pridėtą v3.8.
+Seansas taip pat gali baigtis nepasibaigus 30 dienų laikotarpiui, nes kiekvienas išdavėjas naudoja `mintDashboardSessionToken` (išdavimo laiką `iat` ir identifikatorių `jti`), o tikrintuvas tikrina du nustatymus: `sessionsValidAfter`, nustatomą pakeitus slaptažodį, kad visi anksčiau išduoti seansai nebebūtų patvirtinami (slaptažodį pakeitusi naršyklė gauna naują slapuką), ir `revokedDashboardSessions`, į kurį `POST /api/auth/logout` įtraukia atsijungusio seanso `jti`. Senesnės laidos sukurti seansai neturi nė vieno iš šių teiginių ir lieka galioti iki pirmojo slaptažodžio pakeitimo. Jei nustatymų nepavyksta nuskaityti, seansu nepasitikima.
+
+Kai kurie valdymo maršrutai priima **bet kurį** režimą: slapuką ARBA `Bearer <key>`, kai API raktas turi `manage` (arba `admin`) aprėptį. Būtent tai įgalina „konfigūruojama per API iškvietimus“ darbo eigą, pridėtą v3.8.
 
 #### Pasirenkamas OIDC prisijungimo barjeras (#6973)
 
-Valdymo skydelio administratoriaus prisijungimas kartu su numatytuoju prisijungimu naudojant slaptažodį taip pat palaiko **pasirenkamą** OIDC (OpenID Connect) eigą — prisijungimas naudojant slaptažodį niekada nepašalinamas, tik papildomas:
+Valdymo skydelio administratoriaus prisijungimas taip pat palaiko **pasirinktinai įjungiamą** OIDC (OpenID Connect) eigą
+greta numatytojo prisijungimo naudojant slaptažodį — prisijungimas naudojant slaptažodį niekada nepašalinamas, tik
+papildomas:
 
 - Išjungta, nebent `settings.oidcEnabled === true` **ir** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` yra sukonfigūruoti (Nustatymai → Autentifikavimas).
@@ -55,19 +59,19 @@ Valdymo skydelio administratoriaus prisijungimas kartu su numatytuoju prisijungi
 - `GET /api/auth/oidc/login` aptinka `authorization_endpoint` iš išdavėjo
   `/.well-known/openid-configuration` (jei nepavyksta, naudojamas
   `<issuer>/authorize`), sukuria peradresavimo URI pagal gaunamą užklausą
-  (atsižvelgdamas į `x-forwarded-proto`) ir peradresuoja į IdP, kartu perduodamas atsitiktinę `state`
-  reikšmę, saugomą `httpOnly` `oidc_state` slapuke.
+  (atsižvelgdamas į `x-forwarded-proto`) ir peradresuoja į IdP su atsitiktine `state`
+  reikšme, saugoma `httpOnly` `oidc_state` slapuke.
 - `GET /api/auth/oidc/callback` patikrina `state`, iškeičia autorizavimo
-  kodą ir patikrina ID žetono parašą naudodamas išdavėjo JWKS
-  (`jose` funkciją `createRemoteJWKSet`, talpykloje saugomą pagal kiekvieną JWKS URI), atlikdamas `issuer` / `audience`
-  patikras. Pasirenkamas `oidcAllowedSubjects` leidžiamųjų reikšmių sąrašas lyginamas su žetono
-  `sub` arba `email` deklaracija — į el. pašto deklaraciją atsižvelgiama tik tada, kai
-  `email_verified === true`, todėl IdP nepatvirtintas el. pašto adresas niekada negali
-  įveikti šio barjero.
-- Sėkmės atveju išduodamas **visiškai toks pats** 30 dienų `auth_token` JWT, kokį išduoda prisijungimas
+  kodą ir patikrina ID prieigos rakto parašą naudodamas išdavėjo JWKS
+  (`jose` funkciją `createRemoteJWKSet`, talpykloje saugomą kiekvienam JWKS URI), atlikdamas `issuer` / `audience`
+  patikras. Pasirinktinis `oidcAllowedSubjects` leidžiamų reikšmių sąrašas lyginamas su prieigos rakto
+  `sub` teiginiu arba jo `email` teiginiu — į el. pašto teiginį atsižvelgiama tik tada, kai
+  `email_verified === true`, todėl nepatvirtintas el. pašto adresas IdP sistemoje niekada negali įveikti
+  šio barjero.
+- Sėkmės atveju sukuriamas **visiškai toks pats** 30 dienų `auth_token` JWT, kokį išduoda prisijungimas
   naudojant slaptažodį (`src/app/api/auth/login/route.ts`), todėl likusi
-  valdymo skydelio sesijos seka (automatinis atnaujinimas, slapuko žymos) nesikeičia —
-  OIDC pakeičia tik tai, kaip išduodamas slapukas, o ne jo suteikiamas teises.
+  valdymo skydelio seanso konvejerio dalis (automatinis atnaujinimas, slapuko žymos) lieka nepakitusi —
+  OIDC pakeičia tik slapuko sukūrimo būdą, o ne jo suteikiamas teises.
 
 ## Maršrutų klasės
 
@@ -199,26 +203,34 @@ Rinkinį pasirinkite pagal formą, o ne pagal patogumą. Vienas maršrutas įtra
 
 ## Aprėptys
 
-API raktai turi `scopes` masyvą (saugomą JSON formatu `api_keys.scopes`, žr. `src/lib/db/apiKeys.ts`).
+Trys vardų sritys. Kiekvienas tikrintojas skaito tik savo eilutes. Palyginimas,
+įskaitant tai, kodėl `manage` nepavyksta `scopeMatches` dėl `read:compression` ir kodėl `read` prieigos raktas negali `PATCH /api/keys/{id}`, yra
+[Trys aprėpties vardų sritys](../frameworks/MCP-SERVER.md#three-scope-namespaces).
+
+API raktai turi `scopes` masyvą (saugomą kaip JSON `api_keys.scopes`, žr. `src/lib/db/apiKeys.ts`).
 
 ### Valdymo aprėptis
 
-- `manage` / `admin` — suteikia raktui prieigą prie valdymo API galinių taškų, kai jis siunčiamas kaip Bearer prieigos raktas.
+- `manage` / `admin` — `hasManageScope`. Nešėjo prieiga prie valdymo API maršrutų.
+- `mcp:connect`, `self:usage`, `self:account-quota` ir
+  `policy:bypass-provider-quota` yra adityvios tikslios atitikties aprėptys. Jos yra už `MANAGEMENT_API_KEY_SCOPES` ribų. `mcp:connect` atidaro tik
+  `/api/mcp/` negrįžtamojo ryšio išpjovą.
 
-### MCP aprėptys (`src/shared/constants/mcpScopes.ts`)
+### MCP įrankio aprėptys
 
-Kiekvienam MCP įrankiui per `MCP_TOOL_SCOPES` reikalingos konkrečios aprėptys. Visas sąrašas (`MCP_SCOPE_LIST`):
+Katalogas ir atitikimo taisyklės (identiška eilutė arba suteikta aprėptis, besibaigianti `*`):
+[MCP įrankio aprėptys](../frameworks/MCP-SERVER.md#mcp-tool-scopes).
+`MCP_SCOPE_LIST` faile `src/shared/constants/mcpScopes.ts` yra originalus tipizuotas
+poaibis, o ne visas katalogas. Vykdymas vyksta
+`open-sse/mcp-server/scopeEnforcement.ts` po to, kai `resolveCallerScopeContext()`
+išsprendžia aprėptis iš MCP autentifikavimo informacijos, užklausos metaduomenų arba `OMNIROUTE_MCP_SCOPES`.
+Jis lieka išjungtas, nebent `OMNIROUTE_MCP_ENFORCE_SCOPES=true`.
 
-```
-read:health, read:combos, write:combos, read:quota, read:usage,
-read:models, execute:completions, execute:search, write:budget,
-write:resilience, pricing:write, read:cache, write:cache,
-read:compression, write:compression, read:proxies
-```
+### Prieigos rakto aprėptys
 
-Tikrinant aprėptis faile `open-sse/mcp-server/server.ts`, kiekvieno įrankio aprėpčių sąrašas perduodamas į
-`evaluateToolScopes()` po to, kai `resolveCallerScopeContext()` nustato aprėptis pagal MCP autentifikavimo informaciją,
-užklausos metaduomenis arba `OMNIROUTE_MCP_SCOPES`.
+`read` / `write` / `admin` ant `oma_live_…` žetonų, reitinguojamų pagal `scopeSatisfies`
+(`src/lib/accessTokens/scopes.ts`). Šis reitingas taikomas tik prieigos rakto
+kredencialui. Žr. [Valdymo autentifikavimas](../guides/MANAGEMENT-AUTH.md).
 
 ## Privalomo autentifikavimo perjungiklis
 
@@ -266,7 +278,7 @@ Apdorojimo funkcijose naudokite `assertAuth(req, expectedClass)` — ši funkcij
 
 ## Taip pat žr.
 
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — kiekvieno galinio taško autentifikavimo žymuo
-- [COMPLIANCE.md](../security/COMPLIANCE.md) — autentifikavimo įvykių audito žurnalas
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — išsami informacija apie MCP aprėpties užtikrinimą
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — autentifikavimo žymė kiekvienam galiniam taškui
+- [COMPLIANCE.md](../security/COMPLIANCE.md) — audito žurnalas autentifikavimo įvykiams
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md#three-scope-namespaces) — trys apimties vardų sritys ir MCP įrankių apimties katalogas
 - Šaltinis: `src/server/authz/`, `src/lib/api/requireManagementAuth.ts`

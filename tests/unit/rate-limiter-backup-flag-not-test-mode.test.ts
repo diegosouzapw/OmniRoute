@@ -59,7 +59,12 @@ test("NODE_ENV=test still keeps the limiter in memory even with REDIS_URL set", 
     REDIS_URL: "redis://127.0.0.1:1",
     NODE_ENV: "test",
   });
-  assert.deepEqual(results, [{ allowed: true }, { allowed: false, failedWindow: 60 }]);
+  assert.deepEqual(results[0], { allowed: true });
+  assert.equal(results[1].allowed, false);
+  assert.equal(results[1].failedWindow, 60);
+  assert.equal(typeof results[1].resetAt, "number");
+  assert.ok(results[1].resetAt! > Date.now());
+  assert.ok(results[1].resetAt! - Date.now() <= 60_000);
 });
 
 test("the Redis auth cache is not switched off by DISABLE_SQLITE_AUTO_BACKUP", () => {

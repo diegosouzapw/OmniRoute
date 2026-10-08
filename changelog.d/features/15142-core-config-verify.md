@@ -1,0 +1,1 @@
+- **feat(proxy-subscription):** verify the generated core configuration with the native binary before replacing the adopted file ([#15142](https://github.com/diegosouzapw/OmniRoute/pull/15142)) — thanks @maxmad64bis

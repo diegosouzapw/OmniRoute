@@ -16,6 +16,7 @@
  */
 
 import { createLogger } from "../utils/logger";
+import { DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS } from "../../lib/resilience/settings";
 import v8 from "node:v8";
 import { trackRequest } from "../../lib/gracefulShutdown";
 import { resolveIngestByteBudget, type IngestBudgetSource } from "./admissionBudget";
@@ -74,10 +75,20 @@ export const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
  * that routinely land on the admission gate together; an immediate 503 makes the
  * client burn its retry budget in seconds and the agent dies mid-task. A short
  * bounded wait serializes the burst instead. `0` (legacy) rejects immediately.
+ *
+ * The default tracks `requestQueue.maxWaitMs` rather than carrying a number of its
+ * own, because a wait shorter than the occupancy it must bridge cannot serialize
+ * anything. The single default heavyweight slot is held for the whole upstream
+ * turn, which the resilience layer already budgets at that value (15s), so the old
+ * fixed 2s expired inside every one of them: a single large-context session shed
+ * itself with `reason:"queue_timeout", activeHeavy:1, waiting:0` — one holder, no
+ * contention, nothing for the 503 to protect against (#13648). Tying the two
+ * together also means an operator who raises `RATE_LIMIT_MAX_WAIT_MS` for slow
+ * upstreams does not have to discover this second knob to keep the gate coherent.
  */
 export const CHAT_ADMISSION_QUEUE_MAX_MS = parseNonNegativeInt(
   process.env.OMNIROUTE_CHAT_ADMISSION_QUEUE_MS,
-  2000
+  DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS
 );
 
 /**
@@ -101,6 +112,12 @@ export const CHAT_ADMISSION_MAX_QUEUED_BYTES = parsePositiveInt(
  * another slot may free far sooner.
  */
 export const CHAT_ADMISSION_RETRY_AFTER_MAX_SECONDS = 60;
+
+// #13649: `#cleanup` sweep interval — defensive fallback only, every queue
+// already self-removes via `#removeFairKey`; an EMPTY key idle past the TTL
+// below is swept, a non-empty one never is.
+export const CHAT_ADMISSION_QUEUE_CLEANUP_INTERVAL_MS = 60_000;
+export const CHAT_ADMISSION_QUEUE_IDLE_TTL_MS = 300_000;
 
 export const CHAT_HEAVY_MESSAGE_COUNT = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_HEAVY_MESSAGE_COUNT,
@@ -320,6 +337,7 @@ export class ChatAdmissionController {
    * shed was invisible. Same in-memory lifetime as the rest of the snapshot state. */
   #shedTotal = 0;
   #shedsByReason = new Map<string, number>();
+  #queueTimestamps = new Map<string, number>();
   readonly #onShed: ChatAdmissionShedSink;
 
   readonly #ingestBudget: IngestByteAdmissionController;
@@ -355,6 +373,27 @@ export class ChatAdmissionController {
       ...budgetOptions,
       onShed: (reason, lane) => this.recordShed(reason, lane),
     });
+    setInterval(() => this.#cleanup(), CHAT_ADMISSION_QUEUE_CLEANUP_INTERVAL_MS).unref();
+  }
+
+  #cleanup(now = Date.now()) {
+    // #13649: defensive sweep — never evicts a key with parked waiters.
+    for (const [key, timestamp] of this.#queueTimestamps) {
+      if (now - timestamp <= CHAT_ADMISSION_QUEUE_IDLE_TTL_MS) continue;
+      const queue = this.#queues.get(key);
+      if (queue && queue.length > 0) continue;
+      this.#removeFairKey(key);
+    }
+  }
+
+  _runCleanupForTest(now = Date.now()): void {
+    this.#cleanup(now);
+  }
+  _seedQueueTimestampForTest(key: string, timestamp: number): void {
+    this.#queueTimestamps.set(key, timestamp);
+  }
+  _queueTimestampCountForTest(): number {
+    return this.#queueTimestamps.size;
   }
 
   get activeHeavy(): number {
@@ -544,6 +583,7 @@ export class ChatAdmissionController {
         queue = [];
         this.#queues.set(sessionKey, queue);
         this.#fairKeys.push(sessionKey);
+        this.#queueTimestamps.set(sessionKey, Date.now());
       }
       const lane = queue;
       let resolveParked: (() => void) | null = null;
@@ -602,6 +642,7 @@ export class ChatAdmissionController {
 
   #removeFairKey(key: string): void {
     this.#queues.delete(key);
+    this.#queueTimestamps.delete(key); // #13649: lockstep with the drain path
     const index = this.#fairKeys.indexOf(key);
     if (index < 0) return;
     this.#fairKeys.splice(index, 1);
@@ -1150,56 +1191,10 @@ export async function admitChatRequest(
   return { admit: true, request: rebuildRequest(request, body), lease };
 }
 
-/** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
-export async function releaseChatAdmissionAfterHandler(
-  responsePromise: Promise<Response>,
-  lease: ChatAdmissionLease | null
-): Promise<Response> {
-  try {
-    return releaseChatAdmissionWhenDone(await responsePromise, lease);
-  } catch (error) {
-    lease?.release();
-    throw error;
-  }
-}
-
-/** Hold a heavyweight lease through an SSE response without buffering the response body. */
-export function releaseChatAdmissionWhenDone(
-  response: Response,
-  lease: ChatAdmissionLease | null
-): Response {
-  if (!lease) return response;
-  const isStreaming = response.headers.get("content-type")?.includes("text/event-stream");
-  if (!isStreaming || !response.body) {
-    lease.release();
-    return response;
-  }
-
-  const reader = response.body.getReader();
-  const body = new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          lease.release();
-          controller.close();
-        } else {
-          controller.enqueue(value);
-        }
-      } catch (error) {
-        lease.release();
-        controller.error(error);
-      }
-    },
-    async cancel(reason) {
-      lease.release();
-      await reader.cancel(reason).catch(() => undefined);
-    },
-  });
-
-  return new Response(body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
-}
+// Lease release binding lives in ./chatAdmissionRelease. Re-exported here so
+// existing import sites keep working.
+export {
+  releaseChatAdmissionAfterHandler,
+  releaseChatAdmissionWhenDone,
+  type ReleaseChatAdmissionOptions,
+} from "./chatAdmissionRelease";
