@@ -1,12 +1,11 @@
 name: Production Build & Publish to GHCR
 
-# Publishes the fork's production image to GHCR.
-# NOTE: this fork's default branch is `develop` (not `main`); adjust the
-# `branches` list below if the production branch is renamed.
+# Publishes this repository's production image to GHCR.
+# `main` is the production branch; `develop` is integration/development only.
 on:
   push:
     branches:
-      - develop
+      - main
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -52,11 +51,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/paulohsoliveira/my-omniroute
           flavor: |
             latest=auto
+          labels: |
+            org.opencontainers.image.source=https://github.com/PauloHSOliveira/my-omniroute
+            org.opencontainers.image.url=https://github.com/PauloHSOliveira/my-omniroute
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=short,prefix=sha-
             type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
 

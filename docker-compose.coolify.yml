@@ -19,7 +19,6 @@
 
 networks:
   omniroute-net:
-    name: omniroute-net
     driver: bridge
 
 x-logging: &default-logging
@@ -32,7 +31,6 @@ services:
   # ── Redis (Rate Limiting & Session Backend) ───────────────────────────
   redis:
     image: docker.io/library/redis:8.6.5-alpine
-    container_name: omniroute-redis
     restart: unless-stopped
     command: ["redis-server", "--save", "60", "1", "--appendonly", "yes", "--loglevel", "warning"]
     volumes:
@@ -50,7 +48,6 @@ services:
   # ── Qdrant (Vector Memory Sidecar) ────────────────────────────────────
   qdrant:
     image: docker.io/qdrant/qdrant:v1.12.4
-    container_name: omniroute-qdrant
     restart: unless-stopped
     volumes:
       - qdrant-data:/qdrant/storage
@@ -75,7 +72,6 @@ services:
   # ── OmniRoute (Main Application) ──────────────────────────────────────
   omniroute:
     image: ${OMNIROUTE_IMAGE:?Set OMNIROUTE_IMAGE to your GHCR image e.g. ghcr.io/paulohsoliveira/my-omniroute:latest}
-    container_name: omniroute
     restart: unless-stopped
     stop_grace_period: 40s
     depends_on:
@@ -103,7 +99,8 @@ services:
       - API_KEY_SECRET=${API_KEY_SECRET:?Set API_KEY_SECRET in Coolify environment}
       - STORAGE_ENCRYPTION_KEY=${STORAGE_ENCRYPTION_KEY:?Set STORAGE_ENCRYPTION_KEY in Coolify environment}
       - STORAGE_ENCRYPTION_KEY_VERSION=${STORAGE_ENCRYPTION_KEY_VERSION:-v1}
-      - INITIAL_PASSWORD=${INITIAL_PASSWORD:?Set INITIAL_PASSWORD in Coolify environment}
+      # Fresh install bootstrap only. A migrated /app/data password wins.
+      - INITIAL_PASSWORD=${INITIAL_PASSWORD:-}
       - OMNIROUTE_WS_BRIDGE_SECRET=${OMNIROUTE_WS_BRIDGE_SECRET:?Set OMNIROUTE_WS_BRIDGE_SECRET in Coolify environment}
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
       # ── Qdrant / Memory Integration ──────────────────────────────────
@@ -111,12 +108,13 @@ services:
       - QDRANT_PORT=6333
       - QDRANT_COLLECTION=${QDRANT_COLLECTION:-omniroute_memory}
       - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+    # Coolify's proxy reaches the app over the Compose network. Publish only
+    # the dashboard/API port for Tailscale-first direct access.
     ports:
-      # Private loopback binding by default for Tailscale security.
-      # Coolify reverse proxy or Tailscale can route to these ports on the host.
       - "${OMNIROUTE_BIND_HOST:-127.0.0.1}:${OMNIROUTE_PORT:-20128}:20128"
-      - "${OMNIROUTE_BIND_HOST:-127.0.0.1}:${OMNIROUTE_API_PORT:-20129}:20129"
-      - "${OMNIROUTE_BIND_HOST:-127.0.0.1}:${OMNIROUTE_WS_PORT:-20132}:20132"
+    expose:
+      - "20129"
+      - "20132"
     volumes:
       - omniroute-data:/app/data
     tmpfs:
@@ -137,6 +135,9 @@ services:
     logging: *default-logging
 
 volumes:
+  # Explicit names keep the volumes stable across Coolify project renames and
+  # redeploys. Without `name:`, Compose would prefix them with the project name
+  # and a redeploy could attach an empty volume instead of the existing data.
   omniroute-data:
     name: omniroute-data
   redis-data:
