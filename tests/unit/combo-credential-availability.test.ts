@@ -39,6 +39,17 @@ test("malformed and expired cooldown hints do not produce fabricated retries", (
 });
 
 test("healthy credentials remain available and legacy availability reasons remain unchanged", () => {
+  interface HealthyCredentials {
+    authType: string;
+    connectionId: string;
+    apiKey: string;
+  }
+  const credentials: HealthyCredentials = {
+    authType: "apikey",
+    connectionId: "synthetic-connection",
+    apiKey: "synthetic-test-key",
+  };
+  assert.equal(getComboCredentialAvailability(credentials, NOW), true);
   assert.equal(getComboCredentialAvailability({}, NOW), true);
   assert.equal(
     getComboCredentialAvailability({ allRateLimited: false, retryAfter: FUTURE }, NOW),
