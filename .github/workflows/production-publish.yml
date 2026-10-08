@@ -1,0 +1,79 @@
+name: Production Build & Publish to GHCR
+
+# Publishes this repository's production image to GHCR.
+# `main` is the production branch; `develop` is integration/development only.
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - "_tasks/**"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Custom tag for image (defaults to short SHA and latest)"
+        required: false
+        type: string
+
+concurrency:
+  group: production-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-publish:
+    name: Build & Publish linux/amd64 Image (runner-web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/paulohsoliveira/my-omniroute
+          flavor: |
+            latest=auto
+          labels: |
+            org.opencontainers.image.source=https://github.com/PauloHSOliveira/my-omniroute
+            org.opencontainers.image.url=https://github.com/PauloHSOliveira/my-omniroute
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=short,prefix=sha-
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+
+      - name: Build and push production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runner-web
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNIROUTE_BUILD_MEMORY_MB=8192
+            OMNIROUTE_USE_TURBOPACK=0
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,146 @@
+# ──────────────────────────────────────────────────────────────────────────────
+#  OmniRoute — Production Deployment on Coolify (GHCR + Qdrant + Redis)
+# ──────────────────────────────────────────────────────────────────────────────
+#
+#  Production stack designed for Coolify v4 on Contabo (linux/amd64).
+#  Features:
+#    - Uses custom private image from GHCR (runner-web flavor with Chromium)
+#    - Redis for distributed rate-limiting and session management
+#    - Qdrant for persistent vector Memory Engine
+#    - Hardened security settings (cap_drop, no-new-privileges, tmpfs)
+#    - Persistent volume for SQLite data and secrets (/app/data)
+#    - Loopback-bound ports by default for privacy via Tailscale
+#
+#  Usage in Coolify:
+#    1. Deploy as a "Docker Compose" service.
+#    2. Set Environment Variables / Secrets in Coolify UI.
+#    3. Point Coolify to your private GHCR registry credentials.
+# ──────────────────────────────────────────────────────────────────────────────
+
+networks:
+  omniroute-net:
+    driver: bridge
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ── Redis (Rate Limiting & Session Backend) ───────────────────────────
+  redis:
+    image: docker.io/library/redis:8.6.5-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging: *default-logging
+
+  # ── Qdrant (Vector Memory Sidecar) ────────────────────────────────────
+  qdrant:
+    image: docker.io/qdrant/qdrant:v1.12.4
+    restart: unless-stopped
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    networks:
+      - omniroute-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e 'GET /readyz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '200' <&3",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging: *default-logging
+
+  # ── OmniRoute (Main Application) ──────────────────────────────────────
+  omniroute:
+    image: ${OMNIROUTE_IMAGE:?Set OMNIROUTE_IMAGE to your GHCR image e.g. ghcr.io/paulohsoliveira/my-omniroute:latest}
+    restart: unless-stopped
+    stop_grace_period: 40s
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - omniroute-net
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+      - PORT=20128
+      - DASHBOARD_PORT=20128
+      - API_PORT=20129
+      - API_HOST=0.0.0.0
+      - LIVE_WS_PORT=20132
+      - LIVE_WS_HOST=0.0.0.0
+      - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
+      - HOSTNAME=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - NODE_OPTIONS=--max-old-space-size=1536
+      - REQUIRE_API_KEY=${REQUIRE_API_KEY:-true}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in Coolify environment}
+      - API_KEY_SECRET=${API_KEY_SECRET:?Set API_KEY_SECRET in Coolify environment}
+      - STORAGE_ENCRYPTION_KEY=${STORAGE_ENCRYPTION_KEY:?Set STORAGE_ENCRYPTION_KEY in Coolify environment}
+      - STORAGE_ENCRYPTION_KEY_VERSION=${STORAGE_ENCRYPTION_KEY_VERSION:-v1}
+      # Fresh install bootstrap only. A migrated /app/data password wins.
+      - INITIAL_PASSWORD=${INITIAL_PASSWORD:-}
+      - OMNIROUTE_WS_BRIDGE_SECRET=${OMNIROUTE_WS_BRIDGE_SECRET:?Set OMNIROUTE_WS_BRIDGE_SECRET in Coolify environment}
+      - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
+      # ── Qdrant / Memory Integration ──────────────────────────────────
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_COLLECTION=${QDRANT_COLLECTION:-omniroute_memory}
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+    # Coolify's proxy reaches the app over the Compose network. Publish only
+    # the dashboard/API port for Tailscale-first direct access.
+    ports:
+      - "${OMNIROUTE_BIND_HOST:-127.0.0.1}:${OMNIROUTE_PORT:-20128}:20128"
+    expose:
+      - "20129"
+      - "20132"
+    volumes:
+      - omniroute-data:/app/data
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: ${OMNIROUTE_PIDS_LIMIT:-512}
+    mem_limit: ${OMNIROUTE_MEMORY_LIMIT:-2048m}
+    cpus: ${OMNIROUTE_CPUS:-2.0}
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+
+volumes:
+  # Explicit names keep the volumes stable across Coolify project renames and
+  # redeploys. Without `name:`, Compose would prefix them with the project name
+  # and a redeploy could attach an empty volume instead of the existing data.
+  omniroute-data:
+    name: omniroute-data
+  redis-data:
+    name: omniroute-redis-data
+  qdrant-data:
+    name: omniroute-qdrant-data

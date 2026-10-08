@@ -28,6 +28,7 @@ permissions:
 
 jobs:
   validate:
+    if: github.repository == 'diegosouzapw/OmniRoute'
     name: Validate version
     runs-on: ubuntu-latest
     permissions:

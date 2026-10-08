@@ -215,10 +215,11 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-next-cache,targ
 # ── Runner base ────────────────────────────────────────────────────────────
 FROM base AS runner-base
 
+# Identity-specific OCI metadata is supplied by the publishing workflow. Keep the
+# license in the image while avoiding an upstream repository identity in this base
+# stage; docker/build-push-action labels are applied to the selected final target.
 LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint" \
-  org.opencontainers.image.url="https://omniroute.online" \
-  org.opencontainers.image.source="https://github.com/diegosouzapw/OmniRoute" \
   org.opencontainers.image.licenses="MIT"
 
 ENV NODE_ENV=production
