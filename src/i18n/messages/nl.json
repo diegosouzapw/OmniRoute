@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Comboreferentie toevoegen",
     "builderPinnedAccount": "Vastgezet account",
     "builderLegacyEntry": "Verouderde invoer",
+    "builderStaleModel": "Niet in de live-catalogus",
     "reviewName": "Naam",
     "reviewStrategy": "Strategie",
     "reviewSteps": "Stappen",
