@@ -1,0 +1,1 @@
+- fix(combo): return an actionable 400 context_length_exceeded instead of the opaque "Maximum combo retry limit reached" 503 when the attempt budget is spent mostly on context-window rejections (#15289)

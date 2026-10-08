@@ -6,6 +6,9 @@ lastUpdated: 2026-08-18
 
 # CLI Integrations
 
+For the shared executable manifest, restricted child environments and persistent
+Gemini setup, see [CLI launch contracts](./CLI-LAUNCH-CONTRACTS.md).
+
 OmniRoute ships a family of `setup-*` commands that configure a coding
 CLI (Codex, Claude Code, OpenCode, Cline, …) to use OmniRoute as its backend — so
 the tool talks to **one** endpoint and OmniRoute routes to the right provider with

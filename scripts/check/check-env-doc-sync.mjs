@@ -108,6 +108,16 @@ const IGNORE_FROM_CODE = new Set([
   "GITHUB_OUTPUT",
   // check-ai-attribution.mjs reads the PR of the Actions event payload when run without args (#14436)
   "GITHUB_EVENT_PATH",
+  // Actions-owned output file used by scripts/ci/release-green-result.mjs.
+  // A runner protocol path, not user-configurable OmniRoute environment.
+  "GITHUB_OUTPUT",
+  // Runner-owned identity/event context and same-run job results consumed by
+  // scripts/quality/admission-verdict.mjs; never application .env settings.
+  "GITHUB_EVENT_NAME",
+  "GITHUB_RUN_ATTEMPT",
+  "GITHUB_RUN_ID",
+  "GITHUB_SHA",
+  "NEEDS_JSON",
   // Set by the Actions runner; the ts7 ratchet appends its job summary there
   // (scripts/check/check-ts7-diagnostics-ratchet.mjs) — never OmniRoute runtime config (#9985).
   "GITHUB_STEP_SUMMARY",
@@ -225,6 +235,10 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // Live smoke check for the claude-mem memory backend (scripts/ad-hoc/claude-mem-live-check.ts,
+  // #15425) — port of the operator's local claude-mem worker. The backend itself is configured
+  // through settings.backendConfigs["claude-mem"].port, never this env var.
+  "CLAUDE_MEM_PORT",
   // Lemonade embedding-provider integration test (tests/integration/semantic-cache-lemonade.test.ts)
   // — points the gated live test at an operator's local Lemonade server; the test skips itself
   // when the endpoint is unreachable, never OmniRoute runtime config.
@@ -244,6 +258,9 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only escape hatch: makes getMachineIdRaw() skip the macOS ioreg strategy so
   // machineId tests reach the fallback strategies on darwin (#13539). Not user config.
   "DISABLE_IOREG_STRATEGY",
+  // Next.js-internal switch, not OmniRoute config: scripts/dev/standalone-server-ws.mjs sets it
+  // so Next skips its own SIGINT/SIGTERM handlers and the wrapper owns shutdown.
+  "NEXT_MANUAL_SIG_HANDLE",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.

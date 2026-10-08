@@ -137,9 +137,11 @@ Modelos:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Dica profissional:** Use o Opus para tarefas complexas e o Sonnet para obter velocidade. O OmniRoute monitora a cota por modelo!
+**Dica profissional:** Use o Opus para tarefas complexas e o Sonnet para obter mais velocidade. O OmniRoute monitora a cota por modelo!
 
-As rotas compatíveis com Claude e Claude Code preservam o esforço de raciocínio `max` para os modelos Opus e Sonnet. Os modelos Haiku não aceitam o nível de esforço `max`, portanto, o OmniRoute reduz essa solicitação para um orçamento de raciocínio alto antes de enviá-la ao provedor upstream.
+Não há navegador no host do OmniRoute? Execute `claude setup-token` em qualquer lugar onde o Claude Code esteja conectado e cole o token de um ano na aba **Token de configuração**. Consulte [Claude Code com um token de configuração](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+As rotas compatíveis com Claude e Claude Code preservam o nível de esforço de raciocínio `max` para os modelos Opus e Sonnet. Os modelos Haiku não aceitam o nível de esforço `max`, portanto, o OmniRoute reduz essa solicitação para um orçamento de raciocínio alto antes de enviá-la ao provedor upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -160,7 +162,7 @@ Modelos:
 ```bash
 Painel → Provedores → Conectar GitHub
 → OAuth via GitHub
-→ Redefinição mensal (no dia 1º de cada mês)
+→ Redefinição mensal (dia 1º de cada mês)
 
 Modelos:
   gh/gpt-5.5
@@ -172,27 +174,27 @@ Modelos:
 
 ### 💰 Provedores econômicos
 
-#### GLM-4.7 (Redefinição diária, US$ 0,6/1M)
+#### GLM-4.7 (Redefinição diária, US$ 0,60/1M)
 
 1. Cadastre-se: [Zhipu AI](https://open.bigmodel.cn)
 2. Obtenha a chave de API no Coding Plan
 3. Painel → Adicionar chave de API: Provedor: `glm`, Chave de API: `your-key`
 
-**Uso:** `glm/glm-4.7` — **Dica profissional:** O Coding Plan oferece uma cota 3 vezes maior por 1/7 do custo! Redefinição diária às 10h.
+**Uso:** `glm/glm-4.7` — **Dica profissional:** O Coding Plan oferece 3 vezes mais cota por 1/7 do custo! Redefinição diária às 10h.
 
 #### MiniMax M2.1 (Redefinição a cada 5 horas, US$ 0,20/1M)
 
 1. Cadastre-se: [MiniMax](https://www.minimax.io)
 2. Obtenha a chave de API → Painel → Adicionar chave de API
 
-**Uso:** `minimax/MiniMax-M2.1` — **Dica profissional:** A opção mais barata para contextos longos (1 milhão de tokens)!
+**Uso:** `minimax/MiniMax-M2.1` — **Dica profissional:** A opção mais barata para contextos longos (1M de tokens)!
 
 #### Kimi K2 (US$ 9/mês, preço fixo)
 
 1. Assine: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Obtenha a chave de API → Painel → Adicionar chave de API
 
-**Uso:** `kimi/kimi-k2.5` — **Dica profissional:** Valor fixo de US$ 9/mês por 10 milhões de tokens = custo efetivo de US$ 0,90/1M!
+**Uso:** `kimi/kimi-k2.5` — **Dica profissional:** US$ 9 fixos por mês para 10M de tokens = custo efetivo de US$ 0,90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -203,9 +205,7 @@ Modelos:
 
 ### 🆓 Provedores GRATUITOS
 
-Os provedores gratuitos sem autenticação têm um botão ao lado de **Nenhuma autenticação necessária** na página do provedor.
-Desativá-lo desabilita esse provedor, remove-o das visualizações configurada/compacta de Provedores e
-remove seus modelos de `/v1/models`.
+Os provedores gratuitos sem autenticação têm um botão ao lado de **Nenhuma autenticação necessária** em sua página de provedor. Desativá-lo desabilita esse provedor, remove-o das visualizações configurada/compacta de Provedores e remove seus modelos de `/v1/models`.
 
 #### Qoder (9 modelos GRATUITOS)
 
@@ -218,7 +218,7 @@ Modelos: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if
 #### Kiro (Claude GRATUITO)
 
 ```bash
-Painel → Conectar Kiro → AWS Builder ID ou Google/GitHub → ~50 créditos/mês
+Painel → Conectar Kiro → AWS Builder ID ou Google/GitHub → Aproximadamente 50 créditos/mês
 
 Modelos: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

@@ -834,8 +834,8 @@ X-OmniRoute-No-Cache: true
 
 ## Řídicí panel a správa
 
-Trasy pro správu (`/api/*` kromě veřejného ověřování/přihlášení) **nejsou** autorizovány
-běžnými API klíči pro inferenci. Rodiny přihlašovacích údajů, rozsahy oprávnění a příklady použití curl:
+Trasy pro správu (`/api/*` s výjimkou veřejného ověřování/přihlášení) **nejsou** autorizovány
+běžnými API klíči pro inferenci. Typy přihlašovacích údajů, rozsahy oprávnění a příklady použití curl:
 [Ověřování pro správu](../guides/MANAGEMENT-AUTH.md).
 
 ### Ověřování
@@ -848,17 +848,18 @@ běžnými API klíči pro inferenci. Rodiny přihlašovacích údajů, rozsahy 
 
 ### Správa poskytovatelů
 
-| Koncový bod                  | Metoda                | Popis                                                                                                                       |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Výpis / vytvoření poskytovatelů                                                                                             |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Správa poskytovatele                                                                                                        |
-| `/api/providers/[id]/test`   | POST                  | Otestování připojení k poskytovateli                                                                                        |
-| `/api/providers/[id]/models` | GET                   | Výpis modelů poskytovatele                                                                                                  |
-| `/api/providers/validate`    | POST                  | Ověření konfigurace poskytovatele                                                                                           |
-| `/api/providers/bulk`        | POST                  | Hromadné přidání API klíčů pro JEDNOHO poskytovatele                                                                        |
-| `/api/providers/import`      | POST                  | Import heterogenního SEZNAMU poskytovatelů z analyzovaného souboru CSV/JSON (#6836); výsledky částečných selhání po řádcích |
-| `/api/provider-nodes*`       | Různé                 | Správa uzlů poskytovatelů                                                                                                   |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Vlastní modely (přidání, aktualizace, skrytí/zobrazení, odstranění)                                                         |
+| Koncový bod                             | Metoda                | Popis                                                                                                                                                  |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/providers`                        | GET/POST              | Výpis / vytvoření poskytovatelů                                                                                                                        |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Správa poskytovatele                                                                                                                                   |
+| `/api/providers/[id]/test`              | POST                  | Otestování připojení k poskytovateli                                                                                                                   |
+| `/api/providers/[id]/models`            | GET                   | Výpis modelů poskytovatele                                                                                                                             |
+| `/api/providers/validate`               | POST                  | Ověření konfigurace poskytovatele                                                                                                                      |
+| `/api/providers/bulk`                   | POST                  | Hromadné přidání API klíčů pro JEDNOHO poskytovatele                                                                                                   |
+| `/api/providers/import`                 | POST                  | Import heterogenního SEZNAMU poskytovatelů z analyzovaného souboru CSV/JSON (#6836); výsledky s částečnými selháními pro jednotlivé řádky              |
+| `/api/provider-nodes*`                  | Různé                 | Správa uzlů poskytovatelů                                                                                                                              |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Vlastní modely (přidání, aktualizace, skrytí/zobrazení, odstranění)                                                                                    |
+| `/api/provider-models/validate-and-add` | POST                  | Volitelné striktní ověření připojení s ověřením pro správu a atomická registrace vlastního modelu; viz [Ověření modelu](../guides/MODEL-VALIDATION.md) |
 
 ### Toky OAuth
 
@@ -878,28 +879,28 @@ běžnými API klíči pro inferenci. Rodiny přihlašovacích údajů, rozsahy 
 
 ### Využití a analytika
 
-| Endpoint                         | Metoda          | Popis                                                                                                                                                                                                                                                                                                                    |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/usage/history`             | GET             | Historie využití                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/logs`                | GET             | Protokoly využití                                                                                                                                                                                                                                                                                                        |
-| `/api/usage/request-logs`        | GET             | Protokoly na úrovni požadavků                                                                                                                                                                                                                                                                                            |
-| `/api/usage/[connectionId]`      | GET             | Využití podle připojení                                                                                                                                                                                                                                                                                                  |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Rozpočty limitů tokenů podle klíče API                                                                                                                                                                                                                                                                                   |
-| `/api/usage/model-latency-stats` | GET             | Průběžné agregované statistiky latence podle poskytovatele/modelu (průměr/p50/p95/p99, míra úspěšnosti); filtry: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                         |
-| `/api/usage/cache-health`        | GET             | Souhrn stavu mezipaměti promptů nad `call_logs` — poměr zápisů/čtení, rozdělení velikosti zápisů p50/p90/p99, koncentrace intenzivních zápisů, rozdělení podle modelu a výsledek `healthy`/`degraded`/`thrash`/`no-data`; parametry dotazu `range` (`1h`\|`24h`\|`7d`\|`30d`, výchozí `24h`) a volitelný `model` (#8827) |
+| Endpoint                         | Metoda          | Popis                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Historie využití                                                                                                                                                                                                                                                                                                          |
+| `/api/usage/logs`                | GET             | Protokoly využití                                                                                                                                                                                                                                                                                                         |
+| `/api/usage/request-logs`        | GET             | Protokoly na úrovni požadavků                                                                                                                                                                                                                                                                                             |
+| `/api/usage/[connectionId]`      | GET             | Využití podle připojení                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Rozpočty limitů tokenů pro jednotlivé klíče API                                                                                                                                                                                                                                                                           |
+| `/api/usage/model-latency-stats` | GET             | Průběžný agregát latence podle poskytovatele/modelu (průměr/p50/p95/p99, míra úspěšnosti); filtry: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                        |
+| `/api/usage/cache-health`        | GET             | Souhrn stavu mezipaměti promptů nad `call_logs` — poměr zápisů/čtení, distribuce velikosti zápisů p50/p90/p99, koncentrace intenzivních zápisů, rozdělení podle modelu a výsledek `healthy`/`degraded`/`thrash`/`no-data`; parametry dotazu `range` (`1h`\|`24h`\|`7d`\|`30d`, výchozí `24h`) a volitelný `model` (#8827) |
 
 ### Nastavení
 
-| Endpoint                              | Metoda        | Popis                                                                                                                                                                                                    |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Obecná nastavení                                                                                                                                                                                         |
-| `/api/settings/proxy`                 | GET/PUT       | Konfigurace síťového proxy serveru                                                                                                                                                                       |
-| `/api/settings/proxy/test`            | POST          | Otestování připojení přes proxy server                                                                                                                                                                   |
-| `/api/settings/ip-filter`             | GET/PUT       | Seznam povolených/blokovaných IP adres                                                                                                                                                                   |
-| `/api/settings/thinking-budget`       | GET/PUT       | Režim přepisu **požadavku** na rozpočet přemýšlení/uvažování (beze změny / automatické odstranění / vlastní / adaptivní). Nezávislý na kompresi. Viz [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Globální systémový prompt                                                                                                                                                                                |
-| `/api/settings/compression`           | GET/PUT       | Globální konfigurace komprese                                                                                                                                                                            |
-| `/api/settings/purge-request-history` | POST          | Vymazání řádků protokolu požadavků a místních artefaktů protokolu volání                                                                                                                                 |
+| Endpoint                              | Metoda        | Popis                                                                                                                                                                                                            |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Obecná nastavení                                                                                                                                                                                                 |
+| `/api/settings/proxy`                 | GET/PUT       | Konfigurace síťového proxy serveru                                                                                                                                                                               |
+| `/api/settings/proxy/test`            | POST          | Test připojení přes proxy server                                                                                                                                                                                 |
+| `/api/settings/ip-filter`             | GET/PUT       | Seznam povolených/blokovaných IP adres                                                                                                                                                                           |
+| `/api/settings/thinking-budget`       | GET/PUT       | Režim přepisu **požadavku** na rozpočet přemýšlení/uvažování (předání beze změny / automatické odstranění / vlastní / adaptivní). Nezávislý na kompresi. Viz [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Globální systémový prompt                                                                                                                                                                                        |
+| `/api/settings/compression`           | GET/PUT       | Globální konfigurace komprese                                                                                                                                                                                    |
+| `/api/settings/purge-request-history` | POST          | Vymazání řádků protokolu požadavků a místních artefaktů protokolu volání                                                                                                                                         |
 
 ### Kontext a komprese
 
@@ -908,117 +909,117 @@ běžnými API klíči pro inferenci. Rodiny přihlašovacích údajů, rozsahy 
 | `/api/compression/preview`             | POST           | Náhled komprese off/lite/standard/aggressive/ultra/RTK/stacked                            |
 | `/api/compression/language-packs`      | GET            | Seznam dostupných jazykových balíčků Caveman                                              |
 | `/api/compression/rules`               | GET            | Seznam metadat pravidel Caveman                                                           |
-| `/api/context/caveman/config`          | GET/PUT        | Alias pro nastavení specifická pro Caveman                                                |
+| `/api/context/caveman/config`          | GET/PUT        | Alias nastavení specifických pro Caveman                                                  |
 | `/api/context/rtk/config`              | GET/PUT        | Nastavení specifická pro RTK, včetně vlastních filtrů a uchovávání nezpracovaného výstupu |
 | `/api/context/rtk/filters`             | GET            | Katalog filtrů RTK a diagnostika vlastních filtrů                                         |
-| `/api/context/rtk/test`                | POST           | Spuštění náhledu/testu RTK nad textovou datovou částí                                     |
+| `/api/context/rtk/test`                | POST           | Spuštění náhledu/testu RTK nad textovými daty                                             |
 | `/api/context/rtk/raw-output/[id]`     | GET            | Načtení uchovaného anonymizovaného nezpracovaného výstupu podle ID ukazatele              |
-| `/api/context/combos`                  | GET/POST       | Seznam/vytvoření kombinací komprese                                                       |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Podrobnosti/aktualizace/odstranění kombinace komprese                                     |
+| `/api/context/combos`                  | GET/POST       | Výpis/vytvoření kombinací komprese                                                        |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detail/aktualizace/odstranění kombinace komprese                                          |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | Přiřazení kombinací komprese ke kombinacím směrování                                      |
 | `/api/context/analytics`               | GET            | Alias analytiky komprese                                                                  |
 
 ### Monitorování
 
-| Endpoint                             | Metoda     | Popis                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Sledování aktivních relací                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/rate-limits`                   | GET        | Limity požadavků pro jednotlivé účty                                                                                                                                                                                                                                                                                                                                                                                            |
-| `/api/monitoring/health`             | GET        | Kontrola stavu + souhrn poskytovatelů (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Zobrazení pro správu zahrnuje `credentialHealth`: skalární hodnoty mezipaměti sond, `failedConnections`, když `failed>0`, a `staleDbNonOkCount` (trvalá hodnota `test_status` v SQLite, nikoli ukazatel). Viz [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Statistiky mezipaměti / vymazání                                                                                                                                                                                                                                                                                                                                                                                                |
-| `/api/modality-bridge/stats`         | GET        | Hodnoty `attempts`, úspěšné pokusy/`bridged`, selhání, zásahy mezipaměti, `totalLatencyMs`, `latencySamples`, hodnota `averageLatencyMs` vypočtená podle počtu vzorků a čas posledního použití uložené v paměti (resetují se při restartu; ověření pro správu)                                                                                                                                                                  |
-| `/api/modality-bridge/video/runtime` | GET        | Striktní kontrola důvěryhodného místního rozhraní před ověřením/sondou pro správu; sanitizované informace o dostupnosti a verzích FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                     |
-| `/api/modality-bridge/video/extract` | POST       | Interní ověřovaný zprostředkovatel bajtů přes důvěryhodné místní rozhraní; vstup 50 MiB, omezená fronta/výstup 32 MiB, kapacita `503`, odpojení `499`, překročení časového limitu `504`; nejde o veřejné API pro nahrávání souborů                                                                                                                                                                                              |
+| Endpoint                             | Metoda     | Popis                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Sledování aktivních relací                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/rate-limits`                   | GET        | Limity požadavků pro jednotlivé účty                                                                                                                                                                                                                                                                                                                                                                                             |
+| `/api/monitoring/health`             | GET        | Kontrola stavu + souhrn poskytovatelů (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Zobrazení pro správu zahrnuje `credentialHealth`: skalární hodnoty mezipaměti sond, `failedConnections`, když `failed>0`, a `staleDbNonOkCount` (setrvalý `test_status` v SQLite, nikoli měřicí ukazatel). Viz [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Statistiky mezipaměti / vymazání                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `/api/modality-bridge/stats`         | GET        | Hodnoty `attempts`, úspěchy/`bridged`, selhání, zásahy do mezipaměti, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` počítaná podle počtu vzorků a čas posledního použití uložené v paměti (resetují se při restartu; vyžaduje ověření pro správu)                                                                                                                                                                       |
+| `/api/modality-bridge/video/runtime` | GET        | Striktní kontrola důvěryhodného zpětného rozhraní před ověřením/sondou pro správu; sanitizované informace o dostupnosti a verzích FFmpeg/ffprobe (bez ukládání do mezipaměti)                                                                                                                                                                                                                                                    |
+| `/api/modality-bridge/video/extract` | POST       | Interní ověřovaný zprostředkovatel bajtů přes důvěryhodné zpětné rozhraní; vstup 50 MiB, omezená fronta/výstup 32 MiB, `503` při vyčerpání kapacity, `499` při odpojení, `504` při překročení časového limitu; nejde o veřejné API pro nahrávání souborů                                                                                                                                                                         |
 
 ### Zálohování a export/import
 
-| Endpoint                    | Metoda | Popis                                      |
-| --------------------------- | ------ | ------------------------------------------ |
-| `/api/db-backups`           | GET    | Vypsat dostupné zálohy                     |
-| `/api/db-backups`           | PUT    | Vytvořit ruční zálohu                      |
-| `/api/db-backups`           | POST   | Obnovit z konkrétní zálohy                 |
-| `/api/db-backups/export`    | GET    | Stáhnout databázi jako soubor .sqlite      |
-| `/api/db-backups/import`    | POST   | Nahrát soubor .sqlite a nahradit databázi  |
-| `/api/db-backups/exportAll` | GET    | Stáhnout úplnou zálohu jako archiv .tar.gz |
+| Koncový bod                 | Metoda | Popis                                        |
+| --------------------------- | ------ | -------------------------------------------- |
+| `/api/db-backups`           | GET    | Výpis dostupných záloh                       |
+| `/api/db-backups`           | PUT    | Vytvoření ruční zálohy                       |
+| `/api/db-backups`           | POST   | Obnovení z konkrétní zálohy                  |
+| `/api/db-backups/export`    | GET    | Stažení databáze jako souboru .sqlite        |
+| `/api/db-backups/import`    | POST   | Nahrání souboru .sqlite a nahrazení databáze |
+| `/api/db-backups/exportAll` | GET    | Stažení úplné zálohy jako archivu .tar.gz    |
 
-### Cloudová synchronizace
+### Synchronizace s cloudem
 
-| Endpoint               | Metoda | Popis                          |
-| ---------------------- | ------ | ------------------------------ |
-| `/api/sync/cloud`      | Různé  | Operace cloudové synchronizace |
-| `/api/sync/initialize` | POST   | Inicializovat synchronizaci    |
-| `/api/cloud/*`         | Různé  | Správa cloudu                  |
+| Koncový bod            | Metoda | Popis                           |
+| ---------------------- | ------ | ------------------------------- |
+| `/api/sync/cloud`      | Různé  | Operace synchronizace s cloudem |
+| `/api/sync/initialize` | POST   | Inicializace synchronizace      |
+| `/api/cloud/*`         | Různé  | Správa cloudu                   |
 
 ### Tunely
 
-| Endpoint                   | Metoda | Popis                                                                  |
-| -------------------------- | ------ | ---------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Načíst stav instalace a běhu Cloudflare Quick Tunnel pro řídicí panel  |
-| `/api/tunnels/cloudflared` | POST   | Povolit nebo zakázat Cloudflare Quick Tunnel (`action=enable/disable`) |
-| `/api/tunnels/ngrok`       | GET    | Načíst stav běhu ngrok Tunnel pro řídicí panel                         |
-| `/api/tunnels/ngrok`       | POST   | Povolit nebo zakázat ngrok Tunnel (`action=enable/disable`)            |
+| Koncový bod                | Metoda | Popis                                                                    |
+| -------------------------- | ------ | ------------------------------------------------------------------------ |
+| `/api/tunnels/cloudflared` | GET    | Načtení stavu instalace a běhu Cloudflare Quick Tunnel pro řídicí panel  |
+| `/api/tunnels/cloudflared` | POST   | Povolení nebo zakázání Cloudflare Quick Tunnel (`action=enable/disable`) |
+| `/api/tunnels/ngrok`       | GET    | Načtení stavu běhu ngrok Tunnel pro řídicí panel                         |
+| `/api/tunnels/ngrok`       | POST   | Povolení nebo zakázání ngrok Tunnel (`action=enable/disable`)            |
 
 ### Nástroje CLI
 
-| Endpoint                           | Metoda | Popis                |
-| ---------------------------------- | ------ | -------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Stav Claude CLI      |
-| `/api/cli-tools/codex-settings`    | GET    | Stav Codex CLI       |
-| `/api/cli-tools/droid-settings`    | GET    | Stav Droid CLI       |
-| `/api/cli-tools/openclaw-settings` | GET    | Stav OpenClaw CLI    |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Obecné prostředí CLI |
+| Koncový bod                        | Metoda | Popis                       |
+| ---------------------------------- | ------ | --------------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Stav Claude CLI             |
+| `/api/cli-tools/codex-settings`    | GET    | Stav Codex CLI              |
+| `/api/cli-tools/droid-settings`    | GET    | Stav Droid CLI              |
+| `/api/cli-tools/openclaw-settings` | GET    | Stav OpenClaw CLI           |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Obecné běhové prostředí CLI |
 
-Odpovědi CLI zahrnují: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
+Odpovědi CLI obsahují: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### Agenti ACP
 
-| Endpoint          | Metoda | Popis                                                             |
-| ----------------- | ------ | ----------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Vypsat všechny zjištěné agenty (vestavěné + vlastní) včetně stavu |
-| `/api/acp/agents` | POST   | Přidat vlastního agenta nebo aktualizovat mezipaměť detekce       |
-| `/api/acp/agents` | DELETE | Odebrat vlastního agenta podle parametru dotazu `id`              |
+| Koncový bod       | Metoda | Popis                                                                |
+| ----------------- | ------ | -------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Výpis všech zjištěných agentů (vestavěných i vlastních) včetně stavu |
+| `/api/acp/agents` | POST   | Přidání vlastního agenta nebo obnovení mezipaměti detekce            |
+| `/api/acp/agents` | DELETE | Odebrání vlastního agenta podle parametru dotazu `id`                |
 
-Odpověď GET zahrnuje `agents[]` (id, name, binary, version, installed, protocol, isCustom) a `summary` (total, installed, notFound, builtIn, custom).
+Odpověď GET obsahuje `agents[]` (id, name, binary, version, installed, protocol, isCustom) a `summary` (total, installed, notFound, builtIn, custom).
 
-### Odolnost a limity požadavků
+### Odolnost a omezení rychlosti
 
-| Endpoint                          | Metoda    | Popis                                                                                             |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Získat/aktualizovat frontu požadavků, prodlevu připojení, jistič poskytovatele a nastavení čekání |
-| `/api/resilience/reset`           | POST      | Resetovat jističe okruhů poskytovatelů                                                            |
-| `/api/resilience/model-cooldowns` | GET       | Vypsat aktivní blokace podle (poskytovatele, připojení, modelu), seřazené podle zbývajícího času  |
-| `/api/resilience/model-cooldowns` | DELETE    | Zrušit blokaci modelu — tělo `{provider, model}` nebo `{all: true}` pro vymazání všech            |
-| `/api/rate-limits`                | GET       | Stav limitu požadavků pro jednotlivé účty                                                         |
-| `/api/rate-limit`                 | GET       | Globální konfigurace limitu požadavků                                                             |
+| Koncový bod                       | Metoda    | Popis                                                                                                      |
+| --------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Získání/aktualizace fronty požadavků, časového omezení připojení, jističe poskytovatele a nastavení čekání |
+| `/api/resilience/reset`           | POST      | Resetování jističů poskytovatelů                                                                           |
+| `/api/resilience/model-cooldowns` | GET       | Výpis aktivních blokací podle (poskytovatele, připojení, modelu), seřazených podle zbývajícího času        |
+| `/api/resilience/model-cooldowns` | DELETE    | Zrušení blokace modelu — tělo `{provider, model}` nebo `{all: true}` pro vymazání všech                    |
+| `/api/rate-limits`                | GET       | Stav omezení rychlosti pro jednotlivé účty                                                                 |
+| `/api/rate-limit`                 | GET       | Globální konfigurace omezení rychlosti                                                                     |
 
-> Všechny čtyři trasy `/api/resilience/*` vyžadují **ověření pro správu** (`requireManagementAuth`). Úplný rozbor jističe poskytovatele, prodlevy připojení a blokace modelu najdete v části [Odolnost (rozšířené)](#resilience-extended).
+> Všechny čtyři trasy `/api/resilience/*` vyžadují **ověření pro správu** (`requireManagementAuth`). Úplný rozpis rozdílů mezi jističem poskytovatele, časovým omezením připojení a blokací modelu najdete v části [Odolnost (rozšířené)](#resilience-extended).
 
 ### Vyhodnocení
 
-| Endpoint     | Metoda   | Popis                                         |
-| ------------ | -------- | --------------------------------------------- |
-| `/api/evals` | GET/POST | Vypsat sady vyhodnocení / spustit vyhodnocení |
+| Koncový bod  | Metoda   | Popis                                        |
+| ------------ | -------- | -------------------------------------------- |
+| `/api/evals` | GET/POST | Výpis sad vyhodnocení / spuštění vyhodnocení |
 
 ### Zásady
 
-| Endpoint        | Metoda          | Popis                      |
-| --------------- | --------------- | -------------------------- |
-| `/api/policies` | GET/POST/DELETE | Spravovat zásady směrování |
+| Koncový bod     | Metoda          | Popis                  |
+| --------------- | --------------- | ---------------------- |
+| `/api/policies` | GET/POST/DELETE | Správa zásad směrování |
 
 ### Soulad s předpisy
 
-| Endpoint                    | Metoda | Popis                                  |
+| Koncový bod                 | Metoda | Popis                                  |
 | --------------------------- | ------ | -------------------------------------- |
 | `/api/compliance/audit-log` | GET    | Protokol auditu souladu (posledních N) |
 
 ### v1beta (kompatibilní s Gemini)
 
-| Endpoint                   | Metoda | Popis                             |
-| -------------------------- | ------ | --------------------------------- |
-| `/v1beta/models`           | GET    | Vypsat modely ve formátu Gemini   |
-| `/v1beta/models/{...path}` | POST   | Endpoint Gemini `generateContent` |
+| Koncový bod                | Metoda | Popis                                |
+| -------------------------- | ------ | ------------------------------------ |
+| `/v1beta/models`           | GET    | Výpis modelů ve formátu Gemini       |
+| `/v1beta/models/{...path}` | POST   | Koncový bod Gemini `generateContent` |
 
-Tyto endpointy kopírují formát API Gemini pro klienty, kteří očekávají nativní kompatibilitu se sadou Gemini SDK.
+Tyto koncové body kopírují formát API Gemini pro klienty, kteří očekávají nativní kompatibilitu se sadou Gemini SDK.
 
 ### Interní / systémová API
 

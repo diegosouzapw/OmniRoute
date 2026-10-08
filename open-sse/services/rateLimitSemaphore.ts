@@ -202,12 +202,14 @@ export function markRateLimited(modelStr: string, cooldownMs: number): void {
 }
 
 /**
- * Get stats for all tracked models (for monitoring/UI)
+ * Get stats for all tracked models (for monitoring/UI).
+ * Pass a prefix to return only gates in one namespace, such as `combo:`.
  * @returns {Object} Map of modelStr → { running, queued, max, rateLimitedUntil }
  */
-export function getStats(): Record<string, RateLimitStatsEntry> {
+export function getStats(prefix?: string): Record<string, RateLimitStatsEntry> {
   const stats: Record<string, RateLimitStatsEntry> = {};
   for (const [model, gate] of gates) {
+    if (prefix && !model.startsWith(prefix)) continue;
     stats[model] = {
       running: gate.running,
       queued: gate.queue.length,

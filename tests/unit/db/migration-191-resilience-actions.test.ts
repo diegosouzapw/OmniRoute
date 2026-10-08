@@ -7,7 +7,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Database from "better-sqlite3";
+import type { SqliteAdapter } from "../../../src/lib/db/adapters/types.ts";
+import { openMemorySqliteAdapter } from "../_helpers/memorySqliteAdapter.ts";
 
 const repoMigrations = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -29,14 +30,14 @@ test.after(() => {
   else process.env.OMNIROUTE_MIGRATIONS_DIR = originalMigrationsDir;
 });
 
-function columns(db: Database.Database): string[] {
+function columns(db: SqliteAdapter): string[] {
   return (db.prepare("PRAGMA table_info(call_logs)").all() as Array<{ name: string }>).map(
     (column) => column.name
   );
 }
 
-function openDb(withColumn: boolean): Database.Database {
-  const db = new Database(":memory:");
+function openDb(withColumn: boolean): SqliteAdapter {
+  const db = openMemorySqliteAdapter();
   db.exec(
     `CREATE TABLE call_logs (id TEXT PRIMARY KEY, status INTEGER${
       withColumn ? ", resilience_actions TEXT" : ""

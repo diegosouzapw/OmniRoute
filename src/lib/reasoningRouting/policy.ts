@@ -16,6 +16,7 @@ import {
   codexModelFamilySupportsExtendedEffort,
   isCodexExtendedEffortBaseModel,
 } from "@/shared/reasoning/codexExtendedEffort";
+import { shouldDeriveDisabledReasoningEffort } from "@/shared/reasoning/effortStandardization";
 
 type JsonRecord = Record<string, unknown>;
 const EFFORTS = new Set<ReasoningEffort>([
@@ -61,8 +62,9 @@ function asRecord(value: unknown): JsonRecord {
 
 function effort(value: unknown): ReasoningEffort | null {
   if (typeof value !== "string") return null;
-  const normalized = value.trim().toLowerCase() as ReasoningEffort;
-  return EFFORTS.has(normalized) ? normalized : null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "extra") return "xhigh";
+  return EFFORTS.has(normalized as ReasoningEffort) ? (normalized as ReasoningEffort) : null;
 }
 
 function thinkingLevelEffort(value: unknown): ReasoningEffort | null {
@@ -121,6 +123,7 @@ function firstDefinedEffort(
     thinkingLevelEffort(thinkingConfig.thinkingLevel ?? thinkingConfig.thinking_level),
     body.thinking === false || thinking.type === "disabled" ? "none" : null,
     suffixEffort,
+    shouldDeriveDisabledReasoningEffort(body) ? "none" : null,
   ];
   return values.find((value): value is ReasoningEffort => value !== null) ?? null;
 }

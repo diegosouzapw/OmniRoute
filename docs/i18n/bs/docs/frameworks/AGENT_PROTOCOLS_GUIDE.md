@@ -76,26 +76,30 @@ Pogledajte [A2A-SERVER.md](./A2A-SERVER.md) za detalje o transportu, strukturu a
 
 ### Šta je to
 
-ACP je OmniRouteov **lokalni inventar CLI agenata**. On detektuje koji su CLI alati za kodiranje instalirani na hostu (Cursor, Cline, Claude Code, Codex CLI, Continue, itd.), razrješava njihove verzije i prikazuje ih na kontrolnoj tabli kako bi korisnik mogao povezati svaki CLI da usmjeri na OmniRoute.
+ACP je OmniRouteov **lokalni inventar CLI agenata**. Otkriva koji su CLI alati za programiranje instalirani na računaru (Cursor, Cline, Claude Code, Codex CLI, Continue itd.), utvrđuje njihove verzije i prikazuje ih na kontrolnoj ploči kako bi korisnik mogao konfigurirati svaki CLI da koristi OmniRoute.
 
-Ovo NIJE eksterni protokol — to je interni registar koji pokreće korisnički interfejs "CLI Tools" i praćenje CLI otiska (pogledajte [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP interfejs je interni inventar koji omogućava rad korisničkog interfejsa „CLI Tools“ i
+praćenje CLI otisaka (pogledajte [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Zasebno,
+interni upravitelj procesa podržava izvorni Agent Client Protocol za
+registrirani Gemini pokretač i naslijeđene stdio adaptere za druge ugovore.
+Pogledajte [ACP registar i pokretači](./ACP.md) za te različite načine rada i ograničenja.
 
 ### Šta radi
 
-- Provjerava host za instalirane CLI binarne datoteke (koristi `which` / `where` zavisno od OS-a)
-- Čita verziju svakog CLI-ja (poziva `<bin> --version`)
-- Opciono prihvata korisnički definisane prilagođene agente (putanja do binarne datoteke + provjera verzije + argumenti za pokretanje)
-- Čuva prilagođene agente u postavkama
-- Vraća objedinjenu listu na kontrolnu tablu
+- Provjerava postoje li na računaru instalirane CLI izvršne datoteke (koristi `which` / `where`, zavisno od OS-a)
+- Očitava verziju svakog CLI-ja (poziva `<bin> --version`)
+- Opcionalno prihvata prilagođene agente koje definira korisnik (putanja do izvršne datoteke + provjera verzije + argumenti za pokretanje)
+- Trajno pohranjuje prilagođene agente u postavkama
+- Vraća objedinjenu listu kontrolnoj ploči
 
 ### REST API
 
-| Krajnja tačka     | Metoda | Opis                                                                                         | Autorizacija |
-| ----------------- | ------ | -------------------------------------------------------------------------------------------- | ------------ |
-| `/api/acp/agents` | GET    | Lista detektovanih + prilagođenih agenata (instalirani/ukupni brojevi)                       | API ključ    |
-| `/api/acp/agents` | POST   | Dodavanje/ažuriranje/uklanjanje prilagođenog agenta (diskriminator akcije u tijelu zahtjeva) | API ključ    |
+| Krajnja tačka     | Metoda | Opis                                                                       | Autorizacija |
+| ----------------- | ------ | -------------------------------------------------------------------------- | ------------ |
+| `/api/acp/agents` | GET    | Navodi otkrivene + prilagođene agente (broj instaliranih/ukupan broj)      | API ključ    |
+| `/api/acp/agents` | POST   | Dodaje/ažurira/uklanja prilagođenog agenta (diskriminator radnje u tijelu) | API ključ    |
 
-Oblik tijela za POST (`customAgentBodySchema` u `src/app/api/acp/agents/route.ts`):
+Struktura tijela za POST (`customAgentBodySchema` u `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -112,13 +116,16 @@ Oblik tijela za POST (`customAgentBodySchema` u `src/app/api/acp/agents/route.ts
 
 ### Slučajevi upotrebe
 
-- Stranica "CLI Tools" na kontrolnoj tabli navodi šta je instalirano i pomaže vam da usmjerite svaki na OmniRoute
-- Prilagođeni agenti omogućavaju naprednim korisnicima da registruju interne/vlasničke CLI alate za koje OmniRoute ne zna po defaultu
-- Rezultat detekcije pokreće matricu otiska `cli-tools`
+- Stranica „CLI Tools“ na kontrolnoj ploči prikazuje šta je instalirano i pomaže vam da svaki alat usmjerite na OmniRoute
+- Prilagođeni agenti omogućavaju naprednim korisnicima da registriraju interne/vlasničke CLI alate koje OmniRoute ne prepoznaje prema zadanim postavkama
+- Rezultat otkrivanja popunjava matricu otisaka `cli-tools`
 
 ### Kada NE koristiti ACP
 
-- ACP ne pokreće zadatke. On samo detektuje + konfiguriše CLI alate. Da biste zapravo pozvali CLI, pokrećete ga sami sa env varijablama koje OmniRoute obezbjeđuje (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, itd.).
+- HTTP registar ne prihvata zadatke niti omogućava pokretanje procesa. Interni
+  upravitelj može pokrenuti registrirani CLI, ali nije povezan kao automatska
+  rezervna opcija pružatelja. Za uobičajenu interaktivnu upotrebu sami pokrenite konfigurirani CLI ili
+  koristite `omniroute run`.
 
 ## 3. Cloud agenti
 

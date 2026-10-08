@@ -67,31 +67,35 @@ Bạn có cần một dịch vụ đám mây thực hiện công việc bên ngo
 
 Xem [A2A-SERVER.md](./A2A-SERVER.md) để biết chi tiết về phương thức truyền tải, cấu trúc thẻ agent, cấu hình TTL của tác vụ và mẫu để thêm kỹ năng mới.
 
-## 2. ACP — Sổ đăng ký CLI Agent
+## 2. ACP — Sổ đăng ký tác nhân CLI
 
-**Endpoint OmniRoute:** `GET /api/acp/agents`
-**Mã nguồn:** `src/lib/acp/{index,manager,registry}.ts`
+**Điểm cuối OmniRoute:** `GET /api/acp/agents`
+**Nguồn:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Đây là gì
 
-ACP là **kho kiểm kê CLI agent cục bộ** của OmniRoute. Nó phát hiện những CLI lập trình nào được cài đặt trên máy chủ (Cursor, Cline, Claude Code, Codex CLI, Continue, v.v.), xác định phiên bản của chúng và hiển thị chúng trên bảng điều khiển để người dùng có thể cấu hình từng CLI trỏ đến OmniRoute.
+ACP là **kho tác nhân CLI cục bộ** của OmniRoute. Nó phát hiện các CLI lập trình được cài đặt trên máy chủ (Cursor, Cline, Claude Code, Codex CLI, Continue, v.v.), xác định phiên bản của chúng và hiển thị chúng trên bảng điều khiển để người dùng có thể cấu hình từng CLI trỏ đến OmniRoute.
 
-Đây KHÔNG phải là một giao thức bên ngoài — đây là sổ đăng ký nội bộ hỗ trợ giao diện người dùng "CLI Tools" và việc theo dõi dấu vân tay CLI (xem [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Giao diện HTTP là một kho nội bộ hỗ trợ giao diện người dùng "CLI Tools" và
+việc theo dõi dấu vân tay CLI (xem [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Ngoài ra,
+trình quản lý tiến trình nội bộ hỗ trợ Agent Client Protocol gốc cho trình khởi chạy
+Gemini đã đăng ký và các bộ điều hợp stdio cũ cho những giao thức khác.
+Xem [sổ đăng ký và trình khởi chạy ACP](./ACP.md) để biết các chế độ và giới hạn riêng biệt này.
 
 ### Chức năng
 
 - Kiểm tra máy chủ để tìm các tệp nhị phân CLI đã cài đặt (sử dụng `which` / `where` tùy theo hệ điều hành)
 - Đọc phiên bản của từng CLI (gọi `<bin> --version`)
-- Cho phép tùy chọn thêm các agent tùy chỉnh do người dùng định nghĩa (đường dẫn tệp nhị phân + lệnh kiểm tra phiên bản + đối số khởi chạy)
-- Lưu trữ lâu dài các agent tùy chỉnh trong phần cài đặt
+- Tùy chọn chấp nhận các tác nhân tùy chỉnh do người dùng định nghĩa (đường dẫn tệp nhị phân + lệnh kiểm tra phiên bản + các đối số khởi tạo tiến trình)
+- Lưu trữ lâu dài các tác nhân tùy chỉnh trong phần cài đặt
 - Trả về danh sách hợp nhất cho bảng điều khiển
 
-### REST API
+### API REST
 
-| Endpoint          | Phương thức | Mô tả                                                                    | Xác thực |
-| ----------------- | ----------- | ------------------------------------------------------------------------ | -------- |
-| `/api/acp/agents` | GET         | Liệt kê agent được phát hiện + tùy chỉnh (số lượng đã cài đặt/tổng cộng) | API key  |
-| `/api/acp/agents` | POST        | Thêm/cập nhật/xóa agent tùy chỉnh (phân biệt hành động trong phần thân)  | API key  |
+| Điểm cuối         | Phương thức | Mô tả                                                                             | Xác thực |
+| ----------------- | ----------- | --------------------------------------------------------------------------------- | -------- |
+| `/api/acp/agents` | GET         | Liệt kê các tác nhân được phát hiện + tùy chỉnh (số lượng đã cài đặt/tổng số)     | Khóa API |
+| `/api/acp/agents` | POST        | Thêm/cập nhật/xóa tác nhân tùy chỉnh (trường phân biệt hành động trong phần thân) | Khóa API |
 
 Cấu trúc phần thân cho POST (`customAgentBodySchema` trong `src/app/api/acp/agents/route.ts`):
 
@@ -110,13 +114,16 @@ Cấu trúc phần thân cho POST (`customAgentBodySchema` trong `src/app/api/ac
 
 ### Trường hợp sử dụng
 
-- Trang "CLI Tools" trên bảng điều khiển liệt kê những công cụ đã cài đặt và giúp bạn cấu hình từng công cụ trỏ đến OmniRoute
-- Agent tùy chỉnh cho phép người dùng nâng cao đăng ký các CLI nội bộ/độc quyền mà OmniRoute chưa biết theo mặc định
+- Trang "CLI Tools" trên bảng điều khiển liệt kê những công cụ đã được cài đặt và giúp bạn cấu hình từng công cụ trỏ đến OmniRoute
+- Tác nhân tùy chỉnh cho phép người dùng nâng cao đăng ký các CLI nội bộ/độc quyền mà OmniRoute không nhận biết theo mặc định
 - Kết quả phát hiện cung cấp dữ liệu cho ma trận dấu vân tay `cli-tools`
 
 ### Khi KHÔNG nên sử dụng ACP
 
-- ACP không _chạy_ tác vụ. Nó chỉ phát hiện + cấu hình CLI. Để thực sự gọi một CLI, bạn cần tự khởi chạy CLI đó với các biến môi trường do OmniRoute cung cấp (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, v.v.).
+- Sổ đăng ký HTTP không tiếp nhận tác vụ hoặc cung cấp khả năng khởi tạo tiến trình. Trình quản lý
+  nội bộ có thể khởi chạy một CLI đã đăng ký, nhưng không được kết nối để tự động làm phương án
+  dự phòng cho nhà cung cấp. Đối với việc sử dụng tương tác thông thường, hãy tự khởi chạy CLI đã cấu hình hoặc
+  sử dụng `omniroute run`.
 
 ## 3. Cloud Agent
 

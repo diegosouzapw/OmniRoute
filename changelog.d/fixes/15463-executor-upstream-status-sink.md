@@ -1,0 +1,1 @@
+- **fix(sse):** record the received Cursor upstream status on proxy failures so health stats count them as upstream instead of transport failures ([#15463](https://github.com/diegosouzapw/OmniRoute/pull/15463)) — thanks @maxmad64bis

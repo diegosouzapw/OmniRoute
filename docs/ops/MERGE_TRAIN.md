@@ -69,3 +69,19 @@ one day during the v3.8.47 cycle:
 
 Nothing is validated less than before — the heavy surface just runs per batch/tip
 instead of per PR, which is what removes the O(N) round-trips.
+
+## Fresh-checkout prerequisites for `merge-train.sh`
+
+The script runs a fail-fast **preflight** on the root checkout (before any worktree
+work) so a broken install can never masquerade as a red train:
+
+1. `npm ci`, then run the `bun` postinstall that npm blocks:
+   `(cd node_modules/bun && node install.js)` — otherwise `check:provider-consistency`
+   and `check:known-symbols` (both `bun scripts/…`) fail on the train AND the base with
+   no violation line.
+2. No stray `node_modules/node_modules` (a duplicate dependency tree; React loads twice
+   and UI vitest suites fail instantly).
+3. `node_modules/.bin/tsc` present and executable (a partial install lacks it).
+
+The train runs the blocking `npm run check:cycles:ratchet`; bare `npm run check:cycles`
+is advisory (it lists the SCCs and exits non-zero even on a healthy base).

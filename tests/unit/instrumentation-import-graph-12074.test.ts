@@ -68,6 +68,15 @@ test("startup still registers bespoke, batch, and generic quota fetchers", async
   }
 });
 
+test("chat route does not statically import the quota tracker batch", () => {
+  const chatPath = path.join(process.cwd(), "src/sse/handlers/chat.ts");
+  const source = fs.readFileSync(chatPath, "utf8");
+  assert.doesNotMatch(
+    source,
+    /import\s+["']@omniroute\/open-sse\/services\/quotaTrackersBatch\.ts["']/
+  );
+});
+
 test("provider-limit startup uses the refresh-only executor resolver", () => {
   const providerLimitsSource = fs.readFileSync(providerLimitsPath, "utf8");
   const credentialExecutorSource = fs.readFileSync(credentialExecutorPath, "utf8");

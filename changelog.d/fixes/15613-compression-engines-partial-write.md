@@ -1,0 +1,1 @@
+- **fix(compression):** the compression engines map now merges by engine id on `PUT /api/settings/compression` instead of storing the map whole, and the Omniglyph page and context settings panel send only the engine they changed — so a toggle on one page no longer wipes what the other page (or a failed settings GET) never loaded.

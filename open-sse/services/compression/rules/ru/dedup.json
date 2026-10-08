@@ -12,19 +12,21 @@
     },
     {
       "name": "word_duplication",
-      "pattern": "\\b(\\w+)\\s+\\1\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])([\\p{L}\\p{N}_]+)\\s+\\1(?![\\p{L}\\p{N}_])",
       "replacement": "$1",
       "context": "all",
       "category": "dedup",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "synonymous_repetition",
-      "pattern": "\\b(проблема|ошибка)\\b[^.!?]*\\b(проблема|ошибка)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(проблема|ошибка)(?![\\p{L}\\p{N}_])[^.!?]*(?<![\\p{L}\\p{N}_])(проблема|ошибка)(?![\\p{L}\\p{N}_])",
       "replacement": "$1",
       "context": "all",
       "category": "dedup",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     }
   ]
 }

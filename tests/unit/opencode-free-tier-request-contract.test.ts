@@ -625,11 +625,15 @@ test("a borrowed set is dropped after three refusals in a row, not after one", (
       .attempt;
   // One refusal is not proof: the same body was refused and then accepted minutes apart on
   // a free model (measured 2026-09-18), so a single verdict must not clear the entry.
-  noteFreeTierOutcome(borrow(), false);
+  // Only a refusal that says something about the tools counts: a bare verdict or a
+  // 429 leaves the entry alone.
+  const refused = () =>
+    noteFreeTierOutcome(borrow(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
+  refused();
   assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
-  noteFreeTierOutcome(borrow(), false);
+  refused();
   assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
-  noteFreeTierOutcome(borrow(), false);
+  refused();
   assert.equal(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), null);
 });
 
@@ -650,14 +654,16 @@ test("an acceptance resets the refusal streak", () => {
   const borrow = () =>
     prepareFreeTierRequest(CHAT_BODY(), "openai", "zen", "opencode", "nemotron-3.5-lightning-free")
       .attempt;
-  noteFreeTierOutcome(borrow(), false);
-  noteFreeTierOutcome(borrow(), false);
+  const refused = () =>
+    noteFreeTierOutcome(borrow(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
+  refused();
+  refused();
   noteFreeTierOutcome(
     prepareFreeTierRequest(withTools, "openai", "zen", "opencode", "nemotron-3.5-lightning-free")
       .attempt,
     true
   );
-  noteFreeTierOutcome(borrow(), false);
+  noteFreeTierOutcome(borrow(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
   assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
 });
 
@@ -851,4 +857,123 @@ test("mergeClientToolsWithObserved: leaves the body untouched when nothing obser
     mergeClientToolsWithObserved(body, "openai", "opencode", "big-pickle", undefined, []),
     body
   );
+});
+
+// ── Only a refusal that says something about the tools counts ──────────────────
+
+const REFUSAL_BODY = JSON.stringify({
+  error: {
+    type: "FreeTierError",
+    message:
+      "Error from provider (Console): OpenCode's free tier can only be used from within OpenCode",
+  },
+});
+
+function learnBorrowedNames(): void {
+  _resetToolObservationForTests();
+  const learned = prepareFreeTierRequest(
+    { ...CHAT_BODY(), tools: [{ type: "function", function: { name: "glob" } }] },
+    "openai",
+    "zen",
+    "opencode",
+    "nemotron-3.5-lightning-free"
+  );
+  noteFreeTierOutcome(learned.attempt, true);
+}
+
+function borrowedAttempt() {
+  return prepareFreeTierRequest(
+    CHAT_BODY(),
+    "openai",
+    "zen",
+    "opencode",
+    "nemotron-3.5-lightning-free"
+  ).attempt;
+}
+
+test("three 429 answers on a borrowed request keep the observed names", () => {
+  learnBorrowedNames();
+  for (let i = 0; i < 3; i++) {
+    noteFreeTierOutcome(borrowedAttempt(), {
+      ok: false,
+      status: 429,
+      bodyText: "Too many requests",
+    });
+  }
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+});
+
+test("three 503 answers on a borrowed request keep the observed names", () => {
+  learnBorrowedNames();
+  for (let i = 0; i < 3; i++) {
+    noteFreeTierOutcome(borrowedAttempt(), {
+      ok: false,
+      status: 503,
+      bodyText: "Service unavailable",
+    });
+  }
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+});
+
+test("three 403 answers carrying the refusal keep dropping the observed names", () => {
+  learnBorrowedNames();
+  const refused = () =>
+    noteFreeTierOutcome(borrowedAttempt(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
+  refused();
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+  refused();
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+  refused();
+  assert.equal(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), null);
+});
+
+test("a 200 on a borrowed shape clears the streak without rewriting the entry", () => {
+  learnBorrowedNames();
+  const refused = () =>
+    noteFreeTierOutcome(borrowedAttempt(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
+  refused();
+  refused();
+  noteFreeTierOutcome(borrowedAttempt(), { ok: true, status: 200, bodyText: null });
+  noteFreeTierOutcome(borrowedAttempt(), { ok: false, status: 403, bodyText: REFUSAL_BODY });
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+});
+
+test("refusals that say nothing about the tools never touch the observed names", () => {
+  learnBorrowedNames();
+  const bodies = [
+    JSON.stringify({ error: { type: "FreeTierError", message: "not available in your country" } }),
+    JSON.stringify({
+      error: { type: "FreeTierError", message: "[user_blocked] egress refused" },
+    }),
+    JSON.stringify({ error_code: 1010, error: { type: "FreeTierError" } }),
+  ];
+  for (const bodyText of bodies) {
+    for (let i = 0; i < 3; i++) {
+      noteFreeTierOutcome(borrowedAttempt(), { ok: false, status: 403, bodyText });
+    }
+  }
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+});
+
+test("a deferred note without a verdict never touches the observed names", () => {
+  learnBorrowedNames();
+  for (let i = 0; i < 3; i++) {
+    noteFreeTierOutcome(borrowedAttempt(), false);
+  }
+  assert.deepEqual(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), ["glob"]);
+});
+
+test("a deferred 403 verdict still counts against the borrowed names", () => {
+  learnBorrowedNames();
+  const first = borrowedAttempt();
+  assert.equal(first?.borrowed, true);
+  for (let i = 0; i < 3; i++) {
+    const attempt = borrowedAttempt();
+    noteFreeTierOutcome({ ...(attempt as object), probe: false } as typeof attempt, {
+      ok: false,
+      status: 403,
+      bodyText: REFUSAL_BODY,
+    });
+  }
+  assert.equal(getObservedToolNames("opencode", "nemotron-3.5-lightning-free"), null);
 });

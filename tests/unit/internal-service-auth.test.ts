@@ -69,8 +69,11 @@ test("internal service token file is read without exposing it to process env", (
 
 test("cache API accepts internal auth only through the trusted loopback verifier", () => {
   const source = fs.readFileSync(path.join(repoRoot, "src/app/api/cache/route.ts"), "utf8");
+  // contract changed by #15430: a validated cache-scoped API key is a third,
+  // independent way in (read scope for GET, write scope for DELETE). The internal
+  // service token is still accepted ONLY through the trusted loopback verifier.
   const trustedGuard =
-    /if \(\s*!isTrustedLoopbackInternalServiceRequest\(req\) && !\(await isAuthenticated\(req\)\)\s*\)/g;
+    /if \(\s*!isTrustedLoopbackInternalServiceRequest\(req\) &&\s*!\(await isAuthenticated\(req\)\)(?:\s*&&\s*!\(await isCacheScopedKey\(req, CACHE_(?:READ|WRITE)_SCOPE\)\))?\s*\)/g;
 
   assert.equal(
     [...source.matchAll(trustedGuard)].length,

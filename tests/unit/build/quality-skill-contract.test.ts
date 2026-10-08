@@ -5,6 +5,21 @@ import { join } from "node:path";
 import test from "node:test";
 import { inspectSkillContracts } from "../../../scripts/quality/check-skill-contract.mjs";
 
+test("all admission consumers and shared merge rules are covered by the drift contract", () => {
+  const expected = [
+    "quality-scan/SKILL.md",
+    "validate-release-green/SKILL.md",
+    "_shared/base-green.md",
+    "green-prs/SKILL.md",
+    "sweep-reds/SKILL.md",
+    "merge-prs/SKILL.md",
+    "_shared/merge-gates.md",
+    "_shared/validation-gate.md",
+  ];
+  const result = inspectSkillContracts("config/quality/skill-templates");
+  assert.deepEqual(result.files.map((file) => file.path).sort(), expected.sort());
+});
+
 test("the skill contract distinguishes installed, drifted and missing instructions", () => {
   const dir = mkdtempSync(join(tmpdir(), "omniroute-skill-contract-"));
   const root = join(dir, "skills");

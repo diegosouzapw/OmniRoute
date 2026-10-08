@@ -1,0 +1,1 @@
+- **feat(dashboard):** token refresh failures can pause per account instead of blocking the whole provider ([#15469](https://github.com/diegosouzapw/OmniRoute/pull/15469)) — thanks @maxmad64bis (with thanks to @xiaoyaner0201 for the scope proposal in #15444)

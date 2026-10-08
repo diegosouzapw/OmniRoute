@@ -1,0 +1,1 @@
+- **fix(ci):** `check:file-size` PR mode judges test files against their base line counts too, so an innocent PR passes when a test file already drifted past its ceiling on the base ([#15298](https://github.com/diegosouzapw/OmniRoute/pull/15298)) — thanks @woodsonl

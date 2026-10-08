@@ -823,30 +823,31 @@ X-OmniRoute-No-Cache: true
 ## Dashboard & Verwaltung
 
 Verwaltungsrouten (`/api/*` außer öffentlicher Authentifizierung/Anmeldung) werden **nicht** durch
-gewöhnliche Inferenz-API-Schlüssel autorisiert. Anmeldeinformationstypen, Berechtigungsbereiche und curl-Beispiele:
+gewöhnliche Inferenz-API-Schlüssel autorisiert. Informationen zu Anmeldedatenfamilien, Geltungsbereichen und curl-Beispielen:
 [Verwaltungsauthentifizierung](../guides/MANAGEMENT-AUTH.md).
 
 ### Authentifizierung
 
-| Endpunkt                      | Methode | Beschreibung                    |
-| ----------------------------- | ------- | ------------------------------- |
-| `/api/auth/login`             | POST    | Anmelden                        |
-| `/api/auth/logout`            | POST    | Abmelden                        |
-| `/api/settings/require-login` | GET/PUT | Anmeldepflicht ein-/ausschalten |
+| Endpunkt                      | Methode | Beschreibung              |
+| ----------------------------- | ------- | ------------------------- |
+| `/api/auth/login`             | POST    | Anmelden                  |
+| `/api/auth/logout`            | POST    | Abmelden                  |
+| `/api/settings/require-login` | GET/PUT | Anmeldepflicht umschalten |
 
 ### Anbieterverwaltung
 
-| Endpunkt                     | Methode               | Beschreibung                                                                                                                 |
-| ---------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Anbieter auflisten/erstellen                                                                                                 |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Einen Anbieter verwalten                                                                                                     |
-| `/api/providers/[id]/test`   | POST                  | Anbieterverbindung testen                                                                                                    |
-| `/api/providers/[id]/models` | GET                   | Anbietermodelle auflisten                                                                                                    |
-| `/api/providers/validate`    | POST                  | Anbieterkonfiguration validieren                                                                                             |
-| `/api/providers/bulk`        | POST                  | API-Schlüssel für EINEN Anbieter gesammelt hinzufügen                                                                        |
-| `/api/providers/import`      | POST                  | Eine heterogene Anbieter-LISTE aus einer geparsten CSV-/JSON-Datei importieren (#6836); Teilergebnisse bei Fehlern pro Zeile |
-| `/api/provider-nodes*`       | Verschiedene          | Verwaltung von Anbieterknoten                                                                                                |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Benutzerdefinierte Modelle (hinzufügen, aktualisieren, ausblenden/einblenden, löschen)                                       |
+| Endpunkt                                | Methode               | Beschreibung                                                                                                                                                                                |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | Anbieter auflisten/erstellen                                                                                                                                                                |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Einen Anbieter verwalten                                                                                                                                                                    |
+| `/api/providers/[id]/test`              | POST                  | Anbieterverbindung testen                                                                                                                                                                   |
+| `/api/providers/[id]/models`            | GET                   | Anbietermodelle auflisten                                                                                                                                                                   |
+| `/api/providers/validate`               | POST                  | Anbieterkonfiguration validieren                                                                                                                                                            |
+| `/api/providers/bulk`                   | POST                  | API-Schlüssel für EINEN Anbieter gesammelt hinzufügen                                                                                                                                       |
+| `/api/providers/import`                 | POST                  | Eine heterogene Anbieter-LISTE aus einer geparsten CSV-/JSON-Datei importieren (#6836); Ergebnisse mit teilweisem Fehlschlag pro Zeile                                                      |
+| `/api/provider-nodes*`                  | Verschiedene          | Verwaltung von Anbieterknoten                                                                                                                                                               |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Benutzerdefinierte Modelle (hinzufügen, aktualisieren, ausblenden/einblenden, löschen)                                                                                                      |
+| `/api/provider-models/validate-and-add` | POST                  | Durch Verwaltung authentifizierte, optionale strikte Verbindungsvalidierung und atomare Registrierung benutzerdefinierter Modelle; siehe [Modellvalidierung](../guides/MODEL-VALIDATION.md) |
 
 ### OAuth-Abläufe
 
@@ -861,72 +862,72 @@ gewöhnliche Inferenz-API-Schlüssel autorisiert. Anmeldeinformationstypen, Bere
 | `/api/models/alias`   | GET/POST     | Modellaliase                       |
 | `/api/models/catalog` | GET          | Alle Modelle nach Anbieter und Typ |
 | `/api/combos*`        | Verschiedene | Combo-Verwaltung                   |
-| `/api/keys*`          | Verschiedene | API-Schlüsselverwaltung            |
+| `/api/keys*`          | Verschiedene | Verwaltung von API-Schlüsseln      |
 | `/api/pricing`        | GET          | Modellpreise                       |
 
 ### Nutzung & Analysen
 
-| Endpunkt                         | Methode         | Beschreibung                                                                                                                                                                                                                                                                                                                                                             |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/usage/history`             | GET             | Nutzungsverlauf                                                                                                                                                                                                                                                                                                                                                          |
-| `/api/usage/logs`                | GET             | Nutzungsprotokolle                                                                                                                                                                                                                                                                                                                                                       |
-| `/api/usage/request-logs`        | GET             | Protokolle auf Anfrageebene                                                                                                                                                                                                                                                                                                                                              |
-| `/api/usage/[connectionId]`      | GET             | Nutzung pro Verbindung                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Tokenlimit-Budgets pro API-Schlüssel                                                                                                                                                                                                                                                                                                                                     |
-| `/api/usage/model-latency-stats` | GET             | Rollierendes Latenzaggregat pro Anbieter/Modell (Durchschnitt/p50/p95/p99, Erfolgsquote); Filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                                        |
-| `/api/usage/cache-health`        | GET             | Zusammenfassung des Prompt-Cache-Zustands über `call_logs` — Schreib-/Leseverhältnis, p50/p90/p99-Verteilung der Schreibgröße, Konzentration schreibintensiver Vorgänge, Aufschlüsselung pro Modell und eine Bewertung als `healthy`/`degraded`/`thrash`/`no-data`; Abfrageparameter `range` (`1h`\|`24h`\|`7d`\|`30d`, Standardwert `24h`) und optional `model` (#8827) |
+| Endpunkt                         | Methode         | Beschreibung                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Nutzungsverlauf                                                                                                                                                                                                                                                                                                                                                           |
+| `/api/usage/logs`                | GET             | Nutzungsprotokolle                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/usage/request-logs`        | GET             | Protokolle auf Anfrageebene                                                                                                                                                                                                                                                                                                                                               |
+| `/api/usage/[connectionId]`      | GET             | Nutzung pro Verbindung                                                                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Tokenlimit-Budgets pro API-Schlüssel                                                                                                                                                                                                                                                                                                                                      |
+| `/api/usage/model-latency-stats` | GET             | Gleitendes Latenzaggregat pro Anbieter/Modell (Durchschnitt/p50/p95/p99, Erfolgsrate); Filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                                            |
+| `/api/usage/cache-health`        | GET             | Zusammenfassung des Prompt-Cache-Zustands über `call_logs` — Schreib-/Leseverhältnis, p50/p90/p99-Verteilung der Schreibgröße, Konzentration umfangreicher Schreibvorgänge, Aufschlüsselung pro Modell und ein Ergebnis von `healthy`/`degraded`/`thrash`/`no-data`; Abfrageparameter `range` (`1h`\|`24h`\|`7d`\|`30d`, Standardwert `24h`) und optional `model` (#8827) |
 
 ### Einstellungen
 
-| Endpunkt                              | Methode       | Beschreibung                                                                                                                                                                                                                   |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/settings`                       | GET/PUT/PATCH | Allgemeine Einstellungen                                                                                                                                                                                                       |
-| `/api/settings/proxy`                 | GET/PUT       | Netzwerk-Proxy-Konfiguration                                                                                                                                                                                                   |
-| `/api/settings/proxy/test`            | POST          | Proxy-Verbindung testen                                                                                                                                                                                                        |
-| `/api/settings/ip-filter`             | GET/PUT       | IP-Zulassungs-/Sperrliste                                                                                                                                                                                                      |
-| `/api/settings/thinking-budget`       | GET/PUT       | Umschreibmodus für **Anfragen** mit Denk-/Reasoning-Budget (Durchleitung / automatisches Entfernen / benutzerdefiniert / adaptiv). Unabhängig von der Komprimierung. Siehe [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Globaler System-Prompt                                                                                                                                                                                                         |
-| `/api/settings/compression`           | GET/PUT       | Globale Komprimierungskonfiguration                                                                                                                                                                                            |
-| `/api/settings/purge-request-history` | POST          | Anfrageprotokollzeilen und lokale Aufrufprotokoll-Artefakte löschen                                                                                                                                                            |
+| Endpunkt                              | Methode       | Beschreibung                                                                                                                                                                                                                                    |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Allgemeine Einstellungen                                                                                                                                                                                                                        |
+| `/api/settings/proxy`                 | GET/PUT       | Netzwerk-Proxy-Konfiguration                                                                                                                                                                                                                    |
+| `/api/settings/proxy/test`            | POST          | Proxy-Verbindung testen                                                                                                                                                                                                                         |
+| `/api/settings/ip-filter`             | GET/PUT       | IP-Zulassungs-/Sperrliste                                                                                                                                                                                                                       |
+| `/api/settings/thinking-budget`       | GET/PUT       | Umschreibmodus für **Anfragen** zum Denk-/Schlussfolgerungsbudget (unverändert durchreichen / automatisch entfernen / benutzerdefiniert / adaptiv). Unabhängig von der Komprimierung. Siehe [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Globale Systemanweisung                                                                                                                                                                                                                         |
+| `/api/settings/compression`           | GET/PUT       | Globale Komprimierungskonfiguration                                                                                                                                                                                                             |
+| `/api/settings/purge-request-history` | POST          | Zeilen des Anfrageprotokolls und lokale Aufrufprotokoll-Artefakte löschen                                                                                                                                                                       |
 
 ### Kontext & Komprimierung
 
-| Endpoint                               | Methode        | Beschreibung                                                                                            |
-| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | Vorschau der Komprimierung off/lite/standard/aggressive/ultra/RTK/stacked                               |
-| `/api/compression/language-packs`      | GET            | Verfügbare Caveman-Sprachpakete auflisten                                                               |
-| `/api/compression/rules`               | GET            | Metadaten der Caveman-Regeln auflisten                                                                  |
-| `/api/context/caveman/config`          | GET/PUT        | Alias für Caveman-spezifische Einstellungen                                                             |
-| `/api/context/rtk/config`              | GET/PUT        | RTK-spezifische Einstellungen einschließlich benutzerdefinierter Filter und Aufbewahrung der Rohausgabe |
-| `/api/context/rtk/filters`             | GET            | RTK-Filterkatalog und Diagnoseinformationen für benutzerdefinierte Filter                               |
-| `/api/context/rtk/test`                | POST           | RTK-Vorschau/-Test mit einer Textnutzlast ausführen                                                     |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Aufbewahrte, bereinigte Rohausgabe anhand der Zeiger-ID lesen                                           |
-| `/api/context/combos`                  | GET/POST       | Komprimierungskombinationen auflisten/erstellen                                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Details einer Komprimierungskombination abrufen/aktualisieren/löschen                                   |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Komprimierungskombinationen Routing-Kombinationen zuweisen                                              |
-| `/api/context/analytics`               | GET            | Alias für Komprimierungsanalysen                                                                        |
+| Endpunkt                               | Methode        | Beschreibung                                                                                             |
+| -------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | Vorschau der Komprimierung off/lite/standard/aggressive/ultra/RTK/stacked                                |
+| `/api/compression/language-packs`      | GET            | Verfügbare Caveman-Sprachpakete auflisten                                                                |
+| `/api/compression/rules`               | GET            | Metadaten der Caveman-Regeln auflisten                                                                   |
+| `/api/context/caveman/config`          | GET/PUT        | Alias für Caveman-spezifische Einstellungen                                                              |
+| `/api/context/rtk/config`              | GET/PUT        | RTK-spezifische Einstellungen, einschließlich benutzerdefinierter Filter und Aufbewahrung der Rohausgabe |
+| `/api/context/rtk/filters`             | GET            | RTK-Filterkatalog und Diagnose benutzerdefinierter Filter                                                |
+| `/api/context/rtk/test`                | POST           | RTK-Vorschau/-Test mit einer Textnutzlast ausführen                                                      |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Aufbewahrte, redigierte Rohausgabe anhand der Zeiger-ID lesen                                            |
+| `/api/context/combos`                  | GET/POST       | Komprimierungskombinationen auflisten/erstellen                                                          |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Details einer Komprimierungskombination abrufen/aktualisieren/löschen                                    |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Komprimierungskombinationen Routing-Kombinationen zuweisen                                               |
+| `/api/context/analytics`               | GET            | Alias für Komprimierungsanalysen                                                                         |
 
 ### Überwachung
 
-| Endpoint                             | Methode    | Beschreibung                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Nachverfolgung aktiver Sitzungen                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/rate-limits`                   | GET        | Ratenbegrenzungen pro Konto                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `/api/monitoring/health`             | GET        | Integritätsprüfung und Anbieterübersicht (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Die Verwaltungsansicht enthält `credentialHealth`: Skalare aus dem Prüfungs-Cache, `failedConnections`, wenn `failed>0`, und `staleDbNonOkCount` (persistenter SQLite-`test_status`, nicht die Messgröße). Siehe [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Cache-Statistiken abrufen / Cache leeren                                                                                                                                                                                                                                                                                                                                                                                              |
-| `/api/modality-bridge/stats`         | GET        | Im Arbeitsspeicher vorgehaltene `attempts`, Erfolge/`bridged`, Fehler, Cache-Treffer, `totalLatencyMs`, `latencySamples`, das auf Stichproben basierende `averageLatencyMs` und Zeitpunkt der letzten Nutzung (wird bei einem Neustart zurückgesetzt; Verwaltungsauthentifizierung)                                                                                                                                                   |
-| `/api/modality-bridge/video/runtime` | GET        | Strikte Prüfung auf vertrauenswürdiges Loopback vor Verwaltungsauthentifizierung/-prüfung; bereinigte Angaben zur Verfügbarkeit und zu den Versionen von FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                    |
-| `/api/modality-bridge/video/extract` | POST       | Interner, authentifizierter Byte-Broker über vertrauenswürdiges Loopback; 50 MiB Eingabe, begrenzte Warteschlange/32 MiB Ausgabe, `503` bei Kapazitätsüberschreitung, `499` bei Verbindungsabbruch, `504` bei Fristüberschreitung; keine öffentliche Upload-API                                                                                                                                                                       |
+| Endpunkt                             | Methode    | Beschreibung                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Nachverfolgung aktiver Sitzungen                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/rate-limits`                   | GET        | Ratenbegrenzungen pro Konto                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `/api/monitoring/health`             | GET        | Integritätsprüfung und Anbieterübersicht (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Die Verwaltungsansicht enthält `credentialHealth`: skalare Werte des Prüf-Cache, `failedConnections`, wenn `failed>0`, und `staleDbNonOkCount` (dauerhafter SQLite-Wert `test_status`, nicht die Messgröße). Siehe [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Cache-Statistiken abrufen/Cache leeren                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `/api/modality-bridge/stats`         | GET        | Im Arbeitsspeicher vorgehaltene `attempts`, Erfolge/`bridged`, Fehler, Cache-Treffer, `totalLatencyMs`, `latencySamples`, auf Stichproben basierender `averageLatencyMs` und Zeitpunkt der letzten Nutzung (wird beim Neustart zurückgesetzt; Verwaltungsauthentifizierung)                                                                                                                                                             |
+| `/api/modality-bridge/video/runtime` | GET        | Strikte Prüfung auf vertrauenswürdigen Loopback vor Verwaltungsauthentifizierung/-prüfung; bereinigte Verfügbarkeit und Versionen von FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                         |
+| `/api/modality-bridge/video/extract` | POST       | Interner, authentifizierter Byte-Broker über vertrauenswürdigen Loopback; 50 MiB Eingabe, begrenzte Warteschlange/32 MiB Ausgabe, `503` Kapazität, `499` Verbindungsabbruch, `504` Fristüberschreitung; keine öffentliche Upload-API                                                                                                                                                                                                    |
 
 ### Sicherung und Export/Import
 
 | Endpunkt                    | Methode | Beschreibung                                            |
 | --------------------------- | ------- | ------------------------------------------------------- |
 | `/api/db-backups`           | GET     | Verfügbare Sicherungen auflisten                        |
-| `/api/db-backups`           | PUT     | Eine manuelle Sicherung erstellen                       |
+| `/api/db-backups`           | PUT     | Manuelle Sicherung erstellen                            |
 | `/api/db-backups`           | POST    | Aus einer bestimmten Sicherung wiederherstellen         |
 | `/api/db-backups/export`    | GET     | Datenbank als .sqlite-Datei herunterladen               |
-| `/api/db-backups/import`    | POST    | .sqlite-Datei hochladen, um die Datenbank zu ersetzen   |
+| `/api/db-backups/import`    | POST    | .sqlite-Datei hochladen und Datenbank ersetzen          |
 | `/api/db-backups/exportAll` | GET     | Vollständige Sicherung als .tar.gz-Archiv herunterladen |
 
 ### Cloud-Synchronisierung
@@ -960,32 +961,32 @@ CLI-Antworten enthalten: `installed`, `runnable`, `command`, `commandPath`, `run
 
 ### ACP-Agenten
 
-| Endpunkt          | Methode | Beschreibung                                                                 |
-| ----------------- | ------- | ---------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET     | Alle erkannten Agenten (integriert + benutzerdefiniert) mit Status auflisten |
-| `/api/acp/agents` | POST    | Benutzerdefinierten Agenten hinzufügen oder Erkennungs-Cache aktualisieren   |
-| `/api/acp/agents` | DELETE  | Benutzerdefinierten Agenten anhand des Abfrageparameters `id` entfernen      |
+| Endpunkt          | Methode | Beschreibung                                                                     |
+| ----------------- | ------- | -------------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET     | Alle erkannten Agenten (integrierte und benutzerdefinierte) mit Status auflisten |
+| `/api/acp/agents` | POST    | Benutzerdefinierten Agenten hinzufügen oder Erkennungs-Cache aktualisieren       |
+| `/api/acp/agents` | DELETE  | Benutzerdefinierten Agenten über den Abfrageparameter `id` entfernen             |
 
 Die GET-Antwort enthält `agents[]` (id, name, binary, version, installed, protocol, isCustom) und `summary` (total, installed, notFound, builtIn, custom).
 
-### Ausfallsicherheit & Ratenbegrenzungen
+### Ausfallsicherheit und Ratenbegrenzungen
 
-| Endpunkt                          | Methode   | Beschreibung                                                                                                     |
-| --------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Anfragewarteschlange, Verbindungs-Cooldown, Anbieter-Schutzschalter und Warteeinstellungen abrufen/aktualisieren |
-| `/api/resilience/reset`           | POST      | Anbieter-Schutzschalter zurücksetzen                                                                             |
-| `/api/resilience/model-cooldowns` | GET       | Aktive Sperren pro (Anbieter, Verbindung, Modell), sortiert nach verbleibender Zeit, auflisten                   |
-| `/api/resilience/model-cooldowns` | DELETE    | Modellsperre aufheben — Body `{provider, model}` oder `{all: true}`, um alles zu löschen                         |
-| `/api/rate-limits`                | GET       | Ratenbegrenzungsstatus pro Konto                                                                                 |
-| `/api/rate-limit`                 | GET       | Globale Ratenbegrenzungskonfiguration                                                                            |
+| Endpunkt                          | Methode   | Beschreibung                                                                                                        |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Anfragewarteschlange, Verbindungs-Abklingzeit, Anbieter-Schutzschalter und Warteeinstellungen abrufen/aktualisieren |
+| `/api/resilience/reset`           | POST      | Anbieter-Schutzschalter zurücksetzen                                                                                |
+| `/api/resilience/model-cooldowns` | GET       | Aktive Sperren pro (Anbieter, Verbindung, Modell), sortiert nach verbleibender Zeit, auflisten                      |
+| `/api/resilience/model-cooldowns` | DELETE    | Modellsperre aufheben — Body `{provider, model}` oder `{all: true}`, um alles zu löschen                            |
+| `/api/rate-limits`                | GET       | Ratenbegrenzungsstatus pro Konto                                                                                    |
+| `/api/rate-limit`                 | GET       | Globale Ratenbegrenzungskonfiguration                                                                               |
 
-> Alle vier `/api/resilience/*`-Routen erfordern eine **Verwaltungsauthentifizierung** (`requireManagementAuth`). Eine vollständige Aufschlüsselung von Anbieter-Schutzschalter, Verbindungs-Cooldown und Modellsperre finden Sie unter [Ausfallsicherheit (erweitert)](#resilience-extended).
+> Alle vier `/api/resilience/*`-Routen erfordern eine **Verwaltungsauthentifizierung** (`requireManagementAuth`). Eine vollständige Aufschlüsselung von Anbieter-Schutzschalter, Verbindungs-Abklingzeit und Modellsperre finden Sie unter [Ausfallsicherheit (erweitert)](#resilience-extended).
 
 ### Evaluierungen
 
-| Endpunkt     | Methode  | Beschreibung                                             |
-| ------------ | -------- | -------------------------------------------------------- |
-| `/api/evals` | GET/POST | Evaluierungssammlungen auflisten / Evaluierung ausführen |
+| Endpunkt     | Methode  | Beschreibung                                           |
+| ------------ | -------- | ------------------------------------------------------ |
+| `/api/evals` | GET/POST | Evaluierungssammlungen auflisten/Evaluierung ausführen |
 
 ### Richtlinien
 
@@ -1008,17 +1009,17 @@ Die GET-Antwort enthält `agents[]` (id, name, binary, version, installed, proto
 
 Diese Endpunkte spiegeln das API-Format von Gemini für Clients wider, die native Kompatibilität mit dem Gemini SDK erwarten.
 
-### Interne / System-APIs
+### Interne/System-APIs
 
-| Endpunkt                 | Methode | Beschreibung                                                             |
-| ------------------------ | ------- | ------------------------------------------------------------------------ |
-| `/api/init`              | GET     | Prüfung der Anwendungsinitialisierung (wird beim ersten Start verwendet) |
-| `/api/tags`              | GET     | Ollama-kompatible Modell-Tags (für Ollama-Clients)                       |
-| `/api/restart`           | POST    | Geordneten Neustart des Servers auslösen                                 |
-| `/api/shutdown`          | POST    | Geordnetes Herunterfahren des Servers auslösen                           |
-| `/api/system/env/repair` | POST    | Umgebungsvariablen des OAuth-Anbieters reparieren                        |
+| Endpunkt                 | Methode | Beschreibung                                              |
+| ------------------------ | ------- | --------------------------------------------------------- |
+| `/api/init`              | GET     | Prüfung der Anwendungsinitialisierung (beim ersten Start) |
+| `/api/tags`              | GET     | Ollama-kompatible Modell-Tags (für Ollama-Clients)        |
+| `/api/restart`           | POST    | Ordnungsgemäßen Neustart des Servers auslösen             |
+| `/api/shutdown`          | POST    | Ordnungsgemäßes Herunterfahren des Servers auslösen       |
+| `/api/system/env/repair` | POST    | Umgebungsvariablen des OAuth-Anbieters reparieren         |
 
-> **Hinweis:** Diese Endpunkte werden intern vom System oder zur Kompatibilität mit Ollama-Clients verwendet. Sie werden üblicherweise nicht von Endbenutzern aufgerufen.
+> **Hinweis:** Diese Endpunkte werden intern vom System oder zur Kompatibilität mit Ollama-Clients verwendet. Sie werden normalerweise nicht von Endbenutzern aufgerufen.
 
 ### Reparatur der OAuth-Umgebung _(v3.6.1+)_
 
