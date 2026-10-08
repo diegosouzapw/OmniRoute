@@ -13,6 +13,7 @@ import {
 } from "../accountFallback.ts";
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { checkCredentialGate, logCredentialSkip } from "../credentialGate.ts";
+import { stopProtectedPriorityTarget as stopPriorityTarget } from "./executeTargetClassify.ts";
 import { errorResponse } from "../../utils/error.ts";
 import {
   getCircuitBreaker,
@@ -31,7 +32,6 @@ import {
   resolvePersistedConnectionCooldownSkipReason,
 } from "./comboPredicates.ts";
 import { resolveQuotaExhaustionCutoffForTarget } from "./quotaExhaustionCutoff.ts";
-import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
@@ -112,21 +112,15 @@ export async function evaluateExecuteTargetGates(opts: {
   const protectedPriorityTarget =
     deps.strategy === "priority" && target.fallbackOnlyOnQuotaExhaustion === true;
 
-  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) => {
-    state.observeFailure(false, target.executionKey);
-    deps.clearStaleLKGP(
-      deps.combo.name,
-      target.executionKey,
-      deps.combo.id,
-      deps.log,
-      "COMBO",
-      undefined,
-      target
-    );
-    return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
-      : null;
-  };
+  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
+    stopPriorityTarget({
+      protectedPriorityTarget,
+      state,
+      deps,
+      target,
+      message,
+      cause,
+    });
 
   // Lift-as-is from combo.ts executeTarget: only count a fallback when
   // this is not the first ordered target. Do not change the condition.

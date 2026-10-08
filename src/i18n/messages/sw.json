@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Hali ya huduma ya Codex kwa ufunguo huu wa API",
+    "description": "Inatumika kwa maombi ya Codex, ikijumuisha miundo ya Codex iliyo ndani ya michanganyiko. Hali zilizolazimishwa hubatilisha mipangilio ya mteja, mipangilio ya jumla na chaguo-msingi za muunganisho. Watoa huduma wengine hawabadiliki.",
+    "label": "Hali ya huduma",
+    "inherit": "Tumia tabia iliyopo",
+    "default": "Lazimisha Standard (chaguo-msingi)",
+    "priority": "Lazimisha Fast / Priority",
+    "flex": "Lazimisha Flex",
+    "warning": "Hii haitoi idhini ya kufikia mtoa huduma. Upatikanaji, gharama na matumizi ya kiwango maalum hutegemea akaunti na muundo wako wa Codex. Hali zilizolazimishwa zinahitaji usafirishaji wa HTTP au Responses WebSocket; maombi ya app-server yanakataliwa.",
+    "confirm": "Ungependa kutumia “{mode}” kwa ufunguo huu wa API? Hii itaanza kutumika kwa maombi yanayofuata.",
+    "save": "Hifadhi hali",
+    "retry": "Jaribu tena",
+    "loadError": "Haikuwezekana kupakia hali ya huduma iliyohifadhiwa.",
+    "saveError": "Haikuwezekana kuhifadhi hali ya huduma. Tafadhali jaribu tena."
+  },
   "common": {
     "save": "Hifadhi",
     "cancel": "Ghairi",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Uchanganuzi",
     "usageAnalyticsTitle": "Uchambuzi wa Matumizi",
+    "tokenDisplayCompact": "Fupi",
+    "tokenDisplayExact": "Kamili",
+    "tokenDisplayMode": "Hali ya Kuonyesha Tokeni",
     "diversityScoreTitle": "Utofauti wa Watoa Huduma",
     "diversityScoreDesc": "Picha ya haraka ya mkusanyiko wa watoa huduma kwa dirisha la hivi karibuni la trafiki.",
     "diversityShannonEntropy": "Entropia ya Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Inatumika",
     "showModel": "Onyesha modeli",
     "hideModel": "Ficha modeli",
+    "blacklistModel": "Zuia",
+    "blacklistModelTooltip": "Zuia modeli hii na uifiche kwenye orodha",
     "removeModel": "Ondoa modeli",
     "rateLimitProtected": "Imelindwa",
     "rateLimitUnprotected": "Haijalindwa",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Mipangilio",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Imesasishwa",
     "lastRefreshed": "Ilihuishwa mara ya mwisho",
     "providerQuota": "Kiwango cha Mtoa Huduma",
-    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa"
+    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Inasubiri Uidhinishaji",

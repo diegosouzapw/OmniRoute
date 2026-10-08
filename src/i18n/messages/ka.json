@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex სერვისის რეჟიმი ამ API გასაღებისთვის",
+    "description": "ვრცელდება Codex მოთხოვნებზე, მათ შორის კომბინაციებში შემავალ Codex მოდელებზე. იძულებით განსაზღვრული რეჟიმები უპირატესია კლიენტის, გლობალურ პარამეტრებსა და კავშირის ნაგულისხმევ პარამეტრებზე. სხვა პროვაიდერები უცვლელი რჩება.",
+    "label": "სერვისის რეჟიმი",
+    "inherit": "არსებული ქცევის მემკვიდრეობით მიღება",
+    "default": "Standard რეჟიმის იძულებით გამოყენება (ნაგულისხმევი)",
+    "priority": "Fast / Priority რეჟიმის იძულებით გამოყენება",
+    "flex": "Flex რეჟიმის იძულებით გამოყენება",
+    "warning": "ეს პროვაიდერთან წვდომას არ გაძლევთ. ხელმისაწვდომობა, საფასური და კვოტის მოხმარება დამოკიდებულია თქვენს Codex ანგარიშსა და მოდელზე. იძულებით განსაზღვრული რეჟიმებისთვის საჭიროა HTTP ან Responses WebSocket ტრანსპორტი; app-server მოთხოვნები უარყოფილია.",
+    "confirm": "გამოვიყენოთ „{mode}“ ამ API გასაღებისთვის? ცვლილება ძალაში შევა მომდევნო მოთხოვნებისთვის.",
+    "save": "რეჟიმის შენახვა",
+    "retry": "ხელახლა ცდა",
+    "loadError": "შენახული სერვისის რეჟიმის ჩატვირთვა ვერ მოხერხდა.",
+    "saveError": "სერვისის რეჟიმის შენახვა ვერ მოხერხდა. გთხოვთ, ხელახლა სცადოთ."
+  },
   "common": {
     "save": "შენახვა",
     "cancel": "გაუქმება",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "ანალიტიკა",
     "usageAnalyticsTitle": "გამოყენების ანალიტიკა",
+    "tokenDisplayCompact": "კომპაქტური",
+    "tokenDisplayExact": "ზუსტი",
+    "tokenDisplayMode": "ტოკენების ჩვენების რეჟიმი",
     "diversityScoreTitle": "პროვაიდერების მრავალფეროვნება",
     "diversityScoreDesc": "პროვაიდერების კონცენტრაციის სურათი ტრაფიკის ბოლო პერიოდისთვის.",
     "diversityShannonEntropy": "შენონის ენტროპია",
@@ -5572,6 +5590,8 @@
     "modelsActive": "აქტიური",
     "showModel": "მოდელის ჩვენება",
     "hideModel": "მოდელის დამალვა",
+    "blacklistModel": "დაბლოკვა",
+    "blacklistModelTooltip": "დაბლოკე ეს მოდელი და დამალე კატალოგიდან",
     "removeModel": "მოდელის წაშლა",
     "rateLimitProtected": "დაცული",
     "rateLimitUnprotected": "დაუცველი",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "როდესაც ეს ანგარიში 5-საათიანი გამოყენების ლიმიტს მიაღწევს და Anthropic უფრო დაბალი პრიორიტეტის რეჟიმს შესთავაზებს, OmniRoute მას მიიღებს და ფანჯრის განახლებამდე მოთხოვნების გაგზავნას anthropic-usage-limit: slow პარამეტრით გააგრძელებს, ნაცვლად კავშირის დროებით შეჩერებისა. ყოველკვირეული ლიმიტი კვლავ მოქმედებს და პასუხებს შესაძლოა თავისუფალი სიმძლავრის გამოჩენამდე მოცდა დასჭირდეს.",
     "claudeAutoLimitResetLabel": "სესიის ლიმიტის ავტომატურად განულება (კვირაში ერთხელ)",
     "claudeAutoLimitResetDescription": "როდესაც ეს ანგარიში 5-საათიანი გამოყენების ლიმიტს მიაღწევს და სესიის ლიმიტის განულება ხელმისაწვდომი იქნება, OmniRoute მას ავტომატურად გამოიყენებს და მოთხოვნას სრული სიჩქარით ხელახლა გაგზავნის. ეს გამოიყენებს ანგარიშისთვის კვირაში ერთხელ ხელმისაწვდომ განულებას და გამოყენება კვლავ ჩაითვლება ყოველკვირეულ ლიმიტში.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "გამოტოვეთ დროებითი დაყოვნების პერიოდი, რათა ეს კავშირი აღდგენადი შეცდომების შემდეგაც ხელმისაწვდომი დარჩეს (ტერმინალური მდგომარეობები, როგორიცაა დაბლოკილი/ვადაგასული, კვლავ მოქმედებს).",
     "disableCoolingLabel": "ამ კავშირისთვის დაყოვნების პერიოდის გამორთვა",
     "bulkPasteAdded": "{count, plural, one {დამატებულია 1 გასაღები} other {დამატებულია # გასაღები}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "ნაკადის გარდაქმნა ვერ მოხერხდა"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "გამოყენება",
     "grokExtraUsageCredits": "დამატებითი გამოყენების კრედიტები",
     "grokAutoTopUp": "ავტომატური შევსება",

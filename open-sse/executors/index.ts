@@ -184,6 +184,10 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
   "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
   cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
+  twinmind: () => import("./twinmind.ts").then((m) => new m.TwinmindExecutor()),
+  tm: () => import("./twinmind.ts").then((m) => new m.TwinmindExecutor()), // Alias
+  syntx: () => import("./syntx.ts").then((m) => new m.SyntxExecutor()),
+  stx: () => import("./syntx.ts").then((m) => new m.SyntxExecutor()), // Alias
   chatplayground: () => import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor()),
   cpl: () =>
     import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor("chatplayground")), // Alias

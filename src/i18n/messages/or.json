@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ଏହି API କୀ ପାଇଁ Codex ସେବା ମୋଡ୍",
+    "description": "କମ୍ବୋ ଭିତରେ ଥିବା Codex ମଡେଲ୍ଗୁଡ଼ିକ ସମେତ Codex ଅନୁରୋଧଗୁଡ଼ିକ ପାଇଁ ପ୍ରଯୁଜ୍ୟ। ବାଧ୍ୟତାମୂଳକ ମୋଡ୍ଗୁଡ଼ିକ କ୍ଲାଏଣ୍ଟ, ଗ୍ଲୋବାଲ୍ ସେଟିଂସ୍ ଏବଂ କନେକ୍ସନ୍ ଡିଫଲ୍ଟଗୁଡ଼ିକୁ ଅଗ୍ରାହ୍ୟ କରେ। ଅନ୍ୟ ପ୍ରଦାନକାରୀମାନେ ଅପରିବର୍ତ୍ତିତ ରହନ୍ତି।",
+    "label": "ସେବା ମୋଡ୍",
+    "inherit": "ବର୍ତ୍ତମାନର ଆଚରଣ ଉତ୍ତରାଧିକାର କରନ୍ତୁ",
+    "default": "Standardକୁ ବାଧ୍ୟତାମୂଳକ କରନ୍ତୁ (ଡିଫଲ୍ଟ)",
+    "priority": "Fast / Priorityକୁ ବାଧ୍ୟତାମୂଳକ କରନ୍ତୁ",
+    "flex": "Flexକୁ ବାଧ୍ୟତାମୂଳକ କରନ୍ତୁ",
+    "warning": "ଏହା ପ୍ରଦାନକାରୀ ଆକ୍ସେସ୍ ପ୍ରଦାନ କରେ ନାହିଁ। ଉପଲବ୍ଧତା, ଶୁଳ୍କ ଏବଂ କୋଟା ବ୍ୟବହାର ଆପଣଙ୍କ Codex ଆକାଉଣ୍ଟ ଏବଂ ମଡେଲ୍ ଉପରେ ନିର୍ଭର କରେ। ବାଧ୍ୟତାମୂଳକ ମୋଡ୍ଗୁଡ଼ିକ ପାଇଁ HTTP କିମ୍ବା Responses WebSocket ଟ୍ରାନ୍ସପୋର୍ଟ ଆବଶ୍ୟକ; app-server ଅନୁରୋଧଗୁଡ଼ିକ ପ୍ରତ୍ୟାଖ୍ୟାନ କରାଯାଏ।",
+    "confirm": "ଏହି API କୀ ପାଇଁ “{mode}” ପ୍ରୟୋଗ କରିବେ କି? ଏହା ପରବର୍ତ୍ତୀ ଅନୁରୋଧଗୁଡ଼ିକ ପାଇଁ କାର୍ଯ୍ୟକାରୀ ହେବ।",
+    "save": "ମୋଡ୍ ସଂରକ୍ଷଣ କରନ୍ତୁ",
+    "retry": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+    "loadError": "ସଂରକ୍ଷିତ ସେବା ମୋଡ୍ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ।",
+    "saveError": "ସେବା ମୋଡ୍ ସଂରକ୍ଷଣ କରାଯାଇପାରିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"
+  },
   "common": {
     "save": "ସଞ୍ଚୟ କରନ୍ତୁ",
     "cancel": "ବାତିଲ କରନ୍ତୁ",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "ବିଶ୍ଳେଷଣ",
     "usageAnalyticsTitle": "ବ୍ୟବହାର ବିଶ୍ଳେଷଣ",
+    "tokenDisplayCompact": "ସଂକ୍ଷିପ୍ତ",
+    "tokenDisplayExact": "ସଠିକ୍",
+    "tokenDisplayMode": "ଟୋକେନ୍ ପ୍ରଦର୍ଶନ ମୋଡ୍",
     "diversityScoreTitle": "ପ୍ରଦାନକାରୀ ବିବିଧତା",
     "diversityScoreDesc": "ସାମ୍ପ୍ରତିକ ଟ୍ରାଫିକ୍ ସମୟସୀମା ପାଇଁ ପ୍ରଦାନକାରୀଙ୍କ ଏକାଗ୍ରତାର ସଂକ୍ଷିପ୍ତ ଚିତ୍ର।",
     "diversityShannonEntropy": "ଶାନନ୍ ଏଣ୍ଟ୍ରୋପି",
@@ -5572,6 +5590,8 @@
     "modelsActive": "ସକ୍ରିୟ",
     "showModel": "ମଡେଲ୍ ଦେଖାନ୍ତୁ",
     "hideModel": "ମଡେଲ୍ ଲୁଚାନ୍ତୁ",
+    "blacklistModel": "ବ୍ଲକ୍",
+    "blacklistModelTooltip": "ଏହି ମଡେଲକୁ ବ୍ଲକ୍ କରି କାଟାଲଗରୁ ଲୁଚାନ୍ତୁ",
     "removeModel": "ମଡେଲ୍ ହଟାନ୍ତୁ",
     "rateLimitProtected": "ସୁରକ୍ଷିତ",
     "rateLimitUnprotected": "ଅସୁରକ୍ଷିତ",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ଏହି ଆକାଉଣ୍ଟ ତାହାର 5-ଘଣ୍ଟିଆ ବ୍ୟବହାର ସୀମାରେ ପହଞ୍ଚିଲେ ଏବଂ Anthropic କମ୍-ପ୍ରାଥମିକତା ଲେନ୍ ପ୍ରଦାନ କଲେ, OmniRoute ଏହାକୁ ଗ୍ରହଣ କରେ ଏବଂ ସଂଯୋଗକୁ ବିରାମ ଦେବା ପରିବର୍ତ୍ତେ ୱିଣ୍ଡୋ ରିସେଟ୍ ହେବା ପର୍ଯ୍ୟନ୍ତ anthropic-usage-limit: slow ସହିତ ଅନୁରୋଧ ପଠାଇବା ଜାରି ରଖେ। ସାପ୍ତାହିକ ସୀମା ତଥାପି ପ୍ରଯୁଜ୍ୟ ହୁଏ ଏବଂ ଅତିରିକ୍ତ କ୍ଷମତା ଉପଲବ୍ଧ ହେବା ପର୍ଯ୍ୟନ୍ତ ପ୍ରତିକ୍ରିୟାଗୁଡ଼ିକୁ ଅପେକ୍ଷା କରିବାକୁ ପଡ଼ିପାରେ।",
     "claudeAutoLimitResetLabel": "ସେସନ୍ ସୀମାକୁ ସ୍ୱତଃ-ରିସେଟ୍ କରନ୍ତୁ (ସପ୍ତାହକୁ ଥରେ)",
     "claudeAutoLimitResetDescription": "ଏହି ଆକାଉଣ୍ଟ ତାହାର 5-ଘଣ୍ଟିଆ ବ୍ୟବହାର ସୀମାରେ ପହଞ୍ଚିଲେ ଏବଂ ସେସନ୍-ସୀମା ରିସେଟ୍ ଉପଲବ୍ଧ ଥିଲେ, OmniRoute ଏହାକୁ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଦାବି କରେ ଏବଂ ପୂର୍ଣ୍ଣ ବେଗରେ ପୁନଃଚେଷ୍ଟା କରେ। ଏହା ଆକାଉଣ୍ଟର ସପ୍ତାହକୁ-ଥରେ ମିଳୁଥିବା ରିସେଟ୍କୁ ବ୍ୟବହାର କରେ ଏବଂ ତଥାପି ସାପ୍ତାହିକ ସୀମାରେ ଗଣାଯାଏ।",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "ଅସ୍ଥାୟୀ କୁଲଡାଉନ୍କୁ ଏଡ଼ାଇ ଯାଆନ୍ତୁ, ଯାହାଦ୍ୱାରା ପୁନରୁଦ୍ଧାରଯୋଗ୍ୟ ତ୍ରୁଟି ପରେ ମଧ୍ୟ ଏହି ସଂଯୋଗ ଯୋଗ୍ୟ ରହିବ (ନିଷିଦ୍ଧ/ମିଆଦ ସମାପ୍ତ ପରି ଅନ୍ତିମ ଅବସ୍ଥାଗୁଡ଼ିକ ତଥାପି ଲାଗୁ ହେବ)।",
     "disableCoolingLabel": "ଏହି ସଂଯୋଗ ପାଇଁ କୁଲଡାଉନ୍ ଅକ୍ଷମ କରନ୍ତୁ",
     "bulkPasteAdded": "{count, plural, one {1ଟି କୀ ଯୋଡ଼ାଗଲା} other {#ଟି କୀ ଯୋଡ଼ାଗଲା}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "ଷ୍ଟ୍ରିମ୍ ରୂପାନ୍ତର କରିବାରେ ବିଫଳ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ବ୍ୟବହାର",
     "grokExtraUsageCredits": "ଅତିରିକ୍ତ ବ୍ୟବହାର କ୍ରେଡିଟ୍",
     "grokAutoTopUp": "ସ୍ୱୟଂଚାଳିତ ଟପ୍-ଅପ୍",

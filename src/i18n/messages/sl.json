@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Način storitve Codex za ta ključ API",
+    "description": "Velja za zahteve Codex, vključno z modeli Codex znotraj kombinacij. Vsiljeni načini preglasijo odjemalca, globalne nastavitve in privzete nastavitve povezave. Drugi ponudniki ostanejo nespremenjeni.",
+    "label": "Način storitve",
+    "inherit": "Podeduj obstoječe vedenje",
+    "default": "Vsili Standard (privzeto)",
+    "priority": "Vsili Fast / Priority",
+    "flex": "Vsili Flex",
+    "warning": "To ne omogoča dostopa do ponudnika. Razpoložljivost, stroški in poraba kvote so odvisni od vašega računa Codex in modela. Vsiljeni načini zahtevajo prenos prek HTTP ali Responses WebSocket; zahteve app-server so zavrnjene.",
+    "confirm": "Želite za ta ključ API uporabiti »{mode}«? Sprememba začne veljati za naslednje zahteve.",
+    "save": "Shrani način",
+    "retry": "Poskusi znova",
+    "loadError": "Shranjenega načina storitve ni bilo mogoče naložiti.",
+    "saveError": "Načina storitve ni bilo mogoče shraniti. Poskusite znova."
+  },
   "common": {
     "save": "Shrani",
     "cancel": "Prekliči",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Analitika uporabe",
+    "tokenDisplayCompact": "Strnjeno",
+    "tokenDisplayExact": "Natančno",
+    "tokenDisplayMode": "Način prikaza žetonov",
     "diversityScoreTitle": "Raznolikost ponudnikov",
     "diversityScoreDesc": "Pregled koncentracije ponudnikov v nedavnem obdobju prometa.",
     "diversityShannonEntropy": "Shannonova entropija",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Aktiven",
     "showModel": "Prikaži model",
     "hideModel": "Skrij model",
+    "blacklistModel": "Blokiraj",
+    "blacklistModelTooltip": "Blokiraj ta model in ga skrij iz kataloga",
     "removeModel": "Odstrani model",
     "rateLimitProtected": "Zaščiten",
     "rateLimitUnprotected": "Nezaščiten",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Nastavitve",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Posodobljeno",
     "lastRefreshed": "Nazadnje osveženo",
     "providerQuota": "Kvota ponudnika",
-    "providerQuotaHomeHint": "Stanje povezanih računov v živo"
+    "providerQuotaHomeHint": "Stanje povezanih računov v živo",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Čakanje na avtorizacijo",

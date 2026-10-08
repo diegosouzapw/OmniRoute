@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Режим на услугата Codex за този API ключ",
+    "description": "Прилага се за заявки към Codex, включително за модели Codex в комбинации. Принудително зададените режими имат предимство пред настройките на клиента, глобалните настройки и настройките по подразбиране на връзката. Другите доставчици остават непроменени.",
+    "label": "Режим на услугата",
+    "inherit": "Наследяване на съществуващото поведение",
+    "default": "Принудително задаване на Standard (по подразбиране)",
+    "priority": "Принудително задаване на Fast / Priority",
+    "flex": "Принудително задаване на Flex",
+    "warning": "Това не предоставя достъп до доставчика. Наличността, таксите и използването на квотата зависят от вашия Codex акаунт и модел. Принудително зададените режими изискват HTTP или Responses WebSocket транспорт; заявките чрез app-server се отхвърлят.",
+    "confirm": "Да се приложи ли „{mode}“ към този API ключ? Промяната ще влезе в сила за следващите заявки.",
+    "save": "Запазване на режима",
+    "retry": "Повторен опит",
+    "loadError": "Запазеният режим на услугата не можа да бъде зареден.",
+    "saveError": "Режимът на услугата не можа да бъде запазен. Моля, опитайте отново."
+  },
   "common": {
     "save": "Запазване",
     "cancel": "Отказ",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Анализ",
     "usageAnalyticsTitle": "Анализ на потреблението",
+    "tokenDisplayCompact": "Компактно",
+    "tokenDisplayExact": "Точно",
+    "tokenDisplayMode": "Режим на показване на токени",
     "diversityScoreTitle": "Разнообразие на доставчиците",
     "diversityScoreDesc": "Моментна снимка на концентрацията на доставчици за последния прозорец на трафика.",
     "diversityShannonEntropy": "Ентропия на Шанън",
@@ -5572,6 +5590,8 @@
     "modelsActive": "активни",
     "showModel": "Показване на модел",
     "hideModel": "Скриване на модел",
+    "blacklistModel": "Блокирай",
+    "blacklistModelTooltip": "Блокирай този модел и го скрий от каталога",
     "removeModel": "Премахване на модела",
     "rateLimitProtected": "Защитен",
     "rateLimitUnprotected": "Незащитен",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Настройки",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Актуализирано",
     "lastRefreshed": "Последно опреснено",
     "providerQuota": "Квота на доставчика",
-    "providerQuotaHomeHint": "Статус в реално време за свързаните акаунти"
+    "providerQuotaHomeHint": "Статус в реално време за свързаните акаунти",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Изчакване на разрешение",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Režim služby Codex pre tento kľúč API",
+    "description": "Vzťahuje sa na požiadavky Codex vrátane modelov Codex v kombináciách. Vynútené režimy majú prednosť pred klientom, globálnymi nastaveniami a predvolenými nastaveniami pripojenia. Ostatní poskytovatelia zostávajú nezmenení.",
+    "label": "Režim služby",
+    "inherit": "Zdediť existujúce správanie",
+    "default": "Vynútiť Standard (predvolené)",
+    "priority": "Vynútiť Fast / Priority",
+    "flex": "Vynútiť Flex",
+    "warning": "Týmto sa neudeľuje prístup k poskytovateľovi. Dostupnosť, poplatky a čerpanie kvóty závisia od vášho účtu Codex a modelu. Vynútené režimy vyžadujú prenos cez HTTP alebo Responses WebSocket; požiadavky app-server sú odmietnuté.",
+    "confirm": "Použiť režim „{mode}“ pre tento kľúč API? Zmena sa prejaví pri nasledujúcich požiadavkách.",
+    "save": "Uložiť režim",
+    "retry": "Skúsiť znova",
+    "loadError": "Uložený režim služby sa nepodarilo načítať.",
+    "saveError": "Režim služby sa nepodarilo uložiť. Skúste to znova."
+  },
   "common": {
     "save": "Uložiť",
     "cancel": "Zrušiť",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analytika",
     "usageAnalyticsTitle": "Analytika využitia",
+    "tokenDisplayCompact": "Kompaktné",
+    "tokenDisplayExact": "Presné",
+    "tokenDisplayMode": "Režim zobrazenia tokenov",
     "diversityScoreTitle": "Diverzita poskytovateľov",
     "diversityScoreDesc": "Snímka koncentrácie poskytovateľov pre nedávne okno prevádzky.",
     "diversityShannonEntropy": "Shannonova entropia",
@@ -5572,6 +5590,8 @@
     "modelsActive": "aktívne",
     "showModel": "Zobraziť model",
     "hideModel": "Skryť model",
+    "blacklistModel": "Blokovať",
+    "blacklistModelTooltip": "Blokovať tento model a skryť ho z katalógu",
     "removeModel": "Odstráňte model",
     "rateLimitProtected": "Chránené",
     "rateLimitUnprotected": "Nechránené",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Nastavenia",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Aktualizované",
     "lastRefreshed": "Naposledy obnovené",
     "providerQuota": "Kvóta poskytovateľa",
-    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami"
+    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Čaká sa na autorizáciu",

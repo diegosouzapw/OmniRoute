@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ಈ API ಕೀಗಾಗಿ Codex ಸೇವಾ ಮೋಡ್",
+    "description": "ಕಾಂಬೊಗಳಲ್ಲಿರುವ Codex ಮಾದರಿಗಳನ್ನು ಒಳಗೊಂಡಂತೆ, Codex ವಿನಂತಿಗಳಿಗೆ ಅನ್ವಯಿಸುತ್ತದೆ. ಬಲವಂತವಾಗಿ ಹೊಂದಿಸಲಾದ ಮೋಡ್ಗಳು ಕ್ಲೈಂಟ್, ಜಾಗತಿಕ ಸೆಟ್ಟಿಂಗ್ಗಳು ಮತ್ತು ಸಂಪರ್ಕದ ಡೀಫಾಲ್ಟ್ಗಳನ್ನು ಅತಿಕ್ರಮಿಸುತ್ತವೆ. ಇತರ ಪೂರೈಕೆದಾರರು ಬದಲಾಗುವುದಿಲ್ಲ.",
+    "label": "ಸೇವಾ ಮೋಡ್",
+    "inherit": "ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ನಡವಳಿಕೆಯನ್ನು ಆನುವಂಶಿಕವಾಗಿ ಪಡೆಯಿರಿ",
+    "default": "Standard ಅನ್ನು ಬಲವಂತವಾಗಿ ಬಳಸಿ (ಡೀಫಾಲ್ಟ್)",
+    "priority": "Fast / Priority ಅನ್ನು ಬಲವಂತವಾಗಿ ಬಳಸಿ",
+    "flex": "Flex ಅನ್ನು ಬಲವಂತವಾಗಿ ಬಳಸಿ",
+    "warning": "ಇದು ಪೂರೈಕೆದಾರರ ಪ್ರವೇಶವನ್ನು ನೀಡುವುದಿಲ್ಲ. ಲಭ್ಯತೆ, ಶುಲ್ಕಗಳು ಮತ್ತು ಕೋಟಾ ಬಳಕೆಯು ನಿಮ್ಮ Codex ಖಾತೆ ಮತ್ತು ಮಾದರಿಯನ್ನು ಅವಲಂಬಿಸಿರುತ್ತದೆ. ಬಲವಂತವಾಗಿ ಹೊಂದಿಸಲಾದ ಮೋಡ್ಗಳಿಗೆ HTTP ಅಥವಾ Responses WebSocket ಸಾರಿಗೆ ಅಗತ್ಯವಿದೆ; app-server ವಿನಂತಿಗಳನ್ನು ತಿರಸ್ಕರಿಸಲಾಗುತ್ತದೆ.",
+    "confirm": "ಈ API ಕೀಗೆ “{mode}” ಅನ್ನು ಅನ್ವಯಿಸುವುದೇ? ಇದು ನಂತರದ ವಿನಂತಿಗಳಿಗೆ ಜಾರಿಗೆ ಬರುತ್ತದೆ.",
+    "save": "ಮೋಡ್ ಉಳಿಸಿ",
+    "retry": "ಮರುಪ್ರಯತ್ನಿಸಿ",
+    "loadError": "ಉಳಿಸಿದ ಸೇವಾ ಮೋಡ್ ಅನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+    "saveError": "ಸೇವಾ ಮೋಡ್ ಅನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+  },
   "common": {
     "save": "ಉಳಿಸಿ",
     "cancel": "ರದ್ದು ಮಾಡಿ",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "ವಿಶ್ಲೇಷಣೆ",
     "usageAnalyticsTitle": "ಬಳಕೆ ವಿಶ್ಲೇಷಣೆ",
+    "tokenDisplayCompact": "ಸಂಕ್ಷಿಪ್ತ",
+    "tokenDisplayExact": "ನಿಖರ",
+    "tokenDisplayMode": "ಟೋಕನ್ ಪ್ರದರ್ಶನ ಮೋಡ್",
     "diversityScoreTitle": "ಪ್ರೊವೈಡರ್ ವೈವಿಧ್ಯತೆ",
     "diversityScoreDesc": "ಇತ್ತೀಚಿನ ಟ್ರಾಫಿಕ್ ವಿಂಡೋದಲ್ಲಿನ ಪ್ರೊವೈಡರ್ ಸಾಂದ್ರತೆಯ ಸ್ನ್ಯಾಪ್ಶಾಟ್.",
     "diversityShannonEntropy": "ಶ್ಯಾನನ್ ಎಂಟ್ರೋಪಿ",
@@ -5572,6 +5590,8 @@
     "modelsActive": "ಸಕ್ರಿಯ",
     "showModel": "ಮಾದರಿಯನ್ನು ತೋರಿಸಿ",
     "hideModel": "ಮಾದರಿಯನ್ನು ಮರೆಮಾಡಿ",
+    "blacklistModel": "ನಿರ್ಬಂಧ",
+    "blacklistModelTooltip": "ಈ ಮಾದರಿಯನ್ನು ನಿರ್ಬಂಧಿಸಿ ಮತ್ತು ಕ್ಯಾಟಲಾಗ್‌ನಿಂದ ಮರೆಮಾಡಿ",
     "removeModel": "ಮಾದರಿಯನ್ನು ತೆಗೆದುಹಾಕಿ",
     "rateLimitProtected": "ರಕ್ಷಿತ",
     "rateLimitUnprotected": "ಅರಕ್ಷಿತ",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ಈ ಖಾತೆಯು ತನ್ನ 5-ಗಂಟೆಗಳ ಬಳಕೆ ಮಿತಿಯನ್ನು ತಲುಪಿದಾಗ ಮತ್ತು Anthropic ಕಡಿಮೆ-ಆದ್ಯತೆಯ ಲೇನ್ ಅನ್ನು ಒದಗಿಸಿದಾಗ, OmniRoute ಅದನ್ನು ಸ್ವೀಕರಿಸಿ ವಿಂಡೋ ಮರುಹೊಂದುವವರೆಗೆ anthropic-usage-limit: slow ಜೊತೆಗೆ ವಿನಂತಿಗಳನ್ನು ಕಳುಹಿಸುವುದನ್ನು ಮುಂದುವರಿಸುತ್ತದೆ; ಸಂಪರ್ಕವನ್ನು ತಾತ್ಕಾಲಿಕವಾಗಿ ನಿಲ್ಲಿಸುವುದಿಲ್ಲ. ವಾರದ ಮಿತಿ ಇನ್ನೂ ಅನ್ವಯಿಸುತ್ತದೆ ಮತ್ತು ಬಿಡುವಿನ ಸಾಮರ್ಥ್ಯ ಲಭ್ಯವಾಗುವವರೆಗೆ ಪ್ರತಿಕ್ರಿಯೆಗಳು ಕಾಯಬೇಕಾಗಬಹುದು.",
     "claudeAutoLimitResetLabel": "ಸೆಷನ್ ಮಿತಿಯನ್ನು ಸ್ವಯಂ-ಮರುಹೊಂದಿಸಿ (ವಾರಕ್ಕೊಮ್ಮೆ)",
     "claudeAutoLimitResetDescription": "ಈ ಖಾತೆಯು ತನ್ನ 5-ಗಂಟೆಗಳ ಬಳಕೆ ಮಿತಿಯನ್ನು ತಲುಪಿದಾಗ ಮತ್ತು ಸೆಷನ್-ಮಿತಿ ಮರುಹೊಂದಿಸುವಿಕೆ ಲಭ್ಯವಿದ್ದಾಗ, OmniRoute ಅದನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪಡೆದುಕೊಂಡು ಪೂರ್ಣ ವೇಗದಲ್ಲಿ ಮರುಪ್ರಯತ್ನಿಸುತ್ತದೆ. ಇದು ಖಾತೆಯ ವಾರಕ್ಕೊಮ್ಮೆ ಲಭ್ಯವಿರುವ ಮರುಹೊಂದಿಸುವಿಕೆಯನ್ನು ಬಳಸುತ್ತದೆ ಮತ್ತು ಇನ್ನೂ ವಾರದ ಮಿತಿಯ ಲೆಕ್ಕಕ್ಕೆ ಸೇರುತ್ತದೆ.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "ತಾತ್ಕಾಲಿಕ ಕೂಲ್ಡೌನ್ ಅನ್ನು ಬಿಟ್ಟುಬಿಡಿ, ಇದರಿಂದ ಮರುಪಡೆಯಬಹುದಾದ ದೋಷಗಳ ನಂತರವೂ ಈ ಸಂಪರ್ಕವು ಅರ್ಹವಾಗಿರುತ್ತದೆ (ನಿಷೇಧಿತ/ಅವಧಿ ಮುಗಿದಂತಹ ಅಂತಿಮ ಸ್ಥಿತಿಗಳು ಇನ್ನೂ ಅನ್ವಯಿಸುತ್ತವೆ).",
     "disableCoolingLabel": "ಈ ಸಂಪರ್ಕಕ್ಕಾಗಿ ಕೂಲ್ಡೌನ್ ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
     "bulkPasteAdded": "{count, plural, one {1 ಕೀ ಸೇರಿಸಲಾಗಿದೆ} other {# ಕೀಗಳನ್ನು ಸೇರಿಸಲಾಗಿದೆ}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "ಸ್ಟ್ರೀಮ್ ಅನ್ನು ಪರಿವರ್ತಿಸಲು ವಿಫಲವಾಗಿದೆ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ಬಳಕೆ",
     "grokExtraUsageCredits": "ಹೆಚ್ಚುವರಿ ಬಳಕೆಯ ಕ್ರೆಡಿಟ್ಗಳು",
     "grokAutoTopUp": "ಸ್ವಯಂ ಟಾಪ್-ಅಪ್",

@@ -13,10 +13,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { getFleetSkills } from "@/lib/conductor/fleetSkills";
 import { getBaseUrl } from "@/lib/wellKnown";
-
-const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
 
 /**
  * GET /.well-known/agent-card.json
@@ -34,7 +33,7 @@ export async function GET(request?: NextRequest) {
       "format translation, and auto-managed combos. Routes AI requests to the optimal " +
       "provider based on cost, latency, quota availability, and task requirements.",
     url: `${baseUrl}/a2a`,
-    version: PACKAGE_VERSION,
+    version: APP_CONFIG.version,
     supportedInterfaces: [
       {
         url: `${baseUrl}/a2a`,

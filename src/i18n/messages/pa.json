@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ਇਸ API ਕੁੰਜੀ ਲਈ Codex ਸੇਵਾ ਮੋਡ",
+    "description": "Codex ਬੇਨਤੀਆਂ 'ਤੇ ਲਾਗੂ ਹੁੰਦਾ ਹੈ, ਜਿਸ ਵਿੱਚ ਕੌਂਬੋਜ਼ ਦੇ ਅੰਦਰਲੇ Codex ਮਾਡਲ ਵੀ ਸ਼ਾਮਲ ਹਨ। ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕੀਤੇ ਮੋਡ ਕਲਾਇੰਟ, ਗਲੋਬਲ ਸੈਟਿੰਗਾਂ ਅਤੇ ਕਨੈਕਸ਼ਨ ਡਿਫੌਲਟਾਂ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦੇ ਹਨ। ਹੋਰ ਪ੍ਰਦਾਤਾ ਅਣਬਦਲੇ ਰਹਿੰਦੇ ਹਨ।",
+    "label": "ਸੇਵਾ ਮੋਡ",
+    "inherit": "ਮੌਜੂਦਾ ਵਿਹਾਰ ਵਿਰਾਸਤ ਵਿੱਚ ਲਓ",
+    "default": "Standard ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ (ਡਿਫੌਲਟ)",
+    "priority": "Fast / Priority ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ",
+    "flex": "Flex ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ",
+    "warning": "ਇਹ ਪ੍ਰਦਾਤਾ ਤੱਕ ਪਹੁੰਚ ਪ੍ਰਦਾਨ ਨਹੀਂ ਕਰਦਾ। ਉਪਲਬਧਤਾ, ਖਰਚੇ ਅਤੇ ਕੋਟੇ ਦੀ ਖਪਤ ਤੁਹਾਡੇ Codex ਖਾਤੇ ਅਤੇ ਮਾਡਲ 'ਤੇ ਨਿਰਭਰ ਕਰਦੇ ਹਨ। ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕੀਤੇ ਮੋਡਾਂ ਲਈ HTTP ਜਾਂ Responses WebSocket ਟ੍ਰਾਂਸਪੋਰਟ ਲੋੜੀਂਦਾ ਹੈ; app-server ਬੇਨਤੀਆਂ ਰੱਦ ਕਰ ਦਿੱਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ।",
+    "confirm": "ਇਸ API ਕੁੰਜੀ 'ਤੇ “{mode}” ਲਾਗੂ ਕਰਨਾ ਹੈ? ਇਹ ਅਗਲੀਆਂ ਬੇਨਤੀਆਂ ਲਈ ਪ੍ਰਭਾਵੀ ਹੋਵੇਗਾ।",
+    "save": "ਮੋਡ ਸੰਭਾਲੋ",
+    "retry": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "loadError": "ਸੰਭਾਲਿਆ ਹੋਇਆ ਸੇਵਾ ਮੋਡ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।",
+    "saveError": "ਸੇਵਾ ਮੋਡ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+  },
   "common": {
     "save": "ਸੰਭਾਲੋ",
     "cancel": "ਰੱਦ ਕਰੋ",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "ਵਿਸ਼ਲੇਸ਼ਣ",
     "usageAnalyticsTitle": "ਵਰਤੋਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ",
+    "tokenDisplayCompact": "ਸੰਖੇਪ",
+    "tokenDisplayExact": "ਸਹੀ",
+    "tokenDisplayMode": "ਟੋਕਨ ਡਿਸਪਲੇ ਮੋਡ",
     "diversityScoreTitle": "ਪ੍ਰਦਾਤਾ ਵਿਭਿੰਨਤਾ",
     "diversityScoreDesc": "ਹਾਲੀਆ ਟ੍ਰੈਫਿਕ ਅਵਧੀ ਲਈ ਪ੍ਰਦਾਤਾ ਕੇਂਦਰੀਕਰਨ ਦੀ ਝਲਕ।",
     "diversityShannonEntropy": "ਸ਼ੈਨਨ ਐਂਟਰੋਪੀ",
@@ -5572,6 +5590,8 @@
     "modelsActive": "ਸਰਗਰਮ",
     "showModel": "ਮਾਡਲ ਦਿਖਾਓ",
     "hideModel": "ਮਾਡਲ ਲੁਕਾਓ",
+    "blacklistModel": "ਬਲਾਕ",
+    "blacklistModelTooltip": "ਇਸ ਮਾਡਲ ਨੂੰ ਬਲਾਕ ਕਰਕੇ ਕੈਟਾਲਾਗ ਤੋਂ ਲੁਕਾਓ",
     "removeModel": "ਮਾਡਲ ਹਟਾਓ",
     "rateLimitProtected": "ਸੁਰੱਖਿਅਤ",
     "rateLimitUnprotected": "ਅਸੁਰੱਖਿਅਤ",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ਜਦੋਂ ਇਹ ਖਾਤਾ ਆਪਣੀ 5-ਘੰਟਿਆਂ ਦੀ ਵਰਤੋਂ ਸੀਮਾ ਤੱਕ ਪਹੁੰਚ ਜਾਂਦਾ ਹੈ ਅਤੇ Anthropic ਘੱਟ-ਤਰਜੀਹ ਵਾਲੀ ਲੇਨ ਦੀ ਪੇਸ਼ਕਸ਼ ਕਰਦਾ ਹੈ, ਤਾਂ OmniRoute ਇਸਨੂੰ ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ ਅਤੇ ਵਿੰਡੋ ਰੀਸੈੱਟ ਹੋਣ ਤੱਕ ਕਨੈਕਸ਼ਨ ਨੂੰ ਵਿਰਾਮ ਦੇਣ ਦੀ ਬਜਾਏ anthropic-usage-limit: slow ਨਾਲ ਬੇਨਤੀਆਂ ਭੇਜਦਾ ਰਹਿੰਦਾ ਹੈ। ਹਫ਼ਤਾਵਾਰੀ ਸੀਮਾ ਫਿਰ ਵੀ ਲਾਗੂ ਰਹਿੰਦੀ ਹੈ ਅਤੇ ਜਵਾਬਾਂ ਨੂੰ ਉਪਲਬਧ ਸਮਰੱਥਾ ਲਈ ਉਡੀਕ ਕਰਨੀ ਪੈ ਸਕਦੀ ਹੈ।",
     "claudeAutoLimitResetLabel": "ਸੈਸ਼ਨ ਸੀਮਾ ਨੂੰ ਆਪਣੇ-ਆਪ ਰੀਸੈੱਟ ਕਰੋ (ਹਫ਼ਤੇ ਵਿੱਚ ਇੱਕ ਵਾਰ)",
     "claudeAutoLimitResetDescription": "ਜਦੋਂ ਇਹ ਖਾਤਾ ਆਪਣੀ 5-ਘੰਟਿਆਂ ਦੀ ਵਰਤੋਂ ਸੀਮਾ ਤੱਕ ਪਹੁੰਚ ਜਾਂਦਾ ਹੈ ਅਤੇ ਸੈਸ਼ਨ-ਸੀਮਾ ਰੀਸੈੱਟ ਉਪਲਬਧ ਹੁੰਦਾ ਹੈ, ਤਾਂ OmniRoute ਆਪਣੇ-ਆਪ ਇਸਦਾ ਦਾਅਵਾ ਕਰਦਾ ਹੈ ਅਤੇ ਪੂਰੀ ਗਤੀ ਨਾਲ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹੈ। ਇਹ ਖਾਤੇ ਦੇ ਹਫ਼ਤੇ ਵਿੱਚ ਇੱਕ ਵਾਰ ਮਿਲਣ ਵਾਲੇ ਰੀਸੈੱਟ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ ਅਤੇ ਫਿਰ ਵੀ ਹਫ਼ਤਾਵਾਰੀ ਸੀਮਾ ਵਿੱਚ ਗਿਣਿਆ ਜਾਂਦਾ ਹੈ।",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "ਅਸਥਾਈ ਕੂਲਡਾਊਨ ਨੂੰ ਛੱਡੋ ਤਾਂ ਜੋ ਸੁਧਾਰੀ ਜਾ ਸਕਣ ਵਾਲੀਆਂ ਗਲਤੀਆਂ ਤੋਂ ਬਾਅਦ ਵੀ ਇਹ ਕਨੈਕਸ਼ਨ ਯੋਗ ਰਹੇ (ਪਾਬੰਦੀਸ਼ੁਦਾ/ਮਿਆਦ ਪੁੱਗਣ ਵਰਗੀਆਂ ਅੰਤਿਮ ਸਥਿਤੀਆਂ ਫਿਰ ਵੀ ਲਾਗੂ ਹੁੰਦੀਆਂ ਹਨ)।",
     "disableCoolingLabel": "ਇਸ ਕਨੈਕਸ਼ਨ ਲਈ ਕੂਲਡਾਊਨ ਅਯੋਗ ਕਰੋ",
     "bulkPasteAdded": "{count, plural, one {1 ਕੁੰਜੀ ਜੋੜੀ ਗਈ} other {# ਕੁੰਜੀਆਂ ਜੋੜੀਆਂ ਗਈਆਂ}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "ਸਟ੍ਰੀਮ ਨੂੰ ਰੂਪਾਂਤਰਿਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ਵਰਤੋਂ",
     "grokExtraUsageCredits": "ਵਾਧੂ ਵਰਤੋਂ ਕ੍ਰੈਡਿਟ",
     "grokAutoTopUp": "ਆਟੋ ਟਾਪ-ਅੱਪ",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "මෙම API යතුර සඳහා Codex සේවා ප්රකාරය",
+    "description": "සංයෝජන තුළ ඇති Codex මාදිලි ඇතුළුව, Codex ඉල්ලීම් සඳහා අදාළ වේ. බලහත්කාරයෙන් යෙදූ ප්රකාර සේවාදායකයාගේ, ගෝලීය සැකසුම්වල සහ සම්බන්ධතා පෙරනිමිවල තේරීම් අභිබවා යයි. අනෙකුත් සැපයුම්කරුවන් නොවෙනස්ව පවතී.",
+    "label": "සේවා ප්රකාරය",
+    "inherit": "පවතින හැසිරීම උරුම කරගන්න",
+    "default": "Standard බලහත්කාරයෙන් යොදන්න (පෙරනිමි)",
+    "priority": "Fast / Priority බලහත්කාරයෙන් යොදන්න",
+    "flex": "Flex බලහත්කාරයෙන් යොදන්න",
+    "warning": "මෙය සැපයුම්කරු වෙත ප්රවේශය ලබා නොදේ. ලබාගත හැකි බව, ගාස්තු සහ කෝටා පරිභෝජනය ඔබගේ Codex ගිණුම සහ මාදිලිය මත රඳා පවතී. බලහත්කාරයෙන් යෙදූ ප්රකාර සඳහා HTTP හෝ Responses WebSocket ප්රවාහනය අවශ්ය වේ; app-server ඉල්ලීම් ප්රතික්ෂේප කෙරේ.",
+    "confirm": "මෙම API යතුරට “{mode}” යොදන්නද? මෙය පසුකාලීන ඉල්ලීම් සඳහා ක්රියාත්මක වේ.",
+    "save": "ප්රකාරය සුරකින්න",
+    "retry": "නැවත උත්සාහ කරන්න",
+    "loadError": "සුරැකි සේවා ප්රකාරය පූරණය කළ නොහැකි විය.",
+    "saveError": "සේවා ප්රකාරය සුරැකිය නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න."
+  },
   "common": {
     "save": "සුරකින්න",
     "cancel": "අවලංගු කරන්න",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "විශ්ලේෂණ",
     "usageAnalyticsTitle": "භාවිත විශ්ලේෂණ",
+    "tokenDisplayCompact": "සංක්ෂිප්ත",
+    "tokenDisplayExact": "නිවැරදි",
+    "tokenDisplayMode": "ටෝකන ප්‍රදර්ශන ප්‍රකාරය",
     "diversityScoreTitle": "සපයන්නන්ගේ විවිධත්වය",
     "diversityScoreDesc": "මෑත ගමනාගමන කාල පරාසය සඳහා සපයන්නන්ගේ සංකේන්ද්රණය පිළිබඳ සාරාංශයක්.",
     "diversityShannonEntropy": "Shannon එන්ට්රොපිය",
@@ -5572,6 +5590,8 @@
     "modelsActive": "සක්රිය",
     "showModel": "මාදිලිය පෙන්වන්න",
     "hideModel": "මාදිලිය සඟවන්න",
+    "blacklistModel": "අවහිර",
+    "blacklistModelTooltip": "මෙම ආකෘතිය අවහිර කර නාමාවලියෙන් සඟවන්න",
     "removeModel": "මාදිලිය ඉවත් කරන්න",
     "rateLimitProtected": "ආරක්ෂිත",
     "rateLimitUnprotected": "අනාරක්ෂිත",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ Anthropic අඩු ප්රමුඛතා මාර්ගය ලබා දෙන විට, OmniRoute එය පිළිගෙන කාල කවුළුව යළි සැකසෙන තෙක් සම්බන්ධතාව සිසිල් කිරීම වෙනුවට anthropic-usage-limit: slow සමඟ ඉල්ලීම් යවමින් සිටියි. සතිපතා සීමාව තවමත් අදාළ වන අතර, අමතර ධාරිතාව ලැබෙන තෙක් ප්රතිචාර ප්රමාද විය හැකිය.",
     "claudeAutoLimitResetLabel": "සැසි සීමාව ස්වයංක්රීයව යළි සකසන්න (සතියකට වරක්)",
     "claudeAutoLimitResetDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ සැසි සීමාව යළි සැකසීමක් ලබා ගත හැකි නම්, OmniRoute එය ස්වයංක්රීයව ලබාගෙන පූර්ණ වේගයෙන් නැවත උත්සාහ කරයි. මෙය ගිණුමේ සතියකට වරක් ලැබෙන යළි සැකසීම භාවිත කරන අතර, සතිපතා සීමාවටද තවමත් ගණනය වේ.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "තාවකාලික විරාම කාලය මඟ හරින්න, එවිට ප්රතිසාධනය කළ හැකි දෝෂවලින් පසුවත් මෙම සම්බන්ධතාව සුදුසු තත්ත්වයේ පවතී (තහනම් කළ/කල් ඉකුත් වූ වැනි අවසාන තත්ත්වයන් තවමත් අදාළ වේ).",
     "disableCoolingLabel": "මෙම සම්බන්ධතාව සඳහා විරාම කාලය අක්රිය කරන්න",
     "bulkPasteAdded": "{count, plural, one {යතුර 1ක් එක් කරන ලදී} other {යතුරු #ක් එක් කරන ලදී}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "ප්රවාහය පරිණාමනය කිරීමට අසමත් විය"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "භාවිතය",
     "grokExtraUsageCredits": "අමතර භාවිත බැර",
     "grokAutoTopUp": "ස්වයංක්රීය ශේෂ පිරවීම",

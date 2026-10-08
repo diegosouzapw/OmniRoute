@@ -3,6 +3,7 @@ import {
   type ProviderBillingStatus,
 } from "@/shared/utils/providerBilling";
 import { getDbInstance, isBuildPhase, isCloud } from "./core";
+import { parseCodexPaidCredits, type CodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,6 +31,7 @@ export interface ProviderLimitsCacheEntry {
   fetchedAt: string;
   source?: string | null;
   bankedResetCredits?: number;
+  paidCredits?: CodexPaidCredits;
   billing?: ProviderBillingStatus;
   quotaGroups?: Array<Record<string, unknown>>;
 }
@@ -63,6 +65,7 @@ function normalizeCacheEntry(value: unknown): ProviderLimitsCacheEntry | null {
   if (!fetchedAt) return null;
 
   const bankedResetCredits = Number(record.bankedResetCredits);
+  const paidCredits = parseCodexPaidCredits(record.paidCredits);
   const billing = sanitizeProviderBillingStatus(record.billing);
   const modelQuotas = toRecord(record.modelQuotas);
 
@@ -74,6 +77,7 @@ function normalizeCacheEntry(value: unknown): ProviderLimitsCacheEntry | null {
     fetchedAt,
     source: typeof record.source === "string" ? record.source : null,
     ...(Number.isFinite(bankedResetCredits) ? { bankedResetCredits } : {}),
+    ...(paidCredits ? { paidCredits } : {}),
     ...(billing ? { billing } : {}),
     ...(Array.isArray(record.quotaGroups)
       ? { quotaGroups: record.quotaGroups as Array<Record<string, unknown>> }

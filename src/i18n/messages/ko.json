@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "이 API 키의 Codex 서비스 모드",
+    "description": "콤보 내 Codex 모델을 포함한 Codex 요청에 적용됩니다. 강제 모드는 클라이언트, 전역 설정 및 연결 기본값보다 우선합니다. 다른 제공업체에는 영향을 주지 않습니다.",
+    "label": "서비스 모드",
+    "inherit": "기존 동작 상속",
+    "default": "Standard 강제 적용(기본값)",
+    "priority": "Fast / Priority 강제 적용",
+    "flex": "Flex 강제 적용",
+    "warning": "이 설정은 제공업체에 대한 액세스 권한을 부여하지 않습니다. 사용 가능 여부, 요금 및 할당량 소모는 사용자의 Codex 계정과 모델에 따라 달라집니다. 강제 모드에는 HTTP 또는 Responses WebSocket 전송이 필요하며, app-server 요청은 거부됩니다.",
+    "confirm": "이 API 키에 “{mode}” 모드를 적용하시겠습니까? 이후 요청부터 적용됩니다.",
+    "save": "모드 저장",
+    "retry": "다시 시도",
+    "loadError": "저장된 서비스 모드를 불러올 수 없습니다.",
+    "saveError": "서비스 모드를 저장할 수 없습니다. 다시 시도해 주세요."
+  },
   "common": {
     "save": "저장",
     "cancel": "취소",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "분석",
     "usageAnalyticsTitle": "사용량 분석",
+    "tokenDisplayCompact": "간략",
+    "tokenDisplayExact": "정확",
+    "tokenDisplayMode": "토큰 표시 모드",
     "diversityScoreTitle": "공급자 다양성",
     "diversityScoreDesc": "최근 트래픽 기간의 제공업체 집중도 스냅샷입니다.",
     "diversityShannonEntropy": "섀넌 엔트로피",
@@ -5572,6 +5590,8 @@
     "modelsActive": "활성",
     "showModel": "모델 표시",
     "hideModel": "모델 숨기기",
+    "blacklistModel": "차단",
+    "blacklistModelTooltip": "이 모델을 차단하고 카탈로그에서 숨깁니다",
     "removeModel": "모델 삭제",
     "rateLimitProtected": "보호됨",
     "rateLimitUnprotected": "보호되지 않음",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "설정",
@@ -10093,7 +10120,11 @@
     "updatedShort": "업데이트됨",
     "lastRefreshed": "마지막 새로고침",
     "providerQuota": "제공자 할당량",
-    "providerQuotaHomeHint": "연결된 계정의 실시간 상태"
+    "providerQuotaHomeHint": "연결된 계정의 실시간 상태",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "승인을 기다리는 중",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modo de serviço Codex para esta chave de API",
+    "description": "Aplica-se a pedidos Codex, incluindo modelos Codex em combinações. Os modos forçados sobrepõem-se ao cliente, às definições globais e às predefinições da ligação. Os restantes fornecedores permanecem inalterados.",
+    "label": "Modo de serviço",
+    "inherit": "Herdar o comportamento existente",
+    "default": "Forçar Standard (predefinição)",
+    "priority": "Forçar Fast / Priority",
+    "flex": "Forçar Flex",
+    "warning": "Isto não concede acesso ao fornecedor. A disponibilidade, os custos e o consumo da quota dependem da sua conta Codex e do modelo. Os modos forçados requerem transporte HTTP ou Responses WebSocket; os pedidos app-server são rejeitados.",
+    "confirm": "Aplicar «{mode}» a esta chave de API? Esta alteração entra em vigor nos pedidos seguintes.",
+    "save": "Guardar modo",
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o modo de serviço guardado.",
+    "saveError": "Não foi possível guardar o modo de serviço. Tente novamente."
+  },
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Análise",
     "usageAnalyticsTitle": "Análise de Utilização",
+    "tokenDisplayCompact": "Compacto",
+    "tokenDisplayExact": "Exato",
+    "tokenDisplayMode": "Modo de apresentação de tokens",
     "diversityScoreTitle": "Diversidade de Provedores",
     "diversityScoreDesc": "Instantâneo da concentração de fornecedores para a janela de tráfego recente.",
     "diversityShannonEntropy": "Entropia de Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "ativos",
     "showModel": "Mostrar modelo",
     "hideModel": "Ocultar modelo",
+    "blacklistModel": "Bloquear",
+    "blacklistModelTooltip": "Bloquear este modelo e ocultá-lo do catálogo",
     "removeModel": "Remover modelo",
     "rateLimitProtected": "Protegido",
     "rateLimitUnprotected": "Desprotegido",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Configurações",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Atualizado",
     "lastRefreshed": "Última atualização",
     "providerQuota": "Quota do fornecedor",
-    "providerQuotaHomeHint": "Estado em tempo real em todas as contas associadas"
+    "providerQuotaHomeHint": "Estado em tempo real em todas as contas associadas",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Aguardando autorização",

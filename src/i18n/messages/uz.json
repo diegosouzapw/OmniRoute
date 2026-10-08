@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ushbu API kaliti uchun Codex xizmat rejimi",
+    "description": "Codex so‘rovlariga, jumladan kombinatsiyalar ichidagi Codex modellariga ham qo‘llanadi. Majburiy rejimlar mijoz, global sozlamalar va ulanishning standart sozlamalaridan ustun turadi. Boshqa provayderlar o‘zgarishsiz qoladi.",
+    "label": "Xizmat rejimi",
+    "inherit": "Mavjud xatti-harakatni meros qilib olish",
+    "default": "Standart rejimni majburan qo‘llash (sukut bo‘yicha)",
+    "priority": "Tezkor / Ustuvor rejimni majburan qo‘llash",
+    "flex": "Flex rejimini majburan qo‘llash",
+    "warning": "Bu provayderga kirish huquqini bermaydi. Mavjudlik, to‘lovlar va kvota sarfi Codex hisobingiz va modelingizga bog‘liq. Majburiy rejimlar HTTP yoki Responses WebSocket transportini talab qiladi; app-server so‘rovlari rad etiladi.",
+    "confirm": "Ushbu API kalitiga “{mode}” rejimi qo‘llansinmi? Bu keyingi so‘rovlardan boshlab kuchga kiradi.",
+    "save": "Rejimni saqlash",
+    "retry": "Qayta urinish",
+    "loadError": "Saqlangan xizmat rejimini yuklab bo‘lmadi.",
+    "saveError": "Xizmat rejimini saqlab bo‘lmadi. Iltimos, qayta urinib ko‘ring."
+  },
   "common": {
     "save": "Saqlash",
     "cancel": "Bekor qilish",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Tahlil",
     "usageAnalyticsTitle": "Foydalanish tahlili",
+    "tokenDisplayCompact": "Ixcham",
+    "tokenDisplayExact": "Aniq",
+    "tokenDisplayMode": "Tokenlarni ko'rsatish rejimi",
     "diversityScoreTitle": "Provayderlar xilma-xilligi",
     "diversityScoreDesc": "Soʻnggi trafik davri uchun provayderlar konsentratsiyasi koʻrsatkichi.",
     "diversityShannonEntropy": "Shannon entropiyasi",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Faol",
     "showModel": "Modelni ko‘rsatish",
     "hideModel": "Modelni yashirish",
+    "blacklistModel": "Bloklash",
+    "blacklistModelTooltip": "Bu modelni bloklab, katalogdan yashirish",
     "removeModel": "Modelni olib tashlash",
     "rateLimitProtected": "Himoyalangan",
     "rateLimitUnprotected": "Himoyalanmagan",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "Bu hisob 5 soatlik foydalanish limitiga yetganda va Anthropic pastroq ustuvorlikdagi navbatni taklif qilganda, OmniRoute uni qabul qiladi va ulanishni vaqtincha to‘xtatish o‘rniga, vaqt oralig‘i qayta tiklanguncha anthropic-usage-limit: slow bilan so‘rovlar yuborishda davom etadi. Haftalik limit hamon amal qiladi va javoblar bo‘sh quvvat paydo bo‘lishini kutishi mumkin.",
     "claudeAutoLimitResetLabel": "Seans limitini avtomatik qayta tiklash (haftasiga bir marta)",
     "claudeAutoLimitResetDescription": "Bu hisob 5 soatlik foydalanish limitiga yetganda va seans limitini qayta tiklash imkoniyati mavjud bo‘lsa, OmniRoute undan avtomatik foydalanadi va to‘liq tezlikda qayta urinadi. Hisobning haftasiga bir marta beriladigan qayta tiklash imkoniyatidan foydalanadi va foydalanish hajmi baribir haftalik limitga hisoblanadi.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Vaqtinchalik kutish davrini chetlab o‘tadi, shunda ushbu ulanish tiklanadigan xatolardan keyin ham foydalanish uchun yaroqli bo‘lib qoladi (bloklangan yoki muddati tugagan kabi yakuniy holatlar baribir amal qiladi).",
     "disableCoolingLabel": "Ushbu ulanish uchun kutish davrini o‘chirish",
     "bulkPasteAdded": "{count, plural, one {1 ta kalit qo‘shildi} other {# ta kalit qo‘shildi}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "Oqimni o‘zgartirib bo‘lmadi"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Foydalanish",
     "grokExtraUsageCredits": "Qo‘shimcha foydalanish kreditlari",
     "grokAutoTopUp": "Avtomatik to‘ldirish",

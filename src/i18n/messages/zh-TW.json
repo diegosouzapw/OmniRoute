@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "此 API 金鑰的 Codex 服務模式",
+    "description": "套用於 Codex 請求，包括組合中的 Codex 模型。強制模式會覆寫用戶端、全域設定和連線預設值。其他提供者不受影響。",
+    "label": "服務模式",
+    "inherit": "沿用現有行為",
+    "default": "強制使用標準模式（預設）",
+    "priority": "強制使用快速／優先模式",
+    "flex": "強制使用彈性模式",
+    "warning": "此設定不會授予提供者存取權限。可用性、費用和配額用量取決於您的 Codex 帳戶和模型。強制模式需要使用 HTTP 或 Responses WebSocket 傳輸；app-server 請求將遭拒絕。",
+    "confirm": "要將「{mode}」套用至此 API 金鑰嗎？此設定將於後續請求生效。",
+    "save": "儲存模式",
+    "retry": "重試",
+    "loadError": "無法載入已儲存的服務模式。",
+    "saveError": "無法儲存服務模式。請再試一次。"
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "分析",
     "usageAnalyticsTitle": "用量分析",
+    "tokenDisplayCompact": "精簡",
+    "tokenDisplayExact": "精確",
+    "tokenDisplayMode": "Token 顯示模式",
     "diversityScoreTitle": "提供者多元化",
     "diversityScoreDesc": "近期流量視窗內提供者集中度的快照。",
     "diversityShannonEntropy": "夏農熵",
@@ -4836,7 +4854,7 @@
     "queuesTitle": "並行閘控",
     "queuesScope": "僅限目前程序。組合閘控僅涵蓋輪詢策略的目標，並非所有組合請求。各閘控計數有所重疊，請勿相加。",
     "queuesCombo": "組合目標閘控（輪詢）",
-    "queuesAdmission": "全域 / 供應商 / 帳號閘控",
+    "queuesAdmission": "全域 / 提供者 / 帳號閘控",
     "queuesEmpty": "此快照中沒有追蹤中的閘控。",
     "queuesStale": "快照已過時",
     "queuesError": "佇列快照無法取得，正在自動重試。",
@@ -5572,6 +5590,8 @@
     "modelsActive": "已啟用",
     "showModel": "顯示模型",
     "hideModel": "隱藏模型",
+    "blacklistModel": "封鎖",
+    "blacklistModelTooltip": "封鎖此模型並從目錄中隱藏",
     "removeModel": "刪除模型",
     "rateLimitProtected": "受保護",
     "rateLimitUnprotected": "無保護",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "設定",
@@ -10093,7 +10120,11 @@
     "updatedShort": "更新於",
     "lastRefreshed": "上次重新整理",
     "providerQuota": "提供者配額",
-    "providerQuotaHomeHint": "已連線帳戶的即時狀態"
+    "providerQuotaHomeHint": "已連線帳戶的即時狀態",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "等待授權",
@@ -14812,7 +14843,7 @@
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "停用在 /v1/models 目錄中產生思考層級變體（例如 -low、-medium、-high）。",
   "connectionTest": {
     "title": "測試訊息",
-    "description": "透過此帳戶傳送一個實際請求。這會使用少量配額，且視供應商而定，可能會啟動用量週期。",
+    "description": "透過此帳戶傳送一個實際請求。這會使用少量配額，且視提供者而定，可能會啟動用量週期。",
     "loading": "正在載入帳戶模型…",
     "model": "此帳戶的測試模型",
     "chooseModel": "選擇模型",
@@ -14827,7 +14858,7 @@
     "answer": "模型回應",
     "failed": "請求失敗。請再試一次。",
     "settingsTitle": "手動帳戶測試訊息",
-    "settingsDescription": "此訊息供「連線」和「供應商配額」下方的測試按鈕使用。請為每個帳戶分別選擇模型。儲存不會傳送訊息，也不會啟用自動 Ping。",
+    "settingsDescription": "此訊息供「連線」和「提供者配額」下方的測試按鈕使用。請為每個帳戶分別選擇模型。儲存不會傳送訊息，也不會啟用自動 Ping。",
     "saveMessage": "儲存訊息",
     "defaultModel": "預設測試模型",
     "defaultModelHint": "此帳戶的「測試訊息」按鈕會自動使用此設定。設定會隨連線儲存；不會傳送任何訊息。"

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "இந்த API விசைக்கான Codex சேவை முறை",
+    "description": "காம்போக்களில் உள்ள Codex மாதிரிகள் உட்பட, Codex கோரிக்கைகளுக்கு இது பொருந்தும். கட்டாய முறைகள் கிளையண்ட், உலகளாவிய அமைப்புகள் மற்றும் இணைப்பு இயல்புநிலைகளை மீறும். பிற வழங்குநர்கள் மாற்றமின்றி இருப்பார்கள்.",
+    "label": "சேவை முறை",
+    "inherit": "தற்போதுள்ள நடத்தையைப் பின்பற்று",
+    "default": "Standard முறையைக் கட்டாயப்படுத்து (இயல்புநிலை)",
+    "priority": "Fast / Priority முறையைக் கட்டாயப்படுத்து",
+    "flex": "Flex முறையைக் கட்டாயப்படுத்து",
+    "warning": "இது வழங்குநர் அணுகலை வழங்காது. கிடைக்கும் தன்மை, கட்டணங்கள் மற்றும் ஒதுக்கீட்டுப் பயன்பாடு உங்கள் Codex கணக்கு மற்றும் மாதிரியைப் பொறுத்தது. கட்டாய முறைகளுக்கு HTTP அல்லது Responses WebSocket போக்குவரத்து தேவை; app-server கோரிக்கைகள் நிராகரிக்கப்படும்.",
+    "confirm": "இந்த API விசைக்கு “{mode}” முறையைப் பயன்படுத்தவா? இது அடுத்தடுத்த கோரிக்கைகளுக்குச் செயல்படும்.",
+    "save": "முறையைச் சேமி",
+    "retry": "மீண்டும் முயல்க",
+    "loadError": "சேமிக்கப்பட்ட சேவை முறையை ஏற்ற முடியவில்லை.",
+    "saveError": "சேவை முறையைச் சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்."
+  },
   "common": {
     "save": "சேமி",
     "cancel": "ரத்து செய்",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "பகுப்பாய்வு",
     "usageAnalyticsTitle": "பயன்பாட்டு பகுப்பாய்வு",
+    "tokenDisplayCompact": "சுருக்கம்",
+    "tokenDisplayExact": "துல்லியம்",
+    "tokenDisplayMode": "டோக்கன் காட்சி பயன்முறை",
     "diversityScoreTitle": "வழங்குநர் பன்முகத்தன்மை",
     "diversityScoreDesc": "சமீபத்திய டிராஃபிக் சாளரத்திற்கான வழங்குநர் செறிவு ஸ்னாப்ஷாட்.",
     "diversityShannonEntropy": "ஷானன் என்ட்ரோபி",
@@ -5572,6 +5590,8 @@
     "modelsActive": "செயலில் உள்ளது",
     "showModel": "மாடலைக் காட்டு",
     "hideModel": "மாடலை மறை",
+    "blacklistModel": "தடு",
+    "blacklistModelTooltip": "இந்த மாதிரியைத் தடுத்து பட்டியலிலிருந்து மறை",
     "removeModel": "மாடலை அகற்று",
     "rateLimitProtected": "பாதுகாக்கப்பட்டது",
     "rateLimitUnprotected": "பாதுகாக்கப்படவில்லை",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "அமைப்புகள்",
@@ -10093,7 +10120,11 @@
     "updatedShort": "புதுப்பிக்கப்பட்டது",
     "lastRefreshed": "கடைசியாகப் புதுப்பிக்கப்பட்டது",
     "providerQuota": "வழங்குநர் ஒதுக்கீடு",
-    "providerQuotaHomeHint": "இணைக்கப்பட்ட கணக்குகளின் நேரலை நிலை"
+    "providerQuotaHomeHint": "இணைக்கப்பட்ட கணக்குகளின் நேரலை நிலை",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "அங்கீகாரத்திற்காகக் காத்திருக்கிறது",

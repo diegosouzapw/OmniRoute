@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex szolgáltatási mód ehhez az API-kulcshoz",
+    "description": "A Codex-kérésekre vonatkozik, beleértve a kombinációkon belüli Codex-modelleket is. A kényszerített módok felülbírálják a kliens, a globális beállítások és a kapcsolat alapértelmezéseit. Más szolgáltatók változatlanok maradnak.",
+    "label": "Szolgáltatási mód",
+    "inherit": "Meglévő viselkedés öröklése",
+    "default": "Standard kényszerítése (alapértelmezett)",
+    "priority": "Fast / Priority kényszerítése",
+    "flex": "Flex kényszerítése",
+    "warning": "Ez nem biztosít hozzáférést a szolgáltatóhoz. Az elérhetőség, a díjak és a kvótafelhasználás a Codex-fiókjától és a modelltől függ. A kényszerített módokhoz HTTP- vagy Responses WebSocket-átvitel szükséges; az app-server kérései elutasításra kerülnek.",
+    "confirm": "Alkalmazza a(z) „{mode}” módot erre az API-kulcsra? Ez a későbbi kérésekre lép érvénybe.",
+    "save": "Mód mentése",
+    "retry": "Újrapróbálkozás",
+    "loadError": "Nem sikerült betölteni a mentett szolgáltatási módot.",
+    "saveError": "Nem sikerült menteni a szolgáltatási módot. Kérjük, próbálja újra."
+  },
   "common": {
     "save": "Mentés",
     "cancel": "Mégsem",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Használati elemzések",
+    "tokenDisplayCompact": "Tömör",
+    "tokenDisplayExact": "Pontos",
+    "tokenDisplayMode": "Tokenmegjelenítési mód",
     "diversityScoreTitle": "Szolgáltatói sokszínűség",
     "diversityScoreDesc": "Szolgáltató-koncentrációs pillanatkép a legutóbbi forgalmi ablakról.",
     "diversityShannonEntropy": "Shannon-entrópia",
@@ -5572,6 +5590,8 @@
     "modelsActive": "aktív",
     "showModel": "Modell megjelenítése",
     "hideModel": "Modell elrejtése",
+    "blacklistModel": "Tiltás",
+    "blacklistModelTooltip": "Tiltsd ezt a modellt, és rejtsd el a katalógusból",
     "removeModel": "Modell eltávolítása",
     "rateLimitProtected": "Védett",
     "rateLimitUnprotected": "Nem védett",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Beállítások elemre",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Frissítve",
     "lastRefreshed": "Legutóbb frissítve",
     "providerQuota": "Szolgáltatói kvóta",
-    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban"
+    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Várakozás az engedélyezésre",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mód seirbhíse Codex don eochair API seo",
+    "description": "Baineann sé seo le hiarratais Codex, lena n-áirítear samhlacha Codex laistigh de chomhcheangail. Sáraíonn móid éigeantacha socruithe an chliaint, socruithe domhanda agus réamhshocruithe naisc. Ní athraítear soláthraithe eile.",
+    "label": "Mód seirbhíse",
+    "inherit": "Faigh an t-iompar reatha le hoidhreacht",
+    "default": "Cuir Standard i bhfeidhm (réamhshocrú)",
+    "priority": "Cuir Fast / Priority i bhfeidhm",
+    "flex": "Cuir Flex i bhfeidhm",
+    "warning": "Ní thugann sé seo rochtain ar an soláthraí. Braitheann infhaighteacht, táillí agus úsáid cuóta ar do chuntas Codex agus ar an tsamhail. Éilíonn móid éigeantacha iompar HTTP nó Responses WebSocket; diúltaítear d'iarratais app-server.",
+    "confirm": "An bhfuil fonn ort “{mode}” a chur i bhfeidhm ar an eochair API seo? Tiocfaidh sé seo i bhfeidhm ar iarratais ina dhiaidh seo.",
+    "save": "Sábháil an mód",
+    "retry": "Bain triail eile as",
+    "loadError": "Níorbh fhéidir an mód seirbhíse sábháilte a lódáil.",
+    "saveError": "Níorbh fhéidir an mód seirbhíse a shábháil. Bain triail eile as."
+  },
   "common": {
     "save": "Sábháil",
     "cancel": "Cealaigh",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Anailísíocht",
     "usageAnalyticsTitle": "Anailísíocht Úsáide",
+    "tokenDisplayCompact": "Dlúth",
+    "tokenDisplayExact": "Beacht",
+    "tokenDisplayMode": "Mód taispeána comharthaí",
     "diversityScoreTitle": "Éagsúlacht Soláthraithe",
     "diversityScoreDesc": "Léargas ar thiúchan soláthraithe don fhuinneog tráchta is déanaí.",
     "diversityShannonEntropy": "Eantrópacht Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Gníomhach",
     "showModel": "Taispeáin samhail",
     "hideModel": "Folaigh samhail",
+    "blacklistModel": "Coisc",
+    "blacklistModelTooltip": "Coisc an tsamhail seo agus folaigh ón gcatalóg é",
     "removeModel": "Bain samhail",
     "rateLimitProtected": "Cosanta",
     "rateLimitUnprotected": "Neamhchosanta",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Socruithe",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Nuashonraithe",
     "lastRefreshed": "Athnuachan deireanach",
     "providerQuota": "Cuóta Soláthraí",
-    "providerQuotaHomeHint": "Stádas beo trasna na gcuntas nasctha"
+    "providerQuotaHomeHint": "Stádas beo trasna na gcuntas nasctha",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Ag fanacht le húdarú",

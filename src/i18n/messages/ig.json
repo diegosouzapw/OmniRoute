@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ọnọdụ ọrụ Codex maka igodo API a",
+    "description": "Ọ metụtara arịrịọ Codex, gụnyere ụdị Codex dị n'ime ngwakọta. Ọnọdụ amanyere iwu na-akagbu ntọala nke klayenti, ntọala zuru ụwa ọnụ na ndabara njikọ. Ndị na-eweta ọrụ ndị ọzọ agaghị agbanwe.",
+    "label": "Ọnọdụ ọrụ",
+    "inherit": "Keta omume dị ugbu a",
+    "default": "Manye Ọkọlọtọ (ndabara)",
+    "priority": "Manye Ọsọ Ọsọ / Ihe Mbụ",
+    "flex": "Manye Flex",
+    "warning": "Nke a anaghị enye ohere ịnweta onye na-eweta ọrụ. Nnweta, ụgwọ na ojiji oke na-adabere na akaụntụ Codex na ụdị gị. Ọnọdụ amanyere iwu chọrọ mbufe HTTP ma ọ bụ Responses WebSocket; a na-ajụ arịrịọ app-server.",
+    "confirm": "Tinye “{mode}” n'ọrụ na igodo API a? Nke a ga-amalite ịrụ ọrụ maka arịrịọ ndị na-esote.",
+    "save": "Chekwaa ọnọdụ",
+    "retry": "Nwaa ọzọ",
+    "loadError": "Enweghị ike ibunye ọnọdụ ọrụ echekwara.",
+    "saveError": "Enweghị ike ichekwa ọnọdụ ọrụ ahụ. Biko nwaa ọzọ."
+  },
   "common": {
     "save": "Chekwa",
     "cancel": "Kagbuo",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Nnyocha Data",
     "usageAnalyticsTitle": "Nnyocha Ojiji",
+    "tokenDisplayCompact": "Nkenke",
+    "tokenDisplayExact": "Kpọmkwem",
+    "tokenDisplayMode": "Ụdị ngosi Tọkịn",
     "diversityScoreTitle": "Ọdịiche Ndị Na-enye Ọrụ",
     "diversityScoreDesc": "Nchịkọta nkenke nke etu arịrịọ si gbakọba n’etiti ndị na-enye ọrụ n’oge na-adịbeghị anya.",
     "diversityShannonEntropy": "Entropi Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Na-arụ ọrụ",
     "showModel": "Gosi ụdị",
     "hideModel": "Zoo ụdị",
+    "blacklistModel": "Gbochie",
+    "blacklistModelTooltip": "Gbochie ihe nlereanya a ma zoo ya na katalọgụ",
     "removeModel": "Wepụ ụdị",
     "rateLimitProtected": "Echekwara",
     "rateLimitUnprotected": "Echekwaghị",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "Mgbe akaụntụ a ruru oke ojiji ya nke awa 5 ma Anthropic nye ụzọ nwere mkpa dị ala, OmniRoute na-anabata ya ma na-aga n’ihu izipu arịrịọ na anthropic-usage-limit: slow ruo mgbe windo ahụ tọgharịrị, kama ime ka njikọ ahụ zuru ike. Oke izu ka na-emetụta ya, nzaghachi nwekwara ike ichere ruo mgbe ohere fọdụrụ dị.",
     "claudeAutoLimitResetLabel": "Tọgharịa oke nnọkọ na-akpaghị aka (otu ugboro n’izu)",
     "claudeAutoLimitResetDescription": "Mgbe akaụntụ a ruru oke ojiji ya nke awa 5 ma ntọgharị oke nnọkọ dị, OmniRoute na-eji ya na-akpaghị aka ma nwaa ọzọ n’ọsọ zuru oke. Ọ na-eji ntọgharị akaụntụ ahụ nke otu ugboro n’izu, ojiji ahụ ka na-agụkwa n’ime oke izu.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Mafee oge nkwụsị nwa oge ka njikọ a nọgide bụrụ nke a pụrụ iji ọbụna mgbe njehie ndị a pụrụ idozi mere (ọnọdụ njedebe dịka amachibidoro/agwụla ka na-emetụta ya).",
     "disableCoolingLabel": "Gbanyụọ oge nkwụsị maka njikọ a",
     "bulkPasteAdded": "{count, plural, one {Agbakwunyere igodo 1} other {Agbakwunyere igodo #}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "Enweghị ike ịgbanwe iyi ahụ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Ojiji",
     "grokExtraUsageCredits": "Kredit maka ojiji ọzọ",
     "grokAutoTopUp": "Ngbakwunye Akpaka",

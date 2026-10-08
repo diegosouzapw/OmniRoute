@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ഈ API കീയ്ക്കുള്ള Codex സേവന മോഡ്",
+    "description": "കോംബോകളിലുള്ള Codex മോഡലുകൾ ഉൾപ്പെടെയുള്ള Codex അഭ്യർത്ഥനകൾക്ക് ബാധകമാണ്. നിർബന്ധിത മോഡുകൾ ക്ലയന്റ്, ആഗോള ക്രമീകരണങ്ങൾ, കണക്ഷൻ ഡിഫോൾട്ടുകൾ എന്നിവയെ മറികടക്കും. മറ്റ് പ്രൊവൈഡറുകൾക്ക് മാറ്റമുണ്ടാകില്ല.",
+    "label": "സേവന മോഡ്",
+    "inherit": "നിലവിലുള്ള പ്രവർത്തനരീതി പിന്തുടരുക",
+    "default": "Standard നിർബന്ധമാക്കുക (ഡിഫോൾട്ട്)",
+    "priority": "Fast / Priority നിർബന്ധമാക്കുക",
+    "flex": "Flex നിർബന്ധമാക്കുക",
+    "warning": "ഇത് പ്രൊവൈഡർ ആക്സസ് നൽകുന്നില്ല. ലഭ്യത, നിരക്കുകൾ, ക്വോട്ട ഉപയോഗം എന്നിവ നിങ്ങളുടെ Codex അക്കൗണ്ടിനെയും മോഡലിനെയും ആശ്രയിച്ചിരിക്കും. നിർബന്ധിത മോഡുകൾക്ക് HTTP അല്ലെങ്കിൽ Responses WebSocket ട്രാൻസ്പോർട്ട് ആവശ്യമാണ്; app-server അഭ്യർത്ഥനകൾ നിരസിക്കപ്പെടും.",
+    "confirm": "ഈ API കീയ്ക്ക് “{mode}” പ്രയോഗിക്കണോ? തുടർന്നുള്ള അഭ്യർത്ഥനകൾക്ക് ഇത് പ്രാബല്യത്തിൽ വരും.",
+    "save": "മോഡ് സംരക്ഷിക്കുക",
+    "retry": "വീണ്ടും ശ്രമിക്കുക",
+    "loadError": "സംരക്ഷിച്ച സേവന മോഡ് ലോഡ് ചെയ്യാനായില്ല.",
+    "saveError": "സേവന മോഡ് സംരക്ഷിക്കാനായില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+  },
   "common": {
     "save": "സംരക്ഷിക്കുക",
     "cancel": "റദ്ദാക്കുക",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "വിശകലനം",
     "usageAnalyticsTitle": "ഉപയോഗ വിശകലനം",
+    "tokenDisplayCompact": "സംക്ഷിപ്തം",
+    "tokenDisplayExact": "കൃത്യം",
+    "tokenDisplayMode": "ടോക്കൺ പ്രദർശന മോഡ്",
     "diversityScoreTitle": "പ്രൊവൈഡർ വൈവിധ്യം",
     "diversityScoreDesc": "സമീപകാല ട്രാഫിക് കാലയളവിലെ പ്രൊവൈഡർ കേന്ദ്രീകരണത്തിന്റെ സംക്ഷിപ്ത ചിത്രം.",
     "diversityShannonEntropy": "ഷാനൺ എൻട്രോപ്പി",
@@ -5572,6 +5590,8 @@
     "modelsActive": "സജീവം",
     "showModel": "മോഡൽ കാണിക്കുക",
     "hideModel": "മോഡൽ മറയ്ക്കുക",
+    "blacklistModel": "തടയുക",
+    "blacklistModelTooltip": "ഈ മോഡൽ തടഞ്ഞ് കാറ്റലോഗിൽ നിന്ന് മറയ്ക്കുക",
     "removeModel": "മോഡൽ നീക്കം ചെയ്യുക",
     "rateLimitProtected": "പരിരക്ഷിതം",
     "rateLimitUnprotected": "പരിരക്ഷിക്കാത്തത്",
@@ -5998,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ഈ അക്കൗണ്ട് അതിന്റെ 5 മണിക്കൂർ ഉപയോഗപരിധിയിലെത്തുകയും Anthropic കുറഞ്ഞ മുൻഗണനയുള്ള പാത ലഭ്യമാക്കുകയും ചെയ്യുമ്പോൾ, OmniRoute അത് സ്വീകരിച്ച് വിൻഡോ പുനഃസജ്ജമാകുന്നതുവരെ anthropic-usage-limit: slow ഉപയോഗിച്ച് അഭ്യർത്ഥനകൾ അയയ്ക്കുന്നത് തുടരുന്നു; കണക്ഷൻ കൂൾ ഡൗൺ ചെയ്യുകയില്ല. പ്രതിവാര പരിധി അപ്പോഴും ബാധകമാണ്, കൂടാതെ ശേഷി ലഭ്യമാകുന്നതുവരെ പ്രതികരണങ്ങൾ കാത്തിരിക്കേണ്ടി വന്നേക്കാം.",
     "claudeAutoLimitResetLabel": "സെഷൻ പരിധി സ്വയമേവ പുനഃസജ്ജമാക്കുക (ആഴ്ചയിൽ ഒരിക്കൽ)",
     "claudeAutoLimitResetDescription": "ഈ അക്കൗണ്ട് അതിന്റെ 5 മണിക്കൂർ ഉപയോഗപരിധിയിലെത്തുകയും സെഷൻ പരിധി പുനഃസജ്ജമാക്കാനുള്ള അവസരം ലഭ്യമാകുകയും ചെയ്യുമ്പോൾ, OmniRoute അത് സ്വയമേവ പ്രയോജനപ്പെടുത്തി പൂർണ്ണ വേഗത്തിൽ വീണ്ടും ശ്രമിക്കുന്നു. അക്കൗണ്ടിന് ആഴ്ചയിൽ ഒരിക്കൽ ലഭിക്കുന്ന പുനഃസജ്ജീകരണം ഉപയോഗിക്കുന്നു; ഇത് അപ്പോഴും പ്രതിവാര പരിധിയിൽ കണക്കാക്കപ്പെടും.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "താൽക്കാലിക കൂൾഡൗൺ ഒഴിവാക്കുക, അതുവഴി വീണ്ടെടുക്കാവുന്ന പിശകുകൾക്ക് ശേഷവും ഈ കണക്ഷൻ യോഗ്യമായി തുടരും (നിരോധിച്ചത്/കാലഹരണപ്പെട്ടത് പോലുള്ള അന്തിമ നിലകൾ തുടർന്നും ബാധകമാണ്).",
     "disableCoolingLabel": "ഈ കണക്ഷന്റെ കൂൾഡൗൺ പ്രവർത്തനരഹിതമാക്കുക",
     "bulkPasteAdded": "{count, plural, one {1 കീ ചേർത്തു} other {# കീകൾ ചേർത്തു}}",
@@ -9644,6 +9671,10 @@
     "streamTransformFailed": "സ്ട്രീം പരിവർത്തനം ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ഉപയോഗം",
     "grokExtraUsageCredits": "അധിക ഉപയോഗ ക്രെഡിറ്റുകൾ",
     "grokAutoTopUp": "സ്വയമേവ ടോപ്പ്-അപ്പ്",

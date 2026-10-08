@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modalità tas-servizz Codex għal din il-kjavi tal-API",
+    "description": "Tapplika għat-talbiet ta’ Codex, inklużi l-mudelli Codex fil-kombinazzjonijiet. Il-modalitajiet infurzati jieħdu preċedenza fuq il-klijent, is-settings globali u l-valuri prestabbiliti tal-konnessjoni. Fornituri oħra jibqgħu l-istess.",
+    "label": "Modalità tas-servizz",
+    "inherit": "Wiret l-imġiba eżistenti",
+    "default": "Infurza Standard (prestabbilit)",
+    "priority": "Infurza Fast / Priority",
+    "flex": "Infurza Flex",
+    "warning": "Dan ma jagħtix aċċess għall-fornitur. Id-disponibbiltà, it-tariffi u l-konsum tal-kwota jiddependu fuq il-kont Codex u l-mudell tiegħek. Il-modalitajiet infurzati jeħtieġu trasport HTTP jew Responses WebSocket; it-talbiet app-server jiġu rrifjutati.",
+    "confirm": "Tapplika “{mode}” għal din il-kjavi tal-API? Dan jidħol fis-seħħ għal talbiet sussegwenti.",
+    "save": "Issejvja l-modalità",
+    "retry": "Erġa’ pprova",
+    "loadError": "Ma setgħetx titgħabba l-modalità tas-servizz issejvjata.",
+    "saveError": "Ma setgħetx tiġi ssejvjata l-modalità tas-servizz. Jekk jogħġbok erġa’ pprova."
+  },
   "common": {
     "save": "Issejvja",
     "cancel": "Ikkanċella",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Analitika tal-użu",
+    "tokenDisplayCompact": "Kompatt",
+    "tokenDisplayExact": "Eżatt",
+    "tokenDisplayMode": "Modalità tal-wiri tat-tokens",
     "diversityScoreTitle": "Diversità tal-fornituri",
     "diversityScoreDesc": "Ħarsa ġenerali lejn il-konċentrazzjoni tal-fornituri fit-tieqa riċenti tat-traffiku.",
     "diversityShannonEntropy": "Entropija ta’ Shannon",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Attiv",
     "showModel": "Uri l-mudell",
     "hideModel": "Aħbi l-mudell",
+    "blacklistModel": "Imblokka",
+    "blacklistModelTooltip": "Imblokka dan il-mudell u aħbih mill-katalgu",
     "removeModel": "Neħħi l-mudell",
     "rateLimitProtected": "Protett",
     "rateLimitUnprotected": "Mhux protett",
@@ -6710,7 +6730,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Issettjar",
@@ -10093,7 +10120,11 @@
     "updatedShort": "Aġġornat",
     "lastRefreshed": "Aġġornat l-aħħar darba",
     "providerQuota": "Kwota tal-Fornitur",
-    "providerQuotaHomeHint": "Status f’ħin reali fil-kontijiet konnessi"
+    "providerQuotaHomeHint": "Status f’ħin reali fil-kontijiet konnessi",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Stennija għall-Awtorizzazzjoni",
