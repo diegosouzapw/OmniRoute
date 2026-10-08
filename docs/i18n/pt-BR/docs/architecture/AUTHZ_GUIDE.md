@@ -17,13 +17,13 @@ OmniRoute possui um pipeline de autorização ciente de rotas que controla cada 
 
 ### 1. Chave de API (Bearer)
 
-Usada para as APIs de cliente compatíveis com OpenAI/Anthropic/Gemini e para algumas rotas de gerenciamento quando a chave possui o escopo `manage`.
+Usado para as APIs de cliente compatíveis com OpenAI/Anthropic/Gemini e algumas rotas de gerenciamento quando a chave possui o escopo `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Validada por `isValidApiKey()` / `extractApiKey()` em `src/sse/services/auth.ts` e reexportada por meio de `src/shared/utils/apiAuth.ts`. O validador também aceita as variáveis de ambiente `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` como chaves persistentes de passagem direta (issue #1350).
+Validado por `isValidApiKey()` / `extractApiKey()` em `src/sse/services/auth.ts` e reexportado por meio de `src/shared/utils/apiAuth.ts`. O validador também aceita as variáveis de ambiente `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` como chaves persistentes de passagem direta (issue #1350).
 
 ### 2. Sessão do dashboard (cookie auth_token)
 
@@ -33,43 +33,45 @@ Para páginas do dashboard e operações administrativas.
 Cookie: auth_token=<JWT assinado com JWT_SECRET>
 ```
 
-Um cookie será considerado uma sessão somente quando o JWT for verificado **e** contiver `authenticated: true`
+Um cookie só é uma sessão quando o JWT é verificado **e** contém `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Todo
-consumidor do cookie (proteção de rota, renovação do pipeline de AuthZ, handshake de WebSocket, servidor
+consumidor do cookie (proteção de rota do dashboard (`isDashboardSessionAuthenticated()`), atualização do pipeline de autorização, handshake de WebSocket, servidor
 ao vivo, `/api/settings/require-login`, `/api/auth/status`) passa por esse helper.
 Existem outros JWTs assinados com `JWT_SECRET` — a passagem direta da CLI do Cursor emite
-tokens `iss "omniroute" / aud "cursor-cli"` para detentores de chaves — e eles nunca são considerados sessões
+tokens `iss "omniroute" / aud "cursor-cli"` para detentores de chaves — e eles nunca são sessões
 (#13298).
 
-Verificada por `isDashboardSessionAuthenticated()` em `src/shared/utils/apiAuth.ts`. O pipeline renova automaticamente o JWT quando restam menos de 7 dias de sua validade de 30 dias.
+Verificado por `isDashboardSessionAuthenticated()` em `src/shared/utils/apiAuth.ts`. O pipeline atualiza o JWT automaticamente quando restam menos de 7 dias de sua validade de 30 dias.
 
-Algumas rotas de gerenciamento aceitam **qualquer um** dos modos: cookie OU `Bearer <key>` quando a chave de API possui o escopo `manage` (ou `admin`). Isso é o que viabiliza o fluxo de trabalho "configurável por meio de chamadas de API" adicionado na v3.8.
+Uma sessão também pode terminar antes que seus 30 dias se esgotem, pois todo emissor passa por `mintDashboardSessionToken` (um horário de emissão `iat` e um ID `jti`) e o verificador confere duas configurações: `sessionsValidAfter`, definida por uma alteração de senha para que todas as sessões emitidas antes dela deixem de ser verificadas (o navegador que alterou a senha recebe um cookie novo), e `revokedDashboardSessions`, à qual `POST /api/auth/logout` adiciona o `jti` da sessão encerrada. Sessões emitidas por uma versão mais antiga não contêm nenhuma dessas claims e permanecem válidas até a primeira alteração de senha. Se não for possível ler as configurações, a sessão não será considerada confiável.
 
-#### Controle opcional de login via OIDC (#6973)
+Algumas rotas de gerenciamento aceitam **qualquer um** dos modos: cookie OU `Bearer <key>` quando a chave de API possui o escopo `manage` (ou `admin`). Isso é o que permite o fluxo de trabalho de "configuração por meio de chamadas de API" adicionado na v3.8.
 
-O login administrativo do dashboard também oferece suporte a um fluxo **opcional** de OIDC (OpenID Connect)
-em conjunto com o login padrão por senha — o login por senha nunca é removido, apenas
+#### Gate de login OIDC opcional (#6973)
+
+O login administrativo do dashboard também oferece suporte a um fluxo OIDC (OpenID Connect) **opcional**
+em conjunto com o login por senha padrão — o login por senha nunca é removido, apenas
 complementado:
 
-- Fica desabilitado, a menos que `settings.oidcEnabled === true` **e** `oidcIssuer` /
+- Desabilitado, a menos que `settings.oidcEnabled === true` **e** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` estejam todos configurados (Configurações → Autenticação).
   Caso contrário, `GET /api/auth/oidc/login` retorna `400`.
-- `GET /api/auth/oidc/login` descobre o `authorization_endpoint` a partir do
-  `/.well-known/openid-configuration` do emissor (usando
-  `<issuer>/authorize` como fallback), cria o URI de redirecionamento com base na solicitação recebida
+- `GET /api/auth/oidc/login` descobre o `authorization_endpoint` a partir de
+  `/.well-known/openid-configuration` do emissor (com fallback para
+  `<issuer>/authorize`), cria o URI de redirecionamento a partir da requisição recebida
   (considerando `x-forwarded-proto`) e redireciona para o IdP com um `state`
-  aleatório armazenado em um cookie `oidc_state` com `httpOnly`.
+  aleatório armazenado em um cookie `oidc_state` `httpOnly`.
 - `GET /api/auth/oidc/callback` valida o `state`, troca o código de autorização
   e verifica a assinatura do token de ID por meio do JWKS do emissor
-  (`createRemoteJWKSet` do `jose`, armazenado em cache por URI do JWKS), com verificações de `issuer`/`audience`.
+  (`createRemoteJWKSet` do `jose`, armazenado em cache por URI de JWKS), com verificações de `issuer`/`audience`.
   Uma lista de permissões opcional `oidcAllowedSubjects` compara a claim
-  `sub` ou a claim `email` do token — a claim de e-mail só é aceita quando
-  `email_verified === true`, portanto um e-mail não verificado no IdP nunca poderá passar
-  pelo controle.
-- Em caso de sucesso, ele emite **exatamente o mesmo** JWT `auth_token` de 30 dias emitido pelo login
-  por senha (`src/app/api/auth/login/route.ts`), portanto o restante do
-  pipeline de sessão do dashboard (renovação automática, flags do cookie) permanece inalterado —
-  o OIDC apenas substitui a forma como o cookie é emitido, não o que ele concede.
+  `sub` do token ou sua claim `email` — a claim de e-mail só é considerada quando
+  `email_verified === true`, portanto um e-mail não verificado no IdP jamais poderá passar
+  pelo gate.
+- Em caso de sucesso, ele emite **exatamente o mesmo** JWT `auth_token` de 30 dias que o login por senha
+  emite (`src/app/api/auth/login/route.ts`), portanto o restante do
+  pipeline de sessão do dashboard (atualização automática, flags do cookie) permanece inalterado —
+  o OIDC substitui apenas a forma como o cookie é emitido, não o que ele concede.
 
 ## Classes de rota
 

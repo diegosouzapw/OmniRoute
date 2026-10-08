@@ -1,1 +1,0 @@
-- fix(api): close /v1/files and /v1/batches authz residuals — manage-scope key demotion, session+key ownership bypass, and unscoped pagination cursor (#14481)

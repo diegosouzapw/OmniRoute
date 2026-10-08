@@ -74,24 +74,24 @@ Katso siirtotavan yksityiskohdat, agenttikortin rakenne, tehtävien TTL-määrit
 
 ### Mikä se on
 
-ACP on OmniRouten **paikallinen CLI-agenttiluettelo**. Se tunnistaa, mitkä ohjelmointiin tarkoitetut CLI-työkalut on asennettu isäntäkoneeseen (Cursor, Cline, Claude Code, Codex CLI, Continue jne.), selvittää niiden versiot ja tuo ne näkyviin hallintapaneeliin, jotta käyttäjä voi määrittää kunkin CLI:n käyttämään OmniRoutea.
+ACP on OmniRouten **paikallinen CLI-agenttivarasto**. Se tunnistaa, mitkä ohjelmointiin tarkoitetut CLI-työkalut on asennettu isäntäkoneelle (Cursor, Cline, Claude Code, Codex CLI, Continue jne.), selvittää niiden versiot ja tuo ne hallintapaneeliin, jotta käyttäjä voi määrittää kunkin CLI:n osoittamaan OmniRouteen.
 
-Tämä EI ole ulkoinen protokolla, vaan sisäinen rekisteri, joka mahdollistaa CLI Tools -käyttöliittymän ja CLI-sormenjälkien seurannan (katso [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP-rajapinta on sisäinen inventaario, joka toimii "CLI Tools" -käyttöliittymän ja CLI-sormenjälkien seurannan taustalla (katso [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Erikseen sisäinen prosessinhallinta tukee natiivia Agent Client Protocol -protokollaa rekisteröidylle Gemini-käynnistimelle sekä vanhoja stdio-sovittimia muille sopimuksille. Katso näiden erillisten tilojen ja rajoitusten tiedot kohdasta [ACP-rekisteri ja käynnistimet](./ACP.md).
 
 ### Mitä se tekee
 
-- Tarkistaa isäntäkoneesta asennetut CLI-binäärit (käyttää käyttöjärjestelmästä riippuen komentoja `which` / `where`)
+- Etsii isäntäkoneelta asennettuja CLI-binäärejä (käyttää käyttöjärjestelmästä riippuen komentoa `which` / `where`)
 - Lukee kunkin CLI:n version (kutsuu komentoa `<bin> --version`)
 - Hyväksyy valinnaisesti käyttäjän määrittämiä mukautettuja agentteja (binääripolku + version tarkistus + käynnistysargumentit)
-- Tallentaa mukautetut agentit asetuksiin
+- Tallentaa mukautetut agentit pysyvästi asetuksiin
 - Palauttaa yhdistetyn luettelon hallintapaneelille
 
 ### REST API
 
-| Päätepiste        | Menetelmä | Kuvaus                                                                 | Todennus  |
-| ----------------- | --------- | ---------------------------------------------------------------------- | --------- |
-| `/api/acp/agents` | GET       | Luettelee tunnistetut + mukautetut agentit (asennettu/yhteensä)        | API-avain |
-| `/api/acp/agents` | POST      | Lisää/päivittää/poistaa mukautetun agentin (toiminnon erotin rungossa) | API-avain |
+| Päätepiste        | Menetelmä | Kuvaus                                                                  | Todennus  |
+| ----------------- | --------- | ----------------------------------------------------------------------- | --------- |
+| `/api/acp/agents` | GET       | Luettele tunnistetut ja mukautetut agentit (asennettujen/kokonaismäärä) | API-avain |
+| `/api/acp/agents` | POST      | Lisää/päivitä/poista mukautettu agentti (toiminnon erotin rungossa)     | API-avain |
 
 POST-pyynnön rungon muoto (`customAgentBodySchema` tiedostossa `src/app/api/acp/agents/route.ts`):
 
@@ -110,13 +110,13 @@ POST-pyynnön rungon muoto (`customAgentBodySchema` tiedostossa `src/app/api/acp
 
 ### Käyttötapaukset
 
-- Hallintapaneelin CLI Tools -sivu näyttää asennetut työkalut ja auttaa määrittämään kunkin niistä käyttämään OmniRoutea
+- Hallintapaneelin "CLI Tools" -sivu näyttää asennetut työkalut ja auttaa määrittämään kunkin niistä osoittamaan OmniRouteen
 - Mukautettujen agenttien avulla tehokäyttäjät voivat rekisteröidä sisäisiä tai omisteisia CLI-työkaluja, joita OmniRoute ei oletusarvoisesti tunne
-- Tunnistustulos täydentää `cli-tools`-sormenjälkimatriisia
+- Tunnistustulos tuottaa tiedot `cli-tools`-sormenjälkimatriisiin
 
 ### Milloin ACP:tä EI pidä käyttää
 
-- ACP ei _suorita_ tehtäviä. Se vain tunnistaa ja määrittää CLI-työkaluja. Käynnistä CLI itse OmniRouten tarjoamilla ympäristömuuttujilla (`OPENAI_BASE_URL`, `OPENAI_API_KEY` jne.), jotta voit käyttää sitä.
+- HTTP-rekisteri ei vastaanota tehtäviä eikä tarjoa prosessien käynnistystä. Sisäinen hallinta voi käynnistää rekisteröidyn CLI:n, mutta sitä ei ole kytketty automaattiseksi palveluntarjoajan varajärjestelmäksi. Tavallisessa vuorovaikutteisessa käytössä käynnistä määritetty CLI itse tai käytä komentoa `omniroute run`.
 
 ## 3. Pilviagentit
 

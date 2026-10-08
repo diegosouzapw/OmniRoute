@@ -74,26 +74,30 @@ Transporta informāciju, aģenta kartes struktūru, uzdevumu TTL konfigurāciju 
 
 ### Kas tas ir
 
-ACP ir OmniRoute **lokālais CLI aģentu saraksts**. Tas nosaka, kuri programmēšanas CLI ir instalēti resursdatorā (Cursor, Cline, Claude Code, Codex CLI, Continue u.c.), noskaidro to versijas un parāda tos informācijas panelī, lai lietotājs varētu konfigurēt katru CLI darbam ar OmniRoute.
+ACP ir OmniRoute **lokālais CLI aģentu inventārs**. Tas nosaka, kuri programmēšanas CLI ir instalēti resursdatorā (Cursor, Cline, Claude Code, Codex CLI, Continue u.c.), nosaka to versijas un parāda tos informācijas panelī, lai lietotājs varētu konfigurēt katru CLI savienojumam ar OmniRoute.
 
-Tas NAV ārējs protokols — tas ir iekšējs reģistrs, kas nodrošina „CLI Tools” lietotāja saskarnes un CLI ciparnospiedumu izsekošanas darbību (skatiet [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP saskarne ir iekšējs inventārs, kas nodrošina „CLI Tools” lietotāja saskarnes un
+CLI kontrolsignatūru izsekošanas darbību (skatiet [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Atsevišķi
+iekšējais procesu pārvaldnieks atbalsta vietējo Agent Client Protocol reģistrētajam
+Gemini palaidējam un mantotos stdio adapterus citiem līgumiem.
+Informāciju par šiem atšķirīgajiem režīmiem un ierobežojumiem skatiet sadaļā [ACP reģistrs un palaidēji](./ACP.md).
 
 ### Ko tas dara
 
-- Pārbauda, vai resursdatorā ir instalēti CLI izpildāmie faili (atkarībā no operētājsistēmas izmanto `which` / `where`)
+- Pārbauda, vai resursdatorā ir instalēti CLI binārie faili (atkarībā no OS izmanto `which` / `where`)
 - Nolasa katra CLI versiju (izsauc `<bin> --version`)
 - Pēc izvēles pieņem lietotāja definētus pielāgotus aģentus (binārā faila ceļš + versijas pārbaude + palaišanas argumenti)
 - Saglabā pielāgotos aģentus iestatījumos
-- Atgriež vienotu sarakstu informācijas panelim
+- Atgriež vienoto sarakstu informācijas panelim
 
 ### REST API
 
-| Galapunkts        | Metode | Apraksts                                                                   | Autentifikācija |
-| ----------------- | ------ | -------------------------------------------------------------------------- | --------------- |
-| `/api/acp/agents` | GET    | Uzskaita noteiktos un pielāgotos aģentus (instalēto/kopējais skaits)       | API atslēga     |
-| `/api/acp/agents` | POST   | Pievieno/atjaunina/noņem pielāgotu aģentu (darbības noteicējs pamattekstā) | API atslēga     |
+| Galapunkts        | Metode | Apraksts                                                                                     | Autorizācija |
+| ----------------- | ------ | -------------------------------------------------------------------------------------------- | ------------ |
+| `/api/acp/agents` | GET    | Uzskaita noteiktos un pielāgotos aģentus (instalēto/kopējais skaits)                         | API atslēga  |
+| `/api/acp/agents` | POST   | Pievieno/atjaunina/noņem pielāgotu aģentu (darbības diskriminators pieprasījuma pamattekstā) | API atslēga  |
 
-POST pamatteksta struktūra (`customAgentBodySchema` failā `src/app/api/acp/agents/route.ts`):
+POST pieprasījuma pamatteksta struktūra (`customAgentBodySchema` failā `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ POST pamatteksta struktūra (`customAgentBodySchema` failā `src/app/api/acp/age
 
 ### Lietošanas gadījumi
 
-- Informācijas paneļa lapā „CLI Tools” tiek uzskaitīti instalētie rīki un sniegta palīdzība katra rīka konfigurēšanai darbam ar OmniRoute
-- Pielāgotie aģenti ļauj pieredzējušiem lietotājiem reģistrēt iekšējus/patentētus CLI, kurus OmniRoute pēc noklusējuma nepazīst
-- Noteikšanas rezultāts tiek izmantots `cli-tools` ciparnospiedumu matricā
+- Informācijas paneļa lapa „CLI Tools” uzskaita instalētos rīkus un palīdz katru no tiem konfigurēt savienojumam ar OmniRoute
+- Pielāgotie aģenti ļauj pieredzējušiem lietotājiem reģistrēt iekšējus/patentētus CLI, kurus OmniRoute pēc noklusējuma neatpazīst
+- Noteikšanas rezultāts nodrošina `cli-tools` kontrolsignatūru matricu
 
 ### Kad ACP NAV jāizmanto
 
-- ACP _neizpilda_ uzdevumus. Tas tikai nosaka un konfigurē CLI. Lai faktiski izsauktu CLI, palaidiet to pats ar OmniRoute nodrošinātajiem vides mainīgajiem (`OPENAI_BASE_URL`, `OPENAI_API_KEY` u.c.).
+- HTTP reģistrs nepieņem uzdevumus un nenodrošina procesu palaišanu. Iekšējais
+  pārvaldnieks var palaist reģistrētu CLI, taču tas nav pieslēgts kā automātisks nodrošinātāja
+  atkāpšanās mehānisms. Parastai interaktīvai lietošanai palaidiet konfigurēto CLI pats vai
+  izmantojiet `omniroute run`.
 
 ## 3. Mākoņa aģenti
 

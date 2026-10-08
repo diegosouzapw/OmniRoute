@@ -345,31 +345,31 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="அனைத்து 19 காம்போ வழித்தட உத்திகளும் அசைவூட்டப்பட்டுள்ளன — ஒவ்வொரு உத்திக்கும் ஒரு கட்டம்: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. ஒவ்வொன்றும் என்ன செய்கிறது என்பதை அறிய மேலுள்ள அட்டவணையைப் பார்க்கவும்."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="19 காம்போ வழிச்செலுத்தல் உத்திகளும் அசைவூட்டப்பட்டுள்ளன — ஒவ்வொரு உத்திக்கும் ஒரு கட்டம்: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. ஒவ்வொன்றும் என்ன செய்கிறது என்பதை அறிய மேலே உள்ள அட்டவணையைப் பார்க்கவும்."/>
 
-> ஒரு **காம்போ** என்பது OmniRoute **தானாகவே** வழித்தடப்படுத்தும் மாடல்களின் சங்கிலியாகும். ஒதுக்கீடு தீர்ந்துவிட்டாலோ, வழங்குநர் செயலிழந்தாலோ அல்லது செலவுகள் அதிகரித்தாலோ, காம்போ அடுத்த தகுதியான, சீராக இயங்கும் மாடலுக்குச் செல்லும். 🛡️
+> ஒரு **காம்போ** என்பது OmniRoute **தானாகவே** வழிச்செலுத்தும் மாடல்களின் சங்கிலியாகும். ஒதுக்கீடு தீர்ந்துவிட்டாலோ, வழங்குநர் செயலிழந்தாலோ அல்லது செலவுகள் திடீரென அதிகரித்தாலோ, காம்போ அடுத்த தகுதிவாய்ந்த, சீராக இயங்கும் மாடலுக்கு நகர முடியும். 🛡️
 
-### ⚡ கட்டமைப்பு தேவையில்லை — `auto`-ஐ மட்டும் பயன்படுத்துங்கள்
+### ⚡ உள்ளமைவு தேவையில்லை — `auto`-ஐ மட்டும் பயன்படுத்தவும்
 
-காம்போவை உருவாக்கத் தேவையில்லை. உங்கள் மாடலை `auto`-ஆக (அல்லது அதன் ஒரு மாறுபாடாக) அமைக்கவும்; இணைக்கப்பட்டுள்ள உங்கள் வழங்குநர்களிலிருந்து OmniRoute ஒரு மெய்நிகர் காம்போவை உருவாக்கி, அதை நிகழ்நேரத்தில் மதிப்பிடும்:
+காம்போவை உருவாக்கத் தேவையில்லை. உங்கள் மாடலை `auto` (அல்லது அதன் ஒரு மாற்று) என அமைக்கவும்; இணைக்கப்பட்டுள்ள உங்கள் வழங்குநர்களிலிருந்து OmniRoute ஒரு மெய்நிகர் காம்போவை உருவாக்கி, நேரடியாக மதிப்பிடும்:
 
 <table>
-  <tr><th align="left">மாடல் ID</th><th align="left">இது எதற்காக உகப்பாக்குகிறது</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 சமநிலையான இயல்புநிலை (LKGP — கடைசியாகச் சிறப்பாகச் செயல்பட்ட உங்கள் வழங்குநரிலேயே நிலைத்திருக்கும்)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 குறியீடு உருவாக்குவதற்கான தரம்-முதன்மை எடைகள்</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ முதலில் மிகக் குறைந்த தாமதம்</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 முதலில் ஒரு டோக்கனுக்கான மிகக் குறைந்த செலவு</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 முதலில் அதிக ஒதுக்கீடு / வீத-வரம்பு இடைவெளி</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 சிறந்த மாடல்களைக் கண்டறிய தரம்-முதன்மை + 10% ஆய்வு</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 கடைசியாகச் சிறப்பாகச் செயல்பட்ட வழங்குநருடன் வெளிப்படையான நிலைத்திருப்பு</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 மீள்திறன் சோதனைக்கான பிழை-புகுத்தல் எடைகள் (chaos engineering)</td></tr>
+  <tr><th align="left">மாடல் ID</th><th align="left">இது எதற்காக உகப்பாக்கப்படுகிறது</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 சமநிலையான இயல்புநிலை (LKGP — கடைசியாகச் சிறப்பாகச் செயல்பட்ட உங்கள் வழங்குநரையே தொடர்ந்து பயன்படுத்தும்)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 குறியீடு உருவாக்குவதற்கான தரத்திற்கு முன்னுரிமையளிக்கும் எடைகள்</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ மிகக் குறைந்த தாமதத்திற்கு முதல் முன்னுரிமை</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 ஒரு டோக்கனுக்கான மிகக் குறைந்த செலவுக்கு முதல் முன்னுரிமை</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 அதிக ஒதுக்கீடு / விகித வரம்பு இருப்பிற்கு முதல் முன்னுரிமை</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 தரத்திற்கு முன்னுரிமை + சிறந்த மாடல்களைக் கண்டறிய 10% ஆய்வு</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 கடைசியாகச் சிறப்பாகச் செயல்பட்ட வழங்குநரைத் தொடர்ந்து பயன்படுத்துவதற்கான வெளிப்படையான அமைப்பு</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 மாடல்களின் குழுவிற்கான இணையான விரிவாக்கம் (ஒவ்வொரு வழங்குநருக்கும் ஒன்று, இயல்பாக 5), ஓர் பதிலைத் திருப்பியளிக்கும்; குழுவிலுள்ள ஒவ்வொரு மாடலுக்கும் ஓர் மேல்நிலை அழைப்பு, இது பிழை உட்செலுத்தல் அல்ல</td></tr>
 </table>
 
 ##
 
-### 🔀 அல்லது உங்களுக்கானதை உருவாக்குங்கள் — 19 வழித்தட உத்திகள்
+### 🔀 அல்லது உங்களுக்கானதை உருவாக்குங்கள் — 19 வழிச்செலுத்தல் உத்திகள்
 
-அனைத்து **19** உத்திகளையும் — ஒவ்வொரு காம்போ படிநிலையிலும் கலந்து பொருத்தலாம்:
+**19** உத்திகளையும் ஒவ்வொரு காம்போ படிநிலையிலும் கலந்து பொருத்தலாம்:
 
 <table>
   <tr>
@@ -380,27 +380,27 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>முதல்-இலக்கு வரிசைப்படுத்தப்பட்ட பட்டியல் — அடுத்ததற்குச் செல்லும் முன் ஒவ்வொன்றையும் முழுமையாகப் பயன்படுத்தும் 🥇</td>
+    <td>முதல் இலக்கிற்கு முன்னுரிமையளிக்கும் வரிசைப்படுத்தப்பட்ட பட்டியல் — அடுத்ததற்குச் செல்லும் முன் ஒவ்வொன்றையும் முழுமையாகப் பயன்படுத்தும் 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>அடுத்ததற்குச் செல்லும் முன் ஒவ்வொரு இலக்கின் ஒதுக்கீட்டையும் முழுமையாக நிரப்பும்</td>
+    <td>அடுத்த இலக்கிற்குச் செல்லும் முன் ஒவ்வொரு இலக்கின் ஒதுக்கீட்டையும் முழுமையாகப் பயன்படுத்தும்</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>ஒவ்வொரு இலக்கிற்குமான எடையின் அடிப்படையில் எடையிட்ட சீரற்ற தேர்வு</td>
+    <td>ஒவ்வொரு இலக்கின் எடையின் அடிப்படையிலான எடையிட்ட சீரற்ற தேர்வு</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>இலக்குகளின் வழியாக வரிசையாகச் சுழலும்</td>
+    <td>இலக்குகளை வரிசையாகச் சுழற்சி முறையில் பயன்படுத்தும்</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>இரண்டு-தேர்வுகளின்-சக்தி அடிப்படையிலான சீரற்ற சுமைச் சமநிலைப்படுத்தல்</td>
+    <td>இரண்டு தேர்வுகளின் சக்தியைப் பயன்படுத்தும் சீரற்ற சுமை சமநிலைப்படுத்தல்</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -415,12 +415,12 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>மீண்டும் வரும் நகல்களை நீக்காமல் சீரற்ற முறையில் தேர்வு செய்யும் 🎲</td>
+    <td>மீள்தோன்றல்களை நகல் நீக்கம் செய்யாமல் சீரற்ற முறையில் தேர்ந்தெடுக்கும் 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>நிகழ்நேர பட்டியல் விலை நிர்ணயத்தின் அடிப்படையில் ஒரு கோரிக்கைக்கான $ செலவைக் குறைக்கும் 💸</td>
+    <td>நேரடி பட்டியல் விலையிடலின் அடிப்படையில் ஒரு கோரிக்கைக்கான $ செலவைக் குறைக்கும் 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -435,12 +435,12 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>ஒதுக்கீடு மீட்டமைக்கப்படும் நேரத்தின் அடிப்படையில் தரவரிசைப்படுத்தும் — குறுகிய சாளரங்கள் முதலில் 📊</td>
+    <td>ஒதுக்கீட்டு மீட்டமைப்பு நேரத்தின்படி தரவரிசைப்படுத்தும் — குறுகிய சாளரங்களுக்கு முதல் முன்னுரிமை 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>நீண்ட உரையாடல்களுக்காக இலக்குகளுக்கு இடையே சூழலை ஒப்படைக்கும் 🧠</td>
+    <td>நீண்ட உரையாடல்களுக்காக இலக்குகளுக்கிடையே சூழலைக் கைமாற்றும் 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -450,39 +450,39 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>மீண்டும் பயன்படுத்தக்கூடிய ஒவ்வொரு ப்ராம்ப்ட் முன்னொட்டையும் அதே கணக்கில் நிலைநிறுத்தும் — ப்ராம்ப்ட்-கேச் பொருத்தங்களை அதிகப்படுத்தும் 🎯</td>
+    <td>மீண்டும் பயன்படுத்தக்கூடிய ஒவ்வொரு அறிவுறுத்தல் முன்னொட்டையும் அதே கணக்குடன் நிலைநிறுத்தும் — அறிவுறுத்தல் தற்காலிகச் சேமிப்பு பொருத்தங்களைக் கூடியபட்சமாக்கும் 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>கடைசியாகச் சிறப்பாகச் செயல்பட்ட பாதை — கடைசியாக வெற்றியடைந்த வழங்குநருடன் நிலைநிறுத்தி, பின்னர் விதிகளுக்குப் பின்வாங்கும்</td>
+    <td>கடைசியாகச் சிறப்பாகச் செயல்பட்ட பாதை — கடைசியாக வெற்றிபெற்ற வழங்குநருடன் நிலைநிறுத்தி, பின்னர் விதிகளுக்குப் பின்னடையும்</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>ஒவ்வொரு இணைப்பிலும் 16 காரணிகளைக் கொண்டு நிகழ்நேர மதிப்பீடு 🤖</td>
+    <td>ஒவ்வொரு இணைப்பிலும் 16 காரணிகளைக் கொண்ட நேரடி மதிப்பீடு 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>மாடல்களின் குழுவிற்கு ஒரே நேரத்தில் அனுப்பும் + ஒரு மதிப்பீட்டாளர் ஒரே பதிலை ஒருங்கிணைப்பார் 🧬</td>
+    <td>மாடல்களின் குழுவிற்கு விரிவாக்கும் + ஒரு தீர்ப்பாளர் ஒரே பதிலை ஒருங்கிணைப்பார் 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>படிநிலைகளைச் சங்கிலியாக இணைக்கும் — ஒவ்வொரு இலக்கின் வெளியீடும் அடுத்ததற்கு உள்ளீடாகும் 🔗</td>
+    <td>படிநிலைகளைச் சங்கிலியாக்கும் — ஒவ்வொரு இலக்கின் வெளியீடும் அடுத்ததற்கு உள்ளீடாகும் 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Combo இயந்திரம் ஒவ்வொரு தேர்வுநிலையையும் **16 காரணிகளின்** அடிப்படையில் மதிப்பிடுகிறது (நிலைமை, ஒதுக்கீடு, செலவு, தாமதம், பணிப் பொருத்தம், தரம், அமர்வு கிடைப்புத்தன்மை…) — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)-ஐப் பார்க்கவும்.</sub>
+<sub>Auto-Combo இயந்திரம் ஒவ்வொரு சாத்தியமான தேர்வையும் **16 காரணிகளின்** அடிப்படையில் மதிப்பிடுகிறது (ஆரோக்கியம், ஒதுக்கீடு, செலவு, தாமதம், பணிப் பொருத்தம், தரம், அமர்வு கிடைக்கும் தன்மை…) — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)-ஐப் பார்க்கவும்.</sub>
 
 ##
 
-### 🧱 மீள்திறன் உள்ளமைக்கப்பட்டுள்ளது (3 சுயாதீன அடுக்குகள்)
+### 🧱 மீள்திறன் இயல்பாகவே உள்ளமைக்கப்பட்டுள்ளது (3 சுயாதீன அடுக்குகள்)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute மீள்திறன் — 3 சுயாதீன சுய-மீட்பு அடுக்குகள், சரியான தோல்விக்குச் சரியான அடுக்கு. அடுக்கு 1 வழங்குநர் சர்க்யூட் பிரேக்கர் (முழு வழங்குநர்): 408/5xx ஏற்பட்டால் மட்டுமே செயல்படும்; வரம்புகள் OAuth 8× / API-key 12× / local 2×; 60s/30s/15s கழித்து HALF-OPEN சோதனை நிலைக்கு மீட்டமைக்கப்படும்; தேவையின்போது மீட்பு; OPEN நிலையில் இருக்கும்போது combo அடுத்த வழங்குநருக்கு வழிமாற்றும். அடுக்கு 2 இணைப்பு இடைநிறுத்தம் (ஒரு key/account): அடிப்படை OAuth-க்கு 5s / API-key-க்கு 3s; ஒரே நேரத்தில் அதிக கோரிக்கைகள் குவிவதைத் தடுக்கும் பாதுகாப்புடன் அதிவேக ×2 பின்னடைவு; 429 ஆனது Retry-After-ஐ மதிக்கும்; வெற்றி அனைத்து பிழை நிலைகளையும் அழிக்கும்; இடைநிறுத்தத்தில் உள்ள ஒரு key தவிர்க்கப்படும், அதே வேளையில் இணை key-கள் தொடர்ந்து சேவையளிக்கும். அடுக்கு 3 மாடல் பூட்டல் (ஒரு மாடல்): ஒவ்வொரு மாடலுக்குமான 429, local 404 அல்லது பயன்முறை மறுப்புகள் அந்த மாடலை மட்டும் பூட்டும் — முழு இணைப்பை ஒருபோதும் பூட்டாது. இறுதி நிலைகள் (தடைசெய்யப்பட்டது, காலாவதியானது, credits தீர்ந்தது) இயக்குநருக்கானவை, இடைநிறுத்தங்களுக்கானவை அல்ல."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute மீள்திறன் — ஒன்றுக்கொன்று சாராத 3 சுய-மீட்பு அடுக்குகள், சரியான தோல்விக்குச் சரியான அடுக்கு. அடுக்கு 1 வழங்குநர் சுற்றுத்தடைப்பான் (முழு வழங்குநர்): 408/5xx ஏற்பட்டால் மட்டுமே செயல்படும்; வரம்புகள் OAuth 8× / API-key 12× / local 2×; 60s/30s/15s கழித்து HALF-OPEN சோதனை நிலைக்கு மீட்டமைக்கப்படும்; தேவையின்போது மீட்பு; OPEN நிலையில் இருக்கும்போது combo அடுத்த வழங்குநருக்கு வழிமாற்றும். அடுக்கு 2 இணைப்பு இடைநிறுத்தம் (ஒரு key/account): அடிப்படை OAuth 5s / API-key 3s; ஒரே நேரத்தில் பெருமளவு கோரிக்கைகள் குவிவதைத் தடுக்கும் பாதுகாப்புடன் அதிவேகமாக உயரும் ×2 பின்வாங்கல்; 429 ஆனது Retry-After-ஐப் பின்பற்றும்; வெற்றி அனைத்து பிழை நிலைகளையும் அழிக்கும்; இடைநிறுத்தத்தில் உள்ள ஒரு key தவிர்க்கப்படும், அதேவேளையில் இணையான பிற keys தொடர்ந்து சேவையளிக்கும். அடுக்கு 3 மாதிரி முடக்கம் (ஒரு மாதிரி): ஒவ்வொரு மாதிரிக்குமான 429, local 404 அல்லது பயன்முறை மறுப்புகள் அந்த மாதிரியை மட்டும் முடக்கும் — ஒருபோதும் முழு இணைப்பையும் அல்ல. இறுதி நிலைகள் (தடைசெய்யப்பட்டது, காலாவதியானது, வரவுகள் தீர்ந்தன) இயக்குநருக்கானவை; இடைநிறுத்தங்களுக்கானவை அல்ல."/>
 
-<sub>📖 [தானியங்கு-காம்போ எஞ்சின்](docs/routing/AUTO-COMBO.md) · [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [தானியங்கு-Combo இயந்திரம்](docs/routing/AUTO-COMBO.md) · [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -570,29 +570,29 @@ Radar-ஐப் பயன்படுத்தத் தனியாகச் �
 
 </div>
 
-> **v3.8.20 → v3.8.50** வரையிலான சமீபத்திய முக்கிய அம்சங்கள். முழு வரலாறு [`CHANGELOG.md`](CHANGELOG.md) இல் உள்ளது.
+> **v3.8.20 → v3.8.50** பதிப்புகளின் சமீபத்திய சிறப்பம்சங்கள். முழு வரலாறு [`CHANGELOG.md`](CHANGELOG.md)-இல் உள்ளது.
 
-- **🎛️ OmniConductor** — உங்கள் முகவர் குழுவிற்கான உள்வரும் A2A ஒப்படைப்பு, Agent Card-இல் Conductor திறன்கள் மற்றும் Faro push-to-talk குரல் அரட்டையுடன் கூடிய டாஷ்போர்டு பலகம். → [A2A சேவையகம்](docs/frameworks/A2A-SERVER.md)
-- **🛂 தகவமைப்பு அனுமதி & அதிகச்சுமைப் பாதுகாப்பு** — கனமான அரட்டை கோரிக்கைகள் 503 பிழையை வழங்குவதற்குப் பதிலாக வரிசைப்படுத்தப்படுகின்றன; ஒவ்வொரு இணைப்பிற்கும் அணுவியல் RPM சுழல் குத்தகைகள் பயன்படுத்தப்படுகின்றன. → [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ நியமப்படுத்தப்பட்ட `/v1/models` வரிசைப்படுத்தல்** — ஒவ்வொரு வழங்குநருக்கும் தொடர்ச்சியான, வழங்குநர் வாரியாகத் தொகுக்கப்பட்ட ஒரே தொகுதி (காம்போக்கள் முதலில் நிலைநிறுத்தப்படும்); அனைத்து பட்டியல் மூலங்களிலும் நிலையானது. → [API மேற்கோள்](docs/reference/API_REFERENCE.md)
-- **🗜️ சுருக்க வலுப்படுத்தல்** — இயல்பாக இயக்கப்பட்ட விரிவாக்கத் தடுப்பு, DE / FR / JA + சீனம் (wényán) ஆகியவற்றுக்கான Caveman தொகுப்புகள், Gradle & .NET-க்கான RTK வடிப்பான்கள். → [சுருக்கம்](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 நேர்மையான நிலையான-கட்டணச் செலவு** — சந்தா / குறியீட்டுத் திட்ட வழங்குநர்கள் செலவுப் பகுப்பாய்வில் **$0** எனக் காட்டப்படுகின்றனர்; பட்ஜெட், ஒதுக்கீடு & வழித்தடத் தேர்வு தொடர்ந்து மதிப்பிடுகின்றன. → [API மேற்கோள்](docs/reference/API_REFERENCE.md)
-- **⚖️ ஒதுக்கீடு-பகிர்வு வழித்தடத் தேர்வு** — பகிரப்பட்ட கணக்கின் ஒதுக்கீட்டைத் தொகுக்கப்பட்ட விசைகளிடையே நியாயமாகப் பிரிக்கிறது; செயலற்ற பகுதிகளைப் பிறருக்குக் கடனாக வழங்குவதால் வேலைத் திறன் பாதுகாக்கப்படுகிறது. → [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 ஒற்றைக் கட்டளை CLI/முகவர் அமைப்பு** — பதிவுசெய்யப்பட்ட 13 `setup-*` கட்டளைகள்; `omniroute run` 7 CLI-களைத் தொடங்குகிறது (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure`, ஊடாடும் வழங்குநர்+மாதிரி தேர்வி மற்றும் சூழல் வாரியான விருப்பங்களுடன் 10 இலக்குகளை ஆதரிக்கிறது. → [CLI ஒருங்கிணைப்புகள்](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ தொலைநிலைப் பயன்முறை** — வரம்பிடப்பட்ட டோக்கன்கள் (`connect` / `contexts` / `tokens`) மற்றும் VPS நிறுவல்களுக்கான `antigravity` OAuth உதவியைக் கொண்டு தொலைநிலை OmniRoute-ஐ இயக்குங்கள். → [தொலைநிலைப் பயன்முறை](docs/guides/REMOTE-MODE.md)
-- **🧭 மேலும் நுண்ணறிவுள்ள தானியங்கி வழித்தடத் தேர்வு** — `auto/<category>:<tier>` காம்போக்கள், **Fusion** (மாதிரிக் குழு + மதிப்பீட்டாளர்), பணியை உணரும் வழித்தடத் தேர்வு, ஒவ்வொரு கோரிக்கைக்குமான மாதிரி / பயன்முறை / USD-பட்ஜெட் மேலெழுதல்கள். → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ செருகக்கூடிய சுருக்கம்** — ஒன்றிணைக்கக்கூடிய 12 இயந்திரங்கள் + Compression Studios: LLMLingua-2, இரு-அடுக்கு Ultra, omniglyph, ஒவ்வொரு படிநிலைக்குமான துல்லியக் கட்டுப்பாடு, GCF v3.2, இழுத்து-மறுவரிசைப்படுத்தும் திருத்தி. → [சுருக்கம்](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ வெளிப்படையான MITM மறைகுறிநீக்கம் (TPROXY)** — ஒவ்வொரு SNI-க்குமான CA + நம்பிக்கைச் சேமிப்பக நிறுவியுடன், பதிலாள் சூழல் மாறிகளைப் புறக்கணிக்கும் CLI-களைக் கைப்பற்றுங்கள். → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 எங்கும் செலவுத் தொலைஅளவியல்** — ஒவ்வொரு முனைப்பிலும் `X-OmniRoute-*` செலவு/பயன்பாட்டுத் தலைப்புகள், கேச்-HIT சேமிப்புத் தலைப்பு, விசை வாரியான USD செலவு ஒதுக்கீடுகள். → [API மேற்கோள்](docs/reference/API_REFERENCE.md)
-- **🧠 உங்கள் கட்டுப்பாட்டிலுள்ள நினைவகம்** — இயல்பாக முடக்கப்பட்டுள்ளது; விருப்பத்தேர்வாக int8 வெக்டர் குவாண்டமாக்கல் + வகைப்படுத்தப்பட்ட சிதைவு, ஒவ்வொரு கோரிக்கைக்குமான `x-omniroute-no-memory`. → [நினைவகம்](docs/frameworks/MEMORY.md)
-- **🛡️ பாதுகாப்பு** — ஒவ்வொரு LLM வழித்தடத்திலும் prompt-injection தடுப்பு (red-team சோதனைத் தொகுப்பு), விருப்பத்தேர்வான நற்சான்று-மறைப்புப் பாதுகாப்பு வரம்பு (இரு திசைகளிலும் கசிந்த API விசைகள்/ரகசியங்களை மறைக்கிறது), இலவச DuckDuckGo இறுதி-வழி வலைத் தேடல் மற்றும் டாஷ்போர்டுக்கான விருப்பத்தேர்வான OIDC உள்நுழைவு நுழைவாயில் (கடவுச்சொல் உள்நுழைவு எப்போதும் கிடைக்கும்). → [பாதுகாப்பு வரம்புகள்](docs/security/GUARDRAILS.md)
-- **🖼️ புதிய முனைப்புகள்** — `/v1/ocr` (Mistral OCR) மற்றும் `/v1/audio/translations` (Whisper-பாணி) ஆகியவை ஊடக இடைமுகத்தை முழுமையாக்குகின்றன. → [API மேற்கோள்](docs/reference/API_REFERENCE.md)
-- **🎨 படம் / காணொளி / ஒலி உருவாக்கம்** — ஊடகத்திற்கான ஒரே API: xAI Grok Imagine & Novita AI காணொளி, ComfyUI, Magnific, Adobe Firefly, Segmind மற்றும் ElevenLabs போன்ற பேச்சு வழங்குநர்கள். → [API மேற்கோள்](docs/reference/API_REFERENCE.md)
-- **🌍 நிறுவல் & செயல்பாடுகள்** — reverse-proxy `basePath`, உலாவி மொழியைத் தானாகக் கண்டறிதல், விசை வாரியான சாதனக் கண்காணிப்பு, root இல்லாத MITM நம்பிக்கை, zh-TW உள்ளூர்மயமாக்கல். → [சூழல்](docs/reference/ENVIRONMENT.md)
-- **🤝 மேலும் பல வழங்குநர்கள் & முகவர்கள்** — கிளவுட் முகவர்கள் (Codex Cloud, Cursor, Devin, Jules), உலாவி + OAuth உள்நுழைவுடன் Grok Build (xAI), முதன்மைத் தர Ollama அட்டை, Claude Opus 5 & Sonnet 5, Kimi அதிகாரப்பூர்வக் கூட்டாண்மை (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… மற்றும் புதுப்பிக்கப்பட்ட **352-வழங்குநர் பட்டியல்**. → [வழங்குநர்கள்](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 வழித்தடத் தேர்வின் வெளிப்படைத்தன்மை** — ஒவ்வொரு பதிலும் அதற்குச் சேவையளித்த உத்தி/வழங்குநர்/தாமதத்தைக் குறிப்பிடும் `X-OmniRoute-Decision` தலைப்பைக் கொண்டுள்ளது; புதிய `cache-optimized` காம்போ உத்தி + Auto-Combo `cacheAffinity` காரணி, மீண்டும் வரும் கோரிக்கைகளைக் கேச் செய்யப்பட்ட முன்னொட்டைக் கொண்ட இணைப்பிற்குத் திருப்புகின்றன; மேலும் படிக்க மட்டும் இயலும் `/v1/auto-combo/{channel}/candidates` முனைப்பு, ஓர் `auto/*` சேனலின் நேரடி வேட்பாளர் தொகுப்பை வெளிப்படுத்துகிறது. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ உள்ளூர் செயல்திறன் & உள்கட்டமைப்பு** — ஒரே கிளிக்கில் உள்ளூர் Redis, Cloudflare Workers / Deno Deploy ரிலே நிறுவிகள், மேற்பார்வையிடப்பட்ட உட்பொதிக்கப்பட்ட சேவைகளாக Bifrost & Mux. → [உட்பொதிக்கப்பட்ட சேவைகள்](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 தொகுப்பில் மேலும் உள்ளவை** — செருகுநிரல் கட்டமைப்பு + சந்தை, Omni/Agent/GitHub திறன் கட்டமைப்புகள், Obsidian vault ஒருங்கிணைப்பு (22 MCP கருவிகள்), OpenAI-இணக்கமான Batch & Files API-கள், பொருள்சார் பதில் கேச், முன்னணிப் பட்டியல்களுடன் விளையாட்டுமயமாக்கல், ACP முகவர் கண்டறிதல் (உள்ளமைந்த 15 முகவர்கள்), BigQuery-க்கு அட்டவணைப்படுத்தப்பட்ட பதிவேடு ஏற்றுமதி, `auto/chaos` தவறு உட்செலுத்தல், Telegram bot பாலம், செயலிக்குள்ளான பதிப்பு மேலாளர் மற்றும் LMArena-ELO இலவச-வழங்குநர் தரவரிசைகள். → [ஆவணங்கள்](docs/README.md)
+- **🎛️ OmniConductor** — உங்கள் agent குழுவிற்கு உள்வரும் A2A பணிப் பகிர்வு, Agent Card-இல் Conductor திறன்கள் மற்றும் Faro push-to-talk குரல் அரட்டையுடன் கூடிய dashboard panel. → [A2A Server](docs/frameworks/A2A-SERVER.md)
+- **🛂 தகவமைவு அனுமதி & அதிகச் சுமைப் பாதுகாப்பு** — அதிக வளம் தேவைப்படும் chat கோரிக்கைகள் 503 பிழையை வழங்குவதற்குப் பதிலாக வரிசைப்படுத்தப்படுகின்றன; ஒவ்வொரு connection-க்கும் atomic RPM rolling lease-கள் வழங்கப்படுகின்றன. → [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ நியமமான `/v1/models` வரிசைப்படுத்தல்** — ஒவ்வொரு provider-க்கும் தொடர்ச்சியான, provider அடிப்படையில் தொகுக்கப்பட்ட ஒரே block (combos முதலில் நிலைநிறுத்தப்படும்); ஒவ்வொரு catalog மூலத்திலும் நிலையானது. → [API குறிப்பேடு](docs/reference/API_REFERENCE.md)
+- **🗜️ சுருக்கப் பாதுகாப்பை வலுப்படுத்துதல்** — இயல்பாகச் செயல்படும் inflation guard, DE / FR / JA + Chinese (wényán)-க்கான Caveman packs, Gradle & .NET-க்கான RTK filters. → [சுருக்கம்](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 நேர்மையான நிலையான கட்டணச் செலவு** — subscription / coding-plan provider-கள் செலவுப் பகுப்பாய்வில் **$0** எனக் காட்டப்படுகின்றன; budget, quota & routing தொடர்ந்து மதிப்பிடுகின்றன. → [API குறிப்பேடு](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share routing** — பகிரப்பட்ட account-இன் quota-வை pooled key-கள் முழுவதும் நியாயமாகப் பிரிக்கிறது; பயன்படாத பங்குகள் பிறருக்குக் கடனாக வழங்கப்படுவதால் வேலைத் திறன் பாதுகாக்கப்படுகிறது. → [மீள்திறன் வழிகாட்டி](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 ஒரே command-இல் CLI/agent அமைப்பு** — பதிவுசெய்யப்பட்ட 13 `setup-*` command-கள்; `omniroute run` 7 CLI-களைத் தொடங்குகிறது (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` ஊடாடும் provider+model தேர்வி மற்றும் ஒவ்வொரு context-க்குமான விருப்பங்களுடன் 10 target-களை ஆதரிக்கிறது. → [CLI ஒருங்கிணைப்புகள்](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ தொலைநிலைப் பயன்முறை** — வரம்பிடப்பட்ட token-கள் (`connect` / `contexts` / `tokens`) மற்றும் VPS நிறுவல்களுக்கான `antigravity` OAuth உதவியுடன் தொலைநிலை OmniRoute-ஐ இயக்குங்கள். → [தொலைநிலைப் பயன்முறை](docs/guides/REMOTE-MODE.md)
+- **🧭 மேலும் நுண்ணறிவான தானியங்கி routing** — `auto/<category>:<tier>` combos, **Fusion** (model panel + judge), task-aware routing, ஒவ்வொரு கோரிக்கைக்குமான model / mode / USD-budget override-கள். → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ இணைக்கக்கூடிய சுருக்கம்** — ஒன்றிணைத்துப் பயன்படுத்தக்கூடிய 12 engine-கள் + Compression Studios: LLMLingua-2, இரு-அடுக்கு Ultra, omniglyph, ஒவ்வொரு படிநிலைக்குமான fidelity gate, GCF v3.2, இழுத்து மறுவரிசைப்படுத்தும் editor. → [சுருக்கம்](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ வெளிப்படையான MITM decrypt (TPROXY)** — proxy env var-களைப் புறக்கணிக்கும் CLI-களை, ஒவ்வொரு SNI-க்குமான CA + trust-store installer மூலம் capture செய்கிறது. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 எங்கும் செலவு telemetry** — ஒவ்வொரு endpoint-இலும் `X-OmniRoute-*` செலவு/பயன்பாட்டு header-கள், cache-HIT சேமிப்பு header, ஒவ்வொரு key-க்குமான USD செலவுக் quota-க்கள். → [API குறிப்பேடு](docs/reference/API_REFERENCE.md)
+- **🧠 உங்கள் கட்டுப்பாட்டிலுள்ள memory** — இயல்பாக முடக்கப்பட்டுள்ளது; விருப்பத்தேர்வாக int8 vector quantization + typed decay, ஒவ்வொரு கோரிக்கைக்குமான `x-omniroute-no-memory`. → [Memory](docs/frameworks/MEMORY.md)
+- **🛡️ பாதுகாப்பு** — ஒவ்வொரு LLM route-இலும் prompt-injection guard (red-team suite), விருப்பத்தேர்வான credential-masking guardrail (இரு திசைகளிலும் கசிந்த API key-கள்/secret-களை மறைக்கிறது), இலவச DuckDuckGo இறுதி வாய்ப்பு web search மற்றும் dashboard-க்கான விருப்பத்தேர்வான OIDC login gate (password login எப்போதும் கிடைக்கும்). → [Guardrail-கள்](docs/security/GUARDRAILS.md)
+- **🖼️ புதிய endpoint-கள்** — `/v1/ocr` (Mistral OCR) மற்றும் `/v1/audio/translations` (Whisper-style) ஆகியவை media வசதிகளை முழுமைப்படுத்துகின்றன. → [API குறிப்பேடு](docs/reference/API_REFERENCE.md)
+- **🎨 படம் / காணொளி / ஒலி உருவாக்கம்** — media-விற்கான ஒரே API: xAI Grok Imagine & Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind மற்றும் ElevenLabs போன்ற speech provider-கள். → [API குறிப்பேடு](docs/reference/API_REFERENCE.md)
+- **🌍 Deployment & செயல்பாடுகள்** — reverse-proxy `basePath`, browser-language தானியங்கிக் கண்டறிதல், ஒவ்வொரு key-க்குமான device tracking, root இல்லாத MITM trust, zh-TW localization. → [சூழல்](docs/reference/ENVIRONMENT.md)
+- **🤝 மேலும் பல provider-கள் & agent-கள்** — cloud agent-கள் (Codex Cloud, Cursor, Devin, Jules), browser + OAuth login கொண்ட Grok Build (xAI), முதல் தர Ollama card, Claude Opus 5 & Sonnet 5, Kimi அதிகாரப்பூர்வக் கூட்டாண்மை (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… மற்றும் புதுப்பிக்கப்பட்ட **352-provider catalog**. → [Provider-கள்](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Routing வெளிப்படைத்தன்மை** — ஒவ்வொரு response-உம் அதனை வழங்கிய strategy/provider/latency-ஐக் குறிப்பிடும் `X-OmniRoute-Decision` header-ஐக் கொண்டுள்ளது; புதிய `cache-optimized` combo strategy + Auto-Combo `cacheAffinity` factor, cached prefix-ஐ வைத்திருக்கும் connection-க்கு மீண்டும் வரும் கோரிக்கைகளைத் திருப்பி அனுப்புகின்றன; மேலும் read-only `/v1/auto-combo/{channel}/candidates` endpoint ஓர் `auto/*` channel-இன் நிகழ்நேர candidate pool-ஐ வெளிப்படுத்துகிறது. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ உள்ளூர் செயல்திறன் & உள்கட்டமைப்பு** — ஒரே click-இல் local Redis, Cloudflare Workers / Deno Deploy relay deployer-கள், மேற்பார்வையிடப்படும் embedded service-களாக Bifrost & Mux. → [Embedded Service-கள்](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 தொகுப்பில் மேலும் உள்ளவை** — plugin framework + marketplace, Omni/Agent/GitHub skills framework-கள், Obsidian vault integration (22 MCP tool-கள்), OpenAI-compatible Batch & Files API-கள், semantic response cache, leaderboard-களுடன் gamification, ACP agent discovery (உள்ளமைந்த 15 agent-கள்), BigQuery-க்குத் திட்டமிடப்பட்ட log export, `auto/chaos` parallel multi-model fan-out, Telegram bot bridge, பயன்பாட்டிற்குள் version manager மற்றும் LMArena-ELO இலவச-provider ranking-கள். → [ஆவணங்கள்](docs/README.md)
 
 <br/>
 
@@ -1264,29 +1264,29 @@ Dashboard இல்லாத headless runtime-க்கு Docker `base` profile
 <br/>
 <div align="center">
 
-## 🛠️ தொழில்நுட்ப அடுக்கு
+## 🛠️ தொழில்நுட்பத் தொகுப்பு
 
 </div>
 
 <table>
   <tr><th align="left">அடுக்கு</th><th align="left">தொழில்நுட்பம்</th></tr>
-  <tr><td nowrap><b>இயங்குதளம்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>மொழி</b></td><td>டைப்ஸ்கிரிப்ட் 6.0 — <b>100% டைப்ஸ்கிரிப்ட்</b> முழுவதும் <code>src/</code> மற்றும் <code>open-sse/</code> (v2.0 முதல் மையத்தில் <code>any</code> இல்லை)</td></tr>
+  <tr><td nowrap><b>இயக்கச் சூழல்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதிலும் <b>100% TypeScript</b> (v2.0 முதல் மையப் பகுதியில் <code>any</code> எதுவுமில்லை)</td></tr>
   <tr><td nowrap><b>கட்டமைப்பு</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL ஜர்னலிங்) + LowDB (JSON மரபு) — 122 டொமைன் தொகுதிகள், 183 இடம்பெயர்வுகள்</td></tr>
-  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு உரை + int8-குவாண்டைஸ் செய்யப்பட்ட வெக்டர் உட்பொதிவுகள், டைப் செய்யப்பட்ட சிதைவு</td></tr>
-  <tr><td nowrap><b>திட்டங்கள்</b></td><td>Zod 4 — MCP கருவி I/O சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
+  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபமைப்பு) — 137 களத் தொகுதிகள், 193 இடமாற்றங்கள்</td></tr>
+  <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு-உரை + int8 அளவாக்கப்பட்ட திசையன் உட்பொதிவுகள், வகையிடப்பட்ட தேய்வு</td></tr>
+  <tr><td nowrap><b>திட்டவடிவங்கள்</b></td><td>Zod 4 — MCP கருவி உள்ளீடு/வெளியீட்டுச் சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
   <tr><td nowrap><b>நெறிமுறைகள்</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ஸ்ட்ரீமிங்</b></td><td>சர்வர்-சென்ட் நிகழ்வுகள் (SSE) + வெப்சாக்கெட் பாலம் (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-என்ஜின் பைப்லைன் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP ஸ்கோப் செய்யப்பட்ட அங்கீகாரம் · AES-256-GCM ஓய்வு நிலையில் · DOMPurify</td></tr>
-  <tr><td nowrap><b>மறைநிலை</b></td><td>wreq-js — JA3 / JA4 TLS கைரேகை ஆள்மாறாட்டம், 3-நிலை ப்ராக்ஸி</td></tr>
-  <tr><td nowrap><b>மீள்தன்மை</b></td><td>சர்க்யூட் பிரேக்கர், எக்ஸ்போனென்ஷியல் பேக்ஆஃப், ஆன்டி-தண்டரிங்-ஹெர்ட், ஆட்டோ-காம்ப்ளக்ஸ் சுய-குணப்படுத்துதல்</td></tr>
-  <tr><td nowrap><b>பதிவு செய்தல்</b></td><td>pino — கோரிக்கை சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
-  <tr><td nowrap><b>சோதனை</b></td><td>Node.js டெஸ்ட் ரன்னர் + வைடெஸ்ட் — <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> 5,100+ கண்காணிக்கப்பட்ட சோதனை கோப்புகளில் (யூனிட், இன்டெக்ரேஷன், E2E, பாதுகாப்பு, சுற்றுச்சூழல் அமைப்பு)</td></tr>
-  <tr><td nowrap><b>தளங்கள்</b></td><td>டெஸ்க்டாப் (எலக்ட்ரான்) · ஆண்ட்ராய்டு (டெர்மாக்ஸ்) · PWA (எந்த உலாவி)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>கிட்ஹப் ஆக்ஷன்ஸ் — வெளியீட்டில் தானியங்கி npm வெளியீடு + டாக்கர் ஹப்</td></tr>
-  <tr><td nowrap><b>இணைப்புகள்</b></td><td><a href="https://omniroute.online">வலைத்தளம்</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">டாக்கர் ஹப்</a></td></tr>
+  <tr><td nowrap><b>தொடரோட்டம்</b></td><td>Server-Sent Events (SSE) + WebSocket இணைப்புப் பாலம் (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>சுருக்கம்</b></td><td>12-பொறி செயலாக்கத் தொடர் — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>அங்கீகாரம் &amp; பாதுகாப்பு</b></td><td>OAuth 2.0 (PKCE) + JWT + API விசைகள் + MCP வரம்பிடப்பட்ட அங்கீகாரம் · சேமிப்பில் AES-256-GCM குறியாக்கம் · DOMPurify</td></tr>
+  <tr><td nowrap><b>மறைநிலை</b></td><td>wreq-js — JA3 / JA4 TLS கைரேகைப் போலாக்கம், 3-நிலை பதிலி</td></tr>
+  <tr><td nowrap><b>மீள்திறன்</b></td><td>சுற்றுத் துண்டிப்பான், அதிவேகப் பின்னடைவு, ஒரேநேரக் கோரிக்கைப் பெருக்கத் தடுப்பு, தானியங்குச் சேர்க்கை சுய-சீரமைப்பு</td></tr>
+  <tr><td nowrap><b>பதிவிடுதல்</b></td><td>pino — கோரிக்கைச் சூழலுடன் கட்டமைக்கப்பட்ட JSON பதிவுகள்</td></tr>
+  <tr><td nowrap><b>சோதனை</b></td><td>Node.js சோதனை இயக்கி + Vitest — 5,100+ கண்காணிக்கப்படும் சோதனைக் கோப்புகள் முழுவதிலும் <b>39,000+ நிலையான சோதனை அறிவிப்புகள்</b> (அலகு, ஒருங்கிணைப்பு, E2E, பாதுகாப்பு, சூழலமைப்பு)</td></tr>
+  <tr><td nowrap><b>தளங்கள்</b></td><td>மேசைக்கணினி (Electron) · Android (Termux) · PWA (எந்த உலாவியும்)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — வெளியீட்டின்போது தானியங்கு npm வெளியீடு + Docker Hub</td></tr>
+  <tr><td nowrap><b>இணைப்புகள்</b></td><td><a href="https://omniroute.online">இணையதளம்</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
 <div align="center">
@@ -1737,7 +1737,7 @@ MIT உரிமம் - விவரங்களுக்கு [LICENSE](LICEN
 
 **[⬆ மேலே திரும்பு](#-omniroute)** · திறந்த மூல AI சமூகத்திற்காக ❤️ உடன் உருவாக்கப்பட்டது.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT உரிமம் · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT உரிமம் · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- சமூகக் கேள்வி-பதில்களுக்காக GitHub Discussions இயக்கப்பட்டுள்ளது -->

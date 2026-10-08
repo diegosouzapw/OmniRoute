@@ -1,4 +1,13 @@
-import { logProxyEvent } from "../../lib/proxyLogger";
+import {
+  linkPendingFirstChunk,
+  logProxyEvent,
+  settlePendingFirstChunk,
+} from "../../lib/proxyLogger";
+import { updateAttemptTiming } from "../../lib/db/proxyLogs";
+import {
+  isFirstChunkTimingEnabled,
+  sanitizeTimingMs,
+} from "@omniroute/open-sse/utils/upstreamStatusCapture.ts";
 
 /** One request actually sent: the outlet snapshot plus what came back. */
 export type AttemptJournalEntry = {
@@ -7,6 +16,18 @@ export type AttemptJournalEntry = {
   upstreamStatus?: number;
   error?: string | null;
   durationMs?: number | null;
+  /** Send start -> response headers received; null when unknown (network throw). */
+  headersMs?: number | null;
+  /** Send start -> first useful body byte; null until the byte arrives. */
+  firstChunkMs?: number | null;
+  /**
+   * Fired once when the first useful body byte is read downstream, or with
+   * null when the body settles without one. Set by the capture wrapper when
+   * it envelopes the raw upstream body; read here.
+   */
+  onFirstChunk?: ((firstChunkMs: number | null) => void) | null;
+  /** True once the envelope replaced the raw body (single-wrap guard). */
+  bodyTracked?: boolean;
 };
 
 export type ProxyJournalInput = {
@@ -90,6 +111,56 @@ function abandonedRowLevel(
   return proxyInfo?.level || "account";
 }
 
+/** Final send of the journal, if any (the row the request settled on). */
+function servedTimingPair(attempts: AttemptJournalEntry[] | null): {
+  headersMs: number | null;
+  firstChunkMs: number | null;
+} {
+  const served = attempts?.[attempts.length - 1] ?? null;
+  return attemptTimingPair(served);
+}
+
+/**
+ * Link-then-settle a journaled row: registers the row for a late first byte,
+ * then settles immediately when the byte is already known (early path). The
+ * late path (median/late order) is settled by the upstream body wrapper once
+ * the first byte arrives: the attempt record carries the callback, armed here
+ * to the journaled row id. Single call site for both journal rows.
+ */
+function settleAttemptTiming(
+  entry: { id: string },
+  attempt: AttemptJournalEntry | null | undefined,
+  firstChunkMs: number | null
+): void {
+  // Opt-in (PROXY_LOG_FIRST_CHUNK_TIMING): with it off no body is enveloped,
+  // so nothing can ever settle a link - register nothing, patch nothing.
+  if (!isFirstChunkTimingEnabled()) return;
+  linkPendingFirstChunk(entry.id, entry as never, firstChunkMs !== null, true);
+  if (firstChunkMs !== null) {
+    settlePendingFirstChunk(entry.id, firstChunkMs, (id, patch) => updateAttemptTiming(id, patch));
+    return;
+  }
+  const record = attempt;
+  if (record?.bodyTracked && !record.onFirstChunk) {
+    const rowId = entry.id;
+    record.onFirstChunk = (lateMs) => {
+      settlePendingFirstChunk(rowId, lateMs, (id, patch) => updateAttemptTiming(id, patch));
+      record.onFirstChunk = null;
+    };
+  }
+}
+
+/** Timing pair carried from a send record onto its log row (test seam). */
+export function attemptTimingPair(attempt: AttemptJournalEntry | null | undefined): {
+  headersMs: number | null;
+  firstChunkMs: number | null;
+} {
+  return {
+    headersMs: sanitizeTimingMs(attempt?.headersMs),
+    firstChunkMs: sanitizeTimingMs(attempt?.firstChunkMs),
+  };
+}
+
 function logAbandonedRow(
   attempt: AttemptJournalEntry,
   index: number,
@@ -106,7 +177,8 @@ function logAbandonedRow(
   }
 ): void {
   const { proxyInfo, provider, model, credentials, comboName } = shared;
-  logProxyEvent({
+  const timing = attemptTimingPair(attempt);
+  const entry = logProxyEvent({
     status: attemptTextStatus(attempt),
     proxy: asProxyConfig(attempt.proxy),
     level: abandonedRowLevel(attempt, proxyInfo),
@@ -126,7 +198,10 @@ function logAbandonedRow(
     upstreamStatus: attempt.upstreamStatus ?? null,
     attemptNumber: index + 1,
     attemptIssue: "abandoned",
+    headersMs: timing.headersMs,
+    firstChunkMs: timing.firstChunkMs,
   });
+  settleAttemptTiming(entry, attempt, timing.firstChunkMs);
 }
 
 // One row per request actually sent: the final row is the send the request
@@ -170,7 +245,8 @@ export async function logProxyJournal(input: ProxyJournalInput): Promise<void> {
     logAbandonedRow(journalRows[index], index, shared);
   }
 
-  logProxyEvent({
+  const servedTiming = servedTimingPair(attempts);
+  const servedEntry = logProxyEvent({
     status: result.success
       ? "success"
       : result.status === 408 || result.status === 504
@@ -194,7 +270,10 @@ export async function logProxyJournal(input: ProxyJournalInput): Promise<void> {
     upstreamStatus: proxyInfo?.upstreamStatus ?? null,
     attemptNumber: attempts ? attempts.length : null,
     attemptIssue: attempts ? ("served" as const) : null,
+    headersMs: servedTiming.headersMs,
+    firstChunkMs: servedTiming.firstChunkMs,
   });
+  settleAttemptTiming(servedEntry, attempts?.[attempts.length - 1], servedTiming.firstChunkMs);
 
   // Abandoned sends are already written above, in attempt order; nothing follows.
 }

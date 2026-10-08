@@ -308,22 +308,27 @@ Aufgabe in der eigenen Konsole des Anbieters.
 
 ## REST-API — Cloud-Provider-Anbindung
 
-Diese zusätzlichen Endpunkte unter `src/app/api/cloud/` werden von Remote-Clients
+Diese Hilfsendpunkte unter `src/app/api/cloud/` werden von Remote-Clients
 (der CLI, der Electron-App oder Synchronisierungs-Workern) verwendet, um Verbindungsmetadaten
-von Providern abzurufen und Modellaliase aufzulösen. Sie werden mit einem **regulären API-Schlüssel**
-(über `validateApiKey`) authentifiziert, nicht mit der von den Aufgabenendpunkten verwendeten Verwaltungsauthentifizierung.
+von Providern abzurufen und Modellaliase aufzulösen. Sie werden mit einem **API-Schlüssel**
+(über `validateApiKey`) authentifiziert, nicht mit der Verwaltungs-Authentifizierung, die von den Aufgabenendpunkten verwendet wird. Was
+`/api/cloud/auth` zurückgibt, hängt vom Geltungsbereich des Schlüssels ab (siehe unten).
 
-| Methode | Pfad                            | Zweck                                                                                       |
-| ------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| POST    | `/api/cloud/auth`               | API-Schlüssel validieren, maskierte Verbindungsmetadaten + Modellaliase zurückgeben         |
-| PUT     | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` aktualisieren                                  |
-| POST    | `/api/cloud/model/resolve`      | Einen Modellalias in `{ provider, model }` auflösen                                         |
-| GET     | `/api/cloud/models/alias`       | Alle Modellaliase auflisten                                                                 |
-| PUT     | `/api/cloud/models/alias`       | Einen Modellalias festlegen (und bei Aktivierung automatisch mit der Cloud synchronisieren) |
+| Methode | Pfad                            | Zweck                                                                                   |
+| ------- | ------------------------------- | --------------------------------------------------------------------------------------- |
+| POST    | `/api/cloud/auth`               | API-Schlüssel validieren und maskierte Verbindungsmetadaten + Modellaliase zurückgeben  |
+| PUT     | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` aktualisieren                              |
+| POST    | `/api/cloud/model/resolve`      | Einen Modellalias in `{ provider, model }` auflösen                                     |
+| GET     | `/api/cloud/models/alias`       | Alle Modellaliase auflisten                                                             |
+| PUT     | `/api/cloud/models/alias`       | Einen Modellalias festlegen (und bei Aktivierung automatisch mit Cloud synchronisieren) |
 
-`/api/cloud/auth` gibt niemals `apiKey` / `accessToken` / `refreshToken` im Klartext zurück. Der Endpunkt
-gibt `hasApiKey`, `hasAccessToken`, `hasRefreshToken` sowie eine maskierte Vorschau zurück
-(`maskedApiKey`: erste 4 + `****` + letzte 4).
+`/api/cloud/auth` gibt niemals unformatierte `apiKey` / `accessToken` / `refreshToken` zurück. Stattdessen
+werden `hasApiKey`, `hasAccessToken` und `hasRefreshToken` für die aktiven Verbindungen zurückgegeben, die der Schlüssel
+verwenden darf (ein mit `allowedConnections` eingeschränkter Schlüssel sieht nur diese). Für einen API-Schlüssel mit
+dem Geltungsbereich `manage` oder `admin`, einschließlich des Bereitstellungsschlüssels aus `OMNIROUTE_API_KEY`, wird außerdem
+eine maskierte Vorschau (`maskedApiKey`: bis zu 4 Zeichen an jedem Ende, weniger bei einem kurzen
+Schlüssel, keine bei 8 oder weniger Zeichen) sowie die `projectId` der Verbindung zurückgegeben. Beide Felder werden
+bei allen anderen Schlüsseln in der Antwort weggelassen.
 
 ## Auflösung der Anmeldedaten
 

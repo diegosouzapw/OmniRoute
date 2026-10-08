@@ -207,7 +207,7 @@ export function buildAllTargetsCoolingDownResponse(
     known.length > 0 ? Math.max(1, Math.ceil(Math.min(...known) / 1000)) : undefined;
   const response = errorResponseWithComboDiagnostics(
     503,
-    "Service temporarily unavailable: every target in this combo is cooling down (model lockout, circuit breaker or provider cooldown)",
+    `Service temporarily unavailable: every target in this combo is cooling down (model lockout, circuit breaker or provider cooldown): ${formatPreDispatchExclusions(cooling)}`,
     {
       poolSize: exclusions.length,
       attempted: 0,

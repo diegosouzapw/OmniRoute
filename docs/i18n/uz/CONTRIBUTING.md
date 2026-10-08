@@ -399,22 +399,22 @@ Model taʼriflarini `open-sse/config/providerRegistry.ts` fayliga qoʻshing.
 
 ---
 
-## Pull Request nazorat roʻyxati
+## Pull Request tekshiruv roʻyxati
 
 - [ ] Testlar muvaffaqiyatli oʻtadi (`npm test`)
-- [ ] Lint tekshiruvi muvaffaqiyatli oʻtadi (`npm run lint`)
-- [ ] Yigʻish muvaffaqiyatli yakunlanadi (`npm run build`)
+- [ ] Linting tekshiruvi muvaffaqiyatli oʻtadi (`npm run lint`)
+- [ ] Build muvaffaqiyatli yakunlanadi (`npm run build`)
 - [ ] Yangi ommaviy funksiyalar va interfeyslar uchun TypeScript turlari qoʻshilgan
-- [ ] Qattiq kodlangan maxfiy maʼlumotlar yoki zaxira qiymatlar mavjud emas
-- [ ] Ommaviy yuqori oqim hisob maʼlumotlari `resolvePublicCred()` orqali joylashtirilgan ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) hujjatiga qarang), hech qachon literal sifatida emas
-- [ ] Xato javoblari `buildErrorBody()` / `sanitizeErrorMessage()` orqali oʻtadi — javob tanalarida xom stek treyslari mavjud emas ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) hujjatiga qarang)
+- [ ] Hardkodlangan maxfiy maʼlumotlar yoki zaxira qiymatlar mavjud emas
+- [ ] Ommaviy upstream hisob maʼlumotlari literal qiymatlar sifatida emas, `resolvePublicCred()` orqali kiritilgan ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ga qarang)
+- [ ] Xato javoblari `buildErrorBody()` / `sanitizeErrorMessage()` orqali yoʻnaltirilgan — javob tanalarida xom stack trace mavjud emas ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ga qarang)
 - [ ] Shell buyruqlari (`exec` / `spawn`) bajarilish vaqtidagi qiymatlarni satr interpolyatsiyasi orqali emas, `env` orqali uzatadi
-- [ ] Barcha kiruvchi maʼlumotlar Zod sxemalari yordamida tekshirilgan
-- [ ] Foydalanuvchiga taʼsir qiladigan oʻzgarishlar uchun `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ostiga oʻzgarishlar jurnali **fragmenti** qoʻshilgan ([`changelog.d/README.md`](./changelog.d/README.md) hujjatiga qarang) — `CHANGELOG.md` faylini bevosita tahrirlamang; fragmentlar reliz vaqtida birlashtiriladi va PRlar oʻrtasida hech qachon ziddiyat keltirib chiqarmaydi
+- [ ] Barcha kirish maʼlumotlari Zod sxemalari bilan tekshirilgan
+- [ ] Foydalanuvchiga taʼsir qiluvchi oʻzgarishlar uchun `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ostiga changelog **fragmenti** qoʻshilgan ([`changelog.d/README.md`](./changelog.d/README.md) ga qarang) — `CHANGELOG.md` faylini toʻgʻridan-toʻgʻri tahrirlamang; fragmentlar reliz vaqtida birlashtiriladi va PRlar oʻrtasida hech qachon ziddiyatga olib kelmaydi
 - [ ] Hujjatlar yangilangan (agar tegishli boʻlsa)
-- [ ] Yangi CodeQL / Secret-Scanning ogohlantirishlari ochilmagan yoki ularning har biri tegishli `docs/security/` hujjatiga havola qiluvchi texnik asos bilan rad etilgan
-- [ ] Ichki jarayonlarni ishga tushiradigan marshrutlar (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` faylida `isLocalOnlyPath()` sifatida tasniflangan — [15-qatʼiy qoida](docs/security/ROUTE_GUARD_TIERS.md)ga qarang
-- [ ] Commit xabarlarida `Co-Authored-By` yakuniy satrlari mavjud emas — commitlar faqat repozitoriy egasining Git identifikatori ostida koʻrinishi kerak (16-qatʼiy qoida)
+- [ ] Yangi CodeQL / Secret-Scanning ogohlantirishlari yaratilmagan yoki ularning har biri tegishli `docs/security/` hujjatiga havola qilingan texnik asos bilan rad etilgan
+- [ ] Quyi jarayonlarni ishga tushiradigan marshrutlar (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` ichida `isLocalOnlyPath()` sifatida tasniflangan — [Qatʼiy qoida #15](docs/security/ROUTE_GUARD_TIERS.md) ga qarang
+- [ ] Commit xabarlarida AI/botga tegishli `Co-authored-by` treylerlari mavjud emas (Qatʼiy qoida #16) — ishidan qayta foydalanilgan inson hamkorlar standart `Co-authored-by: Name <email>` treylerlari bilan eʼtirof etiladi
 
 ---
 
@@ -431,8 +431,7 @@ So‘ng `dist/` tarkibini masofaviy `app/` katalogiga rsync orqali sinxronlaydig
 ## Yordam olish
 
 - **Arxitektura**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) fayliga qarang
-- **API ma’lumotnomasi**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) fayliga qarang
+- **API maʼlumotnomasi**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) fayliga qarang
 - **Xavfsizlik hujjatlari**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Ekspluatatsiya hujjatlari**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Operatsion hujjatlar**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Muammolar**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR’lar**: Arxitektura qarorlari yozuvlari uchun `docs/adr/` katalogiga qarang

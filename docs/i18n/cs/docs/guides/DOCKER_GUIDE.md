@@ -239,12 +239,12 @@ Produkční stack běží souběžně s vývojovým compose (používá jiné n�
 
 Repozitář obsahuje vícefázový Dockerfile (`Dockerfile`). K dispozici jsou čtyři fáze; vyberte správný `target` pro svůj případ použití.
 
-| Fáze          | Základní image        | Účel                                                                                                                                                                                                                                                                                                |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Nainstaluje závislosti (`npm ci --legacy-peer-deps`) a spustí `npm run build` (ve výchozím nastavení pomocí Turbopacku — viz níže Zdroje při sestavení)                                                                                                                                             |
-| `runner-base` | `node:26-trixie-slim` | Produkční běhové prostředí se samostatným výstupem Next.js. **Neobsahuje žádná CLI poskytovatelů.**                                                                                                                                                                                                 |
-| `runner-cli`  | `runner-base`         | Přidává `git`, `docker.io`, `docker-compose` a globální CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Tuto variantu vyberte pro agentní pracovní postupy.**                                                                                                             |
-| `runner-web`  | `runner-base`         | Přidává Playwright a prohlížeč Chromium (`--with-deps`) pro poskytovatele webových relací: `gemini-web`, `claude-web`, `claude-turnstile`. **Tuto variantu vyberte, pokud tyto poskytovatele používáte** — obyčejný image bez ní při požadavku selže (viz poznámka k `-web` v části Kanály vydání). |
+| Fáze          | Základní image        | Účel                                                                                                                                                                                                                                                                                                        |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Nainstaluje závislosti (`npm ci --legacy-peer-deps`) a spustí `npm run build` (ve výchozím nastavení Turbopack — viz Zdroje při sestavení níže)                                                                                                                                                             |
+| `runner-base` | `node:26-trixie-slim` | Produkční běhové prostředí se samostatným výstupem Next.js. **Neobsahuje žádné CLI poskytovatelů.**                                                                                                                                                                                                         |
+| `runner-cli`  | `runner-base`         | Přidává `git`, `docker.io`, `docker-compose` a globální CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Tuto variantu zvolte pro agentní pracovní postupy.**                                                                                                                      |
+| `runner-web`  | `runner-base`         | Přidává Playwright a prohlížeč Chromium (`--with-deps`) pro poskytovatele webových relací: `gemini-web`, `claude-web`, `claude-turnstile`. **Tuto variantu zvolte, pokud tyto poskytovatele používáte** — prostý image bez ní selže při zpracování požadavku (viz poznámka k `-web` v části Kanály vydání). |
 
 Ruční sestavení konkrétního cíle:
 
@@ -256,34 +256,34 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Zdroje při sestavení
 
-Nároky fáze `builder` řídí tři argumenty sestavení. Platí pouze při sestavení —
-`OMNIROUTE_MEMORY_MB` (níže) je samostatné nastavení běhového prostředí.
+Náklady fáze `builder` řídí tři argumenty sestavení. Platí pouze v době sestavení —
+`OMNIROUTE_MEMORY_MB` (níže) je samostatné nastavení pro běh aplikace.
 
-| Argument sestavení          | Výchozí hodnota | Účinek                                                                                      |
-| --------------------------- | --------------- | ------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`             | Hodnota `0` sestavuje pomocí webpacku. Nižší špičková spotřeba paměti, ale pomalejší běh.   |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`          | Limit haldy V8 (`--max-old-space-size`) pro spuštěný proces `next build`.                   |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`             | Nastavuje `CIRCLE_NODE_TOTAL`; Next odvodí `workers = N - 1` pro shromažďování dat stránek. |
+| Argument sestavení          | Výchozí hodnota | Účinek                                                                                            |
+| --------------------------- | --------------- | ------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`             | `0` sestavuje pomocí webpacku: nižší špičková spotřeba paměti, ale pomaleji. `1` zapne Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`          | Limit haldy V8 (`--max-old-space-size`) pro spuštěný proces `next build`.                         |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`             | Nastavuje `CIRCLE_NODE_TOTAL`; Next odvodí `workers = N - 1` pro shromažďování dat stránek.       |
 
-`OMNIROUTE_BUILD_WORKERS` je parametr, který je vhodné zvýšit na výkonném sestavovacím stroji, a zároveň první podezřelý, když sestavení s omezenými prostředky selže **po** hlášení `✓ Compiled successfully`. Každý pracovní proces pro data stránek je samostatným procesem, stejně jako samotný nadřazený proces `next build`; reprodukce na živém VPS (issue #7518) naměřila špičkovou RSS každého procesu na úrovni ~4,5 GB bez ohledu na příznak haldy `NODE_OPTIONS` (Turbopack kompiluje v nativní paměti Rustu mimo haldu V8). Výchozí hodnota `2` (→ 1 pracovní proces, celkem 2 procesy) je dimenzována pro běhová prostředí hostovaná službou GitHub s 16 GB / 4 vCPU, která používá publikační pipeline. Při hodnotě `8` (→ 7 pracovních procesů) tomuto běhovému prostředí došla paměť a buildkit ukončil krok chybou `ResourceExhausted: ... cannot allocate memory`; ani hodnota `3` (→ 2 pracovní procesy) se nevešla poté, co byla RSS jednotlivých procesů změřena přímo namísto odhadu. `tests/unit/docker-build-memory-budget.test.ts` provádí výpočet podle naměřené hodnoty a selže, pokud některý z parametrů překročí možnosti běhového prostředí.
+`OMNIROUTE_BUILD_WORKERS` je parametr, který je vhodné zvýšit na výkonném sestavovacím systému, a zároveň první podezřelý, když sestavení s omezenými prostředky selže **po** hlášení `✓ Compiled successfully`. Každý pracovní proces pro data stránek je samostatným procesem, stejně jako samotný rodičovský proces `next build`; reprodukce na reálném VPS (issue #7518) naměřila špičkové RSS každého procesu na úrovni ~4,5 GB bez ohledu na příznak haldy `NODE_OPTIONS` (Turbopack kompiluje v nativní paměti/Rustu mimo haldu V8). Výchozí hodnota `2` (→ 1 pracovní proces, celkem 2 procesy) je dimenzována pro runnery hostované službou GitHub s 16 GB / 4 vCPU, které používá publikační pipeline. Při hodnotě `8` (→ 7 pracovních procesů) tomuto runneru došla paměť a buildkit ukončil krok s chybou `ResourceExhausted: ... cannot allocate memory`; ani hodnota `3` (→ 2 pracovní procesy) se nevešla poté, co bylo RSS jednotlivých procesů změřeno přímo namísto odhadu. `tests/unit/docker-build-memory-budget.test.ts` provádí výpočet podle naměřené hodnoty a selže, pokud některé z těchto nastavení překročí možnosti runneru.
 
-Turbopack kompiluje v nativní paměti Rustu, která se nachází **mimo** haldu V8, takže ji `OMNIROUTE_BUILD_MEMORY_MB` neomezuje. Na hostiteli s paměťovým limitem pak OOM killer ukončí sestavení pomocí SIGKILL zcela bez chybové zprávy — proces se jednoduše zastaví uprostřed `Creating an optimized production build`, což působí spíše jako zamrznutí než jako nedostatek paměti. Pokud má hostitel pro sestavení omezené prostředky, přepněte bundler:
+Turbopack kompiluje v nativní paměti Rustu, která se nachází **mimo** haldu V8, takže ji `OMNIROUTE_BUILD_MEMORY_MB` neomezuje. Na hostiteli s paměťovým limitem je pak sestavení ukončeno signálem SIGKILL nástrojem OOM killer zcela bez chybového textu — jednoduše se zastaví uprostřed `Creating an optimized production build`, což působí spíše jako zamrznutí než nedostatek paměti. Proto `Dockerfile` ve výchozím nastavení používá webpack (`OMNIROUTE_USE_TURBOPACK=0`), na rozdíl od `npm run dev` / `npm run build`, kde je výchozí volbou v kódu Turbopack: prosté `docker build .` bez argumentů sestavení (které spouští Railway a další hostitelé s nasazením na jedno kliknutí) nesmí na sestavovacím systému s omezenou pamětí tiše selhat. Publikované image již explicitně předávají `OMNIROUTE_USE_TURBOPACK=0` v souboru `docker-publish.yml`. Na sestavovacím systému s dostatkem RAM můžete rychlejší sestavení pomocí Turbopacku zapnout takto:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` je povolen, takže `next build` spouští nadřazený **i** pracovní proces a každý z nich samostatně respektuje `OMNIROUTE_BUILD_MEMORY_MB`. Nastavte limit kontejneru přibližně nad dvojnásobek této hodnoty, nikoli pouze nad její jednonásobek.
+`webpackBuildWorker` je povolen, takže `next build` spouští rodičovský **i** pracovní proces a každý z nich samostatně respektuje `OMNIROUTE_BUILD_MEMORY_MB`. Limit kontejneru nastavte přibližně nad dvojnásobek této hodnoty, nikoli pouze nad její jednonásobek.
 
 Naměřeno v tomto stromu (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Limit kontejneru | Výsledek                                  |
-| --------- | ---------------- | ----------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB   | v obou případech tiše ukončeno kvůli OOM  |
-| webpack   | 8 GiB            | pracovní proces sestavení ukončen SIGKILL |
-| webpack   | 12 GiB           | úspěch, špičková spotřeba 11,1 GiB        |
+| Bundler   | Limit kontejneru | Výsledek                                           |
+| --------- | ---------------- | -------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB   | při obou limitech tiše ukončeno OOM killerem       |
+| webpack   | 8 GiB            | pracovní proces sestavení ukončen signálem SIGKILL |
+| webpack   | 12 GiB           | úspěšné, špička 11,1 GiB                           |
 
 ### Výchozí nastavení běhového prostředí
 
@@ -291,25 +291,25 @@ Výchozí hodnoty exportované fází `runner-base`: `PORT=20128`, `HOSTNAME=0.0
 
 Chování paměti v Dockeru:
 
-- Image nastavuje `OMNIROUTE_MEMORY_MB=1024` a odvozuje z této hodnoty `NODE_OPTIONS=--max-old-space-size=1024`.
-- Skutečný proces serveru spouští samostatný spouštěč, který načte `OMNIROUTE_MEMORY_MB` a přidá `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node používá poslední opakovanou hodnotu `--max-old-space-size`, takže nastavení `OMNIROUTE_MEMORY_MB` určuje efektivní limit haldy v Dockeru.
-- Protože jej image nastavuje vždy, vlastní záložní nastavení spouštěče kalibrované podle RAM se v Dockeru nikdy nepoužije. Zvyšte tuto hodnotu explicitně podle pracovní zátěže (viz tabulka níže). Hodnota `2048` je pro `/v1/responses` programovacích agentů stále příliš nízká.
+- Image nastavuje `OMNIROUTE_MEMORY_MB=1024` a odvozuje z něj `NODE_OPTIONS=--max-old-space-size=1024`.
+- Vlastní serverový proces spouští samostatný spouštěč, který načte `OMNIROUTE_MEMORY_MB` a přidá `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node použije poslední opakovanou hodnotu `--max-old-space-size`, takže nastavení `OMNIROUTE_MEMORY_MB` určuje efektivní limit haldy v Dockeru.
+- Protože jej image nastavuje vždy, vlastní záložní nastavení spouštěče kalibrované podle RAM se v Dockeru nikdy nepoužije. Pro danou zátěž jej explicitně zvyšte (viz tabulka níže). Hodnota `2048` je pro `/v1/responses` kódovacích agentů stále příliš nízká.
 
-### Operační paměť pro programovací agenty
+### Operační paměť pro kódovací agenty
 
-Výchozí hodnota 1 GiB v Dockeru je minimem pro řídicí panel a nenáročný chat, nikoli velikostí pro produkční nasazení. Dlouhá těla požadavků `POST /v1/responses` (stovky zpráv, desítky nástrojů) během komprese uchovávají v paměti několik grafů. Dva souběžné požadavky o velikosti přibližně 3 MiB / 750 tisíc tokenů způsobily ukončení V8 při velikosti old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) a také narazily na OOM limit cgroup o velikosti 16 GiB. Viz [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Výchozí hodnota 1 GiB v Dockeru je minimum pro řídicí panel a nenáročný chat, nikoli velikost pro produkční prostředí. Dlouhá těla požadavků `POST /v1/responses` (stovky zpráv, desítky nástrojů) během komprese uchovávají v paměti několik grafů. Dva souběžné požadavky o velikosti přibližně 3 MiB / 750 tisíc tokenů způsobily ukončení V8 při **12 GiB** prostoru old-space (`FATAL ERROR: Reached heap limit`) a také narazily na OOM cgroup o velikosti 16 GiB. Viz [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Nastavte **cgroup `--memory` nad velikost haldy** — nativní buffery, SQLite a mezivýsledky komprese se nacházejí mimo V8.
+Nastavte **cgroup `--memory` nad velikost haldy** — nativní vyrovnávací paměti, SQLite a mezivýsledky komprese se nacházejí mimo V8.
 
-| Pracovní zátěž                                | `OMNIROUTE_MEMORY_MB`         | Kontejner / cgroup     | Poznámky                                                                                                           |
-| --------------------------------------------- | ----------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Řídicí panel, jeden nenáročný chat            | `1024` (výchozí image)        | ≥2 GiB                 |                                                                                                                    |
-| Jeden programovací agent (Claude/Codex/Grok)  | `8192`                        | ≥10 GiB                | Typická jednorázová relace `/v1/responses`                                                                         |
-| Dva souběžné dlouhé požadavky `/v1/responses` | `10240`–`12288`               | ≥12–16 GiB             | Naměřené ukončení V8 při haldě o velikosti ~12 GiB                                                                 |
-| Tři či více souběžných dlouhých kontextů      | nespouštějte v jednom procesu | serializace / více RAM | Výchozí limit náročných požadavků je 1 probíhající požadavek; jeho zvýšení bez navýšení RAM znovu způsobí ukončení |
+| Zátěž                                         | `OMNIROUTE_MEMORY_MB`  | Kontejner / cgroup      | Poznámky                                                                                                         |
+| --------------------------------------------- | ---------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Řídicí panel, jeden nenáročný chat            | `1024` (výchozí image) | ≥2 GiB                  |                                                                                                                  |
+| Jeden kódovací agent (Claude/Codex/Grok)      | `8192`                 | ≥10 GiB                 | Typická jedna relace `/v1/responses`                                                                             |
+| Dva souběžné dlouhé požadavky `/v1/responses` | `10240`–`12288`        | ≥12–16 GiB              | Naměřené ukončení V8 při haldě o velikosti přibližně 12 GiB                                                      |
+| Tři a více souběžných dlouhých kontextů       | ne na jednom procesu   | serializovat / více RAM | Výchozí limit náročných požadavků je 1 zpracovávaný požadavek; jeho zvýšení bez další RAM znovu způsobí ukončení |
 
-`omniroute serve` na fyzickém systému kalibruje přibližně 35 % RAM (omezeno na rozsah `[512, 4096]`), když proměnná `OMNIROUTE_MEMORY_MB` **není nastavena**. Docker vždy nastavuje `1024`, takže se tato kalibrace v oficiálním imagi nikdy nespustí.
+`omniroute serve` na fyzickém systému kalibruje přibližně 35 % RAM (omezeno na rozsah `[512, 4096]`), pokud proměnná `OMNIROUTE_MEMORY_MB` **není nastavena**. Docker vždy nastavuje hodnotu `1024`, takže se tato kalibrace v oficiálním imagi nikdy nespustí.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

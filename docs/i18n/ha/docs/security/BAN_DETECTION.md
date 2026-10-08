@@ -4,24 +4,20 @@
 
 ---
 
-OmniRoute yana binciken amsoshin kuskure na upstream don gano alamomin da ke nuna cewa
-**asusun mai samarwa ya mutu na dindindin** (an dakatar / an kashe / an haramta saboda ToS), kuma idan
-an sami daidaito, yana mayar da wannan haɗin zuwa **matsayin ƙarshe na `banned`** domin kada
-a sake zaɓarsa don buƙatu. Wannan shi ne abin da katin saitunan **Security → Banned Keywords**
-yake daidaitawa ("Ƙarin kalmomin da ke jawo gano haramcin asusu na dindindin.
-Kalmomin da aka gina a ciki suna aiki koyaushe.").
+OmniRoute yana bincikar martanin kurakurai daga upstream domin gano alamomin da ke nuna cewa **an kashe asusun mai samarwa na dindindin** (an dakatar / an kashe / an hana shi saboda karya ToS), kuma idan aka sami daidaito, yana matsar da wannan haɗin zuwa **matsayin ƙarshe na `banned`** ta yadda ba za a ƙara zaɓarsa don buƙatu ba. Wannan shi ne abin da katin saitunan **Security → Banned Keywords** yake daidaitawa ("Ƙarin kalmomin da ke jawo gano hana asusu na dindindin. Kalmomin da aka gina a ciki suna aiki a koyaushe.").
 
-Wannan shafin yana bayyana jerin da aka gina a ciki, tsarin ganowa, iyakarsa, yadda ake ƙara
-kalmomi na musamman cikin aminci, da yadda ake dawo da haɗin da aka yi wa alama. Matsayin
-ƙarshe kansa wani ɓangare ne na tsarin juriya — duba
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Matsayin ƙarshe").
+Wannan shafin yana bayyana jerin da aka gina a ciki, tsarin ganowa, iyakarsa, yadda za a ƙara kalmomi na musamman cikin aminci, da yadda za a dawo da haɗin da aka yi wa alama. Matsayin ƙarshe da kansa wani ɓangare ne na tsarin jure matsala — duba
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Matsayai na ƙarshe").
 
 **Tushen gaskiya:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+tare da `open-sse/services/errorClassifier.ts` don nau'in tabbatarwa marar ƙarshe
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) da kuma
+reshen 403 da ke amfani da shi.
 
-## Kalmomin da aka gina a ciki
+## Muhimman kalmomin da aka gina a ciki
 
-Waɗannan ƙananan jimloli 8 suna aiki koyaushe (ba tare da la'akari da manyan ko ƙananan haruffa ba), ko da kuwa akwai jerin na musamman:
+Waɗannan ƙananan jimloli 7 suna aiki koyaushe (ba tare da la’akari da bambancin manyan ko ƙananan haruffa ba), ko da kuwa akwai jerin da aka keɓance:
 
 ```
 account_deactivated
@@ -29,24 +25,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Wannan jeri yana canzawa yayin da masu samarwa suke sauya lafazin haramcinsu. Kwafin
-> hukuma shi ne `ACCOUNT_DEACTIVATED_SIGNALS` a cikin `open-sse/services/accountFallback.ts`;
-> ɗauki tubalin da ke sama a matsayin hoton halin yanzu.
+> Wannan jeri yana sauyawa yayin da masu samar da sabis ke canza kalmomin da suke amfani da su wajen dakatarwa. Tushen
+> da ake dogara da shi shi ne `ACCOUNT_DEACTIVATED_SIGNALS` a cikin `open-sse/services/accountFallback.ts`;
+> a ɗauki tubalin da ke sama a matsayin hoto na halin da yake ciki a wannan lokaci.
 
-Teburan sigina guda biyu masu maƙwabtaka, amma **dabam**, suna cikin fayil ɗin guda kuma _ba_ sa cikin
-ganowa ta kalmomin haramci:
+### Ba dakatarwa ba ce: buƙatun tabbatarwa da mai gudanarwa zai iya warwarewa
 
-- `CREDITS_EXHAUSTED_SIGNALS` — kuɗin biyan sabis/ƙayyadadden amfani sun ƙare (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → matsayin ƙarshe na `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **ba na ƙarshe ba**; sabunta token zai iya dawo da shi.
+`verify your account to continue` **a baya tana** cikin jerin da ke sama. Ba alamar dakatarwa ba ce,
+kuma yanzu tana cikin `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, wanda ke rarraba ta a matsayin
+`PROJECT_ROUTE_ERROR` mai yiwuwa a farfaɗo daga gare shi maimakon kawo ƙarshen haɗin.
 
-Lura: jimlolin matsala na wucin gadi da aka saba gani kamar **`rate limit`** / `429` ana sarrafa su ta
-hanyar iyakar amfani / lokacin sanyaya haɗi kuma **ba** siginar haramci ba ne.
+Google Cloud Code / Antigravity suna mayar da ita a matsayin `403 VALIDATION_REQUIRED`. Ita
+**ta ɗan lokaci ce kuma tana faruwa a kan asusun da suke lafiya kuma suke da cikakken kason amfani** — an auna hakan a kan
+aikin da ke gudana kai tsaye (2026-09-25, `proxy_logs`): haɗin Antigravity guda ɗaya ya mayar da irin waɗannan
+403 guda 33 cikin mintuna 10 kuma ya ci gaba da kasancewa `active`, yayin da wani haɗin makamancinsa da ke riƙe da 100 % na
+kasonsa a dukkan tagogi 17 aka dakatar da shi na dindindin ta hanyar **guda ɗaya** kacal. Bambanci kaɗai
+shi ne yunƙurin da aka samu aka yi wa hidima.
+
+Wannan bambanci yana da muhimmanci domin dacewar da ke kawo ƙarshe tana da `permanent: true` (lokacin jira na shekara 1,
+ba ta taɓa farfaɗowa kai tsaye), alhali mai gudanarwa yana iya warware buƙatar tabbatarwa a cikin burauza.
+Barin jimlar a cikin jerin dakatarwa kuma ya sa reshen cloud-code 403 mai yiwuwa a farfaɗo daga gare shi a cikin
+`classifyProviderError` ya zama ba za a iya isa gare shi da wannan lafazi ba, domin ana tantance `accountDeactivated`
+da farko — saboda haka tsarin farfaɗo da hanyar aikin da aka ƙara wa Gemini Code Assist a cikin
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) da
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) ba zai taɓa iya aiki ba.
+
+Teburan sigina guda uku da ke kusa, amma **dabam-dabam**, _ba_ sa cikin gano muhimman kalmomin dakatarwa:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — kuɗin biyan sabis/kason amfani ya ƙare (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` mai kawo ƙarshe.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **ba mai kawo ƙarshe ba**; sabunta token na iya dawo da aiki.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **ba mai kawo ƙarshe ba**; dole ne mai gudanarwa
+  ya sake tabbatar da asusun a wajen mai samar da sabis. Yana cikin `open-sse/services/errorClassifier.ts`
+  (sauran biyun suna cikin `accountFallback.ts`). Duba sashen da ke sama.
+
+Lura: jimlolin matsala na ɗan lokaci da aka saba gani kamar **`rate limit`** / `429` ana sarrafa su ta hanyar
+iyakance saurin amfani / lokacin jiran haɗi, kuma **ba** alamomin dakatarwa ba ne.
 
 ## Tsarin ganowa
 

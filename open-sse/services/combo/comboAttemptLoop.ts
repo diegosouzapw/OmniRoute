@@ -19,8 +19,14 @@ import {
   errorResponseWithComboDiagnostics,
   unavailableResponse,
 } from "../../utils/error.ts";
+import { estimateSizeFast } from "../../utils/estimateSize.ts";
+import { jsonLength } from "../../utils/jsonSize.ts";
 import { COMBO_FAILURE_THRESHOLD, recordComboFailure } from "./failureTracker.ts";
-import { buildNoUpstreamResponseDiagnostics } from "./pinRecovery.ts";
+import {
+  buildAllTargetsCoolingDownResponse,
+  buildNoUpstreamResponseDiagnostics,
+  formatPreDispatchExclusions,
+} from "./pinRecovery.ts";
 import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { notifyWebhookEvent } from "../../../src/lib/webhookDispatcher.ts";
@@ -29,6 +35,7 @@ import {
   formatComboOutcomes,
   buildRedactedSummary,
   resolveComboTerminalStatus,
+  resolveComboTerminalCode,
 } from "./comboErrorAggregation.ts";
 import {
   resolveComboCooldownWaitDecision,
@@ -51,10 +58,29 @@ import {
   resolveDelayMs,
   requestScopedReplayKey,
 } from "./comboPredicates.ts";
-import { evaluateExecuteTargetGates } from "./executeTargetGates.ts";
+import { collectCircuitOpenExclusions, evaluateExecuteTargetGates } from "./executeTargetGates.ts";
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
 import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
+
+/** A second in-flight copy of a body larger than this sits in the TLS send buffer. */
+const HEDGE_MAX_BODY_BYTES = 256 * 1024;
+
+/**
+ * Hedging sends the body twice. The fast estimate rejects oversized values
+ * without allocating a JSON string. `jsonLength` then confirms the exact
+ * serialized size; a cycle or BigInt makes it throw, and that unknown size
+ * must not hedge — recording 0 bytes would send the body twice anyway.
+ */
+function isBodySmallEnoughToHedge(body: unknown): boolean {
+  try {
+    const estimated = estimateSizeFast(body, HEDGE_MAX_BODY_BYTES);
+    if (!Number.isFinite(estimated) || estimated > HEDGE_MAX_BODY_BYTES) return false;
+    return jsonLength(body) <= HEDGE_MAX_BODY_BYTES;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve the earliest known connection cooldown across every target's eligible
@@ -245,6 +271,10 @@ export async function dispatchWithCooldownRetry(opts: {
       state.abortControllers = new Map<number, AbortController>();
       const rejectedModelKeys = (state.requestScopedRejectedModelKeys ??= new Set<string>());
       const zeroLatencyOptimizationsEnabled = deps.config.zeroLatencyOptimizationsEnabled === true;
+      // A hedged target sends the same body a second time. Bodies past this
+      // size sit in the native TLS send buffer until the network drains them,
+      // and a slow upstream holds both copies for the whole headers wait.
+      const bodySmallEnoughToHedge = isBodySmallEnoughToHedge(deps.body);
       const hasProtectedPriorityTarget =
         deps.strategy === "priority" &&
         state.orderedTargets.some((target) => target.fallbackOnlyOnQuotaExhaustion === true);
@@ -318,6 +348,7 @@ export async function dispatchWithCooldownRetry(opts: {
         if (
           zeroLatencyOptimizationsEnabled &&
           deps.config.hedging &&
+          bodySmallEnoughToHedge &&
           !hasProtectedPriorityTarget &&
           i + 1 < state.orderedTargets.length
         ) {
@@ -506,6 +537,22 @@ export async function dispatchWithCooldownRetry(opts: {
             latencyMs,
             fallbackCount: state.fallbackCount,
           });
+          // Every target sat behind an OPEN breaker: say so, with the providers and
+          // the time until the next probe, instead of the generic skip whose recovery
+          // hint points at quota and top-ups the breaker has nothing to do with.
+          const circuitOpen = state.skippedForCircuitOpen
+            ? collectCircuitOpenExclusions(state.orderedTargets)
+            : null;
+          const circuitOpenResponse = circuitOpen
+            ? buildAllTargetsCoolingDownResponse(circuitOpen)
+            : null;
+          if (circuitOpenResponse) {
+            deps.log.warn(
+              "COMBO",
+              `All targets skipped: circuit breaker open — ${formatPreDispatchExclusions(circuitOpen!)}`
+            );
+            return circuitOpenResponse;
+          }
           const quotaSkip = formatQuotaSkipMessage(
             collectQuotaWindowExclusions(state.orderedTargets)
           );
@@ -678,7 +725,8 @@ export async function dispatchWithCooldownRetry(opts: {
         errorResponseWithComboDiagnostics(
           status,
           msg,
-          buildComboDiag(state, deps.traceInvocationId, terminalReason, retryAfterSeconds)
+          buildComboDiag(state, deps.traceInvocationId, terminalReason, retryAfterSeconds),
+          { code: resolveComboTerminalCode(state.comboErrors, status) }
         ),
         state.observedFailure ? state.allObservedFailuresQuota : null
       );

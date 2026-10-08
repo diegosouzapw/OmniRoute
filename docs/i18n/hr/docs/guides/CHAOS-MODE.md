@@ -8,18 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesija nadzorne ploče) · `POST /api/skills/collect/chaos` (API ključ)  
 > **Izvor:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode šalje **jedan zadatak većem broju pružatelja istodobno** — svaki uključeni pružatelj
+Chaos Mode šalje **jedan zadatak prema nekoliko pružatelja istodobno** — svaki uključeni pružatelj
 doprinosi jednom instancom modela, a sve odgovore dobivate jedan uz drugi (ili ulančane). To je
-sučelje za izvršavanje s više modela, a ne strategija usmjeravanja: ono nikada ne utječe na vaš
+sučelje za izvršavanje na više modela, a ne strategija usmjeravanja: ono nikada ne utječe na vaš
 uobičajeni promet prema `/v1/chat/completions`.
 
-**Pojašnjenje — isporučuju se tri različite stvari koje u nazivu imaju "chaos":**
+**Pojašnjenje — tri različite stvari u nazivu imaju "chaos":**
 
-| Stvar                           | Što je to                                                                                                                        | Gdje je dokumentirano                        |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**                  | Ovdje opisana stranica nadzorne ploče i API: šalje jedan zadatak većem broju pružatelja (paralelno ili suradnički).              | Ovaj vodič                                   |
-| `auto/chaos`                    | ID modela Auto-Combo s ponderima bodovanja za umetanje kvarova, namijenjen testiranju otpornosti. Nije potrebna konfiguracija.   | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Konfiguracija kombinacije Chaos | Trajno spremljena kombinacija s `config.chaos.enabled` šalje zadatak panelu uz opcionalni model ocjenjivača (samo putem API-ja). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Stvar                           | Što je to                                                                                                                                                              | Gdje je dokumentirano                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**                  | Ovdje opisana stranica nadzorne ploče i API: raspodjeljuje jedan zadatak na više pružatelja (paralelno ili suradnički).                                                | Ovaj vodič                                   |
+| `auto/chaos`                    | ID modela Auto-Combo: paralelna raspodjela, jedan model po pružatelju i po jedan uzvodni poziv. Nije ubacivanje kvarova ([pojedinosti](#autochaos-parallel-fan-out)).  | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfiguracija kombinacije Chaos | Trajna kombinacija s `config.chaos.enabled` raspodjeljuje zahtjev na isti način (samo putem API-ja); `judgeModel` samo odabire konačni odgovor, bez poziva za sintezu. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralelna raspodjela
+
+`auto/chaos` **nije** kontrola za ubacivanje kvarova ili testiranje otpornosti. Zahtjev za
+`model: "auto/chaos"` na `/v1/chat/completions`:
+
+1. Sastavlja skupinu od **jednog modela po pružatelju**: prvog kandidata svakog
+   povezanog pružatelja, prema redoslijedu skupa kandidata, do najviše 5 članova
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, ograničeno na 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Paket težina `chaos-mode`
+   postavlja samo `weight` svakog člana; raspodjela ga ne očitava.
+2. Šalje isti zahtjev svakom članu skupine **paralelno**, pa jedan zahtjev
+   troši jedan uzvodni poziv po članu skupine
+   (`open-sse/services/autoCombo/chaosEngine.ts`, odaslano iz
+   `open-sse/services/combo.ts`).
+3. Šalje jedan redak statusa po članu skupine kako rezultat pristiže: SSE komentar
+   (`: chaos <index> ok|fail <model>`) prema zadanim postavkama, kao i događaj
+   `omni-chaos-part` (`model`, `index`, `ok`, `error`) kada zahtjev postavi
+   `stream_options.include_chaos_parts: true`. Oni ne sadržavaju tekst odgovora.
+4. Šalje **jedan** odgovor skupine kao konačni isječak u stilu OpenAI-ja: odgovor
+   prvog člana skupine (`auto/chaos` ga postavlja kao `judgeModel`) kada je uspješan,
+   a u suprotnom odgovor posljednjeg uspješnog člana. Ostali odgovori skupine ne
+   vraćaju se, stoga plaćate N poziva, a primate jedan dovršeni odgovor.
 
 ## Postavljanje
 

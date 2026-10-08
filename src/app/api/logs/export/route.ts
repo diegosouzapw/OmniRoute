@@ -3,6 +3,11 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { countProxyLogsSince, iterateProxyLogsSince } from "@/lib/db/proxyLogs";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { logger } from "@/shared/utils/logger";
+import {
+  LOG_EXPORT_DEFAULT_ROWS,
+  LOG_EXPORT_MAX_ROWS,
+  buildLogExportHeaders,
+} from "@/shared/utils/logExport";
 
 const log = logger.child({ module: "logs-export" });
 
@@ -32,8 +37,8 @@ const log = logger.child({ module: "logs-export" });
  *    exports that previously returned every row are silently truncated
  *    unless the caller passes a larger `limit`.
  */
-const MAX_ROWS = 50_000;
-const DEFAULT_ROWS = 10_000;
+const MAX_ROWS = LOG_EXPORT_MAX_ROWS;
+const DEFAULT_ROWS = LOG_EXPORT_DEFAULT_ROWS;
 
 /**
  * Build the streamed JSON body for a log export.
@@ -161,6 +166,9 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        // #13999: mirror the cap metadata in headers so a client that saves the body as a
+        // Blob (the dashboard Export button) can warn about truncation without parsing it.
+        ...buildLogExportHeaders({ count, limit, totalAvailable }),
       },
     });
   } catch (error) {

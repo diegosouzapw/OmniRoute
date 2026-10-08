@@ -132,25 +132,28 @@ restartu.
   panel nezahrnujte do žádné permisivní konfigurace; musí zůstat striktně uzavřené
   při selhání.
 
-## Příklad: reverzní proxy server před OmniRoute
+## Příklad: reverzní proxy před OmniRoute
 
-CORS vynucuje samotný OmniRoute, takže proxy server by obecně **neměl** přidávat
-ani přepisovat hlavičky `Access-Control-*` (duplicitní hlavičky způsobují problémy
-v prohlížečích). Ukončete TLS a předejte požadavek dál — odpověď na předběžný
-požadavek nechte na OmniRoute:
+CORS vynucuje samotný OmniRoute, takže proxy by obecně **neměla** přidávat ani
+přepisovat hlavičky `Access-Control-*` (duplicitní hlavičky způsobují problémy v prohlížečích). Ukončete TLS
+a předejte požadavek dál — odpověď na preflight požadavky nechte na OmniRoute:
 
 ```nginx
-# nginx — předejte požadavek OmniRoute; zde NEVKLÁDEJTE Access-Control-*
+# nginx — předejte požadavek do OmniRoute; zde NEVKLÁDEJTE Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Nenastavujte X-Forwarded-For na 127.0.0.1 — vyřadilo by to ochranu tras omezených na loopback.
+    # Zachovejte hlavičky pro předávání: proxy na stejném hostiteli se připojuje z adresy zpětné smyčky a právě tyto
+    # hlavičky sdělují OmniRoute, že volající není místní operátor. Pokud proxy nepřidá žádnou z nich,
+    # bude každý vzdálený volající vypadat jako místní. Nikdy také nenastavujte X-Forwarded-For na 127.0.0.1.
 }
 ```
 
-Povolené zdroje prohlížeče nastavte v OmniRoute (`CORS_ALLOWED_ORIGINS` nebo na
-kartě Zabezpečení), nikoli v proxy serveru.
+Povolené zdroje pro prohlížeče nastavte v OmniRoute (`CORS_ALLOWED_ORIGINS` nebo na
+kartě Security), nikoli v proxy.
 
 ## Zdrojové soubory
 

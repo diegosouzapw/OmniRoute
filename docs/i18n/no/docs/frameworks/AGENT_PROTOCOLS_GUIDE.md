@@ -67,33 +67,37 @@ Trenger du en skytjeneste til å utføre arbeid utenfor denne maskinen (Codex Cl
 
 Se [A2A-SERVER.md](./A2A-SERVER.md) for transportdetaljer, agentkortets struktur, konfigurasjon av oppgavenes TTL og malen for å legge til nye ferdigheter.
 
-## 2. ACP — register for CLI-agenter
+## 2. ACP — Register over CLI-agenter
 
 **OmniRoute-endepunkt:** `GET /api/acp/agents`
 **Kilde:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Hva det er
 
-ACP er OmniRoutes **lokale oversikt over CLI-agenter**. Det oppdager hvilke kode-CLI-er som er installert på verten (Cursor, Cline, Claude Code, Codex CLI, Continue osv.), finner versjonene deres og gjør dem tilgjengelige i kontrollpanelet, slik at brukeren kan konfigurere hver CLI til å peke mot OmniRoute.
+ACP er OmniRoutes **lokale oversikt over CLI-agenter**. Den oppdager hvilke kode-CLI-er som er installert på verten (Cursor, Cline, Claude Code, Codex CLI, Continue osv.), finner versjonene deres og viser dem i kontrollpanelet, slik at brukeren kan konfigurere hver CLI til å peke mot OmniRoute.
 
-Dette er IKKE en ekstern protokoll — det er et internt register som driver brukergrensesnittet «CLI-verktøy» og sporing av CLI-fingeravtrykk (se [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP-grensesnittet er en intern oversikt som driver brukergrensesnittet «CLI Tools» og
+sporing av CLI-fingeravtrykk (se [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Separat
+støtter den interne prosessbehandleren den opprinnelige Agent Client Protocol for den
+registrerte Gemini-starteren og eldre stdio-adaptere for andre kontrakter.
+Se [ACP-register og startere](./ACP.md) for disse ulike modusene og begrensningene.
 
 ### Hva det gjør
 
-- Undersøker verten etter installerte CLI-binærfiler (bruker `which` / `where` avhengig av operativsystem)
+- Søker på verten etter installerte CLI-binærfiler (bruker `which` / `where` avhengig av operativsystem)
 - Leser versjonen til hver CLI (kaller `<bin> --version`)
-- Godtar eventuelt brukerdefinerte, tilpassede agenter (bane til binærfil + versjonskontroll + oppstartsargumenter)
-- Lagrer tilpassede agenter i innstillingene
+- Godtar valgfritt egendefinerte agenter fra brukeren (bane til binærfil + versjonssjekk + startargumenter)
+- Lagrer egendefinerte agenter i innstillingene
 - Returnerer den samlede listen til kontrollpanelet
 
 ### REST-API
 
-| Endepunkt         | Metode | Beskrivelse                                                           | Autentisering |
-| ----------------- | ------ | --------------------------------------------------------------------- | ------------- |
-| `/api/acp/agents` | GET    | Vis oppdagede + tilpassede agenter (antall installerte/totalt)        | API-nøkkel    |
-| `/api/acp/agents` | POST   | Legg til/oppdater/fjern tilpasset agent (handlingsskille i innholdet) | API-nøkkel    |
+| Endepunkt         | Metode | Beskrivelse                                                          | Autentisering |
+| ----------------- | ------ | -------------------------------------------------------------------- | ------------- |
+| `/api/acp/agents` | GET    | Vis oppdagede og egendefinerte agenter (antall installerte/totalt)   | API-nøkkel    |
+| `/api/acp/agents` | POST   | Legg til/oppdater/fjern egendefinert agent (handlingsfelt i innhold) | API-nøkkel    |
 
-Format på innholdet for POST (`customAgentBodySchema` i `src/app/api/acp/agents/route.ts`):
+Innholdsformat for POST (`customAgentBodySchema` i `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -108,15 +112,18 @@ Format på innholdet for POST (`customAgentBodySchema` i `src/app/api/acp/agents
 }
 ```
 
-### Brukstilfeller
+### Bruksområder
 
-- Siden «CLI-verktøy» i kontrollpanelet viser hva som er installert, og hjelper deg med å konfigurere hvert verktøy til å peke mot OmniRoute
-- Tilpassede agenter lar avanserte brukere registrere interne/proprietære CLI-er som OmniRoute ikke kjenner til som standard
-- Deteksjonsresultatet brukes i fingeravtrykksmatrisen for `cli-tools`
+- Siden «CLI Tools» i kontrollpanelet viser hva som er installert, og hjelper deg med å konfigurere hvert verktøy til å peke mot OmniRoute
+- Egendefinerte agenter lar avanserte brukere registrere interne/proprietære CLI-er som OmniRoute ikke kjenner til som standard
+- Oppdagelsesresultatet brukes i fingeravtrykksmatrisen `cli-tools`
 
 ### Når ACP IKKE skal brukes
 
-- ACP _kjører_ ikke oppgaver. Det oppdager og konfigurerer bare CLI-er. For å faktisk kalle en CLI må du starte den selv med miljøvariablene som OmniRoute oppgir (`OPENAI_BASE_URL`, `OPENAI_API_KEY` osv.).
+- HTTP-registeret tar ikke imot oppgaver eller tilbyr prosessoppstart. Den interne
+  behandleren kan starte en registrert CLI, men er ikke koblet til som en automatisk
+  reservetilbyder. For vanlig interaktiv bruk må du starte den konfigurerte CLI-en selv eller
+  bruke `omniroute run`.
 
 ## 3. Skyagenter
 

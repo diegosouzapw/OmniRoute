@@ -398,20 +398,20 @@ docs/
 
 ## የPull Request ማረጋገጫ ዝርዝር
 
-- [ ] Tests በትክክል ያልፋሉ (`npm test`)
-- [ ] Linting በትክክል ያልፋል (`npm run lint`)
+- [ ] ሙከራዎች ያልፋሉ (`npm test`)
+- [ ] Linting ያልፋል (`npm run lint`)
 - [ ] Build ይሳካል (`npm run build`)
 - [ ] ለአዲስ ይፋዊ functions እና interfaces የTypeScript types ታክለዋል
-- [ ] በኮድ ውስጥ በቀጥታ የተጻፉ secrets ወይም fallback values የሉም
-- [ ] ይፋዊ የupstream ማረጋገጫ መረጃዎች በ`resolvePublicCred()` ተካትተዋል ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)ን ይመልከቱ)፣ ፈጽሞ እንደ literals አልተጻፉም
-- [ ] የስህተት ምላሾች በ`buildErrorBody()` / `sanitizeErrorMessage()` ያልፋሉ — በresponse bodies ውስጥ ጥሬ stack traces የሉም ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)ን ይመልከቱ)
-- [ ] Shell commands (`exec` / `spawn`) የruntime valuesን በstring interpolation ሳይሆን በ`env` ያስተላልፋሉ
+- [ ] Hardcoded secrets ወይም fallback values የሉም
+- [ ] ይፋዊ upstream credentials በ`resolvePublicCred()` በኩል ተካትተዋል ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ይመልከቱ)፤ በፍጹም እንደ literals አልተጻፉም
+- [ ] የስህተት ምላሾች በ`buildErrorBody()` / `sanitizeErrorMessage()` በኩል ያልፋሉ — በምላሽ bodies ውስጥ raw stack traces የሉም ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ይመልከቱ)
+- [ ] Shell commands (`exec` / `spawn`) የruntime valuesን በstring interpolation ሳይሆን በ`env` በኩል ያስተላልፋሉ
 - [ ] ሁሉም inputs በZod schemas ተረጋግጠዋል
-- [ ] ለተጠቃሚ የሚታዩ ለውጦች Changelog **fragment** በ`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ስር ታክሏል ([`changelog.d/README.md`](./changelog.d/README.md)ን ይመልከቱ) — `CHANGELOG.md`ን በቀጥታ **አያርትዑ**፤ fragments በrelease ጊዜ አንድ ላይ ይሰበሰባሉ እና በPRs መካከል ፈጽሞ አይጋጩም
+- [ ] በተጠቃሚ ላይ ለሚታዩ ለውጦች የChangelog **fragment** በ`changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` ስር ታክሏል ([`changelog.d/README.md`](./changelog.d/README.md) ይመልከቱ) — `CHANGELOG.md`ን በቀጥታ **አርትዕ አያድርጉ**፤ fragments በrelease ጊዜ ይሰባሰባሉ እና በPRs መካከል በፍጹም አይጋጩም
 - [ ] Documentation ዘምኗል (አስፈላጊ ከሆነ)
-- [ ] ምንም አዲስ CodeQL / Secret-Scanning alerts አልተከፈቱም፣ ወይም እያንዳንዳቸው ተዛማጁን `docs/security/` doc በሚጠቅስ ቴክኒካዊ ምክንያት ውድቅ ተደርገዋል
-- [ ] child processes የሚጀምሩ Routes (`/api/mcp/`, `/api/cli-tools/runtime/`) በ`src/server/authz/routeGuard.ts` ውስጥ እንደ `isLocalOnlyPath()` ተመድበዋል — [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)ን ይመልከቱ
-- [ ] በcommit messages ውስጥ `Co-Authored-By` trailers የሉም — commits በrepository owner Git identity ስር ብቻ መታየት አለባቸው (Hard Rule #16)
+- [ ] አዲስ CodeQL / Secret-Scanning alerts አልተከፈቱም፣ ወይም እያንዳንዳቸው ተዛማጅ `docs/security/` docን በሚጠቅስ ቴክኒካዊ ምክንያት ውድቅ ተደርገዋል
+- [ ] Child processes የሚጀምሩ routes (`/api/mcp/`, `/api/cli-tools/runtime/`) በ`src/server/authz/routeGuard.ts` ውስጥ እንደ `isLocalOnlyPath()` ተመድበዋል — [ጥብቅ ደንብ #15](docs/security/ROUTE_GUARD_TIERS.md)ን ይመልከቱ
+- [ ] በcommit messages ውስጥ የAI/bot `Co-authored-by` trailers የሉም (ጥብቅ ደንብ #16) — ሥራቸው እንደገና ጥቅም ላይ የዋለ ሰብዓዊ collaborators በመደበኛ `Co-authored-by: Name <email>` trailers እውቅና ያገኛሉ
 
 ---
 
@@ -429,7 +429,6 @@ docs/
 
 - **አርክቴክቸር**፦ [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)ን ይመልከቱ
 - **የAPI ማጣቀሻ**፦ [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)ን ይመልከቱ
-- **የደኅንነት ሰነዶች**፦ [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **የክዋኔ ሰነዶች**፦ [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **የደህንነት ሰነዶች**፦ [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)፣ [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)፣ [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)፣ [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **የክወና ሰነዶች**፦ [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **ችግሮች**፦ [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**፦ የአርክቴክቸር ውሳኔ መዝገቦችን በ`docs/adr/` ይመልከቱ

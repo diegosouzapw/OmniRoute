@@ -90,7 +90,9 @@ export async function POST(request) {
     if (
       !counted ||
       !Number.isFinite(counted.input_tokens) ||
-      !isInputTokenCountPlausible(counted.input_tokens, body)
+      !isInputTokenCountPlausible(counted.input_tokens, body) ||
+      // A provider count of 0 for a non-empty request is bogus (#15763).
+      (counted.input_tokens === 0 && estimateInputTokens(body, tokenizerContext) > 0)
     ) {
       return estimated;
     }
@@ -184,7 +186,7 @@ function estimateToolResultTokens(content, tokenizerContext: TokenizerContext) {
   return 0;
 }
 
-function buildEstimatedCountResponse(body, tokenizerContext: TokenizerContext = {}) {
+function estimateInputTokens(body, tokenizerContext: TokenizerContext = {}): number {
   const messages = Array.isArray(body?.messages) ? body.messages : [];
   let inputTokens = 0;
 
@@ -211,6 +213,11 @@ function buildEstimatedCountResponse(body, tokenizerContext: TokenizerContext = 
     }
   }
 
+  return inputTokens;
+}
+
+function buildEstimatedCountResponse(body, tokenizerContext: TokenizerContext = {}) {
+  const inputTokens = estimateInputTokens(body, tokenizerContext);
   return new Response(
     JSON.stringify({
       input_tokens: inputTokens,

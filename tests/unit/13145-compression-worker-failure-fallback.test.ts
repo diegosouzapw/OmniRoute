@@ -115,14 +115,14 @@ test("#13145 a timeout degrades to the uncompressed body instead of stalling the
   }
 });
 
-test("#13145 a fast worker fault falls back to in-process compression", async () => {
-  // Thread errors, exits and engine throws fail without doing the work, so the in-process
-  // path costs what the worker would have. Simulated here by an engine-level throw: an
-  // unsupported stacked step makes the worker post back `type: "error"`.
+test("#13145 a synchronous worker spawn fault falls back to in-process compression", async () => {
   const { applyCompressionAsync } =
     await import("../../open-sse/services/compression/strategySelector.ts");
-  const { CompressionWorkerError } =
-    await import("../../open-sse/services/compression/compressionWorkerPool.ts");
+  const {
+    __setCompressionWorkerFactoryForTests,
+    closeCompressionWorkerPoolForTests,
+    CompressionWorkerError,
+  } = await import("../../open-sse/services/compression/compressionWorkerPool.ts");
   assert.equal(
     new CompressionWorkerError("boom", true).retryInProcess,
     true,
@@ -134,12 +134,41 @@ test("#13145 a fast worker fault falls back to in-process compression", async ()
     "timeouts must be marked non-retryable"
   );
 
-  // With the worker unavailable for a non-timeout reason the result must still be compressed.
-  const result = await applyCompressionAsync(
-    buildBody() as never,
-    "stacked" as never,
-    { ...buildOptions(), sourceFormat: undefined } as never
+  // #13423 changed the serializability gate. A shared (but non-cyclic) object across
+  // sibling branches must still be worker-eligible, then exercise the injected spawn.
+  const shared = { type: "input_text", text: "shared context" };
+  const eligibleBody = buildBody();
+  eligibleBody.messages.push({
+    role: "user",
+    content: [shared, shared],
+  } as never);
+  const options = buildOptions();
+  const { isCompressionWorkerEligible } =
+    await import("../../open-sse/services/compression/compressionWorkerProtocol.ts");
+  assert.equal(
+    isCompressionWorkerEligible(eligibleBody as never, "stacked" as never, options as never),
+    true,
+    "the #13423 shared-subobject shape must route through the worker"
   );
-  assert.equal(result.compressed, true, "the in-process path must still compress");
-  assert.ok(result.stats && result.stats.originalTokens > result.stats.compressedTokens);
+
+  let spawns = 0;
+  await __setCompressionWorkerFactoryForTests(() => {
+    spawns++;
+    const error = new Error("Cannot find module './compressionWorker.ts'");
+    (error as NodeJS.ErrnoException).code = "MODULE_NOT_FOUND";
+    throw error;
+  });
+  try {
+    const result = await applyCompressionAsync(
+      eligibleBody as never,
+      "stacked" as never,
+      options as never
+    );
+    assert.equal(spawns, 1, "worker-eligible input must exercise the throwing factory");
+    assert.equal(result.compressed, true, "a fast spawn fault must retry compression in-process");
+    assert.ok(result.stats && result.stats.originalTokens > result.stats.compressedTokens);
+  } finally {
+    await closeCompressionWorkerPoolForTests();
+    await __setCompressionWorkerFactoryForTests(null);
+  }
 });

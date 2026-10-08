@@ -4,11 +4,31 @@
 
 ---
 
-OmniRoute na-enye usoro iwu `setup-*` nke na-ahazi CLI koodu (Codex, Claude Code, OpenCode, Cline, …) ka ọ jiri OmniRoute dị ka azụ ya — ka ngwaọrụ ahụ wee soro **otu** njedebe kwurịta okwu ma OmniRoute na-eduga ya na onye na-enye ọrụ ziri ezi na nkwado akpaaka. Iwu ọ bụla na-agụ katalọgụ ihe nlereanya **dị ndụ** site na OmniRoute na-arụ ọrụ (nke mpaghara ma ọ bụ nke dịpụrụ adịpụ) ma dee faịlụ nhazi nke ngwaọrụ ahụ na igwe **gị**. A na-ezo aka igodo API site na mgbanwe gburugburu ebe obibi ebe ọ bụla ngwaọrụ ahụ na-akwado ya. A na-edepụta iwu ndị na-echekwa faịlụ gburugburu ebe obibi mpaghara ngwaọrụ n'okpuru.
+Maka manifest nke executable a na-ekekọrịta, gburugburu ụmụ usoro nwere mmachi na nhazi
+Gemini na-adịgide adịgide, lee [nkwekọrịta mmalite CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Enwekwara ihe mmalite izugbe — `omniroute run <target>` — nke na-ebido `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ma ọ bụ `gemini` na gburugburu ebe obibi ziri ezi agbakwunyere, n'edeghị nhazi ọ bụla ma ọlị. Ebumnuche na aha ha na-abịa site na manifest canonical `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), na `omniroute completion` na-enye otu okwu ebumnuche sitere na manifest ahụ. Ihe mmalite ochie maka ngwaọrụ ọ bụla — `omniroute launch` (Claude Code) na `omniroute launch-codex` (Codex) — ka dị.
+OmniRoute na-eweta ezinụlọ iwu `setup-*` ndị na-ahazi CLI maka ide koodu
+(Codex, Claude Code, OpenCode, Cline, …) ka o jiri OmniRoute dịka backend ya — nke mere na
+ngwaọrụ ahụ na-ekwurịta okwu na endpoint **otu**, OmniRoute wee ziga arịrịọ ahụ n’ebe provider
+kwesịrị ekwesị site na auto-fallback. Iwu ọ bụla na-agụ katalọgụ model **dị ugbu a** site na
+OmniRoute na-agba ọsọ (nke dị na mpaghara ma ọ bụ nke dị anya), wee dee faịlụ config nke
+ngwaọrụ ahụ n’onwe ya na kọmputa **gị**. A na-ezo aka na API key site na environment variable
+n’ebe ọ bụla ngwaọrụ ahụ kwadoro ya. E depụtara n’okpuru iwu ndị na-echekwa faịlụ environment
+nke ngwaọrụ ahụ n’onwe ya.
 
-Ntinye aka onye na-enye ọrụ dị site n'otu ọnọdụ mpaghara/dịpụrụ adịpụ. Iwu API-mbụ dị n'okpuru na-edebe nyocha njikwa iche na asambodo onye na-enye ọrụ ma anaghị ebipụta asambodo na mmepụta ahaziri ahazi:
+E nwekwara launcher izugbe — `omniroute run <target>` — nke na-amalite
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ma ọ bụ `gemini` site n’itinye
+env kwesịrị ekwesị, na-edeghị config ọ bụla ma ọlị. Targets na aliases ha
+na-esite na manifest canonical `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), ebe `omniroute completion` na-enyekwa
+okwu target ndị sitere n’otu manifest ahụ. Launchers ochie nke e kewara maka ngwaọrụ ọ bụla —
+`omniroute launch` (Claude Code) na `omniroute launch-codex` (Codex) — ka dị
+n’ọrụ.
+
+Ịgbakwunye provider dị site n’otu ọnọdụ mpaghara/ebe dị anya ahụ. Iwu ndị
+na-ebute API ụzọ dị n’okpuru na-edobe njirimara njikwa iche na credentials nke provider,
+ha anaghịkwa ebipụta credential ọ bụla na structured output:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +38,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Maka edemede, họrọ `--credential-stdin` ma ọ bụ `--credential-env`; a na-edebe `--credential` maka ojiji mpaghara a na-achịkwa. `providers remove` chọrọ `--yes` na ọnụ na-adịghị arụ ọrụ, na iwu ise ahụ niile na-asọpụrụ ọnọdụ na-arụ ọrụ ma ọ bụ nhọrọ zuru ụwa ọnụ `--base-url`/`--api-key`.
+Maka scripts, họrọ `--credential-stdin` ma ọ bụ `--credential-env`; a ka na-edobe `--credential`
+maka ojiji mpaghara a na-achịkwa. `providers remove` chọrọ `--yes` na terminal
+na-abụghị interactive, iwu ise ahụ niile na-asọpụrụ context na-arụ ọrụ ma ọ bụ nhọrọ
+global `--base-url`/`--api-key`.
 
-Ndị na-ahọrọ onye na-enye ọrụ na-ajụ nsonaazụ ID na-edoghị anya, aha ma ọ bụ aha onye na-enye ọrụ; jiri ID njikọ zuru ezu mgbe ọtụtụ njikọ dabara. Iwu ịmepụta na idezi na-agụghachi njikọ echekwara, na iwepụ na-enyocha na ọ naghịzi agụta. Ntinye na-agafe ụzọ abụọ onye na-enye ọrụ/aha dị adị. Ntinye ndị ewebatara enweghị ike imeri njedebe njikwa, ọnọdụ ma ọ bụ asambodo njikwa enyere CLI.
+Provider selectors na-ajụ prefixes ID, aha, ma ọ bụ aha provider ndị nwere ike ịpụta ihe karịrị otu;
+jiri connection ID zuru ezu mgbe ọtụtụ connections dakọtara. Iwu create na edit na-agụghachi
+connection echekwara, ebe removal na-enyocha na a naghịzi enwe ike ịgụ ya.
+Import na-awụli provider/name pair dịbu adị. Entries e webatara enweghị ike ịgbanwe
+management endpoint, context, ma ọ bụ management credentials e nyere CLI.
 
-Maka nhazi ntọala otu oge, ejiri aka dee nke njikọ abụọ kacha baa ọgaranya, lee nyocha miri emi maka ngwaọrụ ọ bụla:
+Maka nhazi ntọala a na-eji aka ede naanị otu ugboro nke integrations abụọ kachasị nwee atụmatụ, lee
+nkọwa miri emi nke ngwaọrụ nke ọ bụla:
 
-- [Nhazi koodu Claude](./CLAUDE-CODE-CONFIGURATION.md)
+- [Nhazi Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Nhazi Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Ụdị dịpụrụ adịpụ](./REMOTE-MODE.md) — jiri OmniRoute dịpụrụ adịpụ (VPS / Tailnet) site na laptọọpụ gị
-- [Nkata Copilot VS Code](./VSCODE-COPILOT.md) — mgbakwunye OmniCopilot; ọ nwekwara ike ịgba ọsọ iwu `setup-*` ndị a maka gị site n'ime onye nchịkọta akụkọ
+- [Remote Mode](./REMOTE-MODE.md) — jiri laptọọpụ gị chịkwaa OmniRoute dị anya (VPS / Tailnet)
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extension OmniCopilot; ọ nwekwara ike ịrụ
+  iwu `setup-*` ndị a maka gị site n’ime editor
 
 ---
 

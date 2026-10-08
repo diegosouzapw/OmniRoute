@@ -1,0 +1,1 @@
+- **fix(providers):** Route Command Code Claude models through the Anthropic Messages endpoint.

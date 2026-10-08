@@ -8,8 +8,8 @@ import { BaseExecutor } from "../../open-sse/executors/base.ts";
 import { GrokCliExecutor } from "../../open-sse/executors/grok-cli.ts";
 
 test("grok-cli inherits the shared proxy-aware BaseExecutor transport", async () => {
-  // execute() may only pre/post-process (namespace tools); the transport itself
-  // must stay BaseExecutor.prototype.execute.
+  // execute() may only pre/post-process the request tools (namespace and custom
+  // tools); the transport itself must stay BaseExecutor.prototype.execute.
   const executor = new GrokCliExecutor();
   const originalExecute = BaseExecutor.prototype.execute;
   const sentinel = { response: new Response("ok") };

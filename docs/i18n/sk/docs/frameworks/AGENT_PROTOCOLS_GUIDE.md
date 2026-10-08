@@ -67,31 +67,35 @@ Potrebujete, aby cloudová služba vykonávala prácu mimo tohto zariadenia (Cod
 
 Podrobnosti o prenose, štruktúre karty agenta, konfigurácii TTL úloh a šablóne na pridávanie nových zručností nájdete v dokumente [A2A-SERVER.md](./A2A-SERVER.md).
 
-## 2. ACP — register agentov CLI
+## 2. ACP — Register CLI agentov
 
-**Koncový bod OmniRoute:** `GET /api/acp/agents`
+**Endpoint OmniRoute:** `GET /api/acp/agents`
 **Zdroj:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Čo to je
 
-ACP je **lokálny inventár agentov CLI** systému OmniRoute. Zisťuje, ktoré programátorské nástroje CLI sú nainštalované v hostiteľskom systéme (Cursor, Cline, Claude Code, Codex CLI, Continue atď.), určuje ich verzie a sprístupňuje ich na ovládacom paneli, aby mohol používateľ nastaviť každý nástroj CLI tak, aby smeroval na OmniRoute.
+ACP je **lokálny inventár CLI agentov** platformy OmniRoute. Zisťuje, ktoré programátorské CLI sú nainštalované v hostiteľskom systéme (Cursor, Cline, Claude Code, Codex CLI, Continue atď.), identifikuje ich verzie a sprístupňuje ich ovládaciemu panelu, aby používateľ mohol každé CLI nastaviť tak, aby smerovalo na OmniRoute.
 
-NEJDE o externý protokol — je to interný register, ktorý zabezpečuje fungovanie používateľského rozhrania „Nástroje CLI“ a sledovanie odtlačkov CLI (pozrite si [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Rozhranie HTTP predstavuje interný inventár, ktorý poskytuje údaje používateľskému rozhraniu „CLI Tools“ a
+sledovaniu odtlačkov CLI (pozrite si [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Samostatne
+interný správca procesov podporuje natívny Agent Client Protocol pre
+zaregistrovaný spúšťač Gemini a staršie adaptéry stdio pre ostatné kontrakty.
+Informácie o týchto odlišných režimoch a obmedzeniach nájdete v dokumente [Register ACP a spúšťače](./ACP.md).
 
 ### Čo robí
 
-- Vyhľadáva v hostiteľskom systéme nainštalované binárne súbory CLI (používa `which` / `where` podľa operačného systému)
-- Zisťuje verziu každého nástroja CLI (volá `<bin> --version`)
+- Kontroluje hostiteľský systém, či obsahuje nainštalované binárne súbory CLI (používa `which` / `where` podľa operačného systému)
+- Zisťuje verziu každého CLI (volá `<bin> --version`)
 - Voliteľne prijíma vlastné agenty definované používateľom (cesta k binárnemu súboru + príkaz na zistenie verzie + argumenty spustenia)
 - Ukladá vlastné agenty v nastaveniach
-- Vracia ovládaciemu panelu zjednotený zoznam
+- Vracia zjednotený zoznam ovládaciemu panelu
 
-### Rozhranie REST API
+### REST API
 
-| Koncový bod       | Metóda | Opis                                                                       | Overenie |
-| ----------------- | ------ | -------------------------------------------------------------------------- | -------- |
-| `/api/acp/agents` | GET    | Zoznam zistených + vlastných agentov (počty nainštalovaných/celkový počet) | Kľúč API |
-| `/api/acp/agents` | POST   | Pridanie/aktualizácia/odstránenie vlastného agenta (akcia určená v tele)   | Kľúč API |
+| Endpoint          | Metóda | Popis                                                                        | Autorizácia |
+| ----------------- | ------ | ---------------------------------------------------------------------------- | ----------- |
+| `/api/acp/agents` | GET    | Zoznam zistených + vlastných agentov (počty nainštalovaných/celkom)          | Kľúč API    |
+| `/api/acp/agents` | POST   | Pridanie/aktualizácia/odstránenie vlastného agenta (rozlišovač akcie v tele) | Kľúč API    |
 
 Štruktúra tela požiadavky POST (`customAgentBodySchema` v `src/app/api/acp/agents/route.ts`):
 
@@ -110,13 +114,16 @@ NEJDE o externý protokol — je to interný register, ktorý zabezpečuje fungo
 
 ### Prípady použitia
 
-- Stránka „Nástroje CLI“ na ovládacom paneli zobrazuje nainštalované nástroje a pomáha nastaviť každý z nich tak, aby smeroval na OmniRoute
-- Vlastné agenty umožňujú pokročilým používateľom zaregistrovať interné/proprietárne nástroje CLI, ktoré OmniRoute predvolene nepozná
-- Výsledok detekcie poskytuje údaje pre maticu odtlačkov `cli-tools`
+- Stránka „CLI Tools“ na ovládacom paneli uvádza, čo je nainštalované, a pomáha nasmerovať jednotlivé nástroje na OmniRoute
+- Vlastné agenty umožňujú pokročilým používateľom zaregistrovať interné/proprietárne CLI, ktoré OmniRoute predvolene nepozná
+- Výsledok zisťovania poskytuje údaje matici odtlačkov `cli-tools`
 
 ### Kedy ACP NEPOUŽÍVAŤ
 
-- ACP _nespúšťa_ úlohy. Iba zisťuje a konfiguruje nástroje CLI. Ak chcete nástroj CLI skutočne vyvolať, musíte ho spustiť sami s premennými prostredia, ktoré poskytuje OmniRoute (`OPENAI_BASE_URL`, `OPENAI_API_KEY` atď.).
+- Register HTTP neprijíma úlohy ani nesprístupňuje spúšťanie procesov. Interný
+  správca môže spustiť zaregistrované CLI, ale nie je zapojený ako automatický záložný
+  poskytovateľ. Pri bežnom interaktívnom používaní spustite nakonfigurované CLI sami alebo
+  použite `omniroute run`.
 
 ## 3. Cloudoví agenti
 

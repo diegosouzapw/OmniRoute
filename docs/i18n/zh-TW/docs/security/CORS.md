@@ -95,21 +95,24 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 ## 範例：OmniRoute 前方的反向代理
 
 CORS 由 OmniRoute 本身強制執行，因此代理通常**不應**新增或
-重寫 `Access-Control-*` 標頭（重複的標頭會導致瀏覽器無法運作）。終止 TLS
-並轉送請求——讓 OmniRoute 回應預檢請求：
+重寫 `Access-Control-*` 標頭（重複的標頭會導致瀏覽器無法正常運作）。終止 TLS
+並進行轉送——讓 OmniRoute 回應預檢請求：
 
 ```nginx
-# nginx——轉送至 OmniRoute；請勿在此注入 Access-Control-*
+# nginx — 轉送至 OmniRoute；請勿在此注入 Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # 請勿將 X-Forwarded-For 設為 127.0.0.1——這會使回送位址路由防護失效。
+    # 保留轉送標頭：同一主機上的代理會從迴路位址連線，而這些標頭
+    # 會告知 OmniRoute 呼叫者並非本機操作員。若代理未新增任何這類標頭，
+    # 每個遠端呼叫者看起來都會像本機呼叫者。也絕不可將 X-Forwarded-For 設為 127.0.0.1。
 }
 ```
 
-請在 OmniRoute（`CORS_ALLOWED_ORIGINS` 或「Security」分頁）中設定允許的瀏覽器來源，
-而不是在代理中設定。
+請在 OmniRoute 中（透過 `CORS_ALLOWED_ORIGINS` 或「安全性」分頁）設定允許的瀏覽器來源，而不是在代理中設定。
 
 ## 原始碼檔案
 

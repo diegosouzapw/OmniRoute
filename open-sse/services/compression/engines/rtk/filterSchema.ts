@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { severityPatternStrings } from "./severityVocabulary.ts";
 
 const rtkFilterCategorySchema = z.enum([
   "git",
@@ -184,7 +185,23 @@ export function validateRtkFilter(value: unknown): RtkFilterDefinition {
     };
   }
 
-  const preservePatterns = [...parsed.preserve.errorPatterns, ...parsed.preserve.summaryPatterns];
+  // Severity words a truncating compressor must never drop. Each filter's own
+  // `preserve.errorPatterns` knows its tool's vocabulary (ERROR, Exception, failed) but not the
+  // wider set of terminal words a run can emit, so a line reading
+  //   "2026-09-20 12:07:04 FATAL deployment aborted - rollback required"
+  // matched no preserved pattern and was dropped once the output crossed maxLines.
+  //
+  // The list itself lives in ./severityVocabulary.ts — shared with the engine hard cap
+  // (index.ts) and the raw-output retention predicate (rawOutput.ts), which previously carried
+  // a THIRD, narrower spelling of it.
+  //
+  const severityPatterns = severityPatternStrings();
+
+  const preservePatterns = [
+    ...parsed.preserve.errorPatterns,
+    ...parsed.preserve.summaryPatterns,
+    ...severityPatterns,
+  ];
   return {
     id: parsed.id,
     name: parsed.label,
@@ -195,6 +212,13 @@ export function validateRtkFilter(value: unknown): RtkFilterDefinition {
     category: parsed.category,
     priority: parsed.priority,
     stripPatterns: dropReDoSProne(parsed.rules.dropPatterns),
+    // The keep stage runs BEFORE `priorityPatterns` and truncates, so a filter whose
+    // `includePatterns` is populated would drop a severity line before the priority stage is
+    // ever consulted. That gap is closed in `lineFilter.ts`, which lets severity lines bypass
+    // this stage — deliberately NOT by appending words here, because (a) populating an EMPTY
+    // includePatterns would switch the stage on and newly drop every non-severity line, and
+    // (b) it would bloat every filter's own pattern list in the catalog/verify surfaces with
+    // 23 words that are not the filter's business.
     keepPatterns: dropReDoSProne(parsed.rules.includePatterns),
     priorityPatterns: dropReDoSProne(preservePatterns),
     collapsePatterns: dropReDoSProne(parsed.rules.collapsePatterns),

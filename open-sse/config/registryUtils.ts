@@ -1,3 +1,4 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { randomUUID } from "crypto";
 /**
  * Shared Registry Utilities
@@ -53,7 +54,7 @@ export function parseModelFromRegistry<P extends BaseProvider>(
   modelStr: string | null,
   registry: Record<string, P>
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
 
   // Try each provider prefix
   for (const [providerId, config] of Object.entries(registry)) {

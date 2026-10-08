@@ -20,8 +20,11 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-target-timeout-std-secret";
 
 const { handleComboChat } = await import("../../../open-sse/services/combo.ts");
-const { isComboRequestScopedFailure, shouldRecordProviderBreakerFailure } =
-  await import("../../../open-sse/services/combo/comboPredicates.ts");
+const {
+  isComboRequestScopedFailure,
+  shouldRecordProviderBreakerFailure,
+  shouldRecordModelLockoutForComboFailure,
+} = await import("../../../open-sse/services/combo/comboPredicates.ts");
 const { applyComboTargetExhaustion } =
   await import("../../../open-sse/services/combo/targetExhaustion.ts");
 const { getProviderBreakerState } = await import("../../../open-sse/services/accountFallback.ts");
@@ -96,6 +99,33 @@ test.beforeEach(() => {
 });
 
 // ── Decision seam: breaker + request-scoped classification ──────────────────
+
+test("decision seam: typed combo_target_timeout still records a model lockout", () => {
+  const scoped = isComboRequestScopedFailure(
+    new Response("timed out", { status: 504 }),
+    "Model openai/slow timed out",
+    { code: "combo_target_timeout", type: "combo_target_timeout" }
+  );
+  assert.equal(scoped, true, "timeout stays request-scoped for the provider breaker");
+  assert.equal(
+    shouldRecordModelLockoutForComboFailure(scoped, {
+      code: "combo_target_timeout",
+      type: "combo_target_timeout",
+    }),
+    true,
+    "a locally timed-out model must be locked so the next request does not wait on it again"
+  );
+});
+
+test("decision seam: other request-scoped failures still skip model lockout", () => {
+  assert.equal(
+    shouldRecordModelLockoutForComboFailure(true, {
+      code: "context_length_exceeded",
+      type: "invalid_request_error",
+    }),
+    false
+  );
+});
 
 test("decision seam: typed combo_target_timeout 504 is request-scoped and does not record breaker failure", () => {
   const decision = decideProviderBreakerRecord({

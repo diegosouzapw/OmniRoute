@@ -10,49 +10,48 @@ međusobno nadopunjuju; operateri bi trebali znati koji od njih promatraju.
 ## 1. Prihvat na razini bajtova za cijeli proces (`chatBodyAdmission.ts`)
 
 - **Opseg:** putanja međuspremnika tijela/heap memorije za `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` i ostale rute oblikovane kao chat. Štiti
-  od povećane potrošnje heap memorije zbog velikih tijela zahtjeva agenata za
-  programiranje (#4380).
-- **Jedan globalni kontroler procesa, a ne zasebne trake po ključu (#10110).** Svaki API ključ
-  (sažet) ili `anonymous` sesija prihvaća se u okviru **istog** zajedničkog budžeta —
-  sažeti ID sesije koristi se ISKLJUČIVO kao ključ za pravedno raspoređivanje (kružno
-  raspoređivanje među zahtjevima na čekanju), nikada kao particija kapaciteta. Prethodna verzija ovog
-  dokumenta opisivala je trake po ključu s neovisnim kapacitetom; taj je model
-  uklonjen u #10110 jer je neautentificiranim lažnim vjerodajnicama omogućavao
-  povećavanje ograničenja na razini cijelog procesa.
-- **Kontrola (#503-fanout): automatski izveden BAJTNI budžet za unos, a ne fiksni broj
+  `/v1/messages`, `/v1/responses` i ostale rute oblika chata. Štiti
+  od povećane potrošnje heap memorije zbog velikih tijela zahtjeva alata za kodiranje (#4380).
+- **Jedan globalni kontroler procesa, bez zasebnih staza po ključu (#10110).** Svaki API ključ
+  (raspršen) ili `anonymous` sesija prihvaća se prema **istom** zajedničkom budžetu —
+  raspršeni ID sesije koristi se ISKLJUČIVO kao ključ za pravedno raspoređivanje (kružno
+  otpremanje zahtjeva na čekanju), a nikada kao zasebna particija kapaciteta. Prethodna verzija ovog
+  dokumenta opisivala je zasebne staze po ključu s neovisnim kapacitetom; taj je model
+  uklonjen u #10110 jer je omogućavao da lažne neautentificirane vjerodajnice višestruko povećaju
+  ograničenje na razini cijelog procesa.
+- **Kontrolna točka (#503-fanout): automatski izveden BAJTNI budžet za prijam, a ne fiksni broj
   zahtjeva.** Naslijeđeno ograničenje broja zahtjeva `CHAT_MAX_HEAVY_IN_FLIGHT` (zadano `1`
-  prije ovog ispravka) svodilo je paralelno izvođenje agenata za programiranje (više podagenata/CLI-jeva,
-  tijela rutinski > 256 KB) na efektivnu istodobnost od ~1, zbog čega se pri posve
-  uobičajenom opterećenju vraćao status 503. Sada se primjenjuje samo kada operator izričito
-  postavi `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ako nije postavljen, prihvat se umjesto toga
-  kontrolira putem `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžeta koji se automatski izvodi iz
+  prije ovog ispravka) smanjivalo je fan-out alata za kodiranje (više podagenata/CLI-jeva,
+  tijela redovito > 256 KB) na efektivnu istodobnost od ~1, što je uzrokovalo odgovore 503
+  pri potpuno normalnom opterećenju. Sada se primjenjuje samo kada operator izričito
+  postavi `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ako nije postavljeno, prihvat je umjesto toga
+  ograničen varijablom `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budžetom koji se automatski izvodi iz
   stvarnog memorijskog ograničenja procesa (`src/shared/middleware/admissionBudget.ts`):
-  25% strožeg ograničenja između V8 heap memorije i bilo kojeg ograničenja cgroupa/spremnika,
-  podijeljeno s faktorom prolaznog povećanja od 8x i ograničeno između 8 MiB i
-  2 GiB. Izričita nadjačavanja koriste ista ograničenja. Time se automatski prilagođava od
-  spremnika od 512 MB do stolnog računala s 32 GB bez podešavanja varijabli okruženja. Tijelo koje
-  ne može stati unutar efektivnog budžeta odmah završava s `413 body_exceeds_budget`;
-  samo nadmetanje između tijela koja se pojedinačno mogu obraditi ulazi u ograničeni
-  pravedni red čekanja. Aktivni višesignalni alat za praćenje pritiska na resurse (omjer V8 heap memorije,
+  25 % strožeg od ograničenja V8 heap memorije i bilo kojeg cgroup/kontejnerskog ograničenja,
+  podijeljeno s faktorom privremenog povećanja od 8x, ograničeno na raspon između 8 MiB i
+  2 GiB. Eksplicitno zadane vrijednosti primjenjuju ista ograničenja. Time se sustav automatski prilagođava od
+  kontejnera od 512 MB do stolnog računala s 32 GB bez podešavanja varijabli okruženja. Tijelo koje ne može
+  stati unutar efektivnog budžeta odmah završava pogreškom `413 body_exceeds_budget`;
+  samo nadmetanje među tijelima koja se pojedinačno mogu obraditi ulazi u ograničeni
+  red čekanja s pravednim raspoređivanjem. Aktivni višesignalni alat za praćenje pritiska na resurse (omjer V8 heap memorije,
   cgroup, PSI, OOM događaji — `open-sse/utils/resourcePressurePolicy.ts`) skraćuje
-  ograničeno čekanje pri `high` pritisku i odmah odbacuje zahtjeve s
-  `503 resource_pressure` pri `critical` pritisku, prije nego što se uopće učita ijedan bajt.
-  PSI se čita iz `memory.pressure` cgroupa ove jedinice kada je dostupan
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` obuhvaća
-  cijeli host i koristi se samo kao pričuvna opcija na fizičkim poslužiteljima / cgroupu v1, tako da host
-  koji koristi swap ne može uzrokovati odgovor 503 u neaktivnom spremniku.
+  ograničeno čekanje pod `high` pritiskom i odmah odbacuje zahtjeve s
+  `503 resource_pressure` pod `critical` pritiskom, čak i prije prijama ijednog bajta.
+  PSI se, kada je dostupno, čita iz datoteke `memory.pressure` cgroupa ove jedinice
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` odnosi se
+  na cijeli host i koristi se samo kao pričuvna opcija na fizičkim poslužiteljima / cgroup v1, tako da host
+  koji koristi swap ne može uzrokovati 503 u neaktivnom kontejneru.
 - **Podešavanje:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — nadjačavanje automatski izvedenog bajtnog budžeta
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — naslijeđeno ograničenje broja zahtjeva, samo uz izričito uključivanje
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — čekanje u redu prije odgovora 503 (zadano 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heap ventil za bajtove u redu čekanja (zadano 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zastarjelo;
-    bez učinka od #10110 (prihvaća se radi kompatibilnosti konfiguracije, ali se zanemaruje)
-- **Izvješća:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — uključujući
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — vrijeme čekanja u redu prije odgovora 503 (zadano na `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — zaštitni ventil heap memorije za bajtove na čekanju (zadano 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zastarjele
+    opcije bez učinka od #10110 (prihvaćaju se radi kompatibilnosti konfiguracije, ali se zanemaruju)
+- **Izvještaji:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — uključujući
   dodatke iz #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` i `countCapEnabled`
-  (false u zadanom postavljanju — potvrđuje da se stvarno primjenjuje bajtni budžet, a ne naslijeđeno
+  (false u zadanom okruženju — potvrđuje da se zapravo primjenjuje bajtni budžet, a ne naslijeđeno
   ograničenje broja zahtjeva).
 
 ## 2. Prilagodljive virtualne trake tijekom izvođenja (`open-sse/services/admission`)

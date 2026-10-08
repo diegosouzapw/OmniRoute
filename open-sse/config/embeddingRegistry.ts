@@ -1,3 +1,5 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+
 /**
  * Embedding Provider Registry
  *
@@ -9,7 +11,7 @@
  */
 
 export type EmbeddingModality = "text" | "image" | "audio" | "video" | "document";
-export type StructuredEmbeddingProtocol = "jina-v1" | "gemini-embed-content";
+export type StructuredEmbeddingProtocol = "jina-v1" | "gemini-embed-content" | "llama-cpp-mtmd";
 export type SingleTextEmbeddingProtocol = "clova-v2";
 
 export interface EmbeddingModel {
@@ -35,6 +37,12 @@ export interface EmbeddingProvider {
   models: EmbeddingModel[];
   /** Provider-native serializer required for canonical structured input. */
   structuredInputProtocol?: StructuredEmbeddingProtocol;
+  /**
+   * Structured input modalities accepted for models that are NOT listed in `models`
+   * (passthrough providers such as llama.cpp, whose model list is whatever the local
+   * server loaded). The upstream still rejects a modality the loaded model lacks.
+   */
+  passthroughModalities?: EmbeddingModality[];
   /**
    * Set when the endpoint embeds exactly ONE text per request (`{"text": …}` →
    * one vector) instead of accepting OpenAI's `input` array. A batched
@@ -380,6 +388,9 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     authType: "none",
     authHeader: "bearer",
     models: [],
+    // llama-server with --mmproj embeds images/audio/video via `content` parts.
+    structuredInputProtocol: "llama-cpp-mtmd",
+    passthroughModalities: ["text", "image", "audio", "video"],
   },
 
   // Lemonade Server — local OpenAI-compatible AI runtime backed by llama.cpp.
@@ -607,7 +618,7 @@ export function parseEmbeddingModel(
   modelStr: string | null,
   dynamicProviders?: EmbeddingProvider[]
 ): { provider: string | null; model: string | null } {
-  if (!modelStr) return { provider: null, model: null };
+  if (!modelStr || hasUnsafeModelIdSyntax(modelStr)) return { provider: null, model: null };
   modelStr = applyEmbeddingModelAliases(modelStr);
 
   // Check for "provider/model" format
@@ -674,7 +685,8 @@ export function getEmbeddingModelModalities(
   modelId: string | null
 ): EmbeddingModality[] | undefined {
   if (!providerConfig || !modelId) return undefined;
-  return providerConfig.models.find((model) => model.id === modelId)?.modalities;
+  const model = providerConfig.models.find((entry) => entry.id === modelId);
+  return model ? model.modalities : providerConfig.passthroughModalities;
 }
 
 /**

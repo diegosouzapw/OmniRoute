@@ -164,15 +164,21 @@ export function evaluateTestAllEntry(
         isTimeout?: boolean;
         isTransient?: boolean;
         isQuota?: boolean;
+        skipped?: boolean;
       }
     | null
     | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
-  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient, entry?.isQuota].some(
-    Boolean
-  );
+  // #14780: a skipped probe (web-session provider) was never dispatched — keep it visible.
+  const transient = [
+    entry?.rateLimited,
+    entry?.isTimeout,
+    entry?.isTransient,
+    entry?.isQuota,
+    entry?.skipped,
+  ].some(Boolean);
   return {
     status: ok ? "ok" : "error",
     // #9511: quota errors (isQuota) are surfaced on the icon but kept visible
@@ -675,6 +681,33 @@ export function getCodexFingerprintMode(providerSpecificData: unknown): CodexFin
   return (CODEX_FINGERPRINT_MODE_VALUES as readonly string[]).includes(normalized)
     ? (normalized as CodexFingerprintModeValue)
     : "session";
+}
+
+export const CODEX_PROMPT_CACHE_KEY_SCOPE_VALUES = ["client", "thread"] as const;
+export type CodexPromptCacheKeyScopeValue = (typeof CODEX_PROMPT_CACHE_KEY_SCOPE_VALUES)[number];
+
+export function getCodexPromptCacheKeyScope(
+  providerSpecificData: unknown
+): CodexPromptCacheKeyScopeValue {
+  const data =
+    providerSpecificData &&
+    typeof providerSpecificData === "object" &&
+    !Array.isArray(providerSpecificData)
+      ? (providerSpecificData as Record<string, unknown>)
+      : undefined;
+  const raw = data?.codexPromptCacheKeyScope;
+  const normalized = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return normalized === "thread" ? "thread" : "client";
+}
+
+export function getCodexPromptCacheKeyScopeLabel(
+  t: ProviderMessageTranslator,
+  value: CodexPromptCacheKeyScopeValue
+): string {
+  if (value === "thread") {
+    return providerText(t, "codexPromptCacheKeyScopeThread", "Thread — match the converged thread");
+  }
+  return providerText(t, "codexPromptCacheKeyScopeClient", "Client — forward the client's key");
 }
 
 export function getCodexFingerprintModeLabel(

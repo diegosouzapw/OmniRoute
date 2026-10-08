@@ -203,30 +203,29 @@ láti ṣe àkójọpọ̀ àwọn ìjẹ́rìí ẹgbẹ́ sí ibi kan. Àtún�
 
 ---
 
-## Àwòṣe ìkọ́lé: `minimal`
+## Prófáìlì ìkọ́lé: `minimal`
 
-Fún àwọn aṣàmúlò tó nílò artifact tó bá Socket mu, kọ́ ọ pẹ̀lú:
+Fún àwọn olumulo tí wọ́n nílò àkójọpọ̀ tó bá Socket mu, kọ́ ọ pẹ̀lú:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` ń so àwọn module mẹ́rin pọ̀ mọ́ àwọn stub gẹ́gẹ́ bí alias:
+`NormalModuleReplacementPlugin` ti webpack ń lo àwọn àrọ́pò fún módù mẹ́rin:
 
-| Module                                      | Stub                                             |
+| Módù                                        | Àrọ́pò                                            |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Stub kọ̀ọ̀kan ń export surface kan náà, ṣùgbọ́n gbogbo function ń ju
-`featureDisabledError(name)` sílẹ̀ ní runtime. Àwọn route tó gbẹ́kẹ̀ lé module tí a pa
-máa dá HTTP 503 padà pẹ̀lú ìfiranṣẹ́ tó ṣe kedere dípò kí wọ́n mú
-code path tó ní ewu ṣiṣẹ́.
+Àrọ́pò kọ̀ọ̀kan ń ṣàgbéjáde ojú API kan náà, ṣùgbọ́n gbogbo iṣẹ́ ń ju
+`featureDisabledError(name)` jáde nígbà ìṣiṣẹ́. Àwọn ipa-ọ̀nà tí ó gbára lé módù tí a ti pa
+ń dá HTTP 503 padà pẹ̀lú ìfiranṣẹ́ tó ṣe kedere dípò kí wọ́n mú ipa-ọ̀nà kóòdù
+tó ní ìfura ṣiṣẹ́.
 
-A pète bundle tí ó yọrí sí láti tẹ̀ jáde gẹ́gẹ́ bí `omniroute-secure`. Wo
-`docs/ops/PUBLISHING_SECURE.md` fún ìlànà ìtẹ̀jáde.
+A pète àkójọpọ̀ tí ó yọrí sí láti tẹ̀ jáde gẹ́gẹ́ bí `omniroute-secure`.
 
 ---
 

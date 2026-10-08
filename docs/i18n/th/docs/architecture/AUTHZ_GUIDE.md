@@ -13,17 +13,17 @@ OmniRoute มีไปป์ไลน์การอนุญาตที่ร�
 
 > ที่มา: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## สองโหมดการยืนยันตัวตน
+## โหมดการยืนยันตัวตนสองแบบ
 
-### 1. คีย์ API (Bearer)
+### 1. API Key (Bearer)
 
-ใช้สำหรับ API ไคลเอ็นต์ที่เข้ากันได้กับ OpenAI/Anthropic/Gemini และเส้นทางจัดการบางส่วนเมื่อคีย์มีขอบเขต `manage`
+ใช้สำหรับ API ไคลเอนต์ที่เข้ากันได้กับ OpenAI/Anthropic/Gemini และเส้นทางการจัดการบางรายการเมื่อคีย์มีขอบเขต `manage`
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-ตรวจสอบโดย `isValidApiKey()` / `extractApiKey()` ใน `src/sse/services/auth.ts` และส่งออกซ้ำผ่าน `src/shared/utils/apiAuth.ts` ตัวตรวจสอบยังยอมรับตัวแปรสภาพแวดล้อม `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` เป็นคีย์ส่งผ่านแบบถาวร (ปัญหา #1350)
+ตรวจสอบโดย `isValidApiKey()` / `extractApiKey()` ใน `src/sse/services/auth.ts` และส่งออกซ้ำผ่าน `src/shared/utils/apiAuth.ts` ตัวตรวจสอบยังยอมรับตัวแปรสภาพแวดล้อม `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` เป็นคีย์ส่งผ่านแบบถาวรด้วย (ปัญหา #1350)
 
 ### 2. เซสชันแดชบอร์ด (คุกกี้ auth_token)
 
@@ -33,43 +33,45 @@ Authorization: Bearer <api-key>
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-คุกกี้จะเป็นเซสชันก็ต่อเมื่อ JWT ตรวจสอบ **และ** มี `authenticated: true`
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`) ผู้ใช้
-คุกกี้ทุกราย (ตัวป้องกันเส้นทาง, การรีเฟรชไปป์ไลน์การอนุญาต, การจับมือ WebSocket, เซิร์ฟเวอร์สด,
-`/api/settings/require-login`, `/api/auth/status`) จะผ่านตัวช่วยนี้
-JWT อื่นๆ ที่ลงนามด้วย `JWT_SECRET` มีอยู่ — Cursor CLI จะสร้าง
-โทเค็น `iss "omniroute" / aud "cursor-cli"` สำหรับผู้ถือคีย์ — และไม่เคยเป็นเซสชัน
+คุกกี้จะถือเป็นเซสชันก็ต่อเมื่อ JWT ผ่านการตรวจสอบความถูกต้อง **และ** มี `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`) ผู้ใช้งาน
+คุกกี้ทุกรายการ (ตัวป้องกันเส้นทางแดชบอร์ด (`isDashboardSessionAuthenticated()`), การรีเฟรชไปป์ไลน์ authz, การจับมือ WebSocket, เซิร์ฟเวอร์
+แบบสด, `/api/settings/require-login`, `/api/auth/status`) จะดำเนินการผ่านตัวช่วยดังกล่าว
+ยังมี JWT อื่นที่ลงนามด้วย `JWT_SECRET` — การส่งผ่าน Cursor CLI จะออกโทเค็น
+`iss "omniroute" / aud "cursor-cli"` ให้แก่ผู้ถือคีย์ — และโทเค็นเหล่านี้จะไม่ถือเป็นเซสชัน
 (#13298)
 
-ตรวจสอบโดย `isDashboardSessionAuthenticated()` ใน `src/shared/utils/apiAuth.ts` ไปป์ไลน์จะรีเฟรช JWT โดยอัตโนมัติเมื่อเหลือเวลาน้อยกว่า 7 วันในอายุการใช้งาน 30 วัน
+ตรวจสอบโดย `isDashboardSessionAuthenticated()` ใน `src/shared/utils/apiAuth.ts` ไปป์ไลน์จะรีเฟรช JWT โดยอัตโนมัติเมื่ออายุการใช้งาน 30 วันเหลือน้อยกว่า 7 วัน
 
-เส้นทางจัดการบางเส้นทางยอมรับ **ทั้งสอง** โหมด: คุกกี้ หรือ `Bearer <key>` เมื่อคีย์ API มีขอบเขต `manage` (หรือ `admin`) นี่คือสิ่งที่ทำให้เวิร์กโฟลว์ "กำหนดค่าได้ผ่านการเรียก API" ที่เพิ่มเข้ามาใน v3.8 ทำงานได้
+เซสชันอาจสิ้นสุดลงก่อนครบ 30 วันได้เช่นกัน เนื่องจากตัวออกโทเค็นทุกตัวดำเนินการผ่าน `mintDashboardSessionToken` (มีเวลาออกโทเค็น `iat` และรหัส `jti`) และตัวตรวจสอบจะตรวจสอบการตั้งค่าสองรายการ ได้แก่ `sessionsValidAfter` ซึ่งถูกกำหนดเมื่อมีการเปลี่ยนรหัสผ่าน เพื่อให้ทุกเซสชันที่ออกก่อนเวลาดังกล่าวไม่ผ่านการตรวจสอบอีกต่อไป (เบราว์เซอร์ที่เปลี่ยนรหัสผ่านจะได้รับคุกกี้ใหม่) และ `revokedDashboardSessions` ซึ่ง `POST /api/auth/logout` จะเพิ่ม `jti` ของเซสชันที่ออกจากระบบลงไป เซสชันที่ออกโดยรุ่นเก่าจะไม่มีการอ้างสิทธิ์ทั้งสองรายการและยังคงใช้งานได้จนกว่าจะมีการเปลี่ยนรหัสผ่านครั้งแรก หากไม่สามารถอ่านการตั้งค่าได้ ระบบจะไม่เชื่อถือเซสชันนั้น
 
-#### ประตูเข้าสู่ระบบ OIDC เสริม (#6973)
+เส้นทางการจัดการบางรายการยอมรับ **โหมดใดโหมดหนึ่ง**: คุกกี้ หรือ `Bearer <key>` เมื่อ API key มีขอบเขต `manage` (หรือ `admin`) นี่คือสิ่งที่ทำให้เวิร์กโฟลว์ "กำหนดค่าผ่านการเรียก API" ซึ่งเพิ่มเข้ามาใน v3.8 สามารถทำงานได้
 
-การเข้าสู่ระบบผู้ดูแลระบบแดชบอร์ดยังรองรับโฟลว์ OIDC (OpenID Connect) แบบ **เลือกใช้**
-ควบคู่ไปกับการเข้าสู่ระบบด้วยรหัสผ่านเริ่มต้น — การเข้าสู่ระบบด้วยรหัสผ่านไม่เคยถูกลบออก เพียงแต่
-เสริมเข้ามา:
+#### เกตการเข้าสู่ระบบ OIDC แบบเลือกใช้ (#6973)
 
-- ปิดใช้งานเว้นแต่ `settings.oidcEnabled === true` **และ** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` ทั้งหมดได้รับการกำหนดค่า (การตั้งค่า → การยืนยันตัวตน)
-  `GET /api/auth/oidc/login` จะคืนค่า `400` มิฉะนั้น
-- `GET /api/auth/oidc/login` ค้นพบ `authorization_endpoint` จาก
-  `/.well-known/openid-configuration` ของผู้ออก (จะกลับไปใช้
-  `<issuer>/authorize`), สร้าง URI เปลี่ยนเส้นทางจากคำขอที่เข้ามา
-  (รับรู้ `x-forwarded-proto`) และเปลี่ยนเส้นทางไปยัง IdP พร้อม `state` แบบสุ่ม
-  ที่เก็บไว้ในคุกกี้ `oidc_state` แบบ `httpOnly`
-- `GET /api/auth/oidc/callback` ตรวจสอบ `state`, แลกเปลี่ยนรหัสการอนุญาต,
-  และตรวจสอบลายเซ็นของโทเค็น ID ผ่าน JWKS ของผู้ออก
-  (`jose`'s `createRemoteJWKSet`, แคชตาม URI ของ JWKS) พร้อมการตรวจสอบ
-  `issuer`/`audience` รายการอนุญาต `oidcAllowedSubjects` เสริมจะจับคู่
-  `sub` claim ของโทเค็นหรือ `email` claim — `email` claim จะได้รับเกียรติก็ต่อเมื่อ
-  `email_verified === true` เท่านั้น ดังนั้นอีเมลที่ไม่ได้รับการยืนยันที่ IdP
-  จึงไม่สามารถผ่านประตูได้
-- เมื่อสำเร็จ จะสร้าง JWT `auth_token` อายุ 30 วัน **แบบเดียวกันทุกประการ**
-  กับการเข้าสู่ระบบด้วยรหัสผ่าน (`src/app/api/auth/login/route.ts`) ดังนั้นส่วนที่เหลือของ
-  ไปป์ไลน์เซสชันแดชบอร์ด (การรีเฟรชอัตโนมัติ, แฟล็กคุกกี้) จึงไม่เปลี่ยนแปลง —
-  OIDC เพียงแค่เข้ามาแทนที่วิธีการสร้างคุกกี้ ไม่ใช่สิ่งที่คุกกี้ให้สิทธิ์
+การเข้าสู่ระบบผู้ดูแลแดชบอร์ดยังรองรับโฟลว์ OIDC (OpenID Connect) แบบ **เลือกเปิดใช้**
+ควบคู่ไปกับการเข้าสู่ระบบด้วยรหัสผ่านที่เป็นค่าเริ่มต้น — การเข้าสู่ระบบด้วยรหัสผ่านจะไม่ถูกนำออก แต่เป็นเพียง
+การเสริมตัวเลือกเท่านั้น:
+
+- ปิดใช้งาน เว้นแต่ `settings.oidcEnabled === true` **และ** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` จะได้รับการกำหนดค่าครบทั้งหมด (Settings → Auth)
+  มิฉะนั้น `GET /api/auth/oidc/login` จะส่งคืน `400`
+- `GET /api/auth/oidc/login` ค้นหา `authorization_endpoint` จาก
+  `/.well-known/openid-configuration` ของผู้ออกโทเค็น (หากไม่สำเร็จจะใช้
+  `<issuer>/authorize`) สร้าง URI เปลี่ยนเส้นทางจากคำขอขาเข้า
+  (รองรับ `x-forwarded-proto`) และเปลี่ยนเส้นทางไปยัง IdP พร้อม `state` แบบสุ่ม
+  ที่จัดเก็บไว้ในคุกกี้ `oidc_state` แบบ `httpOnly`
+- `GET /api/auth/oidc/callback` ตรวจสอบ `state` แลกเปลี่ยนรหัสการอนุญาต
+  และตรวจสอบลายเซ็นของ ID token ผ่าน JWKS ของผู้ออกโทเค็น
+  (`createRemoteJWKSet` ของ `jose` ซึ่งแคชแยกตาม JWKS URI) พร้อมการตรวจสอบ `issuer`/`audience`
+  รายการอนุญาต `oidcAllowedSubjects` ซึ่งเป็นทางเลือกจะจับคู่กับการอ้างสิทธิ์
+  `sub` หรือการอ้างสิทธิ์ `email` ของโทเค็น — การอ้างสิทธิ์อีเมลจะได้รับการยอมรับก็ต่อเมื่อ
+  `email_verified === true` ดังนั้นอีเมลที่ยังไม่ได้รับการยืนยันจาก IdP จะไม่สามารถผ่าน
+  เกตนี้ได้
+- เมื่อสำเร็จ ระบบจะออก JWT `auth_token` อายุ 30 วันซึ่ง **เหมือนกันทุกประการ** กับที่การเข้าสู่ระบบด้วยรหัสผ่าน
+  ออกให้ (`src/app/api/auth/login/route.ts`) ดังนั้นส่วนที่เหลือของ
+  ไปป์ไลน์เซสชันแดชบอร์ด (การรีเฟรชอัตโนมัติ, แฟล็กคุกกี้) จะไม่เปลี่ยนแปลง —
+  OIDC เปลี่ยนเฉพาะวิธีการออกคุกกี้เท่านั้น ไม่ได้เปลี่ยนสิทธิ์ที่คุกกี้มอบให้
 
 ## คลาสของเส้นทาง (Route Classes)
 

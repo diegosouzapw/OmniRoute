@@ -33,6 +33,11 @@ const getMode = (): PiiMode => {
   return "redact";
 };
 
+/** Current response-sanitization mode (redact | warn | block | off). */
+export function getPiiResponseMode(): PiiMode {
+  return getMode();
+}
+
 // ── PII Patterns ──
 
 interface PIIPattern {
@@ -96,8 +101,20 @@ const PII_PATTERNS: PIIPattern[] = [
   },
   {
     name: "ipv6_address",
+    // The bare `::` alternative is deliberately absent. `::` on its own is the
+    // IPv6 unspecified address — never a usable host address — while a double
+    // colon is load-bearing syntax in Python (`s[::-1]`), Rust (`::std`), C++
+    // (`std::`), Haskell (`x :: Int`), Elixir, Scala and Markdown (`:::note`).
+    // Matching it rewrote generated code to `[IP_REDACTED]`, and the result is
+    // usually still syntactically valid (a function definition that is never
+    // called), so downstream execution gates reported success on broken code.
+    // The lookbehind admits a preceding `[` only when that bracket is itself
+    // preceded by a non-alphanumeric character, so a URL literal
+    // (`http://[::1]:8080/`) is still matched while a subscript (`s[::1]`) is
+    // not. Every `::`-bearing IPv6 form is still caught: `::1`, `fe80::1`,
+    // `::ffff:0:0`, `[::1]`.
     regex:
-      /(?<=^|[^A-Za-z0-9:])(?:[0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{1,4}){7}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}|::|[0-9a-fA-F]{1,4}::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){2}:(?:[0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){3}:(?:[0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){4}:(?:[0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){5}:(?:[0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){6}:[0-9a-fA-F]{1,4})(?=$|[^A-Za-z0-9])(?!:[0-9a-fA-F:])/g,
+      /(?<=^|[^A-Za-z0-9:\[]|[^A-Za-z0-9]\[)(?:[0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{1,4}){7}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}|[0-9a-fA-F]{1,4}::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){2}:(?:[0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){3}:(?:[0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){4}:(?:[0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){5}:(?:[0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){6}:[0-9a-fA-F]{1,4})(?=$|[^A-Za-z0-9])(?!:[0-9a-fA-F:])/g,
     replacement: "[IP_REDACTED]",
     severity: "low",
   },

@@ -10,10 +10,17 @@
 // sanitizer, and retry the SAME url once.
 import { HTTP_STATUS } from "../../config/constants.ts";
 import {
+  nextProbeReasoningEffort,
   parseReasoningEffortEnum,
+  reasoningEffortProbeEnabled,
+  recordLearnedProbeReasoningEffort,
   recordLearnedReasoningEffort,
 } from "../../services/learnedReasoningEffortCaps.ts";
-import { sanitizeReasoningEffortForProvider } from "./reasoningEffort.ts";
+import {
+  readBodyReasoningEffort,
+  sanitizeReasoningEffortForProvider,
+  writeBodyReasoningEffort,
+} from "./reasoningEffort.ts";
 
 type ReasoningRecoveryLog = {
   info?: (tag: string, message: string) => void;
@@ -83,7 +90,7 @@ export async function applyReasoningEffortRecovery(
     .catch(() => "");
   const acceptedValues = parseReasoningEffortEnum(errText);
   if (!acceptedValues) {
-    return notRecoverable;
+    return probeOneTierDown(params, body, notRecoverable);
   }
 
   const learned = recordLearnedReasoningEffort(provider, model as string, acceptedValues);
@@ -110,4 +117,48 @@ export async function applyReasoningEffortRecovery(
   );
   const retriedResponse = await fetchFn(url, { ...fetchOptions, body: retryBody });
   return { response: retriedResponse, body: clampedBody, retried: true, attempted: true };
+}
+
+/**
+ * #14895 — the 4xx body named no accepted set, so there is nothing to learn from
+ * it and no way to tell an effort rejection from an unrelated validation failure.
+ * Opt in per provider (OMNIROUTE_REASONING_EFFORT_PROBE_PROVIDERS, off by default)
+ * rather than guess for everyone: a 2xx on the probe would otherwise mask the real
+ * error and record a cap nothing was proven against. When enabled, step down ONE
+ * tier and retry the same URL once; only an ANSWERED probe is recorded (that one
+ * tier), so later requests clamp up front. A refused probe learns nothing and its
+ * response is surfaced. Lives here (not inline in BaseExecutor) so every caller of
+ * applyReasoningEffortRecovery — commandCode, cliproxyapi, glm — gets it too.
+ */
+async function probeOneTierDown(
+  params: ReasoningEffortRecoveryParams,
+  body: unknown,
+  notRecoverable: ReasoningEffortRecoveryResult
+): Promise<ReasoningEffortRecoveryResult> {
+  const { response, url, provider, model, fetchOptions, fetchFn, log } = params;
+  if (!reasoningEffortProbeEnabled(provider)) return notRecoverable;
+  const probe = nextProbeReasoningEffort(readBodyReasoningEffort(body) ?? "");
+  if (!probe) return notRecoverable;
+
+  const probeBody = writeBodyReasoningEffort(body, probe);
+  const serialize = params.serializeBody ?? ((b: unknown) => JSON.stringify(b));
+  const serialized = await serialize(probeBody);
+  log?.info?.(
+    "REASONING_SANITIZE",
+    `Upstream ${response.status} refused reasoning_effort on ${url} without naming the accepted set — probing one step down (${probe}) for ${provider}/${model}`
+  );
+  const probeResponse = await fetchFn(url, { ...fetchOptions, body: serialized });
+  if (probeResponse.ok) {
+    const learned = recordLearnedProbeReasoningEffort(provider, model, probe);
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `Probe accepted for ${provider}/${model} — learned ceiling up to ${[...(learned ?? [])].join(",") || probe}`
+    );
+  } else {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `Probe ${probe} also refused for ${provider}/${model} — learned nothing, surfacing the probe's ${probeResponse.status}`
+    );
+  }
+  return { response: probeResponse, body: probeBody, retried: true, attempted: true };
 }

@@ -377,6 +377,7 @@ test.describe("modelsDevSync-extended", { concurrency: 1 }, async () => {
         limit_input: 4096,
         limit_output: null,
         interleaved_field: null,
+        reasoning_efforts: null,
       });
 
       const all = modelsDev.getSyncedCapabilities();

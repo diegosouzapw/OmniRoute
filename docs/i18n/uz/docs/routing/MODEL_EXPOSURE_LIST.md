@@ -4,59 +4,67 @@
 
 ---
 
-> Ixtiyoriy, sukut boʻyicha oʻchirilgan (`modelVisibilityAllowlist`/`modelVisibilityDenylist` ikkalasi ham boʻsh boʻlsa,
-> `/v1/models` katalogi VA har bir `auto/*` nomzodlar havzasi baytma-bayt aynan bir xil qoladi). Xarajatga
-> aloqasi boʻlmagan sabablarga koʻra saralangan model roʻyxatini xohlaydigan operatorlar uchun
-> `hidePaidModels`/`hideAutoCombos` (`src/lib/db/settings.ts`) bilan bir darajadagi sozlama.
+> Ixtiyoriy ravishda yoqiladi, sukut bo‘yicha o‘chirilgan (`modelVisibilityAllowlist`/`modelVisibilityDenylist`
+> ikkalasi ham bo‘sh bo‘lsa, `/v1/models` katalogi VA har bir `auto/*` nomzodlar to‘plami baytma-bayt
+> o‘zgarmaydi). Xarajatga aloqasi bo‘lmagan sabablarga ko‘ra saralangan modellar ro‘yxatini xohlaydigan
+> operatorlar uchun `hidePaidModels`/`hideAutoCombos` (`src/lib/db/settings.ts`) bilan bir darajadagi sozlama.
 
 ## Bu nima uchun mavjud
 
-`hidePaidModels` «bu model bepulmi?» degan savolga, `hideAutoCombos` esa «`auto/*`
-virtual identifikatorlari umuman eʼlon qilinishi kerakmi?» degan savolga javob beradi — ammo ularning hech biri operatorga
-modellarning ixtiyoriy kichik toʻplamini saralash imkonini bermaydi (masalan, narxlashdan qatʼi nazar,
-muayyan Claude Code / OpenCode mijozi koʻrishi kerak boʻlgan aynan oʻsha modellarni taqdim etish).
-#11481 buni ikkita mustaqil, ixtiyoriy `string` massiv sozlamasi sifatida qoʻshadi.
+`hidePaidModels` «bu model bepulmi?» degan savolga, `hideAutoCombos` esa «`auto/*` virtual
+identifikatorlari umuman e’lon qilinishi kerakmi?» degan savolga javob beradi — ularning hech biri
+operatorga modellarning ixtiyoriy quyi to‘plamini saralash imkonini bermaydi (masalan, narxlashdan
+qat’i nazar, muayyan Claude Code / OpenCode mijozi ko‘rishi kerak bo‘lgan aynan o‘sha modellarni
+taqdim etish). #11481 buni ikkita mustaqil, ixtiyoriy ravishda yoqiladigan satrlar massivi sozlamasi
+sifatida qo‘shadi.
 
 ## Sozlamalar
 
-| Kalit                      | Tur        | Standart qiymat | Maʼnosi                                                                           |
-| -------------------------- | ---------- | --------------- | --------------------------------------------------------------------------------- |
-| `modelVisibilityDenylist`  | `string[]` | `[]`            | Nomzodga mos keladigan yozuv uni katalogdan/nomzodlar havzasidan yashiradi.       |
-| `modelVisibilityAllowlist` | `string[]` | `[]`            | Boʻsh boʻlmasa, FAQAT nomzodga mos keladigan yozuvlar koʻrinadigan boʻlib qoladi. |
+| Kalit                      | Tur        | Standart qiymat | Ma’nosi                                                                               |
+| -------------------------- | ---------- | --------------- | ------------------------------------------------------------------------------------- |
+| `modelVisibilityDenylist`  | `string[]` | `[]`            | Nomzodga mos keluvchi elementlar uni katalogdan/nomzodlar to‘plamidan yashiradi.      |
+| `modelVisibilityAllowlist` | `string[]` | `[]`            | Bo‘sh bo‘lmaganda, FAQAT nomzodga mos keluvchi elementlar ko‘rinadigan bo‘lib qoladi. |
 
-Har ikkisi ham har biri koʻpi bilan 200 belgidan iborat 500 tagacha yozuvni qabul qiladi
-(`src/shared/validation/settingsSchemas.ts` ichida Zod orqali tekshiriladi). Yozuv quyidagilardan biri boʻladi:
+Ikkalasi ham har biri 200 tagacha belgidan iborat, ko‘pi bilan 500 ta elementni qabul qiladi
+(`src/shared/validation/settingsSchemas.ts` ichida Zod orqali tekshiriladi). Element quyidagilardan biri bo‘ladi:
 
-- aniq katalog identifikatori — `"gpt-4o"` (yalangʻoch model identifikatori) yoki `"openai/gpt-4o"` (provayder prefiksi bilan), yoki
-- `*`/`?` dan foydalanadigan glob andozasi — masalan, `"openai/gpt-4*"` yoki `"anthropic/*"` — `ModelRoutingSection` dagi har bir model uchun kombinatsiya mosliklari va `freeModels.ts::matchesOnlyPaidModels` tomonidan allaqachon ishlatiladigan
-  umumiy `globToRegex()` moslashtiruvchisi (`src/shared/utils/globPattern.ts`) orqali aniqlanadi.
+- aniq katalog identifikatori — `"gpt-4o"` (oddiy model identifikatori) yoki `"openai/gpt-4o"` (provayder prefiksli), yoxud
+- `*`/`?` ishlatadigan glob andozasi — masalan, `"openai/gpt-4*"` yoki `"anthropic/*"` — `ModelRoutingSection`
+  ichidagi har bir model uchun kombinatsiya moslashtirishlarida va `freeModels.ts::matchesOnlyPaidModels`
+  tomonidan allaqachon ishlatiladigan umumiy `globToRegex()` moslashtiruvchisi
+  (`src/shared/utils/globPattern.ts`) orqali aniqlanadi.
 
-Ustuvorlik: avval rad etish roʻyxati tekshiriladi (rad etilgan yozuv ruxsat berish roʻyxatiga ham
-mos kelsa ham, doimo yashiriladi); ruxsat berish roʻyxati boʻsh boʻlmasa, faqat unga mos keladigan yozuvlar saqlanib qoladi.
+Ustuvorlik: avval taqiqlash ro‘yxati tekshiriladi (taqiqlangan element ruxsat berish ro‘yxatiga ham
+mos kelsa ham har doim yashiriladi); ruxsat berish ro‘yxati bo‘sh bo‘lmaganda, faqat unga mos keladigan
+elementlar saqlanib qoladi.
 
 ## Bitta emas, ikkita nazorat nuqtasi
 
-#6512 dan olingan saboq (faqat `hidePaidModels` katalog filtri `auto/*` ga baribir pullik modelga
-yoʻnaltirish imkonini bergan, chunki kombinatsiya nomzodlari havzasi mustaqil ravishda tuzilgan) bu yerda ham aynan bir xil
-qoʻllanadi. `isModelExposureAllowed()` moslik predikati (`src/shared/utils/modelExposureList.ts`)
-HAR IKKALA joydan chaqiriladi:
+#6512 dan olingan saboq (faqat `hidePaidModels` asosidagi katalog filtri `auto/*` ga pulli modelga
+yo‘naltirish imkonini baribir bergan, chunki kombinatsiya nomzodlari to‘plami mustaqil ravishda
+tuzilgan) bu yerda ham aynan bir xil qo‘llanadi. `isModelExposureAllowed()`
+(`src/shared/utils/modelExposureList.ts`) moslik predikati IKKALA joydan ham chaqiriladi:
 
-- `src/app/api/v1/models/catalog.ts` — `/v1/models` roʻyxatining oʻzida, `shouldHidePaid()` allaqachon nazorat qiladigan
-  har bir manba uchun bir xil 5 ta nazorat nuqtasida (statik `PROVIDER_MODELS`, sinxronlangan provayder satrlari,
-  maxsus satrlar, taxallusga asoslangan satrlar, boshqariladigan zaxira satrlar).
+- `src/app/api/v1/models/catalog.ts` — `/v1/models` ro‘yxatining o‘zi, `shouldHidePaid()` allaqachon
+  nazorat qiladigan har bir manba uchun o‘sha 5 ta nazorat nuqtasida (statik `PROVIDER_MODELS`,
+  sinxronlangan provayder qatorlari, maxsus qatorlar, taxallusga asoslangan qatorlar,
+  boshqariladigan zaxira qatorlari).
 - `open-sse/services/autoCombo/modelExposureFilter.ts::filterModelExposureCandidates()` — ekvivalent
-  `filterPaidOnlyCandidates()` chaqiruvidan darhol keyin `virtualFactory.ts::buildPreparedPool` dan chaqiriladi,
-  shuning uchun rad etilgan model `auto/*` nomzodlar havzasiga ham hech qachon tanlanmaydi.
+  `filterPaidOnlyCandidates()` chaqiruvidan darhol keyin `virtualFactory.ts::buildPreparedPool`
+  ichidan chaqiriladi, shuning uchun taqiqlangan model hech qachon `auto/*` nomzodlar to‘plamiga
+  tanlanmaydi.
 
 ## Nimalar filtrlanMAYDI
 
-`hideAutoCombos` ning mavjud xatti-harakatini aks ettiradi: **aniq koʻrsatilgan** model identifikatori (`auto/*` orqali emas
-va katalog roʻyxati orqali topilmagan) joʻnatish vaqtida hech qachon bloklanmaydi — faqat
-eʼlon qilish/nomzodlar havzasiga aʼzolik filtrlanadi. Bu `hidePaidModels` dan mustaqil;
-operator xarajatga aloqasi boʻlmagan sabablarga koʻra saralangan toʻplamni xohlashi mumkin, shu bois ikkala
-sozlama ham `catalog.ts` dagi mavjud koʻp bayroqli kompozitsiya kabi mustaqil AND bilan birlashtirilgan filtrlar sifatida ishlaydi.
+`hideAutoCombos` ning mavjud xatti-harakatiga mos: **aniq ko‘rsatilgan** holda yuborilgan model
+identifikatori (`auto/*` orqali emas va katalog ro‘yxati orqali topilmagan bo‘lsa) jo‘natish paytida
+hech qachon bloklanmaydi — faqat e’lon qilinishi/nomzodlar to‘plamiga a’zoligi filtrlanadi. Bu
+`hidePaidModels` dan mustaqil; operator xarajatga hech qanday aloqasi bo‘lmagan sabablarga ko‘ra
+saralangan to‘plamni xohlashi mumkin, shu sababli ikkala sozlama ham `catalog.ts` dagi mavjud ko‘p
+bayroqli kompozitsiya kabi mantiqiy AND orqali birlashtiriladigan mustaqil filtrlar sifatida ishlaydi.
 
-Sozlamalar eksporti (`GET /api/settings/export-json`) boshqa har qanday sozlamalar maydoni kabi har ikkala massivni
-ham aynan oʻz holicha oʻz ichiga oladi — `hidePaidModels` ning kombinatsiya bosqichi eksport filtridan farqli ravishda, bu yerda qayta gidratatsiya
-xavfi yoʻq: eksport qilingan kombinatsiya bosqichiga joylangan rad etilgan identifikator operatorning oʻzi aniq tanlagan yoʻnaltirish
-qaroridir, eksport chegarasi olib tashlashi kerak boʻlgan narsa emas.
+Sozlamalarni eksport qilish (`GET /api/settings/export-json`) boshqa har qanday sozlama maydoni kabi
+ikkala massivni ham aynan o‘z holicha o‘z ichiga oladi — `hidePaidModels` ning kombinatsiya bosqichini
+eksport qilish filtridan farqli ravishda, bu yerda qayta tiklash xavfi yo‘q: eksport qilingan
+kombinatsiya bosqichiga kiritilgan taqiqlangan identifikator operatorning o‘ziga tegishli aniq
+yo‘naltirish tanlovidir, eksport chegarasi olib tashlashi kerak bo‘lgan narsa emas.

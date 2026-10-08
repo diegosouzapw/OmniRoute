@@ -4,6 +4,7 @@
  * exclude retired static/imported rows while preserving operator-owned models.
  */
 
+import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { mergeModelsWithCustomPrecedence } from "@/lib/providers/modelMetadataPrecedence";
 import {
@@ -68,7 +69,7 @@ export function mergeProviderModelListing(
       (providerUsesExclusiveSyncedListing(input.providerId) && synced.length > 0));
 
   if (exclusive) {
-    const cursor = providerUsesExclusiveSyncedListing(input.providerId);
+    const cursor = ["cursor", "cu"].includes(input.providerId.trim().toLowerCase());
     const registryById = new Map(input.registryModels.map((model) => [model.id, model]));
     const liveModels = synced.map((model) => ({
       ...(registryById.get(model.id) || {}),
@@ -92,8 +93,10 @@ export function mergeProviderModelListing(
     return dedupeById(mergeModelsWithCustomPrecedence(withAuto, normalizedCustom));
   }
 
+  const syncedById = new Map(synced.map((model) => [model.id, model]));
   const builtInModels = input.registryModels.map((model) => ({
     ...model,
+    ...(input.providerId === "codex" ? syncedById.get(model.id) : {}),
     source: "system",
   }));
   const registryIds = new Set(builtInModels.map((model) => model.id));
@@ -112,7 +115,10 @@ export function mergeProviderModelListing(
     source: normalizeCustomSource(model.source),
   }));
 
-  return dedupeById(
+  const merged = dedupeById(
     mergeModelsWithCustomPrecedence([...builtInModels, ...syncedExtras], normalizedCustom)
   );
+  return input.providerId === "codex"
+    ? appendSyncedEffortVariants(merged.map((model) => ({ ...model, owned_by: "codex" })))
+    : merged;
 }

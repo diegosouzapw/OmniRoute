@@ -206,28 +206,27 @@ rawBody)`), преди да анализира JSON. Ако тайната е з
 
 ## Профил за компилация: `minimal`
 
-Потребителите, които се нуждаят от артефакт, съвместим със Socket, могат да го създадат чрез:
+За потребители, които се нуждаят от артефакт, съвместим със Socket, компилирайте с:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack плъгинът `NormalModuleReplacementPlugin` пренасочва четири модула към заместители:
+`NormalModuleReplacementPlugin` на webpack пренасочва четири модула към заглушки:
 
-| Модул                                       | Заместител                                       |
+| Модул                                       | Заглушка                                         |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Всеки заместител експортира същия интерфейс, но всяка функция хвърля
-`featureDisabledError(name)` по време на изпълнение. Маршрутите, които зависят от деактивирания
+Всяка заглушка експортира същия интерфейс, но всяка функция при изпълнение хвърля грешка
+`featureDisabledError(name)`. Маршрутите, които зависят от деактивирания
 модул, връщат HTTP 503 с ясно съобщение, вместо да активират
-чувствителния път за изпълнение на кода.
+чувствителния кодов път.
 
-Полученият пакет е предназначен за публикуване като `omniroute-secure`. Вижте
-`docs/ops/PUBLISHING_SECURE.md` за инструкциите за публикуване.
+Полученият пакет е предназначен за публикуване като `omniroute-secure`.
 
 ---
 

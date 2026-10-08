@@ -130,22 +130,26 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## דוגמה: reverse proxy לפני OmniRoute
 
-CORS נאכף על ידי OmniRoute עצמו, ולכן בדרך כלל ה-proxy **לא** אמור להוסיף או
-לשכתב כותרות `Access-Control-*` (כותרות כפולות משבשות דפדפנים). סיימו את חיבור ה-TLS
-והעבירו את הבקשה — אפשרו ל-OmniRoute להשיב לבקשת ה-preflight:
+מדיניות CORS נאכפת על ידי OmniRoute עצמו, ולכן בדרך כלל ה-proxy **לא** אמור להוסיף או
+לשכתב כותרות `Access-Control-*` (כותרות כפולות גורמות לתקלות בדפדפנים). סיימו את חיבור ה-TLS
+והעבירו את הבקשה — תנו ל-OmniRoute להשיב לבקשת ה-preflight:
 
 ```nginx
-# nginx — העברה אל OmniRoute; אין להזריק כאן Access-Control-*
+# nginx — העברה אל OmniRoute; אין להזריק כאן כותרות Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # אין להגדיר את X-Forwarded-For כ-127.0.0.1 — הדבר מנטרל את מגן נתיבי ה-loopback.
+    # שמרו על כותרות ההעברה: proxy באותו מארח מתחבר דרך loopback, והן אלו
+    # שמיידעות את OmniRoute שהפונה אינו המפעיל המקומי. proxy שאינו מוסיף אף אחת מהן
+    # גורם לכל פונה מרוחק להיראות מקומי. כמו כן, לעולם אין להגדיר את X-Forwarded-For כ-127.0.0.1.
 }
 ```
 
-הגדירו את מקורות הדפדפן המותרים ב-OmniRoute (`CORS_ALLOWED_ORIGINS` או בלשונית
-Security), ולא ב-proxy.
+הגדירו את מקורות הדפדפן המורשים ב-OmniRoute (`CORS_ALLOWED_ORIGINS` או
+לשונית האבטחה), ולא ב-proxy.
 
 ## קובצי מקור
 

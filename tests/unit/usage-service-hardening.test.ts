@@ -74,9 +74,9 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(calls[0].headers.Authorization, "token gho-free");
   // #10952 re-based the Copilot wire identity on the live-captured CLI 1.0.88
   // (copilot-developer-cli integration id; API version 2026-08-01).
-  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/1.0.88");
-  assert.equal(calls[0].headers["Editor-Version"], "copilot/1.0.88");
-  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/1.0.88");
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/1.0.91");
+  assert.equal(calls[0].headers["Editor-Version"], "copilot/1.0.91");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/1.0.91");
   assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2026-08-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
@@ -529,7 +529,7 @@ test("usage service covers Claude OAuth success, legacy fallback and permissions
   assert.equal(oauthUsage.plan, "Claude Max");
   assert.equal(oauthUsage.quotas["session (5h)"].remaining, 10);
   assert.equal(oauthUsage.quotas["weekly (7d)"].remaining, 80);
-  assert.equal(oauthUsage.quotas["weekly sonnet (7d)"].remaining, 65);
+  assert.equal(oauthUsage.modelQuotas["weekly sonnet (7d)"].remaining, 65);
   assert.deepEqual(oauthUsage.extraUsage, { queued: true });
 
   globalThis.fetch = async (url) => {

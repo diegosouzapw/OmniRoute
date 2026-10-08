@@ -41,6 +41,8 @@ function farResetDeps(getCodexUsage: () => Promise<unknown>) {
       }),
       getCodexUsage: getCodexUsage as never,
       throttleQuotaFetch: async () => {},
+      resolveProxyForConnection: async () => ({ proxy: null, level: "direct", levelId: null }),
+      runWithProxyContext: async (_proxy: unknown, callback: () => Promise<unknown>) => callback(),
       getExecutor: () => {
         calls.getExecutor += 1;
         return {

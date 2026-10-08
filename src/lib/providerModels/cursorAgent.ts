@@ -169,6 +169,8 @@ export type CursorAgentModelEntry = {
   id: string;
   name: string;
   owned_by: "cursor";
+  contextLength?: number;
+  supportedThinkingEfforts?: string[];
 };
 
 export async function fetchCursorAgentModels(

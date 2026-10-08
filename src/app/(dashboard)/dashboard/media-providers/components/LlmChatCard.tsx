@@ -13,8 +13,19 @@ import { cn } from "@/shared/utils/cn";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
 import { getProviderAlias } from "@/shared/constants/providers";
+import {
+  buildNativeCodexPlaygroundRequest,
+  isNativeCodexPlaygroundModel,
+} from "../../playground/components/tabs/chatTabEndpointRequest";
 
-const ENDPOINT = "/api/v1/chat/completions";
+const CHAT_COMPLETIONS_ENDPOINT = "/api/v1/chat/completions";
+const RESPONSES_ENDPOINT = "/api/v1/responses";
+
+export function resolveLlmPlaygroundEndpoint(qualifiedModel: string): string {
+  return isNativeCodexPlaygroundModel(qualifiedModel)
+    ? RESPONSES_ENDPOINT
+    : CHAT_COMPLETIONS_ENDPOINT;
+}
 
 /** Header used to test a specific API key's policy from the dashboard playground
  *  without exposing the key secret to the browser — the gateway resolves the key
@@ -98,12 +109,17 @@ interface Props {
   onControlsChange?: (controls: LlmChatControls) => void;
 }
 
-function extractDeltaContent(line: string): string {
+function extractDeltaContent(line: string, nativeCodex = false): string {
   if (!line.startsWith("data: ")) return "";
   const payload = line.slice(6).trim();
   if (payload === "[DONE]") return "";
   try {
     const json = JSON.parse(payload) as Record<string, unknown>;
+    if (nativeCodex) {
+      return json.type === "response.output_text.delta" && typeof json.delta === "string"
+        ? json.delta
+        : "";
+    }
     const choices = Array.isArray(json.choices) ? json.choices : [];
     const first = choices[0] as Record<string, unknown> | undefined;
     const delta = first?.delta as Record<string, unknown> | undefined;
@@ -114,18 +130,28 @@ function extractDeltaContent(line: string): string {
   }
 }
 
-function extractUsage(line: string): { prompt_tokens?: number; completion_tokens?: number } | null {
+function extractUsage(
+  line: string,
+  nativeCodex = false
+): { prompt_tokens?: number; completion_tokens?: number } | null {
   if (!line.startsWith("data: ")) return null;
   const payload = line.slice(6).trim();
   if (payload === "[DONE]") return null;
   try {
     const json = JSON.parse(payload) as Record<string, unknown>;
-    const usage = json.usage as Record<string, unknown> | undefined;
+    const response = json.response as Record<string, unknown> | undefined;
+    const usage = (nativeCodex ? response?.usage : json.usage) as
+      Record<string, unknown> | undefined;
     if (!usage) return null;
     return {
-      prompt_tokens: typeof usage.prompt_tokens === "number" ? usage.prompt_tokens : undefined,
+      prompt_tokens:
+        typeof (nativeCodex ? usage.input_tokens : usage.prompt_tokens) === "number"
+          ? Number(nativeCodex ? usage.input_tokens : usage.prompt_tokens)
+          : undefined,
       completion_tokens:
-        typeof usage.completion_tokens === "number" ? usage.completion_tokens : undefined,
+        typeof (nativeCodex ? usage.output_tokens : usage.completion_tokens) === "number"
+          ? Number(nativeCodex ? usage.output_tokens : usage.completion_tokens)
+          : undefined,
     };
   } catch {
     return null;
@@ -172,6 +198,7 @@ export function LlmChatCard({
   const [streaming, setStreaming] = useState<boolean>(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const nativeCodexThreadRef = useRef<string>(crypto.randomUUID());
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -231,21 +258,29 @@ export function LlmChatCard({
       };
       const playgroundKeyId = resolvePlaygroundKeyId(selectedKey, keys);
       if (playgroundKeyId) headers[PLAYGROUND_KEY_ID_HEADER] = playgroundKeyId;
-      const res = await fetch(ENDPOINT, {
+      const nativeCodex = isNativeCodexPlaygroundModel(qualifiedModel);
+      const turnId = nativeCodex ? crypto.randomUUID() : "";
+      if (nativeCodex) headers.Originator = "codex_omniroute_provider_playground";
+      const requestMessages = [...messages, userMsg];
+      const requestBody = nativeCodex
+        ? buildNativeCodexPlaygroundRequest({
+            model: qualifiedModel,
+            messages: requestMessages,
+            threadId: nativeCodexThreadRef.current,
+            turnId,
+          })
+        : {
+            model: qualifiedModel,
+            messages: requestMessages,
+            stream: true,
+            stream_options: { include_usage: true },
+          };
+      const res = await fetch(resolveLlmPlaygroundEndpoint(qualifiedModel), {
         method: "POST",
         signal: controller.signal,
         credentials: "same-origin",
         headers,
-        body: JSON.stringify({
-          model: qualifiedModel,
-          messages: [
-            // Include history (all except the last assistant placeholder)
-            ...messages,
-            userMsg,
-          ],
-          stream: true,
-          stream_options: { include_usage: true },
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!res.ok || !res.body) {
@@ -287,7 +322,7 @@ export function LlmChatCard({
         for (const line of lines) {
           const trimmedLine = line.trim();
           if (!trimmedLine) continue;
-          const delta = extractDeltaContent(trimmedLine);
+          const delta = extractDeltaContent(trimmedLine, nativeCodex);
           if (delta) {
             acc += delta;
             setMessages((prev) => {
@@ -297,7 +332,7 @@ export function LlmChatCard({
               return next;
             });
           }
-          const usage = extractUsage(trimmedLine);
+          const usage = extractUsage(trimmedLine, nativeCodex);
           if (usage) {
             tokenUsage = {
               tokensIn: usage.prompt_tokens ?? tokenUsage.tokensIn,
@@ -309,7 +344,7 @@ export function LlmChatCard({
 
       // Flush remaining buffer
       if (buffer.trim()) {
-        const delta = extractDeltaContent(buffer.trim());
+        const delta = extractDeltaContent(buffer.trim(), nativeCodex);
         if (delta) {
           acc += delta;
           setMessages((prev) => {
@@ -363,6 +398,7 @@ export function LlmChatCard({
 
   const handleClear = useCallback(() => {
     if (streaming) abortRef.current?.abort();
+    nativeCodexThreadRef.current = crypto.randomUUID();
     setMessages([]);
     setStats(null);
   }, [streaming]);
@@ -407,7 +443,9 @@ export function LlmChatCard({
               disabled={loading}
               className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
             >
-              {modelOptions.length === 0 && !loading && <option value="">{initialModel || "—"}</option>}
+              {modelOptions.length === 0 && !loading && (
+                <option value="">{initialModel || "—"}</option>
+              )}
               {loading && <option value="">{t("loading") ?? "Loading…"}</option>}
               {modelOptions.map((m) => (
                 <option key={m.id} value={m.id}>

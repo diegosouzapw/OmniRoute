@@ -6,6 +6,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getNextKiroSocialPollInterval } from "@/lib/oauth/kiroSocialPoll";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 
 type KiroSocialOAuthModalProps = {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export default function KiroSocialOAuthModal({
         if (cancelled) return;
 
         if (!res.ok) {
-          throw new Error(data.error || t("errorStartAuthorization"));
+          throw new Error(errorMessageFromBody(data, t("errorStartAuthorization")));
         }
 
         setUserCode(data.userCode || "");
@@ -103,7 +104,7 @@ export default function KiroSocialOAuthModal({
             }
 
             if (!pollData.pending) {
-              fail(pollData.error || t("errorAuthorizationFailed"));
+              fail(errorMessageFromBody(pollData, t("errorAuthorizationFailed")));
               return;
             }
 

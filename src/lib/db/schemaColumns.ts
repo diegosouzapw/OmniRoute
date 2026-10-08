@@ -248,6 +248,13 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN video_content_removed INTEGER NOT NULL DEFAULT 0");
       console.log("[DB] Added call_logs.video_content_removed column");
     }
+    // added by 195_call_logs_ttft_ms; reconciled here too because the dashboard
+    // logs query SELECTs cl.* and mapSummaryRow reads ttft_ms on every row — a
+    // lineage that skipped the migration must still expose the column.
+    if (!columnNames.has("ttft_ms")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN ttft_ms INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.ttft_ms column");
+    }
     if (!columnNames.has("correlation_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.correlation_id column");
@@ -361,6 +368,14 @@ export function ensureProxyLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("attempt_issue")) {
       db.exec("ALTER TABLE proxy_logs ADD COLUMN attempt_issue TEXT");
       console.log("[DB] Added proxy_logs.attempt_issue column");
+    }
+    if (!columnNames.has("headers_ms")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN headers_ms INTEGER DEFAULT NULL");
+      console.log("[DB] Added proxy_logs.headers_ms column");
+    }
+    if (!columnNames.has("first_chunk_ms")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN first_chunk_ms INTEGER DEFAULT NULL");
+      console.log("[DB] Added proxy_logs.first_chunk_ms column");
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

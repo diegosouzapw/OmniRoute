@@ -4,22 +4,45 @@
 
 ---
 
-> **Řídicí panel:** **Režim Chaos** (postranní panel) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (relace řídicího panelu) · `POST /api/skills/collect/chaos` (klíč API)  
+> **Dashboard:** **Režim chaosu** (postranní panel) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (relace dashboardu) · `POST /api/skills/collect/chaos` (klíč API)  
 > **Zdroj:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Režim Chaos odesílá **jeden úkol několika poskytovatelům současně** — každý zapojený poskytovatel
-přispívá jednou instancí modelu a všechny odpovědi obdržíte vedle sebe (nebo zřetězené). Jde o
+Režim chaosu odesílá **jeden úkol několika poskytovatelům současně** — každý zúčastněný poskytovatel
+přispívá jednou instancí modelu a všechny odpovědi získáte vedle sebe (nebo zřetězené). Jde o
 rozhraní pro spouštění více modelů, nikoli o strategii směrování: váš běžný provoz
-`/v1/chat/completions` jím nikdy není ovlivněn.
+`/v1/chat/completions` tím není nikdy ovlivněn.
 
-**Upřesnění — s názvem „chaos“ se dodávají tři různé věci:**
+**Upřesnění — pod názvem „chaos“ jsou dodávány tři různé věci:**
 
-| Věc                         | Co to je                                                                                                                            | Kde je zdokumentována                        |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Režim Chaos**             | Zde popsaná stránka řídicího panelu a API: rozeslání jednoho úkolu mnoha poskytovatelům (paralelně nebo ve spolupráci).             | Tato příručka                                |
-| `auto/chaos`                | ID modelu Auto-Combo s vahami hodnocení pro vkládání chyb, určené k testování odolnosti. Není třeba nic konfigurovat.               | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Konfigurace kombinace Chaos | Trvale uložená kombinace s `config.chaos.enabled`, která rozešle požadavek panelu s volitelným hodnoticím modelem (pouze přes API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Položka                      | Co to je                                                                                                                                                                                   | Kde je dokumentována                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| **Režim chaosu**             | Zde popsaná stránka dashboardu + API: rozešle jeden úkol mnoha poskytovatelům (paralelně nebo ve spolupráci).                                                                              | Tato příručka                                |
+| `auto/chaos`                 | ID modelu Auto-Combo: paralelní rozeslání, jeden model na poskytovatele, po jednom upstreamovém volání. Nejde o vkládání poruch ([podrobnosti](#autochaos-parallel-fan-out)).              | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfigurace kombinace chaosu | Trvale uložená kombinace s `config.chaos.enabled` rozesílá požadavek stejným způsobem (pouze přes API); `judgeModel` pouze vybírá konečnou odpověď, žádné volání pro syntézu se neprovádí. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralelní rozeslání
+
+`auto/chaos` **není** přepínač pro vkládání poruch ani testování odolnosti. Požadavek s
+`model: "auto/chaos"` na `/v1/chat/completions`:
+
+1. Sestaví panel s **jedním modelem od každého poskytovatele**: prvním kandidátem každého
+   připojeného poskytovatele v pořadí fondu kandidátů, maximálně 5 členů
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, omezeno na 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Sada vah `chaos-mode`
+   pouze nastavuje `weight` každého člena; rozesílání tuto hodnotu nečte.
+2. Odešle stejný požadavek všem členům panelu **paralelně**, takže jeden požadavek
+   stojí jedno upstreamové volání na každého člena panelu
+   (`open-sse/services/autoCombo/chaosEngine.ts`, odesláno z
+   `open-sse/services/combo.ts`).
+3. Při doručení jednotlivých výsledků streamuje jeden stavový řádek na člena panelu: ve výchozím nastavení komentář SSE
+   (`: chaos <index> ok|fail <model>`) a navíc událost `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`), pokud požadavek nastaví
+   `stream_options.include_chaos_parts: true`. Tyto zprávy neobsahují text odpovědi.
+4. Odešle **jednu** odpověď panelu jako konečný blok ve stylu OpenAI: odpověď prvního člena
+   panelu (`auto/chaos` jej nastaví jako `judgeModel`), pokud uspěje, jinak
+   odpověď posledního úspěšného člena. Ostatní odpovědi panelu se nevracejí, takže
+   zaplatíte za N volání a obdržíte jedno dokončení.
 
 ## Nastavení
 

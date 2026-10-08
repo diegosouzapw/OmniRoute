@@ -4,6 +4,10 @@ import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 import type { ExecutorLog, ProviderCredentials } from "../../open-sse/executors/base.ts";
 import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import {
+  __resetProxyRefusalMemoryForTesting,
+  __resetSlowOverrunsForTesting,
+} from "../../open-sse/utils/proxyRefusalMemory.ts";
 
 /**
  * Per-request account lists on the shared opencode executor instance.
@@ -107,6 +111,12 @@ describe("OpencodeExecutor per-request account lists", () => {
   beforeEach(() => {
     originalFetch = globalThis.fetch;
     observed = [];
+    // The proxy refusal memory is process-wide by design (a refused egress is set
+    // aside for every executor). The overlapping-requests case refuses member A's
+    // proxy with a 429, so without a reset that set-aside leaks into the later cases
+    // and the picker skips member A — the order-dependent failure these cases hit.
+    __resetProxyRefusalMemoryForTesting();
+    __resetSlowOverrunsForTesting();
   });
 
   afterEach(() => {

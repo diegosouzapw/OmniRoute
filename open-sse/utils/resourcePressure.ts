@@ -17,6 +17,24 @@ const MB = 1024 * 1024;
 const RETRY_AFTER_SECONDS = "5";
 const PRESSURE_MESSAGE = "Service temporarily unavailable due to resource pressure. Retry shortly.";
 
+/**
+ * Absolute RSS fuse for native/external memory that is invisible to V8 heapUsed.
+ * OMNIROUTE_MEMORY_MB is the configured V8 heap budget; use 2x that value with
+ * a 3 GiB floor unless OMNIROUTE_RSS_PRESSURE_MB explicitly overrides it.
+ */
+export function computeRssPressureThresholdMb(
+  memoryBudgetRaw: string | number | undefined = process.env.OMNIROUTE_MEMORY_MB,
+  overrideRaw: string | number | undefined = process.env.OMNIROUTE_RSS_PRESSURE_MB
+): number | null {
+  const explicit = Number(overrideRaw);
+  if (Number.isFinite(explicit) && explicit > 0) return Math.floor(explicit);
+  const memoryBudget = Number(memoryBudgetRaw);
+  if (!Number.isFinite(memoryBudget) || memoryBudget <= 0) return null;
+  return Math.max(3_072, Math.floor(memoryBudget * 2));
+}
+
+export const RSS_PRESSURE_THRESHOLD_MB = computeRssPressureThresholdMb();
+
 export type ResourcePressureGuardResult = {
   success: false;
   status: 503;
@@ -32,7 +50,9 @@ export type ResourcePressureObservation = {
 export type ResourcePressureRuntimeOptions = {
   thresholds?: Partial<ResourcePressureThresholds>;
   heapThresholdMb?: number | null;
+  rssThresholdMb?: number | null;
   immediateHeapUsedMb?: () => number;
+  immediateRssUsedMb?: () => number;
   sample?: () => Promise<ResourceSignals>;
   nowMs?: () => number;
   schedule?: (refresh: () => void) => void;
@@ -215,6 +235,17 @@ function immediateHeapGuard(
   });
 }
 
+function immediateRssGuard(
+  rssUsedMb: number,
+  thresholdMb: number | null
+): ResourcePressureGuardResult | null {
+  if (thresholdMb == null || rssUsedMb <= thresholdMb) return null;
+  return buildCriticalGuard("rss_absolute", {
+    rssMb: Math.round(rssUsedMb),
+    thresholdMb: Math.round(thresholdMb),
+  });
+}
+
 export function createResourcePressureRuntime(
   options: ResourcePressureRuntimeOptions = {}
 ): ResourcePressureRuntime {
@@ -222,6 +253,11 @@ export function createResourcePressureRuntime(
     options.heapThresholdMb === undefined ? HEAP_PRESSURE_THRESHOLD_MB : options.heapThresholdMb;
   if (heapThresholdMb !== null && (!Number.isFinite(heapThresholdMb) || heapThresholdMb <= 0)) {
     throw new RangeError("heapThresholdMb must be positive and finite or null");
+  }
+  const rssThresholdMb =
+    options.rssThresholdMb === undefined ? RSS_PRESSURE_THRESHOLD_MB : options.rssThresholdMb;
+  if (rssThresholdMb !== null && (!Number.isFinite(rssThresholdMb) || rssThresholdMb <= 0)) {
+    throw new RangeError("rssThresholdMb must be positive and finite or null");
   }
   const thresholds = resolveResourcePressureThresholds({
     ...options.thresholds,
@@ -240,6 +276,7 @@ export function createResourcePressureRuntime(
   const nowMs = options.nowMs ?? Date.now;
   const immediateHeapUsedMb =
     options.immediateHeapUsedMb ?? (() => process.memoryUsage().heapUsed / MB);
+  const immediateRssUsedMb = options.immediateRssUsedMb ?? (() => process.memoryUsage().rss / MB);
   const sample = options.sample ?? (() => sampleResourceSignals(options.samplerDeps));
   const schedule =
     options.schedule ??
@@ -371,13 +408,22 @@ export function createResourcePressureRuntime(
       } catch {
         heapUsedMb = 0;
       }
-      const immediate = immediateHeapGuard(heapUsedMb, heapThresholdMb);
+      const immediateHeap = immediateHeapGuard(heapUsedMb, heapThresholdMb);
+      let rssUsedMb = 0;
+      try {
+        rssUsedMb = immediateRssUsedMb();
+      } catch {
+        rssUsedMb = 0;
+      }
+      const immediateRss = immediateRssGuard(rssUsedMb, rssThresholdMb);
+      const immediate = immediateHeap ?? immediateRss;
+      const immediateReason: PressureReason = immediateHeap ? "v8_heap_absolute" : "rss_absolute";
       const now = nowMs();
       if (now >= nextRefreshAtMs) scheduleRefresh();
       if (immediate) {
         state = {
           severity: "critical",
-          reason: "v8_heap_absolute",
+          reason: immediateReason,
           elevatedStreak: 0,
           recoveryStreak: 0,
           lastTransitionAtMs: now,

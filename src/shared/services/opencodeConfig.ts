@@ -1,11 +1,68 @@
 import { applyEdits, modify, parse, printParseErrorCode, type ParseError } from "jsonc-parser";
 
+type OpenCodeCatalogModel = {
+  id: string;
+  context_length?: number;
+  max_context_window_tokens?: number;
+  max_output_tokens?: number;
+  capabilities?: {
+    attachment?: boolean;
+    reasoning?: boolean;
+    temperature?: boolean;
+    tool_calling?: boolean;
+    vision?: boolean;
+  };
+  input_modalities?: string[];
+};
+
 type OpenCodeConfigInput = {
   baseUrl?: string;
   apiKey?: string;
   model?: string;
   models?: string[];
   modelLabels?: Record<string, string>;
+  /** Live catalog entries. Unknown models keep the documented 128K/8K default. */
+  catalog?: OpenCodeCatalogModel[];
+};
+
+/**
+ * Documented fallback when the catalog has no usable window for a model.
+ * Same numbers the CLI writer emits (#11035, #10940) — never a silent
+ * substitute for a catalog value the writer simply ignored.
+ */
+const DOCUMENTED_DEFAULT_LIMIT = { context: 128_000, output: 8_192 } as const;
+
+const positiveNumber = (value: unknown): number | undefined =>
+  typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+
+const resolveCatalogLimit = (entry: OpenCodeCatalogModel | undefined) => {
+  const context =
+    positiveNumber(entry?.context_length) ??
+    positiveNumber(entry?.max_context_window_tokens) ??
+    DOCUMENTED_DEFAULT_LIMIT.context;
+  const output = positiveNumber(entry?.max_output_tokens) ?? DOCUMENTED_DEFAULT_LIMIT.output;
+  return { context, output };
+};
+
+const resolveCatalogFlags = (entry: OpenCodeCatalogModel | undefined) => {
+  const flags: {
+    attachment?: boolean;
+    reasoning?: boolean;
+    temperature?: boolean;
+    tool_call?: boolean;
+  } = {};
+  const caps = entry?.capabilities;
+  if (!caps) return flags;
+
+  if (typeof caps.attachment === "boolean") flags.attachment = caps.attachment;
+  else if (caps.vision === true) flags.attachment = true;
+  else if (Array.isArray(entry?.input_modalities) && entry.input_modalities.includes("image")) {
+    flags.attachment = true;
+  }
+  if (caps.reasoning === true) flags.reasoning = true;
+  if (caps.temperature === true) flags.temperature = true;
+  if (caps.tool_calling === true) flags.tool_call = true;
+  return flags;
 };
 
 const OPENCODE_DEFAULT_MODELS = [
@@ -44,6 +101,7 @@ export const buildOpenCodeProviderConfig = ({
   model,
   models,
   modelLabels,
+  catalog,
 }: OpenCodeConfigInput): Record<string, any> => {
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
@@ -57,18 +115,19 @@ export const buildOpenCodeProviderConfig = ({
       ? normalizedModels
       : [...new Set([normalizedModel, ...OPENCODE_DEFAULT_MODELS].filter(Boolean))];
 
-  const modelsRecord: Record<
-    string,
-    { name: string; limit: { context: number; output: number } }
-  > = {};
+  const catalogById = new Map(
+    (Array.isArray(catalog) ? catalog : [])
+      .filter((entry) => entry && typeof entry.id === "string" && entry.id.trim())
+      .map((entry) => [entry.id.trim(), entry])
+  );
+
+  const modelsRecord: Record<string, Record<string, unknown>> = {};
   for (const m of uniqueModels) {
     if (m) {
       modelsRecord[m] = {
         name: getModelEntryName(m, normalizedLabels),
-        limit: {
-          context: 128_000,
-          output: 8_192,
-        },
+        ...resolveCatalogFlags(catalogById.get(m)),
+        limit: resolveCatalogLimit(catalogById.get(m)),
       };
     }
   }
@@ -84,9 +143,7 @@ export const buildOpenCodeProviderConfig = ({
   };
 };
 
-export const buildOpenCodeV2ProviderConfig = (
-  input: OpenCodeConfigInput
-): Record<string, any> => {
+export const buildOpenCodeV2ProviderConfig = (input: OpenCodeConfigInput): Record<string, any> => {
   const v1Config = buildOpenCodeProviderConfig(input);
   return {
     name: v1Config.name,

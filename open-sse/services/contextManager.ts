@@ -366,6 +366,14 @@ export function getSourcedTokenLimit(
  *
  * `ResolvedComboTarget.provider` is populated independently of `modelStr`, so fall
  * back to it before calling `getTokenLimit` (#8716).
+ *
+ * Known sources only (#14931): a target whose window resolves solely to the
+ * generic catch-all default returns `undefined` instead of that guess, so the
+ * runtime combo `Math.min()` in `resolveComboContextLimit` drops it — the
+ * sibling-side counterpart of the #10734 rule `getSourcedTokenLimit` already
+ * applies to advertised combos. An uncataloged member must not clamp the whole
+ * combo to a 128000 it may not have; when every member is unknown the resolver
+ * still falls back to the generic default on its own (source=fallback).
  */
 export function getComboTargetTokenLimit(options: {
   modelStr?: string | null;
@@ -373,7 +381,7 @@ export function getComboTargetTokenLimit(options: {
   parsedProvider?: string | null;
   parsedModel?: string | null;
   targetProvider?: string | null;
-}): number {
+}): number | undefined {
   let parsedProvider = options.parsedProvider;
   let parsedModel = options.parsedModel;
   if (
@@ -385,7 +393,7 @@ export function getComboTargetTokenLimit(options: {
     if (parsedModel === undefined) parsedModel = parsed.model;
   }
   const provider = parsedProvider ?? options.targetProvider ?? options.provider ?? "unknown";
-  return getTokenLimit(provider, parsedModel ?? null);
+  return getSourcedTokenLimit(provider, parsedModel ?? null);
 }
 
 /**
@@ -940,12 +948,13 @@ export function stripTrailingAssistantOrphanToolUse(
 }
 
 /**
- * Providers that strictly require the last message to be `user` or `tool`.
- * A trailing `assistant` message with plain text content (no tool_use) is
- * valid for Anthropic/OpenAI (signals "continue from here") but rejected by
- * Mistral with: "Expected last role User or Tool … but got assistant" (#3396).
+ * Some providers reject a trailing text-only assistant turn.
+ * Mistral: "Expected last role User or Tool but got assistant" (#3396).
+ * Official Claude OAuth: "This model does not support assistant message
+ * prefill. The conversation must end with a user message." (live 2026-09-13
+ * on claude/claude-opus-5).
  */
-const PROVIDERS_REQUIRING_USER_LAST_MESSAGE = new Set(["mistral"]);
+const PROVIDERS_REQUIRING_USER_LAST_MESSAGE = new Set(["mistral", "claude"]);
 
 /**
  * Strip a trailing `assistant` message that contains ONLY plain text (no

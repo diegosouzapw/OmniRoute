@@ -17,6 +17,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import net from "node:net";
+import { EventEmitter } from "node:events";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { findListeningPids } from "../../bin/cli/utils/pid.mjs";
@@ -65,12 +66,95 @@ test("findListeningPids ignores TIME_WAIT and other ports", async () => {
   assert.deepEqual(pids, [4]);
 });
 
+test("findListeningPids asks lsof for LISTEN sockets with the listen address", async () => {
+  const calls = [];
+  await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async (_cmd, args) => {
+      calls.push(args);
+      return { stdout: "" };
+    },
+  });
+  assert.deepEqual(
+    calls[0],
+    ["-nP", "-iTCP:20128", "-sTCP:LISTEN"],
+    "must keep the listen address so a listener on another address is not a conflict"
+  );
+});
+
+test("findListeningPids ignores a listener on another address when binding loopback (#15424)", async () => {
+  const lsof = "socat  9001 houminxi  6u  IPv4 0x1  0t0  TCP 192.168.1.50:20128 (LISTEN)\n";
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [], "a LAN-only forwarder does not block a loopback bind");
+});
+
+test("findListeningPids still reports a wildcard listener when binding loopback (#15424)", async () => {
+  const lsof = "node  19348 houminxi  23u  IPv4 0x1  0t0  TCP *:20128 (LISTEN)\n";
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [19348], "0.0.0.0 / * holds every address, including loopback");
+});
+
+test("findListeningPids does not treat a longer port as the target port", async () => {
+  const lsof = "node  1443 houminxi  23u  IPv4 0x1  0t0  TCP 127.0.0.1:1443 (LISTEN)\n";
+  const pids = await findListeningPids(443, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [], "1443 must not match a search for 443");
+});
+
 test("findListeningPids reports the PID holding the port (posix lsof)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "linux",
     execFileAsync: async () => ({ stdout: "4242\n4243\n" }),
   });
   assert.deepEqual(pids, [4242, 4243]);
+});
+
+// A bare `lsof -ti :PORT` matches every socket carrying that port, not just
+// listening ones, so a client connection alone made the preflight report the
+// port as busy. Observed live: a hermes client socket left in CLOSE_WAIT on
+// 127.0.0.1:20128 (its peer had exited) made omniroute.service crash-loop with
+// "Port 20128 is already in use by PID <hermes>" while `ss -ltn` showed the
+// port free — a gateway that could not restart because something else had once
+// connected to it. Same defect class already fixed in stop.mjs::killByPortPosix.
+test("findListeningPids asks lsof for LISTEN sockets only, not every client on the port", async () => {
+  const calls = [];
+  await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async (_cmd, args) => {
+      calls.push(args);
+      return { stdout: "" };
+    },
+  });
+  assert.deepEqual(
+    calls[0],
+    ["-nP", "-iTCP:20128", "-sTCP:LISTEN"],
+    "must scope discovery to TCP listeners and keep the address"
+  );
+});
+
+test("findListeningPids treats an empty lsof result as a free port", async () => {
+  const noMatch = Object.assign(new Error("lsof exited with no matches"), {
+    code: 1,
+    stdout: "",
+  });
+  const pids = await findListeningPids(20128, {
+    platform: "darwin",
+    execFileAsync: async () => {
+      throw noMatch;
+    },
+  });
+  assert.deepEqual(pids, [], "lsof exit 1 with empty output means nothing is listening");
 });
 
 test("findListeningPids returns null when discovery is unavailable (#14518)", async () => {
@@ -128,6 +212,57 @@ test("probePortFree is false while a socket holds the port and true after releas
   assert.equal(await probePortFree(port), true, "a released port must bind cleanly");
 });
 
+// macOS, unlike Linux, lets the probe's wildcard bind succeed while a server
+// holds the same port on 0.0.0.0 (the default host), 127.0.0.1 or ::1
+// (localhost), so a wildcard-only probe never saw it. This stub applies those
+// bind semantics, where only the held address itself fails, so the check runs
+// on Linux CI as well.
+function netWithHeldHost(heldHost, code = "EADDRINUSE") {
+  return {
+    createServer() {
+      const server = new EventEmitter();
+      server.listen = (options, onListening) => {
+        const host = typeof options === "object" ? options.host : undefined;
+        queueMicrotask(() => {
+          if (host === heldHost) {
+            server.emit("error", Object.assign(new Error(`listen ${code}`), { code }));
+          } else {
+            onListening();
+          }
+        });
+        return server;
+      };
+      server.close = (done) => {
+        done?.();
+        return server;
+      };
+      return server;
+    },
+  };
+}
+
+test("probePortFree sees a held port when the wildcard bind succeeds (macOS)", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  for (const host of ["0.0.0.0", "127.0.0.1", "::1"]) {
+    assert.equal(
+      await probePortFree(20128, { net: netWithHeldHost(host) }),
+      false,
+      `a server bound to ${host} must read as busy`
+    );
+  }
+  assert.equal(await probePortFree(20128, { net: netWithHeldHost(null) }), true);
+});
+
+test("probePortFree treats a missing loopback address as free", async () => {
+  const { probePortFree } = await import("../../bin/cli/utils/pid.mjs");
+  const ipv4Only = netWithHeldHost("::1", "EADDRNOTAVAIL");
+  assert.equal(
+    await probePortFree(20128, { net: ipv4Only }),
+    true,
+    "an IPv4-only host must not block serve"
+  );
+});
+
 test("reportPortInUse degrades gracefully when the owner pid is unknown", async () => {
   const { reportPortInUse } = await import("../../bin/cli/commands/serve.mjs");
   const lines = [];
@@ -142,6 +277,18 @@ test("reportPortInUse degrades gracefully when the owner pid is unknown", async 
   assert.match(out, /Port 20128 is already in use/, "must still name the port");
   assert.match(out, /unknown|unidentified/, "must say the owner could not be identified");
   assert.match(out, /omniroute stop/, "must keep the resolution path");
+});
+
+test("serve preflight treats a free port as no listeners when pid discovery returns null", async () => {
+  const { resolveServeBusyPids } = await import("../../bin/cli/commands/serve.mjs");
+  const busyPids = await resolveServeBusyPids(20128, {
+    findListeningPids: async () => null,
+    probePortFree: async () => true,
+  });
+  // #14800: null discovery + a free bind probe used to leave busyPids null, and
+  // the next `.length` threw on any host without lsof/netstat. Free means [].
+  assert.equal(busyPids.length, 0);
+  assert.deepEqual(busyPids, []);
 });
 
 test("serve preflight rejects a busy port even without any discovery tool (end-to-end for #14518)", async () => {

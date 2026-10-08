@@ -35,11 +35,14 @@ test("cookie name constant", () => {
 test("getDashboardJwtSecret encodes the trimmed env secret, null when unset/blank", () => {
   assert.ok(getDashboardJwtSecret() instanceof Uint8Array);
   const saved = process.env.JWT_SECRET;
-  process.env.JWT_SECRET = "   ";
-  assert.equal(getDashboardJwtSecret(), null);
-  delete process.env.JWT_SECRET;
-  assert.equal(getDashboardJwtSecret(), null);
-  process.env.JWT_SECRET = saved;
+  try {
+    process.env.JWT_SECRET = "   ";
+    assert.equal(getDashboardJwtSecret(), null);
+    delete process.env.JWT_SECRET;
+    assert.equal(getDashboardJwtSecret(), null);
+  } finally {
+    process.env.JWT_SECRET = saved;
+  }
 });
 
 test("accepts the login-shaped token { authenticated: true } and returns its payload", async () => {

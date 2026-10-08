@@ -12,168 +12,185 @@ Alle ruter i OmniRoutes administrasjons-API er klassifisert i ett av tre beskytt
 
 ### Nivå 1 — LOCAL_ONLY
 
-**Håndheves av:** `isLocalOnlyPath(path)` → kontroll av loopback-vert  
-**Omgåelse:** Ingen som standard. Et snevert unntak gjelder for stier i `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` når forespørselen inneholder en gyldig API-nøkkel med `manage`-omfanget (se [Unntak for manage-omfang](#manage-scope-carve-out)).
+**Håndheves av:** `isLocalOnlyPath(path)` → kontroll av loopback-vert
+**Omgåelse:** Ingen som standard. Et snevert unntak for stier i
+`LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` når forespørselen inneholder en gyldig
+API-nøkkel med `manage`-omfanget (se [Unntak for manage-omfang](#manage-scope-carve-out)).
 
-Disse rutene starter underprosesser eller kjører kode under programkjøring. Hvis de eksponeres for trafikk som ikke kommer fra loopback, kan en angriper som har fått tak i en gyldig JWT (f.eks. via en Cloudflared-/Ngrok-tunnel), utløse oppstart av prosesser — en kjent CVE-klasse ([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
+Disse rutene starter underprosesser eller kjører kode under kjøring. Hvis de
+eksponeres for trafikk som ikke går via loopback, kan en angriper som har fått tak i en gyldig JWT (f.eks.
+via en Cloudflared-/Ngrok-tunnel), utløse oppstart av prosesser — en kjent CVE-klasse
+([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
 
-**Hva GHSA-fhh6-4qxv-rpqj er (angrepsklassen):** En administrasjons-/agentserver eksponerer et endepunkt som starter en underprosess (`npm install`, `node`, en nettleser, en proxy, `git`, `tar`, …). Hvis dette endepunktet kan nås fra utenfor verten — fordi operatøren plasserte OmniRoute bak en nginx-/Cloudflare-/Tailscale-tunnel og en JWT ble lekket, eller autentiseringen var feilkonfigurert — kan angriperen gjøre «kall et API» om til «kjør en kommando på verten» (ekstern kjøring av kode). OmniRoute forhindrer dette ved å håndheve en **ubetinget kontroll av loopback-verten før enhver autentiseringskontroll** på alle ruter som kan starte prosesser: Et lekket token over en tunnel kan fortsatt ikke nå prosessoppstarten.
+**Hva GHSA-fhh6-4qxv-rpqj er (angrepsklassen):** En administrasjons-/agentserver
+eksponerer et endepunkt som starter en underprosess (`npm install`, `node`, en nettleser,
+en proxy, `git`, `tar`, …). Hvis dette endepunktet kan nås utenfra vertsmaskinen — fordi
+operatøren plasserte OmniRoute bak en nginx-/Cloudflare-/Tailscale-tunnel og en JWT
+ble lekket, eller autentiseringen var feilkonfigurert — gjør angriperen «kall et API» om til «kjør en
+kommando på vertsmaskinen» (ekstern kjøring av kode). OmniRoute forhindrer dette ved ubetinget å håndheve en
+**kontroll av loopback-verten før enhver autentiseringskontroll** på alle
+ruter som kan starte prosesser: Et lekket token via en tunnel kan fortsatt ikke nå prosessoppstarten.
 
-**Det fullstendige LOCAL_ONLY-settet.** Den autoritative kilden er `LOCAL_ONLY_API_PREFIXES` / `LOCAL_ONLY_API_PATTERNS` i `src/server/authz/routeGuard.ts`; tabellen nedenfor gjenspeiler gjeldende tilstand. `check-route-guard-membership`-kontrollen går gjennom hver `route.ts` under prefiksene som kan starte prosesser, og lar CI feile hvis noen av dem ikke er klassifisert som bare lokal.
+**Hele LOCAL_ONLY-settet.** Den autoritative kilden er
+`LOCAL_ONLY_API_PREFIXES` / `LOCAL_ONLY_API_PATTERNS` i
+`src/server/authz/routeGuard.ts`; tabellen nedenfor gjenspeiler gjeldende tilstand.
+`check-route-guard-membership`-kontrollen går gjennom hver `route.ts` under
+prefiksene som kan starte prosesser, og lar CI feile hvis noen av dem ikke er klassifisert som kun lokale.
 
-| Prefiks / mønster                                                                                        | Hvorfor det kun er lokalt                                                                               |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/mcp/`                                                                                              | MCP-server — starter stdio-broer + SSE-håndterere                                                       |
-| `/api/cli-tools/runtime/`                                                                                | Kjøretidsmiljø for CLI-verktøy — kjører vilkårlig programtilleggskode                                   |
-| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Innstillingsskrivere per verktøy som kan endre verktøybinærfiler/-konfigurasjon på verten               |
-| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | Samme `getCliRuntimeStatus()`-oppstart som de seks søskenendepunktene ovenfor (GHSA-35fw-cv32-2373)     |
-| `/api/cli-tools/{all-statuses,status,detect}`                                                            | Sonderinger av CLI-beholdningen — starter `command -v` / `--version` per verktøy (GHSA-35fw-cv32-2373)  |
-| `/api/cli-tools/antigravity-mitm`                                                                        | Kontroll av Antigravity MITM-proxy (starter/angir systemproxy)                                          |
-| `/api/modality-bridge/video/`                                                                            | Streng kjøretidssondering av Video Bridge via klarert tilbakekobling og intern uttrekksbro              |
-| `/api/services/`                                                                                         | Innebygde tjenester (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` + oppstart             |
-| `/dashboard/providers/services/`                                                                         | Revers proxy til brukergrensesnitt for innebygde tjenester                                              |
-| `/api/tunnels/cloudflared`                                                                               | Installerer/starter cloudflared-binærfilen                                                              |
-| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Installerer/kontrollerer tailscaled på verten                                                           |
-| `/api/copilot/`                                                                                          | Uautentisert LLM-driver — kun CLI som standard                                                          |
-| `/api/tools/agent-bridge/`                                                                               | AgentBridge — starter MITM-server + utfører DNS-endringer                                               |
-| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — http-proxy-lytter + systemproxy                                                     |
-| `/api/settings/mitm`                                                                                     | Aktiverer MITM-avlytting (proxytilstand på systemnivå)                                                  |
-| `/api/issue-agent/`                                                                                      | Saksagent — starter lokale verktøy mot repositoriet                                                     |
-| `/api/plugins/`, `/api/plugins`                                                                          | Programtillegg — lastes/kjøres via `worker_threads` + `child_process`                                   |
-| `/api/middleware/`                                                                                       | Brukermellomvare — laster/kjører operatørkode i prosessen                                               |
-| `/api/system/version`                                                                                    | Automatisk oppdatering (kun POST; GET/HEAD/OPTIONS er unntatt) — starter `git checkout` + `npm install` |
-| `/api/db-backups/exportAll`                                                                              | Starter `tar` for eksportarkivet                                                                        |
-| `/api/local/`                                                                                            | Lokale ettklikksstartere (Redis per i dag) — starter podman/docker                                      |
-| `/api/headroom/start`, `/api/headroom/stop`                                                              | Livssyklus for Headroom-proxy — starter Python-CLI / sender signal til PID                              |
-| `/api/jobs`, `/api/jobs/`                                                                                | Kontroll av jobbkjører — utfører planlagt arbeid på verten                                              |
-| `/api/oauth/cursor/auto-import`                                                                          | `execFile("which", ["cursor"])` før import av legitimasjon                                              |
-| `/api/oauth/kiro/auto-import`                                                                            | Leser legitimasjonsfiler for Kiro CLI fra verten                                                        |
-| `/api/skills/collect/`                                                                                   | Ferdighetsinnsamling — oppdager/installerer lokale verktøy                                              |
-| `/api/skills/install`, `/api/skills/executions`                                                          | Registrering + kjøring av ferdighetshåndterere — når oppstart av sandkassecontaineren (GHSA-jx89)       |
-| `/api/discovery/`                                                                                        | Lokale sonderinger for nettverks-/leverandøroppdagelse                                                  |
-| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Starter en synlig nettleser + VNC-økt for interaktive innlogginger                                      |
-| `/api/acp/agents`                                                                                        | ACP — oppdager og starter lokale binærfiler for CLI-agenter                                             |
-| `/api/resilience/connections`, `/dashboard/resilience/connections`                                       | Handlinger for tilkoblingsvedlikehold som kan berøre lokal CLI-tilstand                                 |
-| `/api/providers/cursor/agent-availability`                                                               | Kontroll av installasjonspåminnelse i kontrollpanelet — starter `cursor-agent status --format json`     |
-| `/api/providers/{id}/login` (regex)                                                                      | Starter en synlig Playwright Chromium for innlogging med nettinformasjonskapsler                        |
-| `/api/providers/volcengine-plan/connect` (regex)                                                         | Manuell synlig flyt + øktbasert automatisk innlogging med telefon/SMS (starter Playwright)              |
-| `/api/providers/{id}/refresh-cursor` (regex)                                                             | Manuell fornyelse av Cursor-økt — aktiverer `cursor-agent`                                              |
-| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)                                                   | Diagnostiserer den lokale Codex CLI-installasjonen (starter binærfilen)                                 |
+| Prefiks / mønster                                                                                        | Hvorfor det bare er lokalt                                                                                                 |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `/api/mcp/`                                                                                              | MCP-server — starter stdio-broer + SSE-håndterere                                                                          |
+| `/api/cli-tools/runtime/`                                                                                | Kjøretidsmiljø for CLI-verktøy — kjører vilkårlig programtilleggskode                                                      |
+| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Innstillingsskrivere per verktøy som kan endre verktøybinærfiler/-konfigurasjon på verten                                  |
+| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | Samme `getCliRuntimeStatus()`-oppstart som de seks beslektede verktøyene ovenfor (GHSA-35fw-cv32-2373)                     |
+| `/api/cli-tools/{all-statuses,status,detect}`                                                            | CLI-inventarkontroller — starter `command -v` / `--version` per verktøy (GHSA-35fw-cv32-2373)                              |
+| `/api/cli-tools/antigravity-mitm`                                                                        | Styring av Antigravity MITM-proxy (starter/angir systemproxy)                                                              |
+| `/api/modality-bridge/video/`                                                                            | Strengt kontrollert kjøretidssjekk for Video Bridge via klarert loopback, samt intern utpakkingsbro                        |
+| `/api/services/`                                                                                         | Innebygde tjenester (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` + oppstart                                |
+| `/dashboard/providers/services/`                                                                         | Reversproxy til brukergrensesnittene for innebygde tjenester                                                               |
+| `/api/tunnels/cloudflared`                                                                               | Installerer/starter cloudflared-binærfilen                                                                                 |
+| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Installerer/styrer tailscaled på verten                                                                                    |
+| `/api/copilot/`                                                                                          | Uautentisert LLM-driver — som standard bare tilgjengelig via CLI                                                           |
+| `/api/tools/agent-bridge/`                                                                               | AgentBridge — starter MITM-server + DNS-endringer                                                                          |
+| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — http-proxy-lytter + systemproxy                                                                        |
+| `/api/settings/mitm`                                                                                     | Aktiverer MITM-avskjæring (proxytilstand på systemnivå)                                                                    |
+| `/api/issue-agent/`                                                                                      | Saksagent — starter lokale verktøy mot repoet                                                                              |
+| `/api/plugins/`, `/api/plugins`                                                                          | Programtillegg — lastes inn/kjøres via `worker_threads` + `child_process`                                                  |
+| `/api/middleware/`                                                                                       | Brukermellomvare — laster inn/kjører operatørkode i samme prosess                                                          |
+| `/api/system/version`                                                                                    | Automatisk oppdatering (kun POST; GET/HEAD/OPTIONS er unntatt) — starter `git checkout` + `npm install`                    |
+| `/api/db-backups/exportAll`                                                                              | Starter `tar` for eksportarkivet                                                                                           |
+| `/api/local/`                                                                                            | Lokale ettklikksstartere (Redis per i dag) — starter podman/docker                                                         |
+| `/api/headroom/start`, `/api/headroom/stop`                                                              | Livssyklus for Headroom-proxy — starter Python-CLI / sender signaler til PID                                               |
+| `/api/jobs`, `/api/jobs/`                                                                                | Styring av jobbkjøring — utfører planlagt arbeid på verten                                                                 |
+| `/api/oauth/cursor/auto-import`                                                                          | `execFile("which", ["cursor"])` før import av legitimasjon                                                                 |
+| `/api/oauth/kiro/auto-import`                                                                            | Leser legitimasjonsfiler for Kiro CLI fra verten                                                                           |
+| `/api/skills/collect/`                                                                                   | Ferdighetsinnsamling — oppdager/installerer lokale verktøy                                                                 |
+| `/api/skills/install`, `/api/skills/executions`                                                          | Registrering + kjøring av ferdighetshåndterere — når oppstart av sandkassebeholderen (GHSA-jx89)                           |
+| `/api/discovery/`                                                                                        | Oppdagelseskontroller for lokale nettverk/leverandører                                                                     |
+| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Starter en nettleser med brukergrensesnitt + VNC-økt for interaktive pålogginger                                           |
+| `/api/acp/agents`                                                                                        | ACP — oppdager og starter lokale binærfiler for CLI-agenter                                                                |
+| `/api/resilience/connections`                                                                            | Robusthets-JSON per konto (nedkjøling, sikring, sperring). HTML-kontrollpanelet er ikke begrenset til lokale forespørsler. |
+| `/api/providers/cursor/agent-availability`                                                               | Kontrollpanelets kontroll av installasjonsbehov — starter `cursor-agent status --format json`                              |
+| `/api/providers/{id}/login` (regex)                                                                      | Starter Playwright Chromium med brukergrensesnitt for pålogging med nettinformasjonskapsler                                |
+| `/api/providers/volcengine-plan/connect` (regex)                                                         | Manuell flyt med brukergrensesnitt + øktbasert automatisk pålogging med telefon/SMS (starter Playwright)                   |
+| `/api/providers/{id}/refresh-cursor` (regex)                                                             | Manuell fornyelse av Cursor-økt — aktiverer `cursor-agent`                                                                 |
+| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)                                                   | Diagnostiserer den lokale Codex CLI-installasjonen (starter binærfilen)                                                    |
 
-**Svar ved brudd:** `403 LOCAL_ONLY`
+**Respons ved brudd:** `403 LOCAL_ONLY`
 
 #### Unntak for administrasjonsomfang
 
-Et delsett av LOCAL_ONLY-baner KAN også nås fra adresser som ikke er loopback hvis og
-bare hvis forespørselen inneholder `Authorization: Bearer <api-key>` med
-metadata som inkluderer omfanget `manage` (eller `admin`). Unntaket styres
-eksplisitt per bane via `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, slik at
+Et delsett av LOCAL_ONLY-baner KAN også åpnes fra adresser som ikke er loopback, hvis og
+bare hvis forespørselen inneholder en `Authorization: Bearer <api-key>` der
+metadataene inkluderer omfanget `manage` (eller `admin`). Unntaket aktiveres
+uttrykkelig per bane via `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, slik at
 standarden for enhver ny LOCAL_ONLY-bane fortsatt er streng loopback. Uautentiserte
-forespørsler og forespørsler med nøkler uten administrasjonsomfang blir fortsatt avvist med
+forespørsler og forespørsler med nøkler uten administrasjonsomfang avvises fortsatt med
 `403 LOCAL_ONLY`.
 
-For øyeblikket er `/api/mcp/` det eneste prefikset som kan omgås. `/api/cli-tools/runtime/` og
+For øyeblikket er `/api/mcp/` det eneste prefikset som kan unntas. `/api/cli-tools/runtime/` og
 `/api/services/` er med hensikt utelatt fordi de kan starte vilkårlige
 underprosesser (`npm install`, `node`), som er nøyaktig den CVE-klassen
-LOCAL_ONLY-nivået er ment å forhindre.
+LOCAL_ONLY-nivået skal forhindre.
 
 **#7895 — snevert `mcp:connect`-omfang:** Unntaket for `/api/mcp/` godtar OGSÅ
-en Bearer-nøkkel med det snevre `mcp:connect`-omfanget
+en Bearer-nøkkel med det snevre omfanget `mcp:connect`
 (`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`), kontrollert via
 `hasMcpConnectOrManageScope()` i `src/server/authz/policies/management.ts`.
-Dette er begrenset til KUN `/api/mcp/` — `mcp:connect` gir ingen tilgang til noen annen
-administrasjonsrute (inkludert alle andre LOCAL_ONLY-unntaksprefikser, dersom et slikt
-noensinne legges til), og er bevisst utelatt fra
+Dette er begrenset til KUN `/api/mcp/` — `mcp:connect` gir ingen rettigheter på noen annen
+administrasjonsrute (inkludert alle andre LOCAL_ONLY-unntaksprefikser, dersom noen
+noensinne skulle bli lagt til), og det er bevisst utelatt fra
 `MANAGEMENT_API_KEY_SCOPES`. En nøkkel med `manage`/`admin` passerer fortsatt
-unntaket nøyaktig som før; `mcp:connect` er et alternativ med lavere privilegier
-for eksterne klienter som kun bruker MCP og ikke bør trenge bred administrasjonstilgang.
+unntaket akkurat som før; `mcp:connect` er et alternativ med lavere privilegier
+for eksterne klienter som kun bruker MCP, og som ikke bør trenge omfattende administrasjonstilgang.
 
-| Forespørsel                                       | Bane                       | Resultat                 |
-| ------------------------------------------------- | -------------------------- | ------------------------ |
-| Ikke-loopback, ingen Bearer                       | `/api/mcp/*`               | 403 LOCAL_ONLY           |
-| Ikke-loopback, Bearer med `manage`-omfang         | `/api/mcp/*`               | Tillat                   |
-| Ikke-loopback, Bearer med `mcp:connect`-omfang    | `/api/mcp/*`               | Tillat                   |
-| Ikke-loopback, Bearer uten `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY           |
-| Ikke-loopback, Bearer med `mcp:connect`-omfang    | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY           |
-| Ikke-loopback, Bearer med `manage`-omfang         | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY           |
-| Loopback, med eller uten Bearer                   | enhver LOCAL_ONLY          | Tillat (porten passeres) |
+| Forespørsel                                       | Bane                       | Resultat                     |
+| ------------------------------------------------- | -------------------------- | ---------------------------- |
+| Ikke-loopback, ingen Bearer                       | `/api/mcp/*`               | 403 LOCAL_ONLY               |
+| Ikke-loopback, Bearer med `manage`-omfang         | `/api/mcp/*`               | Tillat                       |
+| Ikke-loopback, Bearer med `mcp:connect`-omfang    | `/api/mcp/*`               | Tillat                       |
+| Ikke-loopback, Bearer uten `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY               |
+| Ikke-loopback, Bearer med `mcp:connect`-omfang    | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY               |
+| Ikke-loopback, Bearer med `manage`-omfang         | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY               |
+| Loopback, med eller uten Bearer                   | enhver LOCAL_ONLY          | Tillat (kontrollen passeres) |
 
 #### Veiledning for operatører og revisjon
 
 Hvis du kjører OmniRoute bak en omvendt proxy eller tunnel (nginx, Caddy, Cloudflare
-Tunnel, Tailscale, Ngrok), beskytter loopback-kontrollen fortsatt de startkapable
-rutene ovenfor — en forespørsel der klientadressen ikke er loopback, avvises med
-`403 LOCAL_ONLY` **før autentisering kjøres**, slik at en lekket JWT ikke kan utløse en oppstart. To
+Tunnel, Tailscale, Ngrok), beskytter loopback-kontrollen fortsatt rutene ovenfor
+som kan starte prosesser — en forespørsel der klientadressen ikke er loopback, avvises med
+`403 LOCAL_ONLY` **før autentisering kjøres**, slik at en lekket JWT ikke kan starte en prosess. To
 operatøransvar gjenstår:
 
 - **Ikke «fiks» en 403 ved å forfalske klient-IP-en som loopback.** Å angi
   `X-Forwarded-For: 127.0.0.1`, eller bruke en proxy som omskriver kildeadressen til
   loopback, gjenåpner nøyaktig den RCE-klassen dette nivået stenger. Eksponer
-  kontrollpanelet/API-et gjennom proxyen — aldri de startkapable rutene.
-- **Hold unntaket for administrasjonsomfang minimalt.** Bare `/api/mcp/` kan omgås, og
+  kontrollpanelet/API-et gjennom proxyen — aldri rutene som kan starte prosesser.
+- **Hold unntaket for administrasjonsomfang minimalt.** Bare `/api/mcp/` kan unntas, og
   kun med en API-nøkkel med `manage`-omfang. `SPAWN_CAPABLE_PREFIXES` kan aldri
   legges til i unntakslisten — zod-skjemaet avviser dem, og
-  `isLocalOnlyBypassableByManageScope` avviser dem under kjøring (dybdeforsvar),
-  som er det kontrollpanelet mener med «kan ikke gjøres omgåelig». Startkapable ruter
-  med dynamiske segmenter og statiske baner under `/api/providers/` (f.eks. `/login`,
-  `/refresh-cursor`) dekkes av det regex-baserte motstykket `SPAWN_CAPABLE_PATTERNS` /
+  `isLocalOnlyBypassableByManageScope` avviser dem under kjøring (lagdelt sikkerhet),
+  som er det kontrollpanelet mener med «kan ikke gjøres unntakbart». Ruter med dynamiske segmenter
+  og statiske baner under `/api/providers/` som kan starte prosesser (f.eks. `/login`,
+  `/refresh-cursor`), dekkes av det regex-baserte motstykket `SPAWN_CAPABLE_PATTERNS` /
   `SPAWN_CAPABLE_PATTERN_ANCESTORS` i
   `src/shared/constants/spawnCapablePrefixes.ts`, ikke av den flate
   `SPAWN_CAPABLE_PREFIXES`-matrisen — den flate matrisen måtte ha dekket
-  hele `/api/providers/`-prefikset for å fange dem, noe som ville gjort et rutetre
-  som eksterne kontrollpaneler legitimt bruker til CRUD-operasjoner for leverandører, for omfattende.
+  hele prefikset `/api/providers/` for å fange dem, noe som ville gjort et rutetre
+  som eksterne kontrollpaneler legitimt bruker til CRUD-operasjoner for leverandører, for bredt.
 
-**Revisjon av tilgang** — for å bekrefte at ingenting utenfor verten når disse rutene:
+**Revisjon av tilgang** — slik bekrefter du at ingenting utenfor verten når disse rutene:
 
 - Åpne **Autorisasjonsoversikten** på `/dashboard/settings/security`: Den viser den
-  aktive LOCAL_ONLY-prefikslisten, hvilke prefikser som kan omgås, og det kompileringsfastsatte
-  settet som kan starte prosesser («kan ikke gjøres omgåelig»).
-- Søk i loggene fra omvendt proxy / tilgangsloggene etter prefiksene ovenfor sammen med en
+  aktive LOCAL_ONLY-prefikslisten, hvilke prefikser som kan omgås, og det kompileringstidsbestemte
+  kjøringskapable settet («kan ikke gjøres omgåelig»).
+- Søk i loggene for omvendt proxy / tilgang etter prefiksene ovenfor kombinert med en
   klientadresse som ikke er loopback. Ethvert slikt treff som returnerte `200` i stedet for
-  `403 LOCAL_ONLY`, betyr at proxyen skjuler klientens virkelige IP-adresse — korriger proxyen.
-- En `403 LOCAL_ONLY` i OmniRoutes logger for én av disse banene betyr at beskyttelsen
+  `403 LOCAL_ONLY`, betyr at proxyen skjuler klientens virkelige IP-adresse — rett opp proxyen.
+- En `403 LOCAL_ONLY` i OmniRoute-loggene for en av disse banene betyr at sperren
   fungerer som tiltenkt, og er ikke en feil som skal undertrykkes.
 
 ### Nivå 2 — ALWAYS_PROTECTED
 
-**Håndheves av:** `isAlwaysProtectedPath(path)` → hopp over omgåelsen `requireLogin=false`
+**Håndheves av:** `isAlwaysProtectedPath(path)` → hopp over omgåelse med `requireLogin=false`
 **Omgåelse:** Ingen når `requireLogin=false`; JWT kreves alltid
 
-Disse rutene er destruktive eller irreversible. Å tillate dem i en installasjon «uten passord»
-ville bety at hvem som helst på samme LAN kunne slette databasen eller avslutte
+Disse rutene er destruktive eller irreversible. Hvis de ble tillatt i en installasjon
+«uten passord», ville hvem som helst på samme LAN kunne tømme databasen eller avslutte
 serverprosessen.
 
 | Bane                                      | Årsak                                                              |
 | ----------------------------------------- | ------------------------------------------------------------------ |
 | `/api/shutdown`                           | Avslutter serverprosessen                                          |
-| `/api/settings/database`                  | Eksport, import og sletting av databasen                           |
+| `/api/settings/database`                  | Eksport, import og tømming av databasen                            |
 | `/api/db-backups`                         | Tilgang til fullstendige databasearkiver                           |
 | `/api/settings/export-json`               | Eksporterer hele innstillingsobjektet (inkl. hemmeligheter)        |
 | `/api/settings/import-json`               | Erstatter hele innstillingsobjektet                                |
-| `/api/providers/health-autopilot/actions` | Utfører autopilotens utbedringstiltak                              |
+| `/api/providers/health-autopilot/actions` | Utfører utbedringshandlinger for autopiloten                       |
 | `/api/settings/obsidian`                  | Utsteder gjenbrukbar WebDAV-legitimasjon for en vilkårlig hvelvrot |
 
 **Svar ved brudd:** `401 Authentication required`
 
 `/api/settings/obsidian` dekker underbanen `/webdav`: `POST` peker WebDAV-filtjenesten —
-som betjenes av det egendefinerte Node-laget før Next.js, utenfor denne behandlingskjeden — mot en rot
-valgt av innringeren og returnerer nyutstedt Basic-legitimasjon, `DELETE` roterer den, og den overordnede
-`POST`-forespørselen lagrer Obsidian REST API-tokenet. GHSA-62vw skjulte bare avsløringen av passordet via `GET`;
-utstedelsen befant seg fortsatt på nivået som svikter åpent (GHSA-7pq4-8pvv-rx7r). `enableObsidianVaultSync()`
-avviser i tillegg et hvelv som er datakatalogen, ligger i den eller inneholder den.
+som betjenes av det egendefinerte Node-laget før Next.js, utenfor denne prosesskjeden — mot en rot
+valgt av kalleren, og returnerer nyutstedt Basic-legitimasjon, `DELETE` roterer den, og den overordnede
+`POST`-forespørselen lagrer REST API-tokenet for Obsidian. GHSA-62vw skjulte bare avsløringen av
+passordet via `GET`; utstedelsen befant seg fortsatt på nivået som feiler åpent
+(GHSA-7pq4-8pvv-rx7r). `enableObsidianVaultSync()` avviser i tillegg et hvelv som er datakatalogen,
+befinner seg i den eller inneholder den.
 
-### Oppstart av en ny installasjon er begrenset til loopback — etter reell motpart, ikke `Host`
+### Oppstart av en ny installasjon er begrenset til loopback — basert på faktisk motpart, ikke `Host`
 
-Når det ikke er konfigurert noe administrasjonspassord (og `INITIAL_PASSWORD` ikke er angitt), holder
-`isAuthRequired()` i `src/shared/utils/apiAuth.ts` den anonyme oppstartsprosessen åpen **kun for loopback-motparter**.
-Loopback avgjøres fra de klarerte motpartssignalene, i denne rekkefølgen: den token-stemplede, reelle TCP-motparten
-(`PEER_IP_HEADER` + `VIA_PROXY_HEADER`, det policyen ser), behandlingskjedens egen
-`AUTHZ_HEADER_PEER_LOCALITY`-avgjørelse (det rutebehandlerne ser, kun klarert mens
-`OMNIROUTE_PEER_STAMP_TOKEN` er angitt), eller en reell socket-motpart for direkte innringere. `Host` /
+Når det ikke er konfigurert noe administrasjonspassord (og ingen `INITIAL_PASSWORD`), holder
+`isAuthRequired()` i `src/shared/utils/apiAuth.ts` den anonyme oppstarten åpen **bare for loopback-motparter**.
+Loopback avgjøres ut fra de klarerte motpartssignalene, i denne rekkefølgen: den tokenstemplede, virkelige
+TCP-motparten (`PEER_IP_HEADER` + `VIA_PROXY_HEADER`, som policyen ser), prosesskjedens egen
+`AUTHZ_HEADER_PEER_LOCALITY`-avgjørelse (som rutebehandlerne ser, og som bare er klarert mens
+`OMNIROUTE_PEER_STAMP_TOKEN` er angitt), eller en virkelig socket-motpart for direkte kallere. `Host` /
 `nextUrl.hostname` brukes aldri, og den første passordskrivingen
 (`POST /api/settings/require-login`) er underlagt den samme begrensningen i stedet for å være åpen for alle
 nettverksmotparter (GHSA-7pq4-8pvv-rx7r). `managementPolicy` sender sin egen `peerContext`-avgjørelse
-uttrykkelig videre, slik at den OPPRINNELIGE forespørselens headere (før fjerning) aldri avgjør dette.
+eksplisitt videre, slik at overskriftene i den OPPRINNELIGE forespørselen (før fjerning) aldri avgjør dette.
 
 ### Nivå 3 — MANAGEMENT (standard)
 

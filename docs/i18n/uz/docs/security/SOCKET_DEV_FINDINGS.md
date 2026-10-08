@@ -218,17 +218,15 @@ ixtiyoriy ravishda yoqadi».
 
 ---
 
-## Qurish profili: `minimal`
+## Build profili: `minimal`
 
-Socket’ga mos artefakt kerak bo‘lgan foydalanuvchilar quyidagi buyruq bilan
-qurishlari mumkin:
+Socket bilan mos artefaktga muhtoj foydalanuvchilar quyidagicha build qilishlari mumkin:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` orqali to‘rtta modulni stub’larga
-yo‘naltiradi:
+Webpack `NormalModuleReplacementPlugin` orqali toʻrtta modulni stub modullarga yoʻnaltiradi:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -237,14 +235,9 @@ yo‘naltiradi:
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Har bir stub ayni interfeysni eksport qiladi, biroq har bir funksiya bajarilish
-vaqtida `featureDisabledError(name)` xatosini chiqaradi. O‘chirilgan modulga
-bog‘liq marshrutlar sezgir kod yo‘lini faollashtirish o‘rniga aniq xabar bilan
-HTTP 503 javobini qaytaradi.
+Har bir stub bir xil interfeysni eksport qiladi, biroq har bir funksiya bajarilish vaqtida `featureDisabledError(name)` xatosini chiqaradi. Oʻchirilgan modulga bogʻliq marshrutlar maxfiy kod yoʻlini faollashtirish oʻrniga aniq xabar bilan HTTP 503 javobini qaytaradi.
 
-Hosil bo‘lgan to‘plam `omniroute-secure` sifatida eʼlon qilish uchun
-mo‘ljallangan. Eʼlon qilish tartibi uchun `docs/ops/PUBLISHING_SECURE.md`
-fayliga qarang.
+Hosil boʻlgan toʻplam `omniroute-secure` nomi bilan eʼlon qilish uchun moʻljallangan.
 
 ---
 

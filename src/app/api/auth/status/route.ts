@@ -4,12 +4,13 @@ import { cookies } from "next/headers";
 import {
   getDashboardJwtSecret,
   verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
 } from "@/shared/utils/dashboardSessionToken";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
+    const token = cookieStore.get(DASHBOARD_SESSION_COOKIE)?.value;
     const secret = getDashboardJwtSecret();
 
     if (!token || !secret) {

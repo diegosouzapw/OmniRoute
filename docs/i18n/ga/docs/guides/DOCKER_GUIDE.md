@@ -242,10 +242,10 @@ Tagann Dockerfile ilchéime (`Dockerfile`) leis an stór. Tá ceithre chéim ar 
 
 | Céim          | Buníomhá              | Cuspóir                                                                                                                                                                                                                                                                                                            |
 | ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | Suiteálann sé spleáchais (`npm ci --legacy-peer-deps`) agus ritheann sé `npm run build` (Turbopack de réir réamhshocraithe — féach Acmhainní ag am tógála thíos)                                                                                                                                                   |
-| `runner-base` | `node:26-trixie-slim` | Timpeallacht reatha táirgthe le haschur neamhspleách Next.js. **Níl aon CLI soláthraí san áireamh.**                                                                                                                                                                                                               |
-| `runner-cli`  | `runner-base`         | Cuireann sé `git`, `docker.io`, `docker-compose` agus CLIanna domhanda leis: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Roghnaigh é seo le haghaidh sreafaí oibre gníomhairíocha.**                                                                                                      |
-| `runner-web`  | `runner-base`         | Cuireann sé Playwright + brabhsálaí Chromium (`--with-deps`) leis do sholáthraithe seisiún gréasáin: `gemini-web`, `claude-web`, `claude-turnstile`. **Roghnaigh é seo nuair a úsáideann tú na soláthraithe sin** — teipeann ar an ngnáthíomhá tráth iarratais gan é (féach an nóta `-web` faoi Chainéil Eisiúna). |
+| `builder`     | `node:26-trixie-slim` | Suiteálann sé spleáchais (`npm ci --legacy-peer-deps`) agus ritheann sé `npm run build` (Turbopack de réir réamhshocraithe — féach Acmhainní tráth tógála thíos)                                                                                                                                                   |
+| `runner-base` | `node:26-trixie-slim` | Timpeallacht rite táirgeachta le haschur neamhspleách Next.js. **Níl aon CLI soláthraí san áireamh.**                                                                                                                                                                                                              |
+| `runner-cli`  | `runner-base`         | Cuireann sé `git`, `docker.io`, `docker-compose` agus CLIanna domhanda leis: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Roghnaigh é seo le haghaidh sreafaí oibre gníomhairí.**                                                                                                          |
+| `runner-web`  | `runner-base`         | Cuireann sé Playwright + brabhsálaí Chromium (`--with-deps`) leis do sholáthraithe seisiún gréasáin: `gemini-web`, `claude-web`, `claude-turnstile`. **Roghnaigh é seo nuair a úsáideann tú na soláthraithe sin** — teipeann ar an ngnáthíomhá ag am iarratais gan é (féach an nóta `-web` faoi Chainéil Eisiúna). |
 
 Tóg sprioc shonrach de láimh:
 
@@ -255,56 +255,65 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Acmhainní ag am tógála
+### Acmhainní tráth tógála
 
-Rialaíonn trí argóint tógála costas na céime `builder`. Ní bhaineann siad ach le ham tógála —
-is rialtán reatha ar leith é `OMNIROUTE_MEMORY_MB` (thíos).
+Rialaíonn trí argóint tógála costas na céime `builder`. Is don tráth tógála amháin iad —
+is socrú rite ar leith é `OMNIROUTE_MEMORY_MB` (thíos).
 
 | Argóint tógála              | Réamhshocrú | Éifeacht                                                                                                   |
 | --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`         | Tógann `0` le webpack ina ionad. Cuimhne bhuaic níos ísle, ach níos moille.                                |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | Uasteorainn charn V8 (`--max-old-space-size`) don `next build` a thosaítear.                               |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`         | Tógann `0` le webpack: buaicúsáid cuimhne níos ísle, níos moille. Cumasaíonn `1` Turbopack.                |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | Uasteorainn carn V8 (`--max-old-space-size`) don `next build` a sheoltar.                                  |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`         | Soláthraíonn sé `CIRCLE_NODE_TOTAL`; díorthaíonn Next `workers = N - 1` chun sonraí leathanaigh a bhailiú. |
 
-Is é `OMNIROUTE_BUILD_WORKERS` an ceann ba cheart a ardú ar thógálaí mór agus an ceann ba cheart
-a amhras nuair a chliseann tógáil shrianta **tar éis** `✓ Compiled successfully`. Is próiseas
-ar leith é gach oibrí sonraí leathanaigh, agus is próiseas ar leith é an máthairphróiseas `next build`
-freisin; i macasamhlú ar VPS beo (fadhb #7518), tomhaiseadh buaic-RSS gach próisis ag
-~4.5 GB, neamhspleách ar bhratach charn `NODE_OPTIONS` (tiomsaíonn Turbopack i
-gcuimhne dhúchasach/Rust lasmuigh de charn V8). Tá an réamhshocrú `2` (→ 1 oibrí, 2
-phróiseas san iomlán) socraithe de réir na reathaithe 16 GB / 4 vCPU arna n-óstáil ag GitHub a
-úsáideann an phíblíne foilsithe. Ag `8` (→ 7 n-oibrí), d'éirigh an reathaí sin as cuimhne agus
-theip ar buildkit an chéim le `ResourceExhausted: ... cannot allocate memory`;
-níor luigh `3` (→ 2 oibrí) fós nuair a tomhaiseadh RSS gach próisis
-go díreach seachas é a bheith tátalaithe. Déanann `tests/unit/docker-build-memory-budget.test.ts`
-an uimhríocht bunaithe ar an bhfigiúr tomhaiste agus teipeann sé má sháraíonn ceachtar rialtán
-acmhainn an reathaí.
+Is é `OMNIROUTE_BUILD_WORKERS` an ceann le hardú ar thógálaí mór agus an ceann le
+hamhras a chur air nuair a chliseann tógáil shrianta **tar éis** `✓ Compiled successfully`.
+Is próiseas ar leith é gach oibrí sonraí leathanaigh, agus is próiseas ar leith é
+an máthairphróiseas `next build` féin freisin; i macasamhlú beo ar VPS (fadhb #7518),
+tomhaiseadh buaic-RSS gach próisis ag ~4.5 GB, neamhspleách ar bhratach chairn
+`NODE_OPTIONS` (tiomsaíonn Turbopack i gcuimhne dhúchasach/Rust lasmuigh de charn
+V8). Tá an réamhshocrú `2` (→ 1 oibrí, 2 phróiseas san iomlán) socraithe do na
+riteoirí 16 GB / 4 vCPU arna n-óstáil ag GitHub a úsáideann an phíblíne foilsithe.
+Ag `8` (→ 7 n-oibrí), rith an riteoir sin as cuimhne agus theip ar an gcéim buildkit
+le `ResourceExhausted: ... cannot allocate memory`; ní raibh `3` (→ 2 oibrí) fós
+oiriúnach nuair a tomhaiseadh RSS gach próisis go díreach seachas é a thátal.
+Déanann `tests/unit/docker-build-memory-budget.test.ts` an ríomh bunaithe ar an
+bhfigiúr tomhaiste agus teipeann sé má sháraíonn ceachtar socrú acmhainn an riteora.
 
 Tiomsaíonn Turbopack i gcuimhne dhúchasach Rust atá **lasmuigh** de charn V8, mar sin
-ní chuireann `OMNIROUTE_BUILD_MEMORY_MB` teorainn léi. Ar óstach a bhfuil uasteorainn chuimhne aige,
-faigheann an tógáil SIGKILL ansin ón marfóir OOM gan aon téacs earráide ar chor ar bith — ní dhéanann sí ach
-stopadh i lár `Creating an optimized production build`, rud a bhreathnaíonn cosúil le reo seachas
-easpa cuimhne. Má tá an t-óstach tógála srianta, athraigh pacáisteoir:
+ní chuireann `OMNIROUTE_BUILD_MEMORY_MB` teorainn léi. Ar óstach a bhfuil uasteorainn
+chuimhne aige, maraíonn marfóir OOM an tógáil ansin le SIGKILL gan aon téacs earráide
+ar chor ar bith — stopann sí díreach i lár `Creating an optimized production build`,
+rud a fhágann cuma crochta uirthi seachas cuma easpa cuimhne. Sin é an fáth a
+n-úsáideann an `Dockerfile` webpack de réir réamhshocraithe
+(`OMNIROUTE_USE_TURBOPACK=0`), murab ionann agus `npm run dev` / `npm run build`, mar
+a bhfuil Turbopack mar réamhshocrú sa chód: níor cheart do `docker build .` lom gan
+argóintí tógála ar bith (an rud a ritheann Railway agus óstaigh aonchliceála eile)
+bás a fháil go ciúin ar thógálaí faoi theorainn chuimhne. Cuireann na híomhánna
+foilsithe `OMNIROUTE_USE_TURBOPACK=0` ar aghaidh go sainráite cheana féin in
+`docker-publish.yml`. Ar thógálaí a bhfuil neart RAM aige, cumasaigh Turbopack le
+haghaidh tógáil níos tapúla:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-Tá `webpackBuildWorker` cumasaithe, mar sin ritheann `next build` máthairphróiseas **agus** próiseas
-oibrí agus urramaíonn gach ceann acu `OMNIROUTE_BUILD_MEMORY_MB` ar leithligh. Socraigh uasteorainn
-an choimeádáin os cionn thart ar dhá oiread an luacha sin, ní aon oiread amháin.
+Tá `webpackBuildWorker` cumasaithe, mar sin ritheann `next build` máthairphróiseas
+**agus** próiseas oibrí agus urramaíonn gach ceann acu `OMNIROUTE_BUILD_MEMORY_MB`
+ar leithligh. Socraigh uasteorainn an choimeádáin beagán os cionn dhá oiread an
+luacha sin, ní aon oiread amháin.
 
 Tomhaiste ar an gcrann seo (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Pacáisteoir | Uasteorainn an choimeádáin | Toradh                                    |
-| ----------- | -------------------------- | ----------------------------------------- |
-| Turbopack   | 8 GiB / 16 GiB             | Mharaigh OOM é ag an dá cheann, gan fógra |
-| webpack     | 8 GiB                      | Fuair an t-oibrí tógála SIGKILL           |
-| webpack     | 12 GiB                     | d'éirigh leis, le buaic 11.1 GiB          |
+| Cuachadóir | Uasteorainn an choimeádáin | Toradh                                   |
+| ---------- | -------------------------- | ---------------------------------------- |
+| Turbopack  | 8 GiB / 16 GiB             | Mharaigh OOM é ag an dá cheann, go ciúin |
+| webpack    | 8 GiB                      | Maraíodh an t-oibrí tógála le SIGKILL    |
+| webpack    | 12 GiB                     | D'éirigh leis, buaic ag 11.1 GiB         |
 
-### Réamhshocruithe ag am rite
+### Réamhshocruithe rite
 
 Réamhshocruithe arna n-easpórtáil ag `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
@@ -312,23 +321,23 @@ Iompar cuimhne in Docker:
 
 - Socraíonn an íomhá `OMNIROUTE_MEMORY_MB=1024` agus díorthaíonn sí `NODE_OPTIONS=--max-old-space-size=1024` uaidh.
 - Tosaíonn an lainseálaí neamhspleách próiseas iarbhír an fhreastalaí; léann sé `OMNIROUTE_MEMORY_MB` agus iarcheanglaíonn sé `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Úsáideann Node an luach deireanach de `--max-old-space-size` nuair a dhéantar é a athrá, mar sin rialaíonn socrú `OMNIROUTE_MEMORY_MB` teorainn éifeachtach chairn Docker.
-- Toisc go socraíonn an íomhá é i gcónaí, ní chuirtear cúltaca chalabraithe de réir RAM an lainseálaí féin i bhfeidhm riamh faoi Docker. Méadaigh go sainráite é don ualach oibre (an tábla thíos). Tá `2048` fós róbheag do `/v1/responses` gníomhaire códaithe.
+- Úsáideann Node an luach deireanach de `--max-old-space-size` a athdhéantar, mar sin rialaíonn socrú `OMNIROUTE_MEMORY_MB` teorainn éifeachtach charn Docker.
+- Toisc go socraíonn an íomhá é i gcónaí, ní chuirtear cúlréiteach an lainseálaí féin, atá calabraithe de réir RAM, i bhfeidhm riamh faoi Docker. Ardaigh go sainráite é don ualach oibre (an tábla thíos). Tá `2048` fós róbheag do `/v1/responses` gníomhairí códúcháin.
 
-### RAM ag am rite do ghníomhairí códaithe
+### RAM ag am rite do ghníomhairí códúcháin
 
-Is íosteorainn do dheais/comhrá éadrom é réamhshocrú Docker de 1 GiB, ní méid táirgeachta. Coinníonn coirp fhada `POST /v1/responses` (na céadta teachtaireachtaí, na deicheanna uirlisí) roinnt graf sa chuimhne le linn comhbhrúite. Tá dhá iarratas fhorluiteacha de thart ar ~3 MiB / ~750k comhartha tar éis V8 a thobscor ag sean-spás **12 GiB** (`FATAL ERROR: Reached heap limit`) agus OOM cgroup 16 GiB a bhaint amach freisin. Féach [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Is íosmhéid do dheais/comhrá éadrom é réamhshocrú Docker de 1 GiB, ní méid táirgeachta. Coinníonn coirp fhada `POST /v1/responses` (na céadta teachtaireachtaí, na deicheanna uirlisí) roinnt graif sa chuimhne le linn comhbhrúite. Chuir dhá iarratas fhorluiteacha de thart ar 3 MiB / 750k comhartha deireadh le V8 agus sean-spás **12 GiB** ann (`FATAL ERROR: Reached heap limit`), agus bhain siad OOM cgroup 16 GiB amach freisin. Féach [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Socraigh méid **cgroup `--memory` os cionn an chairn** — tá maoláin dhúchasacha, SQLite, agus torthaí idirmheánacha comhbhrúite lasmuigh de V8.
+Socraigh méid **`--memory` cgroup os cionn an chairn** — tá maoláin dhúchasacha, SQLite, agus táirgí idirmheánacha comhbhrúite lasmuigh de V8.
 
-| Ualach oibre                                     | `OMNIROUTE_MEMORY_MB`           | Coimeádán / cgroup                   | Nótaí                                                                                                            |
-| ------------------------------------------------ | ------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| Deais, comhrá éadrom amháin                      | `1024` (réamhshocrú na híomhá)  | ≥2 GiB                               |                                                                                                                  |
-| Gníomhaire códaithe amháin (Claude/Codex/Grok)   | `8192`                          | ≥10 GiB                              | Seisiún aonair tipiciúil `/v1/responses`                                                                         |
-| Dhá `/v1/responses` fhada chomhthráthacha        | `10240`–`12288`                 | ≥12–16 GiB                           | Tobscor V8 tomhaiste ag carn ~12 GiB                                                                             |
-| Trí chomhthéacs fhada chomhthráthacha nó níos mó | ná déan ar aon phróiseas amháin | déan go seicheamhach / tuilleadh RAM | Is é 1 iarratas ar siúl réamhshocrú glactha na n-ualach trom; má mhéadaítear é gan RAM, tugtar an tobscor ar ais |
+| Ualach oibre                                     | `OMNIROUTE_MEMORY_MB`           | Coimeádán / cgroup        | Nótaí                                                                                             |
+| ------------------------------------------------ | ------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------- |
+| Deais, comhrá éadrom amháin                      | `1024` (réamhshocrú íomhá)      | ≥2 GiB                    |                                                                                                   |
+| Gníomhaire códúcháin amháin (Claude/Codex/Grok)  | `8192`                          | ≥10 GiB                   | Seisiún aonair tipiciúil `/v1/responses`                                                          |
+| Dhá `/v1/responses` fhada chomhthráthacha        | `10240`–`12288`                 | ≥12–16 GiB                | Tomhaiseadh teip V8 ag carn de thart ar 12 GiB                                                    |
+| Trí chomhthéacs fhada chomhthráthacha nó níos mó | ná déan ar aon phróiseas amháin | srathaigh / tuilleadh RAM | Is é 1 ar siúl réamhshocrú iontrála d'ualaí troma; má ardaítear é gan RAM, tarlaíonn an teip arís |
 
-Déanann `omniroute serve` ar mhiotal lom calabrú go ~35% de RAM (teoranta do `[512, 4096]`) nuair nach bhfuil `OMNIROUTE_MEMORY_MB` **socraithe**. Socraíonn Docker `1024` i gcónaí, mar sin ní ritheann an calabrú sin riamh san íomhá oifigiúil.
+Déanann `omniroute serve` ar chrua-earraí fisiciúla thart ar 35% de RAM a chalabrú (teoranta do `[512, 4096]`) nuair atá `OMNIROUTE_MEMORY_MB` **gan socrú**. Socraíonn Docker `1024` i gcónaí, mar sin ní ritear an calabrú sin riamh san íomhá oifigiúil.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

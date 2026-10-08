@@ -192,26 +192,26 @@ rawBody)`）。若已設定密鑰，則必須提供簽章。若未設定（舊�
 
 ## 建置設定檔：`minimal`
 
-需要 Socket 相容成品的使用者，請使用以下方式建置：
+對於需要 Socket 友善成品的使用者，請使用以下方式建置：
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` 會將四個模組別名指向虛設實作：
+webpack 的 `NormalModuleReplacementPlugin` 會將四個模組設定為存根的別名：
 
-| 模組                                        | 虛設實作                                         |
+| 模組                                        | 存根                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-每個虛設實作都會匯出相同的介面，但所有函式都會在執行階段擲回
-`featureDisabledError(name)`。依賴已停用模組的路由會傳回 HTTP 503，並附上清楚的訊息，而不會啟用敏感程式碼路徑。
+每個存根都會匯出相同的介面，但所有函式在執行階段都會擲回
+`featureDisabledError(name)`。依賴已停用模組的路由會傳回 HTTP 503
+及清楚的訊息，而不會啟用敏感的程式碼路徑。
 
-產生的套件組合預定以 `omniroute-secure` 發布。發布流程請參閱
-`docs/ops/PUBLISHING_SECURE.md`。
+產生的套件預計以 `omniroute-secure` 的名稱發布。
 
 ---
 

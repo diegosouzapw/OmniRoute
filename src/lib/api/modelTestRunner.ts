@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prepareConnectionModelTest } from "@/lib/providerModels/prepareConnectionModelTest";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/db/models";
 import { getProviderNodeById } from "@/lib/db/providers";
+import { requiresWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 import {
@@ -25,6 +27,7 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+const CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID = "chatgpt-web";
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const ZAI_WEB_PROVIDER_ID = "zai-web";
@@ -35,6 +38,14 @@ const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 // ignored on that endpoint, which would let a reasoning model spend the whole
 // default budget before emitting any visible text.
 const RESPONSES_TEST_MAX_OUTPUT_TOKENS = 256;
+
+export function shouldSkipWebSessionModelTest(providerId: unknown): boolean {
+  return (
+    requiresWebSessionCredential(providerId) &&
+    (typeof providerId !== "string" ||
+      providerId.trim().toLowerCase() !== CHATGPT_WEB_CLEAN_ROOM_PROVIDER_ID)
+  );
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -353,6 +364,8 @@ export interface RunSingleModelTestOptions {
   connectionId?: string;
   timeoutMs?: number;
   streamChat?: boolean;
+  /** A manual connection message; only supported for chat models. */
+  prompt?: string;
 }
 
 export interface SingleModelTestResult {
@@ -368,6 +381,8 @@ export interface SingleModelTestResult {
   isQuota?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
+  /** The probe was deliberately not dispatched (#14780) — not a model failure. */
+  skipped?: boolean;
 }
 
 export type ModelTestResponseText = {
@@ -474,7 +489,28 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
+  if (shouldSkipWebSessionModelTest(providerId)) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: 422,
+      skipped: true,
+      error:
+        "Skipped: web-session providers are excluded from chat probes to avoid creating provider conversations",
+    };
+  }
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
+
+  const catalogError = await prepareConnectionModelTest(providerId, connectionId, fullModelStr);
+  if (catalogError)
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: catalogError.status,
+      error: catalogError.message,
+    };
 
   const startTime = Date.now();
   const [customModel, nodeApiType] = await Promise.all([
@@ -497,6 +533,16 @@ export async function runSingleModelTest(
       httpStatus: 422,
       error:
         "Skipped: non-chat generation model (images/music/video) — use the corresponding generation endpoint instead",
+    };
+  }
+
+  if (options.prompt !== undefined && (isEmbedding || isRerank || isAudioTranscription)) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: Date.now() - startTime,
+      httpStatus: 400,
+      error: "Test messages require a chat model",
     };
   }
 
@@ -529,6 +575,10 @@ export async function runSingleModelTest(
             stream: !isEmbedding && streamChat,
             maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
           });
+
+  if (options.prompt !== undefined && "messages" in testBody) {
+    testBody.messages = [{ role: "user", content: options.prompt }];
+  }
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError

@@ -131,21 +131,25 @@ reiniciar.
 ## Exemplo: proxy inverso à frente do OmniRoute
 
 O CORS é aplicado pelo próprio OmniRoute, pelo que, em geral, o proxy **não** deve adicionar nem
-reescrever cabeçalhos `Access-Control-*` (cabeçalhos duplicados causam problemas nos browsers). Termine o TLS
-e reencaminhe — permita que o OmniRoute responda ao pedido de verificação prévia:
+reescrever os cabeçalhos `Access-Control-*` (cabeçalhos duplicados causam problemas nos browsers). Termine o TLS
+e reencaminhe — deixe o OmniRoute responder ao pedido preflight:
 
 ```nginx
 # nginx — reencaminhar para o OmniRoute; NÃO injetar Access-Control-* aqui
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NÃO definir X-Forwarded-For como 127.0.0.1 — isso neutraliza a proteção de rotas de loopback.
+    # Mantenha os cabeçalhos de reencaminhamento: um proxy no mesmo anfitrião estabelece ligação a partir do loopback, e são
+    # estes que indicam ao OmniRoute que quem fez o pedido não é o operador local. Um proxy que não adicione nenhum deles
+    # faz com que todos os clientes remotos pareçam locais. Também nunca defina X-Forwarded-For como 127.0.0.1.
 }
 ```
 
-Defina as origens permitidas do browser no OmniRoute (`CORS_ALLOWED_ORIGINS` ou no
-separador Segurança), não no proxy.
+Defina as origens permitidas dos browsers no OmniRoute (`CORS_ALLOWED_ORIGINS` ou no
+separador Segurança), e não no proxy.
 
 ## Ficheiros de origem
 

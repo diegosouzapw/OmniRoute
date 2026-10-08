@@ -205,8 +205,18 @@ test("xiaomi-mimo-token-plan esta registrado e nao colide de host com o normal",
 
 test("xiaomi-mimo-token-plan expoe os modelos de chat", () => {
   const ids = xiaomi_mimo_token_planProvider.models.map((m) => m.id);
+  assert.ok(ids.includes("mimo-v2.6-pro"));
+  assert.ok(ids.includes("mimo-v2.6-flash"));
   assert.ok(ids.includes("mimo-v2.5-pro"));
   assert.ok(ids.includes("mimo-v2.5"));
+});
+
+test("xiaomi-mimo-token-plan anuncia a janela de 1M e saida de 128K da geracao v2.6", () => {
+  for (const id of ["mimo-v2.6-pro", "mimo-v2.6-flash"]) {
+    const model = xiaomi_mimo_token_planProvider.models.find((m) => m.id === id);
+    assert.equal(model?.contextLength, 1048576, id);
+    assert.equal(model?.maxOutputTokens, 131072, id);
+  }
 });
 
 // ---------------------------------------------------------------------------

@@ -40,6 +40,14 @@ if (!process.env.DATA_DIR) {
   });
 }
 
+// Plugin-dir guard: the plugin scanner (src/lib/plugins/scanner.ts) resolves its directory
+// from OMNIROUTE_PLUGINS_DIR, else from HOME, which would point every test process at the
+// developer's real ~/.omniroute/plugins (scanned, and loaded, by the chat pipeline). Keep it
+// under the isolated DATA_DIR unless the caller already chose a directory; a blank value
+// counts as unset, matching the scanner's own trim.
+process.env.OMNIROUTE_PLUGINS_DIR =
+  process.env.OMNIROUTE_PLUGINS_DIR?.trim() || path.join(process.env.DATA_DIR!, "plugins");
+
 // System-trust guard: the suite must NEVER mutate the OS trust store. On a
 // persistent self-hosted runner the cert-flow integration test installed a fake
 // 105-byte PEM into /usr/local/share/ca-certificates and update-ca-certificates
@@ -52,7 +60,9 @@ process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
 // without a valid user JWT — which any mocked-fetch test does by construction.
 // Per-call-site allowBrowserRefresh/tryBrowser flags are not enough: the warm is also
 // reachable indirectly via client/handler paths, so the guard must be global.
-// ||= (not =) so a browser-path integration test can still opt back in.
+// ||= (not =) so a browser-path integration test can still opt back in. The
+// hard `= "0"` override (tests/_setup/disableAdobeBrowser.ts, #14876) is imported
+// directly by the Firefly unit files only — importing it here would erase that opt-in.
 process.env.ADOBE_FIREFLY_BROWSER_REFRESH ||= "0";
 
 // DNS-write guard: the suite must NEVER mutate /etc/hosts. Tests that exercise

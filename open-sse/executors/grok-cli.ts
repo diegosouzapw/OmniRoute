@@ -22,6 +22,11 @@ import {
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
+import { hoistGrokBuildAdditionalTools } from "./grokCliAdditionalTools.ts";
+import {
+  convertGrokBuildCustomTools,
+  restoreGrokBuildCustomToolCalls,
+} from "./grokCliCustomTools.ts";
 import {
   flattenGrokBuildNamespaceTools,
   restoreGrokBuildNamespaceToolCalls,
@@ -253,8 +258,14 @@ export class GrokCliExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    // Grok Build rejects Responses `namespace` tool groups (Codex CLI MCP tools).
-    const { body, identityMap } = flattenGrokBuildNamespaceTools(input.body);
+    // Grok Build rejects `additional_tools` input items (Codex lite mode), freeform `custom`
+    // tools (e.g. Codex apply_patch, lite mode's namespaced `exec`) and `namespace` tool
+    // groups (Codex CLI MCP tools). Additional tools merge into `tools` first; custom tools
+    // then convert, also inside namespaces, so the namespace step flattens them and renames
+    // a replayed namespaced custom_tool_call to its wire name. Restore runs in reverse.
+    const converted = convertGrokBuildCustomTools(hoistGrokBuildAdditionalTools(input.body));
+    const { customTools } = converted;
+    const { body, identityMap } = flattenGrokBuildNamespaceTools(converted.body);
     const tools = (body as { tools?: unknown } | null)?.tools;
     if (identityMap && Array.isArray(tools) && tools.length > GROK_BUILD_MAX_TOOLS) {
       input.log?.warn?.(
@@ -264,12 +275,15 @@ export class GrokCliExecutor extends BaseExecutor {
       );
     }
     const result = await super.execute(body === input.body ? input : { ...input, body });
-    if (!identityMap) return result;
-    if (result instanceof Response) return restoreGrokBuildNamespaceToolCalls(result, identityMap);
-    return {
-      ...result,
-      response: await restoreGrokBuildNamespaceToolCalls(result.response, identityMap),
+    if (!identityMap && !customTools) return result;
+    const restore = async (response: Response) => {
+      const named = identityMap
+        ? await restoreGrokBuildNamespaceToolCalls(response, identityMap)
+        : response;
+      return customTools ? restoreGrokBuildCustomToolCalls(named, customTools) : named;
     };
+    if (result instanceof Response) return restore(result);
+    return { ...result, response: await restore(result.response) };
   }
 
   async refreshCredentials(

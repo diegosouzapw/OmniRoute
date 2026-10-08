@@ -42,6 +42,7 @@ import { persistResponsesWsCallHistory } from "./history";
 import { applyResponsesWsCompression } from "./compression";
 import { getComboByName } from "@/lib/db/combos";
 import { getComboModelString } from "@/lib/combos/steps";
+import { isQuotaModelName } from "@/lib/quota/quotaModelNaming";
 import {
   buildManagedLeaseErrorResponse,
   isExclusiveLeaseManagedKey,
@@ -638,6 +639,13 @@ async function prepare(body: JsonRecord) {
   if ("error" in context) return context.error;
   const combo = await getComboByName(context.requestedModel).catch(() => null);
   if (combo) {
+    if (combo.strategy === "quota-share") {
+      return jsonError(
+        426,
+        "responses_websocket_http_fallback",
+        "Quota sharing requires the HTTP/SSE Responses transport for lease and quota coordination"
+      );
+    }
     const models = Array.isArray(combo.models) ? combo.models : [];
     if (models.some((model) => getComboModelString(model)?.startsWith("chatgpt-web-codex/"))) {
       return jsonError(
@@ -647,7 +655,13 @@ async function prepare(body: JsonRecord) {
       );
     }
   }
-
+  if (isQuotaModelName(context.requestedModel)) {
+    return jsonError(
+      426,
+      "responses_websocket_http_fallback",
+      "Quota sharing requires the HTTP/SSE Responses transport for lease and quota coordination"
+    );
+  }
   const upstream = await resolveCodexUpstreamContext(context);
   if ("error" in upstream) return upstream.error;
   const {

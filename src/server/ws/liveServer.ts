@@ -20,7 +20,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
-import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
+import {
+  verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
+} from "@/shared/utils/dashboardSessionToken";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +35,7 @@ import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
 import { isAutomatedTestProcess, isBuildProcess } from "@/shared/utils/testProcess";
+import { hasProxyHopHeader } from "@/server/authz/proxyHeaders";
 import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
 
 import {
@@ -130,18 +134,13 @@ function loadAuthModule(): Promise<typeof import("../../sse/services/auth.ts")> 
 
 /**
  * True when the upgrade's real TCP peer is this machine. Forwarding headers
- * (x-forwarded-for / x-real-ip) mark a reverse-proxy or tunnel hop: the socket
+ * (x-forwarded-*, x-real-ip, forwarded, via) mark a reverse-proxy or tunnel hop: the socket
  * peer is the proxy, not the local dashboard user, so fail closed — same
  * discipline as isLoopbackRequest() on the HTTP routes, which never trusts a
  * client-controllable header for locality.
  */
 function isLocalWsPeer(request: import("http").IncomingMessage): boolean {
-  if (
-    typeof request.headers["x-forwarded-for"] === "string" ||
-    typeof request.headers["x-real-ip"] === "string"
-  ) {
-    return false;
-  }
+  if (hasProxyHopHeader(request.headers)) return false;
   let peer = request.socket?.remoteAddress ?? null;
   if (!peer) return false;
   peer = peer.replace(/^::ffff:/i, "");
@@ -256,7 +255,7 @@ export function getCookieValueFromHeader(
 async function isDashboardCookieAuthenticated(
   request: import("http").IncomingMessage
 ): Promise<boolean> {
-  const token = getCookieValueFromHeader(request.headers, "auth_token");
+  const token = getCookieValueFromHeader(request.headers, DASHBOARD_SESSION_COOKIE);
   if (!token || !process.env.JWT_SECRET) return false;
   return (await verifyDashboardSessionToken(token)) !== null;
 }

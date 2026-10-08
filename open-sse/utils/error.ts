@@ -163,6 +163,8 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "invalid_tool_name",
   "invalid_tools",
   "invalid_trailer",
+  "key_allows_all_combos",
+  "key_allows_all_models",
   "lease_action_invalid",
   "lease_api_key_invalid",
   "lease_authentication_required",
@@ -859,6 +861,7 @@ export async function parseUpstreamError(response: Response, provider: string | 
         ? clinepassEnvError.message
         : json.error?.message ||
           json.message ||
+          (typeof json.detail === "string" ? json.detail : null) ||
           (typeof json.error === "string" ? json.error : null);
       message =
         typeof extractedMessage === "string"
@@ -1052,7 +1055,8 @@ export function unavailableResponse(
 
 export function providerCircuitOpenResponse(
   provider: string,
-  retryAfter?: string | number | Date | null
+  retryAfter?: string | number | Date | null,
+  failureKind?: string | null
 ) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
   const safeProvider = projectPublicContextLabel(provider) ?? "unknown";
@@ -1064,6 +1068,7 @@ export function providerCircuitOpenResponse(
         code: "provider_circuit_open",
         provider: safeProvider,
         retry_after: retryAfterSec,
+        ...(failureKind ? { failure_kind: failureKind } : {}), // #14960 quota vs rate_limit
       },
     }),
     {
@@ -1132,23 +1137,20 @@ export function modelCooldownResponse({
       : typeof retryAfter === "string" && retryAfter.length > 0
         ? retryAfter
         : null;
-  return new Response(
-    JSON.stringify(
-      buildModelCooldownBody({
-        model,
-        retryAfterSec,
-        retryAfterAt: resolvedRetryAfterAt,
-        credentialsCoolingCount,
-      })
-    ),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(retryAfterSec),
-      },
-    }
-  );
+  const body = buildModelCooldownBody({
+    model,
+    retryAfterSec,
+    retryAfterAt: resolvedRetryAfterAt,
+    credentialsCoolingCount,
+  });
+  return new Response(JSON.stringify(body), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retryAfterSec),
+      "X-OmniRoute-Local-Cooldown": "model", // = LOCAL_MODEL_COOLDOWN_HEADER (#1731 vs #14190)
+    },
+  });
 }
 
 /**

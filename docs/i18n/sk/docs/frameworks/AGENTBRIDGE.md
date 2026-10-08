@@ -189,18 +189,18 @@ zdieľaný zoznam zakázaných hlavičiek pre jednotlivé skoky a rámcovanie (v
 
 Použite kartu servera AgentBridge na adrese `/dashboard/tools/agent-bridge`:
 
-| Akcia                 | Popis                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------- |
-| Spustiť server        | Spustí `src/mitm/server.cjs` na porte 443                                             |
-| Zastaviť server       | Korektne ukončí podriadený proces                                                     |
-| Reštartovať server    | Zastaví a spustí server (načíta zmeny cieľov)                                         |
-| Dôverovať certifikátu | Nainštaluje `DATA_DIR/mitm/ca.crt` do systémového úložiska dôveryhodných certifikátov |
-| Stiahnuť certifikát   | Stiahne `ca.crt` na manuálnu inštaláciu                                               |
-| Obnoviť certifikát    | Vytvorí nový pár kľúčov CA (všetky existujúce certifikáty agentov sa zneplatnia)      |
+| Akcia                 | Popis                                                                            |
+| --------------------- | -------------------------------------------------------------------------------- |
+| Spustiť server        | Spustí `src/mitm/server.cjs` na porte 443                                        |
+| Zastaviť server       | Korektne ukončí podriadený proces                                                |
+| Reštartovať server    | Zastaví a spustí server (načíta zmeny cieľov)                                    |
+| Dôverovať certifikátu | Nainštaluje `DATA_DIR/mitm/ca.crt` do úložiska dôveryhodných certifikátov OS     |
+| Stiahnuť certifikát   | Stiahne `ca.crt` na manuálnu inštaláciu                                          |
+| Obnoviť certifikát    | Vytvorí nový pár kľúčov CA (všetky existujúce certifikáty agentov sa zneplatnia) |
 
 ### 3.2 Nastavenie dôveryhodnosti certifikátu
 
-Certifikát CA služby AgentBridge musí byť pre operačný systém dôveryhodný, aby IDE prijali pripojenie MITM.
+Certifikát CA služby AgentBridge musí byť považovaný operačným systémom za dôveryhodný, aby IDE prijali pripojenie MITM.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -221,34 +221,35 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Prípadne použite tlačidlo „Dôverovať certifikátu“ na ovládacom paneli (spustí príslušný príkaz pre váš operačný systém a v prípade potreby zobrazí výzvu sudo).
+Prípadne použite tlačidlo „Dôverovať certifikátu“ na ovládacom paneli (spustí príslušný príkaz pre váš OS a v prípade potreby zobrazí výzvu sudo).
 
-#### IDE založené na Electrone ignorujú systémové úložisko dôveryhodných certifikátov (`NODE_EXTRA_CA_CERTS`)
+#### IDE založené na Electrone ignorujú úložisko dôveryhodných certifikátov OS (`NODE_EXTRA_CA_CERTS`)
 
 Niektoré IDE — najmä **Antigravity IDE** a ďalšie aplikácie odvodené od Electronu / VS Code — obsahujú
-vlastné prostredie Node.js, ktoré pri odchádzajúcich požiadavkách
-`fetch`/HTTPS **nepoužíva systémové úložisko dôveryhodných certifikátov**. Nastavenie dôveryhodnosti CA na úrovni OS/NSS postačuje pre natívny **backend**
-IDE (napr. jazykový server v jazyku Go, ktorý používa systémový balík CA), ale v **rozhraní Electron**
-bude TLS naďalej zlyhávať — prejaví sa to ako _odhlásenie_ aplikácie alebo _„chyba pripojenia“_,
-hoci protokol MITM uvádza, že inicializačné volania backendu vracajú stav `200`. Vyžadujú sa
-dva kroky a oba sú dôležité:
+vlastné prostredie Node.js, ktoré pri odchádzajúcich požiadavkách `fetch`/HTTPS **nepoužíva úložisko
+dôveryhodných certifikátov OS**. Nastavenie dôveryhodnosti CA na úrovni OS/NSS postačuje pre natívny
+**backend** IDE (napr. jazykový server v Go, ktorý používa balík CA operačného systému), ale
+**frontend Electronu** bude mať naďalej problémy s TLS — prejaví sa to tak, že aplikácia je
+_odhlásená_ alebo zobrazuje _„chybu pripojenia“_, aj keď protokol MITM ukazuje, že inicializačné
+volania backendu vracajú `200`. Vyžadujú sa dva kroky a oba sú dôležité:
 
 1. Explicitne nasmerujte prostredie na CA:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Spustite IDE z daného shellu.** Spustenie pomocou ikony na pracovnej ploche, Docku alebo ponuky Štart
-   **nezdedí** exportované premenné shellu a `~/.config/environment.d/*.conf` sa použije až po
-   novom grafickom prihlásení. Najskôr IDE úplne ukončite — zámok jednej inštancie Electronu spôsobí, že druhé
-   spustenie iba aktivuje existujúci proces a nové prostredie sa ignoruje.
+2. **Spustite IDE z daného shellu.** Spustenie pomocou ikony na pracovnej ploche / Docku / ponuky Štart
+   **neprevezme** exportované premenné shellu a `~/.config/environment.d/*.conf` sa použije až po
+   novom grafickom prihlásení. Najskôr IDE úplne ukončite — zámok jednej inštancie Electronu spôsobí,
+   že druhé spustenie iba aktivuje existujúci proces a nové prostredie sa ignoruje.
 
-Vyššie uvedený krok nastavenia dôveryhodnosti na úrovni OS a NSS je naďalej potrebný (sieťová vrstva Chromium používaná niektorými
-tokmi overovania číta používateľské úložisko NSS a má vlastné statické pripnutia pre `*.googleapis.com`, ktoré
-lokálne dôveryhodná CA prepíše). `NODE_EXTRA_CA_CERTS` navyše pokrýva cestu Node `fetch`.
+Vyššie uvedené nastavenie dôveryhodnosti na úrovni OS + NSS je naďalej potrebné (sieťový zásobník
+Chromiumu používaný niektorými autentifikačnými tokmi číta používateľské úložisko NSS a má vlastné
+statické pripnutia pre `*.googleapis.com`, ktoré lokálne dôveryhodná CA prepíše). `NODE_EXTRA_CA_CERTS`
+navyše pokrýva cestu `fetch` v Node.
 
 ### 3.3 Smerovanie DNS
 
-Pre každého agenta, ktorého chcete zachytávať, sa musia jeho hostitelia API prekladať na `127.0.0.1`. AgentBridge spravuje záznamy v `/etc/hosts` automaticky, keď v Sprievodcovi nastavením prepnete DNS pre daného agenta.
+Pre každého agenta, ktorého chcete zachytávať, sa jeho hostiteľ API musí prekladať na `127.0.0.1`. AgentBridge automaticky spravuje záznamy v `/etc/hosts`, keď v sprievodcovi nastavením prepnete DNS daného agenta.
 
 Príklad záznamov v `/etc/hosts` pre GitHub Copilot:
 
@@ -266,58 +267,67 @@ Pomocou tabuľky mapovania modelov na karte každého agenta definujte mapovania
 | `gpt-4o`                            | `claude-sonnet-4.7`       |
 | `*` (zástupný znak)                 | `claude-haiku-4.7`        |
 
-Zástupný znak `*` mapuje každý nerozpoznaný model na určený cieľ. Mapovanie sa uchováva v tabuľke `agent_bridge_mappings`.
+Zástupný znak `*` mapuje každý nerozpoznaný model na určený cieľ. Mapovania sa uchovávajú v tabuľke `agent_bridge_mappings`.
 
 > **Tip — zistite skutočné ID modelov agenta.** IDE môže odosielať názvy modelov, ktoré sa líšia od
-> označení v jeho používateľskom rozhraní a menia sa medzi hlavnými verziami. Napríklad **Antigravity 2** odosiela
-> `gemini-3.1-pro-low`, `gemini-pro-agent` a `gemini-3.1-flash-lite` — nie
-> `gemini-2.5-pro` uvedený v staršej dokumentácii. Odošlite jednu správu chatu bez zodpovedajúceho mapovania: MITM
-> zaznamená presnú prichádzajúcu hodnotu `model:` a požiadavku prepustí ďalej. Namapujte túto doslovnú hodnotu a
-> nasledujúca požiadavka sa zachytí a presmeruje na váš cieľ.
+> označení v jeho používateľskom rozhraní a menia sa medzi hlavnými verziami. Napríklad **Antigravity 2**
+> odosiela po sieti `gemini-3.1-pro-low`, `gemini-pro-agent` a `gemini-3.1-flash-lite` — nie
+> `gemini-2.5-pro` uvádzaný v staršej dokumentácii. Odošlite jednu konverzáciu bez zodpovedajúceho
+> mapovania: MITM zaznamená presnú prichádzajúcu hodnotu `model:` a požiadavku odošle ďalej. Namapujte
+> túto doslovnú hodnotu a ďalšia požiadavka sa zachytí a presmeruje na váš cieľ.
 
-### 3.5 Upozornenie na riziko
+### 3.5 Upozornenie na riziká
 
-AgentBridge zachytáva prihlasovacie údaje (tokeny OAuth, kľúče API), ktoré IDE používa na overenie voči nadradeným poskytovateľom. Pred zaznamenaním do protokolu sa **maskujú** (pozrite §2.7), sú však viditeľné pre vrstvu MITM systému OmniRoute. Pri prvej aktivácii každého agenta sa zobrazí zatvárateľné modálne okno s upozornením na riziko.
+AgentBridge zachytáva prihlasovacie údaje (tokeny OAuth, kľúče API), ktoré IDE používa na autentifikáciu u nadradených poskytovateľov. Pred zaznamenaním do protokolu sa **maskujú** (pozrite si §2.7), ale sú viditeľné pre vrstvu MITM služby OmniRoute. Pri prvej aktivácii každého agenta sa zobrazí modálne okno s upozornením na riziká, ktoré možno zavrieť.
 
 ### 3.6 Údržba a diagnostika
 
-Ovládací panel obsahuje kartu **Údržba a diagnostika** (`AgentBridgeMaintenanceCard`, v `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`), ktorá sprístupňuje prevádzkové trasy MITM, ktoré predtým nemali používateľské rozhranie. Jej podnadpis znie: _„Otestujte si kanál zachytávania, odstráňte zvyškový stav systému a preneste svoje nastavenie medzi zariadeniami.“_ Pomocné funkcie klienta pre túto kartu sa nachádzajú v `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+Ovládací panel obsahuje kartu **Údržba a diagnostika** (`AgentBridgeMaintenanceCard`, v `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`), ktorá sprístupňuje prevádzkové trasy MITM, ktoré predtým nemali používateľské rozhranie. Jej podnadpis znie: _„Otestujte kanál zachytávania, odstráňte zostávajúci stav systému a preneste svoje nastavenie medzi zariadeniami.“_ Klientske pomocné funkcie karty sa nachádzajú v `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Tlačidlo                    | Trasa                                  | Čo robí                                                                                                                                                                                                                            |
-| --------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnostikovať**          | `GET /api/tools/agent-bridge/diagnose` | Spustí samočinný test zaznamenávacieho reťazca a zobrazí správu pre každú kontrolu (✓/✗ + odporúčanie na nápravu).                                                                                                                 |
-| **Opraviť**                 | `POST /api/tools/agent-bridge/repair`  | Odstráni osirelý systémový stav MITM (položky falšovania DNS, koreňovú CA, systémový proxy server), ktorý zostal po páde alebo signáli SIGKILL. Operácia je idempotentná — ak je stav čistý, oznámi „Nie je čo opraviť“.           |
-| **Odstrániť CA**            | `DELETE /api/tools/agent-bridge/cert`  | Zruší dôveru a odstráni koreňovú CA MITM z úložiska dôveryhodných certifikátov operačného systému (explicitne, idempotentne). Zobrazí sa iba vtedy, keď je CA aktuálne dôveryhodná; vyžaduje priebežné potvrdenie „Odstrániť CA?“. |
-| **Exportovať konfiguráciu** | `GET /api/tools/agent-bridge/config`   | Stiahne prenosnú konfiguráciu JSON (pozri §3.7).                                                                                                                                                                                   |
-| **Importovať konfiguráciu** | `POST /api/tools/agent-bridge/config`  | Nahrá predtým exportovanú konfiguráciu JSON (pozri §3.7).                                                                                                                                                                          |
+| Tlačidlo                    | Trasa                                  | Čo robí                                                                                                                                                                                                                                             |
+| --------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagnostikovať**          | `GET /api/tools/agent-bridge/diagnose` | Spustí autotest pipeline na zachytávanie a zobrazí správu pre každú kontrolu (✓/✗ + návrh nápravy).                                                                                                                                                 |
+| **Opraviť**                 | `POST /api/tools/agent-bridge/repair`  | Odstráni osirotený systémový stav MITM (záznamy falšovania DNS, koreňovú CA, systémový proxy server), ktorý zostal po páde alebo SIGKILL. Operácia je idempotentná — ak je stav čistý, oznámi „Nie je čo opraviť“.                                  |
+| **Odstrániť CA**            | `DELETE /api/tools/agent-bridge/cert`  | Zruší dôveru ku koreňovej CA MITM a odstráni ju z úložiska dôveryhodných certifikátov operačného systému (explicitne, idempotentne). Zobrazuje sa iba vtedy, keď je CA aktuálne dôveryhodná; vyžaduje potvrdenie „Odstrániť CA?“ priamo v rozhraní. |
+| **Exportovať konfiguráciu** | `GET /api/tools/agent-bridge/config`   | Stiahne prenosnú konfiguráciu vo formáte JSON (pozri §3.7).                                                                                                                                                                                         |
+| **Importovať konfiguráciu** | `POST /api/tools/agent-bridge/config`  | Nahrá predtým exportovanú konfiguráciu vo formáte JSON (pozri §3.7).                                                                                                                                                                                |
 
-**Diagnostické kontroly** (`summarizeDiagnostics()` v `src/mitm/inspector/diagnostics.ts`). Trasa pre každú z nich spustí sondu s vedľajšími účinkami a odovzdá booleovské hodnoty čistej sumarizačnej funkcii; vráti sa jeden výsledok `healthy` spolu s odporúčaním pre každé zlyhanie:
+Každá karta agenta má aj vlastné tlačidlo **Obnoviť predvolené nastavenia** (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — ide o vrátenie zmien jedným kliknutím pre konkrétneho agenta, ktoré zruší falšovanie iba hostiteľov daného
+agenta, vymaže jeho uložené mapovania modelov a obnoví jeho stav `dns_enabled`/`setup_completed`,
+aby IDE po úplnom reštartovaní znova komunikovalo so skutočnou nadradenou službou. **Neovplyvní**
+zdieľaný server MITM ani koreňovú CA (ostatní agenti od nich môžu byť stále závislí) — tie zostávajú dostupné
+prostredníctvom karty servera a vyššie uvedenej akcie **Odstrániť CA**. V systéme Windows sa tiež podľa možností spustí
+`ipconfig /flushdns`, pretože klient DNS systému Windows ukladá záznamy zo súboru hosts do vyrovnávacej pamäte a inak by
+práve odstránený sfalšovaný záznam nezahodil.
 
-| Názov kontroly     | Čo overuje                                                   | Odporúčanie pri zlyhaní                                                                                                                                                    |
-| ------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Proces servera MITM je aktívny                               | „Server MITM nie je spustený. Spustite ho na karte AgentBridge.“                                                                                                           |
-| `server-reachable` | Server MITM prijíma pripojenia na svojom porte (sonda TCP)   | „Server MITM neprijíma pripojenia na svojom porte. Skontrolujte, či je port voľný a či máte oprávnenia na jeho naviazanie.“                                                |
-| `cert-exists`      | Certifikát MITM bol vygenerovaný na disku                    | „Zatiaľ nebol vygenerovaný žiadny certifikát MITM. Vygenerujte ho na karte AgentBridge.“                                                                                   |
-| `cert-trusted`     | Koreňová CA MITM je v úložisku dôveryhodných certifikátov OS | „Koreňová CA MITM nie je dôveryhodná v úložisku OS, takže zachytávanie TLS zlyhá. Nastavte certifikát ako dôveryhodný na karte AgentBridge.“                               |
-| `dns-configured`   | Cieľové názvy hostiteľov sú sfalšované v `/etc/hosts`        | „Cieľové názvy hostiteľov nie sú sfalšované v /etc/hosts, takže prenos nikdy nedorazí na proxy server. Povoľte DNS pre agenta alebo agentov, ktorých chcete zaznamenávať.“ |
+**Diagnostické kontroly** (`summarizeDiagnostics()` v `src/mitm/inspector/diagnostics.ts`). Trasa spustí skúšku s vedľajšími účinkami pre každú kontrolu a odovzdá booleovské hodnoty čistému sumarizátoru; vráti sa jeden verdikt `healthy` spolu s radou pre každé zlyhanie:
 
-**Banner osirelého stavu:** keď stránka zistí stav, ktorý zostal po páde (falšovanie DNS / CA / systémový proxy server), karta zobrazí jantárový banner — _„Predchádzajúca relácia zanechala systémový stav (falšovanie DNS, CA alebo systémový proxy server). Spustením opravy ho vyčistite.“_ — a zvýrazní tlačidlo **Opraviť**. `Repair` je ekvivalent príznaku `--cleanup` nástroja ProxyBridge na aplikačnej vrstve (deleguje na `repairMitm()` v `src/mitm/manager.ts`).
+| Názov kontroly     | Čo overuje                                                                            | Rada pri zlyhaní                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server-running`   | Proces servera MITM je aktívny                                                        | „Server MITM nie je spustený. Spustite ho na karte AgentBridge.“                                                                                                               |
+| `server-reachable` | Server MITM prijíma pripojenia na svojom porte (skúška TCP)                           | „Server MITM neprijíma pripojenia na svojom porte. Skontrolujte, či je port voľný a či máte oprávnenia na jeho naviazanie.“                                                    |
+| `cert-exists`      | Certifikát MITM bol vygenerovaný na disku                                             | „Zatiaľ nebol vygenerovaný žiadny certifikát MITM. Vygenerujte ho na karte AgentBridge.“                                                                                       |
+| `cert-trusted`     | Koreňová CA MITM sa nachádza v úložisku dôveryhodných certifikátov operačného systému | „Operačný systém nepovažuje koreňovú CA MITM za dôveryhodnú, takže zachytávanie TLS zlyhá. Nastavte certifikát ako dôveryhodný na karte AgentBridge.“                          |
+| `dns-configured`   | Cieľové názvy hostiteľov sú sfalšované v `/etc/hosts`                                 | „Cieľové názvy hostiteľov nie sú sfalšované v /etc/hosts, takže prevádzka sa nikdy nedostane k proxy serveru. Povoľte DNS pre agentov, ktorých komunikáciu chcete zachytávať.“ |
 
-> Koreňová CA MITM zostáva nainštalovaná medzi zastavením a spustením, aby sa predišlo
-> opakovaným výzvam sudo (rovnaké správanie ako pri mitmproxy/Charles), takže jej odstránenie je explicitná
+**Banner osiroteného stavu:** keď stránka zistí stav, ktorý zostal po páde (falšovanie DNS / CA / systémový proxy server), karta zobrazí oranžový banner — _„Predchádzajúca relácia zanechala systémový stav (falšovanie DNS, CA alebo systémový proxy server). Spustením opravy ho vyčistite.“_ — a zvýrazní tlačidlo **Opraviť**. `Repair` je ekvivalentom príznaku `--cleanup` nástroja ProxyBridge na aplikačnej vrstve (deleguje na `repairMitm()` v `src/mitm/manager.ts`).
+
+> Koreňová CA MITM zostáva nainštalovaná aj po zastavení a opätovnom spustení, aby sa predišlo opakovaným
+> výzvam sudo (rovnaké správanie ako pri mitmproxy/Charles), takže jej odstránenie je explicitná
 > akcia **Odstrániť CA**, a nie niečo, čo sa vykoná automaticky pri zastavení.
 
 ### 3.7 Import/export prenosnej konfigurácie
 
-AgentBridge dokáže serializovať stav **nastaviteľný operátorom** do verzovaného objektu JSON, aby bolo možné rovnaké nastavenie replikovať medzi počítačmi. Serializátor je `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) a validuje ho `AgentBridgeConfigSchema`.
+AgentBridge dokáže serializovať stav **nastaviteľný operátorom** do verzovaného objektu JSON, aby bolo možné nastavenie replikovať medzi počítačmi. Serializátor je `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validovaný pomocou `AgentBridgeConfigSchema`.
 
-Export obsahuje presne tri časti (zabudované predvolené hodnoty sa zámerne **NEEXPORTUJÚ**, takže ich import nikdy neduplikuje ani s nimi nekoliduje):
+Export zahŕňa presne tri časti (vstavané predvolené hodnoty sa zámerne **NEEXPORTUJÚ**, takže ich import nikdy neduplikuje ani s nimi nie je v konflikte):
 
-| Pole             | Zdroj                                                                   | Poznámky                                                                     |
-| ---------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `bypassPatterns` | používateľom definované vzory obídenia (`agent_bridge_bypass`)          | predvolené vzory pre bank/gov/okta sú vylúčené                               |
-| `customHosts`    | vlastné hostitele nástroja Traffic Inspector (`inspector_custom_hosts`) | každý: `{ host, kind: "llm"\|"app"\|"custom", label? }`                      |
-| `agentMappings`  | mapovania modelov jednotlivých agentov (`agent_bridge_mappings`)        | `{ [agentId]: [{ source, target }] }` pre každého agenta, ktorý má mapovania |
+| Pole             | Zdroj                                                                | Poznámky                                                                     |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `bypassPatterns` | používateľom definované vzory obídenia (`agent_bridge_bypass`)       | predvolené vzory pre banky/štátnu správu/Okta sú vylúčené                    |
+| `customHosts`    | vlastné hostitele Traffic Inspectora (`inspector_custom_hosts`)      | každý: `{ host, kind: "llm"\|"app"\|"custom", label? }`                      |
+| `agentMappings`  | mapovania modelov pre jednotlivých agentov (`agent_bridge_mappings`) | `{ [agentId]: [{ source, target }] }` pre každého agenta, ktorý má mapovania |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +341,13 @@ Export obsahuje presne tri časti (zabudované predvolené hodnoty sa zámerne *
 }
 ```
 
-**Správanie pri importe** (`POST /api/tools/agent-bridge/config`): vzory obídenia a mapovania jednotlivých agentov sa **úplne nahradia**; vlastné hostitele sa pridávajú **idempotentne** (`INSERT OR IGNORE`). Odpoveď uvádza, koľko položiek každého typu bolo použitých:
+**Správanie pri importe** (`POST /api/tools/agent-bridge/config`): vzory obídenia a mapovania pre jednotlivých agentov sa **nahradia ako celok**; vlastné hostitele sa pridajú **idempotentne** (`INSERT OR IGNORE`). Odpoveď uvádza, koľko položiek každého typu bolo použitých:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Čo sa **NENACHÁDZA** v konfigurácii: stav spusteného servera, cesty k certifikátom, stav DNS jednotlivých agentov, cesta k nadradenej CA a nastavenia TPROXY — ide o stav hostiteľa alebo behového prostredia, nie o prenosné preferencie.
+Čo sa v konfigurácii **NENACHÁDZA**: stav spustenia servera, cesty k certifikátom, stav DNS jednotlivých agentov, cesta k nadradenej CA a nastavenia TPROXY — ide o stav hostiteľa/behového prostredia, nie o prenosné preferencie.
 
 ---
 
@@ -495,39 +505,40 @@ Ak AgentBridge zachytáva požiadavky, ale všetky zlyhajú:
 
 ---
 
-## §7 Referenčná príručka API
+## §7 Referencia API
 
-Všetky trasy sú `LOCAL_ONLY` (iba pre rozhranie spätnej slučky, vynútené pred overením) a `SPAWN_CAPABLE`. Pozrite si `src/server/authz/routeGuard.ts`.
+Všetky trasy sú `LOCAL_ONLY` (iba pre loopback, vynútené pred autentifikáciou) a `SPAWN_CAPABLE`. Pozrite si `src/server/authz/routeGuard.ts`.
 
 Základná cesta: `/api/tools/agent-bridge/`
 
-| Metóda              | Cesta                                          | Popis                                                                                                                                                              |
-| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GET                 | `/api/tools/agent-bridge/state`                | Globálny stav servera + detekcia/stav jednotlivých agentov                                                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents`               | Zoznam registrovaných agentov (id, názov, hostitelia, použiteľnosť, stav)                                                                                          |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Stav jedného agenta (cieľová konfigurácia + detekcia + uložený stav)                                                                                               |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Aktualizuje `setup_completed` pre agenta                                                                                                                           |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Spustí detekčnú sondu pre agenta (`installed`, `version?`, `path?`)                                                                                                |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Povolí/zakáže DNS pre agenta (`{enabled: boolean}`)                                                                                                                |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapovania modelov pre agenta                                                                                                                                       |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Nahradí mapovania modelov                                                                                                                                          |
-| POST                | `/api/tools/agent-bridge/server`               | Spustí/zastaví/reštartuje server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                                                           |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Stav certifikátu (`exists`, `trusted`, `path`)                                                                                                                     |
-| POST                | `/api/tools/agent-bridge/cert`                 | Označí koreňovú certifikačnú autoritu MITM za dôveryhodnú (nainštaluje ju)                                                                                         |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Zruší dôveru koreňovej certifikačnej autorite MITM (odstráni ju) — idempotentné (pozri §3.6)                                                                       |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Znova vygeneruje certifikát MITM podpísaný sebou samým                                                                                                             |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Prenesie certifikát PEM ako stream na stiahnutie                                                                                                                   |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Zobrazí vzory obídenia (`default` + `user`)                                                                                                                        |
-| POST                | `/api/tools/agent-bridge/bypass`               | Kompletne nahradí používateľom definované vzory obídenia                                                                                                           |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Odstráni jeden používateľom definovaný vzor obídenia                                                                                                               |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Autotest spracovateľského reťazca zachytávania (pozri §3.6)                                                                                                        |
-| POST                | `/api/tools/agent-bridge/repair`               | Vráti späť osirelý systémový stav MITM (pozri §3.6)                                                                                                                |
-| GET                 | `/api/tools/agent-bridge/config`               | Exportuje prenosnú konfiguráciu JSON (pozri §3.7)                                                                                                                  |
-| POST                | `/api/tools/agent-bridge/config`               | Importuje prenosnú konfiguráciu JSON (pozri §3.7)                                                                                                                  |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Získa nakonfigurovanú cestu k nadradenej certifikačnej autorite                                                                                                    |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Overí a natrvalo uloží cestu k nadradenej certifikačnej autorite                                                                                                   |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Iba overí (skúšobné spustenie) cestu k nadradenej certifikačnej autorite — neuloží ju                                                                              |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Režim zachytávania TPROXY s transparentným dešifrovaním — pozri `docs/security/MITM-TPROXY-DECRYPT.md` (git; nie je zahrnuté v skompilovanej dokumentácii `/docs`) |
+| Metóda              | Cesta                                          | Popis                                                                                                                                     |
+| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Globálny stav servera + detekcia/stav jednotlivých agentov                                                                                |
+| GET                 | `/api/tools/agent-bridge/agents`               | Zoznam registrovaných agentov (id, názov, hostitelia, použiteľnosť, stav)                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Stav jedného agenta (cieľová konfigurácia + detekcia + uložený stav)                                                                      |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Aktualizácia `setup_completed` pre agenta                                                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Spustenie detekčnej sondy pre agenta (`installed`, `version?`, `path?`)                                                                   |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Povolenie/zakázanie DNS pre agenta (`{enabled: boolean}`)                                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapovania modelov pre agenta                                                                                                              |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Nahradenie mapovaní modelov                                                                                                               |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Obnovenie predvoleného stavu: zrušenie podvrhnutia DNS tohto agenta, vymazanie jeho mapovaní a resetovanie jeho stavu (pozrite §3.6)      |
+| POST                | `/api/tools/agent-bridge/server`               | Spustenie/zastavenie/reštartovanie servera (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                        |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Stav certifikátu (`exists`, `trusted`, `path`)                                                                                            |
+| POST                | `/api/tools/agent-bridge/cert`                 | Nastavenie dôveryhodnosti (inštalácia) koreňovej CA pre MITM                                                                              |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Zrušenie dôveryhodnosti (odstránenie) koreňovej CA pre MITM — idempotentné (pozrite §3.6)                                                 |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Opätovné vygenerovanie certifikátu MITM s vlastným podpisom                                                                               |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Streamovanie certifikátu PEM na stiahnutie                                                                                                |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Zoznam vzorov obídenia (`default` + `user`)                                                                                               |
+| POST                | `/api/tools/agent-bridge/bypass`               | Úplné nahradenie používateľom definovaných vzorov obídenia                                                                                |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Odstránenie jedného používateľom definovaného vzoru obídenia                                                                              |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Samotestovanie kanála zachytávania (pozrite §3.6)                                                                                         |
+| POST                | `/api/tools/agent-bridge/repair`               | Vrátenie osirelého systémového stavu MITM (pozrite §3.6)                                                                                  |
+| GET                 | `/api/tools/agent-bridge/config`               | Export prenosnej konfigurácie JSON (pozrite §3.7)                                                                                         |
+| POST                | `/api/tools/agent-bridge/config`               | Import prenosnej konfigurácie JSON (pozrite §3.7)                                                                                         |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Získanie nakonfigurovanej cesty k nadradenej CA                                                                                           |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Overenie + trvalé uloženie cesty k nadradenej CA                                                                                          |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Iba overenie (skúšobné spustenie) cesty k nadradenej CA — bez trvalého uloženia                                                           |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Režim zachytávania TPROXY s transparentným dešifrovaním — pozrite `docs/security/MITM-TPROXY-DECRYPT.md` (git; nekompiluje sa do `/docs`) |
 
 Úplné schémy OpenAPI: `docs/openapi.yaml` → značka `AgentBridge`.
 

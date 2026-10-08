@@ -7,52 +7,54 @@
 OmniRoute għandu **żewġ** sistemi ta’ korsiji lokali għall-proċess b’ambiti differenti. Dawn huma
 komplementari; l-operaturi għandhom ikunu jafu liema waħda qed jaraw.
 
-## 1. Ammissjoni għall-proċess kollu fil-livell tal-bytes (`chatBodyAdmission.ts`)
+## 1. Ammissjoni fil-livell tal-byte għall-proċess kollu (`chatBodyAdmission.ts`)
 
-- **Ambitu:** il-perkors tal-body ibbufferjat/heap għal `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses`, u r-rotot l-oħra bi struttura taċ-chat. Jipproteġi
-  kontra l-amplifikazzjoni tal-heap minn bodies kbar ta’ coding agents (#4380).
-- **Kontrollur globali wieħed għal kull proċess, mhux korsiji għal kull key (#10110).** Kull API key
-  (hashed) jew sessjoni `anonymous` tiġi ammessa mal-**istess** baġit kondiviż —
-  l-id tas-sessjoni hashed tintuża BISS bħala key għall-iskedar ġust (distribuzzjoni
-  round-robin bejn dawk li qed jistennew), u qatt bħala shard tal-kapaċità. Verżjoni preċedenti ta’
-  dan id-dokument iddeskriviet korsiji għal kull key b’kapaċità indipendenti; dak il-mudell
+- **Ambitu:** il-perkors tal-body ibbaferjat/heap għal `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses`, u r-rotot l-oħra b’għamla ta’ chat. Jipproteġi
+  kontra l-amplifikazzjoni tal-heap ikkawżata minn bodies kbar ta’ coding agents (#4380).
+- **Kontrollur globali wieħed għal kull proċess, mhux lanes għal kull key (#10110).** Kull API key
+  (hashed) jew sessjoni `anonymous` tiġi ammessa skont l-**istess** baġit kondiviż —
+  l-id tas-sessjoni hashed jintuża BISS bħala key tal-iskedar għall-ġustizzja (dispatch
+  round-robin fost dawk li qed jistennew), u qatt bħala shard tal-kapaċità. Verżjoni preċedenti ta’
+  dan id-dokument iddeskriviet lanes għal kull key b’kapaċità indipendenti; dak il-mudell
   tneħħa f’#10110 għax kien jippermetti li kredenzjali foloz mhux awtentikati jimmultiplikaw
   il-limitu għall-proċess kollu.
-- **Gate (#503-fanout): baġit ta’ BYTE għall-ingest idderivat awtomatikament, mhux għadd fiss ta’
-  requests.** Il-limitu l-antik `CHAT_MAX_HEAVY_IN_FLIGHT` ibbażat fuq l-għadd ta’ requests (default `1`
-  qabel din it-tiswija) kien inaqqas il-fan-out tal-coding agents (diversi subagents/CLIs,
-  b’bodies li normalment ikunu > 256 KB) għal konkorrenza effettiva ta’ madwar 1, li kienet
-  twassal għal 503 taħt tagħbija kompletament normali. Issa japplika biss meta operatur
-  jistabbilixxi espliċitament `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Jekk ma jiġix issettjat, l-ammissjoni minflok
-  tkun ikkontrollata minn `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — baġit idderivat awtomatikament mil-
-  limitu reali tal-memorja tal-proċess (`src/shared/middleware/admissionBudget.ts`):
-  25% tal-iżgħar limitu bejn dak tal-heap ta’ V8 u kwalunkwe limitu ta’ cgroup/container,
-  diviż b’fattur ta’ amplifikazzjoni tranżitorja ta’ 8x, u ristrett bejn 8 MiB u
-  2 GiB. Overrides espliċiti jużaw l-istess limiti. Dan jadatta ruħu minn
-  container ta’ 512 MB sa desktop ta’ 32 GB mingħajr konfigurazzjoni tal-env. Body li ma jistax
-  joqgħod fil-baġit effettiv ifalli immedjatament b’`413 body_exceeds_budget`;
-  il-kju limitat u ġust jintuża biss meta jkun hemm kompetizzjoni bejn bodies li kull wieħed minnhom
-  jista’ jiġi pproċessat. Tracker attiv tal-pressjoni fuq ir-riżorsi b’diversi sinjali (proporzjon tal-heap ta’ V8,
-  cgroup, PSI, avvenimenti OOM — `open-sse/utils/resourcePressurePolicy.ts`) iqassar
-  l-istennija limitata taħt pressjoni `high` u jirrifjuta immedjatament b’
-  `503 resource_pressure` taħt pressjoni `critical`, qabel ma jiġu inġeriti xi bytes.
-  PSI jinqara mill-`memory.pressure` tas-cgroup ta’ din l-unità meta jkun preżenti
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` japplika
-  għall-host kollu u jintuża biss bħala fallback fuq bare metal / cgroup v1, sabiex host
-  li qed jagħmel swapping ma jkunx jista’ jagħti 503 lil container inattiv.
-- **Konfigurazzjoni:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override għall-baġit tal-bytes idderivat awtomatikament
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limitu antik tal-għadd ta’ requests, opt-in biss
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ħin ta’ stennija fil-kju qabel 503 (default 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — valv tal-heap għall-bytes fil-kju (default 4 MB)
+- **Gate (#503-fanout): baġit ta’ ingest f’BYTES derivat awtomatikament, mhux għadd fiss ta’
+  requests.** Il-limitu preċedenti `CHAT_MAX_HEAVY_IN_FLIGHT` ibbażat fuq l-għadd tar-requests
+  (b’default ta’ `1` qabel din il-korrezzjoni) kien inaqqas il-fan-out tal-coding agents
+  (diversi subagents/CLIs, b’bodies li normalment ikunu > 256 KB) għal konkorrenza effettiva
+  ta’ madwar 1, u b’hekk kien jirritorna 503 taħt tagħbija kompletament normali. Issa japplika
+  biss meta operatur jistabbilixxi espliċitament `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`.
+  Meta ma jkunx stabbilit, l-ammissjoni minflok tiġi kkontrollata minn
+  `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — baġit derivat awtomatikament mil-limitu reali
+  tal-memorja tal-proċess (`src/shared/middleware/admissionBudget.ts`):
+  25% tal-iżgħar limitu bejn il-limitu tal-heap ta’ V8 u kwalunkwe limitu ta’
+  cgroup/container, diviż b’fattur ta’ amplifikazzjoni tranżitorja ta’ 8x, u ristrett
+  bejn 8 MiB u 2 GiB. L-overrides espliċiti jużaw l-istess limiti. Dan jadatta ruħu
+  minn container ta’ 512 MB sa desktop ta’ 32 GB mingħajr irfinar tal-env. Body li ma
+  jistax joqgħod fil-baġit effettiv ifalli immedjatament b’`413 body_exceeds_budget`;
+  il-kju limitat għall-ġustizzja jintuża biss għal kontenzjoni bejn bodies li kull wieħed
+  minnhom jista’ jiġi pproċessat. Tracker attiv tal-pressjoni fuq ir-riżorsi b’diversi sinjali
+  (proporzjon tal-heap ta’ V8, cgroup, PSI, avvenimenti OOM —
+  `open-sse/utils/resourcePressurePolicy.ts`) iqassar l-istennija limitata taħt pressjoni
+  `high` u jirrifjuta immedjatament b’`503 resource_pressure` taħt pressjoni `critical`,
+  qabel ma jiġi ingerit kwalunkwe byte. Il-PSI jinqara minn `memory.pressure` tas-cgroup
+  ta’ din l-unità meta jkun preżenti (`open-sse/utils/resourcePressureSampler.ts`);
+  `/proc/pressure/memory` jirrifletti l-host kollu u jintuża biss bħala fallback fuq bare
+  metal / cgroup v1, sabiex host li jkun qed jagħmel swapping ma jkunx jista’ jirritorna
+  503 għal container inattiv.
+- **Irfinar:**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override għall-baġit tal-bytes derivat awtomatikament
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — limitu preċedenti tal-għadd tar-requests, opt-in biss
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — stennija fil-kju qabel 503 (b’default ta’ `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — valv tal-heap għall-bytes fil-kju (default ta’ 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — deprekati
-    u bla effett minn #10110 ’l hawn (aċċettati għall-kompatibbiltà tal-konfigurazzjoni, iżda injorati)
+    u ma jagħmlu xejn minn #10110 ’l hawn (aċċettati għall-kompatibbiltà tal-konfigurazzjoni, iżda injorati)
 - **Rapporti:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inklużi
   ż-żidiet ta’ #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, u `countCapEnabled`
-  (false f’deployment default — jikkonferma li huwa l-baġit tal-bytes, mhux il-limitu
-  antik tal-għadd, li fil-fatt qed jillimita).
+  (false f’deployment default — jikkonferma li dak li effettivament qed japplika huwa
+  l-baġit tal-bytes, mhux il-limitu preċedenti tal-għadd).
 
 ## 2. Korsiji virtwali adattivi waqt it-tħaddim (`open-sse/services/admission`)
 

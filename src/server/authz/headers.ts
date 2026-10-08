@@ -50,8 +50,11 @@ export const PEER_IP_HEADER = "x-omniroute-peer-ip";
 /**
  * Trusted "request arrived via a reverse proxy" marker stamped by the custom
  * Node server alongside PEER_IP_HEADER, formatted as `<token>|1` when the
- * inbound TCP request carried forwarding headers (`x-forwarded-for` /
- * `x-real-ip`) and `<token>|0` otherwise. The middleware combines this with
+ * inbound TCP request came from a peer that may be a proxy (this host, a
+ * private-network address, a Cloudflare edge or an address named in
+ * OMNIROUTE_TRUSTED_PROXIES) and carried forwarding headers (`x-forwarded-for` /
+ * `x-real-ip`), or came from a Cloudflare edge with `cf-connecting-ip`, and
+ * `<token>|0` otherwise. The middleware combines this with
  * the stamped peer IP so a loopback / private-LAN socket that is actually the
  * proxy hop (e.g. OmniRoute behind nginx / Caddy / Cloudflare Tunnel) is NOT
  * trusted as local — closing the upstream da667836 vulnerability that would
@@ -62,6 +65,14 @@ export const PEER_IP_HEADER = "x-omniroute-peer-ip";
  * Keep in sync with VIA_PROXY_HEADER in scripts/dev/peer-stamp.mjs.
  */
 export const VIA_PROXY_HEADER = "x-omniroute-via-proxy";
+
+/**
+ * The address the IP allow/deny list judges, stamped by the custom Node server as
+ * `<token>|<ip>`: the TCP peer, or the client a trusted proxy reported for it. Token-validated
+ * like PEER_IP_HEADER and stripped from forwarded headers in pipeline.ts.
+ * Keep in sync with CLIENT_IP_HEADER in scripts/dev/peer-stamp.mjs.
+ */
+export const CLIENT_IP_HEADER = "x-omniroute-client-ip";
 
 /**
  * Trusted locality verdict ("loopback" | "lan" | "remote") that the pipeline

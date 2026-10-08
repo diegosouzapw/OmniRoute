@@ -4,19 +4,36 @@
 
 ---
 
-> **仪表板：** **混沌模式**（侧边栏）→ `/dashboard/chaos`  
-> **API：** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run`（仪表板会话）· `POST /api/skills/collect/chaos`（API 密钥）  
-> **源码：** `src/lib/chaos/chaosExecutor.ts`、`src/lib/chaos/chaosConfig.ts`
+> **控制面板：** **Chaos Mode**（侧边栏）→ `/dashboard/chaos`  
+> **API：** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run`（控制面板会话）· `POST /api/skills/collect/chaos`（API 密钥）  
+> **源代码：** `src/lib/chaos/chaosExecutor.ts`、`src/lib/chaos/chaosConfig.ts`
 
-混沌模式会将**一个任务同时发送给多个提供者**——每个参与的提供者贡献一个模型实例，你可以并排查看所有答案（或将它们串联起来）。它是一个多模型执行界面，而不是路由策略：你正常的 `/v1/chat/completions` 流量绝不会受到影响。
+Chaos Mode 会将**一个任务同时发送给多个提供者**——每个参与的提供者贡献一个模型实例，你可以并排查看所有回答（或将它们串联起来）。它是一个多模型执行界面，而不是一种路由策略：你正常的 `/v1/chat/completions` 流量绝不会受到它的影响。
 
-**消歧说明——有三个不同的功能名称中包含“chaos”：**
+**消除歧义——有三种不同的功能名称中都带有“chaos”：**
 
-| 功能           | 说明                                                                                                   | 文档位置                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| **混沌模式**   | 本文介绍的仪表板页面和 API：将一个任务分发给多个提供者（并行或协作）。                                 | 本指南                                       |
-| `auto/chaos`   | 一个带有故障注入评分权重、用于韧性测试的 Auto-Combo 模型 ID。无需配置。                                | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos 组合配置 | 一个持久化的组合，其 `config.chaos.enabled` 会将任务分发给一组模型，并可选择使用评审模型（仅限 API）。 | `open-sse/services/autoCombo/chaosEngine.ts` |
+| 名称           | 功能说明                                                                                                                          | 文档位置                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode** | 此处介绍的控制面板页面和 API：将一个任务分发给多个提供者（并行或协作执行）。                                                      | 本指南                                       |
+| `auto/chaos`   | Auto-Combo 模型 ID：并行扇出，每个提供者使用一个模型，每个模型调用上游一次。并非故障注入（[详情](#autochaos-parallel-fan-out)）。 | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos 组合配置 | 启用了 `config.chaos.enabled` 的持久化组合会以相同方式执行扇出（仅限 API）；`judgeModel` 只负责选取最终回答，不会执行综合调用。   | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`：并行扇出
+
+`auto/chaos` **不是**故障注入或韧性测试开关。在 `/v1/chat/completions` 上请求 `model: "auto/chaos"` 时：
+
+1. 构建一个由**每个提供者各一个模型**组成的面板：按照候选池顺序，从每个已连接提供者中选取第一个候选模型，最多包含 5 个成员
+   （由 `OMNIROUTE_CHAOS_MAX_PANEL` 控制，上限为 10）
+   （`open-sse/services/autoCombo/virtualFactory.ts`）。`chaos-mode` 权重包只设置每个成员的 `weight`；扇出过程不会读取该值。
+2. 将同一请求**并行**发送给面板中的每个成员，因此一次请求会为每个面板成员产生一次上游调用
+   （`open-sse/services/autoCombo/chaosEngine.ts`，由
+   `open-sse/services/combo.ts` 分派）。
+3. 在每个面板成员返回结果时，为其流式发送一行状态信息：默认发送一条 SSE 注释
+   （`: chaos <index> ok|fail <model>`）；当请求设置
+   `stream_options.include_chaos_parts: true` 时，还会发送一个 `omni-chaos-part`
+   事件（`model`、`index`、`ok`、`error`）。这些信息不包含回答文本。
+4. 将面板中的**一个**回答作为最终的 OpenAI 风格数据块发送：如果第一个面板成员成功，则使用它的回答
+   （`auto/chaos` 会将其设为 `judgeModel`）；否则使用最后一个成功成员的回答。其他面板回答不会返回，因此你需要为 N 次调用付费，却只能收到一个补全结果。
 
 ## 设置
 

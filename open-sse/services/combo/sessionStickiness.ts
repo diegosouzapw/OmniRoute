@@ -85,9 +85,7 @@ interface StickyEntry {
  * Injectable saturation fetcher seam (for unit tests).
  * Returns HeadroomSaturation or undefined when unknown.
  */
-export type SaturationFetcher = (
-  connectionId: string
-) => Promise<HeadroomSaturation | undefined>;
+export type SaturationFetcher = (connectionId: string) => Promise<HeadroomSaturation | undefined>;
 
 // ─── Saturation fetcher seam ─────────────────────────────────────────────────
 
@@ -187,9 +185,7 @@ export type QuotaExhaustionChecker = (connectionId: string) => boolean;
 let _quotaExhaustionOverride: QuotaExhaustionChecker | null = null;
 
 /** Test-only: inject the quota-exhaustion checker; pass null to restore default. */
-export function __setStickinessQuotaCheckerForTests(
-  checker: QuotaExhaustionChecker | null
-): void {
+export function __setStickinessQuotaCheckerForTests(checker: QuotaExhaustionChecker | null): void {
   _quotaExhaustionOverride = checker;
 }
 
@@ -451,6 +447,16 @@ export interface ApplyStickinessResult {
 }
 
 /**
+ * #15241: when the caller needs to preserve the combo's declared first target,
+ * a sticky binding pointing at a mid-list connection must not silently become
+ * runtime try-slot #1. The binding's hygiene gates below still run; only the
+ * promotion is barred.
+ */
+export interface ApplyStickinessOptions {
+  respectDeclaredOrder?: boolean;
+}
+
+/**
  * Attempt to promote the sticky connection to the front of `orderedTargets`.
  *
  * Algorithm:
@@ -469,12 +475,15 @@ export interface ApplyStickinessResult {
  * @param orderedTargets  Targets already ordered by the combo strategy.
  * @param messages        Request body.messages.
  * @param namespace       Combo identity that owns this sticky binding.
+ * @param options         #15241 — `respectDeclaredOrder` bars a mid-list promotion
+ *                        for strategies whose first target is operator-declared.
  * @returns               Result with (possibly reordered) targets.
  */
 export async function applySessionStickiness(
   orderedTargets: ResolvedComboTarget[],
   messages: Array<{ role?: string; content?: unknown }> | null | undefined,
-  namespace?: string
+  namespace?: string,
+  options?: ApplyStickinessOptions
 ): Promise<ApplyStickinessResult> {
   const noOp: ApplyStickinessResult = { targets: orderedTargets, messageHash: null, stuck: false };
 
@@ -527,6 +536,12 @@ export async function applySessionStickiness(
     ) {
       // Connection saturated or durably unhealthy — rebind on next success
       clearStickyBinding(messageHash);
+      return { targets: orderedTargets, messageHash, stuck: false };
+    }
+
+    // #15241: a caller preserving an operator-declared head keeps its order —
+    // a mid-list sticky connection stays mid-list.
+    if (options?.respectDeclaredOrder && stickyIdx > 0) {
       return { targets: orderedTargets, messageHash, stuck: false };
     }
 

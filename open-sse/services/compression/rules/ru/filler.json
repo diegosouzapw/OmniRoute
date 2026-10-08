@@ -4,51 +4,57 @@
   "rules": [
     {
       "name": "pleasantries",
-      "pattern": "\\b(?:конечно|с радостью|рад помочь|могу помочь|обязательно|безусловно|разумеется)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:конечно|с радостью|рад помочь|могу помочь|обязательно|безусловно|разумеется)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "polite_framing",
-      "pattern": "\\b(?:пожалуйста|если хотите|если можно|будьте добры|будьте любезны|прошу вас)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:пожалуйста|если хотите|если можно|будьте добры|будьте любезны|прошу вас)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "verbal_wrapping",
-      "pattern": "\\b(?:давайте разберём|давайте посмотрим|попробуем разобраться|постараюсь помочь)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:давайте разберём|давайте посмотрим|попробуем разобраться|постараюсь помочь)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "assistant",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "hedging",
-      "pattern": "\\b(?:возможно|наверное|может быть|скорее всего|вероятно|видимо|похоже)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:возможно|наверное|может быть|скорее всего|вероятно|видимо|похоже)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "filler_adverbs",
-      "pattern": "\\b(?:в целом|на самом деле|в принципе|как правило|по сути|фактически|буквально)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:в целом|на самом деле|в принципе|как правило|по сути|фактически|буквально)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "empty_qualifiers",
-      "pattern": "\\b(?:удобный|хороший|эффективный|мощный|отличный|прекрасный)(?!\\s+(?:вариант|способ|решение|метод|инструмент))\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:удобный|хороший|эффективный|мощный|отличный|прекрасный)(?!\\s+(?:вариант|способ|решение|метод|инструмент))(?![\\p{L}\\p{N}_])",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "redundant_openers",
@@ -60,19 +66,21 @@
     },
     {
       "name": "excessive_gratitude",
-      "pattern": "\\b(?:Большое спасибо|Огромное спасибо|Спасибо заранее|Заранее благодарю|Очень признателен)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:Большое спасибо|Огромное спасибо|Спасибо заранее|Заранее благодарю|Очень признателен)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "softeners",
-      "pattern": "\\b(?:немного|немножко|чуть-чуть|слегка|несколько|как-то)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:немного|немножко|чуть-чуть|слегка|несколько|как-то)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "assistant_fillers",

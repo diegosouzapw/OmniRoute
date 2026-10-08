@@ -237,16 +237,16 @@ docker compose -f docker-compose.prod.yml down
 
 ## Dockerfile चरणहरू
 
-रिपोजिटरीमा बहु-चरणीय Dockerfile (`Dockerfile`) समावेश छ। चारवटा चरण उपलब्ध छन्; आफ्नो प्रयोग अवस्थाका लागि सही `target` छान्नुहोस्।
+रिपोजिटरीमा बहु-चरणीय Dockerfile (`Dockerfile`) समावेश छ। चारवटा चरण उपलब्ध छन्; आफ्नो प्रयोगको अवस्थाका लागि सही `target` छान्नुहोस्।
 
 | चरण           | आधार इमेज             | उद्देश्य                                                                                                                                                                                                                                                                             |
 | ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `builder`     | `node:26-trixie-slim` | निर्भरताहरू स्थापना गर्छ (`npm ci --legacy-peer-deps`) र `npm run build` चलाउँछ (पूर्वनिर्धारित रूपमा Turbopack — तलको निर्माण-समयका स्रोतहरू हेर्नुहोस्)                                                                                                                            |
-| `runner-base` | `node:26-trixie-slim` | Next.js को standalone आउटपुटसहितको उत्पादन रनटाइम। **कुनै पनि प्रदायक CLI समावेश गरिएको छैन।**                                                                                                                                                                                       |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` र विश्वव्यापी CLI हरू थप्छ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **एजेन्टिक कार्यप्रवाहहरूका लागि यो छान्नुहोस्।**                                                                                                |
-| `runner-web`  | `runner-base`         | वेब-सत्र प्रदायकहरूका लागि Playwright + Chromium ब्राउजर (`--with-deps`) थप्छ: `gemini-web`, `claude-web`, `claude-turnstile`। **ती प्रदायकहरू प्रयोग गर्दा यो छान्नुहोस्** — यो नभए सामान्य इमेज अनुरोधको समयमा असफल हुन्छ (Release Channels अन्तर्गतको `-web` टिप्पणी हेर्नुहोस्)। |
+| `runner-base` | `node:26-trixie-slim` | Next.js को स्ट्यान्डअलोन आउटपुटसहितको उत्पादन रनटाइम। **कुनै पनि प्रदायक CLI हरू समावेश छैनन्।**                                                                                                                                                                                     |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` र ग्लोबल CLI हरू थप्छ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`। **एजेन्टिक कार्यप्रवाहहरूका लागि यसलाई छान्नुहोस्।**                                                                                                  |
+| `runner-web`  | `runner-base`         | वेब-सत्र प्रदायकहरूका लागि Playwright + Chromium ब्राउजर (`--with-deps`) थप्छ: `gemini-web`, `claude-web`, `claude-turnstile`। **ती प्रदायकहरू प्रयोग गर्दा यसलाई छान्नुहोस्** — यो नभए साधारण इमेज अनुरोधको समयमा असफल हुन्छ (रिलिज च्यानलहरूअन्तर्गतको `-web` टिप्पणी हेर्नुहोस्)। |
 
-कुनै विशेष target म्यानुअल रूपमा निर्माण गर्नुहोस्:
+कुनै निश्चित लक्ष्य म्यानुअल रूपमा निर्माण गर्नुहोस्:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -256,80 +256,83 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### निर्माण-समयका स्रोतहरू
 
-तीनवटा build arg ले `builder` चरणको स्रोत लागत नियन्त्रण गर्छन्। तिनीहरू निर्माण-समयका लागि मात्र हुन् —
-`OMNIROUTE_MEMORY_MB` (तल) छुट्टै रनटाइम समायोजन हो।
+तीनवटा निर्माण आर्गुमेन्टले `builder` चरणको स्रोत लागत नियन्त्रण गर्छन्। यी निर्माण-समयका लागि मात्र हुन् —
+`OMNIROUTE_MEMORY_MB` (तल) एउटा छुट्टै रनटाइम समायोजन हो।
 
-| Build arg                   | पूर्वनिर्धारित | प्रभाव                                                                                         |
-| --------------------------- | -------------- | ---------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`            | `0` ले यसको सट्टा webpack मार्फत निर्माण गर्छ। अधिकतम मेमोरी कम, तर ढिलो।                      |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`         | सुरु गरिएको `next build` का लागि V8 heap सीमा (`--max-old-space-size`)।                        |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`            | `CIRCLE_NODE_TOTAL` लाई मान दिन्छ; Next ले पृष्ठ-डेटा सङ्कलनका लागि `workers = N - 1` निकाल्छ। |
+| निर्माण आर्गुमेन्ट          | पूर्वनिर्धारित | प्रभाव                                                                                            |
+| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`            | `0` ले webpack प्रयोग गरेर निर्माण गर्छ: अधिकतम मेमोरी कम, तर ढिलो। `1` ले Turbopack प्रयोग गर्छ। |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`         | सुरु गरिएको `next build` का लागि V8 हिप सीमा (`--max-old-space-size`)।                            |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`            | `CIRCLE_NODE_TOTAL` लाई मान दिन्छ; Next ले पृष्ठ-डेटा सङ्कलनका लागि `workers = N - 1` निकाल्छ।    |
 
-ठूलो builder मा बढाउनुपर्ने र सीमित स्रोत भएको build **पछि**
-`✓ Compiled successfully` मा असफल हुँदा शङ्का गर्नुपर्ने समायोजन `OMNIROUTE_BUILD_WORKERS`
-हो। प्रत्येक page-data worker आफ्नै प्रक्रिया हो, र मूल `next build` पनि छुट्टै
-प्रक्रिया हो; प्रत्यक्ष VPS पुनरुत्पादन (issue #7518) ले प्रत्येक प्रक्रियाको
-अधिकतम RSS लाई `NODE_OPTIONS` heap flag बाट स्वतन्त्र रूपमा ~4.5 GB मापन गर्यो
-(Turbopack ले V8 heap बाहिरको native/Rust मेमोरीमा कम्पाइल गर्छ)। पूर्वनिर्धारित
-`2` (→ 1 worker, जम्मा 2 प्रक्रियाहरू) प्रकाशन pipeline ले प्रयोग गर्ने 16 GB /
-4 vCPU GitHub-hosted runner हरूका लागि आकार निर्धारण गरिएको हो। `8` (→ 7 workers)
-मा त्यो runner को मेमोरी सकियो र buildkit ले
-`ResourceExhausted: ... cannot allocate memory` सहित चरण असफल गर्यो; प्रत्येक
-प्रक्रियाको RSS अनुमान गर्नुको सट्टा प्रत्यक्ष मापन गरेपछि `3` (→ 2 workers) पनि
-अटेन। `tests/unit/docker-build-memory-budget.test.ts` ले मापन गरिएको आँकडाका
-आधारमा गणना गर्छ र कुनै पनि समायोजन runner को क्षमताभन्दा बढेमा असफल हुन्छ।
+ठूलो बिल्डरमा बढाउनुपर्ने र सीमित स्रोत भएको निर्माण **`✓ Compiled successfully` पछि** बन्द हुँदा शङ्का गर्नुपर्ने सेटिङ `OMNIROUTE_BUILD_WORKERS` हो। प्रत्येक
+पृष्ठ-डेटा वर्कर आफ्नै प्रक्रिया हो, र मूल `next build` पनि छुट्टै प्रक्रिया हो;
+प्रत्यक्ष VPS पुनरुत्पादन (issue #7518) मा प्रत्येक प्रक्रियाको अधिकतम RSS
+`NODE_OPTIONS` हिप फ्ल्यागबाट स्वतन्त्र रूपमा ~4.5 GB मापन गरिएको थियो (Turbopack ले
+V8 हिपबाहिरको नेटिभ/Rust मेमोरीमा कम्पाइल गर्छ)। `2` को पूर्वनिर्धारित मान (→ 1 वर्कर, जम्मा 2
+प्रक्रिया) प्रकाशन पाइपलाइनले प्रयोग गर्ने 16 GB / 4 vCPU GitHub-होस्टेड रनरहरूका
+लागि निर्धारण गरिएको हो। `8` मा (→ 7 वर्कर) उक्त रनरको मेमोरी सकियो र
+buildkit ले `ResourceExhausted: ... cannot allocate memory` सहित चरण असफल गर्यो;
+प्रत्येक प्रक्रियाको RSS अनुमान गर्नुको सट्टा प्रत्यक्ष मापन गर्दा `3` (→ 2 वर्कर) पनि
+अटेन। `tests/unit/docker-build-memory-budget.test.ts`
+ले मापन गरिएको आँकडाका आधारमा गणना गर्छ र कुनै पनि समायोजनले रनरको क्षमता
+नाघेमा असफल हुन्छ।
 
-Turbopack ले V8 heap को **बाहिर** रहने native Rust मेमोरीमा कम्पाइल गर्छ, त्यसैले
-`OMNIROUTE_BUILD_MEMORY_MB` ले यसलाई सीमित गर्दैन। मेमोरी सीमा भएको host मा build
-लाई त्यसपछि OOM killer ले कुनै पनि त्रुटि पाठबिना SIGKILL गर्छ — यो
+Turbopack ले V8 हिपको **बाहिर** रहने नेटिभ Rust मेमोरीमा कम्पाइल गर्छ, त्यसैले
+`OMNIROUTE_BUILD_MEMORY_MB` ले यसलाई सीमित गर्दैन। मेमोरी सीमा भएको होस्टमा
+निर्माणलाई OOM किलरले कुनै त्रुटि पाठ नदेखाई SIGKILL गर्छ — यो
 `Creating an optimized production build` को बीचमै रोकिन्छ, जसले मेमोरी सकिएको
-अवस्थाभन्दा प्रक्रिया अड्किएको जस्तो देखाउँछ। यदि build host सीमित छ भने bundler
-परिवर्तन गर्नुहोस्:
+भन्दा पनि अड्किएको जस्तो देखाउँछ। त्यसैले `npm run dev` / `npm run build` मा
+Turbopack कोडको पूर्वनिर्धारित विकल्प भए पनि `Dockerfile` ले webpack
+(`OMNIROUTE_USE_TURBOPACK=0`) पूर्वनिर्धारित रूपमा प्रयोग गर्छ: कुनै निर्माण आर्गुमेन्टबिनाको
+साधारण `docker build .` (Railway र अन्य एक-क्लिक होस्टहरूले चलाउने आदेश) मेमोरी-सीमित
+बिल्डरमा कुनै सूचना नदिई बन्द हुनु हुँदैन। प्रकाशित इमेजहरूले
+`docker-publish.yml` मा पहिले नै `OMNIROUTE_USE_TURBOPACK=0` स्पष्ट रूपमा पास गर्छन्।
+पर्याप्त RAM भएको बिल्डरमा छिटो निर्माणका लागि Turbopack प्रयोग गर्नुहोस्:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` सक्षम छ, त्यसैले `next build` ले मूल प्रक्रिया **र** worker
-प्रक्रिया चलाउँछ र प्रत्येकले `OMNIROUTE_BUILD_MEMORY_MB` लाई छुट्टाछुट्टै पालना
-गर्छ। कन्टेनरको सीमा उक्त मानको एक गुणा होइन, लगभग दुई गुणाभन्दा माथि निर्धारण
-गर्नुहोस्।
+`webpackBuildWorker` सक्षम छ, त्यसैले `next build` ले एउटा मूल प्रक्रिया **र** एउटा वर्कर
+प्रक्रिया चलाउँछ र प्रत्येकले `OMNIROUTE_BUILD_MEMORY_MB` लाई छुट्टाछुट्टै पालना गर्छ।
+कन्टेनरको सीमा उक्त मानको एक गुणा होइन, लगभग दुई गुणाभन्दा बढी निर्धारण गर्नुहोस्।
 
-यस tree मा मापन गरिएको (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+यस ट्रीमा मापन गरिएको (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | कन्टेनर सीमा   | परिणाम                            |
+| बन्डलर    | कन्टेनर सीमा   | परिणाम                            |
 | --------- | -------------- | --------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | दुवैमा कुनै सन्देशबिना OOM-killed |
-| webpack   | 8 GiB          | build worker SIGKILL भयो          |
+| Turbopack | 8 GiB / 16 GiB | दुवैमा कुनै सूचना नदिई OOM-killed |
+| webpack   | 8 GiB          | निर्माण वर्करलाई SIGKILL गरियो    |
 | webpack   | 12 GiB         | सफल भयो, अधिकतम 11.1 GiB पुग्यो   |
 
 ### रनटाइमका पूर्वनिर्धारित मानहरू
 
-`runner-base` द्वारा export गरिएका पूर्वनिर्धारित मानहरू: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`।
+`runner-base` द्वारा निर्यात गरिएका पूर्वनिर्धारित मानहरू: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`।
 
 Docker मा मेमोरीको व्यवहार:
 
 - इमेजले `OMNIROUTE_MEMORY_MB=1024` सेट गर्छ र त्यसबाट `NODE_OPTIONS=--max-old-space-size=1024` निकाल्छ।
 - वास्तविक सर्भर प्रक्रिया standalone launcher द्वारा सुरु गरिन्छ, जसले `OMNIROUTE_MEMORY_MB` पढ्छ र `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` थप्छ।
 - Node ले दोहोरिएको `--max-old-space-size` को अन्तिम मान प्रयोग गर्छ, त्यसैले `OMNIROUTE_MEMORY_MB` सेट गर्दा प्रभावकारी Docker heap सीमा नियन्त्रण हुन्छ।
-- इमेजले यसलाई सधैँ सेट गर्ने भएकाले, launcher को आफ्नै RAM-अनुसार समायोजित fallback Docker अन्तर्गत कहिल्यै लागू हुँदैन। workload का लागि यसलाई स्पष्ट रूपमा बढाउनुहोस् (तलको तालिका)। coding-agent `/v1/responses` का लागि `2048` अझै पनि धेरै सानो छ।
+- इमेजले यसलाई सधैँ सेट गर्ने भएकाले, launcher को आफ्नै RAM-अनुसार समायोजित fallback Docker अन्तर्गत कहिल्यै लागू हुँदैन। कार्यभारका लागि यसलाई स्पष्ट रूपमा बढाउनुहोस् (तलको तालिका)। coding-agent `/v1/responses` का लागि `2048` अझै पनि अपर्याप्त छ।
 
-### coding agent हरूका लागि runtime RAM
+### coding agents का लागि Runtime RAM
 
-1 GiB को Docker default dashboard/हल्का-chat का लागि न्यूनतम सीमा हो, production आकार होइन। लामो `POST /v1/responses` body हरूले (सयौँ message, दर्जनौँ tool) compression का क्रममा memory भित्र धेरै graph कायम राख्छन्। एकै समयमा चलेका ~3 MiB / ~750k-token का दुई request ले **12 GiB** old-space मा V8 लाई abort गराएका छन् (`FATAL ERROR: Reached heap limit`) र 16 GiB cgroup OOM पनि निम्त्याएका छन्। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) हेर्नुहोस्।
+1 GiB को Docker पूर्वनिर्धारित मान dashboard/हल्का chat का लागि न्यूनतम सीमा हो, production आकार होइन। लामा `POST /v1/responses` body हरूले (सयौँ messages, दर्जनौँ tools) compression को समयमा धेरैवटा in-memory graph कायम राख्छन्। एकै समयमा चलिरहेका ~3 MiB / ~750k-token का दुईवटा request ले **12 GiB** old-space मा V8 लाई abort गराएका छन् (`FATAL ERROR: Reached heap limit`) र 16 GiB cgroup OOM पनि उत्पन्न गरेका छन्। [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) हेर्नुहोस्।
 
-**cgroup `--memory` लाई heap भन्दा माथि** निर्धारण गर्नुहोस् — native buffer, SQLite, र compression का intermediate हरू V8 बाहिर रहन्छन्।
+**cgroup `--memory` लाई heap भन्दा माथि राख्नुहोस्** — native buffers, SQLite, र compression intermediates V8 बाहिर रहन्छन्।
 
-| Workload                              | `OMNIROUTE_MEMORY_MB`      | Container / cgroup          | टिप्पणी                                                                                      |
-| ------------------------------------- | -------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| Dashboard, एउटा हल्का chat            | `1024` (इमेज default)      | ≥2 GiB                      |                                                                                              |
-| एउटा coding agent (Claude/Codex/Grok) | `8192`                     | ≥10 GiB                     | सामान्य single-session `/v1/responses`                                                       |
-| एकै समयमा दुई लामो `/v1/responses`    | `10240`–`12288`            | ≥12–16 GiB                  | ~12 GiB heap मा मापन गरिएको V8 abort                                                         |
-| एकै समयमा तीन वा बढी लामो context     | एउटै process मा नगर्नुहोस् | क्रमबद्ध गर्नुहोस् / थप RAM | default heavyweight admission मा 1 in-flight हुन्छ; RAM नबढाई यसलाई बढाउँदा abort फेरि हुन्छ |
+| कार्यभार                              | `OMNIROUTE_MEMORY_MB`              | Container / cgroup               | टिप्पणी                                                                                             |
+| ------------------------------------- | ---------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Dashboard, एउटा हल्का chat            | `1024` (इमेजको पूर्वनिर्धारित मान) | ≥2 GiB                           |                                                                                                     |
+| एउटा coding agent (Claude/Codex/Grok) | `8192`                             | ≥10 GiB                          | सामान्य single-session `/v1/responses`                                                              |
+| एकै समयमा दुईवटा लामा `/v1/responses` | `10240`–`12288`                    | ≥12–16 GiB                       | ~12 GiB heap मा V8 abort मापन गरिएको थियो                                                           |
+| एकै समयमा तीन वा बढी लामा contexts    | एउटै प्रक्रियामा नगर्नुहोस्        | क्रमिक रूपमा चलाउनुहोस् / थप RAM | पूर्वनिर्धारित heavyweight admission मा 1 in-flight हुन्छ; RAM नबढाई यसलाई बढाउँदा abort फेरि हुन्छ |
 
-bare metal मा `omniroute serve` ले `OMNIROUTE_MEMORY_MB` **सेट नगरिएको** अवस्थामा RAM को ~35% अनुसार समायोजन गर्छ (`[512, 4096]` भित्र सीमित)। Docker ले सधैँ `1024` सेट गर्ने भएकाले official image मा त्यो calibration कहिल्यै चल्दैन।
+bare metal मा `omniroute serve` ले `OMNIROUTE_MEMORY_MB` **सेट नगरिएको** अवस्थामा RAM को ~35% अनुसार समायोजन गर्छ (`[512, 4096]` मा सीमित)। Docker ले सधैँ `1024` सेट गर्छ, त्यसैले आधिकारिक इमेजमा त्यो समायोजन कहिल्यै चल्दैन।
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

@@ -309,6 +309,59 @@ test("codex safe discovery classifies public metadata before activating it", () 
   );
 });
 
+test("codex retired ids stay out of the discovery catalog", () => {
+  for (const id of ["gpt-5.3-codex-spark", "codex-auto-review"]) {
+    assert.equal(isCodexDiscoveryModelExcluded({ id }), true);
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), true);
+    assert.deepEqual(
+      classifyCodexDiscoveryModel(
+        { id, visibility: "list", supportedInApi: true },
+        { source: "live", mode: "all", implementedClientVersion: "0.157.1" }
+      ),
+      { status: "retired", reason: "denylisted" }
+    );
+  }
+
+  const catalog = buildCodexDiscoveryCatalog(
+    [
+      {
+        id: "gpt-5.3-codex-spark",
+        name: "GPT 5.3 Codex Spark",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "codex-auto-review",
+        name: "Codex Auto Review",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "gpt-6-sol",
+        name: "GPT-6-Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+    ],
+    []
+  );
+  assert.deepEqual(
+    catalog.map((model) => model.id),
+    ["gpt-6-sol"]
+  );
+});
+
+test("the codex registry no longer advertises the retired spark id", async () => {
+  const { codexProvider } = await import("../../open-sse/config/providers/registry/codex/index.ts");
+  assert.equal(
+    codexProvider.models?.some((model) => model.id === "gpt-5.3-codex-spark"),
+    false
+  );
+});
+
 test("codex discovery mode preserves the legacy opt-in", () => {
   assert.equal(getCodexDiscoveryMode({}), "off");
   assert.equal(getCodexDiscoveryMode({ autoFetchModels: true }), "safe");
@@ -537,6 +590,36 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
+test("codex.enrichCodexModelsFromGithubCatalog uses the GitHub catalog when there is no live list", () => {
+  const catalog = enrichCodexModelsFromGithubCatalog(
+    [],
+    [
+      {
+        id: "gpt-5.6-luna",
+        name: "GitHub Luna",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+      {
+        id: "gpt-5.6-terra",
+        name: "GitHub Terra",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 272000,
+      },
+    ]
+  );
+
+  assert.deepEqual(
+    catalog.map((model) => model.id),
+    ["gpt-5.6-luna", "gpt-5.6-terra"]
+  );
+  assert.equal(catalog[0]?.name, "GitHub Luna");
+  assert.equal(catalog[1]?.inputTokenLimit, 272000);
+});
+
 test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conservatively (smaller wins)", () => {
   const merged = mergeCodexLiveModelsWithLocalCatalog(
     [
@@ -578,7 +661,7 @@ test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conserva
   const ids = merged.map((model) => model.id);
   assert.ok(ids.includes("future-codex-model"));
   assert.ok(ids.includes("gpt-5.6-sol"));
-  assert.ok(ids.includes("gpt-5.6-sol-low"));
+  assert.ok(!ids.includes("gpt-5.6-sol-low"));
   const sol = merged.find((model) => model.id === "gpt-5.6-sol");
   assert.equal(sol?.name, "Live Sol");
   // Live (272000) is SMALLER than the pinned contract (372000) here — the
@@ -646,7 +729,7 @@ test("codex.buildCodexDiscoveryCatalog merges then filters in one step", () => {
   const ids = catalog.map((model) => model.id);
   assert.ok(ids.includes("brand-new-codex"));
   assert.ok(ids.includes("gpt-5.6-sol"));
-  assert.ok(ids.includes("gpt-5.6-sol-max"));
+  assert.ok(!ids.includes("gpt-5.6-sol-max"));
   assert.equal(
     ids.some((id) => String(id).startsWith("gpt-5.4")),
     false

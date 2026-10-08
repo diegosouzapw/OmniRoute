@@ -127,24 +127,28 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   ប្រភពដើមសម្រាប់ការគ្រប់គ្រង/dashboard ក្នុង config ដែលមានភាពអនុញ្ញាតខ្ពស់ណាមួយឡើយ ពួកវាត្រូវតែរក្សាស្ថានភាព
   fail-closed ឱ្យបានពេញលេញ។
 
-## ឧទាហរណ៍៖ reverse proxy នៅខាងមុខ OmniRoute
+## ឧទាហរណ៍៖ reverse proxy នៅពីមុខ OmniRoute
 
 CORS ត្រូវបានអនុវត្តដោយ OmniRoute ផ្ទាល់ ដូច្នេះជាទូទៅ proxy **មិនគួរ** បន្ថែម ឬ
-សរសេរ header `Access-Control-*` ឡើងវិញទេ (header ស្ទួនធ្វើឱ្យ browser មិនដំណើរការ)។ បញ្ចប់ TLS
-ហើយ forward — ទុកឱ្យ OmniRoute ឆ្លើយតបនឹង preflight៖
+សរសេរឡើងវិញនូវ header `Access-Control-*` ទេ (header ស្ទួនធ្វើឱ្យ browser មិនដំណើរការ)។ បញ្ចប់ TLS
+ហើយបញ្ជូនបន្ត — ទុកឱ្យ OmniRoute ឆ្លើយតបនឹង preflight៖
 
 ```nginx
-# nginx — forward ទៅ OmniRoute; កុំ inject Access-Control-* នៅទីនេះ
+# nginx — បញ្ជូនបន្តទៅ OmniRoute; កុំបញ្ចូល Access-Control-* នៅទីនេះ
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # កុំកំណត់ X-Forwarded-For ទៅជា 127.0.0.1 — វាធ្វើឱ្យឧបករណ៍ការពារ route សម្រាប់ loopback បាត់ប្រសិទ្ធភាព។
+    # រក្សាទុក header សម្រាប់ការបញ្ជូនបន្ត៖ proxy នៅលើ host ដូចគ្នាតភ្ជាប់ពី loopback ហើយ header ទាំងនេះ
+    # ជាអ្វីដែលប្រាប់ OmniRoute ថាអ្នកហៅមិនមែនជា operator ក្នុងមូលដ្ឋានទេ។ proxy ដែលមិនបន្ថែម header ទាំងនេះសោះ
+    # នឹងធ្វើឱ្យអ្នកហៅពីចម្ងាយទាំងអស់មើលទៅដូចជាអ្នកហៅក្នុងមូលដ្ឋាន។ ក៏មិនត្រូវកំណត់ X-Forwarded-For ទៅជា 127.0.0.1 ដែរ។
 }
 ```
 
-កំណត់ប្រភពដើមរបស់ browser ដែលត្រូវបានអនុញ្ញាតក្នុង OmniRoute (`CORS_ALLOWED_ORIGINS` ឬផ្ទាំង
-Security) មិនមែនក្នុង proxy ទេ។
+កំណត់ origin របស់ browser ដែលត្រូវបានអនុញ្ញាតនៅក្នុង OmniRoute (`CORS_ALLOWED_ORIGINS` ឬផ្ទាំង
+Security) មិនមែននៅក្នុង proxy ទេ។
 
 ## ឯកសារប្រភព
 
