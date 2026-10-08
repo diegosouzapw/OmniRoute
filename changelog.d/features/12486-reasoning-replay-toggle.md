@@ -1,1 +1,1 @@
-- **feat(runtime):** add a runtime feature flag to disable Reasoning Replay cache writes and lookups
+- **feat(runtime):** new `REASONING_REPLAY_ENABLED` feature flag (Settings → Feature flags, on by default) to stop Reasoning Replay from caching and re-injecting real reasoning text across turns; upstreams that require the reasoning field on replay turns still receive the internal placeholder when it is off ([#12486](https://github.com/diegosouzapw/OmniRoute/pull/12486) — thanks @jacobsparts).
