@@ -12,7 +12,10 @@
 
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput, type ExecutorExecuteResult } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  makeExecutorErrorResult as makeErrorResult,
+  sanitizeErrorMessage,
+} from "../utils/error.ts";
 import { resolveChatPlaygroundAuth } from "../services/chatplaygroundAuth.ts";
 import {
   CHATPLAYGROUND_API_BASE,
@@ -41,8 +44,7 @@ export function stripChatId(text: string, trim = false): string {
  */
 export function enqueueSseCompletion(
   controller:
-    | TransformStreamDefaultController<Uint8Array>
-    | ReadableStreamDefaultController<Uint8Array>,
+    TransformStreamDefaultController<Uint8Array> | ReadableStreamDefaultController<Uint8Array>,
   encoder: TextEncoder,
   streamId: string,
   created: number,
@@ -91,7 +93,13 @@ export function buildChatPlaygroundPayload(
     payload.model = modelData.modelName;
   }
 
-  for (const key of ["max_tokens", "top_p", "presence_penalty", "frequency_penalty", "stop"] as const) {
+  for (const key of [
+    "max_tokens",
+    "top_p",
+    "presence_penalty",
+    "frequency_penalty",
+    "stop",
+  ] as const) {
     if (key in req && req[key] !== undefined && req[key] !== null) {
       payload[key] = req[key];
     }
@@ -123,6 +131,136 @@ export function toOpenAiCompletionEnvelope(model: string, content: string): Resp
   );
 }
 
+/** Count characters in a Chat Completions message `content` (string or multipart). */
+export function countChatPlaygroundMessageChars(content: unknown): number {
+  if (typeof content === "string") return content.length;
+  if (!Array.isArray(content)) return 0;
+  let charCount = 0;
+  for (const part of content) {
+    if (typeof part === "string") {
+      charCount += part.length;
+    } else if (
+      part &&
+      typeof part === "object" &&
+      typeof (part as { text?: unknown }).text === "string"
+    ) {
+      charCount += (part as { text: string }).text.length;
+    }
+  }
+  return charCount;
+}
+
+export function findOversizedChatPlaygroundMessage(
+  messages: Array<Record<string, unknown>>,
+  maxChars = CHATPLAYGROUND_MAX_MESSAGE_CHARS
+): { index: number; charCount: number } | null {
+  for (let i = 0; i < messages.length; i++) {
+    const charCount = countChatPlaygroundMessageChars(messages[i]?.content);
+    if (charCount > maxChars) return { index: i, charCount };
+  }
+  return null;
+}
+
+export function splitChatPlaygroundStreamBuffer(combined: string): {
+  toProcess: string;
+  pendingBuffer: string;
+} {
+  const partialMatch = combined.match(/(?:CHAT_ID:[a-zA-Z0-9_-]*|CHAT_?I?D?:?|CHA?T?_?)$/);
+  if (partialMatch && partialMatch[0].length < 64) {
+    return {
+      toProcess: combined.slice(0, combined.length - partialMatch[0].length),
+      pendingBuffer: partialMatch[0],
+    };
+  }
+  return { toProcess: combined, pendingBuffer: "" };
+}
+
+function encodeSseContentChunk(
+  encoder: TextEncoder,
+  streamId: string,
+  created: number,
+  model: string,
+  content: string
+): Uint8Array {
+  const chunkObj = {
+    id: `chatcmpl-${streamId}`,
+    object: "chat.completion.chunk",
+    created,
+    model,
+    choices: [{ index: 0, delta: { content }, finish_reason: null }],
+  };
+  return encoder.encode(`data: ${JSON.stringify(chunkObj)}\n\n`);
+}
+
+function enqueueCleanedSseDelta(
+  controller:
+    TransformStreamDefaultController<Uint8Array> | ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  streamId: string,
+  created: number,
+  model: string,
+  raw: string,
+  trim = false
+): void {
+  const cleaned = stripChatId(raw, trim);
+  if (cleaned.length > 0) {
+    controller.enqueue(encodeSseContentChunk(encoder, streamId, created, model, cleaned));
+  }
+}
+
+export function createPerplexityOpenAiResponse(
+  model: string,
+  rawText: string,
+  isStreaming: boolean
+): Response {
+  const content = stripChatId(rawText, true);
+  if (!isStreaming) return toOpenAiCompletionEnvelope(model, content);
+
+  const streamId = randomUUID().slice(0, 12);
+  const created = Math.floor(Date.now() / 1000);
+  const encoder = new TextEncoder();
+  const singleChunkStream = new ReadableStream({
+    start(controller) {
+      enqueueCleanedSseDelta(controller, encoder, streamId, created, model, content, true);
+      enqueueSseCompletion(controller, encoder, streamId, created, model);
+      controller.close();
+    },
+  });
+  return new Response(singleChunkStream, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+export function createChatPlaygroundSseStream(
+  upstream: ReadableStream<Uint8Array>,
+  model: string
+): ReadableStream<Uint8Array> {
+  const streamId = randomUUID().slice(0, 12);
+  const created = Math.floor(Date.now() / 1000);
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let pendingBuffer = "";
+
+  const transformStream = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      const parsed = splitChatPlaygroundStreamBuffer(
+        pendingBuffer + decoder.decode(chunk, { stream: true })
+      );
+      pendingBuffer = parsed.pendingBuffer;
+      enqueueCleanedSseDelta(controller, encoder, streamId, created, model, parsed.toProcess);
+    },
+    flush(controller) {
+      if (pendingBuffer.length > 0) {
+        enqueueCleanedSseDelta(controller, encoder, streamId, created, model, pendingBuffer);
+      }
+      enqueueSseCompletion(controller, encoder, streamId, created, model);
+    },
+  });
+
+  return upstream.pipeThrough(transformStream);
+}
+
 export class ChatPlaygroundExecutor extends BaseExecutor {
   constructor(providerName = "chatplayground") {
     super(providerName, {
@@ -133,65 +271,39 @@ export class ChatPlaygroundExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput): Promise<ExecutorExecuteResult> {
     const { model, body, stream, credentials, signal } = input;
+    const chatUrl = `${CHATPLAYGROUND_API_BASE}/chat`;
 
-    // resolveChatPlaygroundModel returns null for empty or invalid model strings
     const modelData = resolveChatPlaygroundModel(model);
     if (!modelData) {
       return makeErrorResult(
         400,
         `ChatPlayground model not found or invalid: "${model || ""}"`,
         body,
-        `${CHATPLAYGROUND_API_BASE}/chat`
+        chatUrl
       );
     }
 
     let authHeaders: Record<string, string>;
     try {
-      const auth = await resolveChatPlaygroundAuth(credentials);
-      authHeaders = auth.headers;
+      authHeaders = (await resolveChatPlaygroundAuth(credentials)).headers;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      return makeErrorResult(
-        401,
-        sanitizeErrorMessage(msg),
-        body,
-        `${CHATPLAYGROUND_API_BASE}/chat`
-      );
+      return makeErrorResult(401, sanitizeErrorMessage(msg), body, chatUrl);
     }
 
-    const endpointUrl = `${CHATPLAYGROUND_API_BASE}/chat/${modelData.endpoint}`;
+    const endpointUrl = `${chatUrl}/${modelData.endpoint}`;
     const payload = buildChatPlaygroundPayload(body, modelData);
-
-    // Validate 15,000 character limit per message content
     const messages = Array.isArray(payload.messages)
       ? (payload.messages as Array<Record<string, unknown>>)
       : [];
-    for (let i = 0; i < messages.length; i++) {
-      const content = messages[i]?.content;
-      let charCount = 0;
-      if (typeof content === "string") {
-        charCount = content.length;
-      } else if (Array.isArray(content)) {
-        for (const part of content) {
-          if (typeof part === "string") {
-            charCount += part.length;
-          } else if (
-            part &&
-            typeof part === "object" &&
-            typeof (part as { text?: unknown }).text === "string"
-          ) {
-            charCount += ((part as { text: string }).text).length;
-          }
-        }
-      }
-      if (charCount > CHATPLAYGROUND_MAX_MESSAGE_CHARS) {
-        return makeErrorResult(
-          400,
-          `Message at index ${i} exceeds ChatPlayground's ${CHATPLAYGROUND_MAX_MESSAGE_CHARS}-character limit (got ${charCount} characters). Enable prompt compression or reduce message length.`,
-          payload,
-          endpointUrl
-        );
-      }
+    const oversized = findOversizedChatPlaygroundMessage(messages);
+    if (oversized) {
+      return makeErrorResult(
+        400,
+        `Message at index ${oversized.index} exceeds ChatPlayground's ${CHATPLAYGROUND_MAX_MESSAGE_CHARS}-character limit (got ${oversized.charCount} characters). Enable prompt compression or reduce message length.`,
+        payload,
+        endpointUrl
+      );
     }
 
     let response: Response;
@@ -223,117 +335,17 @@ export class ChatPlaygroundExecutor extends BaseExecutor {
     }
 
     const isStreaming = stream !== false;
-
-    // Perplexity endpoint returns complete response; synthesize stream if requested
     if (modelData.endpoint === "perplexity") {
-      const rawText = await response.text();
-      const content = stripChatId(rawText, true);
-
-      if (!isStreaming) {
-        return toOpenAiCompletionEnvelope(model, content);
-      }
-
-      const streamId = randomUUID().slice(0, 12);
-      const created = Math.floor(Date.now() / 1000);
-      const encoder = new TextEncoder();
-
-      const singleChunkStream = new ReadableStream({
-        start(controller) {
-          if (content) {
-            const chunk = {
-              id: `chatcmpl-${streamId}`,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: { content }, finish_reason: null }],
-            };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-          }
-          enqueueSseCompletion(controller, encoder, streamId, created, model);
-          controller.close();
-        },
-      });
-
-      return new Response(singleChunkStream, {
-        status: 200,
-        headers: { "content-type": "text/event-stream" },
-      });
+      return createPerplexityOpenAiResponse(model, await response.text(), isStreaming);
     }
-
-    // Streaming for Azure / LMSYS endpoints
     if (isStreaming && response.body) {
-      const streamId = randomUUID().slice(0, 12);
-      const created = Math.floor(Date.now() / 1000);
-      const decoder = new TextDecoder();
-      const encoder = new TextEncoder();
-      let pendingBuffer = "";
-
-      const transformStream = new TransformStream<Uint8Array, Uint8Array>({
-        transform(chunk, controller) {
-          const text = decoder.decode(chunk, { stream: true });
-          const combined = pendingBuffer + text;
-          pendingBuffer = "";
-
-          // Check if there is a partial sentinel at the end of combined
-          const partialMatch = combined.match(/(?:CHAT_ID:[a-zA-Z0-9_-]*|CHAT_?I?D?:?|CHA?T?_?)$/);
-          let toProcess = combined;
-          if (partialMatch && partialMatch[0].length < 64) {
-            toProcess = combined.slice(0, combined.length - partialMatch[0].length);
-            pendingBuffer = partialMatch[0];
-          }
-
-          const cleaned = stripChatId(toProcess, false);
-          if (cleaned.length > 0) {
-            const chunkObj = {
-              id: `chatcmpl-${streamId}`,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: cleaned },
-                  finish_reason: null,
-                },
-              ],
-            };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkObj)}\n\n`));
-          }
-        },
-        flush(controller) {
-          if (pendingBuffer.length > 0) {
-            const cleaned = stripChatId(pendingBuffer, false);
-            if (cleaned.length > 0) {
-              const chunkObj = {
-                id: `chatcmpl-${streamId}`,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                choices: [
-                  {
-                    index: 0,
-                    delta: { content: cleaned },
-                    finish_reason: null,
-                  },
-                ],
-              };
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkObj)}\n\n`));
-            }
-          }
-          enqueueSseCompletion(controller, encoder, streamId, created, model);
-        },
-      });
-
-      return new Response(response.body.pipeThrough(transformStream), {
+      return new Response(createChatPlaygroundSseStream(response.body, model), {
         status: 200,
         headers: { "content-type": "text/event-stream" },
       });
     }
 
-    // Non-streaming response
-    const rawText = await response.text();
-    const content = stripChatId(rawText, true);
-    return toOpenAiCompletionEnvelope(model, content);
+    return toOpenAiCompletionEnvelope(model, stripChatId(await response.text(), true));
   }
 }
 

@@ -1,7 +1,10 @@
+import { CHATPLAYGROUND_WEB_COOKIE_ENTRY } from "./web-cookie-chatplayground.ts";
+
 /**
  * Provider catalog data — extracted from providers.ts (god-file decomposition).
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
+
 export const WEB_COOKIE_PROVIDERS = {
   "chatgpt-web": {
     id: "chatgpt-web",
@@ -516,21 +519,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Sign in once with an email code to bootstrap a UC (uncensored.com) subscription session. OmniRoute mints a fresh short-lived token per request browserlessly, so the connection renews on its own; you only re-run the email login about once a month when the subscription session rolls over.",
   },
-  chatplayground: {
-    id: "chatplayground",
-    serviceKinds: ["llm"],
-    alias: "cpl",
-    name: "ChatPlayground",
-    icon: "auto_awesome",
-    color: "#7C3AED",
-    textIcon: "CP",
-    website: "https://web.chatplayground.ai",
-    subscriptionRisk: true,
-    riskNoticeVariant: "webCookie",
-    toolCalling: "emulated",
-    authHint:
-      "Paste your Clerk session token or full cookie export containing __client and __session from web.chatplayground.ai. OmniRoute auto-mints fresh short-lived Clerk session JWTs.",
-  },
+  ...CHATPLAYGROUND_WEB_COOKIE_ENTRY,
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

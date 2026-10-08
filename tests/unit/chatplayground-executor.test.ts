@@ -47,19 +47,32 @@ test("ChatPlayground — provider registration & constants", () => {
   assert.equal(chatplaygroundProvider.alias, "cpl");
   assert.equal(chatplaygroundProvider.executor, "chatplayground");
   assert.equal(chatplaygroundProvider.format, "openai");
-  assert.equal(chatplaygroundProvider.models.length, 0, "should not provide fallback models (uses dynamic import)");
+  assert.equal(
+    chatplaygroundProvider.models.length,
+    0,
+    "should not provide fallback models (uses dynamic import)"
+  );
 
   // Check lazy executor registration
-  assert.ok(hasSpecializedExecutor("chatplayground"), "chatplayground executor should be registered");
+  assert.ok(
+    hasSpecializedExecutor("chatplayground"),
+    "chatplayground executor should be registered"
+  );
   assert.ok(hasSpecializedExecutor("cpl"), "cpl executor alias should be registered");
 });
 
 test("ChatPlayground — executor instantiation & getExecutor dispatch", async () => {
   const exec1 = await getExecutor("chatplayground");
-  assert.ok(exec1 instanceof ChatPlaygroundExecutor, "getExecutor(chatplayground) should return ChatPlaygroundExecutor");
+  assert.ok(
+    exec1 instanceof ChatPlaygroundExecutor,
+    "getExecutor(chatplayground) should return ChatPlaygroundExecutor"
+  );
 
   const exec2 = await getExecutor("cpl");
-  assert.ok(exec2 instanceof ChatPlaygroundExecutor, "getExecutor(cpl) should return ChatPlaygroundExecutor");
+  assert.ok(
+    exec2 instanceof ChatPlaygroundExecutor,
+    "getExecutor(cpl) should return ChatPlaygroundExecutor"
+  );
 
   assert.ok(chatplaygroundExecutor instanceof ChatPlaygroundExecutor);
 });
@@ -463,7 +476,9 @@ test("ChatPlaygroundExecutor — 15,000 character limit per message validation",
   assert.ok("response" in errResult);
   assert.equal(errResult.response.status, 400);
   const data = await errResult.response.json();
-  assert.ok(data.error.message.includes("15000-character limit") || data.error.message.includes("15,000"));
+  assert.ok(
+    data.error.message.includes("15000-character limit") || data.error.message.includes("15,000")
+  );
 
   // 2. Multipart array message exceeding limit
   const errResultMultipart = await executor.execute({
@@ -588,4 +603,3 @@ test("ChatPlayground — discovery models parser", () => {
   assert.equal(parsed[0].owned_by, "chatplayground");
   assert.equal(parsed[1].id, "claude-sonnet-5");
 });
-

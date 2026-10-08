@@ -21,6 +21,7 @@ export interface ChatPlaygroundModel {
 export const CHATPLAYGROUND_API_BASE = "https://app.chatplayground.ai/api";
 export const CHATPLAYGROUND_MODELS_URL = `${CHATPLAYGROUND_API_BASE}/models`;
 export const CHATPLAYGROUND_USER_URL = `${CHATPLAYGROUND_API_BASE}/user`;
+export const CHATPLAYGROUND_WEB_ORIGIN = "https://web.chatplayground.ai";
 
 export const CHATPLAYGROUND_DEFAULT_CONTEXT = 128_000;
 
@@ -363,6 +364,59 @@ export function stripChatPlaygroundPrefix(model: string): string {
   return cleaned;
 }
 
+type ChatPlaygroundEndpointHints = {
+  endpoint: string;
+  provider: string;
+  botId: string;
+};
+
+const EXPLICIT_ENDPOINTS = new Set<ChatPlaygroundEndpoint>(["azure", "lmsys", "perplexity"]);
+const LMSYS_PROVIDERS = [
+  "lmsys",
+  "together",
+  "anyscale",
+  "groq",
+  "meta",
+  "mistral",
+  "qwen",
+  "deepseek",
+];
+const LMSYS_KEYWORDS = ["llama", "qwen", "grok", "glm", "minimax", "command", "kimi"];
+
+function readEndpointHints(
+  modelInfo:
+    | {
+        endpoint?: string;
+        provider?: string;
+        botId?: string;
+        modelName?: string;
+      }
+    | string
+): ChatPlaygroundEndpointHints {
+  if (typeof modelInfo === "string") {
+    return { endpoint: "", provider: "", botId: modelInfo.toLowerCase().trim() };
+  }
+  if (!modelInfo || typeof modelInfo !== "object") {
+    return { endpoint: "", provider: "", botId: "" };
+  }
+  return {
+    endpoint: (modelInfo.endpoint || "").toLowerCase().trim(),
+    provider: (modelInfo.provider || "").toLowerCase().trim(),
+    botId: (modelInfo.botId || modelInfo.modelName || "").toLowerCase().trim(),
+  };
+}
+
+function isPerplexityHint(provider: string, botId: string): boolean {
+  return provider === "perplexity" || botId.includes("sonar") || botId.includes("perplexity");
+}
+
+function isLmsysHint(provider: string, botId: string): boolean {
+  return (
+    LMSYS_PROVIDERS.some((p) => provider.includes(p)) ||
+    LMSYS_KEYWORDS.some((k) => botId.includes(k))
+  );
+}
+
 /**
  * Determine the upstream ChatPlayground endpoint for a model.
  */
@@ -376,46 +430,45 @@ export function resolveChatPlaygroundEndpoint(
       }
     | string
 ): ChatPlaygroundEndpoint {
-  let endpoint = "";
-  let provider = "";
-  let botId = "";
-
-  if (typeof modelInfo === "object" && modelInfo !== null) {
-    endpoint = (modelInfo.endpoint || "").toLowerCase().trim();
-    provider = (modelInfo.provider || "").toLowerCase().trim();
-    botId = (modelInfo.botId || modelInfo.modelName || "").toLowerCase().trim();
-  } else if (typeof modelInfo === "string") {
-    botId = modelInfo.toLowerCase().trim();
+  const { endpoint, provider, botId } = readEndpointHints(modelInfo);
+  if (EXPLICIT_ENDPOINTS.has(endpoint as ChatPlaygroundEndpoint)) {
+    return endpoint as ChatPlaygroundEndpoint;
   }
-
-  if (endpoint === "azure" || endpoint === "lmsys" || endpoint === "perplexity") {
-    return endpoint;
-  }
-
-  if (provider === "perplexity" || botId.includes("sonar") || botId.includes("perplexity")) {
-    return "perplexity";
-  }
-
-  const lmsysProviders = [
-    "lmsys",
-    "together",
-    "anyscale",
-    "groq",
-    "meta",
-    "mistral",
-    "qwen",
-    "deepseek",
-  ];
-  if (lmsysProviders.some((p) => provider.includes(p))) {
-    return "lmsys";
-  }
-
-  const lmsysKeywords = ["llama", "qwen", "grok", "glm", "minimax", "command", "kimi"];
-  if (lmsysKeywords.some((k) => botId.includes(k))) {
-    return "lmsys";
-  }
-
+  if (isPerplexityHint(provider, botId)) return "perplexity";
+  if (isLmsysHint(provider, botId)) return "lmsys";
   return "azure";
+}
+
+function asUnknownArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function extractRawModelList(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== "object") return [];
+  const rec = data as Record<string, unknown>;
+  const fromData = asUnknownArray(rec.data);
+  if (fromData.length > 0) return fromData;
+  return asUnknownArray(rec.models);
+}
+
+function trimmedString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function parseDiscoveryItem(
+  item: unknown,
+  seen: Set<string>
+): { id: string; name: string; owned_by: string } | null {
+  if (!item || typeof item !== "object") return null;
+  const rec = item as Record<string, unknown>;
+  const botId = trimmedString(rec.botId);
+  if (!botId || seen.has(botId)) return null;
+  if (rec.group && rec.group !== "chat") return null;
+  seen.add(botId);
+  const modelName = trimmedString(rec.modelName) || botId;
+  const name = trimmedString(rec.displayName) || modelName;
+  return { id: botId, name, owned_by: "chatplayground" };
 }
 
 /**
@@ -426,35 +479,32 @@ export function parseChatPlaygroundDiscoveryModels(data: unknown): Array<{
   name: string;
   owned_by: string;
 }> {
-  const rawList = Array.isArray(data)
-    ? data
-    : Array.isArray((data as Record<string, unknown>)?.data)
-      ? ((data as Record<string, unknown>).data as unknown[])
-      : Array.isArray((data as Record<string, unknown>)?.models)
-        ? ((data as Record<string, unknown>).models as unknown[])
-        : [];
-
   const seen = new Set<string>();
   const models: Array<{ id: string; name: string; owned_by: string }> = [];
-
-  for (const item of rawList) {
-    if (!item || typeof item !== "object") continue;
-    const rec = item as Record<string, unknown>;
-    const botId = typeof rec.botId === "string" ? rec.botId.trim() : "";
-    if (!botId || seen.has(botId)) continue;
-    if (rec.group && rec.group !== "chat") continue;
-
-    seen.add(botId);
-    const modelName = (typeof rec.modelName === "string" && rec.modelName.trim()) || botId;
-    const name = (typeof rec.displayName === "string" && rec.displayName.trim()) || modelName;
-    models.push({
-      id: botId,
-      name,
-      owned_by: "chatplayground",
-    });
+  for (const item of extractRawModelList(data)) {
+    const parsed = parseDiscoveryItem(item, seen);
+    if (parsed) models.push(parsed);
   }
-
   return models;
+}
+
+/** Discovery config for `/api/providers/{id}/models` (chatplayground + cpl alias). */
+export function buildChatPlaygroundModelsDiscoveryEntry(): {
+  url: string;
+  method: "GET";
+  headers: Record<string, string>;
+  parseResponse: typeof parseChatPlaygroundDiscoveryModels;
+} {
+  return {
+    url: CHATPLAYGROUND_MODELS_URL,
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Origin: CHATPLAYGROUND_WEB_ORIGIN,
+      Referer: `${CHATPLAYGROUND_WEB_ORIGIN}/`,
+    },
+    parseResponse: parseChatPlaygroundDiscoveryModels,
+  };
 }
 
 /**

@@ -198,6 +198,81 @@ export async function mintClerkJwt(
   }
 }
 
+function stringCred(obj: Record<string, unknown>, key: string): string {
+  const value = obj[key];
+  return typeof value === "string" ? value : "";
+}
+
+function asCredRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+export function extractRawChatPlaygroundCredential(credentials?: unknown): string {
+  if (typeof credentials === "string") return credentials;
+  if (!credentials || typeof credentials !== "object") return "";
+  const credObj = credentials as Record<string, unknown>;
+  const ps = asCredRecord(credObj.providerSpecificData);
+  return (
+    stringCred(credObj, "apiKey") ||
+    stringCred(credObj, "cookie") ||
+    stringCred(credObj, "accessToken") ||
+    stringCred(ps, "cookie") ||
+    stringCred(ps, "jwt")
+  );
+}
+
+function buildChatPlaygroundRequestHeaders(): Record<string, string> {
+  const userAgent =
+    (typeof process !== "undefined" && process.env?.CHATPLAYGROUND_USER_AGENT?.trim()) ||
+    DEFAULT_CLERK_UA;
+  return {
+    accept: "*/*",
+    "content-type": "text/plain;charset=UTF-8",
+    origin: WEB_ORIGIN,
+    referer: `${WEB_ORIGIN}/`,
+    "user-agent": userAgent,
+  };
+}
+
+function withBearerJwt(
+  headers: Record<string, string>,
+  jwt: string,
+  accountKey: string
+): { headers: Record<string, string>; accountKey: string } {
+  return { headers: { ...headers, authorization: `Bearer ${jwt}` }, accountKey };
+}
+
+function isJwtAccount(
+  account: ChatPlaygroundAccount
+): account is ChatPlaygroundAccount & { jwt: string } {
+  return account.type === "jwt" && Boolean(account.jwt);
+}
+
+function isCookieAccount(
+  account: ChatPlaygroundAccount
+): account is ChatPlaygroundAccount & { sid: string; client: string } {
+  return account.type === "cookie" && Boolean(account.sid) && Boolean(account.client);
+}
+
+async function authorizeCookieAccount(
+  account: ChatPlaygroundAccount & { sid: string; client: string },
+  headers: Record<string, string>,
+  timeoutMs?: number
+): Promise<{ headers: Record<string, string>; accountKey: string }> {
+  const nowSec = Date.now() / 1000;
+  const cached = jwtCache.get(account.sid);
+  if (cached && nowSec < cached.exp - CLERK_JWT_SKEW_SECONDS) {
+    return withBearerJwt(headers, cached.jwt, account.sid);
+  }
+  try {
+    const minted = await mintClerkJwt({ sid: account.sid, client: account.client }, timeoutMs);
+    return withBearerJwt(headers, minted.jwt, account.sid);
+  } catch (err) {
+    if (cached?.jwt) return withBearerJwt(headers, cached.jwt, account.sid);
+    throw err;
+  }
+}
+
 /**
  * Resolve credentials and produce authentication headers for ChatPlayground API.
  * Handles auto-minting and in-memory token caching.
@@ -206,73 +281,18 @@ export async function resolveChatPlaygroundAuth(
   credentials?: unknown,
   options?: { timeoutMs?: number }
 ): Promise<{ headers: Record<string, string>; accountKey: string }> {
-  let rawCred = "";
-
-  if (typeof credentials === "string") {
-    rawCred = credentials;
-  } else if (credentials && typeof credentials === "object") {
-    const credObj = credentials as Record<string, unknown>;
-    const ps = (credObj.providerSpecificData || {}) as Record<string, unknown>;
-
-    rawCred =
-      (typeof credObj.apiKey === "string" ? credObj.apiKey : "") ||
-      (typeof credObj.cookie === "string" ? credObj.cookie : "") ||
-      (typeof credObj.accessToken === "string" ? credObj.accessToken : "") ||
-      (typeof ps.cookie === "string" ? ps.cookie : "") ||
-      (typeof ps.jwt === "string" ? ps.jwt : "") ||
-      "";
-  }
-
-  const account = parseChatPlaygroundAccount(rawCred);
+  const account = parseChatPlaygroundAccount(extractRawChatPlaygroundCredential(credentials));
   if (!account) {
     throw new Error(
       "No valid ChatPlayground credentials found. Provide a Clerk session cookie (__client + __session) or Clerk JWT."
     );
   }
 
-  const userAgent =
-    (typeof process !== "undefined" && process.env?.CHATPLAYGROUND_USER_AGENT?.trim()) ||
-    DEFAULT_CLERK_UA;
-
-  const headers: Record<string, string> = {
-    accept: "*/*",
-    "content-type": "text/plain;charset=UTF-8",
-    origin: WEB_ORIGIN,
-    referer: `${WEB_ORIGIN}/`,
-    "user-agent": userAgent,
-  };
-
-  if (account.type === "jwt" && account.jwt) {
-    headers.authorization = `Bearer ${account.jwt}`;
-    return { headers, accountKey: account.id };
+  const headers = buildChatPlaygroundRequestHeaders();
+  if (isJwtAccount(account)) return withBearerJwt(headers, account.jwt, account.id);
+  if (isCookieAccount(account)) {
+    return authorizeCookieAccount(account, headers, options?.timeoutMs);
   }
-
-  if (account.type === "cookie" && account.sid && account.client) {
-    const nowSec = Date.now() / 1000;
-    const cached = jwtCache.get(account.sid);
-
-    if (cached && nowSec < cached.exp - CLERK_JWT_SKEW_SECONDS) {
-      headers.authorization = `Bearer ${cached.jwt}`;
-      return { headers, accountKey: account.sid };
-    }
-
-    try {
-      const minted = await mintClerkJwt(
-        { sid: account.sid, client: account.client },
-        options?.timeoutMs
-      );
-      headers.authorization = `Bearer ${minted.jwt}`;
-      return { headers, accountKey: account.sid };
-    } catch (err) {
-      // Fallback to cached token if available even if slightly stale
-      if (cached?.jwt) {
-        headers.authorization = `Bearer ${cached.jwt}`;
-        return { headers, accountKey: account.sid };
-      }
-      throw err;
-    }
-  }
-
   throw new Error("Unable to resolve usable ChatPlayground credentials from provided input.");
 }
 
