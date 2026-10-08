@@ -2,6 +2,7 @@
  * Provider catalog data — extracted from providers.ts (god-file decomposition).
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
+import { NOTRACK_WEB_COOKIE_ENTRY } from "./web-cookie-notrack";
 export const WEB_COOKIE_PROVIDERS = {
   "chatgpt-web": {
     id: "chatgpt-web",
@@ -462,6 +463,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
   },
+  ...NOTRACK_WEB_COOKIE_ENTRY,
   "conol-web": {
     id: "conol-web",
     serviceKinds: ["llm"],

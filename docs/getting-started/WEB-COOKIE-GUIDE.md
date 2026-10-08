@@ -80,17 +80,67 @@ The exact credentials required depend on the provider.
 
 Different websites store authentication differently. Some require only cookies, while others may require additional headers or tokens.
 
-| Provider            | Credential Format          | Provider Guide                  |
-| ------------------- | -------------------------- | ------------------------------- |
-| Claude Web          | Full Cookie request header | `docs/providers/CLAUDE_WEB.md`  |
-| ChatGPT Web (Codex) | Full Cookie header         | `docs/providers/CHATGPT_WEB.md` |
-| Gemini Web          | _(verify)_                 |                                 |
-| Copilot Web         | _(verify)_                 | `docs/providers/COPILOT-M365.md` |
+| Provider                        | Credential Format             | Provider Guide                   |
+| ------------------------------- | ----------------------------- | -------------------------------- |
+| Claude Web                      | Full Cookie request header    | `docs/providers/CLAUDE_WEB.md`   |
+| ChatGPT Web (Codex)             | Full Cookie header            | `docs/providers/CHATGPT_WEB.md`  |
+| Gemini Web                      | _(verify)_                    |                                  |
+| Copilot Web                     | _(verify)_                    | `docs/providers/COPILOT-M365.md` |
 | Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath | `docs/providers/COPILOT-M365.md` |
-| Grok Web            | _(verify)_                 |                                 |
-| ...                 | ...                        | ...                             |
+| Grok Web                        | _(verify)_                    |                                  |
+| ...                             | ...                           | ...                              |
 
 > Update this table as new Web Cookie providers are added or existing providers change their authentication requirements.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) is a free consumer chat platform with no signup required — the session is created anonymously on first visit and persists via three cookies: `uid`, `si_usr_id`, and `si_ses_id`. OmniRoute proxies the same `/api/dispatch` endpoint through a single model id (`notrack-c`, alias `ntw`).
+
+### Steps to connect
+
+1. Open [notrack.ai](https://notrack.ai) in your browser and let the anonymous session cookie be set.
+2. Open **DevTools → Network**, refresh the page, and click any `/api` request.
+3. In **Request Headers**, copy the full `Cookie` header value.
+4. In OmniRoute, go to **Providers → Add Provider → NoTrack Web (Free)**.
+5. Paste the cookie string into the `apiKey` field and **Save**.
+
+OmniRoute extracts `uid`, `si_usr_id`, and `si_ses_id` from the pasted string and rebuilds a clean `Cookie` header with only those pairs — plus `nt_session` (the `ntk_…` token set for logged-in accounts) when present. If any of the three is missing, the raw pasted string is forwarded unchanged so operators can experiment with alternative shapes.
+
+### Model ids
+
+| Model id    | Display name | Notes                                               |
+| ----------- | ------------ | --------------------------------------------------- |
+| `notrack-c` | NoTrack C    | Default — the upstream dispatch model `C`.          |
+| `C`         | NoTrack C    | Alias for `notrack-c` (raw upstream dispatch code). |
+| `notrack`   | NoTrack C    | Alias for `notrack-c`.                              |
+| `ntw`       | NoTrack C    | Short alias for `notrack-c`.                        |
+
+All four model ids map to the same upstream dispatch model (`C`).
+
+### Request options
+
+The executor accepts these optional fields on the request body:
+
+| Body field            | Default | Purpose                                                           |
+| --------------------- | ------- | ----------------------------------------------------------------- |
+| `notrack_mode`        | `usual` | Dispatch mode (free-form string; the upstream accepts `usual`, …) |
+| `notrack_max_turns`   | `6`     | Number of internal turns the upstream may take before answering.  |
+| `notrack_chat_id`     | `null`  | Resume an existing upstream chat (omit for a fresh chat).         |
+| `notrack_attachments` | `[]`    | Pass-through array of upstream attachment descriptors.            |
+| `notrack_regenerate`  | `false` | Set `true` to request a regenerated answer for the previous turn. |
+
+### Capabilities
+
+- **Streaming and non-streaming** chat completions.
+- **Tool calling** — set `tools: [...]` on the request; the executor serialises them into a tool-call envelope contract and parses the model's responses back into OpenAI `tool_calls`.
+- **`response_format`** — `json_object` and `json_schema` are supported. The executor extracts the first JSON object from the model's reply and stringifies it before returning.
+- **Reasoning hint** — the executor emits a `reasoning` delta when the upstream sends a `thinking` event.
+
+### Limitations
+
+- The upstream enforces anonymous usage quotas — when tripped, the executor surfaces a 429 with a friendly message.
+- All model ids resolve to the same upstream dispatch model; there is no per-model switch.
+- The executor does not call the upstream's `/api/chats` endpoint, so chat history / sessions are not auto-managed. Use `notrack_chat_id` to resume an existing upstream chat.
 
 ---
 
