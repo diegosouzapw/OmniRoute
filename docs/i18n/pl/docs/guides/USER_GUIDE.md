@@ -120,16 +120,16 @@ Dostęp przez: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Konfiguracja dostawców
 
-Aby zbiorczo dodać połączenia z kluczami API z pliku CSV lub JSON, użyj opcji **Panel → Dostawcy → Importuj z pliku**. Kolejność kolumn ma znaczenie (`provider,name,apiKey,baseUrl,priority`); `provider` musi już istnieć jako zarządzany dostawca lub kompatybilny węzeł. Zobacz [Importowanie dostawców z pliku CSV lub JSON](../providers/CSV-IMPORT.md).
+Aby zbiorczo dodać połączenia z kluczami API z pliku CSV lub JSON, użyj opcji **Panel → Dostawcy → Importuj z pliku**. Kolumny są pozycyjne (`provider,name,apiKey,baseUrl,priority`); `provider` musi już istnieć jako zarządzany dostawca lub zgodny węzeł. Zobacz [Importowanie dostawców z pliku CSV lub JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 Dostawcy subskrypcyjni
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Panel → Dostawcy → Połącz z Claude Code
+Panel → Dostawcy → Połącz Claude Code
 → Logowanie OAuth → Automatyczne odświeżanie tokenu
-→ Monitorowanie limitów 5-godzinnego i tygodniowego
+→ Śledzenie limitów 5-godzinnych i tygodniowych
 
 Modele:
   cc/claude-opus-4-7
@@ -139,14 +139,16 @@ Modele:
 
 **Wskazówka:** Używaj Opus do złożonych zadań, a Sonnet, gdy liczy się szybkość. OmniRoute śledzi limit osobno dla każdego modelu!
 
-Trasy kompatybilne z Claude i Claude Code zachowują poziom intensywności rozumowania `max` dla modeli Opus i Sonnet. Modele Haiku nie obsługują poziomu `max`, dlatego przed wysłaniem żądania do dostawcy nadrzędnego OmniRoute obniża go do wysokiego budżetu rozumowania.
+Brak przeglądarki na hoście OmniRoute? Uruchom `claude setup-token` w dowolnym miejscu, w którym użytkownik jest zalogowany do Claude Code, i wklej roczny token na karcie **Token konfiguracji**. Zobacz [Claude Code z tokenem konfiguracji](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Trasy zgodne z Claude i Claude Code zachowują poziom intensywności rozumowania `max` dla modeli Opus i Sonnet. Modele Haiku nie obsługują poziomu intensywności `max`, dlatego przed wysłaniem żądania do dostawcy nadrzędnego OmniRoute obniża je do wysokiego budżetu rozumowania.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Panel → Dostawcy → Połącz z Codex
+Panel → Dostawcy → Połącz Codex
 → Logowanie OAuth (port 1455)
-→ Reset co 5 godzin i co tydzień
+→ Reset co 5 godzin + reset tygodniowy
 
 Modele:
   cx/gpt-5.5
@@ -158,9 +160,9 @@ Modele:
 #### GitHub Copilot
 
 ```bash
-Panel → Dostawcy → Połącz z GitHub
+Panel → Dostawcy → Połącz GitHub
 → OAuth przez GitHub
-→ Comiesięczny reset (1. dzień miesiąca)
+→ Reset miesięczny (1. dzień miesiąca)
 
 Modele:
   gh/gpt-5.5
@@ -175,24 +177,24 @@ Modele:
 #### GLM-4.7 (reset codzienny, $0.6/1M)
 
 1. Zarejestruj się: [Zhipu AI](https://open.bigmodel.cn)
-2. Pobierz klucz API z Coding Plan
+2. Uzyskaj klucz API z Coding Plan
 3. Panel → Dodaj klucz API: Dostawca: `glm`, Klucz API: `your-key`
 
-**Użycie:** `glm/glm-4.7` — **Wskazówka:** Coding Plan oferuje 3× większy limit za 1/7 ceny! Reset codziennie o 10:00.
+**Użycie:** `glm/glm-4.7` — **Wskazówka:** Coding Plan oferuje 3-krotnie większy limit za 1/7 ceny! Reset codziennie o 10:00.
 
 #### MiniMax M2.1 (reset co 5 godz., $0.20/1M)
 
 1. Zarejestruj się: [MiniMax](https://www.minimax.io)
-2. Pobierz klucz API → Panel → Dodaj klucz API
+2. Uzyskaj klucz API → Panel → Dodaj klucz API
 
 **Użycie:** `minimax/MiniMax-M2.1` — **Wskazówka:** Najtańsza opcja dla długiego kontekstu (1M tokenów)!
 
 #### Kimi K2 (stała opłata $9/miesiąc)
 
 1. Wykup subskrypcję: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Pobierz klucz API → Panel → Dodaj klucz API
+2. Uzyskaj klucz API → Panel → Dodaj klucz API
 
-**Użycie:** `kimi/kimi-k2.5` — **Wskazówka:** Stała opłata $9/miesiąc za 10M tokenów = efektywny koszt $0.90/1M!
+**Użycie:** `kimi/kimi-k2.5` — **Wskazówka:** Stałe $9/miesiąc za 10M tokenów oznacza efektywny koszt $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
@@ -201,24 +203,24 @@ Modele:
 
 **Użycie:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` lub inny identyfikator modelu Qianfan zgodnego z OpenAI.
 
-### 🆓 BEZPŁATNI dostawcy
+### 🆓 DARMOWI dostawcy
 
-Dostawcy bezpłatni, którzy nie wymagają uwierzytelniania, mają przełącznik obok opcji **Uwierzytelnianie nie jest wymagane** na swojej stronie.
-Wyłączenie go powoduje dezaktywację danego dostawcy, usunięcie go ze skonfigurowanego i kompaktowego widoku Dostawców oraz
-usunięcie jego modeli z `/v1/models`.
+Dostawcy niewymagający uwierzytelniania mają przełącznik obok opcji **Uwierzytelnianie nie jest wymagane** na swojej stronie.
+Wyłączenie go dezaktywuje danego dostawcę, usuwa go ze skonfigurowanych i kompaktowych widoków dostawców oraz
+usuwa jego modele z `/v1/models`.
 
-#### Qoder (9 BEZPŁATNYCH modeli)
+#### Qoder (9 DARMOWYCH modeli)
 
 ```bash
-Panel → Połącz z Qoder → Logowanie OAuth → Dostęp podlega aktualnym limitom dostawcy
+Panel → Połącz Qoder → Logowanie OAuth → Dostęp podlega aktualnym limitom dostawcy
 
 Modele: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude BEZPŁATNIE)
+#### Kiro (Claude ZA DARMO)
 
 ```bash
-Panel → Połącz z Kiro → AWS Builder ID lub Google/GitHub → ~50 kredytów/miesiąc
+Panel → Połącz Kiro → AWS Builder ID lub Google/GitHub → ~50 kredytów/miesiąc
 
 Modele: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

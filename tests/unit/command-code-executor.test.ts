@@ -8,6 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-command-c
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { REGISTRY, getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
+const { ANTHROPIC_VERSION_HEADER } = await import("../../open-sse/config/anthropicHeaders.ts");
+const { getModelTargetFormat } = await import("../../open-sse/config/providerModels.ts");
 const { CommandCodeExecutor } = await import("../../open-sse/executors/commandCode.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 const core = await import("../../src/lib/db/core.ts");
@@ -18,7 +20,9 @@ type FetchCall = { url: string; init: Record<string, unknown>; body?: Record<str
 
 const PINNED_COMMAND_CODE_MODELS = [
   "claude-opus-4-7",
+  "claude-fable-5",
   "claude-opus-4-6",
+  "claude-sonnet-5-5",
   "claude-sonnet-4-6",
   "claude-haiku-4-5-20251001",
   "gpt-5.5",
@@ -38,6 +42,7 @@ const PINNED_COMMAND_CODE_MODELS = [
 ];
 
 const CHAT_URL = "https://api.commandcode.ai/provider/v1/chat/completions";
+const MESSAGES_URL = "https://api.commandcode.ai/provider/v1/messages";
 
 function parseSsePayloads(sse: string) {
   return sse
@@ -130,6 +135,43 @@ test("getExecutor returns the specialized Command Code executor", async () => {
   assert.equal(hasSpecializedExecutor("command-code"), true);
   assert.ok((await getExecutor("command-code")) instanceof CommandCodeExecutor);
   assert.ok((await getExecutor("cmd")) instanceof CommandCodeExecutor);
+});
+
+test("Command Code Claude models select Anthropic as their target format", () => {
+  const models = ["claude-opus-4-7", "claude-fable-5", "claude-sonnet-5-5"];
+
+  for (const model of models) {
+    assert.equal(getModelTargetFormat("command-code", model), "claude");
+  }
+});
+
+test("Command Code executor sends Claude models to the Anthropic Messages endpoint", async () => {
+  const models = ["claude-opus-4-7", "claude-fable-5", "claude-sonnet-5-5"];
+  const executor = await getExecutor("command-code");
+
+  for (const model of models) {
+    const calls = captureFetch({});
+    const { url } = await executor.execute({
+      model,
+      stream: false,
+      credentials: { apiKey: "cc_test_key" },
+      body: {
+        model,
+        max_tokens: 32,
+        messages: [{ role: "user", content: "Hi" }],
+      },
+    });
+
+    assert.equal(url, MESSAGES_URL);
+    assert.equal(calls[0].url, MESSAGES_URL);
+    assert.equal(calls[0].body?.model, model);
+    assert.equal(calls[0].body?.max_tokens, 32);
+    assert.deepEqual(calls[0].body?.messages, [{ role: "user", content: "Hi" }]);
+    assert.equal(
+      (calls[0].init.headers as Record<string, string>)?.["anthropic-version"],
+      ANTHROPIC_VERSION_HEADER
+    );
+  }
 });
 
 test("Command Code executor posts a flat OpenAI body + standard headers to /provider/v1/chat/completions (#10265)", async () => {

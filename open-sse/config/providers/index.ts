@@ -104,6 +104,7 @@ import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { conol_webProvider } from "./registry/conol-web/index.ts";
+import { chatplaygroundProvider } from "./registry/chatplayground/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
@@ -245,13 +246,17 @@ import { zyloApiProvider } from "./registry/zylo-api/index.ts";
 import { poolsideProvider } from "./registry/poolside/index.ts";
 import { fastrouterProvider } from "./registry/fastrouter/index.ts";
 import { anyapiProvider } from "./registry/anyapi/index.ts";
+import { beatapiProvider } from "./registry/beatapi/index.ts";
 import { electronhubProvider } from "./registry/electronhub/index.ts";
 import { llmgatewayProvider } from "./registry/llmgateway/index.ts";
 import { lyceumProvider } from "./registry/lyceum/index.ts";
 import { llmKiwiProvider } from "./registry/llm-kiwi/index.ts";
 import { literouterProvider } from "./registry/literouter/index.ts";
 import { greenptProvider } from "./registry/greenpt/index.ts";
+import { onomeoProvider } from "./registry/onomeo/index.ts";
 import { eurouterProvider } from "./registry/eurouter/index.ts";
+import { unificallyProvider } from "./registry/unifically/index.ts";
+import { yApiProvider } from "./registry/y-api/index.ts";
 import { mnnAiProvider } from "./registry/mnn-ai/index.ts";
 import { meganovaAiProvider } from "./registry/meganova-ai/index.ts";
 import { mixlayerProvider } from "./registry/mixlayer/index.ts";
@@ -377,6 +382,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "lambda-ai": lambda_aiProvider,
   "t3-web": t3_webProvider,
   "conol-web": conol_webProvider,
+  chatplayground: chatplaygroundProvider,
   iflytek: iflytekProvider,
   crof: crofProvider,
   moonshot: moonshotProvider,
@@ -523,13 +529,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   poolside: poolsideProvider,
   fastrouter: fastrouterProvider,
   anyapi: anyapiProvider,
+  beatapi: beatapiProvider,
   electronhub: electronhubProvider,
   llmgateway: llmgatewayProvider,
   lyceum: lyceumProvider,
   "llm-kiwi": llmKiwiProvider,
   literouter: literouterProvider,
   greenpt: greenptProvider,
+  onomeo: onomeoProvider,
   eurouter: eurouterProvider,
+  unifically: unificallyProvider,
+  "y-api": yApiProvider,
   "mnn-ai": mnnAiProvider,
   "meganova-ai": meganovaAiProvider,
   mixlayer: mixlayerProvider,

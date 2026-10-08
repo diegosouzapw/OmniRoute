@@ -17,6 +17,8 @@ export type HealthInfo = {
   measured: boolean;
   transportOk: number;
   transportFailures: number;
+  slowAbandoned: number;
+  clientAborted: number;
   upstream4xx: number;
   upstream5xx: number;
   connectionTests: number;

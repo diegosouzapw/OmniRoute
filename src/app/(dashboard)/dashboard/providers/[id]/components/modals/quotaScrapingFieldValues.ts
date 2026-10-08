@@ -18,6 +18,9 @@ export const VOLCENGINE_PLAN_PROVIDERS = new Set([
   "volcengine-agent-plan",
 ]);
 
+/** Providers whose Token Plan quota lives behind the Xiaomi MiMo console (#15753). */
+export const XIAOMI_MIMO_PROVIDERS = new Set(["xiaomi-mimo", "xiaomi-mimo-token-plan"]);
+
 export type QuotaScrapingFieldValues = {
   ollamaCloudUsageCookie: string;
   alibabaConsoleCookie: string;
@@ -25,6 +28,7 @@ export type QuotaScrapingFieldValues = {
   qwenCloudCookie: string;
   qwenCloudSecToken: string;
   volcConsoleCookie: string;
+  xiaomiMimoConsoleCookie: string;
 };
 
 export const EMPTY_QUOTA_SCRAPING_FIELDS: QuotaScrapingFieldValues = {
@@ -34,6 +38,7 @@ export const EMPTY_QUOTA_SCRAPING_FIELDS: QuotaScrapingFieldValues = {
   qwenCloudCookie: "",
   qwenCloudSecToken: "",
   volcConsoleCookie: "",
+  xiaomiMimoConsoleCookie: "",
 };
 
 export function assignQuotaScrapingProviderData(
@@ -61,5 +66,9 @@ export function assignQuotaScrapingProviderData(
     }
   } else if (VOLCENGINE_PLAN_PROVIDERS.has(provider ?? "") && values.volcConsoleCookie?.trim()) {
     target.volcConsoleCookie = values.volcConsoleCookie.trim();
+  } else if (XIAOMI_MIMO_PROVIDERS.has(provider ?? "") && values.xiaomiMimoConsoleCookie?.trim()) {
+    // Optional access: callers may pass a partial form object without the newer
+    // fields (same contract as the qwen branch above).
+    target.xiaomiMimoConsoleCookie = values.xiaomiMimoConsoleCookie.trim();
   }
 }

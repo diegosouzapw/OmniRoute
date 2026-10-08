@@ -18,7 +18,7 @@ const {
   resetCursorAgentCliVersionTestHooks,
 } = await import("../../open-sse/utils/cursorAgentCliVersion.ts");
 
-function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
+function withEnv(vars: Record<string, string | undefined>, fn: () => void | Promise<void>) {
   const saved: Record<string, string | undefined> = {};
   for (const key of Object.keys(vars)) {
     saved[key] = process.env[key];
@@ -26,13 +26,22 @@ function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
     if (next === undefined) delete process.env[key];
     else process.env[key] = next;
   }
-  try {
-    fn();
-  } finally {
+  const restore = () => {
     for (const key of Object.keys(saved)) {
       if (saved[key] === undefined) delete process.env[key];
       else process.env[key] = saved[key];
     }
+  };
+  try {
+    const result = fn();
+    if (result && typeof (result as Promise<void>).then === "function") {
+      return (result as Promise<void>).finally(restore);
+    }
+    restore();
+    return result;
+  } catch (err) {
+    restore();
+    throw err;
   }
 }
 
@@ -98,64 +107,75 @@ test("detectCursorAgentCliVersionFromFs uses CURSOR_DATA_DIR versions when no sh
   }
 });
 
-test("getCursorAgentCliVersion env override wins", () => {
-  withEnv({ CURSOR_AGENT_CLI_VERSION: "2026.01.02-abc1234" }, () => {
+test("getCursorAgentCliVersion env override wins", async () => {
+  await withEnv({ CURSOR_AGENT_CLI_VERSION: "2026.01.02-abc1234" }, async () => {
     resetCursorAgentCliVersionCache();
-    assert.equal(getCursorAgentCliVersion(), "2026.01.02-abc1234");
+    assert.equal(await getCursorAgentCliVersion(), "2026.01.02-abc1234");
   });
   resetCursorAgentCliVersionCache();
 });
 
-test("getCursorAgentCliVersion ignores invalid env and uses pin when FS empty", () => {
+test("getCursorAgentCliVersion ignores invalid env and uses pin when FS empty", async () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-pin-"));
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-pin-"));
   try {
-    withEnv(
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () => {
+        throw new Error("offline");
+      }) as typeof fetch,
+    });
+    await withEnv(
       {
         HOME: home,
         USERPROFILE: home,
         CURSOR_AGENT_CLI_VERSION: "3.9",
         CURSOR_DATA_DIR: undefined,
       },
-      () => {
+      async () => {
         resetCursorAgentCliVersionCache();
-        assert.equal(getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
+        assert.equal(await getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
       }
     );
   } finally {
-    resetCursorAgentCliVersionCache();
+    resetCursorAgentCliVersionTestHooks();
     fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
-test("getCursorAgentCliVersion caches until reset", () => {
-  withEnv({ CURSOR_AGENT_CLI_VERSION: "2026.02.03-111aaaa" }, () => {
+test("getCursorAgentCliVersion caches until reset", async () => {
+  await withEnv({ CURSOR_AGENT_CLI_VERSION: "2026.02.03-111aaaa" }, async () => {
     resetCursorAgentCliVersionCache();
-    assert.equal(getCursorAgentCliVersion(), "2026.02.03-111aaaa");
+    assert.equal(await getCursorAgentCliVersion(), "2026.02.03-111aaaa");
     process.env.CURSOR_AGENT_CLI_VERSION = "2026.02.03-222bbbb";
-    assert.equal(getCursorAgentCliVersion(), "2026.02.03-111aaaa", "cached");
+    assert.equal(await getCursorAgentCliVersion(), "2026.02.03-111aaaa", "cached");
     resetCursorAgentCliVersionCache();
-    assert.equal(getCursorAgentCliVersion(), "2026.02.03-222bbbb");
+    assert.equal(await getCursorAgentCliVersion(), "2026.02.03-222bbbb");
   });
   resetCursorAgentCliVersionCache();
 });
 
-test("getCursorAgentCliVersion reads CURSOR_DATA_DIR via isolated HOME", () => {
+test("getCursorAgentCliVersion reads CURSOR_DATA_DIR via isolated HOME", async () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-get-"));
   const data = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-data-get-"));
   try {
     const id = "2026.03.15-cafebabe";
     fs.mkdirSync(path.join(data, "versions", id), { recursive: true });
-    withEnv(
+    await withEnv(
       {
         HOME: home,
         USERPROFILE: home,
         CURSOR_DATA_DIR: data,
         CURSOR_AGENT_CLI_VERSION: undefined,
       },
-      () => {
+      async () => {
         resetCursorAgentCliVersionCache();
-        assert.equal(getCursorAgentCliVersion(), id);
-        assert.equal(formatCursorAgentClientVersion(getCursorAgentCliVersion()), `cli-${id}`);
+        assert.equal(await getCursorAgentCliVersion(), id);
+        assert.equal(
+          formatCursorAgentClientVersion(await getCursorAgentCliVersion()),
+          `cli-${id}`
+        );
       }
     );
   } finally {
@@ -193,17 +213,16 @@ test("disk cache hit serves immediately without blocking on network", async () =
       path.join(cacheDir, "cursor-agent-cli-version.json"),
       JSON.stringify({ version: cachedId, fetchedAt: Date.now() })
     );
-    withEnv(
+    await withEnv(
       {
         HOME: home,
         USERPROFILE: home,
         CURSOR_AGENT_CLI_VERSION: undefined,
         CURSOR_DATA_DIR: undefined,
       },
-      () => {
+      async () => {
         resetCursorAgentCliVersionCache();
-        // Sync path returns disk cache immediately (oakimov SWR may refresh in background).
-        assert.equal(getCursorAgentCliVersion(), cachedId);
+        assert.equal(await getCursorAgentCliVersion(), cachedId);
         assert.equal(fetchCalls, 0, "must not block on network");
       }
     );
@@ -245,23 +264,85 @@ test("invalid installer HTML falls through to pin", async () => {
   try {
     configureCursorAgentCliVersionForTests({
       cacheDir,
-      fetchImpl: (async () =>
-        new Response("<html>no lab url</html>", { status: 200 })) as typeof fetch,
+      fetchImpl: (async () => new Response("<html>no lab url</html>", { status: 200 })) as typeof fetch,
     });
-    withEnv(
+    await withEnv(
       {
         HOME: home,
         USERPROFILE: home,
         CURSOR_AGENT_CLI_VERSION: undefined,
         CURSOR_DATA_DIR: undefined,
       },
-      () => {
+      async () => {
         resetCursorAgentCliVersionCache();
-        assert.equal(getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
+        assert.equal(await getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
       }
     );
     const id = await refreshCursorAgentCliVersionFromInstaller();
     assert.equal(id, null);
+  } finally {
+    resetCursorAgentCliVersionTestHooks();
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+function installerHtml(id: string): string {
+  return `DOWNLOAD_URL="https://downloads.cursor.com/lab/${id}/\${OS}/\${ARCH}/agent-cli-package.tar.gz"`;
+}
+
+test("fetched install version newer than the pin is returned", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-newer-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-newer-"));
+  const fetchedId = "2026.10.01-e373342";
+  try {
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () => new Response(installerHtml(fetchedId), { status: 200 })) as typeof fetch,
+    });
+    await withEnv(
+      {
+        HOME: home,
+        USERPROFILE: home,
+        CURSOR_AGENT_CLI_VERSION: undefined,
+        CURSOR_DATA_DIR: undefined,
+      },
+      async () => {
+        resetCursorAgentCliVersionCache();
+        assert.equal(await getCursorAgentCliVersion(), "2026.07.08-0c04a8a");
+        assert.equal(await refreshCursorAgentCliVersionFromInstaller(), fetchedId);
+        assert.equal(await getCursorAgentCliVersion(), fetchedId);
+      }
+    );
+  } finally {
+    resetCursorAgentCliVersionTestHooks();
+    fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    fs.rmSync(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("rejected install fetch keeps the pin", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-cache-reject-"));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "cursor-cli-home-reject-"));
+  try {
+    configureCursorAgentCliVersionForTests({
+      cacheDir,
+      fetchImpl: (async () => {
+        throw new Error("network down");
+      }) as typeof fetch,
+    });
+    await withEnv(
+      {
+        HOME: home,
+        USERPROFILE: home,
+        CURSOR_AGENT_CLI_VERSION: undefined,
+        CURSOR_DATA_DIR: undefined,
+      },
+      async () => {
+        resetCursorAgentCliVersionCache();
+        assert.equal(await getCursorAgentCliVersion(), CURSOR_AGENT_CLI_VERSION);
+      }
+    );
   } finally {
     resetCursorAgentCliVersionTestHooks();
     fs.rmSync(cacheDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

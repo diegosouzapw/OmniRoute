@@ -1,0 +1,1 @@
+- **fix(providers):** Keep Claude accounts routable when active critical usage warnings still report remaining quota; report the actual reset of the blocking account and model windows. ([#15624](https://github.com/diegosouzapw/OmniRoute/pull/15624)).

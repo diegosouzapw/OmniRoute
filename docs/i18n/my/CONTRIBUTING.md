@@ -402,20 +402,20 @@ Model definition များကို `open-sse/config/providerRegistry.ts` တ
 
 ## Pull Request စစ်ဆေးရန်စာရင်း
 
-- [ ] Tests များ အောင်မြင်သည် (`npm test`)
-- [ ] Linting အောင်မြင်သည် (`npm run lint`)
-- [ ] Build အောင်မြင်သည် (`npm run build`)
-- [ ] Public function နှင့် interface အသစ်များအတွက် TypeScript types များ ထည့်သွင်းထားသည်
-- [ ] Hardcoded secrets သို့မဟုတ် fallback values များ မရှိပါ
-- [ ] အများသုံး upstream credentials များကို literal များအဖြစ် လုံးဝမထည့်ဘဲ `resolvePublicCred()` မှတစ်ဆင့် ထည့်သွင်းထားသည် ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ကို ကြည့်ပါ)
-- [ ] Error response များသည် `buildErrorBody()` / `sanitizeErrorMessage()` ကို ဖြတ်သန်းသည် — response body များထဲတွင် raw stack trace များ မပါဝင်ပါ ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ကို ကြည့်ပါ)
-- [ ] Shell commands (`exec` / `spawn`) များသည် runtime values များကို string interpolation ဖြင့် မဟုတ်ဘဲ `env` မှတစ်ဆင့် ပေးပို့သည်
-- [ ] Input အားလုံးကို Zod schemas များဖြင့် အတည်ပြုစစ်ဆေးထားသည်
-- [ ] အသုံးပြုသူနှင့် သက်ဆိုင်သော ပြောင်းလဲမှုများအတွက် Changelog **fragment** ကို `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` အောက်တွင် ထည့်သွင်းထားသည် ([`changelog.d/README.md`](./changelog.d/README.md) ကို ကြည့်ပါ) — `CHANGELOG.md` ကို တိုက်ရိုက် **မပြင်ဆင်ပါနှင့်**။ Fragment များကို release လုပ်ချိန်တွင် စုစည်းပြီး PR များအကြား မည်သည့်အခါမျှ conflict မဖြစ်ပါ
-- [ ] Documentation ကို အပ်ဒိတ်လုပ်ထားသည် (သက်ဆိုင်ပါက)
-- [ ] CodeQL / Secret-Scanning alert အသစ်များ မဖွင့်ထားပါ၊ သို့မဟုတ် alert တစ်ခုချင်းစီကို သက်ဆိုင်ရာ `docs/security/` doc ကို ကိုးကားသည့် နည်းပညာဆိုင်ရာ အကြောင်းပြချက်ဖြင့် ပယ်ဖျက်ထားသည်
-- [ ] Child process များကို စတင်သည့် routes (`/api/mcp/`, `/api/cli-tools/runtime/`) ကို `src/server/authz/routeGuard.ts` ရှိ `isLocalOnlyPath()` အဖြစ် အမျိုးအစားသတ်မှတ်ထားသည် — [တင်းကျပ်သော စည်းမျဉ်း #15](docs/security/ROUTE_GUARD_TIERS.md) ကို ကြည့်ပါ
-- [ ] Commit message များတွင် `Co-Authored-By` trailers မပါဝင်ပါ — commit များသည် repository ပိုင်ရှင်၏ Git identity တစ်ခုတည်းအောက်တွင်သာ ပေါ်ရမည် (တင်းကျပ်သော စည်းမျဉ်း #16)
+- [ ] စမ်းသပ်မှုများ အောင်မြင်သည် (`npm test`)
+- [ ] Linting စစ်ဆေးမှုများ အောင်မြင်သည် (`npm run lint`)
+- [ ] Build ပြုလုပ်မှု အောင်မြင်သည် (`npm run build`)
+- [ ] အများသုံး function နှင့် interface အသစ်များအတွက် TypeScript type များ ထည့်သွင်းထားသည်
+- [ ] Hardcode လုပ်ထားသော secret သို့မဟုတ် fallback value များ မရှိပါ
+- [ ] အများသုံး upstream credential များကို literal များအဖြစ် မသုံးဘဲ `resolvePublicCred()` မှတစ်ဆင့် ထည့်သွင်းထားသည် ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) ကို ကြည့်ပါ)
+- [ ] Error response များကို `buildErrorBody()` / `sanitizeErrorMessage()` မှတစ်ဆင့် ဖြတ်သန်းစေထားပြီး response body များတွင် မူရင်း stack trace များ မပါဝင်ပါ ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) ကို ကြည့်ပါ)
+- [ ] Shell command များ (`exec` / `spawn`) သည် runtime value များကို string interpolation မှတစ်ဆင့် မဟုတ်ဘဲ `env` မှတစ်ဆင့် ပေးပို့သည်
+- [ ] Input အားလုံးကို Zod schema များဖြင့် စစ်ဆေးအတည်ပြုထားသည်
+- [ ] အသုံးပြုသူအပေါ် သက်ရောက်သည့် ပြောင်းလဲမှုများအတွက် Changelog **fragment** ကို `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` အောက်တွင် ထည့်သွင်းထားသည် ([`changelog.d/README.md`](./changelog.d/README.md) ကို ကြည့်ပါ) — `CHANGELOG.md` ကို တိုက်ရိုက် **မပြင်ဆင်ပါနှင့်**၊ fragment များကို release ပြုလုပ်ချိန်တွင် စုစည်းပြီး PR များအကြား conflict မဖြစ်စေပါ
+- [ ] Documentation ကို လိုအပ်ပါက အပ်ဒိတ်လုပ်ထားသည်
+- [ ] CodeQL / Secret-Scanning alert အသစ်များ မပေါ်လာပါ၊ သို့မဟုတ် alert တစ်ခုချင်းစီကို သက်ဆိုင်ရာ `docs/security/` doc အား ကိုးကားထားသည့် နည်းပညာဆိုင်ရာ အကြောင်းပြချက်ဖြင့် ပယ်ချထားသည်
+- [ ] Child process များကို စတင်သည့် route များ (`/api/mcp/`, `/api/cli-tools/runtime/`) ကို `src/server/authz/routeGuard.ts` ရှိ `isLocalOnlyPath()` အဖြစ် သတ်မှတ်ထားသည် — [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md) ကို ကြည့်ပါ
+- [ ] Commit message များတွင် AI/bot `Co-authored-by` trailer များ မပါဝင်ပါ (Hard Rule #16) — ပြန်လည်အသုံးပြုထားသော အလုပ်၏ လူသားပူးပေါင်းဆောင်ရွက်သူများကို စံသတ်မှတ်ထားသည့် `Co-authored-by: Name <email>` trailer များဖြင့် အသိအမှတ်ပြုထားသည်
 
 ---
 

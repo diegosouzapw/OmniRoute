@@ -120,16 +120,16 @@ Accès via : WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Configuration des fournisseurs
 
-Pour ajouter en masse des connexions par clé API depuis un fichier CSV ou JSON, utilisez **Tableau de bord → Fournisseurs → Importer depuis un fichier**. Les colonnes sont positionnelles (`provider,name,apiKey,baseUrl,priority`) ; `provider` doit déjà exister en tant que fournisseur géré ou nœud compatible. Consultez [Importer des fournisseurs depuis un fichier CSV ou JSON](../providers/CSV-IMPORT.md).
+Pour ajouter en masse des connexions par clé API à partir d’un fichier CSV ou JSON, utilisez **Tableau de bord → Fournisseurs → Importer depuis un fichier**. Les colonnes sont positionnelles (`provider,name,apiKey,baseUrl,priority`) ; `provider` doit déjà exister en tant que fournisseur géré ou nœud compatible. Consultez [Importer des fournisseurs depuis un fichier CSV ou JSON](../providers/CSV-IMPORT.md).
 
-### 🔐 Fournisseurs avec abonnement
+### 🔐 Fournisseurs par abonnement
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Tableau de bord → Fournisseurs → Connecter Claude Code
 → Connexion OAuth → Actualisation automatique du jeton
-→ Suivi des quotas sur 5 heures et hebdomadaire
+→ Suivi des quotas sur 5 heures et hebdomadaires
 
 Modèles :
   cc/claude-opus-4-7
@@ -137,18 +137,18 @@ Modèles :
   cc/claude-haiku-4-5-20251001
 ```
 
-**Conseil :** utilisez Opus pour les tâches complexes et Sonnet pour la rapidité. OmniRoute suit le quota pour chaque modèle !
+**Conseil de pro :** utilisez Opus pour les tâches complexes et Sonnet pour la rapidité. OmniRoute suit le quota par modèle !
 
-Les routes compatibles avec Claude et Claude Code conservent l’effort de réflexion `max` pour les
-modèles Opus et Sonnet. Les modèles Haiku n’acceptent pas le niveau d’effort `max` ; OmniRoute
-réduit donc cette requête à un budget de réflexion élevé avant de l’envoyer au fournisseur en amont.
+Aucun navigateur sur l’hôte OmniRoute ? Exécutez `claude setup-token` partout où Claude Code est connecté, puis collez le jeton valable un an dans l’onglet **Jeton de configuration**. Consultez [Claude Code avec un jeton de configuration](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Les routes compatibles avec Claude et Claude Code conservent l’effort de réflexion `max` pour les modèles Opus et Sonnet. Les modèles Haiku n’acceptent pas le niveau d’effort `max` ; OmniRoute abaisse donc cette requête à un budget de réflexion élevé avant de l’envoyer au fournisseur en amont.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Tableau de bord → Fournisseurs → Connecter Codex
 → Connexion OAuth (port 1455)
-→ Réinitialisation toutes les 5 heures et chaque semaine
+→ Réinitialisation toutes les 5 heures et hebdomadaire
 
 Modèles :
   cx/gpt-5.5
@@ -180,21 +180,21 @@ Modèles :
 2. Obtenez une clé API depuis Coding Plan
 3. Tableau de bord → Ajouter une clé API : Fournisseur : `glm`, Clé API : `your-key`
 
-**Utilisation :** `glm/glm-4.7` — **Conseil :** Coding Plan offre un quota 3 fois supérieur pour un coût divisé par 7 ! Réinitialisation quotidienne à 10 h 00.
+**Utilisation :** `glm/glm-4.7` — **Conseil de pro :** Coding Plan offre un quota 3× supérieur pour 1/7 du coût ! Réinitialisation quotidienne à 10 h 00.
 
 #### MiniMax M2.1 (Réinitialisation toutes les 5 h, 0,20 $/1M)
 
 1. Inscrivez-vous : [MiniMax](https://www.minimax.io)
 2. Obtenez une clé API → Tableau de bord → Ajouter une clé API
 
-**Utilisation :** `minimax/MiniMax-M2.1` — **Conseil :** l’option la moins chère pour les contextes longs (1M de jetons) !
+**Utilisation :** `minimax/MiniMax-M2.1` — **Conseil de pro :** l’option la moins chère pour les contextes longs (1M de jetons) !
 
-#### Kimi K2 (Forfait de 9 $/mois)
+#### Kimi K2 (Forfait fixe de 9 $/mois)
 
 1. Abonnez-vous : [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Obtenez une clé API → Tableau de bord → Ajouter une clé API
 
-**Utilisation :** `kimi/kimi-k2.5` — **Conseil :** forfait fixe de 9 $/mois pour 10M de jetons, soit un coût effectif de 0,90 $/1M !
+**Utilisation :** `kimi/kimi-k2.5` — **Conseil de pro :** un forfait fixe de 9 $/mois pour 10M de jetons, soit un coût effectif de 0,90 $/1M !
 
 #### Baidu Qianfan / ERNIE
 
@@ -205,8 +205,8 @@ Modèles :
 
 ### 🆓 Fournisseurs GRATUITS
 
-Les fournisseurs gratuits sans authentification disposent d’un bouton à côté de **Aucune authentification requise** sur leur page.
-Sa désactivation désactive le fournisseur, le retire des vues configurée/compacte des fournisseurs et
+Les fournisseurs gratuits sans authentification disposent d’un interrupteur à côté de **Aucune authentification requise** sur leur page.
+Sa désactivation désactive ce fournisseur, le retire des vues configurée/compacte des fournisseurs et
 retire ses modèles de `/v1/models`.
 
 #### Qoder (9 modèles GRATUITS)

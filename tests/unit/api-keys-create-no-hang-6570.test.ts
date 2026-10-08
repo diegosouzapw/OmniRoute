@@ -56,10 +56,10 @@ test.after(async () => {
 
 test("POST /api/keys responds promptly even when the Cloud-sync fetch hangs forever (#6570)", async () => {
   await enableManagementAuth();
-  // cloudEnabled defaults to true on a fresh install (no settings row yet) —
-  // simulate that "fresh install" condition explicitly for clarity/documentation.
+  // Exercise the opt-in path: a fresh install now leaves cloud sync disabled.
+  await localDb.updateSettings({ cloudEnabled: true });
   const settings = await localDb.getSettings();
-  assert.equal(settings.cloudEnabled, true, "cloudEnabled should default to true pre-fix");
+  assert.equal(settings.cloudEnabled, true, "this fixture explicitly enables cloud sync");
 
   const originalFetch = globalThis.fetch;
   // Simulate a slow/unreachable Cloud endpoint: a fetch() that never settles.

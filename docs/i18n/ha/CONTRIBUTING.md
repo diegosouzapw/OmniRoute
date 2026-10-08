@@ -401,20 +401,20 @@ Rubuta unit tests a `tests/unit/` waɗanda aƙalla za su rufe:
 
 ## Jerin Dubawa na Pull Request
 
-- [ ] Tests sun yi nasara (`npm test`)
-- [ ] Linting ya yi nasara (`npm run lint`)
-- [ ] Build ya yi nasara (`npm run build`)
-- [ ] An ƙara TypeScript types don sabbin public functions da interfaces
-- [ ] Babu hardcoded secrets ko fallback values
-- [ ] An saka public upstream credentials ta hanyar `resolvePublicCred()` (duba [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ba a matsayin literals ba
-- [ ] Error responses suna bi ta `buildErrorBody()` / `sanitizeErrorMessage()` — babu ainihin stack traces a jikin responses (duba [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell commands (`exec` / `spawn`) suna tura runtime values ta `env`, ba ta string interpolation ba
-- [ ] An tabbatar da ingancin duk inputs da Zod schemas
-- [ ] An ƙara **fragment** na changelog a ƙarƙashin `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` don sauye-sauyen da masu amfani za su gani (duba [`changelog.d/README.md`](./changelog.d/README.md)) — **kar a** gyara `CHANGELOG.md` kai tsaye; ana haɗa fragments a lokacin release kuma ba sa taɓa samun rikici tsakanin PRs
-- [ ] An sabunta documentation (idan ya dace)
-- [ ] Babu sababbin faɗakarwar CodeQL / Secret-Scanning da aka buɗe, ko kuma an yi watsi da kowacce tare da hujjar fasaha mai nuni ga takardar `docs/security/` da ta dace
-- [ ] Routes da ke ƙaddamar da child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) an rarraba su a matsayin `isLocalOnlyPath()` a `src/server/authz/routeGuard.ts` — duba [Ƙa'ida Mai Tsauri #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Babu trailers na `Co-Authored-By` a cikin commit messages — dole commits su bayyana a ƙarƙashin Git identity na mai repository kawai (Ƙa'ida Mai Tsauri #16)
+- [ ] Gwaje-gwaje sun yi nasara (`npm test`)
+- [ ] Binciken lint ya yi nasara (`npm run lint`)
+- [ ] Gina ya yi nasara (`npm run build`)
+- [ ] An ƙara nau'ikan TypeScript don sabbin public functions da interfaces
+- [ ] Babu secrets ko fallback values da aka rubuta kai tsaye
+- [ ] An saka public upstream credentials ta hanyar `resolvePublicCred()` (duba [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), ba a taɓa saka su kai tsaye a matsayin literals ba
+- [ ] Error responses suna bi ta `buildErrorBody()` / `sanitizeErrorMessage()` — babu raw stack traces a cikin response bodies (duba [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) suna aika runtime values ta `env`, ba ta hanyar string interpolation ba
+- [ ] An tantance dukkan inputs da Zod schemas
+- [ ] An ƙara **fragment** na changelog a ƙarƙashin `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` don canje-canjen da masu amfani za su gani (duba [`changelog.d/README.md`](./changelog.d/README.md)) — **kada** a gyara `CHANGELOG.md` kai tsaye; ana haɗa fragments lokacin release kuma ba sa taɓa cin karo tsakanin PRs
+- [ ] An sabunta takardu (idan ya dace)
+- [ ] Ba a buɗe sabbin faɗakarwar CodeQL / Secret-Scanning ba, ko kuma an yi watsi da kowannensu tare da hujjar fasaha mai nuni zuwa takardar `docs/security/` da ta dace
+- [ ] An rarraba routes da ke ƙaddamar da child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) a matsayin `isLocalOnlyPath()` a cikin `src/server/authz/routeGuard.ts` — duba [Ƙa'ida Mai Tsauri #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Babu trailers na AI/bot na `Co-authored-by` a cikin commit messages (Ƙa'ida Mai Tsauri #16) — ana yaba wa human collaborators waɗanda aka sake amfani da aikinsu da daidaitattun trailers na `Co-authored-by: Name <email>`
 
 ---
 

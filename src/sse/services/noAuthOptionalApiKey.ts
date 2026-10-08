@@ -69,7 +69,8 @@ export async function loadOptionalNoAuthApiKeyCredentials(
   lastErrorSource: null;
   errorCode: null;
   rateLimitedUntil: null;
-  maxConcurrent: null;
+  maxConcurrent: number | null;
+  rateLimitMaxConcurrent: number | null;
   /** Normalized per-model caps from the stored connection (fail-open → null). */
   modelConcurrency: Record<string, number> | null;
 } | null> {
@@ -125,7 +126,8 @@ export async function loadOptionalNoAuthApiKeyCredentials(
     lastErrorSource: null,
     errorCode: null,
     rateLimitedUntil: null,
-    maxConcurrent: null,
+    maxConcurrent: connection.maxConcurrent,
+    rateLimitMaxConcurrent: connection.rateLimitMaxConcurrent,
     // Same fail-open propagation as auth.ts materialization: caps configured
     // on this stored connection apply; anything else acquires no model gate.
     modelConcurrency: normalizeModelConcurrencyMap(connection.rateLimitOverrides?.modelConcurrency),

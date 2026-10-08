@@ -1,0 +1,1 @@
+- **docs(readme):** list the `auto/subscription` and `auto/thrifty` subscription-first auto combos (#11146) in the README's zero-config `auto` table, linking the subscription ladder guide — thanks @yourspraveen

@@ -62,6 +62,7 @@ export interface ProviderConnectionView {
   errorCode: string | number | null;
   backoffLevel: number;
   maxConcurrent: number | null;
+  rateLimitMaxConcurrent: number | null;
   quotaWindowThresholds: Record<string, number> | null;
   /**
    * Per-connection rate limit overrides as parsed from the JSON column.
@@ -77,6 +78,7 @@ export interface ProviderConnectionView {
  */
 export function toProviderConnection(value: unknown): ProviderConnectionView {
   const row = asRecord(value);
+  const rateLimitMaxConcurrent = toNullableNumber(asRecord(row.rateLimitOverrides).maxConcurrent);
   const rawThresholds = row.quotaWindowThresholds;
   const quotaWindowThresholds: Record<string, number> | null =
     rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
@@ -113,6 +115,8 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
+    rateLimitMaxConcurrent:
+      rateLimitMaxConcurrent !== null && rateLimitMaxConcurrent > 0 ? rateLimitMaxConcurrent : null,
     quotaWindowThresholds,
     rateLimitOverrides,
   };

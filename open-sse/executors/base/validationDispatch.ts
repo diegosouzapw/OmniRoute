@@ -13,6 +13,7 @@ export type ProviderCredentials = {
    * selection; the chat core resolves the exact-model cap fail-open.
    */
   modelConcurrency?: Record<string, number> | null;
+  rateLimitMaxConcurrent?: number | null;
   providerSpecificData?: Record<string, unknown>;
   requestEndpointPath?: string;
 };

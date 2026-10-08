@@ -13,8 +13,10 @@ interface CtxOpts {
   modelCacheTtlMs?: number;
 }
 
+const requestedPaths: string[] = [];
+
 function stubFetch(
-  counter: { models: number; combos: number; autoCombos?: number; enrichment?: number },
+  counter: { models: number; combos: number; enrichment?: number },
   modelIds: string[]
 ) {
   return (async (url: unknown) => {
@@ -23,10 +25,7 @@ function stubFetch(
       if (counter.enrichment !== undefined) counter.enrichment += 1;
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }
-    if (href.includes("/api/combos/auto")) {
-      if (counter.autoCombos !== undefined) counter.autoCombos += 1;
-      return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-    }
+    requestedPaths.push(new URL(href).pathname);
     if (href.includes("/api/combos")) {
       counter.combos += 1;
       return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
@@ -36,7 +35,9 @@ function stubFetch(
       ok: true,
       status: 200,
       statusText: "OK",
-      json: async () => ({ data: modelIds.map((id) => ({ id })) }),
+      json: async () => ({
+        data: modelIds.map((id) => ({ id, capabilities: { tool_calling: true } })),
+      }),
     };
   }) as typeof fetch;
 }
@@ -89,7 +90,10 @@ async function setupPlugin(opts: CtxOpts): Promise<{
 
 function publishedOf(added: unknown[]): Map<string, Record<string, unknown>> {
   const published = new Map<string, Record<string, unknown>>();
-  for (const entry of added as Array<{ info: { id: string }; models: Array<Record<string, unknown>> }>) {
+  for (const entry of added as Array<{
+    info: { id: string };
+    models: Array<Record<string, unknown>>;
+  }>) {
     for (const m of entry.models) published.set(entry.info.id + "/" + String(m.id), m);
   }
   return published;
@@ -132,7 +136,8 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
 
   it("2nd transform within TTL -> 0 network fetches (stub counter)", async () => {
     const disk = isolateDisk();
-    const counter = { models: 0, combos: 0, autoCombos: 0 };
+    const counter = { models: 0, combos: 0 };
+    requestedPaths.length = 0;
     const origFetch = globalThis.fetch;
     globalThis.fetch = stubFetch(counter, ["m1"]);
     try {
@@ -144,7 +149,10 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
       const published = publishedOf(added);
       assert.equal(counter.models, 1);
       assert.equal(counter.combos, 1);
-      assert.equal(counter.autoCombos, 1);
+      assert.ok(
+        !requestedPaths.some((p) => p.includes("/api/combos/auto")),
+        `retired route must never be requested, got ${JSON.stringify(requestedPaths)}`
+      );
       assert.ok(published.has("ttl-hit/m1"));
     } finally {
       globalThis.fetch = origFetch;
@@ -203,9 +211,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
           statusText: "OK",
           json: async () => ({ data: [{ id: "m1" }] }),
         };
-      }
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
       if (href.includes("/api/providers")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
@@ -269,9 +274,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
       const href = String(url);
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
-      }
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
@@ -362,7 +364,6 @@ describe("the snapshot carries the display overlay across a restart", () => {
         {
           models: [{ id: "cc/sonnet" }],
           combos: [],
-          autoCombos: [],
           providers: [],
           enrichment,
           fetchedAt: Date.now(),

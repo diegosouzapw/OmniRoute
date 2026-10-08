@@ -9,18 +9,17 @@
 //
 // Card/Toggle are imported from their direct module paths (not the @/shared/components
 // barrel) — the barrel pulls a Node-only module that hangs vitest/jsdom.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import Toggle from "@/shared/components/Toggle";
+import Button from "@/shared/components/Button";
 import { SAMPLE_BEFORE_TEXT, SAMPLE_PAGE_PNG_DATA_URI, SAMPLE_METRICS } from "./sampleData";
 
 interface CompressionConfigLite {
   engines?: Record<string, { enabled: boolean; level?: string }>;
   omniglyph?: { profile?: string };
 }
-
-type EngineMap = Record<string, { enabled: boolean; level?: string }>;
 
 /** Perfis do pacote, na ordem do mais permissivo ao mais restrito. O primeiro é
  *  o default: a política que os recibos publicados mediram. */
@@ -242,85 +241,116 @@ function EnableCard(props: {
   );
 }
 
+// Shown in place of the controls while the settings load has failed: a save built from the
+// defaults would write over the stored engines row.
+function LoadErrorCard(props: { onRetry: () => void }) {
+  const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between gap-4">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {t("compressionTitle")}: {tCommon("failedToLoad")}
+        </p>
+        <Button size="sm" variant="secondary" onClick={props.onRetry}>
+          {t("retry")}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 export default function OmniglyphContextPageClient() {
-  const [engines, setEngines] = useState<EngineMap>({});
   const [enabled, setEnabled] = useState(false);
   const [profile, setProfile] = useState<ProfileId>("aggressive");
   const [loading, setLoading] = useState(true);
+  // The defaults above are not the stored engines, so the controls wait for a GET that
+  // succeeds. A failed load shows a retry, which bumps loadAttempt to re-run the load.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
+  const saveGenRef = useRef(0);
 
   useEffect(() => {
+    // A retry re-runs the load; answers that arrive for the run it replaced are rejected
+    // here and dropped by the catch, so they never reach the state setters.
+    let ignore = false;
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
+      .then((data: CompressionConfigLite | null) =>
+        ignore ? Promise.reject(new Error("load superseded")) : data
+      )
       .then((data: CompressionConfigLite | null) => {
-        const e = data?.engines ?? {};
-        setEngines(e);
-        setEnabled(e.omniglyph?.enabled === true);
+        setEnabled(data?.engines?.omniglyph?.enabled === true);
         const stored = data?.omniglyph?.profile;
         if (PROFILES.some((p) => p.id === stored)) setProfile(stored as ProfileId);
+        setLoadFailed(!data);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Persist the FULL engines map (the store keeps it as one JSON row — a partial patch
-  // of a single engine would drop the others). Mirrors CompressionPanel.setEngine.
-  const toggle = async (next: boolean) => {
-    setEnabled(next);
-    const nextEngines: EngineMap = {
-      ...engines,
-      omniglyph: { ...(engines.omniglyph ?? { enabled: false }), enabled: next },
+      .catch(() => {
+        if (!ignore) setLoadFailed(true);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
     };
-    setEngines(nextEngines);
+  }, [loadAttempt]);
+
+  // PUT one settings patch; a failed save runs `rollback`. The saved status clears after 2s
+  // unless a later save has started since, so it never clears that save's error.
+  const save = async (body: Record<string, unknown>, rollback: () => void) => {
+    const gen = ++saveGenRef.current;
     setSaving(true);
     setStatus("");
+    let ok = false;
     try {
       const res = await fetch("/api/settings/compression", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engines: nextEngines }),
+        body: JSON.stringify(body),
       });
-      if (res.ok) {
-        setStatus("saved");
-        setTimeout(() => setStatus(""), 2000);
-      } else {
-        setStatus("error");
-      }
+      ok = res.ok;
     } catch {
-      setStatus("error");
-    } finally {
-      setSaving(false);
+      // A network failure is a failed save.
     }
+    setSaving(false);
+    if (!ok) {
+      rollback();
+      setStatus("error");
+      return;
+    }
+    setStatus("saved");
+    setTimeout(() => {
+      if (gen === saveGenRef.current) setStatus("");
+    }, 2000);
   };
 
-  // O perfil vive na config do engine (não no mapa `engines`), então é um PATCH
-  // próprio — misturá-lo no payload do toggle reescreveria o mapa inteiro.
-  const changeProfile = async (next: ProfileId) => {
+  // The server merges `engines` by engine id, so the toggle sends only the omniglyph entry.
+  const toggle = (next: boolean) => {
+    const previous = enabled;
+    setEnabled(next);
+    void save({ engines: { omniglyph: { enabled: next } } }, () => setEnabled(previous));
+  };
+
+  // O perfil vive na config do engine (não no mapa `engines`), então vai num PUT próprio.
+  const changeProfile = (next: ProfileId) => {
     const previous = profile;
     setProfile(next);
-    setSaving(true);
-    setStatus("");
-    try {
-      const res = await fetch("/api/settings/compression", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ omniglyph: { profile: next } }),
-      });
-      if (res.ok) {
-        setStatus("saved");
-        setTimeout(() => setStatus(""), 2000);
-      } else {
-        setProfile(previous);
-        setStatus("error");
-      }
-    } catch {
-      setProfile(previous);
-      setStatus("error");
-    } finally {
-      setSaving(false);
-    }
+    void save({ omniglyph: { profile: next } }, () => setProfile(previous));
   };
+
+  if (loadFailed) {
+    return (
+      <LoadErrorCard
+        onRetry={() => {
+          setLoading(true);
+          setLoadAttempt((attempt) => attempt + 1);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="omniglyph-page">

@@ -1,0 +1,1 @@
+- **fix(api):** log wrapper admission rejections to the request journal with their status and reason ([#15482](https://github.com/diegosouzapw/OmniRoute/pull/15482)) — thanks @maxmad64bis

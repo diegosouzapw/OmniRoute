@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   stryker:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: Stryker mutation (batch ${{ matrix.batch.name }} — advisory)
     runs-on: ubuntu-latest
     # Mutation testing is expensive. History of the budget:
@@ -144,7 +145,7 @@ jobs:
   mutation-ratchet:
     name: Mutation score ratchet (blocking)
     needs: stryker
-    if: always()
+    if: ${{ always() && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

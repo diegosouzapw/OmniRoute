@@ -31,16 +31,30 @@ export async function GET(request: Request) {
     // #14889: every variant below is built from the same candidate pool, so prepare
     // it once per request. createVirtualAutoCombo() prepares it again on each call,
     // which made this route rebuild the whole pool once per listed variant.
-    const prepared = await prepareVirtualAutoComboInputs();
+    // Resolve capabilities once as well: the prepared pool carries them, so each
+    // variant filter reads the snapshot instead of the database per candidate.
+    const prepared = await prepareVirtualAutoComboInputs({
+      includeResolvedCapabilities: true,
+    });
 
-    const combos = [];
+    const combos: Array<Record<string, unknown>> = [];
     const seenIds = new Set<string>();
-    for (const { variant, name } of ALL_VARIANTS) {
+    const skipped: Array<{ id: string; reason: string }> = [];
+    const pushVariant = async (id: string, build: () => Promise<(typeof combos)[number]>) => {
+      if (seenIds.has(id)) return;
       try {
-        const virtual = await createVirtualAutoComboFromPrepared(prepared, variant);
-        const id = variant ? `auto/${variant}` : "auto";
+        combos.push(await build());
         seenIds.add(id);
-        combos.push({
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        skipped.push({ id, reason: reason.replace(/[\r\n\t]+/g, " ").trim() });
+      }
+    };
+    for (const { variant, name } of ALL_VARIANTS) {
+      const id = variant ? `auto/${variant}` : "auto";
+      await pushVariant(id, async () => {
+        const virtual = await createVirtualAutoComboFromPrepared(prepared, variant);
+        return {
           id,
           name,
           variant: variant ?? null,
@@ -57,10 +71,8 @@ export async function GET(request: Request) {
           context_length: virtual.advertisedContextLength || 128000,
           max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
-        });
-      } catch {
-        // Individual variant failure — skip, don't break the whole list
-      }
+        };
+      });
     }
 
     // Phase B: enumerate template variants (auto/best-coding, auto/pro-*,
@@ -70,16 +82,16 @@ export async function GET(request: Request) {
     // ids (auto/reasoning, auto/vision), matching catalog.ts behavior.
     for (const modelStr of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
       if (seenIds.has(modelStr)) continue;
-      try {
-        const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
-        const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
+      const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
+      const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
+      await pushVariant(modelStr, async () => {
         const virtual = await createVirtualAutoComboFromPrepared(prepared, variant, spec);
 
         const displayName = variant
           ? `Auto ${variant.charAt(0).toUpperCase() + variant.slice(1)}`
           : "Auto Chat";
 
-        combos.push({
+        return {
           id: modelStr,
           name: displayName,
           variant: null,
@@ -94,11 +106,8 @@ export async function GET(request: Request) {
           context_length: virtual.advertisedContextLength || 128000,
           max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
-        });
-        seenIds.add(modelStr);
-      } catch {
-        // Individual variant failure — skip, don't break the whole list
-      }
+        };
+      });
     }
 
     // Phase C: enumerate tiered `auto/<category>[:<tier>]` variants
@@ -107,11 +116,11 @@ export async function GET(request: Request) {
     // exposed by this endpoint.
     for (const modelStr of AUTO_SUFFIX_VARIANTS) {
       if (seenIds.has(modelStr)) continue;
-      try {
-        const suffix = modelStr.slice("auto/".length);
-        const parsed = parseAutoSuffix(suffix);
-        if (!parsed.valid) continue;
+      const suffix = modelStr.slice("auto/".length);
+      const parsed = parseAutoSuffix(suffix);
+      if (!parsed.valid) continue;
 
+      await pushVariant(modelStr, async () => {
         const virtual = await createVirtualAutoComboFromPrepared(prepared, undefined, {
           category: parsed.category,
           tier: parsed.tier,
@@ -126,7 +135,7 @@ export async function GET(request: Request) {
           : "";
         const displayName = tierName ? `${catName} ${tierName}` : catName;
 
-        combos.push({
+        return {
           id: modelStr,
           name: `Auto ${displayName}`,
           variant: null,
@@ -141,11 +150,8 @@ export async function GET(request: Request) {
           context_length: virtual.advertisedContextLength || 128000,
           max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
-        });
-        seenIds.add(modelStr);
-      } catch {
-        // Individual variant failure — skip, don't break the whole list
-      }
+        };
+      });
     }
 
     // Phase D: enumerate family variants (auto/glm, auto/llama,
@@ -153,15 +159,15 @@ export async function GET(request: Request) {
     // but were not exposed by this endpoint.
     for (const modelStr of AUTO_FAMILY_IDS) {
       if (seenIds.has(modelStr)) continue;
-      try {
-        const suffix = modelStr.slice("auto/".length);
+      const suffix = modelStr.slice("auto/".length);
+      await pushVariant(modelStr, async () => {
         const virtual = await createVirtualAutoComboFromPrepared(prepared, undefined, {
           family: suffix,
         });
 
         const displayName = `Auto ${suffix.charAt(0).toUpperCase() + suffix.slice(1)}`;
 
-        combos.push({
+        return {
           id: modelStr,
           name: displayName,
           variant: null,
@@ -176,11 +182,17 @@ export async function GET(request: Request) {
           context_length: virtual.advertisedContextLength || 128000,
           max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
-        });
-        seenIds.add(modelStr);
-      } catch {
-        // Individual variant failure — skip, don't break the whole list
-      }
+        };
+      });
+    }
+
+    // An id that failed in one loop but built in a later one is not skipped.
+    const missing = skipped.filter((s) => !seenIds.has(s.id));
+    if (missing.length > 0) {
+      const ids = [...new Set(missing.map((s) => s.id))].join(", ");
+      console.warn(
+        `auto combo variants skipped: ${ids} (first error: ${missing[0].reason.slice(0, 300)})`
+      );
     }
 
     return NextResponse.json({ combos });

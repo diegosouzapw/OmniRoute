@@ -98,6 +98,22 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Anti-thundering-herd guard:** prevents concurrent failures from over-extending cooldown or double-incrementing `backoffLevel`.
 
+**Stream content stalls do not cool the account.** When the content-stall watchdog
+(`open-sse/utils/streamHandler.ts`) gives up on a stream that sent no model output in
+time, `markAccountUnavailable()` records the error on the connection but sets no
+cooldown: the stall belongs to that request, most often a long reasoning turn with no
+output yet. Operators can opt back in with `resilienceSettings.streamStallCooldown.enabled`
+(default `false`).
+
+**Reasoning frames restart the content-stall budget.** A reasoning model can think for
+minutes before its first visible token: Claude streams `thinking_delta` frames whose
+thinking text may be empty, and the Responses API streams one reasoning item after
+another. `isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) recognises
+these frames, and the watchdog restarts its budget on each one instead of cancelling the
+turn. They are still not model output, so a turn that ends with reasoning only is still
+reported as empty, and a turn that stops reasoning and only sends heartbeats still trips
+the watchdog.
+
 **Terminal states (NOT cooldowns):**
 
 - `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down

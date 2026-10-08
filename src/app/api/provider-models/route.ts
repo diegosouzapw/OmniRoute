@@ -28,7 +28,7 @@ import {
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 export const dynamic = "force-dynamic";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -53,15 +53,10 @@ function normalizeRequestedModelIds(
  * List custom models (all providers if no provider param)
  */
 export async function GET(request) {
-  try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
 
+  try {
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
 
@@ -128,6 +123,9 @@ export async function GET(request) {
  * Body: { provider, modelId, modelName? }
  */
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -139,14 +137,6 @@ export async function POST(request) {
   }
 
   try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const validation = validateBody(providerModelMutationSchema, rawBody);
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
@@ -208,6 +198,9 @@ export async function POST(request) {
  * Body: { provider, modelId, modelName?, apiFormat?, supportedEndpoints? }
  */
 export async function PUT(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -219,13 +212,6 @@ export async function PUT(request) {
   }
 
   try {
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const validation = validateBody(providerModelMutationSchema, rawBody);
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
@@ -398,6 +384,9 @@ export async function PUT(request) {
  * Body: { isHidden: boolean, modelIds?: string[] }
  */
 export async function PATCH(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -409,13 +398,6 @@ export async function PATCH(request) {
   }
 
   try {
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
     const body =
@@ -498,15 +480,10 @@ export async function PATCH(request) {
  * DELETE /api/provider-models?provider=<id>&model=<modelId>
  */
 export async function DELETE(request) {
-  try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return Response.json(
-        { error: { message: "Authentication required", type: "invalid_api_key" } },
-        { status: 401 }
-      );
-    }
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
 
+  try {
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");
     const modelId = searchParams.get("model");

@@ -43,6 +43,7 @@ import {
 import { getCursorUsage } from "./usage/cursor.ts";
 import { getKimiUsage } from "./usage/kimi.ts";
 import { getCodexUsage } from "./usage/codex.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
@@ -58,6 +59,7 @@ import { getPromptQlUsage } from "./usage/promptql.ts";
 import { getHyperAgentUsage } from "./usage/hyperagent.ts";
 import { getGitHubUsage, formatGitHubQuotaSnapshot, inferGitHubPlanName } from "./usage/github.ts";
 import { getCrofUsage } from "./usage/crof.ts";
+import { getClinepassUsage } from "./usage/clinepass.ts";
 import { getNanoGptUsage } from "./usage/nanogpt.ts";
 import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
 // Re-exported para o teste qoder-usage-quota (importa parseQoderUserStatusUsage de services/usage).
@@ -79,12 +81,14 @@ import { getGrokCliUsage } from "./usage/grokCli.ts";
 import { getFirecrawlUsage } from "./usage/firecrawl.ts";
 import { getContext7Usage } from "./usage/context7.ts";
 import { getTavilyUsage } from "./usage/tavily.ts";
+import { getJinaUsage } from "./usage/jina.ts";
 import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
 import { getCommandCodeUsage } from "./usage/command-code.ts";
 import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
 import { getConolUsage } from "./conolUsage.ts";
 import { getAgentrouterUsage } from "./usage/agentrouter.ts";
 import { getKilocodeUsage } from "./usage/kilocode.ts";
+import { getChatPlaygroundUsage } from "./usage/chatplayground.ts";
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {
@@ -154,6 +158,11 @@ export async function getUsageForProvider(
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
+      // /me/status and the quota-cache refresh reach this fetch with no
+      // caller-side pacing. Gate the start here so those paths, and any later
+      // one, cannot burst the usage endpoint. Callers that already acquired the
+      // shared gate wait at most one more interval.
+      await throttleQuotaFetch();
       return await getCodexUsage(accessToken, providerSpecificData);
     case "cursor":
       return await getCursorUsage(accessToken || "", providerSpecificData);
@@ -187,6 +196,9 @@ export async function getUsageForProvider(
       return await getMiniMaxUsage(apiKey || "", provider);
     case "crof":
       return await getCrofUsage(apiKey || "");
+    case "clinepass":
+      // Dual-auth: OAuth WorkOS token in `accessToken`, or a BYOK key in `apiKey`.
+      return await getClinepassUsage(accessToken, apiKey);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id || "", apiKey || "", providerSpecificData);
     case "qwen-cloud-token-plan":
@@ -208,9 +220,9 @@ export async function getUsageForProvider(
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
-      return await getXiaomiMimoUsage(id || "");
+      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo", providerSpecificData);
     case "xiaomi-mimo-token-plan":
-      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo-token-plan");
+      return await getXiaomiMimoUsage(id || "", "xiaomi-mimo-token-plan", providerSpecificData);
     case "xai":
       return await getXaiUsage(id || "");
     case "xai-oauth":
@@ -238,6 +250,11 @@ export async function getUsageForProvider(
     case "tavily-search":
     case "tavily":
       return await getTavilyUsage(id || "", apiKey, connection);
+    case "jina-search":
+    case "jina":
+    case "jina-ai":
+    case "jina-reader":
+      return await getJinaUsage(id || "", apiKey, connection);
     case "volcengine-agent-plan":
     case "volcengine-coding-plan":
       return await getVolcenginePlanUsage(apiKey || "", provider, providerSpecificData);
@@ -253,6 +270,9 @@ export async function getUsageForProvider(
     case "devin-cli":
       // Devin CLI tokens live in `accessToken` (oauth import) or `apiKey`.
       return await getDevinCliUsage(apiKey || accessToken);
+    case "chatplayground":
+    case "cpl":
+      return await getChatPlaygroundUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -285,6 +305,7 @@ export const __testing = {
   getFirecrawlUsage,
   getContext7Usage,
   getTavilyUsage,
+  getJinaUsage,
   getCommandCodeUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,

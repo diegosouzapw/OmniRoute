@@ -45,6 +45,14 @@ export interface PublicComboStep {
    * another combo and has no account of its own.
    */
   accountPinned?: boolean;
+  /**
+   * #14587: whether the resolved capability sources prove this member accepts
+   * images (`null` = no source knows). Only set on `model` steps when the
+   * projection includes capabilities. A combo's `multimodal` is true exactly
+   * when every member reports `true`, so a `false`/`null` here identifies the
+   * member blocking it.
+   */
+  supportsVision?: boolean | null;
 }
 
 /**
@@ -174,6 +182,17 @@ export function computeComboCapabilities(
   return { multimodal, reasoning, caching };
 }
 
+/** #14587: attach the per-member vision verdict to each direct model step. */
+function annotateMemberVision(
+  steps: PublicComboStep[],
+  resolve: ComboCapabilityResolver = defaultCapabilityResolver
+): void {
+  for (const step of steps) {
+    if (step.kind !== "model" || typeof step.model !== "string") continue;
+    step.supportsVision = resolve(step.model).supportsVision;
+  }
+}
+
 export function projectCombo(
   combo: Record<string, unknown>,
   options?: ProjectComboOptions
@@ -197,6 +216,7 @@ export function projectCombo(
   }
 
   if (options?.includeCapabilities) {
+    annotateMemberVision(out.models, options.resolveCapabilities);
     out.capabilities = computeComboCapabilities(
       combo,
       options.resolveCapabilities,
