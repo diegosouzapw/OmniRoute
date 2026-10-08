@@ -369,12 +369,22 @@ function buildPrompt(body: JsonRecord, tools: unknown[]): string {
   // schemas but trim prose-only descriptions to avoid making follow-up turns stall on a large
   // flattened prompt.
   const toolPrompt = serializeToolsToPrompt(tools, { descriptionMaxChars: 360 });
-  const continuationCheckpoint = messages.some(({ role }) => role === "tool")
+  // The keyword heuristic only forces the FIRST tool call for the latest user request.
+  // Once that request already has a tool result, forcing another <tool> block contradicts
+  // the continuation checkpoint ("…or give the final answer") and pushes the model into a
+  // spurious extra call. An explicit tool_choice still applies on every turn.
+  const lastUserIndex = messages.map(({ role }) => role).lastIndexOf("user");
+  const latestRequestHasToolResult = messages
+    .slice(lastUserIndex + 1)
+    .some(({ role }) => role === "tool");
+  const continuationCheckpoint = latestRequestHasToolResult
     ? "Continue from the tool results above. Do not repeat a successful tool call; perform the next required step or give the final answer."
     : "";
   const forcedToolInstruction =
     toolChoiceInstruction(body.tool_choice) ||
-    (body.tool_choice !== "none" && hasExplicitClientToolIntent(messages)
+    (body.tool_choice !== "none" &&
+    !latestRequestHasToolResult &&
+    hasExplicitClientToolIntent(messages)
       ? "The user's request explicitly requires workspace action. This turn MUST emit exactly one valid <tool> block for the next required client tool call before any prose. Do not claim that an action was completed; emit the tool call now."
       : "");
   const userMessages = messages.filter(({ role }) => role === "user" || role === "tool");

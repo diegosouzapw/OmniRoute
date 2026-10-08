@@ -475,6 +475,73 @@ describe("ChatGPT Web clean-room executor request adapter", () => {
     assert.match(prepared.prompt, /MUST emit exactly one valid <tool>/i);
   });
 
+  test("does not force another tool call once the latest user request already has a tool result", () => {
+    // A "create and verify" task used to carry both "MUST emit exactly one valid
+    // <tool> block" and "...or give the final answer" after the tool result, pushing
+    // the model into a spurious extra tool call instead of finishing.
+    const tools = [{ type: "function", function: { name: "write" } }];
+    const prepared = prepareChatGptWebBrowserRequest("gpt-5.6-luna-free", {
+      tools,
+      tool_choice: "auto",
+      messages: [
+        { role: "user", content: "Create index.html and verify the file exists." },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "write", arguments: '{"path":"index.html"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "Wrote index.html" },
+      ],
+    });
+    assert.match(prepared.prompt, /Continue from the tool results above/);
+    assert.doesNotMatch(prepared.prompt, /MUST emit exactly one valid <tool>/i);
+
+    // A NEW user request after the tool exchange is a fresh workspace ask again.
+    const followUp = prepareChatGptWebBrowserRequest("gpt-5.6-luna-free", {
+      tools,
+      tool_choice: "auto",
+      messages: [
+        { role: "user", content: "Create index.html." },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            { id: "call_1", type: "function", function: { name: "write", arguments: "{}" } },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "Wrote index.html" },
+        { role: "assistant", content: "Done." },
+        { role: "user", content: "Now create about.html." },
+      ],
+    });
+    assert.match(followUp.prompt, /MUST emit exactly one valid <tool>/i);
+    assert.doesNotMatch(followUp.prompt, /Continue from the tool results above/);
+
+    // An explicit tool_choice still wins after a tool result.
+    const required = prepareChatGptWebBrowserRequest("gpt-5.6-luna-free", {
+      tools,
+      tool_choice: "required",
+      messages: [
+        { role: "user", content: "Create index.html." },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            { id: "call_1", type: "function", function: { name: "write", arguments: "{}" } },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "Wrote index.html" },
+      ],
+    });
+    assert.match(required.prompt, /A client tool is required for this turn/);
+  });
+
   test("extracts image and file inputs without serializing them into the prompt", async () => {
     const prepared = prepareChatGptWebBrowserRequest("gpt-5.6-luna-free", {
       messages: [

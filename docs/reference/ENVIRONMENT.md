@@ -1802,6 +1802,10 @@ These settings were introduced after the previous environment-contract snapshot.
 | `OMNIROUTE_API_KEY_COOLDOWN_MS` | `60000` | `open-sse/services/apiKeyRotator.ts` | Per-key cooldown in milliseconds when a `429` response has no usable `Retry-After` hint. |
 | `OMNIROUTE_ESTIMATOR_CALIBRATION` | enabled | `open-sse/services/estimatorCalibration.ts` | Set to `off`, `0`, or `false` to disable in-memory estimator calibration recording and application. |
 | `NEXT_MANUAL_SIG_HANDLE` | _(internal)_ | `scripts/dev/standalone-server-ws.mjs` | Internal standalone-server signal-handler override; normally set and cleared by the launcher rather than configured by operators. |
+| `CHATGPT_WEB_TURN_TIMEOUT_MS` | `180000` | `open-sse/utils/chatgptWebExecutorAdapter.ts` | Per-turn ceiling for a ChatGPT Web (Clean Room) text turn; values below `1000` are ignored. |
+| `CHATGPT_WEB_TOOL_TURN_TIMEOUT_MS` | `180000` | `open-sse/utils/chatgptWebExecutorAdapter.ts` | Per-turn ceiling for a ChatGPT Web (Clean Room) turn that carries client tools (emulated `<tool>` envelope); lower it to return control to the client sooner. Values below `1000` are ignored. |
+| `CHATGPT_WEB_HEADLESS` | `1` (headless) | `open-sse/utils/chatgptWebExecutorAdapter.ts` | Run the ChatGPT Web (Clean Room) browser headless. Set `0` only for accounts whose first-party challenge rejects headless mode (the default changed from headed to headless in #14948). |
+| `CHATGPT_WEB_BROWSER_ACQUIRE_TIMEOUT_MS` | `45000` | `open-sse/utils/chatgptWebExecutorAdapter.ts` | Ceiling for launching the ChatGPT Web (Clean Room) browser and warming up chatgpt.com, so a dead browser or session cannot consume the request-queue deadline. |
 ### ChatGPT Web (Codex)
 
 Globale Defaults für den headless Browser und den ausgehenden Tool-Tunnel. Im Dashboard gesetzte Connection-Werte haben Vorrang.

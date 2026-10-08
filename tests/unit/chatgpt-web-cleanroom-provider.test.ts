@@ -33,7 +33,13 @@ test("registers only the clean-room ChatGPT Web routes observed in the first-par
   );
   assert.equal(REGISTRY["chatgpt-web"], chatgpt_webProvider);
   assert.equal(getRegistryEntry("chatgpt-web"), chatgpt_webProvider);
-  assert.equal(WEB_COOKIE_PROVIDERS["chatgpt-web"].toolCalling, "none");
+  // #14948 intentionally changes this contract: client tools are now emulated via
+  // the `<tool>` envelope, and the catalog capability must match the registry.
+  assert.equal(WEB_COOKIE_PROVIDERS["chatgpt-web"].toolCalling, "emulated");
+  assert.equal(
+    chatgpt_webProvider.models.every((model) => model.toolCalling === true),
+    true
+  );
   assert.equal(AI_PROVIDERS["chatgpt-web"].id, "chatgpt-web");
   assert.equal(hasSpecializedExecutor("chatgpt-web"), true);
 });
