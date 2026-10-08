@@ -105,6 +105,15 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedBadge, setSelectedBadge] = useState<BadgeDef | null>(null);
+
+  useEffect(() => {
+    if (!selectedBadge) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedBadge(null);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [selectedBadge]);
   const [streak, setStreak] = useState(0);
 
   const fetchData = useCallback(async () => {
@@ -325,14 +334,21 @@ export default function ProfilePage() {
       {/* Badge Detail Modal */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-md mx-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="badge-dialog-title"
+            className="bg-surface border border-border rounded-xl p-6 w-full max-w-md mx-4"
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-4xl">
                   <BadgeIcon icon={selectedBadge.icon} earned={earnedIds.has(selectedBadge.id)} />
                 </span>
                 <div>
-                  <h2 className="text-lg font-semibold">{translateBadge(selectedBadge, "name")}</h2>
+                  <h2 id="badge-dialog-title" className="text-lg font-semibold">
+                    {translateBadge(selectedBadge, "name")}
+                  </h2>
                   <span
                     className={`text-xs px-2 py-0.5 rounded ${RARITY_COLORS[selectedBadge.rarity] || RARITY_COLORS.common} bg-surface`}
                   >
