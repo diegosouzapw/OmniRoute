@@ -63,7 +63,7 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
 
   it("OPTIONAL_FTS5_MIGRATION_VERSIONS includes dependent FTS migrations", () => {
     assert.ok(OPTIONAL_FTS5_MIGRATION_VERSIONS instanceof Set);
-    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023", "178"]);
+    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023", "178", "203"]);
   });
 });
 

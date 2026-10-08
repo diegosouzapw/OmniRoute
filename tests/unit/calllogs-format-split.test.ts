@@ -167,3 +167,46 @@ describe("format.ts exports its helpers directly", () => {
     }
   });
 });
+
+describe("callLogs/format - diagnostic projections survive error protection (#3229)", () => {
+  it("keeps every allowlisted diagnostic field on a 4xx, including names containing 'key'", async () => {
+    const { protectPipelinePayloads } = await import("../../src/lib/usage/callLogs/format.ts");
+    const diagnostic = {
+      antigravityValidation: {
+        httpStatus: 400,
+        providerCode: 400,
+        providerStatus: "INVALID_ARGUMENT",
+        validationCategory: "tool_schema",
+        validationField: "tools",
+        // Name contains "key": the raw-body scrubber's BLOCKED_KEYS heuristic used to
+        // delete this field, leaving a diagnostic that looked complete but had lost the
+        // one detail identifying WHICH schema keyword the provider rejected.
+        schemaKeyword: "additionalProperties",
+      },
+    };
+
+    const out = protectPipelinePayloads(
+      { providerResponse: { timestamp: "2026-01-01T00:00:00.000Z", diagnostic } },
+      400
+    );
+
+    assert.deepEqual(out?.providerResponse?.diagnostic, diagnostic);
+  });
+
+  it("still scrubs a providerResponse that carries a real upstream body", async () => {
+    const { protectPipelinePayloads } = await import("../../src/lib/usage/callLogs/format.ts");
+
+    const out = protectPipelinePayloads(
+      {
+        providerResponse: {
+          timestamp: "2026-01-01T00:00:00.000Z",
+          status: 400,
+          body: { error: { message: "boom", authorization: "Bearer super-secret-value" } },
+        },
+      },
+      400
+    );
+
+    assert.doesNotMatch(JSON.stringify(out ?? {}), /super-secret-value/);
+  });
+});

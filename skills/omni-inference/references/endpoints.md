@@ -440,7 +440,7 @@ curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
 
 Update a proxy subscription
 
-Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).
 
 ```bash
 curl -X PATCH https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
@@ -1019,8 +1019,6 @@ curl https://localhost:20128/api/v1/management/proxies/health \
 ### GET /api/v1/me/status
 
 GET me › status
-
-Self-service usage status for the calling API key (also served at /v1/me/status). Authenticate with `Authorization: Bearer <key>` or `x-api-key: <key>`. Requires scope `self:usage`. `accountQuotas` / `accountQuota` are included only with scope `self:account-quota` and are filtered by the key's `sharedQuotaProviders` setting.
 
 ```bash
 curl https://localhost:20128/api/v1/me/status \

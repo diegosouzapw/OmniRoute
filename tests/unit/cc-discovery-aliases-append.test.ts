@@ -117,19 +117,25 @@ test("skips disabled entries and returns the same array reference when nothing i
   assert.equal(out, models);
 });
 
-test("does NOT mirror built-in auto/* combos (request path can't resolve them)", () => {
-  // Built-in auto combos are synthesized by createBuiltinAutoCombo, not stored in
-  // the DB combos table, so getComboByName() misses them at request time — mirroring
-  // them would advertise an id the request path rejects. See ccDiscoveryAliasResolve.
+test("mirrors built-in auto/* combos alongside DB combos", () => {
+  // contract changed by #15301: built-in auto/* combos used to be skipped because the
+  // request path could not resolve them; ccDiscoveryAliasResolve now materializes
+  // `claude/combo/auto/<suffix>` through createBuiltinAutoCombo, so they are mirrored
+  // like any other combo (resolve side covered in cc-discovery-alias-resolve.test.ts).
   const models: CatalogEntry[] = [
-    { id: "auto", owned_by: "combo", name: "Auto" },
     { id: "auto/glm", owned_by: "combo", name: "Auto GLM" },
     { id: "auto/pro:pro", owned_by: "combo", name: "Auto Pro" },
     { id: "real-combo", owned_by: "combo", name: "Real Combo" },
   ];
   const out = appendCcDiscoveryAliases(models, alwaysEnabled);
   const aliasIds = out.filter((m) => String(m.id).startsWith("claude/")).map((m) => m.id);
-  assert.deepEqual(aliasIds, ["claude/combo/real-combo"]);
+  assert.deepEqual(aliasIds, [
+    "claude/combo/auto/glm",
+    "claude/combo/auto/pro:pro",
+    "claude/combo/real-combo",
+  ]);
+  const glm = out.find((m) => m.id === "claude/combo/auto/glm");
+  assert.equal(glm?.root, "auto/glm", "auto combo root stays the full name verbatim");
 });
 
 test("returns the same array reference when the input is empty", () => {

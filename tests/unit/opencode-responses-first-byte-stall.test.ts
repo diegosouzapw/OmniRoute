@@ -145,7 +145,8 @@ describe("OpencodeExecutor Responses first-byte stall", () => {
     model: string,
     creds: ProviderCredentials,
     stream = true,
-    signal: AbortSignal | null = null
+    signal: AbortSignal | null = null,
+    spyLog: ExecutorLog = log
   ) {
     return exec.execute({
       model,
@@ -153,7 +154,7 @@ describe("OpencodeExecutor Responses first-byte stall", () => {
       stream,
       signal,
       credentials: creds,
-      log,
+      log: spyLog,
     }) as Promise<{ response: Response }>;
   }
 
@@ -174,11 +175,24 @@ describe("OpencodeExecutor Responses first-byte stall", () => {
   it("rotates past a silent Responses stream to a healthy account", { timeout: 5000 }, async () => {
     const exec = new OpencodeExecutor("opencode-zen");
     installFetch(["stall", "ok"]);
-    const result = await run(exec, RESPONSES_MODEL, proxiedCredentials(2));
+    const warns: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_tag, message) {
+        warns.push(String(message));
+      },
+      error() {},
+    };
+    const result = await run(exec, RESPONSES_MODEL, proxiedCredentials(2), true, null, spyLog);
     assert.equal(result.response.status, 200);
     assert.deepEqual(calls, [String(ports[0]), String(ports[1])]);
     assert.deepEqual(cooledDown(exec), [FPS[0]]);
     await result.response.body?.cancel();
+    assert.ok(
+      warns.some((l) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${ports[0]}\\)`).test(l)),
+      `stall warn must name the applied egress, got=${JSON.stringify(warns)}`
+    );
   });
 
   it(

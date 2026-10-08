@@ -163,6 +163,57 @@ describe("opencode 429 pool re-selection per attempt", () => {
     assert.strictEqual(String(observed[1]), String(ports[1]));
   });
 
+  it("pool re-selection warn names the new member, not the refused one", async () => {
+    // next (ports[1]) differs from the ambient member (ports[2]): the warn
+    // must name ports[1] and must not name ports[2].
+    const otherPort = ports[2];
+    const warnings: string[] = [];
+    const spyLog: ExecutorLog = {
+      debug() {},
+      info() {},
+      warn(_ns: string, msg: string) {
+        warnings.push(String(msg));
+      },
+      error() {},
+    };
+    installFetch(1);
+    const exec = new OpencodeExecutor("opencode");
+    const sink: Record<string, unknown> = {
+      proxy: null,
+      reselectPoolMember: async () => memberB(),
+    };
+    const result = (await runWithProxyContext(
+      { type: "http", host: "127.0.0.1", port: otherPort },
+      () =>
+        runWithAppliedProxyCapture(sink as never, () =>
+          runInRequestContext(() =>
+            exec.execute({
+              model: "muse-spark-1.3-contributor-free",
+              body: { messages: [{ role: "user", content: "hi" }], stream: false },
+              stream: false,
+              signal: null,
+              credentials: credentialsNoProxy(2),
+              log: spyLog,
+            })
+          )
+        )
+    )) as { response: Response };
+    assert.strictEqual(result.response.status, 200);
+    const poolWarns = warnings.filter((w) => w.includes("pool re-selected"));
+    assert.ok(
+      poolWarns.length > 0,
+      `expected a pool re-selected warn, got: ${warnings.join(" | ")}`
+    );
+    assert.ok(
+      poolWarns.some((w) => new RegExp(`\\(proxy 127\\.0\\.0\\.1:${ports[1]}\\)`).test(w)),
+      `pool warn must name the new member, got: ${poolWarns.join(" | ")}`
+    );
+    assert.ok(
+      poolWarns.every((w) => !new RegExp(`\\(proxy 127\\.0\\.0\\.1:${otherPort}\\)`).test(w)),
+      `pool warn must not name the refused member, got: ${poolWarns.join(" | ")}`
+    );
+  });
+
   it("keeps the same member when the provider is outside the egress-bucketed list", async () => {
     const result = (await runWith(
       { reselectPoolMember: async () => memberB() },

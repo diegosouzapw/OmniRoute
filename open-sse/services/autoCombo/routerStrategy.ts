@@ -94,7 +94,7 @@ class RulesStrategyImpl implements RouterStrategy {
     const ranked: ScoredProvider[] = scorePool(
       eligible.length > 0 ? eligible : pool,
       context.taskType,
-      undefined,
+      context.weights,
       getTaskFitness
     );
     const best = ranked[0];

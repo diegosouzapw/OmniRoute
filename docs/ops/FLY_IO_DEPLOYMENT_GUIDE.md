@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Fly.io Deployment Guide"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # OmniRoute Fly.io Deployment Guide
@@ -154,10 +154,10 @@ The current project does not set `INITIAL_PASSWORD` because this deployment does
 
 If it is not set:
 
-- The startup log will indicate the default password is `CHANGEME`
-- You should change the login password in system settings as soon as possible after deployment
+- You create the dashboard password in the onboarding wizard on first visit. Complete the password step: skipping it turns dashboard login off, which leaves the dashboard open to anyone who can reach the app URL
+- Fly's proxy reaches the app from a non-loopback address, so after you submit the password the wizard asks for a one-time bootstrap token, which the app prints to its log at that moment: `flyctl logs --no-tail -a omniroute | Select-String BOOTSTRAP`. If that line has scrolled out of the log, restart the app and submit the wizard again to print a new token
 
-If you want to initialize the backend password unattended, you can add it later:
+To set the password unattended instead, add it before the first dashboard visit (once a password is saved, `INITIAL_PASSWORD` is ignored):
 
 - `INITIAL_PASSWORD`
 
@@ -255,7 +255,7 @@ Notes:
 
 - `OMNIROUTE_WS_BRIDGE_SECRET` is required in production; missing it will break the WebSocket bridge handshake
 
-If you also want to set an initial password:
+If you also want to set an initial password, set it before the first dashboard visit:
 
 ```powershell
 flyctl secrets set INITIAL_PASSWORD=your-strong-password -a omniroute
@@ -453,7 +453,7 @@ Verify both of the following:
 
 ### 12.5 Can It Run Without `INITIAL_PASSWORD`?
 
-Yes, it can run. It will fall back to the default `CHANGEME` password. It is recommended to change the backend password as soon as possible in production.
+Yes. With `INITIAL_PASSWORD` unset, you create the dashboard password in the onboarding wizard on first visit (section 5.2 covers the one-time bootstrap token and the password step).
 
 ---
 

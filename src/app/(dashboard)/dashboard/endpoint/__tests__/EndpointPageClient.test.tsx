@@ -170,6 +170,39 @@ vi.mock("next-intl", () => ({
 }));
 
 describe("EndpointPageClient", () => {
+  it("requires credential-upload consent before enabling cloud sync", async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL) => {
+      if (getRequestPath(input) === "/api/settings")
+        return Promise.resolve(
+          jsonResponse({
+            cloudEnabled: false,
+            cloudConfigured: true,
+            cloudUrl: "https://cloud.example",
+            hideEndpointCloudflaredTunnel: true,
+            hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
+          })
+        );
+      return Promise.resolve(jsonResponse({ data: [], providers: [], keys: [] }));
+    });
+    renderEndpointPage();
+    await waitForText("https://cloud.example");
+    const enable = Array.from(document.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("enableCloud")
+    );
+    expect(enable).toBeDefined();
+    act(() => enable!.click());
+    expect(document.body.textContent).toContain("OAuth access/refresh tokens");
+    const consent = document.querySelector<HTMLInputElement>("input[type=checkbox]")!;
+    expect(consent.checked).toBe(false);
+    const submit = Array.from(document.querySelectorAll("button")).find(
+      (b) => b.getAttribute("class")?.includes("w-full") && b.textContent?.includes("enable")
+    );
+    expect(submit).toBeDefined();
+    expect(submit!.disabled).toBe(true);
+    act(() => consent.click());
+    expect(submit!.disabled).toBe(false);
+  });
   const fetchMock = vi.fn();
 
   beforeEach(() => {

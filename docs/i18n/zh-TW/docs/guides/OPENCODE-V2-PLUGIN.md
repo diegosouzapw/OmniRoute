@@ -71,24 +71,31 @@
 
 ## 選項
 
-| 金鑰                             | 預設值                                   | 說明                                                                                  |
+| 鍵                               | 預設值                                   | 備註                                                                                  |
 | -------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                            | 提供者 ID、整合項目 ID，以及模型顯示時所使用的前綴                                    |
-| `baseURL`                        | 必填                                     | 閘道根網址，僅限 `http(s)`；會在需要時加入 `/v1` 後綴                                 |
-| `apiKey`                         | 已連線的憑證，其次為 `OMNIROUTE_API_KEY` | `/v1/*` 的聊天金鑰                                                                    |
-| `managementReadToken`            | 回退使用 `apiKey`                        | `/api/*` 的金鑰——通常與聊天金鑰**不同**                                               |
+| `providerId`                     | `"omniroute"`                            | 提供者 ID、整合 ID，以及模型顯示時使用的前綴                                          |
+| `baseURL`                        | 必填                                     | 閘道根網址，僅支援 `http(s)`；系統會在需要時加上 `/v1` 後綴                           |
+| `apiKey`                         | 已連線的認證，接著是 `OMNIROUTE_API_KEY` | 用於 `/v1/*` 的聊天金鑰                                                               |
+| `managementReadToken`            | 回退至 `apiKey`                          | 用於 `/api/*` 的金鑰——通常與前者**不同**                                              |
 | `displayName`                    | `"OmniRoute"`                            | 選擇器中的提供者名稱                                                                  |
 | `timeoutMs`                      | `10000`                                  | 各端點的擷取逾時時間（自動組合使用 5 秒）                                             |
 | `modelCacheTtlMs`                | `300000`                                 | 目錄快取 TTL；磁碟快照可加速冷啟動                                                    |
-| `timeouts`                       | 回退使用 `timeoutMs`                     | 各端點的時間預算（毫秒）：`models`、`combos`、`autoCombos`、`enrichment`              |
-| `enrichment`                     | `true`                                   | 擷取名稱、定價與免費方案額度                                                          |
+| `timeouts`                       | 回退至 `timeoutMs`                       | 各端點的時間預算（毫秒）：`models`、`combos`、`autoCombos`、`enrichment`              |
+| `enrichment`                     | `true`                                   | 擷取名稱、定價和免費方案額度                                                          |
 | `providerTag`                    | `true`                                   | 在顯示名稱前加上其路由目標的上游提供者                                                |
 | `usableOnly`                     | `false`                                  | 僅保留閘道回報為已佈建的提供者                                                        |
-| `visibleModels` / `hiddenModels` | `[]`                                     | 精確比對或後綴比對的允許清單；拒絕規則優先                                            |
+| `showcasePerOwner`               | `10`                                     | 預設檢視中每個提供者保留的項目數                                                      |
+| `freshPerOwner`                  | `10`                                     | 預設檢視的新項目分支中，每個提供者保留的項目數                                        |
+| `freshWindowDays`                | `90`                                     | 新項目分支的新鮮度期間（天）                                                          |
+| `usageMemory`                    | `true`                                   | 根據 30 天用量分析，還原被靜態移除的具名項目（需要管理權杖）                          |
+| `visibleModels` / `hiddenModels` | `[]`                                     | 完整或後綴比對的允許清單；拒絕規則優先                                                |
 | `geminiSanitization`             | `true`                                   | 從工具結構描述中移除 Gemini 不接受的 JSON-Schema 關鍵字（含 `$ref` 的工具會原樣轉送） |
 | `apiFormat.allowAnthropic`       | `false`                                  | 透過 Anthropic API 區塊路由允許清單中的 ID                                            |
 | `apiFormat.anthropicModels`      | `[]`                                     | 路由至 Anthropic 的完整模型 ID                                                        |
 | `logLevel` / `startupDebug`      | `warn` / `false`                         | 記錄器詳細程度                                                                        |
+
+用量記憶預設為啟用。若沒有管理權杖，此功能將保持閒置
+（啟動時會記錄通知），且不會還原任何項目。
 
 ## 目錄如何保持最新
 

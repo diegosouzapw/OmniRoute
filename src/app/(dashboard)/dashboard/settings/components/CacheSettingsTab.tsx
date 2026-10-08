@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Badge, Toggle, Select, SegmentedControl } from "@/shared/components";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 type Message = { type: "success" | "error"; text: string };
 
@@ -49,6 +49,13 @@ const MAX_TTL_MS = 60000;
 
 export default function CacheSettingsTab() {
   const t = useTranslations("settings");
+  const format = useFormatter();
+  const inputTypeLabels: Record<string, string> = {
+    text: t("semanticCacheInputText"),
+    image: t("semanticCacheInputImage"),
+    audio: t("semanticCacheInputAudio"),
+    video: t("semanticCacheInputVideo"),
+  };
 
   // Model Catalog Cache State
   const [catalogTtl, setCatalogTtl] = useState(String(DEFAULT_TTL_MS));
@@ -205,11 +212,11 @@ export default function CacheSettingsTab() {
     } finally {
       setCatalogSaving(false);
     }
-  }, [catalogDirty, t, catalogTtl]);
+  }, [catalogDirty, t, catalogTtl, setCatalogTtl, setCatalogMessage]);
 
   const catalogValidationError = (() => {
     const trimmed = catalogTtl.trim();
-    if (!trimmed) return "Required";
+    if (!trimmed) return t("modelCatalogTtlRequired");
     const parsed = Number(trimmed);
     if (!Number.isInteger(parsed)) return t("modelCatalogTtlWholeNumberError");
     if (parsed < MIN_TTL_MS) return t("modelCatalogTtlMinimumError", { min: MIN_TTL_MS });
@@ -280,10 +287,10 @@ export default function CacheSettingsTab() {
 
       if (!res.ok) throw new Error(`Save failed with status ${res.status}`);
 
-      setSemMessage({ type: "success", text: "Semantic cache settings saved successfully." });
+      setSemMessage({ type: "success", text: t("semanticCacheSaveSuccess") });
     } catch (err) {
       console.error("Failed to save semantic cache settings:", err);
-      setSemMessage({ type: "error", text: "Failed to save semantic cache settings." });
+      setSemMessage({ type: "error", text: t("semanticCacheSaveFailed") });
     } finally {
       setSemSaving(false);
     }
@@ -309,8 +316,8 @@ export default function CacheSettingsTab() {
 
       const data = await res.json();
       setTestResult(data);
-    } catch (err: unknown) {
-      setTestResult({ ok: false, error: String(err) });
+    } catch {
+      setTestResult({ ok: false, error: t("semanticCacheConnectionError") });
     } finally {
       setTestingConnection(false);
     }
@@ -323,10 +330,13 @@ export default function CacheSettingsTab() {
 
     try {
       const res = await fetch("/api/cache", { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to clear cache");
-      setClearMessage("Semantic cache purged successfully.");
-    } catch (err: unknown) {
-      setClearMessage(`Failed to purge cache: ${String(err)}`);
+      if (!res.ok) {
+        setClearMessage(`${t("semanticCacheClearFailed")} HTTP ${res.status}`);
+        return;
+      }
+      setClearMessage(t("semanticCacheClearSuccess"));
+    } catch {
+      setClearMessage(t("semanticCacheClearFailed"));
     } finally {
       setClearingCache(false);
     }
@@ -341,20 +351,19 @@ export default function CacheSettingsTab() {
           <div className="flex items-center justify-between pb-4 border-b border-border/50">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-base text-text-primary">Semantic Caching</h3>
+                <h3 className="font-semibold text-base text-text-primary">
+                  {t("semanticCacheTitle")}
+                </h3>
                 <Badge variant={semEnabled ? "success" : "default"} size="sm">
-                  {semEnabled ? "Active" : "Disabled"}
+                  {semEnabled ? t("semanticCacheEnabled") : t("semanticCacheDisabled")}
                 </Badge>
               </div>
-              <p className="text-sm text-text-muted mt-1">
-                Exact-match response cache with an optional vector-similarity layer. Reuses matching
-                responses to cut latency and upstream token costs.
-              </p>
+              <p className="text-sm text-text-muted mt-1">{t("semanticCacheDescription")}</p>
             </div>
             <Toggle
               checked={semEnabled}
               onChange={setSemEnabled}
-              ariaLabel="Enable semantic caching"
+              ariaLabel={t("semanticCacheEnable")}
             />
           </div>
 
@@ -364,28 +373,28 @@ export default function CacheSettingsTab() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-text-primary">
-                    Vector Similarity Layer (embeddings)
+                    {t("semanticCacheVectorTitle")}
                   </p>
-                  <p className="text-xs text-text-muted">
-                    Off by default. When on, every cacheable request is embedded via the provider
-                    below so near-duplicate prompts can reuse a cached answer. Exact-match caching
-                    keeps working without it.
-                  </p>
+                  <p className="text-xs text-text-muted">{t("semanticCacheVectorDescription")}</p>
                 </div>
                 <Toggle
                   checked={semVectorEnabled}
                   onChange={setSemVectorEnabled}
-                  ariaLabel="Enable vector similarity layer"
+                  ariaLabel={t("semanticCacheVectorEnable")}
                 />
               </div>
 
               {/* Provider & Model Selection Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Embedding Provider
+                  <label
+                    htmlFor="sem-provider"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    {t("semanticCacheProvider")}
                   </label>
                   <Select
+                    id="sem-provider"
                     value={semProvider}
                     onChange={(e) => handleProviderChange(e.target.value)}
                     disabled={catalogLoading || semSaving}
@@ -393,7 +402,9 @@ export default function CacheSettingsTab() {
                       embeddingOptions.length > 0
                         ? embeddingOptions.map((opt) => ({
                             value: opt.id,
-                            label: opt.hasConnection ? `${opt.name} (Configured)` : opt.name,
+                            label: opt.hasConnection
+                              ? t("semanticCacheConfiguredProvider", { name: opt.name })
+                              : opt.name,
                           }))
                         : [{ value: semProvider, label: semProvider }]
                     }
@@ -401,17 +412,23 @@ export default function CacheSettingsTab() {
                   {selectedProviderOption && (
                     <p className="text-xs text-text-muted mt-1">
                       {selectedProviderOption.hasConnection
-                        ? `Using configured connection (${selectedProviderOption.baseUrl || "Default URL"})`
-                        : "Requires provider connection or API key"}
+                        ? t("semanticCacheConfiguredConnection", {
+                            url: selectedProviderOption.baseUrl || t("semanticCacheDefaultUrl"),
+                          })
+                        : t("semanticCacheConnectionRequired")}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Embedding Model
+                  <label
+                    htmlFor="sem-model"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    {t("semanticCacheModel")}
                   </label>
                   <Select
+                    id="sem-model"
                     value={semModel}
                     onChange={(e) => handleModelChange(e.target.value)}
                     disabled={
@@ -422,7 +439,10 @@ export default function CacheSettingsTab() {
                         ? availableModelsForProvider.map((m) => ({
                             value: m.rawId || m.id,
                             label: m.dimensions
-                              ? `${m.name || m.rawId} (${m.dimensions} dims)`
+                              ? t("semanticCacheModelDimensions", {
+                                  name: m.name || m.rawId,
+                                  count: m.dimensions,
+                                })
                               : m.name || m.rawId,
                           }))
                         : [{ value: semModel, label: semModel }]
@@ -433,17 +453,23 @@ export default function CacheSettingsTab() {
                   <div className="flex flex-wrap gap-2 mt-2">
                     {semDimension ? (
                       <Badge variant="primary" size="sm">
-                        {semDimension} Dimensions
+                        {t("semanticCacheDimensions", { count: semDimension })}
                       </Badge>
                     ) : null}
                     {selectedModelOption?.maxTokens ? (
                       <Badge variant="info" size="sm">
-                        {selectedModelOption.maxTokens.toLocaleString()} Max Tokens
+                        {t("semanticCacheMaxTokens", { count: selectedModelOption.maxTokens })}
                       </Badge>
                     ) : null}
                     {selectedModelOption?.supportedInputTypes ? (
                       <Badge variant="default" size="sm">
-                        Input: {selectedModelOption.supportedInputTypes.join(", ")}
+                        {t("semanticCacheInputTypes", {
+                          types: format.list(
+                            selectedModelOption.supportedInputTypes.map(
+                              (type) => inputTypeLabels[type] || type
+                            )
+                          ),
+                        })}
                       </Badge>
                     ) : null}
                   </div>
@@ -454,14 +480,21 @@ export default function CacheSettingsTab() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-sm font-medium text-text-primary">
-                      Similarity Threshold
+                    <label
+                      htmlFor="sem-threshold"
+                      className="text-sm font-medium text-text-primary"
+                    >
+                      {t("semanticCacheThreshold")}
                     </label>
                     <span className="text-xs font-mono font-bold text-primary">
-                      {semThreshold.toFixed(2)}
+                      {format.number(semThreshold, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
                   <input
+                    id="sem-threshold"
                     type="range"
                     min="0.50"
                     max="1.00"
@@ -471,17 +504,19 @@ export default function CacheSettingsTab() {
                     className="w-full h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary"
                     disabled={semSaving}
                   />
-                  <p className="text-xs text-text-muted mt-1">
-                    0.80 recommended. Lower values match more loosely; 1.00 is exact match only.
-                  </p>
+                  <p className="text-xs text-text-muted mt-1">{t("semanticCacheThresholdHint")}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Cache Retention (TTL)
+                  <label
+                    htmlFor="sem-retention"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    {t("semanticCacheRetention")}
                   </label>
                   <div className="flex items-center gap-2">
                     <input
+                      id="sem-retention"
                       type="number"
                       min={1}
                       max={10080}
@@ -490,34 +525,36 @@ export default function CacheSettingsTab() {
                       className="w-28 px-3 py-1.5 rounded bg-surface-2 border border-border text-sm text-text-primary"
                       disabled={semSaving}
                     />
-                    <span className="text-xs text-text-muted">minutes</span>
+                    <span className="text-xs text-text-muted">{t("semanticCacheMinutes")}</span>
                   </div>
-                  <p className="text-xs text-text-muted mt-1">
-                    Default 30 minutes. Entries expire after this duration.
-                  </p>
+                  <p className="text-xs text-text-muted mt-1">{t("semanticCacheRetentionHint")}</p>
                 </div>
               </div>
 
               {/* Storage Backend Selection */}
               <div className="pt-2 border-t border-border/40">
                 <label className="block text-sm font-medium text-text-primary mb-2">
-                  Storage Engine
+                  {t("semanticCacheStorage")}
                 </label>
                 <SegmentedControl
                   value={semBackend}
                   onChange={(val) => setSemBackend(val as "memory" | "redis")}
                   options={[
-                    { value: "memory", label: "In-Memory Vector (LRU)" },
-                    { value: "redis", label: "Redis Vector Store" },
+                    { value: "memory", label: t("semanticCacheMemory") },
+                    { value: "redis", label: t("semanticCacheRedis") },
                   ]}
                 />
 
                 {semBackend === "memory" ? (
                   <div className="mt-3">
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      Max In-Memory Entries
+                    <label
+                      htmlFor="sem-max-entries"
+                      className="block text-xs font-medium text-text-muted mb-1"
+                    >
+                      {t("semanticCacheMaxEntries")}
                     </label>
                     <input
+                      id="sem-max-entries"
                       type="number"
                       min={10}
                       max={100000}
@@ -530,10 +567,14 @@ export default function CacheSettingsTab() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                     <div>
-                      <label className="block text-xs font-medium text-text-muted mb-1">
-                        Redis URL
+                      <label
+                        htmlFor="sem-redis-url"
+                        className="block text-xs font-medium text-text-muted mb-1"
+                      >
+                        {t("semanticCacheRedisUrl")}
                       </label>
                       <input
+                        id="sem-redis-url"
                         type="text"
                         placeholder="redis://127.0.0.1:6379"
                         value={semRedisUrl}
@@ -543,10 +584,14 @@ export default function CacheSettingsTab() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-text-muted mb-1">
-                        Redis Key Prefix
+                      <label
+                        htmlFor="sem-redis-prefix"
+                        className="block text-xs font-medium text-text-muted mb-1"
+                      >
+                        {t("semanticCacheRedisPrefix")}
                       </label>
                       <input
+                        id="sem-redis-prefix"
                         type="text"
                         value={semRedisPrefix}
                         onChange={(e) => setSemRedisPrefix(e.target.value)}
@@ -562,17 +607,14 @@ export default function CacheSettingsTab() {
               <div className="flex items-center justify-between pt-2 border-t border-border/40">
                 <div>
                   <p className="text-sm font-medium text-text-primary">
-                    Require Strict Determinism (temperature = 0)
+                    {t("semanticCacheDeterminism")}
                   </p>
-                  <p className="text-xs text-text-muted">
-                    Only cache and serve responses when temperature is 0, avoiding stochastic
-                    variance.
-                  </p>
+                  <p className="text-xs text-text-muted">{t("semanticCacheDeterminismHint")}</p>
                 </div>
                 <Toggle
                   checked={semRequireZeroTemp}
                   onChange={setSemRequireZeroTemp}
-                  ariaLabel="Require zero temperature"
+                  ariaLabel={t("semanticCacheZeroTemperature")}
                 />
               </div>
 
@@ -581,20 +623,23 @@ export default function CacheSettingsTab() {
                 <button
                   type="button"
                   onClick={() => setShowAdvanced(!showAdvanced)}
+                  aria-expanded={showAdvanced}
                   className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
                 >
-                  {showAdvanced
-                    ? "▼ Hide Advanced Endpoint Overrides"
-                    : "▶ Show Advanced Endpoint Overrides"}
+                  {showAdvanced ? t("semanticCacheHideAdvanced") : t("semanticCacheShowAdvanced")}
                 </button>
 
                 {showAdvanced && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 p-3 rounded-lg bg-surface-2/40 border border-border/40">
                     <div>
-                      <label className="block text-xs font-medium text-text-muted mb-1">
-                        Custom Embedding Base URL
+                      <label
+                        htmlFor="sem-base-url"
+                        className="block text-xs font-medium text-text-muted mb-1"
+                      >
+                        {t("semanticCacheBaseUrl")}
                       </label>
                       <input
+                        id="sem-base-url"
                         type="text"
                         placeholder="https://custom-embedding.internal/v1"
                         value={semBaseUrl}
@@ -603,12 +648,16 @@ export default function CacheSettingsTab() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-text-muted mb-1">
-                        Custom Embedding API Key
+                      <label
+                        htmlFor="sem-api-key"
+                        className="block text-xs font-medium text-text-muted mb-1"
+                      >
+                        {t("semanticCacheApiKey")}
                       </label>
                       <input
+                        id="sem-api-key"
                         type="password"
-                        placeholder="Bearer token or API key"
+                        placeholder={t("semanticCacheApiKeyPlaceholder")}
                         value={semApiKey}
                         onChange={(e) => setSemApiKey(e.target.value)}
                         className="w-full px-3 py-1.5 rounded bg-surface-2 border border-border text-xs text-text-primary"
@@ -627,7 +676,7 @@ export default function CacheSettingsTab() {
                     onClick={handleTestConnection}
                     disabled={testingConnection || semSaving}
                   >
-                    {testingConnection ? "Testing Connection..." : "Test Embedding Model"}
+                    {testingConnection ? t("semanticCacheTesting") : t("semanticCacheTest")}
                   </Button>
 
                   <Button
@@ -637,7 +686,7 @@ export default function CacheSettingsTab() {
                     disabled={clearingCache}
                     className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                   >
-                    {clearingCache ? "Purging..." : "Clear Cache"}
+                    {clearingCache ? t("semanticCachePurging") : t("semanticCacheClear")}
                   </Button>
                 </div>
 
@@ -647,7 +696,7 @@ export default function CacheSettingsTab() {
                   onClick={saveSemanticCache}
                   disabled={semSaving}
                 >
-                  {semSaving ? "Saving..." : "Save Semantic Cache"}
+                  {semSaving ? t("semanticCacheSaving") : t("semanticCacheSave")}
                 </Button>
               </div>
 
@@ -662,17 +711,24 @@ export default function CacheSettingsTab() {
                 >
                   {testResult.ok ? (
                     <div className="flex items-center gap-2">
-                      <span className="font-bold">Connection Verified:</span>
+                      <span className="font-bold">{t("semanticCacheConnectionVerified")}</span>
                       <span>
-                        Successfully generated {testResult.dimensions}-dim embedding in{" "}
-                        {testResult.latencyMs}ms
-                        {testResult.resolvedBaseUrl ? ` via ${testResult.resolvedBaseUrl}` : ""}.
+                        {testResult.resolvedBaseUrl
+                          ? t("semanticCacheTestSuccessVia", {
+                              dimensions: testResult.dimensions,
+                              latency: testResult.latencyMs,
+                              url: testResult.resolvedBaseUrl,
+                            })
+                          : t("semanticCacheTestSuccess", {
+                              dimensions: testResult.dimensions,
+                              latency: testResult.latencyMs,
+                            })}
                       </span>
                     </div>
                   ) : (
                     <div>
-                      <span className="font-bold">Connection Test Failed: </span>
-                      <span>{testResult.error || "Unknown error"}</span>
+                      <span className="font-bold">{t("semanticCacheConnectionFailed")} </span>
+                      <span>{testResult.error || t("semanticCacheUnknownError")}</span>
                     </div>
                   )}
                 </div>
@@ -726,7 +782,7 @@ export default function CacheSettingsTab() {
               className="w-32 px-3 py-1.5 rounded bg-surface-2 border border-border text-sm text-text-primary"
               disabled={catalogLoading || catalogSaving}
             />
-            <span className="text-xs text-text-muted">ms</span>
+            <span className="text-xs text-text-muted">{t("semanticCacheMilliseconds")}</span>
             <Button
               size="sm"
               variant="primary"

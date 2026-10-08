@@ -125,17 +125,51 @@ const safe = String(err).split("\n")[0];
 
 ❌ **Nikada** namjerno ne uključujte `process.cwd()`, `__filename`, `__dirname` ili putanje izvedene iz env-a u poruke o greškama. Sanitizer pokriva apsolutne putanje kao "defense in depth" (odbrana u dubini), ali pozivaoci ne smiju konstruisati poruke koje nose topološke informacije.
 
-## Pokrivenost u CI
+## Pokrivenost u CI-ju
 
-`tests/unit/error-message-sanitization.test.ts` nameće:
+`tests/unit/error-message-sanitization.test.ts` osigurava:
 
-- Svaka ruta pod `/api/model-combo-mappings/*` vraća sanirana tijela pri 4xx/5xx.
-- `sanitizeErrorMessage` uklanja višelinijske tragove steka (stack traces).
+- Svaka ruta pod `/api/model-combo-mappings/*` vraća sanitizirana tijela odgovora za 4xx/5xx.
+- `sanitizeErrorMessage` uklanja višelinijske tragove steka.
 - `sanitizeErrorMessage` zamjenjuje POSIX i Windows apsolutne putanje sa `<path>`.
-- `sanitizeErrorMessage` sigurno obrađuje `null`/`undefined`/`Error` instancirane ulaze.
-- `buildErrorBody` nikada ne izlaže tragove steka u svom `message` polju.
+- `sanitizeErrorMessage` sigurno obrađuje ulaze `null`/`undefined`/instance `Error`.
+- `buildErrorBody` nikada ne izlaže tragove steka u svom polju `message`.
 
-Prilikom dodavanja nove rute ili izvršitelja (executor), kopirajte obrazac tvrdnje (assertion pattern) iz ove datoteke. Kapija pokrivenosti (`npm run test:coverage`) nameće ≥60% naredbi/linija/funkcija/grana — putanje grešaka moraju biti pokrivene.
+Prilikom dodavanja nove rute ili izvršitelja, kopirajte obrazac provjere iz ove datoteke. Prag pokrivenosti (`npm run test:coverage`) zahtijeva ≥60% naredbi/linija/funkcija/grana — putanje grešaka moraju biti pokrivene.
+
+### Statička provjera: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` skenira `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` i svaku datoteku `src/app/api/**/route.ts` radi otkrivanja neobrađene uhvaćene greške (`err.message` / `err.stack`) ili neobrađene uzvodne vrijednosti `body.error.message` koja dospijeva u tijelo odgovora namijenjeno klijentu.
+
+**Povjerenje se odnosi na pojedinačni poziv, nikada na cijelu datoteku** (G-03, #15159). Provjera je ranije preskakala cijelu datoteku čim bi pronašla bilo koji uvoz iz putanje `utils/error` — izuzeće na nivou datoteke primijenjeno na rizik na nivou poziva. Jedan ispravan `import { sanitizeErrorMessage }` trajno je izuzimao svako drugo mjesto izlaganja u datoteci, zbog čega je stvarno curenje prošlo provjere. Sada se linija smatra pouzdanom samo kada se zaista usmjerava kroz odobreni graditelj ili sanitizator:
+
+| Oblik linije                                                                                                    | Pouzdano?         |
+| --------------------------------------------------------------------------------------------------------------- | ----------------- |
+| poziva `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …            | da                |
+| poziva kanonski graditelj **koji ova datoteka uvozi** iz `open-sse/utils/error` ili `src/lib/api/errorResponse` | da                |
+| odobreni graditelj poziva se u **više linija**, pa se polje `message:` nalazi u kasnijoj liniji                 | da                |
+| poziva lokalni `function errorResponse(...)` čije vlastito tijelo obavlja sanitizaciju                          | da                |
+| prosljeđuje `err.message` / `err.stack` bilo gdje drugo                                                         | **ne — prekršaj** |
+
+Vrijedi znati za dvije posljedice:
+
+- Uvoz `errorResponse` ne predstavlja _bezuslovno_ povjerenje. Datoteka koja definiše vlastiti `errorResponse` i dalje se označava na mjestu poziva, jer provjera razrješava povjerenje po simbolu, a ne po datoteci. Isto vrijedi za `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` nakon čega slijedi `error: body.error.message` predstavlja **sanitizirani** idiom koji se koristi u izvršiteljima `*-fetch.ts` i ne označava se.
+
+Oba odobrena modula graditelja se računaju: `open-sse/utils/error.ts` i `src/lib/api/errorResponse.ts`. Drugi koristi približno 54 rukovatelja rutama izvan `open-sse`, a on sanitizira oba svoja izvoza.
+
+Dva oblika koja **nisu** prekršaji, iako ih je provjera ranije prijavljivala kao curenja:
+
+- neobrađena greška unutar **revizijskog zapisa** — `saveCallLog({ error: err.message })`, `logToolCall(...)` ili zapisivač koji prvo prima poruku (`log.error("BATCHES", "sweep failed", { error: err.message })`). Odgovor namijenjen klijentu u narednim linijama može koristiti statički `buildErrorBody`.
+- **višelinijski** poziv odobrenog graditelja, gdje polje `message:` uopće ne navodi graditelj:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` zamrzava postojeće prekršaje kako bi provjera blokirala samo _nove_. `assertNoStale` automatski uklanja unos čim se njegov prekršaj ispravi, tako da se zamrznuto stanje ne može trajno ukorijeniti. Zaštite od regresije: `tests/unit/check-error-helper.test.ts` i `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Povezane kontrole
 

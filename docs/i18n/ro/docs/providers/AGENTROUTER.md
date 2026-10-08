@@ -128,7 +128,7 @@ upstream (consultați `open-sse/services/claudeCodeCompatible.ts`):
 | Antet                                        | Valoare                                                                                                                       |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                              | `Bearer <api-key>`                                                                                                            |
-| `User-Agent`                                 | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                      |
+| `User-Agent`                                 | `claude-cli/2.1.280 (external, sdk-cli)`                                                                                      |
 | `anthropic-version`                          | `2023-06-01`                                                                                                                  |
 | `anthropic-beta`                             | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                      |
 | Comutator beta redact-thinking per conexiune | Adaugă `redact-thinking-2026-02-12` pentru serviciile upstream care necesită în mod explicit fluxuri de raționament redactate |
