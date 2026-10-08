@@ -39,6 +39,7 @@ env:
 
 jobs:
   publish-export:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # gh release upload — clobra o asset estável do export

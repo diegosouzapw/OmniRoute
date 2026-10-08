@@ -142,18 +142,30 @@ export function parkWaitMs(ttlLeftMs: number | null): number {
 }
 
 /**
+ * Opt-in (default off, #14851): when every cooldown-ready account is set aside,
+ * serve them anyway instead of returning an empty replay leg.
+ */
+export function isReplayServeSetAsideEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env.OPENCODE_PARK_REPLAY_SERVE_SETASIDE;
+  return raw != null && /^(1|true|yes|on)$/i.test(raw.trim());
+}
+
+/**
  * Replay candidates: cooldown-ready accounts (bans included) that are not set
- * aside, least-recently-penalized first, capped at PARK_PROBE_MAX.
+ * aside, least-recently-penalized first, capped at PARK_PROBE_MAX. When all
+ * ready accounts are set aside the leg is empty unless `serveSetAside` (opt-in
+ * flag, #14851) is on.
  */
 export function replayCandidates<T extends RotatableAccount>(
   accounts: T[],
   nowMs = Date.now(),
-  keyOfMember: (account: T) => string | null = (a) => proxyEgressKey(a.proxy)
+  keyOfMember: (account: T) => string | null = (a) => proxyEgressKey(a.proxy),
+  serveSetAside: boolean = isReplayServeSetAsideEnabled()
 ): T[] {
   const ready = accounts.filter((a) => a.cooldownUntil <= nowMs);
   const fresh = ready.filter((a) => !isProxyAvoided(keyOfMember(a)));
-  // Serve anyway when everything ready is set aside (never exclude).
-  return (fresh.length > 0 ? fresh : ready)
+  // Serve set-aside accounts anyway only when opted in (#14851).
+  return (fresh.length > 0 || !serveSetAside ? fresh : ready)
     .sort((x, y) => {
       const sx = proxySetAsideSeq(keyOfMember(x)) ?? -1;
       const sy = proxySetAsideSeq(keyOfMember(y)) ?? -1;

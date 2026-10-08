@@ -11,6 +11,7 @@
  *   OMNIROUTE_TRANSLATION_API_KEY     bearer token
  *   OMNIROUTE_TRANSLATION_MODEL       model id
  *   OMNIROUTE_TRANSLATION_TIMEOUT_MS  per-request timeout (default 60000)
+ *   OMNIROUTE_TRANSLATION_REASONING_EFFORT  optional, sent as-is when set
  *
  * Two translation modes are exposed:
  *   - `translateString(en, localeEntry, backend)` — one request per string.
@@ -45,10 +46,21 @@ export function backendConfig() {
   const apiKey = requireEnv("OMNIROUTE_TRANSLATION_API_KEY");
   const model = requireEnv("OMNIROUTE_TRANSLATION_MODEL");
   const timeoutMs = Number(process.env.OMNIROUTE_TRANSLATION_TIMEOUT_MS || 60000);
-  return { apiUrl, apiKey, model, timeoutMs };
+  const reasoningEffort = process.env.OMNIROUTE_TRANSLATION_REASONING_EFFORT?.trim();
+  return {
+    apiUrl,
+    apiKey,
+    model,
+    timeoutMs,
+    ...(reasoningEffort ? { reasoningEffort } : {}),
+  };
 }
 
-export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry = 0) {
+export async function callChat(
+  messages,
+  { apiUrl, apiKey, model, timeoutMs, reasoningEffort },
+  retry = 0
+) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -63,6 +75,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
         messages,
         temperature: 0.15,
         stream: false,
+        ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
       }),
       signal: ctrl.signal,
     });
@@ -73,7 +86,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
         const wait = 1500 + retry * 1500;
         logWarn(`upstream ${res.status} — retrying after ${wait}ms`);
         await new Promise((r) => setTimeout(r, wait));
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+        return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
       }
       throw new Error(`upstream ${res.status}: ${text.slice(0, 200)}`);
     }
@@ -87,7 +100,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
     if (err?.name === "AbortError") {
       if (retry < 1) {
         logWarn(`timeout after ${timeoutMs}ms — retrying`);
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+        return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
       }
       throw new Error(`timeout after ${timeoutMs}ms`);
     }
@@ -98,7 +111,7 @@ export async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, r
     ) {
       logWarn(`network error: ${err.message} — retrying`);
       await new Promise((r) => setTimeout(r, 1500));
-      return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
+      return callChat(messages, { apiUrl, apiKey, model, timeoutMs, reasoningEffort }, retry + 1);
     }
     throw err;
   } finally {
@@ -234,4 +247,153 @@ export async function translateBatch(entries, localeEntry, backend) {
     }
   }
   return parsed;
+}
+
+// ----- Multi-locale batch mode -----------------------------------------------
+// One chat request translates up to N keys into M locales. The answer is one
+// JSON object per line, one line per locale: `{"<code>":{"<id>":"<value>"}}`.
+// A broken line fails only its own locale — the other lines still apply, and
+// the caller retries the failed locales through the single-locale path.
+
+export function multiLocaleBatchSystem(targetDescs) {
+  const targets = targetDescs.map((l) => `${l.code} = ${l.english ?? l.code}`).join(", ");
+  const count = targetDescs.length;
+  return [
+    `You translate short interface strings from English into each target language. Target languages (code = name): ${targets}.`,
+    `Keep ICU placeholders like {count}, plural syntax, rich-text tags (never translate a tag name), URLs and quoted '<name>' spans unchanged.`,
+    `Answer with exactly ${count} line${count === 1 ? "" : "s"}, one JSON object per line, one line per target language in the order given, keeping the ids of the input object: {"<code>":{"<id>":"<translation>"}}. No prose, no code fence.`,
+  ].join("\n");
+}
+
+// Repair candidates for a single answer line, mirroring the tolerant reader
+// of the local translation launcher: a trailing brace too many or missing.
+function repairLocaleLine(line) {
+  const candidates = [
+    line,
+    line.replace(/\}\s*$/, ""),
+    `${line}}`,
+    line.replace(/\}\s*\}\s*$/, "}"),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      /* try the next candidate */
+    }
+  }
+  return null;
+}
+
+/**
+ * Pure parser for a multi-locale batch answer. Tries a whole JSON object
+ * first, then falls back to one JSON object per line. Every expected locale
+ * must map to an OWN object holding every expected id as an OWN non-empty
+ * string; locales that fail this check land in `failedLocales` instead of
+ * failing the whole parse. Unknown locale codes are ignored, the first
+ * occurrence of a duplicated code wins, values are trimmed.
+ *
+ * @param {string} text raw assistant content
+ * @param {string[]} expectedLocaleCodes locale codes the caller sent
+ * @param {string[]} expectedIds short caller ids (`1..K`) used in the request
+ * @returns {{ perLocale: Map<string, Map<string, string>>, failedLocales: string[] }}
+ */
+export function parseMultiLocaleBatchResponse(text, expectedLocaleCodes, expectedIds) {
+  const expected = new Set(expectedLocaleCodes);
+  // Strip fences and per-line trailing commas so pasted answers still parse.
+  const cleaned = String(text)
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  const merged = new Map();
+  const record = (code, row) => {
+    if (!expected.has(code) || merged.has(code)) return;
+    if (row === null || typeof row !== "object" || Array.isArray(row)) return;
+    merged.set(code, row);
+  };
+  if (cleaned) {
+    // Whole-object attempt: `{"fr":{"1":"x"},"de":{"1":"y"}}`.
+    let whole = null;
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) whole = parsed;
+    } catch {
+      whole = null;
+    }
+    if (whole) {
+      for (const [code, row] of Object.entries(whole)) record(code, row);
+    } else {
+      for (const raw of cleaned.split("\n")) {
+        const line = raw.trim().replace(/,$/, "");
+        if (!line) continue;
+        const parsed = repairLocaleLine(line);
+        if (!parsed) continue;
+        for (const [code, row] of Object.entries(parsed)) record(code, row);
+      }
+    }
+  }
+  const perLocale = new Map();
+  const failedLocales = [];
+  for (const code of expectedLocaleCodes) {
+    const row = merged.get(code);
+    if (row === undefined) {
+      failedLocales.push(code);
+      continue;
+    }
+    const values = new Map();
+    let ok = true;
+    for (const id of expectedIds) {
+      if (!Object.hasOwn(row, id) || typeof row[id] !== "string") {
+        ok = false;
+        break;
+      }
+      const value = row[id].trim();
+      if (!value) {
+        ok = false;
+        break;
+      }
+      values.set(id, value);
+    }
+    if (ok) perLocale.set(code, values);
+    else failedLocales.push(code);
+  }
+  return { perLocale, failedLocales };
+}
+
+/**
+ * Translates up to N keys into M locales in ONE chat request. `keyEntries`
+ * are `{ id, text }` pairs using the caller's key paths; the request uses
+ * short ids (`1..K`) so the answer repeats less text, and the returned maps
+ * are keyed back by caller id. Returns a partial result when at least one
+ * locale parses — the caller retries `failedLocales` through `translateBatch`.
+ * Throws when the request itself fails or when no locale could be read.
+ *
+ * @returns {Promise<{ perLocale: Map<string, Map<string, string>>, failedLocales: string[] }>}
+ */
+export async function translateMultiLocaleBatch(keyEntries, localeEntries, backend) {
+  const ids = keyEntries.map((_, i) => String(i + 1));
+  const payload = Object.fromEntries(keyEntries.map((e, i) => [ids[i], e.text]));
+  const messages = [
+    { role: "system", content: multiLocaleBatchSystem(localeEntries) },
+    { role: "user", content: JSON.stringify(payload) },
+  ];
+  const out = await callChat(messages, backend);
+  const expectedCodes = localeEntries.map((l) => l.code);
+  const parsed = parseMultiLocaleBatchResponse(out, expectedCodes, ids);
+  const perLocale = new Map();
+  for (const [code, values] of parsed.perLocale) {
+    const mapped = new Map();
+    keyEntries.forEach((entry, i) => {
+      const value = values.get(ids[i]);
+      mapped.set(entry.id, preserveIcuLiteralQuotes(entry.text, value));
+    });
+    perLocale.set(code, mapped);
+  }
+  if (perLocale.size === 0 && expectedCodes.length > 0) {
+    throw new Error("multi-locale batch translated no locale: no locale translated");
+  }
+  return { perLocale, failedLocales: parsed.failedLocales };
 }

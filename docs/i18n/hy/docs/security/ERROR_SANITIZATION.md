@@ -128,15 +128,49 @@ const safe = String(err).split("\n")[0];
 
 ## Ծածկույթը CI-ում
 
-`tests/unit/error-message-sanitization.test.ts`-ը ապահովում է, որ՝
+`tests/unit/error-message-sanitization.test.ts`-ը ապահովում է՝
 
-- `/api/model-combo-mappings/*`-ի ներքո գտնվող յուրաքանչյուր երթուղի 4xx/5xx-ի դեպքում վերադարձնում է մաքրված մարմիններ։
+- `/api/model-combo-mappings/*`-ի ներքո գտնվող յուրաքանչյուր երթուղի 4xx/5xx պատասխանների դեպքում վերադարձնում է մաքրված մարմիններ։
 - `sanitizeErrorMessage`-ը հեռացնում է բազմատող stack trace-երը։
 - `sanitizeErrorMessage`-ը POSIX և Windows բացարձակ ուղիները փոխարինում է `<path>`-ով։
-- `sanitizeErrorMessage`-ը անվտանգ կերպով մշակում է `null`/`undefined`/`Error` նմուշ մուտքային արժեքները։
-- `buildErrorBody`-ն երբեք չի բացահայտում stack trace-երը իր `message` դաշտում։
+- `sanitizeErrorMessage`-ն անվտանգ է մշակում `null`/`undefined`/`Error` instance մուտքային արժեքները։
+- `buildErrorBody`-ն իր `message` դաշտում երբեք չի բացահայտում stack trace-եր։
 
-Նոր երթուղի կամ կատարիչ ավելացնելիս պատճենեք հաստատումների ձևանմուշն այս ֆայլից։ Ծածկույթի շեմը (`npm run test:coverage`) պահանջում է statements/lines/functions/branches-ի ≥60% ծածկույթ․ սխալի ուղիները պետք է ծածկված լինեն։
+Նոր երթուղի կամ executor ավելացնելիս պատճենեք այս ֆայլի assertion ձևանմուշը։ Ծածկույթի շեմը (`npm run test:coverage`) պահանջում է statements/lines/functions/branches-ի ≥60% ծածկույթ. սխալի ուղիները պետք է ծածկված լինեն։
+
+### Ստատիկ շեմը՝ `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs`-ը ստուգում է `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` և յուրաքանչյուր `src/app/api/**/route.ts`՝ հայտնաբերելու անմշակ բռնված սխալ (`err.message` / `err.stack`) կամ անմշակ վերին հոսքի `body.error.message`, որը հասնում է հաճախորդին ուղղված մարմնին։
+
+**Վստահությունը վերաբերում է կանչին, ոչ երբեք ամբողջ ֆայլին** (G-03, #15159)։ Նախկինում շեմը բաց էր թողնում ամբողջ ֆայլը, հենց որ տեսնում էր որևէ ներմուծում `utils/error` ուղուց՝ ֆայլի մակարդակի բացառություն կիրառելով կանչի մակարդակի վտանգի նկատմամբ։ Մեկ ճիշտ `import { sanitizeErrorMessage }`-ը մշտապես արդարացնում էր ֆայլի մյուս բոլոր sink-երը, ինչի պատճառով իրական արտահոսքը հրապարակվեց՝ անցնելով բոլոր ստուգումները։ Այժմ տողը վստահելի է միայն այն դեպքում, երբ այն իսկապես անցնում է թույլատրված builder-ի կամ sanitizer-ի միջով․
+
+| Տողի ձևը                                                                                                                 | Վստահելի՞ է     |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| կանչում է `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                  | այո             |
+| կանչում է կանոնական builder, **որն այս ֆայլը ներմուծում է** `open-sse/utils/error`-ից կամ `src/lib/api/errorResponse`-ից | այո             |
+| թույլատրված builder-ը կանչվում է **բազմատող** ձևով, ուստի `message:` դաշտը գտնվում է ավելի ուշ տողում                    | այո             |
+| կանչում է ֆայլում տեղային `function errorResponse(...)`, որի սեփական մարմինը կատարում է մաքրում                          | այո             |
+| փոխանցում է `err.message` / `err.stack` որևէ այլ տեղ                                                                     | **ոչ՝ խախտում** |
+
+Երկու հետևանք, որոնք արժե իմանալ․
+
+- `errorResponse`-ի ներմուծումը համընդհանուր վստահություն _չի_ ապահովում։ Սեփական `errorResponse` սահմանող ֆայլը, միևնույն է, կնշվի կանչի վայրում, քանի որ շեմը վստահությունը որոշում է ըստ symbol-ի, ոչ թե ըստ ֆայլի։ Նույնը վերաբերում է `createErrorResponse`-ին։
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, որին հաջորդում է `error: body.error.message`, **մաքրված** ընդունված ձևն է, որն օգտագործվում է `*-fetch.ts` executor-ներում և չի նշվում որպես խախտում։
+
+Թույլատրված builder-ի երկու module-ներն էլ հաշվի են առնվում՝ `open-sse/utils/error.ts` և `src/lib/api/errorResponse.ts`։ Երկրորդն օգտագործվում է `open-sse`-ից դուրս գտնվող մոտ 54 route handler-ների կողմից և մաքրում է իր երկու export-ներն էլ։
+
+Երկու ձև, որոնք խախտումներ **չեն**, թեև շեմը նախկինում երկուսն էլ հաղորդել է որպես արտահոսքեր․
+
+- անմշակ սխալ **audit row**-ի ներսում՝ `saveCallLog({ error: err.message })`, `logToolCall(...)`, կամ logger, որը նախ ընդունում է հաղորդագրություն (`log.error("BATCHES", "sweep failed", { error: err.message })`)։ Հաջորդ տողերում գտնվող՝ հաճախորդին ուղղված պատասխանը կարող է պարզապես ստատիկ `buildErrorBody` լինել։
+- թույլատրված builder-ի **բազմատող** կանչ, որտեղ `message:` դաշտն ընդհանրապես որևէ builder չի նշում․
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER`-ը սառեցնում է նախապես գոյություն ունեցող խախտումները, որպեսզի շեմը արգելափակի միայն _նոր_ խախտումները։ `assertNoStale`-ն ավտոմատ հեռացնում է գրառումը, երբ դրա խախտումն ուղղվում է, այնպես որ սառեցումը չի կարող քարանալ։ Հետընթացի պաշտպանիչ ստուգումներ՝ `tests/unit/check-error-helper.test.ts` և `tests/unit/check-error-helper-call-scope.test.ts`։
 
 ## Առնչվող վերահսկիչ միջոցներ
 

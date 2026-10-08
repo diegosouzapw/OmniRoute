@@ -69,6 +69,16 @@ describe("planFromHeader (Phase 3)", () => {
     assert.deepEqual(planFromHeader(cfg(), "c1", combos)?.stackedPipeline, combos.c1);
   });
 
+  it("an empty-pipeline combo is not a chosen plan (fall-through)", () => {
+    assert.equal(planFromHeader(cfg(), "empty", { empty: [] }), null);
+  });
+
+  it("prototype-key header values do not resolve to a plan", () => {
+    for (const header of ["__proto__", "constructor", "toString"]) {
+      assert.equal(planFromHeader(cfg(), header, combos), null, header);
+    }
+  });
+
   it("unknown value => null (fall-through)", () => {
     assert.equal(planFromHeader(cfg(), "nonsense", combos), null);
   });

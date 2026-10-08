@@ -16,6 +16,10 @@ import {
   buildSyncedModelIdsByCanonicalProvider,
   shouldSuppressStaticModelForExclusiveListing,
 } from "@/app/api/v1/models/catalogSyncedCoverage";
+import {
+  isModelInLiveCatalog,
+  loadAuthoritativeLiveCatalogs,
+} from "@/app/api/models/liveCatalogAvailability";
 import { buildAliasMaps } from "@/app/api/v1/models/catalogProviderMaps";
 import { resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps } from "@/app/api/v1/models/catalogProviderMaps";
 
@@ -138,6 +142,20 @@ export async function handleGetModels(request: Request, dependencies: GetModelsD
       // Synced catalog unavailable — fall through with static-only availability.
     }
 
+    // #15585: for providers with an authoritative live catalog, dispatch rejects any
+    // model the catalog omits — so that verdict overrides the static-coverage heuristic.
+    // Only providers with an active synced catalog can be authoritative, so skip the rest
+    // (avoids a per-provider catalog + customModels read for every static provider).
+    const authoritativeLive = await loadAuthoritativeLiveCatalogs(
+      candidates
+        .map((m: any) => m.provider as string)
+        .filter(
+          (provider: string) =>
+            (syncedModelIdsByCanonicalProvider.get(resolveCanonicalProviderIdForStatic(provider))
+              ?.size ?? 0) > 0
+        )
+    );
+
     const models = candidates.map((m: any) => {
       const fullModel = `${m.provider}/${m.model}`;
       const canonicalProviderId = resolveCanonicalProviderIdForStatic(m.provider);
@@ -149,8 +167,10 @@ export async function handleGetModels(request: Request, dependencies: GetModelsD
         staticModelId: m.model,
         syncedModelIds: syncedForProvider ? [...syncedForProvider] : [],
       });
+      const liveIds = authoritativeLive.get(m.provider);
       const available =
-        (!activeProviders || activeProviders.has(m.provider)) && !suppressedBySync;
+        (!activeProviders || activeProviders.has(m.provider)) &&
+        (liveIds ? isModelInLiveCatalog(m.provider, m.model, liveIds) : !suppressedBySync);
       return {
         ...m,
         fullModel,

@@ -5,6 +5,7 @@ import { radarCatalogInput, radarCatalogOutput } from "./schemas/radarCatalog.ts
 import type { McpToolExtraLike } from "./scopeEnforcement.ts";
 import type { TextToolResult } from "./toolResult.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { omniRouteFetch } from "./internalFetch.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -111,9 +112,10 @@ export async function getMcpRadarCatalog(
   args: McpRadarCatalogArgs,
   deps: McpRadarCatalogDeps = {}
 ) {
-  const fetchJson =
-    deps.fetchJson ??
-    ((path: string) => import("./server.ts").then((module) => module.omniRouteFetch(path)));
+  // #15159 M-06: static import of the shared hop. See the same note in catalog.ts — the
+  // `import("./server.ts")` workaround this replaces is what closed the
+  // `server.ts -> radarCatalog.ts` edge (cycle 195).
+  const fetchJson = deps.fetchJson ?? omniRouteFetch;
   const raw = record(await fetchJson("/api/radar/catalog"));
   const providerFilter = args.provider?.trim().toLowerCase();
   const familyFilter = args.familyId?.trim().toLowerCase();

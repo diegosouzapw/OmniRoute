@@ -1,0 +1,1 @@
+- **fix(rankings):** free provider ranking now follows the documented free-model catalog ([#15396](https://github.com/diegosouzapw/OmniRoute/pull/15396)) — thanks @maxmad64bis

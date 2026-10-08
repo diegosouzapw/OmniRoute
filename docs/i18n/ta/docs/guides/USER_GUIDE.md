@@ -120,37 +120,39 @@
 
 ## 📖 வழங்குநர் அமைப்பு
 
-CSV அல்லது JSON கோப்பிலிருந்து API-key இணைப்புகளை மொத்தமாகச் சேர்க்க, **Dashboard → Providers → Import from file** என்பதைப் பயன்படுத்தவும். நெடுவரிசைகள் அவற்றின் இடத்தை அடிப்படையாகக் கொண்டவை (`provider,name,apiKey,baseUrl,priority`); `provider` ஏற்கனவே நிர்வகிக்கப்படும் வழங்குநராகவோ இணக்கமான node ஆகவோ இருக்க வேண்டும். [CSV அல்லது JSON கோப்பிலிருந்து வழங்குநர்களை இறக்குமதி செய்தல்](../providers/CSV-IMPORT.md) என்பதைப் பார்க்கவும்.
+CSV அல்லது JSON கோப்பிலிருந்து API-key இணைப்புகளை மொத்தமாகச் சேர்க்க, **கட்டுப்பாட்டுப் பலகம் → வழங்குநர்கள் → கோப்பிலிருந்து இறக்குமதி செய்** என்பதைப் பயன்படுத்தவும். நெடுவரிசைகள் நிலை சார்ந்தவை (`provider,name,apiKey,baseUrl,priority`); `provider` ஏற்கனவே நிர்வகிக்கப்படும் வழங்குநராகவோ இணக்கமான node ஆகவோ இருக்க வேண்டும். [CSV அல்லது JSON கோப்பிலிருந்து வழங்குநர்களை இறக்குமதி செய்தல்](../providers/CSV-IMPORT.md) என்பதைப் பார்க்கவும்.
 
 ### 🔐 சந்தா வழங்குநர்கள்
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Claude Code-ஐ இணைக்கவும்
+கட்டுப்பாட்டுப் பலகம் → வழங்குநர்கள் → Claude Code-ஐ இணைக்கவும்
 → OAuth உள்நுழைவு → தானியங்கி token புதுப்பிப்பு
-→ 5 மணிநேர + வாராந்திர ஒதுக்கீட்டுக் கண்காணிப்பு
+→ 5 மணிநேர + வாராந்திர quota கண்காணிப்பு
 
-மாடல்கள்:
+Models:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**தொழில்முறை உதவிக்குறிப்பு:** சிக்கலான பணிகளுக்கு Opus-ஐயும், வேகத்துக்கு Sonnet-ஐயும் பயன்படுத்தவும். OmniRoute ஒவ்வொரு மாடலுக்குமான ஒதுக்கீட்டைக் கண்காணிக்கிறது!
+**சிறப்புக் குறிப்பு:** சிக்கலான பணிகளுக்கு Opus-ஐயும், வேகத்துக்கு Sonnet-ஐயும் பயன்படுத்தவும். OmniRoute ஒவ்வொரு model-க்கும் quota-வைக் கண்காணிக்கிறது!
 
-Claude மற்றும் Claude Code-இணக்கமான வழித்தடங்கள், Opus மற்றும் Sonnet
-மாடல்களுக்கு `max` சிந்தனை முயற்சி அளவைத் தக்கவைக்கின்றன. Haiku மாடல்கள் `max` முயற்சி அடுக்கை ஏற்காது; எனவே OmniRoute அந்தக்
-கோரிக்கையை upstream-க்கு அனுப்புவதற்கு முன் அதிக சிந்தனை வரவுசெலவுக்கு நிலைக்குறைக்கிறது.
+OmniRoute host-இல் browser இல்லையா? Claude Code-இல் உள்நுழைந்துள்ள எந்த இடத்திலும் `claude setup-token`-ஐ இயக்கி, ஓராண்டுக்கான token-ஐ **Setup Token** tab-இல் ஒட்டவும். [setup token உடன் Claude Code](../providers/CLAUDE_CODE_SETUP_TOKEN.md) என்பதைப் பார்க்கவும்.
+
+Claude மற்றும் Claude Code-இணக்கமான routes, Opus மற்றும் Sonnet
+models-க்கான `max` thinking effort-ஐத் தக்கவைக்கின்றன. Haiku models `max` effort tier-ஐ ஏற்காது; எனவே OmniRoute அந்த
+request-ஐ upstream-க்கு அனுப்புவதற்கு முன், அதிக thinking budget-க்கு மாற்றுகிறது.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Codex-ஐ இணைக்கவும்
+கட்டுப்பாட்டுப் பலகம் → வழங்குநர்கள் → Codex-ஐ இணைக்கவும்
 → OAuth உள்நுழைவு (port 1455)
 → 5 மணிநேர + வாராந்திர மீட்டமைப்பு
 
-மாடல்கள்:
+Models:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -160,11 +162,11 @@ Dashboard → Providers → Codex-ஐ இணைக்கவும்
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → GitHub-ஐ இணைக்கவும்
+கட்டுப்பாட்டுப் பலகம் → வழங்குநர்கள் → GitHub-ஐ இணைக்கவும்
 → GitHub வழியாக OAuth
-→ மாதாந்திர மீட்டமைப்பு (மாதத்தின் 1-ஆம் தேதி)
+→ மாதாந்திர மீட்டமைப்பு (மாதத்தின் 1ஆம் தேதி)
 
-மாடல்கள்:
+Models:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -176,53 +178,53 @@ Dashboard → Providers → GitHub-ஐ இணைக்கவும்
 
 #### GLM-4.7 (தினசரி மீட்டமைப்பு, $0.6/1M)
 
-1. பதிவுசெய்யவும்: [Zhipu AI](https://open.bigmodel.cn)
+1. பதிவு செய்க: [Zhipu AI](https://open.bigmodel.cn)
 2. Coding Plan-இலிருந்து API key-ஐப் பெறவும்
-3. Dashboard → API Key-ஐச் சேர்க்கவும்: வழங்குநர்: `glm`, API Key: `your-key`
+3. கட்டுப்பாட்டுப் பலகம் → API Key-ஐச் சேர்: வழங்குநர்: `glm`, API Key: `your-key`
 
-**பயன்பாடு:** `glm/glm-4.7` — **தொழில்முறை உதவிக்குறிப்பு:** Coding Plan, 1/7 செலவில் 3× ஒதுக்கீட்டை வழங்குகிறது! தினமும் காலை 10:00 மணிக்கு மீட்டமைக்கப்படும்.
+**பயன்பாடு:** `glm/glm-4.7` — **சிறப்புக் குறிப்பு:** Coding Plan, 1/7 செலவில் 3× quota-வை வழங்குகிறது! தினமும் காலை 10:00 மணிக்கு மீட்டமைக்கப்படும்.
 
 #### MiniMax M2.1 (5 மணிநேர மீட்டமைப்பு, $0.20/1M)
 
-1. பதிவுசெய்யவும்: [MiniMax](https://www.minimax.io)
-2. API key-ஐப் பெறவும் → Dashboard → API Key-ஐச் சேர்க்கவும்
+1. பதிவு செய்க: [MiniMax](https://www.minimax.io)
+2. API key-ஐப் பெறவும் → கட்டுப்பாட்டுப் பலகம் → API Key-ஐச் சேர்
 
-**பயன்பாடு:** `minimax/MiniMax-M2.1` — **தொழில்முறை உதவிக்குறிப்பு:** நீண்ட context-க்கு (1M tokens) மிக மலிவான தேர்வு!
+**பயன்பாடு:** `minimax/MiniMax-M2.1` — **சிறப்புக் குறிப்பு:** நீண்ட context-க்கான (1M tokens) மிக மலிவான விருப்பம்!
 
-#### Kimi K2 (மாதத்திற்கு நிலையான $9)
+#### Kimi K2 ($9/மாதம் நிலையான கட்டணம்)
 
-1. சந்தா செலுத்தவும்: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. API key-ஐப் பெறவும் → Dashboard → API Key-ஐச் சேர்க்கவும்
+1. சந்தா செலுத்துக: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. API key-ஐப் பெறவும் → கட்டுப்பாட்டுப் பலகம் → API Key-ஐச் சேர்
 
-**பயன்பாடு:** `kimi/kimi-k2.5` — **தொழில்முறை உதவிக்குறிப்பு:** 10M tokens-க்கு நிலையான மாதாந்திரக் கட்டணம் $9 = நடைமுறைச் செலவு $0.90/1M!
+**பயன்பாடு:** `kimi/kimi-k2.5` — **சிறப்புக் குறிப்பு:** 10M tokens-க்கு நிலையான $9/மாதம் = நடைமுறைச் செலவு $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
-1. பதிவுசெய்யவும்: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Qianfan API key ஒன்றை உருவாக்கவும் → Dashboard → API Key-ஐச் சேர்க்கவும்: வழங்குநர்: `qianfan`
+1. பதிவு செய்க: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Qianfan API key ஒன்றை உருவாக்கவும் → கட்டுப்பாட்டுப் பலகம் → API Key-ஐச் சேர்: வழங்குநர்: `qianfan`
 
 **பயன்பாடு:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, அல்லது மற்றொரு Qianfan OpenAI-இணக்கமான model ID.
 
 ### 🆓 இலவச வழங்குநர்கள்
 
-அங்கீகாரம் தேவையில்லாத இலவச வழங்குநர்களின் வழங்குநர் பக்கத்தில் **அங்கீகாரம் தேவையில்லை** என்பதற்குப் பக்கத்தில் ஒரு switch உள்ளது.
-அதை அணைப்பது அந்த வழங்குநரை முடக்கி, Providers configured/compact காட்சிகளிலிருந்து அதை அகற்றி,
-அதன் மாடல்களை `/v1/models` இலிருந்து அகற்றும்.
+அங்கீகாரம் தேவையற்ற இலவச வழங்குநர்களின் provider page-இல் **அங்கீகாரம் தேவையில்லை** என்பதற்கு அருகில் switch உள்ளது.
+அதை அணைப்பது அந்த வழங்குநரை முடக்கி, Providers configured/compact views-இலிருந்து அதை அகற்றி,
+அதன் models-ஐ `/v1/models`-இலிருந்து அகற்றும்.
 
-#### Qoder (9 இலவச மாடல்கள்)
+#### Qoder (9 இலவச models)
 
 ```bash
-Dashboard → Qoder-ஐ இணைக்கவும் → OAuth உள்நுழைவு → அணுகல் தற்போதைய வழங்குநர் வரம்புகளுக்கு உட்பட்டது
+கட்டுப்பாட்டுப் பலகம் → Qoder-ஐ இணைக்கவும் → OAuth உள்நுழைவு → அணுகல் தற்போதைய வழங்குநர் வரம்புகளுக்கு உட்பட்டது
 
-மாடல்கள்: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude இலவசம்)
 
 ```bash
-Dashboard → Kiro-ஐ இணைக்கவும் → AWS Builder ID அல்லது Google/GitHub → மாதத்திற்கு ~50 credits
+கட்டுப்பாட்டுப் பலகம் → Kiro-வை இணைக்கவும் → AWS Builder ID அல்லது Google/GitHub → ~50 credits/மாதம்
 
-மாடல்கள்: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

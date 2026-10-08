@@ -1,0 +1,1 @@
+- **fix(translator):** resolve the Claude thinking output cap with the routed provider so a provider-scoped-only `max_output_tokens` override is no longer invisible to `fitThinkingToMaxTokens()`, which previously let the synthesized `max_tokens` (caller room + thinking budget) go out unbounded and 400 upstream ([#10139](https://github.com/diegosouzapw/OmniRoute/issues/10139))

@@ -124,6 +124,11 @@ export async function PUT(request, { params }) {
     if (normalizedUpdate.config && typeof normalizedUpdate.config === "object") {
       normalizedUpdate.config = stripDeadComboConfigKeys(normalizedUpdate.config);
     }
+    // #15251: the runtime reads `universal_handoff` before the camelCase alias,
+    // so a stale stored alias must not shadow a validated update (or null-clear).
+    if (normalizedUpdate.universal_handoff !== undefined) {
+      normalizedUpdate.universalHandoff = undefined;
+    }
 
     const body = normalizedUpdate.models
       ? {

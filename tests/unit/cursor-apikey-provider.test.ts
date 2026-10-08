@@ -74,9 +74,9 @@ describe("CursorExecutor credential resolution", () => {
     __resetCursorApiKeyAuthForTest();
   });
 
-  it("sends the stripped IDE session token for OAuth connections", () => {
+  it("sends the stripped IDE session token for OAuth connections", async () => {
     const executor = new CursorExecutor();
-    const headers = executor.buildHeaders({
+    const headers = await executor.buildHeaders({
       accessToken: "user_01::ide.session.jwt",
       providerSpecificData: {},
     });
@@ -101,7 +101,7 @@ describe("CursorExecutor credential resolution", () => {
       providerSpecificData: {},
     });
     assert.ok(!(resolved instanceof Response));
-    const headers = executor.buildHeaders(resolved);
+    const headers = await executor.buildHeaders(resolved);
     assert.equal(headers.authorization, `Bearer ${jwt(exp)}`);
     assert.ok(!headers.authorization.includes(API_KEY));
     assert.equal(calls.length, 1);

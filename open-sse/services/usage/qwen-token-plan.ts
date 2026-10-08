@@ -3,7 +3,7 @@
  * usage leaf (issue #9603).
  *
  * Delegates to qwenTokenPlanQuotaFetcher (cookie-authenticated console gateway) and
- * shapes the 5-hour / weekly sliding windows into the standard usage response. The
+ * shapes the 5-hour / weekly / monthly windows into the standard usage response. The
  * inference API key cannot read this quota — the connection needs a console session
  * cookie in providerSpecificData (qwenCloudCookie / alibabaConsoleCookie / cookie)
  * or the QWEN_CLOUD_COOKIE env var.
@@ -14,6 +14,7 @@ import {
   resolveConsoleSite,
   QWEN_TOKEN_PLAN_WINDOW_5H,
   QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
+  QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
   type QwenTokenPlanQuota,
 } from "../qwenTokenPlanQuotaFetcher.ts";
 import type { UsageQuota } from "./quota.ts";
@@ -39,7 +40,7 @@ function windowToQuota(
 }
 
 /**
- * Qwen Cloud personal Token Plan usage (5-hour + weekly sliding windows).
+ * Qwen Cloud personal Token Plan usage (5-hour + weekly sliding windows, or monthly quota).
  */
 export async function getQwenTokenPlanUsage(
   connectionId: string,
@@ -96,6 +97,13 @@ export async function getQwenTokenPlanUsage(
       "Weekly window"
     );
     if (weekly) quotas.weekly = weekly;
+
+    const monthly = windowToQuota(
+      tokenPlanQuota.windows[QWEN_TOKEN_PLAN_WINDOW_MONTHLY],
+      tokenPlanQuota.tierLimits.monthly,
+      "Monthly window"
+    );
+    if (monthly) quotas.monthly = monthly;
 
     const specCode = tokenPlanQuota.specCode;
     const brand = tokenPlanQuota.consoleSite === "ALIYUN" ? "Alibaba" : "Qwen";

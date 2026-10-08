@@ -7,8 +7,8 @@ import {
 import { getRegistryModelThinkingEfforts } from "../../open-sse/config/providerRegistry.ts";
 
 // Tier lists follow Anthropic's published per-model effort table:
-// xhigh exists on Opus 4.7+ / Opus 5 / Fable 5 (added with Opus 4.7); max exists on
-// Opus 5/4.8/4.7/4.6 and Fable 5; Opus 4.5 tops out at high.
+// xhigh exists on Opus 4.7+ / Opus 5 / Fable 5 and 5.1 (added with Opus 4.7); max exists on
+// Opus 5/4.8/4.7/4.6 and Fable 5/5.1; Opus 4.5 tops out at high.
 const FIVE = ["low", "medium", "high", "xhigh", "max"];
 const FOUR = ["low", "medium", "high", "max"]; // no xhigh — Opus 4.6
 const THREE = ["low", "medium", "high"]; // Opus 4.5
@@ -36,13 +36,11 @@ const EXPECTED: Record<string, Array<[string, string[]]>> = {
     ["claude-opus-4.5", THREE],
   ],
   github: [
-    ["claude-fable-5", FIVE],
+    ["claude-fable-5.1", FIVE],
     ["claude-opus-5", FIVE],
+    ["claude-sonnet-5", FIVE],
     ["claude-opus-4.8-fast", FIVE],
     ["claude-opus-4.8", FIVE],
-    ["claude-opus-4.7", FIVE],
-    ["claude-opus-4.6", FOUR],
-    ["claude-opus-4.5", THREE],
   ],
   "ghe-copilot": [
     ["claude-fable-5", FIVE],

@@ -139,12 +139,46 @@ alun perinkään muodostaa järjestelmätopologian paljastavia viestejä.
 `tests/unit/error-message-sanitization.test.ts` varmistaa seuraavat asiat:
 
 - Jokainen reitti polun `/api/model-combo-mappings/*` alla palauttaa puhdistetut vastausrungot 4xx/5xx-tilanteissa.
-- `sanitizeErrorMessage` poistaa moniriviset pinojäljitykset.
+- `sanitizeErrorMessage` poistaa moniriviset pinojäljet.
 - `sanitizeErrorMessage` korvaa POSIX- ja Windows-järjestelmien absoluuttiset polut arvolla `<path>`.
-- `sanitizeErrorMessage` käsittelee `null`-, `undefined`- ja `Error`-instanssisyötteet turvallisesti.
-- `buildErrorBody` ei koskaan paljasta pinojäljityksiä `message`-kentässään.
+- `sanitizeErrorMessage` käsittelee `null`-/`undefined`-/`Error`-instanssisyötteet turvallisesti.
+- `buildErrorBody` ei koskaan paljasta pinojälkiä `message`-kentässään.
 
-Kun lisäät uuden reitin tai suorittajan, kopioi tarkistusmalli tästä tiedostosta. Kattavuusraja (`npm run test:coverage`) edellyttää vähintään 60 %:n kattavuutta lauseille/riveille/funktioille/haaroille — myös virhepolut on katettava.
+Kun lisäät uuden reitin tai suorittimen, kopioi tarkistusmalli tästä tiedostosta. Kattavuusportti (`npm run test:coverage`) edellyttää vähintään 60 prosentin lauseke-, rivi-, funktio- ja haarakattavuutta — virhepolut on katettava.
+
+### Staattinen portti: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` tarkistaa hakemistot `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` sekä jokaisen tiedoston `src/app/api/**/route.ts` siltä varalta, että käsittelemätön siepattu virhe (`err.message` / `err.stack`) tai käsittelemätön ulkoinen `body.error.message` päätyy asiakkaalle näkyvään vastausrunkoon.
+
+**Luottamus on kutsukohtaista, ei koskaan tiedostokohtaista** (G-03, #15159). Aiemmin portti ohitti koko tiedoston heti havaittuaan minkä tahansa tuonnin `utils/error`-polusta — tiedostokohtaista poikkeusta sovellettiin kutsukohtaiseen riskiin. Yksi oikea `import { sanitizeErrorMessage }` vapautti pysyvästi tiedoston kaikki muut nielut tarkistuksesta, minkä vuoksi todellinen vuoto pääsi tuotantoon tarkistusten mennessä läpi. Nyt riviin luotetaan vain, kun se todella kulkee hyväksytyn rakentajan tai puhdistimen kautta:
+
+| Rivin muoto                                                                                                                | Luotettu?         |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| kutsuu funktiota `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …             | kyllä             |
+| kutsuu kanonista rakentajaa, **jonka tämä tiedosto tuo** moduulista `open-sse/utils/error` tai `src/lib/api/errorResponse` | kyllä             |
+| hyväksyttyä rakentajaa kutsutaan **monirivisesti**, joten `message:`-kenttä on myöhemmällä rivillä                         | kyllä             |
+| kutsuu tiedostossa paikallisesti määriteltyä `function errorResponse(...)`-funktiota, jonka oma runko puhdistaa tiedot     | kyllä             |
+| välittää `err.message`- / `err.stack`-arvon missä tahansa muualla                                                          | **ei — rikkomus** |
+
+Kaksi huomionarvoista seurausta:
+
+- Funktion `errorResponse` tuominen ei tarkoita yleistä luottamusta. Tiedosto, joka määrittelee oman `errorResponse`-funktionsa, merkitään silti kutsukohdassa, koska portti ratkaisee luottamuksen symbolikohtaisesti, ei tiedostokohtaisesti. Sama koskee funktiota `createErrorResponse`.
+- Lausetta `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, jota seuraa `error: body.error.message`, käytetään **puhdistettuna** idiomina kaikissa `*-fetch.ts`-suorittimissa, eikä sitä merkitä.
+
+Molemmat hyväksytyt rakentajamoduulit huomioidaan: `open-sse/utils/error.ts` ja `src/lib/api/errorResponse.ts`. Jälkimmäistä käyttävät noin 54 `open-sse`-hakemiston ulkopuolista reitinkäsittelijää, ja se puhdistaa molempien vientiensä tiedot.
+
+Kaksi muotoa, jotka **eivät** ole rikkomuksia, vaikka portti ilmoitti ne aiemmin vuodoiksi:
+
+- käsittelemätön virhe **auditointirivillä** — `saveCallLog({ error: err.message })`, `logToolCall(...)` tai lokikirjuri, joka ottaa viestin ensin (`log.error("BATCHES", "sweep failed", { error: err.message })`). Seuraavilla riveillä oleva asiakkaalle näkyvä vastaus voi hyvinkin olla staattinen `buildErrorBody`.
+- **monirivinen** hyväksytyn rakentajan kutsu, jossa `message:`-kenttä ei nimeä lainkaan rakentajaa:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` jäädyttää aiemmin olemassa olleet rikkomukset, jotta portti estää vain _uudet_ rikkomukset. `assertNoStale` poistaa merkinnän automaattisesti, kun sen rikkomus korjataan, joten jäädytys ei voi jähmettyä pysyväksi. Regressiosuojaukset: `tests/unit/check-error-helper.test.ts` ja `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Liittyvät hallintakeinot
 

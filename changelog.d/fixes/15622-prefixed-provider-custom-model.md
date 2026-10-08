@@ -1,0 +1,1 @@
+- fix(sse): route an explicit `provider/<id>` to the named provider when its active customModels or synced catalog has the id, instead of freezing it as an exact id cataloged by another provider (sensenova misrouted to xkiro) (#15622)

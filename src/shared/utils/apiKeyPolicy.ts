@@ -32,6 +32,7 @@ import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
 import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
+import { hasApiKeyModelRestrictions } from "./resolvedModelAccess";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Keys, while provider/account quota controls remain
@@ -177,7 +178,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function normalizeComboAccessName(value: unknown): string | null {
+export function normalizeComboAccessName(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -377,11 +378,7 @@ async function validateStandardRoutingTarget(
     }
   }
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const hasModelRestrictions = hasApiKeyModelRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
     requestedComboName = modelStr;
   }
@@ -641,11 +638,7 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   if (comboAccess.rejection) return comboAccess.rejection;
   let requestedComboName = comboAccess.comboName;
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const hasModelRestrictions = hasApiKeyModelRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions) {
     if (isVirtualComboModel(modelStr)) {
       requestedComboName = modelStr;

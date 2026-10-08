@@ -21,7 +21,9 @@ export const ProviderSchema = z.object({
   website: z.string().url().optional(),
   passthroughModels: z.boolean().optional(),
   subscriptionRisk: z.boolean().optional(),
-  riskNoticeVariant: z.enum(["oauth", "webCookie", "deprecated", "embedded-service"]).optional(),
+  riskNoticeVariant: z
+    .enum(["oauth", "webCookie", "deprecated", "embedded-service", "official-client-only"])
+    .optional(),
   isEmbeddedService: z.boolean().optional(),
   deprecated: z.boolean().optional(),
   deprecationReason: z.string().optional(),

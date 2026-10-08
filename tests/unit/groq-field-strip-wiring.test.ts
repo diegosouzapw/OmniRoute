@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { withReasoningRuleContext } from "../../open-sse/utils/reasoningRuleContext.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -116,4 +117,42 @@ test("Non-Groq executor does NOT strip logprobs or messages[].name", async () =>
   // name passes through untouched.
   const messages = capturedBody!.messages as Record<string, unknown>[];
   assert.equal(messages[0].name, "bob");
+});
+
+test("Groq GPT-OSS dispatch maps forced none to low and drops foreign reasoning envelopes", async () => {
+  const executor = new DefaultExecutor("groq");
+  const originalFetch = globalThis.fetch;
+  let capturedBody: Record<string, unknown> | undefined;
+  globalThis.fetch = async (_url: string | URL | Request, init: RequestInit = {}) => {
+    capturedBody = JSON.parse(String(init.body));
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+  try {
+    await executor.execute({
+      model: "openai/gpt-oss-20b",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+        reasoning: { effort: "none" },
+        output_config: { effort: "none" },
+      },
+      stream: false,
+      credentials: withReasoningRuleContext(
+        { apiKey: "groq-test-key" },
+        {
+          id: "test-rule",
+          effortMode: "force",
+          targetEffort: "none",
+        }
+      ),
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.ok(capturedBody, "the executor must dispatch a request");
+  assert.equal(capturedBody.reasoning_effort, "low");
+  assert.equal("reasoning" in capturedBody, false);
+  assert.equal("output_config" in capturedBody, false);
 });

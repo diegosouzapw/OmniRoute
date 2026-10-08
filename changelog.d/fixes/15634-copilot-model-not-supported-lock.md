@@ -1,0 +1,1 @@
+- fix(sse): lock a Copilot model for the connection after a direct 400 model_not_supported so it is not retried on every request (#15634)
