@@ -1,0 +1,1 @@
+- fix(cli): `omniroute status` resolves its version from the package location instead of cwd (no more "unknown" on global installs), and `omniroute cache status` reports the real HTTP status instead of "not available" (#15148)

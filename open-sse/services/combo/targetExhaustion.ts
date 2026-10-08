@@ -29,6 +29,7 @@ import {
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import { isCloudflareFingerprintRejection } from "../errorClassifier.ts";
+import { isLocalModelPolicyResponse } from "../../../src/shared/utils/resolvedModelAccess.ts";
 // #10334 — connection-scope predicate shared with the persistence layer
 // (markAccountUnavailable) so the same-request combo skip and the persisted
 // connection cooldown agree on exactly which fallbackResult shapes qualify.
@@ -202,6 +203,8 @@ export function applyComboTargetExhaustion(
   const derived = deriveTargetFailure(target, opts);
   const effectiveTarget = derived.target;
   const { result, sets, log, tag, errorText, structuredError } = opts;
+  // Local key policy is neither upstream credential failure nor provider exhaustion.
+  if (isLocalModelPolicyResponse(result)) return { ...derived, providerExhausted: false };
   const provider = effectiveTarget.provider;
   const canonicalProvider = provider ? resolveProviderId(provider) : provider;
 

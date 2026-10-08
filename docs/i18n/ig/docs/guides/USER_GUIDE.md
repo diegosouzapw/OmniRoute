@@ -118,18 +118,18 @@ Nweta site na: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Nhazi Ndị Na-enye Ọrụ
+## 📖 Nhazi Onye Na-enye Ọrụ
 
-Iji tinye ọtụtụ njikọ igodo API n'otu oge site na faịlụ CSV ma ọ bụ JSON, jiri **Ogwe njikwa → Ndị na-enye ọrụ → Bubata site na faịlụ**. A na-ahazi kọlụm dịka ọnọdụ ha si dị (`provider,name,apiKey,baseUrl,priority`); `provider` ga-adịrịrị dịka onye na-enye ọrụ a na-achịkwa ma ọ bụ node dakọtara. Hụ [Bubata ndị na-enye ọrụ site na faịlụ CSV ma ọ bụ JSON](../providers/CSV-IMPORT.md).
+Iji tinye ọtụtụ njikọ igodo API n'otu oge site na faịlụ CSV ma ọ bụ JSON, jiri **Dashboard → Providers → Import from file**. Ọnọdụ kọlụm ndị ahụ bụ nke a kapịrị ọnụ (`provider,name,apiKey,baseUrl,priority`); `provider` ga-adịrịrị dị ka onye na-enye ọrụ a na-achịkwa ma ọ bụ node dakọtara. Lee [Mbubata ndị na-enye ọrụ site na faịlụ CSV ma ọ bụ JSON](../providers/CSV-IMPORT.md).
 
 ### 🔐 Ndị Na-enye Ọrụ Ndebanye Aha
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ Claude Code
-→ Nbanye OAuth → Mmelite token akpaka
-→ Nnyocha oke ojiji awa 5 + kwa izu
+Dashboard → Providers → Jikọọ Claude Code
+→ Nbanye OAuth → Imelite token na-akpaghị aka
+→ Nsochi oke awa 5 + nke izu ụka
 
 Ụdị:
   cc/claude-opus-4-7
@@ -137,16 +137,18 @@ Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ Claude Code
   cc/claude-haiku-4-5-20251001
 ```
 
-**Ndụmọdụ Ọkachamara:** Jiri Opus maka ọrụ ndị gbagwojuru anya, Sonnet maka ọsọ. OmniRoute na-enyocha oke ojiji maka ụdị ọ bụla!
+**Ndụmọdụ Ọkachamara:** Jiri Opus maka ọrụ ndị dị mgbagwoju anya, jiri Sonnet maka ọsọ. OmniRoute na-esochi oke maka ụdị ọ bụla!
 
-Ụzọ ndị dakọtara na Claude na Claude Code na-echekwa mbọ iche echiche `max` maka ụdị Opus na Sonnet. Ụdị Haiku anaghị anabata ọkwa mbọ `max`, ya mere OmniRoute na-ewedata arịrịọ ahụ gaa na oke mmefu iche echiche dị elu tupu o ziga ya n'elu usoro.
+Ọ dịghị ihe nchọgharị na host OmniRoute? Gbaa `claude setup-token` n'ebe ọ bụla e banyere na Claude Code, ma mado token otu afọ ahụ na taabụ **Setup Token**. Lee [Claude Code nwere setup token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Ụzọ Claude na ndị dakọtara na Claude Code na-edobe ike iche echiche `max` maka ụdị Opus na Sonnet. Ụdị Haiku anaghị anabata ọkwa ike `max`, ya mere OmniRoute na-ewedata arịrịọ ahụ gaa na mmefu iche echiche dị elu tupu o zipụ ya n'elu usoro.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ Codex
+Dashboard → Providers → Jikọọ Codex
 → Nbanye OAuth (ọdụ ụgbọ mmiri 1455)
-→ Ntọgharị awa 5 + kwa izu
+→ Ntọgharị awa 5 + nke izu ụka
 
 Ụdị:
   cx/gpt-5.5
@@ -158,7 +160,7 @@ Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ Codex
 #### GitHub Copilot
 
 ```bash
-Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ GitHub
+Dashboard → Providers → Jikọọ GitHub
 → OAuth site na GitHub
 → Ntọgharị kwa ọnwa (ụbọchị mbụ nke ọnwa)
 
@@ -176,41 +178,41 @@ Ogwe njikwa → Ndị na-enye ọrụ → Jikọọ GitHub
 
 1. Debanye aha: [Zhipu AI](https://open.bigmodel.cn)
 2. Nweta igodo API site na Coding Plan
-3. Ogwe njikwa → Tinye Igodo API: Onye na-enye ọrụ: `glm`, Igodo API: `your-key`
+3. Dashboard → Tinye Igodo API: Onye na-enye ọrụ: `glm`, Igodo API: `your-key`
 
-**Ojiji:** `glm/glm-4.7` — **Ndụmọdụ Ọkachamara:** Coding Plan na-enye oke ojiji 3× na 1/7 nke ọnụ ahịa! Ọ na-atọgharị kwa ụbọchị n'elekere 10:00 nke ụtụtụ.
+**Jiri:** `glm/glm-4.7` — **Ndụmọdụ Ọkachamara:** Coding Plan na-enye oke 3× n'ọnụahịa bụ 1/7! Ọ na-atọgharị kwa ụbọchị n'elekere 10:00 nke ụtụtụ.
 
 #### MiniMax M2.1 (Ntọgharị awa 5, $0.20/1M)
 
 1. Debanye aha: [MiniMax](https://www.minimax.io)
-2. Nweta igodo API → Ogwe njikwa → Tinye Igodo API
+2. Nweta igodo API → Dashboard → Tinye Igodo API
 
-**Ojiji:** `minimax/MiniMax-M2.1` — **Ndụmọdụ Ọkachamara:** Nhọrọ kachasị ọnụ ala maka context ogologo (token 1M)!
+**Jiri:** `minimax/MiniMax-M2.1` — **Ndụmọdụ Ọkachamara:** Nhọrọ kacha ọnụ ala maka context ogologo (token 1M)!
 
-#### Kimi K2 ($9/ọnwa n'ọnụ ahịa kwụ ọtọ)
+#### Kimi K2 ($9/ọnwa n'enweghị mgbanwe)
 
-1. Debanye aha na ọrụ ahụ: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Nweta igodo API → Ogwe njikwa → Tinye Igodo API
+1. Debanye aha: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Nweta igodo API → Dashboard → Tinye Igodo API
 
-**Ojiji:** `kimi/kimi-k2.5` — **Ndụmọdụ Ọkachamara:** $9/ọnwa kwụ ọtọ maka token 10M = ọnụ ahịa dị irè nke $0.90/1M!
+**Jiri:** `kimi/kimi-k2.5` — **Ndụmọdụ Ọkachamara:** $9/ọnwa a kapịrị ọnụ maka token 10M = ọnụahịa dị irè nke $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Debanye aha: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Mepụta igodo API Qianfan → Ogwe njikwa → Tinye Igodo API: Onye na-enye ọrụ: `qianfan`
+2. Mepụta igodo API Qianfan → Dashboard → Tinye Igodo API: Onye na-enye ọrụ: `qianfan`
 
-**Ojiji:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ma ọ bụ ID ụdị Qianfan ọzọ dakọtara na OpenAI.
+**Jiri:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ma ọ bụ ID ụdị Qianfan ọzọ dakọtara na OpenAI.
 
 ### 🆓 Ndị Na-enye Ọrụ N'EFU
 
-Ndị na-enye ọrụ efu na-achọghị nkwenye njirimara nwere mgba ọkụ n'akụkụ **Achọghị nkwenye njirimara** na ibe onye na-enye ọrụ ha.
-Ịgbanyụ ya na-eme ka onye na-enye ọrụ ahụ kwụsị ịrụ ọrụ, na-ewepụ ya na nlele Ndị na-enye ọrụ ahaziri/kọmpat, ma
-na-ewepụ ụdị ya na `/v1/models`.
+Ndị na-enye ọrụ efu ndị anaghị achọ nkwenye nwere mgba ọkụ n'akụkụ **Achọghị nkwenye** na peeji onye na-enye ọrụ ha.
+Ịgbanyụ ya na-eme ka onye na-enye ọrụ ahụ kwụsị ịrụ ọrụ, na-ewepụ ya na nlele ndị na-enye ọrụ ahaziri/nkenke, ma
+na-ewepụkwa ụdị ya na `/v1/models`.
 
 #### Qoder (ụdị 9 N'EFU)
 
 ```bash
-Ogwe njikwa → Jikọọ Qoder → Nbanye OAuth → Ịnweta ya dabere na oke onye na-enye ọrụ dị ugbu a
+Dashboard → Jikọọ Qoder → Nbanye OAuth → Nnweta dabere n'oke ndị onye na-enye ọrụ nwere ugbu a
 
 Ụdị: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +220,7 @@ Ogwe njikwa → Jikọọ Qoder → Nbanye OAuth → Ịnweta ya dabere na oke o
 #### Kiro (Claude N'EFU)
 
 ```bash
-Ogwe njikwa → Jikọọ Kiro → AWS Builder ID ma ọ bụ Google/GitHub → ~kredit 50/ọnwa
+Dashboard → Jikọọ Kiro → AWS Builder ID ma ọ bụ Google/GitHub → ~kredit 50/ọnwa
 
 Ụdị: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

@@ -389,20 +389,20 @@ Unit-Tests in `tests/unit/` schreiben, die mindestens Folgendes abdecken:
 
 ## Pull-Request-Checkliste
 
-- [ ] Tests erfolgreich (`npm test`)
-- [ ] Linting erfolgreich (`npm run lint`)
-- [ ] Build erfolgreich (`npm run build`)
+- [ ] Tests sind erfolgreich (`npm test`)
+- [ ] Linting ist erfolgreich (`npm run lint`)
+- [ ] Build ist erfolgreich (`npm run build`)
 - [ ] TypeScript-Typen für neue öffentliche Funktionen und Schnittstellen hinzugefügt
 - [ ] Keine hartcodierten Geheimnisse oder Fallback-Werte
-- [ ] Öffentliche Upstream-Zugangsdaten über `resolvePublicCred()` eingebettet (siehe [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niemals als Literale
-- [ ] Fehlerantworten werden über `buildErrorBody()` / `sanitizeErrorMessage()` geleitet – keine unverarbeiteten Stacktraces in Antworttexten (siehe [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Öffentliche Zugangsdaten von Upstream-Diensten über `resolvePublicCred()` eingebettet (siehe [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), niemals als Literale
+- [ ] Fehlerantworten werden über `buildErrorBody()` / `sanitizeErrorMessage()` geleitet — keine unbearbeiteten Stacktraces in Antwortinhalten (siehe [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Shell-Befehle (`exec` / `spawn`) übergeben Laufzeitwerte über `env`, nicht über String-Interpolation
 - [ ] Alle Eingaben mit Zod-Schemas validiert
-- [ ] Changelog-**Fragment** für benutzersichtbare Änderungen unter `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` hinzugefügt (siehe [`changelog.d/README.md`](./changelog.d/README.md)) – `CHANGELOG.md` **nicht** direkt bearbeiten; Fragmente werden zum Veröffentlichungszeitpunkt zusammengeführt und verursachen niemals Konflikte zwischen PRs
+- [ ] Changelog-**Fragment** für benutzersichtbare Änderungen unter `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` hinzugefügt (siehe [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` **nicht** direkt bearbeiten; Fragmente werden zum Veröffentlichungszeitpunkt zusammengeführt und verursachen niemals Konflikte zwischen PRs
 - [ ] Dokumentation aktualisiert (falls zutreffend)
-- [ ] Keine neuen CodeQL- / Secret-Scanning-Warnungen ausgelöst oder jede einzelne mit einer technischen Begründung unter Verweis auf das relevante Dokument unter `docs/security/` verworfen
-- [ ] Routen, die untergeordnete Prozesse starten (`/api/mcp/`, `/api/cli-tools/runtime/`), in `src/server/authz/routeGuard.ts` als `isLocalOnlyPath()` klassifiziert – siehe [Strikte Regel Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Keine `Co-Authored-By`-Trailer in Commit-Nachrichten – Commits dürfen ausschließlich unter der Git-Identität des Repository-Eigentümers erscheinen (Strikte Regel Nr. 16)
+- [ ] Keine neuen CodeQL-/Secret-Scanning-Warnungen ausgelöst oder jede Warnung mit einer technischen Begründung unter Verweis auf das relevante Dokument unter `docs/security/` verworfen
+- [ ] Routen, die untergeordnete Prozesse starten (`/api/mcp/`, `/api/cli-tools/runtime/`), in `src/server/authz/routeGuard.ts` als `isLocalOnlyPath()` klassifiziert — siehe [Strikte Regel Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Keine `Co-authored-by`-Trailer für KI/Bots in Commit-Nachrichten (strikte Regel Nr. 16) — menschliche Mitwirkende, deren Arbeit wiederverwendet wird, werden mit standardmäßigen `Co-authored-by: Name <email>`-Trailern gewürdigt
 
 ---
 

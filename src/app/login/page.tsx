@@ -3,7 +3,11 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect } from "react";
-import { Button, Input } from "@/shared/components";
+// Direct module imports, not the "@/shared/components" barrel: the barrel
+// re-exports Sidebar/Header/composites (and transitively the whole dashboard
+// shell) which would otherwise ship in the /login page chunks.
+import Button from "@/shared/components/Button";
+import Input from "@/shared/components/Input";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {

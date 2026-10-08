@@ -133,17 +133,51 @@ const safe = String(err).split("\n")[0];
 kiritmang. Sanitayzer mutlaq yoʻllarni chuqur himoya chorasi sifatida qamrab oladi, biroq chaqiruvchilar avvalambor
 topologiyani oshkor qiluvchi xabarlarni tuzmasligi kerak.
 
-## CI’da qamrov
+## CIʼdagi qamrov
 
-`tests/unit/error-message-sanitization.test.ts` quyidagilarni majburiy tekshiradi:
+`tests/unit/error-message-sanitization.test.ts` quyidagilarni taʼminlaydi:
 
-- `/api/model-combo-mappings/*` ostidagi har bir marshrut 4xx/5xx holatlarida sanitizatsiya qilingan javob tanalarini qaytaradi.
-- `sanitizeErrorMessage` ko‘p qatorli stek-treyslarni olib tashlaydi.
-- `sanitizeErrorMessage` POSIX va Windows mutlaq yo‘llarini `<path>` bilan almashtiradi.
-- `sanitizeErrorMessage` `null`/`undefined`/`Error` nusxasi kirishlarini xavfsiz tarzda qayta ishlaydi.
-- `buildErrorBody` o‘zining `message` maydonida hech qachon stek-treyslarni oshkor qilmaydi.
+- `/api/model-combo-mappings/*` ostidagi har bir yoʻnalish 4xx/5xx holatlarida tozalangan javob tanalarini qaytaradi.
+- `sanitizeErrorMessage` koʻp qatorli stek izlarini olib tashlaydi.
+- `sanitizeErrorMessage` POSIX va Windows mutlaq yoʻllarini `<path>` bilan almashtiradi.
+- `sanitizeErrorMessage` `null`/`undefined`/`Error` nusxasi ko‘rinishidagi kirishlarni xavfsiz qayta ishlaydi.
+- `buildErrorBody` o‘zining `message` maydonida stek izlarini hech qachon oshkor qilmaydi.
 
-Yangi marshrut yoki ijrochini qo‘shayotganda, tasdiqlash andozasini ushbu fayldan nusxalang. Qamrov chegarasi (`npm run test:coverage`) operatorlar/qatorlar/funksiyalar/tarmoqlar uchun ≥60% qamrovni talab qiladi — xato yo‘llari ham qamrab olinishi shart.
+Yangi yoʻnalish yoki ijrochini qoʻshayotganda, ushbu fayldagi tekshiruv andozasidan nusxa oling. Qamrov cheklovi (`npm run test:coverage`) bayonotlar/qatorlar/funksiyalar/tarmoqlar uchun ≥60% qamrovni talab qiladi — xatolik yoʻllari qamrab olinishi shart.
+
+### Statik tekshiruv: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` fayli `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` kataloglarini va har bir `src/app/api/**/route.ts` faylini ushlangan xom xato (`err.message` / `err.stack`) yoki mijozga koʻrinadigan javob tanasiga yetib boradigan xom yuqori oqimdagi `body.error.message` uchun skanerlaydi.
+
+**Ishonch fayl doirasida emas, faqat chaqiruv doirasida boʻladi** (G-03, #15159). Ilgari tekshiruv `utils/error` yoʻlidan istalgan importni koʻrishi bilanoq butun faylni oʻtkazib yuborardi — chaqiruv doirasidagi xavfga fayl doirasidagi istisno qoʻllanardi. Bitta toʻgʻri `import { sanitizeErrorMessage }` fayldagi boshqa barcha chiqarish nuqtalarini doimiy ravishda oqlardi va shu sababli amaldagi sizib chiqish tekshiruvdan muvaffaqiyatli oʻtib ketgan. Endi qator faqat tasdiqlangan yaratuvchi yoki tozalovchi orqali oʻtgandagina ishonchli hisoblanadi:
+
+| Qator shakli                                                                                                        | Ishonchlimi?        |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … ni chaqiradi          | ha                  |
+| ushbu fayl `open-sse/utils/error` yoki `src/lib/api/errorResponse` dan import qilgan kanonik yaratuvchini chaqiradi | ha                  |
+| tasdiqlangan yaratuvchi **koʻp qatorli** chaqiriladi, shu sababli `message:` maydoni keyingi qatorda joylashadi     | ha                  |
+| oʻz tanasida tozalashni amalga oshiradigan faylga mahalliy `function errorResponse(...)` ni chaqiradi               | ha                  |
+| `err.message` / `err.stack` ni boshqa istalgan joyga uzatadi                                                        | **yoʻq — buzilish** |
+
+Bilish muhim boʻlgan ikkita oqibat:
+
+- `errorResponse` ni import qilish umumiy ishonch bermaydi. Oʻzining `errorResponse` funksiyasini belgilaydigan fayl chaqiruv joyida baribir belgilab qoʻyiladi, chunki tekshiruv ishonchni fayl boʻyicha emas, har bir belgi boʻyicha aniqlaydi. Xuddi shu narsa `createErrorResponse` uchun ham amal qiladi.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` dan keyin `error: body.error.message` ishlatilishi `*-fetch.ts` ijrochilarida qoʻllanadigan **tozalangan** idioma boʻlib, u buzilish sifatida belgilanmaydi.
+
+Har ikkala tasdiqlangan yaratuvchi moduli hisobga olinadi: `open-sse/utils/error.ts` va `src/lib/api/errorResponse.ts`. Ikkinchisi `open-sse` tashqarisidagi taxminan 54 ta yoʻnalish ishlov beruvchisi foydalanadigan modul boʻlib, u oʻzining ikkala eksportini ham tozalaydi.
+
+Quyidagi ikki shakl **buzilish emas**, garchi tekshiruv ilgari ularni sizib chiqish sifatida bildirgan boʻlsa ham:
+
+- **audit qatori** ichidagi xom xato — `saveCallLog({ error: err.message })`, `logToolCall(...)` yoki avval xabarni qabul qiladigan jurnal yozuvchisi (`log.error("BATCHES", "sweep failed", { error: err.message })`). Keyingi qatorlardagi mijozga koʻrinadigan javob statik `buildErrorBody` boʻlishi mumkin.
+- `message:` maydonida umuman hech qanday yaratuvchi nomi koʻrsatilmagan **koʻp qatorli** tasdiqlangan yaratuvchi chaqiruvi:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` avvaldan mavjud buzilishlarni muzlatib qoʻyadi, shuning uchun tekshiruv faqat _yangi_ buzilishlarni bloklaydi. `assertNoStale` buzilish tuzatilgach, yozuvni avtomatik ravishda olib tashlaydi, shu sababli muzlatilgan roʻyxat qotib qolmaydi. Regressiyadan himoya tekshiruvlari: `tests/unit/check-error-helper.test.ts` va `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Tegishli nazoratlar
 

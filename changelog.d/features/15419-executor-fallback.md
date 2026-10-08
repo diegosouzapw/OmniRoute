@@ -1,0 +1,1 @@
+- **feat(sse):** Agentic pipeline combos can configure ordered executor backups for failed responses and transport errors while preserving successful streams ([#15419](https://github.com/diegosouzapw/OmniRoute/pull/15419)) — thanks @potatosips.

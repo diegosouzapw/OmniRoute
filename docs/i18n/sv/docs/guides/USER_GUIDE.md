@@ -120,7 +120,7 @@ Månadskostnad: $0
 
 ## 📖 Konfiguration av leverantörer
 
-För att lägga till API-nyckelanslutningar i bulk från en CSV- eller JSON-fil använder du **Instrumentpanel → Leverantörer → Importera från fil**. Kolumnerna är positionsbaserade (`provider,name,apiKey,baseUrl,priority`); `provider` måste redan finnas som en hanterad leverantör eller en kompatibel nod. Se [Importera leverantörer från en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
+För att lägga till flera API-nyckelanslutningar samtidigt från en CSV- eller JSON-fil använder du **Instrumentpanel → Leverantörer → Importera från fil**. Kolumnerna är positionsbaserade (`provider,name,apiKey,baseUrl,priority`); `provider` måste redan finnas som en hanterad leverantör eller en kompatibel nod. Se [Importera leverantörer från en CSV- eller JSON-fil](../providers/CSV-IMPORT.md).
 
 ### 🔐 Prenumerationsleverantörer
 
@@ -128,8 +128,8 @@ För att lägga till API-nyckelanslutningar i bulk från en CSV- eller JSON-fil 
 
 ```bash
 Instrumentpanel → Leverantörer → Anslut Claude Code
-→ OAuth-inloggning → Automatisk tokenförnyelse
-→ Kvotspårning per 5 timmar och vecka
+→ OAuth-inloggning → Automatisk uppdatering av token
+→ Kvotspårning per 5 timmar + vecka
 
 Modeller:
   cc/claude-opus-4-7
@@ -139,14 +139,16 @@ Modeller:
 
 **Proffstips:** Använd Opus för komplexa uppgifter och Sonnet för snabbhet. OmniRoute spårar kvoten per modell!
 
-Claude- och Claude Code-kompatibla rutter behåller tankeansträngningen `max` för Opus- och Sonnet-modeller. Haiku-modeller accepterar inte ansträngningsnivån `max`, så OmniRoute nedgraderar den begäran till en hög tankebudget innan den skickas vidare uppströms.
+Ingen webbläsare på OmniRoute-värden? Kör `claude setup-token` var som helst där Claude Code är inloggat och klistra in den ettåriga token på fliken **Setup Token**. Se [Claude Code med en setup-token](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Claude- och Claude Code-kompatibla rutter bevarar tankeansträngningen `max` för Opus- och Sonnet-modeller. Haiku-modeller stöder inte ansträngningsnivån `max`, så OmniRoute nedgraderar den begäran till en hög tankebudget innan den skickas vidare uppströms.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Instrumentpanel → Leverantörer → Anslut Codex
 → OAuth-inloggning (port 1455)
-→ Återställning per 5 timmar och vecka
+→ Återställning per 5 timmar + vecka
 
 Modeller:
   cx/gpt-5.5
@@ -178,7 +180,7 @@ Modeller:
 2. Hämta API-nyckeln från Coding Plan
 3. Instrumentpanel → Lägg till API-nyckel: Leverantör: `glm`, API-nyckel: `your-key`
 
-**Använd:** `glm/glm-4.7` — **Proffstips:** Coding Plan erbjuder 3× kvot till 1/7 av kostnaden! Återställs dagligen kl. 10:00.
+**Använd:** `glm/glm-4.7` — **Proffstips:** Coding Plan erbjuder 3× kvot till 1/7 av kostnaden! Återställs dagligen kl. 10.00.
 
 #### MiniMax M2.1 (återställning efter 5 h, $0.20/1M)
 
@@ -192,29 +194,30 @@ Modeller:
 1. Prenumerera: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. Hämta API-nyckeln → Instrumentpanel → Lägg till API-nyckel
 
-**Använd:** `kimi/kimi-k2.5` — **Proffstips:** Fast pris på $9/månad för 10M token = en faktisk kostnad på $0.90/1M!
+**Använd:** `kimi/kimi-k2.5` — **Proffstips:** Fast pris på $9/månad för 10M token = en effektiv kostnad på $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Registrera dig: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Skapa en Qianfan API-nyckel → Instrumentpanel → Lägg till API-nyckel: Leverantör: `qianfan`
 
-**Använd:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` eller ett annat OpenAI-kompatibelt modell-ID för Qianfan.
+**Använd:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` eller ett annat Qianfan-modell-ID som är kompatibelt med OpenAI.
 
-### 🆓 KOSTNADSFRIA leverantörer
+### 🆓 GRATIS leverantörer
 
-Leverantörer som är kostnadsfria och inte kräver autentisering har en omkopplare bredvid **Ingen autentisering krävs** på sin leverantörssida.
-Om den stängs av inaktiveras leverantören, den tas bort från de konfigurerade/kompakta leverantörsvyerna och dess modeller tas bort från `/v1/models`.
+Kostnadsfria leverantörer utan autentisering har ett reglage bredvid **Ingen autentisering krävs** på sin leverantörssida.
+Om du stänger av det inaktiveras leverantören, den tas bort från de konfigurerade/kompakta leverantörsvyerna och
+dess modeller tas bort från `/v1/models`.
 
-#### Qoder (9 KOSTNADSFRIA modeller)
+#### Qoder (9 GRATIS modeller)
 
 ```bash
-Instrumentpanel → Anslut Qoder → OAuth-inloggning → Åtkomsten omfattas av leverantörens aktuella begränsningar
+Instrumentpanel → Anslut Qoder → OAuth-inloggning → Åtkomst omfattas av leverantörens aktuella begränsningar
 
 Modeller: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude KOSTNADSFRITT)
+#### Kiro (Claude GRATIS)
 
 ```bash
 Instrumentpanel → Anslut Kiro → AWS Builder ID eller Google/GitHub → ~50 krediter/månad

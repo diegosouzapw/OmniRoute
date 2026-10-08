@@ -1,0 +1,1 @@
+- **fix(sse):** keep the word json in Responses `input` when `response_format` is `json_object` and only the system prompt mentions JSON, so Codex no longer answers 400 ([#15702](https://github.com/diegosouzapw/OmniRoute/pull/15702))

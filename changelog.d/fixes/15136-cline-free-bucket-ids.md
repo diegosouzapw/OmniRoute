@@ -1,0 +1,1 @@
+- fix(cline): expose the free-bucket `cline-free/*` model ids in the Cline catalog and stop labelling paid vendor ids (DeepSeek V4 Flash, Step 3.7 Flash, MiniMax M3) as "(Free)", which caused 402 Insufficient balance at zero credits (#15136)

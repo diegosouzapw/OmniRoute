@@ -122,11 +122,12 @@ export function driveCursorH2(
       debugLog("[cursor-agent] stream safety timeout fired");
       teardown();
       const lastField = ctx.lastUnknownUpdateField;
-      reject(
-        new Error(
-          `cursor-agent stream timed out${lastField != null ? ` (last unhandled interaction update field ${lastField})` : ""}`
-        )
-      );
+      const timeoutError = new Error(
+        `cursor-agent stream timed out${lastField != null ? ` (last unhandled interaction update field ${lastField})` : ""}`
+      ) as Error & { code?: string };
+      // Tagged so execute() can finish a partially-streamed turn gracefully (#14727).
+      timeoutError.code = "CURSOR_STREAM_TIMEOUT";
+      reject(timeoutError);
     }, CURSOR_STREAM_TIMEOUT_MS);
 
     // Idle watchdog: once an exec variant arrives that this build cannot

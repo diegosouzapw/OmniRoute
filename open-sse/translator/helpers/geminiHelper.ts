@@ -138,6 +138,32 @@ export const DEFAULT_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "OFF" },
 ];
 
+// Google AI Studio rejects `thinkingBudget: 0` on Flash-Lite models
+// (gemini-flash-lite-latest, gemini-3.5-flash-lite, …) with a bare
+// 400 INVALID_ARGUMENT, while the same request succeeds when thinkingBudget is
+// omitted (`{ includeThoughts: false }`) or thinkingConfig is absent entirely.
+const GEMINI_FLASH_LITE_PATTERN = /(?:^|[-_/])(?:flash[-_]lite|lite)(?:$|[-_.])/i;
+
+export function isGeminiFlashLiteModel(model: unknown): boolean {
+  return typeof model === "string" && GEMINI_FLASH_LITE_PATTERN.test(model);
+}
+
+/**
+ * Build a Gemini thinkingConfig, dropping a zero thinkingBudget for Flash-Lite
+ * models (which 400 on it). Other models keep the explicit `thinkingBudget: 0`
+ * contract (#6813 / #6943).
+ */
+export function buildGeminiThinkingConfig(
+  model: unknown,
+  thinkingBudget: number,
+  includeThoughts: boolean
+): { thinkingBudget?: number; includeThoughts: boolean } {
+  if (thinkingBudget === 0 && isGeminiFlashLiteModel(model)) {
+    return { includeThoughts };
+  }
+  return { thinkingBudget, includeThoughts };
+}
+
 function normalizeAudioMimeType(format: unknown): string {
   const normalized =
     typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";

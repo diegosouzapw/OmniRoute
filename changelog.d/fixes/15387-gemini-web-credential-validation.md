@@ -1,0 +1,1 @@
+- fix(providers): Gemini Web connection test no longer reports valid for any pasted value — it now requires a __Secure-1PSID cookie, a signed-in session (SNlM0e) on 200, and rejects redirects to non-Google hosts (#15387)

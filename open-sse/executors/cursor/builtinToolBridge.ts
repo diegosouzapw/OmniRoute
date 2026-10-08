@@ -32,12 +32,87 @@ type JsonSchema = {
   additionalProperties?: unknown;
 };
 
-const DIRECT_SHELL_TOOL_NAMES = ["bash", "shell", "run_terminal_cmd"];
-const TODO_WRITE_TOOL_NAMES = ["todowrite", "todo_write"];
-const GREP_TOOL_NAMES = ["grep", "search", "ripgrep", "grep_search"];
-const LS_TOOL_NAMES = ["glob", "ls", "list", "list_dir", "list_directory"];
-const WRITE_TOOL_NAMES = ["write", "write_file", "create_file"];
-const FETCH_TOOL_NAMES = ["webfetch", "web_fetch", "fetch"];
+const DIRECT_SHELL_TOOL_NAMES = [
+  "bash",
+  "shell",
+  "run_terminal_cmd",
+  "runcommand",
+  "run_command",
+  "execute",
+  "terminal",
+];
+const TODO_WRITE_TOOL_NAMES = [
+  "todowrite",
+  "todo_write",
+  "write_todos",
+  "update_todos",
+  "set_todos",
+];
+const GREP_TOOL_NAMES = [
+  "grep",
+  "search",
+  "ripgrep",
+  "grep_search",
+  "codebase_search",
+  "file_search",
+  "search_file",
+  "search_code",
+  "search_files",
+  "content_search",
+  "find_in_files",
+];
+const LS_TOOL_NAMES = [
+  "glob",
+  "ls",
+  "list",
+  "list_dir",
+  "list_directory",
+  "listfiles",
+  "list_files",
+  "find_files",
+  "file_search",
+  "dir",
+];
+const WRITE_TOOL_NAMES = [
+  "write",
+  "write_file",
+  "create_file",
+  "edit_file",
+  "apply_patch",
+  "patch",
+  "str_replace",
+  "create",
+  "save_file",
+];
+const FETCH_TOOL_NAMES = [
+  "webfetch",
+  "web_fetch",
+  "http_get",
+  "download",
+  "browse",
+  "web_search",
+  "search_web",
+];
+/** Other clients own these short names. Never select them as Cursor bridge targets. */
+const NON_CURSOR_GENERIC_TOOL_NAMES = new Set([
+  "exec",
+  "run",
+  "command",
+  "update",
+  "edit",
+  "fetch",
+]);
+const READ_TOOL_NAMES = [
+  "read",
+  "read_file",
+  "view",
+  "cat",
+  "open",
+  "readlines",
+  "read_file_range",
+  "file_read",
+  "get_file",
+];
 const BRIDGE_DESCRIPTION = "Run Cursor-requested shell command";
 const ROOT_SCHEMA_KEYS = new Set([
   "$schema",
@@ -299,7 +374,7 @@ function readBridge(
   event: Extract<ExecServerEvent, { kind: "exec_read" }>,
   tools: McpToolDefinition[]
 ): CursorBuiltinToolBridge | null {
-  for (const tool of namedTools(tools, ["read", "read_file"])) {
+  for (const tool of namedTools(tools, READ_TOOL_NAMES)) {
     const schema = schemaFor(tool);
     if (!schema) continue;
     const properties = schemaProperties(schema);
@@ -462,7 +537,7 @@ export function bridgeCursorPiTool(
   switch (event.kind) {
     case "exec_pi_read": {
       if (!event.path.trim()) return null;
-      for (const tool of namedTools(tools, ["read", "read_file"])) {
+      for (const tool of namedTools(tools, READ_TOOL_NAMES)) {
         const schema = schemaFor(tool);
         if (!schema) continue;
         const properties = schemaProperties(schema);
@@ -741,7 +816,183 @@ export function bridgeCursorNativeTodoWrite(
 }
 
 /**
+ * Shape-based fallback: try to bridge by matching the schema property keys
+ * when name-based matching did not find a candidate.
+ * Following the deepseekWebTools precedence, this is strictly fail-closed:
+ * if EXACTLY ONE declared tool can express the request, adopt it. If zero or
+ * two or more tools match, return null (ambiguity -> fail closed).
+ */
+function bridgeSingleShapeCandidate<T extends McpToolDefinition>(
+  tools: T[],
+  tryBridge: (tool: T) => CursorBuiltinToolBridge | null
+): CursorBuiltinToolBridge | null {
+  const matches: CursorBuiltinToolBridge[] = [];
+  for (const tool of tools) {
+    if (NON_CURSOR_GENERIC_TOOL_NAMES.has(tool.name.toLowerCase())) continue;
+    const bridged = tryBridge(tool);
+    if (bridged) matches.push(bridged);
+  }
+  // Exactly one candidate expresses the event -> safe to bridge dynamically.
+  // Zero matches -> null (unsupported schema).
+  // Two or more matches -> null (ambiguous intent, fail closed).
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function singleToolReadBridge(
+  tool: McpToolDefinition,
+  event: Extract<ExecServerEvent, { kind: "exec_read" }>
+): CursorBuiltinToolBridge | null {
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  const pathKey = selectProperty(schema, properties, ["filePath", "path", "file_path"], "string");
+  if (!pathKey) return null;
+  const args: Record<string, unknown> = { [pathKey]: event.path };
+  let rangeFits = true;
+  for (const [key, value] of [
+    ["offset", event.offset],
+    ["limit", event.limit],
+  ] as const) {
+    if (value === undefined) continue;
+    if (!propertyAcceptsInteger(properties[key], value)) {
+      rangeFits = false;
+      break;
+    }
+    args[key] = value;
+  }
+  if (!rangeFits) return null;
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+function singleToolGrepBridge(
+  tool: McpToolDefinition,
+  event: Extract<ExecServerEvent, { kind: "exec_grep" }>
+): CursorBuiltinToolBridge | null {
+  if (event.outputMode && !["content", "files_with_matches", "count"].includes(event.outputMode))
+    return null;
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  if (!event.pattern.trim()) {
+    if (!event.glob.trim()) return null;
+    // An empty pattern with a glob is a file-search (ls) request. Only bridge
+    // to tools that express directory/ls semantics, not content-grep tools.
+    if (!LS_TOOL_NAMES.includes(tool.name.toLowerCase())) return null;
+    const patternKey = selectProperty(schema, properties, ["pattern", "glob"], "string");
+    if (!patternKey) return null;
+    const args: Record<string, unknown> = { [patternKey]: event.glob };
+    const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+    if (pathKey && event.path) args[pathKey] = event.path;
+    if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+    return null;
+  }
+  const patternKey = selectProperty(schema, properties, ["pattern", "query", "regex"], "string");
+  if (!patternKey) return null;
+  const args: Record<string, unknown> = { [patternKey]: event.pattern };
+  const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+  if (pathKey && event.path) args[pathKey] = event.path;
+  const globKey = selectProperty(schema, properties, ["include", "glob", "filePattern"], "string");
+  if (globKey && event.glob) args[globKey] = event.glob;
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+function singleToolLsBridge(
+  tool: McpToolDefinition,
+  event: Extract<ExecServerEvent, { kind: "exec_ls" }>
+): CursorBuiltinToolBridge | null {
+  if (!event.path.trim()) return null;
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  const pathKey = selectProperty(schema, properties, ["path", "dir", "directory"], "string");
+  if (!pathKey) return null;
+  const args: Record<string, unknown> = { [pathKey]: event.path };
+  const patternKey = selectProperty(schema, properties, ["pattern", "glob"], "string");
+  if (patternKey) args[patternKey] = "*";
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+function singleToolWriteBridge(
+  tool: McpToolDefinition,
+  event: Extract<ExecServerEvent, { kind: "exec_write" }>
+): CursorBuiltinToolBridge | null {
+  if (
+    !event.path.trim() ||
+    event.hasFileBytes ||
+    (event.encodingHint && !["utf8", "utf-8"].includes(event.encodingHint.toLowerCase()))
+  )
+    return null;
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  const pathKey = selectProperty(schema, properties, ["filePath", "path", "file_path"], "string");
+  const contentKey = selectProperty(
+    schema,
+    properties,
+    ["content", "contents", "text", "file_text"],
+    "string"
+  );
+  if (!pathKey || !contentKey) return null;
+  const args: Record<string, unknown> = { [pathKey]: event.path, [contentKey]: event.fileText };
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+function singleToolFetchBridge(
+  tool: McpToolDefinition,
+  event: Extract<ExecServerEvent, { kind: "exec_fetch" }>
+): CursorBuiltinToolBridge | null {
+  if (!event.url.trim()) return null;
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  const urlKey = selectProperty(schema, properties, ["url", "uri", "link"], "string");
+  if (!urlKey) return null;
+  const args: Record<string, unknown> = { [urlKey]: event.url };
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+function singleToolDirectShellBridge(
+  tool: McpToolDefinition,
+  event: Extract<
+    ExecServerEvent,
+    { kind: "exec_shell" | "exec_shell_stream" | "exec_mini_swe_bash" }
+  >
+): CursorBuiltinToolBridge | null {
+  const schema = schemaFor(tool);
+  if (!schema) return null;
+  const properties = schemaProperties(schema);
+  const commandKey = selectProperty(schema, properties, ["command", "cmd"], "string");
+  if (!commandKey) return null;
+
+  const args: Record<string, unknown> = { [commandKey]: event.command };
+  const cwdKey = selectProperty(
+    schema,
+    properties,
+    ["workdir", "cwd", "workingDirectory", "working_directory"],
+    "string"
+  );
+  if (cwdKey && event.workingDir) args[cwdKey] = event.workingDir;
+  const timeoutKey = selectProperty(schema, properties, ["timeout"], "number");
+  const timeoutMs = event.timeout > 0 ? event.timeout : 0;
+  if (timeoutKey && timeoutMs > 0) args[timeoutKey] = timeoutMs;
+  if (propertySupports(properties.description, "string")) {
+    args.description = BRIDGE_DESCRIPTION;
+  }
+  if (hasAllRequired(schema, args)) return { toolName: tool.name, arguments: args };
+  return null;
+}
+
+/**
  * Convert a Cursor-native built-in request into a declared external tool call.
+ * Resolution chain:
+ *   1. Name-based match via expanded allowlists (deterministic, zero risk).
+ *   2. Shape-based fallback: if exactly ONE declared tool's schema expresses
+ *      the request, adopt it (preserves fail-closed on ambiguity).
  * Only event variants whose complete arguments are decoded are supported.
  * Unknown or constrained schemas fail closed and retain typed rejection.
  */
@@ -750,11 +1001,36 @@ export function bridgeCursorBuiltinTool(
   tools: McpToolDefinition[],
   platform?: CursorClientPlatform
 ): CursorBuiltinToolBridge | null {
-  if (event.kind === "exec_read") return readBridge(event, tools);
-  if (event.kind === "exec_grep") return grepBridge(event, tools);
-  if (event.kind === "exec_ls") return lsBridge(event, tools);
-  if (event.kind === "exec_write") return writeBridge(event, tools);
-  if (event.kind === "exec_fetch") return fetchBridge(event, tools);
+  if (event.kind === "exec_read") {
+    return (
+      readBridge(event, tools) ??
+      bridgeSingleShapeCandidate(tools, (tool) => singleToolReadBridge(tool, event))
+    );
+  }
+  if (event.kind === "exec_grep") {
+    return (
+      grepBridge(event, tools) ??
+      bridgeSingleShapeCandidate(tools, (tool) => singleToolGrepBridge(tool, event))
+    );
+  }
+  if (event.kind === "exec_ls") {
+    return (
+      lsBridge(event, tools) ??
+      bridgeSingleShapeCandidate(tools, (tool) => singleToolLsBridge(tool, event))
+    );
+  }
+  if (event.kind === "exec_write") {
+    return (
+      writeBridge(event, tools) ??
+      bridgeSingleShapeCandidate(tools, (tool) => singleToolWriteBridge(tool, event))
+    );
+  }
+  if (event.kind === "exec_fetch") {
+    return (
+      fetchBridge(event, tools) ??
+      bridgeSingleShapeCandidate(tools, (tool) => singleToolFetchBridge(tool, event))
+    );
+  }
   if (
     event.kind !== "exec_shell" &&
     event.kind !== "exec_shell_stream" &&
@@ -766,5 +1042,9 @@ export function bridgeCursorBuiltinTool(
   if (!event.command.trim()) return null;
   const background = event.kind === "exec_bg_shell" || event.isBackground;
   if (background) return ptySpawnBridge(event, tools, platform);
-  return directShellBridge(event, tools) ?? ptySpawnBridge(event, tools, platform);
+  return (
+    directShellBridge(event, tools) ??
+    ptySpawnBridge(event, tools, platform) ??
+    bridgeSingleShapeCandidate(tools, (tool) => singleToolDirectShellBridge(tool, event))
+  );
 }

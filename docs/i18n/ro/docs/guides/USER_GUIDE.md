@@ -129,7 +129,7 @@ Pentru a adăuga în bloc conexiuni cu chei API dintr-un fișier CSV sau JSON, u
 ```bash
 Panou de control → Furnizori → Conectează Claude Code
 → Autentificare OAuth → Reîmprospătare automată a tokenului
-→ Monitorizarea cotei pe 5 ore + săptămânale
+→ Monitorizarea cotei la 5 ore + săptămânale
 
 Modele:
   cc/claude-opus-4-7
@@ -139,7 +139,9 @@ Modele:
 
 **Sfat util:** Utilizați Opus pentru sarcini complexe și Sonnet pentru viteză. OmniRoute monitorizează cota pentru fiecare model!
 
-Rutele compatibile cu Claude și Claude Code păstrează nivelul de efort de raționament `max` pentru modelele Opus și Sonnet. Modelele Haiku nu acceptă nivelul de efort `max`, astfel încât OmniRoute reduce solicitarea la un buget ridicat de raționament înainte de a o trimite furnizorului din amonte.
+Nu aveți un browser pe gazda OmniRoute? Rulați `claude setup-token` oriunde sunteți autentificat în Claude Code și inserați tokenul valabil un an în fila **Token de configurare**. Consultați [Claude Code cu un token de configurare](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Rutele compatibile cu Claude și Claude Code păstrează nivelul `max` al efortului de raționament pentru modelele Opus și Sonnet. Modelele Haiku nu acceptă nivelul de efort `max`, astfel încât OmniRoute reduce solicitarea la un buget ridicat de raționament înainte de a o trimite serviciului din amonte.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -176,35 +178,35 @@ Modele:
 
 1. Înregistrați-vă: [Zhipu AI](https://open.bigmodel.cn)
 2. Obțineți cheia API din Coding Plan
-3. Panou de control → Adaugă cheie API: Furnizor: `glm`, Cheie API: `your-key`
+3. Panou de control → Adaugă o cheie API: Furnizor: `glm`, Cheie API: `your-key`
 
-**Utilizare:** `glm/glm-4.7` — **Sfat util:** Coding Plan oferă o cotă de 3 ori mai mare la 1/7 din cost! Se resetează zilnic la ora 10:00.
+**Utilizare:** `glm/glm-4.7` — **Sfat util:** Coding Plan oferă o cotă de 3× mai mare la 1/7 din cost! Se resetează zilnic la ora 10:00.
 
 #### MiniMax M2.1 (resetare la 5 ore, $0.20/1M)
 
 1. Înregistrați-vă: [MiniMax](https://www.minimax.io)
-2. Obțineți cheia API → Panou de control → Adaugă cheie API
+2. Obțineți cheia API → Panou de control → Adaugă o cheie API
 
-**Utilizare:** `minimax/MiniMax-M2.1` — **Sfat util:** Cea mai ieftină opțiune pentru context lung (1M de tokenuri)!
+**Utilizare:** `minimax/MiniMax-M2.1` — **Sfat util:** Cea mai ieftină opțiune pentru contexte lungi (1M tokenuri)!
 
 #### Kimi K2 (tarif fix de $9/lună)
 
 1. Abonați-vă: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Obțineți cheia API → Panou de control → Adaugă cheie API
+2. Obțineți cheia API → Panou de control → Adaugă o cheie API
 
-**Utilizare:** `kimi/kimi-k2.5` — **Sfat util:** Tariful fix de $9/lună pentru 10M de tokenuri înseamnă un cost efectiv de $0.90/1M!
+**Utilizare:** `kimi/kimi-k2.5` — **Sfat util:** Tariful fix de $9/lună pentru 10M tokenuri înseamnă un cost efectiv de $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Înregistrați-vă: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Creați o cheie API Qianfan → Panou de control → Adaugă cheie API: Furnizor: `qianfan`
+2. Creați o cheie API Qianfan → Panou de control → Adaugă o cheie API: Furnizor: `qianfan`
 
 **Utilizare:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` sau un alt ID de model Qianfan compatibil cu OpenAI.
 
 ### 🆓 Furnizori GRATUIȚI
 
 Furnizorii gratuiți care nu necesită autentificare au un comutator lângă **Nu este necesară autentificarea** pe pagina furnizorului.
-Dezactivarea acestuia dezactivează furnizorul, îl elimină din vizualizările configurată/compactă ale Furnizorilor și
+Dezactivarea acestuia dezactivează furnizorul, îl elimină din vizualizările configurată/compactă ale secțiunii Furnizori și
 elimină modelele sale din `/v1/models`.
 
 #### Qoder (9 modele GRATUITE)

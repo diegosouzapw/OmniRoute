@@ -74,7 +74,8 @@ interface ProviderCardProps {
     subscriptionRisk?: boolean;
     /** Which risk copy variant to show in the details dialog (#10261). Falls back
      * to "oauth" when absent — mirrors `ProviderModalsPanel`'s default. */
-    riskNoticeVariant?: "oauth" | "webCookie" | "deprecated" | "embedded-service";
+    riskNoticeVariant?:
+      "oauth" | "webCookie" | "deprecated" | "embedded-service" | "official-client-only";
     /** Declared service kinds — "llm" enables the inline Test button */
     serviceKinds?: string[];
     /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
