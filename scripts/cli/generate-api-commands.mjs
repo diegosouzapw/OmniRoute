@@ -62,7 +62,9 @@ const PARAM_REF_PREFIX = "#/components/parameters/";
 function resolveParam(p) {
   if (p && typeof p === "object" && typeof p.$ref === "string") {
     if (!p.$ref.startsWith(PARAM_REF_PREFIX)) {
-      throw new Error(`Unsupported parameter $ref (only ${PARAM_REF_PREFIX}* is resolved): ${p.$ref}`);
+      throw new Error(
+        `Unsupported parameter $ref (only ${PARAM_REF_PREFIX}* is resolved): ${p.$ref}`
+      );
     }
     const name = p.$ref.slice(PARAM_REF_PREFIX.length);
     const resolved = spec.components?.parameters?.[name];
@@ -74,7 +76,36 @@ function resolveParam(p) {
   return p;
 }
 
-/** @type {Record<string, Array<{path: string, method: string, opId: string, op: object}>>} */
+// Path-item `parameters` apply to every operation under that path; an operation
+// entry with the same name + location overrides it (OpenAPI 3 semantics).
+function mergeParams(pathLevel, opLevel) {
+  const merged = new Map();
+  for (const p of [...(pathLevel || []), ...(opLevel || [])].map(resolveParam)) {
+    merged.set(`${p.in}:${p.name}`, p);
+  }
+  return [...merged.values()];
+}
+
+// Path params come from the path template itself, so a `{param}` the spec never
+// declared (or declared only on the path item) still gets a flag and is
+// substituted — otherwise the command sends the literal placeholder (#15928).
+// `token` is the exact text replaced: the spec writes optional catch-alls as
+// `{{slug}}`. Fails generation if any brace would survive substitution.
+const PATH_TOKEN_RE = /\{+([^{}]+)\}+/g;
+function collectPathParams(path, params) {
+  const declared = new Map(params.filter((p) => p.in === "path").map((p) => [p.name, p]));
+  const pathParams = [...path.matchAll(PATH_TOKEN_RE)].map(([token, name]) => ({
+    ...(declared.get(name) || { name, in: "path", required: true }),
+    token,
+  }));
+  const leftover = pathParams.reduce((rest, p) => rest.replace(p.token, ""), path);
+  if (/[{}]/.test(leftover)) {
+    throw new Error(`Path template has a placeholder the generator cannot substitute: ${path}`);
+  }
+  return pathParams;
+}
+
+/** @type {Record<string, Array<{path: string, method: string, opId: string, op: object, pathLevelParams?: object[]}>>} */
 const byTag = {};
 
 for (const [path, methods] of Object.entries(spec.paths || {})) {
@@ -92,7 +123,7 @@ for (const [path, methods] of Object.entries(spec.paths || {})) {
     const opId = op.operationId || `${method}-${path.replace(/[^a-z0-9]/gi, "-")}`;
 
     byTag[tag] = byTag[tag] || [];
-    byTag[tag].push({ path, method, opId, op });
+    byTag[tag].push({ path, method, opId, op, pathLevelParams: methods.parameters });
   }
 }
 
@@ -110,10 +141,10 @@ for (const [tag, ops] of Object.entries(byTag)) {
     `  const tag = parent.command("${tag}").description("${escapeStr(ops[0]?.op?.tags?.[0] || tag)} endpoints");`,
   ];
 
-  for (const { path, method, opId, op } of ops) {
+  for (const { path, method, opId, op, pathLevelParams } of ops) {
     const cmdName = kebab(opId);
-    const params = (op.parameters || []).map(resolveParam);
-    const pathParams = params.filter((p) => p.in === "path");
+    const params = mergeParams(pathLevelParams, op.parameters);
+    const pathParams = collectPathParams(path, params);
     const queryParams = params.filter((p) => p.in === "query");
     const hasBody = !!op.requestBody;
     const summary = escapeStr(op.summary || op.description || cmdName);
@@ -131,9 +162,7 @@ for (const [tag, ops] of Object.entries(byTag)) {
     }
     if (hasBody) {
       const bodyFlag = op.requestBody.required ? "requiredOption" : "option";
-      lines.push(
-        `    .${bodyFlag}("--body <jsonOrPath>", "JSON body or @path/to/file.json")`
-      );
+      lines.push(`    .${bodyFlag}("--body <jsonOrPath>", "JSON body or @path/to/file.json")`);
     }
     lines.push(`    .action(async (opts, cmd) => {`);
     lines.push(`      const gOpts = cmd.optsWithGlobals();`);
@@ -141,7 +170,7 @@ for (const [tag, ops] of Object.entries(byTag)) {
     lines.push(`      let url = "${path}";`);
     for (const p of pathParams) {
       lines.push(
-        `      url = url.replace("{${p.name}}", encodeURIComponent(opts.${camelCase(kebab(p.name))} ?? ""));`
+        `      url = url.replace("${p.token}", encodeURIComponent(opts.${camelCase(kebab(p.name))} ?? ""));`
       );
     }
     // Build query string from query params
