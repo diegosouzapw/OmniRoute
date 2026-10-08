@@ -1,4 +1,4 @@
--- Migration 183: Seed version_manager row for the LLMLingua embedded service.
+-- Migration 204: Seed version_manager row for the LLMLingua embedded service.
 --
 -- LLMLingua (npm @atjsh/llmlingua-2, a JS/TS port of Microsoft's LLMLingua-2
 -- prompt-compression algorithm) is managed via the ServiceSupervisor
