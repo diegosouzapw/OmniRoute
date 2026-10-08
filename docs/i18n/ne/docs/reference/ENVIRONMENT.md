@@ -672,11 +672,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | भेरिएबल | पूर्वनिर्धारित मान | कहिले अद्यावधिक गर्ने |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic ले नयाँ CLI संस्करण जारी गर्दा |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic ले नयाँ CLI संस्करण जारी गर्दा |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | तेस्रो-पक्ष harness का tool नामहरू दुवै Anthropic-सम्बन्धित मार्गहरूमा (native OAuth र CLIProxyAPI) जस्ताको तस्तै Anthropic मा पठाउन `1`/`true` मा सेट गर्नुहोस्। पूर्वनिर्धारित रूपमा executor ले गैर-Claude-Code tool नामहरूलाई निर्धार्य रूपमा alias गर्छ (जहाँ उपलब्ध छ त्यहाँ Claude Code को canonical mapping, अन्यथा PascalCase) र प्रतिक्रियामा `_toolNameMap` मार्फत तिनलाई उल्टाउँछ, जसले गर्दा snake_case tools भएका harness हरू fingerprint गरिएका तेस्रो-पक्ष client का रूपमा अस्वीकृत हुँदैनन्। डिबगिङका लागि मात्र। |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI ले Codex CLI अद्यावधिक गर्दा |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | पूर्ण UA string बाट स्वतन्त्र रूपमा Codex client संस्करण ओभरराइड गर्नुहोस् |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | `CLAUDE_USER_AGENT` बाट स्वतन्त्र रूपमा विज्ञापित Claude Code संस्करण ओभरराइड गर्नुहोस्। Anthropic ले केही models मा यस मानका आधारमा पहुँच नियन्त्रण गर्छ (#12417)। |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | `CLAUDE_USER_AGENT` बाट स्वतन्त्र रूपमा विज्ञापित Claude Code संस्करण ओभरराइड गर्नुहोस्। Anthropic ले केही models मा यस मानका आधारमा पहुँच नियन्त्रण गर्छ (#12417)। |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Claude billing block मा `cc_version=` सँग OmniRoute ले थप्ने 3-अक्षरको suffix ओभरराइड गर्नुहोस्। `CLAUDE_CODE_CLIENT_VERSION` सँगै बढाउनुहोस् — संस्करण मात्र pin गर्दा कुनै वास्तविक binary ले नदिने `version.revision` जोडी विज्ञापन हुन्छ। |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | `GITHUB_USER_AGENT` बाट स्वतन्त्र रूपमा विज्ञापित Copilot CLI संस्करण ओभरराइड गर्नुहोस् |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat अद्यावधिक हुँदा |

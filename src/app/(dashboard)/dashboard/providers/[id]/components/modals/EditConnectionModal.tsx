@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import ConnectionTestModelField from "@/shared/components/ConnectionTestModelField";
+import { useConnectionTestModelDraft } from "@/shared/components/useConnectionTestModelDraft";
 import { Button, Badge, Input, Modal, Toggle, Select } from "@/shared/components";
 import { CHATGPT_WEB_CODEX_CONNECTOR_NAME } from "@/shared/constants/chatgptWebCodex";
 import {
@@ -53,6 +55,7 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import HarImportButton from "../HarImportButton";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import type { ApiKeyHealthMap } from "./connectionApiKeyHealth";
 import ClaudeConnectionFields from "./ClaudeConnectionFields";
 import {
   claudeConnectionFieldPatch,
@@ -182,21 +185,11 @@ export default function EditConnectionModal({
   const [doctorStatus, setDoctorStatus] = useState<Record<string, any> | null>(null);
   const [doctorLoading, setDoctorLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const testModel = useConnectionTestModelDraft(isOpen ? connection : null, saving);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [extraApiKeys, setExtraApiKeys] = useState<string[]>([]);
   const [newExtraKey, setNewExtraKey] = useState("");
-  const [apiKeyHealth, setApiKeyHealth] = useState<
-    Record<
-      string,
-      {
-        status: "active" | "warning" | "invalid";
-        failures: number;
-        lastFailure: string | null;
-        totalRequests?: number;
-        totalFailures?: number;
-      }
-    >
-  >({});
+  const [apiKeyHealth, setApiKeyHealth] = useState<ApiKeyHealthMap>({});
   const [showAdvanced, setShowAdvanced] = useState(false);
   const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
   // #6147 — built-in providers can opt in to an advanced base-URL override.
@@ -425,18 +418,7 @@ export default function EditConnectionModal({
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
-      const health = connection.providerSpecificData?.apiKeyHealth as
-        | Record<
-            string,
-            {
-              status: "active" | "warning" | "invalid";
-              failures: number;
-              lastFailure: string | null;
-              totalRequests?: number;
-              totalFailures?: number;
-            }
-          >
-        | undefined;
+      const health = connection.providerSpecificData?.apiKeyHealth as ApiKeyHealthMap | undefined;
       setApiKeyHealth(health || {});
       setNewExtraKey("");
       setOpenRouterPreset(existingOpenRouterPreset);
@@ -766,6 +748,7 @@ export default function EditConnectionModal({
         // previously-saved `true` and unchecking would never take effect.
         updates.providerSpecificData.importFreeModelsOnly = formData.importFreeModelsOnly === true;
       }
+      testModel.applyTo(updates.providerSpecificData);
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
@@ -814,6 +797,9 @@ export default function EditConnectionModal({
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder={isOAuth ? t("accountName") : t("productionKey")}
         />
+        {isOpen && connection.id && (
+          <ConnectionTestModelField key={connection.id} {...testModel.fieldProps} />
+        )}
         <Input
           label={t("tagGroupLabel")}
           value={formData.tag}

@@ -671,11 +671,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | 變數 | 預設值 | 更新時機 |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Anthropic 發布新的 CLI 版本時 |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Anthropic 發布新的 CLI 版本時 |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | 設為 `1`/`true`，以便在兩條連往 Anthropic 的路徑（原生 OAuth 與 CLIProxyAPI）上，將第三方執行框架的工具名稱原樣轉送至 Anthropic。執行器預設會以確定性方式為非 Claude Code 工具名稱建立別名（若有 Claude Code 標準對應名稱則使用該名稱，否則使用 PascalCase），並透過 `_toolNameMap` 在回應中還原名稱，因此使用 snake_case 工具的執行框架不會因被辨識為第三方用戶端而遭拒。僅供偵錯使用。 |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | OpenAI 更新 Codex CLI 時 |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | 獨立於完整 UA 字串覆寫 Codex 用戶端版本 |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | 獨立於 `CLAUDE_USER_AGENT` 覆寫對外宣告的 Claude Code 版本。Anthropic 會依此值限制部分模型（#12417）。 |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | 獨立於 `CLAUDE_USER_AGENT` 覆寫對外宣告的 Claude Code 版本。Anthropic 會依此值限制部分模型（#12417）。 |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | 覆寫 OmniRoute 附加至 Claude 計費區塊中 `cc_version=` 的 3 字元後綴。應與 `CLAUDE_CODE_CLIENT_VERSION` 一併遞增——僅固定版本會宣告真實二進位檔從未產生過的 `version.revision` 組合。 |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | 獨立於 `GITHUB_USER_AGENT` 覆寫對外宣告的 Copilot CLI 版本 |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat 更新時 |

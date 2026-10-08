@@ -6,6 +6,7 @@
  * at runtime (see: https://github.com/vercel/next.js/issues/12557).
  */
 import { z } from "zod";
+import { CONNECTION_TEST_PROMPT_MAX_LENGTH } from "@/shared/constants/connectionTest";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisibility";
@@ -100,6 +101,7 @@ const transformObfuscateWordsSchema = z.object({
 });
 
 export const updateSettingsSchema = z.object({
+  connectionTestPrompt: z.string().trim().min(1).max(CONNECTION_TEST_PROMPT_MAX_LENGTH).optional(),
   /** #7784: opt-in optimistic concurrency — must match GET settingsRevision / ETag. */
   expectedRevision: z.number().int().nonnegative().optional(),
   newPassword: z.string().min(1).max(200).optional(),

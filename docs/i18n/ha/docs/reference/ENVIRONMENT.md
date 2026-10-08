@@ -678,11 +678,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Sauyi | Ƙimar Tsoho | Lokacin Sabuntawa |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Lokacin da Anthropic ya fitar da sabon sigar CLI |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Lokacin da Anthropic ya fitar da sabon sigar CLI |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Saita zuwa `1`/`true` don tura sunayen kayan aikin harness na ɓangare na uku kai tsaye zuwa Anthropic a duka hanyoyin da ke zuwa Anthropic (OAuth na asali da CLIProxyAPI). Ta tsohuwa, executor yana sanya wa sunayen kayan aikin da ba na Claude Code ba laƙabi cikin ƙayyadadden tsari (yana amfani da daidaitaccen taswirar Claude Code idan akwai, in ba haka ba PascalCase), sannan yana mayar da sunayen zuwa na asali a cikin amsa ta hanyar `_toolNameMap`, don kada a ƙi harnesses masu kayan aikin snake_case a matsayin abokan hulɗa na ɓangare na uku da aka gano ta sawun yatsa. Don gyaran kurakurai kawai. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Lokacin da OpenAI ya sabunta Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Sauya sigar client ta Codex dabam da cikakken kirtanin UA |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Sauya sigar Claude Code da ake sanarwa dabam da `CLAUDE_USER_AGENT`. Anthropic yana taƙaita wasu models bisa wannan ƙima (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Sauya sigar Claude Code da ake sanarwa dabam da `CLAUDE_USER_AGENT`. Anthropic yana taƙaita wasu models bisa wannan ƙima (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Sauya kari mai haruffa 3 da OmniRoute ke liƙawa zuwa `cc_version=` a cikin ɓangaren lissafin kuɗin Claude. Ƙara shi tare da `CLAUDE_CODE_CLIENT_VERSION` — kulle sigar kaɗai yana sanar da haɗin `version.revision` wanda babu wani binary na ainihi da ke fitarwa. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Sauya sigar Copilot CLI da ake sanarwa dabam da `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Lokacin da GitHub Copilot Chat ya sabunta |

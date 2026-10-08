@@ -680,11 +680,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Mainīgais | Noklusējuma vērtība | Kad atjaunināt |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Kad Anthropic izlaiž jaunu CLI versiju |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Kad Anthropic izlaiž jaunu CLI versiju |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Iestatiet uz `1`/`true`, lai abos uz Anthropic vērstajos ceļos (vietējais OAuth un CLIProxyAPI) trešo pušu ietvaru rīku nosaukumus bez izmaiņām pārsūtītu Anthropic. Pēc noklusējuma izpildītājs deterministiski aizstāj rīku nosaukumus, kas nav no Claude Code (izmantojot Claude Code kanonisko kartējumu, ja tāds pastāv, vai pretējā gadījumā PascalCase), un atbildē tos atjauno, izmantojot `_toolNameMap`, lai ietvari ar snake_case rīkiem netiktu noraidīti kā identificēti trešo pušu klienti. Tikai atkļūdošanai. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Kad OpenAI atjaunina Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Pārrakstiet Codex klienta versiju neatkarīgi no pilnās UA virknes |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Pārrakstiet norādīto Claude Code versiju neatkarīgi no `CLAUDE_USER_AGENT`. Anthropic ierobežo piekļuvi dažiem modeļiem, pamatojoties uz šo vērtību (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Pārrakstiet norādīto Claude Code versiju neatkarīgi no `CLAUDE_USER_AGENT`. Anthropic ierobežo piekļuvi dažiem modeļiem, pamatojoties uz šo vērtību (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Pārrakstiet trīs rakstzīmju sufiksu, ko OmniRoute pievieno `cc_version=` Claude norēķinu blokā. Palieliniet to kopā ar `CLAUDE_CODE_CLIENT_VERSION` — fiksējot tikai versiju, tiek norādīts `version.revision` pāris, ko neizvada neviena reāla binārā datne. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Pārrakstiet norādīto Copilot CLI versiju neatkarīgi no `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Kad tiek atjaunināts GitHub Copilot Chat |

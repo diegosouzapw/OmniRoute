@@ -678,11 +678,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Proměnná | Výchozí hodnota | Kdy aktualizovat |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Když Anthropic vydá novou verzi CLI |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Když Anthropic vydá novou verzi CLI |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Nastavte na `1`/`true`, chcete-li názvy nástrojů frameworků třetích stran předávat společnosti Anthropic beze změny na obou cestách směřujících k Anthropic (nativní OAuth a CLIProxyAPI). Ve výchozím nastavení executor deterministicky vytváří aliasy názvů nástrojů, které nepocházejí z Claude Code (kanonické mapování Claude Code, pokud existuje, jinak PascalCase), a v odpovědi je pomocí `_toolNameMap` převádí zpět, takže frameworky s nástroji pojmenovanými ve formátu snake_case nejsou odmítnuty jako identifikovaní klienti třetích stran. Pouze pro ladění. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Když OpenAI aktualizuje Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Přepsání verze klienta Codex nezávisle na úplném řetězci UA |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Přepsání deklarované verze Claude Code nezávisle na `CLAUDE_USER_AGENT`. Anthropic na základě této hodnoty omezuje přístup k některým modelům (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Přepsání deklarované verze Claude Code nezávisle na `CLAUDE_USER_AGENT`. Anthropic na základě této hodnoty omezuje přístup k některým modelům (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Přepsání tříznakového sufixu, který OmniRoute přidává k `cc_version=` v bloku účtování Claude. Zvyšujte jej společně s `CLAUDE_CODE_CLIENT_VERSION` — připnutí pouze verze deklaruje dvojici `version.revision`, kterou žádný skutečný binární soubor nevysílá. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Přepsání deklarované verze Copilot CLI nezávisle na `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Když je aktualizován GitHub Copilot Chat |

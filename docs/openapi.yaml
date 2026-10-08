@@ -2225,6 +2225,70 @@ paths:
         "200":
           description: Test result
 
+  /api/providers/{id}/test-message:
+    get:
+      tags: [Providers]
+      summary: Read an account's saved test model and the global test message
+      description: Requires management authentication. Returns modelId and prompt without credentials.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Saved modelId and effective prompt
+        "404":
+          description: Connection not found
+    put:
+      tags: [Providers]
+      summary: Save the chat model used by this account's test-message button
+      description: Requires management authentication. Saving never sends an inference request.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modelId]
+              additionalProperties: false
+              properties:
+                modelId:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+      responses:
+        "200":
+          description: Saved modelId
+        "400":
+          description: Invalid model selection
+        "404":
+          description: Connection not found
+    post:
+      tags: [Providers]
+      summary: Send one real test message through the selected account
+      description: >-
+        Requires management authentication. Uses the account's saved model and the global
+        connectionTestPrompt setting (default: What is 1 + 1? Reply with only the number.).
+        The prompt is configurable through PATCH /api/settings and limited to 500 characters.
+        This manual request bypasses the response cache, uses only this connection and
+        never falls back to another account. It consumes quota; usage-window behavior
+        is determined by the provider. Saving settings does not schedule requests.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: modelId, prompt, responseText and latencyMs
+        "400":
+          description: Missing model selection or invalid chat model
+        "403":
+          description: Paid model blocked by settings
+        "404":
+          description: Connection not found
+        "409":
+          description: Account inactive or a test message is already running
+        "504":
+          description: No completed response within the test deadline
+
   /api/providers/{id}/models:
     get:
       tags: [Providers]

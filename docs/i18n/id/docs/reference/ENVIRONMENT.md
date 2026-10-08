@@ -678,11 +678,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variabel | Nilai Default | Kapan Diperbarui |
 | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.258 (external, cli)` | Saat Anthropic merilis versi CLI baru |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.280 (external, cli)` | Saat Anthropic merilis versi CLI baru |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | Atur ke `1`/`true` untuk meneruskan nama alat harness pihak ketiga secara verbatim ke Anthropic pada kedua jalur yang menuju Anthropic (OAuth native dan CLIProxyAPI). Secara default, executor secara deterministik membuat alias untuk nama alat non-Claude-Code (menggunakan pemetaan kanonis Claude Code jika tersedia, atau PascalCase jika tidak) dan mengembalikannya pada respons melalui `_toolNameMap`, sehingga harness dengan alat snake_case tidak ditolak karena teridentifikasi sebagai klien pihak ketiga. Hanya untuk debugging. |
 | `CODEX_USER_AGENT` | `codex-cli/0.155.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui Codex CLI |
 | `CODEX_CLIENT_VERSION` | `0.155.0` | Ganti versi klien Codex secara independen dari string UA lengkap |
-| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.258` | Ganti versi Claude Code yang diumumkan secara independen dari `CLAUDE_USER_AGENT`. Anthropic membatasi beberapa model berdasarkan nilai ini (#12417). |
+| `CLAUDE_CODE_CLIENT_VERSION` | `2.1.280` | Ganti versi Claude Code yang diumumkan secara independen dari `CLAUDE_USER_AGENT`. Anthropic membatasi beberapa model berdasarkan nilai ini (#12417). |
 | `CLAUDE_CODE_CLIENT_BUILD_REVISION` | `1e2` | Ganti sufiks 3 karakter yang ditambahkan OmniRoute ke `cc_version=` dalam blok penagihan Claude. Tingkatkan bersama `CLAUDE_CODE_CLIENT_VERSION` — menyematkan hanya versinya akan mengumumkan pasangan `version.revision` yang tidak pernah dihasilkan oleh biner nyata mana pun. |
 | `GITHUB_COPILOT_CLI_VERSION` | `1.0.81-6` | Ganti versi Copilot CLI yang diumumkan secara independen dari `GITHUB_USER_AGENT` |
 | `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | Saat GitHub Copilot Chat diperbarui |
