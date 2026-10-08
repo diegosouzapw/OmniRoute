@@ -409,11 +409,16 @@ export async function sendAntigravityRequest(
             `[Antigravity] Discovery sync succeeded after 404 for ${model} (re-resolved to ${reResolvedModel}), retrying request with rebuilt envelope`
           );
           await prl.captureCurrentProviderBody(url, retryHeaders, reSerialized.bodyString, log);
+          const syncRetryPhysicalSendOrdinal = ++physicalSendCounter.value;
+          log.debug(
+            "TELEMETRY",
+            `[Antigravity] PhysicalSend - RequestId: ${correlationId ?? "none"}, URL: ${url}, Model: ${reResolvedModel}, PhysicalSend: ${syncRetryPhysicalSendOrdinal}, RetryAttempt: ${retryAttempt}, Cause: reactive-sync-404`
+          );
+          // Same replayable fixed-body upload as the first send (no one-shot stream).
           response = await fetchAntigravityWithReadinessTimeout(url, {
             method: "POST",
             headers: retryHeaders,
-            body: getChunkedOrFixedBody(reSerialized.bodyString, stream),
-            ...(stream ? { duplex: "half" } : {}),
+            body: reSerialized.bodyString,
             signal,
           });
           finalHeaders = retryHeaders;

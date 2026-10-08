@@ -17,9 +17,10 @@ test("quota key allowed: static model IDs are always allowed", () => {
 test("quota key allowed: future dynamic live catalog model IDs are allowed when in liveModelIds set", () => {
   const liveSet = new Set(["gemini-3.9-flash-high", "gemini-4.0-pro"]);
 
-  // Without live set, unknown model is rejected
+  // Without live set, unknown model is rejected by the static antigravity allowlist.
+  // (agy quota keys use the discoverable denylist since #12866 — covered by
+  // agy-provider.test.ts "test 9" — so an unknown chat id is already allowed there.)
   assert.equal(isUsageQuotaKeyAllowed("antigravity", "gemini-3.9-flash-high"), false);
-  assert.equal(isUsageQuotaKeyAllowed("agy", "gemini-3.9-flash-high"), false);
 
   // With live set, unknown model is allowed
   assert.equal(isUsageQuotaKeyAllowed("antigravity", "gemini-3.9-flash-high", liveSet), true);
@@ -52,7 +53,8 @@ test("sanitizeUsageQuotasForProvider handles full usage object with live model i
     quotas: {
       "gemini-3.8-flash-medium": { remainingFraction: 0.9 },
       "gemini-3.9-flash-medium": { remainingFraction: 1.0 },
-      "totally-bogus-model": { remainingFraction: 0.0 },
+      // agy strips non-chat ids via the discoverable denylist (#12866), not unknown ids.
+      tab_flash_lite_preview: { remainingFraction: 0.0 },
     },
   };
 
@@ -61,5 +63,5 @@ test("sanitizeUsageQuotasForProvider handles full usage object with live model i
   const quotas = sanitized.quotas as Record<string, unknown>;
   assert.ok(quotas["gemini-3.8-flash-medium"]);
   assert.ok(quotas["gemini-3.9-flash-medium"]);
-  assert.equal(quotas["totally-bogus-model"], undefined);
+  assert.equal(quotas["tab_flash_lite_preview"], undefined);
 });
