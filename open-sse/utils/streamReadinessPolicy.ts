@@ -57,6 +57,13 @@ const OFFICIAL_CLAUDE_FORMAT_PROVIDERS = new Set(["claude", "anthropic"]);
  * through the Claude translator", so use it to bump the budget instead of
  * hand-curating an allowlist that drifts every time a new replica registers.
  */
+function isSyntxProvider(provider?: string | null): boolean {
+  const id = String(provider || "")
+    .trim()
+    .toLowerCase();
+  return id === "syntx" || id === "stx";
+}
+
 function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
   if (!provider) return false;
   const normalized = provider.toLowerCase();
@@ -68,22 +75,26 @@ function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
 function isCodexGpt5x(provider?: string | null, model?: string | null): boolean {
   const normalizedProvider = (provider || "").toLowerCase();
   const normalizedModel = (model || "").toLowerCase();
-  // Match the gpt-5.x family (gpt-5, gpt-5.1, gpt-5.5, ...) on the codex provider.
-  return normalizedProvider === "codex" && /gpt-5(\.\d+)?/.test(normalizedModel);
+  // Match the gpt-5.x family and its successors (gpt-5, gpt-5.5, gpt-6, gpt-6.1, ...)
+  // on the codex provider.
+  return normalizedProvider === "codex" && /gpt-[5-9](\.\d+)?/.test(normalizedModel);
 }
+
+const HIGH_REASONING_EFFORTS = ["high", "xhigh", "max"];
 
 /**
  * High-reasoning targets can do a cold, expensive reasoning warm-up even for
- * small prompts. Detect "high" or "max" reasoning effort either from
- * the model alias suffix (`...-high`) or from the request body's reasoning effort
- * field (OpenAI `reasoning_effort` or Responses API `reasoning.effort`).
+ * small prompts. Detect "high", "xhigh" or "max" reasoning effort either from
+ * the model alias suffix (`...-high`, `...-xhigh`, `...-max`) or from the request
+ * body's reasoning effort field (OpenAI `reasoning_effort` or Responses API
+ * `reasoning.effort`).
  */
 function isHighReasoningEffort(
   model: string | null | undefined,
   body: StreamReadinessBody
 ): boolean {
   const normalizedModel = (model || "").toLowerCase();
-  if (/-high\b/.test(normalizedModel) || normalizedModel.endsWith("-high")) return true;
+  if (/-(?:x?high|max)\b/.test(normalizedModel)) return true;
 
   const effort = (() => {
     const direct = body?.["reasoning_effort"];
@@ -95,7 +106,7 @@ function isHighReasoningEffort(
     }
     return "";
   })();
-  return ["high", "max"].includes(effort.toLowerCase());
+  return HIGH_REASONING_EFFORTS.includes(effort.toLowerCase());
 }
 
 /**
@@ -132,7 +143,7 @@ export function resolveStreamReadinessTimeout(
     };
   }
 
-  const maxTimeoutMs = Math.max(
+  let maxTimeoutMs = Math.max(
     baseTimeoutMs,
     input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS,
     input.cascadeTimeoutMs ?? 0
@@ -214,6 +225,16 @@ export function resolveStreamReadinessTimeout(
   if (isClaudeFormatReasoningProvider(input.provider) && !highReasoning && !extendedThinking) {
     timeoutMs += 30_000;
     reasons.push("claude_format_heavy_reasoning");
+  }
+
+  // SYNTX generate+SSE can sit quiet for minutes (native search/code/shell,
+  // long thinking). Raise both the budget and the clamp so Math.min cannot
+  // pull a 10-minute window back down to the 180s default max.
+  if (isSyntxProvider(input.provider)) {
+    const syntxTimeoutMs = 600_000;
+    timeoutMs = Math.max(timeoutMs, syntxTimeoutMs);
+    maxTimeoutMs = Math.max(maxTimeoutMs, syntxTimeoutMs);
+    reasons.push("syntx_long_generate");
   }
 
   // Cursor flattens Responses history into one wire message before dispatch;

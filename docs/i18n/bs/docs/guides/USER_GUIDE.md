@@ -120,18 +120,18 @@ Pristup putem: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Podešavanje provajdera
+## 📖 Postavljanje pružalaca usluga
 
-Za masovno dodavanje API-ključeva iz CSV ili JSON datoteke, koristite **Dashboard → Providers → Import from file**. Kolone su pozicione (`provider,name,apiKey,baseUrl,priority`); `provider` mora već postojati kao upravljani provajder ili kompatibilni čvor. Pogledajte [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
+Za masovno dodavanje veza s API ključevima iz CSV ili JSON datoteke koristite **Kontrolna tabla → Pružaoci usluga → Uvezi iz datoteke**. Kolone su pozicijske (`provider,name,apiKey,baseUrl,priority`); `provider` već mora postojati kao upravljani pružalac usluga ili kompatibilni čvor. Pogledajte [Uvoz pružalaca usluga iz CSV ili JSON datoteke](../providers/CSV-IMPORT.md).
 
-### 🔐 Provajderi s pretplatom
+### 🔐 Pretplatnički pružaoci usluga
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
+Kontrolna tabla → Pružaoci usluga → Poveži Claude Code
 → OAuth prijava → Automatsko osvježavanje tokena
-→ Praćenje kvote od 5 sati + sedmične kvote
+→ Praćenje 5-satne + sedmične kvote
 
 Modeli:
   cc/claude-opus-4-7
@@ -139,16 +139,18 @@ Modeli:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro savjet:** Koristite Opus za kompleksne zadatke, Sonnet za brzinu. OmniRoute prati kvotu po modelu!
+**Profesionalni savjet:** Koristite Opus za složene zadatke, a Sonnet za brzinu. OmniRoute prati kvotu za svaki model!
 
-Rute kompatibilne sa Claude i Claude Code čuvaju `max` napor razmišljanja za Opus i Sonnet modele. Haiku modeli ne prihvataju `max` nivo napora, pa OmniRoute snižava taj zahtjev na visoki budžet razmišljanja prije slanja izvoru.
+Nemate preglednik na OmniRoute hostu? Pokrenite `claude setup-token` bilo gdje gdje ste prijavljeni u Claude Code i zalijepite jednogodišnji token na karticu **Token za postavljanje**. Pogledajte [Claude Code s tokenom za postavljanje](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Rute kompatibilne s Claudeom i Claude Codeom zadržavaju `max` intenzitet razmišljanja za modele Opus i Sonnet. Modeli Haiku ne prihvataju nivo intenziteta `max`, pa OmniRoute smanjuje taj zahtjev na visok budžet za razmišljanje prije nego što ga pošalje nadređenom pružaocu usluga.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
+Kontrolna tabla → Pružaoci usluga → Poveži Codex
 → OAuth prijava (port 1455)
-→ Reset svakih 5 sati + sedmični reset
+→ 5-satno + sedmično resetovanje
 
 Modeli:
   cx/gpt-5.5
@@ -160,9 +162,9 @@ Modeli:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth putem GitHub-a
-→ Mjesečni reset (1. u mjesecu)
+Kontrolna tabla → Pružaoci usluga → Poveži GitHub
+→ OAuth putem GitHuba
+→ Mjesečno resetovanje (1. u mjesecu)
 
 Modeli:
   gh/gpt-5.5
@@ -172,45 +174,46 @@ Modeli:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Jeftini provajderi
+### 💰 Povoljni pružaoci usluga
 
-#### GLM-4.7 (Dnevni reset, $0.6/1M)
+#### GLM-4.7 (Dnevno resetovanje, $0.6/1M)
 
 1. Registrujte se: [Zhipu AI](https://open.bigmodel.cn)
-2. Preuzmite API ključ iz Coding Plan-a
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+2. Preuzmite API ključ iz Coding Plan
+3. Kontrolna tabla → Dodaj API ključ: Pružalac usluga: `glm`, API ključ: `your-key`
 
-**Upotreba:** `glm/glm-4.7` — **Pro savjet:** Coding Plan nudi 3× više kvote uz 1/7 troška! Reset svakog dana u 10:00 AM.
+**Upotreba:** `glm/glm-4.7` — **Profesionalni savjet:** Coding Plan nudi 3× veću kvotu po 1/7 cijene! Resetuje se svakog dana u 10:00.
 
-#### MiniMax M2.1 (Reset svakih 5h, $0.20/1M)
+#### MiniMax M2.1 (Resetovanje svakih 5 h, $0.20/1M)
 
 1. Registrujte se: [MiniMax](https://www.minimax.io)
-2. Preuzmite API ključ → Dashboard → Add API Key
+2. Preuzmite API ključ → Kontrolna tabla → Dodaj API ključ
 
-**Upotreba:** `minimax/MiniMax-M2.1` — **Pro savjet:** Najjeftinija opcija za dugačak kontekst (1M tokena)!
+**Upotreba:** `minimax/MiniMax-M2.1` — **Profesionalni savjet:** Najjeftinija opcija za dugi kontekst (1M tokena)!
 
-#### Kimi K2 (Fiksno $9/mjesečno)
+#### Kimi K2 ($9/mjesec fiksno)
 
 1. Pretplatite se: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Preuzmite API ključ → Dashboard → Add API Key
+2. Preuzmite API ključ → Kontrolna tabla → Dodaj API ključ
 
-**Upotreba:** `kimi/kimi-k2.5` — **Pro savjet:** Fiksno $9/mjesečno za 10M tokena = efektivni trošak od $0.90/1M!
+**Upotreba:** `kimi/kimi-k2.5` — **Profesionalni savjet:** Fiksnih $9/mjesec za 10M tokena = efektivni trošak od $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Registrujte se: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Kreirajte Qianfan API ključ → Dashboard → Add API Key: Provider: `qianfan`
+2. Kreirajte Qianfan API ključ → Kontrolna tabla → Dodaj API ključ: Pružalac usluga: `qianfan`
 
-**Upotreba:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ili neki drugi Qianfan OpenAI-kompatibilni ID modela.
+**Upotreba:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` ili drugi ID Qianfan modela kompatibilnog s OpenAI-jem.
 
-### 🆓 BESPLATNI provajderi
+### 🆓 BESPLATNI pružaoci usluga
 
-Besplatni provajderi bez autentifikacije imaju prekidač pored **No authentication required** na svojoj stranici provajdera. Isključivanje ovog prekidača onemogućava tog provajdera, uklanja ga iz konfigurisanih/kompaktnih prikaza provajdera i uklanja njegove modele iz `/v1/models`.
+Besplatni pružaoci usluga bez autentifikacije imaju prekidač pored opcije **Autentifikacija nije potrebna** na svojoj stranici.
+Isključivanjem prekidača taj pružalac usluga se onemogućava, uklanja iz konfigurisanih/sažetih prikaza Pružalaca usluga te se njegovi modeli uklanjaju iz `/v1/models`.
 
 #### Qoder (9 BESPLATNIH modela)
 
 ```bash
-Dashboard → Connect Qoder → OAuth prijava → Pristup zavisi od trenutnih limita provajdera
+Kontrolna tabla → Poveži Qoder → OAuth prijava → Pristup podliježe trenutnim ograničenjima pružaoca usluga
 
 Modeli: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -218,7 +221,7 @@ Modeli: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/
 #### Kiro (Claude BESPLATNO)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID ili Google/GitHub → ~50 kredita/mjesečno
+Kontrolna tabla → Poveži Kiro → AWS Builder ID ili Google/GitHub → ~50 kredita/mjesec
 
 Modeli: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

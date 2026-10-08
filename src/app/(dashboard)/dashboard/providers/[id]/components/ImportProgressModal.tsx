@@ -33,7 +33,11 @@ export default function ImportProgressModal({
       title={t("importingModelsTitle")}
       size="md"
       closeOnOverlay={false}
-      showCloseButton={importProgress.phase === "done" || importProgress.phase === "error"}
+      showCloseButton={
+        importProgress.phase === "done" ||
+        importProgress.phase === "error" ||
+        importProgress.phase === "warning"
+      }
     >
       <div className="flex flex-col gap-4">
         {/* Status text */}
@@ -50,6 +54,9 @@ export default function ImportProgressModal({
           )}
           {importProgress.phase === "done" && (
             <span className="material-symbols-outlined text-green-500">check_circle</span>
+          )}
+          {importProgress.phase === "warning" && (
+            <span className="material-symbols-outlined text-orange-500">warning</span>
           )}
           {importProgress.phase === "error" && (
             <span className="material-symbols-outlined text-red-500">error</span>
@@ -126,7 +133,7 @@ export default function ImportProgressModal({
         )}
 
         {/* Close button */}
-        {importProgress.phase === "done" && (
+        {(importProgress.phase === "done" || importProgress.phase === "warning") && (
           <div className="flex justify-center">
             <button
               onClick={onClose}

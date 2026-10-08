@@ -1,0 +1,1 @@
+- **feat(dashboard):** flag a provider whose exits fail upstream together so the pool screen reads it as an upstream problem, and show upstream 4xx and 5xx as separate counts ([#15386](https://github.com/diegosouzapw/OmniRoute/pull/15386)) — thanks @maxmad64bis

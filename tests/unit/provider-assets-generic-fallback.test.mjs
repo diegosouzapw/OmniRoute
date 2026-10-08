@@ -198,7 +198,9 @@ test("provider bundle retires exactly the 78 unresolved assets and keeps the gen
   // freebuff-light.svg, freebuff.png, openvecta.svg, picoclaw.jpg, zoocode.png),
   // so the real pre-fix count was 142, not 148. This fix retires the unresolved
   // Nimble asset as well, leaving 141 distributed assets.
-  assert.equal(distributedAssets.length, 141, "all 141 non-target assets must remain");
+  // notrack-web: operator-supplied logomark with a provenance record (unresolved
+  // status, non-blocking) ships in the bundle — 141 → 142.
+  assert.equal(distributedAssets.length, 142, "all 142 non-target assets must remain");
   assert.ok(distributedAssets.includes("cli-generic.svg"));
 });
 

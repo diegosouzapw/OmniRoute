@@ -4,14 +4,24 @@ import { t } from "../i18n.mjs";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 
+// Resolve package.json from this file's location (global/npx installs run with an
+// arbitrary cwd), walking up to the first manifest that carries a version.
 function getPackageVersion() {
-  try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
-    return pkg.version || "unknown";
-  } catch {
-    return "unknown";
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 6; i++) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf-8"));
+      if (pkg.version) return pkg.version;
+    } catch {
+      // keep walking up
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
+  return "unknown";
 }
 
 function formatBytes(bytes) {

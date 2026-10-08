@@ -5,6 +5,7 @@
  * cosmetic-only iteration-order change (e.g. the dashboard blocked-providers grid).
  */
 import { APIKEY_PROVIDERS_GATEWAYS } from "./gateways";
+import { APIKEY_PROVIDERS_BEATAPI } from "./beatapi";
 import { APIKEY_PROVIDERS_FRONTIER } from "./frontier-labs";
 import { APIKEY_PROVIDERS_INFERENCE } from "./inference-hosts";
 import { APIKEY_PROVIDERS_ENTERPRISE } from "./enterprise-cloud";
@@ -13,6 +14,7 @@ import { APIKEY_PROVIDERS_SPECIALTY } from "./specialty-media";
 
 export const APIKEY_PROVIDERS = {
   ...APIKEY_PROVIDERS_GATEWAYS,
+  ...APIKEY_PROVIDERS_BEATAPI,
   ...APIKEY_PROVIDERS_FRONTIER,
   ...APIKEY_PROVIDERS_INFERENCE,
   ...APIKEY_PROVIDERS_ENTERPRISE,

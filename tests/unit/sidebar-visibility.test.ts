@@ -31,6 +31,7 @@ test("system sidebar items: monitoring has activity at top then logs/audit/syste
       "health",
       "runtime",
       "resilience-connections",
+      "resilience-cooldowns",
     ]
   );
 });

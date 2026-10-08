@@ -66,10 +66,11 @@ supplemented:
 - `GET /api/auth/oidc/callback` validates `state`, exchanges the authorization
   code, and verifies the ID token's signature via the issuer's JWKS
   (`jose`'s `createRemoteJWKSet`, cached per JWKS URI) with `issuer`/`audience`
-  checks. An optional `oidcAllowedSubjects` allowlist matches the token's
-  `sub` claim or its `email` claim — the email claim is only honored when
-  `email_verified === true`, so an unverified email at the IdP can never pass
-  the gate.
+  checks. The `oidcAllowedSubjects` allowlist is required: it matches the
+  token's `sub` claim or its `email` claim — the email claim is only honored
+  when `email_verified === true`, so an unverified email at the IdP can never
+  pass the gate — and with no entries the callback refuses every login
+  (`not_configured`).
 - On success it mints the **exact same** 30-day `auth_token` JWT the password
   login issues (`src/app/api/auth/login/route.ts`), so the rest of the
   dashboard session pipeline (auto-refresh, cookie flags) is unchanged —
