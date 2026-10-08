@@ -2225,6 +2225,70 @@ paths:
         "200":
           description: Test result
 
+  /api/providers/{id}/test-message:
+    get:
+      tags: [Providers]
+      summary: Read an account's saved test model and the global test message
+      description: Requires management authentication. Returns modelId and prompt without credentials.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Saved modelId and effective prompt
+        "404":
+          description: Connection not found
+    put:
+      tags: [Providers]
+      summary: Save the chat model used by this account's test-message button
+      description: Requires management authentication. Saving never sends an inference request.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modelId]
+              additionalProperties: false
+              properties:
+                modelId:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+      responses:
+        "200":
+          description: Saved modelId
+        "400":
+          description: Invalid model selection
+        "404":
+          description: Connection not found
+    post:
+      tags: [Providers]
+      summary: Send one real test message through the selected account
+      description: >-
+        Requires management authentication. Uses the account's saved model and the global
+        connectionTestPrompt setting (default: What is 1 + 1? Reply with only the number.).
+        The prompt is configurable through PATCH /api/settings and limited to 500 characters.
+        This manual request bypasses the response cache, uses only this connection and
+        never falls back to another account. It consumes quota; usage-window behavior
+        is determined by the provider. Saving settings does not schedule requests.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: modelId, prompt, responseText and latencyMs
+        "400":
+          description: Missing model selection or invalid chat model
+        "403":
+          description: Paid model blocked by settings
+        "404":
+          description: Connection not found
+        "409":
+          description: Account inactive or a test message is already running
+        "504":
+          description: No completed response within the test deadline
+
   /api/providers/{id}/models:
     get:
       tags: [Providers]
@@ -2563,6 +2627,122 @@ paths:
         "404":
           description: Key not found
 
+  /api/keys/{id}/access:
+    post:
+      tags: [API Keys]
+      summary: Add or remove allowed models and combos on an API key atomically
+      description: |
+        Adds or removes allowed models and combos on an API key without lost updates.
+        Serialized per key ID using an in-process async lock.
+        Keys allowing all models (modelAccessMode: all) or all combos (allowedCombos containing 'combo/*')
+        require switchToRestricted: true when adding new models or combos, otherwise returning a 409 Conflict.
+        When switching to restricted mode, the allowlist becomes exactly the net added items (at least one required).
+        Direct concurrent PATCH calls to /api/keys/{id} completely overwrite the policy outside this lock.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                add:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      minItems: 1
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                    combos:
+                      type: array
+                      minItems: 1
+                      maxItems: 500
+                      items:
+                        type: string
+                        minLength: 1
+                remove:
+                  type: object
+                  properties:
+                    models:
+                      type: array
+                      minItems: 1
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                    combos:
+                      type: array
+                      minItems: 1
+                      maxItems: 500
+                      items:
+                        type: string
+                        minLength: 1
+                switchToRestricted:
+                  type: boolean
+      responses:
+        "200":
+          description: API key access updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - modelAccessMode
+                  - allowedModels
+                  - allowedCombos
+                  - changed
+                properties:
+                  id:
+                    type: string
+                  modelAccessMode:
+                    type: string
+                    enum: [all, restricted]
+                  allowedModels:
+                    type: array
+                    items:
+                      type: string
+                  allowedCombos:
+                    type: array
+                    items:
+                      type: string
+                  changed:
+                    type: boolean
+        "400":
+          description: Invalid request, caps exceeded, or empty restricted list
+        "401":
+          description: Authentication required
+        "403":
+          description: API key lacks 'manage' scope
+        "404":
+          description: Key not found
+        "409":
+          description: Key allows all models or all combos and switchToRestricted was not set
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: object
+                    required:
+                      - code
+                      - message
+                    properties:
+                      code:
+                        type: string
+                        enum:
+                          - key_allows_all_models
+                          - key_allows_all_combos
+                      message:
+                        type: string
+
   /api/combos:
     get:
       tags: [Combos]
@@ -2755,6 +2935,11 @@ paths:
     put:
       tags: [Compression]
       summary: Update global compression settings
+      description: >-
+        Partial update: only the sent top-level keys change. `engines` merges by engine id —
+        an entry overwrites only the fields it sends, engines left out are kept as-is, and
+        until an engines row is stored the merge base is the map derived from the legacy
+        per-engine settings.
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -2775,6 +2960,19 @@ paths:
                 autoTriggerTokens:
                   type: integer
                   minimum: 0
+                engines:
+                  type: object
+                  description: >-
+                    Per-engine toggles, merged by engine id into the stored map. Each entry
+                    needs `enabled`; `level` survives an entry that omits it.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                      level:
+                        type: string
+                    required: [enabled]
                 rtkConfig:
                   type: object
                   additionalProperties: true
@@ -3323,6 +3521,20 @@ paths:
                 localCoreEndpoint:
                   type: string
                   nullable: true
+                coreConfigPath:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Absolute adopted sing-box config path (lowercase .json).
+                    Empty means no generation; each sync writes
+                    `<path>.generated` beside it, never into it.
+                coreBinaryPath:
+                  type: string
+                  nullable: true
+                  description: >-
+                    Absolute path of the core binary used to verify the
+                    generated file before replacing the adopted file.
+                    Empty means write beside it only.
                 updateIntervalMinutes:
                   type: integer
                   default: 60
@@ -3369,7 +3581,7 @@ paths:
       summary: Update a proxy subscription
       description: >-
         Partial update — only fields present in the body are changed
-        (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+        (name/url/mode/ruleProviders/localCoreEndpoint/coreConfigPath/coreBinaryPath/updateIntervalMinutes/enabled).
       security:
         - ManagementSessionAuth: []
       parameters:
@@ -3393,6 +3605,12 @@ paths:
                   items:
                     type: string
                 localCoreEndpoint:
+                  type: string
+                  nullable: true
+                coreConfigPath:
+                  type: string
+                  nullable: true
+                coreBinaryPath:
                   type: string
                   nullable: true
                 updateIntervalMinutes:
@@ -4037,11 +4255,13 @@ paths:
           schema: { type: string }
       responses:
         "200":
-          description: Token revoked
+          description: Token revoked (alreadyRevoked is true when it was already revoked)
         "403":
           description: Insufficient scope
         "404":
-          description: Token not found or already revoked
+          description: Token not found
+        "409":
+          description: Prefix matches more than one live token; nothing revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 
@@ -5710,6 +5930,145 @@ paths:
         "500":
           description: Import failed
 
+  /api/services/llmlingua/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install LLMLingua
+      description: >-
+        Installs `@atjsh/llmlingua-2` (real LLMLingua-2 ONNX prompt-compression
+        package) plus its `@huggingface/transformers`/`js-tiktoken` peers under
+        DATA_DIR/services/llmlingua/, and writes the sidecar server script.
+        Accepts an optional `version` field (semver or `latest`).
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  installPath:
+                    type: string
+                  durationMs:
+                    type: number
+
+  /api/services/llmlingua/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start LLMLingua
+      description: Starts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after start
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop LLMLingua
+      description: Stops the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after stop
+
+  /api/services/llmlingua/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart LLMLingua
+      description: Restarts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after restart
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update LLMLingua
+      description: >-
+        Updates LLMLingua to the latest npm version. Stops the running process,
+        installs the new version, and restarts if it was previously running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Update result
+
+  /api/services/llmlingua/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get LLMLingua status
+      description: Returns live and DB status for the supervised LLMLingua service. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: LLMLingua service status
+
+  /api/services/llmlingua/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-start
+      description: >-
+        When enabled, LLMLingua starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+
+  /api/services/llmlingua/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) LLMLingua
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]
@@ -5725,7 +6084,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [9router, cliproxy]
+            enum: [9router, cliproxy, mux, bifrost, dario, openwa, llmlingua]
         - name: tail
           in: query
           schema:
@@ -6041,9 +6400,9 @@ paths:
       summary: Complete OIDC login for the dashboard admin gate
       description: |
         Validates the `state` cookie, exchanges the authorization `code` for tokens,
-        verifies the ID token against the issuer's JWKS (audience = client id), and —
-        if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
-        that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+        verifies the ID token against the issuer's JWKS (audience = client id), and
+        checks the token's `sub`/`email` against `oidcAllowedSubjects`, which must hold at
+        least one entry (an empty list ends in `not_configured`). On success it mints the same 30-day `auth_token` dashboard-session
         JWT used by password login and redirects to `/dashboard`.
       parameters:
         - name: code
@@ -11248,6 +11607,30 @@ paths:
       responses:
         "200":
           description: OK
+  /api/resilience/cooldowns:
+    get:
+      tags:
+        - Resilience
+      summary: "GET resilience › cooldowns"
+      description: >-
+        Every connection with its cooldown, model lockouts and terminal state, for the
+        Cooldown Manager page. Never includes credentials. Optional `provider` query filter.
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Resilience
+      summary: "POST resilience › cooldowns"
+      description: >-
+        Clears connection cooldowns and model lockouts for `connectionIds`, or for every
+        connection when `all` is true (optionally within `provider`). Terminal states
+        (banned, expired, credits_exhausted) are skipped.
+      responses:
+        "200":
+          description: "`{ ok, cleared, unchanged, skippedTerminal, lockoutsCleared }`"
+        "400":
+          description: Neither connectionIds nor all was provided
   /api/routing/decisions/{requestId}:
     get:
       tags:
@@ -12931,7 +13314,10 @@ paths:
       summary: "GET combos"
       responses:
         "200":
-          description: OK
+          description: >-
+            OK. When capabilities are included, each `model` step in `models[]` carries
+            `supportsVision` (`true`, `false`, or `null` when no capability source knows),
+            and `capabilities.multimodal` is true exactly when every member reports `true`.
   /api/v1/completions:
     post:
       tags:
@@ -15128,6 +15514,19 @@ components:
         localCoreEndpoint:
           type: string
           nullable: true
+        coreConfigPath:
+          type: string
+          nullable: true
+          description: >-
+            Absolute adopted sing-box config path (lowercase .json).
+            Empty means no generation.
+        coreBinaryPath:
+          type: string
+          nullable: true
+          description: >-
+            Absolute path of the core binary used to verify the generated
+            file before replacing the adopted file. Null means write
+            beside it only.
         updateIntervalMinutes:
           type: integer
         lastFetchedAt:
@@ -15257,3 +15656,20 @@ components:
             - context-optimized
             - fusion
           default: priority
+        universal_handoff:
+          type: object
+          nullable: true
+          description: >-
+            Per-combo universal handoff config (the runtime also accepts the camelCase
+            `universalHandoff` alias). Omit to fall back to the global/default config;
+            `enabled: false` stops session-model history writes for this combo.
+          additionalProperties: false
+          properties:
+            enabled: { type: boolean }
+            trigger: { type: string, enum: [on-switch, always, on-error] }
+            providerAllowlist: { type: array, items: { type: string } }
+            maxMessagesForSummary: { type: integer, minimum: 5, maximum: 100 }
+            handoffModel: { type: string }
+            ttlMinutes: { type: integer, minimum: 1, maximum: 10080 }
+            preserveSystemPrompt: { type: boolean }
+            relayMode: { type: string, enum: [schema-locked, standard] }

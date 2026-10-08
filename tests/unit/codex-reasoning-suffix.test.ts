@@ -23,3 +23,19 @@ test("Codex Astra supports max and ultra aliases without widening other models",
     effort: null,
   });
 });
+
+test("parenthesized ultra honors the ultra alias set, not the max set", () => {
+  assert.deepEqual(splitCodexReasoningSuffix("gpt-6-luna(ultra)"), {
+    baseModel: "gpt-6-luna(ultra)",
+    effort: null,
+  });
+  assert.deepEqual(splitCodexReasoningSuffix("gpt-6-luna-ultra"), {
+    baseModel: "gpt-6-luna-ultra",
+    effort: null,
+  });
+  assert.deepEqual(splitCodexReasoningSuffix("gpt-6-luna(max)"), {
+    baseModel: "gpt-6-luna",
+    effort: "max",
+  });
+});
+

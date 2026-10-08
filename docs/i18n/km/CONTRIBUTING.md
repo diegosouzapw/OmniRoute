@@ -401,20 +401,20 @@ docs/
 
 ## បញ្ជីត្រួតពិនិត្យ Pull Request
 
-- [ ] តេស្តឆ្លងកាត់ (`npm test`)
-- [ ] ការត្រួតពិនិត្យ Lint ឆ្លងកាត់ (`npm run lint`)
-- [ ] ការ build ជោគជ័យ (`npm run build`)
-- [ ] បានបន្ថែម TypeScript types សម្រាប់ functions និង interfaces សាធារណៈថ្មី
-- [ ] គ្មានព័ត៌មានសម្ងាត់ ឬតម្លៃ fallback ដែលបាន hardcode
-- [ ] ព័ត៌មានសម្ងាត់សាធារណៈពីប្រភពខាងដើមត្រូវបានបង្កប់តាមរយៈ `resolvePublicCred()` (សូមមើល [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) មិនត្រូវបង្កប់ជា literals ឡើយ
-- [ ] Error responses ឆ្លងកាត់ `buildErrorBody()` / `sanitizeErrorMessage()` — គ្មាន stack traces ដើមនៅក្នុង response bodies (សូមមើល [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell commands (`exec` / `spawn`) បញ្ជូនតម្លៃ runtime តាមរយៈ `env` មិនមែនតាមរយៈ string interpolation
-- [ ] Inputs ទាំងអស់ត្រូវបានផ្ទៀងផ្ទាត់ដោយប្រើ Zod schemas
-- [ ] បានបន្ថែម **fragment** នៃ changelog នៅក្រោម `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` សម្រាប់ការផ្លាស់ប្តូរដែលអ្នកប្រើប្រាស់អាចមើលឃើញ (សូមមើល [`changelog.d/README.md`](./changelog.d/README.md)) — **កុំ** កែសម្រួល `CHANGELOG.md` ដោយផ្ទាល់; fragments ត្រូវបានប្រមូលបញ្ចូលគ្នានៅពេលចេញ release ហើយមិនដែលប៉ះទង្គិចគ្នារវាង PRs ឡើយ
-- [ ] ឯកសារត្រូវបានធ្វើបច្ចុប្បន្នភាព (ប្រសិនបើអាចអនុវត្តបាន)
-- [ ] មិនមាន CodeQL / Secret-Scanning alerts ថ្មីត្រូវបានបើក ឬ alerts នីមួយៗត្រូវបានបដិសេធដោយមានយុត្តិកម្មបច្ចេកទេសយោងទៅឯកសារ `docs/security/` ដែលពាក់ព័ន្ធ
+- [ ] ការធ្វើតេស្តជោគជ័យ (`npm test`)
+- [ ] ការត្រួតពិនិត្យ Lint ជោគជ័យ (`npm run lint`)
+- [ ] ការ Build ជោគជ័យ (`npm run build`)
+- [ ] បានបន្ថែម TypeScript types សម្រាប់ public functions និង interfaces ថ្មី
+- [ ] មិនមាន secrets ឬ fallback values ដែលសរសេរបង្កប់ដោយផ្ទាល់
+- [ ] បានបង្កប់ public upstream credentials តាមរយៈ `resolvePublicCred()` (សូមមើល [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) ដោយមិនប្រើ literals ជាដាច់ខាត
+- [ ] Error responses ត្រូវបានបញ្ជូនតាមរយៈ `buildErrorBody()` / `sanitizeErrorMessage()` — មិនមាន raw stack traces នៅក្នុង response bodies ទេ (សូមមើល [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) បញ្ជូន runtime values តាមរយៈ `env` មិនមែនតាមរយៈ string interpolation ទេ
+- [ ] inputs ទាំងអស់ត្រូវបានផ្ទៀងផ្ទាត់ដោយប្រើ Zod schemas
+- [ ] បានបន្ថែម **fragment** នៃ Changelog នៅក្រោម `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` សម្រាប់ការផ្លាស់ប្តូរដែលប៉ះពាល់ដល់អ្នកប្រើប្រាស់ (សូមមើល [`changelog.d/README.md`](./changelog.d/README.md)) — **កុំ**កែសម្រួល `CHANGELOG.md` ដោយផ្ទាល់; fragments ត្រូវបានបូកបញ្ចូលគ្នានៅពេលចេញផ្សាយ ហើយមិនបង្កឱ្យមាន conflicts រវាង PRs ទេ
+- [ ] បានធ្វើបច្ចុប្បន្នភាពឯកសារ (ប្រសិនបើអាចអនុវត្តបាន)
+- [ ] មិនបានបង្កើត CodeQL / Secret-Scanning alerts ថ្មី ឬ alert នីមួយៗត្រូវបានបដិសេធដោយមានហេតុផលបច្ចេកទេសយោងទៅឯកសារ `docs/security/` ដែលពាក់ព័ន្ធ
 - [ ] Routes ដែលបង្កើត child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ត្រូវបានចាត់ថ្នាក់ជា `isLocalOnlyPath()` នៅក្នុង `src/server/authz/routeGuard.ts` — សូមមើល [ច្បាប់តឹងរ៉ឹង #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] គ្មាន trailers `Co-Authored-By` នៅក្នុង commit messages — commits ត្រូវតែបង្ហាញតែក្រោម Git identity របស់ម្ចាស់ repository ប៉ុណ្ណោះ (ច្បាប់តឹងរ៉ឹង #16)
+- [ ] មិនមាន AI/bot `Co-authored-by` trailers នៅក្នុង commit messages ទេ (ច្បាប់តឹងរ៉ឹង #16) — human collaborators ដែលស្នាដៃរបស់ពួកគេត្រូវបានប្រើឡើងវិញ ត្រូវបានផ្តល់កិត្តិយសដោយប្រើ trailers ស្តង់ដារ `Co-authored-by: Name <email>`
 
 ---
 

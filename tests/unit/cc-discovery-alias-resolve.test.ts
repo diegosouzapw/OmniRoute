@@ -61,6 +61,13 @@ test("combo alias strips when the combo exists (non-empty models) and gate on", 
   assert.deepEqual(result, { model: "custo-otimizado", stripped: true });
 });
 
+test("built-in auto combo alias strips when the auto combo resolver returns a combo", async () => {
+  const result = await resolveCcDiscoveryAliasStripWith("claude/combo/auto/coding", {
+    ...baseDeps,
+    getCombo: async (name) => (name === "auto/coding" ? { models: [{ id: "auto/coding" }] } : null),
+  });
+  assert.deepEqual(result, { model: "auto/coding", stripped: true });
+});
 test("combo alias is left intact when the combo has no models", async () => {
   const result = await resolveCcDiscoveryAliasStripWith("claude/combo/empty", {
     ...baseDeps,

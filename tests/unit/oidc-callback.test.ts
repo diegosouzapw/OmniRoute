@@ -75,7 +75,7 @@ async function setupFullOidcSettings() {
     oidcClientId: "client-oidc-test",
     oidcClientSecret: "secret-oidc-test",
     oidcRedirectPath: "/api/auth/oidc/callback",
-    oidcAllowedSubjects: [],
+    oidcAllowedSubjects: ["user-123"],
   });
 }
 
@@ -518,7 +518,7 @@ test("OIDC callback handles issuer with trailing slash in settings and token (#1
     oidcClientId: "client-oidc-authentik",
     oidcClientSecret: "secret-oidc-authentik",
     oidcRedirectPath: "/api/auth/oidc/callback",
-    oidcAllowedSubjects: [],
+    oidcAllowedSubjects: ["authentik-user-1"],
   });
 
   const { idToken, jwks } = await createSignedIdToken({
@@ -583,7 +583,7 @@ test("OIDC callback handles issuer mismatch on trailing slash between settings a
     oidcClientId: "client-oidc-authentik-mismatch",
     oidcClientSecret: "secret-oidc-authentik-mismatch",
     oidcRedirectPath: "/api/auth/oidc/callback",
-    oidcAllowedSubjects: [],
+    oidcAllowedSubjects: ["authentik-user-2"],
   });
 
   // Token signed with trailing slash (common with Authentik discovery)
@@ -634,3 +634,35 @@ test("OIDC callback handles issuer mismatch on trailing slash between settings a
     globalThis.fetch = originalFetch;
   }
 });
+
+for (const [label, subjects] of [
+  ["an empty allowlist", []],
+  ["an allowlist of blank entries", ["", "   "]],
+] as const) {
+  test(`OIDC callback refuses to sign anyone in with ${label} (not_configured)`, async () => {
+    await setupFullOidcSettings();
+    await localDb.updateSettings({ oidcAllowedSubjects: [...subjects] });
+
+    const testState = "state-empty-allowlist";
+    capturedCookies["oidc_state"] = { value: testState };
+
+    const originalFetch = globalThis.fetch;
+    let outboundCalls = 0;
+    globalThis.fetch = (async () => {
+      outboundCalls += 1;
+      throw new Error("the identity provider must not be contacted");
+    }) as typeof fetch;
+    try {
+      const response = await callbackRoute.GET(
+        new Request(`http://localhost/api/auth/oidc/callback?code=foo&state=${testState}`)
+      );
+
+      assert.equal(response.status, 307);
+      assert.ok((response.headers.get("location") || "").includes("oidc_error=not_configured"));
+      assert.equal(outboundCalls, 0);
+      assert.equal(capturedCookies["auth_token"], undefined);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}

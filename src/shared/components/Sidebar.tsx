@@ -31,11 +31,13 @@ import {
 } from "@/shared/constants/sidebarGroupVisibility";
 import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
   normalizeHiddenSidebarItems,
+  normalizeHiddenSidebarSections,
   applySectionOrder,
   applyItemOrder,
   getSidebarIconAccent,
@@ -65,7 +67,7 @@ type SidebarProps = {
   isMacElectron?: boolean;
 };
 
-type HoveredItem = { id: string; label: string; x: number; y: number } | null;
+type HoveredItem = { id: string; label: string; x: number; y: number; isRtl?: boolean } | null;
 
 function parseStoredArray<T>(raw: string | null, fallback: T): T {
   try {
@@ -137,6 +139,7 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [hiddenSidebarSections, setHiddenSidebarSections] = useState<SidebarSectionId[]>([]);
   const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<string[]>([]);
   // Feature-flag map for flag-gated items (e.g. "radar" -> RADAR_ENABLED).
   // Fails open (see isSidebarItemVisibleForFlags) so a missing key never
@@ -207,6 +210,9 @@ export default function Sidebar({
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setHiddenSidebarSections(
+        normalizeHiddenSidebarSections(data?.[HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY])
+      );
       setHiddenSidebarGroupLabels(
         normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
       );
@@ -237,6 +243,11 @@ export default function Sidebar({
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+      if (HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY in detail) {
+        setHiddenSidebarSections(
+          normalizeHiddenSidebarSections(detail[HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY])
         );
       }
       if (HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY in detail) {
@@ -370,9 +381,12 @@ export default function Sidebar({
   const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
 
   const isSearching = searchQuery.trim().length > 0;
+  // Section master toggle ("隔断"): hidden sections drop out of the normal
+  // display, but stay searchable — mirroring hidden items.
+  const hiddenSectionSet = new Set<SidebarSectionId>(hiddenSidebarSections);
   const displaySections = isSearching
     ? filterSidebarSectionsByQuery(sectionsWithPinned, searchQuery)
-    : sectionsWithPinned;
+    : sectionsWithPinned.filter((s) => !hiddenSectionSet.has(s.id));
 
   // Keep the active page visible while preserving accordion semantics for
   // unpinned sections. Render-time adjustment (react.dev "You Might Not Need
@@ -489,12 +503,16 @@ export default function Sidebar({
     (e: React.MouseEvent<HTMLElement>, id: string, label: string) => {
       if (!collapsed) return;
       const rect = e.currentTarget.getBoundingClientRect();
+      const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
       const sidebarRect = sidebarRef.current?.getBoundingClientRect();
       setHoveredItem({
         id,
         label,
-        x: (sidebarRect?.right ?? 64) + 8,
+        x: isRtl
+          ? (typeof window !== "undefined" ? window.innerWidth - (sidebarRect?.left ?? 0) + 8 : 72)
+          : (sidebarRect?.right ?? 64) + 8,
         y: rect.top + rect.height / 2,
+        isRtl,
       });
     },
     [collapsed]
@@ -905,9 +923,19 @@ export default function Sidebar({
       {collapsed && hoveredItem && (
         <div
           className="fixed z-[200] pointer-events-none flex items-center"
-          style={{ left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }}
+          style={
+            hoveredItem.isRtl
+              ? { right: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }
+              : { left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }
+          }
         >
-          <div className="w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar" />
+          <div
+            className={
+              hoveredItem.isRtl
+                ? "w-0 h-0 border-t-[5px] border-b-[5px] border-l-[6px] border-t-transparent border-b-transparent border-l-sidebar dark:border-l-sidebar"
+                : "w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar"
+            }
+          />
           <div className="px-2.5 py-1.5 bg-sidebar text-text-main text-xs font-medium rounded-md shadow-lg border border-black/10 dark:border-white/10 whitespace-nowrap">
             {hoveredItem.label}
           </div>

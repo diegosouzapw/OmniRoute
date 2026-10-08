@@ -33,12 +33,12 @@ export function providerUsesCuratedModelsOnly(providerId: string): boolean {
  * static registry for dashboard / `/v1/models` / Test All listing. Static rows
  * remain offline fallback only when synced is empty.
  *
- * Cursor-only for now — other authoritative live-catalog providers keep
- * coverage-style static preservation (e.g. command-code uncovered static ids).
+ * Cursor and Codex inventories are account-specific. Partial-discovery providers
+ * retain coverage-style preservation (e.g. command-code uncovered static ids).
  */
 export function providerUsesExclusiveSyncedListing(providerId: string): boolean {
   const id = providerId.trim().toLowerCase();
-  return id === "cursor" || id === "cu";
+  return id === "cursor" || id === "cu" || id === "codex" || id === "cx";
 }
 
 /**

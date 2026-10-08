@@ -75,24 +75,31 @@ apa yang hilang — sehingga penyebab pemilih yang terdegradasi selalu jelas.
 
 ## Opsi
 
-| Kunci                            | Default                                        | Catatan                                                                                                       |
-| -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                  | Id penyedia, id integrasi, dan prefiks tempat model ditampilkan                                               |
-| `baseURL`                        | wajib                                          | Root gateway, hanya `http(s)`; sufiks `/v1` ditambahkan jika diperlukan                                       |
-| `apiKey`                         | kredensial terhubung, lalu `OMNIROUTE_API_KEY` | Kunci chat untuk `/v1/*`                                                                                      |
-| `managementReadToken`            | menggunakan `apiKey` sebagai fallback          | Kunci untuk `/api/*` — biasanya **bukan** kunci yang sama                                                     |
-| `displayName`                    | `"OmniRoute"`                                  | Nama penyedia dalam pemilih                                                                                   |
-| `timeoutMs`                      | `10000`                                        | Batas waktu pengambilan per endpoint (auto-combo menggunakan 5 detik)                                         |
-| `modelCacheTtlMs`                | `300000`                                       | TTL cache katalog; snapshot pada disk mempercepat cold start                                                  |
-| `timeouts`                       | menggunakan `timeoutMs` sebagai fallback       | Batas waktu per endpoint dalam milidetik: `models`, `combos`, `autoCombos`, `enrichment`                      |
-| `enrichment`                     | `true`                                         | Mengambil nama, harga, dan anggaran tingkat gratis                                                            |
-| `providerTag`                    | `true`                                         | Memberikan prefiks berupa penyedia upstream tujuan perutean pada nama tampilan                                |
-| `usableOnly`                     | `false`                                        | Hanya mempertahankan penyedia yang dilaporkan gateway sebagai telah disediakan                                |
-| `visibleModels` / `hiddenModels` | `[]`                                           | Daftar izin berdasarkan kecocokan persis atau sufiks; penolakan selalu diutamakan                             |
-| `geminiSanitization`             | `true`                                         | Menghapus kata kunci JSON-Schema yang ditolak Gemini dari skema alat (alat `$ref` diteruskan tanpa perubahan) |
-| `apiFormat.allowAnthropic`       | `false`                                        | Merutekan id dalam daftar izin melalui blok API Anthropic                                                     |
-| `apiFormat.anthropicModels`      | `[]`                                           | Id model lengkap yang dirutekan ke Anthropic                                                                  |
-| `logLevel` / `startupDebug`      | `warn` / `false`                               | Tingkat detail logger                                                                                         |
+| Kunci                            | Default                                             | Catatan                                                                                                        |
+| -------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                       | ID penyedia, ID integrasi, dan prefiks tempat model ditampilkan                                                |
+| `baseURL`                        | wajib                                               | Root gateway, hanya `http(s)`; sufiks `/v1` ditambahkan jika diperlukan                                        |
+| `apiKey`                         | kredensial yang terhubung, lalu `OMNIROUTE_API_KEY` | Kunci chat untuk `/v1/*`                                                                                       |
+| `managementReadToken`            | menggunakan `apiKey` sebagai fallback               | Kunci untuk `/api/*` — biasanya **bukan** kunci yang sama                                                      |
+| `displayName`                    | `"OmniRoute"`                                       | Nama penyedia di pemilih                                                                                       |
+| `timeoutMs`                      | `10000`                                             | Batas waktu pengambilan per endpoint (kombinasi otomatis menggunakan 5 dtk)                                    |
+| `modelCacheTtlMs`                | `300000`                                            | TTL cache katalog; snapshot di disk mempercepat cold start                                                     |
+| `timeouts`                       | menggunakan `timeoutMs` sebagai fallback            | Batas waktu per endpoint dalam ms: `models`, `combos`, `autoCombos`, `enrichment`                              |
+| `enrichment`                     | `true`                                              | Ambil nama, harga, dan kuota tingkat gratis                                                                    |
+| `providerTag`                    | `true`                                              | Awali nama tampilan dengan penyedia upstream yang menjadi tujuan peruteannya                                   |
+| `usableOnly`                     | `false`                                             | Hanya pertahankan penyedia yang dilaporkan gateway sebagai telah disediakan                                    |
+| `showcasePerOwner`               | `10`                                                | Entri tampilan default yang dipertahankan per penyedia                                                         |
+| `freshPerOwner`                  | `10`                                                | Entri baru pada tampilan default yang dipertahankan per penyedia                                               |
+| `freshWindowDays`                | `90`                                                | Rentang kebaruan dalam hari untuk cabang entri baru                                                            |
+| `usageMemory`                    | `true`                                              | Pulihkan entri yang dihapus secara statis berdasarkan analitik penggunaan 30 hari (memerlukan token manajemen) |
+| `visibleModels` / `hiddenModels` | `[]`                                                | Daftar izin berdasarkan kecocokan persis atau sufiks; penolakan selalu diutamakan                              |
+| `geminiSanitization`             | `true`                                              | Hapus kata kunci JSON-Schema yang ditolak Gemini dari skema alat (alat `$ref` diteruskan tanpa perubahan)      |
+| `apiFormat.allowAnthropic`       | `false`                                             | Rutekan ID yang diizinkan melalui blok API Anthropic                                                           |
+| `apiFormat.anthropicModels`      | `[]`                                                | ID model lengkap yang dirutekan ke Anthropic                                                                   |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                    | Tingkat verbositas logger                                                                                      |
+
+Memori penggunaan aktif secara default. Tanpa token manajemen, fitur ini tetap tidak aktif
+(notifikasi saat startup dicatat dalam log) dan tidak ada apa pun yang dipulihkan.
 
 ## Cara katalog tetap mutakhir
 

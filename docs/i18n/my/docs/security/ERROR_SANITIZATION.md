@@ -134,17 +134,51 @@ const safe = String(err).split("\n")[0];
 **မည်သည့်အခါမျှ** မထည့်ပါနှင့်။ Sanitizer သည် အလွှာလိုက်ကာကွယ်မှုအဖြစ် absolute path များကို ကိုင်တွယ်ပေးသော်လည်း caller များသည်
 system topology ကို ဖော်ပြနေသော message များကို အစကတည်းက မတည်ဆောက်ရပါ။
 
-## CI အတွင်း စမ်းသပ်လွှမ်းခြုံမှု
+## CI အတွင်းရှိ Coverage
 
-`tests/unit/error-message-sanitization.test.ts` က အောက်ပါတို့ကို မဖြစ်မနေ လိုက်နာစေသည်-
+`tests/unit/error-message-sanitization.test.ts` က အောက်ပါတို့ကို အတည်ပြုသည်-
 
-- `/api/model-combo-mappings/*` အောက်ရှိ route တိုင်းသည် 4xx/5xx အတွက် သန့်စင်ထားသော body များကို ပြန်ပေးသည်။
-- `sanitizeErrorMessage` သည် စာကြောင်းများစွာပါသော stack trace များကို ဖယ်ရှားသည်။
+- `/api/model-combo-mappings/*` အောက်ရှိ route တိုင်းသည် 4xx/5xx ဖြစ်သည့်အခါ သန့်စင်ထားသော body များကို ပြန်ပေးသည်။
+- `sanitizeErrorMessage` သည် လိုင်းများစွာပါသည့် stack trace များကို ဖယ်ရှားသည်။
 - `sanitizeErrorMessage` သည် POSIX နှင့် Windows absolute path များကို `<path>` ဖြင့် အစားထိုးသည်။
 - `sanitizeErrorMessage` သည် `null`/`undefined`/`Error` instance input များကို ဘေးကင်းစွာ ကိုင်တွယ်သည်။
-- `buildErrorBody` သည် ၎င်း၏ `message` field အတွင်း stack trace များကို မည်သည့်အခါမျှ မဖော်ထုတ်ပါ။
+- `buildErrorBody` သည် ၎င်း၏ `message` field အတွင်း stack trace များကို မည်သည့်အခါမျှ မဖော်ပြပါ။
 
-route သို့မဟုတ် executor အသစ်တစ်ခု ထည့်သွင်းသည့်အခါ ဤဖိုင်မှ assertion ပုံစံကို ကူးယူပါ။ Coverage gate (`npm run test:coverage`) သည် statements/lines/functions/branches များအတွက် ≥60% ဖြစ်ရန် သတ်မှတ်ထားသည် — error path များကိုလည်း လွှမ်းခြုံထားရမည်။
+route သို့မဟုတ် executor အသစ်တစ်ခု ထည့်သည့်အခါ ဤဖိုင်ရှိ assertion ပုံစံကို ကူးယူပါ။ Coverage gate (`npm run test:coverage`) သည် statements/lines/functions/branches အတွက် ≥60% ဖြစ်ရန် သတ်မှတ်ထားသည် — error path များကို coverage ထဲတွင် ထည့်သွင်းရမည်။
+
+### Static gate: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` သည် `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` နှင့် `src/app/api/**/route.ts` တိုင်းကို စစ်ဆေးပြီး တိုက်ရိုက်ဖမ်းယူထားသော error (`err.message` / `err.stack`) သို့မဟုတ် တိုက်ရိုက် upstream `body.error.message` တစ်ခုခုသည် client-facing body သို့ ရောက်ရှိခြင်းရှိမရှိ ရှာဖွေသည်။
+
+**ယုံကြည်မှုသည် call တစ်ခုချင်းအလိုက်သာ သက်ရောက်ပြီး file တစ်ခုလုံးအလိုက် မသက်ရောက်ပါ** (G-03, #15159)။ ယခင်က gate သည် `utils/error` path တစ်ခုမှ import တစ်ခုခုကို တွေ့သည်နှင့် file တစ်ခုလုံးကို ကျော်သွားခဲ့သည် — call တစ်ခုချင်းအလိုက် ဖြစ်သည့် အန္တရာယ်အပေါ် file တစ်ခုလုံးအလိုက် ကင်းလွတ်ခွင့် ပေးခဲ့ခြင်းဖြစ်သည်။ မှန်ကန်သော `import { sanitizeErrorMessage }` တစ်ခုက ထို file အတွင်းရှိ အခြား sink အားလုံးကို အမြဲတမ်း ကင်းလွတ်ခွင့်ပေးခဲ့ပြီး၊ ထို့ကြောင့် အမှန်တကယ် leak တစ်ခုသည် စစ်ဆေးမှုအောင်မြင်သည့်အခြေအနေဖြင့် ထုတ်ဝေသွားခဲ့သည်။ ယခုတွင် line တစ်ကြောင်းသည် ခွင့်ပြုထားသော builder သို့မဟုတ် sanitizer မှတစ်ဆင့် အမှန်တကယ် ဖြတ်သန်းမှသာ ယုံကြည်စိတ်ချရသည်ဟု သတ်မှတ်သည်-
+
+| Line ပုံစံ                                                                                                                   | ယုံကြည်စိတ်ချရသလား?         |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … ကို ခေါ်သည်                    | ဟုတ်သည်                     |
+| `open-sse/utils/error` သို့မဟုတ် `src/lib/api/errorResponse` မှ **ဤ file က import လုပ်ထားသော** canonical builder ကို ခေါ်သည် | ဟုတ်သည်                     |
+| ခွင့်ပြုထားသော builder ကို **လိုင်းများစွာဖြင့်** ခေါ်ထားသဖြင့် `message:` field သည် နောက်ပိုင်း line တစ်ကြောင်းတွင် ရှိသည်  | ဟုတ်သည်                     |
+| ၎င်း၏ကိုယ်ပိုင် body အတွင်း သန့်စင်သည့် file-local `function errorResponse(...)` ကို ခေါ်သည်                                 | ဟုတ်သည်                     |
+| အခြားမည်သည့်နေရာသို့မဆို `err.message` / `err.stack` ကို တိုက်ရိုက်ပို့သည်                                                   | **မဟုတ်ပါ — ချိုးဖောက်မှု** |
+
+သိထားသင့်သည့် အကျိုးဆက်နှစ်ခု-
+
+- `errorResponse` ကို import လုပ်ခြင်းသည် အားလုံးအပေါ် အလိုအလျောက် ယုံကြည်မှုပေးခြင်း _မဟုတ်ပါ_။ ကိုယ်ပိုင် `errorResponse` ကို သတ်မှတ်ထားသည့် file တစ်ခုသည် call site တွင် flag လုပ်ခံရဆဲဖြစ်သည်၊ အကြောင်းမှာ gate သည် ယုံကြည်မှုကို file အလိုက်မဟုတ်ဘဲ symbol တစ်ခုချင်းအလိုက် ဖြေရှင်းသောကြောင့်ဖြစ်သည်။ `createErrorResponse` အတွက်လည်း အလားတူပင်ဖြစ်သည်။
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` နောက်တွင် `error: body.error.message` ကို အသုံးပြုခြင်းသည် `*-fetch.ts` executor များတစ်လျှောက် အသုံးပြုထားသည့် **သန့်စင်ပြီးသော** idiom ဖြစ်ပြီး flag လုပ်မည်မဟုတ်ပါ။
+
+ခွင့်ပြုထားသော builder module နှစ်ခုလုံးကို ထည့်သွင်းရေတွက်သည်- `open-sse/utils/error.ts` နှင့် `src/lib/api/errorResponse.ts`။ ဒုတိယတစ်ခုသည် `open-sse` ပြင်ပရှိ route handler ~54 ခုက အသုံးပြုသည့် module ဖြစ်ပြီး ၎င်း၏ export နှစ်ခုလုံးကို သန့်စင်ပေးသည်။
+
+အောက်ပါ ပုံစံနှစ်ခုလုံးသည် **ချိုးဖောက်မှုမဟုတ်ပါ**၊ သို့သော် ယခင်က gate က ၎င်းတို့ကို leak များအဖြစ် report လုပ်ခဲ့ဖူးသည်-
+
+- **audit row** အတွင်းရှိ တိုက်ရိုက် error — `saveCallLog({ error: err.message })`, `logToolCall(...)` သို့မဟုတ် message ကို ဦးစွာလက်ခံသည့် logger (`log.error("BATCHES", "sweep failed", { error: err.message })`)။ နောက်လိုင်းများရှိ client-facing response သည် static `buildErrorBody` ဖြစ်နိုင်သည်။
+- `message:` field တွင် builder တစ်ခုမျှ မပါဝင်သည့် **လိုင်းများစွာပါသော** ခွင့်ပြုထားသည့် builder call-
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` သည် ယခင်ကတည်းက ရှိနေသော ချိုးဖောက်မှုများကို freeze လုပ်ထားသဖြင့် gate သည် _အသစ်_ ဖြစ်သော ချိုးဖောက်မှုများကိုသာ ပိတ်ဆို့သည်။ ၎င်း၏ ချိုးဖောက်မှုကို ပြင်ဆင်ပြီးသည်နှင့် `assertNoStale` က entry ကို အလိုအလျောက် ဖယ်ရှားသောကြောင့် freeze သည် အမြဲတမ်းတည်မြဲသွားနိုင်ခြင်းမရှိပါ။ Regression guard များ- `tests/unit/check-error-helper.test.ts` နှင့် `tests/unit/check-error-helper-call-scope.test.ts`။
 
 ## ဆက်စပ်ထိန်းချုပ်မှုများ
 
