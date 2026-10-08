@@ -1,54 +1,57 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute ina mifumo **miwili** ya njia iliyo ya ndani ya mchakato yenye mawanda tofauti. Mifumo hii
 inakamilishana; waendeshaji wanapaswa kujua ni mfumo gani wanaoutazama.
 
-## 1. Udhibiti wa uingiaji wa kiwango cha baiti katika mchakato mzima (`chatBodyAdmission.ts`)
+## 1. Udhibiti wa uingizaji wa kiwango cha baiti katika mchakato mzima (`chatBodyAdmission.ts`)
 
-- **Mawanda:** njia ya mwili ulioakibishwa/heap kwa `POST /v1/chat/completions`,
+- **Upeo:** njia ya mwili uliowekwa kwenye bafa/heap kwa `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses`, na njia nyingine zenye muundo wa gumzo. Hulinda
-  dhidi ya ukuzaji wa heap unaosababishwa na miili mikubwa ya mawakala wa uandishi wa msimbo (#4380).
-- **Kidhibiti kimoja cha kimataifa kwa mchakato, si njia tofauti kwa kila ufunguo (#10110).** Kila ufunguo wa API
-  (uliofanyiwa hashing) au kipindi cha `anonymous` huomba nafasi dhidi ya bajeti
-  **ileile** inayoshirikiwa — kitambulisho cha kipindi kilichofanyiwa hashing hutumiwa TU kama ufunguo wa upangaji wa haki (usambazaji wa
-  mzunguko kwa wanaosubiri), kamwe si kama sehemu ya kugawanya uwezo. Toleo la awali la waraka huu
-  lilieleza njia tofauti kwa kila ufunguo zenye uwezo huru; muundo huo
+  dhidi ya ukuzaji wa matumizi ya heap unaosababishwa na miili mikubwa ya mawakala wa uandishi wa msimbo (#4380).
+- **Kidhibiti kimoja cha kimataifa kwa mchakato mzima, si njia tofauti kwa kila ufunguo (#10110).** Kila ufunguo wa API
+  (uliohifadhiwa kama hash) au kipindi cha `anonymous` huingiza dhidi ya bajeti **ileile** inayoshirikiwa —
+  kitambulisho cha kipindi kilichohifadhiwa kama hash kinatumika TU kama ufunguo wa upangaji wa haki (usambazaji wa
+  mzunguko kwa wanaosubiri), kamwe si kama sehemu tofauti ya uwezo. Toleo la awali la hati hii
+  lilielezea njia tofauti kwa kila ufunguo zenye uwezo unaojitegemea; muundo huo
   uliondolewa katika #10110 kwa sababu uliruhusu vitambulisho bandia visivyothibitishwa kuzidisha
   kikomo cha mchakato mzima.
-- **Lango (#503-fanout): bajeti ya BAITI ya uingizaji inayotokana kiotomatiki, si idadi isiyobadilika ya maombi.**
+- **Kizuizi (#503-fanout): bajeti ya BAITI ya uingizaji inayotolewa kiotomatiki, si idadi isiyobadilika ya maombi.**
   Kikomo cha zamani cha idadi ya maombi cha `CHAT_MAX_HEAVY_IN_FLIGHT` (chaguo-msingi `1`
-  kabla ya marekebisho haya) kilipunguza usambazaji mpana wa mawakala wa uandishi wa msimbo (mawakala wadogo/CLI nyingi,
-  miili ambayo mara kwa mara ni > 256 KB) hadi kiwango halisi cha ushughulikiaji sambamba cha ~1, hali iliyosababisha
-  majibu ya 503 chini ya mzigo wa kawaida kabisa. Sasa kikomo hicho hutumika tu mwendeshaji anapoweka
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` waziwazi. Kikiachwa bila kuwekwa, uingiaji badala yake
-  hudhibitiwa na `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — bajeti inayotokana kiotomatiki na
+  kabla ya marekebisho haya) kilipunguza usambazaji sambamba wa mawakala wa uandishi wa msimbo (mawakala wadogo/CLI wengi,
+  miili yenye ukubwa wa kawaida > 256 KB) hadi usambamba halisi wa takribani 1, jambo lililosababisha
+  majibu ya 503 chini ya mzigo wa kawaida kabisa. Sasa hutumika tu wakati mwendeshaji anaweka waziwazi
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ikiwa haijawekwa, uingizaji badala yake
+  unadhibitiwa na `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — bajeti inayotolewa kiotomatiki kutoka kwenye
   kikomo halisi cha kumbukumbu cha mchakato (`src/shared/middleware/admissionBudget.ts`):
-  25% ya kikomo kidogo zaidi kati ya kikomo cha heap cha V8 na kikomo chochote cha cgroup/kontena,
-  ikigawanywa kwa kigezo cha ukuzaji wa muda mfupi cha 8x, na kubanwa kati ya 8 MiB na
-  2 GiB. Ubatilishaji uliowekwa wazi hutumia mipaka hiyohiyo. Hujirekebisha kutoka
-  kontena la 512 MB hadi kompyuta ya mezani ya 32 GB bila urekebishaji wa env. Mwili ambao hauwezi
-  kutoshea ndani ya bajeti inayotumika hushindwa mara moja kwa `413 body_exceeds_budget`;
-  ushindani kati ya miili inayoweza kuhudumiwa kibinafsi pekee ndio huingia kwenye foleni yenye mipaka
+  25% ya kiwango kidogo zaidi kati ya kikomo cha heap cha V8 na kikomo chochote cha cgroup/container,
+  kilichogawanywa kwa kipengele cha ukuzaji wa muda cha 8x, na kuwekwa ndani ya mipaka ya 8 MiB hadi
+  2 GiB. Thamani zilizowekwa waziwazi hutumia mipaka hiyo hiyo. Hii hujirekebisha kutoka kwenye
+  container ya 512 MB hadi kompyuta ya mezani ya 32 GB bila kurekebisha env. Mwili usioweza
+  kutoshea ndani ya bajeti inayotumika hukataliwa mara moja kwa `413 body_exceeds_budget`;
+  ni ushindani pekee kati ya miili inayoweza kuhudumiwa moja moja unaoingia kwenye foleni yenye mipaka
   na ya haki. Kifuatiliaji hai cha shinikizo la rasilimali chenye ishara nyingi (uwiano wa heap wa V8,
   cgroup, PSI, matukio ya OOM — `open-sse/utils/resourcePressurePolicy.ts`) hupunguza
-  muda wenye kikomo wa kusubiri chini ya shinikizo la `high` na hukataa mara moja kwa
-  `503 resource_pressure` chini ya shinikizo la `critical`, kabla hata ya baiti zozote
-  kuingizwa.
+  muda wa kusubiri wenye kikomo chini ya shinikizo la `high` na hukataa mzigo mara moja kwa
+  `503 resource_pressure` chini ya shinikizo la `critical`, kabla hata baiti zozote
+  hazijaingizwa. PSI husomwa kutoka kwenye `memory.pressure` ya cgroup ya kitengo hiki inapopatikana
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` inahusu
+  mfumo mzima wa mwenyeji na hutumika tu kama mbadala kwenye vifaa halisi / cgroup v1, ili mwenyeji
+  anayetumia swap asiweze kusababisha container isiyo na shughuli kutoa 503.
 - **Urekebishaji:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ubatilishaji wa bajeti ya baiti inayotokana kiotomatiki
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — kikomo cha zamani cha idadi ya maombi, hutumika kwa hiari tu
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — muda wa kusubiri kwenye foleni kabla ya 503 (chaguo-msingi 2000)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ubatilishaji wa bajeti ya baiti inayotolewa kiotomatiki
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — kikomo cha zamani cha idadi ya maombi, hutumika kwa kuchaguliwa tu
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — muda wa kusubiri kwenye foleni kabla ya 503 (chaguo-msingi ni `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — vali ya heap ya baiti zilizo kwenye foleni (chaguo-msingi 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zimepitwa na wakati
-    na hazifanyi chochote tangu #10110 (zinakubaliwa kwa uoanifu wa usanidi, lakini zinapuuzwa)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zimepitwa na wakati na
+    hazifanyi chochote tangu #10110 (zinakubaliwa kwa uoanifu wa usanidi, lakini zinapuuzwa)
 - **Ripoti:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — ikijumuisha
   nyongeza za #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, na `countCapEnabled`
-  (false katika usambazaji wa chaguo-msingi — huthibitisha kuwa bajeti ya baiti, si kikomo cha zamani
+  (false katika usambazaji wa chaguo-msingi — inathibitisha kuwa bajeti ya baiti, si kikomo cha zamani
   cha idadi, ndiyo inayoweka kikomo kwa hakika).
 
 ## 2. Njia pepe zinazobadilika wakati wa utekelezaji (`open-sse/services/admission`)

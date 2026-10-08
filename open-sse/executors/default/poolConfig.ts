@@ -1,4 +1,5 @@
 import type { PoolConfig } from "../../services/sessionPool/types.ts";
+import type { StrictValidationDispatch } from "../base/validationDispatch.ts";
 
 export function normalizePoolConfig(value: Record<string, unknown>): PoolConfig | null {
   const {
@@ -30,4 +31,16 @@ export function normalizePoolConfig(value: Record<string, unknown>): PoolConfig 
     requestTimeout,
     requestJitter,
   };
+}
+
+/**
+ * A pool may warm anonymous sessions or replace authentication headers, so strict model
+ * validation rejects before any session is created or acquired (and before any concurrency
+ * slot is taken).
+ */
+export function rejectStrictPool(
+  observer: StrictValidationDispatch | undefined,
+  poolConfig: PoolConfig | undefined
+): void {
+  if (observer && poolConfig) observer.reject();
 }

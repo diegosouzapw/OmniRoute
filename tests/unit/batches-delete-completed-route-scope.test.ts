@@ -27,7 +27,11 @@
  *     App Router's own `/api/v1/…`) (omni-code-sec LEDGER-9/13/16);
  *   - no credentials at all → 401;
  *   - a sweep that throws → sanitized 500 (no stack trace, no raw SQLite message)
- *     and nothing deleted (the sweep is atomic).
+ *     and nothing deleted (the sweep is atomic);
+ *   - the rejection audit line carries an HONEST `reason`: `getApiKeyRequestScope`
+ *     is the single lifecycle gate and surfaces `keyState`, so a revoked key logs
+ *     `invalid` and an unknown key logs `unresolved` — the route never re-runs
+ *     `validateApiKey` to re-derive it (omni-code-review LEDGER-3/9).
  *
  * Self-isolating: DATA_DIR points at a fresh temp dir BEFORE any `@/lib/db/*`
  * module loads (dynamic imports below), so this file never touches ~/.omniroute.
@@ -38,11 +42,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SignJWT } from "jose";
+import pino from "pino";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "wvxc-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "wvxc-route-api-secret";
 process.env.JWT_SECRET = "wvxc-route-jwt-secret";
+// The audit-reason case below reads the route's info-level line off the shared pino
+// stream; pin the level so a CI-wide APP_LOG_LEVEL=warn cannot silently drop it.
+process.env.APP_LOG_LEVEL = "info";
 
 const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { createApiKey, revokeApiKey, updateApiKeyPermissions, setApiKeyExpiry } =
@@ -50,8 +58,11 @@ const { createApiKey, revokeApiKey, updateApiKeyPermissions, setApiKeyExpiry } =
 const { createFile, getFile, getFileContent } = await import("../../src/lib/db/files.ts");
 const { createBatch, getBatch } = await import("../../src/lib/db/batches.ts");
 const { DELETE } = await import("../../src/app/api/v1/batches/delete-completed/route.ts");
+const { getApiKeyRequestScope } = await import("../../src/app/api/v1/_helpers/apiKeyScope.ts");
+const { logger: rootLogger } = await import("../../src/shared/utils/logger.ts");
 
 const ROUTE_URL = "http://localhost/api/v1/batches/delete-completed";
+const LOG_ROUTE = "batches/delete-completed";
 
 async function sessionCookie(): Promise<string> {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -97,6 +108,47 @@ async function callDelete(headers: Record<string, string>, url: string = ROUTE_U
     error?: { message: string; type?: string; code?: string };
   };
   return { res, body };
+}
+
+const REJECTION_AUDIT_MSG = "delete-completed: presented API key rejected";
+
+/**
+ * Run `fn` while tapping the ROOT pino stream and return the parsed
+ * `presented API key rejected` audit line it emitted. The route logs through the
+ * `sse` child (`createLogger("sse")`, a module-private `Object.create(root)`), and a
+ * pino child resolves `streamSym` through its prototype chain, so shadowing `write`
+ * on the root's stream object sees every child line — no ESM namespace mocking.
+ * pino serializes to a JSON line BEFORE handing it to the stream, so the tap sees
+ * the structured fields, not pino-pretty output.
+ */
+async function captureRejectionAudit<T>(
+  fn: () => Promise<T>
+): Promise<{ result: T; audit: Record<string, unknown> | null }> {
+  const stream = (rootLogger as unknown as Record<symbol, { write: (line: string) => boolean }>)[
+    pino.symbols.streamSym
+  ];
+  const originalWrite = stream.write;
+  const lines: string[] = [];
+  stream.write = (line: string) => {
+    lines.push(line);
+    return true;
+  };
+  try {
+    const result = await fn();
+    const audit =
+      lines
+        .map((line) => {
+          try {
+            return JSON.parse(line) as Record<string, unknown>;
+          } catch {
+            return null;
+          }
+        })
+        .find((entry) => entry?.msg === REJECTION_AUDIT_MSG) ?? null;
+    return { result, audit };
+  } finally {
+    stream.write = originalWrite;
+  }
 }
 
 describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp3v-5mg5)", () => {
@@ -288,6 +340,65 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
     }
   });
 
+  it("getApiKeyRequestScope surfaces `keyState` (valid / invalid / unresolved / none) so the route derives its audit reason instead of re-validating (omni-code-review LEDGER-3/9)", async () => {
+    const live = await createApiKey("wvxc-route-state-live", "machine-wvxc-sl", []);
+    const revoked = await createApiKey("wvxc-route-state-revoked", "machine-wvxc-sr", []);
+    assert.strictEqual(await revokeApiKey(revoked.id), true);
+    const scopeOf = (headers: Record<string, string>) =>
+      getApiKeyRequestScope(new Request(ROUTE_URL, { method: "DELETE", headers }));
+
+    const liveScope = await scopeOf({ Authorization: `Bearer ${live.key}` });
+    assert.strictEqual(liveScope.keyState, "valid");
+    assert.strictEqual(liveScope.apiKeyId, live.id, "a valid key still resolves its id");
+
+    const revokedScope = await scopeOf({ Authorization: `Bearer ${revoked.key}` });
+    assert.strictEqual(
+      revokedScope.keyState,
+      "invalid",
+      "row exists but failed the lifecycle gate"
+    );
+    assert.strictEqual(revokedScope.apiKeyId, null, "the #13881 fold-to-null contract is kept");
+    assert.strictEqual(revokedScope.apiKeyMetadata, null);
+
+    const unknownScope = await scopeOf({ Authorization: "Bearer sk-omni-never-issued-wvxc-state" });
+    assert.strictEqual(unknownScope.keyState, "unresolved", "no row at all");
+    assert.strictEqual(unknownScope.apiKeyId, null);
+
+    const anonymousScope = await scopeOf({});
+    assert.strictEqual(anonymousScope.keyState, "none", "no key presented");
+    assert.strictEqual(anonymousScope.apiKey, null);
+    assert.strictEqual(anonymousScope.rejection, null, "the helper still never sets rejection");
+  });
+
+  it("the rejection audit line is honest: a REVOKED key logs reason 'invalid', an unknown key logs 'unresolved' (omni-code-review LEDGER-3/9)", async () => {
+    const keyA = await createApiKey("wvxc-route-reason-a", "machine-wvxc-rsn", []);
+    assert.strictEqual(await revokeApiKey(keyA.id), true);
+
+    const revoked = await captureRejectionAudit(() =>
+      callDelete({ Authorization: `Bearer ${keyA.key}` })
+    );
+    assert.strictEqual(revoked.result.res.status, 401, "the revoked key is still refused");
+    assert.ok(revoked.audit, "a rejected key must emit the audit line");
+    assert.strictEqual(
+      revoked.audit?.reason,
+      "invalid",
+      "a key whose row exists but failed the lifecycle gate must not be logged as 'unresolved'"
+    );
+    assert.strictEqual(revoked.audit?.route, LOG_ROUTE);
+    assert.strictEqual(
+      revoked.audit?.apiKeyId,
+      null,
+      "the fold-to-null contract shows in the audit"
+    );
+
+    const unknown = await captureRejectionAudit(() =>
+      callDelete({ Authorization: "Bearer sk-omni-never-issued-wvxc-reason" })
+    );
+    assert.strictEqual(unknown.result.res.status, 401, "the unknown key is still refused");
+    assert.ok(unknown.audit, "an unresolvable key must emit the audit line");
+    assert.strictEqual(unknown.audit?.reason, "unresolved", "no row at all → 'unresolved'");
+  });
+
   it("rejects an unauthenticated request with 401 and deletes nothing", async () => {
     const keyB = await createApiKey("wvxc-route-401-b", "machine-wvxc-401", []);
     // short label: see the seedCompletedBatch docblock (#13729)
@@ -329,6 +440,32 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
       getFileContent(own.file.id)?.toString(),
       "route500",
       "a failed sweep rolls the file content back"
+    );
+  });
+
+  it("a key presented ONLY via x-api-key (no anthropic-version, plain UA) sweeps its own batches, not the instance or nothing (LEDGER-27, omni-code-sec round 3)", async () => {
+    const keyA = await createApiKey("wvxc-route-xkey-a", "machine-wvxc-xa", []);
+    const keyB = await createApiKey("wvxc-route-xkey-b", "machine-wvxc-xb", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-xkey-own");
+    const victim = seedCompletedBatch(keyB.id, "wvxc-route-xkey-victim");
+
+    // `getApiKeyRequestScope`/`extractApiKey()` ignore a bare x-api-key with no
+    // anthropic-version/claude UA, so scope.apiKeyId is null here — only
+    // enforceApiKeyPolicy() resolves keyA via extractUngatedClientApiKey().
+    const { res, body } = await callDelete({ "x-api-key": keyA.key });
+
+    assert.strictEqual(res.status, 200, `expected a scoped sweep, got ${JSON.stringify(body)}`);
+    assert.strictEqual(body.deletedBatches, 1, "only key A's own completed batch is swept");
+    assert.strictEqual(body.deletedFiles, 1);
+    assert.strictEqual(getBatch(own.batch.id), null, "key A's own batch was deleted");
+    assert.ok(
+      getBatch(victim.batch.id),
+      "key B's batch must survive — the sweep must not fall through to instance-wide"
+    );
+    assert.strictEqual(
+      getFileContent(victim.file.id)?.toString(),
+      "wvxc-route-xkey-victim",
+      "key B's file content must not be nulled by key A's x-api-key sweep"
     );
   });
 });

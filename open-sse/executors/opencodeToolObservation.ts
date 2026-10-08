@@ -125,6 +125,22 @@ export function noteRefusedBorrowedToolNames(
   consecutiveRefusals.delete(key);
 }
 
+/**
+ * Confirm a borrowed shape that just worked: the streak of refusals is dropped,
+ * the entry itself is left alone (no rewrite, so its eviction rank is kept).
+ *
+ * Called only when a request that BORROWED this entry was answered OK. A 200 on
+ * borrowed names proves the shape still works, which cancels the noise the
+ * refusal threshold exists to absorb.
+ */
+export function confirmBorrowedToolNames(provider: string, model: string, session?: string): void {
+  const key = observed.has(keyOf(provider, model, session))
+    ? keyOf(provider, model, session)
+    : keyOf(provider, model);
+  if (!observed.has(key)) return;
+  consecutiveRefusals.delete(key);
+}
+
 /** The names last seen accepted for this surface, model and — when known — session. */
 export function getObservedToolNames(
   provider: string,
@@ -153,7 +169,9 @@ export function resolvePlaceholderNames(
   configured: readonly string[]
 ): readonly string[] {
   const own = session ? getObservedToolNames(provider, model, session) : null;
-  return own ?? getObservedToolNames(provider, model) ?? configured;
+  if (own && own.length > 0) return own;
+  if (configured && configured.length > 0) return configured;
+  return getObservedToolNames(provider, model) ?? configured;
 }
 
 /** Reserved for tests. */

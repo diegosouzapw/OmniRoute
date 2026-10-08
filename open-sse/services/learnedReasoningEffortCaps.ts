@@ -181,6 +181,101 @@ export function clampToLearned(effortStr: string, accepted: Set<string>): string
   return nearestAbove ?? highest;
 }
 
+// ── Single-step probe for 4xx bodies that name no enum ────────────────────
+// Most gateways that reject an out-of-range reasoning_effort DO advertise the
+// accepted set ("expected one of `low`, `medium`, `high`"), and
+// `parseReasoningEffortEnum` reads it. Some do not: the body is an opaque
+// "Invalid request parameters" / "Streaming response failed: [400] ..." with
+// no list at all. Nothing can be learned from that text, so the request 400s
+// forever — the only remedy is to try a lower tier and see whether it is
+// accepted. These two helpers drive that one-step probe: pick the tier to try,
+// and — once a probe SUCCEEDS — remember the whole range it just proved
+// accepted, so every later request clamps without another round trip.
+
+// The probe floor. `low` is the universally-accepted baseline on every
+// OpenAI-compatible reasoning surface, so it is the safest rung to land on. The
+// ladder deliberately stops HERE: the two rungs below it (`minimal`, `none`) are
+// not just "less thinking", they are the carriers that switch thinking OFF. A
+// probe that happened to be answered on `minimal` proves the model tolerates
+// `minimal`, not that it wants reasoning disabled, so stepping down that far
+// would silently downgrade a request's intent rather than repair it.
+const PROBE_FLOOR = "low";
+
+/**
+ * The next tier to try when a 4xx named no enum, given the effort that was sent.
+ *
+ * Steps down exactly one rung (xhigh → high, max → xhigh, ultra → max, …) so a
+ * probe costs the client as little reasoning as possible, and never below
+ * `PROBE_FLOOR`. Returns null when there is nothing to step down to (already at
+ * the floor, an unrecognized value, or nothing left but the thinking-off tiers):
+ * stripping the field entirely is the learned path's job, not the probe's.
+ */
+export function nextProbeReasoningEffort(sent: string): string | null {
+  const idx = REASONING_EFFORT_ORDER.indexOf(sent);
+  const floorIdx = REASONING_EFFORT_ORDER.indexOf(PROBE_FLOOR);
+  if (idx < 0 || floorIdx < 0 || idx <= floorIdx) return null;
+  const next = REASONING_EFFORT_ORDER[idx - 1];
+  return next && next !== sent ? next : null;
+}
+
+/**
+ * Whether the opaque-4xx probe may run for this provider.
+ *
+ * The probe is a *guess-driven* retry: when a 4xx body names no accepted set
+ * there is no way to tell an effort rejection from an unrelated validation
+ * failure (context too long, a malformed tool schema, a bad image URL). If the
+ * upstream happens to answer 2xx for the probe, an unrelated failure would be
+ * masked and a bogus cap recorded — permanently lowering reasoning quality for
+ * that provider/model in this process, for a tier nothing was ever proven
+ * against.
+ *
+ * So it is opt-in per provider. An empty/absent `OMNIROUTE_REASONING_EFFORT_PROBE_PROVIDERS`
+ * disables the probe everywhere, which is the default: the enum-naming path
+ * (#14013) already covers every upstream that cooperates, and this is only for
+ * gateways that answer opaquely. `*` enables it for all providers.
+ */
+export function reasoningEffortProbeEnabled(provider: string | null | undefined): boolean {
+  const raw = process.env.OMNIROUTE_REASONING_EFFORT_PROBE_PROVIDERS;
+  if (!raw) return false;
+  const entries = raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  if (entries.length === 0) return false;
+  if (entries.includes("*")) return true;
+  return provider != null && entries.includes(String(provider).toLowerCase());
+}
+
+/**
+ * Record that `acceptedProbe` was accepted, after a 4xx on a HIGHER tier proved
+ * the higher tier is refused.
+ *
+ * Only that one rung is recorded. A single accepted probe is proof about one
+ * value and says nothing about the tiers below it: a model may well answer
+ * `high` and still refuse `low` (the learned-cap tests already cover sparse
+ * accepted sets such as `{high,max}`), so inferring the whole
+ * `PROBE_FLOOR..acceptedProbe` slice would let later `low`/`medium` requests
+ * bypass clamping and go out unproven. Pinning just the probed tier is the
+ * conservative direction — the clamp then maps anything higher onto a value the
+ * upstream has actually acknowledged, and leaves anything lower alone.
+ *
+ * Only call this once the probe has actually succeeded: a failed probe proves
+ * nothing, and learning from it would pin the model to a ceiling it may well
+ * still support. Monotonic, like `recordLearnedReasoningEffort`.
+ */
+export function recordLearnedProbeReasoningEffort(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  acceptedProbe: string
+): Set<string> | null {
+  const idx = REASONING_EFFORT_ORDER.indexOf(acceptedProbe);
+  const floorIdx = REASONING_EFFORT_ORDER.indexOf(PROBE_FLOOR);
+  // A probe below the floor never happens (nextProbeReasoningEffort refuses to
+  // step there), so treat it as a caller error rather than learning it.
+  if (idx < 0 || floorIdx < 0 || idx < floorIdx) return null;
+  return recordLearnedReasoningEffort(provider, model, [acceptedProbe]);
+}
+
 // Matches prose shapes: OVH's "@ai-sdk/openai-compatible" deserializer
 // ("expected one of `a`, `b`"), generic ("Supported types are a, b, and c"),
 // and "please use a, b, or c".
@@ -197,7 +292,7 @@ export function parseReasoningEffortEnum(errText: unknown): string[] | null {
   const match = LIST_INTRO.exec(errText);
   if (!match) return null;
   const tokens = match[1]
-    .split(/,|\b(?:and|or)\b|&/i)
+    .split(/,|\||\b(?:and|or)\b|&/i)
     .map((t) =>
       t
         .replace(/`/g, "")

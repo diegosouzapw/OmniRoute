@@ -34,6 +34,10 @@ export const ADMIN_SCOPE_PREFIXES: readonly string[] = [
 export const ADMIN_MUTATION_PREFIXES: readonly string[] = [
   "/api/providers", // POST add provider / rotate key = admin; GET status = read
   "/api/cli-tools/apply", // writes config onto the host filesystem
+  // Creating/patching/regenerating an API key can attach the `manage` scope, and a
+  // manage-scoped key is full-access on every management route (including token mint),
+  // so a `write` token must not be able to reach it (GHSA-35gq-52m5-wgw2).
+  "/api/keys",
 ];
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -54,6 +58,8 @@ export function inferRequiredScope(method: string, path: string): AccessScope {
   const p = path || "/";
 
   if (matchesPrefix(p, ADMIN_SCOPE_PREFIXES)) return "admin";
+  // Revealing a key hands back its plaintext secret — never a `read` operation.
+  if (matchesPrefix(p, ["/api/keys"]) && /\/reveal\/?$/.test(p)) return "admin";
 
   const isMutation = !READ_METHODS.has(m);
   if (isMutation && matchesPrefix(p, ADMIN_MUTATION_PREFIXES)) return "admin";

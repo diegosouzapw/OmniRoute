@@ -1,61 +1,59 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇳🇬 [yo](../../../yo/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute'il on **kaks** protsessisisest, erineva ulatusega rajasüsteemi. Need
 täiendavad teineteist; operaatorid peaksid teadma, kumba neist nad vaatavad.
 
-## 1. Baiditasemel protsessiülene vastuvõtt (`chatBodyAdmission.ts`)
+## 1. Baiditasemel kogu protsessi hõlmav vastuvõtukontroll (`chatBodyAdmission.ts`)
 
-- **Ulatus:** puhverdatud päringukeha/kuhja tee marsruutidele `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` ja teistele vestluskujulistele marsruutidele. Kaitseb
-  suurte programmeerimisagentide päringukehade põhjustatud kuhjamälu võimenduse eest (#4380).
+- **Ulatus:** puhverdatud päringukeha / kuhjamälu töötlustee marsruutidele `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` ja teistele vestluslaadsetele marsruutidele. Kaitseb
+  suurte kodeerimisagentide päringukehade põhjustatud kuhjamälu võimenduse eest (#4380).
 - **Üks protsessiülene kontroller, mitte võtmekohased rajad (#10110).** Iga API-võti
   (räsitud) või `anonymous`-seanss kasutab vastuvõtul **sama** jagatud eelarvet —
   räsitud seansi ID-d kasutatakse AINULT õiglase ajastamise võtmena (ootajate
-  tsükliline teenindamine), mitte kunagi mahu sektsioonina. Selle dokumendi varasem
-  versioon kirjeldas sõltumatu mahuga võtmekohaseid radu; see mudel eemaldati
-  muudatuses #10110, sest see võimaldas autentimata võltsitud mandaatidega
-  protsessiülest piiri mitmekordistada.
-- **Värav (#503-fanout): automaatselt tuletatud sisendi BAIDIEELARVE, mitte fikseeritud
-  päringute arv.** Päringute arvul põhinev pärandpiirang `CHAT_MAX_HEAVY_IN_FLIGHT`
-  (enne seda parandust vaikimisi `1`) vähendas programmeerimisagentide hargnemise
-  (mitu alamagenti/CLI-d, päringukehad tavaliselt > 256 KB) tegeliku paralleelsuse
-  ligikaudu üheni, mistõttu tagastati täiesti tavapärase koormuse korral 503.
-  Nüüd rakendub see ainult siis, kui operaator määrab selgesõnaliselt
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Kui see on määramata, juhib vastuvõttu
-  selle asemel `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — protsessi tegelikust
-  mälupiirist automaatselt tuletatud eelarve (`src/shared/middleware/admissionBudget.ts`):
-  25% V8 kuhja piirangu ja mis tahes cgroup'i/konteineri piirangu väiksemast väärtusest,
-  jagatuna 8-kordse ajutise võimendusteguriga ning piiratud vahemikku 8 MiB kuni
-  2 GiB. Selgesõnalistele ülekirjutustele kehtivad samad piirid. See skaleerub
-  ilma keskkonnamuutujate häälestamiseta 512 MB konteinerist 32 GB lauaarvutini.
-  Päringukeha, mis tegelikku eelarvesse ei mahu, lükatakse kohe tagasi veaga
-  `413 body_exceeds_budget`; piiratud õiglasesse järjekorda lisatakse ainult
-  omavahelist ressursikonkurentsi põhjustavad päringukehad, mida eraldi oleks
-  võimalik teenindada. Mitme signaaliga reaalajas ressursisurve jälgija (V8 kuhja
-  suhtarv, cgroup, PSI, OOM-sündmused — `open-sse/utils/resourcePressurePolicy.ts`)
-  lühendab piiratud ooteaega `high` surve korral ja tõrjub päringu kohe veaga
-  `503 resource_pressure` `critical` surve korral, enne kui ühtegi baiti üldse
-  vastu võetakse. PSI-d loetakse võimaluse korral selle üksuse cgroup'i failist
-  `memory.pressure` (`open-sse/utils/resourcePressureSampler.ts`);
-  `/proc/pressure/memory` hõlmab kogu hosti ja seda kasutatakse ainult varuvariandina
-  füüsilises keskkonnas / cgroup v1 korral, et saalimist kasutav host ei põhjustaks
-  jõudeolevas konteineris 503 vastust.
+  tsükliline väljastamine), mitte kunagi mahujaotisena. Selle dokumendi varasem
+  versioon kirjeldas võtmekohaseid sõltumatu mahuga radasid; see mudel
+  eemaldati muudatuses #10110, sest see võimaldas autentimata võltsitud mandaatidega
+  protsessiülest piirangut mitmekordistada.
+- **Värav (#503-fanout): automaatselt tuletatud sisendi BAIDIEELARVE, mitte fikseeritud päringute
+  arv.** Pärandseadistuse `CHAT_MAX_HEAVY_IN_FLIGHT` päringute arvu piirang (enne seda
+  parandust vaikimisi `1`) vähendas kodeerimisagentide rööpjaotuse (mitu alamagenti/CLI-d,
+  päringukehad tavaliselt > 256 KB) tegeliku samaaegsuse ligikaudu üheni, mistõttu tagastati
+  täiesti tavapärase koormuse korral 503. Nüüd rakendub see ainult siis, kui operaator määrab
+  sõnaselgelt `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Kui see on määramata, juhib vastuvõttu
+  selle asemel `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — eelarve, mis tuletatakse automaatselt
+  protsessi tegelikust mälupiirist (`src/shared/middleware/admissionBudget.ts`):
+  25% V8 kuhjamälu piirangu ja mis tahes cgroup'i/konteineri piirangu väiksemast väärtusest,
+  jagatuna 8-kordse ajutise võimenduse teguriga ning piiratud vahemikku 8 MiB kuni
+  2 GiB. Sõnaselged alistused kasutavad samu piire. See skaleerub ilma keskkonnamuutujate
+  häälestamiseta 512 MB konteinerist 32 GB lauaarvutini. Päringukeha, mis ei mahu
+  tegelikku eelarvesse, lükatakse kohe tagasi veaga `413 body_exceeds_budget`;
+  piiratud õiglase jaotuse järjekorda lisatakse ainult sellised päringukehad, mida
+  saaks eraldi teenindada, kuid mis konkureerivad ressursside pärast. Reaalajas töötav
+  mitme signaaliga ressursisurve jälgija (V8 kuhjamälu suhe, cgroup, PSI,
+  OOM-sündmused — `open-sse/utils/resourcePressurePolicy.ts`) lühendab piiratud
+  ooteaega `high` surve korral ning rakendab `critical` surve korral kohe koormuse
+  mahaviskamist veaga `503 resource_pressure`, enne kui üldse baite vastu võetakse.
+  PSI-d loetakse võimaluse korral selle üksuse cgroup'i failist `memory.pressure`
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` hõlmab
+  kogu hosti ja seda kasutatakse ainult varuvariandina füüsilises keskkonnas / cgroup v1 puhul,
+  et saalimist kasutav host ei põhjustaks jõudeolevas konteineris 503-viga.
 - **Häälestamine:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automaatselt tuletatud baidieelarve ülekirjutus
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — päringute arvul põhinev pärandpiirang, ainult valikulisel aktiveerimisel
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — järjekorra ooteaeg enne 503 vastust (vaikimisi 2000)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — automaatselt tuletatud baidieelarve alistus
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — pärandseadistuse päringute arvu piirang, ainult sõnaselgel lubamisel
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — järjekorras ootamise aeg enne 503-viga (vaikimisi `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — järjekorras olevate baitide kuhjamälu kaitseklapp (vaikimisi 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — alates
-    muudatusest #10110 aegunud mittetoimivad sätted (konfiguratsiooni ühilduvuse nimel aktsepteeritakse, kuid eiratakse)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — alates muudatusest #10110 aegunud
+    mittetoimivad seadistused (konfiguratsiooni ühilduvuse tagamiseks aktsepteeritakse, kuid eiratakse)
 - **Aruanded:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — sealhulgas
-  #503-fanout täiendused `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  muudatuse #503-fanout lisad `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` ja `countCapEnabled`
-  (vaikejuurutuses false — kinnitab, et tegelikult rakendub baidieelarve, mitte
-  pärandiks olev päringute arvuline piirang).
+  (vaikejuurutuses false — kinnitab, et tegelikult rakendub baidieelarve, mitte pärandseadistuse
+  päringute arvu piirang).
 
 ## 2. Kohanduvad käitusaegsed virtuaalrajad (`open-sse/services/admission`)
 

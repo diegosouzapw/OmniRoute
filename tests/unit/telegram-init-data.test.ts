@@ -71,3 +71,10 @@ test("verifyInitData handles chunked/encoded keys", () => {
   });
   assert.equal(verifyInitData(initData, BOT_TOKEN), true);
 });
+
+test("verifyInitData returns false on a malformed percent escape instead of throwing", () => {
+  assert.equal(verifyInitData("user=%ZZ&hash=abc", BOT_TOKEN), false);
+  const parsed = parseInitData("user=%ZZ&hash=abc");
+  assert.equal(parsed.user, undefined);
+  assert.equal(parsed.hash, "abc");
+});

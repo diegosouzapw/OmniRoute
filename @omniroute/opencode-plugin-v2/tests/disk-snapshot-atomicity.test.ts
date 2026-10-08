@@ -36,7 +36,6 @@ function makeSnapshot(models: string[] = ["m-a"]): CatalogSnapshot {
   return {
     models: models.map((id) => ({ id })),
     combos: [],
-    autoCombos: [],
     providers: [],
     fetchedAt: Date.now(),
   } as unknown as CatalogSnapshot;
@@ -134,6 +133,13 @@ describe("disk snapshot atomic write, strict version, traced give-ups", () => {
         (back?.models ?? []).map((entry) => entry.id),
         ["m-before"]
       );
+      assert.deepEqual(Object.keys((back ?? {}) as object).sort(), [
+        "combos",
+        "enrichment",
+        "fetchedAt",
+        "models",
+        "providers",
+      ]);
       assert.match(messages.join("\n"), /failed|EISDIR|error/i);
     } finally {
       rmSync(blocker, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 # Remote Mode (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/REMOTE-MODE.md) · 🇪🇹 [am](../../../am/docs/guides/REMOTE-MODE.md) · 🇸🇦 [ar](../../../ar/docs/guides/REMOTE-MODE.md) · 🇦🇿 [az](../../../az/docs/guides/REMOTE-MODE.md) · 🇧🇬 [bg](../../../bg/docs/guides/REMOTE-MODE.md) · 🇧🇩 [bn](../../../bn/docs/guides/REMOTE-MODE.md) · 🇧🇦 [bs](../../../bs/docs/guides/REMOTE-MODE.md) · 🇨🇿 [cs](../../../cs/docs/guides/REMOTE-MODE.md) · 🇩🇰 [da](../../../da/docs/guides/REMOTE-MODE.md) · 🇩🇪 [de](../../../de/docs/guides/REMOTE-MODE.md) · 🇪🇸 [es](../../../es/docs/guides/REMOTE-MODE.md) · 🇪🇪 [et](../../../et/docs/guides/REMOTE-MODE.md) · 🇮🇷 [fa](../../../fa/docs/guides/REMOTE-MODE.md) · 🇫🇮 [fi](../../../fi/docs/guides/REMOTE-MODE.md) · 🇫🇷 [fr](../../../fr/docs/guides/REMOTE-MODE.md) · 🇮🇪 [ga](../../../ga/docs/guides/REMOTE-MODE.md) · 🇮🇳 [gu](../../../gu/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ha](../../../ha/docs/guides/REMOTE-MODE.md) · 🇮🇱 [he](../../../he/docs/guides/REMOTE-MODE.md) · 🇮🇳 [hi](../../../hi/docs/guides/REMOTE-MODE.md) · 🇭🇷 [hr](../../../hr/docs/guides/REMOTE-MODE.md) · 🇭🇺 [hu](../../../hu/docs/guides/REMOTE-MODE.md) · 🇦🇲 [hy](../../../hy/docs/guides/REMOTE-MODE.md) · 🇮🇩 [id](../../../id/docs/guides/REMOTE-MODE.md) · 🇳🇬 [ig](../../../ig/docs/guides/REMOTE-MODE.md) · 🇮🇹 [it](../../../it/docs/guides/REMOTE-MODE.md) · 🇯🇵 [ja](../../../ja/docs/guides/REMOTE-MODE.md) · 🇬🇪 [ka](../../../ka/docs/guides/REMOTE-MODE.md) · 🇰🇭 [km](../../../km/docs/guides/REMOTE-MODE.md) · 🇮🇳 [kn](../../../kn/docs/guides/REMOTE-MODE.md) · 🇰🇷 [ko](../../../ko/docs/guides/REMOTE-MODE.md) · 🇱🇹 [lt](../../../lt/docs/guides/REMOTE-MODE.md) · 🇱🇻 [lv](../../../lv/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ml](../../../ml/docs/guides/REMOTE-MODE.md) · 🇮🇳 [mr](../../../mr/docs/guides/REMOTE-MODE.md) · 🇲🇾 [ms](../../../ms/docs/guides/REMOTE-MODE.md) · 🇲🇹 [mt](../../../mt/docs/guides/REMOTE-MODE.md) · 🇲🇲 [my](../../../my/docs/guides/REMOTE-MODE.md) · 🇳🇵 [ne](../../../ne/docs/guides/REMOTE-MODE.md) · 🇳🇱 [nl](../../../nl/docs/guides/REMOTE-MODE.md) · 🇳🇴 [no](../../../no/docs/guides/REMOTE-MODE.md) · 🇮🇳 [or](../../../or/docs/guides/REMOTE-MODE.md) · 🇮🇳 [pa](../../../pa/docs/guides/REMOTE-MODE.md) · 🇵🇭 [phi](../../../phi/docs/guides/REMOTE-MODE.md) · 🇵🇱 [pl](../../../pl/docs/guides/REMOTE-MODE.md) · 🇵🇹 [pt](../../../pt/docs/guides/REMOTE-MODE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/REMOTE-MODE.md) · 🇷🇴 [ro](../../../ro/docs/guides/REMOTE-MODE.md) · 🇷🇺 [ru](../../../ru/docs/guides/REMOTE-MODE.md) · 🇱🇰 [si](../../../si/docs/guides/REMOTE-MODE.md) · 🇸🇰 [sk](../../../sk/docs/guides/REMOTE-MODE.md) · 🇸🇮 [sl](../../../sl/docs/guides/REMOTE-MODE.md) · 🇷🇸 [sr](../../../sr/docs/guides/REMOTE-MODE.md) · 🇸🇪 [sv](../../../sv/docs/guides/REMOTE-MODE.md) · 🇰🇪 [sw](../../../sw/docs/guides/REMOTE-MODE.md) · 🇮🇳 [ta](../../../ta/docs/guides/REMOTE-MODE.md) · 🇮🇳 [te](../../../te/docs/guides/REMOTE-MODE.md) · 🇹🇭 [th](../../../th/docs/guides/REMOTE-MODE.md) · 🇹🇷 [tr](../../../tr/docs/guides/REMOTE-MODE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/REMOTE-MODE.md) · 🇵🇰 [ur](../../../ur/docs/guides/REMOTE-MODE.md) · 🇺🇿 [uz](../../../uz/docs/guides/REMOTE-MODE.md) · 🇻🇳 [vi](../../../vi/docs/guides/REMOTE-MODE.md) · 🇳🇬 [yo](../../../yo/docs/guides/REMOTE-MODE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/REMOTE-MODE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/REMOTE-MODE.md)
 
 ---
 
@@ -352,67 +352,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # εξαγάγετε πρώτα
 
 ---
 
-## Διαχείριση contexts (εναλλαγή μεταξύ διακομιστών)
+## Διαχείριση περιβαλλόντων (εναλλαγή μεταξύ διακομιστών)
 
-Ένα **context** είναι ένας αποθηκευμένος διακομιστής (baseUrl + διαπιστευτήριο + scope). Η εντολή `omniroute connect`
-δημιουργεί ένα και το καθιστά ενεργό· από εκεί και πέρα, κάθε εντολή στοχεύει σε αυτό. Διαχειριστείτε τα
-και πραγματοποιήστε εναλλαγή μεταξύ τους με την εντολή `omniroute contexts`:
+Ένα **περιβάλλον** είναι ένας αποθηκευμένος διακομιστής (baseUrl + διαπιστευτήρια + πεδίο εφαρμογής). Η εντολή `omniroute connect` δημιουργεί ένα και το καθιστά ενεργό· από εκεί και πέρα, κάθε εντολή το στοχεύει. Διαχειριστείτε και εναλλάξτε μεταξύ τους με την εντολή `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # όλα τα contexts· το ενεργό επισημαίνεται με ●
-omniroute contexts current         # ο ενεργός διακομιστής, η κατάσταση ελέγχου ταυτότητας και το scope
+omniroute contexts list            # όλα τα περιβάλλοντα· το ενεργό επισημαίνεται με ●
+omniroute contexts current         # ο ενεργός διακομιστής, κατάσταση ελέγχου ταυτότητας, πεδίο εφαρμογής
 ```
 
 ```text
-  | Όνομα   | Βασικό URL                | Έλεγχος ταυτότητας | Scope | Περιγραφή
-● | vps     | http://100.67.86.91:20128 | token              | admin | Απομακρυσμένο OmniRoute (…)
-  | default | http://localhost:20128    | ✗                  |       |
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Απομακρυσμένο OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Εναλλαγή διακομιστών** — κάθε επόμενη εντολή ακολουθεί το ενεργό context:
+**Εναλλαγή διακομιστών** — κάθε επόμενη εντολή ακολουθεί το ενεργό περιβάλλον:
 
 ```bash
-omniroute contexts use vps         # → όλες οι εντολές απευθύνονται πλέον στο απομακρυσμένο VPS
-omniroute tokens list              #   (εκτελείται στο VPS)
+omniroute contexts use vps         # → όλες οι εντολές τώρα στοχεύουν το απομακρυσμένο VPS
+omniroute tokens list              #   (εκτελείται έναντι του VPS)
 
-omniroute contexts use default     # → επιστροφή στο localhost
-omniroute tokens list              #   (εκτελείται στον τοπικό διακομιστή)
+omniroute contexts use default     # → πίσω στον localhost
+omniroute tokens list              #   (εκτελείται έναντι του τοπικού διακομιστή)
 ```
 
-**Χειροκίνητη προσθήκη context** (αντί για `connect`), επιθεώρηση ή μετονομασία:
+**Προσθήκη περιβάλλοντος χειροκίνητα** (αντί για `connect`), επιθεώρηση ή μετονομασία:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "staging box"
-omniroute contexts show staging    # πλήρεις λεπτομέρειες για ένα context
+  --access-token oma_live_xxxx --scope write --description "δοκιμαστικό περιβάλλον"
+omniroute contexts show staging    # πλήρεις λεπτομέρειες για ένα περιβάλλον
 omniroute contexts rename staging stg
 ```
 
-**Κατάργηση context** — ζητά επιβεβαίωση· χρησιμοποιήστε το `--yes` για να την παρακάμψετε
-(απαιτείται για scripts / μη διαδραστικά shells, τα οποία διαφορετικά απορρίπτουν την ενέργεια με ασφάλεια):
+**Αφαίρεση περιβάλλοντος** — ζητά επιβεβαίωση· περάστε το `--yes` για να την παραλείψετε (απαιτείται για σενάρια / μη διαδραστικά shells, τα οποία διαφορετικά αρνούνται με ασφάλεια):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Το `default` (localhost) δεν μπορεί να καταργηθεί. Η κατάργηση του ενεργού context προκαλεί επιστροφή
-> στο `default`. Συμβουλή: η κατάργηση ενός context διαγράφει μόνο το **τοπικά** αποθηκευμένο διαπιστευτήριο —
-> ανακαλέστε το token στον διακομιστή με `omniroute tokens revoke <id>` για να
-> διακόψετε πραγματικά την πρόσβαση.
+> Το `default` (localhost) δεν μπορεί να αφαιρεθεί. Η αφαίρεση του ενεργού περιβάλλοντος επιστρέφει στο `default`. Συμβουλή: η αφαίρεση ενός περιβάλλοντος απλώς διαγράφει τα **τοπικά** αποθηκευμένα διαπιστευτήρια — ανακαλέστε το token στον διακομιστή με την εντολή `omniroute tokens revoke <id>` για να τερματίσετε πραγματικά την πρόσβαση.
 
-**Εξαγωγή / εισαγωγή** contexts (π.χ. για τη μεταφορά τους μεταξύ μηχανημάτων). Τα νέα contexts αποθηκεύουν
-μόνο μια αναφορά στην κλειδοθήκη· τα διαπιστευτήρια δεν αντιγράφονται στην εξαγωγή όταν είναι διαθέσιμη
-η κλειδοθήκη του λειτουργικού συστήματος:
+**Εξαγωγή / εισαγωγή** περιβαλλόντων (π.χ. για τη μεταφορά τους μεταξύ μηχανών). Οι εξαγωγές παραλείπουν τα διαπιστευτήρια από προεπιλογή, συμπεριλαμβανομένων των διαπιστευτηρίων που αποθηκεύονται από την εφεδρική λύση αρχείου. Χρησιμοποιήστε το `--include-secrets` ρητά όταν απαιτείται ένα φορητό αντίγραφο ασφαλείας που περιέχει διαπιστευτήρια:
 
 ```bash
-omniroute contexts export --out contexts.json     # προεπιλογή: stdout
+omniroute contexts export --out contexts.json     # λογοκριμένο· προεπιλεγμένος προορισμός: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
 omniroute contexts import contexts.json            # αντικατάσταση· --merge για διατήρηση των υπαρχόντων
-omniroute contexts migrate --yes                  # μεταφορά παλαιών tokens απλού κειμένου στην κλειδοθήκη
+omniroute contexts migrate --yes                  # μετακίνηση παλαιών tokens απλού κειμένου στο keychain
 ```
 
-Σε headless συστήματα χωρίς χρησιμοποιήσιμη κλειδοθήκη λειτουργικού συστήματος, το CLI χρησιμοποιεί ως εναλλακτική
-το `config.json` με λειτουργία `0600` και εμφανίζει μία προειδοποίηση μόνο την πρώτη φορά. Αντιμετωπίζετε τις εξαγωγές από
-αυτήν την εναλλακτική λύση (καθώς και οποιαδήποτε παλαιά διαμόρφωση πριν από τη μετεγκατάσταση) ως απόρρητο υλικό.
+Το `--include-secrets` επιλύει τις αναφορές keychain πριν από την εξαγωγή και αποτυγχάνει εάν δεν είναι δυνατή η ανάγνωση οποιουδήποτε αναφερόμενου διαπιστευτηρίου. Το `--no-secrets` έχει πάντα προτεραιότητα. Τα αρχεία εξαγωγής γράφονται ατομικά με δικαιώματα `0600`. Αντιμετωπίστε μια ρητή εξαγωγή που περιέχει μυστικά ως μυστικό υλικό. Σε συστήματα χωρίς οθόνη (headless systems) χωρίς ένα λειτουργικό keychain του λειτουργικού συστήματος, το CLI επιστρέφει στο `config.json` με δικαιώματα `0600` και εκτυπώνει μια εφάπαξ προειδοποίηση· μια προεπιλεγμένη εξαγωγή παραμένει λογοκριμένη σε αυτή τη λειτουργία.
 
 ---
 

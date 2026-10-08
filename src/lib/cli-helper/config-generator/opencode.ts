@@ -6,6 +6,7 @@ import {
   OutboundUrlGuardError,
 } from "../../../shared/network/outboundUrlGuard";
 import { resolveOpencodeConfigPath } from "../../../shared/services/opencodeConfigPath";
+import { readPrivateConfigFile } from "../privateConfigFile";
 
 const JSON_FORMATTING_OPTIONS = { insertSpaces: true, tabSize: 2 } as const;
 
@@ -350,7 +351,7 @@ function loadExistingConfig(configPath: string): { config: ExistingConfig; sourc
 
   let source: string;
   try {
-    source = fs.readFileSync(configPath, "utf8");
+    source = readPrivateConfigFile(configPath);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to read existing OpenCode config at ${configPath}: ${message}`);

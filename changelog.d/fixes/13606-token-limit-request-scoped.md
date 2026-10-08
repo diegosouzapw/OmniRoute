@@ -1,1 +1,0 @@
-- **fix(connection-cooldown):** skip connection cooldown for locally rejected token-budget 429s so a per-key limit never cools a healthy connection ([#13606](https://github.com/diegosouzapw/OmniRoute/pull/13606)) — thanks @maxmad64bis

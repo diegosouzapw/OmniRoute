@@ -1,6 +1,6 @@
 # Resilience Guide (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,96 +67,154 @@ fèrèsé náà rẹ́. Àwọn àkọsílẹ̀ ipele àsopọ̀ (`provider:conn
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Olùṣọ́ ìdènà ìfàsẹ́yìn: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Àkókò Ìsinmi Asopọ̀
+## 2. Àkókò Ìsinmi Ìsopọ̀
 
-**Ààlà:** asopọ̀/àkọọ́lẹ̀/kọ́kọ́rọ́ olupèsè kan ṣoṣo.
+**Ààlà:** ìsopọ̀/àkọọ́lẹ̀/kókó olupèsè kan ṣoṣo.
 
-**Ète:** fo kọ́kọ́rọ́ kan tí kò dára, nígbà tí àwọn asopọ̀ mìíràn fún olupèsè kan náà ń tẹ̀síwájú láti pèsè iṣẹ́.
+**Ète:** fo kókó búburú kan kọjá nígbà tí àwọn ìsopọ̀ míì fún olupèsè kan náà ń bá a lọ láti ṣiṣẹ́.
 
 **Ìmúṣẹ:**
 
-- Samì sí gẹ́gẹ́ bí èyí tí kò sí fún lílò: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Sàmì sí i gẹ́gẹ́ bí èyí tí kò sí fún lílò: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Yíyan: `getProviderCredentials*` nínú fáìlì kan náà
 - Ìṣírò àkókò ìsinmi: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Àwọn ààtò: `src/lib/resilience/settings.ts`
 
-**Àwọn pápá fún asopọ̀ kọ̀ọ̀kan:**
+**Àwọn ààyè fún ìsopọ̀ kọ̀ọ̀kan:**
 
 - `rateLimitedUntil` — àmì-àkókò títí àkókò ìsinmi yóò fi parí
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — ẹ̀rọ-kíkà ìfàsẹ́yìn tó ń pọ̀ sí ní ìlọ́po
+- `backoffLevel` — kàǹtà ìfàsẹ́yìn onípele-àlọ́po
 
-**Àwọn àkókò ìsinmi àkọ́kọ́:**
+**Àwọn àkókò ìsinmi àìyípadà:**
 
 - Ìpìlẹ̀ OAuth: 5s
 - Ìpìlẹ̀ API-key: 3s
-- API-key 429: ó fi `Retry-After`/àwọn àkọlé ìtúntò/ọ̀rọ̀ ìtúntò tó ṣeé túmọ̀ láti upstream síwájú
+- API-key 429: ó máa ń fẹ́ràn `Retry-After`/àwọn àkọlé àtúntò/ọ̀rọ̀ àtúntò tí a lè túmọ̀ láti upstream
 - Ìfàsẹ́yìn: `baseCooldownMs * 2 ** failureIndex`
 
-**Ìdábòbo lòdì sí ogunlọ́gọ̀-ìbéèrè-lójijì:** ń dènà àwọn ìkùnà tó ṣẹlẹ̀ lẹ́ẹ̀kan náà láti fa àkókò ìsinmi gùn jù tàbí láti mú `backoffLevel` pọ̀ lẹ́ẹ̀mejì.
+**Ààbò lódì sí ìbẹ̀rẹ̀-pọ̀-lójú-ẹsẹ̀:** ó dènà àwọn ìkùnà tó ṣẹlẹ̀ lẹ́ẹ̀kan náà láti fa àkókò ìsinmi gùn jù tàbí láti fi kún `backoffLevel` lẹ́ẹ̀mejì.
 
-**Àwọn ipò òpin (KÌ Í ṣe àkókò ìsinmi):**
+**Àwọn ipò òpin (KÌ Í ṢE àwọn àkókò ìsinmi):**
 
-- `banned` — a ṣètò rẹ̀ nípasẹ̀ ìṣàwárí ọ̀rọ̀-tí-a-kọ̀ / ìfòfindè-àkọọ́lẹ̀ (wo [BAN_DETECTION](../security/BAN_DETECTION.md)), àti nípasẹ̀ ìkọ̀sílẹ̀ ìbéèrè-kọ̀ọ̀kan mẹ́ta léraléra láti upstream (`request_rejected`, àpẹẹrẹ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ìkọ̀sílẹ̀ ẹyọ kan nìkan yóò fi asopọ̀ náà sínú àkókò ìsinmi
-- `expired` (ó yí padà sí ipò òpin lẹ́yìn iye ìgbìyànjú-àtúnṣe tó ní ààlà — `EXPIRED_RETRY_MAX = 3` pẹ̀lú ìfàsẹ́yìn tó ń pọ̀ sí ní ìlọ́po — kí àwọn àṣìṣe OAuth fún ìgbà díẹ̀ lè tún ara wọn ṣe kí àkọọ́lẹ̀ náà tó di pípa títí láé)
+- `banned` — tí a ṣètò nípasẹ̀ ìṣàwárí ọ̀rọ̀ tí a fòfin dè / ìfòfindè àkọọ́lẹ̀ (wo [BAN_DETECTION](../security/BAN_DETECTION.md)), àti nípasẹ̀ ìkọ̀sílẹ̀ ìbéèrè kọ̀ọ̀kan láti upstream lẹ́ẹ̀mẹ́ta tẹ̀ léra (`request_rejected`, àpẹẹrẹ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ìkọ̀sílẹ̀ ẹyọ kan yóò kàn fi ìsopọ̀ náà sínú ìsinmi
+- `expired` (ó yí padà sí ipò òpin lẹ́yìn àwọn àtúnṣè tó ní ààlà — `EXPIRED_RETRY_MAX = 3` pẹ̀lú ìfàsẹ́yìn onípele-àlọ́po — kí àwọn àṣìṣe OAuth onígbà-kúkúrú lè tún ara wọn ṣe kí a tó pa àkọọ́lẹ̀ náà mọ́ pátápátá)
 - `credits_exhausted`
 
-Àwọn wọ̀nyí máa wà títí àwọn ìjẹ́rìí yóò fi yí padà tàbí olùdarí kan yóò fi tún wọn tò. Má ṣe fi ipò àkókò ìsinmi fún ìgbà díẹ̀ kọ lórí àwọn ipò òpin.
+Àwọn wọ̀nyí máa ń wà títí àwọn ẹ̀rí ìdánimọ̀ yóò fi yí padà tàbí tí olùṣàkóso yóò fi tún wọn tò. Má ṣe fi ipò ìsinmi onígbà-kúkúrú kọ lórí àwọn ipò òpin.
 
-**Ìgbàpadà nígbà tí a bá nílò rẹ̀:** nígbà tí `rateLimitedUntil` bá ti kọjá, asopọ̀ náà tún yẹ fún lílò. Nígbà tí lílò bá ṣàṣeyọrí, `clearAccountError()` máa pa gbogbo àwọn pápá àṣìṣe rẹ́.
+**Ìmúpadàbọ̀ lọ́nà àìmọ̀ọ́mọ̀:** nígbà tí `rateLimitedUntil` bá ti kọjá, ìsopọ̀ náà tún yẹ fún lílò. Nígbà tí lílò bá ṣàṣeyọrí, `clearAccountError()` yóò pa gbogbo àwọn ààyè àṣìṣe rẹ́.
 
-### Ìbámu ìpàdé (#7274)
+### Ògiri lílò Claude OAuth: ọ̀nà aláìní-ààyò + àtúntò ààlà sáà
 
-**Ààlà:** ìpàdé oníbàárà kan (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) tí a so mọ́ asopọ̀ kan, fún olupèsè **èyíkéyìí**.
+**Ààlà:** ìsopọ̀ ìforúkọsílẹ̀ Claude (OAuth) kan. Àwọn ẹ̀yà méjèèjì jẹ́ **èyí tí a gbọ́dọ̀ yàn fún ìsopọ̀
+kọ̀ọ̀kan** (Ṣàtúnṣe ìsopọ̀ → abala Claude → `lowPriorityMode` / `autoLimitReset` nínú
+`providerSpecificData`, a pa àwọn méjèèjì ní àìyípadà) wọ́n sì fara wé àwọn àṣẹ `/low-priority` àti
+`/limit-reset` ti Claude Code (àdéhùn ìbánisọ̀rọ̀ tí a mú láti Claude Code 2.1.263).
 
-**Ète:** láti jẹ́ kí aṣojú ìbánisọ̀rọ̀-ọpọ̀-ìpele kan (Claude Code, aider, àwọn aṣojú àdáni) máa lo àkọọ́lẹ̀ kan náà lórí ọ̀pọ̀ ìbéèrè, kí ó dín ìpàdánù àyíká-ọ̀rọ̀ láàárín àwọn àkọọ́lẹ̀ àti àwọn 429 ìbẹ̀rẹ̀-tútù léraléra kù lórí àwọn olupèsè tó ní ipò ìpàdé fún àkọọ́lẹ̀ kọ̀ọ̀kan.
+**Ìmúṣẹ:**
+
+- Ẹ̀rọ ipò + ìpínsọ̀rí ìdáhùn: `open-sse/services/claudeLowPriority.ts`
+- Oníbàárà fún ipò/ìbéèrè àtúntò: `open-sse/services/claudeLimitReset.ts`
+- Ìsopọ̀ olùṣiṣẹ́ (ífìkún àkọlé + àtúnṣe pẹ̀lú àkọọ́lẹ̀ kan náà): `open-sse/executors/base.ts::execute()`
+- Ìtọ́jú yíyan-sí: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Ohun tó ń mú un ṣiṣẹ́:** ògiri lílò wákàtí 5 — `429` kan tí àwọn àkọlé rẹ̀ ní
+`anthropic-ratelimit-unified-status: rejected` àti, nígbà tí àkọọ́lẹ̀ náà bá yẹ,
+`anthropic-ratelimit-unified-slow-offer: treatment`. A kò fi ohunkóhun ránṣẹ́ ṣáájú 429 ògiri
+àkọ́kọ́ yẹn; 429 onírúurú tó pọ̀ lójijì láìsí àwọn àkọlé unified yóò gba ọ̀nà àkókò ìsinmi déédéé.
+
+**Ọ̀nà aláìní-ààyò** (`lowPriorityMode`):
+
+- Ní 429 ògiri náà, olùṣiṣẹ́ yóò gba ìfilọ́lẹ̀ náà, yóò sì tún gbìyànjú **àkọọ́lẹ̀ kan náà**
+  lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `anthropic-usage-limit: slow`; ọ̀nà náà yóò máa ṣiṣẹ́ títí di
+  `anthropic-ratelimit-unified-reset` tí a kéde (+60s àkókò àánú), gbogbo ìbéèrè láàárín
+  àkókò yẹn yóò sì ní àkọlé náà. 429 tí a dá dúró kò dé `handleChatCore`, nítorí náà a
+  **kò** fi ìsopọ̀ náà sínú ìsinmi, a kò sì yí padà kúrò lọ́dọ̀ rẹ̀.
+- `anthropic-ratelimit-unified-slow-status` lórí àwọn ìdáhùn tó tẹ̀ lé e: `active` / `not_needed`
+  yóò pa ọ̀nà náà mọ́; `slot_busy` (429) tàbí `529` kan yóò dúró fún
+  `anthropic-ratelimit-unified-slow-retry-after` ti olupèsè (20s ní àìyípadà, dídín mọ́ 5–600s, ìyípadà aláìdánilójú ±30%)
+  yóò sì tún gbìyànjú, pẹ̀lú ààlà `anthropic-ratelimit-unified-slow-max-wait` (20 min ní àìyípadà, dídín mọ́
+  1 min–6 h) — lẹ́yìn èyí, ọ̀nà náà yóò parí, àkókò ìtutù ìṣẹ́jú 10 yóò sì dí gbigba ìfilọ́lẹ̀ náà lẹ́ẹ̀kan sí i. A tún
+  fi ààlà sí ìdúró náà nípasẹ̀ àkókò tó kù nínú àkókò ìparí ìbẹ̀rẹ̀ upstream ti ìbéèrè náà fúnra rẹ̀
+  (`resolveFetchStartTimeout`, 10 min ní àìyípadà) láìka àlàfo 5 s: láìsí ààlà yẹn,
+  àkókò ìdúró tó pọ̀ jù 20 min àìyípadà yóò kọjá ọjọ́-ayé ìbéèrè náà, a ó sì dá oorun dúró
+  ní àárín ìdúró, tí yóò fi `TimeoutError` hàn dípò òpin `max_wait` tó bójú mu + àkókò ìtutù.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, yíyípo fèrèsé 5h, tàbí
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (èyí tó parí rẹ̀ gẹ́gẹ́ bí
+  `extra_usage` lórí ipò èyíkéyìí, nítorí pé lílò-àfikún tí a sanwó fún ti bo ògiri náà báyìí) yóò parí ọ̀nà náà;
+  lẹ́yìn náà, ìdáhùn náà yóò gba ọ̀nà àkókò ìsinmi déédéé. A máa rántí `budget_exhausted` títí
+  di àtúntò ìnáwó tí a kéde (≤ 8 days).
+- Àyẹ̀wò ògiri náà máa ń ṣiṣẹ́ lẹ́yìn àwọn àtúnṣe inú-ìgbìyànjú tí 400 ń darí ti olùṣiṣẹ́ náà fúnra rẹ̀ (ṣíṣàtúnṣe
+  àyíká, dídín ìrònú/ìsapá mọ́, kíkẹ́kọ̀ọ́ param láìfọwọ́sí), nítorí náà 429 ògiri kan tó ṣẹ̀ṣẹ̀ hàn lórí
+  ọ̀kan lára àwọn àtúnṣe wọ̀nyẹn ṣì máa jẹ́ dídá dúró dípò kí ó dé ọ̀nà àkókò ìsinmi.
+- Ipò náà wà nínú ìrántí fún ìsopọ̀ kọ̀ọ̀kan (àtúnmbẹ̀rẹ̀ yóò fa 429 ògiri àfikún kan láti tún gba ìfilọ́lẹ̀ náà).
+
+**Àtúntò ààlà sáà** (`autoLimitReset`, tí a máa kọ́kọ́ gbìyànjú ṣáájú ọ̀nà náà nígbà tí àwọn méjèèjì bá wà ní títàn):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → ìdí
+  `juniper_tide`; nígbà tí `arm: "reset"` àti `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` pẹ̀lú
+  `{ "program": "juniper_tide" }` (UUID àjọ láti
+  `providerSpecificData.organizationUUID`, àṣàyàn ìbẹ̀rẹ̀ gẹ́gẹ́ bí ìrànlọ́wọ́).
+- `result: reset|not_limited` → a tún gbìyànjú ìbéèrè náà ní iyára kíkún (láìsí àkọlé slow).
+  `already_used` / `not_offered` yóò fi `next_available_at` pamọ́ sínú ìrántí (ọ̀sẹ̀ kan ní àìyípadà); ìkùnà èyíkéyìí
+  yóò fà sẹ́yìn fún ìṣẹ́jú 15. Àtúntò náà jẹ́ ẹ̀ẹ̀kan lọ́sẹ̀, ó sì tún kà sí ààlà ọ̀sọ̀ọ̀sẹ̀.
+
+Àwọn ààbò lódì sí ìpadàsẹ́yìn: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
+### Ìfarakanra sáà (#7274)
+
+**Ààlà:** sáà oníbàárà kan (àkọlé `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) tí a dè mọ́ ìsopọ̀ kan, fún olupèsè **èyíkéyìí**.
+
+**Ète:** láti jẹ́ kí aṣojú oníṣísẹ̀-tẹ̀lé ara wọn (Claude Code, aider, àwọn aṣojú àkànṣe) dúró lórí àkọọ́lẹ̀ kan náà láàárín àwọn ìbéèrè, nípa dídín àdánù àyíká ọ̀rọ̀ láàárín àwọn àkọọ́lẹ̀ àti àwọn 429 ìbẹ̀rẹ̀-tútù tí ń tún ṣẹlẹ̀ kù lórí àwọn olùpèsè tó ní ipò ìgbà-ìjíròrò fún àkọọ́lẹ̀ kọ̀ọ̀kan.
 
 **Ìmúṣẹ:**
 
 - Ìpinnu TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Yíyan/ṣíṣẹ̀dá ìsopọ̀: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Yíyọ header jáde (gbogbogbò, olupèsè èyíkéyìí): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tábìlì ìsopọ̀ tí a tọ́jú: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Ààtò: `sessionAffinityTtlMs` (TTL àgbáyé ní ms, `0` máa pa á) — `src/lib/db/settings.ts`. A tún orúkọ rẹ̀ sọ láti `codexSessionAffinityTtlMs` tó jẹ́ ti Codex nìkan nípasẹ̀ ìṣíkiri `124_generic_session_affinity_ttl.sql`, èyí tó gbé TTL Codex èyíkéyìí tí a ti ṣètò tẹ́lẹ̀ wá gẹ́gẹ́ bí iye àkọ́kọ́ tuntun.
+- Yíyan/ṣíṣẹ̀dá ìdìmọ́: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Yíyọ àkọlé jáde (gbogbogbò, fún olùpèsè èyíkéyìí): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Tábìlì ìdìmọ́ tí a tọ́jú: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Ètò: `sessionAffinityTtlMs` (TTL àgbáyé ní ms, `0` máa pa á) — `src/lib/db/settings.ts`. A tún orúkọ rẹ̀ ṣe láti inú `codexSessionAffinityTtlMs` tí ó jẹ́ ti Codex nìkan nípasẹ̀ ìṣípo `124_generic_session_affinity_ttl.sql`, èyí tó gbé Codex TTL èyíkéyìí tí a ti ṣètò tẹ́lẹ̀ kọjá gẹ́gẹ́ bí iye àìyípadà tuntun.
 
-Ṣáájú #7274, `resolveSessionAffinityTtlMs()` máa dáwọ́ dúró lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `0` fún gbogbo olupèsè àfi `codex`, nítorí náà ààtò TTL (àti àwọn session headers) kò ní ipa ní ibòmíràn bó tilẹ̀ jẹ́ pé ètò ìsopọ̀ àti yíyọ header jáde kò dá lórí olupèsè kankan tẹ́lẹ̀. Àtúnṣe náà yọ ìpadà-kúrò kutukutu yẹn; TTL ń kan gbogbo olupèsè bákan náà ní báyìí lẹ́yìn tí a bá ṣètò rẹ̀ ní àgbáyé sí iye tó ju `0` lọ.
+Ṣáájú #7274, `resolveSessionAffinityTtlMs()` máa ń jáde lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `0` fún gbogbo olùpèsè àyàfi `codex`, nítorí náà ètò TTL (àti àwọn àkọlé ìgbà-ìjíròrò) kò ní ipa ní ibòmíràn, bó tilẹ̀ jẹ́ pé ọ̀nà ìdìmọ́ àti yíyọ àkọlé jáde ti jẹ́ èyí tí kò sinmi lé olùpèsè kan pàtó. Àtúnṣe náà yọ ìpadà-kúrò àkọ́kọ́ yẹn; TTL ti ń kan gbogbo olùpèsè bákan náà ní kété tí a bá ṣètò rẹ̀ ní àgbáyé sí ju `0` lọ.
 
-A kì í fi àwọn session-affinity headers mẹ́tẹ̀ẹ̀ta ránṣẹ́ sí upstream láé — àwọn executors ń kọ àwọn upstream headers tiwọn láti ìbẹ̀rẹ̀ dípò kí wọ́n kọjá àwọn client headers lọ, nítorí náà èyí wà gẹ́gẹ́ bí correlation id inú ètò nìkan.
+A kò fi àwọn àkọlé ìbámu-ìgbà-ìjíròrò mẹ́tẹ̀ẹ̀ta náà ránṣẹ́ sí upstream láé — àwọn aṣàmúlò ń kọ àwọn àkọlé upstream tiwọn láti ìbẹ̀rẹ̀ dípò fífi àwọn àkọlé oníbàárà kọjá, nítorí náà èyí ṣì jẹ́ id ìbámu inú ètò nìkan.
 
-### Àwọn àdéhùn-lílò asopọ̀ ìpàdé tí a ń ṣàkóso ní àdáṣe
+### Àwọn ìyálọ́wọ́ àsopọ̀ ìgbà-ìjíròrò tí a ń ṣàkóso, tí ẹnì kan ṣoṣo ní
 
-**Ààlà:** HTTP client/ìpàdé tí a ń ṣàkóso tó ń ṣiṣẹ́ kan ni ó ní asopọ̀ OmniRoute kan tó yẹ fún lílò.
+**Ààlà:** oníbàárà HTTP/ìgbà-ìjíròrò kan tí a ń ṣàkóso, tó sì ń ṣiṣẹ́, ni ó ni àsopọ̀ OmniRoute kan tó yẹ.
 
-**Ète:** láti pèsè ìní asopọ̀ àdáṣe tó lágbára fún àwọn oníbàárà tó nílò ààlà ìdarí líle
-lórí ọ̀pọ̀ ìbéèrè. Èyí yàtọ̀ sí ìbámu ìpàdé, èyí tó jẹ́ ààyò ìtẹ̀síwájú asọ:
-àdéhùn-lílò àdáṣe ń tọ́jú ipò ìgbésí-ayé sínú SQLite, ó ń mú kí ìní-olùní tó ń ṣiṣẹ́ àti
-àìlẹ́mẹ̀ẹ́jì asopọ̀ tó ń ṣiṣẹ́ jẹ́ ti àgbáyé, ó sì ń kọ generation tó ti di àtijọ́ ṣáájú fífi ránṣẹ́ sí olupèsè.
+**Ète:** láti pèsè ìní àsopọ̀ àtọ̀kànwá tí ó tọ́jú pẹ́ fún àwọn oníbàárà tó nílò ààlà ìdarí-lọ́nà tó le láàárín àwọn ìbéèrè. Èyí yàtọ̀ sí ìbámu-ìgbà-ìjíròrò, èyí tí ó jẹ́ ààyò ìtẹ̀síwájú tí kò le:
+ìyálọ́wọ́ àtọ̀kànwá ń tọ́jú ipò ìgbésí-ayé rẹ̀ sínú SQLite, ó ń fipá mú ìyàsọ́tọ̀ àgbáyé fún olóhun tó ń ṣiṣẹ́ àti
+àsopọ̀ tó ń ṣiṣẹ́, ó sì kọ ìran tí ó ti pẹ́ jù ṣáájú fífi iṣẹ́ ránṣẹ́ sí olùpèsè.
 
-Lílò ẹ̀yà yìí jẹ́ àṣàyàn fún API key kọ̀ọ̀kan. Kọ́kọ́rọ́ tí a ń ṣàkóso gbọ́dọ̀ ní scope `lease:exclusive` àti
-àtòjọ `allowedConnections` tó ṣe kedere tí kò sì ṣófo. HTTP client èyíkéyìí lè lo lifecycle endpoint; kò sí
-client name, user-agent, provider, OAuth method, tàbí model tí a nílò. Àdéhùn-lílò náà ní asopọ̀ kan,
-kì í ṣe model, nítorí náà yíyí model padà máa pa ìsopọ̀ náà mọ́ níwọ̀n ìgbà tí asopọ̀ náà bá ṣì
-yẹ fún lílò lọ́nà àdáyébá. Àwọn òfin model, quota, health, cooldown, àti allowlist deede ṣì jẹ́ aláṣẹ, wọ́n sì lè
-yí generation kan náà padà sí asopọ̀ òmìnira mìíràn tó yẹ.
+Ẹ̀ya náà jẹ́ yíyàn-láti-lò fún kọ́kọ́rọ́ API kọ̀ọ̀kan. Kọ́kọ́rọ́ tí a ń ṣàkóso gbọ́dọ̀ ní ààlà `lease:exclusive` àti
+àtòjọ `allowedConnections` tí a sọ ní kedere tí kò sì ṣófo. Oníbàárà HTTP èyíkéyìí lè lo ibi ìparí ìgbésí-ayé; kò nílò
+orúkọ oníbàárà, user-agent, olùpèsè, ọ̀nà OAuth, tàbí model. Ìyálọ́wọ́ náà ni àsopọ̀ kan,
+kì í ṣe model, nítorí náà ìyípadà model máa pa ìsopọ̀ náà mọ́ níwọ̀n ìgbà tí àsopọ̀ náà bá ṣì
+yẹ ní ọ̀nà àṣà. Àwọn òfin model, quota, ìlera, cooldown, àti allowlist déédé ṣì ni agbára, wọ́n sì lè
+gbé ìran kan náà lọ sí àsopọ̀ ọ̀fẹ́ mìíràn tó yẹ.
 
 Ìgbésí-ayé náà ni `POST /api/v1/session-leases` pẹ̀lú àwọn ìṣe JSON `acquire`, `renew`, àti `release`.
-Àwọn managed inference requests máa fi iye `X-OmniRoute-Lease-Owner` tí kò ṣeé túmọ̀ àti
-`X-OmniRoute-Lease-Generation` tó péye hàn. Owner náà ń lo `vlo_` tí àwọn ẹyọ base64url 43 tẹ̀ lé; hash SHA-256
-rẹ̀ nìkan ni a ń tọ́jú. Gbogbo final dispatch fence tún so authenticated API key ID àti
-active connection ID pọ̀. A máa yọ àwọn lease control headers kúrò nínú logs, àwọn request snapshots tí a tọ́jú, àti
-àwọn upstream executor headers.
+Àwọn ìbéèrè ìṣirò tí a ń ṣàkóso ń gbé iye àìhàn `X-OmniRoute-Lease-Owner` àti
+`X-OmniRoute-Lease-Generation` gangan wá. Olóhun náà ń lo `vlo_` tí àwọn àmì base64url 43 tẹ̀ lé; hash SHA-256 rẹ̀ nìkan
+ni a ń tọ́jú. Gbogbo ààlà ìránṣẹ́ ìkẹyìn tún ń so ID kọ́kọ́rọ́ API tí a ti jẹ́rìí sí àti
+ID àsopọ̀ tó ń ṣiṣẹ́ pọ̀. A yọ àwọn àkọlé ìṣàkóso ìyálọ́wọ́ kúrò nínú àwọn àkọsílẹ̀, àwọn àwòrán-ipò ìbéèrè tí a tọ́jú, àti
+àwọn àkọlé aṣàmúlò upstream.
 
-Bí ìdarí deede bá ní àwọn managed candidates tó yẹ ṣùgbọ́n gbogbo free candidate bá ti wà lábẹ́
-foreign active lease, OmniRoute máa dá HTTP `429` padà, lease-capacity-unavailable code, ipò
-waiting-for-capacity, àti `Retry-After` tó ní ààlà tí a yọ láti expiry tó yẹ jù lọ tó kọ́kọ́ dé.
-Àìsí ẹni tó yẹ ní ọ̀nà deede kì í ṣe lease contention, ó sì máa pa routing error semantics tó ti wà tẹ́lẹ̀ mọ́.
+Tí ìdarí-lọ́nà déédé bá ní àwọn olùdíje tí a ń ṣàkóso tó yẹ ṣùgbọ́n tí gbogbo olùdíje ọ̀fẹ́ bá wà lọ́wọ́
+ìyálọ́wọ́ aláṣẹ mìíràn tó ń ṣiṣẹ́, OmniRoute máa dá HTTP `429` padà, pẹ̀lú kóòdù lease-capacity-unavailable,
+ipò waiting-for-capacity, àti `Retry-After` tó ní ààlà tí a mú láti inú àkókò ìparí tó yẹ jù lọ tí ó kọ́kọ́ dé.
+Àìsí ẹni tó yẹ nínú ìdarí-lọ́nà déédé kì í ṣe ìjà fún ìyálọ́wọ́, ó sì ń pa ìtumọ̀ àṣìṣe ìdarí-lọ́nà tó ti wà mọ́.
 
-Àwọn ètò tó jọmọ́ rẹ̀ ṣì wà lọ́tọ̀:
+Àwọn ọ̀nà tó jọmọ́ ṣì yàtọ̀ sí ara wọn:
 
-- OAuth session occupancy jẹ́ pínpín asọ inú process fún àwọn OAuth accounts.
-- Account semaphores ń fúnni ní request-concurrency permits, wọ́n sì máa parí nígbà tí request bá parí.
-- Exclusive managed session leases jẹ́ ìní lifecycle tó pẹ́ pẹ̀lú generation fence.
+- Ìkúnwọ̀n ìgbà-ìjíròrò OAuth jẹ́ pínpín rọ̀ tó jẹ́ ti process-local fún àwọn àkọọ́lẹ̀ OAuth.
+- Àwọn semaphore àkọọ́lẹ̀ ń fúnni ní àṣẹ ìṣiṣẹ́-ìbéèrè-lẹ́ẹ̀kan-náà, wọ́n sì máa parí nígbà tí ìbéèrè bá parí.
+- Àwọn ìyálọ́wọ́ ìgbà-ìjíròrò tí a ń ṣàkóso, tí ẹnì kan ṣoṣo ní, jẹ́ ìní ìgbésí-ayé tó tọ́jú pẹ́ pẹ̀lú ààlà ìran.
 
 ---
 
@@ -286,47 +344,74 @@ oṣùwọ̀n fún model kọ̀ọ̀kan. `comboCooldownWait` (`enabled`, `maxWai
 
 ---
 
-## 5. Ìṣàkóso Gbigba Ìbéèrè Sínú Ìlà (v3.8.49 · ọ̀ràn #6593)
+## 5. Ìṣàkóso Gbigba Sórí Ìlà Ìbéèrè (v3.8.49 · issue #6593)
 
-**Ààlà iṣẹ́**: ìlà òṣùwọ̀n fún olùpèsè+ìsopọ̀ kọ̀ọ̀kan ní agbègbè (`open-sse/services/rateLimitManager.ts`,
-tí Bottleneck ń ṣe àtìlẹ́yìn fún), ìpele kan ní ìsàlẹ̀ àwọn ọ̀nà mẹ́ta tó wà lókè.
+**Ààlà iṣẹ́**: ìlà ìdádúró ìwọ̀n-ìyára ti agbègbè fún provider+connection kọ̀ọ̀kan (`open-sse/services/rateLimitManager.ts`,
+tí Bottleneck ń ṣètìlẹ́yìn fún), ìpele kan ní ìsàlẹ̀ àwọn ọ̀nà mẹ́ta tó wà lókè.
 
-**`maxWaitMs` jẹ́ orúkọ àtijọ́ tí a fi pamọ́ fún ìparí àkókò ìṣiṣẹ́.**
-A ń fi `resilienceSettings.requestQueue.maxWaitMs` ránṣẹ́ sí Bottleneck gẹ́gẹ́ bí
-`expiration` iṣẹ́ kan, tí aago rẹ̀ kì í bẹ̀rẹ̀ títí lẹ́yìn ìfiranṣẹ́. Nítorí náà, ó fi ààlà sí
-ìṣiṣẹ́ tí limiter ń ṣàkóso, kì í ṣe àkókò tí a lò nínú ìlà agbègbè. Ìparí àkókò
-máa ń farahàn gẹ́gẹ́ bí `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` agbègbè tó ṣeé gbẹ́kẹ̀lé (HTTP 504);
-orúkọ code ìparí-àkókò-ìlà àtijọ́ ni a gba fún ìbámu-pẹ̀yìn inú ètò tó ṣeé gbẹ́kẹ̀lé
-nìkan. Ìyẹn jẹ́ 15000ms ní àkọ́kọ́; yí i padà nípasẹ̀
-`RATE_LIMIT_MAX_WAIT_MS` (env) tàbí dashboard (**Àwọn Ààtò → Ìfaradà**,
-òpin UI 1–30000ms). Àkókò tí ìbéèrè fi ń gbé inú ìlà kò ní òpin àkókò; lo
-`maxQueueDepth` ní ìsàlẹ̀ láti fi ààlà sí àwọn olùpè tó wà ní ìlà.
+**`maxWaitMs` ṣe ààlà àkókò dídúró nínú ìlà; `executionMaxWaitMs` ṣe ààlà àkókò ìmúṣẹ.**
+A mọ̀ọ́mọ̀ ya àwọn méjèèjì sọ́tọ̀, kò sì sí èyíkéyìí tó ń fi iye rẹ̀ sínú èkejì.
 
-**`maxQueueDepth` — òpin gbigba tí a lè yàn láti mú ṣiṣẹ́ (tuntun).** `resilienceSettings.requestQueue.maxQueueDepth`
-fi ààlà sí iye àwọn ìbéèrè tó lè jókòó nínú ìlà (tí a kò tíì firánṣẹ́) fún
-olùpèsè+ìsopọ̀ kan ní ìgbà kan náà. Nígbà tí ìlà bá ti ní `maxQueueDepth`
-ìbéèrè, a máa kọ ìbéèrè tuntun lẹ́sẹ̀kẹsẹ̀ pẹ̀lú àṣìṣe olóríṣi
-`code: "RATE_LIMIT_QUEUE_FULL"` **ṣáájú** kó tó dé `limiter.schedule()`
-rárá — nítorí náà, ìkọ̀sílẹ̀ náà kò ná nǹkan púpọ̀, ó sì ṣẹlẹ̀ ṣáájú iṣẹ́
-ìpọ́npọ̀ prompt / ìtumọ̀ èdè downstream èyíkéyìí fún ìbéèrè yẹn. `0` ní àkọ́kọ́ =
-pípa, tó ń pa ìhùwàsí ìlà aláìlópin tó ti wà mọ́; ààlà jẹ́ 0–100000.
-Yí i padà nípasẹ̀ `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) tàbí
+`resilienceSettings.requestQueue.maxWaitMs` ni **ìnáwó-àkókò dídúró nínú ìlà**: ó
+bo àkókò dídúró fún ààyè provider, àti dídúró ní ipò QUEUED lẹ́yìn náà, a sì
+máa pa aago rẹ̀ ní kété tí iṣẹ́ náà bá kúrò ní QUEUED tí ó sì bẹ̀rẹ̀ ìmúṣẹ
+(`rateLimitManager.ts`, `wrappedFn`). Ìbéèrè tó bá kọjá ààlà yìí kì í dé
+upstream rárá. Àìyípadà rẹ̀ ni 30000ms, tí
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` pèsè nínú
+`src/lib/resilience/settings.ts`, tí
+`tests/unit/ratelimit-admission-control-6593.test.ts` sì fìdí rẹ̀ múlẹ̀, nítorí náà, yíyí
+i padà yóò mú kí ìdánwò yẹn kùnà dípò kí ìpínrọ̀ yìí wà láìṣe àkíyèsí pé ó ti di ti àtijọ́.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` ni ohun tí Bottleneck
+gbà gẹ́gẹ́ bí `expiration` iṣẹ́ náà, tí aago rẹ̀ bẹ̀rẹ̀ kìkì lẹ́yìn tí a bá fi iṣẹ́ náà ránṣẹ́. Ó jẹ́
+ààbò ìkẹyìn fún àwọn executor tí kò ní upstream timeout tiwọn, a sì
+máa gbé e sókè sí fetch-start timeout ti executor fúnra rẹ̀ nígbà tí ìyẹn bá gùn jù, kí ó
+má bàa dá ìdáhùn in-flight tó ń ṣiṣẹ́ dáadáa dúró. Àìyípadà rẹ̀ ni 600000ms (10 min).
+
+Fífún `expiration` ní ìnáwó-àkókò ìlà ni ohun tó máa ń pa àwọn gateway tí kì í ṣe incremental
+ní àárín iṣẹ́ tẹ́lẹ̀ — ó bófin mu kí wọ́n ṣiṣẹ́ fún ọ̀pọ̀ ìṣẹ́jú kí bytes àkọ́kọ́ tó dé —
+èyí sì ni ìdí tí a fi ń fi expiration hàn gẹ́gẹ́ bí `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), nígbà tí ìnáwó-àkókò ìlà ń lo
+kóòdù queue-timeout. Ṣàtúnṣe èyíkéyìí pẹ̀lú `RATE_LIMIT_MAX_WAIT_MS` /
+`RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (env) tàbí dashboard
+(**Settings → Resilience**). A máa ń fi ààlà 1ms–24h sí àwọn méjèèjì nígbà tí a bá sọ wọ́n di ìwọ̀n déédéé.
+
+**Ìtẹ̀síwájú àṣẹ, fún àwọn méjèèjì:** env var ń pèsè _àìyípadà_ nìkan. Iye tí a
+ti tọ́jú sínú `resilienceSettings.requestQueue` (dashboard / API patch, tí a tọ́jú
+nínú `key_value`) ní agbára lórí rẹ̀, `rateLimitOverrides.maxWaitMs` /
+`.executionMaxWaitMs` ti connection kọ̀ọ̀kan sì ní agbára lórí ìyẹn. Nítorí náà, ṣíṣètò
+env var lórí deployment tó ti ní iye tí a tọ́jú tẹ́lẹ̀ kò ní yí ohunkóhun padà —
+pa ètò tí a tọ́jú náà rẹ́ tàbí ṣe ìmúdójúìwọ̀n rẹ̀ dípò bẹ́ẹ̀.
+
+`maxWaitMs` ṣe ààlà àkókò tí ìbéèrè lè lò nínú ìlà; `maxQueueDepth` tó wà nísàlẹ̀ ṣe ààlà iye
+àwọn olùpè tó lè wà ní ìlà ní ẹ̀ẹ̀kan.
+
+**`maxQueueDepth` — ààlà gbigba tí a gbọ́dọ̀ yàn láti lò (tuntun).** `resilienceSettings.requestQueue.maxQueueDepth`
+ṣe ààlà iye àwọn ìbéèrè tó lè jókòó nínú ìlà (tí a kò tíì fi ránṣẹ́) fún
+provider+connection kan ní ẹ̀ẹ̀kan. Nígbà tí ìlà náà bá ti ní `maxQueueDepth`
+ìbéèrè, a máa kọ ìbéèrè tuntun sílẹ̀ lẹ́sẹ̀kẹsẹ̀ pẹ̀lú àṣìṣe tó ní irú pàtó
+`code: "RATE_LIMIT_QUEUE_FULL"` **ṣáájú** kí ó tó dé `limiter.schedule()`
+rárá — nítorí náà, ìkọ̀sílẹ̀ náà kò ná ohun púpọ̀, ó sì ṣẹlẹ̀ ṣáájú iṣẹ́
+prompt-compression / translation èyíkéyìí ní downstream fún ìbéèrè náà. Àìyípadà `0` =
+a pa á, èyí tó ń pa ìhùwàsí ìlà aláìláàlà tó wà tẹ́lẹ̀ mọ́; ààlà rẹ̀ jẹ́ 0–100000.
+Ṣàtúnṣe rẹ̀ pẹ̀lú `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) tàbí
 `resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch).
 
-Àyẹ̀wò gbigba náà fúnra rẹ̀ jẹ́ function mímọ́
+Àyẹ̀wò gbigba náà fúnra rẹ̀ jẹ́ pure function
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), nítorí náà
 a lè ṣe unit test rẹ̀ láìní limiter Bottleneck gidi kan.
 
 > RFC tó ṣí #6593 tún dábàá flag `bypassCompressionOnRateLimit`
 > kan. Pipeline `open-sse/services/compression/` inú repo yìí jẹ́
-> ìpọ́npọ̀ prompt/context lórí ìbéèrè LLM tó ń jáde (`chatCore.ts`,
+> prompt/context compression lórí ìbéèrè LLM outbound (`chatCore.ts`,
 > ní àyíká block `resolveCompressionSettings`/`selectCompressionStrategy`),
-> kì í ṣe ìpọ́npọ̀ ìdáhùn HTTP lórí àwọn body 429 tí a dá — kò sí
-> ọ̀nà code tó bá flag bypass gangan mu. Ìgbésẹ̀ ìpọ́npọ̀-prompt yẹn
-> tún ń ṣiṣẹ́ _ṣáájú_ `withRateLimit()` lọ́wọ́lọ́wọ́ nínú pipeline ìbéèrè, nítorí náà
-> àtúntò rẹ̀ láti fo ó nígbà ìkọ̀sílẹ̀ queue-full jẹ́ ìyípadà mìíràn tó tóbi ju
-> ààlà iṣẹ́ ọ̀ràn yìí lọ; a mọ̀ọ́mọ̀ **kò** ṣe é níbí, a sì fi í sílẹ̀ gẹ́gẹ́ bí iṣẹ́
-> tó lè tẹ̀lé bí èrè fífi CPU pamọ́ bá tó ewu àtúntò náà.
+> kì í ṣe HTTP response compression lórí ara ìdáhùn 429 tí a dá — kò sí
+> code path tó bá flag bypass gangan mu. Ìgbésẹ̀ prompt-compression yẹn
+> tún ń ṣiṣẹ́ _ṣáájú_ `withRateLimit()` nínú pipeline ìbéèrè lọ́wọ́lọ́wọ́, nítorí náà
+> àtúntò láti fo ó nígbà ìkọ̀sílẹ̀ queue-full jẹ́ ìyípadà tó yàtọ̀, tó sì tóbi
+> ju ààlà issue yìí lọ; a mọ̀ọ́mọ̀ **kò** ṣe é
+> níbí, a sì fi í sílẹ̀ gẹ́gẹ́ bí iṣẹ́ atẹ̀lé bí èrè ìfipamọ́ CPU bá tó
+> ewu àtúntò náà.
 
 ---
 

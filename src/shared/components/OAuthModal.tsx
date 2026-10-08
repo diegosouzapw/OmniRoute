@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { isCallbackStateAcceptable } from "./oauthCallbackState";
 import { useTranslations } from "next-intl";
 
 import Modal from "./Modal";
@@ -21,8 +22,10 @@ import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 import GitlabDuoSetupStep from "@/shared/components/oauthModal/GitlabDuoSetupStep";
 import OAuthErrorStep from "@/shared/components/oauthModal/OAuthErrorStep";
 import OAuthWaitingStep from "@/shared/components/oauthModal/OAuthWaitingStep";
+import { getPasteTokenCopyKeys } from "@/shared/components/oauthModal/pasteTokenCopy";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
 import { buildGoogleLoopbackHint } from "@/lib/oauth/utils/googleLoopbackHint";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 import {
   buildPkceLoopbackMismatchHint,
   type PkceLoopbackMismatchHint,
@@ -49,10 +52,12 @@ const DEVICE_CODE_PROVIDERS = new Set([
   "codebuddy-cn",
   "ghe-copilot",
   "grok-cli",
+  "muse-code",
 ]);
 
-const TOKEN_PASTE_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli"]);
+const TOKEN_PASTE_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli", "claude"]);
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["devin-desktop", "devin-cli"]);
+const PASTE_FIRST_PROVIDERS = new Set([...IMPORT_TOKEN_ONLY_PROVIDERS, "claude"]);
 
 // POST a bare Codex access token to the access-token-only import endpoint
 // (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
@@ -109,7 +114,10 @@ async function pollDeviceCodeOnce(
     if (data.success) return { status: "success" };
     if (data.error === "slow_down") return { status: "slow_down" };
     if (data.error && !data.pending) {
-      return { status: "error", message: String(data.errorDescription || data.error) };
+      return {
+        status: "error",
+        message: String(data.errorDescription || errorMessageFromBody(data, fallbackErrorMessage)),
+      };
     }
     return { status: "pending" };
   } catch (error) {
@@ -148,7 +156,7 @@ export default function OAuthModal({
   // effect below and re-anchored whenever a device flow (re)starts.
   const [now, setNow] = useState(() => Date.now());
   // API-key paste mode for direct-token providers.
-  const [showPasteToken, setShowPasteToken] = useState(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
+  const [showPasteToken, setShowPasteToken] = useState(PASTE_FIRST_PROVIDERS.has(provider));
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
   // grok-cli only (#7013 rework): device_code is the default method (matches
@@ -161,6 +169,7 @@ export default function OAuthModal({
 
   const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
+  const pasteCopyKeys = getPasteTokenCopyKeys(provider);
   const popupRef = useRef(null);
   const deviceFlowRunRef = useRef(0);
   const deviceVerificationUrl =
@@ -518,7 +527,10 @@ export default function OAuthModal({
                 }
 
                 if (pollData.error && !pollData.pending) {
-                  throw new Error(pollData.errorDescription || pollData.error);
+                  throw new Error(
+                    pollData.errorDescription ||
+                      errorMessageFromBody(pollData, t("errorAuthorizationFailed"))
+                  );
                 }
               }
 
@@ -593,7 +605,7 @@ export default function OAuthModal({
         }
 
         if (!data.authUrl) {
-          throw new Error(data.error || t("errorBrowserUnavailable"));
+          throw new Error(errorMessageFromBody(data, t("errorBrowserUnavailable")));
         }
 
         setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
@@ -694,7 +706,8 @@ export default function OAuthModal({
   if (startKey !== prevStartKey) {
     setPrevStartKey(startKey);
     if (startKey) {
-      setShowPasteToken(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
+      setShowPasteToken(PASTE_FIRST_PROVIDERS.has(provider));
+      setPasteToken("");
       setGrokBrowserMode(false);
       setAuthData(null);
       setCallbackUrl("");
@@ -702,16 +715,15 @@ export default function OAuthModal({
       setIsDeviceCode(false);
       setDeviceData(null);
       setPolling(false);
-      // #8688: show GitLab Duo OAuth app / env setup before authorize error.
-      if (provider === "gitlab-duo") {
-        setStep("gitlab-duo-setup");
-      }
+      // #8688: show GitLab Duo OAuth app / env setup before authorize error. Every other
+      // provider restarts at "waiting", or a paste-first reopen would show the last success.
+      setStep(provider === "gitlab-duo" ? "gitlab-duo-setup" : "waiting");
     }
   }
 
   useEffect(() => {
     if (!isOpen || !provider || flowStartedRef.current) return;
-    const startsInPasteMode = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
+    const startsInPasteMode = PASTE_FIRST_PROVIDERS.has(provider);
     const startsInGitlabDuoSetup = provider === "gitlab-duo";
     if (startsInGitlabDuoSetup) {
       // Auto-start is skipped — setStep("gitlab-duo-setup") already happened
@@ -736,7 +748,7 @@ export default function OAuthModal({
 
       const { code, state, error: callbackError, errorDescription } = data;
 
-      if (authData?.state && state && state !== authData.state) {
+      if (!isCallbackStateAcceptable(authData?.state, state)) {
         callbackProcessedRef.current = true;
         setError(t("errorStateMismatch"));
         setStep("error");
@@ -1027,21 +1039,15 @@ export default function OAuthModal({
               className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
               onClick={handlePasteMode}
             >
-              {provider === "grok-cli" ? t("tabImportAuthJson") : t("tabPasteApiKey")}
+              {t(pasteCopyKeys.tab)}
             </button>
           </div>
         )}
 
-        {/* Paste-token form (Devin Desktop / Devin CLI) */}
+        {/* Paste-token form (Devin Desktop / Devin CLI / Grok auth.json / Claude setup-token) */}
         {supportsTokenPaste && showPasteToken && step !== "success" && (
           <div className="flex flex-col gap-3">
-            <p className="text-sm text-text-muted">
-              {provider === "devin-desktop"
-                ? t("devinDesktopPasteDescription")
-                : provider === "grok-cli"
-                  ? t("grokAuthJsonDescription")
-                  : t("devinPasteDescription")}
-            </p>
+            <p className="text-sm text-text-muted">{t(pasteCopyKeys.description)}</p>
             {provider === "grok-cli" ? (
               <textarea
                 className="w-full h-32 p-3 text-sm font-mono bg-input border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
@@ -1054,7 +1060,7 @@ export default function OAuthModal({
               <Input
                 value={pasteToken}
                 onChange={(e) => setPasteToken(e.target.value)}
-                placeholder={t("apiTokenPlaceholder")}
+                placeholder={t(pasteCopyKeys.placeholder)}
                 type="password"
                 label={t("apiKeyTokenLabel")}
               />

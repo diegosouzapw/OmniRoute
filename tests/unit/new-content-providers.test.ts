@@ -22,10 +22,9 @@ test("ideogram provider is registered", async () => {
   assert.equal(APIKEY_PROVIDERS.ideogram.id, "ideogram");
 });
 
-test("suno provider is registered", async () => {
+test("suno provider is retired (#14224) — not in APIKEY_PROVIDERS", async () => {
   const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
-  assert.ok(APIKEY_PROVIDERS.suno, "suno should be in APIKEY_PROVIDERS");
-  assert.equal(APIKEY_PROVIDERS.suno.id, "suno");
+  assert.equal(APIKEY_PROVIDERS.suno, undefined, "suno was retired and must not be registered");
 });
 
 test("udio provider is registered", async () => {
@@ -79,10 +78,13 @@ test("ideogram image provider is in image registry", async () => {
 
 // ─── Music Registry ─────────────────────────────────────────────────────────
 
-test("suno music provider is in music registry", async () => {
+test("suno is retired (#14224) — not in music registry", async () => {
   const { MUSIC_PROVIDERS } = await import("../../open-sse/config/musicRegistry.ts");
-  assert.ok(MUSIC_PROVIDERS.suno, "suno should be in MUSIC_PROVIDERS");
-  assert.equal(MUSIC_PROVIDERS.suno.format, "suno-music");
+  assert.equal(
+    MUSIC_PROVIDERS.suno,
+    undefined,
+    "suno was retired and must not be in MUSIC_PROVIDERS"
+  );
 });
 
 test("udio music provider is in music registry", async () => {
@@ -103,7 +105,7 @@ test("imageGeneration handler has ideogram-image dispatch", async () => {
   assert.equal(typeof mod.handleImageGeneration, "function");
 });
 
-test("musicGeneration handler has suno-music dispatch", async () => {
+test("musicGeneration handler exports handleMusicGeneration (suno-music dispatch retired #14224)", async () => {
   const mod = await import("../../open-sse/handlers/musicGeneration.ts");
   assert.equal(typeof mod.handleMusicGeneration, "function");
 });

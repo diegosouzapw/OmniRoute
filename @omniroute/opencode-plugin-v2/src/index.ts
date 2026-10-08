@@ -1,9 +1,8 @@
-import { define, type PluginContext } from "@opencode-ai/plugin/v2/promise";
+import { Plugin } from "@opencode/plugin";
 import {
   optionalTierFingerprint,
   catalogContentFingerprint,
   createLogger,
-  defaultOmniRouteAutoCombosFetcher,
   defaultOmniRouteCombosFetcher,
   defaultOmniRouteEnrichmentFetcher,
   defaultOmniRouteModelsFetcher,
@@ -11,15 +10,9 @@ import {
   type OmniRouteEnrichmentMap,
   type OmniRouteProviderConnection,
 } from "./shared/index.js";
-import type {
-  OmniRouteRawAutoCombo,
-  OmniRouteRawCombo,
-  OmniRouteRawModelEntry,
-} from "./shared/index.js";
-import type { ResolvedOptions } from "./catalog.js";
-import { publishCatalog } from "./catalog.js";
+import type { OmniRouteRawCombo, OmniRouteRawModelEntry } from "./shared/index.js";
+import { buildProviderPayload, collectCatalog } from "./catalog.js";
 import {
-  DEFAULT_MODEL_CACHE_TTL_MS,
   UNREACHABLE_COOLDOWN_MS,
   memoryCacheKey,
   readDiskSnapshot,
@@ -35,9 +28,8 @@ import {
   MANAGEMENT_TOKEN_ENV_VAR,
   PLUGIN_ID,
   parsePluginOptions,
-  resolveManagementReadToken,
   resolveTimeouts,
-  type PluginOptions,
+  toResolvedOptions,
 } from "./options.js";
 
 /**
@@ -47,6 +39,9 @@ import {
  * should be kept or dropped.
  */
 type SourceResult<T> = { ok: true; value: T } | { ok: false };
+
+/** Warn-once guard for the usage-memory startup notice (one warn per process). */
+let warnedMemoryNoToken = false;
 
 interface RefreshState {
   entries: Map<string, CatalogSnapshot>;
@@ -63,33 +58,11 @@ interface RefreshState {
   unreachableUntil: number;
 }
 
-function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
-  return {
-    providerId: parsed.providerId,
-    baseURL: parsed.baseURL,
-    apiKey: parsed.apiKey ?? process.env.OMNIROUTE_API_KEY ?? "",
-    managementReadToken: resolveManagementReadToken(parsed.managementReadToken),
-    timeoutMs: parsed.timeoutMs,
-    timeouts: parsed.timeouts,
-    logLevel: parsed.logLevel,
-    startupDebug: parsed.startupDebug,
-    providerTag: parsed.providerTag,
-    modelCacheTtlMs:
-      typeof parsed.modelCacheTtlMs === "number" && parsed.modelCacheTtlMs > 0
-        ? parsed.modelCacheTtlMs
-        : DEFAULT_MODEL_CACHE_TTL_MS,
-    displayName: parsed.displayName,
-    apiFormat: parsed.apiFormat,
-    visibleModels: parsed.visibleModels,
-    hiddenModels: parsed.hiddenModels,
-    usableOnly: parsed.usableOnly,
-    enrichment: parsed.enrichment,
-  };
-}
+export { toResolvedOptions } from "./options.js";
 
-export default define({
+export default Plugin.define({
   id: PLUGIN_ID,
-  setup: async (ctx: PluginContext) => {
+  setup: async (ctx) => {
     assertContext(ctx);
     const parsed = parsePluginOptions(ctx.options);
     const X = parsed.providerId;
@@ -108,6 +81,16 @@ export default define({
         `[omniroute-v2] no management token configured: management endpoints (/api/*) will reuse the inference key, ` +
           `which gateways usually reject with 401/403. Set "managementReadToken" in the plugin options ` +
           `or export ${MANAGEMENT_TOKEN_ENV_VAR}.`
+      );
+    }
+    if (
+      resolved.usageMemory !== false &&
+      resolved.managementReadToken === undefined &&
+      !warnedMemoryNoToken
+    ) {
+      warnedMemoryNoToken = true;
+      log.warn(
+        "[omniroute-v2] usage history inactive without management token: statically dropped models stay unpublished."
       );
     }
 
@@ -243,31 +226,10 @@ export default define({
         return { ok: false };
       }
     };
-    const fetchAutoCombosSafe = async (): Promise<SourceResult<OmniRouteRawAutoCombo[]>> => {
-      try {
-        return {
-          ok: true,
-          value: await defaultOmniRouteAutoCombosFetcher(
-            resolved.baseURL,
-            resolved.managementReadToken ?? resolved.apiKey,
-            timeouts.autoCombos,
-            log,
-            reportSourceError
-          ),
-        };
-      } catch (err) {
-        // The default fetcher reports the refusal itself (with the
-        // management-token hint); this warn is the fallback for injected
-        // stubs that throw without reporting.
-        const reason = err instanceof Error ? err.message : String(err);
-        log.warn(`[omniroute-v2] auto combos fetch failed, keeping the last known ones: ${reason}`);
-        return { ok: false };
-      }
-    };
 
     /**
      * Fetch in two tiers. Models are what a catalog *is*: without them there
-     * is nothing to publish. Everything else — combos, auto-combos, the
+     * is nothing to publish. Everything else — combos, the
      * provider list, the enrichment overlay — improves an already usable
      * catalog, so awaiting any of them before publishing makes the catalog
      * hostage to the slowest source: a gateway that accepts the connection
@@ -286,7 +248,6 @@ export default define({
       const essential = fetchModelsSafe();
       const optional = Promise.all([
         fetchCombosSafe(),
-        fetchAutoCombosSafe(),
         fetchProvidersSafe(),
         fetchEnrichmentSafe(),
       ]);
@@ -307,7 +268,6 @@ export default define({
       const snapshot: CatalogSnapshot = {
         models,
         combos: previous?.combos ?? [],
-        autoCombos: previous?.autoCombos ?? [],
         providers: previous?.providers ?? [],
         enrichment: previous?.enrichment ?? new Map(),
         fetchedAt: Date.now(),
@@ -336,9 +296,8 @@ export default define({
      */
     async function upgradeWithOptional(
       base: CatalogSnapshot,
-      [combos, autoCombos, providers, enrichment]: [
+      [combos, providers, enrichment]: [
         SourceResult<OmniRouteRawCombo[]>,
-        SourceResult<OmniRouteRawAutoCombo[]>,
         SourceResult<OmniRouteProviderConnection[]>,
         SourceResult<OmniRouteEnrichmentMap>,
       ]
@@ -349,13 +308,11 @@ export default define({
       const upgraded: CatalogSnapshot = {
         ...base,
         combos: combos.ok ? combos.value : base.combos,
-        autoCombos: autoCombos.ok ? autoCombos.value : base.autoCombos,
         providers: providers.ok ? providers.value : base.providers,
         enrichment: enrichment.ok ? enrichment.value : base.enrichment,
       };
       const unchanged =
         upgraded.combos === base.combos &&
-        upgraded.autoCombos === base.autoCombos &&
         upgraded.providers === base.providers &&
         upgraded.enrichment === base.enrichment;
       if (unchanged) return;
@@ -367,19 +324,18 @@ export default define({
       // fingerprint covers ids alone, so without this the host would rebuild
       // its catalog once per TTL window for an identical result.
       const optionalFingerprint = optionalTierFingerprint(
-        upgraded.autoCombos ?? [],
         upgraded.providers ?? [],
         upgraded.enrichment,
         upgraded.combos
       );
       const optionalChanged = state.optionalFingerprint !== optionalFingerprint;
       state.optionalFingerprint = optionalFingerprint;
-      if (optionalChanged && typeof ctx.catalog.reload === "function") {
+      if (optionalChanged) {
         try {
-          await ctx.catalog.reload();
+          await ctx.provider.reload();
         } catch (err) {
           log.warn(
-            `[omniroute-v2] catalog reload after late sources failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+            `[omniroute-v2] provider reload after late sources failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
         }
       }
@@ -430,8 +386,16 @@ export default define({
     // the memory entry on failure, so `entries` stays the last-known-good
     // source — including cross-setup via the disk snapshot.
     // Fail-open one level down, in the wrappers (never reject) and the
-    // `publishCatalog` catches — so no try/catch here.
-    const catalogRegistration = ctx.catalog.transform(async (draft) => {
+    // `collectCatalog` catches — so no try/catch here.
+    //
+    // The stable host replays the registered transform to rebuild its
+    // registry, so the callback only reads the latest collected snapshot;
+    // the refresh below keeps that snapshot current and reloads the host.
+    // The transform callback is synchronous, so it cannot await the fetch:
+    // setup publishes first, then the host replays the callback (during
+    // registration and on every reload) and reads the published snapshot.
+    let latest: { info: unknown; models: unknown[] } | undefined;
+    const refreshAndPublish = async (): Promise<void> => {
       await ensureCredential();
       await ensureWarmSnapshot();
       const snapshot = await loadSnapshot();
@@ -448,45 +412,58 @@ export default define({
       const counts = await (async (): Promise<{
         models: number;
         combos: number;
-        autoCombos: number;
       }> => {
-        // fetcher-level fail-open covers fetches; this guard covers mapper/draft throws.
+        // fetcher-level fail-open covers fetches; this guard covers mapper throws.
         try {
-          return await publishCatalog(draft, resolved, {
+          const collected = await collectCatalog(resolved, {
             onSourceError: reportSourceError,
             models: async () => effective.models,
             combos: async () => effective.combos,
-            autoCombos: async () => effective.autoCombos,
             providers: async () => effective.providers ?? [],
             enrichment: async () => effective.enrichment ?? new Map(),
           });
+          const payload = buildProviderPayload(collected, resolved);
+          latest = payload as unknown as { info: unknown; models: unknown[] };
+          return collected.counts;
         } catch (err) {
           log.warn(
             `[omniroute-v2] catalog publish failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
-          return { models: 0, combos: 0, autoCombos: 0 };
+          return { models: 0, combos: 0 };
         }
       })();
       void counts;
-      const fingerprint = catalogContentFingerprint(
-        effective.models,
-        effective.combos,
-        effective.autoCombos
-      );
+      const fingerprint = catalogContentFingerprint(effective.models, effective.combos);
       const changed = state.fingerprint !== undefined && state.fingerprint !== fingerprint;
       state.fingerprint = fingerprint;
-      if (changed && typeof ctx.catalog.reload === "function") {
+      if (changed) {
         await Promise.resolve();
         try {
-          await ctx.catalog.reload();
+          await ctx.provider.reload();
         } catch (err) {
           log.warn(
-            `[omniroute-v2] catalog reload failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+            `[omniroute-v2] provider reload failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
+          );
+        }
+      }
+    };
+    // Publish before returning so the first transform replay already has
+    // data; without a key this degrades to an empty provider, not a crash.
+    // A host throw in `editor.add` must not reject setup: the catalog is
+    // the job, and a failed publish keeps the previous one.
+    await refreshAndPublish();
+    const providerRegistration = ctx.provider.transform((editor) => {
+      if (latest !== undefined) {
+        try {
+          editor.add(latest as never);
+        } catch (err) {
+          log.warn(
+            `[omniroute-v2] catalog publish failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
         }
       }
     });
-    const integrationHook = (ctx.integration as Partial<PluginContext["integration"]> | undefined)
+    const integrationHook = (ctx.integration as unknown as { transform?: unknown } | undefined)
       ?.transform;
     // A host that exposes the hook but throws while registering it must cost
     // the plugin nothing but the connect action: the throw happens OUTSIDE
@@ -495,7 +472,14 @@ export default define({
     let integrationRegistration: unknown;
     if (typeof integrationHook === "function") {
       try {
-        integrationRegistration = integrationHook((draft) => {
+        integrationRegistration = (
+          integrationHook as (
+            cb: (draft: {
+              update: (id: string, fn: (i: { name: string }) => void) => void;
+              method: { update: (input: unknown) => void };
+            }) => void
+          ) => unknown
+        )((draft) => {
           draft.update(X, (integration) => {
             integration.name = parsed.displayName ?? "OmniRoute";
           });
@@ -513,18 +497,28 @@ export default define({
       }
     }
     /**
-     * `aisdk.language` is newer than the catalog domain, so a host may not
-     * expose it; the plugin must stay loadable there, minus the sanitising.
+     * `aisdk.hook("language")` cleans Gemini tool schemas where the model is
+     * still structured data. A host without the domain stays loadable,
+     * minus the sanitising.
      */
-    const languageHook = (ctx.aisdk as Partial<PluginContext["aisdk"]> | undefined)?.language;
+    const languageHook = (ctx.aisdk as unknown as { hook?: unknown } | undefined)?.hook;
     // A host that rejects this registration must cost the catalog nothing: the
     // plugin is a catalog first, and tool-schema cleaning is an extra.
     let languageRegistration: Promise<{ dispose: () => Promise<void> }> | undefined;
     if (parsed.geminiSanitization !== false && typeof languageHook === "function") {
       try {
-        languageRegistration = languageHook((input) => {
+        languageRegistration = (
+          languageHook as (
+            name: string,
+            cb: (input: { model: { providerID: string; id: string }; language?: unknown }) => void
+          ) => Promise<{ dispose: () => Promise<void> }>
+        )("language", (input) => {
           if (input.model.providerID !== X) return;
-          input.language = sanitizeToolSchemasFor(input.language, input.model.id, log);
+          input.language = sanitizeToolSchemasFor(
+            input.language as never,
+            input.model.id,
+            log
+          ) as unknown as undefined;
         });
       } catch (err) {
         log.warn(
@@ -533,7 +527,41 @@ export default define({
       }
     }
 
-    await catalogRegistration;
+    /**
+     * `aisdk.hook("sdk")` carries inference-telemetry options. It is the same
+     * entry point the `"language"` hook above goes through, so a host that
+     * exposes no `aisdk` domain — or refuses this particular name — must still
+     * load the catalog. Strict fallback (no proven options-only marking):
+     * register the hook and record the observation in `options` only — never
+     * wrap fetch, never assign `sdk`. Gated on the opt-in `telemetry` flag
+     * (off by default).
+     */
+    const sdkHook = (ctx.aisdk as unknown as { hook?: unknown } | undefined)?.hook;
+    let sdkRegistration: Promise<{ dispose: () => Promise<void> }> | undefined;
+    if (parsed.telemetry === true && typeof sdkHook === "function") {
+      try {
+        sdkRegistration = (
+          sdkHook as (
+            name: string,
+            cb: (input: {
+              model: { providerID: string; id: string };
+              package: string;
+              options: Record<string, unknown>;
+            }) => void
+          ) => Promise<{ dispose: () => Promise<void> }>
+        )("sdk", (input) => {
+          if (input.model.providerID !== X) return;
+          if (!input.package.includes("@ai-sdk/openai-compatible")) return;
+          input.options.telemetry = true;
+        });
+      } catch (err) {
+        log.warn(
+          `[omniroute-v2] host refused the sdk hook, inference telemetry will not be marked: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+
+    await providerRegistration;
     if (integrationRegistration !== undefined) {
       try {
         await integrationRegistration;
@@ -549,6 +577,15 @@ export default define({
       } catch (err) {
         log.warn(
           `[omniroute-v2] language-model hook registration failed, Gemini tool schemas will not be cleaned: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+    if (sdkRegistration !== undefined) {
+      try {
+        await sdkRegistration;
+      } catch (err) {
+        log.warn(
+          `[omniroute-v2] sdk hook registration failed, inference telemetry will not be marked: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }

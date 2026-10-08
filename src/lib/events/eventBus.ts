@@ -9,6 +9,7 @@
  *   - stream.ts: request.completed, request.failed
  *   - combo.ts: combo.target.*
  *   - credentialGate.ts: credential.health.changed
+ *   - proxyTransitionBridge.ts: proxy.set_aside
  *
  * Consumers (WebSocket server, dashboard hooks, etc.) subscribe
  * to specific event types via on/off.

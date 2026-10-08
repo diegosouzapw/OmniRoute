@@ -1,6 +1,6 @@
 # Resilience Guide (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/RESILIENCE_GUIDE.md) · 🇪🇹 [am](../../../am/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇿 [az](../../../az/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇦 [bs](../../../bs/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇰 [da](../../../da/docs/architecture/RESILIENCE_GUIDE.md) · 🇩🇪 [de](../../../de/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇷 [el](../../../el/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇸 [es](../../../es/docs/architecture/RESILIENCE_GUIDE.md) · 🇪🇪 [et](../../../et/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/RESILIENCE_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ha](../../../ha/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇱 [he](../../../he/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/RESILIENCE_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/RESILIENCE_GUIDE.md) · 🇦🇲 [hy](../../../hy/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇩 [id](../../../id/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [ig](../../../ig/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇹 [it](../../../it/docs/architecture/RESILIENCE_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/RESILIENCE_GUIDE.md) · 🇬🇪 [ka](../../../ka/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇭 [km](../../../km/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [kn](../../../kn/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ml](../../../ml/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/RESILIENCE_GUIDE.md) · 🇲🇲 [my](../../../my/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇵 [ne](../../../ne/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇴 [no](../../../no/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [or](../../../or/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [pa](../../../pa/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/RESILIENCE_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/RESILIENCE_GUIDE.md) · 🇱🇰 [si](../../../si/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/RESILIENCE_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/RESILIENCE_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/RESILIENCE_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/RESILIENCE_GUIDE.md) · 🇮🇳 [te](../../../te/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇭 [th](../../../th/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/RESILIENCE_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/RESILIENCE_GUIDE.md) · 🇺🇿 [uz](../../../uz/docs/architecture/RESILIENCE_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/RESILIENCE_GUIDE.md) · 🇳🇬 [yo](../../../yo/docs/architecture/RESILIENCE_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/RESILIENCE_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/RESILIENCE_GUIDE.md)
 
 ---
 
@@ -67,7 +67,7 @@ exponenciálne spätné čakanie `minRetryCooldownMs → maxRetryCooldownMs`. Pr
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Ochrana proti regresii: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Časový limit pripojenia
+## 2. Čakacia lehota pripojenia
 
 **Rozsah:** jedno pripojenie/účet/kľúč poskytovateľa.
 
@@ -76,71 +76,147 @@ Ochrana proti regresii: `tests/unit/provider-cooldown-window-gate.test.ts`.
 **Implementácia:**
 
 - Označenie ako nedostupné: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Výber: `getProviderCredentials*` v rovnakom súbore
-- Výpočet časového limitu: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Výber: `getProviderCredentials*` v tom istom súbore
+- Výpočet čakacej lehoty: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Nastavenia: `src/lib/resilience/settings.ts`
 
-**Polia pre jednotlivé pripojenia:**
+**Polia pre každé pripojenie:**
 
-- `rateLimitedUntil` — časová pečiatka, do ktorej trvá časový limit
+- `rateLimitedUntil` — časová pečiatka, do ktorej platí čakacia lehota
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — počítadlo exponenciálneho odstupu
 
-**Predvolené časové limity:**
+**Predvolené čakacie lehoty:**
 
-- Základ OAuth: 5 s
-- Základ kľúča API: 3 s
-- Kľúč API pri 429: uprednostňuje hlavičky `Retry-After`/resetovania od nadradenej služby alebo analyzovateľný text o resetovaní
+- Základ pre OAuth: 5 s
+- Základ pre kľúč API: 3 s
+- 429 pre kľúč API: uprednostňuje upstream hlavičky `Retry-After`/hlavičky resetovania/analyzovateľný text resetovania
 - Odstup: `baseCooldownMs * 2 ** failureIndex`
 
-**Ochrana proti nárazovému súbehu:** zabraňuje tomu, aby súbežné zlyhania nadmerne predĺžili časový limit alebo dvakrát zvýšili `backoffLevel`.
+**Ochrana proti nárazovému súbehu:** zabraňuje tomu, aby súbežné zlyhania nadmerne predĺžili čakaciu lehotu alebo dvakrát zvýšili `backoffLevel`.
 
-**Koncové stavy (NIE časové limity):**
+**Koncové stavy (NIE čakacie lehoty):**
 
-- `banned` — nastavuje sa pri detekcii zakázaného kľúčového slova/zablokovania účtu (pozrite si [BAN_DETECTION](../security/BAN_DETECTION.md)) a pri troch po sebe idúcich odmietnutiach jednotlivých požiadaviek nadradenou službou (`request_rejected`, napr. Anthropic OAuth 403 „Požiadavka nie je povolená“ — `open-sse/services/requestRejectedStreak.ts`); jediné odmietnutie iba dočasne pozastaví pripojenie
-- `expired` (po obmedzenom počte opakovaní prejde do koncového stavu — `EXPIRED_RETRY_MAX = 3` s exponenciálnym odstupom — aby sa prechodné chyby OAuth mohli automaticky odstrániť pred trvalou deaktiváciou účtu)
+- `banned` — nastavuje sa pri detekcii zakázaného kľúčového slova/zablokovania účtu (pozrite si [BAN_DETECTION](../security/BAN_DETECTION.md)) a po troch po sebe nasledujúcich upstream odmietnutiach jednotlivých požiadaviek (`request_rejected`, napr. Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); jedno odmietnutie iba aktivuje čakaciu lehotu pripojenia
+- `expired` (po obmedzenom počte opakovaných pokusov prejde do koncového stavu — `EXPIRED_RETRY_MAX = 3` s exponenciálnym odstupom — takže prechodné chyby OAuth sa môžu samy odstrániť pred trvalou deaktiváciou účtu)
 - `credits_exhausted`
 
-Tieto stavy pretrvávajú, kým sa nezmenia prihlasovacie údaje alebo ich operátor neresetuje. Neprepisujte koncové stavy prechodným stavom časového limitu.
+Tieto stavy pretrvávajú, kým sa nezmenia prihlasovacie údaje alebo ich operátor neresetuje. Neprepisujte koncové stavy prechodným stavom čakacej lehoty.
 
-**Oneskorené obnovenie:** keď čas `rateLimitedUntil` uplynie, pripojenie sa znova stane oprávneným na použitie. Po úspešnom použití funkcia `clearAccountError()` vymaže všetky chybové polia.
+**Lenivé obnovenie:** keď čas `rateLimitedUntil` uplynie, pripojenie sa znova stane oprávneným na použitie. Po úspešnom použití `clearAccountError()` vymaže všetky chybové polia.
+
+### Limit používania Claude OAuth: pruh s nižšou prioritou + reset limitu relácie
+
+**Rozsah:** jedno pripojenie predplatného Claude (OAuth). Obe funkcie sú **voliteľné pre každé
+pripojenie** (Upraviť pripojenie → sekcia Claude → `lowPriorityMode` / `autoLimitReset` v
+`providerSpecificData`, obe sú predvolene vypnuté) a zodpovedajú príkazom `/low-priority` a
+`/limit-reset` nástroja Claude Code (protokolové rozhranie zachytené z Claude Code 2.1.263).
+
+**Implementácia:**
+
+- Stavový automat + klasifikácia odpovedí: `open-sse/services/claudeLowPriority.ts`
+- Klient stavu resetovania/uplatnenia: `open-sse/services/claudeLimitReset.ts`
+- Háčik vykonávacieho modulu (vloženie hlavičky + opakovanie s tým istým účtom): `open-sse/executors/base.ts::execute()`
+- Uchovanie explicitného povolenia: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Spúšťač:** 5-hodinový limit používania — odpoveď `429`, ktorej hlavičky obsahujú
+`anthropic-ratelimit-unified-status: rejected` a, keď je účet oprávnený,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Pred prvou odpoveďou 429 signalizujúcou
+tento limit sa nič neposiela; nárazová odpoveď 429 bez zjednotených hlavičiek prejde bežnou cestou čakacej lehoty.
+
+**Pruh s nižšou prioritou** (`lowPriorityMode`):
+
+- Pri odpovedi 429 signalizujúcej limit vykonávací modul prijme ponuku a okamžite zopakuje požiadavku s **tým istým**
+  účtom a s `anthropic-usage-limit: slow`; pruh zostáva aktívny až do oznámeného času
+  `anthropic-ratelimit-unified-reset` (+60 s tolerancia) a každá požiadavka v tomto intervale obsahuje
+  túto hlavičku. Zachytená odpoveď 429 sa nikdy nedostane do `handleChatCore`, takže sa pre pripojenie
+  **neaktivuje** čakacia lehota ani sa nenahradí iným pripojením.
+- `anthropic-ratelimit-unified-slow-status` v neskorších odpovediach: `active` / `not_needed`
+  zachovajú pruh; `slot_busy` (429) alebo `529` počkajú podľa serverovej hodnoty
+  `anthropic-ratelimit-unified-slow-retry-after` (predvolene 20 s, obmedzenie 5–600 s, ±30 % náhodná odchýlka)
+  a zopakujú požiadavku, pričom sú obmedzené hodnotou `anthropic-ratelimit-unified-slow-max-wait` (predvolene 20 min, obmedzenie
+  1 min–6 h) — po jej prekročení sa pruh ukončí a 10-minútové obdobie ochladenia zablokuje jeho opätovné prijatie. Čakanie
+  je navyše obmedzené zostávajúcim časom vlastného časového limitu požiadavky na začatie upstream komunikácie
+  (`resolveFetchStartTimeout`, predvolene 10 min) mínus 5 s rezerva: bez tohto obmedzenia by
+  predvolená maximálna čakacia lehota 20 min prežila požiadavku a spánok by sa prerušil
+  uprostred čakania, čo by namiesto korektného ukončenia `max_wait` + obdobia ochladenia vyvolalo `TimeoutError`.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, prechod do nového 5-hodinového okna alebo
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (čo ho ukončí ako
+  `extra_usage` pri akomkoľvek stave, pretože platené prekročenie limitu už pokrýva tento limit) ukončia pruh;
+  odpoveď potom prejde bežnou cestou čakacej lehoty. `budget_exhausted` sa uchová až do
+  oznámeného resetovania rozpočtu (≤ 8 dní).
+- Kontrola limitu sa vykonáva po vlastných opakovaných pokusoch vykonávacieho modulu v rámci pokusu vyvolaných odpoveďou 400 (úprava
+  kontextu, obmedzenia uvažovania/úsilia, automatické učenie parametrov), takže odpoveď 429 signalizujúca limit, ktorá sa objaví až pri
+  jednom z týchto opakovaných pokusov, sa stále zachytí namiesto toho, aby prešla cestou čakacej lehoty.
+- Stav sa uchováva v pamäti pre každé pripojenie (reštart si vyžiada jednu dodatočnú odpoveď 429 signalizujúcu limit na opätovné prijatie).
+
+**Reset limitu relácie** (`autoLimitReset`, ak sú zapnuté obe funkcie, skúsi sa pred pruhom):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
+  keď `arm: "reset"` a `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` s
+  `{ "program": "juniper_tide" }` (UUID organizácie z
+  `providerSpecificData.organizationUUID`, záložná hodnota z inicializácie).
+- `result: reset|not_limited` → požiadavka sa zopakuje plnou rýchlosťou (bez hlavičky pre pomalý režim).
+  `already_used` / `not_offered` uložia do pamäte `next_available_at` (predvolene jeden týždeň); každé
+  zlyhanie aktivuje odstup na 15 minút. Reset je možný raz týždenne a stále sa započítava do
+  týždenného limitu.
+
+Ochrany proti regresiám: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Afinita relácie (#7274)
 
-**Rozsah:** jedna klientska relácia (hlavička `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) pripnutá k jednému pripojeniu pre **ľubovoľného** poskytovateľa.
+**Rozsah:** jedna relácia klienta (hlavička `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) pripnutá k jednému pripojeniu pre **ľubovoľného** poskytovateľa.
 
-**Účel:** udržať agenta s viacerými kolami (Claude Code, aider, vlastné agenty) na rovnakom účte naprieč požiadavkami, čím sa zníži strata kontextu medzi účtami a počet opakovaných chýb 429 pri studenom štarte u poskytovateľov so stavom relácie viazaným na účet.
+**Účel:** udržať viacobrátkového agenta (Claude Code, aider, vlastné agenty) na rovnakom účte naprieč požiadavkami, čím sa znižuje strata kontextu medzi účtami a opakované chyby 429 pri studenom štarte u poskytovateľov so stavom relácie viazaným na účet.
 
 **Implementácia:**
 
 - Určenie TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
 - Výber/vytvorenie pripnutia: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Extrakcia hlavičky (všeobecná, pre ľubovoľného poskytovateľa): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tabuľka trvalo uložených pripnutí: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Nastavenie: `sessionAffinityTtlMs` (globálne TTL v ms, hodnota `0` funkciu vypne) — `src/lib/db/settings.ts`. Migrácia `124_generic_session_affinity_ttl.sql` ho premenovala z nastavenia `codexSessionAffinityTtlMs`, ktoré bolo určené iba pre Codex, a prenáša akékoľvek predtým nakonfigurované TTL pre Codex ako novú predvolenú hodnotu.
+- Tabuľka trvalých pripnutí: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Nastavenie: `sessionAffinityTtlMs` (globálne TTL v ms, hodnota `0` ho zakáže) — `src/lib/db/settings.ts`. Premenované z nastavenia `codexSessionAffinityTtlMs`, ktoré bolo určené len pre Codex, prostredníctvom migrácie `124_generic_session_affinity_ttl.sql`; tá prenesie akékoľvek predtým nakonfigurované TTL pre Codex ako novú predvolenú hodnotu.
 
-Pred #7274 funkcia `resolveSessionAffinityTtlMs()` okamžite vracala `0` pre každého poskytovateľa okrem `codex`, takže nastavenie TTL (ani hlavičky relácie) nemalo nikde inde žiadny účinok, hoci mechanizmus pripínania a extrakcia hlavičiek už boli nezávislé od poskytovateľa. Oprava toto predčasné ukončenie odstránila; po globálnom nastavení hodnoty vyššej než `0` sa TTL teraz uplatňuje jednotne na každého poskytovateľa.
+Pred #7274 funkcia `resolveSessionAffinityTtlMs()` okamžite vracala `0` pre každého poskytovateľa okrem `codex`, takže nastavenie TTL (a hlavičky relácie) nemali nikde inde žiadny účinok, hoci mechanizmus pripnutia aj extrakcia hlavičiek už boli nezávislé od poskytovateľa. Oprava odstránila tento predčasný návrat; TTL sa teraz po globálnom nastavení na hodnotu vyššiu než `0` uplatňuje jednotne na každého poskytovateľa.
 
-Tri hlavičky afinity relácie sa nikdy neposielajú nadradenej službe — vykonávacie moduly vytvárajú vlastné hlavičky pre nadradenú službu od začiatku namiesto preposielania hlavičiek klienta, takže tento údaj zostáva iba interným korelačným identifikátorom.
+Tri hlavičky afinity relácie sa nikdy nepreposielajú upstream — vykonávacie moduly vytvárajú vlastné upstream hlavičky od začiatku namiesto preposielania klientskych hlavičiek, takže zostávajú iba interným korelačným identifikátorom.
 
-### Výhradné prenájmy pripojení spravovaných relácií
+### Exkluzívne prenájmy spravovaných pripojení relácie
 
 **Rozsah:** jeden aktívny spravovaný HTTP klient/relácia vlastní jedno oprávnené pripojenie OmniRoute.
 
-**Účel:** poskytnúť trvalé výhradné vlastníctvo pripojenia klientom, ktorí potrebujú pevnú hranicu smerovania naprieč požiadavkami. Líši sa to od afinity relácie, ktorá predstavuje iba mäkkú preferenciu kontinuity: výhradný prenájom uchováva stav životného cyklu v SQLite, vynucuje globálnu jedinečnosť aktívneho vlastníka a aktívneho pripojenia a odmietne zastaranú generáciu pred odoslaním poskytovateľovi.
+**Účel:** poskytnúť trvalé exkluzívne vlastníctvo pripojenia klientom, ktorí potrebujú pevnú hranicu smerovania
+naprieč požiadavkami. Líši sa to od afinity relácie, ktorá predstavuje mäkkú preferenciu kontinuity:
+exkluzívny prenájom uchováva stav životného cyklu v SQLite, vynucuje globálnu jedinečnosť aktívneho vlastníka a
+aktívneho pripojenia a odmietne neaktuálnu generáciu ešte pred odoslaním poskytovateľovi.
 
-Funkcia je voliteľná pre jednotlivé kľúče API. Spravovaný kľúč musí mať rozsah `lease:exclusive` a explicitný neprázdny zoznam `allowedConnections`. Koncový bod životného cyklu môže používať ľubovoľný HTTP klient; nevyžaduje sa názov klienta, používateľský agent, poskytovateľ, metóda OAuth ani model. Prenájom vlastní pripojenie, nie model, takže pri zmene modelu sa väzba zachová, pokiaľ je pripojenie naďalej bežne oprávnené. Bežné pravidlá pre model, kvótu, stav, časový limit a zoznam povolených položiek zostávajú rozhodujúce a môžu tú istú generáciu presunúť na iné voľné oprávnené pripojenie.
+Táto funkcia sa aktivuje samostatne pre každý API kľúč. Spravovaný kľúč musí mať rozsah `lease:exclusive` a
+explicitný neprázdny zoznam `allowedConnections`. Koncový bod životného cyklu môže používať ľubovoľný HTTP klient; nevyžaduje sa
+názov klienta, user-agent, poskytovateľ, metóda OAuth ani model. Prenájom vlastní pripojenie,
+nie model, takže pri zmene modelu sa väzba zachová, pokiaľ je pripojenie naďalej bežným spôsobom
+oprávnené. Štandardné pravidlá pre model, kvótu, stav, dobu blokovania a zoznam povolených položiek zostávajú rozhodujúce a môžu
+presunúť rovnakú generáciu na iné voľné oprávnené pripojenie.
 
-Životný cyklus používa `POST /api/v1/session-leases` s akciami JSON `acquire`, `renew` a `release`. Spravované inferenčné požiadavky odovzdávajú nepriehľadnú hodnotu `X-OmniRoute-Lease-Owner` a presnú hodnotu `X-OmniRoute-Lease-Generation`. Vlastník používa predponu `vlo_`, za ktorou nasleduje 43 znakov base64url; ukladá sa iba jeho hash SHA-256. Každá konečná kontrola pred odoslaním tiež viaže ID autentifikovaného kľúča API a ID aktívneho pripojenia. Riadiace hlavičky prenájmu sa odstraňujú z protokolov, uchovávaných snímok požiadaviek a hlavičiek vykonávacích modulov odosielaných nadradenej službe.
+Životný cyklus používa `POST /api/v1/session-leases` s akciami JSON `acquire`, `renew` a `release`.
+Spravované inferenčné požiadavky uvádzajú nepriehľadnú hodnotu `X-OmniRoute-Lease-Owner` a presnú hodnotu
+`X-OmniRoute-Lease-Generation`. Identifikátor vlastníka používa predponu `vlo_`, po ktorej nasleduje 43 znakov base64url; ukladá sa iba
+jeho hash SHA-256. Každá konečná kontrola pred odoslaním tiež viaže ID autentifikovaného API kľúča a
+ID aktívneho pripojenia. Riadiace hlavičky prenájmu sa odstraňujú z protokolov, uložených snímok požiadaviek a
+hlavičiek upstream vykonávacích modulov.
 
-Ak má bežné smerovanie oprávnených spravovaných kandidátov, ale každý voľný kandidát je obsadený cudzím aktívnym prenájmom, OmniRoute vráti HTTP `429`, kód nedostupnej kapacity prenájmu, stav čakania na kapacitu a obmedzenú hodnotu `Retry-After` odvodenú od najskoršieho relevantného vypršania. Bežná prázdna množina oprávnených pripojení nepredstavuje konflikt prenájmov a zachováva existujúcu sémantiku chyby smerovania.
+Ak má bežné smerovanie oprávnených spravovaných kandidátov, ale každý voľný kandidát je obsadený
+cudzím aktívnym prenájmom, OmniRoute vráti HTTP `429`, kód nedostupnej kapacity prenájmu,
+stav čakania na kapacitu a ohraničenú hodnotu `Retry-After` odvodenú od najskoršieho relevantného uplynutia platnosti.
+Bežná absencia oprávnených kandidátov nepredstavuje konflikt prenájmov a zachováva existujúcu sémantiku chýb smerovania.
 
 Súvisiace mechanizmy zostávajú oddelené:
 
-- Obsadenosť relácií OAuth predstavuje lokálnu mäkkú distribúciu účtov OAuth v rámci procesu.
-- Semafory účtov udeľujú povolenia na súbežné požiadavky a končia po dokončení požiadavky.
-- Výhradné prenájmy pripojení spravovaných relácií predstavujú trvalé vlastníctvo počas životného cyklu s kontrolou generácie.
+- Obsadenosť relácií OAuth je procesne lokálna mäkká distribúcia pre účty OAuth.
+- Semafory účtov udeľujú povolenia pre súbežné požiadavky a končia sa po dokončení požiadavky.
+- Exkluzívne prenájmy spravovaných pripojení relácie predstavujú trvalé vlastníctvo životného cyklu s kontrolou generácie.
 
 ---
 
@@ -272,46 +348,79 @@ frekvencie pre jednotlivé modely. Obmedzuje sa pomocou `comboCooldownWait` (`en
 
 ## 5. Riadenie prijímania do frontu požiadaviek (v3.8.49 · problém #6593)
 
-**Rozsah**: lokálny front limitu frekvencie pre jednotlivých poskytovateľov a pripojenia (`open-sse/services/rateLimitManager.ts`,
-založený na Bottleneck), ktorý sa nachádza jednu vrstvu pod tromi mechanizmami uvedenými vyššie.
+**Rozsah**: lokálny front s obmedzením rýchlosti pre každú kombináciu poskytovateľa a pripojenia (`open-sse/services/rateLimitManager.ts`,
+založený na Bottleneck), jedna vrstva pod tromi vyššie uvedenými mechanizmami.
 
-**`maxWaitMs` je historický uložený názov pre uplynutie časového limitu vykonávania.**
-Hodnota `resilienceSettings.requestQueue.maxWaitMs` sa odovzdáva do Bottleneck ako
-`expiration` úlohy, ktorého časovač sa spustí až po odoslaní. Preto obmedzuje
-vykonávanie spravované obmedzovačom, nie čas strávený v lokálnom fronte. Uplynutie časového limitu
-sa zobrazí ako dôveryhodný lokálny `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-predchádzajúci názov kódu časového limitu frontu sa akceptuje iba pre dôveryhodnú internú
-spätnú kompatibilitu. Predvolená hodnota je 15000ms; prepísať ju možno pomocou
-`RATE_LIMIT_MAX_WAIT_MS` (premenná prostredia) alebo na ovládacom paneli (**Nastavenia → Odolnosť**,
-horný limit používateľského rozhrania 1–30000ms). Pobyt vo fronte nemá žiadny časový limit; na
-obmedzenie počtu volajúcich vo fronte použite nižšie uvedené `maxQueueDepth`.
+**`maxWaitMs` obmedzuje čakanie vo fronte; `executionMaxWaitMs` obmedzuje vykonávanie.**
+Tieto dve hodnoty sú zámerne oddelené a žiadna z nich neovplyvňuje druhú.
+
+`resilienceSettings.requestQueue.maxWaitMs` je **rozpočet čakania vo fronte**:
+zahŕňa čakanie na slot poskytovateľa a následný pobyt v stave QUEUED, pričom
+jeho časovač sa zruší vo chvíli, keď úloha opustí stav QUEUED a začne sa
+vykonávať (`rateLimitManager.ts`, `wrappedFn`). Požiadavka, ktorá ho prekročí,
+sa nikdy nedostane k upstreamu. Predvolená hodnota je 30000ms, poskytuje ju
+`DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS` v `src/lib/resilience/settings.ts` a je
+ukotvená testom `tests/unit/ratelimit-admission-control-6593.test.ts`, takže
+jej zmena spôsobí zlyhanie tohto testu namiesto toho, aby tento odsek zostal
+nepozorovane neaktuálny.
+
+`resilienceSettings.requestQueue.executionMaxWaitMs` je hodnota, ktorú
+Bottleneck dostane ako `expiration` úlohy, pričom jej časovač sa spustí až po
+odoslaní na vykonanie. Slúži ako poistka pre vykonávacie mechanizmy bez
+vlastného časového limitu upstreamu a zvýši sa na vlastný časový limit
+vykonávacieho mechanizmu pre začatie fetch požiadavky, ak je tento limit
+dlhší, takže nemôže prerušiť zdravú prebiehajúcu odpoveď. Predvolená hodnota
+je 600000ms (10 min).
+
+Použitie rozpočtu frontu ako `expiration` v minulosti ukončovalo
+neinkrementálne brány uprostred spracovania — tie môžu oprávnene bežať celé
+minúty pred prijatím prvých bajtov — a preto sa expirácia oznamuje ako `code:
+"RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504), zatiaľ čo rozpočet frontu používa
+kód časového limitu frontu. Obe hodnoty možno prepísať prostredníctvom
+`RATE_LIMIT_MAX_WAIT_MS` / `RATE_LIMIT_EXECUTION_MAX_WAIT_MS` (premenné
+prostredia) alebo na ovládacom paneli (**Nastavenia → Odolnosť**). Pri
+normalizácii sú obe obmedzené na rozsah 1ms–24h.
+
+**Priorita pre obe hodnoty:** premenná prostredia poskytuje iba _predvolenú_
+hodnotu. Hodnota uložená v `resilienceSettings.requestQueue` (ovládací panel /
+oprava cez API, uložená v `key_value`) má pred ňou prednosť a hodnota
+`rateLimitOverrides.maxWaitMs` / `.executionMaxWaitMs` pre konkrétne
+pripojenie má prednosť aj pred ňou. Nastavenie premennej prostredia v nasadení,
+ktoré už má uloženú hodnotu, preto nič nezmení — namiesto toho uložené
+nastavenie vymažte alebo aktualizujte.
+
+Dĺžku pobytu vo fronte obmedzuje `maxWaitMs`; nižšie uvedené
+`maxQueueDepth` obmedzuje počet volajúcich, ktorí môžu byť súčasne vo fronte.
 
 **`maxQueueDepth` — voliteľný limit prijímania (novinka).** `resilienceSettings.requestQueue.maxQueueDepth`
-obmedzuje počet požiadaviek, ktoré môžu naraz čakať vo fronte (ešte neboli odoslané) pre jedného
-poskytovateľa a pripojenie. Keď už front obsahuje `maxQueueDepth`
-požiadaviek, nová požiadavka sa okamžite odmietne typovanou chybou
-`code: "RATE_LIMIT_QUEUE_FULL"` **predtým**, než sa vôbec dostane do `limiter.schedule()`
-— odmietnutie je preto nenáročné a nastane ešte pred akýmkoľvek následným
-spracovaním kompresie / prekladu promptu pre danú požiadavku. Predvolená hodnota `0` =
-vypnuté, čím sa zachová existujúce správanie neobmedzeného frontu; povolený rozsah je 0–100000.
-Prepísať ju možno pomocou `RATE_LIMIT_MAX_QUEUE_DEPTH` (premenná prostredia) alebo
-`resilienceSettings.requestQueue.maxQueueDepth` (ovládací panel/API patch).
+obmedzuje počet požiadaviek, ktoré môžu súčasne čakať vo fronte (ešte neboli
+odoslané na vykonanie) pre jednu kombináciu poskytovateľa a pripojenia. Keď už
+front obsahuje `maxQueueDepth` požiadaviek, nová požiadavka sa okamžite
+odmietne typovanou chybou `code: "RATE_LIMIT_QUEUE_FULL"` **predtým**, než sa
+vôbec dostane k `limiter.schedule()` — odmietnutie je tak nenáročné a nastane
+pred akoukoľvek následnou kompresiou promptu alebo prekladom danej požiadavky.
+Predvolená hodnota `0` = vypnuté, čím sa zachová existujúce správanie
+neobmedzeného frontu; povolený rozsah je 0–100000. Hodnotu možno prepísať
+prostredníctvom `RATE_LIMIT_MAX_QUEUE_DEPTH` (premenná prostredia) alebo
+`resilienceSettings.requestQueue.maxQueueDepth` (ovládací panel/oprava cez
+API).
 
 Samotná kontrola prijatia je čistá funkcia
 (`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`), takže
 ju možno jednotkovo testovať bez skutočného obmedzovača Bottleneck.
 
-> RFC, ktoré otvorilo #6593, navrhlo aj príznak `bypassCompressionOnRateLimit`.
-> Pipeline `open-sse/services/compression/` v tomto repozitári slúži na
-> kompresiu promptu/kontextu odchádzajúcej požiadavky LLM (`chatCore.ts`,
-> v okolí bloku `resolveCompressionSettings`/`selectCompressionStrategy`),
-> nie na kompresiu HTTP odpovedí syntetizovaných tiel 429 — pre doslovný príznak
-> obídenia neexistuje zodpovedajúca cesta kódom. Tento krok kompresie promptu
-> navyše momentálne prebieha _pred_ `withRateLimit()` v pipeline požiadavky, takže
-> zmena poradia s cieľom preskočiť ho pri odmietnutí z dôvodu plného frontu je samostatná a väčšia
-> zmena, než zahŕňa rozsah tohto problému; zámerne tu **nebola** implementovaná
-> a zostáva ako nadväzujúca úloha, ak úspora CPU stojí za riziko
-> zmeny poradia.
+> RFC, ktorý otvoril #6593, navrhoval aj príznak `bypassCompressionOnRateLimit`.
+> Reťazec spracovania v `open-sse/services/compression/` v tomto repozitári
+> zabezpečuje kompresiu promptu/kontextu v odchádzajúcej požiadavke na LLM
+> (`chatCore.ts`, v okolí bloku
+> `resolveCompressionSettings`/`selectCompressionStrategy`), nie kompresiu
+> odpovedí HTTP pri syntetizovaných telách odpovedí 429 — pre doslovný príznak
+> obídenia neexistuje zodpovedajúca cesta v kóde. Tento krok kompresie promptu
+> sa navyše v reťazci spracovania požiadavky momentálne vykonáva _pred_
+> `withRateLimit()`, takže zmena poradia s cieľom preskočiť ho pri odmietnutí
+> z dôvodu plného frontu je samostatnou a rozsiahlejšou zmenou, než je rozsah
+> tohto problému; zámerne tu **nebola** implementovaná a zostáva ako následná
+> úloha, ak úspora výkonu CPU stojí za riziko zmeny poradia.
 
 ---
 

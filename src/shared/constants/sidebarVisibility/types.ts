@@ -5,6 +5,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "api-manager",
   "endpoints",
   "providers",
+  "model-catalog",
   "embedded-services",
   "combos",
   "combos-live",

@@ -14,6 +14,15 @@ interface SubscriptionRecord {
   ruleProviders: string[] | null;
   localCoreEndpoint: string | null;
   updateIntervalMinutes: number;
+  controlUrl: string | null;
+  coreConfigPath: string | null;
+  coreReloadMode?: "api" | "command" | "external" | "undeclared" | null;
+  hasControlSecret: boolean;
+  selectorMinGapSeconds: number;
+  selectorLastSwitchAt: string | null;
+  selectorLastSwitchResult: string | null;
+  selectorLastSwitchMember: string | null;
+  selectorLastSwitchKind: string | null;
   lastFetchedAt: string | null;
   status: "ok" | "error" | "empty";
   error: string | null;
@@ -34,6 +43,10 @@ type FormState = {
   mode: "global" | "rule";
   ruleProviders: string[];
   localCoreEndpoint: string;
+  controlUrl: string;
+  coreConfigPath: string;
+  controlSecret: string;
+  selectorMinGapSeconds: number;
   updateIntervalMinutes: number;
   enabled: boolean;
 };
@@ -44,9 +57,29 @@ const EMPTY_FORM: FormState = {
   mode: "global",
   ruleProviders: [],
   localCoreEndpoint: "",
+  controlUrl: "",
+  coreConfigPath: "",
+  controlSecret: "",
+  selectorMinGapSeconds: 60,
   updateIntervalMinutes: 60,
   enabled: true,
 };
+
+/** Next possible switch from the persisted last-switch time + gap. Pure. */
+function nextSwitchLabel(
+  sub: {
+    selectorLastSwitchAt: string | null;
+    selectorMinGapSeconds: number;
+  },
+  nowMs: number = Date.now()
+): string {
+  if (!sub.selectorLastSwitchAt) return "now";
+  const at = Date.parse(sub.selectorLastSwitchAt);
+  if (!Number.isFinite(at)) return "now";
+  const next = at + Math.max(0, sub.selectorMinGapSeconds || 0) * 1000;
+  if (next <= nowMs) return "now";
+  return new Date(next).toISOString();
+}
 
 type SubscriptionsFetchResult = { items?: SubscriptionRecord[]; error?: string };
 
@@ -70,6 +103,22 @@ export default function SubscriptionTab() {
   const [error, setError] = useState<string | null>(null);
 
   const t = useTranslations("settings");
+
+  // Map a stored refusal kind to a generic display label. Unknown future
+  // kinds fall back to plain English so the UI never shows a raw code.
+  const switchKindLabel = useCallback(
+    (kind: string | null): string | null => {
+      if (!kind) return null;
+      try {
+        const label = t(`proxySubscription.switchKind.${kind}`);
+        if (label && !label.includes("switchKind.")) return label;
+      } catch {
+        // fall through to the generic fallback below
+      }
+      return kind.replace(/_/g, " ");
+    },
+    [t]
+  );
 
   // Resolve a subscription `error` value into a localized message. Values are
   // either a `{ code, detail? }` JSON (user-facing, i18n'd) or a plain
@@ -154,6 +203,10 @@ export default function SubscriptionTab() {
       mode: sub.mode,
       ruleProviders: sub.ruleProviders ?? [],
       localCoreEndpoint: sub.localCoreEndpoint ?? "",
+      controlUrl: sub.controlUrl ?? "",
+      coreConfigPath: sub.coreConfigPath ?? "",
+      controlSecret: "",
+      selectorMinGapSeconds: sub.selectorMinGapSeconds ?? 60,
       updateIntervalMinutes: sub.updateIntervalMinutes,
       enabled: sub.enabled,
     });
@@ -169,15 +222,19 @@ export default function SubscriptionTab() {
       if (form.mode === "rule" && form.ruleProviders.length === 0) {
         throw new Error(t("proxySubscription.ruleModeProviderRequired"));
       }
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: form.name.trim(),
         url: form.url.trim(),
         mode: form.mode,
         ruleProviders: form.mode === "rule" ? form.ruleProviders : null,
         localCoreEndpoint: form.localCoreEndpoint.trim() || null,
+        controlUrl: form.controlUrl.trim() || null,
+        coreConfigPath: form.coreConfigPath.trim() || null,
+        selectorMinGapSeconds: Number(form.selectorMinGapSeconds) || 60,
         updateIntervalMinutes: Number(form.updateIntervalMinutes) || 60,
         enabled: form.enabled,
       };
+      if (form.controlSecret.length > 0) payload.controlSecret = form.controlSecret;
       const res = editingId
         ? await fetch(`/api/v1/management/proxy-subscriptions/${editingId}`, {
             method: "PATCH",
@@ -249,6 +306,29 @@ export default function SubscriptionTab() {
       setBusyId(null);
     }
   };
+
+  // Last switch state comes from the subscription row columns (persisted by
+  // the trigger, surfaced by the list API) — the screen never calls the core
+  // at open time.
+  const describeSwitch = useCallback(
+    (sub: SubscriptionRecord): string | null => {
+      if (!sub.controlUrl) return null;
+      if (!sub.selectorLastSwitchAt) return t("proxySubscription.lastSwitchNever");
+      const result =
+        sub.selectorLastSwitchResult && sub.selectorLastSwitchResult !== "ok"
+          ? ` (${sub.selectorLastSwitchResult})`
+          : "";
+      const member = sub.selectorLastSwitchMember
+        ? ` · ${t("proxySubscription.lastSwitchMember")}: ${sub.selectorLastSwitchMember}`
+        : "";
+      const kindLabel = switchKindLabel(sub.selectorLastSwitchKind);
+      const kind = kindLabel ? ` · ${t("proxySubscription.lastSwitchKind")}: ${kindLabel}` : "";
+      const next = nextSwitchLabel(sub);
+      const nextText = next === "now" ? t("proxySubscription.nextSwitchNow") : next;
+      return `${t("proxySubscription.lastSwitch")}: ${sub.selectorLastSwitchAt}${result}${member}${kind} · ${t("proxySubscription.nextSwitch")}: ${nextText}`;
+    },
+    [t, switchKindLabel]
+  );
 
   const statusBadge: Record<SubscriptionRecord["status"], string> = {
     ok: "bg-green-500/15 text-green-600 border-green-500/30",
@@ -391,6 +471,67 @@ export default function SubscriptionTab() {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.controlUrl")}</span>
+              <input
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.controlUrl}
+                onChange={(e) => setForm({ ...form, controlUrl: e.target.value })}
+                placeholder={t("proxySubscription.controlUrlPlaceholder")}
+                inputMode="url"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.controlSecret")}</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.controlSecret}
+                onChange={(e) => setForm({ ...form, controlSecret: e.target.value })}
+                placeholder={t("proxySubscription.controlSecretPlaceholder")}
+              />
+              <span className="text-xs text-text-muted">
+                {editingId
+                  ? t("proxySubscription.controlSecretSaved")
+                  : t("proxySubscription.controlSecretNotSet")}
+              </span>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.coreConfigPath")}</span>
+              <input
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.coreConfigPath}
+                onChange={(e) => setForm({ ...form, coreConfigPath: e.target.value })}
+                placeholder={t("proxySubscription.coreConfigPathPlaceholder")}
+                inputMode="url"
+              />
+              <span className="text-xs text-text-muted">
+                {t("proxySubscription.coreConfigPathDesc")}
+              </span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">{t("proxySubscription.selectorMinGap")}</span>
+              <input
+                type="number"
+                min={0}
+                max={3600}
+                className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
+                value={form.selectorMinGapSeconds}
+                onChange={(e) =>
+                  setForm({ ...form, selectorMinGapSeconds: Number(e.target.value) || 0 })
+                }
+              />
+              <span className="text-xs text-text-muted">{t("proxySubscription.selectorHelp")}</span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
               <span className="text-text-muted">{t("proxySubscription.autoRefreshInterval")}</span>
               <input
                 type="number"
@@ -474,6 +615,16 @@ export default function SubscriptionTab() {
                   {resolveSubError(sub.error) && (
                     <p className="text-xs text-amber-600 mt-1 break-words">
                       {resolveSubError(sub.error)}
+                    </p>
+                  )}
+                  {describeSwitch(sub) && (
+                    <p className="text-xs text-text-muted mt-1">{describeSwitch(sub)}</p>
+                  )}
+                  {sub.coreConfigPath && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {t("proxySubscription.coreReloadAppliedBy", {
+                        mode: sub.coreReloadMode ?? "undeclared",
+                      })}
                     </p>
                   )}
                   {showCoreHint && (

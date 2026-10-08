@@ -281,10 +281,6 @@ function chainNodeIdFromHash(parentId: string, turnHash: string): string {
   return hashHex(`${parentId} ${turnHash}`);
 }
 
-function chainNodeId(parentId: string, turn: CanonicalTurn): string {
-  return chainNodeIdFromHash(parentId, hashTurnContent(turn));
-}
-
 interface NewTurnNode {
   id: string;
   parentId: string | null;

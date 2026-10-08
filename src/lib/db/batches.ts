@@ -319,7 +319,17 @@ export function markBatchItemError(
 
 export function listBatches(apiKeyId?: string, limit: number = 20, after?: string): BatchRecord[] {
   const db = getDbInstance();
-  const afterBatch = after ? getBatch(after) : null;
+  const resolvedAfterBatch = after ? getBatch(after) : null;
+  // #14481 item 5/LEDGER-20: `getBatch()` applies no owner filter, so an
+  // `after` cursor belonging to a DIFFERENT tenant used to still resolve and
+  // its `created_at` was used as the pagination bound — an existence +
+  // timestamp oracle for another tenant's batch. When this call IS
+  // owner-scoped (`apiKeyId` set), treat a foreign-owned cursor exactly like
+  // an unknown one (ignore it) instead of trusting its timestamp.
+  const afterBatch =
+    apiKeyId && resolvedAfterBatch && resolvedAfterBatch.apiKeyId !== apiKeyId
+      ? null
+      : resolvedAfterBatch;
   let rows: any[];
   if (apiKeyId) {
     if (afterBatch) {

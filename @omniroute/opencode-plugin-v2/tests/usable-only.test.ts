@@ -1,19 +1,31 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import type { CatalogDraft } from "@opencode-ai/plugin/v2/promise";
-import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
 import { publishCatalog } from "../src/catalog.js";
 import { parsePluginOptions } from "../src/options.js";
+type BetaDraft = {
+  provider: {
+    list?: () => unknown[];
+    get?: (id: string) => unknown;
+    update: (id: string, fn: (p: Record<string, any>) => void) => void;
+    remove?: () => void;
+  };
+  model: {
+    get?: (...a: string[]) => unknown;
+    update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => void;
+    remove?: () => void;
+    default?: { get: () => undefined; set: () => void };
+  };
+};
 
-function fakeDraft(): { models: Map<string, ModelV2Info>; draft: CatalogDraft } {
-  const providers = new Map<string, ProviderV2Info>();
-  const models = new Map<string, ModelV2Info>();
+function fakeDraft(): { models: Map<string, Record<string, any>>; draft: BetaDraft } {
+  const providers = new Map<string, Record<string, any>>();
+  const models = new Map<string, Record<string, any>>();
   const draft = {
     provider: {
       list: () => [],
       get: (id: string) => providers.get(id) as never,
-      update: (id: string, fn: (p: ProviderV2Info) => void) => {
-        const p = (providers.get(id) ?? { id }) as ProviderV2Info;
+      update: (id: string, fn: (p: Record<string, any>) => void) => {
+        const p = (providers.get(id) ?? { id }) as Record<string, any>;
         fn(p);
         providers.set(id, p);
       },
@@ -21,16 +33,16 @@ function fakeDraft(): { models: Map<string, ModelV2Info>; draft: CatalogDraft } 
     },
     model: {
       get: () => undefined,
-      update: (pid: string, mid: string, fn: (m: ModelV2Info) => void) => {
+      update: (pid: string, mid: string, fn: (m: Record<string, any>) => void) => {
         const k = pid + "/" + mid;
-        const m = (models.get(k) ?? { id: mid, providerID: pid }) as ModelV2Info;
+        const m = (models.get(k) ?? { id: mid, providerID: pid }) as Record<string, any>;
         fn(m);
         models.set(k, m);
       },
       remove: () => {},
       default: { get: () => undefined, set: () => {} },
     },
-  } as CatalogDraft;
+  };
   return { models, draft };
 }
 
@@ -94,6 +106,7 @@ describe("catalog usableOnly gating", () => {
     );
     assert.equal(providersCalls, 0);
     assert.equal(res.models, 3);
+    assert.deepEqual(res, { models: 3, combos: 0 });
     assert.ok(models.has("omniroute/cc/keep-me"));
     assert.ok(models.has("omniroute/dead/drop-me"));
   });
@@ -159,6 +172,7 @@ describe("catalog usableOnly gating", () => {
       }
     );
     assert.equal(res.combos, 1);
+    assert.deepEqual(res, { models: 1, combos: 1 });
     assert.ok(models.has("omniroute/good"));
     assert.ok(!models.has("omniroute/bad"));
   });
@@ -169,9 +183,6 @@ describe("catalog usableOnly gating", () => {
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
       seen.push(href);
-      if (href.includes("/api/combos/auto")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/combos")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
@@ -179,7 +190,7 @@ describe("catalog usableOnly gating", () => {
         ok: true,
         status: 200,
         statusText: "OK",
-        json: async () => ({ data: [{ id: "m1" }] }),
+        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
       };
     }) as typeof fetch;
     const guard = silence();
@@ -190,11 +201,16 @@ describe("catalog usableOnly gating", () => {
       const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
       await plugin.setup({
         options: { baseURL: "https://gw.example.com", providerId: "usable-gate" },
-        catalog: {
-          transform: (cb: (draft: unknown) => Promise<void>) => {
-            catalogCallbacks.push(cb);
+        provider: {
+          transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+            catalogCallbacks.push(async () => {
+              cb({ add: () => {} });
+            });
             return Promise.resolve({ dispose: async () => {} });
           },
+        },
+        model: {
+          transform: () => Promise.resolve({ dispose: async () => {} }),
         },
         integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
       });
@@ -214,9 +230,93 @@ describe("catalog usableOnly gating", () => {
         !seen.some((href) => href.includes("/api/providers")),
         `no providers fetch expected, got: ${JSON.stringify(seen)}`
       );
+      assert.ok(
+        !seen.some((href) => new URL(href).pathname === "/api/combos/auto"),
+        `retired route must never be requested, got: ${JSON.stringify(seen)}`
+      );
     } finally {
       globalThis.fetch = origFetch;
       guard.restore();
     }
   });
+
+  // The default publishes the full catalog; toolsOnly: true is the opt-in filter (owner
+  // decision 2026-10-07, reverting the #14554 default). Both paths run through setup.
+  for (const [label, toolsOnly, expectPlain] of [
+    ["toolsOnly default keeps models without tool calling through setup", undefined, true],
+    ["toolsOnly: true drops models without tool calling through setup", true, false],
+  ] as const) {
+    it(label, async () => {
+      const origFetch = globalThis.fetch;
+      globalThis.fetch = (async (url: unknown) => {
+        const href = String(url);
+        if (href.includes("/api/combos/auto")) {
+          return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+        }
+        if (href.includes("/api/combos")) {
+          return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+        }
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: async () => ({
+            data: [{ id: "m-tools", capabilities: { tool_calling: true } }, { id: "m-plain" }],
+          }),
+        };
+      }) as typeof fetch;
+      const guard = silence();
+      const { mkdtempSync } = await import("node:fs");
+      const { tmpdir } = await import("node:os");
+      const { join } = await import("node:path");
+      const prevDataDir = process.env.OPENCODE_DATA_DIR;
+      process.env.OPENCODE_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-toolsdrop-"));
+      try {
+        const plugin = (await import("../src/index.js")).default as unknown as {
+          setup: (ctx: unknown) => Promise<void>;
+        };
+        const added: unknown[] = [];
+        const catalogCallbacks: Array<(draft: unknown) => Promise<void>> = [];
+        await plugin.setup({
+          options: {
+            baseURL: "https://gw.example.com",
+            providerId: "tools-drop",
+            apiKey: "k",
+            ...(toolsOnly === undefined ? {} : { toolsOnly }),
+          },
+          provider: {
+            transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
+              catalogCallbacks.push(async () => {
+                cb({
+                  add: (input: unknown) => {
+                    added.push(input);
+                  },
+                });
+              });
+              return Promise.resolve({ dispose: async () => {} });
+            },
+          },
+          model: {
+            transform: () => Promise.resolve({ dispose: async () => {} }),
+          },
+          integration: { transform: () => Promise.resolve({ dispose: async () => {} }) },
+        });
+        const { draft } = fakeDraft();
+        await catalogCallbacks[0](draft as never);
+        const dumped = JSON.stringify(added);
+        assert.ok(added.length > 0, `expected a published catalog, got: ${dumped}`);
+        assert.ok(dumped.includes("m-tools"), `expected the tool-capable model, got: ${dumped}`);
+        assert.equal(
+          dumped.includes("m-plain"),
+          expectPlain,
+          `expected the plain model ${expectPlain ? "kept" : "dropped"}, got: ${dumped}`
+        );
+      } finally {
+        if (prevDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
+        else process.env.OPENCODE_DATA_DIR = prevDataDir;
+        globalThis.fetch = origFetch;
+        guard.restore();
+      }
+    });
+  }
 });

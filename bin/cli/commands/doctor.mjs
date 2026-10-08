@@ -11,7 +11,7 @@ import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import { readDatabaseHealth, readEncryptedCredentialSamples } from "../sqlite.mjs";
 import { getCrashLogPath } from "../runtime/processSupervisor.mjs";
-
+import { prebuiltBinaryName } from "../runtime/nativeDeps.mjs";
 const STATIC_SALT = "omniroute-field-encryption-v1";
 const KEY_LENGTH = 32;
 const CHECK_TIMEOUT_MS = 2000;
@@ -292,28 +292,13 @@ async function checkNodeRuntime(rootDir) {
 }
 
 /**
- * Name of the prebuilt binary better-sqlite3 ships for this platform, e.g.
- * `linux-x64.node`. Musl-based Linux uses a distinct `linuxmusl-` prefix.
- * Mirrors the lookup `prebuild-install`/`node-gyp-build` perform at require time.
+ * Name of the prebuilt binary better-sqlite3 ships for this platform.
+ * Canonical definition now lives in nativeDeps.mjs (#14355 — doctor and
+ * `runtime check` used to each implement their own binary-layout detection
+ * and could disagree on the same install); re-exported here so existing
+ * imports of `prebuiltBinaryName` from this module keep working.
  */
-export function prebuiltBinaryName(
-  platform = process.platform,
-  arch = process.arch,
-  report = process.report
-) {
-  let prefix = platform;
-  if (platform === "linux") {
-    let isMusl = false;
-    try {
-      // glibc builds expose `glibcVersionRuntime`; musl builds do not.
-      isMusl = !report?.getReport?.()?.header?.glibcVersionRuntime;
-    } catch {
-      isMusl = false;
-    }
-    prefix = isMusl ? "linuxmusl" : "linux";
-  }
-  return `${prefix}-${arch}.node`;
-}
+export { prebuiltBinaryName };
 
 async function checkNativeBinary(rootDir) {
   // node-gyp layout — present only when better-sqlite3 was compiled locally.

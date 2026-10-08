@@ -1,27 +1,30 @@
 # Account-Ban / Banned-Keyword Detection (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../security/BAN_DETECTION.md) · 🇪🇹 [am](../../../am/docs/security/BAN_DETECTION.md) · 🇸🇦 [ar](../../../ar/docs/security/BAN_DETECTION.md) · 🇦🇿 [az](../../../az/docs/security/BAN_DETECTION.md) · 🇧🇬 [bg](../../../bg/docs/security/BAN_DETECTION.md) · 🇧🇩 [bn](../../../bn/docs/security/BAN_DETECTION.md) · 🇧🇦 [bs](../../../bs/docs/security/BAN_DETECTION.md) · 🇨🇿 [cs](../../../cs/docs/security/BAN_DETECTION.md) · 🇩🇰 [da](../../../da/docs/security/BAN_DETECTION.md) · 🇩🇪 [de](../../../de/docs/security/BAN_DETECTION.md) · 🇬🇷 [el](../../../el/docs/security/BAN_DETECTION.md) · 🇪🇸 [es](../../../es/docs/security/BAN_DETECTION.md) · 🇪🇪 [et](../../../et/docs/security/BAN_DETECTION.md) · 🇮🇷 [fa](../../../fa/docs/security/BAN_DETECTION.md) · 🇫🇮 [fi](../../../fi/docs/security/BAN_DETECTION.md) · 🇫🇷 [fr](../../../fr/docs/security/BAN_DETECTION.md) · 🇮🇪 [ga](../../../ga/docs/security/BAN_DETECTION.md) · 🇮🇳 [gu](../../../gu/docs/security/BAN_DETECTION.md) · 🇳🇬 [ha](../../../ha/docs/security/BAN_DETECTION.md) · 🇮🇱 [he](../../../he/docs/security/BAN_DETECTION.md) · 🇮🇳 [hi](../../../hi/docs/security/BAN_DETECTION.md) · 🇭🇷 [hr](../../../hr/docs/security/BAN_DETECTION.md) · 🇭🇺 [hu](../../../hu/docs/security/BAN_DETECTION.md) · 🇦🇲 [hy](../../../hy/docs/security/BAN_DETECTION.md) · 🇮🇩 [id](../../../id/docs/security/BAN_DETECTION.md) · 🇳🇬 [ig](../../../ig/docs/security/BAN_DETECTION.md) · 🇮🇹 [it](../../../it/docs/security/BAN_DETECTION.md) · 🇯🇵 [ja](../../../ja/docs/security/BAN_DETECTION.md) · 🇬🇪 [ka](../../../ka/docs/security/BAN_DETECTION.md) · 🇰🇭 [km](../../../km/docs/security/BAN_DETECTION.md) · 🇮🇳 [kn](../../../kn/docs/security/BAN_DETECTION.md) · 🇰🇷 [ko](../../../ko/docs/security/BAN_DETECTION.md) · 🇱🇹 [lt](../../../lt/docs/security/BAN_DETECTION.md) · 🇱🇻 [lv](../../../lv/docs/security/BAN_DETECTION.md) · 🇮🇳 [ml](../../../ml/docs/security/BAN_DETECTION.md) · 🇮🇳 [mr](../../../mr/docs/security/BAN_DETECTION.md) · 🇲🇾 [ms](../../../ms/docs/security/BAN_DETECTION.md) · 🇲🇹 [mt](../../../mt/docs/security/BAN_DETECTION.md) · 🇲🇲 [my](../../../my/docs/security/BAN_DETECTION.md) · 🇳🇵 [ne](../../../ne/docs/security/BAN_DETECTION.md) · 🇳🇱 [nl](../../../nl/docs/security/BAN_DETECTION.md) · 🇳🇴 [no](../../../no/docs/security/BAN_DETECTION.md) · 🇮🇳 [or](../../../or/docs/security/BAN_DETECTION.md) · 🇮🇳 [pa](../../../pa/docs/security/BAN_DETECTION.md) · 🇵🇭 [phi](../../../phi/docs/security/BAN_DETECTION.md) · 🇵🇱 [pl](../../../pl/docs/security/BAN_DETECTION.md) · 🇵🇹 [pt](../../../pt/docs/security/BAN_DETECTION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/security/BAN_DETECTION.md) · 🇷🇴 [ro](../../../ro/docs/security/BAN_DETECTION.md) · 🇷🇺 [ru](../../../ru/docs/security/BAN_DETECTION.md) · 🇱🇰 [si](../../../si/docs/security/BAN_DETECTION.md) · 🇸🇰 [sk](../../../sk/docs/security/BAN_DETECTION.md) · 🇸🇮 [sl](../../../sl/docs/security/BAN_DETECTION.md) · 🇷🇸 [sr](../../../sr/docs/security/BAN_DETECTION.md) · 🇸🇪 [sv](../../../sv/docs/security/BAN_DETECTION.md) · 🇰🇪 [sw](../../../sw/docs/security/BAN_DETECTION.md) · 🇮🇳 [ta](../../../ta/docs/security/BAN_DETECTION.md) · 🇮🇳 [te](../../../te/docs/security/BAN_DETECTION.md) · 🇹🇭 [th](../../../th/docs/security/BAN_DETECTION.md) · 🇹🇷 [tr](../../../tr/docs/security/BAN_DETECTION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/security/BAN_DETECTION.md) · 🇵🇰 [ur](../../../ur/docs/security/BAN_DETECTION.md) · 🇺🇿 [uz](../../../uz/docs/security/BAN_DETECTION.md) · 🇻🇳 [vi](../../../vi/docs/security/BAN_DETECTION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/security/BAN_DETECTION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/security/BAN_DETECTION.md)
 
 ---
 
-OmniRoute máa ń ṣàyẹ̀wò àwọn ìdáhùn àṣìṣe láti ọ̀dọ̀ àwọn olupèsè upstream fún àwọn àmì tó ń fi hàn pé
-**àkọọ́lẹ̀ olupèsè kan ti kú pátápátá** (a ti dá a dúró / a ti mú un kúrò ní ṣíṣiṣẹ́ / a ti fòfin dè é nítorí ToS), àti pé, nígbà tí
-àmì kan bá bá a mu, yóò gbé ìsopọ̀ náà sínú **ipò ìkẹyìn `banned`** kí a má bàa
-yan án mọ́ fún àwọn ìbéèrè. Èyí ni ohun tí káàdì ààtò **Ààbò → Àwọn Ọ̀rọ̀ Kókó Tí A Fòfin Dè**
-ń ṣètò ("Àwọn ọ̀rọ̀ kókó àfikún tí ń fa ìṣàwárí ìfòfindè àkọọ́lẹ̀ pátápátá.
-Àwọn ọ̀rọ̀ kókó tí a kọ sínú rẹ̀ láti ìbẹ̀rẹ̀ máa ń lò ní gbogbo ìgbà.").
+OmniRoute máa ń ṣàyẹ̀wò àwọn ìdáhùn àṣìṣe láti upstream fún àwọn àmì tó ń tọ́ka sí i pé
+**àkọọ́lẹ̀ olupèsè ti kú títí láé** (a ti dá a dúró / a ti mú un kúrò níṣiṣẹ́ / a ti fòfin dè é nítorí ToS), àti pé, nígbà tí
+àmì bá bá a mu, ó máa ń gbé àsopọ̀ náà sínú **ipò ìparí `banned`** kí a má bàa
+yan án mọ́ fún àwọn ìbéèrè. Èyí ni ohun tí káàdì ètò **Security → Banned Keywords**
+ń ṣètò ("Àwọn ọ̀rọ̀ àmì àfikún tí ń fa ìṣàwárí ìfòfindè àkọọ́lẹ̀ títí láé.
+Àwọn ọ̀rọ̀ àmì tí a fi sínú ètò tẹ́lẹ̀ máa ń ṣiṣẹ́ ní gbogbo ìgbà.").
 
-Ojú-ewé yìí ṣàkọsílẹ̀ àtòjọ tí a kọ sínú rẹ̀ láti ìbẹ̀rẹ̀, bí ìṣàwárí náà ṣe ń ṣiṣẹ́, ààlà rẹ̀, bí a ṣe lè fi
-àwọn ọ̀rọ̀ kókó àdáni kún un láìléwu, àti bí a ṣe lè mú ìsopọ̀ tí a ti sàmì sí padà bọ̀ sípò. Ipò ìkẹyìn
+Ojú-ìwé yìí ṣàkọsílẹ̀ àtòjọ tí a fi sínú ètò tẹ́lẹ̀, ìṣàn ìṣàwárí náà, ààlà iṣẹ́ rẹ̀, bí a ṣe lè fi
+àwọn ọ̀rọ̀ àmì àdáni kún un láìléwu, àti bí a ṣe lè mú àsopọ̀ tí a ti fi àmì sí padà bọ̀ sípò. Ipò ìparí
 náà fúnra rẹ̀ jẹ́ apá kan àwòṣe ìfaradà — wo
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Àwọn ipò ìkẹyìn").
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Àwọn ipò ìparí").
 
 **Orísun òtítọ́:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+pẹ̀lú `open-sse/services/errorClassifier.ts` fún ẹ̀ka ìjẹ́rìísí tí kì í ṣe ti ìparí
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) àti fún
+ẹ̀ka 403 tó ń lò ó.
 
-## Àwọn ọ̀rọ̀ kókó tí a kọ sínú rẹ̀ láti ìbẹ̀rẹ̀
+## Àwọn ọ̀rọ̀ pàtàkì tí a ti kọ́ sínú ètò
 
-Àwọn ọ̀rọ̀ abẹ́-okùn mẹ́jọ wọ̀nyí máa ń lò ní gbogbo ìgbà (láìka bóyá lẹ́tà ńlá tàbí kékeré), láìka àtòjọ àdáni èyíkéyìí sí:
+Àwọn ọ̀wọ́-ọ̀rọ̀ kékeré 7 wọ̀nyí máa ń ṣiṣẹ́ nígbà gbogbo (láìka bí lẹ́tà ṣe tóbi tàbí kékeré sí), láìka àkójọ àdáni èyíkéyìí sí:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Àtòjọ yìí máa ń yí padà bí àwọn olupèsè ṣe ń yí ọ̀nà tí wọ́n fi ń sọ ìfòfindè padà. Ẹ̀dà
-> aláṣẹ ni `ACCOUNT_DEACTIVATED_SIGNALS` nínú `open-sse/services/accountFallback.ts`;
-> ka búlọ́ọ̀kù òkè yìí sí àwòrán ìgbà kan.
+> Àkójọ yìí máa ń yí padà bí àwọn olùpèsè ṣe ń yí ọ̀nà tí wọ́n fi ń sọ ìdènà padà. Ẹ̀dà
+> àṣẹ ni `ACCOUNT_DEACTIVATED_SIGNALS` nínú `open-sse/services/accountFallback.ts`;
+> ka àkọsílẹ̀ òkè yìí sí àwòrán-ìgbà-díẹ̀ kan.
 
-Àwọn tábìlì àmì méjì tó wà lẹ́gbẹ̀ẹ́ ara wọn, tí wọ́n sì **yàtọ̀**, wà nínú fáìlì kan náà, wọn kò sì jẹ́ apá
-ìṣàwárí ọ̀rọ̀ kókó ìfòfindè:
+### Kì í ṣe ìdènà: àwọn ìbéèrè ìmúdájú tí olùdarí lè gbé ìgbésẹ̀ lórí
 
-- `CREDITS_EXHAUSTED_SIGNALS` — owó ìsanwó/ìpín ti tán (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → ipò ìkẹyìn `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **kì í ṣe ipò ìkẹyìn**; ìsọ̀tun token lè mú un padà bọ̀ sípò.
+`verify your account to continue` **wà tẹ́lẹ̀** nínú àkójọ òkè. Kì í ṣe àmì
+ìdènà, ó sì ti wà nínú `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` báyìí, èyí tí a pín sí
+`PROJECT_ROUTE_ERROR` tí a lè gba padà dípò kí ó fopin sí ìsopọ̀ náà.
 
-Àkíyèsí: àwọn gbólóhùn ìgbà díẹ̀ tó wọ́pọ̀ bí **`rate limit`** / `429` ni ipa-ọ̀nà
-ààlà-oṣùwọ̀n / ìsinmi-ìsopọ̀ ń bójú tó, wọn kò sì jẹ́ àwọn àmì ìfòfindè.
+Google Cloud Code / Antigravity máa ń dá a padà gẹ́gẹ́ bí `403 VALIDATION_REQUIRED`. Ó jẹ́
+**ti ìgbà díẹ̀, ó sì máa ń ṣẹlẹ̀ lórí àwọn àkọọ́lẹ̀ tó ní ìlera, tí wọ́n sì ní ìpín-lílò kíkún** — gẹ́gẹ́ bí a ṣe wọn lórí
+ìfiranṣẹ́-ṣiṣẹ́ abẹ́lé kan (2026-09-25, `proxy_logs`): ìsopọ̀ Antigravity kan dá 33 nínú àwọn
+403 wọ̀nyí padà láàárín ìṣẹ́jú 10, ó sì dúró ní `active`, nígbà tí ìsopọ̀ mìíràn tó jọ ọ́, tó ní 100 % ti
+ìpín-lílò rẹ̀ lórí gbogbo àwọn fèrèsé 17, ni a dènà títí láé nípasẹ̀ ọ̀kan **ṣoṣo**. Ìyàtọ̀ kan ṣoṣo
+ni ìgbìyànjú wo ni olupin ṣẹ̀ṣẹ̀ dáhùn sí.
+
+Ìyàtọ̀ náà ṣe pàtàkì nítorí ìbámu tó ń fopin sí ìsopọ̀ jẹ́ `permanent: true` (àkókò ìdádúró ọdún 1,
+kì í gba ara rẹ̀ padà láìfọwọ́sí), nígbà tí olùdarí lè yanjú ìbéèrè ìmúdájú nínú aṣàwákiri.
+Fífi gbólóhùn náà sílẹ̀ nínú àkójọ ìdènà tún mú kí ẹ̀ka cloud-code 403 tí a lè gba padà nínú
+`classifyProviderError` má ṣeé dé fún ọ̀rọ̀ yìí, nítorí pé `accountDeactivated` ni
+a kọ́kọ́ ṣàyẹ̀wò — nítorí náà, ìmúpadàbọ̀sípò ipa-ọ̀nà iṣẹ́-àkànṣe tí a ṣàfikún fún Gemini Code Assist nínú
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) àti
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) kò lè ṣiṣẹ́ láé.
+
+Àwọn tábìlì àmì mẹ́ta tó wà lẹ́gbẹ̀ẹ́ ara wọn, tí wọ́n sì jẹ́ **ọ̀tọ̀ọ̀tọ̀**, kì í ṣe apá kan ìṣàwárí ọ̀rọ̀-pàtàkì ìdènà:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — owó ìsanwó/ìpín-lílò ti tán (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` tó ń fopin sí ìsopọ̀.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **kì í fopin sí ìsopọ̀**; ìtúnṣe token lè mú un padà.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **kì í fopin sí ìsopọ̀**; olùdarí gbọ́dọ̀
+  tún àkọọ́lẹ̀ náà mú dájú lọ́dọ̀ olùpèsè. Ó wà nínú `open-sse/services/errorClassifier.ts`
+  (àwọn méjì yòókù wà nínú `accountFallback.ts`). Wo abala òkè.
+
+Àkíyèsí: àwọn gbólóhùn ìgbà-díẹ̀ tó wọ́pọ̀ bí **`rate limit`** / `429` ni a ń bójú tó nípasẹ̀
+ipa-ọ̀nà ààlà-oṣùwọ̀n / àkókò ìdádúró ìsopọ̀, wọn kì í sì í ṣe àwọn àmì ìdènà.
 
 ## Bí ìṣàwárí ṣe ń ṣiṣẹ́
 

@@ -1,57 +1,57 @@
 # Admission lanes (#9654) — two lane systems, what gates each, where each reports (Yorùbá)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../architecture/admission-lanes.md) · 🇪🇹 [am](../../../am/docs/architecture/admission-lanes.md) · 🇸🇦 [ar](../../../ar/docs/architecture/admission-lanes.md) · 🇦🇿 [az](../../../az/docs/architecture/admission-lanes.md) · 🇧🇬 [bg](../../../bg/docs/architecture/admission-lanes.md) · 🇧🇩 [bn](../../../bn/docs/architecture/admission-lanes.md) · 🇧🇦 [bs](../../../bs/docs/architecture/admission-lanes.md) · 🇨🇿 [cs](../../../cs/docs/architecture/admission-lanes.md) · 🇩🇰 [da](../../../da/docs/architecture/admission-lanes.md) · 🇩🇪 [de](../../../de/docs/architecture/admission-lanes.md) · 🇬🇷 [el](../../../el/docs/architecture/admission-lanes.md) · 🇪🇸 [es](../../../es/docs/architecture/admission-lanes.md) · 🇪🇪 [et](../../../et/docs/architecture/admission-lanes.md) · 🇮🇷 [fa](../../../fa/docs/architecture/admission-lanes.md) · 🇫🇮 [fi](../../../fi/docs/architecture/admission-lanes.md) · 🇫🇷 [fr](../../../fr/docs/architecture/admission-lanes.md) · 🇮🇪 [ga](../../../ga/docs/architecture/admission-lanes.md) · 🇮🇳 [gu](../../../gu/docs/architecture/admission-lanes.md) · 🇳🇬 [ha](../../../ha/docs/architecture/admission-lanes.md) · 🇮🇱 [he](../../../he/docs/architecture/admission-lanes.md) · 🇮🇳 [hi](../../../hi/docs/architecture/admission-lanes.md) · 🇭🇷 [hr](../../../hr/docs/architecture/admission-lanes.md) · 🇭🇺 [hu](../../../hu/docs/architecture/admission-lanes.md) · 🇦🇲 [hy](../../../hy/docs/architecture/admission-lanes.md) · 🇮🇩 [id](../../../id/docs/architecture/admission-lanes.md) · 🇳🇬 [ig](../../../ig/docs/architecture/admission-lanes.md) · 🇮🇹 [it](../../../it/docs/architecture/admission-lanes.md) · 🇯🇵 [ja](../../../ja/docs/architecture/admission-lanes.md) · 🇬🇪 [ka](../../../ka/docs/architecture/admission-lanes.md) · 🇰🇭 [km](../../../km/docs/architecture/admission-lanes.md) · 🇮🇳 [kn](../../../kn/docs/architecture/admission-lanes.md) · 🇰🇷 [ko](../../../ko/docs/architecture/admission-lanes.md) · 🇱🇹 [lt](../../../lt/docs/architecture/admission-lanes.md) · 🇱🇻 [lv](../../../lv/docs/architecture/admission-lanes.md) · 🇮🇳 [ml](../../../ml/docs/architecture/admission-lanes.md) · 🇮🇳 [mr](../../../mr/docs/architecture/admission-lanes.md) · 🇲🇾 [ms](../../../ms/docs/architecture/admission-lanes.md) · 🇲🇹 [mt](../../../mt/docs/architecture/admission-lanes.md) · 🇲🇲 [my](../../../my/docs/architecture/admission-lanes.md) · 🇳🇵 [ne](../../../ne/docs/architecture/admission-lanes.md) · 🇳🇱 [nl](../../../nl/docs/architecture/admission-lanes.md) · 🇳🇴 [no](../../../no/docs/architecture/admission-lanes.md) · 🇮🇳 [or](../../../or/docs/architecture/admission-lanes.md) · 🇮🇳 [pa](../../../pa/docs/architecture/admission-lanes.md) · 🇵🇭 [phi](../../../phi/docs/architecture/admission-lanes.md) · 🇵🇱 [pl](../../../pl/docs/architecture/admission-lanes.md) · 🇵🇹 [pt](../../../pt/docs/architecture/admission-lanes.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/admission-lanes.md) · 🇷🇴 [ro](../../../ro/docs/architecture/admission-lanes.md) · 🇷🇺 [ru](../../../ru/docs/architecture/admission-lanes.md) · 🇱🇰 [si](../../../si/docs/architecture/admission-lanes.md) · 🇸🇰 [sk](../../../sk/docs/architecture/admission-lanes.md) · 🇸🇮 [sl](../../../sl/docs/architecture/admission-lanes.md) · 🇷🇸 [sr](../../../sr/docs/architecture/admission-lanes.md) · 🇸🇪 [sv](../../../sv/docs/architecture/admission-lanes.md) · 🇰🇪 [sw](../../../sw/docs/architecture/admission-lanes.md) · 🇮🇳 [ta](../../../ta/docs/architecture/admission-lanes.md) · 🇮🇳 [te](../../../te/docs/architecture/admission-lanes.md) · 🇹🇭 [th](../../../th/docs/architecture/admission-lanes.md) · 🇹🇷 [tr](../../../tr/docs/architecture/admission-lanes.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/admission-lanes.md) · 🇵🇰 [ur](../../../ur/docs/architecture/admission-lanes.md) · 🇺🇿 [uz](../../../uz/docs/architecture/admission-lanes.md) · 🇻🇳 [vi](../../../vi/docs/architecture/admission-lanes.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/admission-lanes.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/admission-lanes.md)
 
 ---
 
 OmniRoute ní àwọn ètò lane abẹ́lé-process **méjì** tí ìwọ̀n iṣẹ́ wọn yàtọ̀. Wọ́n ń ṣiṣẹ́ pọ̀ láti mú ara wọn pé; ó yẹ kí àwọn olùṣàkóso mọ èyí tí wọ́n ń wò.
 
-## 1. Ìfàyègba káàkiri process ní ìpele byte (`chatBodyAdmission.ts`)
+## 1. Ìgbàwọlé jálẹ̀ gbogbo process ní ìpele byte (`chatBodyAdmission.ts`)
 
-- **Ìwọ̀n iṣẹ́:** ipa-ọ̀nà buffered-body/heap fún `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses`, àti àwọn route mìíràn tó ní ìrísí chat. Ó ń
-  dáàbò bo lòdì sí ìfẹ̀síwájú heap láti ara body àwọn coding-agent ńlá (#4380).
+- **Ààlà:** ipa-ọ̀nà buffered-body/heap fún `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses`, àti àwọn route mìíràn tó ní ìrísí chat. Ó ń dáàbò bo
+  lòdì sí ìmúgbòòrò heap láti ara body ńlá ti coding-agent (#4380).
 - **Controller kan ṣoṣo fún gbogbo process, kì í ṣe lane ọ̀tọ̀ fún key kọ̀ọ̀kan (#10110).** Gbogbo API key
-  (tí a ti hash) tàbí session `anonymous` ni a ń gbà wọlé ní ìbámu pẹ̀lú budget
-  àjọpín **kan náà** — hashed session id ni a lò NÌKAN gẹ́gẹ́ bí key fún scheduling
-  tó ṣe déédéé (round-robin dispatch láàárín àwọn tó ń dúró), kì í ṣe gẹ́gẹ́ bí shard
-  capacity rárá. Ẹ̀yà ìṣáájú doc yìí ṣàpèjúwe lane ọ̀tọ̀ fún key kọ̀ọ̀kan pẹ̀lú
-  capacity olómìnira; a yọ model yẹn kúrò nínú #10110 nítorí pé ó ń jẹ́ kí
-  credential èké tí kò ní authentication lè mú ààlà gbogbo process pọ̀ sí i.
-- **Ẹnu-ọ̀nà (#503-fanout): budget BYTE ingest tí a ń ṣírò láìfọwọ́ṣe, kì í ṣe iye request
-  tí a ti dì mọ́lẹ̀.** Ààlà iye request `CHAT_MAX_HEAVY_IN_FLIGHT` àtijọ́ (default `1`
-  ṣáájú àtúnṣe yìí) mú fan-out coding-agent (ọ̀pọ̀ subagent/CLI,
-  àwọn body tí ó sábà máa ń tóbi ju 256 KB lọ) ṣubú sí concurrency tó fẹ́rẹ̀ẹ́ jẹ́ ~1,
-  èyí tó ń fa 503 lábẹ́ load tó jẹ́ ti ìṣàmúlò déédéé pátápátá. Ní báyìí, ó máa ń
-  ṣiṣẹ́ gẹ́gẹ́ bí ààlà nígbà tí olùṣàkóso bá ṣètò
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ní tààrà nìkan. Tí a kò bá ṣètò rẹ̀, a ó
-  dí ìfàyègba dípò rẹ̀ nípasẹ̀ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budget tí a
-  ṣírò láìfọwọ́ṣe láti inú ààlà memory gidi ti process náà
-  (`src/shared/middleware/admissionBudget.ts`): 25% ti èyí tó kéré jù láàárín
-  ààlà heap V8 àti ààlà cgroup/container èyíkéyìí, tí a pín sí factor
-  transient-amplification 8x, tí a sì fi mọ́ àárín 8 MiB àti 2 GiB. Àwọn override
-  tí a ṣètò ní tààrà ń lo clamp kan náà. Èyí ń mú ara rẹ̀ bá asekale mu láti
-  container 512 MB dé desktop 32 GB láìsí àtúnṣe env kankan. Body tí kò lè
-  wọ inú effective budget máa kùnà lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `413 body_exceeds_budget`;
-  ìdíje láàárín àwọn body tí a lè bójú tó lọ́kọ̀ọ̀kan nìkan ló máa ń wọ queue
-  fairness tó ní ààlà. Tracker resource-pressure oní-signal púpọ̀ tó ń ṣiṣẹ́
-  lọ́wọ́lọ́wọ́ (ratio heap V8, cgroup, PSI, àwọn event OOM —
-  `open-sse/utils/resourcePressurePolicy.ts`) ń dín àkókò ìdúró tó ní ààlà kù
-  lábẹ́ pressure `high`, ó sì ń kọ request sílẹ̀ lẹ́sẹ̀kẹsẹ̀ pẹ̀lú
-  `503 resource_pressure` lábẹ́ pressure `critical`, kí a tó ingest byte kankan
-  rárá.
-- **Àtúnṣe ìṣètò:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override fún byte budget tí a ṣírò láìfọwọ́ṣe
+  (tí a ti hash) tàbí session `anonymous` ni a ń gbà wọlé lábẹ́ budget kan náà tí gbogbo wọn
+  ń pín — session id tí a ti hash ni a ń lò NÌKAN gẹ́gẹ́ bí key ìṣètò ìdájọ́ òdodo (round-robin
+  dispatch láàárín àwọn olùdúró), kì í ṣe gẹ́gẹ́ bí capacity shard rárá. Ẹ̀dà ìṣáájú ti doc yìí
+  ṣàpèjúwe lane ọ̀tọ̀ fún key kọ̀ọ̀kan pẹ̀lú capacity olómìnira; a yọ model yẹn kúrò
+  ní #10110 nítorí pé ó jẹ́ kí credential èké tí a kò authenticate lè sọ ààlà
+  jálẹ̀ gbogbo process di púpọ̀.
+- **Gate (#503-fanout): budget BYTE fún ingest tí a ń ṣe àyọkúrò rẹ̀ láìfọwọ́ṣe, kì í ṣe iye request
+  tí a ti fi dúró.** Ààlà iye request àtijọ́ `CHAT_MAX_HEAVY_IN_FLIGHT` (default `1`
+  ṣáájú àtúnṣe yìí) mú fan-out coding-agent wó lulẹ̀ (ọ̀pọ̀ subagent/CLI,
+  tí body wọn sábà máa ń ju 256 KB lọ) sí concurrency tó fẹ́rẹ̀ẹ́ jẹ́ ~1, èyí tó ń dá
+  503 padà lábẹ́ load tó bófin mu pátápátá. Ní báyìí, ó máa ń di ààlà nígbà tí operator bá ṣètò
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` ní kedere nìkan. Tí a kò bá ṣètò rẹ̀, dídáwọ̀lé máa ń jẹ́
+  dídènà dípò bẹ́ẹ̀ nípasẹ̀ `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — budget tí a ń ṣe àyọkúrò rẹ̀
+  láìfọwọ́ṣe láti inú ààlà memory gidi ti process náà (`src/shared/middleware/admissionBudget.ts`):
+  25% ti èyí tó le jù láàárín ààlà V8 heap àti ààlà cgroup/container èyíkéyìí,
+  tí a pín pẹ̀lú transient-amplification factor 8x, tí a sì fi ààlà sí láàárín 8 MiB àti
+  2 GiB. Override tí a ṣètò ní kedere ń lo ààlà kan náà. Èyí ń mú ìwọ̀n ara rẹ̀ bá
+  container 512 MB títí dé desktop 32 GB mu láìsí yíyí env padà. Body tí kò lè
+  wọ inú budget tó wúlò yóò kuna lẹ́sẹ̀kẹsẹ̀ pẹ̀lú `413 body_exceeds_budget`;
+  ìjà fún resource láàárín àwọn body tí ọ̀kọ̀ọ̀kan lè ṣiṣẹ́ ni nìkan ni yóò wọ queue
+  ìdájọ́ òdodo tó ní ààlà. Tracker resource-pressure ọlọ́pọ̀-signal tó ń ṣiṣẹ́ ní àsìkò gidi (ìpín V8 heap,
+  cgroup, PSI, àwọn ìṣẹ̀lẹ̀ OOM — `open-sse/utils/resourcePressurePolicy.ts`) ń dín
+  àkókò ìdúró tó ní ààlà kù lábẹ́ pressure `high`, ó sì ń yọ load kúrò lẹ́sẹ̀kẹsẹ̀ pẹ̀lú
+  `503 resource_pressure` lábẹ́ pressure `critical`, kí a tó ingest byte kankan pàápàá.
+  A ń ka PSI láti inú `memory.pressure` cgroup ti unit yìí nígbà tó bá wà
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` jẹ́ ti gbogbo
+  host, a sì ń lò ó gẹ́gẹ́ bí fallback nìkan lórí bare metal / cgroup v1, nítorí náà host
+  tó ń swap kò lè mú kí container tí kò ṣiṣẹ́ dá 503 padà.
+- **Àtúnṣe ètò:**
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — override fún budget byte tí a ṣe àyọkúrò rẹ̀ láìfọwọ́ṣe
   - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — ààlà iye request àtijọ́, opt-in nìkan
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ìdúró queue ṣáájú 503 (default 2000)
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — ìdúró nínú queue kí 503 tó wáyé (default rẹ̀ ni `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — valve heap fún byte inú queue (default 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — kò yẹ kí a lò mọ́,
-    wọn kò sì ṣe ohunkóhun láti #10110 (a ń gbà wọ́n fún compatibility config, ṣùgbọ́n a ń kọbi ara sí wọn)
-- **Àwọn ìròyìn:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — pẹ̀lú
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — a ti sọ wọ́n di àtijọ́,
+    wọn kò sì ṣe ohunkóhun láti #10110 (a gba wọn fún ìbámu config, ṣùgbọ́n a foju kọ wọn)
+- **Àwọn ìròyìn:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — tó fi mọ́
   àwọn àfikún #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, àti `countCapEnabled`
-  (false lórí deployment default — èyí ń jẹ́rìí pé byte budget, kì í ṣe ààlà
-  iye àtijọ́, ni ó ń ṣiṣẹ́ gẹ́gẹ́ bí ààlà ní ti gidi).
+  (false lórí deployment default — èyí fi ìdí rẹ̀ múlẹ̀ pé budget byte, kì í ṣe ààlà
+  iye àtijọ́, ni ó ń di ààlà ní ti gidi).
 
 ## 2. Àwọn ọ̀nà foju àkókò-ṣiṣẹ́ tó ń ṣe àtúnṣe ara wọn (`open-sse/services/admission`)
 

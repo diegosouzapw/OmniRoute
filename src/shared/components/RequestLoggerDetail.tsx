@@ -9,13 +9,14 @@ import {
   getProtocolColor,
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
-import { formatErrorForDisplay } from "@/shared/utils/formatting";
+import { formatErrorForDisplay, formatReasoningStat } from "@/shared/utils/formatting";
 import { useTheme } from "@/shared/hooks/useTheme";
 import {
   useTimestampTitles,
   timestampMarkerCustomizeNode,
 } from "@/shared/hooks/useTimestampTitles";
 import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
+import { CallContentProvenanceBadges } from "@/shared/components/CallContentProvenanceBadges";
 import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
 import {
   PayloadSection,
@@ -23,6 +24,7 @@ import {
   buildPipelinePayloadSections,
   isBodySizeLimitOmission,
 } from "@/shared/components/RequestLoggerDetail.sections";
+import { getResilienceBadges } from "@/shared/components/requestLoggerResilience";
 
 // ─── Copy-all composition ────────────────────────────────────────────────────
 // Compose every visible payload section + stream chunk into a single block so
@@ -359,6 +361,9 @@ export default function RequestLoggerDetail({
   onSelectRelated,
 }) {
   const t = useTranslations("requestLogger.detail");
+  // #13130: the grid's TTFT column label doubles as the detail-tile label
+  // (the key already ships in every locale under requestLogger.columns).
+  const tColumns = useTranslations("requestLogger.columns");
   const locale = useLocale();
   const modalScrollRef = useRef(null);
   // Close on Escape key
@@ -534,6 +539,7 @@ export default function RequestLoggerDetail({
     cacheRead: detail?.tokens?.cacheRead ?? log.tokens?.cacheRead,
     cacheWrite: detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite,
     reasoning: detail?.tokens?.reasoning ?? log.tokens?.reasoning,
+    reasoningChars: detail?.reasoningChars ?? log.reasoningChars,
     compressed: detail?.tokens?.compressed ?? log.tokens?.compressed,
   };
 
@@ -545,6 +551,11 @@ export default function RequestLoggerDetail({
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
+  // resilience badges (flag alone decides, whatever the status).
+  const resilienceBadges = getResilienceBadges(
+    log.resilienceActions || detail?.resilienceActions || null,
+    (key, values) => t(key as never, values as never)
+  );
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
@@ -675,6 +686,16 @@ export default function RequestLoggerDetail({
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
+              <div className="min-w-[100px] flex-1">
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  {t("addedWait")}
+                </div>
+                <div className="text-sm font-medium">
+                  {typeof log.addedWaitMs === "number" && log.addedWaitMs > 0
+                    ? `${formatDuration(log.addedWaitMs)}${log.addedWaitCause ? ` (${log.addedWaitCause})` : ""}`
+                    : "—"}
+                </div>
+              </div>
               <div className="min-w-[140px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                   {t("model")}
@@ -732,6 +753,17 @@ export default function RequestLoggerDetail({
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
+              {typeof log.ttft === "number" && log.ttft > 0 && (
+                <div>
+                  <div
+                    className="text-[10px] text-text-muted uppercase tracking-wider mb-1"
+                    title={`${tColumns("ttft")}: time to first forwarded stream token; generation ran for ${formatDuration(Math.max(0, (log.duration || 0) - log.ttft))} (#13130)`}
+                  >
+                    {tColumns("ttft")}
+                  </div>
+                  <div className="text-sm font-medium">{formatDuration(log.ttft)}</div>
+                </div>
+              )}
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                   {t("input")}
@@ -782,7 +814,7 @@ export default function RequestLoggerDetail({
                     {t("totalOut", { value: formatTokenValue(tokenStats.totalOut) })}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
-                    {t("reasoning", { value: formatTokenValue(tokenStats.reasoning) })}
+                    {t("reasoning", { value: formatReasoningStat(tokenStats, t) })}
                   </span>
                 </div>
               </div>
@@ -838,7 +870,16 @@ export default function RequestLoggerDetail({
                 >
                   {cacheSourceLabel}
                 </span>
+                {resilienceBadges.map((badge) => (
+                  <span key={badge.key} title={badge.title}>
+                    {badge.label}
+                  </span>
+                ))}
               </div>
+              <CallContentProvenanceBadges
+                hasContent={detail?.hasContent ?? log.hasContent}
+                usageProvenance={detail?.usageProvenance ?? log.usageProvenance}
+              />
               {(detail?.modelPinned || log.modelPinned) && (
                 <div>
                   <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">

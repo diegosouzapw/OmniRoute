@@ -60,12 +60,6 @@ const AGGRESSIVE_SCHEMA: EngineConfigField[] = [
     min: 0,
     max: 1,
   },
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
 ];
 
 const ULTRA_SCHEMA: EngineConfigField[] = [
@@ -111,17 +105,7 @@ const ULTRA_SCHEMA: EngineConfigField[] = [
     min: 0,
     max: 32768,
   },
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
 ];
-
-function ok(): EngineValidationResult {
-  return { valid: true, errors: [] };
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -211,16 +195,9 @@ function validateUltraConfig(config: Record<string, unknown>): EngineValidationR
   return { valid: errors.length === 0, errors };
 }
 
-// Lite only honors `preserveSystemPrompt` (model/vision are runtime, not user config).
-// Previously this engine wrongly exposed AGGRESSIVE_SCHEMA, surfacing irrelevant
-// summarizer/threshold fields in the per-engine config UI.
+// Lite exposes only the tool-truncation controls. System-prompt preservation is a
+// global settings-level flag (not tunable per engine), so it must not appear here.
 const LITE_SCHEMA: EngineConfigField[] = [
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
   {
     key: "compressToolResults",
     type: "boolean",
