@@ -1,4 +1,4 @@
-// 198 creates agent_sessions; 199 links usage_history rows to it. They are separate files because
+// 208 creates agent_sessions; 209 links usage_history rows to it. They are separate files because
 // the runner records a file as applied when an ALTER hits "duplicate column name" and rolls the
 // rest of that file back: a database that already has the column must still get the table.
 import test from "node:test";
@@ -12,10 +12,10 @@ const repoMigrations = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../../src/lib/db/migrations"
 );
-const MIGRATION_FILES = ["198_agent_sessions.sql", "199_usage_history_agent_session_id.sql"];
+const MIGRATION_FILES = ["208_agent_sessions.sql", "209_usage_history_agent_session_id.sql"];
 const scratchDir = process.env.DATA_DIR || path.resolve("_artifacts/tests");
 fs.mkdirSync(scratchDir, { recursive: true });
-const migrationsDir = fs.mkdtempSync(path.join(scratchDir, "omniroute-migration-198-"));
+const migrationsDir = fs.mkdtempSync(path.join(scratchDir, "omniroute-migration-208-"));
 for (const file of MIGRATION_FILES) {
   fs.copyFileSync(path.join(repoMigrations, file), path.join(migrationsDir, file));
 }
@@ -67,7 +67,7 @@ test("an older database gains agent_sessions and usage_history.agent_session_id;
     assert.ok(tableExists(db, "agent_sessions"));
     assert.ok(usageColumns(db).includes("agent_session_id"));
     assert.equal(runMigrations(db, { isNewDb: true }), 0);
-    assert.deepEqual(appliedVersions(db), ["198", "199"]);
+    assert.deepEqual(appliedVersions(db), ["208", "209"]);
   } finally {
     db.close();
   }
@@ -79,7 +79,33 @@ test("a database that already has the column still gets the agent_sessions table
     assert.equal(runMigrations(db, { isNewDb: true }), 2);
     assert.ok(tableExists(db, "agent_sessions"));
     assert.equal(usageColumns(db).filter((name) => name === "agent_session_id").length, 1);
-    assert.deepEqual(appliedVersions(db), ["198", "199"]);
+    assert.deepEqual(appliedVersions(db), ["208", "209"]);
+  } finally {
+    db.close();
+  }
+});
+
+test("209 does not duplicate the (api_key_id, timestamp) index that 051 already creates", () => {
+  const db = openDb(false);
+  try {
+    // 051_hot_path_db_indexes already ships this exact index on every install.
+    db.exec(
+      "CREATE INDEX idx_usage_history_api_key_id_timestamp ON usage_history(api_key_id, timestamp)"
+    );
+    runMigrations(db, { isNewDb: true });
+    const indexes = db.prepare("PRAGMA index_list(usage_history)").all() as Array<{ name: string }>;
+    const sameColumns = indexes.filter((index) => {
+      const columns = (
+        db.prepare(`PRAGMA index_info(${JSON.stringify(index.name)})`).all() as Array<{
+          name: string;
+        }>
+      ).map((column) => column.name);
+      return columns.join(",") === "api_key_id,timestamp";
+    });
+    assert.deepEqual(
+      sameColumns.map((index) => index.name),
+      ["idx_usage_history_api_key_id_timestamp"]
+    );
   } finally {
     db.close();
   }

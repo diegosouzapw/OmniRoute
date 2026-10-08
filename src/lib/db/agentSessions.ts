@@ -1,5 +1,5 @@
 /**
- * Agent sessions: one aggregate row per coding-agent session (see 198_agent_sessions.sql).
+ * Agent sessions: one aggregate row per coding-agent session (see 208_agent_sessions.sql).
  * Written from inside saveRequestUsage's transaction, so a usage row and its session counters
  * always move together and dedup no-ops never double count.
  */

@@ -876,12 +876,22 @@ export interface UsageEntry {
   agentContext?: AgentContext | null;
 }
 
-/** Upsert the request's agent session inside the caller's transaction; null when it has none. */
+/**
+ * Upsert the request's agent session inside the caller's transaction; null when it has none.
+ * Session attribution is best-effort: a failure here (e.g. agent_sessions missing) must never
+ * drop the usage_history row, so it degrades to an unattributed row instead of throwing.
+ */
 function recordAgentSession(
   db: Parameters<typeof recordAgentSessionUsage>[0],
   usage: AgentSessionUsage | null
 ): string | null {
-  return usage ? recordAgentSessionUsage(db, usage) : null;
+  if (!usage) return null;
+  try {
+    return recordAgentSessionUsage(db, usage);
+  } catch (error) {
+    console.warn("Failed to record agent session; saving the usage row without it:", error);
+    return null;
+  }
 }
 
 /** Session counters for this request, priced now so reports keep the price at request time. */
@@ -894,11 +904,19 @@ async function buildAgentSessionUsage(
   if (!hasAgentIdentity(entry.agentContext)) return null;
   const provider = entry.provider ? resolveProviderId(entry.provider) : null;
   const model = entry.model || null;
-  const { costUsd, priced } = await calculateCostDetailed(provider || "", model || "", tokens, {
-    provider,
-    model,
-    serviceTier,
-  });
+  let pricing: { costUsd: number; priced: boolean };
+  try {
+    pricing = await calculateCostDetailed(provider || "", model || "", tokens, {
+      provider,
+      model,
+      serviceTier,
+    });
+  } catch (error) {
+    // Pricing only feeds the session counters; never let it drop the usage_history row.
+    console.warn("Failed to price agent session usage; saving the usage row without it:", error);
+    return null;
+  }
+  const { costUsd, priced } = pricing;
   return {
     context: entry.agentContext,
     apiKeyId: entry.apiKeyId || null,
