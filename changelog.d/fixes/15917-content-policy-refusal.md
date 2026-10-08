@@ -1,0 +1,1 @@
+- **fix(resilience):** Keep structured content-policy refusals request-scoped: preserve their public error codes, avoid account cooldowns, and stop combo retries/fallback without bypassing the provider's refusal ([#15917](https://github.com/diegosouzapw/OmniRoute/pull/15917)) — thanks @insoln.
