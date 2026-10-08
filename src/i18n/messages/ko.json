@@ -989,7 +989,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "예산이 소진된 요청을 긴급 무료 폴백 제공자/모델로 라우팅합니다.",
   "featureFlagArenaEloSyncEnabledDescription": "모델 지능 순위를 위해 주기적인 Arena AI 리더보드 ELO 동기화를 활성화합니다.",
   "featureFlagUniversalContextHandoffEnabledDescription": "콤보 라우팅에서 모델을 전환할 때 대화 요약을 생성하여 삽입합니다. 모델 전환을 서로 독립적으로 처리하고 기존 및 향후 모든 콤보에 대한 백그라운드 핸드오프 요청을 방지하려면 비활성화하세요.",
-  "featureFlagReasoningReplayEnabledDescription": "__MISSING__:Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
+  "featureFlagReasoningReplayEnabledDescription": "여러 턴의 대화에서 모델의 추론을 캐시하고 재생합니다. 추론 저장 및 재주입을 중지하려면 비활성화하세요.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models에서 Claude Code 게이트웨이 모델 검색 목록에 비Claude 모델이 포함되도록 claude/&lt;provider&gt;/&lt;model&gt; 미러 ID를 광고합니다. 경고: 전역적으로 활성화하면 모든 클라이언트에 대해 카탈로그 항목이 두 배로 증가합니다.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 게이트웨이 별칭의 마스터 스위치입니다. 켜짐(기본값): /v1/models는 조건에 맞는 모든 사고 가능 Claude 모델에 대해 사고 비활성화 변형을 표시하며, 요청에 전송된 no-think/ id는 추론이 억제된 실제 모델로 해석됩니다. 꺼짐: 변형이 표시되지 않으며 no-think/ id는 다른 알 수 없는 모델 id와 동일하게 처리됩니다. 이 기능이 켜져 있는 동안에도 모델별 ModelSpec.noThinkingAlias 옵트인/옵트아웃이 적용됩니다.",
   "featureFlagChatVirtualLanesEnabledDescription": "공급자 디스패치를 위해 테넌트별 적응형 가상 승인 레인을 활성화합니다(#9654): 한 테넌트의 폭증이 더 이상 다른 테넌트에 503을 반환하지 않습니다. OMNIROUTE_CHAT_VIRTUAL_LANES 환경 변수가 이 대시보드 설정보다 우선하며, 변경 사항은 서버 재시작 시 적용됩니다.",

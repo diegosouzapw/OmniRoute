@@ -989,7 +989,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "將預算耗盡的請求路由到緊急免費備用提供者/模型。",
   "featureFlagArenaEloSyncEnabledDescription": "啟用定期 Arena AI 排行榜 ELO 同步，用於模型智慧排名。",
   "featureFlagUniversalContextHandoffEnabledDescription": "當組合路由切換模型時，產生並注入對話摘要。停用後，模型切換將各自獨立處理，並防止所有現有及未來的組合發出背景交接請求。",
-  "featureFlagReasoningReplayEnabledDescription": "__MISSING__:Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
+  "featureFlagReasoningReplayEnabledDescription": "在多輪對話中快取並重播模型推理。停用以停止儲存與重新注入推理。",
   "featureFlagExposeCcDiscoveryAliasesDescription": "在 /v1/models 上廣告 claude/&lt;provider&gt;/&lt;model&gt; 鏡像 ID，以便 Claude Code 閘道模型發現列出非 Claude 模型。警告：當全域啟用時，會為所有客戶端重複目錄條目。",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 閘道別名的主開關。開啟（預設）：/v1/models 會為每個符合資格且支援思考的 Claude 模型提供不思考變體，而請求中傳送的 no-think/ ID 會解析回實際模型並抑制推理。關閉：不會提供任何變體，且 no-think/ ID 會像其他未知模型 ID 一樣處理。開啟此選項時，每個模型的 ModelSpec.noThinkingAlias 選擇加入／退出設定仍然適用。",
   "featureFlagChatVirtualLanesEnabledDescription": "為提供者調度啟用按租戶的自適應虛擬准入通道（#9654）：一個租戶的突發流量不再導致另一個租戶收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 環境變數優先於此儀表板設定；變更在伺服器重新啟動後生效。",
