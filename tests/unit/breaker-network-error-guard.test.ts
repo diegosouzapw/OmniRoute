@@ -13,6 +13,7 @@ import {
 import { PROVIDER_PROFILES } from "../../open-sse/config/constants.ts";
 import { describeBridgeLoadFailure } from "../../open-sse/utils/chatgptWebFirstParty.ts";
 import { classifyProviderProbeResult } from "../../src/sse/handlers/providerProbeClassification.ts";
+import { shouldSkipConnDisable } from "../../open-sse/services/combo/comboPredicates.ts";
 
 // Network-layer errors and OmniRoute's own queue timeouts must NOT trip the
 // provider circuit breaker. These are not provider failures — the provider never
@@ -143,6 +144,18 @@ test("an acquired HALF_OPEN probe that hits a ChatGPT Web bridge failure does no
   // Other providers keep the ordinary upstream policy for the same 502.
   assert.equal(classifyProviderProbeResult(result, "openai"), "failure");
   assert.equal(classifyProviderProbeResult({ result }, "chatgpt-web"), "ignore");
+});
+
+test("a ChatGPT Web bridge failure never disables the connection (single-model and combo)", () => {
+  const result = {
+    status: 502,
+    errorCode: null,
+    errorType: null,
+    error: new Error("ChatGPT Web first-party challenge bridge is incomplete"),
+  };
+  assert.equal(shouldSkipConnDisable(result, false, false, "chatgpt-web"), true);
+  // Same synthetic 502 from another provider keeps the ordinary account policy.
+  assert.equal(shouldSkipConnDisable(result, false, false, "openai"), false);
 });
 
 test("isCombo=true prevents breaker trip regardless of error", () => {
