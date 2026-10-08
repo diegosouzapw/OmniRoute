@@ -293,11 +293,11 @@ OpenCode session/UA headers (`opencodeFreeTierContract.ts`) or expect the 403.
 
 ### The pause is armed only for non-contract shapes (#14977)
 
-That TTL skip is **provider-global and in-process**, so arming it on a thin or synthetic
-request parked the whole keyless provider for every later caller. Keyless `opencode` has no
-keyed connections, so there was no other path to fall back to: one thin refusal blacked out
-every subsequent contract-shaped request — including the native CLI's own shape, which would
-have been served — for the full TTL.
+That TTL skip is **in-process and keyed by provider + refused model** (#15443), so arming it
+on a thin or synthetic request parked that keyless model for every later caller. Keyless
+`opencode` has no keyed connections, so there was no other path to fall back to: one thin
+refusal blacked out every subsequent contract-shaped request for that model — including the
+native CLI's own shape, which would have been served — for the full TTL.
 
 The arm site in `open-sse/handlers/chatCore.ts` now hands the refused request to
 `armOpencodeFreeTierSkipAfterRefusal()` (`open-sse/executors/opencodeFreeTierContract.ts`),
@@ -313,7 +313,7 @@ carry the client contract. `carriesFreeTierRequestContract()` requires all three
    half anyway, and the upstream checks each header independently).
 
 A contract-shaped refusal is a per-shape verdict and is handled by the per-shape retry
-(`open-sse/executors/opencodeFreeTierRetry.ts`); it arms no provider pause and keeps the anti-repick-loop bound.
+(`open-sse/executors/opencodeFreeTierRetry.ts`); it arms no pause and keeps the anti-repick-loop bound.
 The read site (`src/sse/services/auth.ts`) is deliberately unchanged — it has no request
 context, so shape is not plumbed through the four account-selection call sites.
 

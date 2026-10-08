@@ -412,12 +412,14 @@ export function armOpencodeFreeTierSkipAfterRefusal(
   statusCode: number,
   message: string | null | undefined,
   rawClientBody: unknown,
-  clientHeaders?: Record<string, string> | null
+  clientHeaders?: Record<string, string> | null,
+  model?: string | null
 ): void {
   if (connectionId !== "noauth") return;
   if (!isOpencodeFreeTierRefusalForProvider(provider, statusCode, message ?? null)) return;
   if (carriesFreeTierRequestContract(rawClientBody, clientHeaders)) return;
-  noteOpencodeFreeTierSkip(provider);
+  // #15443: pause only the refused model so its siblings stay eligible.
+  noteOpencodeFreeTierSkip(provider, Date.now(), undefined, model);
 }
 
 /**

@@ -134,6 +134,8 @@ test("the arm site gates the pause behind the predicate (#14977 regression guard
     "the pause must be judged on the RAW client body, not the contract-processed one"
   );
   assert.match(window, /getExecutorClientHeaders\(\)/, "headers must come from the client");
+  // #15443: the pause is per refused model; the arm site must keep passing it.
+  assert.match(window, /targetModel/, "the refused model must reach the pause (#15443)");
   assert.doesNotMatch(
     window,
     /noteOpencodeFreeTierSkip\(/,
@@ -210,4 +212,25 @@ test("a foreign provider echoing the refusal is out of scope", () => {
     model: "gpt-5",
   });
   assert.equal(isOpencodeFreeTierSkipped("openai"), false);
+});
+
+test("a thin refusal for one model pauses only that model, not its siblings (#15443)", () => {
+  clearOpencodeFreeTierSkips();
+  const now = Date.now();
+  armOpencodeFreeTierSkipAfterRefusal(
+    "noauth",
+    "opencode",
+    REFUSAL_STATUS,
+    REFUSAL_MESSAGE,
+    { model: "big-pickle", messages: [] },
+    { "user-agent": "curl/8.5.0" },
+    "big-pickle"
+  );
+  assert.equal(isOpencodeFreeTierSkipped("opencode", now, "big-pickle"), true);
+  assert.equal(
+    isOpencodeFreeTierSkipped("opencode", now, "grok-code"),
+    false,
+    "a sibling model must stay eligible"
+  );
+  clearOpencodeFreeTierSkips();
 });

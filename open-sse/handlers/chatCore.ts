@@ -3532,16 +3532,16 @@ async function handleChatCoreInner({
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) -- not banning`
           );
-
+          // #14313/#14977: short per-model keyless pause, unless the request carried the contract.
           armOpencodeFreeTierSkipAfterRefusal(
             errorConnectionId,
             provider,
             statusCode,
             message,
             clientRawRequest?.body ?? body,
-            getExecutorClientHeaders()
+            getExecutorClientHeaders(),
+            targetModel
           );
-
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
           // Google regional refusal: account-independent, non-terminal; park the connection
           // until egress uses a supported region; probes skip the day-long cooldown (#9817).
