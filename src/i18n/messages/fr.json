@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Ajouter une référence de combinaison",
     "builderPinnedAccount": "Compte épinglé",
     "builderLegacyEntry": "Ancienne entrée",
+    "builderStaleModel": "Absent du catalogue en direct",
     "reviewName": "Nom",
     "reviewStrategy": "Stratégie",
     "reviewSteps": "Étapes",

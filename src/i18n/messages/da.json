@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Tilføj kombinationsreference",
     "builderPinnedAccount": "Fastgjort konto",
     "builderLegacyEntry": "Ældre post",
+    "builderStaleModel": "Ikke i live-kataloget",
     "reviewName": "Navn",
     "reviewStrategy": "Strategi",
     "reviewSteps": "Trin",

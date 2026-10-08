@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Añadir referencia de combo",
     "builderPinnedAccount": "Cuenta fijada",
     "builderLegacyEntry": "Entrada heredada",
+    "builderStaleModel": "No está en el catálogo en vivo",
     "reviewName": "Nombre",
     "reviewStrategy": "Estrategia",
     "reviewSteps": "Pasos",
