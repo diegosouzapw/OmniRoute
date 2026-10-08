@@ -548,7 +548,7 @@
     "open-sse/handlers/chatCore/streamingResponse.ts": 1308,
     "_rebaseline_2026_10_07_14976_codex_images_api": "PR #14976 own growth: open-sse/handlers/imageGeneration.ts 3396->3397 (+1 net). Import of the new codexImages provider module plus the early dispatch of Codex GPT Image models to the dedicated /images API inside handleCodexImageGeneration; the request/response logic lives in imageGeneration/providers/codexImages.ts. Measured with split(\"\\n\").length after merging tip 26d48292.",
     "open-sse/handlers/imageGeneration.ts": 3397,
-    "open-sse/handlers/search.ts": 1805,
+    "open-sse/handlers/search.ts": 1819,
     "open-sse/mcp-server/schemas/tools.ts": 1621,
     "open-sse/mcp-server/server.ts": 1572,
     "open-sse/services/accountFallback.ts": 2522,
@@ -607,7 +607,8 @@
     "open-sse/handlers/responseSanitizer.ts": 1215,
     "src/lib/usage/usageHistory.ts": 1227,
     "open-sse/services/claudeCodeCompatible.ts": 1245,
-    "_rebaseline_2026_10_07_15481_turn_pin_failover": "PR #15481 (JxnLexn) own growth, measured with split(\"\\n\").length after merging release/v3.8.52: src/sse/services/auth.ts 3668->3678 (+10 = the keyPolicyDeniesTarget guard in getProviderCredentials as Prettier prints it plus its 3-line rationale, and the extra condition on the #13832 403 branch). An allowed-but-inactive account is unavailable, not an API-key permission denial. Covered by tests/unit/sse-auth.test.ts and tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts."
+    "_rebaseline_2026_10_07_15481_turn_pin_failover": "PR #15481 (JxnLexn) own growth, measured with split(\"\\n\").length after merging release/v3.8.52: src/sse/services/auth.ts 3668->3678 (+10 = the keyPolicyDeniesTarget guard in getProviderCredentials as Prettier prints it plus its 3-line rationale, and the extra condition on the #13832 403 branch). An allowed-but-inactive account is unavailable, not an API-key permission denial. Covered by tests/unit/sse-auth.test.ts and tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts.",
+    "_rebaseline_2026_10_07_14292_kimi_search": "#14292: open-sse/handlers/search.ts +14 — 3 lines register kimi-search (import, request builder, normalizer); the other 11 are lint-staged prettier wrapping two pre-existing >100-col signatures (clampSearchTimeoutMs, tryDuckDuckGoFreeProvider) that any commit touching the file reformats. Provider logic lives in handlers/search/kimiSearch.ts."
   },
   "_rebaseline_2026_09_15_roundrobin_dashboard_events": "Fix #13089 (Combo Studio Live dashboard shows an empty backlog for round-robin combos): open-sse/services/combo/roundRobinCombo.ts 1205->1213. Round-robin is the only combo strategy that bypasses handleComboChat/executeTargetAttempt.ts, the path that publishes the combo.target.attempt/succeeded/failed EventBus events the Live dashboard listens for — so round-robin completions never showed up. The new call-site wiring (createRRDashboardEvents(...) instantiated once per target, one-line .attempt()/.succeeded()/.failed() calls at the 6 existing dispatch/outcome points) is the emitter logic actually extracted into a new module, open-sse/services/combo/rrDashboardEvents.ts — this is the minimum irreducible footprint for wiring 6 required call sites into 6 fixed control-flow points of the frozen file. Covered by tests/unit/issue-13089-roundrobin-live-ws-events.test.ts (2 tests: success + failure paths).",
   "_rebaseline_base_2026_08_10_proxyfetch": "Base-red fix (green-prs sweep, issue #9985): open-sse/utils/proxyFetch.ts 1207 > cap 1000 — new proxied-TLS fetch helper introduced by the Fal reference-image work. Owner-authorized quick rebaseline to green; structural slim tracked for v3.9.0.",
