@@ -21,6 +21,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "block-auto-5192-test
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 type ModelsResponseBody = { data: Array<{ id: string }> };
@@ -51,6 +52,17 @@ test.after(async () => {
 });
 
 test("#5192 baseline: built-in auto/* combos are listed when Auto is not blocked", async () => {
+  // Combos with zero candidates are filtered from the catalog — seed providers
+  // so auto/best-coding + auto/coding materialize with a non-empty pool.
+  for (const provider of ["openai", "anthropic", "gemini", "groq", "deepseek", "mistral"]) {
+    await providersDb.createProviderConnection({
+      provider,
+      authType: "apikey",
+      apiKey: `sk-test-5192-${provider}`,
+      name: `test-5192-${provider}`,
+      isActive: true,
+    });
+  }
   const ids = await getIds();
   assert.ok(ids.has("auto/best-coding"), "auto/best-coding should be listed by default");
   assert.ok(ids.has("auto/coding"), "auto/coding should be listed by default");

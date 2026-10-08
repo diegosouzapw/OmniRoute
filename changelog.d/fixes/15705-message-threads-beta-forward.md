@@ -1,0 +1,1 @@
+- fix(claude): forward the client-negotiated `message-threads-2026-08-12` beta so Claude Code's top-level `thread` field is accepted upstream (#15705)

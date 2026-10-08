@@ -28,6 +28,7 @@ import {
   formatCachePercentage,
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
+import { mergeLogFilterOptions } from "@/shared/utils/logFilterOptions";
 import { buildLogTpsTitle, computeLogTps } from "@/shared/utils/logTps";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import {
@@ -197,6 +198,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
     const loadMoreSentinelRef = useRef(null);
     const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
+    const [serverFilterOptions, setServerFilterOptions] = useState(null);
     const visibleRef = useRef(true);
     // Set when handlePrev/handleNext hits the edge of the (possibly stale —
     // list polling pauses while a detail modal is open) in-memory list, so we
@@ -311,6 +313,17 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
       fetch("/api/provider-nodes")
         .then((r) => (r.ok ? r.json() : { nodes: [] }))
         .then((d) => setProviderNodes(d.nodes || []))
+        .catch(() => {});
+    }, []);
+
+    // Dropdown options come from the whole call_logs table + configured API keys, not
+    // just the loaded page — otherwise a value with no row in view cannot be picked.
+    useEffect(() => {
+      fetch("/api/usage/call-logs/filters")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d) setServerFilterOptions(d);
+        })
         .catch(() => {});
     }, []);
 
@@ -848,38 +861,24 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
       }
     };
 
-    const sourceLogsForDropdowns = logs;
-
-    // Unique accounts and providers for dropdowns
-
-    const uniqueAccounts = useMemo(
-      () => [
-        ...new Set(sourceLogsForDropdowns.map((l) => l.account).filter((a) => a && a !== "-")),
-      ],
-      [sourceLogsForDropdowns]
+    const filterOptions = useMemo(
+      () => mergeLogFilterOptions(serverFilterOptions, serverFilterOptions?.configuredKeys, logs),
+      [serverFilterOptions, logs]
     );
-    const uniqueModels = useMemo(
-      () =>
-        [
-          ...new Set(
-            sourceLogsForDropdowns.flatMap((l) => [l.model, l.requestedModel]).filter(Boolean)
-          ),
-        ].sort(),
-      [sourceLogsForDropdowns]
+    const uniqueAccounts = filterOptions.accounts;
+    const uniqueModels = filterOptions.models;
+    const uniqueProviders = filterOptions.providers;
+    // Quick-filter chips stay on the loaded rows: one chip per provider ever logged
+    // (including deleted compatible nodes) would flood the toolbar.
+    const loadedProviders = useMemo(
+      () => mergeLogFilterOptions(null, null, logs).providers,
+      [logs]
     );
-    const uniqueProviders = useMemo(
-      () =>
-        [
-          ...new Set(sourceLogsForDropdowns.map((l) => l.provider).filter((p) => p && p !== "-")),
-        ].sort(),
-      [sourceLogsForDropdowns]
-    );
+    const apiKeyOptions = filterOptions.apiKeys;
+    // The "N keys" stat describes the loaded rows, not the dropdown.
     const uniqueApiKeys = useMemo(
-      () =>
-        [
-          ...new Set(sourceLogsForDropdowns.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean)),
-        ].sort(),
-      [sourceLogsForDropdowns]
+      () => [...new Set(logs.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean))],
+      [logs]
     );
 
     // Stats (memoized to avoid re-computation on every render)
@@ -1031,15 +1030,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
             className="px-3 py-2 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary focus:outline-none focus:border-primary appearance-none cursor-pointer min-w-[160px]"
           >
             <option value="">{t("allApiKeys")}</option>
-            {uniqueApiKeys.map((value) => {
-              const matched = logs.find((l) => (l.apiKeyId || l.apiKeyName) === value);
-              const label = formatApiKeyLabel(matched?.apiKeyName, matched?.apiKeyId);
-              return (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              );
-            })}
+            {apiKeyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {formatApiKeyLabel(option.name, option.id)}
+              </option>
+            ))}
           </select>
 
           {/* Stats */}
@@ -1160,10 +1155,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
           ))}
 
           {/* Divider */}
-          {uniqueProviders.length > 0 && <span className="w-px h-5 bg-border mx-1" />}
+          {loadedProviders.length > 0 && <span className="w-px h-5 bg-border mx-1" />}
 
           {/* Dynamic Provider Quick Filters (from data) */}
-          {uniqueProviders.map((p) => {
+          {loadedProviders.map((p) => {
             const compatLabel = getProviderDisplayLabel(p, providerNodes);
             const pc = PROVIDER_COLORS[p] || {
               bg: "#374151",

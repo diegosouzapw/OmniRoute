@@ -1,0 +1,1 @@
+- **feat(antigravity):** dynamically synchronize live-discovered models outside the static catalog into quota normalization, and introduce family quota pools (Gemini Models, Claude & GPT Models) across 5-hour and weekly windows with dashboard group tracking — thanks @TheDemonTuan

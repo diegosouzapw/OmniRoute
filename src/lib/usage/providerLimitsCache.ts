@@ -36,6 +36,9 @@ export function toProviderLimitsCacheEntry(
     bankedResetCredits: Number.isFinite(bankedResetCredits) ? bankedResetCredits : undefined,
     paidCredits: parseCodexPaidCredits(usage.paidCredits),
     billing: sanitizeProviderBillingStatus(usage.billing),
+    quotaGroups: Array.isArray(usage.quotaGroups)
+      ? (usage.quotaGroups as Array<Record<string, unknown>>)
+      : undefined,
   };
 }
 

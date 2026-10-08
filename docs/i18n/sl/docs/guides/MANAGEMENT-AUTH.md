@@ -4,59 +4,59 @@
 
 ---
 
-OmniRoute ima **štiri družine poverilnic**, ki lahko avtorizirajo upravljavske poti.
-Niso zamenljive. API ključi za sklepanje (`sk-…`) NE upravljajo
+OmniRoute ima **štiri družine poverilnic**, ki lahko odobrijo dostop do upravljavskih poti.
+Med seboj niso zamenljive. Ključi API za sklepanje (`sk-…`) **ne** upravljajo
 strežnika, razen če jim je bil izrecno dodeljen obseg `manage` ali `admin`.
 
 Kanonična implementacija: `src/lib/api/requireManagementAuth.ts`.
 
-| Poverilnica               | Tipična oblika                         | Ustvarjeno kje                                            | Predvidena uporaba                  | Zmožnost upravljanja                                                                                 |
-| ------------------------- | -------------------------------------- | --------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Seja JWT nadzorne plošče  | piškotek `auth_token`                  | Prijava v nadzorno ploščo                                 | Uporabniški vmesnik brskalnika      | Popolno upravljanje nadzorne plošče, ob upoštevanju pravil CSRF, lokalnosti in vedno zaščitenih poti |
-| Žeton ID-ja stroja CLI    | interno / lokalno                      | Zagon CLI (`omniroute` na istem stroju)                   | Lokalni CLI                         | Samo lokalno upravljanje                                                                             |
-| Žeton za dostop z obsegom | `oma_live_…`                           | **Nastavitve → Žetoni za dostop** ali `omniroute connect` | Oddaljeni CLI in API za upravljanje | Mora izpolnjevati zahtevani obseg `read`, `write` ali `admin` poti                                   |
-| API ključ za sklepanje    | `sk-…` (in druge predpone API ključev) | **Upravitelj API-jev / API ključi**                       | sklepanje `/v1/*`                   | **Nobeno**, razen če metapodatki ključa vključujejo `manage` ali `admin`                             |
+| Poverilnica               | Običajna oblika                        | Kje je ustvarjena                                         | Predvidena uporaba                | Zmožnost upravljanja                                                                                      |
+| ------------------------- | -------------------------------------- | --------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Seja JWT nadzorne plošče  | piškotek `auth_token`                  | Prijava v nadzorno ploščo                                 | Spletni uporabniški vmesnik       | Celovito upravljanje prek nadzorne plošče ob upoštevanju pravil CSRF, lokalnosti in vedno zaščitenih poti |
+| Žeton ID-ja naprave CLI   | interno / lokalno                      | Inicializacija CLI-ja (`omniroute` na istem računalniku)  | Lokalni CLI                       | Samo lokalno upravljanje                                                                                  |
+| Žeton za dostop z obsegom | `oma_live_…`                           | **Nastavitve → Žetoni za dostop** ali `omniroute connect` | Oddaljeni CLI in upravljavski API | Izpolnjevati mora zahtevani obseg poti `read`, `write` ali `admin`                                        |
+| Ključ API za sklepanje    | `sk-…` (in druge predpone ključev API) | **Upravitelj API-ja / Ključi API**                        | Sklepanje prek `/v1/*`            | **Brez** možnosti, razen če metapodatki ključa vključujejo `manage` ali `admin`                           |
 
-Poverilnice `oma_` so poverilnice za upravljanje/CLI. Niso API ključi za sklepanje.
+Poverilnice `oma_` so poverilnice za upravljanje/CLI. **Niso** ključi API za sklepanje.
 
-Če je avtentikacija z prijavo/API ključem onemogočena za strežnik, lahko nekatere upravljavske poti
-sprejmejo neavtenticirane klice. Samo lokalne in vedno zaščitene poti še vedno uporabljajo
-svoja pravila. Predstavitev ene od teh poverilnic torej ni univerzalno
-obvezna, in posedovanje ene ni univerzalno zadostno brez zahtevanega
-obsega in lokalnosti poti.
+Če je preverjanje pristnosti s prijavo/ključem API za strežnik onemogočeno, lahko nekatere upravljavske poti
+sprejmejo klice brez preverjanja pristnosti. Poti, ki so samo lokalne, in vedno zaščitene poti še vedno uporabljajo
+lastna pravila. Predložitev ene od teh poverilnic zato ni vedno
+obvezna, prav tako njeno posedovanje brez zahtevanega
+obsega in ustrezne lokalnosti poti ni vedno zadostno.
 
-Povezano: [Oddaljeni način](./REMOTE-MODE.md) (kako se `oma_live_…` izda za oddaljeni CLI).
+Sorodno: [Oddaljeni način](./REMOTE-MODE.md) (kako se `oma_live_…` ustvari za oddaljeni CLI).
 
 ---
 
 ## Matrike obsegov
 
-Obsegi za upravljanje API-ključev in obsegi dostopnih žetonov so različni besednjaki.
-Obsegi orodij MCP so tretji besednjak, preverjen z `scopeMatches` namesto
-s katero koli funkcijo v spodnjih tabelah. Primerjava:
+Upravljavski obsegi ključev API in obsegi žetonov za dostop uporabljajo različno izrazje.
+Obsegi orodij MCP uporabljajo tretje izrazje in se preverjajo s `scopeMatches`, ne pa
+z nobeno od funkcij v spodnjih tabelah. Vzporedni pregled:
 [Trije imenski prostori obsegov](../frameworks/MCP-SERVER.md#three-scope-namespaces).
 
-### Obsegi dostopnih žetonov (`oma_live_…`)
+### Obsegi žetonov za dostop (`oma_live_…`)
 
-| Obseg   | Tipične operacije                                                                      |
-| ------- | -------------------------------------------------------------------------------------- |
-| `read`  | Seznami/statusni GET-i, ki jih žeton sme videti                                        |
-| `write` | Mutacije (ustvarjanje/posodabljanje/brisanje) pod skrbnikom                            |
-| `admin` | Popoln oddaljeni CLI / žeton za povezavo (privzete nastavitve za zagon gesla so tukaj) |
+| Obseg   | Običajna opravila                                                                         |
+| ------- | ----------------------------------------------------------------------------------------- |
+| `read`  | Zahteve GET za sezname/stanje, ki jih žeton sme videti                                    |
+| `write` | Spremembe (ustvarjanje/posodabljanje/brisanje) pod ravnjo skrbnika                        |
+| `admin` | Polni oddaljeni CLI / žeton za povezavo (privzeta nastavitev pri inicializaciji z geslom) |
 
-Žeton z `read` ne more klicati poti `write`. Oblika sporočila med izvajanjem:
-`Obseg dostopnega žetona '<have>' je nezadosten; zahtevan je '<need>'.`
+Žeton z obsegom `read` ne more klicati poti `write`. Oblika sporočila med izvajanjem:
+`Obseg žetona za dostop '<have>' ni zadosten; zahtevan je '<need>'.`
 
-### Obsegi za upravljanje API-ključev
+### Upravljavski obsegi ključev API
 
-| Obseg    | Pomen                                                                          |
-| -------- | ------------------------------------------------------------------------------ |
-| (brez)   | Samo sklepanje. Poti za upravljanje vrnejo 403.                                |
-| `manage` | Upravljalni API (isto preverjanje kot veja API-ključa `requireManagementAuth`) |
-| `admin`  | Prav tako izpolnjuje `hasManageScope` (obravnavano kot zmožno upravljanja)     |
+| Obseg    | Pomen                                                                             |
+| -------- | --------------------------------------------------------------------------------- |
+| (brez)   | Samo sklepanje. Upravljavske poti vrnejo 403.                                     |
+| `manage` | Upravljavski API (enaka kontrola kot veja za ključ API v `requireManagementAuth`) |
+| `admin`  | Izpolnjuje tudi `hasManageScope` (obravnava se kot zmožen upravljanja)            |
 
-Omogočite `manage` na ključu v uporabniškem vmesniku API Keys / API Manager. Ne uporabljajte
-ključa odjemalca za klepet za avtomatizacijo, razen če ste ta obseg namerno dodelili.
+Omogočite `manage` za ključ v uporabniškem vmesniku Ključi API / Upravitelj API-ja. Ključa
+odjemalca za klepet ne uporabljajte znova za avtomatizacijo, razen če ste mu namenoma dodelili ta obseg.
 
 ---
 
@@ -64,30 +64,30 @@ ključa odjemalca za klepet za avtomatizacijo, razen če ste ta obseg namerno do
 
 ### Seja JWT nadzorne plošče
 
-1. Odprite `/login` in se prijavite z upravljavskim geslom (`INITIAL_PASSWORD` ob prvem zagonu).
-2. Piškotek `auth_token` ima oznako HttpOnly. Nadzorna plošča v brskalniku ga uporablja samodejno.
-3. Odjavite se prek `/api/auth/logout`. Dolgotrajne skrivnosti, ki bi jo lahko kopirali, ni.
+1. Odprite `/login` in se prijavite z geslom za upravljanje (`INITIAL_PASSWORD` ob prvem zagonu).
+2. Piškotek `auth_token` je HttpOnly. Nadzorna plošča v brskalniku ga uporablja samodejno.
+3. Odjavite se prek `/api/auth/logout`. Dolgotrajne skrivnosti, ki bi jo bilo treba kopirati, ni.
 
 ### Žeton ID-ja naprave za CLI
 
-1. Zaženite `omniroute` na **istem gostitelju** kot strežnik (povratna zanka).
-2. CLI ustvari žeton ID-ja naprave v `~/.omniroute/` (chmod 600).
-3. To **ne** deluje z drugega računalnika. Za oddaljeni CLI uporabite žeton za dostop.
+1. Zaženite `omniroute` na **istem gostitelju** kot strežnik (prek vmesnika loopback).
+2. CLI inicializira žeton ID-ja naprave v `~/.omniroute/` (chmod 600).
+3. To **ne** deluje iz druge naprave. Za oddaljeni CLI uporabite dostopni žeton.
 
-### Žeton za dostop z obsegom (`oma_live_…`)
+### Dostopni žeton z določenim obsegom (`oma_live_…`)
 
-1. Nadzorna plošča: **Nastavitve → Žetoni za dostop** → ustvarite žeton (ime + obseg). **Skrivnost je prikazana samo enkrat.**
-2. Ali CLI: `omniroute connect <host>` (geslo → žeton). Glejte [Oddaljeni način](./REMOTE-MODE.md).
+1. Nadzorna plošča: **Nastavitve → Dostopni žetoni** → ustvarite žeton (ime + obseg). **Skrivnost se prikaže samo enkrat.**
+2. Ali prek CLI-ja: `omniroute connect <host>` (geslo → žeton). Glejte [Oddaljeni način](./REMOTE-MODE.md).
 3. Glava: `Authorization: Bearer oma_live_…`
-4. Prekličite ga na isti strani Žetoni za dostop (ali izbrišite kontekst CLI-ja).
-5. Strežnik shrani samo zgoščeno vrednost. Čistopisno vrednost obravnavajte kot geslo.
+4. Prekličite ga na isti strani z dostopnimi žetoni (ali izbrišite kontekst CLI-ja).
+5. Strežnik shrani samo zgoščeno vrednost. Z besedilom v nešifrirani obliki ravnajte kot z geslom.
 
-### Ključ API-ja z upravljavskim obsegom
+### Ključ API z obsegom `manage`
 
-1. Nadzorna plošča: **Upravljalnik API-ja / Ključi API-ja** → ustvarite ali uredite ključ → omogočite `manage` (ali `admin`).
+1. Nadzorna plošča: **Upravitelj API-jev / Ključi API** → ustvarite ali uredite ključ → omogočite `manage` (ali `admin`).
 2. Glava: `Authorization: Bearer sk-…` (dejanska predpona ključa).
-3. Prekličite ključ ali odstranite `manage` v istem uporabniškem vmesniku.
-4. Za avtomatizacijo, ki ne uporablja CLI-ja, upoštevajte načelo najmanjših pravic: za opravila samo z zahtevami GET raje uporabite žeton za dostop z obsegom `read`; obseg `manage` na ključu API-ja uporabite samo, kadar mora klicatelj komunicirati tako z `/v1` kot z upravljavskim API-jem.
+3. Prekličite ključ ali odstranite obseg `manage` v istem uporabniškem vmesniku.
+4. Za avtomatizacijo, ki ne uporablja CLI-ja, upoštevajte načelo najmanjših pravic: za opravila, ki uporabljajo samo GET, izberite dostopni žeton z obsegom `read`; obseg `manage` na ključu API uporabite samo, kadar mora klicatelj dostopati tudi do `/v1` in upravljanja.
 
 ---
 
@@ -99,20 +99,22 @@ Authorization: Bearer sk-<secret>
 Cookie: auth_token=<dashboard-jwt>
 ```
 
-Poverilnic za upravljanje ne vključujte v pot URL-ja ali poizvedbeni niz. Preverjanje pristnosti za upravljanje je dovoljeno samo prek glave/piškotka.
+Poverilnic za upravljanje ne vstavljajte v pot URL-ja ali poizvedbeni niz. Preverjanje
+pristnosti za upravljanje uporablja samo glavo ali piškotek.
 
 ---
 
 ## Primeri za kopiranje in lepljenje
 
-Samo za branje (seznam ponudnikov). Uporabite dostopni žeton z obsegom `read`:
+Samo za branje (prikaz ponudnikov). Uporabite dostopni žeton z obsegom `read`:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/api/providers" \
   -H "Authorization: Bearer oma_live_<read-token>"
 ```
 
-Spreminjanje (ustvarjanje povezave s ponudnikom). Uporabite dostopni žeton z obsegom `write`/`admin` ali ključ API z obsegom `manage`:
+Spreminjanje (ustvarjanje povezave s ponudnikom). Uporabite dostopni žeton z obsegom
+`write`/`admin` ali ključ API z obsegom `manage`:
 
 ```bash
 curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
@@ -121,7 +123,7 @@ curl -sS -X POST "$OMNIROUTE_URL/api/providers" \
   -d '{"provider":"openai","apiKey":"<upstream-key>"}'
 ```
 
-Izvajanje sklepanja (ne upravljanje). Običajen ključ API; obseg `manage` ni potreben:
+Sklepanje (ne upravljanje). Običajen ključ API; obseg `manage` ni potreben:
 
 ```bash
 curl -sS "$OMNIROUTE_URL/v1/models" \
@@ -130,29 +132,29 @@ curl -sS "$OMNIROUTE_URL/v1/models" \
 
 ---
 
-## Trenutne napake med izvajanjem (ne izpisujte skrivnosti)
+## Trenutne napake med izvajanjem (ne razkrivajte skrivnosti)
 
-| Situacija                                          | Tipični status | Sporočilo (očiščeno)                                                             |
-| :------------------------------------------------- | :------------- | :------------------------------------------------------------------------------- |
-| Ni poverilnice                                     | 401            | `Zahtevana avtentikacija`                                                        |
-| Neveljaven/potekel `oma_live_…`                    | 401            | `Neveljaven ali potekel žeton za dostop`                                         |
-| Veljaven API ključ brez `manage`/`admin`           | 403            | `API ključu manjka obseg 'manage'. Omogočite ga na nadzorni plošči API ključev.` |
-| Neveljaven običajni API ključ na upravljavski poti | 403            | `Neveljaven upravljavski žeton`                                                  |
-| Obseg žetona za dostop je prenizek                 | 403            | `Obseg žetona za dostop '<have>' je nezadosten; zahtevan je '<need>'`            |
+| Primer                                             | Običajno stanje | Sporočilo (brez občutljivih podatkov)                                |
+| -------------------------------------------------- | --------------- | -------------------------------------------------------------------- |
+| Ni poverilnice                                     | 401             | `Authentication required`                                            |
+| Neveljaven/potekel `oma_live_…`                    | 401             | `Invalid or expired access token`                                    |
+| Veljaven ključ API brez `manage`/`admin`           | 403             | `API key lacks 'manage' scope. Enable it in the API Keys dashboard.` |
+| Neveljaven običajni ključ API na upravljavski poti | 403             | `Invalid management token`                                           |
+| Obseg dostopnega žetona je premajhen               | 403             | `Access token scope '<have>' is insufficient; '<need>' required.`    |
 
-"Neveljaven upravljavski žeton" pomeni, da nosilec **ni** bil sprejet kot upravljavska
-poverilnica. **Ne** pove vam, katero družino naj ustvarite. Uporabite zgornjo
-tabelo: ključem za sklepanje je potreben obseg `manage`; oddaljeni CLI potrebuje
-`oma_live_…`; nadzorna plošča uporablja sejo piškotka.
+»Invalid management token« pomeni, da žeton bearer **ni** bil sprejet kot
+poverilnica za upravljanje. Sporočilo **ne** pove, katero vrsto poverilnice morate
+ustvariti. Uporabite zgornjo tabelo: ključi za sklepanje potrebujejo obseg `manage`;
+oddaljeni CLI potrebuje `oma_live_…`; nadzorna plošča pa uporablja sejni piškotek.
 
 ---
 
-## Priporočena izbira z najmanj privilegiji
+## Priporočena izbira z najmanjšimi pravicami
 
-| Klicatelj                                  | Uporaba                                      |
-| :----------------------------------------- | :------------------------------------------- |
-| Browser                                    | Seja nadzorne plošče                         |
-| CLI on the server host                     | Žeton stroja                                 |
-| CLI on a laptop talking to a remote server | `oma_live_…` iz `omniroute connect`          |
-| CI / scripts (management only)             | `oma_live_…` z najmanjšim delujočim obsegom  |
-| CI that must call both `/v1` and `/api`    | API ključ z `manage` **ali** dve poverilnici |
+| Klicatelj                                                | Uporaba                                              |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| Brskalnik                                                | Seja nadzorne plošče                                 |
+| CLI na gostitelju strežnika                              | Žeton naprave                                        |
+| CLI na prenosniku, ki komunicira z oddaljenim strežnikom | `oma_live_…` iz `omniroute connect`                  |
+| CI / skripti (samo upravljanje)                          | `oma_live_…` z najmanjšim obsegom, ki zadostuje      |
+| CI, ki mora klicati tako `/v1` kot `/api`                | Ključ API z obsegom `manage` **ali** dve poverilnici |

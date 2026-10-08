@@ -5,7 +5,7 @@
  * default. OpenCode auto-injects `reasoning.effort=medium` for GPT-5-family
  * requests, which used to silently mask the suffix.
  *
- * The fix is in `open-sse/executors/codex.ts`: priority is
+ * The fix is in `open-sse/executors/codex/reasoningPolicy.ts`: priority is
  *   modelEffort > explicitReasoning > requestReasoningEffort > fallback.
  *
  * These tests exercise the effort-resolution priority directly via a
@@ -14,6 +14,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import { applyCodexReasoningSelection } from "../../open-sse/executors/codex/reasoningPolicy.ts";
 
 // Replicate the priority chain that lives in
 // open-sse/executors/codex.ts:1382-1402 so tests fail loudly if someone
@@ -85,39 +86,25 @@ test("#2331 no input anywhere → undefined (caller will skip body.reasoning)", 
   assert.equal(out, undefined);
 });
 
-// ─── Regression check on the actual source ─────────────────────────────
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CODEX_SRC = path.resolve(__dirname, "../../open-sse/executors/codex.ts");
-
+// ─── Regression check on the real implementation ───────────────────────
 test("#2331 codex.ts still ranks modelEffort above client-injected reasoning defaults", () => {
-  const src = fs.readFileSync(CODEX_SRC, "utf8");
-
-  // The chain we expect: rawEffort = modelEffort || explicitReasoning || ...
-  // Anchor on the assignment so a future refactor that flips priority back
-  // (the bug we just fixed) trips this guard.
-  const ASSIGNMENT_RE = /const\s+rawEffort\s*=\s*([\s\S]{0,400}?);/;
-  const match = src.match(ASSIGNMENT_RE);
-  assert.ok(match, "rawEffort assignment not found in codex.ts");
-
-  const chain = match![1].replace(/\s+/g, " ").trim();
-  const order = chain.split("||").map((token) => token.trim());
-  const at = (token: string) => order.indexOf(token);
-
+  // The ranking lives in open-sse/executors/codex/reasoningPolicy.ts
+  // (applyCodexReasoningSelection). Exercise the real function instead of scanning source.
+  //
   // #2331's invariant is a RELATIVE one: a model-suffix alias (gpt-5.5-xhigh) must beat
   // the defaults a client injects (OpenCode's reasoning.effort=medium, reasoning_effort).
-  // It is not a claim about the head of the chain — #13556 deliberately put the
+  // It is not a claim about the head of the chain — #13556 deliberately puts the
   // server-selected force rule ahead of everything, which is stronger than both.
-  assert.ok(at("modelEffort") >= 0, `modelEffort missing from chain: ${chain}`);
-  assert.ok(
-    at("modelEffort") < at("explicitReasoning"),
-    `modelEffort must outrank explicitReasoning, got: ${chain}`
-  );
-  assert.ok(
-    at("modelEffort") < at("requestReasoningEffort"),
-    `modelEffort must outrank requestReasoningEffort, got: ${chain}`
-  );
+  const apply = (model: string, body: Record<string, unknown>, forced?: string) => {
+    applyCodexReasoningSelection(model, body, undefined, "low", true, forced);
+    return (body.reasoning as Record<string, unknown> | undefined)?.effort;
+  };
+
+  assert.equal(apply("gpt-5.5-xhigh", { reasoning: { effort: "medium" } }), "xhigh");
+  assert.equal(apply("gpt-5.5-xhigh", { reasoning_effort: "medium" }), "xhigh");
+  assert.equal(apply("gpt-5.5-low", { reasoning: { effort: "high" } }), "low");
+  // A client value still beats the connection default when there is no suffix.
+  assert.equal(apply("gpt-5.5", { reasoning: { effort: "high" } }), "high");
+  // The server-selected force rule outranks even the suffix.
+  assert.equal(apply("gpt-5.5-xhigh", { reasoning: { effort: "medium" } }, "low"), "low");
 });

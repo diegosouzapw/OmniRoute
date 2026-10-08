@@ -12,7 +12,7 @@
  *   - Skips commented lines from .env.example
  */
 
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -68,10 +68,21 @@ const CRYPTO_SECRETS = {
  */
 const ENCRYPTION_BOUND_KEYS = new Set([]);
 
-// ── Resolve DATA_DIR (mirrors bootstrap-env.mjs / dataPaths.ts) ─────────────
-function resolveDataDir(env = process.env) {
+// ── Resolve DATA_DIR (mirrors src/lib/dataPaths.ts::getDefaultDataDir) ─────────
+// Same self-contained copy as scripts/build/bootstrap-env.mjs (this file ships in the npm
+// package on its own). Order: explicit DATA_DIR → an EXISTING legacy ~/.omniroute →
+// %APPDATA% (Windows) → $XDG_CONFIG_HOME (when set) → ~/.omniroute.
+export function resolveDataDir(env = process.env) {
   const configured = env.DATA_DIR?.trim();
   if (configured) return resolve(configured);
+
+  // Preserve an existing legacy dir so an upgrade never splits secrets from the database.
+  const legacyDir = join(homedir(), ".omniroute");
+  try {
+    if (statSync(legacyDir).isDirectory()) return legacyDir;
+  } catch {
+    // absent or unreadable — fall through to the platform default
+  }
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
@@ -81,7 +92,7 @@ function resolveDataDir(env = process.env) {
   const xdg = env.XDG_CONFIG_HOME?.trim();
   if (xdg) return join(resolve(xdg), "omniroute");
 
-  return join(homedir(), ".omniroute");
+  return legacyDir;
 }
 
 /**

@@ -394,15 +394,15 @@ docs/                       # Documentation
 - [ ] การ Build สำเร็จ (`npm run build`)
 - [ ] เพิ่ม TypeScript types สำหรับ public functions และ interfaces ใหม่แล้ว
 - [ ] ไม่มี secrets หรือ fallback values ที่ hardcode ไว้
-- [ ] Public upstream credentials ถูกฝังผ่าน `resolvePublicCred()` (ดู [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) และห้ามใช้เป็น literals
+- [ ] ฝัง public upstream credentials ผ่าน `resolvePublicCred()` (ดู [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)) และไม่ใช้ literals โดยเด็ดขาด
 - [ ] Error responses ส่งผ่าน `buildErrorBody()` / `sanitizeErrorMessage()` — ไม่มี raw stack traces ใน response bodies (ดู [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Shell commands (`exec` / `spawn`) ส่ง runtime values ผ่าน `env` ไม่ใช่ผ่าน string interpolation
-- [ ] Inputs ทั้งหมดได้รับการตรวจสอบด้วย Zod schemas
-- [ ] เพิ่ม **fragment** ของ Changelog ภายใต้ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` สำหรับการเปลี่ยนแปลงที่ส่งผลต่อผู้ใช้แล้ว (ดู [`changelog.d/README.md`](./changelog.d/README.md)) — **ห้าม** แก้ไข `CHANGELOG.md` โดยตรง; fragments จะถูกรวบรวมเมื่อออกรุ่น และจะไม่เกิดข้อขัดแย้งระหว่าง PRs
+- [ ] ตรวจสอบ inputs ทั้งหมดด้วย Zod schemas
+- [ ] เพิ่ม **fragment** ของ Changelog ภายใต้ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` สำหรับการเปลี่ยนแปลงที่ส่งผลต่อผู้ใช้ (ดู [`changelog.d/README.md`](./changelog.d/README.md)) — **ห้าม** แก้ไข `CHANGELOG.md` โดยตรง; fragments จะถูกรวบรวมเมื่อเผยแพร่ release และจะไม่เกิด conflict ระหว่าง PRs
 - [ ] อัปเดตเอกสารแล้ว (หากเกี่ยวข้อง)
-- [ ] ไม่มี CodeQL / Secret-Scanning alerts ใหม่ หรือแต่ละรายการถูกปิดโดยมีเหตุผลเชิงเทคนิคที่อ้างอิงเอกสาร `docs/security/` ที่เกี่ยวข้อง
-- [ ] Routes ที่ spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ถูกจัดประเภทเป็น `isLocalOnlyPath()` ใน `src/server/authz/routeGuard.ts` — ดู [กฎเคร่งครัด #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] ไม่มี trailers `Co-Authored-By` ใน commit messages — commits ต้องแสดงภายใต้ Git identity ของเจ้าของ repository เท่านั้น (กฎเคร่งครัด #16)
+- [ ] ไม่มี CodeQL / Secret-Scanning alerts ใหม่ หรือแต่ละรายการถูก dismiss พร้อมเหตุผลทางเทคนิคที่อ้างอิงเอกสาร `docs/security/` ที่เกี่ยวข้อง
+- [ ] Routes ที่ spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) ถูกจัดประเภทเป็น `isLocalOnlyPath()` ใน `src/server/authz/routeGuard.ts` — ดู [กฎบังคับ #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] ไม่มี trailers `Co-authored-by` ของ AI/bot ใน commit messages (กฎบังคับ #16) — human collaborators ที่นำผลงานมาใช้จะได้รับเครดิตด้วย trailers มาตรฐาน `Co-authored-by: Name <email>`
 
 ---
 

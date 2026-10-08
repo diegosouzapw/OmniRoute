@@ -139,13 +139,47 @@ kurti infrastruktūros topologiją atskleidžiančių pranešimų.
 
 `tests/unit/error-message-sanitization.test.ts` užtikrina:
 
-- Kiekvienas maršrutas, esantis `/api/model-combo-mappings/*`, 4xx/5xx atvejais grąžina išvalytus atsakymų kūnus.
-- `sanitizeErrorMessage` pašalina kelių eilučių dėklo sekas.
-- `sanitizeErrorMessage` pakeičia POSIX ir Windows absoliučiuosius kelius į `<path>`.
-- `sanitizeErrorMessage` saugiai apdoroja `null`/`undefined`/`Error` egzempliorių įvestis.
-- `buildErrorBody` savo `message` lauke niekada neatskleidžia dėklo sekų.
+- Kiekvienas maršrutas, esantis `/api/model-combo-mappings/*`, 4xx/5xx atsakymuose grąžina išvalytus turinius.
+- `sanitizeErrorMessage` pašalina kelių eilučių dėklo pėdsakus.
+- `sanitizeErrorMessage` pakeičia absoliučiuosius POSIX ir Windows kelius į `<path>`.
+- `sanitizeErrorMessage` saugiai apdoroja `null` / `undefined` / `Error` egzempliorių įvestis.
+- `buildErrorBody` savo `message` lauke niekada neatskleidžia dėklo pėdsakų.
 
-Pridėdami naują maršrutą ar vykdyklę, nukopijuokite patikros šabloną iš šio failo. Aprėpties slenkstis (`npm run test:coverage`) reikalauja ≥60 % sakinių / eilučių / funkcijų / šakų aprėpties — klaidų keliai turi būti padengti.
+Pridėdami naują maršrutą ar vykdyklę, nukopijuokite teiginių šabloną iš šio failo. Aprėpties barjeras (`npm run test:coverage`) reikalauja ≥60 % sakinių / eilučių / funkcijų / šakų aprėpties — klaidų scenarijai privalo būti aprėpti.
+
+### Statinis barjeras: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` nuskaito `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` ir kiekvieną `src/app/api/**/route.ts`, ieškodamas neapdorotos pagautos klaidos (`err.message` / `err.stack`) arba neapdoroto iš aukštesnio lygmens gauto `body.error.message`, patenkančio į klientui skirtą turinį.
+
+**Pasitikėjimas taikomas iškvietimui, o ne failui** (G-03, #15159). Anksčiau barjeras praleisdavo visą failą vos aptikęs bet kokį importą iš `utils/error` kelio — failo lygmens išimtis buvo taikoma iškvietimo lygmens pavojui. Vienas teisingas `import { sanitizeErrorMessage }` visam laikui pateisindavo visas kitas duomenų išvesties vietas faile, todėl realus nutekėjimas pateko į leidimą, nors patikra buvo sėkminga. Dabar eilutė laikoma patikima tik tuomet, kai ji iš tiesų nukreipia duomenis per patvirtintą kūrimo funkciją arba valymo priemonę:
+
+| Eilutės forma                                                                                                                  | Patikima?           |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| iškviečia `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                        | taip                |
+| iškviečia kanoninę kūrimo funkciją, **kurią šis failas importuoja** iš `open-sse/utils/error` arba `src/lib/api/errorResponse` | taip                |
+| patvirtinta kūrimo funkcija iškviečiama **per kelias eilutes**, todėl `message:` laukas yra vėlesnėje eilutėje                 | taip                |
+| iškviečia faile apibrėžtą `function errorResponse(...)`, kurios pačios turinys atlieka valymą                                  | taip                |
+| perduoda `err.message` / `err.stack` bet kur kitur                                                                             | **ne — pažeidimas** |
+
+Verta žinoti dvi pasekmes:
+
+- `errorResponse` importavimas nesuteikia _visuotinio_ pasitikėjimo. Failas, apibrėžiantis savo `errorResponse`, vis tiek pažymimas iškvietimo vietoje, nes barjeras pasitikėjimą nustato pagal simbolį, o ne pagal failą. Tas pats taikoma `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`, po kurio eina `error: body.error.message`, yra **išvalytas** šablonas, naudojamas `*-fetch.ts` vykdyklėse, todėl jis nėra žymimas.
+
+Atsižvelgiama į abu patvirtintų kūrimo funkcijų modulius: `open-sse/utils/error.ts` ir `src/lib/api/errorResponse.ts`. Antrąjį naudoja maždaug 54 maršrutų apdorojimo funkcijos už `open-sse` ribų, ir jis išvalo abiejų savo eksportuojamų elementų duomenis.
+
+Dvi formos, kurios **nėra** pažeidimai, nors barjeras anksčiau jas nurodydavo kaip nutekėjimus:
+
+- neapdorota klaida **audito įraše** — `saveCallLog({ error: err.message })`, `logToolCall(...)` arba žurnalo funkcija, kuri pirmiausia priima pranešimą (`log.error("BATCHES", "sweep failed", { error: err.message })`). Tolesnėse eilutėse esantis klientui skirtas atsakymas gali būti statinis `buildErrorBody`.
+- **kelių eilučių** patvirtintos kūrimo funkcijos iškvietimas, kurio `message:` lauke apskritai nenurodyta jokia kūrimo funkcija:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` įšaldo jau egzistuojančius pažeidimus, kad barjeras blokuotų tik _naujus_. `assertNoStale` automatiškai pašalina įrašą, kai jo pažeidimas ištaisomas, todėl įšaldytas sąrašas negali sustabarėti. Regresijos apsaugos: `tests/unit/check-error-helper.test.ts` ir `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Susijusios kontrolės priemonės
 

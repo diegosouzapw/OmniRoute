@@ -2,7 +2,7 @@
  * qwenTokenPlanQuotaFetcher.ts — Qwen Cloud / Alibaba Model Studio PERSONAL Token Plan
  * quota fetcher (issue #9603, "quota is missing").
  *
- * The personal Token Plan (5-hour / 7-day sliding windows) has NO official OpenAPI —
+ * The personal Token Plan (5-hour / 7-day sliding windows, or the single Monthly Quota since #14763) has NO official OpenAPI —
  * the console gateway is the only quota surface, and the inference API key does NOT
  * authenticate it. Both portals read the same backend:
  *   - home.qwencloud.com portal        → https://cs-data.qwencloud.com          (default)
@@ -94,11 +94,18 @@ const TIER_CACHE_TTL_MS = 60 * 60_000;
 // Window keys surfaced to the dashboard / quota-window registry
 export const QWEN_TOKEN_PLAN_WINDOW_5H = "window_5h";
 export const QWEN_TOKEN_PLAN_WINDOW_WEEKLY = "window_weekly";
+export const QWEN_TOKEN_PLAN_WINDOW_MONTHLY = "window_monthly";
 
 // usage payload field prefix → window key (fields: per<prefix>Percentage / per<prefix>ResetTime)
 const WINDOW_FIELD_MAP: Record<string, string> = {
   "5Hour": QWEN_TOKEN_PLAN_WINDOW_5H,
   "1Week": QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
+  // #14763: QwenCloud moved to a single Monthly Quota. The exact upstream field name is
+  // unconfirmed, so several candidates map to the same window (first one present wins);
+  // "BillMonth" mirrors bailianQuotaFetcher's perBillMonth* fields.
+  BillMonth: QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
+  Month: QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
+  "1Month": QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
 };
 
 export interface QwenTokenPlanQuota extends QuotaInfo {
@@ -108,7 +115,7 @@ export interface QwenTokenPlanQuota extends QuotaInfo {
   /** Subscription tier (e.g. "pro") or null when the subscription call failed. */
   specCode: string | null;
   /** Credit limits of the active tier (from quota-config), when resolvable. */
-  tierLimits: { fiveHour: number | null; weekly: number | null };
+  tierLimits: { fiveHour: number | null; weekly: number | null; monthly: number | null };
 }
 
 interface UsageCacheEntry {
@@ -118,7 +125,7 @@ interface UsageCacheEntry {
 
 interface TierCacheEntry {
   specCode: string | null;
-  tierLimits: { fiveHour: number | null; weekly: number | null };
+  tierLimits: { fiveHour: number | null; weekly: number | null; monthly: number | null };
   fetchedAt: number;
 }
 
@@ -307,6 +314,7 @@ function parseUsageWindows(
   const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
 
   for (const [fieldPrefix, windowKey] of Object.entries(WINDOW_FIELD_MAP)) {
+    if (windows[windowKey]) continue; // an earlier candidate prefix already filled it
     const percent = toNumberOrNull(obj[`per${fieldPrefix}Percentage`]);
     if (percent === null) continue; // window omitted (e.g. 5-hour "Temporarily Removed")
     const resetMs = toNumberOrNull(obj[`per${fieldPrefix}ResetTime`]);
@@ -342,6 +350,7 @@ async function resolveTierInfo(
     tierLimits: {
       fiveHour: toNumberOrNull(tierRecord["five_hour"]),
       weekly: toNumberOrNull(tierRecord["weekly"]),
+      monthly: toNumberOrNull(tierRecord["monthly"]),
     },
     fetchedAt: Date.now(),
   };
@@ -395,7 +404,13 @@ export async function fetchQwenTokenPlanQuota(
   const worst = windowEntries.reduce((max, w) => (w.percentUsed > max.percentUsed ? w : max));
 
   const tier = await resolveTierInfo(connectionId, cookie, secToken, site);
-  const total = tier.tierLimits.weekly ?? 100;
+  // Legacy sliding windows keep the weekly total; a monthly-only account (#14763) uses
+  // the monthly tier limit instead of fabricating a 100-credit budget.
+  const hasLegacyWindow =
+    !!windows[QWEN_TOKEN_PLAN_WINDOW_5H] || !!windows[QWEN_TOKEN_PLAN_WINDOW_WEEKLY];
+  const total = hasLegacyWindow
+    ? (tier.tierLimits.weekly ?? 100)
+    : (tier.tierLimits.monthly ?? tier.tierLimits.weekly ?? 100);
 
   const quota: QwenTokenPlanQuota = {
     used: Math.round(worst.percentUsed * total),
@@ -433,5 +448,6 @@ export function registerQwenTokenPlanQuotaFetcher(): void {
   registerQuotaWindows("qwen-cloud-token-plan", [
     QWEN_TOKEN_PLAN_WINDOW_5H,
     QWEN_TOKEN_PLAN_WINDOW_WEEKLY,
+    QWEN_TOKEN_PLAN_WINDOW_MONTHLY,
   ]);
 }

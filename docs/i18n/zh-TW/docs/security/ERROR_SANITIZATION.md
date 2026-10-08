@@ -133,17 +133,51 @@ const safe = String(err).split("\n")[0];
 ❌ **絕不可**刻意在錯誤訊息中包含 `process.cwd()`、`__filename`、`__dirname` 或衍生自環境變數的路徑。
 清理器會涵蓋絕對路徑以提供縱深防禦，但呼叫端從一開始就不應建立會暴露拓撲結構的訊息。
 
-## CI 中的涵蓋範圍
+## CI 中的覆蓋率
 
-`tests/unit/error-message-sanitization.test.ts` 會強制執行：
+`tests/unit/error-message-sanitization.test.ts` 會強制檢查：
 
-- `/api/model-combo-mappings/*` 下的每個路由在發生 4xx/5xx 時，都會回傳經過清理的主體。
+- `/api/model-combo-mappings/*` 下的每個路由在發生 4xx/5xx 時，都會傳回已清理的主體。
 - `sanitizeErrorMessage` 會移除多行堆疊追蹤。
-- `sanitizeErrorMessage` 會將 POSIX 與 Windows 絕對路徑替換為 `<path>`。
-- `sanitizeErrorMessage` 能安全地處理 `null`/`undefined`/`Error` 執行個體輸入。
+- `sanitizeErrorMessage` 會將 POSIX 和 Windows 絕對路徑替換為 `<path>`。
+- `sanitizeErrorMessage` 能安全處理 `null`/`undefined`/`Error` 實例輸入。
 - `buildErrorBody` 絕不會在其 `message` 欄位中暴露堆疊追蹤。
 
-新增路由或執行器時，請複製此檔案中的斷言模式。涵蓋率門檻（`npm run test:coverage`）要求陳述式／行／函式／分支的涵蓋率皆 ≥60%——錯誤路徑必須納入涵蓋範圍。
+新增路由或執行器時，請複製此檔案中的斷言模式。覆蓋率閘門（`npm run test:coverage`）會強制要求陳述式／行／函式／分支的覆蓋率皆 ≥60%——錯誤路徑也必須涵蓋。
+
+### 靜態閘門：`npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` 會掃描 `open-sse/executors/`、`open-sse/handlers/`、`open-sse/mcp-server/`，以及每個 `src/app/api/**/route.ts`，以找出原始捕獲錯誤（`err.message` / `err.stack`）或原始上游 `body.error.message` 被傳入面向用戶端的主體。
+
+**信任範圍以呼叫為單位，絕不以檔案為單位**（G-03、#15159）。過去，只要閘門看到任何從 `utils/error` 路徑匯入的項目，就會略過整個檔案——這是將檔案範圍的豁免套用到呼叫範圍的風險上。只要有一個正確的 `import { sanitizeErrorMessage }`，就會永久豁免該檔案中的所有其他輸出點，這正是實際洩漏在檢查全數通過的情況下仍進入正式環境的原因。現在，只有在某一行確實經過核准的建構器或清理器時，該行才會受到信任：
+
+| 行的形式                                                                                           | 是否受信任？ |
+| -------------------------------------------------------------------------------------------------- | ------------ |
+| 呼叫 `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … | 是           |
+| 呼叫此檔案**已從** `open-sse/utils/error` 或 `src/lib/api/errorResponse` **匯入**的標準建構器      | 是           |
+| 核准的建構器採用**多行**呼叫，因此 `message:` 欄位位於後續行                                       | 是           |
+| 呼叫檔案區域的 `function errorResponse(...)`，且其函式主體會執行清理                               | 是           |
+| 在其他任何地方轉送 `err.message` / `err.stack`                                                     | **否——違規** |
+
+有兩項值得瞭解的結果：
+
+- 匯入 `errorResponse` 並不代表全面信任。若檔案定義了自己的 `errorResponse`，呼叫位置仍會被標記，因為閘門是依符號而非依檔案解析信任。`createErrorResponse` 亦同。
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` 後接 `error: body.error.message`，是各個 `*-fetch.ts` 執行器使用的**已清理**慣用寫法，不會被標記。
+
+兩個核准的建構器模組都會被認可：`open-sse/utils/error.ts` 和 `src/lib/api/errorResponse.ts`。後者由 `open-sse` 以外約 54 個路由處理常式使用，且會清理其兩個匯出項目。
+
+以下兩種形式**不屬於**違規，但閘門過去曾將它們回報為洩漏：
+
+- **稽核資料列**中的原始錯誤——`saveCallLog({ error: err.message })`、`logToolCall(...)`，或先接收訊息的記錄器（`log.error("BATCHES", "sweep failed", { error: err.message })`）。後續行中面向用戶端的回應很可能是靜態的 `buildErrorBody`。
+- **多行**核准建構器呼叫，其中 `message:` 欄位完全沒有提及任何建構器：
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` 會凍結既有違規，讓閘門僅封鎖_新的_違規。違規修正後，`assertNoStale` 會自動移除對應項目，因此此凍結清單不會僵化。迴歸防護：`tests/unit/check-error-helper.test.ts` 和 `tests/unit/check-error-helper-call-scope.test.ts`。
 
 ## 相關控制措施
 

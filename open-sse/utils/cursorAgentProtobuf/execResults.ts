@@ -1,3 +1,8 @@
+import {
+  CURSOR_MCP_TEXT_MAX_BYTES,
+  CURSOR_READ_CONTENT_MAX_BYTES,
+  fitCursorToolOutput,
+} from "./toolOutputLimit.ts";
 import { encodeBoolField, encodeMessage, encodeString, encodeUInt32Field } from "./wire.ts";
 
 export const ECM_MINI_SWE_BASH_RESULT = 55; // ExecClientMessage.mini_swe_agent_bash_result
@@ -48,6 +53,8 @@ const READ_SUCCESS_PATH = 1; // ReadSuccess.path
 const READ_SUCCESS_CONTENT = 2; // ReadSuccess.content
 const READ_SUCCESS_TOTAL_LINES = 3; // ReadSuccess.total_lines
 const READ_SUCCESS_FILE_SIZE = 4; // ReadSuccess.file_size
+const READ_SUCCESS_TRUNCATED = 6; // ReadSuccess.truncated
+const READ_SUCCESS_RANGE_APPLIED = 8; // ReadSuccess.range_applied
 const SHELL_STREAM_STDOUT = 1; // ShellStream.stdout
 const SHELL_STREAM_EXIT = 3; // ShellStream.exit
 const SHELL_STREAM_START = 4; // ShellStream.start
@@ -266,6 +273,42 @@ export function encodeExecWriteShellStdinError(
   return wrapExecClientMessage(execMsgId, execId, ECM_WRITE_SHELL_STDIN_RESULT, errorVariant);
 }
 
+// Clients cap a read without a limit at this many lines (OpenCode; Claude Code
+// when the file is over its size budget), so a result of exactly this size may
+// have been cut.
+const CLIENT_DEFAULT_READ_LINES = 2000;
+// Claude Code, when the offset is past the end of the file.
+const CLIENT_STATED_FILE_LENGTH = /\bThe file has (\d+) lines\b/;
+
+/**
+ * Cursor renders a read against total_lines ("... N lines not shown ..."
+ * before and after the slice) and rejects an offset past it. Its own host
+ * knows the file length; we only see the lines the client returned. So use a
+ * length the client states, mark the end of the file when the client returned
+ * fewer lines than asked for, and otherwise say the file may continue, rather
+ * than let total_lines claim it ends after a full window.
+ */
+function shapeHeldRead(
+  content: string,
+  range?: { offset?: number; limit?: number }
+): { content: string; totalLines: number } {
+  const lines = content ? content.split("\n").length : 0;
+  const stated = CLIENT_STATED_FILE_LENGTH.exec(content)?.[1];
+  if (stated !== undefined) return { content, totalLines: Number(stated) };
+  const first = range?.offset !== undefined && range.offset > 1 ? range.offset : 1;
+  const last = first - 1 + lines;
+  const mayContinue =
+    range?.limit !== undefined ? lines >= range.limit : lines === CLIENT_DEFAULT_READ_LINES;
+  if (!mayContinue) return { content, totalLines: last };
+  return {
+    content:
+      `${content}\n\n[The client returned lines ${first}-${last} and did not report the file ` +
+      `length, so the file may continue after line ${last}. To see more, read from line ` +
+      `${last + 1}.]`,
+    totalLines: last,
+  };
+}
+
 /**
  * Real results for Cursor's built-in tools, carrying what the CLIENT produced.
  *
@@ -279,14 +322,22 @@ export function encodeExecReadSuccess(
   execMsgId: number,
   execId: string,
   path: string,
-  content: string
+  content: string,
+  range?: { offset?: number; limit?: number }
 ): Buffer {
+  const shaped = shapeHeldRead(content, range);
+  const fitted = fitCursorToolOutput(shaped.content, CURSOR_READ_CONTENT_MAX_BYTES);
   const success = encodeMessage(RES_SUCCESS, [
     Buffer.concat([
       encodeString(READ_SUCCESS_PATH, path),
-      encodeString(READ_SUCCESS_CONTENT, content),
-      encodeUInt32Field(READ_SUCCESS_TOTAL_LINES, content ? content.split("\n").length : 0),
+      encodeString(READ_SUCCESS_CONTENT, fitted.text),
+      encodeUInt32Field(READ_SUCCESS_TOTAL_LINES, shaped.totalLines),
       encodeUInt32Field(READ_SUCCESS_FILE_SIZE, Buffer.byteLength(content, "utf8")),
+      ...(fitted.truncated ? [encodeBoolField(READ_SUCCESS_TRUNCATED, true)] : []),
+      // The client already cut the requested offset/limit. Without this flag
+      // Cursor treats the slice as the whole file and applies the range again,
+      // so the model receives nothing and keeps reading.
+      ...(range ? [encodeBoolField(READ_SUCCESS_RANGE_APPLIED, true)] : []),
     ]),
   ]);
   return wrapExecClientMessage(execMsgId, execId, ECM_READ_RESULT, success);
@@ -579,7 +630,8 @@ export function encodeExecMcpResult(
   isError: boolean
 ): Buffer {
   // McpTextContent { text } → McpToolResultContentItem.text
-  const textContent = encodeMessage(MCC_TEXT, [encodeString(MTC_TEXT, content)]);
+  const text = fitCursorToolOutput(content, CURSOR_MCP_TEXT_MAX_BYTES).text;
+  const textContent = encodeMessage(MCC_TEXT, [encodeString(MTC_TEXT, text)]);
   const successFields: Buffer[] = [encodeMessage(MCS_CONTENT, [textContent])];
   if (isError) successFields.push(encodeBoolField(MCS_IS_ERROR, true));
   const success = encodeMessage(MCR_SUCCESS, successFields);

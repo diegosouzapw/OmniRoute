@@ -3,6 +3,7 @@
 // separate from executor-antigravity.test.ts to respect its frozen file-size cap.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
 
 import {
   AntigravityExecutor,
@@ -13,6 +14,8 @@ import {
   seedAntigravityIdeVersionCache,
   seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
+import { bindAbortLifecycle } from "../../open-sse/executors/antigravity/streamingPassthrough.ts";
+import { createByteLengthQueueStrategy } from "../../open-sse/utils/byteQueueStrategy.ts";
 
 type ChatCompletionPayload = {
   object?: string;
@@ -209,4 +212,37 @@ test("createCreditsExtractionTransform handles malformed SSE gracefully", async 
   // Data passes through unmodified, no crash on malformed input
   const collected = new TextDecoder().decode(Buffer.concat(chunks));
   assert.ok(collected.includes("not valid sse"));
+});
+
+test("Antigravity SSE queue budgets are measured in bytes, not chunk count", () => {
+  const strategy = createByteLengthQueueStrategy(16 * 1024);
+  assert.equal(strategy.highWaterMark, 16 * 1024);
+  assert.equal(strategy.size?.(new Uint8Array(1)), 1);
+  assert.equal(strategy.size?.(new Uint8Array(4096)), 4096);
+});
+
+test("bindAbortLifecycle releases the client abort listener after normal EOF", async () => {
+  const controller = new AbortController();
+  const before = getEventListeners(controller.signal, "abort").length;
+  const wrapped = bindAbortLifecycle(
+    new ReadableStream<Uint8Array>({
+      start(stream) {
+        stream.enqueue(new Uint8Array([1, 2, 3]));
+        stream.close();
+      },
+    }),
+    controller.signal
+  );
+
+  const reader = wrapped.getReader();
+  while (!(await reader.read()).done) {
+    // drain
+  }
+
+  const after = getEventListeners(controller.signal, "abort").length;
+  assert.equal(
+    after,
+    before,
+    "completed streams must not retain the request body via abort listeners"
+  );
 });

@@ -277,3 +277,57 @@ test("the train repeating an already-known violation more times than the base is
   assert.notEqual(code, 0);
   assert.match(stdout, /^NEW/);
 });
+
+test("--plan runs the blocking cycles ratchet (not the advisory check:cycles) and lists the preflight", async () => {
+  const { code, stdout } = await run(["--plan", "release/v9.9.9", "111"]);
+  assert.equal(code, 0);
+  assert.ok(stdout.includes("npm run check:cycles:ratchet"), "plan must run the blocking ratchet");
+  assert.ok(!stdout.includes('check:cycles"'), "bare check:cycles is advisory");
+  assert.ok(!/npm run check:cycles\s*(#|$)/m.test(stdout), "bare check:cycles must not be a gate");
+  assert.match(stdout, /PREFLIGHT/);
+  assert.match(stdout, /node_modules\/\.bin\/tsc/);
+  assert.match(stdout, /node_modules\/node_modules/);
+  assert.match(stdout, /node_modules\/\.bin\/bun --version/);
+});
+
+test("the preflight fails fast on a broken install before any worktree work", async () => {
+  const script = await readFile(SCRIPT, "utf8");
+  const fn = extractShellFunction(script, "preflight_env");
+  const dir = await mkdtemp(join(tmpdir(), "merge-train-preflight-"));
+  try {
+    await writeFile(join(dir, "lib.sh"), fn);
+    // Empty node_modules: no tsc, no bun.
+    await pExecFile("mkdir", ["-p", join(dir, "node_modules", ".bin")]);
+    await pExecFile("mkdir", ["-p", join(dir, "node_modules", "node_modules")]);
+    await assert.rejects(
+      pExecFile("bash", ["-c", 'ROOT="$1"; source "$1/lib.sh"; preflight_env', "_", dir]),
+      (err: { code?: number; stderr?: string }) => {
+        assert.equal(err.code, 1);
+        assert.match(err.stderr ?? "", /\.bin\/tsc is missing/);
+        assert.match(err.stderr ?? "", /stray .*node_modules\/node_modules/);
+        assert.match(err.stderr ?? "", /node install\.js/);
+        return true;
+      }
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("i18n-drift and agent-skills output lines count as violation lines (base-red is classifiable)", async () => {
+  const drift = "  - docs/guides/X.md (source-changed)\n  - README.md (source-changed)\n";
+  const skills = "  GENERATED:\n    + omni-auth\n    + omni-settings\n  UNCHANGED: 44 skills\n";
+  for (const log of [drift, skills]) {
+    const same = await classify(log, log);
+    assert.equal(same.code, 0, `identical lines must be INHERITED: ${same.stdout}`);
+    assert.match(same.stdout, /^INHERITED/);
+  }
+  const grew = await classify(drift + "  - docs/Y.md (source-changed)\n", drift);
+  assert.notEqual(grew.code, 0);
+  assert.match(grew.stdout, /^NEW/);
+  const grewSkills = await classify(skills + "    + omni-new\n", skills);
+  assert.notEqual(grewSkills.code, 0);
+  // fail-closed is preserved for output with no recognizable line
+  const noise = await classify("bun: error\n", "bun: error\n");
+  assert.match(noise.stdout, /^UNCLASSIFIABLE/);
+});

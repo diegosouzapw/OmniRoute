@@ -9,6 +9,7 @@ import { compareTr } from "@/shared/utils/turkishText";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import type { ConnectionDeleteConfirmState } from "../hooks/useConnectionDeleteConfirm";
+import type { ProviderQuotaCacheEntry } from "../hooks/useProviderQuota";
 import { filterConnectionsByQuery } from "../connectionsSearchFilter";
 
 type ConnectionsListPanelProps = {
@@ -73,6 +74,10 @@ type ConnectionsListPanelProps = {
   handleToggleSelectAll: () => void;
   handleDistributeProxies: (tag?: string) => void;
   cpaProviderEnabled: boolean;
+  // Per-account quota strip (useProviderQuota) — threaded to every row.
+  quotaByConnectionId: Record<string, ProviderQuotaCacheEntry>;
+  quotaRefreshingIds: ReadonlySet<string>;
+  handleRefreshQuota: (id: string) => void;
   // Modal triggers (all pass through from client, no closing over client internals)
   onOpenEditModal: (conn: ConnectionRowConnection) => void;
   onOpenOAuth: (conn: ConnectionRowConnection) => void;
@@ -156,6 +161,9 @@ export default function ConnectionsListPanel({
   handleToggleSelectAll,
   handleDistributeProxies,
   cpaProviderEnabled,
+  quotaByConnectionId,
+  quotaRefreshingIds,
+  handleRefreshQuota,
   canAutoSync,
   onOpenEditModal,
   onOpenOAuth,
@@ -476,6 +484,9 @@ export default function ConnectionsListPanel({
                 onTogglePerKeyProxyEnabled={(enabled) =>
                   handleTogglePerKeyProxyEnabled(conn.id, enabled)
                 }
+                quotaCache={quotaByConnectionId[conn.id]}
+                quotaRefreshing={quotaRefreshingIds.has(conn.id)}
+                onRefreshQuota={() => handleRefreshQuota(conn.id)}
               />
             ))
           )}
@@ -682,6 +693,9 @@ export default function ConnectionsListPanel({
                     onTogglePerKeyProxyEnabled={(enabled) =>
                       handleTogglePerKeyProxyEnabled(conn.id, enabled)
                     }
+                    quotaCache={quotaByConnectionId[conn.id]}
+                    quotaRefreshing={quotaRefreshingIds.has(conn.id)}
+                    onRefreshQuota={() => handleRefreshQuota(conn.id)}
                   />
                 ))}
               </div>

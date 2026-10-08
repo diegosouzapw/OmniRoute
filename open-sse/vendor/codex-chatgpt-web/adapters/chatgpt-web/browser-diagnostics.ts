@@ -13,7 +13,7 @@ import {
 } from "../../chatgpt-session";
 import { atomicWriteFile } from "../../config";
 
-const CHATGPT_BROWSER_OBSERVATION_PROBE_TIMEOUT_MS = 5_000;
+const CHATGPT_BROWSER_OBSERVATION_PROBE_TIMEOUT_MS = 20_000;
 
 export class ChatGptBrowserObservationTimeoutError extends Error {
   constructor(timeoutMs: number) {

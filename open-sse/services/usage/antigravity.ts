@@ -43,7 +43,11 @@ import {
 } from "../codeAssistSubscription.ts";
 import { toRecord, toNumber, getFieldValue } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
-import { fetchAndParseAntigravityWeeklyQuotas } from "./antigravityWeeklyQuota.ts";
+import {
+  fetchAndParseAntigravityQuotaSummary,
+  type AntigravityQuotaGroup,
+} from "./antigravityWeeklyQuota.ts";
+import { getAntigravityQuotaFamily } from "../antigravityQuotaFamily.ts";
 
 type JsonRecord = Record<string, unknown>;
 type SubscriptionCacheEntry = {
@@ -612,10 +616,10 @@ export async function getAntigravityUsage(
       );
     }
 
-    const [data, userQuotaData, weeklyQuotas] = await Promise.all([
+    const [data, userQuotaData, quotaSummary] = await Promise.all([
       fetchAntigravityAvailableModelsCached(accessToken, projectId, clientProfile, options),
       fetchAntigravityUserQuotaCached(accessToken, projectId, clientProfile, options),
-      fetchAndParseAntigravityWeeklyQuotas(accessToken, projectId, clientProfile, options), // #4017
+      fetchAndParseAntigravityQuotaSummary(accessToken, projectId, clientProfile, options),
     ]);
     const dataObj = toRecord(data);
     if (dataObj.__antigravityForbidden === true) {
@@ -633,6 +637,13 @@ export async function getAntigravityUsage(
       }
     }
     const quotas: Record<string, UsageQuota> = {};
+    const liveModelIds: string[] = [];
+    const seenLiveModelIds = new Set<string>();
+    const addLiveModelId = (modelId: string): void => {
+      if (seenLiveModelIds.has(modelId)) return;
+      seenLiveModelIds.add(modelId);
+      liveModelIds.push(modelId);
+    };
 
     // Parse per-model quota info from fetchAvailableModels response.
     for (const [rawModelKey, infoValue] of Object.entries(modelEntries)) {
@@ -652,6 +663,7 @@ export async function getAntigravityUsage(
         continue;
       }
 
+      addLiveModelId(modelKey);
       const liveQuota = userQuotaEntries.get(modelKey);
       const quotaSource = liveQuota || quotaInfo;
       const rawFraction = toNumber(quotaSource.remainingFraction, Number.NaN);
@@ -707,6 +719,7 @@ export async function getAntigravityUsage(
       ) {
         continue;
       }
+      addLiveModelId(modelKey);
       const rawFraction = toNumber(bucket.remainingFraction, -1);
       if (rawFraction < 0) continue;
       const remainingFraction = Math.max(0, Math.min(1, rawFraction));
@@ -726,11 +739,23 @@ export async function getAntigravityUsage(
       };
     }
 
+    const quotaGroups: AntigravityQuotaGroup[] = quotaSummary.groups.map((group) => ({
+      ...group,
+      models: liveModelIds.filter((modelId) => {
+        const family = getAntigravityQuotaFamily(modelId);
+        return (
+          (group.id === "gemini" && family === "gemini") ||
+          (group.id === "claude_gpt" && family === "claude")
+        );
+      }),
+    }));
+
     return {
       plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
+      quotaGroups,
       quotas: {
         ...quotas,
-        ...weeklyQuotas,
+        ...quotaSummary.quotas,
         ...(creditBalance !== null && {
           credits: {
             used: 0,

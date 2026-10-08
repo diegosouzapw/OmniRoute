@@ -46,7 +46,7 @@ test("buildRunPlan for claude includes env diff and model injection", async () =
   assert.equal(plan.command.includes("claude"), true);
 });
 
-test("buildRunPlan for codex injects model into provider args", async () => {
+test("buildRunPlan for codex injects the top-level model override", async () => {
   const plan = await buildRunPlan(
     "codex",
     { baseUrl: "http://localhost:20128", apiKey: "sk_test_x", model: "glm/glm-4.5" },
@@ -56,11 +56,33 @@ test("buildRunPlan for codex injects model into provider args", async () => {
   assert.equal(plan.baseUrl, "http://localhost:20128");
   assert.equal(plan.model, "glm/glm-4.5");
   assert.equal(logicalArgs(plan.args).includes("--help"), true);
-  assert.equal(
-    logicalArgs(plan.args).some((a) => a.includes("model_providers.omniroute.model")),
-    true
-  );
+  assert.equal(logicalArgs(plan.args).includes('model="glm/glm-4.5"'), true);
   assert.equal(plan.authSource, "option");
+});
+
+test("Claude and Codex dry-run plans honor the explicit full environment opt-in", async (t) => {
+  const key = "OMNIROUTE_RUN_AMBIENT_TEST";
+  const previous = process.env[key];
+  process.env[key] = "explicitly-inherited";
+  t.after(() => {
+    if (previous === undefined) delete process.env[key];
+    else process.env[key] = previous;
+  });
+
+  for (const target of ["claude", "codex"]) {
+    const isolated = await buildRunPlan(target, { model: "smoke/model" });
+    const inherited = await buildRunPlan(target, {
+      model: "smoke/model",
+      inheritEnv: true,
+    });
+
+    assert.equal(isolated.envDiff.removed.includes(key), true, `${target} isolates by default`);
+    assert.equal(
+      inherited.envDiff.removed.includes(key),
+      false,
+      `${target} previews --inherit-env faithfully`
+    );
+  }
 });
 
 test("buildRunPlan for Aider uses its OpenAI-compatible root endpoint", async () => {
@@ -173,6 +195,33 @@ test("dry-run --json does not print resolved auth token", async () => {
   assert.equal(code, 0);
   const raw = chunks.join("");
   assert.equal(raw.includes("sk_live_very_private_token"), false);
+});
+
+test("dry-run redacts sensitive passthrough flags supplied to the child CLI", async () => {
+  const chunks = [];
+  const originalStdout = process.stdout.write;
+  // @ts-ignore
+  process.stdout.write = (chunk) => {
+    chunks.push(String(chunk));
+    return true;
+  };
+
+  const code = await runCliTarget("aider", { dryRun: true, json: true, model: "glm/glm-5.2" }, [
+    "--api-key",
+    "sentinel-passthrough-secret",
+    "--token=sentinel-inline-secret",
+    "--message",
+    "safe value",
+  ]);
+
+  // @ts-ignore
+  process.stdout.write = originalStdout;
+  assert.equal(code, 0);
+  const raw = chunks.join("");
+  assert.equal(raw.includes("sentinel-passthrough-secret"), false);
+  assert.equal(raw.includes("sentinel-inline-secret"), false);
+  assert.match(raw, /\[redacted\]/);
+  assert.match(raw, /safe value/);
 });
 
 test("--api-key-env resolves credentials without exposing their value in the plan", async () => {

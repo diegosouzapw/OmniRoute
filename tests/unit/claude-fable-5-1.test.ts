@@ -168,5 +168,6 @@ test("Claude Fable 5.1 pricing matches Anthropic's published rates", () => {
     inputCostPer1M: 10,
     outputCostPer1M: 50,
     isFree: false,
+    isEstimated: false,
   });
 });

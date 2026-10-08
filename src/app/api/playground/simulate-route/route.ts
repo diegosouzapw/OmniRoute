@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getCombos } from "@/lib/db/combos";
 import { getProviderConnections } from "@/lib/db/providers";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 interface SimulateRequest {
   /** Combo ID to simulate */
@@ -278,7 +279,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: `Simulation error: ${message}` }, { status: 500 });
   }
 }

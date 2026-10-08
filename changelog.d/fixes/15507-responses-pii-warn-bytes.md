@@ -1,0 +1,1 @@
+- fix(sse): keep Responses API tool-call ids/arguments intact and stop replaying output_item.done in the PII stream transform (#15507)

@@ -40,7 +40,11 @@ interface QuotaCardProps {
         plan?: string | null;
         message?: string | null;
         billing?: ProviderBillingStatus | null;
-        raw?: { billing?: ProviderBillingStatus | null; paidCredits?: CodexPaidCredits };
+        raw?: {
+          billing?: ProviderBillingStatus | null;
+          quotaGroups?: Array<Record<string, unknown>>;
+          paidCredits?: CodexPaidCredits;
+        };
         stale?: { since?: string; reason?: string } | null;
       }
     | undefined;
@@ -100,7 +104,8 @@ export default function QuotaCard({
           quota?.plan ?? null,
           connection.providerSpecificData ?? null,
           connection.provider
-        )
+        ),
+        connection.provider
       ),
     [quota?.plan, connection.providerSpecificData, connection.provider]
   );
@@ -147,9 +152,11 @@ export default function QuotaCard({
         hasStaleData={hasStaleData}
         onToggleActive={onToggleActive}
         togglingActive={togglingActive}
+        onTestSent={onRefresh}
       />
       <QuotaCardExpanded
         quotas={quotas}
+        quotaGroups={quota?.raw?.quotaGroups}
         providerId={connection.provider}
         loading={loading}
         error={error}

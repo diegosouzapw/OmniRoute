@@ -21,6 +21,7 @@
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import { isCodexQuotaFilteringDisabled } from "@/lib/providers/codexQuotaFiltering";
 // #14359 — import the leaf, NOT "@/domain/quotaCache": quotaCache → usage.ts → usage/openrouter.ts →
 // openrouterQuotaFetcher.ts → this file, so importing quotaCache here closes an ESM init cycle
 // that deadlocks the esbuild MCP bundle (tests/unit/build/mcp-bundle-startup.test.ts).
@@ -85,6 +86,13 @@ export interface QuotaInfo {
   limitReached?: boolean;
   /** Separate from subscription percentages and banked quota-reset coupons. */
   paidCredits?: CodexPaidCredits;
+  /**
+   * True when the provider reports NO cap at all (every reported window is unlimited). It is
+   * a real, known reading of full headroom, not a failed one: `null` from a quota fetcher
+   * means "could not read it", so unlimited plans are marked here instead of returning null
+   * (#15347). `percentUsed` is 0 on such a snapshot.
+   */
+  unlimited?: boolean;
 }
 
 export type QuotaFetcher = (
@@ -378,10 +386,11 @@ export function evaluateQuotaCutoff(
   const paidCreditsGate = resolveCodexPaidCreditsGate(quota, scope);
   if (paidCreditsGate) return paidCreditsGate;
   if (!quota) return { proceed: true };
-  // Operator-enabled Claude extra usage is billed after the 5h session quota
-  // is gone. Pre-dispatch must not skip the account before Anthropic sees the
-  // request; blockExtraUsage=false is the only opt-in.
-  if (isClaudeExtraUsageAllowed(scope?.provider, scope?.providerSpecificData)) {
+  // Explicit local quota opt-outs leave billing eligibility to the upstream service.
+  if (
+    isClaudeExtraUsageAllowed(scope?.provider, scope?.providerSpecificData) ||
+    isCodexQuotaFilteringDisabled(scope?.provider, scope?.providerSpecificData)
+  ) {
     return { proceed: true, quotaPercent: quota.percentUsed };
   }
   // #14359 — same escape as the dispatch-time predicates: a recent success is not exhaustion.

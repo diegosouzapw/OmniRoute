@@ -4,26 +4,13 @@
 
 ---
 
-OmniRoute dostarcza rodzinę poleceń `setup-*`, które konfigurują
-CLI do kodowania (Codex, Claude Code, OpenCode, Cline, …) tak, aby używały OmniRoute jako swojego backendu — dzięki czemu
-narzędzie komunikuje się z **jednym** punktem końcowym, a OmniRoute kieruje ruch do właściwego dostawcy z
-automatycznym przełączaniem awaryjnym. Każde polecenie odczytuje **na żywo** katalog modeli z działającego
-OmniRoute (lokalnego lub zdalnego) i zapisuje plik konfiguracyjny narzędzia na **Twojej**
-maszynie. Klucz API jest odwoływany przez zmienną środowiskową, wszędzie tam, gdzie narzędzie
-to obsługuje. Polecenia, które utrwalają lokalny plik środowiskowy narzędzia, są wymienione poniżej.
+Informacje o współdzielonym manifeście plików wykonywalnych, ograniczonych środowiskach procesów potomnych i trwałej konfiguracji Gemini można znaleźć w dokumencie [Kontrakty uruchamiania CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Istnieje również ogólny launcher — `omniroute run <target>` — który uruchamia
-`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` lub `gemini` z
-wstrzykniętym odpowiednim środowiskiem, bez zapisywania jakiejkolwiek konfiguracji. Cele i ich
-aliasy pochodzą z kanonicznego manifestu `bin/cli/cli-manifest.mjs`
-(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
-`open-code`, `qwen-code`, `gemini-cli`), a `omniroute completion` oferuje te same
-słowa docelowe pochodzące z manifestu. Starsze launchery dla poszczególnych narzędzi —
-`omniroute launch` (Claude Code) i `omniroute launch-codex` (Codex) — pozostają
-dostępne.
+OmniRoute udostępnia rodzinę poleceń `setup-*`, które konfigurują narzędzie CLI do programowania (Codex, Claude Code, OpenCode, Cline, …) tak, aby korzystało z OmniRoute jako zaplecza — dzięki temu narzędzie komunikuje się z **jednym** punktem końcowym, a OmniRoute kieruje żądania do właściwego dostawcy z automatycznym przełączaniem awaryjnym. Każde polecenie odczytuje **aktualny** katalog modeli z działającej instancji OmniRoute (lokalnej lub zdalnej) i zapisuje plik konfiguracyjny danego narzędzia na **Twoim** komputerze. Tam, gdzie narzędzie na to pozwala, klucz API jest wskazywany za pomocą zmiennej środowiskowej. Polecenia, które zapisują lokalny dla narzędzia plik środowiskowy, opisano poniżej.
 
-Wprowadzanie dostawców jest dostępne z tego samego kontekstu lokalnego/zdalnego.
-Poniższe polecenia API-first utrzymują uwierzytelnianie zarządzania oddzielnie od poświadczeń dostawcy i nigdy nie drukują poświadczeń w ustrukturyzowanym wyjściu:
+Dostępny jest również ogólny program uruchamiający — `omniroute run <target>` — który uruchamia `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` lub `gemini` z odpowiednio wstrzykniętymi zmiennymi środowiskowymi, bez zapisywania jakiejkolwiek konfiguracji. Cele i ich aliasy pochodzą z kanonicznego manifestu `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), a `omniroute completion` udostępnia te same nazwy celów pochodzące z manifestu. Starsze programy uruchamiające przeznaczone dla poszczególnych narzędzi — `omniroute launch` (Claude Code) i `omniroute launch-codex` (Codex) — pozostają dostępne.
+
+Dodawanie dostawców jest dostępne w tym samym kontekście lokalnym lub zdalnym. Poniższe polecenia korzystające przede wszystkim z API oddzielają uwierzytelnianie administracyjne od danych uwierzytelniających dostawcy i nigdy nie wyświetlają danych uwierzytelniających w ustrukturyzowanych danych wyjściowych:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -33,25 +20,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Dla skryptów preferuj `--credential-stdin` lub `--credential-env`; `--credential`
-jest zachowane do kontrolowanego użytku lokalnego. `providers remove` wymaga `--yes` w
-terminalu nieinteraktywnym, a wszystkie pięć poleceń honoruje aktywny kontekst lub
-globalne opcje `--base-url`/`--api-key`.
+W skryptach należy preferować `--credential-stdin` lub `--credential-env`; opcja `--credential` pozostaje dostępna do kontrolowanego użycia lokalnego. Polecenie `providers remove` wymaga opcji `--yes` w terminalu nieinteraktywnym, a wszystkie pięć poleceń respektuje aktywny kontekst lub globalne opcje `--base-url`/`--api-key`.
 
-Selektory dostawców odrzucają niejednoznaczne prefiksy ID, nazwy lub nazwy dostawców; użyj
-pełnego ID połączenia, gdy pasuje kilka połączeń. Polecenia tworzenia i edycji odczytują
-zapisane połączenie z powrotem, a usunięcie weryfikuje, że nie jest już czytelne.
-Import pomija istniejącą parę dostawca/nazwa. Zaimportowane wpisy nie mogą nadpisywać
-punktu końcowego zarządzania, kontekstu ani poświadczeń zarządzania dostarczonych do CLI.
+Selektory dostawców odrzucają niejednoznaczne prefiksy identyfikatorów, nazwy lub nazwy dostawców; gdy pasuje kilka połączeń, należy użyć pełnego identyfikatora połączenia. Polecenia tworzenia i edycji ponownie odczytują zapisane połączenie, a usuwanie sprawdza, czy nie można go już odczytać. Import pomija istniejącą parę dostawca/nazwa. Importowane wpisy nie mogą zastępować punktu końcowego zarządzania, kontekstu ani administracyjnych danych uwierzytelniających przekazanych do CLI.
 
-W celu jednorazowej, ręcznej konfiguracji bazowej dwóch najbogatszych integracji, zobacz
-szczegółowe analizy dla poszczególnych narzędzi:
+Informacje o jednorazowej, ręcznej konfiguracji bazowej dwóch najbardziej rozbudowanych integracji znajdują się w szczegółowych przewodnikach dotyczących poszczególnych narzędzi:
 
 - [Konfiguracja Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [Konfiguracja Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Tryb zdalny](./REMOTE-MODE.md) — steruj zdalnym OmniRoute (VPS / Tailnet) ze swojego laptopa
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — rozszerzenie OmniCopilot; może również uruchamiać te
-  polecenia `setup-*` dla Ciebie z poziomu edytora
+- [Tryb zdalny](./REMOTE-MODE.md) — sterowanie zdalną instancją OmniRoute (VPS / Tailnet) z laptopa
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — rozszerzenie OmniCopilot; może również uruchamiać te polecenia
+  `setup-*` z poziomu edytora
 
 ---
 

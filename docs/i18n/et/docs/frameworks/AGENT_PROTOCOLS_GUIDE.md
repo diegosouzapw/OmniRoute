@@ -74,24 +74,24 @@ Transpordi üksikasjade, agendikaardi struktuuri, ülesannete TTL-i seadistuse j
 
 ### Mis see on
 
-ACP on OmniRoute'i **kohalik CLI-agentide inventar**. See tuvastab, millised programmeerimise CLI-d on hostis installitud (Cursor, Cline, Claude Code, Codex CLI, Continue jne), määrab nende versioonid ja kuvab need töölaual, et kasutaja saaks iga CLI suunata OmniRoute'ile.
+ACP on OmniRoute'i **kohalik CLI-agentide loend**. See tuvastab, millised programmeerimise CLI-d on hostis installitud (Cursor, Cline, Claude Code, Codex CLI, Continue jne), määrab nende versioonid ja kuvab need juhtpaneelil, et kasutaja saaks iga CLI seadistada kasutama OmniRoute'i.
 
-See EI OLE väline protokoll — see on sisemine register, millel põhinevad „CLI Tools“ kasutajaliides ja CLI sõrmejälgede jälgimine (vt [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP-liides on sisemine loend, millel põhinevad „CLI Tools“ kasutajaliides ja CLI-sõrmejälgede jälgimine (vt [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Eraldi toetab sisemine protsessihaldur registreeritud Gemini käivitaja jaoks natiivset Agent Client Protocoli ning teiste lepingute jaoks pärand-stdio-adaptereid. Nende eraldiseisvate režiimide ja piirangute kohta vt [ACP register ja käivitajad](./ACP.md).
 
 ### Mida see teeb
 
-- Kontrollib hostis installitud CLI binaarfaile (kasutab olenevalt operatsioonisüsteemist käsku `which` / `where`)
+- Kontrollib, kas hostis leidub installitud CLI-binaarfaile (kasutab sõltuvalt operatsioonisüsteemist käsku `which` / `where`)
 - Loeb iga CLI versiooni (käivitab `<bin> --version`)
-- Võimaldab soovi korral lisada kasutaja määratud kohandatud agente (binaarfaili asukoht + versiooni kontroll + käivitamisargumendid)
-- Salvestab kohandatud agendid seadistustesse
-- Tagastab töölauale koondloendi
+- Võimaldab valikuliselt lisada kasutaja määratud kohandatud agente (binaarfaili tee + versiooni kontrollimise käsk + käivitamise argumendid)
+- Salvestab kohandatud agendid seadetesse
+- Tagastab ühtse loendi juhtpaneelile
 
 ### REST API
 
 | Lõpp-punkt        | Meetod | Kirjeldus                                                                 | Autentimine |
 | ----------------- | ------ | ------------------------------------------------------------------------- | ----------- |
-| `/api/acp/agents` | GET    | Tuvastatud ja kohandatud agentide loend (installitud/kokku arvud)         | API-võti    |
-| `/api/acp/agents` | POST   | Kohandatud agendi lisamine/uuendamine/eemaldamine (toiming päringu kehas) | API-võti    |
+| `/api/acp/agents` | GET    | Loetleb tuvastatud ja kohandatud agendid (installitud/kokku arvud)        | API-võti    |
+| `/api/acp/agents` | POST   | Lisab, uuendab või eemaldab kohandatud agendi (toiming eristatakse kehas) | API-võti    |
 
 POST-päringu keha kuju (`customAgentBodySchema` failis `src/app/api/acp/agents/route.ts`):
 
@@ -110,13 +110,13 @@ POST-päringu keha kuju (`customAgentBodySchema` failis `src/app/api/acp/agents/
 
 ### Kasutusjuhud
 
-- Töölaua leht „CLI Tools“ loetleb installitud tööriistad ja aitab suunata need OmniRoute'ile
-- Kohandatud agendid võimaldavad kogenud kasutajatel registreerida ettevõttesiseseid või omanduslikke CLI-sid, mida OmniRoute vaikimisi ei tunne
-- Tuvastustulemus täiendab `cli-tools` sõrmejäljemaatriksit
+- Juhtpaneeli leht „CLI Tools“ loetleb installitud tööriistad ja aitab iga neist OmniRoute'i kasutama seadistada
+- Kohandatud agendid võimaldavad kogenud kasutajatel registreerida sisemisi või omanduslikke CLI-sid, mida OmniRoute vaikimisi ei tunne
+- Tuvastustulemus täidab `cli-tools` sõrmejäljemaatriksit
 
 ### Millal ACP-d MITTE kasutada
 
-- ACP ei _käivita_ ülesandeid. See ainult tuvastab ja konfigureerib CLI-sid. CLI tegelikuks käivitamiseks peate selle ise käivitama OmniRoute'i pakutavate keskkonnamuutujatega (`OPENAI_BASE_URL`, `OPENAI_API_KEY` jne).
+- HTTP-register ei võta vastu ülesandeid ega võimalda protsesse käivitada. Sisemine haldur saab registreeritud CLI käivitada, kuid seda ei ole ühendatud automaatse teenusepakkuja varuvariandina. Tavaliseks interaktiivseks kasutuseks käivitage seadistatud CLI ise või kasutage käsku `omniroute run`.
 
 ## 3. Pilveagendid
 

@@ -11,12 +11,13 @@
  * same provider/model. The key goes in secrets.json (Cline has no env ref).
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
 import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
+import { writePrivateFileAtomic } from "../private-file.mjs";
 
 function stripToRoot(url) {
   let s = String(url || "").replace(/\/+$/, "");
@@ -148,9 +149,8 @@ export async function runSetupClineCommand(opts = {}) {
     );
     console.log(`\n── [dry-run] ${secPath} ── (openAiApiKey: ${apiKey ? "set" : "sk_omniroute"})`);
   } else {
-    if (!existsSync(clineDir)) mkdirSync(clineDir, { recursive: true });
-    writeFileSync(gsPath, JSON.stringify(globalState, null, 2) + "\n", "utf8");
-    writeFileSync(secPath, JSON.stringify(secrets, null, 2) + "\n", "utf8");
+    writePrivateFileAtomic(gsPath, JSON.stringify(globalState, null, 2) + "\n");
+    writePrivateFileAtomic(secPath, JSON.stringify(secrets, null, 2) + "\n");
     printSuccess(`Wrote ${gsPath}`);
     printSuccess(`Wrote ${secPath}`);
   }
