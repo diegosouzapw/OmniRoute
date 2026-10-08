@@ -394,6 +394,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024"],
   },
 
+  // A Google AI Studio key can serve these models, but there was no `gemini`
+  // image provider, so they could never be image-combo targets (the combo
+  // filter requires an exact registry match). Distinct from `antigravity`
+  // above: that entry is OAuth against Cloud Code, while AI Studio keys
+  // authenticate with `x-goog-api-key` against the public endpoint, so this
+  // needs its own `gemini-ai-image` format rather than reusing `gemini-image`.
+  gemini: {
+    id: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
+    format: "gemini-ai-image",
+    models: [
+      { id: "gemini-3-pro-image", name: "Gemini 3 Pro Image" },
+      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
+    ],
+    supportedSizes: ["1024x1024"],
+  },
+
   //Curruntly no models serving
   nebius: {
     id: "nebius",
