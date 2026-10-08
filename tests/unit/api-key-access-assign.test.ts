@@ -130,9 +130,18 @@ test("4. 'All models' key: 409 conflict when adding models without switchToRestr
   );
 
   assert.equal(response.status, 409);
-  const body = (await response.json()) as { error?: { code?: string; message?: string } };
+  const body = (await response.json()) as {
+    error?: { code?: string; message?: string; type?: string };
+  };
+  // The 409 body is built by buildErrorBody() (Hard Rule #12): the stable
+  // `code` must survive the public-identifier projection and the shape is the
+  // OpenAI-compatible { error: { message, type, code } }.
   assert.equal(body.error?.code, "key_allows_all_models");
-  assert.ok(typeof body.error?.message === "string" && body.error.message.length > 0);
+  assert.equal(body.error?.type, "invalid_request_error");
+  assert.equal(
+    body.error?.message,
+    "API key allows all models. Specify switchToRestricted: true to switch to restricted access."
+  );
   assert.equal(JSON.stringify(body).includes("at /"), false);
 });
 
@@ -331,8 +340,9 @@ test("11. Default key: has combo/* and empty blockedModels; handles all-combos r
     { params: Promise.resolve({ id: defaultKey.id }) }
   );
   assert.equal(resConflict.status, 409);
-  const conflictBody = (await resConflict.json()) as { error?: { code?: string } };
+  const conflictBody = (await resConflict.json()) as { error?: { code?: string; type?: string } };
   assert.equal(conflictBody.error?.code, "key_allows_all_combos");
+  assert.equal(conflictBody.error?.type, "invalid_request_error");
 
   // 11b. Removing combos from an all-combos key is a no-op 200 with changed: false
   const resRemove = await accessRoute.POST(
