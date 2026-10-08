@@ -42,6 +42,7 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/codex-claude-signature-provenance-15534.test.ts",
       "tests/unit/provider-breaker-combo-probe-slot-consumed-15698.test.ts",
       "tests/unit/provider-breaker-local-cooldown-refusal-15690.test.ts",
       "tests/unit/devin-cli-fallback-spawn-local-only-15159.test.ts",

@@ -169,7 +169,9 @@ function anthropicSignature400() {
   );
 }
 
-type UpstreamCapture = { url: string; body: any };
+type OutboundBlock = { type?: string; signature?: string; id?: string };
+type OutboundBody = { messages: Array<{ content?: OutboundBlock[] }> };
+type UpstreamCapture = { url: string; body: OutboundBody | null };
 
 test("#15534 real path: codex encrypted reasoning never sends a signed thinking block to the Claude fallback leg", async () => {
   await seedOAuthCodex();
@@ -185,7 +187,7 @@ test("#15534 real path: codex encrypted reasoning never sends a signed thinking 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     const text = typeof init.body === "string" ? init.body : "";
-    let parsed: any = null;
+    let parsed: OutboundBody | null = null;
     try {
       parsed = text ? JSON.parse(text) : null;
     } catch {
@@ -298,14 +300,14 @@ test("#15534 real path: a foreign signed-empty historical block is sanitized, re
     ],
   };
 
-  const claudeBodies: any[] = [];
+  const claudeBodies: Array<OutboundBody | null> = [];
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (!target.includes("api.anthropic.com")) {
       throw new Error(`Unexpected upstream fetch: ${target}`);
     }
     const text = typeof init.body === "string" ? init.body : "";
-    let parsed: any = null;
+    let parsed: OutboundBody | null = null;
     try {
       parsed = text ? JSON.parse(text) : null;
     } catch {
@@ -326,10 +328,10 @@ test("#15534 real path: a foreign signed-empty historical block is sanitized, re
   // reach Anthropic as a signed `thinking` block (claudeHelper's historical
   // sanitization converts it to redacted_thinking); the signed form only
   // survives verbatim on the latest assistant turn's verbatim-preserve path.
-  const firstContent = claudeBodies[0].messages.flatMap((m: any) => m.content ?? []);
-  const firstThinking = firstContent.filter((b: any) => b?.type === "thinking");
+  const firstContent = claudeBodies[0].messages.flatMap((m) => m.content ?? []);
+  const firstThinking = firstContent.filter((b) => b?.type === "thinking");
   assert.equal(
-    firstThinking.some((b: any) => b.signature === FOREIGN_SIGNATURE),
+    firstThinking.some((b) => b.signature === FOREIGN_SIGNATURE),
     false,
     "foreign signed thinking must not be forwarded as a signed thinking block in historical turns"
   );
@@ -340,24 +342,24 @@ test("#15534 real path: a foreign signed-empty historical block is sanitized, re
     "the foreign signature value must not appear anywhere in the first outbound body"
   );
   assert.ok(
-    firstContent.some((b: any) => b?.type === "tool_use" && b.id === "toolu_15534"),
+    firstContent.some((b) => b?.type === "tool_use" && b.id === "toolu_15534"),
     "active tool_use is present on the first attempt"
   );
 
   // Retry body: historical thinking removed, active-cycle thinking preserved.
-  const retryContent = claudeBodies[1].messages.flatMap((m: any) => m.content ?? []);
-  const retryThinking = retryContent.filter((b: any) => b?.type === "thinking");
+  const retryContent = claudeBodies[1].messages.flatMap((m) => m.content ?? []);
+  const retryThinking = retryContent.filter((b) => b?.type === "thinking");
   assert.equal(
-    retryThinking.some((b: any) => b.signature === FOREIGN_SIGNATURE),
+    retryThinking.some((b) => b.signature === FOREIGN_SIGNATURE),
     false,
     "rejected historical thinking is stripped on the recovery retry"
   );
   assert.ok(
-    retryThinking.some((b: any) => b.signature === "ACTIVE_CYCLE_SIG"),
+    retryThinking.some((b) => b.signature === "ACTIVE_CYCLE_SIG"),
     "active tool-cycle thinking survives the recovery retry verbatim"
   );
   assert.ok(
-    retryContent.some((b: any) => b?.type === "tool_use" && b.id === "toolu_15534"),
+    retryContent.some((b) => b?.type === "tool_use" && b.id === "toolu_15534"),
     "active tool_use survives the recovery retry"
   );
 });
