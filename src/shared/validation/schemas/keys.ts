@@ -61,6 +61,7 @@ export const createKeySchema = z
     dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
     chaosModeEnabled: z.boolean().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
   })
@@ -71,6 +72,15 @@ export const createKeySchema = z
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
+});
+
+export const setKeyQuotaSchema = z.object({
+  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+  // 0/null means unlimited for the dimension (KISS: NULL stores unlimited).
+  // Negative values are rejected.
+  tpmLimit: z.coerce.number().min(0).optional().nullable(),
+  rpmLimit: z.coerce.number().min(0).optional().nullable(),
+  monthlyAmountUsd: z.coerce.number().min(0).optional().nullable(),
 });
 
 export const setBudgetSchema = z.object({
@@ -125,6 +135,7 @@ export const updateKeyPermissionsSchema = z
     modelAccessMode: z.enum(["all", "restricted"]).optional(),
     connectionAccessMode: z.enum(["all", "restricted"]).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    blockedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
@@ -149,6 +160,8 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     compressionEnabled: z.boolean().optional(),
+    allowAutoCombos: z.boolean().optional(),
+    catalogScope: z.enum(["all", "combos", "models"]).optional(),
     cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
@@ -191,6 +204,7 @@ export const updateKeyPermissionsSchema = z
       value.modelAccessMode === undefined &&
       value.connectionAccessMode === undefined &&
       value.allowedModels === undefined &&
+      value.blockedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
       value.noLog === undefined &&
@@ -206,6 +220,8 @@ export const updateKeyPermissionsSchema = z
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
       value.compressionEnabled === undefined &&
+      value.allowAutoCombos === undefined &&
+      value.catalogScope === undefined &&
       value.cacheDefaultMode === undefined &&
       value.disableNonPublicModels === undefined &&
       value.allowUsageCommand === undefined &&

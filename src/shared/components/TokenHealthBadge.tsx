@@ -10,13 +10,14 @@ import { useTranslations } from "next-intl";
  */
 
 import { useState, useEffect } from "react";
-import { STATUS_HEX } from "@/shared/constants/statusColors";
 
+// Theme-aware status tokens (`--orch-status-*` in src/app/globals.css) instead of the
+// fixed dark-mode hexes: the badge sits in the header, which is light in light mode.
 const STATUS_MAP = {
-  healthy: { icon: "check_circle", color: STATUS_HEX.success, tooltipKey: "allHealthy" },
-  warning: { icon: "warning", color: STATUS_HEX.warning, tooltipKey: "needsAttention" },
-  error: { icon: "error", color: STATUS_HEX.error, tooltipKey: "refreshFailures" },
-  unknown: { icon: "help", color: STATUS_HEX.muted, tooltipKey: "unknown" },
+  healthy: { icon: "check_circle", color: "var(--orch-status-success)", tooltipKey: "allHealthy" },
+  warning: { icon: "warning", color: "var(--orch-status-warning)", tooltipKey: "needsAttention" },
+  error: { icon: "error", color: "var(--orch-status-error)", tooltipKey: "refreshFailures" },
+  unknown: { icon: "help", color: "var(--orch-status-muted)", tooltipKey: "unknown" },
 };
 
 export default function TokenHealthBadge() {

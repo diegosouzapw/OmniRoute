@@ -213,7 +213,9 @@ test("video route dispatches submit→poll job flow for custom model with agnes-
         headers: { "content-type": "application/json" },
       });
     }
-    if (stringUrl === "https://custom.example.com/agnesapi?video_id=video-123") {
+    if (
+      stringUrl === "https://custom.example.com/agnesapi?video_id=video-123&model_name=job-video-v1"
+    ) {
       return createResponse(
         JSON.stringify({
           status: "completed",
@@ -256,7 +258,10 @@ test("video route dispatches submit→poll job flow for custom model with agnes-
     prompt: "a cat playing piano",
   });
   assert.equal(calls[1].method, "GET");
-  assert.equal(calls[1].url, "https://custom.example.com/agnesapi?video_id=video-123");
+  assert.equal(
+    calls[1].url,
+    "https://custom.example.com/agnesapi?video_id=video-123&model_name=job-video-v1"
+  );
 });
 
 test("video route returns 502 when job preset reports failed status", async () => {

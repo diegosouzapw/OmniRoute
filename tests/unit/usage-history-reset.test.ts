@@ -58,6 +58,24 @@ test.after(() => {
   }
 });
 
+test("purge usage API exposes every conversation reset counter", () => {
+  const routeSource = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/settings/purge-usage-history/route.ts"),
+    "utf8"
+  );
+
+  assert.match(
+    routeSource,
+    /deletedConversationTurnNodes:\s*result\.deletedConversationTurnNodes/,
+    "the API response should expose deleted conversation nodes"
+  );
+  assert.match(
+    routeSource,
+    /deletedAgenticConversations:\s*result\.deletedAgenticConversations/,
+    "the API response should expose deleted conversation roots"
+  );
+});
+
 test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hourly_usage_summary; a period only deletes rows older than the cutoff; an invalid period throws", async () => {
   setup();
   try {
@@ -102,6 +120,17 @@ test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hou
       db.prepare(
         "INSERT INTO combos (id, name, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
       ).run("combo-test", "Test Combo", "{}", recentIso, recentIso);
+
+      db.prepare(
+        `INSERT INTO agentic_conversations
+           (id, api_key_id, fingerprint_hash, last_message_count, last_messages_hash, turn_count, first_seen_at, last_seen_at)
+         VALUES ('conversation-test', 'key-test', 'fp', 0, '', 1, ?, ?)`
+      ).run(recentIso, recentIso);
+      db.prepare(
+        `INSERT INTO conversation_turn_nodes
+           (id, conversation_id, parent_id, role, content_hash, last_correlation_id, first_seen_at, last_seen_at)
+         VALUES ('turn-test', 'conversation-test', NULL, 'user', 'hash', 'recent-call', ?, ?)`
+      ).run(recentIso, recentIso);
 
       db.prepare("INSERT INTO usage_history (provider, model, timestamp) VALUES (?, ?, ?)").run(
         "openai",
@@ -240,6 +269,16 @@ test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hou
     assert.equal(countRows(db, "provider_nodes"), 1, "provider config should survive reset");
     assert.equal(countRows(db, "api_keys"), 1, "API keys should survive reset");
     assert.equal(countRows(db, "combos"), 1, "combos should survive reset");
+    assert.equal(
+      countRows(db, "conversation_turn_nodes"),
+      1,
+      "a timed reset should preserve conversation identity nodes"
+    );
+    assert.equal(
+      countRows(db, "agentic_conversations"),
+      1,
+      "a timed reset should preserve conversation roots"
+    );
 
     assert.equal(countRows(db, "usage_history"), 1, "recent usage_history row should survive");
     assert.equal(countRows(db, "call_logs"), 1, "recent call_logs row should survive");
@@ -311,6 +350,16 @@ test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hou
       "'all' should delete remaining call artifact"
     );
     assert.equal(
+      allResult.deletedConversationTurnNodes,
+      1,
+      "'all' should delete conversation identity nodes"
+    );
+    assert.equal(
+      allResult.deletedAgenticConversations,
+      1,
+      "'all' should delete conversation roots"
+    );
+    assert.equal(
       fs.existsSync(recentArtifactPath),
       false,
       "'all' should delete recent call artifact"
@@ -330,6 +379,16 @@ test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hou
       countRows(db, "hourly_usage_summary"),
       0,
       "'all' should empty hourly_usage_summary"
+    );
+    assert.equal(
+      countRows(db, "conversation_turn_nodes"),
+      0,
+      "'all' should empty conversation_turn_nodes"
+    );
+    assert.equal(
+      countRows(db, "agentic_conversations"),
+      0,
+      "'all' should empty agentic_conversations"
     );
     assert.equal(countRows(db, "provider_nodes"), 1, "provider config should still survive 'all'");
     assert.equal(countRows(db, "api_keys"), 1, "API keys should still survive 'all'");

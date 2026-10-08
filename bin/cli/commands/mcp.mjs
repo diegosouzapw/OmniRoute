@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { apiFetch, isServerUp } from "../api.mjs";
+import { MCP_ACCEPT, readJsonRpcResponse } from "../mcpClient.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
@@ -8,6 +9,8 @@ function truncate(v, len = 60) {
   const s = String(v);
   return s.length > len ? s.slice(0, len - 1) + "…" : s;
 }
+
+const VALID_MCP_TRANSPORTS = ["stdio", "sse", "streamable-http"];
 
 const mcpToolSchema = [
   { key: "name", header: "Tool", width: 36 },
@@ -43,6 +46,25 @@ export function registerMcp(program) {
       if (exitCode !== 0) process.exit(exitCode);
     });
 
+  mcp
+    .command("enable")
+    .description(t("mcp.enable.description"))
+    .option("--transport <transport>", t("mcp.enable.transport"))
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runMcpEnableCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  mcp
+    .command("disable")
+    .description(t("mcp.disable.description"))
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runMcpDisableCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
   // 5.1 — mcp call + mcp scopes
   mcp
     .command("call <tool> [argsJson]")
@@ -61,10 +83,15 @@ export function registerMcp(program) {
             ? JSON.parse(argsPositional)
             : {};
 
-      const exitCode = await runMcpCallCommand(tool, args, {
-        ...opts,
-        stream: opts.stream,
-      }, globalOpts);
+      const exitCode = await runMcpCallCommand(
+        tool,
+        args,
+        {
+          ...opts,
+          stream: opts.stream,
+        },
+        globalOpts
+      );
 
       if (exitCode !== 0) process.exit(exitCode);
     });
@@ -105,7 +132,7 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
 
   const hdrs = {
     "Content-Type": "application/json",
-    Accept: stream ? "text/event-stream" : "application/json",
+    Accept: MCP_ACCEPT,
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
   };
 
@@ -127,7 +154,9 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
 
   if (!initRes.ok) {
     const text = await initRes.text().catch(() => "");
-    process.stderr.write(`MCP initialize failed: HTTP ${initRes.status}${text ? ` — ${text}` : ""}\n`);
+    process.stderr.write(
+      `MCP initialize failed: HTTP ${initRes.status}${text ? ` — ${text}` : ""}\n`
+    );
     return 1;
   }
 
@@ -165,7 +194,7 @@ async function mcpJsonRpcCall(tool, args, { stream = false, globalOpts = {} } = 
   }
 
   // Non-stream: parse JSON-RPC response
-  const data = await callRes.json();
+  const data = await readJsonRpcResponse(callRes);
   if (data.error) {
     process.stderr.write(`MCP error: ${data.error.message || JSON.stringify(data.error)}\n`);
     return 1;
@@ -227,6 +256,7 @@ export async function runMcpStatusCommand(opts = {}) {
     });
     if (!res.ok) {
       console.log(t("mcp.stopped"));
+      console.log(t("mcp.stoppedHint"));
       return 0;
     }
 
@@ -240,6 +270,9 @@ export async function runMcpStatusCommand(opts = {}) {
     const transport = status.transport || "stdio";
     const online = status.online ?? status.running;
     console.log(online ? t("mcp.running", { transport }) : t("mcp.stopped"));
+    if (!online && status.enabled === false) {
+      console.log(t("mcp.stoppedHint"));
+    }
     if (status.toolsCount !== undefined) console.log(`  Tools: ${status.toolsCount}`);
     if (status.scopes?.length) {
       console.log("  Scopes:");
@@ -270,8 +303,74 @@ export async function runMcpRestartCommand(opts = {}) {
       console.log(t("mcp.restarted"));
       return 0;
     }
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+    const body = await res.json().catch(() => null);
+    const message = body?.error || `HTTP ${res.status}`;
+    console.error(t("common.error", { message }));
     return 1;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
+}
+
+export async function runMcpEnableCommand(opts = {}) {
+  const serverUp = await isServerUp();
+  if (!serverUp) {
+    console.error(t("common.serverOffline"));
+    return 1;
+  }
+
+  if (opts.transport && !VALID_MCP_TRANSPORTS.includes(opts.transport)) {
+    console.error(
+      t("common.error", {
+        message: `Invalid transport '${opts.transport}'. Valid: ${VALID_MCP_TRANSPORTS.join(", ")}`,
+      })
+    );
+    return 1;
+  }
+
+  try {
+    const body = { mcpEnabled: true };
+    if (opts.transport) body.mcpTransport = opts.transport;
+
+    const res = await apiFetch("/api/settings", {
+      method: "PATCH",
+      body,
+      retry: false,
+      acceptNotOk: true,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    console.log(t("mcp.enabled"));
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
+}
+
+export async function runMcpDisableCommand(opts = {}) {
+  const serverUp = await isServerUp();
+  if (!serverUp) {
+    console.error(t("common.serverOffline"));
+    return 1;
+  }
+
+  try {
+    const res = await apiFetch("/api/settings", {
+      method: "PATCH",
+      body: { mcpEnabled: false },
+      retry: false,
+      acceptNotOk: true,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    console.log(t("mcp.disabled"));
+    return 0;
   } catch (err) {
     console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
     return 1;

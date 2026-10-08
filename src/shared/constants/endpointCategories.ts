@@ -49,6 +49,12 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
     prefixes: ["/v1/audio"],
   },
   {
+    id: "elevenlabs",
+    label: "ElevenLabs Voice",
+    description: "Native ElevenLabs speech-to-text, text-to-speech and voices",
+    prefixes: ["/v1/speech-to-text", "/v1/text-to-speech", "/v1/voices"],
+  },
+  {
     id: "video",
     label: "Video",
     description: "Video generation",
@@ -130,4 +136,40 @@ export function resolveEndpointCategory(pathname: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Short alias spellings `next.config.mjs` rewrites onto `/api/v1/…`, mapped to
+ * the `/v1/…` path the category table speaks. Mirrors that rewrite table.
+ */
+const ENDPOINT_ALIAS_REWRITES: readonly { source: string; canonical: string }[] = [
+  { source: "/chat/completions", canonical: "/v1/chat/completions" },
+  { source: "/responses", canonical: "/v1/responses" },
+  { source: "/models", canonical: "/v1/models" },
+  // `/codex/:path*` folds its sub-path onto the Responses route, which still
+  // resolves to the same category once the prefix is mapped.
+  { source: "/codex", canonical: "/v1/responses" },
+];
+
+/**
+ * Rewrite a client-facing alias path onto the canonical `/v1/…` form that
+ * `resolveEndpointCategory()` understands.
+ *
+ * A route handler sees the client's original URL — Next never rewrites
+ * `request.url` — so a request that arrived as `/chat/completions`, `/models`
+ * or `/codex/…` matched no prefix at all and the endpoint check was skipped
+ * entirely (#13685). The `/api/v1/…` (App Router) and doubled `/v1/v1/…`
+ * spellings of the same endpoint fold onto `/v1/…` here as well. Anything
+ * already canonical, or belonging to no category, comes back unchanged.
+ */
+export function resolveCanonicalEndpointPath(pathname: string): string {
+  const path = pathname.replace(/^\/api(?=\/v1\/)/, "").replace(/^\/v1\/v1(?=\/|$)/, "/v1");
+
+  for (const { source, canonical } of ENDPOINT_ALIAS_REWRITES) {
+    if (path === source || path.startsWith(source + "/")) {
+      return canonical + path.slice(source.length);
+    }
+  }
+
+  return path;
 }

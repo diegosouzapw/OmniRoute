@@ -205,7 +205,26 @@ function changedSymbols(root, base, entries) {
   return result;
 }
 
-function markdown(result, base) {
+// A changed hub module (providerRegistry.ts, providers.ts, …) is imported by thousands of
+// consumers, and every consumer multiplies by its candidate tests, so the cross-product reaches
+// millions of rows. Rendering all of them made `lines.join("\n")` exceed V8's maximum string
+// length; the throw landed in main()'s catch, which exits 1 — so an ADVISORY step turned
+// "Fast Quality Gates" red on every PR whose diff touched a hub (#13866 follow-up). The header
+// keeps the exact totals; only the enumeration is bounded.
+const RENDER_LIMIT = 200;
+const JSON_ITEM_LIMIT = 5000;
+
+/** First `limit` items plus a one-line note naming how many were withheld. */
+function renderBounded(lines, items, format, limit = RENDER_LIMIT) {
+  for (const item of items.slice(0, limit)) lines.push(format(item));
+  if (items.length > limit) {
+    lines.push(
+      `- _… and ${items.length - limit} more not listed (report bounded at ${limit} rows per section; the counts above are exact)._`
+    );
+  }
+}
+
+export function markdown(result, base) {
   const lines = [
     "## Forgotten sibling tests (advisory)",
     "",
@@ -218,12 +237,10 @@ function markdown(result, base) {
   ];
   if (result.findings.length) {
     lines.push("### Candidate tests absent from this diff", "");
-    for (const item of result.findings) {
+    renderBounded(lines, result.findings, (item) => {
       const symbol = item.changedSymbols.length ? ` (${item.changedSymbols.join(", ")})` : "";
-      lines.push(
-        `- \`${item.changedModule}\`${symbol} -> \`${item.consumer}\` -> \`${item.candidateTest}\``
-      );
-    }
+      return `- \`${item.changedModule}\`${symbol} -> \`${item.consumer}\` -> \`${item.candidateTest}\``;
+    });
     lines.push("", "> Report-only calibration: these findings do not fail the job.", "");
   }
   for (const [heading, items] of [
@@ -232,10 +249,12 @@ function markdown(result, base) {
   ]) {
     if (!items.length) continue;
     lines.push(`### ${heading}`, "");
-    for (const item of items)
-      lines.push(
+    renderBounded(
+      lines,
+      items,
+      (item) =>
         `- \`${item.changedModule}\` -> \`${item.consumer}\`${item.candidateTest ? ` -> \`${item.candidateTest}\`` : ""}: ${item.reason || item.message}`
-      );
+    );
     lines.push("");
   }
   return `${lines.join("\n")}\n`;
@@ -271,9 +290,26 @@ function main() {
   });
   const report = markdown(result, base);
   process.stdout.write(report);
+  // The JSON artifact is bounded for the same reason the markdown is: a hub-module diff
+  // produces millions of rows and `JSON.stringify` would throw the same "Invalid string
+  // length". `totals` keeps every count exact, so tooling can still see the real numbers.
+  const jsonResult = {
+    ...result,
+    totals: {
+      findings: result.findings.length,
+      diagnostics: result.diagnostics.length,
+      suppressed: result.suppressed.length,
+      maskingRisks: result.maskingRisks.length,
+    },
+    itemLimit: JSON_ITEM_LIMIT,
+    findings: result.findings.slice(0, JSON_ITEM_LIMIT),
+    diagnostics: result.diagnostics.slice(0, JSON_ITEM_LIMIT),
+    suppressed: result.suppressed.slice(0, JSON_ITEM_LIMIT),
+    maskingRisks: result.maskingRisks.slice(0, JSON_ITEM_LIMIT),
+  };
   for (const [target, contents] of [
     [summaryPath, report],
-    [jsonPath, `${JSON.stringify(result, null, 2)}\n`],
+    [jsonPath, `${JSON.stringify(jsonResult, null, 2)}\n`],
   ]) {
     if (!target) continue;
     fs.mkdirSync(path.dirname(target), { recursive: true });

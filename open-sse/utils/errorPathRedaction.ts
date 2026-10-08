@@ -464,11 +464,24 @@ function findUnquotedPathEnd(
   let hasFilesystemEvidence = false;
   let hasUnresolvedFragments = false;
 
-  const resolveEndpoint = (): number => {
-    if (hasUnresolvedFragments) {
-      return failClosedAmbiguity || hasFilesystemEvidence ? value.length : -1;
-    }
+  const resolveEndpoint = (ignoreAmbiguity = false): number => {
+    // A deterministic filename extension pins the endpoint exactly, so there is
+    // no ambiguity left to fail closed about -- the suffix cannot leak because we
+    // know where it ends. Checked BEFORE the ambiguity branch, which otherwise
+    // discarded a resolved endpoint the moment any prose followed it and swallowed
+    // the rest of the line (#13144: `... provider.ts:42:7 with api_key=...` lost
+    // its redacted-secret tail).
     if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
+    if (hasUnresolvedFragments && !ignoreAmbiguity) {
+      // Only an *unequivocal* prefix — Windows, a file URI, or a known POSIX
+      // filesystem root — may swallow the rest of the line to avoid exposing a
+      // suffix like `Files\secret`. Separator evidence alone is not that:
+      // every API route carries slashes, so treating it as unequivocal made an
+      // ordinary `/v1/x/y` in prose truncate the message after it, which is
+      // exactly what this function documents it must not do (#13144). Such a
+      // span returns -1 and falls back to token-level handling instead.
+      return failClosedAmbiguity ? value.length : -1;
+    }
     if (hasFilesystemEvidence && lastPathTokenEnd >= 0) return lastPathTokenEnd;
     if (
       acceptFirstTokenPunctuation &&
@@ -529,8 +542,16 @@ function findUnquotedPathEnd(
     let nextTokenStart = tokenEnd;
     while (nextTokenStart < value.length && isWhitespace(value[nextTokenStart])) nextTokenStart++;
     if (nextTokenStart >= value.length) return resolveEndpoint();
+    // A redaction marker ends the span: whatever follows was already made safe
+    // by the credential pass, and swallowing it would erase that evidence.
+    if (startsRedactedToken(value, nextTokenStart)) return resolveEndpoint(true);
     if (isSyntacticallyAbsolutePathAt(value, nextTokenStart)) {
-      const endpoint = resolveEndpoint();
+      // A route-shielded upcoming span (e.g. "POST /v1/foo") is never
+      // filesystem-sensitive by design — see hasRouteContextBefore. Its mere
+      // presence must not force ambiguous prose in between (like "Use POST")
+      // to fail closed and swallow past it into the shielded route and
+      // beyond; resolve with whatever evidence was already gathered instead.
+      const endpoint = resolveEndpoint(hasRouteContextBefore(value, nextTokenStart));
       if (endpoint >= 0) return endpoint;
       return acceptEndpointBeforeAnotherAbsolute ? lastPathTokenEnd : -1;
     }
@@ -616,7 +637,21 @@ function redactUnquotedAbsolutePathSpans(value: string): string {
       isWindowsPath || isFileUriPath || isKnownPosixPath
     );
     if (pathEnd < 0) {
-      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath;
+      // #14110: an unknown-root POSIX candidate (e.g. `/custom/internal`,
+      // not in POSIX_FILESYSTEM_ROOTS) is just as filesystem-sensitive as a
+      // known-root one once it has multi-segment/extension evidence
+      // (isPosixPath, computed above from isUnquotedPosixSpanCandidateAt) --
+      // an unresolved ambiguous tail must not leave it exposed in clear text.
+      // This intentionally also fail-closes an unknown-root API route in
+      // prose with no anchor to resolve against (e.g. a bare `/v1/x/y.`
+      // followed only by more prose): the shape is identical to a real
+      // filesystem path and there is no reliable lexical discriminator
+      // between the two (owner decision, #14110). A route immediately
+      // followed by another absolute-path span (e.g. "... Use POST
+      // /v1/y instead.") is unaffected -- that shape resolves to a definite
+      // endpoint via acceptEndpointBeforeAnotherAbsolute and never reaches
+      // this branch.
+      const mustFailClosed = isWindowsPath || isFileUriPath || isKnownPosixPath || isPosixPath;
       if (mustFailClosed) {
         // An unequivocal filesystem prefix with an unknowable endpoint must
         // fail closed over the rest of the first line rather than expose a
@@ -890,6 +925,22 @@ export function stripErrorStackTail(value: string): string {
  * API routes, and punctuation around determinable endpoints. Unequivocal
  * filesystem prefixes fail closed when an unquoted endpoint is ambiguous.
  */
+/**
+ * `[REDACTED]` is the marker an earlier sanitizer pass already wrote over a
+ * credential. It is never part of a filesystem path, and a path span that grows
+ * across it costs the operator the one piece of evidence that pass left behind:
+ * "TLS request failed at /srv/…/client.ts:44:9 access_token=[REDACTED]"
+ * collapsed to a bare "<path>", hiding *which* credential leaked.
+ */
+const REDACTION_MARKER = "[REDACTED]";
+
+/** True when the token starting at `index` carries a redaction marker. */
+function startsRedactedToken(value: string, index: number): boolean {
+  let end = index;
+  while (end < value.length && !isWhitespace(value[end])) end++;
+  return value.slice(index, end).includes(REDACTION_MARKER);
+}
+
 export function redactErrorPaths(value: string): string {
   const quotedPathsRedacted = redactQuotedAbsolutePaths(value);
   const pathSpansRedacted = redactUnquotedAbsolutePathSpans(quotedPathsRedacted);

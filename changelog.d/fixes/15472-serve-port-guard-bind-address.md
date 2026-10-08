@@ -1,0 +1,1 @@
+- **fix(cli):** the serve port guard ignores a listener on another address when the server binds a specific host ([#15472](https://github.com/diegosouzapw/OmniRoute/pull/15472) — thanks @HouMinXi)

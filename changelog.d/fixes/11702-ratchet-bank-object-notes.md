@@ -1,1 +1,0 @@
-- Compare `_rebaseline_*` notes structurally in the ratchet-bank verifier so an object-valued note no longer reports itself as rewritten on an unmodified tree — the nightly `bank-ratchet-shrinks` lane had been aborting on every run since 2026-08-11, leaving 41,672 lines of earned file-size shrinks unbanked (#11702).

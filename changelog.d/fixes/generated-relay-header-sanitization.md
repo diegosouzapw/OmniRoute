@@ -1,1 +1,0 @@
-- Harden generated Cloudflare, Vercel, and Deno relays by stripping hop-by-hop, framing, and proxy authentication headers before forwarding requests upstream.

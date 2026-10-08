@@ -1,1 +1,0 @@
-- **Live dashboard:** honour the WebSocket port reported by `/api/v1/ws?handshake=1` instead of the port compiled into the bundle, so a `LIVE_WS_PORT` override reaches prebuilt Docker/npm images and Combo Studio Live connects behind a reverse proxy ([#11331](https://github.com/diegosouzapw/OmniRoute/issues/11331)).

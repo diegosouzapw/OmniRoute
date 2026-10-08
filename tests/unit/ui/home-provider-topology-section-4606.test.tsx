@@ -10,9 +10,8 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// Use the shared next-intl test adapter backed by the real English messages.
+// The contract is the visible legend, not the internal translation key names.
 vi.mock("next/dynamic", () => ({
   default: () => (props: Record<string, unknown>) => (
     <div
@@ -65,8 +64,10 @@ it("renders the topology card and forwards providers to ProviderTopology", () =>
   const topology = container.querySelector("[data-testid='provider-topology']");
   expect(topology).not.toBeNull();
   expect(topology?.getAttribute("data-providers")).toBe("2");
-  expect(container.textContent).toContain("activeError");
-  expect(container.textContent).toContain("active");
-  expect(container.textContent).toContain("recent");
-  expect(container.textContent).toContain("modelStatusError");
+  expect(container.querySelector("h2")?.textContent).toBe("Provider Topology");
+  expect(container.querySelector("p")?.textContent).toBe("0 active · 0 error");
+  const legend = Array.from(container.querySelectorAll("span"))
+    .map((element) => element.textContent)
+    .filter(Boolean);
+  expect(legend).toEqual(["Active", "Recent", "Error"]);
 });

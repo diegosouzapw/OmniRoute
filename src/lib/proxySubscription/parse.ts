@@ -15,6 +15,7 @@
  * Source: operator-supplied subscription feature (Karing-style proxy).
  */
 import * as yaml from "js-yaml";
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 
 export type DirectProxyType = "http" | "https" | "socks5";
 export type RawProxyProtocol =
@@ -45,6 +46,9 @@ const NEEDS_CORE_PROTOCOLS: ReadonlySet<RawProxyProtocol> = new Set<RawProxyProt
   "snell",
 ]);
 
+export type NodeSource =
+  { kind: "object"; value: Record<string, unknown> } | { kind: "uri"; value: string };
+
 export interface SubscriptionNode {
   name: string;
   type: DirectProxyType;
@@ -53,6 +57,8 @@ export interface SubscriptionNode {
   username?: string;
   password?: string;
   rawProtocol: RawProxyProtocol;
+  /** Original node definition as supplied: memory-only, never persisted. */
+  source?: NodeSource;
 }
 
 export interface NeedsCoreNode {
@@ -61,19 +67,15 @@ export interface NeedsCoreNode {
   host?: string;
   port?: number;
   detail: string;
+  /** Original node definition as supplied: memory-only, never persisted. */
+  source?: NodeSource;
 }
 
 export interface ParsedSubscription {
   nodes: SubscriptionNode[];
   needsCore: NeedsCoreNode[];
   format:
-    | "clash-yaml"
-    | "clash-json"
-    | "v2ray-json"
-    | "lines"
-    | "base64-lines"
-    | "empty"
-    | "unknown";
+    "clash-yaml" | "clash-json" | "v2ray-json" | "lines" | "base64-lines" | "empty" | "unknown";
 }
 
 function looksLikeBase64(s: string): boolean {
@@ -108,7 +110,9 @@ function asProtocol(raw: unknown): RawProxyProtocol {
   return "unknown";
 }
 
-function nodeFromClashObject(obj: Record<string, unknown>): SubscriptionNode | NeedsCoreNode | null {
+function nodeFromClashObject(
+  obj: Record<string, unknown>
+): SubscriptionNode | NeedsCoreNode | null {
   if (!obj || typeof obj !== "object") return null;
   const name = typeof obj.name === "string" ? obj.name : "";
   const type = asProtocol(obj.type);
@@ -124,6 +128,7 @@ function nodeFromClashObject(obj: Record<string, unknown>): SubscriptionNode | N
       username: typeof obj.username === "string" && obj.username ? obj.username : undefined,
       password: typeof obj.password === "string" && obj.password ? obj.password : undefined,
       rawProtocol: type as RawProxyProtocol,
+      source: { kind: "object", value: obj },
     };
   }
   if (NEEDS_CORE_PROTOCOLS.has(type)) {
@@ -133,6 +138,7 @@ function nodeFromClashObject(obj: Record<string, unknown>): SubscriptionNode | N
       host,
       port,
       detail: `${type}://${host}:${port}`,
+      source: { kind: "object", value: obj },
     };
   }
   return null;
@@ -173,6 +179,7 @@ function nodeFromUri(uri: string): SubscriptionNode | NeedsCoreNode | null {
       host,
       port,
       detail,
+      source: { kind: "uri", value: uri },
     };
   }
 
@@ -187,9 +194,10 @@ function nodeFromUri(uri: string): SubscriptionNode | NeedsCoreNode | null {
       type: scheme as DirectProxyType,
       host,
       port,
-      username: parsed.username ? decodeURIComponent(parsed.username) : undefined,
-      password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
+      username: parsed.username ? decodeUserinfo(parsed.username) : undefined,
+      password: parsed.password ? decodeUserinfo(parsed.password) : undefined,
       rawProtocol: scheme as RawProxyProtocol,
+      source: { kind: "uri", value: uri },
     };
   }
 
@@ -203,6 +211,7 @@ function nodeFromUri(uri: string): SubscriptionNode | NeedsCoreNode | null {
       host,
       port,
       detail: `ss://${host}:${port}`,
+      source: { kind: "uri", value: uri },
     };
   }
 
@@ -213,13 +222,17 @@ function nodeFromUri(uri: string): SubscriptionNode | NeedsCoreNode | null {
       host,
       port,
       detail: `${scheme}://${host}:${port}`,
+      source: { kind: "uri", value: uri },
     };
   }
 
   return null;
 }
 
-function collectFromArray(items: unknown[], format: ParsedSubscription["format"]): ParsedSubscription {
+function collectFromArray(
+  items: unknown[],
+  format: ParsedSubscription["format"]
+): ParsedSubscription {
   const nodes: SubscriptionNode[] = [];
   const needsCore: NeedsCoreNode[] = [];
   for (const item of items) {
@@ -247,7 +260,10 @@ function parseClashYaml(content: string): ParsedSubscription {
       return collectFromArray(doc.proxies, "clash-yaml");
     }
     if (doc && Array.isArray((doc as Record<string, unknown>).outbounds)) {
-      return collectFromArray((doc as Record<string, unknown>).outbounds as unknown[], "clash-yaml");
+      return collectFromArray(
+        (doc as Record<string, unknown>).outbounds as unknown[],
+        "clash-yaml"
+      );
     }
   } catch {
     // fall through to unknown
@@ -288,13 +304,17 @@ export function parseSubscription(body: string): ParsedSubscription {
       const json = JSON.parse(content);
       if (Array.isArray(json)) return collectFromArray(json, "v2ray-json");
       if (json && Array.isArray(json.proxies)) return collectFromArray(json.proxies, "clash-json");
-      if (json && Array.isArray(json.outbounds)) return collectFromArray(json.outbounds, "v2ray-json");
+      if (json && Array.isArray(json.outbounds))
+        return collectFromArray(json.outbounds, "v2ray-json");
     } catch {
       // fall through
     }
   }
 
-  const lines = content.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  const lines = content
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (lines.length > 0 && lines.some((l) => /^[a-zA-Z][a-zA-Z0-9+.\-]*:\/\//.test(l))) {
     const res = parseLineList(lines);
     return base64Used ? { ...res, format: "base64-lines" } : res;
@@ -303,10 +323,17 @@ export function parseSubscription(body: string): ParsedSubscription {
   return { nodes: [], needsCore: [], format: "unknown" };
 }
 
+/**
+ * Refuse unrecognized content before sync: `format: "unknown"` carries no
+ * usable node. Every recognized format (including `empty` and a
+ * valid-but-nodeless feed) passes and keeps the current path.
+ */
+export function isUsableSubscriptionContent(parsed: ParsedSubscription): boolean {
+  return parsed.format !== "unknown";
+}
+
 /** Redacted node summary for storage/display (no secrets). */
-export function redactedNodeSummary(parsed: ParsedSubscription): Array<
-  Record<string, unknown>
-> {
+export function redactedNodeSummary(parsed: ParsedSubscription): Array<Record<string, unknown>> {
   const direct = parsed.nodes.map((n) => ({
     name: n.name,
     type: n.type,

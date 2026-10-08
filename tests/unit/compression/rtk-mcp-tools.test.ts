@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../../_setup/tempDataDir.ts";
 
 // T07 — omniroute_rtk_discover / omniroute_rtk_learn MCP tools (read-only; audited).
 
@@ -38,16 +39,16 @@ function seedSamples() {
   });
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   core.getDbInstance(); // run migrations → mcp_tool_audit table exists
 });
 
-after(() => {
+after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 describe("RTK MCP tools (T07)", () => {

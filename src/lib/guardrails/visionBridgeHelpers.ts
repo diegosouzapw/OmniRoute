@@ -70,43 +70,6 @@ export function resolveProviderApiKey(model: string, explicitKey?: string): stri
   return process.env[envVar] || "";
 }
 
-let selfLoopKeyPromise: Promise<string> | null = null;
-
-/**
- * Resolve a real API key for the OmniRoute SELF-LOOP describe call.
- *
- * The `sk_omniroute` sentinel works only when REQUIRE_API_KEY is disabled; on
- * REQUIRE_API_KEY instances it is rejected with 401 "Missing API key", which
- * silently breaks every vision-bridge describe. Priority:
- *   1. VISION_BRIDGE_API_KEY env (already handled by resolveProviderApiKey —
- *      kept here for the injected-resolver test path).
- *   2. Injected resolver (tests) or the DB-backed `getOrCreateApiKey()` —
- *      memoized so at most one key is created per process.
- *   3. `sk_omniroute` as a final fallback (local mode without auth).
- */
-export async function resolveSelfLoopApiKey(resolver?: () => Promise<string>): Promise<string> {
-  const envKey = (process.env.VISION_BRIDGE_API_KEY || "").trim();
-  if (envKey) return envKey;
-  if (resolver) {
-    const key = (await resolver()).trim();
-    if (key) return key;
-    return "sk_omniroute";
-  }
-  if (!selfLoopKeyPromise) {
-    selfLoopKeyPromise = (async () => {
-      try {
-        const { getOrCreateApiKey } = await import("@/shared/services/apiKeyResolver");
-        const key = await getOrCreateApiKey();
-        if (typeof key === "string" && key.trim().length > 0) return key.trim();
-      } catch {
-        /* fall through */
-      }
-      return "sk_omniroute";
-    })();
-  }
-  return selfLoopKeyPromise;
-}
-
 /**
  * Resolve the OpenAI-compatible base URL for non-Anthropic vision bridge calls
  * (issue #2232).
@@ -148,11 +111,32 @@ export function resolveVisionBridgeBaseUrl(model?: string): string {
   return "https://api.openai.com/v1";
 }
 
+/** True when `baseUrl` is this OmniRoute instance's own loopback listener. */
+function isOwnOmniRouteBaseUrl(baseUrl: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(baseUrl);
+  } catch {
+    return false;
+  }
+  if (!["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) return false;
+  const urlPort = url.port || (url.protocol === "https:" ? "443" : "80");
+  const { port, apiPort, dashboardPort } = getRuntimePorts();
+  return [port, apiPort, dashboardPort].some((listenPort) => String(listenPort) === urlPort);
+}
+
 export interface ImagePart {
   messageIndex: number;
   partIndex: number;
   imageUrl: string;
   imageType: "image_url" | "image" | "url";
+  /**
+   * For nested hits (image inside a container part, e.g. a tool_result's
+   * content array) the path from `message.content[partIndex]` to the image
+   * object itself — what replaceImageParts walks to splice it. Absent for
+   * top-level parts (plain partIndex splice).
+   */
+  path?: (string | number)[];
 }
 
 export interface RequestMessage {
@@ -183,12 +167,13 @@ export type RequestContentPart =
  * executor instead of being described.
  */
 /**
- * Shapes `replaceImageParts` knows how to splice: top-level content parts
- * whose `type` is `image_url`, `image`, or `input_image`. Everything else the
- * detector reports (nested hits, `data_uri_string`, `image_indicator`) is
- * combo-filter material only — extracting it would desync the positional
- * description consumption in visionBridge (descriptions would shift onto the
- * wrong images).
+ * Shapes `replaceImageParts` knows how to splice: content parts whose `type`
+ * is `image_url`, `image`, or `input_image` — at top level or nested (inside
+ * a container part such as a tool_result's content array; nested hits are
+ * spliced by walking `MediaPart.path`). Everything else the detector reports
+ * (`data_uri_string`, `image_indicator`) is combo-filter material only —
+ * extracting it would desync the positional description consumption in
+ * visionBridge (descriptions would shift onto the wrong images).
  */
 const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
   "image_url",
@@ -200,18 +185,22 @@ const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
 export function extractImageParts(messages: RequestMessage[]): ImagePart[] {
   // Delegates to the unified detector (open-sse/utils/mediaParts.ts) so the
   // guardrail and the combo compatibility filter share one source of truth.
-  // Extraction is ALLOWLISTED to top-level (non-nested) parts whose shape
-  // replaceImageParts can splice back — the extract↔replace contract: every
-  // extracted part MUST be replaceable, in the same order, or the positional
-  // descriptions shift onto the wrong images.
+  // Extraction is shaped-allowlisted and covers BOTH top-level parts and
+  // nested hits (image inside a container part, e.g. Claude Code's tool_result
+  // content array) whose shape replaceImageParts can splice back — the
+  // extract↔replace contract: every extracted part MUST be replaceable, in the
+  // same order, or the positional descriptions shift onto the wrong images.
+  // Nested hits carry `path` so the splice can walk the container; top-level
+  // hits rely on messageIndex/partIndex alone.
   return detectMediaParts(messages)
-    .filter((p) => p.kind === "image" && !p.nested && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
+    .filter((p) => p.kind === "image" && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
     .map((p) => ({
       messageIndex: p.messageIndex,
       partIndex: p.partIndex,
       imageUrl: p.ref,
       imageType:
         p.shape === "image_base64" ? "image" : p.shape === "image_source_url" ? "url" : "image_url",
+      ...(p.nested ? { path: p.path } : {}),
     }));
 }
 
@@ -239,7 +228,12 @@ export async function ensureBase64ImagesForClaudeWire(
   fetchImpl: typeof fetch = VISION_BRIDGE_UA_FETCH
 ): Promise<RequestBody> {
   if (!isClaudeWireFormatModel(model)) return body;
-  const parts = extractImageParts(body.messages as RequestMessage[]);
+  // The splice below re-walks top-level content parts and swaps
+  // image_url/image fields by sequential index. Nested hits now carry
+  // `path` (extractImageParts emits them); this loop only handles top-level
+  // image_url/image parts, so skip nested hits to keep the index map aligned
+  // (a nested hit interleaved with top-level hits would desync the map).
+  const parts = extractImageParts(body.messages as RequestMessage[]).filter((p) => !p.path);
   if (parts.length === 0) return body;
 
   const resolved = await Promise.all(
@@ -309,6 +303,14 @@ async function fetchRemoteImageAsDataUri(
   fetchImpl: typeof fetch = VISION_BRIDGE_UA_FETCH
 ): Promise<string> {
   const remoteImage = await fetchRemoteImage(imageUrl, {
+    // GHSA-34rg-3pqj-35g9: `imageUrl` is caller input (a chat `image_url` part) — pin
+    // `public-only` explicitly; never the operator outbound policy (`block-metadata` on a
+    // local-first default install), which would let a request body make the server
+    // fetch loopback/LAN URLs and inline the bytes into the vision self-call.
+    guard: "public-only",
+    // `pinDns` is validation-only here: with `fetchImpl` injected the library validates
+    // every DNS answer but cannot pin the connection (it never builds its own fetch).
+    pinDns: true,
     signal,
     // Bypass the runtime's hooked global fetch (ProxyFetch) — a dead local
     // proxy (e.g. 127.0.0.1:8317) would otherwise break the download.
@@ -757,9 +759,17 @@ async function callVisionModelSingle(
       // Build headers with optional recursion guard for self-loop calls.
       // When routing through OmniRoute's own API, omit the vision-bridge
       // guardrail on the sub-request to prevent infinite recursion.
-      // Use a real DB-backed key for self-loop (sk_omniroute is rejected by
-      // REQUIRE_API_KEY instances with 401 "Missing API key").
-      const selfLoopApiKey = resolvedApiKey || (await resolveSelfLoopApiKey());
+      // OmniRoute's own listener authenticates the self-loop bearer (the env key or the
+      // per-process secret, both accepted by API-key validation), which the admission
+      // bypass below also requires. Any other endpoint — api.openai.com, or another
+      // localhost server set as VISION_BRIDGE_BASE_URL — gets only the provider key and
+      // never an OmniRoute credential; with no provider key the header is omitted.
+      // A bare-id call to our own listener keeps an operator VISION_BRIDGE_API_KEY.
+      const selfLoopBearer =
+        isOwnOmniRouteBaseUrl(baseUrl) && (useFullModelId || !resolvedApiKey)
+          ? resolveSelfLoopBearer()
+          : null;
+      const bearer = selfLoopBearer ?? resolvedApiKey;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         // Explicit JSON opt-in: without `Accept: application/json` OmniRoute's
@@ -768,28 +778,25 @@ async function callVisionModelSingle(
         // parse (`Unexpected token 'd'`), failing the whole vision-bridge
         // describe path. Pair with `stream: false` below.
         Accept: "application/json",
-        Authorization: `Bearer ${selfLoopApiKey}`,
       };
-      if (useFullModelId) {
+      if (bearer) headers.Authorization = `Bearer ${bearer}`;
+      // Any call into our own listener carries the recursion guard, including a bare-id one.
+      if (useFullModelId || selfLoopBearer) {
         headers["x-omniroute-disabled-guardrails"] = routeThroughOmniRoute
           ? "vision-bridge,video-bridge"
           : "vision-bridge";
+        // The compression pipeline must not touch the image payload of the
+        // self-loop describe call (stacked RTK/Caveman can mangle data URIs).
+        headers["x-omniroute-compression"] = "off";
+      }
+      if (selfLoopBearer) {
         // Internal self-loop sub-request: the parent request already holds the
         // single heavyweight admission lease (`CHAT_MAX_HEAVY_IN_FLIGHT=1`), so a
         // large base64-image describe body would be rejected with 503
         // `chat_admission_busy` before it is described. The route only honors
-        // this header for trusted self-loop credentials (the local
-        // `sk_omniroute` sentinel OR the operator-configured env key), so
+        // this header when the bearer is the self-loop bearer (set above), so
         // external clients cannot use it to bypass admission.
         headers["x-omniroute-admission-bypass"] = "internal";
-        // The compression pipeline must not touch the image payload of the
-        // self-loop describe call (stacked RTK/Caveman can mangle data URIs).
-        headers["x-omniroute-compression"] = "off";
-        // The admission bypass honors the env key when set (REQUIRE_API_KEY=true
-        // deployments) and the `sk_omniroute` sentinel otherwise. Force the same
-        // resolved credential so the bypass holds even when a real vision key is
-        // configured for the vision model's provider.
-        headers["Authorization"] = `Bearer ${resolveSelfLoopBearer()}`;
       }
 
       response = await fetchImpl(`${baseUrl}/chat/completions`, {
@@ -891,10 +898,6 @@ export interface RequestBody {
   [key: string]: unknown;
 }
 
-/**
- * Replace image content parts with text descriptions.
- * Concatenates descriptions with labels: "[Image 1]: ..."
- */
 export function replaceImageParts(
   body: RequestBody,
   // #4012: a `null` entry means the describe call failed for that image — keep
@@ -918,46 +921,61 @@ export function replaceImageParts(
     return result;
   }
 
+  // Splice via the unified detector so nested images (image inside a
+  // tool_result's content array, etc.) are replaced in the SAME order the
+  // guardrail extracted them (extract↔replace contract). Nested hits carry
+  // `path`, which the splice walks; top-level hits swap their content slot.
+  // `input_image` (Responses API) is read through a widened type but MUST be
+  // replaceable — extractImageParts allowlists it, and every extracted part
+  // needs a matching splice here.
   const replacementTextType: "text" | "input_text" = usesResponsesInput ? "input_text" : "text";
+  const mediaParts = detectMediaParts(requestMessages).filter(
+    (p) => p.kind === "image" && REPLACEABLE_IMAGE_SHAPES.has(p.shape)
+  );
 
   let descriptionIndex = 0;
-
-  for (let msgIdx = 0; msgIdx < requestMessages.length; msgIdx++) {
-    const message = requestMessages[msgIdx];
-    if (!message || !Array.isArray(message.content)) {
+  for (const part of mediaParts) {
+    const description =
+      descriptionIndex < descriptions.length ? descriptions[descriptionIndex++] : null;
+    if (description == null) {
+      // #4012: describe failed for this image — preserve the original image
+      // so a vision-capable upstream can still process it.
       continue;
     }
 
-    const newContent: RequestContentPart[] = [];
+    const message = requestMessages[part.messageIndex];
+    if (!message || !Array.isArray(message.content)) continue;
 
-    for (const part of message.content) {
-      // `input_image` (Responses API) is read through a widened type: it is
-      // not part of the historical RequestContentPart union but MUST be
-      // replaceable — extractImageParts allowlists it, and every extracted
-      // part needs a matching splice here (extract↔replace contract).
-      const partType = (part as { type?: string } | null | undefined)?.type;
-      if (partType === "image_url" || partType === "image" || partType === "input_image") {
-        if (descriptionIndex < descriptions.length) {
-          const description = descriptions[descriptionIndex];
-          descriptionIndex++;
-          if (description == null) {
-            // #4012: describe failed for this image — preserve the original
-            // image so a vision-capable upstream can still process it.
-            newContent.push(part as RequestContentPart);
-          } else {
-            newContent.push({
-              type: replacementTextType,
-              text: description,
-            } as RequestContentPart);
-          }
-        }
-      } else {
-        newContent.push(part as RequestContentPart);
-      }
+    const path = part.path;
+    if (!path || path.length === 0) {
+      // Top-level part: swap the content slot itself with a text part.
+      (message.content as unknown[])[part.partIndex] = {
+        type: replacementTextType,
+        text: description,
+      };
+    } else {
+      // Nested hit: walk the container part to the media object and splice it.
+      const container = message.content[part.partIndex] as Record<string, unknown>;
+      replaceObjectAtPath(container, path, {
+        type: replacementTextType,
+        text: description,
+      });
     }
-
-    message.content = newContent;
   }
 
   return result;
+}
+
+function replaceObjectAtPath(
+  container: Record<string, unknown>,
+  path: (string | number)[],
+  replacement: Record<string, unknown>
+): void {
+  let node: unknown = container;
+  for (let i = 0; i < path.length - 1; i++) {
+    const next = (node as Record<string, unknown> | null | undefined)?.[path[i] as string];
+    if (next == null || typeof next !== "object") return;
+    node = next;
+  }
+  (node as Record<string, unknown>)[path[path.length - 1] as string] = replacement;
 }

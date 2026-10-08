@@ -1,1 +1,0 @@
-- **fix(sse):** OpenAI Responses clients that declare the native `web_search` tool now receive a spec-shaped `web_search_call` output item with `action.sources` alongside the preserved function-call round-trip, so search results executed through OmniRoute's own search backend are consumable by standard Responses clients (Codex, pi-web-access, …).

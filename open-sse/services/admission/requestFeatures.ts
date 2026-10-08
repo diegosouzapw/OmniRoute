@@ -4,11 +4,13 @@
  */
 
 import { estimateSizeFast } from "../../utils/estimateSize.ts";
-import type { AdmissionCostFeatures } from "./types.ts";
+import { resolveCostConfig } from "./cost.ts";
+import type { AdmissionCostConfig, AdmissionCostFeatures } from "./types.ts";
 
 export type AdmissionFeatureExtractionContext = {
   /** When set, wins over any body/wrapped stream field. */
   streaming?: boolean;
+  cost?: Partial<AdmissionCostConfig>;
 };
 
 /**
@@ -159,7 +161,8 @@ export function extractAdmissionCostFeatures(
   body: unknown,
   context?: AdmissionFeatureExtractionContext
 ): AdmissionCostFeatures {
-  const bodyBytes = estimateSizeFast(body);
+  const cost = resolveCostConfig(context?.cost);
+  const bodyBytes = estimateSizeFast(body, cost.bodyBytesPerUnit * cost.maxRequestCost);
   const layers = featureLayers(body);
   const draft: FeatureDraft = {
     messageCount: 0,

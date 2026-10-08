@@ -1,1 +1,0 @@
-- **fix(dashboard):** Show a stable error state when Search Analytics returns an HTTP error or malformed data ([#11603](https://github.com/diegosouzapw/OmniRoute/pull/11603)) — thanks @pacocartones

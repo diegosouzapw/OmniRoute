@@ -15,6 +15,7 @@ type JsonRecord = Record<string, unknown>;
 type WebSearchFallbackBody = JsonRecord & {
   tools?: unknown;
   tool_choice?: unknown;
+  input?: unknown;
 };
 
 export interface WebSearchFallbackPlan {
@@ -130,6 +131,14 @@ function buildFallbackTool(tool: JsonRecord, targetFormat?: string | null): Json
     return { type: "function", name, description, parameters };
   }
 
+  // Anthropic Messages targets expect FLAT Anthropic tools ({ name, input_schema }).
+  // The nested Chat Completions shape reaches the upstream as tools[0] = { type,
+  // function } with no top-level `name`/`input_schema`, and strict Anthropic-compatible
+  // upstreams (e.g. a vLLM /v1/messages) reject it with "tools.0.name missing".
+  if (targetFormat === FORMATS.CLAUDE) {
+    return { name, description, input_schema: parameters };
+  }
+
   return {
     type: "function",
     function: { name, description, parameters },
@@ -166,7 +175,15 @@ export function supportsNativeWebSearchFallbackBypass({
   // Native Codex (OpenAI Responses) passthrough: the upstream runs web search itself.
   if (nativeCodexPassthrough) return true;
   // Gemini target: the Gemini translator maps built-in web search to googleSearch natively.
-  if (targetFormat === FORMATS.GEMINI) return true;
+  // Antigravity (#13447) executes through the same Gemini lane — its executor
+  // sanitizes tools via buildGeminiTools(), which maps web_search natively —
+  // so it takes the same bypass instead of being rewritten to omniroute_web_search.
+  if (
+    targetFormat === FORMATS.GEMINI ||
+    targetFormat === FORMATS.ANTIGRAVITY ||
+    provider === "antigravity"
+  )
+    return true;
   // Claude -> Claude passthrough: the Anthropic Messages upstream (e.g. a Claude
   // subscription driven by Claude Code) natively runs web_search_20250305. Forward the
   // native tool untouched instead of rewriting it to omniroute_web_search. Mirrors the
@@ -177,6 +194,50 @@ export function supportsNativeWebSearchFallbackBypass({
     return true;
   }
   return false;
+}
+
+// A Responses client gets the fallback's internal round trip in the output (#12030):
+// function_call omniroute_web_search plus the executed function_call_output. Codex
+// records both, then answers the function_call itself because it never declared that
+// tool ("unsupported call: omniroute_web_search"), so its next request carries two
+// outputs for one call. Translated to Chat that is two tool messages for one tool
+// call: the model reads a failed search, and strict upstreams reject the transcript.
+// Keep one output per fallback call, the executed result when it is there.
+function isExecutedFallbackOutput(item: unknown): boolean {
+  const output = toRecord(item).output;
+  if (typeof output !== "string" || !output.trimStart().startsWith("{")) return false;
+  try {
+    const parsed: unknown = JSON.parse(output);
+    return !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
+
+function dropClientRejectionsOfFallbackCalls(input: unknown[]): unknown[] {
+  // An output answers the latest call with its id: some upstreams reuse ids per turn.
+  const latestCall = new Map<string, number>();
+  const outputsByFallbackCall = new Map<number, number[]>();
+  input.forEach((item, index) => {
+    const record = toRecord(item);
+    const callId = record.call_id;
+    if (typeof callId !== "string") return;
+    if (record.type === "function_call") {
+      latestCall.set(callId, record.name === OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME ? index : -1);
+      return;
+    }
+    const callIndex = latestCall.get(callId);
+    if (record.type !== "function_call_output" || callIndex === undefined || callIndex < 0) return;
+    outputsByFallbackCall.set(callIndex, [...(outputsByFallbackCall.get(callIndex) ?? []), index]);
+  });
+
+  const dropped = new Set<number>();
+  for (const outputs of outputsByFallbackCall.values()) {
+    if (outputs.length < 2) continue;
+    const kept = outputs.find((index) => isExecutedFallbackOutput(input[index])) ?? outputs[0];
+    for (const index of outputs) if (index !== kept) dropped.add(index);
+  }
+  return dropped.size === 0 ? input : input.filter((_, index) => !dropped.has(index));
 }
 
 export function prepareWebSearchFallbackBody<T extends WebSearchFallbackBody>(
@@ -241,6 +302,9 @@ export function prepareWebSearchFallbackBody<T extends WebSearchFallbackBody>(
     ...body,
     tools: preservedTools as T["tools"],
   };
+  if (Array.isArray(body.input)) {
+    nextBody.input = dropClientRejectionsOfFallbackCalls(body.input) as T["input"];
+  }
 
   if (isBuiltInWebSearchToolChoice(body.tool_choice)) {
     // Match the injected tool shape: flat for Responses API, nested for Chat Completions.

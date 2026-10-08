@@ -58,6 +58,20 @@ const HARD_GATED_INVENTORY: ReadonlyArray<{ path: string; why: string }> = [
     path: "/api/providers/agy-auth/apply-local",
     why: "writes into ~/.gemini/antigravity-cli/antigravity-oauth-token",
   },
+  // ── Reported in GHSA-7pq4-8pvv-rx7r (JWT_SECRET bootstrap chain) ─────────
+  // POST points the Obsidian WebDAV file service — served by the custom Node
+  // layer BEFORE Next.js, so the authz pipeline never runs for it — at an
+  // attacker-chosen root and echoes freshly minted Basic credentials; DELETE
+  // rotates/clears them. GHSA-62vw only masked the GET reveal; the credential
+  // *issuance* was still on the fail-open tier.
+  {
+    path: "/api/settings/obsidian/webdav",
+    why: "POST returns reusable WebDAV Basic credentials for a caller-chosen root; DELETE rotates them (GHSA-7pq4-8pvv-rx7r)",
+  },
+  {
+    path: "/api/settings/obsidian",
+    why: "POST stores the Obsidian Local REST API token; same credential surface as its /webdav child (GHSA-7pq4-8pvv-rx7r)",
+  },
   // ── Already fixed; pinned so a refactor cannot silently drop them ────────
   { path: "/api/db-backups/export", why: "GHSA-mghq-58h3-qcqj" },
   { path: "/api/db-backups/exportAll", why: "GHSA-mghq-58h3-qcqj" },
@@ -126,7 +140,20 @@ test("a connection id cannot escape the pattern with a slash", () => {
 });
 
 test("the plain-path allowlist keeps its existing entries", () => {
-  for (const p of ["/api/shutdown", "/api/settings/database", "/api/db-backups"]) {
+  for (const p of [
+    "/api/shutdown",
+    "/api/settings/database",
+    "/api/db-backups",
+    "/api/settings/obsidian",
+  ]) {
     assert.ok(ALWAYS_PROTECTED_API_PATHS.includes(p), p);
+  }
+});
+
+test("the obsidian entry does not over-protect its /api/settings neighbours", () => {
+  // `/api/settings/obsidian` is a plain prefix; the sibling settings routes must
+  // stay on the MANAGEMENT tier for keyless local-first installs.
+  for (const path of ["/api/settings", "/api/settings/notion", "/api/settings/require-login"]) {
+    assert.equal(isAlwaysProtectedPath(path), false, path);
   }
 });

@@ -18,9 +18,12 @@
  */
 
 import { WebSocketServer, WebSocket } from "ws";
-import { jwtVerify } from "jose";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
+import {
+  verifyDashboardSessionToken,
+  DASHBOARD_SESSION_COOKIE,
+} from "@/shared/utils/dashboardSessionToken";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +35,8 @@ import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
 import { isAutomatedTestProcess, isBuildProcess } from "@/shared/utils/testProcess";
+import { hasProxyHopHeader } from "@/server/authz/proxyHeaders";
+import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
 
 import {
   attachRequestStreamGuards,
@@ -127,8 +132,70 @@ function loadAuthModule(): Promise<typeof import("../../sse/services/auth.ts")> 
   return authModulePromise;
 }
 
+/**
+ * True when the upgrade's real TCP peer is this machine. Forwarding headers
+ * (x-forwarded-*, x-real-ip, forwarded, via) mark a reverse-proxy or tunnel hop: the socket
+ * peer is the proxy, not the local dashboard user, so fail closed — same
+ * discipline as isLoopbackRequest() on the HTTP routes, which never trusts a
+ * client-controllable header for locality.
+ */
+function isLocalWsPeer(request: import("http").IncomingMessage): boolean {
+  if (hasProxyHopHeader(request.headers)) return false;
+  let peer = request.socket?.remoteAddress ?? null;
+  if (!peer) return false;
+  peer = peer.replace(/^::ffff:/i, "");
+  return peer === "127.0.0.1" || peer === "::1" || peer === "localhost";
+}
+
+/**
+ * Return true when the dashboard is in open/anonymous mode — i.e. the operator
+ * has explicitly disabled login (requireLogin=false) or this is a fresh
+ * single-user install with no password configured running on the default
+ * loopback interface. Mirrors the semantics of isAuthRequired() from
+ * shared/utils/apiAuth.ts without importing Next.js-only modules.
+ */
+async function isLiveWsAuthRequired(request: import("http").IncomingMessage): Promise<boolean> {
+  try {
+    const { getSettings } = await import("@/lib/db/settings");
+    const settings = await getSettings();
+
+    // Operator explicitly disabled login.
+    if (settings.requireLogin === false) return false;
+
+    // Fresh install: no password, no OIDC, no INITIAL_PASSWORD, and the server
+    // is loopback-bound (default) → allow unauthenticated dashboard access just
+    // like the Next.js routes do in this mode.
+    const hasPassword = typeof settings.password === "string" && settings.password.length > 0;
+    const hasOidc =
+      settings.oidcEnabled === true &&
+      typeof settings.oidcIssuer === "string" &&
+      settings.oidcIssuer.trim().length > 0;
+    if (!hasPassword && !hasOidc && !process.env.INITIAL_PASSWORD) {
+      const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+      const isLoopback = host === "127.0.0.1" || host === "::1" || host === "localhost";
+      if (isLoopback && settings.setupComplete !== true && isLocalWsPeer(request)) return false;
+    }
+
+    return true;
+  } catch {
+    // Fail-closed: if we cannot read settings, require auth.
+    return true;
+  }
+}
+
 async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
   const sessionId = randomUUID().slice(0, 8);
+
+  // Skip all credential checks when the dashboard is running in open/anonymous
+  // mode (requireLogin=false or a fresh loopback-bound install without a
+  // password). Every other authenticated surface in the app grants anonymous
+  // access in this mode; the WebSocket must behave consistently. Without this
+  // bypass, a no-password deployment can never establish a Live Dashboard
+  // connection because no auth_token cookie is ever issued (there is no login
+  // flow to mint one). See issue #14256.
+  if (!(await isLiveWsAuthRequired(request))) {
+    return { authorized: true, sessionId };
+  }
 
   // Token MUST come from the Authorization header (or X-Live-WS-Token).
   // Query-string tokens leak into access logs, browser history, and Referer
@@ -188,15 +255,9 @@ export function getCookieValueFromHeader(
 async function isDashboardCookieAuthenticated(
   request: import("http").IncomingMessage
 ): Promise<boolean> {
-  const token = getCookieValueFromHeader(request.headers, "auth_token");
+  const token = getCookieValueFromHeader(request.headers, DASHBOARD_SESSION_COOKIE);
   if (!token || !process.env.JWT_SECRET) return false;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jwtVerify(token, secret);
-    return true;
-  } catch {
-    return false;
-  }
+  return (await verifyDashboardSessionToken(token)) !== null;
 }
 
 function extractBearerToken(request: import("http").IncomingMessage): string | null {
@@ -650,6 +711,7 @@ export function isLiveWsEnabled(): boolean {
 if (!isBuildOrTest() && isLiveWsEnabled()) {
   const port = parseInt(process.env.LIVE_WS_PORT || String(DEFAULT_PORT), 10);
   const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+  warnIfNonLoopbackWithoutApiKey("Live dashboard WebSocket", host);
   startLiveDashboardServer(port, host).catch((err) => {
     console.error("[LiveWS] Failed to start: %s", err instanceof Error ? err.message : String(err));
   });

@@ -7,6 +7,7 @@ import {
   getBatch,
   getPendingBatches,
   getTerminalBatches,
+  isFileReferencedByOtherBatch,
   listBatchItemCheckpoints,
   markBatchItemError,
   markBatchItemProcessing,
@@ -253,13 +254,32 @@ async function cleanupExpiredBatches(): Promise<void> {
           : null;
       const outputExpiresAt = getBatchOutputExpiresAt(batch);
 
-      if (batch.inputFileId && inputExpiresAt && now > inputExpiresAt) {
+      // #13681: skip the soft-delete when some OTHER batch still references
+      // the same file id (e.g. one input file reused across batches) — a
+      // terminal batch's own expiry must not null a file a sibling still
+      // needs.
+      if (
+        batch.inputFileId &&
+        inputExpiresAt &&
+        now > inputExpiresAt &&
+        !isFileReferencedByOtherBatch(batch.inputFileId, [batch.id])
+      ) {
         deleteFile(batch.inputFileId);
       }
-      if (batch.outputFileId && outputExpiresAt && now > outputExpiresAt) {
+      if (
+        batch.outputFileId &&
+        outputExpiresAt &&
+        now > outputExpiresAt &&
+        !isFileReferencedByOtherBatch(batch.outputFileId, [batch.id])
+      ) {
         deleteFile(batch.outputFileId);
       }
-      if (batch.errorFileId && outputExpiresAt && now > outputExpiresAt) {
+      if (
+        batch.errorFileId &&
+        outputExpiresAt &&
+        now > outputExpiresAt &&
+        !isFileReferencedByOtherBatch(batch.errorFileId, [batch.id])
+      ) {
         deleteFile(batch.errorFileId);
       }
     }

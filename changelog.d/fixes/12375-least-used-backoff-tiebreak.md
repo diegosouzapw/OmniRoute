@@ -1,1 +1,0 @@
-- **fix(auth):** the `least-used` account strategy now prefers accounts without backoff before falling back to oldest `lastUsedAt`, the same tie-break `round-robin` already applies, so a failover no longer lands on a just-rate-limited account for a single request ([#12279](https://github.com/diegosouzapw/OmniRoute/issues/12279)) — thanks @tenshiak

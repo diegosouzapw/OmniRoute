@@ -1,1 +1,0 @@
-- **fix(dashboard):** Provider Stats now displays combo success rates on their native 0–100 percentage scale instead of multiplying them twice ([#11595](https://github.com/diegosouzapw/OmniRoute/pull/11595)) — thanks @pacocartones

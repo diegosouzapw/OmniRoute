@@ -46,6 +46,8 @@ Preview allocation enforcement without an upstream request
 
 **Flags:**
 
+- `--api-key-id <id>`
+- `--pool-id <id>`
 - `--tokens <n>`
 
 **Example:**
@@ -126,6 +128,7 @@ omniroute resilience lockouts
 
 **Flags:**
 
+- `--provider <p>`
 - `--connection-id <id>`
 - `--model <m>`
 - `--all-cooldowns`
@@ -153,12 +156,12 @@ omniroute resilience profile
 omniroute resilience show
 ```
 
-### `resilience set`
+### `resilience set <name>`
 
 **Example:**
 
 ```bash
-omniroute resilience set
+omniroute resilience set <name>
 ```
 
 ### `resilience config`

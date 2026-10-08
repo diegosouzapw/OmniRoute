@@ -45,10 +45,11 @@ function captureMapKeys(): { keys: string[]; restore: () => void } {
   };
 }
 
-// buildCatalogCacheKey emits `prefix|isCodex|apiKeyFingerprint|configuredOnly|hideAuto|hideNoThink`
-// (6 pipe-delimited fields). Other in-flight keys (e.g. `x-request-id`) don't match.
+// buildCatalogCacheKey emits
+// `prefix|isCodex|apiKeyFingerprint|configuredOnly|hideAuto|hideNoThink|page`
+// (7 pipe-delimited fields). Other in-flight keys (e.g. `x-request-id`) don't match.
 function isCatalogCacheKey(k: string): boolean {
-  return k.split("|").length === 6;
+  return k.split("|").length === 7;
 }
 
 test("catalog cache Map keys must not contain the raw bearer API key (#10313)", async () => {

@@ -1,6 +1,7 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
+import { getSyntheticApiKeyIds } from "@/shared/constants/apiKeyIdentities";
 
-import type { SqliteAdapter } from "./adapters/types";
+import type { PreparedStatement, SqliteAdapter } from "./adapters/types";
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 
@@ -125,7 +126,7 @@ interface ComboRepairResult {
 }
 
 interface QuotaSnapshotRow {
-  id?: number;
+  id: string;
   provider?: string | null;
   connection_id?: string | null;
   created_at?: string | null;
@@ -163,10 +164,8 @@ function hasRows(db: SqliteDatabase, table: string): boolean {
   return row?.name === table;
 }
 
-function hasProviderConnection(db: SqliteDatabase, connectionId: string): boolean {
-  const row = db
-    .prepare("SELECT 1 AS ok FROM provider_connections WHERE id = ? LIMIT 1")
-    .get(connectionId) as { ok?: number } | undefined;
+function hasProviderConnection(statement: PreparedStatement, connectionId: string): boolean {
+  const row = statement.get(connectionId) as { ok?: number } | undefined;
   return row?.ok === 1;
 }
 
@@ -205,7 +204,7 @@ function repairComboRows(
   db: SqliteDatabase,
   rows: ComboRow[],
   checkedAt: string,
-  options: { autoRepair: boolean }
+  options: { autoRepair: boolean; beforeRepair: () => void }
 ): ComboRepairResult {
   if (rows.length === 0) return { issueCount: 0, repairedCount: 0 };
 
@@ -214,6 +213,9 @@ function repairComboRows(
   let repairedCount = 0;
 
   const updateComboStmt = db.prepare("UPDATE combos SET data = ?, updated_at = ? WHERE id = ?");
+  const connectionStmt = db.prepare(
+    "SELECT 1 AS ok FROM provider_connections WHERE id = ? LIMIT 1"
+  );
 
   for (const row of rows) {
     const parsed = parseJsonRecord(row.data);
@@ -221,6 +223,7 @@ function repairComboRows(
       issueCount += 1;
       if (options.autoRepair) {
         const repaired = buildDisabledCombo(row, checkedAt);
+        options.beforeRepair();
         updateComboStmt.run(JSON.stringify(repaired), checkedAt, row.id);
         repairedCount += 1;
       }
@@ -271,7 +274,7 @@ function repairComboRows(
       }
 
       const connectionId = toTrimmedString(rawStep.connectionId);
-      if (connectionId && !hasProviderConnection(db, connectionId)) {
+      if (connectionId && !hasProviderConnection(connectionStmt, connectionId)) {
         const repairedStep = { ...rawStep };
         delete repairedStep.connectionId;
         nextModels.push(repairedStep);
@@ -310,6 +313,7 @@ function repairComboRows(
       ...(nextModels.length === 0 ? { isActive: false } : {}),
     };
 
+    options.beforeRepair();
     updateComboStmt.run(JSON.stringify(nextCombo), checkedAt, row.id);
     repairedCount += removedSteps + clearedConnectionPins + normalizedLegacyComboRefs;
   }
@@ -317,41 +321,77 @@ function repairComboRows(
   return { issueCount, repairedCount };
 }
 
-function getBrokenQuotaSnapshotRowIds(db: SqliteDatabase): number[] {
-  if (!hasRows(db, "quota_snapshots")) return [];
+const QUOTA_SNAPSHOT_PAGE_SIZE = 1000;
 
-  const brokenRowIds = new Set<number>();
-  const rows = db
-    .prepare("SELECT id, provider, connection_id, created_at FROM quota_snapshots")
-    .all() as QuotaSnapshotRow[];
+function isInvalidQuotaSnapshot(row: QuotaSnapshotRow, connectionStmt: PreparedStatement): boolean {
+  const connectionId = toTrimmedString(row.connection_id);
+  const missingConnection = !!connectionId && !hasProviderConnection(connectionStmt, connectionId);
+  return missingConnection || !isValidIsoTimestamp(row.created_at);
+}
 
-  for (const row of rows) {
-    const connectionId = toTrimmedString(row.connection_id);
-    const missingConnection = !!connectionId && !hasProviderConnection(db, connectionId);
-    const invalidTimestamp = !isValidIsoTimestamp(row.created_at);
-    if ((missingConnection || invalidTimestamp) && typeof row.id === "number") {
-      brokenRowIds.add(row.id);
+function scanQuotaSnapshots(
+  db: SqliteDatabase,
+  options: { autoRepair: boolean; beforeRepair: () => void }
+): ComboRepairResult {
+  if (!hasRows(db, "quota_snapshots")) return { issueCount: 0, repairedCount: 0 };
+  const upper = db
+    .prepare(
+      "SELECT CAST(id AS TEXT) AS id FROM quota_snapshots ORDER BY quota_snapshots.id DESC LIMIT 1"
+    )
+    .get() as { id: string } | undefined;
+  if (!upper) return { issueCount: 0, repairedCount: 0 };
+
+  // The first page has no lower bound, so negative and zero IDs are included.
+  const firstPage = db.prepare(
+    "SELECT CAST(id AS TEXT) AS id, connection_id, created_at FROM quota_snapshots WHERE id <= CAST(? AS INTEGER) ORDER BY quota_snapshots.id LIMIT ?"
+  );
+  const nextPage = db.prepare(
+    "SELECT CAST(id AS TEXT) AS id, connection_id, created_at FROM quota_snapshots WHERE id > CAST(? AS INTEGER) AND id <= CAST(? AS INTEGER) ORDER BY quota_snapshots.id LIMIT ?"
+  );
+  const connectionStmt = db.prepare(
+    "SELECT 1 AS ok FROM provider_connections WHERE id = ? LIMIT 1"
+  );
+  const deleteByRowId = options.autoRepair
+    ? db.prepare("DELETE FROM quota_snapshots WHERE id = CAST(? AS INTEGER)")
+    : null;
+  let issueCount = 0;
+  let repairedCount = 0;
+  let rows = firstPage.all(upper.id, QUOTA_SNAPSHOT_PAGE_SIZE) as QuotaSnapshotRow[];
+
+  while (rows.length > 0) {
+    for (const row of rows) {
+      if (isInvalidQuotaSnapshot(row, connectionStmt)) {
+        issueCount += 1;
+        if (deleteByRowId) {
+          options.beforeRepair();
+          repairedCount += deleteByRowId.run(row.id).changes;
+        }
+      }
     }
+    const lastId = rows[rows.length - 1].id;
+    // Rows appended during a scan belong to the next health check.
+    if (lastId === upper.id) break;
+    rows = nextPage.all(lastId, upper.id, QUOTA_SNAPSHOT_PAGE_SIZE) as QuotaSnapshotRow[];
   }
-
-  return Array.from(brokenRowIds);
+  return { issueCount, repairedCount };
 }
 
-function countOrphanQuotaSnapshots(db: SqliteDatabase): number {
-  return getBrokenQuotaSnapshotRowIds(db).length;
-}
+/**
+ * `api_keys` is NOT the complete set of budget / cost-history owners. The
+ * deployment-time environment key authenticates without ever being persisted,
+ * so every row it owns looks like a broken reference while being live state —
+ * see `@/shared/constants/apiKeyIdentities`.
+ *
+ * Deleting those rows removes the active spend policy, and `checkBudget()` is
+ * fail-open when no budget row exists: the "repair" silently lifts the spend
+ * ceiling instead of degrading it. Genuinely unowned rows are still removed.
+ */
+const SYNTHETIC_OWNER_IDS = getSyntheticApiKeyIds();
 
-function repairQuotaSnapshots(db: SqliteDatabase): number {
-  if (!hasRows(db, "quota_snapshots")) return 0;
-  const brokenRowIds = getBrokenQuotaSnapshotRowIds(db);
-  if (brokenRowIds.length === 0) return 0;
-
-  const deleteByRowId = db.prepare("DELETE FROM quota_snapshots WHERE id = ?");
-  let repaired = 0;
-  for (const rowId of brokenRowIds) {
-    repaired += deleteByRowId.run(rowId).changes;
-  }
-  return repaired;
+function orphanDomainRowsPredicate(): string {
+  const placeholders = SYNTHETIC_OWNER_IDS.map(() => "?").join(", ");
+  const syntheticGuard = placeholders ? ` AND api_key_id NOT IN (${placeholders})` : "";
+  return `api_key_id NOT IN (SELECT id FROM api_keys)${syntheticGuard}`;
 }
 
 function countOrphanDomainRows(
@@ -363,9 +403,9 @@ function countOrphanDomainRows(
     .prepare(
       `SELECT COUNT(*) AS count
        FROM ${table}
-       WHERE api_key_id NOT IN (SELECT id FROM api_keys)`
+       WHERE ${orphanDomainRowsPredicate()}`
     )
-    .get() as { count?: number } | undefined;
+    .get(...SYNTHETIC_OWNER_IDS) as { count?: number } | undefined;
   return row?.count || 0;
 }
 
@@ -374,8 +414,9 @@ function repairOrphanDomainRows(
   table: "domain_budgets" | "domain_cost_history"
 ): number {
   if (!hasRows(db, table)) return 0;
-  return db.prepare(`DELETE FROM ${table} WHERE api_key_id NOT IN (SELECT id FROM api_keys)`).run()
-    .changes;
+  return db
+    .prepare(`DELETE FROM ${table} WHERE ${orphanDomainRowsPredicate()}`)
+    .run(...SYNTHETIC_OWNER_IDS).changes;
 }
 
 function countInvalidJsonRows(
@@ -490,6 +531,9 @@ export function runDbHealthCheck(
     }
     backupAttempted = true;
     backupCreated = options.createBackupBeforeRepair();
+    if (!backupCreated) {
+      throw new Error("Database health repair aborted: backup creation failed.");
+    }
   };
 
   // Use quick_check instead of integrity_check on startup — integrity_check
@@ -515,7 +559,10 @@ export function runDbHealthCheck(
         "SELECT id, name, data, sort_order, created_at, updated_at FROM combos ORDER BY name COLLATE NOCASE ASC"
       )
       .all() as ComboRow[];
-    const comboRepair = repairComboRows(db, comboRows, checkedAt, { autoRepair });
+    const comboRepair = repairComboRows(db, comboRows, checkedAt, {
+      autoRepair,
+      beforeRepair: ensureBackupBeforeRepair,
+    });
     if (comboRepair.issueCount > 0) {
       issues.push({
         type: "broken_reference",
@@ -524,26 +571,23 @@ export function runDbHealthCheck(
           "Combos contained broken combo references, legacy combo refs, invalid JSON, or pinned connections that no longer exist.",
         count: comboRepair.issueCount,
       });
-      if (autoRepair) {
-        ensureBackupBeforeRepair();
-        repairedCount += comboRepair.repairedCount;
-      }
+      repairedCount += comboRepair.repairedCount;
     }
   }
 
-  const orphanQuotaCount = countOrphanQuotaSnapshots(db);
-  if (orphanQuotaCount > 0) {
+  const quotaRepair = scanQuotaSnapshots(db, {
+    autoRepair,
+    beforeRepair: ensureBackupBeforeRepair,
+  });
+  if (quotaRepair.issueCount > 0) {
     issues.push({
       type: "stale_snapshot",
       table: "quota_snapshots",
       description:
         "Quota snapshots referenced missing connections or contained invalid timestamps.",
-      count: orphanQuotaCount,
+      count: quotaRepair.issueCount,
     });
-    if (autoRepair) {
-      ensureBackupBeforeRepair();
-      repairedCount += repairQuotaSnapshots(db);
-    }
+    repairedCount += quotaRepair.repairedCount;
   }
 
   const orphanBudgets = countOrphanDomainRows(db, "domain_budgets");

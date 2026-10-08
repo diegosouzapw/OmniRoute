@@ -292,6 +292,7 @@ export const builtinSkills: Record<string, SkillHandler> = {
       allowRedirect: false,
       retry: false,
       guard: "public-only",
+      pinDns: true,
     });
     const limit = normalizePositiveInteger(
       maxBytes,

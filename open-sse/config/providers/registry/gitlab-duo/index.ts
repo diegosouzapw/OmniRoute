@@ -23,7 +23,12 @@ export const gitlab_duoProvider: RegistryEntry = {
     authUrl: buildGitLabOAuthEndpoints(GITLAB_DUO_DEFAULT_BASE_URL).authorizeUrl,
   },
   models: [
-    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (GitLab Duo)" },
+    {
+      id: "claude-sonnet-4-6",
+      name: "Claude Sonnet 4.6 (GitLab Duo)",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "max"],
+    },
     { id: "claude-haiku-4-5", name: "Claude Haiku 4.5 (GitLab Duo)" },
   ],
 };

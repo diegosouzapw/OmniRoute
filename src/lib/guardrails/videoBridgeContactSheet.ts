@@ -1,4 +1,8 @@
-import { decodeJpegFrameDataUri, estimateJpegFrameBytes } from "./videoBridgeFrameContract";
+import {
+  JPEG_FRAME_DATA_URI_PREFIX,
+  decodeJpegFrameDataUri,
+  estimateJpegFrameBytes,
+} from "./videoBridgeFrameContract";
 import { VIDEO_FRAME_MAX_BYTES } from "./videoBridgeRuntime";
 
 export interface ContactSheetFrame {
@@ -120,7 +124,7 @@ export async function buildVideoContactSheet(
     if (signal.aborted) throw new Error("Video contact sheet was aborted");
     if (output.byteLength > MAX_SHEET_BYTES) return fallback(frames);
     return {
-      dataUri: `data:image/jpeg;base64,${output.toString("base64")}`,
+      dataUri: `${JPEG_FRAME_DATA_URI_PREFIX}${output.toString("base64")}`,
       frames: frames.map((frame) => ({ ...frame })),
       height: rows * TILE_SIZE,
       timestamps: frames.map((frame) => frame.timestampSeconds),

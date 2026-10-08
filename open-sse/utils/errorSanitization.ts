@@ -14,7 +14,7 @@ const STRONG_CREDENTIAL_TOKEN_SOURCE =
   "github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|glpat-[A-Za-z0-9_-]{20,}|" +
   "xox[a-z]-[A-Za-z0-9-]{10,}|(?:AKIA|ASIA)[A-Z0-9]{16}|" +
   "(?<![A-Za-z0-9])sk[-_][A-Za-z0-9._~+/=-]{8,}|" +
-  "[A-Za-z0-9]{3,}sk[-_][A-Za-z0-9._~+/=-]{8,})";
+  "(?<![A-Za-z0-9])[A-Za-z0-9]{3,}sk[-_][A-Za-z0-9._~+/=-]{8,})";
 const STRONG_CREDENTIAL_TOKEN = new RegExp(STRONG_CREDENTIAL_TOKEN_SOURCE, "i");
 const STRONG_CREDENTIAL_TOKEN_GLOBAL = new RegExp(STRONG_CREDENTIAL_TOKEN_SOURCE, "gi");
 
@@ -689,7 +689,13 @@ function sanitizeErrorMessageWithStackPolicy(
   // Raw URI credentials must be projected before the path tokenizer consumes
   // the URI tail; Windows path evidence still stays intact until after this
   // credential-only pass and is redacted before escape normalization.
-  str = redactKnownCredentialPatterns(redactSensitiveUrlCredentials(stripStackTail(str)));
+  // Labeled assignments (access_token=…, api_key=…) are projected here too, for
+  // the same reason as raw URI credentials: the path tokenizer would otherwise
+  // absorb "…/client.ts:44:9 access_token=secret" whole and the public message
+  // would lose the credential marker along with the path.
+  str = redactLabeledCredentialAssignments(
+    redactKnownCredentialPatterns(redactSensitiveUrlCredentials(stripStackTail(str)))
+  );
   str = redactErrorPaths(str);
   str = redactSensitiveErrorText(str);
   str = truncateSanitizedErrorText(str);

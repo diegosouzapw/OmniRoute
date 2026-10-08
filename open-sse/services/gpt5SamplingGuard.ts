@@ -12,7 +12,9 @@
  * This guard removes `temperature`/`top_p` only when the resolved effort is active
  * (anything other than `none`). It is scoped to the `openai` provider (raw
  * api.openai.com Chat Completions): the `codex` provider's Responses requests are
- * already covered by the CodexExecutor allowlist (which drops both params), and
+ * already covered by CodexExecutor.transformRequest (STRIP_RULES drops
+ * temperature/top_p before native passthrough returns; the Responses allowlist
+ * also omits them on the translated path), and
  * other providers manage their own sampling rules.
  *
  * Refs: litellm#27351 (GPT-5.1 accepts temperature only when effort=none),
@@ -59,7 +61,7 @@ export function stripGpt5SamplingWhenReasoning<T extends Record<string, unknown>
   log?: { warn?: (tag: string, message: string) => void } | null
 ): T {
   if (provider !== "openai") return body;
-  if (typeof model !== "string" || !/^gpt-5/i.test(model)) return body;
+  if (typeof model !== "string" || !/^gpt-[56]/i.test(model)) return body;
 
   const record = asRecord(body);
   if (!record) return body;
@@ -128,7 +130,7 @@ export function stripGpt5ReasoningWhenTools<T extends Record<string, unknown>>(
   log?: { warn?: (tag: string, message: string) => void } | null
 ): T {
   if (provider !== "openai") return body;
-  if (typeof model !== "string" || !/^gpt-5/i.test(model)) return body;
+  if (typeof model !== "string" || !/^gpt-[56]/i.test(model)) return body;
   // Already routed to /v1/responses (e.g. GPT-5.6, #7242) — that endpoint
   // supports tools + reasoning natively, nothing to strip.
   if (targetFormat === FORMATS.OPENAI_RESPONSES) return body;

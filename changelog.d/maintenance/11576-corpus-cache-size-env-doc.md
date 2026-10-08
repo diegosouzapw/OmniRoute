@@ -1,1 +1,0 @@
-- **docs(env):** document `OMNIROUTE_CORPUS_CACHE_SIZE` in `.env.example` and `ENVIRONMENT.md`, so the env/docs contract check stops failing Docs Gates on every branch ([#11576](https://github.com/diegosouzapw/OmniRoute/pull/11576))

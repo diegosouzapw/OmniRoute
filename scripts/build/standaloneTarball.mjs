@@ -21,6 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { once } from "node:events";
 import { createGunzip, createGzip } from "node:zlib";
+import { normalizeSymlinkTarget } from "./standaloneManifest.mjs";
 
 const BLOCK = 512;
 
@@ -88,7 +89,16 @@ function* walkFiles(root, current = root) {
     const abs = path.join(current, child.name);
     const rel = path.relative(root, abs).split(path.sep).join("/");
     if (child.isSymbolicLink()) {
-      yield { rel, symlink: fs.readlinkSync(abs) };
+      // Same portability normalization as the manifest (issue #11979): an
+      // absolute symlink target survives this exact tree on the packing
+      // machine, but not the tar round trip to another OS/checkout path.
+      // Packing the relative form here is what makes the *restored* symlink
+      // actually resolve, not just what makes the manifest comparison match.
+      const normalized = normalizeSymlinkTarget(root, rel, fs.readlinkSync(abs));
+      if (!normalized.ok) {
+        throw new Error(`standalone tarball: ${normalized.reason}`);
+      }
+      yield { rel, symlink: normalized.value };
     } else if (child.isDirectory()) {
       yield* walkFiles(root, abs);
     } else if (child.isFile()) {
@@ -343,7 +353,10 @@ export async function extractTarGz(archiveFile, destDir) {
       if (linkname.length === 0) throw new Error(`symlink entry ${name} has empty target`);
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.rmSync(target, { force: true });
-      fs.symlinkSync(linkname, target);
+      // Standalone node_modules symlinks are always file symlinks (npm
+      // bin-links, package aliasing); an explicit type hint removes
+      // Windows' undocumented auto-detect ambiguity for CreateSymbolicLink.
+      fs.symlinkSync(linkname, target, "file");
     } else if (typeflag === "1") {
       const sourceAbs = safeJoin(destDir, linkname);
       fs.mkdirSync(path.dirname(target), { recursive: true });

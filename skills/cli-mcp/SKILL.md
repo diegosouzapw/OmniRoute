@@ -49,6 +49,26 @@ Restart the MCP server
 omniroute mcp restart
 ```
 
+### `mcp enable`
+
+**Flags:**
+
+- `--transport <transport>`
+
+**Example:**
+
+```bash
+omniroute mcp enable
+```
+
+### `mcp disable`
+
+**Example:**
+
+```bash
+omniroute mcp disable
+```
+
 ### `mcp call <tool> [argsJson]`
 
 **Flags:**

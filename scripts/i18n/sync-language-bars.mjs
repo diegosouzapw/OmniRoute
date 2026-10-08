@@ -25,12 +25,15 @@ async function walkMd(dir, out = []) {
 export async function syncLanguageBars({ root = ROOT, dryRun = false } = {}) {
   const config = JSON.parse(await fs.readFile(path.join(root, "config", "i18n.json"), "utf8"));
   const changed = [];
+  // A bar may only point at a mirror that exists — see buildMirrorBar's note.
+  const hasMirror = (relSource, locale) =>
+    existsSync(path.join(root, "docs", "i18n", locale, ...relSource.split("/")));
   // 1. English sources under docs/ (excluding docs/i18n).
   for (const abs of await walkMd(path.join(root, "docs"))) {
     const rel = path.relative(root, abs).split(path.sep).join("/");
     if (rel.startsWith("docs/i18n/")) continue;
     const text = await fs.readFile(abs, "utf8");
-    const next = replaceLanguageBar(text, buildSourceBar(rel, config));
+    const next = replaceLanguageBar(text, buildSourceBar(rel, config, { hasMirror }));
     if (next && next !== text) {
       changed.push(rel);
       if (!dryRun) await fs.writeFile(abs, next, "utf8");
@@ -43,7 +46,10 @@ export async function syncLanguageBars({ root = ROOT, dryRun = false } = {}) {
     for (const abs of await walkMd(dir)) {
       const relInMirror = path.relative(dir, abs).split(path.sep).join("/");
       const text = await fs.readFile(abs, "utf8");
-      const next = replaceLanguageBar(text, buildMirrorBar(relInMirror, entry.code, config));
+      const next = replaceLanguageBar(
+        text,
+        buildMirrorBar(relInMirror, entry.code, config, { hasMirror })
+      );
       if (next && next !== text) {
         changed.push(path.relative(root, abs).split(path.sep).join("/"));
         if (!dryRun) await fs.writeFile(abs, next, "utf8");

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveDataDir } from "./dataPaths";
 import {
   getObsidianVaultPath,
   setObsidianVaultPath,
@@ -35,6 +36,40 @@ export async function getObsidianSyncStatus(): Promise<ObsidianSyncStatus> {
   return { vaultPath, webdavEnabled, webdavUsername, webdavPassword };
 }
 
+/** Canonical (symlink-resolved) form of a path; falls back to the lexical resolve. */
+function canonicalPath(target: string): string {
+  try {
+    return fs.realpathSync.native(target);
+  } catch {
+    return path.resolve(target);
+  }
+}
+
+/** True when `child` is `parent` itself or lives anywhere below it. */
+function isSameOrInside(parent: string, child: string): boolean {
+  const rel = path.relative(parent, child);
+  if (rel === "") return true;
+  if (path.isAbsolute(rel)) return false; // different drive (win32)
+  return rel !== ".." && !rel.startsWith(`..${path.sep}`);
+}
+
+/**
+ * GHSA-7pq4-8pvv-rx7r: the WebDAV file service (scripts/dev/webdav-handler.mjs)
+ * serves the vault root to anyone holding the Basic credentials, before Next.js
+ * and outside the authz pipeline. A vault that IS the data directory, sits
+ * inside it, or CONTAINS it turns that service into a reader for server.env
+ * (JWT_SECRET / STORAGE_ENCRYPTION_KEY / API_KEY_SECRET) and storage.sqlite.
+ * Both sides are realpath-resolved so a symlink cannot dodge the comparison.
+ */
+export function vaultPathOverlapsDataDir(resolvedVaultPath: string): boolean {
+  const vault = canonicalPath(resolvedVaultPath);
+  const dataDir = canonicalPath(resolveDataDir());
+  return isSameOrInside(dataDir, vault) || isSameOrInside(vault, dataDir);
+}
+
+export const VAULT_OVERLAPS_DATA_DIR_ERROR =
+  "Vault path must not be the OmniRoute data directory, a directory inside it, or a directory that contains it";
+
 export async function enableObsidianVaultSync(
   vaultPath: string
 ): Promise<ObsidianSyncEnableResult> {
@@ -47,6 +82,10 @@ export async function enableObsidianVaultSync(
   const stat = fs.statSync(resolvedPath);
   if (!stat.isDirectory()) {
     return { success: false, error: `Path is not a directory: ${resolvedPath}` };
+  }
+
+  if (vaultPathOverlapsDataDir(resolvedPath)) {
+    return { success: false, error: VAULT_OVERLAPS_DATA_DIR_ERROR };
   }
 
   try {

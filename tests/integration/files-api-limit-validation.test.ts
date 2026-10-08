@@ -1,9 +1,25 @@
-import { describe, it } from "node:test";
+import { describe, it, before } from "node:test";
 import assert from "node:assert";
-import { createFile, deleteFile } from "@/lib/db/files";
-import { GET, parseFilesListQuery } from "@/app/api/v1/files/route";
+
+// `GET /v1/files` fails closed for a caller that is neither an API key nor a
+// dashboard session (GHSA-m3hp-hq9g-fpmv), so the HTTP cases below present a
+// real key: the subject here is limit validation, not auth.
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "files-limit-validation-secret";
+
+const { createFile, deleteFile } = await import("@/lib/db/files");
+const { createApiKey } = await import("@/lib/db/apiKeys");
+const { GET, parseFilesListQuery } = await import("@/app/api/v1/files/route");
+
+let authHeaders: Record<string, string> = {};
+let apiKeyId = "";
 
 describe("GET /v1/files limit validation", () => {
+  before(async () => {
+    const key = await createApiKey("files-limit-validation", "machine-files-limit", []);
+    apiKeyId = key.id;
+    authHeaders = { Authorization: `Bearer ${key.key}` };
+  });
+
   it("defaults to 20 when limit is absent", () => {
     const parsed = parseFilesListQuery(new URLSearchParams("order=asc"));
 
@@ -43,6 +59,7 @@ describe("GET /v1/files limit validation", () => {
         purpose: "assistants",
         content: Buffer.from("a"),
         mimeType: "text/plain",
+        apiKeyId,
       }),
       createFile({
         bytes: 1,
@@ -50,12 +67,15 @@ describe("GET /v1/files limit validation", () => {
         purpose: "assistants",
         content: Buffer.from("b"),
         mimeType: "text/plain",
+        apiKeyId,
       }),
     ];
 
     try {
       const response = await GET(
-        new Request("http://localhost/v1/files?limit=1&purpose=assistants")
+        new Request("http://localhost/v1/files?limit=1&purpose=assistants", {
+          headers: authHeaders,
+        })
       );
       assert.equal(response.status, 200);
       const body = await response.json();
@@ -68,10 +88,21 @@ describe("GET /v1/files limit validation", () => {
   });
 
   it("returns 400 over HTTP for an invalid limit instead of listing files", async () => {
-    const response = await GET(new Request("http://localhost/v1/files?limit=-1"));
+    const response = await GET(
+      new Request("http://localhost/v1/files?limit=-1", { headers: authHeaders })
+    );
 
     assert.equal(response.status, 400);
     const body = await response.json();
     assert.equal(body.error.type, "invalid_request_error");
+  });
+
+  it("rejects an anonymous list with 401 before the limit is even looked at (GHSA-m3hp-hq9g-fpmv)", async () => {
+    const response = await GET(new Request("http://localhost/v1/files?limit=1"));
+
+    assert.equal(response.status, 401);
+    const body = await response.json();
+    assert.equal(body.error.message, "Authentication required");
+    assert.equal(body.error.type, "authentication_error");
   });
 });

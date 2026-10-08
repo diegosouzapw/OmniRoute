@@ -319,7 +319,15 @@ type BadgeCriteria =
 // ─── Helper: Action Count ────────────────────────────────────────────────────
 
 /**
- * Get the total count of a specific action for an API key from the XP audit log.
+ * Get the durable lifetime count of a specific action for an API key.
+ *
+ * Reads the durable `xp_action_counts` counter (#12546) rather than counting
+ * rows in `xp_audit_log`. The audit log is pruned by `retention.xpAuditLog`
+ * (default 30 days), so counting it directly turned every "lifetime"
+ * action-count milestone into "actions in the last 30 days". The counter is
+ * incremented in `addXp()` alongside each audit insert and is never touched by
+ * the retention prune, so `checkActionCountBadges()` (events.ts) and this
+ * function now agree on the same durable source.
  */
 async function getActionCount(apiKeyId: string, action: string): Promise<number> {
   const { getDbInstance } = await import("../db/core");
@@ -327,14 +335,7 @@ async function getActionCount(apiKeyId: string, action: string): Promise<number>
 
   const row = db
     .prepare(
-      `SELECT COALESCE(SUM(
-        CASE WHEN metadata IS NOT NULL
-          THEN CAST(json_extract(metadata, '$.amount') AS INTEGER)
-          ELSE 1
-        END
-      ), 0) AS total
-      FROM xp_audit_log
-      WHERE api_key_id = ? AND action = ?`
+      `SELECT count AS total FROM xp_action_counts WHERE api_key_id = ? AND action = ?`
     )
     .get(apiKeyId, action) as { total: number } | undefined;
 

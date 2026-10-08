@@ -12,8 +12,7 @@ import { buildTelegramUrl, buildTelegramPayload } from "@/lib/webhooks/integrati
 import { buildDiscordPayload } from "@/lib/webhooks/integrations/discord";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { insertDelivery } from "@/lib/db/webhookDeliveries";
-import { isPrivateHost, OutboundUrlGuardError } from "@/shared/network/outboundUrlGuard";
-import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
+import { fetchWebhookUrl } from "@/shared/network/webhookFetch";
 import crypto from "crypto";
 
 const MAX_RESPONSE_BODY = 2048;
@@ -31,35 +30,43 @@ async function testFetch(
 }> {
   const start = Date.now();
   try {
-    const parsed = parseAndValidateWebhookUrl(url);
-    // For private (opted-in) targets, return connectivity diagnostics only — never the
-    // upstream response body, so this endpoint can't be used to exfiltrate content from
-    // internal services reachable from the server. (#3269 hardening)
-    const redactBody = isPrivateHost(parsed.hostname);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "OmniRoute-Webhook/1.0",
-        ...headers,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    let response: Response;
+    let redactBody: boolean;
+    try {
+      ({ response, redactBody } = await fetchWebhookUrl(
+        url,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "OmniRoute-Webhook/1.0",
+            ...headers,
+          },
+          body: JSON.stringify(body),
+        },
+        { signal: controller.signal }
+      ));
+    } finally {
+      clearTimeout(timeoutId);
+    }
     const latencyMs = Date.now() - start;
+    // For private (opted-in) targets, return connectivity diagnostics only — never the
+    // upstream response body, so this endpoint can't be used to exfiltrate content from
+    // internal services reachable from the server. (#3269 hardening) The verdict is derived
+    // from the DNS-resolved address, not the raw hostname string, so a public-looking hostname
+    // rebound to a private IP is redacted too.
     let rawBody = "";
     try {
-      rawBody = await res.text();
+      rawBody = await response.text();
       if (rawBody.length > MAX_RESPONSE_BODY) rawBody = rawBody.slice(0, MAX_RESPONSE_BODY) + "…";
     } catch {
       rawBody = "";
     }
     return {
-      success: res.ok,
-      status: res.status,
+      success: response.ok,
+      status: response.status,
       latencyMs,
       responseBody: redactBody ? "<redacted: private target>" : rawBody,
     };

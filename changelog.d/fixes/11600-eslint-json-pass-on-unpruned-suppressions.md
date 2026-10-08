@@ -1,1 +1,0 @@
-- fix(ci): pass `--pass-on-unpruned-suppressions` in `run-eslint-json.mjs` so the CI Lint job no longer fails when a suppression is merely orphaned by a genuine fix, mirroring the identical fix already in `validate-release-green.mjs` (#11600)

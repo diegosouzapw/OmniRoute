@@ -278,7 +278,7 @@ test("handleResponsesCore maps unsupported Kimi K3 xhigh effort to max", async (
   assert.deepEqual(call.body.output_config, { effort: "max" });
 });
 
-test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
+test("handleResponsesCore strips previous_response_id only when input is non-empty, and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
@@ -289,7 +289,10 @@ test("handleResponsesCore strips previous_response_id by default and handles emp
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, undefined);
+  // #14318-class fix: keep previous_response_id when input is empty so GitHub
+  // Copilot-style requests that rely on server-side continuation do not 400.
+  // Metadata is still stripped as an unknown field.
+  assert.equal(call.body.previous_response_id, "resp_prev_123");
   assert.equal(call.body.metadata, undefined);
   // Empty input[] now injects a placeholder user message to avoid upstream
   // "400: at least one message is required" rejections (9router#419).
@@ -429,6 +432,68 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
   );
 });
 
+test("handleResponsesCore restores a top-level custom tool with automatic selection", async () => {
+  const { result, call } = await invokeResponsesCore({
+    body: {
+      model: "gpt-5.6-sol",
+      input: 'You must call functions__exec with exactly: text("ok")',
+      tools: [
+        {
+          type: "custom",
+          name: "functions__exec",
+          description: "Execute freeform code",
+        },
+      ],
+      stream: false,
+    },
+    responseFactory: () =>
+      buildToolCallSseResponse("functions__exec", '{"input":"text(\\"ok\\")"}'),
+  });
+
+  assert.equal(call.body.tools[0].type, "function");
+  assert.equal(call.body.tools[0].function.name, "functions__exec");
+  const sse = await result.response.text();
+  assert.match(sse, /"type":"custom_tool_call"/);
+  assert.match(sse, /"call_id":"call_1"/);
+  assert.match(sse, /"input":"text\(\\"ok\\"\)"/);
+  assert.match(sse, /event: response\.completed/);
+  assert.doesNotMatch(sse, /"type":"function_call","arguments"/);
+});
+
+test("handleResponsesCore maps forced custom tool_choice and preserves its lifecycle", async () => {
+  const { result, call } = await invokeResponsesCore({
+    body: {
+      model: "gpt-5.6-sol",
+      input: 'Call functions__exec with exactly: text("ok")',
+      tools: [
+        {
+          type: "custom",
+          name: "functions__exec",
+          description: "Execute freeform code",
+        },
+      ],
+      tool_choice: {
+        type: "custom",
+        name: "functions__exec",
+      },
+      stream: false,
+    },
+    responseFactory: () =>
+      buildToolCallSseResponse("functions__exec", '{"input":"text(\\"ok\\")"}'),
+  });
+
+  assert.deepEqual(call.body.tool_choice, {
+    type: "function",
+    function: { name: "functions__exec" },
+  });
+  const sse = await result.response.text();
+  assert.match(sse, /"type":"custom_tool_call"/);
+  assert.match(sse, /"call_id":"call_1"/);
+  assert.match(sse, /"input":"text\(\\"ok\\"\)"/);
+  assert.match(sse, /event: response\.completed/);
+  assert.doesNotMatch(sse, /"type":"function_call","arguments"/);
+});
+
 test("handleResponsesCore restores custom tools declared through additional_tools", async () => {
   const { result, call } = await invokeResponsesCore({
     body: {
@@ -480,7 +545,7 @@ test("handleResponsesCore preserves top-level tool precedence for custom-name co
 });
 
 test("handleResponsesCore restores custom tools nested in namespaces", async () => {
-  const { result } = await invokeResponsesCore({
+  const { result, call } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
       input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "ping" }] }],
@@ -492,11 +557,13 @@ test("handleResponsesCore restores custom tools nested in namespaces", async () 
         },
       ],
     },
-    responseFactory: () => buildToolCallSseResponse("exec", '{"input":"pong"}'),
+    responseFactory: () => buildToolCallSseResponse("commands__exec", '{"input":"pong"}'),
   });
 
+  assert.equal(call.body.tools[0].function?.name, "commands__exec");
   const sse = await result.response.text();
   assert.match(sse, /"type":"custom_tool_call"/);
+  assert.match(sse, /"input":"pong"/);
   assert.doesNotMatch(sse, /"type":"function_call","arguments"/);
 });
 
@@ -518,7 +585,8 @@ test("handleResponsesCore injects SSE keepalive frames for Responses streams", a
 
     const sse = await result.response.text();
 
-    assert.match(sse, /data: \{"type":"response\.in_progress"\}/);
+    // #14572 (#14330) gives the synthesized frame a sequence_number (seed 1) and a response.
+    assert.match(sse, /data: \{"type":"response\.in_progress","sequence_number":1,/);
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
   } finally {

@@ -123,7 +123,7 @@ describe("REST /api/a2a/tasks/[id] — authentication (GHSA-jcm5)", () => {
     // And the same task IS visible to its owner (owner hash derived from the key).
     const owned = tm.createTask(
       { skill: "smart-routing", messages: [] },
-      resolveA2AOwner(req as never)
+      await resolveA2AOwner(req as never)
     );
     const res2 = await restGet.GET(
       new Request(`http://localhost/api/a2a/tasks/${owned.id}`, {

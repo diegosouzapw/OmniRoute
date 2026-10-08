@@ -314,6 +314,49 @@ test("injectUniversalHandoffBody preserves original system message", () => {
   assert.strictEqual(r.messages[1].content, "Be helpful");
 });
 
+test("injectUniversalHandoffBody appends Claude-native handoff to top-level system", () => {
+  const body = {
+    model: CURR,
+    system: [{ type: "text", text: "Existing Claude prompt" }],
+    max_tokens: 64,
+    messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+  };
+
+  const r = injectUniversalHandoffBody(body, PREV, CURR, REASON, null, undefined, "claude");
+  const system = r.system as Array<Record<string, unknown>>;
+
+  assert.strictEqual(r.messages, body.messages);
+  assert.strictEqual(system[0], body.system[0]);
+  assert.match(String(system[1]?.text), /<context_handoff>/);
+  assert.equal(system[1]?.type, "text");
+});
+
+test("injectUniversalHandoffBody keeps OpenAI bodies with top-level system on messages path", () => {
+  const body = {
+    system: null,
+    messages: [{ role: "user", content: "Hello" }],
+  };
+
+  const r = injectUniversalHandoffBody(body, PREV, CURR, REASON, null, undefined, "openai");
+
+  assert.equal((r.messages as Array<Record<string, unknown>>)[0]?.role, "system");
+  assert.equal(r.system, null);
+});
+
+test("injectUniversalHandoffBody creates Claude top-level system when absent", () => {
+  const body = {
+    model: CURR,
+    max_tokens: 64,
+    messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+  };
+
+  const r = injectUniversalHandoffBody(body, PREV, CURR, REASON, null, undefined, "claude");
+  const system = r.system as Array<Record<string, unknown>>;
+
+  assert.strictEqual(r.messages, body.messages);
+  assert.match(String(system[0]?.text), /<context_handoff>/);
+});
+
 test("injectUniversalHandoffBody Responses API with instructions", () => {
   const body = { input: "Hi", instructions: "Be nice" };
   const r = injectUniversalHandoffBody(body, PREV, CURR, REASON, null);

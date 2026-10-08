@@ -121,7 +121,10 @@ export function updateCloudAgentTask(
     WHERE id = @id
   `
   ).run({ id, ...validUpdates });
-  emitAgentTaskUpdated("cloud-agent", id, (validUpdates.status as string) ?? "updated");
+  // Publish the row's real status: an update that only touches result/activities/error must
+  // not fabricate a state the canvas has never heard of. No row means nothing was written.
+  const state = (validUpdates.status as string | undefined) ?? getCloudAgentTaskById(id)?.status;
+  if (state) emitAgentTaskUpdated("cloud-agent", id, state);
 }
 
 export function getCloudAgentTaskById(id: string): CloudAgentTaskRow | null {

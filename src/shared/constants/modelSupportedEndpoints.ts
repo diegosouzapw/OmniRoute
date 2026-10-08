@@ -1,5 +1,6 @@
 export const MODEL_SUPPORTED_ENDPOINT_VALUES = [
   "chat",
+  "responses",
   "embeddings",
   "rerank",
   "images",
@@ -37,6 +38,8 @@ export function classifyModelSupportedEndpoints(endpoints: readonly string[]): {
   type?: "embedding" | "rerank" | "image" | "video" | "audio";
   subtype?: "speech" | "transcription";
 } {
+  // "chat" and "responses" are text-conversation endpoints; they carry no
+  // modality type, so they fall through to the empty return below.
   if (endpoints.includes("embeddings")) return { type: "embedding" };
   if (endpoints.includes("rerank")) return { type: "rerank" };
   if (endpoints.includes("images")) return { type: "image" };
@@ -51,4 +54,33 @@ export function classifyModelSupportedEndpoints(endpoints: readonly string[]): {
     return { type: "audio", subtype: "transcription" };
   }
   return { type: "audio" };
+}
+
+/**
+ * Default `supportedEndpoints` for a model row discovered from (or added to) an
+ * OpenAI-compatible provider node, derived from the node's `apiType`.
+ *
+ * A node typed `embeddings` or `rerank` (or an audio/image type) serves exactly that
+ * modality, so a row with no explicit endpoint metadata — the common case, since local
+ * `/v1/models` listings rarely carry any — should inherit the node's modality rather
+ * than the historical `["chat"]` default, which misrepresented e.g. `bge-m3` as a chat
+ * model in `/v1/models`. Chat/Responses nodes (and unknown types) keep `["chat"]`.
+ */
+export function defaultEndpointsForProviderNodeApiType(
+  apiType: string | null | undefined
+): ModelSupportedEndpoint[] {
+  switch ((apiType || "").trim().toLowerCase()) {
+    case "embeddings":
+      return ["embeddings"];
+    case "rerank":
+      return ["rerank"];
+    case "audio-speech":
+      return ["audio-speech"];
+    case "audio-transcriptions":
+      return ["audio-transcriptions"];
+    case "images-generations":
+      return ["images"];
+    default:
+      return ["chat"];
+  }
 }

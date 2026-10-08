@@ -18,7 +18,9 @@ import { after } from "next/server";
 
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { extractApiKey } from "@/sse/services/auth";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
+import { catalogPageCacheKey, catalogStringResponse, parseCatalogPage } from "./catalogPagination";
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
 /** Fingerprint an API key for the catalog memo Map. Never store the raw secret. */
@@ -147,12 +149,31 @@ function catalogBuildTimeoutMs(): number {
 
 const catalogLastGood = new Map<string, CachedCatalog>();
 
+export class CatalogBuildTimeoutError extends Error {
+  constructor() {
+    super("catalog_build_timeout");
+    this.name = "CatalogBuildTimeoutError";
+  }
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(label)), ms);
+    const timer = setTimeout(() => {
+      if (label === "catalog_build_timeout") {
+        reject(new CatalogBuildTimeoutError());
+      } else {
+        reject(new Error(label));
+      }
+    }, ms);
     promise.then(
-      (value) => { clearTimeout(timer); resolve(value); },
-      (err) => { clearTimeout(timer); reject(err); }
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
     );
   });
 }
@@ -167,7 +188,12 @@ const catalogCache = new Map<string, CachedCatalog>();
  * It still resolves to its own original caller (that request legitimately waits
  * on it), just without being persisted.
  */
-type InFlightBuild = { generation: number; promise: Promise<CachedCatalog> };
+type InFlightBuild = {
+  generation: number;
+  promise: Promise<CachedCatalog>;
+  lastKeptAt?: number;
+  timeoutCount?: number;
+};
 const catalogInFlight = new Map<string, InFlightBuild>();
 
 let _catalogBuilderRuns = 0;
@@ -180,7 +206,8 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
   const configuredOnly = url.searchParams.get("configuredOnly") === "true" ? "1" : "0";
   const hideAuto = catalogSettings?.hideAutoCombos ? "1" : "0";
   const hideNoThink = catalogSettings?.hideNoThinkVariants ? "1" : "0";
-  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}`;
+  const page = catalogPageCacheKey(parseCatalogPage(request));
+  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}`;
 }
 
 // Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
@@ -242,8 +269,10 @@ function storePayload(
   };
   if (buildGeneration === getModelCatalogCacheVersion()) {
     catalogCache.set(cacheKey, entry);
+    if (entry.status === 200) catalogLastGood.set(cacheKey, entry);
   }
-  if (entry.status === 200) catalogLastGood.set(cacheKey, entry);
+  // Cross-generation orphan: return entry to its original caller unchanged,
+  // persist neither cache nor lastGood.
   return entry;
 }
 
@@ -294,7 +323,12 @@ function startBackgroundRefresh(
   // observes the failure.
   refreshPromise.catch(() => {});
 
-  catalogInFlight.set(cacheKey, { generation, promise: refreshPromise });
+  catalogInFlight.set(cacheKey, {
+    generation,
+    promise: refreshPromise,
+    lastKeptAt: Date.now(),
+    timeoutCount: 0,
+  });
   refreshPromise
     .catch(() => {})
     .finally(() => {
@@ -321,25 +355,48 @@ async function awaitCatalogInFlight(
   try {
     payload = await withTimeout(inflight.promise, catalogBuildTimeoutMs(), "catalog_build_timeout");
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (catalogInFlight.get(cacheKey)?.promise === inflight.promise) {
-      catalogInFlight.delete(cacheKey);
+    if (!(err instanceof CatalogBuildTimeoutError)) {
+      if (catalogInFlight.get(cacheKey)?.promise === inflight.promise) {
+        catalogInFlight.delete(cacheKey);
+      }
+      throw err;
     }
     const lastGood = catalogLastGood.get(cacheKey);
-    if (msg === "catalog_build_timeout" && lastGood) {
-      return new Response(lastGood.body, {
-        status: lastGood.status,
-        headers: mergeCatalogHeaders(corsHeaders, lastGood.headers, diagnosticHeaders, {
+    if (lastGood) {
+      return catalogStringResponse(
+        lastGood.body,
+        mergeCatalogHeaders(corsHeaders, lastGood.headers, diagnosticHeaders, {
           "x-omniroute-catalog": "last-good",
         }),
-      });
+        lastGood.status
+      );
     }
-    throw err;
+    const shared = catalogInFlight.get(cacheKey);
+    if (shared && shared.promise === inflight.promise) {
+      shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
+      shared.lastKeptAt = Date.now();
+    }
+    const boundMs = catalogBuildTimeoutMs();
+    const retryAfterSec = Math.max(1, Math.ceil((2 * boundMs) / 1000));
+    const body = JSON.stringify(
+      buildErrorBody(503, "catalog_build_timeout", undefined, {
+        type: "service_unavailable",
+      })
+    );
+    return catalogStringResponse(
+      body,
+      mergeCatalogHeaders(corsHeaders, diagnosticHeaders, {
+        "x-omniroute-catalog": "build-timeout",
+        "Retry-After": String(retryAfterSec),
+      }),
+      503
+    );
   }
-  return new Response(payload.body, {
-    status: payload.status,
-    headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
-  });
+  return catalogStringResponse(
+    payload.body,
+    mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
+    payload.status
+  );
 }
 
 /**
@@ -363,10 +420,11 @@ export async function resolveCachedCatalogResponse(
   const cached = catalogCache.get(cacheKey);
 
   if (cached && cached.expiresAt > now) {
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
+    return catalogStringResponse(
+      cached.body,
+      mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
+      cached.status
+    );
   }
 
   // Stale-while-revalidate: an expired entry is still served immediately as long as
@@ -383,10 +441,11 @@ export async function resolveCachedCatalogResponse(
       buildPayload,
       catalogSettings?.scheduleBackgroundRefresh ?? defaultBackgroundRefreshScheduler
     );
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
+    return catalogStringResponse(
+      cached.body,
+      mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
+      cached.status
+    );
   }
 
   const currentGeneration = getModelCatalogCacheVersion();
@@ -394,13 +453,21 @@ export async function resolveCachedCatalogResponse(
   // Only join an in-flight build from the CURRENT generation. A build bound to an
   // older (pre-write) generation reflects stale state, so a new request starts a
   // fresh build instead of joining it.
-  if (!inflight || inflight.generation !== currentGeneration) {
+  const boundMs = catalogBuildTimeoutMs();
+  const existing = inflight;
+  const joinable =
+    !!existing &&
+    existing.generation === currentGeneration &&
+    Date.now() - (existing.lastKeptAt ?? 0) <= 3 * boundMs &&
+    (existing.timeoutCount ?? 0) < 3;
+  if (!joinable) {
     const generation = currentGeneration;
     const promise = runBuilder(buildPayload, request).then((payload) =>
       storePayload(cacheKey, payload, generation)
     );
-    inflight = { generation, promise };
+    inflight = { generation, promise, lastKeptAt: Date.now(), timeoutCount: 0 };
     catalogInFlight.set(cacheKey, inflight);
+    promise.catch(() => {});
     promise.finally(() => {
       if (catalogInFlight.get(cacheKey)?.promise === promise) catalogInFlight.delete(cacheKey);
     });
@@ -471,5 +538,7 @@ export function __forceCatalogInFlightRejectionForTest(request: Request, error: 
   catalogInFlight.set(buildCatalogCacheKey(request), {
     generation: getModelCatalogCacheVersion(),
     promise: rejected,
+    lastKeptAt: Date.now(),
+    timeoutCount: 0,
   });
 }

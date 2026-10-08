@@ -218,6 +218,8 @@ class SkillExecutor {
       throw new Error(`Skill not found: ${skillName}`);
     }
 
+    // Check enabled/disabled BEFORE creating a DB row (preserves pre-Task-3
+    // behavior: disabled/missing skills never write to skill_executions).
     if (!skill.enabled) {
       throw new Error(`Skill is disabled: ${skillName}`);
     }
@@ -242,41 +244,10 @@ class SkillExecutor {
         new Date().toISOString()
       );
 
-      let handler = this.handlers.get(skill.handler);
-      if (!handler) {
-        // Builtin handlers are registered by instrumentation-node at startup,
-        // but Next.js may compile this module into multiple chunks (each with
-        // its own SkillExecutor singleton). Fall back to the builtin registry
-        // so `POST /api/skills/executions` works regardless of which chunk the
-        // route is served from.
-        const builtin = builtinSkills[skill.handler];
-        if (builtin) {
-          this.handlers.set(skill.handler, builtin);
-          handler = builtin;
-        }
-      }
-      if (!handler) {
-        throw new Error(`Handler not found: ${skill.handler}`);
-      }
-
-      let output: Record<string, unknown> | null = null;
-      let errorMessage: string | null = null;
-      let status = SkillStatus.SUCCESS;
-
-      try {
-        const result = await this.executeWithTimeout(
-          handler(input, { apiKeyId: context.apiKeyId, sessionId: context.sessionId || "" })
-        );
-        const resultIsFailure = isSkillFailureOutput(result);
-        output = projectSkillOutputForBoundary(result);
-        if (resultIsFailure) {
-          errorMessage = skillFailureMessage(result);
-          status = SkillStatus.ERROR;
-        }
-      } catch (err) {
-        errorMessage = toSafeSkillErrorMessage(err);
-        status = SkillStatus.ERROR;
-      }
+      const { output, errorMessage, status } = await this.runHandler(skillName, input, {
+        apiKeyId: context.apiKeyId,
+        sessionId: context.sessionId || "",
+      });
 
       const durationMs = Date.now() - startTime;
 
@@ -321,6 +292,119 @@ class SkillExecutor {
         setTimeout(() => reject(new Error("Skill execution timed out")), this.timeout)
       ),
     ]);
+  }
+
+  /**
+   * Shared handler lookup + execute + output projection used by both
+   * `execute()` (which writes history) and `executeClaimed()` (which does not).
+   */
+  private async runHandler(
+    skillName: string,
+    input: Record<string, unknown>,
+    context: { apiKeyId: string; sessionId: string }
+  ): Promise<{
+    output: Record<string, unknown> | null;
+    errorMessage: string | null;
+    status: SkillStatus;
+  }> {
+    const skill = skillRegistry.getSkill(skillName, context.apiKeyId);
+    if (!skill) {
+      throw new Error(`Skill not found: ${skillName}`);
+    }
+    if (!skill.enabled) {
+      throw new Error(`Skill is disabled: ${skillName}`);
+    }
+
+    let handler = this.handlers.get(skill.handler);
+    if (!handler) {
+      const builtin = builtinSkills[skill.handler];
+      if (builtin) {
+        this.handlers.set(skill.handler, builtin);
+        handler = builtin;
+      }
+    }
+    if (!handler) {
+      throw new Error(`Handler not found: ${skill.handler}`);
+    }
+
+    let output: Record<string, unknown> | null = null;
+    let errorMessage: string | null = null;
+    let status = SkillStatus.SUCCESS;
+
+    try {
+      const result = await this.executeWithTimeout(
+        handler(input, { apiKeyId: context.apiKeyId, sessionId: context.sessionId || "" })
+      );
+      const resultIsFailure = isSkillFailureOutput(result);
+      output = projectSkillOutputForBoundary(result);
+      if (resultIsFailure) {
+        errorMessage = skillFailureMessage(result);
+        status = SkillStatus.ERROR;
+      }
+    } catch (err) {
+      errorMessage = toSafeSkillErrorMessage(err);
+      status = SkillStatus.ERROR;
+    }
+
+    return { output, errorMessage, status };
+  }
+
+  /**
+   * Execute a claimed skill call for the server-owned tool loop.
+   * Reuses the same handler lookup/timeout/projection as `execute()`
+   * but does NOT write to `skill_executions` — the fence table owns
+   * persistence for claimed executions.
+   */
+  async executeClaimed(
+    skillName: string,
+    input: Record<string, unknown>,
+    context: { apiKeyId: string; sessionId: string },
+    executionId: string
+  ): Promise<SkillExecution> {
+    const settings = await getSettings();
+    if (settings.skillsEnabled === false) {
+      throw new Error("Skills execution is disabled. Enable Skills in Settings > AI.");
+    }
+
+    const skill = skillRegistry.getSkill(skillName, context.apiKeyId);
+    if (!skill) {
+      throw new Error(`Skill not found: ${skillName}`);
+    }
+
+    const startTime = Date.now();
+    log.info("skills.executor.claimed_start", {
+      skillId: skill.id,
+      skillName,
+      apiKeyId: context.apiKeyId,
+      executionId,
+    });
+
+    const { output, errorMessage, status } = await this.runHandler(skillName, input, context);
+    const durationMs = Date.now() - startTime;
+
+    if (status !== SkillStatus.SUCCESS) {
+      throw new Error(`Skill execution failed: ${errorMessage ?? "unknown error"}`);
+    }
+
+    log.info("skills.executor.claimed_complete", {
+      skillId: skill.id,
+      success: status === SkillStatus.SUCCESS,
+      durationMs,
+      executionId,
+    });
+
+    return {
+      id: executionId,
+      skillId: skill.id,
+      apiKeyId: context.apiKeyId,
+      sessionId: context.sessionId || "",
+      input,
+      output,
+      status,
+      errorMessage,
+      durationMs,
+      createdAt: new Date(),
+    };
   }
 
   getExecution(executionId: string): SkillExecution | undefined {

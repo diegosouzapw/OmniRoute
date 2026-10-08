@@ -302,7 +302,7 @@ test("model sync route reports invalid JSON /models responses without losing ups
   assert.equal(body.upstreamStatus, 200);
   assert.equal(logs.length, 1);
   assert.equal(logs[0].status, 200);
-  assert.equal(logs[0].error, "Invalid JSON response from /models");
+  assert.equal(logs[0].error, "Invalid JSON response from <path>");
 });
 
 test("model sync route preserves previously synced models when the upstream omits the models list", async () => {
@@ -775,6 +775,10 @@ test("model sync route forwards cookies, filters built-ins, and syncs aliases fo
   });
 
   await localDb.setModelAlias("stale-model", "openrouter/stale-model");
+  // Mark it as OmniRoute-managed (simulating it was assigned by a prior sync) so the
+  // #11836 provenance check still prunes it below — an alias would only survive a prune
+  // pass if it were hand-created and never touched by the managed sync.
+  await modelsDb.markManagedModelAlias("stale-model");
   await localDb.setModelAlias("router-v2", "other-provider/router-v2");
 
   globalThis.fetch = async (url, init = {}) => {

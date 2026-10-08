@@ -251,7 +251,17 @@ export const managementPolicy: RoutePolicy = {
     }
 
     // Tier 2: always-protected routes skip the requireLogin=false bypass.
-    if (!isAlwaysProtectedPath(path) && !(await isAuthRequired(ctx.request))) {
+    //
+    // The fresh-install bootstrap branch inside isAuthRequired() is loopback-only.
+    // Hand it the SAME trusted verdict the LOCAL_ONLY gate above used (token-stamped
+    // real TCP peer via peerContext) instead of letting it sniff ctx.request — the
+    // ORIGINAL request still carries every client-supplied header at this point,
+    // and the Host header was how a remote caller reached the anonymous
+    // POST /api/settings/require-login write (GHSA-7pq4-8pvv-rx7r).
+    if (
+      !isAlwaysProtectedPath(path) &&
+      !(await isAuthRequired(ctx.request, { loopback: isLoopbackRequest(ctx) }))
+    ) {
       return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });
     }
 

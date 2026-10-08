@@ -22,7 +22,7 @@ export async function getModelAliases() {
 export async function setModelAlias(alias: string, model: unknown) {
   const db = getDbInstance();
   db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)",
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)"
   ).run(alias, JSON.stringify(model));
   finishModelCatalogWriteWithBackup();
 }
@@ -30,7 +30,64 @@ export async function setModelAlias(alias: string, model: unknown) {
 export async function deleteModelAlias(alias: string) {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'modelAliases' AND key = ?").run(alias);
+  await unmarkManagedModelAlias(alias);
   finishModelCatalogWriteWithBackup();
+}
+
+// ──────── Managed-alias provenance marker (#11836) ────────
+// Distinguishes an alias OmniRoute itself generated during a provider model sync from one a
+// person typed in the dashboard. Only alias names recorded here are eligible for the
+// sync's prune passes — resolveManagedModelAlias() and syncManagedAvailableModelAliases()
+// must never delete or "adopt" an alias unless its name is present in this set, so a
+// hand-created custom alias that happens to already point at a model's full id is never
+// silently claimed (and later pruned) as if OmniRoute had generated it.
+const MANAGED_ALIAS_NAMES_KEY = "names";
+
+async function getManagedModelAliasNamesRow(): Promise<string[]> {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'managedModelAliasNames' AND key = ?")
+    .get(MANAGED_ALIAS_NAMES_KEY);
+  const parsed = getKeyValue(row).value;
+  if (!parsed) return [];
+  try {
+    const v = JSON.parse(parsed);
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The set of alias names OmniRoute has generated/adopted itself during a managed
+ * provider model sync (OpenRouter + OpenAI/Anthropic-compatible custom providers).
+ * Only these are eligible for sync-triggered pruning.
+ */
+export async function getManagedModelAliasNames(): Promise<Set<string>> {
+  return new Set(await getManagedModelAliasNamesRow());
+}
+
+async function writeManagedModelAliasNames(names: Set<string>): Promise<void> {
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('managedModelAliasNames', ?, ?)"
+  ).run(MANAGED_ALIAS_NAMES_KEY, JSON.stringify(Array.from(names)));
+}
+
+/** Record that `alias` was generated/adopted by OmniRoute's own sync logic. */
+export async function markManagedModelAlias(alias: string): Promise<void> {
+  const names = await getManagedModelAliasNames();
+  if (names.has(alias)) return;
+  names.add(alias);
+  await writeManagedModelAliasNames(names);
+}
+
+/** Clear the managed marker for `alias` (called whenever an alias row is deleted). */
+export async function unmarkManagedModelAlias(alias: string): Promise<void> {
+  const names = await getManagedModelAliasNames();
+  if (!names.has(alias)) return;
+  names.delete(alias);
+  await writeManagedModelAliasNames(names);
 }
 
 /**
@@ -96,7 +153,9 @@ export function removeProviderAlias(providerId: string, alias: string): void {
   delete current[alias];
   const db = getDbInstance();
   if (Object.keys(current).length === 0) {
-    db.prepare("DELETE FROM key_value WHERE namespace = 'providerAliases' AND key = ?").run(providerId);
+    db.prepare("DELETE FROM key_value WHERE namespace = 'providerAliases' AND key = ?").run(
+      providerId
+    );
   } else {
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('providerAliases', ?, ?)"

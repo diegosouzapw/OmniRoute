@@ -24,7 +24,9 @@ function toModelResponse(model: AdobeFireflyCatalogModel): Record<string, unknow
     id: model.id,
     name: model.name,
     owned_by: "adobe-firefly",
-    apiFormat: endpoint,
+    // Import posts this row to /api/provider-models, whose schema names the
+    // formats "images-generations" / "video" (the endpoints stay plural).
+    apiFormat: model.modality === "image" ? "images-generations" : "video",
     supportedEndpoints: [endpoint],
     type: model.modality,
     input_modalities: model.inputModalities,

@@ -48,11 +48,12 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "fireworks/accounts/fireworks/models/kimi-k2": "moonshotai/Kimi-K2",
   "kimi-k2": "moonshotai/Kimi-K2",
 
-  // Qwen — the model ships only under the `-preview` id (bailian-coding-plan, qoder,
-  // qwen-cloud-token-plan). Without this, the bare id missed MODEL_SPECS and
-  // the context preflight fell back to contextManager's `default: 128000`, rejecting
-  // prompts the model's real 1M window accepts. Drop this line if Alibaba ever ships a
-  // distinct GA `qwen3.8-max` — it would no longer be the same model.
+  // Qwen — preview-only providers (bailian-coding-plan, qoder, qwen-cloud-token-plan)
+  // still serve the model solely under the `-preview` id; without this rewrite the
+  // bare id missed MODEL_SPECS there and the context preflight fell back to
+  // contextManager's `default: 128000`. Providers that list the GA id as-is
+  // (alibaba, qwen-cloud, kilocode, clinepass, xkiro, opencode-go — #14181) are
+  // exempted by the provider-aware check in resolveModelAlias.
   "qwen3.8-max": "qwen3.8-max-preview",
 
   // Mistral short aliases
@@ -65,9 +66,13 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   // Llama short aliases
   "llama-3.3": "llama-3.3-70b-versatile",
   "llama-3-70b": "llama-3.3-70b-versatile",
-  // #11503: llama3-8b-8192 was deprecated by Groq on 2025-08-30 and is not in the
+  // #11503: llama3-8b-8192 deprecated on Groq 2025-08-30 and not in the
   // catalog; llama-3.1-8b-instant is the replacement Groq names.
   "llama-3-8b": "llama-3.1-8b-instant",
+
+  // Agnes 1.5 Flash: wiki marks deprecated; live GET /v1/models
+  // (2026-09-09) no longer lists it (503 no channel).
+  "agnes-1.5-flash": "agnes-3.0-flash",
 };
 
 // ── Custom Aliases (persisted via Settings API) ─────────────────────────────

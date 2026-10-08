@@ -20,6 +20,7 @@ import {
   type UsageFetcherProvider,
 } from "./../usage.ts";
 import { getCachedProviderConnections } from "@/lib/db/readCache";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import type { FreeAccessState } from "./strictZeroCostFilter";
 import { isStateStaleForReset } from "./subscriptionLadder";
@@ -100,16 +101,20 @@ function sweepIfDue(): void {
  * `quota_omniroute.py`'s own parsing) and returns `null` — never a guess —
  * for anything else. `null` is treated as "not proven safe" by the filter.
  */
-function extractRemainingAllowance(usage: unknown): number | null {
+function extractRemainingAllowance(usage: unknown, opts?: { isFreeTier?: boolean }): number | null {
   if (!usage || typeof usage !== "object") return null;
   const quotas = (usage as Record<string, unknown>).quotas;
   if (!quotas || typeof quotas !== "object") return null;
 
   let worstPercent: number | null = null;
+  let sawUnlimited = false;
   for (const raw of Object.values(quotas as Record<string, unknown>)) {
     if (!raw || typeof raw !== "object") continue;
     const q = raw as Record<string, unknown>;
-    if (q.unlimited === true) continue;
+    if (q.unlimited === true) {
+      sawUnlimited = true;
+      continue;
+    }
     let pct: number | null =
       typeof q.remainingPercentage === "number" ? q.remainingPercentage : null;
     if (
@@ -123,6 +128,7 @@ function extractRemainingAllowance(usage: unknown): number | null {
     if (pct === null) continue;
     worstPercent = worstPercent === null ? pct : Math.min(worstPercent, pct);
   }
+  if (worstPercent === null && sawUnlimited && opts?.isFreeTier === true) return 100;
   return worstPercent; // percentage points; the filter's threshold is compared against this unit
 }
 
@@ -148,7 +154,9 @@ async function refresh(provider: string, connectionId: string): Promise<void> {
       connection as unknown as Parameters<typeof getUsageForProvider>[0],
       { forceRefresh: false }
     );
-    const remaining = extractRemainingAllowance(usage);
+    const remaining = extractRemainingAllowance(usage, {
+      isFreeTier: providerHasFreeModels(provider),
+    });
     const state: FreeAccessState = {
       status: remaining === null ? "UNKNOWN" : remaining > 0 ? "SAFE" : "EXHAUSTED",
       remainingFreeAllowance: remaining,

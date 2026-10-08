@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 
 import { muse_codeProvider } from "../../open-sse/config/providers/registry/muse-code/index.ts";
 import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
+import { OAUTH_PROVIDERS, supportsDualAuthProvider } from "../../src/shared/constants/providers.ts";
 
 // ── Registry entry structure ────────────────────────────────────────────────
 
@@ -88,4 +89,10 @@ test("muse-code is discoverable via alias", () => {
   const entry = getRegistryEntry("mc");
   assert.ok(entry, "getRegistryEntry must find muse-code by alias mc");
   assert.equal(entry.id, "muse-code");
+});
+
+test("muse-code is dual-auth with an OAuth catalog card", () => {
+  assert.equal(supportsDualAuthProvider("muse-code"), true);
+  assert.equal(OAUTH_PROVIDERS["muse-code"]?.id, "muse-code");
+  assert.equal(muse_codeProvider.baseUrl, "https://api.meta.ai/v1/responses");
 });

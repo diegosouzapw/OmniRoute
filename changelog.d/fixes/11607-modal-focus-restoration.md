@@ -1,1 +1,0 @@
-- **fix(dashboard):** Restore keyboard focus after shared modals close and cancel delayed autofocus during cleanup ([#11607](https://github.com/diegosouzapw/OmniRoute/pull/11607)) — thanks @pacocartones

@@ -1,0 +1,1340 @@
+{
+  "common": {
+    "error": "Njehie: {message}",
+    "serverOffline": "Sava OmniRoute anọghị n'ịntanetị. Jiri nke a malite ya: omniroute serve",
+    "authRequired": "Achọrọ njirimara. Tọọ OMNIROUTE_API_KEY ma ọ bụ mee: omniroute setup",
+    "rateLimited": "Agafela oke arịrịọ. Nwaa ọzọ mgbe sekọnd {seconds} gachara.",
+    "timeout": "Oge arịrịọ agwụla mgbe milisekọnd {ms} gachara.",
+    "success": "Emechaala.",
+    "yes": "ee",
+    "no": "mba",
+    "confirm": "Ị ji n'aka? (ee/mba)",
+    "dryRun": "[dry-run] a ga-eme {action}",
+    "cancelled": "Akagbuola.",
+    "jsonOpt": "Wepụta dị ka JSON",
+    "yesOpt": "Mafee ajụjụ nkwenye"
+  },
+  "setup": {
+    "title": "Ntọala OmniRoute",
+    "passwordPrompt": "Okwuntughe onye nchịkwa",
+    "providerPrompt": "Onye na-enye ọrụ ndabara (hapụ oghere ka ịwụfee)",
+    "done": "Emechaala ntọala",
+    "passwordSet": "Ahazila okwuntughe onye nchịkwa",
+    "providerSet": "Ahazila onye na-enye ọrụ: {name}",
+    "testingProvider": "Na-anwale njikọ onye na-enye ọrụ: {name}",
+    "testPassed": "Nnwale onye na-enye ọrụ gara nke ọma",
+    "testFailed": "Nnwale onye na-enye ọrụ dara: {error}",
+    "loginEnabled": "Nbanye: agbanyere (emelitela okwuntughe)",
+    "loginDisabled": "Nbanye: agbanyụrụ",
+    "providerInfo": "Onye na-enye ọrụ: {info}",
+    "opencode": "Wụnye ma hazie @omniroute/opencode-plugin e jikọtara ọnụ maka OpenCode"
+  },
+  "doctor": {
+    "title": "Onye Nnyocha OmniRoute",
+    "dbOk": "Ebe nchekwa data: Ọ DỊ MMA ({path})",
+    "dbMissing": "Ebe nchekwa data: ebidobeghị ya — mee `omniroute setup`",
+    "portOk": "Ọdụ ụgbọ {port}: dị njikere",
+    "portConflict": "Ọdụ ụgbọ {port}: usoro ọzọ na-eji ya",
+    "encryptionOk": "Igodo izo ya ezo: ahazila",
+    "encryptionMissing": "Igodo izo ya ezo adịghị — mee `omniroute setup`",
+    "allGood": "Nnyocha niile gara nke ọma.",
+    "warnings": "Ịdọ aka ná ntị {count} — lee n'elu."
+  },
+  "providers": {
+    "title": "Ndị na-enye ọrụ",
+    "noProviders": "Ọ dịghị onye na-enye ọrụ ahaziri. Mee: omniroute setup",
+    "testing": "Na-anwale {name}...",
+    "available": "Ndị na-enye ọrụ {count} dị",
+    "connected": "Ejikọọla",
+    "disconnected": "Njikọ akwụsịla",
+    "validationFailed": "Nnyocha nkwado dara: {error}",
+    "metrics": {
+      "description": "Gosi metrik arụmọrụ onye na-eweta (oge nzaghachi, ọnụego ịga nke ọma, ọnụ ahịa)",
+      "provider": "Jiri ID onye na-eweta nyochaa",
+      "connection_id": "Jiri ID njikọ nyochaa",
+      "period": "Oge: 1h|6h|24h|7d|30d (ndabara: 24h)",
+      "metric": "Lekwasị anya n'otu mpaghara metrik",
+      "sort": "Hazie site na mpaghara (site n'elu ruo n'ala)",
+      "limit": "Ahịrị kachasị (ndabara: 50)",
+      "watch": "Mee ka ọ dị ọhụrụ kwa 5s (ọnọdụ ndụ)",
+      "compare": "ID ndị na-eweta e ji rikoma kewaa iji tụnyere n'akụkụ ibe ha"
+    },
+    "metric_single": {
+      "description": "Nweta otu uru metrik maka otu njikọ akọwapụtara"
+    },
+    "rotate": {
+      "description": "Gbanwee igodo API upstream maka njikọ onye na-eweta",
+      "newKeyOpt": "Uru igodo API ọhụrụ (zere: họrọ --from-env)",
+      "fromEnvOpt": "Gụọ igodo ọhụrụ site na mgbanwe gburugburu VAR",
+      "oauthOpt": "Kpalite usoro nnabata OAuth ọzọ kama",
+      "skipTestOpt": "Mafere ule njikọta mgbe mgbanwe gasịrị",
+      "dryRunOpt": "Bipụta ihe ga-agbanwe n'edeghị ya",
+      "confirmPrompt": "Dochie igodo API maka njikọ \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] A ga-agbanwe igodo maka \"{name}\" ({id}). O nweghị mgbanwe e mere.",
+      "oauthHint": "Njikọ OAuth — mee: omniroute oauth {provider}",
+      "envVarEmpty": "Ahazighị mgbanwe gburugburu {var} ma ọ bụ na ọ tọgbọ chakoo.",
+      "success": "Agbanweela igodo maka \"{name}\". Mee `providers test {id}` iji nyochaa ya.",
+      "testPassed": "Ule e mere mgbe mgbanwe gasịrị gara nke ọma.",
+      "testFailed": "Ule e mere mgbe mgbanwe gasịrị dara: {error}"
+    },
+    "status": {
+      "description": "Gosi ọnọdụ igodo maka njikọ ndị na-eweta niile (afọ, njedebe, oge nchere)",
+      "providerOpt": "Jiri aha onye na-eweta nyochaa",
+      "header": "ID         Onye na-eweta  Aha                      Ọnọdụ njedebe  Ọnọdụ ule  Oge nchere ruo",
+      "noData": "Enweghị data njikọ onye na-eweta dị.",
+      "requiresServer": "providers status chọrọ ka sava OmniRoute na-arụ ọrụ."
+    }
+  },
+  "keys": {
+    "title": "Igodo API",
+    "addDescription": "Tinye ma ọ bụ melite igodo API maka onye na-eweta",
+    "listDescription": "Depụta igodo API niile ahaziri",
+    "removeDescription": "Wepụ igodo API maka onye na-eweta",
+    "regenerateDescription": "Mepụta igodo API OmniRoute ọzọ",
+    "revokeDescription": "Kagbuo igodo API OmniRoute",
+    "revealDescription": "Gosi uru igodo API ezoghị ezo",
+    "usageDescription": "Gosi ojiji API key n'oge na-adịbeghị anya",
+    "usageLimitOpt": "Ọnụọgụ arịrịọ ndị e mere n'oge na-adịbeghị anya",
+    "rotateDescription": "Mepụta igodo ọhụrụ ma mee ka nke ochie ghara ịdị irè",
+    "graceOpt": "Oge amara (ms) tupu emebie igodo ochie",
+    "stdinOpt": "Gụọ igodo API site na stdin kama iji arụmụka",
+    "added": "Agbakwunyere igodo maka {provider}.",
+    "removed": "Ewepụla igodo.",
+    "listed": "Igodo {count}.",
+    "noKeys": "Enweghị igodo ahaziri.",
+    "noUsage": "Ahụghị data ojiji ọ bụla.",
+    "confirmRemove": "Wepụ igodo {id}?",
+    "confirmRegenerate": "Mepụta igodo {id} ọzọ?",
+    "confirmRevoke": "Kagbuo igodo {id}?",
+    "confirmRotate": "Gbanwee igodo {id}? (a ga-emebi igodo ochie mgbe oge amara gachara)",
+    "regenerated": "Emegharịala ya. Igodo ọhụrụ: {key}",
+    "revoked": "A kagbuola igodo {id}.",
+    "rotated": "Agbanweela igodo {id}. ID igodo ọhụrụ: {newId}",
+    "revealWarning": "⚠  Nke a ga-egosi igodo zuru ezu na-enweghị mkpuchi. Gbaa mbọ hụ na ihuenyo gị bụ nke nzuzo.",
+    "providerRequired": "Achọrọ onye na-eweta ọrụ.",
+    "keyRequired": "Achọrọ igodo API.",
+    "stdinEmpty": "Enweghị igodo API e nyere site na stdin.",
+    "unknownProvider": "Onye na-eweta ọrụ a na-amaghị: {provider}",
+    "policy": {
+      "title": "Iwu Igodo",
+      "showDescription": "Gosi iwu oke ọnụego/ọnụ ahịa maka igodo",
+      "setDescription": "Tọọ iwu oke ọnụego/ọnụ ahịa maka igodo",
+      "rateLimitOpt": "Ọnụ ọgụgụ arịrịọ kachasị kwa nkeji",
+      "maxCostOpt": "Ọnụ ahịa kachasị kwa ụbọchị (USD)",
+      "allowedModelsOpt": "Ndepụta ụdịdị e kwere ekwe nke rikoma kewara",
+      "nothingToSet": "Enweghị mpaghara iwu e nyere. Jiri --rate-limit, --max-cost, ma ọ bụ --allowed-models.",
+      "updated": "Emelitela iwu."
+    },
+    "expiration": {
+      "title": "Mmebi Oge Igodo",
+      "listDescription": "Depụta igodo ndị oge ha na-achọ ịgwụ",
+      "daysOpt": "Gosi igodo ndị oge ha ga-agwụ n'ime ụbọchị N",
+      "none": "Enweghị igodo oge ya ga-agwụ n'ime ụbọchị {days}.",
+      "listTitle": "Igodo ndị oge ha ga-agwụ n'ime ụbọchị {days}:"
+    }
+  },
+  "authExport": {
+    "description": "Bupụ nzere onye na-eweta ọrụ ndị EDOZILARỊ EZORO (naanị na mpaghara, nsonaazụ ederede nkịtị)",
+    "idOpt": "Bupụ naanị njikọ dabara na id/aha/onye na-eweta ọrụ a",
+    "formatOpt": "Ụdị nsonaazụ: json ma ọ bụ env",
+    "outOpt": "Dee nsonaazụ na faịlụ kama stdout (a ga-eji ikikere 0600 dee ya)",
+    "forceOpt": "Kwenye na ị ghọtara na nke a na-ebipụta/ede ihe nzuzo n'ederede nkịtị",
+    "warning": "⚠ Nke a na-ebipụta/ede igodo API na token OAuth ndị EDOZILARỊ EZORO n'ederede nkịtị. Gbaa mbọ hụ na ihuenyo gị, akụkọ shell, na faịlụ nsonaazụ ọ bụla nọgide na nzuzo.",
+    "confirmHeading": "⚠ ỊDỌ AKA NA NTỊ: nke a na-ebupụ nzere onye na-eweta ọrụ ndị EDOZILARỊ EZORO n'ederede nkịtị",
+    "confirmBody": "Iwu a na-ewepụ izo ya ezo ma bipụta/dee apiKey, accessToken, refreshToken, na\nidToken maka njikọ ahọpụtara. Were nsonaazụ ahụ dịka ihe nzuzo.",
+    "confirmFooter": "Iji kwado, mee:\n  omniroute auth export --force",
+    "missingKey": "A chọrọ STORAGE_ENCRYPTION_KEY iji bupụ nzere.",
+    "notFound": "Ahụghị njikọ: {id}",
+    "invalidFormat": "Ụdị ezighi ezi: {format}. Jiri json ma ọ bụ env."
+  },
+  "stream": {
+    "description": "Zipụ nzaghachi nkata n'usoro iyi site na ụdị nyocha SSE",
+    "file": "Gụọ prompt site na faịlụ",
+    "stdin": "Gụọ prompt site na stdin",
+    "model": "NJ model (ndabara: auto)",
+    "system": "Prompt sistemụ",
+    "combo": "Manye combo akọwapụtara site n'aha ya",
+    "max_tokens": "Ọnụọgụ tokens kachasị na nzaghachi",
+    "responses_api": "Jiri /v1/responses kama /v1/chat/completions",
+    "raw": "Bipụta ahịrị SSE raw dịka e si nata ha",
+    "debug": "Bipụta ozi oge nke chunk ọ bụla na stderr",
+    "save": "Chekwaa ihe omume SSE niile na faịlụ .jsonl",
+    "error": {
+      "empty_prompt": "Njehie: a chọrọ prompt (positional arg, --file, ma ọ bụ --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Nnyocha ojiji, mmefu ego, oke, na ndekọ",
+    "analytics": {
+      "description": "Gosi nchịkọta nyocha ojiji",
+      "period": "Ogologo oge: 1d|7d|30d|90d|ytd|all (ndabara: 30d)",
+      "provider": "Jiri NJ provider nyochaa"
+    },
+    "budget": {
+      "description": "Jikwaa mmefu ego",
+      "set": {
+        "scope": "Oke mmefu ego (ndabara: global)",
+        "period": "Oge mmefu ego: daily|weekly|monthly (ndabara: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Gosi ojiji oke provider",
+      "provider": "Jiri NJ provider nyochaa",
+      "check": "Gosi ma oke dị maka arịrịọ ọhụrụ"
+    },
+    "logs": {
+      "description": "Gosi ndekọ oku arịrịọ",
+      "limit": "Ọnụọgụ ndenye ndekọ a ga-eweghachi (ndabara: 100)",
+      "search": "Ajụjụ ọchụchọ iji nyochaa ndekọ",
+      "since": "Weghachite ndekọ kemgbe timestamp a",
+      "follow": "Na-esochi ndenye ndekọ ọhụrụ mgbe niile",
+      "api_key": "Jiri API key nyochaa ndekọ"
+    },
+    "utilization": {
+      "description": "Gosi metrik ojiji API key",
+      "api_key": "Jiri API key nyochaa"
+    },
+    "history": {
+      "description": "Gosi akụkọ arịrịọ",
+      "limit": "Ọnụọgụ ndenye akụkọ (ndabara: 100)"
+    },
+    "proxy_logs": {
+      "description": "Gosi ndekọ arịrịọ n'ogo proxy",
+      "limit": "Ọnụọgụ ndenye ndekọ proxy (ndabara: 100)"
+    }
+  },
+  "cost": {
+    "description": "Gosi akụkọ ọnụ ahịa nke e kewara dịka provider, model, combo, ma ọ bụ API key",
+    "period": "Ogologo oge: 1d|7d|30d|90d|ytd|all (ndabara: 30d)",
+    "since": "Ụbọchị mbido (usoro ISO, dịka 2026-01-01) — na-akagbu --period",
+    "until": "Ụbọchị ngwụcha (usoro ISO)",
+    "group_by": "Kewaa nsonaazụ dịka: provider|model|api-key|combo|day (ndabara: provider)",
+    "api_key_filter": "Jiri otu API key akọwapụtara hichaa nsonaazụ",
+    "limit": "Ọnụọgụ ahịrị kachasị elu a ga-egosi (ndabara: 100)"
+  },
+  "simulate": {
+    "description": "Nnwale ntụgharị na-enweghị izipu arịrịọ — gosi ndị provider a ga-ahọrọ na-akpọghị upstream",
+    "file": "Si na faịlụ JSON bulite ahụ arịrịọ zuru ezu",
+    "model": "NJ model (ndabara: auto)",
+    "combo": "Manye iji otu combo akọwapụtara site n'aha",
+    "reasoning": "Ọkwa mbọ ntụgharị uche (low|medium|high)",
+    "thinking": "Oke token maka ntụgharị uche agbatịkwuru",
+    "explain": "Bipụta osisi fallback na oke ọnụahịa na stderr",
+    "noCombo": "Ahụghị combo dabara adaba. Hazie otu site na: omniroute combo create"
+  },
+  "chat": {
+    "description": "Ziga otu prompt nkata na OmniRoute",
+    "file": "Gụọ prompt site na faịlụ",
+    "stdin": "Gụọ prompt site na stdin",
+    "system": "Prompt sistemụ",
+    "model": "NJ model (ndabara: auto)",
+    "max_tokens": "Ọnụọgụ token kachasị elu na nzaghachi",
+    "temperature": "Okpomọkụ sampling (0–2)",
+    "top_p": "Sampling nucleus Top-p",
+    "reasoning_effort": "Ọkwa mbọ ntụgharị uche (low|medium|high)",
+    "thinking_budget": "Oke token maka ntụgharị uche agbatịkwuru",
+    "combo": "Manye iji otu combo akọwapụtara site n'aha",
+    "responses_api": "Jiri /v1/responses kama /v1/chat/completions",
+    "stream": "Zipụta nzaghachi nke nta nke nta",
+    "no_history": "Echekwala na ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Njehie: prompt dị mkpa (positional arg, --file, ma ọ bụ --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Bido sava OmniRoute (omume ndabara)",
+    "starting": "Na-amalite sava OmniRoute na port {port}...",
+    "ready": "Adịla njikere na http://localhost:{port}",
+    "stopping": "Na-akwụsị sava (PID {pid})...",
+    "stopped": "Akwụsịla sava.",
+    "notRunning": "Sava anaghị arụ ọrụ.",
+    "port": "Port a ga-ege ntị na ya (ndabara: 20128)",
+    "no_open": "Emeghela ihe nchọgharị na-akpaghị aka",
+    "daemon": "Mee ka sava rụọ ọrụ dịka daemon n'azụ",
+    "log": "Gosi ndekọ sava ozugbo",
+    "no_recovery": "Gbanyụọ mmalitegharị akpaka mgbe ọ dara (ọnọdụ debugging)",
+    "max_restarts": "Ọnụọgụ mmalitegharị kachasị elu mgbe ọ dara n'ime 30s tupu ịkwụsị mbọ (ndabara: 2)",
+    "tray": "Malite na tray sistemụ (naanị na desktọpụ, ma ọ bụrụ na ahọrọ ya)",
+    "no_tray": "Gbanyụọ akara ngosi tray sistemụ",
+    "ready_timeout": "Oge njedebe nyocha ịdị njikere na ms (yana OMNIROUTE_READY_TIMEOUT_MS, ndabara bụ 60000)",
+    "tls_cert": "Ụzọ gaa na asambodo TLS (PEM) iji nye HTTPS (nakwa OMNIROUTE_TLS_CERT)",
+    "tls_key": "Ụzọ gaa na igodo nzuzo TLS (PEM) iji nye HTTPS (nakwa OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Ndabere",
+    "description": "Mepụta ndabere nke data OmniRoute",
+    "creating": "Na-emepụta ndabere...",
+    "done": "Echekwara ndabere na {path}",
+    "noFiles": "Enweghị faịlụ a ga-etinye na ndabere (ebidobeghị ọdụ data)",
+    "failed": "Ịmepụta ndabere dara: {error}",
+    "restoring": "Na-eweghachi site na {path}...",
+    "restored": "Mweghachi agwụla.",
+    "restoreDescription": "Weghachite site na ndabere",
+    "listTitle": "Ndabere ndị dị",
+    "noBackups": "Ahụghị ndabere ọ bụla.",
+    "notFound": "Ahụghị ndabere: {name}",
+    "confirmRestore": "Jiri ndabere sitere na {ts} dochie data dị ugbu a?",
+    "createDescription": "Mepụta ndabere nke data OmniRoute",
+    "nameOpt": "Aha ndabere ahaziri iche",
+    "cloudOpt": "Bulite ndabere na nchekwa igwe ojii",
+    "encryptOpt": "Jiri AES-256-GCM zoo ndabere",
+    "keyFileOpt": "Ụzọ gaa na faịlụ nwere okwuntughe izochi data",
+    "excludeOpt": "Wepụ faịlụ dabara na ụkpụrụ (enwere ike ikwugharị)",
+    "retentionOpt": "Debe naanị ndabere N ikpeazụ",
+    "passphrasePrompt": "Okwuntughe izochi data:",
+    "noPassphrase": "A chọrọ okwuntughe maka ndabere ezoro ezo.",
+    "cloudFailed": "Ịdọ aka ná ntị: nbulite na igwe ojii dara. Echekwara ndabere mpaghara.",
+    "cloudUploaded": "Ebulitela ndabere igwe ojii: {url}",
+    "auto": {
+      "title": "Nhazi Oge Ndabere",
+      "enableDescription": "Gbanye ndabere akpaaka a haziri oge",
+      "disableDescription": "Gbanyụọ ndabere akpaaka a haziri oge",
+      "statusDescription": "Gosi ọnọdụ nhazi oge ndabere ugbu a",
+      "cronOpt": "Nkọwa cron maka nhazi oge (ndabara: kwa ụbọchị n'elekere atọ nke ụtụtụ)",
+      "enabled": "Agbanyela ndabere akpaaka (cron: {cron}).",
+      "hint": "omniroute serve na-agụ nhazi oge a mgbe ọ na-amalite.",
+      "disabled": "Agbanyụọla ndabere akpaaka.",
+      "notConfigured": "Ahazibeghị oge ndabere ọ bụla."
+    }
+  },
+  "health": {
+    "description": "Lelee ahụike sava na ọnọdụ akụrụngwa ya",
+    "noServer": "Sava anaghị arụ ọrụ. Jiri nke a malite ya: omniroute serve",
+    "title": "Ahụike",
+    "status": "Ọnọdụ: {status}",
+    "uptime": "Oge ọ na-arụ ọrụ: {uptime}",
+    "requests": "Arịrịọ (awa 24): {count}",
+    "cost": "Ọnụ ahịa (awa 24): ${cost}"
+  },
+  "quota": {
+    "description": "Gosi ojiji oke nke onye na-eweta ọrụ",
+    "noServer": "Sava anaghị arụ ọrụ. Malite ya na: omniroute serve",
+    "noData": "Enweghị ozi gbasara oke dị."
+  },
+  "cache": {
+    "description": "Jikwaa cache nzaghachi",
+    "noServer": "Sava anaghị arụ ọrụ. Malite ya na: omniroute serve",
+    "cleared": "Ehichapụla cache.",
+    "clearFailed": "Enweghị ike ihichapụ cache."
+  },
+  "redis": {
+    "description": "Jiri otu ọpịpị malite akpa Redis mpaghara (Podman ma ọ bụ Docker) maka nchekwa cache na nsuso oke nke OmniRoute"
+  },
+  "test": {
+    "description": "Nwalee njikọ onye na-eweta ọrụ",
+    "noServer": "Sava anaghị arụ ọrụ. Malite ya na: omniroute serve",
+    "testing": "Na-anwale {provider} / {model}...",
+    "passed": "Njikọ gara nke ọma!",
+    "failed": "Njikọ dara: {error}",
+    "allProvidersOpt": "Nwalee ndị na-eweta ọrụ niile ahaziri",
+    "latencyOpt": "Gosi nha oge nzaghachi (nkezi/kachasị nta/kachasị ukwuu ms)",
+    "repeatOpt": "Megharịa ule ugboro N ma chịkọta nsonaazụ",
+    "compareOpt": "Ụdị ndị e ji rikoma kewaa iji tụnyere (dịka gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Chekwaa nsonaazụ na faịlụ JSON",
+    "saved": "Echekwara nsonaazụ na {path}",
+    "compareTitle": "Ntụnyere Ụdị",
+    "compareMinTwo": "Achọrọ opekata mpe ụdị abụọ maka --compare (jiri rikoma kewaa ha)",
+    "noProviders": "Enweghị ndị na-eweta ọrụ ahaziri. Tinye otu na: omniroute keys add"
+  },
+  "update": {
+    "checking": "Na-enyocha mmelite...",
+    "upToDate": "Ọ dịlarị ọhụrụ ({version}).",
+    "available": "Mmelite dị: {current} → {latest}",
+    "installing": "Na-etinye {latest}...",
+    "done": "Emelitela ya gaa na {latest}. Malitegharịa sava ka mgbanwe ahụ rụọ ọrụ."
+  },
+  "mcp": {
+    "title": "Sava MCP",
+    "running": "Sava MCP na-arụ ọrụ ({transport})",
+    "stopped": "Sava MCP akwụsịla.",
+    "restarted": "Amalitegharịrị sava MCP.",
+    "stoppedHint": "Gbaa `omniroute mcp enable` iji gbanye ya.",
+    "enabled": "Agbanyela sava MCP.",
+    "disabled": "Agbanyụọla sava MCP.",
+    "enable": {
+      "description": "Gbanye sava MCP",
+      "transport": "Usoro mbufe a ga-eji: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Gbanyụọ sava MCP"
+    },
+    "call": {
+      "description": "Kpọọ ngwa MCP ozugbo",
+      "args": "Ihe arụmụka JSON (n'ime ahịrị)",
+      "args_file": "Ụzọ faịlụ arụmụka JSON",
+      "stream": "Jiri ebe njedebe nkwanye data (/api/mcp/stream)",
+      "scope": "Oke ikike achọrọ (enwere ike ikwugharị, dịka read:health)"
+    },
+    "scopes": {
+      "description": "Depụta mpaghara MCP dịnụ",
+      "tool": "Gosi mpaghara otu ngwaọrụ chọrọ"
+    },
+    "tools": {
+      "description": "Nyochaa ngwaọrụ MCP",
+      "list": {
+        "description": "Depụta ngwaọrụ MCP niile",
+        "scope": "Jiri mpaghara nyochaa"
+      },
+      "info": {
+        "description": "Gosi metadata maka ngwaọrụ MCP"
+      },
+      "schema": {
+        "description": "Gosi schema JSON ntinye/mmepụta maka ngwaọrụ MCP",
+        "io": "Ụdị schema: input|output (ndabara: input)"
+      }
+    },
+    "audit": {
+      "description": "Ndekọ nyocha MCP (aha ọzọ maka audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Depụta nkà A2A dịnụ site na kaadị onye nnọchi anya"
+    },
+    "invoke": {
+      "description": "Kpọọ nkà A2A ma weghachite ID ọrụ ahụ",
+      "input": "Ihe JSON ntinye",
+      "input_file": "Ụzọ faịlụ ntinye JSON",
+      "wait": "Chere ka ọrụ ahụ gwụ tupu ịlaghachi",
+      "timeout": "Oge njedebe ichere ka ọ gwụ na ms (ndabara: 60000)"
+    },
+    "tasks": {
+      "description": "Jikwaa ọrụ A2A",
+      "list": {
+        "status": "Jiri ọkwa nyochaa",
+        "skill": "Jiri ID nkà nyochaa"
+      },
+      "watch": {
+        "description": "Na-ajụgharị ọkwa ọrụ ruo mgbe ọ gwụ"
+      },
+      "stream": {
+        "description": "Ziga mmemme mmezu ọrụ n'usoro site na SSE"
+      },
+      "logs": {
+        "description": "Gosi ozi na artefact ọrụ"
+      }
+    }
+  },
+  "policy": {
+    "description": "Jikwaa iwu ikike OmniRoute",
+    "list": {
+      "description": "Depụta iwu",
+      "kind": "Jiri ụdị nyochaa (allow|deny|rate-limit|cost-cap)",
+      "scope": "Jiri mpaghara nyochaa (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Nweta nkọwa iwu site na ID"
+    },
+    "create": {
+      "description": "Mepụta iwu site na faịlụ JSON",
+      "file": "Ụzọ faịlụ JSON nke iwu"
+    },
+    "update": {
+      "description": "Melite iwu site na faịlụ JSON",
+      "file": "Ụzọ faịlụ JSON nke iwu"
+    },
+    "delete": {
+      "description": "Hichapụ iwu site na ID",
+      "yes": "Mafee ajụjụ nkwenye"
+    },
+    "evaluate": {
+      "description": "Mee nnwale nyocha iwu (exit 0=allowed, 4=denied)",
+      "api_key": "Igodo API a ga-enyocha",
+      "action": "Omume a ga-enyocha (dịka chat, embed, admin)",
+      "resource": "Ụzọ ma ọ bụ njirimara akụrụngwa",
+      "context": "Ọnọdụ mgbakwunye dịka ihe JSON"
+    },
+    "export": {
+      "description": "Bupụ iwu niile gaa na faịlụ JSON"
+    },
+    "import": {
+      "description": "Bubata iwu site na faịlụ JSON",
+      "overwrite": "Jiri iwu ọhụrụ dochie iwu ndị dị adị nwere otu ID"
+    }
+  },
+  "compression": {
+    "description": "Hazie ma nyochaa usoro mkpakọ nke OmniRoute",
+    "status": {
+      "description": "Gosi ọnọdụ na ntọala mkpakọ dị ugbu a"
+    },
+    "configure": {
+      "description": "Hazie ntọala mkpakọ",
+      "engine": "Injin mkpakọ (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Ogo ike Caveman 0.0–1.0",
+      "rtk_budget": "Oke token RTK",
+      "language_pack": "Ngwugwu asụsụ a ga-eme ka ọ rụọ ọrụ"
+    },
+    "engine": {
+      "description": "Nweta ma ọ bụ tọọ injin mkpakọ na-arụ ọrụ"
+    },
+    "combos": {
+      "description": "Jikwaa ọnụ ọgụgụ ngwakọta mkpakọ"
+    },
+    "rules": {
+      "description": "Jikwaa iwu mkpakọ",
+      "add": {
+        "pattern": "Ụkpụrụ a ga-adaba (regex ma ọ bụ field:pattern)",
+        "action": "Omume: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Depụta ngwugwu asụsụ mkpakọ ndị dị"
+    },
+    "preview": {
+      "description": "Lelee tupu oge eruo mmetụta mkpakọ na arịrịọ",
+      "file": "Ụzọ gaa na faịlụ JSON nke arịrịọ"
+    }
+  },
+  "tunnel": {
+    "title": "Ọwara",
+    "listDescription": "Depụta ọwara ndị na-arụ ọrụ",
+    "createDescription": "Mepụta ọwara",
+    "created": "Emeputala ọwara: {url}",
+    "stopped": "Akwụsịla ọwara.",
+    "confirmStop": "Kwụsị ọwara {id}?",
+    "stopDescription": "Kwụsị ọwara",
+    "statusDescription": "Gosi ọnọdụ zuru ezu nke ọwara",
+    "logsDescription": "Gosi ndekọ maka ọwara",
+    "infoDescription": "Gosi nkọwa nhazi nke ọwara",
+    "rotateDescription": "Mepụta URL ọwara ọhụrụ",
+    "tailOpt": "Ọnụọgụ ahịrị ndekọ a ga-egosi",
+    "typeRequired": "Ụdị ọwara dị mkpa.",
+    "noLogs": "Enweghị ndekọ dị.",
+    "notAvailable": "Ozi ọwara adịghị.",
+    "noTunnels": "Enweghị ọwara na-arụ ọrụ.",
+    "infoTitle": "Ozi ọwara: {type}",
+    "rotated": "Agbanweela URL ọwara: {url}",
+    "confirmRotate": "Gbanwee ọwara {type}? (a ga-emepụta URL ọhụrụ)"
+  },
+  "stop": {
+    "description": "Kwụsị sava OmniRoute",
+    "stopping": "Na-akwụsị sava (PID {pid})...",
+    "stopped": "Akwụsịla sava.",
+    "notRunning": "Ọ dịghị sava na-arụ ọrụ.",
+    "portFallback": "Ahụghị faịlụ PID, na-anwa ịkwụsị site na port..."
+  },
+  "restart": {
+    "description": "Malitegharịa sava OmniRoute",
+    "restarting": "A na-amalitegharịa sava OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Mepee dashboard OmniRoute na ihe nchọgharị",
+    "opening": "A na-emepe dashboard na {url}",
+    "urlOnly": "Bipụta naanị URL dashboard n'emepeghị ihe nchọgharị",
+    "tui": "Mepee dashboard TUI mmekọrịta (UI ọdụ, taabụ 7)"
+  },
+  "models": {
+    "description": "Depụta ụdịdị dịnụ (sava ga-adị mkpa)",
+    "search": "Nyochaa ụdịdị site na id, aha, provider, ma ọ bụ nkọwa",
+    "noServer": "Sava anaghị arụ ọrụ. Jiri nke a malite ya: omniroute serve",
+    "noModels": "Ahụghị ụdịdị ọ bụla."
+  },
+  "audit": {
+    "description": "Nweta ndekọ nyocha nrubeisi na MCP",
+    "source": "Isi iyi ndekọ: all|compliance|mcp (ndabara: all)",
+    "since": "Weghachite ndenye malite na akara oge a (ISO 8601)",
+    "until": "Weghachite ndenye ruo akara oge a (ISO 8601)",
+    "tail": {
+      "description": "Gosi ndenye ndekọ nyocha ndị na-adịbeghị anya",
+      "follow": "Na-esochi ndenye ọhụrụ mgbe niile (ntụli aka 2s)",
+      "limit": "Ọnụọgụ ndenye kachasị elu a ga-egosi (ndabara: 100)"
+    },
+    "search": {
+      "description": "Jiri mkpụrụokwu chọọ ndenye ndekọ nyocha",
+      "limit": "Nsonaazụ kachasị elu (ndabara: 200)",
+      "actor": "Nyochaa site na ID onye mere ihe",
+      "action": "Nyochaa site na aha omume"
+    },
+    "export": {
+      "description": "Bupụ ndekọ nyocha gaa na faịlụ",
+      "format": "Ụdị mmepụta: jsonl|csv (ndabara: jsonl)"
+    },
+    "stats": {
+      "description": "Gosi ọnụ ọgụgụ ndekọ nyocha",
+      "period": "Oge: 1d|7d|30d (ndabara: 7d)"
+    },
+    "get": {
+      "description": "Nweta otu ndenye ndekọ nyocha site na ID"
+    }
+  },
+  "skills": {
+    "description": "Jikwaa nkà OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Depụta nkà arụnyere",
+      "type": "Nyochaa site n'ụdị (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Gosi naanị nkà enyere ikike",
+      "disabled": "Gosi naanị nkà agbanyụrụ",
+      "api_key": "Nyochaa site na API key"
+    },
+    "get": {
+      "description": "Nweta nkọwa nkà site na ID"
+    },
+    "install": {
+      "description": "Wụnye nkà site na faịlụ ma ọ bụ URL",
+      "from_file": "Ụzọ faịlụ nkọwa JSON nke nkà",
+      "from_url": "URL nke nkọwa nkà dị n'ime ime",
+      "type": "Ụdị nkà (sandbox|custom|hybrid)",
+      "enable": "Nye nkà ikike mgbe awụnyechara ya"
+    },
+    "enable": {
+      "description": "Nye nkà ikike site na ID"
+    },
+    "disable": {
+      "description": "Gbanyụọ nkà site na ID",
+      "yes": "Mafere arịrịọ nkwenye"
+    },
+    "delete": {
+      "description": "Hichapụ nka site na ID",
+      "yes": "Mafee ajụjụ nkwenye"
+    },
+    "execute": {
+      "description": "Mee ka nka rụọ ọrụ site na ID",
+      "input": "Ihe ntinye JSON",
+      "input_file": "Ụzọ faịlụ ntinye JSON",
+      "timeout": "Oge njedebe arụmọrụ na ms (ndabara: 30000)"
+    },
+    "executions": {
+      "description": "Depụta akụkọ ihe mere eme nke arụmọrụ nka",
+      "skill": "Nyochaa site na ID nka",
+      "limit": "Nsonaazụ kachasị (ndabara: 50)",
+      "status": "Nyochaa site na ọnọdụ (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Jikwaa nka arụnyere site na SSH"
+    },
+    "marketplace": {
+      "description": "Chọgharịa ma wụnye nka sitere n'ahịa"
+    },
+    "mp": {
+      "search": {
+        "description": "Chọọ ngwugwu n'ahịa",
+        "category": "Nyochaa site na ngalaba",
+        "tag": "Nyochaa site na mkpado",
+        "limit": "Nsonaazụ kachasị (ndabara: 30)",
+        "sort": "Hazie site na: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Gosi nkọwa ngwugwu na readme"
+      },
+      "install": {
+        "description": "Wụnye ngwugwu sitere n'ahịa",
+        "version": "Ụdị ngwugwu (ndabara: latest)",
+        "enable": "Gbanye ya mgbe echichara ya",
+        "yes": "Mafee ajụjụ nkwenye"
+      },
+      "categories": {
+        "description": "Depụta ngalaba ahịa"
+      },
+      "featured": {
+        "description": "Gosi ngwugwu ahịa ndị a họpụtara iche"
+      }
+    }
+  },
+  "memory": {
+    "description": "Jikwaa ebe nchekwa mkparịta ụka OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Chọọ ndenye ebe nchekwa site na ajụjụ dabere na nghọta",
+      "type": "Nyochaa site n'ụdị ebe nchekwa (user|feedback|project|reference)",
+      "limit": "Nsonaazụ kachasị (ndabara: 20)",
+      "api_key": "Nyochaa site na API key",
+      "token_budget": "Kpebie oke token niile dị na nsonaazụ"
+    },
+    "add": {
+      "description": "Tinye ndenye ebe nchekwa ọhụrụ",
+      "content": "Ọdịnaya ederede ebe nchekwa",
+      "file": "Gụọ ọdịnaya site na faịlụ",
+      "type": "Ụdị ebe nchekwa (ndabara: user)",
+      "metadata": "Ihe metadata JSON",
+      "api_key": "Jikọta ya na API key"
+    },
+    "clear": {
+      "description": "Hichapụ ndenye ebe nchekwa kwekọrọ na nzacha",
+      "type": "Nyochaa site n'ụdị",
+      "older": "Hichapụ ndenye ndị tọrọ oge a kara aka (30d, 6m, 1y)",
+      "api_key": "Nyochaa site na API key",
+      "yes": "Mafere ozi nkwenye"
+    },
+    "list": {
+      "description": "Depụta ndenye ebe nchekwa na-enweghị nhazi ọkwa ọchụchọ",
+      "type": "Jiri ụdị yọcha",
+      "limit": "Nsonaazụ kachasị (ndabara: 100)",
+      "api_key": "Jiri igodo API yọcha"
+    },
+    "get": {
+      "description": "Were otu ndenye ebe nchekwa site na ID"
+    },
+    "delete": {
+      "description": "Hichapụ ndenye ebe nchekwa site na ID",
+      "yes": "Mafere ozi nkwenye"
+    },
+    "health": {
+      "description": "Gosi ọnọdụ ahụike nke sistemụ ebe nchekwa (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Jikwaa njikọ ndị na-eweta OAuth",
+    "providers": {
+      "description": "Depụta ndị na-eweta nwere ike iji OAuth na ụdị usoro ha"
+    },
+    "start": {
+      "description": "Malite usoro ikike OAuth maka onye na-eweta",
+      "provider": "ID onye na-eweta (gemini, copilot, cursor, …)",
+      "no_browser": "Bipụta naanị URL — emeghela ihe nchọgharị",
+      "import_system": "Bubata nzere na-akpaghị aka site na nhazi sistemụ mpaghara",
+      "social": "Onye na-eweta nbanye mmekọrịta (google|github) — achọrọ maka kiro",
+      "timeout": "Oge njedebe maka ichere ikike na ms (ndabara: 300000)"
+    },
+    "status": {
+      "description": "Depụta njikọ OAuth ndị na-arụ ọrụ",
+      "provider": "Jiri ID onye na-eweta yọcha"
+    },
+    "revoke": {
+      "description": "Kagbuo njikọ OAuth",
+      "provider": "ID onye na-eweta a ga-akagbu",
+      "connection_id": "Kagbuo otu njikọ kpọmkwem site na ID",
+      "yes": "Mafere ozi nkwenye"
+    }
+  },
+  "cloud": {
+    "description": "Jikwaa ọrụ ndị nnọchiteanya AI igwe ojii (codex, devin, jules)",
+    "agents": {
+      "description": "Depụta ndị nnọchiteanya igwe ojii dị"
+    },
+    "agent": {
+      "description": "Jikwaa ọrụ ndị nnọchiteanya igwe ojii {agent}",
+      "auth": {
+        "description": "Nye {agent} ikike site na OAuth"
+      }
+    },
+    "task": {
+      "description": "Jikwaa ọrụ ndị nnọchiteanya igwe ojii",
+      "create": {
+        "description": "Mepụta ọrụ nnọchiteanya ọhụrụ",
+        "title": "Aha ọrụ (ndabara bụ mkpụrụedemede 80 mbụ nke ntụziaka)",
+        "prompt": "Ederede ntụziaka ọrụ",
+        "prompt_file": "Gụọ ntụziaka site na faịlụ",
+        "repo": "URL ebe nchekwa koodu a ga-eme oyiri maka ọrụ ahụ",
+        "branch": "Aha alaka a ga-eji",
+        "metadata": "Ihe metadata JSON"
+      },
+      "list": {
+        "description": "Depụta ọrụ ndị nnọchiteanya",
+        "status": "Jiri ọnọdụ yọcha (running|completed|failed|cancelled)",
+        "limit": "Nsonaazụ kachasị (ndabara: 50)"
+      },
+      "get": {
+        "description": "Were nkọwa ọrụ site na ID"
+      },
+      "status": {
+        "description": "Bipụta ọnọdụ ọrụ (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Kagbuo ọrụ na-aga n’ihu",
+        "yes": "Mafere ajụjụ nkwenye"
+      },
+      "approve": {
+        "description": "Kwado atụmatụ nke agent ka mmezu malite"
+      },
+      "message": {
+        "description": "Ziga ozi na ọrụ na-aga n’ihu"
+      }
+    },
+    "sources": {
+      "description": "Depụta faịlụ isi mmalite ndị otu ọrụ mepụtara"
+    }
+  },
+  "eval": {
+    "description": "Jikwaa nchịkọta na mmemme ntule",
+    "suites": {
+      "description": "Jikwaa nchịkọta ntule",
+      "list": {
+        "description": "Depụta nchịkọta ntule"
+      },
+      "get": {
+        "description": "Nweta nkọwa nchịkọta ntule site na ID"
+      },
+      "create": {
+        "description": "Jiri faịlụ JSON mepụta nchịkọta ntule",
+        "file": "Ụzọ faịlụ JSON nke na-akọwa nchịkọta ahụ"
+      }
+    },
+    "run": {
+      "description": "Malite mmemme ntule maka otu nchịkọta",
+      "model": "ID nke model a ga-enyocha (ndabara: auto)",
+      "combo": "Manye otu combo akọwapụtara site n’aha",
+      "concurrency": "Ọnụọgụ sample ndị a ga-eme n’otu oge (ndabara: 4)",
+      "tag": "Tinye mkpado na mmemme a maka nzacha n’ọdịnihu",
+      "watch": "Lelee ọganihu mmemme ruo mgbe ọ gwụchara"
+    },
+    "list": {
+      "description": "Depụta mmemme ntule",
+      "suite": "Jiri ID nchịkọta nyochaa",
+      "status": "Jiri ọnọdụ nyochaa",
+      "since": "Weghachite mmemme ndị malitere kemgbe timestamp a",
+      "limit": "Nsonaazụ kachasị (ndabara: 50)"
+    },
+    "get": {
+      "description": "Nweta nkọwa mmemme ntule site na ID"
+    },
+    "results": {
+      "description": "Gosi nsonaazụ sample maka otu mmemme ntule",
+      "failed": "Gosi naanị sample ndị dara"
+    },
+    "cancel": {
+      "description": "Kagbuo ntule na-aga n’ihu",
+      "yes": "Mafere ajụjụ nkwenye"
+    },
+    "scorecard": {
+      "description": "Gosi kaadị akara maka mmemme ntule emechara"
+    }
+  },
+  "webhooks": {
+    "description": "Jikwaa webhook OmniRoute",
+    "events": {
+      "description": "Depụta ụdị event webhook niile dị"
+    },
+    "list": {
+      "description": "Depụta webhook ndị ahaziri"
+    },
+    "get": {
+      "description": "Nweta nkọwa webhook site na ID"
+    },
+    "add": {
+      "description": "Debanye webhook ọhụrụ",
+      "url": "URL ebe a ga-eziga ya",
+      "events": "Ndepụta ụdị event ndị e ji rikoma kewaa",
+      "secret": "Nzuzo mbinye aka HMAC",
+      "header": "Header mgbakwunye n’ụdị key=value (enwere ike ikwugharị)",
+      "no_enabled": "Mepụta webhook n’ọnọdụ agbanyụghị"
+    },
+    "update": {
+      "description": "Melite webhook dị ugbu a",
+      "enabled": "Tọọ ọnọdụ agbanyere (true|false)"
+    },
+    "remove": {
+      "description": "Hichapụ webhook",
+      "yes": "Mafere ajụjụ nkwenye"
+    },
+    "test": {
+      "description": "Zipụ mmemme nnwale na webhook",
+      "event": "Ụdị mmemme a ga-eme ka ọ dị (ndabara: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Onye Nhazi Ụzọ AI Nwere Ọgụgụ Isi nke nwere Ndaghachi Akpaka",
+    "version": "Bipụta ụdị ma pụọ",
+    "output": "Ụdị mmepụta (table, json, jsonl, csv)",
+    "quiet": "Gbochie mmepụta ndị na-adịghị mkpa",
+    "no_color": "Gbanyụọ mmepụta nwere agba",
+    "timeout": "Oge nchere arịrịọ HTTP na milisekọnd",
+    "api_key": "Igodo API maka sava OmniRoute",
+    "base_url": "URL ntọala sava OmniRoute",
+    "context": "Ọnọdụ/profaịlụ sava a ga-eji maka iwu a",
+    "lang": "Tọọ asụsụ ngosipụta CLI (na-akagbu OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Jikwaa faịlụ (bulite, depụta, nweta, budata, hichapụ)",
+    "list": {
+      "purpose": "Yọchaa site na ebumnuche",
+      "limit": "Ọnụọgụ nsonaazụ kacha elu"
+    },
+    "get": {
+      "description": "Nweta metadata faịlụ"
+    },
+    "upload": {
+      "description": "Bulite faịlụ",
+      "purpose": "Ebumnuche faịlụ (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Budata ọdịnaya faịlụ",
+      "out": "Chekwaa n'ụzọ (ndabara: stdout)"
+    },
+    "delete": {
+      "yes": "Mafere nkwenye"
+    }
+  },
+  "batches": {
+    "description": "Jikwaa ọrụ batch dakọtara na OpenAI",
+    "list": {
+      "status": "Yọchaa site na ọnọdụ",
+      "limit": "Ọnụọgụ nsonaazụ kacha elu"
+    },
+    "create": {
+      "description": "Mepụta ọrụ batch",
+      "inputFile": "ID faịlụ ntinye",
+      "endpoint": "Endpoint e lekwasịrị anya",
+      "window": "Oge mmecha",
+      "metadata": "Tinye metadata key=value"
+    },
+    "submit": {
+      "description": "Bulite faịlụ JSONL ma mepụta batch",
+      "jsonl": "Ụzọ faịlụ JSONL",
+      "endpoint": "Endpoint e lekwasịrị anya",
+      "wait": "Chere ka ọ mezue"
+    },
+    "cancel": {
+      "yes": "Mafere nkwenye"
+    },
+    "wait": {
+      "timeout": "Oge nchere na ms"
+    },
+    "output": {
+      "out": "Chekwaa mmepụta n'ụzọ"
+    },
+    "errors": {
+      "out": "Chekwaa njehie n'ụzọ"
+    }
+  },
+  "translator": {
+    "description": "Tụgharịa ahụ arịrịọ n'etiti usoro LLM",
+    "detect": {
+      "description": "Chọpụta usoro body"
+    },
+    "translate": {
+      "description": "Tụgharịa body site n'otu usoro gaa na nke ọzọ"
+    },
+    "send": {
+      "description": "Tụgharịa ma zipụ ya upstream"
+    },
+    "stream": {
+      "description": "Tụgharịa body arịrịọ ka ọ na-asọba"
+    },
+    "from": "Usoro mmalite (openai|anthropic|gemini|cohere)",
+    "to": "Usoro ebumnuche (openai|anthropic|gemini|cohere)",
+    "file": "Ụzọ faịlụ JSON nke body arịrịọ",
+    "out": "Chekwaa nsonaazụ na faịlụ",
+    "model": "Dochiejie model",
+    "history": {
+      "limit": "Ọnụọgụ nsonaazụ kachasị"
+    }
+  },
+  "pricing": {
+    "description": "Jikwaa data ọnụahịa maka model",
+    "sync": {
+      "description": "Mekọrịta ọnụahịa sitere na isi mmalite upstream",
+      "provider": "Jiri provider nyochaa",
+      "force": "Manye mmekọrịta ọzọ"
+    },
+    "list": {
+      "provider": "Jiri provider nyochaa",
+      "model": "Jiri model nyochaa",
+      "limit": "Ọnụọgụ nsonaazụ kachasị"
+    },
+    "defaults": {
+      "description": "Jikwaa ọnụahịa ndabara",
+      "input": "Ọnụ input kwa token 1M (USD)",
+      "output": "Ọnụ output kwa token 1M (USD)",
+      "cacheRead": "Ọnụ ịgụ cache kwa token 1M (USD)",
+      "cacheWrite": "Ọnụ ide cache kwa token 1M (USD)"
+    },
+    "diff": {
+      "description": "Gosi ọdịiche dị na ọnụahịa upstream",
+      "model": "Jiri model nyochaa"
+    }
+  },
+  "radar": {
+    "description": "Nyochaa ma mekọrịta ndepụta feed Radar mpaghara",
+    "status": "Gosi ntọala Radar mpaghara na ọnọdụ cache feed",
+    "sync": "Mekọrịta catalog, referrals, offers, na Intel site na sava mpaghara"
+  },
+  "resilience": {
+    "description": "Nyochaa ma jikwaa usoro nkwụsi ike",
+    "status": {
+      "provider": "Jiri provider nyochaa"
+    },
+    "breakers": {
+      "provider": "Jiri provider nyochaa"
+    },
+    "cooldowns": {
+      "provider": "Jiri provider nyochaa",
+      "connectionId": "Jiri ID njikọ nyochaa"
+    },
+    "lockouts": {
+      "provider": "Jiri provider nyochaa",
+      "model": "Jiri model nyochaa"
+    },
+    "reset": {
+      "description": "Tọgharịa ọnọdụ breaker/cooldown",
+      "provider": "Provider a ga-atọgharịa",
+      "connectionId": "ID njikọ a ga-atọgharịa",
+      "model": "Model a ga-atọgharịa lockout ya",
+      "allCooldowns": "Tọgharịa cooldown niile maka provider",
+      "yes": "Mafere nkwenye"
+    },
+    "profile": {
+      "description": "Jikwaa profaịlụ nkwụsi ike",
+      "name": "Aha profaịlụ"
+    },
+    "config": {
+      "description": "Jikwaa nhazi nkwụsi ike",
+      "threshold": "Oke ọdịda",
+      "resetTimeout": "Oge nchere tupu nrụgharị na ms",
+      "baseCooldown": "Oge izu ike ndabere na ms"
+    }
+  },
+  "nodes": {
+    "description": "Jikwaa ọnụ provider (endpoints)",
+    "list": {
+      "provider": "Jiri provider nyochaa",
+      "enabled": "Gosi naanị ọnụ ndị agbanyere"
+    },
+    "add": {
+      "provider": "Aha provider",
+      "baseUrl": "URL ntọala maka ọnụ ahụ",
+      "name": "Aha ọnụ",
+      "weight": "Ibu maka ikesa ibu",
+      "region": "Mkpado mpaghara",
+      "authHeader": "Auth header ahaziri (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL ntọala ọhụrụ",
+      "name": "Aha ọhụrụ",
+      "weight": "Ibu ọhụrụ",
+      "region": "Mpaghara ọhụrụ",
+      "enabled": "Gbanye ma ọ bụ gbanyụọ (true|false)"
+    },
+    "remove": {
+      "yes": "Mafee nkwenye"
+    },
+    "validate": {
+      "baseUrl": "URL a ga-enyocha",
+      "provider": "Provider a ga-eji nyochaa"
+    },
+    "test": {
+      "description": "Ziga arịrịọ nnwale na ọnụ"
+    },
+    "metrics": {
+      "description": "Gosi metrik ọnụ",
+      "period": "Ogologo oge (dịka 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Hazie usoro injinịa context (Caveman, RTK)",
+    "analytics": {
+      "period": "Ogologo oge (dịka 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Jikwaa Caveman context compressor",
+      "config": {
+        "description": "Gosi ma ọ bụ melite nhazi Caveman",
+        "aggressiveness": "Ogo ike 0.0–1.0",
+        "maxShrinkPct": "Pasent mbelata kachasị",
+        "preserveTags": "Mkpado ndị e ji rikoma kewaa nke a ga-echekwa"
+      }
+    },
+    "rtk": {
+      "description": "Jikwaa RTK context optimizer",
+      "config": {
+        "description": "Gosi ma ọ bụ melite nhazi RTK",
+        "tokenBudget": "Mmefu token maka RTK",
+        "reservePct": "Pasent ndokwa"
+      },
+      "filters": {
+        "description": "Jikwaa nzacha RTK",
+        "pattern": "Ụkpụrụ nzacha (regex)",
+        "priority": "Ihe mbụ nke nzacha (ndabara: 100)",
+        "action": "Omume nzacha: drop|shrink|replace",
+        "yes": "Mafere nkwenye"
+      },
+      "test": {
+        "file": "Ụzọ faịlụ JSON arịrịọ"
+      }
+    },
+    "combos": {
+      "description": "Njikwa combo na-adabere na ọnọdụ"
+    }
+  },
+  "sessions": {
+    "description": "Nyochaa ma jikwaa nnọkọ ndị na-arụ ọrụ",
+    "list": {
+      "user": "Jiri onye ọrụ nyochaa",
+      "kind": "Jiri ụdị nyochaa (dashboard|api-key|mcp|a2a)",
+      "active": "Gosi naanị nnọkọ ndị na-arụ ọrụ",
+      "limit": "Nsonaazụ kachasị (ndabara: 100)"
+    },
+    "expire": {
+      "yes": "Mafere nkwenye"
+    },
+    "expireAll": {
+      "user": "Onye ọrụ a ga-eme ka nnọkọ ya niile kubie ume",
+      "yes": "Mafere nkwenye"
+    }
+  },
+  "tags": {
+    "description": "Jikwaa mkpado akụrụngwa",
+    "add": {
+      "color": "Agba mkpado (hex ma ọ bụ aha)",
+      "description": "Nkọwa mkpado"
+    },
+    "remove": {
+      "yes": "Mafere nkwenye"
+    },
+    "assign": {
+      "tag": "Aha mkpado",
+      "to": "Akụrụngwa e lekwasịrị anya dịka type:id (dịka provider:openai)"
+    },
+    "unassign": {
+      "tag": "Aha mkpado",
+      "from": "Akụrụngwa mmalite dịka type:id"
+    }
+  },
+  "openapi": {
+    "description": "Nweta ma nwalee nkọwapụta OmniRoute OpenAPI",
+    "dump": {
+      "description": "Wụpụ nkọwapụta OpenAPI na stdout ma ọ bụ faịlụ",
+      "format": "Ụdị mmepụta: yaml|json (ndabara: yaml)",
+      "out": "Chekwaa na ụzọ faịlụ"
+    },
+    "validate": {
+      "description": "Nyochaa izi ezi nke nkọwapụta OpenAPI"
+    },
+    "try": {
+      "description": "Nwalee endpoint API site na nkọwapụta ahụ",
+      "method": "Usoro HTTP (ndabara: GET)",
+      "body": "Ụzọ faịlụ JSON nke body arịrịọ",
+      "query": "Paramita query dịka key=value (enwere ike ikwugharị)",
+      "header": "Header dịka key=value (enwere ike ikwugharị)"
+    },
+    "endpoints": {
+      "description": "Depụta endpoint API niile",
+      "search": "Jiri ụzọ ma ọ bụ nchịkọta nyochaa"
+    },
+    "paths": {
+      "description": "Depụta ụzọ API niile"
+    }
+  },
+  "combo": {
+    "title": "Combo",
+    "switched": "Combo na-arụ ọrụ: {name}",
+    "created": "Emepụtara combo: {name}",
+    "deleted": "Ehichapụla combo: {name}",
+    "noCombos": "Enweghị combo ahaziri.",
+    "confirmDelete": "Hichapụ combo {name}?",
+    "suggest": {
+      "description": "Jiri akara AI tụọ aro combo kacha mma maka otu ọrụ",
+      "task": "Nkọwa ọrụ",
+      "maxCost": "Ọnụ ahịa kachasị elu maka arịrịọ ọ bụla na USD",
+      "maxLatencyMs": "Oge nchere kachasị elu na milisekọnd",
+      "weights": "Arọ akara JSON dịka {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Ọnụọgụ ndị ndọrọndọrọ kacha elu a ga-egosi (ndabara: 5)",
+      "explain": "Bipụta ihe kpatara ya na stderr",
+      "switch": "Mee ka combo nke nọ n'ọkwa kachasị elu rụọ ọrụ"
+    }
+  },
+  "oneproxy": {
+    "description": "Jikwaa ọdọ mmiri upstream nke OneProxy",
+    "stats": {
+      "provider": "Were provider nyochaa",
+      "period": "Ogologo oge (ndabara: 24h)"
+    },
+    "fetch": {
+      "description": "Weta proxies site n'ọdọ mmiri ahụ",
+      "count": "Ọnụọgụ proxies a ga-eweta (ndabara: 1)",
+      "type": "Ụdị proxy: http|socks5 (ndabara: http)"
+    },
+    "rotate": {
+      "description": "Manye ntụgharị proxy",
+      "provider": "Provider a ga-atụgharị maka ya",
+      "connectionId": "NJ njikọ a kapịrị ọnụ a ga-atụgharị"
+    },
+    "config": {
+      "description": "Gosi ma ọ bụ melite nhazi OneProxy",
+      "enabled": "Mee ka ọdọ mmiri proxy rụọ ọrụ (true|false)",
+      "poolSize": "Nha ọdọ mmiri",
+      "providerSource": "URL maka proxy provider",
+      "rotationPolicy": "Usoro ntụgharị: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Depụta ọdọ mmiri proxy dị ugbu a tinyere metrik"
+    }
+  },
+  "open": {
+    "description": "Mepee otu ibe dashboard OmniRoute akọwapụtara na browser",
+    "url": "Bipụta naanị URL, emeghela browser"
+  },
+  "telemetry": {
+    "description": "Nweta data telemetry agbakọtara ọnụ",
+    "summary": {
+      "description": "Gosi nchịkọta telemetry agbakọtara ọnụ",
+      "period": "Ogologo oge: 24h|7d|30d (ndabara: 24h)",
+      "compareTo": "Tụnyere oge gara aga"
+    },
+    "export": {
+      "description": "Bupụ ihe omume telemetry gaa na JSONL",
+      "out": "Ụzọ faịlụ mmepụta (ndabara: telemetry.jsonl)",
+      "period": "Ogologo oge maka mbupụ (ndabara: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Mekọrịta nhazi n'etiti instance OmniRoute",
+    "push": {
+      "description": "Ziga nhazi na cloud ma ọ bụ instance dị anya",
+      "target": "Ebe a na-eziga (cloud ma ọ bụ context:name)",
+      "bundle": "Akụkụ bundle a ga-emekọrịta",
+      "dryRun": "Lee ihe ga-eme n'etinyeghị ya n'ọrụ"
+    },
+    "pull": {
+      "description": "Weta nhazi site na cloud ma ọ bụ ebe dị anya",
+      "source": "Isi mmalite (cloud ma ọ bụ context:name)",
+      "merge": "Jikọta ya na nhazi dị adị",
+      "replace": "Dochie nhazi dị adị",
+      "dryRun": "Lelee tupu itinye ya n'ọrụ"
+    },
+    "diff": {
+      "source": "Ọnọdụ isi mmalite",
+      "target": "Ọnọdụ ebe a na-eziga"
+    },
+    "bundle": {
+      "description": "Bupụ nhazi dịka faịlụ ngwugwu",
+      "include": "Akụkụ ndị a ga-etinye (jiri rikọm kewaa ha)"
+    },
+    "import": {
+      "description": "Bubata faịlụ ngwugwu",
+      "dryRun": "Nyochaa tupu itinye ya n'ọrụ"
+    },
+    "initialize": {
+      "fromCloud": "Malite site na nkwado ndabere igwe ojii"
+    },
+    "tokens": {
+      "description": "Jikwaa token mmekọrịta",
+      "create": {
+        "name": "Aha token",
+        "scope": "Oke ikike token",
+        "ttl": "Oge token ga-adị ndụ (dịka 30d)"
+      },
+      "revoke": {
+        "yes": "Mafere nkwenye"
+      }
+    },
+    "resolve": {
+      "description": "Dozie esemokwu mmekọrịta n'ụzọ mkparịta ụka"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Jikwaa ọnọdụ/profaịlụ sava (tinye, jiri, depụta, gosi, wepụ, nyegharịa aha, bupụ, bubata)"
+    },
+    "lang": {
+      "description": "Jikwaa asụsụ ngosipụta CLI",
+      "getDescription": "Gosi koodu asụsụ na-arụ ọrụ ugbu a",
+      "setDescription": "Tọọ asụsụ ngosipụta ma chekwaa ya na nhazi",
+      "listDescription": "Depụta asụsụ niile dị",
+      "listTitle": "Asụsụ Ndị Dị",
+      "current": "Asụsụ: {code} ({name})",
+      "saved": "Atọọla asụsụ ka ọ bụrụ {code} ({name}).",
+      "noCode": "A chọrọ koodu asụsụ. Gbaa 'omniroute config lang list' iji hụ koodu ndị dị.",
+      "unknown": "Koodu asụsụ a maghị: {code}. Gbaa 'omniroute config lang list' iji hụ koodu ndị dị.",
+      "alreadySet": "Atọọlarị asụsụ ka ọ bụrụ {code}.",
+      "envHint": "Ndụmọdụ: ị nwekwara ike ịtọ OMNIROUTE_LANG={code} na gburugburu gị."
+    }
+  },
+  "completion": {
+    "description": "Mepụta ma ọ bụ wụnye skripụ mmecha shell",
+    "zsh": "Bipụta skripụ mmecha zsh",
+    "bash": "Bipụta skripụ mmecha bash",
+    "fish": "Bipụta skripụ mmecha fish",
+    "install": "Wụnye skripụ mmecha n'ụwa niile maka shell achọpụtara",
+    "refresh": "Mee ka cache nke ngwakọta/providers/models dị ọhụrụ"
+  },
+  "logs": {
+    "description": "Zipụ ndekọ arịrịọ n'aga n'ihu ma ọ bụ bupụ ha",
+    "follow": "Zipụ ndekọ n'aga n'ihu ozugbo",
+    "filter": "Họrọ site n'ọkwa (error,warn,info) — jiri rikọm kewaa ha",
+    "lines": "Ọnụọgụ ahịrị a ga-eweta",
+    "timeout": "Oge njikọ ga-akwụsị na ms",
+    "baseUrl": "URL ntọala OmniRoute API",
+    "requestId": "Họrọ site na ID arịrịọ",
+    "apiKey": "Họrọ site na API key",
+    "combo": "Jiri aha combo mee nzacha",
+    "status": "Jiri koodu ọnọdụ HTTP mee nzacha",
+    "durationMin": "Oge kacha nta arịrịọ ga-ewe na ms",
+    "durationMax": "Oge kacha elu arịrịọ ga-ewe na ms",
+    "export": "Chekwaa ndekọ na faịlụ (json/jsonl/csv)",
+    "exported": "Echekwara ndekọ na {path}",
+    "stopped": "Nnyefe ndekọ akwụsịla.",
+    "streamError": "Njehie nnyefe ndekọ: {message}"
+  },
+  "tray": {
+    "description": "Jikwaa akara ngosi dị na tray sistemụ",
+    "show": "Gosi akara ngosi tray (ọ bụrụ na sava na-eji --tray arụ ọrụ)",
+    "hide": "Zoo akara ngosi tray",
+    "quit": "Site na tray, kwụsị OmniRoute"
+  },
+  "autostart": {
+    "description": "Jikwaa mmalite akpaka nke OmniRoute mgbe sistemụ na-ebido (Linux: ọrụ onye ọrụ systemd)",
+    "enable": "Gbanye mmalite akpaka mgbe sistemụ na-ebido",
+    "disable": "Gbanyụọ mmalite akpaka mgbe sistemụ na-ebido",
+    "toggle": "Gbanwee ọnọdụ mmalite akpaka mgbe sistemụ na-ebido",
+    "status": "Gosi ọnọdụ mmalite akpaka"
+  },
+  "runtime": {
+    "description": "Jikwaa ihe ndabere runtime nke sistemụ",
+    "check": "Lelee ọnọdụ ihe ndabere sistemụ dị na ndekọ runtime",
+    "repair": "Wụnyegharị ihe ndabere sistemụ dị na ndekọ runtime",
+    "repair_force": "Manye nrụnyegharị ọbụna ma ọ bụrụ na ha ziri ezi",
+    "clean": "Wepụ ndekọ runtime (na-eme ka ohere dị na diski pụta)",
+    "clean_yes": "Mafere nkwenye"
+  },
+  "repl": {
+    "description": "REPL mkparịta ụka nwere ọtụtụ ntụgharị ya na LLM",
+    "model": "Ụdị a ga-eji (ndabara: auto)",
+    "combo": "Aha combo a ga-eji",
+    "system": "Ntuziaka sistemụ",
+    "resume": "Jiri aha maliteghachi nnọkọ echekwara"
+  },
+  "plugin": {
+    "description": "Jikwaa plugins CLI (omniroute-cmd-*)",
+    "list": "Depụta plugins arụnyere",
+    "install": "Wụnye plugin site na npm ma ọ bụ ụzọ faịlụ mpaghara",
+    "remove": "Wepụ plugin arụnyere",
+    "info": "Gosi nkọwa gbasara plugin arụnyere",
+    "search": "Chọọ plugins dịnụ na ndekọ npm",
+    "update": "Melite plugin(s) arụnyere",
+    "scaffold": "Mepụta usoro ntọala maka plugin ọhụrụ"
+  },
+  "launch": {
+    "description": "Bido Claude Code ka ọ rụtụ aka na OmniRoute (mpaghara ma ọ bụ ime, site na --profile)",
+    "token": "Token onye ahịa Claude kwesịrị iziga (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "Enweghị ike iru OmniRoute na {port}. Jiri 'omniroute serve' bido ya.",
+    "notFound": "Ahụghị CLI 'claude' na PATH."
+  },
+  "run": {
+    "description": "Jiri OmniRoute malite ebumnuche CLI a na-akwado"
+  },
+  "setupClaude": {
+    "description": "Mepụta profaịlụ Claude Code na ~/.claude/profiles site na katalọgụ modelụ OmniRoute"
+  },
+  "connect": {
+    "description": "Jikọọ na sava OmniRoute dị anya wee banye na ọnọdụ dị anya"
+  },
+  "tokens": {
+    "description": "Jikwaa token nnweta CLI nwere oke (ọnọdụ dị anya)"
+  },
+  "configure": {
+    "description": "Họrọ provider+model site na sava na-arụ ọrụ ma hazie CLI mpaghara a na-akwado"
+  },
+  "launchCodex": {
+    "description": "Malite Codex CLI nke e duziri na OmniRoute (VPS mpaghara ma ọ bụ nke dị anya)"
+  },
+  "setupCodex": {
+    "description": "Mepụta faịlụ profaịlụ ~/.codex site na katalọgụ modelụ OmniRoute dị ndụ"
+  },
+  "packs": {
+    "description": "Jikwaa ngwugwu runtime ndị nhọrọ (ML / akpaaka ihe nchọgharị)",
+    "listDescription": "Depụta ngwugwu nhọrọ na ọnọdụ nrụnye ha",
+    "installDescription": "Wụnye ngwugwu nhọrọ n'ime DATA_DIR",
+    "verifyDescription": "Nyochaa ngwugwu arụnyere site na iji ndeksi checksum e tinyere",
+    "removeDescription": "Wepụ ngwugwu nhọrọ arụnyere",
+    "sourceOpt": "Ndekọ ebe e debere payload ngwugwu na ndeksi ngwugwu",
+    "warnNoIndex": "ahụghị optional-packs.index.json — nrụnye/nnyocha adịghị na checkout a (ngwugwu desktop na-ebunye ya)",
+    "errUnknown": "ngwugwu amaghi: {name}",
+    "errNoIndex": "ahụghị ndeksi ngwugwu; tinye --source <dir> nke nwere payload ngwugwu (ngwugwu desktop na-ebunye ya n'akụkụ app ahụ)",
+    "installed": "arụnyere ma nyochaa ngwugwu \"{name}\" na {dir}",
+    "restartHint": "malitegharịa sava OmniRoute (ma ọ bụ app desktop) ka runtime wee mata ngwugwu ahụ",
+    "removed": "ewepụla ngwugwu \"{name}\"",
+    "notInstalled": "awụnyeghị ngwugwu \"{name}\"",
+    "verifyOk": "a nyochachara ngwugwu niile arụnyere nke ọma",
+    "verifyFailed": "ngwugwu {count} dara na nnyocha",
+    "noneInstalled": "ọ dịghị ngwugwu nhọrọ arụnyere"
+  }
+}

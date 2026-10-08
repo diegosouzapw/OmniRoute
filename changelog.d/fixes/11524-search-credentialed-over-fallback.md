@@ -1,1 +1,0 @@
-- fix(search): prefer credentialed providers over duckduckgo-free fallback (#11524) — the fallback-only loop ran before the credentialed-providers loop in `executeWebSearch`, making configured providers unreachable when `duckduckgo-free` was available.

@@ -4,7 +4,29 @@ import type { SqliteAdapter } from "./adapters/types";
 
 type SqliteDatabase = SqliteAdapter;
 type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
-type AutoVacuumMode = DatabaseOptimizationSettings["autoVacuumMode"];
+export type AutoVacuumMode = DatabaseOptimizationSettings["autoVacuumMode"];
+
+/**
+ * A mismatch between the configured `optimization.autoVacuumMode` (the
+ * `key_value` config store) and the live SQLite `auto_vacuum` pragma on the
+ * actual database file. See #13432 — migration 046 seeds the config value on
+ * every database (including pre-existing ones) but SQLite only applies
+ * `auto_vacuum` on a subsequent `VACUUM`, which the startup path deliberately
+ * never runs synchronously (that would reintroduce the blocking-VACUUM
+ * hazard tracked by #12821).
+ */
+export interface AutoVacuumDrift {
+  configured: AutoVacuumMode;
+  live: AutoVacuumMode;
+}
+
+// Shared key_value coordinate for the persisted drift record. Written here
+// (at boot, directly against the `db` handle being initialized — NOT via
+// getDbInstance(), which is not yet set at this point in core.ts's boot
+// sequence) and read/cleared by vacuumScheduler.ts once the scheduler runs
+// the reconcile out-of-request.
+const AUTO_VACUUM_DRIFT_NAMESPACE = "scheduler";
+const AUTO_VACUUM_DRIFT_KEY = "vacuumDrift";
 
 const AUTO_VACUUM_MODE_TO_PRAGMA: Record<AutoVacuumMode, number> = {
   NONE: 0,
@@ -233,6 +255,40 @@ export function applyDatabaseOptimizationSettingsForDb(
   );
 }
 
+/**
+ * Compares the configured `autoVacuumMode` against the live SQLite pragma.
+ * Pure/read-only — never mutates the database. Returns `null` when they
+ * already agree.
+ */
+export function checkAutoVacuumDrift(
+  db: SqliteDatabase,
+  settings: DatabaseOptimizationSettings
+): AutoVacuumDrift | null {
+  const liveMode = getAutoVacuumModeForDb(db);
+  if (liveMode === settings.autoVacuumMode) return null;
+  return { configured: settings.autoVacuumMode, live: liveMode };
+}
+
+/**
+ * Persists (or clears, when `drift` is `null`) the auto_vacuum drift record
+ * directly against the given `db` handle. Deliberately does NOT go through
+ * `getDbInstance()` — at the one call site that matters (startup, inside
+ * core.ts before `setDb()` has run) that would recurse back into database
+ * initialization.
+ */
+function persistAutoVacuumDriftRecord(db: SqliteDatabase, drift: AutoVacuumDrift | null): void {
+  try {
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      AUTO_VACUUM_DRIFT_NAMESPACE,
+      AUTO_VACUUM_DRIFT_KEY,
+      JSON.stringify(drift)
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[DB] Failed to persist auto_vacuum drift record: ${message}`);
+  }
+}
+
 export function applyStoredDatabaseOptimizationSettings(db: SqliteDatabase): void {
   const settings = readDatabaseOptimizationSettings(db);
   // Startup can happen concurrently in test workers and clustered hosts. Only
@@ -241,6 +297,19 @@ export function applyStoredDatabaseOptimizationSettings(db: SqliteDatabase): voi
   applyDatabaseOptimizationSettingsForDb(db, settings, {
     applyPersistent: false,
   });
+
+  // #13432: detect (but never synchronously fix — that would reintroduce the
+  // #12821 blocking-VACUUM-at-boot hazard) a drift between the configured
+  // autoVacuumMode and the live pragma. Reconciliation happens out-of-request
+  // on the next scheduled vacuumScheduler run (see vacuumScheduler.ts::runNow).
+  const drift = checkAutoVacuumDrift(db, settings);
+  if (drift) {
+    console.warn(
+      `[DB] auto_vacuum drift detected (configured=${drift.configured}, live=${drift.live}); ` +
+        `scheduling reconcile on the next vacuum-scheduler run`
+    );
+  }
+  persistAutoVacuumDriftRecord(db, drift);
 }
 
 export function setAutoVacuumForDb(db: SqliteDatabase, mode: AutoVacuumMode): void {

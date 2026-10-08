@@ -3,8 +3,10 @@
   "description": "Provider-specific integration guides",
   "pages": [
     "ALIBABA-QWEN-PROVIDER-FAMILIES",
+    "CLAUDE_CODE_SETUP_TOKEN",
     "CLAUDE_WEB",
     "CHATGPT_WEB",
+    "COPILOT-M365",
     "AGENTROUTER",
     "ZED-DOCKER",
     "CURSOR-DOCKER",

@@ -1,4 +1,5 @@
 "use client";
+import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelListing";
 /**
  * PassthroughModelsSection — Issue #3501 Phase 1e
  *
@@ -32,7 +33,8 @@ import {
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
 import { ModelVisibilityToolbar } from "./ModelRow";
-import { sortModelsFreeFirst, isFreeModel } from "@/shared/utils/freeModels";
+import { sortModelsFreeFirst, isModelFreeBadge } from "@/shared/utils/freeModels";
+import { useStrictFreeBadge } from "./useStrictFreeBadge";
 import PassthroughModelRow from "./PassthroughModelRow";
 
 // ---------------------------------------------------------------------------
@@ -50,6 +52,7 @@ export interface PassthroughModelsSectionProps {
   modelAliases: Record<string, string>;
   catalogModels?: CompatModelRow[];
   availableModels?: CompatModelRow[];
+  syncedCatalogAuthoritative?: boolean;
   customModels?: CompatModelRow[];
   description: string;
   inputLabel: string;
@@ -95,6 +98,7 @@ export default function PassthroughModelsSection({
   modelAliases,
   catalogModels = [],
   availableModels = [],
+  syncedCatalogAuthoritative = false,
   customModels = [],
   description,
   inputLabel,
@@ -138,6 +142,7 @@ export default function PassthroughModelsSection({
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
   const notify = useNotificationStore();
+  const strictFreeBadge = useStrictFreeBadge();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
   const handleTestAll = async () => {
@@ -254,11 +259,16 @@ export default function PassthroughModelsSection({
         alias: aliasByModelId.get(model.id) || defaultAlias,
         displayName: model.name || model.id,
         source,
-        isFree:
-          Boolean((model as any).free) ||
-          model.id.endsWith(":free") ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
-          isFreeModel(providerId, { id: model.id, isFree: (model as any).isFree }),
+        isFree: isModelFreeBadge(
+          providerId,
+          {
+            id: model.id,
+            name: model.name,
+            free: (model as { free?: unknown }).free,
+            isFree: model.isFree,
+          },
+          { strict: strictFreeBadge }
+        ),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -292,19 +302,30 @@ export default function PassthroughModelsSection({
         alias: displayAlias,
         displayName: displayAlias,
         source: customModel ? customModel.source || "custom" : "alias",
-        isFree:
-          modelId.endsWith(":free") ||
-          Boolean((customModel as any)?.free) ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
-          isFreeModel(providerId, { id: modelId, isFree: (customModel as any)?.isFree }),
+        isFree: isModelFreeBadge(
+          providerId,
+          {
+            id: modelId,
+            name: customModel?.name || (alias as string) || "",
+            free: (customModel as { free?: unknown } | undefined)?.free,
+            isFree: customModel?.isFree,
+          },
+          { strict: strictFreeBadge }
+        ),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
     }
 
-    return rows;
+    return filterUnavailableModelRows(
+      rows,
+      availableModels,
+      customModels,
+      syncedCatalogAuthoritative
+    );
   }, [
     availableModels,
+    syncedCatalogAuthoritative,
     catalogModels,
     customModelMap,
     customModels,
@@ -312,6 +333,7 @@ export default function PassthroughModelsSection({
     providerAlias,
     providerAliases,
     providerId,
+    strictFreeBadge,
   ]);
 
   const filteredModels = allModels.filter((model) => {

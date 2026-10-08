@@ -22,6 +22,7 @@ import {
   type VideoDrilldownPutValue,
   type VideoDrilldownResult,
 } from "./videoBridgeDrilldown";
+import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
 
 export type VideoDrilldownVariant = "preview" | "standard" | "detail";
 
@@ -170,7 +171,7 @@ async function shrinkFrameForVariant(
     .toBuffer();
   const metadata = await sharp(resized).metadata();
   return {
-    dataUri: `data:image/jpeg;base64,${resized.toString("base64")}`,
+    dataUri: `${JPEG_FRAME_DATA_URI_PREFIX}${resized.toString("base64")}`,
     height: metadata.height ?? frame.height,
     timestampSeconds: frame.timestampSeconds,
     width: metadata.width ?? frame.width,

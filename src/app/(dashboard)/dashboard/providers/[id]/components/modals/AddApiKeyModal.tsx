@@ -47,7 +47,10 @@ export interface AddApiKeyModalProps {
   providerName?: string;
   providerWebsite?: string;
   initialBaseUrl?: string;
-  existingConnectionCount?: number;
+  // #15006 — pass live connection NAMES (not a count): after a delete the count
+  // no longer matches the highest suffix, so a count-derived default collides
+  // with a live connection and the backend name-upsert overwrites it.
+  existingConnectionNames?: string[];
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -71,7 +74,7 @@ export default function AddApiKeyModal({
   providerName,
   providerWebsite,
   initialBaseUrl,
-  existingConnectionCount = 0,
+  existingConnectionNames = [],
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -112,7 +115,7 @@ export default function AddApiKeyModal({
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
   const commandCodeAuthPhaseLabel = getCommandCodeAuthPhaseLabel(commandCodeAuthState);
   const [formData, setFormData] = useState({
-    name: computeConnectionDefaultName(existingConnectionCount),
+    name: computeConnectionDefaultName(existingConnectionNames),
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -163,12 +166,12 @@ export default function AddApiKeyModal({
     // name-based upsert that would silently overwrite the first connection (#6499, #11033).
     setFormData((current) => ({
       ...current,
-      name: computeConnectionDefaultName(existingConnectionCount),
+      name: computeConnectionDefaultName(existingConnectionNames),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
     setValidationResult(null);
     setSaveError(null);
-  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionNames]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
@@ -184,13 +187,15 @@ export default function AddApiKeyModal({
     ? providerText(t, "modalTokenIdLabel", "Token ID")
     : isAwsPolly
       ? providerText(t, "awsPollySecretAccessKeyLabel", "AWS Secret Access Key")
-      : isQoder
-        ? t("personalAccessTokenLabel")
-        : webSessionCredential
-          ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
-          : apiKeyOptional
-            ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-            : t("apiKeyLabel");
+      : isVertex
+        ? providerText(t, "vertexCredentialLabel", "API Key or Service Account JSON")
+        : isQoder
+          ? t("personalAccessTokenLabel")
+          : webSessionCredential
+            ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+            : apiKeyOptional
+              ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+              : t("apiKeyLabel");
   const apiCredentialPlaceholder = isModal
     ? "ak-xxxxxxxxxxxxxxxx"
     : isVertex
@@ -210,19 +215,25 @@ export default function AddApiKeyModal({
         "modalTokenIdHint",
         "Modal auth uses a Token ID + Token Secret pair. Create one at https://modal.com/settings → API Tokens."
       )
-    : isQoder
-      ? t("qoderPatHint")
-      : isFreebuff
-        ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
-        : isWebSessionCredential
-          ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
-          : isLocalSelfHostedProvider
-            ? t("localProviderApiKeyOptionalHint", {
-                provider: localProviderMetadata?.name || providerName || provider || "",
-              })
-            : apiKeyOptional
-              ? t("apiKeyOptionalHint")
-              : undefined;
+    : isVertex
+      ? providerText(
+          t,
+          "vertexCredentialHint",
+          "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery."
+        )
+      : isQoder
+        ? t("qoderPatHint")
+        : isFreebuff
+          ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
+          : isWebSessionCredential
+            ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+            : isLocalSelfHostedProvider
+              ? t("localProviderApiKeyOptionalHint", {
+                  provider: localProviderMetadata?.name || providerName || provider || "",
+                })
+              : apiKeyOptional
+                ? t("apiKeyOptionalHint")
+                : undefined;
   const credentialValidationFailedMessage = isWebSessionCredential
     ? providerText(
         t,

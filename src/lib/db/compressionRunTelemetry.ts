@@ -23,7 +23,7 @@ export interface CompressionRunTelemetrySummary {
   appliedStyleCounts: Record<string, number>;
 }
 
-function ensureCompressionRunTelemetryTable(): void {
+export function ensureCompressionRunTelemetryTable(): void {
   const db = getDbInstance();
   // `CREATE TABLE IF NOT EXISTS` is idempotent and cheap; run it unconditionally so the
   // table self-heals if it was dropped (e.g. test isolation) under the same db handle.
@@ -114,8 +114,7 @@ export function getCompressionRunTelemetrySummary(): CompressionRunTelemetrySumm
       try {
         const styles = JSON.parse(row.output_styles) as Array<{ id: string }>;
         for (const style of styles) {
-          summary.appliedStyleCounts[style.id] =
-            (summary.appliedStyleCounts[style.id] ?? 0) + 1;
+          summary.appliedStyleCounts[style.id] = (summary.appliedStyleCounts[style.id] ?? 0) + 1;
         }
       } catch {
         // ignore a corrupt JSON cell

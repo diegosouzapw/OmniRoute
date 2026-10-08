@@ -1,0 +1,119 @@
+/**
+ * #13144 — error messages were being truncated after a path.
+ *
+ * `findUnquotedPathEnd` may swallow the remainder of a line when it cannot tell
+ * where a path ends, so a Windows path with spaces cannot leak a `Files\secret`
+ * suffix. Two things made that fire far wider than intended:
+ *
+ * 1. The licence was granted on `hasFilesystemEvidence` alone, and every API
+ *    route carries slashes — so an ordinary `/v1/x/y` in prose qualified. The
+ *    image-model 400 lost the one sentence it exists to deliver:
+ *      built:     "...cannot be used on /v1/chat/completions. Use POST
+ *                  /v1/images/generations instead."
+ *      delivered: "...cannot be used on <path>"
+ * 2. The ambiguity check ran *before* `resolvedExtensionEnd`, so a path whose
+ *    end was pinned exactly by a known extension was treated as ambiguous the
+ *    moment any prose followed it — costing the dashboard probe its
+ *    ` with api_key='[REDACTED]'` tail.
+ *
+ * Now only an unequivocal prefix with no determinable end swallows the line.
+ * The last test is the other half of the fix: this narrows what fails closed
+ * and must not weaken it.
+ *
+ * #14110 (2026-09-21, owner decision) widened "unequivocal prefix" back to
+ * include an unknown-root POSIX candidate (route-shaped or filesystem-shaped
+ * -- the two are lexically indistinguishable with no second anchor), because
+ * leaving an unknown-root filesystem path unredacted regressed HR#12. See the
+ * "#14110" test below for the accepted trade-off.
+ */
+import test from "node:test";
+import assert from "node:assert/strict";
+
+const { redactErrorPaths } = await import("../../open-sse/utils/errorPathRedaction.ts");
+
+test("an API route in prose does not truncate the rest of the message (#13144)", () => {
+  const built =
+    "Model 'huggingface/stabilityai/stable-diffusion-xl-base-1.0' is an image-generation " +
+    "model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.";
+
+  const out = redactErrorPaths(built);
+
+  // The bug this issue names: everything after the route was swallowed, so the
+  // one sentence the 400 exists to deliver never reached the caller.
+  assert.match(out, /Use POST \/v1\/images\/generations instead\.$/);
+  assert.equal(out.endsWith("instead."), true, "the remediation sentence must survive");
+
+  // Documented, not asserted as desirable: in THIS message the route itself is
+  // still replaced with `<path>`, while the same route in isolation survives
+  // verbatim (next test). The difference is the quoted model slug earlier in the
+  // line — `huggingface/stabilityai/...` carries separators, so the route is read
+  // with prior path context. Narrower than the truncation this PR fixes, and a
+  // separate judgement call about how a bare API route should be treated, so it
+  // is recorded here rather than quietly changed.
+  assert.equal(out.includes("<path>"), true);
+});
+
+test("#14110: a bare unanchored route/path candidate fails closed like a real path", () => {
+  // Superseded by the #14110 owner decision (2026-09-21, fail-closed). This
+  // test used to assert the opposite -- that separator evidence alone (an
+  // unknown-root `/x/y` shape) never licenses swallowing the line, so a bare
+  // API route in prose survived verbatim. #14110 proved the same code path
+  // left an unknown-root FILESYSTEM path (e.g. `/custom/internal secret
+  // directory`) exposed in clear text for the identical reason: there is no
+  // reliable lexical way to tell a route from an unknown-root filesystem path
+  // when neither has a second anchor (an extension, a known root, or a
+  // trailing absolute-path span) to resolve the ambiguity against. The owner
+  // chose to fail closed for both rather than risk leaking a real path
+  // (HR#12), so these bare, unanchored candidates are now redacted and the
+  // rest of the line is swallowed with them -- the same treatment a known
+  // filesystem root already got (see "an unequivocal prefix with no
+  // determinable end still swallows the line" below).
+  //
+  // The narrower, still-guaranteed contract survives one test down: a route
+  // immediately followed by ANOTHER absolute-path span (e.g. "... Use POST
+  // /v1/y instead.") has an anchor and keeps its trailing prose intact --
+  // see "an API route in prose does not truncate the rest of the message".
+  for (const route of ["/v1/chat/completions", "/zz/chat/completions", "/v1/chat"]) {
+    const input = `on ${route}. Contact support.`;
+    assert.equal(redactErrorPaths(input), "on <path>", `route ${route} now fails closed`);
+  }
+});
+
+test("a determinable extension pins the endpoint, so the tail survives", () => {
+  // A known extension says exactly where the path stops, so there is no
+  // ambiguity to fail closed about. The whole path is still replaced —
+  // including its suffix — and the message keeps what followed it.
+  const cases: readonly (readonly [string, string])[] = [
+    ["at C:\\Program Files\\secret\\a.ts and more", "at <path> and more"],
+    ["failed at /Users/alice/My Project/app.ts and more", "failed at <path> and more"],
+    [
+      "Provider failed in /srv/omniroute/src/private/provider.ts:42:7 with api_key='x'",
+      "Provider failed in <path> with api_key='x'",
+    ],
+  ];
+  for (const [input, expected] of cases) {
+    const out = redactErrorPaths(input);
+    assert.equal(out, expected);
+    assert.ok(!/secret|alice|omniroute/.test(out), `must not expose a path suffix: ${out}`);
+  }
+});
+
+test("an unequivocal prefix with no determinable end still swallows the line", () => {
+  // `/etc/shadow copy failed` has nothing to anchor the endpoint on, so
+  // stopping at the space could publish `shadow copy`. This is the case the
+  // branch exists for, and it must keep firing.
+  const out = redactErrorPaths("reading /etc/shadow copy failed");
+  assert.equal(out, "reading <path>");
+  assert.ok(!/shadow/.test(out), "must not expose a suffix");
+});
+
+test("quoted paths and file URIs are unaffected", () => {
+  assert.equal(
+    redactErrorPaths("ENOENT: no such file or directory, open '/Users/alice/secret/app.ts'"),
+    "ENOENT: no such file or directory, open '<path>'"
+  );
+  assert.equal(
+    redactErrorPaths("loading file:///Users/alice/secret/mod.ts failed later"),
+    "loading <path> failed later"
+  );
+});

@@ -1,6 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
+import { createGeminiToolCallIdPairing } from "../helpers/geminiToolCallIds.ts";
 import { fixToolPairs } from "../../services/contextManager.ts";
 import { normalizeEffort } from "@/shared/reasoning/effortStandardization";
 
@@ -80,8 +81,12 @@ export function antigravityToOpenAIRequest(model, body, stream) {
 
   // Convert contents to messages
   if (req.contents && Array.isArray(req.contents)) {
+    const toolCallIds = createGeminiToolCallIdPairing(
+      () => `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    );
     for (const content of req.contents) {
-      const converted = convertContent(content);
+      toolCallIds.beginContent(content);
+      const converted = convertContent(content, toolCallIds);
       if (converted) {
         if (Array.isArray(converted)) {
           result.messages.push(...converted);
@@ -243,7 +248,7 @@ function preserveRequired(obj: unknown): void {
 
 // Convert Antigravity content to OpenAI message
 // Handles: text, thought, thoughtSignature, functionCall, functionResponse, inlineData
-function convertContent(content) {
+function convertContent(content, toolCallIds) {
   const role =
     content.role === "model" ? "assistant" : content.role === "user" ? "user" : content.role;
 
@@ -290,7 +295,7 @@ function convertContent(content) {
     // Function call
     if (part.functionCall) {
       toolCalls.push({
-        id: part.functionCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id: toolCallIds.callId(part.functionCall),
         type: "function",
         function: {
           name: part.functionCall.name,
@@ -306,7 +311,7 @@ function convertContent(content) {
         resp && typeof resp === "object" && "result" in resp ? resp.result : (resp ?? {});
       toolResults.push({
         role: "tool",
-        tool_call_id: part.functionResponse.id || part.functionResponse.name,
+        tool_call_id: toolCallIds.responseId(part.functionResponse),
         content: JSON.stringify(resultPayload),
       });
     }

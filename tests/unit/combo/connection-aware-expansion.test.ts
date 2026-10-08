@@ -61,11 +61,23 @@ test.after(() => {
 // Gate: strategy + config resolution
 
 test("T0a: group B strategies are the 15 non-quota-aware strategies", () => {
-  const groupA = new Set(["reset-aware", "reset-window", "headroom", "quota-share", "auto"]);
+  const groupA = new Set([
+    "reset-aware",
+    "reset-window",
+    "headroom",
+    "quota-weighted",
+    "quota-share",
+    "auto",
+  ]);
   for (const strategy of CONNECTION_AWARE_EXPANSION_GROUP_B) {
     assert.ok(!groupA.has(strategy), `group B must not contain A-group strategy ${strategy}`);
   }
   assert.equal(CONNECTION_AWARE_EXPANSION_GROUP_B.length, 15);
+  assert.equal(
+    CONNECTION_AWARE_EXPANSION_GROUP_B.includes("quota-weighted"),
+    false,
+    "quota-weighted expands itself; must not sit in group B"
+  );
 });
 
 test("T0b: gate is closed by default and for A-group strategies", () => {
@@ -99,6 +111,13 @@ test("T0b: gate is closed by default and for A-group strategies", () => {
     }),
     false,
     "A-group strategies never double-expand"
+  );
+  assert.equal(
+    shouldApplyConnectionAwareExpansion("quota-weighted", {
+      connectionAwareExpansion: true,
+    }),
+    false,
+    "quota-weighted expands itself; never double-expand via group B"
   );
 });
 

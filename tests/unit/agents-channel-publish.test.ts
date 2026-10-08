@@ -132,7 +132,9 @@ test("a throwing agent.task.updated listener does not break A2ATaskManager.creat
 
 // ── (b) cloud-agent DB writers ──────────────────────────────────────────────────────────
 
-function makeTaskRow(overrides: Partial<Parameters<typeof cloudAgentDb.insertCloudAgentTask>[0]> = {}) {
+function makeTaskRow(
+  overrides: Partial<Parameters<typeof cloudAgentDb.insertCloudAgentTask>[0]> = {}
+) {
   const now = new Date().toISOString();
   return {
     id: `task-${Math.random().toString(36).slice(2)}`,
@@ -192,9 +194,10 @@ test("updateCloudAgentTask emits agent.task.updated with the new status", () => 
   }
 });
 
-test("updateCloudAgentTask without a status field emits state 'updated'", () => {
+test("updateCloudAgentTask without a status field emits the row's current status", () => {
   const row = makeTaskRow({ status: "queued" });
   cloudAgentDb.insertCloudAgentTask(row);
+  cloudAgentDb.updateCloudAgentTask(row.id, { status: "running" });
 
   const events: AgentTaskUpdatedPayload[] = [];
   const unsubscribe = on("agent.task.updated", (payload) => events.push(payload));
@@ -204,7 +207,19 @@ test("updateCloudAgentTask without a status field emits state 'updated'", () => 
     assert.equal(events.length, 1);
     assert.equal(events[0].source, "cloud-agent");
     assert.equal(events[0].taskId, row.id);
-    assert.equal(events[0].state, "updated");
+    assert.equal(events[0].state, "running");
+  } finally {
+    unsubscribe();
+  }
+});
+
+test("updateCloudAgentTask on an unknown id does not emit (nothing was written)", () => {
+  const events: AgentTaskUpdatedPayload[] = [];
+  const unsubscribe = on("agent.task.updated", (payload) => events.push(payload));
+  try {
+    cloudAgentDb.updateCloudAgentTask("task-does-not-exist", { result: "partial output" });
+
+    assert.equal(events.length, 0);
   } finally {
     unsubscribe();
   }

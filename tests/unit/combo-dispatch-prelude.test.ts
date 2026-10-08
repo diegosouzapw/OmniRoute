@@ -457,6 +457,90 @@ test("tryPinnedModelDispatch: serves the pinned response when the pin is healthy
   );
 });
 
+test("tryPinnedModelDispatch: accepts an official empty turn for a pinned Anthropic target", async () => {
+  const connection = await createProviderConnection({
+    provider: "anthropic",
+    authType: "apikey",
+    name: "pinned-anthropic-empty-turn",
+    isActive: true,
+    apiKey: "sk-test-pinned-empty-turn",
+  });
+  assert.ok(connection && typeof connection.id === "string");
+  const ctx = setup({
+    name: "pinned-anthropic-combo",
+    strategy: "priority",
+    models: [{ model: "claude-sonnet-4-6", providerId: "anthropic" }],
+    config: {},
+  });
+  const events = [
+    'event: message_start\ndata: {"type":"message_start","message":{"content":[]}}',
+    'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}',
+    'event: message_stop\ndata: {"type":"message_stop"}',
+    "",
+  ];
+  const response = new Response(events.join("\n\n"), {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "X-OmniRoute-Selected-Connection-Id": connection.id,
+    },
+  });
+  const res = await tryPinnedModelDispatch({
+    body: { ...ctx.body, stream: true },
+    combo: ctx.combo,
+    pinnedModel: "anthropic/claude-sonnet-4-6",
+    allCombos: [ctx.combo],
+    config: ctx.config,
+    clientRequestedStream: true,
+    handleSingleModelWithTimeout: async () => response,
+    log: ctx.log,
+  });
+  assert.equal(res, response, "the official empty turn must not trigger combo fallback");
+});
+
+test("tryPinnedModelDispatch: accepts an official empty turn for an unprefixed alias", async () => {
+  const connection = await createProviderConnection({
+    provider: "anthropic",
+    authType: "apikey",
+    name: "pinned-anthropic-alias-empty-turn",
+    isActive: true,
+    apiKey: "sk-test-pinned-alias-empty-turn",
+  });
+  assert.ok(connection && typeof connection.id === "string");
+  const ctx = setup({
+    name: "pinned-alias-combo",
+    strategy: "priority",
+    models: [{ model: "claude-alias" }],
+    config: {},
+  });
+  const response = new Response(
+    [
+      'event: message_start\ndata: {"type":"message_start","message":{"content":[]}}',
+      'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}',
+      'event: message_stop\ndata: {"type":"message_stop"}',
+      "",
+    ].join("\n\n"),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "X-OmniRoute-Selected-Connection-Id": connection.id,
+      },
+    }
+  );
+  const res = await tryPinnedModelDispatch({
+    body: { ...ctx.body, stream: true },
+    combo: ctx.combo,
+    pinnedModel: "claude-alias",
+    allCombos: [ctx.combo],
+    config: ctx.config,
+    clientRequestedStream: true,
+    handleSingleModelWithTimeout: async () => response,
+    log: ctx.log,
+  });
+  assert.equal(res, response, "the selected official connection must permit the alias empty turn");
+});
+
 test("tryPinnedModelDispatch: expands the combo system_message template on the pinned path (#5501)", async () => {
   const ctx = setup({
     name: "pinned-combo",
@@ -491,7 +575,7 @@ test("tryPinnedModelDispatch: expands the combo system_message template on the p
 });
 
 test("tryPinnedModelDispatch: fails over when the pinned model returns a transient status", async () => {
-  for (const status of [408, 429, 500, 502, 503, 504]) {
+  for (const status of [401, 408, 429, 500, 502, 503, 504]) {
     const ctx = pinCtx();
     const { res } = await dispatchHealthyPin(
       ctx,

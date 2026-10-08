@@ -45,6 +45,10 @@ export interface ConductorTaskDetail extends FleetTask {
   tests: unknown;
   council: unknown;
   created_at: string | null;
+  /** Runner profile the task was pinned to (hub `requirements.cli`), `null` when unconstrained. */
+  cli: string | null;
+  /** Model the task was pinned to (hub `requirements.model`), `null` when unconstrained. */
+  model: string | null;
 }
 
 // ============ Untrusted hub shapes (parse only what we read) ============
@@ -74,6 +78,13 @@ const hubTaskSchema = z.object({
       tests: z.unknown().optional(),
     })
     .nullish(),
+  // The hub echoes back the `requirements` object `createConductorTask` sends on creation.
+  // `.catch(null)` keeps an unexpected shape from failing the WHOLE task parse — a single odd
+  // requirement must not blank the fleet snapshot (the list parses with this same schema).
+  requirements: z
+    .object({ cli: z.string().nullish(), model: z.string().nullish() })
+    .nullish()
+    .catch(null),
   council: z.unknown().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
@@ -159,13 +170,16 @@ export async function getFleetSnapshot(opts: HubProxyOptions = {}): Promise<Flee
       hubGet("/v1/tasks", opts),
     ]);
     if (rawRunners === null || rawTasks === null) return { offline: true, runners: [], tasks: [] };
-    const runners = z.array(hubRunnerSchema).parse(rawRunners).map((r) => ({
-      id: r.id,
-      name: r.capabilities.name ?? "?",
-      clis: (r.capabilities.clis ?? []).map((c) => c.profile),
-      online: r.online !== false,
-      draining: r.draining === true,
-    }));
+    const runners = z
+      .array(hubRunnerSchema)
+      .parse(rawRunners)
+      .map((r) => ({
+        id: r.id,
+        name: r.capabilities.name ?? "?",
+        clis: (r.capabilities.clis ?? []).map((c) => c.profile),
+        online: r.online !== false,
+        draining: r.draining === true,
+      }));
     const tasks = z.array(hubTaskSchema).parse(rawTasks).map(toFleetTask);
     emitFleetTransitions(tasks);
     return { offline: false, runners, tasks };
@@ -190,6 +204,8 @@ export async function getConductorTaskDetail(
       tests: t.manifest?.tests ?? null,
       council: t.council ?? null,
       created_at: t.created_at ?? null,
+      cli: t.requirements?.cli ?? null,
+      model: t.requirements?.model ?? null,
     };
   } catch {
     return null;

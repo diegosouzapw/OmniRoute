@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { cancelCursorLoginSession } from "@/lib/oauth/services/cursorLogin";
 
@@ -9,9 +9,7 @@ const cancelSchema = z.object({
 });
 
 async function requireOAuthAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return requireManagementAuth(request, { invalidApiKeyStatus: 401 });
 }
 
 /**

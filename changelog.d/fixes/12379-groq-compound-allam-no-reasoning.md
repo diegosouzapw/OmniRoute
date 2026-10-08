@@ -1,1 +1,0 @@
-- **fix(providers):** declare `groq/compound` and `allam-2-7b` as non-reasoning models in the curated Groq registry so `reasoning_effort` / `output_config.effort` / `thinking` from Claude Code are stripped instead of forwarded, which Groq rejected with HTTP 400 ([#12134](https://github.com/diegosouzapw/OmniRoute/issues/12134))

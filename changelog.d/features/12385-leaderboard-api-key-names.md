@@ -1,1 +1,0 @@
-- **feat(gamification):** the dashboard leaderboard now shows each API key's display name under the Name column instead of a truncated key id; `GET /api/gamification/leaderboard` attaches `name` per entry (name only — no key material), while the shared ranking helper and the federation leaderboard stay id-only — thanks @pacocartones

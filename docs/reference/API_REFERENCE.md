@@ -1,12 +1,12 @@
 ---
 title: "API Reference"
-version: 3.8.51
-lastUpdated: 2026-08-31
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # API Reference
 
-🌐 **Languages:** 🇺🇸 [English](./API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
 
@@ -189,12 +189,14 @@ health, and other ordinary eligibility failures retain their existing OmniRoute 
 Per-request override of the compression plan. Highest precedence — beats the routing-combo
 override, the active profile, auto-trigger, and the panel Default. Values:
 
-| Value         | Effect                                                               |
-| ------------- | -------------------------------------------------------------------- |
-| `off`         | No compression for this request.                                     |
-| `default`     | The panel-derived Default profile (ignores the active profile).      |
-| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
-| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
+| Value         | Effect                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                                            |
+| `default`     | The panel-derived Default profile (ignores the active profile). Lossy engines are left off. |
+| `safe`        | Dedup and whitespace folding only.                                                          |
+| `allow-lossy` | Keep the operator plan for this request, including summaries and style rewrites.            |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. Per-request opt-in for that engine.        |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id.                        |
 
 Notes:
 
@@ -313,7 +315,26 @@ Content-Type: application/json
 }
 ```
 
-Available providers: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
+Available providers include OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (local), ComfyUI (local).
+
+ZenMux reuses the existing API-key connection and accepts `zenmux/` or `zm/` prefixes:
+
+- `zenmux/openai/gpt-image-2` uses ZenMux's OpenAI Images API. Options include `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background`, and `response_format`.
+- Other publishers, such as `zm/meta/muse-image-1.0`, use ZenMux's Vertex AI `:predict`
+  endpoint. `n` maps to `sampleCount`, `aspect_ratio` to `aspectRatio`, and `image_size`
+  (`1K`, `2K`, `4K`) to `sampleImageSize`. A pixel `size` supplies only an aspect ratio,
+  not guaranteed pixel dimensions. Supported ratios, resolutions, and counts vary by model.
+- `zm/inclusionai/ming-image-0.1-design` chooses its own dimensions. Omit `size`,
+  `aspect_ratio`, and `image_size`; explicit values return HTTP 400. PNG, JPEG, and WebP
+  can be requested with `output_format`.
+
+This integration supports text-to-image generation, not reference-image editing. Vertex
+output is normalized to `data[].b64_json`; `response_format: "url"` returns an upstream
+HTTPS URL or a base64 data URL when only image bytes are available. Empty/filtered outputs
+return an error rather than an empty success. Model access depends on the ZenMux account.
+See [ZenMux's Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) and
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
 # List all image models
@@ -480,7 +501,7 @@ All POST routes follow the same shape: `Bearer your-api-key` + Zod-validated JSO
 For clients that cannot attach `Authorization: Bearer ...`, OmniRoute also accepts API keys in the URL via either query-string compatibility (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) or the dedicated `/api/v1/vscode/{token}/...` endpoints documented below.
 
 ```bash
-# Rerank
+# Rerank (cloud registry provider, or an OpenAI-compatible provider node as "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina classify (Foundation API credentials)
@@ -498,13 +519,39 @@ POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 # TTS — returns audio/mpeg (or requested format) body
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
+# Soniox TTS requires a language and a voice: `language` defaults to "en"; a missing
+# voice or an OpenAI stock voice name (alloy, nova, …) becomes "Adrian"
+POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
+
 # Image edit (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
 # Video / music generation (provider-prefixed model id)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
-POST /v1/music/generations  { "model": "suno/v3.5",   "prompt": "..." }
+POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
+
+> **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
+> (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> host — a LAN box or Tailscale peer — are eligible only when the operator enables the
+> `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
+> The memory engine's rerank step calls this route over
+> loopback, so the same rule governs `rerankProviderModel` in the Memory settings.
+>
+> **Local server shapes:** the node is called at `<base>/v1/rerank` and, on 404, at `<base>/rerank`
+> (Infinity, TEI). The upstream body carries both the Cohere/OpenAI spelling (`documents`,
+> `return_documents`) and the TEI spelling (`texts`, `return_text`), and the upstream response is
+> normalized to the Cohere envelope: TEI's bare `[{index, score, text}]`, `{results: [{index, score}]}`
+> from thin gateways, and Voyage-style `{data: [...]}` all come back to the client as
+> `{results: [{index, relevance_score, document?}]}`, sorted by score and capped at `top_n`.
+
+> **Provider-node discovery:** models on an OpenAI-compatible provider node appear in `GET /v1/models`
+> under the node prefix. Rows that carry no endpoint metadata (typical for local `/v1/models` listings)
+> inherit the node's `apiType`, so an `embeddings` node's models are `type: "embedding"` and a
+> `rerank` node's models are `type: "rerank"` instead of defaulting to chat; an explicit
+> `supportedEndpoints` on a synced or manually added row still takes precedence.
 
 ### Dedicated Provider Routes
 
@@ -530,7 +577,12 @@ OpenAI-compatible files endpoint for batch input/output and file-purpose uploads
 | DELETE | `/v1/files/[id]`         | Delete a file                                                                                                 |
 | GET    | `/v1/files/[id]/content` | Stream the raw file body back                                                                                 |
 
-**Auth:** Bearer API key — files are scoped per-API-key via `getApiKeyRequestScope`.
+**Auth:** Bearer API key — files are scoped per-API-key via `getApiKeyRequestScope`. A key
+sees, downloads and deletes its own files only; a dashboard session without a key reads the
+whole instance; a file with no owner (anonymous or dashboard-session upload) is denied to every
+non-session caller. `GET /v1/files` rejects an anonymous caller — and a presented key that does
+not resolve — with `401` even when `REQUIRE_API_KEY=false`, instead of listing every tenant's
+files (GHSA-m3hp-hq9g-fpmv, GHSA-2jm2-mpx8-6523).
 
 ---
 
@@ -546,7 +598,10 @@ OpenAI-compatible batch processing.
 | DELETE | `/v1/batches/[id]`        | Delete a finished/failed batch                                                                            |
 | POST   | `/v1/batches/[id]/cancel` | Cancel an in-progress batch                                                                               |
 
-**Auth:** Bearer API key. Batches are scoped per-API-key.
+**Auth:** Bearer API key. Batches are scoped per-API-key under the same three-way rule as
+files: own key only, dashboard session instance-wide, null-owner records denied to every
+non-session caller (retrieve, delete, cancel, and the `input_file_id` check on create).
+`GET /v1/batches` rejects an anonymous caller with `401` even when `REQUIRE_API_KEY=false`.
 
 ---
 
@@ -809,17 +864,52 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                     | Method                | Description                                                                                               |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | List / create providers                                                                                   |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                                                                                         |
-| `/api/providers/[id]/test`   | POST                  | Test provider connection                                                                                  |
-| `/api/providers/[id]/models` | GET                   | List provider models                                                                                      |
-| `/api/providers/validate`    | POST                  | Validate provider config                                                                                  |
-| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider                                                                        |
-| `/api/providers/import`      | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results |
-| `/api/provider-nodes*`       | Various               | Provider node management                                                                                  |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                            |
+| Endpoint                                | Method                | Description                                                                                                                                               |
+| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST              | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE        | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                  | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                   | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                  | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                  | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
+| `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
+successful connection test automatically selects chat-template controls for each exact model ID
+whose `/models` entry proves a recognized `owned_by` value: `vllm`, `sglang`, or `llamacpp`.
+Transparent OpenAI-compatible wrappers may preserve the original model entry inside a nested
+`openai` object; detection follows up to three such envelopes. Models with missing, unknown, or
+conflicting ownership keep ordinary OpenAI behavior. Detection reuses the existing catalog request,
+generates no completion tokens, and is invalidated when the connection endpoint changes.
+
+To pin the behavior for a backend that does not expose that metadata, use the existing partial
+provider update API:
+
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
+
+Send that body with `PUT /api/providers/<connection-id>`. On that connection, an explicit
+reasoning effort of `none` is sent as `chat_template_kwargs.thinking=false` and
+`chat_template_kwargs.enable_thinking=false`. Explicit native template values remain authoritative
+unless a server-side reasoning rule forces an effort. The setting applies only when a custom
+OpenAI-compatible connection dispatches a Chat Completions body; Responses requests and ordinary
+providers keep their native request shape. Set `reasoningControl` to `openai` to force ordinary OpenAI
+`reasoning_effort` passthrough, or omit it/set it to `null` to use automatic detection.
+
+Claude Code auto-mode classifier requests default native thinking to disabled when they contain
+no explicit reasoning controls. Detection uses the classifier's system marker in Claude-format
+requests, not model names or completion limits. Explicit body controls, supported effort/thinking
+headers, routing rules, and resolved model effort keep their existing priority. Both classifier
+stages retain their prompts, completion limits, stop sequences, and real upstream permission
+verdicts; the second stage can still produce its requested visible reasoning as ordinary text.
 
 ### OAuth Flows
 
@@ -881,15 +971,15 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Monitoring
 
-| Endpoint                             | Method     | Description                                                                                                                                                                                       |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Active session tracking                                                                                                                                                                           |
-| `/api/rate-limits`                   | GET        | Per-account rate limits                                                                                                                                                                           |
-| `/api/monitoring/health`             | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)                                                                                              |
-| `/api/cache/stats`                   | GET/DELETE | Cache stats / clear                                                                                                                                                                               |
-| `/api/modality-bridge/stats`         | GET        | In-memory `attempts`, successes/`bridged`, failures, cache hits, `totalLatencyMs`, `latencySamples`, sample-denominated `averageLatencyMs`, and last-use time (reset on restart; management auth) |
-| `/api/modality-bridge/video/runtime` | GET        | Strict trusted-loopback check before management auth/probe; sanitized FFmpeg/ffprobe availability and versions (no-store)                                                                         |
-| `/api/modality-bridge/video/extract` | POST       | Internal authenticated trusted-loopback byte broker; 50 MiB input, bounded queue/32 MiB output, `503` capacity, `499` disconnect, `504` deadline; not a public upload API                         |
+| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Active session tracking                                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/rate-limits`                   | GET        | Per-account rate limits                                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/monitoring/health`             | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Management view includes `credentialHealth`: probe-cache scalars, `failedConnections` when `failed>0`, and `staleDbNonOkCount` (SQLite sticky `test_status`, not the gauge). See [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Cache stats / clear                                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/modality-bridge/stats`         | GET        | In-memory `attempts`, successes/`bridged`, failures, cache hits, `totalLatencyMs`, `latencySamples`, sample-denominated `averageLatencyMs`, and last-use time (reset on restart; management auth)                                                                                                                                                                                            |
+| `/api/modality-bridge/video/runtime` | GET        | Strict trusted-loopback check before management auth/probe; sanitized FFmpeg/ffprobe availability and versions (no-store)                                                                                                                                                                                                                                                                    |
+| `/api/modality-bridge/video/extract` | POST       | Internal authenticated trusted-loopback byte broker; 50 MiB input, bounded queue/32 MiB output, `503` capacity, `499` disconnect, `504` deadline; not a public upload API                                                                                                                                                                                                                    |
 
 ### Backup & Export/Import
 
@@ -1446,7 +1536,7 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 | POST | `/api/evals/suites` | Create a custom eval suite — body validated by `evalSuiteSaveSchema` |
 | GET | `/api/evals/suites/[id]` | Retrieve a custom eval suite |
 
-**Auth:** `/api/cloud/auth` validates a Bearer key directly; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
+**Auth:** `/api/cloud/auth` validates a Bearer key directly and returns the masked key and `projectId` of each connection only for a key with the `manage` / `admin` scope; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
 
 ---
 
@@ -1607,7 +1697,7 @@ Admin-only endpoints for operational management.
 
 ## CLI Tools Management
 
-Manage CLI tools that integrate with OmniRoute (antigravity, chipotle, commandCode,
+Manage CLI tools that integrate with OmniRoute (antigravity, commandCode,
 devin-cli, etc.). See [Provider Reference](./PROVIDER_REFERENCE.md) for the full list.
 
 | Method | Path                                    | Description                                                                                                                                       |

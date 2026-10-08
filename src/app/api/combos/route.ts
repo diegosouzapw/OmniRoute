@@ -13,6 +13,7 @@ import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 import { computeComboContextLength } from "@/lib/combos/comboContext";
 import { ComboInvariantError } from "@/lib/combos/invariants";
 import { buildComboNameCollisionWarning } from "@/lib/combos/modelNameCollision";
+import { stripDeadComboConfigKeys } from "@/lib/combos/deadConfigKeys";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -70,6 +71,9 @@ export async function POST(request) {
       ...validation.data,
       models: normalizedModels,
     };
+    if (comboInput.config && typeof comboInput.config === "object") {
+      comboInput.config = stripDeadComboConfigKeys(comboInput.config);
+    }
     const { name, strategy, config } = comboInput;
     const compositeValidation = validateCompositeTiersConfig(comboInput);
     if (compositeValidation.success === false) {

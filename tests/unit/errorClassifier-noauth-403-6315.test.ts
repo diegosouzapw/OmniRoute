@@ -11,7 +11,7 @@ import { classifyProviderError } from "../../open-sse/services/errorClassifier.t
 
 test("#6345: no-credential provider 'Request blocked'/access_denied 403 -> recoverable (null), not FORBIDDEN", () => {
   const body = { error: "Request blocked", type: "access_denied" };
-  assert.equal(classifyProviderError(403, body, "chipotle"), null);
+  assert.equal(classifyProviderError(403, body, "duckduckgo-web"), null);
 });
 
 test("control: apikey-provider bare 403 still recoverable (null) — no regression", () => {

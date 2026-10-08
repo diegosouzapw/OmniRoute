@@ -1,4 +1,5 @@
 import { getProviderCredentials } from "@/sse/services/auth";
+import { isCredentialDiagnosticSentinel } from "@/sse/services/credentialSentinel";
 import { recordCost } from "@/domain/costRules";
 import * as defaultLog from "@/sse/utils/logger";
 import {
@@ -63,10 +64,10 @@ export class WebSearchExecutionError extends Error {
 
 async function resolveSearchCredentials(providerId: string) {
   const creds = await getProviderCredentials(providerId).catch(() => null);
-  if (creds) return creds;
+  if (creds && !isCredentialDiagnosticSentinel(creds)) return creds;
   for (const fallbackId of getSearchCredentialFallbacks(providerId)) {
     const fallback = await getProviderCredentials(fallbackId).catch(() => null);
-    if (fallback) return fallback;
+    if (fallback && !isCredentialDiagnosticSentinel(fallback)) return fallback;
   }
   return null;
 }

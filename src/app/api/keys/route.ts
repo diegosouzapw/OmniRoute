@@ -82,6 +82,7 @@ export async function POST(request) {
       dailyUsageLimitUsd,
       weeklyUsageLimitUsd,
       chaosModeEnabled,
+      expiresAt,
     } = validation.data;
 
     // Always get machineId from server
@@ -92,6 +93,7 @@ export async function POST(request) {
       allowedModels,
       allowedCombos,
       allowedConnections,
+      expiresAt,
     });
     if (
       noLog === true ||
@@ -137,6 +139,7 @@ export async function POST(request) {
         dailyUsageLimitUsd: dailyUsageLimitUsd ?? null,
         weeklyUsageLimitUsd: weeklyUsageLimitUsd ?? null,
         chaosModeEnabled: chaosModeEnabled === true,
+        expiresAt: expiresAt ?? null,
         streamDefaultMode: "legacy",
         compressionEnabled: true,
         cacheDefaultMode: "legacy",

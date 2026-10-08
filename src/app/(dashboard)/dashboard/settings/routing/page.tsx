@@ -9,7 +9,7 @@ import ComboDefaultsTab from "../components/ComboDefaultsTab";
 import FallbackChainsEditor from "../components/FallbackChainsEditor";
 import ModelAliasesUnified from "../components/ModelAliasesUnified";
 import BackgroundDegradationTab from "../components/BackgroundDegradationTab";
-import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
+import RoutingEntryLink from "@/shared/components/routing/RoutingEntryLink";
 
 export default function SettingsRoutingPage() {
   const t = useTranslations("settings");
@@ -19,7 +19,7 @@ export default function SettingsRoutingPage() {
       <RoutingStrategyCard />
       <QuotaPreflightCard />
       <ComboDefaultsTab />
-      <ReasoningRoutingRules />
+      <RoutingEntryLink />
       <ModelAliasesUnified />
       <FallbackChainsEditor />
       <ModelRoutingSection />

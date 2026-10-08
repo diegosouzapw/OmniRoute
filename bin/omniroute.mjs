@@ -14,7 +14,7 @@
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 let updateNotifier = null;
@@ -30,6 +30,11 @@ import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 import { isVersionFastPath } from "./cli/utils/versionFastPath.mjs";
 import { parseEnvValue } from "./cli/utils/parseEnvValue.mjs";
 import { describeVolatileEnvWarning } from "./cli/utils/volatileEnvPath.mjs";
+import {
+  ensurePrivateDataDir,
+  tightenDataDirSecrets,
+  writePrivateFile,
+} from "./cli/privateDataDir.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,6 +53,34 @@ if (isVersionFastPath(process.argv)) {
   const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
   console.log(pkg.version);
   process.exit(0);
+}
+
+// Detect an unsupported Node.js runtime BEFORE the heavy `tsx/esm` import and
+// Commander's ~70-command registration chain run. That chain pulls in `ora` ->
+// the hoisted `string-width` package, whose module contains top-level ES2024
+// Unicode-set (`v` flag) regex literals. On a Node/V8 build that predates
+// `v`-flag support, those literals fail to even *parse*, throwing a bare
+// `SyntaxError: Invalid regular expression flags` deep inside a transitive
+// dependency instead of an actionable message (#12296). Skip this for the
+// same read-only invocations `shouldProvisionStorageKey` already exempts
+// (`--help`/`-h`, `help`/`completion`) — those still need the full command
+// registry to render their output, so an incompatible runtime crashing there
+// is a separate, pre-existing limitation this fix does not attempt to solve.
+if (shouldProvisionStorageKey(process.argv)) {
+  const nodeSupport = getNodeRuntimeSupport();
+  if (!nodeSupport.nodeCompatible) {
+    const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
+    console.error(
+      `\x1b[31m✖ Node.js ${nodeSupport.nodeVersion} is not supported.\x1b[0m\n` +
+        `  ${runtimeWarning}\n` +
+        `  Supported runtimes: ${nodeSupport.supportedDisplay}\n` +
+        `  Recommended: Node.js ${nodeSupport.recommendedVersion}\n` +
+        `  If you installed OmniRoute globally, run \`node -v\` and confirm \`omniroute\` is not resolving to\n` +
+        `  a stale/distro-packaged \`nodejs\` binary (e.g. /usr/bin/node) instead of the version you expect —\n` +
+        `  that mismatch is the most common cause even when package.json's engines range is correct.`
+    );
+    process.exit(1);
+  }
 }
 
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages. Redirect
@@ -91,7 +124,7 @@ function migrateElectronServerEnv(dataDir) {
     const envPath = join(dataDir, ".env");
     const serverEnvPath = join(dataDir, "server.env");
     if (existsSync(envPath) || !existsSync(serverEnvPath)) return;
-    writeFileSync(envPath, readFileSync(serverEnvPath, "utf-8"), "utf-8");
+    writePrivateFile(envPath, readFileSync(serverEnvPath, "utf-8"));
     console.log(`  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`);
   } catch {
     // Ignore errors migrating server.env — fall back to normal env loading below.
@@ -114,7 +147,12 @@ function loadEnvFile() {
     addEnvPath(join(process.env.DATA_DIR, ".env"));
   }
 
-  addEnvPath(join(getDefaultDataDir(), ".env"));
+  // Hermetic commands (real CLI smokes, migrations, recovery probes) may point
+  // DATA_DIR at an isolated tree. Do not silently mix the user's default
+  // credential env into that process when isolation is explicitly requested.
+  if (process.env.OMNIROUTE_CLI_SKIP_DEFAULT_DATA_ENV !== "1") {
+    addEnvPath(join(getDefaultDataDir(), ".env"));
+  }
 
   addEnvPath(join(process.cwd(), ".env"));
   // Skip the repo-checkout .env when explicitly requested (used by isolation tests
@@ -201,9 +239,14 @@ loadEnvFile();
 // mutate the data dir.
 if (shouldProvisionStorageKey(process.argv)) {
   const { randomBytes } = await import("node:crypto");
-  const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
+  const { existsSync, readFileSync } = await import("node:fs");
   const { join } = await import("node:path");
   const { homedir } = await import("node:os");
+
+  // GHSA-2pg2-xm9r-8544: installs created before the fix have a world-readable .env and a
+  // world-traversable data dir. Repair them on every run that touches encrypted storage
+  // (best-effort; group bits are kept). Informational commands never reach this block.
+  tightenDataDirSecrets(process.env.DATA_DIR || join(homedir(), ".omniroute"));
 
   if (!process.env.STORAGE_ENCRYPTION_KEY) {
     // Persist the key into DATA_DIR when set — that's the directory mounted as a volume in
@@ -228,9 +271,8 @@ if (shouldProvisionStorageKey(process.argv)) {
       );
     } else {
       // First run (no database yet) — generate and persist a fresh key.
-      if (!existsSync(dataDir)) {
-        mkdirSync(dataDir, { recursive: true });
-      }
+      // GHSA-2pg2-xm9r-8544: owner-only — .env holds the key to every stored credential.
+      ensurePrivateDataDir(dataDir);
 
       const key = randomBytes(32).toString("hex");
 
@@ -244,7 +286,7 @@ if (shouldProvisionStorageKey(process.argv)) {
       if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
         const separator = content.trim() ? "\n" : "";
         const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
-        writeFileSync(envPath, newContent + "\n", "utf-8");
+        writePrivateFile(envPath, newContent + "\n");
         console.log(`  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ${envPath}\x1b[0m`);
       }
 

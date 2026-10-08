@@ -1,1 +1,0 @@
-- **fix(cli):** use in-thread alias resolver hooks on modern runtimes to avoid deprecation noise and improve Node.js forward compatibility ([#12073](https://github.com/diegosouzapw/OmniRoute/issues/12073)).

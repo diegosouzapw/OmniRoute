@@ -1,4 +1,4 @@
-import { applyLiteCompression } from "../lite.ts";
+import { applyLiteCompression, isUsableLiteMaxToolLength } from "../lite.ts";
 import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";
 import { ultraCompressHeuristic } from "../ultra.ts";
@@ -60,12 +60,6 @@ const AGGRESSIVE_SCHEMA: EngineConfigField[] = [
     min: 0,
     max: 1,
   },
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
 ];
 
 const ULTRA_SCHEMA: EngineConfigField[] = [
@@ -111,17 +105,7 @@ const ULTRA_SCHEMA: EngineConfigField[] = [
     min: 0,
     max: 32768,
   },
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
 ];
-
-function ok(): EngineValidationResult {
-  return { valid: true, errors: [] };
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -211,23 +195,26 @@ function validateUltraConfig(config: Record<string, unknown>): EngineValidationR
   return { valid: errors.length === 0, errors };
 }
 
-// Lite only honors `preserveSystemPrompt` (model/vision are runtime, not user config).
-// Previously this engine wrongly exposed AGGRESSIVE_SCHEMA, surfacing irrelevant
-// summarizer/threshold fields in the per-engine config UI.
+// Lite exposes only the tool-truncation controls. System-prompt preservation is a
+// global settings-level flag (not tunable per engine), so it must not appear here.
 const LITE_SCHEMA: EngineConfigField[] = [
-  {
-    key: "preserveSystemPrompt",
-    type: "boolean",
-    label: "Preserve system prompt",
-    defaultValue: true,
-  },
   {
     key: "compressToolResults",
     type: "boolean",
     label: "Proactively truncate long tool results",
     description:
-      "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget.",
+      "Truncates long tool results during Lite compression. The Maximum tool-result length field (or OMNIROUTE_LITE_MAX_TOOL_LENGTH when that field is unset) sets the cap. Emergency overflow protection may still trim content when the context exceeds the model budget.",
     defaultValue: true,
+  },
+  {
+    key: "maxToolLength",
+    type: "number",
+    label: "Maximum tool-result length",
+    description:
+      "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset.",
+    defaultValue: 2000,
+    min: 256,
+    max: 1_000_000,
   },
 ];
 
@@ -240,6 +227,7 @@ function validateLiteConfig(config: Record<string, unknown>): EngineValidationRe
     errors.push("preserveSystemPrompt must be a boolean");
   }
   validateBoolean(config, "compressToolResults", errors);
+  validateNumberRange(config, "maxToolLength", 256, 1_000_000, errors);
   return { valid: errors.length === 0, errors };
 }
 
@@ -267,6 +255,8 @@ export const liteEngine: CompressionEngine = {
     // to global config.lite, then the default (keeps the type `boolean`, and a malformed
     // step value can no longer leak through the `??` chain as `{}`).
     const stepCompressToolResults = options?.stepConfig?.compressToolResults;
+    const stepMaxToolLength = options?.stepConfig?.maxToolLength;
+    const configMaxToolLength = options?.config?.lite?.maxToolLength;
     const result = applyLiteCompression(adapter.body, {
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
@@ -277,6 +267,11 @@ export const liteEngine: CompressionEngine = {
         typeof stepCompressToolResults === "boolean"
           ? stepCompressToolResults
           : (options?.config?.lite?.compressToolResults ?? true),
+      maxToolLength: isUsableLiteMaxToolLength(stepMaxToolLength)
+        ? Math.floor(stepMaxToolLength)
+        : isUsableLiteMaxToolLength(configMaxToolLength)
+          ? Math.floor(configMaxToolLength)
+          : undefined,
     });
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   },

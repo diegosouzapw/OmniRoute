@@ -1,7 +1,10 @@
 /** Run: node --import tsx/esm --test tests/unit/ui/orchestrationToFlow.test.ts */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { orchestrationToFlow } from "../../../src/app/(dashboard)/dashboard/orchestration/model/orchestrationToFlow.ts";
+import {
+  PARTICLE_EDGE_CAP,
+  orchestrationToFlow,
+} from "../../../src/app/(dashboard)/dashboard/orchestration/model/orchestrationToFlow.ts";
 import type { OrchSnapshot } from "../../../src/app/(dashboard)/dashboard/orchestration/model/orchestrationTypes.ts";
 
 const snap: OrchSnapshot = {
@@ -65,17 +68,27 @@ describe("orchestrationToFlow", () => {
     assert.equal(ys.get("source:a2a"), 150);
     assert.equal(ys.get("a2a:t1"), 320);
   });
-  it('edges carry type "status" and data.{state,active,mirror}; no animated/style leak', () => {
+  it('edges carry type "status" and data.{state,active,mirror,particles}; no animated/style leak', () => {
     const { edges } = orchestrationToFlow(snap);
     const activeEdge = edges.find((e) => e.id === "e2");
     assert.equal(activeEdge?.type, "status");
-    assert.deepEqual(activeEdge?.data, { state: "running", active: true, mirror: false });
+    assert.deepEqual(activeEdge?.data, {
+      state: "running",
+      active: true,
+      mirror: false,
+      particles: true,
+    });
     assert.equal((activeEdge as { animated?: boolean }).animated, undefined);
     assert.equal((activeEdge as { style?: unknown }).style, undefined);
 
     const edgeToFailed = edges.find((e) => e.id === "e3");
     assert.equal(edgeToFailed?.type, "status");
-    assert.deepEqual(edgeToFailed?.data, { state: "failed", active: false, mirror: false });
+    assert.deepEqual(edgeToFailed?.data, {
+      state: "failed",
+      active: false,
+      mirror: false,
+      particles: true,
+    });
   });
   it("mirror edges carry data.mirror === true", () => {
     const mirrorSnap: OrchSnapshot = {
@@ -144,5 +157,58 @@ describe("orchestrationToFlow", () => {
     assert.equal(k1, k1Again);
     assert.notEqual(k1, base);
     assert.notEqual(k1, k2);
+  });
+});
+
+/**
+ * Particle cap (task B3.6): above PARTICLE_EDGE_CAP simultaneously active edges the canvas
+ * would run 3 SMIL particles per edge, so `orchestrationToFlow` tells StatusEdge to render the
+ * plain stroke instead (`data.particles === false`).
+ */
+function busySnapshot(activeEdges: number): OrchSnapshot {
+  const nodes: OrchSnapshot["nodes"] = [
+    { id: "orchestrator", kind: "orchestrator", label: "OmniRoute" },
+    { id: "source:a2a", kind: "source", source: "a2a", label: "A2A" },
+  ];
+  const edges: OrchSnapshot["edges"] = [];
+  for (let i = 0; i < activeEdges; i++) {
+    const id = `a2a:t${String(i).padStart(3, "0")}`;
+    nodes.push({ id, kind: "work", source: "a2a", state: "running", label: id });
+    edges.push({ id: `e${i}`, from: "source:a2a", to: id, kind: "owns", active: true });
+  }
+  return { nodes, edges, sources: [], generatedAt: "2026-09-07T00:00:00Z" };
+}
+
+describe("orchestrationToFlow — particle cap", () => {
+  it("PARTICLE_EDGE_CAP is 40", () => {
+    assert.equal(PARTICLE_EDGE_CAP, 40);
+  });
+
+  it("keeps particles on at exactly the cap", () => {
+    const { edges } = orchestrationToFlow(busySnapshot(PARTICLE_EDGE_CAP));
+    assert.equal(edges.length, PARTICLE_EDGE_CAP);
+    assert.ok(edges.every((e) => (e.data as { particles?: boolean }).particles === true));
+  });
+
+  it("turns particles off for every edge once the cap is exceeded", () => {
+    const { edges } = orchestrationToFlow(busySnapshot(PARTICLE_EDGE_CAP + 1));
+    assert.ok(edges.every((e) => (e.data as { particles?: boolean }).particles === false));
+  });
+
+  it("counts only ACTIVE edges — 41 idle edges stay under the cap", () => {
+    const snapWithIdle = busySnapshot(PARTICLE_EDGE_CAP + 1);
+    const allIdle: OrchSnapshot = {
+      ...snapWithIdle,
+      edges: snapWithIdle.edges.map((e) => ({ ...e, active: false })),
+    };
+    const { edges } = orchestrationToFlow(allIdle);
+    assert.ok(edges.every((e) => (e.data as { particles?: boolean }).particles === true));
+  });
+
+  it("counts VISIBLE active edges only — collapsing the source drops it back under the cap", () => {
+    const { edges } = orchestrationToFlow(busySnapshot(PARTICLE_EDGE_CAP + 1), {
+      collapsed: new Set(["a2a"]),
+    });
+    assert.equal(edges.length, 0);
   });
 });

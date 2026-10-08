@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import { CLAUDE_CONFIG } from "../constants/oauth";
 import { getClaudeCodeVersion } from "@omniroute/open-sse/executors/claudeIdentity.ts";
+import { validateClaudeOAuthInline } from "@/lib/providers/validation/anthropicFormat";
+
+const SETUP_TOKEN_PREFIX = "sk-ant-oat";
 
 const BOOTSTRAP_FETCH_TIMEOUT_MS = 10_000;
 
@@ -76,6 +79,46 @@ function extractClaudePlan(tokens: unknown, extra: unknown): string | undefined 
   );
 }
 
+function newProviderSpecificData(): Record<string, unknown> {
+  return {
+    // Generated once at provisioning; preserved across token refresh.
+    cliUserID: crypto.randomBytes(32).toString("hex"),
+    autoSync: true,
+  };
+}
+
+class ClaudeSetupTokenError extends Error {
+  readonly status = 400;
+}
+
+/**
+ * `claude setup-token` mints a 1-year OAuth token scoped to `user:inference` only:
+ * no refresh token, and bootstrap/profile answer 403, so there is no email or
+ * account UUID to learn. A live one-token request is therefore the only proof
+ * the token works, and it runs before anything is stored.
+ */
+async function importSetupToken(token: unknown) {
+  const accessToken = typeof token === "string" ? token.trim() : "";
+  if (!accessToken.startsWith(SETUP_TOKEN_PREFIX)) {
+    throw new ClaudeSetupTokenError(
+      `Expected a token from \`claude setup-token\` (starts with ${SETUP_TOKEN_PREFIX})`
+    );
+  }
+  const check = await validateClaudeOAuthInline({ apiKey: accessToken, modelId: null });
+  if (!check.valid) {
+    throw new ClaudeSetupTokenError(
+      `Could not verify this setup token with Anthropic (${check.error})`
+    );
+  }
+  return {
+    name: "Setup token",
+    accessToken,
+    refreshToken: null,
+    expiresIn: null,
+    providerSpecificData: newProviderSpecificData(),
+  };
+}
+
 export const claude = {
   config: CLAUDE_CONFIG,
   flowType: "authorization_code_pkce",
@@ -137,13 +180,11 @@ export const claude = {
     if (!tokens?.access_token) return null;
     return await fetchClaudeBootstrap(tokens.access_token);
   },
+  importToken: importSetupToken,
   mapTokens: (tokens, extra) => {
     const plan = extractClaudePlan(tokens, extra);
     const bs = extra || {};
-    const providerSpecificData: any = {
-      // Generated once at provisioning; preserved across token refresh.
-      cliUserID: crypto.randomBytes(32).toString("hex"),
-    };
+    const providerSpecificData: any = newProviderSpecificData();
     if (bs.account_uuid) providerSpecificData.accountUUID = bs.account_uuid;
     if (bs.organization_uuid) providerSpecificData.organizationUUID = bs.organization_uuid;
     if (bs.organization_name) providerSpecificData.organizationName = bs.organization_name;

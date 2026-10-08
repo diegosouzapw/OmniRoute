@@ -29,7 +29,7 @@ test("Codex catalog exposes the GPT-5.6 lineup in configured priority order", ()
   ];
 
   assert.deepEqual(
-    models.slice(0, expectedIds.length).map((model) => model.id),
+    models.filter((model) => model.id.startsWith("gpt-5.6-")).map((model) => model.id),
     expectedIds
   );
 

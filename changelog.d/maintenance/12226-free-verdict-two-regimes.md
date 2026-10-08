@@ -1,1 +1,0 @@
-- **docs(free-tier):** declare the counting vs deciding regimes for "is it free?" and guard the deciding path from DB-backed catalog resolution ([#12226](https://github.com/diegosouzapw/OmniRoute/pull/12226))

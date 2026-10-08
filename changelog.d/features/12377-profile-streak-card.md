@@ -1,1 +1,0 @@
-- **feat(gamification):** the dashboard Profile page now shows the real daily streak — `/api/gamification/level` returns `streak: { current, longest }` (per key with `apiKeyId`, operator-wide maximum otherwise) and the streak card reads it instead of a hard-coded 0 (#2403)

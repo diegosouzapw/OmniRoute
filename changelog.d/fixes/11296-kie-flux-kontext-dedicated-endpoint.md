@@ -1,1 +1,0 @@
-- **fix(kie):** reroute `flux/kontext` off the KIE Market `createTask` flow — it is catalogued with `isMarket: true` but has no Market catalog page, so KIE rejected it with "model name not supported"; it now hits the dedicated `POST /api/v1/flux/kontext/generate` / `GET /api/v1/flux/kontext/record-info` endpoints instead (#11296).

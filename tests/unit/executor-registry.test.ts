@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 // R0.3 — unit tests for the ExecutorRegistry seam itself (registration
 // semantics + wiring of the built-ins). Behavior parity of the full map is
@@ -17,9 +18,7 @@ const { getExecutor, hasSpecializedExecutor, BaseExecutor, DefaultExecutor } =
   await import("../../open-sse/executors/index.ts");
 const { getDefaultExecutor } = await import("../../open-sse/executors/defaultResolver.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-});
+test.after(() => cleanupTempDataDir(TEST_DATA_DIR));
 
 test("built-ins are registered at module load and resolve through the registry", async () => {
   const aliases = listExecutorAliases();

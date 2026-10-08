@@ -11,10 +11,13 @@
  */
 import {
   generateSignature as defaultGenerateSignature,
+  outputContractOf,
   setCachedResponse as defaultSetCachedResponse,
   isCacheableForWrite as defaultIsCacheableForWrite,
+  isTruncatedStreamBody as defaultIsTruncatedStreamBody,
 } from "@/lib/semanticCache";
 import { isSmallEnoughForSemanticCache as defaultIsSmallEnough } from "../../utils/estimateSize.ts";
+import { getSemanticCacheManager } from "../../services/cache/semanticCacheManager.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
@@ -27,6 +30,8 @@ type CacheBody = {
 
 export interface StreamingSemanticCacheStoreDeps {
   isCacheableForWrite: typeof defaultIsCacheableForWrite;
+  /** Optional so pre-existing callers/tests with partial deps keep working. */
+  isTruncatedStreamBody?: typeof defaultIsTruncatedStreamBody;
   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;
   generateSignature: typeof defaultGenerateSignature;
   setCachedResponse: typeof defaultSetCachedResponse;
@@ -34,6 +39,7 @@ export interface StreamingSemanticCacheStoreDeps {
 
 const DEFAULT_DEPS: StreamingSemanticCacheStoreDeps = {
   isCacheableForWrite: defaultIsCacheableForWrite,
+  isTruncatedStreamBody: defaultIsTruncatedStreamBody,
   isSmallEnoughForSemanticCache: defaultIsSmallEnough,
   generateSignature: defaultGenerateSignature,
   setCachedResponse: defaultSetCachedResponse,
@@ -46,9 +52,11 @@ interface StreamingCacheArgs {
   body: CacheBody;
   headers: unknown;
   model: string;
+  provider?: string;
   apiKeyId?: string;
   streamUsage?: Record<string, unknown> | null;
   log?: LoggerLike;
+  videoTranscriptSensitive?: boolean;
 }
 
 function streamTokensSaved(streamUsage: Record<string, unknown> | null | undefined): number {
@@ -69,7 +77,8 @@ function writeStreamingCacheEntry(
       args.body.messages ?? args.body.input,
       args.body.temperature,
       args.body.top_p,
-      args.apiKeyId ?? undefined
+      args.apiKeyId ?? undefined,
+      outputContractOf(args.body)
     );
     const tokensSaved = streamTokensSaved(args.streamUsage);
     deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);
@@ -77,6 +86,19 @@ function writeStreamingCacheEntry(
       "CACHE",
       `Stored streaming response for ${args.model} (${tokensSaved} tokens)`
     );
+
+    getSemanticCacheManager()
+      .store({
+        body: args.body as Record<string, unknown>,
+        headers: args.headers,
+        response: cleanBody,
+        model: args.model,
+        provider: args.provider || (cleanBody.provider as string) || "",
+        apiKeyId: args.apiKeyId,
+        signature: sig,
+        tokensSaved,
+      })
+      .catch(() => {});
   } catch {
     // Cache write failed — non-critical
   }
@@ -87,10 +109,12 @@ export function storeStreamingSemanticCacheResponse(
   deps: StreamingSemanticCacheStoreDeps = DEFAULT_DEPS
 ): void {
   if (
+    args.videoTranscriptSensitive ||
     !args.enabled ||
     args.streamStatus !== 200 ||
     !args.streamResponseBody ||
-    !deps.isCacheableForWrite(args.body, args.headers)
+    !deps.isCacheableForWrite(args.body, args.headers) ||
+    (deps.isTruncatedStreamBody ?? defaultIsTruncatedStreamBody)(args.streamResponseBody)
   ) {
     return;
   }

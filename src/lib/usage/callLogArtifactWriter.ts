@@ -116,8 +116,15 @@ function warnRateLimited(message: string): void {
   console.warn(message);
 }
 
-function failOpen(warn = false): void {
-  if (warn) warnRateLimited("[callLogs] Call-log artifact worker failed; detail omitted.");
+function describeFailureDetail(detail: unknown): string {
+  if (detail instanceof Error) return `${detail.name}: ${detail.message}`;
+  return String(detail ?? "unknown error");
+}
+
+function failOpen(warn = false, detail?: unknown): void {
+  if (warn) {
+    warnRateLimited(`[callLogs] Call-log artifact worker failed: ${describeFailureDetail(detail)}`);
+  }
   const failed = active ? [active, ...queue] : [...queue];
   active = null;
   queue.length = 0;
@@ -126,10 +133,24 @@ function failOpen(warn = false): void {
   notifyCloseWaiters();
 }
 
+let workerFileOverride: { workerFile: string; execArgv: string[] } | null = null;
+
+/**
+ * Test-only hook: force the next ensureWorker() call to spawn an arbitrary worker
+ * script/execArgv instead of the real callLogArtifactWorker file. Lets regression tests
+ * trigger a genuine worker_threads `error`/`exit` event without editing the production
+ * worker script. Never called from production code paths.
+ */
+export function __setCallLogWorkerOverrideForTests(
+  override: { workerFile: string; execArgv: string[] } | null
+): void {
+  workerFileOverride = override;
+}
+
 function ensureWorker(): Worker {
   if (worker) return worker;
 
-  const { workerFile, execArgv } = resolveCallLogArtifactWorker();
+  const { workerFile, execArgv } = workerFileOverride ?? resolveCallLogArtifactWorker();
   // Reflect.construct keeps Next/Turbopack from interpreting the runtime-selected
   // worker path as a build-time glob and tracing tens of thousands of unrelated files.
   const created = Reflect.construct(Worker, [pathToFileURL(workerFile), { execArgv }]) as Worker;
@@ -141,12 +162,12 @@ function ensureWorker(): Worker {
     completed.resolve(reply.result);
     pump();
   });
-  created.on("error", () => failOpen(true));
-  created.on("messageerror", () => failOpen(true));
+  created.on("error", (err) => failOpen(true, err));
+  created.on("messageerror", (err) => failOpen(true, err));
   created.on("exit", (code) => {
     if (worker !== created) return;
     worker = null;
-    if (code !== 0 || active) failOpen(true);
+    if (code !== 0 || active) failOpen(true, new Error(`worker exited with code ${code}`));
   });
   return created;
 }
@@ -168,8 +189,8 @@ function pump(): void {
       artifact: next.artifact,
       environment: next.environment,
     });
-  } catch {
-    failOpen(true);
+  } catch (err) {
+    failOpen(true, err);
   }
 }
 

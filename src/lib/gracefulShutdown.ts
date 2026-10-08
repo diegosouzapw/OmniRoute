@@ -107,7 +107,7 @@ async function cleanup(): Promise<void> {
   try {
     const [
       { closeAuditDb },
-      { closeDbInstance },
+      { shutdownDbInstance },
       { flushSpendBatchWriter },
       { closeLogRotation },
       { closeSharedLoggerResource },
@@ -130,8 +130,12 @@ async function cleanup(): Promise<void> {
     if (closeAuditDb()) {
       console.log("[Shutdown] MCP audit database checkpointed and closed.");
     }
-    if (closeDbInstance()) {
-      console.log("[Shutdown] SQLite database checkpointed and closed.");
+    try {
+      if (await shutdownDbInstance()) {
+        console.log("[Shutdown] SQLite database checkpointed and closed.");
+      }
+    } catch (error) {
+      console.error("[Shutdown] Database cleanup failed:", (error as Error).message);
     }
     // Tear down any persistent VNC login browser containers so they don't leak
     // past the server process. Best-effort; no-op if the feature was never used
@@ -200,7 +204,16 @@ export function initGracefulShutdown(): void {
   }
 
   const shutdown = (signal: string) => {
-    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => process.exit(0));
+    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => {
+      // #13306: on Windows, sql.js's Emscripten WASM build leaves pending libuv
+      // async-handle teardown work in flight after a statement has run. Calling
+      // process.exit() in the same tick as cleanup() resolving tears the event loop
+      // down before that teardown settles, and libuv's Windows async-handle close path
+      // asserts `!(handle->flags & UV_HANDLE_CLOSING)` -> hard abort. Deferring by one
+      // macrotask (mirrors 9router's own shutdown call sites, e.g.
+      // appUpdater.js:199, cli/cli.js:675) gives that teardown work a chance to run.
+      setTimeout(() => process.exit(0), 0);
+    });
   };
 
   process.on("SIGTERM", () => void shutdown("SIGTERM"));

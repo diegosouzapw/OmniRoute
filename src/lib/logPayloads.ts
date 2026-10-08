@@ -3,7 +3,7 @@ import {
   sanitizeUpstreamDetails,
 } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { projectResponsesFailureOutput } from "@omniroute/open-sse/utils/responsesFailureOutput.ts";
-import { sanitizePII } from "./piiSanitizer";
+import { isPiiSanitizationEnabled, sanitizePII } from "./piiSanitizer";
 
 const SENSITIVE_KEYS = new Set([
   "api_key",
@@ -14,6 +14,7 @@ const SENSITIVE_KEYS = new Set([
   "x-api-key",
   "X-Api-Key",
   "x-goog-api-key",
+  "xi-api-key",
   "access_token",
   "accessToken",
   "refresh_token",
@@ -435,7 +436,7 @@ export function redactPayload(payload: unknown): unknown {
   return redacted;
 }
 
-export function sanitizePayloadPII(payload: unknown): unknown {
+function sanitizePayloadPIIWalk(payload: unknown): unknown {
   if (typeof payload === "string") {
     return sanitizePII(payload).text;
   }
@@ -446,14 +447,24 @@ export function sanitizePayloadPII(payload: unknown): unknown {
     return describeOpaqueBinary(payload);
   }
   if (Array.isArray(payload)) {
-    return payload.map(sanitizePayloadPII);
+    return payload.map(sanitizePayloadPIIWalk);
   }
 
   const sanitized: JsonRecord = {};
   for (const [key, value] of Object.entries(payload)) {
-    sanitized[key] = sanitizePayloadPII(value);
+    sanitized[key] = sanitizePayloadPIIWalk(value);
   }
   return sanitized;
+}
+
+export function sanitizePayloadPII(payload: unknown): unknown {
+  // Sanitization is opt-in and off by default. With it off, sanitizePII returns
+  // every string untouched, so the walk below was a full rebuild of the payload
+  // that changed nothing: on a multi-megabyte agentic request body, run several
+  // times per request by the pending-request tracker and the call log, it was
+  // the single largest CPU cost on the event loop under concurrent load.
+  if (!isPiiSanitizationEnabled()) return payload;
+  return sanitizePayloadPIIWalk(payload);
 }
 
 export function protectPayloadForLog(payload: unknown): unknown {

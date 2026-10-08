@@ -1,1 +1,0 @@
-- **fix(assets):** Stop distributing 79 provider and CLI logos without verified source/license provenance, keep every provider/tool available through the internal generic icon, and prevent those IDs from falling through to an external icon CDN.

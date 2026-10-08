@@ -1,1 +1,0 @@
-- **fix(vision-bridge):** Restrict automatic vision routing and fallbacks to models available in authoritative live provider catalogs, including aliases and effort variants ([#11767](https://github.com/diegosouzapw/OmniRoute/issues/11767)) — thanks @pacocartones

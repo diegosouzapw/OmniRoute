@@ -22,6 +22,12 @@ export function isTextBlock(value: unknown): value is TextBlock {
   );
 }
 
+export function isToolResultBlock(value: unknown): boolean {
+  return (
+    !!value && typeof value === "object" && (value as { type?: unknown }).type === "tool_result"
+  );
+}
+
 export function extractTextContent(content: ChatMessageLike["content"]): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -82,7 +88,14 @@ export function replaceTextContent(msg: ChatMessageLike, newText: string): ChatM
   });
 
   if (!replaced) {
-    return { ...msg, content: [{ type: "text", text: newText }, ...msg.content] };
+    // Anthropic requires every `tool_result` block to sit at the start of the
+    // user turn that answers a `tool_use`; a text block in front of them makes
+    // upstream reject the whole request with "tool_use ids were found without
+    // tool_result blocks immediately after" (#12890). Append the annotation in
+    // that case, and keep prepending everywhere else.
+    return msg.content.some(isToolResultBlock)
+      ? { ...msg, content: [...msg.content, { type: "text", text: newText }] }
+      : { ...msg, content: [{ type: "text", text: newText }, ...msg.content] };
   }
 
   return { ...msg, content };

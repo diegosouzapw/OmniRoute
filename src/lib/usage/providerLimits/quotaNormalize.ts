@@ -2,7 +2,7 @@ import {
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
+import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -10,15 +10,31 @@ export function isRecord(value: unknown): value is JsonRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+const ANTIGRAVITY_FAMILY_QUOTA_KEYS = new Set(["gemini_weekly", "claude_gpt_weekly"]);
+
 export function isUsageQuotaKeyAllowed(provider: string, quotaKey: string): boolean {
   if (quotaKey === "credits" || quotaKey === "models") return true;
+  // Family weekly buckets from retrieveUserQuotaSummary are not model ids.
+  // Dropping them here is why Token Monitor only ever sees the 5-hour bar.
+  if (
+    (provider === "antigravity" || provider === "agy") &&
+    ANTIGRAVITY_FAMILY_QUOTA_KEYS.has(quotaKey)
+  ) {
+    return true;
+  }
   if (provider === "antigravity") return isUserCallableAntigravityModelId(quotaKey);
-  if (provider === "agy") return isUserCallableAgyModelId(quotaKey);
+  if (provider === "agy") return isDiscoverableAgyModelId(quotaKey);
   return true;
 }
 
 export function normalizeUsageQuotaKey(provider: string, quotaKey: string): string | null {
   if (quotaKey === "credits" || quotaKey === "models") return quotaKey;
+  if (
+    (provider === "antigravity" || provider === "agy") &&
+    ANTIGRAVITY_FAMILY_QUOTA_KEYS.has(quotaKey)
+  ) {
+    return quotaKey;
+  }
   if (provider === "antigravity" || provider === "agy") {
     const clientKey = toClientAntigravityModelId(quotaKey);
     return isUsageQuotaKeyAllowed(provider, clientKey) ? clientKey : null;

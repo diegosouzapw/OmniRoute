@@ -33,6 +33,7 @@ import { translateRequest } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { createSSETransformStreamWithLogger } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 import { STREAM_READINESS_TIMEOUT_MS } from "../config/constants.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
@@ -164,19 +165,6 @@ function isJsonResponse(response: Response): boolean {
   return (response.headers.get("content-type") || "").toLowerCase().includes("application/json");
 }
 
-async function translateJsonResponse(response: Response): Promise<Response> {
-  const parsed = await response.json().catch(() => null);
-  const translated = translateNonStreamingResponse(parsed, FORMATS.CLAUDE, FORMATS.OPENAI);
-  const headers = cloneHeaders(response.headers);
-  headers.set("content-type", "application/json");
-  headers.delete("content-length");
-  return new Response(JSON.stringify(translated), {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
 async function translateAnthropicJsonResponse(response: Response): Promise<Response> {
   const parsed = await response.json().catch(() => null);
   const translated = response.ok
@@ -216,6 +204,9 @@ function translateAnthropicJsonError(parsed: unknown): JsonRecord {
   };
 }
 
+/** 64 KB queue budget for GLM streaming (#12179, wired through in #12925). */
+const GLM_STREAM_BUFFER_BYTES = 65536;
+
 export function translateSseResponse(
   response: Response,
   provider: string,
@@ -223,8 +214,11 @@ export function translateSseResponse(
   suppressThinkClose: boolean = false
 ): Response {
   if (!response.body) return response;
-  // GLM is a high-throughput provider — use a larger stream buffer (64KB) to
-  // keep provider → client pacing ahead of the model's token emission rate.
+  // GLM is a high-throughput provider: a 64 KB queue budget keeps provider ->
+  // client pacing ahead of the model's emission rate. #12179 asked for this by
+  // passing a 16th positional the helper did not take (a TS2554 that never
+  // reached the TransformStream); the helper now accepts it as its last
+  // parameter, so the request finally takes effect (#12925).
   const transform = createSSETransformStreamWithLogger(
     FORMATS.CLAUDE,
     FORMATS.OPENAI,
@@ -241,7 +235,8 @@ export function translateSseResponse(
     suppressThinkClose,
     undefined,
     undefined,
-    65536
+    undefined,
+    GLM_STREAM_BUFFER_BYTES
   );
   const headers = cloneHeaders(response.headers);
   headers.set("content-type", "text/event-stream");
@@ -479,6 +474,22 @@ export class GlmExecutor extends DefaultExecutor {
       });
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    // #14629: this override never calls super.execute(). Only the OpenAI
+    // transport carries reasoning_effort; the Anthropic transport does not.
+    if (transport === "openai") {
+      const recovery = await applyReasoningEffortRecovery({
+        response,
+        url,
+        provider: this.provider,
+        model: input.model,
+        body: transformedBody,
+        fetchOptions: { method: "POST", headers, signal: combinedSignal || undefined },
+        fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+        log: input.log,
+      });
+      response = recovery.response;
     }
 
     if (input.stream && response.ok) {

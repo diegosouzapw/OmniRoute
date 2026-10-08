@@ -1,1 +1,0 @@
-- **chore(assets):** remove four unused provider assets whose redistribution provenance could not be verified while retaining the active Freebuff SVG ([#11735](https://github.com/diegosouzapw/OmniRoute/pull/11735))

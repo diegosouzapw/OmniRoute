@@ -68,7 +68,87 @@ test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-l
     expressUrl,
     "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
   );
-  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
+  assert.ok(
+    !expressUrl.includes("/projects/"),
+    "Express key URL must not route through a project path"
+  );
+});
+
+test("VertexExecutor.buildUrl rejects partner models for project-less Express credentials", () => {
+  const executor = new VertexExecutor();
+  const ids = ["grok-4.6", "xai/grok-4.6", "xai/models/grok-4.6", "publishers/xai/models/grok-4.6"];
+
+  for (const modelId of ids) {
+    assert.throws(
+      () => executor.buildUrl(modelId, false, 0, { apiKey: "k-express" }),
+      /partner models require project-scoped credentials/i,
+      modelId
+    );
+  }
+});
+
+test("VertexExecutor.execute canonicalizes an xAI resource id in URL and request body", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls: Array<{ url: string; body: string }> = [];
+
+  globalThis.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({ url: String(url), body: String(init?.body || "") });
+    return Response.json({ choices: [] });
+  };
+
+  try {
+    await executor.execute({
+      model: "publishers/xai/models/grok-4.6",
+      body: {
+        model: "publishers/xai/models/grok-4.6",
+        messages: [{ role: "user", content: "hi" }],
+      },
+      stream: false,
+      credentials: {
+        apiKey: "k-authorization",
+        projectId: "proj-xai",
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "https://aiplatform.googleapis.com/v1/projects/proj-xai/locations/global/endpoints/openapi/chat/completions?key=k-authorization"
+    );
+    assert.equal(JSON.parse(calls[0].body).model, "xai/grok-4.6");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.buildUrl routes Mistral Model Garden ids to native rawPredict", () => {
+  const executor = new VertexExecutor();
+  const credentials = {
+    apiKey: createServiceAccountJson({ projectId: "proj-mistral" }),
+    providerSpecificData: { region: "europe-west4" },
+  };
+
+  assert.equal(
+    executor.buildUrl("publishers/mistralai/models/mistral-medium-3", false, 0, credentials),
+    "https://aiplatform.googleapis.com/v1/projects/proj-mistral/locations/europe-west4/publishers/mistralai/models/mistral-medium-3:rawPredict"
+  );
+  assert.equal(
+    executor.buildUrl("mistralai/mistral-medium-3", true, 0, credentials),
+    "https://aiplatform.googleapis.com/v1/projects/proj-mistral/locations/europe-west4/publishers/mistralai/models/mistral-medium-3:streamRawPredict"
+  );
+});
+
+test("VertexExecutor.buildUrl generically routes future publisher resources to OpenAI MaaS", () => {
+  const executor = new VertexExecutor();
+  const url = executor.buildUrl("publishers/future-vendor/models/future-chat-maas", false, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-future" }),
+  });
+
+  assert.equal(
+    url,
+    "https://aiplatform.googleapis.com/v1/projects/proj-future/locations/global/endpoints/openapi/chat/completions"
+  );
 });
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
@@ -79,6 +159,9 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
   const metaLlama = executor.buildUrl("meta/llama-3.1-405b-instruct-maas", true, 0, {
     apiKey: createServiceAccountJson({ projectId: "proj-llama" }),
   });
+  const grok = executor.buildUrl("publishers/xai/models/grok-4.6", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-xai" }),
+  });
 
   assert.equal(
     deepseek,
@@ -88,6 +171,36 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
     metaLlama,
     "https://aiplatform.googleapis.com/v1/projects/proj-llama/locations/global/endpoints/openapi/chat/completions"
   );
+  assert.equal(
+    grok,
+    "https://aiplatform.googleapis.com/v1/projects/proj-xai/locations/global/endpoints/openapi/chat/completions"
+  );
+});
+
+test("VertexExecutor.execute namespaces legacy bare open-MaaS model ids", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  let sentModel: string | undefined;
+
+  globalThis.fetch = async (_url, init) => {
+    sentModel = JSON.parse(String(init?.body)).model;
+    return Response.json({ choices: [] });
+  };
+
+  try {
+    await executor.execute({
+      model: "DeepSeek-V4-Pro",
+      body: { model: "DeepSeek-V4-Pro", messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-deepseek" }),
+        accessToken: "ya29.deepseek",
+      },
+    });
+    assert.equal(sentModel, "deepseek-ai/DeepSeek-V4-Pro");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("VertexExecutor.buildUrl routes current-generation Claude models to the native Anthropic rawPredict endpoint (#1985, #8994)", () => {
@@ -288,6 +401,104 @@ test("VertexExecutor.execute strips the client's model field and injects anthrop
   }
 });
 
+test("VertexExecutor downgrades unsupported Claude 1h cache TTLs without changing supported or 5m TTLs", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  type CapturedBody = {
+    system: Array<{ cache_control?: Record<string, string> }>;
+    messages: Array<{ content: Array<{ cache_control?: Record<string, string> }> }>;
+    tools: Array<{ cache_control?: Record<string, string> }>;
+  };
+  const sentBodies: CapturedBody[] = [];
+
+  globalThis.fetch = async (_url, options) => {
+    sentBodies.push(JSON.parse(String(options?.body || "{}")) as CapturedBody);
+    return new Response(
+      JSON.stringify({
+        id: "msg_cache_ttl",
+        type: "message",
+        role: "assistant",
+        model: "claude-test",
+        content: [{ type: "text", text: "ok" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 1 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  const credentials = {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude-cache" }),
+    accessToken: "ya29.claude-cache",
+  };
+  const body = {
+    system: [{ type: "text", text: "stable", cache_control: { type: "ephemeral", ttl: "1h" } }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "question", cache_control: { type: "ephemeral", ttl: "1h" } },
+          { type: "text", text: "five-minute", cache_control: { type: "ephemeral", ttl: "5m" } },
+          { type: "text", text: "no ttl", cache_control: { type: "ephemeral" } },
+        ],
+      },
+    ],
+    tools: [
+      {
+        name: "lookup",
+        input_schema: { type: "object" },
+        cache_control: { type: "ephemeral", ttl: "1h" },
+      },
+    ],
+  };
+
+  try {
+    for (const model of [
+      "claude-3-7-sonnet",
+      "claude-3-5-sonnet-v2@20241022",
+      "claude-3-5-sonnet",
+      "claude-3-opus@20240229",
+    ]) {
+      await executor.execute({
+        model,
+        body: structuredClone(body),
+        stream: false,
+        credentials: { ...credentials },
+      });
+    }
+
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: structuredClone(body),
+      stream: false,
+      credentials: { ...credentials },
+    });
+
+    const unsupportedBodies = sentBodies.slice(0, 4);
+    for (const sent of unsupportedBodies) {
+      assert.deepEqual(sent.system[0].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.messages[0].content[0].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.messages[0].content[1].cache_control, {
+        type: "ephemeral",
+        ttl: "5m",
+      });
+      assert.deepEqual(sent.messages[0].content[2].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.tools[0].cache_control, { type: "ephemeral" });
+    }
+
+    assert.deepEqual(sentBodies[4].system[0].cache_control, {
+      type: "ephemeral",
+      ttl: "1h",
+    });
+    assert.deepEqual(sentBodies[4].tools[0].cache_control, {
+      type: "ephemeral",
+      ttl: "1h",
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream when rawPredict returns a complete JSON body for a streaming request", async () => {
   const executor = new VertexExecutor();
   const originalFetch = globalThis.fetch;
@@ -307,7 +518,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
         content: [{ type: "text", text: "hello" }],
         stop_reason: "end_turn",
         stop_sequence: null,
-        usage: { input_tokens: 5, output_tokens: 2 },
+        usage: {
+          input_tokens: 5,
+          output_tokens: 2,
+          cache_creation_input_tokens: 1_024,
+          cache_read_input_tokens: 4_096,
+        },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -345,6 +561,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
       "message_delta",
       "message_stop",
     ]);
+    assert.deepEqual(dataLines[0].message.usage, {
+      input_tokens: 5,
+      output_tokens: 0,
+      cache_creation_input_tokens: 1_024,
+      cache_read_input_tokens: 4_096,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

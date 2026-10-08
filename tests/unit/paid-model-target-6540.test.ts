@@ -7,7 +7,7 @@ test("isPaidModelTarget — documented free model → 'free'", () => {
 });
 
 test("isPaidModelTarget — provider in free catalog but model not listed free → 'paid'", () => {
-  assert.equal(isPaidModelTarget("together/Qwen/Qwen3-235B-A22B"), "paid");
+  assert.equal(isPaidModelTarget("gemini/gemini-3.1-pro-preview"), "paid");
 });
 
 test("isPaidModelTarget — no separator (combo/alias name) → 'unknown' (fail open)", () => {

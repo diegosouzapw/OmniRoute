@@ -147,4 +147,33 @@ describe("CoolingConnectionsPanel — manual clear cooldown", () => {
     });
     expect(panelRoot!.querySelectorAll("button").length).toBe(0);
   });
+
+  it("#12594 does not claim every cooldown is a 429", () => {
+    const lastError =
+      "Please make sure you're using the latest version of Cline and re-authenticate your Cline account.";
+    const { panelRoot } = renderPanel({
+      connections: [
+        coolingConnection({
+          lastErrorType: "oauth_invalid_token",
+          lastError,
+          errorCode: 401,
+        }),
+      ],
+    });
+    expect(panelRoot!.textContent).not.toMatch(/429 \(rate-limit\)/);
+    const recorded = panelRoot!.querySelector("[data-testid='cooling-last-error']");
+    expect(recorded?.textContent).toMatch(/re-authenticate your Cline account/i);
+    expect(recorded?.getAttribute("title")).toBe(lastError);
+  });
+
+  it("#12594 tooltip keeps the full lastError when the visible text is truncated", () => {
+    const lastError = `${"x".repeat(200)} unique-tail`;
+    const { panelRoot } = renderPanel({
+      connections: [coolingConnection({ lastError })],
+    });
+    const recorded = panelRoot!.querySelector("[data-testid='cooling-last-error']");
+    expect(recorded?.textContent).toHaveLength(160);
+    expect(recorded?.textContent).toMatch(/\.\.\.$/);
+    expect(recorded?.getAttribute("title")).toBe(lastError);
+  });
 });

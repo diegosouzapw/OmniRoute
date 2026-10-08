@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert";
+import dns from "node:dns";
 import {
   DEFAULT_UPSCALE_FACTORS,
   UPSCALE_PROVIDERS,
@@ -25,6 +26,7 @@ import {
 import {
   extractUpscaleSourceImage,
   readImageDimensions,
+  resolveUpscaleImageSource,
   scaleDimensions,
   sniffImageMime,
 } from "../../open-sse/handlers/imageUpscale/shared.ts";
@@ -32,6 +34,7 @@ import { handleImageUpscale } from "../../open-sse/handlers/imageUpscale.ts";
 import { handleStabilityImageUpscale } from "../../open-sse/handlers/imageUpscale/stability.ts";
 import { handleTopazImageUpscale } from "../../open-sse/handlers/imageUpscale/topaz.ts";
 import { IMAGE_PROVIDERS } from "../../open-sse/config/imageRegistry.ts";
+import { setPinnedFetchTestOverride } from "../../src/shared/network/remoteImageFetch.ts";
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -67,7 +70,12 @@ function jpegHeader(width: number, height: number): Buffer {
 const FAKE_JWT = (() => {
   const header = Buffer.from(JSON.stringify({ alg: "RS256" })).toString("base64url");
   const payload = Buffer.from(
-    JSON.stringify({ user_id: "TESTUSER@AdobeID", type: "access_token", created_at: "1", expires_in: "86400000" })
+    JSON.stringify({
+      user_id: "TESTUSER@AdobeID",
+      type: "access_token",
+      created_at: "1",
+      expires_in: "86400000",
+    })
   ).toString("base64url");
   return `${header}.${payload}.sig`;
 })();
@@ -104,7 +112,12 @@ test("adobe-firefly upscale models are Topaz only (video starlight/astra exclude
   const ids = UPSCALE_PROVIDERS["adobe-firefly"]!.models.map((m) => m.id);
   assert.deepEqual(ids, ["topaz", "topaz-standard", "topaz-bloom"]);
   for (const id of ids) assert.ok(id.startsWith("topaz"), `${id} must be a Topaz model`);
-  for (const forbidden of ["starlight-quality", "starlight-creative", "starlight-fast", "astra-2"]) {
+  for (const forbidden of [
+    "starlight-quality",
+    "starlight-creative",
+    "starlight-fast",
+    "astra-2",
+  ]) {
     assert.ok(!ids.includes(forbidden), `${forbidden} is a video upscaler and must not be listed`);
   }
 });
@@ -133,7 +146,10 @@ test("parseUpscaleModel accepts provider prefix, alias and bare model ids", () =
     provider: "stability-ai",
     model: "creative",
   });
-  assert.deepEqual(parseUpscaleModel("topaz-enhance"), { provider: "topaz", model: "topaz-enhance" });
+  assert.deepEqual(parseUpscaleModel("topaz-enhance"), {
+    provider: "topaz",
+    model: "topaz-enhance",
+  });
   assert.equal(parseUpscaleModel("openai/gpt-image-2").provider, null);
   assert.deepEqual(parseUpscaleModel(null), { provider: null, model: null });
 });
@@ -211,7 +227,10 @@ test("resolveAdobeUpscaleModel maps ids to upstream topaz versions and rejects o
     resolveAdobeUpscaleModel("adobe-firefly/topaz-bloom")?.spec.upstreamModelId,
     "topaz"
   );
-  assert.equal(resolveAdobeUpscaleModel("firefly/reimagine")?.spec.upstreamModelVersion, "reimagine");
+  assert.equal(
+    resolveAdobeUpscaleModel("firefly/reimagine")?.spec.upstreamModelVersion,
+    "reimagine"
+  );
   assert.equal(resolveAdobeUpscaleModel("nano-banana-pro"), null);
   assert.equal(resolveAdobeUpscaleModel(""), null);
   assert.equal(isAdobeFireflyUpscaleModel("topaz-bloom"), true);
@@ -232,7 +251,10 @@ test("resolveAdobeCreativityLevel maps 0-100 % onto the 0-1 upsample wire float"
   assert.equal(resolveAdobeCreativityLevel({ creativityPercent: 40 }), 0.4);
   assert.equal(resolveAdobeCreativityLevel({}), 0);
   // Explicit 0-1 wins over percent.
-  assert.equal(resolveAdobeCreativityLevel({ creativityPercent: 100, creativityLevel: 0.25 }), 0.25);
+  assert.equal(
+    resolveAdobeCreativityLevel({ creativityPercent: 100, creativityLevel: 0.25 }),
+    0.25
+  );
   // Legacy 1-5 integer scale (discovery docs) is mapped onto 0-1.
   assert.equal(resolveAdobeCreativityLevel({ creativityLevel: "4" }), 0.8);
   assert.equal(resolveAdobeCreativityLevel({ creativityLevel: 5 }), 1);
@@ -359,9 +381,15 @@ test("adobeFireflyUpscaleImage rejects a non-upscale model and a missing blob", 
 // ── Shared helpers ─────────────────────────────────────────────────────────
 
 test("extractUpscaleSourceImage finds the first image across every alias", () => {
-  assert.equal(extractUpscaleSourceImage({ image: "data:image/png;base64,AAA" }), "data:image/png;base64,AAA");
+  assert.equal(
+    extractUpscaleSourceImage({ image: "data:image/png;base64,AAA" }),
+    "data:image/png;base64,AAA"
+  );
   assert.equal(extractUpscaleSourceImage({ image_url: "https://x/y.png" }), "https://x/y.png");
-  assert.equal(extractUpscaleSourceImage({ images: ["https://a/1.png", "https://a/2.png"] }), "https://a/1.png");
+  assert.equal(
+    extractUpscaleSourceImage({ images: ["https://a/1.png", "https://a/2.png"] }),
+    "https://a/1.png"
+  );
   assert.equal(
     extractUpscaleSourceImage({ image_url: { url: "https://obj/u.png" } }),
     "https://obj/u.png"
@@ -372,7 +400,9 @@ test("extractUpscaleSourceImage finds the first image across every alias", () =>
   );
   assert.equal(
     extractUpscaleSourceImage({
-      messages: [{ role: "user", content: [{ type: "image_url", image_url: { url: "https://m/1.png" } }] }],
+      messages: [
+        { role: "user", content: [{ type: "image_url", image_url: { url: "https://m/1.png" } }] },
+      ],
     }),
     "https://m/1.png"
   );
@@ -409,7 +439,10 @@ test("scaleDimensions multiplies the source size and clamps the long edge", () =
 // ── Dispatcher ─────────────────────────────────────────────────────────────
 
 test("handleImageUpscale rejects unknown / mismatched models before any network call", async () => {
-  const badModel = await handleImageUpscale({ body: { model: "openai/gpt-image-2" }, credentials: {} });
+  const badModel = await handleImageUpscale({
+    body: { model: "openai/gpt-image-2" },
+    credentials: {},
+  });
   assert.equal(badModel.success, false);
   assert.equal(badModel.status, 400);
   assert.match(String(badModel.error), /Invalid upscale model/);
@@ -428,7 +461,11 @@ test("handleImageUpscale rejects unknown / mismatched models before any network 
 });
 
 test("handleImageUpscale requires a source image for every provider", async () => {
-  for (const model of ["adobe-firefly/topaz-standard", "stability-ai/fast", "topaz/topaz-enhance"]) {
+  for (const model of [
+    "adobe-firefly/topaz-standard",
+    "stability-ai/fast",
+    "topaz/topaz-enhance",
+  ]) {
     const result = await handleImageUpscale({
       body: { model },
       credentials: { apiKey: "k" },
@@ -590,7 +627,10 @@ test("topaz falls back to its own scale when the source dimensions are unreadabl
     credentials: { apiKey: "topaz-key" },
     fetchImpl: (async (_url: unknown, init?: RequestInit) => {
       form = init?.body as FormData;
-      return new Response(bytes(PNG_1X1), { status: 200, headers: { "content-type": "image/png" } });
+      return new Response(bytes(PNG_1X1), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
     }) as unknown as typeof fetch,
   });
 
@@ -614,7 +654,10 @@ test("topaz honors an explicit WxH size over the factor and propagates upstream 
     credentials: { apiKey: "topaz-key" },
     fetchImpl: (async (_url: unknown, init?: RequestInit) => {
       form = init?.body as FormData;
-      return new Response(bytes(PNG_1X1), { status: 200, headers: { "content-type": "image/png" } });
+      return new Response(bytes(PNG_1X1), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
     }) as unknown as typeof fetch,
   });
   assert.equal(form!.get("output_width"), "1500");
@@ -632,4 +675,109 @@ test("topaz honors an explicit WxH size over the factor and propagates upstream 
   assert.equal(failed.success, false);
   assert.equal(failed.status, 402);
   assert.match(String(failed.error), /quota exceeded/);
+});
+
+// ── GHSA-34rg-3pqj-35g9 — caller-supplied source URL must be public-only ───
+//
+// `resolveUpscaleImageSource()` is fed straight from the request body (14 aliases,
+// `provider_options.*`, message parts). It called `fetchRemoteImage()` with no explicit
+// `guard`, so it inherited `getProviderOutboundGuard()` — the OPERATOR outbound policy,
+// `block-metadata` on a default install (loopback/LAN allowed, DNS check skipped) — and
+// a request body could make the server fetch intranet URLs and upload the bytes upstream.
+
+/** Public-IP DNS stub (rebinding guard needs a non-empty public answer for a fake host). */
+function withPublicDns<T>(run: () => Promise<T>): Promise<T> {
+  const originalLookup = dns.promises.lookup;
+  (dns.promises as { lookup: unknown }).lookup = (async (
+    _hostname: string,
+    options?: { all?: boolean }
+  ) => {
+    const record = { address: "203.0.113.1", family: 4 };
+    return options && options.all ? [record] : record;
+  }) as typeof dns.promises.lookup;
+  return run().finally(() => {
+    (dns.promises as { lookup: unknown }).lookup = originalLookup;
+  });
+}
+
+for (const privateUrl of ["http://127.0.0.1:1/x.png", "http://192.168.1.50/x.png"]) {
+  test(`resolveUpscaleImageSource rejects a private source URL (${privateUrl}) before any fetch (GHSA-34rg-3pqj-35g9)`, async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchedUrls: string[] = [];
+    globalThis.fetch = (async (url: string | URL | Request) => {
+      fetchedUrls.push(String(url));
+      return new Response(bytes(PNG_1X1), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }) as unknown as typeof fetch;
+
+    try {
+      await assert.rejects(() => resolveUpscaleImageSource(privateUrl), /blocked/i);
+      assert.deepEqual(fetchedUrls, [], "the private URL must never be fetched");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test(`stability upscale never uploads bytes from a private image_url (${privateUrl}) (GHSA-34rg-3pqj-35g9)`, async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchedUrls: string[] = [];
+    globalThis.fetch = (async (url: string | URL | Request) => {
+      fetchedUrls.push(String(url));
+      // Canary: on the vulnerable code these bytes become the multipart `image` part.
+      return new Response(bytes(PNG_1X1), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }) as unknown as typeof fetch;
+    let upstreamCalls = 0;
+
+    try {
+      const result = await handleStabilityImageUpscale({
+        model: "fast",
+        provider: "stability-ai",
+        providerConfig: { baseUrl: "https://api.stability.ai" },
+        body: { image_url: privateUrl, response_format: "b64_json" },
+        credentials: { apiKey: "sk-test" },
+        fetchImpl: (async () => {
+          upstreamCalls += 1;
+          return jsonResponse({ image: PNG_1X1.toString("base64") });
+        }) as unknown as typeof fetch,
+      });
+
+      assert.equal(result.success, false);
+      assert.match(String(result.error), /blocked/i);
+      assert.deepEqual(fetchedUrls, [], "the private URL must never be fetched");
+      assert.equal(upstreamCalls, 0, "nothing may be uploaded to the provider");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}
+
+test("resolveUpscaleImageSource still downloads a public URL whose DNS resolves to a public IP (GHSA-34rg-3pqj-35g9)", async () => {
+  const originalFetch = globalThis.fetch;
+  const fetchedUrls: string[] = [];
+  const mockFetchImpl = (async (url: string | URL | Request) => {
+    fetchedUrls.push(String(url));
+    return new Response(bytes(PNG_1X1), { status: 200, headers: { "content-type": "image/png" } });
+  }) as unknown as typeof fetch;
+  // #13883: resolveUpscaleImageSource now sets `pinDns: true`, which pins the connection
+  // via a real undici socket and would bypass this mocked globalThis.fetch — route it
+  // through the test-only pinned-fetch override instead (src/shared/network/remoteImageFetch.ts).
+  globalThis.fetch = mockFetchImpl;
+  setPinnedFetchTestOverride(mockFetchImpl);
+
+  try {
+    const source = await withPublicDns(() =>
+      resolveUpscaleImageSource("https://cdn.example.com/public.png")
+    );
+    assert.equal(source.contentType, "image/png");
+    assert.equal(source.buffer.length, PNG_1X1.length);
+    assert.deepEqual(fetchedUrls, ["https://cdn.example.com/public.png"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    setPinnedFetchTestOverride(undefined);
+  }
 });

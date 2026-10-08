@@ -21,7 +21,7 @@
  * providers constants) — never from ProviderDetailPageClient.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
@@ -191,6 +191,7 @@ export interface UseProviderConnectionsReturn {
   // Connection fetch
   fetchConnections: () => Promise<void>;
   fetchProxyConfig: () => Promise<void>;
+  refreshProxyState: () => Promise<void>;
 
   // Single-connection handlers
   deleteConfirm: ConnectionDeleteConfirmState;
@@ -248,7 +249,7 @@ export interface UseProviderConnectionsReturn {
 export function useProviderConnections(
   providerId: string,
   isCompatible: boolean,
-  isSearchProvider: boolean
+  _isSearchProvider: boolean
 ): UseProviderConnectionsReturn {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
@@ -293,6 +294,13 @@ export function useProviderConnections(
     Record<string, { proxy: any; level: string } | null>
   >({});
 
+  // Latest connections, readable from a stable callback without making that
+  // callback (and every consumer prop depending on it) change every fetch.
+  const connectionsRef = useRef<ConnectionRowConnection[]>(connections);
+  useEffect(() => {
+    connectionsRef.current = connections;
+  }, [connections]);
+
   // ── Upstream proxy routing state (native / CLIProxyAPI / Dario / fallback) ─
   const [upstreamProxyMode, setUpstreamProxyModeState] = useState<UpstreamProxyMode>("native");
   const [upstreamProxyFallbackBackend, setUpstreamProxyFallbackBackendState] =
@@ -312,6 +320,28 @@ export function useProviderConnections(
   const fetchProxyConfig = useCallback(async () => {
     const result = await loadProxyConfigData();
     if (result) setProxyConfig(result.config);
+  }, []);
+
+  /**
+   * Refresh every proxy view the page renders after a proxy assignment is
+   * written elsewhere (ProxyConfigModal saves/clears through
+   * `/api/settings/proxies/assignments`).
+   *
+   * Two independent sources back those views and BOTH must be re-read:
+   *  - `proxyConfig`   ← GET /api/settings/proxy          (provider-level chip)
+   *  - `connProxyMap`  ← GET /api/settings/proxy?resolve= (per-connection badges)
+   *
+   * The `connProxyMap` effect below is keyed on [loading, connections], and a
+   * proxy save changes neither, so without this callback the account-row
+   * badges keep showing pre-save state until a manual reload.
+   */
+  const refreshProxyState = useCallback(async () => {
+    const [configResult, map] = await Promise.all([
+      loadProxyConfigData(),
+      resolveConnectionProxies(connectionsRef.current),
+    ]);
+    if (configResult) setProxyConfig(configResult.config);
+    if (map) setConnProxyMap(map);
   }, []);
 
   const fetchConnections = useCallback(async () => {
@@ -844,7 +874,8 @@ export function useProviderConnections(
         setSelectedIds(new Set());
         await fetchConnections();
         notify.success(t("batchDeleteSuccess", { count }));
-        if (onAfter) await onAfter();
+        // ConfirmModal's onClick forwards a MouseEvent; only a real callback runs.
+        if (typeof onAfter === "function") await onAfter();
       } else {
         const data = await res.json();
         notify.error(data.error || providerText(t, "batchDeleteFailed", "Batch delete failed"));
@@ -1107,6 +1138,7 @@ export function useProviderConnections(
     // Fetch
     fetchConnections,
     fetchProxyConfig,
+    refreshProxyState,
 
     // Single-connection handlers
     deleteConfirm,

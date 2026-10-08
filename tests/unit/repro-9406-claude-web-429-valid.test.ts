@@ -22,7 +22,10 @@ const EXECUTOR_PATH = "../../open-sse/executors/claude-web.ts";
 
 /** Calls __setTlsFetchOverrideForTesting with the given mock, resets on finish. */
 async function withTlsMock<T>(
-  mock: (url: string, options: Record<string, unknown>) => Promise<{
+  mock: (
+    url: string,
+    options: Record<string, unknown>
+  ) => Promise<{
     status: number;
     headers: Headers;
     text: string | null;
@@ -68,14 +71,20 @@ test("validateClaudeWebProvider returns valid:false for 429", async () => {
 
 test("validateMuseSparkWebProvider returns valid:false for 429", async () => {
   const { validateMuseSparkWebProvider } = await import(VALIDATION_PATH);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    assert.equal(String(input), "https://www.meta.ai/api/graphql");
+    assert.equal(init?.method, "POST");
+    return new Response("Too Many Requests", { status: 429 });
+  };
 
-  // validateMuseSparkWebProvider uses validationWrite() internally. We cannot
-  // mock that here, but we can at least characterise the function's structure.
-  // The actual 429-branch fix changes lines 64-69 from valid:true to valid:false,
-  // and the integration-level exercise happens via the production proxy.
-  // This test proves the validator exports and the function accepts input.
-  const fn = validateMuseSparkWebProvider;
-  assert.equal(typeof fn, "function");
+  try {
+    const result = await validateMuseSparkWebProvider({ apiKey: "ecto_1_sess=test-session" });
+    assert.equal(result.valid, false, "expected valid:false for 429");
+    assert.match(result.error ?? "", /429|rate limit/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 // ── Test 3: errorResponseForTransport forwards Retry-After ──
@@ -108,4 +117,56 @@ test("errorResponseForTransport forwards upstream Retry-After on 429", async () 
   assert.equal(result.response.status, 429, "expected 429 response");
   const retryAfter = result.response.headers.get("Retry-After");
   assert.equal(retryAfter, "120", "expected forwarded Retry-After header");
+});
+
+test("errorResponseForTransport only forwards bounded canonical Retry-After values", async () => {
+  const { ClaudeWebExecutor } = await import(EXECUTOR_PATH);
+  const validDate = new Date(Date.now() + 60_000).toUTCString();
+  const cases = [
+    { label: "normalized delta-seconds", value: "000120", expected: "120" },
+    { label: "canonical HTTP-date", value: validDate, expected: validDate },
+    {
+      label: "credential and path payload",
+      value: "120 access_token=sk-claude-retry /srv/private/retry.txt",
+      expected: null,
+    },
+    { label: "over the one-day bound", value: "86401", expected: null },
+    { label: "invalid HTTP-date", value: "Fri, 99 Foo 9999 99:99:99 GMT", expected: null },
+    { label: "missing", value: null, expected: null },
+  ];
+
+  for (const { label, value, expected } of cases) {
+    const headers = new Headers({ "content-type": "application/json" });
+    if (value !== null) headers.set("retry-after", value);
+    const executor = new ClaudeWebExecutor({
+      sendDirect: async () => ({
+        status: 429,
+        headers,
+        body: null,
+        bodyText: '{"error":"rate_limited"}',
+      }),
+    });
+
+    const result = await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: { messages: [{ role: "user", content: "Hello" }] },
+      stream: false,
+      credentials: {
+        apiKey: `sessionKey=test-${label}`,
+        orgId: "test-org-id",
+        deviceId: "test-device-id",
+      },
+      log: null,
+    });
+
+    assert.equal(result.response.status, 429, `${label}: status`);
+    assert.equal(result.response.headers.get("Retry-After"), expected, `${label}: header`);
+    const body = await result.response.json();
+    assert.deepEqual(body.error, {
+      message: "Rate limited by Claude Web API",
+      type: "rate_limit_error",
+      code: "rate_limit_exceeded",
+    });
+    assert.doesNotMatch(JSON.stringify(body), /sk-claude-retry|\/srv\/private/);
+  }
 });

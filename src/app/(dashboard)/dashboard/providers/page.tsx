@@ -31,6 +31,8 @@ import {
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   shouldShowProviderSection,
+  isPrimaryLlmProviderEntry,
+  resolveVisibleWebFetchEntries,
   upsertProviderNodeById,
   loadProviderPageData,
 } from "./providerPageUtils";
@@ -61,6 +63,7 @@ import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import HighlightableProviderCard from "./components/HighlightableProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
+import DeprecatedProviderBanner from "./components/DeprecatedProviderBanner";
 import {
   buildCompactProviderEntriesForPage,
   getCompactProviderAuthType,
@@ -331,8 +334,6 @@ function ProvidersPageContent() {
     setOauthEnvRepairStatus(await loadOauthEnvRepairStatus());
   }, []);
 
-  // Inline-in-effect (calling the component-scope callback synchronously from
-  // an effect is rejected by the compiler rules); setState runs after the await.
   useEffect(() => {
     const run = async () => {
       const status = await loadOauthEnvRepairStatus();
@@ -463,8 +464,6 @@ function ProvidersPageContent() {
 
   // Toggle all connections for a provider on/off
   const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
-    // Mirror getProviderStats: dual-auth providers (qoder, …) toggle BOTH their
-    // oauth and apikey/PAT connections from the single OAuth card.
     const matchesToggle = (c: { provider: string; authType?: string }) =>
       connectionMatchesProviderCard(c, providerId, authType as "oauth" | "free" | "apikey");
     const providerConns = connections.filter(matchesToggle);
@@ -582,14 +581,7 @@ function ProvidersPageContent() {
   );
 
   const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
-  const llmProviderEntriesAll = apiKeyProviderEntriesAll.filter(
-    (entry) =>
-      !IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
-      !AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
-      !ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
-      !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
-      !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
-  );
+  const llmProviderEntriesAll = apiKeyProviderEntriesAll.filter(isPrimaryLlmProviderEntry);
   const llmProviderEntries = filterConfiguredProviderEntries(
     llmProviderEntriesAll,
     effectiveShowConfiguredOnly,
@@ -837,6 +829,7 @@ function ProvidersPageContent() {
     liveModelsByProviderId,
     connections
   );
+  const visibleWebFetchEntries = resolveVisibleWebFetchEntries(webFetchEntries, activeCategory);
 
   const compactProviderEntries = buildCompactProviderEntriesForPage({
     activeCategory,
@@ -892,6 +885,8 @@ function ProvidersPageContent() {
   return (
     <OpenRouterProviderStatsProvider entries={openRouterProviderStats}>
       <div className="flex flex-col gap-6">
+        <DeprecatedProviderBanner />
+
         {showFirstProviderHint && (
           <Card padding="lg">
             <div className="flex flex-col items-center justify-center text-center">
@@ -1450,7 +1445,7 @@ function ProvidersPageContent() {
             )}
 
             {/* Web Fetch Providers */}
-            {showSection("webfetch") && webFetchEntries.length > 0 && (
+            {showSection("webfetch") && visibleWebFetchEntries.length > 0 && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1464,7 +1459,7 @@ function ProvidersPageContent() {
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("webFetchProvidersDesc")}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                  {webFetchEntries.map(
+                  {visibleWebFetchEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
                         key={`webfetch-${providerId}`}

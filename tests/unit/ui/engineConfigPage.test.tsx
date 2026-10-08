@@ -260,6 +260,160 @@ describe("EngineConfigPage", () => {
     expect(container.textContent).toContain("duplicated details and verbose wording");
   });
 
+  it("preview strips empty-string form values from the sent config (ultra.modelPath default '')", async () => {
+    // The engine schema seeds modelPath with defaultValue "" (ultraConfigSchema
+    // requires min(1) when present), so sending the raw form state makes the
+    // preview request 400 before dispatch — the page must omit empty values.
+    const ULTRA_PAYLOAD = {
+      engines: [
+        {
+          id: "ultra",
+          name: "Ultra",
+          description: "Ultra engine",
+          icon: "⚡",
+          stackable: true,
+          stackPriority: 40,
+          metadata: { description: "Ultra metadata" },
+          configSchema: [
+            { key: "compressionRate", type: "number", label: "Rate", defaultValue: 0.5 },
+            { key: "modelPath", type: "string", label: "Model path", defaultValue: "" },
+          ],
+        },
+      ],
+    };
+    const previewBodies: Record<string, unknown>[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/preview")) {
+          previewBodies.push(JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>);
+          return new Response(
+            JSON.stringify({
+              original: "o",
+              compressed: "c",
+              originalTokens: 1,
+              compressedTokens: 1,
+              savingsPct: 0,
+              diff: [],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ULTRA_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/settings/compression")) {
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="ultra" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const previewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Preview"
+    );
+    expect(previewButton).toBeTruthy();
+
+    await act(async () => {
+      previewButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(previewBodies).toHaveLength(1);
+    const sentConfig = (previewBodies[0].config as { ultra?: Record<string, unknown> }).ultra;
+    expect(sentConfig).toBeTruthy();
+    expect(sentConfig?.modelPath).toBeUndefined();
+  });
+
+  it("save strips empty-string form values from the PUT body (ultra.modelPath default '')", async () => {
+    // Same schema constraint as the preview case: settings PUT validates the
+    // ultra sub-object with ultraConfigSchema, so a default-state save with
+    // modelPath "" would 400 before the operator changes anything.
+    const ULTRA_PAYLOAD = {
+      engines: [
+        {
+          id: "ultra",
+          name: "Ultra",
+          description: "Ultra engine",
+          icon: "⚡",
+          stackable: true,
+          stackPriority: 40,
+          metadata: { description: "Ultra metadata" },
+          configSchema: [
+            { key: "compressionRate", type: "number", label: "Rate", defaultValue: 0.5 },
+            { key: "modelPath", type: "string", label: "Model path", defaultValue: "" },
+          ],
+        },
+      ],
+    };
+    const settingsPuts: Record<string, unknown>[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ULTRA_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="ultra" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save") || b.textContent?.includes("Salvar")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts.length).toBeGreaterThan(0);
+    const ultraPut = settingsPuts.find((c) => typeof c.ultra === "object" && c.ultra !== null);
+    expect(ultraPut).toBeTruthy();
+    expect((ultraPut?.ultra as Record<string, unknown>).modelPath).toBeUndefined();
+  });
+
   it("shows empty-state text when analytics returns runs=0", async () => {
     setupFetchMock();
     const { EngineConfigPage } =
@@ -485,6 +639,8 @@ describe("EngineConfigPage", () => {
     expect(toggle).not.toBeNull();
     expect(toggle?.checked).toBe(false);
     expect(container.textContent).toContain("Emergency overflow protection may still trim content");
+    expect(container.textContent).not.toContain("2,000 characters");
+    expect(container.textContent).toContain("Maximum tool-result length field");
 
     const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Save")
@@ -496,6 +652,359 @@ describe("EngineConfigPage", () => {
     });
 
     expect(settingsPuts).toContainEqual({ lite: { compressToolResults: false } });
+  });
+
+  it("saves Lite maxToolLength next to the truncation switch", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    expect(numberInput?.value).toBe("8000");
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toContainEqual({
+      lite: { compressToolResults: true, maxToolLength: 8000 },
+    });
+  });
+
+  it("does not persist the schema default maxToolLength when settings omit it", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(JSON.stringify({ lite: { compressToolResults: true } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toContainEqual({ lite: { compressToolResults: true } });
+    expect(settingsPuts.some((body) => "maxToolLength" in ((body.lite as object) ?? {}))).toBe(
+      false
+    );
+  });
+
+  it("omits maxToolLength from Save when the number input is cleared", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(numberInput, "");
+      numberInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts.length).toBeGreaterThan(0);
+    const lite = settingsPuts[0]?.lite as Record<string, unknown> | undefined;
+    expect(lite).toBeTruthy();
+    expect(lite?.compressToolResults).toBe(true);
+    expect(lite?.maxToolLength).toBeNull();
+  });
+
+  it("rejects Save when maxToolLength is a finite value outside the allowed range", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      defaultValue: true,
+                    },
+                    {
+                      key: "maxToolLength",
+                      type: "number",
+                      label: "Maximum tool-result length",
+                      defaultValue: 2000,
+                      min: 256,
+                      max: 1_000_000,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(
+            JSON.stringify({ lite: { compressToolResults: true, maxToolLength: 8000 } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(numberInput, "100");
+      numberInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toEqual([]);
+    expect(container.textContent).toContain("Failed to save configuration.");
   });
 
   it("#8056: headroom minRows is persistable — Save PUTs headroom:{minRows:5}", async () => {

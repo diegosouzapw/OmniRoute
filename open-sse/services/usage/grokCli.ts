@@ -5,6 +5,7 @@ import {
   GROK_BUILD_ADDITIONAL_CREDITS_URL,
   type GrokAutoTopUpStatus,
 } from "../../../src/shared/utils/grokBilling.ts";
+import { fetchGrokResetCredits } from "../grokResetCredits.ts";
 
 const GROK_BUILD_FETCH_TIMEOUT_MS = 10_000;
 const GROK_BUILD_MAX_RESPONSE_BYTES = 256 * 1024;
@@ -223,11 +224,13 @@ export async function getGrokCliUsage(accessToken?: string) {
   const user = await fetchGrokBuildJson("/user?include=subscription", baseHeaders, userSchema);
   const userId = user?.userId || null;
   const tier = user?.subscriptionTier || null;
-  const billing = await fetchGrokBuildJson(
-    "/billing?format=credits",
-    userId ? getGrokBuildModelsHeaders({ token: accessToken, userId }) : baseHeaders,
-    billingSchema
-  );
+  const billingHeaders = userId
+    ? getGrokBuildModelsHeaders({ token: accessToken, userId })
+    : baseHeaders;
+  const [billing, resetCredits] = await Promise.all([
+    fetchGrokBuildJson("/billing?format=credits", billingHeaders, billingSchema),
+    fetchGrokResetCredits(accessToken),
+  ]);
 
   if (!billing?.config) {
     return {
@@ -258,6 +261,7 @@ export async function getGrokCliUsage(accessToken?: string) {
   return {
     quotas,
     ...(tier ? { plan: tier } : {}),
+    ...(resetCredits ? { bankedResetCredits: resetCredits.count } : {}),
     billing: {
       currency: "USD",
       ...(config.prepaidBalance ? { extraCreditsMinorUnits: config.prepaidBalance.val } : {}),

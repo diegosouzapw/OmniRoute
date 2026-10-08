@@ -1,1 +1,0 @@
-- **feat(opencode-plugin): map gateway cost/usage/tok/s onto OpenCode inference payloads** — the official plugin copies `X-OmniRoute-Response-Cost`, token counts, `X-OmniRoute-Tokens-Per-Second` / `usage.tokens_per_second`, TTFT, and the winning `X-OmniRoute-Model` onto the JSON/SSE body OpenCode already consumes. Missing tok/s is left unset (never `tokens / latency`). (#12636)

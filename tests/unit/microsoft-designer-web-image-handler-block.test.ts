@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-designer-image-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -10,8 +11,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 test("image handler blocks exact retired providers before any upstream fetch", async () => {

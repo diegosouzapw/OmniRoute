@@ -1,1 +1,0 @@
-- **chore(audio):** retire the built-in EdgeTTS provider and its 11-voice catalog while provenance/licensing review remains on HOLD; the generic `/v1/audio/speech` endpoint and the other speech providers remain available ([#11711](https://github.com/diegosouzapw/OmniRoute/pull/11711))

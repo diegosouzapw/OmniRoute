@@ -170,11 +170,7 @@ export class DevinCliExecutor extends BaseExecutor {
             err.message.includes("ENOENT") || err.message.includes("not found")
               ? `Devin CLI not found: ${devinBin}. Install via https://cli.devin.ai or set CLI_DEVIN_BIN env var.`
               : `Devin CLI spawn error: ${err.message}`;
-          emit(
-            `data: ${JSON.stringify({ error: { message: msg, type: "devin_cli_error", code: "spawn_failed" } })}\n\n`
-          );
-          emit("data: [DONE]\n\n");
-          controller.close();
+          finish(msg);
         });
 
         if (signal) {

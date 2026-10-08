@@ -14,6 +14,7 @@ import {
 } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
+import { invalidateConnectionUpdate } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
 import {
   removeConnectionHealth,
@@ -35,10 +36,12 @@ import {
   parseProviderSpecificData,
   isMatchingOauthIdentity,
 } from "./webSessionDedup";
+import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
 import { isMicrosoftDesignerWebRetiredProviderId } from "@/shared/constants/designerWebRetirement";
 import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
 import { isRuntimeRetiredProviderId } from "@/shared/constants/providerRetirement";
+import { applyCodexChildCooldownClearOnUpdate } from "./providers/codexAccountState";
 
 /**
  * normalizeProviderSpecificData + the Codex fingerprint-seed invariant: Codex
@@ -228,6 +231,7 @@ export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
   "rate_limit_overrides_json",
   "created_at",
   "updated_at",
+  "synced_models_at",
 ]);
 
 // ──────────────── Provider Connections ────────────────
@@ -416,32 +420,91 @@ export function getProviderConnectionDisplayMetadata(
 // createProviderConnection to keep that function below the complexity baseline.
 // provider_specific_data is plaintext JSON, so the value is compared directly
 // without decryption.
+/**
+ * #12173 — the API-key-value dedup (#3023) matches purely on `provider +
+ * apiKey`, which is correct for hosted providers where the key alone is the
+ * account identity. Local/self-hosted providers (LM Studio, Ollama, vLLM,
+ * llama.cpp, ...) commonly ship an optional/cosmetic API key, so users
+ * legitimately reuse the same placeholder value (e.g. "lm-studio") across two
+ * physically distinct servers that are actually distinguished by base URL.
+ * Gate the extra baseUrl check to this provider set only — hosted-provider
+ * dedup must stay untouched.
+ */
+function isLocalProviderId(providerId: unknown): boolean {
+  return (
+    typeof providerId === "string" &&
+    Object.prototype.hasOwnProperty.call(LOCAL_PROVIDERS, providerId)
+  );
+}
+
+/** Trim + strip a trailing slash so cosmetic differences don't defeat the match. */
+function normalizeBaseUrlForDedup(value: unknown): string {
+  return typeof value === "string" ? value.trim().replace(/\/+$/, "") : "";
+}
+
+/**
+ * Find the cookie connection an incoming import should overwrite.
+ *
+ * #15159 / B-01 — the credential is the identity; `name` is not. This used to try
+ * the name FIRST ("name-based upsert for parity with the apikey path"), so
+ * re-importing under an existing name returned that row and the caller's
+ * `merged = { ...decryptedExisting, ...data }` wrote the new cookie over it.
+ * Because `name` is a user-editable display label, two different accounts
+ * legitimately share one — and the second import silently destroyed the first
+ * account's stored session, unrecoverably.
+ *
+ * This is the same hazard the OAuth branch of this file already fixed
+ * (:532-540): "two different IdPs ... can share the same email address; matching
+ * on email alone would silently overwrite the other account's connection on the
+ * second login." The cookie branch was never given the same treatment.
+ *
+ * The name lookup is now only a fallback for rows with no derivable credential
+ * key — there the name is genuinely all there is to match on. Every other import
+ * matches on its credential, and one with a different credential gets its own row.
+ *
+ * Trade-off, stated plainly: a *rotated* cookie under a stable name now creates a
+ * second row instead of updating in place. That is the intended direction of the
+ * error — a caller can delete a stale row, but cannot recover a session that was
+ * already overwritten. #3368's actual goal (same cookie under a different name
+ * dedupes) is unaffected: that was always the credential loop's job.
+ */
 function findExistingCookieConnection(
   db: DbLike,
   provider: unknown,
   name: unknown,
   normalizedProviderSpecificData: unknown
 ): JsonRecord | null {
-  // 1) Name-based upsert for parity with the apikey path.
-  if (name) {
+  // 1) Credential-value dedup — the authoritative identity for a web session.
+  const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
+  if (newCredKey) {
+    const cookieRows = db
+      .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
+      .all(provider) as JsonRecord[];
+    for (const row of cookieRows) {
+      const psd = parseProviderSpecificData(row.provider_specific_data);
+      if (psd && webSessionCredentialKey(psd) === newCredKey) return row;
+    }
+  }
+
+  // 2) Name fallback, only when this import carries no credential to compare
+  //    against AND the candidate row itself has none. Matching a credential-less
+  //    import onto a row that *does* hold a credential would clobber it with
+  //    nothing — the same data loss, reached from the other direction.
+  if (name && !newCredKey) {
     const byName =
       (db
         .prepare(
           "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie' AND name = ?"
         )
         .get(provider, name) as JsonRecord | undefined) || null;
-    if (byName) return byName;
+    if (
+      byName &&
+      !webSessionCredentialKey(parseProviderSpecificData(byName.provider_specific_data))
+    ) {
+      return byName;
+    }
   }
-  // 2) Credential-value dedup against existing cookie rows.
-  const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
-  if (!newCredKey) return null;
-  const cookieRows = db
-    .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
-    .all(provider) as JsonRecord[];
-  for (const row of cookieRows) {
-    const psd = parseProviderSpecificData(row.provider_specific_data);
-    if (psd && webSessionCredentialKey(psd) === newCredKey) return row;
-  }
+
   return null;
 }
 
@@ -550,15 +613,25 @@ export async function createProviderConnection(data: JsonRecord) {
     // plaintext (trimmed) instead.
     const newApiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
     if (!existing && newApiKey) {
+      const isLocal = isLocalProviderId(data.provider);
+      const newBaseUrl = normalizeBaseUrlForDedup(providerSpecificData.baseUrl);
       const apiKeyRows = db
         .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey'")
         .all(data.provider) as JsonRecord[];
       for (const row of apiKeyRows) {
         const decrypted = decryptConnectionFields(toRecord(rowToCamel(row)));
-        if (toStringOrNull(decrypted.apiKey)?.trim() === newApiKey) {
-          existing = row;
-          break;
+        if (toStringOrNull(decrypted.apiKey)?.trim() !== newApiKey) continue;
+        // #12173 — for local/self-hosted providers, a differing base URL means
+        // this is a different physical server, not the same account; fall
+        // through to inserting a new connection even though the apiKey matches.
+        if (isLocal) {
+          const existingBaseUrl = normalizeBaseUrlForDedup(
+            parseProviderSpecificData(row.provider_specific_data)?.baseUrl
+          );
+          if (existingBaseUrl !== newBaseUrl) continue;
         }
+        existing = row;
+        break;
       }
     }
   } else if (data.authType === "cookie") {
@@ -951,11 +1024,14 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     ...data,
     updatedAt: new Date().toISOString(),
   };
-  merged.providerSpecificData = normalizeConnectionProviderSpecificData(
-    toStringOrNull(merged.provider),
-    merged.providerSpecificData,
-    merged,
-    existingCamel.providerSpecificData
+  merged.providerSpecificData = applyCodexChildCooldownClearOnUpdate(
+    data,
+    normalizeConnectionProviderSpecificData(
+      toStringOrNull(merged.provider),
+      merged.providerSpecificData,
+      merged,
+      existingCamel.providerSpecificData
+    )
   );
   // Mirror the sanitization the create path applies — keep the returned
   // object in lockstep with what we persist.
@@ -990,16 +1066,19 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   })();
   backupDbFile("pre-write");
-  invalidateDbCache("connections"); // Bust connections read cache
+  invalidateConnectionUpdate(id, data);
   bumpProxyConfigGeneration();
 
-  if (data.priority !== undefined) {
+  // Zero is the internal move-to-top sentinel. Explicit positive priorities
+  // are operator-selected values, not ranks to compact after every edit.
+  if (data.priority === 0) {
     const existingRecord = toRecord(existing);
     const providerId =
       typeof existingRecord.provider === "string"
         ? existingRecord.provider
         : String(existingRecord.provider || "");
     reorderConnections(db, providerId);
+    return getProviderConnectionById(id);
   }
 
   const returnedConnection = withNullableRateLimitOverrides(
@@ -1024,64 +1103,12 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
 export {
   updateCodexScopedQuotaState,
   updateCodexScopeCooldown,
+  applyCodexChildCooldownClearOnUpdate,
+  stripCodexChildCooldownFields,
+  stripCodexChildCooldownsFromConnection,
+  hasCodexScopeCooldown,
+  liftCodexScopeCooldownOnHeadroom,
 } from "./providers/codexAccountState";
-
-/**
- * Atomic conditional clear of recoverable error state on a connection row.
- *
- * Returns true when the row was cleared, false when a concurrent writer
- * (markAccountUnavailable, connectionRecovery tick, test, etc.) changed the
- * row between the caller's snapshot read and this UPDATE — in which case the
- * clear is skipped to preserve the freshest error state. Closes the TOCTOU
- * window in the quota-recovery path.
- *
- * CAS token = (test_status, last_error_at, rate_limited_until).
- * markAccountUnavailable always bumps last_error_at on every cooldown/error
- * write, so an unchanged last_error_at reliably indicates no concurrent write.
- */
-export async function clearConnectionErrorIfUnchanged(
-  id: string,
-  expected: {
-    testStatus: string | null | undefined;
-    lastErrorAt: string | null | undefined;
-    rateLimitedUntil: string | null | undefined;
-  }
-): Promise<boolean> {
-  const db = getDbInstance() as unknown as DbLike;
-  const result = db
-    .prepare(
-      `
-    UPDATE provider_connections SET
-      test_status = 'active',
-      last_error = NULL,
-      last_error_at = NULL,
-      last_error_type = NULL,
-      last_error_source = NULL,
-      error_code = NULL,
-      rate_limited_until = NULL,
-      backoff_level = 0,
-      updated_at = ?
-    WHERE id = ?
-      AND IFNULL(test_status, '') = ?
-      AND IFNULL(last_error_at, '') = ?
-      AND IFNULL(rate_limited_until, '') = ?
-    `
-    )
-    .run(
-      new Date().toISOString(),
-      id,
-      expected.testStatus ?? "",
-      expected.lastErrorAt ?? "",
-      expected.rateLimitedUntil ?? ""
-    );
-  const applied = (result.changes ?? 0) > 0;
-  if (applied) {
-    backupDbFile("pre-write");
-    invalidateDbCache("connections");
-    bumpProxyConfigGeneration();
-  }
-  return applied;
-}
 
 /**
  * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
@@ -1112,11 +1139,36 @@ export async function touchConnectionLastUsed(
 }
 
 /**
+ * #12849: stamp when a connection's synced model catalog was last written.
+ * getActiveSyncedCatalog reads this to stop treating a synced catalog as
+ * authoritative forever — a connection synced once and never refreshed
+ * silently pinned routing to that point-in-time snapshot with no staleness
+ * check. Lightweight targeted UPDATE, mirrors touchConnectionLastUsed.
+ */
+export async function touchConnectionSyncedModelsAt(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      synced_models_at = @syncedModelsAt,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    syncedModelsAt: now,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
  * Lightweight backoff reset — runs a targeted UPDATE without SELECT or re-encrypt.
  * Follows the `clearConnectionErrorIfUnchanged` pattern but without the CAS check,
  * since the caller already verified the connection is eligible for reset.
  * Resets all backoff/error columns so the connection re-enters the selection pool.
  * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
+ * #13389: `skipModelCatalog` — the catalog builder never reads backoff/error
+ * state, so this must not bust the expensive-to-rebuild `/v1/models` cache.
  */
 export async function resetConnectionBackoff(id: string): Promise<void> {
   if (!id) return;
@@ -1137,7 +1189,7 @@ export async function resetConnectionBackoff(id: string): Promise<void> {
     updatedAt: now,
     id,
   });
-  invalidateDbCache("connections");
+  invalidateDbCache("connections", id, { skipModelCatalog: true });
   bumpProxyConfigGeneration();
 }
 
@@ -1183,4 +1235,5 @@ export {
   formatResetCountdown,
   isConnectionRateLimited,
   getRateLimitedConnections,
+  clearConnectionErrorIfUnchanged,
 } from "./providers/rateLimit";

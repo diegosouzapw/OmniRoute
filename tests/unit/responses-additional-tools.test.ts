@@ -246,7 +246,10 @@ test("Responses custom metadata includes additional and namespaced custom tools"
       ],
     },
   ];
-  assert.deepEqual([...collectResponsesCustomToolNames([], input)].sort(), ["apply_diff", "exec"]);
+  assert.deepEqual([...collectResponsesCustomToolNames([], input)].sort(), [
+    "exec",
+    "server__apply_diff",
+  ]);
 });
 
 test("Responses source format enables custom metadata independently of model apiFormat", () => {

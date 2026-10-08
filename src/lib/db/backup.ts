@@ -15,11 +15,11 @@ import {
 } from "./core";
 import { resetAllDbModuleState } from "./stateReset";
 import {
-  MAX_DB_BACKUPS,
-  DEFAULT_DB_BACKUP_RETENTION_DAYS,
-  parsePositiveInt,
-  parseNonNegativeInt,
+  DB_BACKUP_SETTINGS_NAMESPACE,
+  DB_BACKUP_MAX_FILES_KEY,
+  DB_BACKUP_RETENTION_DAYS_KEY,
   pruneBackupDirectory,
+  resolveDbBackupRetention,
 } from "./backupRetention";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
@@ -30,30 +30,6 @@ type CountRow = { cnt?: number };
 let _lastBackupAt = 0;
 const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes — high-churn pre-write (models.dev pricing) must not copy the whole SQLite file every call (#10351)
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
-
-// #3834: the "Keep latest backups" UI value is persisted here so it survives a page
-// refresh / the loadStorageHealth() refetch. A dedicated namespace avoids any
-// cross-talk with the databaseSettings key_value store (which rewrites all of its own
-// keys on every update). It is intentionally separate from the orphan
-// `databaseSettings.backup.keepLastNBackups` (default 5) so existing installs keep the
-// historical default of 20 until an operator explicitly changes it here.
-const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
-const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
-const DB_BACKUP_RETENTION_DAYS_KEY = "retentionDays";
-
-function getStoredDbBackupInteger(key: string, options: { min: number }): number | undefined {
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get(DB_BACKUP_SETTINGS_NAMESPACE, key) as { value?: string } | undefined;
-    if (!row?.value) return undefined;
-    const parsed = JSON.parse(row.value);
-    return Number.isInteger(parsed) && parsed >= options.min ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 function setStoredDbBackupInteger(key: string, value: number, options: { min: number }): void {
   if (!Number.isInteger(value) || value < options.min) return;
@@ -71,11 +47,7 @@ export function setDbBackupMaxFiles(value: number): void {
 }
 
 export function getDbBackupMaxFiles() {
-  // Precedence: DB_BACKUP_MAX_FILES env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_MAX_FILES) {
-    return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
-  }
-  return getStoredDbBackupInteger(DB_BACKUP_MAX_FILES_KEY, { min: 1 }) ?? MAX_DB_BACKUPS;
+  return resolveDbBackupRetention(getDbInstance()).maxFiles;
 }
 
 /** Persist the operator-chosen age-based backup retention window. */
@@ -84,17 +56,7 @@ export function setDbBackupRetentionDays(value: number): void {
 }
 
 export function getDbBackupRetentionDays() {
-  // Precedence: DB_BACKUP_RETENTION_DAYS env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_RETENTION_DAYS) {
-    return parseNonNegativeInt(
-      process.env.DB_BACKUP_RETENTION_DAYS,
-      DEFAULT_DB_BACKUP_RETENTION_DAYS
-    );
-  }
-  return (
-    getStoredDbBackupInteger(DB_BACKUP_RETENTION_DAYS_KEY, { min: 0 }) ??
-    DEFAULT_DB_BACKUP_RETENTION_DAYS
-  );
+  return resolveDbBackupRetention(getDbInstance()).retentionDays;
 }
 
 function getBackupDir() {
@@ -218,6 +180,123 @@ export function isAutoBackupDisabledBySetting(): boolean {
   }
 }
 
+export type AutoBackupFrequency = "never" | "daily" | "weekly" | "monthly";
+
+function coerceFrequency(value: unknown): AutoBackupFrequency | null {
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    if (v === "never" || v === "daily" || v === "weekly" || v === "monthly") {
+      return v;
+    }
+  }
+  return null;
+}
+
+/**
+ * #15550: resolve the persisted `backup.autoBackupFrequency` dashboard setting.
+ * Mirrors the precedence used by `databaseSettings.getUserDatabaseSettings()`
+ * while reading `key_value` rows directly to avoid a circular dependency with
+ * `databaseSettings.ts`.
+ */
+export function getAutoBackupFrequencySetting(): AutoBackupFrequency | null {
+  try {
+    const db = getDbInstance();
+    const rows = db
+      .prepare("SELECT namespace, key, value FROM key_value WHERE namespace IN (?, ?)")
+      .all("settings", "databaseSettings") as Array<{
+      namespace: string;
+      key: string;
+      value: string;
+    }>;
+
+    let fromSettingsNested: AutoBackupFrequency | null = null;
+    let fromSettingsBackup: AutoBackupFrequency | null = null;
+    let fromDbFlat: AutoBackupFrequency | null = null;
+    let fromDbNested: AutoBackupFrequency | null = null;
+
+    for (const row of rows) {
+      const parsed = parseStoredJson(row.value);
+
+      if (row.namespace === "settings") {
+        if (row.key === "databaseSettings" && isPlainObject(parsed)) {
+          const backup = (parsed as Record<string, unknown>).backup;
+          if (isPlainObject(backup)) {
+            const f = coerceFrequency((backup as Record<string, unknown>).autoBackupFrequency);
+            if (f !== null) fromSettingsNested = f;
+          }
+        } else if (row.key === "backup" && isPlainObject(parsed)) {
+          const f = coerceFrequency((parsed as Record<string, unknown>).autoBackupFrequency);
+          if (f !== null) fromSettingsBackup = f;
+        }
+      } else if (row.namespace === "databaseSettings") {
+        if (row.key === "autoBackupFrequency") {
+          const f = coerceFrequency(parsed);
+          if (f !== null) fromDbFlat = f;
+        } else if (row.key === "backup.autoBackupFrequency") {
+          const f = coerceFrequency(parsed);
+          if (f !== null) fromDbNested = f;
+        }
+      }
+    }
+
+    let frequency: AutoBackupFrequency | null = null;
+    for (const candidate of [fromSettingsNested, fromSettingsBackup, fromDbFlat, fromDbNested]) {
+      if (candidate !== null) frequency = candidate;
+    }
+
+    return frequency;
+  } catch {
+    return null;
+  }
+}
+
+export function getAutoBackupFrequencyIntervalMs(
+  frequency: AutoBackupFrequency | null
+): number | null {
+  // Explicit "never" is the only value that disables automatic backups.
+  // An absent setting keeps the pre-#15550 hourly throttle instead of
+  // treating unset as off.
+  if (frequency === "never") return null;
+  if (!frequency) return BACKUP_THROTTLE_MS;
+  switch (frequency) {
+    case "daily":
+      return 24 * 60 * 60 * 1000;
+    case "weekly":
+      return 7 * 24 * 60 * 60 * 1000;
+    case "monthly":
+      return 30 * 24 * 60 * 60 * 1000;
+    default:
+      return BACKUP_THROTTLE_MS;
+  }
+}
+
+/**
+ * #15550: determine whether an automatic backup is due based on configured frequency
+ * and the persistent timestamp (mtime) of the newest valid backup on disk.
+ */
+export function isAutoBackupDueByFrequency(options?: {
+  backupDir?: string;
+  now?: number;
+}): boolean {
+  const frequency = getAutoBackupFrequencySetting();
+  const intervalMs = getAutoBackupFrequencyIntervalMs(frequency);
+  if (intervalMs === null) return false;
+
+  const backupDir = options?.backupDir ?? getBackupDir();
+  if (!fs.existsSync(backupDir)) return true;
+
+  const now = options?.now ?? Date.now();
+  const entries = listBackupFilesNewestFirst(backupDir);
+
+  for (const { stat } of entries) {
+    if (stat.size >= 4096) {
+      return now - stat.mtimeMs >= intervalMs;
+    }
+  }
+
+  return true;
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -265,7 +344,8 @@ export function backupDbFile(reason = "auto") {
   try {
     if (isBuildPhase || isCloud) return null;
     if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) return null;
-    if (reason !== "manual" && isSqliteAutoBackupDisabled()) return null;
+    if (reason !== "manual" && reason !== "pre-restore" && isSqliteAutoBackupDisabled())
+      return null;
     // #5871: honor the persisted `backup.autoBackupEnabled` dashboard toggle. Only
     // manual and pre-restore backups bypass this gate; automatic + pre-write safety
     // snapshots must stop firing once the operator disables auto-backup in the UI.
@@ -282,6 +362,13 @@ export function backupDbFile(reason = "auto") {
     const now = Date.now();
     if (reason !== "manual" && reason !== "pre-restore" && now - _lastBackupAt < BACKUP_THROTTLE_MS)
       return null;
+
+    // #15550: honor the persisted `backup.autoBackupFrequency` setting against the
+    // newest valid backup on disk.
+    if (reason !== "manual" && reason !== "pre-restore") {
+      if (!isAutoBackupDueByFrequency({ backupDir: getBackupDir(), now })) return null;
+    }
+
     _lastBackupAt = now;
 
     const backupDir = getBackupDir();

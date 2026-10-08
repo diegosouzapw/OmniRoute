@@ -183,11 +183,28 @@ function resolveCaseModel(evalCase: Record<string, unknown>, target: EvalTargetI
   return caseModel || "gpt-4o";
 }
 
-async function executeEvalCase(
+/**
+ * Build the chat-completions request for one eval case.
+ *
+ * The runner manages its own context: a graded case must measure the model
+ * answering the case, not the operator's injected context. Two injections
+ * otherwise apply on the ordinary chat path — a selected output style is
+ * prepended as a system message (gated on `x-omniroute-compression`), and
+ * retrieved memory plus the built-in `memory_*` tools are appended once the
+ * request carries an API key (gated on `x-omniroute-no-memory`). Both are
+ * request-header opt-outs, so the runner sets them on every case. Without them
+ * a graded case answers in the configured persona or spends its turn calling
+ * `memory_*`, and a run that passes an API key scores *worse* than one that
+ * does not, because the key is what gives the request a memory owner (#13139).
+ *
+ * Exported so the header contract can be asserted without invoking the chat
+ * route — see tests/unit/evals-runtime-self-managed-headers-13139.test.ts.
+ */
+export function buildEvalCaseRequest(
   evalCase: Record<string, unknown>,
   target: EvalTargetInput,
   apiKey: string | null
-): Promise<{ output: string; durationMs: number; error?: string }> {
+): Request {
   const input =
     evalCase.input && typeof evalCase.input === "object" && !Array.isArray(evalCase.input)
       ? (evalCase.input as Record<string, unknown>)
@@ -195,13 +212,16 @@ async function executeEvalCase(
   const model = resolveCaseModel(evalCase, target);
   const headers = new Headers({
     "Content-Type": "application/json",
+    // Self-managed context — see the docblock above.
+    "x-omniroute-compression": "off",
+    "x-omniroute-no-memory": "true",
   });
 
   if (apiKey) {
     headers.set("Authorization", `Bearer ${apiKey}`);
   }
 
-  const request = new Request("http://localhost/api/v1/chat/completions", {
+  return new Request("http://localhost/api/v1/chat/completions", {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -214,6 +234,14 @@ async function executeEvalCase(
           : 512,
     }),
   });
+}
+
+async function executeEvalCase(
+  evalCase: Record<string, unknown>,
+  target: EvalTargetInput,
+  apiKey: string | null
+): Promise<{ output: string; durationMs: number; error?: string }> {
+  const request = buildEvalCaseRequest(evalCase, target, apiKey);
 
   const startedAt = Date.now();
   const response = await postChatCompletion(request);

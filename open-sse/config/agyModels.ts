@@ -1,110 +1,22 @@
 // Antigravity CLI (`agy`) model catalog.
 //
-// These models are pinned from the live `:fetchAvailableModels` endpoint
-// (https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels) using a
-// real `agy` consumer-OAuth token. The public catalog exposes the upstream Gemini 3.7
-// Flash ids verbatim; the shared Antigravity executor dispatches them unchanged.
+// Models are derived from the shared Antigravity catalog (antigravitySharedModels.ts)
+// which is the single source of truth for both agy and antigravity surfaces.
+// The `agy` provider reuses the `antigravity` executor/translator (identical backend).
 //
-// The `agy` provider reuses the `antigravity` executor/translator (identical backend),
-// but keeps its own catalog so the CLI and IDE model surfaces can evolve independently.
-// Both currently expose the same callable Claude/Gemini/GPT set. Tab-completion models
-// (`tab_flash_lite_preview`, `tab_jump_flash_lite_preview`) are intentionally excluded —
-// they are not chat-callable.
+// To add a model to both surfaces: edit antigravitySharedModels.ts.
+// To add a model to CLI only: add an entry to `add` below.
+// To hide a model from CLI only: add its id to `remove` below.
 
-export const AGY_PUBLIC_MODELS = Object.freeze([
-  // Gemini 3.7 Flash tiers. The live endpoint selects High by default and advertises
-  // all three ids to both the IDE 2.5.5 and CLI 1.1.x clients.
-  {
-    id: "gemini-3.7-flash-high",
-    name: "Gemini 3.7 Flash (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-medium",
-    name: "Gemini 3.7 Flash (Medium)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-low",
-    name: "Gemini 3.7 Flash (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.7-flash-tiered",
-    name: "Gemini 3.7 Flash (Tiered)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // Gemini 3.1 Pro
-  {
-    id: "gemini-pro-agent",
-    name: "Gemini 3.1 Pro (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.1-pro-low",
-    name: "Gemini 3.1 Pro (Low)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.1-flash-lite",
-    name: "Gemini 3.1 Flash Lite",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    toolCalling: true,
-  },
-  // Claude (Antigravity backend).
-  {
-    id: "claude-opus-4-6-thinking",
-    name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "claude-sonnet-4-6",
-    name: "Claude Sonnet 4.6 (Thinking)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // GPT-OSS
-  {
-    id: "gpt-oss-120b-medium",
-    name: "GPT-OSS 120B (Medium)",
-    contextLength: 131072,
-    maxOutputTokens: 32768,
-    supportsReasoning: true,
-    toolCalling: true,
-  },
-]);
+import {
+  ANTIGRAVITY_SHARED_MODELS,
+  buildSurfaceCatalog,
+} from "./antigravitySharedModels.ts";
+
+export const AGY_PUBLIC_MODELS = buildSurfaceCatalog(ANTIGRAVITY_SHARED_MODELS, {
+  add: [], // CLI-only models (currently none)
+  remove: [], // Models hidden from CLI (currently none)
+});
 
 const AGY_PUBLIC_MODEL_IDS = new Set(AGY_PUBLIC_MODELS.map((model) => model.id));
 const AGY_NON_CHAT_MODEL_IDS = new Set(["tab_flash_lite_preview", "tab_jump_flash_lite_preview"]);

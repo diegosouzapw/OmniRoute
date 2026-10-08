@@ -1,1 +1,0 @@
-- **fix(api):** Generated API CLI commands now enforce required OpenAPI request bodies; Combo test commands forward the required `comboName` body, while API keys created by older writers after migration 149 preserve legacy allow-all Combo access without widening explicit empty allowlists — thanks @marcelokarval

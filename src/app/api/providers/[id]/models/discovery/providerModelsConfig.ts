@@ -7,6 +7,7 @@ import {
 } from "@omniroute/open-sse/config/grokBuild.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
+import { buildClaudeModelsHeaders } from "@/lib/providerModels/claudeModelsHeaders";
 import {
   CLINE_MODELS_ENDPOINT,
   CLINEPASS_MODELS_ENDPOINT,
@@ -25,6 +26,8 @@ import { filterAlibabaFreeEligibleModels } from "@omniroute/open-sse/services/al
 import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
+import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
@@ -103,10 +106,13 @@ export function parsePerplexitySonarModels(data: any): any[] {
     (model: any) => typeof model?.id === "string" && /^sonar(-|$)/.test(model.id)
   );
 }
-type ProviderModelsHeaderContext = {
+export type ProviderModelsHeaderContext = {
+  id?: string;
   authType?: string;
   providerSpecificData?: unknown;
   email?: string | null;
+  accessToken?: string | null;
+  apiKey?: string | null;
 };
 
 export type ProviderModelsConfigEntry = {
@@ -123,6 +129,18 @@ export type ProviderModelsConfigEntry = {
   ) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
+
+export function assembleProviderModelsHeaders(
+  config: ProviderModelsConfigEntry,
+  token: string,
+  context?: ProviderModelsHeaderContext
+): Record<string, string> {
+  const headers = config.buildHeaders ? config.buildHeaders(token, context) : { ...config.headers };
+  if (!config.buildHeaders && config.authHeader && !config.authQuery) {
+    headers[config.authHeader] = (config.authPrefix || "") + token;
+  }
+  return headers;
+}
 
 const DASHSCOPE_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
   url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
@@ -279,7 +297,16 @@ function getGrokBuildReasoningEfforts(
   const hasExplicitEffortList = effortLists.some((value) => Array.isArray(value));
   const discovered = effortLists
     .flatMap((value) => (Array.isArray(value) ? value : []))
-    .filter((value): value is string => typeof value === "string")
+    .map((value) => {
+      if (typeof value === "string") return value;
+      if (value && typeof value === "object") {
+        const record = value as { value?: unknown; id?: unknown };
+        const named = typeof record.value === "string" ? record.value.trim() : "";
+        if (named) return named;
+        return typeof record.id === "string" ? record.id : "";
+      }
+      return "";
+    })
     .map((value) => value.trim().toLowerCase())
     .filter((value) => supported.has(value));
   if (hasExplicitEffortList) return [...new Set(discovered)];
@@ -291,7 +318,9 @@ function getGrokBuildReasoningEfforts(
     metadata.reasoning_effort
   )?.toLowerCase();
   if (singleEffort && supported.has(singleEffort)) return [singleEffort];
-  return hasGrokBuildReasoning(model, metadata) ? [...GROK_BUILD_SUPPORTED_REASONING_EFFORTS] : [];
+  // No list in the payload. The boolean only proves reasoning exists.
+  // grok-4.5 advertises low/medium/high. xhigh is kept only when named.
+  return hasGrokBuildReasoning(model, metadata) ? ["low", "medium", "high"] : [];
 }
 
 function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
@@ -379,18 +408,110 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
   parseResponse: parseKimiCodingModels,
 };
 
+const OPENCODE_DISCOVERY_PARSE = (data: any) => data.data || data.models || [];
+
+/**
+ * Stable background-identity seed for one connection. Prefers the workspace id
+ * (all three spellings the providerSpecificData validator accepts) so
+ * connections sharing a workspace group under one upstream identity, then
+ * falls back to the connection id so a workspace-less connection still gets a
+ * deterministic session instead of a fresh anonymous UUID per discovery call.
+ */
+function readOpencodeBackgroundSeed(connection?: ProviderModelsHeaderContext): string | null {
+  const psd = connection?.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const record = psd as Record<string, unknown>;
+    for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+      const value = record[key];
+      if (typeof value === "string" && value.trim().length > 0) return value.trim();
+    }
+  }
+  const id = connection?.id;
+  return typeof id === "string" && id.trim().length > 0 ? id.trim() : null;
+}
+
+/**
+ * Discovery entry for the opencode-family providers with the OpenCode CLI
+ * identity headers attached (User-Agent + x-opencode-session/request/client/
+ * project). Bare runtime fetches (UA "Bun fetch", no session header) are
+ * exactly the shape OpenCode's operator warning names — enforcement of the
+ * header is announced from 2026-09-06. The session id is a stable
+ * per-workspace/connection fingerprint so background discovery groups under
+ * one identity upstream instead of a fresh anonymous client per call.
+ */
+function buildOpencodeModelsDiscoveryEntry(url: string): ProviderModelsConfigEntry {
+  return {
+    url,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    buildHeaders: (token, connection) => ({
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      ...buildOpencodeBackgroundHeaders({ seed: readOpencodeBackgroundSeed(connection) }),
+    }),
+    parseResponse: OPENCODE_DISCOVERY_PARSE,
+  };
+}
+// Also used, behind the XAI_OAUTH_LIVE_MODEL_DISCOVERY flag, to fetch a live
+// catalog for xai-oauth (see getXaiOauthLiveModelsConfig below). Whether x.ai
+// accepts an OAuth bearer at this endpoint is unverified — that is why
+// xai-oauth is not registered in PROVIDER_MODELS_CONFIG below and stays on
+// its frozen static seed (open-sse/config/providers/registry/xai/index.ts)
+// unless the flag is explicitly turned on.
+// x.ai /v1/models lists Grok Imagine media models next to the chat models without a
+// type field. Tag them so they stay out of chat catalogs and auto/* pools.
+function tagXaiMediaModel(model: unknown) {
+  if (!model || typeof model !== "object") return model;
+  const id = typeof (model as { id?: unknown }).id === "string" ? (model as { id: string }).id : "";
+  if (/^grok-imagine-image/i.test(id)) {
+    return { ...model, supportedEndpoints: ["images"], modelType: "image" };
+  }
+  if (/^grok-imagine-video/i.test(id)) return { ...model, supportedEndpoints: ["videos"] };
+  return model;
+}
+
+export const XAI_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://api.x.ai/v1/models",
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  authHeader: "Authorization",
+  authPrefix: "Bearer ",
+  parseResponse: (data) => {
+    const models = data.data || data.models || [];
+    return Array.isArray(models) ? models.map(tagXaiMediaModel) : models;
+  },
+};
+
+/**
+ * Resolve the live-discovery config for xai-oauth when the
+ * XAI_OAUTH_LIVE_MODEL_DISCOVERY flag is on, or `undefined` when it is off
+ * (or its resolution throws) so the caller falls back to the frozen static
+ * seed — the flag defaults to "true" and fails closed on any error.
+ */
+export function getXaiOauthLiveModelsConfig(): ProviderModelsConfigEntry | undefined {
+  try {
+    return isFeatureFlagEnabled("XAI_OAUTH_LIVE_MODEL_DISCOVERY") ? XAI_MODELS_CONFIG : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
-    url: "https://api.anthropic.com/v1/models",
+    url: "https://api.anthropic.com/v1/models?limit=1000",
     method: "GET",
     headers: {
-      "Anthropic-Version": "2023-06-01",
+      "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
-    authHeader: "x-api-key",
+    buildHeaders: (_token, context) =>
+      buildClaudeModelsHeaders({
+        accessToken: context?.accessToken,
+        apiKey: context?.apiKey,
+      }),
     parseResponse: (data) => data.data || [],
   },
   gemini: {
@@ -571,14 +692,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  xai: {
-    url: "https://api.x.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  xai: XAI_MODELS_CONFIG,
+  // xai-oauth intentionally NOT registered here: it stays on the frozen
+  // static seed unless XAI_OAUTH_LIVE_MODEL_DISCOVERY is on (see
+  // getXaiOauthLiveModelsConfig above) — keeping this map's keys in lockstep
+  // with HARDCODED_MODELS_CONFIG_IDS (tests/unit/discovery-class.test.ts)
+  // means the flag gate has to live at the lookup call site, not here.
   mistral: {
     url: "https://api.mistral.ai/v1/models",
     method: "GET",
@@ -755,22 +874,12 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  "opencode-zen": {
-    url: "https://opencode.ai/zen/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-go": {
-    url: "https://opencode.ai/zen/go/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
+  // OpenCode CLI identity headers on all three opencode-family entries (see
+  // buildOpencodeModelsDiscoveryEntry above for why — bare "Bun fetch" calls
+  // without x-opencode-session are what OpenCode's operator warning names).
+  opencode: buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-zen": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/v1/models"),
+  "opencode-go": buildOpencodeModelsDiscoveryEntry("https://opencode.ai/zen/go/v1/models"),
   "glm-cn": {
     url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
     method: "GET",

@@ -138,3 +138,42 @@ test("DefaultExecutor labels internal health checks separately from user traffic
   applyClineProtocolHeaders(headers, { taskId: headers["X-Task-ID"] });
   assert.equal(headers["X-CLIENT-TYPE"], "omniroute-internal-health-check");
 });
+
+test("DefaultExecutor handles dual-auth logging for clinepass provider", () => {
+  const executor = new DefaultExecutor("clinepass");
+
+  // API key auth mode
+  const apiKeyHeaders = executor.buildHeaders(
+    { apiKey: "sk-cline-123", authType: "apikey" },
+    true,
+    {}
+  );
+  assert.equal(apiKeyHeaders["Authorization"], "Bearer sk-cline-123");
+
+  // OAuth token auth mode — real OAuth credential shape (accessToken, not apiKey;
+  // see #11828 review) so this exercises the effectiveKey || credentials?.accessToken
+  // fallback that actually runs in production.
+  const oauthHeaders = executor.buildHeaders(
+    { accessToken: "workos_tok_456", authType: "oauth" },
+    true,
+    {}
+  );
+  assert.equal(oauthHeaders["Authorization"], "Bearer workos:workos_tok_456");
+});
+
+test("DefaultExecutor clinepass authType branch matches buildClinepassHeaders() directly (parity)", () => {
+  const executor = new DefaultExecutor("clinepass");
+
+  const apiKeyCredentials = { apiKey: "sk-cline-789", authType: "apikey" };
+  const oauthCredentials = { accessToken: "workos_tok_789", authType: "oauth" };
+
+  for (const credentials of [apiKeyCredentials, oauthCredentials]) {
+    const viaExecutor = executor.buildHeaders(credentials, true, {});
+    const viaDirectCall = buildClinepassHeaders(credentials, credentials.apiKey);
+    assert.equal(
+      viaExecutor["Authorization"],
+      viaDirectCall["Authorization"],
+      `Authorization mismatch for ${JSON.stringify(credentials)}`
+    );
+  }
+});

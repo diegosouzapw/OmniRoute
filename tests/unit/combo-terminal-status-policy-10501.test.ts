@@ -54,7 +54,9 @@ function successResponse() {
   return new Response(
     JSON.stringify({
       id: "chatcmpl-1",
-      choices: [{ index: 0, message: { role: "assistant", content: "hi there" }, finish_reason: "stop" }],
+      choices: [
+        { index: 0, message: { role: "assistant", content: "hi there" }, finish_reason: "stop" },
+      ],
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
@@ -86,7 +88,11 @@ test("#10314/#10501: quality failure on target 1 + auth 401 on target 2 → 5xx 
     result.status >= 500,
     `expected a 5xx terminal status for a heterogeneous quality+auth mix, got ${result.status}`
   );
-  assert.notEqual(result.status, 401, "must not regress to surfacing the sibling target's bare 401");
+  assert.notEqual(
+    result.status,
+    401,
+    "must not regress to surfacing the sibling target's bare 401"
+  );
 
   const body = (await result.json()) as { error?: { message?: string } };
   const message = body.error?.message ?? "";

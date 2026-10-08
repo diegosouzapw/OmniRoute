@@ -45,13 +45,110 @@ function flatten(value: Json, prefix = ""): Map<string, string> {
 
 /**
  * Names an ICU message interpolates: `{name}` and the argument of a typed
- * placeholder such as `{count, plural, ...}`. Nested sub-messages are covered
- * because the scan is a plain sweep of the whole string.
+ * placeholder such as `{count, plural, ...}`.
+ *
+ * The scan follows the ICU grammar rather than matching every `{…}` pair:
+ * inside a `plural`/`select` style the braces after a selector hold a
+ * *sub-message*, so `endpoint{count, plural, one {} other {s}}` interpolates
+ * `count` alone — the `s` is literal text every translation is free to replace
+ * ("točke", "ų", or nothing at all).
  */
 function placeholders(message: string): Set<string> {
-  return new Set(
-    [...message.matchAll(/\{\s*([a-zA-Z0-9_]+)\s*[,}]/g)].map((match) => match[1])
-  );
+  const names = new Set<string>();
+  let i = 0;
+
+  const skipSpace = () => {
+    while (i < message.length && /\s/.test(message[i])) i++;
+  };
+
+  const skipToClose = () => {
+    let depth = 1;
+    while (i < message.length && depth > 0) {
+      if (message[i] === "{") depth++;
+      else if (message[i] === "}") depth--;
+      i++;
+    }
+  };
+
+  // Text with arguments; stops at the `}` that closes the enclosing sub-message.
+  // A straight quote before `{` or `<` opens a literal run (ICU quoting):
+  // text up to the next lone quote is literal, not a placeholder. A doubled
+  // quote is an escaped quote, inside a run as well as outside.
+  const readMessage = () => {
+    while (i < message.length && message[i] !== "}") {
+      if (message[i] === "'") {
+        if (message[i + 1] === "'") {
+          i += 2;
+          continue;
+        }
+        if (message[i + 1] === "{" || message[i + 1] === "<") {
+          i += 2;
+          while (i < message.length) {
+            if (message[i] === "'") {
+              if (message[i + 1] === "'") {
+                i += 2;
+                continue;
+              }
+              i++;
+              break;
+            }
+            i++;
+          }
+          continue;
+        }
+        i++;
+        continue;
+      }
+      if (message[i] === "{") {
+        i++;
+        readArgument();
+        continue;
+      }
+      i++;
+    }
+  };
+
+  // Selector tokens, each followed by a `{ sub-message }`, until the argument closes.
+  const readStyle = () => {
+    while (i < message.length) {
+      if (message[i] === "}") {
+        i++;
+        return;
+      }
+      if (message[i] === "{") {
+        i++;
+        readMessage();
+        if (message[i] === "}") i++;
+        continue;
+      }
+      i++;
+    }
+  };
+
+  const readArgument = () => {
+    skipSpace();
+    let name = "";
+    while (i < message.length && /[a-zA-Z0-9_]/.test(message[i])) name += message[i++];
+    if (name) names.add(name);
+    skipSpace();
+    if (message[i] === "}") {
+      i++;
+      return;
+    }
+    if (message[i] !== ",") {
+      skipToClose();
+      return;
+    }
+    i++;
+    skipSpace();
+    let type = "";
+    while (i < message.length && /[a-zA-Z]/.test(message[i])) type += message[i++];
+    if (type === "plural" || type === "select" || type === "selectordinal") readStyle();
+    else skipToClose();
+  };
+
+  readMessage();
+  return names;
 }
 
 const english = flatten(loadLocale("en.json"));
@@ -88,7 +185,42 @@ test("every locale keeps the placeholders its English source defines", () => {
 test("the checker itself recognises the drift it is meant to catch", () => {
   // Without this the test above could pass by never matching anything.
   assert.deepEqual([...placeholders("of {total} total")], ["total"]);
-  assert.deepEqual([...placeholders("ok (task {taskId}{stateSuffix}).")], ["taskId", "stateSuffix"]);
+  assert.deepEqual(
+    [...placeholders("ok (task {taskId}{stateSuffix}).")],
+    ["taskId", "stateSuffix"]
+  );
   assert.deepEqual([...placeholders("{count, plural, one {# item} other {# items}}")], ["count"]);
   assert.deepEqual([...placeholders("Acertos")], []);
+  // Branch bodies are messages, not arguments: `{s}` is the English plural
+  // suffix, and a translation may swap it for its own ending or drop it.
+  assert.deepEqual(
+    [...placeholders("Restricted to {count} endpoint{count, plural, one {} other {s}}.")],
+    ["count"]
+  );
+  assert.deepEqual(
+    [
+      ...placeholders(
+        "Omejeno na {count} {count, plural, one {končno točko} other {končnih točk}}."
+      ),
+    ],
+    ["count"]
+  );
+  // An argument nested inside a branch still counts.
+  assert.deepEqual(
+    [...placeholders("{count, plural, one {one {name}} other {many {name}}}")],
+    ["count", "name"]
+  );
+  // A straight quote before syntax opens a literal run: the name inside is
+  // text, not a placeholder.
+  assert.deepEqual([...placeholders("f'{providers}")], []);
+  assert.deepEqual([...placeholders("'{model}'")], []);
+  // A quote before ordinary text is just a character: the name stays visible.
+  assert.deepEqual([...placeholders("l'utilisateur {name}")], ["name"]);
+  // A wanted literal reads empty on both sides, so no drift is reported.
+  assert.deepEqual([...placeholders("'<name>'")], []);
+  assert.deepEqual([...placeholders("'<nom>'")], []);
+  // A doubled quote is an escaped quote, not a literal run opener.
+  assert.deepEqual([...placeholders("f''{providers}")], ["providers"]);
+  // A closing quote ends the literal run: later names are visible again.
+  assert.deepEqual([...placeholders("selector='<name>' for {field}")], ["field"]);
 });

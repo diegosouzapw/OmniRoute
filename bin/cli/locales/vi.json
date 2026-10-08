@@ -14,6 +14,812 @@
     "jsonOpt": "Xuất dưới dạng JSON",
     "yesOpt": "Bỏ qua xác nhận"
   },
+  "setup": {
+    "title": "Thiết lập OmniRoute",
+    "passwordPrompt": "Mật khẩu quản trị viên",
+    "providerPrompt": "Nhà cung cấp mặc định (để trống để bỏ qua)",
+    "done": "Thiết lập hoàn tất",
+    "passwordSet": "Đã cấu hình mật khẩu quản trị viên",
+    "providerSet": "Đã cấu hình nhà cung cấp: {name}",
+    "testingProvider": "Đang kiểm tra kết nối với nhà cung cấp: {name}",
+    "testPassed": "Kiểm tra nhà cung cấp thành công",
+    "testFailed": "Kiểm tra nhà cung cấp thất bại: {error}",
+    "loginEnabled": "Đăng nhập: đã bật (đã cập nhật mật khẩu)",
+    "loginDisabled": "Đăng nhập: đã tắt",
+    "providerInfo": "Nhà cung cấp: {info}",
+    "opencode": "Cài đặt và cấu hình @omniroute/opencode-plugin đi kèm cho OpenCode"
+  },
+  "doctor": {
+    "title": "Chẩn đoán OmniRoute",
+    "dbOk": "Cơ sở dữ liệu: OK ({path})",
+    "dbMissing": "Cơ sở dữ liệu: chưa được khởi tạo — hãy chạy `omniroute setup`",
+    "portOk": "Cổng {port}: khả dụng",
+    "portConflict": "Cổng {port}: đang được một tiến trình khác sử dụng",
+    "encryptionOk": "Khóa mã hóa: đã cấu hình",
+    "encryptionMissing": "Thiếu khóa mã hóa — hãy chạy `omniroute setup`",
+    "allGood": "Tất cả các bước kiểm tra đều đạt.",
+    "warnings": "{count} cảnh báo — xem ở trên."
+  },
+  "providers": {
+    "title": "Nhà cung cấp",
+    "noProviders": "Chưa cấu hình nhà cung cấp nào. Chạy: omniroute setup",
+    "testing": "Đang kiểm tra {name}...",
+    "available": "Có {count} nhà cung cấp khả dụng",
+    "connected": "Đã kết nối",
+    "disconnected": "Đã ngắt kết nối",
+    "validationFailed": "Xác thực thất bại: {error}",
+    "metrics": {
+      "description": "Hiển thị các chỉ số hiệu suất của nhà cung cấp (độ trễ, tỷ lệ thành công, chi phí)",
+      "provider": "Lọc theo ID nhà cung cấp",
+      "connection_id": "Lọc theo ID kết nối",
+      "period": "Khoảng thời gian: 1h|6h|24h|7d|30d (mặc định: 24h)",
+      "metric": "Tập trung vào một trường chỉ số cụ thể",
+      "sort": "Sắp xếp theo trường (giảm dần)",
+      "limit": "Số hàng tối đa (mặc định: 50)",
+      "watch": "Làm mới mỗi 5 giây (chế độ trực tiếp)",
+      "compare": "Các ID nhà cung cấp, phân tách bằng dấu phẩy, để so sánh song song"
+    },
+    "metric_single": {
+      "description": "Lấy một giá trị chỉ số duy nhất cho một kết nối cụ thể"
+    },
+    "rotate": {
+      "description": "Thay khóa API thượng nguồn cho một kết nối nhà cung cấp",
+      "newKeyOpt": "Giá trị khóa API mới (nên tránh: ưu tiên --from-env)",
+      "fromEnvOpt": "Đọc khóa mới từ biến môi trường VAR",
+      "oauthOpt": "Thay vào đó, kích hoạt quy trình xác thực lại OAuth",
+      "skipTestOpt": "Bỏ qua kiểm tra kết nối sau khi xoay vòng",
+      "dryRunOpt": "Hiển thị những thay đổi dự kiến mà không ghi",
+      "confirmPrompt": "Thay thế khóa API cho kết nối \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Sẽ xoay vòng khóa cho \"{name}\" ({id}). Không có thay đổi nào được thực hiện.",
+      "oauthHint": "Kết nối OAuth — chạy: omniroute oauth {provider}",
+      "envVarEmpty": "Biến môi trường {var} chưa được đặt hoặc đang trống.",
+      "success": "Đã xoay vòng khóa cho \"{name}\". Chạy `providers test {id}` để xác minh.",
+      "testPassed": "Kiểm tra sau khi xoay vòng đã thành công.",
+      "testFailed": "Kiểm tra sau khi xoay vòng không thành công: {error}"
+    },
+    "status": {
+      "description": "Hiển thị trạng thái khóa cho tất cả kết nối nhà cung cấp (tuổi, thời hạn, thời gian chờ)",
+      "providerOpt": "Lọc theo tên nhà cung cấp",
+      "header": "ID         Nhà cung cấp  Tên                      Trạng thái hết hạn  Trạng thái kiểm tra  Chờ đến",
+      "noData": "Không có dữ liệu kết nối nhà cung cấp.",
+      "requiresServer": "providers status yêu cầu máy chủ OmniRoute đang chạy."
+    }
+  },
+  "keys": {
+    "title": "Khóa API",
+    "addDescription": "Thêm hoặc cập nhật khóa API cho một nhà cung cấp",
+    "listDescription": "Liệt kê tất cả khóa API đã cấu hình",
+    "removeDescription": "Xóa khóa API của một nhà cung cấp",
+    "regenerateDescription": "Tạo lại khóa API OmniRoute",
+    "revokeDescription": "Thu hồi khóa API OmniRoute",
+    "revealDescription": "Hiển thị giá trị khóa API không bị che",
+    "usageDescription": "Hiển thị hoạt động sử dụng gần đây của một khóa API",
+    "usageLimitOpt": "Số lượng yêu cầu gần đây",
+    "rotateDescription": "Tạo khóa mới và vô hiệu hóa khóa cũ",
+    "graceOpt": "Thời gian gia hạn (ms) trước khi khóa cũ bị vô hiệu hóa",
+    "stdinOpt": "Đọc khóa API từ stdin thay vì đối số",
+    "added": "Đã thêm khóa cho {provider}.",
+    "removed": "Đã xóa khóa.",
+    "listed": "{count} khóa.",
+    "noKeys": "Chưa cấu hình khóa nào.",
+    "noUsage": "Không tìm thấy dữ liệu sử dụng.",
+    "confirmRemove": "Xóa khóa {id}?",
+    "confirmRegenerate": "Tạo lại khóa {id}?",
+    "confirmRevoke": "Thu hồi khóa {id}?",
+    "confirmRotate": "Xoay vòng khóa {id}? (khóa cũ sẽ bị vô hiệu hóa sau thời gian gia hạn)",
+    "regenerated": "Đã tạo lại. Khóa mới: {key}",
+    "revoked": "Đã thu hồi khóa {id}.",
+    "rotated": "Khóa {id} đã được luân chuyển. ID khóa mới: {newId}",
+    "revealWarning": "⚠  Thao tác này sẽ hiển thị toàn bộ khóa không che giấu. Hãy đảm bảo màn hình của bạn được giữ riêng tư.",
+    "providerRequired": "Nhà cung cấp là bắt buộc.",
+    "keyRequired": "Khóa API là bắt buộc.",
+    "stdinEmpty": "Không có khóa API nào được cung cấp qua stdin.",
+    "unknownProvider": "Nhà cung cấp không xác định: {provider}",
+    "policy": {
+      "title": "Chính sách khóa",
+      "showDescription": "Hiển thị chính sách giới hạn tốc độ/chi phí của một khóa",
+      "setDescription": "Thiết lập chính sách giới hạn tốc độ/chi phí cho một khóa",
+      "rateLimitOpt": "Số yêu cầu tối đa mỗi phút",
+      "maxCostOpt": "Chi phí tối đa mỗi ngày (USD)",
+      "allowedModelsOpt": "Danh sách các mô hình được phép, phân tách bằng dấu phẩy",
+      "nothingToSet": "Chưa cung cấp trường chính sách nào. Hãy sử dụng --rate-limit, --max-cost hoặc --allowed-models.",
+      "updated": "Đã cập nhật chính sách."
+    },
+    "expiration": {
+      "title": "Thời hạn khóa",
+      "listDescription": "Liệt kê các khóa sắp hết hạn",
+      "daysOpt": "Hiển thị các khóa sẽ hết hạn trong vòng N ngày",
+      "none": "Không có khóa nào hết hạn trong vòng {days} ngày.",
+      "listTitle": "Các khóa hết hạn trong vòng {days} ngày:"
+    }
+  },
+  "authExport": {
+    "description": "Xuất thông tin xác thực nhà cung cấp ĐÃ GIẢI MÃ (chỉ cục bộ, đầu ra văn bản thuần)",
+    "idOpt": "Chỉ xuất kết nối khớp với id/tên/nhà cung cấp này",
+    "formatOpt": "Định dạng đầu ra: json hoặc env",
+    "outOpt": "Ghi đầu ra vào tệp thay vì stdout (được ghi với quyền 0600)",
+    "forceOpt": "Xác nhận rằng bạn hiểu thao tác này sẽ in/ghi các bí mật dưới dạng văn bản thuần",
+    "warning": "⚠ Thao tác này sẽ in/ghi các khóa API và token OAuth ĐÃ GIẢI MÃ dưới dạng văn bản thuần. Hãy đảm bảo màn hình, lịch sử shell và mọi tệp đầu ra của bạn đều được giữ riêng tư.",
+    "confirmHeading": "⚠ CẢNH BÁO: thao tác này xuất thông tin xác thực nhà cung cấp ĐÃ GIẢI MÃ dưới dạng văn bản thuần",
+    "confirmBody": "Lệnh này giải mã và in/ghi apiKey, accessToken, refreshToken và\nidToken cho (các) kết nối đã chọn. Hãy coi đầu ra là thông tin bí mật.",
+    "confirmFooter": "Để xác nhận, hãy chạy:\n  omniroute auth export --force",
+    "missingKey": "Cần có STORAGE_ENCRYPTION_KEY để xuất thông tin xác thực.",
+    "notFound": "Không tìm thấy kết nối: {id}",
+    "invalidFormat": "Định dạng không hợp lệ: {format}. Hãy sử dụng json hoặc env."
+  },
+  "stream": {
+    "description": "Truyền phát phản hồi trò chuyện với các chế độ kiểm tra SSE",
+    "file": "Đọc lời nhắc từ tệp",
+    "stdin": "Đọc lời nhắc từ stdin",
+    "model": "ID mô hình (mặc định: auto)",
+    "system": "Lời nhắc hệ thống",
+    "combo": "Buộc sử dụng một tổ hợp cụ thể theo tên",
+    "max_tokens": "Số token tối đa trong phản hồi",
+    "responses_api": "Sử dụng /v1/responses thay cho /v1/chat/completions",
+    "raw": "In các dòng SSE thô ngay khi nhận được",
+    "debug": "In thông tin thời gian của từng phần lên stderr",
+    "save": "Lưu tất cả sự kiện SSE vào tệp .jsonl",
+    "error": {
+      "empty_prompt": "Lỗi: bắt buộc phải có prompt (đối số vị trí, --file hoặc --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Phân tích mức sử dụng, ngân sách, hạn ngạch và nhật ký",
+    "analytics": {
+      "description": "Hiển thị phân tích tổng hợp về mức sử dụng",
+      "period": "Khoảng thời gian: 1d|7d|30d|90d|ytd|all (mặc định: 30d)",
+      "provider": "Lọc theo ID nhà cung cấp"
+    },
+    "budget": {
+      "description": "Quản lý ngân sách chi phí",
+      "set": {
+        "scope": "Phạm vi ngân sách (mặc định: global)",
+        "period": "Chu kỳ ngân sách: daily|weekly|monthly (mặc định: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Hiển thị mức sử dụng hạn ngạch của nhà cung cấp",
+      "provider": "Lọc theo ID nhà cung cấp",
+      "check": "Hiển thị hạn ngạch có khả dụng cho yêu cầu mới hay không"
+    },
+    "logs": {
+      "description": "Hiển thị nhật ký các lệnh gọi yêu cầu",
+      "limit": "Số mục nhật ký cần trả về (mặc định: 100)",
+      "search": "Truy vấn tìm kiếm để lọc nhật ký",
+      "since": "Trả về nhật ký kể từ dấu thời gian này",
+      "follow": "Liên tục theo dõi các mục nhật ký mới",
+      "api_key": "Lọc nhật ký theo khóa API"
+    },
+    "utilization": {
+      "description": "Hiển thị chỉ số sử dụng khóa API",
+      "api_key": "Lọc theo khóa API"
+    },
+    "history": {
+      "description": "Hiển thị lịch sử yêu cầu",
+      "limit": "Số mục lịch sử (mặc định: 100)"
+    },
+    "proxy_logs": {
+      "description": "Hiển thị nhật ký yêu cầu ở cấp proxy",
+      "limit": "Số mục nhật ký proxy (mặc định: 100)"
+    }
+  },
+  "cost": {
+    "description": "Hiển thị báo cáo chi phí với phân tích chi tiết theo nhà cung cấp, mô hình, combo hoặc khóa API",
+    "period": "Khoảng thời gian: 1d|7d|30d|90d|ytd|all (mặc định: 30d)",
+    "since": "Ngày bắt đầu (định dạng ISO, ví dụ: 2026-01-01) — ghi đè --period",
+    "until": "Ngày kết thúc (định dạng ISO)",
+    "group_by": "Nhóm kết quả theo: provider|model|api-key|combo|day (mặc định: provider)",
+    "api_key_filter": "Lọc theo một khóa API cụ thể",
+    "limit": "Số hàng tối đa cần hiển thị (mặc định: 100)"
+  },
+  "simulate": {
+    "description": "Mô phỏng định tuyến chạy thử — hiển thị những nhà cung cấp sẽ được chọn mà không gọi dịch vụ thượng nguồn",
+    "file": "Tải toàn bộ nội dung yêu cầu từ tệp JSON",
+    "model": "ID mô hình (mặc định: auto)",
+    "combo": "Buộc sử dụng một combo cụ thể theo tên",
+    "reasoning": "Mức độ nỗ lực suy luận (low|medium|high)",
+    "thinking": "Ngân sách token cho quá trình suy nghĩ mở rộng",
+    "explain": "In cây dự phòng và khoảng chi phí lên stderr",
+    "noCombo": "Không tìm thấy combo phù hợp. Hãy cấu hình một combo bằng lệnh: omniroute combo create"
+  },
+  "chat": {
+    "description": "Gửi một lời nhắc trò chuyện dùng một lần đến OmniRoute",
+    "file": "Đọc lời nhắc từ tệp",
+    "stdin": "Đọc lời nhắc từ stdin",
+    "system": "Lời nhắc hệ thống",
+    "model": "ID mô hình (mặc định: auto)",
+    "max_tokens": "Số token tối đa trong phản hồi",
+    "temperature": "Nhiệt độ lấy mẫu (0–2)",
+    "top_p": "Lấy mẫu hạt nhân top-p",
+    "reasoning_effort": "Mức độ nỗ lực suy luận (low|medium|high)",
+    "thinking_budget": "Ngân sách token cho suy nghĩ mở rộng",
+    "combo": "Buộc sử dụng một tổ hợp cụ thể theo tên",
+    "responses_api": "Sử dụng /v1/responses thay cho /v1/chat/completions",
+    "stream": "Truyền phát phản hồi theo từng phần",
+    "no_history": "Không lưu vào ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Lỗi: bắt buộc phải có lời nhắc (đối số vị trí, --file hoặc --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Khởi động máy chủ OmniRoute (hành động mặc định)",
+    "starting": "Đang khởi động máy chủ OmniRoute trên cổng {port}...",
+    "ready": "Sẵn sàng tại http://localhost:{port}",
+    "stopping": "Đang dừng máy chủ (PID {pid})...",
+    "stopped": "Máy chủ đã dừng.",
+    "notRunning": "Máy chủ hiện không chạy.",
+    "port": "Cổng để lắng nghe (mặc định: 20128)",
+    "no_open": "Không tự động mở trình duyệt",
+    "daemon": "Chạy máy chủ dưới dạng tiến trình nền",
+    "log": "Hiển thị nhật ký máy chủ trực tiếp",
+    "no_recovery": "Tắt tự động khởi động lại khi gặp sự cố (chế độ gỡ lỗi)",
+    "max_restarts": "Số lần khởi động lại tối đa do sự cố trong vòng 30 giây trước khi từ bỏ (mặc định: 2)",
+    "tray": "Khởi động trong khay hệ thống (chỉ dành cho máy tính để bàn, phải chủ động bật)",
+    "no_tray": "Tắt biểu tượng khay hệ thống",
+    "ready_timeout": "Thời gian chờ của phép kiểm tra trạng thái sẵn sàng tính bằng ms (cũng có thể dùng OMNIROUTE_READY_TIMEOUT_MS, mặc định 60000)",
+    "tls_cert": "Đường dẫn đến chứng chỉ TLS (PEM) để cung cấp HTTPS (cũng có thể dùng OMNIROUTE_TLS_CERT)",
+    "tls_key": "Đường dẫn đến khóa riêng TLS (PEM) để cung cấp HTTPS (cũng có thể dùng OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Sao lưu",
+    "description": "Tạo bản sao lưu dữ liệu OmniRoute",
+    "creating": "Đang tạo bản sao lưu...",
+    "done": "Bản sao lưu đã được lưu vào {path}",
+    "noFiles": "Không có tệp nào để sao lưu (cơ sở dữ liệu chưa được khởi tạo)",
+    "failed": "Sao lưu thất bại: {error}",
+    "restoring": "Đang khôi phục từ {path}...",
+    "restored": "Khôi phục hoàn tất.",
+    "restoreDescription": "Khôi phục từ bản sao lưu",
+    "listTitle": "Các bản sao lưu khả dụng",
+    "noBackups": "Không tìm thấy bản sao lưu nào.",
+    "notFound": "Không tìm thấy bản sao lưu: {name}",
+    "confirmRestore": "Ghi đè dữ liệu hiện tại bằng bản sao lưu từ {ts}?",
+    "createDescription": "Tạo bản sao lưu dữ liệu OmniRoute",
+    "nameOpt": "Tên bản sao lưu tùy chỉnh",
+    "cloudOpt": "Tải bản sao lưu lên bộ nhớ đám mây",
+    "encryptOpt": "Mã hóa bản sao lưu bằng AES-256-GCM",
+    "keyFileOpt": "Đường dẫn đến tệp chứa mật khẩu mã hóa",
+    "excludeOpt": "Loại trừ tệp khớp với mẫu (có thể lặp lại)",
+    "retentionOpt": "Chỉ giữ lại N bản sao lưu gần nhất",
+    "passphrasePrompt": "Mật khẩu mã hóa:",
+    "noPassphrase": "Cần có mật khẩu cho bản sao lưu được mã hóa.",
+    "cloudFailed": "Cảnh báo: tải lên đám mây không thành công. Bản sao lưu cục bộ đã được lưu.",
+    "cloudUploaded": "Đã tải bản sao lưu lên đám mây: {url}",
+    "auto": {
+      "title": "Lịch sao lưu",
+      "enableDescription": "Bật sao lưu tự động theo lịch",
+      "disableDescription": "Tắt sao lưu tự động theo lịch",
+      "statusDescription": "Hiển thị trạng thái lịch sao lưu hiện tại",
+      "cronOpt": "Biểu thức cron cho lịch (mặc định: hằng ngày lúc 3 giờ sáng)",
+      "enabled": "Đã bật sao lưu tự động (cron: {cron}).",
+      "hint": "Lịch được omniroute serve đọc khi khởi động.",
+      "disabled": "Đã tắt sao lưu tự động.",
+      "notConfigured": "Chưa cấu hình lịch sao lưu."
+    }
+  },
+  "health": {
+    "description": "Kiểm tra tình trạng máy chủ và trạng thái các thành phần",
+    "noServer": "Máy chủ không chạy. Khởi động bằng: omniroute serve",
+    "title": "Tình trạng",
+    "status": "Trạng thái: {status}",
+    "uptime": "Thời gian hoạt động: {uptime}",
+    "requests": "Yêu cầu (24 giờ): {count}",
+    "cost": "Chi phí (24 giờ): ${cost}"
+  },
+  "quota": {
+    "description": "Hiển thị mức sử dụng hạn ngạch của nhà cung cấp",
+    "noServer": "Máy chủ không chạy. Khởi động bằng: omniroute serve",
+    "noData": "Không có thông tin về hạn ngạch."
+  },
+  "cache": {
+    "description": "Quản lý bộ nhớ đệm phản hồi",
+    "noServer": "Máy chủ không chạy. Khởi động bằng: omniroute serve",
+    "cleared": "Đã xóa bộ nhớ đệm.",
+    "clearFailed": "Không thể xóa bộ nhớ đệm."
+  },
+  "redis": {
+    "description": "Khởi chạy bộ chứa Redis cục bộ bằng một cú nhấp chuột (Podman hoặc Docker) để lưu bộ đệm và theo dõi hạn ngạch của OmniRoute"
+  },
+  "test": {
+    "description": "Kiểm tra kết nối với nhà cung cấp",
+    "noServer": "Máy chủ chưa chạy. Khởi động bằng: omniroute serve",
+    "testing": "Đang kiểm tra {provider} / {model}...",
+    "passed": "Kết nối thành công!",
+    "failed": "Kết nối thất bại: {error}",
+    "allProvidersOpt": "Kiểm tra tất cả nhà cung cấp đã cấu hình",
+    "latencyOpt": "Hiển thị số đo độ trễ (trung bình/tối thiểu/tối đa, ms)",
+    "repeatOpt": "Lặp lại kiểm tra N lần và tổng hợp kết quả",
+    "compareOpt": "Các mô hình cần so sánh, phân tách bằng dấu phẩy (ví dụ: gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Lưu kết quả vào tệp JSON",
+    "saved": "Đã lưu kết quả vào {path}",
+    "compareTitle": "So sánh mô hình",
+    "compareMinTwo": "Cần ít nhất hai mô hình cho --compare (phân tách bằng dấu phẩy)",
+    "noProviders": "Chưa cấu hình nhà cung cấp nào. Thêm một nhà cung cấp bằng: omniroute keys add"
+  },
+  "update": {
+    "checking": "Đang kiểm tra bản cập nhật...",
+    "upToDate": "Đã là phiên bản mới nhất ({version}).",
+    "available": "Có bản cập nhật: {current} → {latest}",
+    "installing": "Đang cài đặt {latest}...",
+    "done": "Đã cập nhật lên {latest}. Khởi động lại máy chủ để áp dụng."
+  },
+  "mcp": {
+    "title": "Máy chủ MCP",
+    "running": "Máy chủ MCP đang chạy ({transport})",
+    "stopped": "Máy chủ MCP đã dừng.",
+    "restarted": "Máy chủ MCP đã khởi động lại.",
+    "stoppedHint": "Chạy `omniroute mcp enable` để bật.",
+    "enabled": "Đã bật máy chủ MCP.",
+    "disabled": "Đã tắt máy chủ MCP.",
+    "enable": {
+      "description": "Bật máy chủ MCP",
+      "transport": "Phương thức truyền tải cần dùng: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Tắt máy chủ MCP"
+    },
+    "call": {
+      "description": "Gọi trực tiếp một công cụ MCP",
+      "args": "Đối tượng đối số JSON (nội tuyến)",
+      "args_file": "Đường dẫn đến tệp đối số JSON",
+      "stream": "Sử dụng điểm cuối phát trực tiếp (/api/mcp/stream)",
+      "scope": "Phạm vi bắt buộc (có thể lặp lại, ví dụ: read:health)"
+    },
+    "scopes": {
+      "description": "Liệt kê các phạm vi MCP khả dụng",
+      "tool": "Hiển thị các phạm vi mà một công cụ cụ thể yêu cầu"
+    },
+    "tools": {
+      "description": "Kiểm tra các công cụ MCP",
+      "list": {
+        "description": "Liệt kê tất cả công cụ MCP",
+        "scope": "Lọc theo phạm vi"
+      },
+      "info": {
+        "description": "Hiển thị siêu dữ liệu của một công cụ MCP"
+      },
+      "schema": {
+        "description": "Hiển thị lược đồ JSON đầu vào/đầu ra của một công cụ MCP",
+        "io": "Loại lược đồ: input|output (mặc định: input)"
+      }
+    },
+    "audit": {
+      "description": "Nhật ký kiểm tra MCP (bí danh của audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Liệt kê các kỹ năng A2A khả dụng từ thẻ tác nhân"
+    },
+    "invoke": {
+      "description": "Gọi một kỹ năng A2A và trả về ID tác vụ",
+      "input": "Đối tượng đầu vào JSON",
+      "input_file": "Đường dẫn đến tệp đầu vào JSON",
+      "wait": "Chờ tác vụ hoàn tất trước khi trả về",
+      "timeout": "Thời gian chờ hoàn tất tính bằng mili giây (mặc định: 60000)"
+    },
+    "tasks": {
+      "description": "Quản lý tác vụ A2A",
+      "list": {
+        "status": "Lọc theo trạng thái",
+        "skill": "Lọc theo ID kỹ năng"
+      },
+      "watch": {
+        "description": "Thăm dò trạng thái tác vụ cho đến khi hoàn tất"
+      },
+      "stream": {
+        "description": "Truyền trực tiếp các sự kiện thực thi tác vụ qua SSE"
+      },
+      "logs": {
+        "description": "Hiển thị thông báo và thành phần tạo tác của tác vụ"
+      }
+    }
+  },
+  "policy": {
+    "description": "Quản lý các chính sách ủy quyền của OmniRoute",
+    "list": {
+      "description": "Liệt kê các chính sách",
+      "kind": "Lọc theo loại (allow|deny|rate-limit|cost-cap)",
+      "scope": "Lọc theo phạm vi (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Lấy thông tin chi tiết về chính sách theo ID"
+    },
+    "create": {
+      "description": "Tạo chính sách từ tệp JSON",
+      "file": "Đường dẫn đến tệp JSON của chính sách"
+    },
+    "update": {
+      "description": "Cập nhật chính sách từ tệp JSON",
+      "file": "Đường dẫn đến tệp JSON của chính sách"
+    },
+    "delete": {
+      "description": "Xóa chính sách theo ID",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "evaluate": {
+      "description": "Chạy thử việc đánh giá chính sách (mã thoát 0=được phép, 4=bị từ chối)",
+      "api_key": "Khóa API cần đánh giá",
+      "action": "Hành động cần kiểm tra (ví dụ: chat, embed, admin)",
+      "resource": "Đường dẫn hoặc mã định danh tài nguyên",
+      "context": "Ngữ cảnh bổ sung dưới dạng đối tượng JSON"
+    },
+    "export": {
+      "description": "Xuất tất cả chính sách sang tệp JSON"
+    },
+    "import": {
+      "description": "Nhập chính sách từ tệp JSON",
+      "overwrite": "Ghi đè các chính sách hiện có có cùng ID"
+    }
+  },
+  "compression": {
+    "description": "Cấu hình và kiểm tra quy trình nén của OmniRoute",
+    "status": {
+      "description": "Hiển thị trạng thái và cài đặt nén hiện tại"
+    },
+    "configure": {
+      "description": "Cấu hình cài đặt nén",
+      "engine": "Công cụ nén (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Mức độ nén mạnh của Caveman từ 0.0–1.0",
+      "rtk_budget": "Ngân sách token RTK",
+      "language_pack": "Gói ngôn ngữ cần kích hoạt"
+    },
+    "engine": {
+      "description": "Lấy hoặc đặt công cụ nén đang hoạt động"
+    },
+    "combos": {
+      "description": "Quản lý thống kê tổ hợp nén"
+    },
+    "rules": {
+      "description": "Quản lý các quy tắc nén",
+      "add": {
+        "pattern": "Mẫu cần khớp (regex hoặc trường:mẫu)",
+        "action": "Hành động: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Liệt kê các gói ngôn ngữ nén có sẵn"
+    },
+    "preview": {
+      "description": "Xem trước tác động nén đối với một yêu cầu",
+      "file": "Đường dẫn đến tệp JSON của yêu cầu"
+    }
+  },
+  "tunnel": {
+    "title": "Đường hầm",
+    "listDescription": "Liệt kê các đường hầm đang hoạt động",
+    "createDescription": "Tạo đường hầm",
+    "created": "Đã tạo đường hầm: {url}",
+    "stopped": "Đã dừng đường hầm.",
+    "confirmStop": "Dừng đường hầm {id}?",
+    "stopDescription": "Dừng một đường hầm",
+    "statusDescription": "Hiển thị trạng thái chi tiết của một đường hầm",
+    "logsDescription": "Hiển thị nhật ký của một đường hầm",
+    "infoDescription": "Hiển thị chi tiết cấu hình của một đường hầm",
+    "rotateDescription": "Tạo URL đường hầm mới",
+    "tailOpt": "Số dòng nhật ký cần hiển thị",
+    "typeRequired": "Bắt buộc phải có loại đường hầm.",
+    "noLogs": "Không có nhật ký.",
+    "notAvailable": "Không có thông tin đường hầm.",
+    "noTunnels": "Không có đường hầm nào đang hoạt động.",
+    "infoTitle": "Thông tin đường hầm: {type}",
+    "rotated": "Đã thay đổi URL đường hầm: {url}",
+    "confirmRotate": "Thay đổi URL của đường hầm {type}? (một URL mới sẽ được tạo)"
+  },
+  "stop": {
+    "description": "Dừng máy chủ OmniRoute",
+    "stopping": "Đang dừng máy chủ (PID {pid})...",
+    "stopped": "Đã dừng máy chủ.",
+    "notRunning": "Không có máy chủ nào đang chạy.",
+    "portFallback": "Không tìm thấy tệp PID, đang thử dừng dựa trên cổng..."
+  },
+  "restart": {
+    "description": "Khởi động lại máy chủ OmniRoute",
+    "restarting": "Đang khởi động lại máy chủ OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Mở bảng điều khiển OmniRoute trong trình duyệt",
+    "opening": "Đang mở bảng điều khiển tại {url}",
+    "urlOnly": "In URL của bảng điều khiển mà không mở trình duyệt",
+    "tui": "Mở bảng điều khiển TUI tương tác (giao diện đầu cuối, 7 thẻ)"
+  },
+  "models": {
+    "description": "Liệt kê các mô hình có sẵn (yêu cầu máy chủ)",
+    "search": "Lọc mô hình theo id, tên, nhà cung cấp hoặc mô tả",
+    "noServer": "Máy chủ chưa chạy. Khởi động bằng: omniroute serve",
+    "noModels": "Không tìm thấy mô hình nào."
+  },
+  "audit": {
+    "description": "Truy cập nhật ký kiểm toán tuân thủ và MCP",
+    "source": "Nguồn nhật ký: all|compliance|mcp (mặc định: all)",
+    "since": "Trả về các mục kể từ dấu thời gian này (ISO 8601)",
+    "until": "Trả về các mục cho đến dấu thời gian này (ISO 8601)",
+    "tail": {
+      "description": "Hiển thị các mục nhật ký kiểm toán gần đây",
+      "follow": "Liên tục theo dõi các mục mới (thăm dò mỗi 2 giây)",
+      "limit": "Số mục tối đa cần hiển thị (mặc định: 100)"
+    },
+    "search": {
+      "description": "Tìm kiếm các mục nhật ký kiểm toán theo từ khóa",
+      "limit": "Số kết quả tối đa (mặc định: 200)",
+      "actor": "Lọc theo ID tác nhân",
+      "action": "Lọc theo tên hành động"
+    },
+    "export": {
+      "description": "Xuất nhật ký kiểm toán ra tệp",
+      "format": "Định dạng đầu ra: jsonl|csv (mặc định: jsonl)"
+    },
+    "stats": {
+      "description": "Hiển thị số liệu thống kê nhật ký kiểm toán",
+      "period": "Khoảng thời gian: 1d|7d|30d (mặc định: 7d)"
+    },
+    "get": {
+      "description": "Lấy một mục nhật ký kiểm toán theo ID"
+    }
+  },
+  "skills": {
+    "description": "Quản lý các skill của OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Liệt kê các skill đã cài đặt",
+      "type": "Lọc theo loại (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Chỉ hiển thị các skill đã bật",
+      "disabled": "Chỉ hiển thị các skill đã tắt",
+      "api_key": "Lọc theo khóa API"
+    },
+    "get": {
+      "description": "Lấy thông tin chi tiết của skill theo ID"
+    },
+    "install": {
+      "description": "Cài đặt skill từ tệp hoặc URL",
+      "from_file": "Đường dẫn đến tệp định nghĩa skill dạng JSON",
+      "from_url": "URL của định nghĩa skill từ xa",
+      "type": "Loại skill (sandbox|custom|hybrid)",
+      "enable": "Bật skill sau khi cài đặt"
+    },
+    "enable": {
+      "description": "Bật skill theo ID"
+    },
+    "disable": {
+      "description": "Tắt skill theo ID",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "delete": {
+      "description": "Xóa skill theo ID",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "execute": {
+      "description": "Thực thi skill theo ID",
+      "input": "Đối tượng đầu vào JSON",
+      "input_file": "Đường dẫn đến tệp đầu vào JSON",
+      "timeout": "Thời gian chờ thực thi tính bằng ms (mặc định: 30000)"
+    },
+    "executions": {
+      "description": "Liệt kê lịch sử thực thi skill",
+      "skill": "Lọc theo ID kỹ năng",
+      "limit": "Số kết quả tối đa (mặc định: 50)",
+      "status": "Lọc theo trạng thái (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Quản lý các kỹ năng được cài đặt qua SSH"
+    },
+    "marketplace": {
+      "description": "Duyệt và cài đặt kỹ năng từ marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Tìm kiếm các gói trên marketplace",
+        "category": "Lọc theo danh mục",
+        "tag": "Lọc theo thẻ",
+        "limit": "Số kết quả tối đa (mặc định: 30)",
+        "sort": "Sắp xếp theo: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Hiển thị chi tiết gói và tệp readme"
+      },
+      "install": {
+        "description": "Cài đặt một gói từ marketplace",
+        "version": "Phiên bản gói (mặc định: latest)",
+        "enable": "Bật sau khi cài đặt",
+        "yes": "Bỏ qua lời nhắc xác nhận"
+      },
+      "categories": {
+        "description": "Liệt kê các danh mục trên marketplace"
+      },
+      "featured": {
+        "description": "Hiển thị các gói nổi bật trên marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Quản lý bộ nhớ hội thoại của OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Tìm kiếm các mục bộ nhớ bằng truy vấn ngữ nghĩa",
+      "type": "Lọc theo loại bộ nhớ (user|feedback|project|reference)",
+      "limit": "Số kết quả tối đa (mặc định: 20)",
+      "api_key": "Lọc theo khóa API",
+      "token_budget": "Giới hạn tổng số token trong kết quả"
+    },
+    "add": {
+      "description": "Thêm mục bộ nhớ mới",
+      "content": "Nội dung văn bản của bộ nhớ",
+      "file": "Đọc nội dung từ tệp",
+      "type": "Loại bộ nhớ (mặc định: user)",
+      "metadata": "Đối tượng siêu dữ liệu JSON",
+      "api_key": "Liên kết với khóa API"
+    },
+    "clear": {
+      "description": "Xóa các mục bộ nhớ khớp với bộ lọc",
+      "type": "Lọc theo loại",
+      "older": "Xóa các mục cũ hơn khoảng thời gian (30d, 6m, 1y)",
+      "api_key": "Lọc theo khóa API",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "list": {
+      "description": "Liệt kê các mục bộ nhớ không xếp hạng tìm kiếm",
+      "type": "Lọc theo loại",
+      "limit": "Số kết quả tối đa (mặc định: 100)",
+      "api_key": "Lọc theo khóa API"
+    },
+    "get": {
+      "description": "Lấy một mục bộ nhớ theo ID"
+    },
+    "delete": {
+      "description": "Xóa một mục bộ nhớ theo ID",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "health": {
+      "description": "Hiển thị tình trạng hệ thống con bộ nhớ (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Quản lý các kết nối nhà cung cấp OAuth",
+    "providers": {
+      "description": "Liệt kê các nhà cung cấp hỗ trợ OAuth và loại luồng của họ"
+    },
+    "start": {
+      "description": "Bắt đầu luồng ủy quyền OAuth cho một nhà cung cấp",
+      "provider": "ID nhà cung cấp (gemini, copilot, cursor, …)",
+      "no_browser": "Chỉ in URL — không mở trình duyệt",
+      "import_system": "Tự động nhập thông tin xác thực từ cấu hình hệ thống cục bộ",
+      "social": "Nhà cung cấp đăng nhập mạng xã hội (google|github) — bắt buộc đối với kiro",
+      "timeout": "Thời gian chờ ủy quyền tính bằng ms (mặc định: 300000)"
+    },
+    "status": {
+      "description": "Liệt kê các kết nối OAuth đang hoạt động",
+      "provider": "Lọc theo ID nhà cung cấp"
+    },
+    "revoke": {
+      "description": "Thu hồi một kết nối OAuth",
+      "provider": "ID nhà cung cấp cần thu hồi",
+      "connection_id": "Thu hồi một kết nối cụ thể theo ID",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    }
+  },
+  "cloud": {
+    "description": "Quản lý các tác vụ tác nhân AI đám mây (codex, devin, jules)",
+    "agents": {
+      "description": "Liệt kê các tác nhân đám mây có sẵn"
+    },
+    "agent": {
+      "description": "Quản lý các tác vụ tác nhân đám mây {agent}",
+      "auth": {
+        "description": "Ủy quyền cho {agent} qua OAuth"
+      }
+    },
+    "task": {
+      "description": "Quản lý các tác vụ tác nhân đám mây",
+      "create": {
+        "description": "Tạo tác vụ tác nhân mới",
+        "title": "Tiêu đề tác vụ (mặc định là 80 ký tự đầu tiên của lời nhắc)",
+        "prompt": "Nội dung lời nhắc tác vụ",
+        "prompt_file": "Đọc lời nhắc từ tệp",
+        "repo": "URL kho lưu trữ cần sao chép cho tác vụ",
+        "branch": "Tên nhánh cần sử dụng",
+        "metadata": "Đối tượng siêu dữ liệu JSON"
+      },
+      "list": {
+        "description": "Liệt kê các tác vụ của tác nhân",
+        "status": "Lọc theo trạng thái (running|completed|failed|cancelled)",
+        "limit": "Số kết quả tối đa (mặc định: 50)"
+      },
+      "get": {
+        "description": "Lấy thông tin chi tiết tác vụ theo ID"
+      },
+      "status": {
+        "description": "In trạng thái tác vụ (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Hủy tác vụ đang chạy",
+        "yes": "Bỏ qua lời nhắc xác nhận"
+      },
+      "approve": {
+        "description": "Phê duyệt kế hoạch của tác nhân để bắt đầu thực thi"
+      },
+      "message": {
+        "description": "Gửi tin nhắn đến tác vụ đang chạy"
+      }
+    },
+    "sources": {
+      "description": "Liệt kê các tệp nguồn do tác vụ tạo ra"
+    }
+  },
+  "eval": {
+    "description": "Quản lý các bộ đánh giá và lượt chạy",
+    "suites": {
+      "description": "Quản lý các bộ đánh giá",
+      "list": {
+        "description": "Liệt kê các bộ đánh giá"
+      },
+      "get": {
+        "description": "Lấy thông tin chi tiết về bộ đánh giá theo ID"
+      },
+      "create": {
+        "description": "Tạo bộ đánh giá từ tệp JSON",
+        "file": "Đường dẫn đến tệp JSON định nghĩa bộ đánh giá"
+      }
+    },
+    "run": {
+      "description": "Bắt đầu một lượt chạy đánh giá cho bộ đánh giá",
+      "model": "ID mô hình cần đánh giá (mặc định: auto)",
+      "combo": "Buộc sử dụng một tổ hợp cụ thể theo tên",
+      "concurrency": "Số mẫu chạy đồng thời (mặc định: 4)",
+      "tag": "Gắn thẻ lượt chạy này để lọc sau",
+      "watch": "Theo dõi tiến trình lượt chạy cho đến khi hoàn tất"
+    },
+    "list": {
+      "description": "Liệt kê các lượt chạy đánh giá",
+      "suite": "Lọc theo ID bộ đánh giá",
+      "status": "Lọc theo trạng thái",
+      "since": "Trả về các lượt chạy kể từ dấu thời gian này",
+      "limit": "Số kết quả tối đa (mặc định: 50)"
+    },
+    "get": {
+      "description": "Lấy thông tin chi tiết về lượt chạy đánh giá theo ID"
+    },
+    "results": {
+      "description": "Hiển thị kết quả mẫu của một lượt chạy đánh giá",
+      "failed": "Chỉ hiển thị các mẫu thất bại"
+    },
+    "cancel": {
+      "description": "Hủy một lượt đánh giá đang chạy",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "scorecard": {
+      "description": "Hiển thị bảng điểm của một lượt chạy đánh giá đã hoàn tất"
+    }
+  },
+  "webhooks": {
+    "description": "Quản lý webhook của OmniRoute",
+    "events": {
+      "description": "Liệt kê tất cả các loại sự kiện webhook hiện có"
+    },
+    "list": {
+      "description": "Liệt kê các webhook đã cấu hình"
+    },
+    "get": {
+      "description": "Lấy thông tin chi tiết về webhook theo ID"
+    },
+    "add": {
+      "description": "Đăng ký webhook mới",
+      "url": "URL đích",
+      "events": "Danh sách các loại sự kiện, phân tách bằng dấu phẩy",
+      "secret": "Khóa bí mật ký HMAC",
+      "header": "Tiêu đề bổ sung ở định dạng key=value (có thể lặp lại)",
+      "no_enabled": "Tạo webhook ở trạng thái vô hiệu hóa"
+    },
+    "update": {
+      "description": "Cập nhật webhook hiện có",
+      "enabled": "Đặt trạng thái kích hoạt (true|false)"
+    },
+    "remove": {
+      "description": "Xóa webhook",
+      "yes": "Bỏ qua lời nhắc xác nhận"
+    },
+    "test": {
+      "description": "Gửi một sự kiện thử nghiệm đến webhook",
+      "event": "Loại sự kiện cần mô phỏng (mặc định: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Bộ định tuyến AI thông minh với tự động chuyển đổi dự phòng",
     "version": "In phiên bản và thoát",
@@ -26,7 +832,509 @@
     "context": "Bối cảnh/hồ sơ máy chủ cho lệnh này",
     "lang": "Đặt ngôn ngữ hiển thị CLI (ghi đè OMNIROUTE_LANG)"
   },
-  "redis": {
-    "description": "Khởi chạy bộ chứa Redis cục bộ bằng một cú nhấp chuột (Podman hoặc Docker) để lưu bộ đệm và theo dõi hạn ngạch của OmniRoute"
+  "files": {
+    "description": "Quản lý tệp (tải lên, liệt kê, lấy, tải xuống, xóa)",
+    "list": {
+      "purpose": "Lọc theo mục đích",
+      "limit": "Số kết quả tối đa"
+    },
+    "get": {
+      "description": "Lấy siêu dữ liệu tệp"
+    },
+    "upload": {
+      "description": "Tải tệp lên",
+      "purpose": "Mục đích của tệp (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Tải xuống nội dung tệp",
+      "out": "Lưu vào đường dẫn (mặc định: stdout)"
+    },
+    "delete": {
+      "yes": "Bỏ qua xác nhận"
+    }
+  },
+  "batches": {
+    "description": "Quản lý các tác vụ batch tương thích với OpenAI",
+    "list": {
+      "status": "Lọc theo trạng thái",
+      "limit": "Số kết quả tối đa"
+    },
+    "create": {
+      "description": "Tạo tác vụ batch",
+      "inputFile": "ID tệp đầu vào",
+      "endpoint": "Điểm cuối đích",
+      "window": "Khoảng thời gian hoàn tất",
+      "metadata": "Thêm siêu dữ liệu key=value"
+    },
+    "submit": {
+      "description": "Tải tệp JSONL lên và tạo tác vụ batch",
+      "jsonl": "Đường dẫn đến tệp JSONL",
+      "endpoint": "Điểm cuối đích",
+      "wait": "Chờ hoàn tất"
+    },
+    "cancel": {
+      "yes": "Bỏ qua xác nhận"
+    },
+    "wait": {
+      "timeout": "Thời gian chờ tính bằng ms"
+    },
+    "output": {
+      "out": "Lưu đầu ra vào đường dẫn"
+    },
+    "errors": {
+      "out": "Lưu lỗi vào đường dẫn"
+    }
+  },
+  "translator": {
+    "description": "Chuyển đổi nội dung yêu cầu giữa các định dạng LLM",
+    "detect": {
+      "description": "Phát hiện định dạng nội dung"
+    },
+    "translate": {
+      "description": "Chuyển đổi nội dung từ định dạng này sang định dạng khác"
+    },
+    "send": {
+      "description": "Chuyển đổi và gửi yêu cầu đến máy chủ nguồn"
+    },
+    "stream": {
+      "description": "Chuyển đổi nội dung yêu cầu theo luồng"
+    },
+    "from": "Định dạng nguồn (openai|anthropic|gemini|cohere)",
+    "to": "Định dạng đích (openai|anthropic|gemini|cohere)",
+    "file": "Đường dẫn đến tệp JSON chứa nội dung yêu cầu",
+    "out": "Lưu đầu ra vào tệp",
+    "model": "Ghi đè mô hình",
+    "history": {
+      "limit": "Số kết quả tối đa"
+    }
+  },
+  "pricing": {
+    "description": "Quản lý dữ liệu giá cho các mô hình",
+    "sync": {
+      "description": "Đồng bộ giá từ các nguồn thượng nguồn",
+      "provider": "Lọc theo nhà cung cấp",
+      "force": "Buộc đồng bộ lại"
+    },
+    "list": {
+      "provider": "Lọc theo nhà cung cấp",
+      "model": "Lọc theo mô hình",
+      "limit": "Số kết quả tối đa"
+    },
+    "defaults": {
+      "description": "Quản lý giá mặc định",
+      "input": "Chi phí đầu vào trên mỗi 1 triệu token (USD)",
+      "output": "Chi phí đầu ra trên mỗi 1 triệu token (USD)",
+      "cacheRead": "Chi phí đọc bộ nhớ đệm trên mỗi 1 triệu token (USD)",
+      "cacheWrite": "Chi phí ghi bộ nhớ đệm trên mỗi 1 triệu token (USD)"
+    },
+    "diff": {
+      "description": "Hiển thị chênh lệch so với giá nguồn",
+      "model": "Lọc theo mô hình"
+    }
+  },
+  "radar": {
+    "description": "Kiểm tra và đồng bộ hóa các nguồn cấp danh mục Radar cục bộ",
+    "status": "Hiển thị cài đặt Radar cục bộ và trạng thái bộ nhớ đệm nguồn cấp",
+    "sync": "Đồng bộ hóa danh mục, giới thiệu, ưu đãi và Intel thông qua máy chủ cục bộ"
+  },
+  "resilience": {
+    "description": "Kiểm tra và quản lý các cơ chế phục hồi",
+    "status": {
+      "provider": "Lọc theo nhà cung cấp"
+    },
+    "breakers": {
+      "provider": "Lọc theo nhà cung cấp"
+    },
+    "cooldowns": {
+      "provider": "Lọc theo nhà cung cấp",
+      "connectionId": "Lọc theo ID kết nối"
+    },
+    "lockouts": {
+      "provider": "Lọc theo nhà cung cấp",
+      "model": "Lọc theo mô hình"
+    },
+    "reset": {
+      "description": "Đặt lại trạng thái bộ ngắt mạch/thời gian chờ",
+      "provider": "Nhà cung cấp cần đặt lại",
+      "connectionId": "ID kết nối cần đặt lại",
+      "model": "Mô hình cần đặt lại trạng thái khóa",
+      "allCooldowns": "Đặt lại tất cả thời gian chờ của nhà cung cấp",
+      "yes": "Bỏ qua xác nhận"
+    },
+    "profile": {
+      "description": "Quản lý hồ sơ phục hồi",
+      "name": "Tên hồ sơ"
+    },
+    "config": {
+      "description": "Quản lý cấu hình phục hồi",
+      "threshold": "Ngưỡng lỗi",
+      "resetTimeout": "Thời gian chờ đặt lại tính bằng ms",
+      "baseCooldown": "Thời gian chờ cơ sở tính bằng ms"
+    }
+  },
+  "nodes": {
+    "description": "Quản lý các nút (điểm cuối) của nhà cung cấp",
+    "list": {
+      "provider": "Lọc theo nhà cung cấp",
+      "enabled": "Chỉ hiển thị các nút đã bật"
+    },
+    "add": {
+      "provider": "Tên nhà cung cấp",
+      "baseUrl": "URL cơ sở của nút",
+      "name": "Tên nút",
+      "weight": "Trọng số cân bằng tải",
+      "region": "Thẻ khu vực",
+      "authHeader": "Tiêu đề xác thực tùy chỉnh (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL cơ sở mới",
+      "name": "Tên mới",
+      "weight": "Trọng số mới",
+      "region": "Khu vực mới",
+      "enabled": "Bật hoặc tắt (true|false)"
+    },
+    "remove": {
+      "yes": "Bỏ qua xác nhận"
+    },
+    "validate": {
+      "baseUrl": "URL cần xác thực",
+      "provider": "Nhà cung cấp dùng để xác thực"
+    },
+    "test": {
+      "description": "Gửi yêu cầu kiểm thử đến nút"
+    },
+    "metrics": {
+      "description": "Hiển thị số liệu của nút",
+      "period": "Khoảng thời gian (ví dụ: 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Cấu hình quy trình kỹ thuật ngữ cảnh (Caveman, RTK)",
+    "analytics": {
+      "period": "Khoảng thời gian (ví dụ: 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Quản lý trình nén ngữ cảnh Caveman",
+      "config": {
+        "description": "Hiển thị hoặc cập nhật cấu hình Caveman",
+        "aggressiveness": "Mức độ tích cực 0.0–1.0",
+        "maxShrinkPct": "Phần trăm thu gọn tối đa",
+        "preserveTags": "Các thẻ cần giữ lại, phân tách bằng dấu phẩy"
+      }
+    },
+    "rtk": {
+      "description": "Quản lý trình tối ưu hóa ngữ cảnh RTK",
+      "config": {
+        "description": "Hiển thị hoặc cập nhật cấu hình RTK",
+        "tokenBudget": "Ngân sách token cho RTK",
+        "reservePct": "Phần trăm dự phòng"
+      },
+      "filters": {
+        "description": "Quản lý bộ lọc RTK",
+        "pattern": "Mẫu bộ lọc (regex)",
+        "priority": "Mức ưu tiên của bộ lọc (mặc định: 100)",
+        "action": "Hành động của bộ lọc: drop|shrink|replace",
+        "yes": "Bỏ qua xác nhận"
+      },
+      "test": {
+        "file": "Đường dẫn đến tệp JSON yêu cầu"
+      }
+    },
+    "combos": {
+      "description": "Quản lý tổ hợp nhận biết ngữ cảnh"
+    }
+  },
+  "sessions": {
+    "description": "Kiểm tra và quản lý các phiên đang hoạt động",
+    "list": {
+      "user": "Lọc theo người dùng",
+      "kind": "Lọc theo loại (dashboard|api-key|mcp|a2a)",
+      "active": "Chỉ hiển thị các phiên đang hoạt động",
+      "limit": "Số kết quả tối đa (mặc định: 100)"
+    },
+    "expire": {
+      "yes": "Bỏ qua xác nhận"
+    },
+    "expireAll": {
+      "user": "Người dùng có các phiên cần cho hết hạn",
+      "yes": "Bỏ qua xác nhận"
+    }
+  },
+  "tags": {
+    "description": "Quản lý thẻ tài nguyên",
+    "add": {
+      "color": "Màu thẻ (mã hex hoặc tên)",
+      "description": "Mô tả thẻ"
+    },
+    "remove": {
+      "yes": "Bỏ qua xác nhận"
+    },
+    "assign": {
+      "tag": "Tên thẻ",
+      "to": "Tài nguyên đích theo định dạng type:id (ví dụ: provider:openai)"
+    },
+    "unassign": {
+      "tag": "Tên thẻ",
+      "from": "Tài nguyên nguồn theo định dạng type:id"
+    }
+  },
+  "openapi": {
+    "description": "Truy cập và kiểm thử đặc tả OpenAPI của OmniRoute",
+    "dump": {
+      "description": "Xuất đặc tả OpenAPI ra stdout hoặc tệp",
+      "format": "Định dạng đầu ra: yaml|json (mặc định: yaml)",
+      "out": "Lưu vào đường dẫn tệp"
+    },
+    "validate": {
+      "description": "Xác thực đặc tả OpenAPI"
+    },
+    "try": {
+      "description": "Kiểm thử một điểm cuối API thông qua đặc tả",
+      "method": "Phương thức HTTP (mặc định: GET)",
+      "body": "Đường dẫn đến tệp JSON chứa nội dung yêu cầu",
+      "query": "Tham số truy vấn theo định dạng key=value (có thể lặp lại)",
+      "header": "Tiêu đề theo định dạng key=value (có thể lặp lại)"
+    },
+    "endpoints": {
+      "description": "Liệt kê tất cả điểm cuối API",
+      "search": "Lọc theo đường dẫn hoặc phần tóm tắt"
+    },
+    "paths": {
+      "description": "Liệt kê tất cả đường dẫn API"
+    }
+  },
+  "combo": {
+    "title": "Các tổ hợp",
+    "switched": "Tổ hợp đang hoạt động: {name}",
+    "created": "Đã tạo tổ hợp: {name}",
+    "deleted": "Đã xóa tổ hợp: {name}",
+    "noCombos": "Chưa cấu hình tổ hợp nào.",
+    "confirmDelete": "Xóa tổ hợp {name}?",
+    "suggest": {
+      "description": "Đề xuất tổ hợp tốt nhất cho một tác vụ bằng cách chấm điểm với AI",
+      "task": "Mô tả tác vụ",
+      "maxCost": "Chi phí tối đa cho mỗi yêu cầu, tính bằng USD",
+      "maxLatencyMs": "Độ trễ tối đa tính bằng mili giây",
+      "weights": "Trọng số chấm điểm JSON, ví dụ: {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Số ứng viên hàng đầu cần hiển thị (mặc định: 5)",
+      "explain": "In lý do ra stderr",
+      "switch": "Kích hoạt tổ hợp được xếp hạng cao nhất"
+    }
+  },
+  "oneproxy": {
+    "description": "Quản lý nhóm máy chủ thượng nguồn của OneProxy",
+    "stats": {
+      "provider": "Lọc theo nhà cung cấp",
+      "period": "Khoảng thời gian (mặc định: 24h)"
+    },
+    "fetch": {
+      "description": "Lấy proxy từ nhóm",
+      "count": "Số lượng proxy cần lấy (mặc định: 1)",
+      "type": "Loại proxy: http|socks5 (mặc định: http)"
+    },
+    "rotate": {
+      "description": "Buộc xoay vòng proxy",
+      "provider": "Nhà cung cấp cần xoay vòng",
+      "connectionId": "ID kết nối cụ thể cần xoay vòng"
+    },
+    "config": {
+      "description": "Hiển thị hoặc cập nhật cấu hình OneProxy",
+      "enabled": "Bật nhóm proxy (true|false)",
+      "poolSize": "Kích thước nhóm",
+      "providerSource": "URL của nhà cung cấp proxy",
+      "rotationPolicy": "Chính sách luân chuyển: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Liệt kê nhóm proxy hiện tại cùng các chỉ số"
+    }
+  },
+  "open": {
+    "description": "Mở một trang bảng điều khiển OmniRoute cụ thể trong trình duyệt",
+    "url": "Chỉ in URL, không mở trình duyệt"
+  },
+  "telemetry": {
+    "description": "Truy cập dữ liệu đo từ xa tổng hợp",
+    "summary": {
+      "description": "Hiển thị bản tóm tắt dữ liệu đo từ xa tổng hợp",
+      "period": "Khoảng thời gian: 24h|7d|30d (mặc định: 24h)",
+      "compareTo": "So sánh với khoảng thời gian trước"
+    },
+    "export": {
+      "description": "Xuất các sự kiện đo từ xa sang JSONL",
+      "out": "Đường dẫn tệp đầu ra (mặc định: telemetry.jsonl)",
+      "period": "Khoảng thời gian xuất (mặc định: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Đồng bộ cấu hình giữa các phiên bản OmniRoute",
+    "push": {
+      "description": "Đẩy cấu hình lên đám mây hoặc phiên bản từ xa",
+      "target": "Đích (cloud hoặc context:name)",
+      "bundle": "Các phần của gói cần đồng bộ",
+      "dryRun": "Xem trước mà không áp dụng"
+    },
+    "pull": {
+      "description": "Kéo cấu hình từ đám mây hoặc máy chủ từ xa",
+      "source": "Nguồn (cloud hoặc context:name)",
+      "merge": "Hợp nhất với cấu hình hiện có",
+      "replace": "Thay thế cấu hình hiện có",
+      "dryRun": "Xem trước mà không áp dụng"
+    },
+    "diff": {
+      "source": "Ngữ cảnh nguồn",
+      "target": "Ngữ cảnh đích"
+    },
+    "bundle": {
+      "description": "Xuất cấu hình dưới dạng tệp gói",
+      "include": "Các phần cần bao gồm (phân tách bằng dấu phẩy)"
+    },
+    "import": {
+      "description": "Nhập tệp gói",
+      "dryRun": "Xác thực mà không áp dụng"
+    },
+    "initialize": {
+      "fromCloud": "Khởi tạo từ bản sao lưu đám mây"
+    },
+    "tokens": {
+      "description": "Quản lý token đồng bộ",
+      "create": {
+        "name": "Tên token",
+        "scope": "Phạm vi token",
+        "ttl": "TTL của token (ví dụ: 30d)"
+      },
+      "revoke": {
+        "yes": "Bỏ qua bước xác nhận"
+      }
+    },
+    "resolve": {
+      "description": "Giải quyết xung đột đồng bộ theo cách tương tác"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Quản lý ngữ cảnh/hồ sơ máy chủ (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Quản lý ngôn ngữ hiển thị của CLI",
+      "getDescription": "Hiển thị mã ngôn ngữ hiện đang hoạt động",
+      "setDescription": "Đặt ngôn ngữ hiển thị và lưu vào cấu hình",
+      "listDescription": "Liệt kê tất cả ngôn ngữ có sẵn",
+      "listTitle": "Ngôn ngữ có sẵn",
+      "current": "Ngôn ngữ: {code} ({name})",
+      "saved": "Đã đặt ngôn ngữ thành {code} ({name}).",
+      "noCode": "Bắt buộc phải có mã ngôn ngữ. Chạy 'omniroute config lang list' để xem các mã có sẵn.",
+      "unknown": "Mã ngôn ngữ không xác định: {code}. Chạy 'omniroute config lang list' để xem các mã có sẵn.",
+      "alreadySet": "Ngôn ngữ đã được đặt thành {code}.",
+      "envHint": "Mẹo: bạn cũng có thể đặt OMNIROUTE_LANG={code} trong môi trường của mình."
+    }
+  },
+  "completion": {
+    "description": "Tạo hoặc cài đặt tập lệnh tự động hoàn thành cho shell",
+    "zsh": "In tập lệnh tự động hoàn thành cho zsh",
+    "bash": "In tập lệnh tự động hoàn thành cho bash",
+    "fish": "In tập lệnh tự động hoàn thành cho fish",
+    "install": "Cài đặt tập lệnh tự động hoàn thành trên toàn hệ thống cho shell được phát hiện",
+    "refresh": "Làm mới bộ nhớ đệm của các tổ hợp/nhà cung cấp/mô hình"
+  },
+  "logs": {
+    "description": "Truyền phát hoặc xuất nhật ký yêu cầu",
+    "follow": "Truyền phát nhật ký theo thời gian thực",
+    "filter": "Lọc theo cấp độ (error,warn,info) — phân tách bằng dấu phẩy",
+    "lines": "Số dòng cần lấy",
+    "timeout": "Thời gian chờ kết nối tính bằng ms",
+    "baseUrl": "URL cơ sở của API OmniRoute",
+    "requestId": "Lọc theo ID yêu cầu",
+    "apiKey": "Lọc theo khóa API",
+    "combo": "Lọc theo tên tổ hợp",
+    "status": "Lọc theo mã trạng thái HTTP",
+    "durationMin": "Thời lượng yêu cầu tối thiểu tính bằng ms",
+    "durationMax": "Thời lượng yêu cầu tối đa tính bằng ms",
+    "export": "Lưu nhật ký vào tệp (json/jsonl/csv)",
+    "exported": "Đã lưu nhật ký vào {path}",
+    "stopped": "Đã dừng luồng nhật ký.",
+    "streamError": "Lỗi luồng nhật ký: {message}"
+  },
+  "tray": {
+    "description": "Điều khiển biểu tượng khay hệ thống",
+    "show": "Hiển thị biểu tượng khay (nếu máy chủ đang chạy với --tray)",
+    "hide": "Ẩn biểu tượng khay",
+    "quit": "Thoát OmniRoute qua khay hệ thống"
+  },
+  "autostart": {
+    "description": "Quản lý tính năng tự động khởi động OmniRoute khi khởi động hệ thống (Linux: dịch vụ người dùng systemd)",
+    "enable": "Bật tự động khởi động khi khởi động hệ thống",
+    "disable": "Tắt tự động khởi động khi khởi động hệ thống",
+    "toggle": "Chuyển đổi trạng thái tự động khởi động khi khởi động hệ thống",
+    "status": "Hiển thị trạng thái tự động khởi động"
+  },
+  "runtime": {
+    "description": "Quản lý các phần phụ thuộc runtime gốc",
+    "check": "Kiểm tra trạng thái của các phần phụ thuộc gốc trong thư mục runtime",
+    "repair": "Cài đặt lại các phần phụ thuộc gốc trong thư mục runtime",
+    "repair_force": "Buộc cài đặt lại ngay cả khi vẫn hợp lệ",
+    "clean": "Xóa thư mục runtime (giải phóng dung lượng ổ đĩa)",
+    "clean_yes": "Bỏ qua bước xác nhận"
+  },
+  "repl": {
+    "description": "REPL tương tác nhiều lượt với LLM",
+    "model": "Mô hình cần dùng (mặc định: tự động)",
+    "combo": "Tên tổ hợp cần dùng",
+    "system": "Lời nhắc hệ thống",
+    "resume": "Tiếp tục một phiên đã lưu theo tên"
+  },
+  "plugin": {
+    "description": "Quản lý plugin CLI (omniroute-cmd-*)",
+    "list": "Liệt kê các plugin đã cài đặt",
+    "install": "Cài đặt plugin từ npm hoặc đường dẫn cục bộ",
+    "remove": "Gỡ bỏ plugin đã cài đặt",
+    "info": "Hiển thị chi tiết về plugin đã cài đặt",
+    "search": "Tìm kiếm các plugin có sẵn trong sổ đăng ký npm",
+    "update": "Cập nhật (các) plugin đã cài đặt",
+    "scaffold": "Tạo khung mã mẫu cho plugin mới"
+  },
+  "launch": {
+    "description": "Khởi chạy Claude Code trỏ đến OmniRoute (cục bộ hoặc từ xa, với --profile)",
+    "token": "Token mà ứng dụng Claude cần gửi (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "Không thể truy cập OmniRoute tại {port}. Hãy khởi động bằng 'omniroute serve'.",
+    "notFound": "Không tìm thấy CLI 'claude' trong PATH."
+  },
+  "run": {
+    "description": "Khởi chạy một CLI được hỗ trợ thông qua OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Tạo các hồ sơ Claude Code trong ~/.claude/profiles từ danh mục mô hình OmniRoute"
+  },
+  "connect": {
+    "description": "Kết nối với máy chủ OmniRoute từ xa và vào chế độ từ xa"
+  },
+  "tokens": {
+    "description": "Quản lý token truy cập CLI theo phạm vi (chế độ từ xa)"
+  },
+  "configure": {
+    "description": "Chọn nhà cung cấp+mô hình từ máy chủ đang hoạt động và cấu hình một CLI cục bộ được hỗ trợ"
+  },
+  "launchCodex": {
+    "description": "Khởi chạy Codex CLI trỏ đến OmniRoute (cục bộ hoặc VPS từ xa)"
+  },
+  "setupCodex": {
+    "description": "Tạo các tệp hồ sơ ~/.codex từ danh mục mô hình trực tiếp của OmniRoute"
+  },
+  "packs": {
+    "description": "Quản lý các gói runtime tùy chọn (ML / tự động hóa trình duyệt)",
+    "listDescription": "Liệt kê các gói tùy chọn và trạng thái cài đặt của chúng",
+    "installDescription": "Cài đặt một gói tùy chọn vào DATA_DIR",
+    "verifyDescription": "Xác minh các gói đã cài đặt dựa trên chỉ mục tổng kiểm được cung cấp",
+    "removeDescription": "Gỡ bỏ một gói tùy chọn đã cài đặt",
+    "sourceOpt": "Thư mục chứa nội dung các gói và chỉ mục gói",
+    "warnNoIndex": "Không tìm thấy optional-packs.index.json — tính năng cài đặt/xác minh không khả dụng trong bản mã nguồn này (các gói ứng dụng máy tính để bàn có kèm tệp đó)",
+    "errUnknown": "gói không xác định: {name}",
+    "errNoIndex": "không tìm thấy chỉ mục gói; hãy truyền --source <dir> trỏ đến thư mục chứa nội dung gói (các gói ứng dụng máy tính để bàn đặt tệp đó bên cạnh ứng dụng)",
+    "installed": "gói \"{name}\" đã được cài đặt và xác minh tại {dir}",
+    "restartHint": "khởi động lại máy chủ OmniRoute (hoặc ứng dụng máy tính) để môi trường chạy nhận gói",
+    "removed": "đã gỡ gói \"{name}\"",
+    "notInstalled": "gói \"{name}\" chưa được cài đặt",
+    "verifyOk": "đã xác minh tất cả các gói đã cài đặt",
+    "verifyFailed": "{count} gói không vượt qua bước xác minh",
+    "noneInstalled": "không có gói tùy chọn nào được cài đặt"
   }
 }

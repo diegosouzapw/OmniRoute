@@ -54,7 +54,12 @@ export function planFromHeader(
   }
 
   const combo = combos[lower] ?? combos[h];
-  return combo ? withSource({ mode: "stacked", stackedPipeline: combo }, "request-header") : null;
+  // Only a real, non-empty pipeline is a chosen plan: an empty-array combo would otherwise win
+  // the precedence race and let the builtin fallback pipeline run lossy unrequested, and the
+  // plain-object lookup resolves prototype keys (constructor, toString) to truthy garbage.
+  return Array.isArray(combo) && combo.length > 0
+    ? withSource({ mode: "stacked", stackedPipeline: combo }, "request-header")
+    : null;
 }
 
 /** Renders the X-OmniRoute-Compression response header value. */
@@ -128,8 +133,18 @@ export function buildNamedComboLookup(
  * silent behaviour change for installs whose backfilled engine flags don't exactly match
  * their old defaultMode.
  */
+/** The config fields the default-plan derivation reads (the dashboard preview passes its own
+ *  panel-shaped config, so the full server CompressionConfig is not required — #14700). */
+export type DefaultPlanConfig = Pick<CompressionConfig, "enabled" | "engines" | "activeComboId"> &
+  Partial<
+    Pick<
+      CompressionConfig,
+      "enginesExplicit" | "defaultMode" | "stackedPipeline" | "comboOverrides"
+    >
+  >;
+
 export function deriveDefaultPlanFromConfig(
-  config: CompressionConfig,
+  config: DefaultPlanConfig,
   comboId: string | null,
   combos: NamedCombos = {}
 ): DerivedPlan {

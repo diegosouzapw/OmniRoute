@@ -46,7 +46,8 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     textIcon: "OF",
     website: "https://openference.com",
     hasFree: true,
-    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+    freeNote:
+      "Free tier: includes Qwen3.8 27b and Llama 3.2 3B — see openference.com/pricing for current terms",
   },
   poolside: {
     id: "poolside",

@@ -1,3 +1,5 @@
+import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 import {
   OutboundUrlGuardError,
@@ -21,6 +23,7 @@ export const PRIVATE_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS"
 // cloud-metadata endpoints stay blocked. Defaults ON (OmniRoute is local-first); operators
 // who only use public providers can disable it to restore strict SSRF blocking.
 export const LOCAL_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS";
+const SSRF_GUARD_FLAG = "OUTBOUND_SSRF_GUARD_ENABLED";
 
 function isTrueValue(raw: unknown): boolean {
   if (typeof raw !== "string") return false;
@@ -32,24 +35,35 @@ export function arePrivateProviderUrlsAllowed() {
   //    the dashboard ("Allow Private Provider URLs"). This is critical for the
   //    Electron build (#2575) where the server is spawned with the env value
   //    captured at boot, so subsequent UI toggles only land in the DB and the
-  //    env-first ordering would otherwise mask them.
+  //    env-first ordering would otherwise mask them. That holds for a toggle OFF
+  //    too: an override of "false" must not be re-enabled by the env opt-in below.
+  let dbValue: string | undefined;
   try {
-    const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
-    if (isTrueValue(dbValue)) return true;
+    dbValue = getFeatureFlagOverride(PRIVATE_PROVIDER_URLS_ENV);
   } catch {
     // DB not initialized yet — fall through to env-only check.
   }
 
-  // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
-  if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) return true;
+  if (dbValue !== undefined && dbValue !== "") {
+    if (isTrueValue(dbValue)) return true;
+  } else if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) {
+    // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
+    return true;
+  }
 
   // 3) Legacy escape hatch — disabling the outbound guard implies allowing
-  //    private URLs.
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (
-    typeof legacyValue === "string" &&
-    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
-  ) {
+  //    private URLs. "SSRF Guard" is a toggle on the Feature Flags page, so a
+  //    DB override set there comes first, then env, as in step 1.
+  let legacyValue: string | undefined;
+  try {
+    legacyValue = getFeatureFlagOverride(SSRF_GUARD_FLAG);
+  } catch {
+    // DB not initialized yet — fall through to env-only check.
+  }
+  if (legacyValue === undefined || legacyValue === "") {
+    legacyValue = process.env[SSRF_GUARD_FLAG];
+  }
+  if (!parseEnvBoolean(legacyValue, true)) {
     return true;
   }
 

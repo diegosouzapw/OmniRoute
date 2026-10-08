@@ -10,7 +10,13 @@ if [[ "${PIXELFLUX_WAYLAND,,}" == "true" ]]; then
   echo "[svc-de] ${SOCKET_PATH} found launching de"
   cd $HOME
   # OmniRoute: bridge Chromium DevTools (127.0.0.1:9222) to 0.0.0.0:9223.
-  ( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+  # SECURITY (#13679): only start the bridge when CDP_BRIDGE_TOKEN is
+  # configured — cdp-bridge.py already fails closed for every caller when
+  # it is unset (#12571), so an unconfigured container gains nothing by
+  # running an always-listening 0.0.0.0:9223 process anyway.
+  if [ -n "${CDP_BRIDGE_TOKEN:-}" ]; then
+    ( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+  fi
   exec s6-setuidgid abc \
     /bin/bash /defaults/startwm_wayland.sh &
   PID=$!
@@ -57,7 +63,13 @@ chmod 777 /tmp/selkies*
 # run
 cd $HOME
 # OmniRoute: bridge Chromium DevTools (127.0.0.1:9222) to 0.0.0.0:9223.
-( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+# SECURITY (#13679): only start the bridge when CDP_BRIDGE_TOKEN is
+# configured — cdp-bridge.py already fails closed for every caller when it
+# is unset (#12571), so an unconfigured container gains nothing by running
+# an always-listening 0.0.0.0:9223 process anyway.
+if [ -n "${CDP_BRIDGE_TOKEN:-}" ]; then
+  ( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+fi
 exec s6-setuidgid abc \
   /bin/bash /defaults/startwm.sh &
 PID=$!

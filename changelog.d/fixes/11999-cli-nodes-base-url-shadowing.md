@@ -1,1 +1,0 @@
-- **fix(cli):** support `--base-url` alongside `--endpoint` in `omniroute nodes add`, `update`, and `validate` subcommands to prevent global `--base-url` shadowing issues ([#11999](https://github.com/diegosouzapw/OmniRoute/issues/11999)).

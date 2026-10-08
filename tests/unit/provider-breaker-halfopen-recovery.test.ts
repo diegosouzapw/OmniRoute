@@ -23,11 +23,50 @@ import {
   isProviderInCooldown,
   clearCooldownState,
 } from "../../open-sse/services/providerCooldownTracker.ts";
+import { connectionCircuitBreakerName } from "../../open-sse/services/connectionCircuitBreaker.ts";
+import { isProviderInCooldown as isBreakerInCooldown } from "../../open-sse/services/accountFallback.ts";
 
 const uniqueProvider = (suffix: string) =>
   `halfopen-test-${suffix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
-test("recordProviderSuccess transitions breaker from HALF_OPEN to CLOSED and resets failureCount", async () => {
+test("cmd alias uses the command-code provider and connection breaker identities", () => {
+  assert.equal(
+    connectionCircuitBreakerName("cmd", "a"),
+    connectionCircuitBreakerName("command-code", "a")
+  );
+  const provider = getCircuitBreaker("command-code", { failureThreshold: 1, resetTimeout: 60_000 });
+  provider._onFailure();
+  assert.equal(isBreakerInCooldown("cmd"), true);
+  provider.reset();
+  recordProviderFailure("cmd", undefined, "a", { failureThreshold: 1, resetTimeoutMs: 60_000 });
+  assert.equal(isBreakerInCooldown("command-code", "a"), true);
+  assert.equal(isBreakerInCooldown("command-code", "b"), false);
+});
+
+test("externally observed probe success does not close an occupied provider probe twice", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: 1_000 });
+  const provider = uniqueProvider("owned-probe");
+  const breaker = getCircuitBreaker(provider, { failureThreshold: 1, resetTimeout: 30_000 });
+  breaker._onFailure();
+  t.mock.timers.tick(30_000);
+  let finish!: (success: boolean) => void;
+  const probe = breaker.execute(
+    () =>
+      new Promise<{ success: boolean }>((resolve) => {
+        finish = (success) => resolve({ success });
+      }),
+    { classifyProbeResult: (result) => (result.success ? "success" : "failure") }
+  );
+  assert.equal(breaker.canExecute(), false);
+  finish(true);
+  await probe;
+  const before = breaker.successCount;
+  recordProviderSuccess(provider, "conn-a", { providerProbeSettled: true });
+  assert.equal(breaker.successCount, before);
+  assert.equal(breaker.state, "CLOSED");
+});
+
+test("only an acquired probe transitions the provider breaker from HALF_OPEN to CLOSED", async () => {
   const provider = uniqueProvider("recovery");
 
   // Step 1: Open the breaker (failureThreshold: 1 -> one failure opens it)
@@ -45,8 +84,16 @@ test("recordProviderSuccess transitions breaker from HALF_OPEN to CLOSED and res
   breaker.canExecute(); // triggers _refreshOpenState -> HALF_OPEN
   assert.equal(breaker.state, "HALF_OPEN", "breaker should be HALF_OPEN after resetTimeout");
 
-  // Step 3: recordProviderSuccess should close the breaker
+  // A delayed external callback has no lease and cannot close this generation.
   recordProviderSuccess(provider, undefined);
+  assert.equal(breaker.state, "HALF_OPEN");
+  recordProviderSuccess(provider, "late-connection");
+  assert.equal(breaker.state, "HALF_OPEN");
+  recordProviderFailure(provider);
+  assert.equal(breaker.state, "HALF_OPEN");
+  await breaker.execute(async () => ({ success: true }), {
+    classifyProbeResult: (result) => (result.success ? "success" : "failure"),
+  });
 
   assert.equal(breaker.state, "CLOSED", "breaker should be CLOSED after success");
   assert.equal(breaker.failureCount, 0, "failureCount should be reset to 0");
@@ -87,7 +134,7 @@ test("recordProviderSuccess does not reset cooldown when breaker is OPEN", () =>
     failureThreshold: 1,
     resetTimeoutMs: 60_000,
   });
-  const breaker = getCircuitBreaker(provider);
+  const breaker = getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId));
   assert.equal(breaker.state, "OPEN");
 
   // Success while OPEN should NOT reset cooldown (early-return guard)
@@ -133,7 +180,7 @@ test("recordProviderSuccess with null/undefined provider is a safe no-op", () =>
   recordProviderSuccess("", undefined);
 });
 
-test("recordProviderSuccess is idempotent: multiple calls on HALF_OPEN are safe", async () => {
+test("unleased success callbacks cannot settle HALF_OPEN", async () => {
   const provider = uniqueProvider("idempotent");
 
   // Open the breaker
@@ -150,18 +197,16 @@ test("recordProviderSuccess is idempotent: multiple calls on HALF_OPEN are safe"
   breaker.canExecute();
   assert.equal(breaker.state, "HALF_OPEN");
 
-  // First success closes the breaker
+  // Neither the first nor a repeated callback owns this probe.
   recordProviderSuccess(provider, undefined);
-  assert.equal(breaker.state, "CLOSED");
-  assert.equal(breaker.failureCount, 0);
-
-  // Second success is a no-op (state is CLOSED, not HALF_OPEN)
   recordProviderSuccess(provider, undefined);
+  assert.equal(breaker.state, "HALF_OPEN");
+  await breaker.execute(async () => true);
   assert.equal(breaker.state, "CLOSED");
   assert.equal(breaker.failureCount, 0);
 });
 
-test("full lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED via success", async () => {
+test("full lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED via acquired probe", async () => {
   const provider = uniqueProvider("lifecycle");
 
   // Start CLOSED
@@ -188,8 +233,10 @@ test("full lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED via success", async 
   breaker.canExecute();
   assert.equal(breaker.state, "HALF_OPEN");
 
-  // Success recovers to CLOSED
+  // A callback with no probe lease cannot close the breaker.
   recordProviderSuccess(provider, undefined);
+  assert.equal(breaker.state, "HALF_OPEN");
+  await breaker.execute(async () => true);
   assert.equal(breaker.state, "CLOSED");
   assert.equal(breaker.failureCount, 0);
 
@@ -242,7 +289,7 @@ test("recordProviderSuccess with connectionId transitions breaker and resets coo
     resetTimeoutMs: 100,
   });
 
-  const breaker = getCircuitBreaker(provider);
+  const breaker = getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId));
   assert.equal(breaker.state, "OPEN");
 
   // Build up cooldown with connectionId

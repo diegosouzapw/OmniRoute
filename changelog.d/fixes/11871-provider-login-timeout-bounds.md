@@ -1,1 +1,0 @@
-- **fix(api):** Bound the `timeout` accepted by `POST /api/providers/[id]/login` to the same 15s–600s window the Adobe Firefly and Conol browser-login paths already enforce, so a request can no longer pin a headful browser and the single active-login slot with an arbitrarily large poll budget.

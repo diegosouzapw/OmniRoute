@@ -57,11 +57,11 @@ async function main() {
           OMNIROUTE_BASE_URL: baseUrl,
         }),
     OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
-    // Pin the custom server's bind address to loopback (#11535): under the
-    // programmatic next() entry the middleware's nextUrl.hostname mirrors the
-    // configured HOST (default "0.0.0.0"), and apiAuth.isLoopbackRequest() reads
-    // nextUrl.hostname FIRST — an unpinned boot makes every request look remote,
-    // so the anonymous open-bootstrap allow never fires (401 green-shallow).
+    // Pin the custom server's bind address to loopback (#11535). The bootstrap
+    // loopback verdict (apiAuth.isLoopbackRequest) comes from the peer stamp the
+    // custom server writes from the real TCP socket (GHSA-7pq4-8pvv-rx7r), never
+    // from nextUrl.hostname / Host — the pin keeps the harness's own clients on a
+    // loopback socket so that stamp resolves to 127.0.0.1.
     HOST: process.env.HOST || "127.0.0.1",
   };
 

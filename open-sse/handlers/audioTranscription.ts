@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { upstreamErrorResponse } from "../utils/audioResponse.ts";
 import { Buffer } from "node:buffer";
 /**
  * Audio Transcription Handler
@@ -24,6 +25,7 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexTranscribe } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { isJsonObject } from "../utils/kieTask.ts";
 import { handleOpenRouterTranscription } from "./openrouterTranscription.ts";
 
@@ -33,34 +35,21 @@ type TranscriptionCredentials = {
 };
 
 /**
- * Return a CORS error response from an upstream fetch failure
+ * Return a CORS error response from an upstream fetch failure.
+ *
+ * #15159: re-exported from `open-sse/utils/audioResponse.ts` instead of being defined
+ * here a second time. Two identical helpers is how the raw upstream passthrough
+ * survived in BOTH files unnoticed while ~35 call sites depended on it; the single
+ * definition is what makes the next fix a one-place change.
+ *
+ * Re-exported rather than re-pointed at the importers so
+ * `open-sse/handlers/openrouterTranscription.ts`, which imports this path, keeps
+ * working unchanged.
+ *
+ * Imported AND re-exported: a bare `export … from` does not create a local binding, and
+ * the transcription providers below call `upstreamErrorResponse` by name.
  */
-export function upstreamErrorResponse(res, errText) {
-  // Always return JSON so the client can parse the error reliably
-  let errorMessage: string;
-  try {
-    const parsed = JSON.parse(errText);
-    // Guard against `parsed.error` or `parsed.detail` being objects
-    const raw =
-      parsed?.err_msg ||
-      parsed?.error?.message ||
-      (typeof parsed?.error === "string" ? parsed.error : null) ||
-      parsed?.message ||
-      (typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
-      null;
-    errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
-  } catch {
-    errorMessage = errText || `Upstream error (${res.status})`;
-  }
-
-  return Response.json(
-    { error: { message: errorMessage, code: res.status } },
-    {
-      status: res.status,
-      headers: { ...CORS_HEADERS },
-    }
-  );
-}
+export { upstreamErrorResponse };
 
 /**
  * Validate a path segment to prevent path traversal / SSRF.
@@ -352,11 +341,94 @@ async function handleGladiaTranscription(providerConfig, file, modelId, token) {
   return errorResponse(504, "Gladia transcription timed out after 120s");
 }
 
+type SonioxToken = {
+  text?: string;
+  start_ms?: number;
+  end_ms?: number;
+  speaker?: string | number | null;
+  language?: string | null;
+};
+
+type SonioxOptions = {
+  diarize: boolean;
+  context: string;
+  language: string;
+  verbose: boolean;
+  wantWords: boolean;
+};
+
+/**
+ * Client-settable Soniox job options, read off the multipart form.
+ *
+ * Diarization is accepted under three spellings because callers reach for
+ * whichever their previous provider used: Soniox's own
+ * `enable_speaker_diarization`, the generic `diarization`, and Deepgram's
+ * `speaker_labels`. Anything absent stays absent from the job body so a
+ * caller who sends nothing produces byte-identical requests to before.
+ */
+function readSonioxOptions(formData?: FormData): SonioxOptions {
+  const str = (key: string): string => {
+    const value = formData?.get(key);
+    return typeof value === "string" ? value.trim() : "";
+  };
+  const flag = (...keys: string[]): boolean =>
+    keys.some((key) => /^(1|true|yes|on)$/i.test(str(key)));
+
+  const granularities = (formData?.getAll?.("timestamp_granularities[]") ?? []).map((value) =>
+    String(value).toLowerCase()
+  );
+  const diarize = flag("enable_speaker_diarization", "diarization", "speaker_labels");
+  const responseFormat = str("response_format").toLowerCase();
+
+  return {
+    diarize,
+    context: str("context"),
+    language: str("language"),
+    // Diarization implies the richer body: a caller who asked who-spoke-when and
+    // got `{text}` back has no way to tell the flag was honoured.
+    verbose: diarize || responseFormat === "verbose_json",
+    wantWords: granularities.includes("word"),
+  };
+}
+
+/**
+ * Collapse a token stream into contiguous single-speaker runs. Soniox labels
+ * every token, so a turn boundary is simply the point where the label changes.
+ */
+function groupSonioxTokensBySpeaker(tokens: SonioxToken[]) {
+  const segments: { speaker: string | null; startMs: number; endMs: number; text: string }[] = [];
+
+  for (const token of tokens) {
+    const speaker = token.speaker == null ? null : String(token.speaker);
+    const previous = segments[segments.length - 1];
+    if (!previous || previous.speaker !== speaker) {
+      segments.push({
+        speaker,
+        startMs: token.start_ms ?? 0,
+        endMs: token.end_ms ?? token.start_ms ?? 0,
+        text: token.text ?? "",
+      });
+      continue;
+    }
+    previous.endMs = token.end_ms ?? previous.endMs;
+    previous.text += token.text ?? "";
+  }
+
+  return segments;
+}
+
 /**
  * Handle Soniox transcription (async: upload file → create job → poll → get transcript)
  */
-async function handleSonioxTranscription(providerConfig, file, modelId, token) {
+async function handleSonioxTranscription(
+  providerConfig,
+  file,
+  modelId,
+  token,
+  formData?: FormData
+) {
   const authHeaders = buildAuthHeaders(providerConfig, token);
+  const options = readSonioxOptions(formData);
 
   const { body: uploadBody, contentType: uploadContentType } = await buildMultipartBody(file, {});
   const uploadRes = await fetch("https://api.soniox.com/v1/files", {
@@ -369,14 +441,21 @@ async function handleSonioxTranscription(providerConfig, file, modelId, token) {
   }
   const fileId = (await uploadRes.json()).id;
 
+  // Only keys the caller actually asked for are added, so a request with no
+  // options produces exactly the body this handler has always sent.
+  const jobBody: Record<string, unknown> = {
+    model: modelId,
+    file_id: fileId,
+    enable_language_identification: true,
+  };
+  if (options.diarize) jobBody.enable_speaker_diarization = true;
+  if (options.context) jobBody.context = options.context;
+  if (options.language) jobBody.language_hints = [options.language];
+
   const createRes = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: { ...authHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: modelId,
-      file_id: fileId,
-      enable_language_identification: true,
-    }),
+    body: JSON.stringify(jobBody),
   });
   if (!createRes.ok) {
     return upstreamErrorResponse(createRes, await createRes.text());
@@ -414,14 +493,49 @@ async function handleSonioxTranscription(providerConfig, file, modelId, token) {
     return upstreamErrorResponse(transcriptRes, await transcriptRes.text());
   }
   const transcript = await transcriptRes.json();
+  const tokens: SonioxToken[] = Array.isArray(transcript.tokens) ? transcript.tokens : [];
   const text =
     typeof transcript.text === "string" && transcript.text.length > 0
       ? transcript.text
-      : Array.isArray(transcript.tokens)
-        ? transcript.tokens.map((t: { text?: string }) => t.text ?? "").join("")
-        : "";
+      : tokens.map((t) => t.text ?? "").join("");
 
-  return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+  // Default contract is unchanged: callers who asked for nothing still get
+  // exactly `{ text }`, which is what every existing client parses.
+  if (!options.verbose) {
+    return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+  }
+
+  const segments = groupSonioxTokensBySpeaker(tokens).map((segment, index) => ({
+    id: index,
+    start: segment.startMs / 1000,
+    end: segment.endMs / 1000,
+    text: segment.text.trim(),
+    ...(segment.speaker !== null ? { speaker: segment.speaker } : {}),
+  }));
+
+  const language = tokens.find((t) => typeof t.language === "string" && t.language)?.language;
+  const durationMs = tokens.length ? (tokens[tokens.length - 1].end_ms ?? 0) : 0;
+
+  return Response.json(
+    {
+      task: "transcribe",
+      ...(language ? { language } : {}),
+      duration: durationMs / 1000,
+      text,
+      segments,
+      ...(options.wantWords
+        ? {
+            words: tokens.map((t) => ({
+              word: t.text ?? "",
+              start: (t.start_ms ?? 0) / 1000,
+              end: (t.end_ms ?? 0) / 1000,
+              ...(t.speaker != null ? { speaker: String(t.speaker) } : {}),
+            })),
+          }
+        : {}),
+    },
+    { headers: { ...CORS_HEADERS } }
+  );
 }
 
 /**
@@ -516,18 +630,25 @@ async function handleKieAudioTranscription(providerConfig, file, modelId, token)
       typeof err === "object" && err !== null && "status" in err
         ? Number((err as { status?: unknown }).status) || 502
         : 502;
-    return Response.json(
-      {
-        error: {
-          message: err instanceof Error ? err.message : "Kie transcription createTask failed",
-          code: status,
-        },
-      },
-      {
-        status,
-        headers: { ...CORS_HEADERS },
-      }
+    // E-02 (#15159): the caught error is the RAW upstream body text —
+    // `kieExecutor.createTask` throws `new Error(await res.text())`
+    // (open-sse/executors/kie.ts:57-61) — so building the body by hand put
+    // upstream stack frames and credential-shaped substrings straight into the
+    // client response. Route it through the canonical builder instead; the
+    // sanitizing `errorResponse` is already imported by this file and the Kie
+    // poll path below already uses it.
+    //
+    // CORS headers are merged back on because this route only sets them on the
+    // OPTIONS preflight (src/app/api/v1/audio/transcriptions/route.ts:75-82),
+    // never on the POST response, so dropping them would break browser clients.
+    const response = errorResponse(
+      status,
+      err instanceof Error ? err.message : "Kie transcription createTask failed"
     );
+    for (const [header, value] of Object.entries(CORS_HEADERS)) {
+      response.headers.set(header, value);
+    }
+    return response;
   }
   const taskId = data?.data?.taskId || data?.taskId;
 
@@ -754,6 +875,11 @@ export async function handleAudioTranscription({
   if (typeof model !== "string" || !model) {
     return errorResponse(400, "model is required");
   }
+  // #15067 made the registry parser refuse unsafe ids (dot segments, encoded
+  // delimiters); name the real reason instead of "No transcription provider found".
+  if (hasUnsafeModelIdSyntax(model)) {
+    return errorResponse(400, "Invalid model ID");
+  }
 
   const fileEntry = formData.get("file");
   if (!(fileEntry instanceof Blob)) {
@@ -824,7 +950,7 @@ export async function handleAudioTranscription({
   }
 
   if (providerConfig.format === "soniox") {
-    return handleSonioxTranscription(providerConfig, file, modelId, token);
+    return handleSonioxTranscription(providerConfig, file, modelId, token, formData);
   }
 
   if (providerConfig.format === "nvidia-asr") {

@@ -1,1 +1,0 @@
-- **fix(build):** `prepublish.ts` bundles the ChatGPT Web (Codex) MCP bridge through `runBuildTool()` instead of spawning `npx.cmd` raw, fixing the build crash on Node ≥ 20/Windows where `.cmd` shims cannot be spawned without a shell (EINVAL) ([#11704](https://github.com/diegosouzapw/OmniRoute/issues/11704))

@@ -24,7 +24,7 @@ const testRoots = new Set<string>();
 async function createAuthCookie(): Promise<string> {
   process.env.JWT_SECRET = "test-cli-tools-apply-secret";
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const token = await new SignJWT({ sub: "test-user" })
+  const token = await new SignJWT({ authenticated: true, sub: "test-user" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -85,6 +85,8 @@ test.afterEach(async () => {
 });
 
 test.after(async () => {
+  const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+  resetDbInstance();
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
   await fs.rm(databaseRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
@@ -138,10 +140,10 @@ test("apply leaves an invalid opencode.jsonc untouched instead of overwriting it
   await fs.writeFile(jsoncPath, invalid, "utf-8");
 
   const response = await postApply();
-  const body = (await response.json()) as { error?: string };
+  const body = (await response.json()) as { error?: { message?: string } };
 
   assert.equal(response.status, 400);
-  assert.match(body.error || "", /invalid.*JSONC|refus/i);
+  assert.match(body.error?.message || "", /invalid.*JSONC|refus/i);
   assert.equal(await fs.readFile(jsoncPath, "utf-8"), invalid);
   await assert.rejects(fs.access(jsonPath));
 });

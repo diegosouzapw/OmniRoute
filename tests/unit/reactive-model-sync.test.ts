@@ -8,6 +8,8 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 
 const {
   maybeTriggerReactiveModelSync,
@@ -140,4 +142,46 @@ test("cleanup restores the default loopback sync implementation", () => {
   __setReactiveSyncFnForTests(null);
   __resetReactiveModelSyncForTests();
   assert.ok(true);
+});
+
+test("test 13: claude/codex/github do not trigger reactive sync", () => {
+  __resetReactiveModelSyncForTests();
+  const calls = installCountingSync();
+  assert.equal(maybeTriggerReactiveModelSync("claude", "conn-claude"), false);
+  assert.equal(maybeTriggerReactiveModelSync("codex", "conn-codex"), false);
+  assert.equal(maybeTriggerReactiveModelSync("github", "conn-github"), false);
+  assert.equal(calls.length, 0);
+});
+
+test("test 13: antigravity executor still calls maybeTriggerReactiveModelSync", () => {
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "open-sse/executors/antigravity/executeAttempt.ts"),
+    "utf8",
+  );
+  assert.match(src, /maybeTriggerReactiveModelSync\(\s*provider,\s*credentials\.connectionId\s*\)/);
+});
+
+test("test 14: claude live non-200 uses catalog fallback, not empty 502", () => {
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
+    "utf8",
+  );
+  // Task 2 deleted the claude static early return. Claude is a
+  // PROVIDER_MODELS_CONFIG live provider and must land in generic live.
+  assert.doesNotMatch(
+    src,
+    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/,
+  );
+  const assembleIdx = src.lastIndexOf("assembleProviderModelsHeaders");
+  assert.ok(assembleIdx >= 0, "generic live must assemble provider-models headers");
+  const tail = src.slice(assembleIdx);
+  // Generic live 401/non-200: warning + cached/local catalog, not a 502 empty body.
+  assert.match(
+    tail,
+    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,400}buildDiscoveryFallbackResponse\(\s*\)/,
+  );
+  assert.doesNotMatch(
+    tail,
+    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,500}status:\s*502/,
+  );
 });

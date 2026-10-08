@@ -1,5 +1,6 @@
 import { PROVIDER_ERROR_TYPES } from "@omniroute/open-sse/services/errorClassifier.ts";
 import { isCreditsExhausted } from "@omniroute/open-sse/services/accountFallback.ts";
+import { takeMistralAmbiguous401SoftStrike } from "@omniroute/open-sse/services/accountFallback/mistralAmbiguousAuth.ts";
 import { resolveProviderId, WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";
 
 // #8200: cookie-auth providers (perplexity-web, grok-web, ...) use a rotating browser
@@ -52,7 +53,21 @@ function isNonTerminalProviderError(providerErrorType: string | null): boolean {
     providerErrorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN ||
     // #1010: Cloudflare fingerprint rejection is the CDN refusing the CLIENT's
     // signature, not the account's credentials — never a terminal account state.
-    providerErrorType === PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION
+    providerErrorType === PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION ||
+    // Anthropic OAuth 403 "Request not allowed" refuses ONE request; the token
+    // keeps serving the next one — never a terminal account state.
+    providerErrorType === PROVIDER_ERROR_TYPES.REQUEST_REJECTED ||
+    // A model the account is not entitled to is a MODEL fact, never a credential
+    // fact. Aggregator gateways answer 401 (not 404) for it — classifyProviderError
+    // already detects that phrasing and yields MODEL_NOT_FOUND (#7268) — but the
+    // bare `status === 401` in isExpiredAuthFailure() then parked the whole
+    // connection as `expired`, taking every OTHER model on the same valid
+    // credential down with it and pushing traffic onto an exhausted anonymous
+    // lane (measured: OpenCode Go, "Model grok-4.6 is not supported for format
+    // oa-compat", 401 → testStatus=expired while lastErrorType was already
+    // model_not_found). The semantic class is the trusted signal; the raw status
+    // is only fallback evidence.
+    providerErrorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND
   );
 }
 
@@ -71,11 +86,12 @@ function isExpiredAuthFailure(
 
 export function resolveTerminalConnectionStatus(
   status: number,
-  result: { permanent?: boolean; creditsExhausted?: boolean },
+  result: { permanent?: boolean; creditsExhausted?: boolean; ambiguousAuth?: boolean },
   providerErrorType: string | null = null,
   provider: string | null = null,
   isPerModelQuotaProvider = false,
-  errorText: string = ""
+  errorText: string = "",
+  connectionId: string | null = null
 ): string | null {
   if (shouldParkCreditsExhausted(status, result, isPerModelQuotaProvider, errorText)) {
     return "credits_exhausted";
@@ -87,6 +103,12 @@ export function resolveTerminalConnectionStatus(
     return "banned";
   }
   if (isExpiredAuthFailure(status, providerErrorType, provider)) {
+    // #13609: checkFallbackError only sets ambiguousAuth for a bare Mistral 401
+    // with MISTRAL_AMBIGUOUS_401_SOFT_LOCKOUT on. Bounded per connection: past
+    // the strike limit the connection parks as expired like any other 401.
+    if (status === 401 && result.ambiguousAuth && connectionId) {
+      if (takeMistralAmbiguous401SoftStrike(connectionId)) return null;
+    }
     return "expired";
   }
   return null;

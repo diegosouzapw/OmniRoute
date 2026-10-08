@@ -180,7 +180,7 @@ describe("deleteCompletedBatches", () => {
     assert.ok(getFile(liveInput.id));
 
     // Delete all completed (may include pre-existing ones from other tests)
-    const result = deleteCompletedBatches();
+    const result = deleteCompletedBatches({ allTenants: true });
     assert.ok(result.deletedBatches >= 3, `expected >=3, got ${result.deletedBatches}`);
     assert.ok(result.deletedFiles >= 3, `expected >=3, got ${result.deletedFiles}`);
 
@@ -194,7 +194,7 @@ describe("deleteCompletedBatches", () => {
   });
 
   it("should return zero counts when no completed batches exist", () => {
-    const result = deleteCompletedBatches();
+    const result = deleteCompletedBatches({ allTenants: true });
     assert.strictEqual(result.deletedBatches, 0);
     assert.strictEqual(result.deletedFiles, 0);
   });
@@ -224,7 +224,7 @@ describe("deleteCompletedBatches", () => {
     assert.ok(getBatch(batchB.id));
     assert.ok(getFile(sharedFile.id));
 
-    const result = deleteCompletedBatches();
+    const result = deleteCompletedBatches({ allTenants: true });
     assert.ok(result.deletedBatches >= 2);
     assert.ok(result.deletedFiles >= 1, "shared file should be counted once");
 

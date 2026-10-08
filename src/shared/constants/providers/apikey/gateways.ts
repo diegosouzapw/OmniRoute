@@ -234,6 +234,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an LLM Gateway API key, then use https://api.llmgateway.io/v1 as the OpenAI-compatible base URL.",
   },
+  lyceum: {
+    id: "lyceum",
+    serviceKinds: ["llm"],
+    alias: "lyceum",
+    name: "Lyceum",
+    icon: "router",
+    color: "#4F46E5",
+    textIcon: "LY",
+    passthroughModels: true,
+    website: "https://lyceum.technology",
+    hasFree: true,
+    freeNote: "Includes monthly free credits toward serverless inference usage.",
+    apiHint:
+      "Create a Lyceum API key (lk_…), then use https://api.lyceum.technology/openai/v1 as the OpenAI-compatible base URL.",
+  },
   "llm-kiwi": {
     id: "llm-kiwi",
     serviceKinds: ["llm"],
@@ -265,6 +280,73 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Free model variants use the :free suffix; daily credit limits vary by model and free input is capped at 5,000 tokens.",
     apiHint:
       "Create a LiteRouter API key, then use https://api.literouter.com/v1 as the OpenAI-compatible base URL.",
+  },
+  greenpt: {
+    id: "greenpt",
+    serviceKinds: ["llm"],
+    alias: "greenpt",
+    name: "GreenPT",
+    icon: "eco",
+    color: "#15803D",
+    textIcon: "GPT",
+    passthroughModels: true,
+    website: "https://greenpt.com",
+    // Not a free tier. The published docs describe a free API subscription with
+    // pay-per-token inference, which is a billing shape rather than free usage,
+    // so this stays false and the note says only what the docs say (#12986).
+    hasFree: false,
+    freeNote:
+      "API subscription is free to create; inference is billed per token. No free inference allowance is published.",
+    apiHint:
+      "Create a GreenPT API key, then use https://api.greenpt.ai/v1 as the OpenAI-compatible base URL. Review jurisdiction, privacy and regional data-transfer requirements before use.",
+  },
+  eurouter: {
+    id: "eurouter",
+    serviceKinds: ["llm"],
+    alias: "eurouter",
+    name: "EURouter",
+    icon: "router",
+    color: "#1D4ED8",
+    textIcon: "EUR",
+    passthroughModels: true,
+    website: "https://eurouter.ai",
+    // No free allowance is published, so no badge. A key was accepted but the
+    // account had no credits, so nothing about pricing tiers is claimed here.
+    hasFree: false,
+    // Deliberately says routing, not residency. EURouter is a router: its own
+    // catalog names the upstream that serves each model (claude-sonnet-5 ->
+    // AWS Bedrock, and 19 models owned by openai, 9 by anthropic, 7 by amazon).
+    // An EU-based router is a routing layer in the EU; where a model actually
+    // executes, and under whose terms, is a per-upstream property (#12985).
+    apiHint:
+      "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
+  },
+  // Y-API (https://y-api.bestvirtualgoods.com) — API-key gateway over third-party
+  // upstreams. Its own machine-readable catalog (models.json, synced 2026-09-29) defines
+  // `vendor` as "who trained the model, not who serves it" and states every model there
+  // is served by the gateway itself: a resale router, not an inference host. Its live
+  // catalog endpoint GET /v1/models requires a key (401 anonymously), so discovery is
+  // left to the user's own key rather than a seeded list.
+  "y-api": {
+    id: "y-api",
+    serviceKinds: ["llm"],
+    alias: "y-api",
+    name: "Y-API",
+    icon: "router",
+    color: "#0891B2",
+    textIcon: "YA",
+    passthroughModels: true,
+    website: "https://y-api.bestvirtualgoods.com",
+    // Free in the sense the OpenRouter and UnoRouter entries above use: the publisher
+    // prices a named subset of its catalog at 0 credit, so the badge is earned by those
+    // models, not by a standing free tier. The note dates the snapshot and points at the
+    // file rather than promising the subset survives. It quotes no cash figure: the
+    // credit-to-cash conversion has changed before (1:20 promo → 1:10 on 2026-10-01).
+    hasFree: true,
+    freeNote:
+      "4 of its 20 catalog models (deepseek/deepseek-v4-flash, minimax/minimax-m2.7, tencent/hy3, xiaomi/mimo-v2.5) are priced at 0 credit in the publisher's 2026-10-04 snapshot; the rest bill against prepaid credit, and signup grants a small credit whose amount is Y-API's to set. Y-API can withdraw a free model at any time — re-check https://y-api.bestvirtualgoods.com/pricing.json.",
+    apiHint:
+      "Create an API key at https://y-api.bestvirtualgoods.com, then use https://api.y-api.bestvirtualgoods.com/v1 as the OpenAI-compatible base URL. Models are served by this gateway from the third-party upstream vendors named per model in its catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
   },
   "mnn-ai": {
     id: "mnn-ai",
@@ -684,6 +766,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/zen",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -694,6 +781,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/go",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   dahl: {
     id: "dahl",
@@ -724,11 +816,13 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "hub",
     color: "#22C55E",
     textIcon: "FTA",
-    website: "https://freetheai.xyz",
+    website: "https://freetheai.org",
     hasFree: true,
-    freeNote: "Free OpenAI-compatible gateway — sign up via Discord for an API key.",
+    freeNote:
+      "Free OpenAI-compatible gateway — sign up at freetheai.org for a free API key; a daily check-in unlocks the free models.",
     passthroughModels: true,
-    authHint: "Join the FreeTheAi Discord to get your free API key.",
+    authHint:
+      "Sign up at https://freetheai.org/signup for a free API key. A daily check-in unlocks the free models; linking Discord is optional and only raises the daily limit.",
   },
   "g4f-groq": {
     id: "g4f-groq",
@@ -1336,6 +1430,24 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "OpenAI-compatible endpoint at https://router.bynara.id/v1. Free-tier models are pinned; others need credit.",
   },
+  xkiro: {
+    id: "xkiro",
+    serviceKinds: ["llm"],
+    alias: "xkiro",
+    name: "xKiro",
+    icon: "hub",
+    color: "#0EA5E9",
+    textIcon: "XK",
+    passthroughModels: true,
+    website: "https://xkiro.com",
+    hasFree: true,
+    freeNote:
+      "Free plan: 5M tokens/day per account across 40 upstream free models — 39 pinned here (Qwen, MiniMax, DeepSeek, Mistral, SenseNova) — no card; past the daily allowance free requests get a 429 until the reset. RPM not published.",
+    authHint:
+      "Create a free account at xkiro.com and paste the key here (Bearer; x-api-key also accepted).",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.xkiro.com/v1. Public /v1/models tags free rows with access_tier=free; paid models are rejected on the free plan.",
+  },
   regolo: {
     id: "regolo",
     serviceKinds: ["llm"],
@@ -1452,9 +1564,9 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     passthroughModels: true,
     website: "https://seekai.cc",
     hasFree: true,
-    freeNote: "Signup credit toward available models; amount and eligibility are set by SeekAi, not OmniRoute.",
-    authHint:
-      "Create an API key at https://seekai.cc, then paste it here as a Bearer token.",
+    freeNote:
+      "Signup credit toward available models; amount and eligibility are set by SeekAi, not OmniRoute.",
+    authHint: "Create an API key at https://seekai.cc, then paste it here as a Bearer token.",
     apiHint:
       "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
   },

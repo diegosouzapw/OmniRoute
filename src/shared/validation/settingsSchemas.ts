@@ -129,6 +129,12 @@ export const updateSettingsSchema = z.object({
   blockedProviders: z.array(z.string().max(100)).optional(),
   noAuthFallbackDisabledProviders: z.array(z.string().max(100)).optional(),
   hidePaidModels: z.boolean().optional(),
+  // #9418/#13562: catalog/auto-combo already consume both flags (open-sse
+  // autoCombo + /v1/models catalog), but neither was ever added here — Zod
+  // silently strips unknown keys on a plain z.object, so PATCH /api/settings
+  // answered 200 while dropping both before they reached the DB.
+  hideAutoCombos: z.boolean().optional(),
+  hideNoThinkVariants: z.boolean().optional(),
   // STRICT_ZERO_COST (opt-in, default "off"): stricter than hidePaidModels — a
   // candidate must be keyless (no credential exists, so no request against it
   // can ever be billed) OR pass a live, fresh, hard-stop-guaranteed quota
@@ -482,6 +488,12 @@ export const updateSettingsSchema = z.object({
   // the default (for providers that don't implement Anthropic's web_search server tool).
   // Empty/unset = disabled. Value is a model string ("provider,model" / alias / combo).
   webSearchRouteModel: z.string().max(200).optional(),
+  // Whole-request budget for /v1/search, in ms. Unset keeps the 15s constant.
+  // The floor matches the handler's minimum; the ceiling stops a typo from
+  // holding a worker for hours.
+  searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
+  // Per-provider timeout overrides in ms, keyed by search provider id.
+  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings

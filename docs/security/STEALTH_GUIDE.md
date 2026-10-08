@@ -31,6 +31,13 @@ unavailable; a caller may explicitly select a fallback outside this wrapper.
 - Proxy resolution (priority): `HTTPS_PROXY` → `HTTP_PROXY` → `ALL_PROXY` (also lower-case)
 - Timeout: `TLS_CLIENT_TIMEOUT_MS` (inherits from `FETCH_TIMEOUT_MS`, default 600000)
 - `wreq-js` Response is fetch-compatible (`headers`, `text()`, `json()`, `clone()`, `body`).
+- First-byte watchdog (`open-sse/utils/tlsFirstByteWatchdog.ts`, #12656): `TlsClient.fetch()`
+  resolves as soon as upstream headers arrive, so `TLS_CLIENT_TIMEOUT_MS` alone cannot bound a
+  body that never yields a first byte. `guardTlsFirstByte()` races the body's first `read()`
+  against `TLS_FIRST_BYTE_WATCHDOG_MS` (default `10000`, `0` disables it); a healthy body is
+  unaffected, while a stalled body cancels the wreq reader and lets `proxyFetch`'s existing
+  TLS-fallback logic fall through to the direct/proxy dispatcher (a non-replay-safe request, e.g.
+  a POST with a body, still throws instead of being silently retried).
 
 ### Web-cookie provider transport — wreq-js 3.2.0
 
@@ -242,7 +249,7 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 | Variable                 | Default                                                         |
 | ------------------------ | --------------------------------------------------------------- |
 | `CLAUDE_USER_AGENT`      | `claude-cli/2.1.258 (external, cli)`                            |
-| `CODEX_USER_AGENT`       | `codex-cli/0.149.0 (Windows 10.0.26200; x64)`                   |
+| `CODEX_USER_AGENT`       | `codex-cli/0.155.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |

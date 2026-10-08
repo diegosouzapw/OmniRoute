@@ -8,6 +8,14 @@
 #     Chrome 150 ignores --remote-debugging-address and binds loopback only.
 #     The OmniRoute server harvests cookies over the host-mapped 9223.
 #
+# SECURITY (#12571): 9223 is gated by a per-session shared secret
+# (CDP_BRIDGE_TOKEN, injected via `-e` by src/lib/vncSession/service.ts) that
+# every caller must present as an `X-Omni-Cdp-Token` header before the bridge
+# forwards a single byte to Chromium — see cdp-bridge.py for the check. The
+# container also runs on a dedicated Docker network (not the default bridge)
+# so sibling containers can't reach 9223 either. Do not remove either control
+# or the CDP bridge reverts to an unauthenticated, full-session-takeover proxy.
+#
 # Alpine/Debian package mirrors are unreachable from the build sandbox, so we
 # extend a prebuilt image rather than apt/apk-installing anything.
 FROM linuxserver/chromium:latest

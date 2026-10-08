@@ -1,5 +1,1340 @@
 {
+  "common": {
+    "error": "Error: {message}",
+    "serverOffline": "Offline ang OmniRoute server. Simulan ito gamit ang: omniroute serve",
+    "authRequired": "Kinakailangan ang authentication. Itakda ang OMNIROUTE_API_KEY o patakbuhin ang: omniroute setup",
+    "rateLimited": "Lumampas sa limitasyon ng rate. Subukan muli pagkalipas ng {seconds}s.",
+    "timeout": "Nag-timeout ang request pagkalipas ng {ms}ms.",
+    "success": "Tapos na.",
+    "yes": "oo",
+    "no": "hindi",
+    "confirm": "Sigurado ka ba? (oo/hindi)",
+    "dryRun": "[dry-run] isasagawa sana ang {action}",
+    "cancelled": "Kinansela.",
+    "jsonOpt": "I-output bilang JSON",
+    "yesOpt": "Laktawan ang prompt sa pagkumpirma"
+  },
+  "setup": {
+    "title": "Pag-setup ng OmniRoute",
+    "passwordPrompt": "Password ng admin",
+    "providerPrompt": "Default na provider (iwanang blangko para laktawan)",
+    "done": "Kumpleto na ang pag-setup",
+    "passwordSet": "Na-configure na ang password ng admin",
+    "providerSet": "Na-configure ang provider: {name}",
+    "testingProvider": "Sinusubukan ang koneksyon sa provider: {name}",
+    "testPassed": "Pumasa ang pagsubok sa provider",
+    "testFailed": "Nabigo ang pagsubok sa provider: {error}",
+    "loginEnabled": "Pag-login: naka-enable (na-update ang password)",
+    "loginDisabled": "Pag-login: naka-disable",
+    "providerInfo": "Provider: {info}",
+    "opencode": "I-install at i-configure ang kasamang @omniroute/opencode-plugin para sa OpenCode"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Database: OK ({path})",
+    "dbMissing": "Database: hindi pa nasisimulan — patakbuhin ang `omniroute setup`",
+    "portOk": "Port {port}: available",
+    "portConflict": "Port {port}: ginagamit ng ibang proseso",
+    "encryptionOk": "Encryption key: naka-configure",
+    "encryptionMissing": "Nawawala ang encryption key — patakbuhin ang `omniroute setup`",
+    "allGood": "Pumasa ang lahat ng pagsusuri.",
+    "warnings": "{count} babala — tingnan sa itaas."
+  },
+  "providers": {
+    "title": "Mga Provider",
+    "noProviders": "Walang naka-configure na provider. Patakbuhin ang: omniroute setup",
+    "testing": "Sinusubukan ang {name}...",
+    "available": "{count} provider ang available",
+    "connected": "Nakakonekta",
+    "disconnected": "Hindi nakakonekta",
+    "validationFailed": "Nabigo ang pagpapatunay: {error}",
+    "metrics": {
+      "description": "Ipakita ang mga sukatan ng performance ng provider (latency, rate ng tagumpay, gastos)",
+      "provider": "I-filter ayon sa provider ID",
+      "connection_id": "I-filter ayon sa connection ID",
+      "period": "Yugto ng panahon: 1h|6h|24h|7d|30d (default: 24h)",
+      "metric": "Tumutok sa isang partikular na field ng sukatan",
+      "sort": "Pagbukud-bukurin ayon sa field (pababang ayos)",
+      "limit": "Pinakamaraming row (default: 50)",
+      "watch": "I-refresh bawat 5s (live mode)",
+      "compare": "Mga provider ID na pinaghihiwalay ng kuwit para paghambingin nang magkatabi"
+    },
+    "metric_single": {
+      "description": "Kumuha ng isang value ng sukatan para sa isang partikular na koneksyon"
+    },
+    "rotate": {
+      "description": "Palitan ang upstream API key para sa isang koneksyon ng provider",
+      "newKeyOpt": "Bagong value ng API key (iwasan: mas piliin ang --from-env)",
+      "fromEnvOpt": "Basahin ang bagong key mula sa environment variable na VAR",
+      "oauthOpt": "Sa halip, simulan ang daloy ng muling pagpapatunay ng OAuth",
+      "skipTestOpt": "Laktawan ang connectivity test pagkatapos palitan ang key",
+      "dryRunOpt": "Ipakita kung ano ang magbabago nang hindi nagsusulat",
+      "confirmPrompt": "Palitan ang API key para sa koneksyong \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Papalitan sana ang key para sa \"{name}\" ({id}). Walang ginawang pagbabago.",
+      "oauthHint": "Koneksyong OAuth — patakbuhin: omniroute oauth {provider}",
+      "envVarEmpty": "Hindi nakatakda o walang laman ang environment variable na {var}.",
+      "success": "Napalitan ang key para sa \"{name}\". Patakbuhin ang `providers test {id}` para beripikahin.",
+      "testPassed": "Pumasa ang test pagkatapos palitan ang key.",
+      "testFailed": "Nabigo ang test pagkatapos palitan ang key: {error}"
+    },
+    "status": {
+      "description": "Ipakita ang kalagayan ng key para sa lahat ng koneksyon ng provider (tagal, expiration, cooldown)",
+      "providerOpt": "I-filter ayon sa pangalan ng provider",
+      "header": "ID         Provider       Pangalan                 Status ng Expiration  Status ng Test  Cooldown Hanggang",
+      "noData": "Walang available na data ng koneksyon ng provider.",
+      "requiresServer": "Kailangang tumatakbo ang server ng OmniRoute para sa providers status."
+    }
+  },
+  "keys": {
+    "title": "Mga API Key",
+    "addDescription": "Magdagdag o mag-update ng API key para sa isang provider",
+    "listDescription": "Ilista ang lahat ng naka-configure na API key",
+    "removeDescription": "Alisin ang API key para sa isang provider",
+    "regenerateDescription": "Muling bumuo ng OmniRoute API key",
+    "revokeDescription": "Bawiin ang OmniRoute API key",
+    "revealDescription": "Ipakita ang hindi natatakpang value ng API key",
+    "usageDescription": "Ipakita ang kamakailang paggamit ng isang API key",
+    "usageLimitOpt": "Bilang ng mga kamakailang request",
+    "rotateDescription": "Bumuo ng bagong key at gawing invalid ang luma",
+    "graceOpt": "Palugit (ms) bago mawalan ng bisa ang lumang key",
+    "stdinOpt": "Basahin ang API key mula sa stdin sa halip na sa argument",
+    "added": "Naidagdag ang key para sa {provider}.",
+    "removed": "Naalis ang key.",
+    "listed": "{count} key.",
+    "noKeys": "Walang naka-configure na key.",
+    "noUsage": "Walang nakitang data ng paggamit.",
+    "confirmRemove": "Alisin ang key na {id}?",
+    "confirmRegenerate": "Muling buuin ang key na {id}?",
+    "confirmRevoke": "Bawiin ang key na {id}?",
+    "confirmRotate": "Palitan ang key na {id}? (mawawalan ng bisa ang lumang key pagkatapos ng palugit)",
+    "regenerated": "Muling nabuo. Bagong key: {key}",
+    "revoked": "Binawi ang key na {id}.",
+    "rotated": "Napalitan ang key na {id}. ID ng bagong key: {newId}",
+    "revealWarning": "⚠  Ipapakita nito ang buong hindi naka-mask na key. Tiyaking pribado ang iyong screen.",
+    "providerRequired": "Kinakailangan ang provider.",
+    "keyRequired": "Kinakailangan ang API key.",
+    "stdinEmpty": "Walang API key na ibinigay sa pamamagitan ng stdin.",
+    "unknownProvider": "Hindi kilalang provider: {provider}",
+    "policy": {
+      "title": "Patakaran sa Key",
+      "showDescription": "Ipakita ang patakaran sa rate/gastos para sa isang key",
+      "setDescription": "Itakda ang patakaran sa rate/gastos para sa isang key",
+      "rateLimitOpt": "Pinakamaraming request kada minuto",
+      "maxCostOpt": "Pinakamataas na gastos kada araw (USD)",
+      "allowedModelsOpt": "Listahan ng mga pinapayagang model na pinaghihiwalay ng kuwit",
+      "nothingToSet": "Walang ibinigay na field ng patakaran. Gamitin ang --rate-limit, --max-cost, o --allowed-models.",
+      "updated": "Na-update ang patakaran."
+    },
+    "expiration": {
+      "title": "Pag-expire ng Key",
+      "listDescription": "Ilista ang mga key na malapit nang mag-expire",
+      "daysOpt": "Ipakita ang mga key na mag-e-expire sa loob ng N araw",
+      "none": "Walang key na mag-e-expire sa loob ng {days} araw.",
+      "listTitle": "Mga key na mag-e-expire sa loob ng {days} araw:"
+    }
+  },
+  "authExport": {
+    "description": "I-export ang NA-DECRYPT na mga kredensyal ng provider (lokal lamang, plaintext na output)",
+    "idOpt": "I-export lamang ang koneksyong tumutugma sa id/pangalan/provider na ito",
+    "formatOpt": "Format ng output: json o env",
+    "outOpt": "Isulat ang output sa isang file sa halip na sa stdout (isusulat nang may mga pahintulot na 0600)",
+    "forceOpt": "Kumpirmahing nauunawaan mong nagpi-print/nagsusulat ito ng mga plaintext na lihim",
+    "warning": "⚠ Nagpi-print/nagsusulat ito ng mga NA-DECRYPT na plaintext na API key at OAuth token. Tiyaking mananatiling pribado ang iyong screen, kasaysayan ng shell, at anumang output file.",
+    "confirmHeading": "⚠ BABALA: ine-export nito ang mga NA-DECRYPT na kredensyal ng provider bilang plaintext",
+    "confirmBody": "Dini-decrypt at pini-print/isinusulat ng command na ito ang apiKey, accessToken, refreshToken, at\nidToken para sa napiling (mga) koneksyon. Ituring na lihim ang output.",
+    "confirmFooter": "Para kumpirmahin, patakbuhin:\n  omniroute auth export --force",
+    "missingKey": "Kinakailangan ang STORAGE_ENCRYPTION_KEY upang i-export ang mga kredensyal.",
+    "notFound": "Hindi nahanap ang koneksyon: {id}",
+    "invalidFormat": "Di-wastong format: {format}. Gamitin ang json o env."
+  },
+  "stream": {
+    "description": "I-stream ang tugon sa chat gamit ang mga mode ng inspeksyon ng SSE",
+    "file": "Basahin ang prompt mula sa file",
+    "stdin": "Basahin ang prompt mula sa stdin",
+    "model": "Model ID (default: auto)",
+    "system": "Prompt ng system",
+    "combo": "Pilitin ang isang partikular na combo ayon sa pangalan",
+    "max_tokens": "Pinakamataas na bilang ng mga token sa tugon",
+    "responses_api": "Gamitin ang /v1/responses sa halip na /v1/chat/completions",
+    "raw": "I-print ang mga raw na linya ng SSE ayon sa pagkakatanggap",
+    "debug": "I-print sa stderr ang impormasyon sa oras ng bawat chunk",
+    "save": "I-save ang lahat ng event ng SSE sa isang .jsonl file",
+    "error": {
+      "empty_prompt": "Error: kinakailangan ang prompt (positional arg, --file, o --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analytics ng paggamit, mga badyet, quota, at log",
+    "analytics": {
+      "description": "Ipakita ang pinagsama-samang analytics ng paggamit",
+      "period": "Saklaw ng oras: 1d|7d|30d|90d|ytd|all (default: 30d)",
+      "provider": "I-filter ayon sa provider ID"
+    },
+    "budget": {
+      "description": "Pamahalaan ang mga badyet sa gastos",
+      "set": {
+        "scope": "Saklaw ng badyet (default: global)",
+        "period": "Panahon ng badyet: daily|weekly|monthly (default: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Ipakita ang paggamit ng quota ng provider",
+      "provider": "I-filter ayon sa provider ID",
+      "check": "Ipakita kung may available na quota para sa bagong request"
+    },
+    "logs": {
+      "description": "Ipakita ang mga log ng request call",
+      "limit": "Bilang ng mga entry sa log na ibabalik (default: 100)",
+      "search": "Query sa paghahanap upang i-filter ang mga log",
+      "since": "Ibalik ang mga log mula sa timestamp na ito",
+      "follow": "Patuloy na subaybayan ang mga bagong entry sa log",
+      "api_key": "I-filter ang mga log ayon sa API key"
+    },
+    "utilization": {
+      "description": "Ipakita ang mga sukatan ng paggamit ng API key",
+      "api_key": "I-filter ayon sa API key"
+    },
+    "history": {
+      "description": "Ipakita ang kasaysayan ng mga request",
+      "limit": "Bilang ng mga entry sa kasaysayan (default: 100)"
+    },
+    "proxy_logs": {
+      "description": "Ipakita ang mga log ng request sa antas ng proxy",
+      "limit": "Bilang ng mga entry sa proxy log (default: 100)"
+    }
+  },
+  "cost": {
+    "description": "Ipakita ang ulat ng gastos na may breakdown ayon sa provider, model, combo, o API key",
+    "period": "Saklaw ng oras: 1d|7d|30d|90d|ytd|all (default: 30d)",
+    "since": "Petsa ng pagsisimula (format na ISO, hal. 2026-01-01) — inuuna kaysa sa --period",
+    "until": "Petsa ng pagtatapos (format na ISO)",
+    "group_by": "Pangkatin ang mga resulta ayon sa: provider|model|api-key|combo|day (default: provider)",
+    "api_key_filter": "I-filter ayon sa isang partikular na API key",
+    "limit": "Pinakamataas na bilang ng mga row na ipapakita (default: 100)"
+  },
+  "simulate": {
+    "description": "Dry-run na simulation ng pagruruta — ipakita kung aling mga provider ang pipiliin nang hindi tumatawag sa upstream",
+    "file": "I-load ang buong request body mula sa JSON file",
+    "model": "Model ID (default: auto)",
+    "combo": "Sapilitang gumamit ng partikular na combo ayon sa pangalan",
+    "reasoning": "Antas ng pagsisikap sa pangangatwiran (low|medium|high)",
+    "thinking": "Badyet ng token para sa pinalawig na pag-iisip",
+    "explain": "I-print ang fallback tree at saklaw ng gastos sa stderr",
+    "noCombo": "Walang nakitang tumutugmang combo. Mag-configure ng isa gamit ang: omniroute combo create"
+  },
+  "chat": {
+    "description": "Magpadala ng one-shot na chat prompt sa OmniRoute",
+    "file": "Basahin ang prompt mula sa file",
+    "stdin": "Basahin ang prompt mula sa stdin",
+    "system": "System prompt",
+    "model": "Model ID (default: auto)",
+    "max_tokens": "Pinakamataas na bilang ng mga token sa tugon",
+    "temperature": "Temperatura ng sampling (0–2)",
+    "top_p": "Top-p nucleus sampling",
+    "reasoning_effort": "Antas ng pagsisikap sa pangangatwiran (low|medium|high)",
+    "thinking_budget": "Badyet ng token para sa pinalawig na pag-iisip",
+    "combo": "Sapilitang gumamit ng partikular na combo ayon sa pangalan",
+    "responses_api": "Gamitin ang /v1/responses sa halip na /v1/chat/completions",
+    "stream": "I-stream ang tugon nang paunti-unti",
+    "no_history": "Huwag i-save sa ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Error: kailangan ang prompt (positional arg, --file, o --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Simulan ang OmniRoute server (default na aksyon)",
+    "starting": "Sinisimulan ang OmniRoute server sa port {port}...",
+    "ready": "Handa na sa http://localhost:{port}",
+    "stopping": "Itinitigil ang server (PID {pid})...",
+    "stopped": "Itinigil na ang server.",
+    "notRunning": "Hindi tumatakbo ang server.",
+    "port": "Port na pakikinggan (default: 20128)",
+    "no_open": "Huwag awtomatikong buksan ang browser",
+    "daemon": "Patakbuhin ang server bilang background daemon",
+    "log": "Ipakita ang mga log ng server nang inline",
+    "no_recovery": "I-disable ang awtomatikong pag-restart kapag nag-crash (debugging mode)",
+    "max_restarts": "Pinakamataas na bilang ng pag-restart dahil sa pag-crash sa loob ng 30s bago sumuko (default: 2)",
+    "tray": "Magsimula sa system tray (desktop lang, kailangang i-enable)",
+    "no_tray": "I-disable ang icon sa system tray",
+    "ready_timeout": "Timeout ng readiness probe sa ms (OMNIROUTE_READY_TIMEOUT_MS din, default na 60000)",
+    "tls_cert": "Path patungo sa TLS certificate (PEM) para maghatid ng HTTPS (OMNIROUTE_TLS_CERT din)",
+    "tls_key": "Path patungo sa pribadong TLS key (PEM) para maghatid ng HTTPS (OMNIROUTE_TLS_KEY din)"
+  },
+  "backup": {
+    "title": "Backup",
+    "description": "Gumawa ng backup ng data ng OmniRoute",
+    "creating": "Ginagawa ang backup...",
+    "done": "Na-save ang backup sa {path}",
+    "noFiles": "Walang file na iba-backup (hindi pa nasisimulan ang database)",
+    "failed": "Nabigo ang backup: {error}",
+    "restoring": "Nagre-restore mula sa {path}...",
+    "restored": "Kumpleto na ang pag-restore.",
+    "restoreDescription": "Mag-restore mula sa isang backup",
+    "listTitle": "Mga Available na Backup",
+    "noBackups": "Walang nakitang backup.",
+    "notFound": "Hindi nakita ang backup: {name}",
+    "confirmRestore": "I-overwrite ang kasalukuyang data gamit ang backup mula noong {ts}?",
+    "createDescription": "Gumawa ng backup ng data ng OmniRoute",
+    "nameOpt": "Custom na pangalan ng backup",
+    "cloudOpt": "I-upload ang backup sa cloud storage",
+    "encryptOpt": "I-encrypt ang backup gamit ang AES-256-GCM",
+    "keyFileOpt": "Path patungo sa file na naglalaman ng encryption passphrase",
+    "excludeOpt": "Ibukod ang file na tumutugma sa pattern (maaaring ulitin)",
+    "retentionOpt": "Panatilihin lamang ang huling N backup",
+    "passphrasePrompt": "Encryption passphrase:",
+    "noPassphrase": "Kailangan ang passphrase para sa naka-encrypt na backup.",
+    "cloudFailed": "Babala: nabigo ang pag-upload sa cloud. Na-save ang lokal na backup.",
+    "cloudUploaded": "Na-upload ang cloud backup: {url}",
+    "auto": {
+      "title": "Iskedyul ng Backup",
+      "enableDescription": "I-enable ang mga nakaiskedyul na awtomatikong backup",
+      "disableDescription": "I-disable ang mga nakaiskedyul na awtomatikong backup",
+      "statusDescription": "Ipakita ang kasalukuyang status ng iskedyul ng backup",
+      "cronOpt": "Cron expression para sa iskedyul (default: araw-araw nang 3am)",
+      "enabled": "Naka-enable ang awtomatikong backup (cron: {cron}).",
+      "hint": "Binabasa ng omniroute serve ang iskedyul sa pagsisimula.",
+      "disabled": "Naka-disable ang awtomatikong backup.",
+      "notConfigured": "Walang nakakonfigurang iskedyul ng backup."
+    }
+  },
+  "health": {
+    "description": "Suriin ang kalusugan ng server at status ng mga component",
+    "noServer": "Hindi tumatakbo ang server. Simulan gamit ang: omniroute serve",
+    "title": "Kalusugan",
+    "status": "Katayuan: {status}",
+    "uptime": "Tagal ng paggana: {uptime}",
+    "requests": "Mga kahilingan (24h): {count}",
+    "cost": "Gastos (24h): ${cost}"
+  },
+  "quota": {
+    "description": "Ipakita ang paggamit ng quota ng provider",
+    "noServer": "Hindi tumatakbo ang server. Simulan gamit ang: omniroute serve",
+    "noData": "Walang available na impormasyon tungkol sa quota."
+  },
+  "cache": {
+    "description": "Pamahalaan ang cache ng tugon",
+    "noServer": "Hindi tumatakbo ang server. Simulan gamit ang: omniroute serve",
+    "cleared": "Na-clear ang cache.",
+    "clearFailed": "Hindi na-clear ang cache."
+  },
   "redis": {
-    "description": "Launch a 1-click local Redis container (Podman or Docker) for OmniRoute caching and quota tracking"
+    "description": "Maglunsad ng lokal na Redis container sa isang click (Podman o Docker) para sa pag-cache at pagsubaybay ng quota ng OmniRoute"
+  },
+  "test": {
+    "description": "Subukan ang koneksyon sa isang provider",
+    "noServer": "Hindi tumatakbo ang server. Simulan gamit ang: omniroute serve",
+    "testing": "Sinusubukan ang {provider} / {model}...",
+    "passed": "Matagumpay ang koneksyon!",
+    "failed": "Nabigo ang koneksyon: {error}",
+    "allProvidersOpt": "Subukan ang lahat ng naka-configure na provider",
+    "latencyOpt": "Ipakita ang mga sukat ng latency (average/min/max ms)",
+    "repeatOpt": "Ulitin ang pagsubok nang N beses at pagsama-samahin ang mga resulta",
+    "compareOpt": "Mga modelong pinaghihiwalay ng kuwit na ihahambing (hal. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "I-save ang mga resulta sa isang JSON file",
+    "saved": "Na-save ang mga resulta sa {path}",
+    "compareTitle": "Paghahambing ng mga Modelo",
+    "compareMinTwo": "Kailangan ng hindi bababa sa dalawang modelo para sa --compare (pinaghihiwalay ng kuwit)",
+    "noProviders": "Walang naka-configure na provider. Magdagdag gamit ang: omniroute keys add"
+  },
+  "update": {
+    "checking": "Sinusuri kung may mga update...",
+    "upToDate": "Napapanahon na ({version}).",
+    "available": "May available na update: {current} → {latest}",
+    "installing": "Ini-install ang {latest}...",
+    "done": "Na-update sa {latest}. I-restart ang server upang mailapat."
+  },
+  "mcp": {
+    "title": "MCP Server",
+    "running": "Tumatakbo ang MCP server ({transport})",
+    "stopped": "Huminto ang MCP server.",
+    "restarted": "Na-restart ang MCP server.",
+    "stoppedHint": "Patakbuhin ang `omniroute mcp enable` upang i-on ito.",
+    "enabled": "Naka-enable ang MCP server.",
+    "disabled": "Naka-disable ang MCP server.",
+    "enable": {
+      "description": "I-enable ang MCP server",
+      "transport": "Transport na gagamitin: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "I-disable ang MCP server"
+    },
+    "call": {
+      "description": "Direktang magpatakbo ng MCP tool",
+      "args": "Object ng mga argumentong JSON (inline)",
+      "args_file": "Path patungo sa file ng mga argumentong JSON",
+      "stream": "Gamitin ang streaming endpoint (/api/mcp/stream)",
+      "scope": "Kinakailangang scope (maaaring ulitin, hal. read:health)"
+    },
+    "scopes": {
+      "description": "Ilista ang mga available na MCP scope",
+      "tool": "Ipakita ang mga scope na kinakailangan ng isang partikular na tool"
+    },
+    "tools": {
+      "description": "Suriin ang mga MCP tool",
+      "list": {
+        "description": "Ilista ang lahat ng MCP tool",
+        "scope": "I-filter ayon sa scope"
+      },
+      "info": {
+        "description": "Ipakita ang metadata para sa isang MCP tool"
+      },
+      "schema": {
+        "description": "Ipakita ang input/output JSON schema para sa isang MCP tool",
+        "io": "Uri ng schema: input|output (default: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP audit log (alias para sa audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Ilista ang mga available na A2A skill mula sa agent card"
+    },
+    "invoke": {
+      "description": "Magpatakbo ng A2A skill at ibalik ang task ID",
+      "input": "JSON input object",
+      "input_file": "Path patungo sa JSON input file",
+      "wait": "Hintaying makumpleto ang task bago ibalik",
+      "timeout": "Timeout sa paghihintay na makumpleto sa ms (default: 60000)"
+    },
+    "tasks": {
+      "description": "Pamahalaan ang mga A2A task",
+      "list": {
+        "status": "I-filter ayon sa status",
+        "skill": "I-filter ayon sa skill ID"
+      },
+      "watch": {
+        "description": "I-poll ang status ng task hanggang sa makumpleto"
+      },
+      "stream": {
+        "description": "I-stream ang mga event sa pagpapatakbo ng task sa pamamagitan ng SSE"
+      },
+      "logs": {
+        "description": "Ipakita ang mga mensahe at artifact ng task"
+      }
+    }
+  },
+  "policy": {
+    "description": "Pamahalaan ang mga patakaran sa awtorisasyon ng OmniRoute",
+    "list": {
+      "description": "Ilista ang mga patakaran",
+      "kind": "I-filter ayon sa uri (allow|deny|rate-limit|cost-cap)",
+      "scope": "I-filter ayon sa scope (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Kunin ang mga detalye ng patakaran ayon sa ID"
+    },
+    "create": {
+      "description": "Gumawa ng patakaran mula sa isang JSON file",
+      "file": "Path patungo sa JSON file ng patakaran"
+    },
+    "update": {
+      "description": "I-update ang patakaran mula sa isang JSON file",
+      "file": "Path patungo sa JSON file ng patakaran"
+    },
+    "delete": {
+      "description": "Tanggalin ang patakaran ayon sa ID",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "evaluate": {
+      "description": "Dry-run na pagsusuri ng patakaran (exit 0=pinapayagan, 4=tinanggihan)",
+      "api_key": "API key na susuriin",
+      "action": "Aksiyong susuriin (hal. chat, embed, admin)",
+      "resource": "Path o identifier ng resource",
+      "context": "Karagdagang konteksto bilang JSON object"
+    },
+    "export": {
+      "description": "I-export ang lahat ng patakaran sa isang JSON file"
+    },
+    "import": {
+      "description": "Mag-import ng mga patakaran mula sa isang JSON file",
+      "overwrite": "Patungan ang mga kasalukuyang patakaran na may parehong ID"
+    }
+  },
+  "compression": {
+    "description": "I-configure at siyasatin ang compression pipeline ng OmniRoute",
+    "status": {
+      "description": "Ipakita ang kasalukuyang status at mga setting ng compression"
+    },
+    "configure": {
+      "description": "I-configure ang mga setting ng compression",
+      "engine": "Compression engine (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Antas ng pagiging agresibo ng Caveman 0.0–1.0",
+      "rtk_budget": "Badyet ng token ng RTK",
+      "language_pack": "Language pack na ia-activate"
+    },
+    "engine": {
+      "description": "Kunin o itakda ang aktibong compression engine"
+    },
+    "combos": {
+      "description": "Pamahalaan ang mga istatistika ng compression combo"
+    },
+    "rules": {
+      "description": "Pamahalaan ang mga panuntunan sa compression",
+      "add": {
+        "pattern": "Pattern na itutugma (regex o field:pattern)",
+        "action": "Aksiyon: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Ilista ang mga available na compression language pack"
+    },
+    "preview": {
+      "description": "I-preview ang epekto ng compression sa isang request",
+      "file": "Path patungo sa request JSON file"
+    }
+  },
+  "tunnel": {
+    "title": "Mga Tunnel",
+    "listDescription": "Ilista ang mga aktibong tunnel",
+    "createDescription": "Gumawa ng tunnel",
+    "created": "Nagawa ang tunnel: {url}",
+    "stopped": "Itinigil ang tunnel.",
+    "confirmStop": "Itigil ang tunnel na {id}?",
+    "stopDescription": "Itigil ang isang tunnel",
+    "statusDescription": "Ipakita ang detalyadong status ng isang tunnel",
+    "logsDescription": "Ipakita ang mga log para sa isang tunnel",
+    "infoDescription": "Ipakita ang mga detalye ng configuration ng isang tunnel",
+    "rotateDescription": "Bumuo ng bagong tunnel URL",
+    "tailOpt": "Bilang ng mga linya ng log na ipapakita",
+    "typeRequired": "Kinakailangan ang uri ng tunnel.",
+    "noLogs": "Walang available na log.",
+    "notAvailable": "Hindi available ang impormasyon ng tunnel.",
+    "noTunnels": "Walang aktibong tunnel.",
+    "infoTitle": "Impormasyon ng tunnel: {type}",
+    "rotated": "Napalitan ang tunnel URL: {url}",
+    "confirmRotate": "I-rotate ang tunnel na {type}? (gagawa ng bagong URL)"
+  },
+  "stop": {
+    "description": "Ihinto ang OmniRoute server",
+    "stopping": "Ihihinto ang server (PID {pid})...",
+    "stopped": "Nahinto na ang server.",
+    "notRunning": "Walang tumatakbong server.",
+    "portFallback": "Walang nakitang PID file, susubukang ihinto batay sa port..."
+  },
+  "restart": {
+    "description": "I-restart ang OmniRoute server",
+    "restarting": "Nire-restart ang OmniRoute server..."
+  },
+  "dashboard": {
+    "description": "Buksan ang OmniRoute dashboard sa browser",
+    "opening": "Binubuksan ang dashboard sa {url}",
+    "urlOnly": "I-print ang URL ng dashboard nang hindi binubuksan ang browser",
+    "tui": "Buksan ang interaktibong TUI dashboard (terminal UI, 7 tab)"
+  },
+  "models": {
+    "description": "Ilista ang mga available na modelo (kailangan ang server)",
+    "search": "I-filter ang mga modelo ayon sa id, pangalan, provider, o paglalarawan",
+    "noServer": "Hindi tumatakbo ang server. Simulan gamit ang: omniroute serve",
+    "noModels": "Walang nakitang modelo."
+  },
+  "audit": {
+    "description": "I-access ang mga log ng compliance at MCP audit",
+    "source": "Pinagmulan ng log: all|compliance|mcp (default: all)",
+    "since": "Ibalik ang mga entry mula sa timestamp na ito (ISO 8601)",
+    "until": "Ibalik ang mga entry hanggang sa timestamp na ito (ISO 8601)",
+    "tail": {
+      "description": "Ipakita ang mga kamakailang entry sa audit log",
+      "follow": "Patuloy na subaybayan ang mga bagong entry (2s poll)",
+      "limit": "Pinakamaraming entry na ipapakita (default: 100)"
+    },
+    "search": {
+      "description": "Maghanap sa mga entry ng audit log ayon sa keyword",
+      "limit": "Pinakamaraming resulta (default: 200)",
+      "actor": "I-filter ayon sa actor ID",
+      "action": "I-filter ayon sa pangalan ng aksyon"
+    },
+    "export": {
+      "description": "I-export ang audit log sa file",
+      "format": "Format ng output: jsonl|csv (default: jsonl)"
+    },
+    "stats": {
+      "description": "Ipakita ang mga estadistika ng audit log",
+      "period": "Panahon: 1d|7d|30d (default: 7d)"
+    },
+    "get": {
+      "description": "Kumuha ng isang entry sa audit log ayon sa ID"
+    }
+  },
+  "skills": {
+    "description": "Pamahalaan ang mga skill ng OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Ilista ang mga naka-install na skill",
+      "type": "I-filter ayon sa uri (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Ipakita lamang ang mga naka-enable na skill",
+      "disabled": "Ipakita lamang ang mga naka-disable na skill",
+      "api_key": "I-filter ayon sa API key"
+    },
+    "get": {
+      "description": "Kunin ang mga detalye ng isang skill ayon sa ID"
+    },
+    "install": {
+      "description": "Mag-install ng skill mula sa file o URL",
+      "from_file": "Path patungo sa file ng kahulugang JSON ng skill",
+      "from_url": "URL ng remote na kahulugan ng skill",
+      "type": "Uri ng skill (sandbox|custom|hybrid)",
+      "enable": "I-enable ang skill pagkatapos i-install"
+    },
+    "enable": {
+      "description": "I-enable ang isang skill ayon sa ID"
+    },
+    "disable": {
+      "description": "I-disable ang isang skill ayon sa ID",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "delete": {
+      "description": "I-delete ang isang skill ayon sa ID",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "execute": {
+      "description": "Isagawa ang isang skill ayon sa ID",
+      "input": "JSON input object",
+      "input_file": "Path patungo sa JSON input file",
+      "timeout": "Timeout ng pagsasagawa sa ms (default: 30000)"
+    },
+    "executions": {
+      "description": "Ilista ang history ng pagsasagawa ng skill",
+      "skill": "I-filter ayon sa skill ID",
+      "limit": "Pinakamaraming resulta (default: 50)",
+      "status": "I-filter ayon sa status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Pamahalaan ang mga skill na naka-install sa pamamagitan ng SSH"
+    },
+    "marketplace": {
+      "description": "Mag-browse at mag-install ng mga skill mula sa marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Maghanap ng mga package sa marketplace",
+        "category": "I-filter ayon sa category",
+        "tag": "I-filter ayon sa tag",
+        "limit": "Pinakamaraming resulta (default: 30)",
+        "sort": "Ayusin ayon sa: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Ipakita ang mga detalye at readme ng package"
+      },
+      "install": {
+        "description": "Mag-install ng package mula sa marketplace",
+        "version": "Bersyon ng package (default: latest)",
+        "enable": "I-enable pagkatapos i-install",
+        "yes": "Laktawan ang prompt ng kumpirmasyon"
+      },
+      "categories": {
+        "description": "Ilista ang mga category sa marketplace"
+      },
+      "featured": {
+        "description": "Ipakita ang mga tampok na package sa marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Pamahalaan ang memorya ng pag-uusap ng OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Maghanap sa mga entry ng memorya gamit ang semantic query",
+      "type": "I-filter ayon sa uri ng memorya (user|feedback|project|reference)",
+      "limit": "Pinakamaraming resulta (default: 20)",
+      "api_key": "I-filter ayon sa API key",
+      "token_budget": "Limitahan ang kabuuang token sa mga resulta"
+    },
+    "add": {
+      "description": "Magdagdag ng bagong entry sa memorya",
+      "content": "Nilalamang teksto ng memorya",
+      "file": "Basahin ang nilalaman mula sa file",
+      "type": "Uri ng memory (default: user)",
+      "metadata": "JSON metadata object",
+      "api_key": "Iugnay sa API key"
+    },
+    "clear": {
+      "description": "Tanggalin ang mga memory entry na tumutugma sa mga filter",
+      "type": "I-filter ayon sa uri",
+      "older": "Tanggalin ang mga entry na mas luma sa itinakdang tagal (30d, 6m, 1y)",
+      "api_key": "I-filter ayon sa API key",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "list": {
+      "description": "Ilista ang mga memory entry nang walang pagraranggo ng paghahanap",
+      "type": "I-filter ayon sa uri",
+      "limit": "Pinakamaraming resulta (default: 100)",
+      "api_key": "I-filter ayon sa API key"
+    },
+    "get": {
+      "description": "Kumuha ng isang memory entry ayon sa ID"
+    },
+    "delete": {
+      "description": "Tanggalin ang isang memory entry ayon sa ID",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "health": {
+      "description": "Ipakita ang kalagayan ng memory subsystem (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Pamahalaan ang mga koneksyon ng OAuth provider",
+    "providers": {
+      "description": "Ilista ang mga provider na sumusuporta sa OAuth at ang mga uri ng flow ng mga ito"
+    },
+    "start": {
+      "description": "Simulan ang OAuth authorization flow para sa isang provider",
+      "provider": "Provider ID (gemini, copilot, cursor, …)",
+      "no_browser": "URL lang ang i-print — huwag buksan ang browser",
+      "import_system": "Awtomatikong i-import ang mga credential mula sa configuration ng lokal na system",
+      "social": "Social login provider (google|github) — kailangan para sa kiro",
+      "timeout": "Timeout sa paghihintay ng awtorisasyon sa ms (default: 300000)"
+    },
+    "status": {
+      "description": "Ilista ang mga aktibong koneksyon sa OAuth",
+      "provider": "I-filter ayon sa provider ID"
+    },
+    "revoke": {
+      "description": "Bawiin ang isang koneksyon sa OAuth",
+      "provider": "Provider ID na babawiin",
+      "connection_id": "Bawiin ang isang partikular na koneksyon ayon sa ID",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    }
+  },
+  "cloud": {
+    "description": "Pamahalaan ang mga gawain ng cloud AI agent (codex, devin, jules)",
+    "agents": {
+      "description": "Ilista ang mga available na cloud agent"
+    },
+    "agent": {
+      "description": "Pamahalaan ang mga gawain ng {agent} cloud agent",
+      "auth": {
+        "description": "Awtorisahan ang {agent} sa pamamagitan ng OAuth"
+      }
+    },
+    "task": {
+      "description": "Pamahalaan ang mga gawain ng cloud agent",
+      "create": {
+        "description": "Gumawa ng bagong gawain para sa agent",
+        "title": "Pamagat ng gawain (default ang unang 80 character ng prompt)",
+        "prompt": "Teksto ng prompt ng gawain",
+        "prompt_file": "Basahin ang prompt mula sa file",
+        "repo": "Repository URL na iko-clone para sa gawain",
+        "branch": "Pangalan ng branch na gagamitin",
+        "metadata": "JSON metadata object"
+      },
+      "list": {
+        "description": "Ilista ang mga gawain ng agent",
+        "status": "I-filter ayon sa status (running|completed|failed|cancelled)",
+        "limit": "Pinakamaraming resulta (default: 50)"
+      },
+      "get": {
+        "description": "Kunin ang mga detalye ng gawain ayon sa ID"
+      },
+      "status": {
+        "description": "I-print ang status ng gawain (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Kanselahin ang tumatakbong gawain",
+        "yes": "Laktawan ang prompt sa pagkumpirma"
+      },
+      "approve": {
+        "description": "Aprubahan ang plano ng agent upang simulan ang pagpapatupad"
+      },
+      "message": {
+        "description": "Magpadala ng mensahe sa tumatakbong gawain"
+      }
+    },
+    "sources": {
+      "description": "Ilista ang mga source file na ginawa ng isang gawain"
+    }
+  },
+  "eval": {
+    "description": "Pamahalaan ang mga eval suite at pagpapatakbo",
+    "suites": {
+      "description": "Pamahalaan ang mga eval suite",
+      "list": {
+        "description": "Ilista ang mga eval suite"
+      },
+      "get": {
+        "description": "Kunin ang mga detalye ng eval suite ayon sa ID"
+      },
+      "create": {
+        "description": "Gumawa ng eval suite mula sa isang JSON file",
+        "file": "Path patungo sa JSON file ng depinisyon ng suite"
+      }
+    },
+    "run": {
+      "description": "Magsimula ng eval run para sa isang suite",
+      "model": "Model ID na susuriin (default: auto)",
+      "combo": "Pilitin ang isang partikular na combo ayon sa pangalan",
+      "concurrency": "Bilang ng magkakasabay na sample (default: 4)",
+      "tag": "Lagyan ng tag ang run na ito para sa pagsala sa ibang pagkakataon",
+      "watch": "Subaybayan ang progreso ng run hanggang sa makumpleto"
+    },
+    "list": {
+      "description": "Ilista ang mga eval run",
+      "suite": "I-filter ayon sa suite ID",
+      "status": "I-filter ayon sa status",
+      "since": "Ibalik ang mga run mula sa timestamp na ito",
+      "limit": "Pinakamaraming resulta (default: 50)"
+    },
+    "get": {
+      "description": "Kunin ang mga detalye ng eval run ayon sa ID"
+    },
+    "results": {
+      "description": "Ipakita ang mga resulta ng sample para sa isang eval run",
+      "failed": "Ipakita lamang ang mga nabigong sample"
+    },
+    "cancel": {
+      "description": "Kanselahin ang tumatakbong eval",
+      "yes": "Laktawan ang prompt sa pagkumpirma"
+    },
+    "scorecard": {
+      "description": "Ipakita ang scorecard para sa isang nakumpletong eval run"
+    }
+  },
+  "webhooks": {
+    "description": "Pamahalaan ang mga webhook ng OmniRoute",
+    "events": {
+      "description": "Ilista ang lahat ng available na uri ng webhook event"
+    },
+    "list": {
+      "description": "Ilista ang mga naka-configure na webhook"
+    },
+    "get": {
+      "description": "Kunin ang mga detalye ng webhook ayon sa ID"
+    },
+    "add": {
+      "description": "Magrehistro ng bagong webhook",
+      "url": "Destination URL",
+      "events": "Listahan ng mga uri ng event na pinaghihiwalay ng kuwit",
+      "secret": "Lihim sa paglagda gamit ang HMAC",
+      "header": "Karagdagang header sa format na key=value (maaaring ulitin)",
+      "no_enabled": "Gumawa ng webhook na naka-disable"
+    },
+    "update": {
+      "description": "I-update ang kasalukuyang webhook",
+      "enabled": "Itakda ang enabled state (true|false)"
+    },
+    "remove": {
+      "description": "Magtanggal ng webhook",
+      "yes": "Laktawan ang prompt ng kumpirmasyon"
+    },
+    "test": {
+      "description": "Magpadala ng test event sa isang webhook",
+      "event": "Uri ng event na isi-simulate (default: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Matalinong AI Router na may Awtomatikong Fallback",
+    "version": "I-print ang bersyon at lumabas",
+    "output": "Format ng output (table, json, jsonl, csv)",
+    "quiet": "Itago ang hindi mahalagang output",
+    "no_color": "I-disable ang may-kulay na output",
+    "timeout": "Timeout ng HTTP request sa millisecond",
+    "api_key": "API key para sa OmniRoute server",
+    "base_url": "Base URL ng OmniRoute server",
+    "context": "Context/profile ng server na gagamitin para sa command na ito",
+    "lang": "Itakda ang wika ng display ng CLI (ino-override ang OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Pamahalaan ang mga file (upload, ilista, kunin, i-download, tanggalin)",
+    "list": {
+      "purpose": "I-filter ayon sa layunin",
+      "limit": "Pinakamaraming resulta"
+    },
+    "get": {
+      "description": "Kunin ang metadata ng file"
+    },
+    "upload": {
+      "description": "Mag-upload ng file",
+      "purpose": "Layunin ng file (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "I-download ang nilalaman ng file",
+      "out": "I-save sa path (default: stdout)"
+    },
+    "delete": {
+      "yes": "Laktawan ang kumpirmasyon"
+    }
+  },
+  "batches": {
+    "description": "Pamahalaan ang mga OpenAI-compatible na batch job",
+    "list": {
+      "status": "I-filter ayon sa status",
+      "limit": "Pinakamaraming resulta"
+    },
+    "create": {
+      "description": "Gumawa ng batch job",
+      "inputFile": "ID ng input file",
+      "endpoint": "Target na endpoint",
+      "window": "Palugit sa pagkumpleto",
+      "metadata": "Magdagdag ng metadata na key=value"
+    },
+    "submit": {
+      "description": "Mag-upload ng JSONL file at gumawa ng batch",
+      "jsonl": "Path patungo sa JSONL file",
+      "endpoint": "Target na endpoint",
+      "wait": "Hintayin ang pagkumpleto"
+    },
+    "cancel": {
+      "yes": "Laktawan ang kumpirmasyon"
+    },
+    "wait": {
+      "timeout": "Timeout sa ms"
+    },
+    "output": {
+      "out": "I-save ang output sa path"
+    },
+    "errors": {
+      "out": "I-save ang mga error sa path"
+    }
+  },
+  "translator": {
+    "description": "Isalin ang mga request body sa pagitan ng mga format ng LLM",
+    "detect": {
+      "description": "Tukuyin ang format ng body"
+    },
+    "translate": {
+      "description": "I-convert ang body mula sa isang format patungo sa iba"
+    },
+    "send": {
+      "description": "Isalin at ipadala sa upstream"
+    },
+    "stream": {
+      "description": "Isalin habang sini-stream ang isang request body"
+    },
+    "from": "Pinagmumulan na format (openai|anthropic|gemini|cohere)",
+    "to": "Target na format (openai|anthropic|gemini|cohere)",
+    "file": "Path sa JSON file ng request body",
+    "out": "I-save ang output sa file",
+    "model": "I-override ang modelo",
+    "history": {
+      "limit": "Maximum na bilang ng resulta"
+    }
+  },
+  "pricing": {
+    "description": "Pamahalaan ang datos ng pagpepresyo para sa mga modelo",
+    "sync": {
+      "description": "I-sync ang mga presyo mula sa mga upstream source",
+      "provider": "I-filter ayon sa provider",
+      "force": "Puwersahing mag-sync muli"
+    },
+    "list": {
+      "provider": "I-filter ayon sa provider",
+      "model": "I-filter ayon sa modelo",
+      "limit": "Maximum na bilang ng resulta"
+    },
+    "defaults": {
+      "description": "Pamahalaan ang default na pagpepresyo",
+      "input": "Gastos sa input bawat 1M token (USD)",
+      "output": "Gastos sa output bawat 1M token (USD)",
+      "cacheRead": "Gastos sa pagbasa ng cache bawat 1M token (USD)",
+      "cacheWrite": "Gastos sa pagsulat sa cache bawat 1M token (USD)"
+    },
+    "diff": {
+      "description": "Ipakita ang paglihis mula sa mga upstream na presyo",
+      "model": "I-filter ayon sa modelo"
+    }
+  },
+  "radar": {
+    "description": "Suriin at i-synchronize ang mga lokal na feed ng catalog ng Radar",
+    "status": "Ipakita ang mga lokal na setting ng Radar at status ng feed cache",
+    "sync": "I-synchronize ang catalog, mga referral, mga alok, at Intel sa pamamagitan ng lokal na server"
+  },
+  "resilience": {
+    "description": "Suriin at pamahalaan ang mga mekanismo ng resilience",
+    "status": {
+      "provider": "I-filter ayon sa provider"
+    },
+    "breakers": {
+      "provider": "I-filter ayon sa provider"
+    },
+    "cooldowns": {
+      "provider": "I-filter ayon sa provider",
+      "connectionId": "I-filter ayon sa connection ID"
+    },
+    "lockouts": {
+      "provider": "I-filter ayon sa provider",
+      "model": "I-filter ayon sa modelo"
+    },
+    "reset": {
+      "description": "I-reset ang estado ng breaker/cooldown",
+      "provider": "Provider na ire-reset",
+      "connectionId": "Connection ID na ire-reset",
+      "model": "Modelo na aalisan ng lockout",
+      "allCooldowns": "I-reset ang lahat ng cooldown para sa provider",
+      "yes": "Laktawan ang kumpirmasyon"
+    },
+    "profile": {
+      "description": "Pamahalaan ang resilience profile",
+      "name": "Pangalan ng profile"
+    },
+    "config": {
+      "description": "Pamahalaan ang resilience config",
+      "threshold": "Hangganan ng pagkabigo",
+      "resetTimeout": "Timeout sa pag-reset sa ms",
+      "baseCooldown": "Batayang cooldown sa ms"
+    }
+  },
+  "nodes": {
+    "description": "Pamahalaan ang mga provider node (endpoint)",
+    "list": {
+      "provider": "I-filter ayon sa provider",
+      "enabled": "Mga naka-enable na node lang ang ipakita"
+    },
+    "add": {
+      "provider": "Pangalan ng provider",
+      "baseUrl": "Base URL para sa node",
+      "name": "Pangalan ng node",
+      "weight": "Timbang sa load balancing",
+      "region": "Tag ng rehiyon",
+      "authHeader": "Custom na auth header (key=value)"
+    },
+    "update": {
+      "baseUrl": "Bagong base URL",
+      "name": "Bagong pangalan",
+      "weight": "Bagong timbang",
+      "region": "Bagong rehiyon",
+      "enabled": "I-enable o i-disable (true|false)"
+    },
+    "remove": {
+      "yes": "Laktawan ang kumpirmasyon"
+    },
+    "validate": {
+      "baseUrl": "URL na iva-validate",
+      "provider": "Provider na pagbabatayan ng validation"
+    },
+    "test": {
+      "description": "Magpadala ng test request sa node"
+    },
+    "metrics": {
+      "description": "Ipakita ang mga metric ng node",
+      "period": "Panahon (hal. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "I-configure ang context engineering pipeline (Caveman, RTK)",
+    "analytics": {
+      "period": "Panahon (hal. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Pamahalaan ang Caveman context compressor",
+      "config": {
+        "description": "Ipakita o i-update ang Caveman config",
+        "aggressiveness": "Antas ng pagiging agresibo 0.0–1.0",
+        "maxShrinkPct": "Pinakamataas na porsiyento ng pagpapaliit",
+        "preserveTags": "Mga tag na paghihiwalayin ng kuwit na papanatilihin"
+      }
+    },
+    "rtk": {
+      "description": "Pamahalaan ang RTK context optimizer",
+      "config": {
+        "description": "Ipakita o i-update ang RTK config",
+        "tokenBudget": "Badyet ng token para sa RTK",
+        "reservePct": "Porsiyento ng reserba"
+      },
+      "filters": {
+        "description": "Pamahalaan ang mga RTK filter",
+        "pattern": "Pattern ng filter (regex)",
+        "priority": "Priyoridad ng filter (default: 100)",
+        "action": "Aksiyon ng filter: drop|shrink|replace",
+        "yes": "Laktawan ang kumpirmasyon"
+      },
+      "test": {
+        "file": "Path sa request JSON file"
+      }
+    },
+    "combos": {
+      "description": "Pamamahala ng combo na isinasaalang-alang ang konteksto"
+    }
+  },
+  "sessions": {
+    "description": "Suriin at pamahalaan ang mga aktibong session",
+    "list": {
+      "user": "I-filter ayon sa user",
+      "kind": "I-filter ayon sa uri (dashboard|api-key|mcp|a2a)",
+      "active": "Mga aktibong session lang ang ipakita",
+      "limit": "Maximum na resulta (default: 100)"
+    },
+    "expire": {
+      "yes": "Laktawan ang kumpirmasyon"
+    },
+    "expireAll": {
+      "user": "User na may mga session na ie-expire",
+      "yes": "Laktawan ang kumpirmasyon"
+    }
+  },
+  "tags": {
+    "description": "Pamahalaan ang mga tag ng resource",
+    "add": {
+      "color": "Kulay ng tag (hex o pangalan)",
+      "description": "Paglalarawan ng tag"
+    },
+    "remove": {
+      "yes": "Laktawan ang kumpirmasyon"
+    },
+    "assign": {
+      "tag": "Pangalan ng tag",
+      "to": "Target na resource bilang type:id (hal. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Pangalan ng tag",
+      "from": "Pinagmumulang resource bilang type:id"
+    }
+  },
+  "openapi": {
+    "description": "I-access at subukan ang OmniRoute OpenAPI spec",
+    "dump": {
+      "description": "I-dump ang OpenAPI spec sa stdout o file",
+      "format": "Format ng output: yaml|json (default: yaml)",
+      "out": "I-save sa file path"
+    },
+    "validate": {
+      "description": "I-validate ang OpenAPI spec"
+    },
+    "try": {
+      "description": "Subukan ang isang API endpoint gamit ang spec",
+      "method": "HTTP method (default: GET)",
+      "body": "Path sa request body JSON file",
+      "query": "Query param bilang key=value (maaaring ulitin)",
+      "header": "Header bilang key=value (maaaring ulitin)"
+    },
+    "endpoints": {
+      "description": "Ilista ang lahat ng API endpoint",
+      "search": "I-filter ayon sa path o buod"
+    },
+    "paths": {
+      "description": "Ilista ang lahat ng API path"
+    }
+  },
+  "combo": {
+    "title": "Mga combo",
+    "switched": "Aktibong combo: {name}",
+    "created": "Nagawa ang combo: {name}",
+    "deleted": "Natanggal ang combo: {name}",
+    "noCombos": "Walang naka-configure na combo.",
+    "confirmDelete": "Tanggalin ang combo na {name}?",
+    "suggest": {
+      "description": "Magmungkahi ng pinakamahusay na combo para sa isang gawain gamit ang pagmamarka ng AI",
+      "task": "Paglalarawan ng gawain",
+      "maxCost": "Pinakamataas na gastos sa bawat request sa USD",
+      "maxLatencyMs": "Pinakamataas na latency sa millisecond",
+      "weights": "Mga timbang sa pagmamarka na JSON, hal. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Bilang ng mga nangungunang kandidato na ipapakita (default: 5)",
+      "explain": "I-print ang paliwanag sa stderr",
+      "switch": "I-activate ang combo na may pinakamataas na ranggo"
+    }
+  },
+  "oneproxy": {
+    "description": "Pamahalaan ang upstream pool ng OneProxy",
+    "stats": {
+      "provider": "I-filter ayon sa provider",
+      "period": "Yugto ng panahon (default: 24h)"
+    },
+    "fetch": {
+      "description": "Kumuha ng mga proxy mula sa pool",
+      "count": "Bilang ng mga proxy na kukunin (default: 1)",
+      "type": "Uri ng proxy: http|socks5 (default: http)"
+    },
+    "rotate": {
+      "description": "Pilitin ang pag-rotate ng proxy",
+      "provider": "Provider na pagra-rotate-an",
+      "connectionId": "Partikular na connection ID na ira-rotate"
+    },
+    "config": {
+      "description": "Ipakita o i-update ang config ng OneProxy",
+      "enabled": "I-enable ang proxy pool (true|false)",
+      "poolSize": "Laki ng pool",
+      "providerSource": "URL para sa provider ng proxy",
+      "rotationPolicy": "Patakaran sa pag-rotate: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Ilista ang kasalukuyang proxy pool kasama ang mga sukatan"
+    }
+  },
+  "open": {
+    "description": "Magbukas ng partikular na page ng dashboard ng OmniRoute sa browser",
+    "url": "URL lang ang i-print, huwag buksan ang browser"
+  },
+  "telemetry": {
+    "description": "I-access ang pinagsama-samang data ng telemetry",
+    "summary": {
+      "description": "Ipakita ang buod ng pinagsama-samang telemetry",
+      "period": "Yugto ng panahon: 24h|7d|30d (default: 24h)",
+      "compareTo": "Ihambing sa nakaraang yugto"
+    },
+    "export": {
+      "description": "I-export ang mga event ng telemetry sa JSONL",
+      "out": "Path ng output file (default: telemetry.jsonl)",
+      "period": "Yugto ng panahon para sa pag-export (default: 7d)"
+    }
+  },
+  "sync": {
+    "description": "I-sync ang configuration sa pagitan ng mga instance ng OmniRoute",
+    "push": {
+      "description": "I-push ang config sa cloud o remote instance",
+      "target": "Target (cloud o context:name)",
+      "bundle": "Mga bahagi ng bundle na isi-sync",
+      "dryRun": "I-preview nang hindi inilalapat"
+    },
+    "pull": {
+      "description": "Kunin ang config mula sa cloud o remote",
+      "source": "Pinagmulan (cloud o context:name)",
+      "merge": "Pagsamahin sa kasalukuyang config",
+      "replace": "Palitan ang kasalukuyang config",
+      "dryRun": "I-preview nang hindi inilalapat"
+    },
+    "diff": {
+      "source": "Context ng pinagmulan",
+      "target": "Target na context"
+    },
+    "bundle": {
+      "description": "I-export ang config bilang bundle file",
+      "include": "Mga bahaging isasama (pinaghihiwalay ng kuwit)"
+    },
+    "import": {
+      "description": "Mag-import ng bundle file",
+      "dryRun": "I-validate nang hindi inilalapat"
+    },
+    "initialize": {
+      "fromCloud": "I-initialize mula sa cloud backup"
+    },
+    "tokens": {
+      "description": "Pamahalaan ang mga sync token",
+      "create": {
+        "name": "Pangalan ng token",
+        "scope": "Saklaw ng token",
+        "ttl": "TTL ng token (hal. 30d)"
+      },
+      "revoke": {
+        "yes": "Laktawan ang kumpirmasyon"
+      }
+    },
+    "resolve": {
+      "description": "Lutasin ang mga salungatan sa pag-sync nang interaktibo"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Pamahalaan ang mga server context/profile (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Pamahalaan ang wika ng display ng CLI",
+      "getDescription": "Ipakita ang kasalukuyang aktibong code ng wika",
+      "setDescription": "Itakda ang wika ng display at i-save ito sa config",
+      "listDescription": "Ilista ang lahat ng available na wika",
+      "listTitle": "Mga Available na Wika",
+      "current": "Wika: {code} ({name})",
+      "saved": "Itinakda ang wika sa {code} ({name}).",
+      "noCode": "Kailangan ang code ng wika. Patakbuhin ang 'omniroute config lang list' upang makita ang mga available na code.",
+      "unknown": "Hindi kilalang code ng wika: {code}. Patakbuhin ang 'omniroute config lang list' upang makita ang mga available na code.",
+      "alreadySet": "Nakatakda na ang wika sa {code}.",
+      "envHint": "Tip: maaari mo ring itakda ang OMNIROUTE_LANG={code} sa iyong environment."
+    }
+  },
+  "completion": {
+    "description": "Bumuo o mag-install ng mga shell completion script",
+    "zsh": "I-print ang zsh completion script",
+    "bash": "I-print ang bash completion script",
+    "fish": "I-print ang fish completion script",
+    "install": "I-install ang completion script nang global para sa natukoy na shell",
+    "refresh": "I-refresh ang cache ng mga combo/provider/model"
+  },
+  "logs": {
+    "description": "I-stream o i-export ang mga log ng request",
+    "follow": "I-stream ang mga log nang real-time",
+    "filter": "I-filter ayon sa antas (error,warn,info) — pinaghihiwalay ng kuwit",
+    "lines": "Bilang ng mga linyang kukunin",
+    "timeout": "Timeout ng koneksyon sa ms",
+    "baseUrl": "Base URL ng OmniRoute API",
+    "requestId": "I-filter ayon sa request ID",
+    "apiKey": "I-filter ayon sa API key",
+    "combo": "I-filter ayon sa pangalan ng combo",
+    "status": "I-filter ayon sa HTTP status code",
+    "durationMin": "Pinakamababang tagal ng request sa ms",
+    "durationMax": "Pinakamataas na tagal ng request sa ms",
+    "export": "I-save ang mga log sa file (json/jsonl/csv)",
+    "exported": "Na-save ang mga log sa {path}",
+    "stopped": "Itinigil ang pag-stream ng log.",
+    "streamError": "Error sa pag-stream ng log: {message}"
+  },
+  "tray": {
+    "description": "Kontrolin ang icon sa system tray",
+    "show": "Ipakita ang icon sa tray (kung tumatakbo ang server gamit ang --tray)",
+    "hide": "Itago ang icon sa tray",
+    "quit": "Isara ang OmniRoute sa pamamagitan ng tray"
+  },
+  "autostart": {
+    "description": "Pamahalaan ang awtomatikong pagsisimula ng OmniRoute sa pag-boot (Linux: systemd user service)",
+    "enable": "Paganahin ang awtomatikong pagsisimula sa pag-boot",
+    "disable": "Huwag paganahin ang awtomatikong pagsisimula sa pag-boot",
+    "toggle": "I-toggle ang awtomatikong pagsisimula sa pag-boot",
+    "status": "Ipakita ang status ng awtomatikong pagsisimula"
+  },
+  "runtime": {
+    "description": "Pamahalaan ang mga native runtime dependency",
+    "check": "Suriin ang status ng mga native dependency sa runtime directory",
+    "repair": "Muling i-install ang mga native dependency sa runtime directory",
+    "repair_force": "Pilitin ang muling pag-install kahit valid",
+    "clean": "Alisin ang runtime directory (nagpapalaya ng espasyo sa disk)",
+    "clean_yes": "Laktawan ang kumpirmasyon"
+  },
+  "repl": {
+    "description": "Interaktibong multi-turn REPL gamit ang LLM",
+    "model": "Modelong gagamitin (default: auto)",
+    "combo": "Pangalan ng combo na gagamitin",
+    "system": "System prompt",
+    "resume": "Ipagpatuloy ang naka-save na session ayon sa pangalan"
+  },
+  "plugin": {
+    "description": "Pamahalaan ang mga CLI plugin (omniroute-cmd-*)",
+    "list": "Ilista ang mga naka-install na plugin",
+    "install": "Mag-install ng plugin mula sa npm o lokal na path",
+    "remove": "Alisin ang naka-install na plugin",
+    "info": "Ipakita ang mga detalye ng naka-install na plugin",
+    "search": "Maghanap sa npm registry ng mga available na plugin",
+    "update": "I-update ang (mga) naka-install na plugin",
+    "scaffold": "Bumuo ng boilerplate para sa bagong plugin"
+  },
+  "launch": {
+    "description": "Ilunsad ang Claude Code na nakaturo sa OmniRoute (lokal o remote, gamit ang --profile)",
+    "token": "Token na dapat ipadala ng Claude client (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "Hindi maabot ang OmniRoute sa {port}. Simulan ito gamit ang 'omniroute serve'.",
+    "notFound": "Hindi natagpuan sa PATH ang 'claude' CLI."
+  },
+  "run": {
+    "description": "Maglunsad ng sinusuportahang CLI target sa pamamagitan ng OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Bumuo ng mga Claude Code profile sa ~/.claude/profiles mula sa catalog ng modelo ng OmniRoute"
+  },
+  "connect": {
+    "description": "Kumonekta sa isang remote na OmniRoute server at pumasok sa remote mode"
+  },
+  "tokens": {
+    "description": "Pamahalaan ang mga scoped CLI access token (remote mode)"
+  },
+  "configure": {
+    "description": "Pumili ng provider+model mula sa aktibong server at i-configure ang isang sinusuportahang lokal na CLI"
+  },
+  "launchCodex": {
+    "description": "Ilunsad ang Codex CLI na nakaturo sa OmniRoute (lokal o remote VPS)"
+  },
+  "setupCodex": {
+    "description": "Bumuo ng mga ~/.codex profile file mula sa live na catalog ng modelo ng OmniRoute"
+  },
+  "packs": {
+    "description": "Pamahalaan ang mga opsyonal na runtime pack (ML / browser automation)",
+    "listDescription": "Ilista ang mga opsyonal na pack at ang estado ng kanilang pagka-install",
+    "installDescription": "Mag-install ng opsyonal na pack sa DATA_DIR",
+    "verifyDescription": "I-verify ang mga naka-install na pack gamit ang kasamang checksum index",
+    "removeDescription": "Alisin ang isang naka-install na opsyonal na pack",
+    "sourceOpt": "Directory na naglalaman ng mga payload ng pack at ng pack index",
+    "warnNoIndex": "Hindi natagpuan ang optional-packs.index.json — hindi available ang pag-install/pag-verify sa checkout na ito (kasama ito sa mga desktop bundle)",
+    "errUnknown": "hindi kilalang pack: {name}",
+    "errNoIndex": "hindi natagpuan ang pack index; ipasa ang --source <dir> na naglalaman ng pack payload (kasama ito sa mga desktop bundle, katabi ng app)",
+    "installed": "na-install at na-verify ang pack na \"{name}\" sa {dir}",
+    "restartHint": "i-restart ang OmniRoute server (o desktop app) upang magamit ng runtime ang pack",
+    "removed": "inalis ang pack na \"{name}\"",
+    "notInstalled": "hindi naka-install ang pack na \"{name}\"",
+    "verifyOk": "na-verify ang lahat ng naka-install na pack",
+    "verifyFailed": "nabigo sa verification ang {count} (mga) pack",
+    "noneInstalled": "walang naka-install na opsyonal na pack"
   }
 }

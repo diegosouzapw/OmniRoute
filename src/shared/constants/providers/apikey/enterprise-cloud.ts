@@ -119,7 +119,8 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
     hasFree: true,
-    authHint: "Provide Service Account JSON or OAuth access_token",
+    authHint:
+      "Provide Service Account JSON, an OAuth access token, a Vertex Express API key, or a service-account-bound authorization key. Express mode supports Gemini only; partner models require project-scoped credentials.",
   },
   "vertex-partner": {
     id: "vertex-partner",
@@ -130,7 +131,8 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     color: "#34A853",
     textIcon: "VP",
     website: "https://cloud.google.com/vertex-ai",
-    authHint: "Provide the same Service Account JSON used for Vertex AI partner models.",
+    authHint:
+      "Provide Service Account JSON or OAuth credentials. A service-account-bound authorization key also supports discovery, but partner inference additionally requires its Google Cloud project ID. Standard Express keys support Gemini only.",
   },
   "cloudflare-ai": {
     id: "cloudflare-ai",
@@ -143,7 +145,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     website: "https://developers.cloudflare.com/workers-ai",
     hasFree: true,
     freeNote:
-      "Free 10K Neurons/day: ~150 LLM responses or 500s Whisper audio — edge inference globally",
+      "Free 10K Neurons/day: ~150 LLM responses, 500s Whisper audio, or ~500 FLUX.1 Schnell images at 1024x1024 (4.80 Neurons per 512x512 tile) — edge inference globally",
     authHint: "Requires API Token AND Account ID (found at dash.cloudflare.com)",
   },
   scaleway: {

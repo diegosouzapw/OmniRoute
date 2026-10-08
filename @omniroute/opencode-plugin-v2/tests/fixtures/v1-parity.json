@@ -1,0 +1,301 @@
+{
+  "_note": "Recorded output of @omniroute/opencode-plugin (v1) against tests/fixtures/catalog.json. This is the contract this package claims parity with; regenerate only when intentionally re-basing on a newer v1.",
+  "v1PluginVersion": "0.2.1",
+  "hookId": "opencode-omniroute",
+  "publishedKeys": ["combo-fast", "good-combo", "local-delta", "m-alpha", "m-beta"],
+  "comboSlugs": ["combo-fast", "good-combo"],
+  "mappedModels": {
+    "m-alpha": {
+      "id": "omniroute/m-alpha",
+      "name": "m-alpha",
+      "capabilities": {
+        "temperature": true,
+        "reasoning": true,
+        "attachment": false,
+        "toolcall": true,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": true,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": false
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 128000,
+        "output": 4096
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": "",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      }
+    },
+    "m-beta": {
+      "id": "omniroute/m-beta",
+      "name": "m-beta",
+      "capabilities": {
+        "temperature": false,
+        "reasoning": true,
+        "attachment": false,
+        "toolcall": false,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": true
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 64000,
+        "output": 2048
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": "",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      }
+    },
+    "local-delta": {
+      "id": "omniroute/local-delta",
+      "name": "local-delta",
+      "capabilities": {
+        "temperature": true,
+        "reasoning": false,
+        "attachment": false,
+        "toolcall": false,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": false
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 32768,
+        "output": 0
+      },
+      "variants": {
+        "low": {
+          "reasoningEffort": "low"
+        },
+        "high": {
+          "reasoningEffort": "high"
+        }
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": "",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      }
+    },
+    "good-combo": {
+      "id": "omniroute/good-combo",
+      "name": "good-combo",
+      "capabilities": {
+        "temperature": true,
+        "reasoning": false,
+        "attachment": false,
+        "toolcall": true,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": false
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 100000,
+        "output": 8000
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": "",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      }
+    }
+  },
+  "mappedCombos": {
+    "combo-fast": {
+      "id": "combo-fast",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      },
+      "name": "Combo Fast",
+      "capabilities": {
+        "temperature": true,
+        "reasoning": true,
+        "attachment": false,
+        "toolcall": true,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": true,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": false
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 128000,
+        "output": 4096
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": ""
+    },
+    "good-combo": {
+      "id": "good-combo",
+      "providerID": "omniroute",
+      "api": {
+        "id": "openai-compatible",
+        "url": "https://gw.example.com/v1",
+        "npm": "@ai-sdk/openai-compatible"
+      },
+      "name": "Good Combo",
+      "capabilities": {
+        "temperature": false,
+        "reasoning": false,
+        "attachment": false,
+        "toolcall": false,
+        "input": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "output": {
+          "text": true,
+          "audio": false,
+          "image": false,
+          "video": false,
+          "pdf": false
+        },
+        "interleaved": false
+      },
+      "cost": {
+        "input": 0,
+        "output": 0,
+        "cache": {
+          "read": 0,
+          "write": 0
+        }
+      },
+      "limit": {
+        "context": 32768,
+        "output": 2048
+      },
+      "status": "active",
+      "options": {},
+      "headers": {},
+      "release_date": ""
+    }
+  }
+}

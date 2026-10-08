@@ -7,7 +7,9 @@ export type DetectedKind = "llm" | "app" | "unknown";
 export interface InterceptedRequest {
   id: string; // uuid
   source: CaptureSource;
-  agent?: import("../types").AgentId; // only when source === "agent-bridge"
+  // Capture metadata, not a routing AgentId: server.cjs also emits "unknown".
+  // Keep the interface aligned with the string-valued ingest schema below.
+  agent?: string;
   timestamp: string; // ISO 8601
   method: string;
   host: string;
@@ -67,7 +69,14 @@ export const InterceptedRequestSchema = z.object({
 export type NormalizedBlock =
   | { type: "text"; text: string }
   | { type: "tool_use"; id: string; name: string; input: unknown }
-  | { type: "tool_result"; tool_use_id: string; content: unknown };
+  | { type: "tool_result"; tool_use_id: string; content: unknown }
+  // A tool identity node whose display content hasn't resolved from its
+  // call-log artifact yet (see resolveTurnDisplayContent /
+  // /api/conversations/[id]/tree's own doc comment) -- distinct from a real
+  // empty text reply. Only ever produced by /dashboard/conversations while
+  // the owning request is still in flight; every other NormalizedBlock
+  // producer (buildRequestTurns/buildResponseTurns) never emits this.
+  | { type: "pending" };
 
 export interface NormalizedTurn {
   role: "system" | "user" | "assistant" | "tool";

@@ -721,3 +721,29 @@ test("OpenAI -> Claude treats developer role as system (fix for Responses API â†
   const userMessages = result.messages.filter((m) => m.role === "user");
   assert.equal(userMessages.length, 1, "expected exactly one user message");
 });
+
+// tool_choice "none" was mapped to Claude {type:"auto"}, so a request that listed tools
+// but switched tool use off still let the model call them.
+test("OpenAI -> Claude keeps tool_choice none as Claude none", () => {
+  const body = (toolChoice: unknown) => ({
+    messages: [{ role: "user", content: "Just answer in text" }],
+    tools: [
+      {
+        type: "function",
+        function: { name: "get_weather", parameters: { type: "object", properties: {} } },
+      },
+    ],
+    tool_choice: toolChoice,
+  });
+
+  assert.deepEqual(openaiToClaudeRequest("claude-4-sonnet", body("none"), false).tool_choice, {
+    type: "none",
+  });
+  assert.deepEqual(
+    openaiToClaudeRequest("claude-4-sonnet", body({ type: "none" }), false).tool_choice,
+    { type: "none" }
+  );
+  assert.deepEqual(openaiToClaudeRequest("claude-4-sonnet", body("auto"), false).tool_choice, {
+    type: "auto",
+  });
+});

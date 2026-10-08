@@ -21,6 +21,7 @@ import { getTaskFitness } from "./taskFitness";
 import { getModePack } from "./modePacks";
 import { getSelfHealingManager } from "./selfHealing";
 import { classifyPromptIntent } from "../intentClassifier";
+import { mapIntentToTaskFitnessKey } from "./intentTaskFitnessMap";
 
 export interface AutoComboConfig {
   id: string;
@@ -39,6 +40,7 @@ export interface AutoComboConfig {
    *     silently overspending.
    */
   budgetFallback?: "cheapest" | "strict";
+  estimatedInputTokens?: number; // tokens the budget is computed against (default 1000)
   explorationRate: number; // 0.05 = 5% exploratory
   /** If set, RouterStrategy name to use for selection ('rules' | 'cost' | 'latency') */
   routerStrategy?: string;
@@ -241,7 +243,11 @@ export function selectProvider(
             : "";
       if (text.length > 10) {
         const intent = classifyPromptIntent(text);
-        effectiveTaskType = intent; // 'code' | 'reasoning' | 'simple' | 'medium'
+        // Bridge intentClassifier's vocabulary ('code'|'math'|'reasoning'|'creative'|
+        // 'simple'|'medium') to taskFitness.ts's vocabulary ('coding'|'review'|'planning'|
+        // 'analysis'|'debugging'|'documentation'|'default') — see intentTaskFitnessMap.ts.
+        // Passing the raw intent here previously never matched a fitness-table key.
+        effectiveTaskType = mapIntentToTaskFitnessKey(intent);
       }
     }
   }
@@ -311,9 +317,13 @@ export function selectProvider(
     for (const c of candidates) {
       costMap.set(`${c.provider}\0${c.model}`, c.costPer1MTokens);
     }
+    const estimatedTokens =
+      Number.isFinite(config.estimatedInputTokens) && config.estimatedInputTokens! > 0
+        ? config.estimatedInputTokens!
+        : 1000;
     const estimatedCostFor = (s: ScoredProvider) => {
       const cost = costMap.get(`${s.provider}\0${s.model}`) ?? 0;
-      return (cost / 1_000_000) * 1000;
+      return (cost / 1_000_000) * estimatedTokens;
     };
     if (estimatedCostFor(selected) > config.budgetCap) {
       const budgetOk = candidates_.filter((s) => estimatedCostFor(s) <= config.budgetCap!);

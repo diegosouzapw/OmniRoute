@@ -25,17 +25,18 @@ test("pt-BR has acpAgents namespace", () => {
 });
 
 // ─── PT-BR page titles ────────────────────────────────────────────────────────
+// PR-4 retranslated the verbatim-English page titles; pt-BR now carries real Portuguese.
 
-test("pt-BR cliCode.pageTitle is 'CLI Code's'", () => {
-  assert.equal(pt.cliCode.pageTitle, "CLI Code's");
+test("pt-BR cliCode.pageTitle is 'Códigos da CLI'", () => {
+  assert.equal(pt.cliCode.pageTitle, "Códigos da CLI");
 });
 
-test("pt-BR cliAgents.pageTitle is 'CLI Agents'", () => {
-  assert.equal(pt.cliAgents.pageTitle, "CLI Agents");
+test("pt-BR cliAgents.pageTitle is 'Agentes de CLI'", () => {
+  assert.equal(pt.cliAgents.pageTitle, "Agentes de CLI");
 });
 
-test("pt-BR acpAgents.pageTitle is 'ACP Agents'", () => {
-  assert.equal(pt.acpAgents.pageTitle, "ACP Agents");
+test("pt-BR acpAgents.pageTitle is 'Agentes ACP'", () => {
+  assert.equal(pt.acpAgents.pageTitle, "Agentes ACP");
 });
 
 // ─── PT-BR cliCommon content ──────────────────────────────────────────────────

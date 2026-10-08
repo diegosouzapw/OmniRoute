@@ -18,7 +18,19 @@ export const CREDENTIAL_PATTERNS: CredentialPattern[] = [
     regex: /sk-ant-[A-Za-z0-9_-]{20,}/g,
     replacement: "[REDACTED:anthropic]",
   },
-  { name: "google", regex: /AIza[0-9A-Za-z_-]{35}/g, replacement: "[REDACTED:google]" },
+  // GHSA-r4q7-7f24-m29p: Groq (`gsk_` + 52) and xAI (`xai-` + 80) had no entry, so both
+  // the opt-in guardrail and the public error sanitizer echoed them verbatim. Lower bound
+  // only, for the same reason as `google` below — an error body that over-redacts a
+  // look-alike costs nothing; one that under-redacts leaks a credential.
+  { name: "groq", regex: /\bgsk_[A-Za-z0-9]{20,}/g, replacement: "[REDACTED:groq]" },
+  { name: "xai", regex: /\bxai-[A-Za-z0-9]{20,}/g, replacement: "[REDACTED:xai]" },
+  // {20,} rather than the exact {35} of a standard 39-char Google API key. #12506 added
+  // this pattern with the exact length; #12620 landed the anti-drift test that asserts
+  // /\bAIza[A-Za-z0-9_-]{20,}/ must not survive. Anything shorter or longer than 39 was
+  // therefore passing straight through into error bodies. In an error message
+  // over-redacting a string that merely starts with AIza costs nothing; under-redacting
+  // one leaks a credential, so the loose bound is the correct side to err on.
+  { name: "google", regex: /AIza[0-9A-Za-z_-]{20,}/g, replacement: "[REDACTED:google]" },
   { name: "huggingface", regex: /hf_[A-Za-z0-9]{34}/g, replacement: "[REDACTED:hf]" },
   { name: "replicate", regex: /r8_[A-Za-z0-9]{37}/g, replacement: "[REDACTED:replicate]" },
   { name: "github", regex: /gh[pousr]_[A-Za-z0-9]{36,}/g, replacement: "[REDACTED:github]" },
@@ -75,5 +87,18 @@ export const CREDENTIAL_PATTERNS: CredentialPattern[] = [
     regex:
       /((?:["\x27]?(?:Authorization|x-api-key|api-key|apikey)["\x27]?\s*[:=]\s*["\x27]?)(?:(?:Bearer|Basic|Token)\s+)?)[A-Za-z0-9._~+/=-]{10,}/gi,
     replacement: "$1[REDACTED:auth_header]",
+  },
+  // GHSA-r4q7-7f24-m29p: generic `sk-` fallback for every OpenAI-compatible provider whose
+  // key is not exactly 48 chars (DeepSeek 32-hex, Moonshot/Kimi 47-49, Together, …). The
+  // guardrail is catalog-only, so all of those passed through it untouched. MUST stay the
+  // LAST entry: both consumers iterate in order and replace as they go, so `openai_proj`,
+  // `openai` and `anthropic*` have already stamped their specific label before this one
+  // runs — it only ever sees the `sk-` shapes nothing else claimed. The lookbehind
+  // (mirroring STRONG_CREDENTIAL_TOKEN in errorSanitization.ts) keeps `risk-…`-style words
+  // from matching.
+  {
+    name: "openai_compatible",
+    regex: /(?<![A-Za-z0-9])sk-[A-Za-z0-9._~+/=-]{20,}/g,
+    replacement: "[REDACTED:openai_compatible]",
   },
 ];

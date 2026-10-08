@@ -41,6 +41,7 @@ Simple guides for using OmniRoute — no technical background needed.
 - [PWA_GUIDE.md](guides/PWA_GUIDE.md) — installing the dashboard as a PWA.
 - [REMOTE-MODE.md](guides/REMOTE-MODE.md) — exposing OmniRoute remotely + scoped tokens.
 - [CLI-INTEGRATIONS.md](guides/CLI-INTEGRATIONS.md) — master table of `setup-*` CLI integrations.
+- [OPENCODE-V2-PLUGIN.md](guides/OPENCODE-V2-PLUGIN.md) — installing and configuring the OpenCode v2 plugin.
 - [CLAUDE-CODE-CONFIGURATION.md](guides/CLAUDE-CODE-CONFIGURATION.md) — Claude Code CLI with OmniRoute.
 - [CODEX-CLI-CONFIGURATION.md](guides/CODEX-CLI-CONFIGURATION.md) — Codex CLI with OmniRoute.
 - [KIRO_SETUP.md](guides/KIRO_SETUP.md) — Kiro setup.
@@ -166,6 +167,7 @@ Provider-specific integration guides.
 
 - [CLAUDE_WEB.md](providers/CLAUDE_WEB.md) — Claude Web (cookie-auth) provider.
 - [CHATGPT_WEB.md](providers/CHATGPT_WEB.md) — ChatGPT Web (Codex) provider and common-provider retirement note.
+- [COPILOT-M365.md](providers/COPILOT-M365.md) — Microsoft 365 Copilot (BizChat) provider.
 - [ALIBABA-QWEN-PROVIDER-FAMILIES.md](providers/ALIBABA-QWEN-PROVIDER-FAMILIES.md) — Alibaba and Qwen provider families.
 - [AGENTROUTER.md](providers/AGENTROUTER.md) — AgentRouter setup.
 - [ZED-DOCKER.md](providers/ZED-DOCKER.md) — Zed IDE integration under Docker.
@@ -204,7 +206,7 @@ Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. Se
 
 ## i18n/
 
-Translated mirrors of the documentation in 41 locales (plus the English originals — 42 languages in total). See [i18n/README.md](i18n/README.md) for the supported language list.
+Translated mirrors of the documentation in 66 locales (plus the English originals — 67 languages in total). See [i18n/README.md](i18n/README.md) for the supported language list.
 
 ## screenshots/
 

@@ -6,6 +6,7 @@ import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import Button from "@/shared/components/Button";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useDisplayBaseUrl } from "@/shared/hooks";
 
 interface RelayToken {
   id: string;
@@ -23,6 +24,7 @@ interface RelayToken {
 
 export default function RelayProxyClient() {
   const t = useTranslations("relay");
+  const displayBaseUrl = useDisplayBaseUrl();
   const [tokens, setTokens] = useState<RelayToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -193,7 +195,7 @@ export default function RelayProxyClient() {
           <h2 className="text-sm font-semibold">{t("usage")}</h2>
           <p className="text-xs text-text-muted">{t("usageDescription")}</p>
           <pre className="text-xs bg-surface/50 border border-border rounded-lg p-3 overflow-x-auto">
-            {`curl http://localhost:20128/v1/relay/chat/completions \\
+            {`curl ${displayBaseUrl}/v1/relay/chat/completions \\
   -H "Authorization: Bearer relay_..." \\
   -H "Content-Type: application/json" \\
   -d '{"model":"claude-sonnet-4","messages":[{"role":"user","content":"Hello"}]}'`}

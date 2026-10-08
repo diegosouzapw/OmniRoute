@@ -1,8 +1,13 @@
+import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
+import { ALIAS_TO_PROVIDER_ID, resolveProviderAlias } from "./providerAlias.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
 import { getRegisteredProviderEffortBaseModelId } from "../utils/registeredEffortVariants.ts";
+import { hasProviderModelAlias, resolveProviderModelAlias } from "./modelCanonicalization.ts";
 
-type ProviderModelAliasMap = Record<string, Record<string, string>>;
+export { resolveProviderAlias };
+export { resolveCanonicalProviderModel } from "./modelCanonicalization.ts";
+
 type ModelAliasValue = string | { provider?: string; model?: string };
 type ModelAliasMap = Record<string, ModelAliasValue>;
 type ParsedModel = {
@@ -26,83 +31,6 @@ export function stripContextWindowSuffix(
   if (typeof modelStr !== "string" || !modelStr) return modelStr;
   return modelStr.replace(CONTEXT_WINDOW_SUFFIX_RE, "").trimEnd();
 }
-
-// Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
-// This prevents the two maps from drifting out of sync
-const ALIAS_TO_PROVIDER_ID: Record<string, string> = {};
-for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
-  if (ALIAS_TO_PROVIDER_ID[alias]) {
-    console.log(
-      `[MODEL] Warning: alias "${alias}" maps to both "${ALIAS_TO_PROVIDER_ID[alias]}" and "${id}". Using "${id}".`
-    );
-  }
-  ALIAS_TO_PROVIDER_ID[alias] = id;
-}
-// Manual alias overrides — maps slug-style prefixes to canonical provider IDs.
-// These live outside the registry because they represent multiple providers
-// or backward-compatible slug changes, not a single provider's display name.
-// opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
-ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
-// xiaomi/ is the user-visible prefix for MiMo models; register it so
-// parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
-// of falling through to the identity fallback ("xiaomi").
-ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
-// llamacpp/ is the user-visible alias for the llama-cpp self-hosted provider.
-// The canonical ID is "llama-cpp" (with a hyphen), but the catalog and user-facing
-// prefix is "llamacpp". Register it so parseModel("llamacpp/<model>") resolves
-// provider = "llama-cpp" instead of the identity fallback ("llamacpp").
-ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
-// agy/ is the short alias for antigravity provider.
-ALIAS_TO_PROVIDER_ID["agy"] = "antigravity";
-// aq/ is the user-visible prefix for the Amazon Q (AWS Builder ID) provider.
-// The canonical provider ID is "amazon-q". Register it so parseModel("aq/<model>")
-// resolves provider = "amazon-q" instead of falling through to the identity fallback.
-ALIAS_TO_PROVIDER_ID["aq"] = "amazon-q";
-
-// Provider-scoped legacy model aliases. Used to normalize provider/model inputs
-// and keep backward compatibility when upstream IDs change.
-const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
-  openai: {
-    "gpt-4o-mini": "gpt-4o-mini",
-  },
-  github: {
-    "claude-4.5-opus": "claude-opus-4-5-20251101",
-    "claude-opus-4.5": "claude-opus-4-5-20251101",
-    "gemini-3-pro": "gemini-3.1-pro-preview",
-    "gemini-3-pro-preview": "gemini-3.1-pro-preview",
-    "gemini-3-flash": "gemini-3-flash-preview",
-    "raptor-mini": "oswe-vscode-prime",
-  },
-  gemini: {
-    "gemini-3.1-pro": "gemini-3.1-pro-preview",
-    "gemini-3-1-pro": "gemini-3.1-pro-preview",
-  },
-  nvidia: {
-    "gpt-oss-120b": "openai/gpt-oss-120b",
-    "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
-    "gpt-oss-20b": "openai/gpt-oss-20b",
-    "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
-  },
-  synthetic: {
-    "syn:gpt-oss-120b": "hf:openai/gpt-oss-120b",
-    "syn:large:text": "hf:zai-org/GLM-5.2",
-    "syn:large:vision": "hf:moonshotai/Kimi-K2.7-Code",
-    "syn:small:vision": "hf:Qwen/Qwen3.6-27B",
-    "syn:minimax-m3": "hf:MiniMaxAI/MiniMax-M3",
-    "syn:small:text": "hf:zai-org/GLM-4.7-Flash",
-    "syn:nemotron-3-super": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-  },
-  // Antigravity public model ids already match the upstream wire ids. Keep this map
-  // empty so the global resolver cannot rewrite them before routing or logging.
-  antigravity: {},
-  kiro: {
-    "claude-opus-4-7": "claude-opus-4.7",
-    "claude-opus-4-6": "claude-opus-4.6",
-    "claude-sonnet-4-6": "claude-sonnet-4.6",
-    "claude-sonnet-4-5": "claude-sonnet-4.5",
-    "claude-haiku-4-5": "claude-haiku-4.5",
-  },
-};
 
 const CROSS_PROXY_MODEL_ALIASES: Record<string, string> = {
   "gpt-oss:120b": "gpt-oss-120b",
@@ -146,6 +74,20 @@ const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
 // `openai/gpt-5.6-sol`) — the prefix path always wins.
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set([
   "codex-auto-review",
+  "gpt-6-astra",
+  "gpt-6-astra-ultra",
+  "gpt-6-astra-max",
+  "gpt-6-astra-xhigh",
+  "gpt-6-astra-high",
+  "gpt-6-astra-medium",
+  "gpt-6-astra-low",
+  "gpt-6.1-sol",
+  "gpt-6.1-sol-ultra",
+  "gpt-6.1-sol-max",
+  "gpt-6.1-sol-xhigh",
+  "gpt-6.1-sol-high",
+  "gpt-6.1-sol-medium",
+  "gpt-6.1-sol-low",
   "gpt-5.6-sol",
   "gpt-5.6-sol-ultra",
   "gpt-5.6-sol-max",
@@ -178,31 +120,6 @@ interface ProviderConnectionLike {
   provider?: unknown;
   isActive?: unknown;
   is_active?: unknown;
-}
-
-/**
- * Resolve provider alias to provider ID
- */
-export function resolveProviderAlias(aliasOrId: string | null | undefined): string | null {
-  if (typeof aliasOrId !== "string") return null;
-  // Follow the alias chain transitively so intermediate alias-only hops resolve
-  // to the final target, but STOP as soon as a hop lands on a registered
-  // provider id (#2901): "oc" must resolve to the no-auth "opencode" provider,
-  // NOT continue through the manual "opencode" → "opencode-zen" slug override —
-  // that override is for user-typed `opencode/` prefixes only. Without this
-  // boundary the no-auth provider becomes unreachable by any prefix.
-  // Guarded against infinite loops with both a depth limit and a seen-set.
-  let current = aliasOrId;
-  const seen = new Set<string>();
-  for (let i = 0; i < 10; i++) {
-    const next = ALIAS_TO_PROVIDER_ID[current];
-    if (!next || next === current) return current;
-    if (next in PROVIDER_ID_TO_ALIAS) return next;
-    if (seen.has(next)) return next;
-    seen.add(next);
-    current = next;
-  }
-  return current;
 }
 
 /**
@@ -265,17 +182,6 @@ export function normalizeCrossProxyModelId(modelId: unknown): {
 /**
  * Resolve provider-specific legacy model alias to canonical model ID.
  */
-function resolveProviderModelAlias(
-  providerOrAlias: string | null | undefined,
-  modelId: string | null | undefined
-) {
-  if (!modelId || typeof modelId !== "string") return modelId;
-  const providerId = resolveProviderAlias(providerOrAlias);
-  if (typeof providerId !== "string") return modelId;
-  const aliases = PROVIDER_MODEL_ALIASES[providerId];
-  return aliases?.[modelId] || modelId;
-}
-
 /**
  * True when the provider serves `modelId` under that exact id (static model list or
  * a provider-specific alias). Exported for the deprecation-alias provider guard
@@ -295,8 +201,7 @@ export function hasKnownProviderModel(
 
   if (models.some((entry) => entry?.id === modelId)) return true;
 
-  const aliases = PROVIDER_MODEL_ALIASES[providerId];
-  if (aliases && Object.prototype.hasOwnProperty.call(aliases, modelId)) return true;
+  if (hasProviderModelAlias(providerId, modelId)) return true;
 
   const canonicalModel = resolveProviderModelAlias(providerId, modelId);
   if (canonicalModel === modelId) return false;
@@ -445,24 +350,6 @@ function shouldTreatAsExactModelId(modelStr: string | null) {
  * Resolve a provider/model pair into canonical provider ID + provider-scoped model ID.
  * Keeps provider-specific legacy aliases out of downstream capability and budget lookups.
  */
-export function resolveCanonicalProviderModel(
-  providerOrAlias: string | null | undefined,
-  modelId: string | null | undefined
-) {
-  if (!modelId || typeof modelId !== "string") {
-    return {
-      provider: resolveProviderAlias(providerOrAlias),
-      model: modelId || null,
-    };
-  }
-
-  const provider = resolveProviderAlias(providerOrAlias);
-  return {
-    provider,
-    model: resolveProviderModelAlias(provider, modelId),
-  };
-}
-
 /**
  * Parse model string: "alias/model" or "provider/model" or just alias
  * Supports [1m] suffix for extended 1M context window (e.g. "claude-sonnet-4-6[1m]")
@@ -482,8 +369,13 @@ export function parseModel(modelStr: string | null | undefined): ParsedModel {
     };
   }
 
-  // Sanitize: reject strings with path traversal or control characters
-  if (/\.\.[\/\\]/.test(modelStr) || /[\x00-\x1f]/.test(modelStr)) {
+  // Sanitize: reject strings with path traversal, control characters, or syntax that would let
+  // the id rewrite an upstream URL path (encoded dot-segments, `?`, `#`).
+  if (
+    /\.\.[\/\\]/.test(modelStr) ||
+    /[\x00-\x1f]/.test(modelStr) ||
+    hasUnsafeModelIdSyntax(modelStr)
+  ) {
     console.log(`[MODEL] Warning: rejected malformed model string: "${modelStr.substring(0, 50)}"`);
     return {
       provider: null,

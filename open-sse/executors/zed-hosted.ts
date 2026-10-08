@@ -47,6 +47,7 @@ import {
 import { buildErrorBody } from "../utils/error.ts";
 import { hasUsefulStreamContent } from "../utils/streamReadiness.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
+import { getZedClientVersion } from "./zedClientVersion.ts";
 
 // Wire values for the `provider` field of POST /completions. These are NOT
 // display names: cloud.zed.dev matches them exactly, and an unrecognized value
@@ -81,6 +82,49 @@ function normalizeZedProvider(value: unknown, model: unknown): ZedProviderName {
   return ZED_PROVIDER.openai;
 }
 
+function asMutableRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+// Zed's Google proxy enums are narrower than Google's own (#13363): the safety
+// threshold only accepts BLOCK_NONE (not "OFF"), and FunctionCallingMode is
+// lowercase auto/any/none (no VALIDATED).
+const ZED_FUNCTION_CALLING_MODES: Record<string, string> = {
+  VALIDATED: "auto",
+  AUTO: "auto",
+  ANY: "any",
+  NONE: "none",
+};
+
+function adaptGeminiRequestForZed(request: unknown): unknown {
+  const record = asMutableRecord(request);
+  if (!record) return request;
+  if (Array.isArray(record.safetySettings)) {
+    for (const entry of record.safetySettings) {
+      const setting = asMutableRecord(entry);
+      if (setting?.threshold === "OFF") setting.threshold = "BLOCK_NONE";
+    }
+  }
+  const callingConfig = asMutableRecord(asMutableRecord(record.toolConfig)?.functionCallingConfig);
+  const mappedMode = callingConfig
+    ? ZED_FUNCTION_CALLING_MODES[String(callingConfig.mode || "").toUpperCase()]
+    : undefined;
+  if (callingConfig && mappedMode) callingConfig.mode = mappedMode;
+  return request;
+}
+
+// Zed's OpenAI proxy Role enum only has user/assistant/system/tool — no
+// "developer" (#13362) — so developer-role input items go back to system.
+function adaptResponsesRequestForZed(request: unknown): unknown {
+  const input = asMutableRecord(request)?.input;
+  if (!Array.isArray(input)) return request;
+  for (const entry of input) {
+    const item = asMutableRecord(entry);
+    if (item?.role === "developer") item.role = "system";
+  }
+  return request;
+}
+
 function buildProviderRequest(
   provider: ZedProviderName,
   model: string,
@@ -92,10 +136,14 @@ function buildProviderRequest(
     return openaiToClaudeRequest(model, body, true);
   }
   if (provider === ZED_PROVIDER.google) {
-    return openaiToGeminiRequest(model, body as Record<string, unknown>, true, credentials);
+    return adaptGeminiRequestForZed(
+      openaiToGeminiRequest(model, body as Record<string, unknown>, true, credentials)
+    );
   }
   if (provider === ZED_PROVIDER.openai) {
-    return openaiToOpenAIResponsesRequest(model, body, true, credentials);
+    return adaptResponsesRequestForZed(
+      openaiToOpenAIResponsesRequest(model, body, true, credentials)
+    );
   }
   return {
     ...(body as Record<string, unknown>),
@@ -481,7 +529,7 @@ export class ZedHostedExecutor extends BaseExecutor {
           Accept: "application/x-ndjson, text/event-stream, */*",
           "User-Agent": `OmniRoute/zed-hosted`,
           "x-zed-version":
-            (this.config as Record<string, unknown>)?.appVersion?.toString() || "0.200.0",
+            (this.config as Record<string, unknown>)?.appVersion?.toString() || getZedClientVersion(),
           [ZED_HEADERS.clientSupportsStatus]: "true",
           [ZED_HEADERS.clientSupportsStreamEnded]: "true",
         },
@@ -551,6 +599,8 @@ export class ZedHostedExecutor extends BaseExecutor {
 export default ZedHostedExecutor;
 
 export const __test__ = {
+  adaptGeminiRequestForZed,
+  adaptResponsesRequestForZed,
   normalizeZedProvider,
   unwrapZedLine,
   wrapZedCompletionStream,

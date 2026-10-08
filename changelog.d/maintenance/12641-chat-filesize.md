@@ -1,1 +1,0 @@
-- **chore(quality):** rebaseline `src/sse/handlers/chat.ts` for the effective-input persistence the continuation fix needs ([#12641](https://github.com/diegosouzapw/OmniRoute/pull/12641))

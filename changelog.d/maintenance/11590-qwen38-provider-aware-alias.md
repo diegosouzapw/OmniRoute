@@ -1,1 +1,0 @@
-- **test(models):** pin `qwen3.8-max` resolution per provider — two of the four catalogs now serve the bare id and no longer carry `-preview` ([#11590](https://github.com/diegosouzapw/OmniRoute/pull/11590))

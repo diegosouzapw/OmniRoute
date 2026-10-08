@@ -1,0 +1,15 @@
+{
+  "$schema": "allowlist-void-async",
+  "entries": [
+    {
+      "file": "open-sse/services/combo/executeTargetAttempt.ts",
+      "anchor": "Failed to record Last Known Good Provider",
+      "reason": "success-path best-effort persist; failure only loses an optimization and is logged"
+    },
+    {
+      "file": "open-sse/services/combo/roundRobinCombo.ts",
+      "anchor": "Failed to record Last Known Good Provider",
+      "reason": "same as above, round-robin success path"
+    }
+  ]
+}

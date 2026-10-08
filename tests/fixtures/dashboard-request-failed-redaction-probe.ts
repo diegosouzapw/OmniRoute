@@ -98,16 +98,23 @@ async function main(): Promise<void> {
 
     const writerDrained = await callLogs.waitForCallLogSaves(10_000);
     assert.equal(writerDrained, true, "call-log write must drain");
-    const persisted = await callLogs.getCallLogById(callLogId);
+    // #14451: the SQLite id is a generated UUID. The dashboard traceId rides on
+    // correlation_id, not on the primary key.
+    const matches = await callLogs.getCallLogs({ correlationId: traceId, limit: 5 });
+    assert.equal(matches.length, 1);
+    const persisted = await callLogs.getCallLogById(matches[0].id);
     assert.ok(persisted, "failed attempt must still be available to internal diagnostics");
-    assert.equal(persisted.error, rawDiagnostic);
+    assert.notEqual(persisted.id, traceId);
+    assert.equal(persisted.error, "Error: Provider failed in <path> with api_key='[REDACTED]'");
+    assert.doesNotMatch(persisted.error, /sk-live-dashboard-secret|\/srv\/omniroute|\n/);
 
     console.log(
       RESULT_PREFIX +
         JSON.stringify({
           delivered,
           replayMatches: JSON.stringify(replayed.payload) === JSON.stringify(delivered),
-          internalRawPreserved: persisted.error === rawDiagnostic,
+          internalLogRedacted:
+            persisted.error === delivered.error && !persisted.error.includes("sk-live"),
           writerDrained,
         })
     );

@@ -16,6 +16,8 @@ interface VideoModel {
   isMarket?: boolean;
   supportedSizes?: string[];
   mediaCapabilities?: Record<string, unknown>;
+  /** Override the provider-level job preset for this model. */
+  jobPreset?: string;
 }
 
 interface VideoProvider {
@@ -47,6 +49,16 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       {
         id: "agnes-video-v2.0",
         name: "Agnes Video V2.0",
+      },
+      {
+        id: "agnes-video-2.5-flash",
+        name: "Agnes Video 2.5 Flash",
+        jobPreset: "agnes-video-2.5-job",
+      },
+      {
+        id: "agnes-video-2.5",
+        name: "Agnes Video 2.5",
+        jobPreset: "agnes-video-2.5-job",
       },
     ],
   },

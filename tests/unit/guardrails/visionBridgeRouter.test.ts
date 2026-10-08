@@ -25,6 +25,10 @@ const {
   getLatencyStats,
 } = await import("../../../src/lib/guardrails/visionBridgeRouter.ts");
 const { PROVIDER_MODELS } = await import("../../../open-sse/config/providerModels.ts");
+const { lockModel, clearAllModelLockouts, isModelLocked } =
+  await import("../../../open-sse/services/accountFallback.ts");
+const { createProviderConnection, deleteProviderConnectionsByProvider } =
+  await import("../../../src/lib/db/providers.ts");
 type VisionBridgeRouterDepsT =
   import("../../../src/lib/guardrails/visionBridgeRouter.ts").VisionBridgeRouterDeps;
 
@@ -293,4 +297,104 @@ test("getLatencyStats — should return latency statistics", () => {
   assert.ok(stats["model-b"]);
   assert.equal(stats["model-a"].avg, 110);
   assert.equal(stats["model-a"].successRate, 1);
+});
+
+// ── model-lockout exclusion (#12111) ────────────────────────────────────────
+// getVisionCapableModels() must consult accountFallback's per-connection
+// model lockout (set by chatCore.ts on a 404) in addition to the credential
+// check, and drop a model only when every usable connection has it locked —
+// see tests/unit/guardrails/visionBridge12111Repro.test.ts for the original
+// end-to-end reproduction against the exact reporter setup. These cases
+// exercise the same production code path (getBestVisionModel →
+// getVisionCapableModels → isModelUsableGivenLockouts) with a synthetic
+// registry entry, following the pattern in "accepts a registry model whose
+// liveCatalogIds match upstream" above.
+
+test("getBestVisionModel — excludes a model locked on its only usable connection (#12111)", async () => {
+  const provider = "__vision-bridge-lockout-test-1__";
+  const connectionId = "conn-1";
+  const modelId = "synthetic-vision-model";
+  PROVIDER_MODELS[provider] = [
+    { id: modelId, name: "Synthetic Vision Model", supportsVision: true },
+  ];
+  clearAllModelLockouts();
+  lockModel(provider, connectionId, modelId, "not_found", 120_000);
+
+  try {
+    const model = await getBestVisionModel(
+      {},
+      { hasUsableCredentials: async (id) => id.startsWith(`${provider}/`) }
+    );
+    assert.notEqual(model, `${provider}/${modelId}`);
+  } finally {
+    delete PROVIDER_MODELS[provider];
+    clearAllModelLockouts();
+  }
+});
+
+test("getBestVisionModel — keeps a model locked on one connection while a second connection stays usable (#12111)", async () => {
+  const provider = "__vision-bridge-lockout-test-2__";
+  const modelId = "synthetic-vision-model";
+  PROVIDER_MODELS[provider] = [
+    { id: modelId, name: "Synthetic Vision Model", supportsVision: true },
+  ];
+  clearAllModelLockouts();
+
+  const lockedConn = await createProviderConnection({
+    provider,
+    authType: "apikey",
+    apiKey: "sk-test-locked",
+  });
+  const openConn = await createProviderConnection({
+    provider,
+    authType: "apikey",
+    apiKey: "sk-test-open",
+  });
+  lockModel(provider, (lockedConn as { id: string }).id, modelId, "not_found", 120_000);
+  // Sanity: the OTHER connection must not itself be locked.
+  assert.equal(isModelLocked(provider, (openConn as { id: string }).id, modelId), false);
+
+  try {
+    const model = await getBestVisionModel(
+      {},
+      { hasUsableCredentials: async (id) => id.startsWith(`${provider}/`) }
+    );
+    assert.equal(
+      model,
+      `${provider}/${modelId}`,
+      "a model locked on only ONE of two usable connections must stay selectable"
+    );
+  } finally {
+    delete PROVIDER_MODELS[provider];
+    clearAllModelLockouts();
+    await deleteProviderConnectionsByProvider(provider);
+  }
+});
+
+test("getBestVisionModel — drops a cached selection once it becomes locked mid-window (#12111)", async () => {
+  const provider = "__vision-bridge-lockout-test-3__";
+  const connectionId = "conn-1";
+  const modelId = "synthetic-vision-model";
+  PROVIDER_MODELS[provider] = [
+    { id: modelId, name: "Synthetic Vision Model", supportsVision: true },
+  ];
+  clearAllModelLockouts();
+  const deps = { hasUsableCredentials: async (id: string) => id.startsWith(`${provider}/`) };
+
+  try {
+    // First call populates the 60s selection cache with the only candidate.
+    assert.equal(await getBestVisionModel({}, deps), `${provider}/${modelId}`);
+
+    // The model 404s and gets locked mid-cache-window, exactly like chatCore.ts.
+    lockModel(provider, connectionId, modelId, "not_found", 120_000);
+
+    // A cache hit that never re-validates lockouts would keep returning the
+    // now-locked model for up to 60s of further failing requests (the
+    // reporter's complaint); it must fall through to "no usable candidate".
+    assert.equal(await getBestVisionModel({}, deps), null);
+  } finally {
+    delete PROVIDER_MODELS[provider];
+    clearAllModelLockouts();
+    clearSelectionCache();
+  }
 });

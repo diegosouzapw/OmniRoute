@@ -31,6 +31,47 @@ async function sha256File(filePath) {
   });
 }
 
+/**
+ * Rewrite a symlink target so it is anchored to the tree being packed/verified
+ * instead of the machine that happened to create it (issue #11979).
+ *
+ * `npm`'s bin-links usually produce a target already relative to the
+ * symlink's own directory (e.g. `../semver/bin/semver.js`), which survives an
+ * archive/restore round trip unchanged on every OS. Some `npm ci` legs
+ * (observed on the ubuntu web-build runner) instead emit an ABSOLUTE target
+ * tied to that machine's checkout path. An absolute target is inherently
+ * non-portable: POSIX restores it as a dangling symlink once the packing
+ * machine's path is gone, and Windows' `CreateSymbolicLink` rewrites a
+ * leading `/` into a drive-relative path on read-back, so a byte-for-byte
+ * comparison against the recorded value fails outright.
+ *
+ * A relative target has no such ambiguity, so an absolute target is resolved
+ * against `rootDir` and re-expressed relative to the symlink's own directory
+ * -- the same portable shape `npm install` already produces natively.
+ *
+ * @param {string} rootDir absolute path to the tree root
+ * @param {string} entryRelPath the symlink's own path, relative to rootDir (posix-separated)
+ * @param {string} rawTarget the raw string from fs.readlinkSync
+ * @returns {{ok: true, value: string} | {ok: false, reason: string}}
+ */
+export function normalizeSymlinkTarget(rootDir, entryRelPath, rawTarget) {
+  if (!path.isAbsolute(rawTarget)) {
+    return { ok: true, value: rawTarget };
+  }
+  const rootResolved = path.resolve(rootDir);
+  const resolvedTarget = path.resolve(rawTarget);
+  const relFromRoot = path.relative(rootResolved, resolvedTarget);
+  if (relFromRoot === "" || relFromRoot.startsWith("..") || path.isAbsolute(relFromRoot)) {
+    return {
+      ok: false,
+      reason: `symlink ${entryRelPath} target escapes the tree root: ${rawTarget}`,
+    };
+  }
+  const symlinkDir = path.dirname(path.join(rootResolved, ...entryRelPath.split("/")));
+  const relFromSymlink = path.relative(symlinkDir, resolvedTarget).split(path.sep).join("/");
+  return { ok: true, value: relFromSymlink };
+}
+
 function walkDir(root, current, entries) {
   const children = fs.readdirSync(current, { withFileTypes: true });
   // Sort for determinism: manifest of the same tree is byte-identical.
@@ -39,7 +80,11 @@ function walkDir(root, current, entries) {
     const abs = path.join(current, child.name);
     const rel = path.relative(root, abs).split(path.sep).join("/");
     if (child.isSymbolicLink()) {
-      entries.push({ path: rel, symlink: fs.readlinkSync(abs) });
+      const normalized = normalizeSymlinkTarget(root, rel, fs.readlinkSync(abs));
+      if (!normalized.ok) {
+        throw new Error(`standalone manifest: ${normalized.reason}`);
+      }
+      entries.push({ path: rel, symlink: normalized.value });
     } else if (child.isDirectory()) {
       walkDir(root, abs, entries);
     } else if (child.isFile()) {
@@ -101,9 +146,19 @@ export async function verifyStandaloneManifest(rootDir, manifest) {
       if (!stat.isSymbolicLink()) {
         errors.push(`${entry.path}: expected symlink, found regular entry`);
       } else {
-        const target = fs.readlinkSync(abs);
-        if (target !== entry.symlink) {
-          errors.push(`${entry.path}: symlink target ${target} != ${entry.symlink}`);
+        // Normalize BOTH sides before comparing: the manifest's recorded
+        // value is already relative for a tree built after #11979, but an
+        // older manifest (or a restoring OS that still hands back an
+        // absolute string) is re-anchored here too, so the comparison never
+        // depends on which machine happened to produce which string.
+        const actual = normalizeSymlinkTarget(rootDir, entry.path, fs.readlinkSync(abs));
+        const expected = normalizeSymlinkTarget(rootDir, entry.path, entry.symlink);
+        if (!actual.ok) {
+          errors.push(`${entry.path}: ${actual.reason}`);
+        } else if (!expected.ok) {
+          errors.push(`${entry.path}: manifest ${expected.reason}`);
+        } else if (actual.value !== expected.value) {
+          errors.push(`${entry.path}: symlink target ${actual.value} != ${expected.value}`);
         }
       }
       continue;

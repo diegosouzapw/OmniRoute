@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 // Isolate DATA_DIR before importing validation.ts (it initializes the DB on load)
 // so the test never touches the developer's real ~/.omniroute database.
@@ -12,8 +13,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { isRetryableProxyTarget } = await import("../../src/lib/providers/validation.ts");
 const { isPrivateHost } = await import("../../src/shared/network/outboundUrlGuard.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 /**

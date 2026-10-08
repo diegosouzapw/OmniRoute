@@ -71,6 +71,15 @@ test("isQuotaExhaustionResponse: a generic 403 with no quota signal stays false 
   assert.equal(exhausted, false);
 });
 
+test("isQuotaExhaustionResponse: a bare 403 (no body signal at all) stays false — only the emitted client code changed, not the upstream classification", async () => {
+  const response = new Response(
+    JSON.stringify({ error: { code: "permission_denied", message: "Permission denied." } }),
+    { status: 403 }
+  );
+  const exhausted = await isQuotaExhaustionResponse(response, "some-provider", "some-model", null);
+  assert.equal(exhausted, false);
+});
+
 test("isQuotaExhaustionResponse: 402 payment-required still classified as quota exhaustion (pre-existing behavior preserved)", async () => {
   const response = new Response(
     JSON.stringify({ error: { code: "insufficient_quota", message: "Payment required." } }),

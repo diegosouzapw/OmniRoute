@@ -1,3 +1,5 @@
+import { parseTraeApiHost, resolveTraeApiHost } from "@omniroute/open-sse/utils/traeHost.ts";
+
 /**
  * Pure parser for the Trae SOLO /authorize callback query string. Extracted
  * from route.ts so it can be unit-tested without touching the DB layer.
@@ -29,6 +31,8 @@ export type ParsedTraeCallback = {
       clientId: string;
       refreshExpireAt: number | null;
       authMethod: "oauth_callback";
+      userRegion?: string;
+      userTimezone?: string;
     };
     testStatus: "active";
   };
@@ -63,8 +67,22 @@ export function parseTraeCallbackQuery(q: URLSearchParams): ParsedTraeCallback |
     }
   }
 
+  // Trae sends its own API host; one outside trae.ai means the callback did not come from
+  // Trae, and storing a different region would only fail later at token refresh.
+  const hostParam = q.get("host");
+  if (hostParam && !parseTraeApiHost(hostParam)) {
+    return { ok: false, error: "Unexpected Trae API host in callback" };
+  }
+
   const userId = (info.UserID as string) || "";
   const region = (info.Region as string) || "US-East";
+  // Best-effort: the /authorize callback's userInfo payload has not been
+  // observed to carry a distinct x-user-region/timezone value distinct from
+  // Region — if Trae ever adds one under these names it propagates
+  // automatically; otherwise buildHeaders() falls back to "US"/no timezone
+  // header exactly as it does today (#12190).
+  const userRegion = (info.UserRegion as string) || undefined;
+  const userTimezone = (info.Timezone as string) || undefined;
 
   return {
     ok: true,
@@ -85,11 +103,13 @@ export function parseTraeCallbackQuery(q: URLSearchParams): ParsedTraeCallback |
         tenant: "marscode",
         region,
         aiRegion: (info.AIRegion as string) || region,
-        host: q.get("host") || "https://api-us-east.trae.ai",
+        host: resolveTraeApiHost(hostParam),
         screenName: (info.ScreenName as string) || null,
         clientId: (userJwt.ClientID as string) || "en1oxy7wnw8j9n",
         refreshExpireAt: refreshExpiresAtMs || null,
         authMethod: "oauth_callback",
+        ...(userRegion ? { userRegion } : {}),
+        ...(userTimezone ? { userTimezone } : {}),
       },
       testStatus: "active",
     },

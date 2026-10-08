@@ -314,6 +314,8 @@ export const STACKED_PIPELINE_ENGINE_INTENSITIES: Record<string, readonly string
 export const liteConfigSchema = z
   .object({
     compressToolResults: z.boolean().optional(),
+    // null clears a stored cap so env/default can apply; omitting the key keeps it.
+    maxToolLength: z.union([z.number().int().min(256).max(1_000_000), z.null()]).optional(),
   })
   .strict();
 

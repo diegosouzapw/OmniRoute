@@ -11,6 +11,7 @@ import {
   sanitizeErrorMessage,
 } from "@omniroute/open-sse/utils/error.ts";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
 const ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1";
 const ALLOWED_RESPONSE_HEADERS = [
@@ -48,6 +49,9 @@ export async function proxyElevenLabsRequest(
   pathname: string,
   init: Omit<RequestInit, "headers"> = {}
 ): Promise<Response> {
+  const policy = await enforceApiKeyPolicy(request, null);
+  if (policy.rejection) return policy.rejection;
+
   const credentials = (await getProviderCredentialsWithQuotaPreflight(
     "elevenlabs"
   )) as ElevenLabsCredentials | null;

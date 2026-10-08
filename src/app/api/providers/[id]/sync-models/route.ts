@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import {
   deleteImportedCustomModels,
@@ -6,6 +7,7 @@ import {
   getSyncedAvailableModelsForConnection,
 } from "@/lib/db/models";
 import { selectModelsForImport } from "@/shared/utils/freeModels";
+import { resolveEffectiveAvailableModels } from "@/shared/utils/modelListResolution";
 import {
   importManagedModels,
   type ManagedModelImportMode,
@@ -20,6 +22,7 @@ import {
 } from "@/shared/services/modelSyncScheduler";
 import { autoSyncCodexProfilesFromLiveCatalog } from "@/lib/cli-helper/codexProfileAutoSync";
 import { autoSyncClaudeProfilesFromLiveCatalog } from "@/lib/cli-helper/claudeProfileAutoSync";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import {
   fetchVolcPlanModels,
@@ -506,7 +509,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       });
     }
 
-    if (providerUsesCuratedModelsOnly(logProvider)) {
+    const isSearchProvider = getSearchProvider(logProvider) !== null;
+    if (providerUsesCuratedModelsOnly(logProvider) || isSearchProvider) {
       const [removedSyncedLists, removedImportedModelIds] = await Promise.all([
         deleteSyncedAvailableModelsForProvider(logProvider),
         deleteImportedCustomModels(logProvider),
@@ -514,8 +518,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({
         provider: logProvider,
         connectionId: id,
-        source: "curated",
-        skipped: "curated-models-only",
+        source: isSearchProvider ? "search" : "curated",
+        skipped: isSearchProvider ? "search-provider" : "curated-models-only",
         syncedModels: 0,
         availableModelsCount: 0,
         models: [],
@@ -631,15 +635,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       previousSyncedAvailableModels: previousSyncedAvailableModelsForConnection,
     });
 
-    const effectiveAvailableModels =
-      discoveredModels.length > 0 ? discoveredModels : syncedAvailableModels;
+    const effectiveAvailableModels = resolveEffectiveAvailableModels(
+      freeFilterEmpty,
+      discoveredModels,
+      syncedAvailableModels
+    );
+    if (freeFilterEmpty) {
+      log.warn(
+        "SYNC",
+        `freeFilterEmpty: ${Array.isArray(allFetchedModels) ? allFetchedModels.length : 0} fetched, 0 free — not falling back to stale syncedAvailableModels (${logProvider})`
+      );
+    }
     const modelChanges = summarizeModelChanges(
       previousSyncedAvailableModels,
       effectiveAvailableModels
     );
     const customModelChanges = summarizeModelChanges(previousModels, persistedModels);
-    const syncedModelsCount =
-      effectiveAvailableModels.length > 0
+    const syncedModelsCount = freeFilterEmpty
+      ? 0
+      : effectiveAvailableModels.length > 0
         ? effectiveAvailableModels.length
         : persistedModels.filter((model) => isManagedSyncedModel(model)).length;
     const availableModelsCount = new Set(

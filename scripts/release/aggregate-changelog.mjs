@@ -44,6 +44,15 @@ export const SECTIONS = Object.freeze({
 
 const SKIP_FILES = new Set(["README.md", ".gitkeep"]);
 
+/** The living cycle version = package.json `version` (null when unreadable → legacy first-heading mode). */
+export function readVersion(root = ROOT) {
+  try {
+    return JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version || null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Validate one fragment's text. Returns null when OK, or a human-readable error.
  * Pure — unit-tested.
@@ -89,17 +98,32 @@ export function collectFragments(root) {
 
 /**
  * Append bullets at the END of a living-section heading's bullet block (before the
- * next "##"/"###" heading). Operates on the FIRST occurrence of the heading — in this
- * repo's CHANGELOG the living cycle section always appears first. Pure — unit-tested.
- * Throws when a needed heading is missing (the release captain adds the heading; the
- * script never invents structure).
+ * next "##"/"###" heading). When `version` is given the heading is searched INSIDE the
+ * `## [version]` block only — `[Unreleased]` still carries a `### ✨ New Features`
+ * heading, so the first occurrence in the file is the wrong one (v3.8.51: every feature
+ * fragment was landing under `[Unreleased]`, #12971). Without `version` the FIRST
+ * occurrence is used (legacy behaviour). Pure — unit-tested. Throws when a needed heading
+ * is missing (the release captain adds the heading; the script never invents structure).
  */
-export function insertBullets(changelogText, bulletsBySection) {
+export function insertBullets(changelogText, bulletsBySection, version = null) {
   let lines = changelogText.split("\n");
   for (const [section, heading] of Object.entries(SECTIONS)) {
     const bullets = (bulletsBySection[section] || []).map((b) => b.text ?? b);
     if (bullets.length === 0) continue;
-    const headIdx = lines.findIndex((l) => l.trim() === heading);
+    let from = 0;
+    let to = lines.length;
+    if (version) {
+      from = lines.findIndex((l) => l.startsWith(`## [${version}]`));
+      if (from === -1) {
+        throw new Error(
+          `section "## [${version}]" not found in CHANGELOG.md — fragments must land in the living version section`
+        );
+      }
+      to = lines.findIndex((l, i) => i > from && l.startsWith("## ["));
+      if (to === -1) to = lines.length;
+    }
+    const rel = lines.slice(from, to).findIndex((l) => l.trim() === heading);
+    const headIdx = rel === -1 ? -1 : from + rel;
     if (headIdx === -1) {
       throw new Error(
         `heading "${heading}" not found in CHANGELOG.md — add it to the living section before aggregating ${section} fragments`
@@ -125,7 +149,7 @@ export function insertBullets(changelogText, bulletsBySection) {
  * Aggregate fragments into CHANGELOG.md. Returns a summary object. When dryRun is
  * true nothing is written or deleted.
  */
-export function aggregate({ root = ROOT, dryRun = false } = {}) {
+export function aggregate({ root = ROOT, dryRun = false, version = readVersion(root) } = {}) {
   const collected = collectFragments(root);
   if (collected.invalid.length > 0) {
     const detail = collected.invalid.map((i) => `  ✗ ${i.file}: ${i.error}`).join("\n");
@@ -134,7 +158,7 @@ export function aggregate({ root = ROOT, dryRun = false } = {}) {
   const total = collected.features.length + collected.fixes.length + collected.maintenance.length;
   const changelogPath = join(root, "CHANGELOG.md");
   const before = readFileSync(changelogPath, "utf8");
-  const after = total === 0 ? before : insertBullets(before, collected);
+  const after = total === 0 ? before : insertBullets(before, collected, version);
   if (!dryRun && total > 0) {
     writeFileSync(changelogPath, after);
     for (const section of Object.keys(SECTIONS)) {

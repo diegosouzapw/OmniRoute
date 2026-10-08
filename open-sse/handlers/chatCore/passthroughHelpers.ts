@@ -2,11 +2,47 @@ import { FORMATS } from "../../translator/formats.ts";
 import { isVerifiedNativeCodexRequest } from "../../config/codexIdentity.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
 import { isResponsesEndpointPath } from "../../utils/responsesEndpoint.ts";
+import { mergeClientAnthropicBeta } from "../../config/anthropicHeaders.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 export { isResponsesEndpointPath };
 
 export const XAI_API_PROVIDERS = new Set(["xai", "xai-oauth", "xao"]);
+
+const SAFEGUARDS_PAIRED_BETA = "dangerous-tool-use-2026-09-03";
+
+/**
+ * Top-level fields Claude Code sends that Anthropic accepts only next to their
+ * paired beta. `safeguards` is the auto mode classifier request
+ * (https://code.claude.com/docs/en/auto-mode-classifier-billing); without
+ * `dangerous-tool-use-2026-09-03` on the outbound request, Anthropic rejects
+ * the whole request:
+ *
+ *   400 safeguards: Extra inputs are not permitted
+ *
+ * The executor forwards a client beta only through mergeClientAnthropicBeta, so
+ * the same merge decides here: keep the field when its beta travels with it,
+ * strip it otherwise (the client then falls back to its own classifier).
+ */
+export function unpairedClaudeClientFields(clientAnthropicBeta: string | null | undefined) {
+  const forwarded = mergeClientAnthropicBeta("", clientAnthropicBeta).toLowerCase().split(",");
+  return forwarded.includes(SAFEGUARDS_PAIRED_BETA) ? [] : ["safeguards"];
+}
+
+/**
+ * Drop the top-level fields for which Anthropic's Messages API rejects the
+ * whole request on the native `claude` passthrough, which forwards the client
+ * body verbatim. Third-party Claude-shape gateways are left untouched.
+ */
+export function stripClaudeRejectedTopLevelFields(
+  body: Record<string, unknown>,
+  clientHeaders: Headers | Record<string, unknown> | null | undefined
+): void {
+  // VS Code Claude extension and similar clients send both; Anthropic rejects the pair.
+  if (body.temperature !== undefined && body.top_p !== undefined) delete body.top_p;
+  const clientBeta = getHeaderValueCaseInsensitive(clientHeaders, "anthropic-beta");
+  for (const field of unpairedClaudeClientFields(clientBeta)) delete body[field];
+}
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -53,19 +89,35 @@ export function stampNativeResponsesPassthroughBody(
   return { ...body, _nativeOpenAICompatibleResponsesPassthrough: true };
 }
 
+// A body only qualifies for the native-Responses passthrough fast path when it is
+// actually shaped like a Responses API request (`input`, no `messages`). Endpoint
+// path alone is not sufficient: an internally-synthesized Chat Completions-shaped
+// body (e.g. the context-handoff summary request) can be dispatched through a
+// closure that still carries the original client request's `/responses` endpoint,
+// which otherwise makes `sourceFormat` resolve to "openai-responses" even though
+// the body itself was never translated. See issue #12129.
+function isResponsesShapedBody(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const candidate = body as Record<string, unknown>;
+  return candidate.input !== undefined && candidate.messages === undefined;
+}
+
 export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
   provider,
   sourceFormat,
   endpointPath,
   providerSpecificData,
+  body,
 }: {
   provider?: string | null;
   sourceFormat?: string | null;
   endpointPath?: string | null;
   providerSpecificData?: unknown;
+  body?: unknown;
 }): boolean {
   if (!provider?.startsWith("openai-compatible-")) return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
+  if (body !== undefined && !isResponsesShapedBody(body)) return false;
   if (providerSpecificData && typeof providerSpecificData === "object") {
     const psd = providerSpecificData as Record<string, unknown>;
     if (psd.apiType === "responses" || psd._omnirouteForceResponsesUpstream === true) {
@@ -100,18 +152,77 @@ export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
  * responses. The redaction is therefore both unnecessary and the cause of the
  * regression, so the blocks are now returned verbatim. The `signature` parameter
  * is kept for call-site compatibility.
+ *
+ * The one exception is a block that carries no signature at all (see
+ * {@link dropUnsignedPassthroughThinkingBlocks}): it was never issued by Anthropic,
+ * so it is dropped instead of forwarded.
  */
 export function redactPassthroughThinkingSignatures(
   messages: unknown,
   _signature: string
 ): unknown {
-  return messages;
+  // Signed blocks stay verbatim; only blocks Anthropic never issued are dropped (#12917).
+  return dropUnsignedPassthroughThinkingBlocks(messages);
 }
 
 type MessageLike = {
   role?: unknown;
   content?: unknown;
 };
+
+/**
+ * True for an assistant `thinking` / `redacted_thinking` block that carries no
+ * signature (`thinking`) or no payload (`redacted_thinking`). Such a block was
+ * never issued by Anthropic — typically an OpenAI-compatible leg's reasoning that
+ * the response translator relayed as `thinking` — so a real Anthropic upstream can
+ * only answer 400 "Invalid signature in thinking block" when it is replayed.
+ */
+function isUnsignedThinkingBlock(block: unknown): boolean {
+  if (!block || typeof block !== "object") return false;
+  const { type, signature, data } = block as {
+    type?: unknown;
+    signature?: unknown;
+    data?: unknown;
+  };
+  const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
+  if (type === "thinking") return !hasText(signature);
+  if (type === "redacted_thinking") return !hasText(data);
+  return false;
+}
+
+/**
+ * Drop assistant thinking blocks that no Anthropic upstream could have signed
+ * (see {@link isUnsignedThinkingBlock}) before the history is replayed to a
+ * genuine Anthropic endpoint. Signed blocks are never touched — Anthropic rejects
+ * any modification of a valid one — and an assistant turn left with no content is
+ * removed (consecutive same-role turns are accepted by the Messages API).
+ *
+ * This is the proactive complement of the exact-error one-shot recovery
+ * (`executeWithAnthropicThinkingSignatureRecovery`), which cannot help when the
+ * unsigned block sits in the still-open tool-use cycle. Returns the original
+ * reference when nothing needs dropping; never mutates its input.
+ */
+export function dropUnsignedPassthroughThinkingBlocks(messages: unknown): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  let changed = false;
+  const kept: unknown[] = [];
+  for (const message of messages as MessageLike[]) {
+    if (
+      !message ||
+      message.role !== "assistant" ||
+      !Array.isArray(message.content) ||
+      !message.content.some(isUnsignedThinkingBlock)
+    ) {
+      kept.push(message);
+      continue;
+    }
+    changed = true;
+    const content = message.content.filter((block) => !isUnsignedThinkingBlock(block));
+    if (content.length > 0) kept.push({ ...message, content });
+  }
+  return changed ? kept : messages;
+}
 
 type ThinkingSignatureError = {
   provider?: string | null;

@@ -1,1 +1,0 @@
-- **fix(check):** the `known-symbols` executor conformance gate awaits the now-async `getExecutor()`, so it stops reporting all 142 registered aliases as dead symbols and can detect a lazy import that fails ([#11582](https://github.com/diegosouzapw/OmniRoute/pull/11582))

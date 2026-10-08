@@ -1,1 +1,0 @@
-- **fix(dashboard):** Prevent locked hidden badges from revealing their icon or opening private badge details before they are earned ([#11605](https://github.com/diegosouzapw/OmniRoute/pull/11605)) — thanks @pacocartones

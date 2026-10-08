@@ -1,1 +1,0 @@
-- Split the 2,952-line `adobeFireflyClient.ts` into nine focused modules (catalog, credentials, payload, ARP session, upload, responses, IMS, account, poll) behind an unchanged barrel — no consumer edits and no public API change (#11728).

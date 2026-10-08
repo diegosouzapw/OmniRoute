@@ -103,6 +103,10 @@ test("sanitizeErrorMessage covers the canonical credential pattern catalog", () 
     `key-${"a".repeat(32)}`,
     `M${"A".repeat(23)}.${"B".repeat(6)}.${"C".repeat(27)}`,
     "postgresql://db-user:db-password@db.internal.example/app",
+    // GHSA-r4q7-7f24-m29p — Groq and xAI keys had no catalog entry and no
+    // STRONG_CREDENTIAL_TOKEN fallback, so they reached error bodies verbatim.
+    `gsk_${"A".repeat(52)}`,
+    `xai-${"A".repeat(80)}`,
   ];
 
   for (const credential of credentials) {

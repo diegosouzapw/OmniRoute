@@ -1,1 +1,0 @@
-- **fix(combos):** deleting a combo now clears its persisted LKGP pins instead of leaving unreachable `key_value` rows behind ([#12326](https://github.com/diegosouzapw/OmniRoute/issues/12326))

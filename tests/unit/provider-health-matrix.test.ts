@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-matrix-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -55,7 +56,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await cleanupTempDataDir(TEST_DATA_DIR);
 
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;

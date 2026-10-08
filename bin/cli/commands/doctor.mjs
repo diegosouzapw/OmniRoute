@@ -10,7 +10,8 @@ import { getCliToken, CLI_TOKEN_HEADER } from "../utils/cliToken.mjs";
 import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import { readDatabaseHealth, readEncryptedCredentialSamples } from "../sqlite.mjs";
-
+import { getCrashLogPath } from "../runtime/processSupervisor.mjs";
+import { prebuiltBinaryName } from "../runtime/nativeDeps.mjs";
 const STATIC_SALT = "omniroute-field-encryption-v1";
 const KEY_LENGTH = 32;
 const CHECK_TIMEOUT_MS = 2000;
@@ -291,28 +292,13 @@ async function checkNodeRuntime(rootDir) {
 }
 
 /**
- * Name of the prebuilt binary better-sqlite3 ships for this platform, e.g.
- * `linux-x64.node`. Musl-based Linux uses a distinct `linuxmusl-` prefix.
- * Mirrors the lookup `prebuild-install`/`node-gyp-build` perform at require time.
+ * Name of the prebuilt binary better-sqlite3 ships for this platform.
+ * Canonical definition now lives in nativeDeps.mjs (#14355 — doctor and
+ * `runtime check` used to each implement their own binary-layout detection
+ * and could disagree on the same install); re-exported here so existing
+ * imports of `prebuiltBinaryName` from this module keep working.
  */
-export function prebuiltBinaryName(
-  platform = process.platform,
-  arch = process.arch,
-  report = process.report
-) {
-  let prefix = platform;
-  if (platform === "linux") {
-    let isMusl = false;
-    try {
-      // glibc builds expose `glibcVersionRuntime`; musl builds do not.
-      isMusl = !report?.getReport?.()?.header?.glibcVersionRuntime;
-    } catch {
-      isMusl = false;
-    }
-    prefix = isMusl ? "linuxmusl" : "linux";
-  }
-  return `${prefix}-${arch}.node`;
-}
+export { prebuiltBinaryName };
 
 async function checkNativeBinary(rootDir) {
   // node-gyp layout — present only when better-sqlite3 was compiled locally.
@@ -378,6 +364,33 @@ function checkMemory() {
     totalBytes: total,
     freeBytes: free,
   });
+}
+
+// #13538: surfaces the supervisor's give-up crash record (persisted by
+// ServerSupervisor.persistCrashLog(), bin/cli/runtime/processSupervisor.mjs)
+// so a user whose `--tray` worker died silently (detached, stdio:"ignore")
+// has something concrete `doctor` can point at without needing `--log`.
+function checkCrashLog() {
+  const crashLogPath = getCrashLogPath();
+  if (!fs.existsSync(crashLogPath)) {
+    return ok("Crash log", "No supervisor crash record found", { crashLogPath });
+  }
+
+  try {
+    const stat = fs.statSync(crashLogPath);
+    const contents = fs.readFileSync(crashLogPath, "utf8");
+    const lastEntry = contents.split("\n").filter(Boolean).slice(-6).join("\n");
+    return warn(
+      "Crash log",
+      `Supervisor recorded a give-up crash at ${crashLogPath} (last modified ${stat.mtime.toISOString()})`,
+      { crashLogPath, modifiedAt: stat.mtime.toISOString(), tail: lastEntry }
+    );
+  } catch (error) {
+    return warn("Crash log", `Crash record exists at ${crashLogPath} but could not be read`, {
+      crashLogPath,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 async function fetchWithTimeout(url, options = {}) {
@@ -579,6 +592,7 @@ export async function collectDoctorChecks(context = {}, options = {}) {
   checks.push(await checkNodeRuntime(rootDir));
   checks.push(await checkNativeBinary(rootDir));
   checks.push(checkMemory());
+  checks.push(checkCrashLog());
 
   if (!options.skipLiveness) {
     checks.push(await checkServerLiveness(options));

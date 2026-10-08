@@ -1,1 +1,0 @@
-- **test(sse):** bump the hard-lease connection-query inventory for `src/lib/tokenHealthCheck.ts` to 2 — the verify-only web-cookie sweep added by #11495 split the single `getProviderConnections` call into oauth + cookie variants, which the frozen inventory had not tracked ([#11495](https://github.com/diegosouzapw/OmniRoute/pull/11495)).

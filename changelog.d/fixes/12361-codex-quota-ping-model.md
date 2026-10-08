@@ -1,1 +1,0 @@
-- **fix(providers):** resolve the Codex quota auto-ping model from the live provider catalog and lifecycle registry instead of the retired `gpt-5.1-codex-mini`, and pause the ping with one actionable warning when no selectable Codex model exists rather than retrying a shut-down id every cooldown window ([#11905](https://github.com/diegosouzapw/OmniRoute/issues/11905))

@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { orchestrationToFlow } from "../model/orchestrationToFlow";
+import { EMPTY_FILTER, isEmptyFilter } from "../model/filterSnapshot";
+import type { OrchFilter } from "../model/filterSnapshot";
 import type { OrchNode, OrchSnapshot, OrchSource } from "../model/orchestrationTypes";
 import { OrchestratorNode } from "../nodes/OrchestratorNode";
 import { SourceNode } from "../nodes/SourceNode";
@@ -34,6 +36,8 @@ export function AgentsTab({
   onToggleCompleted,
   collapsed = EMPTY_COLLAPSED,
   onToggleCollapse,
+  filter = EMPTY_FILTER,
+  onClearFilters,
 }: {
   snapshot: OrchSnapshot;
   onNodeClick: (orchNodeId: string) => void;
@@ -41,6 +45,8 @@ export function AgentsTab({
   onToggleCompleted: (v: boolean) => void;
   collapsed?: ReadonlySet<OrchSource>;
   onToggleCollapse?: (s: OrchSource) => void;
+  filter?: OrchFilter;
+  onClearFilters?: () => void;
 }) {
   const t = useTranslations("orchestration");
   const { nodes, edges, fitKey } = useMemo(
@@ -57,6 +63,21 @@ export function AgentsTab({
     if (node.type === "work" || node.type === "activity" || node.type === "overflow")
       onNodeClick(node.id);
   };
+
+  // An empty canvas means two very different things. With no filter active it is "nothing is
+  // running" and the setup CTAs are the right next step; under an ACTIVE filter the runs may
+  // well exist and simply not match, so pointing the operator at the setup pages would be wrong
+  // advice — offer to clear the filter instead.
+  if (!hasWork && !isEmptyFilter(filter)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-muted">
+        <p className="text-sm">{t("noMatches")}</p>
+        <button type="button" className="text-xs underline" onClick={() => onClearFilters?.()}>
+          {t("clearFilters")}
+        </button>
+      </div>
+    );
+  }
 
   if (!hasWork) {
     return (

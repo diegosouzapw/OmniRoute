@@ -1,1 +1,0 @@
-- **fix(providers):** xAI `reasoning_effort: "xhigh"` now reaches grok-4.6+ instead of being silently clamped to `"high"` ([#11879](https://github.com/diegosouzapw/OmniRoute/pull/11879)) — thanks @NoxzRCW

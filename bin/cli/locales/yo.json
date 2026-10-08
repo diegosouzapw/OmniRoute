@@ -1,0 +1,1340 @@
+{
+  "common": {
+    "error": "Àṣìṣe: {message}",
+    "serverOffline": "Sẹ́fà OmniRoute kò sí lórí ayélujára. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú: omniroute serve",
+    "authRequired": "Ìfàṣẹsí jẹ́ dandan. Ṣètò OMNIROUTE_API_KEY tàbí ṣiṣẹ́: omniroute setup",
+    "rateLimited": "A ti kọjá òpin iye ìbéèrè. Gbìyànjú lẹ́ẹ̀kan sí i lẹ́yìn {seconds}s.",
+    "timeout": "Àkókò ìbéèrè parí lẹ́yìn {ms}ms.",
+    "success": "Ó ti ṣe tán.",
+    "yes": "bẹ́ẹ̀ni",
+    "no": "bẹ́ẹ̀kọ́",
+    "confirm": "Ṣé ó dá ọ lójú? (bẹ́ẹ̀ni/bẹ́ẹ̀kọ́)",
+    "dryRun": "[dry-run] yóò {action}",
+    "cancelled": "A ti fagilé.",
+    "jsonOpt": "Ṣe àbájáde gẹ́gẹ́ bí JSON",
+    "yesOpt": "Fo ìbéèrè ìmúdájú"
+  },
+  "setup": {
+    "title": "Ìṣètò OmniRoute",
+    "passwordPrompt": "Ọ̀rọ̀ aṣínà alákóso",
+    "providerPrompt": "Olùpèsè àiyípò (fi sílẹ̀ láìkọ nǹkan láti fò ó)",
+    "done": "Ìṣètò ti pé",
+    "passwordSet": "A ti ṣètò ọ̀rọ̀ aṣínà alákóso",
+    "providerSet": "A ti ṣètò olùpèsè: {name}",
+    "testingProvider": "Ń dán àsopọ̀ olùpèsè wò: {name}",
+    "testPassed": "Ìdánwò olùpèsè yege",
+    "testFailed": "Ìdánwò olùpèsè kùnà: {error}",
+    "loginEnabled": "Ìwọlé: ti ṣiṣẹ́ (a ti ṣe àfikún ọ̀rọ̀ aṣínà)",
+    "loginDisabled": "Ìwọlé: kò ṣiṣẹ́",
+    "providerInfo": "Olùpèsè: {info}",
+    "opencode": "Fi @omniroute/opencode-plugin tí a kó mọ́ ọn sílẹ̀ kí o sì ṣètò rẹ̀ fún OpenCode"
+  },
+  "doctor": {
+    "title": "Olùṣàyẹ̀wò OmniRoute",
+    "dbOk": "Ibi ìpamọ́ dátà: Ó DÁRA ({path})",
+    "dbMissing": "Ibi ìpamọ́ dátà: a kò tíì ṣe ìpilẹ̀ṣẹ̀ rẹ̀ — ṣiṣẹ́ `omniroute setup`",
+    "portOk": "Pọ́ọ̀tù {port}: wà fún lílò",
+    "portConflict": "Pọ́ọ̀tù {port}: ìlànà mìíràn ń lò ó",
+    "encryptionOk": "Kọ́kọ́rọ́ ìpamọ́: ti ṣètò",
+    "encryptionMissing": "Kọ́kọ́rọ́ ìpamọ́ kò sí — ṣiṣẹ́ `omniroute setup`",
+    "allGood": "Gbogbo àyẹ̀wò yege.",
+    "warnings": "Ìkìlọ̀ {count} — wo òkè."
+  },
+  "providers": {
+    "title": "Àwọn olùpèsè",
+    "noProviders": "Kò sí olùpèsè tí a ṣètò. Ṣiṣẹ́: omniroute setup",
+    "testing": "Ń dán {name} wò...",
+    "available": "Olùpèsè {count} wà fún lílò",
+    "connected": "Ti sopọ̀",
+    "disconnected": "A ti gé ìsopọ̀",
+    "validationFailed": "Ìfọwọ́sí kùnà: {error}",
+    "metrics": {
+      "description": "Ṣàfihàn àwọn òṣùwọ̀n iṣẹ́ provider (ìdádúró, ìwọ̀n àṣeyọrí, iye owó)",
+      "provider": "Ṣe àsẹ̀ nípa ID provider",
+      "connection_id": "Ṣe àsẹ̀ nípa ID ìsopọ̀",
+      "period": "Àkókò: 1h|6h|24h|7d|30d (àìyípadà: 24h)",
+      "metric": "Dojú kọ pápá òṣùwọ̀n kan pàtó",
+      "sort": "Tò lẹ́sẹ̀sẹ̀ nípa pápá (láti èyí tó ga sí èyí tó kéré)",
+      "limit": "Iye ìlà tó pọ̀ jù (àìyípadà: 50)",
+      "watch": "Ṣàtúnṣe ní gbogbo 5s (ipò alárààyè)",
+      "compare": "Àwọn ID provider tí kọ́mà yà sọ́tọ̀ láti fi wé ara wọn lẹ́gbẹ̀ẹ́gbẹ̀ẹ́"
+    },
+    "metric_single": {
+      "description": "Gba iye òṣùwọ̀n kan ṣoṣo fún ìsopọ̀ kan pàtó"
+    },
+    "rotate": {
+      "description": "Yí kọ́kọ́rọ́ upstream API padà fún ìsopọ̀ provider kan",
+      "newKeyOpt": "Iye kọ́kọ́rọ́ API tuntun (yẹra fún un: lo --from-env dípò rẹ̀)",
+      "fromEnvOpt": "Ka kọ́kọ́rọ́ tuntun láti inú environment variable VAR",
+      "oauthOpt": "Bẹ̀rẹ̀ ìlànà ìfàṣẹsí OAuth lẹ́ẹ̀kan sí i dípò rẹ̀",
+      "skipTestOpt": "Fò ìdánwò ìsopọ̀ lẹ́yìn yíyí padà",
+      "dryRunOpt": "Tẹ ohun tí yóò yí padà jáde láìkọ ohunkóhun",
+      "confirmPrompt": "Rọ́pò kọ́kọ́rọ́ API fún ìsopọ̀ \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] A ó yí kọ́kọ́rọ́ fún \"{name}\" ({id}) padà. Kò sí ìyípadà tí a ṣe.",
+      "oauthHint": "Ìsopọ̀ OAuth — ṣiṣẹ́: omniroute oauth {provider}",
+      "envVarEmpty": "Environment variable {var} kò tíì ṣètò tàbí ó ṣófo.",
+      "success": "A ti yí kọ́kọ́rọ́ fún \"{name}\" padà. Ṣiṣẹ́ `providers test {id}` láti ṣàyẹ̀wò.",
+      "testPassed": "Ìdánwò lẹ́yìn yíyí padà ṣàṣeyọrí.",
+      "testFailed": "Ìdánwò lẹ́yìn yíyí padà kùnà: {error}"
+    },
+    "status": {
+      "description": "Ṣàfihàn ìlera kọ́kọ́rọ́ fún gbogbo àwọn ìsopọ̀ provider (ọjọ́-orí, ìparí, cooldown)",
+      "providerOpt": "Ṣe àsẹ̀ nípa orúkọ provider",
+      "header": "ID         Provider       Orúkọ                   Ipò Ìparí  Ipò Ìdánwò  Cooldown Títí Di",
+      "noData": "Kò sí dátà ìsopọ̀ provider tó wà.",
+      "requiresServer": "providers status nílò kí server OmniRoute máa ṣiṣẹ́."
+    }
+  },
+  "keys": {
+    "title": "Àwọn Kọ́kọ́rọ́ API",
+    "addDescription": "Ṣàfikún tàbí ṣe ìmúdójúìwọ̀n kọ́kọ́rọ́ API fún provider kan",
+    "listDescription": "Ṣàkójọ gbogbo àwọn kọ́kọ́rọ́ API tí a ti ṣètò",
+    "removeDescription": "Yọ kọ́kọ́rọ́ API kan kúrò fún provider kan",
+    "regenerateDescription": "Ṣẹ̀dá kọ́kọ́rọ́ API OmniRoute tuntun",
+    "revokeDescription": "Fagilé kọ́kọ́rọ́ API OmniRoute kan",
+    "revealDescription": "Ṣàfihàn iye kọ́kọ́rọ́ API tí a kò bò mọ́lẹ̀",
+    "usageDescription": "Ṣàfihàn ìlò àìpẹ́ fún kọ́kọ́rọ́ API kan",
+    "usageLimitOpt": "Iye àwọn ìbéèrè àìpẹ́",
+    "rotateDescription": "Ṣẹ̀dá kọ́kọ́rọ́ tuntun kí o sì sọ èyí àtijọ́ di aláìṣiṣẹ́",
+    "graceOpt": "Àkókò ìdáríjì (ms) kí kọ́kọ́rọ́ àtijọ́ tó di aláìṣiṣẹ́",
+    "stdinOpt": "Ka kọ́kọ́rọ́ API láti stdin dípò láti inú àríyànjiyàn",
+    "added": "A ti fi kọ́kọ́rọ́ kún un fún {provider}.",
+    "removed": "A ti yọ kọ́kọ́rọ́ náà.",
+    "listed": "Kọ́kọ́rọ́ {count}.",
+    "noKeys": "Kò sí kọ́kọ́rọ́ tí a ti ṣètò.",
+    "noUsage": "A kò rí dátà ìlò kankan.",
+    "confirmRemove": "Yọ kọ́kọ́rọ́ {id} kúrò?",
+    "confirmRegenerate": "Ṣẹ̀dá kọ́kọ́rọ́ {id} tuntun?",
+    "confirmRevoke": "Fagilé kọ́kọ́rọ́ {id}?",
+    "confirmRotate": "Yí kọ́kọ́rọ́ {id} padà? (kọ́kọ́rọ́ àtijọ́ yóò di aláìṣiṣẹ́ lẹ́yìn àkókò ìdáríjì)",
+    "regenerated": "A ti ṣẹ̀dá tuntun. Kọ́kọ́rọ́ tuntun: {key}",
+    "revoked": "A ti fagilé kọ́kọ́rọ́ {id}.",
+    "rotated": "A ti yí kọ́kọ́rọ́ {id} padà. ID kọ́kọ́rọ́ tuntun: {newId}",
+    "revealWarning": "⚠  Èyí yóò ṣàfihàn gbogbo kọ́kọ́rọ́ náà láìbojú. Rí i dájú pé ojú-ìbojú rẹ wà ní ìkọ̀kọ̀.",
+    "providerRequired": "Olùpèsè jẹ́ dandan.",
+    "keyRequired": "Kọ́kọ́rọ́ API jẹ́ dandan.",
+    "stdinEmpty": "A kò pèsè kọ́kọ́rọ́ API kankan nípasẹ̀ stdin.",
+    "unknownProvider": "Olùpèsè àìmọ̀: {provider}",
+    "policy": {
+      "title": "Ìlànà Kọ́kọ́rọ́",
+      "showDescription": "Ṣàfihàn ìlànà iye ìbéèrè/ìnáwó fún kọ́kọ́rọ́ kan",
+      "setDescription": "Ṣètò ìlànà iye ìbéèrè/ìnáwó fún kọ́kọ́rọ́ kan",
+      "rateLimitOpt": "Iye ìbéèrè tó pọ̀ jù lọ fún ìṣẹ́jú kan",
+      "maxCostOpt": "Ìnáwó tó pọ̀ jù lọ fún ọjọ́ kan (USD)",
+      "allowedModelsOpt": "Àtòjọ àwọn módẹ́lì tí a fàyè gbà, tí a fi àmì kọ́mà yà sọ́tọ̀",
+      "nothingToSet": "Kò sí ààyè ìlànà kankan tí a pèsè. Lo --rate-limit, --max-cost, tàbí --allowed-models.",
+      "updated": "A ti ṣàfikún ìlànà náà."
+    },
+    "expiration": {
+      "title": "Ìparí Àkókò Kọ́kọ́rọ́",
+      "listDescription": "Ṣàkójọ àwọn kọ́kọ́rọ́ tí àkókò wọn máa parí láìpẹ́",
+      "daysOpt": "Ṣàfihàn àwọn kọ́kọ́rọ́ tí àkókò wọn máa parí láàárín ọjọ́ N",
+      "none": "Kò sí kọ́kọ́rọ́ tí àkókò rẹ máa parí láàárín ọjọ́ {days}.",
+      "listTitle": "Àwọn kọ́kọ́rọ́ tí àkókò wọn máa parí láàárín ọjọ́ {days}:"
+    }
+  },
+  "authExport": {
+    "description": "Gbé àwọn ẹ̀rí ìdánimọ̀ olùpèsè tí a ti YỌ ÌPARỌ́ wọn jáde (fún agbègbè nìkan, àbájáde ọ̀rọ̀ gbangba)",
+    "idOpt": "Gbé àsopọ̀ tó bá id/orúkọ/olùpèsè yìí mu nìkan jáde",
+    "formatOpt": "Ọ̀nà àbájáde: json tàbí env",
+    "outOpt": "Kọ àbájáde sí fáìlì dípò stdout (a ó kọ ọ́ pẹ̀lú àwọn àṣẹ 0600)",
+    "forceOpt": "Jẹ́rìí pé o lóye pé èyí máa tẹ̀ tàbí kọ àwọn àṣírí ọ̀rọ̀ gbangba",
+    "warning": "⚠ Èyí máa tẹ̀/kọ àwọn kọ́kọ́rọ́ API àti àwọn tókìn OAuth tí a ti YỌ ÌPARỌ́ wọn gẹ́gẹ́ bí ọ̀rọ̀ gbangba. Rí i dájú pé ojú-ìbojú rẹ, ìtàn shell, àti fáìlì àbájáde èyíkéyìí wà ní ìkọ̀kọ̀.",
+    "confirmHeading": "⚠ ÌKÌLỌ̀: èyí máa gbé àwọn ẹ̀rí ìdánimọ̀ olùpèsè tí a ti YỌ ÌPARỌ́ wọn jáde gẹ́gẹ́ bí ọ̀rọ̀ gbangba",
+    "confirmBody": "Àṣẹ yìí máa yọ ìparọ́ kúrò, yóò sì tẹ̀/kọ apiKey, accessToken, refreshToken, àti\nidToken fún àwọn àsopọ̀ tí a yàn. Ka àbájáde náà sí àṣírí.",
+    "confirmFooter": "Láti jẹ́rìí sí i, ṣiṣẹ́:\n  omniroute auth export --force",
+    "missingKey": "A nílò STORAGE_ENCRYPTION_KEY láti kó àwọn ẹ̀rí ìdánimọ̀ jáde.",
+    "notFound": "A kò rí àsopọ̀: {id}",
+    "invalidFormat": "Ọ̀nà-kíkó tí kò tọ́: {format}. Lo json tàbí env."
+  },
+  "stream": {
+    "description": "Ṣàn ìdáhùn ìfọ̀rọ̀wérọ̀ pẹ̀lú àwọn ipò àyẹ̀wò SSE",
+    "file": "Ka ọ̀rọ̀ ìtọ́nisọ́nà láti inú fáìlì",
+    "stdin": "Ka ọ̀rọ̀ ìtọ́nisọ́nà láti stdin",
+    "model": "ID àwòṣe (àìyípadà: auto)",
+    "system": "Ọ̀rọ̀ ìtọ́nisọ́nà ètò",
+    "combo": "Fipá lo àkójọpọ̀ pàtó nípasẹ̀ orúkọ",
+    "max_tokens": "Iye token tó pọ̀ jù nínú ìdáhùn",
+    "responses_api": "Lo /v1/responses dípò /v1/chat/completions",
+    "raw": "Tẹ àwọn ìlà SSE tútù jáde bí a ṣe gbà wọ́n",
+    "debug": "Tẹ àlàyé àkókò fún ẹyọ kọ̀ọ̀kan jáde sí stderr",
+    "save": "Fi gbogbo ìṣẹ̀lẹ̀ SSE pamọ́ sínú fáìlì .jsonl",
+    "error": {
+      "empty_prompt": "Àṣìṣe: a nílò ọ̀rọ̀ ìtọ́nisọ́nà (àríyànjiyàn ipò, --file, tàbí --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Ìtúpalẹ̀ lílò, àwọn ètò ìnáwó, àwọn ìwọ̀n lílò, àti àwọn àkọsílẹ̀",
+    "analytics": {
+      "description": "Ṣàfihàn ìtúpalẹ̀ lílò tí a ti ṣàkójọpọ̀",
+      "period": "Àkókò: 1d|7d|30d|90d|ytd|all (àìyípadà: 30d)",
+      "provider": "Ṣe àlẹ̀mọ́ nípasẹ̀ ID olùpèsè"
+    },
+    "budget": {
+      "description": "Ṣàkóso àwọn ètò ìnáwó",
+      "set": {
+        "scope": "Ààlà ètò ìnáwó (àìyípadà: global)",
+        "period": "Àkókò ètò ìnáwó: daily|weekly|monthly (àìyípadà: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Ṣàfihàn lílò ìwọ̀n olùpèsè",
+      "provider": "Ṣe àlẹ̀mọ́ nípasẹ̀ ID olùpèsè",
+      "check": "Ṣàfihàn bóyá ìwọ̀n lílò wà fún ìbéèrè tuntun"
+    },
+    "logs": {
+      "description": "Ṣàfihàn àwọn àkọsílẹ̀ ìpè ìbéèrè",
+      "limit": "Iye àkọsílẹ̀ tí a ó dá padà (àìyípadà: 100)",
+      "search": "Ìbéèrè ìṣàwárí láti ṣe àlẹ̀mọ́ àwọn àkọsílẹ̀",
+      "since": "Dá àwọn àkọsílẹ̀ padà láti àmì-àkókò yìí",
+      "follow": "Máa tọpa àwọn àkọsílẹ̀ tuntun lẹ́sẹ̀kẹsẹ̀",
+      "api_key": "Ṣe àlẹ̀mọ́ àwọn àkọsílẹ̀ nípasẹ̀ kọ́kọ́rọ́ API"
+    },
+    "utilization": {
+      "description": "Ṣàfihàn àwọn òṣùwọ̀n lílò kọ́kọ́rọ́ API",
+      "api_key": "Ṣe àlẹ̀mọ́ nípasẹ̀ kọ́kọ́rọ́ API"
+    },
+    "history": {
+      "description": "Ṣàfihàn ìtàn àwọn ìbéèrè",
+      "limit": "Iye àkọsílẹ̀ ìtàn (àìyípadà: 100)"
+    },
+    "proxy_logs": {
+      "description": "Ṣàfihàn àwọn àkọsílẹ̀ ìbéèrè ìpele proxy",
+      "limit": "Iye àkọsílẹ̀ proxy (àìyípadà: 100)"
+    }
+  },
+  "cost": {
+    "description": "Ṣàfihàn ìròyìn iye owó pẹ̀lú ìpínsísọ̀rí nípasẹ̀ olùpèsè, àwòṣe, àkójọpọ̀, tàbí kọ́kọ́rọ́ API",
+    "period": "Àkókò: 1d|7d|30d|90d|ytd|all (àìyípadà: 30d)",
+    "since": "Ọjọ́ ìbẹ̀rẹ̀ (ọ̀nà ISO, àpẹẹrẹ 2026-01-01) — ó borí --period",
+    "until": "Ọjọ́ ìparí (ọ̀nà ISO)",
+    "group_by": "Ṣe àkójọpọ̀ àwọn àbájáde nípasẹ̀: provider|model|api-key|combo|day (àìyípadà: provider)",
+    "api_key_filter": "Ṣe àlẹ̀mọ́ pẹ̀lú kọ́kọ́rọ́ API kan pàtó",
+    "limit": "Iye àwọn ìlà tó pọ̀ jù láti ṣàfihàn (àìyípadà: 100)"
+  },
+  "simulate": {
+    "description": "Àfọwọ́ṣe ìdarí ọ̀nà láìṣe ìpè gidi — ṣàfihàn àwọn provider tí a máa yàn láìpe iṣẹ́ upstream",
+    "file": "Gbé gbogbo ara ìbéèrè wọlé láti fáìlì JSON",
+    "model": "ID model (àìyípadà: auto)",
+    "combo": "Fi tipátipá lo combo kan pàtó nípasẹ̀ orúkọ",
+    "reasoning": "Ìpele agbára ìrònú (low|medium|high)",
+    "thinking": "Ìpín token fún ìrònú fífẹ̀",
+    "explain": "Tẹ igi fallback àti àárín iye owó sí stderr",
+    "noCombo": "A kò rí combo tó bá mu. Ṣètò ọ̀kan pẹ̀lú: omniroute combo create"
+  },
+  "chat": {
+    "description": "Fi ìbéèrè ìfọ̀rọ̀wérọ̀ ẹ̀ẹ̀kan ṣoṣo ránṣẹ́ sí OmniRoute",
+    "file": "Ka ìbéèrè láti inú fáìlì",
+    "stdin": "Ka ìbéèrè láti stdin",
+    "system": "Ìbéèrè system",
+    "model": "ID model (àìyípadà: auto)",
+    "max_tokens": "Iye token tó pọ̀ jù nínú ìdáhùn",
+    "temperature": "Ìwọ̀n ooru sampling (0–2)",
+    "top_p": "Sampling nucleus Top-p",
+    "reasoning_effort": "Ìpele agbára ìrònú (low|medium|high)",
+    "thinking_budget": "Ìpín token fún ìrònú fífẹ̀",
+    "combo": "Fi tipátipá lo combo kan pàtó nípasẹ̀ orúkọ",
+    "responses_api": "Lo /v1/responses dípò /v1/chat/completions",
+    "stream": "Ṣàfihàn ìdáhùn díẹ̀díẹ̀ bí ó ṣe ń dé",
+    "no_history": "Má ṣe fi pamọ́ sí ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Àṣìṣe: ìbéèrè jẹ́ dandan (positional arg, --file, tàbí --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Bẹ̀rẹ̀ server OmniRoute (ìgbésẹ̀ àìyípadà)",
+    "starting": "Ń bẹ̀rẹ̀ server OmniRoute lórí port {port}...",
+    "ready": "Ó ti ṣetán ní http://localhost:{port}",
+    "stopping": "Ń dá server dúró (PID {pid})...",
+    "stopped": "Server ti dúró.",
+    "notRunning": "Server kò ṣiṣẹ́.",
+    "port": "Port láti tẹ́tí sí (àìyípadà: 20128)",
+    "no_open": "Má ṣe ṣí browser fúnra rẹ̀",
+    "daemon": "Ṣiṣe server gẹ́gẹ́ bí daemon abẹ́lẹ̀",
+    "log": "Ṣàfihàn àwọn log server níbẹ̀",
+    "no_recovery": "Pa ìtunbẹ̀rẹ̀ aládàáṣe lẹ́yìn ìkọ̀lù (ipò debugging)",
+    "max_restarts": "Iye ìtunbẹ̀rẹ̀ lẹ́yìn ìkọ̀lù tó pọ̀ jù láàárín 30s kí ó tó jáwọ́ (àìyípadà: 2)",
+    "tray": "Bẹ̀rẹ̀ nínú atẹ eto (dẹ́sítọ́ọ̀pù nìkan, àṣàyàn ni)",
+    "no_tray": "Pa àmì atẹ eto rẹ́",
+    "ready_timeout": "Àkókò ìdádúró tó pọ̀ jù fún àyẹ̀wò ìmúrasílẹ̀ ní ms (bákan náà OMNIROUTE_READY_TIMEOUT_MS, àìyípadà 60000)",
+    "tls_cert": "Ọ̀nà sí ìwé-ẹ̀rí TLS kan (PEM) láti pèsè HTTPS (bákan náà OMNIROUTE_TLS_CERT)",
+    "tls_key": "Ọ̀nà sí kọ́kọ́rọ́ àdáni TLS (PEM) láti pèsè HTTPS (bákan náà OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Afẹ́yìntì",
+    "description": "Ṣẹ̀dá afẹ́yìntì dátà OmniRoute",
+    "creating": "Ń ṣẹ̀dá afẹ́yìntì...",
+    "done": "A ti fi afẹ́yìntì pamọ́ sí {path}",
+    "noFiles": "Kò sí fáìlì láti ṣe afẹ́yìntì (a kò tíì ṣe ìbẹ̀rẹ̀ dátábéèsì)",
+    "failed": "Afẹ́yìntì kùnà: {error}",
+    "restoring": "Ń mú padà láti {path}...",
+    "restored": "Ìmúpadàbọ̀ ti parí.",
+    "restoreDescription": "Mú padà láti inú afẹ́yìntì",
+    "listTitle": "Àwọn Afẹ́yìntì Tó Wà",
+    "noBackups": "A kò rí afẹ́yìntì kankan.",
+    "notFound": "A kò rí afẹ́yìntì: {name}",
+    "confirmRestore": "Ṣé kí a fi afẹ́yìntì láti {ts} kọ bo dátà tó wà lọ́wọ́lọ́wọ́?",
+    "createDescription": "Ṣẹ̀dá afẹ́yìntì dátà OmniRoute",
+    "nameOpt": "Orúkọ àdáni fún afẹ́yìntì",
+    "cloudOpt": "Gbé afẹ́yìntì sókè sí ibi ìpamọ́ àwọsánmà",
+    "encryptOpt": "Fi AES-256-GCM parọ́ afẹ́yìntì",
+    "keyFileOpt": "Ọ̀nà sí fáìlì tó ní gbólóhùn ìkọjá ìparọ́",
+    "excludeOpt": "Yọ fáìlì tó bá àpẹẹrẹ mu kúrò (ó ṣeé tún ṣe)",
+    "retentionOpt": "Pa àwọn afẹ́yìntì N tó kẹ́yìn nìkan mọ́",
+    "passphrasePrompt": "Gbólóhùn ìkọjá ìparọ́:",
+    "noPassphrase": "Gbólóhùn ìkọjá jẹ́ dandan fún afẹ́yìntì tí a parọ́.",
+    "cloudFailed": "Ìkìlọ̀: gbígbé sókè sí àwọsánmà kùnà. A ti fi afẹ́yìntì agbègbè pamọ́.",
+    "cloudUploaded": "A ti gbé afẹ́yìntì àwọsánmà sókè: {url}",
+    "auto": {
+      "title": "Àkókò Afẹ́yìntì",
+      "enableDescription": "Mú àwọn afẹ́yìntì aládàáṣiṣẹ́ tí a ṣètò àkókò fún ṣiṣẹ́",
+      "disableDescription": "Pa àwọn afẹ́yìntì aládàáṣiṣẹ́ tí a ṣètò àkókò fún rẹ́",
+      "statusDescription": "Ṣàfihàn ipò àkókò afẹ́yìntì lọ́wọ́lọ́wọ́",
+      "cronOpt": "Gbólóhùn Cron fún ètò àkókò (àtìlẹ́yìn: ojoojúmọ́ ní aago mẹ́ta òwúrọ̀)",
+      "enabled": "A ti mú afẹ́yìntì aládàáṣiṣẹ́ ṣiṣẹ́ (cron: {cron}).",
+      "hint": "omniroute serve máa ń ka ètò àkókò náà nígbà ìbẹ̀rẹ̀.",
+      "disabled": "A ti pa afẹ́yìntì aládàáṣiṣẹ́ rẹ́.",
+      "notConfigured": "A kò ṣètò àkókò afẹ́yìntì kankan."
+    }
+  },
+  "health": {
+    "description": "Ṣàyẹ̀wò ìlera olupin àti ipò àwọn èròjà",
+    "noServer": "Olupin kò ṣiṣẹ́. Bẹ̀rẹ̀ pẹ̀lú: omniroute serve",
+    "title": "Ìlera",
+    "status": "Ipò: {status}",
+    "uptime": "Àkókò iṣẹ́: {uptime}",
+    "requests": "Àwọn ìbéèrè (wákàtí 24): {count}",
+    "cost": "Iye owó (wákàtí 24): ${cost}"
+  },
+  "quota": {
+    "description": "Ṣàfihàn lílo ìpín iṣẹ́ olùpèsè",
+    "noServer": "Olùpín kò ṣiṣẹ́. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú: omniroute serve",
+    "noData": "Kò sí ìwífún nípa ìpín iṣẹ́."
+  },
+  "cache": {
+    "description": "Ṣàkóso cache ìdáhùn",
+    "noServer": "Olùpín kò ṣiṣẹ́. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú: omniroute serve",
+    "cleared": "A ti pa cache rẹ́.",
+    "clearFailed": "Pípa cache rẹ́ kùnà."
+  },
+  "redis": {
+    "description": "Ṣí container Redis àdúgbò kan pẹ̀lú títẹ̀ ẹ̀ẹ̀kan (Podman tàbí Docker) fún caching àti títọpa ìpín iṣẹ́ OmniRoute"
+  },
+  "test": {
+    "description": "Dán ìsopọ̀ olùpèsè kan wò",
+    "noServer": "Olùpín kò ṣiṣẹ́. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú: omniroute serve",
+    "testing": "Ń dán {provider} / {model} wò...",
+    "passed": "Ìsopọ̀ ṣàṣeyọrí!",
+    "failed": "Ìsopọ̀ kùnà: {error}",
+    "allProvidersOpt": "Dán gbogbo àwọn olùpèsè tí a ti ṣètò wò",
+    "latencyOpt": "Ṣàfihàn àwọn ìwọ̀n ìdádúró (àpapọ̀/kéré jù/gíga jù ní ms)",
+    "repeatOpt": "Tún ìdánwò ṣe ní ìgbà N kí o sì ṣàkójọpọ̀ àwọn èsì",
+    "compareOpt": "Àwọn model tí a fi àmì kọ́má yà láti fi wéra (fún àpẹẹrẹ, gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Fi àwọn èsì pamọ́ sínú fáìlì JSON kan",
+    "saved": "A ti fi àwọn èsì pamọ́ sí {path}",
+    "compareTitle": "Ìfiwéra Model",
+    "compareMinTwo": "Ó kéré tán, model méjì ni a nílò fún --compare (tí a fi àmì kọ́má yà)",
+    "noProviders": "Kò sí olùpèsè tí a ti ṣètò. Ṣàfikún ọ̀kan pẹ̀lú: omniroute keys add"
+  },
+  "update": {
+    "checking": "Ń ṣàyẹ̀wò àwọn àfikún tuntun...",
+    "upToDate": "Ó ti jẹ́ ẹ̀yà tuntun jù lọ ({version}).",
+    "available": "Àfikún tuntun wà: {current} → {latest}",
+    "installing": "Ń fi {latest} sori ẹrọ...",
+    "done": "A ti ṣe àfikún sí {latest}. Tún olùpín bẹ̀rẹ̀ láti mú un ṣiṣẹ́."
+  },
+  "mcp": {
+    "title": "Olùpín MCP",
+    "running": "Olùpín MCP ń ṣiṣẹ́ ({transport})",
+    "stopped": "Olùpín MCP ti dá iṣẹ́ dúró.",
+    "restarted": "A ti tún olùpín MCP bẹ̀rẹ̀.",
+    "stoppedHint": "Ṣe `omniroute mcp enable` láti mú un ṣiṣẹ́.",
+    "enabled": "A ti mú olupin MCP ṣiṣẹ́.",
+    "disabled": "A ti pa olupin MCP.",
+    "enable": {
+      "description": "Mú olupin MCP ṣiṣẹ́",
+      "transport": "Ọ̀nà ìgbéṣùmọ̀ tí a ó lò: stdio|sse|streamable-http"
+    },
+    "disable": {
+      "description": "Pa olupin MCP"
+    },
+    "call": {
+      "description": "Pe ohun èlò MCP kan ní tààrà",
+      "args": "Ohun àríyànjiyàn JSON (níbẹ̀-níbẹ̀)",
+      "args_file": "Ọ̀nà sí fáìlì àwọn àríyànjiyàn JSON",
+      "stream": "Lo endpoint streaming (/api/mcp/stream)",
+      "scope": "Scope tí a nílò (a lè tún un ṣe, fún àpẹẹrẹ read:health)"
+    },
+    "scopes": {
+      "description": "Ṣe àkójọ àwọn scope MCP tó wà",
+      "tool": "Ṣàfihàn àwọn scope tí irinṣẹ́ kan pàtó nílò"
+    },
+    "tools": {
+      "description": "Ṣàyẹ̀wò àwọn irinṣẹ́ MCP",
+      "list": {
+        "description": "Ṣe àkójọ gbogbo àwọn irinṣẹ́ MCP",
+        "scope": "Ṣe àsẹ̀ nípasẹ̀ scope"
+      },
+      "info": {
+        "description": "Ṣàfihàn metadata fún irinṣẹ́ MCP kan"
+      },
+      "schema": {
+        "description": "Ṣàfihàn schema JSON àbáwọlé/àbájáde fún irinṣẹ́ MCP kan",
+        "io": "Irú schema: input|output (àìpé: input)"
+      }
+    },
+    "audit": {
+      "description": "Àkọsílẹ̀ àyẹ̀wò MCP (orúkọ mìíràn fún audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Ṣe àkójọ àwọn ọgbọ́n A2A tó wà láti inú káàdì aṣojú"
+    },
+    "invoke": {
+      "description": "Pe ọgbọ́n A2A kan kí o sì dá ID iṣẹ́ náà padà",
+      "input": "Ohun àbáwọlé JSON",
+      "input_file": "Ọ̀nà sí fáìlì àbáwọlé JSON",
+      "wait": "Dúró de ìparí iṣẹ́ kí o tó dá èsì padà",
+      "timeout": "Àkókò tó pọ̀jù fún dídúró de ìparí ní ms (àìpé: 60000)"
+    },
+    "tasks": {
+      "description": "Ṣàkóso àwọn iṣẹ́ A2A",
+      "list": {
+        "status": "Ṣe àsẹ̀ nípasẹ̀ ipò",
+        "skill": "Ṣe àsẹ̀ nípasẹ̀ ID ọgbọ́n"
+      },
+      "watch": {
+        "description": "Máa ṣàyẹ̀wò ipò iṣẹ́ títí yóò fi parí"
+      },
+      "stream": {
+        "description": "San àwọn ìṣẹ̀lẹ̀ ìmúṣẹ iṣẹ́ jáde nípasẹ̀ SSE"
+      },
+      "logs": {
+        "description": "Ṣàfihàn àwọn ìfiránṣẹ́ iṣẹ́ àti àwọn artifact"
+      }
+    }
+  },
+  "policy": {
+    "description": "Ṣàkóso àwọn ìlànà ìfúnni-láṣẹ OmniRoute",
+    "list": {
+      "description": "Ṣe àkójọ àwọn ìlànà",
+      "kind": "Ṣe àsẹ̀ nípasẹ̀ irú (allow|deny|rate-limit|cost-cap)",
+      "scope": "Ṣe àsẹ̀ nípasẹ̀ scope (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Gba àwọn àlàyé ìlànà nípasẹ̀ ID"
+    },
+    "create": {
+      "description": "Ṣẹ̀dá ìlànà láti inú fáìlì JSON kan",
+      "file": "Ọ̀nà sí fáìlì JSON ìlànà"
+    },
+    "update": {
+      "description": "Ṣàfikún ìmúdójúìwọ̀n sí ìlànà láti inú fáìlì JSON kan",
+      "file": "Ọ̀nà sí fáìlì JSON ìlànà"
+    },
+    "delete": {
+      "description": "Pa ìlànà rẹ́ nípasẹ̀ ID",
+      "yes": "Fò ìbéèrè ìmúdájú kọjá"
+    },
+    "evaluate": {
+      "description": "Ṣe àyẹ̀wò ìlànà láìlò ó gangan (exit 0=allowed, 4=denied)",
+      "api_key": "Kọ́kọ́rọ́ API láti ṣàyẹ̀wò",
+      "action": "Ìṣe láti ṣàyẹ̀wò (fún àpẹẹrẹ, chat, embed, admin)",
+      "resource": "Ọ̀nà resource tàbí àmì ìdánimọ̀",
+      "context": "Àyíká àfikún gẹ́gẹ́ bí ohun JSON"
+    },
+    "export": {
+      "description": "Gbé gbogbo àwọn ìlànà jáde sí fáìlì JSON kan"
+    },
+    "import": {
+      "description": "Gbé àwọn ìlànà wọlé láti inú fáìlì JSON kan",
+      "overwrite": "Kọ lé àwọn ìlànà tó ti wà pẹ̀lú ID kan náà"
+    }
+  },
+  "compression": {
+    "description": "Ṣètò kí o sì ṣàyẹ̀wò ọ̀nà ṣiṣàn ìfúnpọ̀ OmniRoute",
+    "status": {
+      "description": "Ṣàfihàn ipò àti àwọn ètò ìfúnpọ̀ lọ́wọ́lọ́wọ́"
+    },
+    "configure": {
+      "description": "Ṣètò àwọn ààtò ìfúnpọ̀",
+      "engine": "Ẹ́ńjìnnì ìfúnpọ̀ (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Ìpele líle Caveman 0.0–1.0",
+      "rtk_budget": "Ìpín token RTK",
+      "language_pack": "Àkójọpọ̀ èdè láti mú ṣiṣẹ́"
+    },
+    "engine": {
+      "description": "Gba tàbí ṣètò ẹ́ńjìnnì ìfúnpọ̀ tó ń ṣiṣẹ́"
+    },
+    "combos": {
+      "description": "Ṣàkóso àwọn ìṣirò àpapọ̀ ìfúnpọ̀"
+    },
+    "rules": {
+      "description": "Ṣàkóso àwọn òfin ìfúnpọ̀",
+      "add": {
+        "pattern": "Àpẹẹrẹ láti bá mu (regex tàbí field:pattern)",
+        "action": "Ìgbésẹ̀: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Ṣàkójọ àwọn àkójọpọ̀ èdè ìfúnpọ̀ tó wà"
+    },
+    "preview": {
+      "description": "Ṣàkọ́kọ́ wo ipa ìfúnpọ̀ lórí ìbéèrè kan",
+      "file": "Ọ̀nà sí fáìlì JSON ìbéèrè"
+    }
+  },
+  "tunnel": {
+    "title": "Àwọn túúnẹ́lì",
+    "listDescription": "Ṣàkójọ àwọn túúnẹ́lì tó ń ṣiṣẹ́",
+    "createDescription": "Ṣẹ̀dá túúnẹ́lì kan",
+    "created": "A ti ṣẹ̀dá túúnẹ́lì: {url}",
+    "stopped": "A ti dá túúnẹ́lì dúró.",
+    "confirmStop": "Dá túúnẹ́lì {id} dúró?",
+    "stopDescription": "Dá túúnẹ́lì kan dúró",
+    "statusDescription": "Ṣàfihàn kúlẹ̀kúlẹ̀ ipò túúnẹ́lì kan",
+    "logsDescription": "Ṣàfihàn àwọn àkọsílẹ̀ túúnẹ́lì kan",
+    "infoDescription": "Ṣàfihàn kúlẹ̀kúlẹ̀ ìṣètò túúnẹ́lì kan",
+    "rotateDescription": "Ṣẹ̀dá URL túúnẹ́lì tuntun",
+    "tailOpt": "Iye àwọn ìlà àkọsílẹ̀ láti ṣàfihàn",
+    "typeRequired": "A nílò irú túúnẹ́lì.",
+    "noLogs": "Kò sí àkọsílẹ̀ kankan.",
+    "notAvailable": "Àlàyé túúnẹ́lì kò sí.",
+    "noTunnels": "Kò sí túúnẹ́lì tó ń ṣiṣẹ́.",
+    "infoTitle": "Àlàyé túúnẹ́lì: {type}",
+    "rotated": "A ti yí URL túúnẹ́lì padà: {url}",
+    "confirmRotate": "Yí túúnẹ́lì {type} padà? (a ó ṣẹ̀dá URL tuntun)"
+  },
+  "stop": {
+    "description": "Dá olupin OmniRoute dúró",
+    "stopping": "Ń dá olupin dúró (PID {pid})...",
+    "stopped": "A ti dá olupin dúró.",
+    "notRunning": "Kò sí olupin kankan tó ń ṣiṣẹ́.",
+    "portFallback": "A kò rí fáìlì PID, ń gbìyànjú láti dá a dúró nípasẹ̀ port..."
+  },
+  "restart": {
+    "description": "Tun olupin OmniRoute bẹ̀rẹ̀",
+    "restarting": "Ń tún sáfà OmniRoute bẹ̀rẹ̀..."
+  },
+  "dashboard": {
+    "description": "Ṣí pátákó ìdarí OmniRoute nínú aṣàwákiri",
+    "opening": "Ń ṣí pátákó ìdarí ní {url}",
+    "urlOnly": "Tẹ URL pátákó ìdarí jáde láìṣí aṣàwákiri",
+    "tui": "Ṣí pátákó ìdarí TUI alábáṣepọ̀ (ojú-ìṣàmúlò ebute, taabu 7)"
+  },
+  "models": {
+    "description": "Ṣe àkójọ àwọn àwòṣe tó wà (ó nílò sáfà)",
+    "search": "Ṣe àlẹ̀mọ́ àwọn àwòṣe nípasẹ̀ id, orúkọ, olùpèsè, tàbí àpèjúwe",
+    "noServer": "Sáfà kò ṣiṣẹ́. Bẹ̀rẹ̀ pẹ̀lú: omniroute serve",
+    "noModels": "A kò rí àwòṣe kankan."
+  },
+  "audit": {
+    "description": "Wọlé sí àwọn àkọsílẹ̀ àyẹ̀wò ìbámu àti MCP",
+    "source": "Orísun àkọsílẹ̀: all|compliance|mcp (àìyípadà: all)",
+    "since": "Dá àwọn àkọsílẹ̀ padà láti àkókò yìí (ISO 8601)",
+    "until": "Dá àwọn àkọsílẹ̀ padà títí dé àkókò yìí (ISO 8601)",
+    "tail": {
+      "description": "Ṣàfihàn àwọn àkọsílẹ̀ àyẹ̀wò àìpẹ́",
+      "follow": "Máa ṣàfihàn àwọn àkọsílẹ̀ tuntun láìdáwọ́ dúró (ìbéèrè ní gbogbo 2s)",
+      "limit": "Iye àkọsílẹ̀ tó pọ̀ jù láti ṣàfihàn (àìyípadà: 100)"
+    },
+    "search": {
+      "description": "Ṣàwárí àwọn àkọsílẹ̀ àyẹ̀wò nípasẹ̀ ọ̀rọ̀ pàtàkì",
+      "limit": "Iye èsì tó pọ̀ jù (àìyípadà: 200)",
+      "actor": "Ṣe àlẹ̀mọ́ nípasẹ̀ ID olùṣe",
+      "action": "Ṣe àlẹ̀mọ́ nípasẹ̀ orúkọ ìgbésẹ̀"
+    },
+    "export": {
+      "description": "Kó àkọsílẹ̀ àyẹ̀wò jáde sí fáìlì",
+      "format": "Ìgúnrégé àbájáde: jsonl|csv (àìyípadà: jsonl)"
+    },
+    "stats": {
+      "description": "Ṣàfihàn àwọn ìṣirò àkọsílẹ̀ àyẹ̀wò",
+      "period": "Àkókò: 1d|7d|30d (àìyípadà: 7d)"
+    },
+    "get": {
+      "description": "Gba àkọsílẹ̀ àyẹ̀wò kan ṣoṣo nípasẹ̀ ID"
+    }
+  },
+  "skills": {
+    "description": "Ṣàkóso àwọn ọgbọ́n OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Ṣe àkójọ àwọn ọgbọ́n tí a ti fi sílẹ̀",
+      "type": "Ṣe àlẹ̀mọ́ nípasẹ̀ irú (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Ṣàfihàn àwọn ọgbọ́n tí a ti mú ṣiṣẹ́ nìkan",
+      "disabled": "Ṣàfihàn àwọn ọgbọ́n tí a ti pa nìkan",
+      "api_key": "Ṣe àlẹ̀mọ́ nípasẹ̀ kọ́kọ́rọ́ API"
+    },
+    "get": {
+      "description": "Gba àwọn àlàyé ọgbọ́n kan nípasẹ̀ ID"
+    },
+    "install": {
+      "description": "Fi ọgbọ́n kan sílẹ̀ láti fáìlì tàbí URL",
+      "from_file": "Ọ̀nà sí fáìlì ìtumọ̀ ọgbọ́n JSON",
+      "from_url": "URL ìtumọ̀ ọgbọ́n tó wà ní jíjìn",
+      "type": "Irú ọgbọ́n (sandbox|custom|hybrid)",
+      "enable": "Mú ọgbọ́n ṣiṣẹ́ lẹ́yìn fífi sílẹ̀"
+    },
+    "enable": {
+      "description": "Mú ọgbọ́n kan ṣiṣẹ́ nípasẹ̀ ID"
+    },
+    "disable": {
+      "description": "Pa ọgbọ́n kan nípasẹ̀ ID",
+      "yes": "Fò àkíyèsí ìmúdájú kọjá"
+    },
+    "delete": {
+      "description": "Pa ọgbọ́n kan rẹ́ nípa ID",
+      "yes": "Fo ìbéèrè ìmúdájú"
+    },
+    "execute": {
+      "description": "Ṣiṣẹ́ ọgbọ́n kan nípa ID",
+      "input": "Ohun àgbéwọlé JSON",
+      "input_file": "Ọ̀nà sí fáìlì àgbéwọlé JSON",
+      "timeout": "Àkókò ìdádúró ìṣiṣẹ́ ní ms (àkọ́kọ́: 30000)"
+    },
+    "executions": {
+      "description": "Ṣàkójọ ìtàn àwọn ìṣiṣẹ́ ọgbọ́n",
+      "skill": "Ṣe àlẹ̀mọ́ nípa ID ọgbọ́n",
+      "limit": "Àbájáde tó pọ̀ jù (àkọ́kọ́: 50)",
+      "status": "Ṣe àlẹ̀mọ́ nípa ipò (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Ṣàkóso àwọn ọgbọ́n tí a fi sílẹ̀ nípasẹ̀ SSH"
+    },
+    "marketplace": {
+      "description": "Ṣàwárí kí o sì fi àwọn ọgbọ́n láti ọjà sílẹ̀"
+    },
+    "mp": {
+      "search": {
+        "description": "Ṣàwárí àwọn àkójọpọ̀ ọjà",
+        "category": "Ṣe àlẹ̀mọ́ nípa ẹ̀ka",
+        "tag": "Ṣe àlẹ̀mọ́ nípa àmì",
+        "limit": "Àbájáde tó pọ̀ jù (àkọ́kọ́: 30)",
+        "sort": "Ṣètò nípa: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Ṣàfihàn àwọn àlàyé àkójọpọ̀ àti readme"
+      },
+      "install": {
+        "description": "Fi àkójọpọ̀ ọjà kan sílẹ̀",
+        "version": "Ẹ̀yà àkójọpọ̀ (àkọ́kọ́: latest)",
+        "enable": "Mú ṣiṣẹ́ lẹ́yìn fífi sílẹ̀",
+        "yes": "Fo ìbéèrè ìmúdájú"
+      },
+      "categories": {
+        "description": "Ṣàkójọ àwọn ẹ̀ka ọjà"
+      },
+      "featured": {
+        "description": "Ṣàfihàn àwọn àkójọpọ̀ ọjà tí a gbé ga"
+      }
+    }
+  },
+  "memory": {
+    "description": "Ṣàkóso ìrántí ìjíròrò OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Ṣàwárí àwọn àkọsílẹ̀ ìrántí nípasẹ̀ ìbéèrè ìtumọ̀",
+      "type": "Ṣe àlẹ̀mọ́ nípa irú ìrántí (user|feedback|project|reference)",
+      "limit": "Àbájáde tó pọ̀ jù (àkọ́kọ́: 20)",
+      "api_key": "Ṣe àlẹ̀mọ́ nípa kọ́kọ́rọ́ API",
+      "token_budget": "Fi ààlà sí àpapọ̀ àwọn token nínú àbájáde"
+    },
+    "add": {
+      "description": "Ṣàfikún àkọsílẹ̀ ìrántí tuntun",
+      "content": "Àkóónú ọ̀rọ̀ ìrántí",
+      "file": "Ka àkóónú láti inú fáìlì",
+      "type": "Irú ìrántí (àkọ́kọ́: user)",
+      "metadata": "Ohun metadata JSON",
+      "api_key": "So pọ̀ mọ́ kọ́kọ́rọ́ API"
+    },
+    "clear": {
+      "description": "Pa àwọn àkọsílẹ̀ ìrántí tó bá àwọn àlẹ̀mọ́ mu rẹ́",
+      "type": "Ṣe àlẹ̀mọ́ nípa irú",
+      "older": "Pa àwọn àkọsílẹ̀ tó ti pé ju iye àkókò lọ rẹ́ (30d, 6m, 1y)",
+      "api_key": "Ṣe àlẹ̀mọ́ nípa kọ́kọ́rọ́ API",
+      "yes": "Fo ìbéèrè ìmúdájú kọjá"
+    },
+    "list": {
+      "description": "Ṣe àtòjọ àwọn àkọsílẹ̀ ìrántí láìsí ìṣètò ipò ìṣàwárí",
+      "type": "Ṣe àlẹ̀mọ́ nípa irú",
+      "limit": "Iye èsì tó pọ̀ jù (àìyẹsẹ̀: 100)",
+      "api_key": "Ṣe àlẹ̀mọ́ nípa kọ́kọ́rọ́ API"
+    },
+    "get": {
+      "description": "Gba àkọsílẹ̀ ìrántí kan ṣoṣo nípasẹ̀ ID"
+    },
+    "delete": {
+      "description": "Pa àkọsílẹ̀ ìrántí kan rẹ́ nípasẹ̀ ID",
+      "yes": "Fo ìbéèrè ìmúdájú kọjá"
+    },
+    "health": {
+      "description": "Ṣàfihàn ìlera ètò abẹ́lẹ̀ ìrántí (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Ṣàkóso àwọn àsopọ̀ olùpèsè OAuth",
+    "providers": {
+      "description": "Ṣe àtòjọ àwọn olùpèsè tó ṣe àtìlẹ́yìn fún OAuth àti àwọn irú ìṣàn wọn"
+    },
+    "start": {
+      "description": "Bẹ̀rẹ̀ ìṣàn ìfúnni-láṣẹ OAuth fún olùpèsè kan",
+      "provider": "ID olùpèsè (gemini, copilot, cursor, …)",
+      "no_browser": "Tẹ URL jáde nìkan — má ṣe ṣí aṣàwákiri",
+      "import_system": "Gbé àwọn ẹ̀rí wọlé láìfọwọ́ṣe láti àgbékalẹ̀ ètò agbègbè",
+      "social": "Olùpèsè ìwọlé àwùjọ (google|github) — ó ṣe pàtàkì fún kiro",
+      "timeout": "Àkókò ìdádúró de ìfúnni-láṣẹ ní ms (àìyẹsẹ̀: 300000)"
+    },
+    "status": {
+      "description": "Ṣe àtòjọ àwọn àsopọ̀ OAuth tó ń ṣiṣẹ́",
+      "provider": "Ṣe àlẹ̀mọ́ nípa ID olùpèsè"
+    },
+    "revoke": {
+      "description": "Fagilé àsopọ̀ OAuth kan",
+      "provider": "ID olùpèsè láti fagilé",
+      "connection_id": "Fagilé àsopọ̀ pàtó kan nípasẹ̀ ID",
+      "yes": "Fo ìbéèrè ìmúdájú kọjá"
+    }
+  },
+  "cloud": {
+    "description": "Ṣàkóso àwọn iṣẹ́ aṣojú AI awọsanma (codex, devin, jules)",
+    "agents": {
+      "description": "Ṣe àtòjọ àwọn aṣojú awọsanma tó wà"
+    },
+    "agent": {
+      "description": "Ṣàkóso àwọn iṣẹ́ aṣojú awọsanma {agent}",
+      "auth": {
+        "description": "Fún {agent} ní àṣẹ nípasẹ̀ OAuth"
+      }
+    },
+    "task": {
+      "description": "Ṣàkóso àwọn iṣẹ́ aṣojú awọsanma",
+      "create": {
+        "description": "Ṣẹ̀dá iṣẹ́ aṣojú tuntun kan",
+        "title": "Àkọlé iṣẹ́ (àìyẹsẹ̀ sí àwọn àmì kọ́ọ̀kan 80 àkọ́kọ́ ti prompt)",
+        "prompt": "Ọ̀rọ̀ prompt iṣẹ́",
+        "prompt_file": "Ka prompt láti inú fáìlì",
+        "repo": "URL ibi ìpamọ́ láti ṣe clone fún iṣẹ́ náà",
+        "branch": "Orúkọ branch láti lò",
+        "metadata": "Ohun metadata JSON"
+      },
+      "list": {
+        "description": "Ṣe àtòjọ àwọn iṣẹ́ aṣojú",
+        "status": "Ṣe àlẹ̀mọ́ nípa ipò (running|completed|failed|cancelled)",
+        "limit": "Iye èsì tó pọ̀ jù (àìyẹsẹ̀: 50)"
+      },
+      "get": {
+        "description": "Gba àwọn àlàyé iṣẹ́ nípasẹ̀ ID"
+      },
+      "status": {
+        "description": "Tẹ ipò iṣẹ́ jáde (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Fagilé iṣẹ́ tí ń lọ lọ́wọ́",
+        "yes": "Fo ìbéèrè ìmúdájú kọjá"
+      },
+      "approve": {
+        "description": "Fọwọ́sí ètò aṣojú náà láti bẹ̀rẹ̀ ìmúṣẹ"
+      },
+      "message": {
+        "description": "Fi ìránṣẹ́ ránṣẹ́ sí iṣẹ́ tí ń lọ lọ́wọ́"
+      }
+    },
+    "sources": {
+      "description": "Ṣàtòjọ àwọn fáìlì orísun tí iṣẹ́ kan ṣẹ̀dá"
+    }
+  },
+  "eval": {
+    "description": "Ṣàkóso àwọn àkójọpọ̀ eval àti àwọn ìṣiṣẹ́ wọn",
+    "suites": {
+      "description": "Ṣàkóso àwọn àkójọpọ̀ eval",
+      "list": {
+        "description": "Ṣàtòjọ àwọn àkójọpọ̀ eval"
+      },
+      "get": {
+        "description": "Gba àwọn àlàyé àkójọpọ̀ eval nípasẹ̀ ID"
+      },
+      "create": {
+        "description": "Ṣẹ̀dá àkójọpọ̀ eval láti inú fáìlì JSON kan",
+        "file": "Ọ̀nà sí fáìlì JSON ìtumọ̀ àkójọpọ̀"
+      }
+    },
+    "run": {
+      "description": "Bẹ̀rẹ̀ ìṣiṣẹ́ eval fún àkójọpọ̀ kan",
+      "model": "ID àwòṣe láti ṣe àyẹ̀wò (àiyipada: auto)",
+      "combo": "Fi tipátipá lo àkópọ̀ pàtó kan nípasẹ̀ orúkọ",
+      "concurrency": "Iye àwọn àpẹẹrẹ tí yóò ṣiṣẹ́ lẹ́ẹ̀kan náà (àiyipada: 4)",
+      "tag": "Fi àmì sí ìṣiṣẹ́ yìí fún àsẹ̀jáde lẹ́yìn náà",
+      "watch": "Ṣàkíyèsí ìlọsíwájú ìṣiṣẹ́ títí yóò fi parí"
+    },
+    "list": {
+      "description": "Ṣàtòjọ àwọn ìṣiṣẹ́ eval",
+      "suite": "Ṣe àsẹ̀jáde nípasẹ̀ ID àkójọpọ̀",
+      "status": "Ṣe àsẹ̀jáde nípasẹ̀ ipò",
+      "since": "Dá àwọn ìṣiṣẹ́ padà láti ìgbà àmì-àkókò yìí",
+      "limit": "Iye àbájáde tó pọ̀ jù (àiyipada: 50)"
+    },
+    "get": {
+      "description": "Gba àwọn àlàyé ìṣiṣẹ́ eval nípasẹ̀ ID"
+    },
+    "results": {
+      "description": "Ṣàfihàn àwọn àbájáde àpẹẹrẹ fún ìṣiṣẹ́ eval kan",
+      "failed": "Ṣàfihàn àwọn àpẹẹrẹ tó kùnà nìkan"
+    },
+    "cancel": {
+      "description": "Fagilé eval tí ń lọ lọ́wọ́",
+      "yes": "Fo ìbéèrè ìmúdájú kọjá"
+    },
+    "scorecard": {
+      "description": "Ṣàfihàn káàdì ìṣírò fún ìṣiṣẹ́ eval tó ti parí"
+    }
+  },
+  "webhooks": {
+    "description": "Ṣàkóso àwọn webhook OmniRoute",
+    "events": {
+      "description": "Ṣàtòjọ gbogbo irú ìṣẹ̀lẹ̀ webhook tó wà"
+    },
+    "list": {
+      "description": "Ṣàtòjọ àwọn webhook tí a ti ṣètò"
+    },
+    "get": {
+      "description": "Gba àwọn àlàyé webhook nípasẹ̀ ID"
+    },
+    "add": {
+      "description": "Forúkọsílẹ̀ webhook tuntun kan",
+      "url": "URL ibi àfojúsùn",
+      "events": "Àtòjọ irú ìṣẹ̀lẹ̀ tí a fi àmì-kọ́má yà",
+      "secret": "Àṣírí ìfọwọ́sí HMAC",
+      "header": "Àfikún àkọlé ní ìrísí key=value (ó ṣeé tún ṣe)",
+      "no_enabled": "Ṣẹ̀dá webhook ní ipò àìṣiṣẹ́"
+    },
+    "update": {
+      "description": "Ṣàfikún webhook tó ti wà",
+      "enabled": "Ṣètò ipò ìṣiṣẹ́ (true|false)"
+    },
+    "remove": {
+      "description": "Pa webhook rẹ́",
+      "yes": "Fò ìbéèrè ìmúdájú"
+    },
+    "test": {
+      "description": "Fi ìṣẹ̀lẹ̀ ìdánwò ránṣẹ́ sí webhook kan",
+      "event": "Irú ìṣẹ̀lẹ̀ láti ṣe àfarawé (àìpéye: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Olùdarí AI ọlọ́gbọ́n pẹ̀lú ìpadà-aifọwọ́yi",
+    "version": "Ṣàfihàn ẹ̀dà kí o sì jáde",
+    "output": "Ọ̀nà àgbékalẹ̀ àbájáde (table, json, jsonl, csv)",
+    "quiet": "Má ṣe ṣàfihàn àbájáde tí kò ṣe pàtàkì",
+    "no_color": "Pa àbájáde aláwọ̀ rẹ́",
+    "timeout": "Àkókò ìparí ìbéèrè HTTP ní ìṣẹ́jú-àáyá kékeré",
+    "api_key": "Kọ́kọ́rọ́ API fún olupin OmniRoute",
+    "base_url": "URL ìpìlẹ̀ olupin OmniRoute",
+    "context": "Àyíká/prófáìlì olupin láti lò fún àṣẹ yìí",
+    "lang": "Ṣètò èdè àfihàn CLI (ó borí OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Ṣàkóso àwọn fáìlì (gbé sókè, ṣe àkójọ, gbà, ṣe ìgbàsílẹ̀, pa rẹ́)",
+    "list": {
+      "purpose": "Ṣàlẹ̀mọ́ gẹ́gẹ́ bí ète",
+      "limit": "Iye àbájáde tó pọ̀ jù"
+    },
+    "get": {
+      "description": "Gba metadata fáìlì"
+    },
+    "upload": {
+      "description": "Gbé fáìlì kan sókè",
+      "purpose": "Ète fáìlì (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Ṣe ìgbàsílẹ̀ àkóónú fáìlì",
+      "out": "Fi pamọ́ sí path (àìpéye: stdout)"
+    },
+    "delete": {
+      "yes": "Fò ìmúdájú"
+    }
+  },
+  "batches": {
+    "description": "Ṣàkóso àwọn iṣẹ́ batch tó bá OpenAI mu",
+    "list": {
+      "status": "Ṣàlẹ̀mọ́ gẹ́gẹ́ bí ipò",
+      "limit": "Iye àbájáde tó pọ̀ jù"
+    },
+    "create": {
+      "description": "Ṣẹ̀dá iṣẹ́ batch kan",
+      "inputFile": "ID fáìlì ìwọlé",
+      "endpoint": "Endpoint àfojúsùn",
+      "window": "Àkókò ìparí",
+      "metadata": "Ṣàfikún metadata key=value"
+    },
+    "submit": {
+      "description": "Gbé fáìlì JSONL sókè kí o sì ṣẹ̀dá batch",
+      "jsonl": "Path sí fáìlì JSONL",
+      "endpoint": "Endpoint àfojúsùn",
+      "wait": "Dúró de ìparí"
+    },
+    "cancel": {
+      "yes": "Fò ìmúdájú"
+    },
+    "wait": {
+      "timeout": "Àkókò ìparí ní ms"
+    },
+    "output": {
+      "out": "Fi àbájáde pamọ́ sí path"
+    },
+    "errors": {
+      "out": "Fi àwọn àṣìṣe pamọ́ sí path"
+    }
+  },
+  "translator": {
+    "description": "Túmọ̀ àwọn ara ìbéèrè láàárín àwọn àgbékalẹ̀ LLM",
+    "detect": {
+      "description": "Ṣàwárí ìgúnrégé ara ìbéèrè"
+    },
+    "translate": {
+      "description": "Yí ara ìbéèrè padà láti ìgúnrégé kan sí òmíràn"
+    },
+    "send": {
+      "description": "Túmọ̀ kí o sì fi ránṣẹ́ sí upstream"
+    },
+    "stream": {
+      "description": "Túmọ̀ ara ìbéèrè lọ́wọ́lọ́wọ́"
+    },
+    "from": "Ìgúnrégé orísun (openai|anthropic|gemini|cohere)",
+    "to": "Ìgúnrégé àfojúsùn (openai|anthropic|gemini|cohere)",
+    "file": "Ọ̀nà sí fáìlì JSON ara ìbéèrè",
+    "out": "Fi àbájáde pamọ́ sínú fáìlì",
+    "model": "Fagilé model",
+    "history": {
+      "limit": "Iye àbájáde tó pọ̀ jù"
+    }
+  },
+  "pricing": {
+    "description": "Ṣàkóso dátà iye owó fún àwọn model",
+    "sync": {
+      "description": "Mú àwọn iye owó bá àwọn orísun upstream mu",
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè",
+      "force": "Fipá mú ìmúdọ́gba tún ṣẹlẹ̀"
+    },
+    "list": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè",
+      "model": "Ṣe àsẹ̀ nípa model",
+      "limit": "Iye àbájáde tó pọ̀ jù"
+    },
+    "defaults": {
+      "description": "Ṣàkóso iye owó àìyípadà",
+      "input": "Iye owó ìwọlé fún tokens mílíọ̀nù 1 (USD)",
+      "output": "Iye owó àbájáde fún tokens mílíọ̀nù 1 (USD)",
+      "cacheRead": "Iye owó kíkà cache fún tokens mílíọ̀nù 1 (USD)",
+      "cacheWrite": "Iye owó kíkọ cache fún tokens mílíọ̀nù 1 (USD)"
+    },
+    "diff": {
+      "description": "Ṣàfihàn ìyàtọ̀ sí àwọn iye owó upstream",
+      "model": "Ṣe àsẹ̀ nípa model"
+    }
+  },
+  "radar": {
+    "description": "Ṣàyẹ̀wò kí o sì mú àwọn feed katalọ́ọ̀gù Radar agbègbè bá ara wọn mu",
+    "status": "Ṣàfihàn àwọn ààtò Radar agbègbè àti ipò cache feed",
+    "sync": "Mú katalọ́ọ̀gù, àwọn referral, àwọn offer, àti Intel bá ara wọn mu nípasẹ̀ server agbègbè"
+  },
+  "resilience": {
+    "description": "Ṣàyẹ̀wò kí o sì ṣàkóso àwọn ọ̀nà ìfaradà",
+    "status": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè"
+    },
+    "breakers": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè"
+    },
+    "cooldowns": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè",
+      "connectionId": "Ṣe àsẹ̀ nípa ID àsopọ̀"
+    },
+    "lockouts": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè",
+      "model": "Ṣe àsẹ̀ nípa model"
+    },
+    "reset": {
+      "description": "Tún ipò breaker/cooldown tò",
+      "provider": "Olùpèsè láti tún tò",
+      "connectionId": "ID àsopọ̀ láti tún tò",
+      "model": "Model láti tún lockout tò",
+      "allCooldowns": "Tún gbogbo cooldowns olùpèsè tò",
+      "yes": "Fò ìmúdájú"
+    },
+    "profile": {
+      "description": "Ṣàkóso prófáìlì ìfaradà",
+      "name": "Orúkọ prófáìlì"
+    },
+    "config": {
+      "description": "Ṣàkóso àtòpọ̀ ìfaradà",
+      "threshold": "Ààlà ìkùnà",
+      "resetTimeout": "Àkókò ìdádúró àtúntò ní ms",
+      "baseCooldown": "Àkókò ìsinmi ìpìlẹ̀ ní ms"
+    }
+  },
+  "nodes": {
+    "description": "Ṣàkóso àwọn node olùpèsè (endpoints)",
+    "list": {
+      "provider": "Ṣe àsẹ̀ nípa olùpèsè",
+      "enabled": "Àwọn node tí a mú ṣiṣẹ́ nìkan ni kí ó hàn"
+    },
+    "add": {
+      "provider": "Orúkọ olùpèsè",
+      "baseUrl": "URL ìpìlẹ̀ fún node náà",
+      "name": "Orúkọ node",
+      "weight": "Ìwọ̀n ìpín ẹrù",
+      "region": "Ààmì ẹkùn",
+      "authHeader": "Àkọlé ìfàṣẹsí àkànṣe (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL ìpìlẹ̀ tuntun",
+      "name": "Orúkọ tuntun",
+      "weight": "Ìwọ̀n tuntun",
+      "region": "Ẹkùn tuntun",
+      "enabled": "Mú ṣiṣẹ́ tàbí mú kúrò ní ṣíṣe (true|false)"
+    },
+    "remove": {
+      "yes": "Fo ìmúdájú kọjá"
+    },
+    "validate": {
+      "baseUrl": "URL láti fìdí rẹ̀ múlẹ̀",
+      "provider": "Olùpèsè tí a ó fi ṣàyẹ̀wò"
+    },
+    "test": {
+      "description": "Fi ìbéèrè àdánwò ránṣẹ́ sí node"
+    },
+    "metrics": {
+      "description": "Ṣàfihàn àwọn òṣùwọ̀n node",
+      "period": "Àkókò (fún àpẹẹrẹ, 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Ṣètò ọ̀nà iṣẹ́ ẹ̀rọ àyíká-ọ̀rọ̀ (Caveman, RTK)",
+    "analytics": {
+      "period": "Àkókò (fún àpẹẹrẹ, 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Ṣàkóso ẹ̀rọ ìfúnpọ̀ àyíká-ọ̀rọ̀ Caveman",
+      "config": {
+        "description": "Ṣàfihàn tàbí ṣe ìmúdójúìwọ̀n àtòpọ̀ Caveman",
+        "aggressiveness": "Ìpele líle 0.0–1.0",
+        "maxShrinkPct": "Ìdá ọgọ́rùn-ún ìdínkù tó pọ̀ jù",
+        "preserveTags": "Àwọn àmì tí a yà pẹ̀lú kọ́mà láti pa mọ́"
+      }
+    },
+    "rtk": {
+      "description": "Ṣàkóso ẹ̀rọ ìmúdára àyíká-ọ̀rọ̀ RTK",
+      "config": {
+        "description": "Ṣàfihàn tàbí ṣe ìmúdójúìwọ̀n àtòpọ̀ RTK",
+        "tokenBudget": "Ìnáwó token fún RTK",
+        "reservePct": "Ìdá ọgọ́rùn-ún àfipamọ́"
+      },
+      "filters": {
+        "description": "Ṣàkóso àwọn àsẹ̀ RTK",
+        "pattern": "Àpẹẹrẹ àsẹ̀ (regex)",
+        "priority": "Ààyò àsẹ̀ (àiyipada: 100)",
+        "action": "Ṣe àlẹ̀mọ́ ìṣe: drop|shrink|replace",
+        "yes": "Fò ìjẹ́rìísí"
+      },
+      "test": {
+        "file": "Ọ̀nà sí fáìlì JSON ìbéèrè"
+      }
+    },
+    "combos": {
+      "description": "Ìṣàkóso combo tó mọ àyíká-ọ̀rọ̀"
+    }
+  },
+  "sessions": {
+    "description": "Ṣàyẹ̀wò kí o sì ṣàkóso àwọn session tó ń ṣiṣẹ́",
+    "list": {
+      "user": "Ṣe àlẹ̀mọ́ nípa aṣàmúlò",
+      "kind": "Ṣe àlẹ̀mọ́ nípa irú (dashboard|api-key|mcp|a2a)",
+      "active": "Fi àwọn session tó ń ṣiṣẹ́ nìkan hàn",
+      "limit": "Àbájáde tó pọ̀ jù (àìyípadà: 100)"
+    },
+    "expire": {
+      "yes": "Fò ìjẹ́rìísí"
+    },
+    "expireAll": {
+      "user": "Aṣàmúlò tí àwọn session rẹ̀ yóò dópin",
+      "yes": "Fò ìjẹ́rìísí"
+    }
+  },
+  "tags": {
+    "description": "Ṣàkóso àwọn tag ohun àmúlò",
+    "add": {
+      "color": "Àwọ̀ tag (hex tàbí orúkọ)",
+      "description": "Àpèjúwe tag"
+    },
+    "remove": {
+      "yes": "Fò ìjẹ́rìísí"
+    },
+    "assign": {
+      "tag": "Orúkọ tag",
+      "to": "Ohun àmúlò ibi-afẹ́ gẹ́gẹ́ bí type:id (fún àpẹẹrẹ provider:openai)"
+    },
+    "unassign": {
+      "tag": "Orúkọ tag",
+      "from": "Ohun àmúlò orísun gẹ́gẹ́ bí type:id"
+    }
+  },
+  "openapi": {
+    "description": "Wọlé sí OpenAPI spec OmniRoute kí o sì dán an wò",
+    "dump": {
+      "description": "Tú OpenAPI spec jáde sí stdout tàbí fáìlì",
+      "format": "Ọ̀nà àgbéjáde: yaml|json (àìyípadà: yaml)",
+      "out": "Fipamọ́ sí ọ̀nà fáìlì"
+    },
+    "validate": {
+      "description": "Ṣàrídájú OpenAPI spec"
+    },
+    "try": {
+      "description": "Dán API endpoint wò nípasẹ̀ spec",
+      "method": "Ọ̀nà HTTP (àìyípadà: GET)",
+      "body": "Ọ̀nà sí fáìlì JSON ara ìbéèrè",
+      "query": "Param query gẹ́gẹ́ bí key=value (ó ṣeé tún ṣe)",
+      "header": "Àkọlé gẹ́gẹ́ bí key=value (ó ṣeé tún ṣe)"
+    },
+    "endpoints": {
+      "description": "Ṣe àkójọ gbogbo àwọn API endpoint",
+      "search": "Ṣe àlẹ̀mọ́ nípa ọ̀nà tàbí àkótán"
+    },
+    "paths": {
+      "description": "Ṣe àkójọ gbogbo àwọn ọ̀nà API"
+    }
+  },
+  "combo": {
+    "title": "Àwọn Combo",
+    "switched": "Combo tó ń ṣiṣẹ́: {name}",
+    "created": "A ti ṣẹ̀dá combo: {name}",
+    "deleted": "A ti pa combo rẹ́: {name}",
+    "noCombos": "Kò sí combo tí a ti ṣètò.",
+    "confirmDelete": "Pa combo {name} rẹ́?",
+    "suggest": {
+      "description": "Dábàá combo tó dára jù fún iṣẹ́ kan nípa lílo ìṣírò AI",
+      "task": "Àpèjúwe iṣẹ́",
+      "maxCost": "Iye owó tó pọ̀ jù fún ìbéèrè kọ̀ọ̀kan ní USD",
+      "maxLatencyMs": "Àkókò ìdádúró tó pọ̀ jù ní ìṣẹ́jú-àáyá ẹgbẹ̀rún",
+      "weights": "Àwọn ìwọ̀n ìṣírò JSON, fún àpẹẹrẹ {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Iye àwọn olùdíje tó ga jù láti ṣàfihàn (àìyípadà: 5)",
+      "explain": "Tẹ ìdí jáde sí stderr",
+      "switch": "Mú combo tó wà ní ipò àkọ́kọ́ ṣiṣẹ́"
+    }
+  },
+  "oneproxy": {
+    "description": "Ṣàkóso àkójọpọ̀ upstream OneProxy",
+    "stats": {
+      "provider": "Ṣe àlẹ̀mọ́ nípa olùpèsè",
+      "period": "Àkókò (àìyípadà: 24h)"
+    },
+    "fetch": {
+      "description": "Gba àwọn proxy láti inú àkójọpọ̀ náà",
+      "count": "Iye àwọn proxy láti gbà (àìyípadà: 1)",
+      "type": "Irú proxy: http|socks5 (àìyípadà: http)"
+    },
+    "rotate": {
+      "description": "Fi ipá mú ìyípo proxy ṣẹlẹ̀",
+      "provider": "Olùpèsè tí a ó yípo fún",
+      "connectionId": "ID ìsopọ̀ pàtó láti yípo"
+    },
+    "config": {
+      "description": "Ṣàfihàn tàbí ṣàfikún àtúnṣe sí ìṣètò OneProxy",
+      "enabled": "Mú àkójọpọ̀ proxy ṣiṣẹ́ (true|false)",
+      "poolSize": "Ìwọ̀n àkójọpọ̀",
+      "providerSource": "URL fún olùpèsè proxy",
+      "rotationPolicy": "Ìlànà ìyípo: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Ṣàkọsílẹ̀ àkójọpọ̀ proxy lọ́wọ́lọ́wọ́ pẹ̀lú àwọn òṣùwọ̀n"
+    }
+  },
+  "open": {
+    "description": "Ṣí ojú ìdarí OmniRoute pàtó kan nínú aṣàwákiri",
+    "url": "Tẹ URL nìkan jáde, má ṣe ṣí aṣàwákiri"
+  },
+  "telemetry": {
+    "description": "Wọlé sí dátà telemetry tí a ti ṣàkójọpọ̀",
+    "summary": {
+      "description": "Ṣàfihàn àkótán telemetry tí a ti ṣàkójọpọ̀",
+      "period": "Àkókò: 24h|7d|30d (àìyípadà: 24h)",
+      "compareTo": "Ṣe àfiwé pẹ̀lú àkókò tó ṣáájú"
+    },
+    "export": {
+      "description": "Gbé àwọn ìṣẹ̀lẹ̀ telemetry jáde sí JSONL",
+      "out": "Ọ̀nà fáìlì àbájáde (àìyípadà: telemetry.jsonl)",
+      "period": "Àkókò fún gbígbé jáde (àìyípadà: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Mú ìṣètò bá ara mu láàárín àwọn instance OmniRoute",
+    "push": {
+      "description": "Fi ìṣètò ránṣẹ́ sí cloud tàbí instance jíjìn",
+      "target": "Àfojúsùn (cloud tàbí context:name)",
+      "bundle": "Àwọn apá bundle láti mú bá ara mu",
+      "dryRun": "Ṣàyẹ̀wò àkọ́kọ́ láì lò ó"
+    },
+    "pull": {
+      "description": "Fa ìṣètò láti cloud tàbí ibi jíjìn wá",
+      "source": "Orísun (cloud tàbí context:name)",
+      "merge": "Dapọ̀ mọ́ ìṣètò tó wà",
+      "replace": "Rọ́pò ìṣètò tó wà",
+      "dryRun": "Ṣàkọ́wò láìfi sílò"
+    },
+    "diff": {
+      "source": "Àyíká orísun",
+      "target": "Àyíká ibi-àfojúsùn"
+    },
+    "bundle": {
+      "description": "Gbé àtòpọ̀ ìṣètò jáde gẹ́gẹ́ bí fáìlì àkójọpọ̀",
+      "include": "Àwọn apá láti fi kún un (fi kọ́mà yà wọ́n)"
+    },
+    "import": {
+      "description": "Gbé fáìlì àkójọpọ̀ wọlé",
+      "dryRun": "Fọ̀rọ̀sí i láìfi sílò"
+    },
+    "initialize": {
+      "fromCloud": "Bẹ̀rẹ̀ láti inú ẹ̀dà àfẹ́yinti awọsánmà"
+    },
+    "tokens": {
+      "description": "Ṣàkóso àwọn àmì ìṣiṣẹ́pọ̀",
+      "create": {
+        "name": "Orúkọ àmì",
+        "scope": "Ìwọ̀n àmì",
+        "ttl": "TTL àmì (fún àpẹẹrẹ, 30d)"
+      },
+      "revoke": {
+        "yes": "Fò ìmúdájú kọjá"
+      }
+    },
+    "resolve": {
+      "description": "Yanjú àwọn ìforígbárí ìṣiṣẹ́pọ̀ ní ìbánisọ̀rọ̀"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Ṣàkóso àwọn àyíká/prófáìlì olupin (fikún, lò, tòjọ, ṣàfihàn, yọkúrò, tún lorúkọ, gbéjáde, gbéwọlé)"
+    },
+    "lang": {
+      "description": "Ṣàkóso èdè ìfihàn CLI",
+      "getDescription": "Ṣàfihàn kóòdù èdè tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́",
+      "setDescription": "Ṣètò èdè ìfihàn kí o sì fi pamọ́ sínú ìṣètò",
+      "listDescription": "Ṣe àtòjọ gbogbo àwọn èdè tó wà",
+      "listTitle": "Àwọn Èdè Tó Wà",
+      "current": "Èdè: {code} ({name})",
+      "saved": "A ti ṣètò èdè sí {code} ({name}).",
+      "noCode": "A nílò kóòdù èdè. Ṣiṣe 'omniroute config lang list' láti rí àwọn kóòdù tó wà.",
+      "unknown": "Kóòdù èdè tí a kò mọ̀: {code}. Ṣiṣe 'omniroute config lang list' láti rí àwọn kóòdù tó wà.",
+      "alreadySet": "A ti ṣètò èdè sí {code} tẹ́lẹ̀.",
+      "envHint": "Ìmọ̀ràn: o tún lè ṣètò OMNIROUTE_LANG={code} nínú àyíká rẹ."
+    }
+  },
+  "completion": {
+    "description": "Ṣẹ̀dá tàbí fi àwọn skripti ìparí shell sori ẹrọ",
+    "zsh": "Tẹ skripti ìparí zsh jáde",
+    "bash": "Tẹ skripti ìparí bash jáde",
+    "fish": "Tẹ skripti ìparí fish jáde",
+    "install": "Fi skripti ìparí sori ẹrọ káàkiri fún shell tí a ṣàwárí",
+    "refresh": "Ṣe àtúnṣe cache àwọn àkójọpọ̀/olùpèsè/àwọn àwòṣe"
+  },
+  "logs": {
+    "description": "Ṣàn tàbí gbé àwọn àkọọ́lẹ̀ ìbéèrè jáde",
+    "follow": "Ṣàn àwọn àkọọ́lẹ̀ ní àkókò gidi",
+    "filter": "Ṣàsẹ̀ nípa ìpele (error,warn,info) — fi kọ́mà yà wọ́n",
+    "lines": "Iye àwọn ìlà láti gba",
+    "timeout": "Àkókò ìparí àsopọ̀ ní ms",
+    "baseUrl": "URL ìpìlẹ̀ API OmniRoute",
+    "requestId": "Ṣàsẹ̀ nípa ID ìbéèrè",
+    "apiKey": "Ṣàsẹ̀ nípa kọ́kọ́rọ́ API",
+    "combo": "Ṣe àlẹ̀mọ́ pẹ̀lú orúkọ combo",
+    "status": "Ṣe àlẹ̀mọ́ pẹ̀lú kóòdù ipò HTTP",
+    "durationMin": "Àkókò ìbéèrè tó kéré jù ní ms",
+    "durationMax": "Àkókò ìbéèrè tó pọ̀ jù ní ms",
+    "export": "Fi àkọsílẹ̀ pamọ́ sínú fáìlì (json/jsonl/csv)",
+    "exported": "A ti fi àwọn àkọsílẹ̀ pamọ́ sí {path}",
+    "stopped": "Ìṣàn àkọsílẹ̀ ti dáwọ́ dúró.",
+    "streamError": "Àṣìṣe ìṣàn àkọsílẹ̀: {message}"
+  },
+  "tray": {
+    "description": "Ṣàkóso àmì àtẹ ìṣàmúlò ètò",
+    "show": "Fi àmì àtẹ hàn (bí server bá ń ṣiṣẹ́ pẹ̀lú --tray)",
+    "hide": "Fi àmì àtẹ pamọ́",
+    "quit": "Jáde kúrò ní OmniRoute nípasẹ̀ àtẹ"
+  },
+  "autostart": {
+    "description": "Ṣàkóso ìbẹ̀rẹ̀ aládàáṣiṣẹ́ OmniRoute nígbà ìgbéjáde (Linux: iṣẹ́ oníṣe systemd)",
+    "enable": "Mú ìbẹ̀rẹ̀ aládàáṣiṣẹ́ ṣiṣẹ́ nígbà ìgbéjáde",
+    "disable": "Pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́ nígbà ìgbéjáde",
+    "toggle": "Yí ipò ìbẹ̀rẹ̀ aládàáṣiṣẹ́ padà nígbà ìgbéjáde",
+    "status": "Ṣàfihàn ipò ìbẹ̀rẹ̀ aládàáṣiṣẹ́"
+  },
+  "runtime": {
+    "description": "Ṣàkóso àwọn ìgbẹ́kẹ̀lé runtime abinibi",
+    "check": "Ṣàyẹ̀wò ipò àwọn ìgbẹ́kẹ̀lé abinibi nínú àkójọ runtime",
+    "repair": "Tún àwọn ìgbẹ́kẹ̀lé abinibi fi sílẹ̀ nínú àkójọ runtime",
+    "repair_force": "Fipá tún un fi sílẹ̀ kódà bí ó bá fẹsẹ̀ múlẹ̀",
+    "clean": "Yọ àkójọ runtime kúrò (ó ń tú ààyè disiki sílẹ̀)",
+    "clean_yes": "Fò ìmúdájú kọjá"
+  },
+  "repl": {
+    "description": "REPL ìbánisọ̀rọ̀ olóríṣiríṣi ìyípo pẹ̀lú LLM",
+    "model": "Àwòṣe láti lò (àìyípadà: auto)",
+    "combo": "Orúkọ combo láti lò",
+    "system": "Ìtọ́nisọ́nà ètò",
+    "resume": "Tẹ̀síwájú pẹ̀lú sáà tí a fipamọ́ nípasẹ̀ orúkọ"
+  },
+  "plugin": {
+    "description": "Ṣàkóso àwọn plugin CLI (omniroute-cmd-*)",
+    "list": "Ṣàkójọ àwọn plugin tí a ti fi sílẹ̀",
+    "install": "Fi plugin kan sílẹ̀ láti npm tàbí ọ̀nà àdúgbò",
+    "remove": "Yọ plugin tí a ti fi sílẹ̀ kúrò",
+    "info": "Ṣàfihàn àwọn àlàyé nípa plugin tí a ti fi sílẹ̀",
+    "search": "Ṣàwárí àwọn plugin tó wà nínú ìforúkọsílẹ̀ npm",
+    "update": "Ṣe ìmúdójúìwọ̀n àwọn plugin tí a ti fi sílẹ̀",
+    "scaffold": "Ṣẹ̀dá àwòṣe ìpilẹ̀ plugin tuntun"
+  },
+  "launch": {
+    "description": "Ṣí Claude Code tí a darí sí OmniRoute (àdúgbò tàbí jíjìnnà, pẹ̀lú --profile)",
+    "token": "Token tí Claude client gbọ́dọ̀ fi ránṣẹ́ (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "A kò lè dé OmniRoute ní {port}. Bẹ̀rẹ̀ rẹ̀ pẹ̀lú 'omniroute serve'.",
+    "notFound": "A kò rí CLI 'claude' nínú PATH."
+  },
+  "run": {
+    "description": "Ṣe ìfilọ́lẹ̀ ibi-àfojúsùn CLI tí a ṣe àtìlẹ́yìn fún nípasẹ̀ OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Ṣẹ̀dá àwọn prófáìlì Claude Code ~/.claude/profiles láti inú àkójọ awoṣe OmniRoute"
+  },
+  "connect": {
+    "description": "Sopọ̀ mọ́ olupin OmniRoute jíjìn kí o sì wọ ipò jíjìn"
+  },
+  "tokens": {
+    "description": "Ṣàkóso àwọn àmì ìráyè CLI tí a fi ààlà sí (ipò jíjìn)"
+  },
+  "configure": {
+    "description": "Yan olùpèsè+awoṣe láti inú olupin tó ń ṣiṣẹ́ kí o sì ṣètò CLI agbègbè tí a ṣe àtìlẹ́yìn fún"
+  },
+  "launchCodex": {
+    "description": "Ṣe ìfilọ́lẹ̀ Codex CLI tí a tọ́ka sí OmniRoute (VPS agbègbè tàbí jíjìn)"
+  },
+  "setupCodex": {
+    "description": "Ṣẹ̀dá àwọn fáìlì prófáìlì ~/.codex láti inú àkójọ awoṣe alààyè OmniRoute"
+  },
+  "packs": {
+    "description": "Ṣàkóso àwọn àpò runtime àṣàyàn (ML / aládàáṣiṣẹ́ aṣàwákiri)",
+    "listDescription": "Ṣe àtòjọ àwọn àpò àṣàyàn àti ipò ìfìmọ́ wọn",
+    "installDescription": "Fi àpò àṣàyàn kan sínú DATA_DIR",
+    "verifyDescription": "Ṣàyẹ̀wò àwọn àpò tí a ti fi sílẹ̀ pẹ̀lú àtọ́ka checksum tí a fi ránṣẹ́",
+    "removeDescription": "Yọ àpò àṣàyàn tí a ti fi sílẹ̀",
+    "sourceOpt": "Àpò-ìwé tó ní àwọn payload àpò àti àtọ́ka àpò náà",
+    "warnNoIndex": "a kò rí optional-packs.index.json — ìfìmọ́/ìjẹ́rìísí kò sí ní checkout yìí (àwọn bundle desktop ló máa ń fi í ránṣẹ́)",
+    "errUnknown": "àpò tí a kò mọ̀: {name}",
+    "errNoIndex": "a kò rí àtọ́ka àpò; fi --source <dir> tó ní payload àpò náà kọjá (àwọn bundle desktop ló máa ń fi í ránṣẹ́ lẹ́gbẹ̀ẹ́ app náà)",
+    "installed": "a ti fi àpò \"{name}\" sílẹ̀, a sì ti jẹ́rìí rẹ̀ ní {dir}",
+    "restartHint": "tun olupin OmniRoute (tàbí app desktop) bẹ̀rẹ̀ kí runtime lè lo àpò náà",
+    "removed": "a ti yọ àpò \"{name}\"",
+    "notInstalled": "a kò fi àpò \"{name}\" sílẹ̀",
+    "verifyOk": "a ti jẹ́rìí gbogbo àwọn àpò tí a fi sílẹ̀",
+    "verifyFailed": "àpò {count} ló kùnà ìjẹ́rìísí",
+    "noneInstalled": "kò sí àpò àṣàyàn kankan tí a fi sílẹ̀"
+  }
+}

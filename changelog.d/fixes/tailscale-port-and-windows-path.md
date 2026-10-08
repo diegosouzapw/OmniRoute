@@ -1,1 +1,0 @@
-- Fixed Tailscale tunnel setup to reject ports outside the valid 1-65535 range and safely install Windows MSI packages from paths containing apostrophes.

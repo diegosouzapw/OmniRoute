@@ -12,6 +12,9 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   calculateScore,
   calculateFactors,
@@ -144,4 +147,31 @@ test("calculateFactors — connectionDensity is clamped to [0,1] and NaN-safe", 
     Number.isFinite(nan.connectionDensity),
     `connectionDensity must be finite (clamp01 maps NaN→0), got ${nan.connectionDensity}`
   );
+});
+
+test("doc parity — auto-combo-scoring.mmd weights match DEFAULT_WEIGHTS", () => {
+  const mmd = fs.readFileSync(
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../docs/diagrams/auto-combo-scoring.mmd"
+    ),
+    "utf8"
+  );
+  const found = new Map<string, number>();
+  const all = [...mmd.matchAll(/f\d+\["([A-Za-z]+)\s*\(([0-9.]+)/g)];
+  for (const m of all) found.set(m[1], Number(m[2]));
+  const keys = Object.keys(DEFAULT_WEIGHTS) as Array<keyof typeof DEFAULT_WEIGHTS>;
+  assert.equal(all.length, keys.length, `mmd nodes (${all.length}) vs code keys (${keys.length})`);
+  assert.equal(
+    found.size,
+    all.length,
+    `duplicate factor names in .mmd (nodes ${all.length} vs unique ${found.size})`
+  );
+  for (const k of keys)
+    assert.ok(
+      Math.abs((found.get(k) ?? NaN) - DEFAULT_WEIGHTS[k]) < 1e-4,
+      `mmd weight for ${k}: ${found.get(k)} vs code ${DEFAULT_WEIGHTS[k]}`
+    );
+  const sum = keys.reduce((s, k) => s + DEFAULT_WEIGHTS[k], 0);
+  assert.ok(Math.abs(sum - 1) < 1e-9, `weights sum to 1.0, got ${sum}`);
 });

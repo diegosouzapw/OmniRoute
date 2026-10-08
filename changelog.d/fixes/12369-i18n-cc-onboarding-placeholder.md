@@ -1,1 +1,0 @@
-- **fix(i18n):** wrap `ccOnboardingKeyPlaceholder` in ICU single quotes across all 43 locales so angle brackets render literally instead of being parsed as rich-text tags, which crashed the Claude Code onboarding block with `INVALID_MESSAGE: INVALID_TAG` ([#12302](https://github.com/diegosouzapw/OmniRoute/issues/12302))

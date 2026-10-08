@@ -1,1 +1,0 @@
-- **Provider connections:** keep `tokenExpiresAt` when a connection is created. The create-path allowlist omitted it, so every insert stored NULL and the dashboard token badge could read a fresh connection as expired until its first background refresh ([#11368](https://github.com/diegosouzapw/OmniRoute/pull/11368)).

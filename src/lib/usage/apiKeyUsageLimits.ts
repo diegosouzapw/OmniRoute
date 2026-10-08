@@ -1,8 +1,12 @@
 import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
-import { calculateCost } from "./costCalculator";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { calculateCostDetailed } from "./costCalculator";
+import {
+  errorResponse,
+  resolveRetryAfterInstant,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -29,6 +33,15 @@ export interface ApiKeyUsageLimitStatus {
   weeklyResetAtIso: string | null;
   dailyExceeded: boolean;
   weeklyExceeded: boolean;
+  /**
+   * True when at least one usage_history row in the daily/weekly window could not
+   * be priced at all (no pricing row for the provider+model — e.g. a routing
+   * alias such as `auto`, #12341). Enforcement fails closed on this: an unpriced
+   * row forces `*Exceeded = true` rather than silently contributing $0 to spend,
+   * since a real cost may be hiding behind the alias.
+   */
+  dailyHasUnpricedUsage?: boolean;
+  weeklyHasUnpricedUsage?: boolean;
 }
 
 export interface ApiKeyUsageLimitDeps {
@@ -373,8 +386,14 @@ async function getProviderWeeklyWindow(
   };
 }
 
-async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promise<number> {
-  if (!apiKeyId) return 0;
+interface ApiKeyUsdSpend {
+  totalUsd: number;
+  /** True when at least one (provider, model) group had no pricing row at all (#12341). */
+  hasUnpricedUsage: boolean;
+}
+
+async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promise<ApiKeyUsdSpend> {
+  if (!apiKeyId) return { totalUsd: 0, hasUnpricedUsage: false };
   const db = getDbInstance();
   const rows = db
     .prepare(
@@ -398,12 +417,13 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     .all({ apiKeyId, sinceIso }) as UsageCostRow[];
 
   let total = 0;
+  let hasUnpricedUsage = false;
   for (const row of rows) {
     const provider = typeof row.provider === "string" ? row.provider : "";
     const model = typeof row.model === "string" ? row.model : "";
     if (!provider || !model) continue;
 
-    total += await calculateCost(
+    const { costUsd, priced } = await calculateCostDetailed(
       provider,
       model,
       {
@@ -419,9 +439,17 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
         serviceTier: row.serviceTier || "standard",
       }
     );
+    if (!priced) {
+      hasUnpricedUsage = true;
+      console.warn(
+        `[apiKeyUsageLimits] no pricing found for ${provider}/${model} — usage counted as $0 ` +
+          "and enforcement is failing closed for this window (#12341)"
+      );
+    }
+    total += costUsd;
   }
 
-  return roundUsd(total);
+  return { totalUsd: roundUsd(total), hasUnpricedUsage };
 }
 
 export async function getApiKeyUsageLimitStatus(
@@ -443,10 +471,27 @@ export async function getApiKeyUsageLimitStatus(
   const weeklyLimitUsd = normalizeLimitUsd(metadata.weeklyUsageLimitUsd);
   const enabled = metadata.usageLimitEnabled === true;
 
-  const [dailySpentUsd, weeklySpentUsd] = await Promise.all([
+  const [dailySpend, weeklySpend] = await Promise.all([
     getApiKeyUsdSpendSince(metadata.id, dailyWindowStartIso),
     getApiKeyUsdSpendSince(metadata.id, weeklyWindowStartIso),
   ]);
+  const dailySpentUsd = dailySpend.totalUsd;
+  const weeklySpentUsd = weeklySpend.totalUsd;
+
+  // Fail closed (#12341): a window with a configured limit that also contains
+  // usage which could not be priced at all (e.g. a provider's `auto` routing
+  // alias with no catalog price) must not let that usage silently pass the cap
+  // as an invisible $0 — treat the limit as exceeded rather than trust an
+  // undercounted spend total. A window with no configured limit was never
+  // enforced, so unpriced usage there is only logged, not blocking.
+  const dailyExceeded =
+    enabled &&
+    dailyLimitUsd !== null &&
+    (dailySpentUsd >= dailyLimitUsd || dailySpend.hasUnpricedUsage);
+  const weeklyExceeded =
+    enabled &&
+    weeklyLimitUsd !== null &&
+    (weeklySpentUsd >= weeklyLimitUsd || weeklySpend.hasUnpricedUsage);
 
   return {
     enabled,
@@ -458,8 +503,10 @@ export async function getApiKeyUsageLimitStatus(
     dailyResetAtIso,
     weeklyWindowStartIso,
     weeklyResetAtIso,
-    dailyExceeded: enabled && dailyLimitUsd !== null && dailySpentUsd >= dailyLimitUsd,
-    weeklyExceeded: enabled && weeklyLimitUsd !== null && weeklySpentUsd >= weeklyLimitUsd,
+    dailyExceeded,
+    weeklyExceeded,
+    dailyHasUnpricedUsage: dailySpend.hasUnpricedUsage,
+    weeklyHasUnpricedUsage: weeklySpend.hasUnpricedUsage,
   };
 }
 
@@ -544,13 +591,26 @@ export function buildApiKeyUsageLimitRejection(
   options: { showUsd?: boolean } = {}
 ): Response {
   const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
+  // Whichever window actually tripped drives the reset timing below (daily is
+  // checked first, matching buildUsageLimitExceededMessage's own precedence).
+  const trippedResetAtIso = status.dailyExceeded
+    ? status.dailyResetAtIso
+    : status.weeklyExceeded
+      ? status.weeklyResetAtIso
+      : null;
   if (isAnthropicMessagesRequest(request)) {
+    // Claude Code treats a non-400 /v1/messages error as an auth failure and triggers
+    // a re-login prompt — this branch's status MUST stay 400 (see the "does not trigger
+    // login" regression test). The reset timing is still worth surfacing, so it rides
+    // along as extra fields on the same Anthropic-shaped error envelope.
+    const resolved = resolveRetryAfterInstant(trippedResetAtIso);
     return new Response(
       JSON.stringify({
         type: "error",
         error: {
           type: "invalid_request_error",
           message,
+          ...resolved,
         },
       }),
       {
@@ -560,9 +620,11 @@ export function buildApiKeyUsageLimitRejection(
     );
   }
 
-  return new Response(JSON.stringify(buildErrorBody(400, message)), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
+  // Non-Anthropic clients: 429 is the semantically correct status for a quota/rate
+  // condition (every sibling budget/token/rate-limit check already uses it).
+  return errorResponse(429, message, {
+    code: "usage_limit_exceeded",
+    retryAfter: trippedResetAtIso,
   });
 }
 

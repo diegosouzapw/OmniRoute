@@ -1,1 +1,0 @@
-- **fix(cache):** a semantic-cache entry now expires on its TTL instead of surviving until the next UTC midnight, and `dbEntries` stops counting expired rows ([#11573](https://github.com/diegosouzapw/OmniRoute/pull/11573))

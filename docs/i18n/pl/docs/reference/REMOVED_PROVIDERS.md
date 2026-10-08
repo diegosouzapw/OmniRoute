@@ -1,0 +1,60 @@
+# Providers removed at their operator's request (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/REMOVED_PROVIDERS.md) · 🇪🇹 [am](../../../am/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇦 [ar](../../../ar/docs/reference/REMOVED_PROVIDERS.md) · 🇦🇿 [az](../../../az/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇬 [bg](../../../bg/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇩 [bn](../../../bn/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇦 [bs](../../../bs/docs/reference/REMOVED_PROVIDERS.md) · 🇨🇿 [cs](../../../cs/docs/reference/REMOVED_PROVIDERS.md) · 🇩🇰 [da](../../../da/docs/reference/REMOVED_PROVIDERS.md) · 🇩🇪 [de](../../../de/docs/reference/REMOVED_PROVIDERS.md) · 🇬🇷 [el](../../../el/docs/reference/REMOVED_PROVIDERS.md) · 🇪🇸 [es](../../../es/docs/reference/REMOVED_PROVIDERS.md) · 🇪🇪 [et](../../../et/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇷 [fa](../../../fa/docs/reference/REMOVED_PROVIDERS.md) · 🇫🇮 [fi](../../../fi/docs/reference/REMOVED_PROVIDERS.md) · 🇫🇷 [fr](../../../fr/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇪 [ga](../../../ga/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [gu](../../../gu/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [ha](../../../ha/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇱 [he](../../../he/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [hi](../../../hi/docs/reference/REMOVED_PROVIDERS.md) · 🇭🇷 [hr](../../../hr/docs/reference/REMOVED_PROVIDERS.md) · 🇭🇺 [hu](../../../hu/docs/reference/REMOVED_PROVIDERS.md) · 🇦🇲 [hy](../../../hy/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇩 [id](../../../id/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [ig](../../../ig/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇹 [it](../../../it/docs/reference/REMOVED_PROVIDERS.md) · 🇯🇵 [ja](../../../ja/docs/reference/REMOVED_PROVIDERS.md) · 🇬🇪 [ka](../../../ka/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇭 [km](../../../km/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [kn](../../../kn/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇷 [ko](../../../ko/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇹 [lt](../../../lt/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇻 [lv](../../../lv/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [ml](../../../ml/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [mr](../../../mr/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇾 [ms](../../../ms/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇹 [mt](../../../mt/docs/reference/REMOVED_PROVIDERS.md) · 🇲🇲 [my](../../../my/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇵 [ne](../../../ne/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇱 [nl](../../../nl/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇴 [no](../../../no/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [or](../../../or/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [pa](../../../pa/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇭 [phi](../../../phi/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇹 [pt](../../../pt/docs/reference/REMOVED_PROVIDERS.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇴 [ro](../../../ro/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇺 [ru](../../../ru/docs/reference/REMOVED_PROVIDERS.md) · 🇱🇰 [si](../../../si/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇰 [sk](../../../sk/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇮 [sl](../../../sl/docs/reference/REMOVED_PROVIDERS.md) · 🇷🇸 [sr](../../../sr/docs/reference/REMOVED_PROVIDERS.md) · 🇸🇪 [sv](../../../sv/docs/reference/REMOVED_PROVIDERS.md) · 🇰🇪 [sw](../../../sw/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [ta](../../../ta/docs/reference/REMOVED_PROVIDERS.md) · 🇮🇳 [te](../../../te/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇭 [th](../../../th/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇷 [tr](../../../tr/docs/reference/REMOVED_PROVIDERS.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/REMOVED_PROVIDERS.md) · 🇵🇰 [ur](../../../ur/docs/reference/REMOVED_PROVIDERS.md) · 🇺🇿 [uz](../../../uz/docs/reference/REMOVED_PROVIDERS.md) · 🇻🇳 [vi](../../../vi/docs/reference/REMOVED_PROVIDERS.md) · 🇳🇬 [yo](../../../yo/docs/reference/REMOVED_PROVIDERS.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/REMOVED_PROVIDERS.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/REMOVED_PROVIDERS.md)
+
+---
+
+Niektóre usługi zostały zintegrowane z OmniRoute, a następnie usunięte na prośbę osób, które je
+prowadzą. Ta strona stanowi trwały rejestr tych usunięć. Jej jedynym celem jest
+niedopuszczenie do ich przypadkowego powrotu: współtwórca, który znajdzie stary fork,
+uzyskaną z pamięci podręcznej paczkę tarball npm, zarchiwizowane zgłoszenie lub prośbę o "przywrócenie dostawcy X", potrzebuje jednego miejsca, które mówi: **nie
+wprowadzaj ponownie**.
+
+Ta strona **nie** jest listą martwych lub wycofanych usług. Są one śledzone w
+pliku [`FREE_TIERS.md`](FREE_TIERS.md) („Usunięte / brak darmowego planu”) i mogą powrócić, jeśli usługa
+zostanie przywrócona. Poniższe wpisy mogą powrócić tylko za pisemną zgodą operatora wymienionego w
+żądaniu, a ta zgoda musi być powiązana z wpisem.
+
+## Zasady
+
+1. **Żądanie usunięcia od operatora usługi jest respektowane, a nie negocjowane.** OmniRoute nie
+   jest powiązany z żadną usługą nadrzędną. Kiedy operator usługi prosi o
+   usunięcie integracji, integracja ta znika, niezależnie od tego, czy korzystała z oficjalnego API, czy nie.
+2. **„Usunięty” oznacza każdą powierzchnię kontrolowaną przez OmniRoute.** Executor, wpis w rejestrze, identyfikator
+   i alias dostawcy, lista modeli, punkty końcowe, zmienne środowiskowe, ikona, karty w panelu,
+   wygenerowana dokumentacja referencyjna dostawcy, `FREE_TIERS.md`, dokumentacja środowiskowa, liczniki w README,
+   kopie `llm.txt`, dedykowane testy i złote migawki (golden snapshots), komentarze w kodzie, punkty w CHANGELOGu
+   (z rozliczeniem księgowym, patrz `config/release/changelog-reconciliations.json`),
+   informacje o wydaniach GitHub Releases, wiki oraz zgłoszenia, dyskusje i pull requesty w serwisie GitHub, których
+   tematem był ten dostawca (zgłoszenia i dyskusje usunięte; pull requesty ze zmienionym tytułem,
+   zastąpionym opisem i zablokowanym wątkiem, ponieważ GitHub nie pozwala usuwać pull requestów).
+3. **Nigdy nie wprowadzaj ponownie wpisu z tej strony bez pisemnej zgody.** Obejmuje to
+   ponowne dodanie identyfikatora lub aliasu do dowolnego katalogu dostawców, dodanie domen do executora,
+   zaakceptowanie PR od współtwórcy, który go „przywraca”, dodanie go do katalogu darmowych modeli lub
+   udokumentowanie ręcznego sposobu uzyskania do niego dostępu przez OmniRoute. Zamykaj takie PR-y i zgłoszenia z
+   odnośnikiem do tej strony.
+4. **Ogranicz wpis do minimum.** Rejestruj tylko to, czego recenzent potrzebuje do rozpozania
+   ponownego wprowadzenia: identyfikator, domeny, daty oraz pull request, który dokonał usunięcia.
+   Nie opisuj sposobu działania integracji.
+5. **Zabezpieczeniem przed regresją jest plik `tests/unit/removed-providers-blocklist.test.ts`.** Test ten kończy się niepowodzeniem,
+   gdy którykolwiek z poniższych identyfikatorów lub domen ponownie pojawia się w katalogach dostawców, mapie executorów
+   lub źródłach rejestru dostawców. Dodaj nowe identyfikator do tego testu w tym samym PR, który
+   dodaje tutaj nowy wiersz.
+
+## Rejestr
+
+| Usunięto dnia | ID dostawcy       | Alias    | Domeny                                           | Żądane przez                                                                                               | PR usuwający                                                   | Notatki                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------- | ----------------- | -------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-08-12    | `puter`           | `pu`     | `puter.com`                                      | Właściciel Puter (Nariman Jelveh)                                                                          | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | Dostawca kluczy API. Migracja `152_remove_puter_provider.sql` czyści zapisaną konfigurację.                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-09-02    | `theoldllm`       | `tllm`   | `theoldllm.com`, `theoldllm.vercel.app`          | Operator usługi (e-mail wsparcia)                                                                          | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Dostawca bezkluczykowy. Wniosek pisemny otrzymany 2026-08-30. Dedykowane zgłoszenia i dyskusje zostały usunięte, PR-y zmieniono tytuły.                                                                                                                                                                                                                                                                                                          |
+| 2026-09-21    | `gemini-business` | `gembiz` | `business.gemini.google`                         | Decyzja właściciela projektu (zgłoszenie [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Dostawca webowy oparty na plikach cookie. Google wycofało endpoint `BardFrontendService/StreamGenerate`, w który celował wykonawca; zamiennik (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT uruchamiany z `__Secure-C_SES`/`csesidx`) nie może zostać zbudowany ani zweryfikowany bez aktywnego konta Gemini Enterprise/Workspace, którego projekt nie posiada. Wycofano zamiast przepisywać w sposób niezweryfikowany. |
+| 2026-09-21    | `suno`            | `suno`   | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Decyzja właściciela projektu (`#14224`)                                                                    | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Dostawca uwierzytelniany za pomocą plików cookie, a nie usunięcie na żądanie operatora. `studio-api.suno.ai` został zawieszony (503); działający host wymaga wymiany Clerk JWT oraz płatnej zależności do rozwiązywania hCaptcha, której OmniRoute postanowił nie dodawać dla jednego dostawcy muzyki. `kie/suno-v4.0` i `kie/suno-v3.5` (hostowane przez kie.ai) pozostają bez zmian i są nadal obsługiwane.                                    |
+
+## Dodawanie wpisu
+
+Gdy nadejdzie nowe żądanie usunięcia:
+
+1.  Potwierdź, że żądanie pochodzi od operatora usługi (z jego adresu wsparcia lub domeny, którą kontroluje), i zachowaj wiadomość prywatnie.
+2.  Usuń integrację zgodnie z listą kontrolną w punkcie polityki 2. Użyj [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) jako odniesienia dla dostawcy bezkluczowego oraz [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) dla dostawcy z kluczem API i zapisanymi połączeniami (dodaj migrację).
+3.  Dodaj jeden wiersz do powyższej tabeli oraz identyfikatory do `tests/unit/removed-providers-blocklist.test.ts`, w tym samym PR.
+4.  Odpowiedz operatorowi po scaleniu PR, wymieniając, co zostało usunięte i czego OmniRoute nie może zmienić (już opublikowane wersje npm i Docker, historia git, forki stron trzecich).

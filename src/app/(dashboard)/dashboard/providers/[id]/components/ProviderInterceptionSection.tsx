@@ -32,19 +32,20 @@ type Translate = (key: string, values?: Record<string, string>) => string;
 
 const DEFAULT_TOGGLES: InterceptionToggles = { interceptSearch: false, interceptFetch: false };
 
+async function throwOnErrorResponse(res: Response): Promise<void> {
+  if (res.ok) return;
+  const errData = await res.json().catch(() => ({}));
+  throw new Error(errData.error || `HTTP ${res.status}`);
+}
+
 async function fetchInterceptionToggles(providerId: string): Promise<InterceptionToggles> {
   const res = await fetch(`/api/providers/${providerId}/interception-rules`);
+  await throwOnErrorResponse(res);
   const data = await res.json();
   return {
     interceptSearch: data?.interceptSearch === true,
     interceptFetch: data?.interceptFetch === true,
   };
-}
-
-async function throwOnErrorResponse(res: Response): Promise<void> {
-  if (res.ok) return;
-  const errData = await res.json().catch(() => ({}));
-  throw new Error(errData.error || `HTTP ${res.status}`);
 }
 
 async function putInterceptionToggles(

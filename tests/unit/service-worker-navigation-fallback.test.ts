@@ -39,7 +39,7 @@ function createServiceWorkerHarness() {
 
   const caches = {
     delete: async () => true,
-    keys: async () => ["omniroute-pwa-v2"],
+    keys: async () => ["omniroute-pwa-v3"],
     match: async (request: Request | string) =>
       cacheEntries.get(typeof request === "string" ? request : request.url),
     open: async () => cache,
@@ -77,8 +77,7 @@ function createServiceWorkerHarness() {
         },
       };
       listener(event);
-      assert.ok(responsePromise, "navigate request must call respondWith");
-      return responsePromise;
+      return { intercepted: responsePromise !== undefined, response: responsePromise };
     },
     setFetch: (nextFetch: (request: Request) => Promise<Response>) => {
       fetchImpl = nextFetch;
@@ -86,44 +85,93 @@ function createServiceWorkerHarness() {
   };
 }
 
-test("#11779: network failure on navigation surfaces an error, not a stale shell", async () => {
+test("#11779: dashboard navigations are not intercepted so the browser can retry HTTP/2", async () => {
   const harness = createServiceWorkerHarness();
   const request = {
-    url: "https://app.example/dashboard",
+    url: "https://app.example/dashboard/quota",
     method: "GET",
     mode: "navigate",
     destination: "document",
   };
 
-  // A cached navigation response from a PREVIOUS deploy exists; serving it
-  // would replay a shell whose /_next/static/<old-build>/ chunks are gone.
+  // A cached navigation response from a PREVIOUS deploy exists. The worker
+  // must not intercept at all — Chrome then owns HTTP/3→HTTP/2 fallback
+  // after a stale Alt-Svc advertisement. Intercepting and returning
+  // Response.error() is what made F5 hang until a new tab opened.
   harness.cacheEntries.set(request.url, new Response("cached dashboard", { status: 200 }));
 
-  const response = await harness.dispatchFetch(request);
-
-  assert.ok(response.type === "error", "navigation fallback must surface the network failure");
+  const result = await harness.dispatchFetch(request);
+  assert.equal(result.intercepted, false, "dashboard navigation must fall through to the browser");
 });
 
-test("#5165: successful navigations are cached for later transient failures", async () => {
+test("#11779: API and Next assets still go through the worker", async () => {
   const harness = createServiceWorkerHarness();
-  const request = {
+  harness.setFetch(async () => new Response("ok", { status: 200 }));
+
+  const api = await harness.dispatchFetch({
+    url: "https://app.example/api/health/ping",
+    method: "GET",
+    mode: "cors",
+    destination: "",
+  });
+  assert.equal(api.intercepted, false, "/api/ is already excluded");
+
+  const asset = await harness.dispatchFetch({
+    url: "https://app.example/_next/static/chunk.js",
+    method: "GET",
+    mode: "cors",
+    destination: "script",
+  });
+  assert.equal(asset.intercepted, true);
+  assert.equal(await (await asset.response!).text(), "ok");
+});
+
+test("#11779: /dashboardfoo is not treated as a dashboard path", async () => {
+  const harness = createServiceWorkerHarness();
+  harness.setFetch(async () => new Response("ok", { status: 200 }));
+  const result = await harness.dispatchFetch({
+    url: "https://app.example/dashboardfoo",
+    method: "GET",
+    mode: "cors",
+    destination: "script",
+  });
+  assert.equal(result.intercepted, true, "prefix match must not swallow /dashboardfoo");
+
+  const dash = await harness.dispatchFetch({
     url: "https://app.example/dashboard",
     method: "GET",
-    mode: "navigate",
-    destination: "document",
+    mode: "cors",
+    destination: "script",
+  });
+  assert.equal(dash.intercepted, false, "/dashboard exact must stay excluded");
+
+  const nested = await harness.dispatchFetch({
+    url: "https://app.example/dashboard/quota",
+    method: "GET",
+    mode: "cors",
+    destination: "script",
+  });
+  assert.equal(nested.intercepted, false, "/dashboard/quota must stay excluded");
+});
+
+test("#5165: static assets stay cache-first; navigations do not", async () => {
+  const harness = createServiceWorkerHarness();
+  const icon = {
+    url: "https://app.example/icon-512.png",
+    method: "GET",
+    mode: "cors",
+    destination: "image",
   };
 
-  harness.setFetch(async () => new Response("fresh dashboard", { status: 200 }));
-  assert.equal(await (await harness.dispatchFetch(request)).text(), "fresh dashboard");
+  harness.setFetch(async () => new Response("fresh icon", { status: 200 }));
+  const first = await harness.dispatchFetch(icon);
+  assert.equal(first.intercepted, true);
+  assert.equal(await (await first.response!).text(), "fresh icon");
 
   harness.setFetch(async () => {
     throw new Error("transient network failure");
   });
-
-  // #11779: the transient failure surfaces as an error response. The freshly
-  // cached entry stays in the cache (a future navigations-are-cached design
-  // may use it), but it must NOT be replayed as a navigation response -- the
-  // shell's chunk references belong to a specific build.
-  const failed = await harness.dispatchFetch(request);
-  assert.ok(failed.type === "error", "transient failure must surface, not replay cache");
+  const second = await harness.dispatchFetch(icon);
+  assert.equal(second.intercepted, true);
+  assert.equal(await (await second.response!).text(), "fresh icon");
 });

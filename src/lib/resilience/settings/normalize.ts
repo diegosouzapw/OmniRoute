@@ -14,9 +14,11 @@ import type {
   RequestQueueSettings,
   ConnectionCooldownProfileSettings,
   ProviderBreakerProfileSettings,
+  TokenRefreshBreakerSettings,
   WaitForCooldownSettings,
   ComboCooldownWaitSettings,
   QuotaShareConcurrencyLimitSettings,
+  StreamStallCooldownSettings,
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
@@ -130,15 +132,19 @@ export function normalizeRequestQueueSettings(
     fallback.globalConcurrentRequests,
     { min: 0, max: 100_000 }
   );
+  // limiter-managed execution deadline off for long-running models (GLM-5.2 with
+  // reasoning.effort=max can spend minutes before the first token, exceeding any
+  // practical maxWaitMs). The TTB safety net is FETCH_TIMEOUT_MS (default 600s).
+  // Issue #4165 follow-up: min:1 silently rewrote 0 → 1, which made an operator's
+  // "disable" intent worse — a 1ms expiration killed every long job instantly.
   const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, {
+    min: 0,
+    max: 24 * 60 * 60 * 1000,
+  });
+  const executionMaxWaitMs = toInteger(record.executionMaxWaitMs, fallback.executionMaxWaitMs, {
     min: 1,
     max: 24 * 60 * 60 * 1000,
   });
-  const executionMaxWaitMs = toInteger(
-    record.executionMaxWaitMs,
-    fallback.executionMaxWaitMs,
-    { min: 1, max: 24 * 60 * 60 * 1000 }
-  );
   const maxQueueDepth = toInteger(record.maxQueueDepth, fallback.maxQueueDepth, {
     min: 0,
     max: 100_000,
@@ -227,6 +233,26 @@ export function normalizeLegacyConnectionCooldownProfile(
     maxBackoffSteps: toInteger(record.maxBackoffLevel, fallback.maxBackoffSteps, {
       min: 0,
       max: 32,
+    }),
+  };
+}
+
+export function normalizeTokenRefreshBreakerSettings(
+  next: unknown,
+  fallback: TokenRefreshBreakerSettings
+): TokenRefreshBreakerSettings {
+  const record = asRecord(next);
+  const scope: TokenRefreshBreakerSettings["scope"] =
+    record.scope === "connection" ? "connection" : "provider";
+  return {
+    scope,
+    failureThreshold: toInteger(record.failureThreshold, fallback.failureThreshold, {
+      min: 1,
+      max: 100,
+    }),
+    cooldownMs: toInteger(record.cooldownMs, fallback.cooldownMs, {
+      min: 60_000,
+      max: 24 * 60 * 60 * 1000,
     }),
   };
 }
@@ -378,6 +404,14 @@ export function normalizeQuotaShareConcurrencyLimitSettings(
   next: unknown,
   fallback: QuotaShareConcurrencyLimitSettings
 ): QuotaShareConcurrencyLimitSettings {
+  const record = asRecord(next);
+  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
+export function normalizeStreamStallCooldownSettings(
+  next: unknown,
+  fallback: StreamStallCooldownSettings
+): StreamStallCooldownSettings {
   const record = asRecord(next);
   return { enabled: toBoolean(record.enabled, fallback.enabled) };
 }

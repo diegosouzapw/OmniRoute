@@ -3,6 +3,7 @@
 // Combos screen = Compression Hub (top) + named-combos manager (below).
 //
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
 import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
@@ -38,6 +39,8 @@ const ENGINE_INTENSITIES: Record<string, readonly string[]> = STACKED_PIPELINE_E
 
 function NamedCombosManager() {
   const t = useTranslations("contextCombos");
+  const tSettings = useTranslations("settings");
+  const tCommon = useTranslations("common");
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
   const [routingCombos, setRoutingCombos] = useState<RoutingCombo[]>([]);
   const [languagePacks, setLanguagePacks] = useState<LanguagePack[]>([]);
@@ -53,6 +56,12 @@ function NamedCombosManager() {
   const [activeComboId, setActiveComboId] = useState<string | null>(null);
   const [compressionEnabled, setCompressionEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The defaults (activeComboId null, compressionEnabled false) suppress the
+  // master-switch warning, hide the Active badge and disable the override selects,
+  // so a failed settings GET must show a retry instead. A retry re-runs the loads;
+  // answers that arrive for the run it replaced are ignored.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -62,23 +71,37 @@ function NamedCombosManager() {
   };
 
   useEffect(() => {
+    let ignore = false;
     refresh();
     fetch("/api/combos")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setRoutingCombos(Array.isArray(data?.combos) ? data.combos : []))
+      .then((data) => {
+        if (!ignore) setRoutingCombos(Array.isArray(data?.combos) ? data.combos : []);
+      })
       .catch(() => {});
     fetch("/api/compression/language-packs")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []))
+      .then((data) => {
+        if (!ignore) setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []);
+      })
       .catch(() => {});
     fetch("/api/settings/compression")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        setActiveComboId(data?.activeComboId ?? null);
-        setCompressionEnabled(Boolean(data?.enabled));
+        if (ignore) return;
+        if (data) {
+          setActiveComboId(data.activeComboId ?? null);
+          setCompressionEnabled(Boolean(data.enabled));
+        }
+        setLoadFailed(!data);
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        if (!ignore) setLoadFailed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [loadAttempt]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -179,12 +202,45 @@ function NamedCombosManager() {
     );
   };
 
+  if (loadFailed) {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {tSettings("compressionTitle")}: {tCommon("failedToLoad")}
+        </p>
+        <button
+          type="button"
+          onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+          className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-text-main hover:bg-bg"
+        >
+          {tSettings("retry")}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div>
         <h2 className="text-lg font-semibold text-text-main">{t("namedCombos")}</h2>
         <p className="text-sm text-text-muted">{t("namedCombosDescription")}</p>
       </div>
+
+      {/* #12063: the master "Prompt Compression" switch (Settings page) is a hard kill that
+          runs BEFORE an active profile is even considered (strategySelector.ts resolveBasePlan).
+          Surface that dependency here so a selected profile is never silently inert. */}
+      {!compressionEnabled && activeComboId && (
+        <div
+          role="alert"
+          data-testid="compression-master-switch-warning"
+          className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400"
+        >
+          {t("activeProfileMasterSwitchOffWarning")}{" "}
+          <Link href="/dashboard/context/settings" className="font-medium underline">
+            {t("activeProfileMasterSwitchOffCta")}
+          </Link>
+        </div>
+      )}
 
       <section className="rounded-lg border border-border bg-surface p-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

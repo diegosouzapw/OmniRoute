@@ -12,6 +12,7 @@ import { HistoryTab } from "./tabs/HistoryTab";
 import { OrchestrationDrawer } from "./drawer/OrchestrationDrawer";
 import { OrchestrationToolbar } from "./OrchestrationToolbar";
 import { collectProviderKeys, filterSnapshot } from "./model/filterSnapshot";
+import { parseCsvSet, toggleCsv } from "./model/urlParams";
 import type { OrchFilter } from "./model/filterSnapshot";
 import { ORCH_STATES } from "./model/orchestrationTypes";
 import type { OrchSource, OrchState } from "./model/orchestrationTypes";
@@ -21,25 +22,6 @@ type Tab = (typeof TABS)[number];
 
 const VALID_STATES: ReadonlySet<OrchState> = new Set(ORCH_STATES);
 const VALID_SOURCES: ReadonlySet<OrchSource> = new Set(["cloud-agent", "a2a", "conductor"]);
-
-/** CSV → Set, dropping empty/invalid entries (`valid` omitted accepts any non-empty token). */
-function parseCsvSet<T extends string>(raw: string | null, valid?: ReadonlySet<T>): Set<T> {
-  const out = new Set<T>();
-  if (!raw) return out;
-  for (const v of raw.split(",")) {
-    if (!v) continue;
-    if (!valid || valid.has(v as T)) out.add(v as T);
-  }
-  return out;
-}
-
-/** Toggle `value` in `current`, returning the next CSV (or `null` to drop the param). */
-function toggleCsv<T extends string>(current: ReadonlySet<T>, value: T): string | null {
-  const next = new Set(current);
-  if (next.has(value)) next.delete(value);
-  else next.add(value);
-  return next.size > 0 ? [...next].sort().join(",") : null;
-}
 
 const TAB_KEY: Record<Tab, string> = {
   agents: "tabAgents",
@@ -133,6 +115,17 @@ export default function OrchestrationPageClient() {
     [collapsed, setParams]
   );
   const closeDrawer = useCallback(() => setParams({ node: null }), [setParams]);
+  const onActionDone = useCallback(
+    (newNodeId?: string) => {
+      refetch();
+      if (newNodeId) setParams({ node: newNodeId });
+    },
+    [refetch, setParams]
+  );
+  const clearFilters = useCallback(
+    () => setParams({ q: null, state: null, source: null, provider: null }),
+    [setParams]
+  );
 
   const selectedNode = nodeId ? (snapshot.nodes.find((n) => n.id === nodeId) ?? null) : null;
   const onNodeClick = (id: string) =>
@@ -166,6 +159,8 @@ export default function OrchestrationPageClient() {
               onToggleCompleted={setShowCompleted}
               collapsed={collapsed}
               onToggleCollapse={onToggleCollapse}
+              filter={filter}
+              onClearFilters={clearFilters}
             />
           )}
           {tab === "routing" && (
@@ -188,8 +183,17 @@ export default function OrchestrationPageClient() {
           {tab === "history" && <HistoryTab />}
         </div>
       </div>
+      {/* A successful repeat hands back the CANVAS id of the task it created: refetch, then
+          focus it (`?node=`) so the operator lands on the new run instead of staring at the
+          finished one. No id (approve/cancel, or a creation response without one) keeps the
+          current selection. The History tab renders its own drawer and deliberately does NOT
+          navigate (HistoryTab.tsx) — its runs are not addressable in the live snapshot. */}
       {tab !== "history" && (
-        <OrchestrationDrawer node={selectedNode} onClose={closeDrawer} onActionDone={refetch} />
+        <OrchestrationDrawer
+          node={selectedNode}
+          onClose={closeDrawer}
+          onActionDone={onActionDone}
+        />
       )}
     </div>
   );

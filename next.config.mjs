@@ -1,6 +1,6 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { createMDX } from "fumadocs-mdx/next";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { betterSqlite3AliasFor } from "./scripts/build/better-sqlite3-stub-flag.mjs";
 import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
@@ -10,6 +10,7 @@ import {
   nonPageRoutePrefixes,
   resolveDashboardEmbedMode,
 } from "./scripts/build/dashboardEmbed.mjs";
+import { shouldBuildStandalone } from "./scripts/build/backendOnlyPages.mjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
@@ -109,8 +110,6 @@ function filterKnownInfrastructureWarnings(baseConsole) {
 // The resulting artifact is intended to be published as `omniroute-secure`
 // for security-sensitive environments. See docs/security/SOCKET_DEV_FINDINGS.md.
 const isMinimalBuild = process.env.OMNIROUTE_BUILD_PROFILE === "minimal";
-// Contributor builds validate compilation only and do not need a shippable standalone bundle.
-const isContributorBuild = process.env.OMNIROUTE_BUILD_PROFILE === "contributor";
 
 // #10273: `null` unless the operator opts in with DASHBOARD_ALLOW_EMBED=vscode. Read at build
 // time like every other knob in this file (OMNIROUTE_BASE_PATH, OMNIROUTE_BUILD_PROFILE, …),
@@ -220,7 +219,7 @@ const nextConfig = {
       },
     ],
   },
-  ...(isContributorBuild ? {} : { output: "standalone" }),
+  ...(shouldBuildStandalone(process.env) ? { output: "standalone" } : {}),
   compress: true,
   productionBrowserSourceMaps: false,
   // Issue #67: enable React Compiler — automates memoization, removes manual useCallback/useMemo debt.
@@ -302,6 +301,7 @@ const nextConfig = {
     // Using "**/*" ensures the exclusion applies across all app and API routes, not just "/".
     "**/*": [
       "**/.git/**",
+      "**/.eslintcache",
       "**/_tasks/**",
       "**/_references/**",
       "**/_ideia/**",
@@ -334,11 +334,13 @@ const nextConfig = {
     // build warnings.  Externalizing silences them without changing behaviour.
     "sql.js",
     // tiktoken's node build reads tiktoken_bg.wasm via __dirname-relative
-    // fs.readFileSync at import time. When bundled, the wasm asset is not
-    // traced into the server chunk and page-data collection for any route
-    // importing the vendored ChatGPT Web tokenizer fails with
-    // "Missing tiktoken_bg.wasm". Externalizing keeps the require at runtime
-    // where node_modules/tiktoken/tiktoken_bg.wasm resolves normally.
+    // fs.readFileSync at import time. When bundled (webpack or Turbopack), the
+    // wasm asset is not traced into the server chunk / the ESM entry's module
+    // graph omits the runtime asset, and page-data collection for any route
+    // importing the vendored ChatGPT Web tokenizer (e.g. /api/providers) fails
+    // with "Missing tiktoken_bg.wasm". Externalizing keeps Node's CommonJS
+    // require at runtime, where node_modules/tiktoken/tiktoken_bg.wasm
+    // resolves normally.
     "tiktoken",
     // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
     // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
@@ -349,12 +351,12 @@ const nextConfig = {
     "keytar",
     "wreq-js",
     "zod",
+    // jsdom relies on Node class relationships that Turbopack's server-chunk transform can break
+    // (observed as "Class extends value undefined" during Vertex metadata sync). Keep the native
+    // package boundary; standalone file tracing still copies the runtime dependency.
+    "jsdom",
     "@ngrok/ngrok",
     "@huggingface/transformers",
-    // The ESM entry imports tiktoken_bg.wasm as a module. Turbopack can compile
-    // that graph but omits the runtime asset, making provider routes fail during
-    // module evaluation. Keep Node's CommonJS loader and colocated WASM intact.
-    "tiktoken",
     // copilot-m365-web.ts imports 'ws' as a client-side WebSocket. When bundled,
     // ws cannot resolve its 'bufferutil' native addon (frame masking) and throws
     // TypeError: b.mask is not a function on the first outgoing frame, causing
@@ -362,6 +364,13 @@ const nextConfig = {
     "ws",
     "bufferutil",
     "utf-8-validate",
+    // The SDK's client graph has a module-level `class extends Client` cycle
+    // against the TLA Client module. Bundled into route chunks it throws
+    // "Cannot access 'l' before initialization" during evaluation and every
+    // /api/mcp/stream initialize answers HTTP 500. Node's native ESM loader
+    // resolves the same circular graph via live bindings, so keep the SDK
+    // out of the webpack server bundle.
+    "@modelcontextprotocol/sdk",
     "child_process",
     "fs",
     "path",
@@ -460,13 +469,22 @@ const nextConfig = {
       // NormalModuleReplacementPlugin swaps the real module for a stub before
       // webpack resolves it, so the privileged source files are never compiled
       // into the standalone output.
+      // BUGFIX (Chat 327, D-1): resource.request resolves relative to the
+      // *importing file's* directory, not the project root -- a bare
+      // "./src/..." string only worked for imports from projectRoot itself.
+      // Use an absolute path (import.meta.url-derived projectRoot, already
+      // defined above) so this resolves correctly regardless of which file
+      // does the importing.
       const replacements = [
-        [/^@\/mitm\/cert\/install$/, "./src/mitm/cert/install.stub.ts"],
-        [/^@\/lib\/zed-oauth\/keychain-reader$/, "./src/lib/zed-oauth/keychain-reader.stub.ts"],
-        [/^@\/lib\/cloudSync$/, "./src/lib/cloudSync.stub.ts"],
+        [/^@\/mitm\/cert\/install$/, join(projectRoot, "src/mitm/cert/install.stub.ts")],
+        [
+          /^@\/lib\/zed-oauth\/keychain-reader$/,
+          join(projectRoot, "src/lib/zed-oauth/keychain-reader.stub.ts"),
+        ],
+        [/^@\/lib\/cloudSync$/, join(projectRoot, "src/lib/cloudSync.stub.ts")],
         [
           /^@\/lib\/services\/installers\/ninerouter$/,
-          "./src/lib/services/installers/ninerouter.stub.ts",
+          join(projectRoot, "src/lib/services/installers/ninerouter.stub.ts"),
         ],
       ];
       for (const [pattern, stubPath] of replacements) {

@@ -89,7 +89,7 @@ test.after(async () => {
   else process.env.VITEST = originalVitest;
   if (originalPluginsDir === undefined) delete process.env.OMNIROUTE_PLUGINS_DIR;
   else process.env.OMNIROUTE_PLUGINS_DIR = originalPluginsDir;
-  core.resetDbInstance();
+  await core.shutdownDbInstance();
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
   if (originalApiKeySecret === undefined) delete process.env.API_KEY_SECRET;

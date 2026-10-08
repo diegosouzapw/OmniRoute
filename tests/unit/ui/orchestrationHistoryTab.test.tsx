@@ -6,7 +6,7 @@
  */
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (k: string, v?: Record<string, unknown>) =>
@@ -50,12 +50,18 @@ afterEach(() => {
   document.body.innerHTML = "";
   drawerCalls.length = 0;
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 const NOW = Date.parse("2026-09-01T12:00:00Z");
+beforeEach(() => {
+  // Fixture timestamps and the component's sliding window share one clock.
+  // Fake Date only: React scheduling and asynchronous fetch flushing stay real.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(NOW);
+});
 const hoursAgo = (h: number) => new Date(NOW - h * 60 * 60 * 1000).toISOString();
-/** Relative to the REAL clock — for assertions that must hold inside the 1d window too
- * (the component derives its range from `Date.now()`, not from the fixed `NOW` above). */
+/** Relative to the controlled current clock, including explicit time advances. */
 const realHoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
 
 function mockFetch(opts: {
@@ -267,6 +273,8 @@ describe("HistoryTab", () => {
     expect((drawerCalls.at(-1) as { node: unknown }).node).toBeTruthy();
     const callsBefore = fetchMock.mock.calls.length;
 
+    // Completing an action occurs after mount; a new sampled time refreshes the range.
+    vi.setSystemTime(NOW + 1000);
     await act(async () => {
       (drawerCalls.at(-1) as { onActionDone: () => void }).onActionDone();
     });
@@ -299,5 +307,180 @@ describe("HistoryTab", () => {
     await flush();
     expect(c.textContent).toContain("historyEmpty");
     cleanup();
+  });
+
+  describe("compare mode", () => {
+    // Three distinct cells (distinct aria-label substrings) so tests can select each
+    // individually: two a2a runs plus one Cloud Agent run.
+    function threeItems() {
+      return {
+        a2aTasks: [
+          a2aTask({ id: "t1", skill: "smart-routing" }),
+          a2aTask({
+            id: "t3",
+            skill: "eval-suite",
+            createdAt: hoursAgo(2),
+            completedAt: hoursAgo(1.5),
+          }),
+        ],
+        cloudAgentTasks: [cloudAgentTask()],
+      };
+    }
+
+    function cellFor(c: HTMLElement, needle: string) {
+      return c.querySelector(`button[aria-label*="${needle}"]`) as HTMLButtonElement;
+    }
+
+    function toggleCompareButton(c: HTMLElement) {
+      return Array.from(c.querySelectorAll("button")).find(
+        (b) => b.textContent === "compareMode" || b.textContent === "compareExit"
+      ) as HTMLButtonElement;
+    }
+
+    it("compare mode is off by default: the toggle reports aria-pressed=false and a cell click still opens the drawer", async () => {
+      vi.stubGlobal("fetch", mockFetch(threeItems()));
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      const toggle = toggleCompareButton(c);
+      expect(toggle).toBeTruthy();
+      expect(toggle.getAttribute("aria-pressed")).toBe("false");
+      expect(toggle.textContent).toBe("compareMode");
+
+      const cell = cellFor(c, "smart-routing");
+      act(() => cell.click());
+      const last = drawerCalls.at(-1) as { node: { id: string } | null };
+      expect(last.node?.id).toBe("a2a:t1");
+      cleanup();
+    });
+
+    it("turning compare mode on and clicking two cells marks both and does not open the drawer", async () => {
+      vi.stubGlobal("fetch", mockFetch(threeItems()));
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      act(() => toggleCompareButton(c).click());
+      expect(toggleCompareButton(c).getAttribute("aria-pressed")).toBe("true");
+      expect(toggleCompareButton(c).textContent).toBe("compareExit");
+
+      const cellA = cellFor(c, "smart-routing");
+      const cellB = cellFor(c, "do the thing");
+      act(() => cellA.click());
+      act(() => cellB.click());
+
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("true");
+      expect(cellFor(c, "do the thing").getAttribute("aria-pressed")).toBe("true");
+      // The drawer stub keeps re-rendering (parent state changed) but is never given a node —
+      // neither click opened it.
+      const last = drawerCalls.at(-1) as { node: unknown };
+      expect(last.node).toBeNull();
+      cleanup();
+    });
+
+    it("clicking an already-selected cell in compare mode unmarks it instead of dropping the oldest", async () => {
+      // Isolated coverage for onToggleCompareSelect's unmark branch (`prev.some(...) →
+      // prev.filter(...)`) — the eviction-queue test above only exercises the "new distinct
+      // item" branch, so clicking a cell that is ALREADY marked had no direct test.
+      vi.stubGlobal("fetch", mockFetch(threeItems()));
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      act(() => toggleCompareButton(c).click());
+      act(() => cellFor(c, "smart-routing").click());
+      act(() => cellFor(c, "do the thing").click());
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("true");
+      expect(cellFor(c, "do the thing").getAttribute("aria-pressed")).toBe("true");
+
+      // Click the already-selected "smart-routing" cell again: it must unmark, leaving only
+      // "do the thing" marked — not evict the oldest as if a 3rd distinct item were picked.
+      act(() => cellFor(c, "smart-routing").click());
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("false");
+      expect(cellFor(c, "do the thing").getAttribute("aria-pressed")).toBe("true");
+      cleanup();
+    });
+
+    it("a third selection in compare mode drops the oldest, keeping the 2nd and 3rd marked", async () => {
+      vi.stubGlobal("fetch", mockFetch(threeItems()));
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      act(() => toggleCompareButton(c).click());
+      act(() => cellFor(c, "smart-routing").click());
+      act(() => cellFor(c, "do the thing").click());
+      act(() => cellFor(c, "eval-suite").click());
+
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("false");
+      expect(cellFor(c, "do the thing").getAttribute("aria-pressed")).toBe("true");
+      expect(cellFor(c, "eval-suite").getAttribute("aria-pressed")).toBe("true");
+      cleanup();
+    });
+
+    it("selecting a new preset clears the compare selection (Minor #3)", async () => {
+      // Review finding: a pick made under the old range can fall outside the new range once
+      // the preset changes — the grid drops its ring while the compare panel kept comparing a
+      // stale snapshot captured at click time. The selection queue must reset on preset change,
+      // without leaving/re-entering compare mode.
+      //
+      // `buildHistoryGrid` (historyModel.ts) buckets purely client-side by `createdAt` against
+      // `range`, which is derived from the controlled `Date.now()` — an item outside the
+      // requested window is dropped from the grid
+      // entirely, row and all. Both fixtures below use `realHoursAgo` so they survive the
+      // switch to the 1d preset too; the assertion is about the ring/selection state, not about
+      // which items the grid happens to still show.
+      vi.stubGlobal(
+        "fetch",
+        mockFetch({
+          a2aTasks: [
+            a2aTask({ id: "t1", skill: "smart-routing", createdAt: realHoursAgo(1) }),
+            a2aTask({ id: "t3", skill: "eval-suite", createdAt: realHoursAgo(2) }),
+          ],
+        })
+      );
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      act(() => toggleCompareButton(c).click());
+      act(() => cellFor(c, "smart-routing").click());
+      act(() => cellFor(c, "eval-suite").click());
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("true");
+      expect(cellFor(c, "eval-suite").getAttribute("aria-pressed")).toBe("true");
+
+      const btn1d = Array.from(c.querySelectorAll("button")).find(
+        (b) => b.textContent === "historyRange1d"
+      ) as HTMLButtonElement;
+      expect(btn1d).toBeTruthy();
+      act(() => btn1d.click());
+      await flush();
+
+      // Still in compare mode (the toggle itself is untouched by a preset change) …
+      expect(toggleCompareButton(c).getAttribute("aria-pressed")).toBe("true");
+      // … but both picks are unmarked — the cells still exist, they must no longer show the ring.
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("false");
+      expect(cellFor(c, "eval-suite").getAttribute("aria-pressed")).toBe("false");
+      // The compare panel itself must not be mounted any more (queue dropped below 2).
+      expect(c.querySelector('[data-testid="orchestration-history-compare-panel"]')).toBeNull();
+      cleanup();
+    });
+
+    it("leaving compare mode clears the selection", async () => {
+      vi.stubGlobal("fetch", mockFetch(threeItems()));
+      const { c, cleanup } = render(<HistoryTab />);
+      await flush();
+
+      act(() => toggleCompareButton(c).click());
+      act(() => cellFor(c, "smart-routing").click());
+      act(() => cellFor(c, "do the thing").click());
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("true");
+
+      // Leave compare mode.
+      act(() => toggleCompareButton(c).click());
+      expect(toggleCompareButton(c).getAttribute("aria-pressed")).toBe("false");
+
+      // Re-enter compare mode: nothing should still be marked.
+      act(() => toggleCompareButton(c).click());
+      expect(cellFor(c, "smart-routing").getAttribute("aria-pressed")).toBe("false");
+      expect(cellFor(c, "do the thing").getAttribute("aria-pressed")).toBe("false");
+      cleanup();
+    });
   });
 });

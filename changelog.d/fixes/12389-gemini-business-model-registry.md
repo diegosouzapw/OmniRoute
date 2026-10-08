@@ -1,1 +1,0 @@
-- **fix(providers):** `gemini-business` now publishes its model catalog — `/v1/models` and `/v1/providers/gemini-business/models` list the 12 enterprise Gemini ids the executor understands instead of returning an empty list (#12107)

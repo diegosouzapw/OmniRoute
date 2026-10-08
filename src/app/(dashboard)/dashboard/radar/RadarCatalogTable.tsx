@@ -96,7 +96,12 @@ function budgetLabel(entry: RadarMergedEntry): string {
   return `${formatTokens(entry.monthlyTokens)}/mo`;
 }
 
-function capabilityBadge(label: string, value: boolean | null | undefined, trueClass: string) {
+function capabilityBadge(
+  label: string,
+  value: boolean | null | undefined,
+  trueClass: string,
+  unknownHelp: string
+) {
   const state = value === true ? "✓" : value === false ? "✕" : "?";
   const stateClass =
     value === true
@@ -104,8 +109,12 @@ function capabilityBadge(label: string, value: boolean | null | undefined, trueC
       : value === false
         ? "bg-red-500/10 text-red-400"
         : "bg-gray-500/10 text-gray-400";
+  const unknown = value !== true && value !== false;
   return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded ${stateClass}`}>
+    <span
+      className={`text-[10px] px-1.5 py-0.5 rounded ${stateClass}`}
+      {...(unknown ? { title: unknownHelp } : {})}
+    >
       {label} {state}
     </span>
   );
@@ -282,26 +291,42 @@ export function RadarCatalogTable({ entries, refreshCatalog, onError }: RadarCat
                       )}
                     </td>
                     <td className="py-3 text-sm">{budgetLabel(entry)}</td>
-                    <td className="py-3 text-sm text-text-muted">{formatLimits(entry)}</td>
                     <td className="py-3 text-sm text-text-muted">
-                      {entry.contextWindow ? `${(entry.contextWindow / 1000).toFixed(0)}K` : "—"}
+                      {(() => {
+                        const limits = formatLimits(entry);
+                        return limits === "—" ? (
+                          <span title={t("limitsUnknownHelp")}>{limits}</span>
+                        ) : (
+                          limits
+                        );
+                      })()}
+                    </td>
+                    <td className="py-3 text-sm text-text-muted">
+                      {entry.contextWindow != null ? (
+                        `${(entry.contextWindow / 1000).toFixed(0)}K`
+                      ) : (
+                        <span title={t("contextUnknownHelp")}>—</span>
+                      )}
                     </td>
                     <td className="py-3">
                       <div className="flex flex-wrap gap-1">
                         {capabilityBadge(
                           t("capTools"),
                           entry.capabilities?.tools,
-                          "bg-blue-500/10 text-blue-400"
+                          "bg-blue-500/10 text-blue-400",
+                          t("capabilityUnknownHelp")
                         )}
                         {capabilityBadge(
                           t("capVision"),
                           entry.capabilities?.vision,
-                          "bg-purple-500/10 text-purple-400"
+                          "bg-purple-500/10 text-purple-400",
+                          t("capabilityUnknownHelp")
                         )}
                         {capabilityBadge(
                           t("capThinking"),
                           entry.capabilities?.thinking,
-                          "bg-amber-500/10 text-amber-400"
+                          "bg-amber-500/10 text-amber-400",
+                          t("capabilityUnknownHelp")
                         )}
                       </div>
                     </td>

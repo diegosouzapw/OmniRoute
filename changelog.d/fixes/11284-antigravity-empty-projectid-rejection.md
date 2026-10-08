@@ -1,1 +1,0 @@
-- **fix(providers):** Antigravity OAuth marks connects with no Cloud Code projectId as degraded instead of a false "Connected"; BYOP detection at connect time, auto-disable of confirmed-missing accounts, and selection-side rotation ([#11284](https://github.com/diegosouzapw/OmniRoute/issues/11284))

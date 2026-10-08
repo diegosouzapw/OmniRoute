@@ -5,6 +5,10 @@ import { randomUUID } from "node:crypto";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COMMAND_CODE_VERSION } from "@omniroute/open-sse/executors/commandCode.ts";
 import {
+  detectReasoningControl,
+  getReasoningControlEndpointFingerprint,
+} from "@omniroute/open-sse/utils/reasoningControl.ts";
+import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
   isBedrockNativeAuthError,
@@ -415,7 +419,67 @@ export async function validateGeminiLikeProvider({
 
 // ── Specialty providers (non-standard APIs) ──
 
-export async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
+const REASONING_CONTROL_MODELS_MAX_BYTES = 2 * 1024 * 1024;
+const REASONING_CONTROL_BODY_TIMEOUT_MS = 5_000;
+const REASONING_CONTROL_BODY_TIMEOUT = Symbol("reasoning-control-body-timeout");
+
+async function readModelsPayloadForReasoningControl(
+  response: Response,
+  timeoutMs = REASONING_CONTROL_BODY_TIMEOUT_MS
+): Promise<unknown | null> {
+  const declaredLength = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > REASONING_CONTROL_MODELS_MAX_BYTES) {
+    void response.body?.cancel().catch(() => {});
+    return null;
+  }
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  let abandonReader = false;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<typeof REASONING_CONTROL_BODY_TIMEOUT>((resolve) => {
+    timeoutId = setTimeout(() => resolve(REASONING_CONTROL_BODY_TIMEOUT), Math.max(1, timeoutMs));
+  });
+  try {
+    while (true) {
+      const next = await Promise.race([reader.read(), deadline]);
+      if (next === REASONING_CONTROL_BODY_TIMEOUT) {
+        abandonReader = true;
+        void reader.cancel().catch(() => {});
+        return null;
+      }
+      const { done, value } = next;
+      if (done) break;
+      if (!value) continue;
+      bytes += value.byteLength;
+      if (bytes > REASONING_CONTROL_MODELS_MAX_BYTES) {
+        abandonReader = true;
+        void reader.cancel().catch(() => {});
+        return null;
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (!abandonReader) reader.releaseLock();
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+export async function validateOpenAICompatibleProvider({
+  apiKey,
+  providerSpecificData = {},
+  reasoningControlDetectionTimeoutMs,
+}: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
@@ -437,7 +501,24 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
     modelsReachable = true;
 
     if (modelsRes.ok) {
-      return { valid: true, error: null, method: "models_endpoint" };
+      let modelsPayload: unknown | null = null;
+      try {
+        modelsPayload = await readModelsPayloadForReasoningControl(
+          modelsRes,
+          reasoningControlDetectionTimeoutMs
+        );
+      } catch {
+        // Detection is advisory. A 200 /models response already proves the connection;
+        // a broken or abruptly closed body must not trigger a second, billable chat probe.
+      }
+      return {
+        valid: true,
+        error: null,
+        method: "models_endpoint",
+        detectedReasoningControl: detectReasoningControl(modelsPayload, providerSpecificData),
+        reasoningControlEndpointFingerprint:
+          getReasoningControlEndpointFingerprint(providerSpecificData),
+      };
     }
 
     if (modelsRes.status === 401 || modelsRes.status === 403) {
@@ -445,12 +526,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
     }
 
     // Endpoint responded and auth seems valid, but quota is exhausted/rate-limited.
-    if (modelsRes.status === 429) {
+    // A 402 here is a catalog/upstream quota signal, not proof the credential is
+    // dead — openai-compatible gateways multiplex many models behind one key.
+    if (modelsRes.status === 429 || modelsRes.status === 402) {
       return {
         valid: true,
         error: null,
         method: "models_endpoint",
-        warning: "Rate limited, but credentials are valid",
+        statusCode: modelsRes.status,
+        warning:
+          modelsRes.status === 402
+            ? "A catalog/upstream quota 402 is not a connection-wide credential failure"
+            : "Rate limited, but credentials are valid",
       };
     }
   } catch {
@@ -506,6 +593,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
         error: null,
         method: "chat_completions",
         warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    // Representative-model 402: this one upstream is out of credit. The key
+    // still authenticated — do not fail the whole openai-compatible connection.
+    if (chatRes.status === 402) {
+      return {
+        valid: true,
+        error: null,
+        method: "chat_completions",
+        statusCode: 402,
+        warning: `Model ${testModelId} returned 402 (per-model quota); credentials remain valid`,
       };
     }
 

@@ -538,7 +538,7 @@ export class HuggingChatExecutor extends BaseExecutor {
         resolvedModel,
         id,
         created,
-        signal,
+        combinedSignal,
         streamCancellationController.signal
       );
 
@@ -626,7 +626,7 @@ export class HuggingChatExecutor extends BaseExecutor {
 
     let fullText: string;
     try {
-      fullText = await readJsonlResponse(upstreamResponse.body, signal);
+      fullText = await readJsonlResponse(upstreamResponse.body, combinedSignal);
     } catch (err) {
       if (!(err instanceof HuggingChatStreamError)) throw err;
       const message = err instanceof Error ? err.message : String(err);

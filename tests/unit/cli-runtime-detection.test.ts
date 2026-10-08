@@ -271,6 +271,15 @@ describe("Continue CLI detection", () => {
     );
   });
 });
+describe("Oh My Pi (omp) CLI detection", () => {
+  it("should enumerate omp in known installation paths", () => {
+    const knownPaths = getKnownToolPaths("omp");
+    assert.ok(
+      knownPaths.some((knownPath) => /^omp(?:\.exe|\.cmd)?$/i.test(path.basename(knownPath))),
+      "omp detection should search for the omp executable"
+    );
+  });
+});
 
 // Note: windsurf was removed from CLI_TOOLS in plan 14 D17 (MITM backlog plan 11).
 // cliRuntime.ts may still have windsurf for binary detection (separate catalog).

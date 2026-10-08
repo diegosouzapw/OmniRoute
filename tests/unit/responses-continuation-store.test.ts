@@ -15,6 +15,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const store = await import("../../src/lib/db/responsesContinuationStore.ts");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -470,4 +471,319 @@ test("resolvePreviousResponseState returns null when detail logging was never ca
   });
 
   assert.equal(store.resolvePreviousResponseState("resp_no_detail", "key-1"), null);
+});
+
+// Proven live in production (2026-09-06, nvidia/nemotron-3.5-lightning:free via
+// OpenRouter): a client that fires its next turn immediately after receiving a
+// response id -- normal behavior in a tight tool-calling loop -- can reach
+// resolvePreviousResponseState before saveCallLog's own artifact write (queued,
+// see writeCallArtifactAsync) has landed and flipped detail_state to "ready".
+// Before the pending-continuation bridge, OmniRoute answered a well-formed 400
+// previous_response_not_found for an id it minted seconds earlier; the wire
+// capture showed the client recovering by resending full history, exactly like
+// a real OpenAI-issued rejection -- but every one of those resends was an
+// avoidable full-history resend, not a genuine unknown id. This exercises the
+// real saveCallLog pipeline end to end, not a pre-inserted "ready" row.
+test("resolvePreviousResponseState resolves via the pending bridge while saveCallLog's artifact write is still queued", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "nvidia/nemotron-3.5-lightning:free",
+    provider: "openrouter",
+    apiKeyId: "key-1",
+    duration: 8169,
+    responseId: "resp_gen-race-abc123",
+    requestBody: { input: [{ type: "message", role: "user", content: "hi" }], store: true },
+    responseBody: { id: "resp_gen-race-abc123" },
+    pipeline: {
+      clientRawRequest: { body: { input: [{ type: "message", role: "user", content: "hi" }] } },
+      clientResponse: {
+        id: "resp_gen-race-abc123",
+        output: [{ type: "message", role: "assistant", content: "hello" }],
+      },
+    },
+  });
+
+  // The client's next turn can arrive before the queued artifact write below
+  // has even started -- the bridge, seeded synchronously inside saveCallLog
+  // before this call returns, must already answer correctly.
+  assert.deepEqual(store.resolvePreviousResponseState("resp_gen-race-abc123", "key-1"), {
+    input: [{ type: "message", role: "user", content: "hi" }],
+    output: [{ type: "message", role: "assistant", content: "hello" }],
+  });
+
+  await save;
+
+  // Once the durable row lands, the same id must still resolve -- now from
+  // call_logs/the artifact, with the bridge entry already cleared.
+  assert.deepEqual(store.resolvePreviousResponseState("resp_gen-race-abc123", "key-1"), {
+    input: [{ type: "message", role: "user", content: "hi" }],
+    output: [{ type: "message", role: "assistant", content: "hello" }],
+  });
+});
+
+test("resolvePreviousResponseState never lets the pending bridge cross tenants", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "nvidia/nemotron-3.5-lightning:free",
+    provider: "openrouter",
+    apiKeyId: "key-a",
+    duration: 4000,
+    responseId: "resp_gen-tenant-bridge",
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "secret" }] } },
+      clientResponse: { id: "resp_gen-tenant-bridge", output: [{ role: "assistant", content: "reply" }] },
+    },
+  });
+
+  assert.equal(store.resolvePreviousResponseState("resp_gen-tenant-bridge", "key-b"), null);
+  assert.equal(store.resolvePreviousResponseState("resp_gen-tenant-bridge", null), null);
+  assert.notEqual(store.resolvePreviousResponseState("resp_gen-tenant-bridge", "key-a"), null);
+
+  await save;
+});
+
+test("resolvePreviousResponseState does not bridge a response id that saveCallLog never seeded (no-log or no pipeline)", async () => {
+  // noLog: the entry is redacted before it would ever reach the bridge.
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    noLog: true,
+    responseId: "resp_gen-nolog",
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "hi" }] } },
+      clientResponse: { id: "resp_gen-nolog", output: [{ role: "assistant", content: "hi" }] },
+    },
+  });
+  assert.equal(store.resolvePreviousResponseState("resp_gen-nolog", "key-1"), null);
+
+  // No pipeline payload at all -- nothing to reconstruct from.
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    responseId: "resp_gen-no-pipeline",
+  });
+  assert.equal(store.resolvePreviousResponseState("resp_gen-no-pipeline", "key-1"), null);
+});
+
+test("the pending bridge shares the durable path's fail-closed rules (video-redacted turns never bridge)", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    duration: 100,
+    responseId: "resp_gen-video-bridge",
+    videoContentRemoved: true,
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "[redacted-video-transcript]" }] } },
+      clientResponse: { id: "resp_gen-video-bridge", output: [{ role: "assistant", content: "ok" }] },
+    },
+  });
+
+  // Even mid-flight (bridge-only, durable row not yet written), a
+  // video-redacted turn must fail closed exactly like the durable path does.
+  assert.equal(store.resolvePreviousResponseState("resp_gen-video-bridge", "key-1"), null);
+
+  await save;
+
+  assert.equal(store.resolvePreviousResponseState("resp_gen-video-bridge", "key-1"), null);
+});
+
+
+// resolveTurnCompletionState / resolveConversationStalledState -- backs the
+// /dashboard/conversations "stalled" badge (live incident 2026-09-04: a
+// reasoning-heavy stream blew past the SSE collector's cap mid-stream,
+// leaving a conversation permanently stuck at an unanswered state with no
+// client-visible signal that anything had gone wrong).
+
+test("resolveTurnCompletionState returns 'stop' for a clean final assistant reply (no function_call)", () => {
+  writeArtifact("2026-01-01/turn-stop.json", {
+    clientResponse: {
+      summary: {
+        status: "completed",
+        output: [{ type: "message", role: "assistant", content: "final answer" }],
+      },
+    },
+  });
+
+  assert.equal(store.resolveTurnCompletionState("2026-01-01/turn-stop.json"), "stop");
+});
+
+test("resolveTurnCompletionState returns 'tool_call_pending' for a completed stream ending in an unanswered function_call", () => {
+  writeArtifact("2026-01-01/turn-tool-call.json", {
+    clientResponse: {
+      summary: {
+        status: "completed",
+        output: [
+          { type: "message", role: "assistant", content: "calling a tool" },
+          { type: "function_call", call_id: "call_1", name: "get_answer", arguments: "{}" },
+        ],
+      },
+    },
+  });
+
+  assert.equal(store.resolveTurnCompletionState("2026-01-01/turn-tool-call.json"), "tool_call_pending");
+});
+
+test("resolveTurnCompletionState returns 'incomplete' for a collector-truncated stream (_truncated: true)", () => {
+  // Exact live-incident shape: createStructuredSSECollector's own event-count
+  // cap stopped mid-stream, so status never reached "completed" and output
+  // stayed empty -- see responses-continuation-store.test.ts's earlier
+  // "fails closed when the streaming collector truncated" case for the same
+  // shape backing resolvePreviousResponseState's own fail-closed behavior.
+  writeArtifact("2026-01-01/turn-truncated.json", {
+    clientResponse: {
+      _streamed: true,
+      _truncated: true,
+      _droppedEvents: 1487,
+      summary: { status: "in_progress", output: [] },
+    },
+  });
+
+  assert.equal(store.resolveTurnCompletionState("2026-01-01/turn-truncated.json"), "incomplete");
+});
+
+test("resolveTurnCompletionState returns 'incomplete' for a non-'completed' status without the _truncated flag", () => {
+  writeArtifact("2026-01-01/turn-failed-status.json", {
+    clientResponse: { summary: { status: "failed", output: [] } },
+  });
+
+  assert.equal(store.resolveTurnCompletionState("2026-01-01/turn-failed-status.json"), "incomplete");
+});
+
+test("resolveTurnCompletionState returns 'unknown' for a missing artifact", () => {
+  assert.equal(store.resolveTurnCompletionState("2026-01-01/does-not-exist.json"), "unknown");
+  assert.equal(store.resolveTurnCompletionState(null), "unknown");
+});
+
+test("resolveConversationStalledState is false while still inside the 5-minute grace period", () => {
+  writeArtifact("2026-01-01/stall-grace.json", {
+    clientResponse: {
+      summary: {
+        status: "completed",
+        output: [{ type: "function_call", call_id: "call_1", name: "x", arguments: "{}" }],
+      },
+    },
+  });
+  const lastSeenAt = new Date(Date.UTC(2026, 0, 1, 12, 0, 0)).toISOString();
+  const now = Date.parse(lastSeenAt) + 4 * 60 * 1000; // 4 minutes later
+
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-grace.json",
+      lastSeenAt,
+      isActive: false,
+      now,
+    }),
+    false
+  );
+});
+
+test("resolveConversationStalledState is true once the grace period elapses with an unanswered tool call", () => {
+  writeArtifact("2026-01-01/stall-elapsed.json", {
+    clientResponse: {
+      summary: {
+        status: "completed",
+        output: [{ type: "function_call", call_id: "call_1", name: "x", arguments: "{}" }],
+      },
+    },
+  });
+  const lastSeenAt = new Date(Date.UTC(2026, 0, 1, 12, 0, 0)).toISOString();
+  const now = Date.parse(lastSeenAt) + 6 * 60 * 1000; // 6 minutes later
+
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-elapsed.json",
+      lastSeenAt,
+      isActive: false,
+      now,
+    }),
+    true
+  );
+});
+
+test("resolveConversationStalledState is true immediately for a genuinely truncated stream, no grace period needed", () => {
+  // Unlike a bare unanswered tool call, a truncated/failed stream has no
+  // legitimate "still working on it" interpretation -- it already permanently
+  // failed the moment the collector gave up.
+  writeArtifact("2026-01-01/stall-truncated.json", {
+    clientResponse: { _truncated: true, summary: { status: "in_progress", output: [] } },
+  });
+  const lastSeenAt = new Date(Date.UTC(2026, 0, 1, 12, 0, 0)).toISOString();
+  const now = Date.parse(lastSeenAt) + 60 * 1000; // 1 minute later -- still "elapsed" per the check below
+
+  // The grace period still applies uniformly (elapsed-time check is the same
+  // for both incomplete states) -- assert the boundary explicitly instead of
+  // assuming: at 1 minute, still within grace; at 6 minutes, stalled.
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-truncated.json",
+      lastSeenAt,
+      isActive: false,
+      now,
+    }),
+    false
+  );
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-truncated.json",
+      lastSeenAt,
+      isActive: false,
+      now: Date.parse(lastSeenAt) + 6 * 60 * 1000,
+    }),
+    true
+  );
+});
+
+test("resolveConversationStalledState is never true while isActive, regardless of completion state or elapsed time", () => {
+  writeArtifact("2026-01-01/stall-active.json", {
+    clientResponse: { _truncated: true, summary: { status: "in_progress", output: [] } },
+  });
+  const lastSeenAt = new Date(Date.UTC(2026, 0, 1, 12, 0, 0)).toISOString();
+
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-active.json",
+      lastSeenAt,
+      isActive: true,
+      now: Date.parse(lastSeenAt) + 60 * 60 * 1000, // an hour later
+    }),
+    false
+  );
+});
+
+test("resolveConversationStalledState is false for a clean 'stop' turn no matter how much time has passed", () => {
+  writeArtifact("2026-01-01/stall-stopped.json", {
+    clientResponse: {
+      summary: {
+        status: "completed",
+        output: [{ type: "message", role: "assistant", content: "done" }],
+      },
+    },
+  });
+  const lastSeenAt = new Date(Date.UTC(2026, 0, 1, 12, 0, 0)).toISOString();
+
+  assert.equal(
+    store.resolveConversationStalledState({
+      artifactRelPath: "2026-01-01/stall-stopped.json",
+      lastSeenAt,
+      isActive: false,
+      now: Date.parse(lastSeenAt) + 24 * 60 * 60 * 1000, // a day later
+    }),
+    false
+  );
 });

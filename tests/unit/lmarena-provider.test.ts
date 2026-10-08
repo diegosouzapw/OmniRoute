@@ -20,7 +20,10 @@ import {
   parseLMArenaInitialModels,
   pickLMArenaModelId,
 } from "../../open-sse/executors/lmarena.ts";
-import { clearLMArenaDeadCatalogModels } from "../../open-sse/executors/lmarena/models.ts";
+import {
+  clearLMArenaDeadCatalogModels,
+  resolveLMArenaModelId,
+} from "../../open-sse/executors/lmarena/models.ts";
 import { __setTlsFetchOverrideForTesting } from "../../open-sse/services/lmarenaTlsClient.ts";
 
 const TEST_ARENA_MODEL_ID = "019e080d-c29d-7d9a-aa54-faed41da0763";
@@ -30,7 +33,11 @@ const UUID_V7_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9
 type LMArenaExecutorTestAccess = {
   provider: string;
   buildUrl: (model: string, credentials: unknown) => string;
-  buildRequestHeaders: (model: string, credentials: unknown, body: unknown) => Record<string, string>;
+  buildRequestHeaders: (
+    model: string,
+    credentials: unknown,
+    body: unknown
+  ) => Record<string, string>;
   transformRequest: (
     body: unknown,
     model: string,
@@ -159,7 +166,11 @@ describe("LMArena Executor", () => {
     assert.equal(headers.Cookie, "session=def");
 
     // providerSpecificData.cookie
-    headers = ex.buildRequestHeaders("gpt-4", { providerSpecificData: { cookie: "session=ghi" } }, {});
+    headers = ex.buildRequestHeaders(
+      "gpt-4",
+      { providerSpecificData: { cookie: "session=ghi" } },
+      {}
+    );
     assert.equal(headers.Cookie, "session=ghi");
 
     // Priority: direct > apiKey > providerSpecificData
@@ -474,6 +485,44 @@ describe("LMArena Executor", () => {
     assert.equal(pickLMArenaModelId(TEST_ARENA_MODEL_ID, []), TEST_ARENA_MODEL_ID);
   });
 
+  it("sanitizes static catalog lookup failures before warning", async () => {
+    const warnings: string[] = [];
+    const resolved = await resolveLMArenaModelId("unknown-model-for-log-test", {
+      debug: () => {
+        throw new Error(
+          "Catalog lookup failed at /srv/private/lmarena-catalog.ts:17:5; " +
+            "access_token=lmarena-catalog-secret\n" +
+            "    at SecretCatalogFrame (/srv/private/lmarena-catalog-stack.ts:2:3)"
+        );
+      },
+      warn: (_scope, message) => warnings.push(String(message)),
+    });
+
+    assert.equal(resolved, "unknown-model-for-log-test");
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /Using raw model id after static catalog lookup failed/);
+    assert.match(warnings[0], /Catalog lookup failed/);
+    assert.doesNotMatch(warnings[0], /\/srv\/private\/lmarena-catalog(?:-stack)?\.ts/);
+    assert.doesNotMatch(warnings[0], /lmarena-catalog-secret|SecretCatalogFrame/);
+  });
+
+  it("uses a stable fallback when the catalog failure sanitizes to blank", async () => {
+    const warnings: string[] = [];
+    const resolved = await resolveLMArenaModelId("unknown-model-for-blank-log-test", {
+      debug: () => {
+        throw new Error(
+          "\n    at SecretOnlyFrame (/srv/private/lmarena-catalog-stack-only.ts:2:3)"
+        );
+      },
+      warn: (_scope, message) => warnings.push(String(message)),
+    });
+
+    assert.equal(resolved, "unknown-model-for-blank-log-test");
+    assert.deepEqual(warnings, [
+      "Using raw model id after static catalog lookup failed: Arena catalog lookup error",
+    ]);
+  });
+
   it("resolves catalog public names via static Direct-chat allowlist (no arena.ai fetch)", async () => {
     const executor = new LMArenaExecutor();
     let arenaHomeFetches = 0;
@@ -626,6 +675,35 @@ describe("LMArena Executor", () => {
       const err = await result.response.json();
       assert.match(err.error.message, /Cloudflare|bot|recaptcha/i);
       assert.equal(err.error.code, "cloudflare_or_bot");
+    } finally {
+      __setTlsFetchOverrideForTesting(null);
+    }
+  });
+
+  it("uses an error status for a Cloudflare challenge returned with HTTP 200", async () => {
+    __setTlsFetchOverrideForTesting(async () => ({
+      status: 200,
+      headers: new Headers({ "Content-Type": "text/html" }),
+      text: "<html>Just a moment... challenges.cloudflare.com</html>",
+      body: null,
+    }));
+
+    try {
+      const result = await new LMArenaExecutor().execute({
+        model: TEST_ARENA_MODEL_ID,
+        body: { messages: [{ role: "user", content: "Hello" }] },
+        credentials: { cookie: "session=test" },
+        signal: new AbortController().signal,
+        log: null,
+      });
+
+      assert.equal(result.response.status, 403);
+      assert.deepEqual((await result.response.json()).error, {
+        message:
+          "Arena blocked by Cloudflare bot management. Use a residential/browser-grade network if needed, paste a fresh full Cookie header (include cf_clearance / __cf_bm when present), and optionally set providerSpecificData.recaptchaV3Token from a live browser session.",
+        type: "api_error",
+        code: "cloudflare_or_bot",
+      });
     } finally {
       __setTlsFetchOverrideForTesting(null);
     }
