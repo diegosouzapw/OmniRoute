@@ -247,6 +247,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
             assertManagedLeaseFence(id);
           },
           getProviderCredentials,
+          allowedConnections: deps.allowedConnections ?? null,
         },
         wire: {
           body: translatedBody as Record<string, unknown>,
