@@ -689,6 +689,44 @@ test("preserves the full tool list when within the grok-cli limit", async () => 
   assert.equal(out.tools.length, 150);
 });
 
+// #13190: bypassDefaultToolLimit is the OpenCode *client* signal, not an operator override.
+// It lifts the generic default cap, but a provider's known hard limit (grok-cli 200, nvidia
+// 1536, or one learned from a real upstream 400) must still truncate — otherwise OpenCode
+// clients get a permanent upstream 400 for that provider.
+test("bypassDefaultToolLimit does not lift a known provider hard limit", async () => {
+  const tools = Array.from({ length: 250 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, parameters: {} },
+  }));
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "grok-cli-model", messages: [], tools },
+    modelToCall: "grok-cli-model",
+    provider: "grok-cli",
+    targetFormat: "claude",
+    credentials: null,
+    bypassDefaultToolLimit: true,
+  });
+  assert.ok(Array.isArray(out.tools));
+  assert.equal(out.tools.length, 200);
+});
+
+test("bypassDefaultToolLimit still lifts the generic default cap for providers without a known limit", async () => {
+  const tools = Array.from({ length: 300 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, parameters: {} },
+  }));
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "some-model", messages: [], tools },
+    modelToCall: "some-model",
+    provider: "openai",
+    targetFormat: "openai",
+    credentials: null,
+    bypassDefaultToolLimit: true,
+  });
+  assert.ok(Array.isArray(out.tools));
+  assert.equal(out.tools.length, 300);
+});
+
 // The web_search / web_fetch fallback replaces a hosted tool the client declared, and
 // the router executes its calls itself. Tools are sorted by name (#12234) before
 // namespaces are flattened, so behind a large MCP catalog (Codex with 200+ tools)

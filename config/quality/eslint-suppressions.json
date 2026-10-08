@@ -54,11 +54,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/base.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 5
-    }
-  },
   "open-sse/executors/blackbox-web.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -284,12 +279,6 @@
   "open-sse/mcp-server/server.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/mcp-server/tools/advancedTools.ts": {
@@ -449,11 +438,6 @@
   "open-sse/services/compression/aggressive.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 5
-    }
-  },
-  "open-sse/services/compression/engines/cavemanAdapter.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "open-sse/services/compression/engines/ccr/index.ts": {
@@ -625,11 +609,6 @@
       "count": 1
     }
   },
-  "open-sse/translator/request/openai-to-cursor.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
   "open-sse/translator/request/openai-to-gemini.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 5
@@ -711,11 +690,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/analytics/CompressionAnalyticsTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -910,11 +884,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
     "@next/next/no-html-link-for-pages": {
       "count": 1
@@ -941,11 +910,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1228,22 +1192,12 @@
       "count": 1
     }
   },
-  "src/app/api/v1/vscode/[token]/combos/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/v1/vscode/[token]/models/route.ts": {
     "no-restricted-syntax": {
       "count": 1
     }
   },
   "src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/api/v1/vscode/raw/[token]/combos/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1498,11 +1452,6 @@
       "count": 2
     }
   },
-  "src/lib/modelsDevSync.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/monitoring/providerHealthAutopilot.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1542,11 +1491,6 @@
     }
   },
   "src/lib/oauth/providers/codex.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/oauth/providers/ghe-copilot.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1647,11 +1591,6 @@
     }
   },
   "src/lib/tailscaleTunnel.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/telegram/initData.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -2068,7 +2007,7 @@
   },
   "tests/integration/chatcore-compression-integration.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 9
+      "count": 8
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 4
@@ -3046,11 +2985,6 @@
       "count": 1
     }
   },
-  "tests/unit/cli/cli-manifest-drift.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/cli/setup-continue.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -3355,11 +3289,6 @@
   "tests/unit/copilot-free-quota-not-inverted.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/cursor-agent-session.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/cursor-usage-fetcher.test.ts": {
@@ -5010,7 +4939,7 @@
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 17
+      "count": 14
     }
   },
   "tests/unit/translator-redacted-thinking-model-aware-4479.test.ts": {

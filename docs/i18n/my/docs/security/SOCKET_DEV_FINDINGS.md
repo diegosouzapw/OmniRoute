@@ -211,15 +211,15 @@ rawBody)`) ကို စစ်ဆေးသည်။ secret ကို သတ်�
 
 ---
 
-## Build profile: `minimal`
+## တည်ဆောက်မှု ပရိုဖိုင်: `minimal`
 
-Socket နှင့် သဟဇာတဖြစ်သော artifact လိုအပ်သည့် အသုံးပြုသူများအတွက် အောက်ပါအတိုင်း build လုပ်ပါ-
+Socket နှင့် အဆင်ပြေသည့် artifact လိုအပ်သော အသုံးပြုသူများအတွက် အောက်ပါအတိုင်း တည်ဆောက်ပါ:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` သည် module လေးခုကို stub များအဖြစ် alias လုပ်သည်-
+webpack `NormalModuleReplacementPlugin` သည် module လေးခုကို stub များအဖြစ် alias ပြုလုပ်သည်:
 
 | Module                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -228,13 +228,11 @@ webpack `NormalModuleReplacementPlugin` သည် module လေးခုကိ�
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Stub တစ်ခုစီသည် တူညီသော interface ကို export လုပ်သော်လည်း function တိုင်းသည် runtime တွင်
-`featureDisabledError(name)` ကို throw လုပ်သည်။ ပိတ်ထားသော module ကို မှီခိုသည့် route များသည်
-ထိရှလွယ်သော code path ကို အသက်သွင်းမည့်အစား ရှင်းလင်းသည့် message နှင့်အတူ HTTP 503 ကို
-ပြန်ပေးသည်။
+stub တစ်ခုစီသည် တူညီသော မျက်နှာပြင်ကို export လုပ်သော်လည်း function တိုင်းသည် runtime တွင်
+`featureDisabledError(name)` ကို throw လုပ်သည်။ ပိတ်ထားသော module ပေါ် မူတည်သည့် route များသည်
+ထိခိုက်လွယ်သော code path ကို အသက်သွင်းမည့်အစား ရှင်းလင်းသော မက်ဆေ့ချ်နှင့်အတူ HTTP 503 ကို ပြန်ပေးသည်။
 
-ထွက်ပေါ်လာသော bundle ကို `omniroute-secure` အဖြစ် publish လုပ်ရန် ရည်ရွယ်ထားသည်။
-Publish လုပ်နည်းအတွက် `docs/ops/PUBLISHING_SECURE.md` ကို ကြည့်ပါ။
+ရရှိလာသော bundle ကို `omniroute-secure` အဖြစ် ထုတ်ဝေရန် ရည်ရွယ်ထားသည်။
 
 ---
 

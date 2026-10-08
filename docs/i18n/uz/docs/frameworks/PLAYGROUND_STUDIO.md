@@ -190,14 +190,14 @@ Autentifikatsiya: ixtiyoriy (`REQUIRE_API_KEY`). Xatolar `buildErrorBody()` orqa
 
 ## Muammolarni bartaraf etish
 
-| Alomat                                                | Sabab                                   | Yechim                                                                                                                        |
-| ----------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Monaco muharriri API ichki oynasida ko‘rinmayapti     | SSR Monaco’ni yuklagan                  | `ApiTab` `dynamic(..., { ssr: false })` dan foydalanishini tekshiring                                                         |
-| Taqqoslash oqimlari ketma-ket ishga tushadi           | `Promise.all` dan noto‘g‘ri foydalanish | Barcha oqimlarni ishga tushirish bitta `Promise.all` chaqiruvida bajarilishi kerak                                            |
-| Metrikalarda TTFT `null` sifatida ko‘rsatiladi        | Birinchi bo‘lak ishlovchisi ulanmagan   | SSE o‘quvchi siklida `useStreamMetrics.onFirstChunk()` chaqirilishini tekshiring                                              |
-| Tayyor sozlama saqlanmayapti                          | DB migratsiyasi ishga tushirilmagan     | `npm run db:migrate` ni ishga tushiring yoki serverni qayta ishga tushiring (migratsiya ishga tushishda avtomatik bajariladi) |
-| Promptni yaxshilash 502 xatosini qaytaradi            | Config’da model o‘rnatilmagan           | Yaxshilashdan oldin foydalanuvchi Config panelida model nomini kiritishi kerak                                                |
-| Eksport qilingan kodda `MISSING_API_KEY` ko‘rsatiladi | To‘ldiruvchi qiymat kiritilmagan        | `codeExport.ts` har doim `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` dan foydalanadi                                         |
+| Alomat                                            | Sabab                                       | Yechim                                                                                |
+| ------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Monaco muharriri API ichki oynasida ko‘rinmayapti | SSR Monaco’ni yuklagan                      | `ApiTab` `dynamic(..., { ssr: false })` dan foydalanishini tekshiring                 |
+| Taqqoslash oqimlari ketma-ket ishga tushmoqda     | `Promise.all` dan noto‘g‘ri foydalanilgan   | Barcha oqimlarni ishga tushirish bitta `Promise.all` chaqiruvida bajarilishi kerak    |
+| Metrikalarda TTFT `null` sifatida ko‘rsatilmoqda  | Birinchi bo‘lak ishlov beruvchisi ulanmagan | SSE o‘qish siklida `useStreamMetrics.onFirstChunk()` chaqirilishini tekshiring        |
+| Oldindan sozlama saqlanmayapti                    | DB migratsiyasi ishga tushirilmagan         | Serverni qayta ishga tushiring: migratsiyalar ishga tushishda avtomatik bajariladi    |
+| So‘rovni yaxshilash 502 xatosini qaytarmoqda      | Config’da model belgilanmagan               | Yaxshilashdan oldin foydalanuvchi Config paneliga model nomini kiritishi kerak        |
+| Eksport kodi `MISSING_API_KEY` ni ko‘rsatmoqda    | To‘ldiruvchi qiymat kiritilmagan            | `codeExport.ts` har doim `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` dan foydalanadi |
 
 ---
 

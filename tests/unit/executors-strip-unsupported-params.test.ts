@@ -250,8 +250,8 @@ test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcen
 
 // OpenAI gpt-5.x reasoning models: temperature / top_p rejected with 400
 // "Unsupported parameter: 'temperature' is not supported with this model".
-test("stripUnsupportedParams: openai gpt-5.x drops temperature and top_p", () => {
-  for (const model of ["gpt-5.6-luna", "gpt-5.6-luna-high", "gpt-5", "gpt-5-mini", "GPT-5.4"]) {
+test("stripUnsupportedParams: openai gpt-5.0 family drops temperature and top_p", () => {
+  for (const model of ["gpt-5", "gpt-5-mini", "gpt-5-nano", "GPT-5", "gpt-5-2025-08-07"]) {
     const body: Record<string, unknown> = { temperature: 0.7, top_p: 0.9, max_tokens: 64 };
     stripUnsupportedParams("openai", model, body);
     assert.equal(body.temperature, undefined, `${model}: temperature`);
@@ -273,4 +273,30 @@ test("stripUnsupportedParams: the gpt-5 sampling rule is scoped to provider open
   const body: Record<string, unknown> = { temperature: 0.7 };
   stripUnsupportedParams("azure-openai", "gpt-5.6-luna", body);
   assert.equal(body.temperature, 0.7);
+});
+
+// GPT-5.1+ default to reasoning_effort "none", where sampling is accepted, so the
+// static rule must leave them alone; the reasoning-aware guard strips them only
+// when an active effort is present (chatcore-upstream-body / suffix-effort tests).
+test("stripUnsupportedParams: openai versioned gpt-5.1+ keep sampling for the reasoning-aware guard", async () => {
+  const { stripGpt5SamplingWhenReasoning } =
+    await import("../../open-sse/services/gpt5SamplingGuard.ts");
+  for (const model of ["gpt-5.1", "gpt-5.2", "GPT-5.4", "gpt-5.6-luna"]) {
+    const body: Record<string, unknown> = { temperature: 0.7, top_p: 0.9 };
+    stripUnsupportedParams("openai", model, body);
+    assert.equal(body.temperature, 0.7, `${model}: temperature kept with no active effort`);
+    assert.equal(body.top_p, 0.9, `${model}: top_p kept with no active effort`);
+  }
+  for (const [model, extra] of [
+    ["gpt-5.6-luna-high", {}],
+    ["gpt-5.4", { reasoning_effort: "high" }],
+  ] as const) {
+    const guarded = stripGpt5SamplingWhenReasoning(
+      { temperature: 0.7, top_p: 0.9, ...extra },
+      "openai",
+      model
+    );
+    assert.equal(guarded.temperature, undefined, `${model}: active effort strips temperature`);
+    assert.equal(guarded.top_p, undefined, `${model}: active effort strips top_p`);
+  }
 });

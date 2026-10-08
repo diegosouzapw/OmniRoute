@@ -305,24 +305,30 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 **ei** kutsu ülesvoolu teenusepakkujat — `CloudAgentBase` ei sisalda katkestamise RPC-d.
 Ülesvoolu arvelduse peatamiseks lõpetage ülesanne teenusepakkuja enda konsoolis.
 
-## REST API — pilveteenuse pakkujate integratsioon
+## REST API — pilveteenuse pakkuja integratsioon
 
-Neid abipunkte kataloogis `src/app/api/cloud/` kasutavad kaugkliendid
+Neid abiotspunkte asukohas `src/app/api/cloud/` kasutavad kaugkliendid
 (CLI, Electroni rakendus või sünkroonimistöötajad), et lugeda teenusepakkuja ühenduse metaandmeid
-ja lahendada mudelite aliaseid. Need autentitakse **tavalise API-võtmega**
-(`validateApiKey` kaudu), mitte ülesannete lõpp-punktides kasutatava haldusautentimisega.
+ja lahendada mudelite aliaseid. Need autenditakse **API-võtmega**
+(`validateApiKey` kaudu), mitte ülesannete otspunktides kasutatava haldusautentimisega;
+`/api/cloud/auth` tagastatav teave sõltub võtme ulatusest (vt allpool).
 
-| Meetod | Tee                             | Eesmärk                                                                             |
+| Meetod | Tee                             | Otstarve                                                                            |
 | ------ | ------------------------------- | ----------------------------------------------------------------------------------- |
 | POST   | `/api/cloud/auth`               | Valideerib API-võtme ning tagastab maskitud ühenduse metaandmed ja mudelite aliased |
-| PUT    | `/api/cloud/credentials/update` | Värskendab `accessToken` / `refreshToken` / `expiresAt`                             |
+| PUT    | `/api/cloud/credentials/update` | Värskendab väärtusi `accessToken` / `refreshToken` / `expiresAt`                    |
 | POST   | `/api/cloud/model/resolve`      | Lahendab mudeli aliase väärtuseks `{ provider, model }`                             |
 | GET    | `/api/cloud/models/alias`       | Loetleb kõik mudelite aliased                                                       |
-| PUT    | `/api/cloud/models/alias`       | Määrab mudeli aliase (ja sünkroonib selle lubamise korral automaatselt pilvega)     |
+| PUT    | `/api/cloud/models/alias`       | Määrab mudeli aliase (ja sünkroonib selle lubamise korral automaatselt pilve)       |
 
-`/api/cloud/auth` ei tagasta kunagi `apiKey` / `accessToken` / `refreshToken` töötlemata väärtusi. See
-tagastab `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ja maskitud eelvaate
-(`maskedApiKey`: esimesed 4 + `****` + viimased 4).
+`/api/cloud/auth` ei tagasta kunagi töötlemata väärtusi `apiKey` / `accessToken` / `refreshToken`.
+See tagastab aktiivsete ühenduste kohta, mida võtmel on lubatud kasutada, väärtused `hasApiKey`,
+`hasAccessToken`, `hasRefreshToken` (võti, millele on rakendatud piirang `allowedConnections`,
+näeb ainult neid ühendusi). API-võtme puhul, mille ulatus on `manage` või `admin`, sealhulgas
+muutujast `OMNIROUTE_API_KEY` pärineva juurutusvõtme puhul, tagastatakse ka maskitud eelvaade
+(`maskedApiKey`: kuni 4 märki kummaski otsas, lühikese võtme korral vähem ning kuni 8 märgi
+pikkuse võtme korral mitte ühtegi) ja ühenduse `projectId`. Kõigi teiste võtmete korral jäetakse
+mõlemad väljad vastusest välja.
 
 ## Mandaatide lahendamine
 

@@ -41,6 +41,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  // ClinePass 5-hour / weekly / monthly limits (GET /api/v1/users/me/plan/usage-limits)
+  "clinepass",
   "bailian-coding-plan",
   "qwen-cloud-token-plan",
   "nanogpt",
@@ -83,6 +85,10 @@ export const USAGE_FETCHER_PROVIDERS = [
   // Tavily monthly credits & quota (GET /usage)
   "tavily-search",
   "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

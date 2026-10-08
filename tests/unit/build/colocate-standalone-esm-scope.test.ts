@@ -5,7 +5,10 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 
-import { writeEsmWorkerScopes } from "../../../scripts/build/colocate-standalone.mjs";
+import {
+  bundleOptionalWorker,
+  writeEsmWorkerScopes,
+} from "../../../scripts/build/colocate-standalone.mjs";
 
 /**
  * Regression coverage for the standalone CJS/ESM `package.json` conflict.
@@ -123,6 +126,41 @@ test("scoped layout runs a CJS server.js and an ESM worker.js side by side", () 
       "ESM worker.js runs under its scoped package.json"
     );
     assert.ok(existsSync(join(workerDir, "package.json")), "worker scope package.json exists");
+  } finally {
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("colocate-standalone overwrites a traced LLMLingua placeholder", () => {
+  const root = mkdtempSync(join(tmpdir(), "colocate-onnx-placeholder-"));
+  try {
+    writeFileSync(join(root, "server.js"), "module.exports = {};\n");
+    const workerDir = join(root, "open-sse", "services", "compression", "engines", "llmlingua");
+    mkdirSync(workerDir, { recursive: true });
+    const placeholder = "// traced placeholder\nexport {};\n";
+    writeFileSync(join(workerDir, "onnxWorker.js"), placeholder);
+    execFileSync(process.execPath, ["scripts/build/colocate-standalone.mjs"], {
+      cwd: join(import.meta.dirname, "..", "..", ".."),
+      env: { ...process.env, OMNIROUTE_STANDALONE_DIR: root },
+      stdio: "pipe",
+    });
+    assert.notEqual(readFileSync(join(workerDir, "onnxWorker.js"), "utf8"), placeholder);
+    assert.equal(JSON.parse(readFileSync(join(workerDir, "package.json"), "utf8")).type, "module");
+  } finally {
+    rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("failed LLMLingua bundling removes a traced placeholder", () => {
+  const root = mkdtempSync(join(tmpdir(), "colocate-onnx-failure-"));
+  try {
+    const workerFile = join(root, "onnxWorker.js");
+    writeFileSync(workerFile, "export {};\n");
+    const built = bundleOptionalWorker(workerFile, () => {
+      throw new Error("forced esbuild failure");
+    });
+    assert.equal(built, false);
+    assert.equal(existsSync(workerFile), false, "runtime must never select a traced placeholder");
   } finally {
     rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }

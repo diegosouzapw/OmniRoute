@@ -17,6 +17,7 @@
  */
 import type { SqliteAdapter } from "../adapters/types";
 import { getDbInstance } from "../core";
+import { getModelCatalogCacheVersion } from "../readCache";
 import { getKeyValue } from "./shared";
 import { normalizeSyncedAvailableModels } from "./synced";
 
@@ -40,6 +41,73 @@ function collectVisionModelIds(providerId: string, rawValue: string | null): str
   return normalizeSyncedAvailableModels(parsed, providerId)
     .filter((model) => model.supportsVision === true)
     .map((model) => model.id);
+}
+
+function readVerdictFromMap(
+  verdicts: SyncedAvailableModelVisionMap,
+  providerId: string,
+  modelId: string
+): boolean | null {
+  return verdicts.get(providerId)?.has(modelId) === true ? true : null;
+}
+
+function readVerdictDirect(
+  db: SyncedAvailableModelVisionDatabase,
+  providerId: string,
+  modelId: string
+): boolean | null {
+  const rows = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?")
+    .all(`${providerId}:%`);
+  for (const row of rows) {
+    const { value } = getKeyValue(row);
+    if (collectVisionModelIds(providerId, value).includes(modelId)) return true;
+  }
+  return null;
+}
+
+// Throwing bulk read (no `catch → empty map` absorber): a failed read
+// reaches the caller's catch, so failures are never stored.
+function buildVisionVerdicts(
+  db: SyncedAvailableModelVisionDatabase
+): SyncedAvailableModelVisionMap {
+  const rows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
+    .all();
+  const verdicts = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || !value) continue;
+    const rowProviderId = key.split(":")[0];
+    if (!rowProviderId) continue;
+    const visionIds = collectVisionModelIds(rowProviderId, value);
+    if (visionIds.length === 0) continue;
+    let byModel = verdicts.get(rowProviderId);
+    if (!byModel) {
+      byModel = new Set();
+      verdicts.set(rowProviderId, byModel);
+    }
+    for (const id of visionIds) byModel.add(id);
+  }
+  return verdicts;
+}
+
+// One stored generation: the full provider verdict map with the catalog
+// version it was built from. Replacement on version change frees the previous
+// map, so the memo never grows past a single entry.
+let cachedVisionVerdicts: {
+  version: number;
+  verdicts: SyncedAvailableModelVisionMap;
+} | null = null;
+
+/** Test-only view of the stored verdict generations (0 or 1). */
+export function getSyncedVisionVerdictMemoSizeForTests(): number {
+  return cachedVisionVerdicts ? 1 : 0;
+}
+
+/** Test-only reset so hermetic suites start from an empty memo. */
+export function resetSyncedVisionVerdictMemoForTests(): void {
+  cachedVisionVerdicts = null;
 }
 
 /**
@@ -93,21 +161,30 @@ export function getSyncedAvailableModelVision(
   options: SyncedAvailableModelVisionReadOptions = {}
 ): boolean | null {
   if (!providerId || !modelId) return null;
+  if (bulk) {
+    try {
+      return readVerdictFromMap(bulk, providerId, modelId);
+    } catch {
+      return null;
+    }
+  }
+  // An injected database belongs to another store than the singleton memo:
+  // read it directly without touching or polluting the stored generation.
+  if (options.getDatabase) {
+    try {
+      return readVerdictDirect(options.getDatabase(), providerId, modelId);
+    } catch {
+      return null;
+    }
+  }
   try {
-    if (bulk) {
-      return bulk.get(providerId)?.has(modelId) === true ? true : null;
+    const current = getModelCatalogCacheVersion();
+    if (cachedVisionVerdicts?.version === current) {
+      return readVerdictFromMap(cachedVisionVerdicts.verdicts, providerId, modelId);
     }
-    const db = options.getDatabase?.() ?? getDbInstance();
-    const rows = db
-      .prepare(
-        "SELECT value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
-      )
-      .all(`${providerId}:%`);
-    for (const row of rows) {
-      const { value } = getKeyValue(row);
-      if (collectVisionModelIds(providerId, value).includes(modelId)) return true;
-    }
-    return null;
+    const verdicts = buildVisionVerdicts(getDbInstance());
+    cachedVisionVerdicts = { version: current, verdicts };
+    return readVerdictFromMap(verdicts, providerId, modelId);
   } catch {
     return null;
   }

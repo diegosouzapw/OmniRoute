@@ -1,1 +1,0 @@
-- **fix(authz):** the IP allow/deny list judges the address of the connection unless a loopback, private-network or Cloudflare proxy fronts the request, and behind one it reads the client from what that proxy added rather than from what the client sent; a proxy on any other public address is named in the new `OMNIROUTE_TRUSTED_PROXIES`

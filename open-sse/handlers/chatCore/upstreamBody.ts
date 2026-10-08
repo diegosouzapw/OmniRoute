@@ -19,7 +19,10 @@ import {
 } from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { stripInternalBodyFields } from "../../config/cliFingerprints.ts";
+import { readBodyReasoningEffort } from "../../executors/base/reasoningEffort.ts";
 import { sanitizeRequestForResolvedTarget } from "../../services/targetRequestSanitizer.ts";
+import { getForcedReasoningEffort } from "../../utils/reasoningRuleContext.ts";
+import { resolveReasoningControl } from "../../utils/reasoningControl.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   normalizeClaudeAdaptiveThinking,
@@ -68,6 +71,76 @@ function buildAppliedRulesSummary(
       return `${rule.type}:${rule.path}=${safeValue}`;
     })
     .join(", ");
+}
+
+function applyConfiguredReasoningControl(
+  body: Body,
+  provider: string | null | undefined,
+  targetFormat: string,
+  credentials: CredentialsLike,
+  reasoningControl: "chat-template" | "openai"
+): { body: Body; requiresNativeOff: boolean } {
+  if (
+    !provider?.startsWith("openai-compatible-") ||
+    targetFormat !== FORMATS.OPENAI ||
+    reasoningControl !== "chat-template" ||
+    !Array.isArray(body.messages) ||
+    body.input !== undefined
+  ) {
+    return { body, requiresNativeOff: false };
+  }
+
+  const forcedEffort = getForcedReasoningEffort(credentials);
+  const requestedEffort = readBodyReasoningEffort(body);
+  const effectiveEffort = (forcedEffort ?? requestedEffort)?.trim().toLowerCase();
+  if (!forcedEffort && effectiveEffort !== "none") {
+    return { body, requiresNativeOff: false };
+  }
+
+  const rawTemplateKwargs = body.chat_template_kwargs;
+  const templateKwargs =
+    rawTemplateKwargs && typeof rawTemplateKwargs === "object" && !Array.isArray(rawTemplateKwargs)
+      ? (rawTemplateKwargs as Body)
+      : null;
+  if (rawTemplateKwargs !== undefined && !templateKwargs && !forcedEffort) {
+    const error = new Error(
+      'chat_template_kwargs must be an object when reasoningControl is "chat-template"'
+    ) as Error & { statusCode: number; errorType: string };
+    error.statusCode = 400;
+    error.errorType = "reasoning_control_invalid_template_kwargs";
+    throw error;
+  }
+
+  const thinkingEnabled = effectiveEffort !== "none";
+  const nextTemplateKwargs = forcedEffort
+    ? { ...(templateKwargs ?? {}), thinking: thinkingEnabled, enable_thinking: thinkingEnabled }
+    : { thinking: false, enable_thinking: false, ...(templateKwargs ?? {}) };
+
+  const next: Body = { ...body, chat_template_kwargs: nextTemplateKwargs };
+  if (effectiveEffort !== "none") return { body: next, requiresNativeOff: false };
+
+  delete next.reasoning_effort;
+  if (next.reasoning && typeof next.reasoning === "object" && !Array.isArray(next.reasoning)) {
+    const reasoning = { ...(next.reasoning as Body) };
+    delete reasoning.effort;
+    if (Object.keys(reasoning).length === 0) delete next.reasoning;
+    else next.reasoning = reasoning;
+  }
+  if (
+    next.output_config &&
+    typeof next.output_config === "object" &&
+    !Array.isArray(next.output_config)
+  ) {
+    const outputConfig = { ...(next.output_config as Body) };
+    delete outputConfig.effort;
+    if (Object.keys(outputConfig).length === 0) delete next.output_config;
+    else next.output_config = outputConfig;
+  }
+  const requiresNativeOff = Boolean(
+    forcedEffort === "none" ||
+    (nextTemplateKwargs.thinking !== true && nextTemplateKwargs.enable_thinking !== true)
+  );
+  return { body: next, requiresNativeOff };
 }
 
 // The web_search / web_fetch fallback stands in for a hosted tool the client declared,
@@ -251,10 +324,24 @@ function normalizeAttemptBody(opts: PrepareUpstreamBodyOptions): Body {
   const { translatedBody, modelToCall, provider, targetFormat, log } = opts;
   // Capture intent before constraints remove unsupported fields. Removed explicit
   // choices must not turn into permission to inject automatic defaults.
+  const templateKwargs =
+    translatedBody.chat_template_kwargs &&
+    typeof translatedBody.chat_template_kwargs === "object" &&
+    !Array.isArray(translatedBody.chat_template_kwargs)
+      ? (translatedBody.chat_template_kwargs as Body)
+      : null;
+  const hasExplicitTemplateReasoning =
+    provider?.startsWith("openai-compatible-") &&
+    targetFormat === FORMATS.OPENAI &&
+    Array.isArray(translatedBody.messages) &&
+    translatedBody.input === undefined &&
+    (typeof templateKwargs?.thinking === "boolean" ||
+      typeof templateKwargs?.enable_thinking === "boolean");
   const hadExplicitReasoning =
     translatedBody.reasoning_effort !== undefined ||
     translatedBody.reasoning !== undefined ||
-    translatedBody.thinking !== undefined;
+    translatedBody.thinking !== undefined ||
+    hasExplicitTemplateReasoning;
   let bodyToSend: Body = { ...structuredClone(translatedBody), model: modelToCall };
   bodyToSend = normalizeThinkingForModel(bodyToSend, modelToCall);
   bodyToSend = normalizeClaudeAdaptiveThinking(bodyToSend, modelToCall);
@@ -273,11 +360,13 @@ function normalizeAttemptBody(opts: PrepareUpstreamBodyOptions): Body {
   // concrete level. Runs per attempt, right after applyDefaultReasoningEffort — the same
   // position it held inline in chatCore.ts before this chain moved here (#13720); it
   // self-scopes to FORMATS.OPENAI and no-ops when the body carries explicit reasoning.
-  bodyToSend = wireAdaptiveEffort(bodyToSend, {
-    rawBody: opts.rawBody as Parameters<typeof wireAdaptiveEffort>[1]["rawBody"],
-    clientRawRequest: opts.clientRawRequest,
-    targetFormat,
-  });
+  if (!hasExplicitTemplateReasoning) {
+    bodyToSend = wireAdaptiveEffort(bodyToSend, {
+      rawBody: opts.rawBody as Parameters<typeof wireAdaptiveEffort>[1]["rawBody"],
+      clientRawRequest: opts.clientRawRequest,
+      targetFormat,
+    });
+  }
   if (provider === "xiaomi-mimo") bodyToSend = normalizeMimoThinking(bodyToSend);
   if (isOpencodeGoProvider(provider)) bodyToSend = stripBooleanReasoning(bodyToSend);
   const { strippedParams } = stripUnsupportedParams(
@@ -334,11 +423,43 @@ export async function prepareUpstreamBody(opts: PrepareUpstreamBodyOptions): Pro
     );
   }
 
+  const finalWireModel =
+    typeof bodyToSend.model === "string" && bodyToSend.model.length > 0
+      ? bodyToSend.model
+      : modelToCall;
+  const finalReasoningControl = resolveReasoningControl(
+    credentials?.providerSpecificData,
+    finalWireModel
+  );
+  const reasoningControlResult = applyConfiguredReasoningControl(
+    bodyToSend,
+    provider,
+    targetFormat,
+    credentials,
+    finalReasoningControl
+  );
+  bodyToSend = reasoningControlResult.body;
   bodyToSend = sanitizeRequestForResolvedTarget(bodyToSend, {
     provider,
-    model: payloadRuleModel,
+    model: finalWireModel,
     log,
   });
+  if (reasoningControlResult.requiresNativeOff) {
+    const nativeKwargs =
+      bodyToSend.chat_template_kwargs &&
+      typeof bodyToSend.chat_template_kwargs === "object" &&
+      !Array.isArray(bodyToSend.chat_template_kwargs)
+        ? (bodyToSend.chat_template_kwargs as Body)
+        : null;
+    if (nativeKwargs?.thinking !== false && nativeKwargs?.enable_thinking !== false) {
+      const error = new Error(
+        'reasoningControl "chat-template" required native off switches, but target parameter filters removed them'
+      ) as Error & { statusCode: number; errorType: string };
+      error.statusCode = 400;
+      error.errorType = "reasoning_control_configuration_conflict";
+      throw error;
+    }
+  }
   bodyToSend = defaultImageDetail(bodyToSend, isOpencodeClient);
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);

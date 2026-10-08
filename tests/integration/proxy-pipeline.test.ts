@@ -171,7 +171,9 @@ describe("Chat Pipeline — circuit breaker integration", () => {
   });
 
   it("should reject requests when circuit is open via structured provider breaker response", () => {
-    assert.match(helpersSrc, /providerCircuitOpenResponse\(provider,\s*retryAfterSec\)/);
+    // #15001 (#14960) added a third argument — the breaker's classified failure kind —
+    // so the call is now `providerCircuitOpenResponse(provider, retryAfterSec, <kind>)`.
+    assert.match(helpersSrc, /providerCircuitOpenResponse\(provider,\s*retryAfterSec[,)]/);
   });
 });
 

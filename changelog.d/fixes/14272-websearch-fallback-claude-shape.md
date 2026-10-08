@@ -1,1 +1,0 @@
-- **fix(sse):** the injected `web_search` fallback tool now uses the flat Anthropic shape (`{ name, description, input_schema }`) for Claude/Anthropic Messages targets, so strict Anthropic-compatible upstreams (e.g. a vLLM `/v1/messages`) no longer reject it with `tools.0.name missing` ([#14272](https://github.com/diegosouzapw/OmniRoute/pull/14272)) — thanks @Nikita75699

@@ -6,6 +6,7 @@
 // (parent owns the state + persistence). All mutations go through the pure
 // `compressionPipelineModel` so invariants (valid intensity, non-empty pipeline) hold.
 //
+import { useId } from "react";
 import {
   DndContext,
   closestCenter,
@@ -119,6 +120,8 @@ function SortableRow(props: {
 
 export function CompressionPipelineEditor({ steps, onChange, engineIntensities }: Props) {
   const t = useTranslations("contextCombos");
+  // Same id on server and client; dnd-kit's default comes from a process-wide counter.
+  const dndContextId = useId();
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -150,7 +153,12 @@ export function CompressionPipelineEditor({ steps, onChange, engineIntensities }
           {t("addStep")}
         </button>
       </div>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        id={dndContextId}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <div className="space-y-2">
             {steps.map((step, index) => (

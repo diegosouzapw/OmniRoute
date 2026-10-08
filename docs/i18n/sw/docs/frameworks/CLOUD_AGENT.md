@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 mtoa huduma wa juu — hakuna RPC ya kusitisha katika `CloudAgentBase`. Ili kusimamisha utozaji
 kwenye huduma ya juu, sitisha kazi katika dashibodi ya mtoa huduma mwenyewe.
 
-## REST API — Miundombinu ya Mtoa Huduma za Cloud
+## REST API — Miundombinu ya Mtoa Huduma wa Cloud
 
-Endpointi hizi saidizi zilizo chini ya `src/app/api/cloud/` hutumiwa na wateja wa mbali
-(CLI, programu ya Electron, au wafanyakazi wa ulandanishi) kusoma metadata ya muunganisho wa mtoa huduma
-na kutatua lakabu za modeli. Zinathibitishwa kwa **ufunguo wa kawaida wa API**
-(kupitia `validateApiKey`), si uthibitishaji wa usimamizi unaotumiwa na endpointi za kazi.
+Endpointi hizi saidizi chini ya `src/app/api/cloud/` hutumiwa na wateja wa mbali
+(CLI, programu ya Electron, au michakato ya usawazishaji) kusoma metadata ya muunganisho wa mtoa huduma
+na kutatua lakabu za modeli. Zinathibitishwa kwa **ufunguo wa API**
+(kupitia `validateApiKey`), si uthibitishaji wa usimamizi unaotumiwa na endpointi za kazi; kile ambacho
+`/api/cloud/auth` hurejesha hutegemea wigo wa ufunguo (tazama hapa chini).
 
-| Mbinu | Njia                            | Madhumuni                                                                                 |
+| Mbinu | Njia                            | Kusudi                                                                                    |
 | ----- | ------------------------------- | ----------------------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | Thibitisha ufunguo wa API, rudisha metadata ya muunganisho iliyofichwa + lakabu za modeli |
+| POST  | `/api/cloud/auth`               | Thibitisha ufunguo wa API, rejesha metadata ya muunganisho iliyofichwa + lakabu za modeli |
 | PUT   | `/api/cloud/credentials/update` | Onyesha upya `accessToken` / `refreshToken` / `expiresAt`                                 |
 | POST  | `/api/cloud/model/resolve`      | Tatua lakabu ya modeli kuwa `{ provider, model }`                                         |
 | GET   | `/api/cloud/models/alias`       | Orodhesha lakabu zote za modeli                                                           |
-| PUT   | `/api/cloud/models/alias`       | Weka lakabu ya modeli (na uilandanishe kiotomatiki na Cloud ikiwa imewezeshwa)            |
+| PUT   | `/api/cloud/models/alias`       | Weka lakabu ya modeli (na uisawazishe kiotomatiki na Cloud ikiwa imewezeshwa)             |
 
-`/api/cloud/auth` hairudishi kamwe `apiKey` / `accessToken` / `refreshToken` ghafi. Huwa
-inarudisha `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, na onyesho la awali lililofichwa
-(`maskedApiKey`: herufi 4 za kwanza + `****` + herufi 4 za mwisho).
+`/api/cloud/auth` kamwe hairejeshi `apiKey` / `accessToken` / `refreshToken` halisi. Badala yake,
+hurejesha `hasApiKey`, `hasAccessToken`, `hasRefreshToken` kwa miunganisho inayotumika ambayo ufunguo
+unaweza kutumia (ufunguo uliozuiwa kwa `allowedConnections` huona hiyo pekee). Kwa ufunguo wa API wenye
+wigo wa `manage` au `admin`, ikijumuisha ufunguo wa utekelezaji kutoka `OMNIROUTE_API_KEY`, pia
+hurejesha onyesho la awali lililofichwa (`maskedApiKey`: hadi herufi 4 kila upande, chache zaidi kwa ufunguo
+mfupi, na hakuna kwa ufunguo wenye herufi 8 au chache) pamoja na `projectId` ya muunganisho. Sehemu zote mbili
+huachwa nje ya jibu kwa ufunguo mwingine wowote.
 
 ## Utatuzi wa Vitambulisho
 

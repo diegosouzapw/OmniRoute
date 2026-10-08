@@ -19,6 +19,7 @@ type CacheEntry<T> = {
 
 class TTLCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
+  private pending = new Map<string, Promise<T>>();
   private readonly ttlMs: number;
   private readonly maxSize: number;
 
@@ -49,11 +50,36 @@ class TTLCache<T> {
     this.cache.set(key, { value, expiresAt: Date.now() + this.ttlMs });
   }
 
+  load(key: string, loader: () => Promise<T>): Promise<T> {
+    const cached = this.get(key);
+    if (cached !== undefined) return Promise.resolve(cached);
+    const inFlight = this.pending.get(key);
+    if (inFlight) return inFlight;
+
+    const promise: Promise<T> = loader().then(
+      (value) => {
+        if (this.pending.get(key) === promise) {
+          this.pending.delete(key);
+          this.set(key, value);
+        }
+        return value;
+      },
+      (error: unknown) => {
+        if (this.pending.get(key) === promise) this.pending.delete(key);
+        throw error;
+      }
+    );
+    this.pending.set(key, promise);
+    return promise;
+  }
+
   invalidate(key?: string): void {
     if (key) {
       this.cache.delete(key);
+      this.pending.delete(key);
     } else {
       this.cache.clear();
+      this.pending.clear();
     }
   }
 }
@@ -72,13 +98,10 @@ const connectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS, 500);
  * Invalidated on every updateSettings() call.
  */
 export async function getCachedSettings(): Promise<Record<string, unknown>> {
-  const cached = settingsCache.get("settings");
-  if (cached) return cached;
-
-  const { getSettings } = await import("@/lib/db/settings");
-  const value = await getSettings();
-  settingsCache.set("settings", value);
-  return value;
+  return settingsCache.load("settings", async () => {
+    const { getSettings } = await import("@/lib/db/settings");
+    return getSettings();
+  });
 }
 
 /**
@@ -86,13 +109,10 @@ export async function getCachedSettings(): Promise<Record<string, unknown>> {
  * Longer TTL since pricing rarely changes mid-session.
  */
 export async function getCachedPricing(): Promise<Record<string, unknown>> {
-  const cached = pricingCache.get("pricing");
-  if (cached) return cached as Record<string, unknown>;
-
-  const { getPricing } = await import("@/lib/db/settings");
-  const value = await getPricing();
-  pricingCache.set("pricing", value);
-  return value;
+  return pricingCache.load("pricing", async () => {
+    const { getPricing } = await import("@/lib/db/settings");
+    return getPricing();
+  });
 }
 /**
  * Cached wrapper for getProviderConnections.
@@ -104,13 +124,10 @@ export async function getCachedProviderConnections(
 ): Promise<unknown[]> {
   const cacheKey = filter && Object.keys(filter).length > 0 ? JSON.stringify(filter) : "all";
 
-  const cached = connectionsCache.get(cacheKey);
-  if (cached) return cached;
-
-  const { getProviderConnections } = await import("@/lib/db/providers");
-  const value = await getProviderConnections(filter);
-  connectionsCache.set(cacheKey, value);
-  return value;
+  return connectionsCache.load(cacheKey, async () => {
+    const { getProviderConnections } = await import("@/lib/db/providers");
+    return getProviderConnections(filter);
+  });
 }
 
 const rawConnectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS, 500);
@@ -126,12 +143,10 @@ export async function getCachedRawProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
   const key = JSON.stringify(filter ?? {});
-  const cached = rawConnectionsCache.get(key);
-  if (cached !== undefined) return cached;
-  const { getRawProviderConnections } = await import("./providers");
-  const rows = await getRawProviderConnections(filter);
-  rawConnectionsCache.set(key, rows);
-  return rows;
+  return rawConnectionsCache.load(key, async () => {
+    const { getRawProviderConnections } = await import("./providers");
+    return getRawProviderConnections(filter);
+  });
 }
 
 const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(
@@ -149,13 +164,10 @@ export async function getCachedProviderConnectionById(
   id: string
 ): Promise<Record<string, unknown> | null> {
   if (!id) return null;
-  const cached = connectionByIdCache.get(id);
-  if (cached !== undefined) return cached;
-
-  const { getProviderConnectionById } = await import("@/lib/db/providers");
-  const value = await getProviderConnectionById(id);
-  connectionByIdCache.set(id, value);
-  return value;
+  return connectionByIdCache.load(id, async () => {
+    const { getProviderConnectionById } = await import("@/lib/db/providers");
+    return getProviderConnectionById(id);
+  });
 }
 
 /**
@@ -167,13 +179,10 @@ export async function getCachedProviderNodes(
   filter?: Record<string, unknown>
 ): Promise<(Record<string, unknown> | null)[]> {
   const cacheKey = filter ? JSON.stringify(filter) : "all";
-  const cached = nodesCache.get(cacheKey);
-  if (cached) return cached;
-
-  const { getProviderNodes } = await import("@/lib/db/providers");
-  const value = await getProviderNodes(filter);
-  nodesCache.set(cacheKey, value);
-  return value;
+  return nodesCache.load(cacheKey, async () => {
+    const { getProviderNodes } = await import("@/lib/db/providers");
+    return getProviderNodes(filter);
+  });
 }
 
 // ──────────────── LKGP Cache Wrappers ────────────────
@@ -190,13 +199,10 @@ export async function getCachedLKGP(
   modelId: string
 ): Promise<LKGPRecordCache | null> {
   const cacheKey = `lkgp:${comboName}:${modelId}`;
-  const cached = lkgpCache.get(cacheKey);
-  if (cached !== undefined) return cached;
-
-  const { getLKGP } = await import("@/lib/db/settings");
-  const value = await getLKGP(comboName, modelId);
-  lkgpCache.set(cacheKey, value);
-  return value;
+  return lkgpCache.load(cacheKey, async () => {
+    const { getLKGP } = await import("@/lib/db/settings");
+    return getLKGP(comboName, modelId);
+  });
 }
 
 export async function setCachedLKGP(
@@ -303,6 +309,8 @@ export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): b
   return keys.length > 0 && keys.every((key) => CONNECTION_RUNTIME_STATE_FIELDS.has(key));
 }
 
+export type UpdateOpts = { skipModelCatalog?: boolean };
+
 /**
  * Cache invalidation for `updateProviderConnection()`: runtime-state-only
  * updates (cooldowns, error fields) keep the connection read caches fresh
@@ -310,8 +318,14 @@ export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): b
  * these fields. Anything else falls back to the full invalidation so config
  * edits stay immediately visible in the catalog.
  */
-export function invalidateConnectionUpdate(id: string, data: Record<string, unknown>): void {
-  if (isConnectionRuntimeStateUpdate(data)) {
+export function invalidateConnectionUpdate(
+  id: string,
+  data: Record<string, unknown>,
+  opts?: UpdateOpts
+): void {
+  // #13389: a caller that vouches its write is catalog-irrelevant (OAuth token
+  // rotation — credentials only, see updateProviderCredentials) opts in explicitly.
+  if (opts?.skipModelCatalog || isConnectionRuntimeStateUpdate(data)) {
     invalidateDbCache("connections", id, { skipModelCatalog: true });
   } else {
     invalidateDbCache("connections");

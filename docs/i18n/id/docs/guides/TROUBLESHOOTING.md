@@ -39,31 +39,31 @@ Masalah umum dan solusi untuk OmniRoute.
 
 ### Pembatasan Laju pada Penyedia Gratis (429 / 400 / 401)
 
-**Gejala**: Saat menggunakan `model: "auto"` dengan penyedia gratis/tanpa autentikasi (opencode, auggie, dll.), Anda sesekali mendapatkan `HTTP 429`, `400`, atau `401`, bukan jawaban. Permintaan berhasil jika prompt yang sama dicoba kembali beberapa saat kemudian, tetapi otomatisasi (cron job, agen, skrip) berhenti saat kegagalan pertama terjadi.
+**Gejala**: Saat menggunakan `model: "auto"` dengan penyedia gratis/tanpa autentikasi (opencode, auggie, dll.), Anda terkadang mendapatkan `HTTP 429`, `400`, atau `401`, bukan jawaban. Permintaan berhasil saat perintah yang sama dicoba kembali beberapa saat kemudian, tetapi otomatisasi (cron job, agen, skrip) terhenti pada kegagalan pertama.
 
 **Penyebab utama**: Tiga mode kegagalan independen terjadi secara bersamaan:
 
-1. **Batas laju penyedia (`429`)**: Tingkat gratis dapat menerapkan kuota per jendela waktu. Lonjakan panggilan paralel menghabiskan kuota tersebut, sehingga permintaan berikutnya ditolak sampai jendela waktu direset.
-2. **Model bermasalah dalam passthrough (`400`/`401`)**: Pool `auto/*` dapat menyertakan model passthrough dari `opencode` yang terdaftar di katalog tetapi tidak memiliki kredensial aktif (misalnya `oc/north-mini-code-free` → `401`). Auto-router mencoba salah satunya, gagal, dan galat diteruskan sebelum fallback dijalankan.
-3. **Amplifikasi konkurensi (`429` saat beban tinggi)**: Ketika beberapa sesi agen/cron mengakses `auto` secara bersamaan, laju permintaan gabungan melebihi kemampuan penyedia gratis, sehingga panggilan yang sah ditandai sebagai penyalahgunaan.
+1. **Pembatasan laju penyedia (`429`)**: Tingkat gratis dapat memberlakukan kuota per jendela waktu. Lonjakan panggilan paralel menghabiskan kuota tersebut, sehingga permintaan berikutnya ditolak sampai jendela diatur ulang.
+2. **Model bermasalah dalam passthrough (`400`/`401`)**: Kumpulan `auto/*` dapat mencakup model passthrough dari `opencode` yang terdaftar dalam katalog tetapi tidak memiliki kredensial aktif (misalnya `oc/north-mini-code-free` → `401`). Auto-router mencoba salah satunya, gagal, lalu galat diteruskan sebelum fallback sempat dijalankan.
+3. **Amplifikasi konkurensi (`429` saat beban tinggi)**: Ketika beberapa sesi agen/cron mengakses `auto` secara bersamaan, laju permintaan agregat melampaui batas yang dapat ditoleransi oleh penyedia gratis, sehingga panggilan yang sah ditandai sebagai penyalahgunaan.
 
-**Perbaikan terverifikasi (dilaporkan komunitas, 2026-08-10)**: sesuaikan tiga variabel lingkungan agar rotasi, konkurensi, dan fallback menangani ketidakstabilan tingkat gratis, alih-alih gagal karenanya:
+**Perbaikan terverifikasi (dilaporkan komunitas, 2026-08-10)**: sesuaikan tiga variabel lingkungan agar rotasi, konkurensi, dan fallback dapat menangani ketidakstabilan tingkat gratis alih-alih gagal karenanya:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # beralih ke model/penyedia lain pada 400/401 (melewati model passthrough yang bermasalah)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # batas penerimaan eksplisit untuk permintaan berat (secara default tidak ditetapkan: tanpa batas jumlah permintaan, lihat catatan di bawah)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # waktu tunggu terbatas yang lebih lama untuk kapasitas permintaan berat, alih-alih langsung menghasilkan 503 yang dapat dicoba kembali
+export OMNIROUTE_ROTATE_ON_400=true           # beralih ke model/penyedia lain saat terjadi 400/401 (melewati model passthrough yang bermasalah)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # batas penerimaan eksplisit untuk permintaan berat (secara default tidak disetel: tidak ada batas jumlah permintaan, lihat catatan di bawah)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # tingkatkan waktu tunggu terbatas melampaui nilai default RATE_LIMIT_MAX_WAIT_MS untuk upstream yang lambat
 ```
 
-Tetapkan variabel tersebut di lingkungan proses OmniRoute (daemon, misalnya melalui plist LaunchAgent atau `systemctl edit`), lalu mulai ulang OmniRoute. Flag rotasi adalah pengaturan tunggal dengan dampak terbesar: pengaturan ini mengubah kegagalan total menjadi percobaan ulang transparan pada penyedia yang sehat dalam pool.
+Tetapkan variabel ini di lingkungan proses OmniRoute (daemon, misalnya melalui plist LaunchAgent atau `systemctl edit`), lalu mulai ulang OmniRoute. Flag rotasi merupakan pengungkit tunggal yang paling efektif: flag ini mengubah kegagalan total menjadi percobaan ulang transparan terhadap penyedia yang sehat dalam kumpulan.
 
-**Catatan**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` membatasi jumlah permintaan berat — dengan konteks panjang — yang berjalan secara bersamaan; batas tersebut merupakan gerbang penerimaan, bukan pembatas laju penyedia. **Pembaruan #503-fanout:** variabel ini tidak lagi ditetapkan secara default (sekarang hanya berlaku jika dikonfigurasi secara eksplisit, seperti di atas) — sebagai gantinya, penerimaan permintaan berat dibatasi oleh anggaran byte yang diturunkan secara otomatis (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dan menyesuaikan diri berdasarkan batas memori aktual host, sehingga deployment baru seharusnya mengalami jauh lebih sedikit penolakan `503 chat_admission_busy` tanpa perlu menetapkan variabel ini sama sekali; menetapkannya secara eksplisit di sini tetap berfungsi persis seperti yang didokumentasikan. Penggantian eksplisit untuk anggaran byte dibatasi dalam rentang 8 MiB–2 GiB. `413 body_exceeds_budget` bukan kondisi sementara: tingkatkan anggaran byte tersebut, turunkan `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, atau tingkatkan batas memori proses. Pelepasan beban `inflight_bytes_budget` merupakan kontensi sementara dan tetap dapat dicoba kembali. Pembatasan laju per penyedia (`open-sse/services/rateLimitManager.ts`) diatur secara terpisah oleh `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, dan `RATE_LIMIT_AUTO_ENABLE` — lihat `.env.example`.
+**Catatan**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` membatasi jumlah permintaan berat — berkonteks panjang — yang berjalan secara bersamaan; batas tersebut merupakan gerbang penerimaan, bukan pembatas laju penyedia. **Pembaruan #503-fanout:** variabel ini tidak lagi ditetapkan secara default (sekarang hanya berlaku jika dikonfigurasi secara eksplisit, seperti di atas) — penerimaan permintaan berat kini dibatasi oleh anggaran byte yang diturunkan secara otomatis (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dan menyesuaikan skalanya berdasarkan batas memori aktual host, sehingga deployment baru semestinya mengalami jauh lebih sedikit penolakan `503 chat_admission_busy` tanpa perlu menetapkan variabel ini sama sekali; menetapkannya secara eksplisit di sini tetap berfungsi persis seperti yang didokumentasikan. Override anggaran byte eksplisit dibatasi pada rentang 8 MiB–2 GiB. `413 body_exceeds_budget` bukan kondisi sementara: tingkatkan anggaran byte tersebut, turunkan `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, atau tingkatkan batas memori proses. Pengurangan beban `inflight_bytes_budget` merupakan perebutan sumber daya sementara dan tetap dapat dicoba ulang. Pembatasan laju per penyedia (`open-sse/services/rateLimitManager.ts`) diatur secara terpisah oleh `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, dan `RATE_LIMIT_AUTO_ENABLE` — lihat `.env.example`.
 
-**Cara memverifikasi bahwa perbaikan berhasil**: jalankan agen/cron Anda dua kali secara berurutan dalam waktu singkat dan pastikan keduanya berhasil. Sebelum perbaikan, proses kedua biasanya menghasilkan `429`/`401`. Setelah perbaikan, kegagalan (jika ada) dicoba ulang secara transparan dan panggilan selesai. Anda juga dapat menjalankan `curl /monitoring/health` dan memantau kolom `rateLimitedUntil` pada koneksi penyedia serta `circuitBreakers.providerBreakers[].state` untuk penyedia yang terdampak — statusnya adalah salah satu dari `CLOSED`, `DEGRADED`, `OPEN`, atau `HALF_OPEN` (lihat `src/shared/utils/circuitBreaker.ts`), dan penyedia yang terus mengalami kegagalan akan berubah dari `CLOSED → DEGRADED → OPEN` sebelum jendela pengaturan ulang mengizinkan sebuah pemeriksaan (`HALF_OPEN`).
+**Cara memverifikasi bahwa perbaikan berhasil**: jalankan agen/cron Anda dua kali secara berurutan dalam waktu singkat dan pastikan keduanya berhasil. Sebelum perbaikan, proses kedua biasanya menghasilkan `429`/`401`. Setelah perbaikan, kegagalan (jika ada) dicoba ulang secara transparan dan panggilan selesai. Anda juga dapat menjalankan `curl /monitoring/health` dan memantau kolom `rateLimitedUntil` pada koneksi penyedia serta `circuitBreakers.providerBreakers[].state` untuk penyedia yang terdampak — statusnya berupa salah satu dari `CLOSED`, `DEGRADED`, `OPEN`, atau `HALF_OPEN` (lihat `src/shared/utils/circuitBreaker.ts`), dan penyedia yang terus mengalami kegagalan akan beralih dari `CLOSED → DEGRADED → OPEN` sebelum jendela pengaturan ulang mengizinkan sebuah probe melewati (`HALF_OPEN`).
 
-**Jika Anda masih melihat 429**: akun aktif untuk penyedia tersebut benar-benar telah kehabisan _kuota_ (bukan sekadar terkena pembatasan laju). Tambahkan akun kedua untuk penyedia yang sama di dasbor OmniRoute → Providers → Accounts, atau sertakan penyedia gratis lainnya (misalnya `routeway`, `auggie`). Rotasi hanya membantu mengatasi pembatasan laju sementara/400/401; kehabisan kuota sepenuhnya memerlukan kredensial kedua atau penyedia lain.
+**Jika Anda masih melihat 429**: akun aktif untuk penyedia tersebut benar-benar telah menghabiskan _kuotanya_ (bukan sekadar terkena pembatasan laju). Tambahkan akun kedua untuk penyedia yang sama di dasbor OmniRoute → Providers → Accounts, atau sertakan penyedia gratis lainnya (misalnya `routeway`, `auggie`). Rotasi hanya membantu mengatasi pembatasan laju sementara/400/401; kehabisan kuota sepenuhnya memerlukan kredensial kedua atau penyedia lain.
 
-**Jika Anda melihat 403 pada model visi (`auto/vision`, `bazaarlink/*`)**: akun yang terhubung tidak memiliki paket berbayar yang mencakup visi, atau kunci API tidak memiliki izin yang memadai. Verifikasi di dasbor penyedia bahwa cakupan kunci mencakup visi/multimodal, atau hubungkan akun tingkat berbayar dan tetap gunakan akun tersebut sebagai target visi.
+**Jika Anda melihat 403 pada model visi (`auto/vision`, `bazaarlink/*`)**: akun yang terhubung tidak memiliki paket berbayar yang mencakup visi, atau kunci API tidak memiliki izin yang memadai. Pastikan di dasbor penyedia bahwa cakupan kunci mencakup visi/multimodal, atau hubungkan akun tingkat berbayar dan pertahankan akun tersebut sebagai target visi.
 
 ---
 
@@ -551,17 +551,17 @@ Gunakan **Dasbor → Penerjemah** untuk men-debug masalah penerjemahan format:
 - Pastikan **Settings → Resilience → Provider Profiles** telah mengaktifkan pembatasan laju otomatis
 - Periksa apakah penyedia mengembalikan kode status `429` atau header `Retry-After`
 
-### Menyetel backoff eksponensial
+### Menyetel exponential backoff
 
 Profil penyedia mendukung pengaturan berikut:
 
-- **Base delay** — Waktu tunggu awal setelah kegagalan pertama (default: 1s)
-- **Max delay** — Batas maksimum waktu tunggu (default: 30s)
-- **Multiplier** — Besarnya peningkatan waktu tunggu untuk setiap kegagalan berturut-turut (default: 2x)
+- **Penundaan dasar** — Waktu tunggu awal setelah kegagalan pertama (default: 1s)
+- **Penundaan maksimum** — Batas maksimum waktu tunggu (default: 30s)
+- **Pengali** — Besarnya peningkatan penundaan untuk setiap kegagalan berturut-turut (default: 2x)
 
-### Pencegahan thundering herd
+### Anti-thundering herd
 
-Ketika banyak permintaan serentak mengakses penyedia yang dibatasi lajunya, OmniRoute menggunakan mutex + pembatasan laju otomatis untuk menserialisasi permintaan dan mencegah kegagalan berantai. Ini dilakukan secara otomatis untuk penyedia kunci API.
+Ketika banyak permintaan bersamaan mengakses penyedia yang mengalami pembatasan laju, OmniRoute menggunakan mutex + pembatasan laju otomatis untuk menserialkan permintaan dan mencegah kegagalan berantai. Ini berlangsung otomatis untuk penyedia kunci API.
 
 ### Permintaan chat gagal dengan 503 / chat_admission_busy
 
@@ -569,14 +569,14 @@ Ketika banyak permintaan serentak mengakses penyedia yang dibatasi lajunya, Omni
 
 - Endpoint penyelesaian chat mengembalikan respons `503` yang dapat dicoba ulang dengan kode kesalahan
   `chat_admission_busy`.
-- Respons menyertakan `Retry-After`. Sejak #12135, nilainya diperoleh dari okupansi yang diamati
+- Respons menyertakan `Retry-After`. Sejak #12135, nilainya diturunkan dari okupansi yang diamati
   — nilai yang lebih besar antara jendela `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` yang telah digunakan
-  permintaan untuk menunggu dan lamanya lease kelas berat saat ini telah dipegang — dibulatkan ke
-  atas menjadi detik penuh dan dibatasi maksimal 60. Pada gate yang sedang tidak aktif, nilai ini
-  mempertahankan batas minimum historis: 2 detik pada jalur berbasis byte, 1 detik pada jalur
-  berbasis struktur (yang juga menyertakan `reason: "structure_limit"`).
-- Hal ini dapat terjadi ketika chat kelas berat lain atau respons streaming yang berjalan lama
-  masih berlangsung.
+  permintaan untuk menunggu dan lamanya lease heavyweight saat ini telah ditahan — dibulatkan ke atas
+  hingga hitungan detik penuh dan dibatasi maksimal 60. Pada gate yang tidak aktif, nilai minimum
+  historis tetap dipertahankan: 2 detik pada jalur berbasis byte, 1 detik pada jalur berbasis struktur
+  (yang juga menyertakan `reason: "structure_limit"`).
+- Hal ini dapat terjadi ketika chat heavyweight lain atau respons streaming yang berjalan lama masih
+  sedang diproses.
 
 Isi respons berbasis byte adalah:
 
@@ -590,35 +590,34 @@ Isi respons berbasis byte adalah:
 }
 ```
 
-Respons berbasis struktur menggunakan jenis dan kode yang sama, dengan pesan
+Respons berbasis struktur menggunakan tipe dan kode yang sama, dengan pesan
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 dan `reason: "structure_limit"`.
-Pada ambang batas default, suatu permintaan dianggap berat secara struktural jika memiliki setidaknya `200` pesan,
-setidaknya `64` alat, atau setidaknya `32,000` token perkiraan, atau ketika estimasi struktur berbatas
+Pada ambang batas default, permintaan dianggap berat secara struktural jika memiliki setidaknya `200` pesan,
+setidaknya `64` alat, atau setidaknya `32,000` token yang diperkirakan, atau ketika estimasi struktur terbatas
 mencapai batas `10,000` node yang dikunjungi atau kedalaman `12`.
 
-**Penyebab:** Ini adalah pengurangan beban yang disengaja di dalam OmniRoute, bukan kegagalan penyedia upstream.
-Setiap proses menggunakan guard lokal proses untuk mencadangkan kapasitas kelas berat yang terbatas sebelum menahan
-dan mengurai isi permintaan yang besar. Lease kelas berat tetap dipegang selama masa aktif respons SSE.
+**Penyebab:** Ini adalah pelepasan beban yang disengaja di dalam OmniRoute, bukan kegagalan penyedia upstream.
+Setiap proses menggunakan guard lokal proses untuk mencadangkan kapasitas heavyweight yang terbatas sebelum mempertahankan
+dan mengurai isi permintaan yang besar. Lease heavyweight tetap ditahan selama masa aktif respons SSE.
 
 **#503-fanout:** sebelum perbaikan ini, guard membatasi konkurensi pada JUMLAH permintaan tetap
 (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, default `1`) tanpa mempertimbangkan memori host, sehingga fan-out
 agen pemrograman (beberapa subagen/CLI, dengan isi yang biasanya > 256 KB) turun menjadi konkurensi efektif
-~1 dan menghasilkan 503 di bawah beban yang sepenuhnya normal. Guard kini menyesuaikan diri secara otomatis:
-guard dikendalikan oleh anggaran BYTE penyerapan yang diturunkan secara otomatis
-(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dan ditentukan berdasarkan batas memori aktual proses, serta
-mempertimbangkan sinyal tekanan sumber daya secara langsung — sehingga guard hanya mengurangi beban ketika
-host benar-benar mengalami tekanan memori, bukan sekadar karena lebih dari satu permintaan berat tiba
-bersamaan. Batas jumlah lama (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) tetap dipatuhi, tetapi hanya jika
-Anda menetapkannya secara eksplisit.
+~1 dan menghasilkan 503 di bawah beban yang sepenuhnya normal. Guard kini menyetel dirinya sendiri: guard ini
+dikendalikan oleh anggaran BYTE ingest yang diturunkan secara otomatis (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`)
+dan disesuaikan berdasarkan batas memori nyata proses, serta memeriksa sinyal tekanan sumber daya secara langsung
+— sehingga pelepasan beban hanya dilakukan ketika host benar-benar mengalami tekanan memori, bukan hanya karena
+lebih dari satu permintaan berat tiba secara bersamaan. Batas jumlah lama
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) masih dipatuhi, tetapi hanya jika Anda menetapkannya secara eksplisit.
 
-Ketika kapasitas sedang sibuk, permintaan kelas berat terlebih dahulu menunggu hingga
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `2000`, `0` menonaktifkan waktu tunggu) agar suatu slot tersedia
-sebelum mengembalikan `503` yang dapat dicoba ulang. Waktu tunggu terbatas ini disediakan agar klien bergaya agen
-(OpenCode, Claude Code, Cursor) yang melakukan fan-out subpermintaan berat secara bersamaan menserialisasi lonjakan
-tersebut, alih-alih menghabiskan seluruh anggaran percobaan ulang mereka akibat penolakan langsung dan berhenti
-di tengah tugas. Okupansi lease kelas berat saat ini, anggaran byte yang telah ditentukan, dan tingkat tekanan
-langsung ditampilkan di `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+Ketika kapasitas sibuk, permintaan heavyweight terlebih dahulu menunggu hingga
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default-nya adalah `RATE_LIMIT_MAX_WAIT_MS`; `0` menonaktifkan waktu tunggu) agar slot tersedia
+sebelum memberikan respons `503` yang dapat dicoba ulang. Waktu tunggu terbatas ini disediakan agar klien bergaya agen
+(OpenCode, Claude Code, Cursor) yang melakukan fan-out subpermintaan berat secara bersamaan dapat menserialkan lonjakan
+alih-alih menghabiskan seluruh anggaran percobaan ulang mereka pada penolakan langsung dan gagal di tengah tugas.
+Okupansi lease heavyweight saat ini, anggaran byte yang ditetapkan, dan tingkat keparahan tekanan langsung
+ditampilkan di `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — periksa nilai-nilai ini sebelum mengubah env var apa pun.
 Settings → Resilience → Request Queue → Concurrent Requests tidak mengendalikan hal ini; pengaturan tersebut
 mengatur mekanisme antrean permintaan penyedia yang terpisah.
@@ -628,15 +627,15 @@ mengatur mekanisme antrean permintaan penyedia yang terpisah.
 1. Coba ulang terlebih dahulu. Klien harus mematuhi `Retry-After` dan menggunakan backoff, bukan langsung
    mengulangi permintaan.
 2. Periksa `/api/monitoring/health` → `chatAdmission` sebelum menyetel apa pun. `countCapEnabled:
-false` dan `maxInflightBytes` yang memadai berarti anggaran yang diturunkan secara otomatis sudah menjalankan
+false` dan `maxInflightBytes` yang besar berarti anggaran yang diturunkan secara otomatis sudah menjalankan
    fungsinya; `pressureSeverity` bernilai `high`/`critical` berarti host benar-benar kekurangan memori —
-   hal tersebut tidak dapat diperbaiki dengan env var admission, tetapi memerlukan RAM yang lebih besar atau beban kerja yang lebih kecil.
-3. Hanya jika `/api/monitoring/health` menunjukkan bahwa anggaran yang diturunkan secara otomatis benar-benar terlalu kecil untuk
-   host Anda (jarang terjadi — anggaran ini sudah diskalakan dari container hingga bare-metal), timpa secara langsung dengan
+   hal tersebut tidak dapat diperbaiki dengan env var admission; diperlukan lebih banyak RAM atau beban kerja yang lebih kecil.
+3. Hanya jika `/api/monitoring/health` menunjukkan bahwa anggaran yang diturunkan secara otomatis memang terlalu kecil untuk
+   host Anda (jarang terjadi — anggaran ini sudah diskalakan dari container hingga bare-metal), timpa langsung dengan
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, alih-alih kembali menggunakan batas jumlah permintaan lama.
 
 Lihat [referensi variabel lingkungan](../reference/ENVIRONMENT.md#4-security--authentication)
-untuk pengaturan admission yang berlaku secara resmi.
+untuk pengaturan admission yang otoritatif.
 
 ---
 

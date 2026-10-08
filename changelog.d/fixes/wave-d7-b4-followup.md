@@ -1,0 +1,1 @@
+- i18n: translate the two sidebar section show/hide labels added by #15508 into all 66 UI locales.

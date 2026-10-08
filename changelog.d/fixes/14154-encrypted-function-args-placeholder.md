@@ -1,1 +1,0 @@
-- fix(api): add `encrypted_function_args: []` plaintext marker to collaboration function_call items in the Responses translators (#14154)

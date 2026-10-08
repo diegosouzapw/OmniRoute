@@ -1,1 +1,0 @@
-- **fix(call-logs):** record encrypted reasoning presence, duration and requested effort in call logs ([#14680](https://github.com/diegosouzapw/OmniRoute/pull/14680))

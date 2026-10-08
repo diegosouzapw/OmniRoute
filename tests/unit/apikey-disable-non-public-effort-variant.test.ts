@@ -110,9 +110,18 @@ test("a literal synced id wins over the variant rule, including its own hidden f
 });
 
 test("providers that own their suffix mechanism are not resolved as synced variants", async () => {
+  await modelsDb.replaceSyncedAvailableModelsForConnection("glm", "conn-glm-1", [
+    { id: "glm-x", name: "GLM X", supportedThinkingEfforts: ["low"] },
+  ]);
+  const key = await createRestrictedKey();
+  assert.equal(await apiKeysDb.isModelAllowedForKey(key, "glm/glm-x-low"), false);
+});
+
+test("codex resolves a declared discovered tier as a synced variant (#13224)", async () => {
   await modelsDb.replaceSyncedAvailableModelsForConnection("codex", "conn-codex-1", [
     { id: "gpt-x", name: "GPT X", supportedThinkingEfforts: ["low"] },
   ]);
   const key = await createRestrictedKey();
-  assert.equal(await apiKeysDb.isModelAllowedForKey(key, "codex/gpt-x-low"), false);
+  assert.equal(await apiKeysDb.isModelAllowedForKey(key, "codex/gpt-x-low"), true);
+  assert.equal(await apiKeysDb.isModelAllowedForKey(key, "codex/gpt-x-high"), false);
 });

@@ -13,17 +13,17 @@ OmniRoute တွင် API တောင်းဆိုမှုတိုင်�
 
 > ရင်းမြစ်: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Auth Mode နှစ်မျိုး
+## အထောက်အထားစိစစ်ခြင်း မုဒ်နှစ်မျိုး
 
 ### 1. API Key (Bearer)
 
-OpenAI/Anthropic/Gemini နှင့် ကိုက်ညီသော client API များအတွက် အသုံးပြုပြီး key တွင် `manage` scope ရှိသည့်အခါ management route အချို့အတွက်လည်း အသုံးပြုသည်။
+OpenAI/Anthropic/Gemini နှင့် တွဲဖက်အသုံးပြုနိုင်သော client API များနှင့် key တွင် `manage` scope ရှိသည့်အခါ စီမံခန့်ခွဲမှု route အချို့အတွက် အသုံးပြုသည်။
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` ရှိ `isValidApiKey()` / `extractApiKey()` တို့ဖြင့် စစ်ဆေးအတည်ပြုပြီး `src/shared/utils/apiAuth.ts` မှတစ်ဆင့် ပြန်လည် export လုပ်ထားသည်။ Validator သည် `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars များကို အမြဲတမ်းအသုံးပြုနိုင်သော passthrough key များအဖြစ်လည်း လက်ခံသည် (issue #1350)။
+`src/sse/services/auth.ts` ရှိ `isValidApiKey()` / `extractApiKey()` ဖြင့် စစ်ဆေးအတည်ပြုပြီး `src/shared/utils/apiAuth.ts` မှတစ်ဆင့် ပြန်လည် export လုပ်ထားသည်။ Validator သည် `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env var များကိုလည်း အမြဲတမ်း passthrough key များအဖြစ် လက်ခံသည် (issue #1350)။
 
 ### 2. Dashboard Session (auth_token cookie)
 
@@ -33,18 +33,18 @@ Dashboard စာမျက်နှာများနှင့် admin လုပ
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWT ကို အတည်ပြုနိုင်ပြီး **ထို့အပြင်** `authenticated: true` ပါရှိသည့်အခါမှသာ cookie တစ်ခုကို session အဖြစ် သတ်မှတ်သည်
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)။ Cookie ကို
-အသုံးပြုသူတိုင်း (route guard၊ authz pipeline refresh၊ WebSocket handshake၊ live
-server၊ `/api/settings/require-login`၊ `/api/auth/status`) သည် ထို helper မှတစ်ဆင့်
-လုပ်ဆောင်သည်။ `JWT_SECRET` ဖြင့် လက်မှတ်ထိုးထားသည့် အခြား JWT များလည်း ရှိသည် — Cursor CLI passthrough သည်
-key ကိုင်ဆောင်သူများအတွက် `iss "omniroute" / aud "cursor-cli"` token များကို ထုတ်ပေးသည် — သို့သော် ၎င်းတို့ကို session များအဖြစ်
-မည်သည့်အခါမျှ မသတ်မှတ်ပါ
+JWT ကို အတည်ပြုနိုင်ပြီး **ထို့ပြင်** `authenticated: true` ပါရှိသည့်အခါမှသာ cookie တစ်ခုကို session အဖြစ် သတ်မှတ်သည်
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)။ Cookie ကို အသုံးပြုသည့် နေရာအားလုံး (dashboard route guard (`isDashboardSessionAuthenticated()`), authz pipeline refresh၊ WebSocket handshake၊ live
+server၊ `/api/settings/require-login`၊ `/api/auth/status`) သည် ထို helper မှတစ်ဆင့် လုပ်ဆောင်သည်။
+`JWT_SECRET` ဖြင့် လက်မှတ်ရေးထိုးထားသော အခြား JWT များလည်း ရှိသည် — Cursor CLI passthrough သည်
+key ကိုင်ဆောင်သူများအတွက် `iss "omniroute" / aud "cursor-cli"` token များကို ထုတ်ပေးသည် — သို့သော် ၎င်းတို့သည် session များ လုံးဝမဟုတ်ပါ
 (#13298)။
 
-`src/shared/utils/apiAuth.ts` ရှိ `isDashboardSessionAuthenticated()` ဖြင့် စစ်ဆေးအတည်ပြုသည်။ ရက် 30 သက်တမ်းအတွင်း ကျန်ရှိသည့်အချိန် 7 ရက်အောက် ရောက်သွားသောအခါ pipeline က JWT ကို အလိုအလျောက် refresh လုပ်သည်။
+`src/shared/utils/apiAuth.ts` ရှိ `isDashboardSessionAuthenticated()` ဖြင့် အတည်ပြုသည်။ ရက် 30 သက်တမ်းအတွင်း လက်ကျန်သက်တမ်း 7 ရက်အောက် ရောက်သည့်အခါ pipeline က JWT ကို အလိုအလျောက် refresh လုပ်ပေးသည်။
 
-Management route အချို့သည် mode **တစ်မျိုးမျိုးကို** လက်ခံသည်- API key တွင် `manage` (သို့မဟုတ် `admin`) scope ရှိပါက cookie သို့မဟုတ် `Bearer <key>` ဖြစ်သည်။ ဤအချက်က v3.8 တွင် ထည့်သွင်းခဲ့သည့် "API call များမှတစ်ဆင့် ပြင်ဆင်သတ်မှတ်နိုင်သော" workflow ကို အသုံးပြုနိုင်စေသည်။
+Session တစ်ခုသည် ရက် 30 မပြည့်မီတွင်လည်း ပြီးဆုံးနိုင်သည်။ အကြောင်းမှာ token ထုတ်ပေးသည့် minter တိုင်းသည် `mintDashboardSessionToken` (ထုတ်ပေးချိန် `iat` နှင့် ID `jti`) မှတစ်ဆင့် လုပ်ဆောင်ပြီး verifier က setting နှစ်ခုကို စစ်ဆေးသောကြောင့် ဖြစ်သည်။ ပထမတစ်ခုမှာ `sessionsValidAfter` ဖြစ်ပြီး password ပြောင်းသည့်အခါ သတ်မှတ်သည်။ ထို့ကြောင့် ထိုအချိန်မတိုင်မီ ထုတ်ပေးထားသည့် session အားလုံးကို ဆက်လက်အတည်ပြု၍ မရတော့ပါ (password ပြောင်းခဲ့သည့် browser က cookie အသစ်ကို ရရှိသည်)။ ဒုတိယတစ်ခုမှာ `revokedDashboardSessions` ဖြစ်ပြီး `POST /api/auth/logout` က sign out လုပ်ထားသည့် session ၏ `jti` ကို ထိုစာရင်းထဲသို့ ထည့်သည်။ Release အဟောင်းဖြင့် ထုတ်ပေးထားသည့် session များတွင် ထို claim နှစ်ခုစလုံး မပါဝင်ဘဲ ပထမဆုံး password ပြောင်းသည့်အချိန်အထိ ဆက်လက်အသုံးပြုနိုင်သည်။ Setting များကို ဖတ်၍မရပါက session ကို ယုံကြည်စိတ်ချရသည်ဟု မသတ်မှတ်ပါ။
+
+စီမံခန့်ခွဲမှု route အချို့သည် မုဒ် **နှစ်မျိုးအနက် တစ်မျိုးမျိုး** ကို လက်ခံသည်- cookie သို့မဟုတ် API key တွင် `manage` (သို့မဟုတ် `admin`) scope ရှိသည့်အခါ `Bearer <key>`။ ဤအရာက v3.8 တွင် ထည့်သွင်းခဲ့သော "API call များမှတစ်ဆင့် ပြင်ဆင်သတ်မှတ်နိုင်ခြင်း" workflow ကို အသုံးပြုနိုင်စေသည်။
 
 #### ရွေးချယ်အသုံးပြုနိုင်သော OIDC login gate (#6973)
 
@@ -52,25 +52,25 @@ Dashboard admin login သည် မူလ password login နှင့်အတ�
 ပံ့ပိုးသည် — password login ကို မည်သည့်အခါမျှ ဖယ်ရှားခြင်းမရှိဘဲ
 ထပ်မံဖြည့်စွက်ပေးခြင်းသာ ဖြစ်သည်-
 
-- `settings.oidcEnabled === true` ဖြစ်ပြီး **ထို့အပြင်** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` အားလုံးကို ပြင်ဆင်သတ်မှတ်ထားသည့်အခါမှသာ ဖွင့်ထားသည် (Settings → Auth)။
-  မဟုတ်ပါက `GET /api/auth/oidc/login` သည် `400` ကို ပြန်ပေးသည်။
+- `settings.oidcEnabled === true` ဖြစ်ပြီး **ထို့ပြင်** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` အားလုံးကို ပြင်ဆင်သတ်မှတ်ထားမှသာ ဖွင့်ထားမည် (Settings → Auth)။
+  မဟုတ်ပါက `GET /api/auth/oidc/login` က `400` ကို ပြန်ပေးသည်။
 - `GET /api/auth/oidc/login` သည် issuer ၏
-  `/.well-known/openid-configuration` မှ `authorization_endpoint` ကို ရှာဖွေသည်
-  (`<issuer>/authorize` ကို fallback အဖြစ် အသုံးပြုသည်)၊ ဝင်လာသော request မှ redirect URI ကို တည်ဆောက်သည်
-  (`x-forwarded-proto` ကို ထည့်သွင်းစဉ်းစားသည်)၊ ထို့နောက် `httpOnly` `oidc_state` cookie ထဲတွင်
-  သိမ်းဆည်းထားသော ကျပန်း `state` တစ်ခုနှင့်အတူ IdP သို့ redirect လုပ်သည်။
+  `/.well-known/openid-configuration` မှ `authorization_endpoint` ကို ရှာဖွေဖော်ထုတ်သည် (`<issuer>/authorize` ကို
+  fallback အဖြစ် အသုံးပြုသည်)၊ ဝင်လာသည့် request မှ redirect URI ကို တည်ဆောက်သည်
+  (`x-forwarded-proto` ကို ထည့်သွင်းစဉ်းစားသည်)၊ ထို့နောက် `httpOnly` `oidc_state` cookie ထဲတွင် သိမ်းဆည်းထားသည့် ကျပန်း `state`
+  နှင့်အတူ IdP သို့ redirect လုပ်သည်။
 - `GET /api/auth/oidc/callback` သည် `state` ကို စစ်ဆေးအတည်ပြုကာ authorization
-  code ကို လဲလှယ်ပြီး issuer ၏ JWKS မှတစ်ဆင့် ID token ၏ လက်မှတ်ကို
+  code ကို လဲလှယ်ပြီး issuer ၏ JWKS မှတစ်ဆင့် ID token ၏ signature ကို
   (`jose` ၏ `createRemoteJWKSet`၊ JWKS URI တစ်ခုချင်းစီအလိုက် cache လုပ်ထားသည်) `issuer`/`audience`
-  စစ်ဆေးမှုများနှင့်အတူ အတည်ပြုသည်။ ရွေးချယ်အသုံးပြုနိုင်သော `oidcAllowedSubjects` allowlist သည် token ၏
-  `sub` claim သို့မဟုတ် ၎င်း၏ `email` claim နှင့် ကိုက်ညီမှုကို စစ်ဆေးသည် — `email_verified === true` ဖြစ်သည့်အခါမှသာ
-  email claim ကို လက်ခံသောကြောင့် IdP ရှိ အတည်မပြုရသေးသော email တစ်ခုသည်
-  gate ကို မည်သည့်အခါမျှ ဖြတ်ကျော်နိုင်မည် မဟုတ်ပါ။
-- အောင်မြင်ပါက password login မှ ထုတ်ပေးသည့် **အတိအကျ တူညီသော** ရက် 30 သက်တမ်းရှိ `auth_token` JWT ကို
-  ထုတ်ပေးသည် (`src/app/api/auth/login/route.ts`)။ ထို့ကြောင့် ကျန်ရှိသော
+  စစ်ဆေးမှုများနှင့်အတူ အတည်ပြုသည်။ ရွေးချယ်သတ်မှတ်နိုင်သော `oidcAllowedSubjects` allowlist သည် token ၏
+  `sub` claim သို့မဟုတ် ၎င်း၏ `email` claim နှင့် ကိုက်ညီမှုရှိမရှိ စစ်ဆေးသည် — `email_verified === true` ဖြစ်သည့်အခါမှသာ email claim ကို
+  လက်ခံသည်။ ထို့ကြောင့် IdP တွင် အတည်မပြုရသေးသော email သည်
+  gate ကို မည်သည့်အခါမျှ ကျော်ဖြတ်နိုင်မည်မဟုတ်ပါ။
+- အောင်မြင်သည့်အခါ password
+  login (`src/app/api/auth/login/route.ts`) က ထုတ်ပေးသည့် ရက် 30 သက်တမ်းရှိသော `auth_token` JWT နှင့် **လုံးဝတူညီသည့်** JWT ကို ထုတ်ပေးသည်။ ထို့ကြောင့် ကျန်ရှိသော
   dashboard session pipeline (အလိုအလျောက် refresh လုပ်ခြင်း၊ cookie flag များ) သည် မပြောင်းလဲပါ —
-  OIDC သည် cookie က ပေးအပ်သည့် ခွင့်ပြုချက်ကို မပြောင်းလဲဘဲ cookie ထုတ်ပေးသည့်နည်းလမ်းကိုသာ အစားထိုးသည်။
+  OIDC သည် cookie ထုတ်ပေးသည့်နည်းလမ်းကိုသာ အစားထိုးပြီး cookie က ပေးအပ်သည့် ခွင့်ပြုချက်များကို မပြောင်းလဲပါ။
 
 ## Route အတန်းအစားများ
 

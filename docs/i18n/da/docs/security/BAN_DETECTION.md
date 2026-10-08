@@ -4,24 +4,27 @@
 
 ---
 
-OmniRoute scanner upstream-fejlsvar for signaler, der indikerer, at en udbyderkonto
-**er permanent ubrugelig** (suspenderet / deaktiveret / udelukket pga. brud på servicevilkårene), og flytter ved
-et match den pågældende forbindelse til en **terminal `banned`-tilstand**, så den ikke
-længere vælges til anmodninger. Det er dette, som indstillingskortet **Security → Banned Keywords**
+OmniRoute scanner upstream-fejlsvar for signaler, der indikerer, at en udbyderkonto er
+**permanent ubrugelig** (suspenderet / deaktiveret / udelukket på grund af brud på tjenestevilkårene), og flytter ved
+et match forbindelsen til en **terminal `banned`-tilstand**, så den ikke
+længere vælges til anmodninger. Dette er, hvad indstillingskortet **Sikkerhed → Forbudte nøgleord**
 konfigurerer ("Yderligere nøgleord, der udløser registrering af permanent kontoudelukkelse.
 Indbyggede nøgleord anvendes altid.").
 
-Denne side dokumenterer den indbyggede liste, registreringsforløbet, dets omfang, hvordan
-brugerdefinerede nøgleord tilføjes sikkert, og hvordan en markeret forbindelse gendannes. Selve den terminale
+Denne side dokumenterer den indbyggede liste, registreringsforløbet, dets omfang, hvordan man
+sikkert tilføjer brugerdefinerede nøgleord, og hvordan man genopretter en markeret forbindelse. Selve den terminale
 tilstand er en del af robusthedsmodellen — se
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminaltilstande").
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminale tilstande").
 
 **Autoritativ kilde:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+samt `open-sse/services/errorClassifier.ts` for den ikke-terminale verificeringsklasse
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) og for
+403-grenen, der anvender den.
 
 ## Indbyggede nøgleord
 
-Disse 8 delstrenge anvendes altid (uafhængigt af store og små bogstaver), uanset eventuelle brugerdefinerede lister:
+Disse 7 delstrenge anvendes altid (uanset store og små bogstaver), uafhængigt af eventuelle brugerdefinerede lister:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Denne liste udvikler sig, efterhånden som udbyderne ændrer formuleringerne i deres udelukkelsesmeddelelser. Den autoritative
+> Denne liste udvikler sig, efterhånden som udbyderne ændrer formuleringen af deres udelukkelsesmeddelelser. Den autoritative
 > kopi er `ACCOUNT_DEACTIVATED_SIGNALS` i `open-sse/services/accountFallback.ts`;
 > betragt blokken ovenfor som et øjebliksbillede.
 
-To tilstødende, **separate** signaltabeller findes i den samme fil og er _ikke_ en del
-af registreringen af udelukkelsesnøgleord:
+### Ikke en udelukkelse: verificeringsanmodninger, som operatøren kan handle på
+
+`verify your account to continue` **var tidligere** på listen ovenfor. Det er ikke et udelukkelsessignal
+og findes nu i `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, som klassificeres som
+en `PROJECT_ROUTE_ERROR`, der kan afhjælpes, i stedet for at afslutte forbindelsen permanent.
+
+Google Cloud Code / Antigravity returnerer det som `403 VALIDATION_REQUIRED`. Det er
+**midlertidigt og forekommer på sunde konti med fuld kvote** — målt på en aktiv
+installation (2026-09-25, `proxy_logs`): Én Antigravity-forbindelse returnerede 33 af disse
+403-svar inden for 10 minutter og forblev `active`, mens en parallel forbindelse med 100 % af
+sin kvote tilbage i alle 17 vinduer blev permanent udelukket af **et enkelt** svar. Den eneste
+forskel var, hvilket forsøg der tilfældigvis blev behandlet.
+
+Sondringen er vigtig, fordi et terminalt match er `permanent: true` (1 års nedkølingsperiode,
+ingen automatisk genoprettelse), hvorimod operatøren fjerner en verificeringsanmodning i en browser.
+Hvis udtrykket beholdes på udelukkelseslisten, bliver den cloud-code-403-gren, der kan afhjælpes, i
+`classifyProviderError` også utilgængelig for denne formulering, fordi `accountDeactivated`
+evalueres først — derfor kunne projekt-rute-genoprettelsen, der blev tilføjet for Gemini Code Assist i
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) og
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452), aldrig køre.
+
+Tre tilstødende, **separate** signaltabeller er _ikke_ en del af registreringen af udelukkelsesnøgleord:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — fakturering/kvote opbrugt (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → terminal `credits_exhausted`.
 - `OAUTH_INVALID_TOKEN_SIGNALS` — **ikke-terminal**; en tokenopdatering kan genoprette forbindelsen.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **ikke-terminal**; operatøren skal
+  genverificere kontoen hos upstream-udbyderen. Findes i `open-sse/services/errorClassifier.ts`
+  (de to andre findes i `accountFallback.ts`). Se afsnittet ovenfor.
 
-Bemærk: almindelige midlertidige formuleringer som **`rate limit`** / `429` håndteres af
-stien for hastighedsbegrænsning / forbindelsespause og er **ikke** udelukkelsessignaler.
+Bemærk: Almindelige midlertidige udtryk som **`rate limit`** / `429` håndteres af
+stien for hastighedsbegrænsning/forbindelsesnedkøling og er **ikke** udelukkelsessignaler.
 
 ## Registreringsforløb
 

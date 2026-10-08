@@ -15,7 +15,7 @@
  */
 
 import { getDbInstance } from "./core";
-import { normalizeProxyHostForLog } from "../proxyLogger";
+import { normalizeProxyHostForLog } from "../proxyLogHost";
 import { sanitizeTimingMs } from "@omniroute/open-sse/utils/timingMs.ts";
 
 // ---------------------------------------------------------------------------

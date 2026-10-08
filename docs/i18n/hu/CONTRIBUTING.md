@@ -392,18 +392,18 @@ Adja hozzá a modelldefiníciókat az `open-sse/config/providerRegistry.ts` fáj
 
 - [ ] A tesztek sikeresen lefutnak (`npm test`)
 - [ ] A lintelés sikeresen lefut (`npm run lint`)
-- [ ] A build sikeresen elkészül (`npm run build`)
-- [ ] TypeScript-típusok hozzáadva az új nyilvános függvényekhez és interfészekhez
+- [ ] A build sikeresen lefut (`npm run build`)
+- [ ] Az új nyilvános függvényekhez és interfészekhez TypeScript-típusok lettek hozzáadva
 - [ ] Nincsenek beégetett titkos adatok vagy tartalékértékek
-- [ ] A nyilvános upstream hitelesítő adatok beágyazása a `resolvePublicCred()` használatával történik (lásd: [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), soha nem literálként
-- [ ] A hibaválaszok a `buildErrorBody()` / `sanitizeErrorMessage()` függvényeken keresztül haladnak — a válaszok törzsében nincsenek nyers veremkiírások (lásd: [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] A shell-parancsok (`exec` / `spawn`) a futásidejű értékeket az `env` használatával, nem pedig karakterlánc-interpolációval adják át
+- [ ] A nyilvános upstream hitelesítő adatok a `resolvePublicCred()` segítségével vannak beágyazva (lásd: [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), soha nem literálként
+- [ ] A hibaválaszok a `buildErrorBody()` / `sanitizeErrorMessage()` függvényeken haladnak keresztül — a válasz törzsében nincsenek nyers veremkivonatok (lásd: [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] A shell-parancsok (`exec` / `spawn`) a futásidejű értékeket az `env` segítségével, nem pedig sztringinterpolációval adják át
 - [ ] Minden bemenet Zod-sémákkal van validálva
-- [ ] A felhasználókat érintő változásokhoz **változásnapló-töredék** hozzáadva a `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` alatt (lásd: [`changelog.d/README.md`](./changelog.d/README.md)) — a `CHANGELOG.md` fájlt **ne** szerkeszd közvetlenül; a töredékeket a kiadáskor összesítik, és soha nem okoznak ütközést a PR-ok között
-- [ ] A dokumentáció frissítve (ha alkalmazható)
-- [ ] Nem keletkezett új CodeQL- vagy Secret-Scanning-riasztás, vagy mindegyik el lett utasítva a vonatkozó `docs/security/` dokumentumra hivatkozó műszaki indoklással
-- [ ] A gyermekfolyamatokat indító útvonalak (`/api/mcp/`, `/api/cli-tools/runtime/`) `isLocalOnlyPath()` besorolást kaptak a `src/server/authz/routeGuard.ts` fájlban — lásd: [15. szigorú szabály](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] A commitüzenetekben nincsenek `Co-Authored-By` zárósorok — a commitoknak kizárólag a tároló tulajdonosának Git-identitása alatt kell megjelenniük (16. szigorú szabály)
+- [ ] A felhasználókat érintő változásokhoz changelog-**töredék** lett hozzáadva a `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` alatt (lásd: [`changelog.d/README.md`](./changelog.d/README.md)) — a `CHANGELOG.md` fájlt **ne** szerkeszd közvetlenül; a töredékek kiadáskor kerülnek összesítésre, és soha nem ütköznek a PR-ok között
+- [ ] A dokumentáció frissítve lett (ha alkalmazható)
+- [ ] Nem keletkeztek új CodeQL- vagy titokészlelési riasztások, illetve mindegyik el lett utasítva a vonatkozó `docs/security/` dokumentumra hivatkozó műszaki indoklással
+- [ ] A gyermekfolyamatokat indító útvonalak (`/api/mcp/`, `/api/cli-tools/runtime/`) `isLocalOnlyPath()` besorolást kaptak az `src/server/authz/routeGuard.ts` fájlban — lásd: [15. szigorú szabály](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] A commitüzenetekben nincsenek AI-/bot-eredetű `Co-authored-by` zárósorok (16. szigorú szabály) — azok az emberi közreműködők, akiknek a munkája újra fel lett használva, szabványos `Co-authored-by: Name <email>` zárósorokkal kapnak elismerést
 
 ---
 
@@ -419,5 +419,4 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **API-referencia**: Lásd: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Biztonsági dokumentáció**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Üzemeltetési dokumentáció**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Problémák**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ek**: Az architekturális döntési feljegyzéseket a `docs/adr/` könyvtárban találja.
+- **Hibajegyek**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)

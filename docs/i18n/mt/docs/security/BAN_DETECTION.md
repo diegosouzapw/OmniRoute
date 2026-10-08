@@ -4,24 +4,19 @@
 
 ---
 
-OmniRoute jiskennja t-tweġibiet ta’ żball upstream għal sinjali li jindikaw li **kont
-ta’ fornitur huwa mejjet permanentement** (sospiż / diżattivat / ipprojbit minħabba t-ToS) u, meta
-jinstab qbil, imexxi dik il-konnessjoni għal **stat terminali `banned`** sabiex ma
-tibqax tintgħażel għat-talbiet. Dan huwa dak li tikkonfigura l-kard tas-settings
-**Security → Banned Keywords** ("Kliem ewlieni addizzjonali li jattiva l-iskoperta
-ta’ projbizzjoni permanenti tal-kont. Il-kliem ewlieni inkorporat japplika dejjem.").
+OmniRoute jiskennja t-tweġibiet ta’ żball upstream għal sinjali li jindikaw li **kont ta’ fornitur huwa mejjet b’mod permanenti** (sospiż / diżattivat / ipprojbit minħabba t-ToS) u, meta tinstab taqbila, imexxi dik il-konnessjoni għal **stat terminali `banned`** sabiex ma tibqax tintgħażel għat-talbiet. Dan huwa dak li tikkonfigura l-kard tas-settings **Security → Banned Keywords** ("Kliem ewlieni addizzjonali li jattiva s-sejbien ta’ projbizzjoni permanenti tal-kont. Il-kliem ewlieni integrat japplika dejjem.").
 
-Din il-paġna tiddokumenta l-lista inkorporata, il-fluss tal-iskoperta, l-ambitu tagħha, kif iżżid
-kliem ewlieni personalizzat b’mod sikur, u kif tirkupra konnessjoni mmarkata. L-istat
-terminali nnifsu huwa parti mill-mudell ta’ reżiljenza — ara
+Din il-paġna tiddokumenta l-lista integrata, il-fluss tas-sejbien, l-ambitu tiegħu, kif iżżid kliem ewlieni personalizzat b’mod sikur, u kif tirkupra konnessjoni mmarkata. L-istat terminali nnifsu huwa parti mill-mudell ta’ reżiljenza — ara
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Stati terminali").
 
 **Sors awtorevoli:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+flimkien ma’ `open-sse/services/errorClassifier.ts` għall-klassi ta’ verifika mhux terminali
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) u għall-fergħa 403 li tużaha.
 
-## Kliem ewlieni inkorporat
+## Kliem ewlieni integrat
 
-Dawn it-8 sottostrings japplikaw dejjem (mingħajr ma titqies il-kapitalizzazzjoni), irrispettivament minn kwalunkwe lista personalizzata:
+Dawn is-7 sottostrings japplikaw dejjem (mingħajr ma titqies id-differenza bejn ittri kbar u żgħar), irrispettivament minn kwalunkwe lista personalizzata:
 
 ```
 account_deactivated
@@ -29,24 +24,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Din il-lista tevolvi hekk kif il-fornituri jibdlu l-formulazzjoni tal-projbizzjonijiet tagħhom. Il-kopja
+> Din il-lista tevolvi hekk kif il-fornituri jbiddlu l-formulazzjonijiet tal-projbizzjoni tagħhom. Il-kopja
 > awtorevoli hija `ACCOUNT_DEACTIVATED_SIGNALS` f’`open-sse/services/accountFallback.ts`;
-> ikkunsidra l-blokka ta’ hawn fuq bħala snapshot.
+> ikkunsidra l-blokka ta’ hawn fuq bħala stampa tal-mument.
 
-Żewġ tabelli tas-sinjali biswit xulxin, iżda **separati**, jinsabu fl-istess fajl u _mhumiex_ parti
-mill-iskoperta permezz tal-kliem ewlieni ta’ projbizzjoni:
+### Mhijiex projbizzjoni: talbiet ta’ verifika li l-operatur jista’ jaġixxi fuqhom
 
-- `CREDITS_EXHAUSTED_SIGNALS` — il-fatturazzjoni/kwota tkun eżawrita (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → stat terminali `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **mhux terminali**; aġġornament tat-token jista’ jirkupra.
+`verify your account to continue` **kienet** fil-lista ta’ hawn fuq. Mhijiex sinjal ta’
+projbizzjoni u issa tinsab f’`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, li jikklassifikaha bħala
+`PROJECT_ROUTE_ERROR` li jista’ jiġi rkuprat minnu minflok ma jtemm il-konnessjoni b’mod permanenti.
 
-Nota: frażijiet tranżitorji komuni bħal **`rate limit`** / `429` jiġu ġestiti mill-mogħdija
-tal-limitu tar-rata / cooldown tal-konnessjoni u **mhumiex** sinjali ta’ projbizzjoni.
+Google Cloud Code / Antigravity jirritornawha bħala `403 VALIDATION_REQUIRED`. Hija
+**tranżitorja u sseħħ fuq kontijiet f’saħħithom u bil-kwota kollha disponibbli** — kif imkejjel fuq
+skjerament attiv (2026-09-25, `proxy_logs`): konnessjoni waħda ta’ Antigravity irritornat 33 minn dawn
+l-iżbalji 403 fi żmien 10 minuti u baqgħet `active`, filwaqt li konnessjoni oħra tal-istess tip li kellha 100 % tal-
+kwota tagħha fis-17-il perjodu kollha ġiet ipprojbita b’mod permanenti minn każ **wieħed** biss. L-unika
+differenza kienet liema tentattiv inzerta ġie moqdi.
+
+Id-distinzjoni hija importanti għaliex qbil terminali jkun `permanent: true` (perjodu ta’ stennija ta’ sena,
+u qatt ma jirkupra awtomatikament), filwaqt li l-operatur jista’ jneħħi talba ta’ verifika minn browser.
+Iż-żamma tal-frażi fil-lista tal-projbizzjonijiet kienet ukoll tagħmel il-fergħa 403 ta’ cloud-code li tista’
+tiġi rkuprata f’`classifyProviderError` inaċċessibbli għal din il-formulazzjoni, għaliex `accountDeactivated`
+jiġi evalwat l-ewwel — għalhekk l-irkupru tar-rotta tal-proġett miżjud għal Gemini Code Assist f’
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) u
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) qatt ma seta’ jitħaddem.
+
+Tliet tabelli tas-sinjali biswit xulxin, iżda **separati**, _mhumiex_ parti mill-identifikazzjoni tal-kliem ewlieni tal-projbizzjoni:
+
+- `CREDITS_EXHAUSTED_SIGNALS` — il-kreditu tal-kontijiet/il-kwota ġew eżawriti (`insufficient_quota`,
+  `credit_balance_too_low`, `payment required`, …) → `credits_exhausted` terminali.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **mhux terminali**; aġġornament tat-token jista’ jwassal għall-irkupru.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **mhux terminali**; l-operatur irid
+  jerġa’ jivverifika l-kont għand il-fornitur. Tinsab f’`open-sse/services/errorClassifier.ts`
+  (it-tnejn l-oħra jinsabu f’`accountFallback.ts`). Ara t-taqsima ta’ hawn fuq.
+
+Nota: frażijiet tranżitorji komuni bħal **`rate limit`** / `429` jiġu ġestiti mill-mogħdija tal-
+limitu tar-rata / il-perjodu ta’ stennija tal-konnessjoni u **mhumiex** sinjali ta’ projbizzjoni.
 
 ## Fluss tal-iskoperta
 

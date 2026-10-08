@@ -7,23 +7,23 @@
 > **Zdroj pravdy:** pracovní prostor `electron/`
 > **Naposledy aktualizováno:** 2026-06-28 — v3.8.40
 
-OmniRoute je dodáván jako multiplatformní desktopová aplikace (Windows / macOS / Linux) postavená na
+OmniRoute obsahuje multiplatformní desktopovou aplikaci (Windows / macOS / Linux) postavenou na
 **Electron 41** + **electron-builder 26.10**. Desktopová aplikace spouští samostatný server Next.js
-jako podřízený proces, nasměruje na něj `BrowserWindow` a přidává
-systémovou lištu, automatické aktualizace, most IPC a bezkonfigurační inicializaci tajných klíčů.
+jako podřízený proces, směruje na něj `BrowserWindow` a přidává ikonu v systémové oblasti,
+automatické aktualizace, most IPC a inicializaci tajných klíčů bez nutnosti konfigurace.
 
 ## Architektura
 
 ```
 ┌──────────────────────────────────────────────┐
-│ Hlavní proces Electron (electron/main.js)    │
-│ ├─ Zámek jediné instance                    │
+│ Hlavní proces Electronu (electron/main.js)   │
+│ ├─ Zámek jediné instance                     │
 │ ├─ Podřízený proces: samostatný server Next.js│
-│ │   (spuštěný pomocí běhového prostředí Node z Electron)│
+│ │   (spuštěný pomocí běhového prostředí Node v Electronu)│
 │ ├─ BrowserWindow → http://localhost:PORT     │
-│ ├─ Systémová lišta + kontextová nabídka      │
+│ ├─ Systémová oblast + kontextová nabídka     │
 │ ├─ Automatické aktualizace přes electron-updater│
-│ ├─ Content Security Policy (hlavičky relace) │
+│ ├─ Zásady zabezpečení obsahu (hlavičky relace)│
 │ └─ Inicializace tajných klíčů (JWT / API_KEY_SECRET)│
 └──────────────────────────────────────────────┘
             ↕ Most IPC (electron/preload.js)
@@ -42,7 +42,7 @@ Potvrzeno z `electron/package.json`:
 | `electron`         | `^43.4.1`                                                                                       |
 | `electron-builder` | `^26.15.3`                                                                                      |
 | `electron-updater` | `^6.8.9`                                                                                        |
-| `better-sqlite3`   | kořenová `^13.0.2` (předkompilované sestavení Node-API — bez opětovného sestavení pro Electron) |
+| `better-sqlite3`   | kořenový `^13.0.2` (předkompilované sestavení Node-API — bez opětovného sestavení pro Electron) |
 | Verze aplikace     | `3.8.0`                                                                                         |
 | ID aplikace        | `online.omniroute.desktop`                                                                      |
 | Název produktu     | `OmniRoute`                                                                                     |
@@ -51,18 +51,18 @@ Potvrzeno z `electron/package.json`:
 
 | Skript                            | Účel                                                                                 |
 | --------------------------------- | ------------------------------------------------------------------------------------ |
-| `npm run electron:dev`            | Spustí `npm run dev` + počká na `localhost:20128` + spustí Electron                  |
-| `npm run electron:build`          | Sestaví Next.js a poté spustí `electron-builder` pro aktuální OS                     |
-| `npm run electron:build:win`      | Sestaví instalátor NSIS pro Windows + přenosnou verzi (x64)                          |
+| `npm run electron:dev`            | Spustí `npm run dev`, počká na `localhost:20128` a spustí Electron                   |
+| `npm run electron:build`          | Sestaví Next.js a poté spustí `electron-builder` pro aktuální operační systém        |
+| `npm run electron:build:win`      | Sestaví instalační program NSIS pro Windows a přenosnou verzi (x64)                  |
 | `npm run electron:build:mac`      | Sestaví DMG pro macOS (Intel + Apple Silicon)                                        |
 | `npm run electron:build:linux`    | Sestaví AppImage + DEB pro Linux (x64 + arm64)                                       |
 | `npm run electron:smoke:packaged` | Spustí zabalený binární soubor, ověří odpověď HTTP 200 na `/login` a poté jej ukončí |
 
-Pracovní prostor `electron/` rovněž zpřístupňuje:
+Pracovní prostor `electron/` také zpřístupňuje:
 
 - `npm run prepare:bundle` — spustí `scripts/build/prepare-electron-standalone.mjs`
 - `npm run build:mac-x64` / `build:mac-arm64` — sestavení macOS pro jednu architekturu
-- `npm run pack` — sestavení pouze do adresáře pro místní testování (bez instalátoru)
+- `npm run pack` — sestavení pouze do adresáře pro místní testování (bez instalačního programu)
 
 ## Struktura adresářů
 
@@ -72,24 +72,24 @@ electron/
 ├── main.js                   # Hlavní proces (24 KB — viz poznámky níže)
 ├── preload.js                # Most IPC přes contextBridge
 ├── types.d.ts                # Typy AppInfo / ServerStatus / ElectronAPI
-├── README.md                 # Poznámky v rámci pracovního prostoru
+├── README.md                 # Poznámky v pracovním prostoru
 ├── assets/                   # icon.png, icon.ico, icon.icns, tray-icon.png
-└── dist-electron/            # Výstup electron-builder (ignorovaný gitem)
+└── dist-electron/            # Výstup electron-builder (ignorován gitem)
 
 scripts/
 ├── build/
-│   └── prepare-electron-standalone.mjs   # Připraví balíček .next/electron-standalone
+│   └── prepare-electron-standalone.mjs   # Připravuje balíček .next/electron-standalone
 └── dev/
     └── smoke-electron-packaged.mjs       # Rychlý test po sestavení
 ```
 
-Soubory `main.js` i `preload.js` jsou **soubory CommonJS `.js`**, nikoli TypeScript.
-Typové definice pro stranu rendereru se nacházejí v `electron/types.d.ts`.
+Soubory `main.js` i `preload.js` jsou **soubory CommonJS `.js`**, nikoli TypeScript. Typové
+definice pro renderer se nacházejí v `electron/types.d.ts`.
 
 ## Most IPC (`preload.js`)
 
 Preload zpřístupňuje povolené API v `window.electronAPI` pomocí `contextBridge`
-s nastaveními `contextIsolation: true` a `nodeIntegration: false`.
+s nastavením `contextIsolation: true` a `nodeIntegration: false`.
 
 ```javascript
 const VALID_CHANNELS = {
@@ -128,7 +128,7 @@ komponent Reactu.
 ## Životní cyklus serveru
 
 `main.js` spouští samostatný balíček Next.js přímo pomocí běhového prostředí Node
-v Electronu, aby se zabránilo neshodě ABI nativních modulů se systémovým Node:
+v Electronu, aby zabránil neshodě ABI nativních modulů se systémovým Node:
 
 ```js
 spawn(process.execPath, [serverScript], {
@@ -144,16 +144,16 @@ spawn(process.execPath, [serverScript], {
 });
 ```
 
-Hlavní body:
+Hlavní vlastnosti:
 
-- `waitForServer()` kontroluje URL po dobu až 30 s, než zobrazí okno (žádná prázdná obrazovka při studeném startu).
-- `stdio: "pipe"` zachytává stdout/stderr; fráze signalizující připravenost (`Ready` / `listening`) odešlou přes IPC `server-status: running`.
+- `waitForServer()` dotazuje URL po dobu až 30 s před zobrazením okna (žádná prázdná obrazovka při studeném spuštění).
+- `stdio: "pipe"` zachycuje stdout/stderr; fráze signalizující připravenost (`Ready` / `listening`) přes IPC vysílají `server-status: running`.
 - `before-quit` čeká až 5 s na korektní ukončení pomocí SIGTERM (kontrolní bod WAL) a poté odešle SIGKILL.
 - Přepínač portů v systémové liště (`20128`, `3000`, `8080`) zastaví a restartuje server a poté znovu načte BrowserWindow.
 
-## Inicializace tajných klíčů bez konfigurace
+## Zavedení tajných klíčů bez konfigurace
 
-Při prvním spuštění hlavní proces automaticky vygeneruje a uloží chybějící tajné klíče:
+Při prvním spuštění hlavní proces automaticky vygeneruje a trvale uloží chybějící tajné klíče:
 
 | Tajný klíč               | Zdroj                                                                                                          |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
@@ -161,18 +161,42 @@ Při prvním spuštění hlavní proces automaticky vygeneruje a uloží chyběj
 | `STORAGE_ENCRYPTION_KEY` | `crypto.randomBytes(32).toString("hex")` (odmítne pokračovat, pokud již existují šifrované přihlašovací údaje) |
 | `API_KEY_SECRET`         | `crypto.randomBytes(32).toString("hex")`                                                                       |
 
-Ukládají se do `<DATA_DIR>/server.env`. `DATA_DIR` se vyhodnotí na:
+Ukládají se do `<DATA_DIR>/server.env`. `DATA_DIR` se vyhodnotí takto:
 
 - Windows: `%APPDATA%\omniroute`
 - Linux: `$XDG_CONFIG_HOME/omniroute` nebo `~/.omniroute`
 - macOS: `~/.omniroute`
 
-## Okno a systémová lišta
+## Vyhledávání souboru prostředí
+
+Před spuštěním serveru hlavní proces (`getPreferredEnvFilePath()` v
+`electron/main.js`) vybere **jeden** soubor `.env`: první z následujících, který existuje.
+
+1. `$DATA_DIR/.env`, pokud je `DATA_DIR` nastaveno v prostředí, ze kterého byla aplikace spuštěna.
+2. `<resolved DATA_DIR>/.env` se stejnými výchozími hodnotami jako výše: `%APPDATA%\omniroute\.env` ve
+   Windows, `$XDG_CONFIG_HOME/omniroute/.env` nebo `~/.omniroute/.env` v Linuxu a macOS.
+3. `.env` v pracovním adresáři procesu.
+
+Hlavní proces načte pouze tento soubor; pozdější kandidáti se neslučují. Prostředí serveru
+je poté sestaveno s následující prioritou (od nejvyšší):
+
+1. Prostředí procesu Electron (proměnné zděděné z procesu, který aplikaci spustil).
+2. Vybraný soubor `.env`.
+3. `<DATA_DIR>/server.env` (výše uvedené automaticky vytvořené tajné klíče).
+
+Prostředí procesu je zachyceno při spuštění aplikace, takže systémová nebo uživatelská proměnná
+prostředí nastavená za běhu aplikace (včetně doby, kdy aplikace zůstává v oznamovací oblasti po
+zavření okna) se na server nepřenese, dokud není aplikace zcela ukončena a znovu spuštěna. Pro parametry
+běhového prostředí, jako je `CONTEXT_LENGTH_<PROVIDER>` (viz
+[Proměnné prostředí: Délka kontextu pro jednotlivé poskytovatele](../reference/ENVIRONMENT.md#per-provider-context-length-context_length_provider)),
+upřednostněte soubor `.env`, poté aplikaci zcela ukončete (oznamovací oblast, **Ukončit**) a znovu ji spusťte.
+
+## Okno a oznamovací oblast
 
 - `BrowserWindow`: 1400×900 (min. 1024×700), `backgroundColor: "#0a0a0a"`.
 - macOS: `titleBarStyle: "hiddenInset"`, ovládací prvky okna na `{ x: 16, y: 16 }`.
 - Windows/Linux: nativní záhlaví okna.
-- Tlačítko Zavřít minimalizuje aplikaci do systémové lišty; nabídka systémové lišty obsahuje položky **Otevřít OmniRoute**, **Otevřít řídicí panel** (v externím prohlížeči), podnabídku **Port serveru**, **Zkontrolovat aktualizace** a **Ukončit**.
+- Tlačítko zavření minimalizuje aplikaci do oznamovací oblasti; její nabídka obsahuje **Otevřít OmniRoute**, **Otevřít řídicí panel** (v externím prohlížeči), podnabídku **Port serveru**, **Zkontrolovat aktualizace** a **Ukončit**.
 
 ## Zásady zabezpečení obsahu
 
@@ -187,28 +211,28 @@ Nastavují se prostřednictvím `session.defaultSession.webRequest.onHeadersRece
 Používá `electron-updater` s poskytovatelem GitHub (`diegosouzapw/OmniRoute`).
 
 - `autoDownload = false`, `autoInstallOnAppQuit = true`
-- Události jsou předávány rendereru prostřednictvím IPC `update-status`:
+- Události předávané rendereru prostřednictvím IPC `update-status`:
   `checking`, `available`, `not-available`, `downloading` (s `percent`), `downloaded`, `error`
 - `installUpdate()` ukončí server a poté zavolá `autoUpdater.quitAndInstall()`
-- Ve vývojovém režimu se přeskakuje (`!app.isPackaged`)
+- Ve vývojovém režimu se vynechává (`!app.isPackaged`)
 
 ## Proces sestavení
 
-1. `npm run build` → samostatné sestavení Next.js v `.next/standalone`.
-2. `prepare-electron-standalone.mjs` → znovu připraví soubory do `.next/electron-standalone` a přepíše absolutní cesty v `server.js` + `required-server-files.json`, aby bylo možné balíček přemísťovat.
+1. `npm run build` → samostatná aplikace Next.js v `.next/standalone`.
+2. `prepare-electron-standalone.mjs` → znovu připraví obsah do `.next/electron-standalone` a přepíše absolutní cesty v souborech `server.js` + `required-server-files.json`, aby bylo možné balíček přemístit.
 3. `electron-builder` zabalí `main.js`, `preload.js`, `node_modules` a `extraResources: { ../.next/electron-standalone → app }`.
 
 ### Cílové platformy sestavení
 
 | OS      | Cíle                                           |
 | ------- | ---------------------------------------------- |
-| Windows | Instalátor NSIS + přenosná verze (x64)         |
+| Windows | Instalační program NSIS + přenosná verze (x64) |
 | macOS   | DMG (Intel + arm64, přetažení do Applications) |
 | Linux   | AppImage + DEB (x64 + arm64)                   |
 
 Nastavení NSIS: `oneClick: false`, umožňuje uživateli zvolit instalační adresář a vytváří zástupce na ploše a v nabídce Start.
 
-## Rychlé testování zabaleného sestavení
+## Základní test zabaleného sestavení
 
 ```bash
 npm run electron:smoke:packaged
@@ -217,17 +241,17 @@ npm run electron:smoke:packaged
 `scripts/dev/smoke-electron-packaged.mjs`:
 
 - Automaticky vyhledá zabalený spustitelný soubor v `electron/dist-electron/` pro aktuální platformu.
-- Spustí jej s izolovanými adresáři `HOME`/`APPDATA`/`XDG_*`, aby nedošlo k zásahu do dat vývojáře.
-- Opakovaně kontroluje `http://127.0.0.1:20128/login`, zda do 45 s vrátí stav HTTP 200.
+- Spustí jej s izolovanými adresáři `HOME`/`APPDATA`/`XDG_*`, aby nezasahoval do dat vývojáře.
+- Opakovaně kontroluje `http://127.0.0.1:20128/login`, zda do 45 s vrátí HTTP 200.
 - Sleduje stderr/stdout a hledá kritické vzory (`Cannot find module`, `MODULE_NOT_FOUND`, `ERR_DLOPEN_FAILED`, `Failed to start server` atd.).
-- Po dosažení připravenosti počká 2 s stabilního běhu, poté odešle SIGTERM a čeká na uvolnění portu.
-- V CI automaticky předává `--no-sandbox --disable-gpu` (a v Linuxu také `--disable-dev-shm-usage`).
+- Po dosažení připraveného stavu čeká 2 s stabilního běhu, poté odešle SIGTERM a počká na uvolnění portu.
+- V CI automaticky předá `--no-sandbox --disable-gpu` (a na Linuxu také `--disable-dev-shm-usage`).
 
-Přepsání pomocí proměnných prostředí: `ELECTRON_SMOKE_APP_EXECUTABLE`, `ELECTRON_SMOKE_URL`, `ELECTRON_SMOKE_TIMEOUT_MS`, `ELECTRON_SMOKE_SETTLE_MS`, `ELECTRON_SMOKE_DATA_DIR`, `ELECTRON_SMOKE_KEEP_DATA`, `ELECTRON_SMOKE_STREAM_LOGS`.
+Proměnné prostředí pro přepsání nastavení: `ELECTRON_SMOKE_APP_EXECUTABLE`, `ELECTRON_SMOKE_URL`, `ELECTRON_SMOKE_TIMEOUT_MS`, `ELECTRON_SMOKE_SETTLE_MS`, `ELECTRON_SMOKE_DATA_DIR`, `ELECTRON_SMOKE_KEEP_DATA`, `ELECTRON_SMOKE_STREAM_LOGS`.
 
 ## Podepisování kódu
 
-Soubor `electron/package.json` **neobsahuje** přihlašovací údaje pro podepisování přímo. Předejte je nástroji `electron-builder` prostřednictvím proměnných prostředí:
+`electron/package.json` **neobsahuje** přímo přihlašovací údaje pro podepisování. Předejte je nástroji `electron-builder` prostřednictvím proměnných prostředí:
 
 ### macOS
 
@@ -250,7 +274,7 @@ npm run electron:build:win
 
 ### Linux
 
-Podepisování AppImage je volitelné — pokud jej chcete podepisovat, nastavte `LINUX_GPG_KEY`.
+Podepisování AppImage je volitelné — pro podepsání nastavte `LINUX_GPG_KEY`.
 
 ## Distribuce
 
@@ -260,22 +284,22 @@ Artefakty se ukládají do `electron/dist-electron/`:
 - `OmniRoute-X.Y.Z-mac.dmg`, `OmniRoute-X.Y.Z-arm64-mac.dmg` (macOS)
 - `OmniRoute-X.Y.Z.AppImage`, `omniroute-desktop_X.Y.Z_amd64.deb` (Linux)
 
-Vydání jsou publikována na GitHub Releases (`diegosouzapw/OmniRoute`), kde také `electron-updater` kontroluje dostupnost nových verzí.
+Vydání jsou publikována v GitHub Releases (`diegosouzapw/OmniRoute`), kde také `electron-updater` kontroluje dostupnost nových verzí.
 
 ## Řešení problémů
 
-| Příznak                                                               | Řešení                                                                                                                                                                                             |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Cannot find module 'better-sqlite3'` po hlavní aktualizaci Electronu | better-sqlite3 v13 obsahuje předem sestavené binární soubory Node-API — znovu spusťte `npm install` v kořenovém adresáři a `prepare:bundle` (ověří předem sestavený soubor pro aktuální platformu) |
-| `ERR_DLOPEN_FAILED` pro nativní modul                                 | Znovu spusťte `prepare:bundle` — pokud předem sestavený soubor Node-API pro aktuální platformu chybí, příkaz okamžitě selže                                                                        |
-| V systému Linux se zobrazí prázdné okno                               | Ověřte, že server Next.js skutečně naslouchá na portu PORT (zkontrolujte protokoly `[Server]`)                                                                                                     |
-| Notarizace v systému macOS se zasekne                                 | Ujistěte se, že proměnné `APPLE_*` jsou exportovány, nikoli pouze uvedeny v souboru `.env`                                                                                                         |
-| Upozornění Windows SmartScreen                                        | Podepište aplikaci certifikátem EV, nebo mohou uživatelé kliknout pravým tlačítkem → „Přesto spustit“                                                                                              |
-| Rychlý test selže kvůli používanému portu                             | Před spuštěním `electron:smoke:packaged` zastavte všechny místní vývojové servery používající port 20128                                                                                           |
+| Příznak                                                                           | Řešení                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Cannot find module 'better-sqlite3'` po přechodu na novou hlavní verzi Electronu | better-sqlite3 v13 obsahuje předkompilované binární soubory Node-API — znovu spusťte `npm install` v kořenovém adresáři a `prepare:bundle` (ověří předkompilovaný soubor pro aktuální platformu) |
+| `ERR_DLOPEN_FAILED` pro nativní modul                                             | Znovu spusťte `prepare:bundle` — pokud předkompilovaný soubor Node-API pro aktuální platformu chybí, okamžitě skončí s chybou                                                                    |
+| V Linuxu se zobrazí prázdné okno                                                  | Ověřte, že se server Next.js skutečně navázal na PORT (zkontrolujte protokoly `[Server]`)                                                                                                        |
+| Notarizace v macOS se zasekne                                                     | Ujistěte se, že jsou proměnné `APPLE_*` exportovány, nikoli pouze uvedeny v `.env`                                                                                                               |
+| Varování Windows SmartScreen                                                      | Podepište aplikaci certifikátem EV, nebo mohou uživatelé kliknout pravým tlačítkem → „Přesto spustit“                                                                                            |
+| Základní test selže kvůli používanému portu                                       | Před spuštěním `electron:smoke:packaged` zastavte všechny místní vývojové servery na portu 20128                                                                                                 |
 
 ## Viz také
 
 - [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 - [RELEASE_CHECKLIST.md](../ops/RELEASE_CHECKLIST.md)
-- Zdrojové soubory: `electron/main.js`, `electron/preload.js`, `electron/package.json`
+- Zdroj: `electron/main.js`, `electron/preload.js`, `electron/package.json`
 - Pomocné skripty: `scripts/build/prepare-electron-standalone.mjs`, `scripts/dev/smoke-electron-packaged.mjs`

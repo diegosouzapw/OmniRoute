@@ -1,1 +1,0 @@
-- **fix(combo):** a failed Last Known Good Provider write on the combo success path now warns with the combo, execution key, and provider instead of a bare error, so a missing pin can be attributed instead of silently leaving the retry on a stale assumption. ([#14934](https://github.com/diegosouzapw/OmniRoute/pull/14934)) — thanks @maxmad64bis

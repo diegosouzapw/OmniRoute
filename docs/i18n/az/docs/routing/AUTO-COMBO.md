@@ -10,39 +10,39 @@
 
 ## Sıfır konfiqurasiyalı avtomatik marşrutlaşdırma (`auto/` prefiksi)
 
-> **YENİ:** Combo yaratmağa ehtiyac yoxdur. İstənilən klientdə birbaşa `auto/` prefiksindən istifadə edin.
+> **YENİ:** Kombinasiya yaratmağa ehtiyac yoxdur. İstənilən klientdə birbaşa `auto/` prefiksindən istifadə edin.
 
 ### Sürətli nümunələr
 
-| Model ID-si    | Variant | Davranış                                                                                    |
-| -------------- | ------- | ------------------------------------------------------------------------------------------- |
-| `auto`         | default | Bütün qoşulmuş provayderlər, LKGP strategiyası, balanslaşdırılmış çəkilər                   |
-| `auto/coding`  | coding  | Keyfiyyət prioritetli çəkilər, kod yaratmaq üçün uyğundur                                   |
-| `auto/fast`    | fast    | Aşağı gecikmə üçün çəkili seçim                                                             |
-| `auto/cheap`   | cheap   | Xərcə görə optimallaşdırılmış marşrutlaşdırma (əvvəlcə ən aşağı xərc)                       |
-| `auto/offline` | offline | Ən yüksək kvota əlçatanlığına malik provayderlərə üstünlük verir                            |
-| `auto/smart`   | smart   | Daha yaxşı model aşkarlanması üçün keyfiyyət prioriteti + daha yüksək araşdırma faizi (10%) |
-| `auto/lkgp`    | lkgp    | Açıq şəkildə LKGP (standart `auto` ilə eynidir)                                             |
-| `auto/chaos`   | chaos   | Dayanıqlılıq sınaqları üçün xəta yeridilməsi çəkiləri (xaos mühəndisliyi)                   |
+| Model ID-si    | Variant | Davranış                                                                                |
+| -------------- | ------- | --------------------------------------------------------------------------------------- |
+| `auto`         | default | Bütün qoşulmuş provayderlər, LKGP strategiyası, balanslaşdırılmış çəkilər               |
+| `auto/coding`  | coding  | Keyfiyyət prioritetli çəkilər, kod yaratmaq üçün uyğundur                               |
+| `auto/fast`    | fast    | Aşağı gecikmə əsasında çəkili seçim                                                     |
+| `auto/cheap`   | cheap   | Xərc baxımından optimallaşdırılmış marşrutlaşdırma (əvvəlcə ən aşağı xərc)              |
+| `auto/offline` | offline | Ən yüksək kvota əlçatanlığına malik provayderlərə üstünlük verir                        |
+| `auto/smart`   | smart   | Daha yaxşı model kəşfi üçün keyfiyyət prioriteti + daha yüksək araşdırma dərəcəsi (10%) |
+| `auto/lkgp`    | lkgp    | Açıq şəkildə LKGP (standart `auto` ilə eynidir)                                         |
+| `auto/chaos`   | chaos   | Paralel yayım, hər provayder üçün bir model (xəta inyeksiyası deyil)                    |
 
 ### Kateqoriya × Səviyyə kompozisiyası (`auto/<category>:<tier>`)
 
-OpenRouter üslublu suffikslər **hansı növ marşrutun** (kateqoriya) seçildiyini **onun necə optimallaşdırılacağından** (səviyyə) ayırır, beləliklə onları sərbəst şəkildə birləşdirə bilərsiniz (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+OpenRouter üslublu suffikslər **marşrutun hansı növdə olduğunu** (kateqoriya) **onun necə optimallaşdırılmasından** (səviyyə) ayırır, beləliklə onları sərbəst şəkildə birləşdirə bilərsiniz (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
 
-- **Kateqoriyalar** (namizəd hovuzunu imkanlara görə filtrləyir): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` görmə qabiliyyətli modelləri saxlayır; `reasoning` məntiqi düşünmə/düşünmə modellərini saxlayır.
-- **Səviyyələr** (qiymətləndirmə çəkilərini / hovuz filtrini seçir): `fast` (sürətli təqdimat) · `cheap` (`floor` aliası, xərcə qənaət) · `reliable` (dövrə açarının sağlamlığı + gecikmə sabitliyi) · `free` / `pro` (`classifyTier` vasitəsilə hovuzu model səviyyəsinə görə filtrləyir — pulsuz səviyyə və premium).
+- **Kateqoriyalar** (namizədlər hovuzunu imkanlara görə filtrləyir): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` görüntü imkanlı modelləri saxlayır; `reasoning` məntiqi əsaslandırma/düşünmə modellərini saxlayır.
+- **Səviyyələr** (qiymətləndirmə çəkilərini / hovuz filtrini seçir): `fast` (sürətli çatdırılma) · `cheap` (`floor` aliası, xərcə qənaət) · `reliable` (dövrə kəsicisinin sağlamlığı + gecikmə sabitliyi) · `free` / `pro` (`classifyTier` vasitəsilə hovuzu model səviyyəsinə görə filtrləyir — pulsuz səviyyə ilə premium arasında).
 
-| Nümunə                 | Nəticə                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------ |
-| `auto/coding:fast`     | kodlaşdırma hovuzu, aşağı gecikməli çəkilər                                    |
-| `auto/coding:cheap`    | kodlaşdırma hovuzu, xərcə görə optimallaşdırılmış (`auto/coding:floor` aliası) |
-| `auto/reasoning:pro`   | yalnız məntiqi düşünmə/düşünmə modelləri, premium səviyyə                      |
-| `auto/vision`          | görmə qabiliyyətli modellər (səviyyə yoxdur → balanslaşdırılmış çəkilər)       |
-| `auto/multimodal:free` | multimodal qabiliyyətli modellər, yalnız pulsuz səviyyə                        |
+| Nümunə                 | Nəticə                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `auto/coding:fast`     | kodlaşdırma hovuzu, aşağı gecikmə çəkiləri                                             |
+| `auto/coding:cheap`    | kodlaşdırma hovuzu, xərc baxımından optimallaşdırılmış (`auto/coding:floor` aliasıdır) |
+| `auto/reasoning:pro`   | yalnız məntiqi əsaslandırma/düşünmə modelləri, premium səviyyə                         |
+| `auto/vision`          | görüntü imkanlı modellər (səviyyə yoxdur → balanslaşdırılmış çəkilər)                  |
+| `auto/multimodal:free` | multimodal imkanlı modellər, yalnız pulsuz səviyyə                                     |
 
-İstənilən etibarlı `auto/<category>[:<tier>]` tələb əsasında həll edilir; seçilmiş alt dəst `/v1/models` daxilində və idarəetmə panelində (`open-sse/services/autoCombo/builtinCatalog.ts` daxilində `AUTO_SUFFIX_VARIANTS`) göstərilir. Filtrləmə **fail-open** prinsipinə əsaslanır — məhdudiyyət heç bir qoşulmuş modellə uyğun gəlməzsə, marşrutlaşdırmanın heç vaxt pozulmaması üçün tam hovuz istifadə olunur. Əsas qiymətləndirici (`combo.ts`) dəyişməz qalır; kateqoriya/səviyyə filtri `buildAutoCandidates` daxilində tətbiq edilir.
+İstənilən etibarlı `auto/<category>[:<tier>]` tələb əsasında həll olunur; seçilmiş bir alt çoxluq `/v1/models` daxilində və idarəetmə panelində elan edilir (`open-sse/services/autoCombo/builtinCatalog.ts` daxilində `AUTO_SUFFIX_VARIANTS`). Filtrləmə **uğursuzluqda açıqdır** — məhdudiyyət heç bir qoşulmuş modellə uyğun gəlməzsə, marşrutlaşdırmanın heç vaxt pozulmaması üçün tam hovuz istifadə olunur. Əsas qiymətləndirici (`combo.ts`) dəyişməz qalır; kateqoriya/səviyyə filtri `buildAutoCandidates` daxilində tətbiq edilir.
 
-> **Canlı model intellekti:** `ARENA_ELO_SYNC_ENABLED` bayrağı aktiv olduqda avtomatik marşrutlaşdırmanın uyğunluğu canlı **Arena ELO** reytinqləri + **models.dev** səviyyə məlumatları əsasında müəyyən edilir (əks halda statik uyğunluq xəritəsinə geri qayıdır).
+> **Canlı model analitikası:** `ARENA_ELO_SYNC_ENABLED` bayrağı aktiv olduqda avtomatik marşrutlaşdırmanın uyğunluğu canlı **Arena ELO** reytinqləri + **models.dev** səviyyə məlumatları əsasında müəyyən edilir (əks halda statik uyğunluq xəritəsinə geri qayıdır).
 
 **İstifadə qaydası:**
 
@@ -54,58 +54,56 @@ API açarı:  <your-endpoint-key>
 # Kodunuzda/konfiqurasiyanızda modeli belə təyin edin:
 model: "auto"                 # balanslaşdırılmış standart
 model: "auto/coding"          # kodlaşdırma tapşırıqları üçün ən yaxşısı
-model: "auto/fast"            # əlçatan olan ən sürətli seçim
-model: "auto/cheap"           # hər token üçün ən ucuz seçim
+model: "auto/fast"            # mövcud olan ən sürətli
+model: "auto/cheap"           # hər token üzrə ən ucuz
 ```
 
-**Baş verənlər:**
+**Nə baş verir:**
 
 1. OmniRoute `src/sse/handlers/chat.ts` daxilində `auto/` prefiksini aşkarlayır
 2. Verilənlər bazasından bütün **aktiv provayder bağlantılarını** sorğulayır
-3. Etibarlı giriş məlumatlarına (API açarı və ya OAuth tokeni) malik olanları filtrləyir
-4. Hər bağlantı üçün modeli müəyyən edir (`connection.defaultModel` və ya provayderin ilk modeli)
-5. Yaddaşda **virtual combo** yaradır (DB-də saxlanmır)
-6. Seçilmiş variantın çəki profili + LKGP strategiyasından istifadə edərək marşrutlaşdırır
+3. Etibarlı etimadnamələri (API açarı və ya OAuth tokeni) olanları filtrləyir
+4. Hər bağlantı üzrə modeli müəyyən edir (`connection.defaultModel` və ya provayderin ilk modeli)
+5. Yaddaşda **virtual kombinasiya** qurur (DB-də saxlanılmır)
+6. Seçilmiş variantın çəki profili + LKGP strategiyası ilə marşrutlaşdırır
 
 **Əsas xüsusiyyətlər:**
 
-- ✅ **Həmişə aktiv:** Heç bir keçid, combo yaradılması və ya konfiqurasiya tələb olunmur
-- ✅ **Dinamik:** Hazırda qoşulmuş provayderləri avtomatik əks etdirir
-- ✅ **Sessiya sabitliyi:** LKGP son uğurlu provayderə üstünlük verilməsini təmin edir
+- ✅ **Həmişə aktiv:** Heç bir keçid, kombinasiya yaratma və ya konfiqurasiya tələb olunmur
+- ✅ **Dinamik:** Cari qoşulmuş provayderləri avtomatik əks etdirir
+- ✅ **Sessiya bağlılığı:** LKGP son uğurlu provayderin prioritetləşdirilməsini təmin edir
 - ✅ **Çoxhesablılığı nəzərə alır:** Hər provayder bağlantısı ayrıca namizədə çevrilir
-- ✅ **DB-yə yazılmır:** Virtual combo yalnız sorğu müddətində mövcuddur, saxlamaya görə əlavə yük sıfırdır
+- ✅ **DB-yə yazı yoxdur:** Virtual kombinasiya yalnız sorğu müddətində mövcuddur, saxlanma üçün əlavə xərc sıfırdır
 
-### Hər açar üzrə namizəd idarəetməsi (#7819, Səviyyə 1+2)
+### Hər açar üzrə namizəd nəzarəti (#7819, Səviyyə 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = `auto/` sonrasındakı suffiks və ya
-əsas kanal üçün hərfi `auto`) mövcud dayanıqlılıq oxumalarından istifadə edərək
-(heç vaxt dövrə açarının xam `state` dəyərindən istifadə etmir) `auto/*` kanalının
-cari namizəd hovuzunu canlı əlçatanlıq məlumatları ilə birlikdə siyahıya alan
-**yalnız oxuma** endpointidir:
+əsas kanal üçün literal `auto`) mövcud dayanıqlılıq oxumalarından istifadə edərək
+(heç vaxt xam kəsici `state` deyil), `auto/*` kanalının canlı əlçatanlıq məlumatları
+ilə zənginləşdirilmiş cari namizədlər hovuzunu sadalayan **yalnız oxuma** son nöqtəsidir:
 
-- provayder dövrə açarı — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- bağlantının gözləmə müddəti — həll edilmiş `provider_connections` sətrindəki
+- provayder dövrə kəsicisi — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- bağlantının soyuma müddəti — həll edilmiş `provider_connections` sətrindəki
   `rateLimitedUntil` / `testStatus`
-- model bloklaması — `isModelLocked(provider, connectionId, model)`
+- model bloklanması — `isModelLocked(provider, connectionId, model)`
 
-Hər namizəd həmçinin bu API açarının `excluded` bayrağını da daşıyır. İstisnalar
-hər API açarı üzrə (`auto_candidate_overrides` cədvəli, `128` miqrasiyası) saxlanılır —
-OmniRoute `users` cədvəli olmayan tək tenantlı sistemdir, buna görə `apiKeyId` real
-çağırış edən şəxs üçün ən yaxın identiklikdir — və saf, vahid testlərlə yoxlanılmış
-`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
-vasitəsilə `open-sse/services/autoCombo/virtualFactory.ts` daxilindəki namizəd hovuzunun
-dar keçid nöqtəsində tətbiq edilir. Filtr **fail-open** prinsipinə əsaslanır: təyin
-edilməmiş apiKeyId/kanal və ya DB axtarış xətası hovuzu filtrsiz saxlayır, beləliklə
-heç bir istisna konfiqurasiya etməmiş operator üçün marşrutlaşdırma bu funksiyadan
-əvvəlki vəziyyətlə bayt səviyyəsində eyni qalır.
+Hər namizəd həmçinin bu API açarının `excluded` bayrağını daşıyır. İstisnalar
+hər API açarı üzrə saxlanılır (`auto_candidate_overrides` cədvəli, `128` miqrasiyası) —
+OmniRoute `users` cədvəli olmayan tək icarəçili sistemdir, buna görə də `apiKeyId`
+real çağırışçı identifikasiyasına ən yaxın seçimdir — və saf, vahid testlərlə sınaqdan
+keçirilmiş `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`)
+vasitəsilə `open-sse/services/autoCombo/virtualFactory.ts` daxilində namizəd hovuzunun
+dar keçid nöqtəsində tətbiq edilir. Filtr **uğursuzluqda açıqdır**: təyin edilməmiş
+apiKeyId/kanal və ya DB axtarış xətası hovuzu filtrsiz saxlayır; beləliklə, heç bir
+əvəzləmə konfiqurasiya etməmiş operator üçün marşrutlaşdırma bu funksiyadan əvvəlki
+vəziyyətlə bayt səviyyəsində tam eyni qalır.
 
-**Sonrakı məsələ üçün təxirə salınıb:** hər namizəd üzrə çəkilər + açıq sıralama (Səviyyə 3
-— mövcud çəkili/prioritet strategiya yollarına ötürülür) və hər `auto/*` kanalı üçün konkret
-`combo.ts` strategiyasının sabitlənməsi (Səviyyə 4). Tək icarəçi modeli nəzərə alınmaqla,
-əvəzləmələrin API açarı üzrə qalmalı, yoxsa qlobal olmalı olduğu barədə açıq sual üçün
-#7819 planına baxın.
+**Sonrakı məsələyə təxirə salınıb:** namizəd üzrə çəkilər + açıq sıralama (Səviyyə 3
+— mövcud çəkili/prioritet strategiya yollarına daxil edilir) və hər `auto/*` kanalı üçün konkret
+`combo.ts` strategiyasının sabitlənməsi (Səviyyə 4). Tək tenantlı model nəzərə alınmaqla,
+əvəzləmələrin hər API açarı üzrə qalmalı, yoxsa qlobal olmalı olduğu barədə açıq sual üçün #7819 planına baxın.
 
-**Arxa planda:**
+**Pərdə arxasında:**
 
 ```txt
 Sorğu: { model: "auto/coding" }
@@ -114,20 +112,20 @@ src/sse/handlers/chat.ts prefiksi aşkarlayır
    ↓
 createVirtualAutoCombo('coding') → aktiv bağlantılardan candidatePool
    ↓
-handleComboChat (saxlanılmış kombinasiyalarla eyni mühərrik)
+handleComboChat (saxlanılan kombinasiyalarla eyni mühərrik)
    ↓
 Avtomatik qiymətləndirmə hər sorğu üçün ən yaxşı provayderi/modeli seçir
 ```
 
 **İcra faylları:**
 
-| Fayl                                                      | Məqsəd                                                 |
-| --------------------------------------------------------- | ------------------------------------------------------ |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiks təhlilçisi (`parseAutoPrefix`)                 |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Virtual `AutoComboConfig` obyektləri yaradır           |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder reyestrini imitasiya etmək üçün test qarmağı |
-| `src/sse/handlers/chat.ts`                                | İnteqrasiya: auto prefiksi üçün qısa dövrələmə         |
-| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistem qeydi                   |
+| Fayl                                                      | Məqsəd                                                   |
+| --------------------------------------------------------- | -------------------------------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiks analizatoru (`parseAutoPrefix`)                  |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Virtual `AutoComboConfig` obyektləri yaradır             |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder reyestrini imitasiya etmək üçün test mexanizmi |
+| `src/sse/handlers/chat.ts`                                | İnteqrasiya: auto prefiksi üzrə qısaqapanma              |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` sistem qeydi                     |
 
 ## Real Model Id-si ilə Uyğun Gələn Combo Adları
 
@@ -234,7 +232,7 @@ Avtomatik Kombinasiya Mühərriki **16 amilli qiymətləndirmə funksiyasından*
 
 ## Rejim Paketləri
 
-`open-sse/services/autoCombo/modePacks.ts` faylında əvvəlcədən müəyyən edilmiş 6 çəki profili var. Hər paket seçimi bir məqsədə yönəltmək üçün standart çəkiləri tamamilə əvəz edir. Hər paketin cəmi artıq `1.0`-dır (dörd onluq mərtəbə ilə göstərildikdə `0.9999`), buna görə də paket aktiv olduqda `normalizeScoringWeights()` funksiyasının nəzərəçarpacaq şəkildə düzəldəcəyi heç nə yoxdur — aşağıdakı dəyərlər, yuvarlaqlaşdırma nəzərə alınmaqla, qiymətləndiricinin tətbiq etdiyi dəyərlərdir.
+`open-sse/services/autoCombo/modePacks.ts` faylında əvvəlcədən təyin edilmiş 6 çəki profili var. Hər paket seçimi müəyyən bir məqsədə yönəltmək üçün standart çəkiləri tamamilə əvəz edir. Hər paketin cəmi artıq `1.0`-dır (dörd onluq mərtəbə ilə göstərildikdə `0.9999`), buna görə də paket aktiv olduqda `normalizeScoringWeights()` funksiyasının düzəldə biləcəyi əhəmiyyətli heç nə yoxdur — aşağıdakı dəyərlər, yuvarlaqlaşdırma nəzərə alınmaqla, qiymətləndiricinin tətbiq etdiyi dəyərlərdir.
 
 | Amil                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -256,29 +254,29 @@ Avtomatik Kombinasiya Mühərriki **16 amilli qiymətləndirmə funksiyasından*
 
 Qeydlər:
 
-- **Paketlər `quality` və `reliability` dəyərlərini ehtiva edir** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) və çəki xəritəsini bütövlükdə əvəz edir (`weights = pack`, birləşdirmə deyil). `DEFAULT_WEIGHTS` daxilində `quality 0.03 / reliability 0` var; `balanced`/`default` seçildikdə həmin standart dəyərlər saxlanılır, paket seçildikdə isə yuxarıdakı paket dəyərlərindən istifadə olunur. Soyuq hovuzda (hələ müşahidə olmadığından `quality 0.5` və `reliability 1`) bu iki amil ümumi paketdə `+0.04` (`0.03 + 0.01`), `quality-first` paketində `+0.045`, `reliability-first` paketində isə `+0.05` əlavə edir.
+- **Paketlərə `quality` və `reliability` daxildir** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) və onlar çəki xəritəsini bütünlüklə əvəz edir (`weights = pack`, birləşdirmə deyil). `DEFAULT_WEIGHTS` daxilində `quality 0.03 / reliability 0` var; `balanced`/`default` seçildikdə bu standart dəyərlər saxlanılır, paket seçildikdə isə paketin yuxarıdakı dəyərlərindən istifadə olunur. Soyuq hovuzda (hələ heç bir müşahidə yoxdur, buna görə `quality 0.5` və `reliability 1` olur) bu iki amil adi paketdə `+0.04` (`0.03 + 0.01`), `quality-first` paketində `+0.045`, `reliability-first` paketində isə `+0.05` əlavə edir.
 - `tierAffinity`, `specificityMatch` və `resetWindowAffinity` hər paketdə açıq şəkildə `0` olaraq təyin edilib.
-- Hər paketin əsas vurğusu qısaca:
+- Hər paketin əsas vurğusu qısa şəkildə:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (aşağı gecikməli, sağlam bağlantılar)
   - **cost-saver** → costInv 0.3324 (ən ucuz tokenlər üstün gəlir)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, bütün paketlər arasında ən yüksək göstərici (tapşırıq üçün ən yaxşı, ardıcıl model)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03 — bütün paketlər arasında ən yüksək göstərici (tapşırıq üçün ən yaxşı və ardıcıl model)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (sürət/xərcdən asılı olmayaraq maksimum ehtiyat)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, bütün paketlər arasında ən yüksək göstərici (ən az gözlənilməz hal)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (xəta yeritmə profili)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04 — bütün paketlər arasında ən yüksək göstərici (ən az gözlənilməz hal)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (`auto/chaos` çəki paketinin panel üzvlərinə təyin etdiyi çəkilər; paralel şaxələnmə bu çəkiləri oxumur və bu, nasazlıq yeritmə profili deyil, baxın: [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
-### Sorğu üzrə İdarəetmə Elementləri (başlıqlar) — #6023 / #6024 / #6025 / #3470
+### Sorğu Üzrə İdarəetmə Vasitələri (başlıqlar) — #6023 / #6024 / #6025 / #3470
 
-`auto` kombosu, saxlanılan konfiqurasiyası dəyişdirilmədən, üç başlıq vasitəsilə **hər sorğu üçün ayrıca** idarə oluna bilər. Bunlar yalnız `auto` strategiyasına və yalnız həmin başlıqları daşıyan sorğuya tətbiq olunur; başlıq olmadıqda kombonun yadda saxlanmış `modePack`/`budgetCap`/`budgetFallback` dəyərlərindən istifadə edilir.
+`auto` kombosu saxlanılan konfiqurasiyanı dəyişdirmədən üç başlıq vasitəsilə **hər sorğu üzrə** yönləndirilə bilər. Bunlar yalnız `auto` strategiyasına və yalnız onları daşıyan sorğuya tətbiq olunur; başlıq olmadıqda kombonun saxlanılmış `modePack`/`budgetCap`/`budgetFallback` dəyərlərindən istifadə olunur.
 
-| Başlıq                        | Qəbul edilən dəyərlər                                                                                                                                                                                    | Təsir                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | əvvəlcədən təyin edilmiş alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) və ya xam paket adı (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Bu sorğu üçün qiymətləndirmə çəkilərini əvəz edir. `balanced`/`default` standart çəkiləri məcburi tətbiq edir (paket olmadan). Naməlum dəyərlər nəzərə alınmır (konfiqurasiya qorunur).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `X-OmniRoute-Budget`          | müsbət ədəd (hər sorğu üçün maksimum USD)                                                                                                                                                                | Sərt xərc həddi: təxmini xərci bu həddi aşan namizədlər seçimdən əvvəl süzgəcdən keçirilir. **Bütün** namizədlər bu həddi aşdıqda nə baş verəcəyi aşağıdakı `X-OmniRoute-Budget-Fallback` tərəfindən idarə olunur.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (standart, aliaslar: `cheapest-viable`, `soft`) və ya `strict` (aliaslar: `block`, `hard`)                                                                                                    | `cheapest`: həddi yenə də aşmasına baxmayaraq, qlobal miqyasda ən ucuz namizədə geri qayıdır (əvvəlki davranış). `strict`: seçim etməkdən imtina edir — səssizcə həddən artıq xərc çəkmək əvəzinə, sorğu `HTTP 402` ilə dərhal uğursuz olur. Naməlum dəyərlər nəzərə alınmır.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `X-OmniRoute-Effort`          | `auto` (digər dəyərlər rezerv edilib)                                                                                                                                                                    | Adaptiv düşünmə büdcəsi: sorğuda heç bir formada əsaslandırma sahəsi (`reasoning_effort`, `reasoning`, `thinking`) olmadıqda, şlüz deterministik sorğu-strukturu siqnallarına (son istifadəçi mesajının uzunluğu, son istifadəçi mesajınadək kontekst ölçüsü, əvvəlki alət nəticələri, alət dövrəsinin dərinliyi) əsasən `auto` dəyərini `low`/`medium`/`high` kimi müəyyən edir. Siqnallar cari gedişlə məhdudlaşır — son istifadəçi mesajından sonrakı hər şey nəzərə alınmır — beləliklə, alət dövrəsindəki hər sorğu eyni səviyyədə müəyyən edilir (hər gediş üçün vəziyyətsiz sabitləmə, sessiya vəziyyəti yoxdur, yuxarı axındakı prompt keşinin prefikslərini poza biləcək dövrədaxili yüksəltmə yoxdur). Müştərinin açıq şəkildə göstərdiyi əsaslandırma sahəsi həmişə üstünlük təşkil edir. Yuxarı axına göndərişi OpenAI Chat Completions strukturuna (`targetFormat === FORMATS.OPENAI`) uyğun müəyyən edilən sorğularla məhdudlaşır — `reasoning_effort` OpenAI strukturuna uyğun sahədir, buna görə də başlıq Claude və ya Gemini-yə yönəldilmiş sorğuda heç bir təsir göstərmir (baxın: `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| Başlıq                        | Qəbul edilən dəyərlər                                                                                                                                                                                    | Təsir                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | əvvəlcədən təyin edilmiş alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) və ya xam paket adı (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Bu sorğu üçün qiymətləndirmə çəkilərini əvəz edir. `balanced`/`default` standart çəkiləri məcburi tətbiq edir (paket olmadan). Naməlum dəyərlər nəzərə alınmır (konfiqurasiya qorunur).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `X-OmniRoute-Budget`          | müsbət ədəd (hər sorğu üçün maksimum USD)                                                                                                                                                                | Sərt xərc limiti: təxmini xərci bu limiti aşan namizədlər seçimdən əvvəl süzgəcdən keçirilir. **Bütün** namizədlər bu limiti aşdıqda baş verəcək davranış aşağıdakı `X-OmniRoute-Budget-Fallback` ilə idarə olunur.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (standart, aliaslar: `cheapest-viable`, `soft`) və ya `strict` (aliaslar: `block`, `hard`)                                                                                                    | `cheapest`: limiti hələ də aşmasına baxmayaraq, qlobal olaraq ən ucuz namizədə geri qayıdır (köhnə davranış). `strict`: seçim etməkdən imtina edir — səssizcə limiti aşan xərcə yol vermək əvəzinə, sorğu `HTTP 402` ilə dərhal uğursuz olur. Naməlum dəyərlər nəzərə alınmır.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `X-OmniRoute-Effort`          | `auto` (digər dəyərlər rezerv edilib)                                                                                                                                                                    | Adaptiv düşünmə büdcəsi: sorğuda heç bir formada əsaslandırma sahəsi (`reasoning_effort`, `reasoning`, `thinking`) olmadıqda, şlüz deterministik sorğu strukturu siqnallarına (son istifadəçi mesajının uzunluğu, son istifadəçi mesajınadək kontekst ölçüsü, əvvəlki alət nəticələri, alət dövrəsinin dərinliyi) əsasən `auto` dəyərini `low`/`medium`/`high` kimi müəyyən edir. Siqnallar cari addımla məhdudlaşır — son istifadəçi mesajından sonrakı hər şey nəzərə alınmır — buna görə də alət dövrəsindəki hər sorğu eyni səviyyədə müəyyən edilir (hər addım üçün vəziyyətsiz sabitləmə, sessiya vəziyyəti yoxdur, yuxarı axındakı prompt keşinin prefikslərini poza biləcək dövrə ortası yüksəltmə yoxdur). Klient tərəfindən açıq şəkildə göstərilən əsaslandırma sahəsi həmişə üstünlük təşkil edir. Yuxarı axın yönləndirilməsi OpenAI Chat Completions strukturuna (`targetFormat === FORMATS.OPENAI`) uyğun olan sorğularla məhdudlaşır — `reasoning_effort` OpenAI strukturlu sahədir, buna görə də başlıq Claude və ya Gemini-yə yönəldilmiş sorğuda heç bir təsir göstərmir (baxın: `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Ən sürətli profili məcburi seç, bu sorğu üçün limiti $0.05 olaraq təyin et və limiti aşmaq əvəzinə sorğunu qəti şəkildə blokla
+# Ən sürətli profili məcburi seçin, bu sorğunu $0.05 ilə məhdudlaşdırın və büdcəni aşmaq əvəzinə sərt şəkildə bloklayın
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -287,10 +285,10 @@ curl -sS http://localhost:20128/v1/chat/completions \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-Həll saf funksiyadır (`open-sse/services/autoCombo/requestControls.ts`); həll edilmiş
-dəyərlər mühərrikin mövcud `config.modePack` / `config.budgetCap` /
+Müəyyənləşdirmə xalis funksiyadır (`open-sse/services/autoCombo/requestControls.ts`);
+müəyyən edilmiş dəyərlər mühərrikin mövcud `config.modePack` / `config.budgetCap` /
 `config.budgetFallback` girişlərinə ötürülür. Kombinasiyada saxlanılan `config.budgetFallback` ("strict" |
-"cheapest") davamlı siyasəti təyin edir; başlıq onu tək bir sorğu üçün əvəz edir.
+"cheapest") davamlı siyasəti təyin edir; başlıq isə onu tək bir sorğu üçün əvəz edir.
 
 ## Bütün Marşrutlaşdırma Strategiyaları
 
@@ -774,18 +772,18 @@ Sadə `auto` (standart) və `autoPrefix.ts` faylında elan edilmiş 6 `AutoVaria
 
 (`AutoVariant` özü 6 dəyəri sadalayır; 7-ci seçim «variantsız» — sadə `auto` — olub, `parseAutoPrefix()` tərəfindən `variant: undefined` kimi emal edilir.)
 
-## Səviyyələrin Auto-Combo-ya uyğunlaşması
+## Səviyyələrin Auto-Combo-ya uyğunluğu
 
 16 amilli qiymətləndirmə funksiyası (`open-sse/services/autoCombo/scoring.ts`) səviyyə
 üzvlüyünü iki siqnal kimi nəzərə alır: `tierPriority` (0.0476) və `tierAffinity` (0.0476). Tam
 `DEFAULT_WEIGHTS` dəsti üçün yuxarıdakı kanonik [qiymətləndirmə amilləri cədvəlinə](#how-it-works-persisted-auto-combos) baxın — hər paket üzrə əvəzləmələr (ship-fast/cost-saver/quality-first/
-offline-friendly) «Hər paket üzrə çəki profilləri» cədvəlində göstərilib.
+offline-friendly) "Hər paket üçün çəki profilləri" cədvəlində göstərilib.
 
-Təkcə səviyyə Tier 1-in birinci olmasını **məcbur etmir** — Tier 1 gecikməsi yüksəkdirsə və ya
-xərc-keyfiyyət nisbəti optimal deyilsə, Tier 2 üstün gəlir. Səviyyə sıralamasını məcburi etmək üçün kombinasiyanın
-`priority` strategiyasından istifadə edin və provayderləri səviyyəyə görə sıralayın.
+Təkcə səviyyə **Tier 1**-in birinci olmasını təmin etmir — əgər **Tier 1** gecikməsi yüksəkdirsə və ya
+xərc-keyfiyyət nisbəti optimal deyilsə, **Tier 2** üstün gəlir. Səviyyə sıralamasını məcburi etmək üçün
+`priority` kombinasiya strategiyasından istifadə edin və provayderləri səviyyələrə görə düzün.
 
-Tier 1-ə (abunəlik) ciddi üstünlük vermək üçün `tierPriority` çəkisini artırın:
+**Tier 1**-ə (abunəlik) güclü üstünlük vermək üçün `tierPriority` çəkisini artırın:
 
 ```json
 {
@@ -794,7 +792,7 @@ Tier 1-ə (abunəlik) ciddi üstünlük vermək üçün `tierPriority` çəkisin
 }
 ```
 
-Səviyyə tərifləri və provayderlərin təsnifatı üçün `docs/marketing/TIERS.md` faylına baxın.
+Səviyyə tərifləri və provayder təsnifatı üçün [`docs/guides/TIERS.md`](../guides/TIERS.md) sənədinə baxın.
 
 ## Test və əhatə dairəsi
 

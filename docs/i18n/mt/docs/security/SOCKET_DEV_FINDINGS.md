@@ -189,28 +189,27 @@ tat-theddid ċar:
 
 ## Profil tal-build: `minimal`
 
-Għall-utenti li jeħtieġu artifact adattat għal Socket, agħmlu build b’:
+Għall-utenti li jeħtieġu artifact kompatibbli ma' Socket, agħmlu build bi:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Il-webpack `NormalModuleReplacementPlugin` jagħmel alias ta’ erba’ modules għal stubs:
+Il-`NormalModuleReplacementPlugin` ta' webpack joħloq alias għal erba' moduli lejn stubs:
 
-| Module                                      | Stub                                             |
+| Modulu                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Kull stub jesporta l-istess interfaċċa, iżda kull funzjoni tarmi
-`featureDisabledError(name)` waqt l-eżekuzzjoni. Ir-routes li jiddependu fuq il-module
-diżattivat jirritornaw HTTP 503 b’messaġġ ċar minflok jattivaw il-mogħdija
-sensittiva tal-code.
+Kull stub jesporta l-istess interfaċċa, iżda kull funzjoni tqajjem
+`featureDisabledError(name)` waqt l-eżekuzzjoni. Ir-rotot li jiddependu fuq il-modulu
+diżattivat jirritornaw HTTP 503 b'messaġġ ċar minflok ma jattivaw il-perkors
+tal-kodiċi sensittiv.
 
-Il-bundle li jirriżulta huwa maħsub biex jiġi ppubblikat bħala `omniroute-secure`. Ara
-`docs/ops/PUBLISHING_SECURE.md` għar-riċetta tal-pubblikazzjoni.
+Il-bundle li jirriżulta huwa maħsub biex jiġi ppubblikat bħala `omniroute-secure`.
 
 ---
 

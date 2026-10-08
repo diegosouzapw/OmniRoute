@@ -1,0 +1,1 @@
+- **fix(translator):** Give chronologically reused tool calls unique paired Gemini wire IDs after resolving thought signatures with the original IDs. Reject overlapping duplicate calls locally instead of guessing result pairing; native Responses passthrough and client history stay unchanged (#15319; closes #15312).

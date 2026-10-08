@@ -1,1 +1,0 @@
-- **fix(authz):** the `API_PORT` bridge reports each remote client to the dashboard by its own address and drops the forwarding headers it sent, so a remote client is no longer treated as the host itself; a private-LAN proxy can keep its `X-Forwarded-For` with `OMNIROUTE_TRUST_PROXY=private`

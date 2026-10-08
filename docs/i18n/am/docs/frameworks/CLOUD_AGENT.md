@@ -304,23 +304,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 የውጫዊውን አቅራቢ አይጠራም — በ`CloudAgentBase` ውስጥ የማቋረጫ RPC የለም። የውጫዊ
 ክፍያን ለማቆም ተግባሩን በአቅራቢው የራሱ console ውስጥ ያቋርጡ።
 
-## REST API — የCloud Provider መሠረተ ልማት
+## REST API — የCloud Provider የመሠረተ ልማት ማገናኛ
 
-በ`src/app/api/cloud/` ስር ያሉት እነዚህ ረዳት endpoints የprovider ግንኙነት metadataን ለማንበብ እና የmodel aliasesን ለመፍታት በርቀት ደንበኞች
-(CLI፣ Electron app ወይም sync workers) ይጠቀሙባቸዋል። እነዚህ endpoints የtask endpoints የሚጠቀሙበትን management auth ሳይሆን
-**መደበኛ API key** (`validateApiKey` በመጠቀም) ማረጋገጫን ይጠቀማሉ።
+በ`src/app/api/cloud/` ሥር ያሉት እነዚህ ረዳት endpoints በርቀት ደንበኞች
+(CLI፣ Electron app ወይም sync workers) የprovider ግንኙነት metadataን ለማንበብ
+እና የmodel aliasesን ለመፍታት ያገለግላሉ። እነሱ በtask endpoints ጥቅም ላይ በሚውለው management auth ሳይሆን
+በ**API key** (`validateApiKey` በኩል) የማንነት ማረጋገጫ ይደረግላቸዋል፤
+`/api/cloud/auth` የሚመልሰው በkeyው scope ላይ ይወሰናል (ከታች ይመልከቱ)።
 
-| ዘዴ   | መንገድ                            | ዓላማ                                                            |
-| ---- | ------------------------------- | -------------------------------------------------------------- |
-| POST | `/api/cloud/auth`               | API keyን ያረጋግጣል፣ የተደበቀ የግንኙነት metadata እና model aliasesን ይመልሳል |
-| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`ን ያድሳል             |
-| POST | `/api/cloud/model/resolve`      | model aliasን ወደ `{ provider, model }` ይፈታል                     |
-| GET  | `/api/cloud/models/alias`       | ሁሉንም model aliases ይዘረዝራል                                      |
-| PUT  | `/api/cloud/models/alias`       | model aliasን ያዘጋጃል (ከነቃም በራስ-ሰር ከCloud ጋር ያመሳስላል)              |
+| ዘዴ   | መንገድ                            | ዓላማ                                                         |
+| ---- | ------------------------------- | ----------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | API keyን ማረጋገጥ፣ የተደበቀ የግንኙነት metadata + model aliasesን መመለስ |
+| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt`ን ማደስ           |
+| POST | `/api/cloud/model/resolve`      | የmodel aliasን ወደ `{ provider, model }` መፍታት                 |
+| GET  | `/api/cloud/models/alias`       | ሁሉንም model aliases መዘርዘር                                    |
+| PUT  | `/api/cloud/models/alias`       | የmodel alias ማዘጋጀት (እና ከነቃ ከCloud ጋር በራስ-ሰር ማመሳሰል)          |
 
 `/api/cloud/auth` ጥሬ `apiKey` / `accessToken` / `refreshToken`ን ፈጽሞ አይመልስም።
-`hasApiKey`፣ `hasAccessToken`፣ `hasRefreshToken` እና የተደበቀ ቅድመ ዕይታን
-(`maskedApiKey`: የመጀመሪያዎቹ 4 + `****` + የመጨረሻዎቹ 4) ይመልሳል።
+keyው ሊጠቀምባቸው ለሚችላቸው ንቁ ግንኙነቶች `hasApiKey`፣ `hasAccessToken`፣ `hasRefreshToken`ን
+ይመልሳል (`allowedConnections` የተገደበ key እነዚያን ብቻ ያያል)።
+`manage` ወይም `admin` scope ላለው API key፣ ከ`OMNIROUTE_API_KEY` የሚመጣውን deployment key ጨምሮ፣
+የተደበቀ ቅድመ-ዕይታ (`maskedApiKey`፦ በእያንዳንዱ ጫፍ እስከ 4 ቁምፊዎች፣ ለአጭር
+key ከዚያ ያነሰ፣ 8 ቁምፊዎች ወይም ከዚያ ያነሰ ከሆነ ምንም አይታይም) እና የግንኙነቱን `projectId` ጭምር
+ይመልሳል። ለማንኛውም ሌላ key ሁለቱም መስኮች በምላሹ ውስጥ አይካተቱም።
 
 ## የCredentials መፍትሔ
 

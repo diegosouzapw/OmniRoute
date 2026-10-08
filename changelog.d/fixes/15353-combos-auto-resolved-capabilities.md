@@ -1,0 +1,1 @@
+- **fix(api):** `GET /api/combos/auto` now resolves candidate capabilities once per request instead of once per candidate for every listed variant, so listing auto combos no longer holds the event loop on large pools ([#15353](https://github.com/diegosouzapw/OmniRoute/pull/15353)) — thanks @maxmad64bis

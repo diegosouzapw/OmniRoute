@@ -1,0 +1,1 @@
+- **docs(release):** the README footer and `llm.txt` (and their 66 locale mirrors) now carry the v3.8.52 version the cycle-open bump set in `package.json`, clearing the strict docs-sync base-red on `release/v3.8.52` (#15100)

@@ -127,7 +127,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | 헤더                                        | 값                                                                                            |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `Authorization`                             | `Bearer <api-key>`                                                                            |
-| `User-Agent`                                | `claude-cli/2.1.258 (external, sdk-cli)`                                                      |
+| `User-Agent`                                | `claude-cli/2.1.280 (external, sdk-cli)`                                                      |
 | `anthropic-version`                         | `2023-06-01`                                                                                  |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                      |
 | 연결별 redact-thinking 베타 토글            | 수정된 사고 스트림을 명시적으로 요구하는 업스트림에 `redact-thinking-2026-02-12`를 추가합니다 |

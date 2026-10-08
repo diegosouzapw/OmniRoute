@@ -1,1 +1,0 @@
-- **fix(proxies):** bulk proxy import now accepts only statuses from the shared registry, excluding `dead` ([#14579](https://github.com/diegosouzapw/OmniRoute/pull/14579)).

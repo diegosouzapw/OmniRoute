@@ -23,7 +23,7 @@ Digunakan untuk API klien yang serasi dengan OpenAI/Anthropic/Gemini dan beberap
 Authorization: Bearer <api-key>
 ```
 
-Disahkan oleh `isValidApiKey()` / `extractApiKey()` dalam `src/sse/services/auth.ts` dan dieksport semula melalui `src/shared/utils/apiAuth.ts`. Pengesah juga menerima pemboleh ubah persekitaran `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci laluan terus kekal (isu #1350).
+Disahkan oleh `isValidApiKey()` / `extractApiKey()` dalam `src/sse/services/auth.ts` dan dieksport semula melalui `src/shared/utils/apiAuth.ts`. Pengesah turut menerima pemboleh ubah persekitaran `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` sebagai kunci laluan terus berterusan (isu #1350).
 
 ### 2. Sesi Papan Pemuka (kuki auth_token)
 
@@ -33,43 +33,45 @@ Untuk halaman papan pemuka dan operasi pentadbir.
 Cookie: auth_token=<JWT ditandatangani dengan JWT_SECRET>
 ```
 
-Kuki hanya dianggap sebagai sesi apabila JWT berjaya disahkan **dan** membawa `authenticated: true`
+Kuki hanya dianggap sebagai sesi apabila JWT berjaya disahkan **dan** mengandungi `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Setiap
-pengguna kuki tersebut (pengawal laluan, muat semula saluran paip pengesahan kuasa, jabat
-tangan WebSocket, pelayan langsung, `/api/settings/require-login`, `/api/auth/status`) melalui pembantu tersebut.
-Terdapat JWT lain yang ditandatangani dengan `JWT_SECRET` — laluan terus Cursor CLI menjana
-token `iss "omniroute" / aud "cursor-cli"` untuk pemegang kunci — dan token tersebut tidak pernah dianggap sebagai sesi
+pengguna kuki tersebut (pengawal laluan papan pemuka (`isDashboardSessionAuthenticated()`), penyegaran saluran paip kebenaran, jabat tangan WebSocket, pelayan
+langsung, `/api/settings/require-login`, `/api/auth/status`) melalui pembantu tersebut.
+JWT lain yang ditandatangani dengan `JWT_SECRET` juga wujud — laluan terus Cursor CLI menjana
+token `iss "omniroute" / aud "cursor-cli"` untuk pemegang kunci — dan token ini tidak pernah dianggap sebagai sesi
 (#13298).
 
-Disahkan oleh `isDashboardSessionAuthenticated()` dalam `src/shared/utils/apiAuth.ts`. Saluran paip memuat semula JWT secara automatik apabila tempoh sahnya berbaki kurang daripada 7 hari daripada jangka hayat 30 harinya.
+Disahkan oleh `isDashboardSessionAuthenticated()` dalam `src/shared/utils/apiAuth.ts`. Saluran paip menyegarkan JWT secara automatik apabila tempoh yang tinggal kurang daripada 7 hari dalam jangka hayat 30 harinya.
+
+Sesi juga boleh tamat sebelum tempoh 30 harinya berakhir kerana setiap penjana melalui `mintDashboardSessionToken` (masa pengeluaran `iat` dan ID `jti`) dan pengesah menyemak dua tetapan: `sessionsValidAfter`, yang ditetapkan apabila kata laluan ditukar supaya setiap sesi yang dikeluarkan sebelum waktu tersebut tidak lagi dapat disahkan (pelayar yang menukar kata laluan menerima kuki baharu), dan `revokedDashboardSessions`, yang akan ditambahkan dengan `jti` sesi yang dilog keluar oleh `POST /api/auth/logout`. Sesi yang dijana oleh keluaran lama tidak mengandungi mana-mana tuntutan tersebut dan kekal sah sehingga kata laluan ditukar buat kali pertama. Jika tetapan tidak dapat dibaca, sesi tersebut tidak dipercayai.
 
 Sesetengah laluan pengurusan menerima **salah satu** mod: kuki ATAU `Bearer <key>` apabila kunci API mempunyai skop `manage` (atau `admin`). Inilah yang membolehkan aliran kerja "boleh dikonfigurasikan melalui panggilan API" yang ditambahkan dalam v3.8.
 
 #### Gerbang log masuk OIDC pilihan (#6973)
 
-Log masuk pentadbir papan pemuka turut menyokong aliran OIDC (OpenID Connect) secara **ikut serta**
-bersama log masuk kata laluan lalai — log masuk kata laluan tidak pernah dialih keluar, hanya
-dilengkapkan:
+Log masuk pentadbir papan pemuka turut menyokong aliran OIDC (OpenID Connect) yang **memerlukan pengaktifan**
+bersama-sama log masuk kata laluan lalai — log masuk kata laluan tidak pernah
+dialih keluar, hanya dilengkapi:
 
 - Dilumpuhkan melainkan `settings.oidcEnabled === true` **dan** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` semuanya telah dikonfigurasikan (Tetapan → Pengesahan).
+  `oidcClientId` / `oidcClientSecret` semuanya dikonfigurasikan (Tetapan → Pengesahan).
   `GET /api/auth/oidc/login` mengembalikan `400` jika tidak.
 - `GET /api/auth/oidc/login` menemui `authorization_endpoint` daripada
-  `/.well-known/openid-configuration` penerbit (dengan sandaran kepada
-  `<issuer>/authorize`), membina URI ubah hala daripada permintaan masuk
-  (peka terhadap `x-forwarded-proto`), dan mengubah hala ke IdP dengan `state` rawak
+  `/.well-known/openid-configuration` pengeluar (kembali menggunakan
+  `<issuer>/authorize` jika perlu), membina URI ubah hala daripada permintaan masuk
+  (mengambil kira `x-forwarded-proto`), dan mengubah hala ke IdP dengan `state` rawak
   yang disimpan dalam kuki `oidc_state` `httpOnly`.
 - `GET /api/auth/oidc/callback` mengesahkan `state`, menukar kod kebenaran,
-  dan mengesahkan tandatangan token ID melalui JWKS penerbit
+  dan mengesahkan tandatangan token ID melalui JWKS pengeluar
   (`createRemoteJWKSet` milik `jose`, dicache bagi setiap URI JWKS) dengan semakan `issuer`/`audience`.
   Senarai dibenarkan `oidcAllowedSubjects` pilihan memadankan tuntutan `sub`
-  token atau tuntutan `email` — tuntutan e-mel hanya diterima apabila
-  `email_verified === true`, maka e-mel yang belum disahkan di IdP tidak boleh melepasi
-  gerbang tersebut.
-- Jika berjaya, ia menjana JWT `auth_token` 30 hari yang **sama sepenuhnya** seperti yang
+  token atau tuntutan `email` token tersebut — tuntutan e-mel hanya diterima apabila
+  `email_verified === true`, maka e-mel yang tidak disahkan pada IdP tidak boleh
+  melepasi gerbang tersebut.
+- Apabila berjaya, ia menjana JWT `auth_token` 30 hari yang **sama sepenuhnya** seperti yang
   dikeluarkan oleh log masuk kata laluan (`src/app/api/auth/login/route.ts`), maka seluruh
-  saluran paip sesi papan pemuka yang selebihnya (muat semula automatik, bendera kuki) kekal tidak berubah —
-  OIDC hanya menggantikan cara kuki dijana, bukan kebenaran yang diberikannya.
+  saluran paip sesi papan pemuka yang lain (penyegaran automatik, bendera kuki) kekal tidak berubah —
+  OIDC hanya menggantikan cara kuki dijana, bukan keizinan yang diberikannya.
 
 ## Kelas Laluan
 

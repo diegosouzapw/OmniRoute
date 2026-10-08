@@ -43,6 +43,24 @@ type LoggerLike =
 
 const DEFAULT_FALLBACK_CODES = [429, 500, 502, 503, 504];
 
+/** Trusted request-local validation may inspect the fully resolved executor, never a client flag. */
+export function createExecutorResolver(
+  log: LoggerLike,
+  credentials: { providerSpecificData?: Record<string, unknown> },
+  validationFence?: (
+    executor: Awaited<ReturnType<typeof resolveExecutorWithProxy>>
+  ) => Awaited<ReturnType<typeof resolveExecutorWithProxy>>
+) {
+  return async (provider: string) => {
+    const executor = await resolveExecutorWithProxy(
+      provider,
+      log,
+      credentials?.providerSpecificData ?? null
+    );
+    return validationFence ? validationFence(executor) : executor;
+  };
+}
+
 function parseFallbackCodes(raw: unknown): number[] | null {
   if (typeof raw !== "string" || !raw.trim()) return null;
   const parsed = raw

@@ -59,12 +59,16 @@ test("an inventory entry that is no longer excluded fails the gate", () => {
   assert.deepEqual(v.orphaned, ["tests/revived.test.ts"]);
 });
 
-test("tooling exclusions and globs are exempt, and a stale path is ignored", () => {
+test("only named tooling exclusions are exempt, and a stale path is ignored", () => {
   const entries = [
     { pattern: "node_modules/**", comment: "," },
-    { pattern: "tests/unit/**/*.test.tsx", comment: "," },
     { pattern: "tests/deleted.test.ts", comment: "," },
   ];
   const v = findViolations(entries, (p) => p !== "tests/deleted.test.ts", []);
   assert.deepEqual(v, { unreferenced: [], untracked: [], orphaned: [] });
+});
+
+test("an arbitrary glob cannot hide tests outside the inventory", () => {
+  const v = findViolations([{ pattern: "tests/unit/**/*.test.tsx", comment: "," }], () => true, []);
+  assert.deepEqual(v.untracked, ["tests/unit/**/*.test.tsx"]);
 });

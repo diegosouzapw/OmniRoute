@@ -307,24 +307,19 @@ ghlaonn sé ar an soláthraí réamhtheachtach — níl aon RPC scoir in `CloudA
 Chun stop a chur le billeáil sa tseirbhís réamhtheachtach, cuir deireadh leis an tasc
 i gconsól an tsoláthraí féin.
 
-## REST API — Bonneagar Soláthraí Néil
+## REST API — Bunobair Soláthraí Néil
 
-Úsáideann cianchliaint na críochphointí cúnta seo faoi `src/app/api/cloud/`
-(an CLI, an aip Electron, nó oibrithe sioncronaithe) chun meiteashonraí naisc soláthraí
-a léamh agus ailiasanna samhlacha a réiteach. Fíordheimhnítear iad le **gnáth-eochair API**
-(trí `validateApiKey`), seachas leis an bhfíordheimhniú bainistíochta a úsáideann críochphointí na dtascanna.
+Úsáideann cianchliaint (an CLI, an aip Electron, nó oibrithe sioncronaithe) na críochphointí cúnta seo faoi `src/app/api/cloud/` chun meiteashonraí naisc soláthraí a léamh agus ailiasanna samhlacha a réiteach. Déantar iad a fhíordheimhniú le **heochair API** (trí `validateApiKey`), seachas leis an bhfíordheimhniú bainistíochta a úsáideann na críochphointí tascanna; braitheann an méid a chuireann `/api/cloud/auth` ar ais ar scóip na heochrach (féach thíos).
 
-| Modh | Conair                          | Cuspóir                                                                                      |
-| ---- | ------------------------------- | -------------------------------------------------------------------------------------------- |
-| POST | `/api/cloud/auth`               | Bailíochtaigh eochair API, seol meiteashonraí naisc mascaithe + ailiasanna samhlacha ar ais  |
-| PUT  | `/api/cloud/credentials/update` | Athnuaigh `accessToken` / `refreshToken` / `expiresAt`                                       |
-| POST | `/api/cloud/model/resolve`      | Réitigh ailias samhla go `{ provider, model }`                                               |
-| GET  | `/api/cloud/models/alias`       | Liostaigh gach ailias samhla                                                                 |
-| PUT  | `/api/cloud/models/alias`       | Socraigh ailias samhla (agus sioncronaigh go huathoibríoch leis an Néal má tá sé cumasaithe) |
+| Modh | Conair                          | Cuspóir                                                                                               |
+| ---- | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | Eochair API a bhailíochtú agus meiteashonraí naisc folaithe + ailiasanna samhlacha a thabhairt ar ais |
+| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` a athnuachan                                             |
+| POST | `/api/cloud/model/resolve`      | Ailias samhla a réiteach go `{ provider, model }`                                                     |
+| GET  | `/api/cloud/models/alias`       | Gach ailias samhla a liostú                                                                           |
+| PUT  | `/api/cloud/models/alias`       | Ailias samhla a shocrú (agus é a shioncronú go huathoibríoch le Cloud má tá sé cumasaithe)            |
 
-Ní sheolann `/api/cloud/auth` `apiKey` / `accessToken` / `refreshToken` amh ar ais riamh. Seolann sé
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken`, agus réamhamharc mascaithe ar ais
-(`maskedApiKey`: an chéad 4 + `****` + an 4 dheireanacha).
+Ní chuireann `/api/cloud/auth` `apiKey` / `accessToken` / `refreshToken` neamhfholaithe ar ais riamh. Cuireann sé `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ar ais do na naisc ghníomhacha is féidir leis an eochair a úsáid (ní fheiceann eochair atá srianta le `allowedConnections` ach na naisc sin). I gcás eochair API a bhfuil an scóip `manage` nó `admin` aici, lena n-áirítear an eochair imlonnaithe ó `OMNIROUTE_API_KEY`, cuireann sé réamhamharc folaithe (`maskedApiKey`: suas le 4 charachtar ag gach ceann, níos lú i gcás eochair ghearr, agus ceann ar bith i gcás 8 gcarachtar nó níos lú) agus `projectId` an naisc ar ais freisin. Fágtar an dá réimse ar lár ón bhfreagra i gcás aon eochrach eile.
 
 ## Réiteach Dintiúr
 

@@ -183,6 +183,29 @@ test("terse-prose alone stays byte-identical to the legacy caveman injection (D-
   assert.equal(text, `${OUTPUT_STYLE_MARKER}\n${legacy}`);
 });
 
+test("the boundary block keeps the spacing the last style's own text puts before it", () => {
+  // ja and zh texts run straight into SHARED_BOUNDARIES. less-code has no hu text, so its
+  // English text, with one space, decides the hu case.
+  const cases: Array<[string, OutputStyleSelectionEntry[], string]> = [
+    ["ja", sel(["terse-prose", "full"], ["less-code", "full"]), "。"],
+    ["zh", sel(["terse-prose", "full"], ["ponytail", "full"]), "。"],
+    ["zh", sel(["terse-cjk", "full"]), "。"],
+    ["hu", sel(["terse-prose", "full"], ["less-code", "full"]), " "],
+    ["ja", sel(["terse-prose", "ultra"], ["less-code", "ultra"]), "。"],
+  ];
+  for (const [language, selection, before] of cases) {
+    const text = injected(
+      { messages: [{ role: "user", content: "Refactor this module." }] },
+      selection,
+      language
+    );
+    const at = text.indexOf(SHARED_BOUNDARIES);
+    assert.ok(at > 1, `${language}: SHARED_BOUNDARIES is present`);
+    assert.equal(text[at - 1], before, `${language}: character before SHARED_BOUNDARIES`);
+    assert.notEqual(text[at - 2], " ", `${language}: at most one space before SHARED_BOUNDARIES`);
+  }
+});
+
 test("boundary emission is deterministic (same selection + language → byte-identical)", () => {
   const make = () =>
     injected(

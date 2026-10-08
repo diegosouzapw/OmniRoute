@@ -92,6 +92,44 @@ test("3c. fake returning 'direct' never writes to the refusal store", () => {
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
 });
 
+test("3d. a region refusal writes under the region kind, a plain retry keeps the quota kind", () => {
+  const tracker = throttle.createAppliedEgressTracker(
+    "https://opencode.ai/zen/v1/chat/completions",
+    () => ({
+      source: "context",
+      proxyUrl: "http://pool-geo:8080",
+    })
+  );
+  const first = tracker.noteRefused({ proxy: null, fingerprint: "geo-a" }, true, "geo_blocked");
+  assert.equal(first, 60_000);
+  assert.equal(memory.isProxyAvoided("http://@pool-geo:8080"), true);
+  assert.equal(
+    memory.snapshotProxySetAside("http://@pool-geo:8080", Date.now())?.kind,
+    "geo_blocked"
+  );
+  const second = throttle.noteRefusedMember({ host: "h", port: 8080 }, true);
+  assert.equal(second, memory.REFUSAL_POLICIES.ip_quota_429.baseMs);
+  assert.equal(
+    memory.snapshotProxySetAside(memory.proxyEgressKey({ host: "h", port: 8080 }), Date.now())
+      ?.kind,
+    "ip_quota_429"
+  );
+});
+
+test("3e. a region refusal without the flag writes nothing", () => {
+  const tracker = throttle.createAppliedEgressTracker(
+    "https://opencode.ai/zen/v1/chat/completions",
+    () => ({
+      source: "context",
+      proxyUrl: "http://pool-geo-off:8080",
+    })
+  );
+  const account = { proxy: null, fingerprint: "geo-off" };
+  const written = tracker.noteRefused(account, false, "geo_blocked");
+  assert.equal(written, null);
+  assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
+});
+
 test("4. key-space guard: no '://'-shaped key in tried-sets after a pool 429", async () => {
   // tried-sets stay in proxyKeyOf space (host:port, null for proxyless);
   // the egress key only ever reaches the refusal memory.

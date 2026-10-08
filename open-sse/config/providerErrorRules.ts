@@ -105,6 +105,23 @@ export function setOperatorProviderErrorRules(
 function buildOpencodeRules(): ProviderErrorRule[] {
   return [
     {
+      // A 400/429 reading "endpoint is unavailable" fails over to a short model-scope
+      // cooldown so the next request skips the refused model instead of
+      // retrying it. First: the body marker is the most specific signal and
+      // wins over the generic header/counter rules below on conflicts.
+      id: "opencode-endpoint-unavailable",
+      match: ({ status, body }) => {
+        if (status !== 400 && status !== 429) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("endpoint is unavailable")) return null;
+        return {
+          reason: "model_capacity",
+          scope: "model",
+          cooldownMs: 300_000,
+        };
+      },
+    },
+    {
       id: "opencode-monthly-quota-resets-in",
       match: ({ status, body }) => {
         if (status !== 429) return null;
@@ -357,7 +374,43 @@ export function honorsRuleLockScope(provider: string | null | undefined): boolea
  * HONORS_RULE_LOCK_SCOPE_PROVIDERS (#10334): a provider must opt in, and any
  * widening is an explicit owner decision.
  */
-const EGRESS_BUCKETED_LOCK_PROVIDERS = new Set(["opencode", "opencode-go", "opencode-cli"]);
+// Default free-tier set (#9611). PAID plans are account-bucketed, not
+// IP-bucketed, so operators running paid subscriptions can disable or trim
+// the egress-IP lockout via OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS:
+//   unset            → default set below (free-tier behavior)
+//   none/off/false/0 → empty set (egress-IP lockout fully disabled)
+//   "a,b,c"          → exact replacement set
+// Static default as a plain lookup table; the runtime set is env-derived
+// (dynamic membership), so a Set is the right structure there.
+const EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT: Record<string, true> = {
+  opencode: true,
+  "opencode-go": true,
+  "opencode-cli": true,
+};
+
+/**
+ * Pure parser for OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS (exported for tests).
+ * Returns the effective provider set: default free-tier family when unset,
+ * empty for none/off/false/0, otherwise the comma-separated replacement set.
+ */
+export function egressIpLockProvidersFromEnv(
+  raw: string | undefined,
+  fallback: Record<string, true> = EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT
+): Set<string> {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === "") return new Set(Object.keys(fallback));
+  if (/^(none|off|false|0)$/i.test(trimmed)) return new Set<string>();
+  return new Set(
+    trimmed
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+const EGRESS_BUCKETED_LOCK_PROVIDERS = egressIpLockProvidersFromEnv(
+  process.env.OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS
+);
 
 export function isEgressBucketedLockScope(provider: string | null | undefined): boolean {
   return !!provider && EGRESS_BUCKETED_LOCK_PROVIDERS.has(provider.toLowerCase());
@@ -525,7 +578,7 @@ export function parseResetCountdownMs(text: string): number | null {
 }
 
 /**
- * Opencode-family "Upstream request failed: Model is unavailable." 400: the rule's
+ * Opencode-family "Upstream request failed: Model is unavailable." 400/429: the rule's
  * model-scope match, or null for any other provider, status or rule. Takes the raw
  * error text so it stays independent of FULL_TEXT_RULE_PROVIDERS (#10880).
  */
@@ -535,7 +588,11 @@ export function getOpencodeModelUnavailableMatch(
   headers: Headers | Record<string, string> | null | undefined,
   errorText: unknown
 ): ProviderErrorRuleMatch | null {
-  if (status !== 400 || !provider || !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())) {
+  if (
+    (status !== 400 && status !== 429) ||
+    !provider ||
+    !OPENCODE_RULE_FAMILY.includes(provider.toLowerCase())
+  ) {
     return null;
   }
   const match = getProviderErrorRuleMatch(provider, status, headers, errorText);

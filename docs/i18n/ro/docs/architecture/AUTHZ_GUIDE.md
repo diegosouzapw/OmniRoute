@@ -17,56 +17,60 @@ OmniRoute are un pipeline de autorizare conștient de rute, care filtrează fiec
 
 ### 1. Cheie API (Bearer)
 
-Utilizată pentru API-urile client compatibile cu OpenAI/Anthropic/Gemini și pentru câteva rute de administrare atunci când cheia are domeniul de autorizare `manage`.
+Utilizată pentru API-urile client compatibile cu OpenAI/Anthropic/Gemini și pentru câteva rute de administrare atunci când cheia are domeniul de acces `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Este validată de `isValidApiKey()` / `extractApiKey()` în `src/sse/services/auth.ts` și reexportată prin `src/shared/utils/apiAuth.ts`. Validatorul acceptă și variabilele de mediu `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` drept chei persistente de tip passthrough (problema #1350).
+Validată prin `isValidApiKey()` / `extractApiKey()` în `src/sse/services/auth.ts` și reexportată prin `src/shared/utils/apiAuth.ts`. Validatorul acceptă și variabilele de mediu `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` drept chei persistente de transmitere directă (problema #1350).
 
-### 2. Sesiune de dashboard (cookie auth_token)
+### 2. Sesiune de panou de control (cookie auth_token)
 
-Pentru paginile dashboardului și operațiunile de administrare.
+Pentru paginile panoului de control și operațiunile administrative.
 
 ```
-Cookie: auth_token=<JWT semnat cu JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
 Un cookie reprezintă o sesiune numai atunci când JWT-ul este verificat **și** conține `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Fiecare
-consumator al cookie-ului (protecția rutelor, reîmprospătarea fluxului authz, negocierea WebSocket, serverul
-live, `/api/settings/require-login`, `/api/auth/status`) trece prin acel utilitar.
-Există și alte JWT-uri semnate cu `JWT_SECRET` — mecanismul passthrough al Cursor CLI emite
-tokenuri `iss "omniroute" / aud "cursor-cli"` pentru deținătorii de chei — iar acestea nu reprezintă niciodată sesiuni
+consumator al cookie-ului (mecanismul de protecție al rutelor panoului de control (`isDashboardSessionAuthenticated()`), reîmprospătarea fluxului de autorizare, negocierea WebSocket, serverul
+live, `/api/settings/require-login`, `/api/auth/status`) utilizează această funcție ajutătoare.
+Există și alte JWT-uri semnate cu `JWT_SECRET` — mecanismul de transmitere directă pentru Cursor CLI emite
+tokenuri `iss "omniroute" / aud "cursor-cli"` pentru deținătorii de chei — iar acestea nu sunt niciodată sesiuni
 (#13298).
 
-Este verificată de `isDashboardSessionAuthenticated()` în `src/shared/utils/apiAuth.ts`. Fluxul reîmprospătează automat JWT-ul atunci când au rămas mai puțin de 7 zile din durata sa de viață de 30 de zile.
+Verificată prin `isDashboardSessionAuthenticated()` în `src/shared/utils/apiAuth.ts`. Fluxul reîmprospătează automat JWT-ul atunci când au mai rămas mai puțin de 7 zile din durata sa de viață de 30 de zile.
 
-Unele rute de administrare acceptă **oricare** dintre cele două moduri: cookie SAU `Bearer <key>` atunci când cheia API are domeniul de autorizare `manage` (sau `admin`). Acest lucru permite fluxul de lucru „configurabil prin apeluri API” adăugat în v3.8.
+O sesiune se poate încheia și înainte de expirarea celor 30 de zile, deoarece fiecare emitent utilizează `mintDashboardSessionToken` (un moment al emiterii `iat` și un identificator `jti`), iar verificatorul controlează două setări: `sessionsValidAfter`, setată la schimbarea parolei astfel încât fiecare sesiune emisă anterior să nu mai poată fi verificată (browserul în care a fost schimbată parola primește un cookie nou), și `revokedDashboardSessions`, la care `POST /api/auth/logout` adaugă valoarea `jti` a sesiunii deconectate. Sesiunile emise de o versiune mai veche nu conțin niciuna dintre aceste revendicări și rămân valide până la prima schimbare a parolei. Dacă setările nu pot fi citite, sesiunea nu este considerată de încredere.
 
-#### Control opțional al autentificării OIDC (#6973)
+Unele rute de administrare acceptă **oricare** dintre cele două moduri: cookie SAU `Bearer <key>` atunci când cheia API are domeniul de acces `manage` (sau `admin`). Acest lucru permite fluxul de lucru „configurabil prin apeluri API” adăugat în v3.8.
 
-Autentificarea de administrator în dashboard acceptă și un flux OIDC (OpenID Connect) **opțional**, alături de autentificarea implicită prin parolă — autentificarea prin parolă nu este eliminată niciodată, ci doar completată:
+#### Barieră opțională de autentificare OIDC (#6973)
 
-- Este dezactivat dacă `settings.oidcEnabled === true` **și** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` nu sunt toate configurate (Settings → Auth).
+Autentificarea administratorului în panoul de control acceptă și un flux OIDC (OpenID Connect) **opțional**
+pe lângă autentificarea implicită prin parolă — autentificarea prin parolă nu este eliminată niciodată, ci doar
+completată:
+
+- Este dezactivat, cu excepția cazului în care `settings.oidcEnabled === true` **și** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` sunt toate configurate (Settings → Auth).
   În caz contrar, `GET /api/auth/oidc/login` returnează `400`.
-- `GET /api/auth/oidc/login` identifică `authorization_endpoint` din
-  configurația `/.well-known/openid-configuration` a emitentului (cu revenire la
-  `<issuer>/authorize`), construiește URI-ul de redirecționare din solicitarea primită
+- `GET /api/auth/oidc/login` descoperă `authorization_endpoint` din
+  `/.well-known/openid-configuration` al emitentului (cu revenire la
+  `<issuer>/authorize`), construiește URI-ul de redirecționare din cererea primită
   (ținând cont de `x-forwarded-proto`) și redirecționează către IdP cu o valoare `state`
   aleatorie, stocată într-un cookie `oidc_state` cu atributul `httpOnly`.
 - `GET /api/auth/oidc/callback` validează `state`, schimbă codul de autorizare
   și verifică semnătura tokenului ID prin JWKS-ul emitentului
   (`createRemoteJWKSet` din `jose`, memorat în cache pentru fiecare URI JWKS), cu verificări pentru `issuer`/`audience`.
-  O listă opțională de permisiuni `oidcAllowedSubjects` compară revendicarea
-  `sub` a tokenului sau revendicarea `email` — revendicarea de e-mail este luată în considerare numai când
-  `email_verified === true`, astfel încât o adresă de e-mail neverificată la IdP nu poate trece niciodată
-  de control.
-- În caz de succes, emite **exact același** JWT `auth_token` cu valabilitate de 30 de zile pe care îl emite autentificarea
-  prin parolă (`src/app/api/auth/login/route.ts`), astfel încât restul fluxului
-  sesiunii dashboardului (reîmprospătarea automată, atributele cookie-ului) rămâne neschimbat —
+  O listă opțională de permisiuni `oidcAllowedSubjects` caută corespondențe cu revendicarea
+  `sub` sau cu revendicarea `email` a tokenului — revendicarea de e-mail este luată în considerare numai când
+  `email_verified === true`, astfel încât un e-mail neverificat la IdP nu poate trece niciodată
+  de această barieră.
+- La succes, emite **exact același** JWT `auth_token` cu o durată de 30 de zile pe care îl emite autentificarea
+  prin parolă (`src/app/api/auth/login/route.ts`), astfel încât restul
+  fluxului sesiunii panoului de control (reîmprospătarea automată, atributele cookie-ului) rămâne neschimbat —
   OIDC înlocuiește doar modul în care este emis cookie-ul, nu și permisiunile pe care acesta le acordă.
 
 ## Clase de rute

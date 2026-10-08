@@ -1,1 +1,0 @@
-- **feat(kiro):** expose Kiro's provider-native Opus 5 Max effort tier — `<base>-max` in the Claude effort catalog, `max` in the Kiro effort values, and the adaptive-thinking envelope for `claude-opus-5` ([#14284](https://github.com/diegosouzapw/OmniRoute/pull/14284)) — original change by tarciorick, thanks @bufftop25

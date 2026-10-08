@@ -4,11 +4,11 @@
 
 ---
 
-OmniRoute scanează răspunsurile de eroare de la serviciile upstream pentru semnale care indică faptul că un
-**cont al furnizorului este definitiv inutilizabil** (suspendat / dezactivat / interzis pentru încălcarea ToS) și, atunci când
+OmniRoute scanează răspunsurile de eroare din amonte pentru semnale care indică faptul că un
+**cont al furnizorului este definitiv inactiv** (suspendat / dezactivat / blocat pentru încălcarea ToS) și, atunci când
 găsește o potrivire, mută conexiunea respectivă într-o **stare terminală `banned`**, astfel încât aceasta să nu mai fie
 selectată pentru cereri. Acesta este comportamentul configurat de cardul de setări **Security → Banned Keywords**
-(„Cuvinte-cheie suplimentare care declanșează detectarea interdicției permanente a
+(„Cuvinte-cheie suplimentare care declanșează detectarea blocării permanente a
 contului. Cuvintele-cheie încorporate se aplică întotdeauna.”).
 
 Această pagină documentează lista încorporată, fluxul de detectare, domeniul său de aplicare, modul de adăugare
@@ -17,11 +17,14 @@ Această pagină documentează lista încorporată, fluxul de detectare, domeniu
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Stări terminale”).
 
 **Sursa de referință:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+precum și `open-sse/services/errorClassifier.ts` pentru clasa de verificare non-terminală
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) și pentru
+ramura 403 care o utilizează.
 
 ## Cuvinte-cheie încorporate
 
-Aceste 8 subșiruri se aplică întotdeauna (fără a ține cont de majuscule și minuscule), indiferent de orice listă personalizată:
+Aceste 7 subșiruri se aplică întotdeauna (fără a ține cont de majuscule și minuscule), indiferent de orice listă personalizată:
 
 ```
 account_deactivated
@@ -29,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Această listă evoluează pe măsură ce furnizorii modifică formulările privind interdicțiile. Copia oficială
-> este `ACCOUNT_DEACTIVATED_SIGNALS` din `open-sse/services/accountFallback.ts`;
+> Această listă evoluează pe măsură ce furnizorii modifică formulările folosite pentru blocări. Versiunea
+> oficială este `ACCOUNT_DEACTIVATED_SIGNALS` din `open-sse/services/accountFallback.ts`;
 > considerați blocul de mai sus drept un instantaneu.
 
-Două tabele de semnale alăturate, dar **separate**, se află în același fișier și _nu_ fac parte
-din detectarea cuvintelor-cheie asociate interdicțiilor:
+### Nu este o blocare: solicitări de verificare asupra cărora operatorul poate interveni
+
+`verify your account to continue` **obișnuia să fie** în lista de mai sus. Nu reprezintă un
+semnal de blocare și se află acum în `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, care îl clasifică drept
+`PROJECT_ROUTE_ERROR` recuperabil, în loc să închidă definitiv conexiunea.
+
+Google Cloud Code / Antigravity îl returnează ca `403 VALIDATION_REQUIRED`. Acesta este
+**tranzitoriu și apare pe conturi funcționale, cu cota disponibilă integral** — conform măsurătorilor dintr-o
+implementare activă (2026-09-25, `proxy_logs`): o conexiune Antigravity a returnat 33 dintre aceste
+răspunsuri 403 în decurs de 10 minute și a rămas `active`, în timp ce o conexiune asociată, care păstra 100 % din
+cota sa în toate cele 17 ferestre, a fost blocată permanent de **un singur** astfel de răspuns. Singura
+diferență a fost ce încercare s-a întâmplat să fie procesată.
+
+Distincția este importantă deoarece o potrivire terminală are `permanent: true` (perioadă de așteptare de 1 an,
+fără recuperare automată), în timp ce operatorul poate rezolva o solicitare de verificare într-un browser.
+Păstrarea expresiei în lista de blocări făcea, de asemenea, inaccesibilă ramura recuperabilă pentru răspunsurile 403 cloud-code din
+`classifyProviderError` în cazul acestei formulări, deoarece `accountDeactivated` este
+evaluat primul — astfel încât recuperarea rutei de proiect adăugată pentru Gemini Code Assist în
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) și
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) nu putea fi executată niciodată.
+
+Trei tabele de semnale alăturate, dar **separate**, _nu_ fac parte din detectarea cuvintelor-cheie de blocare:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — facturare/cotă epuizată (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → starea terminală `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **neterminală**; o reîmprospătare a tokenului poate restabili funcționarea.
+  `credit_balance_too_low`, `payment required`, …) → stare terminală `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **neterminal**; o reîmprospătare a tokenului poate restabili funcționarea.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **neterminal**; operatorul trebuie să
+  verifice din nou contul la furnizor. Se află în `open-sse/services/errorClassifier.ts`
+  (celelalte două se află în `accountFallback.ts`). Consultați secțiunea de mai sus.
 
 Notă: expresiile tranzitorii uzuale precum **`rate limit`** / `429` sunt gestionate prin
-mecanismul de limitare a ratei / perioadă de așteptare a conexiunii și **nu** sunt semnale de interdicție.
+mecanismul de limitare a ratei / perioada de așteptare a conexiunii și **nu** reprezintă semnale de blocare.
 
 ## Fluxul de detectare
 

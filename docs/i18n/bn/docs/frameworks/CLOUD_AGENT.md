@@ -194,7 +194,9 @@ export interface CloudAgentTask {
 
 ## ডেটাবেস
 
-উৎস: `src/lib/cloudAgent/db.ts` — টেবিলটি `createCloudAgentTaskTable()`-এর মাধ্যমে প্রয়োজন অনুযায়ী অলসভাবে তৈরি করা হয় (`src/lib/cloudAgent/index.ts` থেকেও মডিউল ইমপোর্টের সময় কল করা হয়)।
+উৎস: `src/lib/cloudAgent/db.ts` — টেবিলটি
+`createCloudAgentTaskTable()`-এর মাধ্যমে অলসভাবে তৈরি করা হয় (`src/lib/cloudAgent/index.ts` থেকে
+মডিউল ইমপোর্টের সময়ও এটি কল করা হয়)।
 
 ```sql
 CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
@@ -304,24 +306,30 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 provider-কে কল করে **না** — `CloudAgentBase`-এ কোনো abort RPC নেই। upstream-এ
 billing বন্ধ করতে provider-এর নিজস্ব console থেকে টাস্কটি terminate করুন।
 
-## REST API — Cloud Provider প্লাম্বিং
+## REST API — ক্লাউড প্রোভাইডার প্লাম্বিং
 
-`src/app/api/cloud/`-এর অধীনে থাকা এই সহায়ক এন্ডপয়েন্টগুলো দূরবর্তী ক্লায়েন্ট
-(CLI, Electron অ্যাপ বা sync worker) ব্যবহার করে provider সংযোগের metadata পড়তে
-এবং model alias সমাধান করতে। এগুলো task endpoint-এ ব্যবহৃত management auth দিয়ে নয়,
-বরং একটি **নিয়মিত API key** (`validateApiKey`-এর মাধ্যমে) দিয়ে প্রমাণীকৃত হয়।
+`src/app/api/cloud/`-এর অধীনস্থ এই সহায়ক এন্ডপয়েন্টগুলো রিমোট ক্লায়েন্ট
+(CLI, Electron অ্যাপ বা সিঙ্ক ওয়ার্কার) দ্বারা প্রোভাইডার সংযোগের মেটাডেটা পড়তে
+এবং মডেল অ্যালিয়াস সমাধান করতে ব্যবহৃত হয়। এগুলো টাস্ক এন্ডপয়েন্টে ব্যবহৃত ম্যানেজমেন্ট
+অথের পরিবর্তে একটি **API key** (`validateApiKey`-এর মাধ্যমে) দিয়ে প্রমাণীকৃত হয়;
+`/api/cloud/auth` কী ফেরত দেয়, তা key-টির স্কোপের ওপর নির্ভর করে (নিচে দেখুন)।
 
-| পদ্ধতি | পাথ                             | উদ্দেশ্য                                                                       |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------ |
-| POST   | `/api/cloud/auth`               | API key যাচাই করে masked connection metadata + model alias ফেরত দেয়           |
-| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` রিফ্রেশ করে                       |
-| POST   | `/api/cloud/model/resolve`      | একটি model alias-কে `{ provider, model }`-এ সমাধান করে                         |
-| GET    | `/api/cloud/models/alias`       | সব model alias তালিকাভুক্ত করে                                                 |
-| PUT    | `/api/cloud/models/alias`       | একটি model alias সেট করে (এবং সক্রিয় থাকলে Cloud-এ স্বয়ংক্রিয়ভাবে sync করে) |
+| মেথড | পাথ                             | উদ্দেশ্য                                                                            |
+| ---- | ------------------------------- | ----------------------------------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | API key যাচাই করা এবং মাস্ক করা সংযোগ মেটাডেটা + মডেল অ্যালিয়াস ফেরত দেওয়া        |
+| PUT  | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` রিফ্রেশ করা                            |
+| POST | `/api/cloud/model/resolve`      | একটি মডেল অ্যালিয়াসকে `{ provider, model }`-এ সমাধান করা                           |
+| GET  | `/api/cloud/models/alias`       | সব মডেল অ্যালিয়াসের তালিকা দেখানো                                                  |
+| PUT  | `/api/cloud/models/alias`       | একটি মডেল অ্যালিয়াস সেট করা (এবং সক্রিয় থাকলে স্বয়ংক্রিয়ভাবে Cloud-এ সিঙ্ক করা) |
 
-`/api/cloud/auth` কখনোই raw `apiKey` / `accessToken` / `refreshToken` ফেরত দেয় না। এটি
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` এবং একটি masked preview
-(`maskedApiKey`: প্রথম 4 + `****` + শেষ 4) ফেরত দেয়।
+`/api/cloud/auth` কখনোই আসল `apiKey` / `accessToken` / `refreshToken` ফেরত দেয় না। এটি
+key-টি ব্যবহার করতে পারে এমন সক্রিয় সংযোগগুলোর জন্য `hasApiKey`, `hasAccessToken`,
+`hasRefreshToken` ফেরত দেয় (`allowedConnections` দিয়ে সীমাবদ্ধ কোনো key শুধু সেই সংযোগগুলোই
+দেখতে পায়)। `manage` বা `admin` স্কোপসহ কোনো API key-এর ক্ষেত্রে—`OMNIROUTE_API_KEY`
+থেকে পাওয়া ডিপ্লয়মেন্ট key-সহ—এটি একটি মাস্ক করা প্রিভিউও ফেরত দেয় (`maskedApiKey`:
+প্রতিটি প্রান্তে সর্বোচ্চ 4টি অক্ষর, ছোট key-এর ক্ষেত্রে আরও কম এবং 8টি বা তার কম অক্ষরের
+ক্ষেত্রে একটিও নয়) এবং সংযোগটির `projectId` ফেরত দেয়। অন্য যেকোনো key-এর ক্ষেত্রে উভয়
+ফিল্ডই রেসপন্স থেকে বাদ দেওয়া হয়।
 
 ## Credential নির্ধারণ
 

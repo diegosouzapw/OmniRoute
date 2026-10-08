@@ -1,1 +1,0 @@
-- **fix(gemini):** normalize protobuf-flavored schema type spellings (`dict`, `bool`, `int32`, `float`, `list`, ...) to valid Gemini/Antigravity types and deduplicate repeated `required` array entries during tool-schema sanitization (#14083) — thanks @Ardem2025

@@ -13,6 +13,12 @@ export function extractRequestToolMetadata(translatedBody: Record<string, unknow
     translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null
   );
   const requestToolIdentityMap = extractRequestToolIdentityMap(translatedBody);
+  // Both ledgers are captured above, so the side channel is consumed here. The
+  // standalone extractor keeps a string alias ledger next to namespace identities
+  // (#14751) for callers that resolve aliases from the body later; this combined
+  // entry point returns that ledger instead (#12839), so nothing may linger on the
+  // body that is about to be serialized for dispatch.
+  delete translatedBody._toolNameMap;
   return {
     requestToolIdentityMap,
     toolNameAliasMap: toolNameAliasMap ?? toToolNameAliasMap(requestToolIdentityMap),

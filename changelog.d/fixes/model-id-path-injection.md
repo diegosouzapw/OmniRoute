@@ -1,1 +1,0 @@
-- **fix(sse):** a model name can no longer carry percent-encoded dot-segments, `?`, `#` or a backslash into the upstream URL, which let a client key reach other endpoints or models of a provider such as Gemini or Vertex and slip past a per-key model allow-list pattern

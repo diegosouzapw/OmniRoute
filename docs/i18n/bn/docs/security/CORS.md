@@ -126,24 +126,28 @@ restart ছাড়াই runtime-এ **Dashboard → Security → CORS Allowed
   permissive config থেকে management/dashboard অরিজিনগুলো বাদ রাখুন; এগুলোকে অবশ্যই সম্পূর্ণভাবে
   fail-closed থাকতে হবে।
 
-## উদাহরণ: OmniRoute-এর সামনে reverse proxy
+## উদাহরণ: OmniRoute-এর সামনে রিভার্স প্রক্সি
 
-CORS স্বয়ং OmniRoute দ্বারা প্রয়োগ করা হয়, তাই proxy-এর সাধারণত
-`Access-Control-*` header যোগ করা বা rewrite করা **উচিত নয়** (দ্বৈত header browser-কে অকার্যকর করে দেয়)। TLS
-terminate করে forward করুন—preflight-এর উত্তর OmniRoute-কে দিতে দিন:
+CORS, OmniRoute নিজেই প্রয়োগ করে, তাই প্রক্সির সাধারণত `Access-Control-*`
+হেডার যোগ বা পুনর্লিখন করা **উচিত নয়** (একই হেডার দুবার থাকলে ব্রাউজারে সমস্যা হয়)। TLS
+সমাপ্ত করে ফরওয়ার্ড করুন — প্রিফ্লাইটের উত্তর OmniRoute-কে দিতে দিন:
 
 ```nginx
-# nginx—OmniRoute-এ forward করুন; এখানে Access-Control-* inject করবেন না
+# nginx — OmniRoute-এ ফরওয়ার্ড করুন; এখানে Access-Control-* যোগ করবেন না
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For-কে 127.0.0.1-এ সেট করবেন না—এটি loopback route guard-কে অকার্যকর করে দেয়।
+    # ফরওয়ার্ডিং হেডারগুলো রাখুন: একই হোস্টে থাকা একটি প্রক্সি লুপব্যাক থেকে সংযোগ করে, এবং এগুলোই
+    # OmniRoute-কে জানায় যে কলকারী স্থানীয় অপারেটর নয়। যে প্রক্সি এগুলোর একটিও যোগ করে না,
+    # সেটি প্রত্যেক দূরবর্তী কলকারীকে স্থানীয় বলে প্রতীয়মান করে। X-Forwarded-For কখনোই 127.0.0.1-এ সেট করবেন না।
 }
 ```
 
-অনুমোদিত browser অরিজিনগুলো proxy-তে নয়, OmniRoute-এ (`CORS_ALLOWED_ORIGINS` অথবা
-Security ট্যাব) সেট করুন।
+অনুমোদিত ব্রাউজার অরিজিনগুলো প্রক্সিতে নয়, OmniRoute-এ (`CORS_ALLOWED_ORIGINS` অথবা
+Security ট্যাবে) সেট করুন।
 
 ## সোর্স ফাইল
 

@@ -137,15 +137,49 @@ creare innanzitutto messaggi che rivelino la topologia.
 
 ## Copertura nella CI
 
-`tests/unit/error-message-sanitization.test.ts` verifica che:
+`tests/unit/error-message-sanitization.test.ts` garantisce che:
 
 - Ogni route sotto `/api/model-combo-mappings/*` restituisca body sanitizzati in caso di errori 4xx/5xx.
 - `sanitizeErrorMessage` rimuova gli stack trace su più righe.
 - `sanitizeErrorMessage` sostituisca i percorsi assoluti POSIX e Windows con `<path>`.
-- `sanitizeErrorMessage` gestisca in modo sicuro input costituiti da `null`/`undefined`/istanze di `Error`.
+- `sanitizeErrorMessage` gestisca in modo sicuro input costituiti da istanze di `null`/`undefined`/`Error`.
 - `buildErrorBody` non esponga mai stack trace nel proprio campo `message`.
 
-Quando si aggiunge una nuova route o un nuovo executor, copiare il modello delle asserzioni da questo file. La soglia di copertura (`npm run test:coverage`) impone ≥60% per istruzioni/righe/funzioni/rami: i percorsi di errore devono essere coperti.
+Quando si aggiunge una nuova route o un nuovo executor, copiare lo schema delle asserzioni da questo file. La soglia di copertura (`npm run test:coverage`) impone ≥60% per istruzioni/righe/funzioni/rami: i percorsi di errore devono essere coperti.
+
+### Il controllo statico: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` analizza `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` e ogni `src/app/api/**/route.ts` alla ricerca di un errore intercettato grezzo (`err.message` / `err.stack`) o di un `body.error.message` upstream grezzo che raggiunga un body destinato al client.
+
+**L'attendibilità è circoscritta alla chiamata, mai al file** (G-03, #15159). In passato, il controllo ignorava un intero file non appena rilevava un qualsiasi import da un percorso `utils/error`: un'esenzione a livello di file applicata a un pericolo circoscritto alla chiamata. Un singolo `import { sanitizeErrorMessage }` corretto esentava definitivamente ogni altro punto di uscita nel file, ed è così che una fuga di dati è arrivata in produzione nonostante i controlli risultassero superati. Ora una riga è considerata attendibile solo quando passa effettivamente attraverso un builder o un sanitizzatore approvato:
+
+| Forma della riga                                                                                                 | Attendibile?        |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------- |
+| chiama `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …             | sì                  |
+| chiama un builder canonico **che questo file importa** da `open-sse/utils/error` o `src/lib/api/errorResponse`   | sì                  |
+| un builder approvato viene chiamato **su più righe**, quindi il campo `message:` si trova su una riga successiva | sì                  |
+| chiama una `function errorResponse(...)` locale al file il cui corpo esegue la sanitizzazione                    | sì                  |
+| inoltra `err.message` / `err.stack` in qualsiasi altro punto                                                     | **no — violazione** |
+
+Due conseguenze importanti:
+
+- Importare `errorResponse` _non_ garantisce un'attendibilità generalizzata. Un file che definisce il proprio `errorResponse` viene comunque segnalato nel punto di chiamata, perché il controllo determina l'attendibilità per simbolo, non per file. Lo stesso vale per `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` seguito da `error: body.error.message` è l'idioma **sanitizzato** utilizzato negli executor `*-fetch.ts` e non viene segnalato.
+
+Entrambi i moduli builder approvati sono considerati validi: `open-sse/utils/error.ts` e `src/lib/api/errorResponse.ts`. Il secondo è quello utilizzato dai circa 54 gestori di route esterni a `open-sse` e sanitizza entrambe le proprie esportazioni.
+
+Due forme che **non** costituiscono violazioni, ma che in passato il controllo segnalava come fughe di dati:
+
+- un errore grezzo all'interno di una **riga di audit**: `saveCallLog({ error: err.message })`, `logToolCall(...)` oppure un logger che accetta prima un messaggio (`log.error("BATCHES", "sweep failed", { error: err.message })`). La risposta destinata al client nelle righe successive può comunque essere un `buildErrorBody` statico.
+- una chiamata **su più righe** a un builder approvato, in cui il campo `message:` non menziona alcun builder:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` congela le violazioni preesistenti, in modo che il controllo blocchi solo quelle _nuove_. `assertNoStale` rimuove automaticamente una voce una volta corretta la relativa violazione, impedendo così che il congelamento si cristallizzi. Protezioni contro le regressioni: `tests/unit/check-error-helper.test.ts` e `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Controlli correlati
 

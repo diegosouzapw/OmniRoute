@@ -115,23 +115,27 @@ runtime کے دوران **Dashboard → Security → CORS Allowed Origins** می
   کے اوریجنز کو کسی بھی permissive config سے باہر رکھیں؛ انہیں لازماً مکمل طور پر
   fail-closed رہنا چاہیے۔
 
-## مثال: OmniRoute کے سامنے reverse proxy
+## مثال: OmniRoute کے سامنے ریورس پراکسی
 
-CORS کو خود OmniRoute نافذ کرتا ہے، اس لیے عام طور پر proxy کو
-`Access-Control-*` headers شامل یا rewrite **نہیں** کرنے چاہییں (دوہرے headers browsers کو خراب کر دیتے ہیں)۔ TLS
-terminate کریں اور آگے بھیج دیں — preflight کا جواب OmniRoute کو دینے دیں:
+CORS کا نفاذ خود OmniRoute کرتا ہے، اس لیے پراکسی کو عموماً `Access-Control-*`
+ہیڈرز شامل یا دوبارہ تحریر **نہیں** کرنے چاہئیں (دوہرے ہیڈرز براؤزرز کو خراب کر دیتے ہیں)۔ TLS کو ختم
+کر کے آگے بھیجیں — پری فلائٹ کا جواب OmniRoute کو دینے دیں:
 
 ```nginx
-# nginx — OmniRoute کو آگے بھیجیں؛ یہاں Access-Control-* داخل نہ کریں
+# nginx — OmniRoute کو آگے بھیجیں؛ یہاں Access-Control-* شامل نہ کریں
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For کو 127.0.0.1 پر سیٹ نہ کریں — اس سے loopback route guard بے اثر ہو جاتا ہے۔
+    # فارورڈنگ ہیڈرز برقرار رکھیں: اسی ہوسٹ پر موجود پراکسی لوپ بیک سے منسلک ہوتی ہے، اور یہی
+    # OmniRoute کو بتاتے ہیں کہ کال کرنے والا مقامی آپریٹر نہیں ہے۔ ایسی پراکسی جو ان میں سے کوئی بھی شامل نہ کرے
+    # ہر ریموٹ کالر کو مقامی ظاہر کرتی ہے۔ X-Forwarded-For کو کبھی بھی 127.0.0.1 پر سیٹ نہ کریں۔
 }
 ```
 
-مجاز browser origins کو proxy میں نہیں، بلکہ OmniRoute (`CORS_ALLOWED_ORIGINS` یا
+براؤزر کے مجاز origins کو پراکسی میں نہیں، بلکہ OmniRoute (`CORS_ALLOWED_ORIGINS` یا
 Security ٹیب) میں سیٹ کریں۔
 
 ## سورس فائلیں

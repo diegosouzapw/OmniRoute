@@ -4,17 +4,20 @@
 
 ---
 
-OmniRoute, bir sağlayıcı **hesabının kalıcı olarak devre dışı** olduğunu (askıya alınmış / devre dışı bırakılmış / kullanım koşulları ihlali nedeniyle yasaklanmış) gösteren sinyalleri bulmak için yukarı akış hata yanıtlarını tarar ve eşleşme bulunduğunda bu bağlantıyı, artık istekler için seçilmemesi amacıyla **terminal `banned` durumuna** geçirir. **Security → Banned Keywords** ayar kartı bunu yapılandırır ("Kalıcı hesap yasağı algılamasını tetikleyen ek anahtar kelimeler. Yerleşik anahtar kelimeler her zaman uygulanır.").
+OmniRoute, bir sağlayıcı **hesabının kalıcı olarak devre dışı** olduğunu (askıya alınmış / devre dışı bırakılmış / hizmet koşulları ihlali nedeniyle yasaklanmış) gösteren sinyalleri tespit etmek için üst sağlayıcılardan gelen hata yanıtlarını tarar ve bir eşleşme bulunduğunda ilgili bağlantıyı **nihai `banned` durumuna** geçirir; böylece bağlantı artık istekler için seçilmez. **Security → Banned Keywords** ayar kartı bunu yapılandırır ("Kalıcı hesap yasağı algılamasını tetikleyen ek anahtar kelimeler. Yerleşik anahtar kelimeler her zaman uygulanır.").
 
-Bu sayfa; yerleşik listeyi, algılama akışını, kapsamını, özel anahtar kelimelerin güvenli biçimde nasıl ekleneceğini ve işaretlenmiş bir bağlantının nasıl kurtarılacağını açıklar. Terminal durumun kendisi dayanıklılık modelinin bir parçasıdır — bkz.
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminal durumlar").
+Bu sayfa; yerleşik listeyi, algılama akışını, kapsamını, özel anahtar kelimelerin güvenli şekilde nasıl ekleneceğini ve işaretlenmiş bir bağlantının nasıl kurtarılacağını açıklar. Nihai durumun kendisi dayanıklılık modelinin bir parçasıdır — bkz.
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Nihai durumlar").
 
-**Doğru bilginin kaynağı:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Doğruluk kaynağı:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+ayrıca nihai olmayan doğrulama sınıfı
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) ve bunu kullanan 403 dalı için
+`open-sse/services/errorClassifier.ts`.
 
 ## Yerleşik anahtar kelimeler
 
-Bu 8 alt dize, özel listelerden bağımsız olarak her zaman uygulanır (büyük/küçük harfe duyarsız):
+Bu 7 alt dize, özel listelerden bağımsız olarak her zaman uygulanır (büyük/küçük harfe duyarsız):
 
 ```
 account_deactivated
@@ -22,22 +25,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Sağlayıcılar yasaklama ifadelerini değiştirdikçe bu liste de gelişir. Yetkili
-> kopya, `open-sse/services/accountFallback.ts` içindeki `ACCOUNT_DEACTIVATED_SIGNALS`
-> değeridir; yukarıdaki bloğu anlık bir görüntü olarak değerlendirin.
+> Sağlayıcıların yasaklama ifadeleri değiştikçe bu liste de gelişir. Yetkili
+> kopya, `open-sse/services/accountFallback.ts` içindeki `ACCOUNT_DEACTIVATED_SIGNALS` değeridir;
+> yukarıdaki bloğu anlık bir görüntü olarak değerlendirin.
 
-Aynı dosyada bitişik olarak bulunan iki **ayrı** sinyal tablosu, yasaklanmış anahtar kelime algılamasının bir parçası _değildir_:
+### Yasaklama değildir: operatörün işlem yapabileceği doğrulama istemleri
+
+`verify your account to continue` ifadesi **önceden** yukarıdaki listede yer alıyordu. Bu bir yasaklama
+sinyali değildir ve artık bağlantıyı kalıcı olarak sonlandırmak yerine kurtarılabilir
+`PROJECT_ROUTE_ERROR` olarak sınıflandırılan `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` içinde bulunur.
+
+Google Cloud Code / Antigravity bunu `403 VALIDATION_REQUIRED` olarak döndürür. Bu durum
+**geçicidir ve sağlıklı, kotası tamamen dolu hesaplarda tetiklenir** — canlı bir
+dağıtımda ölçülmüştür (2026-09-25, `proxy_logs`): bir Antigravity bağlantısı 10 dakika
+içinde bu 403 yanıtlarından 33 tane aldı ve `active` olarak kalmaya devam etti; buna karşılık,
+17 pencerenin tamamında kotasının %100'ünü koruyan kardeş bir bağlantı bunlardan yalnızca
+**bir** tanesi nedeniyle kalıcı olarak yasaklandı. Tek fark, hangi denemenin işlenmiş olduğuydu.
+
+Bu ayrım önemlidir; çünkü terminal bir eşleşme `permanent: true` değerine sahiptir (1 yıllık bekleme süresi,
+asla otomatik olarak kurtarılmaz), oysa operatör bir doğrulama istemini tarayıcıda giderebilir.
+İfadenin yasaklama listesinde tutulması, `classifyProviderError` içindeki kurtarılabilir cloud-code 403 dalını da
+bu ifade için erişilemez hâle getiriyordu; çünkü önce `accountDeactivated`
+değerlendirilir — dolayısıyla Gemini Code Assist için
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) ve
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) kapsamında eklenen proje rotası kurtarma işlemi hiçbir zaman çalışamıyordu.
+
+Bitişik üç **ayrı** sinyal tablosu, yasaklı anahtar kelime algılamasının parçası _değildir_:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — faturalandırma/kota tükenmiş (`insufficient_quota`,
   `credit_balance_too_low`, `payment required`, …) → terminal `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **terminal değildir**; token yenileme ile kurtarılabilir.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **terminal değildir**; token yenilemesiyle kurtarılabilir.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **terminal değildir**; operatörün hesabı üst sağlayıcıda
+  yeniden doğrulaması gerekir. `open-sse/services/errorClassifier.ts` içinde bulunur
+  (diğer ikisi `accountFallback.ts` içinde bulunur). Yukarıdaki bölüme bakın.
 
-Not: **`rate limit`** / `429` gibi yaygın geçici ifadeler, hız sınırı / bağlantı bekleme süresi yolu tarafından işlenir ve yasaklama sinyali **değildir**.
+Not: **`rate limit`** / `429` gibi yaygın geçici ifadeler, hız sınırı /
+bağlantı bekleme süresi yolu tarafından işlenir ve yasaklama sinyali **değildir**.
 
 ## Algılama akışı
 

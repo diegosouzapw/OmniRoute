@@ -305,12 +305,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 proveedor externo; no existe ninguna RPC de cancelación en `CloudAgentBase`. Para detener la facturación
 del proveedor, finalice la tarea en la propia consola del proveedor.
 
-## API REST — Infraestructura de proveedores en la nube
+## API REST — Integración con proveedores de nube
 
-Estos endpoints auxiliares ubicados en `src/app/api/cloud/` son utilizados por clientes remotos
-(la CLI, la aplicación Electron o los workers de sincronización) para leer los metadatos de conexión
-del proveedor y resolver alias de modelos. Se autentican con una **clave de API normal**
-(mediante `validateApiKey`), no con la autenticación de administración utilizada por los endpoints de tareas.
+Estos endpoints auxiliares en `src/app/api/cloud/` son utilizados por clientes remotos
+(la CLI, la aplicación Electron o los trabajadores de sincronización) para leer los metadatos
+de conexión del proveedor y resolver alias de modelos. Se autentican con una **clave de API**
+(mediante `validateApiKey`), no con la autenticación de administración utilizada por los endpoints
+de tareas; lo que devuelve `/api/cloud/auth` depende del alcance de la clave (consulte más abajo).
 
 | Método | Ruta                            | Propósito                                                                                    |
 | ------ | ------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -320,9 +321,13 @@ del proveedor y resolver alias de modelos. Se autentican con una **clave de API 
 | GET    | `/api/cloud/models/alias`       | Enumerar todos los alias de modelos                                                          |
 | PUT    | `/api/cloud/models/alias`       | Establecer un alias de modelo (y sincronizarlo automáticamente con Cloud si está habilitado) |
 
-`/api/cloud/auth` nunca devuelve `apiKey` / `accessToken` / `refreshToken` sin procesar. Devuelve
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` y una vista previa enmascarada
-(`maskedApiKey`: primeros 4 + `****` + últimos 4).
+`/api/cloud/auth` nunca devuelve `apiKey` / `accessToken` / `refreshToken` sin enmascarar.
+Devuelve `hasApiKey`, `hasAccessToken`, `hasRefreshToken` para las conexiones activas que la clave
+puede utilizar (una clave restringida con `allowedConnections` solo ve esas conexiones). En el caso
+de una clave de API con el alcance `manage` o `admin`, incluida la clave de despliegue de
+`OMNIROUTE_API_KEY`, también devuelve una vista previa enmascarada (`maskedApiKey`: hasta 4 caracteres
+en cada extremo, menos en el caso de una clave corta y ninguno si tiene 8 caracteres o menos) y el
+`projectId` de la conexión. Ambos campos se omiten de la respuesta para cualquier otra clave.
 
 ## Resolución de credenciales
 

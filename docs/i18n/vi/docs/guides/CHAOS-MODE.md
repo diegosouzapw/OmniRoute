@@ -4,22 +4,42 @@
 
 ---
 
-> **Bảng điều khiển:** **Chaos Mode** (thanh bên) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (phiên bảng điều khiển) · `POST /api/skills/collect/chaos` (khóa API)  
+> **Dashboard:** **Chaos Mode** (thanh bên) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (phiên dashboard) · `POST /api/skills/collect/chaos` (khóa API)  
 > **Mã nguồn:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode gửi **một tác vụ đến nhiều nhà cung cấp cùng lúc** — mỗi nhà cung cấp tham gia
-đóng góp một phiên bản mô hình và bạn nhận được tất cả câu trả lời đặt cạnh nhau (hoặc theo chuỗi). Đây là
-một bề mặt thực thi đa mô hình, không phải chiến lược định tuyến: lưu lượng `/v1/chat/completions`
-thông thường của bạn không bao giờ bị ảnh hưởng.
+Chaos Mode gửi **một tác vụ đến nhiều nhà cung cấp cùng lúc** — mỗi nhà cung cấp tham gia đóng góp một phiên bản mô hình, và bạn nhận được tất cả câu trả lời cạnh nhau (hoặc theo chuỗi). Đây là một bề mặt thực thi đa mô hình, không phải chiến lược định tuyến: lưu lượng `/v1/chat/completions` thông thường của bạn không bao giờ bị ảnh hưởng bởi tính năng này.
 
-**Phân biệt — có ba tính năng khác nhau chứa "chaos" trong tên:**
+**Phân biệt — có ba thứ khác nhau được phát hành với từ "chaos" trong tên:**
 
-| Thành phần           | Nội dung                                                                                                                                    | Tài liệu                                     |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**       | Trang bảng điều khiển + API được mô tả tại đây: phân phối một tác vụ đến nhiều nhà cung cấp (song song hoặc cộng tác).                      | Hướng dẫn này                                |
-| `auto/chaos`         | Một id mô hình Auto-Combo có trọng số chấm điểm chèn lỗi, dùng để kiểm thử khả năng phục hồi. Không cần cấu hình.                           | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Cấu hình combo Chaos | Một combo được lưu trữ với `config.chaos.enabled`, phân phối tác vụ đến một nhóm mô hình cùng một mô hình giám khảo tùy chọn (chỉ qua API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Thứ                  | Nội dung                                                                                                                                                                                    | Nơi có tài liệu                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**       | Trang dashboard + API được mô tả tại đây: phân phối một tác vụ đến nhiều nhà cung cấp (song song hoặc cộng tác).                                                                            | Hướng dẫn này                                |
+| `auto/chaos`         | ID mô hình Auto-Combo: phân phối song song, một mô hình cho mỗi nhà cung cấp, mỗi mô hình thực hiện một lệnh gọi ngược dòng. Không phải chèn lỗi ([chi tiết](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Cấu hình combo Chaos | Một combo được lưu bền vững với `config.chaos.enabled` sẽ phân phối theo cùng cách (chỉ qua API); `judgeModel` chỉ chọn câu trả lời cuối cùng, không có lệnh gọi tổng hợp.                  | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: phân phối song song
+
+`auto/chaos` **không** phải là tùy chọn chèn lỗi hoặc kiểm thử khả năng phục hồi. Khi yêu cầu
+`model: "auto/chaos"` trên `/v1/chat/completions`:
+
+1. Tạo một nhóm gồm **một mô hình cho mỗi nhà cung cấp**: ứng viên đầu tiên của từng
+   nhà cung cấp đã kết nối, theo thứ tự nhóm ứng viên, tối đa 5 thành viên
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, giới hạn tối đa là 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Gói trọng số `chaos-mode`
+   chỉ đặt `weight` cho từng thành viên; quá trình phân phối không đọc giá trị này.
+2. Gửi cùng một yêu cầu đến mọi thành viên trong nhóm **theo cách song song**, vì vậy một yêu cầu
+   tiêu tốn một lệnh gọi ngược dòng cho mỗi thành viên trong nhóm
+   (`open-sse/services/autoCombo/chaosEngine.ts`, được điều phối từ
+   `open-sse/services/combo.ts`).
+3. Truyền một dòng trạng thái cho mỗi thành viên trong nhóm khi có kết quả: theo mặc định là một chú thích SSE
+   (`: chaos <index> ok|fail <model>`), cùng với một sự kiện `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) khi yêu cầu đặt
+   `stream_options.include_chaos_parts: true`. Các thông tin này không chứa văn bản câu trả lời.
+4. Gửi **một** câu trả lời của nhóm dưới dạng đoạn dữ liệu cuối cùng theo kiểu OpenAI: câu trả lời của thành viên
+   đầu tiên trong nhóm (`auto/chaos` đặt thành viên này làm `judgeModel`) khi thành công; nếu không,
+   câu trả lời của thành viên thành công cuối cùng sẽ được gửi. Các câu trả lời khác trong nhóm không được trả về, vì vậy
+   bạn trả phí cho N lệnh gọi nhưng chỉ nhận được một kết quả hoàn thành.
 
 ## Thiết lập
 

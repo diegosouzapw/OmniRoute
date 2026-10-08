@@ -190,14 +190,14 @@ Autentificare: opțională (`REQUIRE_API_KEY`). Erori prin `buildErrorBody()` (R
 
 ## Depanare
 
-| Simptom                                    | Cauză                                               | Remediere                                                                                    |
-| ------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Editorul Monaco nu se afișează în fila API | SSR a încărcat Monaco                               | Verificați dacă `ApiTab` utilizează `dynamic(..., { ssr: false })`                           |
-| Fluxurile de comparare pornesc secvențial  | Utilizare incorectă a `Promise.all`                 | Toate pornirile fluxurilor trebuie lansate într-un singur apel `Promise.all`                 |
-| Metricile afișează TTFT `null`             | Gestionarul pentru primul fragment nu este conectat | Verificați dacă `useStreamMetrics.onFirstChunk()` este apelat în bucla de citire SSE         |
-| Presetarea nu este păstrată                | Migrarea bazei de date nu a fost executată          | Rulați `npm run db:migrate` sau reporniți serverul (migrarea rulează automat la pornire)     |
-| Îmbunătățirea promptului returnează 502    | Modelul nu este configurat în Config                | Utilizatorul trebuie să introducă numele unui model în panoul Config înainte de îmbunătățire |
-| Codul exportat afișează `MISSING_API_KEY`  | Substituentul nu a fost inserat                     | `codeExport.ts` utilizează întotdeauna `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`          |
+| Simptom                                    | Cauză                                             | Remediere                                                                                    |
+| ------------------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Editorul Monaco nu se afișează în fila API | SSR a încărcat Monaco                             | Verificați dacă `ApiTab` utilizează `dynamic(..., { ssr: false })`                           |
+| Fluxurile de comparare pornesc secvențial  | Utilizare incorectă a `Promise.all`               | Toate fluxurile trebuie pornite printr-un singur apel `Promise.all`                          |
+| Metricile afișează TTFT ca `null`          | Handlerul pentru primul fragment nu este conectat | Verificați dacă `useStreamMetrics.onFirstChunk()` este apelată în bucla de citire SSE        |
+| Presetarea nu este păstrată                | Migrarea bazei de date nu a fost rulată           | Reporniți serverul: migrările rulează automat la pornire                                     |
+| Îmbunătățirea promptului returnează 502    | Modelul nu este setat în Config                   | Utilizatorul trebuie să introducă numele unui model în panoul Config înainte de îmbunătățire |
+| Codul exportat afișează `MISSING_API_KEY`  | Substituentul nu a fost inserat                   | `codeExport.ts` utilizează întotdeauna `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`          |
 
 ---
 

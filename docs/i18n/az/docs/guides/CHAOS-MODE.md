@@ -4,22 +4,45 @@
 
 ---
 
-> **İdarə paneli:** **Chaos Mode** (yan panel) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (idarə paneli sessiyası) · `POST /api/skills/collect/chaos` (API açarı)  
+> **İdarəetmə paneli:** **Chaos Mode** (yan panel) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (idarəetmə paneli sessiyası) · `POST /api/skills/collect/chaos` (API açarı)  
 > **Mənbə:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaos Mode **bir tapşırığı eyni anda bir neçə provayderə göndərir** — iştirak edən hər bir provayder
-bir model nümunəsi təqdim edir və bütün cavabları yanaşı (və ya zəncir şəklində) əldə edirsiniz. Bu,
-marşrutlaşdırma strategiyası deyil, çoxmodelli icra mühitidir: adi `/v1/chat/completions`
+bir model instansiyası təqdim edir və siz bütün cavabları yan-yana (və ya zəncirvari) əldə edirsiniz. Bu,
+marşrutlaşdırma strategiyası deyil, çoxmodelli icra səthidir: adi `/v1/chat/completions`
 trafikinizə heç vaxt təsir etmir.
 
-**Fərqləndirmə — adında "chaos" olan üç müxtəlif komponent təqdim olunur:**
+**Fərqləndirmə — adında "chaos" olan üç fərqli funksiya təqdim olunur:**
 
-| Komponent                   | Nədir                                                                                                                                               | Sənədləşdirildiyi yer                        |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**              | Burada təsvir edilən idarə paneli səhifəsi + API: bir tapşırığı çoxsaylı provayderlərə paylayır (paralel və ya birgə).                              | Bu təlimat                                   |
-| `auto/chaos`                | Dayanıqlılığın sınaqdan keçirilməsi üçün xəta inyeksiyası üzrə qiymətləndirmə çəkilərinə malik Auto-Combo model id-si. Konfiqurasiya tələb olunmur. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos combo konfiqurasiyası | `config.chaos.enabled` parametrinə malik, sorğunu isteğe bağlı hakim model olan panelə paylayan daimi combo (yalnız API).                           | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Funksiya                    | Nədir                                                                                                                                                                                  | Harada sənədləşdirilib                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**              | Burada təsvir edilən idarəetmə paneli səhifəsi + API: bir tapşırığı bir çox provayderə paylayır (paralel və ya əməkdaşlıq rejimində).                                                  | Bu təlimat                                   |
+| `auto/chaos`                | Auto-Combo model id-si: paralel paylama, hər provayder üçün bir model və hər biri üçün bir yuxarı axın çağırışı. Xəta inyeksiyası deyil ([təfərrüatlar](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo konfiqurasiyası | `config.chaos.enabled` ilə saxlanılan combo eyni qaydada paylama həyata keçirir (yalnız API); `judgeModel` yalnız yekun cavabı seçir, sintez çağırışı etmir.                           | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: paralel paylama
+
+`auto/chaos` xəta inyeksiyası və ya dayanıqlılıq sınağı üçün **deyil**. `/v1/chat/completions`
+üzərində `model: "auto/chaos"` sorğusu:
+
+1. **Hər provayder üçün bir modeldən** ibarət panel yaradır: hər bir
+   qoşulmuş provayderin namizəd hovuzundakı ardıcıllığa görə ilk namizədi, maksimum 5 üzvə qədər
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, maksimum 10 ilə məhdudlaşdırılır)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode` çəki
+   paketi yalnız hər üzvün `weight` dəyərini təyin edir; paylama mexanizmi onu oxumur.
+2. Eyni sorğunu panelin hər bir üzvünə **paralel olaraq** göndərir, buna görə də bir sorğu
+   hər panel üzvü üçün bir yuxarı axın çağırışına başa gəlir
+   (`open-sse/services/autoCombo/chaosEngine.ts`, çağırış
+   `open-sse/services/combo.ts` tərəfindən yönləndirilir).
+3. Hər panel üzvünün nəticəsi gəldikcə onun üçün bir status sətri yayımlayır: standart olaraq SSE şərhi
+   (`: chaos <index> ok|fail <model>`), həmçinin sorğuda
+   `stream_options.include_chaos_parts: true` təyin edildikdə `omni-chaos-part`
+   hadisəsi (`model`, `index`, `ok`, `error`). Bunlarda cavab mətni olmur.
+4. Yekun OpenAI üslublu fraqment kimi paneldən **bir** cavab göndərir: uğurlu olduqda ilk panel
+   üzvünün cavabını (`auto/chaos` onu `judgeModel` kimi təyin edir), əks halda
+   son uğurlu üzvün cavabını. Panelin digər cavabları qaytarılmır, buna görə də
+   N çağırış üçün ödəniş edir və bir tamamlama cavabı alırsınız.
 
 ## Quraşdırma
 

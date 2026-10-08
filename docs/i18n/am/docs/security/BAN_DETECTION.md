@@ -4,24 +4,19 @@
 
 ---
 
-OmniRoute የአቅራቢውን ወደላይኛ የስህተት ምላሾች፣ **መለያው በቋሚነት የተዘጋ** መሆኑን
-(የታገደ / የቦዘነ / በአገልግሎት ውሎች ጥሰት የታገደ) የሚያመለክቱ ምልክቶችን ለማግኘት
-ይቃኛል፤ ተዛማጅ ምልክት ሲገኝም ግንኙነቱን ወደ **መጨረሻዊ `banned` ሁኔታ**
-በማዛወር ከዚያ በኋላ ለጥያቄዎች እንዳይመረጥ ያደርገዋል። የ**Security → Banned Keywords**
-ቅንብሮች ካርድ የሚያዋቅረው ይህንን ነው ("ቋሚ የመለያ እገዳን ለማወቅ የሚያነሳሱ ተጨማሪ ቁልፍ ቃላት።
-አብረው የተካተቱ ቁልፍ ቃላት ሁልጊዜ ተግባራዊ ይሆናሉ።").
+OmniRoute የአቅራቢው **መለያ በቋሚነት የማይሰራ** (የታገደ / እንዲቦዝን የተደረገ / ToS በመጣስ የታገደ) መሆኑን የሚጠቁሙ ምልክቶችን ለማግኘት ከላይኛው ስርዓት የሚመጡ የስህተት ምላሾችን ይቃኛል፤ እና ምልክቶቹ ሲዛመዱ፣ ያ ግንኙነት ከእንግዲህ ለጥያቄዎች እንዳይመረጥ ወደ **የመጨረሻ `banned` ሁኔታ** ያዛውረዋል። ይህም የ**Security → Banned Keywords** ቅንብሮች ካርድ የሚያዋቅረው ነው ("ቋሚ የመለያ እገዳ ማወቂያን የሚቀሰቅሱ ተጨማሪ ቁልፍ ቃላት። አብረው የተካተቱ ቁልፍ ቃላት ሁልጊዜ ተግባራዊ ይሆናሉ።")።
 
-ይህ ገጽ አብሮ የተካተተውን ዝርዝር፣ የማወቂያ ፍሰቱን፣ የተግባር ወሰኑን፣ ብጁ
-ቁልፍ ቃላትን በደህንነት እንዴት ማከል እንደሚቻል፣ እና ምልክት የተደረገበትን ግንኙነት
-እንዴት መልሶ ማግኘት እንደሚቻል ይመዘግባል። መጨረሻዊው ሁኔታ ራሱ የጽናት ሞዴሉ አካል ነው —
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("መጨረሻዊ ሁኔታዎች")ን ይመልከቱ።
+ይህ ገጽ አብሮ የተካተተውን ዝርዝር፣ የማወቂያ ፍሰቱን፣ የተግባር ወሰኑን፣ ብጁ ቁልፍ ቃላትን በደህንነት እንዴት ማከል እንደሚቻል፣ እና ምልክት የተደረገበትን ግንኙነት እንዴት መልሶ ማስጀመር እንደሚቻል ይመዘግባል። የመጨረሻው ሁኔታ ራሱ የጽናት ሞዴሉ አካል ነው — [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("የመጨረሻ ሁኔታዎች")ን ይመልከቱ።
 
-**የትክክለኛው መረጃ ምንጭ:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**ትክክለኛው ምንጭ፦** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`)،
+እንዲሁም የመጨረሻ ያልሆነው የማረጋገጫ ክፍል
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) እና ያንን
+ለሚጠቀመው የ403 ቅርንጫፍ `open-sse/services/errorClassifier.ts`።
 
-## አብረው የተካተቱ ቁልፍ ቃላት
+## አብሮገነብ ቁልፍ ቃላት
 
-እነዚህ 8 ንዑስ ሕብረቁምፊዎች፣ ማንኛውም ብጁ ዝርዝር ቢኖርም፣ ሁልጊዜ ተግባራዊ ይሆናሉ (የፊደል አቢይነትን ሳይለዩ):
+እነዚህ 7 ንዑስ ሕብረቁምፊዎች የተጠቃሚ ብጁ ዝርዝር ቢኖርም ባይኖርም፣ ሁልጊዜ ተግባራዊ ይሆናሉ (የፊደል መጠንን ሳይለዩ)፦
 
 ```
 account_deactivated
@@ -29,24 +24,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> አቅራቢዎች የእገዳ መልዕክታቸውን ሲቀይሩ ይህ ዝርዝርም አብሮ ይሻሻላል። የባለሥልጣኑ
+> አቅራቢዎች የእገዳ አገላለጻቸውን ሲቀይሩ ይህ ዝርዝርም ይሻሻላል። ሕጋዊው
 > ቅጂ `open-sse/services/accountFallback.ts` ውስጥ ያለው `ACCOUNT_DEACTIVATED_SIGNALS` ነው፤
-> ከላይ ያለውን ብሎክ እንደ ቅጽበታዊ ቅጂ ይቆጥሩት።
+> ከላይ ያለውን ብሎክ እንደ ቅጽበታዊ ቅጂ ይቁጠሩት።
 
-ሁለት አጎራባች፣ **የተለያዩ** የምልክት ሰንጠረዦች በዚሁ ፋይል ውስጥ ይገኛሉ፤ ነገር ግን
-የታገዱ ቁልፍ ቃላትን የማወቅ ሂደት አካል _አይደሉም_:
+### እገዳ ያልሆነ፦ ኦፕሬተሩ እርምጃ ሊወስድባቸው የሚችሉ የማረጋገጫ ጥያቄዎች
 
-- `CREDITS_EXHAUSTED_SIGNALS` — የክፍያ/ኮታ መሟጠጥ (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → መጨረሻዊ `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **መጨረሻዊ ያልሆነ**፤ የቶከን እድሳት መልሶ ማስተካከል ይችላል።
+`verify your account to continue` **ከዚህ በፊት** ከላይ ባለው ዝርዝር ውስጥ ነበር። ይህ የእገዳ
+ምልክት አይደለም፤ አሁን ግን ግንኙነቱን ዘላቂ ከማቋረጥ ይልቅ እንደ ሊስተካከል የሚችል
+`PROJECT_ROUTE_ERROR` በሚመድበው `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` ውስጥ ይገኛል።
+
+Google Cloud Code / Antigravity ይህንን እንደ `403 VALIDATION_REQUIRED` ይመልሱታል። ይህ
+**ጊዜያዊ ሲሆን ጤናማና ሙሉ ኮታ ባላቸው መለያዎች ላይም ይከሰታል** — በቀጥታ
+ዝርጋታ ላይ እንደተለካው (2026-09-25፣ `proxy_logs`)፦ አንድ የAntigravity ግንኙነት በ10 ደቂቃዎች
+ውስጥ ከእነዚህ 403ዎች 33ቱን መልሶ `active` ሆኖ ቆይቷል፤ በሁሉም 17 የጊዜ መስኮቶች
+100 % ኮታውን የያዘ ሌላ ጎን ለጎን ግንኙነት ግን በ**አንድ** ብቻ ምክንያት በቋሚነት ታግዷል።
+ብቸኛው ልዩነት የትኛው ሙከራ አገልግሎት እንዳገኘ ነበር።
+
+ልዩነቱ አስፈላጊ የሆነው፣ ዘላቂ ተዛማጅ `permanent: true` (የ1 ዓመት የመጠበቂያ ጊዜ፣
+በራሱ ፈጽሞ አያገግምም) ሲሆን፣ ኦፕሬተሩ ግን የማረጋገጫ ጥያቄን በአሳሽ ውስጥ ያስወግዳል።
+ሐረጉን በእገዳ ዝርዝሩ ውስጥ ማቆየት፣ `accountDeactivated` በቅድሚያ ስለሚገመገም፣
+በ`classifyProviderError` ውስጥ ያለውን ሊስተካከል የሚችል የcloud-code 403 ቅርንጫፍ ለዚህ አገላለጽ
+የማይደረስ አድርጎት ነበር — ስለዚህ ለGemini Code Assist በ
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) እና
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) የተጨመረው የፕሮጀክት-መስመር ማገገሚያ ፈጽሞ ሊሠራ አይችልም ነበር።
+
+ሦስት ተጎራባች፣ **የተለያዩ** የምልክት ሰንጠረዦች የታገዱ ቁልፍ ቃላትን የመለየት አካል _አይደሉም_፦
+
+- `CREDITS_EXHAUSTED_SIGNALS` — የክፍያ/ኮታ ሀብት አልቋል (`insufficient_quota`፣
+  `credit_balance_too_low`፣ `payment required`፣ …) → ዘላቂ `credits_exhausted`።
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **ዘላቂ ያልሆነ**፤ የቶከን እድሳት ሊያስተካክለው ይችላል።
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **ዘላቂ ያልሆነ**፤ ኦፕሬተሩ መለያውን
+  በዋናው አቅራቢ በኩል እንደገና ማረጋገጥ አለበት። `open-sse/services/errorClassifier.ts`
+  ውስጥ ይገኛል (ሌሎቹ ሁለቱ `accountFallback.ts` ውስጥ ይገኛሉ)። ከላይ ያለውን ክፍል ይመልከቱ።
 
 ማስታወሻ፦ እንደ **`rate limit`** / `429` ያሉ የተለመዱ ጊዜያዊ ሐረጎች በ
-የፍጥነት-ገደብ / የግንኙነት-ማቀዝቀዣ መንገድ ይስተናገዳሉ፤ የእገዳ ምልክቶችም **አይደሉም**።
+የፍጥነት-ገደብ / የግንኙነት-መጠበቂያ-ጊዜ መንገድ ይስተናገዳሉ፣ እና **የእገዳ ምልክቶች አይደሉም**።
 
 ## የማወቂያ ፍሰት
 

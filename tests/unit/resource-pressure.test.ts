@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  computeRssPressureThresholdMb,
   createResourcePressureRuntime,
   getResourcePressureObservation,
   reloadResourcePressureRuntime,
@@ -24,6 +25,42 @@ function signals(observedAtMs: number, heapUsedMb: number): ResourceSignals {
     psi: null,
   };
 }
+
+describe("RSS pressure fuse", () => {
+  it("derives a conservative RSS ceiling from OMNIROUTE_MEMORY_MB", () => {
+    assert.equal(computeRssPressureThresholdMb(1024, undefined), 3072);
+    assert.equal(computeRssPressureThresholdMb(4096, undefined), 8192);
+    assert.equal(computeRssPressureThresholdMb(4096, 7000), 7000);
+    assert.equal(computeRssPressureThresholdMb(undefined, undefined), null);
+  });
+
+  it("sheds on runaway RSS even when V8 heap is healthy", () => {
+    const runtime = createResourcePressureRuntime({
+      heapThresholdMb: 2000,
+      rssThresholdMb: 6144,
+      immediateHeapUsedMb: () => 500,
+      immediateRssUsedMb: () => 7000,
+      sample: async () => signals(1, 500),
+    });
+    const guard = runtime.check();
+    assert.ok(guard);
+    assert.equal(guard.status, 503);
+    assert.equal(runtime.getObservation().state.reason, "rss_absolute");
+    runtime.dispose();
+  });
+
+  it("does not shed when RSS equals the configured ceiling", () => {
+    const runtime = createResourcePressureRuntime({
+      heapThresholdMb: 2000,
+      rssThresholdMb: 6144,
+      immediateHeapUsedMb: () => 500,
+      immediateRssUsedMb: () => 6144,
+      sample: async () => signals(1, 500),
+    });
+    assert.equal(runtime.check(), null);
+    runtime.dispose();
+  });
+});
 
 describe("resource pressure HTTP guard facade", () => {
   it("preserves strict immediate first-request heap shedding", async () => {

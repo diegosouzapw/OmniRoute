@@ -92,6 +92,55 @@ The warnings come from stale peer-dependency ranges in third-party packages Omni
 
 ---
 
+## npm install-scripts Blocked Warning (global install)
+
+<a name="npm-install-scripts-blocked-warning-global-install"></a>
+
+When running `npm install -g omniroute`, newer npm versions (v11+ and v12+) block package lifecycle scripts by default and display an install-scripts warning:
+
+```
+npm warn install-scripts 7 packages had install scripts blocked because they are not covered by allowScripts:
+  omniroute@<version> (postinstall: node scripts/build/postinstall.mjs)
+  keytar, @parcel/watcher, @swc/core, protobufjs, esbuild, onnxruntime-node
+```
+
+### Can this warning be ignored?
+
+**Partially, but running without scripts is not recommended.** OmniRoute includes graceful fallbacks: if native `better-sqlite3` bindings cannot be loaded from the standalone bundle, the application falls back through alternative drivers such as `node:sqlite` or `sql.js` (see [SQLite Runtime Resolution](../ops/SQLITE_RUNTIME.md)). The server will still start, but running on WASM fallbacks like `sql.js` disables SQLite WAL (Write-Ahead Logging) mode and increases memory and disk-sync overhead.
+
+### Which scripts are actually required?
+
+Not all blocked scripts are essential for running OmniRoute:
+
+* **Essential (`omniroute`, `better-sqlite3`):** OmniRoute runs from a Next.js standalone application bundle (`dist/`). During installation, npm downloads or compiles the host-specific native SQLite driver in the top-level `node_modules/better-sqlite3/`. OmniRoute's `postinstall` script (`scripts/build/postinstall.mjs`) then verifies and copies these host-specific binaries into `dist/node_modules/` so the standalone server can access them. If `omniroute`'s postinstall script is blocked, this copy step is skipped.
+* **Optional/transitive (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** These are build helpers, watcher tools, or system keychain utilities. Allowing them prevents build warnings, but they are not required for core routing functionality.
+* **Excluded (`onnxruntime-node`):** An optional dependency for local AI embeddings and is **not** required for OmniRoute to run. Its postinstall script downloads ~300MB of CUDA assets from NuGet; do not include it in the allow-list unless you explicitly intend to use local ONNX acceleration on supported hardware.
+
+### Recommended fix
+
+To allow the required install scripts during a global install and silence warnings, pass `--allow-scripts` for OmniRoute and its native dependencies:
+
+```bash
+npm install -g omniroute --allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild
+```
+
+Alternatively, to configure this permanently for all global installations on your user account:
+
+```bash
+npm config set allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+npm install -g omniroute
+```
+
+### Verify your installation
+
+After installation, run the built-in diagnostic tool to ensure that native bindings and the runtime environment are healthy:
+
+```bash
+omniroute doctor
+```
+
+---
+
 ## Gemini Web and Playwright Chromium
 
 If a Gemini Web request returns `503` with a message that Playwright Chromium

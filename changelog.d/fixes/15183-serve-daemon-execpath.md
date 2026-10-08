@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute serve --daemon` and `serve --no-recovery` now spawn the server child with `process.execPath` instead of a bare `node`, so they start under launchd/cron/service managers whose PATH does not include the Node install ([#15183](https://github.com/diegosouzapw/OmniRoute/pull/15183), refs #9156)
