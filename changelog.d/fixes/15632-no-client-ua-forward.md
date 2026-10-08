@@ -1,0 +1,1 @@
+- fix(executors): stop forwarding the caller's User-Agent (e.g. Python-urllib) to generic API-key providers such as Groq, so the provider/env/connection User-Agent applies and Cloudflare no longer returns 403 (#15632)

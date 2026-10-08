@@ -91,7 +91,9 @@ STATIC_GATES=(
   "npm run check:db-rules"              # ~5s  — raw SQL outside src/lib/db
   "npm run check:vitest-exclusions"     # ~2s  — stale vitest exclusion entries
   "npm run check:tracked-artifacts"     # ~3s  — a boarded PR tracking a root _* path
-  "npm run check:cycles"                # ~2s  — an import cycle only the merged tree closes
+  # The BLOCKING cycles gate is the ratchet (AGENTS.md); bare `check:cycles` is advisory
+  # (lists the SCCs, exits non-zero on a healthy base) and must never gate the train.
+  "npm run check:cycles:ratchet"        # ~2s  — an import cycle only the merged tree closes
   "npm run check:provider-consistency"  # ~2s  — registry/catalog drift across PRs
   "npm run check:error-helper"          # ~17s — raw err.message reaching a response body
   "npm run check:known-symbols"         # ~27s — a symbol one PR removes and another still uses
@@ -113,6 +115,8 @@ if [ "$PLAN" = "1" ]; then
   MODE="full"
   [ "$FAST" = "1" ] && MODE="fast"
   echo "[merge-train] PLAN (${MODE}) — base=origin/${BASE} prs=${PRS[*]}"
+  echo "[merge-train]    0. PREFLIGHT (fail-fast, before any worktree): node_modules/.bin/tsc executable;"
+  echo "[merge-train]       no stray node_modules/node_modules; node_modules/.bin/bun --version works"
   echo "[merge-train] 1. worktree add .claude/worktrees/merge-train-<ts> --detach origin/${BASE}"
   for N in "${PRS[@]}"; do
     echo "[merge-train] 2. fetch origin pull/${N}/head && merge (conflict → EJECT #${N}, continue)"
@@ -149,6 +153,27 @@ if [ -z "$ROOT" ]; then
   echo "error: not inside a git checkout" >&2
   exit 1
 fi
+
+# PREFLIGHT — an environment problem must never masquerade as a red train. A broken
+# install makes gates fail on BOTH the train and the base with no violation line, which
+# the fail-closed classifier can only call UNCLASSIFIABLE (measured 2026-10-06).
+preflight_env() {
+  local nm="$ROOT/node_modules" bad=0
+  if [ ! -x "$nm/.bin/tsc" ]; then
+    echo "[merge-train] ✗ PREFLIGHT: ${nm}/.bin/tsc is missing or not executable — partial/corrupted install. Fix: (cd ${ROOT} && npm ci)" >&2
+    bad=1
+  fi
+  if [ -e "$nm/node_modules" ]; then
+    echo "[merge-train] ✗ PREFLIGHT: stray ${nm}/node_modules — a duplicate dependency tree that makes React load twice (UI vitest suites fail instantly). Fix: rm -rf ${nm}/node_modules" >&2
+    bad=1
+  fi
+  if ! "$nm/.bin/bun" --version >/dev/null 2>&1; then
+    echo "[merge-train] ✗ PREFLIGHT: ${nm}/.bin/bun does not run — npm ci blocks the bun postinstall. Fix: (cd ${nm}/bun && node install.js)" >&2
+    bad=1
+  fi
+  [ "$bad" = "0" ] || exit 1
+}
+preflight_env
 
 TS="$(date +%Y%m%d-%H%M%S)"
 WT="$ROOT/.claude/worktrees/merge-train-$TS"
@@ -232,7 +257,11 @@ base_probe_ready() {
 # base AND the train has no more violation lines than the base — a train that ADDS one
 # owns a genuine red even though the gate was already failing, and that is precisely
 # the case a bare "it was red before" waves through.
-GATE_ERROR_RE='^[[:space:]]*(✗|✖|×|FAIL|✘)|error TS[0-9]+'
+# Also counted (2026-10-06): the i18n drift gate lists `  - docs/x.md (source-changed)`
+# and the agent-skills dry-run lists bare slugs under GENERATED (`    + omni-auth`); neither
+# prints a marker, so a base-red there was UNCLASSIFIABLE although a diff of the two
+# sorted line sets is exactly the discriminator. A red with none of these stays fail-closed.
+GATE_ERROR_RE='^[[:space:]]*(✗|✖|×|FAIL|✘)|error TS[0-9]+|^[[:space:]]*- [^[:space:]]+\.md \([a-z-]+\)|^[[:space:]]*\+ [a-z0-9][a-z0-9_-]*$'
 gate_violations() {
   grep -aE "$GATE_ERROR_RE" "$1" 2>/dev/null | sed 's/^[[:space:]]*//' | sort -u
 }
@@ -319,7 +348,7 @@ if [ "$FAST" = "1" ]; then
     | grep -E '\.test\.(ts|mjs)$' || true)
   # Subdirs test:unit actually runs (package.json allowlist) — anything else under
   # tests/unit/<sub>/ belongs to another runner (e.g. autoCombo -> vitest).
-  UNIT_SUBDIRS=",api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,"
+  UNIT_SUBDIRS=",api,auth,authz,build,chatcore,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,"
   MAIN=()
   DASH=()
   SERIAL=()

@@ -128,7 +128,7 @@ Som referens skickar den cc-kompatibla bryggan följande med varje request till 
 | Header                                           | Värde                                                                                                                    |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | `Authorization`                                  | `Bearer <api-key>`                                                                                                       |
-| `User-Agent`                                     | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                 |
+| `User-Agent`                                     | `claude-cli/2.1.280 (external, sdk-cli)`                                                                                 |
 | `anthropic-version`                              | `2023-06-01`                                                                                                             |
 | `anthropic-beta`                                 | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                 |
 | Beta-växling för redact-thinking per anslutning  | Lägger till `redact-thinking-2026-02-12` för uppströmsleverantörer som uttryckligen kräver maskerade tankeströmmar       |

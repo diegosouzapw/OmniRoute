@@ -4,6 +4,24 @@
  * cookie-dedup wiring there stays thin (#3368 PR6). No DB access here.
  */
 
+import { WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";
+
+/**
+ * #15070 — web-cookie providers store a session credential under the apikey
+ * auth type when added from the dashboard. `name` is a user-editable label that
+ * two different accounts legitimately share, so the apikey name-based upsert
+ * must NOT apply to them: a second account under the same name would silently
+ * overwrite the first account's session. The credential-value dedup (#3023)
+ * still collapses re-adding the very same session. Mirrors #15159 / B-01 for
+ * the cookie auth type.
+ */
+export function isWebCookieProviderId(provider: unknown): boolean {
+  return (
+    typeof provider === "string" &&
+    Object.prototype.hasOwnProperty.call(WEB_COOKIE_PROVIDERS, provider.toLowerCase())
+  );
+}
+
 /**
  * Reduce a `provider_specific_data` record to a single comparable credential
  * value. Cookie/token credentials are mirrored across a provider's storage

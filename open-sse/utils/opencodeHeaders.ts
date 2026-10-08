@@ -32,6 +32,17 @@ export function satisfiesOpencodeUserAgentContract(userAgent: string | null | un
   return major > 1 || (major === 1 && minor >= MINIMUM_USER_AGENT_MINOR);
 }
 
+// SDK and HTTP-library defaults: never an agent's own identity, so they are always
+// replaced. Bounded alternation, anchored at the start — no backtracking risk.
+const GENERIC_CLIENT_USER_AGENT_RE =
+  /^(?:curl|wget|libcurl|python-requests|python-httpx|python-urllib|aiohttp|httpie|node-fetch|node|undici|axios|got|ky|bun|deno|go-http-client|okhttp|java|apache-httpclient|postmanruntime|insomnia|openai|anthropic|async ?openai|openai-python)(?:[/\s]|$)/i;
+
+/** Whether a User-Agent is a generic SDK or HTTP-library default rather than an agent's own. */
+export function isGenericClientUserAgent(userAgent: string | null | undefined): boolean {
+  const value = String(userAgent || "").trim();
+  return !value || GENERIC_CLIENT_USER_AGENT_RE.test(value);
+}
+
 /**
  * The session id the caller supplied, if any.
  *
@@ -153,6 +164,13 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  *   that is not already the OpenCode CLI (e.g. curl/8.5.0) is REPLACED with the
  *   synthesized CLI UA, because opencode.ai's free tier rejects generic client UAs
  *   from datacenter IPs with FreeUsageLimitError 429. (#5997, follow-up #10229)
+ * @param options.keepAgentUserAgent - OpenCode Go (#15311): keep a client User-Agent that
+ *   names the agent itself, as Go's client requirements ask. A generic SDK / HTTP-library
+ *   UA is still replaced, and a missing one is still filled.
+ * @param options.forwardUserAgent - Set to false (DefaultExecutor, #15632) to NOT copy the
+ *   caller's User-Agent onto the upstream request: a library UA such as Python-urllib is
+ *   blocked by Cloudflare-fronted providers (Groq) and would override the provider/env/
+ *   connection User-Agent. Defaults to true.
  * @param options.sessionBody - Request body fields used to generate a
  *   conversation-stable session fingerprint (model, system, messages or input, tools).
  *   When provided, x-opencode-session is a deterministic hash instead of a random
@@ -164,12 +182,14 @@ export function forwardOpencodeClientHeaders(
   options?: {
     synthesizeRequestId?: boolean;
     cliDefaults?: { userAgent: string; client: string; project: string };
+    keepAgentUserAgent?: boolean;
     sessionBody?: OpencodeSessionBody;
+    forwardUserAgent?: boolean;
   }
 ): void {
-  // 1. Forward User-Agent
+  // 1. Forward User-Agent (opt-out for generic providers, #15632)
   const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
-  if (clientUA) {
+  if (clientUA && options?.forwardUserAgent !== false) {
     setUserAgentHeader(headers, clientUA);
   }
 
@@ -197,7 +217,12 @@ export function forwardOpencodeClientHeaders(
   // 4. OpencodeExecutor-only: synthesize the OpenCode CLI identity Cloudflare expects
   //    on VPS egress, for any key the client did not supply (#5997).
   if (options?.cliDefaults) {
-    applyCliDefaults(headers, options.cliDefaults, options.sessionBody);
+    applyCliDefaults(
+      headers,
+      options.cliDefaults,
+      options.sessionBody,
+      options.keepAgentUserAgent === true
+    );
   }
 }
 
@@ -225,16 +250,25 @@ function applySessionFallback(
  * like the OpenCode CLI (opencode-cli/...) is preserved so the real CLI's versioned
  * identity stays intact. (#5997, follow-up)
  */
+/**
+ * Whether the client's User-Agent survives CLI synthesis. A UA that satisfies the upstream
+ * contract is always kept; the previous rule kept anything starting with `opencode-cli/`,
+ * which carries no parsable version and is refused by the free tier. With
+ * `keepAgentUserAgent` (OpenCode Go, #15311) an agent's own UA is kept too, because Go asks
+ * third-party agents to identify themselves — but never a generic SDK / HTTP-library UA.
+ */
+function keepsClientUserAgent(userAgent: string | undefined, keepAgentUserAgent: boolean) {
+  if (satisfiesOpencodeUserAgentContract(userAgent)) return true;
+  return keepAgentUserAgent && !isGenericClientUserAgent(userAgent);
+}
+
 function applyCliDefaults(
   headers: Record<string, string>,
   cliDefaults: { userAgent: string; client: string; project: string },
-  sessionBody?: OpencodeSessionBody
+  sessionBody?: OpencodeSessionBody,
+  keepAgentUserAgent = false
 ): void {
-  // A client User-Agent is kept only when it already satisfies the upstream contract.
-  // The previous rule kept anything starting with `opencode-cli/`, which carries no
-  // parsable version and is refused by the free tier.
-  const existingUa = headers["User-Agent"] || headers["user-agent"];
-  if (!satisfiesOpencodeUserAgentContract(existingUa)) {
+  if (!keepsClientUserAgent(headers["User-Agent"] || headers["user-agent"], keepAgentUserAgent)) {
     setUserAgentHeader(headers, cliDefaults.userAgent);
   }
   headers["x-opencode-client"] ||= cliDefaults.client;
@@ -253,4 +287,44 @@ function applyCliDefaults(
       ? clientSessionId
       : canonicalId("ses_", clientSessionId)
     : canonicalId("ses_", generateSessionId(sessionBody ?? null) ?? undefined);
+}
+
+/**
+ * Build outbound headers for OmniRoute's BACKGROUND calls to opencode.ai —
+ * model-catalog discovery (autoSync/autoFetchModels), quota checks, and any
+ * other non-chat fetch. These calls previously went out on the bare runtime
+ * fetch (User-Agent "Bun fetch") with no `x-opencode-session`, which is exactly
+ * the shape OpenCode's operator warning names ("requests missing an
+ * x-opencode-session header", UA "Bun fetch"; hard errors announced from
+ * 2026-09-06).
+ *
+ * Background traffic has no conversation, so the caller passes the raw
+ * connection/workspace seed and applyCliDefaults() canonicalizes it into the
+ * deterministic `ses_…` shape — the same id contract the chat path enforces
+ * (#10571 follow-up) — so each connection's background traffic groups under
+ * one identity across daemon restarts instead of looking like a new anonymous
+ * client per call.
+ * The User-Agent is synthesized to the OpenCode CLI identity for the same
+ * reason applyCliDefaults() does it on the chat path (#5997): generic runtime
+ * UAs from non-CLI callers get flagged upstream.
+ */
+export function buildOpencodeBackgroundHeaders(options?: {
+  /** Stable seed for the per-caller session id (connection id / workspace id). */
+  seed?: string | null;
+  /** Explicit UA override (defaults to the OpenCode CLI identity). */
+  userAgent?: string;
+}): Record<string, string> {
+  const headers: Record<string, string> = {};
+  // Seed the session BEFORE applyCliDefaults so its canonicalizer derives the
+  // deterministic `ses_…` id from the raw seed (sha256 over the workspace /
+  // connection) — the header then carries the same canonical shape as the chat
+  // path while the identity stays stable across daemon restarts.
+  const seed = options?.seed?.trim();
+  if (seed && seed.length > 0) headers["x-opencode-session"] = seed;
+  applyCliDefaults(headers, {
+    userAgent: options?.userAgent?.trim() || process.env.OPENCODE_USER_AGENT?.trim() || "opencode",
+    client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
+    project: process.env.OPENCODE_PROJECT?.trim() || "global",
+  });
+  return headers;
 }

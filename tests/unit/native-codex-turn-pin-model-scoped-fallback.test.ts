@@ -70,6 +70,9 @@ test.after(async () => {
 });
 
 beforeEach(async () => {
+  for (const connection of await providersDb.getProviderConnections({})) {
+    await providersDb.deleteProviderConnection(connection.id);
+  }
   clearAllModelLockouts();
   clearCooldownState();
   resetAllCircuitBreakers();
@@ -339,6 +342,67 @@ describe("Native Codex Turn Pin model-scoped fallback", () => {
     assert.equal(attempted.length, 1);
     assert.equal(attempted[0].modelStr, opusModel, "Opus must remain pinned");
     assert.equal(attempted[0].connectionId, conn2Id, "Connection must fail over to conn2");
+  });
+
+  test("disabling the selected account mid-turn keeps the dynamic model and selects its healthy sibling", async () => {
+    const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
+    const first = await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: "turn-first",
+      apiKey: "sk-turn-first",
+      priority: 1,
+    });
+    const sibling = await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: "turn-sibling",
+      apiKey: "sk-turn-sibling",
+      priority: 2,
+    });
+    const selected: string[] = [];
+    const run = () =>
+      handleComboChat({
+        body: nativeTurnBody,
+        combo: {
+          name: "disabled-account-regression",
+          strategy: "fill-first",
+          models: ["openai/gpt-4o"],
+          config: { maxRetries: 0 },
+        },
+        clientManagedResponsesContext: true,
+        handleSingleModel: async (_body, model, target) => {
+          assert.equal(model, "openai/gpt-4o");
+          const resolved = target && "connectionId" in target ? target : null;
+          const credentials = await getProviderCredentials(
+            "openai",
+            null,
+            resolved?.allowedConnectionIds ?? null,
+            "gpt-4o",
+            { forcedConnectionId: resolved?.connectionId ?? undefined }
+          );
+          assert.ok(credentials?.connectionId, "an active account must remain selectable");
+          selected.push(credentials.connectionId);
+          return new Response("{}", {
+            headers: { "x-omniroute-selected-connection-id": credentials.connectionId },
+          });
+        },
+        isModelAvailable: async () => true,
+        log: createLog(),
+        settings: testSettings,
+        allCombos: null,
+      });
+    assert.equal((await run()).status, 200);
+    assert.deepEqual(selected, [first.id]);
+    await providersDb.updateProviderConnection(first.id, { isActive: false });
+    assert.equal((await run()).status, 200);
+    assert.deepEqual(selected, [first.id, sibling.id]);
+    assert.equal(
+      getNativeCodexTurnPin(nativeTurnBody, "disabled-account-regression")?.connectionId,
+      sibling.id
+    );
+    const stored = await providersDb.getProviderConnections({ provider: "openai" });
+    assert.equal(stored.find((connection) => connection.id === first.id)?.isActive, false);
   });
 
   test("Turn pin NOT released when provider circuit breaker is OPEN", async () => {

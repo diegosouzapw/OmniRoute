@@ -4,6 +4,7 @@
 // or helper-importing files) is locked down as a regression guard.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 // @ts-expect-error — .mjs gate module has no type declarations; runtime shape is known.
 import {
   findErrorHelperViolations,
@@ -87,17 +88,25 @@ test("flags forwarded upstream body.error.message without sanitize", () => {
 });
 
 // --- Negative cases: the gate must NOT flag these (conservative, no false positives) ---
+//
+// G-03 (#15159) INVERTED the next two cases. They used to assert "a file that
+// imports utils/error is never flagged", which is exactly the blind spot that let
+// the audit's live E-09 (deepseek-web.ts: imports the sanitizer, keeps a raw
+// file-local builder) ship green. Their fixtures contain a REAL raw leak, so
+// asserting `[]` locked the bug in. Trust is now call-scoped: an import only
+// excuses the line that actually routes through it. Do NOT "restore" these — the
+// call-scoped contract is asserted in check-error-helper-call-scope.test.ts.
 
-test("does NOT flag a file that imports utils/error (relative)", () => {
+test("G-03: a file importing only the sanitizer is STILL flagged for a raw leak", () => {
   const src = `import { sanitizeErrorMessage } from "../utils/error.ts";
   function build(err: Error) { return { error: { message: err.message } }; }`;
-  assert.deepEqual(run(src), []);
+  assert.deepEqual(run(src), ["open-sse/executors/x.ts"]);
 });
 
-test("does NOT flag a file that imports utils/error (workspace alias)", () => {
+test("G-03: importing a builder name does not license a separate raw Response body", () => {
   const src = `import { buildErrorBody } from "@omniroute/open-sse/utils/error";
   function build(err: Error) { return new Response(JSON.stringify({ error: { message: \`x \${err.message}\` } })); }`;
-  assert.deepEqual(run(src), []);
+  assert.deepEqual(run(src), ["open-sse/executors/x.ts"]);
 });
 
 test("does NOT flag raw err.message inside a saveCallLog audit row", () => {
@@ -159,12 +168,22 @@ test("an allowlisted path is suppressed even when it would otherwise flag", () =
   assert.deepEqual(find([{ path, source: src } as FileEntry], new Set([path])), []);
 });
 
-test("the shipped allowlist freezes exactly the known current violators (all scopes)", () => {
-  const frozen = [...allowlist].sort();
-  // 6A.8: expanded scope includes src/app/api/**/route.ts.
-  // The original open-sse/executors+handlers violations were resolved before 6A.8 landed,
-  // so only the newly-discovered API route violations remain frozen.
-  assert.deepEqual(frozen, []);
+test("every shipped allowlist entry is a real on-disk source file", () => {
+  // G-03 (#15159): this gate now sees 23 pre-existing Rule #12 violations that the
+  // old file-level skip made invisible, so they are frozen (see the justification
+  // blocks in check-error-helper.mjs). Freezing is only honest if every entry
+  // points at a file that exists — a typo here would silently disable the gate
+  // for a path that later gets "fixed" by rename.
+  //
+  // Note the allowlist was NOT empty before this change either in spirit: the
+  // previous assertion was a hardcoded `[]`, which passed for a set of zero and
+  // therefore could not detect a stale or bogus entry. The gate's own
+  // `assertNoStale` in main() catches entries that stop violating; this test
+  // catches entries that never existed.
+  assert.ok(allowlist.size > 0, "allowlist should not be empty after G-03");
+  for (const entry of allowlist) {
+    assert.ok(existsSync(new URL(`../../${entry}`, import.meta.url)), `missing file: ${entry}`);
+  }
 });
 
 async function assertRouteRemovedFromMissingHelperAllowlist(path: string) {
@@ -209,12 +228,18 @@ test("returns multiple violating paths and preserves input order", () => {
   const files: FileEntry[] = [
     { path: "open-sse/executors/a.ts", source: `return { error: { message: err.message } };` },
     {
+      // G-03: `x` is not a canonical builder, so this import buys no trust and
+      // the raw `err.message` is a violation like any other.
       path: "open-sse/executors/b.ts",
       source: `import { x } from "../utils/error.ts"; return { error: err.message };`,
     },
     { path: "open-sse/executors/c.ts", source: `return { error: e.stack };` },
   ];
-  assert.deepEqual(find(files, EMPTY), ["open-sse/executors/a.ts", "open-sse/executors/c.ts"]);
+  assert.deepEqual(find(files, EMPTY), [
+    "open-sse/executors/a.ts",
+    "open-sse/executors/b.ts",
+    "open-sse/executors/c.ts",
+  ]);
 });
 
 // --- 6A.8: expanded scope (MCP server + API route.ts) ---

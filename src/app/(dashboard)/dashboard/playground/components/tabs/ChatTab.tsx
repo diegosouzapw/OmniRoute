@@ -12,9 +12,11 @@ import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
 import { buildReasoningRequestFields } from "../reasoningControlUtils";
 import {
+  buildNativeCodexPlaygroundRequest,
   buildNonChatRequestBody,
   formatNonChatResponse,
   isChatCompletionsEndpoint,
+  isNativeCodexPlaygroundModel,
   lastUserContent,
   resolveChatTabRequestPath,
 } from "./chatTabEndpointRequest";
@@ -50,6 +52,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
   const [responseDuration, setResponseDuration] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const nativeCodexThreadRef = useRef<string>(crypto.randomUUID());
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -57,8 +60,10 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
   }, [messages]);
 
   // Build the messages array for the API, prepending system prompt
-  function buildApiMessages(chatMessages: Message[]): Array<{ role: string; content: string }> {
-    const out: Array<{ role: string; content: string }> = [];
+  function buildApiMessages(
+    chatMessages: Message[]
+  ): Array<{ role: Message["role"]; content: string }> {
+    const out: Array<{ role: Message["role"]; content: string }> = [];
     if (configState.systemPrompt.trim()) {
       out.push({ role: "system", content: configState.systemPrompt });
     }
@@ -135,20 +140,34 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     try {
       const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
       const chatEndpoint = isChatCompletionsEndpoint(configState.endpoint);
-      const requestBody = chatEndpoint
-        ? buildRequestBody(chatMessages)
-        : buildNonChatRequestBody(
-            configState.endpoint,
-            lastUserContent(chatMessages),
-            configState.model
-          );
+      const nativeCodex = isNativeCodexPlaygroundModel(configState.model);
+      const nativeCodexTurnId = nativeCodex ? crypto.randomUUID() : "";
+      if (nativeCodex) fetchHeaders.Originator = "codex_omniroute_playground";
+      const requestBody = nativeCodex
+        ? buildNativeCodexPlaygroundRequest({
+            model: configState.model,
+            messages: buildApiMessages(chatMessages),
+            threadId: nativeCodexThreadRef.current,
+            turnId: nativeCodexTurnId,
+            maxOutputTokens: configState.params.max_tokens,
+          })
+        : chatEndpoint
+          ? buildRequestBody(chatMessages)
+          : buildNonChatRequestBody(
+              configState.endpoint,
+              lastUserContent(chatMessages),
+              configState.model
+            );
 
-      const res = await fetch(resolveChatTabRequestPath(configState.endpoint), {
-        method: "POST",
-        headers: fetchHeaders,
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
+      const res = await fetch(
+        nativeCodex ? "/api/v1/responses" : resolveChatTabRequestPath(configState.endpoint),
+        {
+          method: "POST",
+          headers: fetchHeaders,
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        }
+      );
 
       setResponseStatus(res.status);
 
@@ -165,7 +184,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
         return;
       }
 
-      if (!chatEndpoint) {
+      if (!chatEndpoint && !nativeCodex) {
         const rawText = await res.text();
         setMessages((prev) => {
           const next = [...prev];
@@ -203,10 +222,19 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
             if (line.startsWith("data: ")) {
               try {
                 const parsed = JSON.parse(line.slice(6)) as {
+                  type?: string;
+                  delta?: string;
                   choices?: Array<{ delta?: { content?: string } }>;
                   usage?: { prompt_tokens?: number; completion_tokens?: number };
+                  response?: {
+                    usage?: { input_tokens?: number; output_tokens?: number };
+                  };
                 };
-                const delta = parsed.choices?.[0]?.delta?.content ?? "";
+                const delta = nativeCodex
+                  ? parsed.type === "response.output_text.delta"
+                    ? (parsed.delta ?? "")
+                    : ""
+                  : (parsed.choices?.[0]?.delta?.content ?? "");
                 if (delta) {
                   assistantResponse += delta;
                   streamMetrics.onChunk(1);
@@ -219,6 +247,11 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
                 }
                 if (parsed.usage) {
                   usageData = parsed.usage;
+                } else if (nativeCodex && parsed.response?.usage) {
+                  usageData = {
+                    prompt_tokens: parsed.response.usage.input_tokens,
+                    completion_tokens: parsed.response.usage.output_tokens,
+                  };
                 }
               } catch {
                 // ignore parse errors for partial chunks
@@ -286,6 +319,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
   };
 
   const handleClear = () => {
+    nativeCodexThreadRef.current = crypto.randomUUID();
     setMessages([]);
     setError(null);
     setResponseStatus(null);

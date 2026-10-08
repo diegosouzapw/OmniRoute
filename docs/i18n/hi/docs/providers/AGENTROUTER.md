@@ -104,7 +104,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | हेडर                                        | मान                                                                                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `Authorization`                             | `Bearer <api-key>`                                                                                                             |
-| `User-Agent`                                | `claude-cli/2.1.258 (external, sdk-cli)`                                                                                       |
+| `User-Agent`                                | `claude-cli/2.1.280 (external, sdk-cli)`                                                                                       |
 | `anthropic-version`                         | `2023-06-01`                                                                                                                   |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                                       |
 | प्रति-कनेक्शन redact-thinking बीटा टॉगल     | उन अपस्ट्रीम के लिए `redact-thinking-2026-02-12` जोड़ता है, जिन्हें विशेष रूप से रेडैक्टेड थिंकिंग स्ट्रीम की आवश्यकता होती है |

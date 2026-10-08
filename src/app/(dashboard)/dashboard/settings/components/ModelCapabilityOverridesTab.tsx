@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
-import { matchesSearch } from "@/shared/utils/turkishText";
 import {
+  filterModelOverrideTargets,
   toModelOverrideTargets,
   type PricingCatalogProvider,
 } from "@/lib/modelCapabilityOverrideTargets";
@@ -15,11 +15,6 @@ type ModelOverrideValue = number | string[];
 type StatusTone = "success" | "error" | "info";
 
 type ModelOverrideTarget = import("@/lib/modelCapabilityOverrideTargets").ModelOverrideTarget;
-
-interface PricingCatalogModel {
-  id: string;
-  name: string;
-}
 
 interface ModelCapabilityOverride {
   target: string;
@@ -191,17 +186,9 @@ function ModelCapabilityOverridesPanel({
 }
 
 function useFilteredTargets(targets: ModelOverrideTarget[], search: string) {
-  return useMemo(() => {
-    const query = search.trim();
-    const source = query
-      ? targets.filter((entry) =>
-          [entry.label, entry.target, entry.provider, entry.modelId].some((candidate) =>
-            matchesSearch(candidate, query)
-          )
-        )
-      : targets;
-    return source.slice(0, 80);
-  }, [search, targets]);
+  // Filter + relevance ranking live in the lib (pure, unit-tested); see
+  // filterModelOverrideTargets for the scoring contract.
+  return useMemo(() => filterModelOverrideTargets(targets, search), [search, targets]);
 }
 
 function ModelOverridesHeader({ count }: { count: number }) {

@@ -1,0 +1,1 @@
+- **ci(quality):** the release-green sweep now reports pricing data untouched for 90 days, so stale tier pricing shows up in the report instead of drifting silently ([#15003](https://github.com/diegosouzapw/OmniRoute/pull/15003)) — thanks @maxmad64bis
