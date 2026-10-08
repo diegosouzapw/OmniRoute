@@ -902,9 +902,9 @@ async function buildUnifiedModelsResponseCore(
           await yieldCatalogBuildTurn();
         }
         const virtualCombo = await createBuiltinAutoCombo(autoId, suffix, preparedAutoInputs);
+        if (virtualCombo.models.length === 0) continue; // zero live candidates — can't dispatch
         const contextLength = virtualCombo.advertisedContextLength || 128000;
         const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
-
         // #11947: derive modalities and vision from the effective target pool so
         // OpenAI-compatible clients can detect vision support for auto/* combos.
         const autoTargets: ComboCatalogTarget[] = virtualCombo.models.map((m) => ({
@@ -1171,6 +1171,9 @@ async function buildUnifiedModelsResponseCore(
     }
 
     for (const modelId of CODEX_NATIVE_UNPREFIXED_MODELS) {
+      if (isCodexDiscoveryModelExcluded({ id: modelId })) continue;
+      const syncedCodexIds = syncedModelIdsByCanonicalProvider.get("codex");
+      if (syncedCodexIds?.size && !syncedCodexIds.has(modelId)) continue;
       if (!providerSupportsModel("codex", modelId)) continue;
       // #11300: a codex-native unprefixed model can also be hidden via the
       // `openai` provider page (codex runs on the openai-compatible connection)
@@ -1233,7 +1236,7 @@ async function buildUnifiedModelsResponseCore(
           continue;
         }
 
-        for (const sm of providerUsesExclusiveSyncedListing(providerId)
+        for (const sm of ["cursor", "cu"].includes(providerId.trim().toLowerCase())
           ? ensureCursorAutoCatalogEntry(
               syncedModels.map((row) => ({
                 ...row,

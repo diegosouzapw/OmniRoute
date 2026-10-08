@@ -132,6 +132,7 @@ import {
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
 import {
+  buildCodexLocalFallbackCatalog,
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
@@ -139,7 +140,8 @@ import {
 } from "./discovery/codex";
 import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
 import { fetchClaudeDiscoveryModels } from "./discovery/claude";
-import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
+import { maybeHandleConolOrSyntxModelDiscovery } from "./webSessionDiscovery";
+import { maybeHandleTwinmindModelDiscovery } from "./twinmindDiscovery";
 import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
 import { buildNoAuthModelsResponse, filterModelsForRoute } from "./modelRouteProjection";
 
@@ -665,7 +667,7 @@ export async function GET(
       }
     }
 
-    const conolResponse = await maybeHandleConolModelDiscovery({
+    const webDiscoveryArgs = {
       provider,
       connectionId,
       apiKey,
@@ -677,8 +679,15 @@ export async function GET(
       buildDiscoveryFallbackResponse,
       buildResponse,
       buildApiDiscoveryResponse,
-    });
+    };
+    const conolResponse = await maybeHandleConolOrSyntxModelDiscovery(webDiscoveryArgs);
     if (conolResponse) return conolResponse;
+
+    const twinmindResponse = await maybeHandleTwinmindModelDiscovery({
+      ...webDiscoveryArgs,
+      refreshToken: (connection as { refreshToken?: unknown }).refreshToken,
+    });
+    if (twinmindResponse) return twinmindResponse;
 
     if (provider === "bedrock") {
       const cachedResponse = maybeReturnCachedDiscovery();
@@ -2113,7 +2122,7 @@ export async function GET(
         return buildResponse({
           provider,
           connectionId,
-          models: finalizeCodexCatalog([]),
+          models: buildCodexLocalFallbackCatalog(staticCodexCatalog),
           source: "local_catalog",
           warning: "Auto-fetch disabled — using local catalog",
         });
@@ -2145,20 +2154,12 @@ export async function GET(
             ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
             : liveModels;
         const catalog = reconcileCodexCatalog(enrichedLiveModels);
-        return buildApiDiscoveryResponse(catalog.activeModels, undefined, {
-          discovery: { mode: codexDiscoveryMode },
-          ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
-        });
-      }
-
-      if (githubCatalogModels && githubCatalogModels.length > 0) {
-        const catalog = reconcileCodexCatalog(githubCatalogModels, "github");
+        await persistDiscoveredModels(provider, connectionId, catalog.activeModels);
         return buildResponse({
           provider,
           connectionId,
           models: catalog.activeModels,
-          source: "github_catalog",
-          warning: "Codex live catalog unavailable — using GitHub model catalog",
+          source: "api",
           discovery: { mode: codexDiscoveryMode },
           ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
         });
@@ -2174,10 +2175,23 @@ export async function GET(
           warning: "Codex live catalog unavailable — using cached catalog",
         });
       }
+      if (githubCatalogModels && githubCatalogModels.length > 0) {
+        const catalog = reconcileCodexCatalog(githubCatalogModels, "github");
+        return buildResponse({
+          provider,
+          connectionId,
+          models: catalog.activeModels,
+          source: "github_catalog",
+          warning: "Codex live catalog unavailable — using GitHub model catalog",
+          discovery: { mode: codexDiscoveryMode },
+          ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
+        });
+      }
+
       return buildResponse({
         provider,
         connectionId,
-        models: finalizeCodexCatalog([]),
+        models: buildCodexLocalFallbackCatalog(staticCodexCatalog),
         source: "local_catalog",
         intentional: true,
         warning: "Codex live and GitHub catalogs unavailable — using local catalog",

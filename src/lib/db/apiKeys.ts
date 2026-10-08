@@ -2,6 +2,10 @@
  * db/apiKeys.js — API key management.
  */
 
+import {
+  parseApiKeyCodexServiceMode,
+  type ApiKeyCodexServiceMode,
+} from "../../shared/constants/codexServiceMode";
 import { createHash } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
@@ -125,6 +129,7 @@ interface ApiKeyMetadata {
   proxyId: string | null;
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
+  codexServiceMode: ApiKeyCodexServiceMode;
   cacheDefaultMode: "legacy" | "bypass";
   disableNonPublicModels: boolean;
   allowUsageCommand: boolean;
@@ -168,6 +173,8 @@ interface ApiKeyRow extends JsonRecord {
   proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
+  codex_service_mode?: unknown;
+  codexServiceMode?: unknown;
   cache_default_mode?: unknown;
   cacheDefaultMode?: unknown;
   allow_usage_command?: unknown;
@@ -228,6 +235,7 @@ interface ApiKeyView extends JsonRecord {
   expiresAt?: string | null;
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
+  codexServiceMode: ApiKeyCodexServiceMode;
   cacheDefaultMode: "legacy" | "bypass";
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
@@ -464,7 +472,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, model_access_mode, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, compression_enabled, allow_auto_combos, catalog_scope, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, model_access_mode, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, codex_service_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, compression_enabled, allow_auto_combos, catalog_scope, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, model_access_mode, allowed_models, allowed_combos, allowed_connections, no_log, created_at, key_prefix, key_hash, scopes, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -523,6 +531,9 @@ export async function getApiKeys(limit?: number, offset?: number) {
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
     camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+    camelRow.codexServiceMode = parseApiKeyCodexServiceMode(
+      (camelRow as JsonRecord).codexServiceMode
+    );
     camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
     camelRow.disableNonPublicModels = parseDisableNonPublicModels(
       (camelRow as JsonRecord).disableNonPublicModels
@@ -662,6 +673,9 @@ export async function getApiKeyById(id: string) {
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
   camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+  camelRow.codexServiceMode = parseApiKeyCodexServiceMode(
+    (camelRow as JsonRecord).codexServiceMode
+  );
   camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
   camelRow.disableNonPublicModels = parseDisableNonPublicModels(
     (camelRow as JsonRecord).disableNonPublicModels
@@ -829,6 +843,7 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
+    normalized.codexServiceMode === undefined &&
     (normalized as Record<string, unknown>).cacheDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined &&
     normalized.allowUsageCommand === undefined &&
@@ -865,6 +880,7 @@ export async function updateApiKeyPermissions(
     scopes?: string;
     proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
+    codexServiceMode?: ApiKeyCodexServiceMode;
     cacheDefaultMode?: "legacy" | "bypass";
     disableNonPublicModels?: number;
     allowUsageCommand?: number;
@@ -1031,6 +1047,10 @@ export async function updateApiKeyPermissions(
     params.streamDefaultMode = parseStreamDefaultMode(streamDefaultModeUpdate);
   }
 
+  if (normalized.codexServiceMode !== undefined) {
+    updates.push("codex_service_mode = @codexServiceMode");
+    params.codexServiceMode = parseApiKeyCodexServiceMode(normalized.codexServiceMode);
+  }
   const cacheDefaultModeUpdate = (normalized as Record<string, unknown>).cacheDefaultMode;
   if (cacheDefaultModeUpdate !== undefined) {
     updates.push("cache_default_mode = @cacheDefaultMode");
@@ -1402,6 +1422,7 @@ export async function getApiKeyMetadata(
       proxyId: null,
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
+      codexServiceMode: "inherit",
       cacheDefaultMode: "legacy",
       disableNonPublicModels: false,
       allowUsageCommand: false,
@@ -1484,6 +1505,9 @@ export async function getApiKeyMetadata(
     streamDefaultMode: parseStreamDefaultMode(
       (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
     ),
+    codexServiceMode: parseApiKeyCodexServiceMode(
+      record.codex_service_mode ?? record.codexServiceMode
+    ),
     cacheDefaultMode: parseCacheDefaultMode(
       (record as JsonRecord).cache_default_mode ?? (record as JsonRecord).cacheDefaultMode
     ),
@@ -1530,18 +1554,23 @@ export async function getApiKeyMetadata(
  */
 export async function isModelAllowedForKey(
   key: string | null | undefined,
-  modelId: string | null | undefined
-) {
+  modelId: string | null | undefined,
+  resolvedModelId?: string | null
+): Promise<boolean> {
   // If no key provided, allow (request may be using different auth method like JWT)
   // If no modelId provided, deny (invalid request)
   if (!key) return true;
   if (!modelId) return false;
 
   // Create cache key
-  const cacheKey = `${key}:${modelId}`;
+  const cacheKey = resolvedModelId
+    ? JSON.stringify([key, modelId, resolvedModelId])
+    : `${key}:${modelId}`;
   const now = Date.now();
   const catalogGeneration = getModelCatalogCacheVersion();
-  const usesSettingDependentClaudeRouting = isPotentialUnprefixedClaudeCodeModel(modelId);
+  const usesSettingDependentClaudeRouting =
+    isPotentialUnprefixedClaudeCodeModel(modelId) ||
+    (typeof resolvedModelId === "string" && isPotentialUnprefixedClaudeCodeModel(resolvedModelId));
 
   // Check permission cache
   const cached = getCachedModelPermission(cacheKey, now, catalogGeneration);
@@ -1554,7 +1583,14 @@ export async function isModelAllowedForKey(
   if (!metadata) return false;
 
   const { modelAccessMode, allowedModels, blockedModels, disableNonPublicModels } = metadata;
-  const modelPermissionCandidates = await getModelPermissionCandidates(modelId);
+  // Preserve requested aliases for allow-list matching while applying resolved
+  // target candidates to deny rules and group access checks.
+  const modelPermissionCandidates = Array.from(
+    new Set([
+      ...(await getModelPermissionCandidates(modelId)),
+      ...(resolvedModelId ? await getModelPermissionCandidates(resolvedModelId) : []),
+    ])
+  );
 
   // Deny-list patterns win over any allow-list entry. This lets operators keep
   // broad dynamic scopes like cc/* while excluding expensive families.
@@ -1564,10 +1600,12 @@ export async function isModelAllowedForKey(
 
   // Check disableNonPublicModels flag
   if (disableNonPublicModels) {
-    const resolvedModelId = resolveModelAlias(modelId);
-    const effectiveModelId = resolvedModelId || modelId;
+    const effectiveModelId = resolvedModelId || resolveModelAlias(modelId) || modelId;
+    const publicationCandidates = resolvedModelId
+      ? await getModelPermissionCandidates(resolvedModelId)
+      : modelPermissionCandidates;
 
-    if (!hasClaudeCodeWildcardPermission(allowedModels, modelPermissionCandidates)) {
+    if (!hasClaudeCodeWildcardPermission(allowedModels, publicationCandidates)) {
       const lookupTarget = await getPublishedModelLookupTarget(effectiveModelId);
       const providerOrAlias = lookupTarget?.providerId || effectiveModelId.split("/")[0];
       const shortModelId = lookupTarget?.modelId || effectiveModelId.split("/").slice(1).join("/");
@@ -1603,19 +1641,25 @@ export async function isModelAllowedForKey(
       ? modelAccessMode !== "restricted"
       : allowedModels.some((pattern) => modelPatternMatches(pattern, modelPermissionCandidates));
 
-  // Extract model target and optional provider prefix if present (e.g. "openai/gpt-4" -> modelTarget: "gpt-4", provider: "openai")
-  const hasProviderPrefix = modelId?.includes("/");
-  const provider = hasProviderPrefix ? modelId.split("/")[0] : undefined;
-  const modelTarget = hasProviderPrefix ? modelId.split("/").slice(1).join("/") : modelId || "";
-
-  // If key belongs to groups, check both modelTarget and full modelId against group rules
+  // Group rules must see the requested alias and the concrete target. An allowed
+  // alias cannot hide a resolved target denied by group policy.
   if (metadata.id) {
-    const targetOk = checkKeyModelAccess(metadata.id, modelTarget, provider).allowed;
-    const fullOk = checkKeyModelAccess(metadata.id, modelId || "", provider).allowed;
-    if (!targetOk || !fullOk) allowed = false;
+    for (const groupModelId of new Set([modelId, ...(resolvedModelId ? [resolvedModelId] : [])])) {
+      const hasGroupProviderPrefix = groupModelId.includes("/");
+      const groupProvider = hasGroupProviderPrefix ? groupModelId.split("/")[0] : undefined;
+      const groupModelTarget = hasGroupProviderPrefix
+        ? groupModelId.split("/").slice(1).join("/")
+        : groupModelId;
+      const targetOk = checkKeyModelAccess(metadata.id, groupModelTarget, groupProvider).allowed;
+      const fullOk = checkKeyModelAccess(metadata.id, groupModelId, groupProvider).allowed;
+      if (!targetOk || !fullOk) allowed = false;
 
-    if (allowed && (await isDeniedUnderCanonicalProvider(metadata.id, provider, modelTarget))) {
-      allowed = false;
+      if (
+        allowed &&
+        (await isDeniedUnderCanonicalProvider(metadata.id, groupProvider, groupModelTarget))
+      ) {
+        allowed = false;
+      }
     }
   }
   // Cache the result

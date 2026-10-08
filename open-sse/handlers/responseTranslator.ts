@@ -776,10 +776,13 @@ function convertOpenAINonStreamingToClaude(
   if (messageObj.content !== undefined && messageObj.content !== null) {
     hasTextOrReasoning = true;
     const resolvedText = toString(messageObj.content);
-    content.push({
-      type: "text",
-      text: resolvedText === "" ? "(empty response)" : resolvedText,
-    });
+    // #15764: no placeholder text block next to tool_use when the text is empty.
+    if (resolvedText !== "" || !hasToolCalls) {
+      content.push({
+        type: "text",
+        text: resolvedText === "" ? "(empty response)" : resolvedText,
+      });
+    }
   } else if (suppressThinking && reasoningText) {
     // Reasoning-ONLY response with thinking opted out (requestedThinking===false):
     // no ordinary content, reasoning suppressed above. Relay the reasoning text as

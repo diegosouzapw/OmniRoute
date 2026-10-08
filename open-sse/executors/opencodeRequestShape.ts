@@ -188,9 +188,9 @@ async function replayInOtherShape(
   run: (i: ExecuteInput) => Promise<ExecutorExecuteResult>,
   ctx: InjectionContext,
   refused: Response,
-  origin: object
+  origin: object,
+  verdict: FreeTierOutcome
 ): Promise<ExecutorExecuteResult> {
-  const verdict = await readVerdict(refused, input.log);
   await refused.body?.cancel().catch(() => undefined);
   forced.set(origin, ctx.shape === "bare" ? "tools" : "bare");
   let second: ExecutorExecuteResult;
@@ -226,7 +226,7 @@ export async function withRequestShapeRetry(
       ctx.replayNote(verdict);
       return first;
     }
-    return await replayInOtherShape(input, run, ctx, response, origin);
+    return await replayInOtherShape(input, run, ctx, response, origin, verdict);
   } finally {
     forget(origin);
   }

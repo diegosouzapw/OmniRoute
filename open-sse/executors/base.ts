@@ -1,4 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
+import { resolveProviderUserAgentOverride } from "./providerUserAgentOverride.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { resolveFetchStartTimeout } from "../utils/fetchStartTimeoutPolicy.ts";
 import {
@@ -96,6 +98,7 @@ import {
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
@@ -114,6 +117,7 @@ export {
   getCustomUserAgent,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
@@ -292,6 +296,12 @@ export type ExecutorExecuteResult =
       transport?: string;
       /** Wire model id actually sent upstream (from the serialized body). */
       model?: unknown;
+      /**
+       * Internal-only upstream failure classification (#3229) — never reaches the client.
+       * Not a place for raw bodies, headers, URLs, or provider text: producers project to a
+       * closed set of scalars/enums first (see `projectAntigravityValidationDiagnostic`).
+       */
+      upstreamDiagnostic?: Record<string, unknown>;
     };
 export class BaseExecutor {
   provider: string;
@@ -497,7 +507,7 @@ export class BaseExecutor {
     const providerId = this.config?.id || this.provider;
     if (providerId) {
       const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
-      const envUA = process.env[envKey]?.trim();
+      const envUA = resolveProviderUserAgentOverride(providerId, process.env[envKey]);
       if (envUA) {
         setUserAgentHeader(headers, envUA);
       }
@@ -830,6 +840,8 @@ export class BaseExecutor {
     // Fields already stripped by the generic 400 field-downgrade below (once each,
     // across all fallback URLs — bounded retry loop).
     const strippedFields = new Set<string>();
+    // Explicit per-key tiers are policy, not optional compatibility hints.
+    const forcedCodexTier = this.provider === "codex" && getApiKeyCodexServiceTier(credentials);
     // thinking_budget 400 clamp-and-retry below: upstream's learned max applied to
     // later retry URLs (bounded per URL); also recorded via recordLearnedThinkingCap.
     let thinkingBudgetClampedMax: number | null = null;
@@ -853,6 +865,9 @@ export class BaseExecutor {
         body
       );
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
+      if (this.provider === "huggingface") {
+        applyHuggingFaceBillToHeader(headers, requestCredentials?.providerSpecificData);
+      }
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
@@ -1345,8 +1360,9 @@ export class BaseExecutor {
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
             const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
-            // Some providers (e.g. Mistral) require the last message to be user
-            // or tool and reject trailing assistant text messages with 400 (#3396).
+            // Some providers (Mistral #3396, official Claude OAuth) reject a
+            // trailing text-only assistant turn with 400. Strip here so combo
+            // failover does not burn the next account on the same body.
             tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
@@ -1603,6 +1619,7 @@ export class BaseExecutor {
           fetchFn: fetchWithStartTimeout,
           serializeBody: serializeRetryBody,
           strippedFields,
+          protectedFields: forcedCodexTier ? ["service_tier"] : undefined,
           log,
         });
 

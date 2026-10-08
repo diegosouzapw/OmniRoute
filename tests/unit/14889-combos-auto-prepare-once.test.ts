@@ -182,9 +182,23 @@ test("without resolved capabilities the same request reads per candidate", async
       });
     }
   });
+  // #15378 memoized the synced vision verdict behind the catalog version, so the
+  // synced catalog is no longer re-read per candidate on this path either (it
+  // stays within the same per-provider bound as the snapshot route). The
+  // capability and override tables are still resolved on demand per candidate,
+  // which is the contrast with the bounded snapshot path pinned above.
+  const PROVIDER_COUNT = 6;
   assert.ok(
-    reads.syncedReads > 50,
-    `on-demand resolution should read per candidate, saw ${reads.syncedReads}`
+    reads.syncedReads <= 2 * PROVIDER_COUNT,
+    `synced model reads should stay memoized (#15378), saw ${reads.syncedReads}`
+  );
+  assert.ok(
+    reads.capabilityReads > 50,
+    `on-demand resolution should read capabilities per candidate, saw ${reads.capabilityReads}`
+  );
+  assert.ok(
+    reads.overrideReads > 50,
+    `on-demand resolution should read overrides per candidate, saw ${reads.overrideReads}`
   );
 });
 

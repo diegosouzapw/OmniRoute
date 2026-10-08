@@ -22,7 +22,7 @@
 import { AUDIO_TRANSCRIPTION_PROVIDERS, AUDIO_SPEECH_PROVIDERS } from "./audioRegistry.ts";
 import { VIDEO_PROVIDERS } from "./videoRegistry.ts";
 import { MUSIC_PROVIDERS } from "./musicRegistry.ts";
-import { IMAGE_PROVIDERS } from "./imageProviderData.ts";
+import { IMAGE_PROVIDERS } from "./imageRegistryData.ts";
 import { EMBEDDING_PROVIDERS } from "./embeddingRegistry.ts";
 import { OCR_PROVIDERS } from "./ocrRegistry.ts";
 

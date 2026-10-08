@@ -262,6 +262,10 @@ import {
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
+import {
+  applyApiKeyCodexServiceMode,
+  withApiKeyCodexServiceMode,
+} from "@/lib/providers/codexApiKeyServiceMode";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
 import { buildUpstreamHeadersForExecute as buildUpstreamHeadersForExecuteFor } from "./chatCore/upstreamExecuteHeaders.ts";
 import {
@@ -294,6 +298,7 @@ import {
   resolveComboContextLimit,
 } from "../services/contextManager.ts";
 import { resolveBackgroundTaskRedirect } from "./chatCore/backgroundRedirect.ts";
+import { emitThinkingSignatureDiagnostics } from "./chatCore/thinkingSignatureDiagnostics.ts";
 import type {
   CompressionConfig,
   CompressionPipelineStep,
@@ -1119,6 +1124,9 @@ async function handleChatCoreInner({
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
   });
+  const apiKeyCodexServiceMode = (apiKeyInfo as { codexServiceMode?: unknown } | null)
+    ?.codexServiceMode;
+  body = applyApiKeyCodexServiceMode(provider, body, apiKeyCodexServiceMode);
   effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = isSemanticCacheEnabled(settings, apiKeyInfo);
@@ -2944,17 +2952,22 @@ async function handleChatCoreInner({
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () =>
-    withReasoningRuleContext(
-      resolveExecutionCredentialsFor({
-        credentials,
-        nativeCodexPassthrough: nativeResponsesPassthrough,
-        endpointPath,
-        targetFormat,
-        provider,
-        ccSessionId,
-        modelInfo,
-      }),
-      reasoningRuleDirective
+    withApiKeyCodexServiceMode(
+      provider,
+      withReasoningRuleContext(
+        resolveExecutionCredentialsFor({
+          credentials,
+          nativeCodexPassthrough: nativeResponsesPassthrough,
+          endpointPath,
+          targetFormat,
+          provider,
+          ccSessionId,
+          modelInfo,
+          requestBody: body,
+        }),
+        reasoningRuleDirective
+      ),
+      apiKeyCodexServiceMode
     );
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
@@ -3593,9 +3606,37 @@ async function handleChatCoreInner({
     }
   };
 
+  const reportSignatureFailure = (failure: {
+    status: number;
+    message: string;
+    outboundBody: unknown;
+    outboundBodyCaptured: boolean;
+    model: string;
+    recoveryAttempted: boolean;
+    recoverySucceeded: boolean;
+  }) => {
+    emitThinkingSignatureDiagnostics(
+      {
+        correlationId,
+        provider,
+        model: failure.model,
+        status: failure.status,
+        message: failure.message,
+        ingressBody: body,
+        outboundBody: failure.outboundBody,
+        outboundBodyCaptured: failure.outboundBodyCaptured,
+        recoveryAttempted: failure.recoveryAttempted,
+        recoverySucceeded: failure.recoverySucceeded,
+      },
+      noLogEnabled,
+      log
+    );
+  };
+
   let pipelineRecovered = false;
   if (stream) {
     const streamingOutcome = await runStreamingResponse({
+      reportSignatureFailure,
       apiKeyInfo,
       persistAttemptLogs,
       buildUpstreamHeadersForExecute,
@@ -3672,6 +3713,7 @@ async function handleChatCoreInner({
   // Non-streaming response
   if (!stream) {
     const nonStreamingOutcome = await runNonStreamingResponse({
+      reportSignatureFailure,
       apiKeyInfo,
       appendRequestLog,
       applyProviderFailureClassification,

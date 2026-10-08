@@ -384,6 +384,31 @@ test("does not treat an unrelated id containing 'thinking' as an alias suffix", 
   assert.ok(!result.reasons.includes("extended_thinking"));
 });
 
+test("gives SYNTX a 10-minute readiness window that is not clamped to 180s", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "syntx",
+    model: "claude-opus-4-8",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 600_000);
+  assert.equal(result.maxTimeoutMs, 600_000);
+  assert.ok(result.reasons.includes("syntx_long_generate"));
+});
+
+test("applies the SYNTX readiness window to the stx alias", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "stx",
+    model: "gpt-5-nano-2025-08-07",
+    body: { messages: items(2) },
+  });
+
+  assert.equal(result.timeoutMs, 600_000);
+  assert.ok(result.reasons.includes("syntx_long_generate"));
+});
+
 // Codex now serves gpt-6.x models, and its top effort tiers are spelled `xhigh` and
 // `max` (`gpt-6.1-sol-xhigh`, `gpt-6-luna-max`). Without the reasoning bump those long
 // warm-ups tripped the content-stall watchdog at the base window mid-reasoning.

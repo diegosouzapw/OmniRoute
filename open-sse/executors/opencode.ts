@@ -52,7 +52,6 @@ import {
   noteResponseServed,
 } from "./opencodeAccountHealth.ts";
 import {
-  isOpencodeFreeTierRefusal,
   isOpencodeGeoBlocked,
   proxyKeyOf,
   poolReselectKeyOf,
@@ -76,9 +75,11 @@ import {
 import { currentRequestContext, runInRequestContext } from "./opencodeRequestContext.ts";
 import {
   handleLoopFreeTierRefusal,
+  isOwnToolsRetryableRefusal,
   retryFreeTierRefusalWithObservedTools,
 } from "./opencodeFreeTierRetry.ts";
 import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
+import { trimOversizedToolEnums } from "./opencodeEnumTrim.ts";
 
 // Re-exported: the free-model catalog moved to the contract module (it decides whether the
 // contract applies), and existing importers keep resolving it from the executor.
@@ -1168,7 +1169,7 @@ export class OpencodeExecutor extends BaseExecutor {
             // Free-tier refusal: upstream rejected the REQUEST (client identity or
             // request shape), not this account. Handled in opencodeFreeTierRetry.ts
             // (one bounded retry with observed tools appended, then unchanged return).
-            if (bodyText !== null && isOpencodeFreeTierRefusal(status, bodyText)) {
+            if (bodyText !== null && isOwnToolsRetryableRefusal(status, bodyText)) {
               noteFreeTierOutcome(attemptFor(input.body), {
                 ok: false,
                 status,
@@ -1465,6 +1466,18 @@ export class OpencodeExecutor extends BaseExecutor {
       body
     );
     modifiedBody = prepared.body;
+    // OpenCode's upstream 400s a request when a single enum property carries
+    // more than 250 values or 15000 combined characters (VSCode-shaped caller
+    // tools hit this). Cap oversized enums on every surface before dispatch —
+    // covers caller tools and contract-borrowed declarations alike.
+    if (
+      modifiedBody &&
+      typeof modifiedBody === "object" &&
+      !Array.isArray(modifiedBody) &&
+      Array.isArray((modifiedBody as Record<string, unknown>).tools)
+    ) {
+      trimOversizedToolEnums((modifiedBody as Record<string, unknown>).tools);
+    }
     // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
     // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
     // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The

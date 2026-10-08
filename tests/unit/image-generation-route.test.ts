@@ -228,7 +228,13 @@ test("v1 image models GET exposes current Codex image models and hides inactive 
   assert.equal(response.status, 200);
   assert.deepEqual(
     ids.filter((id) => id.startsWith("codex/")),
-    ["codex/gpt-5.6-sol-image", "codex/gpt-5.6-terra-image", "codex/gpt-5.6-luna-image"]
+    [
+      "codex/gpt-5.6-sol-image",
+      "codex/gpt-5.6-terra-image",
+      "codex/gpt-5.6-luna-image",
+      "codex/gpt-image-2.5-flare",
+      "codex/gpt-image-2",
+    ]
   );
   assert.ok(!ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));

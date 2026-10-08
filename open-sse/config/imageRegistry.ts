@@ -1,5 +1,3 @@
-import { IMAGE_PROVIDERS, type ImageProviderConfig } from "./imageProviderData.ts";
-export { IMAGE_PROVIDERS } from "./imageProviderData.ts";
 /**
  * Image Generation Provider Registry
  *
@@ -7,52 +5,34 @@ export { IMAGE_PROVIDERS } from "./imageProviderData.ts";
  * Each provider has its own request format and endpoint.
  */
 
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags.ts";
+import { resolveRegisteredFeatureFlag } from "@/shared/utils/featureFlagResolverBridge.ts";
 import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
+import {
+  type ImageModelEntry,
+  type ImageProviderConfig,
+  type ImageModelAliasEntry,
+  type ImageCatalogModelEntry,
+  XAI_IMAGE_CONFIG,
+  XAI_API_KEY_IMAGE_PROVIDER,
+  XAI_SUBSCRIPTION_IMAGE_PROVIDERS,
+  IMAGE_MODEL_ALIASES,
+  IMAGE_PROVIDERS,
+} from "./imageRegistryData.ts";
 
-interface ImageModelAliasEntry {
-  provider: string;
-  model: string;
-  name: string;
-  listInCatalog: boolean;
-  inputModalities?: string[];
-  imageRequired?: boolean;
-  description?: string;
-  mediaCapabilities?: Record<string, unknown>;
-}
-
-interface ImageCatalogModelEntry {
-  id: string;
-  name: string;
-  provider: string;
-  supportedSizes: string[];
-  inputModalities: string[];
-  description?: string;
-  mediaCapabilities?: Record<string, unknown>;
-}
-
-// OAuth variants keep their provider identity for token refresh and account selection.
-const XAI_IMAGE_CONFIG = {
-  baseUrl: "https://api.x.ai/v1/images/generations",
-  authHeader: "bearer",
-  format: "xai-image",
-  models: [
-    { id: "grok-imagine-image-2.0", name: "Grok Imagine Image 2.0" },
-    { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality" },
-    { id: "grok-imagine-image", name: "Grok Imagine Image" },
-  ],
-  supportedSizes: ["1024x1024", "2048x2048", "1536x1024", "1024x1536", "1792x1024", "1024x1792"],
-};
-
-const XAI_SUBSCRIPTION_IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
-  xai: { ...XAI_IMAGE_CONFIG, id: "xai", authType: "apikey" },
-  "xai-oauth": { ...XAI_IMAGE_CONFIG, id: "xai-oauth", alias: "xao", authType: "oauth" },
-  "grok-cli": { ...XAI_IMAGE_CONFIG, id: "grok-cli", alias: "gc", authType: "oauth" },
+export {
+  type ImageModelEntry,
+  type ImageProviderConfig,
+  type ImageModelAliasEntry,
+  type ImageCatalogModelEntry,
+  XAI_IMAGE_CONFIG,
+  XAI_API_KEY_IMAGE_PROVIDER,
+  XAI_SUBSCRIPTION_IMAGE_PROVIDERS,
+  IMAGE_PROVIDERS,
 };
 
 export function isGrokSubscriptionImagesEnabled(): boolean {
   try {
-    return isFeatureFlagEnabled("GROK_SUBSCRIPTION_IMAGES_ENABLED");
+    return resolveRegisteredFeatureFlag("GROK_SUBSCRIPTION_IMAGES_ENABLED");
   } catch (error) {
     console.error(
       "[imageRegistry] Failed to resolve GROK_SUBSCRIPTION_IMAGES_ENABLED, defaulting to disabled:",
@@ -67,71 +47,6 @@ function visibleImageProviders(): Record<string, ImageProviderConfig> {
   if (!isGrokSubscriptionImagesEnabled()) return IMAGE_PROVIDERS;
   return { ...IMAGE_PROVIDERS, ...XAI_SUBSCRIPTION_IMAGE_PROVIDERS };
 }
-
-const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
-  "gemini-3.1-flash-image-preview": {
-    provider: "antigravity",
-    model: "gemini-3.1-flash-image",
-    name: "Gemini 3.1 Flash Image",
-    listInCatalog: false,
-  },
-  "flux-kontext": {
-    provider: "black-forest-labs",
-    model: "flux-kontext-pro",
-    name: "FLUX Kontext Pro",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  "flux-kontext-max": {
-    provider: "black-forest-labs",
-    model: "flux-kontext-max",
-    name: "FLUX Kontext Max",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  "flux-2-max": {
-    provider: "black-forest-labs",
-    model: "flux-2-max",
-    name: "FLUX.2 Max",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  "flux-2-pro": {
-    provider: "black-forest-labs",
-    model: "flux-2-pro",
-    name: "FLUX.2 Pro",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  "flux-2-flex": {
-    provider: "black-forest-labs",
-    model: "flux-2-flex",
-    name: "FLUX.2 Flex",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  "flux-2-dev": {
-    provider: "together",
-    model: "black-forest-labs/FLUX.2-dev",
-    name: "FLUX.2 Dev",
-    listInCatalog: true,
-    inputModalities: ["text", "image"],
-  },
-  kontext: {
-    provider: "black-forest-labs",
-    model: "flux-kontext-pro",
-    name: "FLUX Kontext Pro",
-    listInCatalog: false,
-    inputModalities: ["text", "image"],
-  },
-  "pollinations/kontext": {
-    provider: "black-forest-labs",
-    model: "flux-kontext-pro",
-    name: "FLUX Kontext Pro",
-    listInCatalog: false,
-    inputModalities: ["text", "image"],
-  },
-};
 
 function resolveImageModelAlias(modelStr) {
   const alias = IMAGE_MODEL_ALIASES[modelStr];
@@ -295,6 +210,7 @@ export function getImageModelAliases() {
 export function isRegisteredImageModel(providerId, modelId) {
   return Boolean(findImageModelConfig(providerId, modelId));
 }
+
 export function getImageModelEntry(modelStr) {
   if (!modelStr) return null;
 

@@ -1,0 +1,1 @@
+- OpenCode plugin v2: `toolsOnly` defaults to `false` again, so the full catalog is published; set `toolsOnly: true` to hide models without tool calling (reverts the default introduced by #14554).

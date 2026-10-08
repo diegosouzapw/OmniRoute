@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { CodexExecutor } from "../../open-sse/executors/codex.ts";
+import { applyCodexReasoningSelection } from "../../open-sse/executors/codex/reasoningPolicy.ts";
 import { setThinkingBudgetConfig, ThinkingMode } from "../../open-sse/services/thinkingBudget.ts";
 import { normalizeReasoningRequest } from "../../src/shared/reasoning/effortStandardization.ts";
 
@@ -95,4 +96,42 @@ test("flat reasoning_effort path stays clean of extra keys", () => {
   assert.ok(r, "reasoning object should be present");
   assert.equal(r.effort, "low");
   assert.equal("enabled" in r, false);
+});
+
+test("catalog-backed selection also whitelists reasoning keys and forwards a native tier verbatim", () => {
+  const body: Record<string, unknown> = {
+    model: "future-codex",
+    reasoning: { enabled: true, max_tokens: 2048, exclude: true, summary: "auto", effort: "max" },
+  };
+  applyCodexReasoningSelection(
+    "future-codex",
+    body,
+    {
+      model: "future-codex",
+      supportedThinkingEfforts: ["low", "max"],
+      defaultThinkingEffort: "low",
+    },
+    undefined,
+    false
+  );
+  assert.deepEqual(body.reasoning, { summary: "auto", effort: "max" });
+});
+
+test("catalog-backed enabled:false with no effort resolves to none and drops other keys", () => {
+  const body: Record<string, unknown> = {
+    model: "future-codex",
+    reasoning: { enabled: false, max_tokens: 1 },
+  };
+  applyCodexReasoningSelection(
+    "future-codex",
+    body,
+    {
+      model: "future-codex",
+      supportedThinkingEfforts: ["low", "max"],
+      defaultThinkingEffort: "low",
+    },
+    "high",
+    true
+  );
+  assert.deepEqual(body.reasoning, { effort: "none" });
 });

@@ -28,10 +28,11 @@
  * This module is also where M-01's prescribed split puts the hop, so that refactor can
  * move the `handle*` bodies into `tools/canonical/*.ts` without re-introducing a cycle.
  */
-import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
+import { getMcpHttpAuthHeadersForInternalFetch, hasMcpHttpAuthContext } from "./httpAuthContext.ts";
 import { getInternalServiceAuthHeaders } from "../../src/lib/api/internalServiceAuth.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 /**
  * Read per-call, never at module load: a snapshot taken at import time silently drops a
@@ -43,11 +44,26 @@ function getOmniRouteApiKey(): string {
 
 export async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
   const url = `${resolveOmniRouteBaseUrl()}${path}`;
-  const apiKey = getOmniRouteApiKey();
+
+  // S-03 (#15159): the env key is a STDIO-ONLY fallback, not a general one.
+  //
+  // stdio has no per-caller identity, so OMNIROUTE_API_KEY is the correct and
+  // intended credential there. Under the HTTP/SSE transports a caller has already
+  // been authenticated by requireManagementAuth, and the hop must carry THAT
+  // caller's identity. Reading the two apart from the headers alone is impossible:
+  // getMcpHttpAuthHeadersForInternalFetch() returns {} both when there is no HTTP
+  // caller and when an HTTP caller forwarded nothing forwardable. Inferring from
+  // "is Authorization already set" is what let a remote caller with no forwardable
+  // credential silently execute as the server key — a privilege substitution. So
+  // ask the scope directly instead, and do not consult the env key inside an HTTP
+  // auth context at all.
+  const isHttpCaller = hasMcpHttpAuthContext();
+  const apiKey = isHttpCaller ? "" : getOmniRouteApiKey();
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    // Static env key is only a fallback; the per-caller MCP identity forwarded via
-    // withMcpHttpAuthContext must win over it (#5819).
+    // Only for stdio. Under HTTP the forwarded caller identity below is the only
+    // acceptable credential — it already overrides this when present (#5819).
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
@@ -60,7 +76,16 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
   const response = await fetch(url, { ...options, headers, signal });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
+    // S-02 (#15159): sanitize HERE rather than relying on every consumer to do it.
+    // The body is whatever OmniRoute's own API (and whatever IT forwarded from a
+    // provider) put in it — credentials, internal paths and stack frames included.
+    // Every current caller routes through toSafeMcpErrorMessage, so nothing leaks
+    // today, but that guarantee was spread across ~16 call sites: one new site
+    // interpolating `err.message` would re-open the leak across the whole MCP
+    // surface. Sanitizing at the throw makes it a property of the hop instead of a
+    // convention. The status is generated here, not upstream, so it always survives.
+    const rawText = await response.text().catch(() => "Unknown error");
+    const errorText = sanitizeErrorMessage(rawText) || "Unknown error";
     throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
   }
 

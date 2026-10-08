@@ -219,6 +219,18 @@ export function normalizeProviderSpecificData(
     if (normalized.codexPromptCacheKeyScope === null) delete normalized.codexPromptCacheKeyScope;
   }
 
+  // Hugging Face Bill-To account (X-HF-Bill-To header source): the edit modal
+  // sends explicit `null` to clear a previously-saved value (the PUT route
+  // merges { ...existing, ...incoming }, so omitting the key would keep it).
+  // Only a non-empty string survives normalization.
+  if ("billTo" in normalized) {
+    if (typeof normalized.billTo === "string" && normalized.billTo.trim()) {
+      normalized.billTo = normalized.billTo.trim();
+    } else {
+      delete normalized.billTo;
+    }
+  }
+
   if (
     "preserveEncryptedReasoning" in normalized &&
     typeof normalized.preserveEncryptedReasoning !== "boolean"
@@ -228,6 +240,9 @@ export function normalizeProviderSpecificData(
 
   if ("blockExtraUsage" in normalized && typeof normalized.blockExtraUsage !== "boolean") {
     delete normalized.blockExtraUsage;
+  }
+  if ("allowPaidCredits" in normalized && typeof normalized.allowPaidCredits !== "boolean") {
+    delete normalized.allowPaidCredits;
   }
 
   // #2997: per-connection transient-cooldown opt-out — only persist a real boolean.
@@ -373,6 +388,7 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   delete sanitized.qwenCloudSecToken;
   delete sanitized.alibabaConsoleCookie;
   delete sanitized.alibabaConsoleSecToken;
+  delete sanitized.xiaomiMimoConsoleCookie;
   delete sanitized.runtimeKey;
   delete sanitized.validationId;
   delete sanitized.volcConsoleCookie;
