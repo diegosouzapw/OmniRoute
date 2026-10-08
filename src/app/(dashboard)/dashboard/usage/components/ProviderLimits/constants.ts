@@ -19,6 +19,7 @@ export const PROVIDER_LABEL: Record<string, string> = {
   "grok-cli": "Grok Build",
   llmgateway: "LLM Gateway",
   lyceum: "Lyceum",
+  clinepass: "ClinePass",
 };
 
 export const PROVIDER_ORDER: Record<string, number> = {
@@ -40,6 +41,7 @@ export const PROVIDER_ORDER: Record<string, number> = {
   "grok-cli": 17,
   llmgateway: 18,
   lyceum: 19,
+  clinepass: 20,
 };
 
 export const TIER_FILTERS = [

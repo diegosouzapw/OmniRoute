@@ -42,6 +42,19 @@ export function getMcpHttpAuthHeadersForInternalFetch(): Record<string, string> 
 }
 
 /**
+ * Whether the current async scope is an HTTP/SSE MCP request.
+ *
+ * S-03 (#15159): `getMcpHttpAuthHeadersForInternalFetch()` returns `{}` both when
+ * there is no HTTP caller (stdio) and when an HTTP caller forwarded nothing. The
+ * hop cannot tell those apart by looking at the headers alone, so it has to ask
+ * which scope it is in — that is the only way to make the env key a *stdio-only*
+ * fallback instead of a silent substitute for a missing HTTP caller identity.
+ */
+export function hasMcpHttpAuthContext(): boolean {
+  return mcpHttpAuthContext.getStore() !== undefined;
+}
+
+/**
  * Resolve the caller's real per-key `api_keys.scopes` for one HTTP/SSE MCP
  * request, for #7895's per-key scope binding. Returns `undefined` when the
  * request carries no resolvable API key (no header, invalid key, or the

@@ -37,7 +37,9 @@ const {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function makeTarget(connectionId: string): import("../../open-sse/services/combo/types.ts").ResolvedComboTarget {
+function makeTarget(
+  connectionId: string
+): import("../../open-sse/services/combo/types.ts").ResolvedComboTarget {
   return {
     kind: "model",
     stepId: `step-${connectionId}`,
@@ -465,4 +467,49 @@ test("peekStickyConnectionId: reflects the current binding without mutating it",
   assert.equal(peekStickyConnectionId(hash), "conn-peek");
   // Peeking again must not clear or otherwise mutate the binding.
   assert.equal(peekStickyConnectionId(hash), "conn-peek");
+});
+
+// ─── #15241: operator-declared order outranks stickiness promotion ───────────
+
+test("#15241: respectDeclaredOrder keeps the declared head over a mid-list sticky connection", async () => {
+  const messages = [{ role: "user", content: "Priority order" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-B");
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B"), makeTarget("conn-C")];
+  const result = await applySessionStickiness(targets, messages, undefined, {
+    respectDeclaredOrder: true,
+  });
+
+  assert.equal(result.stuck, false, "nothing was promoted, so sticky must not report stuck");
+  assert.equal(result.targets[0].connectionId, "conn-A", "declared head stays first");
+  assert.equal(result.targets[1].connectionId, "conn-B");
+  // the binding survives — only the reorder is barred, a later success refreshes it
+  assert.equal(peekStickyConnectionId(hash), "conn-B");
+});
+
+test("#15241: respectDeclaredOrder leaves a sticky connection already at the head untouched", async () => {
+  const messages = [{ role: "user", content: "Already head" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-A");
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const result = await applySessionStickiness(targets, messages, undefined, {
+    respectDeclaredOrder: true,
+  });
+
+  assert.equal(result.stuck, true, "declared head equals the sticky pin — sticky still applied");
+  assert.equal(result.targets[0].connectionId, "conn-A");
+});
+
+test("#15241: without respectDeclaredOrder a mid-list sticky connection still promotes", async () => {
+  const messages = [{ role: "user", content: "Legacy behavior" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-B");
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B"), makeTarget("conn-C")];
+  const result = await applySessionStickiness(targets, messages);
+
+  assert.equal(result.stuck, true, "strategies without a declared head keep the reorder");
+  assert.equal(result.targets[0].connectionId, "conn-B");
 });

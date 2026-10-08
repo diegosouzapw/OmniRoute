@@ -174,6 +174,15 @@ test("perplexity-agent default executor dispatches to Perplexity Responses endpo
   assert.equal(executor.buildUrl("openai/gpt-5.6-sol", false, 0, null), AGENT_RESPONSES_URL);
 });
 
+test("Perplexity API executors send the OmniRoute integration header", () => {
+  for (const provider of ["perplexity", "perplexity-agent"]) {
+    const headers = new DefaultExecutor(provider).buildHeaders({ apiKey: "pplx-test" }, false);
+
+    assert.equal(headers["X-Pplx-Integration"], "omniroute", provider);
+    assert.equal(headers.Authorization, "Bearer pplx-test", provider);
+  }
+});
+
 test("perplexity-agent defaults max_output_tokens when Agent requests omit token fields", () => {
   const executor = new DefaultExecutor("perplexity-agent");
   const explicit = executor.transformRequest(

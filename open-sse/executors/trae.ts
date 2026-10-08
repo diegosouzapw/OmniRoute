@@ -19,6 +19,7 @@
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { resolveTraeApiHost } from "../utils/traeHost.ts";
 
@@ -169,7 +170,12 @@ export class TraeExecutor extends BaseExecutor {
       signal: signal || undefined,
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`[${res.status}] ${text}`);
+    if (!res.ok) {
+      // Publish the received status so proxy health counts it as upstream.
+      const sink = currentAppliedProxySink();
+      if (sink) sink.upstreamStatus = res.status;
+      throw new Error(`[${res.status}] ${text}`);
+    }
     const json = JSON.parse(text);
     if (json?.code !== 0) throw new Error(`Trae create_session: ${JSON.stringify(json)}`);
     return { sessionId: json.data.chat_session_id, messageId: json.data.message_id };
@@ -188,15 +194,25 @@ export class TraeExecutor extends BaseExecutor {
   ): Promise<void> {
     const url = `${this.base()}/chat_sessions/${sessionId}/events?reply_to_message_id=${encodeURIComponent(replyTo)}`;
     const ctrl = new AbortController();
-    // If the caller's signal is already aborted, abort upfront so we don't open
-    // a network request the consumer no longer wants.
-    if (signal?.aborted) ctrl.abort();
     const timer = setTimeout(() => ctrl.abort(new Error("trae stream timeout")), STREAM_TIMEOUT_MS);
     const onAbort = () => ctrl.abort();
-    if (signal) signal.addEventListener("abort", onAbort, { once: true });
+    if (signal) {
+      // If the caller's signal is already aborted, abort upfront so we don't open
+      // a network request the consumer no longer wants.
+      if (signal.aborted) ctrl.abort();
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
     try {
       const res = await fetch(url, { method: "GET", headers, signal: ctrl.signal });
-      if (!res.ok || !res.body) throw new Error(`[${res.status}] events stream failed`);
+      if (!res.ok || !res.body) {
+        // A 2xx with no body is a local stream failure. Only a real HTTP
+        // error counts as an upstream status for proxy health.
+        if (!res.ok) {
+          const sink = currentAppliedProxySink();
+          if (sink) sink.upstreamStatus = res.status;
+        }
+        throw new Error(`[${res.status}] events stream failed`);
+      }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";

@@ -404,16 +404,16 @@ docs/
 - [ ] 代码检查通过（`npm run lint`）
 - [ ] 构建成功（`npm run build`）
 - [ ] 已为新的公共函数和接口添加 TypeScript 类型
-- [ ] 不含硬编码密钥或回退值
-- [ ] 通过 `resolvePublicCred()` 嵌入上游公共凭据（参阅 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），绝不使用字面量
-- [ ] 错误响应通过 `buildErrorBody()` / `sanitizeErrorMessage()` 处理——响应正文中不含原始堆栈跟踪（参阅 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
-- [ ] Shell 命令（`exec` / `spawn`）通过 `env` 而非字符串插值传递运行时值
-- [ ] 所有输入均使用 Zod 模式验证
-- [ ] 对于面向用户的更改，已在 `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 下添加变更日志**片段**（参阅 [`changelog.d/README.md`](./changelog.d/README.md)）——**不要**直接编辑 `CHANGELOG.md`；片段会在发布时聚合，且不同 PR 之间绝不会发生冲突
+- [ ] 不包含硬编码的密钥或回退值
+- [ ] 公共上游凭据通过 `resolvePublicCred()` 嵌入（参见 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），绝不使用字面量
+- [ ] 错误响应通过 `buildErrorBody()` / `sanitizeErrorMessage()` 处理——响应正文中不得包含原始堆栈跟踪（参见 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
+- [ ] Shell 命令（`exec` / `spawn`）通过 `env` 传递运行时值，而不是使用字符串插值
+- [ ] 所有输入均使用 Zod schema 进行验证
+- [ ] 对于面向用户的更改，已在 `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 下添加变更日志**片段**（参见 [`changelog.d/README.md`](./changelog.d/README.md)）——请勿直接编辑 `CHANGELOG.md`；片段会在发布时聚合，并且不同 PR 之间绝不会发生冲突
 - [ ] 文档已更新（如适用）
-- [ ] 未产生新的 CodeQL / Secret-Scanning 警报，或者每个警报均已驳回，并提供引用相关 `docs/security/` 文档的技术理由
-- [ ] 会生成子进程的路由（`/api/mcp/`、`/api/cli-tools/runtime/`）已在 `src/server/authz/routeGuard.ts` 中归类为 `isLocalOnlyPath()`——参阅[硬性规则 #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] 提交消息中不含 `Co-Authored-By` 尾注——提交必须仅显示在仓库所有者的 Git 身份下（硬性规则 #16）
+- [ ] 未引入新的 CodeQL / Secret-Scanning 警报，或者每个警报均已驳回，并提供了引用相关 `docs/security/` 文档的技术理由
+- [ ] 会生成子进程的路由（`/api/mcp/`、`/api/cli-tools/runtime/`）已在 `src/server/authz/routeGuard.ts` 中归类为 `isLocalOnlyPath()`——参见[硬性规则 #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] 提交消息中不包含 AI/机器人 `Co-authored-by` 尾注（硬性规则 #16）——若复用了人类协作者的工作，则使用标准的 `Co-authored-by: Name <email>` 尾注注明其贡献
 
 ---
 

@@ -10,8 +10,13 @@ import { DEFAULT_PRICING, getPricingForModel } from "../../src/shared/constants/
 
 const catalogIds = DEVIN_MODEL_CATALOG.map((model) => model.id);
 
-test("Devin transports expose the same curated catalog without duplicate ids", () => {
-  assert.equal(devin_cliProvider.models, DEVIN_MODEL_CATALOG);
+test("Devin transports expose the curated catalog with truthful tool capabilities", () => {
+  assert.deepEqual(
+    devin_cliProvider.models.map((model) => model.id),
+    catalogIds
+  );
+  assert.ok(devin_cliProvider.models.every((model) => model.toolCalling === false));
+  assert.ok(devin_cli_agenticProvider.models.every((model) => model.toolCalling === true));
   assert.equal(devin_desktopProvider.models, DEVIN_MODEL_CATALOG);
   assert.deepEqual(
     devin_cli_agenticProvider.models.map((model) => model.id),

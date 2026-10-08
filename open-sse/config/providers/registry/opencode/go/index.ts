@@ -361,6 +361,27 @@ export const opencode_goProvider: RegistryEntry = {
       targetFormat: "openai-responses",
       maxOutputTokens: 128000,
     },
+    // OpenCode Zen Go serves gpt-6-luna ONLY on /responses: live-verified
+    // 2026-10-02, POST /chat/completions returns 400
+    // `{"type":"error","error":{"type":"ModelProtocolUnsupported","message":
+    // "Model does not support this protocol."}}` while POST /responses returns
+    // 200 with a normal completion. Same failure mode as #12196 (gpt-5.6-luna):
+    // without a registry entry getModelTargetFormat() returns null,
+    // resolveOpencodeTargetFormat() falls back to "openai" and
+    // OpencodeExecutor.buildUrl() posts to /chat/completions.
+    // Effort vocabulary also live-verified against the go upstream: none/low/
+    // medium/high/xhigh/max -> 200, "ultra" -> 400 (so declaring the exact set
+    // lets sanitizeReasoningEffortForProvider clamp instead of forwarding a
+    // 400). max_output_tokens 128000 accepted; the provider's
+    // requestDefaults.maxTokens is 16384 without an explicit value.
+    {
+      id: "gpt-6-luna",
+      name: "GPT-6 Luna",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     // Console Go free GLM-tier model (live-verified 2026-08-23): the upstream
     // rejects every reasoning_effort outside {low, high, max} whenever tools
     // are present — "[1210] This model always engages in thinking and cannot

@@ -389,19 +389,19 @@ Tulis ujian unit dalam `tests/unit/` yang sekurang-kurangnya merangkumi:
 ## Senarai Semak Pull Request
 
 - [ ] Ujian lulus (`npm test`)
-- [ ] Pelintiran lulus (`npm run lint`)
+- [ ] Pelintan lulus (`npm run lint`)
 - [ ] Binaan berjaya (`npm run build`)
 - [ ] Jenis TypeScript ditambahkan untuk fungsi dan antara muka awam baharu
 - [ ] Tiada rahsia atau nilai sandaran yang dikod keras
-- [ ] Bukti kelayakan huluan awam dibenamkan melalui `resolvePublicCred()` (lihat [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), bukan sebagai nilai literal
-- [ ] Respons ralat disalurkan melalui `buildErrorBody()` / `sanitizeErrorMessage()` — tiada surihan tindanan mentah dalam badan respons (lihat [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Kelayakan huluan awam dibenamkan melalui `resolvePublicCred()` (lihat [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), bukan sebagai literal
+- [ ] Respons ralat disalurkan melalui `buildErrorBody()` / `sanitizeErrorMessage()` — tiada surih tindanan mentah dalam badan respons (lihat [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Perintah shell (`exec` / `spawn`) menghantar nilai masa jalan melalui `env`, bukan melalui interpolasi rentetan
 - [ ] Semua input disahkan dengan skema Zod
-- [ ] **Fragmen** log perubahan ditambahkan di bawah `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` untuk perubahan yang dapat dilihat oleh pengguna (lihat [`changelog.d/README.md`](./changelog.d/README.md)) — jangan edit `CHANGELOG.md` secara langsung; fragmen dihimpunkan semasa keluaran dan tidak akan bercanggah antara PR
+- [ ] **Fragmen** log perubahan ditambahkan di bawah `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` untuk perubahan yang memberi kesan kepada pengguna (lihat [`changelog.d/README.md`](./changelog.d/README.md)) — **jangan** edit `CHANGELOG.md` secara langsung; fragmen digabungkan semasa keluaran dan tidak pernah bercanggah antara PR
 - [ ] Dokumentasi dikemas kini (jika berkenaan)
-- [ ] Tiada amaran CodeQL / Secret-Scanning baharu dibuka, atau setiap amaran ditolak dengan justifikasi teknikal yang merujuk dokumen `docs/security/` yang berkaitan
-- [ ] Laluan yang melancarkan proses anak (`/api/mcp/`, `/api/cli-tools/runtime/`) diklasifikasikan sebagai `isLocalOnlyPath()` dalam `src/server/authz/routeGuard.ts` — lihat [Peraturan Tegas #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Tiada treler `Co-Authored-By` dalam mesej komit — komit mesti dipaparkan semata-mata di bawah identiti Git pemilik repositori (Peraturan Tegas #16)
+- [ ] Tiada amaran CodeQL / Secret-Scanning baharu dibuka, atau setiap satunya ditolak dengan justifikasi teknikal yang merujuk dokumen `docs/security/` yang berkaitan
+- [ ] Laluan yang mencetuskan proses anak (`/api/mcp/`, `/api/cli-tools/runtime/`) diklasifikasikan sebagai `isLocalOnlyPath()` dalam `src/server/authz/routeGuard.ts` — lihat [Peraturan Tegas #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Tiada treler `Co-authored-by` AI/bot dalam mesej komit (Peraturan Tegas #16) — kolaborator manusia yang hasil kerja mereka digunakan semula diberi penghargaan dengan treler standard `Co-authored-by: Name <email>`
 
 ---
 

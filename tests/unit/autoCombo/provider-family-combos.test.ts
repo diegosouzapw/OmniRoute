@@ -101,6 +101,9 @@ describe("detectModelFamily (pure)", () => {
 
   it("advertises exactly one auto/<family> catalog id per family", () => {
     assert.deepEqual([...AUTO_FAMILY_IDS].sort(), [
+      "auto/claude-haiku",
+      "auto/claude-opus",
+      "auto/claude-sonnet",
       "auto/deepseek",
       "auto/gemini",
       "auto/gemma",
@@ -357,16 +360,12 @@ describe("additional auto-routing families (#13214)", () => {
     assert.equal(buildFamilyCandidateFilter("zai")({ provider: "glm", model: "glm-5.2" }), false);
   });
 
-  it("maps Haiku to fast while preserving Opus and Sonnet variants", () => {
-    for (const [suffix, variant] of [
-      ["claude-haiku", "fast"],
-      ["claude-opus", "smart"],
-      ["claude-sonnet", "coding"],
-    ]) {
-      assert.equal(builtinCatalog.AUTO_TEMPLATE_VARIANTS[`auto/${suffix}`], variant);
+  it("resolves auto/claude-* as Claude model-family ids, not weight-pack variants (#15675)", () => {
+    for (const suffix of ["claude-haiku", "claude-opus", "claude-sonnet"]) {
+      assert.equal(builtinCatalog.AUTO_TEMPLATE_VARIANTS[`auto/${suffix}`], undefined);
       assert.equal(builtinCatalog.isRecognizedBuiltinAuto(`auto/${suffix}`, suffix), true);
       assert.deepEqual(builtinCatalog.resolveBuiltinAutoSpec(`auto/${suffix}`, suffix), {
-        variant,
+        family: suffix,
       });
     }
   });
