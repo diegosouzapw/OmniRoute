@@ -1,9 +1,9 @@
 import { logToolCall } from "../audit.ts";
 import { toSafeMcpErrorMessage } from "../errorMessage.ts";
-import { getMcpHttpAuthHeadersForInternalFetch } from "../httpAuthContext.ts";
-import { getInternalServiceAuthHeaders } from "../../../src/lib/api/internalServiceAuth.ts";
+// #15159 M-06: one shared hop. The private copy this replaced read OMNIROUTE_API_KEY and
+// the base URL at module load and hardcoded a 30s timeout.
+import { omniRouteFetch as apiFetch } from "../internalFetch.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
-import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import {
   getComboModelProvider,
   getComboModelString,
@@ -12,26 +12,6 @@ import {
 import type { AutoRoutingStrategyValue } from "../../../src/shared/constants/routingStrategies.ts";
 import { rankBySpeed, DEFAULT_SPEED_WEIGHTS } from "../../services/autoCombo/speedRanking.ts";
 import type { SpeedCandidate } from "../../services/autoCombo/speedRanking.ts";
-
-const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
-const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
-
-async function apiFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  const url = `${OMNIROUTE_BASE_URL}${path}`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
-    ...getMcpHttpAuthHeadersForInternalFetch(),
-    ...((options.headers as Record<string, string>) || {}),
-    ...getInternalServiceAuthHeaders(),
-  };
-  const response = await fetch(url, { ...options, headers, signal: AbortSignal.timeout(30000) });
-  if (!response.ok) {
-    const text = await response.text().catch(() => "Unknown error");
-    throw new Error(`API [${response.status}]: ${text}`);
-  }
-  return response.json();
-}
 
 type JsonRecord = Record<string, unknown>;
 interface ComboModel {
@@ -112,7 +92,7 @@ async function fetchTelemetrySources(): Promise<TelemetrySources> {
     apiFetch("/api/combos"),
     apiFetch("/api/monitoring/health"),
     apiFetch("/api/usage/quota"),
-    apiFetch("/api/usage/analytics?period=session"),
+    apiFetch("/api/usage/analytics?range=1d"),
   ]);
 
   const analytics = toRecord(settledValue(analyticsRaw));

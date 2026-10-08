@@ -45,6 +45,7 @@ import {
 import { LimiterWedgeWatchdog, WATCHDOG_INTERVAL_MS } from "./rateLimitManager/wedgeWatchdog";
 import { createCancellableJob } from "./rateLimitManager/queuedJobCancel";
 import { toNumber } from "@/shared/utils/numeric";
+import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
 import {
   getExecutorTimeoutMs,
   resolveConnectionTimeoutMs,
@@ -103,7 +104,7 @@ const enabledConnections = new Set<string>();
 
 // Store per-connection rate limit overrides (RPM, TPM, TPD, minTime, maxConcurrent)
 // Populated from provider_connections.rateLimitOverrides on startup and refresh.
-const connectionRateLimitOverrides = new Map<string, Record<string, number>>();
+const connectionRateLimitOverrides = new Map<string, ConnectionRateLimitOverrides>();
 
 // Store learned limits for persistence (debounced)
 // One learned entry per limiter key (provider:connection[:model]). The previous
@@ -266,7 +267,7 @@ export function resolveRequestQueueMaxWaitMs(
  */
 export function resolveExecutionMaxWaitMs(connectionId?: string): number {
   const override = connectionId
-    ? (connectionRateLimitOverrides.get(connectionId) as Record<string, number> | undefined)
+    ? (connectionRateLimitOverrides.get(connectionId) as ConnectionRateLimitOverrides | undefined)
         ?.executionMaxWaitMs
     : undefined;
   return resolveOverride(override, currentRequestQueueSettings.executionMaxWaitMs);
@@ -536,7 +537,7 @@ export function isRateLimitEnabled(connectionId) {
  * connection so the next request gets a fresh limiter with the new settings.
  *
  * @param {string} connectionId
- * @param {Record<string, number> | null} overrides - New overrides (null/undefined clears)
+ * @param {ConnectionRateLimitOverrides | null} overrides - New overrides (null/undefined clears)
  */
 export function refreshConnectionRateLimits(connectionId, overrides) {
   if (overrides === null || overrides === undefined) {

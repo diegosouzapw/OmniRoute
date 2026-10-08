@@ -10,6 +10,9 @@ export const perplexityAgentProvider: RegistryEntry = {
   testKeyModelsUrl: "https://api.perplexity.ai/v1/models",
   authType: "apikey",
   authHeader: "bearer",
+  headers: {
+    "X-Pplx-Integration": "omniroute",
+  },
   passthroughModels: true,
   liveCatalogAuthoritative: false,
   models: [

@@ -393,22 +393,22 @@ docs/
 
 ---
 
-## 提取要求檢查清單
+## Pull Request 檢查清單
 
 - [ ] 測試通過（`npm test`）
-- [ ] Linting 通過（`npm run lint`）
+- [ ] Lint 檢查通過（`npm run lint`）
 - [ ] 建置成功（`npm run build`）
-- [ ] 為新的公開函式與介面新增 TypeScript 類型
-- [ ] 沒有硬式編碼的機密或後備值
-- [ ] 公開上游認證資訊透過 `resolvePublicCred()` 嵌入（請參閱 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），絕不以常值形式
-- [ ] 錯誤回應會經過 `buildErrorBody()` / `sanitizeErrorMessage()` — 回應主體中沒有原始的堆疊追蹤（請參閱 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
-- [ ] Shell 指令（`exec` / `spawn`）透過 `env` 傳遞執行階段值，而非透過字串插補
-- [ ] 所有輸入都使用 Zod schema 驗證
-- [ ] Changelog **片段** 新增於 `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 下，用於使用者可見的變更（請參閱 [`changelog.d/README.md`](./changelog.d/README.md)）— **請勿**直接編輯 `CHANGELOG.md`；片段會在發佈時彙總，且永遠不會在 PR 之間發生衝突
-- [ ] 文件已更新（如適用）
-- [ ] 沒有開啟新的 CodeQL / Secret-Scanning 警示，或者每個都已使用技術理由駁回，並參照相關的 `docs/security/` 文件
-- [ ] 會生成子處理程序的路由（`/api/mcp/`, `/api/cli-tools/runtime/`）在 `src/server/authz/routeGuard.ts` 中被歸類為 `isLocalOnlyPath()` — 請參閱 [硬性規則 #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] 提交訊息中沒有 `Co-Authored-By` 尾標 — 提交必須僅以儲存庫擁有者的 Git 身分出現（硬性規則 #16）
+- [ ] 已為新的公開函式與介面新增 TypeScript 類型
+- [ ] 沒有硬編碼的密鑰或備援值
+- [ ] 公開的上游憑證透過 `resolvePublicCred()` 嵌入（請參閱 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），絕不以字面值形式嵌入
+- [ ] 錯誤回應透過 `buildErrorBody()` / `sanitizeErrorMessage()` 處理——回應主體中不得包含原始堆疊追蹤（請參閱 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
+- [ ] Shell 命令（`exec` / `spawn`）透過 `env` 傳遞執行階段值，而非使用字串插值
+- [ ] 所有輸入均使用 Zod schema 進行驗證
+- [ ] 若有面向使用者的變更，已在 `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 下新增變更日誌**片段**（請參閱 [`changelog.d/README.md`](./changelog.d/README.md)）——請**勿**直接編輯 `CHANGELOG.md`；片段會在發布時彙整，且各 PR 之間永遠不會發生衝突
+- [ ] 已更新文件（如適用）
+- [ ] 未新增任何 CodeQL / Secret-Scanning 警示，或每個警示均已附上引用相關 `docs/security/` 文件的技術理由並予以駁回
+- [ ] 會產生子行程的路由（`/api/mcp/`、`/api/cli-tools/runtime/`）已在 `src/server/authz/routeGuard.ts` 中分類為 `isLocalOnlyPath()`——請參閱[硬性規則 #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] 提交訊息中不得包含 AI／機器人的 `Co-authored-by` 尾註（硬性規則 #16）——若重用了人類協作者的工作，應使用標準的 `Co-authored-by: Name <email>` 尾註予以署名
 
 ---
 

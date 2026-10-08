@@ -72,24 +72,31 @@ ikitaja ncha ya huduma na kilichopotea — kwa hivyo kiteua kilichodhoofika haki
 
 ## Chaguo
 
-| Ufunguo                          | Chaguo-msingi                                             | Maelezo                                                                                                                             |
-| -------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                             | Kitambulisho cha mtoa huduma, kitambulisho cha muunganisho, na kiambishi ambacho modeli huonekana chini yake                        |
-| `baseURL`                        | inahitajika                                               | Mzizi wa lango, `http(s)` pekee; kiambishi `/v1` huongezwa panapohitajika                                                           |
-| `apiKey`                         | kitambulisho kilichounganishwa, kisha `OMNIROUTE_API_KEY` | Ufunguo wa gumzo kwa `/v1/*`                                                                                                        |
-| `managementReadToken`            | hutumia `apiKey` kama mbadala                             | Ufunguo wa `/api/*` — kwa kawaida **si** ufunguo huohuo                                                                             |
-| `displayName`                    | `"OmniRoute"`                                             | Jina la mtoa huduma kwenye kiteua                                                                                                   |
-| `timeoutMs`                      | `10000`                                                   | Muda wa mwisho wa kuleta data kwa kila ncha ya huduma (michanganyiko otomatiki hutumia sekunde 5)                                   |
-| `modelCacheTtlMs`                | `300000`                                                  | TTL ya akiba ya katalogi; taswira ya diski huharakisha uanzishaji wa awali                                                          |
-| `timeouts`                       | hutumia `timeoutMs` kama mbadala                          | Vikomo vya muda kwa kila ncha ya huduma katika ms: `models`, `combos`, `autoCombos`, `enrichment`                                   |
-| `enrichment`                     | `true`                                                    | Leta majina, bei na viwango vya matumizi bila malipo                                                                                |
-| `providerTag`                    | `true`                                                    | Tanguliza jina la kuonyesha kwa mtoa huduma wa juu linakoelekezwa                                                                   |
-| `usableOnly`                     | `false`                                                   | Hifadhi tu watoa huduma ambao lango linaripoti kuwa wamewekewa huduma                                                               |
-| `visibleModels` / `hiddenModels` | `[]`                                                      | Orodha za kuruhusu zinazolingana kikamilifu au kwa kiambishi; kukataa kunatangulia                                                  |
-| `geminiSanitization`             | `true`                                                    | Ondoa maneno muhimu ya JSON-Schema ambayo Gemini hukataa kutoka kwenye miundo ya zana (zana za `$ref` husambazwa bila kubadilishwa) |
-| `apiFormat.allowAnthropic`       | `false`                                                   | Elekeza vitambulisho vilivyo kwenye orodha ya kuruhusu kupitia kizuizi cha Anthropic API                                            |
-| `apiFormat.anthropicModels`      | `[]`                                                      | Vitambulisho kamili vya modeli vinavyoelekezwa kwa Anthropic                                                                        |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                          | Kiwango cha maelezo ya kumbukumbu                                                                                                   |
+| Ufunguo                          | Chaguomsingi                                              | Maelezo                                                                                                                               |
+| -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                             | Kitambulisho cha mtoa huduma, kitambulisho cha ujumuishaji, na kiambishi awali ambacho modeli huonekana chini yake                    |
+| `baseURL`                        | inahitajika                                               | Mzizi wa lango, `http(s)` pekee; kiambishi tamati cha `/v1` huongezwa inapohitajika                                                   |
+| `apiKey`                         | kitambulisho kilichounganishwa, kisha `OMNIROUTE_API_KEY` | Ufunguo wa gumzo kwa `/v1/*`                                                                                                          |
+| `managementReadToken`            | hutumia `apiKey` kama chaguomsingi                        | Ufunguo wa `/api/*` — kwa kawaida **si** ufunguo huo huo                                                                              |
+| `displayName`                    | `"OmniRoute"`                                             | Jina la mtoa huduma katika kiteuzi                                                                                                    |
+| `timeoutMs`                      | `10000`                                                   | Muda wa mwisho wa uletaji kwa kila endpoint (michanganyiko otomatiki hutumia sekunde 5)                                               |
+| `modelCacheTtlMs`                | `300000`                                                  | TTL ya akiba ya katalogi; taswira ya diski huharakisha uanzishaji wa kwanza                                                           |
+| `timeouts`                       | hutumia `timeoutMs` kama chaguomsingi                     | Vikomo vya muda kwa kila endpoint katika ms: `models`, `combos`, `autoCombos`, `enrichment`                                           |
+| `enrichment`                     | `true`                                                    | Leta majina, bei na vikomo vya kiwango kisicholipishwa                                                                                |
+| `providerTag`                    | `true`                                                    | Weka jina la mtoa huduma wa juu ambalo inaelekeza kwake kama kiambishi awali cha jina la kuonyesha                                    |
+| `usableOnly`                     | `false`                                                   | Hifadhi tu watoa huduma ambao lango linaripoti kuwa wameandaliwa                                                                      |
+| `showcasePerOwner`               | `10`                                                      | Maingizo ya mwonekano chaguomsingi yanayohifadhiwa kwa kila mtoa huduma                                                               |
+| `freshPerOwner`                  | `10`                                                      | Maingizo mapya ya mwonekano chaguomsingi yanayohifadhiwa kwa kila mtoa huduma                                                         |
+| `freshWindowDays`                | `90`                                                      | Kipindi cha upya katika siku kwa tawi la maingizo mapya                                                                               |
+| `usageMemory`                    | `true`                                                    | Rejesha maingizo yaliyoondolewa kwa uthabiti ambayo yametajwa na uchanganuzi wa matumizi wa siku 30 (unahitaji tokeni ya usimamizi)   |
+| `visibleModels` / `hiddenModels` | `[]`                                                      | Orodha za kuruhusu zinazolingana kikamilifu au kwa kiambishi tamati; kukataa kunatangulia                                             |
+| `geminiSanitization`             | `true`                                                    | Ondoa maneno muhimu ya JSON-Schema ambayo Gemini huyakataa kutoka kwenye schema za zana (zana za `$ref` hupitishwa bila kubadilishwa) |
+| `apiFormat.allowAnthropic`       | `false`                                                   | Elekeza vitambulisho vilivyo kwenye orodha ya kuruhusu kupitia kizuizi cha API ya Anthropic                                           |
+| `apiFormat.anthropicModels`      | `[]`                                                      | Vitambulisho kamili vya modeli vinavyoelekezwa kwa Anthropic                                                                          |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                          | Kiwango cha maelezo ya rekodi                                                                                                         |
+
+Kumbukumbu ya matumizi huwashwa kwa chaguomsingi. Bila tokeni ya usimamizi hubaki bila kufanya kazi
+(taarifa ya uanzishaji hurekodiwa) na hakuna kinachorejeshwa.
 
 ## Jinsi katalogi inavyosalia kuwa ya sasa
 

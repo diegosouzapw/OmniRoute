@@ -16,6 +16,7 @@ export function registerStop(program) {
   program
     .command("stop")
     .description(t("stop.description"))
+    .option("--port <port>", "Port to stop when no PID file is found (default: 20128)")
     .action(async (opts) => {
       const exitCode = await runStopCommand(opts);
       if (exitCode !== 0) process.exit(exitCode);
@@ -68,32 +69,37 @@ export async function runStopCommand(opts = {}, deps = {}) {
     }
   }
 
-  const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
-  if (pid === null) {
-    console.log(t("stop.portFallback"));
-    // #9455: a stale supervisor PID file would let the port-fallback stop also
-    // leave the supervisor running and respawning. Stop it first.
-    if (supervisorPid && isPidRunning(supervisorPid)) {
-      try {
-        process.kill(supervisorPid, "SIGTERM");
-      } catch {}
-    }
-    const portFreed = await killByPort(port, deps);
-    killAllSubprocesses();
-    cleanupPidFile("server");
-    cleanupPidFile("supervisor");
-    // #9455: only report success when the port is actually free — previously stop
-    // printed "Server stopped." even when killByPort was a no-op (win32).
-    if (portFreed) {
-      console.log(t("stop.stopped"));
-    } else {
-      console.log(t("stop.notRunning"));
-    }
-    return 0;
+  const port = resolveStopPort(opts);
+  // A stale PID file (pid set but process gone) must still fall back to the port, otherwise a
+  // server whose PID file went stale survives `stop` (#15177).
+  console.log(t("stop.portFallback"));
+  // #9455: a stale supervisor PID file would let the port-fallback stop also
+  // leave the supervisor running and respawning. Stop it first.
+  if (supervisorPid && isPidRunning(supervisorPid)) {
+    try {
+      process.kill(supervisorPid, "SIGTERM");
+    } catch {}
   }
-
-  console.log(t("stop.notRunning"));
+  const portFreed = await killByPort(port, deps);
+  killAllSubprocesses();
+  cleanupPidFile("server");
+  cleanupPidFile("supervisor");
+  // #9455: only report success when the port is actually free — previously stop
+  // printed "Server stopped." even when killByPort was a no-op (win32).
+  if (portFreed) {
+    console.log(t("stop.stopped"));
+  } else {
+    console.log(t("stop.notRunning"));
+  }
   return 0;
+}
+
+function resolveStopPort(opts) {
+  for (const raw of [opts.port, process.env.DASHBOARD_PORT, process.env.PORT]) {
+    const n = parseInt(String(raw ?? ""), 10);
+    if (Number.isFinite(n) && n > 0 && n < 65536) return n;
+  }
+  return 20128;
 }
 
 /**
@@ -130,8 +136,13 @@ async function killByPortPosix(port, { exec, kill, running, wait }) {
       .split("\n")
       .map((p) => parseInt(p, 10))
       .filter((p) => Number.isFinite(p) && p > 0);
-  } catch {
-    // lsof not available or no process on port
+  } catch (err) {
+    // exit 1 = no listener (fine). ENOENT = lsof missing: we could not look, so do not let the
+    // caller report "Server stopped." (#15177).
+    if (err && err.code === "ENOENT") {
+      console.error("Could not look for the server: `lsof` is not installed or not on PATH.");
+      return false;
+    }
   }
   return terminatePids(pids, { kill, running, wait });
 }

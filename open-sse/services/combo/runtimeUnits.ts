@@ -17,6 +17,7 @@ import {
   releaseQualityClone,
   releaseRejectedQualityResponse,
 } from "./validateQuality.ts";
+import { isTrustedEmptyTurn } from "./emptyTurnTrust.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
 import type {
   ComboCollectionLike,
@@ -335,7 +336,9 @@ export async function executeRuntimeUnitCombo(args: {
           clientRequestedStream,
           args.log,
           args.config.responseValidation as ResponseValidationConfig | undefined,
-          args.signal
+          args.signal,
+          unit.kind === "model" &&
+            (await isTrustedEmptyTurn(unit.provider, response, unit.connectionId))
         );
         releaseQualityClone(unitClone, response, quality);
         if (quality.valid) {

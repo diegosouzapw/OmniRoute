@@ -169,6 +169,26 @@ test("an out-of-range port or an unsupported scheme gives a null key", () => {
   assert.equal(memory.proxyEgressKey("ftp://h:21"), null);
 });
 
+test("a region refusal follows the same short curve as an unreachable probe", () => {
+  const key = "http://@geo:8080";
+  const periods: Array<number | null> = [];
+  let now = START_MS;
+  for (let i = 0; i < 4; i++) {
+    const period = memory.noteProxyRefusal(key, "geo_blocked", now);
+    periods.push(period);
+    now += period ?? 0;
+  }
+  assert.deepEqual(periods, [MIN, 2 * MIN, 4 * MIN, 8 * MIN]);
+});
+
+test("a served response also forgets a region refusal", () => {
+  const key = "http://@geo-served:8080";
+  memory.noteProxyRefusal(key, "geo_blocked", START_MS);
+  assert.equal(memory.isProxyAvoided(key, START_MS + 1), true);
+  memory.noteProxyServed(key);
+  assert.equal(memory.isProxyAvoided(key, START_MS + 2), false);
+});
+
 test("set-aside events are ordered, and only the one in force is reported", () => {
   const a = "http://@a:8080";
   const b = "http://@b:8080";

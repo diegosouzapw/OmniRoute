@@ -127,7 +127,7 @@ Teadmiseks: cc-ühilduv sild saadab iga ülesvoolupäringuga järgmise teabe
 | Päis                                           | Väärtus                                                                                                     |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `Authorization`                                | `Bearer <api-key>`                                                                                          |
-| `User-Agent`                                   | `claude-cli/2.1.258 (external, sdk-cli)`                                                                    |
+| `User-Agent`                                   | `claude-cli/2.1.280 (external, sdk-cli)`                                                                    |
 | `anthropic-version`                            | `2023-06-01`                                                                                                |
 | `anthropic-beta`                               | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                    |
 | Ühendusepõhine varjatud mõttekäigu beetalüliti | Lisab `redact-thinking-2026-02-12` ülesvooluteenustele, mis nõuavad spetsiaalselt varjatud mõttekäigu vooge |

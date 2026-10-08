@@ -7,6 +7,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-image-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "image-route-test-api-key-secret";
+process.env.GROK_SUBSCRIPTION_IMAGES_ENABLED = "true";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -227,7 +228,13 @@ test("v1 image models GET exposes current Codex image models and hides inactive 
   assert.equal(response.status, 200);
   assert.deepEqual(
     ids.filter((id) => id.startsWith("codex/")),
-    ["codex/gpt-5.6-sol-image", "codex/gpt-5.6-terra-image", "codex/gpt-5.6-luna-image"]
+    [
+      "codex/gpt-5.6-sol-image",
+      "codex/gpt-5.6-terra-image",
+      "codex/gpt-5.6-luna-image",
+      "codex/gpt-image-2.5-flare",
+      "codex/gpt-image-2",
+    ]
   );
   assert.ok(!ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));
@@ -954,4 +961,134 @@ test("v1 image generation POST refreshes an expired Antigravity token before dis
   assert.equal(response.status, 200);
   assert.equal(body.data[0].b64_json, "ZnJlc2gtaW1hZ2U=");
   assert.equal(calls.filter((call) => call.url.includes("oauth2.googleapis.com/token")).length, 1);
+});
+
+for (const [provider, alias] of [
+  ["grok-cli", "gc"],
+  ["xai-oauth", "xao"],
+  ["xai", "xai"],
+]) {
+  test(`image route uses ${provider} credentials for Grok Imagine and exposes its catalog`, async () => {
+    await seedConnection(
+      provider,
+      provider === "xai"
+        ? { apiKey: "xai-image-key" }
+        : {
+            authType: "oauth",
+            accessToken: "grok-image-token",
+            expiresAt: new Date(Date.now() + 86400000).toISOString(),
+          }
+    );
+    let imageCalls = 0;
+    globalThis.fetch = async (url, options = {}) => {
+      assert.equal(String(url), "https://api.x.ai/v1/images/generations");
+      imageCalls += 1;
+      assert.equal(
+        new Headers(options.headers).get("Authorization"),
+        `Bearer ${provider === "xai" ? "xai-image-key" : "grok-image-token"}`
+      );
+      assert.deepEqual(JSON.parse(String(options.body)), {
+        model: "grok-imagine-image-2.0",
+        prompt: "A chef preparing pho",
+        n: 1,
+        aspect_ratio: "3:2",
+        resolution: "1k",
+        quality: "medium",
+        response_format: "b64_json",
+      });
+      return Response.json({ data: [{ b64_json: "ZmFrZQ==" }] });
+    };
+    const response = await imageRoute.POST(
+      new Request("http://localhost/v1/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: `${alias}/grok-imagine-image-2.0`,
+          prompt: "A chef preparing pho",
+          n: 1,
+          size: "1536x1024",
+          resolution: "1k",
+          quality: "high",
+          response_format: "b64_json",
+        }),
+      })
+    );
+    assert.equal(response.status, 200, await response.clone().text());
+    assert.equal(imageCalls, 1);
+    assert.deepEqual(((await response.json()) as ImageResponseBody).data, [
+      { b64_json: "ZmFrZQ==" },
+    ]);
+    const catalog = await imageRoute.GET(new Request("http://localhost/v1/images/generations"));
+    const payload = (await catalog.json()) as { data: ImageModelRow[] };
+    assert.ok(payload.data.some((row) => row.id === `${provider}/grok-imagine-image-2.0`));
+  });
+}
+
+test("Grok image route refreshes and persists OAuth credentials before generation", async () => {
+  const connection = await seedConnection("grok-cli", {
+    authType: "oauth",
+    accessToken: "expired-grok-token",
+    refreshToken: "grok-refresh-token",
+    expiresAt: new Date(Date.now() - 60000).toISOString(),
+  });
+  const calls: string[] = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push(String(url));
+    if (String(url) === "https://auth.x.ai/oauth2/token") {
+      assert.equal(
+        new URLSearchParams(String(options.body)).get("refresh_token"),
+        "grok-refresh-token"
+      );
+      return Response.json({
+        access_token: "fresh-grok-token",
+        refresh_token: "rotated-grok-token",
+        expires_in: 3600,
+      });
+    }
+    assert.equal(String(url), "https://api.x.ai/v1/images/generations");
+    assert.equal(new Headers(options.headers).get("Authorization"), "Bearer fresh-grok-token");
+    return Response.json({ data: [{ url: "https://example.com/grok-image.jpg" }] });
+  };
+  const response = await imageRoute.POST(
+    new Request("http://localhost/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "grok-cli/grok-imagine-image-2.0",
+        prompt: "A chef preparing pho",
+      }),
+    })
+  );
+  assert.equal(response.status, 200, await response.clone().text());
+  assert.deepEqual(calls, [
+    "https://auth.x.ai/oauth2/token",
+    "https://api.x.ai/v1/images/generations",
+  ]);
+  const saved = await providersDb.getProviderConnectionById(connection.id);
+  assert.equal(saved?.accessToken, "fresh-grok-token");
+  assert.equal(saved?.refreshToken, "rotated-grok-token");
+});
+
+test("Grok image route rejects invalid options before contacting upstream", async () => {
+  await seedConnection("grok-cli", { authType: "oauth", accessToken: "grok-image-token" });
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error("must not dispatch");
+  };
+  const response = await imageRoute.POST(
+    new Request("http://localhost/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "grok-cli/grok-imagine-image-2.0",
+        prompt: "A chef",
+        resolution: "4k-secret",
+      }),
+    })
+  );
+  assert.equal(response.status, 400);
+  assert.equal(called, false);
+  const body = (await response.json()) as ErrorResponseBody;
+  assert.doesNotMatch(body.error.message, /4k-secret|at \//);
 });

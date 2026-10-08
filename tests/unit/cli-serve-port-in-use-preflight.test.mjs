@@ -66,6 +66,52 @@ test("findListeningPids ignores TIME_WAIT and other ports", async () => {
   assert.deepEqual(pids, [4]);
 });
 
+test("findListeningPids asks lsof for LISTEN sockets with the listen address", async () => {
+  const calls = [];
+  await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async (_cmd, args) => {
+      calls.push(args);
+      return { stdout: "" };
+    },
+  });
+  assert.deepEqual(
+    calls[0],
+    ["-nP", "-iTCP:20128", "-sTCP:LISTEN"],
+    "must keep the listen address so a listener on another address is not a conflict"
+  );
+});
+
+test("findListeningPids ignores a listener on another address when binding loopback (#15424)", async () => {
+  const lsof = "socat  9001 houminxi  6u  IPv4 0x1  0t0  TCP 192.168.1.50:20128 (LISTEN)\n";
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [], "a LAN-only forwarder does not block a loopback bind");
+});
+
+test("findListeningPids still reports a wildcard listener when binding loopback (#15424)", async () => {
+  const lsof = "node  19348 houminxi  23u  IPv4 0x1  0t0  TCP *:20128 (LISTEN)\n";
+  const pids = await findListeningPids(20128, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [19348], "0.0.0.0 / * holds every address, including loopback");
+});
+
+test("findListeningPids does not treat a longer port as the target port", async () => {
+  const lsof = "node  1443 houminxi  23u  IPv4 0x1  0t0  TCP 127.0.0.1:1443 (LISTEN)\n";
+  const pids = await findListeningPids(443, {
+    platform: "linux",
+    host: "127.0.0.1",
+    execFileAsync: async () => ({ stdout: lsof }),
+  });
+  assert.deepEqual(pids, [], "1443 must not match a search for 443");
+});
+
 test("findListeningPids reports the PID holding the port (posix lsof)", async () => {
   const pids = await findListeningPids(20128, {
     platform: "linux",
@@ -81,24 +127,21 @@ test("findListeningPids reports the PID holding the port (posix lsof)", async ()
 // "Port 20128 is already in use by PID <hermes>" while `ss -ltn` showed the
 // port free — a gateway that could not restart because something else had once
 // connected to it. Same defect class already fixed in stop.mjs::killByPortPosix.
-test(
-  "findListeningPids asks lsof for LISTEN sockets only, not every client on the port",
-  async () => {
-    const calls = [];
-    await findListeningPids(20128, {
-      platform: "linux",
-      execFileAsync: async (_cmd, args) => {
-        calls.push(args);
-        return { stdout: "" };
-      },
-    });
-    assert.deepEqual(
-      calls[0],
-      ["-nP", "-t", "-iTCP:20128", "-sTCP:LISTEN"],
-      "must scope discovery to TCP listeners so client sockets cannot fake a conflict"
-    );
-  }
-);
+test("findListeningPids asks lsof for LISTEN sockets only, not every client on the port", async () => {
+  const calls = [];
+  await findListeningPids(20128, {
+    platform: "linux",
+    execFileAsync: async (_cmd, args) => {
+      calls.push(args);
+      return { stdout: "" };
+    },
+  });
+  assert.deepEqual(
+    calls[0],
+    ["-nP", "-iTCP:20128", "-sTCP:LISTEN"],
+    "must scope discovery to TCP listeners and keep the address"
+  );
+});
 
 test("findListeningPids treats an empty lsof result as a free port", async () => {
   const noMatch = Object.assign(new Error("lsof exited with no matches"), {

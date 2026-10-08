@@ -11,6 +11,7 @@ import {
   getRetryDispatcher,
   isLocalEgressHostname,
   isRelayType,
+  isUpstreamHttp2Enabled,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
@@ -18,10 +19,12 @@ import {
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
+import { tlsFingerprintProviderAllowed } from "./tlsFingerprintExclusions.ts";
 import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFetchRedaction.ts";
 import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
 import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { isDirectBypassHost } from "./proxyDirectBypass.ts";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
@@ -43,14 +46,14 @@ import {
 // pipelines POST (SSE is POST), so a single socket would serialize every
 // concurrent stream; 4 sockets give 4 parallel streams. h2 relays are
 // unaffected — streams multiplex over one socket, so the pool stays at a single
-// connection while streams drain. `allowH2: true` keeps that h2 fast path for
-// Vercel / Deno / Cloudflare.
+// connection while streams drain. HTTP/2 stays enabled by default for
+// Vercel / Deno / Cloudflare; operators can opt out when needed.
 const RELAY_POOL_AGENT_OPTIONS = {
   keepAliveTimeout: 30_000,
   keepAliveMaxTimeout: 60_000,
   pipelining: 4,
   connections: 4,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 } as const;
 const RELAY_POOL_AGENT = new Agent(RELAY_POOL_AGENT_OPTIONS);
 
@@ -62,7 +65,7 @@ const RELAY_RETRY_AGENT = new Agent({
   keepAliveMaxTimeout: 1,
   pipelining: 0,
   connections: 1,
-  allowH2: true,
+  allowH2: isUpstreamHttp2Enabled(),
 });
 
 // A hung relay must fail BEFORE the client/agent timeout (typically 30s) so the
@@ -91,21 +94,6 @@ function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
 
-function tlsFingerprintProviderAllowed(
-  provider: string | null | undefined,
-  proxied: boolean
-): boolean {
-  const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve the legacy direct-only opt-in. The new proxied transport requires
-  // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
-  if (!configured) return !proxied;
-  if (!provider) return false;
-  const normalizedProvider = provider.trim().toLowerCase();
-  return configured
-    .split(",")
-    .some((candidate) => candidate.trim().toLowerCase() === normalizedProvider);
-}
-
 /**
  * Per-provider TLS impersonation profile. Most providers use the default
  * Chrome/macOS wreq profile; providers that must match a specific browser
@@ -118,7 +106,6 @@ const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
 
 type TlsProfileResult = { browserProfile?: string; os?: string };
 function tlsProfileForProvider(provider: string | null | undefined): TlsProfileResult {
-
   if (!provider) return {};
   const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
   return p ? { browserProfile: p.browser, os: p.os } : {};
@@ -379,6 +366,8 @@ const TLS_ALLOWED_OPTION_KEYS: Record<string, true> = {
   method: true,
   redirect: true,
   signal: true,
+  // Next.js cache/revalidation metadata. It is not forwarded to wreq.
+  next: true,
 };
 
 function isWreqBodySupported(body: unknown): boolean {
@@ -535,10 +524,8 @@ function noProxyMatch(targetUrl) {
 }
 
 /**
- * True loopback only — NOT the broader private-network set `isLocalAddress`
- * covers. A LAN peer (192.168.x, a local Ollama box) is still reached over a
- * real network and keeps the outbound bound-and-replay policy; a loopback
- * target is this very process.
+ * A loopback target is this process. Private-network peers are not loopback:
+ * they must retain the outbound bound-and-replay policy.
  */
 function isLoopbackHost(hostname: string): boolean {
   const host = hostname
@@ -547,28 +534,6 @@ function isLoopbackHost(hostname: string): boolean {
     .replace(/^::ffff:/i, "")
     .toLowerCase();
   return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
-}
-
-function isLocalAddress(hostname: string): boolean {
-  const host = hostname
-    .replace(/^\[/, "")
-    .replace(/\]$/, "")
-    .replace(/^::ffff:/i, "");
-  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
-    return true;
-  }
-  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
-  if (host.startsWith("192.168.")) return true;
-  if (host.startsWith("10.")) return true;
-  if (host.startsWith("127.")) return true;
-  if (host.startsWith("169.254.")) return true;
-  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
-  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
-  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
-  return false;
 }
 
 function resolveEnvProxyUrl(targetUrl) {
@@ -604,8 +569,8 @@ export function resolveProxyForRequest(targetUrl) {
     target = null;
   }
 
-  // Always bypass proxy for local/LAN addresses
-  if (target && isLocalAddress(target.hostname.toLowerCase())) {
+  // Always bypass proxy for local/LAN addresses and operator-listed provider-node hosts
+  if (target && isDirectBypassHost(target.hostname)) {
     return { source: "direct", proxyUrl: null };
   }
 
@@ -867,7 +832,7 @@ async function patchedFetchUnrecorded(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -1205,7 +1170,7 @@ async function patchedFetchUnrecorded(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {

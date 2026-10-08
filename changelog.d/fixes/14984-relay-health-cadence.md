@@ -1,0 +1,1 @@
+- fix(resilience): the proxy health sweep no longer wakes idle edge-relay proxies (deno/vercel/cloudflare) every 10 min; they are probed on a separate 6h cadence (`PROXY_HEALTH_RELAY_INTERVAL_MS`), cutting Deno "Memory Time" burn (#14984)
