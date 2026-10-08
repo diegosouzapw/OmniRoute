@@ -138,3 +138,62 @@ test("handleEmbedding sends translated media to the connection's llama-server UR
     globalThis.fetch = originalFetch;
   }
 });
+
+test("createEmbeddingResponse keeps llama.cpp multimodal support on the synced-model route", async () => {
+  const core = await import("../../src/lib/db/core.ts");
+  const providersDb = await import("../../src/lib/db/providers.ts");
+  const { createEmbeddingResponse } = await import("../../src/lib/embeddings/service.ts");
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "llama-cpp",
+    authType: "apikey",
+    name: "embeddinggemma",
+    apiKey: "unused",
+    isActive: true,
+    providerSpecificData: { baseUrl: "http://embeddinggemma:8080/v1" },
+  });
+  // The shape model sync persists for a llama-server that advertises embeddings.
+  core
+    .getDbInstance()
+    .prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
+    )
+    .run(
+      `llama-cpp:${connection.id}`,
+      JSON.stringify([
+        {
+          id: "/models/embeddinggemma-2-F16.gguf",
+          name: "/models/embeddinggemma-2-F16.gguf",
+          source: "imported",
+          supportedEndpoints: ["embeddings"],
+        },
+      ])
+    );
+
+  const originalFetch = globalThis.fetch;
+  const bodies: Array<Record<string, unknown>> = [];
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    bodies.push(JSON.parse(String(init?.body)));
+    return new Response(
+      JSON.stringify({
+        object: "list",
+        data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+        usage: { prompt_tokens: 80, total_tokens: 80 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+  try {
+    const res = await createEmbeddingResponse({
+      model: "llama-cpp//models/embeddinggemma-2-F16.gguf",
+      input: [{ type: "image", source: { type: "base64", data: "aW1n", media_type: "image/png" } }],
+    });
+    assert.equal(res.status, 200, await res.clone().text());
+    assert.deepEqual(bodies[0].input, [
+      { content: [{ type: "image_url", image_url: { url: "data:image/png;base64,aW1n" } }] },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    core.resetDbInstance();
+  }
+});

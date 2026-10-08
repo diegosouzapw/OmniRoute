@@ -132,19 +132,11 @@ export async function executeTargetAttempt(opts: {
   const stopTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
     stopProtectedPriorityTarget({
       protectedPriorityTarget,
+      state,
+      deps,
+      target,
       message,
       cause,
-      onStop: () => state.observeFailure(false, target.executionKey),
-      clearStale: () =>
-        deps.clearStaleLKGP(
-          deps.combo.name,
-          target.executionKey,
-          deps.combo.id,
-          deps.log,
-          "COMBO",
-          undefined,
-          target
-        ),
     });
 
   const familyTried = new Set<string>();
