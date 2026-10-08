@@ -1,0 +1,1 @@
+- **feat(providers):** ClinePass connections now show their 5-hour, weekly and monthly usage limits on the quota dashboard, read from Cline's `/api/v1/users/me/plan/usage-limits`, and reset-aware combo strategies can use those windows ([#15427](https://github.com/diegosouzapw/OmniRoute/pull/15427), closes [#9740](https://github.com/diegosouzapw/OmniRoute/issues/9740))

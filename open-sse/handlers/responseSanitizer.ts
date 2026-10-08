@@ -13,6 +13,7 @@ import {
   applyCacheHitTokensToResponsesUsage,
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
+import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -1108,6 +1109,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
     }
     return parsed;
   }
+
+  // Fold typed content-part arrays (Mistral thinking chunks) into the string
+  // `content` / `reasoning_content` the chat-chunk contract requires.
+  normalizeArrayContentChunk(parsedRecord);
 
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization

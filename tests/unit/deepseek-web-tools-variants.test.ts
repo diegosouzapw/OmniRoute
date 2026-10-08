@@ -30,6 +30,58 @@ function firstCall(text: string) {
 }
 
 describe("deepseekWebTools — variants", () => {
+  test("full-width DeepSeek DSML preserves multiple parallel invocations", () => {
+    const text = `<｜｜DSML｜｜ calls><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="command" string="true">pwd<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="command" string="true">whoami<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke></｜｜DSML｜｜ calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
+    assert.equal(content, "");
+    assert.equal(toolCalls?.length, 2);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { command: "pwd" });
+    assert.deepEqual(JSON.parse(toolCalls![1].function.arguments), { command: "whoami" });
+  });
+
+  test("full-width DeepSeek DSML preserves three calls and JSON arguments", () => {
+    const text = `<｜｜DSML｜｜ calls><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="command" string="true">pwd<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="command" string="true">whoami<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke><｜｜DSML｜｜ invoke name="bash"><｜｜DSML｜｜ parameter name="command" string="true">printf TOOL_OK<｜｜DSML｜｜ parameter></｜｜DSML｜｜ invoke></｜｜DSML｜｜ calls>`;
+    const { toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
+    assert.equal(toolCalls?.length, 3);
+    assert.deepEqual(
+      toolCalls?.map((call) => JSON.parse(call.function.arguments)),
+      [{ command: "pwd" }, { command: "whoami" }, { command: "printf TOOL_OK" }]
+    );
+  });
+
+  test("DSML tool call with string attributes works for any requested tool", () => {
+    const text = `<|DSML|calls><|DSML|invoke name="browser"><|DSML|parameter name="action" string="true">act<|DSML|parameter><|DSML|parameter name="kind" string="false">click<|DSML|parameter></|DSML|invoke></|DSML|calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", [
+      { type: "function", function: { name: "browser" } },
+    ]);
+    assert.equal(toolCalls?.length, 1);
+    assert.equal(toolCalls![0].function.name, "browser");
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), {
+      action: "act",
+      kind: "click",
+    });
+    assert.equal(content, "");
+  });
+
+  test("WMAdapter native token fixture", () => {
+    const text = `<｜tool▁call▁begin｜>browser<｜tool▁call▁argument▁begin｜>{"action":"screenshot"}<｜tool▁call▁argument▁end｜><｜tool▁call▁end｜>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", [
+      { type: "function", function: { name: "browser" } },
+    ]);
+    assert.equal(toolCalls?.length, 1);
+    assert.deepEqual(JSON.parse(toolCalls![0].function.arguments), { action: "screenshot" });
+    assert.equal(content, "");
+  });
+
+  test("malformed or unknown native markers remain content", () => {
+    const text = `<|DSML|calls><|DSML|invoke name="unknown"><|DSML|parameter name="x">1<|DSML|parameter></|DSML|invoke></|DSML|calls>`;
+    const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", [
+      { type: "function", function: { name: "browser" } },
+    ]);
+    assert.equal(toolCalls, null);
+    assert.equal(content, text);
+  });
+
   test("Ex1: <tool:todowrite>{json} </tool> — name in tag suffix, body is the arguments", () => {
     const text = `I'll write a script.\n\n<tool:todowrite>\n{"todos": [{"content": "a", "status": "in_progress", "priority": "high"}]}\n</tool>`;
     const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
@@ -161,7 +213,7 @@ describe("deepseekWebTools — strict prompt", () => {
     const prompt = serializeDeepSeekToolPrompt(TOOLS);
     assert.ok(prompt.includes("todowrite"));
     assert.ok(prompt.includes("get_weather"));
-    assert.ok(prompt.includes('_nonce'), "includes nonce binding");
+    assert.ok(prompt.includes("_nonce"), "includes nonce binding");
     assert.ok(prompt.includes('<tool>{"name"'), "shows the canonical format");
     assert.ok(/never|not|do not/i.test(prompt), "warns against alternative formats");
   });

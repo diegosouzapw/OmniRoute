@@ -235,6 +235,10 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // Live smoke check for the claude-mem memory backend (scripts/ad-hoc/claude-mem-live-check.ts,
+  // #15425) — port of the operator's local claude-mem worker. The backend itself is configured
+  // through settings.backendConfigs["claude-mem"].port, never this env var.
+  "CLAUDE_MEM_PORT",
   // Lemonade embedding-provider integration test (tests/integration/semantic-cache-lemonade.test.ts)
   // — points the gated live test at an operator's local Lemonade server; the test skips itself
   // when the endpoint is unreachable, never OmniRoute runtime config.

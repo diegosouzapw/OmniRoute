@@ -149,6 +149,73 @@ test("priority target advances on explicit quota exhaustion", async () => {
   assert.deepEqual(calls, ["openai/primary", "anthropic/backup"]);
 });
 
+test("fill-first advances cross-provider after balance 403 in the same request", async () => {
+  const { result, calls } = await run(
+    response(403, "Insufficient account balance", {
+      code: "AUTHZ_INSUFFICIENT_BALANCE",
+    }),
+    { strategy: "fill-first" }
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/primary", "anthropic/backup"]);
+});
+
+test("fill-first balance 403 marks the connection credit-exhausted without deactivating it", async () => {
+  const { createProviderConnection, getProviderConnectionById } =
+    await import("../../src/lib/db/providers.ts");
+  const { writeTerminalStatus } = await import("../../src/shared/utils/terminalStatus.ts");
+  const quotaCache = await import("../../src/domain/quotaCache.ts");
+
+  const conn = await createProviderConnection({
+    provider: "openai",
+    name: "balance-hop-primary",
+    authType: "apikey",
+    apiKey: "sk-balance-hop",
+    isActive: true,
+    testStatus: "active",
+  });
+  const connectionId = String(conn.id);
+
+  quotaCache.setQuotaCache(connectionId, "openai", {
+    session: {
+      remainingPercentage: 40,
+      resetAt: new Date(Date.now() + 86_400_000).toISOString(),
+    },
+  });
+
+  const { result, calls } = await run(
+    response(403, "Insufficient account balance", {
+      code: "AUTHZ_INSUFFICIENT_BALANCE",
+    }),
+    { strategy: "fill-first", connectionId }
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/primary", "anthropic/backup"]);
+  assert.equal(
+    quotaCache.isAccountQuotaExhausted(connectionId),
+    true,
+    "403 balance exhaustion must mark the connection for later routing draws (same as 402)"
+  );
+
+  // chatCore records credits_exhausted via writeTerminalStatus; the connection
+  // must stay is_active=1 so a later top-up can recover without a UI re-enable.
+  await writeTerminalStatus(
+    connectionId,
+    {
+      testStatus: "credits_exhausted",
+      lastError: "Insufficient account balance",
+      errorCode: "403",
+      lastErrorType: "quota_exhausted",
+    },
+    "production"
+  );
+  const after = await getProviderConnectionById(connectionId);
+  assert.equal(after?.isActive, true, "balance 403 must never deactivate the connection");
+  assert.equal(after?.testStatus, "credits_exhausted");
+});
+
 test("priority target retries plain 429 then returns the last response without advancing", async () => {
   const { result, calls } = await run(response(429, "Rate limit exceeded; retry later"), {
     enabled: true,

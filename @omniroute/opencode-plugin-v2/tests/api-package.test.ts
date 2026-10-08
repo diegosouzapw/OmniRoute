@@ -73,7 +73,7 @@ describe("catalog api package (models + combos)", () => {
       ],
     });
     assert.deepEqual(res, { models: 1, combos: 1 });
-    for (const key of ["omniroute/gpt-x", "omniroute/combo-a"]) {
+    for (const key of ["omniroute/gpt-x", "omniroute/Combo A"]) {
       const pkg = apiPackageOf(models.get(key));
       assert.ok(pkg.length > 0, `${key} api.package must be non-empty`);
       assert.ok(SUPPORTED_PACKAGES.has(pkg), `${key} api.package must be supported, got ${pkg}`);

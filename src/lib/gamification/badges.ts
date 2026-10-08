@@ -375,29 +375,6 @@ async function getStreak(apiKeyId: string): Promise<number> {
   return data.currentStreak;
 }
 
-// ─── Helper: Leaderboard Rank ────────────────────────────────────────────────
-
-/**
- * Get the rank of an API key on the global leaderboard.
- * Rank = number of users with a higher score + 1.
- */
-async function getRank(apiKeyId: string, scope: string): Promise<number> {
-  const { getDbInstance } = await import("../db/core");
-  const db = getDbInstance();
-
-  const scoreRow = db
-    .prepare("SELECT score FROM leaderboard WHERE api_key_id = ? AND scope = ?")
-    .get(apiKeyId, scope) as { score: number } | undefined;
-
-  if (!scoreRow) return Infinity;
-
-  const rankRow = db
-    .prepare("SELECT COUNT(*) AS rank FROM leaderboard WHERE scope = ? AND score > ?")
-    .get(scope, scoreRow.score) as { rank: number } | undefined;
-
-  return (rankRow?.rank ?? 0) + 1;
-}
-
 // ─── Badge Evaluation Engine ─────────────────────────────────────────────────
 
 /**
@@ -418,7 +395,8 @@ export async function evaluateBadges(
   metadata?: Record<string, unknown>
 ): Promise<string[]> {
   // Import DB functions dynamically to avoid circular deps
-  const { getBadgeDefinitions, unlockBadge, getBadges } = await import("../db/gamification");
+  const { getBadgeDefinitions, unlockBadge, getBadges, getRank } =
+    await import("../db/gamification");
 
   const definitions = getBadgeDefinitions();
   const earned = getBadges(apiKeyId);
@@ -478,8 +456,9 @@ export async function evaluateBadges(
       }
 
       case "rank": {
-        const rank = await getRank(apiKeyId, "global");
-        unlocked = rank <= criteria.threshold;
+        // getRank returns 0 for a key with no leaderboard entry — that is unranked, not rank 0.
+        const rank = getRank(apiKeyId, "global");
+        unlocked = rank > 0 && rank <= criteria.threshold;
         break;
       }
 
