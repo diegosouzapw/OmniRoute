@@ -182,7 +182,12 @@ export function translateNonStreamingClientResponse(
           item.namespace = identity.namespace;
           item.name = identity.name;
         }
-        Object.assign(item, plaintextCollaborationFields(item.namespace, item.name));
+        // #15088 - the empty marker means "this call was translated from
+        // plaintext Chat Completions". A native Responses body already carries
+        // the protocol's own encrypted_function_args (present or absent).
+        if (responsePayloadFormat !== FORMATS.OPENAI_RESPONSES) {
+          Object.assign(item, plaintextCollaborationFields(item.namespace, item.name));
+        }
       }
     }
   } else if (clientResponseFormat === FORMATS.OPENAI) {

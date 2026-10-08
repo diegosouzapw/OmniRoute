@@ -273,6 +273,23 @@ export default function PassthroughModelRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {onToggleHidden && testStatus === "error" && (
+            <button
+              onClick={() => onToggleHidden(modelId, true)}
+              disabled={togglingHidden}
+              className={`flex items-center gap-1 rounded p-0.5 text-[11px] text-red-500 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${togglingHidden ? "animate-pulse" : ""}`}
+              title={providerText(
+                t,
+                "blacklistModelTooltip",
+                "Blacklist this model — hide it from the catalog"
+              )}
+            >
+              <span className="material-symbols-outlined text-sm">
+                {togglingHidden ? "progress_activity" : "block"}
+              </span>
+              <span>{providerText(t, "blacklistModel", "Blacklist")}</span>
+            </button>
+          )}
           {/* #14337: the affordance itself. Rendered only when the section
               supplies a handler, so rows that cannot take an override are
               unchanged. */}

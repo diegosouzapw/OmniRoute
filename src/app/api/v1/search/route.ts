@@ -372,6 +372,11 @@ async function postHandler(request: Request, context: unknown) {
         log,
         connectionId: credentials?.connectionId || undefined,
         apiKeyId: policy.apiKeyInfo?.id || undefined,
+        timeoutMs: typeof settings?.searchTimeoutMs === "number" ? settings.searchTimeoutMs : undefined,
+        providerTimeoutsMs:
+          settings?.searchProviderTimeoutsMs && typeof settings.searchProviderTimeoutsMs === "object"
+            ? settings.searchProviderTimeoutsMs
+            : undefined,
       });
 
       if (!result.success) {

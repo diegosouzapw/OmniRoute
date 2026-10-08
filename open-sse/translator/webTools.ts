@@ -33,7 +33,6 @@ export interface SerializeToolsToPromptOptions {
   descriptionMaxChars?: number;
 }
 
-const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
 // Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
 // instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
 // lives there, never in the tag's `name="..."` attribute (#3260).
@@ -41,6 +40,40 @@ const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
 // to the end of the text from every such tag, so a run of them was quadratic again.
 const TOOL_CALL_OPEN_RE = /<tool_call(?:\s[^<>]*)?>/g;
 const TOOL_CALL_CLOSE_RE = /<\/tool_call>/g;
+
+const DSML_INVOKE_RE =
+  /<(?<dsml>｜｜DSML｜｜|\|DSML\|)\s*invoke\s+name=["']([^"']+)["']\s*>([\s\S]*?)<\/\k<dsml>\s*invoke\s*>/g;
+
+function normalizeDsmlToolCalls(text: string): string {
+  DSML_INVOKE_RE.lastIndex = 0;
+  return text
+    .replace(DSML_INVOKE_RE, (_match, _dsml: string, name: string, body: string) => {
+      const parameters: Record<string, unknown> = {};
+      const parameterRe =
+        /<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s*>|(?=<(?:｜｜DSML｜｜|\|DSML\|)\s*parameter\s+name=|<\/(?:｜｜DSML｜｜|\|DSML\|)\s*invoke\s*>))/g;
+      let parameter: RegExpExecArray | null;
+      while ((parameter = parameterRe.exec(body)) !== null) {
+        const raw = parameter[2].trim();
+        try {
+          parameters[parameter[1]] = JSON.parse(raw);
+        } catch {
+          parameters[parameter[1]] = raw;
+        }
+      }
+      if (Object.keys(parameters).length === 0) {
+        try {
+          const parsed = JSON.parse(body.trim() || "{}");
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            Object.assign(parameters, parsed);
+          }
+        } catch {
+          // Leave malformed arguments empty; the surrounding parser remains fail-safe.
+        }
+      }
+      return `<tool>{"name":${JSON.stringify(name)},"arguments":${JSON.stringify(parameters)}}</tool>`;
+    })
+    .replace(/<\/?(?:｜｜DSML｜｜|\|DSML\|)\s*calls\s*>/g, "");
+}
 
 // Per-request nonce binding for tool envelopes (#9343). Associates a random nonce
 // with each tools[] array reference so the serializer and parser can share it
@@ -553,17 +586,23 @@ export function parseToolCallsFromText(
   idSeed = "call",
   requestedTools?: unknown
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
+  const normalizedText = typeof text === "string" ? normalizeDsmlToolCalls(text) : text;
   const requestedToolNames = getRequestedToolNames(requestedTools);
-  if (typeof text !== "string" || (!text.includes("<tool>") && !text.includes("<tool_call"))) {
+  if (
+    typeof normalizedText !== "string" ||
+    (!normalizedText.includes("<tool>") && !normalizedText.includes("<tool_call"))
+  ) {
     return { content: text ?? "", toolCalls: null };
   }
 
   const nonce = getToolNonce(requestedTools);
   const candidates: ToolParseCandidate[] = [];
 
+  // Candidate extraction runs on the DSML-normalized text: normalizeDsmlToolCalls rewrites
+  // DeepSeek's native dialect into canonical <tool> blocks first, so both shapes are collected.
   for (const block of [
-    ...findTagBlocks(text, TOOL_OPEN_RE, TOOL_CLOSE_RE),
-    ...findTagBlocks(text, TOOL_CALL_OPEN_RE, TOOL_CALL_CLOSE_RE),
+    ...findTagBlocks(normalizedText, TOOL_OPEN_RE, TOOL_CLOSE_RE),
+    ...findTagBlocks(normalizedText, TOOL_CALL_OPEN_RE, TOOL_CALL_CLOSE_RE),
   ]) {
     candidates.push({
       raw: block.inner.trim(),
@@ -621,7 +660,7 @@ export function parseToolCallsFromText(
     return { content: text, toolCalls: null };
   }
 
-  const content = stripRanges(text, acceptedRanges);
+  const content = stripRanges(normalizedText, acceptedRanges);
   return { content, toolCalls };
 }
 

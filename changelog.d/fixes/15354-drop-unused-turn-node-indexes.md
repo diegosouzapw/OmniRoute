@@ -1,0 +1,1 @@
+- **perf(db):** drop two conversation turn node indexes no query reads ([#15354](https://github.com/diegosouzapw/OmniRoute/pull/15354)) — thanks @maxmad64bis

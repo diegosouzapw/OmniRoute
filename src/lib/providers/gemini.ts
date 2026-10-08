@@ -22,6 +22,7 @@ export interface GeminiEnvCredentials {
   provider: string;
   authType: "apikey";
   defaultModel: null;
+  rateLimitMaxConcurrent: null;
 }
 
 export function isGeminiCredentialProvider(providerId: string | null | undefined): boolean {
@@ -82,5 +83,6 @@ export function buildGeminiEnvCredentials(
     provider: providerId,
     authType: "apikey",
     defaultModel: null,
+    rateLimitMaxConcurrent: null,
   };
 }

@@ -225,6 +225,92 @@ const pendingIdByCorrelation = pendingState.pendingIdByCorrelation;
 const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
 const MAX_PENDING_DETAILS = 5000;
 const PENDING_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+const MAX_PENDING_DETAIL_BYTES = 256 * 1024 * 1024;
+
+/**
+ * Retained-byte total for `pendingById`. The 5000-entry cap bounds COUNT but
+ * not MEMORY: each entry retains up to four payloads (clientRequest +
+ * providerRequest + providerResponse + clientResponse, see
+ * pendingRequestScope.ts::PENDING_PAYLOAD_KEYS). Payloads are preview-truncated
+ * first, so a worst-case entry measures ~50 KB and the 5000 cap lands near
+ * 250 MB — close enough to the process ceiling that a byte ceiling is the
+ * safer invariant, and it bounds the map within a single burst instead of
+ * waiting for the 5-minute age sweep. Mirrors the accounting
+ * completedRequestDetails.ts already does for the same payloads.
+ */
+let totalPendingDetailBytes = 0;
+
+/** Monotonic suffix making pending ids unique even inside one millisecond. */
+let pendingIdSequence = 0;
+
+/** Recursive retained-size estimate (string bytes + fixed per-node overhead). */
+function estimatePendingBytes(value: unknown, seen = new WeakSet<object>()): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "string") return Buffer.byteLength(value, "utf8");
+  if (typeof value === "number" || typeof value === "bigint") return 8;
+  if (typeof value === "boolean") return 4;
+  if (typeof value !== "object" || seen.has(value)) return 0;
+  seen.add(value);
+  if (Array.isArray(value)) {
+    return 32 + value.reduce((total, entry) => total + estimatePendingBytes(entry, seen), 0);
+  }
+  let bytes = 64;
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    bytes += Buffer.byteLength(key, "utf8") + estimatePendingBytes(entry, seen);
+  }
+  return bytes;
+}
+
+/** Payload fields whose size counts against the pending-map byte ceiling. */
+const PENDING_PAYLOAD_FIELDS = [
+  "clientRequest",
+  "providerRequest",
+  "providerResponse",
+  "clientResponse",
+  "streamChunks",
+] as const;
+
+function pendingDetailBytes(detail: PendingRequestDetail): number {
+  let bytes = 256; // scalars: id/model/provider/correlationId/tokens
+  for (const field of PENDING_PAYLOAD_FIELDS) {
+    bytes += estimatePendingBytes(detail[field]);
+  }
+  return bytes;
+}
+
+/**
+ * Hard byte ceiling on the pending map. Runs after every insert so a burst of
+ * large-context requests cannot push the process past the 85% heap guard before
+ * the 5-minute age sweep runs. Eviction order matches the count-cap path
+ * (stale-marked first, then oldest) so the dashboard's pending counters self-heal.
+ */
+function enforcePendingByteCeiling(): void {
+  if (totalPendingDetailBytes <= MAX_PENDING_DETAIL_BYTES) return;
+  const victims = [...pendingById.values()].sort((a, b) => {
+    if (Boolean(a.stale) !== Boolean(b.stale)) return a.stale ? -1 : 1;
+    return a.startedAt - b.startedAt;
+  });
+  for (const detail of victims) {
+    if (totalPendingDetailBytes <= MAX_PENDING_DETAIL_BYTES) break;
+    const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
+    pendingById.delete(detail.id);
+    totalPendingDetailBytes -= pendingDetailBytes(detail);
+    if (detail.connectionId && isSafeKey(modelKey)) {
+      const bucket = pendingRequests.details[detail.connectionId]?.[modelKey];
+      if (bucket) {
+        const index = bucket.findIndex((entry) => entry.id === detail.id);
+        if (index >= 0) bucket.splice(index, 1);
+      }
+      cleanupPendingDetails(detail.connectionId, modelKey);
+      decrementPendingCounters(modelKey, detail.connectionId);
+    }
+  }
+}
+
+/** Retained bytes currently held by the pending map (diagnostics + tests). */
+export function getPendingRetainedBytes(): number {
+  return totalPendingDetailBytes;
+}
 let _pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
 
 export function getMaxPendingRequestAgeMs(
@@ -264,6 +350,7 @@ export function sweepStalePendingRequests(
   const remove = (detail: PendingRequestDetail): void => {
     const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
     pendingById.delete(detail.id);
+    totalPendingDetailBytes -= pendingDetailBytes(detail);
     if (detail.connectionId && isSafeKey(modelKey)) {
       const bucket = pendingRequests.details[detail.connectionId]?.[modelKey];
       if (bucket) {
@@ -393,7 +480,18 @@ export function trackPendingRequest(
         // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
         // this pending-request id flows into attempt logging; it's a correlation
         // id, not a security secret.
-        id: reusableId ?? `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
+        // A pending id must be unique across CONCURRENT requests, and thousands can
+        // be tracked inside one millisecond. The old `${now}-${uuid.slice(0,6)}`
+        // form had only a 24-bit random suffix, so a 5,000-request burst collided
+        // ~52% of the time (birthday bound); `pendingById.set` then silently
+        // overwrote the earlier entry, so a live request's pending row vanished
+        // from the map while its bucket still listed it. Keep the timestamp for
+        // ordering/readability, and add a monotonic counter + full random bytes.
+        id:
+          reusableId ??
+          `${now}-${(globalThis.crypto.randomUUID() as string).replace(/-/g, "").slice(0, 12)}-${(++pendingIdSequence).toString(
+            36
+          )}`,
         model,
         provider,
         connectionId,
@@ -402,6 +500,8 @@ export function trackPendingRequest(
       };
       pendingRequests.details[connectionId][modelKey].push(newDetail);
       pendingById.set(newDetail.id, newDetail);
+      totalPendingDetailBytes += pendingDetailBytes(newDetail);
+      enforcePendingByteCeiling();
       if (normalizedMetadata.correlationId) {
         pendingIdByCorrelation.set(normalizedMetadata.correlationId, {
           id: newDetail.id,
@@ -416,10 +516,16 @@ export function trackPendingRequest(
           bucket.findIndex((entry) => entry.id === pendingRequestId),
           1
         );
-        if (removed) pendingById.delete(removed.id);
+        if (removed) {
+          pendingById.delete(removed.id);
+          totalPendingDetailBytes -= pendingDetailBytes(removed);
+        }
       } else if (pendingRequests.details[connectionId]?.[modelKey]?.length) {
         const removed = pendingRequests.details[connectionId][modelKey].shift();
-        if (removed) pendingById.delete(removed.id);
+        if (removed) {
+          pendingById.delete(removed.id);
+          totalPendingDetailBytes -= pendingDetailBytes(removed);
+        }
       }
       if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
         delete pendingRequests.details[connectionId]?.[modelKey];
@@ -443,13 +549,20 @@ export function updatePendingRequest(
   const details = pendingRequests.details[connectionId]?.[modelKey];
   if (!details?.length) return;
   const lastIdx = details.length - 1;
+  // providerRequest / providerResponse / clientResponse land HERE, on an
+  // already-tracked entry, not on insert. Without re-measuring, the running total
+  // undercounts and the byte ceiling silently stops enforcing in production.
+  const before = pendingDetailBytes(details[lastIdx]);
   Object.assign(details[lastIdx], normalizePendingMetadata(metadata));
+  totalPendingDetailBytes += pendingDetailBytes(details[lastIdx]) - before;
 }
 
 export function updatePendingRequestById(id: string | null, metadata: PendingRequestMetadata) {
   const detail = id ? pendingById.get(id) : null;
   if (!detail) return false;
+  const before = pendingDetailBytes(detail);
   Object.assign(detail, normalizePendingMetadata(metadata));
+  totalPendingDetailBytes += pendingDetailBytes(detail) - before;
   return true;
 }
 
@@ -532,6 +645,7 @@ function finalizePendingDetailAt(
 
   details.splice(index, 1);
   pendingById.delete(updated.id);
+  totalPendingDetailBytes -= pendingDetailBytes(updated);
   cleanupPendingDetails(connectionId, modelKey);
   decrementPendingCounters(modelKey, connectionId);
   return updated.id;
@@ -628,6 +742,7 @@ export function clearPendingRequests() {
   >;
   pendingById.clear();
   pendingIdByCorrelation.clear();
+  totalPendingDetailBytes = 0;
   clearCompletedDetails();
 }
 

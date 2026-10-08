@@ -96,14 +96,17 @@ function jsonResponse(body: unknown, status = 200, headers: Record<string, strin
 
 // ── Registry ───────────────────────────────────────────────────────────────
 
-test("upscale registry exposes adobe-firefly, stability-ai and topaz", () => {
+// #14269 intentionally adds the SYNTX.ai upscale provider (format "syntx-upscale").
+test("upscale registry exposes adobe-firefly, stability-ai, syntx and topaz", () => {
   assert.deepEqual(Object.keys(UPSCALE_PROVIDERS).sort(), [
     "adobe-firefly",
     "stability-ai",
+    "syntx",
     "topaz",
   ]);
   assert.equal(getUpscaleProvider("adobe-firefly")?.format, "adobe-firefly-upscale");
   assert.equal(getUpscaleProvider("stability-ai")?.format, "stability-upscale");
+  assert.equal(getUpscaleProvider("syntx")?.format, "syntx-upscale");
   assert.equal(getUpscaleProvider("topaz")?.format, "topaz-upscale");
   assert.equal(getUpscaleProvider("nope"), null);
 });

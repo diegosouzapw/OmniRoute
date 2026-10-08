@@ -6,6 +6,7 @@ import {
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors";
 import { TRANSLATION_FAILURE_CODE } from "@omniroute/open-sse/handlers/chatCore/translationFailure";
+import { isProviderCircuitOpenResult } from "@omniroute/open-sse/services/combo/comboPredicates.ts";
 
 export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
@@ -69,6 +70,10 @@ export function shouldTripProviderBreakerForResult(
   return (
     !forceLiveComboTest &&
     !isCombo &&
+    !isProviderCircuitOpenResult(
+      result.response ?? {},
+      String(result.errorCode ?? result.error ?? "")
+    ) &&
     !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
     !(result.response && getTrustedLocalRateLimitResponse(result.response)) &&
     !isLocalStreamLifecycleError(result.error) &&

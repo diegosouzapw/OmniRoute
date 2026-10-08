@@ -10,7 +10,11 @@ export interface ChatGptWebFirstPartyModuleContract {
   turnstileManager: string;
   requestClient: string;
   buildSentinelHeaders: string;
+  resolveIntegrity?: string;
+  resolveIntegrityModule?: string;
 }
+
+type PartialFirstPartyModuleContract = Partial<ChatGptWebFirstPartyModuleContract>;
 
 export interface ChatGptWebFirstPartyRequest {
   prompt: string;
@@ -51,7 +55,8 @@ interface BrowserConversationAttachment {
 }
 
 const CHATGPT_ORIGIN = "https://chatgpt.com";
-const CHATGPT_ASSET_PATH_RE = /^\/cdn\/assets\/[A-Za-z0-9_-]+\.js$/;
+const CHATGPT_ASSET_PATH_RE =
+  /^\/(?:cdn|unauth-mweb|auth-mweb)\/(?:assets|scripts)\/[A-Za-z0-9._-]+\.js$/;
 const OAI_UPLOAD_HOST_RE = /(?:^|\.)oaiusercontent\.com$/i;
 const FIRST_PARTY_BRIDGE_KEY = "__omnirouteChatGptFirstPartyV1";
 const FIRST_PARTY_ABORT_KEY = "__omnirouteChatGptAbortV1";
@@ -62,6 +67,7 @@ const ASSET_FETCH_TIMEOUT_MS = 20_000;
 const MAX_DISCOVERY_ASSETS = 512;
 const MODULE_DISCOVERY_TIMEOUT_MS = 15_000;
 const MODULE_DISCOVERY_POLL_MS = 250;
+
 const contractCache = new Map<string, Promise<ChatGptWebFirstPartyModuleContract>>();
 const pageRequestTails = new WeakMap<Page, Promise<void>>();
 let lastKnownModuleAssetUrl: string | null = null;
@@ -124,6 +130,68 @@ export function parseChatGptWebFirstPartyModuleContract(
   return contract as ChatGptWebFirstPartyModuleContract;
 }
 
+function parsePartialChatGptWebFirstPartyModuleContract(
+  source: string
+): PartialFirstPartyModuleContract {
+  const result: PartialFirstPartyModuleContract = {};
+
+  const finalizeLocal =
+    source.match(
+      /function ([A-Za-z_$][\w$]*)\(e=!1,t=`none`(?:,n=[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?)?\)\{return [A-Za-z_$][\w$]*\(`finalized`,e,t(?:,n)?\)\}/
+    )?.[1] ?? source.match(/finalizeChatRequirements\s*:\s*\(\)\s*=>\s*([A-Za-z_$][\w$]*)/)?.[1];
+  if (finalizeLocal)
+    result.finalizeRequirements = exportedName(source, finalizeLocal) ?? finalizeLocal;
+
+  const enforcement = source.match(
+    /Promise\.all\(\[([A-Za-z_$][\w$]*)\.getEnforcementToken\(t,\{forceSync:!0\}\),([A-Za-z_$][\w$]*)\.getEnforcementToken\(t\)\]\)/
+  );
+  const proofLocal =
+    enforcement?.[1] ??
+    source.match(/([A-Za-z_$][\w$]*)\.getEnforcementToken\([^)]*forceSync\s*:\s*!0/)?.[1];
+  const turnstileLocal = enforcement?.[2];
+  if (proofLocal) result.proofManager = exportedName(source, proofLocal) ?? proofLocal;
+  if (turnstileLocal)
+    result.turnstileManager = exportedName(source, turnstileLocal) ?? turnstileLocal;
+
+  const requestClientLocal =
+    source.match(/([A-Za-z_$][\w$]*)\.safePost\(`\/sentinel\/chat-requirements\/prepare`/)?.[1] ??
+    source.match(
+      /([A-Za-z_$][\w$]*)\.(?:safePost|post)\([`"]\/sentinel\/chat-requirements\/prepare[`"]/
+    )?.[1];
+  if (requestClientLocal) {
+    result.requestClient = exportedName(source, requestClientLocal) ?? requestClientLocal;
+  }
+
+  const headerBuilderLocal =
+    source.match(
+      /function ([A-Za-z_$][\w$]*)\(e,t,n,r,i,a\)\{let o=\{\};return e\?\.token\?o\[`OpenAI-Sentinel-Chat-Requirements-Token`\]/
+    )?.[1] ??
+    source.match(
+      /([A-Za-z_$][\w$]*)\s*=\s*[^;]{0,1200}OpenAI-Sentinel-Chat-Requirements-Token/
+    )?.[1];
+  if (headerBuilderLocal) {
+    result.buildSentinelHeaders = exportedName(source, headerBuilderLocal) ?? headerBuilderLocal;
+  }
+
+  const integrityModule = source.match(
+    /(?:^|\}\),)([A-Za-z0-9_$]+):\(function\(e,t,n\)\{n\.d\(t,\{([^}]+)\}\);[\s\S]{0,1800}?async function ([A-Za-z_$][\w$]*)\(e\)\{let t=[A-Za-z_$][\w$]*\(\),n=[A-Za-z_$][\w$]*\(await e\(t\)\)/
+  );
+  if (integrityModule) {
+    const [, moduleId, exportMap, resolveIntegrityLocal] = integrityModule;
+    const resolveIntegrityExport = exportMap.match(
+      new RegExp(
+        `(?:^|,)\\s*([A-Za-z_$][\\w$]*):\\(\\)=>${escapeRegExp(resolveIntegrityLocal)}(?:,|$)`
+      )
+    )?.[1];
+    if (resolveIntegrityExport) {
+      result.resolveIntegrity = resolveIntegrityExport;
+      result.resolveIntegrityModule = moduleId;
+    }
+  }
+
+  return result;
+}
+
 function requireChatGptAssetUrl(value: string): string {
   const url = new URL(value);
   if (url.origin !== CHATGPT_ORIGIN || !CHATGPT_ASSET_PATH_RE.test(url.pathname)) {
@@ -136,9 +204,14 @@ export function collectChatGptWebFirstPartyAssetCandidates(
   resourceUrls: readonly string[],
   modulePreloadUrls: readonly string[]
 ): string[] {
-  return Array.from(new Set([...resourceUrls, ...modulePreloadUrls])).filter(
-    (url) => url.includes("/cdn/assets/") && url.endsWith(".js")
-  );
+  return Array.from(new Set([...resourceUrls, ...modulePreloadUrls])).filter((url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.origin === CHATGPT_ORIGIN && CHATGPT_ASSET_PATH_RE.test(parsed.pathname);
+    } catch {
+      return false;
+    }
+  });
 }
 
 /** Find first-party chunks referenced by an already-loaded ChatGPT module. */
@@ -195,6 +268,8 @@ interface FirstPartyDiscoveryState {
   visited: Set<string>;
   index: number;
   lastError: Error | null;
+  partial: PartialFirstPartyModuleContract;
+  symbolAssetUrls: Partial<Record<keyof ChatGptWebFirstPartyModuleContract, string>>;
 }
 
 function discoveryError(error: unknown, fallback: string): Error {
@@ -209,10 +284,11 @@ async function collectPageAssetCandidates(page: Page): Promise<string[]> {
     ),
     resourceUrls: performance.getEntriesByType("resource").map((entry) => entry.name),
   }));
-  return collectChatGptWebFirstPartyAssetCandidates(
+  const candidates = collectChatGptWebFirstPartyAssetCandidates(
     sources.resourceUrls,
     sources.modulePreloadUrls
   );
+  return candidates;
 }
 
 async function inspectFirstPartyAsset(
@@ -251,7 +327,45 @@ async function inspectFirstPartyAsset(
     lastKnownModuleAssetUrl = assetUrl;
     return { assetUrl, contract };
   } catch (error) {
-    state.lastError = discoveryError(error, "ChatGPT module discovery failed");
+    const partial = parsePartialChatGptWebFirstPartyModuleContract(source);
+    for (const [key, value] of Object.entries(partial) as Array<
+      [keyof ChatGptWebFirstPartyModuleContract, string]
+    >) {
+      if (!state.partial[key]) {
+        state.partial[key] = value;
+        state.symbolAssetUrls[key] = assetUrl;
+      }
+    }
+
+    if (
+      state.partial.requestClient &&
+      ((state.partial.resolveIntegrity && state.partial.resolveIntegrityModule) ||
+        (state.partial.finalizeRequirements &&
+          state.partial.proofManager &&
+          state.partial.buildSentinelHeaders))
+    ) {
+      const contract: ChatGptWebFirstPartyModuleContract = {
+        finalizeRequirements: state.partial.finalizeRequirements ?? "",
+        proofManager: state.partial.proofManager ?? "",
+        turnstileManager: state.partial.turnstileManager ?? state.partial.proofManager ?? "",
+        requestClient: state.partial.requestClient,
+        buildSentinelHeaders: state.partial.buildSentinelHeaders ?? "",
+        ...(state.partial.resolveIntegrity
+          ? {
+              resolveIntegrity: state.partial.resolveIntegrity,
+              resolveIntegrityModule: state.partial.resolveIntegrityModule,
+            }
+          : {}),
+      };
+      const primaryAssetUrl = state.symbolAssetUrls.finalizeRequirements ?? assetUrl;
+      lastKnownModuleAssetUrl = primaryAssetUrl;
+      return { assetUrl: primaryAssetUrl, contract };
+    }
+
+    const found = Object.keys(state.partial);
+    state.lastError = found.length
+      ? new Error(`ChatGPT module discovery incomplete: found ${found.join(", ")}`)
+      : discoveryError(error, "ChatGPT module discovery failed");
     const references = extractChatGptWebFirstPartyAssetReferences(source, assetUrl);
     state.queue.push(...references.filter((reference) => !state.visited.has(reference)));
     return null;
@@ -276,6 +390,8 @@ async function discoverFirstPartyModule(page: Page): Promise<FirstPartyModuleRes
     visited: new Set<string>(),
     index: 0,
     lastError: null,
+    partial: {},
+    symbolAssetUrls: {},
   };
   const deadline = Date.now() + MODULE_DISCOVERY_TIMEOUT_MS;
 
@@ -292,133 +408,211 @@ async function discoverFirstPartyModule(page: Page): Promise<FirstPartyModuleRes
   });
 }
 
+function buildBridgeModuleSource(
+  assetUrl: string,
+  contract: ChatGptWebFirstPartyModuleContract
+): string {
+  const urlLiteral = JSON.stringify(requireChatGptAssetUrl(assetUrl));
+  const contractLiteral = JSON.stringify(contract);
+  const keyLiteral = JSON.stringify(FIRST_PARTY_BRIDGE_KEY);
+  if (contract.resolveIntegrity && contract.resolveIntegrityModule) {
+    return [
+      `import * as upstream from ${urlLiteral};`,
+      `const names = ${contractLiteral};`,
+      `const modules = upstream.__webpack_modules__;`,
+      `const factory = modules?.[names.resolveIntegrityModule];`,
+      `if (typeof factory !== "function") throw new Error("ChatGPT integrity module factory is unavailable");`,
+      `const exports = {};`,
+      `const requireShim = id => {`,
+      `if (id === "TI") return { a: () => crypto.randomUUID() };`,
+      `throw new Error("Unsupported ChatGPT integrity dependency: " + id);`,
+      `};`,
+      `requireShim.d = (target, definitions) => {`,
+      `for (const [name, getter] of Object.entries(definitions)) {`,
+      `Object.defineProperty(target, name, { enumerable: true, get: getter });`,
+      `}`,
+      `};`,
+      `factory({}, exports, requireShim);`,
+      `const resolveIntegrity = exports[names.resolveIntegrity];`,
+      `if (typeof resolveIntegrity !== "function") throw new Error("ChatGPT integrity resolver is unavailable");`,
+      `const sessionPromise = fetch("/api/auth/session", { credentials: "include" }).then(async response => {`,
+      `if (!response.ok) throw new Error("ChatGPT browser session is unavailable");`,
+      `return response.json();`,
+      `});`,
+      `const requestClient = {`,
+      `safePost: async (path, options = {}) => {`,
+      `const headers = new Headers(options.additionalHeaders || {});`,
+      `const session = await sessionPromise;`,
+      `if (typeof session?.accessToken === "string" && session.accessToken) {`,
+      `headers.set("Authorization", "Bearer " + session.accessToken);`,
+      `}`,
+      `headers.set("Accept", "application/json");`,
+      `if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");`,
+      `const body = typeof options.requestBody === "string" ? options.requestBody : JSON.stringify(options.requestBody ?? {});`,
+      `const response = await fetch("/backend-api" + path, {`,
+      `method: "POST", credentials: "include", headers, body, signal: options.signal`,
+      `});`,
+      `if (options.skipJsonTransform) return response;`,
+      `if (!response.ok) throw new Error("ChatGPT request failed with status " + response.status);`,
+      `return response.json();`,
+      `}`,
+      `};`,
+      `window[${keyLiteral}] = { requestClient, resolveIntegrity };`,
+    ].join("");
+  }
+  return [
+    `import * as upstream from ${urlLiteral};`,
+    `const names = ${contractLiteral};`,
+    `window[${keyLiteral}] = {`,
+    `finalizeRequirements: upstream[names.finalizeRequirements],`,
+    `proofManager: upstream[names.proofManager],`,
+    `turnstileManager: upstream[names.turnstileManager],`,
+    `requestClient: upstream[names.requestClient],`,
+    `buildSentinelHeaders: upstream[names.buildSentinelHeaders],`,
+    `resolveIntegrity: names.resolveIntegrity ? upstream[names.resolveIntegrity] : undefined`,
+    `};`,
+  ].join("");
+}
+
+/// One captured explanation for why the bridge module did not load.
+export interface ChatGptWebBridgeFailureSignal {
+  kind: "csp" | "requestfailed" | "pageerror";
+  detail: string;
+}
+
+/**
+ * Collector for the reasons a bridge load can fail. `script.onerror` receives a
+ * bare `Event` with no reason attached, so without these listeners the only
+ * thing reaching the operator is "failed to load" (#14773).
+ *
+ * Returns a live array plus a `dispose` that detaches the listeners, so a failed
+ * load does not leak handlers onto a long-lived page.
+ */
+export function collectBridgeFailureSignals(
+  page: Pick<Page, "on" | "off">,
+  assetUrl: string
+): { signals: ChatGptWebBridgeFailureSignal[]; dispose: () => void } {
+  const signals: ChatGptWebBridgeFailureSignal[] = [];
+
+  const onRequestFailed = (request: {
+    url: () => string;
+    failure: () => { errorText: string } | null;
+  }) => {
+    const url = request.url();
+    // Only the module asset and the blob wrapper matter here. The page keeps
+    // making its own requests while we wait, and an unrelated failure would be
+    // a misleading explanation rather than no explanation.
+    if (url !== assetUrl && !url.startsWith("blob:")) return;
+    signals.push({
+      kind: "requestfailed",
+      detail: `${url} failed: ${request.failure()?.errorText ?? "unknown error"}`,
+    });
+  };
+  const onPageError = (error: unknown) => {
+    signals.push({
+      kind: "pageerror",
+      detail: error instanceof Error ? error.message : String(error),
+    });
+  };
+
+  page.on("requestfailed", onRequestFailed as never);
+  page.on("pageerror", onPageError as never);
+
+  return {
+    signals,
+    dispose: () => {
+      page.off("requestfailed", onRequestFailed as never);
+      page.off("pageerror", onPageError as never);
+    },
+  };
+}
+
+/**
+ * Compose the operator-facing reason from whatever was captured.
+ *
+ * A CSP violation wins when present: it is the one cause that is a property of
+ * chatgpt.com rather than of this install, so it is the signal that says
+ * "the upstream changed" rather than "your session is stale" (#14773 problem 2).
+ */
+export function describeBridgeLoadFailure(signals: ChatGptWebBridgeFailureSignal[]): string {
+  const base = "ChatGPT Web first-party bridge module failed to load";
+  if (signals.length === 0) {
+    return `${base} (no CSP violation, failed request or page error was captured)`;
+  }
+  const ranked =
+    signals.find((signal) => signal.kind === "csp") ??
+    signals.find((signal) => signal.kind === "requestfailed") ??
+    signals[0]!;
+  return `${base}: ${ranked.kind}: ${ranked.detail}`;
+}
+
 async function ensureFirstPartyBridge(page: Page): Promise<void> {
   const ready = await page.evaluate((key) => {
     const root = globalThis as typeof globalThis & Record<string, unknown>;
-    const bridge = root[key] as
-      | {
-          finalizeRequirements?: unknown;
-          proofManager?: { getEnforcementToken?: unknown };
-          turnstileManager?: { getEnforcementToken?: unknown };
-          requestClient?: { safePost?: unknown };
-          buildSentinelHeaders?: unknown;
-        }
-      | undefined;
-    return Boolean(
-      typeof bridge?.finalizeRequirements === "function" &&
-      typeof bridge.proofManager?.getEnforcementToken === "function" &&
-      typeof bridge.turnstileManager?.getEnforcementToken === "function" &&
-      typeof bridge.requestClient?.safePost === "function" &&
-      typeof bridge.buildSentinelHeaders === "function"
-    );
+    return typeof root[key] === "object" && root[key] !== null;
   }, FIRST_PARTY_BRIDGE_KEY);
   if (ready) return;
 
   const { assetUrl, contract } = await discoverFirstPartyModule(page);
-  const moduleUrlLiteral = JSON.stringify(requireChatGptAssetUrl(assetUrl));
-  const contractLiteral = JSON.stringify(contract);
-  const bridgeKeyLiteral = JSON.stringify(FIRST_PARTY_BRIDGE_KEY);
-  await page.evaluate(`(async () => {
-        const bridgeKey = ${bridgeKeyLiteral};
-        const names = ${contractLiteral};
-        const root = globalThis;
-        const existing = root[bridgeKey];
-        if (
-          existing &&
-          typeof existing === "object" &&
-          typeof existing.requestClient?.safePost === "function"
-        ) {
-          return;
-        }
-        // Import from the first-party page context directly. Injecting a blob: module is
-        // rejected by ChatGPT's CSP, even though the same-origin asset itself is allowed.
-        let upstream;
-        try {
-          upstream = await import(${moduleUrlLiteral});
-        } catch (importError) {
-          root[bridgeKey + ":diag"] = { stage: "import-failed", error: String(importError && importError.message || importError) };
-          throw importError;
-        }
-        root[bridgeKey + ":diag"] = {
-          stage: "imported",
-          names,
-          upstreamKeyCount: Object.keys(upstream || {}).length,
-          upstreamKeys: Object.keys(upstream || {}).slice(0, 40),
-          resolved: Object.fromEntries(
-            Object.entries(names).map(([k, v]) => [k, typeof (upstream || {})[v]])
-          ),
-        };
-        const hasSafePost = (value) =>
-          value != null &&
-          (typeof value.safePost === "function" ||
-            typeof value.prototype?.safePost === "function");
-        const candidates = [];
-        const seen = new Set();
-        const collect = (value, depth = 0) => {
-          if (value == null || (typeof value !== "object" && typeof value !== "function") || seen.has(value)) return;
-          seen.add(value);
-          candidates.push(value);
-          if (depth >= 3) return;
-          for (const nested of Object.values(value)) collect(nested, depth + 1);
-        };
-        collect(upstream);
-        let requestClient = upstream[names.requestClient] &&
-          hasSafePost(upstream[names.requestClient])
-          ? upstream[names.requestClient]
-          : candidates.find(hasSafePost);
-        if (!requestClient) {
-          requestClient = {
-            safePost: (path, options = {}) => {
-              const requestBody = options.requestBody;
-              return fetch(path, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  Accept: "application/json, text/plain, */*",
-                  ...(requestBody === undefined ? {} : { "Content-Type": "application/json" }),
-                  ...(typeof options.additionalHeaders === "object" &&
-                  options.additionalHeaders !== null
-                    ? (options.additionalHeaders as Record<string, string>)
-                    : {}),
-                },
-                ...(requestBody === undefined ? {} : { body: JSON.stringify(requestBody) }),
-                ...(options.signal ? { signal: options.signal } : {}),
-              });
+  const moduleSource = buildBridgeModuleSource(assetUrl, contract);
+  const collected = collectBridgeFailureSignals(page, assetUrl);
+  try {
+    await page.evaluate(
+      ({ bridgeKey, moduleSource: source }) =>
+        new Promise<void>((resolve, reject) => {
+          const root = globalThis as typeof globalThis & Record<string, unknown>;
+          if (typeof root[bridgeKey] === "object" && root[bridgeKey] !== null) {
+            resolve();
+            return;
+          }
+          // A CSP `script-src` refusal is only observable inside the page: it
+          // does not surface as a failed request, and `script.onerror` carries
+          // no reason. Captured here and folded into the rejection so it
+          // survives back across the evaluate boundary.
+          let cspDetail = "";
+          const violationListener = new AbortController();
+          document.addEventListener(
+            "securitypolicyviolation",
+            (event) => {
+              if (!cspDetail) {
+                cspDetail = `${event.violatedDirective} blocked ${event.blockedURI}`;
+              }
             },
+            { signal: violationListener.signal }
+          );
+          const blobUrl = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = blobUrl;
+          script.onload = () => {
+            URL.revokeObjectURL(blobUrl);
+            violationListener.abort();
+            if (typeof root[bridgeKey] === "object" && root[bridgeKey] !== null) resolve();
+            else reject(new Error("ChatGPT Web first-party bridge did not initialize"));
           };
-        }
-        const proofManagers = candidates.filter(
-          (value) => value && typeof value.getEnforcementToken === "function"
-        );
-        const proofManager = upstream[names.proofManager] &&
-          typeof upstream[names.proofManager].getEnforcementToken === "function"
-          ? upstream[names.proofManager]
-          : proofManagers[0];
-        const turnstileManager = upstream[names.turnstileManager] &&
-          typeof upstream[names.turnstileManager].getEnforcementToken === "function"
-          ? upstream[names.turnstileManager]
-          : proofManagers[1] ?? proofManagers[0];
-        const finalizeRequirements = typeof upstream[names.finalizeRequirements] === "function"
-          ? upstream[names.finalizeRequirements]
-          : candidates.find(
-              (value) => typeof value === "function" && /finalized|requirements/i.test(String(value))
-            );
-        const buildSentinelHeaders = typeof upstream[names.buildSentinelHeaders] === "function"
-          ? upstream[names.buildSentinelHeaders]
-          : candidates.find(
-              (value) => typeof value === "function" && /OpenAI-Sentinel-Chat-Requirements-Token/.test(String(value))
-            );
-        root[bridgeKey] = {
-          finalizeRequirements,
-          proofManager,
-          turnstileManager,
-          requestClient,
-          buildSentinelHeaders,
-        };
-        if (typeof root[bridgeKey] !== "object" || root[bridgeKey] === null) {
-          throw new Error("ChatGPT Web first-party bridge did not initialize");
-        }
-      })()`);
+          script.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            violationListener.abort();
+            reject(new Error(cspDetail ? `csp: ${cspDetail}` : "no in-page reason"));
+          };
+          document.head.appendChild(script);
+        }),
+      { bridgeKey: FIRST_PARTY_BRIDGE_KEY, moduleSource }
+    );
+  } catch (error) {
+    const inPage = error instanceof Error ? error.message : String(error);
+    const signals = [...collected.signals];
+    if (inPage.startsWith("csp: ")) {
+      signals.unshift({ kind: "csp", detail: inPage.slice("csp: ".length) });
+    } else if (inPage && inPage !== "no in-page reason") {
+      signals.push({ kind: "pageerror", detail: inPage });
+    }
+    // `cause` keeps the original for anyone reading a stack; the message is what
+    // reaches the operator log through buildErrorBody()/sanitizeErrorMessage().
+    throw new Error(describeBridgeLoadFailure(signals), { cause: error });
+  } finally {
+    collected.dispose();
+  }
 }
 
 function directModel(selection: ChatGptWebUiSelection): { model: string; reason: boolean } {
@@ -436,6 +630,7 @@ async function registerAttachments(
   return page.evaluate(
     async ({ abortKey, attachments: metadata, bridgeKey, requestId }) => {
       const root = globalThis as typeof globalThis & Record<string, unknown>;
+      // The request-scoped abort controller is needed even for text-only turns.
       const abortStore = (root[abortKey] ??= {}) as Record<string, AbortController>;
       const controller = new AbortController();
       abortStore[requestId] = controller;
@@ -682,31 +877,18 @@ async function storeConversationDraft(
   );
 }
 
-/**
- * Returns true only when the sentinel headers were actually attached. A page whose
- * first-party challenge bridge is missing cannot authenticate `/f/conversation`:
- * ChatGPT answers with a redirect to the app root and the caller sees the SPA HTML
- * instead of an SSE stream. Proceeding without these headers therefore guarantees a
- * useless request, so callers must treat `false` as a failure to repair, not as an
- * optional enhancement.
- */
-interface ConversationHeadersResult {
-  ready: boolean;
-  reason?: string;
-  members?: Record<string, string>;
-  headerKeys?: string[];
-  count?: number;
-}
-
-async function storeConversationHeaders(
-  page: Page,
-  requestId: string
-): Promise<ConversationHeadersResult> {
-  return page.evaluate(
+async function storeConversationHeaders(page: Page, requestId: string): Promise<void> {
+  await page.evaluate(
     async ({ abortKey, bridgeKey, requestId, requestKey }) => {
       const root = globalThis as typeof globalThis & Record<string, unknown>;
       const bridge = root[bridgeKey] as {
         finalizeRequirements?: (cache?: boolean, source?: string) => Promise<JsonRecord>;
+        resolveIntegrity?: (
+          prepare: (proof: string) => Promise<unknown>
+        ) => Promise<{ headers?: Record<string, string> }>;
+        requestClient?: {
+          safePost(path: string, options: JsonRecord): Promise<unknown>;
+        };
         proofManager?: {
           getEnforcementToken(value: JsonRecord, options: JsonRecord): Promise<string>;
         };
@@ -720,47 +902,47 @@ async function storeConversationHeaders(
           telemetry: null
         ) => Record<string, string>;
       };
-      const bridgeReady = [
+      const legacyBridgeReady = [
         bridge?.finalizeRequirements,
         bridge?.proofManager?.getEnforcementToken,
         bridge?.turnstileManager?.getEnforcementToken,
         bridge?.buildSentinelHeaders,
       ].every((member) => typeof member === "function");
-      if (!bridgeReady)
-        return {
-          ready: false,
-          reason: "bridge-members-missing",
-          members: {
-            finalizeRequirements: typeof bridge?.finalizeRequirements,
-            proofManagerToken: typeof bridge?.proofManager?.getEnforcementToken,
-            turnstileToken: typeof bridge?.turnstileManager?.getEnforcementToken,
-            buildSentinelHeaders: typeof bridge?.buildSentinelHeaders,
-          },
-        };
+      const resolverReady =
+        typeof bridge?.resolveIntegrity === "function" &&
+        typeof bridge?.requestClient?.safePost === "function";
+      if (!legacyBridgeReady && !resolverReady) {
+        throw new Error("ChatGPT Web first-party challenge bridge is incomplete");
+      }
       const controller = (root[abortKey] as Record<string, AbortController>)?.[requestId];
       const draft = (root[requestKey] as Record<string, JsonRecord>)?.[requestId];
       if (!controller || !draft) throw new Error("ChatGPT Web request scope is unavailable");
 
-      const requirements = await bridge.finalizeRequirements!(false, "none");
-      if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
-      const [proof, turnstile] = await Promise.all([
-        bridge.proofManager!.getEnforcementToken(requirements, { forceSync: true }),
-        bridge.turnstileManager!.getEnforcementToken(requirements),
-      ]);
-      const additionalHeaders = bridge.buildSentinelHeaders!(
-        requirements,
-        turnstile,
-        proof,
-        null,
-        null,
-        null
-      );
-      draft.additionalHeaders = additionalHeaders;
-      return {
-        ready: true,
-        headerKeys: Object.keys(additionalHeaders ?? {}),
-        count: Object.keys(additionalHeaders ?? {}).length,
-      };
+      if (resolverReady) {
+        const integrity = await bridge.resolveIntegrity!(async (proof) =>
+          bridge.requestClient!.safePost("/sentinel/chat-requirements/prepare", {
+            requestBody: { p: proof },
+            signal: controller.signal,
+          })
+        );
+        draft.additionalHeaders = integrity?.headers ?? {};
+      } else {
+        const requirements = await bridge.finalizeRequirements!(false, "none");
+        if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
+        const [proof, turnstile] = await Promise.all([
+          bridge.proofManager!.getEnforcementToken(requirements, { forceSync: true }),
+          bridge.turnstileManager!.getEnforcementToken(requirements),
+        ]);
+        const additionalHeaders = bridge.buildSentinelHeaders!(
+          requirements,
+          turnstile,
+          proof,
+          null,
+          null,
+          null
+        );
+        draft.additionalHeaders = additionalHeaders;
+      }
     },
     {
       abortKey: FIRST_PARTY_ABORT_KEY,
@@ -782,25 +964,10 @@ async function submitConversationRequest(page: Page, requestId: string): Promise
       )?.requestClient;
       const controller = (root[abortKey] as Record<string, AbortController>)?.[requestId];
       const draft = (root[requestKey] as Record<string, JsonRecord>)?.[requestId];
-      if (!controller || !draft) {
+      if (typeof requestClient?.safePost !== "function" || !controller || !draft) {
         throw new Error("ChatGPT Web conversation request scope is unavailable");
       }
-      const safePost =
-        typeof requestClient?.safePost === "function"
-          ? requestClient.safePost.bind(requestClient)
-          : (path: string, options: JsonRecord = {}) =>
-              fetch(path, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  Accept: "application/json, text/plain, */*",
-                  "Content-Type": "application/json",
-                  ...(options.additionalHeaders ?? {}),
-                },
-                body: JSON.stringify(options.requestBody),
-                signal: options.signal as AbortSignal | undefined,
-              });
-      const response = await safePost("/f/conversation", {
+      const response = await requestClient.safePost("/f/conversation", {
         requestBody: draft.body,
         additionalHeaders: draft.additionalHeaders,
         signal: controller.signal,
@@ -811,8 +978,23 @@ async function submitConversationRequest(page: Page, requestId: string): Promise
       }
       if (!response.ok) {
         const status = response.status;
-        await response.body?.cancel().catch(() => {});
-        throw new Error(`ChatGPT Web conversation failed with status ${status}`);
+        let detail = "";
+        try {
+          const payload = (await response.json()) as JsonRecord;
+          const nested =
+            payload.detail && typeof payload.detail === "object"
+              ? (payload.detail as JsonRecord)
+              : payload.error && typeof payload.error === "object"
+                ? (payload.error as JsonRecord)
+                : payload;
+          const candidate = nested.code ?? nested.message ?? nested.type;
+          if (typeof candidate === "string") detail = candidate.slice(0, 160);
+        } catch {
+          await response.body?.cancel().catch(() => {});
+        }
+        throw new Error(
+          `ChatGPT Web conversation failed with status ${status}${detail ? ` (${detail})` : ""}`
+        );
       }
       draft.response = response;
     },
@@ -849,11 +1031,10 @@ async function readConversationResponse(page: Page, requestId: string): Promise<
             await reader.cancel().catch(() => {});
             throw new Error("ChatGPT Web conversation response exceeded the size limit");
           }
-          const chunk = decoder.decode(value, { stream: true });
-          chunks.push(chunk);
-          // This function is serialized into the browser page, so keep the
-          // boundary detector self-contained rather than closing over a
-          // module-level constant.
+          chunks.push(decoder.decode(value, { stream: true }));
+          // Settle as soon as a complete client tool envelope is available. This
+          // function is serialized into the browser page, so the boundary detector
+          // stays self-contained instead of closing over a module-level constant.
           if (/(?:<|\\u003c)\\?\/tool(?:>|\\u003e)/i.test(chunks.join(""))) {
             await reader.cancel().catch(() => {});
             return chunks.join("");
@@ -886,24 +1067,12 @@ async function processAndSubmit(
   const browserRegistered = browserConversationAttachments(registered);
   await processRegisteredAttachments(page, requestId, browserRegistered);
   await storeConversationDraft(page, input, requestId, browserRegistered);
-  // Re-verify (and if needed re-inject) the bridge immediately before signing the
-  // request: the SPA can navigate between the initial handshake and this point,
-  // which wipes the bridge from `window` and used to leave the request unsigned.
+  // Re-verify (and if needed re-inject) the bridge right before signing: the SPA
+  // can navigate between the initial handshake and this point, which wipes the
+  // bridge from `window`. storeConversationHeaders() still throws when the bridge
+  // is incomplete, so an unsigned request is never sent.
   await ensureFirstPartyBridge(page);
-  let headerDiag = await storeConversationHeaders(page, requestId);
-  console.error("[HEADERS] " + JSON.stringify(headerDiag));
-  if (!headerDiag.ready) {
-    // One repair attempt, then fail loudly instead of sending an unsigned request.
-    await ensureFirstPartyBridge(page);
-    headerDiag = await storeConversationHeaders(page, requestId);
-    console.error("[HEADERS retry] " + JSON.stringify(headerDiag));
-    if (!headerDiag.ready) {
-      throw new Error(
-        "ChatGPT Web sentinel headers are unavailable (the first-party challenge module did not load); " +
-          "refusing to send an unauthenticated conversation request"
-      );
-    }
-  }
+  await storeConversationHeaders(page, requestId);
   await submitConversationRequest(page, requestId);
   return readConversationResponse(page, requestId);
 }
@@ -967,13 +1136,6 @@ export async function executeChatGptWebFirstPartyTurn(
     options.signal?.addEventListener("abort", abort, { once: true });
     try {
       await ensureFirstPartyBridge(page);
-      try {
-        const bridgeDiag = await page.evaluate((key) => {
-          const root = globalThis as Record<string, unknown>;
-          return root[key + ":diag"] ?? null;
-        }, FIRST_PARTY_BRIDGE_KEY);
-        console.error("[BRIDGE] " + JSON.stringify(bridgeDiag));
-      } catch {}
       const registrations = await registerAttachments(page, requestId, input.attachments);
       const registered = registrations.map((registration, index) => ({
         ...registration,

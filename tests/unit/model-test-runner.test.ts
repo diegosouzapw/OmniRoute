@@ -341,6 +341,14 @@ test("resolveModelTestTimeoutMs gives ChatGPT Web checks up to 90 seconds", () =
   assert.equal(resolveModelTestTimeoutMs("CHATGPT-WEB", "chatgpt-web/gpt-5-5", 120_000), 120_000);
 });
 
+test("ChatGPT Web Clean Room is eligible for an explicit model test", async () => {
+  const { shouldSkipWebSessionModelTest } = await import("../../src/lib/api/modelTestRunner.ts");
+
+  assert.equal(shouldSkipWebSessionModelTest("chatgpt-web"), false);
+  assert.equal(shouldSkipWebSessionModelTest(" CHATGPT-WEB "), false);
+  assert.equal(shouldSkipWebSessionModelTest("deepseek-web"), true);
+});
+
 // ---------------------------------------------------------------------------
 // classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
 // Distinguishes three outcomes:

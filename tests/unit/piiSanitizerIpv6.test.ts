@@ -67,9 +67,14 @@ test("getMode: empty string falls back to redact", () => {
 
 // ── IPv6 regex — compressed-form detection ────────────────────────────────────
 
-test("IPv6 :: (all-zeros) alone is redacted", () => {
+test("IPv6 :: (all-zeros) alone is NOT redacted (deliberate carve-out)", () => {
+  // `::` alone is the unspecified address — never a usable host address — while
+  // a double colon is load-bearing syntax in Python (s[::-1]), Rust (::std),
+  // C++ (std::), Haskell (x :: Int), Elixir, Scala and Markdown (:::note).
+  // Redacting it corrupted generated code, so the bare alternative was removed.
+  // Every `::`-bearing IPv6 form is still matched: ::1, fe80::1, ::ffff:0:0, [::1].
   const result = sanitizePII("::");
-  assert.ok(result.text.includes("[IP_REDACTED]"), "bare :: should be redacted as IPv6 all-zeros");
+  assert.strictEqual(result.text, "::", "bare :: must be left alone");
 });
 
 test("IPv6 ::1 (loopback) standalone is redacted", () => {

@@ -128,17 +128,51 @@ const safe = String(err).split("\n")[0];
 
 ❌ දෝෂ පණිවිඩවල `process.cwd()`, `__filename`, `__dirname`, හෝ env-derived paths චේතනාන්විතව **කිසිවිටෙකත්** ඇතුළත් නොකරන්න. අමතර ආරක්ෂණයක් ලෙස sanitizer එක absolute paths ආවරණය කළත්, callers විසින් ආරම්භයේදීම topology-bearing messages නිර්මාණය නොකළ යුතුය.
 
-## CI හි ආවරණය
+## CI තුළ ආවරණය
 
-`tests/unit/error-message-sanitization.test.ts` මඟින් පහත දෑ බලාත්මක කරයි:
+`tests/unit/error-message-sanitization.test.ts` පහත දෑ බලාත්මක කරයි:
 
-- `/api/model-combo-mappings/*` යටතේ ඇති සෑම route එකක්ම 4xx/5xx සඳහා සනීපාරක්ෂිත කළ bodies ආපසු ලබා දෙයි.
-- `sanitizeErrorMessage` මඟින් බහු-පේළි stack traces ඉවත් කරයි.
-- `sanitizeErrorMessage` මඟින් POSIX සහ Windows absolute paths, `<path>` සමඟ ප්රතිස්ථාපනය කරයි.
-- `sanitizeErrorMessage` මඟින් `null`/`undefined`/`Error` instance inputs ආරක්ෂිතව හසුරුවයි.
-- `buildErrorBody` කිසිවිටෙක එහි `message` field එක තුළ stack traces නිරාවරණය නොකරයි.
+- `/api/model-combo-mappings/*` යටතේ ඇති සෑම route එකක්ම 4xx/5xx සඳහා සනීපාරක්ෂිත කළ body ආපසු ලබා දෙයි.
+- `sanitizeErrorMessage` බහු-පේළි stack trace ඉවත් කරයි.
+- `sanitizeErrorMessage` POSIX සහ Windows නිරපේක්ෂ path `<path>` සමඟ ප්රතිස්ථාපනය කරයි.
+- `sanitizeErrorMessage` විසින් `null`/`undefined`/`Error` instance ආදාන ආරක්ෂිතව හසුරුවයි.
+- `buildErrorBody` එහි `message` field එක තුළ කිසි විටෙක stack trace හෙළි නොකරයි.
 
-නව route එකක් හෝ executor එකක් එක් කරන විට, මෙම file එකෙන් assertion pattern එක පිටපත් කරන්න. Coverage gate එක (`npm run test:coverage`) මඟින් statements/lines/functions/branches සඳහා ≥60% ක් බලාත්මක කරයි — error paths ආවරණය කළ යුතුය.
+නව route එකක් හෝ executor එකක් එක් කරන විට, මෙම file එකෙන් assertion රටාව පිටපත් කරන්න. ආවරණ gate එක (`npm run test:coverage`) statements/lines/functions/branches සඳහා ≥60%ක් බලාත්මක කරයි — error path ද ආවරණය කළ යුතුය.
+
+### ස්ථිතික gate එක: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` විසින් `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` සහ සෑම `src/app/api/**/route.ts` එකක්ම, client-facing body එකකට ළඟා වන raw caught error එකක් (`err.message` / `err.stack`) හෝ raw upstream `body.error.message` එකක් සඳහා scan කරයි.
+
+**විශ්වාසය call එකට සීමා වේ, කිසි විටෙක file එකට සීමා නොවේ** (G-03, #15159). පෙර, `utils/error` path එකකින් ඕනෑම import එකක් දුටු සැණින් gate එක මුළු file එකම මඟහැරියේය — call-scoped අවදානමකට file-scoped නිදහස් කිරීමක් යෙදිණි. එක් නිවැරදි `import { sanitizeErrorMessage }` එකක් මඟින් file එකේ අනෙක් සෑම sink එකක්ම ස්ථිරව නිදහස් කෙරුණු අතර, සජීවී leak එකක් සාර්ථක ලෙස නිකුත් වූයේ එලෙසය. දැන් පේළියක් විශ්වාසදායක වන්නේ එය ඇත්ත වශයෙන්ම අනුමත builder එකක් හෝ sanitizer එකක් හරහා යොමු වන විට පමණි:
+
+| පේළියේ හැඩය                                                                                                                | විශ්වාසදායකද?        |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … අමතයි                        | ඔව්                  |
+| **මෙම file එක විසින්** `open-sse/utils/error` හෝ `src/lib/api/errorResponse` වෙතින් import කළ canonical builder එකක් අමතයි | ඔව්                  |
+| අනුමත builder එකක් **බහු-පේළි** ආකාරයෙන් අමතන බැවින්, `message:` field එක පසු පේළියක පවතී                                  | ඔව්                  |
+| තමන්ගේම body එක තුළ sanitization කරන file-local `function errorResponse(...)` එකක් අමතයි                                   | ඔව්                  |
+| වෙනත් ඕනෑම තැනකට `err.message` / `err.stack` යොමු කරයි                                                                     | **නැත — උල්ලංඝනයකි** |
+
+දැනගත යුතු ප්රතිවිපාක දෙකක්:
+
+- `errorResponse` import කිරීම පූර්ණ විශ්වාසයක් _නොවේ_. තමන්ගේම `errorResponse` නිර්වචනය කරන file එකක් call site එකේදී තවමත් සලකුණු වේ, මන්ද gate එක විශ්වාසය විසඳන්නේ file එක අනුව නොව symbol එක අනුවය. `createErrorResponse` සඳහාද එයම අදාළ වේ.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ට පසුව `error: body.error.message` යෙදීම `*-fetch.ts` executor පුරා භාවිත වන **සනීපාරක්ෂිත කළ** idiom එක වන අතර එය සලකුණු නොවේ.
+
+අනුමත builder module දෙකම ගණන් ගැනේ: `open-sse/utils/error.ts` සහ `src/lib/api/errorResponse.ts`. දෙවැන්න `open-sse` වලින් පිටත ඇති ~54 route handler භාවිත කරන එක වන අතර, එය තම export දෙකම සනීපාරක්ෂිත කරයි.
+
+පහත හැඩ දෙකම **උල්ලංඝන නොවේ**, නමුත් gate එක වරක් ඒ දෙකම leak ලෙස වාර්තා කළේය:
+
+- **audit row** එකක් තුළ ඇති raw error එකක් — `saveCallLog({ error: err.message })`, `logToolCall(...)`, හෝ පළමුව message එකක් ගන්නා logger එකක් (`log.error("BATCHES", "sweep failed", { error: err.message })`). ඊළඟ පේළිවල ඇති client-facing response එක ස්ථිතික `buildErrorBody` එකක් විය හැකිය.
+- `message:` field එක කිසිදු builder එකක් නම් නොකරන **බහු-පේළි** අනුමත builder call එකක්:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` විසින් පෙර සිට පවතින උල්ලංඝන freeze කරන බැවින් gate එක අවහිර කරන්නේ _නව_ උල්ලංඝන පමණි. උල්ලංඝනයක් නිවැරදි කළ පසු `assertNoStale` විසින් එහි entry එක ස්වයංක්රීයව ඉවත් කරන බැවින් freeze එක ස්ථායී වී රැඳී නොසිටියි. Regression guard: `tests/unit/check-error-helper.test.ts` සහ `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## අදාළ පාලන
 

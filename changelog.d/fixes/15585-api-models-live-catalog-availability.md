@@ -1,0 +1,1 @@
+- fix(api): `GET /api/models` now reports `available` consistently with the live-catalog gate used at dispatch, so models an authoritative provider catalog omits are no longer shown as available (and listed ones are no longer hidden) (#15585)
