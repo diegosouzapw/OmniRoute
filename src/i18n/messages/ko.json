@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "콤보 참조 추가",
     "builderPinnedAccount": "고정된 계정",
     "builderLegacyEntry": "레거시 항목",
+    "builderStaleModel": "라이브 카탈로그에 없음",
     "reviewName": "이름",
     "reviewStrategy": "전략",
     "reviewSteps": "단계",

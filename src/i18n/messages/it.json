@@ -3901,6 +3901,7 @@
     "builderComboRefStep": "Aggiungi riferimento alla combo",
     "builderPinnedAccount": "Account vincolato",
     "builderLegacyEntry": "Voce legacy",
+    "builderStaleModel": "Non presente nel catalogo live",
     "reviewName": "Nome",
     "reviewStrategy": "Strategia",
     "reviewSteps": "Passaggi",
