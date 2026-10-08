@@ -71,26 +71,33 @@ kanonik taxalluslarning dublikatlarini olib tashlamasdan, narxlarsiz va kombolar
 har bir endpoint uchun bir marta ogohlantirib, endpointni va nimalar yo‘qolganini ko‘rsatadi — shu sababli
 imkoniyatlari cheklangan tanlagich hech qachon tushunarsiz bo‘lib qolmaydi.
 
-## Parametrlar
+## Sozlamalar
 
-| Kalit                            | Standart qiymat                                    | Izohlar                                                                                                                        |
-| -------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `providerId`                     | `"omniroute"`                                      | Provayder identifikatori, integratsiya identifikatori va modellar ko‘rsatiladigan prefiks                                      |
-| `baseURL`                        | majburiy                                           | Shlyuz ildiz manzili, faqat `http(s)`; zarur joylarda `/v1` suffiksi qo‘shiladi                                                |
-| `apiKey`                         | ulangan hisob ma’lumoti, keyin `OMNIROUTE_API_KEY` | `/v1/*` uchun chat kaliti                                                                                                      |
-| `managementReadToken`            | `apiKey`ga qaytadi                                 | `/api/*` uchun kalit — odatda ayni kalit **emas**                                                                              |
-| `displayName`                    | `"OmniRoute"`                                      | Tanlagichdagi provayder nomi                                                                                                   |
-| `timeoutMs`                      | `10000`                                            | Har bir endpoint uchun olish kutish vaqti (avto-kombolar 5 soniyadan foydalanadi)                                              |
-| `modelCacheTtlMs`                | `300000`                                           | Katalog keshi TTL qiymati; diskdagi surat sovuq ishga tushirishni tezlashtiradi                                                |
-| `timeouts`                       | `timeoutMs`ga qaytadi                              | Har bir endpoint uchun ms hisobidagi limitlar: `models`, `combos`, `autoCombos`, `enrichment`                                  |
-| `enrichment`                     | `true`                                             | Nomlar, narxlar va bepul tarif limitlarini olish                                                                               |
-| `providerTag`                    | `true`                                             | Ko‘rsatiladigan nom oldiga so‘rov yo‘naltiriladigan yuqori oqim provayderini qo‘shish                                          |
-| `usableOnly`                     | `false`                                            | Faqat shlyuz ta’minlangan deb ko‘rsatgan provayderlarni saqlash                                                                |
-| `visibleModels` / `hiddenModels` | `[]`                                               | Aniq yoki suffiks bo‘yicha ruxsat ro‘yxatlari; taqiq ustun keladi                                                              |
-| `geminiSanitization`             | `true`                                             | Gemini vosita sxemalarida rad etadigan JSON-Schema kalit so‘zlarini olib tashlash (`$ref` vositalari o‘zgartirilmay uzatiladi) |
-| `apiFormat.allowAnthropic`       | `false`                                            | Ruxsat ro‘yxatidagi identifikatorlarni Anthropic API bloki orqali yo‘naltirish                                                 |
-| `apiFormat.anthropicModels`      | `[]`                                               | Anthropic’ga yo‘naltiriladigan to‘liq model identifikatorlari                                                                  |
-| `logLevel` / `startupDebug`      | `warn` / `false`                                   | Jurnal tafsilotlari darajasi                                                                                                   |
+| Kalit                            | Standart qiymat                                       | Izohlar                                                                                                                             |
+| -------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `providerId`                     | `"omniroute"`                                         | Provayder identifikatori, integratsiya identifikatori va modellar ko‘rsatiladigan prefiks                                           |
+| `baseURL`                        | talab qilinadi                                        | Shlyuz ildiz manzili, faqat `http(s)`; zarur joylarda `/v1` suffiksi qo‘shiladi                                                     |
+| `apiKey`                         | ulangan hisob ma’lumotlari, so‘ng `OMNIROUTE_API_KEY` | `/v1/*` uchun chat kaliti                                                                                                           |
+| `managementReadToken`            | `apiKey`ga qaytadi                                    | `/api/*` uchun kalit — odatda u bilan **bir xil emas**                                                                              |
+| `displayName`                    | `"OmniRoute"`                                         | Tanlash ro‘yxatidagi provayder nomi                                                                                                 |
+| `timeoutMs`                      | `10000`                                               | Har bir endpoint uchun so‘rov kutish vaqti (avtomatik kombinatsiyalar 5 soniyadan foydalanadi)                                      |
+| `modelCacheTtlMs`                | `300000`                                              | Katalog keshi TTL muddati; diskdagi snapshot sovuq ishga tushirishlarni tezlashtiradi                                               |
+| `timeouts`                       | `timeoutMs`ga qaytadi                                 | Har bir endpoint uchun ms hisobidagi vaqt chegaralari: `models`, `combos`, `autoCombos`, `enrichment`                               |
+| `enrichment`                     | `true`                                                | Nomlar, narxlar va bepul tarif limitlarini olish                                                                                    |
+| `providerTag`                    | `true`                                                | Ko‘rsatiladigan nomga so‘rov yo‘naltiriladigan yuqori oqim provayderi prefiksini qo‘shish                                           |
+| `usableOnly`                     | `false`                                               | Faqat shlyuz sozlangan deb ko‘rsatgan provayderlarni saqlash                                                                        |
+| `showcasePerOwner`               | `10`                                                  | Standart ko‘rinishda har bir provayder uchun saqlanadigan yozuvlar                                                                  |
+| `freshPerOwner`                  | `10`                                                  | Standart ko‘rinishning yangi modellar bo‘limida har bir provayder uchun saqlanadigan yozuvlar                                       |
+| `freshWindowDays`                | `90`                                                  | Yangi modellar bo‘limi uchun kunlar hisobidagi yangilik davri                                                                       |
+| `usageMemory`                    | `true`                                                | 30 kunlik foydalanish tahlilida qayd etilgan, statik ravishda olib tashlangan yozuvlarni tiklash (boshqaruv tokeni kerak)           |
+| `visibleModels` / `hiddenModels` | `[]`                                                  | Aniq moslik yoki suffiks bo‘yicha ruxsat ro‘yxatlari; taqiq ustun keladi                                                            |
+| `geminiSanitization`             | `true`                                                | Gemini vosita sxemalarida qabul qilmaydigan JSON-Schema kalit so‘zlarini olib tashlash (`$ref` vositalari o‘zgartirilmay uzatiladi) |
+| `apiFormat.allowAnthropic`       | `false`                                               | Ruxsat ro‘yxatidagi identifikatorlarni Anthropic API bloki orqali yo‘naltirish                                                      |
+| `apiFormat.anthropicModels`      | `[]`                                                  | Anthropic’ga yo‘naltiriladigan to‘liq model identifikatorlari                                                                       |
+| `logLevel` / `startupDebug`      | `warn` / `false`                                      | Jurnal tafsilotlari darajasi                                                                                                        |
+
+Foydalanish xotirasi standart holatda yoqilgan. Boshqaruv tokenisiz u faol bo‘lmaydi
+(ishga tushirish haqidagi bildirishnoma jurnalga yoziladi) va hech narsa tiklanmaydi.
 
 ## Katalog qanday yangilanib turadi
 

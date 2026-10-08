@@ -118,17 +118,17 @@ $20 ပေးပြီး ကန့်သတ်ချက်များနှင
 
 ---
 
-## 📖 ဝန်ဆောင်မှုပေးသူ စနစ်ထည့်သွင်းခြင်း
+## 📖 Provider စနစ်ထည့်သွင်းခြင်း
 
-CSV သို့မဟုတ် JSON ဖိုင်တစ်ခုမှ API-key ချိတ်ဆက်မှုများကို အစုလိုက်ထည့်ရန် **Dashboard → Providers → Import from file** ကို အသုံးပြုပါ။ ကော်လံများသည် အစီအစဉ်အလိုက် သတ်မှတ်ထားသည် (`provider,name,apiKey,baseUrl,priority`)။ `provider` သည် စီမံခန့်ခွဲထားသော ဝန်ဆောင်မှုပေးသူ သို့မဟုတ် ကိုက်ညီအသုံးပြုနိုင်သော node တစ်ခုအဖြစ် ရှိပြီးသားဖြစ်ရမည်။ [CSV သို့မဟုတ် JSON ဖိုင်တစ်ခုမှ ဝန်ဆောင်မှုပေးသူများ တင်သွင်းခြင်း](../providers/CSV-IMPORT.md) ကို ကြည့်ပါ။
+CSV သို့မဟုတ် JSON ဖိုင်တစ်ခုမှ API-key ချိတ်ဆက်မှုများကို အစုလိုက်ထည့်ရန် **Dashboard → Providers → Import from file** ကို အသုံးပြုပါ။ ကော်လံများကို အစဉ်လိုက် သတ်မှတ်ထားသည် (`provider,name,apiKey,baseUrl,priority`)။ `provider` သည် စီမံခန့်ခွဲထားသော provider သို့မဟုတ် ကိုက်ညီမှုရှိသော node တစ်ခုအဖြစ် ရှိနှင့်ပြီးသား ဖြစ်ရမည်။ [CSV သို့မဟုတ် JSON ဖိုင်မှ provider များ ထည့်သွင်းခြင်း](../providers/CSV-IMPORT.md) ကို ကြည့်ပါ။
 
-### 🔐 စာရင်းသွင်းမှုအခြေပြု ဝန်ဆောင်မှုပေးသူများ
+### 🔐 စာရင်းသွင်းမှုအခြေပြု Provider များ
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Claude Code ကို ချိတ်ဆက်ပါ
-→ OAuth အကောင့်ဝင်ခြင်း → Token အလိုအလျောက် အသစ်ပြန်လဲခြင်း
+→ OAuth ဖြင့် ဝင်ရောက်ပါ → Token အလိုအလျောက် ပြန်လည်စတင်ခြင်း
 → ၅ နာရီစာ + အပတ်စဉ် quota စောင့်ကြည့်ခြင်း
 
 မော်ဒယ်များ:
@@ -137,15 +137,19 @@ Dashboard → Providers → Claude Code ကို ချိတ်ဆက်ပါ
   cc/claude-haiku-4-5-20251001
 ```
 
-**အထူးအကြံပြုချက်:** ရှုပ်ထွေးသော လုပ်ငန်းများအတွက် Opus ကို အသုံးပြုပြီး မြန်ဆန်မှုအတွက် Sonnet ကို အသုံးပြုပါ။ OmniRoute သည် မော်ဒယ်တစ်ခုချင်းစီ၏ quota ကို စောင့်ကြည့်ပေးသည်!
+**ကျွမ်းကျင်သူ အကြံပြုချက်:** ရှုပ်ထွေးသော လုပ်ငန်းများအတွက် Opus ကို အသုံးပြုပြီး မြန်နှုန်းအတွက် Sonnet ကို အသုံးပြုပါ။ OmniRoute သည် မော်ဒယ်တစ်ခုချင်းစီအလိုက် quota ကို စောင့်ကြည့်ပေးသည်!
 
-Claude နှင့် Claude Code-compatible route များသည် Opus နှင့် Sonnet မော်ဒယ်များအတွက် `max` စဉ်းစားဆင်ခြင်မှုအဆင့်ကို ဆက်လက်ထိန်းသိမ်းပေးသည်။ Haiku မော်ဒယ်များသည် `max` အားထုတ်မှုအဆင့်ကို လက်မခံသောကြောင့် OmniRoute သည် အဆိုပါတောင်းဆိုမှုကို upstream သို့ မပို့မီ မြင့်မားသော စဉ်းစားဆင်ခြင်မှု budget သို့ လျှော့ချပေးသည်။
+OmniRoute host ပေါ်တွင် browser မရှိပါသလား။ Claude Code ဖြင့် ဝင်ရောက်ထားသည့် မည်သည့်နေရာတွင်မဆို `claude setup-token` ကို လုပ်ဆောင်ပြီး တစ်နှစ်သက်တမ်းရှိ token ကို **Setup Token** tab ထဲသို့ ကူးထည့်ပါ။ [Setup token ဖြင့် Claude Code အသုံးပြုခြင်း](../providers/CLAUDE_CODE_SETUP_TOKEN.md) ကို ကြည့်ပါ။
+
+Claude နှင့် Claude Code နှင့် ကိုက်ညီသော route များသည် Opus နှင့် Sonnet
+မော်ဒယ်များအတွက် `max` thinking effort ကို ဆက်လက်ထိန်းသိမ်းထားသည်။ Haiku မော်ဒယ်များသည် `max` effort အဆင့်ကို လက်မခံသောကြောင့် OmniRoute သည်
+ထို request ကို upstream သို့ မပို့မီ high thinking budget အဖြစ် လျှော့ချပေးသည်။
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Codex ကို ချိတ်ဆက်ပါ
-→ OAuth အကောင့်ဝင်ခြင်း (port 1455)
+→ OAuth ဖြင့် ဝင်ရောက်ပါ (port 1455)
 → ၅ နာရီစာ + အပတ်စဉ် ပြန်လည်သတ်မှတ်ခြင်း
 
 မော်ဒယ်များ:
@@ -170,47 +174,47 @@ Dashboard → Providers → GitHub ကို ချိတ်ဆက်ပါ
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 စျေးသက်သာသော ဝန်ဆောင်မှုပေးသူများ
+### 💰 စျေးသက်သာသော Provider များ
 
 #### GLM-4.7 (နေ့စဉ် ပြန်လည်သတ်မှတ်ခြင်း၊ $0.6/1M)
 
-1. အကောင့်ဖွင့်ရန်: [Zhipu AI](https://open.bigmodel.cn)
-2. Coding Plan မှ API key ကို ရယူပါ
+1. စာရင်းသွင်းရန်: [Zhipu AI](https://open.bigmodel.cn)
+2. Coding Plan မှ API key ရယူပါ
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**အသုံးပြုရန်:** `glm/glm-4.7` — **အထူးအကြံပြုချက်:** Coding Plan သည် ကုန်ကျစရိတ် 1/7 ဖြင့် quota ၃ ဆ ပေးသည်! နေ့စဉ် နံနက် 10:00 AM တွင် ပြန်လည်သတ်မှတ်သည်။
+**အသုံးပြုရန်:** `glm/glm-4.7` — **ကျွမ်းကျင်သူ အကြံပြုချက်:** Coding Plan သည် ကုန်ကျစရိတ် 1/7 ဖြင့် quota 3× ပေးသည်! နေ့စဉ် နံနက် 10:00 တွင် ပြန်လည်သတ်မှတ်သည်။
 
 #### MiniMax M2.1 (၅ နာရီတိုင်း ပြန်လည်သတ်မှတ်ခြင်း၊ $0.20/1M)
 
-1. အကောင့်ဖွင့်ရန်: [MiniMax](https://www.minimax.io)
+1. စာရင်းသွင်းရန်: [MiniMax](https://www.minimax.io)
 2. API key ရယူပါ → Dashboard → Add API Key
 
-**အသုံးပြုရန်:** `minimax/MiniMax-M2.1` — **အထူးအကြံပြုချက်:** ရှည်လျားသော context (token 1M) အတွက် စျေးအသက်သာဆုံး ရွေးချယ်မှုဖြစ်သည်!
+**အသုံးပြုရန်:** `minimax/MiniMax-M2.1` — **ကျွမ်းကျင်သူ အကြံပြုချက်:** ရှည်လျားသော context (1M tokens) အတွက် စျေးအသက်သာဆုံး ရွေးချယ်မှုဖြစ်သည်!
 
 #### Kimi K2 (တစ်လလျှင် ပုံသေ $9)
 
 1. စာရင်းသွင်းရန်: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API key ရယူပါ → Dashboard → Add API Key
 
-**အသုံးပြုရန်:** `kimi/kimi-k2.5` — **အထူးအကြံပြုချက်:** Token 10M အတွက် တစ်လလျှင် ပုံသေ $9 ဖြစ်သောကြောင့် အမှန်တကယ် ကုန်ကျစရိတ်မှာ $0.90/1M ဖြစ်သည်!
+**အသုံးပြုရန်:** `kimi/kimi-k2.5` — **ကျွမ်းကျင်သူ အကြံပြုချက်:** 10M tokens အတွက် တစ်လလျှင် ပုံသေ $9 ဖြစ်သဖြင့် ထိရောက်သော ကုန်ကျစရိတ်မှာ $0.90/1M ဖြစ်သည်!
 
 #### Baidu Qianfan / ERNIE
 
-1. အကောင့်ဖွင့်ရန်: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+1. စာရင်းသွင်းရန်: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Qianfan API key တစ်ခု ဖန်တီးပါ → Dashboard → Add API Key: Provider: `qianfan`
 
 **အသုံးပြုရန်:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` သို့မဟုတ် အခြား Qianfan OpenAI-compatible model ID တစ်ခု။
 
-### 🆓 အခမဲ့ ဝန်ဆောင်မှုပေးသူများ
+### 🆓 အခမဲ့ Provider များ
 
-အထောက်အထားစိစစ်ရန် မလိုအပ်သော အခမဲ့ဝန်ဆောင်မှုပေးသူများ၏ စာမျက်နှာတွင် **No authentication required** ဘေး၌ ခလုတ်တစ်ခု ရှိသည်။
-၎င်းကို ပိတ်လိုက်ပါက အဆိုပါဝန်ဆောင်မှုပေးသူကို ပိတ်ထားပြီး Providers configured/compact မြင်ကွင်းများမှ ဖယ်ရှားကာ
-၎င်း၏မော်ဒယ်များကိုလည်း `/v1/models` မှ ဖယ်ရှားပေးသည်။
+Authentication မလိုအပ်သော အခမဲ့ provider များ၏ provider စာမျက်နှာတွင် **No authentication required** ဘေး၌ ခလုတ်တစ်ခု ရှိသည်။
+၎င်းကို ပိတ်လိုက်ပါက ထို provider ကို ပိတ်ထားမည်ဖြစ်ပြီး Providers configured/compact view များမှ ဖယ်ရှားကာ
+၎င်း၏ မော်ဒယ်များကိုလည်း `/v1/models` မှ ဖယ်ရှားမည်ဖြစ်သည်။
 
 #### Qoder (အခမဲ့ မော်ဒယ် ၉ ခု)
 
 ```bash
-Dashboard → Qoder ကို ချိတ်ဆက်ပါ → OAuth အကောင့်ဝင်ခြင်း → အသုံးပြုခွင့်သည် လက်ရှိဝန်ဆောင်မှုပေးသူ၏ ကန့်သတ်ချက်များအပေါ် မူတည်သည်
+Dashboard → Qoder ကို ချိတ်ဆက်ပါ → OAuth ဖြင့် ဝင်ရောက်ပါ → အသုံးပြုခွင့်သည် provider ၏ လက်ရှိ ကန့်သတ်ချက်များအပေါ် မူတည်သည်
 
 မော်ဒယ်များ: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```

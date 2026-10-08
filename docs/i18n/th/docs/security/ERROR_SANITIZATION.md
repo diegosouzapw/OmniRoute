@@ -136,15 +136,49 @@ const safe = String(err).split("\n")[0];
 
 ## ความครอบคลุมใน CI
 
-`tests/unit/error-message-sanitization.test.ts` บังคับใช้ข้อกำหนดต่อไปนี้:
+`tests/unit/error-message-sanitization.test.ts` บังคับใช้เงื่อนไขต่อไปนี้:
 
-- ทุก route ภายใต้ `/api/model-combo-mappings/*` ต้องส่งคืน body ที่ผ่านการล้างข้อมูลแล้วสำหรับสถานะ 4xx/5xx
-- `sanitizeErrorMessage` ลบ stack trace แบบหลายบรรทัด
-- `sanitizeErrorMessage` แทนที่ absolute path ของ POSIX และ Windows ด้วย `<path>`
-- `sanitizeErrorMessage` จัดการอินพุตที่เป็น `null`/`undefined`/อินสแตนซ์ `Error` ได้อย่างปลอดภัย
+- ทุก route ภายใต้ `/api/model-combo-mappings/*` ต้องส่งคืน body ที่ผ่านการทำให้ปลอดภัยแล้วเมื่อเกิด 4xx/5xx
+- `sanitizeErrorMessage` ต้องลบ stack trace แบบหลายบรรทัด
+- `sanitizeErrorMessage` ต้องแทนที่ absolute path ของ POSIX และ Windows ด้วย `<path>`
+- `sanitizeErrorMessage` ต้องจัดการอินพุตที่เป็น `null`/`undefined`/อินสแตนซ์ของ `Error` ได้อย่างปลอดภัย
 - `buildErrorBody` ต้องไม่เปิดเผย stack trace ในฟิลด์ `message`
 
-เมื่อเพิ่ม route หรือ executor ใหม่ ให้คัดลอกรูปแบบ assertion จากไฟล์นี้ เกณฑ์ความครอบคลุม (`npm run test:coverage`) บังคับให้ statements/lines/functions/branches มีความครอบคลุม ≥60% — โดยต้องครอบคลุมเส้นทางข้อผิดพลาดด้วย
+เมื่อเพิ่ม route หรือ executor ใหม่ ให้คัดลอกรูปแบบ assertion จากไฟล์นี้ เกตความครอบคลุม (`npm run test:coverage`) กำหนดให้ statements/lines/functions/branches มีความครอบคลุม ≥60% — เส้นทางข้อผิดพลาดต้องได้รับการทดสอบ
+
+### เกตแบบสแตติก: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` สแกน `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` และทุกไฟล์ `src/app/api/**/route.ts` เพื่อค้นหาข้อผิดพลาดที่ถูก catch แบบดิบ (`err.message` / `err.stack`) หรือ `body.error.message` แบบดิบจาก upstream ที่ส่งไปถึง body ซึ่งจะแสดงแก่ client
+
+**ความเชื่อถือมีขอบเขตระดับการเรียกใช้ ไม่ใช่ระดับไฟล์** (G-03, #15159) ก่อนหน้านี้เกตจะข้ามทั้งไฟล์ทันทีที่พบ import ใดๆ จาก path `utils/error` — ซึ่งเป็นการยกเว้นระดับไฟล์ให้กับความเสี่ยงที่มีขอบเขตระดับการเรียกใช้ `import { sanitizeErrorMessage }` ที่ถูกต้องเพียงรายการเดียวจะยกเว้น sink อื่นทั้งหมดในไฟล์นั้นอย่างถาวร และนั่นคือสาเหตุที่ข้อมูลรั่วไหลจริงหลุดผ่านไปได้ทั้งที่สถานะเป็นสีเขียว ขณะนี้แต่ละบรรทัดจะได้รับความเชื่อถือก็ต่อเมื่อบรรทัดนั้นส่งข้อมูลผ่าน builder หรือ sanitizer ที่ได้รับอนุญาตจริงเท่านั้น:
+
+| รูปแบบของบรรทัด                                                                                           | เชื่อถือได้หรือไม่         |
+| --------------------------------------------------------------------------------------------------------- | -------------------------- |
+| เรียก `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …       | ได้                        |
+| เรียก canonical builder **ที่ไฟล์นี้ import** จาก `open-sse/utils/error` หรือ `src/lib/api/errorResponse` | ได้                        |
+| sanctioned builder ถูกเรียกแบบ **หลายบรรทัด** ทำให้ฟิลด์ `message:` อยู่ในบรรทัดถัดไป                     | ได้                        |
+| เรียก `function errorResponse(...)` ที่อยู่ภายในไฟล์ ซึ่ง body ของฟังก์ชันนั้นทำการ sanitize              | ได้                        |
+| ส่งต่อ `err.message` / `err.stack` ไปยังตำแหน่งอื่นใด                                                     | **ไม่ได้ — เป็นการละเมิด** |
+
+มีผลที่ควรทราบสองประการ:
+
+- การ import `errorResponse` _ไม่ได้_ หมายถึงการเชื่อถือแบบครอบคลุมทั้งหมด ไฟล์ที่ประกาศ `errorResponse` ของตัวเองยังคงถูกแจ้งที่ตำแหน่งเรียกใช้ เพราะเกตพิจารณาความเชื่อถือต่อ symbol ไม่ใช่ต่อไฟล์ หลักการเดียวกันนี้ใช้กับ `createErrorResponse`
+- รูปแบบ `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` แล้วตามด้วย `error: body.error.message` เป็นสำนวนที่ **ผ่านการทำให้ปลอดภัยแล้ว** ซึ่งใช้ทั่วทั้ง executor แบบ `*-fetch.ts` และจะไม่ถูกแจ้ง
+
+โมดูล sanctioned builder ทั้งสองรายการได้รับการยอมรับ ได้แก่ `open-sse/utils/error.ts` และ `src/lib/api/errorResponse.ts` โมดูลที่สองคือโมดูลที่ route handler ประมาณ 54 รายการนอก `open-sse` ใช้งาน และโมดูลนี้ทำการ sanitize export ทั้งสองรายการ
+
+รูปแบบสองประเภทต่อไปนี้ **ไม่ใช่** การละเมิด แม้ก่อนหน้านี้เกตเคยรายงานว่าเป็นการรั่วไหล:
+
+- ข้อผิดพลาดแบบดิบภายใน **แถว audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)` หรือ logger ที่รับ message ก่อน (`log.error("BATCHES", "sweep failed", { error: err.message })`) ส่วน response ที่แสดงแก่ client ในบรรทัดถัดไปอาจเป็น `buildErrorBody` แบบสแตติกก็ได้
+- การเรียก sanctioned builder แบบ **หลายบรรทัด** ซึ่งฟิลด์ `message:` ไม่ได้ระบุชื่อ builder ใดเลย:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` ตรึงรายการละเมิดที่มีอยู่ก่อนแล้ว เพื่อให้เกตบล็อกเฉพาะรายการ _ใหม่_ เท่านั้น `assertNoStale` จะลบรายการออกโดยอัตโนมัติเมื่อการละเมิดนั้นได้รับการแก้ไขแล้ว เพื่อป้องกันไม่ให้รายการที่ตรึงไว้แข็งตัวจนเปลี่ยนแปลงไม่ได้ ตัวป้องกัน regression ได้แก่ `tests/unit/check-error-helper.test.ts` และ `tests/unit/check-error-helper-call-scope.test.ts`
 
 ## มาตรการควบคุมที่เกี่ยวข้อง
 

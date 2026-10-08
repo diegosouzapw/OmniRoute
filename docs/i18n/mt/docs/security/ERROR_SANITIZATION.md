@@ -139,13 +139,47 @@ joħloq messaġġi li jiżvelaw it-topoloġija mill-bidu nett.
 
 `tests/unit/error-message-sanitization.test.ts` jiżgura li:
 
-- Kull route taħt `/api/model-combo-mappings/*` tirritorna bodies sanitizzati għal 4xx/5xx.
+- Kull route taħt `/api/model-combo-mappings/*` jirritorna bodies sanitizzati għal 4xx/5xx.
 - `sanitizeErrorMessage` ineħħi stack traces b’diversi linji.
 - `sanitizeErrorMessage` jissostitwixxi paths assoluti ta’ POSIX u Windows b’`<path>`.
-- `sanitizeErrorMessage` jimmaniġġja b’mod sikur inputs ta’ istanzi `null`/`undefined`/`Error`.
-- `buildErrorBody` qatt ma jikxef stack traces fil-field `message` tiegħu.
+- `sanitizeErrorMessage` jimmaniġġja inputs ta’ istanzi `null`/`undefined`/`Error` b’mod sikur.
+- `buildErrorBody` qatt ma jesponi stack traces fil-field `message` tiegħu.
 
-Meta żżid route jew executor ġdid, ikkopja l-mudell tal-assertions minn dan il-file. Il-limitu tal-kopertura (`npm run test:coverage`) jimponi ≥60% għal statements/lines/functions/branches — il-flussi tal-iżbalji jridu jkunu koperti.
+Meta żżid route jew executor ġdid, ikkopja l-mudell tal-assertions minn dan il-file. Il-limitu minimu tal-kopertura (`npm run test:coverage`) jimponi ≥60% għal statements/lines/functions/branches — il-flussi tal-errors iridu jkunu koperti.
+
+### Il-kontroll statiku: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` jiskennja `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` u kull `src/app/api/**/route.ts` biex isib error maqbud mhux ipproċessat (`err.message` / `err.stack`) jew `body.error.message` mhux ipproċessat minn upstream li jasal f’body espost għall-client.
+
+**Il-fiduċja hija limitata għas-sejħa, qatt għall-file kollu** (G-03, #15159). Preċedentement, il-kontroll kien jaqbeż file sħiħ malli jsib kwalunkwe import minn path `utils/error` — eżenzjoni fil-livell tal-file applikata għal periklu fil-livell tas-sejħa. `import { sanitizeErrorMessage }` wieħed korrett kien jeżenta b’mod permanenti kull sink ieħor fil-file, u hekk leak attiv għadda mill-kontrolli. Issa linja titqies fdata biss meta effettivament tgħaddi minn builder jew sanitizer approvat:
+
+| Għamla tal-linja                                                                                                  | Fdata?        |
+| ----------------------------------------------------------------------------------------------------------------- | ------------- |
+| issejjaħ `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …            | iva           |
+| issejjaħ builder kanoniku **li dan il-file jimporta** minn `open-sse/utils/error` jew `src/lib/api/errorResponse` | iva           |
+| builder approvat jissejjaħ fuq **diversi linji**, għalhekk il-field `message:` ikun fuq linja sussegwenti         | iva           |
+| issejjaħ `function errorResponse(...)` lokali għall-file, li l-body tagħha stess iwettaq sanitizzazzjoni          | iva           |
+| jgħaddi `err.message` / `err.stack` fi kwalunkwe post ieħor                                                       | **le — ksur** |
+
+Żewġ konsegwenzi li tajjeb tkun taf:
+
+- L-importazzjoni ta’ `errorResponse` _ma_ tfissirx fiduċja ġenerali. File li jiddefinixxi l-`errorResponse` tiegħu stess xorta jiġi mmarkat fil-post tas-sejħa, għax il-kontroll isolvi l-fiduċja għal kull symbol, mhux għal kull file. L-istess japplika għal `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` segwit minn `error: body.error.message` huwa l-idjoma **sanitizzata** użata fl-executors `*-fetch.ts` u ma jiġix immarkat.
+
+Iż-żewġ modules approvati tal-builders jgħoddu: `open-sse/utils/error.ts` u `src/lib/api/errorResponse.ts`. It-tieni wieħed jintuża mill-madwar 54 route handlers barra `open-sse`, u jissanitizza ż-żewġ exports tiegħu.
+
+Żewġ għamliet li **mhumiex** ksur, u li t-tnejn li huma l-kontroll darba rrapporta bħala leaks:
+
+- error mhux ipproċessat ġewwa **ringiela tal-awditjar** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, jew logger li jieħu message l-ewwel (`log.error("BATCHES", "sweep failed", { error: err.message })`). Ir-response espost għall-client fil-linji ta’ wara jista’ jkun `buildErrorBody` statiku.
+- sejħa ta’ builder approvat fuq **diversi linji**, fejn il-field `message:` ma jsemmi l-ebda builder:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` jiffriża l-ksur eżistenti minn qabel sabiex il-kontroll jimblokka biss dawk _ġodda_. `assertNoStale` ineħħi entry awtomatikament ladarba l-ksur tagħha jiġi rranġat, sabiex il-lista ffriżata ma tistax tibbies b’mod permanenti. Kontrolli kontra r-rigressjoni: `tests/unit/check-error-helper.test.ts` u `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Kontrolli relatati
 

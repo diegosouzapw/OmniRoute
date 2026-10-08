@@ -31,7 +31,14 @@ const REQUEST_TOO_LARGE_PATTERNS: (string | RegExp)[] = [
 ];
 
 export type CursorErrorKind =
-  "rate_limit" | "auth" | "invalid" | "overload" | "timeout" | "connection" | "upstream";
+  | "rate_limit"
+  | "auth"
+  | "not_found"
+  | "invalid"
+  | "overload"
+  | "timeout"
+  | "connection"
+  | "upstream";
 
 export type ClassifiedCursorError = {
   kind: CursorErrorKind;
@@ -82,6 +89,15 @@ export function isCursorBenignCancelError(value: unknown): boolean {
   return false;
 }
 
+/**
+ * True for the driveH2 safety-timeout error (CURSOR_STREAM_TIMEOUT_MS). When it
+ * fires after content was already streamed, the turn is finished as truncated
+ * (finish_reason "length") instead of being torn down mid-answer (#14727).
+ */
+export function isCursorStreamTimeoutError(value: unknown): boolean {
+  return errorCode(value) === "CURSOR_STREAM_TIMEOUT";
+}
+
 export function classifyCursorErrorKind(rawMessage: string): CursorErrorKind {
   const lower = rawMessage.toLowerCase();
 
@@ -90,16 +106,18 @@ export function classifyCursorErrorKind(rawMessage: string): CursorErrorKind {
   }
   if (QUOTA_RATE_CUES.some((cue) => lower.includes(cue))) return "rate_limit";
 
-  // Live Cursor out-of-usage for premium models often surfaces as:
-  //   not_found: AI Model Not Found (reset after 109h …)
-  // OmniRoute may also append "(reset after …)" after classification; treat the
-  // Cursor-specific "AI Model Not Found" cue as rate/quota either way.
-  if (
-    lower.includes("ai model not found") ||
-    (lower.includes("reset after") && lower.includes("model not found"))
-  ) {
-    return "rate_limit";
+  // Cursor answers both an unknown model id and some out-of-usage premium
+  // requests with `not_found: AI Model Not Found`. Only the out-of-usage form
+  // carries a reset hint (`… (reset after 109h …)`); without one the id itself
+  // is unknown to Cursor, which is a caller error and must not cool the
+  // connection down as a rate limit.
+  if (lower.includes("model not found")) {
+    return lower.includes("reset after") ? "rate_limit" : "not_found";
   }
+
+  // #15671: a bare Connect `not_found` end-of-stream error (model absent from the
+  // account's plan) must surface as 404 so the model gets locked.
+  if (lower.includes("not_found")) return "not_found";
 
   if (
     lower.includes("unauthenticated") ||
@@ -163,6 +181,8 @@ function kindToStatus(kind: CursorErrorKind): number {
       return 429;
     case "auth":
       return 401;
+    case "not_found":
+      return 404;
     case "invalid":
       return 400;
     case "overload":
@@ -180,6 +200,7 @@ function kindToType(kind: CursorErrorKind): string {
       return "rate_limit_error";
     case "auth":
       return "authentication_error";
+    case "not_found":
     case "invalid":
       return "invalid_request_error";
     default:
@@ -193,6 +214,8 @@ function kindPrefix(kind: CursorErrorKind): string {
       return "Cursor rate limit / usage exceeded";
     case "auth":
       return "Cursor authentication failed";
+    case "not_found":
+      return "Cursor model not found";
     case "invalid":
       return "Cursor invalid request";
     case "overload":

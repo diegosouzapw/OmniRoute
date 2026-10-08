@@ -9,6 +9,7 @@
  */
 
 import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
@@ -82,29 +83,35 @@ function getFreeProviders() {
     });
   }
 
-  // OAuth providers with free tier
+  // OAuth providers with a documented free tier
   for (const [id, p] of Object.entries(OAUTH_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "oauth",
       });
     }
   }
 
-  // API key providers with free tier
+  // API key providers with a documented free tier
   for (const [id, p] of Object.entries(APIKEY_PROVIDERS)) {
-    if ("hasFree" in p && p.hasFree) {
+    if (providerHasFreeModels(id)) {
       providers.push({
         id,
         name: p.name,
         icon: p.icon,
         color: p.color,
-        textIcon: "textIcon" in p ? (p as any).textIcon : undefined,
+        textIcon:
+          typeof p === "object" && p !== null && "textIcon" in p
+            ? ((p as { textIcon?: unknown }).textIcon as string | undefined)
+            : undefined,
         category: "apikey",
       });
     }

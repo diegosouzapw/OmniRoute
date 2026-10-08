@@ -1,0 +1,1 @@
+- **fix(providers):** OpenCode Go keeps a third-party coding agent's own `User-Agent` (e.g. `my-coding-agent/1.0`) instead of rewriting it to `opencode/<version>`, as Go's client requirements ask; generic SDK / HTTP-library UAs are still replaced and the Zen free-tier policy is unchanged ([#15311](https://github.com/diegosouzapw/OmniRoute/issues/15311)) — thanks @yourspraveen

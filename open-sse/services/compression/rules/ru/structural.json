@@ -4,71 +4,79 @@
   "rules": [
     {
       "name": "problem_phrasing",
-      "pattern": "\\b(?:проблема заключается в том, что|дело в том, что|суть в том, что)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:проблема заключается в том, что|дело в том, что|суть в том, что)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "проблема: ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "causality_verbose",
-      "pattern": "\\b(?:это приводит к тому, что|это означает, что|из этого следует, что)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:это приводит к тому, что|это означает, что|из этого следует, что)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "→ ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "purpose_phrases",
-      "pattern": "\\b(?:для того чтобы|с целью того чтобы)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:для того чтобы|с целью того чтобы)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "чтобы ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "causality_phrases",
-      "pattern": "\\b(?:в связи с тем, что|по причине того, что|ввиду того, что)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:в связи с тем, что|по причине того, что|ввиду того, что)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "из-за ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "concession_phrases",
-      "pattern": "\\b(?:несмотря на то, что|хотя и)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:несмотря на то, что|хотя и)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "хотя ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "note_phrases",
-      "pattern": "\\b(?:стоит отметить, что|следует иметь в виду, что|важно понимать, что|необходимо учитывать, что)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:стоит отметить, что|следует иметь в виду, что|важно понимать, что|необходимо учитывать, что)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "redundant_directive",
-      "pattern": "\\b(?:важно помнить|не забывайте|помните о том)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:важно помнить|не забывайте|помните о том)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "approximation",
-      "pattern": "\\b(?:примерно|приблизительно)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:примерно|приблизительно)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "≈ ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "forbidden_abbreviations_dots",
-      "pattern": "\\b(?:т\\.к\\.|т\\.е\\.|и т\\.д\\.|и т\\.п\\.|см\\.|напр\\.|и др\\.|в т\\.ч\\.)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:т\\.к\\.|т\\.е\\.|и т\\.д\\.|и т\\.п\\.|см\\.|напр\\.|и др\\.|в т\\.ч\\.)(?![\\p{L}\\p{N}_])",
       "replacement": "",
       "replacementMap": {
         "т.к.": "так как",
@@ -82,11 +90,12 @@
       },
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "forbidden_abbreviations_dash",
-      "pattern": "\\b(?:кол-во|к-рый|св-во)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:кол-во|к-рый|св-во)(?![\\p{L}\\p{N}_])",
       "replacement": "",
       "replacementMap": {
         "кол-во": "количество",
@@ -95,7 +104,8 @@
       },
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

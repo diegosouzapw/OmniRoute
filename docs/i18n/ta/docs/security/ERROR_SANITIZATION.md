@@ -135,15 +135,49 @@ system topology-ஐ வெளிப்படுத்தும் செய்�
 
 ## CI-இல் கவரேஜ்
 
-`tests/unit/error-message-sanitization.test.ts` பின்வருவனவற்றை உறுதிப்படுத்துகிறது:
+`tests/unit/error-message-sanitization.test.ts` பின்வருவனவற்றை அமல்படுத்துகிறது:
 
-- `/api/model-combo-mappings/*`-இன் கீழுள்ள ஒவ்வொரு route-உம் 4xx/5xx நிலைகளில் சுத்திகரிக்கப்பட்ட body-களைத் திருப்பியளிக்கிறது.
-- `sanitizeErrorMessage` பல-வரி stack trace-களை அகற்றுகிறது.
-- `sanitizeErrorMessage` POSIX மற்றும் Windows absolute path-களை `<path>` என்பதால் மாற்றுகிறது.
-- `sanitizeErrorMessage`, `null`/`undefined`/`Error` instance உள்ளீடுகளைப் பாதுகாப்பாகக் கையாளுகிறது.
-- `buildErrorBody`, அதன் `message` field-இல் stack trace-களை ஒருபோதும் வெளிப்படுத்தாது.
+- `/api/model-combo-mappings/*`-இன் கீழுள்ள ஒவ்வொரு route-உம் 4xx/5xx பதில்களில் சுத்திகரிக்கப்பட்ட body-களைத் திருப்பியளிக்கிறது.
+- `sanitizeErrorMessage` பல-வரி stack trace-களை நீக்குகிறது.
+- `sanitizeErrorMessage` POSIX மற்றும் Windows absolute path-களை `<path>` ஆக மாற்றுகிறது.
+- `sanitizeErrorMessage`, `null`/`undefined`/`Error` instance input-களைப் பாதுகாப்பாகக் கையாளுகிறது.
+- `buildErrorBody` அதன் `message` field-இல் stack trace-களை ஒருபோதும் வெளிப்படுத்தாது.
 
-புதிய route அல்லது executor-ஐச் சேர்க்கும்போது, இந்தக் கோப்பிலுள்ள assertion வடிவத்தை நகலெடுக்கவும். கவரேஜ் வரம்பு (`npm run test:coverage`) statements/lines/functions/branches ஆகியவற்றுக்கு ≥60% என்பதை அமல்படுத்துகிறது — error path-களும் கட்டாயம் கவரேஜில் இடம்பெற வேண்டும்.
+புதிய route அல்லது executor-ஐச் சேர்க்கும்போது, இந்த file-இலிருந்து assertion pattern-ஐ நகலெடுக்கவும். Coverage gate (`npm run test:coverage`) statements/lines/functions/branches ஆகியவற்றுக்கு ≥60% coverage-ஐ அமல்படுத்துகிறது — error path-களும் கட்டாயம் உள்ளடக்கப்பட வேண்டும்.
+
+### Static gate: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs`, `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` மற்றும் ஒவ்வொரு `src/app/api/**/route.ts`-ஐயும் scan செய்து, raw caught error (`err.message` / `err.stack`) அல்லது raw upstream `body.error.message` client-facing body-ஐ அடைவதைக் கண்டறிகிறது.
+
+**நம்பிக்கை call அளவிலானது; ஒருபோதும் file அளவிலானது அல்ல** (G-03, #15159). `utils/error` path-இலிருந்து ஏதேனும் import இருப்பதைக் கண்டவுடன் gate முழு file-ஐயும் முன்பு தவிர்த்துவந்தது — call அளவிலான அபாயத்துக்கு file அளவிலான விலக்கு பயன்படுத்தப்பட்டது. ஒரே ஒரு சரியான `import { sanitizeErrorMessage }`, அந்த file-இலுள்ள மற்ற எல்லா sink-களுக்கும் நிரந்தரமாக விலக்களித்தது; இதனால்தான் நடைமுறையில் இருந்த ஒரு கசிவு சோதனையில் வெற்றிபெற்ற நிலையிலேயே வெளியிடப்பட்டது. இப்போது, அங்கீகரிக்கப்பட்ட builder அல்லது sanitizer வழியாக உண்மையாகச் செல்லும்போது மட்டுமே ஒரு line நம்பகமானதாகக் கருதப்படுகிறது:
+
+| Line வடிவம்                                                                                                                       | நம்பகமானதா?           |
+| --------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …-ஐ அழைக்கிறது                        | ஆம்                   |
+| `open-sse/utils/error` அல்லது `src/lib/api/errorResponse`-இலிருந்து **இந்த file import செய்துள்ள** canonical builder-ஐ அழைக்கிறது | ஆம்                   |
+| அங்கீகரிக்கப்பட்ட builder **பல வரிகளில்** அழைக்கப்படுவதால், `message:` field அடுத்தொரு line-இல் உள்ளது                            | ஆம்                   |
+| தனது சொந்த body-இல் சுத்திகரிக்கும் file-local `function errorResponse(...)`-ஐ அழைக்கிறது                                         | ஆம்                   |
+| வேறு எங்காவது `err.message` / `err.stack`-ஐ அனுப்புகிறது                                                                          | **இல்லை — விதிமீறல்** |
+
+அறிந்திருக்க வேண்டிய இரண்டு விளைவுகள்:
+
+- `errorResponse`-ஐ import செய்வது முழுமையான நம்பிக்கையை அளிக்காது. தனக்கென `errorResponse`-ஐ வரையறுக்கும் ஒரு file, call site-இல் இன்னும் flag செய்யப்படும்; ஏனெனில் gate நம்பிக்கையை file அடிப்படையில் அல்லாமல் symbol அடிப்படையில் தீர்மானிக்கிறது. `createErrorResponse`-க்கும் இதுவே பொருந்தும்.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))`-ஐத் தொடர்ந்து `error: body.error.message` வருவது, `*-fetch.ts` executor-களில் பயன்படுத்தப்படும் **சுத்திகரிக்கப்பட்ட** idiom ஆகும்; அது flag செய்யப்படாது.
+
+அங்கீகரிக்கப்பட்ட இரண்டு builder module-களும் கணக்கில் கொள்ளப்படுகின்றன: `open-sse/utils/error.ts` மற்றும் `src/lib/api/errorResponse.ts`. இரண்டாவது module-ஐத்தான் `open-sse`-க்கு வெளியேயுள்ள சுமார் 54 route handler-கள் பயன்படுத்துகின்றன; அது தனது இரண்டு export-களையும் சுத்திகரிக்கிறது.
+
+பின்வரும் இரண்டு வடிவங்களும் **விதிமீறல்கள் அல்ல**; இவை இரண்டையும் gate முன்பு கசிவுகளாக report செய்தது:
+
+- **audit row**-க்குள் இருக்கும் raw error — `saveCallLog({ error: err.message })`, `logToolCall(...)`, அல்லது முதலில் message-ஐ ஏற்கும் logger (`log.error("BATCHES", "sweep failed", { error: err.message })`). அடுத்தடுத்த line-களில் உள்ள client-facing response, static `buildErrorBody` ஆக இருக்கலாம்.
+- `message:` field எந்த builder-ஐயும் பெயரிடாத **பல-வரி** அங்கீகரிக்கப்பட்ட builder call:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER`, முன்பே இருந்த விதிமீறல்களை உறையவைத்து, gate **புதிய** விதிமீறல்களை மட்டும் தடுப்பதை உறுதிசெய்கிறது. ஒரு விதிமீறல் சரிசெய்யப்பட்டவுடன் `assertNoStale` அதற்கான entry-ஐத் தானாகவே அகற்றுவதால், இந்த freeze நிரந்தரமாக உறைந்துவிட முடியாது. Regression guard-கள்: `tests/unit/check-error-helper.test.ts` மற்றும் `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## தொடர்புடைய கட்டுப்பாடுகள்
 

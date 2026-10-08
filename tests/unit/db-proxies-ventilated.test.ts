@@ -48,6 +48,8 @@ type LogRow = {
   status: string;
   targetUrl: string | null;
   upstreamStatus: number | null;
+  attemptIssue: string | null;
+  error: string | null;
 };
 
 let logSeq = 0;
@@ -59,8 +61,8 @@ async function seedProxy(name: string, host: string, rows: LogRow[]) {
   const insertLog = db.prepare(`
     INSERT INTO proxy_logs (
       id, timestamp, status, proxy_type, proxy_host, proxy_port,
-      target_url, upstream_status, latency_ms
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      target_url, upstream_status, latency_ms, attempt_issue, error
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   for (const row of rows) {
     logSeq += 1;
@@ -73,7 +75,9 @@ async function seedProxy(name: string, host: string, rows: LogRow[]) {
       8080,
       row.targetUrl,
       row.upstreamStatus,
-      100
+      100,
+      row.attemptIssue ?? null,
+      row.error ?? null
     );
   }
   const stats = await proxiesDb.getProxyHealthStats({ hours: 2 });
@@ -88,9 +92,18 @@ async function seedProxy(name: string, host: string, rows: LogRow[]) {
 function row(
   status: string,
   upstreamStatus: number | null,
-  targetUrl: string | null = null
+  targetUrl: string | null = null,
+  attemptIssue: string | null = null,
+  error: string | null = null
 ): LogRow {
-  return { id: `log-${status}-${String(upstreamStatus)}`, status, targetUrl, upstreamStatus };
+  return {
+    id: `log-${status}-${String(upstreamStatus)}`,
+    status,
+    targetUrl,
+    upstreamStatus,
+    attemptIssue,
+    error,
+  };
 }
 
 test("measured successes count as transport ok, including legacy rows without upstream status", async () => {
@@ -202,4 +215,151 @@ test("legacy aggregate fields keep their previous values", async () => {
   assert.equal(entry.errorCount, 1);
   assert.equal(entry.timeoutCount, 1);
   assert.equal(entry.successRate, 33.33);
+});
+
+const { headersWaitExpiryError } = await import("../../open-sse/executors/opencodeHeadersWait.ts");
+const { sanitizeErrorMessage } = await import("../../open-sse/utils/errorSanitization.ts");
+
+function storedErrorText(value: unknown): string {
+  return sanitizeErrorMessage(sanitizeErrorMessage(value));
+}
+
+test("slow abandoned headers-wait rows leave the transport failures and count separately", async () => {
+  const stored = storedErrorText(headersWaitExpiryError(5000));
+  assert.match(stored, /^OpencodeHeadersWaitTimeout:/);
+  const entry = await seedProxy("Vent Slow", "vent-slow.local", [
+    {
+      id: "log-slow",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: stored,
+    },
+  ]);
+  assert.equal(entry.transportFailures, 0);
+  assert.equal(entry.slowAbandoned, 1);
+  assert.equal(entry.clientAborted, 0);
+});
+
+test("abandoned client aborts leave the transport failures and count separately", async () => {
+  const stored = storedErrorText(new Error("Request aborted"));
+  assert.match(stored, /Request aborted/);
+  const entry = await seedProxy("Vent Abort", "vent-abort.local", [
+    {
+      id: "log-abort",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: stored,
+    },
+  ]);
+  assert.equal(entry.transportFailures, 0);
+  assert.equal(entry.slowAbandoned, 0);
+  assert.equal(entry.clientAborted, 1);
+});
+
+test("served client aborts leave the transport failures and count separately", async () => {
+  const stored = storedErrorText("Request aborted");
+  assert.match(stored, /Request aborted/);
+  const entry = await seedProxy("Vent Served", "vent-served.local", [
+    {
+      id: "log-served",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "served",
+      error: stored,
+    },
+  ]);
+  assert.equal(entry.transportFailures, 0);
+  assert.equal(entry.slowAbandoned, 0);
+  assert.equal(entry.clientAborted, 1);
+});
+
+test("abandoned connection errors stay transport failures", async () => {
+  const entry = await seedProxy("Vent Conn", "vent-conn.local", [
+    {
+      id: "log-conn",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: "fetch failed (cause ECONNREFUSED)",
+    },
+  ]);
+  assert.equal(entry.transportFailures, 1);
+  assert.equal(entry.slowAbandoned, 0);
+  assert.equal(entry.clientAborted, 0);
+});
+
+test("long-ceiling timeouts stay transport failures", async () => {
+  const entry = await seedProxy("Vent Ceil", "vent-ceil.local", [
+    {
+      id: "log-ceil",
+      status: "timeout",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: null,
+      error: "Upstream request did not return response headers after 180000ms (openai/gpt)",
+    },
+  ]);
+  assert.equal(entry.transportFailures, 1);
+  assert.equal(entry.slowAbandoned, 0);
+  assert.equal(entry.clientAborted, 0);
+});
+
+test("transport rate is computed on transport rows only", async () => {
+  const slow = storedErrorText(headersWaitExpiryError(5000));
+  const aborted = storedErrorText(new Error("Request aborted"));
+  const servedAbort = storedErrorText("Request aborted");
+  const entry = await seedProxy("Vent Mix", "vent-mix.local", [
+    {
+      id: "log-mix-slow",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: slow,
+    },
+    {
+      id: "log-mix-conn",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: "fetch failed (cause ECONNREFUSED)",
+    },
+    {
+      id: "log-mix-ceil",
+      status: "timeout",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: null,
+      error: "Upstream request did not return response headers after 180000ms (openai/gpt)",
+    },
+    {
+      id: "log-mix-abort",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "abandoned",
+      error: aborted,
+    },
+    {
+      id: "log-mix-served",
+      status: "error",
+      targetUrl: null,
+      upstreamStatus: null,
+      attemptIssue: "served",
+      error: servedAbort,
+    },
+    row("success", 200),
+  ]);
+  assert.equal(entry.transportOk, 1);
+  assert.equal(entry.transportFailures, 2);
+  assert.equal(entry.slowAbandoned, 1);
+  assert.equal(entry.clientAborted, 2);
+  assert.equal(entry.transportRate, 33.33);
 });

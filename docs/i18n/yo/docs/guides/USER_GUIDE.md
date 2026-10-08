@@ -120,35 +120,37 @@ Wọlé sí i nípasẹ̀: WhatsApp, Telegram, Slack, Discord, iMessage, Signal.
 
 ## 📖 Ìṣètò Olùpèsè
 
-Láti fi àwọn ìsopọ̀ kọ́kọ́rọ́ API kún un ní ọ̀pọ̀lọpọ̀ láti inú fáìlì CSV tàbí JSON, lo **Dashboard → Providers → Import from file**. Ipò àwọn ọ̀wọ̀n ni a fi ń dá wọn mọ̀ (`provider,name,apiKey,baseUrl,priority`); `provider` gbọ́dọ̀ ti wà tẹ́lẹ̀ gẹ́gẹ́ bí olùpèsè tí a ń ṣàkóso tàbí node tó bá a mu. Wo [Gbé àwọn olùpèsè wọlé láti inú fáìlì CSV tàbí JSON](../providers/CSV-IMPORT.md).
+Láti ṣàfikún ọ̀pọ̀ ìsopọ̀ kọ́kọ́rọ́ API lẹ́ẹ̀kan náà láti inú fáìlì CSV tàbí JSON, lo **Pátákó ìṣàkóso → Àwọn Olùpèsè → Gbé wọlé láti inú fáìlì**. Ipò àwọn ọ̀wọ̀n ni a fi ń dá wọn mọ̀ (`provider,name,apiKey,baseUrl,priority`); `provider` gbọ́dọ̀ ti wà tẹ́lẹ̀ gẹ́gẹ́ bí olùpèsè tí a ń ṣàkóso tàbí node tó bá a mu. Wo [Gbé àwọn olùpèsè wọlé láti inú fáìlì CSV tàbí JSON](../providers/CSV-IMPORT.md).
 
-### 🔐 Àwọn Olùpèsè Alábojútó
+### 🔐 Àwọn Olùpèsè Alabapin
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → So Claude Code pọ̀
-→ Wọlé pẹ̀lú OAuth → Ìsọdọ̀tun token aládàáṣe
-→ Títọpinpin ìpín fún wákàtí 5 + ọ̀sẹ̀
+Pátákó ìṣàkóso → Àwọn Olùpèsè → So Claude Code pọ̀
+→ Wọlé pẹ̀lú OAuth → Ìmúdójúìwọ̀n token aládàáṣe
+→ Títọpinpin iye-ààlà wákàtí 5 + ti ọ̀sẹ̀
 
-Àwọn model:
+Àwọn àwòṣe:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Ìmọ̀ràn Amọ̀dájú:** Lo Opus fún àwọn iṣẹ́ tó díjú, Sonnet sì fún iyára. OmniRoute ń tọpinpin ìpín fún model kọ̀ọ̀kan!
+**Ìmọ̀ràn Amọ̀ṣẹ́:** Lo Opus fún àwọn iṣẹ́ tó díjú, Sonnet fún iyára. OmniRoute ń tọpinpin iye-ààlà fún àwòṣe kọ̀ọ̀kan!
 
-Àwọn ipa ọ̀nà tó bá Claude àti Claude Code mu ń pa ìsapá ìrònú `max` mọ́ fún àwọn model Opus àti Sonnet. Àwọn model Haiku kò gba ìpele ìsapá `max`, nítorí náà OmniRoute máa sọ ìbéèrè náà kalẹ̀ sí ìnáwó ìrònú gíga kí ó tó fi ránṣẹ́ sí upstream.
+Kò sí aṣàwákiri lórí ẹ̀rọ tó ń gbàlejò OmniRoute? Ṣiṣe `claude setup-token` ní ibikíbi tí a ti wọlé sí Claude Code, kí o sì lẹ token ọlọ́dún kan náà mọ́ inú taabu **Token Ìṣètò**. Wo [Claude Code pẹ̀lú token ìṣètò](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Àwọn ipa-ọ̀nà tó bá Claude àti Claude Code mu máa ń pa ìsapá ìrònú `max` mọ́ fún àwọn àwòṣe Opus àti Sonnet. Àwọn àwòṣe Haiku kò gba ipele ìsapá `max`, nítorí náà OmniRoute máa ń sọ ìbéèrè náà kalẹ̀ sí ìnáwó ìrònú gíga kí ó tó fi ránṣẹ́ sí olùpèsè òkè.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → So Codex pọ̀
+Pátákó ìṣàkóso → Àwọn Olùpèsè → So Codex pọ̀
 → Wọlé pẹ̀lú OAuth (port 1455)
 → Àtúntò lẹ́yìn wákàtí 5 + lọ́sọ̀ọ̀sẹ̀
 
-Àwọn model:
+Àwọn àwòṣe:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -158,11 +160,11 @@ Dashboard → Providers → So Codex pọ̀
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → So GitHub pọ̀
+Pátákó ìṣàkóso → Àwọn Olùpèsè → So GitHub pọ̀
 → OAuth nípasẹ̀ GitHub
-→ Àtúntò lóṣooṣù (ọjọ́ kìíní oṣù)
+→ Àtúntò oṣooṣù (ọjọ́ kìíní oṣù)
 
-Àwọn model:
+Àwọn àwòṣe:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -176,49 +178,50 @@ Dashboard → Providers → So GitHub pọ̀
 
 1. Forúkọsílẹ̀: [Zhipu AI](https://open.bigmodel.cn)
 2. Gba kọ́kọ́rọ́ API láti Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+3. Pátákó ìṣàkóso → Ṣàfikún Kọ́kọ́rọ́ API: Olùpèsè: `glm`, Kọ́kọ́rọ́ API: `your-key`
 
-**Lílo:** `glm/glm-4.7` — **Ìmọ̀ràn Amọ̀dájú:** Coding Plan ń fúnni ní ìpín tó pọ̀ ní ìlọ́po 3 pẹ̀lú 1/7 iye owó! Ó máa ń tún ara rẹ̀ tò ní 10:00 AM ojoojúmọ́.
+**Lò ó:** `glm/glm-4.7` — **Ìmọ̀ràn Amọ̀ṣẹ́:** Coding Plan ń fúnni ní iye-ààlà 3× ní 1/7 iye owó! Ó máa ń tún ara rẹ̀ tò ní 10:00 àárọ̀ ojoojúmọ́.
 
-#### MiniMax M2.1 (Àtúntò lẹ́yìn wákàtí 5, $0.20/1M)
+#### MiniMax M2.1 (Àtúntò wákàtí 5, $0.20/1M)
 
 1. Forúkọsílẹ̀: [MiniMax](https://www.minimax.io)
-2. Gba kọ́kọ́rọ́ API → Dashboard → Add API Key
+2. Gba kọ́kọ́rọ́ API → Pátákó ìṣàkóso → Ṣàfikún Kọ́kọ́rọ́ API
 
-**Lílo:** `minimax/MiniMax-M2.1` — **Ìmọ̀ràn Amọ̀dájú:** Èyí ni àṣàyàn tó din owó jù fún context gígùn (token 1M)!
+**Lò ó:** `minimax/MiniMax-M2.1` — **Ìmọ̀ràn Amọ̀ṣẹ́:** Èyí ni àṣàyàn tó din owó jù fún àyíká ọ̀rọ̀ gígùn (token mílíọ̀nù 1)!
 
 #### Kimi K2 ($9/oṣù láìyípadà)
 
-1. Ṣalábàápín: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Gba kọ́kọ́rọ́ API → Dashboard → Add API Key
+1. Di alabapin: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Gba kọ́kọ́rọ́ API → Pátákó ìṣàkóso → Ṣàfikún Kọ́kọ́rọ́ API
 
-**Lílo:** `kimi/kimi-k2.5` — **Ìmọ̀ràn Amọ̀dájú:** $9/oṣù láìyípadà fún token 10M = iye owó gidi $0.90/1M!
+**Lò ó:** `kimi/kimi-k2.5` — **Ìmọ̀ràn Amọ̀ṣẹ́:** $9/oṣù láìyípadà fún token mílíọ̀nù 10 = iye owó gidi $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Forúkọsílẹ̀: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Ṣẹ̀dá kọ́kọ́rọ́ API Qianfan → Dashboard → Add API Key: Provider: `qianfan`
+2. Ṣẹ̀dá kọ́kọ́rọ́ API Qianfan → Pátákó ìṣàkóso → Ṣàfikún Kọ́kọ́rọ́ API: Olùpèsè: `qianfan`
 
-**Lílo:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, tàbí ID model Qianfan mìíràn tó bá OpenAI mu.
+**Lò ó:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, tàbí ID àwòṣe Qianfan mìíràn tó bá OpenAI mu.
 
 ### 🆓 Àwọn Olùpèsè Ọ̀FẸ́
 
-Àwọn olùpèsè ọ̀fẹ́ tí kò nílò ìfàṣẹ̀sí ní switch lẹ́gbẹ̀ẹ́ **No authentication required** lójú ewé olùpèsè wọn. Pípa á máa mú olùpèsè náà ṣiṣẹ́ mọ́, yóò yọ ọ́ kúrò nínú àwọn ìwòye Providers tí a ti ṣètò/tí a ti dín kù, yóò sì yọ àwọn model rẹ̀ kúrò ní `/v1/models`.
+Àwọn olùpèsè ọ̀fẹ́ tí kò nílò ìfàṣẹ̀sí ní bọ́tìnì ìtan-an/pípa lẹ́gbẹ̀ẹ́ **Kò nílò ìfàṣẹ̀sí** lójú-ìwé olùpèsè wọn.
+Pípa á máa mú olùpèsè náà ṣiṣẹ́ mọ́, yóò yọ ọ́ kúrò nínú àwọn ìríran olùpèsè tí a ti ṣètò/ṣókí, yóò sì yọ àwọn àwòṣe rẹ̀ kúrò ní `/v1/models`.
 
-#### Qoder (model Ọ̀FẸ́ 9)
+#### Qoder (Àwòṣe Ọ̀FẸ́ 9)
 
 ```bash
-Dashboard → So Qoder pọ̀ → Wọlé pẹ̀lú OAuth → Ààyè lílò wà lábẹ́ àwọn ààlà olùpèsè lọ́wọ́lọ́wọ́
+Pátákó ìṣàkóso → So Qoder pọ̀ → Wọlé pẹ̀lú OAuth → Ìráyè sinmi lórí àwọn ààlà olùpèsè lọ́wọ́lọ́wọ́
 
-Àwọn model: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Àwọn àwòṣe: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude Ọ̀FẸ́)
 
 ```bash
-Dashboard → So Kiro pọ̀ → AWS Builder ID tàbí Google/GitHub → ~50 credit/oṣù
+Pátákó ìṣàkóso → So Kiro pọ̀ → AWS Builder ID tàbí Google/GitHub → ~50 kírẹ́díìtì/oṣù
 
-Àwọn model: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Àwọn àwòṣe: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

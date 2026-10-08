@@ -105,7 +105,7 @@ Canonical model ID ဖြစ်သည့် `anthropic-compatible-cc-{uuid}/clau
 | Header                                                    | Value                                                                                                          |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                                           | `Bearer <api-key>`                                                                                             |
-| `User-Agent`                                              | `claude-cli/2.1.258 (external, sdk-cli)`                                                                       |
+| `User-Agent`                                              | `claude-cli/2.1.280 (external, sdk-cli)`                                                                       |
 | `anthropic-version`                                       | `2023-06-01`                                                                                                   |
 | `anthropic-beta`                                          | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                       |
 | Connection တစ်ခုချင်းစီအလိုက် redact-thinking beta toggle | Redacted thinking stream များကို အထူးလိုအပ်သည့် upstream များအတွက် `redact-thinking-2026-02-12` ကို ထည့်ပေးသည် |

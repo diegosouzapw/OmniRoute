@@ -1,0 +1,1 @@
+- fix(providers): add `gpt-6-sol` and `gpt-6-luna` to the OpenAI public API registry with the correct 1,050,000-token context window — they were missing and fell back to the 128k `defaultContextLength`, causing combos that included either model to advertise a capped-8x context window (#15023, #15164 — thanks @shipsfromrio)
