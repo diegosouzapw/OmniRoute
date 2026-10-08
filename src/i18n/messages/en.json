@@ -6004,7 +6004,7 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled, unless local quota filtering is fully turned off (quota preflight and limit policy both disabled).",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "Disable cooldown for this connection",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",

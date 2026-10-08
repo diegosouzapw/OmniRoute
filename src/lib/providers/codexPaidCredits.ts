@@ -1,4 +1,5 @@
 import { getCodexModelScope } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { isCodexQuotaFilteringDisabled } from "@/lib/providers/codexQuotaFiltering";
 
 export interface CodexPaidCredits {
   hasCredits: boolean;
@@ -24,7 +25,12 @@ export function parseCodexPaidCredits(value: unknown): CodexPaidCredits | undefi
   };
 }
 
-/** Explicit billing consent; Spark has a separate quota and is not covered here. */
+/**
+ * Explicit billing consent (default off); Spark has a separate quota and is not covered here.
+ * The full local quota-filtering opt-out (#15574: quotaPreflightEnabled=false AND
+ * limitPolicy.enabled=false) takes precedence — that account is served unfiltered and the
+ * upstream decides, so the credit-aware gate must not force a preflight on it.
+ */
 export function isCodexPaidCreditsEnabled(
   provider: string | null | undefined,
   providerSpecificData: unknown,
@@ -34,7 +40,8 @@ export function isCodexPaidCreditsEnabled(
   return (
     provider === "codex" &&
     data?.allowPaidCredits === true &&
-    getCodexModelScope(requestedModel) !== "spark"
+    getCodexModelScope(requestedModel) !== "spark" &&
+    !isCodexQuotaFilteringDisabled(provider, providerSpecificData)
   );
 }
 
