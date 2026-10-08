@@ -1,11 +1,17 @@
 import { createHash } from "crypto";
-import { getDbInstance } from "@/lib/db/core";
+import {
+  museScopeHasRecordedItems,
+  pruneIdleMuseOwnershipScopes,
+  readMuseOwnershipValue,
+  runMuseOwnershipTransaction,
+  touchMuseOwnershipScope,
+  writeMuseOwnershipValue,
+} from "@/lib/db/museSessionOwnership";
 import {
   isAccountUnavailable,
   isModelLocked,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 
-const NAMESPACE = "muse_session_ownership";
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 type Owner = { connectionId: string; generation?: string; account?: string };
 type Connection = { id: string; unavailable?: boolean };
@@ -69,17 +75,16 @@ export class MuseOwnershipError extends Error {
   }
 }
 
-function load(key: string): string | undefined {
-  return (
-    getDbInstance()
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get(NAMESPACE, key) as { value: string } | undefined
-  )?.value;
-}
-function save(key: string, value: string): void {
-  getDbInstance()
-    .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
-    .run(NAMESPACE, key, value);
+const load = readMuseOwnershipValue;
+const save = writeMuseOwnershipValue;
+
+// Idle-session pruning runs at most this often, piggybacking on session claims.
+const PRUNE_INTERVAL_MS = 10 * 60 * 1000;
+let lastPruneAt = 0;
+function maybePruneIdleSessions(now: number): void {
+  if (now - lastPruneAt < PRUNE_INTERVAL_MS) return;
+  lastPruneAt = now;
+  pruneIdleMuseOwnershipScopes(now);
 }
 
 /** Never derive cryptographic ownership from prompt text or a caller-selected connection. */
@@ -113,6 +118,27 @@ export function museSessionScope(
     );
   }
   return digest(JSON.stringify([apiKeyId, session]));
+}
+
+/**
+ * Session scope, or `null` when the caller sent no session id and there is at most one OAuth
+ * account: with nothing to rotate to, cross-account replay cannot happen, so the request keeps
+ * the pre-rotation (unpinned) routing instead of failing with 400.
+ */
+export function museSessionScopeFor(
+  body: Record<string, unknown>,
+  headers: unknown,
+  apiKeyId: string | null,
+  oauthAccountCount: number
+): string | null {
+  try {
+    return museSessionScope(body, headers, apiKeyId);
+  } catch (error) {
+    if (error instanceof MuseOwnershipError && error.status === 400 && oauthAccountCount < 2) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 function opaqueHashes(value: unknown, hashes = new Set<string>()): Set<string> {
@@ -158,7 +184,10 @@ export function claimMuseSession(
   forcedId?: string | null
 ): Owner {
   let owner!: Owner;
-  getDbInstance().immediate(() => {
+  const now = Date.now();
+  maybePruneIdleSessions(now);
+  runMuseOwnershipTransaction(() => {
+    touchMuseOwnershipScope(scope, now);
     const stored = load(`session:${scope}`);
     const prior = stored ? (JSON.parse(stored) as Owner) : null;
     const current = prior && candidates.find((candidate) => candidate.id === prior.connectionId);
@@ -229,17 +258,6 @@ export function claimMuseSession(
   return owner;
 }
 
-/** Fail closed only when replayable history exists; a reminted same-account key is adopted otherwise. */
-function scopeHasRecordedItems(scope: string): boolean {
-  for (const prefix of [`opaque:${scope}:`, `reference:${scope}:`]) {
-    const hit = getDbInstance()
-      .prepare("SELECT 1 AS hit FROM key_value WHERE namespace = ? AND key LIKE ? LIMIT 1")
-      .get(NAMESPACE, `${prefix}%`) as { hit?: number } | undefined;
-    if (hit) return true;
-  }
-  return false;
-}
-
 /** Hash the actual inference credential, not timestamps or mutable account labels. Never persist secrets. */
 export function bindMuseGeneration(
   scope: string,
@@ -251,7 +269,7 @@ export function bindMuseGeneration(
     throw new MuseOwnershipError("Muse session owner has no inference credential.", 503);
   const generation = digest(credential);
   const account = digest(accountIdentity);
-  getDbInstance().immediate(() => {
+  runMuseOwnershipTransaction(() => {
     const owner = JSON.parse(load(`session:${scope}`) || "null") as Owner | null;
     if (
       !owner ||
@@ -262,7 +280,7 @@ export function bindMuseGeneration(
         "Muse session owner changed; existing session reasoning cannot be replayed under the new caller."
       );
     }
-    if (owner.generation && owner.generation !== generation && scopeHasRecordedItems(scope)) {
+    if (owner.generation && owner.generation !== generation && museScopeHasRecordedItems(scope)) {
       throw new MuseOwnershipError(
         "Muse caller generation changed; existing session reasoning cannot be replayed under the new credential."
       );
@@ -276,6 +294,7 @@ export function bindMuseGeneration(
 export function recordMuseOutput(response: Response, scope: string, generation: string): Response {
   if (!response.body || !response.ok) return response;
   save(`served:${scope}`, "1");
+  touchMuseOwnershipScope(scope);
   const record = (value: unknown) => {
     for (const hash of opaqueHashes(value)) save(`opaque:${scope}:${hash}`, generation);
     for (const id of continuationIds(value)) save(`reference:${scope}:${digest(id)}`, generation);
