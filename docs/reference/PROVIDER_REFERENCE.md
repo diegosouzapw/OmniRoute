@@ -10,7 +10,7 @@ lastUpdated: 2026-10-08
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-10-08
 
-Total providers: **370**. See category breakdown below.
+Total providers: **371**. See category breakdown below.
 
 ## Categories
 
@@ -122,7 +122,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web | Web cookie | [link](https://chat.z.ai) | Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport. | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (248)
+## API Key Providers (paid / paid-with-free-credits) (249)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -219,6 +219,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `glm` | `glm` | GLM Coding | API key | [link](https://z.ai/subscribe) | — |
 | `glm-cn` | `glmcn` | GLM Coding (China) | API key | [link](https://open.bigmodel.cn) | — |
 | `glmt` | `glmt` | GLM Thinking | API key | [link](https://open.bigmodel.cn) | — |
+| `gondola` | `gondola` | Gondola | API key | [link](https://gondola-ai.com) | No free allowance. Credit is prepaid in USDC on Base and billed per request. |
 | `greenpt` | `greenpt` | GreenPT | API key | [link](https://greenpt.com) | API subscription is free to create; inference is billed per token. No free inference allowance is published. |
 | `groq` | `groq` | Groq | API key | [link](https://groq.com) | Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file. |
 | `haiper` | `hp` | Haiper | API key, video | [link](https://haiper.ai) | Get API key at haiper.ai/haiper-api |
