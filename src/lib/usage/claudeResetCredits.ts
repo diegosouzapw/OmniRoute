@@ -18,7 +18,7 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
-export { ClaudeResetCreditList };
+export type { ClaudeResetCreditList };
 
 type JsonRecord = Record<string, unknown>;
 
