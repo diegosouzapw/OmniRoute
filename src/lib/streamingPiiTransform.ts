@@ -1,5 +1,5 @@
 import { createSseTextTransform, FieldCategory, classifyField } from "./sseTextTransform";
-import { sanitizePII } from "./piiSanitizer";
+import { sanitizePII, getPiiResponseMode } from "./piiSanitizer";
 
 export interface PiiTransformOptions {
   windowSize?: number;
@@ -40,6 +40,13 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
     isSnapshot = false
   ): string => {
     if (field === "toolArgs" || field === "partialJson") {
+      return text;
+    }
+    // warn/off never mutate the payload: detect-only, emit the original bytes immediately
+    // (no sliding-window buffering/re-chunking) so the stream stays byte-identical (#15507).
+    const mode = getPiiResponseMode();
+    if (mode === "warn" || mode === "off") {
+      if (mode === "warn") sanitizePII(text);
       return text;
     }
     if (isSnapshot) {
@@ -220,9 +227,17 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
 
     // 3. Responses API
     if (typeof lastJson.type === "string" && lastJson.type.startsWith("response.")) {
-      const finalJson = JSON.parse(JSON.stringify(lastJson));
-      const idx = typeof finalJson.output_index === "number" ? finalJson.output_index : 0;
+      const idx = typeof lastJson.output_index === "number" ? lastJson.output_index : 0;
       const buffers = getBuffers(`${idx}_0`);
+      // Never clone a terminal event (output_item.done etc.) — that replays it with the same
+      // sequence_number (#15507). Emit the buffered text as a fresh text delta instead.
+      if (!lastJson.type.endsWith(".delta")) {
+        if (!buffers.content) return null;
+        const delta = buffers.content;
+        buffers.content = "";
+        return { type: "response.output_text.delta", output_index: idx, delta };
+      }
+      const finalJson = JSON.parse(JSON.stringify(lastJson));
       if (buffers.content) {
         finalJson.delta = buffers.content;
         buffers.content = "";

@@ -173,8 +173,8 @@ describe("catalog usableOnly gating", () => {
     );
     assert.equal(res.combos, 1);
     assert.deepEqual(res, { models: 1, combos: 1 });
-    assert.ok(models.has("omniroute/good"));
-    assert.ok(!models.has("omniroute/bad"));
+    assert.ok(models.has("omniroute/Good"));
+    assert.ok(!models.has("omniroute/Bad"));
   });
 
   it("usableOnly=false issues no providers request through setup (gating)", async () => {

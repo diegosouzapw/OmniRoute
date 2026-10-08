@@ -1,0 +1,2 @@
+- fix(sse): a 404 model_not_found on one model now locks only that model for every provider instead of cooling the whole connection (#15633)
+- fix(cursor): bare Connect `not_found` stream errors now classify as 404 model-not-found so the unavailable model is locked (#15671)

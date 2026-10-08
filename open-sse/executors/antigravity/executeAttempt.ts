@@ -24,6 +24,7 @@ import * as prl from "../../utils/providerRequestLogging.ts";
 import {
   createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
   buildSsePassthroughResult,
+  bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
 import type { AntigravityCredentials } from "../antigravity.ts";
@@ -632,27 +633,13 @@ async function buildStreamingExecuteOnceResult(
   }
 
   if (response.body) {
-    // If the downstream client aborts, cancel the upstream fetch body immediately
-    // to release the socket back to the Undici agent pool and prevent memory leaks.
-    if (signal) {
-      const abortHandler = () => {
-        try {
-          response.body?.cancel().catch(() => {});
-        } catch (_) {}
-      };
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener("abort", abortHandler, { once: true });
-      }
-    }
-
+    const abortAwareBody = bindAbortLifecycle(response.body, signal);
     const passThrough = createCreditsExtractionTransformImpl(
       accountId,
       onCreditsUpdate,
       16 * 1024 // 16KB sliding-window cap to prevent OOM
     );
-    const tappedBody = response.body.pipeThrough(passThrough);
+    const tappedBody = abortAwareBody.pipeThrough(passThrough);
     const tappedResponse = new Response(tappedBody, {
       status: response.status,
       statusText: response.statusText,

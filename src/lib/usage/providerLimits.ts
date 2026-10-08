@@ -83,6 +83,11 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   // Tavily API key → /usage account & plan credits
   "tavily-search",
   "tavily",
+  // Jina wallet balance (GET https://dash.jina.ai/api/v1/api_key/fe_user)
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",

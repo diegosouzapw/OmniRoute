@@ -133,3 +133,23 @@ export function evaluateToolScopes(
     reason: missing.length > 0 ? "missing_scopes" : undefined,
   };
 }
+
+/**
+ * The client-facing text for a scope denial.
+ *
+ * S-04 (#15159): this deliberately carries only what the caller can act on — the
+ * tool name and the missing scopes. It must NOT include `Caller=`/`source=`: the
+ * caller id is caller-influenced (`resolveCallerScopeContext` derives it from
+ * `extra.authInfo.clientId`, a caller-supplied string, then `extra.sessionId`, then
+ * "anonymous"), so interpolating it reflected arbitrary caller text back on a
+ * pre-auth error surface and echoed it into logs. The identity is still recorded in
+ * the `_scopeCheck` audit payload in `withScopeEnforcement`, which is where an
+ * operator needs it.
+ *
+ * Extracted here rather than inlined in server.ts so the composition is directly
+ * testable instead of being asserted through a copy of the literal.
+ */
+export function buildScopeDenialMessage(toolName: string, missing: readonly string[]): string {
+  const missingScopes = missing.length > 0 ? missing.join(", ") : "unavailable";
+  return `Insufficient MCP scopes for ${toolName}. Missing: ${missingScopes}.`;
+}

@@ -23,6 +23,18 @@ const PEAK_HOUR_PROTECTION_MODES = new Set(["block", "avoid"]);
 const PEAK_HOUR_PROTECTION_DAYS = new Set(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]);
 export const MAX_PROVIDER_SPECIFIC_TIMEOUT_MS = 86_400_000; // 24h — operator cap, anti-DoS
 
+/** Shared guard for optional positive-number providerSpecificData knobs. */
+function validatePositiveNumberField(value: unknown, key: string, ctx: z.RefinementCtx): void {
+  if (value === undefined || value === null) return;
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `providerSpecificData.${key} must be a positive number`,
+      path: [key],
+    });
+  }
+}
+
 // #6880 — per-connection prompt-cache capability override, extracted so
 // validateProviderSpecificData() stays under the complexity gate.
 function validatePeakHourProtectionBlock(value: unknown, ctx: z.RefinementCtx): void {
@@ -438,6 +450,7 @@ export function validateProviderSpecificData(
     "qwenCloudCookie",
     "qwenCloudSecToken",
     "volcConsoleCookie",
+    "xiaomiMimoConsoleCookie",
   ] as const) {
     const value = data[key];
     if (value !== undefined && value !== null && typeof value !== "string") {
@@ -604,6 +617,9 @@ export function validateProviderSpecificData(
       });
     }
   }
+
+  // #15753 — self-tracked Xiaomi MiMo monthly budget override (tokens per month).
+  validatePositiveNumberField(data.monthlyTokenLimit, "monthlyTokenLimit", ctx);
 
   // Per-connection operator timeout tier: a slow model must not monopolize an
   // executor slot indefinitely. Bounded to 24h (anti-DoS); below 1ms is

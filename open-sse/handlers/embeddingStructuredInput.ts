@@ -137,6 +137,57 @@ export async function prepareJinaMixedEmbeddingInput(
   return out;
 }
 
+const LLAMA_CPP_AUDIO_FORMATS: Record<string, string> = {
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
+  "audio/wave": "wav",
+  "audio/vnd.wave": "wav",
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/flac": "flac",
+  "audio/x-flac": "flac",
+};
+
+function toLlamaCppContentPart(
+  item: Exclude<EmbeddingMultimodalItem, { type: "text" }>,
+  inline: { data: string; mediaType: string }
+): Record<string, unknown> {
+  const dataUri = `data:${inline.mediaType};base64,${inline.data}`;
+  if (item.type === "image") return { type: "image_url", image_url: { url: dataUri } };
+  if (item.type === "video") return { type: "input_video", input_video: { url: dataUri } };
+  if (item.type === "audio") {
+    const format = LLAMA_CPP_AUDIO_FORMATS[inline.mediaType.split(";")[0].trim().toLowerCase()];
+    if (!format) {
+      throw new Error(
+        `llama.cpp audio embeddings accept wav, mp3 or flac (got ${inline.mediaType})`
+      );
+    }
+    return { type: "input_audio", input_audio: { data: inline.data, format } };
+  }
+  throw new Error(`llama.cpp has no ${item.type} embedding input`);
+}
+
+/**
+ * llama-server (`--embedding --mmproj …`) takes one `{ content: [part] }` object per
+ * input element, using the `/v1/chat/completions` content parts. Translate OmniRoute
+ * canonical items into that shape — one item stays one vector — and keep plain strings
+ * and canonical text items as strings. Remote sources are fetched (and size-capped)
+ * here, so llama-server only ever sees inline data.
+ */
+export async function prepareLlamaCppEmbeddingInput(
+  input: unknown[],
+  fetchMedia: StructuredEmbeddingFetchOptions["fetchMedia"]
+): Promise<unknown[]> {
+  const canonical = input.filter(isStructuredItem);
+  const resolved = await resolveInlineItems(canonical, fetchMedia);
+  const byItem = new Map(resolved.map((entry) => [entry.item, entry.inline]));
+  return input.map((item) => {
+    if (!isStructuredItem(item)) return item;
+    if (item.type === "text") return item.text;
+    return { content: [toLlamaCppContentPart(item, byItem.get(item)!)] };
+  });
+}
+
 function mapGeminiTaskType(value: unknown): unknown {
   if (value === "retrieval.query") return "RETRIEVAL_QUERY";
   if (value === "retrieval.passage") return "RETRIEVAL_DOCUMENT";

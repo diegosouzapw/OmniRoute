@@ -200,11 +200,16 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // Reconciled 2026-09-23: #14468 (suno retirement) landed on the tip first, which already
   // measured 413 there; with gemini-business also retired on top of it the live set is 412
   // (413 -> 412). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size on this head.
+  // origin/release/v3.8.52 already measures 413 (test still 412, inherited).
+  // onomeo registers id "onomeo" with the same alias — one REGISTRY member (413 -> 414).
+  // Unifically (#14182) registers id "unifically" with the same alias — one REGISTRY member
+  // (414 -> 415). BeatAPI (#14875) registers id "beatapi" with an identical alias — one more
+  // (415 -> 416). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size.
+  // chatplayground (#12690) landed on the tip without re-measuring: it measures 418 there.
   // notrack-web (#12534): registry entry registers its id "notrack-web" + alias "ntw"
-  // (two new members). Measured after remarge onto origin/release/v3.8.52: 415.
-  // Do not fold this into a generic catalog bump — the dedicated notrack-web
-  // prefix test below is the regression lock for this provider.
-  assert.equal(RESERVED_PREFIX_COUNT, 415);
+  // (two new members, 418 -> 420). Do not fold this into a generic catalog bump — the
+  // dedicated notrack-web prefix test below is the regression lock for this provider.
+  assert.equal(RESERVED_PREFIX_COUNT, 420);
 });
 
 test("notrack-web registry id and alias stay reserved", () => {
