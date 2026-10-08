@@ -389,20 +389,20 @@ Viết các kiểm thử đơn vị trong `tests/unit/`, tối thiểu bao gồm
 
 ## Danh sách kiểm tra Pull Request
 
-- [ ] Các bài kiểm thử đều vượt qua (`npm test`)
-- [ ] Quá trình kiểm tra lint vượt qua (`npm run lint`)
-- [ ] Quá trình build thành công (`npm run build`)
+- [ ] Các bài kiểm thử đều đạt (`npm test`)
+- [ ] Kiểm tra lint đạt (`npm run lint`)
+- [ ] Build thành công (`npm run build`)
 - [ ] Đã thêm kiểu TypeScript cho các hàm và interface công khai mới
-- [ ] Không có secret hoặc giá trị dự phòng được mã hóa cứng
-- [ ] Thông tin xác thực upstream công khai được nhúng thông qua `resolvePublicCred()` (xem [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), tuyệt đối không dùng giá trị literal
-- [ ] Phản hồi lỗi được xử lý thông qua `buildErrorBody()` / `sanitizeErrorMessage()` — không đưa stack trace thô vào nội dung phản hồi (xem [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Các lệnh shell (`exec` / `spawn`) truyền giá trị runtime qua `env`, không thông qua nội suy chuỗi
+- [ ] Không có secret hoặc giá trị dự phòng được hardcode
+- [ ] Thông tin xác thực upstream công khai được nhúng qua `resolvePublicCred()` (xem [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), tuyệt đối không dùng giá trị literal
+- [ ] Các phản hồi lỗi được xử lý qua `buildErrorBody()` / `sanitizeErrorMessage()` — không đưa stack trace thô vào nội dung phản hồi (xem [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Các lệnh shell (`exec` / `spawn`) truyền giá trị tại thời điểm chạy qua `env`, không dùng phép nội suy chuỗi
 - [ ] Tất cả đầu vào đều được xác thực bằng schema Zod
-- [ ] Đã thêm **fragment** changelog vào `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` cho các thay đổi ảnh hưởng đến người dùng (xem [`changelog.d/README.md`](./changelog.d/README.md)) — **không** chỉnh sửa trực tiếp `CHANGELOG.md`; các fragment được tổng hợp khi phát hành và không bao giờ xung đột giữa các PR
+- [ ] Đã thêm **fragment** changelog vào `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` đối với các thay đổi ảnh hưởng đến người dùng (xem [`changelog.d/README.md`](./changelog.d/README.md)) — **không** chỉnh sửa trực tiếp `CHANGELOG.md`; các fragment được tổng hợp khi phát hành và không bao giờ gây xung đột giữa các PR
 - [ ] Đã cập nhật tài liệu (nếu áp dụng)
-- [ ] Không tạo cảnh báo CodeQL / Secret-Scanning mới, hoặc mỗi cảnh báo đã được loại bỏ kèm lý do kỹ thuật có tham chiếu đến tài liệu `docs/security/` liên quan
-- [ ] Các route tạo tiến trình con (`/api/mcp/`, `/api/cli-tools/runtime/`) được phân loại là `isLocalOnlyPath()` trong `src/server/authz/routeGuard.ts` — xem [Quy tắc bắt buộc #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Không có trailer `Co-Authored-By` trong thông điệp commit — các commit phải chỉ hiển thị danh tính Git của chủ sở hữu repository (Quy tắc bắt buộc #16)
+- [ ] Không phát sinh cảnh báo CodeQL / Secret-Scanning mới, hoặc mỗi cảnh báo đều đã được loại bỏ kèm giải thích kỹ thuật có tham chiếu đến tài liệu liên quan trong `docs/security/`
+- [ ] Các route khởi chạy tiến trình con (`/api/mcp/`, `/api/cli-tools/runtime/`) được phân loại là `isLocalOnlyPath()` trong `src/server/authz/routeGuard.ts` — xem [Quy tắc bắt buộc #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Không có trailer `Co-authored-by` của AI/bot trong thông điệp commit (Quy tắc bắt buộc #16) — các cộng tác viên là con người có công việc được tái sử dụng phải được ghi nhận bằng trailer `Co-authored-by: Name <email>` tiêu chuẩn
 
 ---
 

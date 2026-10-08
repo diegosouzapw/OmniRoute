@@ -138,13 +138,47 @@ const safe = String(err).split("\n")[0];
 
 `tests/unit/error-message-sanitization.test.ts` אוכף:
 
-- כל נתיב תחת `/api/model-combo-mappings/*` מחזיר גופי תגובה שעברו טיהור בשגיאות 4xx/5xx.
+- כל נתיב תחת `/api/model-combo-mappings/*` מחזיר גופי תגובה מסוננים עבור 4xx/5xx.
 - `sanitizeErrorMessage` מסיר עקבות מחסנית מרובי שורות.
 - `sanitizeErrorMessage` מחליף נתיבים מוחלטים של POSIX ושל Windows ב-`<path>`.
-- `sanitizeErrorMessage` מטפל בבטחה בקלטים מסוג `null`/`undefined`/מופע `Error`.
+- `sanitizeErrorMessage` מטפל בבטחה בקלטים מסוג `null`/`undefined`/מופעי `Error`.
 - `buildErrorBody` לעולם אינו חושף עקבות מחסנית בשדה `message` שלו.
 
-בעת הוספת נתיב או executor חדשים, יש להעתיק את תבנית ה-assertion מקובץ זה. סף הכיסוי (`npm run test:coverage`) אוכף כיסוי של ≥60% מה-statements/lines/functions/branches — חובה לכסות נתיבי שגיאה.
+בעת הוספת נתיב או executor חדשים, העתיקו את תבנית ה-assertion מקובץ זה. סף הכיסוי (`npm run test:coverage`) אוכף כיסוי של ≥60% עבור statements/lines/functions/branches — יש לכסות נתיבי שגיאה.
+
+### השער הסטטי: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` סורק את `open-sse/executors/`,‏ `open-sse/handlers/`,‏ `open-sse/mcp-server/` וכל `src/app/api/**/route.ts` לאיתור שגיאה גולמית שנתפסה (`err.message` / `err.stack`) או `body.error.message` גולמי ממקור חיצוני שמגיע לגוף תגובה החשוף ללקוח.
+
+**האמון הוא ברמת הקריאה, לעולם לא ברמת הקובץ** (G-03, #15159). בעבר, השער דילג על קובץ שלם ברגע שזיהה import כלשהו מנתיב `utils/error` — פטור ברמת הקובץ שהוחל על סיכון ברמת הקריאה. `import { sanitizeErrorMessage }` תקין אחד העניק פטור קבוע לכל sink אחר בקובץ, וכך דליפה פעילה הגיעה לפרודקשן אף שהבדיקות עברו. כעת, שורה נחשבת מהימנה רק כאשר היא עוברת בפועל דרך builder או sanitizer מאושרים:
+
+| צורת השורה                                                                                            | מהימנה?       |
+| ----------------------------------------------------------------------------------------------------- | ------------- |
+| קוראת ל-`sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / … | כן            |
+| קוראת ל-builder קנוני **שהקובץ הזה מייבא** מתוך `open-sse/utils/error` או `src/lib/api/errorResponse` | כן            |
+| builder מאושר נקרא על פני **מספר שורות**, כך שהשדה `message:` נמצא בשורה מאוחרת יותר                  | כן            |
+| קוראת ל-`function errorResponse(...)` מקומי לקובץ, שהגוף שלו עצמו מבצע סינון                          | כן            |
+| מעבירה הלאה את `err.message` / `err.stack` בכל מקום אחר                                               | **לא — הפרה** |
+
+שתי השלכות שכדאי להכיר:
+
+- ייבוא `errorResponse` _אינו_ מעניק אמון גורף. קובץ שמגדיר `errorResponse` משלו עדיין יסומן באתר הקריאה, משום שהשער מכריע לגבי אמון לפי symbol ולא לפי קובץ. אותו הדבר חל על `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` ולאחר מכן `error: body.error.message` הוא הביטוי המקובל **והמסונן** שבו נעשה שימוש בכל ה-executors מסוג `*-fetch.ts`, והוא אינו מסומן.
+
+שני מודולי ה-builder המאושרים נחשבים: `open-sse/utils/error.ts` ו-`src/lib/api/errorResponse.ts`. השני משמש את כ-54 מטפלי הנתיבים שמחוץ ל-`open-sse`, והוא מסנן את שני ה-exports שלו.
+
+שתי צורות שאינן נחשבות להפרות, אף שבעבר השער דיווח עליהן כדליפות:
+
+- שגיאה גולמית בתוך **רשומת ביקורת** — `saveCallLog({ error: err.message })`,‏ `logToolCall(...)`, או logger שמקבל תחילה הודעה (`log.error("BATCHES", "sweep failed", { error: err.message })`). ייתכן בהחלט שהתגובה החשופה ללקוח בשורות הבאות היא `buildErrorBody` סטטי.
+- קריאה ל-builder מאושר על פני **מספר שורות**, כאשר השדה `message:` אינו מציין builder כלל:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` מקפיא הפרות קיימות מראש, כך שהשער חוסם רק הפרות _חדשות_. `assertNoStale` מסיר רשומה באופן אוטומטי לאחר תיקון ההפרה שלה, כך שההקפאה אינה יכולה להתקבע. בדיקות למניעת רגרסיות: `tests/unit/check-error-helper.test.ts` ו-`tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## בקרות קשורות
 

@@ -72,6 +72,30 @@ describe("normalizeClaudeHaikuConstraints", () => {
     assert.strictEqual(out, input);
   });
 
+  // Regression: Haiku 5.5 is adaptive-only (spec adaptiveThinkingOnly). The
+  // family regex used to rewrite its adaptive+effort to manual `enabled`, which
+  // Anthropic rejects with a 400 ("use thinking.type.adaptive ...").
+  it("leaves claude-haiku-5-5 adaptive thinking + effort untouched", () => {
+    const input = {
+      model: "claude-haiku-5-5",
+      thinking: { type: "adaptive" },
+      output_config: { effort: "high" },
+    };
+    const out = normalizeClaudeHaikuConstraints(input, input.model);
+    assert.strictEqual(out, input);
+    assert.deepEqual(out.thinking, { type: "adaptive" });
+    assert.deepEqual(out.output_config, { effort: "high" });
+  });
+
+  it("still downgrades adaptive on pre-5 Haiku (4.5 keeps the manual-only contract)", () => {
+    const input = {
+      model: "claude-haiku-4-5-20251001",
+      thinking: { type: "adaptive" },
+    };
+    const out = normalizeClaudeHaikuConstraints(input, input.model);
+    assert.deepEqual(out.thinking, { type: "enabled", budget_tokens: 10000 });
+  });
+
   it("leaves haiku bodies that have no adaptive thinking or effort untouched", () => {
     const input = {
       model: "claude-haiku-4-5-20251001",

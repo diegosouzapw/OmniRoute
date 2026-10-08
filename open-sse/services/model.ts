@@ -4,6 +4,7 @@ import { ALIAS_TO_PROVIDER_ID, resolveProviderAlias } from "./providerAlias.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
 import { getRegisteredProviderEffortBaseModelId } from "../utils/registeredEffortVariants.ts";
 import { hasProviderModelAlias, resolveProviderModelAlias } from "./modelCanonicalization.ts";
+import { resolveActivePrefixedProviderModel } from "./prefixedProviderModel.ts";
 
 export { resolveProviderAlias };
 export { resolveCanonicalProviderModel } from "./modelCanonicalization.ts";
@@ -81,6 +82,13 @@ export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set([
   "gpt-6-astra-high",
   "gpt-6-astra-medium",
   "gpt-6-astra-low",
+  "gpt-6.1-sol",
+  "gpt-6.1-sol-ultra",
+  "gpt-6.1-sol-max",
+  "gpt-6.1-sol-xhigh",
+  "gpt-6.1-sol-high",
+  "gpt-6.1-sol-medium",
+  "gpt-6.1-sol-low",
   "gpt-5.6-sol",
   "gpt-5.6-sol-ultra",
   "gpt-5.6-sol-max",
@@ -779,6 +787,14 @@ export async function getModelInfoCore(
         return { provider, model: canonicalModel, extendedContext };
       }
     }
+  }
+
+  // #15622: an explicit `<provider>/<id>` frozen as an exact id still routes to the named
+  // provider when its active customModels/synced catalog has the bare id.
+  const prefixed = await resolveActivePrefixedProviderModel(parsed.model);
+  if (prefixed) {
+    const canonicalModel = resolveProviderModelAlias(prefixed.provider, prefixed.model);
+    return { provider: prefixed.provider, model: canonicalModel, extendedContext };
   }
 
   // Resolve exact alias

@@ -1,0 +1,1 @@
+- **fix(auth):** serve catalogued free-access models only on credits-exhausted OpenRouter connections ([#15436](https://github.com/diegosouzapw/OmniRoute/pull/15436)) — thanks @maxmad64bis

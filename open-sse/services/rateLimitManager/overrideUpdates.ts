@@ -10,8 +10,10 @@
  * @module services/rateLimitManager/overrideUpdates
  */
 
+import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
+
 export function buildOverrideUpdates(
-  overrides: Record<string, number>
+  overrides: ConnectionRateLimitOverrides
 ): Record<string, number> {
   const updates: Record<string, number> = {};
   if (typeof overrides.maxConcurrent === "number" && overrides.maxConcurrent > 0) {
@@ -29,13 +31,13 @@ export function buildOverrideUpdates(
 }
 
 export function loadOverrideMap(
-  target: Map<string, Record<string, number>>,
+  target: Map<string, ConnectionRateLimitOverrides>,
   connections: Array<Record<string, unknown>>
 ): void {
   target.clear();
   for (const conn of connections) {
     const overrides = conn.rateLimitOverrides;
     if (overrides && typeof overrides === "object" && !Array.isArray(overrides))
-      target.set(String(conn.id), overrides as Record<string, number>);
+      target.set(String(conn.id), overrides as ConnectionRateLimitOverrides);
   }
 }

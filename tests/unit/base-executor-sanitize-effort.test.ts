@@ -925,13 +925,15 @@ test("sanitizeReasoningEffortForProvider: command-code maps unsupported minimal 
 
 test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model passes max through (new default)", () => {
   // opencode-go non-DeepSeek models are not explicitly flagged as rejecting max,
-  // so max passes through unchanged under the new default.
+  // so max passes through unchanged under the new default. MiMo V2.5/V2.6 are
+  // the exception (high ceiling) and are covered separately — this fixture is
+  // kimi-k2.6, which the Go registry does not declare a lower ceiling for.
   const body = {
-    model: "mimo-v2.5-pro",
+    model: "kimi-k2.6",
     reasoning_effort: "max",
     messages: [],
   };
-  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "kimi-k2.6", null);
   assert.equal(result, body, "max passes through unchanged");
   assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
 });

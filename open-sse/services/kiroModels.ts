@@ -187,7 +187,12 @@ function expandKiroModels(data: unknown): KiroModel[] {
     if (!upstreamId) continue;
     const display = formatDisplayName(item.modelName || item.name, upstreamId, item.rateMultiplier);
     const tokenLimits = asRecord(item.tokenLimits);
-    const contextLength = Number(tokenLimits.maxInputTokens) || 200000;
+    // Only the upstream number. Stamping a 200k default here would be persisted as the
+    // discovered window and pinned as an auto:discovery override over the registry /
+    // models.dev window (claude-sonnet-5 is 1M).
+    const maxInputTokens = Number(tokenLimits.maxInputTokens);
+    const contextLength =
+      Number.isFinite(maxInputTokens) && maxInputTokens > 0 ? maxInputTokens : undefined;
     const rateMultiplier = Number(item.rateMultiplier);
     const promptCaching = parsePromptCaching(item.promptCaching);
 
@@ -196,7 +201,7 @@ function expandKiroModels(data: unknown): KiroModel[] {
       seen.add(variant.id);
       expanded.push({
         ...variant,
-        contextLength,
+        ...(contextLength ? { contextLength } : {}),
         rateMultiplier: Number.isFinite(rateMultiplier) ? rateMultiplier : 1.0,
         upstreamModelId: upstreamId,
         description: toNonEmptyString(item.description) || "",

@@ -1,0 +1,1 @@
+- **fix(sse):** a dead Codex refresh token no longer trips the provider circuit breaker, so healthy accounts keep serving while the dead one asks for re-authentication ([#15449](https://github.com/diegosouzapw/OmniRoute/pull/15449)) — thanks @maxmad64bis (with thanks to @xiaoyaner0201 for the diagnosis and repro in #15444)

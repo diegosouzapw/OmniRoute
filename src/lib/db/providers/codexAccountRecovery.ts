@@ -41,7 +41,9 @@ function mutate(id: string, apply: (data: RecordValue) => void): RecordValue | n
     ).run(JSON.stringify(data), new Date().toISOString(), id);
     return data;
   })();
-  if (result) invalidateDbCache("connections");
+  // #13389: codex quota/cooldown observations are routing/health-only writes;
+  // the model catalog never reads them, so don't bust the /v1/models cache.
+  if (result) invalidateDbCache("connections", undefined, { skipModelCatalog: true });
   return result;
 }
 

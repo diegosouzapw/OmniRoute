@@ -4,6 +4,11 @@
 Messages endpoint while the official Devin CLI supplies model responses over ACP stdio. It
 does not modify the existing Anthropic, Claude OAuth, Claude Web, or `devin-cli` providers.
 
+For client-owned tool calls, route through `devin-cli-agentic` (alias `dva`), the
+Claude-format tool-capable provider. The legacy `devin-cli` (`dv`) ACP executor is
+text-only: it runs Devin's no-tools summarizer and cannot return tool calls. Its model
+metadata is marked accordingly so tool-required combo routing will avoid it.
+
 > **Current status: pinned Claude Code `2.1.258`; offline and live validation last recorded
 > on `2.1.220`.** The `2.1.220` pin completed three isolated scenarios through Devin CLI
 > `3000.2.17` and model `swe-1-7-lightning`; that final live run proved client-owned `Read`,

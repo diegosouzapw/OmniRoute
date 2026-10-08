@@ -206,6 +206,13 @@ export type AutoProviderCandidate = ProviderCandidate & {
   statusPenalty?: boolean;
   /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
   statusPenaltyReason?: string;
+  /**
+   * #15347: true when this provider has a quota fetcher but it returned nothing readable
+   * (failed fetch, missing credentials, message-only or malformed payload). The candidate
+   * is NOT blocked or evicted: scoring multiplies it by
+   * UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR so it ranks strictly below any real reading.
+   */
+  quotaUnreadable?: boolean;
 };
 
 export type ResolvedComboTarget = {

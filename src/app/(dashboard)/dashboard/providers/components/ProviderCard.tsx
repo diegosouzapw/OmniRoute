@@ -75,7 +75,8 @@ interface ProviderCardProps {
     subscriptionRisk?: boolean;
     /** Which risk copy variant to show in the details dialog (#10261). Falls back
      * to "oauth" when absent — mirrors `ProviderModalsPanel`'s default. */
-    riskNoticeVariant?: "oauth" | "webCookie" | "deprecated" | "embedded-service";
+    riskNoticeVariant?:
+      "oauth" | "webCookie" | "deprecated" | "embedded-service" | "official-client-only";
     /** Declared service kinds — "llm" enables the inline Test button */
     serviceKinds?: string[];
     /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
@@ -321,9 +322,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     router.push(`/dashboard/providers/${providerId}`);
   }, [router, providerId]);
   const connected = Number(stats.connected || 0);
-  const devinAgenticAuthenticated = useDevinAgenticAuthStatus(
-    providerId === "devin-cli-agentic"
-  );
+  const devinAgenticAuthenticated = useDevinAgenticAuthStatus(providerId === "devin-cli-agentic");
   const error = Number(stats.error || 0);
   const allDisabled = Boolean(stats.allDisabled);
   const isCompatible = isOpenAICompatibleProvider(providerId);
