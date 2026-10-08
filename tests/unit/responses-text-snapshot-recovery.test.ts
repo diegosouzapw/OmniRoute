@@ -193,6 +193,126 @@ test("late aliases merge fragments even when content index was initially absent"
   );
 });
 
+test("an omitted content index remains uncertain after an explicitly indexed delta", () => {
+  const identity = { item_id: "m", content_index: 0 };
+  for (const snapshots of [
+    [],
+    [done("A", identity), done("B", { item_id: "m", content_index: 1 })],
+    [itemDone(message("m", "A", "B"))],
+  ]) {
+    assert.equal(
+      text(
+        run([
+          delta("A", identity),
+          delta("B", { item_id: "m" }),
+          ...snapshots,
+          completed(message("m", "A", "B")),
+        ])
+      ),
+      "AB"
+    );
+  }
+});
+
+test("an omitted item identity remains uncertain after an explicitly identified delta", () => {
+  for (const snapshots of [
+    [],
+    [done("A", { item_id: "a" }), done("B", { item_id: "b" })],
+    [itemDone(message("a", "A")), itemDone(message("b", "B"))],
+  ]) {
+    assert.equal(
+      text(
+        run([
+          delta("A", { item_id: "a" }),
+          delta("B"),
+          ...snapshots,
+          completed(message("a", "A"), message("b", "B")),
+        ])
+      ),
+      "AB"
+    );
+  }
+});
+
+test("uncertain content parts do not disable recovery for a different identified message", () => {
+  assert.equal(
+    text(
+      run([
+        delta("A", { item_id: "m", content_index: 0 }),
+        delta("B", { item_id: "m" }),
+        delta("C", { item_id: "n", content_index: 0 }),
+        completed(message("m", "A", "B"), message("n", "CD")),
+      ])
+    ),
+    "ABCD"
+  );
+});
+
+test("anonymous prefixes recover at an unambiguous item snapshot without completed output", () => {
+  assert.equal(text(run([delta("Hel"), itemDone(message("m", "Hello!")), completed()])), "Hello!");
+});
+
+test("missing identities can still reconcile a completed single message and part", () => {
+  assert.equal(
+    text(
+      run([
+        delta("A", { item_id: "m", content_index: 0 }),
+        delta("B"),
+        completed(message("m", "ABC")),
+      ])
+    ),
+    "ABC"
+  );
+});
+
+for (const order of ["tool-text", "text-tool", "text-tool-text", "partial-tool-text"]) {
+  test(`completion synthesis preserves ${order} order and emits role, usage and terminal once`, () => {
+    const tool = { type: "function_call", call_id: "c", name: "lookup", arguments: "{}" };
+    const output =
+      order === "tool-text" || order === "partial-tool-text"
+        ? [tool, message("m", "Hello!")]
+        : order === "text-tool"
+          ? [message("m", "Hello!"), tool]
+          : [message("before", "Before"), tool, message("m", "Hello!")];
+    const event = completed(...output);
+    const chunks = run([
+      ...(order === "partial-tool-text" ? [delta("Hel", { item_id: "m", content_index: 0 })] : []),
+      {
+        ...event,
+        response: { ...(event.response as Event), usage: { input_tokens: 4, output_tokens: 3 } },
+      },
+      completed(...output),
+      null,
+    ]);
+    const emitted = chunks.flatMap((chunk) => {
+      const d = chunk.choices[0].delta;
+      if (d.content) return [`text:${d.content}`];
+      const call = d.tool_calls?.[0] as { id?: string } | undefined;
+      return call?.id ? [`tool:${call.id}`] : [];
+    });
+    assert.deepEqual(
+      emitted,
+      order === "tool-text"
+        ? ["tool:c", "text:Hello!"]
+        : order === "text-tool"
+          ? ["text:Hello!", "tool:c"]
+          : order === "text-tool-text"
+            ? ["text:Before", "tool:c", "text:Hello!"]
+            : ["text:Hel", "tool:c", "text:lo!"]
+    );
+    assert.equal(chunks.filter((c) => c.choices[0].delta.role).length, 1);
+    assert.equal(chunks[0].choices[0].delta.role, "assistant");
+    assert.equal(chunks.filter((c) => c.usage).length, 1);
+    assert.equal(terminals(chunks).length, 1);
+    assert.equal(chunks.at(-1)?.choices[0].finish_reason, "tool_calls");
+    assert.deepEqual(chunks.at(-1)?.usage, {
+      prompt_tokens: 4,
+      completion_tokens: 3,
+      total_tokens: 7,
+    });
+  });
+}
+
 test("malformed and non-assistant snapshots never become text", () => {
   for (const output of [
     null,

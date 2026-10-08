@@ -165,6 +165,24 @@ export function buildFinalChunk(state): Record<string, unknown> {
   return finalChunk;
 }
 
+interface ToolSnapshotState {
+  toolCallIndex: number;
+  toolCallIdsSeen?: Set<unknown>;
+  finishReasonSent?: boolean;
+}
+
+/** Synthesize one unseen tool without finalizing, allowing ordered text/tool recovery. */
+export function synthesizeCompletedToolItem(
+  state: ToolSnapshotState,
+  value: unknown
+): Record<string, unknown>[] {
+  if (!value || typeof value !== "object" || Array.isArray(value) || state.finishReasonSent)
+    return [];
+  const item = value as Record<string, unknown>;
+  if (item.type !== "function_call" || state.toolCallIdsSeen?.has(item.call_id)) return [];
+  return buildToolCallChunks(state, item);
+}
+
 /**
  * Synthesize chat-completion-style tool_calls chunks for any `function_call`
  * items in `output` whose call_id was NOT already tracked via incremental
@@ -183,16 +201,10 @@ export function buildFinalChunk(state): Record<string, unknown> {
  */
 export function synthesizeCompletedToolCalls(state, output): Record<string, unknown>[] | null {
   const outputItems = Array.isArray(output) ? output : [];
-  const functionCallItems = outputItems.filter(
-    (item) => item?.type === "function_call" && !state.toolCallIdsSeen?.has(item.call_id)
+  const synthesizedChunks = outputItems.flatMap((item: unknown) =>
+    synthesizeCompletedToolItem(state, item)
   );
-
-  if (functionCallItems.length === 0 || state.finishReasonSent) return null;
-
-  const synthesizedChunks: Record<string, unknown>[] = [];
-  for (const fcItem of functionCallItems) {
-    synthesizedChunks.push(...buildToolCallChunks(state, fcItem));
-  }
+  if (!synthesizedChunks.length) return null;
   synthesizedChunks.push(buildFinalChunk(state));
   return synthesizedChunks;
 }

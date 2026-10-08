@@ -76,7 +76,20 @@ function completed(output: object[]): UpstreamEvent {
   };
 }
 
-const cases: Array<{ name: string; events: UpstreamEvent[]; hasTool?: boolean }> = [
+type Emission = { text: string } | { tool: string };
+type Scenario = {
+  name: string;
+  events: UpstreamEvent[];
+  hasTool?: boolean;
+  text?: string;
+  order?: Emission[];
+};
+const textMessage = (id: string, ...texts: string[]) => ({
+  ...message,
+  id,
+  content: texts.map((text) => ({ type: "output_text", text })),
+});
+const cases: Scenario[] = [
   { name: "completed-only text", events: [completed([message])] },
   { name: "text.done-only text", events: [textDone, completed([])] },
   { name: "item.done-only text", events: [itemDone, completed([])] },
@@ -92,6 +105,7 @@ const cases: Array<{ name: string; events: UpstreamEvent[]; hasTool?: boolean }>
     name: "completed-only text and tool",
     events: [completed([message, tool])],
     hasTool: true,
+    order: [{ text: TEXT }, { tool: tool.call_id }],
   },
   {
     name: "streamed tool deduplicates while completed recovers text suffix",
@@ -112,6 +126,47 @@ const cases: Array<{ name: string; events: UpstreamEvent[]; hasTool?: boolean }>
       completed([message, tool]),
     ],
     hasTool: true,
+    order: [{ text: PREFIX }, { tool: tool.call_id }, { text: "世界!" }],
+  },
+  {
+    name: "completed-only tool then text preserves output order",
+    events: [completed([tool, message])],
+    hasTool: true,
+    order: [{ tool: tool.call_id }, { text: TEXT }],
+  },
+  {
+    name: "completed-only text tool text preserves output order",
+    events: [
+      completed([textMessage("msg_before", "Before"), tool, textMessage("msg_after", "After")]),
+    ],
+    hasTool: true,
+    text: "BeforeAfter",
+    order: [{ text: "Before" }, { tool: tool.call_id }, { text: "After" }],
+  },
+  {
+    name: "partial prefix completes before later tool and text",
+    events: [delta(PREFIX), completed([message, tool, textMessage("msg_after", "After")])],
+    hasTool: true,
+    text: TEXT + "After",
+    order: [{ text: TEXT }, { tool: tool.call_id }, { text: "After" }],
+  },
+  {
+    name: "ambiguous part delta after known part does not replay B",
+    events: [
+      { ...delta("A"), item_id: "msg_parts" },
+      { type: "response.output_text.delta", item_id: "msg_parts", delta: "B" },
+      completed([textMessage("msg_parts", "A", "B")]),
+    ],
+    text: "AB",
+  },
+  {
+    name: "ambiguous item delta after known item does not replay B",
+    events: [
+      { ...delta("A"), item_id: "msg_a" },
+      { type: "response.output_text.delta", delta: "B" },
+      completed([textMessage("msg_a", "A"), textMessage("msg_b", "B")]),
+    ],
+    text: "AB",
   },
 ];
 
@@ -172,12 +227,12 @@ async function translate(
   return { output, frames };
 }
 
-function assertOpenAI(frames: Array<WireEvent | "[DONE]">, hasTool: boolean) {
+function assertOpenAI(frames: Array<WireEvent | "[DONE]">, hasTool: boolean, text = TEXT) {
   assert.equal(frames.filter((frame) => frame === "[DONE]").length, 1);
   assert.equal(frames.at(-1), "[DONE]", "[DONE] must be the last data frame");
   const chunks = frames.filter((frame): frame is WireEvent => frame !== "[DONE]");
   const choices = chunks.flatMap((chunk) => chunk.choices ?? []);
-  assert.equal(choices.map((choice) => choice.delta?.content ?? "").join(""), TEXT);
+  assert.equal(choices.map((choice) => choice.delta?.content ?? "").join(""), text);
   assert.equal(choices[0]?.delta?.role, "assistant", "first delta must announce the role");
   assert.equal(choices.filter((choice) => choice.delta?.role === "assistant").length, 1);
   const terminals = choices.filter((choice) => choice.finish_reason != null);
@@ -203,7 +258,7 @@ function assertOpenAI(frames: Array<WireEvent | "[DONE]">, hasTool: boolean) {
   assert.equal(toolDeltas.map((entry) => entry.function?.arguments ?? "").join(""), ARGS);
 }
 
-function assertClaude(frames: Array<WireEvent | "[DONE]">, hasTool: boolean) {
+function assertClaude(frames: Array<WireEvent | "[DONE]">, hasTool: boolean, expectedText = TEXT) {
   assert.ok(
     frames.every((frame) => frame !== "[DONE]"),
     "Claude uses message_stop, not [DONE]"
@@ -254,7 +309,7 @@ function assertClaude(frames: Array<WireEvent | "[DONE]">, hasTool: boolean) {
       assert.equal(open.size, 0, "terminal events must not leave open content blocks");
     }
   }
-  assert.equal(text, TEXT, "text must reach the client exactly once");
+  assert.equal(text, expectedText, "text must reach the client exactly once");
   assert.equal(tools.length, hasTool ? 1 : 0);
   if (hasTool) {
     assert.equal(tools[0].id, tool.call_id);
@@ -263,13 +318,50 @@ function assertClaude(frames: Array<WireEvent | "[DONE]">, hasTool: boolean) {
   }
 }
 
+function assertEmissionOrder(
+  frames: Array<WireEvent | "[DONE]">,
+  format: ClientFormat,
+  expected: Emission[]
+) {
+  // Observe serialized arrival order, not tool execution or protocol causality.
+  // Adjacent text fragments are one emission regardless of upstream chunking.
+  const emissions: Emission[] = [];
+  const appendText = (text: string | undefined) => {
+    if (!text) return;
+    const previous = emissions.at(-1);
+    if (previous && "text" in previous) previous.text += text;
+    else emissions.push({ text });
+  };
+  for (const frame of frames) {
+    if (frame === "[DONE]") continue;
+    if (format === "openai") {
+      for (const choice of frame.choices ?? []) {
+        appendText(choice.delta?.content);
+        for (const call of choice.delta?.tool_calls ?? []) {
+          if (call.id) emissions.push({ tool: call.id });
+        }
+      }
+    } else if (frame.type === "content_block_start") {
+      if (frame.content_block?.type === "tool_use") {
+        emissions.push({ tool: frame.content_block.id! });
+      } else if (frame.content_block?.type === "text") {
+        appendText(frame.content_block.text);
+      }
+    } else if (frame.type === "content_block_delta" && frame.delta?.type === "text_delta") {
+      appendText(frame.delta.text);
+    }
+  }
+  assert.deepEqual(emissions, expected, "serialized tool/text order must match expected emissions");
+}
+
 for (const format of ["openai", "claude"] as const) {
   for (const scenario of cases) {
     for (const fragmented of [false, true]) {
       test(`${format}: ${scenario.name} (${fragmented ? "single-byte fragments" : "one buffer"})`, async () => {
         const { frames } = await translate(format, scenario.events, fragmented);
-        if (format === "openai") assertOpenAI(frames, scenario.hasTool === true);
-        else assertClaude(frames, scenario.hasTool === true);
+        if (format === "openai") assertOpenAI(frames, scenario.hasTool === true, scenario.text);
+        else assertClaude(frames, scenario.hasTool === true, scenario.text);
+        if (scenario.order) assertEmissionOrder(frames, format, scenario.order);
       });
     }
   }

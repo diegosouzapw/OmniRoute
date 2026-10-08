@@ -29,7 +29,7 @@ import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdenti
 import { applyFunctionCallIdentity } from "./openai-responses/functionCallIdentity.ts";
 import { resolveLocalToolCallIndex } from "./openai-responses/toolCallLocalIndex.ts";
 import {
-  synthesizeCompletedToolCalls,
+  synthesizeCompletedToolItem,
   buildFinalChunk,
   computeFinishReason,
   withAssistantRoleOnFirstDelta,
@@ -41,7 +41,7 @@ import {
   recordResponsesTextDelta,
   reconcileResponsesTextDone,
   synthesizeTextItemSnapshot,
-  synthesizeTextSnapshots,
+  recoverTextSnapshotsByOutputIndex,
 } from "./openai-responses/synthesizeTextSnapshots.ts";
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
@@ -1438,18 +1438,16 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       }
     }
 
-    // #fix: synthesize tool call chunks from response.completed output[] for
-    // providers that batch everything into response.completed without prior
-    // incremental output_item.* events — including the dedup guard against
-    // providers that DO stream incrementally and also echo the same
-    // function_call items here. See synthesizeCompletedToolCalls's own
-    // doc-comment for the full rationale.
-    const recovered = synthesizeTextSnapshots(state, data.response?.output);
+    // Bind text identities across the whole snapshot, then emit unseen content in
+    // output order. Tools do not finalize individually: one terminal follows all items.
+    const output: unknown[] = Array.isArray(data.response?.output) ? data.response.output : [];
+    const textByIndex = recoverTextSnapshotsByOutputIndex(state, output);
     closeResponsesTextSnapshots(state);
-    const synthesized = synthesizeCompletedToolCalls(state, data.response?.output);
-    // Tool synthesis already appends its terminal chunk; never add another.
-    if (synthesized) return recovered.length ? [...recovered, ...synthesized] : synthesized;
     if (state.finishReasonSent) return null;
+    const recovered = output.flatMap((item, index) => [
+      ...(textByIndex.get(index) ?? []),
+      ...synthesizeCompletedToolItem(state, item),
+    ]);
     const finalChunk = buildFinalChunk(state);
     return recovered.length ? [...recovered, finalChunk] : finalChunk;
   }
