@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import {
   getToolNonce,
   parseToolCallsFromText,
+  repairToolEnvelopeJson,
   serializeToolsToPrompt,
 } from "../../open-sse/translator/webTools.ts";
 
@@ -167,4 +168,19 @@ describe("webTools tool-envelope repair", () => {
     const args = JSON.parse(parsed.toolCalls![0].function.arguments) as { content?: string };
     assert.match(String(args.content), /hi/);
   });
+});
+
+test("repairToolEnvelopeJson refuses a truncated envelope instead of fabricating a call", () => {
+  // Cut off mid-value: no closing brace. Repairing this would emit `{"filePath":""}` and
+  // suppress the parse-failure retry that deepseek-web relies on.
+  assert.equal(
+    repairToolEnvelopeJson('{"name": "create_file", "arguments": {"filePath":"a.txt able to nev'),
+    null
+  );
+  // A complete envelope with unescaped inner quotes is still repaired.
+  const repaired = repairToolEnvelopeJson(
+    '{"name":"write","arguments":{"path":"a.html","content":"<html lang="en"></html>"}}'
+  );
+  assert.ok(repaired);
+  assert.equal(JSON.parse(repaired!).name, "write");
 });

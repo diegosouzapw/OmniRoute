@@ -337,6 +337,11 @@ export function repairToolEnvelopeJson(raw: string): string | null {
     }
   }
 
+  // Only repair a structurally COMPLETE envelope. A body cut off mid-value (no closing
+  // brace) is a truncated reply, not a malformed one: "repairing" it fabricates a call with
+  // half-empty arguments (e.g. `{"filePath":""}`) and suppresses the parse-failure retry.
+  if (!text.endsWith("}")) return null;
+
   const name = text.match(/"name"\s*:\s*"([^"]+)"/)?.[1];
   if (!name) return null;
 
