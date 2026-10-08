@@ -1,8 +1,8 @@
 /**
  * API Route: /api/intelligence/sync
  *
- * POST — Trigger a manual Arena ELO intelligence sync.
- * GET — Get current intelligence sync status.
+ * POST — Trigger a manual intelligence sync (Arena ELO and/or models_dev_tier rebuild).
+ * GET  — Get current intelligence sync status + per-source health.
  * DELETE — Clear all synced arena_elo intelligence data.
  */
 
@@ -11,6 +11,10 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { intelligenceSyncRequestSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import {
+  getIntelligenceSourcesHealth,
+  rebuildModelsDevTierIntelligence,
+} from "@/lib/db/modelIntelligence";
 
 export async function POST(request: NextRequest) {
   const authError = await requireManagementAuth(request);
@@ -36,12 +40,31 @@ export async function POST(request: NextRequest) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { dryRun = false } = validation.data;
+    const { dryRun = false, rebuildTier = false, syncArenaElo = false } = validation.data;
 
-    const { syncArenaElo } = await import("@/lib/arenaEloSync");
-    const result = await syncArenaElo(dryRun);
+    const { syncArenaElo: _syncArenaElo, getArenaEloSyncStatus } = await import("@/lib/arenaEloSync");
 
-    return NextResponse.json(result, { status: result.success ? 200 : 502 });
+    let arenaResult: Awaited<ReturnType<typeof _syncArenaElo>> | null = null;
+    if (syncArenaElo || (!dryRun && !rebuildTier && !syncArenaElo)) {
+      arenaResult = await _syncArenaElo(dryRun);
+    }
+
+    let tierResult: { success: boolean; source: string; modelCount: number; pruned: number } | null = null;
+    if (rebuildTier) {
+      if (dryRun) {
+        tierResult = { success: true, source: "models_dev_tier", modelCount: 0, pruned: 0 };
+      } else {
+        tierResult = rebuildModelsDevTierIntelligence();
+      }
+    }
+
+    const merged: Record<string, unknown> = { success: true };
+    if (arenaResult) Object.assign(merged, arenaResult);
+    if (tierResult) {
+      merged.tier = { upserted: tierResult.modelCount * 7, pruned: tierResult.pruned };
+    }
+
+    return NextResponse.json(merged, { status: 200 });
   } catch (err) {
     return NextResponse.json(
       { error: sanitizeErrorMessage(err) },
@@ -56,7 +79,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const { getArenaEloSyncStatus } = await import("@/lib/arenaEloSync");
-    return NextResponse.json(getArenaEloSyncStatus());
+    const status = getArenaEloSyncStatus();
+    const sourcesDetail = getIntelligenceSourcesHealth();
+
+    return NextResponse.json({
+      ...status,
+      sourcesDetail,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: sanitizeErrorMessage(err) },

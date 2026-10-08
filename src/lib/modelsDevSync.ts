@@ -24,6 +24,7 @@
 import { getDbInstance } from "./db/core";
 import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
+import { rebuildModelsDevTierIntelligence } from "./db/modelIntelligence";
 
 import {
   transformModelsDevToPricing,
@@ -194,6 +195,24 @@ export async function fetchModelsDev(signal?: AbortSignal): Promise<ModelsDevDat
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+/**
+ * Rebuild the persisted models_dev_tier intelligence rows from the current
+ * model_capabilities table. Called at the end of every successful
+ * capabilities save (full replace and incremental upsert alike). Failures are
+ * swallowed with a console.warn — the capabilities save that already
+ * committed must never be rolled back by a downstream rebuild error.
+ */
+function _triggerTierRebuild(caller: string): void {
+  try {
+    rebuildModelsDevTierIntelligence();
+  } catch (err) {
+    console.warn(
+      `[MODELS_DEV] models_dev_tier rebuild failed after ${caller} (capabilities unaffected):`,
+      err instanceof Error ? err.message : String(err)
+    );
+  }
 }
 
 function mapCapabilityRecord(record: Record<string, unknown>): ModelCapabilityEntry {
@@ -620,6 +639,7 @@ export function upsertSyncedCapabilities(
     };
   }
   if (changed) invalidateDbCache("model-capabilities");
+  _triggerTierRebuild("upsertSyncedCapabilities");
 }
 
 /**
@@ -681,6 +701,7 @@ export async function syncModelsDev(opts?: {
         if (syncCapabilities) {
           ensureCapabilitiesTable();
           saveModelsDevCapabilities(capabilities);
+          _triggerTierRebuild("syncModelsDev");
         }
         lastSyncTime = new Date().toISOString();
         lastSyncModelCount = modelCount;
