@@ -535,7 +535,12 @@ async function applyContinuityFilters(
         // #7270: normalize both wire shapes (.messages / Responses-API .input) so the
         // stickiness key is derivable on the /v1/responses surface, not just Chat Completions.
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown }),
-        combo.name
+        combo.name,
+        // #15241: priority is an operator-declared failover order. A mid-list
+        // success must not silently become runtime try-slot #1 while the stored
+        // hop list still names another head. Other strategies keep their existing
+        // session-stickiness behavior.
+        { respectDeclaredOrder: strategy === "priority" }
       );
   let orderedTargets = sticky.targets;
   if (!cacheStrategyAffinityApplied) {

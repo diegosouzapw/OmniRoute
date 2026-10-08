@@ -1,0 +1,1 @@
+- **feat(proxy-subscription):** warn with a translated count when generation skips entries instead of reporting not generated or staying silent ([#15564](https://github.com/diegosouzapw/OmniRoute/pull/15564)) — thanks @maxmad64bis

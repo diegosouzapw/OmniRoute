@@ -1,0 +1,1 @@
+- **fix(test):** `stream-readiness-fallback` no longer fails the whole file on asynchronous activity after a test ends — two cases cancelled the served body instead of draining it, so the feeding pipeline settled post-test and tripped an unhandledRejection ([#15428](https://github.com/diegosouzapw/OmniRoute/pull/15428)).

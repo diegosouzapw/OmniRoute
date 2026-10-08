@@ -247,3 +247,28 @@ export const proxyRotationStrategySchema = z
   })
   .strict()
   .superRefine(requireScopeIdForNonGlobal(SCOPE_ID_REQUIRED_SCOPED));
+
+// POST /api/settings/proxies/operator-egress body: dated observed addresses per
+// pool member, pushed by the operator. One `observedAt` per member covers every
+// address in that member's batch; the store keeps the freshest timestamp per
+// address. Bounds: at most 10 addresses per member, at most 100 members per
+// batch. Liveness checks (routable literal, no far-future date) live in the
+// route — Zod pins the shape here.
+export const proxyOperatorEgressPushSchema = z
+  .object({
+    version: z.literal(1),
+    members: z
+      .array(
+        z
+          .object({
+            host: z.string().trim().min(1),
+            port: z.coerce.number().int().min(1).max(65535),
+            addresses: z.array(z.string().trim().min(1)).min(1).max(10),
+            observedAt: z.string().datetime(),
+          })
+          .strict()
+      )
+      .min(1)
+      .max(100),
+  })
+  .strict();

@@ -359,6 +359,25 @@ function validateQuotaOnlyComboRefs(value: QuotaOnlyComboRefState, ctx: z.Refine
   }
 }
 
+// #15251 — universal handoff config. The runtime
+// (`open-sse/services/combo/comboSetup.ts` → `resolveUniversalHandoffConfig`)
+// reads this off the combo record's top-level `universal_handoff` key (the
+// `universalHandoff` alias is accepted because the runtime reads both), so the
+// field must survive POST/PUT validation — defaults live in
+// `DEFAULT_UNIVERSAL_HANDOFF_CONFIG`, and bounds here mirror its clamps.
+export const universalHandoffSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    trigger: z.enum(["on-switch", "always", "on-error"]).optional(),
+    providerAllowlist: z.array(z.string().trim().min(1).max(100)).max(50).optional(),
+    maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
+    handoffModel: z.string().trim().max(200).optional(),
+    ttlMinutes: z.coerce.number().int().min(1).max(10080).optional(),
+    preserveSystemPrompt: z.boolean().optional(),
+    relayMode: z.enum(["schema-locked", "standard"]).optional(),
+  })
+  .strict();
+
 export const createComboSchema = z
   .object({
     name: comboNameSchema,
@@ -369,6 +388,8 @@ export const createComboSchema = z
     models: z.array(comboModelEntry).min(1, "a combo requires at least one model"),
     strategy: comboStrategySchema.optional().default("priority"),
     config: comboRuntimeConfigSchema.optional(),
+    universal_handoff: universalHandoffSchema.optional(),
+    universalHandoff: universalHandoffSchema.optional(),
     allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
     allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
     system_message: z.string().max(50000).optional(),
@@ -452,6 +473,11 @@ export const updateComboSchema = z
     context_cache_protection: z.boolean().optional().nullable(),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
+    // Nullable like `description`: absent leaves the stored value unchanged
+    // (updateCombo merges over the record), explicit null clears it so the
+    // runtime falls back to the global/default handoff config (#15251).
+    universal_handoff: universalHandoffSchema.optional().nullable(),
+    universalHandoff: universalHandoffSchema.optional().nullable(),
     dimensions: z
       .string()
       .regex(/^\d+$/, "dimensions must be a positive integer string")
@@ -475,6 +501,8 @@ export const updateComboSchema = z
       value.context_cache_protection === undefined &&
       value.context_length === undefined &&
       value.compressionOverride === undefined &&
+      value.universal_handoff === undefined &&
+      value.universalHandoff === undefined &&
       value.dimensions === undefined
     ) {
       ctx.addIssue({

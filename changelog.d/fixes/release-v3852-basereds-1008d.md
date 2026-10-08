@@ -1,0 +1,1 @@
+- Release-branch hygiene: reset the connection test modal state in its open handler instead of the loading effect, clearing the react-hooks/set-state-in-effect lint error introduced with #15138.

@@ -388,20 +388,20 @@ OAuth اسناد `src/lib/oauth/constants/oauth.ts` میں اور سروس `src/
 
 ## پُل ریکویسٹ چیک لسٹ
 
-- [ ] ٹیسٹ کامیاب ہوں (`npm test`)
-- [ ] لنٹنگ کامیاب ہو (`npm run lint`)
-- [ ] بلڈ کامیاب ہو (`npm run build`)
-- [ ] نئے پبلک فنکشنز اور انٹرفیسز کے لیے TypeScript ٹائپس شامل کی گئی ہوں
-- [ ] کوئی ہارڈ کوڈ کردہ راز یا فال بیک ویلیوز نہ ہوں
-- [ ] پبلک اپ اسٹریم اسناد `resolvePublicCred()` کے ذریعے شامل کی گئی ہوں ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) دیکھیں)، کبھی بھی لٹریلز کی صورت میں نہیں
-- [ ] خرابی کے جوابات `buildErrorBody()` / `sanitizeErrorMessage()` کے ذریعے بھیجے جائیں — جوابی باڈیز میں کوئی خام اسٹیک ٹریس نہ ہو ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) دیکھیں)
-- [ ] شیل کمانڈز (`exec` / `spawn`) رن ٹائم ویلیوز کو اسٹرنگ انٹرپولیشن کے بجائے `env` کے ذریعے پاس کریں
+- [ ] ٹیسٹس کامیاب ہوں (`npm test`)
+- [ ] لِنٹنگ کامیاب ہو (`npm run lint`)
+- [ ] بِلڈ کامیاب ہو (`npm run build`)
+- [ ] نئے عوامی فنکشنز اور انٹرفیسز کے لیے TypeScript ٹائپس شامل کی گئی ہوں
+- [ ] کوئی ہارڈ کوڈ شدہ راز یا فال بیک اقدار نہ ہوں
+- [ ] عوامی اپ اسٹریم اسناد `resolvePublicCred()` کے ذریعے شامل کی گئی ہوں ([`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) دیکھیں)، کبھی بھی لِٹرلز کے طور پر نہیں
+- [ ] خرابی کے جوابات `buildErrorBody()` / `sanitizeErrorMessage()` کے ذریعے بھیجے جائیں — جوابی باڈیز میں خام اسٹیک ٹریسز نہ ہوں ([`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) دیکھیں)
+- [ ] شیل کمانڈز (`exec` / `spawn`) رن ٹائم اقدار کو اسٹرنگ انٹرپولیشن کے بجائے `env` کے ذریعے منتقل کریں
 - [ ] تمام اِن پٹس کی Zod اسکیماؤں کے ذریعے توثیق کی گئی ہو
-- [ ] صارف کو متاثر کرنے والی تبدیلیوں کے لیے `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` کے تحت چینج لاگ **فریگمنٹ** شامل کیا گیا ہو ([`changelog.d/README.md`](./changelog.d/README.md) دیکھیں) — `CHANGELOG.md` میں براہِ راست ترمیم **نہ** کریں؛ فریگمنٹس کو ریلیز کے وقت یکجا کیا جاتا ہے اور ان میں مختلف PRs کے درمیان کبھی تصادم نہیں ہوتا
+- [ ] صارف کو نظر آنے والی تبدیلیوں کے لیے `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` کے تحت چینج لاگ **فریگمنٹ** شامل کیا گیا ہو ([`changelog.d/README.md`](./changelog.d/README.md) دیکھیں) — `CHANGELOG.md` میں براہِ راست ترمیم **نہ** کریں؛ فریگمنٹس کو ریلیز کے وقت یکجا کیا جاتا ہے اور ان میں مختلف پُل ریکویسٹس کے درمیان کبھی تنازع نہیں ہوتا
 - [ ] دستاویزات اپ ڈیٹ کی گئی ہوں (اگر قابلِ اطلاق ہو)
-- [ ] کوئی نیا CodeQL / Secret-Scanning الرٹ نہ کھولا گیا ہو، یا ہر الرٹ کو متعلقہ `docs/security/` دستاویز کا حوالہ دینے والی تکنیکی توجیہ کے ساتھ مسترد کیا گیا ہو
+- [ ] کوئی نیا CodeQL / Secret-Scanning الرٹ نہ کھلا ہو، یا ہر الرٹ کو متعلقہ `docs/security/` دستاویز کا حوالہ دیتے ہوئے تکنیکی جواز کے ساتھ مسترد کیا گیا ہو
 - [ ] چائلڈ پراسیسز شروع کرنے والے روٹس (`/api/mcp/`، `/api/cli-tools/runtime/`) کو `src/server/authz/routeGuard.ts` میں `isLocalOnlyPath()` کے طور پر درجہ بند کیا گیا ہو — [سخت اصول #15](docs/security/ROUTE_GUARD_TIERS.md) دیکھیں
-- [ ] کمٹ پیغامات میں `Co-Authored-By` ٹریلرز نہ ہوں — کمٹس صرف ریپوزٹری مالک کی Git شناخت کے تحت ظاہر ہونے چاہییں (سخت اصول #16)
+- [ ] کمٹ پیغامات میں AI/بوٹ کے `Co-authored-by` ٹریلرز نہ ہوں (سخت اصول #16) — جن انسانی معاونین کا کام دوبارہ استعمال کیا گیا ہو، انہیں معیاری `Co-authored-by: Name <email>` ٹریلرز کے ذریعے کریڈٹ دیا جائے
 
 ---
 

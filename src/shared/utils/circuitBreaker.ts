@@ -186,11 +186,13 @@ export interface CircuitBreakerExecuteOptions<T> {
   /**
    * Classify a resolved result. Omitted: every resolution is a success (the
    * throw-based contract every other caller relies on). Return "ignore" when the
-   * call site accounts for the outcome itself with request context the breaker
-   * does not have — the chat path does (`classifyProviderBreakerResult()` in
-   * chat.ts, `recordProviderFailure()`/`recordProviderSuccess()` in combo.ts).
+   * call site accounts for ordinary outcomes itself. An acquired HALF_OPEN probe
+   * can use classifyProbeResult so it settles inside execute()'s generation fence.
    */
   classifyResult?: (result: T) => CircuitBreakerResultOutcome;
+  /** Classify only an acquired HALF_OPEN probe, inside its generation fence. */
+  classifyProbeResult?: (result: T) => CircuitBreakerResultOutcome;
+  onProbeAcquired?: () => void;
 }
 
 export interface TransitionRecord {
@@ -371,6 +373,7 @@ export class CircuitBreaker {
     if (this.state === STATE.HALF_OPEN) {
       this.halfOpenAllowed--;
       this.halfOpenProbeStartedAt ??= Date.now();
+      options?.onProbeAcquired?.();
     }
 
     try {
@@ -379,7 +382,12 @@ export class CircuitBreaker {
         halfOpenProbeGeneration === null ||
         halfOpenProbeGeneration === this.halfOpenProbeGeneration
       ) {
-        this._recordResolvedResult(result, options?.classifyResult);
+        this._recordResolvedResult(
+          result,
+          halfOpenProbeGeneration === null
+            ? options?.classifyResult
+            : (options?.classifyProbeResult ?? options?.classifyResult)
+        );
       }
       return result;
     } catch (error) {

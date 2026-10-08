@@ -336,6 +336,14 @@ test("runSingleModelTest skips web-session providers before sending a chat probe
   assert.match(result.error ?? "", /Skipped:.*web-session/i);
 });
 
+test("ChatGPT Web Clean Room is eligible for an explicit model test", async () => {
+  const { shouldSkipWebSessionModelTest } = await import("../../src/lib/api/modelTestRunner.ts");
+
+  assert.equal(shouldSkipWebSessionModelTest("chatgpt-web"), false);
+  assert.equal(shouldSkipWebSessionModelTest(" CHATGPT-WEB "), false);
+  assert.equal(shouldSkipWebSessionModelTest("deepseek-web"), true);
+});
+
 // ---------------------------------------------------------------------------
 // classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
 // Distinguishes three outcomes:

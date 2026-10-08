@@ -32,3 +32,14 @@ test("sanitizeRateLimitOverrides accepts maxWaitMs (#11251 follow-up)", () => {
   assert.deepEqual(r.rejected, []);
   assert.deepEqual(r.sanitized, { minTime: 500, maxWaitMs: 30000 });
 });
+
+// `executionMaxWaitMs` has been accepted by the Zod schema
+// (updateProviderConnectionSchema) but was missing from this allowlist, so a
+// PATCH carrying it passed validation and then threw "Refusing to persist
+// rateLimitOverrides with rejected keys: executionMaxWaitMs" — same class as
+// the maxWaitMs bug above.
+test("sanitizeRateLimitOverrides accepts executionMaxWaitMs (schema/allowlist parity)", () => {
+  const r = sanitizeRateLimitOverrides({ maxWaitMs: 30000, executionMaxWaitMs: 300000 });
+  assert.deepEqual(r.rejected, []);
+  assert.deepEqual(r.sanitized, { maxWaitMs: 30000, executionMaxWaitMs: 300000 });
+});

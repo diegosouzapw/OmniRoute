@@ -24,15 +24,85 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
+const { waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { shouldDefaultAllowClassifier, detectClassifierFormat, buildDefaultAllowClaudeMessage } =
-  await import("../../open-sse/handlers/chatCore/claudeClassifierCompat.ts");
+const {
+  shouldDefaultAllowClassifier,
+  detectClassifierFormat,
+  buildDefaultAllowClaudeMessage,
+  applyClaudeClassifierReasoningDefault,
+} = await import("../../open-sse/handlers/chatCore/claudeClassifierCompat.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 const originalFetch = globalThis.fetch;
 
 function noopLog() {
   return { debug() {}, info() {}, warn() {}, error() {} };
+}
+
+async function invokeUpstreamClassifier({
+  headers = {},
+  resolvedThinkingEffort,
+}: {
+  headers?: Record<string, string>;
+  resolvedThinkingEffort?: string;
+} = {}) {
+  let outbound: Record<string, unknown> | null = null;
+  globalThis.fetch = (async (_url, init) => {
+    outbound = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-classifier",
+        object: "chat.completion",
+        model: "sonnet-classifier-test",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "<block>yes</block>" },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 3, total_tokens: 13 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  const body = {
+    ...structuredClone(CLASSIFIER_BODY),
+    model: "sonnet-classifier-test",
+    max_tokens: 2112,
+  };
+  try {
+    const result = await handleChatCore({
+      body,
+      modelInfo: {
+        provider: "openai-compatible-classifier-test",
+        model: "sonnet-classifier-test",
+        extendedContext: false,
+        resolvedThinkingEffort,
+      },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {
+          baseUrl: "https://engine.example.test/v1",
+          apiType: "chat",
+          reasoningControl: "chat-template",
+        },
+      },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/messages",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json", ...headers }),
+      },
+      userAgent: "unit-test",
+    });
+    await waitForCallLogSaves(5000);
+    return { outbound, result };
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 }
 
 // Shape of the classifier request Claude Code's `--permission-mode auto` sends internally:
@@ -145,6 +215,89 @@ test("detector: always fires when classifier marker is present", () => {
   );
 });
 
+test("classifier requests without reasoning default to disabled native thinking on both stages", () => {
+  assert.equal(
+    typeof applyClaudeClassifierReasoningDefault,
+    "function",
+    "classifier reasoning default is not implemented"
+  );
+
+  for (const [maxTokens, stopSequences] of [
+    [2112, ["</block>"]],
+    [10240, undefined],
+  ] as const) {
+    const body: Record<string, unknown> = {
+      ...structuredClone(CLASSIFIER_BODY),
+      model: "sonnet-classifier-test",
+      max_tokens: maxTokens,
+    };
+    if (stopSequences === undefined) delete body.stop_sequences;
+    else body.stop_sequences = [...stopSequences];
+
+    const normalized = applyClaudeClassifierReasoningDefault!(FORMATS.CLAUDE, body);
+
+    assert.deepEqual(normalized?.thinking, { type: "disabled" });
+    assert.equal(normalized?.max_tokens, maxTokens);
+    assert.deepEqual(normalized?.stop_sequences, stopSequences);
+    assert.equal(body.thinking, undefined, "normalization must not mutate the client body");
+  }
+});
+
+test("ordinary requests and explicit classifier reasoning controls stay unchanged", () => {
+  assert.equal(
+    typeof applyClaudeClassifierReasoningDefault,
+    "function",
+    "classifier reasoning default is not implemented"
+  );
+
+  const ordinary = {
+    system: "You are a coding assistant.",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  assert.equal(applyClaudeClassifierReasoningDefault!(FORMATS.CLAUDE, ordinary), ordinary);
+  assert.equal(
+    applyClaudeClassifierReasoningDefault!(FORMATS.OPENAI, CLASSIFIER_BODY),
+    CLASSIFIER_BODY
+  );
+
+  for (const explicit of [
+    { thinking: { type: "enabled", budget_tokens: 1024 } },
+    { thinking: { type: "disabled" } },
+    { reasoning: { effort: "high" } },
+    { reasoning_effort: "high" },
+    { output_config: { effort: "high" } },
+    { chat_template_kwargs: { enable_thinking: true, custom_flag: "kept" } },
+    {
+      _omnirouteReasoningRule: {
+        id: "force-high",
+        effortMode: "force",
+        targetEffort: "high",
+      },
+    },
+  ]) {
+    const body = { ...structuredClone(CLASSIFIER_BODY), ...explicit };
+    assert.equal(applyClaudeClassifierReasoningDefault!(FORMATS.CLAUDE, body), body);
+  }
+
+  const explicitContexts = [
+    ...["auto", "low", "medium", "high", "xhigh", "max", "off"].map((value) => [
+      `effort header ${value}`,
+      { headers: new Headers({ "X-OmniRoute-Effort": value.toUpperCase() }) },
+    ]),
+    ...["adaptive", "off"].map((value) => [
+      `thinking header ${value}`,
+      { headers: { "x-OMNIROUTE-thinking": value.toUpperCase() } },
+    ]),
+    ["resolved effort", { resolvedThinkingEffort: "high" }],
+  ] as Array<
+    [string, { headers?: Headers | Record<string, string>; resolvedThinkingEffort?: string }]
+  >;
+  for (const [name, context] of explicitContexts) {
+    const body = structuredClone(CLASSIFIER_BODY);
+    assert.equal(applyClaudeClassifierReasoningDefault!(FORMATS.CLAUDE, body, context), body, name);
+  }
+});
+
 // ─── Pure detector: detectClassifierFormat (#11289) ──────────────────────────
 
 test("format detector: defaults to 'block' for the legacy </block> classifier shape", () => {
@@ -193,6 +346,34 @@ test("builder: format='severity' returns <severity>0</severity> (#11289)", async
 });
 
 // ─── Handler-level: end-to-end short-circuit through handleChatCore ──────────
+
+test("handler: compat=off preserves upstream BLOCK while disabling native thinking", async () => {
+  await updateSettings({ claudeClassifierCompat: "off" });
+  const { outbound, result } = await invokeUpstreamClassifier();
+
+  assert.deepEqual(outbound?.chat_template_kwargs, {
+    thinking: false,
+    enable_thinking: false,
+  });
+  assert.equal(outbound?.reasoning_effort, undefined);
+  assert.equal(outbound?.max_tokens, 2112);
+  const payload = await (result as { response: Response }).response.json();
+  assert.equal(payload.content[0].text, "<block>yes</block>");
+});
+
+test("handler: explicit classifier effort header and resolved effort remain authoritative", async () => {
+  await updateSettings({ claudeClassifierCompat: "off" });
+
+  const header = await invokeUpstreamClassifier({
+    headers: { "x-omniroute-effort": "auto" },
+  });
+  assert.equal(header.outbound?.reasoning_effort, "low");
+  assert.equal(header.outbound?.chat_template_kwargs, undefined);
+
+  const resolved = await invokeUpstreamClassifier({ resolvedThinkingEffort: "high" });
+  assert.equal(resolved.outbound?.reasoning_effort, "high");
+  assert.equal(resolved.outbound?.chat_template_kwargs, undefined);
+});
 
 test("handler: claudeClassifierCompat=auto short-circuits WITHOUT calling upstream, text starts with <block>no</block>", async () => {
   await updateSettings({ claudeClassifierCompat: "auto" });

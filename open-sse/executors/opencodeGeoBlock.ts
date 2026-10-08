@@ -92,6 +92,25 @@ export function isOpencodeFreeTierRefusal(status: number, bodyText: string | nul
   return FREE_TIER_SIGNALS.some((signal) => lower.includes(signal));
 }
 
+// Exact upstream token seen on title-shaped refusals: a 403 or 451 carrying
+// `insufficient_quota` may refuse the request shape rather than the account.
+// The shape replay probes the other shape once; more specific refusals
+// (fingerprint, geo, user_blocked) win; anything else is not a shape refusal.
+const QUOTA_SHAPE_SIGNAL = "insufficient_quota";
+
+export function isOpencodeQuotaShapeRefusal(status: number, bodyText: string | null): boolean {
+  if (status !== 403 && status !== 451) return false;
+  const text = String(bodyText || "");
+  if (
+    isFingerprintRejection(text) ||
+    isOpencodeGeoBlocked(status, text) ||
+    isOpencodeUserBlocked(status, text)
+  ) {
+    return false;
+  }
+  return text.toLowerCase().includes(QUOTA_SHAPE_SIGNAL);
+}
+
 export function proxyKeyOf(proxy: { host: string; port: number } | null): string | null {
   if (!proxy) return null;
   return `${proxy.host}:${proxy.port}`;

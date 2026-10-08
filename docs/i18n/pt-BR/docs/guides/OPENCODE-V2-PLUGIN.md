@@ -74,22 +74,29 @@ indicando o endpoint e o que foi perdido — assim, um seletor degradado nunca �
 
 | Chave                            | Padrão                                           | Observações                                                                                                                                         |
 | -------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `providerId`                     | `"omniroute"`                                    | Id do provedor, id da integração e o prefixo sob o qual os modelos aparecem                                                                         |
-| `baseURL`                        | obrigatório                                      | Raiz do gateway, somente `http(s)`; o sufixo `/v1` é adicionado quando necessário                                                                   |
+| `providerId`                     | `"omniroute"`                                    | ID do provedor, ID da integração e prefixo sob o qual os modelos aparecem                                                                           |
+| `baseURL`                        | obrigatório                                      | Raiz do gateway, apenas `http(s)`; o sufixo `/v1` é adicionado quando necessário                                                                    |
 | `apiKey`                         | credencial conectada, depois `OMNIROUTE_API_KEY` | Chave de chat para `/v1/*`                                                                                                                          |
 | `managementReadToken`            | usa `apiKey` como alternativa                    | Chave para `/api/*` — geralmente **não** é a mesma                                                                                                  |
 | `displayName`                    | `"OmniRoute"`                                    | Nome do provedor no seletor                                                                                                                         |
-| `timeoutMs`                      | `10000`                                          | Tempo limite de busca por endpoint (auto-combos usam 5s)                                                                                            |
-| `modelCacheTtlMs`                | `300000`                                         | TTL do cache do catálogo; um snapshot em disco agiliza inicializações a frio                                                                        |
+| `timeoutMs`                      | `10000`                                          | Tempo limite de busca por endpoint (combinações automáticas usam 5 s)                                                                               |
+| `modelCacheTtlMs`                | `300000`                                         | TTL do cache do catálogo; um snapshot em disco acelera inicializações a frio                                                                        |
 | `timeouts`                       | usa `timeoutMs` como alternativa                 | Limites por endpoint em ms: `models`, `combos`, `autoCombos`, `enrichment`                                                                          |
 | `enrichment`                     | `true`                                           | Busca nomes, preços e limites do nível gratuito                                                                                                     |
-| `providerTag`                    | `true`                                           | Adiciona ao nome de exibição o prefixo do provedor upstream para o qual ele roteia                                                                  |
-| `usableOnly`                     | `false`                                          | Mantém apenas os provedores que o gateway informa como provisionados                                                                                |
+| `providerTag`                    | `true`                                           | Prefixa o nome de exibição com o provedor upstream para o qual ele direciona                                                                        |
+| `usableOnly`                     | `false`                                          | Mantém apenas os provedores que o gateway relata como provisionados                                                                                 |
+| `showcasePerOwner`               | `10`                                             | Entradas da visualização padrão mantidas por provedor                                                                                               |
+| `freshPerOwner`                  | `10`                                             | Entradas recentes da visualização padrão mantidas por provedor                                                                                      |
+| `freshWindowDays`                | `90`                                             | Janela de atualização, em dias, para a ramificação de itens recentes                                                                                |
+| `usageMemory`                    | `true`                                           | Restaura entradas descartadas estaticamente e identificadas pela análise de uso dos últimos 30 dias (requer um token de gerenciamento)              |
 | `visibleModels` / `hiddenModels` | `[]`                                             | Listas de permissão por correspondência exata ou de sufixo; a negação prevalece                                                                     |
-| `geminiSanitization`             | `true`                                           | Remove dos esquemas de ferramentas as palavras-chave de JSON Schema rejeitadas pelo Gemini (ferramentas com `$ref` são encaminhadas sem alterações) |
-| `apiFormat.allowAnthropic`       | `false`                                          | Encaminha ids incluídos na lista de permissão pelo bloco da API da Anthropic                                                                        |
+| `geminiSanitization`             | `true`                                           | Remove dos esquemas de ferramentas as palavras-chave do JSON Schema rejeitadas pelo Gemini (ferramentas com `$ref` são encaminhadas sem alterações) |
+| `apiFormat.allowAnthropic`       | `false`                                          | Encaminha IDs permitidos pelo bloco da API Anthropic                                                                                                |
 | `apiFormat.anthropicModels`      | `[]`                                             | IDs completos de modelos encaminhados para a Anthropic                                                                                              |
 | `logLevel` / `startupDebug`      | `warn` / `false`                                 | Nível de detalhamento do logger                                                                                                                     |
+
+A memória de uso fica ativada por padrão. Sem um token de gerenciamento, ela permanece inativa
+(um aviso é registrado na inicialização) e nada é restaurado.
 
 ## Como o catálogo se mantém atualizado
 

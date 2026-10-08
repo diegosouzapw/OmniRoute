@@ -138,13 +138,47 @@ membuat pesan yang mengandung informasi topologi sejak awal.
 
 `tests/unit/error-message-sanitization.test.ts` memastikan:
 
-- Setiap rute di bawah `/api/model-combo-mappings/*` mengembalikan isi respons yang telah disanitasi pada 4xx/5xx.
-- `sanitizeErrorMessage` menghapus stack trace multibaris.
+- Setiap route di bawah `/api/model-combo-mappings/*` mengembalikan body yang telah disanitasi pada 4xx/5xx.
+- `sanitizeErrorMessage` menghapus stack trace multi-baris.
 - `sanitizeErrorMessage` mengganti path absolut POSIX dan Windows dengan `<path>`.
-- `sanitizeErrorMessage` menangani input instance `null`/`undefined`/`Error` secara aman.
-- `buildErrorBody` tidak pernah mengekspos stack trace dalam bidang `message` miliknya.
+- `sanitizeErrorMessage` menangani input instance `null`/`undefined`/`Error` dengan aman.
+- `buildErrorBody` tidak pernah mengekspos stack trace dalam field `message`-nya.
 
-Saat menambahkan rute atau eksekutor baru, salin pola asersi dari file ini. Gerbang cakupan (`npm run test:coverage`) memberlakukan ≥60% pernyataan/baris/fungsi/cabang — jalur galat harus dicakup.
+Saat menambahkan route atau executor baru, salin pola assertion dari file ini. Gerbang cakupan (`npm run test:coverage`) mewajibkan ≥60% statements/lines/functions/branches — alur error harus tercakup.
+
+### Gerbang statis: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` memindai `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/`, dan setiap `src/app/api/**/route.ts` untuk menemukan error mentah yang tertangkap (`err.message` / `err.stack`) atau `body.error.message` mentah dari upstream yang mencapai body yang ditujukan kepada klien.
+
+**Kepercayaan memiliki cakupan per pemanggilan, bukan per file** (G-03, #15159). Sebelumnya, gerbang melewati seluruh file begitu menemukan import apa pun dari path `utils/error` — pengecualian dengan cakupan per file yang diterapkan pada bahaya dengan cakupan per pemanggilan. Satu `import { sanitizeErrorMessage }` yang benar secara permanen mengecualikan setiap sink lain dalam file tersebut, sehingga kebocoran yang aktif dapat lolos dengan status hijau. Kini suatu baris hanya dipercaya jika benar-benar melewati builder atau sanitizer yang diizinkan:
+
+| Bentuk baris                                                                                                            | Dipercaya?              |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| memanggil `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                 | ya                      |
+| memanggil builder kanonis **yang di-import oleh file ini** dari `open-sse/utils/error` atau `src/lib/api/errorResponse` | ya                      |
+| builder yang diizinkan dipanggil dalam **beberapa baris**, sehingga field `message:` berada di baris berikutnya         | ya                      |
+| memanggil `function errorResponse(...)` lokal dalam file yang body-nya melakukan sanitasi                               | ya                      |
+| meneruskan `err.message` / `err.stack` ke tempat lain mana pun                                                          | **tidak — pelanggaran** |
+
+Dua konsekuensi yang perlu diketahui:
+
+- Mengimpor `errorResponse` _bukan_ berarti kepercayaan menyeluruh. File yang mendefinisikan `errorResponse` miliknya sendiri tetap ditandai pada lokasi pemanggilan, karena gerbang menentukan kepercayaan per simbol, bukan per file. Hal yang sama berlaku untuk `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` yang diikuti oleh `error: body.error.message` adalah idiom yang **telah disanitasi** dan digunakan di seluruh executor `*-fetch.ts`, sehingga tidak ditandai.
+
+Kedua modul builder yang diizinkan diperhitungkan: `open-sse/utils/error.ts` dan `src/lib/api/errorResponse.ts`. Modul kedua digunakan oleh sekitar 54 handler route di luar `open-sse`, dan modul tersebut menyanitasi kedua export-nya.
+
+Dua bentuk berikut **bukan** pelanggaran, meskipun keduanya pernah dilaporkan oleh gerbang sebagai kebocoran:
+
+- error mentah di dalam **baris audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, atau logger yang menerima pesan terlebih dahulu (`log.error("BATCHES", "sweep failed", { error: err.message })`). Respons yang ditujukan kepada klien pada baris-baris berikutnya mungkin saja berupa `buildErrorBody` statis.
+- pemanggilan builder yang diizinkan dalam **beberapa baris**, ketika field `message:` sama sekali tidak menyebutkan builder:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` membekukan pelanggaran yang sudah ada sebelumnya sehingga gerbang hanya memblokir pelanggaran _baru_. `assertNoStale` menghapus entri secara otomatis setelah pelanggarannya diperbaiki, sehingga daftar yang dibekukan tidak menjadi kaku. Pengaman regresi: `tests/unit/check-error-helper.test.ts` dan `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Kontrol terkait
 
