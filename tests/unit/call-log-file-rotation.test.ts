@@ -447,3 +447,30 @@ test("hot rotation avoids full artifact listing and bounds stat calls", () => {
   }
   assert.ok(statCalls <= 100, `expected at most 100 stat calls, got ${statCalls}`);
 });
+
+test("rotateCallLogs recovers a pending artifact write abandoned past its deadline (#15608)", () => {
+  // A process that dies between the call_logs INSERT (detail_state='pending') and the
+  // artifact publish leaves the row pending. Rotation must turn an expired pending row
+  // into terminal 'missing' so the dashboard stops treating it as in-flight; a write
+  // still inside its deadline must stay pending.
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  const now = new Date().toISOString();
+  insertCallLog({ id: "pending-expired", timestamp: now, detail_state: "pending" });
+  insertCallLog({ id: "pending-live", timestamp: now, detail_state: "pending" });
+  const db = core.getDbInstance();
+  const setDeadline = db.prepare("UPDATE call_logs SET detail_pending_until = ? WHERE id = ?");
+  setDeadline.run(Date.now() - 1_000, "pending-expired");
+  setDeadline.run(Date.now() + 60_000, "pending-live");
+
+  rotateCallLogs();
+
+  const state = (id: string) =>
+    db.prepare("SELECT detail_state, detail_pending_until FROM call_logs WHERE id = ?").get(id) as {
+      detail_state: string;
+      detail_pending_until: number | null;
+    };
+  assert.equal(state("pending-expired").detail_state, "missing");
+  assert.equal(state("pending-expired").detail_pending_until, null);
+  assert.equal(state("pending-live").detail_state, "pending");
+});
