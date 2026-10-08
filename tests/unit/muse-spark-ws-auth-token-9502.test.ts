@@ -3,11 +3,22 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { MuseSparkWebExecutor } from "../../open-sse/executors/muse-spark-web.ts";
+import {
+  MuseSparkWebExecutor,
+  __setMuseSparkFreshTokenFetcherForTesting,
+} from "../../open-sse/executors/muse-spark-web.ts";
 import { shutdownPool } from "../../open-sse/services/browserPool.ts";
 import { resetDbInstance } from "../../src/lib/db/core.ts";
 
+// #12914: no real browser / meta.ai request from a unit test — a failed fresh
+// fetch is exactly the "cookie only, no ecto1: token" situation under test.
+__setMuseSparkFreshTokenFetcherForTesting(async () => ({
+  ok: false as const,
+  error: "browser disabled in unit tests",
+}));
+
 test.after(async () => {
+  __setMuseSparkFreshTokenFetcherForTesting(undefined);
   await shutdownPool("test");
   resetDbInstance();
 });

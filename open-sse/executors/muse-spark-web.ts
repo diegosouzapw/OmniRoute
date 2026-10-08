@@ -11,10 +11,7 @@ import {
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
-import {
-  acquireBrowserContext,
-  openPage,
-} from "../services/browserPool.ts";
+import { acquireBrowserContext, openPage } from "../services/browserPool.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
@@ -651,7 +648,7 @@ function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null
 export const META_WS_HOME_TEMPLATE_B64 =
   "CsAGCswDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
 // Updated 2026-09-05: Derived from working HOME template (same structural fixes).
-const META_WS_CHAT_TEMPLATE_B64 =
+export const META_WS_CHAT_TEMPLATE_B64 =
   "CsAGCswDCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
 
 // ─── Proto helpers ─────────────────────────────────────────────────────────────
@@ -994,8 +991,7 @@ async function graphqlPost(
 // lifecycle, reuse, and idle eviction.
 
 type AccessTokenResult =
-  | { ok: true; token: string; updatedCookie?: string }
-  | { ok: false; error: string };
+  { ok: true; token: string; updatedCookie?: string } | { ok: false; error: string };
 
 const ACCESS_TOKEN_RE = /accessToken[\\"]+:\s*[\\"]+ecto1:([A-Za-z0-9_-]+)[\\"]+/;
 
@@ -1035,10 +1031,7 @@ async function fetchFreshAccessToken(
     const setCookie = heisenbergResponse.headers.get("set-cookie") || "";
     const sessMatch = setCookie.match(/ecto_1_sess=([^;]+)/);
     if (sessMatch && sessMatch[1] && sessMatch[1] !== "") {
-      updatedCookie = cookieHeader.replace(
-        /ecto_1_sess=[^;]+/,
-        `ecto_1_sess=${sessMatch[1]}`
-      );
+      updatedCookie = cookieHeader.replace(/ecto_1_sess=[^;]+/, `ecto_1_sess=${sessMatch[1]}`);
     }
     const effectiveCookie = updatedCookie || cookieHeader;
 
@@ -1104,11 +1097,11 @@ async function fetchFreshAccessToken(
 // Test hook: override fetchFreshAccessToken in unit tests to avoid launching
 // a real browser. Set to a function to override, undefined to use the real impl.
 let _fetchFreshAccessTokenOverride:
-  | ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>)
-  | undefined;
+  ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined;
 
 export function __setMuseSparkFreshTokenFetcherForTesting(
-  fn: ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined
+  fn:
+    ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined
 ): void {
   _fetchFreshAccessTokenOverride = fn;
 }
@@ -1117,8 +1110,7 @@ export function __setMuseSparkFreshTokenFetcherForTesting(
 // seams (acquire/openPage) so the cache, cookie-refresh and token-extraction
 // logic runs under test without launching Chromium. undefined = real pool.
 let _metaTokenBrowserPoolForTesting:
-  | { acquire?: typeof acquireBrowserContext; openPage?: typeof openPage }
-  | undefined;
+  { acquire?: typeof acquireBrowserContext; openPage?: typeof openPage } | undefined;
 
 export function __setMuseSparkBrowserPoolForTesting(
   seams: typeof _metaTokenBrowserPoolForTesting
