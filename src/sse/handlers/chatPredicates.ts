@@ -46,7 +46,7 @@ export function isChatGptWebBridgeFailure(
   ) {
     return true;
   }
-  return /ChatGPT Web (?:first-party )?(?:request client is unavailable|challenge bridge is incomplete|conversation request scope is unavailable|request cancellation scope is unavailable|request scope is unavailable|bridge did not initialize|request module was not loaded|module contract (?:was not found|exports were not found)|conversation returned (?:an invalid response|an empty stream|a non-SSE response)|browser turn timed out|browser launch timed out|sentinel headers are unavailable)/i.test(
+  return /ChatGPT Web (?:first-party )?(?:request client is unavailable|challenge bridge is incomplete|conversation request scope is unavailable|request cancellation scope is unavailable|request scope is unavailable|bridge did not initialize|bridge module failed to load|request module was not loaded|module contract (?:was not found|exports were not found)|conversation returned (?:an invalid response|an empty stream|a non-SSE response)|browser turn timed out|browser launch timed out|sentinel headers are unavailable)/i.test(
     message
   );
 }

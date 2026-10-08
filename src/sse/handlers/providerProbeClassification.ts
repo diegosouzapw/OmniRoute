@@ -12,7 +12,8 @@ type ProbeDispatch = {
 
 /** An acquired probe uses the ordinary upstream policy but ignores local refusals. */
 export function classifyProviderProbeResult(
-  value: ProbeDispatch | { result: ProbeDispatch }
+  value: ProbeDispatch | { result: ProbeDispatch },
+  provider?: string | null
 ): "success" | "failure" | "ignore" {
   const result = "result" in value ? value.result : value;
   if (
@@ -23,5 +24,7 @@ export function classifyProviderProbeResult(
   ) {
     return "ignore";
   }
-  return classifyProviderBreakerResult(result, false, false);
+  // `provider` keeps provider-specific local failures (e.g. a ChatGPT Web browser
+  // bridge that did not load) from re-opening the breaker on a HALF_OPEN probe.
+  return classifyProviderBreakerResult(result, false, false, provider);
 }

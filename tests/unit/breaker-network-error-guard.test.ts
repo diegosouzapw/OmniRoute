@@ -11,6 +11,8 @@ import {
   isProviderInCooldown,
 } from "../../open-sse/services/accountFallback.ts";
 import { PROVIDER_PROFILES } from "../../open-sse/config/constants.ts";
+import { describeBridgeLoadFailure } from "../../open-sse/utils/chatgptWebFirstParty.ts";
+import { classifyProviderProbeResult } from "../../src/sse/handlers/providerProbeClassification.ts";
 
 // Network-layer errors and OmniRoute's own queue timeouts must NOT trip the
 // provider circuit breaker. These are not provider failures — the provider never
@@ -116,6 +118,31 @@ test("ChatGPT Web browser-launch failure is local, not a dead account", () => {
     isChatGptWebBridgeFailure("gemini-web", "browserType.launch: Executable doesn't exist"),
     false
   );
+});
+
+test("ChatGPT Web bridge-module load failure (CSP / page error) is a local bridge failure", () => {
+  // The base's bridge injector reports every load failure through
+  // describeBridgeLoadFailure(); that message must be isolated like the others.
+  const message = describeBridgeLoadFailure([
+    { kind: "csp", detail: "script-src blocked blob:https://chatgpt.com/1" },
+  ]);
+  assert.equal(isChatGptWebBridgeFailure("chatgpt-web", message), true);
+  assert.equal(isChatGptWebBridgeFailure("chatgpt-web", describeBridgeLoadFailure([])), true);
+  assert.equal(isChatGptWebBridgeFailure("gemini-web", message), false);
+});
+
+test("an acquired HALF_OPEN probe that hits a ChatGPT Web bridge failure does not re-open the breaker", () => {
+  const result = {
+    success: false,
+    status: 502,
+    errorCode: null,
+    errorType: null,
+    error: "ChatGPT Web first-party bridge did not initialize",
+  };
+  assert.equal(classifyProviderProbeResult(result, "chatgpt-web"), "ignore");
+  // Other providers keep the ordinary upstream policy for the same 502.
+  assert.equal(classifyProviderProbeResult(result, "openai"), "failure");
+  assert.equal(classifyProviderProbeResult({ result }, "chatgpt-web"), "ignore");
 });
 
 test("isCombo=true prevents breaker trip regardless of error", () => {
