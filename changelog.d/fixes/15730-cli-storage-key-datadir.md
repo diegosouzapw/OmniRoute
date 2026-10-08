@@ -1,0 +1,1 @@
+- fix(cli): provision STORAGE_ENCRYPTION_KEY in getDefaultDataDir() instead of hardcoded ~/.omniroute when DATA_DIR is unset (#15730)

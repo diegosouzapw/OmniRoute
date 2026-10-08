@@ -377,13 +377,19 @@ export function mergeCodexLiveModelsWithLocalCatalog(
     if (!localModel.id) continue;
     const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
     const existing = merged.get(localModel.id);
-    merged.set(
-      localModel.id,
-      existing ? mergeLiveAndLocalCodexModel(existing, normalizedLocal) : normalizedLocal
-    );
+    if (existing) {
+      merged.set(localModel.id, mergeLiveAndLocalCodexModel(existing, normalizedLocal));
+    }
   }
 
   return Array.from(merged.values());
+}
+
+/** Static entries are only a fallback when no remote or cached inventory exists. */
+export function buildCodexLocalFallbackCatalog(
+  localCatalogModels: CodexLocalCatalogModel[]
+): CodexDiscoveryModel[] {
+  return applyCodexDiscoveryFilters(localCatalogModels.map(localCatalogModelToCodexDiscoveryModel));
 }
 
 /** Return true to KEEP the model. */

@@ -35,6 +35,7 @@ export const COMBO_SKIP_REASONS = [
   "auto_resilience_filter",
   "auto_strict_zero_cost",
   "auto_constraint_filter",
+  "cliproxy_management_health",
 ] as const;
 
 export type ComboSkipReason = (typeof COMBO_SKIP_REASONS)[number];

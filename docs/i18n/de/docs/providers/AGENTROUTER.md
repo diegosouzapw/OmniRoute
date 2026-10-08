@@ -128,7 +128,7 @@ Als Referenz sendet die cc-kompatible Bridge bei jeder Upstream-Anfrage Folgende
 | Header                                                       | Wert                                                                                                                 |
 | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                                              | `Bearer <api-key>`                                                                                                   |
-| `User-Agent`                                                 | `claude-cli/2.1.258 (external, sdk-cli)`                                                                             |
+| `User-Agent`                                                 | `claude-cli/2.1.280 (external, sdk-cli)`                                                                             |
 | `anthropic-version`                                          | `2023-06-01`                                                                                                         |
 | `anthropic-beta`                                             | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                             |
 | Verbindungsbezogener Redact-Thinking-Beta-Schalter           | Fügt für Upstreams, die ausdrücklich redigierte Thinking-Streams erfordern, `redact-thinking-2026-02-12` hinzu       |

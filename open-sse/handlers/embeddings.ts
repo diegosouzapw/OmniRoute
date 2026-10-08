@@ -27,6 +27,7 @@ import {
   hasStructuredEmbeddingInput,
   normalizeClovaEmbeddingV2Response,
   prepareJinaMixedEmbeddingInput,
+  prepareLlamaCppEmbeddingInput,
   prepareStructuredEmbeddingRequest,
 } from "./embeddingStructuredInput.ts";
 import { MAX_EMBEDDING_INLINE_ITEM_BYTES } from "@/shared/validation/schemas/apiV1";
@@ -368,6 +369,14 @@ async function prepareMixedJinaInput(
   prepared.upstreamBody.input = await prepareJinaMixedEmbeddingInput(mixed, fetchEmbeddingMedia);
 }
 
+async function prepareLlamaCppInput(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest
+): Promise<void> {
+  const items = Array.isArray(runtime.body.input) ? runtime.body.input : [runtime.body.input];
+  prepared.upstreamBody.input = await prepareLlamaCppEmbeddingInput(items, fetchEmbeddingMedia);
+}
+
 async function prepareNativeTransport(
   runtime: EmbeddingRuntime,
   prepared: PreparedEmbeddingRequest,
@@ -409,6 +418,9 @@ async function applyStructuredTransport(
 
   if (isJinaProtocol && jinaNative && canonical) {
     await prepareMixedJinaInput(runtime, prepared);
+  } else if (runtime.providerConfig.structuredInputProtocol === "llama-cpp-mtmd") {
+    // Same URL/auth as text; only the canonical items change shape.
+    if (canonical) await prepareLlamaCppInput(runtime, prepared);
   } else if (useGeminiNative || (!passThroughJina && canonical)) {
     await prepareNativeTransport(runtime, prepared, token);
   }

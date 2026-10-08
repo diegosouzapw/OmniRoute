@@ -4514,6 +4514,29 @@
       "stream": "https://api.1min.ai/api/chat-with-ai"
     }
   },
+  "onomeo": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://onomeo.com/v1/chat/completions",
+      "stream": "https://onomeo.com/v1/chat/completions"
+    }
+  },
   "openadapter": {
     "format": "openai",
     "headers": {
@@ -6428,6 +6451,29 @@
     "url": {
       "nonStream": "https://api.xkiro.com/v1/chat/completions",
       "stream": "https://api.xkiro.com/v1/chat/completions"
+    }
+  },
+  "y-api": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.y-api.bestvirtualgoods.com/v1/chat/completions",
+      "stream": "https://api.y-api.bestvirtualgoods.com/v1/chat/completions"
     }
   },
   "yi": {

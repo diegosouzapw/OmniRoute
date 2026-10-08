@@ -106,6 +106,10 @@ export function classifyCursorErrorKind(rawMessage: string): CursorErrorKind {
     return lower.includes("reset after") ? "rate_limit" : "not_found";
   }
 
+  // #15671: a bare Connect `not_found` end-of-stream error (model absent from the
+  // account's plan) must surface as 404 so the model gets locked.
+  if (lower.includes("not_found")) return "not_found";
+
   if (
     lower.includes("unauthenticated") ||
     lower.includes("unauthorized") ||

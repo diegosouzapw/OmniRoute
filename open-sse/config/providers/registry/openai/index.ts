@@ -21,6 +21,11 @@ export const openaiProvider: RegistryEntry = {
       supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
       unsupportedParams: ["temperature", "top_p", "top_logprobs", "logprobs"],
     },
+    // #15023: Sol and Luna are GPT-6 siblings with the same public API context window as
+    // Astra (1,050,000). They were missing from this registry, causing the importer to
+    // fall back to defaultContextLength (128k) and corrupting combo context advertising.
+    { id: "gpt-6-sol", name: "GPT-6 Sol", ...GPT_5_6_API_CAPABILITIES },
+    { id: "gpt-6-luna", name: "GPT-6 Luna", ...GPT_5_6_API_CAPABILITIES },
     // #11489: per OpenAI's model reference `gpt-5.6` is an ALIAS of `gpt-5.6-sol`,
     // not a distinct model — quality scores point forward, which no suffix
     // stripper can express. Siblings `-terra`/`-luna` are their own models.

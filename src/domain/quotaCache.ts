@@ -959,12 +959,14 @@ export function getQuotaWindowObservation(
 }
 
 /**
- * Mark an account as out of credits from a 402-class response.
+ * Mark an account as out of credits from a 402/403-class balance response.
  *
  * Upstream refusing the request for balance is authoritative: it outranks
  * whatever remaining percentage the last snapshot happened to hold, which may
- * be hours old. Without this, a connection that answered 402 keeps its stale
- * non-zero remaining and the next quota-weighted draw can pick it again.
+ * be hours old. Without this, a connection that answered 402 (or a 403
+ * AUTHZ_INSUFFICIENT_BALANCE / "Insufficient account balance") keeps its stale
+ * non-zero remaining and the next quota-weighted / fill-first draw can pick it
+ * again.
  *
  * The entry is kept (never deactivated or deleted) — credits come back, and a
  * later successful refresh or window reset clears the flag through the same

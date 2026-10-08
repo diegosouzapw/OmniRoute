@@ -41,15 +41,16 @@
 // Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
 // OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
 // Retiring suno (#14224, 4af4937e) removes one specialty-media apikey entry — 241.
-// Live-measured on origin/release/v3.8.52: the merged catalog is 242 (the 241
-// constant lagged the tip). BeatAPI (#14875) extracts one aggregator gateway
-// into apikey/beatapi.ts and spreads it from the barrel — 243.
+// origin/release/v3.8.52 already measures 242 live APIKEY entries (test still 241, inherited).
+// onomeo (gateways) adds one apikey entry — 243.
+// BeatAPI (#14875) extracts one aggregator gateway into apikey/beatapi.ts and spreads it
+// from the barrel — 244.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 243;
+const APIKEY_PROVIDER_COUNT = 244;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
