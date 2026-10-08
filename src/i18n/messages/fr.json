@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mode de service Codex pour cette clé API",
+    "description": "S’applique aux requêtes Codex, y compris aux modèles Codex au sein des combinaisons. Les modes forcés remplacent les paramètres du client, les paramètres globaux et les valeurs par défaut de la connexion. Les autres fournisseurs restent inchangés.",
+    "label": "Mode de service",
+    "inherit": "Conserver le comportement existant",
+    "default": "Forcer le mode Standard (par défaut)",
+    "priority": "Forcer le mode Rapide / Prioritaire",
+    "flex": "Forcer le mode Flex",
+    "warning": "Cela n’accorde pas l’accès au fournisseur. La disponibilité, les frais et l’utilisation du quota dépendent de votre compte Codex et du modèle. Les modes forcés nécessitent un transport HTTP ou WebSocket Responses ; les requêtes app-server sont rejetées.",
+    "confirm": "Appliquer « {mode} » à cette clé API ? Cette modification prendra effet pour les requêtes suivantes.",
+    "save": "Enregistrer le mode",
+    "retry": "Réessayer",
+    "loadError": "Impossible de charger le mode de service enregistré.",
+    "saveError": "Impossible d’enregistrer le mode de service. Veuillez réessayer."
+  },
   "common": {
     "save": "Enregistrer",
     "cancel": "Annuler",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modalità tas-servizz Codex għal din il-kjavi tal-API",
+    "description": "Tapplika għat-talbiet ta’ Codex, inklużi l-mudelli Codex fil-kombinazzjonijiet. Il-modalitajiet infurzati jieħdu preċedenza fuq il-klijent, is-settings globali u l-valuri prestabbiliti tal-konnessjoni. Fornituri oħra jibqgħu l-istess.",
+    "label": "Modalità tas-servizz",
+    "inherit": "Wiret l-imġiba eżistenti",
+    "default": "Infurza Standard (prestabbilit)",
+    "priority": "Infurza Fast / Priority",
+    "flex": "Infurza Flex",
+    "warning": "Dan ma jagħtix aċċess għall-fornitur. Id-disponibbiltà, it-tariffi u l-konsum tal-kwota jiddependu fuq il-kont Codex u l-mudell tiegħek. Il-modalitajiet infurzati jeħtieġu trasport HTTP jew Responses WebSocket; it-talbiet app-server jiġu rrifjutati.",
+    "confirm": "Tapplika “{mode}” għal din il-kjavi tal-API? Dan jidħol fis-seħħ għal talbiet sussegwenti.",
+    "save": "Issejvja l-modalità",
+    "retry": "Erġa’ pprova",
+    "loadError": "Ma setgħetx titgħabba l-modalità tas-servizz issejvjata.",
+    "saveError": "Ma setgħetx tiġi ssejvjata l-modalità tas-servizz. Jekk jogħġbok erġa’ pprova."
+  },
   "common": {
     "save": "Issejvja",
     "cancel": "Ikkanċella",

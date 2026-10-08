@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-palvelutila tälle API-avaimelle",
+    "description": "Koskee Codex-pyyntöjä, mukaan lukien yhdistelmissä olevat Codex-mallit. Pakotetut tilat ohittavat asiakasohjelman, yleiset asetukset ja yhteyden oletusasetukset. Muut palveluntarjoajat säilyvät ennallaan.",
+    "label": "Palvelutila",
+    "inherit": "Peri nykyinen toiminta",
+    "default": "Pakota Standard (oletus)",
+    "priority": "Pakota Fast / Priority",
+    "flex": "Pakota Flex",
+    "warning": "Tämä ei anna käyttöoikeutta palveluntarjoajaan. Saatavuus, veloitukset ja kiintiön kulutus riippuvat Codex-tilistäsi ja mallista. Pakotetut tilat edellyttävät HTTP- tai Responses WebSocket -siirtotapaa; app-server-pyynnöt hylätään.",
+    "confirm": "Otetaanko ”{mode}” käyttöön tälle API-avaimelle? Muutos tulee voimaan seuraavissa pyynnöissä.",
+    "save": "Tallenna tila",
+    "retry": "Yritä uudelleen",
+    "loadError": "Tallennettua palvelutilaa ei voitu ladata.",
+    "saveError": "Palvelutilaa ei voitu tallentaa. Yritä uudelleen."
+  },
   "common": {
     "save": "Tallenna",
     "cancel": "Peruuta",

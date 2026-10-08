@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Bu API anahtarı için Codex hizmet modu",
+    "description": "Kombinasyonlardaki Codex modelleri dâhil olmak üzere Codex isteklerine uygulanır. Zorunlu modlar; istemci, genel ayarlar ve bağlantı varsayılanlarını geçersiz kılar. Diğer sağlayıcılar değişmeden kalır.",
+    "label": "Hizmet modu",
+    "inherit": "Mevcut davranışı devral",
+    "default": "Standard modunu zorunlu kıl (varsayılan)",
+    "priority": "Fast / Priority modunu zorunlu kıl",
+    "flex": "Flex modunu zorunlu kıl",
+    "warning": "Bu, sağlayıcı erişimi sağlamaz. Kullanılabilirlik, ücretler ve kota tüketimi Codex hesabınıza ve modelinize bağlıdır. Zorunlu modlar HTTP veya Responses WebSocket aktarımını gerektirir; app-server istekleri reddedilir.",
+    "confirm": "“{mode}” modu bu API anahtarına uygulansın mı? Bu değişiklik sonraki isteklerde geçerli olur.",
+    "save": "Modu kaydet",
+    "retry": "Yeniden dene",
+    "loadError": "Kaydedilen hizmet modu yüklenemedi.",
+    "saveError": "Hizmet modu kaydedilemedi. Lütfen tekrar deneyin."
+  },
   "common": {
     "save": "Kaydet",
     "cancel": "İptal",

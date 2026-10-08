@@ -319,6 +319,7 @@
       "tests/unit/executor-contract-violation-terminal.test.ts",
       "tests/unit/executor-devin-cli-agentic-acp.test.ts",
       "tests/unit/executor-web-cookie-sweep.test.ts",
+      "tests/unit/executor-twinmind.test.ts",
       "tests/unit/expiry-first-account-rotation.test.ts",
       "tests/unit/explicit-inactive-probe-w2.test.ts",
       "tests/unit/false-terminal-401-quota.test.ts",

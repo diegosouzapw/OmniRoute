@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mode layanan Codex untuk kunci API ini",
+    "description": "Berlaku untuk permintaan Codex, termasuk model Codex di dalam kombinasi. Mode yang dipaksakan mengesampingkan pengaturan klien, pengaturan global, dan default koneksi. Penyedia lain tetap tidak berubah.",
+    "label": "Mode layanan",
+    "inherit": "Ikuti perilaku yang ada",
+    "default": "Paksa Standar (default)",
+    "priority": "Paksa Cepat / Prioritas",
+    "flex": "Paksa Fleksibel",
+    "warning": "Ini tidak memberikan akses ke penyedia. Ketersediaan, biaya, dan penggunaan kuota bergantung pada akun dan model Codex Anda. Mode yang dipaksakan memerlukan transpor HTTP atau Responses WebSocket; permintaan app-server akan ditolak.",
+    "confirm": "Terapkan “{mode}” ke kunci API ini? Perubahan ini berlaku untuk permintaan berikutnya.",
+    "save": "Simpan mode",
+    "retry": "Coba lagi",
+    "loadError": "Tidak dapat memuat mode layanan yang tersimpan.",
+    "saveError": "Tidak dapat menyimpan mode layanan. Silakan coba lagi."
+  },
   "common": {
     "save": "Simpan",
     "cancel": "Batalkan",

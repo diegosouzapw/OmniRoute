@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-tjänsteläge för denna API-nyckel",
+    "description": "Gäller för Codex-förfrågningar, inklusive Codex-modeller i kombinationer. Tvingade lägen åsidosätter klientens inställningar, globala inställningar och anslutningens standardvärden. Andra leverantörer påverkas inte.",
+    "label": "Tjänsteläge",
+    "inherit": "Ärv befintligt beteende",
+    "default": "Tvinga Standard (standard)",
+    "priority": "Tvinga Fast / Priority",
+    "flex": "Tvinga Flex",
+    "warning": "Detta ger inte åtkomst till leverantören. Tillgänglighet, avgifter och kvotförbrukning beror på ditt Codex-konto och din modell. Tvingade lägen kräver HTTP- eller Responses WebSocket-transport. Förfrågningar via app-server avvisas.",
+    "confirm": "Vill du använda ”{mode}” för denna API-nyckel? Detta börjar gälla för efterföljande förfrågningar.",
+    "save": "Spara läge",
+    "retry": "Försök igen",
+    "loadError": "Det gick inte att läsa in det sparade tjänsteläget.",
+    "saveError": "Det gick inte att spara tjänsteläget. Försök igen."
+  },
   "common": {
     "save": "Spara",
     "cancel": "Avbryt",

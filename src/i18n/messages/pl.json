@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Tryb usługi Codex dla tego klucza API",
+    "description": "Dotyczy żądań Codex, w tym modeli Codex w kombinacjach. Wymuszone tryby zastępują ustawienia klienta, ustawienia globalne oraz ustawienia domyślne połączenia. Ustawienia innych dostawców pozostają bez zmian.",
+    "label": "Tryb usługi",
+    "inherit": "Zachowaj dotychczasowe działanie",
+    "default": "Wymuś tryb Standard (domyślny)",
+    "priority": "Wymuś tryb Fast / Priority",
+    "flex": "Wymuś tryb Flex",
+    "warning": "Nie zapewnia to dostępu u dostawcy. Dostępność, opłaty i wykorzystanie limitu zależą od konta Codex i modelu. Wymuszone tryby wymagają transportu HTTP lub Responses WebSocket; żądania app-server są odrzucane.",
+    "confirm": "Zastosować tryb „{mode}” do tego klucza API? Zmiana zacznie obowiązywać dla kolejnych żądań.",
+    "save": "Zapisz tryb",
+    "retry": "Spróbuj ponownie",
+    "loadError": "Nie udało się wczytać zapisanego trybu usługi.",
+    "saveError": "Nie udało się zapisać trybu usługi. Spróbuj ponownie."
+  },
   "common": {
     "save": "Zapisz",
     "cancel": "Anuluj",

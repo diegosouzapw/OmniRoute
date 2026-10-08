@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mode ng serbisyo ng Codex para sa API key na ito",
+    "description": "Nalalapat sa mga kahilingan sa Codex, kabilang ang mga modelo ng Codex sa loob ng mga combo. Ino-override ng mga sapilitang mode ang client, mga pandaigdigang setting, at mga default ng koneksyon. Hindi magbabago ang ibang provider.",
+    "label": "Mode ng serbisyo",
+    "inherit": "Manahin ang kasalukuyang gawi",
+    "default": "Pilitin ang Standard (default)",
+    "priority": "Pilitin ang Fast / Priority",
+    "flex": "Pilitin ang Flex",
+    "warning": "Hindi ito nagbibigay ng access sa provider. Ang availability, mga singil, at paggamit ng quota ay nakadepende sa iyong Codex account at modelo. Nangangailangan ang mga sapilitang mode ng HTTP o Responses WebSocket transport; tatanggihan ang mga kahilingan sa app-server.",
+    "confirm": "Ilapat ang “{mode}” sa API key na ito? Magkakabisa ito para sa mga susunod na kahilingan.",
+    "save": "I-save ang mode",
+    "retry": "Subukang muli",
+    "loadError": "Hindi ma-load ang naka-save na mode ng serbisyo.",
+    "saveError": "Hindi ma-save ang mode ng serbisyo. Pakisubukang muli."
+  },
   "common": {
     "save": "I-save",
     "cancel": "Kanselahin",

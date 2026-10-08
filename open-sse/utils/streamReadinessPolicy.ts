@@ -57,6 +57,13 @@ const OFFICIAL_CLAUDE_FORMAT_PROVIDERS = new Set(["claude", "anthropic"]);
  * through the Claude translator", so use it to bump the budget instead of
  * hand-curating an allowlist that drifts every time a new replica registers.
  */
+function isSyntxProvider(provider?: string | null): boolean {
+  const id = String(provider || "")
+    .trim()
+    .toLowerCase();
+  return id === "syntx" || id === "stx";
+}
+
 function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
   if (!provider) return false;
   const normalized = provider.toLowerCase();
@@ -136,7 +143,7 @@ export function resolveStreamReadinessTimeout(
     };
   }
 
-  const maxTimeoutMs = Math.max(
+  let maxTimeoutMs = Math.max(
     baseTimeoutMs,
     input.maxTimeoutMs ?? DEFAULT_MAX_TIMEOUT_MS,
     input.cascadeTimeoutMs ?? 0
@@ -218,6 +225,16 @@ export function resolveStreamReadinessTimeout(
   if (isClaudeFormatReasoningProvider(input.provider) && !highReasoning && !extendedThinking) {
     timeoutMs += 30_000;
     reasons.push("claude_format_heavy_reasoning");
+  }
+
+  // SYNTX generate+SSE can sit quiet for minutes (native search/code/shell,
+  // long thinking). Raise both the budget and the clamp so Math.min cannot
+  // pull a 10-minute window back down to the 180s default max.
+  if (isSyntxProvider(input.provider)) {
+    const syntxTimeoutMs = 600_000;
+    timeoutMs = Math.max(timeoutMs, syntxTimeoutMs);
+    maxTimeoutMs = Math.max(maxTimeoutMs, syntxTimeoutMs);
+    reasons.push("syntx_long_generate");
   }
 
   // Cursor flattens Responses history into one wire message before dispatch;

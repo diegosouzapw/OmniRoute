@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modo de serviço Codex para esta chave de API",
+    "description": "Aplica-se a pedidos Codex, incluindo modelos Codex em combinações. Os modos forçados sobrepõem-se ao cliente, às definições globais e às predefinições da ligação. Os restantes fornecedores permanecem inalterados.",
+    "label": "Modo de serviço",
+    "inherit": "Herdar o comportamento existente",
+    "default": "Forçar Standard (predefinição)",
+    "priority": "Forçar Fast / Priority",
+    "flex": "Forçar Flex",
+    "warning": "Isto não concede acesso ao fornecedor. A disponibilidade, os custos e o consumo da quota dependem da sua conta Codex e do modelo. Os modos forçados requerem transporte HTTP ou Responses WebSocket; os pedidos app-server são rejeitados.",
+    "confirm": "Aplicar «{mode}» a esta chave de API? Esta alteração entra em vigor nos pedidos seguintes.",
+    "save": "Guardar modo",
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o modo de serviço guardado.",
+    "saveError": "Não foi possível guardar o modo de serviço. Tente novamente."
+  },
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",

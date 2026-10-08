@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ìpo iṣẹ́ Codex fún kọ́kọ́rọ́ API yìí",
+    "description": "Ó kan àwọn ìbéèrè Codex, pẹ̀lú àwọn àwòṣe Codex inú àwọn àkójọpọ̀. Àwọn ìpo tí a fi tipátipá yan máa borí ètò oníbàárà, àwọn ètò àgbáyé àti àwọn àiyípadà ìbẹ̀rẹ̀ ìsopọ̀. Àwọn olùpèsè mìíràn kò ní yí padà.",
+    "label": "Ìpo iṣẹ́",
+    "inherit": "Jogún ìhùwàsí tó wà",
+    "default": "Fi Ìwọ̀nṣọ̀kan múlẹ̀ (àiyípadà ìbẹ̀rẹ̀)",
+    "priority": "Fi Yíyára / Ààyò múlẹ̀",
+    "flex": "Fi Flex múlẹ̀",
+    "warning": "Èyí kò fúnni ní àṣẹ sí olùpèsè. Wíwà, àwọn owó ìdíyelé àti lílo iye ààyè sinmi lórí àkọọ́lẹ̀ Codex àti àwòṣe rẹ. Àwọn ìpo tí a fi tipátipá yan nílò ìgbéwọlé HTTP tàbí Responses WebSocket; a ó kọ àwọn ìbéèrè app-server.",
+    "confirm": "Ṣé a lo “{mode}” fún kọ́kọ́rọ́ API yìí? Èyí yóò bẹ̀rẹ̀ sí í ṣiṣẹ́ fún àwọn ìbéèrè tó tẹ̀ lé e.",
+    "save": "Fi ìpo pamọ́",
+    "retry": "Gbìyànjú lẹ́ẹ̀kan sí i",
+    "loadError": "A kò lè ṣàkójọ ìpo iṣẹ́ tí a fi pamọ́.",
+    "saveError": "A kò lè fi ìpo iṣẹ́ pamọ́. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i."
+  },
   "common": {
     "save": "Fipamọ́",
     "cancel": "Fagilé",
