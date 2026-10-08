@@ -45,7 +45,13 @@ for (const { id, config } of providers) {
       const result = await PROVIDERS_MAP[id].pollToken(config, "device-code-stub");
       assert.equal(result.ok, false);
       assert.equal(result.data.error, "invalid_response");
-      assert.match(result.data.error_description, /502 Bad Gateway/);
+      if (id === "muse-code") {
+        // #15521 (porting #14267's hardening): Muse Code allowlists poll errors and never
+        // echoes upstream text — an unrecognized body maps to a bare invalid_response.
+        assert.deepEqual(result.data, { error: "invalid_response" });
+      } else {
+        assert.match(result.data.error_description, /502 Bad Gateway/);
+      }
     } finally {
       restore();
     }

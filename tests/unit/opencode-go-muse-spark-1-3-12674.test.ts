@@ -62,8 +62,11 @@ for (const { alias, effort } of ALIASES) {
   });
 }
 
-test("#12674 parseEffortLevel: 1.3 has no max tier", () => {
-  assert.equal(parseEffortLevel(`${BASE}-max`), null);
+test("#12674 parseEffortLevel: 1.3 max is the #12687 max-first alias", () => {
+  // #15521 (porting #12687) adds `max` as an explicit 1.3 alias: it is sent verbatim and
+  // falls back to xhigh only on the upstream unsupported-effort 400
+  // (tests/unit/opencode-muse-spark-max-fallback.test.ts covers the fallback).
+  assert.deepEqual(parseEffortLevel(`${BASE}-max`), { baseModel: BASE, effort: "max" });
 });
 
 test("#12674 catalog: 1.3 aliases stay Go-only (not on opencode-zen)", () => {
