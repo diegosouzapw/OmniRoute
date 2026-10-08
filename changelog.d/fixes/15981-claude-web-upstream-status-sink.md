@@ -1,0 +1,1 @@
+- **fix(sse):** count refused requests on the web executor as upstream 4xx/5xx instead of transport failures ([#15981](https://github.com/diegosouzapw/OmniRoute/pull/15981)) — thanks @maxmad64bis
