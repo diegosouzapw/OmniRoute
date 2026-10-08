@@ -207,11 +207,21 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // (415 -> 416). Measured, not hand-derived: RESERVED_PROVIDER_PREFIXES.size.
   // ChatPlayground (#12690) registers id "chatplayground" and alias "cpl" — two more
   // (416 -> 418). Measured: RESERVED_PROVIDER_PREFIXES.size after #12690 and #14875 both landed.
-  // BigModel.cn (#12343) registers id "bigmodel" with the same alias — one more (418 -> 419).
-  assert.equal(RESERVED_PREFIX_COUNT, 419);
+  // notrack-web (#12534): registry entry registers its id "notrack-web" + alias "ntw"
+  // (two new members, 418 -> 420). Do not fold this into a generic catalog bump — the
+  // dedicated notrack-web prefix test below is the regression lock for this provider.
+  // BigModel.cn (#12343) registers id "bigmodel" with the same alias — one more (420 -> 421).
+  assert.equal(RESERVED_PREFIX_COUNT, 421);
   assert.equal(isReservedProviderPrefix("bigmodel"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("seekai"), true);
   assert.equal(RESERVED_PROVIDER_PREFIXES.has("ska"), true);
+});
+
+test("notrack-web registry id and alias stay reserved", () => {
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("notrack-web"), true);
+  assert.equal(RESERVED_PROVIDER_PREFIXES.has("ntw"), true);
+  assert.equal(isReservedProviderPrefix("notrack-web"), true);
+  assert.equal(isReservedProviderPrefix("ntw"), true);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

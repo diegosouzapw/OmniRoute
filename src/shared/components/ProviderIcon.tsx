@@ -160,6 +160,7 @@ const KNOWN_SVGS = new Set([
   "nebius",
   "nlpcloud",
   "nomic",
+  "notrack-web",
   "novita",
   "nube",
   "nvidia",

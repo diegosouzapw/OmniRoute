@@ -295,6 +295,14 @@ function resolveAntigravityQuotaWindowsForModel(
   return selectAntigravityQuotaWindowNames(quotaNames, requestedModel);
 }
 
+// Automatic exhaustion is not the operator's optional usage cutoff — but Antigravity's
+// own remaining-fraction math can land a fully-used window at e.g. 0.0000017% instead
+// of an exact 0 (floating-point noise), so the "fully depleted" line sits a hair below
+// 100% used rather than exactly at it. This must stay far below the smallest boundary
+// `agy-quota-exhaustion-threshold.test.ts` asserts is NOT automatic exhaustion (1%
+// remaining / 99% used), or genuinely-usable low-quota accounts get skipped.
+const ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT = 99.999;
+
 function isAntigravityQuotaExhausted(
   connectionId: string,
   entry: QuotaCacheEntry,
@@ -304,12 +312,14 @@ function isAntigravityQuotaExhausted(
   const quotaNames = Object.keys(entry.quotas || {});
   if (quotaNames.length === 0) return entry.exhausted;
   const matchingWindows = resolveAntigravityQuotaWindowsForModel(quotaNames, requestedModel);
+  // Antigravity enforces both 5h and weekly windows for a family. A remaining
+  // 5h bucket cannot make an account usable when weekly is exhausted (or vice versa).
   return (
     matchingWindows.length > 0 &&
-    matchingWindows.every(
+    matchingWindows.some(
       (windowName) =>
-        // Automatic exhaustion is not the operator's optional usage cutoff.
-        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+        getQuotaWindowStatus(connectionId, windowName, ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }

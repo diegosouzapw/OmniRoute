@@ -455,10 +455,20 @@
       "configSource": "<custom-config>",
       "provider": "notion-web"
     },
+    "notrack-web": {
+      "className": "NotrackWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notrack-web"
+    },
     "nr": {
       "className": "NineRouterExecutor",
       "configSource": "<custom-config>",
       "provider": "9router"
+    },
+    "ntw": {
+      "className": "NotrackWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notrack-web"
     },
     "nw": {
       "className": "NotionWebExecutor",
@@ -666,6 +676,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 133,
+  "keyCount": 135,
   "sharedInstances": []
 }
