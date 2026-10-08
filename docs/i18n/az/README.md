@@ -1256,28 +1256,28 @@ bir portda təqdim olunur, buna görə hazırda ayrıca yalnız CLI üçün pake
 <br/>
 <div align="center">
 
-## 🛠️ Texnologiya steki
+## 🛠️ Texnologiya Steki
 
 </div>
 
 <table>
   <tr><th align="left">Təbəqə</th><th align="left">Texnologiya</th></tr>
   <tr><td nowrap><b>İcra mühiti</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>Dil</b></td><td>TypeScript 6.0 — <code>src/</code> və <code>open-sse/</code> üzrə <b>100% TypeScript</b> (v2.0-dan bəri nüvədə sıfır <code>any</code>)</td></tr>
-  <tr><td nowrap><b>Freyymvork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Verilənlər bazası</b></td><td>better-sqlite3 (SQLite, WAL jurnallaşdırması) + LowDB (köhnə JSON formatı) — 136 domen modulu, 193 miqrasiya</td></tr>
+  <tr><td nowrap><b>Proqramlaşdırma dili</b></td><td>TypeScript 6.0 — <code>src/</code> və <code>open-sse/</code> daxilində <b>100% TypeScript</b> (v2.0-dan etibarən əsas hissədə sıfır <code>any</code>)</td></tr>
+  <tr><td nowrap><b>Freymlork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Verilənlər bazası</b></td><td>better-sqlite3 (SQLite, WAL jurnallaşdırması) + LowDB (köhnə JSON formatı) — 137 domen modulu, 193 miqrasiya</td></tr>
   <tr><td nowrap><b>Yaddaş</b></td><td>SQLite FTS5 tam mətn axtarışı + int8-kvantlaşdırılmış vektor yerləşdirmələri, tipləşdirilmiş zəifləmə</td></tr>
   <tr><td nowrap><b>Sxemlər</b></td><td>Zod 4 — MCP alətlərinin giriş/çıxış yoxlaması + API müqavilələri</td></tr>
   <tr><td nowrap><b>Protokollar</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Axın</b></td><td>Server-Sent Events (SSE) + WebSocket körpüsü (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Sıxılma</b></td><td>12 mühərrikli konveyer — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentifikasiya və təhlükəsizlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API açarları + MCP əhatə dairəli autentifikasiya · saxlanma zamanı AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>Gizlilik</b></td><td>wreq-js — JA3 / JA4 TLS rəqəmsal izinin təqlidi, 3 səviyyəli proksi</td></tr>
-  <tr><td nowrap><b>Davamlılıq</b></td><td>Dövrə açarı, eksponensial gecikdirmə, kütləvi eyni vaxtlı sorğuların qarşısının alınması, avtomatik kombinasiyalı özünübərpa</td></tr>
+  <tr><td nowrap><b>Sıxılma</b></td><td>12 mühərrikli emal zənciri — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentifikasiya vəamp; təhlükəsizlik</b></td><td>OAuth 2.0 (PKCE) + JWT + API açarları + əhatə dairəli MCP autentifikasiyası · saxlanma zamanı AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>Gizlilik</b></td><td>wreq-js — JA3 / JA4 TLS rəqəmsal izi təqlidi, 3 səviyyəli proksi</td></tr>
+  <tr><td nowrap><b>Davamlılıq</b></td><td>Dövrəqıran, eksponensial geriçəkilmə, kütləvi paralel sorğuların qarşısının alınması, avtomatik kombinasiya ilə özünübərpa</td></tr>
   <tr><td nowrap><b>Jurnallaşdırma</b></td><td>pino — sorğu konteksti ilə strukturlaşdırılmış JSON jurnalları</td></tr>
-  <tr><td nowrap><b>Testləşdirmə</b></td><td>Node.js test icraçısı + Vitest — izlənilən 5,100+ test faylında <b>39,000+ statik test elanı</b> (modul, inteqrasiya, E2E, təhlükəsizlik, ekosistem)</td></tr>
+  <tr><td nowrap><b>Testləmə</b></td><td>Node.js test icraçısı + Vitest — 5,100-dən çox izlənilən test faylında <b>39,000-dən çox statik test elanı</b> (vahid, inteqrasiya, E2E, təhlükəsizlik, ekosistem)</td></tr>
   <tr><td nowrap><b>Platformalar</b></td><td>Masaüstü (Electron) · Android (Termux) · PWA (istənilən brauzer)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — buraxılış zamanı npm və Docker Hub-a avtomatik dərc</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — buraxılış zamanı npm-də və Docker Hub-da avtomatik dərc</td></tr>
   <tr><td nowrap><b>Keçidlər</b></td><td><a href="https://omniroute.online">Veb-sayt</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1729,7 +1729,7 @@ MIT Lisenziyası — ətraflı məlumat üçün [LICENSE](LICENSE) faylına bax�
 
 **[⬆ Yuxarı qayıt](#-omniroute)** · Açıq mənbəli süni intellekt icması üçün ❤️ ilə hazırlanıb.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT Lisenziyası · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT Lisenziyası · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- İcma sual-cavabları üçün GitHub Discussions aktivləşdirilib -->

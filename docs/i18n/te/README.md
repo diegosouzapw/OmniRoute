@@ -1256,7 +1256,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 కూడా ద�
 <br/>
 <div align="center">
 
-## 🛠️ టెక్ స్టాక్
+## 🛠️ సాంకేతిక స్టాక్
 
 </div>
 
@@ -1265,17 +1265,17 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 కూడా ద�
   <tr><td nowrap><b>రన్టైమ్</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>భాష</b></td><td>TypeScript 6.0 — <code>src/</code> మరియు <code>open-sse/</code> అంతటా <b>100% TypeScript</b> (v2.0 నుండి కోర్లో <code>any</code> సున్నా)</td></tr>
   <tr><td nowrap><b>ఫ్రేమ్వర్క్</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>డేటాబేస్</b></td><td>better-sqlite3 (SQLite, WAL జర్నలింగ్) + LowDB (లెగసీ JSON) — 136 డొమైన్ మాడ్యూల్లు, 193 మైగ్రేషన్లు</td></tr>
-  <tr><td nowrap><b>మెమరీ</b></td><td>SQLite FTS5 పూర్తి-పాఠ్య శోధన + int8-క్వాంటైజ్డ్ వెక్టర్ ఎంబెడింగ్లు, టైప్డ్ డికే</td></tr>
-  <tr><td nowrap><b>స్కీమాలు</b></td><td>Zod 4 — MCP సాధన I/O ధ్రువీకరణ + API ఒప్పందాలు</td></tr>
+  <tr><td nowrap><b>డేటాబేస్</b></td><td>better-sqlite3 (SQLite, WAL జర్నలింగ్) + LowDB (JSON లెగసీ) — 137 డొమైన్ మాడ్యూల్లు, 193 మైగ్రేషన్లు</td></tr>
+  <tr><td nowrap><b>మెమరీ</b></td><td>SQLite FTS5 పూర్తి-టెక్స్ట్ + int8-క్వాంటైజ్డ్ వెక్టర్ ఎంబెడ్డింగ్లు, టైప్డ్ డికే</td></tr>
+  <tr><td nowrap><b>స్కీమాలు</b></td><td>Zod 4 — MCP టూల్ I/O ధ్రువీకరణ + API కాంట్రాక్ట్లు</td></tr>
   <tr><td nowrap><b>ప్రోటోకాల్లు</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>స్ట్రీమింగ్</b></td><td>Server-Sent Events (SSE) + WebSocket బ్రిడ్జ్ (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>కంప్రెషన్</b></td><td>12-ఇంజిన్ పైప్లైన్ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>ప్రమాణీకరణ &amp; భద్రత</b></td><td>OAuth 2.0 (PKCE) + JWT + API కీలు + MCP స్కోప్డ్ ప్రమాణీకరణ · నిష్క్రియ స్థితిలో AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>గోప్యత</b></td><td>wreq-js — JA3 / JA4 TLS ఫింగర్ప్రింట్ అనుకరణ, 3-స్థాయి ప్రాక్సీ</td></tr>
-  <tr><td nowrap><b>స్థితిస్థాపకత</b></td><td>సర్క్యూట్ బ్రేకర్, ఎక్స్పోనెన్షియల్ బ్యాక్ఆఫ్, యాంటీ-థండరింగ్-హెర్డ్, ఆటో-కాంబో స్వీయ-స్వస్థత</td></tr>
-  <tr><td nowrap><b>లాగింగ్</b></td><td>pino — అభ్యర్థన సందర్భంతో నిర్మిత JSON లాగ్లు</td></tr>
-  <tr><td nowrap><b>పరీక్ష</b></td><td>Node.js టెస్ట్ రన్నర్ + Vitest — ట్రాక్ చేయబడిన 5,100+ టెస్ట్ ఫైళ్లలో <b>39,000+ స్టాటిక్ టెస్ట్ డిక్లరేషన్లు</b> (యూనిట్, ఇంటిగ్రేషన్, E2E, భద్రత, ఎకోసిస్టమ్)</td></tr>
+  <tr><td nowrap><b>ప్రామాణీకరణ &amp; భద్రత</b></td><td>OAuth 2.0 (PKCE) + JWT + API కీలు + MCP స్కోప్డ్ ప్రామాణీకరణ · నిల్వలో AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>స్టెల్త్</b></td><td>wreq-js — JA3 / JA4 TLS ఫింగర్ప్రింట్ అనుకరణ, 3-స్థాయి ప్రాక్సీ</td></tr>
+  <tr><td nowrap><b>స్థితిస్థాపకత</b></td><td>సర్క్యూట్ బ్రేకర్, ఎక్స్పోనెన్షియల్ బ్యాక్ఆఫ్, యాంటీ-థండరింగ్-హెర్డ్, ఆటో-కాంబో స్వీయ-పునరుద్ధరణ</td></tr>
+  <tr><td nowrap><b>లాగింగ్</b></td><td>pino — అభ్యర్థన సందర్భంతో కూడిన నిర్మిత JSON లాగ్లు</td></tr>
+  <tr><td nowrap><b>టెస్టింగ్</b></td><td>Node.js టెస్ట్ రన్నర్ + Vitest — ట్రాక్ చేయబడిన 5,100+ టెస్ట్ ఫైళ్లలో <b>39,000+ స్టాటిక్ టెస్ట్ డిక్లరేషన్లు</b> (యూనిట్, ఇంటిగ్రేషన్, E2E, భద్రత, ఎకోసిస్టమ్)</td></tr>
   <tr><td nowrap><b>ప్లాట్ఫారమ్లు</b></td><td>డెస్క్టాప్ (Electron) · Android (Termux) · PWA (ఏ బ్రౌజర్లోనైనా)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — విడుదల సమయంలో స్వయంచాలక npm ప్రచురణ + Docker Hub</td></tr>
   <tr><td nowrap><b>లింక్లు</b></td><td><a href="https://omniroute.online">వెబ్సైట్</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1729,7 +1729,7 @@ MIT లైసెన్స్ — వివరాల కోసం [LICENSE](LICEN
 
 **[⬆ పైకి తిరిగి వెళ్లండి](#-omniroute)** · ఓపెన్-సోర్స్ AI కమ్యూనిటీ కోసం ❤️తో రూపొందించబడింది.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT లైసెన్స్ · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT లైసెన్స్ · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- కమ్యూనిటీ ప్రశ్నలు మరియు సమాధానాల కోసం GitHub Discussions ప్రారంభించబడ్డాయి -->

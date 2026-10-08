@@ -1,561 +1,131 @@
-# ACP (Agent Client Protocol) (Français)
+# ACP registry and registered CLI launchers (Français)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇲🇲 [my](../../../my/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
 
 ---
 
-> **TL;DR** : ACP permet à OmniRoute de lancer des agents CLI (comme Claude Code, Codex) en tant que processus enfants au lieu d’utiliser des API HTTP. Vous bénéficiez ainsi d’un transport « CLI comme backend ».
+OmniRoute distingue la **détection des CLI**, le **protocole natif Agent Client Protocol** et
+les **adaptateurs stdio hérités**. La détection d’un binaire installé ne garantit ni son
+authentification, ni la compatibilité de ses modèles, ni sa capacité à traiter une requête.
 
----
+Le tableau de bord utilise `GET /api/acp/agents` et `POST /api/acp/agents` pour l’inventaire
+et l’enregistrement d’agents personnalisés. Il s’agit de routes de gestion exclusivement
+locales, et non d’une API publique permettant de lancer des processus ou de soumettre des
+requêtes. Le composant interne `AcpManager` ne devient pas automatiquement une solution de
+repli de fournisseur HTTP.
 
-## Qu’est-ce qu’ACP ?
+## Contrats enregistrés
 
-ACP (Agent Client Protocol) est un transport **« CLI comme backend »** pour OmniRoute. Au lieu d’intercepter les appels aux API HTTP des fournisseurs d’IA, ACP **lance des agents CLI en tant que processus enfants** et leur transmet les prompts via leur interface native.
+`config/cli-tools-manifest.json` constitue la source de vérité pour les binaires de lancement
+intégrés, leurs arguments et les modes de backend. Le registre dérive ses définitions de ce
+manifeste. La détection est mise en cache pendant 60 secondes.
 
-### Pourquoi utiliser ACP ?
+- `acp` : le contrat Gemini lance `gemini --experimental-acp` et communique
+  en ACP JSON-RPC délimité par des retours à la ligne via le SDK TypeScript officiel.
+- `stdio-adapter` : les autres contrats enregistrés conservent l’adaptateur hérité avec
+  entrée délimitée par des retours à la ligne et sortie sur stdout. Une période d’inactivité
+  de sortie de deux secondes met fin à sa réponse. Cet adaptateur ne garantit **pas** la
+  prise en charge native d’ACP par ces CLI.
 
-| Avantage                   | Description                                           |
-| -------------------------- | ----------------------------------------------------- |
-| **Aucune clé API requise** | Utilise l’authentification existante de votre CLI     |
-| **Protocole natif**        | Utilise le format d’entrée/sortie natif de chaque CLI |
-| **Détection automatique**  | Détecte les CLI installées sur votre système          |
-| **15 agents intégrés**     | Préconfiguré pour les outils CLI populaires           |
-| **Agents personnalisés**   | Ajoutez vos propres outils CLI via les paramètres     |
-| **Gestion des processus**  | Gère le cycle de vie (lancement, envoi, arrêt)        |
+Gemini documente l’option de lancement dans sa [référence CLI](https://geminicli.com/docs/cli/cli-reference/).
+Le client utilise le [SDK ACP officiel](https://github.com/agentclientprotocol/typescript-sdk)
+pour l’initialisation, la création de sessions, les requêtes de prompt, les notifications et l’annulation.
 
----
+Les définitions d’agents personnalisés restent des contrats de lancement contrôlés par
+l’administrateur. L’enregistrement d’un binaire et de ses arguments accorde à ce processus
+les privilèges d’exécution locaux de l’utilisateur du serveur ; l’enregistrement ne constitue
+pas un bac à sable. Les sondes de version n’acceptent que l’exécutable enregistré et une
+option de version reconnue.
 
-## Agents CLI pris en charge
-
-ACP prend en charge **15 agents CLI intégrés** prêts à l’emploi :
-
-| ID de l’agent | Nom d’affichage    | Binaire       | Protocole |
-| ------------- | ------------------ | ------------- | --------- |
-| `codex`       | OpenAI Codex CLI   | `codex`       | stdio     |
-| `claude`      | Claude Code CLI    | `claude`      | stdio     |
-| `goose`       | Goose CLI          | `goose`       | stdio     |
-| `openclaw`    | OpenClaw           | `openclaw`    | stdio     |
-| `aider`       | Aider              | `aider`       | stdio     |
-| `opencode`    | OpenCode           | `opencode`    | stdio     |
-| `cline`       | Cline              | `cline`       | stdio     |
-| `qwen`        | Qwen Code          | `qwen --acp`  | stdio     |
-| `forge`       | ForgeCode          | `forge`       | stdio     |
-| `amazon-q`    | Amazon Q Developer | `q`           | stdio     |
-| `interpreter` | Open Interpreter   | `interpreter` | stdio     |
-| `cursor-cli`  | Cursor CLI         | `cursor`      | stdio     |
-| `warp`        | Warp AI            | `warp`        | stdio     |
-| `gemini`      | Gemini CLI         | `gemini`      | stdio     |
-| `zcode`       | ZCode              | `zcode`       | stdio     |
-
-### Agents personnalisés
-
-Vous pouvez ajouter vos propres agents CLI via les paramètres. Les agents personnalisés prennent en charge les mêmes fonctionnalités que les agents intégrés.
-
----
-
-## Démarrage rapide
-
-### Étape 1 : Installer un agent CLI
-
-```bash
-# Exemple : installer Claude Code CLI
-npm install -g @anthropic-ai/claude-code
-
-# Vérifier l’installation
-claude --version
-```
-
-### Étape 2 : Détection automatique par ACP
-
-ACP détecte automatiquement les agents CLI installés sur votre système. Aucune configuration n’est nécessaire !
-
-### Étape 3 : Utiliser le transport ACP
-
-Une fois détecté, ACP peut être utilisé comme transport pour tout fournisseur pris en charge. OmniRoute utilisera automatiquement ACP lorsque la CLI sera disponible.
-
----
-
-## Fonctionnement d’ACP
-
-### Architecture
-
-```
-┌─────────────────┐
-│  OmniRoute      │
-│  (Proxy HTTP)   │
-└────────┬────────┘
-         │
-         │ spawn()
-         ▼
-┌─────────────────┐
-│ Processus enfant│
-│  (Agent CLI)    │
-│                 │
-│  stdin  ◄──────┤  Envoyer le prompt
-│  stdout ──────►│  Recevoir la réponse
-│  stderr ──────►│  Recevoir les erreurs
-└─────────────────┘
-```
-
-### Cycle de vie du processus
-
-1. **Lancement** — ACP crée un processus enfant pour l’agent CLI
-2. **Envoi** — ACP écrit les prompts dans le flux stdin du processus
-3. **Réception** — ACP lit les réponses depuis stdout/stderr
-4. **Détection de l’inactivité** — ACP attend 2 secondes d’inactivité avant de considérer la réponse comme terminée
-5. **Arrêt** — ACP met fin au processus (SIGTERM, puis SIGKILL après 5 s)
-
-### Protocole de communication
-
-ACP utilise **stdio** (entrée/sortie standard) pour communiquer avec les agents CLI. Le protocole est le suivant :
-
-1. **Envoyer le prompt** — Écrire dans stdin avec un saut de ligne
-2. **Attendre la réponse** — Lire depuis stdout jusqu’à détection d’une période d’inactivité (aucune sortie pendant 2 s)
-3. **Délai d’expiration** — 120 secondes par défaut (configurable)
-
----
-
-## Référence de l’API
-
-### Fonctions du registre
-
-#### `detectInstalledAgents()`
-
-Détecte tous les agents CLI installés sur le système. Les résultats sont mis en cache pendant 60 secondes.
+## API de lancement interne
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { acpManager } from "@/lib/acp";
 
-const agents = detectInstalledAgents();
-// Renvoie : CliAgentInfo[]
-
-interface CliAgentInfo {
-  id: string; // p. ex. « codex », « claude »
-  name: string; // Nom d’affichage
-  binary: string; // Nom du binaire à lancer
-  versionCommand: string; // Commande de détection de la version
-  version: string | null; // Version détectée (null si non installé)
-  installed: boolean; // Indique si l’agent est installé
-  providerAlias: string; // ID du fournisseur dans OmniRoute
-  spawnArgs: string[]; // Arguments à transmettre lors du lancement
-  protocol: "stdio" | "http"; // Protocole de communication
-  isCustom?: boolean; // Indique s’il s’agit d’un agent personnalisé défini par l’utilisateur
-}
-```
-
-#### `getAvailableAgents()`
-
-Obtient uniquement les agents installés et disponibles pour ACP.
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// Renvoie : CliAgentInfo[] (uniquement les agents installés)
-```
-
-#### `getAgentById(id)`
-
-Obtient un agent spécifique à partir de son ID.
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// Renvoie : CliAgentInfo | undefined
-```
-
-#### `setCustomAgents(agents)`
-
-Définit les agents personnalisés à partir des paramètres.
-
-```typescript
-import { setCustomAgents } from "@/lib/acp";
-
-setCustomAgents([
-  {
-    id: "my-custom-cli",
-    name: "My Custom CLI",
-    binary: "mycli",
-    versionCommand: "mycli --version",
-    providerAlias: "my-provider",
-    spawnArgs: [],
-    protocol: "stdio",
+const session = acpManager.spawn("gemini", {
+  cwd: process.cwd(),
+  // Ne transmettre que les variables du fournisseur délibérément attribuées à cet agent.
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-]);
-```
-
-### Fonctions du gestionnaire
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-Lance un nouveau processus d’agent CLI.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* variables d’environnement personnalisées */
 });
-// Renvoie : AcpSession
-```
 
-**ID d’agents autorisés** : `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-Envoie une invite à un agent CLI et collecte la réponse.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // délai d’expiration de 2 minutes
-);
-// Renvoie : Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-Arrête une session et effectue le nettoyage.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// Renvoie : boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-Obtient toutes les sessions actives.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// Renvoie : AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-Arrête toutes les sessions.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### Interface de session
-
-```typescript
-interface AcpSession {
-  id: string; // ID de session unique
-  agentId: string; // ID de l’agent (p. ex. « claude »)
-  process: ChildProcess; // Référence au processus enfant
-  alive: boolean; // Indique si le processus est actif
-  stdoutBuffer: string; // Tampon stdout accumulé
-  stderrBuffer: string; // Tampon stderr accumulé
-  createdAt: Date; // Horodatage de création
-}
-```
-
-### Événements
-
-`AcpManager` étend `EventEmitter` et émet les événements suivants :
-
-#### `stdout`
-
-Émis lorsque l’agent CLI écrit dans stdout.
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-Émis lorsque l’agent CLI écrit dans stderr.
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-Émis lorsque le processus de l’agent CLI se termine.
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-Émis lorsqu’une erreur survient dans le processus de l’agent CLI.
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
-## Configuration
-
-### Variables d’environnement
-
-ACP hérite de toutes les variables d’environnement du processus parent et peut être étendu avec des variables d’environnement personnalisées :
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
-
-### Arguments de lancement
-
-Chaque agent possède des arguments de lancement par défaut définis dans le registre. Vous pouvez les remplacer :
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### Délais d’expiration
-
-Le délai d’expiration par défaut d’une requête est de **120 secondes** (2 minutes). Vous pouvez le remplacer :
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
-```
-
-### Cache de détection
-
-La détection des agents est mise en cache pendant **60 secondes** afin d’éviter des analyses coûteuses du système de fichiers. Pour forcer l’actualisation :
-
-```typescript
-import { refreshAgentCache } from "@/lib/acp";
-
-refreshAgentCache();
-```
-
----
-
-## Sécurité
-
-### Prévention des injections de commandes
-
-ACP valide les commandes de version afin d’empêcher les attaques par injection de commandes :
-
-```typescript
-const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
-```
-
-Les commandes de version contenant ces caractères sont rejetées :
-
-- `;` — Séparateur de commandes
-- `&` — Processus en arrière-plan
-- `|` — Tube
-- `<`, `>` — Redirection
-- `` ` `` — Substitution de commande
-- `$` — Expansion de variable
-- `\r`, `\n` — Sauts de ligne
-
-### Validation du nom du binaire
-
-ACP vérifie que le binaire de la commande de version correspond au nom de binaire attendu (sauf s’il s’agit d’un agent personnalisé).
-
-### Isolation des processus
-
-Chaque session ACP s’exécute dans son propre processus enfant. Le processus est arrêté lorsque la session se termine ou atteint son délai d’expiration.
-
----
-
-## Performances
-
-### Performances de la détection
-
-- **Premier appel** : ~50-200ms (exécute la commande `version` pour chaque agent)
-- **Appels mis en cache** : <1ms (retour depuis le cache)
-- **Durée de vie du cache** : 60 secondes
-
-### Performances des requêtes
-
-- **Lancement** : ~50-100ms
-- **Envoi de la requête** : ~10-50ms
-- **Attente de la réponse** : dépend de l’agent CLI (généralement 1 à 30 secondes)
-- **Arrêt** : ~5 secondes (SIGTERM) + immédiat (SIGKILL)
-
-### Utilisation des ressources
-
-- **Mémoire par session** : ~10-50MB (dépend de l’agent CLI)
-- **CPU** : minimale (limitée par les E/S)
-- **Disque** : aucune
-
----
-
-## Dépannage
-
-### Erreur « Unknown agent »
-
-**Problème** : `acpManager.spawn()` lève l’erreur `Unknown agent: <id>`
-
-**Solution** : seuls les agents suivants sont autorisés dans `spawn()` :
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-Les autres agents doivent être lancés manuellement ou à l’aide de définitions d’agents personnalisés.
-
-### Erreur « Session not alive »
-
-**Problème** : `acpManager.sendPrompt()` lève l’erreur `Session ${sessionId} is not alive`
-
-**Solution** : la session peut s’être terminée ou avoir été arrêtée. Vérifiez son état :
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // Relancer la session
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### Erreur « ACP timeout »
-
-**Problème** : `acpManager.sendPrompt()` lève l’erreur `ACP timeout after 120000ms`
-
-**Solution** : augmentez le délai d’expiration :
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
-```
-
-### CLI non détectée
-
-**Problème** : `detectInstalledAgents()` ne trouve pas votre CLI
-
-**Solutions** :
-
-1. **Vérifiez PATH** : assurez-vous que la CLI figure dans le PATH de votre système
-2. **Vérifiez la commande de version** : exécutez manuellement `claude --version`
-3. **Vérifiez les autorisations** : assurez-vous que la CLI est exécutable
-4. **Agent personnalisé** : ajoutez une définition d’agent personnalisé pour les CLI non standard
-
-### Permission refusée
-
-**Problème** : ACP ne peut pas exécuter la CLI
-
-**Solutions** :
-
-1. **Vérifiez les autorisations du fichier** : `chmod +x /usr/local/bin/claude`
-2. **Vérifiez le propriétaire** : assurez-vous qu’OmniRoute dispose des autorisations de lecture et d’exécution
-3. **Vérifiez SELinux/AppArmor** : ces systèmes peuvent bloquer le lancement de processus
-
----
-
-## Exemples
-
-### Exemple 1 : Lancer et utiliser Claude Code
-
-```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
-
-// Détecter les agents installés
-const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // Lancer une nouvelle session
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // Envoyer une requête
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "Explain quantum computing in 100 words"
-  );
-
-  console.log("Claude's response:", response);
-
-  // Nettoyer les ressources
+try {
+  const response = await acpManager.sendPrompt(session.id, "Explique ce projet", 120_000);
+  // Traiter la réponse dans l’application appelante.
+} finally {
   acpManager.kill(session.id);
 }
 ```
 
-### Exemple 2 : Découverte automatique avec solution de repli
+`spawn(agentId, options)` détermine l’exécutable et les arguments à partir de la
+définition enregistrée. Les seules options disponibles pour l’appelant sont `cwd` et `env` ;
+l’ancienne signature `spawn(agentId, binary, args, env)` et les remplacements d’exécutable
+sont rejetés. Les contrats de lancement HTTP ne sont pas pris en charge par ce gestionnaire.
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
+Le processus enfant hérite du même système d’exploitation, terminal, paramètres régionaux
+et liste d’autorisation de certificats que les lanceurs CLI. Les secrets du serveur ou du
+fournisseur ne sont pas copiés depuis l’environnement parent. Les identifiants requis par la
+CLI choisie doivent être transmis explicitement ou fournis par l’intermédiaire du mécanisme
+d’authentification local propre à cette CLI. Le processus enfant conserve néanmoins les
+autorisations de l’utilisateur local sur le système de fichiers et peut lire sa propre
+configuration.
 
-const available = getAvailableAgents();
+## Cycle de vie natif et limites
 
-// Essayer d'abord Claude, puis utiliser Codex comme solution de repli
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("No ACP-compatible CLI agent found");
-  }
-}
+1. Lancer le binaire enregistré, initialiser ACP et créer une session dont la racine
+   correspond au répertoire de travail sélectionné. L’initialisation est limitée à dix secondes.
+2. Soumettre un prompt et collecter les notifications textuelles pour cette session uniquement.
+   L’achèvement correspond à la réponse RPC du prompt, et non à une période de silence sur stdout.
+3. Utiliser une seule échéance pour le prompt, incluant toute initialisation non terminée ; la
+   valeur par défaut est de 120 secondes. Les prompts simultanés dans un même processus sont rejetés.
+4. En cas d’expiration du délai natif, tenter `session/cancel` et terminer le processus. Une
+   fenêtre limitée de 100 ms permet l’envoi de la notification avant la terminaison.
+5. Fermer l’état du transport et supprimer la session lorsque l’initialisation échoue, que la
+   connexion se ferme, que le processus se termine ou que l’appelant l’arrête.
 
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
+Les demandes d’autorisation d’outils sont refusées. Aucune capacité cliente relative au
+système de fichiers ou au terminal n’est annoncée. Ces restrictions ne placent pas le
+binaire enfant dans un bac à sable et ne remplacent pas les paramètres d’autorisation
+propres à une CLI.
 
-const response = await acpManager.sendPrompt(session.id, "Hello!");
+Le texte natif comme les sorties stdout/stderr héritées conservent au maximum 1 Mio de
+caractères, en gardant la sortie la plus récente accompagnée d’un avis de troncature.
+Une trame filaire native individuelle est limitée à 2 Mio d’octets avant son analyse par
+le SDK. Les tampons sont réinitialisés pour chaque prompt.
 
-acpManager.kill(session.id);
-```
+`kill(sessionId)` envoie SIGTERM, puis SIGKILL après cinq secondes si le processus ne s’est
+pas terminé. Les expirations de délai des prompts hérités libèrent les écouteurs et les
+minuteries, mais laissent la session disponible pour un autre prompt ; il incombe toujours
+aux appelants d’utiliser `kill()` ou `killAll()` lorsqu’ils ont terminé.
 
-### Exemple 3 : Agent personnalisé
+## Événements et inspection
 
-```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+Le gestionnaire émet `stdout`, `stderr` et `exit`, chacun avec `sessionId`.
+`sessionError` signale une erreur de transport expurgée. L’événement de compatibilité `error`
+n’est émis que s’il dispose d’un abonné, afin qu’un binaire manquant ne puisse pas provoquer
+une erreur EventEmitter non gérée.
 
-// Enregistrer un agent CLI personnalisé
-setCustomAgents([
-  {
-    id: "my-llm-cli",
-    name: "My LLM CLI",
-    binary: "myllm",
-    versionCommand: "myllm --version",
-    providerAlias: "my-llm-provider",
-    spawnArgs: ["--format", "json"],
-    protocol: "stdio",
-  },
-]);
+- `getSession(sessionId)` renvoie une session gérée ou `undefined`.
+- `getActiveSessions()` exclut les sessions arrêtées ou en cours d’arrêt.
+- `sendInput(sessionId, input)` n’est disponible que pour un adaptateur hérité actif ;
+  l’ACP natif rejette les entrées brutes afin de protéger son flux JSON-RPC.
+- `killAll()` termine toutes les sessions gérées par cette instance.
 
-// Désormais, detectInstalledAgents() inclura "my-llm-cli"
-const agents = detectInstalledAgents();
-```
+## Limites de validation
 
----
+Des jeux de données déterministes couvrent la négociation native, la sortie textuelle, les
+autorisations refusées, l’annulation, les prompts simultanés, l’échec de l’initialisation,
+la fin du processus, les limites de sortie et l’isolation des secrets. Les régressions
+existantes relatives aux tampons et aux écouteurs hérités restent couvertes. Ces tests ne
+démontrent ni une connexion Gemini active ni la réussite d’une inférence auprès du
+fournisseur ; celles-ci nécessitent un test rapide autorisé séparément dans l’environnement
+cible.
 
-## Et ensuite ?
+## Documentation connexe
 
-- **[Référence de l’API](../reference/API_REFERENCE.md)** — Points de terminaison de l’API REST
-- **[Référence des fournisseurs](../reference/PROVIDER_REFERENCE.md)** — Les 352 fournisseurs
-- **[Serveur MCP](./MCP-SERVER.md)** — Intégration du Model Context Protocol
-- **[Serveur A2A](./A2A-SERVER.md)** — Protocole Agent-to-Agent
-- **[Agent cloud](./CLOUD_AGENT.md)** — Agents basés dans le cloud
-
----
-
-## Références
-
-- [Projet AionUi](https://github.com/iOfficeAI/AionUi) — Source d’inspiration pour la détection automatique ACP
-- [Code source ACP](../../src/lib/acp/) — Détails de l’implémentation
-  - `manager.ts` — Gestion du cycle de vie des processus
-  - `registry.ts` — Découverte et enregistrement des agents
-  - `index.ts` — Exportations de l’API publique
+- [Protocoles d’agents](./AGENT_PROTOCOLS_GUIDE.md)
+- [Contrats de lancement des CLI](../guides/CLI-LAUNCH-CONTRACTS.md)
+- [Outils CLI](../reference/CLI-TOOLS.md)
+- [Serveur A2A](./A2A-SERVER.md)
+- [Agents cloud](./CLOUD_AGENT.md)

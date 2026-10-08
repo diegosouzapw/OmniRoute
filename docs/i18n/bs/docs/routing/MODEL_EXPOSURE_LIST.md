@@ -4,37 +4,60 @@
 
 ---
 
-# Lista dozvoljenih/zabranjenih modela (Model Exposure Allow/Deny List)
-
-> Opciono, isključeno po podrazumevanoj vrednosti (`modelVisibilityAllowlist`/`modelVisibilityDenylist` oba prazna ostavljaju `/v1/models` katalog I svaki `auto/*` skup kandidata identičnim). Srodno sa `hidePaidModels`/`hideAutoCombos` (`src/lib/db/settings.ts`) za operatere koji žele kuriranu listu modela iz razloga koji nemaju veze sa troškovima.
+> Funkcionalnost je opcionalna i podrazumijevano isključena (ako su `modelVisibilityAllowlist`/`modelVisibilityDenylist` prazni,
+> katalog `/v1/models` I svaki skup kandidata `auto/*` ostaju bajt-po-bajt identični). Srodna je postavkama
+> `hidePaidModels`/`hideAutoCombos` (`src/lib/db/settings.ts`) i namijenjena operaterima koji žele kuriranu
+> listu modela iz razloga koji nemaju nikakve veze s troškovima.
 
 ## Zašto ovo postoji
 
-`hidePaidModels` odgovara na pitanje "da li je ovaj model besplatan?" a `hideAutoCombos` odgovara na pitanje "da li `auto/*` virtuelni ID-ovi treba uopšte da budu reklamirani?" — nijedna od ovih opcija ne dozvoljava operateru da kurira proizvoljan podskup modela (npr. prikazivanje tačno onih modela koje određeni Claude Code / OpenCode klijent treba da vidi, nezavisno od cene). #11481 dodaje to kao dve nezavisne, opcione postavke niza stringova.
+`hidePaidModels` odgovara na pitanje „je li ovaj model besplatan?“, a `hideAutoCombos` na pitanje „trebaju li se
+virtualni ID-ovi `auto/*` uopće oglašavati?“ — nijedna od tih postavki ne omogućava operateru da kurira proizvoljan podskup
+modela (npr. da prikaže tačno one modele koje određeni Claude Code / OpenCode klijent treba vidjeti,
+nezavisno od cijena). #11481 to omogućava putem dvije nezavisne, opcionalne postavke tipa niz stringova.
 
 ## Postavke
 
-| Ključ                      | Tip        | Podrazumevano | Značenje                                                                       |
-| -------------------------- | ---------- | ------------- | ------------------------------------------------------------------------------ |
-| `modelVisibilityDenylist`  | `string[]` | `[]`          | Unosi koji se poklapaju sa kandidatom ga skrivaju iz kataloga/skupa kandidata. |
-| `modelVisibilityAllowlist` | `string[]` | `[]`          | Kada nije prazna, SAMO unosi koji se poklapaju sa kandidatom ostaju izloženi.  |
+| Ključ                      | Tip        | Zadana vrijednost | Značenje                                                                       |
+| -------------------------- | ---------- | ----------------- | ------------------------------------------------------------------------------ |
+| `modelVisibilityDenylist`  | `string[]` | `[]`              | Unosi koji se podudaraju s kandidatom skrivaju ga iz kataloga/skupa kandidata. |
+| `modelVisibilityAllowlist` | `string[]` | `[]`              | Kada nije prazna, izloženi ostaju SAMO unosi koji se podudaraju s kandidatom.  |
 
-Obe prihvataju do 500 unosa od po maksimalno 200 karaktera (Zod-validirano u `src/shared/validation/settingsSchemas.ts`). Unos je ili:
+Obje prihvataju do 500 unosa, od kojih svaki može imati do 200 znakova (validirano Zodom u
+`src/shared/validation/settingsSchemas.ts`). Unos je ili:
 
-- tačan ID kataloga — `"gpt-4o"` (običan ID modela) ili `"openai/gpt-4o"` (sa prefiksom provajdera), ili
-- glob šablon koristeći `*`/`?` — npr. `"openai/gpt-4*"` ili `"anthropic/*"` — razrešen putem istog deljenog `globToRegex()` pretraživača (`src/shared/utils/globPattern.ts`) koji već koriste `ModelRoutingSection` mapiranja kombinacija po modelu i `freeModels.ts::matchesOnlyPaidModels`.
+- tačan ID iz kataloga — `"gpt-4o"` (ID modela bez prefiksa) ili `"openai/gpt-4o"` (s prefiksom pružatelja usluge), ili
+- glob obrazac koji koristi `*`/`?` — npr. `"openai/gpt-4*"` ili `"anthropic/*"` — koji se obrađuje pomoću
+  istog zajedničkog podudarača `globToRegex()` (`src/shared/utils/globPattern.ts`) koji već koriste
+  mapiranja kombinacija po modelu u `ModelRoutingSection` i `freeModels.ts::matchesOnlyPaidModels`.
 
-Prioritet: lista zabranjenih se prvo proverava (zabranjeni unos je uvek skriven, čak i ako se takođe poklapa sa listom dozvoljenih); kada lista dozvoljenih nije prazna, opstaju samo unosi koji se poklapaju sa njom.
+Prioritet: prvo se provjerava lista zabranjenih unosa (zabranjeni unos je uvijek skriven, čak i ako se također
+podudara s listom dozvoljenih unosa); kada lista dozvoljenih unosa nije prazna, opstaju samo unosi s kojima se podudara.
 
-## Dve kontrolne tačke, ne jedna
+## Dvije kontrolne tačke, ne jedna
 
-Lekcija iz #6512 (filter kataloga samo za `hidePaidModels` je i dalje dozvoljavao `auto/*` rutiranje ka plaćenom modelu, pošto je skup kandidata za kombinacije građen nezavisno) se primenjuje identično ovde. Predikat za poklapanje `isModelExposureAllowed()` (`src/shared/utils/modelExposureList.ts`) se poziva iz OBE:
+Pouka iz #6512 (filter kataloga zasnovan samo na `hidePaidModels` i dalje je dopuštao da `auto/*` usmjerava na
+model koji se plaća jer je skup kandidata kombinacije izgrađen nezavisno) na identičan se način primjenjuje i ovdje.
+Predikat za podudaranje `isModelExposureAllowed()` (`src/shared/utils/modelExposureList.ts`) poziva se na OBA mjesta:
 
-- `src/app/api/v1/models/catalog.ts` — sam `/v1/models` listing, na istih 5 kontrolnih tačaka po izvoru koje `shouldHidePaid()` već ograničava (statički `PROVIDER_MODELS`, sinhronizovani redovi provajdera, prilagođeni redovi, redovi podržani aliasima, redovi sa upravljanim rezervnim opcijama).
-- `open-sse/services/autoCombo/modelExposureFilter.ts::filterModelExposureCandidates()` — pozvano iz `virtualFactory.ts::buildPreparedPool`, odmah nakon ekvivalentnog poziva `filterPaidOnlyCandidates()`, tako da zabranjeni model nikada ne može biti izabran ni u `auto/*` skup kandidata.
+- `src/app/api/v1/models/catalog.ts` — sam prikaz `/v1/models`, na istih 5 kontrolnih tačaka po izvoru
+  koje `shouldHidePaid()` već kontrolira (statički `PROVIDER_MODELS`, sinhronizirani redovi pružatelja usluge,
+  prilagođeni redovi, redovi zasnovani na aliasima, redovi upravljanih rezervnih opcija).
+- `open-sse/services/autoCombo/modelExposureFilter.ts::filterModelExposureCandidates()` — poziva se
+  iz `virtualFactory.ts::buildPreparedPool`, neposredno nakon odgovarajućeg poziva
+  `filterPaidOnlyCandidates()`, tako da zabranjeni model nikada ne može biti odabran ni u skup kandidata
+  `auto/*`.
 
-## Šta NIJE filtrirano
+## Šta se NE filtrira
 
-Ogleda postojeće ponašanje `hideAutoCombos`: ID modela poslat **eksplicitno** (ne putem `auto/*`, i nije otkriven kroz listing kataloga) nikada nije blokiran pri slanju — filtrira se samo reklamiranje/članstvo u skupu kandidata. Ovo je nezavisno od `hidePaidModels`; operater možda želi kurirani skup iz razloga koji nemaju veze sa troškovima, tako da se obe postavke komponuju kao nezavisni AND-ovani filteri, isto kao i postojeća kompozicija više flegova u `catalog.ts`.
+Odražava postojeće ponašanje postavke `hideAutoCombos`: ID modela poslan **eksplicitno** (ne putem `auto/*`
+i ne otkriven kroz prikaz kataloga) nikada se ne blokira prilikom slanja — filtriraju se samo
+oglašavanje/članstvo u skupu kandidata. Ovo je nezavisno od `hidePaidModels`;
+operater može željeti kurirani skup iz razloga koji nemaju nikakve veze s troškovima, pa se obje
+postavke kombinuju kao nezavisni filteri povezani logičkim I, kao i postojeća kombinacija više zastavica u
+`catalog.ts`.
 
-Izvoz postavki (`GET /api/settings/export-json`) uključuje oba niza doslovno, kao i bilo koje drugo polje postavki — za razliku od filtera izvoza combo-step-a kod `hidePaidModels`, ovde ne postoji rizik od re-hidratacije: zabranjeni ID ugrađen u izvezeni combo step je operaterov sopstveni eksplicitni izbor rutiranja, a ne nešto što granica izvoza treba da ukloni.
+Izvoz postavki (`GET /api/settings/export-json`) uključuje oba niza doslovno, kao i svako drugo
+polje postavki — za razliku od filtera izvoza koraka kombinacije postavke `hidePaidModels`, ovdje ne postoji rizik
+ponovne hidratacije: zabranjeni ID ugrađen u izvezeni korak kombinacije predstavlja operaterov vlastiti eksplicitni izbor usmjeravanja,
+a ne nešto što granica izvoza treba ukloniti.

@@ -163,6 +163,8 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "invalid_tool_name",
   "invalid_tools",
   "invalid_trailer",
+  "key_allows_all_combos",
+  "key_allows_all_models",
   "lease_action_invalid",
   "lease_api_key_invalid",
   "lease_authentication_required",
@@ -859,6 +861,7 @@ export async function parseUpstreamError(response: Response, provider: string | 
         ? clinepassEnvError.message
         : json.error?.message ||
           json.message ||
+          (typeof json.detail === "string" ? json.detail : null) ||
           (typeof json.error === "string" ? json.error : null);
       message =
         typeof extractedMessage === "string"

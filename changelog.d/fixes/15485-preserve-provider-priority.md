@@ -1,0 +1,1 @@
+- **fix(db):** Preserve explicitly saved provider-connection priorities instead of silently renumbering them on edit; keep the internal move-to-top operation and return its persisted rank ([#15485](https://github.com/diegosouzapw/OmniRoute/pull/15485)) — thanks @piyush97

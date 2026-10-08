@@ -110,6 +110,27 @@ test("negated --no-credential is treated as a control flag, not the literal stri
   });
 });
 
+test("allow-no-credential is sent in the add-provider body only when the flag is set", () => {
+  const allowed = buildProviderPayload(
+    "ollama-local",
+    { name: "local", allowNoCredential: true },
+    undefined
+  );
+  assert.equal(allowed.allowNoCredential, true);
+  assert.equal("apiKey" in allowed, false);
+
+  const omitted = buildProviderPayload("ollama-local", { name: "local" }, undefined);
+  assert.equal("allowNoCredential" in omitted, false);
+
+  const withKey = buildProviderPayload(
+    "glm",
+    { name: "work", allowNoCredential: true },
+    "provider-secret"
+  );
+  assert.equal(withKey.allowNoCredential, true);
+  assert.equal(withKey.apiKey, "provider-secret");
+});
+
 test("provider JSON output redacts raw credentials recursively", () => {
   const redacted = redactProviderResponse({
     connection: {

@@ -4,27 +4,30 @@
   "rules": [
     {
       "name": "ultra_compression_conjunctions",
-      "pattern": "\\b(?:однако|тем не менее|в то время как)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:однако|тем не менее|в то время как)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "—",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "ultra_compression_articles",
-      "pattern": "\\b(?:является|представляет собой)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:является|представляет собой)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "—",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "ultra_compression_verbs",
-      "pattern": "\\b(?:необходимо|требуется|нужно)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:необходимо|требуется|нужно)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "ultra_punctuation",

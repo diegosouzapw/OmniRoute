@@ -68,22 +68,26 @@ function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
 function isCodexGpt5x(provider?: string | null, model?: string | null): boolean {
   const normalizedProvider = (provider || "").toLowerCase();
   const normalizedModel = (model || "").toLowerCase();
-  // Match the gpt-5.x family (gpt-5, gpt-5.1, gpt-5.5, ...) on the codex provider.
-  return normalizedProvider === "codex" && /gpt-5(\.\d+)?/.test(normalizedModel);
+  // Match the gpt-5.x family and its successors (gpt-5, gpt-5.5, gpt-6, gpt-6.1, ...)
+  // on the codex provider.
+  return normalizedProvider === "codex" && /gpt-[5-9](\.\d+)?/.test(normalizedModel);
 }
+
+const HIGH_REASONING_EFFORTS = ["high", "xhigh", "max"];
 
 /**
  * High-reasoning targets can do a cold, expensive reasoning warm-up even for
- * small prompts. Detect "high" or "max" reasoning effort either from
- * the model alias suffix (`...-high`) or from the request body's reasoning effort
- * field (OpenAI `reasoning_effort` or Responses API `reasoning.effort`).
+ * small prompts. Detect "high", "xhigh" or "max" reasoning effort either from
+ * the model alias suffix (`...-high`, `...-xhigh`, `...-max`) or from the request
+ * body's reasoning effort field (OpenAI `reasoning_effort` or Responses API
+ * `reasoning.effort`).
  */
 function isHighReasoningEffort(
   model: string | null | undefined,
   body: StreamReadinessBody
 ): boolean {
   const normalizedModel = (model || "").toLowerCase();
-  if (/-high\b/.test(normalizedModel) || normalizedModel.endsWith("-high")) return true;
+  if (/-(?:x?high|max)\b/.test(normalizedModel)) return true;
 
   const effort = (() => {
     const direct = body?.["reasoning_effort"];
@@ -95,7 +99,7 @@ function isHighReasoningEffort(
     }
     return "";
   })();
-  return ["high", "max"].includes(effort.toLowerCase());
+  return HIGH_REASONING_EFFORTS.includes(effort.toLowerCase());
 }
 
 /**

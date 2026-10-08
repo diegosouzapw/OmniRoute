@@ -4,11 +4,33 @@
 
 ---
 
-OmniRoute jinkludi familja ta' kmandi `setup-*` li jikkonfiguraw CLI tal-kodifikazzjoni (Codex, Claude Code, OpenCode, Cline, …) biex tuża OmniRoute bħala l-backend tagħha — hekk l-għodda titkellem ma' endpoint **wieħed** u OmniRoute jidderieġi lejn il-fornitur it-tajjeb b'auto-fallback. Kull kmand jaqra l-katalogu tal-mudelli **ħaj** minn OmniRoute li qed jaħdem (lokali jew remot) u jikteb il-fajl tal-konfigurazzjoni tal-għodda stess fuq il-magna **tiegħek**. Iċ-ċavetta tal-API hija referenzjata minn varjabbli tal-ambjent kull fejn l-għodda tappoġġjaha. Kmandi li jippersistu fajl tal-ambjent lokali għall-għodda huma nnotati hawn taħt.
+Għall-manifest tal-eżegwibbli kondiviż, l-ambjenti subordinati ristretti u
+l-konfigurazzjoni persistenti ta’ Gemini, ara [Il-kuntratti tat-tnedija tas-CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Hemm ukoll launcher ġeneriku — `omniroute run <target>` — li jniedi `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` jew `gemini` bl-ambjent it-tajjeb injettat, mingħajr ma jikteb l-ebda konfigurazzjoni. Il-miri u l-alias tagħhom jiġu mill-manifest kanoniku `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), u `omniroute completion` joffri l-istess kliem mira derivati mill-manifest. Il-launchers legati għal kull għodda — `omniroute launch` (Claude Code) u `omniroute launch-codex` (Codex) — jibqgħu disponibbli.
+OmniRoute jinkludi familja ta’ kmandi `setup-*` li jikkonfiguraw CLI
+għall-ipprogrammar (Codex, Claude Code, OpenCode, Cline, …) biex juża lil OmniRoute
+bħala l-backend tiegħu — sabiex l-għodda tikkomunika ma’ endpoint **wieħed** u
+OmniRoute jidderieġiha lejn il-fornitur it-tajjeb bi bdil awtomatiku f’każ ta’
+ħsara. Kull kmand jaqra l-katalgu **attiv** tal-mudelli minn OmniRoute li jkun
+qed jaħdem (lokalment jew mill-bogħod) u jikteb il-fajl tal-konfigurazzjoni
+tal-għodda fuq il-magna **tiegħek**. Iċ-ċavetta tal-API tiġi referenzjata permezz
+ta’ varjabbli tal-ambjent kull fejn l-għodda tappoġġjah. Il-kmandi li jippersistu
+fajl tal-ambjent lokali għall-għodda huma indikati hawn taħt.
 
-L-onboarding tal-fornitur huwa disponibbli mill-istess kuntest lokali/remot. Il-kmandi API-first hawn taħt iżommu l-awtentikazzjoni tal-ġestjoni separata mill-kredenzjali tal-fornitur u qatt ma jistampaw kredenzjali f'output strutturat:
+Hemm ukoll lanċjatur ġeneriku — `omniroute run <target>` — li jniedi
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` jew `gemini`
+bl-ambjent it-tajjeb injettat, mingħajr ma jikteb ebda konfigurazzjoni. Il-miri
+u l-aliases tagħhom jiġu mill-manifest kanoniku `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`), u `omniroute completion` joffri
+l-istess kliem tal-miri derivat mill-manifest. Il-lanċjaturi preċedenti għal kull
+għodda — `omniroute launch` (Claude Code) u `omniroute launch-codex` (Codex) —
+għadhom disponibbli.
+
+L-inkorporazzjoni tal-fornituri hija disponibbli mill-istess kuntest lokali jew
+remot. Il-kmandi li ġejjin, imfassla primarjament għall-API, iżommu
+l-awtentikazzjoni tal-ġestjoni separata mill-kredenzjali tal-fornitur u qatt ma
+jistampaw kredenzjali f’output strutturat:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +40,27 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Għall-iskripts, ippreferi `--credential-stdin` jew `--credential-env`; `--credential` jinżamm għal użu lokali kkontrollat. `providers remove` jeħtieġ `--yes` fuq terminal mhux interattiv, u l-ħames kmandi kollha jirrispettaw il-kuntest attiv jew l-għażliet globali `--base-url`/`--api-key`.
+Għall-iskripts, ippreferi `--credential-stdin` jew `--credential-env`;
+`--credential` jinżamm għal użu lokali kkontrollat. `providers remove` jeħtieġ
+`--yes` fuq terminal mhux interattiv, u l-ħames kmandi kollha jirrispettaw
+il-kuntest attiv jew l-għażliet globali `--base-url`/`--api-key`.
 
-Is-seletturi tal-fornituri jirrifjutaw prefissi tal-ID ambigwi, ismijiet jew ismijiet tal-fornituri; uża ID ta' konnessjoni sħiħa meta jaqblu diversi konnessjonijiet. Il-kmandi tal-ħolqien u l-editjar jaqraw il-konnessjoni ssejvjata lura, u t-tneħħija tivverifika li ma tistax tinqara aktar. Importazzjoni taqbeż par fornitur/isem eżistenti. Entrati importati ma jistgħux jissuperaw l-endpoint tal-ġestjoni, il-kuntest jew il-kredenzjali tal-ġestjoni fornuti lill-CLI.
+Is-seletturi tal-fornituri jirrifjutaw prefissi tal-ID, ismijiet jew ismijiet
+tal-fornituri li jkunu ambigwi; uża ID sħiħ tal-konnessjoni meta jkun hemm diversi
+konnessjonijiet li jaqblu. Il-kmandi għall-ħolqien u l-editjar jerġgħu jaqraw
+il-konnessjoni ssejvjata, u t-tneħħija tivverifika li din ma tkunx għadha
+tista’ tinqara. Importazzjoni taqbeż par eżistenti ta’ fornitur/isem.
+L-entrati importati ma jistgħux jissostitwixxu l-endpoint tal-ġestjoni,
+il-kuntest jew il-kredenzjali tal-ġestjoni mogħtija lis-CLI.
 
-Għall-konfigurazzjoni bażika ta' darba, miktuba bl-idejn, tal-aktar żewġ integrazzjonijiet sinjuri, ara l-approfondimenti għal kull għodda:
+Għall-konfigurazzjoni bażika ta’ darba, miktuba bl-idejn, taż-żewġ
+integrazzjonijiet bl-aktar funzjonalità, ara l-gwidi dettaljati għal kull għodda:
 
-- [Konfigurazzjoni ta' Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
-- [Konfigurazzjoni ta' Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [Modalità Remota](./REMOTE-MODE.md) — issuq OmniRoute remot (VPS / Tailnet) mil-laptop tiegħek
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l-estensjoni OmniCopilot; tista' wkoll tmexxi dawn il-kmandi `setup-*` għalik minn ġewwa l-editur
+- [Konfigurazzjoni ta’ Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Konfigurazzjoni ta’ Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Modalità Remota](./REMOTE-MODE.md) — ikkontrolla OmniRoute remot (VPS / Tailnet) mil-laptop tiegħek
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — l-estensjoni OmniCopilot; tista’ wkoll tħaddem dawn
+  il-kmandi `setup-*` għalik minn ġewwa l-editur
 
 ---
 

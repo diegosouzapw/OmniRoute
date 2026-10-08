@@ -1,562 +1,129 @@
-# ACP (Agent Client Protocol) (Slovenčina)
+# ACP registry and registered CLI launchers (Slovenčina)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/ACP.md) · 🇪🇹 [am](../../../am/docs/frameworks/ACP.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/ACP.md) · 🇦🇿 [az](../../../az/docs/frameworks/ACP.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/ACP.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/ACP.md) · 🇧🇦 [bs](../../../bs/docs/frameworks/ACP.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/ACP.md) · 🇩🇰 [da](../../../da/docs/frameworks/ACP.md) · 🇩🇪 [de](../../../de/docs/frameworks/ACP.md) · 🇬🇷 [el](../../../el/docs/frameworks/ACP.md) · 🇪🇸 [es](../../../es/docs/frameworks/ACP.md) · 🇪🇪 [et](../../../et/docs/frameworks/ACP.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/ACP.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/ACP.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/ACP.md) · 🇮🇪 [ga](../../../ga/docs/frameworks/ACP.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/ACP.md) · 🇳🇬 [ha](../../../ha/docs/frameworks/ACP.md) · 🇮🇱 [he](../../../he/docs/frameworks/ACP.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/ACP.md) · 🇭🇷 [hr](../../../hr/docs/frameworks/ACP.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/ACP.md) · 🇦🇲 [hy](../../../hy/docs/frameworks/ACP.md) · 🇮🇩 [id](../../../id/docs/frameworks/ACP.md) · 🇳🇬 [ig](../../../ig/docs/frameworks/ACP.md) · 🇮🇹 [it](../../../it/docs/frameworks/ACP.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/ACP.md) · 🇬🇪 [ka](../../../ka/docs/frameworks/ACP.md) · 🇰🇭 [km](../../../km/docs/frameworks/ACP.md) · 🇮🇳 [kn](../../../kn/docs/frameworks/ACP.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/ACP.md) · 🇱🇹 [lt](../../../lt/docs/frameworks/ACP.md) · 🇱🇻 [lv](../../../lv/docs/frameworks/ACP.md) · 🇮🇳 [ml](../../../ml/docs/frameworks/ACP.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/ACP.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/ACP.md) · 🇲🇹 [mt](../../../mt/docs/frameworks/ACP.md) · 🇲🇲 [my](../../../my/docs/frameworks/ACP.md) · 🇳🇵 [ne](../../../ne/docs/frameworks/ACP.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/ACP.md) · 🇳🇴 [no](../../../no/docs/frameworks/ACP.md) · 🇮🇳 [or](../../../or/docs/frameworks/ACP.md) · 🇮🇳 [pa](../../../pa/docs/frameworks/ACP.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/ACP.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/ACP.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/ACP.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/ACP.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/ACP.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/ACP.md) · 🇱🇰 [si](../../../si/docs/frameworks/ACP.md) · 🇸🇮 [sl](../../../sl/docs/frameworks/ACP.md) · 🇷🇸 [sr](../../../sr/docs/frameworks/ACP.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/ACP.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/ACP.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/ACP.md) · 🇮🇳 [te](../../../te/docs/frameworks/ACP.md) · 🇹🇭 [th](../../../th/docs/frameworks/ACP.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/ACP.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/ACP.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/ACP.md) · 🇺🇿 [uz](../../../uz/docs/frameworks/ACP.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/ACP.md) · 🇳🇬 [yo](../../../yo/docs/frameworks/ACP.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/frameworks/ACP.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/ACP.md)
 
 ---
 
-> **TL;DR**: ACP umožňuje OmniRoute spúšťať CLI agentov (napríklad Claude Code, Codex) ako podradené procesy namiesto používania HTTP API. Získate tak prenos typu „CLI ako backend“.
+OmniRoute oddeľuje **zisťovanie CLI**, **natívny Agent Client Protocol** a
+**staršie adaptéry stdio**. Nájdenie nainštalovaného binárneho súboru nepotvrdzuje jeho
+autentifikáciu, kompatibilitu modelu ani pripravenosť spracovať prompt.
 
----
+Dashboard používa `GET /api/acp/agents` a `POST /api/acp/agents` na inventarizáciu
+a registráciu vlastných agentov. Ide o lokálne správcovské trasy, nie o
+verejné API na spúšťanie procesov alebo odosielanie promptov. Interný
+`AcpManager` sa automaticky nestáva záložným poskytovateľom HTTP.
 
-## Čo je ACP?
+## Registrované kontrakty
 
-ACP (Agent Client Protocol) je **prenos typu „CLI ako backend“** pre OmniRoute. Namiesto zachytávania volaní HTTP API smerujúcich k poskytovateľom AI ACP **spúšťa CLI agentov ako podradené procesy** a odovzdáva im výzvy prostredníctvom ich natívneho rozhrania.
+`config/cli-tools-manifest.json` je zdrojom pravdy pre vstavané spúšťacie
+binárne súbory, argumenty a režimy backendu. Register odvodzuje svoje definície
+z tohto manifestu. Výsledky zisťovania sa ukladajú do vyrovnávacej pamäte na 60 sekúnd.
 
-### Prečo používať ACP?
+- `acp`: kontrakt Gemini spúšťa `gemini --experimental-acp` a komunikuje
+  prostredníctvom ACP JSON-RPC oddeleného novými riadkami cez oficiálne TypeScript SDK.
+- `stdio-adapter`: ostatné registrované kontrakty si zachovávajú starší adaptér
+  so vstupom oddeleným novými riadkami a výstupom na stdout. Dvojsekundová nečinnosť
+  výstupu ukončí jeho odpoveď. Tento adaptér **nepotvrdzuje** natívnu podporu ACP
+  pre tieto CLI.
 
-| Výhoda                        | Opis                                                    |
-| ----------------------------- | ------------------------------------------------------- |
-| **Nie sú potrebné kľúče API** | Používa vaše existujúce overenie CLI                    |
-| **Natívny protokol**          | Používa natívny vstupný/výstupný formát každého CLI     |
-| **Automatické zisťovanie**    | Zisťuje CLI nainštalované vo vašom systéme              |
-| **15 vstavaných agentov**     | Vopred nakonfigurované pre obľúbené nástroje CLI        |
-| **Vlastní agenti**            | Pridajte vlastné nástroje CLI prostredníctvom nastavení |
-| **Správa procesov**           | Riadi životný cyklus (spustenie, odoslanie, ukončenie)  |
+Gemini dokumentuje spúšťací príznak vo svojej [referencii CLI](https://geminicli.com/docs/cli/cli-reference/).
+Klient používa [oficiálne ACP SDK](https://github.com/agentclientprotocol/typescript-sdk)
+na inicializáciu, vytváranie relácií, požiadavky s promptmi, oznámenia a rušenie.
 
----
+Definície vlastných agentov zostávajú spúšťacími kontraktmi riadenými správcom.
+Registrácia binárneho súboru a argumentov udeľuje danému procesu lokálne
+oprávnenia na vykonávanie používateľa servera; registrácia nie je sandbox.
+Kontroly verzie akceptujú iba registrovaný spustiteľný súbor a rozpoznaný príznak verzie.
 
-## Podporovaní CLI agenti
-
-ACP podporuje **15 vstavaných CLI agentov** ihneď po inštalácii:
-
-| ID agenta     | Zobrazovaný názov  | Binárny súbor | Protokol |
-| ------------- | ------------------ | ------------- | -------- |
-| `codex`       | OpenAI Codex CLI   | `codex`       | stdio    |
-| `claude`      | Claude Code CLI    | `claude`      | stdio    |
-| `goose`       | Goose CLI          | `goose`       | stdio    |
-| `openclaw`    | OpenClaw           | `openclaw`    | stdio    |
-| `aider`       | Aider              | `aider`       | stdio    |
-| `opencode`    | OpenCode           | `opencode`    | stdio    |
-| `cline`       | Cline              | `cline`       | stdio    |
-| `qwen`        | Qwen Code          | `qwen --acp`  | stdio    |
-| `forge`       | ForgeCode          | `forge`       | stdio    |
-| `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
-| `interpreter` | Open Interpreter   | `interpreter` | stdio    |
-| `cursor-cli`  | Cursor CLI         | `cursor`      | stdio    |
-| `warp`        | Warp AI            | `warp`        | stdio    |
-| `gemini`      | Gemini CLI         | `gemini`      | stdio    |
-| `zcode`       | ZCode              | `zcode`       | stdio    |
-
-### Vlastní agenti
-
-Prostredníctvom nastavení môžete pridať vlastných CLI agentov. Vlastní agenti podporujú rovnaké funkcie ako vstavaní agenti.
-
----
-
-## Rýchly začiatok
-
-### Krok 1: Nainštalujte CLI agenta
-
-```bash
-# Príklad: Inštalácia Claude Code CLI
-npm install -g @anthropic-ai/claude-code
-
-# Overenie inštalácie
-claude --version
-```
-
-### Krok 2: Automatická detekcia ACP
-
-ACP automaticky zisťuje CLI agentov nainštalovaných vo vašom systéme. Nie je potrebná žiadna konfigurácia!
-
-### Krok 3: Použite prenos ACP
-
-Po zistení možno ACP použiť ako prenos pre ľubovoľného podporovaného poskytovateľa. OmniRoute automaticky použije ACP, keď je CLI k dispozícii.
-
----
-
-## Ako ACP funguje
-
-### Architektúra
-
-```
-┌─────────────────┐
-│  OmniRoute      │
-│  (HTTP proxy)   │
-└────────┬────────┘
-         │
-         │ spawn()
-         ▼
-┌─────────────────┐
-│  Podradený      │
-│  proces         │
-│  (CLI agent)    │
-│                 │
-│  stdin  ◄──────┤  Odoslanie výzvy
-│  stdout ──────►│  Prijatie odpovede
-│  stderr ──────►│  Prijatie chýb
-└─────────────────┘
-```
-
-### Životný cyklus procesu
-
-1. **Spustenie** — ACP vytvorí podradený proces pre CLI agenta
-2. **Odoslanie** — ACP zapisuje výzvy do stdin procesu
-3. **Prijatie** — ACP číta odpovede zo stdout/stderr
-4. **Detekcia nečinnosti** — ACP čaká 2 sekundy nečinnosti, kým odpoveď považuje za dokončenú
-5. **Ukončenie** — ACP ukončí proces (SIGTERM, potom po 5 s SIGKILL)
-
-### Komunikačný protokol
-
-ACP používa na komunikáciu s CLI agentmi **stdio** (štandardný vstup/výstup). Protokol funguje takto:
-
-1. **Odoslanie výzvy** — Zápis do stdin s novým riadkom
-2. **Čakanie na odpoveď** — Čítanie zo stdout až do nečinnosti (2 s bez výstupu)
-3. **Časový limit** — Predvolene 120 sekúnd (konfigurovateľné)
-
----
-
-## Referenčná dokumentácia API
-
-### Funkcie registra
-
-#### `detectInstalledAgents()`
-
-Zistí všetkých nainštalovaných agentov CLI v systéme. Výsledky sa ukladajú do vyrovnávacej pamäte na 60 sekúnd.
+## Interné spúšťacie API
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { acpManager } from "@/lib/acp";
 
-const agents = detectInstalledAgents();
-// Vráti: CliAgentInfo[]
-
-interface CliAgentInfo {
-  id: string; // napr. "codex", "claude"
-  name: string; // Zobrazovaný názov
-  binary: string; // Názov spustiteľného súboru
-  versionCommand: string; // Príkaz na zistenie verzie
-  version: string | null; // Zistená verzia (null, ak nie je nainštalovaný)
-  installed: boolean; // Či je agent nainštalovaný
-  providerAlias: string; // ID poskytovateľa v OmniRoute
-  spawnArgs: string[]; // Argumenty odovzdané pri spustení
-  protocol: "stdio" | "http"; // Komunikačný protokol
-  isCustom?: boolean; // Či ide o vlastného agenta definovaného používateľom
-}
-```
-
-#### `getAvailableAgents()`
-
-Získa iba agentov, ktorí sú nainštalovaní a dostupní pre ACP.
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// Vráti: CliAgentInfo[] (iba nainštalovaní agenti)
-```
-
-#### `getAgentById(id)`
-
-Získa konkrétneho agenta podľa ID.
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// Vráti: CliAgentInfo | undefined
-```
-
-#### `setCustomAgents(agents)`
-
-Nastaví definície vlastných agentov z nastavení.
-
-```typescript
-import { setCustomAgents } from "@/lib/acp";
-
-setCustomAgents([
-  {
-    id: "my-custom-cli",
-    name: "My Custom CLI",
-    binary: "mycli",
-    versionCommand: "mycli --version",
-    providerAlias: "my-provider",
-    spawnArgs: [],
-    protocol: "stdio",
+const session = acpManager.spawn("gemini", {
+  cwd: process.cwd(),
+  // Odovzdajte iba premenné poskytovateľa zámerne priradené tomuto agentovi.
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-]);
-```
-
-### Funkcie správcu
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-Spustí nový proces agenta CLI.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* vlastné premenné prostredia */
 });
-// Vráti: AcpSession
-```
 
-**Povolené ID agentov**: `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-Odošle výzvu agentovi CLI a zhromaždí odpoveď.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // Časový limit 2 minúty
-);
-// Vráti: Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-Ukončí reláciu a vyčistí prostriedky.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// Vráti: boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-Získa všetky aktívne relácie.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// Vráti: AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-Ukončí všetky relácie.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### Rozhranie relácie
-
-```typescript
-interface AcpSession {
-  id: string; // Jedinečné ID relácie
-  agentId: string; // ID agenta (napr. "claude")
-  process: ChildProcess; // Odkaz na podradený proces
-  alive: boolean; // Či je proces aktívny
-  stdoutBuffer: string; // Akumulovaná vyrovnávacia pamäť stdout
-  stderrBuffer: string; // Akumulovaná vyrovnávacia pamäť stderr
-  createdAt: Date; // Časová pečiatka vytvorenia
-}
-```
-
-### Udalosti
-
-Trieda `AcpManager` rozširuje `EventEmitter` a vysiela nasledujúce udalosti:
-
-#### `stdout`
-
-Vysiela sa, keď agent CLI zapisuje do stdout.
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-Vysiela sa, keď agent CLI zapisuje do stderr.
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-Vysiela sa, keď sa proces agenta CLI ukončí.
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-Vysiela sa, keď v procese agenta CLI nastane chyba.
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
-## Konfigurácia
-
-### Premenné prostredia
-
-ACP dedí všetky premenné prostredia z rodičovského procesu a možno ich rozšíriť o vlastné premenné prostredia:
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
-
-### Argumenty spustenia
-
-Každý agent má v registri definované predvolené argumenty spustenia. Môžete ich prepísať:
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### Časové limity
-
-Predvolený časový limit výzvy je **120 sekúnd** (2 minúty). Môžete ho prepísať:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minút
-```
-
-### Vyrovnávacia pamäť detekcie
-
-Detekcia agentov sa ukladá do vyrovnávacej pamäte na **60 sekúnd**, aby sa predišlo náročnému prehľadávaniu súborového systému. Vynútenie obnovenia:
-
-```typescript
-import { refreshAgentCache } from "@/lib/acp";
-
-refreshAgentCache();
-```
-
----
-
-## Zabezpečenie
-
-### Prevencia vloženia príkazov
-
-ACP overuje príkazy na zistenie verzie, aby zabránil útokom vložením príkazu:
-
-```typescript
-const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
-```
-
-Príkazy na zistenie verzie obsahujúce tieto znaky sú odmietnuté:
-
-- `;` — Oddeľovač príkazov
-- `&` — Proces na pozadí
-- `|` — Presmerovanie cez rúru
-- `<`, `>` — Presmerovanie
-- `` ` `` — Nahradenie príkazom
-- `$` — Rozbalenie premennej
-- `\r`, `\n` — Zlomy riadkov
-
-### Overenie názvu binárneho súboru
-
-ACP overuje, či binárny súbor v príkaze na zistenie verzie zodpovedá očakávanému názvu binárneho súboru (pokiaľ nejde o vlastného agenta).
-
-### Izolácia procesov
-
-Každá relácia ACP beží vo vlastnom podradenom procese. Proces sa ukončí pri skončení relácie alebo po uplynutí časového limitu.
-
----
-
-## Výkon
-
-### Výkon detekcie
-
-- **Prvé volanie**: ~50-200ms (spustí príkaz `version` pre každého agenta)
-- **Volania z vyrovnávacej pamäte**: <1ms (vráti výsledok z vyrovnávacej pamäte)
-- **TTL vyrovnávacej pamäte**: 60 sekúnd
-
-### Výkon spracovania výzvy
-
-- **Spustenie**: ~50-100ms
-- **Odoslanie výzvy**: ~10-50ms
-- **Čakanie na odpoveď**: Závisí od agenta CLI (zvyčajne 1-30 sekúnd)
-- **Ukončenie**: ~5 sekúnd (SIGTERM) + okamžite (SIGKILL)
-
-### Využitie zdrojov
-
-- **Pamäť na reláciu**: ~10-50MB (závisí od agenta CLI)
-- **CPU**: Minimálne (limitované vstupno-výstupnými operáciami)
-- **Disk**: Žiadne využitie
-
----
-
-## Riešenie problémov
-
-### Chyba „Unknown agent“
-
-**Problém**: `acpManager.spawn()` vyvolá chybu `Unknown agent: <id>`
-
-**Riešenie**: V `spawn()` sú povolení iba títo agenti:
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-Ostatní agenti musia byť spustení manuálne alebo prostredníctvom vlastných definícií agentov.
-
-### Chyba „Session not alive“
-
-**Problém**: `acpManager.sendPrompt()` vyvolá chybu `Session ${sessionId} is not alive`
-
-**Riešenie**: Relácia mohla skončiť alebo byť ukončená. Skontrolujte stav relácie:
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // Znovu spustite reláciu
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### Chyba „ACP timeout“
-
-**Problém**: `acpManager.sendPrompt()` vyvolá chybu `ACP timeout after 120000ms`
-
-**Riešenie**: Zvýšte časový limit:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minút
-```
-
-### CLI nebolo zistené
-
-**Problém**: `detectInstalledAgents()` nenájde vaše CLI
-
-**Riešenia**:
-
-1. **Skontrolujte PATH**: Uistite sa, že CLI je v systémovej premennej PATH
-2. **Skontrolujte príkaz na zistenie verzie**: Manuálne spustite `claude --version`
-3. **Skontrolujte oprávnenia**: Uistite sa, že CLI je spustiteľné
-4. **Vlastný agent**: Pridajte vlastnú definíciu agenta pre neštandardné CLI
-
-### Prístup zamietnutý
-
-**Problém**: ACP nemôže spustiť CLI
-
-**Riešenia**:
-
-1. **Skontrolujte oprávnenia súboru**: `chmod +x /usr/local/bin/claude`
-2. **Skontrolujte vlastníctvo**: Uistite sa, že OmniRoute má oprávnenia na čítanie a spustenie
-3. **Skontrolujte SELinux/AppArmor**: Môžu blokovať spúšťanie procesov
-
----
-
-## Príklady
-
-### Príklad 1: Spustenie a použitie Claude Code
-
-```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
-
-// Zistenie nainštalovaných agentov
-const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // Spustenie novej relácie
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // Odoslanie výzvy
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "Explain quantum computing in 100 words"
-  );
-
-  console.log("Claude's response:", response);
-
-  // Vyčistenie
+try {
+  const response = await acpManager.sendPrompt(session.id, "Explain this project", 120_000);
+  // Spracujte odpoveď vo volajúcej aplikácii.
+} finally {
   acpManager.kill(session.id);
 }
 ```
 
-### Príklad 2: Automatické zisťovanie so záložnou možnosťou
+`spawn(agentId, options)` vyhľadá spustiteľný súbor a argumenty z
+registrovanej definície. Jediné možnosti volajúceho sú `cwd` a `env`; starý
+podpis `spawn(agentId, binary, args, env)` a prepisovanie spustiteľného súboru
+sú odmietnuté. Tento správca nepodporuje spúšťacie kontrakty HTTP.
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
+Podradený proces zdedí rovnaký zoznam povolených položiek operačného systému,
+terminálu, miestnych nastavení a certifikátov ako spúšťače CLI. Tajné údaje
+servera alebo poskytovateľa sa z prostredia rodiča nekopírujú. Prihlasovacie
+údaje vyžadované zvoleným CLI sa musia odovzdať explicitne alebo poskytnúť
+prostredníctvom vlastnej lokálnej autentifikácie daného CLI. Podradený proces
+má naďalej oprávnenia lokálneho používateľa k súborovému systému a môže čítať
+svoju vlastnú konfiguráciu.
 
-const available = getAvailableAgents();
+## Natívny životný cyklus a limity
 
-// Najprv skúsiť Claude, potom ako záložnú možnosť Codex
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("No ACP-compatible CLI agent found");
-  }
-}
+1. Spustite registrovaný binárny súbor, inicializujte ACP a vytvorte reláciu
+   ukotvenú vo vybratom pracovnom adresári. Inicializácia má limit desať sekúnd.
+2. Odošlite prompt a zhromažďujte textové oznámenia iba pre danú reláciu.
+   Dokončenie určuje odpoveď RPC na prompt, nie obdobie ticha na stdout.
+3. Použite jeden časový limit promptu zahŕňajúci aj akúkoľvek nedokončenú
+   inicializáciu; predvolená hodnota je 120 sekúnd. Súbežné prompty v rovnakom
+   procese sú odmietnuté.
+4. Pri prekročení natívneho časového limitu sa pokúste o `session/cancel`
+   a ukončite proces. Ohraničené okno 100 ms umožní pred ukončením vyprázdniť
+   oznámenia.
+5. Zatvorte stav prenosu a odstráňte reláciu, keď inicializácia zlyhá, spojenie
+   sa zatvorí, proces sa ukončí alebo ho volajúci ukončí.
 
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
+Požiadavky na oprávnenie nástrojov sú zamietnuté. Neinzerujú sa žiadne klientske
+funkcie súborového systému ani terminálu. Tieto obmedzenia neizolujú samotný
+podradený binárny súbor v sandboxe ani nenahrádzajú vlastné nastavenia autorizácie CLI.
 
-const response = await acpManager.sendPrompt(session.id, "Hello!");
+Natívny text aj staršie stdout/stderr uchovávajú najviac 1 MiB znakov, pričom
+zachovávajú najnovší výstup s upozornením na skrátenie. Jednotlivý natívny rámec
+na prenosovej vrstve je pred spracovaním SDK obmedzený na 2 MiB bajtov. Vyrovnávacie
+pamäte sa pri každom prompte vynulujú.
 
-acpManager.kill(session.id);
-```
+`kill(sessionId)` odošle SIGTERM a potom po piatich sekundách SIGKILL, ak sa proces
+neukončil. Časové limity starších promptov uvoľnia poslucháče a časovače, ale
+ponechajú reláciu dostupnú pre ďalší prompt; volajúci sú po dokončení naďalej
+zodpovední za volanie `kill()` alebo `killAll()`.
 
-### Príklad 3: Vlastný agent
+## Udalosti a kontrola
 
-```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+Správca emituje udalosti `stdout`, `stderr` a `exit`, každú s `sessionId`.
+`sessionError` hlási sanitizovanú chybu prenosu. Kompatibilná udalosť `error`
+sa emituje iba vtedy, keď má odberateľa, takže chýbajúci binárny súbor nemôže
+spôsobiť neošetrenú chybu EventEmitter.
 
-// Registrácia vlastného CLI agenta
-setCustomAgents([
-  {
-    id: "my-llm-cli",
-    name: "My LLM CLI",
-    binary: "myllm",
-    versionCommand: "myllm --version",
-    providerAlias: "my-llm-provider",
-    spawnArgs: ["--format", "json"],
-    protocol: "stdio",
-  },
-]);
+- `getSession(sessionId)` vráti spravovanú reláciu alebo `undefined`.
+- `getActiveSessions()` vylúči zastavené alebo zastavujúce sa relácie.
+- `sendInput(sessionId, input)` je dostupné iba pre aktívny starší adaptér;
+  natívne ACP odmieta nespracovaný vstup, aby chránilo svoj prúd JSON-RPC.
+- `killAll()` ukončí každú reláciu spravovanú danou inštanciou.
 
-// detectInstalledAgents() teraz bude obsahovať „my-llm-cli“
-const agents = detectInstalledAgents();
-```
+## Hranice overovania
 
----
+Deterministické testovacie prípravky pokrývajú natívne nadviazanie spojenia,
+textový výstup, zamietnuté oprávnenia, zrušenie, súbežné prompty, neúspešnú
+inicializáciu, ukončenie procesu, limity výstupu a izoláciu tajných údajov.
+Existujúce regresie vyrovnávacej pamäte a poslucháčov staršieho adaptéra zostávajú
+pokryté. Tieto testy nepreukazujú funkčné prihlásenie do Gemini ani úspešnú inferenciu
+poskytovateľa; tie vyžadujú samostatne autorizovaný základný test v cieľovom prostredí.
 
-## Čo ďalej?
+## Súvisiaca dokumentácia
 
-- **[Referenčná príručka API](../reference/API_REFERENCE.md)** — Koncové body REST API
-- **[Referenčná príručka poskytovateľov](../reference/PROVIDER_REFERENCE.md)** — Všetkých 352 poskytovateľov
-- **[Server MCP](./MCP-SERVER.md)** — Integrácia protokolu Model Context Protocol
-- **[Server A2A](./A2A-SERVER.md)** — Protokol medzi agentmi
-- **[Cloudový agent](./CLOUD_AGENT.md)** — Cloudoví agenti
-
----
-
-## Referencie
-
-- [Projekt AionUi](https://github.com/iOfficeAI/AionUi) — Inšpirácia pre automatické zisťovanie ACP
-- [Zdrojový kód ACP](../../src/lib/acp/) — Podrobnosti implementácie
-  - `manager.ts` — Správa životného cyklu procesov
-  - `registry.ts` — Zisťovanie a registrácia agentov
-  - `index.ts` — Exporty verejného API
+- [Protokoly agentov](./AGENT_PROTOCOLS_GUIDE.md)
+- [Spúšťacie kontrakty CLI](../guides/CLI-LAUNCH-CONTRACTS.md)
+- [Nástroje CLI](../reference/CLI-TOOLS.md)
+- [Server A2A](./A2A-SERVER.md)
+- [Cloudoví agenti](./CLOUD_AGENT.md)

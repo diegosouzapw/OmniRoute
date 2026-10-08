@@ -3,7 +3,7 @@ import test from "node:test";
 import { translateResponse, initState } from "../../open-sse/translator/index.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
-test("Gemini keeps raw failure wording internal but projects response.completed.error", () => {
+test("Gemini keeps raw failure wording internal but projects response.failed.error", () => {
   const state = initState(FORMATS.OPENAI_RESPONSES);
   const hostileMessage =
     "Gemini failed at /srv/omniroute/private-runtime.ts:71:3 token=sk-gemini-secret-123456";
@@ -27,7 +27,7 @@ test("Gemini keeps raw failure wording internal but projects response.completed.
   assert.match(state.upstreamError?.message ?? "", /private-runtime\.ts/);
 
   const flushed = translateResponse(FORMATS.GEMINI, FORMATS.OPENAI_RESPONSES, null, state);
-  const completed = flushed.find((event) => event?.data?.type === "response.completed");
+  const completed = flushed.find((event) => event?.data?.type === "response.failed");
   assert.ok(completed);
   assert.equal(completed.data.response.status, "failed");
 

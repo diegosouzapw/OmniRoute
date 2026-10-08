@@ -383,3 +383,55 @@ test("does not treat an unrelated id containing 'thinking' as an alias suffix", 
   assert.equal(result.timeoutMs, 80_000);
   assert.ok(!result.reasons.includes("extended_thinking"));
 });
+
+// Codex now serves gpt-6.x models, and its top effort tiers are spelled `xhigh` and
+// `max` (`gpt-6.1-sol-xhigh`, `gpt-6-luna-max`). Without the reasoning bump those long
+// warm-ups tripped the content-stall watchdog at the base window mid-reasoning.
+test("gives high-reasoning Codex GPT-6.x aliases (-xhigh, -max) the codex reasoning bump", () => {
+  for (const model of ["gpt-6.1-sol-xhigh", "gpt-6-luna-max"]) {
+    const result = resolveStreamReadinessTimeout({
+      baseTimeoutMs: 80_000,
+      provider: "codex",
+      model,
+      body: { input: items(3), tools: tools(2) },
+    });
+
+    assert.equal(result.timeoutMs, 110_000, model);
+    assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"), model);
+  }
+});
+
+test("treats an xhigh reasoning effort in the request body as high reasoning", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), reasoning: { effort: "xhigh" } },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("codex_gpt_5_5_high_reasoning"));
+});
+
+test("gives large Codex GPT-6.x Responses requests the codex large-request bump", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), tools: tools(16) },
+  });
+
+  assert.ok(result.reasons.includes("codex_gpt_5_5_large_responses"));
+});
+
+test("does NOT bump small Codex GPT-6.x requests without a high effort tier", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-6.1-sol",
+    body: { input: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.deepEqual(result.reasons, ["base"]);
+});

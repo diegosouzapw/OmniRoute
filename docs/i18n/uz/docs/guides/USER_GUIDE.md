@@ -120,14 +120,14 @@ Quyidagilar orqali kirish: WhatsApp, Telegram, Slack, Discord, iMessage, Signal.
 
 ## 📖 Provayderni sozlash
 
-CSV yoki JSON faylidan API kalit ulanishlarini ommaviy qoʻshish uchun **Boshqaruv paneli → Provayderlar → Fayldan import qilish** bandidan foydalaning. Ustunlar joylashuv tartibiga asoslanadi (`provider,name,apiKey,baseUrl,priority`); `provider` boshqariladigan provayder yoki mos tugun sifatida avvaldan mavjud boʻlishi kerak. [Provayderlarni CSV yoki JSON faylidan import qilish](../providers/CSV-IMPORT.md) boʻlimiga qarang.
+CSV yoki JSON faylidan API kalit ulanishlarini ommaviy qoʻshish uchun **Boshqaruv paneli → Provayderlar → Fayldan import qilish** bandidan foydalaning. Ustunlar joylashuv tartibiga asoslanadi (`provider,name,apiKey,baseUrl,priority`); `provider` allaqachon boshqariladigan provayder yoki mos keluvchi tugun sifatida mavjud boʻlishi kerak. [Provayderlarni CSV yoki JSON faylidan import qilish](../providers/CSV-IMPORT.md) boʻlimiga qarang.
 
 ### 🔐 Obuna provayderlari
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Boshqaruv paneli → Provayderlar → Claude Codeʼni ulash
+Boshqaruv paneli → Provayderlar → Claude Code’ni ulash
 → OAuth orqali kirish → Tokenni avtomatik yangilash
 → 5 soatlik + haftalik kvotani kuzatish
 
@@ -137,18 +137,18 @@ Modellar:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Professional maslahat:** Murakkab vazifalar uchun Opusʼdan, tezlik uchun esa Sonnetʼdan foydalaning. OmniRoute har bir model boʻyicha kvotani kuzatadi!
+**Professional maslahat:** Murakkab vazifalar uchun Opus’dan, tezlik uchun Sonnet’dan foydalaning. OmniRoute har bir model boʻyicha kvotani kuzatadi!
 
-Claude va Claude Code bilan mos yoʻnalishlar Opus va Sonnet
-modellari uchun `max` fikrlash darajasini saqlab qoladi. Haiku modellari `max` darajasini qabul qilmaydi, shuning uchun OmniRoute
-soʻrovni yuqori oqimga yuborishdan oldin uni yuqori fikrlash byudjetiga tushiradi.
+OmniRoute hostida brauzer yoʻqmi? Claude Code tizimiga kirilgan istalgan joyda `claude setup-token` buyrugʻini ishga tushiring va bir yillik tokenni **Setup Token** ichki oynasiga joylashtiring. [Claude Code’dan sozlash tokeni bilan foydalanish](../providers/CLAUDE_CODE_SETUP_TOKEN.md) boʻlimiga qarang.
+
+Claude va Claude Code bilan mos keluvchi yoʻnalishlar Opus va Sonnet modellari uchun `max` fikrlash darajasini saqlab qoladi. Haiku modellari `max` darajasini qabul qilmaydi, shu sababli OmniRoute soʻrovni yuqori oqimga yuborishdan oldin uni yuqori fikrlash byudjetiga pasaytiradi.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Boshqaruv paneli → Provayderlar → Codexʼni ulash
+Boshqaruv paneli → Provayderlar → Codex’ni ulash
 → OAuth orqali kirish (port 1455)
-→ 5 soatlik + haftalik qayta tiklanish
+→ 5 soatlik + haftalik tiklanish
 
 Modellar:
   cx/gpt-5.5
@@ -160,9 +160,9 @@ Modellar:
 #### GitHub Copilot
 
 ```bash
-Boshqaruv paneli → Provayderlar → GitHubʼni ulash
+Boshqaruv paneli → Provayderlar → GitHub’ni ulash
 → GitHub orqali OAuth
-→ Oylik qayta tiklanish (oyning 1-kuni)
+→ Oylik tiklanish (har oyning 1-kuni)
 
 Modellar:
   gh/gpt-5.5
@@ -174,45 +174,43 @@ Modellar:
 
 ### 💰 Arzon provayderlar
 
-#### GLM-4.7 (Har kuni qayta tiklanadi, $0.6/1M)
+#### GLM-4.7 (Har kuni tiklanadi, $0.6/1M)
 
 1. Roʻyxatdan oʻting: [Zhipu AI](https://open.bigmodel.cn)
-2. Coding Planʼdan API kalitini oling
+2. Coding Plan’dan API kalitini oling
 3. Boshqaruv paneli → API kalitini qoʻshish: Provayder: `glm`, API kaliti: `your-key`
 
-**Foydalanish:** `glm/glm-4.7` — **Professional maslahat:** Coding Plan xarajatning 1/7 qismiga 3 baravar koʻp kvota taklif qiladi! Har kuni soat 10:00 da qayta tiklanadi.
+**Foydalanish:** `glm/glm-4.7` — **Professional maslahat:** Coding Plan xarajatning 1/7 qismiga 3× kvota taklif qiladi! Har kuni soat 10:00 da tiklanadi.
 
-#### MiniMax M2.1 (5 soatda qayta tiklanadi, $0.20/1M)
+#### MiniMax M2.1 (5 soatda tiklanadi, $0.20/1M)
 
 1. Roʻyxatdan oʻting: [MiniMax](https://www.minimax.io)
 2. API kalitini oling → Boshqaruv paneli → API kalitini qoʻshish
 
-**Foydalanish:** `minimax/MiniMax-M2.1` — **Professional maslahat:** Katta kontekst (1M token) uchun eng arzon variant!
+**Foydalanish:** `minimax/MiniMax-M2.1` — **Professional maslahat:** Uzoq kontekst uchun eng arzon variant (1M token)!
 
-#### Kimi K2 (oyiga qatʼiy $9)
+#### Kimi K2 (Oyiga qatʼiy $9)
 
 1. Obuna boʻling: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
 2. API kalitini oling → Boshqaruv paneli → API kalitini qoʻshish
 
-**Foydalanish:** `kimi/kimi-k2.5` — **Professional maslahat:** 10M token uchun oyiga qatʼiy $9 = amalda $0.90/1M xarajat!
+**Foydalanish:** `kimi/kimi-k2.5` — **Professional maslahat:** 10M token uchun oyiga qatʼiy $9 = amaldagi xarajat $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Roʻyxatdan oʻting: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Qianfan API kalitini yarating → Boshqaruv paneli → API kalitini qoʻshish: Provayder: `qianfan`
 
-**Foydalanish:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` yoki boshqa Qianfan OpenAI bilan mos model identifikatori.
+**Foydalanish:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1` yoki OpenAI bilan mos keluvchi boshqa Qianfan model identifikatori.
 
 ### 🆓 BEPUL provayderlar
 
-Autentifikatsiyasiz bepul provayderlarning provayder sahifasida **Autentifikatsiya talab qilinmaydi** bandi yonida almashtirgich mavjud.
-Uni oʻchirish ushbu provayderni faolsizlantiradi, Provayderlarning sozlangan/ixcham koʻrinishlaridan olib tashlaydi va
-uning modellarini `/v1/models` roʻyxatidan chiqaradi.
+Autentifikatsiya talab qilmaydigan bepul provayderlarning provayder sahifasida **Autentifikatsiya talab qilinmaydi** bandi yonida almashtirgich mavjud. Uni oʻchirish ushbu provayderni faolsizlantiradi, sozlangan/ixcham Provayderlar koʻrinishlaridan olib tashlaydi va uning modellarini `/v1/models` roʻyxatidan chiqaradi.
 
 #### Qoder (9 ta BEPUL model)
 
 ```bash
-Boshqaruv paneli → Qoderʼni ulash → OAuth orqali kirish → Foydalanish amaldagi provayder cheklovlariga bogʻliq
+Boshqaruv paneli → Qoder’ni ulash → OAuth orqali kirish → Kirish joriy provayder cheklovlariga bogʻliq
 
 Modellar: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -220,7 +218,7 @@ Modellar: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, i
 #### Kiro (Claude BEPUL)
 
 ```bash
-Boshqaruv paneli → Kiroʼni ulash → AWS Builder ID yoki Google/GitHub → oyiga ~50 kredit
+Boshqaruv paneli → Kiro’ni ulash → AWS Builder ID yoki Google/GitHub → Oyiga ~50 kredit
 
 Modellar: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

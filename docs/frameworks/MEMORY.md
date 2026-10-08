@@ -1040,6 +1040,65 @@ memoryManager.register(sqliteBackend);
 
 Wraps the existing Obsidian integration (`src/lib/memory/obsidianBackend.ts`). Connects to an Obsidian vault via the Obsidian Local REST API.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapter for a local [claude-mem](https://github.com/thedotmack/claude-mem) worker — the
+Claude Code / Codex / Cursor memory plugin that captures coding sessions as "observations".
+With it registered, the `/api/memory` REST routes and A2A memory search can read and write
+the same store that claude-mem's hooks fill.
+
+The worker binds loopback only, which `GenericMemoryBackend`'s SSRF guard rejects on purpose.
+This adapter does not loosen that guard: the host is hard-coded to `127.0.0.1` and the config
+schema (`ClaudeMemBackendConfigSchema`, `.strict()`) accepts only:
+
+| Key         | Type   | Default | Notes                                                                                                  |
+| ----------- | ------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| `port`      | number | —       | Required, 1024–65535. the claude-mem worker port from its settings file (default `37700 + uid % 100`). |
+| `project`   | string | —       | claude-mem project to use. Unset → each OmniRoute API key maps to its own project (the `apiKeyId`).    |
+| `timeoutMs` | number | `5000`  | Per-request timeout, 100–30000.                                                                        |
+
+Enable it through `PUT /api/settings/memory` and restart OmniRoute (backends are registered
+once, in `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Use `"primaryBackend": "claude-mem"` instead to make it the store for the REST API. An invalid
+config is logged (`claude-mem.backend.invalid_config`) and skipped, so SQLite stays primary.
+
+Mapping and limits:
+
+- IDs are `claude-mem:<observationId>`; `get`/`delete` ignore other backends' IDs without a
+  network call.
+- `create` → `POST /api/memory/save`; the OmniRoute fields (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) ride in claude-mem's `metadata.omniroute` and round-trip on read.
+- `search` → `GET /api/search?format=json&type=observations`, trimmed to `maxTokens`
+  (chars / 4). `list` → the worker's paginated observations endpoint (`total` is a lower bound — the worker
+  returns `hasMore`, not a count).
+- Hook-captured observations map `discovery` → `factual`, `decision` → `procedural`, and
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **No updates** (`update()` returns `false`; observations are immutable) and **no TTL**
+  (`expiresAt` is ignored). claude-mem dedups identical saves instead of upserting by `key`.
+- Prompt injection (`retrieval.ts`) and the `omniroute_memory_*` MCP tools still read SQLite
+  directly — they do not go through `memoryManager`, so this backend does not feed them.
+
+**Routing claude-mem's own LLM calls through OmniRoute.** claude-mem compresses observations
+with an LLM (default: the Claude Agent SDK). Its `openai-compatible` provider can point at
+OmniRoute instead, picking up combo fallback and cost tracking. In `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
+
 ### Settings
 
 Memory backend settings are stored in the app settings table and managed via `src/lib/memory/settings.ts`:
@@ -1059,6 +1118,7 @@ App bootstrap
   → index.ts imports (side-effect): registers SQLiteBackend
   → initMemoryBackends() called from app lifecycle:
       1. Load settings (getMemorySettings)
+      1b. Register opt-in backends present in backendConfigs (claude-mem)
       2. Configure primary + fallback
       3. Initialize all backends (health check)
       4. Ready for requests

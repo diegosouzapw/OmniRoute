@@ -5,29 +5,29 @@
 ---
 
 OmniRoute nodrošina atlasītu bezmaksas starpniekserveru kopu tabulā `free_proxies`,
-kas tiek sinhronizēta no ārējiem pakalpojumu sniedzējiem (1proxy, proxifly, iplocate, webshare).
-Informācijas panelī tie ir pieejami sadaļā **Iestatījumi → Bezmaksas starpniekserveri**. Šajā dokumentā
-ir aprakstīta servera puses filtrēšana, kārtošana, skaitīšana un sinhronizācijas kļūdu ziņošana,
-ko nodrošina saraksta maršruts.
+kas tiek sinhronizēta no ārējiem nodrošinātājiem (1proxy, proxifly, iplocate, webshare).
+Informācijas panelī tie ir pieejami sadaļā **Iestatījumi → Bezmaksas starpniekserveri**.
+Šajā dokumentā aprakstīta servera pusē veiktā filtrēšana, kārtošana, skaitīšana un
+sinhronizācijas kļūdu ziņošana, ko nodrošina saraksta maršruts.
 
 ## Saraksta maršruts — `GET /api/settings/free-proxies`
 
-Atgriež filtrētu, sakārtotu un lapotu datu daļu kopā ar kopējo ierakstu skaitu. Filtrēšana un
-skaitīšana notiek SQL līmenī, tāpēc lietotāja saskarne var parādīt faktisko kopskaitu (piemēram, `Kopā: 0`),
-neielādējot atmiņā visas rindas.
+Atgriež filtrētu, sakārtotu un lapotu datu daļu kopā ar kopējo ierakstu skaitu.
+Filtrēšana un skaitīšana notiek SQL līmenī, tāpēc lietotāja saskarne var parādīt
+patieso kopējo skaitu (piemēram, `Kopā: 0`), neielādējot visas rindas atmiņā.
 
 ### Vaicājuma parametri
 
-| Parametrs         | Tips                               | Noklusējums | Nozīme                                                                                                                      |
-| ----------------- | ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `search`          | virkne                             | `""`        | Reģistrjutīgs `LIKE` resursdatora (un avota) kolonnā.                                                                       |
-| `protocol`        | virkne                             | `""`        | `type` filtrs: `http` / `https` / `socks4` / `socks5`. Tukša vērtība = visi.                                                |
-| `country`         | virkne                             | `""`        | `countryCode` filtrs (ISO-2). Tukša vērtība = visas.                                                                        |
-| `minQuality`      | skaitlis                           | `0`         | Tikai rindas, kurām `qualityScore >= minQuality`. `0` = nav minimālās robežas.                                              |
-| `disabledSources` | virkne                             | `""`        | Ar komatiem atdalīti izslēdzamo avotu identifikatori (piemēram, `proxifly,webshare`).                                       |
-| `sortBy`          | `quality` \| `latency` \| `recent` | `quality`   | `quality` = rezultāts dilstoši; `latency` = latentums augoši (`null` vērtības beigās); `recent` = `lastValidated` dilstoši. |
-| `offset`          | skaitlis                           | `0`         | Lapošanas sākuma pozīcija.                                                                                                  |
-| `limit`           | skaitlis                           | `50`        | Lapas lielums (ierobežots servera pusē).                                                                                    |
+| Parametrs         | Tips                               | Noklusējums | Nozīme                                                                                                             |
+| ----------------- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `search`          | virkne                             | `""`        | Reģistrjutīgs `LIKE` resursdatora (un avota) kolonnā.                                                              |
+| `protocol`        | virkne                             | `""`        | `type` filtrs: `http` / `https` / `socks4` / `socks5`. Tukša vērtība = visi.                                       |
+| `country`         | virkne                             | `""`        | `countryCode` filtrs (ISO-2). Tukša vērtība = visas.                                                               |
+| `minQuality`      | skaitlis                           | `0`         | Tikai rindas, kurām `qualityScore >= minQuality`. `0` = bez minimālā sliekšņa.                                     |
+| `disabledSources` | virkne                             | `""`        | Ar komatiem atdalīti izslēdzamo avotu identifikatori (piemēram, `proxifly,webshare`).                              |
+| `sortBy`          | `quality` \| `latency` \| `recent` | `quality`   | `quality` = vērtējums dilstoši; `latency` = latentums augoši (nulles beigās); `recent` = `lastValidated` dilstoši. |
+| `offset`          | skaitlis                           | `0`         | Lapošanas sākuma pozīcija.                                                                                         |
+| `limit`           | skaitlis                           | `50`        | Lapas izmērs (servera pusē ierobežots līdz maksimālajai vērtībai).                                                 |
 
 ### Atbilde
 
@@ -47,29 +47,31 @@ neielādējot atmiņā visas rindas.
     "lastSyncAt": "2026-07-11T09:30:00.000Z"
   },
   "syncErrors": {
-    "proxifly": ["HTTP 429 from upstream"],
-    "webshare": ["network timeout"]
+    "proxifly": ["HTTP 429 no augšupējā pakalpojuma"],
+    "webshare": ["tīkla noildze"]
   }
 }
 ```
 
-`total` atspoguļo filtrēto kopskaitu **pirms** lapošanas, tāpēc lietotāja saskarne var neatkarīgi
-attēlot `Kopā: N` un `hasMore`. `syncErrors` atslēgas ir avotu identifikatori, un
-tas tiek aizpildīts tikai tiem avotiem, kuru pēdējā sinhronizācija neizdevās — rezultāts `Kopā: 0`
-nekad netiek parādīts bez paskaidrojuma.
+`total` norāda filtrēto kopējo ierakstu skaitu **pirms** lapošanas, tāpēc lietotāja
+saskarne var neatkarīgi attēlot `Kopā: N` un `hasMore`. `syncErrors` atslēgas ir
+avotu identifikatori, un tas tiek aizpildīts tikai tiem avotiem, kuru pēdējā
+sinhronizācija neizdevās — rezultāts `Kopā: 0` nekad netiek parādīts bez paskaidrojuma.
 
 ## Pievienošana kopai — `POST /api/settings/free-proxies/[id]/add-to-pool`
 
-Pārvieto bezmaksas starpniekserveri uz pārvaldīto `proxy_registry` kopu. Vispirms pārbauda
-ārējo avotu; veiksmīgas izpildes gadījumā atgriež jaunā kopas starpniekservera identifikatoru un izmērīto latentumu.
+Paaugstina bezmaksas starpniekserveri, pievienojot to pārvaldītajai `proxy_registry`
+kopai. Vispirms validē augšupējo pakalpojumu; veiksmes gadījumā atgriež jaunā kopas
+starpniekservera identifikatoru un izmērīto latentumu.
 
 ## Sinhronizācija — `POST /api/settings/free-proxies/sync`
 
-Atkārtoti iegūst datus no visiem iespējotajiem avotiem (vai no `{ "sources": [...] }` norādītās apakškopas). Katrs
-avots tiek sinhronizēts neatkarīgi; kļūme tiek reģistrēta `syncErrors`, bet pārējo avotu
-sinhronizācija joprojām tiek pabeigta, tāpēc daļēja sinhronizācija nekad neizdzēš iepriekš iegūtos derīgos datus.
+Atkārtoti iegūst datus no visiem iespējotajiem avotiem (vai no apakškopas, kas
+norādīta laukā `{ "sources": [...] }`). Katrs avots tiek sinhronizēts neatkarīgi;
+avota kļūme tiek reģistrēta `syncErrors`, bet pārējo avotu sinhronizācija joprojām
+tiek pabeigta, tāpēc daļēja sinhronizācija nekad neizdzēš iepriekš iegūtos derīgos datus.
 
 ## Statistika — `GET /api/settings/free-proxies/stats`
 
-Atgriež `total / inPool / avgQuality / bySource / lastSyncAt` apkopojumu
-bez rindu datiem — to izmanto informācijas paneļa galvenes logrīki.
+Atgriež `total / inPool / avgQuality / bySource / lastSyncAt` apkopojumu bez rindu
+datiem — to izmanto informācijas paneļa galvenes logrīki.

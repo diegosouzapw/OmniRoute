@@ -388,6 +388,21 @@ test("Claude -> OpenAI prefers output_config.effort over thinking.budget_tokens"
   assert.equal(result.reasoning_effort, "low");
 });
 
+test("Claude -> OpenAI prefers output_config.effort over explicit reasoning opt-out", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "high" },
+      thinking: { type: "disabled" },
+      reasoning_effort: "NONE",
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "high");
+});
+
 test("Claude -> OpenAI maps thinking.budget_tokens to reasoning_effort buckets", () => {
   const buckets: Array<{ budget: number; expected: string }> = [
     { budget: 512, expected: "low" },
@@ -411,6 +426,20 @@ test("Claude -> OpenAI maps thinking.budget_tokens to reasoning_effort buckets",
   }
 });
 
+test("Claude -> OpenAI prefers an enabled thinking budget over reasoning_effort=none", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      thinking: { type: "enabled", budget_tokens: 1024 },
+      reasoning_effort: "NONE",
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "low");
+});
+
 test("Claude -> OpenAI passes output_config.effort=max through verbatim", () => {
   const result = claudeToOpenAIRequest(
     "gpt-5",
@@ -424,7 +453,38 @@ test("Claude -> OpenAI passes output_config.effort=max through verbatim", () => 
   assert.equal(result.reasoning_effort, "max");
 });
 
-test("Claude -> OpenAI ignores disabled thinking and leaves reasoning_effort unset", () => {
+test("translateRequest maps disabled Claude thinking to reasoning_effort=none", () => {
+  const result = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI,
+    "gpt-5",
+    {
+      model: "gpt-5",
+      messages: [{ role: "user", content: "hi" }],
+      thinking: { type: "disabled" },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "none");
+});
+
+test("Claude -> OpenAI normalizes reasoning_effort=none casing", () => {
+  for (const effort of ["none", "NONE"]) {
+    const result = claudeToOpenAIRequest(
+      "gpt-5",
+      {
+        messages: [{ role: "user", content: "hi" }],
+        reasoning_effort: effort,
+      },
+      false
+    );
+
+    assert.equal(result.reasoning_effort, "none", effort);
+  }
+});
+
+test("Claude -> OpenAI leaves reasoning_effort unset for enabled thinking with a zero budget", () => {
   const result = claudeToOpenAIRequest(
     "gpt-5",
     {
