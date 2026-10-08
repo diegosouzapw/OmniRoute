@@ -252,12 +252,17 @@ export async function createEmbeddingResponse(
     }
     let baseUrl = configuredBaseUrl.trim();
     while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    // Keep the registry provider's structured-input capabilities (e.g. llama.cpp
+    // multimodal content parts); only the endpoint and auth come from the connection.
+    const registryConfig = getEmbeddingProvider(provider);
     providerConfig = {
       id: provider,
       baseUrl: baseUrl.endsWith("/embeddings") ? baseUrl : `${baseUrl}/embeddings`,
       authType: "apikey",
       authHeader: "bearer",
       models: [],
+      structuredInputProtocol: registryConfig?.structuredInputProtocol,
+      passthroughModalities: registryConfig?.passthroughModalities,
     };
   }
 

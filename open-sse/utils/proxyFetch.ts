@@ -388,7 +388,7 @@ function isTlsRequestEligible(
   return Object.keys(options).every((key) => TLS_ALLOWED_OPTION_KEYS[key] === true);
 }
 
-function isTlsFallbackReplaySafe(
+function isAmbiguousFailureReplaySafe(
   input: RequestInfo | URL,
   options: FetchWithDispatcherOptions
 ): boolean {
@@ -855,7 +855,7 @@ async function patchedFetchUnrecorded(
           typeof error === "object" &&
           "sessionHadCookies" in error &&
           error.sessionHadCookies === true;
-        if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+        if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
           throw sanitizeTransportError(
             error,
             sessionHadCookies
@@ -880,23 +880,19 @@ async function patchedFetchUnrecorded(
       return _nativeFetch(input, options);
     }
     // Direct undici path: bound response-start, fresh-socket retry, and body guard.
+    const directOptions = { ...options, signal: getEffectiveSignal(input, options) };
     const hasNonReplayableBody = requestHasNonReplayableBody(input, options);
+    // Method gating covers response-start ambiguity; connection-error retries remain below.
+    const canReplayResponseStartTimeout = isAmbiguousFailureReplaySafe(input, options);
     const maxAttempts = hasNonReplayableBody ? 1 : 2;
     const _undiciDirect =
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
 
-    // A loopback self-request (model sync, auto-discovery, internal routes) must
-    // NOT inherit the outbound-egress policy below. That policy bounds
-    // response-start and then REPLAYS the request on a fresh no-keep-alive
-    // dispatcher, which is designed for a dead keep-alive socket to a remote
-    // host (#10214). Against our own listener there is no such socket to
-    // detect: the replay just doubles how long a slow internal request occupies
-    // one of our OWN inbound slots (30s bound + 30s replay). When a provider
-    // stalls, those self-requests pile up against the chat admission limit and
-    // starve live traffic until Cloudflare cuts the client at its 120s proxy
-    // read timeout (HTTP 524). Send loopback straight through the native fetch.
+    // Loopback self-requests must not inherit remote-egress response-start replay:
+    // replaying against our own listener only doubles inbound-slot occupancy and
+    // can starve live traffic until Cloudflare's 120s read timeout (#10214).
     let isLoopbackTarget = false;
     try {
       isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
@@ -908,7 +904,7 @@ async function patchedFetchUnrecorded(
     }
 
     let lastDispatcherError: unknown = null;
-    const timeoutFor = directHeadersTimeoutResolver(options, targetUrl);
+    const timeoutFor = directHeadersTimeoutResolver(directOptions, targetUrl);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -924,18 +920,19 @@ async function patchedFetchUnrecorded(
         return await directFetchWithBoundedResponseStart(
           input,
           {
-            ...options,
+            ...directOptions,
             dispatcher:
               attempt === 0
                 ? getDefaultDispatcher(hostnameForDispatcher)
                 : getRetryDispatcher(hostnameForDispatcher),
           },
           _undiciDirect,
-          timeoutFor(attempt)
+          timeoutFor(attempt === 0 && canReplayResponseStartTimeout ? 0 : 1)
         );
       } catch (dispatcherError) {
+        if (isCallerAbort(dispatcherError, directOptions.signal)) throw dispatcherError;
         if (isDirectResponseStartTimeout(dispatcherError)) {
-          if (attempt === 0 && maxAttempts > 1) {
+          if (attempt === 0 && maxAttempts > 1 && canReplayResponseStartTimeout) {
             console.warn(
               `[ProxyFetch] Direct response-start timeout (${timeoutFor(0)}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
             );
@@ -1194,7 +1191,7 @@ async function patchedFetchUnrecorded(
         typeof error === "object" &&
         "sessionHadCookies" in error &&
         error.sessionHadCookies === true;
-      if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+      if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
         throw sanitizeTransportError(
           error,
           sessionHadCookies

@@ -15,6 +15,7 @@ import {
 import {
   getProviderConnections,
   updateProviderConnection,
+  mergeConnectionProviderSpecificData,
   getProviderConnectionById,
   resetConnectionBackoff,
   touchConnectionLastUsed,
@@ -3204,8 +3205,8 @@ export async function markAccountUnavailable(
           connProviderSpecificData,
           model
         );
+        await mergeConnectionProviderSpecificData(connectionId, persistedProviderSpecificData);
         await updateProviderConnection(connectionId, {
-          providerSpecificData: persistedProviderSpecificData,
           lastErrorType: "free_quota_exhausted",
           lastError: `Model ${model} free quota exhausted`,
           lastErrorAt: new Date().toISOString(),
@@ -3236,7 +3237,6 @@ export async function markAccountUnavailable(
         return { shouldFallback: true, cooldownMs: 0 };
       }
     }
-
     if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
       const lockout = recordModelLockoutFailure(
         provider,

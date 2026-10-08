@@ -417,6 +417,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
   },
 
+  // ── Claude Haiku 5.5 ────────────────────────────────────────────
+  // Adaptive-thinking-only, like Sonnet 5.5: `thinking.type:"enabled"` returns
+  // 400 ("use thinking.type.adaptive and output_config.effort"). Haiku 4.5 and
+  // earlier still accept manual budgets, so this spec must NOT be widened to
+  // the /haiku/ family. Limits from the gateway catalog (context 1M, output 128K).
+  "claude-haiku-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5"),
+  },
+
   // ── Claude Sonnet 5.5 ───────────────────────────────────────────
   "claude-sonnet-5-5": {
     // Same shape as Sonnet 5, but it rejects thinking.type:"disabled"

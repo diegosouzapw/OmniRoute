@@ -59,6 +59,7 @@
       "tests/unit/stream-stall-no-account-cooldown.test.ts",
       "tests/unit/claude-passthrough-unsigned-thinking-12917.test.ts",
       "tests/unit/combo-error-code-terminal.test.ts",
+      "tests/unit/combo-protected-stop-diagnostics.test.ts",
       "tests/unit/model-validation-runner.test.ts",
       "tests/unit/model-concurrency-gate.test.ts",
       "tests/unit/bare-403-neutral.test.ts",
